@@ -86,7 +86,7 @@ SLOTS =  {
     "TNG" : {
       "files" : "./slots/tng/",
       "payout" : 1,
-      "custom_jackpot" : None,
+      "custom_jackpot" : ["picard", "picard", "picard"],
       "matches" : {
         "Villains" : ["armus", "pakled", "lore"],
         "Federation Captains" : ["picard", "jellico"],
@@ -233,9 +233,18 @@ SLOTS =  {
         "Fistful of Datas" : ["sherrif_worf", "frank_hollander_data", "durango_troi"],
         "Elementary, my Dear Data" : ["sherlock_data", "moriarity", "regina_bartholomew"],
         "Doctor's Fantasies" : ["ech", "author_emh", "teetime_doctor"],
-        "Villains" : ["moriarity", "hippocrates_sisko", "frank_hollander_data", "cyrus_redblock"],
+        "Villains" : ["moriarity", "hippocrates_sisko", "frank_hollander_data", "cyrus_redblock", "anastasia_kira", "falcon_obrien"],
         "State Enforcers" : ["sherrif_worf", "spy_bashir"],
         "Faces of Geordi" : ["sailor_laroge", "musketeer_geordi"],
+        "Faces of Beverly": ["sailor_beverly", "doc_beverly"],
+        "Faces of Worf" : ["duchamps_worf", "sailor_worf", "sherrif_worf"],
+        "Faces of Data" : ["sherlock_data", "sailor_data", "musketeer_data"],
+        "Faces of Picard" : ["dixon_hill", "musketeer_picard"],
+        "Faces of Tuvok" : ["bartender_tuvok", "warship_tuvok"],
+        "Faces of Troi" : ["troi_goddess_of_empathy", "durango_troi"],
+        "Smoke Break" : ["anastasia_kira", "duchamps_worf", "gloria_guinan"],
+        "Cute Bowtie" : ["bartender_tuvok", "duchamps_worf", "spy_bashir", "teetime_doctor"]
+        
       }
     },
     "TEST" : {
@@ -321,8 +330,27 @@ JACKPOT = 0
 ALL_PLAYERS = []
 
 
-PROFILE_CARDS = ["Archer", "Bashir", "Brunt", "Data", "EMH", "Garak", "Gowron", "Janeway", "Mark Twain", "Picard", "Q", "Quark", "Sisko", "Shran", "Tilly", "Worf"]
-
+PROFILE_CARDS = ["Archer", "Bashir", "Boimler", "Brunt", "Data", "EMH", "Garak", "Gowron", "Janeway", "Mark Twain", "Picard", "Q", "Quark", "Ransom", "Sisko", "Shran", "Tilly", "Worf"]
+PROFILE_BADGES = {
+  "TGG TNG Logo" : "TGG_TNG_logo.jpg",
+  "TGG DS9 Logo" : "TGG_DS9_logo.png",
+  "TGD Logo" : "TGD_logo.png",
+  "Adam Pranica" : "adam_lmao.png",
+  "Ben Harrison" : "ben420laughlmao.png",
+  "Card Daddy" : "bill_cardaddy_thumbsup.png",
+  "Heart" : "heart.png",
+  "Horgahn" : "horgahn.png",
+  "Banger" : "icon_banger_no_background_small.png",
+  "Mr. Bucket" : "mr-bucket.png",
+  "Ding!" : "ding_bell.png",
+  "Bashir's Special" : "bashir_splash.png"
+}
+SHOP_ROLES = {
+  "High Roller" : {
+    "id" : 894594667893641236,
+    "price" : 9999
+  }
+}
 
 @client.event
 async def on_ready():
@@ -369,34 +397,95 @@ async def on_message(message):
 
 
   if message.channel.id == SHOP_CHANNEL:
-    if message.content.lower().startswith("!shop"):
-      msg = "__**Shop Items:**__\n"
+    if message.content.lower() == "!shop":
+      msg = "Please use `!shop profiles` or `!shop badges` or `!shop roles`"
+      await message.channel.send(msg)
+
+    if message.content.lower().startswith("!shop roles"):
+      msg = "__**Role Shop:**__\n COMMANDERS TAKE NOTE: You will be able to buy these roles, but any vanity effects will not apply to you. Sorry!\n\n"
+      c = 1
+      for i in SHOP_ROLES:
+        msg += "`{}` - Role: *{}* - Price: `{}` points\n".format(c, i, SHOP_ROLES[i]["price"])
+      msg += "\nAll proceeds go to directly to the jackpot. Type `!buy role` follow by the item number to purchase a role"
+      await message.channel.send(msg)
+
+    if message.content.lower().startswith("!shop profiles"):
+      msg = "__**Profile Shop:**__\n"
       c = 1
       for i in PROFILE_CARDS:
         msg += "`{}` - Profile Card: *{}*\n".format(c, i)
         c += 1
-      msg += "\n`25 points` each. All proceeds go directly to the jackpot\nType `!buy` followed by the item number to buy an item"
+      msg += "\n`25 points` each. All proceeds go directly to the jackpot\nType `!buy profile` followed by the item number to buy a profile card"
+      await message.channel.send(msg)
+
+    if message.content.lower().startswith("!shop badges"):
+      msg = "__**Badge Shop**__\n"
+      c = 1
+      for i in PROFILE_BADGES:
+        msg += "`{}` - Badge: *{}*\n".format(c, i)
+        c += 1
+      msg += "\n`100 points` each. All proceeds go directly to the jackpot\nType `!buy badge` followed by the item number to buy a badge"
       await message.channel.send(msg)
 
     if message.content.lower().startswith("!buy"):
-      item_to_buy = message.content.lower().replace("!buy ", "")
-      msg = ""
-      player = get_player(message.author.id)
-      if player["score"] < 25:
-        msg = "{}: You need `25 points` to buy a new profile card!".format(message.author.mention)
+      
+      buy_string = message.content.lower().replace("!buy ", "").split()
+      if len(buy_string) < 2:
+        await message.channel.send("Invalid shop category.  Please use `!buy badge` or `!buy profile` or `!buy role`.")
       else:
-        if item_to_buy.isnumeric():
-          if int(item_to_buy) <= len(PROFILE_CARDS):
-            item = int(item_to_buy) - 1
-            update_player_profile_card(message.author.id, PROFILE_CARDS[item].lower())
-            set_player_score(message.author, -25)
-            increase_jackpot(25)
-            msg = "{}: You have spent `25 points` and purchased the **{}** profile card! Type `!profile` to show it off!".format(message.author.mention, PROFILE_CARDS[item])
-          else:
-            msg = "Not a valid item number! Type `!shop` to see the list."
+        item_cat = buy_string[0]
+        item_to_buy = buy_string[1]
+        items = None
+        msg = ""
+        
+        if item_cat not in ["badge", "profile", "role"]:
+          msg = "Invalid shop category.  Please use `!buy badge` or `!buy profile` or `!buy role`."
         else:
-          msg = "Not a valid item number! Type `!shop` to see the list."
-      await message.channel.send(msg)
+          
+          if item_cat == "badge":
+            items = PROFILE_BADGES
+            cost = 100
+          if item_cat == "profile":
+            items = PROFILE_CARDS
+            cost = 25
+          if item_cat == "role":
+            items = SHOP_ROLES
+            roles = list(SHOP_ROLES)
+            cost = SHOP_ROLES[roles[int(item_to_buy)-1]]["price"] # uh oh...
+
+          player = get_player(message.author.id)
+          if player["score"] < cost:
+            msg = "{}: You need `{} points` to buy that item!".format(message.author.mention, cost)
+          else:
+            if item_to_buy.isnumeric():
+              if int(item_to_buy) <= len(items):
+                
+                item = int(item_to_buy) - 1
+                
+                if item_cat == "badge":
+                  badges = list(PROFILE_BADGES)
+                  final_item = PROFILE_BADGES[badges[item]]
+                  update_player_profile_badge(message.author.id, final_item)
+                  msg = "{}: You have spent `{} points` and purchased the **{}** profile badge! Type `!profile` to show it off!".format(message.author.mention, cost, badges[item])
+                
+                if item_cat == "profile":
+                  update_player_profile_card(message.author.id, items[item].lower())
+                  msg = "{}: You have spent `{} points` and purchased the **{}** profile card! Type `!profile` to show it off!".format(message.author.mention, cost, items[item])
+                
+                if item_cat == "role":
+                  roles = list(SHOP_ROLES)
+                  final_item = SHOP_ROLES[roles[item]]["id"]
+                  await update_player_role(message.author, final_item)
+                  msg = "{}: You have spent `{} points` and purchased the **{}** role!  You should see the role immediately, but you may need to refresh Discord to see it fully!".format(message.author.mention, cost, roles[item])
+
+                set_player_score(message.author, -cost)
+                increase_jackpot(cost)
+
+              else:
+                msg = "Not a valid item number!"
+            else:
+              msg = "Not a valid item number!"
+        await message.channel.send(msg)
 
   
   # if a quiz is a running, start checking answers
@@ -479,8 +568,10 @@ A silly shop to waste your points on!
 All proceeds go directly to the jackpot.
 
 **COMMANDS**
-`!shop` - list all the items for sale
-`!buy 1` - buy item number 1!  try a different number!
+`!shop profiles` - list all profile cards for sale
+`!shop badges` - list all the badges for sale
+`!buy profile 1` - buy profile number 1!  try a different number!
+`!buy badge 1` - buy badge number 1!  try a different number!
 `!profile` - see your profile card
       '''
 
@@ -1111,8 +1202,9 @@ def roll_slot(slot_series, generate_image=True, filename="slot_results.png"):
   result_set = set(results)
   matching_results = [s.replace(".png", "") for s in result_set]
   jackpot = False
-  #print(set(slot_to_roll["custom_jackpot"]))
-  if len(result_set) == 1 or (slot_to_roll["custom_jackpot"] != None and set(slot_to_roll["custom_jackpot"]) == result_set):
+  # print(set(slot_to_roll["custom_jackpot"]))
+  # print(set(result_set))
+  if len(result_set) == 1 or (set(slot_to_roll["custom_jackpot"]) == result_set):
     matching_chars.append(results[0].replace(".png", ""))
     jackpot = True
 
@@ -1157,14 +1249,20 @@ def get_concat_h_blank(im1, im2, im3, color, logo):
 async def generate_profile_card(user, channel):
   player = get_player(user.id)
   template_image = "template.png"
+  badge_image = None
   
   if player["profile_card"] != None:
     template_image = "template_{}.png".format(player["profile_card"].replace(" ", "_"))
 
+  if player["profile_badge"] != None:
+    badge_image = "./profiles/badges/{}".format(player["profile_badge"])
+
   image = Image.open(f"./profiles/{template_image}", "r")
   image = image.convert("RGBA")
-  print(player)
+  
   image_data = np.array(image)
+  
+  # replace white with profile color
   red, green, blue = image_data[:,:,0], image_data[:,:,1], image_data[:,:,2]
   r1, g1, b1 = 255,255,255
   r2, g2, b2 = user.color.to_rgb()
@@ -1174,8 +1272,11 @@ async def generate_profile_card(user, channel):
   
 
   spins = player["spins"]
+  jackpots = player["jackpots"]
+
   is_mobile = user.is_on_mobile()
   image = Image.fromarray(image_data)
+  image = image.convert("RGBA")
   #color = ImageColor.getcolor(f"#{r}{g}{b}", "RGB")
 
   user_name = f"{user.display_name}".rjust(14, " ")
@@ -1186,18 +1287,38 @@ async def generate_profile_card(user, channel):
 
   name_font = ImageFont.truetype("lcars.ttf", 56)
   score_font = ImageFont.truetype("lcars.ttf", 32)
+  spins_font = ImageFont.truetype("lcars.ttf", 24)
   date_font = ImageFont.truetype("lcars.ttf", 25)
-  draw = ImageDraw.Draw(image)
+  
   avatar_image = Image.open("./profiles/"+str(user.id)+"_a.jpg")
   avatar_image.resize((128,128))
   image.paste(avatar_image, (13, 142))
+
+  if badge_image:
+    badge_template = Image.new("RGBA", (600,400))
+    badge = Image.open(badge_image)
+    badge = badge.convert("RGBA")
+    badge = badge.resize((50,50))
+    badge_template.paste(badge, (542, 341))
+    image = Image.alpha_composite(image, badge_template)
+  
+  if player["high_roller"] == 1:
+    vip_template = Image.new("RGBA", (600, 400))
+    vip_badge = Image.open("./profiles/badges/ferengi.png")
+    vip_badge = vip_badge.resize((64,64))
+    vip_template.paste(vip_badge, (20, 300))
+    image = Image.alpha_composite(image, vip_template)
+  
+  draw = ImageDraw.Draw(image)
   
   draw.line([(0, 0), (600, 0)], fill=(r2,g2,b2), width=5)
-  draw.text( (546, 15), user_name[0:14], fill="white", font=name_font, anchor="rt", align="right")
+  draw.text( (546, 15), user_name[0:16], fill="white", font=name_font, anchor="rt", align="right")
   draw.text( (324, 364), score, fill="white", font=score_font)
+  draw.text ( (22, 85), "SPINS: {}".format(player["spins"]), fill="white", font=spins_font, align="left",stroke_fill="black", stroke_width=2)
+  draw.text ( (22, 110), "JACKPOTS: {}".format(player["jackpots"]), fill="white", font=spins_font, align="left",stroke_fill="black", stroke_width=2)
   if is_mobile:
     draw.text( (20, 120), "AWAY TEAM", fill="white", font=score_font)
-  draw.text( (60, 282), user_join, fill="white", font=date_font, spacing=0.1, stroke_fill="black", stroke_width=1)
+  draw.text( (60, 282), user_join, fill="white", font=date_font, spacing=0.1, stroke_fill="black", stroke_width=2)
   
   image.save("./profiles/"+str(user.id)+".png")
   discord_image = discord.File("./profiles/"+str(user.id)+".png")
@@ -1437,6 +1558,48 @@ def update_player_profile_card(discord_id, card):
   query.close()
   db.close()
 
+def update_player_profile_badge(discord_id, badge):
+  db = mysql.connector.connect(
+    host=DB_HOST,
+    user=DB_USER,
+    database=DB_USER,
+    password=DB_PASS,
+  )
+  query = db.cursor()
+  sql = "UPDATE users SET profile_badge = %s WHERE discord_id = %s"
+  vals = (badge, discord_id)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+
+
+
+async def update_player_role(user, role):
+  # add crew role
+  if role == 894594667893641236:
+    add_high_roller(user.id)
+
+  role = discord.utils.get(user.guild.roles, id=role)
+  if role not in user.roles:
+    await user.add_roles(role)
+  
+
+def add_high_roller(discord_id):
+  db = mysql.connector.connect(
+    host=DB_HOST,
+    user=DB_USER,
+    database=DB_USER,
+    password=DB_PASS,
+  )
+  query = db.cursor()
+  sql = "UPDATE users SET high_roller = 1 WHERE discord_id = %s"
+  vals = (discord_id,)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+
 
 
 def get_high_scores():
@@ -1447,7 +1610,7 @@ def get_high_scores():
     password=DB_PASS,
   )
   query = db.cursor(dictionary=True)
-  sql = "SELECT * FROM users ORDER BY score DESC LIMIT 50"
+  sql = "SELECT * FROM users ORDER BY score DESC LIMIT 25"
   query.execute(sql)
   scores = query.fetchall()
   return scores
