@@ -843,7 +843,7 @@ Only one quiz can be active at a time
   if message.channel.id == SLOTS_CHANNEL and message.content.lower().startswith("!setwager"):
 
     min_wager = 1
-    max_wager = 25
+    max_wager = 100
     wager_val = message.content.lower().replace("!setwager ", "")
     
     player = get_player(message.author.id)
