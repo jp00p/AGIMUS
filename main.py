@@ -86,29 +86,32 @@ SLOTS =  {
     "TNG" : {
       "files" : "./slots/tng/",
       "payout" : 1,
-      "custom_jackpot" : ["picard", "picard", "picard"],
+      "custom_jackpots" : [
+        ["caveman_riker", "spider_barclay", "devolved_worf"],
+        ["merry_picard", "merry_q", "merry_vash"],
+      ],
       "matches" : {
-        "Villains" : ["armus", "pakled", "lore"],
-        "Federation Captains" : ["picard", "jellico"],
+        "Villains" : ["armus", "pakled", "lore", "gul_madred", "romyarlin", "locutus", "ardra"],
+        "Federation Captains" : ["picard", "jellico", "castillo"],
         "Olds" : ["pulaski", "jellico", "picard", "kevin"],
         "No Law to fit your Crime" : ["picard", "kevin"],
         "Music Box Torture" : ["kevin", "troi"],
-        "Ensigns" : ["ro", "wesley"],
+        "Ensigns" : ["ro", "wesley", "robin_lefler"],
         "Omnipotent" : ["q", "armus", "kevin"],
         "Bros" : ["data", "lore"],
         "Doctors" : ["beverly", "pulaski"],
-        "Drunkards" : ["obrien", "pulaski"],
+        "Drunkards" : ["obrien", "pulaski", "scotty"],
         "Rascals" : ["ro", "guinan", "picard", "keiko"],
         "Baby Delivery Team" : ["worf", "keiko"],
-        "Robot Fuck Team" : ["data", "yar"],
+        "Robot Fuck Team" : ["data", "honry_tasha"],
         "Loving Couple" : ["obrien", "keiko"],
         "Best Friends" : ["geordi", "data"],
         "Jazz Funeral" : ["geordi", "ro"],
-        "Engineers" : ["geordi", "obrien"],
+        "Engineers" : ["geordi", "obrien", "scotty"],
         "Nexus Travellers" : ["guinan", "picard"],
         "Related to Jack Crusher" : ["beverly", "wesley"],
         "Eggs for Breakfast" : ["riker", "pulaski", "worf"],
-        "Humanity on Trial" : ["q", "picard"],
+        "Humanity on Trial" : ["judge_q", "picard"],
         "Delta Shift" : ["riker", "jellico"],
         "Imzadi" : ["troi", "riker"],
         "\"Nice house, good tea\"" : ["worf", "kevin"],
@@ -119,13 +122,51 @@ SLOTS =  {
         "Coffee and Croissants" : ["picard", "beverly"],
         "Uncomfortable with Children" : ["picard", "wesley"],
         "Bean Flicking Stance" : ["guinan", "q"],
-        "\"I don't need your fantasy women\"" : ["riker", "q"]
+        "\"I don't need your fantasy women\"" : ["riker", "q"],
+        "Faces of Q": ["archeologist_q", "data_q", "french_q", "general_q", "merry_q", "q"],
+        "Nottingham Friends" : ["merry_q", "merry_riker", "merry_troi", "merry_vash", "merry_worf", "merry_geordi", "merry_beverly", "merry_picard"],
+        "Unsure about number of Lights" : ["gul_madred", "picard"],
+        "Head Asplode" : ["remmick", "riker", "picard"],
+        "Horny Mom" : ["lwaxana", "picard"],
+        "Play Dom-Jot Hu-man" : ["afterlife_q", "cadet_picard"],
+        "Heh, I don't believe this!" : ["angel_one_riker", "yar"],
+        "I can show you the world..." : ["archeologist_q", "vash"],
+        "Triangle of Jealousy" : ["picard", "vash", "beverly"],
+        "Double the Consent" : ["riker", "thomas_riker"],
+        "One-Time Visitors" : ["vash", "mendron", "maddox", "kevin", "hugh", "one_zero_zero_one", "okona", "scotty", "robin_lefler", "jellico", "dr_reyga"],
+        "Murder She Wrote" : ["beverly", "dr_reyga"],
+        "The First Duty" : ["nick_locarno", "wesley"],
+        "Borgs!" : ["locutus", "hugh"],
+        "Genesis" : ["caveman_riker", "spider_barclay", "devolved_worf"],
+        "Measure of a Man" : ["maddox", "data"],
+        "Doppelganger" : ["data", "data_q"],
+        "Before and After" : ["wesley", "traveler_wesley"],
+        "Faces of Yar" : ["temporal_tasha", "romyarlin", "yar", "horny_tasha"],
+        "Let's do the Timewarp Again": ["temporal_tasha", "castillo"],
+        "What Could Have Been" : ["temporal_tasha", "cadet_picard", "flute_picard"],
+        "False Gods" : ["ardra", "kahless"],
+        "Murder Chip Stress Test" : ["fajo", "data"],
+        "Travel Who?" : ["the_traveler", "wesley"],
+        "Jazz Trap" : ["riker", "one_zero_zero_one"],
+        "Faces of Riker" : ["riker", "angel_one_riker", "caveman_riker", "merry_riker"],
+        "Faces of Beverly" : ["beverly", "merry_beverly"],
+        "Faces of Worf" : ["devolved_worf", "worf", "merry_worf"],
+        "Faces of Picard" : ["cadet_picard", "picard", "merry_picard", "locutus"],
+        "Those are Klingons?!" : ["worf", "kahless", "gowron"],
+        "The Eyes have it" : ["gowron", "spider_barclay"],
+        "His Eyes Uncovered!" : ["dathon", "picard"],
+        "Suck Disk Averse" : ["robin_lefler", "wesley"],
+        "Blueshirts" : ["maddox", "beverly", "pulaski", "troi"],
+        "Lieutenants" : ["maddox", "barclay", "yar"]
+        
       }
     },
     "DS9" : {
       "files" : "./slots/ds9/",
       "payout" : 1.5,
-      "custom_jackpot" : ["weyoun4", "weyoun5", "weyoun6"],
+      "custom_jackpots" : [
+        ["weyoun4", "weyoun5", "weyoun6"]
+      ],
       "matches": {
         "The Dominion" : ["weyoun4", "weyoun5", "weyoun6", "yelgrun", "keevan", "kilana", "flakeleader", "goranagar", "ikatika"],
         "\"Old Man\"" : ["jadzia", "sisko"],
@@ -176,13 +217,14 @@ SLOTS =  {
         "Klingons":["gowron", "worf", "grilka"],
         "Leeta Lovers":["bashir", "rom"],
         "Bajoran-Ferengi Romance": ["leeta", "rom"],
-        
       }
     },
     "VOY" : {
       "files" : "./slots/voy/",
       "payout" : 1.25,
-      "custom_jackpot" : ["neelix", "tuvok", "tuvix"],
+      "custom_jackpots" : [
+        ["neelix", "tuvok", "tuvix"]
+      ],
       "matches" : {
         "D-Quad Born" : ["borg_queen", "culluh", "danara_pei", "fesek", "icheb", "karr", "kes", "kurros", "naomi_wildman", "neelix", "penk", "sulan", "tuvix"],
         "Bride of Chaotica" : ["arachnia", "chaotica", "captain_proton", "president_doctor"],
@@ -222,7 +264,9 @@ SLOTS =  {
     "HOLODECK" : {
       "files" : "./slots/holodeck/",
       "payout" : 1.5,
-      "custom_jackpot" : ["musketeer_picard", "musketeer_data", "musketeer_geordi"],
+      "custom_jackpots" : [
+        ["musketeer_picard", "musketeer_data", "musketeer_geordi"]
+      ],
       "matches": {
         "Warship: Voyager" : ["warship_chakotay", "warship_janeway", "warship_tuvok", "warship_doctor"],
         "Big Dix" : ["dixon_hill", "doc_beverly", "gloria_guinan", "cyrus_redblock"],
@@ -234,7 +278,7 @@ SLOTS =  {
         "Elementary, my Dear Data" : ["sherlock_data", "moriarity", "regina_bartholomew"],
         "Doctor's Fantasies" : ["ech", "author_emh", "teetime_doctor"],
         "Villains" : ["moriarity", "hippocrates_sisko", "frank_hollander_data", "cyrus_redblock", "anastasia_kira", "falcon_obrien"],
-        "State Enforcers" : ["sherrif_worf", "spy_bashir"],
+        "Investigators" : ["sherlock_data", "spy_bashir", "sherrif_worf"],
         "Faces of Geordi" : ["sailor_laroge", "musketeer_geordi"],
         "Faces of Beverly": ["sailor_beverly", "doc_beverly"],
         "Faces of Worf" : ["duchamps_worf", "sailor_worf", "sherrif_worf"],
@@ -243,12 +287,43 @@ SLOTS =  {
         "Faces of Tuvok" : ["bartender_tuvok", "warship_tuvok"],
         "Faces of Troi" : ["troi_goddess_of_empathy", "durango_troi"],
         "Smoke Break" : ["anastasia_kira", "duchamps_worf", "gloria_guinan"],
-        "Cute Bowtie" : ["bartender_tuvok", "duchamps_worf", "spy_bashir", "teetime_doctor"]
-        
+        "Cute Bowtie" : ["bartender_tuvok", "duchamps_worf", "spy_bashir", "teetime_doctor"],
+        "Trapped in a Cube" : ["moriarity", "regina_bartholomew"],
+        "Redshirts" : ["ech", "warship_janeway", "warship_chakotay", "hippocrates_sisko"],
+      }
+    },
+    "SHIPS": {
+      "files" : "./slots/ships/",
+      "payout" : 1,
+      "custom_jackpots" : [
+        ["enterprise_d", "borg_cube", "borg_sphere"]
+      ],
+      "matches" : {
+        "First Contact" : ["enterprise_d", "borg_sphere"],
+        "Q Who?" : ["enterprise_d", "borg_sphere"],
+        "Entrepreneurs" : ["enterprise", "enterprise_d", "pikes_enterprise", "iss_enterprise"],
+        "Ticks" : ["jemhadar_battleship", "jemhadar_fighter"],
+        "Retro Classics" : ["discovery", "enterprise", "klingon_bird_of_prey", "pikes_enterprise"],
+        "Something-Class" : ["constellation_class", "constitution_class", "galaxy_class", "intrepid_class", "miranda_class"],
+        "Ships of Primetime" : ["enterprise", "enterprise_d", "voyager"],
+        "Borgs!" : ["borg_cube", "borg_sphere"],
+        "DS9 Dockers" : ["defiant", "ferengi_warship", "carassian_cruiser", "breen_warship"],
+        "Pointy" : ["defiant", "hirogen", "orion_syndicate", "romulan_warbird", "vulcan_battlecruiser"],
+        "Mysterious" : ["breen_warship", "orion_syndicate"],
+        "Named but not the Star" : ["uss_reliant", "shenzou", "defiant"],
+        "Badlands Battlers" : ["cardassian_cruiser", "maquis_raider"],
+        "SCREE!!!" : ["klingon_bird_of_prey", "romulan_warbird"],
+        "Dominion Lovers" : ["jemhadar_battleship", "jemhadar_fighter", "cardassian_cruiser", "breen_warship"],
+        "Everyday Annoyance" : ["voyager", "borg_cube"],
+        "WW2 Re-enactment" : ["hirogen", "voyager"],
+        "Chakotay Go Home" : ["maquis_raider", "voyager"],
+        "The Die is Cast" : ["defiant", "jemhadar_battleship", "jemhadar_fighter"],
+        "Disco Inferno" : ["shenzou", "discovery", "pikes_enterprise"]
       }
     },
     "TEST" : {
       "files" : "./slots/test/",
+      "custom_jackpots" : [],
       "payout" : 0,
       "matches" : {
         "armus" : ["oops all armus"]
@@ -570,6 +645,7 @@ All proceeds go directly to the jackpot.
 **COMMANDS**
 `!shop profiles` - list all profile cards for sale
 `!shop badges` - list all the badges for sale
+`!shop roles` - list all the roles for sale
 `!buy profile 1` - buy profile number 1!  try a different number!
 `!buy badge 1` - buy badge number 1!  try a different number!
 `!profile` - see your profile card
@@ -584,7 +660,7 @@ DS9 slots are harder to win a jackpot on, but pay 1.5x the bounty!
 
 **COMMANDS**
 `!slots` - run a random slot machine!
-`!slots ds9` - run a specific slot machine! (try `tng` `ds9` or `voy` or `holodeck`)
+`!slots ds9` - run a specific slot machine! (try `tng` `ds9` or `voy` or `holodeck` or `ships`)
 `!setwager 1` - set your default wager (try a different number!)
 `!jackpots` - see a history of jackpots
 `!jackpot` - see the current bounty
@@ -638,7 +714,7 @@ Only one quiz can be active at a time
     
     if message.author.id == 572540272563716116:
 
-      if message.content.lower().replace("!testslots ", "") in ["ds9", "tng", "voy", "holodeck"]:
+      if message.content.lower().replace("!testslots ", "") in ["ds9", "tng", "voy", "holodeck", "ships"]:
         roll = message.content.lower().replace("!testslots ", "").upper()
       else:
         roll = "TNG"
@@ -699,7 +775,7 @@ Only one quiz can be active at a time
 
   if message.channel.id == SLOTS_CHANNEL and message.content.lower().startswith("!slots"):
     
-    if message.content.lower().replace("!slots ", "") in ["ds9", "tng", "voy", "holodeck"]:
+    if message.content.lower().replace("!slots ", "") in ["ds9", "tng", "voy", "holodeck", "ships"]:
       roll = message.content.lower().replace("!slots ", "").upper()
     else:
       roll = random.choice(["TNG", "DS9", "VOY", "HOLODECK"])
@@ -1193,6 +1269,9 @@ def roll_slot(slot_series, generate_image=True, filename="slot_results.png"):
     if match_count >= 2:
       silly_matches.append(match_title)
   
+
+  #print(results)
+  
   if generate_image:
     image1 = Image.open(slot_to_roll["files"] + results[0]).resize((150,150))
     image2 = Image.open(slot_to_roll["files"] + results[1]).resize((150,150))
@@ -1204,16 +1283,20 @@ def roll_slot(slot_series, generate_image=True, filename="slot_results.png"):
   jackpot = False
   # print(set(slot_to_roll["custom_jackpot"]))
   # print(set(result_set))
-  if len(result_set) == 1 or (set(slot_to_roll["custom_jackpot"]) == result_set):
+  if len(result_set) == 1:
     matching_chars.append(results[0].replace(".png", ""))
     jackpot = True
+
+  for jackpot_match in slot_to_roll["custom_jackpots"]:
+    if set(jackpot_match) == set(matching_results):
+      jackpot = True
 
   if len(result_set) == 2:
     for r in result_set:
       if results.count(r) > 1:
         matching_chars.append(r.replace(".png", ""))
 
-  logo = slot_series + "_logo.jpg"
+  logo = slot_series + "_logo.png"
   color = (0,0,0,100)
 
   if generate_image:
@@ -1271,24 +1354,29 @@ async def generate_profile_card(user, channel):
 
   
 
-  spins = player["spins"]
-  jackpots = player["jackpots"]
-
+  top_role = user.top_role
   is_mobile = user.is_on_mobile()
   image = Image.fromarray(image_data)
   image = image.convert("RGBA")
   #color = ImageColor.getcolor(f"#{r}{g}{b}", "RGB")
 
-  user_name = f"{user.display_name}".rjust(14, " ")
+  user_name = f"{user.display_name}"
+  user_name_encode = user_name.encode("ascii", errors="ignore")
+  user_name = user_name_encode.decode()
+  user_name = user_name.strip()
+
+  top_role_name = top_role.name.encode("ascii", errors="ignore")
+  top_role = top_role_name.decode()
+
   user_join = user.joined_at.strftime("%Y.%m.%d")
   score = "SCORE: {}".format(player["score"])
   avatar = user.avatar_url_as(format='jpg', size=128)
   await avatar.save("./profiles/"+str(user.id)+"_a.jpg")
 
-  name_font = ImageFont.truetype("lcars.ttf", 56)
-  score_font = ImageFont.truetype("lcars.ttf", 32)
-  spins_font = ImageFont.truetype("lcars.ttf", 24)
-  date_font = ImageFont.truetype("lcars.ttf", 25)
+  name_font = ImageFont.truetype("lcars3.ttf", 56)
+  score_font = ImageFont.truetype("lcars3.ttf", 32)
+  spins_font = ImageFont.truetype("lcars3.ttf", 24)
+  date_font = ImageFont.truetype("lcars3.ttf", 25)
   
   avatar_image = Image.open("./profiles/"+str(user.id)+"_a.jpg")
   avatar_image.resize((128,128))
@@ -1312,7 +1400,8 @@ async def generate_profile_card(user, channel):
   draw = ImageDraw.Draw(image)
   
   draw.line([(0, 0), (600, 0)], fill=(r2,g2,b2), width=5)
-  draw.text( (546, 15), user_name[0:16], fill="white", font=name_font, anchor="rt", align="right")
+  draw.text( (546, 15), user_name[0:15], fill="white", font=name_font, anchor="rt", align="right")
+  draw.text( (546, 80), top_role, fill="white", font=score_font, anchor="rt", align="right")
   draw.text( (324, 364), score, fill="white", font=score_font)
   draw.text ( (22, 85), "SPINS: {}".format(player["spins"]), fill="white", font=spins_font, align="left",stroke_fill="black", stroke_width=2)
   draw.text ( (22, 110), "JACKPOTS: {}".format(player["jackpots"]), fill="white", font=spins_font, align="left",stroke_fill="black", stroke_width=2)
