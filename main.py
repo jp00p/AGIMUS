@@ -4,16 +4,19 @@ import os
 import random
 import tmdbsimple as tmdb
 import requests
-import asyncio
+#import asyncio
 import string
-import json
+#import json
 from PIL import Image, ImageFont, ImageDraw, ImageColor
 from fuzzywuzzy import fuzz
 from dotenv import load_dotenv
 import mysql.connector
 from tabulate import tabulate
+import treys
+from treys import evaluator
 from trivia import trivia
 import numpy as np
+from treys import Card, Evaluator, Deck
 
 load_dotenv()
 tmdb.API_KEY = os.getenv('TMDB_KEY')
@@ -39,6 +42,7 @@ EMOJI = {}
 QUIZ_SHOW = False
 LOG = []
 SLOTS_RUNNING = False
+POKER_GAMES = {}
 
 TNG_ID = 655
 VOY_ID = 1855
@@ -251,7 +255,7 @@ SLOTS =  {
         "Expecting Parents" : ["chakotay", "seska"],
         "Same Stylist" : ["culluh", "arachnia"],
         "Borgified" : ["janeway", "borg_queen", "seven", "tuvok", "torres", "icheb"],
-        "Double Doc Z" : ["doctor", "president_doctor"],
+        "Double Doc Z" : ["doctor", "president_doctor", "teetime_doctor"],
         "Relationship: Holographic" : ["doctor", "danara_pei"],
         "Murderers" : ["sulan", "suder", "borg_queen", "janeway", "species_8472", "karr"],
         "Relationship: Kissed Once in 1996" : ["tom_paris", "rain"],
@@ -405,7 +409,7 @@ JACKPOT = 0
 ALL_PLAYERS = []
 
 
-PROFILE_CARDS = ["Archer", "Bashir", "Boimler", "Brunt", "Data", "EMH", "Garak", "Gowron", "Janeway", "Mark Twain", "Picard", "Q", "Quark", "Ransom", "Sisko", "Shran", "Tilly", "Worf"]
+PROFILE_CARDS = ["Archer", "Bashir", "Boimler", "Brunt", "Data", "EMH", "Garak", "Gowron", "Janeway", "Jeffrey Combs", "Mariner", "Mark Twain", "Picard", "Q", "Quark", "Rain", "Ransom", "Rutherford", "Seven of Nine", "Shran", "Sisko", "Spock", "Tilly", "Weyoun", "Worf"]
 PROFILE_BADGES = {
   "TGG TNG Logo" : "TGG_TNG_logo.jpg",
   "TGG DS9 Logo" : "TGG_DS9_logo.png",
@@ -420,12 +424,23 @@ PROFILE_BADGES = {
   "Ding!" : "ding_bell.png",
   "Bashir's Special" : "bashir_splash.png"
 }
+
 SHOP_ROLES = {
   "High Roller" : {
     "id" : 894594667893641236,
     "price" : 9999
   }
 }
+
+
+SLOTS_CHANNEL = 891412391026360320
+QUIZ_CHANNEL = 891412585646268486
+CONVO_CHANNEL = 891412924193726465
+SHOP_CHANNEL = 895480382680596510
+TEST_CHANNEL = 897126055289159711
+CAFE_CHANNEL = 892527375181570059
+POKER_CHANNEL = 897517722227855422
+
 
 @client.event
 async def on_ready():
@@ -442,33 +457,88 @@ async def on_ready():
 
 @client.event
 async def on_raw_reaction_add(payload:discord.RawReactionActionEvent):
-  global TRIVIA_ANSWERS
-  if TRIVIA_MESSAGE and payload.message_id == TRIVIA_MESSAGE.id:
-    if payload.user_id != client.user.id:
-      #emoji = await discord.utils.get(TRIVIA_MESSAGE.reactions, emoji=payload.emoji.name)
-      user = await client.fetch_user(payload.user_id)
-      await TRIVIA_MESSAGE.remove_reaction(payload.emoji, user)
-      TRIVIA_ANSWERS[payload.user_id] = payload.emoji.name
+  global TRIVIA_ANSWERS, POKER_GAMES
+
+  if payload.user_id != client.user.id:
+    # poker reacts
+    if payload.message_id in POKER_GAMES:
+      if payload.user_id == POKER_GAMES[payload.message_id]["user"]:
+        if payload.emoji.name == "✅":
+          await resolve_poker(payload.message_id)
+      else:
+        user = await client.fetch_user(payload.user_id)
+        await POKER_GAMES[payload.message_id]["message"].remove_reaction(payload.emoji, user)
+        
+
+    # trivia reacts
+    if TRIVIA_MESSAGE and payload.message_id == TRIVIA_MESSAGE.id:
+      
+        #emoji = await discord.utils.get(TRIVIA_MESSAGE.reactions, emoji=payload.emoji.name)
+        user = await client.fetch_user(payload.user_id)
+        await TRIVIA_MESSAGE.remove_reaction(payload.emoji, user)
+        TRIVIA_ANSWERS[payload.user_id] = payload.emoji.name
+
+
+
+
 
 
 @client.event
-async def on_message(message):
+async def on_message(message:discord.Message):
   
-  global QUIZ_EPISODE, CORRECT_ANSWERS, FUZZ, EMOJI, LOG, SLOTS_RUNNING, ALL_PLAYERS
+  global QUIZ_EPISODE, CORRECT_ANSWERS, FUZZ, EMOJI, LOG, SLOTS_RUNNING, ALL_PLAYERS, POKER_GAMES
   
-  SLOTS_CHANNEL = 891412391026360320
-  QUIZ_CHANNEL = 891412585646268486
-  CONVO_CHANNEL = 891412924193726465
-  SHOP_CHANNEL = 895480382680596510
   
+
   if message.author == client.user:
     return
 
-  if message.channel.id not in [888090476404674570, SLOTS_CHANNEL, QUIZ_CHANNEL, CONVO_CHANNEL, SHOP_CHANNEL]:
+  if message.channel.id not in [888090476404674570, POKER_CHANNEL, SLOTS_CHANNEL, QUIZ_CHANNEL, CONVO_CHANNEL, SHOP_CHANNEL, TEST_CHANNEL, 696430310144999554, 847142552699273257]:
     return
 
   if int(message.author.id) not in ALL_PLAYERS:
     register_player(message.author)
+
+  if message.content.lower().startswith("!profile"):
+    await generate_profile_card(message.author, message.channel)
+
+  if message.channel.id in [CAFE_CHANNEL, TEST_CHANNEL] and message.content.lower().startswith("!ping"):
+    await message.channel.send("Pong! {}ms".format(round(client.latency * 1000)))
+
+  if message.channel.id == POKER_CHANNEL and message.content.lower().startswith('!poker'):
+
+    # don't let players start 2 poker games
+    poker_players = []
+    for c in POKER_GAMES:
+      poker_players.append(POKER_GAMES[c]["user"])
+
+    if message.author.id in poker_players:
+      await message.channel.send("{}: you have a poker game running already! Be patient!".format(message.author.mention))
+
+    else:
+      deck = Deck()
+      hand = deck.draw(5) # draw 5 cards
+      
+      # generate hand image
+      hand_image = await generate_poker_image(hand, message.author.id)
+      hand_file = discord.File(hand_image, filename=str(message.author.id)+".png")
+      
+      embed = discord.Embed(
+        title="{}'s Poker hand".format(message.author.name),
+        color=discord.Color(0x1abc9c),
+        description="{}: Here's your hand!".format(message.author.mention),
+      )
+
+      embed.set_image(url="attachment://{0}".format(str(message.author.id)+".png"))
+      embed.set_footer(text="React below with the numbers to discard the corresponding card.\nUse the ✅ react to draw.")
+      
+      pmessage = await message.channel.send(embed=embed, file=hand_file)
+
+      poker_reacts = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "✅"]
+      for p in poker_reacts:
+        await pmessage.add_reaction(p)
+      
+      POKER_GAMES[pmessage.id] = { "user" : message.author.id, "hand" : hand, "discards": [False,False,False,False,False], "deck" : deck, "message": pmessage, "mention" : message.author.mention, "username": message.author.display_name }
 
 
   if message.channel.id == SHOP_CHANNEL:
@@ -944,15 +1014,16 @@ Only one quiz can be active at a time
     
 
 
-  if message.channel.id == CONVO_CHANNEL and message.content.lower().startswith("!randomep"):
+  if message.channel.id in [CONVO_CHANNEL, 696430310144999554, 847142552699273257] and message.content.lower().startswith("!randomep"):
     series = random.choice(TREK_SHOWS)
     ep = random.choice(series[2]).split("|")
     series_name = series[0]
     ep_title = ep[0]
     ep_season = ep[2]
     ep_episode = ep[3]
-    msg = "Random Trek episode for you!\n> *{0}* - **{1}** - (Season {2} Episode {3})".format(series_name, ep_title, ep_season, ep_episode)
-    await message.channel.send(msg)  
+    msgs = ["Picking an episode from all Trek, everywhere. <:kevin_flirty:760229418676912168>", "Random Trek episode for you! <a:tomsmart:814897427370475580>", "Here's a random Trek episode! <:quark_smile_happy:871831721031630868>"]
+    msg = "{} - {}\n> *{}* - **{}** - (Season {} Episode {})".format(message.author.mention, random.choice(msgs), series_name, ep_title, ep_season, ep_episode)
+    await message.channel.send(msg)
 
 
 
@@ -1009,10 +1080,9 @@ Only one quiz can be active at a time
     await message.channel.send("Getting episode image, please stand by...")
     episode_quiz.start(non_trek=True, simpsons=True)
 
-  if message.content.lower().startswith("!profile"):
-    await generate_profile_card(message.author, message.channel)
+  
 
-  if message.content.lower().startswith('!scores'):
+  if message.content.lower().startswith('!scores') and message.channel.id in [QUIZ_CHANNEL, SLOTS_CHANNEL, SHOP_CHANNEL, TEST_CHANNEL]:
     scores = get_high_scores()
     table = []
     table.append(["SCORE", "NAME", "SPINS", "JACKPOTS"])
@@ -1095,7 +1165,10 @@ async def trivia_quiz(category=None):
   reactions = ["1️⃣","2️⃣","3️⃣","4️⃣"]
   TRIVIA_DATA["correct_emoji"] = reactions[correct_answer_index]
   for ans in answers:
-    embed.add_field(name=reactions[i], value=ans, inline=False)
+    maybe_newline = ""
+    if i == 3:
+      maybe_newline = "\n ** ** \n"
+    embed.add_field(name="** **", value="{}: {} {}".format(reactions[i],ans,maybe_newline), inline=False)
     i += 1
   embed.set_footer(text="React below with your answer!")
   channel = client.get_channel(891412585646268486)
@@ -1202,7 +1275,7 @@ async def episode_quiz(non_trek=False, simpsons=False):
   with open('ep.jpg', 'wb') as f:
     f.write(r.content)
   
-  await asyncio.sleep(2)
+  #await asyncio.sleep(2)
   LOG = [] # reset the log
   await quiz_channel.send(file=discord.File("ep.jpg"))
   await quiz_channel.send("Which episode of **__"+str(show_name)+"__** is this? <a:horgahn_dance:844351841017921597>")
@@ -1211,7 +1284,7 @@ async def episode_quiz(non_trek=False, simpsons=False):
 @episode_quiz.after_loop
 async def quiz_finished():
   global QUIZ_EPISODE, CORRECT_ANSWERS, FUZZ, EMOJI, QUIZ_SHOW, PREVIOUS_EPS, db
-  await asyncio.sleep(1)
+  #await asyncio.sleep(1)
   print("Ending quiz...")
   quiz_channel = client.get_channel(891412585646268486)
 
@@ -1355,18 +1428,16 @@ async def generate_profile_card(user, channel):
   
 
   top_role = user.top_role
-  is_mobile = user.is_on_mobile()
   image = Image.fromarray(image_data)
   image = image.convert("RGBA")
   #color = ImageColor.getcolor(f"#{r}{g}{b}", "RGB")
 
   user_name = f"{user.display_name}"
   user_name_encode = user_name.encode("ascii", errors="ignore")
-  user_name = user_name_encode.decode()
-  user_name = user_name.strip()
-
+  user_name = user_name_encode.decode().strip()
+  
   top_role_name = top_role.name.encode("ascii", errors="ignore")
-  top_role = top_role_name.decode()
+  top_role = top_role_name.decode().strip()
 
   user_join = user.joined_at.strftime("%Y.%m.%d")
   score = "SCORE: {}".format(player["score"])
@@ -1374,13 +1445,15 @@ async def generate_profile_card(user, channel):
   await avatar.save("./profiles/"+str(user.id)+"_a.jpg")
 
   name_font = ImageFont.truetype("lcars3.ttf", 56)
-  score_font = ImageFont.truetype("lcars3.ttf", 32)
-  spins_font = ImageFont.truetype("lcars3.ttf", 24)
-  date_font = ImageFont.truetype("lcars3.ttf", 25)
-  
+
+  rank_font = ImageFont.truetype("lcars3.ttf", 26)
+  spins_font = ImageFont.truetype("lcars3.ttf", 20)
+  rank_value_font = ImageFont.truetype("lcars3.ttf", 28)
+  spins_value_font = ImageFont.truetype("lcars3.ttf", 24)
+
   avatar_image = Image.open("./profiles/"+str(user.id)+"_a.jpg")
   avatar_image.resize((128,128))
-  image.paste(avatar_image, (13, 142))
+  image.paste(avatar_image, (12, 142))
 
   if badge_image:
     badge_template = Image.new("RGBA", (600,400))
@@ -1394,20 +1467,26 @@ async def generate_profile_card(user, channel):
     vip_template = Image.new("RGBA", (600, 400))
     vip_badge = Image.open("./profiles/badges/ferengi.png")
     vip_badge = vip_badge.resize((64,64))
-    vip_template.paste(vip_badge, (20, 300))
+    vip_template.paste(vip_badge, (56, 327))
     image = Image.alpha_composite(image, vip_template)
   
   draw = ImageDraw.Draw(image)
   
   draw.line([(0, 0), (600, 0)], fill=(r2,g2,b2), width=5)
+
   draw.text( (546, 15), user_name[0:15], fill="white", font=name_font, anchor="rt", align="right")
-  draw.text( (546, 80), top_role, fill="white", font=score_font, anchor="rt", align="right")
-  draw.text( (324, 364), score, fill="white", font=score_font)
-  draw.text ( (22, 85), "SPINS: {}".format(player["spins"]), fill="white", font=spins_font, align="left",stroke_fill="black", stroke_width=2)
-  draw.text ( (22, 110), "JACKPOTS: {}".format(player["jackpots"]), fill="white", font=spins_font, align="left",stroke_fill="black", stroke_width=2)
-  if is_mobile:
-    draw.text( (20, 120), "AWAY TEAM", fill="white", font=score_font)
-  draw.text( (60, 282), user_join, fill="white", font=date_font, spacing=0.1, stroke_fill="black", stroke_width=2)
+
+  draw.text( (62, 83), "RANK", fill="black", font=rank_font, align="right", anchor="rt")
+  draw.text( (77, 83), top_role, fill="white", font=rank_value_font, anchor="lt", align="left")
+  draw.text( (62, 114), "JOINED", fill="black", font=rank_font, align="right", anchor="rt")
+  draw.text( (77, 113), user_join, fill="white", font=rank_value_font, anchor="lt", align="left")
+
+  draw.text( (65, 278), "SPINS", fill="black", font=spins_font, align="right", anchor="rt")
+  draw.text( (73, 276), str(player["spins"]), fill="white", font=spins_value_font, anchor="lt", align="left")
+  draw.text( (65, 304), "JACKPOTS", fill="black", font=spins_font, align="right", anchor="rt")
+  draw.text( (73, 302), str(player["jackpots"]), fill="white", font=spins_value_font, anchor="lt", align="left")
+  
+  draw.text( (321, 366), score, fill="white", font=rank_value_font)
   
   image.save("./profiles/"+str(user.id)+".png")
   discord_image = discord.File("./profiles/"+str(user.id)+".png")
@@ -1704,6 +1783,139 @@ def get_high_scores():
   scores = query.fetchall()
   return scores
 
+
+
+
+async def resolve_poker(game_id):
+  global POKER_GAMES
+  channel = client.get_channel(POKER_CHANNEL)
+  # handle discards, build new hand
+  poker_game = POKER_GAMES[game_id]
+  user_id = poker_game["user"]
+  hand = poker_game["hand"]
+  deck = poker_game["deck"]
+  message = await channel.fetch_message(game_id)
+  reactions = message.reactions
+  #print("reactions", reactions)
+  
+
+  # count reactions, set discards
+  # done this way to allow the user to toggle draws
+  i = 0
+  for r in reactions:
+    if i == 5: # don't count that last "draw" reaction
+      break
+    users = await r.users().flatten()
+    # we only want to count the game player's reactions
+    for m in users:
+      if m.id == user_id:
+        poker_game["discards"][i] = True
+    i += 1
+  
+  # re-draw hand as needed
+  i = 0
+  for d in poker_game["discards"]:
+    if d == True:
+      hand[i] = deck.draw(1)
+    i += 1
+  
+  # check hand
+  evaluator = Evaluator()
+  score = evaluator.evaluate(hand, [])
+  hand_class = evaluator.get_rank_class(score)
+  str_score = evaluator.class_to_string(hand_class)
+
+  # get new hand image
+  hand_image = await generate_poker_image(hand, user_id)
+  file = discord.File(hand_image, filename=str(poker_game["user"])+".png")
+
+  embed = discord.Embed(
+    title="{}'s Final Poker hand".format(poker_game["username"]),
+    color=discord.Color(0x1abc9c),
+    description="{}: Here's your final hand!\nYou got: **{}**".format(poker_game["mention"], str_score),
+  )
+
+  embed.set_image(url="attachment://{0}".format(str(poker_game["user"])+".png"))
+  
+  # send results
+  await channel.send(embed=embed, file=file)
+
+  # handle player score
+  POKER_GAMES.pop(game_id)
+
+
+async def generate_poker_image(hand:treys.Card, filename:str):
+  channel = client.get_channel(POKER_CHANNEL)
+  base = Image.new("RGBA", (1120,350), (0,0,0,0))
+  value_font = ImageFont.truetype("lcars3.ttf", 64)
+  smaller_font = ImageFont.truetype("lcars3.ttf", 32)
+  suit_map = {
+    "c" : "club.png",
+    "d" : "diamond.png",
+    "h" : "heart.png",
+    "s" : "spade.png"
+  }
+
+  i = 0
+
+  for h in hand:
+    # each card needs an image and text
+    # then paste it on the card base
+    card_template = Image.open("./cards/card-overlay.png")
+    card_base = Image.new("RGBA", (200, 300), "black")
+    draw = ImageDraw.Draw(card_template)
+
+    face_path = ""
+    image_path = ""
+    color = "black"
+
+    value,suit = list(Card.int_to_str(h))
+    if suit == "h":    
+      image_path = "./cards/basic/hearts/"
+      color = "red"
+    if suit == "d":
+      image_path = "./cards/basic/diamonds/"
+      color = "red"
+    if suit == "c":
+      image_path = "./cards/basic/clubs/"
+    if suit == "s":
+      image_path = "./cards/basic/spades/"
+    if value == "T":
+      value = "10"
+
+    if value == "J":
+      face_path = "jack.png"
+    if value == "Q":
+      face_path = "queen.png"
+    if value == "K":
+      face_path = "king.png"
+    if value == "A":
+      face_path = "ace.png"
+    if value.isnumeric():
+      face_path = "{}.png".format(value)
+
+    suit_image = Image.open("./cards/suits/{}".format(suit_map[suit]))
+    suit_image = suit_image.resize((50,50))
+
+    if face_path != "":
+      face_image = Image.open(f"{image_path}{face_path}")
+      card_base.paste(face_image, (0,0))
+
+    draw.text( (45,62), value, color, value_font, align="center", anchor="ms")
+    #draw.text( (16,54), suit_map[suit], color, value_font)
+    card_template.paste(suit_image, (21, 86), mask=suit_image)
+    #draw.text( (163, 268), value, color, smaller_font)
+    # add face card if necessary
+    card_base.paste(card_template, (0,0), mask=card_template)
+    margin = 10
+    base.paste(card_base, (200*i+(margin*i), 13))
+    i += 1
+
+  base.save(f"./cards/users/{filename}.png")
+  return f"./cards/users/{filename}.png"
+  
+  #await channel.send(file=file)
+   
   
 
 client.run(os.getenv('TOKEN'))
