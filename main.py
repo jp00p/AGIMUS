@@ -493,7 +493,7 @@ async def on_message(message:discord.Message):
   if message.author == client.user:
     return
 
-  if message.channel.id not in [888090476404674570, POKER_CHANNEL, SLOTS_CHANNEL, QUIZ_CHANNEL, CONVO_CHANNEL, SHOP_CHANNEL, TEST_CHANNEL, 696430310144999554, 847142552699273257]:
+  if message.channel.id not in [888090476404674570, CAFE_CHANNEL, POKER_CHANNEL, SLOTS_CHANNEL, QUIZ_CHANNEL, CONVO_CHANNEL, SHOP_CHANNEL, TEST_CHANNEL, 696430310144999554, 847142552699273257]:
     return
 
   if int(message.author.id) not in ALL_PLAYERS:
@@ -530,11 +530,11 @@ async def on_message(message:discord.Message):
       )
 
       embed.set_image(url="attachment://{0}".format(str(message.author.id)+".png"))
-      embed.set_footer(text="React below with the numbers to discard the corresponding card.\nUse the ✅ react to draw.")
+      embed.set_footer(text="React below with the numbers to discard the corresponding card.\n\nUse the 💲 React to double your bet.\nUse the ✅ react to draw.")
       
       pmessage = await message.channel.send(embed=embed, file=hand_file)
 
-      poker_reacts = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "✅"]
+      poker_reacts = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "💲", "✅"]
       for p in poker_reacts:
         await pmessage.add_reaction(p)
       
