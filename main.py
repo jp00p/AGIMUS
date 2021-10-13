@@ -433,6 +433,19 @@ SHOP_ROLES = {
 }
 
 
+POKER_PAYOUTS = {
+  "high card" : 0,
+  "pair" : 1,
+  "two pair" : 1.5,
+  "three of a kind" : 2,
+  "straight" : 4,
+  "flush" : 5,
+  "full house" : 6,
+  "four of a kind" : 10,
+  "royal flush" : 1000
+}
+
+
 SLOTS_CHANNEL = 891412391026360320
 QUIZ_CHANNEL = 891412585646268486
 CONVO_CHANNEL = 891412924193726465
@@ -516,29 +529,47 @@ async def on_message(message:discord.Message):
       await message.channel.send("{}: you have a poker game running already! Be patient!".format(message.author.mention))
 
     else:
-      deck = Deck()
-      hand = deck.draw(5) # draw 5 cards
-      
-      # generate hand image
-      hand_image = await generate_poker_image(hand, message.author.id)
-      hand_file = discord.File(hand_image, filename=str(message.author.id)+".png")
-      
-      embed = discord.Embed(
-        title="{}'s Poker hand".format(message.author.name),
-        color=discord.Color(0x1abc9c),
-        description="{}: Here's your hand!".format(message.author.mention),
-      )
 
-      embed.set_image(url="attachment://{0}".format(str(message.author.id)+".png"))
-      embed.set_footer(text="React below with the numbers to discard the corresponding card.\n\nUse the 💲 React to double your bet.\nUse the ✅ react to draw.")
-      
-      pmessage = await message.channel.send(embed=embed, file=hand_file)
+      player = get_player(message.author.id)
+      if player["score"] >= player["wager"]:
+        
+        set_player_score(str(message.author.id), -player["wager"])
+        deck = Deck()
+        hand = deck.draw(5) # draw 5 cards
+        
+        # generate hand image
+        hand_image = await generate_poker_image(hand, message.author.id)
+        hand_file = discord.File(hand_image, filename=str(message.author.id)+".png")
+        
+        embed = discord.Embed(
+          title="{}'s Poker hand".format(message.author.display_name),
+          color=discord.Color(0x1abc9c),
+          description="{}: Starting a round of poker with a `{}` point wager. Here's your hand!".format(message.author.mention, player["wager"]),
+        )
 
-      poker_reacts = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "💲", "✅"]
-      for p in poker_reacts:
-        await pmessage.add_reaction(p)
-      
-      POKER_GAMES[pmessage.id] = { "user" : message.author.id, "hand" : hand, "discards": [False,False,False,False,False], "deck" : deck, "message": pmessage, "mention" : message.author.mention, "username": message.author.display_name }
+        embed.set_image(url="attachment://{0}".format(str(message.author.id)+".png"))
+        embed.set_footer(text="React below with the numbers to discard the corresponding card.\n\nUse the 🤑 react to double your bet.\nUse the ✅ react to draw.")
+        
+        pmessage = await message.channel.send(embed=embed, file=hand_file)
+
+        poker_reacts = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "🤑", "✅"]
+        for p in poker_reacts:
+          await pmessage.add_reaction(p)
+        
+        POKER_GAMES[pmessage.id] = { 
+          "user" : message.author.id, 
+          "hand" : hand, 
+          "discards": [False,False,False,False,False], 
+          "deck" : deck, 
+          "message": pmessage, 
+          "mention" : message.author.mention, 
+          "username": message.author.display_name,
+          "wager" : player["wager"]
+        }
+
+      else:
+
+        await message.channel.send("{}: You don't have enough points to play! Try lowering your wager or playing the quiz games.".format(message.author.mention))
 
 
   if message.channel.id == SHOP_CHANNEL:
@@ -752,6 +783,20 @@ A place to generate conversation prompts!
 `!fmk` - you know the deal
 `!profile` - see your profile card
 '''
+    if message.channel.id == POKER_CHANNEL:
+      msg = '''
+**POKER INFO**
+Just plain, basic poker -- Riker style.
+
+**COMMANDS**
+`!poker` - play a round
+`!setwager 1` set your wager to 1! try a different number!
+
+**PAYOUTS**
+'''
+      for p in POKER_PAYOUTS:
+        msg += "{} - x{}\n".format(p.title(), POKER_PAYOUTS[p])
+
 
     if message.channel.id == QUIZ_CHANNEL:
       msg = '''
@@ -986,7 +1031,7 @@ Only one quiz can be active at a time
         await trivia_quiz.start()
 
 
-  if message.channel.id == SLOTS_CHANNEL and message.content.lower().startswith("!setwager"):
+  if message.channel.id in [SLOTS_CHANNEL, POKER_CHANNEL] and message.content.lower().startswith("!setwager"):
 
     min_wager = 1
     max_wager = 25
@@ -1082,7 +1127,7 @@ Only one quiz can be active at a time
 
   
 
-  if message.content.lower().startswith('!scores') and message.channel.id in [QUIZ_CHANNEL, SLOTS_CHANNEL, SHOP_CHANNEL, TEST_CHANNEL]:
+  if message.content.lower().startswith('!scores') and message.channel.id in [QUIZ_CHANNEL, SLOTS_CHANNEL, SHOP_CHANNEL, TEST_CHANNEL, POKER_CHANNEL]:
     scores = get_high_scores()
     table = []
     table.append(["SCORE", "NAME", "SPINS", "JACKPOTS"])
@@ -1791,26 +1836,39 @@ async def resolve_poker(game_id):
   channel = client.get_channel(POKER_CHANNEL)
   # handle discards, build new hand
   poker_game = POKER_GAMES[game_id]
+  wager = poker_game["wager"]
   user_id = poker_game["user"]
   hand = poker_game["hand"]
   deck = poker_game["deck"]
   message = await channel.fetch_message(game_id)
   reactions = message.reactions
+  doubled = False
+  
   #print("reactions", reactions)
   
 
   # count reactions, set discards
   # done this way to allow the user to toggle draws
-  i = 0
+  
+  discard_reactions = {
+    "1️⃣" : 0,
+    "2️⃣" : 1,
+    "3️⃣" : 2,
+    "4️⃣" : 3,
+    "5️⃣" : 4
+  }
+
   for r in reactions:
-    if i == 5: # don't count that last "draw" reaction
-      break
+    if r.emoji == "✅": # don't count that last "draw" reaction
+      continue
     users = await r.users().flatten()
     # we only want to count the game player's reactions
     for m in users:
-      if m.id == user_id:
-        poker_game["discards"][i] = True
-    i += 1
+      if m.id == user_id and r.emoji in discard_reactions:
+        poker_game["discards"][discard_reactions[r.emoji]] = True
+      if m.id == user_id and r.emoji == "🤑":
+        doubled = True
+        wager = wager * 2
   
   # re-draw hand as needed
   i = 0
@@ -1819,23 +1877,39 @@ async def resolve_poker(game_id):
       hand[i] = deck.draw(1)
     i += 1
   
+  if doubled:
+    # if they doubled their bet, take that extra out now
+    set_player_score(str(user_id), -poker_game["wager"])
+
   # check hand
   evaluator = Evaluator()
   score = evaluator.evaluate(hand, [])
   hand_class = evaluator.get_rank_class(score)
   str_score = evaluator.class_to_string(hand_class)
+  if score == 1:
+    str_score = "Royal Flush"
+  score_rank = str_score.lower()
+  profit = round(POKER_PAYOUTS[score_rank] * wager)
+  if profit != 0:
+    set_player_score(str(poker_game["user"]), profit)
+  
 
   # get new hand image
   hand_image = await generate_poker_image(hand, user_id)
   file = discord.File(hand_image, filename=str(poker_game["user"])+".png")
+  wager_str = "Total wager: `{}`"
+  if doubled:
+    wager_str = "\n*You doubled your wager!* Total wager: `{}`\n"
+  wager_str = wager_str.format(wager)
 
   embed = discord.Embed(
     title="{}'s Final Poker hand".format(poker_game["username"]),
     color=discord.Color(0x1abc9c),
-    description="{}: Here's your final hand!\nYou got: **{}**".format(poker_game["mention"], str_score),
+    description="{}: Here's your final hand: **{}**\n{}".format(poker_game["mention"], str_score, wager_str),
   )
 
   embed.set_image(url="attachment://{0}".format(str(poker_game["user"])+".png"))
+  embed.set_footer(text="Your profit: {}".format(profit-wager))
   
   # send results
   await channel.send(embed=embed, file=file)
