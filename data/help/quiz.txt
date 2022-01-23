@@ -10,6 +10,7 @@ Only one quiz can be active at a time
 `!scores` - see the top scores
 `!report` - see the fuzziness of the last quiz answers (you want both numbers between 72-80 for the bonus)
 `!profile` - see your profile card
+`!info [tng|voy|ds9|friends|firefly|simpsons|enterprise|tos|lowerdecks|disco|picard|tas|sunny] [s##e##]` - Get information about a specific episode!
 
 **TRIVIA COMMANDS**
 `!triv` - get a random trivia question!
