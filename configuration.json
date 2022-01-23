@@ -73,7 +73,7 @@
       "parameters": []
     },
     "poker": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [934827868066828308],
       "enabled": true,
       "data": "data/poker.json",
       "parameters": []
@@ -85,7 +85,7 @@
       "parameters": []
     },
     "quiz": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [934827868066828308],
       "enabled": true,
       "data": null,
       "parameters": [{
@@ -165,7 +165,7 @@
       "parameters": []
     },
     "triv": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [934827868066828308],
       "enabled": true,
       "data": "data/triv.json",
       "parameters": [{
