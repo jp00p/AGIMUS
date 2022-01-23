@@ -8,7 +8,7 @@ This discord bot is built with python using the [discord.py library](https://dis
 
 ```bash
 # Clone FoDBot source
-git clone https://github.com/mathew-fleisch/FoDBot-SQL.git && cd FoDBot-SQL
+git clone https://github.com/jp00p/FoDBot-SQL.git && cd FoDBot-SQL
 
 # Fill out .env vars...
 cp .env-example .env
