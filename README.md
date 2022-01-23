@@ -88,7 +88,7 @@ The [configuration.json](configuration.json) file defines metadata about each co
 
 ```json
 "setwager": {
-  "channels": [821892686201094154],
+  "channels": [821892686201094154, 934827868066828308],
   "enabled": true,
   "data": null,
   "parameters": [{
@@ -155,7 +155,6 @@ Each command requires an explicit import in the [main.py](main.py) script.
 ```python
 from commands.setwager import setwager
 ```
-
 
 ## TODO
 
