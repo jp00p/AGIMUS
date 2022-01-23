@@ -1,0 +1,26 @@
+[{
+  "name": "slots",
+  "enabled": true,
+  "file": "data/help/slots.txt",
+  "channels": [821892686201094154]
+},{
+  "name": "shop",
+  "enabled": true,
+  "file": "data/help/shop.txt",
+  "channels": [821892686201094154]
+},{
+  "name": "convo",
+  "enabled": true,
+  "file": "data/help/convo.txt",
+  "channels": [821892686201094154]
+},{
+  "name": "poker",
+  "enabled": true,
+  "file": "data/help/poker.txt",
+  "channels": [821892686201094154]
+},{
+  "name": "quiz",
+  "enabled": true,
+  "file": "data/help/quiz.txt",
+  "channels": [821892686201094154]
+}]

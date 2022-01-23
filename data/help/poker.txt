@@ -1,0 +1,17 @@
+**POKER INFO**
+Just plain, basic poker -- Riker style.
+
+**COMMANDS**
+`!poker` - play a round
+`!setwager #` set your wager to 1-25!
+
+**PAYOUTS**
+`high card -------> x0`
+`pair ------------> x1`
+`two pair --------> x1.5`
+`three of a kind -> x2`
+`straight --------> x4`
+`flush -----------> x5`
+`full house ------> x6`
+`four of a kind --> x10`
+`royal flush -----> x1000`

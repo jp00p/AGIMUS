@@ -1,0 +1,11 @@
+**SHOP INFO**
+A silly shop to waste your points on!
+All proceeds go directly to the jackpot.
+
+**COMMANDS**
+`!shop profiles` - list all profile cards for sale
+`!shop badges` - list all the badges for sale
+`!shop roles` - list all the roles for sale
+`!buy profile 1` - buy profile number 1!  try a different number!
+`!buy badge 1` - buy badge number 1!  try a different number!
+`!profile` - see your profile card

@@ -1,0 +1,13 @@
+**SLOTS INFO**
+Slots have a <:bits:818571186195398677>-based matching system.
+Get three of the same character to win the jackpot!
+DS9 slots are harder to win a jackpot on, but pay 1.5x the bounty!
+
+**COMMANDS**
+`!slots` - run a random slot machine!
+`!slots [show]` - run a specific slot machine! (try `tng` `ds9` or `voy` or `holodeck` or `ships`)
+`!setwager [1-25]` - set your default wager (try a different number!)
+`!jackpots` - see a history of jackpots
+`!jackpot` - see the current bounty
+`!scores` - see the top scores
+`!profile` - see your profile card

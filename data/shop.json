@@ -1,0 +1,24 @@
+{
+  "roles": {
+    "High Roller": {
+      "id": 894594667893641236,
+      "price": 9999
+    }
+  },
+  "cards": ["Archer", "Bashir", "Boimler", "Brunt", "Data", "EMH", "Garak", "Gowron", "Janeway", "Jeffrey Combs", "Mariner", "Mark Twain", "Picard", "Q", "Quark", "Rain", "Ransom", "Rutherford", "Seven of Nine", "Shran", "Sisko", "Snoop", "Spock", "Tilly", "Weyoun", "Worf"],
+  "badges": {
+    "TGG TNG Logo": "TGG_TNG_logo.jpg",
+    "TGG DS9 Logo": "TGG_DS9_logo.png",
+    "TGD Logo": "TGD_logo.png",
+    "Adam Pranica": "adam_lmao.png",
+    "Ben Harrison": "ben420laughlmao.png",
+    "Card Daddy": "bill_cardaddy_thumbsup.png",
+    "Heart": "heart.png",
+    "Horgahn": "horgahn.png",
+    "Banger": "icon_banger_no_background_small.png",
+    "Mr. Bucket": "mr-bucket.png",
+    "Ding!": "ding_bell.png",
+    "Bashir's Special": "bashir_splash.png"
+  }
+  
+}

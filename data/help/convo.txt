@@ -1,0 +1,11 @@
+**ABOUT THIS CHANNEL**
+A place to generate conversation prompts!
+
+**COMMANDS**
+`!tuvix` - create your own Tuvix
+`!dustbuster` - beam em down, let god sort em out
+`!randomep` - pick a random episode from all trek everywhere
+`!trektalk` - generate a conversation piece
+`!trekduel` - who will win?
+`!fmk` - you know the deal
+`!profile` - see your profile card
