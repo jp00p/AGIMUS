@@ -22,10 +22,12 @@ import sys
 # Load variables from .env file
 load_dotenv()
 
+LOG_LEVEL = os.getenv('LOG_LEVEL')
+if not LOG_LEVEL:
+  LOG_LEVEL = "INFO"
 logger = logging.getLogger()
-logger.setLevel(os.getenv('LOG_LEVEL'))
+logger.setLevel(LOG_LEVEL)
 handler = logging.StreamHandler(sys.stdout)
-# handler.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
