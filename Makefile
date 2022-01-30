@@ -27,10 +27,14 @@ setup:
 start: setup
 	@python main.py
 
-.PHONY: start-docker
-start-docker:
-	docker-compose up -d --build
+.PHONY: docker-build
+docker-build:
+	@docker-compose build
 
-.PHONY: stop-docker
-stop-docker:
-	docker-compose down
+.PHONY: docker-start
+docker-start:
+	@docker-compose up
+
+.PHONY: docker-stop
+docker-stop:
+	@docker-compose down
