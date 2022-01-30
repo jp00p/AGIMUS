@@ -13,16 +13,7 @@ git clone https://github.com/jp00p/FoDBot-SQL.git && cd FoDBot-SQL
 # Fill out .env vars...
 cp .env-example .env
 
-# Start mysql container (~30 second startup time)
-make db-start
-
-# (optional) Load sql dump into database
-make db-load
-
-# Build local container to run bot in
-make build
-
-# Start bot (ctrl+c to stop)
+# Build and start the docker containers
 make start-docker
 
 # Mysql session with database
@@ -34,8 +25,11 @@ make db-bash
 # Mysql dump to file
 make db-dump
 
-# Stop mysql container
-make db-stop
+# Mysql load from a file
+make db-load
+
+# Stop the containers
+make stop-docker
 
 # Blatent cheating
 UPDATE users SET score=42069, spins=420, jackpots=69, wager=25, high_roller=1 WHERE id=1;

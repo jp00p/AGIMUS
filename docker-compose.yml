@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  app:
+    image: ${BOT_CONTAINER_NAME:-fodbot}:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/bot
+    working_dir: /bot
+    restart: on-failure
+  db:
+    image: mysql:latest
+    environment:
+      - MYSQL_DATABASE=${DB_NAME:-FoD}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-password}
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data/seed-db.sql:/docker-entrypoint-initdb.d/seed-db.sql
+      - .:/bot

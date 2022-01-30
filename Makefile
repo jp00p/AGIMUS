@@ -1,41 +1,23 @@
-.PHONY: build
-build:
-	@docker build -t ${BOT_CONTAINER_NAME} .
-
-.PHONY: db-start
-db-start:
-	@echo "Starting mysql with docker:"
-	@docker run --rm -dit \
-		-p 3306:3306 \
-		-e MYSQL_ROOT_PASSWORD=${DB_PASS} \
-		--name ${DB_CONTAINER_NAME} \
-		mysql:latest
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
 
 .PHONY: db-mysql
 db-mysql:
-	@docker exec -it $(shell docker ps -aqf name=${DB_CONTAINER_NAME}) \
-		mysql -u${DB_USER} -h${DB_HOST} -p${DB_PASS}
+	@docker-compose exec db mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"
 
 .PHONY: db-bash
 db-bash:
-	@docker exec -it $(shell docker ps -aqf name=${DB_CONTAINER_NAME}) \
-		bash
+	@docker-compose exec db bash
 
 .PHONY: db-dump
 db-dump:
-	@docker exec -it $(shell docker ps -aqf name=${DB_CONTAINER_NAME}) \
-		bash -c 'mysqldump -u${DB_USER} -h${DB_HOST} -p${DB_PASS} -B ${DB_NAME} > /root/${DB_DUMP_FILENAME}'
-	@docker cp $(shell docker ps -aqf name=${DB_CONTAINER_NAME}):/root/${DB_DUMP_FILENAME} ./${DB_DUMP_FILENAME}
+	@docker-compose exec db bash -c 'mysqldump -u"${DB_USER}" -p"${DB_PASS}" -B ${DB_NAME} 2>/dev/null' > ./${DB_DUMP_FILENAME}
 
 .PHONY: db-load
 db-load:
-	@docker cp ./${DB_DUMP_FILENAME} $(shell docker ps -aqf name=${DB_CONTAINER_NAME}):/root/${DB_DUMP_FILENAME}
-	@docker exec -it $(shell docker ps -aqf name=${DB_CONTAINER_NAME}) \
-		bash -c 'mysql -u${DB_USER} -h${DB_HOST} -p${DB_PASS} < /root/${DB_DUMP_FILENAME}'
-
-.PHONY: db-stop
-db-stop:
-	@docker rm -f $(shell docker ps -aqf name=${DB_CONTAINER_NAME})
+	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_DUMP_FILENAME}
 
 .PHONY: setup
 setup:
@@ -47,9 +29,8 @@ start: setup
 
 .PHONY: start-docker
 start-docker:
-	@docker run --rm -it \
-		--name ${BOT_CONTAINER_NAME} \
-		-v ${PWD}:/bot \
-		-w /bot \
-		${BOT_CONTAINER_NAME}
+	docker-compose up -d --build
 
+.PHONY: stop-docker
+stop-docker:
+	docker-compose down
