@@ -35,6 +35,10 @@ docker-build:
 docker-start:
 	@docker-compose up
 
+.PHONY: docker-logs
+docker-logs:
+	@docker-compose logs -f
+
 .PHONY: docker-stop
 docker-stop:
 	@docker-compose down
