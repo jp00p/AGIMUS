@@ -1,0 +1,13 @@
+{
+  "payouts": {
+    "high card" : 0,
+    "pair" : 1,
+    "two pair" : 1.5,
+    "three of a kind" : 2,
+    "straight" : 4,
+    "flush" : 5,
+    "full house" : 6,
+    "four of a kind" : 10,
+    "royal flush" : 1000
+  }
+}

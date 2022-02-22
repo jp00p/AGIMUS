@@ -1,0 +1,18 @@
+**QUIZ INFO**
+You get bonus points for being slightly wrong!
+You get bonus points for being the first to get it right!
+You get extra bonus points for being first + silly!
+Correctitude is calculated using: <https://en.wikipedia.org/wiki/Levenshtein_distance>
+Only one quiz can be active at a time
+
+**QUIZ COMMANDS**
+`!quiz [tng|voy|ds9|friends|firefly|simpsons|enterprise|tos|lowerdecks|disco|picard|tas|sunny]` - Guess the episode from a screen-shot!
+`!scores` - see the top scores
+`!report` - see the fuzziness of the last quiz answers (you want both numbers between 72-80 for the bonus)
+`!profile` - see your profile card
+`!info [tng|voy|ds9|friends|firefly|simpsons|enterprise|tos|lowerdecks|disco|picard|tas|sunny] [s##e##]` - Get information about a specific episode!
+
+**TRIVIA COMMANDS**
+`!triv` - get a random trivia question!
+`!triv 1` - get trivia from a specific category
+`!categories` - list all the trivia categories

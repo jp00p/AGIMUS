@@ -1,0 +1,7 @@
+{
+  "tng": {
+    "enabled":true,
+    "trek": true,
+    "source":"./data/episodes/tng.json"
+  }
+}

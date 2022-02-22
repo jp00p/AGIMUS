@@ -1,0 +1,343 @@
+{
+    "animated": false,
+    "episodes": [
+        {
+            "airdate": "2020.01.23",
+            "description": "At the end of the 24th Century, and 14 years after his retirement from Starfleet, Jean-Luc Picard is living a quiet life on his vineyard, Chateau Picard. When he is sought out by a mysterious young woman, in need of his help, he soon realizes she may have personal connections to his own past.",
+            "episode": "01",
+            "imdb": "tt9381924",
+            "memoryalpha": "Remembrance_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.01.28",
+                    "episode": "B-4 in a Drawer",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/ep-70-b-4-in-a-drawer-picard-s1e1/",
+                    "order": 70,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/lOHyfQhGqcPpakvRFkMpDUqjCwE.jpg",
+                "https://image.tmdb.org/t/p/original/xkLALqeE4iyh4ZcrObLRxp03TON.jpg",
+                "https://image.tmdb.org/t/p/original/kLi4bIq1M8hDUu5uamsRVhJOniX.jpg",
+                "https://image.tmdb.org/t/p/original/wZuadX7wUvYhCruW8PuPcJEexri.jpg",
+                "https://image.tmdb.org/t/p/original/pt8iyqCSITXTRUTKcNzIF7K5F8y.jpg",
+                "https://image.tmdb.org/t/p/original/zGlzgYhFexq3hG5WaQrIyWUIq3c.jpg"
+            ],
+            "title": "Remembrance",
+            "tvdb": 1675693
+        },
+        {
+            "airdate": "2020.01.30",
+            "description": "Picard begins investigating the mystery of Dahj as well as what her very existence means to the Federation. Without Starfleet's support, Picard is left leaning on others for help, including Dr. Agnes Jurati and an estranged former colleague, Raffi Musiker. Meanwhile, hidden enemies are also interested in where Picard's search for the truth about Dahj will lead.",
+            "episode": "02",
+            "imdb": "tt9420276",
+            "memoryalpha": "Maps_and_Legends_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.02.04",
+                    "episode": "Sexual Checkers",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/ep-71-sexual-checkers-picard-s1e2/",
+                    "order": 71,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/3vFld9A4moYyYt2pHp8kNtgU1qr.jpg",
+                "https://image.tmdb.org/t/p/original/pwAIVQ7Cbk7xwYq1Ua0BGfdmUox.jpg",
+                "https://image.tmdb.org/t/p/original/bZe96HlldbUJagAXRphzLzKYUDX.jpg",
+                "https://image.tmdb.org/t/p/original/j6RAdw7nNW11ZgophGT94cCb6fg.jpg",
+                "https://image.tmdb.org/t/p/original/bRDNWJXOnAuRwmCk14L3VGMxp5C.jpg",
+                "https://image.tmdb.org/t/p/original/5vXTrJif9wY3INoPPHyPswQgQMl.jpg",
+                "https://image.tmdb.org/t/p/original/4fijN4YbjpH7moXHu2sENZbp5nW.jpg",
+                "https://image.tmdb.org/t/p/original/a0WvqNFgDl6cWpwDe2SEGtciHY8.jpg",
+                "https://image.tmdb.org/t/p/original/5QfuuvsHvSyfh4CAt5CIzpqePK2.jpg",
+                "https://image.tmdb.org/t/p/original/1ZD5H0rlTSM1BUtuHDpR6QMNc1l.jpg"
+            ],
+            "title": "Maps and Legends",
+            "tvdb": 2057376
+        },
+        {
+            "airdate": "2020.02.06",
+            "description": "Completely unaware of her special nature, Soji continues her work and captures the attention of the Borg cube research project\u2019s executive director. After rehashing past events with a reluctant Raffi, Picard seeks others willing to join his search for Bruce Maddox, including pilot and former Starfleet officer Crist\u00f3bal Rios.",
+            "episode": "03",
+            "imdb": "tt9420278",
+            "memoryalpha": "The_End_is_the_Beginning_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.02.11",
+                    "episode": "The Romulans that Flew Over the Cuckoo\u2019s Nest",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/ep-72-the-romulans-that-flew-over-the-cuckoos-nest-picard-s1e3/",
+                    "order": 72,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/ww4a6c3HPOiJIlXhT84tNtlbCRy.jpg",
+                "https://image.tmdb.org/t/p/original/wZ7Wnj7grntg0yelO3rfy0Hs5AR.jpg",
+                "https://image.tmdb.org/t/p/original/cry2S1eMf2OonoFKx6MYjFyykxk.jpg",
+                "https://image.tmdb.org/t/p/original/312awFp3kaWULFXThOV0BvSo9nV.jpg",
+                "https://image.tmdb.org/t/p/original/nSZsLOZtsChi2RAtGm8RIvV1Jvb.jpg",
+                "https://image.tmdb.org/t/p/original/exgmqIB9hg3IRkkFqN4RmBpanen.jpg",
+                "https://image.tmdb.org/t/p/original/wSMLqAFHvQWz5lwv0SfLdxObqBe.jpg",
+                "https://image.tmdb.org/t/p/original/ss4xMCTUTAUWB5GTrsOupq5EWYK.jpg",
+                "https://image.tmdb.org/t/p/original/cXo75ECDrYWRwCA9wFrpnGD3TVc.jpg",
+                "https://image.tmdb.org/t/p/original/uOGONtPXJ1RpfVwNFIEHGEyXX44.jpg",
+                "https://image.tmdb.org/t/p/original/cpILtd6oxXDmF5T3ZQ2zemlyS8.jpg",
+                "https://image.tmdb.org/t/p/original/axH86j0OJ2uWoBbhWCHysq8APAO.jpg",
+                "https://image.tmdb.org/t/p/original/bZUXoPo6nN73fvH7hHLqAlt7GTS.jpg",
+                "https://image.tmdb.org/t/p/original/65jlvDKIdg4KviSTsGSMesMKH5o.jpg"
+            ],
+            "title": "The End Is the Beginning",
+            "tvdb": 2057377
+        },
+        {
+            "airdate": "2020.02.13",
+            "description": "The crew's journey to Freecloud takes a detour when Picard orders a stop at the planet Vashti, where Picard and Raffi relocated Romulan refugees fourteen years earlier. Upon arrival, Picard reunites with Elnor, a young Romulan he befriended during the relocation. Meanwhile, Narek continues his attempts to learn more about Soji while Narissa's impatience with his lack of progress grows.",
+            "episode": "04",
+            "imdb": "tt9420280",
+            "memoryalpha": "Absolute_Candor_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.02.18",
+                    "episode": "Ten Forward of Twenty",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/ep-73-ten-forward-of-twenty-picard-s1e4/",
+                    "order": 73,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/55nXz9SuIbBHNPkWq9wyeqMAxI4.jpg",
+                "https://image.tmdb.org/t/p/original/d7iWkfbScduUcNtU4Z8lhVFBJ88.jpg",
+                "https://image.tmdb.org/t/p/original/hpGmjZ5MxnKLgb9nGLDuMUFAMGH.jpg",
+                "https://image.tmdb.org/t/p/original/sblgvoxPPWrRMld3zPCVf75Y52t.jpg",
+                "https://image.tmdb.org/t/p/original/8HqtNshhKOi1otGi6nhqSplogwW.jpg",
+                "https://image.tmdb.org/t/p/original/smRJgbZW59nJh3m5vj2raL9Z9Bh.jpg",
+                "https://image.tmdb.org/t/p/original/xR6s3WCYDHegyadajeIEsUzujO0.jpg",
+                "https://image.tmdb.org/t/p/original/dxjck3636I07GhAYvIe3u66XfaX.jpg",
+                "https://image.tmdb.org/t/p/original/uZdngo9Ko6EyiOaRty6pHPs8D97.jpg",
+                "https://image.tmdb.org/t/p/original/hkFbwAh7AGZoL5To3ZnGyw9Ksv3.jpg",
+                "https://image.tmdb.org/t/p/original/emq4h2DIjpIWmhAmaRlnikyepAy.jpg",
+                "https://image.tmdb.org/t/p/original/mf2yDqP5H4v5zYoUYAET8COtpk7.jpg",
+                "https://image.tmdb.org/t/p/original/pA8JZ2bHzyvLJevrQicUttxVWej.jpg",
+                "https://image.tmdb.org/t/p/original/upUIL3udSxq5vRVhk7t7x72voQr.jpg",
+                "https://image.tmdb.org/t/p/original/anGseev7uWsz1UsntBoyO8oF9ov.jpg",
+                "https://image.tmdb.org/t/p/original/rFPEMAW9KQ7zPFWNf6i0Sxgtk8n.jpg"
+            ],
+            "title": "Absolute Candor",
+            "tvdb": 2057378
+        },
+        {
+            "airdate": "2020.02.20",
+            "description": "The La Sirena crew begins an unpredictable and lively expedition on Freecloud to search for Bruce Maddox. When they learn that Maddox has found himself in a precarious situation, a familiar face offers her assistance.",
+            "episode": "05",
+            "imdb": "tt9420282",
+            "memoryalpha": "Stardust_City_Rag_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.02.25",
+                    "episode": "Lethal Lenny Energy",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/ep-74-lethal-lenny-energy-picard-s1e5/",
+                    "order": 74,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/iW6MIkGmC4TEJOOGhk2alMfP2N9.jpg",
+                "https://image.tmdb.org/t/p/original/aOoL6PeMipfi0ia4o91ItbfK7e8.jpg",
+                "https://image.tmdb.org/t/p/original/g3H0jJNrTTPfVODFsrFg1pTfbaq.jpg",
+                "https://image.tmdb.org/t/p/original/zKmpFRvDZtr2qDc4LgAnbCUUkQl.jpg",
+                "https://image.tmdb.org/t/p/original/zyE4kyeHBeb4GQiAc5sSBw8TQmX.jpg",
+                "https://image.tmdb.org/t/p/original/qIV8LgNvdnTJWBxCp8iiXP3Oq7F.jpg",
+                "https://image.tmdb.org/t/p/original/wTHIDT5JxLXK2zUudrEiARFcTSh.jpg",
+                "https://image.tmdb.org/t/p/original/bnr1dYEAnfKyKRwNIg9I1wHPIlM.jpg",
+                "https://image.tmdb.org/t/p/original/xOtbiKwKlKuefrKNAWlMNZKcw7w.jpg",
+                "https://image.tmdb.org/t/p/original/7E6tBqweiZ2KiLIA3cPD3h0xlyg.jpg",
+                "https://image.tmdb.org/t/p/original/b8BOc0n7gw1bnAHfqoTTkQB3lJn.jpg",
+                "https://image.tmdb.org/t/p/original/6X9UnC0Xj5xQAnj5VigWVus41Qy.jpg"
+            ],
+            "title": "Stardust City Rag",
+            "tvdb": 2057380
+        },
+        {
+            "airdate": "2020.02.27",
+            "description": "Picard and the crew track Soji to the Borg cube in Romulan space, resurfacing haunting memories for Picard. Meanwhile, Narek believes he finally found a way to safely exploit Soji for information.",
+            "episode": "06",
+            "imdb": "tt9420284",
+            "memoryalpha": "The_Impossible_Box_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.03.03",
+                    "episode": "Haunted and Horny",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/ep-75-haunted-and-horny-picard-s1e6/",
+                    "order": 75,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/wymJPBehQiO9HCmtVdJWVUIhnxb.jpg",
+                "https://image.tmdb.org/t/p/original/7ubT8SGLUMJbroc9DJcndcTfAkv.jpg",
+                "https://image.tmdb.org/t/p/original/qWRe38KswEwoMPZeHL3icJKRVnB.jpg",
+                "https://image.tmdb.org/t/p/original/2AZgMuAlz78YP54n5SMe3zFlwiQ.jpg",
+                "https://image.tmdb.org/t/p/original/jZp7cvYTsK4ctMdT2BGReHQyDLC.jpg",
+                "https://image.tmdb.org/t/p/original/224UG2ryzJiEqPbJgHjao2grPZv.jpg",
+                "https://image.tmdb.org/t/p/original/2DIMDtdMpacTZS3hSlKuverrATx.jpg",
+                "https://image.tmdb.org/t/p/original/aPm0UYKwnJzyErkh1AWRKnTQU5R.jpg",
+                "https://image.tmdb.org/t/p/original/c6P2beuqn5UQmb9Yd8UujtCshW4.jpg",
+                "https://image.tmdb.org/t/p/original/8ijlcXLckzvTS3g2eBUOrmA1CqC.jpg",
+                "https://image.tmdb.org/t/p/original/yL1YHfyGk2gTnyMxfvl5Xp2RDHg.jpg",
+                "https://image.tmdb.org/t/p/original/9BMbTzxhBvzwYPNT9bdyi1A57JC.jpg"
+            ],
+            "title": "The Impossible Box",
+            "tvdb": 2057381
+        },
+        {
+            "airdate": "2020.03.05",
+            "description": "Picard and Soji transport to the planet Nepenthe, home to some old and trusted friends. As the rest of the La Sirena crew attempt to join them, Picard helps Soji make sense of her recently unlocked memories. Meanwhile, Hugh and Elnor are left on the Borg cube and must face an angered Narissa.",
+            "episode": "07",
+            "imdb": "tt9420288",
+            "memoryalpha": "Nepenthe_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.03.10",
+                    "episode": "The Vomit Hat Trick",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/ep-76-the-vomit-hat-trick-picard-s1e7/",
+                    "order": 76,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/zXVuUoTJWVBu6FYqS9zrDUFkrVZ.jpg",
+                "https://image.tmdb.org/t/p/original/qHbWD6BWY0viERfoNJgAQsQpNxn.jpg",
+                "https://image.tmdb.org/t/p/original/cJk0rJil446ssabP46NQrGBvkv6.jpg",
+                "https://image.tmdb.org/t/p/original/wEOOi3JgGYh7uA8wM9lg4FB2HKw.jpg",
+                "https://image.tmdb.org/t/p/original/qgDP45lMgaJqY1bwQ5IlUFZXzwx.jpg",
+                "https://image.tmdb.org/t/p/original/hNRYoKRDVG0NY4L3EkqBYdrPtqg.jpg",
+                "https://image.tmdb.org/t/p/original/10ylAUtWImZkC9SpielUes1ledv.jpg",
+                "https://image.tmdb.org/t/p/original/ztdklQtyJ2kIYHqlzrDxR9ZTbiF.jpg",
+                "https://image.tmdb.org/t/p/original/knlYTGJw0eQeVdNmGO918ZpuSvz.jpg",
+                "https://image.tmdb.org/t/p/original/ahHYiIUkcyDymKJh7UGb5YwucJV.jpg",
+                "https://image.tmdb.org/t/p/original/cDyEk0OajXygrfaWd0qVvcHhzso.jpg",
+                "https://image.tmdb.org/t/p/original/gx1e8HFwtoJeA3scWwb6E3ZCypU.jpg",
+                "https://image.tmdb.org/t/p/original/jPVdLHhoDpmwUoVGTM6GgF7JJYu.jpg",
+                "https://image.tmdb.org/t/p/original/3m3k6aFaghbXkz3o8rg71iRYrDF.jpg",
+                "https://image.tmdb.org/t/p/original/3KaHqqvYDHVE7oF82rOe47k1kxM.jpg",
+                "https://image.tmdb.org/t/p/original/jIkFYEQ6Nls2EUmoMkS77qPzeaH.jpg",
+                "https://image.tmdb.org/t/p/original/yLrk8pG57hJWja45Cb00NWtdAdP.jpg",
+                "https://image.tmdb.org/t/p/original/7BKqfCBrP7T7cKs0seBvRKcWaDO.jpg",
+                "https://image.tmdb.org/t/p/original/8n6Y40L3XTc45laI0M8qIhDEFyx.jpg",
+                "https://image.tmdb.org/t/p/original/119bnPsJVUXz1kW4Oky308OvH5f.jpg",
+                "https://image.tmdb.org/t/p/original/il75QcllFnO1g0TGZzQ3ZzUrpH0.jpg"
+            ],
+            "title": "Nepenthe",
+            "tvdb": 2057382
+        },
+        {
+            "airdate": "2020.03.12",
+            "description": "When devastating truths behind the Mars attack are revealed, Picard realizes just how far many will go to preserve secrets stretching back generations, all while the La Sirena crew grapples with secrets and revelations of their own. Narissa directs her guards to capture Elnor, setting off an unexpected chain of events on the Borg cube.",
+            "episode": "08",
+            "imdb": "tt9420290",
+            "memoryalpha": "Broken_Pieces_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.03.17",
+                    "episode": "They Don\u2019t Keep Making Titanics",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/ep-77-they-dont-keep-making-titanics-picard-s1e8/",
+                    "order": 77,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/sgyQ2PanSiuUfEbcX66HT0ez8P5.jpg",
+                "https://image.tmdb.org/t/p/original/b4JX9fwFYyR9MXzNOPfVjLFwttj.jpg",
+                "https://image.tmdb.org/t/p/original/5fwFcf2SQQ59GoFuT3bLq57aqjS.jpg",
+                "https://image.tmdb.org/t/p/original/3UPDoQzyLnZ09nxLUsqEyhgGfyu.jpg",
+                "https://image.tmdb.org/t/p/original/4CHwQFY0B62mJprWvPRJlxTUdwf.jpg",
+                "https://image.tmdb.org/t/p/original/dEZf21mpKd6K8rnOxjIpVvlDR1A.jpg",
+                "https://image.tmdb.org/t/p/original/zY6Q0nhFeqQ7FLQsjYPhXnGLikt.jpg",
+                "https://image.tmdb.org/t/p/original/oprKy2d9fRwC70CO3k4m8Wcbp7Z.jpg",
+                "https://image.tmdb.org/t/p/original/yv4zbRex7lGUSyU8Hc7SFRiQqSD.jpg"
+            ],
+            "title": "Broken Pieces",
+            "tvdb": 2057383
+        },
+        {
+            "airdate": "2020.03.19",
+            "description": "Following an unconventional and dangerous transit, Picard and the crew finally arrive at Soji's home world, Coppelius. However, with Romulan warbirds on their tail, their arrival brings only greater danger as the crew discovers more than expected about the planet\u2019s inhabitants.",
+            "episode": "09",
+            "imdb": "tt10073428",
+            "memoryalpha": "Et_in_Arcadia_Ego,_Part_1_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.03.24",
+                    "episode": "Shades of Gold",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/ep-78-shades-of-gold-picard-s1e9/",
+                    "order": 78,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/1aPyotpgY9u6kENHuTGo5aHHe5Q.jpg",
+                "https://image.tmdb.org/t/p/original/zHJ75afcSJNb83RToIgSqJRf42B.jpg",
+                "https://image.tmdb.org/t/p/original/fg4Npxg4bebTpxgT0UY7JQ7LCCz.jpg",
+                "https://image.tmdb.org/t/p/original/z7V0DZtvJYltrXpnX2MG6F8C47f.jpg",
+                "https://image.tmdb.org/t/p/original/cm0TgAfw99psKyRFyfd4XModotw.jpg",
+                "https://image.tmdb.org/t/p/original/b1JMTlETQQytI8sup6M3pxJvWJk.jpg"
+            ],
+            "title": "Et in Arcadia Ego (1)",
+            "tvdb": 2057384
+        },
+        {
+            "airdate": "2020.03.26",
+            "description": "In the season finale, a final confrontation on the synthetics\u2019 homeworld, Coppelius, pits Picard and his team against the Romulans, as well as the synths who seek to safeguard their existence at all costs.",
+            "episode": "10",
+            "imdb": "tt10073432",
+            "memoryalpha": "Et_in_Arcadia_Ego,_Part_2_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.03.31",
+                    "episode": "Synthetic Rumspringa",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/ep-79-synthetic-rumspringa-picard-s1e10/",
+                    "order": 79,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/8jJhlJ1sTScm5Be8o0Vsx9oftIm.jpg",
+                "https://image.tmdb.org/t/p/original/7b832zmdM3GLKIRbUJfsqosc7q3.jpg",
+                "https://image.tmdb.org/t/p/original/u0NXWw0qTvdUyL6EI8EpiAJAoVS.jpg",
+                "https://image.tmdb.org/t/p/original/dQ3OvK2iLR6Kq9G8fryuSzIu9R4.jpg",
+                "https://image.tmdb.org/t/p/original/yH57kaMUtNKGVgJooDjk01rjn0T.jpg",
+                "https://image.tmdb.org/t/p/original/x5lpeoQOekbyc6vv5A0mmebiStB.jpg"
+            ],
+            "title": "Et in Arcadia Ego (2)",
+            "tvdb": 2057386
+        },
+        {
+            "airdate": "2022.03.03",
+            "description": "",
+            "episode": "01",
+            "imdb": "tt11596676",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "02",
+            "stills": [],
+            "title": "Episode 1",
+            "tvdb": 3456115
+        }
+    ],
+    "imdb": "",
+    "title": "Star Trek: Picard",
+    "trek": true,
+    "tvdb": 85949
+}

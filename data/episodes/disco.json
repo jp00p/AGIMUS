@@ -1,0 +1,1387 @@
+{
+    "animated": false,
+    "episodes": [
+        {
+            "airdate": "2017.09.24",
+            "description": "While patrolling Federation space, the U.S.S. Shenzhou encounters an object of unknown origin, putting First Officer Michael Burnham to her greatest test yet.",
+            "episode": "01",
+            "imdb": "tt5509372",
+            "memoryalpha": "The_Vulcan_Hello_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2017.09.26",
+                    "episode": "Oopsie-Daisy Murder",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-1-oopsie-daisy-murder",
+                    "order": 1,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/kdE6I9aLZgPJMdFkCuQ0YzemP14.jpg",
+                "https://image.tmdb.org/t/p/original/p5Hj1FY7ghnKKHwozMTrzkyzl22.jpg",
+                "https://image.tmdb.org/t/p/original/aL3NAi3Wwx9QICQwh2OybTHwkPb.jpg",
+                "https://image.tmdb.org/t/p/original/xriEMbK4v0Bkvu0P4znJ69eIuh9.jpg",
+                "https://image.tmdb.org/t/p/original/1SQCsew1GqsZSZPmZltnmOdHDwz.jpg",
+                "https://image.tmdb.org/t/p/original/5fxVfneGgXE3GIKIhOXTNFzHyGr.jpg",
+                "https://image.tmdb.org/t/p/original/nsVILS7O0oQAa40cOtuDkHjPWq8.jpg",
+                "https://image.tmdb.org/t/p/original/8wMDCvvaMFuuOrRWJaOvcr53vSm.jpg",
+                "https://image.tmdb.org/t/p/original/hqvrDcxZrFIBcs7TtsnejK6c2H.jpg"
+            ],
+            "title": "The Vulcan Hello",
+            "tvdb": 1330320
+        },
+        {
+            "airdate": "2017.09.24",
+            "description": "Face to face with Klingon vessels, the U.S.S. Shenzhou prepares for the possibility of war if negotiations fail. Amidst the turmoil, Burnham looks back to her Vulcan upbringing for guidance.",
+            "episode": "02",
+            "imdb": "tt5835712",
+            "memoryalpha": "Battle_at_the_Binary_Stars_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2017.09.26",
+                    "episode": "The Georgiou Rule",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-2-georgiou-rule",
+                    "order": 2,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/sg0tltyFlESVGISvxHlsWnW2pVC.jpg",
+                "https://image.tmdb.org/t/p/original/uKrkwapcaunOUcJXU4DZ3Uby9Cn.jpg",
+                "https://image.tmdb.org/t/p/original/1yQxs0NLq0jKfWJRbxPtULuJwTg.jpg",
+                "https://image.tmdb.org/t/p/original/n43NKpsrC8EiRJOOOShCKVcQIKV.jpg",
+                "https://image.tmdb.org/t/p/original/emVzwljRIkOzgO9uixnCjQJ4xBZ.jpg",
+                "https://image.tmdb.org/t/p/original/sTQffIvqNqT0yZsOGbpr6TPPR7A.jpg",
+                "https://image.tmdb.org/t/p/original/qDFKiavSsMuFWaNpjzEt3yWgs81.jpg"
+            ],
+            "title": "Battle at the Binary Stars",
+            "tvdb": 1330321
+        },
+        {
+            "airdate": "2017.10.01",
+            "description": "Burnham finds herself aboard the U.S.S. Discovery where she quickly realizes things are not as they seem, including the mysterious Captain Gabriel Lorca.",
+            "episode": "03",
+            "imdb": "tt5835714",
+            "memoryalpha": "Context_Is_for_Kings_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2017.10.03",
+                    "episode": "Push Triangle to Talk to Captain Lorca",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-3-push-triangle-talk-captain-lorca",
+                    "order": 3,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/AamOrCV7i2COmHPmbfsw0MKnOUm.jpg",
+                "https://image.tmdb.org/t/p/original/ApGfW7DFYcuscbi4H1gYrmRZDA7.jpg",
+                "https://image.tmdb.org/t/p/original/8lryQTeIA4IMUy949jIRXqjic1u.jpg",
+                "https://image.tmdb.org/t/p/original/c3LXkMQcHSrKxFe6RWTnXFA4dWx.jpg",
+                "https://image.tmdb.org/t/p/original/qNGqaHVdfLH8wlvpK3jqpG999sI.jpg",
+                "https://image.tmdb.org/t/p/original/5iTW7TACD5lop67AVMtsd8NwuZu.jpg",
+                "https://image.tmdb.org/t/p/original/pAef99pwZlokvyUFs8LyUz01XFP.jpg",
+                "https://image.tmdb.org/t/p/original/2HFU5QNhtppP5G6lMJQZwIrwkQ5.jpg",
+                "https://image.tmdb.org/t/p/original/fKYPg86InF0w2ryq1oXzp2TWrSt.jpg",
+                "https://image.tmdb.org/t/p/original/7aiqPn1vlUcEZ5fSriMIsQQdHTk.jpg"
+            ],
+            "title": "Context Is for Kings",
+            "tvdb": 1345592
+        },
+        {
+            "airdate": "2017.10.08",
+            "description": "With tensions and stakes high as Starfleet continues in their efforts to end the war with Klingons, Burnham begins to settle in to her new position aboard the U.S.S. Discovery.",
+            "episode": "04",
+            "imdb": "tt5870994",
+            "memoryalpha": "The_Butcher's_Knife_Cares_Not_for_the_Lamb's_Cry_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2017.10.10",
+                    "episode": "All It Took Was a Buffet",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-4-all-it-took-was-buffet",
+                    "order": 4,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/1Ic1cFpOw1E79PZlZGrp8gHo6z7.jpg",
+                "https://image.tmdb.org/t/p/original/VcNAroroaw0SmW8bhfvC1jU0S2.jpg",
+                "https://image.tmdb.org/t/p/original/uRPO7WQwG2c3JWumH2GoLJWm2e7.jpg",
+                "https://image.tmdb.org/t/p/original/sq146wyU2ECTtCxwrvrW4zZ52oD.jpg",
+                "https://image.tmdb.org/t/p/original/t0xThiUEZPoaYHMBaGq1N0QO57g.jpg",
+                "https://image.tmdb.org/t/p/original/7mO9x48XbgEWcm3c0MX4Sc5eFH.jpg",
+                "https://image.tmdb.org/t/p/original/gIwFWZCcb6bInxHD3BUNJtcKnfJ.jpg",
+                "https://image.tmdb.org/t/p/original/cbp8ZH4D5eNQGXtcJ9N30z7Qgz4.jpg",
+                "https://image.tmdb.org/t/p/original/hmKeoGdYbDUloK8g9CueaqTy8Iu.jpg"
+            ],
+            "title": "The Butcher's Knife Cares Not for the Lamb's Cry",
+            "tvdb": 1351434
+        },
+        {
+            "airdate": "2017.10.15",
+            "description": "Lorca unexpectedly finds himself in the company of a prisoner of war, Starfleet Lieutenant Ash Tyler, and a notorious intergalactic criminal, Harry Mudd. Meanwhile, Burnham voices her concerns about the repercussions of the spore drive jumps on \u201cRipper.\u201d",
+            "episode": "05",
+            "imdb": "tt5870996",
+            "memoryalpha": "Choose_Your_Pain_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2017.10.17",
+                    "episode": "Curved Like A Bat'leth",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-5-curved-like-batleth",
+                    "order": 5,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/3DFM8C3dJDVg7wX161vq7FaLP8M.jpg",
+                "https://image.tmdb.org/t/p/original/UvnZdf49Xc0TrSLMQRBQhk7vOB.jpg",
+                "https://image.tmdb.org/t/p/original/dnJXvwrkWujUPILscTXVwPkrpTT.jpg",
+                "https://image.tmdb.org/t/p/original/3r6KVSqqRvuQKq2bSLBDHT5biKe.jpg",
+                "https://image.tmdb.org/t/p/original/hIsNKDTfi7Qk6JvYyFIXSrb5CfO.jpg",
+                "https://image.tmdb.org/t/p/original/jYqsAkCoPS8MBTHS3qaaLt3lUc5.jpg",
+                "https://image.tmdb.org/t/p/original/oyytuGcdn9AzHsuXcwBv5StUbaQ.jpg",
+                "https://image.tmdb.org/t/p/original/9p9bkTm0SrLgiAPSyxKHmLk6iqz.jpg",
+                "https://image.tmdb.org/t/p/original/evIQxIjcv4kQ4IB82DRJGjrJdSE.jpg",
+                "https://image.tmdb.org/t/p/original/h2CeOVYUksKOlRXM93A3kJs7bi3.jpg"
+            ],
+            "title": "Choose Your Pain",
+            "tvdb": 1375046
+        },
+        {
+            "airdate": "2017.10.22",
+            "description": "The U.S.S. Discovery crew is intrigued by new addition, Lt. Ash Tyler. Sarek seeks Burnham's help, rekindling memories from her past. Admiral Cornwell questions Lorca's tactics.",
+            "episode": "06",
+            "imdb": "tt5870998",
+            "memoryalpha": "Lethe_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2017.10.24",
+                    "episode": "She's All Up in that Butt with the Katra",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-6-shes-all-butt-katra",
+                    "order": 6,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/ijKL65XIokHKi8DQJfWEIwbPFlk.jpg",
+                "https://image.tmdb.org/t/p/original/nJSwQKTt1i1jMobSSKVV5NN1ECw.jpg",
+                "https://image.tmdb.org/t/p/original/p1KQhaUeuiUFro1bJb4oCIynosT.jpg",
+                "https://image.tmdb.org/t/p/original/lZgB0KBJkeSjnmU8IQAqzKvP7op.jpg",
+                "https://image.tmdb.org/t/p/original/k9YePYunfJNs71RzlltxYppfFn9.jpg",
+                "https://image.tmdb.org/t/p/original/tIBkc7mqC0catBodP2k23KjCJ1d.jpg",
+                "https://image.tmdb.org/t/p/original/a9BxRO1t7NKyhW3l5AyyinYZTgJ.jpg",
+                "https://image.tmdb.org/t/p/original/6BDnnjM8J8gLpSwcVGlKy0ia0H5.jpg",
+                "https://image.tmdb.org/t/p/original/2qdck9NnonZeRRgDsl528MhTFpU.jpg",
+                "https://image.tmdb.org/t/p/original/8AFTaXAiTzyP0cKrQGNHFLDWw1I.jpg",
+                "https://image.tmdb.org/t/p/original/5UteaXy09J0Wozry5VL7oFjxvc5.jpg"
+            ],
+            "title": "Lethe",
+            "tvdb": 1379786
+        },
+        {
+            "airdate": "2017.10.29",
+            "description": "As the U.S.S. Discovery crew attempts to let loose at a party, an unwelcome visitor comes aboard bringing about a problematic and twisted sequence of events.",
+            "episode": "07",
+            "imdb": "tt5884346",
+            "memoryalpha": "Magic_to_Make_the_Sanest_Man_Go_Mad_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2017.10.31",
+                    "episode": "Bridal Train Level Threat Ganglia",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-7-bridal-train-level-threat-ganglia",
+                    "order": 7,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/j6gpzxVAW3ewd2MGqPTz0CKsKRv.jpg",
+                "https://image.tmdb.org/t/p/original/rzpwTfljI0qOVXIfJOOkAFpw1Ra.jpg",
+                "https://image.tmdb.org/t/p/original/vGRlcLbsqO5JLzagMF340n42lAt.jpg",
+                "https://image.tmdb.org/t/p/original/ApXaGK5wqEFIThdkrRPDi6D0mcc.jpg",
+                "https://image.tmdb.org/t/p/original/wOMF6KvLAHIcJGPL102qiAVdIwn.jpg",
+                "https://image.tmdb.org/t/p/original/9RHyFphNMByaeM4jS3HbOmM7HHk.jpg",
+                "https://image.tmdb.org/t/p/original/4DEjZ7xM4iPobBFe96JXqlIHnhl.jpg",
+                "https://image.tmdb.org/t/p/original/8woyf9HWWIlYudYUj0Ny3Acw6r8.jpg",
+                "https://image.tmdb.org/t/p/original/oiW9pKKqqWZUjj3Ft6jNXU2kes5.jpg"
+            ],
+            "title": "Magic to Make the Sanest Man Go Mad",
+            "tvdb": 1379787
+        },
+        {
+            "airdate": "2017.11.05",
+            "description": "The U.S.S. Discovery is tasked with a high priority mission to planet Pahvo and learn the science behind the Klingon's cloaking technology.",
+            "episode": "08",
+            "imdb": "tt5888594",
+            "memoryalpha": "Si_Vis_Pacem,_Para_Bellum_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2017.11.07",
+                    "episode": "Kool-Aid Sneeze",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-8-kool-aid-sneeze",
+                    "order": 8,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/mETRqM74dY79tBJlwSKVIoXM7gR.jpg",
+                "https://image.tmdb.org/t/p/original/uGejuRzXVWYDpNcZG1v2bUcSc92.jpg",
+                "https://image.tmdb.org/t/p/original/vpdm1Y3lWi124KmSJEfhHMSYF23.jpg",
+                "https://image.tmdb.org/t/p/original/jJlFpLPlZqKyHRJLdrBFb6Mb3lK.jpg",
+                "https://image.tmdb.org/t/p/original/mMB1FCteA9w0VEq6ifad0DzfQk1.jpg",
+                "https://image.tmdb.org/t/p/original/aRTme0rF33YgafodTNs8WVT8UgX.jpg",
+                "https://image.tmdb.org/t/p/original/14DREsv5vjMScPfXeG5jqHtVlPb.jpg",
+                "https://image.tmdb.org/t/p/original/h0nbavdHwjJjAHtZhFN9tCCvTZ2.jpg"
+            ],
+            "title": "Si Vis Pacem, Para Bellum",
+            "tvdb": 1380335
+        },
+        {
+            "airdate": "2017.11.12",
+            "description": "Bypassing Starfleet's orders, Lorca uses the U.S.S. Discovery crew's ultimate asset, the ship itself, in an effort to end the war with the Klingons once and for all.",
+            "episode": "09",
+            "imdb": "tt5890578",
+            "memoryalpha": "Into_the_Forest_I_Go_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2017.11.14",
+                    "episode": "Mek'leths at Dawn",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-9-mekleths-dawn",
+                    "order": 9,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/8sisA21eGQqrTViVITSbHHowUFl.jpg",
+                "https://image.tmdb.org/t/p/original/jwdHQvH1f69ky5ZPSRrSDKxW4QN.jpg",
+                "https://image.tmdb.org/t/p/original/aLN6w9bMuPp5OOtjKiGuNXxTYx8.jpg",
+                "https://image.tmdb.org/t/p/original/3nXpyFH0QEYpemGxcw2z524pmux.jpg",
+                "https://image.tmdb.org/t/p/original/ySNbZVbpdisdehiAmG2TgcEvZ2H.jpg",
+                "https://image.tmdb.org/t/p/original/vj2vNUYGCnlWwAyqQy4mbm8H9YK.jpg",
+                "https://image.tmdb.org/t/p/original/8RgclBKAzaBfw8kN5go6Aa4Qyu3.jpg",
+                "https://image.tmdb.org/t/p/original/m3RwYkjL2MDexC3qVGyn28NUdbJ.jpg",
+                "https://image.tmdb.org/t/p/original/cbNL0kZ6G1d9ZxACxIThw7ZflDW.jpg"
+            ],
+            "title": "Into the Forest I Go",
+            "tvdb": 1380336
+        },
+        {
+            "airdate": "2018.01.07",
+            "description": "While in unfamiliar territory, the U.S.S. Discovery crew is forced to get creative in their next efforts to survive opposing and unprecedented forces and return home.",
+            "episode": "10",
+            "imdb": "tt6011050",
+            "memoryalpha": "Despite_Yourself_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2018.01.09",
+                    "episode": "Giant Barrel of Goo Gone",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-10-giant-barrel-goo-gone",
+                    "order": 10,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/i3s3R4XjO1DmaffdSOZf0XTiUfT.jpg",
+                "https://image.tmdb.org/t/p/original/sWk1DopLiqcfRvFfY4iGJrqLaCo.jpg",
+                "https://image.tmdb.org/t/p/original/AgwHrmEdultGhdCoYpZWWpJRgqw.jpg",
+                "https://image.tmdb.org/t/p/original/ldbBoGsPzfsOeBw057kTUGU0o8K.jpg",
+                "https://image.tmdb.org/t/p/original/7zgzsAYhti9lBViMigwXaocEJu2.jpg",
+                "https://image.tmdb.org/t/p/original/hDBoY95L3KAuxH6eDep1l9Vgkq9.jpg",
+                "https://image.tmdb.org/t/p/original/u0Z6tejSr28KjNpNZt8hzFteTWJ.jpg",
+                "https://image.tmdb.org/t/p/original/pdf1EO0weNmgCKMUNUqvIj6OPVF.jpg",
+                "https://image.tmdb.org/t/p/original/tUSA0105RHbH9a6CUQuBvKWiWDH.jpg",
+                "https://image.tmdb.org/t/p/original/47dJP3u8oWtZ8Fjhc3VcqOtVJq5.jpg",
+                "https://image.tmdb.org/t/p/original/4hFHTmF7SQi7dsRkkWd4XFm2hHK.jpg",
+                "https://image.tmdb.org/t/p/original/aLBgNciu7yfCJuJFoMem75rWhgZ.jpg"
+            ],
+            "title": "Despite Yourself",
+            "tvdb": 1391322
+        },
+        {
+            "airdate": "2018.01.14",
+            "description": "The crew continues their guise, and Burnham is ordered on a merciless mission to end the resistance in hopes of returning home. Meanwhile, Tilly works on restoring Stamets\u2019 neurofunction.",
+            "episode": "11",
+            "imdb": "tt6011052",
+            "memoryalpha": "The_Wolf_Inside_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2018.01.16",
+                    "episode": "That's Going All the Way In",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/greatest-discovery-ep-11-ep-11-s-going-all-way/",
+                    "order": 11,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/aX43537EoHEq0eFVrWNofm0yewF.jpg",
+                "https://image.tmdb.org/t/p/original/fVpEKJx0eQHot7hwyTMKY07v8pK.jpg",
+                "https://image.tmdb.org/t/p/original/nUWCS3EgkGlBMdPEGNSISb4Qo1i.jpg",
+                "https://image.tmdb.org/t/p/original/eDjx0SFYd9n5UJaomLE12pmM593.jpg",
+                "https://image.tmdb.org/t/p/original/1X9JdQsnwnd7RefnVbx96gnwRXA.jpg"
+            ],
+            "title": "The Wolf Inside",
+            "tvdb": 1418612
+        },
+        {
+            "airdate": "2018.01.21",
+            "description": "Burnham heads to the ISS Charon with a special \"gift\" for the Emperor. With the help of an unexpected source, Stamets gains clarity while trapped inside the mycelial network. Saru asks for L'Rell's help.",
+            "episode": "12",
+            "imdb": "tt6011054",
+            "memoryalpha": "Vaulting_Ambition_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2018.01.23",
+                    "episode": "Gremlins in the Microwave",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-12-gremlins-microwave",
+                    "order": 12,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/8JZsBmPBXgVaLk9z5Kt188KSaFc.jpg",
+                "https://image.tmdb.org/t/p/original/f66qCC5WE7CyySnypreiQtQ1U61.jpg",
+                "https://image.tmdb.org/t/p/original/crFTedcgMn9h7ym6Cm3N7D7SaFA.jpg",
+                "https://image.tmdb.org/t/p/original/vAezek0wyZfaOyQXNog0O5gjhGc.jpg",
+                "https://image.tmdb.org/t/p/original/2USijvH2a2g1i6FgCznUygZID5x.jpg",
+                "https://image.tmdb.org/t/p/original/i3OMHr7DJtXcFeZ80j934jVHxBE.jpg",
+                "https://image.tmdb.org/t/p/original/v4tXsJGFwSNvhOREae72nfeansU.jpg"
+            ],
+            "title": "Vaulting Ambition",
+            "tvdb": 1421214
+        },
+        {
+            "airdate": "2018.01.28",
+            "description": "Lorca plans to move forward with a coup against the Emperor, propelling Burnham to make a quick decision to save not only herself, but the U.S.S. Discovery.",
+            "episode": "13",
+            "imdb": "tt6011058",
+            "memoryalpha": "What's_Past_Is_Prologue_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2018.01.30",
+                    "episode": "Half Apple and a Pancake",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-13-half-apple-and-pancake",
+                    "order": 13,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/zUrMldisIBxHjbHzAIPmZBwwYZO.jpg",
+                "https://image.tmdb.org/t/p/original/tRjmkbbkfMueboO4g72FVuySqxq.jpg",
+                "https://image.tmdb.org/t/p/original/fjvSTcLFp0DE5HKr6QdT9WFDmae.jpg",
+                "https://image.tmdb.org/t/p/original/nVvyqnbIiKlggs0yT8ViF7X6QMR.jpg",
+                "https://image.tmdb.org/t/p/original/6nVeM6GBQCkRoJ1ZXbNRbobEJLM.jpg",
+                "https://image.tmdb.org/t/p/original/t8ufGgawqHgGrUulNjaJpunL4T9.jpg",
+                "https://image.tmdb.org/t/p/original/jiOGBvSh4icSocryDtz9PkBr8c8.jpg",
+                "https://image.tmdb.org/t/p/original/bEU4QzKu5JQKkk8LIXxbyflhY26.jpg"
+            ],
+            "title": "What's Past Is Prologue",
+            "tvdb": 1421215
+        },
+        {
+            "airdate": "2018.02.04",
+            "description": "Burnham and the U.S.S. Discovery crew are faced with the harsh reality of the war during their absence. In order to move forward, Starfleet must use unconventional tactics and sources to take their next action against the Klingons.",
+            "episode": "14",
+            "imdb": "tt6902342",
+            "memoryalpha": "The_War_Without,_The_War_Within_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2018.02.06",
+                    "episode": "Head to the Penthouse for the Party",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-14-head-penthouse-party",
+                    "order": 14,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/4IQLqwohAzzdhCFPn2h7tYaqUmz.jpg",
+                "https://image.tmdb.org/t/p/original/kwmWD1tQ5dn5zxDfKcvZ8X97Y0s.jpg",
+                "https://image.tmdb.org/t/p/original/jetvIElO4UBgzjAF0XdHJNqCcyb.jpg",
+                "https://image.tmdb.org/t/p/original/qlGLI92fsg87a2YjOpkxev4uNRB.jpg",
+                "https://image.tmdb.org/t/p/original/zruLvdrMp5JiazIMOOzHeIzEdqR.jpg",
+                "https://image.tmdb.org/t/p/original/6YHCwPfnSh6v99cbHhc79tOFEp.jpg"
+            ],
+            "title": "The War Without The War Within",
+            "tvdb": 1424404
+        },
+        {
+            "airdate": "2018.02.11",
+            "description": "With Georgiou at the helm of the plan to end the Klingon war once and for all, the U.S.S. Discovery crew struggles to fathom and tolerate her hostile tactics. Memories of past hardships are rekindled within Burnham.",
+            "episode": "15",
+            "imdb": "tt6902346",
+            "memoryalpha": "Will_You_Take_My_Hand?_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2018.02.13",
+                    "episode": "21 Jump Streeting Qo'noS",
+                    "link": "http://maximumfun.org/greatest-discovery/greatest-discovery-ep-15-21-jump-streeting-qonos",
+                    "order": 15,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/vfuT4QAhqT2yB1UXGp6guwVXAHv.jpg",
+                "https://image.tmdb.org/t/p/original/1lzo6oxZgFpoUbWAInhL0KrMRxI.jpg",
+                "https://image.tmdb.org/t/p/original/oQwL2mf8DA3ER18XsBgdXXKdkY4.jpg",
+                "https://image.tmdb.org/t/p/original/dp4mfMLdxskXFhraeLQYuCidLqT.jpg",
+                "https://image.tmdb.org/t/p/original/3azsvvffvrH6aC7kgtdlSwhsUC0.jpg",
+                "https://image.tmdb.org/t/p/original/wWqNNRwaVBp8e4Qbnej2eDlSIgr.jpg"
+            ],
+            "title": "Will You Take My Hand?",
+            "tvdb": 1424405
+        },
+        {
+            "airdate": "2019.01.17",
+            "description": "After answering a distress signal from the U.S.S. Enterprise, the U.S.S. Discovery welcomes aboard Captain Christopher Pike and begins a new mission to investigate the meaning behind seven mysterious red signals. Michael Burnham grapples with her past growing up on Vulcan with her foster parents and brother Spock.",
+            "episode": "01",
+            "imdb": "tt7562000",
+            "memoryalpha": "Brother_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.01.22",
+                    "episode": "The Tight Stuff",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discovery-ep-36-tight-stuff-s2e1",
+                    "order": 36,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/jT0JIyQvtXw5BDAqPFSuT4meLAd.jpg",
+                "https://image.tmdb.org/t/p/original/bNzSxkuTqbVp9WBOfk8JD50YGca.jpg",
+                "https://image.tmdb.org/t/p/original/9PvO85VJUQNGAkrjwwkabmtGAlc.jpg",
+                "https://image.tmdb.org/t/p/original/2Jj6EYSMGS9T7v4nI7Exn0P1atY.jpg",
+                "https://image.tmdb.org/t/p/original/cnFZWKwryPxFL0tNiX4tRuebL2r.jpg",
+                "https://image.tmdb.org/t/p/original/k0fKxxylZM1Ktc0pkAq35nZMYHz.jpg",
+                "https://image.tmdb.org/t/p/original/f8ZGwAdJ4riartYcMEetBPTIbMa.jpg",
+                "https://image.tmdb.org/t/p/original/mPhjigzJNe6w0ZpPhOUdSEY0T6I.jpg",
+                "https://image.tmdb.org/t/p/original/1rZ7zzEOqlrt6gdGZ8pY6gb2uVO.jpg",
+                "https://image.tmdb.org/t/p/original/jvgbkrodWOrl3d3iIDSKLRct0Gk.jpg",
+                "https://image.tmdb.org/t/p/original/vZqCu2LsGkkoH4SoXO032vSKaPT.jpg",
+                "https://image.tmdb.org/t/p/original/gXx4I75siyFfKJsKL7bJau6DuAt.jpg",
+                "https://image.tmdb.org/t/p/original/jjKSxGUdbTeevSriRkp2RpC19Cz.jpg"
+            ],
+            "title": "Brother",
+            "tvdb": 1587496
+        },
+        {
+            "airdate": "2019.01.24",
+            "description": "A new signal appears, prompting Stamets' emotional return to the mycelial network and leading Burnham, Pike and Owosekun to a pre-warp planet, where they face a complex ethical dilemma. Tilly's overeagerness lands her in trouble but when the planet - and Discovery's landing party - are threatened, her curiosity may be the one thing that can save them.",
+            "episode": "02",
+            "imdb": "tt8282868",
+            "memoryalpha": "New_Eden_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.01.29",
+                    "episode": "New Weeden",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discovery-ep-37-new-weeden-s2e2",
+                    "order": 37,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/h9ZYhEnqvJSwuv6cKIxVSR2gN1o.jpg",
+                "https://image.tmdb.org/t/p/original/l6eQJlNpzbRng7rEp13YYXmq6xv.jpg",
+                "https://image.tmdb.org/t/p/original/bUqxJCdhudMMMcaMBQeGmmL7oQs.jpg",
+                "https://image.tmdb.org/t/p/original/3nrLVc3XXAmNbF1ZdWUd3Wg27Kl.jpg",
+                "https://image.tmdb.org/t/p/original/bt321PAYp6CH98PEA46lGfboGoE.jpg",
+                "https://image.tmdb.org/t/p/original/vRG44Hoz1YOX6bepmd3aaV3AQRx.jpg",
+                "https://image.tmdb.org/t/p/original/pkx2cOQa13wSORfLtb7P1fIAeKZ.jpg",
+                "https://image.tmdb.org/t/p/original/2XneoySeMVTNEMFoQzMXdBUp9Gy.jpg"
+            ],
+            "title": "New Eden",
+            "tvdb": 1682133
+        },
+        {
+            "airdate": "2019.01.31",
+            "description": "A surprise visitor to the U.S.S. Discovery brings shocking news about Spock and dredges up past regrets for Burnham. Following the asteroid incident, Tilly struggles to keep a grip on her reality. L'Rell's authority on Qo'noS is threatened.",
+            "episode": "03",
+            "imdb": "tt8288432",
+            "memoryalpha": "Point_of_Light_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.02.05",
+                    "episode": "It Tastes Human",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discovery-ep-38-it-tastes-human",
+                    "order": 38,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/8bIaq84ymAVLOX3fw5CmxyvX2oi.jpg",
+                "https://image.tmdb.org/t/p/original/1zTb14IVisXghNaPWeoDNvvZ6FV.jpg",
+                "https://image.tmdb.org/t/p/original/vFfkWgRWSTKnCFZERHmTcLNdOcu.jpg",
+                "https://image.tmdb.org/t/p/original/tMq5o4KfSM6D9qXAnPfOHE1RYZB.jpg",
+                "https://image.tmdb.org/t/p/original/1HThJqT2aBCckcfz8oPlJ5JJMQd.jpg",
+                "https://image.tmdb.org/t/p/original/7y1Zy7TYi1aJuAhrEV3Q0GZCQXu.jpg"
+            ],
+            "title": "Point of Light",
+            "tvdb": 1682134
+        },
+        {
+            "airdate": "2019.02.07",
+            "description": "A mysterious sphere threatens the U.S.S. Discovery even as May, in her original form, implements a plan that puts Tilly's life in danger. Saru and Burnham's bond grows when Saru is forced to acknowledge a deeply unsettling Kelpien truth. Pike receives new intel on Spock from a loyal friend.",
+            "episode": "04",
+            "imdb": "tt8201650",
+            "memoryalpha": "An_Obol_for_Charon_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.02.12",
+                    "episode": "H.R. Goo-ger",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discovery-ep-39-hr-goo-ger-s2e4",
+                    "order": 39,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/5QgW74tBHmJfOKLX0TfoxB8xbtn.jpg",
+                "https://image.tmdb.org/t/p/original/kakWcxJHDLEqzCf1nU6guJi0zxa.jpg",
+                "https://image.tmdb.org/t/p/original/gzo1vJcMt2NzG0RifQeJ7O6GQW3.jpg",
+                "https://image.tmdb.org/t/p/original/9uI03Df0WYgry2T8Ib4aIHLNElK.jpg",
+                "https://image.tmdb.org/t/p/original/1PMAMHfcBT1WivV9YPzSNlhBhwZ.jpg"
+            ],
+            "title": "An Obol for Charon",
+            "tvdb": 1683058
+        },
+        {
+            "airdate": "2019.02.14",
+            "description": "Burnham and the crew navigate a dangerous alien landscape in a race against time to save Tilly's life, but Stamets is not at all prepared for what they find in the process. Section 31 is assigned to help track down Spock, much to Pike's dismay.",
+            "episode": "05",
+            "imdb": "tt8288434",
+            "memoryalpha": "Saints_of_Imperfection_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.02.19",
+                    "episode": "Butt-Dial Georgiou",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discovery-ep-40-butt-dial-georgiou-s2e5",
+                    "order": 40,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/hNvtDxwd9S0BV5bmFKeCOUzyRXy.jpg",
+                "https://image.tmdb.org/t/p/original/npfHlTZGUaV0zbZn1FT2UDGonfc.jpg",
+                "https://image.tmdb.org/t/p/original/pCGeYC7H0RLCEun2TPvFxFvUvtb.jpg",
+                "https://image.tmdb.org/t/p/original/4HTwepMQmx6g1GreAGz4OM8yOcw.jpg",
+                "https://image.tmdb.org/t/p/original/6u23eu1XJE83eWETZmLr6GgQ9md.jpg",
+                "https://image.tmdb.org/t/p/original/7NlTCKdEijeQu8DGmP65PsQlYLk.jpg",
+                "https://image.tmdb.org/t/p/original/jwMsBICSY7GiijbjktkDijK8ccD.jpg"
+            ],
+            "title": "Saints of Imperfection",
+            "tvdb": 1683059
+        },
+        {
+            "airdate": "2019.02.21",
+            "description": "When a new signal appears over Saru's home planet, Burnham, Saru and the crew embark on a perilous mission that puts Saru in danger and raises questions about the Red Angel's intentions. Hugh struggles to come to terms with his new reality.",
+            "episode": "06",
+            "imdb": "tt8288436",
+            "memoryalpha": "The_Sound_of_Thunder_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.02.26",
+                    "episode": "Pink Note",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discovery-ep-41-pink-note-s2e6",
+                    "order": 41,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/p7LJCMh8HSHBTdNZpDOecjQYZcL.jpg",
+                "https://image.tmdb.org/t/p/original/kmBFbElvGTRkIP4GQLAKEj4aihi.jpg",
+                "https://image.tmdb.org/t/p/original/t88cY6oL8EEAYSridEQ1MDSCFcm.jpg",
+                "https://image.tmdb.org/t/p/original/o9NyWatmacrxvpKkkEhndKmLl3n.jpg",
+                "https://image.tmdb.org/t/p/original/igXFFew5FTH0uoawXPkEH8t6CTu.jpg"
+            ],
+            "title": "The Sound of Thunder",
+            "tvdb": 1691296
+        },
+        {
+            "airdate": "2019.02.28",
+            "description": "Burnham goes to Vulcan in search of Spock, where she unearths surprising family secrets. In researching what is left of the Red Angel's signal over Kaminar, Pike and Tyler end up in battle with time itself. Georgiou has a few tricks up her sleeve for Leland and Section 31.",
+            "episode": "07",
+            "imdb": "tt8288438",
+            "memoryalpha": "Light_and_Shadows_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.03.05",
+                    "episode": "Scramble Spock's Egg",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discovery-ep-42-scramble-spocks-egg-s2e7",
+                    "order": 42,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/7r3lfBzO8qzrx5hn8NIolNQMGlO.jpg",
+                "https://image.tmdb.org/t/p/original/ejYLrmqXFQHMf2S2rNZJ0IPaJhD.jpg",
+                "https://image.tmdb.org/t/p/original/34cTDwvTcPxsuTN0zttqDk8vde7.jpg"
+            ],
+            "title": "Light and Shadows",
+            "tvdb": 1711668
+        },
+        {
+            "airdate": "2019.03.07",
+            "description": "Spock and Burnham head to Talos IV, where the process of healing Spock forces the siblings to confront their troubled past. Stamets desperately tries to reconnect with Hugh, while Tyler struggles to shed the crew's suspicions of him due to his past as Voq.",
+            "episode": "08",
+            "imdb": "tt8288440",
+            "memoryalpha": "If_Memory_Serves_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.03.12",
+                    "episode": "lowercase t",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discovery-ep-43-t-s2e8",
+                    "order": 43,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/lIENcSDSG0O663pPRgwQ3VvqJxT.jpg",
+                "https://image.tmdb.org/t/p/original/g1OrVIez6SHR2iYrQucy8XNi5lU.jpg"
+            ],
+            "title": "If Memory Serves",
+            "tvdb": 1691297
+        },
+        {
+            "airdate": "2019.03.14",
+            "description": "When the Discovery crew infiltrates Section 31's headquarters, suspicions arise that the crew may have a traitor in their midst. Burnham tries to help Spock but her efforts don't go as planned.",
+            "episode": "09",
+            "imdb": "tt8288444",
+            "memoryalpha": "Project_Daedalus_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.03.19",
+                    "episode": "Star Trek Canasta",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discover-ep-44-star-trek-canasta",
+                    "order": 44,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/xUkQYXYUk0EZyVIsyh48kWAHylX.jpg",
+                "https://image.tmdb.org/t/p/original/jR83RCs8aJEqX6fv6jNQByjrveh.jpg"
+            ],
+            "title": "Project Daedalus",
+            "tvdb": 1711670
+        },
+        {
+            "airdate": "2019.03.21",
+            "description": "Burnham is stunned when she learns her ties to Section 31 run deeper than she ever fathomed. Armed with the identity of the Red Angel, the U.S.S. Discovery goes to work on its most critical mission to date.",
+            "episode": "10",
+            "imdb": "tt8282872",
+            "memoryalpha": "The_Red_Angel_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.03.26",
+                    "episode": "Taint on Taint",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discovery-ep-45-taint-taint",
+                    "order": 45,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/v4qsjzl7EMsVKBxa87oImMu0dGz.jpg",
+                "https://image.tmdb.org/t/p/original/rBSx7CHMBqmYX2ma0R3mTHVYqxZ.jpg",
+                "https://image.tmdb.org/t/p/original/wXCWFeKw655VvgVGsyiNY8m4om0.jpg",
+                "https://image.tmdb.org/t/p/original/uRVUc4p9GFz9WU9KSPnRWd9Jam8.jpg",
+                "https://image.tmdb.org/t/p/original/kNoOPxEZYs16jJMIvBInxs33dqV.jpg",
+                "https://image.tmdb.org/t/p/original/7P7B2MbUJElFSWVub6ANCfqnd0C.jpg",
+                "https://image.tmdb.org/t/p/original/i5x96Q2X1jsNTLD5cWAMIbLU7Tr.jpg",
+                "https://image.tmdb.org/t/p/original/j9f9gTLTS4wLKH39MEWZsHgrBCs.jpg",
+                "https://image.tmdb.org/t/p/original/nQ0QrmYIiib9TeVBbIDTqbO1rby.jpg",
+                "https://image.tmdb.org/t/p/original/hKoLW1JP3rdPO7JTD4AWFzmtIXQ.jpg",
+                "https://image.tmdb.org/t/p/original/4dSX35D2i2CW9FxhQGyv9eIhCno.jpg",
+                "https://image.tmdb.org/t/p/original/8vaGDFb3Trt3vFbLFUlAfGHdPU7.jpg",
+                "https://image.tmdb.org/t/p/original/yOy0ebtGgB1g9JP3IfEqQAxkung.jpg",
+                "https://image.tmdb.org/t/p/original/56Gaffeo5kXgEinaT8yPC4p6yHo.jpg",
+                "https://image.tmdb.org/t/p/original/4R6UKa4cwc7CMfy7iw9RNthdN5G.jpg",
+                "https://image.tmdb.org/t/p/original/okdKnhKJ7zFBLorHS3Ukd5j5Te1.jpg",
+                "https://image.tmdb.org/t/p/original/kM45LvU4XyKc1n1nIAeHbLSBJaZ.jpg",
+                "https://image.tmdb.org/t/p/original/gLzZHYN4a7dX2HwUlfxsgLkraVz.jpg",
+                "https://image.tmdb.org/t/p/original/pQ44Tf8fkjsWqGaJONB12H7038h.jpg",
+                "https://image.tmdb.org/t/p/original/kdIhdX2HEWjeWA7LYqZCNoCfjms.jpg"
+            ],
+            "title": "The Red Angel",
+            "tvdb": 1711671
+        },
+        {
+            "airdate": "2019.03.28",
+            "description": "Burnham receives the reunion she's been longing for, but it doesn't go quite as she imagined. Georgiou and Tyler sense a disturbing change in Leland.",
+            "episode": "11",
+            "imdb": "tt8288442",
+            "memoryalpha": "Perpetual_Infinity_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.04.02",
+                    "episode": "Contreland",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discovery-ep-46-contreland-s2e11",
+                    "order": 46,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/t7VeyVHVOe3qRIcXxPmQtqrcQCk.jpg",
+                "https://image.tmdb.org/t/p/original/wEoBrF1qsABtg04a7wNeY6Xlriv.jpg",
+                "https://image.tmdb.org/t/p/original/5TTCYV2Y7tsL9FVrmh6V1PMLbby.jpg",
+                "https://image.tmdb.org/t/p/original/dEILi0DS0claLXlcVTtoOTP1sVK.jpg",
+                "https://image.tmdb.org/t/p/original/zbLLH2HKJW7mpBqOBP2HPx4Z0E8.jpg",
+                "https://image.tmdb.org/t/p/original/c6KJbjIifC12EJ6dco4P0CpzgIc.jpg",
+                "https://image.tmdb.org/t/p/original/1z8o2EeZ5Dwtwr03qIEf4NZIsmG.jpg",
+                "https://image.tmdb.org/t/p/original/i77Wzrh4nzL6LHUhPvzePEgKhnl.jpg",
+                "https://image.tmdb.org/t/p/original/25tOdRpfcTgbXEVVZ0K7lZlL4H5.jpg",
+                "https://image.tmdb.org/t/p/original/3vjllq7bqODgtoaBHOqBaHaVIv3.jpg",
+                "https://image.tmdb.org/t/p/original/2Cc14g5jDQYInhmqYEJ5Xctmjr7.jpg",
+                "https://image.tmdb.org/t/p/original/r1WdBYtA2mM0QPVDLLe83Gjy2QZ.jpg",
+                "https://image.tmdb.org/t/p/original/31Ey3FpJrwraqa6waacSTwb66ft.jpg",
+                "https://image.tmdb.org/t/p/original/bs6MVPyHp5vddM2d1TsscqPkvK7.jpg"
+            ],
+            "title": "Perpetual Infinity",
+            "tvdb": 1711672
+        },
+        {
+            "airdate": "2019.04.04",
+            "description": "A fourth signal leads the U.S.S. Discovery to a world where Pike is forced to make a life-changing choice. Burnham and Spock investigate a Section 31 ship gone rogue, leading to a discovery with catastrophic consequences.",
+            "episode": "12",
+            "imdb": "tt8288446",
+            "memoryalpha": "Through_the_Valley_of_Shadows_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.04.09",
+                    "episode": "Time Cuck",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discovery-ep-47-time-cuck",
+                    "order": 47,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/dSt1LPNujIxf46q44oeMxqcZxs6.jpg",
+                "https://image.tmdb.org/t/p/original/yQrggiiwKRv9BZN0SUnWdOHdPJX.jpg",
+                "https://image.tmdb.org/t/p/original/4gucxGJP59e63rCJhwws7HKkBQz.jpg",
+                "https://image.tmdb.org/t/p/original/lhwKvV9X6BrFRQ4U5svSzZjWtQp.jpg",
+                "https://image.tmdb.org/t/p/original/wrSXf2w5KG6llJbpeT9el8gtmpj.jpg",
+                "https://image.tmdb.org/t/p/original/SDD77AUpC6DGjgjakhY6k508TG.jpg",
+                "https://image.tmdb.org/t/p/original/sDpQXDAxgPP6EIm9aVgyK9tl5gy.jpg",
+                "https://image.tmdb.org/t/p/original/ksNWdEJRcXpsX6J4lgFn3yFGw6G.jpg",
+                "https://image.tmdb.org/t/p/original/e2A4lGRrXmpGq6M2koLtfcqixMl.jpg"
+            ],
+            "title": "Through the Valley of Shadows",
+            "tvdb": 1744340
+        },
+        {
+            "airdate": "2019.04.11",
+            "description": "When the U.S.S. Discovery's crucial mission does not go according to plan, Burnham realizes what must ultimately be done. The crew prepares for the battle of a lifetime as Leland's Control ships get closer.",
+            "episode": "13",
+            "imdb": "tt8288448",
+            "memoryalpha": "Such_Sweet_Sorrow_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.04.16",
+                    "episode": "Big Science Energy",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discover-ep-48-big-science-energy-s2e13",
+                    "order": 48,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/pZ3OHIftkO3tUfjhuEuIcibvLcv.jpg",
+                "https://image.tmdb.org/t/p/original/1l5uCbY0rFKSVxbyAijimD5u7VL.jpg",
+                "https://image.tmdb.org/t/p/original/zvYzaCGiR4SSES8vdiIrlpPTgFi.jpg",
+                "https://image.tmdb.org/t/p/original/fvo5HQvCrxfQ6GgcrLCKW9P8kI4.jpg",
+                "https://image.tmdb.org/t/p/original/w2i3w8eGMGt664thWOg2sV9aCsh.jpg",
+                "https://image.tmdb.org/t/p/original/xr13q4TAXe48Eg22pEqVl5FxzPE.jpg",
+                "https://image.tmdb.org/t/p/original/eKurrDQnlnQVOp2SE9PTkCtHxum.jpg",
+                "https://image.tmdb.org/t/p/original/6m4ADzvwASRtew9xQ2EYCOXrvoF.jpg",
+                "https://image.tmdb.org/t/p/original/3soiGu48m4r77tZ7mNaAMvBH5r7.jpg"
+            ],
+            "title": "Such Sweet Sorrow (1)",
+            "tvdb": 1749814
+        },
+        {
+            "airdate": "2019.04.18",
+            "description": "The U.S.S. Discovery battles against Control in a fight not only for their lives but for the future, with a little help from some unexpected friends. Spock and Burnham discern vital new connections between the red signals while Burnham faces one of life\u2019s harshest truths: the right decisions are often the hardest to make.",
+            "episode": "14",
+            "imdb": "tt9572608",
+            "memoryalpha": "Such_Sweet_Sorrow,_Part_2_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.04.23",
+                    "episode": "Travel Poops",
+                    "link": "https://maximumfun.org/greatest-discovery/greatest-discovery-ep-49-travel-poops-s2e14",
+                    "order": 49,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/t7ixATvA11S1EiE1bxalC7aiiR9.jpg",
+                "https://image.tmdb.org/t/p/original/ISfyif9zKC38AS4Iczd9IEOnKe.jpg",
+                "https://image.tmdb.org/t/p/original/ftJ9Ubcc7sHydBbxgkEG2CW5hCe.jpg",
+                "https://image.tmdb.org/t/p/original/qkkGZoao5gGNN3Q1rORchLkoBeb.jpg",
+                "https://image.tmdb.org/t/p/original/kTAO9TaCa7h5FROX3ANjArnDlWG.jpg",
+                "https://image.tmdb.org/t/p/original/aLqgkJUohcL5wqmr7MZQpq2HxZn.jpg",
+                "https://image.tmdb.org/t/p/original/fJT7lFvunD4BymitlciMXtc02Qo.jpg",
+                "https://image.tmdb.org/t/p/original/k4YgsZttP9bNHjuCY4ABj4aip0d.jpg",
+                "https://image.tmdb.org/t/p/original/soKZNBBM6gko0GTITyoOqQo0zhX.jpg"
+            ],
+            "title": "Such Sweet Sorrow (2)",
+            "tvdb": 1756910
+        },
+        {
+            "airdate": "2020.10.15",
+            "description": "Arriving 930 years in the future, Burnham navigates a galaxy she no longer recognizes while searching for the rest of the U.S.S. Discovery crew.",
+            "episode": "01",
+            "imdb": "tt9877958",
+            "memoryalpha": "That_Hope_Is_You,_Part_1_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.10.20",
+                    "episode": "Tantric Ambition ",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/tantric-ambition-discovery-s3e1/",
+                    "order": 100,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/d1zubUsMskWBYuj45PjyMZdTHSU.jpg",
+                "https://image.tmdb.org/t/p/original/cdYtxisHVoYmyEX0Won0t61zC5s.jpg",
+                "https://image.tmdb.org/t/p/original/eJfEgPLAazrozRkw5igGXops1fL.jpg",
+                "https://image.tmdb.org/t/p/original/smrClPC42ojFMQGrgnMdT20yhWm.jpg",
+                "https://image.tmdb.org/t/p/original/nYkGhgMpGry4GNmPQdRaV67Y9iA.jpg",
+                "https://image.tmdb.org/t/p/original/9iKrSQ8wh4DDDBrWj0sVK6dOVjP.jpg",
+                "https://image.tmdb.org/t/p/original/9kMH7PFKXg2obZLrpVr83DR71FN.jpg",
+                "https://image.tmdb.org/t/p/original/8aHp38MXBJwsrlNMJz4kcmtxoIg.jpg",
+                "https://image.tmdb.org/t/p/original/sawGO62OmeTQAnayoTrQfDKTAXS.jpg",
+                "https://image.tmdb.org/t/p/original/5U8NWGyRjfex2Eqyd7d3XXlFCWK.jpg",
+                "https://image.tmdb.org/t/p/original/iV7uQXO8rtW29XdQL3d5l6Aq2og.jpg",
+                "https://image.tmdb.org/t/p/original/g8qIzw8lDdNFSDNDDacMC4onFgh.jpg",
+                "https://image.tmdb.org/t/p/original/2LQamKIUncHxRpSkg8QUuOFmm2K.jpg"
+            ],
+            "title": "That Hope Is You (1)",
+            "tvdb": 2367985
+        },
+        {
+            "airdate": "2020.10.22",
+            "description": "The crew of the Discovery races to repair their ship after a they crash. Tilly & Saru make a first contact looking for Burnham.",
+            "episode": "02",
+            "imdb": "tt10677378",
+            "memoryalpha": "Far_From_Home_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.10.27",
+                    "episode": "Butcher Shop Chic ",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/butcher-shop-chic-discovery-s3e2/",
+                    "order": 101,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/8gyrr9c57cSrIv8xwtMz2pvZstr.jpg",
+                "https://image.tmdb.org/t/p/original/eoIyKfC2x0Rk95UoWC57W0Md1DA.jpg",
+                "https://image.tmdb.org/t/p/original/19p3kaHi7R1YcHkSMAzFUfu4eId.jpg",
+                "https://image.tmdb.org/t/p/original/s8v9M4AcwW9n0BbtbQQ8sNpOEfQ.jpg",
+                "https://image.tmdb.org/t/p/original/8IVoHOally62475gLYcivkQcJgb.jpg",
+                "https://image.tmdb.org/t/p/original/tVOVCaG71ldMW63cIw7abAF6IKU.jpg",
+                "https://image.tmdb.org/t/p/original/kmovzqj1VEmDw8Z4BVvf5VGjUQm.jpg",
+                "https://image.tmdb.org/t/p/original/pBB6vFLf1fYKFTIH8c3qDyB6Icv.jpg",
+                "https://image.tmdb.org/t/p/original/xYUDnBDwG6DKU8CVb53zDg1V5Iz.jpg",
+                "https://image.tmdb.org/t/p/original/mzyin5evSmMmMPVUbDjrj0cTzMy.jpg",
+                "https://image.tmdb.org/t/p/original/pFnry1isyA8A5ZA5oybAHzYdV7P.jpg",
+                "https://image.tmdb.org/t/p/original/5LoqVqTw97NCWpTeqflZDqsiGde.jpg",
+                "https://image.tmdb.org/t/p/original/fdMJydeNmG8oEk0d2GkXIMivoaK.jpg"
+            ],
+            "title": "Far From Home",
+            "tvdb": 2387209
+        },
+        {
+            "airdate": "2020.10.29",
+            "description": "Reunited with Burnham, Discovery heads to Earth to find out what has happened to the Federation in the last thousand years.",
+            "episode": "03",
+            "imdb": "tt10199644",
+            "memoryalpha": "People_of_Earth_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.11.03",
+                    "episode": "The Full Hudson ",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/hanging-a-hudson-discovery-s3e3/",
+                    "order": 102,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/qXtjIfQVfBFZNSraNvrZF6WX6Fq.jpg",
+                "https://image.tmdb.org/t/p/original/86mW3E610ermZJeXcr0lM4wk3ei.jpg",
+                "https://image.tmdb.org/t/p/original/93CLA74sQ3NfOjHCokNc9Xn8gaS.jpg",
+                "https://image.tmdb.org/t/p/original/bEQK6ctllWSDEJGrbNAoFZnRKHa.jpg",
+                "https://image.tmdb.org/t/p/original/AaLhVJAKpsueBWyP6iLBpSiW4Ud.jpg",
+                "https://image.tmdb.org/t/p/original/a1XOB2jvuJmHhY8XgNPIfSu9RKP.jpg",
+                "https://image.tmdb.org/t/p/original/gBXmhgdZIzedWAmaNQcDuhGO1aq.jpg",
+                "https://image.tmdb.org/t/p/original/tCxLVVHddVSEFHKCfQ7g3Bqa2vn.jpg",
+                "https://image.tmdb.org/t/p/original/cuMycyPPfB6F2dfwMi6j3Q8av3x.jpg",
+                "https://image.tmdb.org/t/p/original/nyHMJcpSfVQXWhogd7kCyr5MrgH.jpg",
+                "https://image.tmdb.org/t/p/original/l8KVpaMB5zpfeYd1ZAvfbrBgZtH.jpg",
+                "https://image.tmdb.org/t/p/original/bysydfTXkBpXcLVuO9lrpVWYaEy.jpg",
+                "https://image.tmdb.org/t/p/original/cOBggTb9s0qtUoEURMFUvIutg71.jpg"
+            ],
+            "title": "People of Earth",
+            "tvdb": 2387210
+        },
+        {
+            "airdate": "2020.11.05",
+            "description": "Burnham and Adira visit the Trill homeworld while Saru's efforts on the Discovery to help the crew reconnect yield surprises.",
+            "episode": "04",
+            "imdb": "tt10677384",
+            "memoryalpha": "Forget_Me_Not_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.11.10",
+                    "episode": "The Asteroid is Wrath ",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/the-asteroid-is-wrath-s3e4/",
+                    "order": 103,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/2xdn4gmzN7iFRrR6YsTpXdBNwNx.jpg",
+                "https://image.tmdb.org/t/p/original/ykp4kpuFoOEoDwS3AbXIErsXjUD.jpg",
+                "https://image.tmdb.org/t/p/original/sjm0rTgucVYSFh5YuM1vsMRycaQ.jpg",
+                "https://image.tmdb.org/t/p/original/fh8uGAKj25lRTHtPF9d4jlg9mhP.jpg",
+                "https://image.tmdb.org/t/p/original/kMzueJ7wdVYDo9cG2HhrUBg7e9J.jpg",
+                "https://image.tmdb.org/t/p/original/arPFacfUTsJ3nSHr0TluWJ8KGsy.jpg",
+                "https://image.tmdb.org/t/p/original/ow8aDP0vcO3kl3bynrrslmXhO0B.jpg",
+                "https://image.tmdb.org/t/p/original/1bRsejze8QOFsWmzMkht86tUnkP.jpg",
+                "https://image.tmdb.org/t/p/original/ompoNKzQC7kOA6muPq0cHyZg5a5.jpg",
+                "https://image.tmdb.org/t/p/original/bzEWSxz9sPcdUw6VoRsYePW51uR.jpg",
+                "https://image.tmdb.org/t/p/original/keC2o90Ku2sz0AZPpKpPUWrJ1XB.jpg",
+                "https://image.tmdb.org/t/p/original/zlXj8OsanM7l5LA8V1viz8MVCrb.jpg",
+                "https://image.tmdb.org/t/p/original/jMzX8SB3SoXoCiMwL9sk6p4hzPj.jpg",
+                "https://image.tmdb.org/t/p/original/fEjiTSpXNEoZPfXC7uLlyh75KSc.jpg",
+                "https://image.tmdb.org/t/p/original/lVfvC5rWmz8VOIxAOE0p3hxyaXy.jpg",
+                "https://image.tmdb.org/t/p/original/toibP8rkySBeCadb10jTPUJDHmt.jpg",
+                "https://image.tmdb.org/t/p/original/lDDbEp1IBkOuLBAExRdH7eEUmoo.jpg",
+                "https://image.tmdb.org/t/p/original/rA2My9qKdaFCW1fikfgksm9BRao.jpg",
+                "https://image.tmdb.org/t/p/original/yEz6XcKs5iJhV3BOWuwNoqn5PoE.jpg",
+                "https://image.tmdb.org/t/p/original/9PloMrvxARTqUx0qAChGtJXD9Kb.jpg",
+                "https://image.tmdb.org/t/p/original/pbFRXdsX813LoxETjYZujrhZcFt.jpg",
+                "https://image.tmdb.org/t/p/original/tBBbal6zsCrmRbWo0Ow07qcpGqi.jpg"
+            ],
+            "title": "Forget Me Not",
+            "tvdb": 2387211
+        },
+        {
+            "airdate": "2020.11.12",
+            "description": "After reuniting with what remains of Starfleet and the Federation, the U.S.S. Discovery and its crew must prove that a 930 year old crew and starship are exactly what this new future needs.",
+            "episode": "05",
+            "imdb": "tt10677382",
+            "memoryalpha": "Die_Trying_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.11.17",
+                    "episode": "Adira Affleck ",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/adira-affleck-discovery-s3e5/",
+                    "order": 104,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/pZYeTnk127ThdYYDaek8c4OrSPC.jpg",
+                "https://image.tmdb.org/t/p/original/iBWxUt568Te1J24u6CPGXguDeFv.jpg",
+                "https://image.tmdb.org/t/p/original/dM8eS4fp9B4hai4lPAixsuwgIKo.jpg",
+                "https://image.tmdb.org/t/p/original/wGLSMNac2GebDlkkHWMuT8fu5bc.jpg",
+                "https://image.tmdb.org/t/p/original/dG6nw29AGUTnYDdnDIgSFTN0mRT.jpg",
+                "https://image.tmdb.org/t/p/original/hnzMfoTZ6gCyNgKc8wYIwUc9dRM.jpg",
+                "https://image.tmdb.org/t/p/original/kZ6Rii25BL92yd8ctzcrkqmQydd.jpg",
+                "https://image.tmdb.org/t/p/original/khUiFk606UzdRJAsvOPPeoy4Fxm.jpg"
+            ],
+            "title": "Die Trying",
+            "tvdb": 2387212
+        },
+        {
+            "airdate": "2020.11.19",
+            "description": "After receiving a message from Book, Burnham and Georgiou embark on a rogue mission to find him, leaving Saru to pick up the pieces with Admiral Vance. Meanwhile, Stamets forms an unexpected bond with Adira.",
+            "episode": "06",
+            "imdb": "tt12013206",
+            "memoryalpha": "Scavengers_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.11.24",
+                    "episode": "You Can\u2019t Pray Out The Mirror Universe ",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/you-cant-pray-out-the-mirror-universe-discovery-s3e6/",
+                    "order": 105,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/n5arWcgMnw7pINNwKnsldvGQxo8.jpg",
+                "https://image.tmdb.org/t/p/original/7IUFulfUh0ypAYaxOHQ9BQMZNZv.jpg",
+                "https://image.tmdb.org/t/p/original/7zFGtFo3110vXD6Z2YmD91McAPS.jpg",
+                "https://image.tmdb.org/t/p/original/iKG1TZufqcxoZiOGa8q1wfg7IBD.jpg",
+                "https://image.tmdb.org/t/p/original/8XMTn1fpYNPOT11tMlczdNxQaNe.jpg",
+                "https://image.tmdb.org/t/p/original/cKjZp1CHp6gY4gmfAMmLf51rHvW.jpg",
+                "https://image.tmdb.org/t/p/original/5dNnl90IgDSmySVU8gSMkGUrBVm.jpg",
+                "https://image.tmdb.org/t/p/original/1GsDphwzxrLNkWaDEwLD3FxA3dG.jpg",
+                "https://image.tmdb.org/t/p/original/eyqqecNnZSy73oeCB6eaJkZ6xXi.jpg",
+                "https://image.tmdb.org/t/p/original/aoeKTD6v86wV6PlnrxwMJ1OxkxG.jpg",
+                "https://image.tmdb.org/t/p/original/w5pKSdqoG6iIfsrwOKc7lj0H4XO.jpg",
+                "https://image.tmdb.org/t/p/original/d0UlxNUw54sr9kmTTMdmAd0tPQi.jpg",
+                "https://image.tmdb.org/t/p/original/54PYwqudnOwW8vRRvRQJ65diV65.jpg"
+            ],
+            "title": "Scavengers",
+            "tvdb": 2387213
+        },
+        {
+            "airdate": "2020.11.26",
+            "description": "While grappling with the fallout of her recent actions, and what her future might hold, Burnham agrees to represent the Federation in an intense debate about the release of politically sensitive - but highly valuable - Burn data.",
+            "episode": "07",
+            "imdb": "tt12013210",
+            "memoryalpha": "Unification_III_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.12.01",
+                    "episode": "Ancestry Edger ",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/ancestry-edger-discovery-s3e7/",
+                    "order": 106,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/yaYC9EYUdBM1CJLj1u5pWHrAxVT.jpg",
+                "https://image.tmdb.org/t/p/original/y912SdLWhNj6wfrKlQDHaZ1Beby.jpg",
+                "https://image.tmdb.org/t/p/original/22ZNtRhQ6zLxqAG72hFqTQiZ7kj.jpg",
+                "https://image.tmdb.org/t/p/original/21MNoFaYI1Ct7PzIxBjOwHllIJj.jpg",
+                "https://image.tmdb.org/t/p/original/pflVXtXTpQK3q5fULQMFxo4UBHU.jpg",
+                "https://image.tmdb.org/t/p/original/ylENZeBZED4JPtuQZXkHo7Ee3zz.jpg",
+                "https://image.tmdb.org/t/p/original/l0kR8QEeLKSd7Tc65ySqLs1zsCB.jpg",
+                "https://image.tmdb.org/t/p/original/pl9cgir1tFDCVkexVz2squakTkt.jpg"
+            ],
+            "title": "Unification III",
+            "tvdb": 2387214
+        },
+        {
+            "airdate": "2020.12.03",
+            "description": "Osyraa attacks Book's home planet and the Discovery travels there to help. Stamets and Adira investigate The Burn.",
+            "episode": "08",
+            "imdb": "tt11427530",
+            "memoryalpha": "The_Sanctuary_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.12.08",
+                    "episode": "Jellico Tilly\u2019d Riker ",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/jellico-tillyd-riker-discovery-s3e8/",
+                    "order": 107,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/6T1VGVzhBBDSCbMaZDN52qlRNRh.jpg",
+                "https://image.tmdb.org/t/p/original/8xGLBF0s7ZkOzEDJiMzMtUt8mbn.jpg"
+            ],
+            "title": "The Sanctuary",
+            "tvdb": 2387215
+        },
+        {
+            "airdate": "2020.12.10",
+            "description": "The U.S.S. Discovery crew journey to a mysterious planet in hopes of finding a cure for Georgiou's deteriorating condition. Stamets and Adira make a stunning breakthrough with the newly acquired Burn data.",
+            "episode": "09",
+            "imdb": "tt12013212",
+            "memoryalpha": "Terra_Firma,_Part_1_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.12.15",
+                    "episode": "Like the Horse in Chess ",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/like-the-horse-in-chess-discovery-s3e9/",
+                    "order": 108,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/e4UoaZwASHoITSS667wP8nw5n1J.jpg"
+            ],
+            "title": "Terra Firma (1)",
+            "tvdb": 2387216
+        },
+        {
+            "airdate": "2020.12.17",
+            "description": "Georgiou uncovers the true depths of the plot against her, leading her to a revelation about how deeply her time on the U.S.S. Discovery truly changed her.",
+            "episode": "10",
+            "imdb": "tt12047894",
+            "memoryalpha": "Terra_Firma,_Part_2_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.12.22",
+                    "episode": "Voyage of the Memes ",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/voyage-of-the-memes-discovery-s3e10/",
+                    "order": 109,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/mOtR0Mp1nlic7VNk0tQi4x8tzTy.jpg",
+                "https://image.tmdb.org/t/p/original/vpVpgtF89EcdvYkfR2TnuyCTnQ9.jpg"
+            ],
+            "title": "Terra Firma (2)",
+            "tvdb": 2387217
+        },
+        {
+            "airdate": "2020.12.24",
+            "description": "Discovery ventures to the Verubin Nebula, where Burnham, Saru, and Culber make a shocking realization about the origin of the Burn. The rest of the crew faces an unexpected threat.",
+            "episode": "11",
+            "imdb": "tt12047908",
+            "memoryalpha": "Su'Kal_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.12.29",
+                    "episode": "The USS Hentai ",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/the-uss-hentai-discovery-s3e11/",
+                    "order": 110,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/zxKheCZHAjXV0ZfU9J58aakyzTt.jpg",
+                "https://image.tmdb.org/t/p/original/a1qZuCmWBaHVOKgG6Ewqg1KYXvQ.jpg",
+                "https://image.tmdb.org/t/p/original/dy1t75wu1pbCrYV4nXgSpi5q5by.jpg"
+            ],
+            "title": "Su'Kal",
+            "tvdb": 2387218
+        },
+        {
+            "airdate": "2020.12.31",
+            "description": "After capturing the U.S.S. Discovery, Osyraa seeks a meeting with Admiral Vance while Burnham and the crew must overcome unimaginable odds as they attempt to regain command of their ship.",
+            "episode": "12",
+            "imdb": "tt12047914",
+            "memoryalpha": "There_Is_A_Tide..._(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2021.01.05",
+                    "episode": "Ho Ho Ho Now I\u2019ve Got a Dot-23",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/ho-ho-ho-now-ive-got-a-dot-23-discovery-s3e12/",
+                    "order": 111,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/9YbzeEQkjIkEXeRoazPScvaJ4GD.jpg"
+            ],
+            "title": "There is a Tide\u2026",
+            "tvdb": 2465804
+        },
+        {
+            "airdate": "2021.01.07",
+            "description": "As the Emerald Chain tightens its grip and the mystery of the Burn is finally solved, Burnham and the crew have one last chance to save themselves - and the Federation.",
+            "episode": "13",
+            "imdb": "tt12047918",
+            "memoryalpha": "That_Hope_Is_You,_Part_2_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2021.01.12",
+                    "episode": "Burn Box",
+                    "link": "https://maximumfun.org/episodes/the-greatest-discovery/burn-box-discovery-s3e13/",
+                    "order": 112,
+                    "title": "The Greatest Generation"
+                }
+            ],
+            "season": "03",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/ebddkXFMaPxNrqPstDOXjqBt26S.jpg",
+                "https://image.tmdb.org/t/p/original/fFLanPMcf7wleEbmZ3XHx6j5xCU.jpg",
+                "https://image.tmdb.org/t/p/original/sOyA5QhugOq5vAgPHT0FNviZHqj.jpg"
+            ],
+            "title": "That Hope Is You (2)",
+            "tvdb": 2465805
+        },
+        {
+            "airdate": "2021.11.18",
+            "description": "After months spent reconnecting the Federation with distant worlds, Captain Michael Burnham and the crew of the U.S.S. Discovery are sent to assist a damaged space station \u2013 a seemingly routine mission that reveals the existence of a terrifying new threat.",
+            "episode": "01",
+            "imdb": "tt13345554",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "04",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/6RsRTvxI2Sv6mNmBOOLuEmiAEcy.jpg",
+                "https://image.tmdb.org/t/p/original/hOYFRqQlWdGsdTUl89K6gx9mNDV.jpg",
+                "https://image.tmdb.org/t/p/original/ubjTaR7WzD7CHtVcJCLopYmxF24.jpg",
+                "https://image.tmdb.org/t/p/original/At1xOFiSGuM1HGJV9LU1A0BU2xV.jpg",
+                "https://image.tmdb.org/t/p/original/hp9qbFdVta2npJcXs2nMpv4Pd6E.jpg",
+                "https://image.tmdb.org/t/p/original/z5aUXjb80LWwnH1pN8fykUDZ2g1.jpg",
+                "https://image.tmdb.org/t/p/original/y2bMOVKkuJ2K7bHGRX1w9AlChB9.jpg",
+                "https://image.tmdb.org/t/p/original/ebFWVoLClmXYiLXhB1Fzcl3yrDn.jpg",
+                "https://image.tmdb.org/t/p/original/xd8GmKLoOY5YoTMgE0g7sXLEc7G.jpg",
+                "https://image.tmdb.org/t/p/original/mbjGstKBRUIJZ2MEl6qatQuMXhe.jpg",
+                "https://image.tmdb.org/t/p/original/br7G5SXPuJxBbZ0EN8LX3sprSuh.jpg",
+                "https://image.tmdb.org/t/p/original/k9jAi3A0efu3baJIkuYCXp2VLjU.jpg",
+                "https://image.tmdb.org/t/p/original/amOMfPUrBqHPgkPHTi59xPYtt6D.jpg",
+                "https://image.tmdb.org/t/p/original/fvZruvNmveqRGK4vKjgB50bcEVB.jpg",
+                "https://image.tmdb.org/t/p/original/tnm2MoxNbopftqPp0oq79sXCe0W.jpg",
+                "https://image.tmdb.org/t/p/original/jCafN7zHt5h2Zk58xTXokuWdIB5.jpg",
+                "https://image.tmdb.org/t/p/original/5kGnIPbT3pngPacyq2miLodw3gl.jpg",
+                "https://image.tmdb.org/t/p/original/fw5lbcTx4aGUK5YCTusOdI9XlrS.jpg",
+                "https://image.tmdb.org/t/p/original/boqqBjAV6sRyxD9giPESuvO3VZ3.jpg",
+                "https://image.tmdb.org/t/p/original/t5aX3eucNZWkqJlMdmxJukxj9nh.jpg"
+            ],
+            "title": "Kobayashi Maru",
+            "tvdb": 3098572
+        },
+        {
+            "airdate": "2021.11.25",
+            "description": "Saru returns to help the U.S.S. Discovery uncover the mystery of an unusually destructive new force. As Burnham leads the crew, she must also find a way to help Book cope with an unimaginable loss.",
+            "episode": "02",
+            "imdb": "tt14074220",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "04",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/3FZ6ZAKxQaVS84uymVdYzwOGUOa.jpg",
+                "https://image.tmdb.org/t/p/original/oL77wfoeelXyELadWIvyCNuwcud.jpg",
+                "https://image.tmdb.org/t/p/original/vPtBXSv40TzEDX3QTZxHE8y0EN9.jpg",
+                "https://image.tmdb.org/t/p/original/rhEZmtyNmcVe1vEcbPXid7pzqyh.jpg",
+                "https://image.tmdb.org/t/p/original/uNEZSvAtwt0tdlffstQFtDVeJGI.jpg",
+                "https://image.tmdb.org/t/p/original/pkEaxeLKIwdbc56OttrOKFKuCQN.jpg",
+                "https://image.tmdb.org/t/p/original/tKkFHtzvhOQZws6aig8563DyKGA.jpg",
+                "https://image.tmdb.org/t/p/original/vTwulwzUz5dcdSqM96rf4MGuf9d.jpg",
+                "https://image.tmdb.org/t/p/original/bFAVVnqQtw415qGvAumddycImJL.jpg",
+                "https://image.tmdb.org/t/p/original/aDOW2DEA2efXRT6QdbXPiEHtcDM.jpg",
+                "https://image.tmdb.org/t/p/original/9YUiCg90DNixbNlhfH99NJ9I21i.jpg",
+                "https://image.tmdb.org/t/p/original/8fwvdvOhmemQLk0Xf98E88PEuQB.jpg",
+                "https://image.tmdb.org/t/p/original/lfd80DW2BphQLRRYpoAaJLghMIh.jpg"
+            ],
+            "title": "Anomaly",
+            "tvdb": 3339410
+        },
+        {
+            "airdate": "2021.12.02",
+            "description": "Burnham and Tilly hunt the killer of a Starfleet officer as Stamets and the science team race against the clock to prevent the anomaly from killing anyone else.",
+            "episode": "03",
+            "imdb": "tt14074222",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "04",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/8tx3avvVJHrXFDIeCafbXn0H2gB.jpg",
+                "https://image.tmdb.org/t/p/original/pKzYdiExy96rm1gO6IYpmgYoMXb.jpg",
+                "https://image.tmdb.org/t/p/original/xpOheAzZ3LvKurZbwlPXFmNJpSP.jpg",
+                "https://image.tmdb.org/t/p/original/dH5tw63f3tE8Pp0GIOnT6eyOafH.jpg",
+                "https://image.tmdb.org/t/p/original/3mpuJuO6g5RlaqD5LGPpSlZvcr4.jpg",
+                "https://image.tmdb.org/t/p/original/gBSzIK7N4wurJotwR4ImR152721.jpg"
+            ],
+            "title": "Choose to Live",
+            "tvdb": 3345784
+        },
+        {
+            "airdate": "2021.12.09",
+            "description": "Tilly and Adira lead a team of Starfleet Academy cadets on a training mission that takes a dangerous turn. Meanwhile, Burnham is pulled into tense negotiations on Ni\u2019Var.",
+            "episode": "04",
+            "imdb": "tt14074224",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "04",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/ahkPNBqicfkfvhhAaopPSl6NrPI.jpg",
+                "https://image.tmdb.org/t/p/original/zftIAf8ZTOEcW8naw7MHzDrxncv.jpg",
+                "https://image.tmdb.org/t/p/original/ytCr36bHCpS7u9fqqQOaSLj6CLk.jpg",
+                "https://image.tmdb.org/t/p/original/2jG2S04o4sZdLZzqq78LYZZ8PkQ.jpg",
+                "https://image.tmdb.org/t/p/original/4NuXcRrlnZcpywBPMd1emwxjvO7.jpg"
+            ],
+            "title": "All Is Possible",
+            "tvdb": 3345785
+        },
+        {
+            "airdate": "2021.12.16",
+            "description": "Burnham and Book race to evacuate a group of stranded colonists in the anomaly\u2019s path as one of the Federation\u2019s brightest scientists comes aboard the U.S.S. Discovery to do high-stakes research with Saru and Stamets.",
+            "episode": "05",
+            "imdb": "tt14074226",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "04",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/b6x4x2z2XflPcmh3iRGr37CdsxS.jpg"
+            ],
+            "title": "The Examples",
+            "tvdb": 3385177
+        },
+        {
+            "airdate": "2021.12.23",
+            "description": "Seeking answers, the U.S.S. Discovery ventures into a subspace rift created by the Dark Matter Anomaly. Meanwhile, Book faces a strange visitor from his past.",
+            "episode": "06",
+            "imdb": "tt14066802",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "04",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/vOaVmVveQjU5EbSHlNFIr3HxsVQ.jpg",
+                "https://image.tmdb.org/t/p/original/78IzPNwSqSsiFtBfgdgUmVAn5jB.jpg",
+                "https://image.tmdb.org/t/p/original/giXqlz4zMEx7avEyTuBJV56Bcbs.jpg",
+                "https://image.tmdb.org/t/p/original/t9AI55E7HZw7ks0DX3Ekb5nLNOh.jpg",
+                "https://image.tmdb.org/t/p/original/xRjLB1KNvMsdaDDpvRcJQFZvAa8.jpg",
+                "https://image.tmdb.org/t/p/original/5wvJMKKeM2bxkW7JNWOEg33L9VX.jpg"
+            ],
+            "title": "Stormy Weather",
+            "tvdb": 3396836
+        },
+        {
+            "airdate": "2021.12.30",
+            "description": "Tensions rise as representatives from across the galaxy gather to confront the threat of the Dark Matter Anomaly. Zora's new sentience raises difficult questions.",
+            "episode": "07",
+            "imdb": "tt14145492",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "04",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/n7Yc5nn00Fo0dJ8d9uD2v6lIhfh.jpg",
+                "https://image.tmdb.org/t/p/original/iRboTcTOvHysAsHSValpEkuBRVH.jpg"
+            ],
+            "title": "...But to Connect",
+            "tvdb": 3396837
+        },
+        {
+            "airdate": "2022.02.10",
+            "description": "",
+            "episode": "08",
+            "imdb": "tt15170308",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "04",
+            "stills": [],
+            "title": "Episode 8",
+            "tvdb": 3396838
+        }
+    ],
+    "imdb": "",
+    "title": "Star Trek: Discovery",
+    "trek": true,
+    "tvdb": 67198
+}

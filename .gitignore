@@ -110,5 +110,9 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# local bot configuration
+local.json
+*dump.sql
+
 # Pyre type checker
 .pyre/

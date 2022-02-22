@@ -1,0 +1,417 @@
+{
+    "animated": true,
+    "episodes": [
+        {
+            "airdate": "2020.08.06",
+            "description": "Ensign Tendi has her first day of work on Starfleet's USS Cerritos, where she meets fellow support crew members. Boimler is tasked with a secret special assignment. Rutherford attempts to keep his dating life intact while a disaster strikes the ship.",
+            "episode": "01",
+            "imdb": "tt9207516",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/AvZAQtOAO8n9zj5LMKpkF0ZiwWM.jpg",
+                "https://image.tmdb.org/t/p/original/z9MNi7JFcCwOITbvGH6rIl6oVml.jpg",
+                "https://image.tmdb.org/t/p/original/ddey7OAAqFFUWiu4JGGVJPVxUVo.jpg",
+                "https://image.tmdb.org/t/p/original/h0bS96uXwRa0uZW8MNYXAdrXpGH.jpg",
+                "https://image.tmdb.org/t/p/original/4G6QSvtKWuT3PUGfrozjgzb0XyR.jpg",
+                "https://image.tmdb.org/t/p/original/xYSuIlaN5CaOa7aW6B8yjGSt9ke.jpg",
+                "https://image.tmdb.org/t/p/original/wE5JepJryGJfFFS3i44dgGs7lWv.jpg",
+                "https://image.tmdb.org/t/p/original/m8QW9VtBDwXyD6SW0HXCCpTYibG.jpg",
+                "https://image.tmdb.org/t/p/original/dsPDhsiu2VwPHRoQYObVXdKScMa.jpg",
+                "https://image.tmdb.org/t/p/original/g2zA6fI3N84dS9Fi2zPG5fXod6Q.jpg",
+                "https://image.tmdb.org/t/p/original/t2NHC9OQW3d6xR3AvPh1JZoqsMk.jpg",
+                "https://image.tmdb.org/t/p/original/zRiV629lXz6nuhDN2TObqpBv602.jpg"
+            ],
+            "title": "Second Contact",
+            "tvdb": 1675691
+        },
+        {
+            "airdate": "2020.08.13",
+            "description": "Ensigns Boimler and Mariner embark on a shuttle mission to a Klingon compound while Ensigns Tendi and Rutherford spend time together back on the USS Cerritos.",
+            "episode": "02",
+            "imdb": "tt9207518",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/zT0rLKFtbijTTzkkLzK8SGBeS94.jpg",
+                "https://image.tmdb.org/t/p/original/2tDrblDyUhnClXy6AxraqaW9YmZ.jpg",
+                "https://image.tmdb.org/t/p/original/8NfU0wv8HUBMHsqGsvjpz2N2u9d.jpg",
+                "https://image.tmdb.org/t/p/original/fho1ywhcPl9i9M6X2hi1gm2SlAs.jpg",
+                "https://image.tmdb.org/t/p/original/tYWwqAHMITkf12ENiy485S8m6tH.jpg",
+                "https://image.tmdb.org/t/p/original/gdZZcSAvrf0R2CbNjXZX1VneR8w.jpg",
+                "https://image.tmdb.org/t/p/original/kIIKGZ7kG0gn8Ca1pIFUsfaQ7Eg.jpg",
+                "https://image.tmdb.org/t/p/original/u6pJ3dGaVGcaYR98Snffuo3dA8i.jpg",
+                "https://image.tmdb.org/t/p/original/runVQzY3JwoXoq8tMwClRKmr5lk.jpg",
+                "https://image.tmdb.org/t/p/original/pFSqCkFhvLsyonsFOn0lFc777co.jpg"
+            ],
+            "title": "Envoys",
+            "tvdb": 2379180
+        },
+        {
+            "airdate": "2020.08.20",
+            "description": "A new work protocol eliminating \"buffer time\" has the Lower Decks crew running ragged as they try to keep up with their tightened schedules. Ensign Mariner and Commander Ransom's mutual lack of respect comes to a head during an away mission.",
+            "episode": "03",
+            "imdb": "tt9207520",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/2SgcWq5W7SO7ijY8WmStJhbkxHB.jpg",
+                "https://image.tmdb.org/t/p/original/n8tCqJgFkhuDHcYDsqnFgEuJ800.jpg",
+                "https://image.tmdb.org/t/p/original/z4LVgtj5cAwD6vWTL0bhct5wQWc.jpg",
+                "https://image.tmdb.org/t/p/original/pk0FDuccBSZMaSnaR0tYBpQyHcj.jpg",
+                "https://image.tmdb.org/t/p/original/5C9dP8dcYCJ5oVbP19sM1ZjnEvz.jpg",
+                "https://image.tmdb.org/t/p/original/6rkIywW3qC4TqhRxMh6GTr7J95k.jpg",
+                "https://image.tmdb.org/t/p/original/sascWtwjsbbqRrNYSUphOAmA9Up.jpg",
+                "https://image.tmdb.org/t/p/original/rcNI6Ya5XlJ2OBfKLGbPleC3hwx.jpg",
+                "https://image.tmdb.org/t/p/original/mkPYKlCCR8GMZdqJ02NxDnkxjNN.jpg"
+            ],
+            "title": "Temporal Edict",
+            "tvdb": 2379181
+        },
+        {
+            "airdate": "2020.08.27",
+            "description": "Captain Freeman seeks the ultimate payback after Mariner blatantly disrespects her in front of the crew. A well-meaning Tendi accidentally messes up a Lieutenant's attempt at spiritual ascension and tries to make it right.",
+            "episode": "04",
+            "imdb": "tt9207522",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/fs0ts9KqgHv6LRyzBkRDCLTXcsV.jpg",
+                "https://image.tmdb.org/t/p/original/kJYiuR4lEY1pPiRcM9ckIFQ23z1.jpg",
+                "https://image.tmdb.org/t/p/original/teFCChSnhgxjLikt0ltpckAKHhO.jpg",
+                "https://image.tmdb.org/t/p/original/rJjQDFKieuYqmxsEV1PAAwDZAG8.jpg",
+                "https://image.tmdb.org/t/p/original/iHvy82nDLOPUvBayfYmmFyYbF8X.jpg",
+                "https://image.tmdb.org/t/p/original/fR695R5HuAyb5cQ2c1nbJ4dQim6.jpg",
+                "https://image.tmdb.org/t/p/original/m5qRbIvUVBZy6c9s5OzcxEyRwYR.jpg",
+                "https://image.tmdb.org/t/p/original/5WxBeMFEMN0sf0dyNtSqOTtjbt9.jpg",
+                "https://image.tmdb.org/t/p/original/58Af1kKbom6VOOTGE0CtFb3WJt2.jpg",
+                "https://image.tmdb.org/t/p/original/eEOuzVDnpbipVxlYU1z1g0w96sX.jpg",
+                "https://image.tmdb.org/t/p/original/4wMinrSnmcguTHIin1rxALvvF0V.jpg",
+                "https://image.tmdb.org/t/p/original/fyGsnZjYuld0aRYxlpaudwQfLu2.jpg"
+            ],
+            "title": "Moist Vessel",
+            "tvdb": 2379182
+        },
+        {
+            "airdate": "2020.09.03",
+            "description": "Ensign Boimler welcomes his girlfriend Barb onto the USS Cerritos, much to Ensign Mariner\u2019s dismay \u2014 while Ensigns Ruthford and Tendi have starship envy when the Cerritos rendezvous with the more-advanced USS Vancouver.",
+            "episode": "05",
+            "imdb": "tt9207524",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/aR0HdWbTHN7DZIGF08usvaWiJG6.jpg",
+                "https://image.tmdb.org/t/p/original/NLzD6oGWZ3zzDLcU30YlQsd8yM.jpg",
+                "https://image.tmdb.org/t/p/original/9hwQb9YspVzbyYJ8pOP93V3MfOz.jpg",
+                "https://image.tmdb.org/t/p/original/d14HBiHKw4jdcAmfMpaBD0UK9fV.jpg",
+                "https://image.tmdb.org/t/p/original/sbkEZctpTX0W4DizuL8FH6dqDYo.jpg",
+                "https://image.tmdb.org/t/p/original/q0ASuy2PiHd95UdktFlmZoe9OkH.jpg",
+                "https://image.tmdb.org/t/p/original/kbbmDVni01n7eI0Q9MZAU6nsI5E.jpg",
+                "https://image.tmdb.org/t/p/original/tqoxmf82IFfFamuxY5p6y8Wyi7K.jpg",
+                "https://image.tmdb.org/t/p/original/hWnqbQG0ySNeMoTsrXz8kvLeHjA.jpg",
+                "https://image.tmdb.org/t/p/original/sLi7YszDJsIH3pVFMijZBfkFm2I.jpg",
+                "https://image.tmdb.org/t/p/original/7NvywMVcSvIOu17plGEY6aMQmIq.jpg",
+                "https://image.tmdb.org/t/p/original/qkrJT6gCyJhVnRZOmB8wEsxW1jc.jpg",
+                "https://image.tmdb.org/t/p/original/1XYOQz1ZeXcXKczZ3uwyqY2bCsO.jpg"
+            ],
+            "title": "Cupid's Errant Arrow",
+            "tvdb": 2405188
+        },
+        {
+            "airdate": "2020.09.10",
+            "description": "The lovable but awkward Ensign Fletcher makes work difficult for Mariner and Boimler. Rutherford introduces Tendi to a holodeck training program he created.",
+            "episode": "06",
+            "imdb": "tt9207526",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/yAfaNq1IlmpttMR53vIMhPb4fT1.jpg",
+                "https://image.tmdb.org/t/p/original/wZjnyAHJXMGuKB7LBHRS110rrdV.jpg",
+                "https://image.tmdb.org/t/p/original/wPWh6agNN2SrNNSTaIBKvYMiZAY.jpg",
+                "https://image.tmdb.org/t/p/original/eJurB1vlZbQtdIDe9xc3GvyqJgl.jpg",
+                "https://image.tmdb.org/t/p/original/uLOFxDKAclpy9eUpDg8p0bobpg4.jpg",
+                "https://image.tmdb.org/t/p/original/wdcveRBlWf7kzvhH3xfocZi454K.jpg",
+                "https://image.tmdb.org/t/p/original/nQzAUBMPIF5osxE5IiZVQ4HzYp1.jpg",
+                "https://image.tmdb.org/t/p/original/7FZBoOgjeSZvKJz1Fna73rUlavk.jpg",
+                "https://image.tmdb.org/t/p/original/4LQIjyCmOO0jjCRM2Fvvcr4g4q8.jpg",
+                "https://image.tmdb.org/t/p/original/1tLjvdCXVrBPAHk1XnHoMCVd7ft.jpg",
+                "https://image.tmdb.org/t/p/original/hWinKbdpVxjjHEC3NTkW80psT8V.jpg",
+                "https://image.tmdb.org/t/p/original/zXkqOwCZewtHxiu9hiRbhh56g4r.jpg",
+                "https://image.tmdb.org/t/p/original/jNpJOSf8ynWRqAnn1LSDdhhAGSy.jpg"
+            ],
+            "title": "Terminal Provocations",
+            "tvdb": 2415785
+        },
+        {
+            "airdate": "2020.09.17",
+            "description": "Mariner tries to impress her best friend from Starfleet Academy who is now a visiting Captain. Boimler is sent to a Starfleet medical ship after a transporter accident puts him \u201cout of phase.\u201d",
+            "episode": "07",
+            "imdb": "tt9207528",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/posmARKCowthrzUleFGZRA9jgq0.jpg",
+                "https://image.tmdb.org/t/p/original/2Mp7xvFD6c1tdQhSwtgaiGlnX17.jpg",
+                "https://image.tmdb.org/t/p/original/qQUvpnEsoVDwBG3rDsN3WZeSTm4.jpg",
+                "https://image.tmdb.org/t/p/original/m6iX1ieqDK68ybcUNtcfJFE4Dy7.jpg",
+                "https://image.tmdb.org/t/p/original/fzrJxo6UXc33cga8BqznkykXmEU.jpg",
+                "https://image.tmdb.org/t/p/original/yMEyg7CoMSKnhrCKBARYK0FCFcf.jpg",
+                "https://image.tmdb.org/t/p/original/zrlGHqV6DBSFAd2odi1hlhId3Ch.jpg",
+                "https://image.tmdb.org/t/p/original/bI27PL3FjWn5ffBjuU8KjogURs8.jpg",
+                "https://image.tmdb.org/t/p/original/oQtBIVD0jtoEsCXPffLz4ZH5zPF.jpg",
+                "https://image.tmdb.org/t/p/original/pN13NNFAPDI79AngeHOBkCQkyOR.jpg",
+                "https://image.tmdb.org/t/p/original/yeMpzzqIlI0IIKpmbhHBZhbMrf7.jpg",
+                "https://image.tmdb.org/t/p/original/9O8YWojhTZOEOKKwoIbnxmDdj3a.jpg",
+                "https://image.tmdb.org/t/p/original/aMJQoGRnPpYw9fCGn30h7OUj8Jk.jpg",
+                "https://image.tmdb.org/t/p/original/ha7kZIY9xpRaGJi1CztUV58q9CX.jpg",
+                "https://image.tmdb.org/t/p/original/eoGqnChtu8fD0YgeiKIYOJ5GkQ1.jpg",
+                "https://image.tmdb.org/t/p/original/uRW1DqIE7dnnuisfr4T9SPJWVtB.jpg",
+                "https://image.tmdb.org/t/p/original/l1EtfIoIZj9PZd89i5y2jtw6Ffl.jpg"
+            ],
+            "title": "Much Ado About Boimler",
+            "tvdb": 2420905
+        },
+        {
+            "airdate": "2020.09.24",
+            "description": "Mariner, Boimler, Tendi and Rutherford are caught off guard when aliens force them to testify about a series of seemingly unrelated events.",
+            "episode": "08",
+            "imdb": "tt9207530",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/oHGqURpKvn0b8k6o8Mazomd7YHl.jpg",
+                "https://image.tmdb.org/t/p/original/mf9ehYLJfjd06543FUqZikLZZlX.jpg",
+                "https://image.tmdb.org/t/p/original/82KDrdmxN3XPbkAwKgQ2funBSS0.jpg",
+                "https://image.tmdb.org/t/p/original/9yc8lWyWLV9nTXhWKd6P6aBYP9j.jpg",
+                "https://image.tmdb.org/t/p/original/yhqmzboXRyPARREvCYbCQ8YKr7p.jpg",
+                "https://image.tmdb.org/t/p/original/1R09HWGL2mr0IZEpUOBBm8xcovX.jpg",
+                "https://image.tmdb.org/t/p/original/d6a6PUZioylLR1420WNlsSQTC6e.jpg",
+                "https://image.tmdb.org/t/p/original/9ifo6evOoxSubfh3xRX2mnlBF0C.jpg",
+                "https://image.tmdb.org/t/p/original/uV0B0qMA9NnhP6sMWqGScFSQldF.jpg",
+                "https://image.tmdb.org/t/p/original/2bmmQI13ok8NQWHyMROsM9Bt3mb.jpg",
+                "https://image.tmdb.org/t/p/original/x526eKK9UI3gmiSeGdrN7GZ5HUq.jpg",
+                "https://image.tmdb.org/t/p/original/1wGFJaeegAPpVndMMAQD2tGrUGM.jpg",
+                "https://image.tmdb.org/t/p/original/pMt5h8Lqjf6Su3y8jf6aBJLZayv.jpg",
+                "https://image.tmdb.org/t/p/original/iSytYALux2rb3NWoCZLZ0Qf84Oz.jpg",
+                "https://image.tmdb.org/t/p/original/4n88GKe34a04uLpEkKK6EVdZKOg.jpg",
+                "https://image.tmdb.org/t/p/original/pv1fd0O0s6VPa59BM82Qnhd4jWe.jpg",
+                "https://image.tmdb.org/t/p/original/p1cG5zgf9WBCR4geeniRR5EpoXc.jpg",
+                "https://image.tmdb.org/t/p/original/jbAbKBf5tleKsXr3YoLqsTfZpDA.jpg",
+                "https://image.tmdb.org/t/p/original/iLgPHqpCnZlA5L4TIrPAiBAffpg.jpg"
+            ],
+            "title": "Veritas",
+            "tvdb": 2439892
+        },
+        {
+            "airdate": "2020.10.01",
+            "description": "Mariner repurposes Boimler's holodeck program to cast herself as the villain in a Lower Decks style movie.",
+            "episode": "09",
+            "imdb": "tt9207532",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/kqV5lUdQ5AxVUg4fXXEqivLFqrt.jpg",
+                "https://image.tmdb.org/t/p/original/gb2MuxjKWgQt4Ucdq8tkNXxT3Ln.jpg"
+            ],
+            "title": "Crisis Point",
+            "tvdb": 2441760
+        },
+        {
+            "airdate": "2020.10.08",
+            "description": "The USS Cerritos encounters a familiar enemy. Tendi helps a struggling recruit find her footing.",
+            "episode": "10",
+            "imdb": "tt9207534",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/mjNqH0027pwphoZVJVa6ChqSoDt.jpg",
+                "https://image.tmdb.org/t/p/original/9DSNH7MhyWDZkTQWAPKGaPwztgn.jpg"
+            ],
+            "title": "No Small Parts",
+            "tvdb": 2457285
+        },
+        {
+            "airdate": "2021.08.12",
+            "description": "Approximately three months after the events of the season one finale, the U.S.S. Cerritos is dispatched on a mission where it ends up in a sci-fi event resulting in \"strange energy,\" which Commander Ransom inadvertently absorbs.",
+            "episode": "01",
+            "imdb": "tt9207540",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/zesRgabB6QBLohnQ97tOvIodwAF.jpg",
+                "https://image.tmdb.org/t/p/original/3nToThGku4OUxvwFpykWlcsZOri.jpg",
+                "https://image.tmdb.org/t/p/original/cdILs1MEsWb3Bn5p01sqxqtSOXy.jpg",
+                "https://image.tmdb.org/t/p/original/gWz8zZrbo4JYTiZ8WGCrOCE9VkW.jpg",
+                "https://image.tmdb.org/t/p/original/8CRzwWOzKHhAbDsczKr1DzbtQ6U.jpg"
+            ],
+            "title": "Strange Energies",
+            "tvdb": 2853476
+        },
+        {
+            "airdate": "2021.08.19",
+            "description": "Our Lower Deckers have trouble bonding with Ensign Jet Manhaver, who has been assigned Boimler\u2019s bunk and shift duties. Meanwhile, we get a glimpse of Boimler\u2019s life on the U.S.S. Titan, which is more intense than he thought it would be.",
+            "episode": "02",
+            "imdb": "tt9207542",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/jAOq6FIv25Tk0oJjQsE5JtpqvqK.jpg",
+                "https://image.tmdb.org/t/p/original/4FhA45OfLp4VPEBoOOa8PlFy1vl.jpg",
+                "https://image.tmdb.org/t/p/original/nEIp6fQzzc9CGDybY2seKsbOWDv.jpg",
+                "https://image.tmdb.org/t/p/original/uDi02hstw9UJuFXYCkzha8JaGRM.jpg",
+                "https://image.tmdb.org/t/p/original/7MtburHj5eLTZkvZmZT5lyIQ2hF.jpg"
+            ],
+            "title": "Kayshon, His Eyes Open",
+            "tvdb": 3102468
+        },
+        {
+            "airdate": "2021.08.26",
+            "description": "Assigned a special task by Dr. T'Ana, Tendi enlists Mariner for help. On the U.S.S. Cerritos, Rutherford is consumed by a bridge crew mystery.",
+            "episode": "03",
+            "imdb": "tt9207544",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/1ISFNYYREGb5Z9DwKdRxRZjya4.jpg",
+                "https://image.tmdb.org/t/p/original/hSlXJ79GOSQfr0Sbya3kR2Z0P8L.jpg"
+            ],
+            "title": "We'll Always Have Tom Paris",
+            "tvdb": 3128240
+        },
+        {
+            "airdate": "2021.09.02",
+            "description": "The U.S.S. Cerritos is dispatched to a planet to investigate an unexplained sighting of a dangerous Mugato.",
+            "episode": "04",
+            "imdb": "tt9207546",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/aBwnEOSziZod2D6XKqOu6vAorMT.jpg",
+                "https://image.tmdb.org/t/p/original/qIIlSSACqMl08Vz3SMwNBunRnip.jpg"
+            ],
+            "title": "Mugato, Gumato",
+            "tvdb": 3170098
+        },
+        {
+            "airdate": "2021.09.09",
+            "description": "Mariner and Boimler try to track down the location of a legendary Starfleet party while the bridge crew deals with an insecure alien diplomat.",
+            "episode": "05",
+            "imdb": "tt9207548",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/xSoRSb0pXfyKLDE43zI8BSnPayc.jpg",
+                "https://image.tmdb.org/t/p/original/eNJawNuweWxViuqBaiBHQgFO0Sd.jpg",
+                "https://image.tmdb.org/t/p/original/9hLRC7xzBVUx9nHFmPvkd1wge0Y.jpg",
+                "https://image.tmdb.org/t/p/original/tOBWovFqbjyviABHyISadChgm6f.jpg",
+                "https://image.tmdb.org/t/p/original/ti4rDcV1ncfQD1giT4sc2bXANrN.jpg",
+                "https://image.tmdb.org/t/p/original/b1jhKM9OcJ6GbgZY8Oyvo1yoqEp.jpg",
+                "https://image.tmdb.org/t/p/original/mYaRZLOXw98084TIyZZQjP8RAuy.jpg",
+                "https://image.tmdb.org/t/p/original/xSxmlowB1GQfzSVeymqCAoNG7hD.jpg",
+                "https://image.tmdb.org/t/p/original/d3Iwo6gxgL0s869fNAQcPy24OFD.jpg"
+            ],
+            "title": "An Embarrassment of Dooplers",
+            "tvdb": 3170099
+        },
+        {
+            "airdate": "2021.09.16",
+            "description": "Anomaly consolidation day on the U.S.S. Cerritos leaves the Lower Deckers with mixed emotions. Captain Freeman attempts to negotiate peace on the Pakled home world.",
+            "episode": "06",
+            "imdb": "tt9207550",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/sU7F61UdLmNvVlL4VNdGWJMIzZy.jpg",
+                "https://image.tmdb.org/t/p/original/6XoUBzB9pFDl61zY2O4nguLs42r.jpg"
+            ],
+            "title": "The Spy Humongous",
+            "tvdb": 3186671
+        },
+        {
+            "airdate": "2021.09.23",
+            "description": "Mariner and Boimler are stranded on an uninhabited planet with a sentient computer. On the Cerritos, Lt. Commander Billups must prove his engineering abilities to an old adversary.",
+            "episode": "07",
+            "imdb": "tt9207552",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/nWP4Bkv4pCOmTiWFtFpVqavd2l9.jpg",
+                "https://image.tmdb.org/t/p/original/pHhGIOZchRXrhEVZrTLjsEy25In.jpg",
+                "https://image.tmdb.org/t/p/original/muXYFWXqxGSD12CO1UExvZO1Lub.jpg"
+            ],
+            "title": "Where Pleasant Fountains Lie",
+            "tvdb": 3228742
+        },
+        {
+            "airdate": "2021.09.30",
+            "description": "A consultant arrives on the U.S.S. Cerritos to run drills that require the lower deckers and bridge crew to swap duties.",
+            "episode": "08",
+            "imdb": "tt9207554",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/yImQyvFcELANavOwaOj9mInyjKC.jpg",
+                "https://image.tmdb.org/t/p/original/c8A5LuEJu9WtR2n5kvXYntOUvxR.jpg",
+                "https://image.tmdb.org/t/p/original/eSdi82qoAHYioMGJVhaHcx9Gtpe.jpg",
+                "https://image.tmdb.org/t/p/original/cypcNNPv4OloNYTm2LHPkNNUfW8.jpg",
+                "https://image.tmdb.org/t/p/original/tcn0ToTpRGbKTDGGghOc3CLC7xi.jpg",
+                "https://image.tmdb.org/t/p/original/6rQtuCf3TJq4jbzCfWSCvSAAebd.jpg",
+                "https://image.tmdb.org/t/p/original/gjteFi5dd9I6Rb2CvDpnGbKCcIP.jpg",
+                "https://image.tmdb.org/t/p/original/3oUaph8n1TgjEOKB2d4BZysEIXo.jpg"
+            ],
+            "title": "I, Excretus",
+            "tvdb": 3228744
+        },
+        {
+            "airdate": "2021.10.07",
+            "description": "Boimler tries to find a friend from the bridge, while the crew of the USS Cerritos has free time during a long warp trip.",
+            "episode": "09",
+            "imdb": "tt9207556",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/dbNgwjo6rnGQaMtwcGEJ6Y7bh5Y.jpg"
+            ],
+            "title": "wej Duj",
+            "tvdb": 3228745
+        },
+        {
+            "airdate": "2021.10.14",
+            "description": "In the season two finale, the U.S.S. Cerritos is tasked to aid another class starship on a first contact mission.",
+            "episode": "10",
+            "imdb": "tt9207558",
+            "memoryalpha": "",
+            "podcasts": [],
+            "season": "02",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/c3hk6948lCQ6Kfzr2dxa5Xu30jB.jpg",
+                "https://image.tmdb.org/t/p/original/jhdkXzKQispozkGThHUkMSJrced.jpg"
+            ],
+            "title": "First First Contact",
+            "tvdb": 3257086
+        }
+    ],
+    "imdb": "",
+    "title": "Star Trek: Lower Decks",
+    "trek": true,
+    "tvdb": 85948
+}

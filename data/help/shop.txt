@@ -1,0 +1,9 @@
+**SHOP INFO**
+A silly shop to waste your points on!
+All proceeds go directly to the jackpot.
+
+**COMMANDS**
+`!shop [profiles|badges|roles]` - list all profile cards, badges or roles for sale
+`!buy [profile|badge|role] [##]` - buy a profile card, badge or role
+`!profile` - see your profile card
+`!info [tng|voy|ds9|friends|firefly|simpsons|enterprise|tos|lowerdecks|disco|picard|tas|sunny] [s##e##]` - Get information about a specific episode!
