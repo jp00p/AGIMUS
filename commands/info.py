@@ -8,15 +8,20 @@ from os.path import exists
 async def info(message:discord.Message):
   user_command = message.content.lower().replace("!info ", "").split()
   found = False
-  if len(user_command) == 2:
+  if len(user_command) == 2 or len(user_command) == 3:
+    
     show_key = user_command[0]
     raw_season_episode = user_command[1]
+
+    if len(user_command) == 3:
+      raw_season_episode = raw_season_episode + user_command[2]
+
     if  exists("./data/episodes/" + show_key + ".json"):
       f = open("./data/episodes/" + show_key + ".json")
       show_data = json.load(f)
       f.close()
-      season = str(re.sub(r'e.*', '', raw_season_episode).replace("s","")).zfill(2)
-      episode = str(re.sub(r'.*e', '', raw_season_episode)).zfill(2)
+      season = re.sub(r'e.*', '', raw_season_episode).replace("s","").zfill(2)
+      episode = re.sub(r'.*e', '', raw_season_episode).zfill(2)
       logger.info(f"{show_key} {season}x{episode}")
       show_index = -1
       for ep in show_data["episodes"]:
