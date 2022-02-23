@@ -15,8 +15,8 @@ async def info(message:discord.Message):
       f = open("./data/episodes/" + show_key + ".json")
       show_data = json.load(f)
       f.close()
-      season = re.sub(r'e.*', '', raw_season_episode).replace("s","")
-      episode = re.sub(r'.*e', '', raw_season_episode)
+      season = re.sub(r'e.*', '', raw_season_episode).replace("s","").zfill(2)
+      episode = re.sub(r'.*e', '', raw_season_episode).zfill(2)
       logger.info(f"{show_key} {season}x{episode}")
       show_index = -1
       for ep in show_data["episodes"]:
