@@ -1,7 +1,7 @@
 {
   "commands": {
     "buy": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [895480382680596510, 897126055289159711],
       "enabled": true,
       "data": "data/shop.json",
       "parameters": [{
@@ -11,31 +11,31 @@
       }]
     },
     "categories": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412585646268486, 897126055289159711],
       "enabled": true,
       "data": "data/triv.json",
       "parameters": []
     },
     "dustbuster": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412924193726465, 897126055289159711],
       "enabled": true,
       "data": "data/all_characters.txt",
       "parameters": []
     },
     "fmk": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412924193726465, 897126055289159711],
       "enabled": true,
       "data": "data/all_characters.txt",
       "parameters": []
     },
     "help": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412391026360320, 891412585646268486, 897517722227855422, 891412924193726465, 895480382680596510, 897126055289159711],
       "enabled": true,
       "data": "data/help.json",
       "parameters": []
     },
     "info": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [821892686201094154, 897126055289159711],
       "enabled": true,
       "data": "data/info.json",
       "parameters": [{
@@ -45,19 +45,19 @@
       }]
     },
     "jackpot": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412391026360320, 897126055289159711],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "jackpots": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412391026360320, 897126055289159711],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "migrate": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [897126055289159711],
       "enabled": false,
       "data": "data/info.json",
       "parameters": [{
@@ -67,25 +67,25 @@
       }]
     },
     "ping": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [897126055289159711],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "poker": {
-      "channels": [934827868066828308],
+      "channels": [897517722227855422],
       "enabled": true,
       "data": "data/poker.json",
       "parameters": []
     },
     "profile": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412924193726465, 895480382680596510, 897126055289159711],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "quiz": {
-      "channels": [934827868066828308],
+      "channels": [891412585646268486,  897126055289159711],
       "enabled": true,
       "data": null,
       "parameters": [{
@@ -95,13 +95,13 @@
       }]
     },
     "report": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412585646268486, 897126055289159711],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "randomep": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412924193726465, 897126055289159711],
       "enabled": true,
       "data": null,
       "parameters": [{
@@ -111,7 +111,7 @@
       }]
     },
     "setwager": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412391026360320, 897517722227855422, 897126055289159711],
       "enabled": true,
       "data": null,
       "parameters": [{
@@ -121,13 +121,13 @@
       }]
     },
     "scores": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412391026360320, 891412585646268486, 897517722227855422, 891412924193726465, 897126055289159711],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "shop": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [895480382680596510, 897126055289159711],
       "enabled": true,
       "data": "data/shop.json",
       "parameters": [{
@@ -137,7 +137,7 @@
       }]
     },
     "slots": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412391026360320, 897126055289159711],
       "enabled": true,
       "data": "data/slots.json",
       "parameters": [{
@@ -147,25 +147,25 @@
       }]
     },
     "testslots": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412391026360320, 897126055289159711],
       "enabled": true,
       "data": "data/testslots.json",
       "parameters": []
     },
     "trektalk": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412924193726465, 897126055289159711],
       "enabled": true,
       "data": "data/prompts.txt",
       "parameters": []
     },
     "trekduel": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412924193726465, 897126055289159711],
       "enabled": true,
       "data": "data/duel_characters.txt",
       "parameters": []
     },
     "triv": {
-      "channels": [934827868066828308],
+      "channels": [891412585646268486, 897126055289159711],
       "enabled": true,
       "data": "data/triv.json",
       "parameters": [{
@@ -175,7 +175,7 @@
       }]
     },
     "tuvix": {
-      "channels": [821892686201094154, 934827868066828308],
+      "channels": [891412924193726465, 897126055289159711],
       "enabled": true,
       "data": "data/all_characters.txt",
       "parameters": []

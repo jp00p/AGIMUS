@@ -17,5 +17,6 @@ services:
     ports:
       - 3306:3306
     volumes:
-      - ./data/seed-db.sql:/docker-entrypoint-initdb.d/seed-db.sql
-      - .:/bot
+      - my-datavolume:/var/lib/mysql
+volumes:
+  my-datavolume:
