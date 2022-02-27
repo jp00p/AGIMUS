@@ -106,7 +106,7 @@
       "data": null,
       "parameters": [{
         "name": "show",
-        "allowed": ["tng", "voy", "ds9", "friends", "firefly", "simpsons", "enterprise", "tos", "lowerdecks", "disco", "picard", "tas", "sunny"],
+        "allowed": ["trek", "tos", "tas", "tng", "ds9", "voy", "enterprise", "lowerdecks", "disco", "picard", "friends", "firefly", "simpsons", "sunny"],
         "required": false
       }]
     },
