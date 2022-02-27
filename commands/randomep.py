@@ -8,14 +8,20 @@ from .info import get_show
 async def randomep(message:discord.Message):
   randomep_spl = message.content.lower().replace("!randomep ", "").split()
   logger.info("Selected Show: " + randomep_spl[0])
+  trek = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "lowerdecks", "disco", "picard"]
+  nontrek = ["friends", "firefly", "simpsons", "sunny"]
+  any = trek + nontrek
   if randomep_spl[0] in config["commands"]["randomep"]["parameters"][0]["allowed"]:
     if randomep_spl[0] == "trek":
-      trek = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "lowerdecks", "disco", "picard"]
       selected_show = random.choice(trek)
+    elif randomep_spl[0] == "nontrek":
+      selected_show = random.choice(nontrek)
+    elif randomep_spl[0] == "any":
+      selected_show = random.choice(any)
     else:
       selected_show = randomep_spl[0]
   else:
-    selected_show = random.choice(config["commands"]["randomep"]["parameters"][0]["allowed"])
+    selected_show = random.choice(trek)
   f = open("./data/episodes/" + selected_show + ".json")
   show_data = json.load(f)
   f.close()

@@ -4,7 +4,7 @@ A place to generate conversation prompts!
 **COMMANDS**
 `!tuvix` - create your own Tuvix
 `!dustbuster` - beam em down, let god sort em out
-`!randomep` - pick a random episode from all trek everywhere
+`!randomep [trek|nontrek|any|tos|tas|tng|ds9|voy|enterprise|lowerdecks|disco|picard|friends|firefly|simpsons|sunny]` - pick a random episode from all trek everywhere
 `!trektalk` - generate a conversation piece
 `!trekduel` - who will win?
 `!fmk` - you know the deal
