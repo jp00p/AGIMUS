@@ -9,7 +9,11 @@ async def randomep(message:discord.Message):
   randomep_spl = message.content.lower().replace("!randomep ", "").split()
   logger.info("Selected Show: " + randomep_spl[0])
   if randomep_spl[0] in config["commands"]["randomep"]["parameters"][0]["allowed"]:
-    selected_show = randomep_spl[0]
+    if randomep_spl[0] == "trek":
+      trek = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "lowerdecks", "disco", "picard"]
+      selected_show = random.choice(trek)
+    else:
+      selected_show = randomep_spl[0]
   else:
     selected_show = random.choice(config["commands"]["randomep"]["parameters"][0]["allowed"])
   f = open("./data/episodes/" + selected_show + ".json")
