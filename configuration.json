@@ -84,6 +84,18 @@
       "data": null,
       "parameters": []
     },
+    "qget": {
+      "channels": [897126055289159711],
+      "enabled": true,
+      "data": "data/user-info.json",
+      "parameters": []
+    },
+    "qset": {
+      "channels": [897126055289159711],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "quiz": {
       "channels": [891412585646268486,  897126055289159711],
       "enabled": true,
