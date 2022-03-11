@@ -11,6 +11,7 @@ from commands.poker import *
 from commands.ping import ping
 from commands.profile import profile
 from commands.quiz import quiz
+from commands.q import qget, qset
 from commands.report import report
 from commands.randomep import randomep
 from commands.scores import scores

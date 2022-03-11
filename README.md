@@ -14,7 +14,7 @@ git clone https://github.com/jp00p/FoDBot-SQL.git && cd FoDBot-SQL
 cp .env-example .env
 
 # Build and start the docker containers
-make start-docker
+make docker-start
 
 # Mysql session with database
 make db-mysql
@@ -29,7 +29,7 @@ make db-dump
 make db-load
 
 # Stop the containers
-make stop-docker
+make docker-stop
 
 # Blatent cheating
 UPDATE users SET score=42069, spins=420, jackpots=69, wager=25, high_roller=1 WHERE id=1;
@@ -64,6 +64,8 @@ Bot commands are triggered by typing an exclamation point followed by a command.
 | `!ping`                                                                                                                                                           | [ping.py](commands/ping.py)             | respond pong                                                                                                                            |
 | `!poker`                                                                                                                                                          | [poker.py](commands/poker.py)           | 5 card stud style game                                                                                                                  |
 | `!profile`                                                                                                                                                        | [profile.py](commands/profile.py)       | Generate profile card with user statistics/options                                                                                      |
+| `!qget [user]`                                                                                                                                                    | [q.py](commands/q.py)                   | Get the information in mysql for a specific user                                                                                        |
+| `!qset [user] [score \| spins \| jackpots \| wager \| high_roller \| chips \| profile_card \| profile_badge] [new-value]`                                         | [q.py](commands/q.py)                   | Set a value of a specific user in mysql                                                                                                 |
 | `!quiz [tng \| voy \| ds9 \| friends \| firefly \| simpsons \| enterprise \| tos \| lowerdecks \| disco \| picard \| tas \| sunny]`                               | [quiz.py](commands/quiz.py)             | Guess the episode from a screen-shot!                                                                                                   |
 | `!randomep [trek \| nontrek \| any \| tos \| tas \| tng \| ds9 \| voy \| enterprise \| lowerdecks \| disco \| picard \| friends \| firefly \| simpsons \| sunny]` | [randomep.py](commands/randomep.py)     | Show information about a random episode!                                                                                                |
 | `!scores`                                                                                                                                                         | [scores.py](commands/scores.py)         | Show the leaderboard of points                                                                                                          |
@@ -149,8 +151,3 @@ Each command requires an explicit import in the [main.py](main.py) script.
 ```python
 from commands.setwager import setwager
 ```
-
-## TODO
-
-- quiz
-- report
