@@ -252,7 +252,7 @@ def roll_slot(slot_series, slot_to_roll, generate_image=True, filename="slot_res
     win_string = f"3 {win_sym}"
     symbol_result = [win_string, symbols[win_sym][1]]
   elif len(symbol_matches) == 2:
-    if "cherry" in list(symbol_matches):
+    if list(symbol_matches).count("cherry") == 2:
       # 2 cherries in the result give them their winnings back
       symbol_result = ["2 Cherries", 1]
 
