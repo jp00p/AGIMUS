@@ -1,5 +1,6 @@
 from .common import *
 from .jackpot import *
+import math
 
 # slots() - Entrypoint for !slots command
 # message[required]: discord.Message
@@ -13,7 +14,6 @@ async def slots(message:discord.Message):
   f = open(config["commands"]["slots"]["data"])
   SLOTS = json.load(f)
   f.close()
-  
   
   # Use the option the user selected or pick a random show
   if message.content.lower().replace("!slots ", "") in config["commands"]["slots"]["parameters"][0]["allowed"]:
@@ -37,8 +37,8 @@ async def slots(message:discord.Message):
     score_mult = 1
   
   total_rewards = 0
-  payout = SLOTS[show]["payout"]
-  logger.info("payout" + str(payout))
+  themed_payout = SLOTS[show]["payout"]
+  logger.info("payout" + str(themed_payout))
   
   if player["score"] < wager and not free_spin:
     # if they don't have enough bits to play
@@ -56,7 +56,7 @@ async def slots(message:discord.Message):
     "Get it player.", 
     "Go go gadget slots!", 
     "Activating slot subroutines!", 
-    "Reversing polarity on Alpha-probability particle emitters."
+    "Reversing polarity on Alpha-probability particle emitters.",
   ] 
   # pick a spin message
   spin_msg = message.author.mention + ": "
@@ -72,12 +72,17 @@ async def slots(message:discord.Message):
   await message.channel.send(spin_msg)
   
   # roll the slots!
-  silly_matches, matching_chars, jackpot = roll_slot(show, SLOTS[show], filename=str(message.author.id))
+  silly_matches, matching_chars, jackpot, symbol_matches = roll_slot(show, SLOTS[show], filename=str(message.author.id))
   file = discord.File("./images/slot_results/{0}.png".format(message.author.id), filename=str(message.author.id)+".png")
   match_msg = message.author.mention + "'s spin results: \n"
   
+  if len(symbol_matches) > 0:
+    match_msg += "**"+symbol_matches[0].upper()+":** "
+    match_msg += "{0} points!\n".format(round(score_mult * symbol_matches[1]))
+    total_rewards += int(math.ceil(score_mult * symbol_matches[1]))
+
   if len(silly_matches) > 0:
-    match_msg += "**Matches: ** "
+    match_msg += "**Discovered Bits: ** "
     match_msg += "; ".join(silly_matches)
     match_msg += " `" + str(len(silly_matches)*score_mult) + " point(s)`\n"
     total_rewards += len(silly_matches) * score_mult
@@ -91,7 +96,7 @@ async def slots(message:discord.Message):
   
   if jackpot:
     jackpot_amt = get_jackpot()
-    total_rewards += round(jackpot_amt * payout)
+    total_rewards += round(jackpot_amt * themed_payout)
     jackpot_art = '''
                   ______
               _-' .   .`-_
@@ -109,7 +114,7 @@ async def slots(message:discord.Message):
       UNITED FEDERATION OF JACKPOTS
 '''
     match_msg += "```" + jackpot_art + "```"
-    match_msg += "\n "+message.author.mention+" wins the pot of: `{0}` ...multiplied by the slots' jackpot payout rate of x{1}... **for a total winnings of `{2}`**\n\nJackpot has been reset to: **`250`**\n\n".format(jackpot_amt, payout, round(jackpot_amt*payout))
+    match_msg += "\n "+message.author.mention+" wins the pot of: `{0}` ...multiplied by the slots' jackpot payout rate of x{1}... **for a total winnings of `{2}`**\n\nJackpot has been reset to: **`250`**\n\n".format(jackpot_amt, themed_payout, round(jackpot_amt*themed_payout))
     win_jackpot(message.author.display_name, message.author.id)
 
   if total_rewards != 0:
@@ -160,7 +165,7 @@ async def testslots(message:discord.Message):
     else:
       show = "TNG"
 
-    spins = 100000
+    spins = 1000
     spin_msg = f"Testing {show} slots with {spins} spins! Nothing is going to work until this finishes sorry :)"
     await message.channel.send(spin_msg)
     jackpots = 0
@@ -218,7 +223,40 @@ def roll_slot(slot_series, slot_to_roll, generate_image=True, filename="slot_res
   files = os.listdir(slot_to_roll["files"])
   results = []
 
-  # pick 3 random ones
+  # slot machine symbols - standard across all slots
+  # name, weight, payout
+  symbols = {
+    "cherry": [10000, 1.25],
+    "bell": [7000, 1.75],
+    "grapes": [6000, 2],
+    "lemon": [5000, 4],
+    "plum": [4000, 5],
+    "watermelon": [3000, 6],
+    "horseshoe": [2000, 10],
+    "clover": [1000, 20],
+    "coin": [500, 100],
+    "diamond": [250, 500],
+    "heart": [1, 10000]
+  }
+
+  roll_weights = []
+  for symbol in symbols:
+    roll_weights.append(symbols[symbol][0])
+  symbol_roll = random.choices(list(symbols.keys()), weights=roll_weights, k=3)
+  symbol_matches = set(symbol_roll)
+  symbol_result = []
+
+  # check the symbols winnings  
+  if len(symbol_matches) == 1:
+    win_sym = list(symbol_matches)[0]
+    win_string = f"3 {win_sym}"
+    symbol_result = [win_string, symbols[win_sym][1]]
+  elif len(symbol_matches) == 2:
+    if "cherry" in list(symbol_matches):
+      # 2 cherries in the result give them their winnings back
+      symbol_result = ["2 Cherries", 1]
+
+  # pick 3 random themed slots
   for i in range(3):
     results.append(random.choice(files))
   
@@ -241,6 +279,7 @@ def roll_slot(slot_series, slot_to_roll, generate_image=True, filename="slot_res
     image1 = Image.open(slot_to_roll["files"] + results[0]).resize((150,150))
     image2 = Image.open(slot_to_roll["files"] + results[1]).resize((150,150))
     image3 = Image.open(slot_to_roll["files"] + results[2]).resize((150,150))
+    
 
   matching_chars = []
   result_set = set(results)
@@ -263,20 +302,21 @@ def roll_slot(slot_series, slot_to_roll, generate_image=True, filename="slot_res
   color = (0,0,0,100) # black bg
   
   if generate_image:
-    generate_slot_image(image1,image2,image3,color,logo).save("./images/slot_results/"+str(filename)+".png")
+    generate_slot_image(image1,image2,image3,symbol_roll,color,logo).save("./images/slot_results/"+str(filename)+".png")
 
-  return silly_matches, matching_chars, jackpot
+  return silly_matches, matching_chars, jackpot, symbol_result
 
 
 # generate_slot_image(im1, im2, im3, color, logo)
 # im1[required]: object
 # im2[required]: object
 # im3[required]: object
+# symbols[required]: list of symbols
 # color[required]: array of ints
 # logo[required]: string
 # returns an Image object
 # This function combines three images and a logo to display to the user
-def generate_slot_image(im1, im2, im3, color, logo):
+def generate_slot_image(im1, im2, im3, symbols, color, logo):
   logo_location = "./images/slots/" + logo
   
   # destination image
@@ -299,4 +339,11 @@ def generate_slot_image(im1, im2, im3, color, logo):
   dst.paste(final_images[0], (8, 8))
   dst.paste(final_images[1], (im1.width+16, 8))
   dst.paste(final_images[2], (im1.width+im2.width+24, 8))
+
+  symbols_positions = [10,176,334]
+
+  for i,s in enumerate(symbols):
+    simg = Image.open("./images/slot_symbols/"+s+".png")
+    dst.paste(simg, (symbols_positions[i], 150-simg.height), simg)
+
   return dst

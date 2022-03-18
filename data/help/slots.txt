@@ -1,6 +1,6 @@
 **SLOTS INFO**
-Slots have a <:bits:818571186195398677>-based matching system.
-Get three of the same character to win the jackpot!
+Slots have a <:bits:818571186195398677>-based matching system as well as a normal slot machine symbol-matching system.
+Get three of the same Star Trek character/ship to win the jackpot!
 DS9 slots are harder to win a jackpot on, but pay 1.5x the bounty!
 
 **COMMANDS**
