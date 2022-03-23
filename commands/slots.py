@@ -78,7 +78,7 @@ async def slots(message:discord.Message):
   
   if len(symbol_matches) > 0:
     match_msg += "**"+symbol_matches[0].upper()+":** "
-    match_msg += "{0} points!\n".format(round(score_mult * symbol_matches[1]))
+    match_msg += "`{0} points`\n".format(round(score_mult * symbol_matches[1]))
     total_rewards += int(math.ceil(score_mult * symbol_matches[1]))
 
   if len(silly_matches) > 0:
@@ -236,7 +236,7 @@ def roll_slot(slot_series, slot_to_roll, generate_image=True, filename="slot_res
     "clover": [1000, 20],
     "coin": [500, 100],
     "diamond": [250, 500],
-    "heart": [1, 10000]
+    "heart": [100, 10000]
   }
 
   roll_weights = []
@@ -246,14 +246,19 @@ def roll_slot(slot_series, slot_to_roll, generate_image=True, filename="slot_res
   symbol_matches = set(symbol_roll)
   symbol_result = []
 
+  fruits = ["cherry", "grapes", "lemon", "plum", "watermelon"]
+
   # check the symbols winnings  
   if len(symbol_matches) == 1:
     win_sym = list(symbol_matches)[0]
     win_string = f"3 {win_sym}"
     symbol_result = [win_string, symbols[win_sym][1]]
   elif list(symbol_roll).count("cherry") == 2:
-      # 2 cherries in the result give them their winnings back
-      symbol_result = ["2 Cherries", 1]
+    # 2 cherries in the result give them their winnings back
+    symbol_result = ["2 Cherries", 1]
+  elif len(symbol_matches) == 3 and all(fruit in fruits for fruit in list(symbol_roll)):
+    # if they get 3 different fruits
+    symbol_result = ["Fruit Salad", 1.5]
 
   # pick 3 random themed slots
   for i in range(3):
