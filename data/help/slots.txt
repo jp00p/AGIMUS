@@ -1,14 +1,28 @@
 **SLOTS INFO**
 Slots have a <:bits:818571186195398677>-based matching system as well as a normal slot machine symbol-matching system.
-Get three of the same Star Trek character/ship to win the jackpot!
-DS9 slots are harder to win a jackpot on, but pay 1.5x the bounty!
+You need to match three Star Trek characters/ships to win the jackpot!
+
+**Symbol Matches**
+2 cherries - x1
+3 cherries - x1.25
+3 unique fruits - x1.5
+3 bells - x1.75
+3 grapes - x2
+3 lemons - x4
+3 plums - x5
+3 watermelons - x6
+3 horseshoes - x10
+3 clovers - x20
+3 coins - x100
+3 diamonds - x500
+3 hearts - x10000
+
 
 **COMMANDS**
 `!slots` - run a random slot machine!
-`!slots [tng|ds9|voy|holodeck|ships]` - slot machine game
-`!setwager [1-25]` - set your default wager (try a different number!)
+`!slots [tng|ds9|voy|holodeck|ships]` - run a specific slot machine
+`!setwager [1-25]` - set your default wager
 `!jackpots` - see a history of jackpots
-`!jackpot` - see the current bounty
+`!jackpot` - see the current jackpot value
 `!scores` - see the top scores
 `!profile` - see your profile card
-`!info [tng|voy|ds9|friends|firefly|simpsons|enterprise|tos|lowerdecks|disco|picard|tas|sunny] [s##e##]` - Get information about a specific episode!

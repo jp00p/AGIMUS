@@ -227,11 +227,11 @@ def roll_slot(slot_series, slot_to_roll, generate_image=True, filename="slot_res
   # name, weight, payout
   symbols = {
     "cherry": [10000, 1.25],
-    "bell": [7000, 1.75],
-    "grapes": [6000, 2],
-    "lemon": [5000, 4],
-    "plum": [4000, 5],
-    "watermelon": [3000, 6],
+    "bell": [7500, 1.75],
+    "grapes": [6500, 2],
+    "lemon": [5500, 4],
+    "plum": [4500, 5],
+    "watermelon": [3500, 6],
     "horseshoe": [2000, 10],
     "clover": [1000, 20],
     "coin": [500, 100],
