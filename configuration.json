@@ -66,6 +66,12 @@
         "required": false
       }]
     },
+    "nasa": {
+      "channels": [891412585646268486,  897126055289159711],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "ping": {
       "channels": [897126055289159711],
       "enabled": true,
