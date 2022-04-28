@@ -9,7 +9,7 @@ async def qget(message:discord.Message):
   # user_columns = json.load(f)
   # f.close()
   logger.debug("!qget")
-  selected_user = message.content.lower().replace("!qget ", "").replace("<@!", "").replace(">","")
+  selected_user = message.content.lower().replace("!qget ", "").replace("<@", "").replace(">","")
   logger.info("!get selected_user: " + selected_user)
   if is_integer(selected_user):
     table = display_user(selected_user)
@@ -29,7 +29,7 @@ async def qset(message:discord.Message):
   f.close()
   logger.debug("!qset")
   qspl = message.content.lower().replace("!qset ", "").split()
-  selected_user = qspl[0].replace("<@!", "").replace(">","")
+  selected_user = qspl[0].replace("<@", "").replace(">","")
   change_column = qspl[1]
   change_value  = qspl[2]
   logger.info(f"!get selected_user: {selected_user}")
