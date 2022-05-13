@@ -22,6 +22,12 @@
       "data": "data/all_characters.txt",
       "parameters": []
     },
+    "drop": {
+      "channels": [937900913799094303],
+      "enabled": true,
+      "data": "data/drops.json",
+      "parameters": []
+    },
     "fmk": {
       "channels": [891412924193726465, 897126055289159711],
       "enabled": true,
