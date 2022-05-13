@@ -39,3 +39,11 @@ def get_drop_metadata(query):
     return drop_data.get(top_score[1])
   else:
     return False
+
+# drops() - Entrypoint for !drops command
+# message[required]: discord.Message
+# This function simply returns a list to the channel of the drops that are available
+async def drops(message:discord.Message):
+  await message.reply("I'll send you a DM with the full Drops List!")
+  drops_list = "\n".join(drop_data)
+  await message.author.send("**Drops available:**\n\n{}".format(drops_list))
