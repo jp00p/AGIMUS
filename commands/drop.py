@@ -20,7 +20,7 @@ async def drop(message:discord.Message):
     await message.channel.send("<a:riker_think_hmm:881981594271899718> You'll need to include a term to search by! To get a list of drops run: !drops")
     return
 
-  drop_allowed = check_timekeeper(message)
+  drop_allowed = await check_timekeeper(message)
   if (drop_allowed):
     drop_metadata = get_drop_metadata(query)
 
@@ -29,8 +29,6 @@ async def drop(message:discord.Message):
       set_timekeeper(message)
     else:
       await message.channel.send("<:ezri_frown_sad:757762138176749608> Drop not found! To get a list of drops run: !drops")
-  else:
-    await message.reply("<:ohno:930365904657723402> Someone in the channel has already dropped too recently. Please wait a minute before another drop!")
 
 # get_drop_metadata() - Logic to try to fuzzy-match user query to a drop
 # query[required] - String
@@ -75,27 +73,38 @@ async def drops(message:discord.Message):
 
 # Timekeeper Functions
 # Prevent spamming a channel with too many drops in too short a period
+#
+# TIMEKEEPER is a dict of tuples for each channel which have the last timestamp,
+# and a boolean indicating whether we've already told the channel to wait.
+# If we've already sent a wait warning, we just ignore further requests until it has expired
 TIMEKEEPER = {}
 TIMEOUT = 45
 
-def check_timekeeper(message:discord.Message):
+async def check_timekeeper(message:discord.Message):
   current_channel = message.channel.id
 
   # Check if there's been a drop within this channel in the last TIMEOUT seconds
-  current_timestamp = TIMEKEEPER.get(current_channel)
-  if (current_timestamp != None):
-    diff = message.created_at - current_timestamp
+  last_record = TIMEKEEPER.get(current_channel)
+  if (last_record != None):
+    last_timestamp = last_record[0]
+    diff = message.created_at - last_timestamp
     seconds = diff.total_seconds()
     if (seconds > TIMEOUT):
       return True
     else:
+      # Check if we've notified the channel if there's a timeout active
+      have_notified = last_record[1]
+      if (have_notified == False):
+        await message.reply("<:ohno:930365904657723402> Someone in the channel has already dropped too recently. Please wait a minute before another drop!")
+        last_record[1] = True
       return False
+
   # If a timekeeper entry for the channel hasn't been set yet, go ahead and allow
   return True
 
 def set_timekeeper(message:discord.Message):
   current_channel = message.channel.id
-  TIMEKEEPER[current_channel] = message.created_at
+  TIMEKEEPER[current_channel] = [message.created_at, False]
 
 
 # Utility Functions

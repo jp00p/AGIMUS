@@ -105,11 +105,15 @@
   },
   "Mclaughlin Group: ISSUE ONE!": {
     "file": "video/drops/mclaughlingroupissueone.mp4",
-    "description": "Mclaughlin Group: Issue one!"
+    "description": "Mclaughlin Group: Issue one! Issue 1."
   },
   "Mclaughlin Group: ISSUE TWO!": {
     "file": "video/drops/mclaughlingroupissuetwo.mp4",
-    "description": "Mclaughlin Group: Issue two!"
+    "description": "Mclaughlin Group: Issue two! Issue 2."
+  },
+  "Mclaughlin Group: ISSUE THREE!": {
+    "file": "video/drops/mclaughlingroupissuethree.mp4",
+    "description": "Mclaughlin Group: Issue three! Issue 3."
   },
   "Neutrogena T/Gel: It Works": {
     "file": "video/drops/neutrogenatgelitworks.mp4",
