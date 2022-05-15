@@ -78,7 +78,7 @@ async def drops(message:discord.Message):
 # and a boolean indicating whether we've already told the channel to wait.
 # If we've already sent a wait warning, we just ignore further requests until it has expired
 TIMEKEEPER = {}
-TIMEOUT = 45
+TIMEOUT = 15
 
 async def check_timekeeper(message:discord.Message):
   current_channel = message.channel.id
