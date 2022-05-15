@@ -5,6 +5,7 @@ import random
 import tmdbsimple as tmdb
 import requests
 import asyncio
+import re
 import string
 import json
 from PIL import Image, ImageFont, ImageDraw, ImageColor
