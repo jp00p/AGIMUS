@@ -47,6 +47,9 @@ Additional [discord role permissions](https://support.discord.com/hc/en-us/artic
 - Add reaction
 - Manage messages
 
+Also for the Slash Commands you'll need to enable the `applications.commands` Scope for your bot _Application_ via the OAuth2 URL Generator.
+Instructions for how to do this are available through this video at the 58 second timestamp: https://youtu.be/ygc-HdZHO5A?t=58
+
 ## Commands
 
 Bot commands are triggered by typing an exclamation point followed by a command. Commands must be defined in the [configuration.json](configuration.json) file, a python file in the [commands directory](commands), and an import line added to [main.py](main.py).
@@ -56,8 +59,6 @@ Bot commands are triggered by typing an exclamation point followed by a command.
 | `!buy [profile \| badge \| role] [item_number]`                                                                                                                   | [buy.py](commands/buy.py)               | Allows user to "buy" a profile, badge or role from points earned playing bot games (see `!shop` command for options)                    |
 | `!categories`                                                                                                                                                     | [categories.py](commands/categories.py) | Show possible trivia categories                                                                                                         |
 | `!dustbuster`                                                                                                                                                     | [dustbuster.py](commands/dustbuster.py) | Return 5 random trek characters as discussion prompt                                                                                    |
-| `!drop [?query]`                                                                                                                                                  | [drop.py](commands/drop.py)             | Posts a .mp4 drop file if it finds a match from the user's query                                                                        |
-| `!drops`                                                                                                                                                          | [drop.py](commands/drop.py)             | Sends a message to the user with a full list of the drops available from `!drop`                                                        |
 | `!fmk`                                                                                                                                                            | [fmk.py](commands/fmk.py)               | Return 3 random trek characters as discussion prompt                                                                                    |
 | `!help`                                                                                                                                                           | [help.py](commands/help.py)             | Show a help message for a specific channel                                                                                              |
 | `!info [tng \| voy \| ds9 \| friends \| firefly \| simpsons \| enterprise \| tos \| lowerdecks \| disco \| picard \| tas \| sunny] [s##e##]`                      | [info.py](commands/info.py)             | Show information about a specific episode!                                                                                              |
@@ -81,6 +82,15 @@ Bot commands are triggered by typing an exclamation point followed by a command.
 | `!triv`                                                                                                                                                           | [triv.py](commands/triv.py)             | Trivia game                                                                                                                             |
 | `!tuvix`                                                                                                                                                          | [tuvix.py](commands/tuvix.py)           | Return 2 random trek characters as discussion prompt                                                                                    |
 
+## Slash Commands
+
+Slash commands are triggered by typing a forward slash (`/`) followed by the command text
+
+| Command                                                                                                                                                           | File                                    | Description                                                                                                                             |
+| :-----------------------------------------------------------------------------------------------------------------------------------------------                  | :-------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `/drop <query]>`                                                                                                                                                  | [drop.py](commands/drop.py)             | Posts a .mp4 drop file if it finds a match from the user's query                                                                        |
+| `/drops`                                                                                                                                                          | [drop.py](commands/drop.py)             | Replies with a message to the user with a full list of the drops available from `/drop`                                                 |
+
 ### configuration.json
 
 The [configuration.json](configuration.json) file defines metadata about each command like what channel they can be executed in, what parameters can be passed, if the command requires additional data loaded, or if it should be enabled/disabled.
@@ -96,6 +106,13 @@ The [configuration.json](configuration.json) file defines metadata about each co
     "required": true
   }]
 }
+```
+
+The file also provides the "Guild ID" for your server, note this is required in order for the slash commands to register properly and will cause a permissions error on startup if not provided!
+```json
+"guild_ids": [
+  820440093898440756
+]
 ```
 
 ### commands/command.py
