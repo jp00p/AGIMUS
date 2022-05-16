@@ -26,8 +26,11 @@ async def slash_drops(ctx:SlashContext):
     description=drops_list,
     color=discord.Color.blue()
   )
-  await ctx.author.send(embed=embed)
-  await ctx.reply("<:tendi_smile_happy:757768236069814283> Sent you a DM with the full List of Drops!", hidden=True)
+  try:
+    await ctx.author.send(embed=embed)
+    await ctx.reply("<:tendi_smile_happy:757768236069814283> Sent you a DM with the full List of Drops!", hidden=True)
+  except:
+    await ctx.reply(embed=embed, hidden=True)
 
 
 # slash_drop() - Entrypoint for /drops command
