@@ -57,6 +57,7 @@ TRIVIA_DATA = {}
 TRIVIA_MESSAGE = None
 TRIVIA_ANSWERS = {}
 EMOJI = {}
+INTRO_CHANNEL = config["intro_channel"]
 
 def getDB():
   db = mysql.connector.connect(
