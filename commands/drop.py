@@ -1,11 +1,11 @@
-from .common import *
+from utils.check_channel_access import *
 
-f = open(config["commands"]["drop"]["data"])
+command_config = config["commands"]["drop"]
+
+# Load JSON Data
+f = open(command_config["data"])
 drop_data = json.load(f)
 f.close()
-
-fuzz_threshold = 72
-punct_regex = r'[' + string.punctuation + ']'
 
 # drop() - Entrypoint for !drop command
 # This now just informs the channel that they can use the slash command instead
@@ -51,12 +51,10 @@ async def slash_drops(ctx:SlashContext):
   ]
 )
 async def slash_drop(ctx:SlashContext, query:str):
-  # Verify that we're allowed to perform drops in this channel
-  allowed_channels = config["commands"]["drop"]["channels"]
-  if not (ctx.channel.id in allowed_channels):
-    await ctx.send("<:ezri_frown_sad:757762138176749608> Sorry! Drops are not allowed in this channel. Please try elsewhere.", hidden=True)
+  # Check if we're allowed to drop in this channel
+  channel_access = await check_channel_access(ctx, command_config)
+  if not channel_access:
     return
-
 
   q = query.lower().strip()
 
@@ -72,6 +70,7 @@ async def slash_drop(ctx:SlashContext, query:str):
 
 # get_drop_metadata() - Logic to try to fuzzy-match user query to a drop
 # query[required] - String
+fuzz_threshold = 72
 def get_drop_metadata(query):
   query = strip_punctuation(query)
 
@@ -135,5 +134,6 @@ def set_timekeeper(ctx:SlashContext):
 
 
 # Utility Functions
+punct_regex = r'[' + string.punctuation + ']'
 def strip_punctuation(string):
   return re.sub(punct_regex, '', string).lower().strip()
