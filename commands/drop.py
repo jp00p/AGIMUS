@@ -52,11 +52,6 @@ async def slash_drops(ctx:SlashContext):
 )
 @check_channel_access(command_config)
 async def slash_drop(ctx:SlashContext, query:str):
-  # Check if we're allowed to drop in this channel
-  # channel_access = await check_channel_access(ctx, command_config)
-  # if not channel_access:
-  #   return
-
   q = query.lower().strip()
 
   drop_allowed = await check_timekeeper(ctx)
