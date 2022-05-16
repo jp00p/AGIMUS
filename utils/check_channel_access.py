@@ -1,7 +1,7 @@
 from commands.common import *
 
 # @check_channel_access decorator
-# Can be injected in between @slash.slash and your drop function to 
+# Can be injected in between @slash.slash and your slash function to 
 # restrict access to the "channels" from the command config
 def check_channel_access(command_config):
   # Container accepts the actual drop function as `command`
