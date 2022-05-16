@@ -91,6 +91,10 @@
     "file": "video/drops/notpicard.mp4",
     "description": "Sisko: I'm not Picard."
   },
+  "It Means Omerta": {
+    "file": "video/drops/itmeansomerta.mp4",
+    "description": "It means Omerta. It means Rewenge."
+  },
   "Leedle Leedle Lee": {
     "file": "video/drops/leedleleedlelee.mp4",
     "description": "Patrick from Spongebob: Leedle Leedle Lee."
@@ -114,6 +118,10 @@
   "Mclaughlin Group: ISSUE THREE!": {
     "file": "video/drops/mclaughlingroupissuethree.mp4",
     "description": "Mclaughlin Group: Issue three! Issue 3."
+  },
+  "Mclaughlin Group: ISSUE FOUR!": {
+    "file": "video/drops/mclaughlingroupissuefour.mp4",
+    "description": "Mclaughlin Group: Issue four! Issue 4."
   },
   "Neutrogena T/Gel: It Works": {
     "file": "video/drops/neutrogenatgelitworks.mp4",
@@ -146,6 +154,10 @@
   "There's Coffee In That...": {
     "file": "video/drops/coffee.mp4",
     "description": "Captain Janeway: There's coffee in that..."
+  },
+  "This Is Fucking Spectacular!": {
+    "file": "video/drops/thisisfuckingspectacular.mp4",
+    "description": "I am Chief Miles Edward O'Brien. This is fucking spectacular!"
   },
   "Tom Paris: Am I Making Any Sense Here?": {
     "file": "video/drops/amimakinganysensehere.mp4",
