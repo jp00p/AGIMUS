@@ -37,11 +37,11 @@
   },
   "Dear Sweet Morn": {
     "file": "video/drops/dearsweetmorn.mp4",
-    "description": "Deep Space Nine (DS9) Interstitial: Dear Sweet Morn!"
+    "description": "Dear Sweet Morn!"
   },
   "Do You Realize How Incredible This Is?": {
     "file": "video/drops/doyourealizehowincrediblethisis.mp4",
-    "description": "Deep Space Nine (DS9) Interstitial: Do you realize how incredible this is?"
+    "description": "Do you realize how incredible this is?"
   },
   "Drunk Shimoda": {
     "file": "video/drops/drunkshimoda.mp4",
@@ -69,7 +69,7 @@
   },
   "Gul Dukat, Gul Dukat, Gul Dukat": {
     "file": "video/drops/guldukat.mp4",
-    "description": "Deep Space Nine (DS9) Interstitial: Gul Dukat"
+    "description": "Gul Dukat"
   },
   "Hell Of A Combination": {
     "file": "video/drops/hellofacombination.mp4",
@@ -85,11 +85,11 @@
   },
   "I Don't Use The Bucket Anymore": {
     "file": "video/drops/idontusethebucketanymore.mp4",
-    "description": "Deep Space Nine (DS9) Interstitial. Mr. Bucket. I don't use the bucket anymore."
+    "description": "Odo. Mr. Bucket. I don't use the bucket anymore."
   },
   "I'm Not Picard": {
     "file": "video/drops/notpicard.mp4",
-    "description": "Deep Space Nine (DS9) Interstitial. Sisko: I'm not Picard."
+    "description": "Sisko: I'm not Picard."
   },
   "Leedle Leedle Lee": {
     "file": "video/drops/leedleleedlelee.mp4",
@@ -101,7 +101,7 @@
   },
   "That's A Lotta Yamok Sauce!": {
     "file": "video/drops/lottayamoksauce.mp4",
-    "description": "Deep Space Nine (DS9) Interstitial. That's a lotta yamok sauce!"
+    "description": "That's a lotta yamok sauce!"
   },
   "Mclaughlin Group: ISSUE ONE!": {
     "file": "video/drops/mclaughlingroupissueone.mp4",
@@ -121,7 +121,7 @@
   },
   "Planning A Heist? Gold!": {
     "file": "video/drops/fortknox.mp4",
-    "description": "Voyager (VOY) Interstitial. Got to get that latinum. Planning a heist. Gold!"
+    "description": "Got to get that latinum. Planning a heist. Gold!"
   },
   "Powdered Toast Man": {
     "file": "video/drops/powderedtoastman.mp4",
@@ -133,7 +133,7 @@
   },
   "Priority One Messages": {
     "file": "video/drops/priorityonemessages.mp4",
-    "description": "Priority One Message from Starfleet coming in on secure channel. Need supplemental income. Yeah it's extra. Why the interest alone could be enough to buy this ship!"
+    "description": "Priority One. Supplemental income. Interest alone could be enough to buy this ship!"
   },
   "Raincheck Segment": {
     "file": "video/drops/raincheck.mp4",
@@ -193,6 +193,6 @@
   },
   "You Really Want To Do This?": {
     "file": "video/drops/youreallywanttodothis.mp4",
-    "description": "Deep Space Nine (DS9) Interstitial. You really want to do this here? Now? Okay!"
+    "description": "You really want to do this here? Now? Okay!"
   }
 }

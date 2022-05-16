@@ -1,4 +1,6 @@
 import discord
+from discord_slash import SlashCommand, SlashContext
+from discord_slash.utils.manage_commands import create_choice, create_option
 from discord.ext import tasks
 import os
 import random
@@ -48,6 +50,7 @@ f = open(BOT_CONFIGURATION_FILEPATH)
 config = json.load(f)
 f.close()
 client = discord.Client()
+slash = SlashCommand(client, sync_commands=True)
 POKER_GAMES = {}
 TRIVIA_RUNNING = False
 TRIVIA_DATA = {}

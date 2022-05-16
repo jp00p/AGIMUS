@@ -8,27 +8,64 @@ fuzz_threshold = 72
 punct_regex = r'[' + string.punctuation + ']'
 
 # drop() - Entrypoint for !drop command
-# message[required]: discord.Message
-# This function is the main entrypoint of the !drop command
-#
-# We try to match up the query from the user to a drop from our list
-# and then send it back to the channel
+# This now just informs the channel that they can use the slash command instead
 async def drop(message:discord.Message):
-  query = message.content.lower().replace("!drop", "").strip()
+  await message.channel.send("No need for !drop any longer, try using the slash command `/drop`! <:nechayev_point_yes:840252104056766515>")
 
-  if (query == ''):
-    await message.channel.send("<a:riker_think_hmm:881981594271899718> You'll need to include a term to search by! To get a list of drops run: !drops")
+# slash_drops() - Entrypoint for /drops command
+# List the available drops by key and send to user as ephemeral
+@slash.slash(
+  name="drops",
+  description="Retrieve the List of Drops.",
+  guild_ids=config["guild_ids"]
+)
+async def slash_drops(ctx:SlashContext):
+  drops_list = "\n".join(drop_data)
+  embed = discord.Embed(
+    title="List of Drops",
+    description=drops_list,
+    color=discord.Color.blue()
+  )
+  await ctx.author.send(embed=embed)
+  await ctx.reply("<:tendi_smile_happy:757768236069814283> Sent you a DM with the full List of Drops!", hidden=True)
+
+
+# slash_drop() - Entrypoint for /drops command
+# Parses a query, determines if it's allowed in the channel,
+# and if allowed retrieve from metadata to do matching and
+# then send the .mp4 file
+@slash.slash(
+  name="drop",
+  description="Send a drop to the channel!",
+  guild_ids=config["guild_ids"],
+  options=[
+    create_option(
+      name="query",
+      description="Which drop?",
+      required=True,
+      option_type=3
+    )
+  ]
+)
+async def slash_drop(ctx:SlashContext, query:str):
+  # Verify that we're allowed to perform drops in this channel
+  allowed_channels = config["commands"]["drop"]["channels"]
+  if not (ctx.channel.id in allowed_channels):
+    await ctx.send("<:ezri_frown_sad:757762138176749608> Sorry! Drops are not allowed in this channel. Please try elsewhere.", hidden=True)
     return
 
-  drop_allowed = await check_timekeeper(message)
+
+  q = query.lower().strip()
+
+  drop_allowed = await check_timekeeper(ctx)
   if (drop_allowed):
-    drop_metadata = get_drop_metadata(query)
+    drop_metadata = get_drop_metadata(q)
 
     if drop_metadata:
-      await message.channel.send(file=discord.File(drop_metadata.get("file")))
-      set_timekeeper(message)
+      await ctx.send(file=discord.File(drop_metadata.get("file")))
+      set_timekeeper(ctx)
     else:
-      await message.channel.send("<:ezri_frown_sad:757762138176749608> Drop not found! To get a list of drops run: !drops")
+      await ctx.send("<:ezri_frown_sad:757762138176749608> Drop not found! To get a list of drops run: /drops", hidden=True)
 
 # get_drop_metadata() - Logic to try to fuzzy-match user query to a drop
 # query[required] - String
@@ -57,20 +94,6 @@ def get_drop_metadata(query):
   else:
     return False
 
-# drops() - Entrypoint for !drops command
-# message[required]: discord.Message
-# This function simply returns a list to the channel of the drops that are available
-async def drops(message:discord.Message):
-  drops_list = "\n".join(drop_data)
-  embed = discord.Embed(
-    title="List of Drops",
-    description=drops_list,
-    color=discord.Color.blue()
-  )
-  await message.author.send(embed=embed)
-  await message.reply("Sent you a direct DM with the full List of Drops!")
-
-
 # Timekeeper Functions
 # Prevent spamming a channel with too many drops in too short a period
 #
@@ -80,14 +103,14 @@ async def drops(message:discord.Message):
 TIMEKEEPER = {}
 TIMEOUT = 15
 
-async def check_timekeeper(message:discord.Message):
-  current_channel = message.channel.id
+async def check_timekeeper(ctx:SlashContext):
+  current_channel = ctx.channel.id
 
   # Check if there's been a drop within this channel in the last TIMEOUT seconds
   last_record = TIMEKEEPER.get(current_channel)
   if (last_record != None):
     last_timestamp = last_record[0]
-    diff = message.created_at - last_timestamp
+    diff = ctx.created_at - last_timestamp
     seconds = diff.total_seconds()
     if (seconds > TIMEOUT):
       return True
@@ -95,19 +118,19 @@ async def check_timekeeper(message:discord.Message):
       # Check if we've notified the channel if there's a timeout active
       have_notified = last_record[1]
       if (have_notified == False):
-        await message.reply("<:ohno:930365904657723402> Someone in the channel has already dropped too recently. Please wait a minute before another drop!")
+        await ctx.reply("<:ohno:930365904657723402> Someone in the channel has already dropped too recently. Please wait a minute before another drop!", hidden=True)
         last_record[1] = True
       return False
 
   # If a timekeeper entry for the channel hasn't been set yet, go ahead and allow
   return True
 
-def set_timekeeper(message:discord.Message):
-  current_channel = message.channel.id
-  TIMEKEEPER[current_channel] = [message.created_at, False]
+
+def set_timekeeper(ctx:SlashContext):
+  current_channel = ctx.channel.id
+  TIMEKEEPER[current_channel] = [ctx.created_at, False]
 
 
 # Utility Functions
 def strip_punctuation(string):
   return re.sub(punct_regex, '', string).lower().strip()
-
