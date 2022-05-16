@@ -84,7 +84,7 @@ Bot commands are triggered by typing an exclamation point followed by a command.
 
 ## Slash Commands
 
-Slash commands are triggered by typing a forward slash (`/`) followed by the command text
+Slash commands are triggered by typing a forward slash (`/`) followed by the command text. The same basic rules apply as the regular ! commands above as far as the info necessary in the [configuration.json](configuration.json) file, python file in the [commands directory](commands), and import line in [main.py](main.py).
 
 | Command                                                                                                                                                           | File                                    | Description                                                                                                                             |
 | :-----------------------------------------------------------------------------------------------------------------------------------------------                  | :-------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
