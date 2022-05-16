@@ -1,8 +1,10 @@
+# import commands.drops
+
 from commands.common import *
 from commands.buy import buy
 from commands.categories import categories
 from commands.dustbuster import dustbuster
-from commands.drop import drop, drops
+from commands.drop import drop, slash_drop, slash_drops
 from commands.fmk import fmk
 from commands.help import help
 from commands.info import info

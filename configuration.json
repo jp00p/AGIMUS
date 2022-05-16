@@ -28,12 +28,6 @@
       "data": "data/drops.json",
       "parameters": []
     },
-    "drops": {
-      "channels": [689512842524885034, 765262443407998986, 689622484580040750],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
     "fmk": {
       "channels": [891412924193726465, 897126055289159711],
       "enabled": true,
@@ -210,5 +204,6 @@
       "data": "data/all_characters.txt",
       "parameters": []
     }
-  }
+  },
+  "guild_ids": [689512841887481875]
 }
