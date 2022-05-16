@@ -38,6 +38,26 @@ async def on_message(message:discord.Message):
   # Ignore messages from bot itself
   if message.author == client.user:
     return
+
+  # handle users in the introduction channel
+  if message.channel.id == INTRO_CHANNEL:
+    member = message.author
+    role = discord.utils.get(member.guild.roles, name="Cadet ○")
+    if role not in member.roles:
+      # if they don't have this role, give them this role!
+      logger.info("Adding Cadet role to " + message.author.name)
+      # TODO: check if they've been a member for 24 hours, then give them ensign role
+      await member.add_roles(role)
+      
+      # add reactions to the message they posted
+      welcome_reacts = [EMOJI["ben_wave"], EMOJI["adam_wave"]]
+      random.shuffle(welcome_reacts)
+      for i in welcome_reacts:
+        logger.info(f"Adding react {i} to intro message")
+        await message.add_reaction(i)
+      
+    
+  # handle people who use bot/game commands
   all_channels = uniq_channels(config)
   if message.channel.id not in all_channels:
     # logger.warning(f"<! ERROR: This channel '{message.channel.id}' not in '{all_channels}' !>")
@@ -47,7 +67,7 @@ async def on_message(message:discord.Message):
     ALL_PLAYERS.append(register_player(message.author))
   logger.debug(message)
   if message.content.startswith("!"):
-    logger.info("PROCESSING USER COMMAND")
+    logger.info(f"PROCESSING USER COMMAND: {message.content}")
     await process_command(message)
 
 async def process_command(message:discord.Message):
@@ -68,10 +88,12 @@ async def process_command(message:discord.Message):
 async def on_ready():
   global EMOJI
   random.seed()
-  EMOJI["shocking"] = discord.utils.get(client.emojis, name="qshocking")
+  EMOJI["shocking"] = discord.utils.get(client.emojis, name="q_shocking")
   EMOJI["chula"] = discord.utils.get(client.emojis, name="chula_game")
   EMOJI["allamaraine"] = discord.utils.get(client.emojis, name="allamaraine")
   EMOJI["love"] = discord.utils.get(client.emojis, name="love_heart_tgg")
+  EMOJI["adam_wave"] = discord.utils.get(client.emojis, name="adam_wave_hello")
+  EMOJI["ben_wave"] = discord.utils.get(client.emojis, name="ben_wave_hello")
   logger.info('LOGGED IN AS {0.user}'.format(client))
   ALL_PLAYERS = get_all_players()
   logger.debug(f"ALL_PLAYERS[{len(ALL_PLAYERS)}] - {ALL_PLAYERS}")
