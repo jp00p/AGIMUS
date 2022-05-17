@@ -1,8 +1,18 @@
+import requests
+from os.path import exists
+
 from .common import *
 
-f = open(config["commands"]["drop"]["data"])
-drop_data = json.load(f)
-f.close()
+# Retrieve the drops.json file from URL defined in configuration.json
+def load_drop_data():
+  url = config["commands"]["drop"]["data"]
+  try:
+    r = requests.get(url, allow_redirects=True)
+    return r.json()
+  except:
+    logger.info("UNABLE TO LOAD JSON DATA FOR DROPS! Drop functionality will not work properly!")
+    return {}
+drop_data = load_drop_data()
 
 fuzz_threshold = 72
 punct_regex = r'[' + string.punctuation + ']'
@@ -65,7 +75,8 @@ async def slash_drop(ctx:SlashContext, query:str):
     drop_metadata = get_drop_metadata(q)
 
     if drop_metadata:
-      await ctx.send(file=discord.File(drop_metadata.get("file")))
+      filename = get_mp4(drop_metadata)
+      await ctx.send(file=discord.File(filename))
       set_timekeeper(ctx)
     else:
       await ctx.send("<:ezri_frown_sad:757762138176749608> Drop not found! To get a list of drops run: /drops", hidden=True)
@@ -137,3 +148,14 @@ def set_timekeeper(ctx:SlashContext):
 # Utility Functions
 def strip_punctuation(string):
   return re.sub(punct_regex, '', string).lower().strip()
+
+def get_mp4(drop_metadata):
+  filename = drop_metadata['file']
+  if exists(filename):
+    return filename
+  else:
+    url = drop_metadata['url']
+    r = requests.get(url, allow_redirects=True)
+    open(filename, 'wb').write(r.content)
+    return filename
+

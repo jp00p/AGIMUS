@@ -25,7 +25,7 @@
     "drop": {
       "channels": [689512842524885034, 765262443407998986, 689622484580040750],
       "enabled": true,
-      "data": "data/drops.json",
+      "data": "https://zmattingly.github.io/FoDBot_droplist/drops.json",
       "parameters": []
     },
     "fmk": {
