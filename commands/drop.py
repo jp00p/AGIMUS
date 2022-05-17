@@ -3,16 +3,10 @@ from os.path import exists
 
 from .common import *
 
-# Retrieve the drops.json file from URL defined in configuration.json
-def load_drop_data():
-  url = config["commands"]["drop"]["data"]
-  try:
-    r = requests.get(url, allow_redirects=True)
-    return r.json()
-  except:
-    logger.info("UNABLE TO LOAD JSON DATA FOR DROPS! Drop functionality will not work properly!")
-    return {}
-drop_data = load_drop_data()
+# Load Drop Data
+f = open(config["commands"]["drop"]["data"])
+drop_data = json.load(f)
+f.close()
 
 fuzz_threshold = 72
 punct_regex = r'[' + string.punctuation + ']'
