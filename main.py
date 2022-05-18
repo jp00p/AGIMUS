@@ -1,5 +1,3 @@
-# import commands.drops
-
 from commands.common import *
 from commands.buy import buy
 from commands.categories import categories
