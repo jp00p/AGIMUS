@@ -1,3 +1,7 @@
+import requests
+from os.path import exists
+
+from .common import *
 from utils.check_channel_access import *
 
 command_config = config["commands"]["drop"]
@@ -59,8 +63,15 @@ async def slash_drop(ctx:SlashContext, query:str):
     drop_metadata = get_drop_metadata(q)
 
     if drop_metadata:
-      await ctx.send(file=discord.File(drop_metadata.get("file")))
-      set_timekeeper(ctx)
+      try:
+        filename = get_mp4(drop_metadata)
+        await ctx.send(file=discord.File(filename))
+        set_timekeeper(ctx)
+      except BaseException as err:
+        logger.info(f"ERROR LOADING DROP: {err}")
+        userid = command_config.get("error_contact_id")
+        if userid:
+          await ctx.send(f"<a:emh_doctor_omg_wtf_zoom:865452207699394570> Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", hidden=True)  
     else:
       await ctx.send("<:ezri_frown_sad:757762138176749608> Drop not found! To get a list of drops run: /drops", hidden=True)
 
@@ -133,3 +144,14 @@ def set_timekeeper(ctx:SlashContext):
 punct_regex = r'[' + string.punctuation + ']'
 def strip_punctuation(string):
   return re.sub(punct_regex, '', string).lower().strip()
+
+def get_mp4(drop_metadata):
+  filename = drop_metadata['file']
+  if exists(filename):
+    return filename
+  else:
+    url = drop_metadata['url']
+    r = requests.get(url, allow_redirects=True)
+    open(filename, 'wb').write(r.content)
+    return filename
+
