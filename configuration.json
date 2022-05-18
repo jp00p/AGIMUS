@@ -26,7 +26,8 @@
       "channels": [689512842524885034, 765262443407998986, 689622484580040750],
       "enabled": true,
       "data": "data/drops.json",
-      "parameters": []
+      "parameters": [],
+      "error_contact_id": 735658100958298154
     },
     "fmk": {
       "channels": [891412924193726465, 897126055289159711],

@@ -74,6 +74,21 @@
     "description": "Jake Sisko. For some reason Jake.",
     "url": "https://i.imgur.com/xycZQwH.mp4"
   },
+  "Game of Buttholes: ALLAMARAINE!": {
+    "file": "data/drops/gameofbuttholesallamaraine.mp4",
+    "description": "ALLAMARAINE",
+    "url": "https://i.imgur.com/GJiDmG8.mp4"
+  },
+  "Game of Buttholes: CHULAH!": {
+    "file": "data/drops/gameofbuttholeschulah.mp4",
+    "description": "CHULAH! Did I win? Hardly!",
+    "url": "https://i.imgur.com/vbdQ4nu.mp4"
+  },
+  "Game of Buttholes: Required To Learn...": {
+    "file": "data/drops/gameofbuttholesrequiredtolearn.mp4",
+    "description": "You are required to LEARN as you PLAY. Roll.",
+    "url": "https://i.imgur.com/wULAvd3.mp4"
+  },
   "Greatest Generation: Deep Space Nine Intro": {
     "file": "data/drops/ds9intro.mp4",
     "description": "Deep Space Nine (DS9) Intro Interstitial",
@@ -98,6 +113,11 @@
     "file": "data/drops/hellofacombination.mp4",
     "description": "Rambo II: That's a hell of a combination!",
     "url": "https://i.imgur.com/E0sKgqo.mp4"
+  },
+  "Hence The Word Sabotage": {
+    "file": "data/drops/hencethewordsabotage.mp4",
+    "description": "Hence The Word Sabotage",
+    "url": "https://i.imgur.com/7NCKUfn.mp4"
   },
   "Her Name Is Dr T'ana!": {
     "file": "data/drops/drkatz.mp4",
@@ -139,6 +159,16 @@
     "description": "That's a lotta yamok sauce!",
     "url": "https://i.imgur.com/8Oiub6q.mp4"
   },
+  "Madlibs": {
+    "file": "data/drops/madlibs.mp4",
+    "description": "Madlibs",
+    "url": "https://i.imgur.com/a3AAZ0r.mp4"
+  },
+  "Mayqueese": {
+    "file": "data/drops/mayqueese.mp4",
+    "description": "Mayqueese, Maquis",
+    "url": "https://i.imgur.com/2yW8J7L.mp4"
+  },
   "Mclaughlin Group: ISSUE ONE!": {
     "file": "data/drops/mclaughlingroupissueone.mp4",
     "description": "Mclaughlin Group: Issue one! Issue 1.",
@@ -159,10 +189,25 @@
     "description": "Mclaughlin Group: Issue four! Issue 4.",
     "url": "https://i.imgur.com/RqWI4yY.mp4"
   },
+  "Mr. Bucket": {
+    "file": "data/drops/mrbucket.mp4",
+    "description": "Mr Mister Bucket",
+    "url": "https://i.imgur.com/PBONtSF.mp4"
+  },
   "Neutrogena T/Gel: It Works": {
     "file": "data/drops/neutrogenatgelitworks.mp4",
     "description": "Michael Dorn: Neutrogena T Gel, it works!",
     "url": "https://i.imgur.com/sWToO17.mp4"
+  },
+  "Photon Torpedos: Full Spread": {
+    "file": "data/drops/photontorpedos.mp4",
+    "description": "Photon Torpedos: Full Spread",
+    "url": "https://i.imgur.com/4tG1G33.mp4"
+  },
+  "Picard: Nooo!": {
+    "file": "data/drops/picardnooo.mp4",
+    "description": "Picard: Nooo! No! Glass Crashing",
+    "url": "https://i.imgur.com/1LK0Oa2.mp4"
   },
   "Planning A Heist? Gold!": {
     "file": "data/drops/fortknox.mp4",
@@ -189,6 +234,16 @@
     "description": "Raincheck Segment",
     "url": "https://i.imgur.com/UAXeJQ8.mp4"
   },
+  "Schismd": {
+    "file": "data/drops/schismd.mp4",
+    "description": "Schismd Schismed",
+    "url": "https://i.imgur.com/73kfmOi.mp4"
+  },
+  "Tasha Yar: I Don't Believe This!": {
+    "file": "data/drops/tashayaridontbelievethis.mp4",
+    "description": "Tasha Yar: I Don't Believe This!",
+    "url": "https://i.imgur.com/WGgRLwb.mp4"
+  },
   "The Ro Laren Drop": {
     "file": "data/drops/rolaren.mp4",
     "description": "Ro Laren (John Cena)",
@@ -203,11 +258,6 @@
     "file": "data/drops/thisisfuckingspectacular.mp4",
     "description": "I am Chief Miles Edward O'Brien. This is fucking spectacular!",
     "url": "https://i.imgur.com/NnBORtU.mp4"
-  },
-  "Tom Paris: Am I Making Any Sense Here?": {
-    "file": "data/drops/amimakinganysensehere.mp4",
-    "description": "Tom Paris: Am I making any sense here?",
-    "url": "https://i.imgur.com/OoO8JNi.mp4"
   },
   "The Boy!": {
     "file": "data/drops/theboy.mp4",
@@ -249,15 +299,60 @@
     "description": "The very name is racist.",
     "url": "https://i.imgur.com/rbw60ZW.mp4"
   },
+  "Timpani Drum": {
+    "file": "data/drops/timpanidrum.mp4",
+    "description": "Timpani Drum Sound Effect",
+    "url": "https://i.imgur.com/9sn8rZn.mp4"
+  },
   "TinMAN": {
     "file": "data/drops/tinman.mp4",
     "description": "TinMAN tin man",
     "url": "https://i.imgur.com/sFN89eR.mp4"
   },
+  "TNG: Last Time On Star Trek...": {
+    "file": "data/drops/tnglasttimeonstartrek.mp4",
+    "description": "TNG: Last Time On Star Trek...",
+    "url": "https://i.imgur.com/quEjFLP.mp4"
+  },
+  "TNG: And Now, The Conclusion!": {
+    "file": "data/drops/tnglasttimeonstartrek.mp4",
+    "description": "TNG: And Now The Conclusion...",
+    "url": "https://i.imgur.com/KCAia9x.mp4"
+  },
+  "Tom Paris: Am I Making Any Sense Here?": {
+    "file": "data/drops/amimakinganysensehere.mp4",
+    "description": "Tom Paris: Am I making any sense here?",
+    "url": "https://i.imgur.com/OoO8JNi.mp4"
+  },
+  "Unadjective X-Men": {
+    "file": "data/drops/unadjectivexmen.mp4",
+    "description": "Unadjective X-Men XMen",
+    "url": "https://i.imgur.com/Ilj6WgQ.mp4"
+  },
+  "Uxbridge Music Box": {
+    "file": "data/drops/uxbridgemusicbox.mp4",
+    "description": "Uxbridge Music Box",
+    "url": "https://i.imgur.com/ZxaGyf0.mp4"
+  },
+  "War!": {
+    "file": "data/drops/war.mp4",
+    "description": "War segment drop, that nonsense is centuries behind us.",
+    "url": "https://i.imgur.com/rBsjUei.mp4"
+  },
+  "Wayne's World Flashback": {
+    "file": "data/drops/war.mp4",
+    "description": "Wayne's Waynes World Flashback",
+    "url": "https://i.imgur.com/EuvTSiF.mp4"
+  },
   "What're You Doing Here!?": {
     "file": "data/drops/whatreyoudoinghere.mp4",
     "description": "What are you doing here? What're you doing here?",
     "url": "https://i.imgur.com/RVUU9O8.mp4"
+  },
+  "Worf! Is This Your Idea Of Sex?": {
+    "file": "data/drops/worfisthisyourideaofsex.mp4",
+    "description": "Worf! Is This Your Idea Of Sex?",
+    "url": "https://i.imgur.com/0VrchoT.mp4"
   },
   "You Really Want To Do This?": {
     "file": "data/drops/youreallywanttodothis.mp4",

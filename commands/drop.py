@@ -69,9 +69,15 @@ async def slash_drop(ctx:SlashContext, query:str):
     drop_metadata = get_drop_metadata(q)
 
     if drop_metadata:
-      filename = get_mp4(drop_metadata)
-      await ctx.send(file=discord.File(filename))
-      set_timekeeper(ctx)
+      try:
+        filename = get_mp4(drop_metadata)
+        await ctx.send(file=discord.File(filename))
+        set_timekeeper(ctx)
+      except BaseException as err:
+        logger.info(f"ERROR LOADING DROP: {err}")
+        userid = config["commands"]["drop"].get("error_contact_id")
+        if userid:
+          await ctx.send(f"<a:emh_doctor_omg_wtf_zoom:865452207699394570> Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", hidden=True)  
     else:
       await ctx.send("<:ezri_frown_sad:757762138176749608> Drop not found! To get a list of drops run: /drops", hidden=True)
 
