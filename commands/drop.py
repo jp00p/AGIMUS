@@ -2,14 +2,14 @@ import requests
 from os.path import exists
 
 from .common import *
+from utils.check_channel_access import *
 
-# Load Drop Data
-f = open(config["commands"]["drop"]["data"])
+command_config = config["commands"]["drop"]
+
+# Load JSON Data
+f = open(command_config["data"])
 drop_data = json.load(f)
 f.close()
-
-fuzz_threshold = 72
-punct_regex = r'[' + string.punctuation + ']'
 
 # drop() - Entrypoint for !drop command
 # This now just informs the channel that they can use the slash command instead
@@ -54,14 +54,8 @@ async def slash_drops(ctx:SlashContext):
     )
   ]
 )
+@check_channel_access(command_config)
 async def slash_drop(ctx:SlashContext, query:str):
-  # Verify that we're allowed to perform drops in this channel
-  allowed_channels = config["commands"]["drop"]["channels"]
-  if not (ctx.channel.id in allowed_channels):
-    await ctx.send("<:ezri_frown_sad:757762138176749608> Sorry! Drops are not allowed in this channel. Please try elsewhere.", hidden=True)
-    return
-
-
   q = query.lower().strip()
 
   drop_allowed = await check_timekeeper(ctx)
@@ -75,7 +69,7 @@ async def slash_drop(ctx:SlashContext, query:str):
         set_timekeeper(ctx)
       except BaseException as err:
         logger.info(f"ERROR LOADING DROP: {err}")
-        userid = config["commands"]["drop"].get("error_contact_id")
+        userid = command_config.get("error_contact_id")
         if userid:
           await ctx.send(f"<a:emh_doctor_omg_wtf_zoom:865452207699394570> Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", hidden=True)  
     else:
@@ -83,6 +77,7 @@ async def slash_drop(ctx:SlashContext, query:str):
 
 # get_drop_metadata() - Logic to try to fuzzy-match user query to a drop
 # query[required] - String
+fuzz_threshold = 72
 def get_drop_metadata(query):
   query = strip_punctuation(query)
 
@@ -146,6 +141,7 @@ def set_timekeeper(ctx:SlashContext):
 
 
 # Utility Functions
+punct_regex = r'[' + string.punctuation + ']'
 def strip_punctuation(string):
   return re.sub(punct_regex, '', string).lower().strip()
 
