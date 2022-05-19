@@ -79,6 +79,18 @@
       "data": null,
       "parameters": []
     },
+    "nextep": {
+      "channels": [780914078495014942, 771081846997123092],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "nexttrek": {
+      "channels": [780914078495014942],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "ping": {
       "channels": [897126055289159711],
       "enabled": true,

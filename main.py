@@ -9,6 +9,7 @@ from commands.info import info
 from commands.jackpot import jackpot, jackpots
 from commands.migrate import migrate
 from commands.nasa import nasa
+from commands.nextep import nexttrek, nextep
 from commands.poker import *
 from commands.ping import ping
 from commands.profile import profile
