@@ -8,7 +8,7 @@ from utils.check_channel_access import *
 
 # nexttrek() - Entrypoint for /nexttrek command
 # Retrieve the next Trek episode, or next episode for a specific show
-command_config = config["commands"]["nexttrek"]
+nexttrek_config = config["commands"]["nexttrek"]
 
 @slash.slash(
   name="nexttrek",
@@ -41,7 +41,7 @@ command_config = config["commands"]["nexttrek"]
     )
   ]
 )
-@check_channel_access(command_config)
+@check_channel_access(nexttrek_config)
 async def nexttrek(ctx:SlashContext, show:str):
   tvmaze_ids = {
     "lowerdecks": 39323,
@@ -67,7 +67,7 @@ async def nexttrek(ctx:SlashContext, show:str):
 
 # nextep() - Entrypoint for /nextep command
 # Retrieve the next episode of any given show query
-command_config = config["commands"]["nextep"]
+nextep_config = config["commands"]["nextep"]
 
 @slash.slash(
   name="nextep",
@@ -82,7 +82,7 @@ command_config = config["commands"]["nextep"]
     )
   ]
 )
-@check_channel_access(command_config)
+@check_channel_access(nextep_config)
 async def nextep(ctx:SlashContext, query:str):
   encoded_query = urllib.parse.quote(query, safe='')
   try:
