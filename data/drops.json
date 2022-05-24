@@ -19,6 +19,11 @@
     "description": "Angry Ben. Ben gon give it to ya. Ben is going to give it to you.",
     "url": "https://i.imgur.com/WFT1cVl.mp4"
   },
+  "Ben's Gonna Talk About Africa": {
+    "file": "data/drops/bensgonnatalkaboutafrica.mp4",
+    "description": "Ben is Ben's Going To Gonna Talk About Africa.",
+    "url": "https://i.imgur.com/UyqYbwe.mp4"
+  },
   "Bible Study": {
     "file": "data/drops/biblestudy.mp4",
     "description": "Bible Study. The way god wants it.",
@@ -154,11 +159,6 @@
     "description": "LeVar Burton: BULLSHIT man it's just bullshit.",
     "url": "https://i.imgur.com/U0WQO9g.mp4"
   },
-  "That's A Lotta Yamok Sauce!": {
-    "file": "data/drops/lottayamoksauce.mp4",
-    "description": "That's a lotta yamok sauce!",
-    "url": "https://i.imgur.com/8Oiub6q.mp4"
-  },
   "Madlibs": {
     "file": "data/drops/madlibs.mp4",
     "description": "Madlibs",
@@ -244,10 +244,10 @@
     "description": "Tasha Yar: I Don't Believe This!",
     "url": "https://i.imgur.com/WGgRLwb.mp4"
   },
-  "The Ro Laren Drop": {
-    "file": "data/drops/rolaren.mp4",
-    "description": "Ro Laren (John Cena)",
-    "url": "https://i.imgur.com/5ks52JL.mp4"
+  "That's A Lotta Yamok Sauce!": {
+    "file": "data/drops/lottayamoksauce.mp4",
+    "description": "That's a lotta yamok sauce!",
+    "url": "https://i.imgur.com/8Oiub6q.mp4"
   },
   "There's Coffee In That...": {
     "file": "data/drops/coffee.mp4",
@@ -284,6 +284,16 @@
     "description": "D M A. DMA. (DMX) What does it want!?",
     "url": "https://i.imgur.com/7GnPsqt.mp4"
   },
+  "The Draxiom Drop": {
+    "file": "data/drops/thedraxiomdrop.mp4",
+    "description": "The Draxiom Drop",
+    "url": "https://i.imgur.com/XD9kgCe.mp4"
+  },
+  "The Dr Z Drop": {
+    "file": "data/drops/thedrzdrop.mp4",
+    "description": "The DrZ Dr Z Drop",
+    "url": "https://i.imgur.com/MXqbvdQ.mp4"
+  },
   "The Harry Kim Drop": {
     "file": "data/drops/theharrykimdrop.mp4",
     "description": "Harry Kim. (Lil Kim - Magic stick)",
@@ -294,10 +304,25 @@
     "description": "jp00p's Drop",
     "url": "https://i.imgur.com/xiy9Oiz.mp4"
   },
+  "The Ro Laren Drop": {
+    "file": "data/drops/rolaren.mp4",
+    "description": "Ro Laren (John Cena)",
+    "url": "https://i.imgur.com/5ks52JL.mp4"
+  },
+  "The Seska Drop": {
+    "file": "data/drops/theseskadrop.mp4",
+    "description": "The Seska Drop",
+    "url": "https://i.imgur.com/5dgKumz.mp4"
+  },
   "The Very Name Is Racist": {
     "file": "data/drops/theverynameisracist.mp4",
     "description": "The very name is racist.",
     "url": "https://i.imgur.com/rbw60ZW.mp4"
+  },
+  "The VitaZed Drop": {
+    "file": "data/drops/thevitazedrop.mp4",
+    "description": "The VitaZed Drop",
+    "url": "https://i.imgur.com/4mBAcZI.mp4"
   },
   "Timpani Drum": {
     "file": "data/drops/timpanidrum.mp4",
@@ -343,6 +368,11 @@
     "file": "data/drops/war.mp4",
     "description": "Wayne's Waynes World Flashback",
     "url": "https://i.imgur.com/EuvTSiF.mp4"
+  },
+  "We're Talking About Language": {
+    "file": "data/drops/weretalkingaboutlanguage.mp4",
+    "description": "We Are We're Talking About Language",
+    "url": "https://i.imgur.com/pI0xZH2.mp4"
   },
   "What're You Doing Here!?": {
     "file": "data/drops/whatreyoudoinghere.mp4",
