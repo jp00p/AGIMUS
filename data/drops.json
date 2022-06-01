@@ -274,6 +274,11 @@
     "description": "The Cat. Spot. Data's cat. Baker Street.",
     "url": "https://i.imgur.com/wqzGdCp.mp4"
   },
+  "The Cynthia Drop": {
+    "file": "data/drops/thecynthiadrop.mp4",
+    "description": "The Cynthia Drop",
+    "url": "https://i.imgur.com/p4Quk1q.mp4"
+  },
   "The Darwin Drop": {
     "file": "data/drops/thedarwindrop.mp4",
     "description": "Darwin. Ben's dog. Barking.",
@@ -294,6 +299,11 @@
     "description": "The DrZ Dr Z Drop",
     "url": "https://i.imgur.com/MXqbvdQ.mp4"
   },
+  "The Erica Drop": {
+    "file": "data/drops/theericadrop.mp4",
+    "description": "The Erica Drop",
+    "url": "https://i.imgur.com/30Xjhnh.mp4"
+  },
   "The Harry Kim Drop": {
     "file": "data/drops/theharrykimdrop.mp4",
     "description": "Harry Kim. (Lil Kim - Magic stick)",
@@ -303,6 +313,31 @@
     "file": "data/drops/thejp00pdrop.mp4",
     "description": "jp00p's Drop",
     "url": "https://i.imgur.com/xiy9Oiz.mp4"
+  },
+  "The Kage23 Drop": {
+    "file": "data/drops/thekage23drop.mp4",
+    "description": "The Kage23 Drop",
+    "url": "https://i.imgur.com/iqvWEib.mp4"
+  },
+  "The Kahless Whisper Drop": {
+    "file": "data/drops/thekahlesswhisperdrop.mp4",
+    "description": "The Kahless Whisper Drop",
+    "url": "https://i.imgur.com/WEHSh2O.mp4"
+  },
+  "The odosbucket_13 Drop": {
+    "file": "data/drops/theodosbucket_13drop.mp4",
+    "description": "The odosbucket_13 Drop",
+    "url": "https://i.imgur.com/WTzOfZA.mp4"
+  },
+  "The OKB-1 Drop": {
+    "file": "data/drops/theokb-1drop.mp4",
+    "description": "The OKB-1 Drop",
+    "url": "https://i.imgur.com/vHkqjFJ.mp4"
+  },
+  "The Pittbaster Drop": {
+    "file": "data/drops/thepittbasterdrop.mp4",
+    "description": "The Pittbaster Drop",
+    "url": "https://i.imgur.com/Xhh9UT7.mp4"
   },
   "The Ro Laren Drop": {
     "file": "data/drops/rolaren.mp4",
@@ -314,6 +349,11 @@
     "description": "The Seska Drop",
     "url": "https://i.imgur.com/5dgKumz.mp4"
   },
+  "The Starborn Drop": {
+    "file": "data/drops/thestarborndrop.mp4",
+    "description": "The Starborn Drop",
+    "url": "https://i.imgur.com/IarPe1v.mp4"
+  },
   "The Very Name Is Racist": {
     "file": "data/drops/theverynameisracist.mp4",
     "description": "The very name is racist.",
@@ -323,6 +363,16 @@
     "file": "data/drops/thevitazedrop.mp4",
     "description": "The VitaZed Drop",
     "url": "https://i.imgur.com/4mBAcZI.mp4"
+  },
+  "The VitaZed Drop - Dr Z Mix": {
+    "file": "data/drops/thevitazedrop_drzmix.mp4",
+    "description": "The VitaZed Drop - Dr Z Mix",
+    "url": "https://i.imgur.com/SbCiq6o.mp4"
+  },
+  "The Vulpesia Drop": {
+    "file": "data/drops/thevulpesiadrop.mp4",
+    "description": "The Vulpesia Drop",
+    "url": "https://i.imgur.com/sNZaGdb.mp4"
   },
   "Timpani Drum": {
     "file": "data/drops/timpanidrum.mp4",
