@@ -78,12 +78,12 @@ async def on_message(message:discord.Message):
     # if they don't have cadet yet and they are over xp 10, give it to them
     if cadet_role not in message.author.roles:
       if user_xp >= 10:
-        await member.add_roles(cadet_role)
+        await message.author.add_roles(cadet_role)
     else:
       # if they do have cadet but not ensign yet, give it to them
       if ensign_role not in message.author.roles:
         if user_xp >= 15:
-          await member.add_roles(ensign_role)  
+          await message.author.add_roles(ensign_role)  
 
   # handle users in the introduction channel
   if message.channel.id == INTRO_CHANNEL:
