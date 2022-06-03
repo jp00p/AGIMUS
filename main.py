@@ -29,8 +29,9 @@ logger.info("ENVIRONMENT VARIABLES AND COMMANDS LOADED")
 
 logger.info("CONNECTING TO DATABASE")
 seed_db()
-ALL_PLAYERS = get_all_players()
+ALL_USERS = get_all_users()
 logger.info("DATABASE CONNECTION SUCCESSFUL")
+ALL_EMOJI = []
 
 @client.event
 async def on_message(message:discord.Message):
@@ -38,10 +39,55 @@ async def on_message(message:discord.Message):
   if message.author == client.user:
     return
 
+  if int(message.author.id) not in ALL_USERS:
+    logger.info("New User")
+    ALL_USERS.append(register_player(message.author))
+
+  # handle giving users XP
+  xp_amt = 0
+
+  # if the message is longer than 3 words +1 xp
+  if len(message.content.split()) > 3:
+    xp_amt += 1
+    # if that message also has any of our emoji, +1 xp
+    for e in ALL_EMOJI:
+      if message.content.find(e) != -1:
+        xp_amt += 1
+        break;
+  # if the message is longer than 33 words +1 xp
+  if len(message.content.split()) > 33:
+    xp_amt += 1
+  
+  # ...and 66, +1 more
+  if len(message.content.split()) > 66:
+    xp_amt += 1
+
+  # if there's an attachment, +1 xp
+  if len(message.attachments) > 0:
+    xp_amt += 1 
+
+  if xp_amt != 0:
+    increment_user_xp(message.author.id, xp_amt) # commit the xp gain to the db
+    
+    # handle role stuff
+    cadet_role = discord.utils.get(member.guild.roles, id=789278115599745024)
+    ensign_role = discord.utils.get(member.guild.roles, id=738606028903546931)
+    user_xp = get_user_xp(message.author.id)
+
+    # if they don't have cadet yet and they are over xp 10, give it to them
+    if cadet_role not in message.author.roles:
+      if user_xp >= 10:
+        await member.add_roles(cadet_role)
+    else:
+      # if they do have cadet but not ensign yet, give it to them
+      if ensign_role not in message.author.roles:
+        if user_xp >= 15:
+          await member.add_roles(ensign_role)  
+
   # handle users in the introduction channel
   if message.channel.id == INTRO_CHANNEL:
     member = message.author
-    role = discord.utils.get(member.guild.roles, name="Cadet ○")
+    role = discord.utils.get(member.guild.roles, id=789278115599745024)
     if role not in member.roles:
       # if they don't have this role, give them this role!
       logger.info("Adding Cadet role to " + message.author.name)
@@ -55,15 +101,12 @@ async def on_message(message:discord.Message):
         logger.info(f"Adding react {i} to intro message")
         await message.add_reaction(i)
       
-    
   # handle people who use bot/game commands
   all_channels = uniq_channels(config)
   if message.channel.id not in all_channels:
     # logger.warning(f"<! ERROR: This channel '{message.channel.id}' not in '{all_channels}' !>")
     return
-  if int(message.author.id) not in ALL_PLAYERS:
-    logger.info("New Player!!!")
-    ALL_PLAYERS.append(register_player(message.author))
+  
   logger.debug(message)
   if message.content.startswith("!"):
     logger.info(f"PROCESSING USER COMMAND: {message.content}")
@@ -86,6 +129,7 @@ async def process_command(message:discord.Message):
 @client.event
 async def on_ready():
   global EMOJI
+  global ALL_EMOJI
   random.seed()
   EMOJI["shocking"] = discord.utils.get(client.emojis, name="q_shocking")
   EMOJI["chula"] = discord.utils.get(client.emojis, name="chula_game")
@@ -94,8 +138,12 @@ async def on_ready():
   EMOJI["adam_wave"] = discord.utils.get(client.emojis, name="adam_wave_hello")
   EMOJI["ben_wave"] = discord.utils.get(client.emojis, name="ben_wave_hello")
   logger.info('LOGGED IN AS {0.user}'.format(client))
-  ALL_PLAYERS = get_all_players()
-  logger.debug(f"ALL_PLAYERS[{len(ALL_PLAYERS)}] - {ALL_PLAYERS}")
+  ALL_USERS = get_all_users()
+  
+  for emoji in client.emojis:
+    ALL_EMOJI.append(emoji.name)
+  logger.info(f"EMOJI LIST: {ALL_EMOJI}")
+  logger.debug(f"ALL_USERS[{len(ALL_USERS)}] - {ALL_USERS}")
   logger.info("BOT STARTED AND LISTENING FOR COMMANDS!!!")
 
 

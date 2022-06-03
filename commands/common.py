@@ -133,10 +133,10 @@ def get_player(discord_id:int):
   return player_data
 
 
-# get_all_players()
+# get_all_users()
 # This function takes no arguments
 # and returns a list of all user discord ids
-def get_all_players():
+def get_all_users():
   db = getDB()
   query = db.cursor(dictionary=True)
   query.execute("SELECT discord_id FROM users")
@@ -152,7 +152,7 @@ def get_all_players():
 # user[required]: object
 # This function will insert a new user into the database
 def register_player(user):
-  global ALL_PLAYERS
+  global ALL_USERS
   db = getDB()
   query = db.cursor()
   sql = "INSERT INTO users (discord_id, name, mention) VALUES (%s, %s, %s)"
@@ -213,6 +213,8 @@ def update_user(discord_id, key, value):
       sql = "UPDATE users SET profile_card = %s WHERE discord_id = %s"
     elif key == "profile_badge":
       sql = "UPDATE users SET profile_badge = %s WHERE discord_id = %s"
+    elif key == "xp":
+      sql = "UPDATE users SET xp = %s WHERE discord_id = %s"
     vals = (value, discord_id)
     logger.info(f"{sql}")
     logger.info(f"{vals}")
@@ -236,6 +238,36 @@ def update_player_profile_badge(discord_id, badge):
   db.commit()
   query.close()
   db.close()
+
+# increment_user_xp(discord_id, amt)
+# discord_id[required]: int
+# amt[required]: int
+# This function will increment a users' XP
+def increment_user_xp(discord_id, amt):
+  db = getDB()
+  query = db.cursor()
+  sql = "UPDATE users SET xp = xp + %s WHERE discord_id = %s"
+  vals = (amt,discord_id)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+  logger.info(f"Updated user XP by {amt}")
+
+# get_user_xp(discord_id)
+# discord_id[required]: int
+# Returns a users current XP
+def get_user_xp(discord_id):
+  db = getDB()
+  query = db.cursor()
+  sql = "SELECT xp FROM users WHERE discord_id = %s"
+  vals = (discord_id,)
+  query.execute(sql, vals)
+  user_xp = query.fetchone()
+  db.commit()
+  query.close()
+  db.close()
+  return int(user_xp)
 
 
 # set_player_score(user, amt)
