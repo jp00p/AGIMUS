@@ -35,7 +35,7 @@ async def qset(message:discord.Message):
   logger.info(f"!get selected_user: {selected_user}")
   this_user = get_player(selected_user)
   logger.debug(f"this_user: {this_user}")
-  modifiable_ints = ["score", "spins", "jackpots", "wager", "high_roller", "chips"]
+  modifiable_ints = ["score", "spins", "jackpots", "wager", "high_roller", "chips", "xp"]
   modifiable_strings = ["profile_card", "profile_badge"]
   if change_column not in modifiable_ints and change_column not in modifiable_strings:
     logger.error(f"{change_column} not in {modifiable_strings} or {modifiable_ints}")
