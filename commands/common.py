@@ -252,7 +252,6 @@ def increment_user_xp(discord_id, amt):
   db.commit()
   query.close()
   db.close()
-  logger.info(f"Updated user XP by {amt}")
 
 # get_user_xp(discord_id)
 # discord_id[required]: int
@@ -267,7 +266,7 @@ def get_user_xp(discord_id):
   db.commit()
   query.close()
   db.close()
-  return int(user_xp)
+  return user_xp[0]
 
 
 # set_player_score(user, amt)

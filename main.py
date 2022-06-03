@@ -67,11 +67,12 @@ async def on_message(message:discord.Message):
     xp_amt += 1 
 
   if xp_amt != 0:
+    logger.info(f"{message.author.display_name} earns {xp_amt} XP")
     increment_user_xp(message.author.id, xp_amt) # commit the xp gain to the db
     
     # handle role stuff
-    cadet_role = discord.utils.get(member.guild.roles, id=789278115599745024)
-    ensign_role = discord.utils.get(member.guild.roles, id=738606028903546931)
+    cadet_role = discord.utils.get(message.author.guild.roles, id=789278115599745024)
+    ensign_role = discord.utils.get(message.author.guild.roles, id=738606028903546931)
     user_xp = get_user_xp(message.author.id)
 
     # if they don't have cadet yet and they are over xp 10, give it to them
