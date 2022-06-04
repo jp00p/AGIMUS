@@ -71,36 +71,36 @@ async def on_message(message:discord.Message):
     increment_user_xp(message.author.id, xp_amt) # commit the xp gain to the db
     
     # handle role stuff
-    cadet_role = discord.utils.get(message.author.guild.roles, id=789278115599745024)
-    ensign_role = discord.utils.get(message.author.guild.roles, id=738606028903546931)
+    cadet_role = discord.utils.get(message.author.guild.roles, id=ROLES['cadet'])
+    ensign_role = discord.utils.get(message.author.guild.roles, id=ROLES['ensign'])
     user_xp = get_user_xp(message.author.id)
 
     # if they don't have cadet yet and they are over xp 10, give it to them
     if cadet_role not in message.author.roles:
       if user_xp >= 10:
-        await message.author.add_roles(cadet_role)
+        message.author.add_roles(cadet_role)
     else:
       # if they do have cadet but not ensign yet, give it to them
       if ensign_role not in message.author.roles:
         if user_xp >= 15:
-          await message.author.add_roles(ensign_role)  
+          message.author.add_roles(ensign_role)
 
   # handle users in the introduction channel
   if message.channel.id == INTRO_CHANNEL:
     member = message.author
-    role = discord.utils.get(member.guild.roles, id=789278115599745024)
+    role = discord.utils.get(message.author.guild.roles, id=ROLES['cadet'])
     if role not in member.roles:
       # if they don't have this role, give them this role!
       logger.info("Adding Cadet role to " + message.author.name)
       # TODO: check if they've been a member for 24 hours, then give them ensign role
-      await member.add_roles(role)
+      member.add_roles(role)
       
       # add reactions to the message they posted
       welcome_reacts = [EMOJI["ben_wave"], EMOJI["adam_wave"]]
       random.shuffle(welcome_reacts)
       for i in welcome_reacts:
         logger.info(f"Adding react {i} to intro message")
-        await message.add_reaction(i)
+        message.add_reaction(i)
       
   # handle people who use bot/game commands
   all_channels = uniq_channels(config)
@@ -129,6 +129,7 @@ async def process_command(message:discord.Message):
 
 @client.event
 async def on_ready():
+  global ROLES
   global EMOJI
   global ALL_EMOJI
   random.seed()

@@ -58,6 +58,7 @@ TRIVIA_MESSAGE = None
 TRIVIA_ANSWERS = {}
 EMOJI = {}
 INTRO_CHANNEL = config["intro_channel"]
+ROLES = config["roles"]
 
 def getDB():
   db = mysql.connector.connect(
@@ -190,7 +191,7 @@ def update_player_profile_card(discord_id, card):
 # This function will update a specific value for a specific user
 def update_user(discord_id, key, value):
   logger.info(f"update_user({discord_id}, {key}, {value})")
-  modifiable = ["score", "spins", "jackpots", "wager", "high_roller", "chips", "profile_card", "profile_badge"]
+  modifiable = ["score", "spins", "jackpots", "wager", "high_roller", "chips", "xp", "profile_card", "profile_badge"]
   if key not in modifiable:
     logger.error(f"{key} not in {modifiable}")
   else:
