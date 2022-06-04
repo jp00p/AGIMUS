@@ -110,7 +110,7 @@
       "parameters": []
     },
     "qget": {
-      "channels": [897126055289159711],
+      "channels": [897126055289159711, 760157134746550293],
       "enabled": true,
       "data": "data/user-info.json",
       "parameters": []
