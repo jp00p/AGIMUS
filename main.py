@@ -7,7 +7,6 @@ from commands.fmk import fmk
 from commands.help import help
 from commands.info import info
 from commands.jackpot import jackpot, jackpots
-from commands.migrate import migrate
 from commands.nasa import nasa
 from commands.nextep import nexttrek, nextep
 from commands.poker import *
@@ -42,65 +41,67 @@ async def on_message(message:discord.Message):
   if int(message.author.id) not in ALL_USERS:
     logger.info("New User")
     ALL_USERS.append(register_player(message.author))
+  try:
+    # handle giving users XP
+    xp_amt = 0
 
-  # handle giving users XP
-  xp_amt = 0
-
-  # if the message is longer than 3 words +1 xp
-  if len(message.content.split()) > 3:
-    xp_amt += 1
-    # if that message also has any of our emoji, +1 xp
-    for e in ALL_EMOJI:
-      if message.content.find(e) != -1:
-        xp_amt += 1
-        break;
-  # if the message is longer than 33 words +1 xp
-  if len(message.content.split()) > 33:
-    xp_amt += 1
-  
-  # ...and 66, +1 more
-  if len(message.content.split()) > 66:
-    xp_amt += 1
-
-  # if there's an attachment, +1 xp
-  if len(message.attachments) > 0:
-    xp_amt += 1 
-
-  if xp_amt != 0:
-    logger.info(f"{message.author.display_name} earns {xp_amt} XP")
-    increment_user_xp(message.author.id, xp_amt) # commit the xp gain to the db
+    # if the message is longer than 3 words +1 xp
+    if len(message.content.split()) > 3:
+      xp_amt += 1
+      # if that message also has any of our emoji, +1 xp
+      for e in ALL_EMOJI:
+        if message.content.find(e) != -1:
+          xp_amt += 1
+          break;
+    # if the message is longer than 33 words +1 xp
+    if len(message.content.split()) > 33:
+      xp_amt += 1
     
-    # handle role stuff
-    cadet_role = discord.utils.get(message.author.guild.roles, id=ROLES['cadet'])
-    ensign_role = discord.utils.get(message.author.guild.roles, id=ROLES['ensign'])
-    user_xp = get_user_xp(message.author.id)
+    # ...and 66, +1 more
+    if len(message.content.split()) > 66:
+      xp_amt += 1
 
-    # if they don't have cadet yet and they are over xp 10, give it to them
-    if cadet_role not in message.author.roles:
-      if user_xp >= 10:
-        await message.author.add_roles(cadet_role)
-    else:
-      # if they do have cadet but not ensign yet, give it to them
-      if ensign_role not in message.author.roles:
-        if user_xp >= 15:
-          await message.author.add_roles(ensign_role)
+    # if there's an attachment, +1 xp
+    if len(message.attachments) > 0:
+      xp_amt += 1 
 
-  # handle users in the introduction channel
-  if message.channel.id == INTRO_CHANNEL:
-    member = message.author
-    role = discord.utils.get(message.author.guild.roles, id=ROLES['cadet'])
-    if role not in member.roles:
-      # if they don't have this role, give them this role!
-      logger.info("Adding Cadet role to " + message.author.name)
-      await member.add_roles(role)
+    if xp_amt != 0:
+      logger.info(f"{message.author.display_name} earns {xp_amt} XP")
+      increment_user_xp(message.author.id, xp_amt) # commit the xp gain to the db
       
-      # add reactions to the message they posted
-      welcome_reacts = [EMOJI["ben_wave"], EMOJI["adam_wave"]]
-      random.shuffle(welcome_reacts)
-      for i in welcome_reacts:
-        logger.info(f"Adding react {i} to intro message")
-        await message.add_reaction(i)
-      
+      # handle role stuff
+      cadet_role = discord.utils.get(message.author.guild.roles, id=ROLES['cadet'])
+      ensign_role = discord.utils.get(message.author.guild.roles, id=ROLES['ensign'])
+      user_xp = get_user_xp(message.author.id)
+
+      # if they don't have cadet yet and they are over xp 10, give it to them
+      if cadet_role not in message.author.roles:
+        if user_xp >= 10:
+          await message.author.add_roles(cadet_role)
+      else:
+        # if they do have cadet but not ensign yet, give it to them
+        if ensign_role not in message.author.roles:
+          if user_xp >= 15:
+            await message.author.add_roles(ensign_role)
+
+    # handle users in the introduction channel
+    if message.channel.id == INTRO_CHANNEL:
+      member = message.author
+      role = discord.utils.get(message.author.guild.roles, id=ROLES['cadet'])
+      if role not in member.roles:
+        # if they don't have this role, give them this role!
+        logger.info("Adding Cadet role to " + message.author.name)
+        await member.add_roles(role)
+        
+        # add reactions to the message they posted
+        welcome_reacts = [EMOJI["ben_wave"], EMOJI["adam_wave"]]
+        random.shuffle(welcome_reacts)
+        for i in welcome_reacts:
+          logger.info(f"Adding react {i} to intro message")
+          await message.add_reaction(i)
+  except:
+    logger.error("<! ERROR: Failed to process message for xp !>")
+
   # handle people who use bot/game commands
   all_channels = uniq_channels(config)
   if message.channel.id not in all_channels:
