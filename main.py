@@ -78,12 +78,12 @@ async def on_message(message:discord.Message):
     # if they don't have cadet yet and they are over xp 10, give it to them
     if cadet_role not in message.author.roles:
       if user_xp >= 10:
-        message.author.add_roles(cadet_role)
+        await message.author.add_roles(cadet_role)
     else:
       # if they do have cadet but not ensign yet, give it to them
       if ensign_role not in message.author.roles:
         if user_xp >= 15:
-          message.author.add_roles(ensign_role)
+          await message.author.add_roles(ensign_role)
 
   # handle users in the introduction channel
   if message.channel.id == INTRO_CHANNEL:
@@ -92,15 +92,14 @@ async def on_message(message:discord.Message):
     if role not in member.roles:
       # if they don't have this role, give them this role!
       logger.info("Adding Cadet role to " + message.author.name)
-      # TODO: check if they've been a member for 24 hours, then give them ensign role
-      member.add_roles(role)
+      await member.add_roles(role)
       
       # add reactions to the message they posted
       welcome_reacts = [EMOJI["ben_wave"], EMOJI["adam_wave"]]
       random.shuffle(welcome_reacts)
       for i in welcome_reacts:
         logger.info(f"Adding react {i} to intro message")
-        message.add_reaction(i)
+        await message.add_reaction(i)
       
   # handle people who use bot/game commands
   all_channels = uniq_channels(config)
