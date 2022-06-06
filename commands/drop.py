@@ -51,22 +51,35 @@ async def slash_drops(ctx:SlashContext):
       description="Which drop?",
       required=True,
       option_type=3
+    ),
+    create_option(
+      name="private",
+      description="Send drop to just yourself?",
+      required=False,
+      option_type=5,
     )
   ]
 )
 @check_channel_access(command_config)
-async def slash_drop(ctx:SlashContext, query:str):
-  q = query.lower().strip()
+async def slash_drop(ctx:SlashContext, **kwargs):
+  query = kwargs.get('query')
+  private = kwargs.get('private')
 
-  drop_allowed = await check_timekeeper(ctx)
-  if (drop_allowed):
+  # Private drops are not on the timer
+  drop_allowed = True
+  if not private:
+    drop_allowed = await check_timekeeper(ctx)
+
+  if (drop_allowed):  
+    q = query.lower().strip()
     drop_metadata = get_drop_metadata(q)
 
     if drop_metadata:
       try:
         filename = get_mp4(drop_metadata)
-        await ctx.send(file=discord.File(filename))
-        set_timekeeper(ctx)
+        await ctx.send(file=discord.File(filename), hidden=private)
+        if not private:
+          set_timekeeper(ctx)
       except BaseException as err:
         logger.info(f"ERROR LOADING DROP: {err}")
         userid = command_config.get("error_contact_id")
