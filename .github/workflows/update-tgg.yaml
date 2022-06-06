@@ -1,0 +1,40 @@
+
+   
+# Name:        update-tgg.yaml
+# Author:      Mathew Fleisch <mathew.fleisch@gmail.com>
+# Description: This action will iterate through the rss feed of the TGG podcast
+#              and attempt to download metadata from google, memoryalpha and maximumfun
+#              and update the metadata saved in this repo data/episodes/*.json
+name: Update The Greatest Generation Metadata
+on:
+  # trigger Mondays at 2:15pm PT (21:15UTC)
+  schedule:
+    - cron: '15 21 * * 1'
+  repository_dispatch:
+    types:
+      - trigger-tgg-update
+jobs:
+  build:
+    name: Update The Greatest Generation Metadata
+    runs-on: ubuntu-latest
+    steps:
+      -
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GIT_TOKEN }}
+          fetch-depth: 0
+
+      -
+        name: Update The Greatest Generation Metadata
+        run: |
+          echo "${{ secrets.ENVFILE }}" > .env \
+            && python3 ./utils/generate_episode_json.py -p VOY -o data/episodes/voy.json \
+            && rm -rf .env
+          rm -rf .env || true
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git diff
+          git add data/episodes/*.json
+          git commit -m "Update The Greatest Generation Metadata - $(date)"
+          git push origin main
+

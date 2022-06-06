@@ -171,3 +171,24 @@ Each command requires an explicit import in the [main.py](main.py) script.
 ```python
 from commands.setwager import setwager
 ```
+
+
+### Utils
+
+#### generate_episode_json.py
+The repo also currently provides a way to automatically generate the files for the Greatest Gen `.json` files located under `data/episodes/` (such as `tgg_voy.json` for example). The utility is under `utils` as `generate_episode_json.py`.
+
+The script uses Google to gather some of the metadata necessary for each entry, so you'll need to provide two additional ENV variables if you'd like to use this script.
+
+```
+export GOOGLE_API_KEY=
+export GOOGLE_CX=
+```
+
+Step-by-step instructions for how to generate these credentials are documented in this [Stack Overflow post](https://stackoverflow.com/a/37084643)
+
+Once those have been placed in your .env file, you can execute the script by providing the series prefix and path to the desired output file.
+
+```bash
+python utils/generate_episode_json.py -p VOY -o data/episodes/voy.json
+```
