@@ -259,6 +259,16 @@
     "description": "I am Chief Miles Edward O'Brien. This is fucking spectacular!",
     "url": "https://i.imgur.com/NnBORtU.mp4"
   },
+  "The 359truther Drop": {
+    "file": "data/drops/the359trutherdrop.mp4",
+    "description": "The 359truther Drop",
+    "url": "https://i.imgur.com/P5e7cQ3.mp4"
+  },
+  "The ayluge Drop": {
+    "file": "data/drops/theaylugedrop.mp4",
+    "description": "The ayluge Drop",
+    "url": "https://i.imgur.com/PcvZ25e.mp4"
+  },
   "The Boy!": {
     "file": "data/drops/theboy.mp4",
     "description": "Wesley? The boy? Young Wesley Crusher. My son! Baker Street.",
@@ -324,6 +334,26 @@
     "description": "The Kahless Whisper Drop",
     "url": "https://i.imgur.com/WEHSh2O.mp4"
   },
+  "The Mosaic Drop": {
+    "file": "data/drops/themosaicdrop.mp4",
+    "description": "The Mosaic Drop",
+    "url": "https://i.imgur.com/Vg4hHIn.mp4"
+  },
+  "The Mr Flex Drop": {
+    "file": "data/drops/themrflexdrop.mp4",
+    "description": "The Mr Flex Drop",
+    "url": "https://i.imgur.com/5VUlnii.mp4"
+  },
+  "The Mumu Drop": {
+    "file": "data/drops/themumudrop.mp4",
+    "description": "The Mumu Drop",
+    "url": "https://i.imgur.com/ojMWeHd.mp4"
+  },
+  "The Nubbin Bug Drop": {
+    "file": "data/drops/thenubbinbugdrop.mp4",
+    "description": "The Nubbin Bug Drop",
+    "url": "https://i.imgur.com/MogdPbZ.mp4"
+  },
   "The odosbucket_13 Drop": {
     "file": "data/drops/theodosbucket_13drop.mp4",
     "description": "The odosbucket_13 Drop",
@@ -353,6 +383,21 @@
     "file": "data/drops/thestarborndrop.mp4",
     "description": "The Starborn Drop",
     "url": "https://i.imgur.com/IarPe1v.mp4"
+  },
+  "The Taq Drop": {
+    "file": "data/drops/thetaqdrop.mp4",
+    "description": "The Taq Drop",
+    "url": "https://i.imgur.com/gjJvNT2.mp4"
+  },
+  "The thousand Drop": {
+    "file": "data/drops/thethousanddrop.mp4",
+    "description": "The thousand Drop",
+    "url": "https://i.imgur.com/GQ6FKpt.mp4"
+  },
+  "The ultranurd Drop": {
+    "file": "data/drops/theultranurddrop.mp4",
+    "description": "The ultranurd Drop",
+    "url": "https://i.imgur.com/xlkcPMy.mp4"
   },
   "The Very Name Is Racist": {
     "file": "data/drops/theverynameisracist.mp4",
@@ -428,6 +473,11 @@
     "file": "data/drops/whatreyoudoinghere.mp4",
     "description": "What are you doing here? What're you doing here?",
     "url": "https://i.imgur.com/RVUU9O8.mp4"
+  },
+  "Where The (USS) Hood At": {
+    "file": "data/drops/wheretheusshoodat.mp4",
+    "description": "Where The USS Hood At",
+    "url": "https://i.imgur.com/azbj9FC.mp4"
   },
   "Worf! Is This Your Idea Of Sex?": {
     "file": "data/drops/worfisthisyourideaofsex.mp4",
