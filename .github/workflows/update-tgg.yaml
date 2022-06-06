@@ -27,8 +27,9 @@ jobs:
       -
         name: Update The Greatest Generation Metadata
         run: |
+          make setup
           echo "${{ secrets.ENVFILE }}" > .env \
-            && python3 ./utils/generate_episode_json.py -p VOY -o data/episodes/voy.json \
+            && python ./utils/generate_episode_json.py -p VOY -o data/episodes/voy.json \
             && rm -rf .env
           rm -rf .env || true
           git config user.name github-actions
