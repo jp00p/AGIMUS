@@ -92,11 +92,8 @@ shows = {
 #     "imdb": ""
 #   }
 
-
 tgg_rss_url = "https://feeds.simplecast.com/_mp2DeJd"
 feed = feedparser.parse(tgg_rss_url)
-
-
 
 def gather_filtered_rss_entries(series_prefix, tseason, tepisode):
   # pprint.pprint(f"series_prefix: {series_prefix} S{tseason}E{tepisode}")
@@ -221,11 +218,9 @@ def generate_recordset(series_prefix, recordset):
       pprint.pprint(f"Pod title: {entry_title}")
       regex_result = re.search('(.+) \((\w+)\sS(\d+)E(\d+)\)', entry_title, re.IGNORECASE)
       pod_title = regex_result.group(1)
-      series_tag = regex_result.group(2)
-      season_number = regex_result.group(3).rjust(2, '0')
-      episode_number = regex_result.group(4).rjust(2, '0')
-
-
+      # series_tag = regex_result.group(2)
+      # season_number = regex_result.group(3).rjust(2, '0')
+      # episode_number = regex_result.group(4).rjust(2, '0')
 
       if "podcasts" not in this_episode.keys() or len(this_episode["podcasts"]) == 0:
         print("Checking MaximumFun information...")
