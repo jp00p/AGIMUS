@@ -62,16 +62,7 @@
       "enabled": true,
       "data": null,
       "parameters": []
-    },
-    "migrate": {
-      "channels": [897126055289159711],
-      "enabled": false,
-      "data": "data/info.json",
-      "parameters": [{
-        "name": "show",
-        "allowed": ["tng", "voy", "ds9", "friends", "firefly", "simpsons", "enterprise", "tos", "lowerdecks", "disco", "picard", "tas", "sunny"],
-        "required": false
-      }]
+    }]
     },
     "nasa": {
       "channels": [891412585646268486,  897126055289159711, 771023865345605663],

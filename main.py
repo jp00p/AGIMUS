@@ -7,7 +7,6 @@ from commands.fmk import fmk
 from commands.help import help
 from commands.info import info
 from commands.jackpot import jackpot, jackpots
-from commands.migrate import migrate
 from commands.nasa import nasa
 from commands.nextep import nexttrek, nextep
 from commands.poker import *
