@@ -1502,15 +1502,7 @@
       "episode": "01",
       "imdb": "tt0708969",
       "memoryalpha": "Scorpion,_Part_II_(episode)",
-      "podcasts": [
-        {
-          "title": "The Greatest Generation",
-          "order": 420,
-          "airdate": "2022.05.30",
-          "episode": "Idiot Bioship",
-          "link": "https://maximumfun.org/episodes/greatest-generation/ep-420-idiot-bioship-voy-s4e1/"
-        }
-      ],
+      "podcasts": [],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/xQafP3sSBBVYUV15CbY7vIJCxtQ.jpg",
@@ -1525,15 +1517,7 @@
       "episode": "02",
       "imdb": "tt0708982",
       "memoryalpha": "The_Gift_(episode)",
-      "podcasts": [
-        {
-          "title": "The Greatest Generation",
-          "order": 421,
-          "airdate": "2022.06.06",
-          "episode": "Not Totally Un-Wan",
-          "link": "https://maximumfun.org/episodes/greatest-generation/ep-421-not-totally-un-wan-voy-s4e2/"
-        }
-      ],
+      "podcasts": [],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/22POguzLux5LuOrtS88DACCdgQ2.jpg"
