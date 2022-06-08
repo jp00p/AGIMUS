@@ -144,6 +144,11 @@
     "description": "Sisko: I'm not Picard.",
     "url": "https://i.imgur.com/MeiSFkj.mp4"
   },
+  "It's A Fake!": {
+    "file": "data/drops/itsafake.mp4",
+    "description": "Vreenak: It's a fake!",
+    "url": "https://i.imgur.com/2p9yGr7.mp4"
+  },
   "It Means Omerta": {
     "file": "data/drops/itmeansomerta.mp4",
     "description": "It means Omerta. It means Rewenge.",
@@ -373,6 +378,11 @@
     "file": "data/drops/rolaren.mp4",
     "description": "Ro Laren (John Cena)",
     "url": "https://i.imgur.com/5ks52JL.mp4"
+  },
+  "The Sara Drop": {
+    "file": "data/drops/thesaradrop.mp4",
+    "description": "The Sara Drop",
+    "url": "https://i.imgur.com/iWfo5MX.mp4"
   },
   "The Seska Drop": {
     "file": "data/drops/theseskadrop.mp4",
