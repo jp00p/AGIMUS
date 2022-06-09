@@ -1,3 +1,5 @@
+REPO_OWNER:=mathew-fleisch
+REPO_NAME:=FoDBot-SQL
 ifneq (,$(wildcard ./.env))
     include .env
     export
