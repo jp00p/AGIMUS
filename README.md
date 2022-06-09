@@ -47,6 +47,9 @@ Additional [discord role permissions](https://support.discord.com/hc/en-us/artic
 - Add reaction
 - Manage messages
 
+Also for the Slash Commands you'll need to enable the `applications.commands` Scope for your bot _Application_ via the OAuth2 URL Generator.
+Instructions for how to do this are available through this video at the 58 second timestamp: https://youtu.be/ygc-HdZHO5A?t=58
+
 ## Commands
 
 Bot commands are triggered by typing an exclamation point followed by a command. Commands must be defined in the [configuration.json](configuration.json) file, a python file in the [commands directory](commands), and an import line added to [main.py](main.py).
@@ -64,8 +67,9 @@ Bot commands are triggered by typing an exclamation point followed by a command.
 | `!ping`                                                                                                                                                           | [ping.py](commands/ping.py)             | respond pong                                                                                                                            |
 | `!poker`                                                                                                                                                          | [poker.py](commands/poker.py)           | 5 card stud style game                                                                                                                  |
 | `!profile`                                                                                                                                                        | [profile.py](commands/profile.py)       | Generate profile card with user statistics/options                                                                                      |
+| `!nasa [today\|YYYY-MM-DD]`                                                                                                                                       | [nasa.py](commands/nasa.py)             | pulls a random or specific 'picture of the day' from nasa api                                                                           |
 | `!qget [user]`                                                                                                                                                    | [q.py](commands/q.py)                   | Get the information in mysql for a specific user                                                                                        |
-| `!qset [user] [score \| spins \| jackpots \| wager \| high_roller \| chips \| profile_card \| profile_badge] [new-value]`                                         | [q.py](commands/q.py)                   | Set a value of a specific user in mysql                                                                                                 |
+| `!qset [user] [score \| spins \| jackpots \| wager \| high_roller \| chips \| profile_card \| profile_badge \| xp] [new-value]`                                         | [q.py](commands/q.py)                   | Set a value of a specific user in mysql                                                                                                 |
 | `!quiz [tng \| voy \| ds9 \| friends \| firefly \| simpsons \| enterprise \| tos \| lowerdecks \| disco \| picard \| tas \| sunny]`                               | [quiz.py](commands/quiz.py)             | Guess the episode from a screen-shot!                                                                                                   |
 | `!randomep [trek \| nontrek \| any \| tos \| tas \| tng \| ds9 \| voy \| enterprise \| lowerdecks \| disco \| picard \| friends \| firefly \| simpsons \| sunny]` | [randomep.py](commands/randomep.py)     | Show information about a random episode!                                                                                                |
 | `!scores`                                                                                                                                                         | [scores.py](commands/scores.py)         | Show the leaderboard of points                                                                                                          |
@@ -77,6 +81,15 @@ Bot commands are triggered by typing an exclamation point followed by a command.
 | `!trektalk`                                                                                                                                                       | [trektalk.py](commands/trektalk.py)     | Return a random trek related discussion prompt                                                                                          |
 | `!triv`                                                                                                                                                           | [triv.py](commands/triv.py)             | Trivia game                                                                                                                             |
 | `!tuvix`                                                                                                                                                          | [tuvix.py](commands/tuvix.py)           | Return 2 random trek characters as discussion prompt                                                                                    |
+
+## Slash Commands
+
+Slash commands are triggered by typing a forward slash (`/`) followed by the command text. The same basic rules apply as the regular ! commands above as far as the info necessary in the [configuration.json](configuration.json) file, python file in the [commands directory](commands), and import line in [main.py](main.py).
+
+| Command                                                                                                                                                           | File                                    | Description                                                                                                                             |
+| :-----------------------------------------------------------------------------------------------------------------------------------------------                  | :-------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `/drop <query]>`                                                                                                                                                  | [drop.py](commands/drop.py)             | Posts a .mp4 drop file if it finds a match from the user's query                                                                        |
+| `/drops`                                                                                                                                                          | [drop.py](commands/drop.py)             | Replies with a message to the user with a full list of the drops available from `/drop`                                                 |
 
 ### configuration.json
 
@@ -93,6 +106,13 @@ The [configuration.json](configuration.json) file defines metadata about each co
     "required": true
   }]
 }
+```
+
+The file also provides the "Guild ID" for your server, note this is required in order for the slash commands to register properly and will cause a permissions error on startup if not provided!
+```json
+"guild_ids": [
+  820440093898440756
+]
 ```
 
 ### commands/command.py
@@ -150,4 +170,25 @@ Each command requires an explicit import in the [main.py](main.py) script.
 
 ```python
 from commands.setwager import setwager
+```
+
+
+### Utils
+
+#### generate_episode_json.py
+The repo also currently provides a way to automatically generate the files for the Greatest Gen `.json` files located under `data/episodes/` (such as `tgg_voy.json` for example). The utility is under `utils` as `generate_episode_json.py`.
+
+The script uses Google to gather some of the metadata necessary for each entry, so you'll need to provide two additional ENV variables if you'd like to use this script.
+
+```
+export GOOGLE_API_KEY=
+export GOOGLE_CX=
+```
+
+Step-by-step instructions for how to generate these credentials are documented in this [Stack Overflow post](https://stackoverflow.com/a/37084643)
+
+Once those have been placed in your .env file, you can execute the script by providing the series prefix and path to the desired output file.
+
+```bash
+python utils/generate_episode_json.py -p VOY -o data/episodes/voy.json
 ```

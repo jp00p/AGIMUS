@@ -22,6 +22,13 @@
       "data": "data/all_characters.txt",
       "parameters": []
     },
+    "drop": {
+      "channels": [689512842524885034, 765262443407998986, 689622484580040750, 764259604698890260],
+      "enabled": true,
+      "data": "data/drops.json",
+      "parameters": [],
+      "error_contact_id": 735658100958298154
+    },
     "fmk": {
       "channels": [891412924193726465, 897126055289159711],
       "enabled": true,
@@ -56,15 +63,23 @@
       "data": null,
       "parameters": []
     },
-    "migrate": {
-      "channels": [897126055289159711],
-      "enabled": false,
-      "data": "data/info.json",
-      "parameters": [{
-        "name": "show",
-        "allowed": ["tng", "voy", "ds9", "friends", "firefly", "simpsons", "enterprise", "tos", "lowerdecks", "disco", "picard", "tas", "sunny"],
-        "required": false
-      }]
+    "nasa": {
+      "channels": [891412585646268486,  897126055289159711, 771023865345605663],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "nextep": {
+      "channels": [780914078495014942, 771081846997123092],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "nexttrek": {
+      "channels": [780914078495014942],
+      "enabled": true,
+      "data": null,
+      "parameters": []
     },
     "ping": {
       "channels": [897126055289159711],
@@ -85,7 +100,7 @@
       "parameters": []
     },
     "qget": {
-      "channels": [897126055289159711],
+      "channels": [897126055289159711, 760157134746550293],
       "enabled": true,
       "data": "data/user-info.json",
       "parameters": []
@@ -192,5 +207,11 @@
       "data": "data/all_characters.txt",
       "parameters": []
     }
-  }
+  },
+  "guild_ids": [689512841887481875],
+  "roles": {
+    "cadet": 789278115599745024,
+    "ensign": 738606028903546931
+  },
+  "intro_channel" : 757754485790736504
 }

@@ -1,10 +1,13 @@
 import discord
+from discord_slash import SlashCommand, SlashContext
+from discord_slash.utils.manage_commands import create_choice, create_option
 from discord.ext import tasks
 import os
 import random
 import tmdbsimple as tmdb
 import requests
 import asyncio
+import re
 import string
 import json
 from PIL import Image, ImageFont, ImageDraw, ImageColor
@@ -47,12 +50,15 @@ f = open(BOT_CONFIGURATION_FILEPATH)
 config = json.load(f)
 f.close()
 client = discord.Client()
+slash = SlashCommand(client, sync_commands=True)
 POKER_GAMES = {}
 TRIVIA_RUNNING = False
 TRIVIA_DATA = {}
 TRIVIA_MESSAGE = None
 TRIVIA_ANSWERS = {}
 EMOJI = {}
+INTRO_CHANNEL = config["intro_channel"]
+ROLES = config["roles"]
 
 def getDB():
   db = mysql.connector.connect(
@@ -128,10 +134,10 @@ def get_player(discord_id:int):
   return player_data
 
 
-# get_all_players()
+# get_all_users()
 # This function takes no arguments
 # and returns a list of all user discord ids
-def get_all_players():
+def get_all_users():
   db = getDB()
   query = db.cursor(dictionary=True)
   query.execute("SELECT discord_id FROM users")
@@ -147,7 +153,7 @@ def get_all_players():
 # user[required]: object
 # This function will insert a new user into the database
 def register_player(user):
-  global ALL_PLAYERS
+  global ALL_USERS
   db = getDB()
   query = db.cursor()
   sql = "INSERT INTO users (discord_id, name, mention) VALUES (%s, %s, %s)"
@@ -185,7 +191,7 @@ def update_player_profile_card(discord_id, card):
 # This function will update a specific value for a specific user
 def update_user(discord_id, key, value):
   logger.info(f"update_user({discord_id}, {key}, {value})")
-  modifiable = ["score", "spins", "jackpots", "wager", "high_roller", "chips", "profile_card", "profile_badge"]
+  modifiable = ["score", "spins", "jackpots", "wager", "high_roller", "chips", "xp", "profile_card", "profile_badge"]
   if key not in modifiable:
     logger.error(f"{key} not in {modifiable}")
   else:
@@ -208,6 +214,8 @@ def update_user(discord_id, key, value):
       sql = "UPDATE users SET profile_card = %s WHERE discord_id = %s"
     elif key == "profile_badge":
       sql = "UPDATE users SET profile_badge = %s WHERE discord_id = %s"
+    elif key == "xp":
+      sql = "UPDATE users SET xp = %s WHERE discord_id = %s"
     vals = (value, discord_id)
     logger.info(f"{sql}")
     logger.info(f"{vals}")
@@ -231,6 +239,35 @@ def update_player_profile_badge(discord_id, badge):
   db.commit()
   query.close()
   db.close()
+
+# increment_user_xp(discord_id, amt)
+# discord_id[required]: int
+# amt[required]: int
+# This function will increment a users' XP
+def increment_user_xp(discord_id, amt):
+  db = getDB()
+  query = db.cursor()
+  sql = "UPDATE users SET xp = xp + %s WHERE discord_id = %s"
+  vals = (amt,discord_id)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+
+# get_user_xp(discord_id)
+# discord_id[required]: int
+# Returns a users current XP
+def get_user_xp(discord_id):
+  db = getDB()
+  query = db.cursor()
+  sql = "SELECT xp FROM users WHERE discord_id = %s"
+  vals = (discord_id,)
+  query.execute(sql, vals)
+  user_xp = query.fetchone()
+  db.commit()
+  query.close()
+  db.close()
+  return user_xp[0]
 
 
 # set_player_score(user, amt)

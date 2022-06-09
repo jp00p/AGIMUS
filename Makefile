@@ -1,4 +1,5 @@
 REPO_OWNER:=mathew-fleisch
+# REPO_OWNER:=jp00p
 REPO_NAME:=FoDBot-SQL
 ifneq (,$(wildcard ./.env))
     include .env
@@ -44,3 +45,11 @@ docker-logs:
 .PHONY: docker-stop
 docker-stop:
 	@docker-compose down
+
+.PHONY: update-tgg-metadata
+update-tgg-metadata:
+	@curl -s -H "Accept: application/vnd.github.everest-preview+json" \
+	    -H "Authorization: token $(GIT_TOKEN)" \
+	    --request POST \
+	    --data '{"event_type": "trigger-tgg-update"}' \
+	    https://api.github.com/repos/$(REPO_OWNER)/$(REPO_NAME)/dispatches
