@@ -8,7 +8,9 @@ services:
     volumes:
       - .:/bot
     working_dir: /bot
-    restart: on-failure
+    restart: on-failure    
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   db:
     image: mysql:latest
     environment:
