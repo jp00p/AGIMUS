@@ -1,6 +1,6 @@
-REPO_OWNER:=jp00p
-# REPO_OWNER:=mathew-fleisch
-REPO_NAME:=FoDBot-SQL
+REPO_OWNER?=jp00p
+REPO_NAME?-=FoDBot-SQL
+BOT_CONTAINER_NAME?=fodbot
 ifneq (,$(wildcard ./.env))
     include .env
     export
@@ -26,13 +26,18 @@ docker-build: ## Build the docker containers for the bot and the database
 docker-start: ## Start the docker containers for the bot and the database
 	@docker-compose up
 
+.PHONY: docker-stop
+docker-stop: ## Stop the docker containers for the bot and the database
+	@docker-compose down
+
 .PHONY: docker-logs
 docker-logs: ## Tail the logs of running containers
 	@docker-compose logs -f
 
-.PHONY: docker-stop
-docker-stop: ## Stop the docker containers for the bot and the database
-	@docker-compose down
+.PHONY: docker-lint
+docker-lint: ## Lint the container with dockle
+	dockle --version
+	dockle --exit-code 1 $(BOT_CONTAINER_NAME):latest
 
 ##@ MySQL stuff
 
@@ -54,15 +59,20 @@ db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 
 ##@ Miscellaneous stuff
 
-.PHONY: update-tgg-metadata
-update-tgg-metadata: ## Update the TGG metadata in the database via github action
+.PHONY: update-shows
+update-shows: ## Update the TGG metadata in the database via github action
 	@curl -s -H "Accept: application/vnd.github.everest-preview+json" \
 	    -H "Authorization: token $(GIT_TOKEN)" \
 	    --request POST \
-	    --data '{"event_type": "trigger-tgg-update"}' \
+	    --data '{"event_type": "update-shows"}' \
 	    https://api.github.com/repos/$(REPO_OWNER)/$(REPO_NAME)/dispatches
 
+.PHONY: version
+version: ## Print the version of the bot from the helm chart (requires yq)
+	@yq e '.version' charts/FoDBot-SQL/Chart.yaml
+
 .PHONY: help
-help: ## Displays this help dialog
+help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-username])
 	@echo "Friends of DeSoto Bot"
+	@echo "github.com/$$REPO_OWNER/$$REPO_NAME"
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)

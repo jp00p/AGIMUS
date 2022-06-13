@@ -1,0 +1,103 @@
+# Name:        pr-test-and-build.yaml
+# Author:      Mathew Fleisch <mathew.fleisch@gmail.com>
+# Description: This action will run go lint/unit tests as well as
+#              build a docker container and test it against a KinD cluster.
+#              See Makefile for more details.
+name: PR CI
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  unit_test:
+    name: Lint and Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - 
+        name: Install stuff with asdf
+        uses: asdf-vm/actions/install@v1
+        with:
+          tool_versions: |
+            action-validator 0.1.2
+            dockle 0.4.5
+            helm 3.8.1
+            yq 4.22.1
+      -
+        name: Lint Actions
+        run: make actions-lint
+      -
+        name: Lint Container Using Dockle
+        env:
+          DOCKER_CONTENT_TRUST: 1
+        run: |
+          make docker-build
+          make docker-lint
+
+  integration_test:
+    name: KinD Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - 
+        name: Install stuff with asdf
+        uses: asdf-vm/actions/install@v1
+        with:
+          tool_versions: |
+            helm 3.8.1
+            yq 4.22.1
+      -
+        name: KinD Tests
+        run: |
+          # make kind-test
+          # make kind-cleanup
+          echo "Disabled"
+
+  build_container:
+    name: Build and Push Containers
+    needs: [unit_test, integration_test]
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      -
+        name: Set tag environment variable
+        run: echo "RELEASE_VERSION=$(make version)" >> $GITHUB_ENV
+      -
+        name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Docker Login
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Build and Push Containers
+        id: docker_build
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          context: .
+          platforms: linux/amd64,linux/arm64
+          tags: ghcr.io/${{ secrets.REPO_OWNER }}/FoDBot-SQL:latest,ghcr.io/${{ secrets.REPO_OWNER }}/FoDBot-SQL:${{ env.RELEASE_VERSION }}
+          cache-from: type=registry,ref=ghcr.io/${{ secrets.REPO_OWNER }}/FoDBot-SQL:latest
+          cache-to: type=inline
