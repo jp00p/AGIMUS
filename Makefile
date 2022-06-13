@@ -67,6 +67,12 @@ update-shows: ## Update the TGG metadata in the database via github action
 	    --data '{"event_type": "update-shows"}' \
 	    https://api.github.com/repos/$(REPO_OWNER)/$(REPO_NAME)/dispatches
 
+
+.PHONY: lint-actions
+lint-actions: ## run .gihtub/workflows/*.yaml|yml through action-valdator tool
+	find .github/workflows -type f \( -iname \*.yaml -o -iname \*.yml \) \
+		| xargs -I action_yaml action-validator --verbose action_yaml
+
 .PHONY: version
 version: ## Print the version of the bot from the helm chart (requires yq)
 	@yq e '.version' charts/FoDBot-SQL/Chart.yaml
