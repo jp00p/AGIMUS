@@ -8,6 +8,8 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
     && useradd -ms /bin/bash bot \
     && usermod -aG sudo bot \
     && python3 -m pip install --upgrade --force pip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
     && ln -s /usr/bin/python3 /usr/local/bin/python
 
 # Use 'bot' user to avoid pip warning messages
