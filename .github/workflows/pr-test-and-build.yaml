@@ -30,7 +30,7 @@ jobs:
             yq 4.22.1
       -
         name: Lint Actions
-        run: make actions-lint
+        run: make lint-actions
       -
         name: Lint Container Using Dockle
         env:
