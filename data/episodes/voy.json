@@ -1547,7 +1547,15 @@
       "episode": "03",
       "imdb": "tt0708873",
       "memoryalpha": "Day_of_Honor_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 422,
+          "airdate": "2022.06.13",
+          "episode": "Unscrupulous Colonic Irrigator",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/7FlqjIQVPlfYIBTQ1EIwGd3Nf7q.jpg"

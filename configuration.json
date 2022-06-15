@@ -16,6 +16,13 @@
       "data": "data/triv.json",
       "parameters": []
     },
+    "clip": {
+      "channels": [689512842524885034, 765262443407998986, 689622484580040750, 764259604698890260],
+      "enabled": true,
+      "data": "data/clips.json",
+      "parameters": [],
+      "error_contact_id": 735658100958298154
+    },
     "dustbuster": {
       "channels": [891412924193726465, 897126055289159711],
       "enabled": true,
@@ -213,5 +220,12 @@
     "cadet": 789278115599745024,
     "ensign": 738606028903546931
   },
-  "intro_channel" : 757754485790736504
+  "intro_channel" : 757754485790736504,
+  "emojis": {
+    "emh_doctor_omg_wtf_zoom": "<a:emh_doctor_omg_wtf_zoom:865452207699394570>",
+    "ezri_frown_sad": "<:ezri_frown_sad:757762138176749608>",
+    "louvois_point_yes": "<:louvois_point_yes:840252104056766515>",
+    "ohno": "<:ohno:930365904657723402>",
+    "tendi_smile_happy": "<:tendi_smile_happy:757768236069814283>"
+  }
 }
