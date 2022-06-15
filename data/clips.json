@@ -24,10 +24,15 @@
     "description": "Kevin Uxbridge killed them all, all husnock everywhere",
     "url": "https://i.imgur.com/ABiJChK.mp4"
   },
+  "Picard - Damn You!": {
+    "file": "data/clips/picarddamnyou.mp4",
+    "description": "Picard Damn You",
+    "url": "https://i.imgur.com/9vk2SYd.mp4"
+  },
   "Picard - Nooo!": {
     "file": "data/clips/picardnooo.mp4",
     "description": "Picard No Nooo First Contact",
-    "url": "https://i.imgur.com/9vk2SYd.mp4"
+    "url": "https://i.imgur.com/vSHXOl7.mp4"
   },
   "Picard - We Have No Law To Fit Your Crime!": {
     "file": "data/clips/picardwehavenolawtofityourcrime.mp4",
@@ -35,7 +40,7 @@
     "url": "https://i.imgur.com/l9v4dnD.mp4"
   },
   "Picard Laughing (Hurr Hurr)": {
-    "file": "data/clips/picardnooo.mp4",
+    "file": "data/clips/picardlaughing.mp4",
     "description": "Picard Laugh Laughing hurr hurr",
     "url": "https://i.imgur.com/BzeN4li.mp4"
   },
