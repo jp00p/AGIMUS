@@ -1,18 +1,63 @@
 {
+  "Data - It Is Green!": {
+    "file": "data/clips/dataitisgreen.mp4",
+    "description": "Data it is green",
+    "url": "https://i.imgur.com/d1bZLNC.mp4"
+  },
+  "Data - It Is Revolting!": {
+    "file": "data/clips/dataitisrevolting.mp4",
+    "description": "Data it is its revolting green",
+    "url": "https://i.imgur.com/PuHPnpp.mp4"
+  },
   "Fire All The Torpedos!": {
     "file": "data/clips/fireallthetorpedos.mp4",
     "description": "Fire All The Torpedos",
     "url": "https://i.imgur.com/5tCFxQZ.mp4"
+  },
+  "Garak - Especially The Lies": {
+    "file": "data/clips/garakespeciallythelies.mp4",
+    "description": "Which ones were true and which ones weren't, they're all true, even the lies, especially the lies",
+    "url": "https://i.imgur.com/kONfmpL.mp4"
+  },
+  "Kevin - All Husnock Everywhere!": {
+    "file": "data/clips/kevinallhusnockeverywhere.mp4",
+    "description": "Kevin Uxbridge killed them all, all husnock everywhere",
+    "url": "https://i.imgur.com/ABiJChK.mp4"
   },
   "Picard - Nooo!": {
     "file": "data/clips/picardnooo.mp4",
     "description": "Picard No Nooo First Contact",
     "url": "https://i.imgur.com/9vk2SYd.mp4"
   },
+  "Picard - We Have No Law To Fit Your Crime!": {
+    "file": "data/clips/picardwehavenolawtofityourcrime.mp4",
+    "description": "Picard we have no law to fit your crime",
+    "url": "https://i.imgur.com/l9v4dnD.mp4"
+  },
+  "Picard Laughing (Hurr Hurr)": {
+    "file": "data/clips/picardnooo.mp4",
+    "description": "Picard Laugh Laughing hurr hurr",
+    "url": "https://i.imgur.com/BzeN4li.mp4"
+  },
   "Picard With A Machine Gun": {
     "file": "data/clips/picardmachinegun.mp4",
     "description": "Picard With A Machine Tommy Gun",
     "url": "https://i.imgur.com/07w9N9N.mp4"
+  },
+  "Ransom In The Mariner Ball-Kicking Machine": {
+    "file": "data/clips/ransomballkickingmachine.mp4",
+    "description": "Mariner Ransom Ball Kicking",
+    "url": "https://i.imgur.com/qjYcJuy.mp4"
+  },
+  "Tom Paris - It's THE VOYAGER!": {
+    "file": "data/clips/tomparisitsthevoyager.mp4",
+    "description": "Tom Paris - It's The Voyager",
+    "url": "https://i.imgur.com/bU4KAxw.mp4"
+  },
+  "Weyoun - How Delightful!": {
+    "file": "data/clips/weyounhowdelightful.mp4",
+    "description": "Weyoun how delightful",
+    "url": "https://i.imgur.com/ysSanNI.mp4"
   },
   "Worf - Delicious": {
     "file": "data/clips/worfdelicious.mp4",
