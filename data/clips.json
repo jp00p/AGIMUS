@@ -1,0 +1,22 @@
+{
+  "Fire All The Torpedos!": {
+    "file": "data/clips/fireallthetorpedos.mp4",
+    "description": "Fire All The Torpedos",
+    "url": "https://i.imgur.com/5tCFxQZ.mp4"
+  },
+  "Picard - Nooo!": {
+    "file": "data/clips/picardnooo.mp4",
+    "description": "Picard No Nooo First Contact",
+    "url": "https://i.imgur.com/9vk2SYd.mp4"
+  },
+  "Picard With A Machine Gun": {
+    "file": "data/clips/picardmachinegun.mp4",
+    "description": "Picard With A Machine Tommy Gun",
+    "url": "https://i.imgur.com/07w9N9N.mp4"
+  },
+  "Worf - Delicious": {
+    "file": "data/clips/worfdelicious.mp4",
+    "description": "Worf - Delicious",
+    "url": "https://i.imgur.com/vZ1BtgX.mp4"
+  }
+}

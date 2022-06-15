@@ -1,6 +1,7 @@
 from commands.common import *
 from commands.buy import buy
 from commands.categories import categories
+from commands.clip import clip, clips
 from commands.dustbuster import dustbuster
 from commands.drop import drop, slash_drop, slash_drops
 from commands.fmk import fmk
