@@ -1,5 +1,7 @@
 from commands.common import *
 
+emojis = config["emojis"]
+
 # @check_channel_access decorator
 # Can be injected in between @slash.slash and your slash function to 
 # restrict access to the "channels" from the command config
@@ -22,13 +24,23 @@ def check_channel_access(command_config):
 
 async def perform_channel_check(ctx, command_config):
   # Verify that we're allowed to perform drops in this channel
-  allowed_channels = command_config["channels"]
-  if not (ctx.channel.id in allowed_channels):
-    allowed_channel_names = []
-    for id in allowed_channels:
-      channel = client.get_channel(id)
-      allowed_channel_names.append(channel.mention)
-    await ctx.send("<:ezri_frown_sad:757762138176749608> Sorry! Drops are not allowed in this channel. Allowed channels are: {}.".format(", ".join(allowed_channel_names)), hidden=True)
-    return False
+  allowed_channels = command_config.get("channels")
+  blocked_channels = command_config.get("blocked_channels")
+  if allowed_channels is not None:
+    if not (ctx.channel.id in allowed_channels):
+      allowed_channel_names = []
+      for id in allowed_channels:
+        channel = client.get_channel(id)
+        allowed_channel_names.append(channel.mention)
+      await ctx.send(f"{emojis.get('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel. Allowed channels are: {', '.join(allowed_channel_names)}.", hidden=True)
+      return False
+    else:
+      return True
+  elif blocked_channels is not None:
+    if (ctx.channel.id in blocked_channels):
+      await ctx.send(f"{emojis.get('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.", hidden=True)
+      return False
+    else:
+      return True
   else:
     return True
