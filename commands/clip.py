@@ -1,8 +1,6 @@
-import requests
-from os.path import exists
-
 from .common import *
 from utils.check_channel_access import *
+from utils.media_utils import *
 
 command_config = config["commands"]["clip"]
 emojis = config["emojis"]
@@ -28,7 +26,7 @@ async def clips(ctx:SlashContext):
   )
   try:
     await ctx.author.send(embed=embed)
-    await ctx.reply(f"{emojis['tendi_smile_happy']} Sent you a DM with the full List of Clips!", hidden=True)
+    await ctx.reply(f"{emojis.get('tendi_smile_happy')} Sent you a DM with the full List of Clips!", hidden=True)
   except:
     await ctx.reply(embed=embed, hidden=True)
 
@@ -68,11 +66,11 @@ async def clip(ctx:SlashContext, **kwargs):
 
   if (clip_allowed):  
     q = query.lower().strip()
-    clip_metadata = get_clip_metadata(q)
+    clip_metadata = get_media_metadata(clip_data, q)
 
     if clip_metadata:
       try:
-        filename = get_mp4(clip_metadata)
+        filename = get_media_file(clip_metadata)
         await ctx.send(file=discord.File(filename), hidden=private)
         if not private:
           set_timekeeper(ctx)
@@ -80,37 +78,9 @@ async def clip(ctx:SlashContext, **kwargs):
         logger.info(f"ERROR LOADING CLIP: {err}")
         userid = command_config.get("error_contact_id")
         if userid:
-          await ctx.send(f"{emojis['emh_doctor_omg_wtf_zoom']} Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", hidden=True)  
+          await ctx.send(f"{emojis.get('emh_doctor_omg_wtf_zoom')} Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", hidden=True)  
     else:
-      await ctx.send(f"{emojis['ezri_frown_sad']} Clip not found! To get a list of clips run: /clips", hidden=True)
-
-# get_clip_metadata() - Logic to try to fuzzy-match user query to a clip
-# query[required] - String
-fuzz_threshold = 72
-def get_clip_metadata(query):
-  query = strip_punctuation(query)
-
-  top_score = [0,None]
-
-  for key in clip_data:
-    # If they nail a key directly, immediate return
-    if (query == strip_punctuation(key)):
-      return clip_data.get(key)
-
-    # Otherwise do fuzzy-match on drop description
-    description = strip_punctuation(clip_data.get(key)["description"])
-
-    ratio = fuzz.ratio(description, query)
-    pratio = fuzz.partial_ratio(description, query)
-    score = round((ratio + pratio) / 2)
-    # logger.info("key: {}, ratio: {}, pratio: {}, score: {}".format(key, ratio, pratio, score))
-    if ((ratio > fuzz_threshold) or (pratio > fuzz_threshold)) and (score > top_score[0]):
-      top_score = [score, key]
-
-  if (top_score[0] != 0):
-    return clip_data.get(top_score[1])
-  else:
-    return False
+      await ctx.send(f"{emojis.get('ezri_frown_sad')} Clip not found! To get a list of clips run: /clips", hidden=True)
 
 # Timekeeper Functions
 # Prevent spamming a channel with too many drops in too short a period
@@ -136,7 +106,7 @@ async def check_timekeeper(ctx:SlashContext):
       # Check if we've notified the channel if there's a timeout active
       have_notified = last_record[1]
       if (have_notified == False):
-        await ctx.reply(f"{emojis['ohno']} Someone in the channel has already posted a clip too recently. Please wait a minute before another clip!", hidden=True)
+        await ctx.reply(f"{emojis.get('ohno')} Someone in the channel has already posted a clip too recently. Please wait a minute before another clip!", hidden=True)
         last_record[1] = True
       return False
 
@@ -147,20 +117,3 @@ async def check_timekeeper(ctx:SlashContext):
 def set_timekeeper(ctx:SlashContext):
   current_channel = ctx.channel.id
   TIMEKEEPER[current_channel] = [ctx.created_at, False]
-
-
-# Utility Functions
-punct_regex = r'[' + string.punctuation + ']'
-def strip_punctuation(string):
-  return re.sub(punct_regex, '', string).lower().strip()
-
-def get_mp4(clip_metadata):
-  filename = clip_metadata['file']
-  if exists(filename):
-    return filename
-  else:
-    url = clip_metadata['url']
-    r = requests.get(url, allow_redirects=True)
-    open(filename, 'wb').write(r.content)
-    return filename
-
