@@ -1,6 +1,7 @@
 from .common import *
 from utils.check_channel_access import *
 from utils.media_utils import *
+from utils.timekeeper import *
 
 command_config = config["commands"]["clip"]
 emojis = config["emojis"]
@@ -10,7 +11,7 @@ f = open(command_config["data"])
 clip_data = json.load(f)
 f.close()
 
-# clip() - Entrypoint for /clip command
+# clips() - Entrypoint for /clip command
 # List the available clips by key and send to user as ephemeral
 @slash.slash(
   name="clips",
@@ -81,39 +82,5 @@ async def clip(ctx:SlashContext, **kwargs):
           await ctx.send(f"{emojis.get('emh_doctor_omg_wtf_zoom')} Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", hidden=True)  
     else:
       await ctx.send(f"{emojis.get('ezri_frown_sad')} Clip not found! To get a list of clips run: /clips", hidden=True)
-
-# Timekeeper Functions
-# Prevent spamming a channel with too many drops in too short a period
-#
-# TIMEKEEPER is a dict of tuples for each channel which have the last timestamp,
-# and a boolean indicating whether we've already told the channel to wait.
-# If we've already sent a wait warning, we just ignore further requests until it has expired
-TIMEKEEPER = {}
-TIMEOUT = 15
-
-async def check_timekeeper(ctx:SlashContext):
-  current_channel = ctx.channel.id
-
-  # Check if there's been a drop within this channel in the last TIMEOUT seconds
-  last_record = TIMEKEEPER.get(current_channel)
-  if (last_record != None):
-    last_timestamp = last_record[0]
-    diff = ctx.created_at - last_timestamp
-    seconds = diff.total_seconds()
-    if (seconds > TIMEOUT):
-      return True
-    else:
-      # Check if we've notified the channel if there's a timeout active
-      have_notified = last_record[1]
-      if (have_notified == False):
-        await ctx.reply(f"{emojis.get('ohno')} Someone in the channel has already posted a clip too recently. Please wait a minute before another clip!", hidden=True)
-        last_record[1] = True
-      return False
-
-  # If a timekeeper entry for the channel hasn't been set yet, go ahead and allow
-  return True
-
-
-def set_timekeeper(ctx:SlashContext):
-  current_channel = ctx.channel.id
-  TIMEKEEPER[current_channel] = [ctx.created_at, False]
+  else:
+    await ctx.send(f"{emojis.get('ohno')} Someone in the channel has already posted a clip too recently. Please wait a minute before another clip!", hidden=True)
