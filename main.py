@@ -32,12 +32,19 @@ seed_db()
 ALL_USERS = get_all_users()
 logger.info("DATABASE CONNECTION SUCCESSFUL")
 ALL_EMOJI = []
+BOT_AFFIRMATIONS = ["good bot", "nice bot", "cool bot", "sexy bot", "fun bot", "thanks bot", "cute bot"]
 
 @client.event
 async def on_message(message:discord.Message):
   # Ignore messages from bot itself
   if message.author == client.user:
     return
+
+  for aff in BOT_AFFIRMATIONS:
+    if aff in message.content.lower():
+      await message.add_reaction(EMOJI["love"])
+      break
+
 
   if int(message.author.id) not in ALL_USERS:
     logger.info("New User")
