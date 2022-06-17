@@ -17,6 +17,7 @@
       "parameters": []
     },
     "clip": {
+      "channels":[],
       "blocked_channels": [
         889959184827830292,
         864876153147490324,
@@ -40,6 +41,7 @@
       "parameters": []
     },
     "drop": {
+      "channels": [],
       "blocked_channels": [
         889959184827830292,
         864876153147490324,

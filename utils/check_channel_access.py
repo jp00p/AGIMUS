@@ -26,7 +26,7 @@ async def perform_channel_check(ctx, command_config):
   # Verify that we're allowed to perform drops in this channel
   allowed_channels = command_config.get("channels")
   blocked_channels = command_config.get("blocked_channels")
-  if allowed_channels is not None:
+  if allowed_channels:
     if not (ctx.channel.id in allowed_channels):
       allowed_channel_names = []
       for id in allowed_channels:

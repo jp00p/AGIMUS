@@ -115,6 +115,7 @@ def uniq_channels(config):
   tkeys = []
   for key in config["commands"].keys():
     tkeys = tkeys + config["commands"][key]["channels"]
+    
   res = []
   [res.append(int(x)) for x in tkeys if x not in res]
   return res
