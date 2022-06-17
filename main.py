@@ -145,8 +145,10 @@ async def on_ready():
   
   for emoji in client.emojis:
     ALL_EMOJI.append(emoji.name)
-  logger.info(f"EMOJI LIST: {ALL_EMOJI}")
-  logger.debug(f"ALL_USERS[{len(ALL_USERS)}] - {ALL_USERS}")
+
+  admin_channel = client.get_channel(config["commands"]["ping"]["channels"][0])
+  await admin_channel.send("Bot has come online!")
+  
   logger.info("BOT STARTED AND LISTENING FOR COMMANDS!!!")
 
 
