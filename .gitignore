@@ -116,3 +116,7 @@ local.json
 
 # Pyre type checker
 .pyre/
+
+# Media Files
+data/clips/*.mp4
+data/drops/*.mp4
