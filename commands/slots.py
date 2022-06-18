@@ -26,7 +26,7 @@ async def slots(message:discord.Message):
   # player data  
   id = message.author.id
   player = get_player(id)
-  logger.debug(player)
+  logger.info(player)
   free_spin = player["spins"] < 5 # true or false
   wager = player["wager"]
   score_mult = wager
@@ -43,6 +43,7 @@ async def slots(message:discord.Message):
   if player["score"] < wager and not free_spin:
     # if they don't have enough bits to play
     await message.channel.send(f"You need at least {wager} point(s) to spin! Play the quiz to get more points or try changing your wager")
+    return
   else:
     increment_player_spins(id)
   
