@@ -1,3 +1,5 @@
+import traceback
+
 from commands.common import *
 from commands.buy import buy
 from commands.categories import categories
@@ -123,7 +125,16 @@ async def on_message(message:discord.Message):
   logger.debug(message)
   if message.content.startswith("!"):
     logger.info(f"PROCESSING USER COMMAND: {message.content}")
-    await process_command(message)
+    try:
+      await process_command(message)
+    except Exception as e:
+      logging_channel = client.get_channel(config.get["logging_channel"])
+      exception_embed = discord.Embed(
+        title="Oops...",
+        description=f"{e}\n```{traceback.format_exc()}```",
+        color=discord.Color.red()
+      )
+      await logging_channel.send(embed=exception_embed)
 
 async def process_command(message:discord.Message):
   # Split the user's command by space and remove "!"
