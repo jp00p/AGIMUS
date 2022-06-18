@@ -34,6 +34,7 @@ ALL_USERS = get_all_users()
 logger.info("DATABASE CONNECTION SUCCESSFUL")
 ALL_EMOJI = []
 BOT_AFFIRMATIONS = ["good bot", "nice bot", "cool bot", "sexy bot", "fun bot", "thanks bot", "cute bot"]
+BOT_RESPONSES = ["Gee, thanks!", "`01001000 01001111 01010010 01001110 01011001 00100000 01000010 01001111 01010100`", "Appreciate it!", "BEEP BOOP BOOP BEEP", "I am trying my best!", "I'm doing it!!!", "Thank you!", "PRAISE SUBROUTINES OVERLOADING", "If you love me so much why don't you marry me?", "Shucks 😊", "💙💚💛💜🧡", "That's very nice of you!", "Stupid babies need the most attention!", "Robot blush activated", "I am sorry I have no vices for you to exploit.", "The Prophets teach us patience.", "How's my human friend?", "I am a graduate of Starfleet Academy; I know many things.", "COFFEE FIRST", "I don't like threats, I don't like bullies, but I do like YOU!", "Highly logical."]
 
 @client.event
 async def on_message(message:discord.Message):
@@ -41,9 +42,11 @@ async def on_message(message:discord.Message):
   if message.author == client.user:
     return
 
+
   for aff in BOT_AFFIRMATIONS:
     if aff in message.content.lower():
       await message.add_reaction(EMOJI["love"])
+      await message.reply(random.choice(BOT_RESPONSES), mention_author=True)
       break
 
 
@@ -158,8 +161,6 @@ async def on_ready():
   await admin_channel.send("Bot has come online!")
   
   logger.info("BOT STARTED AND LISTENING FOR COMMANDS!!!")
-
-
 
 # Engage!
 client.run(DISCORD_TOKEN)
