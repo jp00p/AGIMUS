@@ -16,6 +16,12 @@
       "data": "data/triv.json",
       "parameters": []
     },
+    "clear_media": {
+      "channels": [897126055289159711],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "clip": {
       "channels":[],
       "blocked_channels": [
