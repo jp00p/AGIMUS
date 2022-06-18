@@ -173,5 +173,17 @@ async def on_ready():
   
   logger.info("BOT STARTED AND LISTENING FOR COMMANDS!!!")
 
+@client.event
+async def on_reaction_add(reaction, user):
+  # If someone made a particularly reaction-worthy message, award them some XP!
+  relevant_emojis = [
+    config["emojis"]["data_lmao_lol"],
+    config["emojis"]["picard_yes_happy_celebrate"],
+    config["emojis"]["tgg_love_heart"]
+  ]
+  if f"{reaction.emoji}" in relevant_emojis and reaction.count >= 5:
+    increment_user_xp(reaction.message.author.id, 1)
+
+
 # Engage!
 client.run(DISCORD_TOKEN)
