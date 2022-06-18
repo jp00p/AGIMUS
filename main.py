@@ -128,7 +128,7 @@ async def on_message(message:discord.Message):
     try:
       await process_command(message)
     except Exception as e:
-      logging_channel = client.get_channel(config.get["logging_channel"])
+      logging_channel = client.get_channel(config["logging_channel"])
       exception_embed = discord.Embed(
         title="Oops...",
         description=f"{e}\n```{traceback.format_exc()}```",
