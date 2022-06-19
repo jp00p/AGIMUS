@@ -31,6 +31,7 @@ from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
 from commands.xp import handle_message_xp, increment_user_xp
+from utils.check_channel_access import perform_channel_check
 
 logger.info("ENVIRONMENT VARIABLES AND COMMANDS LOADED")
 logger.info("CONNECTING TO DATABASE")
@@ -73,13 +74,8 @@ async def on_message(message:discord.Message):
           await message.add_reaction(i)
   except:
     logger.error("<! ERROR: Failed to process message for xp !>")
-
-  # handle people who use bot/game commands
-  all_channels = uniq_channels(config)
-  if message.channel.id not in all_channels:
-    # logger.warning(f"<! ERROR: This channel '{message.channel.id}' not in '{all_channels}' !>")
-    return
   
+  # Bang Command Handling
   logger.debug(message)
   if message.content.startswith("!"):
     logger.info(f"Processing {Fore.CYAN}{message.author.display_name}{Fore.WHITE}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.WHITE}{Style.RESET_ALL}")
@@ -96,15 +92,18 @@ async def on_message(message:discord.Message):
 
 async def process_command(message:discord.Message):
   # Split the user's command by space and remove "!"
-  user_command=message.content.lower().split(" ")
-  user_command[0] = user_command[0].replace("!","")
+  split_string = message.content.lower().split(" ")
+  user_command = split_string[0].replace("!","")
   # If the user's first word matches one of the commands in configuration
-  if user_command[0] in config["commands"].keys():
-    if config["commands"][user_command[0]]["enabled"]:
-      # TODO: Validate user's command
-      await eval(user_command[0] + "(message)")
+  if user_command in config["commands"].keys():
+    # Check enabled
+    if config["commands"][user_command]["enabled"]:
+      # Check Channel Access Restrictions
+      access_granted = await perform_channel_check(message, config["commands"][user_command])
+      if access_granted:
+        await eval(user_command + "(message)")
     else:
-      logger.error(f"<! ERROR: This function has been disabled: '{user_command[0]}' !>")
+      logger.error(f"<! ERROR: This function has been disabled: '{user_command}' !>")
   else:
     logger.error("<! ERROR: Unknown command !>")
 

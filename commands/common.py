@@ -22,6 +22,8 @@ from treys import Card, Evaluator, Deck
 import logging
 import sys
 
+from utils.config_utils import get_config
+
 # Load variables from .env file
 load_dotenv()
 
@@ -36,7 +38,6 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 LOG = []
 
-
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 TMDB_IMG_PATH = "https://image.tmdb.org/t/p/original"
 tmdb.API_KEY = os.getenv('TMDB_KEY')
@@ -45,10 +46,7 @@ DB_HOST = os.getenv('DB_HOST')
 DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
 DB_SEED_FILEPATH = os.getenv('DB_SEED_FILEPATH')
-BOT_CONFIGURATION_FILEPATH = os.getenv('BOT_CONFIGURATION_FILEPATH')
-f = open(BOT_CONFIGURATION_FILEPATH)
-config = json.load(f)
-f.close()
+config = get_config()
 client = discord.Client()
 slash = SlashCommand(client, sync_commands=True)
 POKER_GAMES = {}
@@ -57,9 +55,28 @@ TRIVIA_DATA = {}
 TRIVIA_MESSAGE = None
 TRIVIA_ANSWERS = {}
 EMOJI = {}
-INTRO_CHANNEL = config["intro_channel"]
 ROLES = config["roles"]
 
+# Channel Helpers
+def get_channel_ids_list(channel_list):
+  channel_ids = []
+  for x in channel_list:
+    id = get_channel_id(x)
+    channel_ids.append(id)
+  return channel_ids
+
+def get_channel_id(channel):
+  if isinstance(channel, str):
+    id = config["channels"].get(channel)
+  else:
+    id = channel
+  return id
+
+INTRO_CHANNEL = get_channel_id(config["intro_channel"])
+LOGGING_CHANNEL = get_channel_id(config["logging_channel"])
+DEV_CHANNEL = get_channel_id(config["dev_channel"])
+
+# Database Functions
 def getDB():
   db = mysql.connector.connect(
     host=DB_HOST,

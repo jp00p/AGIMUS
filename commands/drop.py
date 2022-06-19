@@ -60,7 +60,7 @@ async def slash_drops(ctx:SlashContext):
     )
   ]
 )
-@check_channel_access(command_config)
+@slash_check_channel_access(command_config)
 async def slash_drop(ctx:SlashContext, **kwargs):
   query = kwargs.get('query')
   private = kwargs.get('private')
