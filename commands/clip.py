@@ -76,7 +76,7 @@ async def clip(ctx:SlashContext, **kwargs):
         if not private:
           set_timekeeper(ctx)
       except BaseException as err:
-        logger.info(f"ERROR LOADING CLIP: {err}")
+        logger.info(f"{Fore.RED}ERROR LOADING CLIP: {err}{Fore.RESET}")
         userid = command_config.get("error_contact_id")
         if userid:
           await ctx.send(f"{emojis.get('emh_doctor_omg_wtf_zoom')} Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", hidden=True)  

@@ -1,13 +1,12 @@
 from .common import *
-from colorama import Fore, Back, Style
 
 xp_colors = [
     "", # 0 xp no color
-    Fore.WHITE, # 1 xp white text
-    Fore.CYAN, # 2 xp cyan text
-    Fore.LIGHTGREEN_EX, # 3 xp green text
-    Back.LIGHTGREEN_EX + Fore.BLACK, # 4 xp black text on white
-    Back.LIGHTYELLOW_EX + Fore.BLACK, # 5 xp black text on yellow
+    Back.BLUE + Fore.WHITE, # 1 xp 
+    Back.CYAN + Fore.WHITE, # 2 xp
+    Back.MAGENTA + Fore.WHITE, # 3 xp
+    Back.GREEN + Fore.WHITE, # 4 xp
+    Back.YELLOW + Fore.WHITE, # 5 xp
 ]
 
 CADET_XP_REQUIREMENT    = 10
@@ -20,7 +19,7 @@ async def handle_message_xp(message:discord.Message):
     xp_amt = 0
 
     # if the message is longer than 3 words +1 xp
-    if len(message.content.split()) > 3:
+    if len(message.content.split()) >= 3:
         xp_amt += 1
         # if that message also has any of our emoji, +1 xp
         for e in config["all_emoji"]:
@@ -42,7 +41,7 @@ async def handle_message_xp(message:discord.Message):
 
     if xp_amt != 0:
         msg_color = xp_colors[xp_amt]
-        logger.info(f"{msg_color}{message.author.display_name} earns {Style.BRIGHT}{xp_amt}{Style.NORMAL} XP{Fore.WHITE}{Back.BLACK}")
+        logger.info(f"{msg_color}{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} earns {Style.BRIGHT}{xp_amt}{Style.RESET_ALL} XP{Fore.RESET}{Back.RESET}")
         increment_user_xp(message.author, xp_amt) # commit the xp gain to the db
         
         # handle role stuff
@@ -54,13 +53,13 @@ async def handle_message_xp(message:discord.Message):
         if cadet_role not in message.author.roles:
             if user_xp >= CADET_XP_REQUIREMENT:
                 await message.author.add_roles(cadet_role)
-                logger.info(f"{Fore.CYAN}{message.author.display_name} has been promoted to Cadet via XP!{Fore.WHITE}")
+                logger.info(f"{Fore.CYAN}{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to Cadet via XP!{Fore.RESET}")
         else:
         # if they do have cadet but not ensign yet, give it to them
             if ensign_role not in message.author.roles:
                 if user_xp >= ENSIGN_XP_REQUIREMENT:
                     await message.author.add_roles(ensign_role)
-                    logger.info(f"{Fore.GREEN}{message.author.display_name} has been promoted to Ensign via XP!{Fore.WHITE}")
+                    logger.info(f"{Fore.GREEN}{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to Ensign via XP!{Fore.RESET}")
 
 
 # increment_user_xp(author, amt)

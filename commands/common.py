@@ -21,6 +21,7 @@ import numpy as np
 from treys import Card, Evaluator, Deck
 import logging
 import sys
+from colorama import Fore, Back, Style
 
 from utils.config_utils import get_config
 
@@ -110,7 +111,7 @@ def seed_db():
   query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
   data = query.fetchone()
   if data["total_jackpots"] == 0:
-    logger.info("SEEDING JACKPOT")
+    logger.info(f"{Fore.GREEN}SEEDING JACKPOT{Fore.RESET}")
     insert = db.cursor()
     insert.execute("INSERT INTO jackpots (jackpot_value) VALUES (250)")
     db.commit()
@@ -142,7 +143,7 @@ def uniq_channels(config):
 # discord_id[required]: int
 # This function will return a user's record from their id
 def get_player(discord_id:int):
-  logger.debug("get_player({})".format(discord_id))
+  logger.debug(f"Running: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}get_player({discord_id}){Fore.RESET}{Style.RESET_ALL}")
   db = getDB()
   query = db.cursor(dictionary=True)
   query.execute("SELECT * FROM users WHERE discord_id = %s", (discord_id,))
@@ -177,7 +178,7 @@ def register_player(user):
   sql = "INSERT INTO users (discord_id, name, mention) VALUES (%s, %s, %s)"
   vals = (user.id, user.display_name, user.mention)
   query.execute(sql, vals)
-  logger.info("Registering user to DB: {} {} {}".format(user.id, user.display_name, user.mention))
+  logger.info(f"{Style.BRIGHT}Registering user to DB:{Style.RESET_ALL} {user.id} {user.display_name} {user.mention}")
   db.commit()
   query.close()
   db.close()
@@ -190,7 +191,7 @@ def register_player(user):
 # This function will update the profile_card value
 # for a specific user
 def update_player_profile_card(discord_id, card):
-  logger.info(f"Updating user {discord_id} with new card: {card}")
+  logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new card: {Fore.CYAN}{card}{Fore.RESET}")
   db = getDB()
   query = db.cursor()
   sql = "UPDATE users SET profile_card = %s WHERE discord_id = %s"
@@ -208,12 +209,12 @@ def update_player_profile_card(discord_id, card):
 # value[required]: string
 # This function will update a specific value for a specific user
 def update_user(discord_id, key, value):
-  logger.info(f"update_user({discord_id}, {key}, {value})")
+  logger.info(f"Running: {Fore.LIGHTMAGENTA_EX}update_user({discord_id}, {key}, {value}){Fore.RESET}")
   modifiable = ["score", "spins", "jackpots", "wager", "high_roller", "chips", "xp", "profile_card", "profile_badge"]
   if key not in modifiable:
-    logger.error(f"{key} not in {modifiable}")
+    logger.error(f"{Fore.RED}{key} not in {modifiable}{Fore.RESET}")
   else:
-    logger.info(f"updating: ({discord_id}, {key}, {value})")
+    logger.info(f"updating: {Fore.LIGHTMAGENTA_EX}({discord_id}, {key}, {value}){Fore.RESET}")
     db = getDB()
     query = db.cursor()
     if key == "score":
@@ -235,10 +236,10 @@ def update_user(discord_id, key, value):
     elif key == "xp":
       sql = "UPDATE users SET xp = %s WHERE discord_id = %s"
     vals = (value, discord_id)
-    logger.info(f"{sql}")
-    logger.info(f"{vals}")
+    logger.info(f"{Fore.LIGHTYELLOW_EX}{sql}{Fore.RESET}")
+    logger.info(f"{Fore.LIGHTRED_EX}{vals}{Fore.RESET}")
     query.execute(sql, vals)
-    logger.info(f"{db.commit()}")
+    logger.info(f"{Fore.LIGHTGREEN_EX}{db.commit()}{Fore.RESET}")
     query.close()
     db.close()
 
