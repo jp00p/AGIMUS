@@ -21,7 +21,7 @@ async def clear_media(message:discord.Message):
     try:
       os.remove(file_path)
     except:
-      logger.debug(f"ERROR: Unable to remove file: {file_path}")
+      logger.debug(f"{Fore.RED}ERROR: Unable to remove file: {file_path}{Fore.RESET}")
       errors.append(file_path)
 
   if errors:

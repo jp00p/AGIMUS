@@ -37,12 +37,12 @@ async def quiz(message:discord.Message):
     pratio = fuzz.partial_ratio(correct_answer, guess)
     # arbitrary single-number score
     normalness = round((ratio + pratio) / 2)
-    logger.info("ratio: " + str(ratio))
-    logger.info("pratio: " + str(pratio))
+    #logger.info("ratio: " + str(ratio))
+    #logger.info("pratio: " + str(pratio))
     # add message to the log for reporting
     if (ratio != 0) and (pratio != 0):
       LOG.append([guess, ratio, pratio])
-    logger.info("LOG: " + str(LOG))
+    #logger.info("LOG: " + str(LOG))
     await message.add_reaction('\N{THUMBS UP SIGN}')
     # check answer
     if (ratio >= threshold and pratio >= threshold) or (guess == correct_answer):
@@ -78,7 +78,7 @@ async def episode_quiz(message):
   quiz_channel = client.get_channel(config["channels"]["quizzing-booth"])
   quiz_spl = message.content.lower().replace("!quiz ", "").split()
   # User selects tos|tng|ds9|voy|enterprise|disco etc
-  logger.info("Selected Show: " + quiz_spl[0])
+  logger.info(f"{Fore.LIGHTBLUE_EX}Selected Show:{Fore.RESET} {Style.BRIGHT}{quiz_spl[0]}{Style.RESET_ALL}")
   if quiz_spl[0] in config["commands"]["quiz"]["parameters"][0]["allowed"]:
     selected_show = quiz_spl[0]
   else:
@@ -97,8 +97,8 @@ async def episode_quiz(message):
   QUIZ_INDEX = episode
   QUIZ_EPISODE = show_data["episodes"][episode]
   QUIZ_SHOW = selected_show # current show
-  logger.info("Correct answer: " + QUIZ_EPISODE["title"])
-  logger.debug(f"{QUIZ_EPISODE}")
+  #logger.info("Correct answer: " + QUIZ_EPISODE["title"])
+  #logger.debug(f"{QUIZ_EPISODE}")
   image = random.choice(QUIZ_EPISODE["stills"])
   r = requests.get(TMDB_IMG_PATH + image, headers={'user-agent': 'Mozilla/5.0'})
   with open('./images/ep.jpg', 'wb') as f:
@@ -112,7 +112,7 @@ async def episode_quiz(message):
 async def quiz_finished():
   global QUIZ_EPISODE, QUIZ_INDEX, CORRECT_ANSWERS, FUZZ, QUIZ_SHOW, PREVIOUS_EPS
   #await asyncio.sleep(1)
-  logger.info("Ending quiz...")
+  logger.info(f"{Fore.MAGENTA}Ending quiz!{Fore.RESET}")
 
   f = open("./data/episodes/" + QUIZ_SHOW + ".json")
   show_data = json.load(f)
@@ -144,4 +144,4 @@ async def quiz_finished():
   QUIZ_SHOW = False 
   QUIZ_EPISODE = False # the current episode
   QUIZ_INDEX = -1
-  logger.info("Quiz finished!")
+  logger.info(f"{Fore.LIGHTMAGENTA_EX}Quiz finished!{Fore.RESET}")

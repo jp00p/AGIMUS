@@ -8,7 +8,7 @@ import math
 # The goal is to display three random images and determine if
 # those images are related in any special way
 async def slots(message:discord.Message):
-  print("> !SLOTS")
+  #print("> !SLOTS")
   
   # Load slots data
   f = open(config["commands"]["slots"]["data"])
@@ -21,12 +21,12 @@ async def slots(message:discord.Message):
   else:
     show = random.choice(["TNG", "DS9", "VOY", "HOLODECK"])
   
-  logger.info("show: " + show)
+  logger.info(f"{Fore.LIGHTRED_EX}Rolling slot theme:{Fore.RESET} {Style.BRIHGT}{show}{Style.RESET_ALL}")
 
   # player data  
   id = message.author.id
   player = get_player(id)
-  logger.info(player)
+  #logger.info(player)
   free_spin = player["spins"] < 5 # true or false
   wager = player["wager"]
   score_mult = wager
@@ -38,7 +38,7 @@ async def slots(message:discord.Message):
   
   total_rewards = 0
   themed_payout = SLOTS[show]["payout"]
-  logger.info("payout" + str(themed_payout))
+  #logger.info("payout" + str(themed_payout))
   
   if player["score"] < wager and not free_spin:
     # if they don't have enough bits to play

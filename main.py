@@ -73,7 +73,7 @@ async def on_message(message:discord.Message):
     logger.error(f"{Fore.RED}<! ERROR: Failed to process message for xp !>{Fore.RESET}")
   
   # Bang Command Handling
-  logger.debug(message)
+  #logger.debug(message)
   if message.content.startswith("!"):
     logger.info(f"Processing {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
     try:

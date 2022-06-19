@@ -131,9 +131,8 @@ def is_integer(n):
 # used in all commands described in the configuration object
 def uniq_channels(config):
   tkeys = []
-  for key in config["commands"].keys():
-    tkeys = tkeys + config["commands"][key]["channels"]
-    
+  for key in config["channels"].keys():
+    tkeys = tkeys + config["channels"][key]    
   res = []
   [res.append(int(x)) for x in tkeys if x not in res]
   return res
