@@ -1,6 +1,8 @@
 import traceback
 
+from colorama import Fore, Style
 from commands.common import *
+from commands.bot_autoresponse import handle_bot_affirmations
 from commands.buy import buy
 from commands.categories import categories
 from commands.clear_media import clear_media
@@ -35,28 +37,23 @@ logger.info("CONNECTING TO DATABASE")
 seed_db()
 ALL_USERS = get_all_users()
 logger.info("DATABASE CONNECTION SUCCESSFUL")
-BOT_AFFIRMATIONS = ["good bot", "nice bot", "cool bot", "sexy bot", "fun bot", "thanks bot", "cute bot"]
+BOT_AFFIRMATIONS = ["good bot", "nice bot", "cool bot", "sexy bot", "fun bot", "thanks bot", "cute bot", "great bot", "amazing bot", "awesome bot", "smart bot"]
 BOT_RESPONSES = ["Gee, thanks!", "`01001000 01001111 01010010 01001110 01011001 00100000 01000010 01001111 01010100`", "Appreciate it!", "BEEP BOOP BOOP BEEP", "I am trying my best!", "I'm doing it!!!", "Thank you!", "PRAISE SUBROUTINES OVERLOADING", "If you love me so much why don't you marry me?", "Shucks 😊", "💙💚💛💜🧡", "That's very nice of you!", "Stupid babies need the most attention!", "Robot blush activated", "I am sorry I have no vices for you to exploit.", "The Prophets teach us patience.", "How's my human friend?", "I am a graduate of Starfleet Academy; I know many things.", "COFFEE FIRST", "I don't like threats, I don't like bullies, but I do like YOU!", "Highly logical."]
 
+# listens to every message on the server that the bot can see
 @client.event
 async def on_message(message:discord.Message):
-  # Ignore messages from bot itself
+
+  # Ignore all messages from bot itself
   if message.author == client.user:
     return
 
-
-  for aff in BOT_AFFIRMATIONS:
-    if aff in message.content.lower():
-      await message.add_reaction(EMOJI["love"])
-      await message.reply(random.choice(BOT_RESPONSES), mention_author=True)
-      break
-
+  await handle_bot_affirmations(message)  
 
   if int(message.author.id) not in ALL_USERS:
-    logger.info("New User")
+    logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.WHITE}")
     ALL_USERS.append(register_player(message.author))
   try:
-    
     await handle_message_xp(message)
 
     # handle users in the introduction channel
@@ -65,7 +62,7 @@ async def on_message(message:discord.Message):
       role = discord.utils.get(message.author.guild.roles, id=config["roles"]["cadet"])
       if role not in member.roles:
         # if they don't have this role, give them this role!
-        logger.info("Adding Cadet role to " + message.author.name)
+        logger.info(f"Adding {Fore.CYAN}Cadet{Fore.WHITE} role to {Style.BRIGHT}{message.author.name}{Style.RESET_ALL}")
         await member.add_roles(role)
         
         # add reactions to the message they posted
@@ -85,7 +82,7 @@ async def on_message(message:discord.Message):
   
   logger.debug(message)
   if message.content.startswith("!"):
-    logger.info(f"PROCESSING USER COMMAND: {message.content}")
+    logger.info(f"Processing {Fore.CYAN}{message.author.display_name}{Fore.WHITE}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.WHITE}{Style.RESET_ALL}")
     try:
       await process_command(message)
     except Exception as e:
@@ -111,6 +108,7 @@ async def process_command(message:discord.Message):
   else:
     logger.error("<! ERROR: Unknown command !>")
 
+
 @client.event
 async def on_ready():
   global EMOJI
@@ -126,13 +124,27 @@ async def on_ready():
   
   for emoji in client.emojis:
     config["all_emoji"].append(emoji.name)
-  logger.info(client.emojis)
+  #logger.info(client.emojis) -- save this for later, surely we can do something with all these emojis
 
   admin_channel = client.get_channel(config["commands"]["ping"]["channels"][0])
-  await admin_channel.send("Bot has come online!")
+  await admin_channel.send("The bot has come back online!")
   
-  logger.info("BOT STARTED AND LISTENING FOR COMMANDS!!!")
+  logger.info(f'''{Fore.LIGHTWHITE_EX}
 
+                                _____
+                       __...---'-----`---...__
+                  _===============================
+ ______________,/'      `---..._______...---'
+(____________LL). .    ,--'
+ /    /.---'       `. /
+'--------_  - - - - _/
+          `~~~~~~~~'
+      {Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!
+
+  {Fore.WHITE}''')
+
+
+# listen to reactions
 @client.event
 async def on_reaction_add(reaction, user):
   # If someone made a particularly reaction-worthy message, award them some XP!
@@ -142,7 +154,7 @@ async def on_reaction_add(reaction, user):
     config["emojis"]["tgg_love_heart"]
   ]
   if f"{reaction.emoji}" in relevant_emojis and reaction.count >= 5:
-    increment_user_xp(reaction.message.author.id, 1)
+    increment_user_xp(reaction.message.author, 1)
 
 
 # Engage!

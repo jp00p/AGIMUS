@@ -261,5 +261,7 @@
     "tendi_smile_happy": "<:tendi_smile_happy:757768236069814283>",
     "tgg_love_heart": "<:love_heart_tgg:798600300264161280>"
   },
-  "all_emoji": []
+  "all_emoji": [],
+  "bot_responses":["Gee, thanks!", "`01001000 01001111 01010010 01001110 01011001 00100000 01000010 01001111 01010100`", "Appreciate it!", "BEEP BOOP BOOP BEEP", "I am trying my best!", "I'm doing it!!!", "Thank you!", "PRAISE SUBROUTINES OVERLOADING", "If you love me so much why don't you marry me?", "Shucks 😊", "💙💚💛💜🧡", "That's very nice of you!", "Stupid babies need the most attention!", "Robot blush activated", "I am sorry I have no vices for you to exploit.", "The Prophets teach us patience.", "How's my human friend?", "I am a graduate of Starfleet Academy; I know many things.", "COFFEE FIRST", "I don't like threats, I don't like bullies, but I do like YOU!", "Highly logical."],
+  "bot_affirmations":["good bot", "nice bot", "cool bot", "sexy bot", "fun bot", "thanks bot", "cute bot", "great bot", "amazing bot", "awesome bot", "smart bot"]
 }

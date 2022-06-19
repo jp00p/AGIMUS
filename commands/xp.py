@@ -10,7 +10,10 @@ xp_colors = [
     Back.YELLOW + Fore.WHITE, # 5 xp black text on yellow
 ]
 
-# handle_message_xp() - calculates xp for a given message
+CADET_XP_REQUIREMENT    = 10
+ENSIGN_XP_REQUIREMENT   = 16
+
+# handle_message_xp(message) - calculates xp for a given message
 # message[required]: discord.Message
 async def handle_message_xp(message:discord.Message):
 
@@ -39,8 +42,8 @@ async def handle_message_xp(message:discord.Message):
 
     if xp_amt != 0:
         msg_color = xp_colors[xp_amt]
-        logger.info(f"{msg_color}{message.author.display_name} earns {xp_amt} XP{Style.RESET_ALL}")
-        increment_user_xp(message.author.id, xp_amt) # commit the xp gain to the db
+        logger.info(f"{msg_color}{message.author.display_name} earns {Style.BRIGHT}{xp_amt}{Style.NORMAL} XP{Fore.WHITE}")
+        increment_user_xp(message.author, xp_amt) # commit the xp gain to the db
         
         # handle role stuff
         cadet_role = discord.utils.get(message.author.guild.roles, id=config["roles"]["cadet"])
@@ -49,26 +52,26 @@ async def handle_message_xp(message:discord.Message):
 
         # if they don't have cadet yet and they are over the required xp, give it to them
         if cadet_role not in message.author.roles:
-            if user_xp >= 10:
+            if user_xp >= CADET_XP_REQUIREMENT:
                 await message.author.add_roles(cadet_role)
-                logger.info(f"{Fore.CYAN}{message.author.display_name} has been promoted to Cadet via XP!{Style.RESET_ALL}")
+                logger.info(f"{Fore.CYAN}{message.author.display_name} has been promoted to Cadet via XP!{Fore.WHITE}")
         else:
         # if they do have cadet but not ensign yet, give it to them
             if ensign_role not in message.author.roles:
-                if user_xp >= 15:
+                if user_xp >= ENSIGN_XP_REQUIREMENT:
                     await message.author.add_roles(ensign_role)
-                    logger.info(f"{Fore.GREEN}{message.author.display_name} has been promoted to Ensign via XP!{Style.RESET_ALL}")
+                    logger.info(f"{Fore.GREEN}{message.author.display_name} has been promoted to Ensign via XP!{Fore.WHITE}")
 
 
-# increment_user_xp(discord_id, amt)
-# discord_id[required]: int
+# increment_user_xp(author, amt)
+# messauge.author[required]: discord.User
 # amt[required]: int
 # This function will increment a users' XP
-def increment_user_xp(discord_id, amt):
+def increment_user_xp(user, amt):
   db = getDB()
   query = db.cursor()
-  sql = "UPDATE users SET xp = xp + %s WHERE discord_id = %s"
-  vals = (amt,discord_id)
+  sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s"
+  vals = (amt,user.display_name, user.id)
   query.execute(sql, vals)
   db.commit()
   query.close()
