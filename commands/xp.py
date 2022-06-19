@@ -5,9 +5,9 @@ xp_colors = [
     "", # 0 xp no color
     Fore.WHITE, # 1 xp white text
     Fore.CYAN, # 2 xp cyan text
-    Fore.GREEN, # 3 xp green text
-    Back.WHITE + Fore.BLACK, # 4 xp black text on white
-    Back.YELLOW + Fore.WHITE, # 5 xp black text on yellow
+    Fore.LIGHTGREEN_EX, # 3 xp green text
+    Back.LIGHTGREEN_EX + Fore.BLACK, # 4 xp black text on white
+    Back.LIGHTYELLOW_EX + Fore.BLACK, # 5 xp black text on yellow
 ]
 
 CADET_XP_REQUIREMENT    = 10
