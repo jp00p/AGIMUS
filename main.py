@@ -28,13 +28,13 @@ from commands.triv import *
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
-logger.info("ENVIRONMENT VARIABLES AND COMMANDS LOADED")
+from commands.xp import handle_message_xp, increment_user_xp
 
+logger.info("ENVIRONMENT VARIABLES AND COMMANDS LOADED")
 logger.info("CONNECTING TO DATABASE")
 seed_db()
 ALL_USERS = get_all_users()
 logger.info("DATABASE CONNECTION SUCCESSFUL")
-ALL_EMOJI = []
 BOT_AFFIRMATIONS = ["good bot", "nice bot", "cool bot", "sexy bot", "fun bot", "thanks bot", "cute bot"]
 BOT_RESPONSES = ["Gee, thanks!", "`01001000 01001111 01010010 01001110 01011001 00100000 01000010 01001111 01010100`", "Appreciate it!", "BEEP BOOP BOOP BEEP", "I am trying my best!", "I'm doing it!!!", "Thank you!", "PRAISE SUBROUTINES OVERLOADING", "If you love me so much why don't you marry me?", "Shucks 😊", "💙💚💛💜🧡", "That's very nice of you!", "Stupid babies need the most attention!", "Robot blush activated", "I am sorry I have no vices for you to exploit.", "The Prophets teach us patience.", "How's my human friend?", "I am a graduate of Starfleet Academy; I know many things.", "COFFEE FIRST", "I don't like threats, I don't like bullies, but I do like YOU!", "Highly logical."]
 
@@ -56,52 +56,13 @@ async def on_message(message:discord.Message):
     logger.info("New User")
     ALL_USERS.append(register_player(message.author))
   try:
-    # handle giving users XP
-    xp_amt = 0
-
-    # if the message is longer than 3 words +1 xp
-    if len(message.content.split()) > 3:
-      xp_amt += 1
-      # if that message also has any of our emoji, +1 xp
-      for e in ALL_EMOJI:
-        if message.content.find(e) != -1:
-          xp_amt += 1
-          break;
-    # if the message is longer than 33 words +1 xp
-    if len(message.content.split()) > 33:
-      xp_amt += 1
     
-    # ...and 66, +1 more
-    if len(message.content.split()) > 66:
-      xp_amt += 1
-
-    # if there's an attachment, +1 xp
-    if len(message.attachments) > 0:
-      xp_amt += 1 
-
-    if xp_amt != 0:
-      logger.info(f"{message.author.display_name} earns {xp_amt} XP")
-      increment_user_xp(message.author.id, xp_amt) # commit the xp gain to the db
-      
-      # handle role stuff
-      cadet_role = discord.utils.get(message.author.guild.roles, id=ROLES['cadet'])
-      ensign_role = discord.utils.get(message.author.guild.roles, id=ROLES['ensign'])
-      user_xp = get_user_xp(message.author.id)
-
-      # if they don't have cadet yet and they are over xp 10, give it to them
-      if cadet_role not in message.author.roles:
-        if user_xp >= 10:
-          await message.author.add_roles(cadet_role)
-      else:
-        # if they do have cadet but not ensign yet, give it to them
-        if ensign_role not in message.author.roles:
-          if user_xp >= 15:
-            await message.author.add_roles(ensign_role)
+    await handle_message_xp(message)
 
     # handle users in the introduction channel
     if message.channel.id == INTRO_CHANNEL:
       member = message.author
-      role = discord.utils.get(message.author.guild.roles, id=ROLES['cadet'])
+      role = discord.utils.get(message.author.guild.roles, id=config["roles"]["cadet"])
       if role not in member.roles:
         # if they don't have this role, give them this role!
         logger.info("Adding Cadet role to " + message.author.name)
@@ -152,9 +113,7 @@ async def process_command(message:discord.Message):
 
 @client.event
 async def on_ready():
-  global ROLES
   global EMOJI
-  global ALL_EMOJI
   random.seed()
   EMOJI["shocking"] = discord.utils.get(client.emojis, name="q_shocking")
   EMOJI["chula"] = discord.utils.get(client.emojis, name="chula_game")
@@ -166,7 +125,8 @@ async def on_ready():
   ALL_USERS = get_all_users()
   
   for emoji in client.emojis:
-    ALL_EMOJI.append(emoji.name)
+    config["all_emoji"].append(emoji.name)
+  logger.info(client.emojis)
 
   admin_channel = client.get_channel(config["commands"]["ping"]["channels"][0])
   await admin_channel.send("Bot has come online!")

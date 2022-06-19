@@ -241,36 +241,6 @@ def update_player_profile_badge(discord_id, badge):
   query.close()
   db.close()
 
-# increment_user_xp(discord_id, amt)
-# discord_id[required]: int
-# amt[required]: int
-# This function will increment a users' XP
-def increment_user_xp(discord_id, amt):
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE users SET xp = xp + %s WHERE discord_id = %s"
-  vals = (amt,discord_id)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
-
-# get_user_xp(discord_id)
-# discord_id[required]: int
-# Returns a users current XP
-def get_user_xp(discord_id):
-  db = getDB()
-  query = db.cursor()
-  sql = "SELECT xp FROM users WHERE discord_id = %s"
-  vals = (discord_id,)
-  query.execute(sql, vals)
-  user_xp = query.fetchone()
-  db.commit()
-  query.close()
-  db.close()
-  return user_xp[0]
-
-
 # set_player_score(user, amt)
 # user[required]: object
 # amt[required]: int
