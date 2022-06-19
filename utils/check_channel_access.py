@@ -2,10 +2,10 @@ from commands.common import *
 
 emojis = config["emojis"]
 
-# @check_channel_access decorator
+# @slash_check_channel_access decorator
 # Can be injected in between @slash.slash and your slash function to 
 # restrict access to the "channels" from the command config
-def check_channel_access(command_config):
+def slash_check_channel_access(command_config):
   # Container accepts the actual drop function as `command`
   def container(command):
     # The decorator is what actually performs the check before determining whether to execute the command
@@ -17,30 +17,26 @@ def check_channel_access(command_config):
         # If we have access, go ahead and execute the command and pass through the arguments sent to the decorator
         await command(*dargs, **dkwargs)
       else:
-        # No-Op
+        await ctx.send(f"{emojis.get('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.", hidden=True)
         return
     return decorator
   return container
 
 async def perform_channel_check(ctx, command_config):
-  # Verify that we're allowed to perform drops in this channel
+  # Verify that we're allowed to execute the command in this channel
   allowed_channels = command_config.get("channels")
   blocked_channels = command_config.get("blocked_channels")
+
+  # If we're in the development channel everything goes
+  if ctx.channel.id == DEV_CHANNEL:
+    return True
+
+  # Otherwise check allowed/blocked channel lists
   if allowed_channels:
-    if not (ctx.channel.id in allowed_channels):
-      allowed_channel_names = []
-      for id in allowed_channels:
-        channel = client.get_channel(id)
-        allowed_channel_names.append(channel.mention)
-      await ctx.send(f"{emojis.get('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel. Allowed channels are: {', '.join(allowed_channel_names)}.", hidden=True)
-      return False
-    else:
-      return True
+    allowed_channel_ids = get_channel_ids_list(allowed_channels)
+    return ctx.channel.id in allowed_channel_ids
   elif blocked_channels is not None:
-    if (ctx.channel.id in blocked_channels):
-      await ctx.send(f"{emojis.get('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.", hidden=True)
-      return False
-    else:
-      return True
+    blocked_channel_ids = get_channel_ids_list(blocked_channels)
+    return ctx.channel.id not in blocked_channel_ids
   else:
     return True

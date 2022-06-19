@@ -41,7 +41,7 @@ nexttrek_config = config["commands"]["nexttrek"]
     )
   ]
 )
-@check_channel_access(nexttrek_config)
+@slash_check_channel_access(nexttrek_config)
 async def nexttrek(ctx:SlashContext, show:str):
   tvmaze_ids = {
     "lowerdecks": 39323,
@@ -82,7 +82,7 @@ nextep_config = config["commands"]["nextep"]
     )
   ]
 )
-@check_channel_access(nextep_config)
+@slash_check_channel_access(nextep_config)
 async def nextep(ctx:SlashContext, query:str):
   encoded_query = urllib.parse.quote(query, safe='')
   try:

@@ -55,7 +55,7 @@ async def clips(ctx:SlashContext):
     )
   ]
 )
-@check_channel_access(command_config)
+@slash_check_channel_access(command_config)
 async def clip(ctx:SlashContext, **kwargs):
   query = kwargs.get('query')
   private = kwargs.get('private')
