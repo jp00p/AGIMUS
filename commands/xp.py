@@ -42,7 +42,7 @@ async def handle_message_xp(message:discord.Message):
 
     if xp_amt != 0:
         msg_color = xp_colors[xp_amt]
-        logger.info(f"{msg_color}{message.author.display_name} earns {Style.BRIGHT}{xp_amt}{Style.NORMAL} XP{Fore.WHITE}")
+        logger.info(f"{msg_color}{message.author.display_name} earns {Style.BRIGHT}{xp_amt}{Style.NORMAL} XP{Fore.WHITE}{Back.BLACK}")
         increment_user_xp(message.author, xp_amt) # commit the xp gain to the db
         
         # handle role stuff
