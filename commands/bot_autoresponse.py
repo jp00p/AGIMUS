@@ -3,16 +3,15 @@ from .common import *
 # Load up our list of complimentary and condemnation adjectives
 with open('bot_affirmations.txt') as f:
   bot_affirmations = f.read().splitlines()
-bot_condmenations = config["bot_condemnation_responses"]
+with open('bot_condemnations.txt') as f:
+  bot_condemnations = f.read().splitlines()
 
-logger.info(bot_condmenations)
-
-# bot_affirmations(message) - responds to bot compliments
+# bot_affirmations(message) - responds to bot compliments/complaints
 # message[required]: discord.Message
 async def handle_bot_affirmations(message:discord.Message):
   message_content = message.content.lower()
 
-  for condemnation in bot_condmenations:
+  for condemnation in bot_condemnations:
     if f"{condemnation} bot" in message_content:
       if not (re.match(fr"not a?\s?{condemnation} bot", message_content)):
         await respond_to_sass(message)
