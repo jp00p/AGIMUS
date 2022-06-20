@@ -75,7 +75,7 @@ async def on_message(message:discord.Message):
   # Bang Command Handling
   #logger.debug(message)
   if message.content.startswith("!"):
-    logger.info(f"Processing {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
+    logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
     try:
       await process_command(message)
     except Exception as e:
@@ -94,11 +94,17 @@ async def process_command(message:discord.Message):
   # If the user's first word matches one of the commands in configuration
   if user_command in config["commands"].keys():
     # Check enabled
+    logger.info(f"Parsed command: {Fore.LIGHTBLUE_EX}{user_command}{Fore.RESET}")
     if config["commands"][user_command]["enabled"]:
-      # Check Channel Access Restrictions
+      # Check Channel Access Restrictions 
       access_granted = await perform_channel_check(message, config["commands"][user_command])
+      logger.info(f"Access granted? {Fore.LIGHTGREEN_EX}{access_granted}{Fore.RESET}")
       if access_granted:
-        await eval(user_command + "(message)")
+        logger.info(f"{Fore.RED}Firing command!{Fore.RESET}")
+        try:
+          await eval(user_command + "(message)")
+        except SyntaxError as s:
+          logger.info(f"ERROR WITH EVAL: {Fore.RED}{s}{Fore.RESET}")
     else:
       logger.error(f"{Fore.RED}<! ERROR: This function has been disabled: '{user_command}' !>{Fore.RESET}")
   else:

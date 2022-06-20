@@ -348,7 +348,8 @@
     },
     "slots": {
       "channels": [
-        "slots-slots-slots"
+        "slots-slots-slots",
+        "robot-diagnostics"
       ],
       "enabled": true,
       "data": "data/slots.json",
@@ -368,7 +369,8 @@
     },
     "testslots": {
       "channels": [
-        "slots-slots-slots"
+        "slots-slots-slots",
+        "robot-diagnostics"
       ],
       "enabled": true,
       "data": "data/testslots.json",

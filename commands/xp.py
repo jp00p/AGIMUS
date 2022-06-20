@@ -1,12 +1,18 @@
 from .common import *
 
 xp_colors = [
-    "", # 0 xp no color
-    Back.BLUE + Fore.WHITE, # 1 xp 
-    Back.CYAN + Fore.WHITE, # 2 xp
-    Back.MAGENTA + Fore.WHITE, # 3 xp
-    Back.GREEN + Fore.WHITE, # 4 xp
-    Back.YELLOW + Fore.WHITE, # 5 xp
+    Fore.CYAN,
+    Fore.GREEN,
+    Fore.LIGHTBLUE_EX,
+    Fore.LIGHTCYAN_EX,
+    Fore.LIGHTGREEN_EX,
+    Fore.LIGHTMAGENTA_EX,
+    Fore.LIGHTRED_EX,
+    Fore.LIGHTWHITE_EX,
+    Fore.LIGHTYELLOW_EX,
+    Fore.MAGENTA,
+    Fore.RED,
+    Fore.YELLOW
 ]
 
 CADET_XP_REQUIREMENT    = 10
@@ -40,8 +46,9 @@ async def handle_message_xp(message:discord.Message):
         xp_amt += 1 
 
     if xp_amt != 0:
-        msg_color = xp_colors[xp_amt]
-        logger.info(f"{msg_color}{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} earns {Style.BRIGHT}{xp_amt}{Style.RESET_ALL} XP{Fore.RESET}{Back.RESET}")
+        msg_colors = random.choices(xp_colors, k=2)
+        
+        logger.info(f"{msg_colors[0]}{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL}{Fore.RESET} earns {msg_colors[1]}{Style.BRIGHT}{xp_amt}{Style.RESET_ALL} XP{Fore.RESET}")
         increment_user_xp(message.author, xp_amt) # commit the xp gain to the db
         
         # handle role stuff
