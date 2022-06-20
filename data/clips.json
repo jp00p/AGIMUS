@@ -9,6 +9,16 @@
     "description": "Data it is its revolting green",
     "url": "https://i.imgur.com/I9mvDej.mp4"
   },
+  "Data - Oh Shit!": {
+    "file": "data/clips/dataohshit.mp4",
+    "description": "Data Ohhhh Shit!",
+    "url": "https://i.imgur.com/GH7Dy2J.mp4"
+  },
+  "Data - Yesss!": {
+    "file": "data/clips/datayesss.mp4",
+    "description": "Data Yes",
+    "url": "https://i.imgur.com/nHAdPH2.mp4"
+  },
   "Fire All The Torpedos!": {
     "file": "data/clips/fireallthetorpedos.mp4",
     "description": "Fire All The Torpedos",
@@ -40,9 +50,14 @@
     "url": "https://i.imgur.com/l9v4dnD.mp4"
   },
   "Picard Laughing (Hurr Hurr)": {
-    "file": "data/clips/picardlaughing.mp4",
+    "file": "data/clips/picardlaughinghurrhurr.mp4",
     "description": "Picard Laugh Laughing hurr hurr",
     "url": "https://i.imgur.com/BzeN4li.mp4"
+  },
+  "Picard Laughing (Smiley Face)": {
+    "file": "data/clips/picardlaughingsmileyface.mp4",
+    "description": "Picard Laugh Laughing Smiley Face Vapor",
+    "url": "https://i.imgur.com/VpK35NR.mp4"
   },
   "Picard With A Machine Gun": {
     "file": "data/clips/picardmachinegun.mp4",
@@ -83,6 +98,11 @@
     "file": "data/clips/weyounhowdelightful.mp4",
     "description": "Weyoun how delightful",
     "url": "https://i.imgur.com/ysSanNI.mp4"
+  },
+  "Worf - A Warrior's Drink!": {
+    "file": "data/clips/worfwarriorsdrink.mp4",
+    "description": "Worf Warriors Drink Prune Juice",
+    "url": "https://i.imgur.com/TPgzycP.mp4"
   },
   "Worf - Delicious": {
     "file": "data/clips/worfdelicious.mp4",
