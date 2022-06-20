@@ -30,7 +30,7 @@ from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
 from commands.update_status import update_status
-from commands.xp import handle_message_xp, increment_user_xp
+from commands.xp import handle_message_xp, handle_react_xp
 from utils.check_channel_access import perform_channel_check
 
 logger.info(f"{Fore.LIGHTGREEN_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}")
@@ -152,15 +152,7 @@ async def on_ready():
 # listen to reactions
 @client.event
 async def on_reaction_add(reaction, user):
-  # If someone made a particularly reaction-worthy message, award them some XP!
-  relevant_emojis = [
-    config["emojis"]["data_lmao_lol"],
-    config["emojis"]["picard_yes_happy_celebrate"],
-    config["emojis"]["tgg_love_heart"]
-  ]
-  if f"{reaction.emoji}" in relevant_emojis and reaction.count >= 5:
-    logger.info(f"User {Style.BRIGHT}{reaction.message.author}{Style.RESET_ALL} gets {Style.BRIGHT}1 xp{Style.RESET_ALL} for their post being reacted to!")
-    increment_user_xp(reaction.message.author, 1)
+  await handle_react_xp(reaction, user)
 
 
 # Engage!

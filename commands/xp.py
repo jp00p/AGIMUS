@@ -76,8 +76,6 @@ async def handle_message_xp(message:discord.Message):
                     await message.author.add_roles(ensign_role)
                     logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.GREEN}Ensign{Fore.RESET} via XP!")
         
-        
-
 
 # increment_user_xp(author, amt)
 # messauge.author[required]: discord.User
@@ -87,7 +85,7 @@ def increment_user_xp(user, amt):
   db = getDB()
   query = db.cursor()
   sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s"
-  vals = (amt,user.display_name, user.id)
+  vals = (amt, user.display_name, user.id)
   query.execute(sql, vals)
   db.commit()
   query.close()
@@ -107,3 +105,54 @@ def get_user_xp(discord_id):
   query.close()
   db.close()
   return user_xp[0]
+
+async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
+  # Check if this user has already reacted to this message with this emoji
+  reaction_already_counted = check_react_history(reaction, user)
+  if reaction_already_counted:
+    logger.info(f"{Fore.LIGHTRED_EX}{Style.BRIGHT}{user.display_name}{Style.RESET_ALL} has {Fore.RED}already reacted{Fore.RESET} to {Style.BRIGHT}Message #{reaction.message.id}{Style.RESET_ALL} with {Style.BRIGHT}{reaction.emoji.name}{Style.RESET_ALL} previously!")
+    return
+  
+  # If reaction hasn't been logged already, go ahead and do so and then award some XP!
+  logger.info(f"{Style.BRIGHT}{user.display_name}{Style.RESET_ALL} gets {Style.BRIGHT}1 xp{Style.RESET_ALL} for reacting with {Style.BRIGHT}{reaction.emoji.name}{Style.RESET_ALL} to {Style.BRIGHT}Message #{reaction.message.id}{Style.RESET_ALL}!")
+  log_react_history(reaction, user)
+  increment_user_xp(user, 1)
+
+  # Give the author some bonus XP if they've made a particularly reaction-worthy message!
+  threshold_relevant_emojis = [
+    config["emojis"]["data_lmao_lol"],
+    config["emojis"]["picard_yes_happy_celebrate"],
+    config["emojis"]["tgg_love_heart"]
+  ]
+  if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 5 and reaction.count < 10:
+    logger.info(f"{Fore.LIGHTGREEN_EX}User {Style.BRIGHT}{reaction.message.author.display_name}{Style.RESET_ALL} gets {Fore.LIGHTGREEN_EX}{Style.BRIGHT}1 xp{Style.RESET_ALL} for their message being reaction-worthy!")
+    increment_user_xp(reaction.message.author, 1)
+  
+  if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 10 and reaction.count < 20:
+    logger.info(f"{Fore.LIGHTBLUE_EX}User {Style.BRIGHT}{reaction.message.author.display_name}{Style.RESET_ALL} gets {Style.BRIGHT}2 xp{Style.RESET_ALL} for their message being {Fore.LIGHTBLUE_EX}{Style.BRIGHT}*particularly*{Style.RESET_ALL} reaction-worthy!")
+    increment_user_xp(reaction.message.author, 2)
+
+  if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 20:
+    logger.info(f"{Back.LIGHTBLACK_EX}{Fore.CYAN}User {Style.BRIGHT}{reaction.message.author.display_name}{Style.RESET_ALL} gets {Style.BRIGHT}5 xp{Style.RESET_ALL} for their message being {Fore.CYAN}{Style.BRIGHT}**ULTRA**{Style.RESET_ALL} reaction-worthy!")
+    increment_user_xp(reaction.message.author, 5)
+
+def check_react_history(reaction:discord.Reaction, user:discord.User):
+  db = getDB()
+  query = db.cursor()
+  sql = "SELECT id FROM reactions WHERE user_id = %s AND reaction = %s AND reaction_message_id = %s"
+  vals = (user.id, f"{reaction}", reaction.message.id)
+  query.execute(sql, vals)
+  reaction_exists = query.fetchone()
+  query.close()
+  db.close()
+  return reaction_exists
+
+def log_react_history(reaction:discord.Reaction, user:discord.User):
+  db = getDB()
+  query = db.cursor()
+  sql = "INSERT INTO reactions (user_id, user_name, reaction, reaction_message_id) VALUES (%s, %s, %s, %s)"
+  vals = (user.id, user.display_name, f"{reaction}", reaction.message.id)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()

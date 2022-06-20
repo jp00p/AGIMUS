@@ -25,3 +25,13 @@ CREATE TABLE IF NOT EXISTS users (
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)
 );
+CREATE TABLE IF NOT EXISTS reactions (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_id varchar(64) NOT NULL,
+  user_name varchar(64) NOT NULL,
+  reaction varchar(128) NOT NULL,
+  reaction_message_id varchar(64) NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  CONSTRAINT USERID_MESSAGEID UNIQUE (user_id, reaction_message_id)
+);
