@@ -16,6 +16,12 @@ change_presence_funcs = {
   "watch": watch_func
 }
 
+change_presence_prefixes = {
+  "game": "Playing",
+  "listen": "Listening to",
+  "watch": "Watching"
+}
+
 # update_status() - Entrypoint for !update_status command
 # message[required]: discord.Message
 # This function is the main entrypoint of the !update_status command
@@ -23,7 +29,7 @@ change_presence_funcs = {
 #   * game
 #   * listening
 #   * watching
-# And depending on type provide additional info
+# The remainder of the message will be used for the status text
 async def update_status(message:discord.Message):
   logger.info(f"{Fore.LIGHTGREEN_EX}Updating Status! Requested by {Style.BRIGHT}{message.author.display_name}{Fore.RESET}")
   argument_list = message.content.lower().replace("!update_status ", "").split()
@@ -45,6 +51,7 @@ async def update_status(message:discord.Message):
         description="Must provide one of: `game`, `listen`, or `watch`",
         color=discord.Color.red()
       ))
+      logger.info(f"{Fore.RED}Unable to update status. Invalid type for status request: {Style.BRIGHT}{type}{Fore.RESET}")
       return
 
     await change_presence_funcs[type](status)
@@ -52,3 +59,7 @@ async def update_status(message:discord.Message):
       title="Status Updated Successfully!",
       color=discord.Color.green()
     ))
+
+    logger.info(f"{Fore.CYAN}Status updated to: {Style.BRIGHT}{change_presence_prefixes[type]} {status}{Fore.RESET}")
+    
+
