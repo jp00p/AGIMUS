@@ -8,7 +8,7 @@ import math
 # The goal is to display three random images and determine if
 # those images are related in any special way
 async def slots(message:discord.Message):
-  #print("> !SLOTS")
+  logger.info(f"{Fore.YELLOW}Rolling the slots!{Fore.RESET}")
   
   # Load slots data
   f = open(config["commands"]["slots"]["data"])
@@ -21,8 +21,7 @@ async def slots(message:discord.Message):
   else:
     show = random.choice(["TNG", "DS9", "VOY", "HOLODECK"])
   
-  logger.info(f"{Fore.LIGHTRED_EX}Rolling slot theme:{Fore.RESET} {Style.BRIHGT}{show}{Style.RESET_ALL}")
-
+  logger.info(f"{Fore.LIGHTRED_EX}Rolling slot theme:{Fore.RESET} {Style.BRIGHT}{show}{Style.RESET_ALL}")
   # player data  
   id = message.author.id
   player = get_player(id)
@@ -74,7 +73,10 @@ async def slots(message:discord.Message):
   
   # roll the slots!
   silly_matches, matching_chars, jackpot, symbol_matches = roll_slot(show, SLOTS[show], filename=str(message.author.id))
-  file = discord.File("./images/slot_results/{0}.png".format(message.author.id), filename=str(message.author.id)+".png")
+  try:
+    file = discord.File("./images/slot_results/{0}.png".format(message.author.id), filename=str(message.author.id)+".png")
+  except:
+    logger.info(f"{Fore.RED}Error generating discord file placeholder{Fore.RESET}")
   match_msg = message.author.mention + "'s spin results: \n"
   
   if len(symbol_matches) > 0:
