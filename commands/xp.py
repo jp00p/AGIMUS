@@ -1,19 +1,20 @@
 from .common import *
 
 xp_colors = [
-    Fore.CYAN,
-    Fore.GREEN,
-    Fore.LIGHTBLUE_EX,
-    Fore.LIGHTCYAN_EX,
-    Fore.LIGHTGREEN_EX,
-    Fore.LIGHTMAGENTA_EX,
-    Fore.LIGHTRED_EX,
-    Fore.LIGHTWHITE_EX,
-    Fore.LIGHTYELLOW_EX,
-    Fore.MAGENTA,
     Fore.RED,
-    Fore.YELLOW
+    Fore.LIGHTRED_EX,
+    Fore.YELLOW,
+    Fore.LIGHTYELLOW_EX,
+    Fore.GREEN,
+    Fore.LIGHTGREEN_EX,
+    Fore.BLUE,
+    Fore.LIGHTBLUE_EX,
+    Fore.CYAN,
+    Fore.LIGHTCYAN_EX,  
+    Fore.MAGENTA,
+    Fore.LIGHTMAGENTA_EX
 ]
+current_color = 0
 
 CADET_XP_REQUIREMENT    = 10
 ENSIGN_XP_REQUIREMENT   = 16
@@ -21,6 +22,8 @@ ENSIGN_XP_REQUIREMENT   = 16
 # handle_message_xp(message) - calculates xp for a given message
 # message[required]: discord.Message
 async def handle_message_xp(message:discord.Message):
+
+    global current_color
 
     xp_amt = 0
 
@@ -46,10 +49,15 @@ async def handle_message_xp(message:discord.Message):
         xp_amt += 1 
 
     if xp_amt != 0:
-        msg_colors = random.choices(xp_colors, k=2)
-        
-        logger.info(f"{msg_colors[0]}{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL}{Fore.RESET} earns {msg_colors[1]}{Style.BRIGHT}{xp_amt}{Style.RESET_ALL} XP{Fore.RESET}")
+        msg_color = xp_colors[current_color]
+        star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
+        logger.info(f"{star} {msg_color}{message.author.display_name}{Fore.RESET} earns {msg_color}{xp_amt} XP{Fore.RESET} {star}")
+
         increment_user_xp(message.author, xp_amt) # commit the xp gain to the db
+
+        current_color = current_color + 1
+        if current_color >= len(xp_colors):
+            current_color = 0
         
         # handle role stuff
         cadet_role = discord.utils.get(message.author.guild.roles, id=config["roles"]["cadet"])
@@ -60,13 +68,15 @@ async def handle_message_xp(message:discord.Message):
         if cadet_role not in message.author.roles:
             if user_xp >= CADET_XP_REQUIREMENT:
                 await message.author.add_roles(cadet_role)
-                logger.info(f"{Fore.CYAN}{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to Cadet via XP!{Fore.RESET}")
+                logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.CYAN}Cadet{Fore.RESET} via XP!")
         else:
         # if they do have cadet but not ensign yet, give it to them
             if ensign_role not in message.author.roles:
                 if user_xp >= ENSIGN_XP_REQUIREMENT:
                     await message.author.add_roles(ensign_role)
-                    logger.info(f"{Fore.GREEN}{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to Ensign via XP!{Fore.RESET}")
+                    logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.GREEN}Ensign{Fore.RESET} via XP!")
+        
+        
 
 
 # increment_user_xp(author, amt)

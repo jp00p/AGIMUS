@@ -69,8 +69,8 @@ async def on_message(message:discord.Message):
         for i in welcome_reacts:
           logger.info(f"{Fore.LIGHTBLACK_EX}Adding react {i} to intro message{Fore.RESET}")
           await message.add_reaction(i)
-  except:
-    logger.error(f"{Fore.RED}<! ERROR: Failed to process message for xp !>{Fore.RESET}")
+  except Exception as e:
+    logger.error(f"{Fore.RED}<! ERROR: Failed to process message for xp !> {e}{Fore.RESET}")
   
   # Bang Command Handling
   #logger.debug(message)
