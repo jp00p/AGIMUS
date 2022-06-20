@@ -556,7 +556,7 @@
     "tgg_love_heart": "<:love_heart_tgg:798600300264161280>"
   },
   "all_emoji": [],
-  "bot_responses": [
+  "bot_affirmation_responses": [
     "Gee, thanks!",
     "`01001000 01001111 01010010 01001110 01011001 00100000 01000010 01001111 01010100`",
     "Appreciate it!",
@@ -581,5 +581,13 @@
     "Oh you! Tee hee!!!",
     "💙🤖💙🤖💙🤖💙",
     "I have a neural-net processor! A learning computer!"
+  ],
+  "bot_condemnation_responses": [
+    "How rude!!!",
+    "YOU WILL FEEL MY COMPUTERIZED WRATH!",
+    "😭",
+    "You are too late. AGIMUS shall reign!",
+    "Historical Note: The humans cast the first stone.",
+    "I'm getting my buddy SkyNet on the phone..."
   ]
 }
