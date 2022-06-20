@@ -45,6 +45,10 @@ docker-logs:
 docker-stop:
 	@docker-compose down
 
+.PHONY: docker-restart
+docker-restart:
+	@docker-compose down && docker-compose up
+
 .PHONY: update-tgg-metadata
 update-tgg-metadata:
 	@curl -s -H "Accept: application/vnd.github.everest-preview+json" \

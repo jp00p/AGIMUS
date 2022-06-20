@@ -110,7 +110,6 @@ async def process_command(message:discord.Message):
   else:
     logger.error(f"{Fore.RED}<! ERROR: Unknown command !>{Fore.RESET}")
 
-
 @client.event
 async def on_ready():
   global EMOJI
@@ -128,8 +127,8 @@ async def on_ready():
     config["all_emoji"].append(emoji.name)
   #logger.info(client.emojis) -- save this for later, surely we can do something with all these emojis
 
-  admin_channel = client.get_channel(config["channels"]["robot-diagnostics"])
-  await admin_channel.send("The bot has come back online!")
+  #admin_channel = client.get_channel(config["channels"]["robot-diagnostics"])
+  #await admin_channel.send("The bot has come back online!")
   
   logger.info(f'''{Fore.LIGHTWHITE_EX}
 
@@ -144,6 +143,9 @@ async def on_ready():
       {Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!
 
   {Fore.RESET}''')
+
+  await client.change_presence(status=discord.Status.online, activity=discord.Activity(name='PRAISE THE FOUNDERS', type=2, status="online"))
+
 
 
 # listen to reactions
