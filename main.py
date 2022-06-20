@@ -29,6 +29,7 @@ from commands.triv import *
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
+from commands.update_status import update_status
 from commands.xp import handle_message_xp, increment_user_xp
 from utils.check_channel_access import perform_channel_check
 
