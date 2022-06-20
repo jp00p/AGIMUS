@@ -3,8 +3,7 @@ from .common import *
 # Load up our list of complimentary and condemnation adjectives
 with open('bot_affirmations.txt') as f:
   bot_affirmations = f.read().splitlines()
-with open('bot_condemnations.txt') as f:
-  bot_condmenations = f.read().splitlines() 
+bot_condmenations = config["bot_condemnation_responses"]
 
 logger.info(bot_condmenations)
 
