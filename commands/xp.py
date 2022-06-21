@@ -114,7 +114,7 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
     return
   
   # If reaction hasn't been logged already, go ahead and do so and then award some XP!
-  logger.info(f"{Style.BRIGHT}{user.display_name}{Style.RESET_ALL} gets {Style.BRIGHT}1 xp{Style.RESET_ALL} for reacting with {Style.BRIGHT}{reaction.emoji.name}{Style.RESET_ALL} to {Style.BRIGHT}Message #{reaction.message.id}{Style.RESET_ALL}!")
+  logger.info(f"{Style.BRIGHT}{user.display_name}{Style.RESET_ALL} gets {Style.BRIGHT}1 xp{Style.RESET_ALL} for reacting with {Style.BRIGHT}{reaction.emoji}{Style.RESET_ALL} to {Style.BRIGHT}Message #{reaction.message.id}{Style.RESET_ALL}!")
   log_react_history(reaction, user)
   increment_user_xp(user, 1)
 
