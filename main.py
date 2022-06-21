@@ -31,6 +31,7 @@ from commands.trektalk import trektalk
 from commands.tuvix import tuvix
 from commands.update_status import update_status
 from commands.xp import handle_message_xp, handle_react_xp
+from commands.server_logs import show_leave_message, show_nick_change_message
 from tasks.scheduler import Scheduler
 from tasks.bingbong import bingbong_task
 from tasks.weyounsday import weyounsday_task
@@ -41,6 +42,7 @@ logger.info(f"{Fore.LIGHTMAGENTA_EX}CONNECTING TO DATABASE{Fore.RESET}")
 seed_db()
 ALL_USERS = get_all_users()
 logger.info(f"{Fore.LIGHTCYAN_EX}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}")
+
 
 # listens to every message on the server that the bot can see
 @client.event
@@ -156,6 +158,18 @@ async def on_ready():
 @client.event
 async def on_reaction_add(reaction, user):
   await handle_react_xp(reaction, user)
+
+# listen to server leave events
+@client.event
+async def on_member_remove(member):
+  await show_leave_message(member)
+
+# listen to nickname change events
+@client.event
+async def on_member_update(memberBefore,memberAfter):
+  if memberBefore.nick != memberAfter.nick:
+    await show_nick_change_message(memberBefore, memberAfter) 
+
 
 # Schedule Tasks
 scheduled_tasks = [
