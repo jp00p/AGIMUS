@@ -31,6 +31,9 @@ from commands.trektalk import trektalk
 from commands.tuvix import tuvix
 from commands.update_status import update_status
 from commands.xp import handle_message_xp, handle_react_xp
+from tasks.scheduler import Scheduler
+from tasks.bingbong import bingbong_task
+from tasks.weyounsday import weyounsday_task
 from utils.check_channel_access import perform_channel_check
 
 logger.info(f"{Fore.LIGHTGREEN_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}")
@@ -154,6 +157,16 @@ async def on_ready():
 async def on_reaction_add(reaction, user):
   await handle_react_xp(reaction, user)
 
+# Schedule Tasks
+scheduled_tasks = [
+  bingbong_task(client),
+  weyounsday_task(client)
+]
+
+scheduler = Scheduler()
+for task in scheduled_tasks:
+  scheduler.add_task(task["task"], task["crontab"])
+scheduler.start()
 
 # Engage!
 client.run(DISCORD_TOKEN)
