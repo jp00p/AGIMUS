@@ -10,7 +10,7 @@ async def qget(message:discord.Message):
   # f.close()
   logger.debug("!qget")
   selected_user = message.content.lower().replace("!qget ", "").replace("<@", "").replace(">","")
-  logger.info(f"{Fore.LIGHTGREEN_EX}!get selected_user: {Fore.BRIGHT}{selected_user}{Fore.RESET}")
+  logger.info(f"{Fore.LIGHTGREEN_EX}!get selected_user: {Style.BRIGHT}{selected_user}{Style.RESET_ALL}{Fore.RESET}")
   if is_integer(selected_user):
     table = display_user(selected_user)
     await message.channel.send("```"+tabulate(table, headers="firstrow")+"```")

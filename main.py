@@ -84,8 +84,8 @@ async def on_message(message:discord.Message):
     logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
     try:
       await process_command(message)
-    except Exception as e:
-      logging_channel = client.get_channel(config["logging_channel"])
+    except BaseException as e:
+      logging_channel = client.get_channel(LOGGING_CHANNEL)
       exception_embed = discord.Embed(
         title="Oops...",
         description=f"{e}\n```{traceback.format_exc()}```",
