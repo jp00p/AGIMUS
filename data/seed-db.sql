@@ -33,5 +33,5 @@ CREATE TABLE IF NOT EXISTS reactions (
   reaction_message_id varchar(64) NOT NULL,
   time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id),
-  CONSTRAINT USERID_MESSAGEID UNIQUE (user_id, reaction_message_id)
+  CONSTRAINT USERID_REACTION_MESSAGEID UNIQUE (user_id, reaction, reaction_message_id)
 );
