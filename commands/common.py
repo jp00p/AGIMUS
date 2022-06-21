@@ -48,7 +48,8 @@ DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
 DB_SEED_FILEPATH = os.getenv('DB_SEED_FILEPATH')
 config = get_config()
-client = discord.Client()
+intents = discord.Intents().all()
+client = discord.Client(intents=intents)
 slash = SlashCommand(client, sync_commands=True)
 POKER_GAMES = {}
 TRIVIA_RUNNING = False
