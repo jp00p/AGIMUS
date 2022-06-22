@@ -18,12 +18,12 @@ def weyounsday_task(client):
     if not enabled:
       return
 
-    channel_ids = config["tasks"]["weyounsday"]["channels"]
     embed = discord.Embed(
       title="It's Weyounsday My Dudes!",
       color=discord.Color.blurple()
     )
     embed.set_image(url=get_random_weyounsday_meme())
+    channel_ids = get_channel_ids_list(config["tasks"]["weyounsday"]["channels"])
     for channel_id in channel_ids:
       channel = client.get_channel(id=channel_id)
       await channel.send(embed=embed)

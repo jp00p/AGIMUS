@@ -17,7 +17,7 @@
       "channels": [
         "general-trek"
       ],
-      "crontab": "8 15 * * WED",
+      "crontab": "15 8 * * WED",
       "enabled": true
     },
     "bingbong": {
