@@ -47,13 +47,35 @@ async def handle_mentioned_units(message:discord.Message):
         embed.description = f"{format_trailing(value)} kilometers is {'{:.2f}'.format(kilometers.to('mile').magnitude)} miles!"
         await message.channel.send(embed=embed)
         continue
+      # inches <-> centimeters
+      if 'inch' in unit_name:
+        inches = value * ureg.inch
+        embed.description = f"{format_trailing(value)} inches is {'{:.2f}'.format(inches.to('centimeter').magnitude)} centimeters!"
+        await message.channel.send(embed=embed)
+        continue
+      if 'centimetre' in unit_name:
+        centimeters = value * ureg.centimeter
+        embed.description = f"{format_trailing(value)} centimeters is {'{:.2f}'.format(centimeters.to('inch').magnitude)} inches!"
+        await message.channel.send(embed=embed)
+        continue
       # feet <-> meters
       if 'foot' in unit_name:
         feet = value * ureg.foot
         embed.description = f"{format_trailing(value)} feet is {'{:.2f}'.format(feet.to('meter').magnitude)} meters!"
         await message.channel.send(embed=embed)
         continue
-      if 'metre' in unit_name and 'cubic' not in unit_name:
+      if 'metre' in unit_name:
+        # 'metre' might catch some other stuff we don't want,
+        # so early continue if one of these is in here
+        should_ignore = False
+        ignored_matches = ['cubic', 'deci', 'deka', 'hecto']
+        for partial in ignored_matches:
+          if partial in unit_name:
+            should_ignore = True
+
+        if should_ignore:
+          continue
+
         meters = value * ureg.meter
         embed.description = f"{format_trailing(value)} meters is {'{:.2f}'.format(meters.to('foot').magnitude)} feet!"
         await message.channel.send(embed=embed)
