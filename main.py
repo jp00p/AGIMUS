@@ -29,6 +29,7 @@ from commands.triv import *
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
+from commands.unit_conversion import handle_mentioned_units
 from commands.update_status import update_status
 from commands.xp import handle_message_xp, handle_react_xp
 from commands.server_logs import show_leave_message, show_nick_change_message
@@ -53,6 +54,7 @@ async def on_message(message:discord.Message):
     return
 
   await handle_bot_affirmations(message)  
+  await handle_mentioned_units(message)
 
   if int(message.author.id) not in ALL_USERS:
     logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
