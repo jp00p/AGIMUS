@@ -1,7 +1,5 @@
 from .common import *
 
-from os.path import exists
-
 # qget() - Entrypoint for !qget command
 # message[required]: discord.Message
 # This function is the main entrypoint of the !qget command
@@ -14,7 +12,6 @@ async def qget(message:discord.Message):
     await display_user(selected_user, message)
   else:
     await message.channel.send("Usage: !qget [user]")
-
 
 
 # qset() - Entrypoint for !qset command
@@ -52,7 +49,6 @@ async def qset(message:discord.Message):
     await display_user(selected_user, message)
 
 
-
 async def display_user(user_id:discord.User, message:discord.Message):
   f = open(config["commands"]["qget"]["data"])
   user_columns = json.load(f)
@@ -72,10 +68,5 @@ async def display_user(user_id:discord.User, message:discord.Message):
       value=user_data[header]
     )
   member_info = await message.guild.fetch_member(user_id)
-  embed.set_footer(text=f"User Joined: {member_info.joined_at.strftime('%A, %b %-d - %I:%M %p')}; Top Role: {member_info.top_role.name}")
-  profile_path = f"./images/profiles/{user_id}.png"
-  if exists(profile_path):
-    file = discord.File(profile_path)
-    await message.channel.send(embed=embed, file=file)
-  else:
-    await message.channel.send(embed=embed)
+  embed.set_footer(text=f"User Joined: {member_info.joined_at.strftime('%A, %b %-d %Y - %I:%M %p')}; Top Role: {member_info.top_role.name}")
+  await message.channel.send(embed=embed)
