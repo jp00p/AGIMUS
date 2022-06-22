@@ -1,4 +1,4 @@
-from .common import *
+from commands.common import *
 
 xp_colors = [
     Fore.RED,

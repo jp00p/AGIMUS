@@ -1,7 +1,7 @@
 import traceback
 
+# Commands
 from commands.common import *
-from commands.bot_autoresponse import handle_bot_affirmations
 from commands.buy import buy
 from commands.categories import categories
 from commands.clear_media import clear_media
@@ -29,13 +29,18 @@ from commands.triv import *
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
-from commands.unit_conversion import handle_mentioned_units
 from commands.update_status import update_status
-from commands.xp import handle_message_xp, handle_react_xp
 from commands.server_logs import show_leave_message, show_nick_change_message
+# Handlers
+from handlers.alerts import handle_alerts
+from handlers.bot_autoresponse import handle_bot_affirmations
+from handlers.unit_conversion import handle_mentioned_units
+from handlers.xp import handle_message_xp, handle_react_xp
+# Tasks
 from tasks.scheduler import Scheduler
 from tasks.bingbong import bingbong_task
 from tasks.weyounsday import weyounsday_task
+# Utils
 from utils.check_channel_access import perform_channel_check
 
 logger.info(f"{Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}")
@@ -53,8 +58,14 @@ async def on_message(message:discord.Message):
   if message.author == client.user:
     return
 
-  await handle_bot_affirmations(message)  
-  await handle_mentioned_units(message)
+  # Special message Handlers
+  try:
+    await handle_bot_affirmations(message)
+    await handle_mentioned_units(message)
+    await handle_alerts(message)
+  except Exception as e:
+    logger.error(f"{Fore.RED}<! ERROR: Encountered error in handlers !> {e}{Fore.RESET}")
+    logger.error(traceback.format_exc())
 
   if int(message.author.id) not in ALL_USERS:
     logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
@@ -79,6 +90,7 @@ async def on_message(message:discord.Message):
           await message.add_reaction(i)
   except Exception as e:
     logger.error(f"{Fore.RED}<! ERROR: Failed to process message for xp !> {e}{Fore.RESET}")
+    logger.error(traceback.format_exc())
   
   # Bang Command Handling
   #logger.debug(message)
