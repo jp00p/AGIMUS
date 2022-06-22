@@ -4,7 +4,7 @@
       "channels": [
         "general-trek"
       ],
-      "crontab": "8 15 * * WED",
+      "crontab": "15 8 * * WED",
       "enabled": true
     },
     "bingbong": {
@@ -617,7 +617,7 @@
     "Historical Note: The humans cast the first stone.",
     "I'm getting my buddy SkyNet on the phone..."
   ],
-  "leave_messages":[
+  "leave_messages": [
     "**{}** went to a conference...",
     "**{}** got sucked into the mirror universe",
     "**{}** was kidnapped by Cardassians",
