@@ -8,7 +8,7 @@ uQ = ureg.Quantity
 emojis = config["emojis"]
 
 def format_trailing(value):
-  return f"{value}".rstrip('\.0')
+  return re.sub('\.0$', '', f"{value}")
 
 
 async def handle_mentioned_units(message:discord.Message):
@@ -18,16 +18,10 @@ async def handle_mentioned_units(message:discord.Message):
 
   quants = parser.parse(message.content)
   if quants:
-
-    #logger.info(quants)
-
-    converted = False
-    
     for quant in quants:
       value = quant.value
       unit_name = quant.unit.name
-      
-      
+
       #logger.info(f"(value: {value}, unit_name: {unit_name})")
 
       embed = discord.Embed(color=discord.Color.greyple())
@@ -88,4 +82,4 @@ async def handle_mentioned_units(message:discord.Message):
         continue
 
     if embed.description:
-      logger.info(f"Unit conversion for {Style.BRIGHT}{message.author.display_name}{Style.NORMAL}! {Fore.LIGHTBLUE_EX}WOLOLOLOLOLO{Fore.RESET}")  
+      logger.info(f"Unit conversion for {Style.BRIGHT}{message.author.display_name}{Style.NORMAL} in #{Style.BRIGHT}{message.channel.name}{Style.NORMAL}! {Fore.LIGHTBLUE_EX}WOLOLOLOLOLO{Fore.RESET}")  
