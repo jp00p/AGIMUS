@@ -85,12 +85,14 @@ async def on_message(message:discord.Message):
     try:
       await process_command(message)
     except BaseException as e:
-      logging_channel = client.get_channel(LOGGING_CHANNEL)
+      logger.info(f">>> Encountered Exception!")
+      logger.info(e)
       exception_embed = discord.Embed(
         title="Oops...",
         description=f"{e}\n```{traceback.format_exc()}```",
         color=discord.Color.red()
       )
+      logging_channel = client.get_channel(LOGGING_CHANNEL)
       await logging_channel.send(embed=exception_embed)
 
 async def process_command(message:discord.Message):
