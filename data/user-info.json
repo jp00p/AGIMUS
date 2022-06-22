@@ -1,4 +1,26 @@
 {
-  "display_headers": ["id", "name", "score", "spins", "jackpots", "wager", "card", "badge", "xp", "high_roller", "chips"],
-  "headers": ["id", "name", "score", "spins", "jackpots", "wager", "profile_card", "profile_badge", "xp", "high_roller", "chips"]
+  "display_headers": [
+    "id",
+    "name",
+    "score",
+    "spins",
+    "jackpots",
+    "wager",
+    "xp",
+    "high_roller",
+    "chips"
+  ],
+  "headers": [
+    "id",
+    "name",
+    "score",
+    "spins",
+    "jackpots",
+    "wager",
+    "profile_card",
+    "profile_badge",
+    "xp",
+    "high_roller",
+    "chips"
+  ]
 }
