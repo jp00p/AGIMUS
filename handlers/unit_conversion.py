@@ -1,4 +1,4 @@
-from .common import *
+from commands.common import *
 
 from quantulum3 import parser
 from pint import UnitRegistry

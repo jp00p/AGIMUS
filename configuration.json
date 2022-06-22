@@ -1,4 +1,17 @@
 {
+  "handlers": {
+    "alerts": {
+      "alertworthy_users": [
+        624288379202174996,
+        757682704274948106
+      ],
+      "alert_recipients": [
+        572540272563716116,
+        473331439169962005,
+        735658100958298154
+      ]
+    }
+  },
   "tasks": {
     "weyounsday": {
       "channels": [
@@ -576,6 +589,7 @@
     "louvois_point_yes": "<:louvois_point_yes:840252104056766515>",
     "picard_yes_happy_celebrate": "<:picard_yes_happy_celebrate:757726753346027622>",
     "ohno": "<:ohno:930365904657723402>",
+    "red_alert": "<a:red_alert:852987099257765938>",
     "tendi_smile_happy": "<:tendi_smile_happy:757768236069814283>",
     "tgg_love_heart": "<:love_heart_tgg:798600300264161280>",
     "weyoun_love_heart": "<:weyoun_love_heart:864953513637445653>",
@@ -617,7 +631,7 @@
     "Historical Note: The humans cast the first stone.",
     "I'm getting my buddy SkyNet on the phone..."
   ],
-  "leave_messages":[
+  "leave_messages": [
     "**{}** went to a conference...",
     "**{}** got sucked into the mirror universe",
     "**{}** was kidnapped by Cardassians",
