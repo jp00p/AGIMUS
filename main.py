@@ -38,11 +38,11 @@ from tasks.bingbong import bingbong_task
 from tasks.weyounsday import weyounsday_task
 from utils.check_channel_access import perform_channel_check
 
-logger.info(f"{Fore.LIGHTGREEN_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}")
+logger.info(f"{Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}")
 logger.info(f"{Fore.LIGHTMAGENTA_EX}CONNECTING TO DATABASE{Fore.RESET}")
 seed_db()
 ALL_USERS = get_all_users()
-logger.info(f"{Fore.LIGHTCYAN_EX}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}")
+logger.info(f"{Fore.LIGHTMAGENTA_EX}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}{Style.RESET_ALL}")
 
 
 # listens to every message on the server that the bot can see

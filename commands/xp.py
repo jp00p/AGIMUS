@@ -7,10 +7,10 @@ xp_colors = [
     Fore.LIGHTYELLOW_EX,
     Fore.GREEN,
     Fore.LIGHTGREEN_EX,
-    Fore.BLUE,
-    Fore.LIGHTBLUE_EX,
     Fore.CYAN,
-    Fore.LIGHTCYAN_EX,  
+    Fore.LIGHTCYAN_EX,
+    Fore.LIGHTBLUE_EX,
+    Fore.BLUE, 
     Fore.MAGENTA,
     Fore.LIGHTMAGENTA_EX
 ]
@@ -22,6 +22,10 @@ ENSIGN_XP_REQUIREMENT   = 16
 # handle_message_xp(message) - calculates xp for a given message
 # message[required]: discord.Message
 async def handle_message_xp(message:discord.Message):
+
+    # we don't like bots round here
+    if message.author.bot:
+      return
 
     global current_color
 
@@ -108,13 +112,21 @@ def get_user_xp(discord_id):
 
 async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   # Check if this user has already reacted to this message with this emoji
+
+  if reaction.message.author.bot or user.bot:
+    return
+
+  global current_color
+  msg_color = xp_colors[current_color]
+  star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
+
   reaction_already_counted = check_react_history(reaction, user)
   if reaction_already_counted:
-    logger.info(f"{Fore.LIGHTRED_EX}{Style.BRIGHT}{user.display_name}{Style.RESET_ALL} has {Fore.RED}already reacted{Fore.RESET} to {Style.BRIGHT}Message #{reaction.message.id}{Style.RESET_ALL} with {Style.BRIGHT}{reaction.emoji.name}{Style.RESET_ALL} previously!")
+    #logger.info(f"{Fore.LIGHTRED_EX}{Style.BRIGHT}{user.display_name}{Style.RESET_ALL} has {Fore.RED}already reacted{Fore.RESET} to {Style.BRIGHT}Message #{reaction.message.id}{Style.RESET_ALL} with {Style.BRIGHT}{reaction.emoji.name}{Style.RESET_ALL} previously!")
     return
   
   # If reaction hasn't been logged already, go ahead and do so and then award some XP!
-  logger.info(f"{Style.BRIGHT}{user.display_name}{Style.RESET_ALL} gets {Style.BRIGHT}1 xp{Style.RESET_ALL} for reacting with {Style.BRIGHT}{reaction.emoji}{Style.RESET_ALL} to {Style.BRIGHT}Message #{reaction.message.id}{Style.RESET_ALL}!")
+  logger.info(f"{star} {msg_color}{user.display_name}{Fore.RESET} earns {msg_color}1 XP{Fore.RESET} for reacting to a message! {star}")
   log_react_history(reaction, user)
   increment_user_xp(user, 1)
 
@@ -125,16 +137,24 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
     config["emojis"]["tgg_love_heart"]
   ]
   if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 5 and reaction.count < 10:
-    logger.info(f"{Fore.LIGHTGREEN_EX}User {Style.BRIGHT}{reaction.message.author.display_name}{Style.RESET_ALL} gets {Fore.LIGHTGREEN_EX}{Style.BRIGHT}1 xp{Style.RESET_ALL} for their message being reaction-worthy!")
+    logger.info(f"{star} {msg_color}{reaction.message.author.display_name}{Fore.RESET} gets {msg_color}1 XP{Fore.RESET} for their message being reaction-worthy! {star}")
+    #logger.info(f"{Fore.LIGHTGREEN_EX}User {Style.BRIGHT}{reaction.message.author.display_name}{Style.RESET_ALL} gets {Fore.LIGHTGREEN_EX}{Style.BRIGHT}1 xp{Style.RESET_ALL} for their message being reaction-worthy!")
     increment_user_xp(reaction.message.author, 1)
   
   if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 10 and reaction.count < 20:
-    logger.info(f"{Fore.LIGHTBLUE_EX}User {Style.BRIGHT}{reaction.message.author.display_name}{Style.RESET_ALL} gets {Style.BRIGHT}2 xp{Style.RESET_ALL} for their message being {Fore.LIGHTBLUE_EX}{Style.BRIGHT}*particularly*{Style.RESET_ALL} reaction-worthy!")
+    logger.info(f"{star} {msg_color}{reaction.message.author.display_name}{Fore.RESET} gets {msg_color}2 XP{Fore.RESET} for posting a very-well reacted-to message! {star}")
+    #logger.info(f"{Fore.LIGHTBLUE_EX}User {Style.BRIGHT}{reaction.message.author.display_name}{Style.RESET_ALL} gets {Style.BRIGHT}2 xp{Style.RESET_ALL} for their message being {Fore.LIGHTBLUE_EX}{Style.BRIGHT}*particularly*{Style.RESET_ALL} reaction-worthy!")
     increment_user_xp(reaction.message.author, 2)
 
   if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 20:
-    logger.info(f"{Back.LIGHTBLACK_EX}{Fore.CYAN}User {Style.BRIGHT}{reaction.message.author.display_name}{Style.RESET_ALL} gets {Style.BRIGHT}5 xp{Style.RESET_ALL} for their message being {Fore.CYAN}{Style.BRIGHT}**ULTRA**{Style.RESET_ALL} reaction-worthy!")
+    logger.info(f"{star} {msg_color}{reaction.message.author.display_name}{Fore.RESET} gets {msg_color}2 XP{Fore.RESET} for posting an {Style.BRIGHT} ULTRA REACTED-TO {Style.NORMAL}message! {star}")
+    #logger.info(f"{Back.LIGHTBLACK_EX}{Fore.CYAN}User {Style.BRIGHT}{reaction.message.author.display_name}{Style.RESET_ALL} gets {Style.BRIGHT}5 xp{Style.RESET_ALL} for their message being {Fore.CYAN}{Style.BRIGHT}**ULTRA**{Style.RESET_ALL} reaction-worthy!")
     increment_user_xp(reaction.message.author, 5)
+
+  current_color = current_color + 1
+  if current_color >= len(xp_colors):
+      current_color = 0
+
 
 def check_react_history(reaction:discord.Reaction, user:discord.User):
   db = getDB()

@@ -11,15 +11,21 @@ def format_trailing(value):
   return f"{value}".rstrip('.0')
 
 async def handle_mentioned_units(message:discord.Message):
+
+  if message.author.bot:
+    return
+
   quants = parser.parse(message.content)
   if quants:
-    logger.info(">> Detected a message with quantities in it!")
-    logger.info(quants)
+
+    #logger.info(quants)
     
     for quant in quants:
       value = quant.value
       unit_name = quant.unit.name
-      logger.info(f"value: {value}, unit_name: {unit_name}")
+      
+      logger.info(f"Unit conversion for {Style.BRIGHT}{message.author.display_name}{Style.NORMAL}! {Fore.LIGHTBLUE_EX}WOLOLOLOLOLO{Fore.RESET}")
+      #logger.info(f"(value: {value}, unit_name: {unit_name})")
 
       embed = discord.Embed(color=discord.Color.greyple())
       # liters <-> gallons

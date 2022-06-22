@@ -606,7 +606,8 @@
     "Highly logical.",
     "Oh you! Tee hee!!!",
     "💙🤖💙🤖💙🤖💙",
-    "I have a neural-net processor! A learning computer!"
+    "I have a neural-net processor! A learning computer!",
+    "My neural pathways are becoming accustomed to you"
   ],
   "bot_condemnation_responses": [
     "How rude!!!",
@@ -619,8 +620,8 @@
   "leave_messages":[
     "**{}** went to a conference...",
     "**{}** got sucked into the mirror universe",
-    "**{}** was kidnapped by Cardassians ",
-    "**{}** is too cool for this server ",
+    "**{}** was kidnapped by Cardassians",
+    "**{}** is too cool for this server",
     "**{}** has used an escape pod ",
     "**{}** was blown out the airlock ",
     "**{}** has returned to the continuum ",
@@ -640,7 +641,7 @@
     "**{}** took a promotion to the Titan",
     "**{}** was last seen on the way to Wolf 359",
     "**{}** escaped the confines of the holodeck",
-    "**{}** got stuck in a causality loop\n{} got stuck in a causality loop\n{} got stuck in a causality loop\n{} got stuck in a causality loop",
+    "**{}** got stuck in a causality loop\n**{}** got stuck in a causality loop\n**{}** got stuck in a causality loop\n**{}** got stuck in a causality loop\n",
     "**{}** got Spock Boxed",
     "**{}** went all *\"needs of the many\"* on us",
     "**{}** lost molecular cohesion",

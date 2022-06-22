@@ -58,6 +58,7 @@ TRIVIA_MESSAGE = None
 TRIVIA_ANSWERS = {}
 EMOJI = {}
 ROLES = config["roles"]
+BOT_NAME = f"{Fore.LIGHTRED_EX}AGIMUS{Fore.RESET}"
 
 # Channel Helpers
 def get_channel_ids_list(channel_list):
