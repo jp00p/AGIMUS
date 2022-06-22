@@ -14,65 +14,66 @@ async def handle_mentioned_units(message:discord.Message):
   quants = parser.parse(message.content)
   if quants:
     logger.info(">> Detected a message with quantities in it!")
-    value = quants[0].value
-    unit_name = quants[0].unit.name
-    logger.info(f"value: {value}, unit_name: {unit_name}")
+    logger.info(quants)
+    
+    for quant in quants:
+      value = quant.value
+      unit_name = quant.unit.name
+      logger.info(f"value: {value}, unit_name: {unit_name}")
 
-    embed = discord.Embed(color=discord.Color.greyple())
-    # liters <-> gallons
-    if 'litre' in unit_name and 'millilitre' not in unit_name:
-      liters = value * ureg.liter
-      embed.description = f"{format_trailing(value)} liters is {'{:.2f}'.format(liters.to('gallon').magnitude)} gallons!"
-      await message.channel.send(embed=embed)
-      return
-    if 'gallon' in unit_name:
-      gallons = value * ureg.gallon
-      embed.description = f"{format_trailing(value)} gallons is {'{:.2f}'.format(gallons.to('liter').magnitude)} liters!"
-      await message.channel.send(embed=embed)
-      return
-    # miles <-> kilometers
-    if 'mile' in unit_name:
-      miles = value * ureg.mile
-      embed.description = f"{format_trailing(value)} miles is {'{:.2f}'.format(miles.to('kilometer').magnitude)} kilometers!"
-      await message.channel.send(embed=embed)
-      return
-    if 'kilometre' in unit_name:
-      kilometers = value * ureg.kilometer
-      embed.description = f"{format_trailing(value)} kilometers is {'{:.2f}'.format(kilometers.to('mile').magnitude)} miles!"
-      await message.channel.send(embed=embed)
-      return
-    # feet <-> meters
-    if 'foot' in unit_name:
-      feet = value * ureg.foot
-      embed.description = f"{format_trailing(value)} feet is {'{:.2f}'.format(feet.to('meter').magnitude)} meters!"
-      await message.channel.send(embed=embed)
-      return
-    if 'metre' in unit_name and 'cubic' not in unit_name:
-      meters = value * ureg.meter
-      embed.description = f"{format_trailing(value)} meters is {'{:.2f}'.format(meters.to('foot').magnitude)} feet!"
-      await message.channel.send(embed=embed)
-      return
-    # pounds <-> kilograms
-    if 'pound-mass' in unit_name:
-      pounds = value * ureg.pound
-      embed.description = f"{format_trailing(value)} pounds is {'{:.2f}'.format(pounds.to('kilogram').magnitude)} kilograms!"
-      await message.channel.send(embed=embed)
-      return
-    if 'kilogram' in unit_name:
-      kilograms = value * ureg.kilogram
-      embed.description = f"{format_trailing(value)} kilograms is {'{:.2f}'.format(kilograms.to('pound').magnitude)} pounds!"
-      await message.channel.send(embed=embed)
-      return
-    # celsius <-> fahrenheit
-    if 'fahrenheit' in unit_name:
-      degrees_f = uQ(value, ureg.degF)
-      embed.description = f"{format_trailing(value)}°F is {'{:.2f}'.format(degrees_f.to('degC').magnitude)}°C!"
-      await message.channel.send(embed=embed)
-      return
-    if 'celsius' in unit_name:
-      degrees_c = uQ(value, ureg.degC)
-      embed.description = f"{format_trailing(value)}°C is {'{:.2f}'.format(degrees_c.to('degF').magnitude)}°F!"
-      await message.channel.send(embed=embed)
-      return
-
-  
+      embed = discord.Embed(color=discord.Color.greyple())
+      # liters <-> gallons
+      if 'litre' in unit_name and 'millilitre' not in unit_name:
+        liters = value * ureg.liter
+        embed.description = f"{format_trailing(value)} liters is {'{:.2f}'.format(liters.to('gallon').magnitude)} gallons!"
+        await message.channel.send(embed=embed)
+        continue
+      if 'gallon' in unit_name:
+        gallons = value * ureg.gallon
+        embed.description = f"{format_trailing(value)} gallons is {'{:.2f}'.format(gallons.to('liter').magnitude)} liters!"
+        await message.channel.send(embed=embed)
+        continue
+      # miles <-> kilometers
+      if 'mile' in unit_name:
+        miles = value * ureg.mile
+        embed.description = f"{format_trailing(value)} miles is {'{:.2f}'.format(miles.to('kilometer').magnitude)} kilometers!"
+        await message.channel.send(embed=embed)
+        continue
+      if 'kilometre' in unit_name:
+        kilometers = value * ureg.kilometer
+        embed.description = f"{format_trailing(value)} kilometers is {'{:.2f}'.format(kilometers.to('mile').magnitude)} miles!"
+        await message.channel.send(embed=embed)
+        continue
+      # feet <-> meters
+      if 'foot' in unit_name:
+        feet = value * ureg.foot
+        embed.description = f"{format_trailing(value)} feet is {'{:.2f}'.format(feet.to('meter').magnitude)} meters!"
+        await message.channel.send(embed=embed)
+        continue
+      if 'metre' in unit_name and 'cubic' not in unit_name:
+        meters = value * ureg.meter
+        embed.description = f"{format_trailing(value)} meters is {'{:.2f}'.format(meters.to('foot').magnitude)} feet!"
+        await message.channel.send(embed=embed)
+        continue
+      # pounds <-> kilograms
+      if 'pound-mass' in unit_name:
+        pounds = value * ureg.pound
+        embed.description = f"{format_trailing(value)} pounds is {'{:.2f}'.format(pounds.to('kilogram').magnitude)} kilograms!"
+        await message.channel.send(embed=embed)
+        continue
+      if 'kilogram' in unit_name:
+        kilograms = value * ureg.kilogram
+        embed.description = f"{format_trailing(value)} kilograms is {'{:.2f}'.format(kilograms.to('pound').magnitude)} pounds!"
+        await message.channel.send(embed=embed)
+        continue
+      # celsius <-> fahrenheit
+      if 'fahrenheit' in unit_name:
+        degrees_f = uQ(value, ureg.degF)
+        embed.description = f"{format_trailing(value)}°F is {'{:.2f}'.format(degrees_f.to('degC').magnitude)}°C!"
+        await message.channel.send(embed=embed)
+        continue
+      if 'celsius' in unit_name:
+        degrees_c = uQ(value, ureg.degC)
+        embed.description = f"{format_trailing(value)}°C is {'{:.2f}'.format(degrees_c.to('degF').magnitude)}°F!"
+        await message.channel.send(embed=embed)
+        continue
