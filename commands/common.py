@@ -24,6 +24,7 @@ import sys
 from colorama import Fore, Back, Style
 
 from utils.config_utils import get_config
+from utils.disco_lights import LightHandler
 
 # Load variables from .env file
 load_dotenv()
@@ -37,6 +38,7 @@ handler = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter("%(asctime)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+logger.addHandler(LightHandler())
 LOG = []
 
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
