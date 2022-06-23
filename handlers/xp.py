@@ -72,8 +72,12 @@ async def handle_intro_channel_promotion(message):
 
   if message.channel.id == INTRO_CHANNEL:
     member = message.author
-    role = discord.utils.get(message.author.guild.roles, id=promotion_roles_config["ranks"]["cadet"])
-    if role not in member.roles:
+    cadet_role = promotion_roles_config["ranks"]["cadet"]
+    author_role_names = []
+    for role in message.author.roles:
+      author_role_names.append(role.name)
+
+    if cadet_role not in author_role_names:
       # if they don't have this role, give them this role!
       logger.info(f"Adding {Fore.CYAN}Cadet{Fore.RESET} role to {Style.BRIGHT}{message.author.name}{Style.RESET_ALL}")
       await member.add_roles(role)
@@ -89,22 +93,24 @@ async def handle_intro_channel_promotion(message):
 async def handle_rank_xp_promotion(message, xp):
   promotion_roles_config = config["roles"]["promotion_roles"]
 
-  cadet_role = discord.utils.get(message.author.guild.roles, id=promotion_roles_config["ranks"]["cadet"])
-  ensign_role = discord.utils.get(message.author.guild.roles, id=promotion_roles_config["ranks"]["ensign"])
+  cadet_role = config["roles"]["promotion_roles"]["cadet"]
+  ensign_role = config["roles"]["promotion_roles"]["cadet"]
+  author_role_names = []
+  for role in message.author.roles:
+    author_role_names.append(role.name)
 
   user_xp = get_user_xp(message.author.id)
 
-  if cadet_role not in message.author.roles:
+  if cadet_role not in author_role_names:
     # if they don't have cadet yet and they are over the required xp, give it to them
     if user_xp >= promotion_roles_config["required_rank_xp"]["cadet"]:
       await message.author.add_roles(cadet_role)
       logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.CYAN}Cadet{Fore.RESET} via XP!")
-  else:
+  elif ensign_role not in author_role_names:
     # if they do have cadet but not ensign yet, give it to them
-    if ensign_role not in message.author.roles:
-      if user_xp >= promotion_roles_config["required_rank_xp"]["ensign"]:
-        await message.author.add_roles(ensign_role)
-        logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.GREEN}Ensign{Fore.RESET} via XP!")
+    if user_xp >= promotion_roles_config["required_rank_xp"]["ensign"]:
+      await message.author.add_roles(ensign_role)
+      logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.GREEN}Ensign{Fore.RESET} via XP!")
 
 # increment_user_xp(author, amt)
 # messauge.author[required]: discord.User

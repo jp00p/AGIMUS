@@ -584,8 +584,8 @@
         "ensign": 16
       },
       "ranks": {
-        "cadet": 789278115599745024,
-        "ensign": 738606028903546931
+        "cadet": "@cadet",
+        "ensign": "@ensign"
       },
       "enabled": true
     }
