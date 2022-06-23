@@ -64,7 +64,7 @@ async def handle_message_xp(message:discord.Message):
     if promotion_roles_config["enabled"]:
       cadet_role = promotion_roles_config["ranks"]["cadet"]
       ensign_role = promotion_roles_config["ranks"]["ensign"]
-      guild_roles = await message.author.guild.fetch_roles()
+      guild_role_names = await message.author.guild.fetch_roles()
       if cadet_role in guild_role_names and ensign_role in guild_role_names:
         await handle_intro_channel_promotion(message)
         await handle_rank_xp_promotion(message, xp_amt)
