@@ -5,18 +5,13 @@ from .common import *
 # This function is the main entrypoint of the !qget command
 # and will get a user's 
 async def qget(message:discord.Message):
-  # f = open(config["commands"]["qget"]["data"])
-  # user_columns = json.load(f)
-  # f.close()
   logger.debug("!qget")
   selected_user = message.content.lower().replace("!qget ", "").replace("<@", "").replace(">","")
-  logger.info("!get selected_user: " + selected_user)
+  logger.info(f"{Fore.LIGHTGREEN_EX}!qget selected_user: {Style.BRIGHT}{selected_user}{Style.RESET_ALL}{Fore.RESET}")
   if is_integer(selected_user):
-    table = display_user(selected_user)
-    await message.channel.send("```"+tabulate(table, headers="firstrow")+"```")
+    await display_user(selected_user, message)
   else:
     await message.channel.send("Usage: !qget [user]")
-
 
 
 # qset() - Entrypoint for !qset command
@@ -51,25 +46,27 @@ async def qset(message:discord.Message):
     elif change_column in modifiable_strings:
       logger.info(f"{change_column} in {modifiable_strings}")
       update_user(selected_user, change_column, change_value)
-    # Display user's updated information
-    table = display_user(selected_user)
-    await message.channel.send("```"+tabulate(table, headers="firstrow")+"```")
+    await display_user(selected_user, message)
 
 
-
-def display_user(user):
+async def display_user(user_id:discord.User, message:discord.Message):
   f = open(config["commands"]["qget"]["data"])
   user_columns = json.load(f)
   f.close()
-  this_user = get_player(user)
-  logger.debug(f"this_user: {this_user}")
-  user = []
-  for header in user_columns["headers"]:
-    user.append(this_user[header])
-  logger.debug("table_headers: " + str(user_columns["headers"]))
-  logger.debug(f"user: {user}")
-  table = []
-  table.append(user_columns["display_headers"])
-  table.append(user)
-  logger.debug(f"table:{table}")
-  return table
+  user_data = get_player(user_id)
+  logger.debug(f"this_user: {user_data}")
+
+  user = await client.fetch_user(user_id)
+  embed = discord.Embed()
+  embed.set_author(
+    name=user.display_name,
+    icon_url=user.avatar_url
+  )
+  for header in user_columns["display_headers"]:
+    embed.add_field(
+      name=header,
+      value=user_data[header]
+    )
+  member_info = await message.guild.fetch_member(user_id)
+  embed.set_footer(text=f"User Joined: {member_info.joined_at.strftime('%A, %b %-d %Y - %I:%M %p')}; Top Role: {member_info.top_role.name}")
+  await message.channel.send(embed=embed)

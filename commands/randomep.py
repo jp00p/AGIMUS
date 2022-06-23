@@ -7,7 +7,7 @@ from .info import get_show
 # and will return a random episode of the shows listed in the data/episodes directory
 async def randomep(message:discord.Message):
   randomep_spl = message.content.lower().replace("!randomep ", "").split()
-  logger.info("Selected Show: " + randomep_spl[0])
+  logger.info(f"{Fore.LIGHTGREEN_EX}Selected Show:{Fore.RESET} {Style.BRIGHT}{randomep_spl[0]}{Style.RESET_ALL}")
   trek = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "lowerdecks", "disco", "picard"]
   nontrek = ["friends", "firefly", "simpsons", "sunny"]
   any = trek + nontrek
@@ -30,4 +30,4 @@ async def randomep(message:discord.Message):
   embed=discord.Embed(title=display_embed["title"], url=display_embed["url"], description=display_embed["description"], color=0xFFFFFF)
   embed.set_thumbnail(url=display_embed["still"])
   await message.channel.send(embed=embed)
-  logger.info("randomep finished!")
+  logger.info(f"{Fore.LIGHTGREEN_EX}Random episode finished!{Fore.RESET}")

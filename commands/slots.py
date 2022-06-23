@@ -8,7 +8,7 @@ import math
 # The goal is to display three random images and determine if
 # those images are related in any special way
 async def slots(message:discord.Message):
-  print("> !SLOTS")
+  logger.info(f"{Fore.YELLOW}Rolling the slots!{Fore.RESET}")
   
   # Load slots data
   f = open(config["commands"]["slots"]["data"])
@@ -21,12 +21,11 @@ async def slots(message:discord.Message):
   else:
     show = random.choice(["TNG", "DS9", "VOY", "HOLODECK"])
   
-  logger.info("show: " + show)
-
+  logger.info(f"{Fore.LIGHTRED_EX}Rolling slot theme:{Fore.RESET} {Style.BRIGHT}{show}{Style.RESET_ALL}")
   # player data  
   id = message.author.id
   player = get_player(id)
-  logger.debug(player)
+  #logger.info(player)
   free_spin = player["spins"] < 5 # true or false
   wager = player["wager"]
   score_mult = wager
@@ -38,11 +37,12 @@ async def slots(message:discord.Message):
   
   total_rewards = 0
   themed_payout = SLOTS[show]["payout"]
-  logger.info("payout" + str(themed_payout))
+  #logger.info("payout" + str(themed_payout))
   
   if player["score"] < wager and not free_spin:
     # if they don't have enough bits to play
     await message.channel.send(f"You need at least {wager} point(s) to spin! Play the quiz to get more points or try changing your wager")
+    return
   else:
     increment_player_spins(id)
   
@@ -73,7 +73,10 @@ async def slots(message:discord.Message):
   
   # roll the slots!
   silly_matches, matching_chars, jackpot, symbol_matches = roll_slot(show, SLOTS[show], filename=str(message.author.id))
-  file = discord.File("./images/slot_results/{0}.png".format(message.author.id), filename=str(message.author.id)+".png")
+  try:
+    file = discord.File("./images/slot_results/{0}.png".format(message.author.id), filename=str(message.author.id)+".png")
+  except:
+    logger.info(f"{Fore.RED}Error generating discord file placeholder{Fore.RESET}")
   match_msg = message.author.mention + "'s spin results: \n"
   
   if len(symbol_matches) > 0:
