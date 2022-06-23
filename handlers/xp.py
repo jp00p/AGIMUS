@@ -62,8 +62,12 @@ async def handle_message_xp(message:discord.Message):
     # Handle Auto-Promotions
     promotion_roles_config = config["roles"]["promotion_roles"]
     if promotion_roles_config["enabled"]:
-      await handle_intro_channel_promotion(message)
-      await handle_rank_xp_promotion(message, xp_amt)
+      cadet_role = promotion_roles_config["ranks"]["cadet"]
+      ensign_role = promotion_roles_config["ranks"]["ensign"]
+      guild_roles = await message.author.guild.fetch_roles()
+      if cadet_role in guild_role_names and ensign_role in guild_role_names:
+        await handle_intro_channel_promotion(message)
+        await handle_rank_xp_promotion(message, xp_amt)
 
 
 # If this message is in the intro channel, handle their auto-promotion
