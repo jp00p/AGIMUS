@@ -578,8 +578,17 @@
     689512841887481875
   ],
   "roles": {
-    "cadet": 789278115599745024,
-    "ensign": 738606028903546931
+    "promotion_roles": {
+      "required_rank_xp": {
+        "cadet": 10,
+        "ensign": 16
+      },
+      "ranks": {
+        "cadet": "@cadet",
+        "ensign": "@ensign"
+      },
+      "enabled": true
+    }
   },
   "emojis": {
     "data_lmao_lol": "<:data_lmao_lol:757762906556203050>",
