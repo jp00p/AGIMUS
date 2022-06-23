@@ -16,70 +16,101 @@ xp_colors = [
 ]
 current_color = 0
 
-CADET_XP_REQUIREMENT    = 10
-ENSIGN_XP_REQUIREMENT   = 16
-
 # handle_message_xp(message) - calculates xp for a given message
 # message[required]: discord.Message
 async def handle_message_xp(message:discord.Message):
-
+    global current_color
+    
     # we don't like bots round here
     if message.author.bot:
       return
 
-    global current_color
-
+    # Base XP to Grant
     xp_amt = 0
-
     # if the message is longer than 3 words +1 xp
     if len(message.content.split()) >= 3:
-        xp_amt += 1
-        # if that message also has any of our emoji, +1 xp
-        for e in config["all_emoji"]:
-            if message.content.find(e) != -1:
-                xp_amt += 1
-                break;
+      xp_amt += 1
+      # if that message also has any of our emoji, +1 xp
+      for e in config["all_emoji"]:
+        if message.content.find(e) != -1:
+          xp_amt += 1
+          break
 
     # if the message is longer than 33 words +1 xp
     if len(message.content.split()) > 33:
-        xp_amt += 1
+      xp_amt += 1
 
     # ...and 66, +1 more
     if len(message.content.split()) > 66:
-        xp_amt += 1
+      xp_amt += 1
 
     # if there's an attachment, +1 xp
     if len(message.attachments) > 0:
-        xp_amt += 1 
+      xp_amt += 1 
 
     if xp_amt != 0:
-        msg_color = xp_colors[current_color]
-        star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
-        logger.info(f"{star} {msg_color}{message.author.display_name}{Fore.RESET} earns {msg_color}{xp_amt} XP{Fore.RESET} {star}")
+      msg_color = xp_colors[current_color]
+      star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
+      logger.info(f"{star} {msg_color}{message.author.display_name}{Fore.RESET} earns {msg_color}{xp_amt} XP{Fore.RESET} {star}")
 
-        increment_user_xp(message.author, xp_amt) # commit the xp gain to the db
+      increment_user_xp(message.author, xp_amt) # commit the xp gain to the db
 
-        current_color = current_color + 1
-        if current_color >= len(xp_colors):
-            current_color = 0
+      current_color = current_color + 1
+      if current_color >= len(xp_colors):
+        current_color = 0
+
+    # Handle Auto-Promotions
+    promotion_roles_config = config["roles"]["promotion_roles"]
+    if promotion_roles_config["enabled"]:
+      await handle_intro_channel_promotion(message)
+      await handle_rank_xp_promotion(message, xp_amt)
+
+
+# If this message is in the intro channel, handle their auto-promotion
+async def handle_intro_channel_promotion(message):
+  promotion_roles_config = config["roles"]["promotion_roles"]
+
+  if message.channel.id == INTRO_CHANNEL:
+    member = message.author
+    cadet_role = promotion_roles_config["ranks"]["cadet"]
+    author_role_names = []
+    for role in message.author.roles:
+      author_role_names.append(role.name)
+
+    if cadet_role not in author_role_names:
+      # if they don't have this role, give them this role!
+      logger.info(f"Adding {Fore.CYAN}Cadet{Fore.RESET} role to {Style.BRIGHT}{message.author.name}{Style.RESET_ALL}")
+      await member.add_roles(role)
         
-        # handle role stuff
-        cadet_role = discord.utils.get(message.author.guild.roles, id=config["roles"]["cadet"])
-        ensign_role = discord.utils.get(message.author.guild.roles, id=config["roles"]["ensign"])
-        user_xp = get_user_xp(message.author.id)
+      # add reactions to the message they posted
+      welcome_reacts = [EMOJI["ben_wave"], EMOJI["adam_wave"]]
+      random.shuffle(welcome_reacts)
+      for i in welcome_reacts:
+        logger.info(f"{Fore.LIGHTBLACK_EX}Adding react {i} to intro message{Fore.RESET}")
+        await message.add_reaction(i)
 
-        # if they don't have cadet yet and they are over the required xp, give it to them
-        if cadet_role not in message.author.roles:
-            if user_xp >= CADET_XP_REQUIREMENT:
-                await message.author.add_roles(cadet_role)
-                logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.CYAN}Cadet{Fore.RESET} via XP!")
-        else:
-        # if they do have cadet but not ensign yet, give it to them
-            if ensign_role not in message.author.roles:
-                if user_xp >= ENSIGN_XP_REQUIREMENT:
-                    await message.author.add_roles(ensign_role)
-                    logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.GREEN}Ensign{Fore.RESET} via XP!")
-        
+# If they've hit an XP threshold, auto-promote to general ranks
+async def handle_rank_xp_promotion(message, xp):
+  promotion_roles_config = config["roles"]["promotion_roles"]
+
+  cadet_role = config["roles"]["promotion_roles"]["cadet"]
+  ensign_role = config["roles"]["promotion_roles"]["cadet"]
+  author_role_names = []
+  for role in message.author.roles:
+    author_role_names.append(role.name)
+
+  user_xp = get_user_xp(message.author.id)
+
+  if cadet_role not in author_role_names:
+    # if they don't have cadet yet and they are over the required xp, give it to them
+    if user_xp >= promotion_roles_config["required_rank_xp"]["cadet"]:
+      await message.author.add_roles(cadet_role)
+      logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.CYAN}Cadet{Fore.RESET} via XP!")
+  elif ensign_role not in author_role_names:
+    # if they do have cadet but not ensign yet, give it to them
+    if user_xp >= promotion_roles_config["required_rank_xp"]["ensign"]:
+      await message.author.add_roles(ensign_role)
+      logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.GREEN}Ensign{Fore.RESET} via XP!")
 
 # increment_user_xp(author, amt)
 # messauge.author[required]: discord.User
