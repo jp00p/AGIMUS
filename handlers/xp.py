@@ -93,8 +93,8 @@ async def handle_intro_channel_promotion(message):
 async def handle_rank_xp_promotion(message, xp):
   promotion_roles_config = config["roles"]["promotion_roles"]
 
-  cadet_role = config["roles"]["promotion_roles"]["cadet"]
-  ensign_role = config["roles"]["promotion_roles"]["cadet"]
+  cadet_role = config["roles"]["promotion_roles"]["ranks"]["cadet"]
+  ensign_role = config["roles"]["promotion_roles"]["ranks"]["ensign"]
   author_role_names = []
   for role in message.author.roles:
     author_role_names.append(role.name)
