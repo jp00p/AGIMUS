@@ -584,8 +584,8 @@
         "ensign": 16
       },
       "ranks": {
-        "cadet": "@cadet",
-        "ensign": "@ensign"
+        "cadet": "Cadet ○",
+        "ensign": "Ensign ●"
       },
       "enabled": true
     }

@@ -13,14 +13,15 @@ def format_trailing(value):
 
 async def handle_mentioned_units(message:discord.Message):
 
-  if message.author.bot:
+  if message.author.bot or message.content.startswith('http'):
     return
 
   quants = parser.parse(message.content)
   if quants:
+    logger.info(quants)
     for quant in quants:
       value = quant.value
-      unit_name = quant.unit.name
+      unit_name = quant.unit.name.lower()
 
       #logger.info(f"(value: {value}, unit_name: {unit_name})")
 
@@ -91,15 +92,40 @@ async def handle_mentioned_units(message:discord.Message):
         embed.description = f"{format_trailing(value)} kilograms is {'{:.2f}'.format(kilograms.to('pound').magnitude)} pounds!"
         await message.channel.send(embed=embed)
         continue
+      # ounces <-> grams
+      if 'ounce' in unit_name:
+        ounces = value * ureg.ounce
+        embed.description = f"{format_trailing(value)} ounces is {'{:.2f}'.format(ounces.to('gram').magnitude)} grams!"
+        await message.channel.send(embed=embed)
+        continue
+      if 'gram' in unit_name:
+        grams = value * ureg.gram
+        embed.description = f"{format_trailing(value)} grams is {'{:.2f}'.format(grams.to('ounce').magnitude)} ounces!"
+        await message.channel.send(embed=embed)
+        continue
       # celsius <-> fahrenheit
-      if 'fahrenheit' in unit_name:
+      if 'fahrenheit' in unit_name or 'farad' in unit_name:
+        # I don't think anyone's going to mention farads,
+        # but farenheit keeps getting interpreted at it so catch it
         degrees_f = uQ(value, ureg.degF)
         embed.description = f"{format_trailing(value)}°F is {'{:.2f}'.format(degrees_f.to('degC').magnitude)}°C!"
         await message.channel.send(embed=embed)
         continue
-      if 'celsius' in unit_name:
+      if 'celsius' in unit_name or 'centavo' in unit_name:
+        # I don't think anyone's going to mention centavo,
+        # but farenheit keeps getting interpreted at it so catch it
         degrees_c = uQ(value, ureg.degC)
         embed.description = f"{format_trailing(value)}°C is {'{:.2f}'.format(degrees_c.to('degF').magnitude)}°F!"
+        await message.channel.send(embed=embed)
+        continue
+
+      # Special casing for stone -> kilograms
+      pound_match = re.match("(\d+.?\d+?) stone", message.content.lower())
+      if pound_match:
+        value = pound_match.groups()[0]
+        pound_value = int(value) * 14
+        pounds = pound_value * ureg.pound
+        embed.description = f"{format_trailing(value)} stone is {'{:.2f}'.format(pounds.to('kilogram').magnitude)} kilograms!"
         await message.channel.send(embed=embed)
         continue
 
