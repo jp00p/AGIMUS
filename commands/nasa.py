@@ -10,9 +10,9 @@ NASA_TOKEN = os.getenv('NASA_TOKEN')
 # message[required]: discord.Message
 # This function is the main entrypoint of the !nasa command
 async def nasa(message:discord.Message):
-  logger.info("NASA: Starting NASA API call")
+  logger.info(f"{Fore.LIGHTBLUE_EX}NASA: Starting NASA API call{Fore.RESET}")
   if not NASA_TOKEN:
-    logger.error("NASA_TOKEN not set")
+    logger.error(f"{Fore.RED}NASA_TOKEN not set{Fore.RESET}")
     await message.channel.send("NASA_TOKEN not set: https://api.nasa.gov/")
     return
   user_command = message.content.lower().split()
@@ -20,7 +20,6 @@ async def nasa(message:discord.Message):
   if len(user_command) == 1:
     start_date = datetime.date(1996, 1, 1)
     logger.debug('starting from: ' + start_date.isoformat())
-
     end_date = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
     logger.debug('today: ' + end_date.isoformat())
 
@@ -49,8 +48,8 @@ async def nasa(message:discord.Message):
   if r.status_code == 200:
     logger.info(r)
     data = json.loads(r.content.decode())
-    logger.info(data)
-    logger.info("Done with NASA API call")
+    #logger.info(data)
+    logger.info(f"{Fore.LIGHTGREEN_EX}Done with NASA API call{Fore.RESET}")
     if "copyright" in data:
       title = data["date"] + ': ' + data["title"] + ' (' + data["copyright"] + ')'
     else:

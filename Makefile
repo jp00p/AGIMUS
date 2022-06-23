@@ -76,6 +76,12 @@ kind-load: ## load a locally built docker container into a running KinD cluster
 
 .PHONY: update-shows
 update-shows: ## Update the TGG metadata in the database via github action
+.PHONY: docker-restart
+docker-restart:
+	@docker-compose down && docker-compose up
+
+.PHONY: update-tgg-metadata
+update-tgg-metadata:
 	@curl -s -H "Accept: application/vnd.github.everest-preview+json" \
 	    -H "Authorization: token $(GIT_TOKEN)" \
 	    --request POST \

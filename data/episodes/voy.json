@@ -1569,7 +1569,15 @@
       "episode": "04",
       "imdb": "tt0708935",
       "memoryalpha": "Nemesis_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 423,
+          "airdate": "2022.06.20",
+          "episode": "The Brone Zone",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/2bKsJn7qty8A75H8iH4xihO90S5.jpg"

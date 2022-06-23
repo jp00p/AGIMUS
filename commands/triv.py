@@ -11,8 +11,8 @@ async def trivia_quiz(category=None):
   else:
     question = await trivia.question(amount=1, quizType='multiple')
   TRIVIA_DATA = question[0]
-  logger.info("Using category " + str(category))
-  logger.info("correct answer: " + TRIVIA_DATA["correct_answer"])
+  logger.info(f"{Fore.LIGHTYELLOW_EX}Using category{Fore.RESET} {Style.BRIGHT}{category}{Style.RESET_ALL}")
+  #logger.info("correct answer: " + TRIVIA_DATA["correct_answer"])
   answers = TRIVIA_DATA["incorrect_answers"]
   answers.append(TRIVIA_DATA["correct_answer"])
   random.shuffle(answers)
@@ -30,7 +30,7 @@ async def trivia_quiz(category=None):
     embed.add_field(name="** **", value="{}: {} {}".format(reactions[i],ans,maybe_newline), inline=False)
     i += 1
   embed.set_footer(text="React below with your answer!")
-  channel = client.get_channel(config["commands"]["triv"]["channels"][0])
+  channel = client.get_channel(config["channels"]["quizzing-booth"])
   TRIVIA_MESSAGE = await channel.send(embed=embed, file=thumb)
   for react in reactions:
     await TRIVIA_MESSAGE.add_reaction(react)
@@ -38,7 +38,7 @@ async def trivia_quiz(category=None):
 @trivia_quiz.after_loop
 async def end_trivia():
   global TRIVIA_ANSWERS, TRIVIA_DATA, TRIVIA_RUNNING, TRIVIA_MESSAGE
-  logger.info("Trivia complete!")
+  logger.info(f"{Fore.LIGHTYELLOW_EX}Trivia complete!{Fore.RESET}")
   rewards = {
     "easy" : 5,
     "medium" : 10,
@@ -49,7 +49,7 @@ async def end_trivia():
   for ans in TRIVIA_ANSWERS:
     if TRIVIA_ANSWERS[ans] == TRIVIA_DATA["correct_emoji"]:
       correct_guessers.append(get_player(ans))
-  channel = client.get_channel(config["commands"]["triv"]["channels"][0])
+  channel = client.get_channel(config["channels"]["quizzing-booth"])
   embed = discord.Embed(title="Trivia Complete!", description="⠀\n⠀\nThe correct answer was:\n {} **{}**\n⠀\n⠀{}".format(TRIVIA_DATA["correct_emoji"], TRIVIA_DATA["correct_answer"], " "*47))
   if len(correct_guessers) > 0:
     for player in correct_guessers:
@@ -101,7 +101,7 @@ async def triv(message:discord.Message):
     if trivia_category.isnumeric() and int(trivia_category) > 0 and int(trivia_category) < len(trivia_data["categories"]):
       
       trivia_cat_id = int(trivia_category)
-      logger.info("Starting category trivia quiz ", trivia_cat_id)
+      logger.info(f"{Fore.LIGHTYELLOW_EX}Starting category trivia quiz:{Fore.RESET} {Style.BRIGHT}{trivia_cat_id}{Style.RESET_ALL}")
       await trivia_quiz.start(category=trivia_cat_id)
     else:
       await trivia_quiz.start()

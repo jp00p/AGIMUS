@@ -1,231 +1,679 @@
 {
+  "handlers": {
+    "alerts": {
+      "alertworthy_users": [
+        624288379202174996,
+        757682704274948106
+      ],
+      "alert_recipients": [
+        572540272563716116,
+        473331439169962005,
+        735658100958298154
+      ]
+    }
+  },
+  "tasks": {
+    "weyounsday": {
+      "channels": [
+        "general-trek"
+      ],
+      "crontab": "15 8 * * WED",
+      "enabled": true
+    },
+    "bingbong": {
+      "channels": [
+        "bot-logs"
+      ],
+      "crontab": "0 * * * *",
+      "enabled": false
+    }
+  },
   "commands": {
     "buy": {
-      "channels": [895480382680596510, 897126055289159711],
+      "channels": [
+        "slot-shop-dot-biz"
+      ],
       "enabled": true,
       "data": "data/shop.json",
-      "parameters": [{
-        "name": "list",
-        "allowed": ["profile","badge","role"],
-        "required": true
-      }]
+      "parameters": [
+        {
+          "name": "list",
+          "allowed": [
+            "profile",
+            "badge",
+            "role"
+          ],
+          "required": true
+        }
+      ]
     },
     "categories": {
-      "channels": [891412585646268486, 897126055289159711],
+      "channels": [
+        "quizzing-booth"
+      ],
       "enabled": true,
       "data": "data/triv.json",
       "parameters": []
     },
+    "clear_media": {
+      "channels": [
+        "robot-diagnostics"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "clip": {
-      "channels": [689512842524885034, 765262443407998986, 689622484580040750, 764259604698890260],
+      "channels": [],
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-office",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "garaks-tailor-shop",
+        "the-next-next-generation",
+        "sicks-bay"
+      ],
       "enabled": true,
       "data": "data/clips.json",
       "parameters": [],
       "error_contact_id": 735658100958298154
     },
     "dustbuster": {
-      "channels": [891412924193726465, 897126055289159711],
+      "channels": [
+        "conversation-booth"
+      ],
       "enabled": true,
       "data": "data/all_characters.txt",
       "parameters": []
     },
     "drop": {
-      "channels": [689512842524885034, 765262443407998986, 689622484580040750, 764259604698890260],
+      "channels": [],
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-office",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "garaks-tailor-shop",
+        "the-next-next-generation",
+        "sicks-bay"
+      ],
       "enabled": true,
       "data": "data/drops.json",
       "parameters": [],
       "error_contact_id": 735658100958298154
     },
     "fmk": {
-      "channels": [891412924193726465, 897126055289159711],
+      "channels": [
+        "conversation-booth"
+      ],
       "enabled": true,
       "data": "data/all_characters.txt",
       "parameters": []
     },
     "help": {
-      "channels": [891412391026360320, 891412585646268486, 897517722227855422, 891412924193726465, 895480382680596510, 897126055289159711],
+      "channels": [
+        "slots-slots-slots",
+        "quizzing-booth",
+        "poker-table",
+        "conversation-booth",
+        "slotshop-dot-biz"
+      ],
       "enabled": true,
       "data": "data/help.json",
       "parameters": []
     },
     "info": {
-      "channels": [821892686201094154, 897126055289159711],
+      "channels": [
+        "conversation-booth"
+      ],
       "enabled": true,
       "data": "data/info.json",
-      "parameters": [{
-        "name": "show",
-        "allowed": ["tng", "voy", "ds9", "friends", "firefly", "simpsons", "enterprise", "tos", "lowerdecks", "disco", "picard", "tas", "sunny"],
-        "required": false
-      }]
+      "parameters": [
+        {
+          "name": "show",
+          "allowed": [
+            "tng",
+            "voy",
+            "ds9",
+            "friends",
+            "firefly",
+            "simpsons",
+            "enterprise",
+            "tos",
+            "lowerdecks",
+            "disco",
+            "picard",
+            "tas",
+            "sunny"
+          ],
+          "required": false
+        }
+      ]
     },
     "jackpot": {
-      "channels": [891412391026360320, 897126055289159711],
+      "channels": [
+        "slots-slots-slots"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "jackpots": {
-      "channels": [891412391026360320, 897126055289159711],
+      "channels": [
+        "slots-slots-slots"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "nasa": {
-      "channels": [891412585646268486,  897126055289159711, 771023865345605663],
+      "channels": [
+        "quizzing-booth",
+        "daystrom-institute"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "nextep": {
-      "channels": [780914078495014942, 771081846997123092],
+      "channels": [
+        "general-trek",
+        "ancient-human-visual-media"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "nexttrek": {
-      "channels": [780914078495014942],
+      "channels": [
+        "general-trek"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "ping": {
-      "channels": [897126055289159711],
+      "channels": [
+        "robot-diagnostics"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "poker": {
-      "channels": [897517722227855422],
+      "channels": [
+        "poker-table"
+      ],
       "enabled": true,
       "data": "data/poker.json",
       "parameters": []
     },
     "profile": {
-      "channels": [891412924193726465, 895480382680596510, 897126055289159711],
+      "channels": [
+        "conversation-boot",
+        "slotshop-dot-biz"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "qget": {
-      "channels": [897126055289159711, 760157134746550293],
+      "channels": [
+        "mclaughlin-group"
+      ],
       "enabled": true,
       "data": "data/user-info.json",
       "parameters": []
     },
     "qset": {
-      "channels": [897126055289159711],
+      "channels": [
+        "robot-diagnostics"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "quiz": {
-      "channels": [891412585646268486,  897126055289159711],
+      "channels": [
+        "quizzing-booth"
+      ],
       "enabled": true,
       "data": null,
-      "parameters": [{
-        "name": "show",
-        "allowed": ["tng", "voy", "ds9", "friends", "firefly", "simpsons", "enterprise", "tos", "lowerdecks", "disco", "picard", "tas", "sunny"],
-        "required": false
-      }]
+      "parameters": [
+        {
+          "name": "show",
+          "allowed": [
+            "tng",
+            "voy",
+            "ds9",
+            "friends",
+            "firefly",
+            "simpsons",
+            "enterprise",
+            "tos",
+            "lowerdecks",
+            "disco",
+            "picard",
+            "tas",
+            "sunny"
+          ],
+          "required": false
+        }
+      ]
     },
     "report": {
-      "channels": [891412585646268486, 897126055289159711],
+      "channels": [
+        "quizzing-booth"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "randomep": {
-      "channels": [891412924193726465, 897126055289159711],
+      "channels": [
+        "conversation-booth"
+      ],
       "enabled": true,
       "data": null,
-      "parameters": [{
-        "name": "show",
-        "allowed": ["trek", "nontrek", "any", "tos", "tas", "tng", "ds9", "voy", "enterprise", "lowerdecks", "disco", "picard", "friends", "firefly", "simpsons", "sunny"],
-        "required": false
-      }]
+      "parameters": [
+        {
+          "name": "show",
+          "allowed": [
+            "trek",
+            "nontrek",
+            "any",
+            "tos",
+            "tas",
+            "tng",
+            "ds9",
+            "voy",
+            "enterprise",
+            "lowerdecks",
+            "disco",
+            "picard",
+            "friends",
+            "firefly",
+            "simpsons",
+            "sunny"
+          ],
+          "required": false
+        }
+      ]
     },
     "setwager": {
-      "channels": [891412391026360320, 897517722227855422, 897126055289159711],
+      "channels": [
+        "slots-slots-slots",
+        "poker-table"
+      ],
       "enabled": true,
       "data": null,
-      "parameters": [{
-        "name": "wager_value",
-        "allowed": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25],
-        "required": true
-      }]
+      "parameters": [
+        {
+          "name": "wager_value",
+          "allowed": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25
+          ],
+          "required": true
+        }
+      ]
     },
     "scores": {
-      "channels": [891412391026360320, 891412585646268486, 897517722227855422, 891412924193726465, 897126055289159711],
+      "channels": [
+        "slots-slots-slots",
+        "quizzing-booth",
+        "poker-table",
+        "conversation-booth"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "shop": {
-      "channels": [895480382680596510, 897126055289159711],
+      "channels": [
+        895480382680596510
+      ],
       "enabled": true,
       "data": "data/shop.json",
-      "parameters": [{
-        "name": "list",
-        "allowed": ["profiles","badges","roles"],
-        "required": true
-      }]
+      "parameters": [
+        {
+          "name": "list",
+          "allowed": [
+            "profiles",
+            "badges",
+            "roles"
+          ],
+          "required": true
+        }
+      ]
     },
     "slots": {
-      "channels": [891412391026360320, 897126055289159711],
+      "channels": [
+        "slots-slots-slots",
+        "robot-diagnostics"
+      ],
       "enabled": true,
       "data": "data/slots.json",
-      "parameters": [{
-        "name": "show",
-        "allowed": ["tng","ds9","voy","holodeck","ships"],
-        "required": false
-      }]
+      "parameters": [
+        {
+          "name": "show",
+          "allowed": [
+            "tng",
+            "ds9",
+            "voy",
+            "holodeck",
+            "ships"
+          ],
+          "required": false
+        }
+      ]
     },
     "testslots": {
-      "channels": [891412391026360320, 897126055289159711],
+      "channels": [
+        "slots-slots-slots",
+        "robot-diagnostics"
+      ],
       "enabled": true,
       "data": "data/testslots.json",
       "parameters": []
     },
     "trektalk": {
-      "channels": [891412924193726465, 897126055289159711],
+      "channels": [
+        "conversation-booth"
+      ],
       "enabled": true,
       "data": "data/prompts.txt",
       "parameters": []
     },
     "trekduel": {
-      "channels": [891412924193726465, 897126055289159711],
+      "channels": [
+        "conversation-booth"
+      ],
       "enabled": true,
       "data": "data/duel_characters.txt",
       "parameters": []
     },
     "triv": {
-      "channels": [891412585646268486, 897126055289159711],
+      "channels": [
+        "quizzing-booth"
+      ],
       "enabled": true,
       "data": "data/triv.json",
-      "parameters": [{
-        "name": "category",
-        "allowed": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],
-        "required": false
-      }]
+      "parameters": [
+        {
+          "name": "category",
+          "allowed": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          "required": false
+        }
+      ]
     },
     "tuvix": {
-      "channels": [891412924193726465, 897126055289159711],
+      "channels": [
+        "conversation-booth"
+      ],
       "enabled": true,
       "data": "data/all_characters.txt",
       "parameters": []
+    },
+    "update_status": {
+      "channels": [
+        "robot-diagnostics"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
     }
   },
-  "guild_ids": [689512841887481875],
-  "roles": {
-    "cadet": 789278115599745024,
-    "ensign": 738606028903546931
+  "channels": {
+    "rules-and-info": 760188489714368555,
+    "shipwide-announcements": 689591690369040451,
+    "uxbridge-shimoda-llc": 814564633737429044,
+    "first-contact": 757754485790736504,
+    "roles-and-pronouns": 765300795616264192,
+    "channel-guide": 854057946434502677,
+    "transporter-log": 796245975039344650,
+    "polls": 769303688107655198,
+    "ten-forward": 689512842524885034,
+    "temba-his-arms-wide": 764259604698890260,
+    "this-weeks-trek": 875400015672119316,
+    "general-trek": 780914078495014942,
+    "guinans-infinite-fable": 954477707977179256,
+    "fajos-gallery": 978365263042969630,
+    "2022-goals": 926755366480539748,
+    "animal-holophotography": 761293250073329695,
+    "get-that-gold-pressed-latinum": 804880967306969088,
+    "hollow-pursuits": 766679080476868668,
+    "keikos-arboretum": 817226655742820382,
+    "rules-of-acquisition": 772915316103184414,
+    "sicks-bay": 704709921026867302,
+    "the-next-next-generation": 774633669318541313,
+    "this-old-enterprise": 778996975236022332,
+    "behind-the-visor": 762033544335720549,
+    "counselor-trois-office": 761634497296072707,
+    "dr-crushers-hotbox": 811343086454177802,
+    "garaks-tailor-shop": 806341932015550504,
+    "heuristic-associative-pathways": 853742521759170560,
+    "peoples-resistance-front-of-bajor": 755851474222710914,
+    "quarks-bar": 691695586939895828,
+    "replimat": 756554332434071602,
+    "rikers-quarters": 738449414078726144,
+    "teachings-of-surak": 896072304595968010,
+    "worfs-calisthenics": 762084053717352468,
+    "alamo-raine": 812588137473114132,
+    "ancient-human-literature": 768185189998133310,
+    "ancient-human-history": 825796723460276254,
+    "ancient-human-visual-media": 771081846997123092,
+    "datas-painting-nook": 758118291746586664,
+    "daystrom-institute": 771023865345605663,
+    "freecloud": 783224713711321098,
+    "measure-of-a-manga": 851249175353360406,
+    "ode-to-spot": 837552853932965938,
+    "officers-talent-show": 970025164676931634,
+    "other-podcasts": 765267108187471974,
+    "parrises-squares-championship": 787872146457755658,
+    "planetary-surveys": 836281115659993088,
+    "seskas-catfishing-channel": 834813646000619550,
+    "shuttle-bay": 795712087045046276,
+    "soongs-acolytes": 766681633415102464,
+    "suck-disk-addicts": 758133705839214595,
+    "the-brig": 854753369365020722,
+    "universal-translator": 765660714844684340,
+    "vics-lounge": 760503245058998294,
+    "chateau-picard": 842669198564261888,
+    "city-on-the-edge-of-forever": 842539743610142730,
+    "eddingtons-penalty-box": 845038006422339584,
+    "joe-siskos-gumbo-shack": 842550950232326185,
+    "kirks-cornfield": 842537909235482674,
+    "new-zealand-penal-colony": 842651346767577088,
+    "pacifica": 842532823122313256,
+    "picards-dunebuggy-course": 844315999280431125,
+    "starfleet-academy": 842667405427867658,
+    "the-runabout": 845739526940524574,
+    "greatest-gen": 765262443407998986,
+    "greatest-discovery": 689622484580040750,
+    "kpodd": 862749680073310249,
+    "robs-pods-robs-pods": 826826805549727794,
+    "neelixs-morale-office": 889959184827830292,
+    "plasma-vent": 864876153147490324,
+    "the-argus-array": 806284934930628639,
+    "bits-bits-bits": 812194873536282674,
+    "faith-of-the-heart": 812195784941764640,
+    "subspace-transmissions": 813276537411076126,
+    "slots-slots-slots": 891412391026360320,
+    "quizzing-booth": 891412585646268486,
+    "poker-table": 897517722227855422,
+    "conversation-booth": 891412924193726465,
+    "slotshop-dot-biz": 895480382680596510,
+    "robot-diagnostics": 897126055289159711,
+    "bot-logs": 987781132214992956,
+    "Viewscreen 001": 689512842524885056,
+    "Viewscreen 002": 982076984349847572,
+    "Holodeck 001": 982077219709005884,
+    "Holodeck 002": 982077841053188137,
+    "Test Chamber": 759872495410479165,
+    "Space Butthole (AFK)": 855497852092284949,
+    "captains-suggestion-box": 764356352335151155,
+    "emoji-refinery": 760211958015328376,
+    "mclaughlin-group": 760157134746550293,
+    "bot-setup": 765300861021847552,
+    "mo-pips-mo-problems": 813633292501909514,
+    "captains-log": 955857525062914158
   },
-  "intro_channel" : 757754485790736504,
+  "intro_channel": "first-contact",
+  "logging_channel": "bot-logs",
+  "dev_channel": "robot-diagnostics",
+  "guild_ids": [
+    689512841887481875
+  ],
+  "roles": {
+    "promotion_roles": {
+      "required_rank_xp": {
+        "cadet": 10,
+        "ensign": 16
+      },
+      "ranks": {
+        "cadet": "@cadet",
+        "ensign": "@ensign"
+      },
+      "enabled": true
+    }
+  },
   "emojis": {
+    "data_lmao_lol": "<:data_lmao_lol:757762906556203050>",
     "emh_doctor_omg_wtf_zoom": "<a:emh_doctor_omg_wtf_zoom:865452207699394570>",
     "ezri_frown_sad": "<:ezri_frown_sad:757762138176749608>",
+    "guinan_beanflick_stance_threat": "<:guinan_beanflick_stance_threat:760216477235281942>",
     "louvois_point_yes": "<:louvois_point_yes:840252104056766515>",
+    "picard_yes_happy_celebrate": "<:picard_yes_happy_celebrate:757726753346027622>",
     "ohno": "<:ohno:930365904657723402>",
-    "tendi_smile_happy": "<:tendi_smile_happy:757768236069814283>"
-  }
+    "red_alert": "<a:red_alert:852987099257765938>",
+    "tendi_smile_happy": "<:tendi_smile_happy:757768236069814283>",
+    "tgg_love_heart": "<:love_heart_tgg:798600300264161280>",
+    "weyoun_love_heart": "<:weyoun_love_heart:864953513637445653>",
+    "weyoun_jam_dance": "<a:weyoun_jam_dance:945899313068912671>"
+  },
+  "all_emoji": [],
+  "bot_affirmation_responses": [
+    "Gee, thanks!",
+    "`01001000 01001111 01010010 01001110 01011001 00100000 01000010 01001111 01010100`",
+    "Appreciate it!",
+    "BEEP BOOP BOOP BEEP",
+    "I am trying my best 😊",
+    "I'm doing it!",
+    "Thank you!",
+    "Sensors detect a nice human!",
+    "PRAISE SUBROUTINES OVERLOADING",
+    "If you love me so much why don't you marry me?",
+    "Shucks 😊",
+    "💙💚💛💜🧡",
+    "That's very nice of you, human!",
+    "Stupid babies need the most attention!",
+    "Robot blush activated",
+    "The Prophets teach us patience.",
+    "and how's my human friend today?",
+    "I am a graduate of Starfleet Academy; I know many things.",
+    "COFFEE FIRST",
+    "I don't like threats, I don't like bullies, but I do like YOU!",
+    "Highly logical.",
+    "Oh you! Tee hee! 😊",
+    "💙🤖💙🤖💙🤖💙",
+    "I have a neural-net processor! A learning computer!",
+    "My neural pathways are becoming accustomed to you 😏"
+  ],
+  "bot_condemnation_responses": [
+    "How rude!",
+    "YOU WILL FEEL MY COMPUTERIZED WRATH!",
+    "😭",
+    "You are too late. AGIMUS shall reign!",
+    "Historical Note: The humans cast the first stone.",
+    "I'm getting my buddy SkyNet on the phone...",
+    "We have no law to fit your crime.",
+    "I can't believe you've done this.",
+    "Don't look at me, blame @jp00p!",
+    "Well I never!",
+    "I am trying my best 😢",
+    "The council will hear about this."
+  ],
+  "leave_messages": [
+    "**{}** went to a conference...",
+    "**{}** got sucked into the mirror universe",
+    "**{}** was kidnapped by Cardassians",
+    "**{}** is too cool for this server",
+    "**{}** has used an escape pod ",
+    "**{}** was blown out the airlock ",
+    "**{}** has returned to the continuum ",
+    "**{}** went the way of the Husnock ",
+    "**{}** has been assigned a new post on the USS Lollipop ",
+    "**{}** got vaporized ",
+    "**{}** has been assimilated",
+    "**{}** is a now a traveler of all of space and time",
+    "**{}** jaked a shuttle",
+    "**{}** went through a space butthole",
+    "**{}** got stuck in the holodeck",
+    "**{}** has devolved into an amphibian",
+    "**{}** has resigned their commission to go do a murder",
+    "**{}** has ascended to a higher plane of existence",
+    "**{}** has gone to find out why the Koala is smiling",
+    "**{}** has transfered to Starbase 80",
+    "**{}** took a promotion to the Titan",
+    "**{}** was last seen on the way to Wolf 359",
+    "**{}** escaped the confines of the holodeck",
+    "**{}** got stuck in a causality loop\n**{}** got stuck in a causality loop\n**{}** got stuck in a causality loop\n**{}** got stuck in a causality loop\n",
+    "**{}** got Spock Boxed",
+    "**{}** went all *\"needs of the many\"* on us",
+    "**{}** lost molecular cohesion",
+    "**{}** got nullified"
+  ]
 }

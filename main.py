@@ -1,6 +1,10 @@
+import traceback
+
+# Commands
 from commands.common import *
 from commands.buy import buy
 from commands.categories import categories
+from commands.clear_media import clear_media
 from commands.clip import clip, clips
 from commands.dustbuster import dustbuster
 from commands.drop import drop, slash_drop, slash_drops
@@ -25,114 +29,96 @@ from commands.triv import *
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
-logger.info("ENVIRONMENT VARIABLES AND COMMANDS LOADED")
+from commands.update_status import update_status
+from commands.server_logs import show_leave_message, show_nick_change_message
+# Handlers
+from handlers.alerts import handle_alerts
+from handlers.bot_autoresponse import handle_bot_affirmations
+from handlers.unit_conversion import handle_mentioned_units
+from handlers.xp import handle_message_xp, handle_react_xp
+# Tasks
+from tasks.scheduler import Scheduler
+from tasks.bingbong import bingbong_task
+from tasks.weyounsday import weyounsday_task
+# Utils
+from utils.check_channel_access import perform_channel_check
 
-logger.info("CONNECTING TO DATABASE")
+logger.info(f"{Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}")
+logger.info(f"{Fore.LIGHTMAGENTA_EX}CONNECTING TO DATABASE{Fore.RESET}")
 seed_db()
 ALL_USERS = get_all_users()
-logger.info("DATABASE CONNECTION SUCCESSFUL")
-ALL_EMOJI = []
+logger.info(f"{Fore.LIGHTMAGENTA_EX}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}{Style.RESET_ALL}")
 
+
+# listens to every message on the server that the bot can see
 @client.event
 async def on_message(message:discord.Message):
-  # Ignore messages from bot itself
+
+  # Ignore all messages from bot itself
   if message.author == client.user:
     return
 
+  # Special message Handlers
+  try:
+    await handle_bot_affirmations(message)
+    await handle_mentioned_units(message)
+    await handle_alerts(message)
+  except Exception as e:
+    logger.error(f"{Fore.RED}<! ERROR: Encountered error in handlers !> {e}{Fore.RESET}")
+    logger.error(traceback.format_exc())
+
   if int(message.author.id) not in ALL_USERS:
-    logger.info("New User")
+    logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
     ALL_USERS.append(register_player(message.author))
   try:
-    # handle giving users XP
-    xp_amt = 0
-
-    # if the message is longer than 3 words +1 xp
-    if len(message.content.split()) > 3:
-      xp_amt += 1
-      # if that message also has any of our emoji, +1 xp
-      for e in ALL_EMOJI:
-        if message.content.find(e) != -1:
-          xp_amt += 1
-          break;
-    # if the message is longer than 33 words +1 xp
-    if len(message.content.split()) > 33:
-      xp_amt += 1
-    
-    # ...and 66, +1 more
-    if len(message.content.split()) > 66:
-      xp_amt += 1
-
-    # if there's an attachment, +1 xp
-    if len(message.attachments) > 0:
-      xp_amt += 1 
-
-    if xp_amt != 0:
-      logger.info(f"{message.author.display_name} earns {xp_amt} XP")
-      increment_user_xp(message.author.id, xp_amt) # commit the xp gain to the db
-      
-      # handle role stuff
-      cadet_role = discord.utils.get(message.author.guild.roles, id=ROLES['cadet'])
-      ensign_role = discord.utils.get(message.author.guild.roles, id=ROLES['ensign'])
-      user_xp = get_user_xp(message.author.id)
-
-      # if they don't have cadet yet and they are over xp 10, give it to them
-      if cadet_role not in message.author.roles:
-        if user_xp >= 10:
-          await message.author.add_roles(cadet_role)
-      else:
-        # if they do have cadet but not ensign yet, give it to them
-        if ensign_role not in message.author.roles:
-          if user_xp >= 15:
-            await message.author.add_roles(ensign_role)
-
-    # handle users in the introduction channel
-    if message.channel.id == INTRO_CHANNEL:
-      member = message.author
-      role = discord.utils.get(message.author.guild.roles, id=ROLES['cadet'])
-      if role not in member.roles:
-        # if they don't have this role, give them this role!
-        logger.info("Adding Cadet role to " + message.author.name)
-        await member.add_roles(role)
-        
-        # add reactions to the message they posted
-        welcome_reacts = [EMOJI["ben_wave"], EMOJI["adam_wave"]]
-        random.shuffle(welcome_reacts)
-        for i in welcome_reacts:
-          logger.info(f"Adding react {i} to intro message")
-          await message.add_reaction(i)
-  except:
-    logger.error("<! ERROR: Failed to process message for xp !>")
-
-  # handle people who use bot/game commands
-  all_channels = uniq_channels(config)
-  if message.channel.id not in all_channels:
-    # logger.warning(f"<! ERROR: This channel '{message.channel.id}' not in '{all_channels}' !>")
-    return
+    await handle_message_xp(message)
+  except Exception as e:
+    logger.error(f"{Fore.RED}<! ERROR: Failed to process message for xp !> {e}{Fore.RESET}")
+    logger.error(traceback.format_exc())
   
-  logger.debug(message)
+  # Bang Command Handling
+  #logger.debug(message)
   if message.content.startswith("!"):
-    logger.info(f"PROCESSING USER COMMAND: {message.content}")
-    await process_command(message)
+    logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
+    try:
+      await process_command(message)
+    except BaseException as e:
+      logger.info(f">>> Encountered Exception!")
+      logger.info(e)
+      exception_embed = discord.Embed(
+        title="Oops...",
+        description=f"{e}\n```{traceback.format_exc()}```",
+        color=discord.Color.red()
+      )
+      logging_channel = client.get_channel(LOGGING_CHANNEL)
+      await logging_channel.send(embed=exception_embed)
 
 async def process_command(message:discord.Message):
   # Split the user's command by space and remove "!"
-  user_command=message.content.lower().split(" ")
-  user_command[0] = user_command[0].replace("!","")
+  split_string = message.content.lower().split(" ")
+  user_command = split_string[0].replace("!","")
   # If the user's first word matches one of the commands in configuration
-  if user_command[0] in config["commands"].keys():
-    if config["commands"][user_command[0]]["enabled"]:
-      # TODO: Validate user's command
-      await eval(user_command[0] + "(message)")
+  if user_command in config["commands"].keys():
+    # Check enabled
+    logger.info(f"Parsed command: {Fore.LIGHTBLUE_EX}{user_command}{Fore.RESET}")
+    if config["commands"][user_command]["enabled"]:
+      # Check Channel Access Restrictions 
+      access_granted = await perform_channel_check(message, config["commands"][user_command])
+      logger.info(f"Access granted? {Fore.LIGHTGREEN_EX}{access_granted}{Fore.RESET}")
+      if access_granted:
+        logger.info(f"{Fore.RED}Firing command!{Fore.RESET}")
+        try:
+          await eval(user_command + "(message)")
+        except SyntaxError as s:
+          logger.info(f"ERROR WITH EVAL: {Fore.RED}{s}{Fore.RESET}")
     else:
-      logger.error(f"<! ERROR: This function has been disabled: '{user_command[0]}' !>")
+      logger.error(f"{Fore.RED}<! ERROR: This function has been disabled: '{user_command}' !>{Fore.RESET}")
   else:
-    logger.error("<! ERROR: Unknown command !>")
+    logger.error(f"{Fore.RED}<! ERROR: Unknown command !>{Fore.RESET}")
 
 @client.event
 async def on_ready():
-  global ROLES
   global EMOJI
-  global ALL_EMOJI
   random.seed()
   EMOJI["shocking"] = discord.utils.get(client.emojis, name="q_shocking")
   EMOJI["chula"] = discord.utils.get(client.emojis, name="chula_game")
@@ -140,16 +126,61 @@ async def on_ready():
   EMOJI["love"] = discord.utils.get(client.emojis, name="love_heart_tgg")
   EMOJI["adam_wave"] = discord.utils.get(client.emojis, name="adam_wave_hello")
   EMOJI["ben_wave"] = discord.utils.get(client.emojis, name="ben_wave_hello")
-  logger.info('LOGGED IN AS {0.user}'.format(client))
+  logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX}LOGGED IN AS {client.user}{Fore.RESET}{Back.RESET}")
   ALL_USERS = get_all_users()
   
   for emoji in client.emojis:
-    ALL_EMOJI.append(emoji.name)
-  logger.info(f"EMOJI LIST: {ALL_EMOJI}")
-  logger.debug(f"ALL_USERS[{len(ALL_USERS)}] - {ALL_USERS}")
-  logger.info("BOT STARTED AND LISTENING FOR COMMANDS!!!")
+    config["all_emoji"].append(emoji.name)
+  #logger.info(client.emojis) -- save this for later, surely we can do something with all these emojis
+
+  #admin_channel = client.get_channel(config["channels"]["robot-diagnostics"])
+  #await admin_channel.send("The bot has come back online!")
+  
+  logger.info(f'''{Fore.LIGHTWHITE_EX}
+
+                                _____
+                       __...---'-----`---...__
+                  _===============================
+ ______________,/'      `---..._______...---'
+(____________LL). .    ,--'
+ /    /.---'       `. /
+'--------_  - - - - _/
+          `~~~~~~~~'
+      {Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!
+
+  {Fore.RESET}''')
+
+  await client.change_presence(status=discord.Status.online, activity=discord.Activity(name='PRAISE THE FOUNDERS', type=2, status="online"))
 
 
+
+# listen to reactions
+@client.event
+async def on_reaction_add(reaction, user):
+  await handle_react_xp(reaction, user)
+
+# listen to server leave events
+@client.event
+async def on_member_remove(member):
+  await show_leave_message(member)
+
+# listen to nickname change events
+@client.event
+async def on_member_update(memberBefore,memberAfter):
+  if memberBefore.nick != memberAfter.nick:
+    await show_nick_change_message(memberBefore, memberAfter) 
+
+
+# Schedule Tasks
+scheduled_tasks = [
+  bingbong_task(client),
+  weyounsday_task(client)
+]
+
+scheduler = Scheduler()
+for task in scheduled_tasks:
+  scheduler.add_task(task["task"], task["crontab"])
+scheduler.start()
 
 # Engage!
 client.run(DISCORD_TOKEN)

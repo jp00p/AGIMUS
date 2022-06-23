@@ -45,7 +45,7 @@ async def poker(message:discord.Message):
 
 
 async def generate_poker_image(hand:treys.Card, filename:str):
-  channel = client.get_channel(config["commands"]["poker"]["channels"][0])
+  channel = client.get_channel(config["channels"]["poker-table"])
   base = Image.new("RGBA", (1120,350), (0,0,0,0))
   value_font = ImageFont.truetype("images/lcars3.ttf", 64)
   smaller_font = ImageFont.truetype("images/lcars3.ttf", 32)
@@ -113,7 +113,7 @@ async def resolve_poker(game_id):
   poker_data = json.load(f)
   f.close()
   POKER_PAYOUTS = poker_data["payouts"]
-  channel = client.get_channel(config["commands"]["poker"]["channels"][0])
+  channel = client.get_channel(config["channels"]["poker-table"])
   # handle discards, build new hand
   poker_game = POKER_GAMES[game_id]
   wager = poker_game["wager"]
