@@ -98,6 +98,6 @@ jobs:
           push: true
           context: .
           platforms: linux/amd64,linux/arm64
-          tags: ghcr.io/${{ secrets.REPO_OWNER }}/fodbot:latest,ghcr.io/${{ secrets.REPO_OWNER }}/fodbot:${{ env.RELEASE_VERSION }}
-          cache-from: type=registry,ref=ghcr.io/${{ secrets.REPO_OWNER }}/fodbot:latest
+          tags: ghcr.io/${{ secrets.REPO_OWNER }}/fodbot-sql:latest,ghcr.io/${{ secrets.REPO_OWNER }}/fodbot-sql:${{ env.RELEASE_VERSION }}
+          cache-from: type=registry,ref=ghcr.io/${{ secrets.REPO_OWNER }}/fodbot-sql:latest
           cache-to: type=inline
