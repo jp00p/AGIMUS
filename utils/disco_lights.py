@@ -41,11 +41,11 @@ class LightHandler(logging.Handler):
       if not light_name:
         return
 
-      light = b.get_light()
-      if not light.on:
+      
+      if not b.get_light(light_name, 'on'):
         return
 
-      light.xy = xy
+      b.set_light(light_name, 'xy', xy)
 
 
 # ANSI Methods
