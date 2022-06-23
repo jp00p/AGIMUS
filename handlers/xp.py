@@ -62,8 +62,13 @@ async def handle_message_xp(message:discord.Message):
     # Handle Auto-Promotions
     promotion_roles_config = config["roles"]["promotion_roles"]
     if promotion_roles_config["enabled"]:
-      await handle_intro_channel_promotion(message)
-      await handle_rank_xp_promotion(message, xp_amt)
+      cadet_role = promotion_roles_config["ranks"]["cadet"]
+      ensign_role = promotion_roles_config["ranks"]["ensign"]
+      guild_roles = await message.author.guild.fetch_roles()
+      guild_role_names = [r.name for r in guild_roles]
+      if cadet_role in guild_role_names and ensign_role in guild_role_names:
+        await handle_intro_channel_promotion(message)
+        await handle_rank_xp_promotion(message, xp_amt)
 
 
 # If this message is in the intro channel, handle their auto-promotion
@@ -72,15 +77,19 @@ async def handle_intro_channel_promotion(message):
 
   if message.channel.id == INTRO_CHANNEL:
     member = message.author
-    cadet_role = promotion_roles_config["ranks"]["cadet"]
-    author_role_names = []
-    for role in message.author.roles:
-      author_role_names.append(role.name)
+    cadet_role_name = promotion_roles_config["ranks"]["cadet"]
+    author_role_names = [r.name for r in message.author.roles]
+    guild_roles = await message.author.guild.fetch_roles()
 
-    if cadet_role not in author_role_names:
+    cadet_role = None
+    for role in guild_roles:
+      if role.name == cadet_role_name:
+        cadet_role = role
+
+    if cadet_role_name not in author_role_names:
       # if they don't have this role, give them this role!
       logger.info(f"Adding {Fore.CYAN}Cadet{Fore.RESET} role to {Style.BRIGHT}{message.author.name}{Style.RESET_ALL}")
-      await member.add_roles(role)
+      await member.add_roles(cadet_role)
         
       # add reactions to the message they posted
       welcome_reacts = [EMOJI["ben_wave"], EMOJI["adam_wave"]]
@@ -93,20 +102,28 @@ async def handle_intro_channel_promotion(message):
 async def handle_rank_xp_promotion(message, xp):
   promotion_roles_config = config["roles"]["promotion_roles"]
 
-  cadet_role = config["roles"]["promotion_roles"]["ranks"]["cadet"]
-  ensign_role = config["roles"]["promotion_roles"]["ranks"]["ensign"]
-  author_role_names = []
-  for role in message.author.roles:
-    author_role_names.append(role.name)
+  cadet_role_name = config["roles"]["promotion_roles"]["ranks"]["cadet"]
+  ensign_role_name = config["roles"]["promotion_roles"]["ranks"]["ensign"]
+  author_role_names = [r.name for r in message.author.roles]
+
+  guild_roles = await message.author.guild.fetch_roles()
+
+  cadet_role = None
+  ensign_role = None
+  for role in guild_roles:
+    if role.name == cadet_role_name:
+      cadet_role = role
+    if role.name == ensign_role_name:
+      ensign_role = role
 
   user_xp = get_user_xp(message.author.id)
 
-  if cadet_role not in author_role_names:
+  if cadet_role_name not in author_role_names:
     # if they don't have cadet yet and they are over the required xp, give it to them
     if user_xp >= promotion_roles_config["required_rank_xp"]["cadet"]:
       await message.author.add_roles(cadet_role)
       logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.CYAN}Cadet{Fore.RESET} via XP!")
-  elif ensign_role not in author_role_names:
+  elif ensign_role_name not in author_role_names:
     # if they do have cadet but not ensign yet, give it to them
     if user_xp >= promotion_roles_config["required_rank_xp"]["ensign"]:
       await message.author.add_roles(ensign_role)
