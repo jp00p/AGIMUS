@@ -45,7 +45,7 @@ class LightHandler(logging.Handler):
       if not b.get_light(light_name, 'on'):
         return
 
-      b.set_light(light_name, 'xy', xy)
+      b.set_light(light_name, 'xy', xy, transitiontime=0)
 
 
 # ANSI Methods
