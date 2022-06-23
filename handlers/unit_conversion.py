@@ -23,9 +23,21 @@ async def handle_mentioned_units(message:discord.Message):
       value = quant.value
       unit_name = quant.unit.name.lower()
 
-      #logger.info(f"(value: {value}, unit_name: {unit_name})")
-
       embed = discord.Embed(color=discord.Color.greyple())
+
+      #logger.info(f"(value: {value}, unit_name: {unit_name})")
+      # Unit parser sometimes catches some units we do not want to convert
+      # an NFT = "newton foot" for example
+      # So ignore the following list
+      should_ignore = False
+      ignored_matches = ['cubic', 'deci', 'deka', 'hecto', 'exa', 'newton']
+      for partial in ignored_matches:
+        if partial in unit_name:
+          should_ignore = True
+
+      if should_ignore:
+        continue
+
       # liters <-> gallons
       if 'litre' in unit_name and 'millilitre' not in unit_name:
         liters = value * ureg.liter
@@ -66,17 +78,6 @@ async def handle_mentioned_units(message:discord.Message):
         await message.channel.send(embed=embed)
         continue
       if 'metre' in unit_name:
-        # 'metre' might catch some other stuff we don't want,
-        # so early continue if one of these is in here
-        should_ignore = False
-        ignored_matches = ['cubic', 'deci', 'deka', 'hecto']
-        for partial in ignored_matches:
-          if partial in unit_name:
-            should_ignore = True
-
-        if should_ignore:
-          continue
-
         meters = value * ureg.meter
         embed.description = f"{format_trailing(value)} meters is {'{:.2f}'.format(meters.to('foot').magnitude)} feet!"
         await message.channel.send(embed=embed)
