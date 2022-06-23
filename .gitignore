@@ -112,6 +112,7 @@ dmypy.json
 
 # local bot configuration
 local.json
+local_config.json
 *dump.sql
 
 # Pyre type checker
