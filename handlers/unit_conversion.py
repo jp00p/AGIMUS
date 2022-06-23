@@ -3,6 +3,8 @@ from commands.common import *
 from quantulum3 import parser
 from pint import UnitRegistry
 
+import re
+
 ureg = UnitRegistry()
 uQ = ureg.Quantity
 emojis = config["emojis"]
@@ -14,6 +16,9 @@ def format_trailing(value):
 async def handle_mentioned_units(message:discord.Message):
 
   if message.author.bot or message.content.startswith('http'):
+    return
+
+  if re.search('([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?( ?[AaPp][Mm])?', message.content) != None:
     return
 
   quants = parser.parse(message.content)
@@ -130,4 +135,4 @@ async def handle_mentioned_units(message:discord.Message):
         continue
 
     if embed.description:
-      logger.info(f"Unit conversion for {Style.BRIGHT}{message.author.display_name}{Style.NORMAL} in #{Style.BRIGHT}{message.channel.name}{Style.NORMAL}! {Fore.LIGHTBLUE_EX}WOLOLOLOLOLO{Fore.RESET}")  
+      logger.info(f"Unit conversion for {Style.BRIGHT}{message.author.display_name}{Style.NORMAL} in #{Style.BRIGHT}{message.channel.name}{Style.NORMAL}! {Fore.LIGHTBLUE_EX}WOLOLOLOLOLO{Fore.RESET}")
