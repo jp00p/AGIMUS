@@ -96,7 +96,7 @@ lint-actions: ## run .gihtub/workflows/*.yaml|yml through action-valdator tool
 
 .PHONY: version
 version: ## Print the version of the bot from the helm chart (requires yq)
-	@yq e '.version' charts/FoDBot-SQL/Chart.yaml
+	@yq e '.version' charts/fodbot/Chart.yaml
 
 .PHONY: help
 help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-username])
