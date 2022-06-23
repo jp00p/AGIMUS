@@ -1,0 +1,100 @@
+# Name:        build-and-release.yaml
+# Author:      Mathew Fleisch <mathew.fleisch@gmail.com>
+# Description: This action will build and push a docker container, when triggered by
+#              pushing a new git tag (that starts with the letter 'v').
+name: Build Containers and Binaries
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GIT_TOKEN }}
+          fetch-depth: 0
+      -
+        name: Install stuff witih asdf
+        uses: asdf-vm/actions/install@v1
+        with:
+          tool_versions: |
+            golang 1.16.6
+            helm 3.8.1
+            yq 4.22.1
+      -
+        name: Set tag environment variable
+        run: echo "RELEASE_VERSION=$(make version)" >> $GITHUB_ENV
+      -
+        name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Docker Login
+        uses: docker/login-action@v1
+        with:
+          registry: socani.jfrog.io
+          username: ${{ secrets.ARTIFACTORY_USERNAME }}
+          password: ${{ secrets.ARTIFACTORY_PASSWORD }}
+      -
+        name: Build and Push Containers
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          context: .
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            socani.jfrog.io/socani-docker-local/prod/examples/example-go-api:latest
+            socani.jfrog.io/socani-docker-local/prod/examples/example-go-api:${{ env.RELEASE_VERSION }}
+          cache-from: type=registry,ref=socani.jfrog.io/socani-docker-local/prod/examples/example-go-api:latest
+          cache-to: type=inline
+      -
+        name: Build and Push Go-Binaries and Helm Charts
+        env:
+          REGISTRY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+          CONTAINER_PATH: prod/examples/example-go-api
+          HELM_PATH: prod/examples/example-go-api
+          GOBINARY_PATH: prod/examples/example-go-api
+          REPO_EMAIL: github-actions@github.com
+          REPO_USER: github-actions
+        run: |
+          asdf global golang 1.16.6
+          make go-setup
+          make go-build-cross
+          rm -rf /tmp/build
+          mkdir -p /tmp/build
+          cp bin/* /tmp/build/.
+          # Install jfrog cli
+          curl -fL https://install-cli.jfrog.io | sh
+          make go-push
+          make helm-package
+          make helm-push
+          make prepare-release
+          cp /tmp/build/* bin/.
+      -
+        name: Cut Git Release
+        uses: softprops/action-gh-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ env.RELEASE_VERSION }}
+          tag_name: ${{ env.RELEASE_VERSION }}
+          body_path: release.md
+          files: |
+            helm/*.tgz
+            bin/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}

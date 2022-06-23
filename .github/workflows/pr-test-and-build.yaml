@@ -31,13 +31,13 @@ jobs:
       -
         name: Lint Actions
         run: make lint-actions
-      -
-        name: Lint Container Using Dockle
-        env:
-          DOCKER_CONTENT_TRUST: 1
-        run: |
-          make docker-build
-          make docker-lint
+      # -
+      #   name: Lint Container Using Dockle
+      #   env:
+      #     DOCKER_CONTENT_TRUST: 1
+      #   run: |
+      #     make docker-build
+      #     make docker-lint
 
   integration_test:
     name: KinD Integration Tests

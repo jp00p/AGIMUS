@@ -1,6 +1,7 @@
 REPO_OWNER?=jp00p
 REPO_NAME?-=FoDBot-SQL
 BOT_CONTAINER_NAME?=fodbot
+LOCAL_KIND_CONFIG?=kind-config.yaml
 ifneq (,$(wildcard ./.env))
     include .env
     export
@@ -56,6 +57,20 @@ db-dump: ## Dump the database to a file at ./$DB_DUMP_FILENAME
 .PHONY: db-load
 db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_DUMP_FILENAME}
+
+
+##@ Kubernetes in Docker (KinD) stuff
+
+# yq '.nodes[0].extraMounts[0].hostPath="$(PWD)"' sample-kind-config.yaml > $(LOCAL_KIND_CONFIG)
+.PHONY: kind-setup
+kind-setup: docker-build ## create a KinD cluster with local config-yaml
+	kind create cluster --config $(LOCAL_KIND_CONFIG) -v 5 || true
+	make kind-load
+
+.PHONY: kind-load
+kind-load: ## load a locally built docker container into a running KinD cluster
+	kind load docker-image $(BOT_CONTAINER_NAME):latest
+	kind load docker-image mysql:latest
 
 ##@ Miscellaneous stuff
 
