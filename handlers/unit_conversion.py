@@ -126,9 +126,9 @@ async def handle_mentioned_units(message:discord.Message):
         continue
 
       # Special casing for stone -> kilograms
-      pound_match = re.match("(\d+.?\d+?) stone", message.content.lower())
-      if pound_match:
-        value = pound_match.groups()[0]
+      stone_match = re.search(r"(\d+.?\d+?) stone", message.content.lower())
+      if stone_match:
+        value = stone_match.groups()[0]
         pound_value = int(value) * 14
         pounds = pound_value * ureg.pound
         embed.description = f"{format_trailing(value)} stone is {'{:.2f}'.format(pounds.to('kilogram').magnitude)} kilograms!"
