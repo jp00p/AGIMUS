@@ -78,7 +78,7 @@ async def convert(ctx:SlashContext, **kwargs):
           found_minimum_match = True
 
       # Special casing for stone -> kilograms
-      pound_match = re.match("(\d+.?\d+?) stone", conversion)
+      pound_match = re.search("(\d+.?\d+?) stone", conversion)
       if pound_match:
         value = pound_match.groups()[0]
         pound_value = int(value) * 14
