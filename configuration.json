@@ -87,6 +87,12 @@
       "data": "data/conversions.json",
       "parameters": []
     },
+    "computer": {
+      "channels": [],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "dustbuster": {
       "channels": [
         "conversation-booth"
