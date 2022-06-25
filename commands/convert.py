@@ -4,6 +4,7 @@ import re
 
 from .common import *
 from utils.check_channel_access import *
+from utils.timekeeper import *
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
@@ -29,8 +30,8 @@ f.close()
       option_type=3
     ),
     create_option(
-      name="private",
-      description="Send clip to just yourself?",
+      name="public",
+      description="Send clip to the channel?",
       required=False,
       option_type=5,
     )
@@ -39,7 +40,8 @@ f.close()
 @slash_check_channel_access(command_config)
 async def convert(ctx:SlashContext, **kwargs):
   conversion = kwargs.get('conversion')
-  private = kwargs.get('private')
+  public = kwargs.get('public')
+  private = not public
 
   if re.search('([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?( ?[AaPp][Mm])?', conversion) != None:
     time_embed = discord.Embed(
@@ -49,9 +51,22 @@ async def convert(ctx:SlashContext, **kwargs):
     await ctx.send(embed=time_embed, hidden=True)
     return
 
+  # Private drops are not on the timer
+  clip_allowed = True
+  if not private:
+    clip_allowed = await check_timekeeper(ctx)
+
+  if not clip_allowed:
+    await ctx.send(f"{emojis.get('ohno')} Someone in the channel has already requested a conversion too recently. Please wait a minute before another conversion!", hidden=True)
+    return
+
   found_minimum_match = False
   quants = parser.parse(conversion)
   if quants:
+    if len(quants) > 2:
+      await ctx.send(f"{emojis.get('ohno')} Too many conversions values provided.", hidden=True)
+      return
+
     for quant in quants:
       value = quant.value
       unit_name = quant.unit.name.lower()
@@ -98,6 +113,9 @@ async def convert(ctx:SlashContext, **kwargs):
       color=discord.Color.dark_red()
     ), hidden=True)
     return
+
+  if not private:
+    set_timekeeper(ctx)
 
 def format_trailing(value):
   return re.sub('\.0$', '', f"{value}")
