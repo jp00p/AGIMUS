@@ -1,7 +1,10 @@
 REPO_OWNER?=jp00p
-REPO_NAME?-=FoDBot-SQL
-BOT_CONTAINER_NAME?=fodbot
+REPO_NAME?=AGIMUS
+BOT_CONTAINER_NAME?=agimus
+#BOT_CONTAINER_NAME=ghcr.io/${REPO_OWNER}/AGIMUS
+BOT_CONTAINER_VERSION?=$(shell make version)
 LOCAL_KIND_CONFIG?=kind-config.yaml
+namespace?=default
 ifneq (,$(wildcard ./.env))
     include .env
     export
@@ -23,6 +26,10 @@ start: setup ## Start the bot via python
 docker-build: ## Build the docker containers for the bot and the database
 	@docker-compose build
 
+.PHONY: docker-pull
+docker-pull: ## Pull the defined upstream containers for BOT_CONTAINER_NAME and BOT_CONTAINER_VERSION
+	@docker-compose pull
+
 .PHONY: docker-start
 docker-start: ## Start the docker containers for the bot and the database
 	@docker-compose up
@@ -30,6 +37,10 @@ docker-start: ## Start the docker containers for the bot and the database
 .PHONY: docker-stop
 docker-stop: ## Stop the docker containers for the bot and the database
 	@docker-compose down
+
+.PHONY: docker-restart
+docker-restart: ## Restart the docker containers running mysql and AGIMUS
+	@docker-compose down && docker-compose up
 
 .PHONY: docker-logs
 docker-logs: ## Tail the logs of running containers
@@ -67,18 +78,26 @@ kind-setup: docker-build ## create a KinD cluster with local config-yaml
 	kind create cluster --config $(LOCAL_KIND_CONFIG) -v 5 || true
 	make kind-load
 
+# kind load docker-image mysql:latest
 .PHONY: kind-load
 kind-load: ## load a locally built docker container into a running KinD cluster
 	kind load docker-image $(BOT_CONTAINER_NAME):latest
-	kind load docker-image mysql:latest
+	helm repo add bitpoke https://helm-charts.bitpoke.io
+	helm install mysql-operator bitpoke/mysql-operator
+
+.PHONY: kind-blah
+kind-blah: ## Do the rest of things
+	@kubectl delete configmap agimus-dotenv --ignore-not-found=true
+	@kubectl delete configmap agimus-config --ignore-not-found=true
+	@kubectl delete configmap agimus-seed --ignore-not-found=true
+	@kubectl create configmap agimus-dotenv --from-file=.env
+	@kubectl create configmap agimus-config --from-file=local.json
+	@kubectl create configmap agimus-seed --from-file=bot-dump.sql
 
 ##@ Miscellaneous stuff
 
 .PHONY: update-shows
 update-shows: ## Update the TGG metadata in the database via github action
-.PHONY: docker-restart
-docker-restart:
-	@docker-compose down && docker-compose up
 
 .PHONY: update-tgg-metadata
 update-tgg-metadata:
@@ -96,10 +115,10 @@ lint-actions: ## run .gihtub/workflows/*.yaml|yml through action-valdator tool
 
 .PHONY: version
 version: ## Print the version of the bot from the helm chart (requires yq)
-	@yq e '.version' charts/fodbot/Chart.yaml
+	@yq e '.version' charts/agimus/Chart.yaml
 
 .PHONY: help
 help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-username])
 	@echo "Friends of DeSoto Bot"
-	@echo "github.com/$$REPO_OWNER/$$REPO_NAME"
+	@echo "github.com/$$REPO_OWNER/$$REPO_NAME:$$BOT_CONTAINER_VERSION"
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "agimus.fullname" . }}
+  labels:
+    {{- include "agimus.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "agimus.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "agimus.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: fodbot-dotenv
+          configMap:
+            name: fodbot-dotenv
+        - name: fodbot-config
+          configMap:
+            name: fodbot-config
+        - name: fodbot-seed
+          configMap:
+            name: fodbot-seed
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: fodbot-dotenv
+              mountPath: /bot/.env
+              subPath: .env
+            - name: fodbot-config
+              mountPath: /bot/local.json
+              subPath: local.json
+            - name: fodbot-seed
+              mountPath: /bot/bot-dump.sql
+              subPath: bot-dump.sql

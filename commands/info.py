@@ -42,7 +42,7 @@ async def info(message:discord.Message):
       + "Usage: `!info [show] [s##e##]`\n" \
       + "show: " + '|'.join(config["commands"]["info"]["parameters"][0]["allowed"]) + "\n" \
       + "If this episode should exist, or is incorrect, help fix the source data here:\n" \
-      + "https://github.com/jp00p/FoDBot-SQL/tree/main/data/episodes")
+      + "https://github.com/jp00p/AGIMUS/tree/main/data/episodes")
 
 
 async def get_show(show_data, show_index, show_key):
