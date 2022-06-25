@@ -2,7 +2,7 @@ REPO_OWNER?=jp00p
 REPO_NAME?=AGIMUS
 BOT_CONTAINER_NAME?=agimus
 #BOT_CONTAINER_NAME=ghcr.io/${REPO_OWNER}/AGIMUS
-BOT_CONTAINER_VERSION?=$(shell make version)
+# BOT_CONTAINER_VERSION:=$(shell make version)
 LOCAL_KIND_CONFIG?=kind-config.yaml
 namespace?=default
 ifneq (,$(wildcard ./.env))
@@ -120,5 +120,5 @@ version: ## Print the version of the bot from the helm chart (requires yq)
 .PHONY: help
 help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-username])
 	@echo "Friends of DeSoto Bot"
-	@echo "github.com/$$REPO_OWNER/$$REPO_NAME:$$BOT_CONTAINER_VERSION"
+	@echo "github.com/$$REPO_OWNER/$$REPO_NAME:$(shell make version)"
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
