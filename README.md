@@ -94,6 +94,28 @@ Slash commands are triggered by typing a forward slash (`/`) followed by the com
 | `/drop <query> (<private>)`                                                                                                                                       | [drop.py](commands/drop.py)             | Posts a .mp4 drop file if it finds a match from the user's query. Drops are for audio from the pod while clips are for short videos.    |
 | `/drops`                                                                                                                                                          | [drop.py](commands/drop.py)             | Replies with a message to the user with a full list of the drops available from `/drop`                                                 |
 
+
+## "Computer:" Prompt
+In addition to the `/` and `!` commands we have a special case for handling messages that begin with a "Computer:" prompt. It has an entry within `configuration.json` and the same rules apply to it as the `!` commands. Extending the feature should be done within `commands/computer.py`.
+
+| Command                        | File                                          | Description                                                                                                                             |
+| :----------------------------- | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `Computer: <text query>`       | [computer.py](commands/computer.py)           | Runs the user's query against Wolfram Alpha to provide a Star Trek "Computer"-like experience with context-aware responses.             |
+
+### Generating a Wolfram Alpha API ID
+In order to use the "Computer:" prompt you'll need to also provide a Wolfram Alpha API ID which can be obtained from their site at https://products.wolframalpha.com/api . Full instructions for obtaining the API ID can be found in their [documentation](https://products.wolframalpha.com/api/documentation/).
+
+A development ID key is free and supports up to 5000 queries per month.
+
+Once generated it should be placed in your `.env` file as per the section in `.env-example`:
+
+```bash
+# Wolfram Alpha Credentials for "Computer:" prompts
+export WOLFRAM_ALPHA_ID=YOURKEYHERE
+```
+
+If the `.env` entry is not present, you'll see logs from the command firing but no action will be taken in response to the messages.
+
 ### configuration.json
 
 The [configuration.json](configuration.json) file defines metadata about each command like what channel they can be executed in, what parameters can be passed, if the command requires additional data loaded, or if it should be enabled/disabled.
@@ -174,7 +196,6 @@ Each command requires an explicit import in the [main.py](main.py) script.
 ```python
 from commands.setwager import setwager
 ```
-
 
 ### Utils
 
