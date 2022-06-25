@@ -50,6 +50,9 @@ Additional [discord role permissions](https://support.discord.com/hc/en-us/artic
 Also for the Slash Commands you'll need to enable the `applications.commands` Scope for your bot _Application_ via the OAuth2 URL Generator.
 Instructions for how to do this are available through this video at the 58 second timestamp: https://youtu.be/ygc-HdZHO5A?t=58
 
+The bot now requires `Intents.members` and `Intents.presences`.  You must enable this through the "Privileged Gateway Intents" page on the Application page of the Discord developer's portal.
+
+
 ## Commands
 
 Bot commands are triggered by typing an exclamation point followed by a command. Commands must be defined in the [configuration.json](configuration.json) file, a python file in the [commands directory](commands), and an import line added to [main.py](main.py).

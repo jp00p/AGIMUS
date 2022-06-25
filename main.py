@@ -6,6 +6,7 @@ from commands.buy import buy
 from commands.categories import categories
 from commands.clear_media import clear_media
 from commands.clip import clip, clips
+from commands.convert import convert
 from commands.dustbuster import dustbuster
 from commands.drop import drop, slash_drop, slash_drops
 from commands.fmk import fmk
@@ -34,7 +35,6 @@ from commands.server_logs import show_leave_message, show_nick_change_message
 # Handlers
 from handlers.alerts import handle_alerts
 from handlers.bot_autoresponse import handle_bot_affirmations
-from handlers.unit_conversion import handle_mentioned_units
 from handlers.xp import handle_message_xp, handle_react_xp
 # Tasks
 from tasks.scheduler import Scheduler
@@ -61,7 +61,6 @@ async def on_message(message:discord.Message):
   # Special message Handlers
   try:
     await handle_bot_affirmations(message)
-    await handle_mentioned_units(message)
     await handle_alerts(message)
   except Exception as e:
     logger.error(f"{Fore.RED}<! ERROR: Encountered error in handlers !> {e}{Fore.RESET}")

@@ -70,7 +70,7 @@ async def handle_message_xp(message:discord.Message):
         await handle_intro_channel_promotion(message)
         await handle_rank_xp_promotion(message, xp_amt)
       else:
-        logger.info(f"Promotion is enabled but {Fore.CYAN}Cadet{Fore.RESET} and role {Fore.CYAN}Ensign{Fore.RESET} roles are not available from the guild!")
+        logger.info(f"Promotion is enabled but {Fore.CYAN}Cadet{Fore.RESET} and {Fore.CYAN}Ensign{Fore.RESET} roles are not available from the guild!")
         logger.info(f"Available roles are: {Style.BRIGHT}{guild_role_names}{Style.RESET_ALL}.")
 
 
