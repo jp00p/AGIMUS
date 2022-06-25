@@ -2,7 +2,7 @@ REPO_OWNER?=jp00p
 REPO_NAME?=AGIMUS
 BOT_CONTAINER_NAME?=agimus
 #BOT_CONTAINER_NAME=ghcr.io/${REPO_OWNER}/AGIMUS
-# BOT_CONTAINER_VERSION:=$(shell make version)
+# BOT_CONTAINER_VERSION:=$(shell make version) # DONT DO THIS
 LOCAL_KIND_CONFIG?=kind-config.yaml
 namespace?=default
 ifneq (,$(wildcard ./.env))
