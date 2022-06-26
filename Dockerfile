@@ -13,14 +13,12 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
     && rm -rf /var/lib/apt/lists/* \
     && ln -s /usr/bin/python3 /usr/local/bin/python
 
-# configure timezone
+# configure timezone and set UTF8 charset
 ENV TZ="America/Los_Angeles"
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && echo $TZ > /etc/timezone \
-    && dpkg-reconfigure --frontend noninteractive tzdata
-
-# set UTF8 charset
-RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && dpkg-reconfigure --frontend noninteractive tzdata \
+    && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
     && locale-gen
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
