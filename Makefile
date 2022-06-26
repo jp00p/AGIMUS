@@ -78,7 +78,7 @@ db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 .PHONY: kind-setup
 kind-setup: ## Create a KinD cluster with local config-yaml
 	kind create cluster --config $(LOCAL_KIND_CONFIG) -v 5 || true
-	make docker-build
+	BOT_CONTAINER_VERSION=$(make version) && make docker-build
 	kind load docker-image $(BOT_CONTAINER_NAME):$(shell make version)
 
 # @kubectl create configmap agimus-seed --from-file=bot-dump.sql
