@@ -75,6 +75,7 @@ db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 kind-setup: docker-build ## Create a KinD cluster with local config-yaml
 	kind create cluster --config $(LOCAL_KIND_CONFIG) -v 5 || true
 
+# @kubectl create configmap agimus-seed --from-file=bot-dump.sql
 # kind load docker-image mysql:latest
 .PHONY: kind-test
 kind-test: kind-clean ## Load a locally built docker container into a running KinD cluster
@@ -84,7 +85,6 @@ kind-test: kind-clean ## Load a locally built docker container into a running Ki
 		mysql-operator bitpoke/mysql-operator
 	@kubectl create configmap agimus-dotenv --from-file=.env
 	@kubectl create configmap agimus-config --from-file=local.json
-	@kubectl create configmap agimus-seed --from-file=bot-dump.sql
 	@kubectl create secret generic mysql-secret --from-literal=ROOT_PASSWORD=$(DB_PASS)
 	@kubectl apply -f k8s/mysql-cluster.yaml && echo "sleeping while db starts" && sleep 90
 	helm upgrade --install --debug --wait \

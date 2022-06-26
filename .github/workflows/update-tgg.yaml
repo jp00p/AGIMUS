@@ -28,7 +28,7 @@ jobs:
         name: Update The Greatest Generation Metadata
         run: |
           make setup
-          echo "${{ secrets.ENVFILE }}" > .env \
+          echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
             && python ./utils/generate_episode_json.py -p VOY -o data/episodes/voy.json \
             && rm -rf .env
           rm -rf .env || true
