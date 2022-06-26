@@ -18,6 +18,16 @@ async def computer(message:discord.Message):
       res = wa_client.query(question)
       if res.success:
         answer = next(res.results).text
+
+        # Handle Math Queries by returning decimals if available
+        if res.datatypes == 'Math':
+          for pod in res.pods:
+            if pod.title.lower() == 'decimal form' or pod.title.lower() == 'decimal approximation':
+              answer = ""
+              for sub in pod.subpods:
+                answer += f"{sub.plaintext}\n"
+              break
+        
         embed = discord.Embed(
           title=get_random_title(),
           description=answer,
@@ -34,8 +44,8 @@ async def computer(message:discord.Message):
     except StopIteration:
       logger.info(f"Encountered StopIteration with query: {question}")
       embed = discord.Embed(
-        title="Query Too Generalized",
-        description="Please rephrase your query to be more specific.",
+        title="Query Too Generalized or Unsupported",
+        description="Please rephrase your query.",
         color=discord.Color.red()
       )
       await message.reply(embed=embed)
