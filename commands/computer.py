@@ -14,29 +14,45 @@ async def computer(message:discord.Message):
 
   question = message.content.lower().replace("computer:", '')
   if len(question):
-    res = wa_client.query(question)
-    if res.success:
-      answer = next(res.results).text
+    try:
+      res = wa_client.query(question)
+      if res.success:
+        answer = next(res.results).text
+        embed = discord.Embed(
+          title=get_random_title(),
+          description=answer,
+          color=discord.Color.teal()
+        )
+        await message.reply(embed=embed)
+      else:
+        embed = discord.Embed(
+          title="No Results Found.",
+          description="Please rephrase your query.",
+          color=discord.Color.red()
+        )
+        await message.reply(embed=embed)
+    except StopIteration:
+      logger.info(f"Encountered StopIteration with query: {question}")
       embed = discord.Embed(
-        title=get_random_title(),
-        description=answer,
-        color=discord.Color.teal()
-      )
-      await message.reply(embed=embed)
-    else:
-      embed = discord.Embed(
-        title="No Results Found.",
-        description="Please rephrase your query.",
+        title="Query Too Generalized",
+        description="Please rephrase your query to be more specific.",
         color=discord.Color.red()
       )
       await message.reply(embed=embed)
+  else:
+    embed = discord.Embed(
+      title="No Results Found.",
+      description="You must provide a query.",
+      color=discord.Color.red()
+    )
+    await message.reply(embed=embed)
 
 def get_random_title():
   titles = [
-    "Records indicate:",
+    "Records Indicate:",
     "According to the Starfleet Database:",
-    "Accessing... Accessing... Result:",
-    "Result located:"
+    "Accessing... Accessing...",
+    "Result Located:"
   ]
   return random.choice(titles)
 
