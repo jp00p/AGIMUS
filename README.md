@@ -7,7 +7,7 @@ The Friends of DeSoto are a group of fans of Star Trek and [The Greatest Generat
 This discord bot is built with python using the [discord.py library](https://discordpy.readthedocs.io/en/stable/api.html) and requires a mysql db with credentials stored in a .env file ([.env example](.env-example)). To develop locally, docker is used to standardize infrastructure and dependencies.
 
 ```bash
-# Clone FoDBot source
+# Clone AGIMUS source
 git clone https://github.com/jp00p/AGIMUS.git && cd AGIMUS
 
 # Fill out .env vars...
