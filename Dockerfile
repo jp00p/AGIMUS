@@ -15,14 +15,15 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
 
 # configure timezone
 ENV TZ="America/Los_Angeles"
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN dpkg-reconfigure --frontend noninteractive tzdata
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && dpkg-reconfigure --frontend noninteractive tzdata
 
 # set UTF8 charset
-RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
-    locale-gen
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && locale-gen
 ENV LC_ALL en_US.UTF-8
-ENV LANG en_US.UTF-8 
+ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 
 # Use 'bot' user to avoid pip warning messages
