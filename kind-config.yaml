@@ -5,4 +5,3 @@ nodes:
     extraMounts:
       - hostPath: /usr/local/mysql
         containerPath: /usr/local/mysql
-        # containerPath: "/var/lib/mysql"

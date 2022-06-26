@@ -89,6 +89,11 @@ kind-test: kind-clean ## Load a locally built docker container into a running Ki
 	@kubectl apply -f k8s/mysql-cluster.yaml && echo "sleeping while db starts" && sleep 90
 	helm upgrade --install --debug --wait \
 		agimus charts/agimus
+	sleep 10
+	kubectl get deployments
+	kubectl get pods -o wide
+	kubectl describe pod $(shell kubectl get pod -l app.kubernetes.io/name=agimus -o jsonpath='{.items[].metadata.name}')
+	kubectl logs $(shell kubectl get pod -l app.kubernetes.io/name=agimus -o jsonpath='{.items[].metadata.name}')
 
 .PHONY: kind-clean
 kind-clean: ## Delete configmaps and secrets
@@ -102,6 +107,10 @@ kind-clean-all: kind-clean ## Remove helm charts and db
 	@kubectl delete -f k8s/mysql-cluster.yaml
 	@helm delete mysql-operator
 	@helm delete agimus
+
+.PHONY: kind-destroy
+kind-destroy: ## Tear the KinD cluster down
+	kind delete cluster
 
 ##@ Miscellaneous stuff
 
