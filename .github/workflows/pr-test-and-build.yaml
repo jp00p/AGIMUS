@@ -59,9 +59,9 @@ jobs:
         name: KinD Tests
         run: |
           echo "Loading configuration"
-          # echo "${{ secrets.configjson }}" > local.json
+          # echo "${{ secrets.CONFIGJSON }}" > local.json
           echo "Loading secrets"
-          echo "${{ secrets.ENVFILE }}" > .env
+          # echo "${{ secrets.ENVFILE }}" > .env
           echo "Building KinD cluster"
           make kind-setup
           echo "Running tests..."
