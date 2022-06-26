@@ -59,7 +59,7 @@ jobs:
         name: KinD Tests
         run: |
           echo "Loading configuration"
-          echo "${{ secrets.configjson }}" > local.json
+          # echo "${{ secrets.configjson }}" > local.json
           echo "Loading secrets"
           echo "${{ secrets.ENVFILE }}" > .env
           echo "Building KinD cluster"
