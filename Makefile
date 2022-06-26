@@ -68,6 +68,10 @@ db-dump: ## Dump the database to a file at ./$DB_DUMP_FILENAME
 db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_DUMP_FILENAME}
 
+# mysql session in pod
+# kubectl exec -it my-cluster-mysql-0 -c mysql -- mysql -uroot -ppassword
+# Run sql file in pod
+# kubectl exec my-cluster-mysql-0 -c mysql -- mysql -uroot -ppassword < bot-dump.sql
 
 ##@ Kubernetes in Docker (KinD) stuff
 
@@ -93,8 +97,8 @@ kind-test: kind-clean ## Load a locally built docker container into a running Ki
 	sleep 10
 	kubectl get deployments
 	kubectl get pods -o wide
-	kubectl describe pod $(shell kubectl get pod -l app.kubernetes.io/name=agimus -o jsonpath='{.items[].metadata.name}')
-	kubectl logs $(shell kubectl get pod -l app.kubernetes.io/name=agimus -o jsonpath='{.items[].metadata.name}')
+	kubectl describe pod $(shell kubectl get pod -l app.kubernetes.io/name=agimus -o jsonpath='{.items[].metadata.name}') || true
+	kubectl logs $(shell kubectl get pod -l app.kubernetes.io/name=agimus -o jsonpath='{.items[].metadata.name}') || true
 
 .PHONY: kind-clean
 kind-clean: ## Delete configmaps and secrets
