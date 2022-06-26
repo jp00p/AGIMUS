@@ -78,13 +78,13 @@ db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 .PHONY: kind-setup
 kind-setup: ## Create a KinD cluster with local config-yaml
 	kind create cluster --config $(LOCAL_KIND_CONFIG) -v 5 || true
+	make docker-build
+	kind load docker-image $(BOT_CONTAINER_NAME):$(BOT_CONTAINER_VERSION)
 
 # @kubectl create configmap agimus-seed --from-file=bot-dump.sql
 # kind load docker-image mysql:latest
 .PHONY: kind-test
 kind-test: kind-clean ## Load a locally built docker container into a running KinD cluster
-	make docker-build
-	kind load docker-image $(BOT_CONTAINER_NAME):latest
 	helm repo add bitpoke https://helm-charts.bitpoke.io
 	helm upgrade --install --debug --wait \
 		mysql-operator bitpoke/mysql-operator
