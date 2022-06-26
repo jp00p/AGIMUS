@@ -123,6 +123,14 @@ lint-actions: ## Run .gihtub/workflows/*.yaml|yml through action-valdator tool
 version: ## Print the version of the bot from the helm chart (requires yq)
 	@yq e '.version' charts/agimus/Chart.yaml
 
+.PHONY: copy-config
+copy-config: ## Copy the base64 encoded contents of local.json
+	@cat local.json | base64 | pbcopy
+
+.PHONY: copy-env
+copy-env: ## Copy the base64 encoded contents of the .env file
+	@cat .env | base64 | pbcopy
+
 .PHONY: help
 help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-username])
 	@echo "Friends of DeSoto Bot - github.com/$$REPO_OWNER/$$REPO_NAME:$(shell make version)"
