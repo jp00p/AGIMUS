@@ -26,6 +26,7 @@ ENV LANGUAGE en_US:en
 
 # Use 'bot' user to avoid pip warning messages
 USER bot
+ENV PATH="$HOME/.local/bin:$PATH"
 # Add source code
 WORKDIR /bot
 COPY --chown=bot:bot . .
