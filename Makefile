@@ -91,14 +91,9 @@ kind-test: kind-clean ## Load a locally built docker container into a running Ki
 	@kubectl create configmap agimus-dotenv --from-file=.env
 	@kubectl create configmap agimus-config --from-file=local.json
 	@kubectl create secret generic mysql-secret --from-literal=ROOT_PASSWORD=$(DB_PASS)
-	@kubectl apply -f k8s/mysql-cluster.yaml && echo "sleeping while db starts" && sleep 90
+	@kubectl apply -f k8s/mysql-cluster.yaml && echo "sleeping while db starts" && kubectl get deployments && sleep 90
 	helm upgrade --install --debug --wait \
 		agimus charts/agimus
-	sleep 10
-	kubectl get deployments
-	kubectl get pods -o wide
-	kubectl describe pod $(shell kubectl get pod -l app.kubernetes.io/name=agimus -o jsonpath='{.items[].metadata.name}') || true
-	kubectl logs $(shell kubectl get pod -l app.kubernetes.io/name=agimus -o jsonpath='{.items[].metadata.name}') || true
 
 .PHONY: kind-clean
 kind-clean: ## Delete configmaps and secrets
