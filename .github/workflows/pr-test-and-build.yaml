@@ -58,9 +58,10 @@ jobs:
       -
         name: KinD Tests
         run: |
-          # make kind-test
-          # make kind-cleanup
-          echo "Disabled"
+          echo "${{ secrets.configjson }}" > ./local.json
+          echo "${{ secrets.ENVFILE }}" > ./.env
+          make kind-setup
+          make kind-test
 
   build_container:
     name: Build and Push Containers

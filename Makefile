@@ -2,7 +2,6 @@ REPO_OWNER?=jp00p
 REPO_NAME?=AGIMUS
 BOT_CONTAINER_NAME?=agimus
 #BOT_CONTAINER_NAME=ghcr.io/${REPO_OWNER}/AGIMUS
-# BOT_CONTAINER_VERSION:=$(shell make version) # DONT DO THIS
 LOCAL_KIND_CONFIG?=kind-config.yaml
 namespace?=default
 ifneq (,$(wildcard ./.env))
@@ -72,35 +71,42 @@ db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 
 ##@ Kubernetes in Docker (KinD) stuff
 
-# yq '.nodes[0].extraMounts[0].hostPath="$(PWD)"' sample-kind-config.yaml > $(LOCAL_KIND_CONFIG)
 .PHONY: kind-setup
-kind-setup: docker-build ## create a KinD cluster with local config-yaml
+kind-setup: docker-build ## Create a KinD cluster with local config-yaml
 	kind create cluster --config $(LOCAL_KIND_CONFIG) -v 5 || true
-	make kind-load
 
 # kind load docker-image mysql:latest
-.PHONY: kind-load
-kind-load: ## load a locally built docker container into a running KinD cluster
+.PHONY: kind-test
+kind-test: kind-clean ## Load a locally built docker container into a running KinD cluster
 	kind load docker-image $(BOT_CONTAINER_NAME):latest
 	helm repo add bitpoke https://helm-charts.bitpoke.io
-	helm install mysql-operator bitpoke/mysql-operator
-
-.PHONY: kind-blah
-kind-blah: ## Do the rest of things
-	@kubectl delete configmap agimus-dotenv --ignore-not-found=true
-	@kubectl delete configmap agimus-config --ignore-not-found=true
-	@kubectl delete configmap agimus-seed --ignore-not-found=true
+	helm upgrade --install --debug --wait \
+		mysql-operator bitpoke/mysql-operator
 	@kubectl create configmap agimus-dotenv --from-file=.env
 	@kubectl create configmap agimus-config --from-file=local.json
 	@kubectl create configmap agimus-seed --from-file=bot-dump.sql
+	@kubectl create secret generic mysql-secret --from-literal=ROOT_PASSWORD=$(DB_PASS)
+	@kubectl apply -f k8s/mysql-cluster.yaml && echo "sleeping while db starts" && sleep 90
+	helm upgrade --install --debug --wait \
+		agimus charts/agimus
+
+.PHONY: kind-clean
+kind-clean: ## Delete configmaps and secrets
+	@kubectl delete configmap agimus-dotenv --ignore-not-found=true
+	@kubectl delete configmap agimus-config --ignore-not-found=true
+	@kubectl delete configmap agimus-seed --ignore-not-found=true
+	@kubectl delete secret mysql-secret --ignore-not-found=true
+
+.PHONY: kind-clean-all
+kind-clean-all: kind-clean ## Remove helm charts and db
+	@kubectl delete -f k8s/mysql-cluster.yaml
+	@helm delete mysql-operator
+	@helm delete agimus
 
 ##@ Miscellaneous stuff
 
 .PHONY: update-shows
 update-shows: ## Update the TGG metadata in the database via github action
-
-.PHONY: update-tgg-metadata
-update-tgg-metadata:
 	@curl -s -H "Accept: application/vnd.github.everest-preview+json" \
 	    -H "Authorization: token $(GIT_TOKEN)" \
 	    --request POST \
@@ -109,7 +115,7 @@ update-tgg-metadata:
 
 
 .PHONY: lint-actions
-lint-actions: ## run .gihtub/workflows/*.yaml|yml through action-valdator tool
+lint-actions: ## Run .gihtub/workflows/*.yaml|yml through action-valdator tool
 	find .github/workflows -type f \( -iname \*.yaml -o -iname \*.yml \) \
 		| xargs -I action_yaml action-validator --verbose action_yaml
 
@@ -119,6 +125,7 @@ version: ## Print the version of the bot from the helm chart (requires yq)
 
 .PHONY: help
 help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-username])
-	@echo "Friends of DeSoto Bot"
-	@echo "github.com/$$REPO_OWNER/$$REPO_NAME:$(shell make version)"
+	@echo "Friends of DeSoto Bot - github.com/$$REPO_OWNER/$$REPO_NAME:$(shell make version)"
+	@cat banner.txt
+	@echo ""
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)

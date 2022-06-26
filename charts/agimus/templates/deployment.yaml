@@ -25,26 +25,26 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
-        - name: fodbot-dotenv
+        - name: agimus-dotenv
           configMap:
-            name: fodbot-dotenv
-        - name: fodbot-config
+            name: agimus-dotenv
+        - name: agimus-config
           configMap:
-            name: fodbot-config
-        - name: fodbot-seed
+            name: agimus-config
+        - name: agimus-seed
           configMap:
-            name: fodbot-seed
+            name: agimus-seed
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
-            - name: fodbot-dotenv
+            - name: agimus-dotenv
               mountPath: /bot/.env
               subPath: .env
-            - name: fodbot-config
+            - name: agimus-config
               mountPath: /bot/local.json
               subPath: local.json
-            - name: fodbot-seed
+            - name: agimus-seed
               mountPath: /bot/bot-dump.sql
               subPath: bot-dump.sql
