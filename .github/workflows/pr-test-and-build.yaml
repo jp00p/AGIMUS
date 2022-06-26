@@ -68,6 +68,9 @@ jobs:
           echo "Running tests..."
           make kind-test
           sleep 10
+          kubectl get deployments
+          kubectl get pods -o wide
+          kubectl describe pod $(kubectl get pod -l app.kubernetes.io/name=agimus -o jsonpath='{.items[].metadata.name}')
           kubectl logs $(kubectl get pod -l app.kubernetes.io/name=agimus -o jsonpath='{.items[].metadata.name}')
 
 
