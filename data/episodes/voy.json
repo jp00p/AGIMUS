@@ -1591,7 +1591,15 @@
       "episode": "05",
       "imdb": "tt0708963",
       "memoryalpha": "Revulsion_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 424,
+          "airdate": "2022.06.27",
+          "episode": "Red Crud Continuity",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-424-red-crud-continuity-voy-s4e5/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/pitiVOUdpgJwSuEtYbPzWTTLvP8.jpg"
