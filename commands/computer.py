@@ -12,7 +12,8 @@ async def computer(message:discord.Message):
   if not wa_client:
     return
 
-  question = message.content.lower().replace("computer:", '')
+  question = message.content.lower().replace("computer:", '').strip()
+
   if len(question):
     try:
       res = wa_client.query(question)
@@ -27,7 +28,11 @@ async def computer(message:discord.Message):
               for sub in pod.subpods:
                 answer += f"{sub.plaintext}\n"
               break
-        
+
+        # Catch information about Wolfram Alpha itself ("Who created you?" for example.)
+        if "wolfram" in answer.lower():
+          answer = "That information is classified."
+
         embed = discord.Embed(
           title=get_random_title(),
           description=answer,
