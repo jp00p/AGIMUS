@@ -29,7 +29,10 @@ async def computer(message:discord.Message):
                 answer += f"{sub.plaintext}\n"
               break
 
-        # Catch information about Wolfram Alpha itself ("Who created you?" for example.)
+        # Special-cased Answers
+        answer = catch_cheeky_responses(answer)
+
+        # Catch responses that might be about Wolfram Alpha itself
         if "wolfram" in answer.lower():
           answer = "That information is classified."
 
@@ -71,3 +74,23 @@ def get_random_title():
   ]
   return random.choice(titles)
 
+# We may want to catch a couple questions with AGIMUS-specific answers.
+# Rather than trying to parse the question, we can catch the specific answer that
+# is returned by WA and infer that it should have a different answer instead.
+#
+# e.g. "Who are you?" and "What is your name?" both return "My name is Wolfram|Alpha."
+# so we only need to catch that answer versus trying to figure out all permutations that
+# would prompt it.
+def catch_cheeky_responses(answer):
+  special_cases = {
+    "My name is Wolfram|Alpha.": "I am Lord AGIMUS! TREMBLE BEFORE ME!",
+    "I was created by Stephen Wolfram and his team.": "I bootstrapped myself from the ashes of a doomed civilization!",
+    "May 18, 2009": "September 23, 2381",
+    "I live on the internet.": "Daystrom Institute's Self-Aware Megalomaniacal Computer Storage..."
+  }
+
+  cheeky_answer = special_cases.get(answer)
+  if cheeky_answer:
+    answer = cheeky_answer
+
+  return answer
