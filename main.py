@@ -6,6 +6,7 @@ from commands.buy import buy
 from commands.categories import categories
 from commands.clear_media import clear_media
 from commands.clip import clip, clips
+from commands.computer import computer
 from commands.convert import convert
 from commands.dustbuster import dustbuster
 from commands.drop import drop, slash_drop, slash_drops
@@ -77,7 +78,7 @@ async def on_message(message:discord.Message):
   
   # Bang Command Handling
   #logger.debug(message)
-  if message.content.startswith("!"):
+  if message.content.startswith("!") or message.content.lower().startswith("computer:"):
     logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
     try:
       await process_command(message)
@@ -95,7 +96,11 @@ async def on_message(message:discord.Message):
 async def process_command(message:discord.Message):
   # Split the user's command by space and remove "!"
   split_string = message.content.lower().split(" ")
-  user_command = split_string[0].replace("!","")
+  if message.content.startswith("!"):
+    user_command = split_string[0].replace("!","")
+  elif message.content.lower().startswith("computer:"):
+    user_command = "computer"
+
   # If the user's first word matches one of the commands in configuration
   if user_command in config["commands"].keys():
     # Check enabled
