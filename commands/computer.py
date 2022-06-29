@@ -128,7 +128,6 @@ async def handle_image_result(res, message:discord.Message):
   if image_url:
     embed = discord.Embed(
       title="Result",
-      # description=answer,
       color=discord.Color.teal()
     )
     embed.set_image(url=image_url)
@@ -158,7 +157,6 @@ async def handle_non_primary_result(res, message:discord.Message):
   if image_url:
     embed = discord.Embed(
       title=f"{pods[1].title.title()}:",
-      # description=answer,
       color=discord.Color.teal()
     )
     embed.set_image(url=image_url)
