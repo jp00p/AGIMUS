@@ -1126,15 +1126,7 @@
       "episode": "10",
       "imdb": "tt0709010",
       "memoryalpha": "Warlord_(episode)",
-      "podcasts": [
-        {
-          "title": "The Greatest Generation",
-          "order": 403,
-          "airdate": "2022.01.31",
-          "episode": "Diplomatic Broth",
-          "link": "https://maximumfun.org/wp-content/uploads/2020/03/MBMBaM-Ep502-American-Psycho-2-The-Squeakquel.pdf"
-        }
-      ],
+      "podcasts": [],
       "season": "03",
       "stills": [
         "https://image.tmdb.org/t/p/original/e83Jc6t0xaEQHdxSSK05oWHbqnK.jpg"
