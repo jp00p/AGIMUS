@@ -1,3 +1,4 @@
+from pprint import pformat
 import wolframalpha
 
 from .common import *
@@ -12,36 +13,23 @@ async def computer(message:discord.Message):
   if not wa_client:
     return
 
-  question = message.content.lower().replace("computer:", '').strip()
+  # Question may start with "Computer:" or "AGIMUS:"
+  # So split on first : and gather remainder of list into a single string
+  question_split = message.content.lower().split(":")
+  question = "".join(question_split[1:])
 
   if len(question):
     try:
       res = wa_client.query(question)
       if res.success:
-        answer = next(res.results).text
+        result = next(res.results)
 
-        # Handle Math Queries by returning decimals if available
-        if res.datatypes == 'Math':
-          for pod in res.pods:
-            if pod.title.lower() == 'decimal form' or pod.title.lower() == 'decimal approximation':
-              answer = ""
-              for sub in pod.subpods:
-                answer += f"{sub.plaintext}\n"
-              break
+        # Handle Primary Result
+        if result.text:
+          await handle_text_result(res, message)
+        else:
+          await handle_image_result(res, message)
 
-        # Special-cased Answers
-        answer = catch_cheeky_responses(answer)
-
-        # Catch responses that might be about Wolfram Alpha itself
-        if "wolfram" in answer.lower():
-          answer = "That information is classified."
-
-        embed = discord.Embed(
-          title=get_random_title(),
-          description=answer,
-          color=discord.Color.teal()
-        )
-        await message.reply(embed=embed)
       else:
         embed = discord.Embed(
           title="No Results Found.",
@@ -49,14 +37,10 @@ async def computer(message:discord.Message):
           color=discord.Color.red()
         )
         await message.reply(embed=embed)
+        return
     except StopIteration:
-      logger.info(f"Encountered StopIteration with query: {question}")
-      embed = discord.Embed(
-        title="Query Too Generalized or Unsupported",
-        description="Please rephrase your query.",
-        color=discord.Color.red()
-      )
-      await message.reply(embed=embed)
+      # Handle Non-Primary Result
+      await handle_non_primary_result(res, message)
   else:
     embed = discord.Embed(
       title="No Results Found.",
@@ -64,6 +48,97 @@ async def computer(message:discord.Message):
       color=discord.Color.red()
     )
     await message.reply(embed=embed)
+    return
+
+async def handle_text_result(res, message:discord.Message):
+  # Handle Text-Based Results
+  result = next(res.results)
+  answer = result.text
+
+  # Handle Math Queries by returning decimals if available
+  if res.datatypes == 'Math':
+    for pod in res.pods:
+      if pod.title.lower() == 'decimal form' or pod.title.lower() == 'decimal approximation':
+        answer = ""
+        for sub in pod.subpods:
+          answer += f"{sub.plaintext}\n"
+        break
+
+  # Special-cased Answers
+  answer = catch_cheeky_responses(answer)
+
+  # Catch responses that might be about Wolfram Alpha itself
+  if "wolfram" in answer.lower():
+    answer = "That information is classified."
+
+  embed = discord.Embed(
+    title=get_random_title(),
+    description=answer,
+    color=discord.Color.teal()
+  )
+  await message.reply(embed=embed)
+  return
+
+
+async def handle_image_result(res, message:discord.Message):
+  # Attempt to handle Image-Based Results
+  image_url = None
+  for pod in res.pods:
+    if pod.primary:
+      for sub in pod.subpods:
+        if sub.img and sub.img.src:
+          image_url = sub.img.src
+      if image_url:
+        break
+
+  if image_url:
+    embed = discord.Embed(
+      title="Result",
+      # description=answer,
+      color=discord.Color.teal()
+    )
+    embed.set_image(url=image_url)
+    await message.reply(embed=embed)
+    return
+  else:
+    embed = discord.Embed(
+    title="No Results Found.",
+    description="Unable to retrieve a proper result.",
+    color=discord.Color.red()
+  )
+  await message.reply(embed=embed)
+  return
+
+async def handle_non_primary_result(res, message:discord.Message):
+  # Attempt to handle Image-Based Primary Results
+  image_url = None
+  pods = list(res.pods)
+
+  if len(pods) > 1:
+    first_pod = pods[1]
+    for sub in first_pod.subpods:
+      if sub.img and sub.img.src:
+        image_url = sub.img.src
+        break
+
+  if image_url:
+    embed = discord.Embed(
+      title=f"{pods[1].title.title()}:",
+      # description=answer,
+      color=discord.Color.teal()
+    )
+    embed.set_image(url=image_url)
+    await message.reply(embed=embed)
+    return
+  else:
+    embed = discord.Embed(
+    title="No Result Found.",
+    description="Unable to retrieve a proper result.",
+    color=discord.Color.red()
+  )
+  await message.reply(embed=embed)
+  return
+
 
 def get_random_title():
   titles = [
