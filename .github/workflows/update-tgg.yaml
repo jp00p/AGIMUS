@@ -7,9 +7,9 @@
 #              and update the metadata saved in this repo data/episodes/*.json
 name: Update The Greatest Generation Metadata
 on:
-  # trigger Mondays at 2:15pm PT (21:15UTC)
+  # trigger Wednesdays at 2:15pm PT (21:15UTC)
   schedule:
-    - cron: '15 21 * * 1'
+    - cron: '15 21 * * 3'
   repository_dispatch:
     types:
       - trigger-tgg-update
