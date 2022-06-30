@@ -36,16 +36,17 @@ class LightHandler(logging.Handler):
         ansi_number += int(match)
       rgb = get_rgb_from_ansi(int(ansi_number))
       xy = get_xy_from_rgb(*rgb)
+      bri = int(xy[1]*255)
 
       light_name = lights_config.get("light_name")
       if not light_name:
         return
 
-      
       if not b.get_light(light_name, 'on'):
         return
 
-      b.set_light(light_name, 'xy', xy, transitiontime=0)
+      command = {"transitiontime:": 0, "xy": xy, "bri": bri}
+      b.set_light(light_name, command)
 
 
 # ANSI Methods
