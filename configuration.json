@@ -90,7 +90,7 @@
     "computer": {
       "channels": [],
       "enabled": true,
-      "data": null,
+      "data": "data/computer.json",
       "parameters": []
     },
     "dustbuster": {
