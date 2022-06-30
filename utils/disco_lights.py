@@ -1,6 +1,7 @@
 from phue import Bridge
 import logging
 import re
+import random
 
 from utils.config_utils import get_config
 
@@ -17,36 +18,57 @@ if lights_config:
 class LightHandler(logging.Handler):
   def emit(self, record):
       """
-      Intercept the log messages and parse the first ANSI codes it finds
-      then set the color of the 'Bot' light to its xy equivalent
+      Show a random color when a log message comes through
       """
+
       if not b:
         return
 
+      target_light_name = lights_config.get("light_name")
+      
+      if not target_light_name:
+        return
+      
       log_line = record.getMessage()
-      split = split_ANSI(log_line)
-
-      col = split.get("col")
-      if not col:
+      
+      if "*" not in log_line:
         return
 
-      ansi_matches = re.findall(r"(\d+)m", col)
-      ansi_number = 0
-      for match in ansi_matches:
-        ansi_number += int(match)
-      rgb = get_rgb_from_ansi(int(ansi_number))
-      xy = get_xy_from_rgb(*rgb)
-      bri = int(xy[1]*255)
+      # get all lights (maybe i want to make a whole house disco)
+      light_names = b.get_light_objects('name')
 
-      light_name = lights_config.get("light_name")
-      if not light_name:
+      # but just one light for now
+      light = light_names[target_light_name]
+
+      if not light.on:
         return
 
-      if not b.get_light(light_name, 'on'):
-        return
+      light.transitiontime = 1
+      light.saturation = 254
+      light.hue = random.randint(1,65535)
+           
+      # b.set_light(light_name, "xy", (random.random(), random.random()))
 
-      command = {"transitiontime:": 0, "xy": xy, "bri": bri}
-      b.set_light(light_name, command)
+      # log_line = record.getMessage()
+      # split = split_ANSI(log_line)
+
+      # col = split.get("col")
+      # if not col:
+      #   return
+
+      # ansi_matches = re.findall(r"(\d+)m", col)
+      # ansi_number = 0
+      # for match in ansi_matches:
+      #   ansi_number += int(match)
+      # rgb = get_rgb_from_ansi(int(ansi_number))
+      # xy = get_xy_from_rgb(*rgb)
+      # bri = int(xy[1]*255)
+
+      # if not b.get_light(light_name, 'on'):
+      #   return
+
+      # command = {"transitiontime:": 0, "xy": xy, "bri": bri}
+      # b.set_light(light_name, command)
 
 
 # ANSI Methods
