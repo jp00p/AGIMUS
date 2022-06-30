@@ -7,9 +7,9 @@
 #              and update the metadata saved in this repo data/episodes/*.json
 name: Update The Greatest Generation Metadata
 on:
-  # trigger Mondays at 2:15pm PT (21:15UTC)
+  # trigger Thursdays at 2:15pm PT (21:15UTC)
   schedule:
-    - cron: '15 21 * * 1'
+    - cron: '15 21 * * 4'
   repository_dispatch:
     types:
       - trigger-tgg-update
@@ -28,7 +28,7 @@ jobs:
         name: Update The Greatest Generation Metadata
         run: |
           make setup
-          echo "${{ secrets.ENVFILE }}" > .env \
+          echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
             && python ./utils/generate_episode_json.py -p VOY -o data/episodes/voy.json \
             && rm -rf .env
           rm -rf .env || true

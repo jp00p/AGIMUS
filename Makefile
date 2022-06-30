@@ -1,5 +1,5 @@
 REPO_OWNER:=jp00p
-REPO_NAME:=FoDBot-SQL
+REPO_NAME:=agimus
 ifneq (,$(wildcard ./.env))
     include .env
     export
@@ -36,6 +36,10 @@ docker-build:
 .PHONY: docker-start
 docker-start:
 	@docker-compose up
+
+.PHONY: docker-start-exec
+docker-start-exec:
+	docker run --rm -it -v ${PWD}:/bot ghcr.io/$(REPO_OWNER)/$(REPO_NAME):latest bash
 
 .PHONY: docker-logs
 docker-logs:
