@@ -87,7 +87,7 @@ async def on_message(message:discord.Message):
       logger.info(f">>> Encountered Exception!")
       logger.info(e)
       exception_embed = discord.Embed(
-        title="Oops...",
+        title=f"Oops... Encountered exception processing request: {message.content}",
         description=f"{e}\n```{traceback.format_exc()}```",
         color=discord.Color.red()
       )
