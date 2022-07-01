@@ -226,9 +226,17 @@
       "parameters": []
     },
     "profile": {
-      "channels": [
-        "conversation-boot",
-        "slotshop-dot-biz"
+      "channels": [],
+      "blocked_channels":[
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-office",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "garaks-tailor-shop",
+        "the-next-next-generation",
+        "sicks-bay"
       ],
       "enabled": true,
       "data": null,

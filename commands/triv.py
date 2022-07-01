@@ -48,7 +48,7 @@ async def end_trivia():
   correct_guessers = []
   for ans in TRIVIA_ANSWERS:
     if TRIVIA_ANSWERS[ans] == TRIVIA_DATA["correct_emoji"]:
-      correct_guessers.append(get_player(ans))
+      correct_guessers.append(get_user(ans))
   channel = client.get_channel(config["channels"]["quizzing-booth"])
   embed = discord.Embed(title="Trivia Complete!", description="⠀\n⠀\nThe correct answer was:\n {} **{}**\n⠀\n⠀{}".format(TRIVIA_DATA["correct_emoji"], TRIVIA_DATA["correct_answer"], " "*47))
   if len(correct_guessers) > 0:
