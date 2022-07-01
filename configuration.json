@@ -31,7 +31,7 @@
   "commands": {
     "buy": {
       "channels": [
-        "slot-shop-dot-biz"
+        "slotshop-dot-biz"
       ],
       "enabled": true,
       "data": "data/shop.json",
@@ -379,7 +379,7 @@
     },
     "shop": {
       "channels": [
-        895480382680596510
+        "slotshop-dot-biz"
       ],
       "enabled": true,
       "data": "data/shop.json",

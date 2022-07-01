@@ -41,10 +41,10 @@ async def buy(message:discord.Message):
               badges = list(buy_data["badges"])
               final_item = buy_data["badges"][badges[item]]
               update_player_profile_badge(message.author.id, final_item)
-              msg = "{}: You have spent `{} points` and purchased the **{}** profile badge! Type `!profile` to show it off!".format(message.author.mention, cost, badges[item])
+              msg = "{}: You have spent `{} points` and purchased the **{}** profile badge! Type `/profile` to check it out!".format(message.author.mention, cost, badges[item])
             if item_cat == "profile":
               update_player_profile_card(message.author.id, items[item].lower())
-              msg = "{}: You have spent `{} points` and purchased the **{}** profile card! Type `!profile` to show it off!".format(message.author.mention, cost, items[item])
+              msg = "{}: You have spent `{} points` and purchased the **{}** profile card! Type `/profile` to check it out!".format(message.author.mention, cost, items[item])
             if item_cat == "role":
               roles = list(buy_data["roles"])
               final_item = buy_data["roles"][roles[item]]["id"]

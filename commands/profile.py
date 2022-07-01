@@ -15,6 +15,7 @@ async def profile(ctx:SlashContext):
   
   user = ctx.author
   player = get_user(user.id)
+  logger.info(f"{Fore.CYAN}{user.display_name} is looking at their own {Back.WHITE}{Fore.BLACK}profile card!{Back.RESET}{Fore.RESET}")
 
   # fonts (same font, different sizes) used for building image
   name_font = ImageFont.truetype("images/lcars3.ttf", 56)

@@ -1,4 +1,6 @@
 from .common import *
+from utils.check_channel_access import *
+
 
 # shop() - Entrypoint for !shop command
 # message[required]: discord.Message
