@@ -8,7 +8,7 @@ async def setwager(message:discord.Message):
   min_wager = 1
   max_wager = 25
   wager_val = message.content.lower().replace("!setwager ", "")
-  player = get_player(message.author.id)
+  player = get_user(message.author.id)
   current_wager = player["wager"]
   if wager_val.isnumeric():
     wager_val = int(wager_val)

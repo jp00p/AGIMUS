@@ -30,7 +30,7 @@ async def buy(message:discord.Message):
         items = buy_data["roles"]
         roles = list(buy_data["roles"])
         cost = buy_data["roles"][roles[int(item_to_buy)-1]]["price"] # uh oh...
-      player = get_player(message.author.id)
+      player = get_user(message.author.id)
       if player["score"] < cost:
         msg = "{}: You need `{} points` to buy that item!".format(message.author.mention, cost)
       else:
