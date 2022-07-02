@@ -75,34 +75,24 @@ db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 
 ##@ Kubernetes in Docker (KinD) stuff
 
-.PHONY: kind-setup
-kind-setup: ## Create a KinD cluster with local config-yaml
+.PHONY: kind-create
+kind-create: ## Create a KinD cluster with local config-yaml
 	kind create cluster --config $(LOCAL_KIND_CONFIG) -v 5 || true
-	make docker-build
-	kind load docker-image $(BOT_CONTAINER_NAME):latest
+
+.PHONY: kind-load
+kind-load: ## Load $BOT_CONTAINER_NAME into a running kind cluster
+	BOT_CONTAINER_VERSION=local make docker-build
+	kind load docker-image $(BOT_CONTAINER_NAME):local
 
 # @kubectl create configmap agimus-seed --from-file=bot-dump.sql
-# kind load docker-image mysql:latest
 .PHONY: kind-test
-kind-test: kind-clean ## Load a locally built docker container into a running KinD cluster
-	helm repo add bitpoke https://helm-charts.bitpoke.io
+kind-test: ## Install AGIMUS into a running KinD cluster with helm
+	@kubectl create configmap agimus-dotenv --from-file=.env || true
+	@kubectl create configmap agimus-config --from-file=local.json || true
+	@kubectl create secret generic mysql-secret --from-literal=MYSQL_ROOT_PASSWORD=$(DB_PASS) || true
 	helm upgrade --install --debug --wait \
-		mysql-operator bitpoke/mysql-operator
-	@kubectl create configmap agimus-dotenv --from-file=.env
-	@kubectl create configmap agimus-config --from-file=local.json
-	@kubectl create secret generic mysql-secret --from-literal=ROOT_PASSWORD=$(DB_PASS)
-	@kubectl apply -f k8s/mysql-cluster.yaml \
-		&& echo "sleeping while db starts" \
-		&& sleep 30 \
-		&& kubectl get deployments \
-		&& kubectl describe pods \
-		&& sleep 30 \
-		&& kubectl get deployments \
-		&& kubectl describe pods \
-		&& sleep 30 \
-		&& kubectl get deployments \
-		&& kubectl describe pods
-	helm upgrade --install --debug --wait \
+		--set image.repository=$(BOT_CONTAINER_NAME) \
+		--set image.tag=local \
 		agimus charts/agimus
 
 .PHONY: kind-clean

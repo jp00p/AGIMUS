@@ -5,7 +5,9 @@ metadata:
   labels:
     {{- include "agimus.labels" . | nindent 4 }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicas }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "agimus.selectorLabels" . | nindent 6 }}
@@ -38,6 +40,10 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # command:
+          #   - bash
+          #   - -c
+          #   - 'sleep 9999;'
           volumeMounts:
             - name: agimus-dotenv
               mountPath: /bot/.env
