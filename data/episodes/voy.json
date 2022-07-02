@@ -1126,7 +1126,15 @@
       "episode": "10",
       "imdb": "tt0709010",
       "memoryalpha": "Warlord_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 403,
+          "airdate": "2022.01.31",
+          "episode": "Diplomatic Broth",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-403-diplomatic-broth-voy-s3e10/"
+        }
+      ],
       "season": "03",
       "stills": [
         "https://image.tmdb.org/t/p/original/e83Jc6t0xaEQHdxSSK05oWHbqnK.jpg"
