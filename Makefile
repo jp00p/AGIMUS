@@ -122,7 +122,6 @@ update-shows: ## Update the TGG metadata in the database via github action
 	    --data '{"event_type": "update-shows"}' \
 	    https://api.github.com/repos/$(REPO_OWNER)/$(REPO_NAME)/dispatches
 
-
 .PHONY: lint-actions
 lint-actions: ## Run .gihtub/workflows/*.yaml|yml through action-valdator tool
 	find .github/workflows -type f \( -iname \*.yaml -o -iname \*.yml \) \
