@@ -39,11 +39,6 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
     logger.info("Total reactions: " + len(reactions))
     return True
 
-  for board, match_reacts in board_dict.items():
-    if check_starboard_post_exists(message.id, board) is not None:
-      return True
-
-
   # it might be safe to see if this is a starboard-worthy post now
   # each starboard can have a set of words to match against, 
   # here we loop over each board and then each word that board has
