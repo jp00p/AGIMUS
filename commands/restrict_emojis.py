@@ -119,10 +119,16 @@ async def restrict_emojis(message:discord.Message):
     return
 
   # If we're restricting or removing, prompt for the role to interact with
+  action_verb = ''
+  if selected_action == 'restrict':
+    action_verb = 'give access to'
+  elif selected_action == 'remove':
+    action_verb = 'remove from'
+
   role_reply = await action_interaction.send(
     embed=discord.Embed(
       title=f"{selected_action.title()}:",
-      description=f"Which Role would you like to apply to {selected_emoji}?"
+      description=f"Which Role would you like to {action_verb} {selected_emoji}?"
     ),
     components=[
       Select(
