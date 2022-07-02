@@ -49,8 +49,7 @@ async def restrict_emojis(message:discord.Message):
         placeholder="Select an emoji!",
         options=emoji_options
       )
-    ],
-    delete_after=30.0
+    ]
   )
   
   # Confirm Selection and Prompt With Button Options
@@ -87,13 +86,13 @@ async def restrict_emojis(message:discord.Message):
       ),
       Button(
         label="Remove Restriction From Role",
-        style=2,
+        style=1,
         custom_id="remove",
         emoji="🗝️"
       ),
       Button(
         label="Clear All Role Restictions From Emoji",
-        style=3,
+        style=2,
         custom_id="clear",
         emoji="☑️"
       ),
