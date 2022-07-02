@@ -28,7 +28,7 @@ async def qset(message:discord.Message):
   change_column = qspl[1]
   change_value  = qspl[2]
   logger.info(f"!get selected_user: {selected_user}")
-  this_user = get_player(selected_user)
+  this_user = get_user(selected_user)
   logger.debug(f"this_user: {this_user}")
   modifiable_ints = ["score", "spins", "jackpots", "wager", "high_roller", "chips", "xp"]
   modifiable_strings = ["profile_card", "profile_badge"]
@@ -53,7 +53,7 @@ async def display_user(user_id:discord.User, message:discord.Message):
   f = open(config["commands"]["qget"]["data"])
   user_columns = json.load(f)
   f.close()
-  user_data = get_player(user_id)
+  user_data = get_user(user_id)
   logger.debug(f"this_user: {user_data}")
 
   user = await client.fetch_user(user_id)

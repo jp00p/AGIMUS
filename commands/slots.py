@@ -24,7 +24,7 @@ async def slots(message:discord.Message):
   logger.info(f"{Fore.LIGHTRED_EX}Rolling slot theme:{Fore.RESET} {Style.BRIGHT}{show}{Style.RESET_ALL}")
   # player data  
   id = message.author.id
-  player = get_player(id)
+  player = get_user(id)
   #logger.info(player)
   free_spin = player["spins"] < 5 # true or false
   wager = player["wager"]

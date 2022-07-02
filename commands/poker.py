@@ -11,7 +11,7 @@ async def poker(message:discord.Message):
   if message.author.id in poker_players:
     await message.channel.send("{}: you have a poker game running already! Be patient!".format(message.author.mention))
   else:
-    player = get_player(message.author.id)
+    player = get_user(message.author.id)
     if player["score"] >= player["wager"]:
       set_player_score(str(message.author.id), -player["wager"])
       deck = Deck()

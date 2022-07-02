@@ -98,17 +98,17 @@ Slash commands are triggered by typing a forward slash (`/`) followed by the com
 | `/drops`                                                                                                                                                          | [drop.py](commands/drop.py)             | Replies with a message to the user with a full list of the drops available from `/drop`                                                 |
 
 
-## "Computer:" Prompt
-In addition to the `/` and `!` commands we have a special case for handling messages that begin with a "Computer:" prompt. It has an entry within `configuration.json` and the same rules apply to it as the `!` commands. Extending the feature should be done within `commands/computer.py`.
+## "Computer:"/"AGIMUS:" Prompt
+In addition to the `/` and `!` commands we have a special case for handling messages that begin with a "Computer:" or "AGIMUS:" prompt. It has an entry within `configuration.json` and the same rules apply to it as the `!` commands. Extending the feature should be done within `commands/computer.py`.
 
-| Command                        | File                                          | Description                                                                                                                             |
-| :----------------------------- | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| `Computer: <text query>`       | [computer.py](commands/computer.py)           | Runs the user's query against Wolfram Alpha to provide a Star Trek "Computer"-like experience with context-aware responses.             |
+| Command                                  | File                                          | Description                                                                                                                             |
+| :--------------------------------------- | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `[Computer:|AGIMUS:] <text query>`       | [computer.py](commands/computer.py)           | Runs the user's query against Wolfram Alpha to provide a Star Trek "Computer"-like experience with context-aware responses.             |
 
 ### Generating a Wolfram Alpha API ID
-In order to use the "Computer:" prompt you'll need to also provide a Wolfram Alpha API ID which can be obtained from their site at https://products.wolframalpha.com/api . Full instructions for obtaining the API ID can be found in their [documentation](https://products.wolframalpha.com/api/documentation/).
+In order to use the "Computer:"/"AGIMUS:" prompt you'll need to also provide a Wolfram Alpha API ID which can be obtained from their site at https://products.wolframalpha.com/api . Full instructions for obtaining the API ID can be found in their [documentation](https://products.wolframalpha.com/api/documentation/).
 
-A development ID key is free and supports up to 5000 queries per month.
+A development ID key is free and supports up to 2000 queries per month.
 
 Once generated it should be placed in your `.env` file as per the section in `.env-example`:
 
@@ -158,7 +158,7 @@ async def setwager(message:discord.Message):
   min_wager = 1
   max_wager = 25
   wager_val = message.content.lower().replace("!setwager ", "")
-  player = get_player(message.author.id)
+  player = get_user(message.author.id)
   current_wager = player["wager"]
   if wager_val.isnumeric():
     wager_val = int(wager_val)

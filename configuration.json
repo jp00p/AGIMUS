@@ -31,7 +31,7 @@
   "commands": {
     "buy": {
       "channels": [
-        "slot-shop-dot-biz"
+        "slotshop-dot-biz"
       ],
       "enabled": true,
       "data": "data/shop.json",
@@ -90,7 +90,7 @@
     "computer": {
       "channels": [],
       "enabled": true,
-      "data": null,
+      "data": "data/computer.json",
       "parameters": []
     },
     "dustbuster": {
@@ -226,9 +226,17 @@
       "parameters": []
     },
     "profile": {
-      "channels": [
-        "conversation-boot",
-        "slotshop-dot-biz"
+      "channels": [],
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-office",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "garaks-tailor-shop",
+        "the-next-next-generation",
+        "sicks-bay"
       ],
       "enabled": true,
       "data": null,
@@ -317,6 +325,14 @@
         }
       ]
     },
+    "restrict_emojis": {
+      "channels": [
+        "robot-diagnostics"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "setwager": {
       "channels": [
         "slots-slots-slots",
@@ -371,7 +387,7 @@
     },
     "shop": {
       "channels": [
-        895480382680596510
+        "slotshop-dot-biz"
       ],
       "enabled": true,
       "data": "data/shop.json",

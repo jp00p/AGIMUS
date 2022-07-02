@@ -171,8 +171,8 @@ def generate_recordset(series_prefix, recordset):
         try:
           episode_details = tmdb_episode.info()
           # pprint.pprint(f"key: {tgg_key}")
-          # pprint.pprint(f'Title[{episode_details["id"]}][s{tseason}e{tepisode}]: {episode_details["name"]}')
-          # pprint.pprint(f">>> Info: {episode_details}")
+          pprint.pprint(f'Title[{episode_details["id"]}][s{tseason}e{tepisode}]: {episode_details["name"]}')
+          pprint.pprint(f">>> Info: {episode_details}")
           this_episode["airdate"] = episode_details["air_date"].replace("-", ".")
           this_episode["description"] = episode_details["overview"]
           this_episode["title"] = episode_details["name"]
@@ -225,17 +225,23 @@ def generate_recordset(series_prefix, recordset):
       if "podcasts" not in this_episode.keys() or len(this_episode["podcasts"]) == 0:
         print("Checking MaximumFun information...")
         # Get MaxFun link from Google Search on Pod Title
-        tgg_search = google_search(f"The Greatest Generation MaximumFun {pod_title}")
-        pod_link = tgg_search['link']
-
-        pod_entry = {
-          "title": "The Greatest Generation",
-          "order": int(entry['itunes_episode']),
-          "airdate": parser.parse(entry['published']).strftime('%Y.%m.%d'),
-          "episode": pod_title,
-          "link": pod_link
-        }
-        this_episode["podcasts"].append(pod_entry)
+        search_string = f"site:maximumfun.org: The Greatest Generation {pod_title} -filetype:pdf -filetype:xml"
+        pprint.pprint(f"Searching: {search_string}")
+        try:
+          tgg_search = google_search(f"{search_string}")
+          pprint.pprint(tgg_search)
+          pod_link = tgg_search['link']
+          pod_entry = {
+            "title": "The Greatest Generation",
+            "order": int(entry['itunes_episode']),
+            "airdate": parser.parse(entry['published']).strftime('%Y.%m.%d'),
+            "episode": pod_title,
+            "link": pod_link
+          }
+          pprint.pprint(pod_entry)
+          this_episode["podcasts"].append(pod_entry)
+        except:
+          pprint.pprint("No results for this query...")
       print("This Episode: " + str(this_episode))
       episodes.append(this_episode)
   recordset["episodes"] = episodes

@@ -23,6 +23,7 @@ from commands.quiz import quiz
 from commands.q import qget, qset
 from commands.report import report
 from commands.randomep import randomep
+from commands.restrict_emojis import restrict_emojis
 from commands.scores import scores
 from commands.setwager import setwager
 from commands.shop import shop
@@ -78,7 +79,8 @@ async def on_message(message:discord.Message):
   
   # Bang Command Handling
   #logger.debug(message)
-  if message.content.startswith("!") or message.content.lower().startswith("computer:"):
+  # if message.content.startswith("!") or message.content.lower().startswith("computer:"):
+  if message.content.startswith("!") or any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
     logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
     try:
       await process_command(message)
@@ -86,7 +88,7 @@ async def on_message(message:discord.Message):
       logger.info(f">>> Encountered Exception!")
       logger.info(e)
       exception_embed = discord.Embed(
-        title="Oops...",
+        title=f"Oops... Encountered exception processing request: {message.content}",
         description=f"{e}\n```{traceback.format_exc()}```",
         color=discord.Color.red()
       )
@@ -98,7 +100,7 @@ async def process_command(message:discord.Message):
   split_string = message.content.lower().split(" ")
   if message.content.startswith("!"):
     user_command = split_string[0].replace("!","")
-  elif message.content.lower().startswith("computer:"):
+  elif any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
     user_command = "computer"
 
   # If the user's first word matches one of the commands in configuration

@@ -142,11 +142,11 @@ def uniq_channels(config):
   return res
 
 
-# get_player(discord_id)
+# get_user(discord_id)
 # discord_id[required]: int
 # This function will return a user's record from their id
-def get_player(discord_id:int):
-  logger.debug(f"Running: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}get_player({discord_id}){Fore.RESET}{Style.RESET_ALL}")
+def get_user(discord_id:int):
+  logger.debug(f"Running: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}get_user({discord_id}){Fore.RESET}{Style.RESET_ALL}")
   db = getDB()
   query = db.cursor(dictionary=True)
   query.execute("SELECT * FROM users WHERE discord_id = %s", (discord_id,))
