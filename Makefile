@@ -1,13 +1,20 @@
 REPO_OWNER?=jp00p
 REPO_NAME?=AGIMUS
 BOT_CONTAINER_NAME?=agimus
-#BOT_CONTAINER_NAME=ghcr.io/${REPO_OWNER}/AGIMUS
 LOCAL_KIND_CONFIG?=kind-config.yaml
-namespace?=default
+namespace?=agimus
 ifneq (,$(wildcard ./.env))
     include .env
     export
 endif
+
+
+.PHONY: help
+help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-username])
+	@echo "Friends of DeSoto Bot - github.com/$$REPO_OWNER/$$REPO_NAME:$(shell make version)"
+	@cat banner.txt
+	@echo ""
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 ##@ Python stuff
 
@@ -66,7 +73,7 @@ db-dump: ## Dump the database to a file at ./$DB_DUMP_FILENAME
 
 .PHONY: db-load
 db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
-	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_DUMP_FILENAME}
+	@docker-compose exec -T db sh -c 'exec mysql -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_DUMP_FILENAME}
 
 # mysql session in pod
 # kubectl exec -it my-cluster-mysql-0 -c mysql -- mysql -uroot -ppassword
@@ -86,31 +93,48 @@ kind-load: ## Load $BOT_CONTAINER_NAME into a running kind cluster
 
 # @kubectl create configmap agimus-seed --from-file=bot-dump.sql
 .PHONY: kind-test
-kind-test: ## Install AGIMUS into a running KinD cluster with helm
-	@kubectl create configmap agimus-dotenv --from-file=.env || true
-	@kubectl create configmap agimus-config --from-file=local.json || true
-	@kubectl create secret generic mysql-secret --from-literal=MYSQL_ROOT_PASSWORD=$(DB_PASS) || true
+kind-test: helm-config ## Install AGIMUS into a running KinD cluster with helm
 	helm upgrade --install --debug --wait \
+		--create-namespace \
+		--namespace $(namespace) \
 		--set image.repository=$(BOT_CONTAINER_NAME) \
 		--set image.tag=local \
 		agimus charts/agimus
 
-.PHONY: kind-clean
-kind-clean: ## Delete configmaps and secrets
-	@kubectl delete configmap agimus-dotenv --ignore-not-found=true
-	@kubectl delete configmap agimus-config --ignore-not-found=true
-	@kubectl delete configmap agimus-seed --ignore-not-found=true
-	@kubectl delete secret mysql-secret --ignore-not-found=true
-
-.PHONY: kind-clean-all
-kind-clean-all: kind-clean ## Remove helm charts and db
-	@kubectl delete -f k8s/mysql-cluster.yaml
-	@helm delete mysql-operator
-	@helm delete agimus
 
 .PHONY: kind-destroy
 kind-destroy: ## Tear the KinD cluster down
 	kind delete cluster
+
+##@ Helm stuff
+
+
+.PHONY: helm-config
+helm-config: ## Install the configmaps and secrets from .env and $(BOT_CONFIGURATION_FILEPATH) using helm 
+	@kubectl --namespace $(namespace) create configmap agimus-dotenv --from-file=.env || true
+	@kubectl --namespace $(namespace) create configmap agimus-config --from-file=$(BOT_CONFIGURATION_FILEPATH) || true
+	@kubectl --namespace $(namespace) create secret generic mysql-secret --from-literal=MYSQL_ROOT_PASSWORD=$(DB_PASS) || true
+
+.PHONY: helm-config-rm
+helm-config-rm: ## Delete configmaps and secrets
+	@kubectl --namespace $(namespace) delete configmap agimus-dotenv --ignore-not-found=true
+	@kubectl --namespace $(namespace) delete configmap agimus-config --ignore-not-found=true
+	@kubectl --namespace $(namespace) delete configmap agimus-seed --ignore-not-found=true
+	@kubectl --namespace $(namespace) delete secret mysql-secret --ignore-not-found=true
+
+.PHONY: helm-install
+helm-install: helm-config ## Install AGIMUS helm chart
+	helm upgrade --install --debug --wait \
+		--create-namespace \
+		--namespace $(namespace) \
+		--set image.repository=$(BOT_CONTAINER_NAME) \
+		--set image.tag=$(shell make version) \
+		agimus charts/agimus
+
+.PHONY: helm-uninstall
+helm-uninstall: helm-config-rm ## Remove AGIMUS helm chart
+	@helm --namespace $(namespace) delete agimus
+
 
 ##@ Miscellaneous stuff
 
@@ -131,17 +155,11 @@ lint-actions: ## Run .gihtub/workflows/*.yaml|yml through action-valdator tool
 version: ## Print the version of the bot from the helm chart (requires yq)
 	@yq e '.version' charts/agimus/Chart.yaml
 
-.PHONY: copy-config
-copy-config: ## Copy the base64 encoded contents of local.json
-	@cat local.json | base64 | pbcopy
+.PHONY: encode-config
+encode-config: ## Print the base64 encoded contents of $(BOT_CONFIGURATION_FILEPATH) (Pro-Tip: pipe to pbcopy on mac)
+	@cat $(BOT_CONFIGURATION_FILEPATH) | base64
 
-.PHONY: copy-env
-copy-env: ## Copy the base64 encoded contents of the .env file
-	@cat .env | base64 | pbcopy
+.PHONY: encode-env
+encode-env: ## Print the base64 encoded contents of the .env file  (Pro-Tip: pipe to pbcopy on mac)
+	@cat .env | base64
 
-.PHONY: help
-help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-username])
-	@echo "Friends of DeSoto Bot - github.com/$$REPO_OWNER/$$REPO_NAME:$(shell make version)"
-	@cat banner.txt
-	@echo ""
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)

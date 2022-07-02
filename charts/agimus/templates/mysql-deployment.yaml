@@ -20,7 +20,7 @@ spec:
             claimName: mysql-data-pv-claim
       containers:
         - name: mysql
-          image: mysql
+          image: mysql:oracle
           # args:
           #   - "--ignore-db-dir=lost+found"
           #   - "--skip-innodb"
