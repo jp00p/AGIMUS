@@ -1,5 +1,7 @@
 import inspect
 
+from click import Context
+
 from commands.common import *
 
 # Timekeeper Functions
@@ -11,7 +13,7 @@ from commands.common import *
 TIMEKEEPER = {}
 TIMEOUT = 15
 
-async def check_timekeeper(ctx:SlashContext):
+async def check_timekeeper(ctx):
   command = inspect.stack()[1].function
   current_channel = ctx.channel.id
   
@@ -39,7 +41,7 @@ async def check_timekeeper(ctx:SlashContext):
   return True
 
 
-def set_timekeeper(ctx:SlashContext):
+def set_timekeeper(ctx):
   command = inspect.stack()[1].function
   current_channel = ctx.channel.id
   if TIMEKEEPER.get(command) == None:

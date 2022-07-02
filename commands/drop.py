@@ -13,17 +13,17 @@ f.close()
 
 # drop() - Entrypoint for !drop command
 # This now just informs the channel that they can use the slash command instead
-async def drop(message:discord.Message):
-  await message.channel.send(f"No need for !drop any longer, try using the slash command `/drop`! {emojis.get('louvois_point_yes')}")
+# async def drop(message:discord.Message):
+#   await message.channel.send(f"No need for !drop any longer, try using the slash command `/drop`! {emojis.get('louvois_point_yes')}")
 
 # slash_drops() - Entrypoint for /drops command
 # List the available drops by key and send to user as ephemeral
-@slash.slash(
+@bot.slash_command(
   name="drops",
   description="Retrieve the List of Drops.",
   guild_ids=config["guild_ids"]
 )
-async def slash_drops(ctx:SlashContext):
+async def slash_drops(ctx):
   drops_list = "\n".join(drop_data)
   embed = discord.Embed(
     title="List of Drops",
@@ -41,30 +41,36 @@ async def slash_drops(ctx:SlashContext):
 # Parses a query, determines if it's allowed in the channel,
 # and if allowed retrieve from metadata to do matching and
 # then send the .mp4 file
-@slash.slash(
+@bot.command(
   name="drop",
   description="Send a drop to the channel!",
-  guild_ids=config["guild_ids"],
-  options=[
-    create_option(
-      name="query",
-      description="Which drop?",
-      required=True,
-      option_type=3
-    ),
-    create_option(
-      name="private",
-      description="Send drop to just yourself?",
-      required=False,
-      option_type=5,
-    )
-  ]
 )
+# @option(
+#   name="query",
+#   description="Which drop?",
+#   required=True,
+#   option_type=3
+# )
+# @option(
+#   name="private",
+#   description="Send drop to just yourself?",
+#   required=False,
+#   option_type=5,
+# )
 @slash_check_channel_access(command_config)
-async def slash_drop(ctx:SlashContext, **kwargs):
-  query = kwargs.get('query')
-  private = kwargs.get('private')
-
+async def slash_drop(
+  ctx,
+  query: discord.Option(
+    str,
+    description="Which drop?",
+    required=True
+  ),
+  private: discord.Option(
+    bool,
+    description="Send drop to just yourself?",
+    required=False
+  )
+):
   # Private drops are not on the timer
   drop_allowed = True
   if not private:

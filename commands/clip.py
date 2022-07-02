@@ -13,7 +13,7 @@ f.close()
 
 # clips() - Entrypoint for /clip command
 # List the available clips by key and send to user as ephemeral
-@slash.slash(
+@bot.command(
   name="clips",
   description="Retrieve the List of Clips.",
   guild_ids=config["guild_ids"]
@@ -36,24 +36,30 @@ async def clips(ctx:SlashContext):
 # Parses a query, determines if it's allowed in the channel,
 # and if allowed retrieve from metadata to do matching and
 # then send the .mp4 file
-@slash.slash(
+@bot.command(
   name="clip",
   description="Send a clip to the channel!",
   guild_ids=config["guild_ids"],
   options=[
     create_option(
-      name="query",
-      description="Which clip?",
-      required=True,
-      option_type=3
+
     ),
     create_option(
-      name="private",
-      description="Send clip to just yourself?",
-      required=False,
-      option_type=5,
+
     )
   ]
+)
+@option(
+  name="query",
+  description="Which clip?",
+  required=True,
+  option_type=3
+)
+@option(
+  name="private",
+  description="Send clip to just yourself?",
+  required=False,
+  option_type=5,
 )
 @slash_check_channel_access(command_config)
 async def clip(ctx:SlashContext, **kwargs):

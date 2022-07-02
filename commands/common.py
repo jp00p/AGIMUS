@@ -1,6 +1,7 @@
 import discord
-from discord_slash import SlashCommand, SlashContext
-from discord_slash.utils.manage_commands import create_choice, create_option
+from discord.ext import commands
+# from discord_slash import SlashCommand, SlashContext
+# from discord_slash.utils.manage_commands import create_choice, create_option
 from discord.ext import tasks
 import os
 import random
@@ -51,9 +52,10 @@ DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
 DB_SEED_FILEPATH = os.getenv('DB_SEED_FILEPATH')
 config = get_config()
-intents = discord.Intents().all()
-client = discord.Client(intents=intents)
-slash = SlashCommand(client, sync_commands=True)
+intents = discord.Intents.all()
+# client = discord.Client(intents=intents)
+bot = discord.Bot(intents=intents, debug_guilds=[config["guild_ids"]])
+# slash = SlashCommand(client, sync_commands=True)
 POKER_GAMES = {}
 TRIVIA_RUNNING = False
 TRIVIA_DATA = {}

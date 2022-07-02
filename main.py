@@ -1,24 +1,25 @@
 import traceback
 
+# Slash Commands
+import commands.drop
+
 # Commands
 from commands.common import *
 from commands.buy import buy
 from commands.categories import categories
 from commands.clear_media import clear_media
-from commands.clip import clip, clips
+#from commands.clip import clip, clips
 from commands.computer import computer
-from commands.convert import convert
 from commands.dustbuster import dustbuster
-from commands.drop import drop, slash_drop, slash_drops
 from commands.fmk import fmk
 from commands.help import help
 from commands.info import info
 from commands.jackpot import jackpot, jackpots
 from commands.nasa import nasa
-from commands.nextep import nexttrek, nextep
+#from commands.nextep import nexttrek, nextep
 from commands.poker import *
 from commands.ping import ping
-from commands.profile import profile
+#from commands.profile import profile
 from commands.quiz import quiz
 from commands.q import qget, qset
 from commands.report import report
