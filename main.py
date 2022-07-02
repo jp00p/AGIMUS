@@ -163,6 +163,8 @@ async def on_ready():
 @client.event
 async def on_reaction_add(reaction, user):
   await handle_react_xp(reaction, user)
+  #await handle_starboard_reactions(reaction)
+  
 
 # listen to server leave events
 @client.event

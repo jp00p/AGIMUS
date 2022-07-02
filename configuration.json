@@ -10,6 +10,29 @@
         473331439169962005,
         735658100958298154
       ]
+    },
+    "starboard": {
+      "blocked_channels" : [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-office",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "garaks-tailor-shop",
+        "the-next-next-generation",
+        "sicks-bay",
+        "rikers-quarters",
+        "mo-pips-mo-problems",
+        "mclaughlin-group",
+        "captains-log",
+        "bot-setup"
+      ],
+      "boards": {
+        "the-argus-array" : [],
+        "faith-of-the-heart" : [],
+        "bits-bits-bits" : []
+      }
     }
   },
   "tasks": {
