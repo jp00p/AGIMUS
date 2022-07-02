@@ -19,6 +19,7 @@
         "peoples-resistance-front-of-bajor",
         "heuristic-associative-pathways",
         "behind-the-visor",
+        "subspace-transmissions",
         "garaks-tailor-shop",
         "the-next-next-generation",
         "sicks-bay",
@@ -26,12 +27,21 @@
         "mo-pips-mo-problems",
         "mclaughlin-group",
         "captains-log",
-        "bot-setup"
+        "bot-setup",
+        "shipwide-announcements",
+        "rules-and-info",
+        "first-contact",
+        "roles-and-pronouns",
+        "channel-guide",
+        "transporter-log",
+        "polls"
       ],
       "boards": {
-        "the-argus-array" : [],
-        "faith-of-the-heart" : [],
-        "bits-bits-bits" : []
+        
+          "the-argus-array" : [],
+          "bits-bits-bits" : ["laugh", "lol", "lmao"],
+          "faith-of-the-heart" : ["love", "heart"] 
+        
       }
     }
   },

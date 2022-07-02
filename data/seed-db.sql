@@ -35,3 +35,10 @@ CREATE TABLE IF NOT EXISTS reactions (
   PRIMARY KEY (id),
   CONSTRAINT USERID_REACTION_MESSAGEID UNIQUE (user_id, reaction, reaction_message_id)
 );
+CREATE TABLE IF NOT EXISTS starboard_posts (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  message_id varchar(64) NOT NULL,
+  user_id varchar(64) NOT NULL,
+  board_channel varchar(128) NOT NULL,
+  PRIMARY KEY (id)
+);
