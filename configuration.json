@@ -227,7 +227,7 @@
     },
     "profile": {
       "channels": [],
-      "blocked_channels":[
+      "blocked_channels": [
         "neelixs-morale-office",
         "plasma-vent",
         "counselor-trois-office",
@@ -324,6 +324,14 @@
           "required": false
         }
       ]
+    },
+    "restrict_emojis": {
+      "channels": [
+        "robot-diagnostics"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
     },
     "setwager": {
       "channels": [
