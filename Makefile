@@ -73,7 +73,7 @@ db-dump: ## Dump the database to a file at ./$DB_DUMP_FILENAME
 
 .PHONY: db-load
 db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
-	@docker-compose exec -T db sh -c 'exec mysql -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_DUMP_FILENAME}
+	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_DUMP_FILENAME}
 
 # mysql session in pod
 # kubectl exec -it my-cluster-mysql-0 -c mysql -- mysql -uroot -ppassword
@@ -91,7 +91,6 @@ kind-load: ## Load $BOT_CONTAINER_NAME into a running kind cluster
 	BOT_CONTAINER_VERSION=local make docker-build
 	kind load docker-image $(BOT_CONTAINER_NAME):local
 
-# @kubectl create configmap agimus-seed --from-file=bot-dump.sql
 .PHONY: kind-test
 kind-test: helm-config ## Install AGIMUS into a running KinD cluster with helm
 	helm upgrade --install --debug --wait \
@@ -100,14 +99,13 @@ kind-test: helm-config ## Install AGIMUS into a running KinD cluster with helm
 		--set image.repository=$(BOT_CONTAINER_NAME) \
 		--set image.tag=local \
 		agimus charts/agimus
-
+	make helm-db-load
 
 .PHONY: kind-destroy
 kind-destroy: ## Tear the KinD cluster down
 	kind delete cluster
 
 ##@ Helm stuff
-
 
 .PHONY: helm-config
 helm-config: ## Install the configmaps and secrets from .env and $(BOT_CONFIGURATION_FILEPATH) using helm 
@@ -135,6 +133,23 @@ helm-install: helm-config ## Install AGIMUS helm chart
 helm-uninstall: helm-config-rm ## Remove AGIMUS helm chart
 	@helm --namespace $(namespace) delete agimus
 
+.PHONY: helm-db-load
+helm-db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
+	kubectl --namespace $(namespace) exec -i $(shell make helm-db-pod) \
+		-- sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}"' < ${DB_DUMP_FILENAME}
+
+.PHONY: helm-db-mysql
+helm-db-mysql: ## Mysql session in mysql pod
+	@kubectl --namespace $(namespace) exec -it $(shell make helm-db-pod) \
+		-- mysql -u"${DB_USER}" -p"${DB_PASS}"
+
+.PHONY: helm-db-pod
+helm-db-pod: ## Display the pod name for mysql
+	@kubectl --namespace $(namespace) get pods --template '{{range .items}}{{.metadata.name}}{{end}}' --selector=app=mysql
+
+.PHONY: helm-agimus-pod
+helm-agimus-pod: ## Display the pod name for AGIMUS
+	@kubectl --namespace $(namespace) get pods --template '{{range .items}}{{.metadata.name}}{{end}}' --selector=app=agimus
 
 ##@ Miscellaneous stuff
 
