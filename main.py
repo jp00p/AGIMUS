@@ -23,6 +23,7 @@ from commands.quiz import quiz
 from commands.q import qget, qset
 from commands.report import report
 from commands.randomep import randomep
+from commands.restrict_emojis import restrict_emojis
 from commands.scores import scores
 from commands.setwager import setwager
 from commands.shop import shop
