@@ -10,8 +10,11 @@ async def handle_starboard_reactions(reaction:discord.Reaction, user:discord.Use
   if reaction.message.channel in blocked_channels or reaction.message.channel in boards or reaction.message.author.bot:
     return
 
-  if reaction.count >= react_threshold:
-    pass
+  # logger.info("REACTION:")
+  # logger.info(reaction.emoji)
+
+  #if reaction.count >= react_threshold:
+  #pass
 
 # ensure custom AGIMUS emoji is present and ready
 

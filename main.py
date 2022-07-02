@@ -162,6 +162,8 @@ async def on_ready():
 # listen to reactions
 @client.event
 async def on_reaction_add(reaction, user):
+  print("NO")
+  logger.info(f"REACTION: {reaction.emoji}")
   await handle_react_xp(reaction, user)
   #await handle_starboard_reactions(reaction)
   
