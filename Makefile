@@ -93,7 +93,7 @@ kind-load: ## Load $BOT_CONTAINER_NAME into a running kind cluster
 
 .PHONY: kind-test
 kind-test: helm-config ## Install AGIMUS into a running KinD cluster with helm
-	helm upgrade --install --debug --wait \
+	helm upgrade --install --debug \
 		--create-namespace \
 		--namespace $(namespace) \
 		--set image.repository=$(BOT_CONTAINER_NAME) \
