@@ -25,7 +25,6 @@ db-load:
 setup:
 	@pip install -q -r requirements.txt
 	@pip install --upgrade --no-deps --force-reinstall git+https://github.com/Pycord-Development/pycord
-    
 
 .PHONY: start
 start: setup

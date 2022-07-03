@@ -175,6 +175,7 @@ async def on_reaction_add(reaction, user):
 async def on_raw_reaction_add(payload):
   if payload.event_type == "REACTION_ADD":
     await handle_starboard_reactions(payload)
+    await handle_trivia_reactions(payload)
 
 # listen to server leave events
 @bot.event
