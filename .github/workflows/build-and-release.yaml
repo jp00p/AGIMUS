@@ -1,8 +1,8 @@
 # Name:        build-and-release.yaml
 # Author:      Mathew Fleisch <mathew.fleisch@gmail.com>
 # Description: This action will build and push a docker container, when triggered by
-#              pushing a new git tag (that starts with the letter 'v').
-name: Build Containers and Binaries
+#              pushing to the main branch
+name: Release Container and Helm Chart
 on:
   push:
     branches:
