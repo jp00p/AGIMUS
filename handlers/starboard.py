@@ -23,7 +23,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
   if payload.channel_id in blocked_channels or payload.channel_id in boards or payload.member.bot:
     return
 
-  channel = client.get_channel(payload.channel_id)
+  channel = bot.get_channel(payload.channel_id)
   if channel.type != discord.ChannelType.text: # only textchannels work here for now
     return
   message = await channel.fetch_message(payload.message_id)
@@ -109,7 +109,7 @@ async def add_starboard_post(message, board):
   )
   if len(message.attachments) > 0:
     embed.set_image(url=message.attachments[0].url)
-  channel = client.get_channel(board_channel)
+  channel = bot.get_channel(board_channel)
   await channel.send(content=message.channel.mention, embed=embed)
   logger.info(f"{Fore.RED}AGIMUS{Fore.RESET} has added a post to the {board} channel! [Original post by {message.author.display_name} in {message.channel.name}")
 
