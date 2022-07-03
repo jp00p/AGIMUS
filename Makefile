@@ -90,16 +90,16 @@ kind-create: ## Create a KinD cluster with local config-yaml
 kind-load: ## Load $BOT_CONTAINER_NAME into a running kind cluster
 	BOT_CONTAINER_VERSION=local make docker-build
 	kind load docker-image $(BOT_CONTAINER_NAME):local
+	make helm-config
 
 .PHONY: kind-test
-kind-test: helm-config ## Install AGIMUS into a running KinD cluster with helm
-	helm upgrade --install --debug \
+kind-test: ## Install AGIMUS into a running KinD cluster with helm
+	helm upgrade --install --debug --wait \
 		--create-namespace \
 		--namespace $(namespace) \
 		--set image.repository=$(BOT_CONTAINER_NAME) \
 		--set image.tag=local \
 		agimus charts/agimus
-	sleep 30
 	kubectl --namespace $(namespace) get pods -o wide
 	make helm-db-load
 
@@ -144,6 +144,10 @@ helm-db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 helm-db-mysql: ## Mysql session in mysql pod
 	@kubectl --namespace $(namespace) exec -it $(shell make helm-db-pod) \
 		-- mysql -u"${DB_USER}" -p"${DB_PASS}"
+
+.PHONY: helm-db-portforward
+helm-db-portforward: ## Forward the mysql port 3306
+	@kubectl --namespace $(namespace) port-forward svc/mysql-service 3306
 
 .PHONY: helm-db-pod
 helm-db-pod: ## Display the pod name for mysql
