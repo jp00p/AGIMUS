@@ -57,13 +57,13 @@ jobs:
             yq 4.22.1
       -
         name: KinD Tests
+        shell: bash
         run: |
           echo "Loading configuration" \
             && echo "${{ secrets.CONFIGJSON }}" | base64 -d > local.json
           echo "Loading secrets" \
             && echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
             && source .env
-          make help
           echo "Building KinD cluster" \
             && make kind-create
           echo "Building docker container and load into KinD cluster" \
