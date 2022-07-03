@@ -23,6 +23,7 @@ import logging
 import sys
 from colorama import Fore, Back, Style
 
+
 from utils.config_utils import get_config
 #from utils.disco_lights import LightHandler
 

@@ -1,4 +1,5 @@
 from commands.common import *
+import datetime
 
 # TODO: 
 # react to original post?
@@ -45,7 +46,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
   for board,match_reacts in board_dict.items():
     
     if match_reacts:
-      logger.info(f"CHECKING {board}")
+      #logger.info(f"CHECKING {board}")
        
       all_reacts = reactions
       message_reaction_people = set()
@@ -67,8 +68,8 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
                   message_reaction_people.add(user) # and don't count them again!
       
       
-      total_people = len(message_reaction_people)
-      logger.info(f"{Fore.LIGHTWHITE_EX}{Style.BRIGHT}{board}: report for this post {message.content}...: reacts {total_reacts_for_this_match} -- total reacting people: {total_people}{Style.RESET_ALL}{Fore.RESET}")
+      #total_people = len(message_reaction_people)
+      #logger.info(f"{Fore.LIGHTWHITE_EX}{Style.BRIGHT}{board}: report for this post {message.content}...: reacts {total_reacts_for_this_match} -- total reacting people: {total_people}{Style.RESET_ALL}{Fore.RESET}")
 
       # finally, if this match category has enough reactions and enough people, let's save it to the starboard channel!
       if total_reacts_for_this_match >= react_threshold and len(message_reaction_people) >= user_threshold:
@@ -79,7 +80,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
 async def add_starboard_post(message, board):
   global ALL_STARBOARD_POSTS
 
-  logger.info(f"ADDING A POST TO THE STARBOARD: {board}")
+  #logger.info(f"ADDING A POST TO THE STARBOARD: {board}")
   # add post to DB
   db = getDB()
   query = db.cursor()
@@ -95,26 +96,33 @@ async def add_starboard_post(message, board):
   board_channel = get_channel_id(board)
 
   # repost in appropriate board
+  embed_description = f"{message.content}\n\n[View original message]({message.jump_url})"
   embed = discord.Embed(description=message.content)
   embed.set_author(
     name=message.author.display_name,
     icon_url=message.author.avatar_url
   )
+
+  date_posted = message.created_at.strftime("%A %B %-d, %Y at %-I:%M %p (%Z)")
+  embed.set_footer(
+    text=f"{date_posted}"
+  )
   if len(message.attachments) > 0:
     embed.set_image(url=message.attachments[0].url)
   channel = client.get_channel(board_channel)
   await channel.send(content=message.channel.mention, embed=embed)
+  logger.info(f"{Fore.RED}AGIMUS{Fore.RESET} has added a post to the {board} channel! [Original post by {message.author.display_name} in {message.channel.name}")
 
 
 async def get_starboard_post(message_id, board):
-  logger.info(f"CHECKING IF POST ALREADY EXISTS IN {board}")
+  #logger.info(f"CHECKING IF POST ALREADY EXISTS IN {board}")
   db = getDB()
   query = db.cursor()
   sql = "SELECT board_channel FROM starboard_posts WHERE message_id = %s and board_channel = %s"
   vals = (message_id, board)
   query.execute(sql, vals)
   message = query.fetchone()
-  logger.info(f"DB RESULT: {message}")
+  #logger.info(f"DB RESULT: {message}")
   db.commit()
   query.close()
   db.close()
