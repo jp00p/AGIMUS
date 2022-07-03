@@ -11,7 +11,7 @@ endif
 
 .PHONY: help
 help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-username])
-	@echo "Friends of DeSoto Bot - github.com/$$REPO_OWNER/$$REPO_NAME:$(shell make -s version)"
+	@echo "Friends of DeSoto Bot - github.com/$$REPO_OWNER/$$REPO_NAME:$(shell make --no-print-directory version)"
 	@cat banner.txt
 	@echo ""
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
@@ -88,10 +88,10 @@ kind-create: ## Create a KinD cluster with local config-yaml
 
 .PHONY: kind-load
 kind-load: ## Load $BOT_CONTAINER_NAME into a running kind cluster
-	BOT_CONTAINER_VERSION=local make docker-build
+	@BOT_CONTAINER_VERSION=local make --no-print-directory docker-build
 	kind load docker-image $(BOT_CONTAINER_NAME):local
-	kubectl create namespace $(namespace) || true
-	make helm-config
+	@kubectl create namespace $(namespace) || true
+	@make helm-config
 
 .PHONY: kind-test
 kind-test: ## Install AGIMUS into a running KinD cluster with helm
@@ -102,11 +102,11 @@ kind-test: ## Install AGIMUS into a running KinD cluster with helm
 		agimus charts/agimus
 	sleep 10
 	kubectl --namespace $(namespace) get pods -o wide
-	make helm-db-load
+	@make helm-db-load
 
 .PHONY: kind-destroy
 kind-destroy: ## Tear the KinD cluster down
-	kind delete cluster
+	@kind delete cluster
 
 ##@ Helm stuff
 
@@ -129,7 +129,7 @@ helm-install: helm-config ## Install AGIMUS helm chart
 		--create-namespace \
 		--namespace $(namespace) \
 		--set image.repository=$(BOT_CONTAINER_NAME) \
-		--set image.tag=$(shell make -s version) \
+		--set image.tag=$(shell make --no-print-directory version) \
 		agimus charts/agimus
 
 .PHONY: helm-uninstall
@@ -138,12 +138,12 @@ helm-uninstall: helm-config-rm ## Remove AGIMUS helm chart
 
 .PHONY: helm-db-load
 helm-db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
-	@kubectl --namespace $(namespace) exec -i $(shell make -s helm-db-pod) \
+	@kubectl --namespace $(namespace) exec -i $(shell make --no-print-directory helm-db-pod) \
 		-- sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}"' < ${DB_DUMP_FILENAME}
 
 .PHONY: helm-db-mysql
 helm-db-mysql: ## Mysql session in mysql pod
-	@kubectl --namespace $(namespace) exec -it $(shell make -s helm-db-pod) \
+	@kubectl --namespace $(namespace) exec -it $(shell make --no-print-directory helm-db-pod) \
 		-- mysql -u"${DB_USER}" -p"${DB_PASS}"
 
 .PHONY: helm-db-forward
