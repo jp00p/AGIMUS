@@ -71,13 +71,13 @@ jobs:
           echo "Running tests..." \
             && make --no-print-directory kind-test
           sleep 5
-          kubectl --namespace agimus delete pod $(make --no-print-directory helm-agimus-pod) || true
+          kubectl --namespace agimus delete pod $(make helm-agimus-pod) || true
           sleep 5
           kubectl --namespace agimus get deployments -o wide
           sleep 5
           kubectl --namespace agimus get pods -o wide
           sleep 5
-          kubectl --namespace agimus describe pod $(make --no-print-directory helm-agimus-pod) || true
+          kubectl --namespace agimus describe pod $(make helm-agimus-pod) || true
           sleep 5
-          kubectl --namespace agimus logs $(make --no-print-directory helm-agimus-pod) || true
+          kubectl --namespace agimus logs $(make helm-agimus-pod) || true
 

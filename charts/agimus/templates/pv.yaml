@@ -9,7 +9,6 @@ spec:
   storageClassName: manual
   capacity:
     storage: 256Mi
-    # storage: 2Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
@@ -29,4 +28,3 @@ spec:
   resources:
     requests:
       storage: 256Mi
-      # storage: 2Gi 
