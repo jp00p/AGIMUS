@@ -3,46 +3,43 @@ import requests
 import urllib.parse
 
 from .common import *
-from utils.check_channel_access import *
+from utils.check_channel_access import access_check
 
+emojis = config["emojis"]
 
 # nexttrek() - Entrypoint for /nexttrek command
 # Retrieve the next Trek episode, or next episode for a specific show
 nexttrek_config = config["commands"]["nexttrek"]
 
-@slash.slash(
+@bot.slash_command(
   name="nexttrek",
   description="Retrieve info on the next Trek episode!",
-  guild_ids=config["guild_ids"],
-    options=[
-      create_option(
-        name="show",
-        description="Which show?",
-        required=True,
-        option_type=3,
-        choices=[
-          create_choice(
-            name="Lower Decks",
-            value="lowerdecks"
-          ),
-          create_choice(
-            name="Picard",
-            value="picard"
-          ),
-          create_choice(
-            name="Prodigy",
-            value="prodigy"
-          ),
-          create_choice(
-            name="Strange New Worlds",
-            value="snw"
-          )
-        ]
+)
+@option(
+  name="show",
+  description="Which show?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="Lower Decks",
+      value="lowerdecks"
+    ),
+    discord.OptionChoice(
+      name="Picard",
+      value="picard"
+    ),
+    discord.OptionChoice(
+      name="Prodigy",
+      value="prodigy"
+    ),
+    discord.OptionChoice(
+      name="Strange New Worlds",
+      value="snw"
     )
   ]
 )
-@slash_check_channel_access(nexttrek_config)
-async def nexttrek(ctx:SlashContext, show:str):
+@commands.check(access_check)
+async def nexttrek(ctx, show:str):
   tvmaze_ids = {
     "lowerdecks": 39323,
     "picard": 42193,
@@ -55,54 +52,54 @@ async def nexttrek(ctx:SlashContext, show:str):
     show_name = show_data["name"]
     next_episode = show_data["_links"].get("nextepisode")
     if (next_episode == None):
-      await ctx.send(f"<:ezri_frown_sad:757762138176749608> Sorry, doesn't look like we have info scheduled for the next episode of {show_name}.", hidden=True)
+      await ctx.respond(f"{emojis.get('ezri_frown_sad')} Sorry, doesn't look like we have info scheduled for the next episode of {show_name}.", ephemeral=True)
     else:
       episode_data = requests.get(next_episode["href"]).json()
       embed = await get_show_embed(show_data, episode_data)
-      await ctx.send(embed=embed)
+      await ctx.respond(embed=embed)
   except BaseException as err:
     logger.error(err)
-    await ctx.send("<a:emh_doctor_omg_wtf_zoom:865452207699394570> Sorry, something went wrong with the request!", hidden=True)
+    await ctx.respond(f"{emojis.get('emh_doctor_omg_wtf_zoom')} Sorry, something went wrong with the request!", ephemeral=True)
 
 
 # nextep() - Entrypoint for /nextep command
 # Retrieve the next episode of any given show query
 nextep_config = config["commands"]["nextep"]
 
-@slash.slash(
+@bot.slash_command(
   name="nextep",
   description="Retrieve info on the next episode of a given show!",
-  guild_ids=config["guild_ids"],
     options=[
-      create_option(
+      discord.Option(
         name="query",
         description="Which show?",
-        required=True,
-        option_type=3,
+        required=True
     )
   ]
 )
-@slash_check_channel_access(nextep_config)
-async def nextep(ctx:SlashContext, query:str):
+@commands.check(access_check)
+async def nextep(ctx, query:str):
   encoded_query = urllib.parse.quote(query, safe='')
   try:
     show_lookup = requests.get(f"https://api.tvmaze.com/singlesearch/shows?q={encoded_query}")
     if show_lookup.status_code == 404:
-      await ctx.send("<a:emh_doctor_omg_wtf_zoom:865452207699394570> Sorry, no show matches your query!", hidden=True)
+      await ctx.respond(f"{emojis['ohno']} Sorry, no show matches your query!", ephemeral=True)
       return
 
     show_data = show_lookup.json()
     show_name = show_data["name"]
     next_episode = show_data["_links"].get("nextepisode")
     if (next_episode == None):
-      await ctx.send(f"<:ezri_frown_sad:757762138176749608> Sorry, doesn't look like we have info scheduled for the next episode of {show_name}.", hidden=True)
+      await ctx.respond(f"{emojis['ezri_frown_sad']} Sorry, doesn't look like we have info scheduled for the next episode of {show_name}.", ephemeral=True)
     else:
       episode_data = requests.get(next_episode["href"]).json()
+      logger.info(pprint(episode_data))
       embed = await get_show_embed(show_data, episode_data)
-      await ctx.send(embed=embed)
+      await ctx.respond(embed=embed)
   except BaseException as err:
     logger.error(err)
-    await ctx.send("<a:emh_doctor_omg_wtf_zoom:865452207699394570> Sorry, something went wrong with the request!", hidden=True)
+    logger.error(traceback.format_exc())
+    await ctx.respond(f"{emojis['emh_doctor_omg_wtf_zoom']} Sorry, something went wrong with the request!", ephemeral=True)
 
 
 async def get_show_embed(show_data, episode_data):
@@ -113,19 +110,20 @@ async def get_show_embed(show_data, episode_data):
     color=discord.Color.blue()
   )
   embed.set_thumbnail(url=show_data["image"]["medium"])
-  # Summary (Remove HTML tags)
   # Title
   embed.add_field(
     name="Title",
     value=episode_data['name'],
     inline=False
   )
-  summary = re.sub('<[^<]+?>', '', episode_data["summary"])
-  embed.add_field(
-    name="Summary",
-    value=summary,
-    inline=False
-  )
+  # Summary (Remove HTML tags)
+  if episode_data["summary"]:
+    summary = re.sub('<[^<]+?>', '', episode_data["summary"])
+    embed.add_field(
+      name="Summary",
+      value=summary,
+      inline=False
+    )
   # Number
   season_number = episode_data["season"]
   episode_number = episode_data["number"]
@@ -136,9 +134,17 @@ async def get_show_embed(show_data, episode_data):
     inline=True
   )
   # Airdate
-  embed.add_field(
-    name="Airdate",
-    value=episode_data["airdate"],
-    inline=True
-  )
+  if episode_data["airdate"]:
+    embed.add_field(
+      name="Airdate",
+      value=episode_data["airdate"],
+      inline=True
+    )
+  if episode_data["airstamp"]:
+    now = datetime.now(timezone.utc)
+    airstamp = dateutil.parser.isoparse(episode_data["airstamp"])
+    time_from_now = humanize.naturaldelta(airstamp - now)
+    embed.set_footer(
+      text=f"{time_from_now} from now."
+    )
   return embed

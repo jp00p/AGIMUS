@@ -75,7 +75,7 @@ async def quiz(message:discord.Message):
 @tasks.loop(seconds=31,count=1)
 async def episode_quiz(message):
   global QUIZ_EPISODE, QUIZ_INDEX, TMDB_IMG_PATH, LAST_SHOW, QUIZ_SHOW, PREVIOUS_EPS, LOG
-  quiz_channel = client.get_channel(config["channels"]["quizzing-booth"])
+  quiz_channel = bot.get_channel(config["channels"]["quizzing-booth"])
   quiz_spl = message.content.lower().replace("!quiz ", "").split()
   # User selects tos|tng|ds9|voy|enterprise|disco etc
   logger.info(f"{Fore.LIGHTBLUE_EX}Selected Show:{Fore.RESET} {Style.BRIGHT}{quiz_spl[0]}{Style.RESET_ALL}")
@@ -117,8 +117,7 @@ async def quiz_finished():
   f = open("./data/episodes/" + QUIZ_SHOW + ".json")
   show_data = json.load(f)
   f.close()
-  quiz_channel = client.get_channel(config["channels"]["quizzing-booth"])
-  # quiz_channel = client.get_channel(891412585646268486)
+  quiz_channel = bot.get_channel(config["channels"]["quizzing-booth"])
   msg = "The episode title was: **{0}** (Season {1} Episode {2})\n".format(QUIZ_EPISODE["title"].strip(), QUIZ_EPISODE["season"], QUIZ_EPISODE["episode"])
   if len(CORRECT_ANSWERS) == 0:
     roll = random.randint(5,10)

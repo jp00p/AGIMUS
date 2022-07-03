@@ -56,7 +56,7 @@ async def display_user(user_id:discord.User, message:discord.Message):
   user_data = get_user(user_id)
   logger.debug(f"this_user: {user_data}")
 
-  user = await client.fetch_user(user_id)
+  user = await bot.fetch_user(user_id)
   embed = discord.Embed()
   embed.set_author(
     name=user.display_name,

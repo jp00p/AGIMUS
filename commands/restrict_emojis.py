@@ -3,7 +3,7 @@ from discord_components import DiscordComponents, Button, Select, SelectOption
 
 from .common import *
 
-DiscordComponents(client)
+DiscordComponents(bot)
 
 
 # restrict_emojis() - Entrypoint for !restrict_emojis command

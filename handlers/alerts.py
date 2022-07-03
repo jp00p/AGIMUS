@@ -23,9 +23,9 @@ async def handle_alerts(message:discord.Message):
     alert_log[author_id] = datetime.now()
 
     # Alert recipients
-    alertworthy_user = await client.fetch_user(author_id)
+    alertworthy_user = await bot.fetch_user(author_id)
     logger.info(f"{Fore.LIGHTCYAN_EX}{Style.BRIGHT}{alertworthy_user.display_name}{Style.RESET_ALL} is active on the Discord! {Fore.LIGHTCYAN_EX}{Style.BRIGHT}Sending alerts!{Style.RESET_ALL}{Fore.RESET}")
     for recipient_id in alert_recipients:
-      recipient_user = await client.fetch_user(recipient_id)
+      recipient_user = await bot.fetch_user(recipient_id)
       await recipient_user.send(f"Hey {recipient_user.display_name}, looks like **{alertworthy_user.display_name}** is active on the Discord!\n{message.jump_url}")
     

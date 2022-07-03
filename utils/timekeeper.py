@@ -1,6 +1,5 @@
 import inspect
-
-from click import Context
+from datetime import datetime
 
 from commands.common import *
 
@@ -26,7 +25,7 @@ async def check_timekeeper(ctx):
   last_record = command_record.get(current_channel)
   if (last_record != None):
     last_timestamp = last_record[0]
-    diff = ctx.created_at - last_timestamp
+    diff = datetime.now() - last_timestamp
     seconds = diff.total_seconds()
     if (seconds > TIMEOUT):
       return True
@@ -46,4 +45,4 @@ def set_timekeeper(ctx):
   current_channel = ctx.channel.id
   if TIMEKEEPER.get(command) == None:
     TIMEKEEPER[command] = {}
-  TIMEKEEPER[command][current_channel] = [ctx.created_at, False]
+  TIMEKEEPER[command][current_channel] = [datetime.now(), False]
