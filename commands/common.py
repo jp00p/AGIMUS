@@ -23,8 +23,9 @@ import logging
 import sys
 from colorama import Fore, Back, Style
 
+
 from utils.config_utils import get_config
-from utils.disco_lights import LightHandler
+#from utils.disco_lights import LightHandler
 
 # Load variables from .env file
 load_dotenv()
@@ -38,7 +39,7 @@ handler = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter("%(asctime)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-logger.addHandler(LightHandler())
+#logger.addHandler(LightHandler())
 LOG = []
 
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
@@ -61,6 +62,8 @@ TRIVIA_ANSWERS = {}
 EMOJI = {}
 ROLES = config["roles"]
 BOT_NAME = f"{Fore.LIGHTRED_EX}AGIMUS{Fore.RESET}"
+
+ALL_STARBOARD_POSTS = []
 
 # Channel Helpers
 def get_channel_ids_list(channel_list):

@@ -38,6 +38,7 @@ from commands.server_logs import show_leave_message, show_nick_change_message
 from handlers.alerts import handle_alerts
 from handlers.bot_autoresponse import handle_bot_affirmations
 from handlers.xp import handle_message_xp, handle_react_xp
+from handlers.starboard import handle_starboard_reactions, get_all_starboard_posts
 # Tasks
 from tasks.scheduler import Scheduler
 from tasks.bingbong import bingbong_task
@@ -50,7 +51,6 @@ logger.info(f"{Fore.LIGHTMAGENTA_EX}CONNECTING TO DATABASE{Fore.RESET}")
 seed_db()
 ALL_USERS = get_all_users()
 logger.info(f"{Fore.LIGHTMAGENTA_EX}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}{Style.RESET_ALL}")
-
 
 # listens to every message on the server that the bot can see
 @client.event
@@ -125,6 +125,7 @@ async def process_command(message:discord.Message):
 @client.event
 async def on_ready():
   global EMOJI
+  global ALL_STARBOARD_POSTS
   random.seed()
   EMOJI["shocking"] = discord.utils.get(client.emojis, name="q_shocking")
   EMOJI["chula"] = discord.utils.get(client.emojis, name="chula_game")
@@ -134,13 +135,11 @@ async def on_ready():
   EMOJI["ben_wave"] = discord.utils.get(client.emojis, name="ben_wave_hello")
   logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX}LOGGED IN AS {client.user}{Fore.RESET}{Back.RESET}")
   ALL_USERS = get_all_users()
-  
+  ALL_STARBOARD_POSTS = get_all_starboard_posts()
+  logger.info(f"{ALL_STARBOARD_POSTS}")
   for emoji in client.emojis:
     config["all_emoji"].append(emoji.name)
   #logger.info(client.emojis) -- save this for later, surely we can do something with all these emojis
-
-  #admin_channel = client.get_channel(config["channels"]["robot-diagnostics"])
-  #await admin_channel.send("The bot has come back online!")
   
   logger.info(f'''{Fore.LIGHTWHITE_EX}
 
@@ -161,9 +160,16 @@ async def on_ready():
 
 
 # listen to reactions
+# TODO: change to on_raw_reaction_add so old messages are counted too!
 @client.event
 async def on_reaction_add(reaction, user):
   await handle_react_xp(reaction, user)
+  
+# listen to raw reactions  
+@client.event
+async def on_raw_reaction_add(payload):
+  if payload.event_type == "REACTION_ADD":
+    await handle_starboard_reactions(payload)
 
 # listen to server leave events
 @client.event
@@ -175,7 +181,6 @@ async def on_member_remove(member):
 async def on_member_update(memberBefore,memberAfter):
   if memberBefore.nick != memberAfter.nick:
     await show_nick_change_message(memberBefore, memberAfter) 
-
 
 # Schedule Tasks
 scheduled_tasks = [
