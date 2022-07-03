@@ -62,6 +62,8 @@ EMOJI = {}
 ROLES = config["roles"]
 BOT_NAME = f"{Fore.LIGHTRED_EX}AGIMUS{Fore.RESET}"
 
+ALL_STARBOARD_POSTS = []
+
 # Channel Helpers
 def get_channel_ids_list(channel_list):
   channel_ids = []

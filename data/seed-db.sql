@@ -40,5 +40,6 @@ CREATE TABLE IF NOT EXISTS starboard_posts (
   message_id varchar(64) NOT NULL,
   user_id varchar(64) NOT NULL,
   board_channel varchar(128) NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id)
 );
