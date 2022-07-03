@@ -3,6 +3,7 @@ REPO_NAME?=AGIMUS
 BOT_CONTAINER_NAME?=agimus
 LOCAL_KIND_CONFIG?=kind-config.yaml
 namespace?=agimus
+SHELL=/bin/bash
 ifneq (,$(wildcard ./.env))
     include .env
     export
