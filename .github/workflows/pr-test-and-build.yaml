@@ -30,14 +30,14 @@ jobs:
             yq 4.22.1
       -
         name: Lint Actions
-        run: make lint-actions
+        run: make --no-print-directory lint-actions
       # -
       #   name: Lint Container Using Dockle
       #   env:
       #     DOCKER_CONTENT_TRUST: 1
       #   run: |
-      #     make docker-build
-      #     make docker-lint
+      #     make --no-print-directory docker-build
+      #     make --no-print-directory docker-lint
 
   integration_test:
     name: KinD Integration Tests
@@ -65,14 +65,14 @@ jobs:
             && echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
             && source .env
           echo "Building KinD cluster" \
-            && make kind-create
+            && make --no-print-directory kind-create
           echo "Building docker container and load into KinD cluster" \
-            && make kind-load
+            && make --no-print-directory kind-load
           echo "Running tests..." \
-            && make kind-test
+            && make --no-print-directory kind-test
           sleep 10
           kubectl get deployments -o wide
           kubectl get pods -o wide
-          kubectl describe pod $(make helm-agimus-pod) || true
-          kubectl logs $(make helm-agimus-pod) || true
+          kubectl describe pod $(make --no-print-directory helm-agimus-pod) || true
+          kubectl logs $(make --no-print-directory helm-agimus-pod) || true
 
