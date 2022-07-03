@@ -90,12 +90,12 @@ kind-create: ## Create a KinD cluster with local config-yaml
 kind-load: ## Load $BOT_CONTAINER_NAME into a running kind cluster
 	BOT_CONTAINER_VERSION=local make docker-build
 	kind load docker-image $(BOT_CONTAINER_NAME):local
+	kubectl create namespace $(namespace) || true
 	make helm-config
 
 .PHONY: kind-test
 kind-test: ## Install AGIMUS into a running KinD cluster with helm
 	helm upgrade --install --debug --wait \
-		--create-namespace \
 		--namespace $(namespace) \
 		--set image.repository=$(BOT_CONTAINER_NAME) \
 		--set image.tag=local \
