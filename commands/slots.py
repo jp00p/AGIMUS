@@ -177,7 +177,7 @@ async def testslots(message:discord.Message):
     profits = []
 
     for i in range(spins):
-      silly,clones,jackpot = roll_slot(show, SLOTS[show], generate_image=False)
+      silly,clones,jackpot,symbol_result = roll_slot(show, SLOTS[show], generate_image=False)
       profit = len(silly)
       if len(silly) > 0 or len(clones) > 0:
         wins += 1

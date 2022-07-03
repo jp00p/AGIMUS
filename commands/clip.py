@@ -17,7 +17,7 @@ f.close()
   name="clips",
   description="Retrieve the List of Clips.",
 )
-async def clips(ctx):
+async def clips(ctx:discord.ApplicationContext):
   clips_list = "\n".join(clip_data)
   embed = discord.Embed(
     title="List of Clips",
@@ -51,13 +51,13 @@ async def clips(ctx):
 )
 @commands.check(access_check)
 async def clip(ctx:discord.ApplicationContext, query:str, private:bool):
-  logger.info(f"{Fore.RED}Firing clip command!{Fore.RESET}")
+  logger.info(f"{Fore.RED}Firing /clip command!{Fore.RESET}")
   # Private drops are not on the timer
   clip_allowed = True
   if not private:
     clip_allowed = await check_timekeeper(ctx)
 
-  if (clip_allowed):  
+  if clip_allowed:  
     q = query.lower().strip()
     clip_metadata = get_media_metadata(clip_data, q)
 

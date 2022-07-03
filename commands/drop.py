@@ -17,7 +17,7 @@ f.close()
   name="drops",
   description="Retrieve the List of Drops."
 )
-async def drops(ctx):
+async def drops(ctx:discord.ApplicationContext):
   drops_list = "\n".join(drop_data)
   embed = discord.Embed(
     title="List of Drops",

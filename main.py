@@ -1,3 +1,9 @@
+#  █████   ██████  ██ ███    ███ ██    ██ ███████ 
+# ██   ██ ██       ██ ████  ████ ██    ██ ██      
+# ███████ ██   ███ ██ ██ ████ ██ ██    ██ ███████ 
+# ██   ██ ██    ██ ██ ██  ██  ██ ██    ██      ██ 
+# ██   ██  ██████  ██ ██      ██  ██████  ███████ 
+
 # Slash Commands
 from commands.drop import drops, drop
 from commands.clip import clip, clips
@@ -17,7 +23,7 @@ from commands.jackpot import jackpot, jackpots
 from commands.nasa import nasa
 from commands.poker import *
 from commands.ping import ping
-#from commands.profile import profile
+from commands.profile import profile
 from commands.quiz import quiz
 from commands.q import qget, qset
 from commands.report import report
@@ -78,7 +84,6 @@ async def on_message(message:discord.Message):
   
   # Bang Command Handling
   #logger.debug(message)
-  # if message.content.startswith("!") or message.content.lower().startswith("computer:"):
   if message.content.startswith("!") or any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
     logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
     try:
@@ -116,6 +121,7 @@ async def process_command(message:discord.Message):
           await eval(user_command + "(message)")
         except SyntaxError as s:
           logger.info(f"ERROR WITH EVAL: {Fore.RED}{s}{Fore.RESET}")
+          logger.info(traceback.format_exc())
     else:
       logger.error(f"{Fore.RED}<! ERROR: This function has been disabled: '{user_command}' !>{Fore.RESET}")
   else:
@@ -154,7 +160,7 @@ async def on_ready():
 
   {Fore.RESET}''')
 
-  await client.change_presence(status=discord.Status.online, activity=discord.Activity(name='PRAISE THE FOUNDERS', type=2, status="online"))
+  await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name='PRAISE THE FOUNDERS', type=2, status="online"))
 
 
 

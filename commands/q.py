@@ -60,7 +60,7 @@ async def display_user(user_id:discord.User, message:discord.Message):
   embed = discord.Embed()
   embed.set_author(
     name=user.display_name,
-    icon_url=user.avatar_url
+    icon_url=user.display_avatar.url
   )
   for header in user_columns["display_headers"]:
     embed.add_field(

@@ -1,5 +1,8 @@
 from .common import *
 from .info import get_show
+
+emojis = config["emojis"]
+
 QUIZ_EPISODE = False
 QUIZ_INDEX = -1
 LAST_SHOW = False
@@ -63,9 +66,9 @@ async def quiz(message:discord.Message):
         if id not in FUZZ:
           score_str = "`Correctitude: " + str(normalness) +"`"
           if not bonus:
-            score_str += " <:combadge:867891664886562816>"
+            score_str += f" {emojis['combadge']}"
           else:
-            score_str += " <a:combadge_spin:867891818317873192>"
+            score_str += f" {emojis['combadge_spin']}"
           FUZZ[id] = score_str
         CORRECT_ANSWERS[id] = { "name": message.author.mention, "points":award }
     else:
@@ -105,7 +108,7 @@ async def episode_quiz(message):
     f.write(r.content)
   LOG = [] # reset the log
   await quiz_channel.send(file=discord.File("./images/ep.jpg"))
-  await quiz_channel.send("Which episode of **__"+str(show_data["title"])+"__** is this? <a:horgahn_dance:844351841017921597>\nTo answer type: `!quiz [your guess]`")
+  await quiz_channel.send(f"Which episode of **__{show_data['title']}__** is this? {emojis['horgahn_dance']}\nTo answer type: `!quiz [your guess]`")
 
 
 @episode_quiz.after_loop
