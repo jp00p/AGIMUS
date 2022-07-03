@@ -11,7 +11,7 @@ async def help(message:discord.Message):
   f.close()
   for help_page in help_data:
     msg = "--------------------------------\n"
-    if message.channel.id in help_page["channels"] and help_page["enabled"]:
+    if message.channel.id in get_channel_ids_list(help_page["channels"]) and help_page["enabled"]:
       text_file = open(help_page["file"], "r")
       msg += text_file.read()
       text_file.close()

@@ -2,13 +2,13 @@ from .common import *
 
 # change_presence functions
 async def game_func(name):
-  await client.change_presence(activity=discord.Game(name))
+  await bot.change_presence(activity=discord.Game(name))
 
 async def listen_func(name):
-  await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=name))
+  await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=name))
 
 async def watch_func(name):
-  await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=name))
+  await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=name))
 
 change_presence_funcs = {
   "game": game_func,

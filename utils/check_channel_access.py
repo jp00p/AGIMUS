@@ -2,25 +2,18 @@ from commands.common import *
 
 emojis = config["emojis"]
 
-# @slash_check_channel_access decorator
-# Can be injected in between @slash.slash and your slash function to 
-# restrict access to the "channels" from the command config
-def slash_check_channel_access(command_config):
-  # Container accepts the actual drop function as `command`
-  def container(command):
-    # The decorator is what actually performs the check before determining whether to execute the command
-    async def decorator(*dargs, **dkwargs):
-      # First argument sent to the decorator is the Slash Context we need for the channel check
-      ctx = dargs[0]
-      has_channel_access = await perform_channel_check(ctx, command_config)
-      if (has_channel_access):
-        # If we have access, go ahead and execute the command and pass through the arguments sent to the decorator
-        await command(*dargs, **dkwargs)
-      else:
-        await ctx.send(f"{emojis.get('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.", hidden=True)
-        return
-    return decorator
-  return container
+# @commands.check decorator function
+# Can be injected in between @commands.check and your slash function to 
+# restrict access to the "channels" from the command config by matching it with the function name
+async def access_check(ctx):
+  try:
+    command_config = config["commands"][f"{ctx.command}"]
+    has_channel_access = await perform_channel_check(ctx, command_config)
+    if not has_channel_access:
+      await ctx.respond(f"{emojis.get('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.", ephemeral=True)
+    return has_channel_access
+  except BaseException as e:
+    logger.info(e)
 
 async def perform_channel_check(ctx, command_config):
   # Verify that we're allowed to execute the command in this channel
@@ -29,7 +22,7 @@ async def perform_channel_check(ctx, command_config):
 
   # If we're in the development channel everything goes
   if ctx.channel.id == DEV_CHANNEL:
-    logger.info(f"{Fore.LIGHTGREEN_EX}DEV COMMAND{Fore.RESET}")
+    logger.info(f"{Fore.LIGHTGREEN_EX}DEV CHANNEL COMMAND{Fore.RESET}")
     return True
 
   # Otherwise check allowed/blocked channel lists

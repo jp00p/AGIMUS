@@ -1,18 +1,15 @@
 from .common import *
-from utils.check_channel_access import *
+from utils.check_channel_access import access_check
 
-# profile() - Entrypoint for /profile command
+# slash_profile() - Entrypoint for /profile command
 # This function is the main entrypoint of the /profile command
 # and will return a user's profile card
-
-@slash.slash(
+@bot.slash_command(
   name="profile",
-  description="Show your own profile card",
-  guild_ids=config["guild_ids"]
+  description="Show your own profile card"
 )
-
-async def profile(ctx:SlashContext):
-  
+@commands.check(access_check)
+async def profile(ctx:discord.ApplicationContext):
   user = ctx.author
   player = get_user(user.id)
   logger.info(f"{Fore.CYAN}{user.display_name} is looking at their own {Back.WHITE}{Fore.BLACK}profile card!{Back.RESET}{Fore.RESET}")
@@ -66,7 +63,7 @@ async def profile(ctx:SlashContext):
   score = "SCORE: {}".format(player["score"])
   
   # grab user's avatar and paste it on the template
-  avatar = user.avatar_url_as(format='jpg', size=128)
+  avatar = user.display_avatar.replace(size=128, static_format="png")
   await avatar.save("./images/profiles/"+str(user.id)+"_a.jpg") 
   avatar_image = Image.open("./images/profiles/"+str(user.id)+"_a.jpg")
   avatar_image.resize((128,128))
@@ -107,4 +104,4 @@ async def profile(ctx:SlashContext):
   # finalize image
   image.save("./images/profiles/"+str(user.id)+".png")
   discord_image = discord.File("./images/profiles/"+str(user.id)+".png")
-  await ctx.reply(file=discord_image, hidden=True)
+  await ctx.respond(file=discord_image, ephemeral=True)

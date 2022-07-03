@@ -1,26 +1,42 @@
-[{
-  "name": "slots",
-  "enabled": true,
-  "file": "data/help/slots.txt",
-  "channels": [891412391026360320]
-},{
-  "name": "shop",
-  "enabled": true,
-  "file": "data/help/shop.txt",
-  "channels": [821892686201094154]
-},{
-  "name": "convo",
-  "enabled": true,
-  "file": "data/help/convo.txt",
-  "channels": [891412924193726465]
-},{
-  "name": "poker",
-  "enabled": true,
-  "file": "data/help/poker.txt",
-  "channels": [897517722227855422]
-},{
-  "name": "quiz",
-  "enabled": true,
-  "file": "data/help/quiz.txt",
-  "channels": [891412585646268486]
-}]
+[
+  {
+    "name": "slots",
+    "enabled": true,
+    "file": "data/help/slots.txt",
+    "channels": [
+      "slots-slots-slots"
+    ]
+  },
+  {
+    "name": "shop",
+    "enabled": true,
+    "file": "data/help/shop.txt",
+    "channels": [
+      "slotshop-dot-biz"
+    ]
+  },
+  {
+    "name": "convo",
+    "enabled": true,
+    "file": "data/help/convo.txt",
+    "channels": [
+      "conversation-booth"
+    ]
+  },
+  {
+    "name": "poker",
+    "enabled": true,
+    "file": "data/help/poker.txt",
+    "channels": [
+      "poker-table"
+    ]
+  },
+  {
+    "name": "quiz",
+    "enabled": true,
+    "file": "data/help/quiz.txt",
+    "channels": [
+      "quizzing-booth"
+    ]
+  }
+]

@@ -1,4 +1,5 @@
 import inspect
+from datetime import datetime
 
 from commands.common import *
 
@@ -11,7 +12,7 @@ from commands.common import *
 TIMEKEEPER = {}
 TIMEOUT = 15
 
-async def check_timekeeper(ctx:SlashContext):
+async def check_timekeeper(ctx):
   command = inspect.stack()[1].function
   current_channel = ctx.channel.id
   
@@ -24,7 +25,7 @@ async def check_timekeeper(ctx:SlashContext):
   last_record = command_record.get(current_channel)
   if (last_record != None):
     last_timestamp = last_record[0]
-    diff = ctx.created_at - last_timestamp
+    diff = datetime.now() - last_timestamp
     seconds = diff.total_seconds()
     if (seconds > TIMEOUT):
       return True
@@ -39,9 +40,9 @@ async def check_timekeeper(ctx:SlashContext):
   return True
 
 
-def set_timekeeper(ctx:SlashContext):
+def set_timekeeper(ctx):
   command = inspect.stack()[1].function
   current_channel = ctx.channel.id
   if TIMEKEEPER.get(command) == None:
     TIMEKEEPER[command] = {}
-  TIMEKEEPER[command][current_channel] = [ctx.created_at, False]
+  TIMEKEEPER[command][current_channel] = [datetime.now(), False]

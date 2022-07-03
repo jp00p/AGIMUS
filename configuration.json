@@ -10,6 +10,39 @@
         473331439169962005,
         735658100958298154
       ]
+    },
+    "starboard": {
+      "blocked_channels" : [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-office",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "subspace-transmissions",
+        "garaks-tailor-shop",
+        "the-next-next-generation",
+        "sicks-bay",
+        "rikers-quarters",
+        "mo-pips-mo-problems",
+        "mclaughlin-group",
+        "captains-log",
+        "bot-setup",
+        "shipwide-announcements",
+        "rules-and-info",
+        "first-contact",
+        "roles-and-pronouns",
+        "channel-guide",
+        "transporter-log",
+        "polls"
+      ],
+      "boards": {
+        
+          "the-argus-array" : [],
+          "bits-bits-bits" : ["laugh", "lol", "lmao"],
+          "faith-of-the-heart" : ["love", "heart", "hearts"] 
+        
+      }
     }
   },
   "tasks": {
@@ -80,12 +113,6 @@
       "data": "data/clips.json",
       "parameters": [],
       "error_contact_id": 735658100958298154
-    },
-    "convert": {
-      "channels": [],
-      "enabled": true,
-      "data": "data/conversions.json",
-      "parameters": []
     },
     "computer": {
       "channels": [],
@@ -619,10 +646,13 @@
     }
   },
   "emojis": {
+    "combadge_spin": "<a:combadge_spin:867891818317873192>",
+    "combadge": "<:combadge:867891664886562816>",
     "data_lmao_lol": "<:data_lmao_lol:757762906556203050>",
     "emh_doctor_omg_wtf_zoom": "<a:emh_doctor_omg_wtf_zoom:865452207699394570>",
     "ezri_frown_sad": "<:ezri_frown_sad:757762138176749608>",
     "guinan_beanflick_stance_threat": "<:guinan_beanflick_stance_threat:760216477235281942>",
+    "horgahn_dance": "<a:horgahn_dance:844351841017921597>",
     "louvois_point_yes": "<:louvois_point_yes:840252104056766515>",
     "picard_yes_happy_celebrate": "<:picard_yes_happy_celebrate:757726753346027622>",
     "ohno": "<:ohno:930365904657723402>",
