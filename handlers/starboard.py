@@ -100,7 +100,7 @@ async def add_starboard_post(message, board):
   embed = discord.Embed(description=embed_description, color=discord.Color.random())
   embed.set_author(
     name=message.author.display_name,
-    icon_url=message.author.avatar_url
+    icon_url=message.author.avatar.url
   )
 
   date_posted = message.created_at.strftime("%A %B %-d, %Y")
