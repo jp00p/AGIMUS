@@ -334,3 +334,19 @@ def increase_jackpot(amt):
   query.close()
   db.close()
 
+# big_long_schloppy_channel_list_for_config_json(client)
+# client[required]: discord.Bot
+# run this if you need a nice json list of channel names + ids for your config file
+def big_long_schloppy_channel_list_for_config_json(client):
+  channels = client.guilds[0].channels
+  channel_list = {}
+  for channel in channels:
+    if channel.type == discord.ChannelType.text:
+      channel_name = channel.name.encode("ascii", errors="ignore").decode().strip()
+      channel_list[channel_name] = channel.id
+  channel_list_json = json.dumps(channel_list, indent=2, sort_keys=True)
+  try:
+    with open('./local-channel-list.json', 'w') as f:
+      f.write(channel_list_json)
+  except FileNotFoundError as e:
+    logger.info(f"Unable to create local channel list file: {e}")
