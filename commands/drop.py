@@ -13,7 +13,7 @@ f.close()
 
 # slash_drops() - Entrypoint for /drops command
 # List the available drops by key and send to user as ephemeral
-@bot.command(
+@bot.slash_command(
   name="drops",
   description="Retrieve the List of Drops."
 )

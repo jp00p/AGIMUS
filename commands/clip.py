@@ -28,7 +28,7 @@ async def clips(ctx:discord.ApplicationContext):
     await ctx.author.send(embed=embed)
     await ctx.respond(f"{emojis.get('tendi_smile_happy')} Sent you a DM with the full List of Clips!", ephemeral=True)
   except:
-    await ctx.respond(embed=embed, hidden=True)
+    await ctx.respond(embed=embed, ephemeral=True)
 
 
 # clip() - Entrypoint for /clip command
