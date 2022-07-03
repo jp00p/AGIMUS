@@ -97,13 +97,13 @@ async def add_starboard_post(message, board):
 
   # repost in appropriate board
   embed_description = f"{message.content}\n\n[View original message]({message.jump_url})"
-  embed = discord.Embed(description=message.content)
+  embed = discord.Embed(description=embed_description, color=discord.Color.random())
   embed.set_author(
     name=message.author.display_name,
     icon_url=message.author.avatar_url
   )
 
-  date_posted = message.created_at.strftime("%A %B %-d, %Y at %-I:%M %p (%Z)")
+  date_posted = message.created_at.strftime("%A %B %-d, %Y")
   embed.set_footer(
     text=f"{date_posted}"
   )
