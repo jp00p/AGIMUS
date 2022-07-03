@@ -11,7 +11,7 @@ endif
 
 .PHONY: help
 help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-username])
-	@echo "Friends of DeSoto Bot - github.com/$$REPO_OWNER/$$REPO_NAME:$(shell make version)"
+	@echo "Friends of DeSoto Bot - github.com/$$REPO_OWNER/$$REPO_NAME:$(shell make -s version)"
 	@cat banner.txt
 	@echo ""
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
@@ -129,7 +129,7 @@ helm-install: helm-config ## Install AGIMUS helm chart
 		--create-namespace \
 		--namespace $(namespace) \
 		--set image.repository=$(BOT_CONTAINER_NAME) \
-		--set image.tag=$(shell make version) \
+		--set image.tag=$(shell make -s version) \
 		agimus charts/agimus
 
 .PHONY: helm-uninstall
@@ -146,8 +146,8 @@ helm-db-mysql: ## Mysql session in mysql pod
 	@kubectl --namespace $(namespace) exec -it $(shell make -s helm-db-pod) \
 		-- mysql -u"${DB_USER}" -p"${DB_PASS}"
 
-.PHONY: helm-db-portforward
-helm-db-portforward: ## Forward the mysql port 3306
+.PHONY: helm-db-forward
+helm-db-forward: ## Forward the mysql port 3306
 	@kubectl --namespace $(namespace) port-forward svc/mysql-service 3306
 
 .PHONY: helm-db-pod

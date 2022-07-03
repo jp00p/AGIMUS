@@ -21,10 +21,6 @@ spec:
       containers:
         - name: mysql
           image: mysql:oracle
-          # args:
-          #   - "--ignore-db-dir=lost+found"
-          #   - "--skip-innodb"
-          #   - "--default-storage-engine=myisam"
           ports:
             - containerPort: 3306
               name: mysql

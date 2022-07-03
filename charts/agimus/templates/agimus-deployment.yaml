@@ -33,9 +33,6 @@ spec:
         - name: agimus-config
           configMap:
             name: agimus-config
-        # - name: agimus-seed
-        #   configMap:
-        #     name: agimus-seed
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -51,6 +48,3 @@ spec:
             - name: agimus-config
               mountPath: /bot/local.json
               subPath: local.json
-            # - name: agimus-seed
-            #   mountPath: /bot/bot-dump.sql
-            #   subPath: bot-dump.sql
