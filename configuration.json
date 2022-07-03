@@ -114,12 +114,6 @@
       "parameters": [],
       "error_contact_id": 735658100958298154
     },
-    "convert": {
-      "channels": [],
-      "enabled": true,
-      "data": "data/conversions.json",
-      "parameters": []
-    },
     "computer": {
       "channels": [],
       "enabled": true,
@@ -652,10 +646,13 @@
     }
   },
   "emojis": {
+    "combadge_spin": "<a:combadge_spin:867891818317873192>",
+    "combadge": "<:combadge:867891664886562816>",
     "data_lmao_lol": "<:data_lmao_lol:757762906556203050>",
     "emh_doctor_omg_wtf_zoom": "<a:emh_doctor_omg_wtf_zoom:865452207699394570>",
     "ezri_frown_sad": "<:ezri_frown_sad:757762138176749608>",
     "guinan_beanflick_stance_threat": "<:guinan_beanflick_stance_threat:760216477235281942>",
+    "horgahn_dance": "<a:horgahn_dance:844351841017921597>",
     "louvois_point_yes": "<:louvois_point_yes:840252104056766515>",
     "picard_yes_happy_celebrate": "<:picard_yes_happy_celebrate:757726753346027622>",
     "ohno": "<:ohno:930365904657723402>",

@@ -30,7 +30,7 @@ async def trivia_quiz(category=None):
     embed.add_field(name="** **", value="{}: {} {}".format(reactions[i],ans,maybe_newline), inline=False)
     i += 1
   embed.set_footer(text="React below with your answer!")
-  channel = client.get_channel(config["channels"]["quizzing-booth"])
+  channel = bot.get_channel(config["channels"]["quizzing-booth"])
   TRIVIA_MESSAGE = await channel.send(embed=embed, file=thumb)
   for react in reactions:
     await TRIVIA_MESSAGE.add_reaction(react)
@@ -49,7 +49,7 @@ async def end_trivia():
   for ans in TRIVIA_ANSWERS:
     if TRIVIA_ANSWERS[ans] == TRIVIA_DATA["correct_emoji"]:
       correct_guessers.append(get_user(ans))
-  channel = client.get_channel(config["channels"]["quizzing-booth"])
+  channel = bot.get_channel(config["channels"]["quizzing-booth"])
   embed = discord.Embed(title="Trivia Complete!", description="⠀\n⠀\nThe correct answer was:\n {} **{}**\n⠀\n⠀{}".format(TRIVIA_DATA["correct_emoji"], TRIVIA_DATA["correct_answer"], " "*47))
   if len(correct_guessers) > 0:
     for player in correct_guessers:
@@ -66,22 +66,22 @@ async def end_trivia():
   await channel.send(embed=embed)
 
 
-@client.event
+@bot.event
 async def on_raw_reaction_add(payload:discord.RawReactionActionEvent):
   global TRIVIA_ANSWERS, POKER_GAMES
-  if payload.user_id != client.user.id:
+  if payload.user_id != bot.user.id:
     # poker reacts
     if payload.message_id in POKER_GAMES:
       if payload.user_id == POKER_GAMES[payload.message_id]["user"]:
         if payload.emoji.name == "✅":
           await resolve_poker(payload.message_id)
       else:
-        user = await client.fetch_user(payload.user_id)
+        user = await bot.fetch_user(payload.user_id)
         await POKER_GAMES[payload.message_id]["message"].remove_reaction(payload.emoji,user)
     # trivia reacts
     if TRIVIA_MESSAGE and payload.message_id == TRIVIA_MESSAGE.id:
       #emoji = await discord.utils.get(TRIVIA_MESSAGE.reactions, emoji=payload.emoji.name)
-      user = await client.fetch_user(payload.user_id)
+      user = await bot.fetch_user(payload.user_id)
       await TRIVIA_MESSAGE.remove_reaction(payload.emoji, user)
       TRIVIA_ANSWERS[payload.user_id] = payload.emoji.name
 

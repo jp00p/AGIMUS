@@ -1,6 +1,8 @@
+import dateutil.parser
+from datetime import datetime, timezone
 import discord
-from discord_slash import SlashCommand, SlashContext
-from discord_slash.utils.manage_commands import create_choice, create_option
+from discord import option
+from discord.ext import commands
 from discord.ext import tasks
 import os
 import random
@@ -10,13 +12,16 @@ import asyncio
 import re
 import string
 import json
+from pprint import pprint
 from PIL import Image, ImageFont, ImageDraw, ImageColor
 from fuzzywuzzy import fuzz
+import humanize
 from dotenv import load_dotenv
 import mysql.connector
 from tabulate import tabulate
 import treys
 from treys import evaluator
+import traceback
 import numpy as np
 from treys import Card, Evaluator, Deck
 import logging
@@ -50,10 +55,11 @@ DB_HOST = os.getenv('DB_HOST')
 DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
 DB_SEED_FILEPATH = os.getenv('DB_SEED_FILEPATH')
+
 config = get_config()
-intents = discord.Intents().all()
-client = discord.Client(intents=intents)
-slash = SlashCommand(client, sync_commands=True)
+intents = discord.Intents.all()
+bot = commands.Bot(intents=intents, test_guilds=config["guild_ids"], auto_sync_commands=True)
+
 POKER_GAMES = {}
 TRIVIA_RUNNING = False
 TRIVIA_DATA = {}

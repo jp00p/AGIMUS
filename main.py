@@ -1,21 +1,26 @@
-import traceback
+#  █████   ██████  ██ ███    ███ ██    ██ ███████ 
+# ██   ██ ██       ██ ████  ████ ██    ██ ██      
+# ███████ ██   ███ ██ ██ ████ ██ ██    ██ ███████ 
+# ██   ██ ██    ██ ██ ██  ██  ██ ██    ██      ██ 
+# ██   ██  ██████  ██ ██      ██  ██████  ███████ 
+
+# Slash Commands
+from commands.drop import drops, drop
+from commands.clip import clip, clips
+from commands.nextep import nexttrek, nextep
 
 # Commands
 from commands.common import *
 from commands.buy import buy
 from commands.categories import categories
 from commands.clear_media import clear_media
-from commands.clip import clip, clips
 from commands.computer import computer
-from commands.convert import convert
 from commands.dustbuster import dustbuster
-from commands.drop import drop, slash_drop, slash_drops
 from commands.fmk import fmk
 from commands.help import help
 from commands.info import info
 from commands.jackpot import jackpot, jackpots
 from commands.nasa import nasa
-from commands.nextep import nexttrek, nextep
 from commands.poker import *
 from commands.ping import ping
 from commands.profile import profile
@@ -23,7 +28,7 @@ from commands.quiz import quiz
 from commands.q import qget, qset
 from commands.report import report
 from commands.randomep import randomep
-from commands.restrict_emojis import restrict_emojis
+#from commands.restrict_emojis import restrict_emojis
 from commands.scores import scores
 from commands.setwager import setwager
 from commands.shop import shop
@@ -53,11 +58,11 @@ ALL_USERS = get_all_users()
 logger.info(f"{Fore.LIGHTMAGENTA_EX}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}{Style.RESET_ALL}")
 
 # listens to every message on the server that the bot can see
-@client.event
+@bot.event
 async def on_message(message:discord.Message):
 
   # Ignore all messages from bot itself
-  if message.author == client.user:
+  if message.author == bot.user:
     return
 
   # Special message Handlers
@@ -79,7 +84,6 @@ async def on_message(message:discord.Message):
   
   # Bang Command Handling
   #logger.debug(message)
-  # if message.content.startswith("!") or message.content.lower().startswith("computer:"):
   if message.content.startswith("!") or any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
     logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
     try:
@@ -92,7 +96,7 @@ async def on_message(message:discord.Message):
         description=f"{e}\n```{traceback.format_exc()}```",
         color=discord.Color.red()
       )
-      logging_channel = client.get_channel(LOGGING_CHANNEL)
+      logging_channel = bot.get_channel(LOGGING_CHANNEL)
       await logging_channel.send(embed=exception_embed)
 
 async def process_command(message:discord.Message):
@@ -117,27 +121,28 @@ async def process_command(message:discord.Message):
           await eval(user_command + "(message)")
         except SyntaxError as s:
           logger.info(f"ERROR WITH EVAL: {Fore.RED}{s}{Fore.RESET}")
+          logger.info(traceback.format_exc())
     else:
       logger.error(f"{Fore.RED}<! ERROR: This function has been disabled: '{user_command}' !>{Fore.RESET}")
   else:
     logger.error(f"{Fore.RED}<! ERROR: Unknown command !>{Fore.RESET}")
 
-@client.event
+@bot.event
 async def on_ready():
   global EMOJI
   global ALL_STARBOARD_POSTS
   random.seed()
-  EMOJI["shocking"] = discord.utils.get(client.emojis, name="q_shocking")
-  EMOJI["chula"] = discord.utils.get(client.emojis, name="chula_game")
-  EMOJI["allamaraine"] = discord.utils.get(client.emojis, name="allamaraine")
-  EMOJI["love"] = discord.utils.get(client.emojis, name="love_heart_tgg")
-  EMOJI["adam_wave"] = discord.utils.get(client.emojis, name="adam_wave_hello")
-  EMOJI["ben_wave"] = discord.utils.get(client.emojis, name="ben_wave_hello")
-  logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX}LOGGED IN AS {client.user}{Fore.RESET}{Back.RESET}")
+  EMOJI["shocking"] = discord.utils.get(bot.emojis, name="q_shocking")
+  EMOJI["chula"] = discord.utils.get(bot.emojis, name="chula_game")
+  EMOJI["allamaraine"] = discord.utils.get(bot.emojis, name="allamaraine")
+  EMOJI["love"] = discord.utils.get(bot.emojis, name="love_heart_tgg")
+  EMOJI["adam_wave"] = discord.utils.get(bot.emojis, name="adam_wave_hello")
+  EMOJI["ben_wave"] = discord.utils.get(bot.emojis, name="ben_wave_hello")
+  logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX}LOGGED IN AS {bot.user}{Fore.RESET}{Back.RESET}")
   ALL_USERS = get_all_users()
   ALL_STARBOARD_POSTS = get_all_starboard_posts()
   logger.info(f"{ALL_STARBOARD_POSTS}")
-  for emoji in client.emojis:
+  for emoji in bot.emojis:
     config["all_emoji"].append(emoji.name)
   #logger.info(client.emojis) -- save this for later, surely we can do something with all these emojis
   
@@ -155,37 +160,37 @@ async def on_ready():
 
   {Fore.RESET}''')
 
-  await client.change_presence(status=discord.Status.online, activity=discord.Activity(name='PRAISE THE FOUNDERS', type=2, status="online"))
+  await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name='PRAISE THE FOUNDERS', type=2, status="online"))
 
 
 
 # listen to reactions
 # TODO: change to on_raw_reaction_add so old messages are counted too!
-@client.event
+@bot.event
 async def on_reaction_add(reaction, user):
   await handle_react_xp(reaction, user)
   
 # listen to raw reactions  
-@client.event
+@bot.event
 async def on_raw_reaction_add(payload):
   if payload.event_type == "REACTION_ADD":
     await handle_starboard_reactions(payload)
 
 # listen to server leave events
-@client.event
+@bot.event
 async def on_member_remove(member):
   await show_leave_message(member)
 
 # listen to nickname change events
-@client.event
+@bot.event
 async def on_member_update(memberBefore,memberAfter):
   if memberBefore.nick != memberAfter.nick:
     await show_nick_change_message(memberBefore, memberAfter) 
 
 # Schedule Tasks
 scheduled_tasks = [
-  bingbong_task(client),
-  weyounsday_task(client)
+  bingbong_task(bot),
+  weyounsday_task(bot)
 ]
 
 scheduler = Scheduler()
@@ -194,4 +199,4 @@ for task in scheduled_tasks:
 scheduler.start()
 
 # Engage!
-client.run(DISCORD_TOKEN)
+bot.run(DISCORD_TOKEN)
