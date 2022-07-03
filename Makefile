@@ -102,7 +102,7 @@ kind-test: ## Install AGIMUS into a running KinD cluster with helm
 		--set image.repository=$(BOT_CONTAINER_NAME) \
 		--set image.tag=local \
 		agimus charts/agimus
-	sleep 10
+	sleep 30
 	kubectl --namespace $(namespace) get pods -o wide
 	@make helm-db-load
 
