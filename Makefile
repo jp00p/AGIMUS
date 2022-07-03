@@ -140,7 +140,7 @@ helm-uninstall: helm-config-rm ## Remove AGIMUS helm chart
 .PHONY: helm-db-load
 helm-db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 	@kubectl --namespace $(namespace) exec -i $(shell make --no-print-directory helm-db-pod) \
-		-- bash -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}"' < ${DB_DUMP_FILENAME}
+		-- bash -c 'exec mysql -h127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}"' < ${DB_DUMP_FILENAME}
 
 .PHONY: helm-db-mysql
 helm-db-mysql: ## Mysql session in mysql pod
