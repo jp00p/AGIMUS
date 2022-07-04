@@ -29,7 +29,7 @@ async def reports(ctx:discord.ApplicationContext, report:str):
 def get_xp_report():
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = "SELECT name,xp FROM users ORDER BY xp DESC LIMIT 20"
+  sql = "SELECT name,xp FROM users ORDER BY xp DESC LIMIT 10"
   query.execute(sql)
   results = query.fetchall()
   db.commit()
