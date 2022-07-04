@@ -80,6 +80,15 @@
         }
       ]
     },
+    "reports":{
+      "channels":[
+        "robot-diagnostics",
+        "mclaughlin-group",
+        "mo-pips-mo-problems"
+      ],
+      "enabled":true,
+      "parameters":[]
+    },
     "categories": {
       "channels": [
         "quizzing-booth"
