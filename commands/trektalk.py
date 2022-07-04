@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # trektalk() - Entrypoint for !trektalk command
 # message[required]: discord.Message

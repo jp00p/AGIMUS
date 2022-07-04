@@ -1,7 +1,8 @@
 # Media Util Helper Functions
-from fuzzywuzzy import fuzz
 from os.path import exists
+
 import requests
+from fuzzywuzzy import fuzz
 
 from utils.string_utils import *
 

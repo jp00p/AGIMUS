@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # tuvix() - Entrypoint for !tuvix command
 # message[required]: discord.Message

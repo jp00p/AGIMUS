@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # help() - Entrypoint for !help command
 # message[required]: discord.Message

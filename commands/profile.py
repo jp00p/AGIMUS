@@ -1,5 +1,6 @@
-from .common import *
+from common import *
 from utils.check_channel_access import access_check
+
 
 # slash_profile() - Entrypoint for /profile command
 # This function is the main entrypoint of the /profile command

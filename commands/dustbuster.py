@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # dustbuster() - Entrypoint for !dustbuster command
 # message[required]: discord.Message

@@ -1,6 +1,8 @@
-from .common import *
 import re
 from os.path import exists
+
+from common import *
+
 
 # info() - Entrypoint for !info command
 # message[required]: discord.Message

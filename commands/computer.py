@@ -1,6 +1,6 @@
 import wolframalpha
 
-from .common import *
+from common import *
 
 WOLFRAM_ALPHA_ID = os.getenv('WOLFRAM_ALPHA_ID')
 

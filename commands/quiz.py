@@ -1,4 +1,5 @@
-from .common import *
+from common import *
+
 from .info import get_show
 
 emojis = config["emojis"]

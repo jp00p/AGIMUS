@@ -1,6 +1,6 @@
 # String Utils
-import string
 import re
+import string
 
 punct_regex = r'[' + string.punctuation + ']'
 def strip_punctuation(string):

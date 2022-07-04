@@ -3,14 +3,16 @@
 # ███████ ██   ███ ██ ██ ████ ██ ██    ██ ███████ 
 # ██   ██ ██    ██ ██ ██  ██  ██ ██    ██      ██ 
 # ██   ██  ██████  ██ ██      ██  ██████  ███████ 
+from common import *
 
 # Slash Commands
-from commands.drop import drops, drop
+from commands.drop import drop, drops
 from commands.clip import clip, clips
-from commands.nextep import nexttrek, nextep
+from commands.profile import profile
+from commands.nextep import nextep, nexttrek
+#from commands.restrict_emojis import restrict_emojis
 
-# Commands
-from commands.common import *
+# Bang Commands
 from commands.buy import buy
 from commands.categories import categories
 from commands.clear_media import clear_media
@@ -21,34 +23,36 @@ from commands.help import help
 from commands.info import info
 from commands.jackpot import jackpot, jackpots
 from commands.nasa import nasa
-from commands.poker import *
 from commands.ping import ping
-from commands.profile import profile
-from commands.quiz import quiz
+from commands.poker import *
 from commands.q import qget, qset
 from commands.report import report
 from commands.reports import reports
+from commands.quiz import quiz
 from commands.randomep import randomep
-#from commands.restrict_emojis import restrict_emojis
+from commands.report import report
 from commands.scores import scores
+from commands.server_logs import show_leave_message, show_nick_change_message
 from commands.setwager import setwager
 from commands.shop import shop
 from commands.slots import slots, testslots
-from commands.triv import *
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
+from commands.triv import *
 from commands.tuvix import tuvix
 from commands.update_status import update_status
-from commands.server_logs import show_leave_message, show_nick_change_message
+
 # Handlers
 from handlers.alerts import handle_alerts
 from handlers.bot_autoresponse import handle_bot_affirmations
+from handlers.starboard import get_all_starboard_posts, handle_starboard_reactions
 from handlers.xp import handle_message_xp, handle_react_xp
-from handlers.starboard import handle_starboard_reactions, get_all_starboard_posts
+
 # Tasks
-from tasks.scheduler import Scheduler
 from tasks.bingbong import bingbong_task
+from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
+
 # Utils
 from utils.check_channel_access import perform_channel_check
 
@@ -194,7 +198,6 @@ scheduled_tasks = [
   bingbong_task(bot),
   weyounsday_task(bot)
 ]
-
 scheduler = Scheduler()
 for task in scheduled_tasks:
   scheduler.add_task(task["task"], task["crontab"])

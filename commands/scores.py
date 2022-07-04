@@ -1,4 +1,5 @@
-from .common import *
+from common import *
+
 
 # scores() - Entrypoint for !scores command
 # message[required]: discord.Message

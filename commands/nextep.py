@@ -1,8 +1,8 @@
 import re
-import requests
 import urllib.parse
 
-from .common import *
+import requests
+from common import *
 from utils.check_channel_access import access_check
 
 emojis = config["emojis"]

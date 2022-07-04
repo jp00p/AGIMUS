@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # qget() - Entrypoint for !qget command
 # message[required]: discord.Message

@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # trekduel() - Entrypoint for !trekduel command
 # message[required]: discord.Message

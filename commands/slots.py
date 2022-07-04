@@ -1,6 +1,9 @@
-from .common import *
-from .jackpot import *
 import math
+
+from common import *
+
+from .jackpot import *
+
 
 # slots() - Entrypoint for !slots command
 # message[required]: discord.Message

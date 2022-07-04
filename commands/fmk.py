@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # fmk() - Entrypoint for !fmk command
 # message[required]: discord.Message

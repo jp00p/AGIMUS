@@ -1,5 +1,7 @@
-from .common import *
+from common import *
+
 from .info import get_show
+
 
 # randomep() - Entrypoint for !randomep command
 # message[required]: discord.Message

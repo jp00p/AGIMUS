@@ -1,35 +1,34 @@
-import dateutil.parser
-from datetime import datetime, timezone
-import discord
-from discord import option
-from discord.ext import commands
-from discord.ext import tasks
+import asyncio
+import json
+import logging
 import os
 import random
-import tmdbsimple as tmdb
-import requests
-import asyncio
 import re
 import string
-import json
-from pprint import pprint
-from PIL import Image, ImageFont, ImageDraw, ImageColor
-from fuzzywuzzy import fuzz
-import humanize
-from dotenv import load_dotenv
-import mysql.connector
-from tabulate import tabulate
-import treys
-from treys import evaluator
-import traceback
-import numpy as np
-from treys import Card, Evaluator, Deck
-import logging
 import sys
-from colorama import Fore, Back, Style
+import traceback
+from datetime import datetime, timezone
+from pprint import pprint
 
+import dateutil.parser
+import discord
+import humanize
+import mysql.connector
+import numpy as np
+import requests
+import tmdbsimple as tmdb
+import treys
+from colorama import Back, Fore, Style
+from discord import option
+from discord.ext import commands, tasks
+from dotenv import load_dotenv
+from fuzzywuzzy import fuzz
+from PIL import Image, ImageColor, ImageDraw, ImageFont
+from tabulate import tabulate
+from treys import Card, Deck, Evaluator, evaluator
 
 from utils.config_utils import get_config
+
 #from utils.disco_lights import LightHandler
 
 # Load variables from .env file
