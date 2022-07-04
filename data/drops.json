@@ -269,6 +269,11 @@
     "description": "The 359truther Drop",
     "url": "https://i.imgur.com/P5e7cQ3.mp4"
   },
+  "The AGIMUS Drop": {
+    "file": "data/drops/theagimusdrop.mp4",
+    "description": "The AGIMUS Drop",
+    "url": "https://i.imgur.com/ZeKmQNS.mp4"
+  },
   "The ayluge Drop": {
     "file": "data/drops/theaylugedrop.mp4",
     "description": "The ayluge Drop",
@@ -369,6 +374,16 @@
     "description": "The OKB-1 Drop",
     "url": "https://i.imgur.com/vHkqjFJ.mp4"
   },
+  "The Parrises Squares Championship Drop": {
+    "file": "data/drops/theparrisessquareschampionshipdrop.mp4",
+    "description": "The Parrises Squares Championship Drop",
+    "url": "https://i.imgur.com/1lYzqCG.mp4"
+  },
+  "The Peter of the Norse Drop": {
+    "file": "data/drops/thepeterofthenorsedrop.mp4",
+    "description": "The Peter of the Norse Drop",
+    "url": "https://i.imgur.com/soCO6Mq.mp4"
+  },
   "The Pittbaster Drop": {
     "file": "data/drops/thepittbasterdrop.mp4",
     "description": "The Pittbaster Drop",
@@ -388,6 +403,11 @@
     "file": "data/drops/theseskadrop.mp4",
     "description": "The Seska Drop",
     "url": "https://i.imgur.com/5dgKumz.mp4"
+  },
+  "The Shouperman Drop": {
+    "file": "data/drops/theshoupermandrop.mp4",
+    "description": "The Shoup Shouperman Drop",
+    "url": "https://i.imgur.com/9j3Cy4a.mp4"
   },
   "The Starborn Drop": {
     "file": "data/drops/thestarborndrop.mp4",
@@ -428,6 +448,11 @@
     "file": "data/drops/thevulpesiadrop.mp4",
     "description": "The Vulpesia Drop",
     "url": "https://i.imgur.com/sNZaGdb.mp4"
+  },
+  "The Worf's Calisthenics Drop": {
+    "file": "data/drops/theworfscalisthenicsdrop.mp4",
+    "description": "The Worf's Calisthenics Drop",
+    "url": "https://i.imgur.com/0F9xBtW.mp4"
   },
   "Timpani Drum": {
     "file": "data/drops/timpanidrum.mp4",
