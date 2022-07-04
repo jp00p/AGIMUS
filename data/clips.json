@@ -44,6 +44,11 @@
     "description": "Picard Damn You",
     "url": "https://i.imgur.com/vuDmv7F.mp4"
   },
+  "Picard - Engage!": {
+    "file": "data/clips/picardengage.mp4",
+    "description": "Picard Engage",
+    "url": "https://i.imgur.com/h5qBsKj.mp4"
+  },
   "Picard - Nooo!": {
     "file": "data/clips/picardnooo.mp4",
     "description": "Picard No Nooo First Contact",
@@ -63,6 +68,11 @@
     "file": "data/clips/picardlaughingsmileyface.mp4",
     "description": "Picard Laugh Laughing Smiley Face Vapor",
     "url": "https://i.imgur.com/VpK35NR.mp4"
+  },
+  "Picard - Make It So!": {
+    "file": "data/clips/picardmakeitso.mp4",
+    "description": "Picard Make It So",
+    "url": "https://i.imgur.com/95pzmOq.mp4"
   },
   "Picard With A Machine Gun": {
     "file": "data/clips/picardmachinegun.mp4",
