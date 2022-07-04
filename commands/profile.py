@@ -8,8 +8,27 @@ from utils.check_channel_access import access_check
   name="profile",
   description="Show your own profile card"
 )
+
+@option(
+  name="public",
+  description="Show to public?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="No",
+      value="no"
+    ),
+    discord.OptionChoice(
+      name="Yes",
+      value="yes"
+    )
+  ]
+)
+
 @commands.check(access_check)
-async def profile(ctx:discord.ApplicationContext):
+async def profile(ctx:discord.ApplicationContext, public:str):
+  
+  public = bool(public == "yes")
   user = ctx.author
   player = get_user(user.id)
   logger.info(f"{Fore.CYAN}{user.display_name} is looking at their own {Back.WHITE}{Fore.BLACK}profile card!{Back.RESET}{Fore.RESET}")
@@ -40,7 +59,11 @@ async def profile(ctx:discord.ApplicationContext):
   # replace white in the base template with the user's color
   red, green, blue = image_data[:,:,0], image_data[:,:,1], image_data[:,:,2]
   r1, g1, b1 = 255,255,255
-  r2, g2, b2 = user.color.to_rgb()
+  user_color = user.color.to_rgb()
+  if user.color.value == 0:
+    user_color = (255,255,255)
+  r2, g2, b2 = user_color
+  
   mask = (red == r1) & (green == g1) & (blue == b1)
   image_data[:,:,:3][mask] = [r2, g2, b2]
 
@@ -67,7 +90,7 @@ async def profile(ctx:discord.ApplicationContext):
   await avatar.save("./images/profiles/"+str(user.id)+"_a.jpg") 
   avatar_image = Image.open("./images/profiles/"+str(user.id)+"_a.jpg")
   avatar_image.resize((128,128))
-  image.paste(avatar_image, (12, 142))
+  image.paste(avatar_image, (11, 142))
 
   # if they have a badge image, paste it on the template
   if badge_image:
@@ -87,21 +110,40 @@ async def profile(ctx:discord.ApplicationContext):
     vip_template.paste(vip_badge, (56, 327))
     image = Image.alpha_composite(image, vip_template)
   
+
+  white50 = (255, 255, 255, 64)
+  
   # lots of text drawing
   draw = ImageDraw.Draw(image)
   draw.line([(0, 0), (600, 0)], fill=(r2,g2,b2), width=5) # and a fun line across the top why not
+  
+  draw.text( (547, 16), user_name[0:15], fill="black", font=name_font, anchor="rt", align="right") # shadow
   draw.text( (546, 15), user_name[0:15], fill="white", font=name_font, anchor="rt", align="right")
+  
+  draw.text( (63, 84), "RANK", fill=white50, font=rank_font, align="right", anchor="rt") # shadow
   draw.text( (62, 83), "RANK", fill="black", font=rank_font, align="right", anchor="rt")
-  draw.text( (77, 83), top_role, fill="white", font=rank_value_font, anchor="lt", align="left")
+  draw.text( (78, 84), top_role, fill="black", font=rank_value_font, anchor="lt", align="left") # shadow
+  draw.text( (77, 83), top_role, fill="white", font=rank_value_font, anchor="lt", align="left") 
+
+  draw.text( (63, 115), "JOINED", fill=white50, font=rank_font, align="right", anchor="rt") # shadow
   draw.text( (62, 114), "JOINED", fill="black", font=rank_font, align="right", anchor="rt")
+  draw.text( (78, 114), user_join, fill="black", font=rank_value_font, anchor="lt", align="left") # shadow
   draw.text( (77, 113), user_join, fill="white", font=rank_value_font, anchor="lt", align="left")
+
+  draw.text( (66, 279), "SPINS", fill=white50, font=spins_font, align="right", anchor="rt") # shadow
   draw.text( (65, 278), "SPINS", fill="black", font=spins_font, align="right", anchor="rt")
+  draw.text( (74, 277), str(player["spins"]), fill="black", font=spins_value_font, anchor="lt", align="left") # shadow
   draw.text( (73, 276), str(player["spins"]), fill="white", font=spins_value_font, anchor="lt", align="left")
-  draw.text( (65, 304), "JACKPOTS", fill="black", font=spins_font, align="right", anchor="rt")
-  draw.text( (73, 302), str(player["jackpots"]), fill="white", font=spins_value_font, anchor="lt", align="left")
+  
+  draw.text( (66, 305), "XP", fill=white50, font=spins_font, align="right", anchor="rt") # shadow
+  draw.text( (65, 304), "XP", fill="black", font=spins_font, align="right", anchor="rt")
+  draw.text( (74, 303), str(player["xp"]), fill="black", font=spins_value_font, anchor="lt", align="left") # shadow
+  draw.text( (73, 302), str(player["xp"]), fill="white", font=spins_value_font, anchor="lt", align="left")
+
+  draw.text( (322, 367), score, fill="black", font=rank_value_font) # shadow
   draw.text( (321, 366), score, fill="white", font=rank_value_font)
   
   # finalize image
   image.save("./images/profiles/"+str(user.id)+".png")
   discord_image = discord.File("./images/profiles/"+str(user.id)+".png")
-  await ctx.respond(file=discord_image, ephemeral=True)
+  await ctx.respond(file=discord_image, ephemeral=not public)
