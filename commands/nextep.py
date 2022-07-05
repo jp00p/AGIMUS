@@ -93,8 +93,7 @@ async def nextep(ctx, query:str):
       await ctx.respond(f"{emojis['ezri_frown_sad']} Sorry, doesn't look like we have info scheduled for the next episode of {show_name}.", ephemeral=True)
     else:
       episode_data = requests.get(next_episode["href"]).json()
-      logger.info(pprint(episode_data))
-      embed = await get_show_embed(show_data, episode_data)
+      embed = await get_next_episode_embed(show_data, episode_data)
       await ctx.respond(embed=embed)
   except BaseException as err:
     logger.error(err)
@@ -102,7 +101,7 @@ async def nextep(ctx, query:str):
     await ctx.respond(f"{emojis['emh_doctor_omg_wtf_zoom']} Sorry, something went wrong with the request!", ephemeral=True)
 
 
-async def get_show_embed(show_data, episode_data):
+async def get_next_episode_embed(show_data, episode_data):
   show_name = show_data["name"]
   # Embed Template
   embed = discord.Embed(

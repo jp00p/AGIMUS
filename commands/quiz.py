@@ -1,6 +1,6 @@
 from common import *
 
-from .info import get_show
+from utils.show_utils import get_show_embed
 
 emojis = config["emojis"]
 
@@ -134,12 +134,8 @@ async def quiz_finished():
     for c in CORRECT_ANSWERS:
       msg += "{} - {} points - {}\n".format(CORRECT_ANSWERS[c]["name"], CORRECT_ANSWERS[c]["points"], FUZZ[c])
   await quiz_channel.send(msg)
-  # embed = await get_show(show_data, QUIZ_INDEX)
-  # await quiz_channel.send(embed=embed)
-  display_embed = await get_show(show_data, QUIZ_INDEX, QUIZ_SHOW)
-  embed=discord.Embed(title=display_embed["title"], url=display_embed["url"], description=display_embed["description"], color=0xFFFFFF)
-  embed.set_thumbnail(url=display_embed["still"])
-  await quiz_channel.send(embed=embed)
+  show_embed = get_show_embed(show_data, QUIZ_INDEX, QUIZ_SHOW)
+  await quiz_channel.send(embed=show_embed)
 
   # update the quiz stuff
   CORRECT_ANSWERS = {} # winners
