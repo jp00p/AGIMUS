@@ -60,8 +60,13 @@ jobs:
         name: KinD Tests
         shell: bash
         run: |
-          echo "Loading configuration" \
-            && echo "${{ secrets.CONFIGJSON }}" | base64 -d > local.json
+          if [ -z "${{ secrets.CONFIGJSON" ]; then
+            echo "Loading configuration" \
+              && cat configuration.json | base64 -d > local.json
+          else:
+            echo "Loading configuration" \
+              && echo "${{ secrets.CONFIGJSON }}" | base64 -d > local.json
+          fi
           echo "Loading secrets" \
             && echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
             && source .env
