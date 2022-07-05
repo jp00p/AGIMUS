@@ -12,7 +12,7 @@
       ]
     },
     "starboard": {
-      "blocked_channels" : [
+      "blocked_channels": [
         "neelixs-morale-office",
         "plasma-vent",
         "counselor-trois-office",
@@ -37,11 +37,18 @@
         "polls"
       ],
       "boards": {
-        
-          "the-argus-array" : [],
-          "bits-bits-bits" : ["laugh", "lol", "lmao", "bits"],
-          "faith-of-the-heart" : ["love", "heart", "hearts"] 
-        
+        "the-argus-array": [],
+        "bits-bits-bits": [
+          "laugh",
+          "lol",
+          "lmao",
+          "bits"
+        ],
+        "faith-of-the-heart": [
+          "love",
+          "heart",
+          "hearts"
+        ]
       }
     }
   },
@@ -80,14 +87,14 @@
         }
       ]
     },
-    "reports":{
-      "channels":[
+    "reports": {
+      "channels": [
         "robot-diagnostics",
         "mclaughlin-group",
         "mo-pips-mo-problems"
       ],
-      "enabled":true,
-      "parameters":[]
+      "enabled": true,
+      "parameters": []
     },
     "categories": {
       "channels": [
@@ -635,9 +642,10 @@
     "mo-pips-mo-problems": 813633292501909514,
     "captains-log": 955857525062914158
   },
+  "dev_channel": "robot-diagnostics",
   "intro_channel": "first-contact",
   "logging_channel": "bot-logs",
-  "dev_channel": "robot-diagnostics",
+  "server_logs_channel": "captains-log",
   "guild_ids": [
     689512841887481875
   ],
