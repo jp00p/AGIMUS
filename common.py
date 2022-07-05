@@ -91,6 +91,8 @@ bot = commands.Bot(
 
 # Channel Helpers
 def get_channel_ids_list(channel_list):
+  channel_list = list(channel_list)
+  channel_list.sort()
   channel_ids = []
   for x in channel_list:
     id = get_channel_id(x)
