@@ -193,6 +193,13 @@ async def on_member_update(memberBefore,memberAfter):
   if memberBefore.nick != memberAfter.nick:
     await show_nick_change_message(memberBefore, memberAfter) 
 
+# listen to interaction errors
+@bot.event
+async def on_application_command_error(ctx, exception):
+  logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
+  logger.info(exception)
+
+
 # Schedule Tasks
 scheduled_tasks = [
   bingbong_task(bot),
