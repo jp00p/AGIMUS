@@ -193,6 +193,23 @@ async def on_member_update(memberBefore,memberAfter):
   if memberBefore.nick != memberAfter.nick:
     await show_nick_change_message(memberBefore, memberAfter) 
 
+# Listen to channel updates
+@bot.event
+async def on_guild_channel_create(channel):
+  dev_channel = await bot.fetch_channel(DEV_CHANNEL)
+  await dev_channel.send(f"✨ A new channel, **'#{channel.name}'**, was just created!")
+
+@bot.event
+async def on_guild_channel_delete(channel):
+  dev_channel = await bot.fetch_channel(DEV_CHANNEL)
+  await dev_channel.send(f"💥 **'#{channel.name}'**, was just deleted!")
+
+@bot.event
+async def on_guild_channel_update(before, after):
+  dev_channel = await bot.fetch_channel(DEV_CHANNEL)
+  if before.name != after.name:
+    await dev_channel.send(f"↪️ **'#{before.name}'** was changed to **'#{after.name}'**!")
+
 # listen to interaction errors
 @bot.event
 async def on_application_command_error(ctx, exception):
