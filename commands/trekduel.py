@@ -1,19 +1,33 @@
 from common import *
+from utils.check_channel_access import access_check
 
-# trekduel() - Entrypoint for !trekduel command
+# trekduel() - Entrypoint for /trekduel command
 # message[required]: discord.Message
-# This function is the main entrypoint of the !trekduel command
+# This function is the main entrypoint of the /trekduel command
 # and will return a prompt with two random characters
-async def trekduel(message:discord.Message):
+@bot.slash_command(
+  name="trekduel",
+  description="Return 2 random Trek Characters to fight to the death!"
+)
+@commands.check(access_check)
+async def trekduel(ctx:discord.ApplicationContext):
   f = open(config["commands"]["trekduel"]["data"])
   characters = f.read().splitlines()
   f.close()
   war_intros = ["War! Hoo! Good god y'all!", "War! We're going to war!", "That nonsense is *centuries* behind us!", "There's been no formal declaration, sir.", "Time to pluck a pigeon!"]
   pick_1 = random.choice(characters)
   pick_2 = random.choice(characters)
-  choose_intro = random.choice(war_intros)
+  chosen_intro = random.choice(war_intros)
   while pick_1 == pick_2:
     pick_2 = random.choice(characters)
-  msg = choose_intro + "\n================\n" + message.author.mention + ": Who would win in an arbitrary Star Trek duel?!\n" + "\n> **"+pick_1+"** vs **"+pick_2+"**"
-  await message.channel.send(msg)
+
+  embed = discord.Embed(
+    title=chosen_intro,
+    description=f"Who would win in an arbitrary Star Trek duel?!",
+    color=discord.Color.dark_gold()
+  )
+  embed.add_field(name="Red Corner", value=pick_1)
+  embed.add_field(name=" vs", value="⚔️")
+  embed.add_field(name="Blue Corner", value=pick_2)
+  await ctx.respond(embed=embed)
   

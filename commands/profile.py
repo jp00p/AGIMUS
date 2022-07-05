@@ -9,7 +9,6 @@ from utils.check_channel_access import access_check
   name="profile",
   description="Show your own profile card"
 )
-
 @option(
   name="public",
   description="Show to public?",
@@ -25,7 +24,6 @@ from utils.check_channel_access import access_check
     )
   ]
 )
-
 @commands.check(access_check)
 async def profile(ctx:discord.ApplicationContext, public:str):
   
