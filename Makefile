@@ -9,7 +9,6 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
-
 .PHONY: help
 help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-username])
 	@echo "Friends of DeSoto Bot - github.com/$$REPO_OWNER/$$REPO_NAME:$(shell make --no-print-directory version)"
