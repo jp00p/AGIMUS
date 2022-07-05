@@ -79,13 +79,13 @@ jobs:
           echo "Running tests..." \
             && make --no-print-directory kind-test
           sleep 5
-          kubectl --namespace agimus delete pod $(kubectl --namespace agimus get pods --template '{{range .items}}{{.metadata.name}}{{end}}' --selector=app=agimus) || true
+          kubectl --namespace agimus delete pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
           sleep 5
           kubectl --namespace agimus get deployments -o wide
           sleep 5
           kubectl --namespace agimus get pods -o wide
           sleep 5
-          kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods --template '{{range .items}}{{.metadata.name}}{{end}}' --selector=app=agimus) || true
+          kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
           sleep 5
-          kubectl --namespace agimus logs $(kubectl --namespace agimus get pods --template '{{range .items}}{{.metadata.name}}{{end}}' --selector=app=agimus) || true
+          kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
 
