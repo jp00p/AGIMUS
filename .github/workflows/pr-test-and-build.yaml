@@ -64,7 +64,7 @@ jobs:
         run: |
           if [ -z "${CONFIGJSON}" ]; then
             echo "Loading configuration" \
-              && cat configuration.json | base64 -d > local.json
+              && cat configuration.json > local.json
           else:
             echo "Loading configuration" \
               && echo "${{ secrets.CONFIGJSON }}" | base64 -d > local.json
