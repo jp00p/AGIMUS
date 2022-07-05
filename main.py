@@ -146,7 +146,7 @@ async def on_ready():
   logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX}LOGGED IN AS {bot.user}{Fore.RESET}{Back.RESET}")
   ALL_USERS = get_all_users()
   ALL_STARBOARD_POSTS = get_all_starboard_posts()
-  logger.info(f"{ALL_STARBOARD_POSTS}")
+  logger.info(f"ALL_STARBOARD_POSTS:\n{ALL_STARBOARD_POSTS}")
   for emoji in bot.emojis:
     config["all_emoji"].append(emoji.name)
   #logger.info(client.emojis) -- save this for later, surely we can do something with all these emojis
