@@ -63,10 +63,10 @@ jobs:
           CONFIGJSON: ${{ secrets.CONFIGJSON }}
         run: |
           if [ -z "${CONFIGJSON}" ]; then
-            echo "Loading configuration" \
+            echo "Loading fallback configuration" \
               && cat configuration.json > local.json;
           else
-            echo "Loading configuration" \
+            echo "Loading override configuration" \
               && echo "${{ secrets.CONFIGJSON }}" | base64 -d > local.json;
           fi
           echo "Loading secrets" \
