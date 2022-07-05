@@ -59,8 +59,10 @@ jobs:
       -
         name: KinD Tests
         shell: bash
+        env:
+          CONFIGJSON: ${{ secrets.CONFIGJSON }}
         run: |
-          if [ -z "${{ secrets.CONFIGJSON }}" ]; then
+          if [ -z "${CONFIGJSON}" ]; then
             echo "Loading configuration" \
               && cat configuration.json | base64 -d > local.json
           else:
