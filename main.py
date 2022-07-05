@@ -7,39 +7,39 @@ from common import *
 
 # Slash Commands
 from commands.drop import drop, drops
+from commands.dustbuster import dustbuster
 from commands.clip import clip, clips
-from commands.profile import profile
+from commands.fmk import fmk
+from commands.help import help
+from commands.info import info
+from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
+from commands.profile import profile
+from commands.randomep import randomep
 #from commands.restrict_emojis import restrict_emojis
+from commands.trekduel import trekduel
+from commands.trektalk import trektalk
+from commands.tuvix import tuvix
 
 # Bang Commands
 from commands.buy import buy
 from commands.categories import categories
 from commands.clear_media import clear_media
 from commands.computer import computer
-from commands.dustbuster import dustbuster
-from commands.fmk import fmk
-from commands.help import help
-from commands.info import info
 from commands.jackpot import jackpot, jackpots
-from commands.nasa import nasa
 from commands.ping import ping
 from commands.poker import *
 from commands.q import qget, qset
 from commands.report import report
 from commands.reports import reports
 from commands.quiz import quiz
-from commands.randomep import randomep
 from commands.report import report
 from commands.scores import scores
 from commands.server_logs import show_leave_message, show_nick_change_message
 from commands.setwager import setwager
 from commands.shop import shop
 from commands.slots import slots, testslots
-from commands.trekduel import trekduel
-from commands.trektalk import trektalk
 from commands.triv import *
-from commands.tuvix import tuvix
 from commands.update_status import update_status
 
 # Handlers
