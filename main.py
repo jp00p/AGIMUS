@@ -6,9 +6,7 @@
 from common import *
 
 # Slash Commands
-from commands.drop import drop, drops
 from commands.dustbuster import dustbuster
-from commands.clip import clip, clips
 from commands.fmk import fmk
 from commands.help import help
 from commands.info import info
@@ -20,6 +18,10 @@ from commands.randomep import randomep
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
+
+# Slash Command Groups
+import commands.drop
+import commands.clip
 
 # Bang Commands
 from commands.buy import buy
@@ -193,11 +195,16 @@ async def on_member_update(memberBefore,memberAfter):
   if memberBefore.nick != memberAfter.nick:
     await show_nick_change_message(memberBefore, memberAfter) 
 
-# listen to interaction errors
+# listen to slash command exceptions
 @bot.event
-async def on_application_command_error(ctx, exception):
+async def on_application_command_error(ctx, e):
+  # We don't want to log access_check denials
+  if e.__class__.__name__ == "CheckFailure":
+    return
+
+  # Otherwise log problems we might have
   logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
-  logger.info(exception)
+  logger.info(e)
 
 
 # Schedule Tasks
