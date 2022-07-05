@@ -205,6 +205,7 @@ async def on_guild_channel_delete(channel):
 @bot.event
 async def on_guild_channel_update(before, after):
  await show_channel_rename_message(before, after)
+ await show_channel_topic_change_message(before, after)
 
 # listen to interaction errors
 @bot.event

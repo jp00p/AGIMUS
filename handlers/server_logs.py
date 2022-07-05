@@ -58,3 +58,16 @@ async def show_channel_rename_message(before, after):
   msg = f"↪️ **'#{before.name}'** was renamed to **'#{after.name}'**!"
   logger.info(f"{Fore.LIGHTGREEN_EX}#{before.name}{Fore.RESET} was just renamed to {Fore.LIGHTGREEN_EX}#{after.name}{Fore.RESET}")
   await server_log_channel.send(msg)
+
+# show_channel_topic_change_message(channel)
+# sends a message when someone changes the topic of a channel on the server
+# before[required]: discord.Channel
+# after[required]: discord.Channel
+async def show_channel_topic_change_message(before, after):
+  if before.topic == after.topic:
+    return
+
+  server_log_channel = bot.get_channel(SERVER_LOGS_CHANNEL)
+  msg = f"✏️ Topic in {after.mention} was updated to:\n\n> {after.topic}"
+  logger.info(f"Topic in {Fore.LIGHTGREEN_EX}#{after.name}{Fore.RESET} updated")
+  await server_log_channel.send(msg)
