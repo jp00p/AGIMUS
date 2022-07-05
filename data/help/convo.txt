@@ -8,5 +8,5 @@ A place to generate conversation prompts!
 `!trektalk` - generate a conversation piece
 `!trekduel` - who will win?
 `!fmk` - you know the deal
-`!profile` - see your profile card
+`/profile` - see your profile card
 `!info [tng|voy|ds9|friends|firefly|simpsons|enterprise|tos|lowerdecks|disco|picard|tas|sunny] [s##e##]` - Get information about a specific episode!
