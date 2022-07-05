@@ -1,15 +1,16 @@
-import feedparser
-import json
-from dotenv import load_dotenv
 import asyncio
-import re
-import sys, getopt
+import getopt
+import json
 import os
 import pprint
-import tmdbsimple as tmdb
-
+import re
+import sys
 from datetime import timedelta
+
+import feedparser
+import tmdbsimple as tmdb
 from dateutil import parser
+from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from ratelimit import limits, sleep_and_retry
 

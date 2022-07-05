@@ -1,7 +1,80 @@
 {
-  "tng": {
-    "enabled":true,
+  "disco": {
+    "name": "Star Trek: Discovery",
+    "enabled": true,
     "trek": true,
-    "source":"./data/episodes/tng.json"
+    "source": "./data/episodes/disco.json"
+  },
+  "ds9": {
+    "name": "Star Trek: Deep Space Nine",
+    "enabled": true,
+    "trek": true,
+    "source": "./data/episodes/ds9.json"
+  },
+  "enterprise": {
+    "name": "Star Trek: Enterprise",
+    "enabled": true,
+    "trek": true,
+    "source": "./data/episodes/enterprise.json"
+  },
+  "firefly": {
+    "name": "Firefly",
+    "enabled": true,
+    "trek": false,
+    "source": "./data/episodes/firefly.json"
+  },
+  "friends": {
+    "name": "Friends",
+    "enabled": true,
+    "trek": false,
+    "source": "./data/episodes/friends.json"
+  },
+  "lowerdecks": {
+    "name": "Star Trek: Lower Decks",
+    "enabled": true,
+    "trek": true,
+    "source": "./data/episodes/lowerdecks.json"
+  },
+  "picard": {
+    "name": "Star Trek: Picard",
+    "enabled": true,
+    "trek": true,
+    "source": "./data/episodes/picard.json"
+  },
+  "simpsons": {
+    "name": "The Simpsons",
+    "enabled": true,
+    "trek": false,
+    "source": "./data/episodes/simpsons.json"
+  },
+  "sunny": {
+    "name": "It's Always Sunny in Philadelphia",
+    "enabled": true,
+    "trek": false,
+    "source": "./data/episodes/sunny.json"
+  },
+  "tas": {
+    "name": "Star Trek: The Animated Series",
+    "enabled": true,
+    "trek": true,
+    "source": "./data/episodes/tas.json"
+  },
+  "tng": {
+    "name": "Star Trek: The Next Generation",
+    "enabled": true,
+    "trek": true,
+    "source": "./data/episodes/tng.json"
+  },
+  "tos": {
+    "name": "Star Trek",
+    "enabled": true,
+    "trek": true,
+    "source": "./data/episodes/tos.json"
+  },
+  "voy": {
+    "name": "Star Trek: Voyager",
+    "enabled": true,
+    "trek": true,
+    "source": "./data/episodes/voyager.json"
   }
 }

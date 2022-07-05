@@ -1,36 +1,43 @@
-import dateutil.parser
-from datetime import datetime, timezone
-import discord
-from discord import option
-from discord.ext import commands
-from discord.ext import tasks
+import asyncio
+import json
+import logging
 import os
 import random
-import tmdbsimple as tmdb
-import requests
-import asyncio
 import re
 import string
-import json
-from pprint import pprint
-from PIL import Image, ImageFont, ImageDraw, ImageColor
-from fuzzywuzzy import fuzz
-import humanize
-from dotenv import load_dotenv
-import mysql.connector
-from tabulate import tabulate
-import treys
-from treys import evaluator
-import traceback
-import numpy as np
-from treys import Card, Evaluator, Deck
-import logging
 import sys
-from colorama import Fore, Back, Style
+import traceback
+from datetime import datetime, timezone, timedelta
+from pprint import pprint
 
+import dateutil.parser
+import discord
+import humanize
+import mysql.connector
+import numpy as np
+import requests
+import tmdbsimple as tmdb
+import treys
+from colorama import Back, Fore, Style
+from discord import option
+from discord.ext import commands, tasks
+from dotenv import load_dotenv
+from fuzzywuzzy import fuzz
+from PIL import Image, ImageColor, ImageDraw, ImageFont
+from tabulate import tabulate
+from treys import Card, Deck, Evaluator, evaluator
 
 from utils.config_utils import get_config
+
 #from utils.disco_lights import LightHandler
+
+
+#   _________       __                
+#  /   _____/ _____/  |_ __ ________  
+#  \_____  \_/ __ \   __\  |  \____ \ 
+#  /        \  ___/|  | |  |  /  |_> >
+# /_______  /\___  >__| |____/|   __/ 
+#         \/     \/           |__|    
 
 # Load variables from .env file
 load_dotenv()
@@ -47,50 +54,71 @@ logger.addHandler(handler)
 #logger.addHandler(LightHandler())
 LOG = []
 
+# Set Config and Globals
+config = get_config()
+tmdb.API_KEY = os.getenv('TMDB_KEY')
+
+ALL_STARBOARD_POSTS = []
+BOT_NAME = f"{Fore.LIGHTRED_EX}AGIMUS{Fore.RESET}"
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 TMDB_IMG_PATH = "https://image.tmdb.org/t/p/original"
-tmdb.API_KEY = os.getenv('TMDB_KEY')
 DB_PASS = os.getenv('DB_PASS')
 DB_HOST = os.getenv('DB_HOST')
 DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
 DB_SEED_FILEPATH = os.getenv('DB_SEED_FILEPATH')
-
-config = get_config()
-intents = discord.Intents.all()
-bot = commands.Bot(intents=intents, test_guilds=config["guild_ids"], auto_sync_commands=True)
-
+EMOJI = {}
 POKER_GAMES = {}
+ROLES = config["roles"]
 TRIVIA_RUNNING = False
 TRIVIA_DATA = {}
 TRIVIA_MESSAGE = None
 TRIVIA_ANSWERS = {}
-EMOJI = {}
-ROLES = config["roles"]
-BOT_NAME = f"{Fore.LIGHTRED_EX}AGIMUS{Fore.RESET}"
 
-ALL_STARBOARD_POSTS = []
+# __________        __   
+# \______   \ _____/  |_ 
+#  |    |  _//  _ \   __\
+#  |    |   (  <_> )  |  
+#  |______  /\____/|__|  
+#         \/             
+
+intents = discord.Intents.all()
+bot = commands.Bot(
+  intents=intents,
+  test_guilds=config["guild_ids"],
+  auto_sync_commands=True
+)
 
 # Channel Helpers
 def get_channel_ids_list(channel_list):
+  channel_list = list(channel_list)
+  channel_list.sort()
   channel_ids = []
   for x in channel_list:
     id = get_channel_id(x)
     channel_ids.append(id)
   return channel_ids
 
-def get_channel_id(channel):
-  if isinstance(channel, str):
-    id = config["channels"].get(channel)
+def get_channel_id(channel_identifier):
+  if isinstance(channel_identifier, str):
+    id = config["channels"].get(channel_identifier)
   else:
-    id = channel
+    id = channel_identifier
   return id
 
+# Channel Globals
+DEV_CHANNEL = get_channel_id(config["dev_channel"])
 INTRO_CHANNEL = get_channel_id(config["intro_channel"])
 LOGGING_CHANNEL = get_channel_id(config["logging_channel"])
-DEV_CHANNEL = get_channel_id(config["dev_channel"])
 
-# Database Functions
+
+# ________          __        ___.                         
+# \______ \ _____ _/  |______ \_ |__ _____    ______ ____  
+#  |    |  \\__  \\   __\__  \ | __ \\__  \  /  ___// __ \ 
+#  |    `   \/ __ \|  |  / __ \| \_\ \/ __ \_\___ \\  ___/ 
+# /_______  (____  /__| (____  /___  (____  /____  >\___  >
+#         \/     \/          \/    \/     \/     \/     \/ 
+
 def getDB():
   db = mysql.connector.connect(
     host=DB_HOST,

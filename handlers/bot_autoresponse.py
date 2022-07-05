@@ -1,4 +1,4 @@
-from commands.common import *
+from common import *
 
 # Load up our list of complimentary and condemnation adjectives
 with open('bot_affirmations.txt') as f:

@@ -1,7 +1,7 @@
 from pprint import pprint
 from discord_components import DiscordComponents, Button, Select, SelectOption
 
-from .common import *
+from ..common import *
 
 DiscordComponents(bot)
 

@@ -1,6 +1,8 @@
-from .common import *
 import inspect
 from os.path import exists
+
+from common import *
+
 
 def load_file_into_array(file_name):
   file_obj = open(file_name, "r") 

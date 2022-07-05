@@ -1,4 +1,5 @@
-from .common import *
+from common import *
+
 
 # change_presence functions
 async def game_func(name):

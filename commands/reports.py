@@ -1,11 +1,10 @@
-from .common import *
+from common import *
 from utils.check_channel_access import access_check
 
 @bot.slash_command(
   name="reports",
   description="Show various AGIMUS reports"
 )
-
 @option(
   name="report",
   description="Choose a report",

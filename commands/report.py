@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # report() - Entrypoint for !report command
 # message[required]: discord.Message

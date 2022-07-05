@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # ping() - Entrypoint for !ping command
 # message[required]: discord.Message

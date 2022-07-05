@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 from utils.check_channel_access import access_check
 from utils.media_utils import *
 from utils.timekeeper import *

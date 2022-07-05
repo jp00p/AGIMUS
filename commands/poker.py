@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # poker() - Entrypoint for !poker command
 # message[required]: discord.Message
