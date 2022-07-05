@@ -1,7 +1,7 @@
 import inspect
 from datetime import datetime
 
-from commands.common import *
+from common import *
 
 # Timekeeper Functions
 # Prevent spamming a channel with too many drops in too short a period

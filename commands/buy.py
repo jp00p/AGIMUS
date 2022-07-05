@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # buy() - Entrypoint for !buy command
 # message[required]: discord.Message

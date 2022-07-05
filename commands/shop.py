@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 from utils.check_channel_access import *
 
 

@@ -1,74 +1,92 @@
-from .common import *
-# import re
-# from os.path import exists
 import requests
-import json
-import datetime
+from common import *
+from datetime import date as dtdate
+
+from utils.check_channel_access import access_check
+
 NASA_TOKEN = os.getenv('NASA_TOKEN')
 
-# nasa() - Entrypoint for !nasa command
-# message[required]: discord.Message
-# This function is the main entrypoint of the !nasa command
-async def nasa(message:discord.Message):
-  logger.info(f"{Fore.LIGHTBLUE_EX}NASA: Starting NASA API call{Fore.RESET}")
-  if not NASA_TOKEN:
-    logger.error(f"{Fore.RED}NASA_TOKEN not set{Fore.RESET}")
-    await message.channel.send("NASA_TOKEN not set: https://api.nasa.gov/")
-    return
-  user_command = message.content.lower().split()
-  logger.info(user_command)
-  if len(user_command) == 1:
-    start_date = datetime.date(1996, 1, 1)
-    logger.debug('starting from: ' + start_date.isoformat())
-    end_date = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
-    logger.debug('today: ' + end_date.isoformat())
+# nasa() - Entrypoint for /nasa command
+# This function is the main entrypoint of the /nasa command
+@bot.slash_command(
+  name="nasa",
+  description="Get a random or specific 'Picture of the Day' from NASA!"
+)
+@option(
+  name="date",
+  description="Date? ('today' or YYYY-MM-DD')",
+  required=False
+)
+@commands.check(access_check)
+async def nasa(ctx:discord.ApplicationContext, date:str):
+  try:
+    logger.info(f"{Fore.LIGHTBLUE_EX}NASA: Starting NASA API call{Fore.RESET}")
+    logger.info(f"date: {date}")
+    if not NASA_TOKEN:
+      logger.error(f"{Fore.RED}NASA_TOKEN not set{Fore.RESET}")
+      await ctx.respond("NASA_TOKEN not set: https://api.nasa.gov/", ephemeral=True)
+      return
+    if date is None:
+      logger.info("wtf...")
+      start_date = dtdate(1996, 1, 1)
+      logger.debug('starting from: ' + start_date.isoformat())
+      end_date = dtdate(dtdate.today().year, dtdate.today().month, dtdate.today().day)
+      logger.debug('today: ' + end_date.isoformat())
 
-    time_between_dates = end_date - start_date
-    days_between_dates = time_between_dates.days
-    random_number_of_days = random.randrange(days_between_dates)
-    target_date = start_date + datetime.timedelta(days=random_number_of_days)
-  elif len(user_command) > 1:
-    if user_command[1].lower() == "today":
-      target_date = datetime.date(datetime.date.today().year, datetime.date.today().month, datetime.date.today().day)
+      time_between_dates = end_date - start_date
+      days_between_dates = time_between_dates.days
+      random_number_of_days = random.randrange(days_between_dates)
+      target_date = start_date + timedelta(days=random_number_of_days)
     else:
-      try:
-          datetime.datetime.strptime(user_command[1], '%Y-%m-%d')
-      except ValueError:
-          embed=discord.Embed(title="Invalid date format", \
-            url="https://i.imgur.com/quQnKnk.jpeg", \
-            description="https://api.nasa.gov/\nUsage: `!nasa [today|YYYY-MM-DD]`\nfor random date, pass no arguments `!nasa`", \
-            color=0x111111)
-          embed.set_thumbnail(url="https://i.imgur.com/quQnKnk.jpeg")
-          await message.channel.send(embed=embed)
-          return
-      target_date = datetime.datetime.strptime(user_command[1], '%Y-%m-%d').date()
-  url = 'https://api.nasa.gov/planetary/apod?api_key='+NASA_TOKEN+'&date='+target_date.isoformat()
-  logger.debug("url: " + url) # shows token in url
-  r = requests.get(url)
-  if r.status_code == 200:
-    logger.info(r)
-    data = json.loads(r.content.decode())
-    #logger.info(data)
-    logger.info(f"{Fore.LIGHTGREEN_EX}Done with NASA API call{Fore.RESET}")
-    if "copyright" in data:
-      title = data["date"] + ': ' + data["title"] + ' (' + data["copyright"] + ')'
-    else:
-      title = data["date"] + ': ' + data["title"]
+      if date == "today":
+        target_date = dtdate(dtdate.today().year, dtdate.today().month, dtdate.today().day)
+      else:
+        try:
+            datetime.strptime(date, '%Y-%m-%d')
+        except ValueError:
+            embed=discord.Embed(
+              title="Invalid date format",
+              url="https://i.imgur.com/quQnKnk.jpeg",
+              description="https://api.nasa.gov/\nUsage: `/nasa [today|YYYY-MM-DD]`\nfor random date, pass no arguments `/nasa`",
+              color=0x111111
+            )
+            embed.set_thumbnail(url="https://i.imgur.com/quQnKnk.jpeg")
+            await ctx.respond(embed=embed)
+            return
+        target_date = datetime.strptime(date, '%Y-%m-%d').date()
+    url = 'https://api.nasa.gov/planetary/apod?api_key='+NASA_TOKEN+'&date='+target_date.isoformat()
+    logger.debug("url: " + url) # shows token in url
+    r = requests.get(url)
+    if r.status_code == 200:
+      logger.info(r)
+      data = json.loads(r.content.decode())
+      #logger.info(data)
+      logger.info(f"{Fore.LIGHTGREEN_EX}Done with NASA API call{Fore.RESET}")
+      if "copyright" in data:
+        title = data["date"] + ': ' + data["title"] + ' (' + data["copyright"] + ')'
+      else:
+        title = data["date"] + ': ' + data["title"]
 
-    if "hdurl" in data:
-      image_url = data["hdurl"]
+      if "hdurl" in data:
+        image_url = data["hdurl"]
+      else:
+        image_url = data["url"]
+      embed=discord.Embed(
+        title=title,
+        url=image_url,
+        description=data["explanation"],
+        color=0x111111
+      )
+      embed.set_thumbnail(url=data["url"])
+      await ctx.respond(embed=embed)
     else:
-      image_url = data["url"]
-    embed=discord.Embed(title=title, \
-      url=image_url, \
-      description=data["explanation"], \
-      color=0x111111)
-    embed.set_thumbnail(url=data["url"])
-    await message.channel.send(embed=embed)
-  else:
-    embed=discord.Embed(title="No Nasa data for this date: " + target_date.isoformat(), \
-      url="https://i.imgur.com/quQnKnk.jpeg", \
-      description="https://api.nasa.gov/\nUsage: `!nasa [today|YYYY-MM-DD]`\nfor random date, pass no arguments `!nasa`", \
-      color=0x111111)
-    embed.set_thumbnail(url="https://i.imgur.com/quQnKnk.jpeg")
-    await message.channel.send(embed=embed)
+      embed=discord.Embed(
+        title="No Nasa data for this date: " + target_date.isoformat(),
+        url="https://i.imgur.com/quQnKnk.jpeg",
+        description="https://api.nasa.gov/\nUsage: `/nasa [today|YYYY-MM-DD]`\nfor random date, pass no arguments `/nasa`",
+        color=0x111111
+      )
+      embed.set_thumbnail(url="https://i.imgur.com/quQnKnk.jpeg")
+      await ctx.respond(embed=embed)
+  except BaseException as e:
+    logger.info(traceback.format_exc())

@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # categories() - Entrypoint for !categories command
 # message[required]: discord.Message

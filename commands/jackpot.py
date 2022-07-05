@@ -1,4 +1,4 @@
-from .common import *
+from common import *
 
 # jackpot() - Entrypoint for !jackpot command
 # message[required]: discord.Message

@@ -123,7 +123,10 @@ local.json
 # Media Files
 data/clips/*.mp4
 data/drops/*.mp4
+images/reports/*
 images/profiles/*.png
+images/profiles/*.jpg
+!images/profiles/template*
 images/ep.jpg
 images/slot_results/*.png
 !images/slot_results/template*

@@ -1,4 +1,4 @@
-from commands.common import *
+from common import *
 
 xp_colors = [
     Fore.RED,
@@ -53,7 +53,7 @@ async def handle_message_xp(message:discord.Message):
       star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
       logger.info(f"{star} {msg_color}{message.author.display_name}{Fore.RESET} earns {msg_color}{xp_amt} XP{Fore.RESET} {star}")
 
-      increment_user_xp(message.author, xp_amt) # commit the xp gain to the db
+      increment_user_xp(message.author, xp_amt, "message", message.channel.name) # commit the xp gain to the db
 
       current_color = current_color + 1
       if current_color >= len(xp_colors):
@@ -132,34 +132,7 @@ async def handle_rank_xp_promotion(message, xp):
       await message.author.add_roles(ensign_role)
       logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.GREEN}Ensign{Fore.RESET} via XP!")
 
-# increment_user_xp(author, amt)
-# messauge.author[required]: discord.User
-# amt[required]: int
-# This function will increment a users' XP
-def increment_user_xp(user, amt):
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s"
-  vals = (amt, user.display_name, user.id)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
 
-# get_user_xp(discord_id)
-# discord_id[required]: int
-# Returns a users current XP
-def get_user_xp(discord_id):
-  db = getDB()
-  query = db.cursor()
-  sql = "SELECT xp FROM users WHERE discord_id = %s"
-  vals = (discord_id,)
-  query.execute(sql, vals)
-  user_xp = query.fetchone()
-  db.commit()
-  query.close()
-  db.close()
-  return user_xp[0]
 
 async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   # Check if this user has already reacted to this message with this emoji
@@ -179,7 +152,7 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   # If reaction hasn't been logged already, go ahead and do so and then award some XP!
   logger.info(f"{star} {msg_color}{user.display_name}{Fore.RESET} earns {msg_color}1 XP{Fore.RESET} for reacting to a message! {star}")
   log_react_history(reaction, user)
-  increment_user_xp(user, 1)
+  increment_user_xp(user, 1, "reacted", reaction.message.channel.name)
 
   # Give the author some bonus XP if they've made a particularly reaction-worthy message!
   threshold_relevant_emojis = [
@@ -187,24 +160,59 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
     config["emojis"]["picard_yes_happy_celebrate"],
     config["emojis"]["tgg_love_heart"]
   ]
+
+  xp_amt = 0
   if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 5 and reaction.count < 10:
     logger.info(f"{star} {msg_color}{reaction.message.author.display_name}{Fore.RESET} gets {msg_color}1 XP{Fore.RESET} for their message being reaction-worthy! {star}")
-    #logger.info(f"{Fore.LIGHTGREEN_EX}User {Style.BRIGHT}{reaction.message.author.display_name}{Style.RESET_ALL} gets {Fore.LIGHTGREEN_EX}{Style.BRIGHT}1 xp{Style.RESET_ALL} for their message being reaction-worthy!")
-    increment_user_xp(reaction.message.author, 1)
+    xp_amt = 1
   
   if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 10 and reaction.count < 20:
     logger.info(f"{star} {msg_color}{reaction.message.author.display_name}{Fore.RESET} gets {msg_color}2 XP{Fore.RESET} for posting a very-well reacted-to message! {star}")
-    #logger.info(f"{Fore.LIGHTBLUE_EX}User {Style.BRIGHT}{reaction.message.author.display_name}{Style.RESET_ALL} gets {Style.BRIGHT}2 xp{Style.RESET_ALL} for their message being {Fore.LIGHTBLUE_EX}{Style.BRIGHT}*particularly*{Style.RESET_ALL} reaction-worthy!")
-    increment_user_xp(reaction.message.author, 2)
+    xp_amt = 2
 
   if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 20:
     logger.info(f"{star} {msg_color}{reaction.message.author.display_name}{Fore.RESET} gets {msg_color}2 XP{Fore.RESET} for posting an {Style.BRIGHT} ULTRA REACTED-TO {Style.NORMAL}message! {star}")
     #logger.info(f"{Back.LIGHTBLACK_EX}{Fore.CYAN}User {Style.BRIGHT}{reaction.message.author.display_name}{Style.RESET_ALL} gets {Style.BRIGHT}5 xp{Style.RESET_ALL} for their message being {Fore.CYAN}{Style.BRIGHT}**ULTRA**{Style.RESET_ALL} reaction-worthy!")
-    increment_user_xp(reaction.message.author, 5)
+    xp_amt = 5
+
+  if xp_amt > 0:
+    increment_user_xp(reaction.message.author, xp_amt, "reactions", reaction.message.channel.name)
 
   current_color = current_color + 1
   if current_color >= len(xp_colors):
       current_color = 0
+
+
+
+# increment_user_xp(author, amt)
+# messauge.author[required]: discord.User
+# amt[required]: int
+# This function will increment a users' XP and log the gain to the history
+def increment_user_xp(user, amt, reason, channel_name):
+  db = getDB()
+  query = db.cursor()
+  sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s"
+  vals = (amt, user.display_name, user.id)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+  log_xp_history(user.id, amt, channel_name, reason)
+
+# get_user_xp(discord_id)
+# discord_id[required]: int
+# Returns a users current XP
+def get_user_xp(discord_id):
+  db = getDB()
+  query = db.cursor()
+  sql = "SELECT xp FROM users WHERE discord_id = %s"
+  vals = (discord_id,)
+  query.execute(sql, vals)
+  user_xp = query.fetchone()
+  db.commit()
+  query.close()
+  db.close()
+  return user_xp[0]
 
 
 def check_react_history(reaction:discord.Reaction, user:discord.User):
@@ -223,6 +231,22 @@ def log_react_history(reaction:discord.Reaction, user:discord.User):
   query = db.cursor()
   sql = "INSERT INTO reactions (user_id, user_name, reaction, reaction_message_id) VALUES (%s, %s, %s, %s)"
   vals = (user.id, user.display_name, f"{reaction}", reaction.message.id)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+
+# log_xp_history(user_discord_id:int, amt:int, channel_name:str, reason:str)
+# user_discord_id[required]: int
+# amt[required]: int
+# channel_name[required]: str 
+# reason[required]: str
+# This function will log xp gains to a table for reporting
+def log_xp_history(user_discord_id:int, amt:int, channel_name:str, reason:str):
+  db = getDB()
+  query = db.cursor()
+  sql = "INSERT INTO xp_history (user_discord_id, amount, channel_name, reason) VALUES (%s, %s, %s, %s)"
+  vals = (user_discord_id, amt, channel_name, reason)
   query.execute(sql, vals)
   db.commit()
   query.close()

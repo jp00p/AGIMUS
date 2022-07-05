@@ -39,7 +39,7 @@
       "boards": {
         
           "the-argus-array" : [],
-          "bits-bits-bits" : ["laugh", "lol", "lmao"],
+          "bits-bits-bits" : ["laugh", "lol", "lmao", "bits"],
           "faith-of-the-heart" : ["love", "heart", "hearts"] 
         
       }
@@ -79,6 +79,15 @@
           "required": true
         }
       ]
+    },
+    "reports":{
+      "channels":[
+        "robot-diagnostics",
+        "mclaughlin-group",
+        "mo-pips-mo-problems"
+      ],
+      "enabled":true,
+      "parameters":[]
     },
     "categories": {
       "channels": [

@@ -1,4 +1,4 @@
-from commands.common import *
+from common import *
 
 emojis = config["emojis"]
 
@@ -10,7 +10,27 @@ async def access_check(ctx):
     command_config = config["commands"][f"{ctx.command}"]
     has_channel_access = await perform_channel_check(ctx, command_config)
     if not has_channel_access:
-      await ctx.respond(f"{emojis.get('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.", ephemeral=True)
+      emojis = await ctx.guild.fetch_emojis()
+      allowed_channels_list = command_config["channels"]
+      if len(allowed_channels_list):
+        allowed_channel_ids = get_channel_ids_list(allowed_channels_list)
+        guild_channels = await ctx.guild.fetch_channels()
+        allowed_channels = []
+        for guild_channel in guild_channels:
+          if guild_channel.id in allowed_channel_ids:
+            allowed_channels.append(guild_channel.mention)
+
+        allowed_embed = discord.Embed(
+          title="Allowed Channels:",
+          description="\n".join(allowed_channels)
+        )
+        allowed_embed.set_footer(
+          text=f"Sorry! This command is not allowed in this channel.",
+        )
+        await ctx.respond(embed=allowed_embed, ephemeral=True)
+      else:
+        await ctx.respond(f"{emojis.get('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.", ephemeral=True)
+      
     return has_channel_access
   except BaseException as e:
     logger.info(e)
@@ -24,6 +44,8 @@ async def perform_channel_check(ctx, command_config):
   if ctx.channel.id == DEV_CHANNEL:
     logger.info(f"{Fore.LIGHTGREEN_EX}DEV CHANNEL COMMAND{Fore.RESET}")
     return True
+
+  # logger.info(f"allowed channels: {allowed_channels}")
 
   # Otherwise check allowed/blocked channel lists
   if allowed_channels:

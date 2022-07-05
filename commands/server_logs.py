@@ -1,5 +1,4 @@
-from .common import *
-
+from common import *
 
 
 # show_leave_message(member) - shows a message when someone leaves the server

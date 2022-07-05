@@ -1,7 +1,8 @@
-from phue import Bridge
 import logging
-import re
 import random
+import re
+
+from phue import Bridge
 
 from utils.config_utils import get_config
 

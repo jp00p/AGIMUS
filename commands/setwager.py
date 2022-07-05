@@ -1,4 +1,5 @@
-from .common import *
+from common import *
+
 
 # setwager() - Entrypoint for !setwager command
 # message[required]: discord.Message
