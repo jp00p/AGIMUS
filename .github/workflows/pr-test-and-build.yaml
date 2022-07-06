@@ -74,7 +74,6 @@ jobs:
             echo "Problem loading github secret ENVFILE" \
               && echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
               && cat .env
-
           else
             echo "Loading secrets" \
               && echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
