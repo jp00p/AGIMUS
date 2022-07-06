@@ -100,8 +100,10 @@ jobs:
           kubectl --namespace agimus get deployments -o wide
           sleep 5
           kubectl --namespace agimus get pods -o wide
-          sleep 5
+          kubectl --namespace agimus get secrets
+          kubectl --namespace agimus get configmaps
           kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
-          sleep 5
           kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
+          kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep mysql | awk '{print $1}') || true
+          kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep mysql | awk '{print $1}') || true
 
