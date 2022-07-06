@@ -14,8 +14,9 @@ async def wordcloud(ctx):
   image = wc.to_image()
   image.save(f"./images/reports/wordcloud-{user_details['name']}.png")
   discord_image = discord.File(f"./images/reports/wordcloud-{user_details['name']}.png")
-  await ctx.respond(file=discord_image, ephemeral=True)
+  await ctx.respond(file=discord_image, ephemeral=False)
 
+# get user's message history and return it in a dict
 def get_wordcloud_text_for_user(user_discord_id:int):
   db = getDB()
   query = db.cursor(dictionary=True)
