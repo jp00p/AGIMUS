@@ -64,7 +64,7 @@ jobs:
         run: |
           if [ -z "${CONFIGJSON}" ]; then
             echo "Loading fallback configuration" \
-              && cat configuration.json > local.json;
+              && cp configuration.json local.json;
           else
             echo "Loading override configuration" \
               && echo "${{ secrets.CONFIGJSON }}" | base64 -d > local.json;
@@ -81,13 +81,10 @@ jobs:
             && make --no-print-directory kind-test
           sleep 5
           kubectl --namespace agimus delete pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
-          sleep 5
+          sleep 10
           kubectl --namespace agimus get deployments -o wide
-          sleep 5
           kubectl --namespace agimus get pods -o wide
-          sleep 5
           kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
-          sleep 5
           kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
       -
         name: DEBUG
