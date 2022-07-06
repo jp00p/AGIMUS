@@ -195,12 +195,26 @@ async def on_member_update(memberBefore,memberAfter):
   if memberBefore.nick != memberAfter.nick:
     await show_nick_change_message(memberBefore, memberAfter) 
 
-# listen to slash command exceptions
+# Listen to channel updates
 @bot.event
-async def on_application_command_error(ctx, e):
-  # We don't want to log access_check denials
-  if e.__class__.__name__ == "CheckFailure":
-    return
+async def on_guild_channel_create(channel):
+  await show_channel_creation_message(channel)
+
+@bot.event
+async def on_guild_channel_delete(channel):
+  await show_channel_deletion_message(channel)
+
+@bot.event
+async def on_guild_channel_update(before, after):
+ await show_channel_rename_message(before, after)
+ await show_channel_topic_change_message(before, after)
+
+# listen to interaction errors
+@bot.event
+async def on_application_command_error(ctx, exception):
+  logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
+  logger.info(exception)
+
 
   # Otherwise log problems we might have
   logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
