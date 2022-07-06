@@ -52,3 +52,12 @@ CREATE TABLE IF NOT EXISTS xp_history (
   time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS message_history (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  channel_id varchar(64) NOT NULL,
+  user_discord_id varchar(64) NOT NULL,
+  message_text text NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id)
+);
