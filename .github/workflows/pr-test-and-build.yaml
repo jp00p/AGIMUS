@@ -71,17 +71,7 @@ jobs:
           fi
           echo "Loading secrets" \
             && echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
-            && source .env \
-            && export DB_SEED_FILEPATH=./data/seed-db.sql \
-            && export DB_HOST=mysql-service.agimus.svc.cluster.local \
-            && export DB_NAME=FoD \
-            && export DB_PASS=password \
-            && export DB_USER=root \
-            && export DB_DUMP_FILENAME=./data/seed-db.sql \
-            && export DB_CONTAINER_NAME=fodmysql \
-            && export REPO_OWNER=jp00p \
-            && export BOT_CONTAINER_NAME=ghcr.io/${REPO_OWNER}/agimus \
-            && export BOT_CONFIGURATION_FILEPATH=./local.json
+            && source .env
           echo "DB_SEED_FILEPATH=$DB_SEED_FILEPATH"
           echo "DB_HOST=$DB_HOST"
           echo "DB_NAME=$DB_NAME"
@@ -103,9 +93,16 @@ jobs:
           kubectl --namespace agimus delete pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
           sleep 10
           kubectl --namespace agimus get deployments -o wide
+          sleep 10
           kubectl --namespace agimus get pods -o wide
+          sleep 10
           kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
           sleep 10
+          kubectl --namespace agimus get deployments -o wide
+          kubectl --namespace agimus get pods -o wide
+          kubectl --namespace agimus get secrets
+          kubectl --namespace agimus get configmaps
+          kubectl --namespace agimus get configmaps agimus-config -o yaml
           kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
       -
         name: DEBUG
