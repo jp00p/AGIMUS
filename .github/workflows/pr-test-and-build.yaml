@@ -72,6 +72,7 @@ jobs:
           echo "Loading secrets" \
             && echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
             && source .env
+          make help
           echo "Building KinD cluster" \
             && make --no-print-directory kind-create
           echo "Building docker container and load into KinD cluster" \
