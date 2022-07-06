@@ -214,13 +214,9 @@ async def on_application_command_error(ctx, exception):
   logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
   logger.info(exception)
 
-<<<<<<< HEAD
-=======
   # Otherwise log problems we might have
   logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
   logger.info(e)
-
->>>>>>> main
 
 # Schedule Tasks
 scheduled_tasks = [
