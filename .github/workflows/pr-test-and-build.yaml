@@ -68,15 +68,15 @@ jobs:
               && cp configuration.json local.json;
           else
             echo "Loading override configuration" \
-              && echo "${{ secrets.CONFIGJSON }}" | base64 -d | sed -e 's/\r$//' > local.json;
+              && echo "${{ secrets.CONFIGJSON }}" | base64 -d | sed -e 's/\r//' > local.json;
           fi
           if [ -z "${ENVFILE}" ]; then
             echo "Problem loading github secret ENVFILE" \
-              && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r$//' > .env \
+              && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r//' > .env \
               && cat .env
           else
             echo "Loading secrets" \
-              && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r$//' > .env \
+              && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r//' > .env \
               && source .env
           fi
           ls -alF
@@ -113,7 +113,7 @@ jobs:
           kubectl --namespace agimus get configmaps agimus-config -o yaml
           kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
       -
-        name: DEBUG
+        name: Debug failure
         if: ${{ failure() }}
         shell: bash
         env:
