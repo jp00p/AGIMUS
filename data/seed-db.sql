@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS starboard_posts (
 );
 CREATE TABLE IF NOT EXISTS xp_history (
   id int(11) NOT NULL AUTO_INCREMENT,
-  channel_name varchar(96) NOT NULL,
+  channel_id varchar(64) NOT NULL,
   user_discord_id varchar(64) NOT NULL,
   amount int(11) NOT NULL,
   reason varchar(32) NOT NULL,
