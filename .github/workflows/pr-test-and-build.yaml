@@ -94,10 +94,12 @@ jobs:
           CONFIGJSON: ${{ secrets.CONFIGJSON }}
         run: |
           make help
+          ls -alF
           kubectl --namespace agimus get deployments -o wide
           kubectl --namespace agimus get pods -o wide
           kubectl --namespace agimus get secrets
           kubectl --namespace agimus get configmaps
+          kubectl --namespace agimus get configmaps agimus-config -o yaml
           kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
           kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
           kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep mysql | awk '{print $1}') || true
