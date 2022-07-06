@@ -42,10 +42,12 @@ from commands.shop import shop
 from commands.slots import slots, testslots
 from commands.triv import *
 from commands.update_status import update_status
+from commands.wordcloud import wordcloud
 
 # Handlers
 from handlers.alerts import handle_alerts
 from handlers.bot_autoresponse import handle_bot_affirmations
+from handlers.save_message import save_message_to_db
 from handlers.server_logs import *
 from handlers.starboard import get_all_starboard_posts, handle_starboard_reactions
 from handlers.xp import handle_message_xp, handle_react_xp
@@ -58,19 +60,30 @@ from tasks.weyounsday import weyounsday_task
 # Utils
 from utils.check_channel_access import perform_channel_check
 
-logger.info(f"{Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}")
-logger.info(f"{Fore.LIGHTMAGENTA_EX}CONNECTING TO DATABASE{Fore.RESET}")
+logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}{Style.RESET_ALL}")
+logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}CONNECTING TO DATABASE{Fore.RESET}{Style.RESET_ALL}")
 seed_db()
 ALL_USERS = get_all_users()
-logger.info(f"{Fore.LIGHTMAGENTA_EX}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}{Style.RESET_ALL}")
+logger.info(f"{Style.BRIGHT}{Fore.RED}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}{Style.RESET_ALL}")
+
+background_tasks = set() # for non-blocking tasks
 
 # listens to every message on the server that the bot can see
 @bot.event
 async def on_message(message:discord.Message):
 
-  # Ignore all messages from bot itself
-  if message.author == bot.user:
+  # Ignore all messages from any bot
+  if message.author == bot.user or message.author.bot:
     return
+
+  # message logging
+  try:
+    msg_save_task = asyncio.create_task(save_message_to_db(message))
+    background_tasks.add(msg_save_task)
+    msg_save_task.add_done_callback(background_tasks.discard)
+  except Exception as e:
+    logger.error(f"{Fore.RED}<! ERROR: Encountered error in saving message task !> {e}{Fore.RESET}")
+    logger.error(traceback.format_exc())
 
   # Special message Handlers
   try:
@@ -148,7 +161,7 @@ async def on_ready():
   logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX}LOGGED IN AS {bot.user}{Fore.RESET}{Back.RESET}")
   ALL_USERS = get_all_users()
   ALL_STARBOARD_POSTS = get_all_starboard_posts()
-  logger.info(f"ALL_STARBOARD_POSTS:\n{ALL_STARBOARD_POSTS}")
+  number_of_starboard_posts = len(ALL_STARBOARD_POSTS)
   for emoji in bot.emojis:
     config["all_emoji"].append(emoji.name)
   #logger.info(client.emojis) -- save this for later, surely we can do something with all these emojis
@@ -163,9 +176,10 @@ async def on_ready():
  /    /.---'       `. /
 '--------_  - - - - _/
           `~~~~~~~~'
-      {Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!
 
-  {Fore.RESET}''')
+{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}
+{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT}{number_of_starboard_posts}{Style.RESET_ALL}
+''')
 
   await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name='PRAISE THE FOUNDERS', type=2, status="online"))
 
@@ -214,7 +228,6 @@ async def on_guild_channel_update(before, after):
 async def on_application_command_error(ctx, exception):
   logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
   logger.info(exception)
-
 
   # Otherwise log problems we might have
   logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
