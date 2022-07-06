@@ -39,10 +39,13 @@ from commands.report import report
 from commands.scores import scores
 from commands.setwager import setwager
 from commands.shop import shop
-from commands.slots import slots, testslots
 from commands.triv import *
 from commands.update_status import update_status
 from commands.wordcloud import wordcloud
+
+# Cogs
+from cogs.slots import Slots
+bot.add_cog(Slots(bot))
 
 # Handlers
 from handlers.alerts import handle_alerts

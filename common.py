@@ -70,6 +70,7 @@ DB_SEED_FILEPATH = os.getenv('DB_SEED_FILEPATH')
 EMOJI = {}
 POKER_GAMES = {}
 ROLES = config["roles"]
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TRIVIA_RUNNING = False
 TRIVIA_DATA = {}
 TRIVIA_MESSAGE = None
