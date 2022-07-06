@@ -61,6 +61,7 @@ jobs:
         shell: bash
         env:
           CONFIGJSON: ${{ secrets.CONFIGJSON }}
+          ENVFILE: ${{ secrets.ENVFILE }}
         run: |
           if [ -z "${CONFIGJSON}" ]; then
             echo "Loading fallback configuration" \
@@ -69,9 +70,17 @@ jobs:
             echo "Loading override configuration" \
               && echo "${{ secrets.CONFIGJSON }}" | base64 -d > local.json;
           fi
-          echo "Loading secrets" \
-            && echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
-            && source .env
+          if [ -z "${ENVFILE}" ]; then
+            echo "Problem loading github secret ENVFILE" \
+              && echo "${{ secrets.ENVFILE }}" | base64 -d > .env
+              && cat .env
+
+          else
+            echo "Loading secrets" \
+              && echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
+              && source .env
+          fi
+          ls -alF
           echo "DB_SEED_FILEPATH=$DB_SEED_FILEPATH"
           echo "DB_HOST=$DB_HOST"
           echo "DB_NAME=$DB_NAME"
