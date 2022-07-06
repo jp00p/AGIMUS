@@ -121,7 +121,6 @@ helm-config: ## Install the configmaps and secrets from .env and $(BOT_CONFIGURA
 helm-config-rm: ## Delete configmaps and secrets
 	@kubectl --namespace $(namespace) delete configmap agimus-dotenv --ignore-not-found=true
 	@kubectl --namespace $(namespace) delete configmap agimus-config --ignore-not-found=true
-	@kubectl --namespace $(namespace) delete configmap agimus-seed --ignore-not-found=true
 	@kubectl --namespace $(namespace) delete secret mysql-secret --ignore-not-found=true
 
 .PHONY: helm-install
