@@ -11,12 +11,16 @@ from utils.check_channel_access import access_check
   required=True,
   choices=[
     discord.OptionChoice(
-      name="XP",
+      name="XP overall",
       value="xp"
     ),
     discord.OptionChoice(
-      name="Scores",
+      name="Total scores",
       value="scores"
+    ),
+    discord.OptionChoice(
+      name="XP gains in the last hour",
+      value="gains"
     )
   ]
 )
@@ -29,6 +33,8 @@ async def reports(ctx:discord.ApplicationContext, report:str):
     image = generate_xp_report_card()
   if report == "scores":
     image = generate_scores_report_card()
+  if report == "gains":
+    image = generate_gainers_report_card()
   if image:
     await ctx.respond(file=image, ephemeral=False)
 
@@ -57,6 +63,19 @@ def get_scores_report():
   db.close()
   return results
 
+# get_gainers_report() - returns a dictionary of users who gained the most xp in the last hour
+def get_gainers_report():
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = "SELECT xp_history.user_discord_id, SUM(xp_history.amount) as amt, users.name FROM xp_history LEFT JOIN users ON xp_history.user_discord_id = users.discord_id WHERE xp_history.time_created > now() - interval 1 hour GROUP BY users.name, xp_history.user_discord_id ORDER BY amt DESC LIMIT 10;"
+  query.execute(sql)
+  results = query.fetchall()
+  db.commit()
+  query.close()
+  db.close()
+  return results
+    
+
 # process the xp data and generate an image
 def generate_xp_report_card():
   xp_data = get_xp_report()
@@ -66,9 +85,27 @@ def generate_xp_report_card():
   rank = 1
   for row in xp_data:
     truncated_name = row["name"][:31]
-    rows.append("{:>3} {spacer:^4} {:>08d} {spacer:^4} {}".format(rank, row["xp"], truncated_name, spacer="•"))
+    rows.append("#{:>02d}{spacer:^8}{:>08d}{spacer:^8}{}".format(rank, row["xp"], truncated_name, spacer="•"))
     rank += 1
   return generate_report_card(title, description, rows)
+
+
+# process the gainers data and generate an image
+def generate_gainers_report_card():
+  gainers_data = get_gainers_report()
+  title = "AGIMUS REPORT"
+  description = "Top XP gains in the last hour"
+  rows = []
+  rank = 1
+  if len(gainers_data) < 1:
+    rows = ["No data found for the last hour"]
+  else:
+    for row in gainers_data:
+      truncated_name = row["name"][:31]
+      rows.append("#{:>02d}{spacer:^8}{:>03d}{spacer:^8}{}".format(rank, int(row["amt"]), truncated_name, spacer="•"))
+      rank += 1
+  return generate_report_card(title, description, rows)
+
 
 # process the scores data and generate an image
 def generate_scores_report_card():
@@ -79,7 +116,7 @@ def generate_scores_report_card():
   rank = 1
   for row in score_data:
     truncated_name = row["name"][:31]
-    rows.append("{:>3} {spacer:^4} {:>08d} {spacer:^4} {}".format(rank, row["score"], truncated_name, spacer="•"))
+    rows.append("#{:>02d}{spacer:^8}{:>08d}{spacer:^8}{}".format(rank, row["score"], truncated_name, spacer="•"))
     rank += 1
   return generate_report_card(title, description, rows)
 
