@@ -12,7 +12,7 @@ on:
     - cron: '15 21 * * 4'
   repository_dispatch:
     types:
-      - trigger-tgg-update
+      - update-shows
 jobs:
   build:
     name: Update The Greatest Generation Metadata
