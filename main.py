@@ -6,9 +6,7 @@
 from common import *
 
 # Slash Commands
-from commands.drop import drop, drops
 from commands.dustbuster import dustbuster
-from commands.clip import clip, clips
 from commands.fmk import fmk
 from commands.help import help
 from commands.info import info
@@ -20,6 +18,10 @@ from commands.randomep import randomep
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
+
+# Slash Command Groups
+import commands.drop
+import commands.clip
 
 # Bang Commands
 from commands.buy import buy
@@ -212,6 +214,11 @@ async def on_guild_channel_update(before, after):
 async def on_application_command_error(ctx, exception):
   logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
   logger.info(exception)
+
+
+  # Otherwise log problems we might have
+  logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
+  logger.info(e)
 
 
 # Schedule Tasks

@@ -112,7 +112,7 @@
       "data": null,
       "parameters": []
     },
-    "clip": {
+    "clip post": {
       "channels": [],
       "blocked_channels": [
         "neelixs-morale-office",
@@ -144,7 +144,7 @@
       "data": "data/all_characters.txt",
       "parameters": []
     },
-    "drop": {
+    "drop post": {
       "channels": [],
       "blocked_channels": [
         "neelixs-morale-office",
