@@ -72,7 +72,7 @@ jobs:
           fi
           if [ -z "${ENVFILE}" ]; then
             echo "Problem loading github secret ENVFILE" \
-              && echo "${{ secrets.ENVFILE }}" | base64 -d > .env
+              && echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
               && cat .env
 
           else
