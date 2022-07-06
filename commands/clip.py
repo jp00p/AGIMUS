@@ -3,7 +3,7 @@ from utils.check_channel_access import access_check
 from utils.media_utils import *
 from utils.timekeeper import *
 
-command_config = config["commands"]["clip post"]
+command_config = config["commands"]["clip"]
 emojis = config["emojis"]
 
 # Load JSON Data
@@ -11,16 +11,13 @@ f = open(command_config["data"])
 clip_data = json.load(f)
 f.close()
 
-# Create drop Slash Command Group
-clip = bot.create_group("clip", "Clip Commands!")
-
-# clip_list() - Entrypoint for `/clip list`` command
+# clips() - Entrypoint for /clip command
 # List the available clips by key and send to user as ephemeral
-@clip.command(
-  name="list",
+@bot.slash_command(
+  name="clips",
   description="Retrieve the List of Clips.",
 )
-async def clips_list(ctx:discord.ApplicationContext):
+async def clips(ctx:discord.ApplicationContext):
   clips_list = "\n".join(clip_data)
   embed = discord.Embed(
     title="List of Clips",
@@ -34,12 +31,12 @@ async def clips_list(ctx:discord.ApplicationContext):
     await ctx.respond(embed=embed, ephemeral=True)
 
 
-# clip_post() - Entrypoint for `/clip post` command
+# clip() - Entrypoint for /clip command
 # Parses a query, determines if it's allowed in the channel,
 # and if allowed retrieve from metadata to do matching and
 # then send the .mp4 file
-@clip.command(
-  name="post",
+@bot.slash_command(
+  name="clip",
   description="Send a clip to the channel!",
 )
 @option(
@@ -53,7 +50,7 @@ async def clips_list(ctx:discord.ApplicationContext):
   required=False
 )
 @commands.check(access_check)
-async def clip_post(ctx:discord.ApplicationContext, query:str, private:bool):
+async def clip(ctx:discord.ApplicationContext, query:str, private:bool):
   logger.info(f"{Fore.RED}Firing /clip command!{Fore.RESET}")
   # Private drops are not on the timer
   clip_allowed = True

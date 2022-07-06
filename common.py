@@ -110,7 +110,6 @@ def get_channel_id(channel_identifier):
 DEV_CHANNEL = get_channel_id(config["dev_channel"])
 INTRO_CHANNEL = get_channel_id(config["intro_channel"])
 LOGGING_CHANNEL = get_channel_id(config["logging_channel"])
-SERVER_LOGS_CHANNEL = get_channel_id(config["server_logs_channel"])
 
 
 # ________          __        ___.                         

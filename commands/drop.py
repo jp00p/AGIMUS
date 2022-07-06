@@ -3,7 +3,7 @@ from utils.check_channel_access import access_check
 from utils.media_utils import *
 from utils.timekeeper import *
 
-command_config = config["commands"]["drop post"]
+command_config = config["commands"]["drop"]
 emojis = config["emojis"]
 
 # Load JSON Data
@@ -11,16 +11,13 @@ f = open(command_config["data"])
 drop_data = json.load(f)
 f.close()
 
-# Create drop Slash Command Group
-drop = bot.create_group("drop", "Drop Commands!")
-
-# drop_list() - Entrypoint for `/drops list`` command
+# slash_drops() - Entrypoint for /drops command
 # List the available drops by key and send to user as ephemeral
-@drop.command(
-  name="list",
+@bot.slash_command(
+  name="drops",
   description="Retrieve the List of Drops."
 )
-async def drop_list(ctx:discord.ApplicationContext):
+async def drops(ctx:discord.ApplicationContext):
   drops_list = "\n".join(drop_data)
   embed = discord.Embed(
     title="List of Drops",
@@ -33,13 +30,13 @@ async def drop_list(ctx:discord.ApplicationContext):
   except BaseException as e:
     await ctx.respond(embed=embed, ephemeral=True)
 
-# drop_post() - Entrypoint for `/drops post` command
+# drop() - Entrypoint for /drops command
 # Parses a query, determines if it's allowed in the channel,
 # and if allowed retrieve from metadata to do matching and
 # then send the .mp4 file
-@drop.command(
-  name="post",
-  description="Send a drop to the channel or to just yourself via the <private> option!",
+@bot.slash_command(
+  name="drop",
+  description="Send a drop to the channel!",
 )
 @option(
   name="query",
@@ -52,7 +49,7 @@ async def drop_list(ctx:discord.ApplicationContext):
   required=False,
 )
 @commands.check(access_check)
-async def drop_post(ctx:discord.ApplicationContext, query:str, private:bool):
+async def drop(ctx:discord.ApplicationContext, query:str, private:bool):
   logger.info(f"{Fore.RED}Firing drop command!{Fore.RESET}")
   # Private drops are not on the timer
   drop_allowed = True

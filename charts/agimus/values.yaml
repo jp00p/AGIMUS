@@ -1,0 +1,18 @@
+# Default values for AGIMUS.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# To enable bot, set to 1. To disable bot, set to 0.
+replicas: 1
+
+
+image:
+  repository: ghcr.io/mathew-fleisch/agimus
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  # tag: ""
+
+
+# Run as root
+# podSecurityContext:
+#   runAsUser: 0
