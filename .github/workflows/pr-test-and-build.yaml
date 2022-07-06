@@ -88,4 +88,20 @@ jobs:
           kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
           sleep 5
           kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
+      -
+        name: DEBUG
+        if: ${{ failure() }}
+        shell: bash
+        env:
+          CONFIGJSON: ${{ secrets.CONFIGJSON }}
+        run: |
+          kubectl --namespace agimus delete pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
+          sleep 5
+          kubectl --namespace agimus get deployments -o wide
+          sleep 5
+          kubectl --namespace agimus get pods -o wide
+          sleep 5
+          kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
+          sleep 5
+          kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
 
