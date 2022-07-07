@@ -8,6 +8,10 @@ Provided in this repository is a makefile to aid in building, testing and runnin
 
 ### Docker Usage
 
+Dependencies
+
+- [Docker](https://docs.docker.com/get-docker/)
+
 This discord bot is built with python using the [discord.py library](https://discordpy.readthedocs.io/en/stable/api.html) and requires a mysql db with credentials stored in a .env file ([.env example](.env-example)). To develop locally, docker is used to standardize infrastructure and dependencies.
 
 ```bash
@@ -41,10 +45,29 @@ UPDATE users SET score=42069, spins=420, jackpots=69, wager=25, high_roller=1 WH
 
 ### Kubernetes Usage
 
-AGIMUS can also be deployed in kubernetes. The provided helm chart includes a persistent volume claim for mysql to run in a pod, and the agimus container itself. 
+Dependencies
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [KinD](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-from-release-binaries)
+- [Helm](https://helm.sh/docs/intro/install/)
+
+AGIMUS can also be deployed in kubernetes. The provided helm chart includes a persistent volume claim for mysql to run in a pod, and the agimus container itself. To run AGIMUS in a KinD cluster, use the following makefile targets:
 
 ```bash
+# Clone AGIMUS source
+git clone https://github.com/jp00p/AGIMUS.git && cd AGIMUS
 
+# Fill out .env vars...
+cp .env-example .env
+
+# Create a KinD cluster
+make kind-create
+
+# Build AGIMUS, and load it into the running KinD cluster
+make kind-load
+
+# Install AGIMUS via helm and 
+make kind-test
 ```
 
 ## Discord Permissions
