@@ -1,3 +1,4 @@
+from numpy import full
 from common import *
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 
@@ -36,7 +37,7 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
     db.commit()
     query.close()
     db.close()
-    await ctx.respond(content=f"Now logging your messages in the database! Your logged messages will be scrambled and most common words (like the, a, of) removed. Once you have posted a few messages, check your wordcloud by typing `/wordcloud`! Disable logging and delete all your saved data by selecting \"No\" instead to /wordcloud.", ephemeral=True)
+    await ctx.respond(content=f"Now logging your messages in the database! Once you have posted a few messages, check your wordcloud by typing `/wordcloud`! Disable logging and delete all your saved data by selecting \"No\" instead to /wordcloud.", ephemeral=True)
     logger.info(f"{Style.BRIGHT}{ctx.author.display_name}{Style.RESET_ALL} has {Fore.GREEN}enabled{Fore.RESET} {Fore.CYAN}message logging!{Fore.RESET}")
     return
   
@@ -60,7 +61,7 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
   user = get_user(ctx.author.id)
 
   # if they have previously disabled logging
-  if user["log_messages"] != 1:
+  if user["log_messages"] and user["log_messages"] != 1:
     await ctx.respond(content="You do not have logging enabled. Use `/wordcloud enable_logging Yes` to start logging so AGIMUS can generate a wordcloud for you!", ephemeral=True)
     return
 
@@ -71,12 +72,23 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
   if user_details is None:
     await ctx.respond(content="No user data is available for you yet.", ephemeral=True)
     return
+
+  # performing these modifications to the user's data again (in case they have old, uncleaned up data)
+  full_wordlist = set(user_details['full_message_text'].split(' '))
+  full_wordlist = " ".join(full_wordlist)
+  remove_emoji = re.compile('<.*?>')
+  special_chars = re.escape(string.punctuation)
+  
+  full_wordlist = re.sub(remove_emoji, '', full_wordlist) # strip discord emoji from message
+  full_wordlist = re.sub(r'https?:\/\/\S*', '', full_wordlist) # strip all URLs from the content
+  full_wordlist = re.sub(r'['+special_chars+']', '', full_wordlist) # strip any remaining special characters
+  full_wordlist = full_wordlist.replace("  ", " ") # convert double spaces to single space
   
   # mask image (combadge in this case, something else might work better)
   mask = np.array(Image.open("./images/cloud_masks/combadge_mask.png"))
 
   # build wordcloud with magic of wordcloud lib
-  wc = WordCloud(contour_color="#000044", contour_width=5, max_words=350, min_font_size=14, stopwords=STOPWORDS, mask=mask, font_path="./images/tng_font.ttf", background_color="black", mode="RGB", width=822, height=800, min_word_length=4).generate(user_details['full_message_text'])
+  wc = WordCloud(contour_color="#000044", contour_width=5, max_words=350, min_font_size=14, stopwords=STOPWORDS, mask=mask, font_path="./images/tng_font.ttf", background_color="black", mode="RGB", width=822, height=800, min_word_length=4).generate(full_wordlist)
 
   # create PIL image 
   image = wc.to_image()
