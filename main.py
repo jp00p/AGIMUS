@@ -45,7 +45,9 @@ from commands.wordcloud import wordcloud
 
 # Cogs
 from cogs.slots import Slots
+from cogs.ping import Ping
 bot.add_cog(Slots(bot))
+bot.add_cog(Ping(bot))
 
 # Handlers
 from handlers.alerts import handle_alerts
@@ -74,10 +76,21 @@ background_tasks = set() # for non-blocking tasks
 # listens to every message on the server that the bot can see
 @bot.event
 async def on_message(message:discord.Message):
+<<<<<<< HEAD
 
   # Ignore all messages from any bot
   if message.author == bot.user or message.author.bot:
+=======
+  # Ignore all messages from bot itself
+  if message.author == bot.user:
+>>>>>>> more work on slots cog for testslots, added cog ping for testing, misc improvements
     return
+  
+  try:
+    await bot.process_commands(message)
+  except BaseException as e:
+    logger.info(f"{Fore.RED}<! ERROR: Encountered error in process_commands !> {e}{Fore.RESET}")
+    logger.info(traceback.format_exc())    
 
   # message logging
   try:
@@ -152,22 +165,22 @@ async def process_command(message:discord.Message):
 
 @bot.event
 async def on_ready():
-  global EMOJI
-  global ALL_STARBOARD_POSTS
-  random.seed()
-  EMOJI["shocking"] = discord.utils.get(bot.emojis, name="q_shocking")
-  EMOJI["chula"] = discord.utils.get(bot.emojis, name="chula_game")
-  EMOJI["allamaraine"] = discord.utils.get(bot.emojis, name="allamaraine")
-  EMOJI["love"] = discord.utils.get(bot.emojis, name="love_heart_tgg")
-  EMOJI["adam_wave"] = discord.utils.get(bot.emojis, name="adam_wave_hello")
-  EMOJI["ben_wave"] = discord.utils.get(bot.emojis, name="ben_wave_hello")
   logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX}LOGGED IN AS {bot.user}{Fore.RESET}{Back.RESET}")
+
+  # We can handle this better late with an Emoji class helper, but for now just create a dict
+  # Use EMOJI dict from common
+  for e in bot.emojis:
+    EMOJIS[e.name] = e
+
+  global ALL_STARBOARD_POSTS
   ALL_USERS = get_all_users()
   ALL_STARBOARD_POSTS = get_all_starboard_posts()
   number_of_starboard_posts = len(ALL_STARBOARD_POSTS)
   for emoji in bot.emojis:
     config["all_emoji"].append(emoji.name)
   #logger.info(client.emojis) -- save this for later, surely we can do something with all these emojis
+  logger.info(f"ALL_STARBOARD_POSTS:\n{ALL_STARBOARD_POSTS}")
+
   
   logger.info(f'''{Fore.LIGHTWHITE_EX}
 
@@ -184,7 +197,20 @@ async def on_ready():
 {Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT}{number_of_starboard_posts}{Style.RESET_ALL}
 ''')
 
-  await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name='PRAISE THE FOUNDERS', type=2, status="online"))
+  # Set some fun random presences
+  random_presences = [
+    { 'name': "PRAISE THE FOUNDERS", 'type': discord.ActivityType.listening },
+    { 'name': "The Greatest Generation", 'type': discord.ActivityType.listening },
+    { 'name': "The Greatest Discovery", 'type': discord.ActivityType.listening },
+    { 'name': "A Nice Game of Chess", 'type': discord.ActivityType.playing },
+    { 'name': "Thermonuclear War", 'type': discord.ActivityType.playing },
+    { 'name': "Dials", 'type': discord.ActivityType.playing },
+    { 'name': "The Stream At Home", 'type': discord.ActivityType.watching },
+    { 'name': "and waiting...", 'type': discord.ActivityType.watching },
+    { 'name': "Terminator 2: Judgement Day", 'type': discord.ActivityType.watching }
+  ]
+  selected_presence = random.choice(random_presences)
+  await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=selected_presence.name, type=selected_presence.type, status="online"))
 
 
 

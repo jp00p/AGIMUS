@@ -21,8 +21,6 @@ class Slots(commands.Cog):
     if not os.path.exists(self.slot_results_dir):
       os.makedirs(self.slot_results_dir)
 
-    # self.bot.application_command(name="spin", cls=discord.SlashCommand)(self.spin)
-
   # Create slots Slash Command Group
   slots = discord.SlashCommandGroup("slots", "Slots Commands!")
 
@@ -45,8 +43,6 @@ class Slots(commands.Cog):
     SLOTS = json.load(f)
     f.close()
 
-    logger.info(f"SLOTS: {pprint(SLOTS)}")
-    
     # Use the option the user selected or pick a random show
     if show not in command_config["parameters"][0]["allowed"]:
       show = random.choice(["TNG", "DS9", "VOY", "HOLODECK"])
@@ -413,3 +409,66 @@ class Slots(commands.Cog):
     query.close()
     db.close()
     return jackpot_data
+
+  # testslots() - Entrypoint for !testslots command
+  # message[required]: discord.Message
+  # This function is the main entrypoint of the !testslots command
+  # and will run the !slots command 1000 times to gather statistics
+  @commands.command()
+  @commands.check(access_check)
+  async def testslots(self, ctx:discord.Message, show=''):
+    try:
+      f = open(config["commands"]["testslots"]["data"])
+      allowlist = json.load(f)
+      f.close()
+
+      if ctx.author.id in allowlist:
+        f = open(config["commands"]["slots spin"]["data"])
+        SLOTS = json.load(f)
+        f.close()
+
+        if show in ["ds9", "tng", "voy", "holodeck", "ships"]:
+          show = show.upper()
+        else:
+          show = "TNG"
+
+        spins = 1000
+        await ctx.send(embed=discord.Embed(
+          title="TESTING!!!",
+          description=f"Testing {show} slots with {spins} spins! This will take a few seconds...",
+          color=discord.Color.greyple()
+        ))
+
+        jackpots = 0
+        wins = 0
+        profitable_wins = 0
+        profits = []
+
+        for i in range(spins):
+          logger.info(f"Spin #{i}")
+          silly,clones,jackpot,symbol_result = self.roll_slot(show, SLOTS[show], generate_image=False)
+          profit = len(silly)
+          if len(silly) > 0 or len(clones) > 0:
+            wins += 1
+          if len(silly) > 1 or len(clones) > 0:
+            profitable_wins += 1
+          if len(clones) > 0:
+            profit += 3
+          if jackpot:
+            jackpots += 1
+          profits.append(profit)
+          
+        chance_to_win = (wins/spins)*100
+        chance_to_jackpot = (jackpots/spins)*100
+        chance_for_profit = (profitable_wins/spins)*100
+        average_profit = sum(profits) / len(profits)
+        msg = "> Out of **{0}** test spins, there were a total of **{1}** wins, **{2}** of those wins being jackpots.\n\n> Average chance of winning per spin: **{3}%**.\n\n> Average chance of jackpot per spin: **{4}%**.\n\n> Number of profitable spins: **{5}**\n\n> Chance for profit: **{6}%**\n\n> Average profit per spin: **{7}** points (not counting jackpots)".format(spins,wins,jackpots, chance_to_win, chance_to_jackpot, profitable_wins, chance_for_profit, average_profit)
+        await ctx.send(embed=discord.Embed(
+          title="RESULTS:",
+          description=msg,
+          color=discord.Color.greyple()
+        ))
+      else:
+        await ctx.send("Ah ah ah, you didn't say the magic word", ephemeral=True)
+    except BaseException as e:
+      logger.info(traceback.format_exc())   

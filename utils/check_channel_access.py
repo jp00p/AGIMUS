@@ -6,11 +6,11 @@ emojis = config["emojis"]
 # Can be injected in between @commands.check and your slash function to 
 # restrict access to the "channels" from the command config by matching it with the function name
 async def access_check(ctx):
+  ctx_type = type(ctx).__name__
   try:
     command_config = config["commands"][f"{ctx.command}"]
     has_channel_access = await perform_channel_check(ctx, command_config)
     if not has_channel_access:
-      emojis = await ctx.guild.fetch_emojis()
       allowed_channels_list = command_config["channels"]
       if len(allowed_channels_list):
         allowed_channel_ids = get_channel_ids_list(allowed_channels_list)
@@ -27,9 +27,16 @@ async def access_check(ctx):
         allowed_embed.set_footer(
           text=f"Sorry! This command is not allowed in this channel.",
         )
-        await ctx.respond(embed=allowed_embed, ephemeral=True)
+        if ctx_type == 'ApplicationContext':
+          await ctx.respond(embed=allowed_embed, ephemeral=True)
+        elif ctx_type == 'Context':
+          await ctx.reply(embed=allowed_embed)
+
       else:
-        await ctx.respond(f"{emojis.get('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.", ephemeral=True)
+        if ctx_type == 'ApplicationContext':
+          await ctx.respond(f"{EMOJIS.get('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.", ephemeral=True)
+        elif ctx_type == 'Context':
+          await ctx.reply(f"{EMOJIS.get('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.")
       
     return has_channel_access
   except BaseException as e:
