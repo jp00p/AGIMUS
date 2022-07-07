@@ -11,6 +11,16 @@
         735658100958298154
       ]
     },
+    "save_message": {
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-office",
+        "heuristic-associative-pathways",
+        "mo-pips-mo-problems",
+        "robot-diagnostics"
+      ]
+    },
     "starboard": {
       "blocked_channels" : [
         "neelixs-morale-office",
