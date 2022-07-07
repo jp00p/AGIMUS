@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
   high_roller tinyint(1) DEFAULT 0,
   chips varchar(255) DEFAULT '10',
   xp int(11) DEFAULT 0,
+  log_messages int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)
 );
@@ -52,7 +53,6 @@ CREATE TABLE IF NOT EXISTS xp_history (
   time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id)
 );
-
 CREATE TABLE IF NOT EXISTS message_history (
   id int(11) NOT NULL AUTO_INCREMENT,
   channel_id varchar(64) NOT NULL,
