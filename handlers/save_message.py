@@ -1,6 +1,12 @@
 from common import *
 
 async def save_message_to_db(message:discord.Message):
+  
+  blocked_channels = get_channel_ids_list(config["handlers"]["save_message"]["blocked_channels"])
+  
+  if message.channel.id in blocked_channels:
+    return
+  
   user = get_user(message.author.id)
   if user["log_messages"] == 1:
     message_content = message.content.encode("ascii", errors="ignore").decode().strip()
