@@ -10,16 +10,29 @@ async def save_message_to_db(message:discord.Message):
     return
   
   user = get_user(message.author.id)
-  if user["log_messages"] == 1:
+  if user["log_messages"] and user["log_messages"] == 1:
+    
+    # convert message to plaintext
     message_content = message.content.encode("ascii", errors="ignore").decode().strip()
-    message_randomized = message_content.split(" ")
-    random.shuffle(message_randomized)
-    message_randomized = sorted(message_randomized)
-    message_content = " ".join(message_randomized)
+
+    # convert to set (de-dupe words)
+    message_modified = set(message_content.split(" "))
+
+    # sort words (obfuscation in db)
+    message_modified = sorted(list(message_modified))
+
+    # combine back into string
+    message_content = " ".join(message_modified)
+    
     remove_emoji = re.compile('<.*?>')
+    special_chars = re.escape(string.punctuation)
+    
     message_content = re.sub(remove_emoji, '', message_content) # strip discord emoji from message
-    chars = re.escape(string.punctuation)
-    message_content = re.sub(r'['+chars+']', '', message_content) # strip special characters
+    message_content = re.sub(r'https?:\/\/\S*', '', message_content) # strip all URLs from the content
+    message_content = re.sub(r'['+special_chars+']', '', message_content) # strip any remaining special characters
+    message_content = message_content.replace("  ", " ") # convert double spaces to single space
+    message_content = message_content.strip()
+    
     if message_content.strip() == "":
       return None
 
