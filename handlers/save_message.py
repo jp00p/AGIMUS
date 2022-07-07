@@ -15,8 +15,7 @@ async def save_message_to_db(message:discord.Message):
     # convert message to plaintext
     message_content = message.content.encode("ascii", errors="ignore").decode().strip()
 
-    # convert to set (de-dupe words)
-    message_modified = set(message_content.split(" "))
+    message_modified = message_content.split(" ")
 
     # sort words (obfuscation in db)
     message_modified = sorted(list(message_modified))
