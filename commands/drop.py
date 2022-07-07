@@ -78,3 +78,4 @@ async def drop_post(ctx:discord.ApplicationContext, query:str, private:bool):
       await ctx.respond(f"{emojis.get('ezri_frown_sad')} Drop not found! To get a list of drops run: /drops", ephemeral=True)
   else:
     await ctx.respond(f"{emojis.get('ohno')} Someone in the channel has already dropped too recently. Please wait a minute before another drop!", ephemeral=True)
+    

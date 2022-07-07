@@ -76,3 +76,4 @@ async def clip_post(ctx:discord.ApplicationContext, query:str, private:bool):
       await ctx.respond(f"{emojis.get('ezri_frown_sad')} Clip not found! To get a list of clips run: /clips", ephemeral=True)
   else:
     await ctx.respond(f"{emojis.get('ohno')} Someone in the channel has already posted a clip too recently. Please wait a minute before another clip!", ephemeral=True)
+    

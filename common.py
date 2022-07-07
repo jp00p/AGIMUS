@@ -112,6 +112,7 @@ INTRO_CHANNEL = get_channel_id(config["intro_channel"])
 LOGGING_CHANNEL = get_channel_id(config["logging_channel"])
 SERVER_LOGS_CHANNEL = get_channel_id(config["server_logs_channel"])
 
+
 # ________          __        ___.                         
 # \______ \ _____ _/  |______ \_ |__ _____    ______ ____  
 #  |    |  \\__  \\   __\__  \ | __ \\__  \  /  ___// __ \ 
