@@ -1,0 +1,132 @@
+# Name:        pr-test-and-build.yaml
+# Author:      Mathew Fleisch <mathew.fleisch@gmail.com>
+# Description: This action will run go lint/unit tests as well as
+#              build a docker container and test it against a KinD cluster.
+#              See Makefile for more details.
+name: PR CI
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  unit_test:
+    name: Lint and Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - 
+        name: Install stuff with asdf
+        uses: asdf-vm/actions/install@v1
+        with:
+          tool_versions: |
+            action-validator 0.1.2
+            dockle 0.4.5
+            helm 3.8.1
+            yq 4.22.1
+      -
+        name: Lint Actions
+        run: make --no-print-directory lint-actions
+      # -
+      #   name: Lint Container Using Dockle
+      #   env:
+      #     DOCKER_CONTENT_TRUST: 1
+      #   run: |
+      #     make --no-print-directory docker-build
+      #     make --no-print-directory docker-lint
+
+  integration_test:
+    name: KinD Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - 
+        name: Install stuff with asdf
+        uses: asdf-vm/actions/install@v1
+        with:
+          tool_versions: |
+            helm 3.8.1
+            yq 4.22.1
+      -
+        name: KinD Tests
+        shell: bash
+        env:
+          CONFIGJSON: ${{ secrets.CONFIGJSON }}
+          ENVFILE: ${{ secrets.ENVFILE }}
+        run: |
+          if [ -z "${CONFIGJSON}" ]; then
+            echo "Loading fallback configuration" \
+              && cp configuration.json local.json;
+          else
+            echo "Loading override configuration" \
+              && echo "${{ secrets.CONFIGJSON }}" | base64 -d | sed -e 's/\r//' > local.json;
+          fi
+          if [ -z "${ENVFILE}" ]; then
+            echo "Problem loading github secret ENVFILE" \
+              && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r//' > .env \
+              && cat .env
+          else
+            echo "Loading secrets" \
+              && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r//' > .env \
+              && source .env
+          fi
+          ls -alF
+          echo "DB_SEED_FILEPATH=$DB_SEED_FILEPATH"
+          echo "DB_HOST=$DB_HOST"
+          echo "DB_NAME=$DB_NAME"
+          echo "DB_PASS=$DB_PASS"
+          echo "DB_USER=$DB_USER"
+          echo "DB_DUMP_FILENAME=$DB_DUMP_FILENAME"
+          echo "DB_CONTAINER_NAME=$DB_CONTAINER_NAME"
+          echo "REPO_OWNER=$REPO_OWNER"
+          echo "BOT_CONTAINER_NAME=$BOT_CONTAINER_NAME"
+          echo "BOT_CONFIGURATION_FILEPATH=$BOT_CONFIGURATION_FILEPATH"
+          make help
+          echo "Building KinD cluster" \
+            && make --no-print-directory kind-create
+          echo "Building docker container and load into KinD cluster" \
+            && make --no-print-directory kind-load
+          echo "Running tests..." \
+            && make --no-print-directory kind-test
+          sleep 5
+          kubectl --namespace agimus delete pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
+          sleep 10
+          kubectl --namespace agimus get deployments -o wide
+          sleep 10
+          kubectl --namespace agimus get pods -o wide
+          sleep 10
+          kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
+          sleep 10
+          kubectl --namespace agimus get deployments -o wide
+          kubectl --namespace agimus get pods -o wide
+          kubectl --namespace agimus get secrets
+          kubectl --namespace agimus get configmaps
+          kubectl --namespace agimus get configmaps agimus-config -o yaml
+          kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
+      -
+        name: Debug failure
+        if: ${{ failure() }}
+        shell: bash
+        env:
+          CONFIGJSON: ${{ secrets.CONFIGJSON }}
+        run: |
+          make help
+          ls -alF
+          kubectl --namespace agimus get deployments -o wide
+          kubectl --namespace agimus get pods -o wide
+          kubectl --namespace agimus get secrets
+          kubectl --namespace agimus get configmaps
+          kubectl --namespace agimus get configmaps agimus-config -o yaml
+          kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
+          kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
+          kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep mysql | awk '{print $1}') || true
+          kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep mysql | awk '{print $1}') || true
+
