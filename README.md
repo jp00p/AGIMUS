@@ -1,8 +1,12 @@
-# Friends of DeSoto Bot
+# AGIMUS
 
 The Friends of DeSoto are a group of fans of Star Trek and [The Greatest Generation podcast](http://gagh.biz).
 
-## Usage
+## Makefile
+
+Provided in this repository is a makefile to aid in building, testing and running AGIMUS in a variety of deployment environments. To see all available makefile targets, clone the repository and run `make help` in a terminal.
+
+### Docker Usage
 
 This discord bot is built with python using the [discord.py library](https://discordpy.readthedocs.io/en/stable/api.html) and requires a mysql db with credentials stored in a .env file ([.env example](.env-example)). To develop locally, docker is used to standardize infrastructure and dependencies.
 
@@ -35,7 +39,15 @@ make docker-stop
 UPDATE users SET score=42069, spins=420, jackpots=69, wager=25, high_roller=1 WHERE id=1;
 ```
 
-## Permissions
+### Kubernetes Usage
+
+AGIMUS can also be deployed in kubernetes. The provided helm chart includes a persistent volume claim for mysql to run in a pod, and the agimus container itself. 
+
+```bash
+
+```
+
+## Discord Permissions
 
 First you will need a discord app and bot token to send messages. See this youtube playlist to learn how: https://www.youtube.com/playlist?list=PLRqwX-V7Uu6avBYxeBSwF48YhAnSn_sA4
 
@@ -52,8 +64,11 @@ Instructions for how to do this are available through this video at the 58 secon
 
 The bot now requires `Intents.members` and `Intents.presences`.  You must enable this through the "Privileged Gateway Intents" page on the Application page of the Discord developer's portal.
 
+![AGIMUS permissions](https://i.imgur.com/rcZnQCo.png)
 
-## Commands
+![AGIMUS "intents"](https://i.imgur.com/bGl9pf9.png)
+
+## AGIMUS Commands and Triggers
 
 Bot commands are triggered by typing an exclamation point followed by a command. Commands must be defined in the [configuration.json](configuration.json) file, a python file in the [commands directory](commands), and an import line added to [main.py](main.py).
 
@@ -86,7 +101,7 @@ Bot commands are triggered by typing an exclamation point followed by a command.
 | `!tuvix`                                                                                                                                                          | [tuvix.py](commands/tuvix.py)                 | Return 2 random trek characters as discussion prompt                                                                                    |
 | `!update_status [game \| listen \| watch] <status>`                                                                                                               | [update_status.py](commands/update_status.py) | Update the bot's server profile status                                                                                                  |
 
-## Slash Commands
+### Slash Commands
 
 Slash commands are triggered by typing a forward slash (`/`) followed by the command text. The same basic rules apply as the regular ! commands above as far as the info necessary in the [configuration.json](configuration.json) file, python file in the [commands directory](commands), and import line in [main.py](main.py).
 
@@ -98,14 +113,15 @@ Slash commands are triggered by typing a forward slash (`/`) followed by the com
 | `/drops`                                                                                                                                                          | [drop.py](commands/drop.py)             | Replies with a message to the user with a full list of the drops available from `/drop`                                                 |
 | `/profile`                                                                                                                                                        | [profile.py](commands/profile.py)       | Generate profile card with user statistics/options                                                                                      |
 
-## "Computer:"/"AGIMUS:" Prompt
+### "Computer:"/"AGIMUS:" Prompt
 In addition to the `/` and `!` commands we have a special case for handling messages that begin with a "Computer:" or "AGIMUS:" prompt. It has an entry within `configuration.json` and the same rules apply to it as the `!` commands. Extending the feature should be done within `commands/computer.py`.
 
 | Command                                  | File                                          | Description                                                                                                                             |
 | :--------------------------------------- | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
 | `[Computer:\|AGIMUS:] <text query>`       | [computer.py](commands/computer.py)           | Runs the user's query against Wolfram Alpha to provide a Star Trek "Computer"-like experience with context-aware responses.             |
 
-### Generating a Wolfram Alpha API ID
+#### Generating a Wolfram Alpha API ID
+
 In order to use the "Computer:"/"AGIMUS:" prompt you'll need to also provide a Wolfram Alpha API ID which can be obtained from their site at https://products.wolframalpha.com/api . Full instructions for obtaining the API ID can be found in their [documentation](https://products.wolframalpha.com/api/documentation/).
 
 A development ID key is free and supports up to 2000 queries per month.
@@ -113,7 +129,6 @@ A development ID key is free and supports up to 2000 queries per month.
 Once generated it should be placed in your `.env` file as per the section in `.env-example`:
 
 ```bash
-# Wolfram Alpha Credentials for "Computer:" prompts
 export WOLFRAM_ALPHA_ID=YOURKEYHERE
 ```
 
@@ -137,6 +152,7 @@ The [configuration.json](configuration.json) file defines metadata about each co
 ```
 
 The file also provides the "Guild ID" for your server, note this is required in order for the slash commands to register properly and will cause a permissions error on startup if not provided!
+
 ```json
 "guild_ids": [
   820440093898440756
@@ -149,7 +165,6 @@ Each command requires a python script that accepts a discord message as input wh
 
 ```python
 from .common import *
-
 # setwager() - Entrypoint for !setwager command
 # message[required]: discord.Message
 # This function is the main entrypoint of the !setwager command
@@ -172,7 +187,6 @@ async def setwager(message:discord.Message):
   else:
     msg = f"{message.author.mention}: Wager must be a whole number between `{min_wager}` and `{max_wager}`\nYour current wager is: `{current_wager}`"
     await message.channel.send(msg)
-
 
 # set_player_wager(discord_id, amt)
 # discord_id[required]: int
@@ -200,14 +214,21 @@ Each command requires an explicit import in the [main.py](main.py) script.
 from commands.setwager import setwager
 ```
 
-### Utils
+## Automation
 
-#### generate_episode_json.py
+The automation detailed below run in github action runners.
+
+### Pull Requests and Merges
+
+Pull requests to the main branch of the AGIMUS repository will automatically build a container and attempt to run the bot in a [KinD cluster](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-from-release-binaries) and it uses [helm](https://helm.sh/docs/intro/install/) to install the kubernetes manifests into a running cluster. There are also make targets to assist in building and running AGIMUS in a KinD cluster locally. On merges to the main branch, another action will run to build and push the AGIMUS container to the github container registry and release a helm chart hosted as a github pages deployment.  
+
+### generate_episode_json.py
+
 The repo also currently provides a way to automatically generate the files for the Greatest Gen `.json` files located under `data/episodes/` (such as `tgg_voy.json` for example). The utility is under `utils` as `generate_episode_json.py`.
 
 The script uses Google to gather some of the metadata necessary for each entry, so you'll need to provide two additional ENV variables if you'd like to use this script.
 
-```
+```bash
 export GOOGLE_API_KEY=
 export GOOGLE_CX=
 ```
