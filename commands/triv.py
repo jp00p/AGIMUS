@@ -1,7 +1,6 @@
 from common import *
 from trivia import trivia
 
-from .jackpot import get_jackpot
 from .poker import *
 
 

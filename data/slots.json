@@ -1,248 +1,1027 @@
 {
-  "TNG" : {
-    "files" : "./images/slots/tng/",
-    "payout" : 1,
-    "custom_jackpots" : [
-      ["caveman_riker", "spider_barclay", "devolved_worf"],
-      ["merry_picard", "merry_q", "merry_vash"]
-    ],
-    "matches" : {
-      "Villains" : ["armus", "pakled", "lore", "gul_madred", "romyarlin", "locutus", "ardra"],
-      "Federation Captains" : ["picard", "jellico", "castillo"],
-      "Olds" : ["pulaski", "jellico", "picard", "kevin"],
-      "No Law to fit your Crime" : ["picard", "kevin"],
-      "Music Box Torture" : ["kevin", "troi"],
-      "Ensigns" : ["ro", "wesley", "robin_lefler"],
-      "Omnipotent" : ["q", "armus", "kevin"],
-      "Bros" : ["data", "lore"],
-      "Doctors" : ["beverly", "pulaski"],
-      "Drunkards" : ["obrien", "pulaski", "scotty"],
-      "Rascals" : ["ro", "guinan", "picard", "keiko"],
-      "Baby Delivery Team" : ["worf", "keiko"],
-      "Robot Fuck Team" : ["data", "honry_tasha"],
-      "Loving Couple" : ["obrien", "keiko"],
-      "Best Friends" : ["geordi", "data"],
-      "Jazz Funeral" : ["geordi", "ro"],
-      "Engineers" : ["geordi", "obrien", "scotty"],
-      "Nexus Travellers" : ["guinan", "picard"],
-      "Related to Jack Crusher" : ["beverly", "wesley"],
-      "Eggs for Breakfast" : ["riker", "pulaski", "worf"],
-      "Humanity on Trial" : ["judge_q", "picard"],
-      "Delta Shift" : ["riker", "jellico"],
-      "Imzadi" : ["troi", "riker"],
-      "\"Nice house, good tea\"" : ["worf", "kevin"],
-      "Empty Death" : ["yar", "armus"],
-      "Butting Heads" : ["riker", "ro"],
-      "Leotard Buddies" : ["beverly", "troi"],
-      "Security Squad" : ["worf", "yar"],
-      "Coffee and Croissants" : ["picard", "beverly"],
-      "Uncomfortable with Children" : ["picard", "wesley"],
-      "Bean Flicking Stance" : ["guinan", "q"],
-      "\"I don't need your fantasy women\"" : ["riker", "q"],
-      "Faces of Q": ["archeologist_q", "data_q", "french_q", "general_q", "merry_q", "q"],
-      "Nottingham Friends" : ["merry_q", "merry_riker", "merry_troi", "merry_vash", "merry_worf", "merry_geordi", "merry_beverly", "merry_picard"],
-      "Unsure about number of Lights" : ["gul_madred", "picard"],
-      "Head Asplode" : ["remmick", "riker", "picard"],
-      "Horny Mom" : ["lwaxana", "picard"],
-      "Play Dom-Jot Hu-man" : ["afterlife_q", "cadet_picard"],
-      "Heh, I don't believe this!" : ["angel_one_riker", "yar"],
-      "I can show you the world..." : ["archeologist_q", "vash"],
-      "Triangle of Jealousy" : ["picard", "vash", "beverly"],
-      "Double the Consent" : ["riker", "thomas_riker"],
-      "One-Time Visitors" : ["vash", "mendron", "maddox", "kevin", "hugh", "one_zero_zero_one", "okona", "scotty", "robin_lefler", "jellico", "dr_reyga"],
-      "Murder She Wrote" : ["beverly", "dr_reyga"],
-      "The First Duty" : ["nick_locarno", "wesley"],
-      "Borgs!" : ["locutus", "hugh"],
-      "Genesis" : ["caveman_riker", "spider_barclay", "devolved_worf"],
-      "Measure of a Man" : ["maddox", "data"],
-      "Doppelganger" : ["data", "data_q"],
-      "Before and After" : ["wesley", "traveler_wesley"],
-      "Faces of Yar" : ["temporal_tasha", "romyarlin", "yar", "horny_tasha"],
-      "Let's do the Timewarp Again": ["temporal_tasha", "castillo"],
-      "What Could Have Been" : ["temporal_tasha", "cadet_picard", "flute_picard"],
-      "False Gods" : ["ardra", "kahless"],
-      "Murder Chip Stress Test" : ["fajo", "data"],
-      "Travel Who?" : ["the_traveler", "wesley"],
-      "Jazz Trap" : ["riker", "one_zero_zero_one"],
-      "Faces of Riker" : ["riker", "angel_one_riker", "caveman_riker", "merry_riker"],
-      "Faces of Beverly" : ["beverly", "merry_beverly"],
-      "Faces of Worf" : ["devolved_worf", "worf", "merry_worf"],
-      "Faces of Picard" : ["cadet_picard", "picard", "merry_picard", "locutus"],
-      "Those are Klingons?!" : ["worf", "kahless", "gowron"],
-      "The Eyes have it" : ["gowron", "spider_barclay"],
-      "His Eyes Uncovered!" : ["dathon", "picard"],
-      "Suck Disk Averse" : ["robin_lefler", "wesley"],
-      "Blueshirts" : ["maddox", "beverly", "pulaski", "troi"],
-      "Lieutenants" : ["maddox", "barclay", "yar"]
-      
-    }
-  },
-  "DS9" : {
-    "files" : "./images/slots/ds9/",
-    "payout" : 1.5,
-    "custom_jackpots" : [
-      ["weyoun4", "weyoun5", "weyoun6"]
+  "TNG": {
+    "files": "/images/slots/tng/",
+    "payout": 1,
+    "custom_jackpots": [
+      [
+        "caveman_riker",
+        "spider_barclay",
+        "devolved_worf"
+      ],
+      [
+        "merry_picard",
+        "merry_q",
+        "merry_vash"
+      ]
     ],
     "matches": {
-      "The Dominion" : ["weyoun4", "weyoun5", "weyoun6", "yelgrun", "keevan", "kilana", "flakeleader", "goranagar", "ikatika"],
-      "\"Old Man\"" : ["jadzia", "sisko"],
-      "Slug Buddies" : ["ezri", "jadzia"],
-      "Bajoran Spiritual Leaders" : ["bareil", "opaka", "winn", "sisko"],
-      "Sisko's Lovers" : ["jennifer", "kasidy"],
-      "Love is Blind" : ["winn", "dukat"],
-      "Lunch Date" : ["bashir", "garak"],
-      "Holodeck Date" : ["bashir", "obrien"],
-      "Villains" : ["winn", "dukat", "flakeleader"],
-      "Jeffreys" : ["weyoun4", "weyoun5", "weyoun6", "brunt"],
-      "Enterprise officers" : ["worf", "obrien"],
-      "Bell rioters" : ["sisko", "bashir", "jadzia"],
-      "Promenade hangin'" : ["jake", "nog"],
-      "Golden liquid" : ["bashir", "odo", "flakeleader"],
-      "Secret Societies" : ["sloan", "garak", "flakeleader"],
-      "Search for the Cure" : ["bashir", "goranagar"],
-      "Violent Love" : ["worf", "jadzia"],
-      "Dance in my Golden Sparkles" : ["odo", "kira"],
-      "Niners" : ["sisko", "worf", "rom", "ezri", "kira", "bashir", "nog", "quark"],
-      "Take me out to the Imaginary Ball Game" : ["sisko", "bokai"],
-      "Not Corporeal" : ["bokai", "vic"],
-      "Breaking the Ferengi Mold" : ["rom", "nog", "ishka"],
-      "Nagusii" : ["brunt", "zek", "rom", "quark"],
-      "Affectionate Touches" : ["jake", "sisko"],
-      "Drinking Buddies" : ["gowron", "jadzia"],
-      "Love Conquers Mountains" : ["quark", "odo"],
-      "Did he Fuck her Mom?" : ["kira", "dukat"],
-      "Cardassians" : ["dukat", "garak", "damar", "ziyal"],
-      "Piano Lessons" : ["vic", "odo"],
-      "Wounded Lounge Lizard" : ["vic", "nog"],
-      "You Forgot their Name" : ["goranagar", "ikatika", "yelgrun", "keevan"],
-      "Possible Changeling Spy" : ["gowron", "bashir"],
-      "Prison Pals" : ["obrien", "ezri", "martok", "bashir", "garak"],
-      "Battled the Pah'wraiths" : ["winn", "jake", "sisko", "obrien"],
-      "Senator Killers" : ["garak", "sisko"],
-      "Engineers and Unionmen" : ["obrien", "rom"],
-      "Starfleet Intelligence" : ["obrien", "bashir", "sloan"],
-      "*Probably* Unmodified Humans" : ["jake", "jennifer", "sisko", "obrien"],
-      "Smugglers" : ["quark", "kasidy"],
-      "Quark-haters" : ["kira", "brunt", "odo"],
-      "Cardassian Freedom Fighters" : ["garak", "damar", "kira"],
-      "RSVP" : ["jennifer", "jadzia", "bareil", "winn", "dukat", "weyoun4", "weyoun5", "weyoun6", "keevan", "sloan", "damar", "ziyal"],
-      "Profitable Lovers" : ["ishka", "zek"],
-      "A Father's Love" : ["ziyal", "dukat"],
-      "Profit & Honor": ["quark", "grilka"],
-      "Barflies":["obrien", "morn", "bashir", "damar", "jadzia"],
-      "Klingons":["gowron", "worf", "grilka"],
-      "Leeta Lovers":["bashir", "rom"],
-      "Bajoran-Ferengi Romance": ["leeta", "rom"]
+      "Villains": [
+        "armus",
+        "pakled",
+        "lore",
+        "gul_madred",
+        "romyarlin",
+        "locutus",
+        "ardra"
+      ],
+      "Federation Captains": [
+        "picard",
+        "jellico",
+        "castillo"
+      ],
+      "Olds": [
+        "pulaski",
+        "jellico",
+        "picard",
+        "kevin"
+      ],
+      "No Law to fit your Crime": [
+        "picard",
+        "kevin"
+      ],
+      "Music Box Torture": [
+        "kevin",
+        "troi"
+      ],
+      "Ensigns": [
+        "ro",
+        "wesley",
+        "robin_lefler"
+      ],
+      "Omnipotent": [
+        "q",
+        "armus",
+        "kevin"
+      ],
+      "Bros": [
+        "data",
+        "lore"
+      ],
+      "Doctors": [
+        "beverly",
+        "pulaski"
+      ],
+      "Drunkards": [
+        "obrien",
+        "pulaski",
+        "scotty"
+      ],
+      "Rascals": [
+        "ro",
+        "guinan",
+        "picard",
+        "keiko"
+      ],
+      "Baby Delivery Team": [
+        "worf",
+        "keiko"
+      ],
+      "Robot Fuck Team": [
+        "data",
+        "honry_tasha"
+      ],
+      "Loving Couple": [
+        "obrien",
+        "keiko"
+      ],
+      "Best Friends": [
+        "geordi",
+        "data"
+      ],
+      "Jazz Funeral": [
+        "geordi",
+        "ro"
+      ],
+      "Engineers": [
+        "geordi",
+        "obrien",
+        "scotty"
+      ],
+      "Nexus Travellers": [
+        "guinan",
+        "picard"
+      ],
+      "Related to Jack Crusher": [
+        "beverly",
+        "wesley"
+      ],
+      "Eggs for Breakfast": [
+        "riker",
+        "pulaski",
+        "worf"
+      ],
+      "Humanity on Trial": [
+        "judge_q",
+        "picard"
+      ],
+      "Delta Shift": [
+        "riker",
+        "jellico"
+      ],
+      "Imzadi": [
+        "troi",
+        "riker"
+      ],
+      "\"Nice house, good tea\"": [
+        "worf",
+        "kevin"
+      ],
+      "Empty Death": [
+        "yar",
+        "armus"
+      ],
+      "Butting Heads": [
+        "riker",
+        "ro"
+      ],
+      "Leotard Buddies": [
+        "beverly",
+        "troi"
+      ],
+      "Security Squad": [
+        "worf",
+        "yar"
+      ],
+      "Coffee and Croissants": [
+        "picard",
+        "beverly"
+      ],
+      "Uncomfortable with Children": [
+        "picard",
+        "wesley"
+      ],
+      "Bean Flicking Stance": [
+        "guinan",
+        "q"
+      ],
+      "\"I don't need your fantasy women\"": [
+        "riker",
+        "q"
+      ],
+      "Faces of Q": [
+        "archeologist_q",
+        "data_q",
+        "french_q",
+        "general_q",
+        "merry_q",
+        "q"
+      ],
+      "Nottingham Friends": [
+        "merry_q",
+        "merry_riker",
+        "merry_troi",
+        "merry_vash",
+        "merry_worf",
+        "merry_geordi",
+        "merry_beverly",
+        "merry_picard"
+      ],
+      "Unsure about number of Lights": [
+        "gul_madred",
+        "picard"
+      ],
+      "Head Asplode": [
+        "remmick",
+        "riker",
+        "picard"
+      ],
+      "Horny Mom": [
+        "lwaxana",
+        "picard"
+      ],
+      "Play Dom-Jot Hu-man": [
+        "afterlife_q",
+        "cadet_picard"
+      ],
+      "Heh, I don't believe this!": [
+        "angel_one_riker",
+        "yar"
+      ],
+      "I can show you the world...": [
+        "archeologist_q",
+        "vash"
+      ],
+      "Triangle of Jealousy": [
+        "picard",
+        "vash",
+        "beverly"
+      ],
+      "Double the Consent": [
+        "riker",
+        "thomas_riker"
+      ],
+      "One-Time Visitors": [
+        "vash",
+        "mendron",
+        "maddox",
+        "kevin",
+        "hugh",
+        "one_zero_zero_one",
+        "okona",
+        "scotty",
+        "robin_lefler",
+        "jellico",
+        "dr_reyga"
+      ],
+      "Murder She Wrote": [
+        "beverly",
+        "dr_reyga"
+      ],
+      "The First Duty": [
+        "nick_locarno",
+        "wesley"
+      ],
+      "Borgs!": [
+        "locutus",
+        "hugh"
+      ],
+      "Genesis": [
+        "caveman_riker",
+        "spider_barclay",
+        "devolved_worf"
+      ],
+      "Measure of a Man": [
+        "maddox",
+        "data"
+      ],
+      "Doppelganger": [
+        "data",
+        "data_q"
+      ],
+      "Before and After": [
+        "wesley",
+        "traveler_wesley"
+      ],
+      "Faces of Yar": [
+        "temporal_tasha",
+        "romyarlin",
+        "yar",
+        "horny_tasha"
+      ],
+      "Let's do the Timewarp Again": [
+        "temporal_tasha",
+        "castillo"
+      ],
+      "What Could Have Been": [
+        "temporal_tasha",
+        "cadet_picard",
+        "flute_picard"
+      ],
+      "False Gods": [
+        "ardra",
+        "kahless"
+      ],
+      "Murder Chip Stress Test": [
+        "fajo",
+        "data"
+      ],
+      "Travel Who?": [
+        "the_traveler",
+        "wesley"
+      ],
+      "Jazz Trap": [
+        "riker",
+        "one_zero_zero_one"
+      ],
+      "Faces of Riker": [
+        "riker",
+        "angel_one_riker",
+        "caveman_riker",
+        "merry_riker"
+      ],
+      "Faces of Beverly": [
+        "beverly",
+        "merry_beverly"
+      ],
+      "Faces of Worf": [
+        "devolved_worf",
+        "worf",
+        "merry_worf"
+      ],
+      "Faces of Picard": [
+        "cadet_picard",
+        "picard",
+        "merry_picard",
+        "locutus"
+      ],
+      "Those are Klingons?!": [
+        "worf",
+        "kahless",
+        "gowron"
+      ],
+      "The Eyes have it": [
+        "gowron",
+        "spider_barclay"
+      ],
+      "His Eyes Uncovered!": [
+        "dathon",
+        "picard"
+      ],
+      "Suck Disk Averse": [
+        "robin_lefler",
+        "wesley"
+      ],
+      "Blueshirts": [
+        "maddox",
+        "beverly",
+        "pulaski",
+        "troi"
+      ],
+      "Lieutenants": [
+        "maddox",
+        "barclay",
+        "yar"
+      ]
     }
   },
-  "VOY" : {
-    "files" : "./images/slots/voy/",
-    "payout" : 1.25,
-    "custom_jackpots" : [
-      ["neelix", "tuvok", "tuvix"]
-    ],
-    "matches" : {
-      "D-Quad Born" : ["borg_queen", "culluh", "danara_pei", "fesek", "icheb", "karr", "kes", "kurros", "naomi_wildman", "neelix", "penk", "sulan", "tuvix"],
-      "Bride of Chaotica" : ["arachnia", "chaotica", "captain_proton", "president_doctor"],
-      "Goes Great Together" : ["neelix", "tuvok"],
-      "Janeway's Choice" : ["janeway", "tuvix"],
-      "Relationship: Gross" : ["neelix", "kes"],
-      "Tried to Kill The Voyager" : ["seven", "chaotica", "borg_queen", "braxton", "species_8472"],
-      "LA Residents" : ["rain", "braxton"],
-      "LA Tourists" : ["janeway", "tom_paris", "tuvox", "chakotay"],
-      "Kids in the Voy" : ["naomi_wildman", "kes", "icheb"],
-      "Daddy Issues" : ["tom_paris", "owen_paris"],
-      "Royal Rumble" : ["penk", "seven"],
-      "Mayqueese?" : ["chakotay", "seska", "torres", "suder"],
-      "Doctor's proteges" : ["kes", "seven", "tom_paris"],
-      "Long-distance Rates May Apply" : ["barclay", "rain"],
-      "Season 3 Torch Pass" : ["kes", "seven"],
-      "Murder Meld" : ["tuvok", "suder"],
-      "Faces of Janeway" : ["janeway", "arachnia", "evolved_janeway"],
-      "Relationship: Why?" : ["chakotay", "seven"],
-      "Relationship: Purely Professional" : ["chakotay", "janeway"],
-      "Relationship: Success" : ["tom_paris", "torres"],
-      "Relationship: Kissed in a Nightmare Once" : ["harry_kim", "seven"],
-      "Perv Patrol" : ["harry_kim", "tom_paris"],
-      "Expecting Parents" : ["chakotay", "seska"],
-      "Same Stylist" : ["culluh", "arachnia"],
-      "Borgified" : ["janeway", "borg_queen", "seven", "tuvok", "torres", "icheb"],
-      "Double Doc Z" : ["doctor", "president_doctor", "teetime_doctor"],
-      "Relationship: Holographic" : ["doctor", "danara_pei"],
-      "Murderers" : ["sulan", "suder", "borg_queen", "janeway", "species_8472", "karr"],
-      "Relationship: Kissed Once in 1996" : ["tom_paris", "rain"],
-      "IRL Comedians" : ["rain", "kurros"],
-      "\"Comb that Hair!\"" : ["tom_paris", "chakotay"],
-      "Relationship: Not Healthy" : ["chulluh", "seska"],
-      "Imposters" : ["species_8472", "seska"]
-    }
-  },
-  "HOLODECK" : {
-    "files" : "./images/slots/holodeck/",
-    "payout" : 1.5,
-    "custom_jackpots" : [
-      ["musketeer_picard", "musketeer_data", "musketeer_geordi"]
+  "DS9": {
+    "files": "/images/slots/ds9/",
+    "payout": 1.5,
+    "custom_jackpots": [
+      [
+        "weyoun4",
+        "weyoun5",
+        "weyoun6"
+      ]
     ],
     "matches": {
-      "Warship: Voyager" : ["warship_chakotay", "warship_janeway", "warship_tuvok", "warship_doctor"],
-      "Big Dix" : ["dixon_hill", "doc_beverly", "gloria_guinan", "cyrus_redblock"],
-      "The Spy who Soaked Me" : ["duchamps_worf", "anastasia_kira", "falcon_obrien", "hippocrates_sisko", "spy_bashir", "honeybare_jadzia"],
-      "The Age of Sail" : ["sailor_beverly", "sailor_data", "sailor_lagorge", "sailor_riker"],
-      "Hollow Pursuits" : ["little_boy_blue_wesley", "musketeer_picard", "musketeer_data", "musketeer_geordi", "troi_goddess_of_empathy"],
-      "Holo-Girlfriends" : ["minuet", "troi_goddess_of_empathy", "leah_brahams", "regina_bartholomew"],
-      "Fistful of Datas" : ["sherrif_worf", "frank_hollander_data", "durango_troi"],
-      "Elementary, my Dear Data" : ["sherlock_data", "moriarity", "regina_bartholomew"],
-      "Doctor's Fantasies" : ["ech", "author_emh", "teetime_doctor"],
-      "Villains" : ["moriarity", "hippocrates_sisko", "frank_hollander_data", "cyrus_redblock", "anastasia_kira", "falcon_obrien"],
-      "Investigators" : ["sherlock_data", "spy_bashir", "sherrif_worf"],
-      "Faces of Geordi" : ["sailor_laroge", "musketeer_geordi"],
-      "Faces of Beverly": ["sailor_beverly", "doc_beverly"],
-      "Faces of Worf" : ["duchamps_worf", "sailor_worf", "sherrif_worf"],
-      "Faces of Data" : ["sherlock_data", "sailor_data", "musketeer_data"],
-      "Faces of Picard" : ["dixon_hill", "musketeer_picard"],
-      "Faces of Tuvok" : ["bartender_tuvok", "warship_tuvok"],
-      "Faces of Troi" : ["troi_goddess_of_empathy", "durango_troi"],
-      "Smoke Break" : ["anastasia_kira", "duchamps_worf", "gloria_guinan"],
-      "Cute Bowtie" : ["bartender_tuvok", "duchamps_worf", "spy_bashir", "teetime_doctor"],
-      "Trapped in a Cube" : ["moriarity", "regina_bartholomew"],
-      "Redshirts" : ["ech", "warship_janeway", "warship_chakotay", "hippocrates_sisko"]
+      "The Dominion": [
+        "weyoun4",
+        "weyoun5",
+        "weyoun6",
+        "yelgrun",
+        "keevan",
+        "kilana",
+        "flakeleader",
+        "goranagar",
+        "ikatika"
+      ],
+      "\"Old Man\"": [
+        "jadzia",
+        "sisko"
+      ],
+      "Slug Buddies": [
+        "ezri",
+        "jadzia"
+      ],
+      "Bajoran Spiritual Leaders": [
+        "bareil",
+        "opaka",
+        "winn",
+        "sisko"
+      ],
+      "Sisko's Lovers": [
+        "jennifer",
+        "kasidy"
+      ],
+      "Love is Blind": [
+        "winn",
+        "dukat"
+      ],
+      "Lunch Date": [
+        "bashir",
+        "garak"
+      ],
+      "Holodeck Date": [
+        "bashir",
+        "obrien"
+      ],
+      "Villains": [
+        "winn",
+        "dukat",
+        "flakeleader"
+      ],
+      "Jeffreys": [
+        "weyoun4",
+        "weyoun5",
+        "weyoun6",
+        "brunt"
+      ],
+      "Enterprise officers": [
+        "worf",
+        "obrien"
+      ],
+      "Bell rioters": [
+        "sisko",
+        "bashir",
+        "jadzia"
+      ],
+      "Promenade hangin'": [
+        "jake",
+        "nog"
+      ],
+      "Golden liquid": [
+        "bashir",
+        "odo",
+        "flakeleader"
+      ],
+      "Secret Societies": [
+        "sloan",
+        "garak",
+        "flakeleader"
+      ],
+      "Search for the Cure": [
+        "bashir",
+        "goranagar"
+      ],
+      "Violent Love": [
+        "worf",
+        "jadzia"
+      ],
+      "Dance in my Golden Sparkles": [
+        "odo",
+        "kira"
+      ],
+      "Niners": [
+        "sisko",
+        "worf",
+        "rom",
+        "ezri",
+        "kira",
+        "bashir",
+        "nog",
+        "quark"
+      ],
+      "Take me out to the Imaginary Ball Game": [
+        "sisko",
+        "bokai"
+      ],
+      "Not Corporeal": [
+        "bokai",
+        "vic"
+      ],
+      "Breaking the Ferengi Mold": [
+        "rom",
+        "nog",
+        "ishka"
+      ],
+      "Nagusii": [
+        "brunt",
+        "zek",
+        "rom",
+        "quark"
+      ],
+      "Affectionate Touches": [
+        "jake",
+        "sisko"
+      ],
+      "Drinking Buddies": [
+        "gowron",
+        "jadzia"
+      ],
+      "Love Conquers Mountains": [
+        "quark",
+        "odo"
+      ],
+      "Did he Fuck her Mom?": [
+        "kira",
+        "dukat"
+      ],
+      "Cardassians": [
+        "dukat",
+        "garak",
+        "damar",
+        "ziyal"
+      ],
+      "Piano Lessons": [
+        "vic",
+        "odo"
+      ],
+      "Wounded Lounge Lizard": [
+        "vic",
+        "nog"
+      ],
+      "You Forgot their Name": [
+        "goranagar",
+        "ikatika",
+        "yelgrun",
+        "keevan"
+      ],
+      "Possible Changeling Spy": [
+        "gowron",
+        "bashir"
+      ],
+      "Prison Pals": [
+        "obrien",
+        "ezri",
+        "martok",
+        "bashir",
+        "garak"
+      ],
+      "Battled the Pah'wraiths": [
+        "winn",
+        "jake",
+        "sisko",
+        "obrien"
+      ],
+      "Senator Killers": [
+        "garak",
+        "sisko"
+      ],
+      "Engineers and Unionmen": [
+        "obrien",
+        "rom"
+      ],
+      "Starfleet Intelligence": [
+        "obrien",
+        "bashir",
+        "sloan"
+      ],
+      "*Probably* Unmodified Humans": [
+        "jake",
+        "jennifer",
+        "sisko",
+        "obrien"
+      ],
+      "Smugglers": [
+        "quark",
+        "kasidy"
+      ],
+      "Quark-haters": [
+        "kira",
+        "brunt",
+        "odo"
+      ],
+      "Cardassian Freedom Fighters": [
+        "garak",
+        "damar",
+        "kira"
+      ],
+      "RSVP": [
+        "jennifer",
+        "jadzia",
+        "bareil",
+        "winn",
+        "dukat",
+        "weyoun4",
+        "weyoun5",
+        "weyoun6",
+        "keevan",
+        "sloan",
+        "damar",
+        "ziyal"
+      ],
+      "Profitable Lovers": [
+        "ishka",
+        "zek"
+      ],
+      "A Father's Love": [
+        "ziyal",
+        "dukat"
+      ],
+      "Profit & Honor": [
+        "quark",
+        "grilka"
+      ],
+      "Barflies": [
+        "obrien",
+        "morn",
+        "bashir",
+        "damar",
+        "jadzia"
+      ],
+      "Klingons": [
+        "gowron",
+        "worf",
+        "grilka"
+      ],
+      "Leeta Lovers": [
+        "bashir",
+        "rom"
+      ],
+      "Bajoran-Ferengi Romance": [
+        "leeta",
+        "rom"
+      ]
+    }
+  },
+  "VOY": {
+    "files": "/images/slots/voy/",
+    "payout": 1.25,
+    "custom_jackpots": [
+      [
+        "neelix",
+        "tuvok",
+        "tuvix"
+      ]
+    ],
+    "matches": {
+      "D-Quad Born": [
+        "borg_queen",
+        "culluh",
+        "danara_pei",
+        "fesek",
+        "icheb",
+        "karr",
+        "kes",
+        "kurros",
+        "naomi_wildman",
+        "neelix",
+        "penk",
+        "sulan",
+        "tuvix"
+      ],
+      "Bride of Chaotica": [
+        "arachnia",
+        "chaotica",
+        "captain_proton",
+        "president_doctor"
+      ],
+      "Goes Great Together": [
+        "neelix",
+        "tuvok"
+      ],
+      "Janeway's Choice": [
+        "janeway",
+        "tuvix"
+      ],
+      "Relationship: Gross": [
+        "neelix",
+        "kes"
+      ],
+      "Tried to Kill The Voyager": [
+        "seven",
+        "chaotica",
+        "borg_queen",
+        "braxton",
+        "species_8472"
+      ],
+      "LA Residents": [
+        "rain",
+        "braxton"
+      ],
+      "LA Tourists": [
+        "janeway",
+        "tom_paris",
+        "tuvox",
+        "chakotay"
+      ],
+      "Kids in the Voy": [
+        "naomi_wildman",
+        "kes",
+        "icheb"
+      ],
+      "Daddy Issues": [
+        "tom_paris",
+        "owen_paris"
+      ],
+      "Royal Rumble": [
+        "penk",
+        "seven"
+      ],
+      "Mayqueese?": [
+        "chakotay",
+        "seska",
+        "torres",
+        "suder"
+      ],
+      "Doctor's proteges": [
+        "kes",
+        "seven",
+        "tom_paris"
+      ],
+      "Long-distance Rates May Apply": [
+        "barclay",
+        "rain"
+      ],
+      "Season 3 Torch Pass": [
+        "kes",
+        "seven"
+      ],
+      "Murder Meld": [
+        "tuvok",
+        "suder"
+      ],
+      "Faces of Janeway": [
+        "janeway",
+        "arachnia",
+        "evolved_janeway"
+      ],
+      "Relationship: Why?": [
+        "chakotay",
+        "seven"
+      ],
+      "Relationship: Purely Professional": [
+        "chakotay",
+        "janeway"
+      ],
+      "Relationship: Success": [
+        "tom_paris",
+        "torres"
+      ],
+      "Relationship: Kissed in a Nightmare Once": [
+        "harry_kim",
+        "seven"
+      ],
+      "Perv Patrol": [
+        "harry_kim",
+        "tom_paris"
+      ],
+      "Expecting Parents": [
+        "chakotay",
+        "seska"
+      ],
+      "Same Stylist": [
+        "culluh",
+        "arachnia"
+      ],
+      "Borgified": [
+        "janeway",
+        "borg_queen",
+        "seven",
+        "tuvok",
+        "torres",
+        "icheb"
+      ],
+      "Double Doc Z": [
+        "doctor",
+        "president_doctor",
+        "teetime_doctor"
+      ],
+      "Relationship: Holographic": [
+        "doctor",
+        "danara_pei"
+      ],
+      "Murderers": [
+        "sulan",
+        "suder",
+        "borg_queen",
+        "janeway",
+        "species_8472",
+        "karr"
+      ],
+      "Relationship: Kissed Once in 1996": [
+        "tom_paris",
+        "rain"
+      ],
+      "IRL Comedians": [
+        "rain",
+        "kurros"
+      ],
+      "\"Comb that Hair!\"": [
+        "tom_paris",
+        "chakotay"
+      ],
+      "Relationship: Not Healthy": [
+        "chulluh",
+        "seska"
+      ],
+      "Imposters": [
+        "species_8472",
+        "seska"
+      ]
+    }
+  },
+  "HOLODECK": {
+    "files": "/images/slots/holodeck/",
+    "payout": 1.5,
+    "custom_jackpots": [
+      [
+        "musketeer_picard",
+        "musketeer_data",
+        "musketeer_geordi"
+      ]
+    ],
+    "matches": {
+      "Warship: Voyager": [
+        "warship_chakotay",
+        "warship_janeway",
+        "warship_tuvok",
+        "warship_doctor"
+      ],
+      "Big Dix": [
+        "dixon_hill",
+        "doc_beverly",
+        "gloria_guinan",
+        "cyrus_redblock"
+      ],
+      "The Spy who Soaked Me": [
+        "duchamps_worf",
+        "anastasia_kira",
+        "falcon_obrien",
+        "hippocrates_sisko",
+        "spy_bashir",
+        "honeybare_jadzia"
+      ],
+      "The Age of Sail": [
+        "sailor_beverly",
+        "sailor_data",
+        "sailor_lagorge",
+        "sailor_riker"
+      ],
+      "Hollow Pursuits": [
+        "little_boy_blue_wesley",
+        "musketeer_picard",
+        "musketeer_data",
+        "musketeer_geordi",
+        "troi_goddess_of_empathy"
+      ],
+      "Holo-Girlfriends": [
+        "minuet",
+        "troi_goddess_of_empathy",
+        "leah_brahams",
+        "regina_bartholomew"
+      ],
+      "Fistful of Datas": [
+        "sherrif_worf",
+        "frank_hollander_data",
+        "durango_troi"
+      ],
+      "Elementary, my Dear Data": [
+        "sherlock_data",
+        "moriarity",
+        "regina_bartholomew"
+      ],
+      "Doctor's Fantasies": [
+        "ech",
+        "author_emh",
+        "teetime_doctor"
+      ],
+      "Villains": [
+        "moriarity",
+        "hippocrates_sisko",
+        "frank_hollander_data",
+        "cyrus_redblock",
+        "anastasia_kira",
+        "falcon_obrien"
+      ],
+      "Investigators": [
+        "sherlock_data",
+        "spy_bashir",
+        "sherrif_worf"
+      ],
+      "Faces of Geordi": [
+        "sailor_laroge",
+        "musketeer_geordi"
+      ],
+      "Faces of Beverly": [
+        "sailor_beverly",
+        "doc_beverly"
+      ],
+      "Faces of Worf": [
+        "duchamps_worf",
+        "sailor_worf",
+        "sherrif_worf"
+      ],
+      "Faces of Data": [
+        "sherlock_data",
+        "sailor_data",
+        "musketeer_data"
+      ],
+      "Faces of Picard": [
+        "dixon_hill",
+        "musketeer_picard"
+      ],
+      "Faces of Tuvok": [
+        "bartender_tuvok",
+        "warship_tuvok"
+      ],
+      "Faces of Troi": [
+        "troi_goddess_of_empathy",
+        "durango_troi"
+      ],
+      "Smoke Break": [
+        "anastasia_kira",
+        "duchamps_worf",
+        "gloria_guinan"
+      ],
+      "Cute Bowtie": [
+        "bartender_tuvok",
+        "duchamps_worf",
+        "spy_bashir",
+        "teetime_doctor"
+      ],
+      "Trapped in a Cube": [
+        "moriarity",
+        "regina_bartholomew"
+      ],
+      "Redshirts": [
+        "ech",
+        "warship_janeway",
+        "warship_chakotay",
+        "hippocrates_sisko"
+      ]
     }
   },
   "SHIPS": {
-    "files" : "./images/slots/ships/",
-    "payout" : 1,
-    "custom_jackpots" : [
-      ["enterprise_d", "borg_cube", "borg_sphere"]
+    "files": "/images/slots/ships/",
+    "payout": 1,
+    "custom_jackpots": [
+      [
+        "enterprise_d",
+        "borg_cube",
+        "borg_sphere"
+      ]
     ],
-    "matches" : {
-      "First Contact" : ["enterprise_d", "borg_sphere"],
-      "Q Who?" : ["enterprise_d", "borg_sphere"],
-      "Entrepreneurs" : ["enterprise", "enterprise_d", "pikes_enterprise", "iss_enterprise"],
-      "Ticks" : ["jemhadar_battleship", "jemhadar_fighter"],
-      "Retro Classics" : ["discovery", "enterprise", "klingon_bird_of_prey", "pikes_enterprise"],
-      "Something-Class" : ["constellation_class", "constitution_class", "galaxy_class", "intrepid_class", "miranda_class"],
-      "Ships of Primetime" : ["enterprise", "enterprise_d", "voyager"],
-      "Borgs!" : ["borg_cube", "borg_sphere"],
-      "DS9 Dockers" : ["defiant", "ferengi_warship", "carassian_cruiser", "breen_warship"],
-      "Pointy" : ["defiant", "hirogen", "orion_syndicate", "romulan_warbird", "vulcan_battlecruiser"],
-      "Mysterious" : ["breen_warship", "orion_syndicate"],
-      "Named but not the Star" : ["uss_reliant", "shenzou", "defiant"],
-      "Badlands Battlers" : ["cardassian_cruiser", "maquis_raider"],
-      "SCREE!!!" : ["klingon_bird_of_prey", "romulan_warbird"],
-      "Dominion Lovers" : ["jemhadar_battleship", "jemhadar_fighter", "cardassian_cruiser", "breen_warship"],
-      "Everyday Annoyance" : ["voyager", "borg_cube"],
-      "WW2 Re-enactment" : ["hirogen", "voyager"],
-      "Chakotay Go Home" : ["maquis_raider", "voyager"],
-      "The Die is Cast" : ["defiant", "jemhadar_battleship", "jemhadar_fighter"],
-      "Disco Inferno" : ["shenzou", "discovery", "pikes_enterprise"]
+    "matches": {
+      "First Contact": [
+        "enterprise_d",
+        "borg_sphere"
+      ],
+      "Q Who?": [
+        "enterprise_d",
+        "borg_sphere"
+      ],
+      "Entrepreneurs": [
+        "enterprise",
+        "enterprise_d",
+        "pikes_enterprise",
+        "iss_enterprise"
+      ],
+      "Ticks": [
+        "jemhadar_battleship",
+        "jemhadar_fighter"
+      ],
+      "Retro Classics": [
+        "discovery",
+        "enterprise",
+        "klingon_bird_of_prey",
+        "pikes_enterprise"
+      ],
+      "Something-Class": [
+        "constellation_class",
+        "constitution_class",
+        "galaxy_class",
+        "intrepid_class",
+        "miranda_class"
+      ],
+      "Ships of Primetime": [
+        "enterprise",
+        "enterprise_d",
+        "voyager"
+      ],
+      "Borgs!": [
+        "borg_cube",
+        "borg_sphere"
+      ],
+      "DS9 Dockers": [
+        "defiant",
+        "ferengi_warship",
+        "carassian_cruiser",
+        "breen_warship"
+      ],
+      "Pointy": [
+        "defiant",
+        "hirogen",
+        "orion_syndicate",
+        "romulan_warbird",
+        "vulcan_battlecruiser"
+      ],
+      "Mysterious": [
+        "breen_warship",
+        "orion_syndicate"
+      ],
+      "Named but not the Star": [
+        "uss_reliant",
+        "shenzou",
+        "defiant"
+      ],
+      "Badlands Battlers": [
+        "cardassian_cruiser",
+        "maquis_raider"
+      ],
+      "SCREE!!!": [
+        "klingon_bird_of_prey",
+        "romulan_warbird"
+      ],
+      "Dominion Lovers": [
+        "jemhadar_battleship",
+        "jemhadar_fighter",
+        "cardassian_cruiser",
+        "breen_warship"
+      ],
+      "Everyday Annoyance": [
+        "voyager",
+        "borg_cube"
+      ],
+      "WW2 Re-enactment": [
+        "hirogen",
+        "voyager"
+      ],
+      "Chakotay Go Home": [
+        "maquis_raider",
+        "voyager"
+      ],
+      "The Die is Cast": [
+        "defiant",
+        "jemhadar_battleship",
+        "jemhadar_fighter"
+      ],
+      "Disco Inferno": [
+        "shenzou",
+        "discovery",
+        "pikes_enterprise"
+      ]
     }
   },
-  "TEST" : {
-    "files" : "./images/slots/test/",
-    "custom_jackpots" : [],
-    "payout" : 100,
-    "matches" : {
-      "armus" : ["oops all armus"]
+  "TEST": {
+    "files": "/images/slots/test/",
+    "custom_jackpots": [],
+    "payout": 100,
+    "matches": {
+      "armus": [
+        "oops all armus"
+      ]
     }
   }
 }

@@ -68,8 +68,10 @@ DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
 DB_SEED_FILEPATH = os.getenv('DB_SEED_FILEPATH')
 EMOJI = {}
+EMOJIS = {}
 POKER_GAMES = {}
 ROLES = config["roles"]
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TRIVIA_RUNNING = False
 TRIVIA_DATA = {}
 TRIVIA_MESSAGE = None
@@ -86,7 +88,8 @@ intents = discord.Intents.all()
 bot = commands.Bot(
   intents=intents,
   test_guilds=config["guild_ids"],
-  auto_sync_commands=True
+  auto_sync_commands=True,
+  command_prefix="$"
 )
 
 # Channel Helpers
