@@ -76,7 +76,7 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
   mask = np.array(Image.open("./images/cloud_masks/combadge_mask.png"))
 
   # build wordcloud with magic of wordcloud lib
-  wc = WordCloud(contour_color="#000044", contour_width=5, max_words=350, min_font_size=14, stopwords=STOPWORDS, mask=mask, font_path="./images/tng_font.ttf", background_color="black", mode="RGB", width=822, height=800, min_word_length=3).generate(user_details['full_message_text'])
+  wc = WordCloud(contour_color="#000044", contour_width=5, max_words=350, min_font_size=14, stopwords=STOPWORDS, mask=mask, font_path="./images/tng_font.ttf", background_color="black", mode="RGB", width=822, height=800, min_word_length=4).generate(user_details['full_message_text'])
 
   # create PIL image 
   image = wc.to_image()
