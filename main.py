@@ -76,14 +76,9 @@ background_tasks = set() # for non-blocking tasks
 # listens to every message on the server that the bot can see
 @bot.event
 async def on_message(message:discord.Message):
-<<<<<<< HEAD
 
   # Ignore all messages from any bot
   if message.author == bot.user or message.author.bot:
-=======
-  # Ignore all messages from bot itself
-  if message.author == bot.user:
->>>>>>> more work on slots cog for testslots, added cog ping for testing, misc improvements
     return
   
   try:
@@ -197,7 +192,7 @@ async def on_ready():
 {Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT}{number_of_starboard_posts}{Style.RESET_ALL}
 ''')
 
-  # Set some fun random presences
+  # Set a fun random presence
   random_presences = [
     { 'name': "PRAISE THE FOUNDERS", 'type': discord.ActivityType.listening },
     { 'name': "The Greatest Generation", 'type': discord.ActivityType.listening },
@@ -210,7 +205,7 @@ async def on_ready():
     { 'name': "Terminator 2: Judgement Day", 'type': discord.ActivityType.watching }
   ]
   selected_presence = random.choice(random_presences)
-  await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=selected_presence.name, type=selected_presence.type, status="online"))
+  await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=selected_presence['name'], type=selected_presence['type']))
 
 
 
