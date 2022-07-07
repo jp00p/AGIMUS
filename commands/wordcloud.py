@@ -6,19 +6,19 @@ from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 # also allows users to opt-in or out of logging their messages
 @bot.slash_command(
   name="wordcloud",
-  description="Show your own most popular words in a wordcloud!"
+  description="Show your own most popular words in a wordcloud! Enable logging to be able to generate a cloud."
 )
 @option(
   name="enable_logging",
-  description="Choose \"Yes\" to set the bot to log your messages, or \"No\" to stop logging and erase all your logged messages.",
+  description="Enable message logging to be able to generate wordclouds",
   required=False,
   choices=[
     discord.OptionChoice(
-      name="Yes",
+      name="Yes - save words in my public messages to your database",
       value="Yes"
     ),
     discord.OptionChoice(
-      name="No",
+      name="No - and please delete all my data",
       value="No"
     )
   ]
@@ -36,7 +36,8 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
     db.commit()
     query.close()
     db.close()
-    await ctx.respond("Now logging your messages!  Once you have posted a few messages, check your wordcloud by typing `/wordcloud`", ephemeral=True)
+    await ctx.respond(content=f"Now logging your messages in the database! Your logged messages will be scrambled and most common words (like the, a, of) removed. Once you have posted a few messages, check your wordcloud by typing `/wordcloud`! Disable logging and delete all your saved data by selecting \"No\" instead to /wordcloud.", ephemeral=True)
+    logger.info(f"{Style.BRIGHT}{ctx.author.display_name}{Style.RESET_ALL} has {Fore.GREEN}enabled{Fore.RESET} {Fore.CYAN}message logging!{Fore.RESET}")
     return
   
   if enable_logging == "No":
@@ -52,14 +53,15 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
     query.close()
     db.commit()
     db.close()
-    await ctx.respond(f"Your messages will no longer be logged and all previous data has been removed. ({deleted_row_count} messages deleted from the database)", ephemeral=True)
+    await ctx.respond(content=f"Your messages will no longer be logged and all previous data has been removed. ({deleted_row_count} messages deleted from the database)", ephemeral=True)
+    logger.info(f"{Style.BRIGHT}{ctx.author.display_name}{Style.RESET_ALL} has {Fore.RED}disabled{Fore.RESET} {Fore.CYAN}message logging!{Fore.RESET}")
     return
 
   user = get_user(ctx.author.id)
 
   # if they have previously disabled logging
   if user["log_messages"] != 1:
-    await ctx.respond("You do not have logging enabled. Use `/wordcloud enable_logging Yes` to start logging so we can generate a wordcloud for you.", ephemeral=True)
+    await ctx.respond(content="You do not have logging enabled. Use `/wordcloud enable_logging Yes` to start logging so AGIMUS can generate a wordcloud for you!", ephemeral=True)
     return
 
   # get their message data
@@ -67,7 +69,7 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
 
   # if they have no data yet
   if user_details is None:
-    await ctx.respond("No user data is available for you yet.", ephemeral=True)
+    await ctx.respond(content="No user data is available for you yet.", ephemeral=True)
     return
   
   # mask image (combadge in this case, something else might work better)
@@ -84,7 +86,8 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
   discord_image = discord.File(f"./images/reports/wordcloud-{user_details['name']}.png")
 
   # send the image!
-  await ctx.respond(f"(Based on your last {user_details['num_messages']} messages)", file=discord_image, ephemeral=False)
+  await ctx.respond(content=f"(Based on your last {user_details['num_messages']} messages)", file=discord_image, ephemeral=False)
+  logger.info(f"{Style.BRIGHT}{ctx.author.display_name}{Style.RESET_ALL} has generated a {Fore.CYAN}wordcloud!{Fore.RESET}")
 
 # get user's message history and return it in a dict
 def get_wordcloud_text_for_user(user_discord_id:int):
