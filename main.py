@@ -6,9 +6,7 @@
 from common import *
 
 # Slash Commands
-from commands.drop import drop, drops
 from commands.dustbuster import dustbuster
-from commands.clip import clip, clips
 from commands.fmk import fmk
 from commands.help import help
 from commands.info import info
@@ -20,6 +18,10 @@ from commands.randomep import randomep
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
+
+# Slash Command Groups
+import commands.drop
+import commands.clip
 
 # Bang Commands
 from commands.buy import buy
@@ -35,7 +37,6 @@ from commands.reports import reports
 from commands.quiz import quiz
 from commands.report import report
 from commands.scores import scores
-from commands.server_logs import show_leave_message, show_nick_change_message
 from commands.setwager import setwager
 from commands.shop import shop
 from commands.slots import slots, testslots
@@ -208,6 +209,20 @@ async def on_member_update(memberBefore,memberAfter):
   if memberBefore.nick != memberAfter.nick:
     await show_nick_change_message(memberBefore, memberAfter) 
 
+# Listen to channel updates
+@bot.event
+async def on_guild_channel_create(channel):
+  await show_channel_creation_message(channel)
+
+@bot.event
+async def on_guild_channel_delete(channel):
+  await show_channel_deletion_message(channel)
+
+@bot.event
+async def on_guild_channel_update(before, after):
+ await show_channel_rename_message(before, after)
+ await show_channel_topic_change_message(before, after)
+
 # listen to interaction errors
 @bot.event
 async def on_application_command_error(ctx, exception):
@@ -217,6 +232,7 @@ async def on_application_command_error(ctx, exception):
   # Otherwise log problems we might have
   logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
   logger.info(e)
+
 
 # Schedule Tasks
 scheduled_tasks = [
