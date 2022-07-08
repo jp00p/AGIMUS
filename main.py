@@ -176,13 +176,13 @@ async def on_ready():
   #logger.info(client.emojis) -- save this for later, surely we can do something with all these emojis
   #logger.info(f"ALL_STARBOARD_POSTS:\n{ALL_STARBOARD_POSTS}")
 
-  # Seeeecret...
+  # Print AGIMUS ANSI Art
   agimus_ascii = []
   with open('data/ascii/agimus.txt') as f:
     agimus_ascii = f.readlines()
   logger.info(''.join(agimus_ascii))
   logger.info(f"{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}")
-  logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.Reset}{Style.RESET_ALL}")
+  logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")
 
   # Set a fun random presence
   random_presences = [
@@ -198,7 +198,6 @@ async def on_ready():
   ]
   selected_presence = random.choice(random_presences)
   await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=selected_presence['name'], type=selected_presence['type']))
-
 
 
 # listen to reactions
