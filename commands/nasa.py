@@ -21,13 +21,11 @@ NASA_TOKEN = os.getenv('NASA_TOKEN')
 async def nasa(ctx:discord.ApplicationContext, date:str):
   try:
     logger.info(f"{Fore.LIGHTBLUE_EX}NASA: Starting NASA API call{Fore.RESET}")
-    logger.info(f"date: {date}")
     if not NASA_TOKEN:
       logger.error(f"{Fore.RED}NASA_TOKEN not set{Fore.RESET}")
       await ctx.respond("NASA_TOKEN not set: https://api.nasa.gov/", ephemeral=True)
       return
     if date is None:
-      logger.info("wtf...")
       start_date = dtdate(1996, 1, 1)
       logger.debug('starting from: ' + start_date.isoformat())
       end_date = dtdate(dtdate.today().year, dtdate.today().month, dtdate.today().day)
