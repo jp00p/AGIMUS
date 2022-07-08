@@ -174,23 +174,15 @@ async def on_ready():
   for emoji in bot.emojis:
     config["all_emoji"].append(emoji.name)
   #logger.info(client.emojis) -- save this for later, surely we can do something with all these emojis
-  logger.info(f"ALL_STARBOARD_POSTS:\n{ALL_STARBOARD_POSTS}")
+  #logger.info(f"ALL_STARBOARD_POSTS:\n{ALL_STARBOARD_POSTS}")
 
-  
-  logger.info(f'''{Fore.LIGHTWHITE_EX}
-
-                                _____
-                       __...---'-----`---...__
-                  _===============================
- ______________,/'      `---..._______...---'
-(____________LL). .    ,--'
- /    /.---'       `. /
-'--------_  - - - - _/
-          `~~~~~~~~'
-
-{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}
-{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT}{number_of_starboard_posts}{Style.RESET_ALL}
-''')
+  # Seeeecret...
+  agimus_ascii = []
+  with open('data/ascii/agimus.txt') as f:
+    agimus_ascii = f.readlines()
+  logger.info(''.join(agimus_ascii))
+  logger.info(f"{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}")
+  logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.Reset}{Style.RESET_ALL}")
 
   # Set a fun random presence
   random_presences = [

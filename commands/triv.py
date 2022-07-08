@@ -6,36 +6,46 @@ from .poker import *
 
 @tasks.loop(seconds=20,count=1)
 async def trivia_quiz(category=None):
-  global TRIVIA_DATA, TRIVIA_RUNNING, TRIVIA_MESSAGE
-  if category:
-    question = await trivia.question(amount=1, quizType='multiple', category=category)
-  else:
-    question = await trivia.question(amount=1, quizType='multiple')
-  TRIVIA_DATA = question[0]
-  logger.info(f"{Fore.LIGHTYELLOW_EX}Using category{Fore.RESET} {Style.BRIGHT}{category}{Style.RESET_ALL}")
-  #logger.info("correct answer: " + TRIVIA_DATA["correct_answer"])
-  answers = TRIVIA_DATA["incorrect_answers"]
-  answers.append(TRIVIA_DATA["correct_answer"])
-  random.shuffle(answers)
-  correct_answer_index = answers.index(TRIVIA_DATA["correct_answer"])
-  embed = discord.Embed(title="Trivia Alert!".format(TRIVIA_DATA["difficulty"]), description="Category: *{}* \n⠀\n> **{}**\n⠀".format(TRIVIA_DATA["category"],TRIVIA_DATA["question"]))
-  thumb = discord.File("./images/{}.png".format(TRIVIA_DATA["difficulty"]))
-  embed.set_thumbnail(url="attachment://{}.png".format(TRIVIA_DATA["difficulty"]))
-  i = 0
-  reactions = ["1️⃣","2️⃣","3️⃣","4️⃣"]
-  TRIVIA_DATA["correct_emoji"] = reactions[correct_answer_index]
-  for ans in answers:
-    maybe_newline = ""
-    if i == 3:
-      maybe_newline = "\n ** ** \n"
-    embed.add_field(name="** **", value="{}: {} {}".format(reactions[i],ans,maybe_newline), inline=False)
-    i += 1
-  embed.set_footer(text="React below with your answer!")
-  channel = bot.get_channel(config["channels"]["quizzing-booth"])
-  TRIVIA_MESSAGE = await channel.send(embed=embed, file=thumb)
-  for react in reactions:
-    await TRIVIA_MESSAGE.add_reaction(react)
-  
+  try:
+    global TRIVIA_DATA, TRIVIA_RUNNING, TRIVIA_MESSAGE
+    if category:
+      question = await trivia.question(amount=1, quizType='multiple', category=category)
+    else:
+      question = await trivia.question(amount=1, quizType='multiple')
+    logger.info(f">>> question[0]: {question[0]}")
+    TRIVIA_DATA = question[0]
+    logger.info(f"{Fore.LIGHTYELLOW_EX}Using category{Fore.RESET} {Style.BRIGHT}{category}{Style.RESET_ALL}")
+    #logger.info("correct answer: " + TRIVIA_DATA["correct_answer"])
+    answers = TRIVIA_DATA["incorrect_answers"]
+    answers.append(TRIVIA_DATA["correct_answer"])
+    random.shuffle(answers)
+    correct_answer_index = answers.index(TRIVIA_DATA["correct_answer"])
+    embed = discord.Embed(title="Trivia Alert!".format(TRIVIA_DATA["difficulty"]), description="Category: *{}* \n⠀\n> **{}**\n⠀".format(TRIVIA_DATA["category"],TRIVIA_DATA["question"]))
+    thumb = discord.File("./images/{}.png".format(TRIVIA_DATA["difficulty"]))
+    embed.set_thumbnail(url="attachment://{}.png".format(TRIVIA_DATA["difficulty"]))
+    i = 0
+    reactions = ["1️⃣","2️⃣","3️⃣","4️⃣"]
+    TRIVIA_DATA["correct_emoji"] = reactions[correct_answer_index]
+    for ans in answers:
+      maybe_newline = ""
+      if i == 3:
+        maybe_newline = "\n ** ** \n"
+      embed.add_field(name="** **", value="{}: {} {}".format(reactions[i],ans,maybe_newline), inline=False)
+      i += 1
+    embed.set_footer(text="React below with your answer!")
+    channel = bot.get_channel(config["channels"]["quizzing-booth"])
+    TRIVIA_MESSAGE = await channel.send(embed=embed, file=thumb)
+    for react in reactions:
+      await TRIVIA_MESSAGE.add_reaction(react)
+  except BaseException as e:
+    channel = await bot.get_channel(config["channels"]["quizzing-booth"])
+    await channel.send(embed=discord.Embed(
+      title="Error Encountered with Trivia! Sorry, we're on it!",
+      color=discord.Color.red()
+    ))
+    logger.info(f">>> ENCOUNTERED ERROR WITH !triv: {e}")
+    logger.info(traceback.format_exec())
+
 @trivia_quiz.after_loop
 async def end_trivia():
   global TRIVIA_ANSWERS, TRIVIA_DATA, TRIVIA_RUNNING, TRIVIA_MESSAGE

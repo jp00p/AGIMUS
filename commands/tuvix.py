@@ -30,7 +30,7 @@ async def tuvix(ctx:discord.ApplicationContext):
     color=discord.Color.dark_gold()
   )
   embed.add_field(name="Choice A", value=tuvix1)
-  embed.add_field(name="🧬", value="or")
+  embed.add_field(name="or", value="🧬")
   embed.add_field(name="Choice B", value=tuvix2)
   await ctx.respond(embed=embed)
   

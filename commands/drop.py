@@ -21,6 +21,7 @@ drop = bot.create_group("drop", "Drop Commands!")
   description="Retrieve the List of Drops."
 )
 async def drop_list(ctx:discord.ApplicationContext):
+  logger.info(f"{Fore.RED}Firing `/drop list` command, requested by {ctx.author.name}!{Fore.RESET}")
   drops_list = "\n".join(drop_data)
   embed = discord.Embed(
     title="List of Drops",
@@ -53,7 +54,7 @@ async def drop_list(ctx:discord.ApplicationContext):
 )
 @commands.check(access_check)
 async def drop_post(ctx:discord.ApplicationContext, query:str, private:bool):
-  logger.info(f"{Fore.RED}Firing drop command!{Fore.RESET}")
+  logger.info(f"{Fore.RED}Firing `/drop post` command, requested by {ctx.author.name}!{Fore.RESET}")
   # Private drops are not on the timer
   drop_allowed = True
   if not private:
@@ -75,7 +76,7 @@ async def drop_post(ctx:discord.ApplicationContext, query:str, private:bool):
         if userid:
           await ctx.respond(f"{emojis.get('emh_doctor_omg_wtf_zoom')} Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", ephemeral=True)  
     else:
-      await ctx.respond(f"{emojis.get('ezri_frown_sad')} Drop not found! To get a list of drops run: /drops", ephemeral=True)
+      await ctx.respond(f"{emojis.get('ezri_frown_sad')} Drop not found! To get a list of drops run: /drops list", ephemeral=True)
   else:
     await ctx.respond(f"{emojis.get('ohno')} Someone in the channel has already dropped too recently. Please wait a minute before another drop!", ephemeral=True)
     
