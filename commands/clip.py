@@ -21,6 +21,7 @@ clip = bot.create_group("clip", "Clip Commands!")
   description="Retrieve the List of Clips.",
 )
 async def clips_list(ctx:discord.ApplicationContext):
+  logger.info(f"{Fore.RED}Firing `/clips list` command, requested by {ctx.author.name}!{Fore.RESET}")
   clips_list = "\n".join(clip_data)
   embed = discord.Embed(
     title="List of Clips",
@@ -54,7 +55,7 @@ async def clips_list(ctx:discord.ApplicationContext):
 )
 @commands.check(access_check)
 async def clip_post(ctx:discord.ApplicationContext, query:str, private:bool):
-  logger.info(f"{Fore.RED}Firing /clip command!{Fore.RESET}")
+  logger.info(f"{Fore.RED}Firing `/clip post` command, requested by {ctx.author.name}!{Fore.RESET}")
   # Private drops are not on the timer
   clip_allowed = True
   if not private:
@@ -73,7 +74,7 @@ async def clip_post(ctx:discord.ApplicationContext, query:str, private:bool):
       except BaseException as err:
         logger.info(f"{Fore.RED}ERROR LOADING CLIP: {err}{Fore.RESET}")
     else:
-      await ctx.respond(f"{emojis.get('ezri_frown_sad')} Clip not found! To get a list of clips run: /clips", ephemeral=True)
+      await ctx.respond(f"{emojis.get('ezri_frown_sad')} Clip not found! To get a list of clips run: /clips list", ephemeral=True)
   else:
     await ctx.respond(f"{emojis.get('ohno')} Someone in the channel has already posted a clip too recently. Please wait a minute before another clip!", ephemeral=True)
     
