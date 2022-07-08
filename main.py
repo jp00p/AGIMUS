@@ -247,7 +247,14 @@ async def on_guild_channel_update(before, after):
  await show_channel_rename_message(before, after)
  await show_channel_topic_change_message(before, after)
 
-# listen to interaction errors
+# listen to application (slash) command events
+@bot.event
+async def on_application_command(ctx):
+  # Register user if they haven't been previously
+  if int(ctx.author.id) not in ALL_USERS:
+    logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
+    ALL_USERS.append(register_player(ctx.author))
+
 @bot.event
 async def on_application_command_error(ctx, exception):
   logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")

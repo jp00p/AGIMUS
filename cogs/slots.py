@@ -51,7 +51,6 @@ class Slots(commands.Cog):
     # player data  
     player_id = ctx.author.id
     player = get_user(player_id)
-    #logger.info(player)
     free_spin = player["spins"] < 5 # true or false
     wager = player["wager"]
     score_mult = wager
@@ -335,6 +334,10 @@ class Slots(commands.Cog):
   )
   @commands.check(access_check)
   async def jackpot(self, ctx:discord.ApplicationContext):
+    jackpot_value = self.get_jackpot()
+    if jackpot_value is None:
+      jackpot_value = 0
+
     await ctx.respond(embed=discord.Embed(
       description=f"Current jackpot bounty is: **{self.get_jackpot()}**",
       color=discord.Color.dark_gold()
@@ -349,6 +352,14 @@ class Slots(commands.Cog):
   )
   async def jackpots(self, ctx:discord.ApplicationContext):
     jackpots = self.get_top_jackpots()
+
+    if not jackpots:
+      await ctx.respond(embed=discord.Embed(
+        title="No Current Jackpots Registered!",
+        color=discord.Color.dark_gold()
+      ))
+      return
+
     embed = discord.Embed(
       title="**Top Jackpots!**",
       color=discord.Color.dark_gold()
