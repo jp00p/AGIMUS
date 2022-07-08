@@ -8,14 +8,14 @@ services:
     volumes:
       - .:/bot
     working_dir: /bot
-    restart: on-failure    
+    restart: on-failure
     extra_hosts:
       - "host.docker.internal:host-gateway"
   db:
     image: mysql:latest
     environment:
       - MYSQL_DATABASE=${DB_NAME:-FoD}
-      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-password}
+      - MYSQL_ROOT_PASSWORD=${DB_PASS:-password}
     ports:
       - 3306:3306
     volumes:

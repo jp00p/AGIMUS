@@ -220,22 +220,6 @@
         }
       ]
     },
-    "jackpot": {
-      "channels": [
-        "slots-slots-slots"
-      ],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
-    "jackpots": {
-      "channels": [
-        "slots-slots-slots"
-      ],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
     "nasa": {
       "channels": [
         "quizzing-booth",
@@ -456,7 +440,7 @@
         }
       ]
     },
-    "slots": {
+    "slots spin": {
       "channels": [
         "slots-slots-slots",
         "robot-diagnostics"
@@ -467,15 +451,31 @@
         {
           "name": "show",
           "allowed": [
-            "tng",
-            "ds9",
-            "voy",
-            "holodeck",
-            "ships"
+            "TNG",
+            "TNG",
+            "VOY",
+            "HOLODECK",
+            "SHIPS"
           ],
           "required": false
         }
       ]
+    },
+    "slots jackpot": {
+      "channels": [
+        "slots-slots-slots"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "slots jackpots": {
+      "channels": [
+        "slots-slots-slots"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
     },
     "testslots": {
       "channels": [
