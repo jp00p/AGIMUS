@@ -21,7 +21,6 @@ help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-
 .PHONY: setup
 setup: ## Install python dependencies via requirements.txt
 	@pip install -q -r requirements.txt --no-warn-script-location
-	@pip install --upgrade --no-deps --force-reinstall git+https://github.com/Pycord-Development/pycord
 
 .PHONY: start
 start: setup ## Start the bot via python
