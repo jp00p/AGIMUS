@@ -7,7 +7,7 @@ from utils.check_channel_access import access_check
 # and will return a prompt with two random characters
 @bot.slash_command(
   name="trekduel",
-  description="Return 2 random Trek Characters to fight to the death!"
+  description="Return 2 random Trek Characters to fight to the death"
 )
 @commands.check(access_check)
 async def trekduel(ctx:discord.ApplicationContext):

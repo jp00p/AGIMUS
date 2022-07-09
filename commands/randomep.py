@@ -10,7 +10,7 @@ from utils.show_utils import get_show_embed
 # and will return a random episode of the shows listed in the data/episodes directory
 @bot.slash_command(
   name="randomep",
-  description="Retrieve info on a random episode of Trek or Non-Trek Shows!",
+  description="Retrieve info on a random episode of Trek or Non-Trek Shows",
     options=[
       discord.Option(
         name="show",

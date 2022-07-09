@@ -4,7 +4,7 @@ from utils.check_channel_access import access_check
 # dustbuster() - Entrypoint for /dustbuster command
 @bot.slash_command(
   name="dustbuster",
-  description="Return 5 random Trek Characters as a possible Away Team!"
+  description="Return 5 random Trek Characters as a possible Away Team"
 )
 @commands.check(access_check)
 async def dustbuster(ctx:discord.ApplicationContext):
