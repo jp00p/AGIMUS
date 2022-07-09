@@ -32,7 +32,8 @@ USER bot
 WORKDIR /bot
 COPY --chown=bot:bot . .
 # Install requirements.txt with pip
-RUN make setup
+RUN make setup \
+    && pip install --upgrade --no-deps --force-reinstall git+https://github.com/Pycord-Development/pycord
 
 # Since requirements.txt can be mounted, run install again
 # before running python.py in case of differences/updates
