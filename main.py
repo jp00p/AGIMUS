@@ -76,63 +76,58 @@ background_tasks = set() # for non-blocking tasks
 # listens to every message on the server that the bot can see
 @bot.event
 async def on_message(message:discord.Message):
-  logger.info("... ?")
+  # Ignore all messages from any bot
+  if message.author == bot.user or message.author.bot:
+    return
+  
   try:
-    # Ignore all messages from any bot
-    if message.author == bot.user or message.author.bot:
-      return
-    
-    try:
-      await bot.process_commands(message)
-    except BaseException as e:
-      logger.info(f"{Fore.RED}<! ERROR: Encountered error in process_commands !> {e}{Fore.RESET}")
-      logger.info(traceback.format_exc())    
+    await bot.process_commands(message)
+  except BaseException as e:
+    logger.info(f"{Fore.RED}<! ERROR: Encountered error in process_commands !> {e}{Fore.RESET}")
+    logger.info(traceback.format_exc())    
 
-    # message logging
-    try:
-      msg_save_task = asyncio.create_task(save_message_to_db(message))
-      background_tasks.add(msg_save_task)
-      msg_save_task.add_done_callback(background_tasks.discard)
-    except Exception as e:
-      logger.error(f"{Fore.RED}<! ERROR: Encountered error in saving message task !> {e}{Fore.RESET}")
-      logger.error(traceback.format_exc())
-
-    # Special message Handlers
-    try:
-      await handle_bot_affirmations(message)
-      await handle_alerts(message)
-    except Exception as e:
-      logger.error(f"{Fore.RED}<! ERROR: Encountered error in handlers !> {e}{Fore.RESET}")
-      logger.error(traceback.format_exc())
-
-    if int(message.author.id) not in ALL_USERS:
-      logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
-      ALL_USERS.append(register_player(message.author))
-    try:
-      await handle_message_xp(message)
-    except Exception as e:
-      logger.error(f"{Fore.RED}<! ERROR: Failed to process message for xp !> {e}{Fore.RESET}")
-      logger.error(traceback.format_exc())
-    
-    # Bang Command Handling
-    #logger.debug(message)
-    if message.content.startswith("!") or any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
-      logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
-      try:
-        await process_command(message)
-      except BaseException as e:
-        logger.info(f">>> Encountered Exception!")
-        logger.info(e)
-        exception_embed = discord.Embed(
-          title=f"Oops... Encountered exception processing request: {message.content}",
-          description=f"{e}\n```{traceback.format_exc()}```",
-          color=discord.Color.red()
-        )
-        logging_channel = bot.get_channel(LOGGING_CHANNEL)
-        await logging_channel.send(embed=exception_embed)
+  # message logging
+  try:
+    msg_save_task = asyncio.create_task(save_message_to_db(message))
+    background_tasks.add(msg_save_task)
+    msg_save_task.add_done_callback(background_tasks.discard)
   except Exception as e:
-    logger.info(f"Error in on_message: {e}")
-    logger.info(traceback.format_exc())
+    logger.error(f"{Fore.RED}<! ERROR: Encountered error in saving message task !> {e}{Fore.RESET}")
+    logger.error(traceback.format_exc())
+
+  # Special message Handlers
+  try:
+    await handle_bot_affirmations(message)
+    await handle_alerts(message)
+  except Exception as e:
+    logger.error(f"{Fore.RED}<! ERROR: Encountered error in handlers !> {e}{Fore.RESET}")
+    logger.error(traceback.format_exc())
+
+  if int(message.author.id) not in ALL_USERS:
+    logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
+    ALL_USERS.append(register_player(message.author))
+  try:
+    await handle_message_xp(message)
+  except Exception as e:
+    logger.error(f"{Fore.RED}<! ERROR: Failed to process message for xp !> {e}{Fore.RESET}")
+    logger.error(traceback.format_exc())
+  
+  # Bang Command Handling
+  #logger.debug(message)
+  if message.content.startswith("!") or any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
+    logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
+    try:
+      await process_command(message)
+    except BaseException as e:
+      logger.info(f">>> Encountered Exception!")
+      logger.info(e)
+      exception_embed = discord.Embed(
+        title=f"Oops... Encountered exception processing request: {message.content}",
+        description=f"{e}\n```{traceback.format_exc()}```",
+        color=discord.Color.red()
+      )
+      logging_channel = bot.get_channel(LOGGING_CHANNEL)
+      await logging_channel.send(embed=exception_embed)
 
 async def process_command(message:discord.Message):
   # Split the user's command by space and remove "!"
