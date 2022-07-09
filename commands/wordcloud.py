@@ -105,7 +105,7 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
 def get_wordcloud_text_for_user(user_discord_id:int):
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = "SELECT message_history.user_discord_id, message_history.message_text as text, users.name FROM message_history LEFT JOIN users ON message_history.user_discord_id = users.discord_id WHERE message_history.user_discord_id = %s LIMIT 250"
+  sql = "SELECT message_history.user_discord_id, message_history.message_text as text, users.name FROM message_history LEFT JOIN users ON message_history.user_discord_id = users.discord_id WHERE message_history.user_discord_id = %s LIMIT 500"
   vals = (user_discord_id,)
   query.execute(sql, vals)
   results = query.fetchall()
