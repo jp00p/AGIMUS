@@ -5,7 +5,7 @@ class Poker(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
     self.poker_players = []
-    self.poker_games = []
+    self.poker_games = {}
 
     f = open(config["commands"]["poker"]["data"])
     self.poker_data = json.load(f)
@@ -66,10 +66,9 @@ class Poker(commands.Cog):
 
         poker_response = await ctx.respond(embed=embed, file=hand_file)
         poker_message = await poker_response.original_message()
-        logger.info(pprint(poker_message))
         for p in self.poker_reacts:
           await poker_message.add_reaction(p)
-        self.poker_games[poker_response.id] = { 
+        self.poker_games[poker_message.id] = { 
           "user" : player_id,
           "hand" : hand,
           "discards": [False,False,False,False,False],

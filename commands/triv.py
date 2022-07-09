@@ -1,9 +1,6 @@
 from common import *
 from trivia import trivia
 
-from .poker import *
-
-
 @tasks.loop(seconds=20,count=1)
 async def trivia_quiz(category=None):
   try:

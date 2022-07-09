@@ -29,7 +29,6 @@ from commands.categories import categories
 from commands.clear_media import clear_media
 from commands.computer import computer
 from commands.ping import ping
-from commands.poker import *
 from commands.q import qget, qset
 from commands.report import report
 from commands.reports import reports
