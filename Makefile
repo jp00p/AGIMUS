@@ -52,6 +52,10 @@ docker-restart: ## Restart the docker containers running mysql and AGIMUS
 docker-logs: ## Tail the logs of running containers
 	@docker-compose logs -f
 
+.PHONY: docker-cleanup
+docker-cleanup: ## Remove all AGIMUS containers from this system
+	docker images | grep agimus | awk '{print $$3}' | xargs -I {} docker rmi -f {}
+
 .PHONY: docker-lint
 docker-lint: ## Lint the container with dockle
 	dockle --version
@@ -82,19 +86,23 @@ db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 
 ##@ Kubernetes in Docker (KinD) stuff
 
+.PHONY: kind
+kind: kind-create kind-load helm-config-rm kind-test ## Create a KinD cluster, build docker container, load into cluster, and install with helm
+
 .PHONY: kind-create
 kind-create: ## Create a KinD cluster with local config-yaml
-	kind create cluster --config $(LOCAL_KIND_CONFIG) -v 5 || true
+	kind create cluster --config $(LOCAL_KIND_CONFIG) || true
 
 .PHONY: kind-load
 kind-load: ## Load $BOT_CONTAINER_NAME into a running kind cluster
 	@BOT_CONTAINER_VERSION=local make --no-print-directory docker-build
 	kind load docker-image $(BOT_CONTAINER_NAME):local
-	@kubectl create namespace $(namespace) || true
-	@make helm-config
 
 .PHONY: kind-test
 kind-test: ## Install AGIMUS into a running KinD cluster with helm
+	@kubectl create namespace $(namespace) || true
+	@make helm-config-rm
+	@make helm-config
 	helm upgrade --install --debug --wait \
 		--namespace $(namespace) \
 		--set image.repository=$(BOT_CONTAINER_NAME) \
