@@ -20,7 +20,7 @@ import tmdbsimple as tmdb
 import treys
 from colorama import Back, Fore, Style
 from discord import option
-from discord.ext import commands, tasks
+from discord.ext import commands, tasks, pages
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
 from PIL import Image, ImageColor, ImageDraw, ImageFont

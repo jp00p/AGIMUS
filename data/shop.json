@@ -5,7 +5,116 @@
       "price": 9999
     }
   },
-  "cards": ["Archer", "Bashir", "Boimler", "Brunt", "Data", "EMH", "Garak", "Gowron", "Janeway", "Jeffrey Combs", "Mariner", "Mark Twain", "Picard", "Q", "Quark", "Rain", "Ransom", "Rutherford", "Seven of Nine", "Shran", "Sisko", "Snoop", "Spock", "Tilly", "Weyoun", "Worf"],
+  "cards": [
+    {
+      "name": "Archer",
+      "preview_url": "https://i.imgur.com/LM1Kyrb.png"
+    },
+    {
+      "name": "Bashir",
+      "preview_url": "https://i.imgur.com/WKxyJZh.png"
+    },
+    {
+      "name": "Boimler",
+      "preview_url": "https://i.imgur.com/pWpGico.png"
+    },
+    {
+      "name": "Brunt",
+      "preview_url": "https://i.imgur.com/Am3t0jc.png"
+    },
+    {
+      "name": "Data",
+      "preview_url": "https://i.imgur.com/apdcXs5.png"
+    },
+    {
+      "name": "EMH",
+      "preview_url": "https://i.imgur.com/xazw7Fd.png"
+    },
+    {
+      "name": "Garak",
+      "preview_url": "https://i.imgur.com/rFoGZbF.png"
+    },
+    {
+      "name": "Gowron",
+      "preview_url": "https://i.imgur.com/zVgmdnW.png"
+    },
+    {
+      "name": "Jadzia",
+      "preview_url": "https://i.imgur.com/efG2yeJ.png"
+    },
+    {
+      "name": "Janeway",
+      "preview_url": "https://i.imgur.com/PpO10CU.png"
+    },
+    {
+      "name": "Jeffrey Combs",
+      "preview_url": "https://i.imgur.com/DFGV6cg.png"
+    },
+    {
+      "name": "Mainer",
+      "preview_url": "https://i.imgur.com/s0OV4Qc.png"
+    },
+    {
+      "name": "Mark Twain",
+      "preview_url": "https://i.imgur.com/FTBYkZs.png"
+    },
+    {
+      "name": "Picard",
+      "preview_url": "https://i.imgur.com/zxi2TQx.png"
+    },
+    {
+      "name": "Q",
+      "preview_url": "https://i.imgur.com/MXAfThQ.png"
+    },
+    {
+      "name": "Quark",
+      "preview_url": "https://i.imgur.com/oJ1SV60.png"
+    },
+    {
+      "name": "Rain",
+      "preview_url": "https://i.imgur.com/Duf07do.png"
+    },
+    {
+      "name": "Ransom",
+      "preview_url": "https://i.imgur.com/6AwfLbK.png"
+    },
+    {
+      "name": "Rutherford",
+      "preview_url": "https://i.imgur.com/QDrDdPK.png"
+    },
+    {
+      "name": "Seven of Nine",
+      "preview_url": "https://i.imgur.com/A2wBn2M.png"
+    },
+    {
+      "name": "Shran",
+      "preview_url": "https://i.imgur.com/0tYKlLK.png"
+    },
+    {
+      "name": "Sisko",
+      "preview_url": "https://i.imgur.com/2SSMUsX.png"
+    },
+    {
+      "name": "Snoop",
+      "preview_url": "https://i.imgur.com/FRVIV0i.png"
+    },
+    {
+      "name": "Spock",
+      "preview_url": "https://i.imgur.com/I1mmysn.png"
+    },
+    {
+      "name": "Tilly",
+      "preview_url": "https://i.imgur.com/Kv69Dq6.png"
+    },
+    {
+      "name": "Weyoun",
+      "preview_url": "https://i.imgur.com/GTzF19m.png"
+    },
+    {
+      "name": "Worf",
+      "preview_url": "https://i.imgur.com/XzZrm3h.png"
+    }
+  ],
   "badges": {
     "TGG TNG Logo": "TGG_TNG_logo.jpg",
     "TGG DS9 Logo": "TGG_DS9_logo.png",
@@ -20,5 +129,4 @@
     "Ding!": "ding_bell.png",
     "Bashir's Special": "bashir_splash.png"
   }
-  
 }

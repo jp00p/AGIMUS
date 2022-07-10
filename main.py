@@ -43,9 +43,11 @@ from commands.update_status import update_status
 from commands.wordcloud import wordcloud
 
 # Cogs
+from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.ping import Ping
 from cogs.poker import Poker
+bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Ping(bot))
 bot.add_cog(Poker(bot))
@@ -257,7 +259,7 @@ async def on_application_command(ctx):
 @bot.event
 async def on_application_command_error(ctx, exception):
   logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
-  logger.info(exception)
+  logger.exception(exception)
 
 # Schedule Tasks
 scheduled_tasks = [
