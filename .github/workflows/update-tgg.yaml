@@ -23,6 +23,12 @@ jobs:
         with:
           token: ${{ secrets.GIT_TOKEN }}
           fetch-depth: 0
+      - 
+        name: Install semver with asdf
+        uses: asdf-vm/actions/install@v1
+        with:
+          tool_versions: |
+            semver 3.3.0
 
       -
         name: Update The Greatest Generation Metadata
@@ -36,6 +42,13 @@ jobs:
           git config user.email github-actions@github.com
           git diff
           git add data/episodes/*.json
-          git commit -m "Update The Greatest Generation Metadata - $(date)"
-          git push origin main
+          if [[ $(git status --porcelain) ]]; then
+            # metadata was updated, bump/patch the semver in the helm chart and push to main
+            sed -i 's/'$(make version)'/v'$(semver bump patch $(make version))'/g' charts/agimus/Chart.yaml
+            git add charts/agimus/Chart.yaml
+            git commit -m "Update The Greatest Generation Metadata - $(date)"
+            git push origin main
+          else
+            echo "There were no updates found for this show's metadata."
+          fi
 
