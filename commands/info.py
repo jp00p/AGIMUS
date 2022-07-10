@@ -28,7 +28,7 @@ for show_key in show_keys:
 # This function is the main entrypoint of the /info command
 @bot.slash_command(
   name="info",
-  description="Get information about episodes of a show!"
+  description="Get information about episodes of a show"
 )
 @option(
   name="show",

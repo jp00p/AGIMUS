@@ -10,7 +10,6 @@ chardet==4.0.0
 charset-normalizer==2.0.6
 click==8.0.1
 colorama==0.4.4
-discord==1.7.3
 docopt==0.6.2
 feedparser==6.0.9
 Flask==2.0.1

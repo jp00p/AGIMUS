@@ -6,7 +6,7 @@ from utils.check_channel_access import access_check
 # and will a trek related prompt
 @bot.slash_command(
   name="trektalk",
-  description="Return a random Trek Discussion Prompt!"
+  description="Return a random Trek Discussion Prompt"
 )
 @commands.check(access_check)
 async def trektalk(ctx:discord.ApplicationContext):

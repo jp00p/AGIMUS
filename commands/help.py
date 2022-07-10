@@ -8,7 +8,7 @@ from utils.check_channel_access import access_check
 # initiated, for the channel it was initiated.
 @bot.slash_command(
   name="help",
-  description="Display a help message for the current channel-specific commands!"
+  description="Display a help message for the current channel-specific commands"
 )
 @commands.check(access_check)
 async def help(ctx:discord.ApplicationContext):

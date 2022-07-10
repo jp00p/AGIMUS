@@ -13,7 +13,7 @@ nexttrek_config = config["commands"]["nexttrek"]
 
 @bot.slash_command(
   name="nexttrek",
-  description="Retrieve info on the next Trek episode!",
+  description="Retrieve info on the next Trek episode",
 )
 @option(
   name="show",

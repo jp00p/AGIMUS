@@ -1,9 +1,6 @@
 from common import *
 from trivia import trivia
 
-from .poker import *
-
-
 @tasks.loop(seconds=20,count=1)
 async def trivia_quiz(category=None):
   try:
@@ -79,17 +76,8 @@ async def end_trivia():
 
 # This is called from main.py's `on_raw_reaction_add` @bot.event
 async def handle_trivia_reactions(payload:discord.RawReactionActionEvent):
-  global TRIVIA_ANSWERS, POKER_GAMES
+  global TRIVIA_ANSWERS
   if payload.user_id != bot.user.id:
-    # poker reacts
-    if payload.message_id in POKER_GAMES:
-      if payload.user_id == POKER_GAMES[payload.message_id]["user"]:
-        if payload.emoji.name == "✅":
-          await resolve_poker(payload.message_id)
-      else:
-        user = await bot.fetch_user(payload.user_id)
-        await POKER_GAMES[payload.message_id]["message"].remove_reaction(payload.emoji,user)
-    # trivia reacts
     if TRIVIA_MESSAGE and payload.message_id == TRIVIA_MESSAGE.id:
       #emoji = await discord.utils.get(TRIVIA_MESSAGE.reactions, emoji=payload.emoji.name)
       user = await bot.fetch_user(payload.user_id)

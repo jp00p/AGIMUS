@@ -18,7 +18,7 @@ drop = bot.create_group("drop", "Drop Commands!")
 # List the available drops by key and send to user as ephemeral
 @drop.command(
   name="list",
-  description="Retrieve the List of Drops."
+  description="Retrieve the List of Drops"
 )
 async def drop_list(ctx:discord.ApplicationContext):
   logger.info(f"{Fore.RED}Firing `/drop list` command, requested by {ctx.author.name}!{Fore.RESET}")
@@ -40,7 +40,7 @@ async def drop_list(ctx:discord.ApplicationContext):
 # then send the .mp4 file
 @drop.command(
   name="post",
-  description="Send a drop to the channel or to just yourself via the <private> option!",
+  description="Send a drop to the channel or to just yourself via the <private> option",
 )
 @option(
   name="query",

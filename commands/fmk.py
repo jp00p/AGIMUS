@@ -6,7 +6,7 @@ from utils.check_channel_access import access_check
 # and will return a prompt with three random characters
 @bot.slash_command(
   name="fmk",
-  description="Return 3 random Trek Characters as an FMK prompt!"
+  description="Return 3 random Trek Characters as an FMK prompt"
 )
 @commands.check(access_check)
 async def fmk(ctx:discord.ApplicationContext):

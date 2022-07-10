@@ -6,7 +6,7 @@ from utils.check_channel_access import access_check
 # and will return a prompt with two random characters
 @bot.slash_command(
   name="tuvix",
-  description="Return two Trek characters to be Tuvix'd as a discussion prompt!"
+  description="Return two Trek characters to be Tuvix'd as a discussion prompt"
 )
 @commands.check(access_check)
 async def tuvix(ctx:discord.ApplicationContext):

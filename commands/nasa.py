@@ -10,7 +10,7 @@ NASA_TOKEN = os.getenv('NASA_TOKEN')
 # This function is the main entrypoint of the /nasa command
 @bot.slash_command(
   name="nasa",
-  description="Get a random or specific 'Picture of the Day' from NASA!"
+  description="Get a random or specific 'Picture of the Day' from NASA"
 )
 @option(
   name="date",
