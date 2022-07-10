@@ -1,5 +1,6 @@
 from common import *
 
+# rainbow of colors to cycle through for the logs
 xp_colors = [
     Fore.RED,
     Fore.LIGHTRED_EX,
