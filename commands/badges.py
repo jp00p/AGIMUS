@@ -30,8 +30,9 @@ async def badges(ctx:discord.ApplicationContext, public:str):
   await ctx.followup.send(file=showcase_image, ephemeral=not public)
 
 
+# big expensive function that generates a nice grid of images for the user
+# returns discord.file
 def generate_badge_showcase_for_user(user:discord.User):
-
   text_wrapper = textwrap.TextWrapper(width=22)
   badge_list = get_user_badges(user.id)
   title_font = ImageFont.truetype("images/tng_credits.ttf", 68)

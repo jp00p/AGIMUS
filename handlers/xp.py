@@ -178,13 +178,10 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
     return
 
   global current_color
-  
 
   reaction_already_counted = check_react_history(reaction, user)
   if reaction_already_counted:
-    #logger.info(f"{Fore.LIGHTRED_EX}{Style.BRIGHT}{user.display_name}{Style.RESET_ALL} has {Fore.RED}already reacted{Fore.RESET} to {Style.BRIGHT}Message #{reaction.message.id}{Style.RESET_ALL} with {Style.BRIGHT}{reaction.emoji.name}{Style.RESET_ALL} previously!")
     return
-  
   
   log_react_history(reaction, user)
   await increment_user_xp(user, 1, "added_reaction", reaction.message.channel)
@@ -217,7 +214,7 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
 def calculate_xp_for_next_level(current_level:int):
   return int( (current_level*69) + (current_level * current_level) - 1)
 
-# util function for debug
+# util function for debug - shows an XP chart like D&D
 def show_list_of_levels():
   level_chart = ""
   previous_xp_amt = 0
@@ -251,16 +248,15 @@ async def level_up_user(user:discord.User, level:int):
 # level[required]:int
 # badge[required]:str
 async def send_level_up_message(user:discord.User, level:int, badge:str):
-  logger.info(f"Sending level up message to {notification_channel_id}")
   channel = bot.get_channel(notification_channel_id)
-  embed=discord.Embed(title="Level up!", description=f"{user.mention} has reached **level {level}** and earned a new badge!")
-  embed.set_thumbnail(url="https://i.imgur.com/Y8T9Yxa.jpg")
-  embed.set_footer(text="")
+  embed=discord.Embed(title="Level up!", description=f"{user.mention} has reached **level {level}** and earned a new badge!", color=discord.Color.random())
+  # choose a random celebration image
+  thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
+  embed.set_thumbnail(url=thumbnail_image)
   badge_name = badge.replace("_", " ").replace(".png", "")
   embed.add_field(name="Badge name", value=badge_name)
   embed_filename = str(user.id) + ".png"
   discord_image = discord.File(fp=f"./images/badges/{badge}", filename=embed_filename)
-  sleep(0.1)
   embed.set_image(url=f"attachment://{embed_filename}")
   await channel.send(content=f"{user.mention} - Level up! See all your badges by typing `/badges` - disable this by typing `/disable_xp`", file=discord_image, embed=embed)
 

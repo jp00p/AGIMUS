@@ -72,7 +72,31 @@
         "robot-diagnostics",
         "megalomaniacal-computer-storage"
       ],
-      "notification_channel": "ten-forward"
+      "notification_channel": "megalomaniacal-computer-storage",
+      "celebration_images": [
+        "https://i.imgur.com/iKFMgpr.jpg",
+        "https://i.imgur.com/TnL6lGz.jpg",
+        "https://i.imgur.com/PKAIS5T.jpg",
+        "https://i.imgur.com/93plzqp.jpg",
+        "https://i.imgur.com/FeHJk9s.jpg",
+        "https://i.imgur.com/fTY80o0.jpg",
+        "https://i.imgur.com/bC98ihU.jpg",
+        "https://i.imgur.com/bKTHqpd.jpg",
+        "https://i.imgur.com/R636Zgz.jpg",
+        "https://i.imgur.com/TrRL2AI.jpg",
+        "https://i.imgur.com/4vkLuG5.jpg",
+        "https://i.imgur.com/iepZGuA.jpg",
+        "https://i.imgur.com/mEzjHfz.jpg",
+        "https://i.imgur.com/MyzARVQ.jpg",
+        "https://i.imgur.com/Jpapltu.jpg",
+        "https://i.imgur.com/LdNH7MK.png",
+        "https://i.imgur.com/CyFH1vH.jpeg",
+        "https://i.imgur.com/I3yYhGg.jpeg",
+        "https://i.imgur.com/akTCLQk.jpeg",
+        "https://i.imgur.com/2ImSqDq.png",
+        "https://i.imgur.com/wtGBGOI.jpeg",
+        "https://i.imgur.com/Y8T9Yxa.jpg"
+      ]
     }
   },
   "tasks": {
