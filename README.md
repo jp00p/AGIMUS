@@ -6,11 +6,17 @@ The Friends of DeSoto are a group of fans of Star Trek and [The Greatest Generat
 
 Provided in this repository is a makefile to aid in building, testing and running AGIMUS in a variety of deployment environments. To see all available makefile targets, clone the repository and run `make help` in a terminal.
 
-### Docker Usage
+### Local Dependencies
 
-Dependencies
+To execute makefile commands, some third-party dependencies must be installed locally to run, build and test AGIMUS:
 
 - [Docker](https://docs.docker.com/get-docker/)
+- [KinD](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-from-release-binaries)
+- [Helm](https://helm.sh/docs/intro/install/)
+- [Semver](https://github.com/fsaintjacques/semver-tool)
+- [jq](https://stedolan.github.io/jq/)
+
+### Docker Usage
 
 This discord bot is built with python using the [discord.py library](https://discordpy.readthedocs.io/en/stable/api.html) and requires a mysql db with credentials stored in a .env file ([.env example](.env-example)). To develop locally, docker is used to standardize infrastructure and dependencies.
 
@@ -45,12 +51,6 @@ UPDATE users SET score=42069, spins=420, jackpots=69, wager=25, high_roller=1 WH
 
 ### Kubernetes Usage
 
-Dependencies
-
-- [Docker](https://docs.docker.com/get-docker/)
-- [KinD](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-from-release-binaries)
-- [Helm](https://helm.sh/docs/intro/install/)
-
 AGIMUS can also be deployed in kubernetes. The provided helm chart includes a persistent volume claim for mysql to run in a pod, and the agimus container itself. To run AGIMUS in a KinD cluster, use the following makefile targets:
 
 ```bash
@@ -68,6 +68,14 @@ make kind-load
 
 # Install AGIMUS via helm and 
 make kind-test
+```
+
+To install AGIMUS in an existing kubernetes cluster, a helm chart is published in this repository (note: ensure .env file is populated):
+
+```bash
+helm repo add agimus https://jp00p.github.io/AGIMUS
+kubectl create namespace agimus
+make helm-install
 ```
 
 ## Discord Permissions
@@ -137,7 +145,7 @@ In addition to the `/` and `!` commands we have a special case for handling mess
 
 | Command                                  | File                                          | Description                                                                                                                             |
 | :--------------------------------------- | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| `[Computer:\|AGIMUS:] <text query>`       | [computer.py](commands/computer.py)           | Runs the user's query against Wolfram Alpha to provide a Star Trek "Computer"-like experience with context-aware responses.             |
+| `[Computer:\|AGIMUS:] <text query>`      | [computer.py](commands/computer.py)           | Runs the user's query against Wolfram Alpha to provide a Star Trek "Computer"-like experience with context-aware responses.             |
 
 #### Generating a Wolfram Alpha API ID
 

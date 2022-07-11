@@ -137,7 +137,7 @@ helm-install: helm-config ## Install AGIMUS helm chart
 		--namespace $(namespace) \
 		--set image.repository=$(BOT_CONTAINER_NAME) \
 		--set image.tag=$(shell make --no-print-directory version) \
-		agimus charts/agimus
+		agimus agimus/agimus
 
 .PHONY: helm-uninstall
 helm-uninstall: helm-config-rm ## Remove AGIMUS helm chart
