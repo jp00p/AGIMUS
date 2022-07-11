@@ -26,9 +26,8 @@ from utils.check_channel_access import access_check
 )
 @commands.check(access_check)
 async def profile(ctx:discord.ApplicationContext, public:str):
-  await ctx.defer(ephemeral=True)
-  
   public = bool(public == "yes")
+  await ctx.defer(ephemeral=not public)
   user = ctx.author
   player = get_user(user.id)
   logger.info(f"{Fore.CYAN}{user.display_name} is looking at their own {Back.WHITE}{Fore.BLACK}profile card!{Back.RESET}{Fore.RESET}")
