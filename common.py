@@ -227,25 +227,6 @@ def register_player(user):
   db.close()
   return int(user.id)
 
-
-# update_player_profile_card(discord_id, card)
-# discord_id[required]: int
-# card[required]: string
-# This function will update the profile_card value
-# for a specific user
-def update_player_profile_card(discord_id, card):
-  logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new card: {Fore.CYAN}{card}{Fore.RESET}")
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE users SET profile_card = %s WHERE discord_id = %s"
-  vals = (card, discord_id)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
-
-
-
 # update_user(discord_id, key, value)
 # discord_id[required]: int
 # key[required]: string
@@ -287,25 +268,11 @@ def update_user(discord_id, key, value):
     db.close()
 
 
-# update_player_profile_badge(discord_id, badge)
-# discord_id[required]: int
-# badge[required]: string
-# This function will update the profile_badge value
-# for a specific user
-def update_player_profile_badge(discord_id, badge):
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE users SET profile_badge = %s WHERE discord_id = %s"
-  vals = (badge, discord_id)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
-
 # set_player_score(user, amt)
 # user[required]: object
 # amt[required]: int
 # This function increases a player's score by the value amt
+# NOTE: THIS IS USED BY MULTIPLE GAMES!
 def set_player_score(user, amt):
   db = getDB()
   query = db.cursor()

@@ -1,10 +1,12 @@
 {
-  "roles": {
-    "High Roller": {
-      "id": 894594667893641236,
-      "price": 9999
+  "roles": [
+    {
+      "name": "High Roller",
+      "id": 993234668428206115,
+      "price": 9999,
+      "preview_url": "https://i.imgur.com/4dMPsKM.png"
     }
-  },
+  ],
   "cards": [
     {
       "name": "Archer",
@@ -115,18 +117,66 @@
       "preview_url": "https://i.imgur.com/XzZrm3h.png"
     }
   ],
-  "badges": {
-    "TGG TNG Logo": "TGG_TNG_logo.jpg",
-    "TGG DS9 Logo": "TGG_DS9_logo.png",
-    "TGD Logo": "TGD_logo.png",
-    "Adam Pranica": "adam_lmao.png",
-    "Ben Harrison": "ben420laughlmao.png",
-    "Card Daddy": "bill_cardaddy_thumbsup.png",
-    "Heart": "heart.png",
-    "Horgahn": "horgahn.png",
-    "Banger": "icon_banger_no_background_small.png",
-    "Mr. Bucket": "mr-bucket.png",
-    "Ding!": "ding_bell.png",
-    "Bashir's Special": "bashir_splash.png"
-  }
+  "badges": [
+    {
+      "name": "Adam Pranica",
+      "preview_url": "https://i.imgur.com/BK5j27J.png",
+      "file": "adam_lmao.png"
+    },
+    {
+      "name": "Banger",
+      "preview_url": "https://i.imgur.com/pZDzeYi.png",
+      "file": "icon_banger_no_background_small.png"
+    },
+    {
+      "name": "Bashir's Special",
+      "preview_url": "https://i.imgur.com/2FrSagU.png",
+      "file": "bashir_splash.png"
+    },
+    {
+      "name": "Ben Harrison",
+      "preview_url": "https://i.imgur.com/ac316Bx.png",
+      "file": "ben420laughlmao.png"
+    },
+    {
+      "name": "Card Daddy",
+      "preview_url": "https://i.imgur.com/YPlxTZ2.png",
+      "file": "bill_cardaddy_thumbsup.png"
+    },
+    {
+      "name": "Ding!",
+      "preview_url": "https://i.imgur.com/Y7nrwjf.png",
+      "file": "ding_bell.png"
+    },
+    {
+      "name": "Heart",
+      "preview_url": "https://i.imgur.com/XX1zEca.png",
+      "file": "heart.png"
+    },
+    {
+      "name": "Horgahn",
+      "preview_url": "https://i.imgur.com/k3jze41.png ",
+      "file": "horgahn.png"
+    },
+    {
+      "name": "Mr. Bucket",
+      "preview_url": "https://i.imgur.com/N6wdher.png",
+      "file": "mr-bucket.png"
+    },
+    {
+      "name": "TGD Logo",
+      "preview_url": "https://i.imgur.com/OfDdspa.png",
+      "file": "TGD_logo.png"
+    },
+    {
+      "name": "TGG DS9 Logo",
+      "preview_url": "https://i.imgur.com/GEABirD.png",
+      "file": "TGG_DS9_logo.png"
+    },
+    {
+      "name": "TGG TNG Logo",
+      "preview_url": "https://i.imgur.com/eo5jsUF.jpg",
+      "file": "TGG_TNG_logo.png"
+    }
+  ]
 }
