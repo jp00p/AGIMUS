@@ -6,6 +6,7 @@
 from common import *
 
 # Slash Commands
+from commands.badges import badges
 from commands.dustbuster import dustbuster
 from commands.fmk import fmk
 from commands.help import help
@@ -55,7 +56,7 @@ from handlers.bot_autoresponse import handle_bot_affirmations
 from handlers.save_message import save_message_to_db
 from handlers.server_logs import *
 from handlers.starboard import get_all_starboard_posts, handle_starboard_reactions
-from handlers.xp import handle_message_xp, handle_react_xp
+from handlers.xp import handle_message_xp, handle_react_xp, calculate_xp_for_next_level
 
 # Tasks
 from tasks.bingbong import bingbong_task
@@ -84,7 +85,7 @@ async def on_message(message:discord.Message):
     await bot.process_commands(message)
   except BaseException as e:
     logger.info(f"{Fore.RED}<! ERROR: Encountered error in process_commands !> {e}{Fore.RESET}")
-    logger.info(traceback.format_exc())    
+    logger.info(traceback.format_exc())
 
   # message logging
   try:
@@ -182,7 +183,11 @@ async def on_ready():
       agimus_ascii = f.readlines()
     logger.info(''.join(agimus_ascii))
     logger.info(f"{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}")
-    logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")
+    logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")      
+
+    # generate local files if the list doesn't exist already
+    if not os.path.exists("./local-channel-list.json"):
+      generate_local_channel_list(bot)
 
     # Set a fun random presence
     random_presences = [

@@ -21,10 +21,18 @@ CREATE TABLE IF NOT EXISTS users (
   profile_badge varchar(255) DEFAULT NULL,
   high_roller tinyint(1) DEFAULT 0,
   chips varchar(255) DEFAULT '10',
+  xp_enabled BOOLEAN NOT NULL DEFAULT 1,
   xp int(11) DEFAULT 0,
+  level int(11) DEFAULT 1,
   log_messages int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)
+);
+CREATE TABLE IF NOT EXISTS badges (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id varchar(64) NOT NULL,
+  badge_name varchar(128) NOT NULL,
+  PRIMARY KEY (id)
 );
 CREATE TABLE IF NOT EXISTS reactions (
   id int(11) NOT NULL AUTO_INCREMENT,
