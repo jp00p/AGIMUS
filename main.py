@@ -25,7 +25,6 @@ import commands.drop
 import commands.clip
 
 # Bang Commands
-from commands.buy import buy
 from commands.categories import categories
 from commands.clear_media import clear_media
 from commands.computer import computer
@@ -37,7 +36,6 @@ from commands.quiz import quiz
 from commands.report import report
 from commands.scores import scores
 from commands.setwager import setwager
-from commands.shop import shop
 from commands.triv import *
 from commands.update_status import update_status
 from commands.wordcloud import wordcloud

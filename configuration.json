@@ -116,24 +116,6 @@
     }
   },
   "commands": {
-    "buy": {
-      "channels": [
-        "slotshop-dot-biz"
-      ],
-      "enabled": true,
-      "data": "data/shop.json",
-      "parameters": [
-        {
-          "name": "list",
-          "allowed": [
-            "profile",
-            "badge",
-            "role"
-          ],
-          "required": true
-        }
-      ]
-    },
     "reports": {
       "channels": [
         "mclaughlin-group",
@@ -456,17 +438,7 @@
       ],
       "enabled": true,
       "data": "data/shop.json",
-      "parameters": [
-        {
-          "name": "list",
-          "allowed": [
-            "profiles",
-            "badges",
-            "roles"
-          ],
-          "required": true
-        }
-      ]
+      "parameters": []
     },
     "slots spin": {
       "channels": [
