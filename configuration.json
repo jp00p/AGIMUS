@@ -61,6 +61,18 @@
           "hearts"
         ]
       }
+    },
+    "xp": {
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-office",
+        "heuristic-associative-pathways",
+        "mo-pips-mo-problemz",
+        "robot-diagnostics",
+        "megalomaniacal-computer-storage"
+      ],
+      "notification_channel": "ten-forward"
     }
   },
   "tasks": {
