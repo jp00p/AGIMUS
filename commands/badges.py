@@ -80,7 +80,6 @@ def generate_badge_showcase_for_user(user:discord.User):
     s = Image.new("RGBA", (badge_slot_size, badge_slot_size), (0, 0, 0, 0))
     badge_draw = ImageDraw.Draw(s)
     badge_draw.rounded_rectangle( (0, 0, badge_slot_size, badge_slot_size), fill="#111111", outline="#9a99ff", width=2, radius=32 )
-    
 
     # badge
     b = Image.open(f"./images/badges/{badge}").convert("RGBA")

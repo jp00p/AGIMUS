@@ -22,6 +22,7 @@ xp_colors = [
 current_color = 0
 blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
 notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
+#logger.info(f"Notification channel: {notification_channel_id}")
 
 # handle_message_xp(message) - calculates xp for a given message
 # message[required]: discord.Message
@@ -249,6 +250,7 @@ async def level_up_user(user:discord.User, level:int):
 # badge[required]:str
 async def send_level_up_message(user:discord.User, level:int, badge:str):
   channel = bot.get_channel(notification_channel_id)
+  #logger.info(f"Notification channel obj: {channel}")
   embed=discord.Embed(title="Level up!", description=f"{user.mention} has reached **level {level}** and earned a new badge!", color=discord.Color.random())
   # choose a random celebration image
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
