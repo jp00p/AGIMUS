@@ -26,6 +26,7 @@ from utils.check_channel_access import access_check
 )
 @commands.check(access_check)
 async def profile(ctx:discord.ApplicationContext, public:str):
+  await ctx.defer(ephemeral=True)
   
   public = bool(public == "yes")
   user = ctx.author
@@ -145,4 +146,4 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   # finalize image
   image.save("./images/profiles/"+str(user.id)+".png")
   discord_image = discord.File("./images/profiles/"+str(user.id)+".png")
-  await ctx.respond(file=discord_image, ephemeral=not public)
+  await ctx.followup.send(file=discord_image, ephemeral=not public)
