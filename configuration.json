@@ -136,7 +136,6 @@
     },
     "reports": {
       "channels": [
-        "robot-diagnostics",
         "mclaughlin-group",
         "mo-pips-mo-problems"
       ],
@@ -152,9 +151,7 @@
       "parameters": []
     },
     "clear_media": {
-      "channels": [
-        "robot-diagnostics"
-      ],
+      "channels": [],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -284,9 +281,7 @@
       "parameters": []
     },
     "ping": {
-      "channels": [
-        "robot-diagnostics"
-      ],
+      "channels": [],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -325,9 +320,7 @@
       "parameters": []
     },
     "qset": {
-      "channels": [
-        "robot-diagnostics"
-      ],
+      "channels": [],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -400,9 +393,7 @@
       ]
     },
     "restrict_emojis": {
-      "channels": [
-        "robot-diagnostics"
-      ],
+      "channels": [],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -479,8 +470,7 @@
     },
     "slots spin": {
       "channels": [
-        "slots-slots-slots",
-        "robot-diagnostics"
+        "slots-slots-slots"
       ],
       "enabled": true,
       "data": "data/slots.json",
@@ -489,7 +479,7 @@
           "name": "show",
           "allowed": [
             "TNG",
-            "TNG",
+            "DS9",
             "VOY",
             "HOLODECK",
             "SHIPS"
@@ -516,8 +506,7 @@
     },
     "testslots": {
       "channels": [
-        "slots-slots-slots",
-        "robot-diagnostics"
+        "slots-slots-slots"
       ],
       "enabled": true,
       "data": "data/testslots.json",
@@ -586,9 +575,7 @@
       "parameters": []
     },
     "update_status": {
-      "channels": [
-        "robot-diagnostics"
-      ],
+      "channels": [],
       "enabled": true,
       "data": null,
       "parameters": []

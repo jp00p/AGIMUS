@@ -10,7 +10,6 @@ chardet==4.0.0
 charset-normalizer==2.0.6
 click==8.0.1
 colorama==0.4.4
-discord==1.7.3
 docopt==0.6.2
 feedparser==6.0.9
 Flask==2.0.1
@@ -35,7 +34,7 @@ Pillow==8.3.2
 pint==0.19.2
 pipreqs==0.4.10
 protobuf==3.18.0
-py-cord==2.0.0rc1
+py-cord==2.0.0
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycares==4.0.0

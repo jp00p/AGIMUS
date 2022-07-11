@@ -19,10 +19,10 @@ You need to match three Star Trek characters/ships to win the jackpot!
 
 
 **COMMANDS**
-`!slots` - run a random slot machine!
-`!slots [tng|ds9|voy|holodeck|ships]` - run a specific slot machine
-`!setwager [1-25]` - set your default wager
-`!jackpots` - see a history of jackpots
-`!jackpot` - see the current jackpot value
-`!scores` - see the top scores
+`/slots spin` - run a random slot machine!
+`/slots spin [tng|ds9|voy|holodeck|ships]` - run a specific slot machine
+`/slots jackpot` - see the current jackpot value
+`/slots jackpots` - see a history of jackpots
 `/profile` - see your profile card
+`/setwager [1-25]` - set your default wager
+`!scores` - see the top scores

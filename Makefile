@@ -21,7 +21,6 @@ help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-
 .PHONY: setup
 setup: ## Install python dependencies via requirements.txt
 	@pip install -q -r requirements.txt --no-warn-script-location
-	@pip install --upgrade --no-deps --force-reinstall git+https://github.com/Pycord-Development/pycord
 
 .PHONY: start
 start: setup ## Start the bot via python
@@ -53,6 +52,10 @@ docker-restart: ## Restart the docker containers running mysql and AGIMUS
 docker-logs: ## Tail the logs of running containers
 	@docker-compose logs -f
 
+.PHONY: docker-cleanup
+docker-cleanup: ## Remove all AGIMUS containers from this system
+	docker images | grep agimus | awk '{print $$3}' | xargs -I {} docker rmi -f {}
+
 .PHONY: docker-lint
 docker-lint: ## Lint the container with dockle
 	dockle --version
@@ -83,19 +86,23 @@ db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 
 ##@ Kubernetes in Docker (KinD) stuff
 
+.PHONY: kind
+kind: kind-create kind-load helm-config-rm kind-test ## Create a KinD cluster, build docker container, load into cluster, and install with helm
+
 .PHONY: kind-create
 kind-create: ## Create a KinD cluster with local config-yaml
-	kind create cluster --config $(LOCAL_KIND_CONFIG) -v 5 || true
+	kind create cluster --config $(LOCAL_KIND_CONFIG) || true
 
 .PHONY: kind-load
 kind-load: ## Load $BOT_CONTAINER_NAME into a running kind cluster
 	@BOT_CONTAINER_VERSION=local make --no-print-directory docker-build
 	kind load docker-image $(BOT_CONTAINER_NAME):local
-	@kubectl create namespace $(namespace) || true
-	@make helm-config
 
 .PHONY: kind-test
 kind-test: ## Install AGIMUS into a running KinD cluster with helm
+	@kubectl create namespace $(namespace) || true
+	@make helm-config-rm
+	@make helm-config
 	helm upgrade --install --debug --wait \
 		--namespace $(namespace) \
 		--set image.repository=$(BOT_CONTAINER_NAME) \
@@ -130,7 +137,7 @@ helm-install: helm-config ## Install AGIMUS helm chart
 		--namespace $(namespace) \
 		--set image.repository=$(BOT_CONTAINER_NAME) \
 		--set image.tag=$(shell make --no-print-directory version) \
-		agimus charts/agimus
+		agimus agimus/agimus
 
 .PHONY: helm-uninstall
 helm-uninstall: helm-config-rm ## Remove AGIMUS helm chart
@@ -157,6 +164,18 @@ helm-db-pod: ## Display the pod name for mysql
 .PHONY: helm-agimus-pod
 helm-agimus-pod: ## Display the pod name for AGIMUS
 	@kubectl --namespace $(namespace) get pods --template '{{range .items}}{{.metadata.name}}{{end}}' --selector=app=agimus
+
+.PHONY: helm-bump-patch
+helm-bump-patch: ## Bump-patch the semantic version of the helm chart using semver tool
+	sed -i 's/'$(shell make version)'/v'$(shell semver bump patch $(shell make version))'/g' charts/agimus/Chart.yaml
+
+.PHONY: helm-bump-minor
+helm-bump-minor: ## Bump-minor the semantic version of the helm chart using semver tool
+	sed -i 's/'$(shell make version)'/v'$(shell semver bump minor $(shell make version))'/g' charts/agimus/Chart.yaml
+
+.PHONY: helm-bump-major
+helm-bump-major: ## Bump-major the semantic version of the helm chart using semver tool
+	sed -i 's/'$(shell make version)'/v'$(shell semver bump major $(shell make version))'/g' charts/agimus/Chart.yaml
 
 ##@ Miscellaneous stuff
 

@@ -7,7 +7,7 @@ replicas: 1
 
 
 image:
-  repository: ghcr.io/mathew-fleisch/agimus
+  repository: ghcr.io/jp00p/agimus
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   # tag: ""

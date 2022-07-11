@@ -29,9 +29,7 @@ from commands.buy import buy
 from commands.categories import categories
 from commands.clear_media import clear_media
 from commands.computer import computer
-from commands.jackpot import jackpot, jackpots
 from commands.ping import ping
-from commands.poker import *
 from commands.q import qget, qset
 from commands.report import report
 from commands.reports import reports
@@ -47,8 +45,10 @@ from commands.wordcloud import wordcloud
 # Cogs
 from cogs.slots import Slots
 from cogs.ping import Ping
+from cogs.poker import Poker
 bot.add_cog(Slots(bot))
 bot.add_cog(Ping(bot))
+bot.add_cog(Poker(bot))
 
 # Handlers
 from handlers.alerts import handle_alerts
@@ -77,7 +77,6 @@ background_tasks = set() # for non-blocking tasks
 # listens to every message on the server that the bot can see
 @bot.event
 async def on_message(message:discord.Message):
-
   # Ignore all messages from any bot
   if message.author == bot.user or message.author.bot:
     return

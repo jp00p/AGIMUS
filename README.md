@@ -6,11 +6,17 @@ The Friends of DeSoto are a group of fans of Star Trek and [The Greatest Generat
 
 Provided in this repository is a makefile to aid in building, testing and running AGIMUS in a variety of deployment environments. To see all available makefile targets, clone the repository and run `make help` in a terminal.
 
-### Docker Usage
+### Local Dependencies
 
-Dependencies
+To execute makefile commands, some third-party dependencies must be installed locally to run, build and test AGIMUS:
 
 - [Docker](https://docs.docker.com/get-docker/)
+- [KinD](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-from-release-binaries)
+- [Helm](https://helm.sh/docs/intro/install/)
+- [Semver](https://github.com/fsaintjacques/semver-tool)
+- [jq](https://stedolan.github.io/jq/)
+
+### Docker Usage
 
 This discord bot is built with python using the [discord.py library](https://discordpy.readthedocs.io/en/stable/api.html) and requires a mysql db with credentials stored in a .env file ([.env example](.env-example)). To develop locally, docker is used to standardize infrastructure and dependencies.
 
@@ -45,12 +51,6 @@ UPDATE users SET score=42069, spins=420, jackpots=69, wager=25, high_roller=1 WH
 
 ### Kubernetes Usage
 
-Dependencies
-
-- [Docker](https://docs.docker.com/get-docker/)
-- [KinD](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-from-release-binaries)
-- [Helm](https://helm.sh/docs/intro/install/)
-
 AGIMUS can also be deployed in kubernetes. The provided helm chart includes a persistent volume claim for mysql to run in a pod, and the agimus container itself. To run AGIMUS in a KinD cluster, use the following makefile targets:
 
 ```bash
@@ -68,6 +68,14 @@ make kind-load
 
 # Install AGIMUS via helm and 
 make kind-test
+```
+
+To install AGIMUS in an existing kubernetes cluster, a helm chart is published in this repository (note: ensure .env file is populated):
+
+```bash
+helm repo add agimus https://jp00p.github.io/AGIMUS
+kubectl create namespace agimus
+make helm-install
 ```
 
 ## Discord Permissions
@@ -95,21 +103,19 @@ The bot now requires `Intents.members` and `Intents.presences`.  You must enable
 
 Bot commands are triggered by typing an exclamation point followed by a command. Commands must be defined in the [configuration.json](configuration.json) file, a python file in the [commands directory](commands), and an import line added to [main.py](main.py).
 
-| Command                                                                                                                                                           | File                                          | Description                                                                                                                             |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------                  | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| `!buy [profile \| badge \| role] [item_number]`                                                                                                                   | [buy.py](commands/buy.py)                     | Allows user to "buy" a profile, badge or role from points earned playing bot games (see `!shop` command for options)                    |
-| `!categories`                                                                                                                                                     | [categories.py](commands/categories.py)       | Show possible trivia categories                                                                                                         |
-| `!ping`                                                                                                                                                           | [ping.py](commands/ping.py)                   | respond pong                                                                                                                            |
-| `!poker`                                                                                                                                                          | [poker.py](commands/poker.py)                 | 5 card stud style game                                                                                                                  |
-| `!qget [user]`                                                                                                                                                    | [q.py](commands/q.py)                         | Get the information in mysql for a specific user                                                                                        |
-| `!qset [user] [score \| spins \| jackpots \| wager \| high_roller \| chips \| profile_card \| profile_badge \| xp] [new-value]`                                   | [q.py](commands/q.py)                         | Set a value of a specific user in mysql                                                                                                 |
-| `!quiz [tng \| voy \| ds9 \| friends \| firefly \| simpsons \| enterprise \| tos \| lowerdecks \| disco \| picard \| tas \| sunny]`                               | [quiz.py](commands/quiz.py)                   | Guess the episode from a screen-shot!                                                                                                   |
-| `!scores`                                                                                                                                                         | [scores.py](commands/scores.py)               | Show the leaderboard of points                                                                                                          |
-| `!setwager`                                                                                                                                                       | [setwager.py](commands/setwager.py)           | Wager value for poker game                                                                                                              |
-| `!shop [profiles \| badges \| roles]`                                                                                                                             | [shop.py](commands/shop.py)                   | Possible options to `!buy`                                                                                                              |
-| `$testslots`                                                                                                                                                      | [testslots.py](commands/testslots.py)         | Restricted command to run through 1k `/slots spin` commands to test success/failure rate                                                     |
-| `!triv`                                                                                                                                                           | [triv.py](commands/triv.py)                   | Trivia game                                                                                                                             |
-| `!update_status [game \| listen \| watch] <status>`                                                                                                               | [update_status.py](commands/update_status.py) | Update the bot's server profile status                                                                                                  |
+| Command                                                                                                                                           | File                                          | Description                                                                                                                             |
+| :-----------------------------------------------------------------------------------------------------------------------------------------------  | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `!buy [profile \| badge \| role] [item_number]`                                                                                                   | [buy.py](commands/buy.py)                     | Allows user to "buy" a profile, badge or role from points earned playing bot games (see `!shop` command for options)                    |
+| `!categories`                                                                                                                                     | [categories.py](commands/categories.py)       | Show possible trivia categories                                                                                                         |
+| `!ping`                                                                                                                                           | [ping.py](commands/ping.py)                   | respond pong                                                                                                                            |
+| `!qget [user]`                                                                                                                                    | [q.py](commands/q.py)                         | Get the information in mysql for a specific user                                                                                        |
+| `!qset [user] [score \| spins \| jackpots \| wager \| high_roller \| chips \| profile_card \| profile_badge \| xp] [new-value]`                   | [q.py](commands/q.py)                         | Set a value of a specific user in mysql                                                                                                 |
+| `!quiz [tng \| voy \| ds9 \| friends \| firefly \| simpsons \| enterprise \| tos \| lowerdecks \| disco \| picard \| tas \| sunny]`               | [quiz.py](commands/quiz.py)                   | Guess the episode from a screen-shot!                                                                                                   |
+| `!scores`                                                                                                                                         | [scores.py](commands/scores.py)               | Show the leaderboard of points                                                                                                          |
+| `!shop [profiles \| badges \| roles]`                                                                                                             | [shop.py](commands/shop.py)                   | Possible options to `!buy`                                                                                                              |
+| `$testslots`                                                                                                                                      | [testslots.py](commands/testslots.py)         | Restricted command to run through 1k `/slots spin` commands to test success/failure rate                                                |
+| `!triv`                                                                                                                                           | [triv.py](commands/triv.py)                   | Trivia game                                                                                                                             |
+| `!update_status [game \| listen \| watch] <status>`                                                                                               | [update_status.py](commands/update_status.py) | Update the bot's server profile status                                                                                                  |
 
 ### Slash Commands
 
@@ -117,15 +123,17 @@ Slash commands are triggered by typing a forward slash (`/`) followed by the com
 
 | Command                                                                                                                                                           | File                                       | Description                                                                                                                                         |
 | :-----------------------------------------------------------------------------------------------------------------------------------------------                  | :----------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/clip [post\|list] <query> (<private>)`                                                                                                                                       | [clip.py](commands/clip.py)                | Posts a .mp4 clip file if it finds a match from the user's query. Clips are short videos while drops are for pod audio.                |
-| `/drop [post\list] <query> (<private>)`                                                                                                                                       | [drop.py](commands/drop.py)                | Posts a .mp4 drop file if it finds a match from the user's query. Drops are for audio from the pod while clips are for short videos.    |
+| `/clip [post\|list] <query> (<private>)`                                                                                                                          | [clip.py](commands/clip.py)                | Posts a .mp4 clip file if it finds a match from the user's query. Clips are short videos while drops are for pod audio.                             |
+| `/drop [post\list] <query> (<private>)`                                                                                                                           | [drop.py](commands/drop.py)                | Posts a .mp4 drop file if it finds a match from the user's query. Drops are for audio from the pod while clips are for short videos.                |
 | `/dustbuster`                                                                                                                                                     | [dustbuster.py](commands/dustbuster.py)    | Return 5 random trek characters as discussion prompt                                                                                                |
 | `/fmk`                                                                                                                                                            | [fmk.py](commands/fmk.py)                  | Return 3 random trek characters as discussion prompt                                                                                                |
 | `/help`                                                                                                                                                           | [help.py](commands/help.py)                | Show a help message for a specific channel                                                                                                          |
 | `/info [tng \| voy \| ds9 \| friends \| firefly \| simpsons \| enterprise \| tos \| lowerdecks \| disco \| picard \| tas \| sunny] [s##e##]`                      | [info.py](commands/info.py)                | Show information about a specific episode!                                                                                                          |
+| `/setwager`                                                                                                                                                       | [setwager.py](commands/setwager.py)        | Wager value for poker game                                                                                                                          |
 | `/slots jackpot`                                                                                                                                                  | [jackpot.py](commands/jackpot.py)          | Show the current jackpot value                                                                                                                      |
 | `/slots jackpots`                                                                                                                                                 | [jackpots.py](commands/jackpots.py)        | Show the last 10 jackpot winners                                                                                                                    |
 | `/slots spin [tng \| ds9 \| voy \| holodeck \| ships]`                                                                                                            | [slots.py](cogs/slots.py)                  | Slot machine game with trek characters or ships                                                                                                     |
+| `/poker`                                                                                                                                                          | [poker.py](commands/poker.py)              | 5 card stud style game                                                                                                                              |
 | `/profile`                                                                                                                                                        | [profile.py](commands/profile.py)          | Generate profile card with user statistics/options                                                                                                  |
 | `/randomep [trek \| nontrek \| any \| tos \| tas \| tng \| ds9 \| voy \| enterprise \| lowerdecks \| disco \| picard \| friends \| firefly \| simpsons \| sunny]` | [randomep.py](commands/randomep.py)        | Show information about a random episode!                                                                                                            |
 | `/trekduel`                                                                                                                                                       | [trekduel.py](commands/trekduel.py)        | Return 2 random trek characters as discussion prompt                                                                                                |
@@ -137,7 +145,7 @@ In addition to the `/` and `!` commands we have a special case for handling mess
 
 | Command                                  | File                                          | Description                                                                                                                             |
 | :--------------------------------------- | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| `[Computer:\|AGIMUS:] <text query>`       | [computer.py](commands/computer.py)           | Runs the user's query against Wolfram Alpha to provide a Star Trek "Computer"-like experience with context-aware responses.             |
+| `[Computer:\|AGIMUS:] <text query>`      | [computer.py](commands/computer.py)           | Runs the user's query against Wolfram Alpha to provide a Star Trek "Computer"-like experience with context-aware responses.             |
 
 #### Generating a Wolfram Alpha API ID
 

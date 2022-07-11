@@ -18,7 +18,7 @@ clip = bot.create_group("clip", "Clip Commands!")
 # List the available clips by key and send to user as ephemeral
 @clip.command(
   name="list",
-  description="Retrieve the List of Clips.",
+  description="Retrieve the List of Clips",
 )
 async def clips_list(ctx:discord.ApplicationContext):
   logger.info(f"{Fore.RED}Firing `/clips list` command, requested by {ctx.author.name}!{Fore.RESET}")
@@ -41,7 +41,7 @@ async def clips_list(ctx:discord.ApplicationContext):
 # then send the .mp4 file
 @clip.command(
   name="post",
-  description="Send a clip to the channel!",
+  description="Send a clip to the channel or to just yourself via the <private> option",
 )
 @option(
   name="query",

@@ -1,28 +1,46 @@
 from common import *
 
 
-# setwager() - Entrypoint for !setwager command
+wager_choices = []
+for i in range(1, 26):
+  wager_choice = discord.OptionChoice(
+    name=str(i),
+    value=i
+  )
+  wager_choices.append(wager_choice)
+
+# setwager() - Entrypoint for /setwager command
 # message[required]: discord.Message
-# This function is the main entrypoint of the !setwager command
+# This function is the main entrypoint of the /setwager command
 # and will a user's wager value to the amount passed between 1-25
-async def setwager(message:discord.Message):
+@bot.slash_command(
+  name="setwager",
+  description="Set your default wager for /poker and /slots"
+)
+@option(
+  name="wager",
+  description="How much would you like to wager?",
+  required=True,
+  choices=wager_choices
+)
+async def setwager(ctx:discord.ApplicationContext, wager:int):
   min_wager = 1
   max_wager = 25
-  wager_val = message.content.lower().replace("!setwager ", "")
-  player = get_user(message.author.id)
+  player = get_user(ctx.author.id)
   current_wager = player["wager"]
-  if wager_val.isnumeric():
-    wager_val = int(wager_val)
-    if wager_val >= min_wager and wager_val <= max_wager:
-      set_player_wager(message.author.id, wager_val)
-      msg = f"{message.author.mention}: Your default wager has been changed from `{current_wager}` to `{wager_val}`"
-      await message.channel.send(msg)
-    else:
-      msg = f"{message.author.mention}: Wager must be a whole number between `{min_wager}` and `{max_wager}`\nYour current wager is: `{current_wager}`"
-      await message.channel.send(msg)
+  if wager >= min_wager and wager <= max_wager:
+    set_player_wager(ctx.author.id, wager)
+    await ctx.respond(embed=discord.Embed(
+      title="Wager Updated!",
+      description=f"{ctx.author.mention}: Your default wager has been changed from `{current_wager}` to `{wager}`",
+      color=discord.Color.green()
+    ), ephemeral=True)
   else:
-    msg = f"{message.author.mention}: Wager must be a whole number between `{min_wager}` and `{max_wager}`\nYour current wager is: `{current_wager}`"
-    await message.channel.send(msg)
+    await ctx.respond(embed=discord.Embed(
+      title="Invalid Wager",
+      description=f"{ctx.author.mention}: Wager must be between `{min_wager}` and `{max_wager}`\nYour current wager is: `{current_wager}`",
+      color=discord.Color.red()
+    ), ephemeral=True)
 
 
 # set_player_wager(discord_id, amt)

@@ -2,8 +2,8 @@
 Just plain, basic poker -- Riker style.
 
 **COMMANDS**
-`!poker` - play a round
-`!setwager #` set your wager to 1-25!
+`/poker` - play a round
+`/setwager #` set your wager to 1-25!
 
 **PAYOUTS**
 `high card -------> x0`
