@@ -165,6 +165,18 @@ helm-db-pod: ## Display the pod name for mysql
 helm-agimus-pod: ## Display the pod name for AGIMUS
 	@kubectl --namespace $(namespace) get pods --template '{{range .items}}{{.metadata.name}}{{end}}' --selector=app=agimus
 
+.PHONY: helm-bump-patch
+helm-bump-patch: ## Bump-patch the semantic version of the helm chart using semver tool
+	sed -i 's/'$(shell make version)'/v'$(shell semver bump patch $(shell make version))'/g' charts/agimus/Chart.yaml
+
+.PHONY: helm-bump-minor
+helm-bump-minor: ## Bump-minor the semantic version of the helm chart using semver tool
+	sed -i 's/'$(shell make version)'/v'$(shell semver bump minor $(shell make version))'/g' charts/agimus/Chart.yaml
+
+.PHONY: helm-bump-major
+helm-bump-major: ## Bump-major the semantic version of the helm chart using semver tool
+	sed -i 's/'$(shell make version)'/v'$(shell semver bump major $(shell make version))'/g' charts/agimus/Chart.yaml
+
 ##@ Miscellaneous stuff
 
 .PHONY: update-shows

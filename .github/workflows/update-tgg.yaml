@@ -44,7 +44,7 @@ jobs:
           git add data/episodes/*.json
           if [[ $(git status --porcelain) ]]; then
             # metadata was updated, bump/patch the semver in the helm chart and push to main
-            sed -i 's/'$(make version)'/v'$(semver bump patch $(make version))'/g' charts/agimus/Chart.yaml
+            make helm-bump-patch
             git add charts/agimus/Chart.yaml
             git commit -m "Update The Greatest Generation Metadata - $(date)"
             git push origin main
