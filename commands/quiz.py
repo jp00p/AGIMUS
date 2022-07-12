@@ -74,7 +74,7 @@ async def quiz(message:discord.Message):
         CORRECT_ANSWERS[id] = { "name": message.author.mention, "points":award }
     else:
       if (ratio >= threshold-6 and pratio >= threshold-6):
-        await message.add_reaction(EMOJI["shocking"])
+        await message.add_reaction(config["emojis"]["q_shocking"])
 
 @tasks.loop(seconds=31,count=1)
 async def episode_quiz(message):

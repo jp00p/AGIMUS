@@ -42,8 +42,9 @@ async def badges(ctx:discord.ApplicationContext, public:str):
 )
 # give a random badge to a user
 async def gift_badge(ctx:discord.ApplicationContext, username:str):
-  username = username.replace("@", "")
-  user = discord.utils.get(ctx.guild.members, name=username)
+  selected_user = username.replace("<@", "").replace(">","").replace("!", "").strip()
+  logger.info(f"Attempting to gift badge to {selected_user}")
+  user = await bot.fetch_user(selected_user)
   if not user:
     await ctx.respond("No user found by that name!", ephemeral=True)
   else:

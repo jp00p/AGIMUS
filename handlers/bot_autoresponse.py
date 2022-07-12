@@ -32,10 +32,10 @@ async def handle_bot_affirmations(message:discord.Message):
 
 async def respond_to_sass(message:discord.Message):
   logger.info(f"{BOT_NAME} received some {Fore.YELLOW}sass{Fore.RESET} from {Fore.LIGHTBLUE_EX}{message.author.display_name}{Fore.RESET}")
-  await message.add_reaction(EMOJI["q_shocking"])
+  await message.add_reaction(config["emojis"]["q_shocking"])
   await message.reply(random.choice(config["bot_condemnation_responses"]), mention_author=True)
 
 async def respond_to_praise(message:discord.Message):
   logger.info(f"{BOT_NAME} received some {Fore.RED}love{Fore.RESET} from {Fore.LIGHTBLUE_EX}{message.author.display_name}{Fore.RESET}")
-  await message.add_reaction(EMOJI["q_shocking"])
+  await message.add_reaction(config["emojis"]["q_shocking"])
   await message.reply(random.choice(config["bot_affirmation_responses"]), mention_author=True)
