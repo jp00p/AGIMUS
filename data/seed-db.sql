@@ -21,10 +21,10 @@ CREATE TABLE IF NOT EXISTS users (
   profile_badge varchar(255) DEFAULT NULL,
   high_roller tinyint(1) DEFAULT 0,
   chips varchar(255) DEFAULT '10',
-  xp_enabled BOOLEAN NOT NULL DEFAULT 1,
   xp int(11) DEFAULT 0,
-  level int(11) DEFAULT 1,
   log_messages int(11) NOT NULL DEFAULT 0,
+  xp_enabled BOOLEAN NOT NULL DEFAULT 1,
+  level int(11) DEFAULT 1,  
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)
 );
