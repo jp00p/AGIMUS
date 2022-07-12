@@ -64,7 +64,7 @@ class Shop(commands.Cog):
     f.close()
 
     self.init_card_pages()
-    self.init_badge_pages()
+    self.init_pin_pages()
     self.init_role_pages()
 
 
@@ -87,23 +87,23 @@ class Shop(commands.Cog):
     return self.card_pages
 
 
-  def init_badge_pages(self):
-    self.badge_pages = []
-    for idx, badge in enumerate(self.shop_data["badges"]):
-      badge_embed = discord.Embed(
-        title="🎖️ Profile Badge Shop 🎖️",
-        description=f"`25 points` each.\n\n**{badge['name']}**",
+  def init_pin_pages(self):
+    self.pin_pages = []
+    for idx, pin in enumerate(self.shop_data["pins"]):
+      pin_embed = discord.Embed(
+        title="🎖️ Profile Pin Shop 🎖️",
+        description=f"`25 points` each.\n\n**{pin['name']}**",
         color=discord.Color(0xFFFFFF)
       )
-      badge_embed.set_image(url=badge["preview_url"])
-      badge_embed.set_footer(
+      pin_embed.set_image(url=pin["preview_url"])
+      pin_embed.set_footer(
         text="All proceeds go directly to the jackpot!"
       )
-      card_page = ShopPage(self, badge_embed, "badges", idx)
-      self.badge_pages.append(card_page)
+      card_page = ShopPage(self, pin_embed, "pins", idx)
+      self.pin_pages.append(card_page)
 
-  def get_badge_pages(self):
-    return self.badge_pages
+  def get_pin_pages(self):
+    return self.pin_pages
 
 
   def init_role_pages(self):
@@ -143,7 +143,7 @@ class Shop(commands.Cog):
       category = purchase_record["category"]
       if category == "cards":
         cost = 100
-      elif category == "badges":
+      elif category == "pins":
         cost = 25
 
       player = get_user(interaction.user.id)
@@ -162,17 +162,17 @@ class Shop(commands.Cog):
             update_player_profile_card(interaction.user.id, card_name)
             result["success"] = True
             result["message"] = f"You have spent `{cost} points` and purchased the **{card_name.title()}** profile card!\n\nType `/profile` to check it out!"
-        elif category == "badges":
-          badge = self.shop_data["badges"][purchase_record["page"]]
-          badge_file = badge["file"]
-          badge_name = badge["name"]
-          if badge_file == player["profile_badge"]:
+        elif category == "pins":
+          pin = self.shop_data["pins"][purchase_record["page"]]
+          pin_file = pin["file"]
+          pin_name = pin["name"]
+          if pin_file == player["profile_badge"]:
             result["success"] = False
-            result["message"] = f"You already have the **{badge_name}** badge set in your profile! \nWe gotchu, no points spent.\n\nType `/profile` to check it out!"  
+            result["message"] = f"You already have the **{pin_name}** pin set in your profile! \nWe gotchu, no points spent.\n\nType `/profile` to check it out!"  
           else:
-            update_player_profile_badge(interaction.user.id, badge_file)
+            update_player_profile_pin(interaction.user.id, pin_file)
             result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{badge_name}** badge!\n\nType `/profile` to check it out!"
+            result["message"] = f"You have spent `{cost} points` and purchased the **{pin_name}** pin!\n\nType `/profile` to check it out!"
         elif category == "roles":
           role = self.shop_data["roles"][purchase_record["page"]]
           role_name = role["name"]
@@ -290,10 +290,10 @@ class Shop(commands.Cog):
 
 
   @shop.command(
-    name="badges",
-    description="Shop for Profile Badges!"
+    name="pins",
+    description="Shop for Profile pins!"
   )
-  async def badges(self, ctx: discord.ApplicationContext):
+  async def pins(self, ctx: discord.ApplicationContext):
     try:
       existing_purchase_record = self.get_purchase_record(ctx)
 
@@ -305,7 +305,7 @@ class Shop(commands.Cog):
       view.add_item(BuyButton(self))
 
       paginator = pages.Paginator(
-        pages=self.get_badge_pages(),
+        pages=self.get_pin_pages(),
         use_default_buttons=False,
         custom_buttons=self.get_custom_buttons(),
         trigger_on_display=True,
@@ -314,7 +314,7 @@ class Shop(commands.Cog):
       )
       original_interaction = await paginator.respond(ctx.interaction, ephemeral=True)
       self.upsert_purchase_record(ctx.author.id, {
-        "category": "badges",
+        "category": "pins",
         "page": 0,
         "page_interaction": original_interaction
       })
@@ -380,17 +380,17 @@ def update_player_profile_card(discord_id, card):
   db.close()
 
 
-# update_player_profile_badge(discord_id, badge)
+# update_player_profile_pin(discord_id, pin)
 # discord_id[required]: int
-# badge[required]: string
+# pin[required]: string
 # This function will update the profile_badge value
 # for a specific user
-def update_player_profile_badge(discord_id, badge):
-  logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new badge: {Fore.CYAN}{badge}{Fore.RESET}")
+def update_player_profile_pin(discord_id, pin):
+  logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new pin: {Fore.CYAN}{pin}{Fore.RESET}")
   db = getDB()
   query = db.cursor()
   sql = "UPDATE users SET profile_badge = %s WHERE discord_id = %s"
-  vals = (badge, discord_id)
+  vals = (pin, discord_id)
   query.execute(sql, vals)
   db.commit()
   query.close()

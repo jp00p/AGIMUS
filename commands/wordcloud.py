@@ -64,7 +64,8 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
   if user["log_messages"] and user["log_messages"] != 1:
     await ctx.respond(content="You do not have logging enabled. Use `/wordcloud enable_logging Yes` to start logging so AGIMUS can generate a wordcloud for you!", ephemeral=True)
     return
-
+  
+  await ctx.defer()
   # get their message data
   user_details = get_wordcloud_text_for_user(ctx.author.id)
 
@@ -98,7 +99,7 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
   discord_image = discord.File(f"./images/reports/wordcloud-{user_details['name']}.png")
 
   # send the image!
-  await ctx.respond(content=f"(Based on your last {user_details['num_messages']} messages)", file=discord_image, ephemeral=False)
+  await ctx.followup.send(content=f"(Based on your last {user_details['num_messages']} messages)", file=discord_image, ephemeral=False)
   logger.info(f"{Style.BRIGHT}{ctx.author.display_name}{Style.RESET_ALL} has generated a {Fore.CYAN}wordcloud!{Fore.RESET}")
 
 # get user's message history and return it in a dict

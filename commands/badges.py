@@ -4,6 +4,8 @@ import time
 import math
 from utils.check_channel_access import access_check
 
+notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
+
 @bot.slash_command(
   name="badges",
   description="Show off all your badges!"
@@ -29,6 +31,41 @@ async def badges(ctx:discord.ApplicationContext, public:str):
   showcase_image = generate_badge_showcase_for_user(ctx.author)
   await ctx.followup.send(file=showcase_image, ephemeral=not public)
 
+@bot.slash_command(
+  name="gift_badge",
+  description="Give a user a badge (admin only)"
+)
+@commands.has_permissions(administrator=True)
+@option(
+  name="user",
+  description="Which user to gift the badge to"
+)
+# give a random badge to a user
+async def gift_badge(ctx:discord.ApplicationContext, username:str):
+  username = username.replace("@", "")
+  user = discord.utils.get(ctx.guild.members, name=username)
+  if not user:
+    ctx.respond("No user found by that name!", ephemeral=True)
+  else:
+    badge = give_user_badge(user.id)
+    channel = bot.get_channel(notification_channel_id)
+    embed_title = "You got rewarded a badge!"
+    thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
+    embed_description = f"{user.mention} has been gifted a random badge by {ctx.author.mention}!"
+    message = f"{user.mention} - Nice work! Enjoy your free badge! See all your badges by typing `/badges`"
+    await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
+    await ctx.respond("Your gift has been sent!", ephemeral=True)
+
+
+async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel:discord.TextChannel, thumbnail_image:str, badge:str, user:discord.User):
+  embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
+  embed.set_thumbnail(url=thumbnail_image)
+  badge_name = badge.replace("_", " ").replace(".png", "")
+  embed.add_field(name="Badge name", value=badge_name)
+  embed_filename = str(user.id) + str(abs(hash(badge_name))) + ".png"
+  discord_image = discord.File(fp=f"./images/badges/{badge}", filename=embed_filename)
+  embed.set_image(url=f"attachment://{embed_filename}")
+  await channel.send(content=message, file=discord_image, embed=embed)
 
 # big expensive function that generates a nice grid of images for the user
 # returns discord.file

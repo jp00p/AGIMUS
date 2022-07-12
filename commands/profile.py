@@ -139,6 +139,11 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   draw.text( (74, 303), str(player["xp"]), fill="black", font=spins_value_font, anchor="lt", align="left") # shadow
   draw.text( (73, 302), str(player["xp"]), fill="white", font=spins_value_font, anchor="lt", align="left")
 
+  draw.text( (63, 53), "LEVEL", fill=white50, font=rank_font, align="right", anchor="rt") # shadow
+  draw.text( (62, 52), "LEVEL", fill="black", font=rank_font, align="right", anchor="rt")
+  draw.text( (78, 53), f"{player['level']:>03d}", fill="black", font=rank_value_font, anchor="lt", align="left") # shadow
+  draw.text( (77, 52), f"{player['level']:>03d}", fill="white", font=rank_value_font, anchor="lt", align="left")
+
   draw.text( (322, 367), score, fill="black", font=rank_value_font) # shadow
   draw.text( (321, 366), score, fill="white", font=rank_value_font)
   
