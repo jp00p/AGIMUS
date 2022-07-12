@@ -2,7 +2,7 @@ import math
 from time import sleep
 from numpy import block
 from common import *
-from commands.badges import give_user_badge
+from commands.badges import give_user_badge, send_badge_reward_message
 
 # rainbow of colors to cycle through for the logs
 xp_colors = [
@@ -249,17 +249,11 @@ async def level_up_user(user:discord.User, level:int):
 # badge[required]:str
 async def send_level_up_message(user:discord.User, level:int, badge:str):
   channel = bot.get_channel(notification_channel_id)
-  embed=discord.Embed(title="Level up!", description=f"{user.mention} has reached **level {level}** and earned a new badge!", color=discord.Color.random())
-  # choose a random celebration image
+  embed_title = "Level up!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
-  embed.set_thumbnail(url=thumbnail_image)
-  badge_name = badge.replace("_", " ").replace(".png", "")
-  embed.add_field(name="Badge name", value=badge_name)
-  embed_filename = str(user.id) + ".png"
-  discord_image = discord.File(fp=f"./images/badges/{badge}", filename=embed_filename)
-  embed.set_image(url=f"attachment://{embed_filename}")
-  await channel.send(content=f"{user.mention} - Level up! See all your badges by typing `/badges` - disable this by typing `/disable_xp`", file=discord_image, embed=embed)
-
+  embed_description = f"{user.mention} has reached **level {level}** and earned a new badge!"
+  message = f"{user.mention} - Level up! See all your badges by typing `/badges` - disable this by typing `/disable_xp`"
+  await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
 
 # increment_user_xp(author, amt)
 # messauge.author[required]: discord.User
