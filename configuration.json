@@ -668,24 +668,7 @@
       "enabled": true
     }
   },
-  "emojis": {
-    "combadge_spin": "<a:combadge_spin:867891818317873192>",
-    "combadge": "<:combadge:867891664886562816>",
-    "data_lmao_lol": "<:data_lmao_lol:757762906556203050>",
-    "emh_doctor_omg_wtf_zoom": "<a:emh_doctor_omg_wtf_zoom:865452207699394570>",
-    "ezri_frown_sad": "<:ezri_frown_sad:757762138176749608>",
-    "guinan_beanflick_stance_threat": "<:guinan_beanflick_stance_threat:760216477235281942>",
-    "horgahn_dance": "<a:horgahn_dance:844351841017921597>",
-    "louvois_point_yes": "<:louvois_point_yes:840252104056766515>",
-    "picard_yes_happy_celebrate": "<:picard_yes_happy_celebrate:757726753346027622>",
-    "ohno": "<:ohno:930365904657723402>",
-    "red_alert": "<a:red_alert:852987099257765938>",
-    "tendi_smile_happy": "<:tendi_smile_happy:757768236069814283>",
-    "tgg_love_heart": "<:love_heart_tgg:798600300264161280>",
-    "weyoun_love_heart": "<:weyoun_love_heart:864953513637445653>",
-    "weyoun_jam_dance": "<a:weyoun_jam_dance:945899313068912671>"
-  },
-  "all_emoji": [],
+  "all_emoji": {},
   "bot_affirmation_responses": [
     "Gee, thanks!",
     "`01001000 01001111 01010010 01001110 01011001 00100000 01000010 01001111 01010100`",
