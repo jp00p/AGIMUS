@@ -6,6 +6,7 @@ metadata:
     {{- include "agimus.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
+  revisionHistoryLimit: 0
   strategy:
     type: Recreate
   selector:
