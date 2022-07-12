@@ -45,7 +45,7 @@ async def gift_badge(ctx:discord.ApplicationContext, username:str):
   username = username.replace("@", "")
   user = discord.utils.get(ctx.guild.members, name=username)
   if not user:
-    ctx.respond("No user found by that name!", ephemeral=True)
+    await ctx.respond("No user found by that name!", ephemeral=True)
   else:
     badge = give_user_badge(user.id)
     channel = bot.get_channel(notification_channel_id)
