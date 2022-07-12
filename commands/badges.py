@@ -41,8 +41,9 @@ async def badges(ctx:discord.ApplicationContext, public:str):
   description="Which user to gift the badge to"
 )
 # give a random badge to a user
-async def gift_badge(ctx:discord.ApplicationContext, username:str):
-  selected_user = username.replace("<@", "").replace(">","").replace("!", "").strip()
+async def gift_badge(ctx:discord.ApplicationContext, mention:str):
+  mention = mention.replace(" ", "")
+  selected_user = int(mention[1:][:len(mention)-2].replace("@","").replace("!",""))
   logger.info(f"Attempting to gift badge to {selected_user}")
   user = await bot.fetch_user(selected_user)
   if not user:
@@ -53,12 +54,12 @@ async def gift_badge(ctx:discord.ApplicationContext, username:str):
     embed_title = "You got rewarded a badge!"
     thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
     embed_description = f"{user.mention} has been gifted a random badge by {ctx.author.mention}!"
-    message = f"{user.mention} - Nice work! Enjoy your free badge! See all your badges by typing `/badges`"
+    message = f"{user.mention} - Nice work, you got a free badge! See all your badges by typing `/badges`"
     await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
     await ctx.respond("Your gift has been sent!", ephemeral=True)
 
 
-async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel:discord.TextChannel, thumbnail_image:str, badge:str, user:discord.User):
+async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge:str, user:discord.User):
   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
   embed.set_thumbnail(url=thumbnail_image)
   badge_name = badge.replace("_", " ").replace(".png", "")
