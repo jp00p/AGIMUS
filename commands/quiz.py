@@ -107,7 +107,7 @@ async def episode_quiz(message):
     f.write(r.content)
   LOG = [] # reset the log
   await quiz_channel.send(file=discord.File("./images/ep.jpg"))
-  await quiz_channel.send(f"Which episode of **__{show_data['title']}__** is this? {get_emoji['horgahn_dance']}\nTo answer type: `!quiz [your guess]`")
+  await quiz_channel.send(f"Which episode of **__{show_data['title']}__** is this? {get_emoji('horgahn_dance')}\nTo answer type: `!quiz [your guess]`")
 
 
 @episode_quiz.after_loop
