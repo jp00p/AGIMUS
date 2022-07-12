@@ -4,7 +4,6 @@ from utils.media_utils import *
 from utils.timekeeper import *
 
 command_config = config["commands"]["drop post"]
-emojis = config["emojis"]
 
 # Load JSON Data
 f = open(command_config["data"])
@@ -30,7 +29,7 @@ async def drop_list(ctx:discord.ApplicationContext):
   )
   try:
     await ctx.author.send(embed=embed)
-    await ctx.respond(f"{emojis.get('tendi_smile_happy')} Sent you a DM with the full List of Drops!", ephemeral=True)
+    await ctx.respond(f"{get_emoji('tendi_smile_happy')} Sent you a DM with the full List of Drops!", ephemeral=True)
   except BaseException as e:
     await ctx.respond(embed=embed, ephemeral=True)
 
@@ -74,9 +73,9 @@ async def drop_post(ctx:discord.ApplicationContext, query:str, private:bool):
         logger.info(f"{Fore.RED}ERROR LOADING DROP: {err}{Fore.RESET}")
         userid = command_config.get("error_contact_id")
         if userid:
-          await ctx.respond(f"{emojis.get('emh_doctor_omg_wtf_zoom')} Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", ephemeral=True)  
+          await ctx.respond(f"{get_emoji('emh_doctor_omg_wtf_zoom')} Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", ephemeral=True)  
     else:
-      await ctx.respond(f"{emojis.get('ezri_frown_sad')} Drop not found! To get a list of drops run: /drops list", ephemeral=True)
+      await ctx.respond(f"{get_emoji('ezri_frown_sad')} Drop not found! To get a list of drops run: /drops list", ephemeral=True)
   else:
-    await ctx.respond(f"{emojis.get('ohno')} Someone in the channel has already dropped too recently. Please wait a minute before another drop!", ephemeral=True)
+    await ctx.respond(f"{get_emoji('ohno')} Someone in the channel has already dropped too recently. Please wait a minute before another drop!", ephemeral=True)
     

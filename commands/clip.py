@@ -4,7 +4,6 @@ from utils.media_utils import *
 from utils.timekeeper import *
 
 command_config = config["commands"]["clip post"]
-emojis = config["emojis"]
 
 # Load JSON Data
 f = open(command_config["data"])
@@ -30,7 +29,7 @@ async def clips_list(ctx:discord.ApplicationContext):
   )
   try:
     await ctx.author.send(embed=embed)
-    await ctx.respond(f"{emojis.get('tendi_smile_happy')} Sent you a DM with the full List of Clips!", ephemeral=True)
+    await ctx.respond(f"{get_emoji('tendi_smile_happy')} Sent you a DM with the full List of Clips!", ephemeral=True)
   except:
     await ctx.respond(embed=embed, ephemeral=True)
 
@@ -74,7 +73,7 @@ async def clip_post(ctx:discord.ApplicationContext, query:str, private:bool):
       except BaseException as err:
         logger.info(f"{Fore.RED}ERROR LOADING CLIP: {err}{Fore.RESET}")
     else:
-      await ctx.respond(f"{emojis.get('ezri_frown_sad')} Clip not found! To get a list of clips run: /clips list", ephemeral=True)
+      await ctx.respond(f"{get_emoji('ezri_frown_sad')} Clip not found! To get a list of clips run: /clips list", ephemeral=True)
   else:
-    await ctx.respond(f"{emojis.get('ohno')} Someone in the channel has already posted a clip too recently. Please wait a minute before another clip!", ephemeral=True)
+    await ctx.respond(f"{get_emoji('ohno')} Someone in the channel has already posted a clip too recently. Please wait a minute before another clip!", ephemeral=True)
     

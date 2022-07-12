@@ -67,10 +67,10 @@ from tasks.weyounsday import weyounsday_task
 from utils.check_channel_access import perform_channel_check
 
 logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}{Style.RESET_ALL}")
-logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}CONNECTING TO DATABASE{Fore.RESET}{Style.RESET_ALL}")
+logger.info(f"{Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}CONNECTING TO DATABASE{Fore.RESET}{Style.RESET_ALL}")
 seed_db()
-ALL_USERS = get_all_users()
-logger.info(f"{Style.BRIGHT}{Fore.RED}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}{Style.RESET_ALL}")
+ALL_USERS = get_all_users() # used for registering new users without a db lookup
+logger.info(f"{Style.BRIGHT}{Fore.LIGHTGREEN_EX}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}{Style.RESET_ALL}")
 
 background_tasks = set() # for non-blocking tasks
 
@@ -141,13 +141,13 @@ async def process_command(message:discord.Message):
   # If the user's first word matches one of the commands in configuration
   if user_command in config["commands"].keys():
     # Check enabled
-    logger.info(f"Parsed command: {Fore.LIGHTBLUE_EX}{user_command}{Fore.RESET}")
+    #logger.info(f"Parsed command: {Fore.LIGHTBLUE_EX}{user_command}{Fore.RESET}")
     if config["commands"][user_command]["enabled"]:
       # Check Channel Access Restrictions 
       access_granted = await perform_channel_check(message, config["commands"][user_command])
       logger.info(f"Access granted? {Fore.LIGHTGREEN_EX}{access_granted}{Fore.RESET}")
       if access_granted:
-        logger.info(f"{Fore.RED}Firing command!{Fore.RESET}")
+        logger.info(f"Firing command: {Fore.LIGHTGREEN_EX}{user_command}{Fore.RESET}")
         try:
           await eval(user_command + "(message)")
         except SyntaxError as s:
@@ -161,21 +161,15 @@ async def process_command(message:discord.Message):
 @bot.event
 async def on_ready():
   try:
-    logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX}LOGGED IN AS {bot.user}{Fore.RESET}{Back.RESET}")
-
-    # We can handle this better late with an Emoji class helper, but for now just create a dict
-    # Use EMOJI dict from common
-    for e in bot.emojis:
-      EMOJIS[e.name] = e
+    logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX} LOGGED IN AS {bot.user} {Fore.RESET}{Back.RESET}")
+    logger.info(f"{Back.RED}{Fore.LIGHTWHITE_EX} CURRENT ASSIGNMENT: {bot.guilds[0].name} (COMPLIMENT: {len(ALL_USERS)}) {Fore.RESET}{Back.RESET}")
 
     global ALL_STARBOARD_POSTS
-    ALL_USERS = get_all_users()
+  
     ALL_STARBOARD_POSTS = get_all_starboard_posts()
     number_of_starboard_posts = len(ALL_STARBOARD_POSTS)
     for emoji in bot.emojis:
-      config["all_emoji"].append(emoji.name)
-    #logger.info(client.emojis) -- save this for later, surely we can do something with all these emojis
-    #logger.info(f"ALL_STARBOARD_POSTS:\n{ALL_STARBOARD_POSTS}")
+      config["all_emoji"][emoji.name] = emoji
 
     # Print AGIMUS ANSI Art
     agimus_ascii = []
@@ -185,9 +179,8 @@ async def on_ready():
     logger.info(f"{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}")
     logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")      
 
-    # generate local files if the list doesn't exist already
-    if not os.path.exists("./local-channel-list.json"):
-      generate_local_channel_list(bot)
+    # generate local channels list
+    generate_local_channel_list(bot)
 
     # Set a fun random presence
     random_presences = [

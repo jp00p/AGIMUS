@@ -23,6 +23,13 @@ current_color = 0
 blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
 notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
 
+reasons = {
+  "posted_message" : "posting a message",
+  "added_reaction" : "adding a reaction",
+  "got_reactions"  : "getting lots of reactions"
+
+}
+
 # handle_message_xp(message) - calculates xp for a given message
 # message[required]: discord.Message
 async def handle_message_xp(message:discord.Message):   
@@ -95,7 +102,7 @@ async def handle_intro_channel_promotion(message):
       await member.add_roles(cadet_role)
         
       # add reactions to the message they posted
-      welcome_reacts = [config["emojis"]["ben_wave"], config["emojis"]["adam_wave"]]
+      welcome_reacts = [get_emoji("ben_wave"), get_emoji("adam_wave")]
       random.shuffle(welcome_reacts)
       for i in welcome_reacts:
         logger.info(f"{Fore.LIGHTBLACK_EX}Adding react {i} to intro message{Fore.RESET}")
@@ -188,13 +195,20 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
 
   # Give the author some bonus XP if they've made a particularly reaction-worthy message!
   threshold_relevant_emojis = [
-    config["emojis"]["data_lmao_lol"],
-    config["emojis"]["picard_yes_happy_celebrate"],
-    config["emojis"]["tgg_love_heart"]
+    get_emoji("data_lmao_lol"),
+    get_emoji("picard_yes_happy_celebrate"),
+    get_emoji("tgg_love_heart"),
+    get_emoji("bits"),
+    get_emoji("weyoun_love_heart"),
+    get_emoji("tendi_smile_happy"),
+    get_emoji("THIS"),
+    get_emoji("NICE"),
+    get_emoji("YES"),
+    get_emoji("picard_yes_happy_celebrate")
   ]
 
   xp_amt = 0
-  if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 5 and reaction.count < 10:
+  if reaction.emoji in threshold_relevant_emojis and reaction.count >= 5 and reaction.count < 10:
     xp_amt = 1
   
   if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 10 and reaction.count < 20:
@@ -204,9 +218,7 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
     xp_amt = 5
 
   if xp_amt > 0:
-    await increment_user_xp(reaction.message.author, xp_amt, "got_reactions", reaction.message.channel)
-
-  
+    await increment_user_xp(reaction.message.author, xp_amt, "got_reactions", reaction.message.channel) 
 
 # calculate_xp_for_next_level(current_level)
 # current_level[required]: int
@@ -231,7 +243,9 @@ def show_list_of_levels():
 # level up user to next level and give them a badge (in the DB)
 # also fires the send_level_up_message function
 async def level_up_user(user:discord.User, level:int):
-  logger.info(f"{Style.BRIGHT}{user.display_name} has reached level {level}!{Style.RESET_ALL}")
+  rainbow_l = f"{Back.RESET}{Back.RED} {Back.YELLOW} {Back.GREEN} {Back.CYAN} {Back.BLUE} {Back.MAGENTA} {Back.RESET}"
+  rainbow_r = f"{Back.RESET}{Back.MAGENTA} {Back.BLUE} {Back.CYAN} {Back.GREEN} {Back.YELLOW} {Back.RED} {Back.RESET}"
+  logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} has reached {Style.BRIGHT}level {level}!{Style.RESET_ALL} {rainbow_r}")
   db = getDB()
   query = db.cursor()
   sql = "UPDATE users SET level = level + 1 WHERE discord_id = %s"
@@ -263,8 +277,6 @@ async def send_level_up_message(user:discord.User, level:int, badge:str):
 async def increment_user_xp(user, amt, reason, channel):
   global current_color
   msg_color = xp_colors[current_color]
-  
-      
   star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
   db = getDB()
   query = db.cursor()
@@ -278,7 +290,10 @@ async def increment_user_xp(user, amt, reason, channel):
   if updated > 0:
     log_xp_history(user.id, amt, channel.id, reason)
     # If reaction hasn't been logged already, go ahead and do so and then award some XP!
-    logger.info(f"{star} {msg_color}{user.display_name}{Fore.RESET} earns {msg_color}{amt} XP{Fore.RESET} for {reason}! {star}")
+    reason_text = reasons[reason]
+    if not reason_text:
+      reason_text = reason
+    logger.info(f"{star} {msg_color}{user.display_name}{Fore.RESET} earns {msg_color}{amt} XP{Fore.RESET} for {reason_text}! {star}")
     current_color = current_color + 1
     if current_color >= len(xp_colors):
         current_color = 0

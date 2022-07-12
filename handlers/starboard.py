@@ -44,6 +44,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
   # it might be safe to see if this is a starboard-worthy post now
   # each starboard can have a set of words to match against, 
   # here we loop over each board and then each word that board has
+  # the words will be in the emoji, not the message
   for board,match_reacts in board_dict.items():
     
     if match_reacts:
@@ -60,7 +61,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
           this_emoji = reaction.emoji
           if hasattr(this_emoji, "name"):           
             # if its a real emoji and has one of our words or matches exactly
-            if re.search(r"([_]"+ re.escape(match)+")|("+ re.escape(match)+"[_])/igm", this_emoji.name.lower()) != None or this_emoji.name.lower() == match:
+            if re.search(r"([_]"+ re.escape(match)+")|("+ re.escape(match)+"[_])/igm", this_emoji.name.lower()) != None or this_emoji.name == match:
               # count the users who reacted with this one
               async for user in reaction.users():
                 # if they haven't already reacted with one of the matching reactions, count this reaction
@@ -76,6 +77,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
       if total_reacts_for_this_match >= react_threshold and len(message_reaction_people) >= user_threshold:
         if await get_starboard_post(message.id, board) is None: # checking again just in case (might be expensive)
           await add_starboard_post(message, board)
+          return
   
 
 async def add_starboard_post(message, board):
@@ -112,7 +114,8 @@ async def add_starboard_post(message, board):
     embed.set_image(url=message.attachments[0].url)
   channel = bot.get_channel(board_channel)
   await channel.send(content=message.channel.mention, embed=embed)
-  logger.info(f"{Fore.RED}AGIMUS{Fore.RESET} has added a post to the {board} channel! [Original post by {message.author.display_name} in {message.channel.name}")
+  await message.add_reaction("🌟")
+  logger.info(f"{Fore.RED}AGIMUS{Fore.RESET} has added a post to {Style.BRIGHT}{board}{Style.RESET_ALL}!")
 
 
 async def get_starboard_post(message_id, board):

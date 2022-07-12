@@ -1,7 +1,5 @@
 from common import *
 
-emojis = config["emojis"]
-
 def get_random_weyounsday_meme():
   memes = [
     "https://i.imgur.com/jbtLVZc.gif",

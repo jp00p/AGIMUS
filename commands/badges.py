@@ -42,26 +42,25 @@ async def badges(ctx:discord.ApplicationContext, public:str):
 )
 # give a random badge to a user
 async def gift_badge(ctx:discord.ApplicationContext, mention:str):
+  mention = mention.replace(" ", "")
+  selected_user = int(mention[1:][:len(mention)-2].replace("@","").replace("!",""))
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a badge{Style.RESET_ALL} to {selected_user}")
-  try:
-    mention = mention.replace(" ", "")
-    selected_user = int(mention[1:][:len(mention)-2].replace("@","").replace("!",""))
-    
-    user = await bot.fetch_user(selected_user)
-    if not user:
-      await ctx.respond("No user found by that name!", ephemeral=True)
-    else:
-      badge = give_user_badge(user.id)
-      channel = bot.get_channel(notification_channel_id)
-      embed_title = "You got rewarded a badge!"
-      thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
-      embed_description = f"{user.mention} has been gifted a random badge by {ctx.author.mention}!"
-      message = f"{user.mention} - Nice work, you got a free badge! See all your badges by typing `/badges`"
-      await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
-      await ctx.respond("Your gift has been sent!", ephemeral=True)
-  except Exception as e:
-    await ctx.respond("You do not have permissions to do that")
+  user = await bot.fetch_user(selected_user)
+  badge = give_user_badge(user.id)
+  channel = bot.get_channel(notification_channel_id)
+  embed_title = "You got rewarded a badge!"
+  thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
+  embed_description = f"{user.mention} has been gifted a random badge by {ctx.author.mention}!"
+  message = f"{user.mention} - Nice work, you got a free badge! See all your badges by typing `/badges`"
+  await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
+  await ctx.respond("Your gift has been sent!", ephemeral=True)
 
+@gift_badge.error
+async def gift_badge_error(ctx, error):
+  if isinstance(error, commands.MissingPermissions):
+    await ctx.respond("Sorry, you do not have permission to do that!", ephemeral=True)
+  else:
+    await ctx.respond("Sensoars indicate some kind of ...error has occured!", ephemeral=True)
 
 async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge:str, user:discord.User):
   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())

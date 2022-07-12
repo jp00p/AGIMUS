@@ -67,8 +67,6 @@ DB_HOST = os.getenv('DB_HOST')
 DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
 DB_SEED_FILEPATH = os.getenv('DB_SEED_FILEPATH')
-EMOJI = {}
-EMOJIS = {}
 ROLES = config["roles"]
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TRIVIA_RUNNING = False
@@ -215,7 +213,6 @@ def get_all_users():
 # user[required]: object
 # This function will insert a new user into the database
 def register_player(user):
-  global ALL_USERS
   db = getDB()
   query = db.cursor()
   sql = "INSERT INTO users (discord_id, name, mention) VALUES (%s, %s, %s)"
@@ -233,12 +230,12 @@ def register_player(user):
 # value[required]: string
 # This function will update a specific value for a specific user
 def update_user(discord_id, key, value):
-  logger.info(f"Running: {Fore.LIGHTMAGENTA_EX}update_user({discord_id}, {key}, {value}){Fore.RESET}")
+  #logger.info(f"Running: {Fore.LIGHTMAGENTA_EX}update_user({discord_id}, {key}, {value}){Fore.RESET}")
   modifiable = ["score", "spins", "jackpots", "wager", "high_roller", "chips", "xp", "profile_card", "profile_badge"]
   if key not in modifiable:
     logger.error(f"{Fore.RED}{key} not in {modifiable}{Fore.RESET}")
   else:
-    logger.info(f"updating: {Fore.LIGHTMAGENTA_EX}({discord_id}, {key}, {value}){Fore.RESET}")
+    #logger.info(f"updating: {Fore.LIGHTMAGENTA_EX}({discord_id}, {key}, {value}){Fore.RESET}")
     db = getDB()
     query = db.cursor()
     if key == "score":
@@ -260,10 +257,10 @@ def update_user(discord_id, key, value):
     elif key == "xp":
       sql = "UPDATE users SET xp = %s WHERE discord_id = %s"
     vals = (value, discord_id)
-    logger.info(f"{Fore.LIGHTYELLOW_EX}{sql}{Fore.RESET}")
-    logger.info(f"{Fore.LIGHTRED_EX}{vals}{Fore.RESET}")
+    #logger.info(f"{Fore.LIGHTYELLOW_EX}{sql}{Fore.RESET}")
+    #logger.info(f"{Fore.LIGHTRED_EX}{vals}{Fore.RESET}")
     query.execute(sql, vals)
-    logger.info(f"{Fore.LIGHTGREEN_EX}{db.commit()}{Fore.RESET}")
+    #logger.info(f"{Fore.LIGHTGREEN_EX}{db.commit()}{Fore.RESET}")
     query.close()
     db.close()
 
@@ -344,9 +341,19 @@ def generate_local_channel_list(client):
         channel_name = channel.name.encode("ascii", errors="ignore").decode().strip()
         channel_list[channel_name] = channel.id
     channel_list_json = json.dumps(channel_list, indent=2, sort_keys=True)
-  
     try:
       with open('./local-channel-list.json', 'w') as f:
         f.write(channel_list_json)
+        logger.info(f"{Style.BRIGHT}Local channel list has been written to {Fore.GREEN}./local-channel-list.json{Fore.RESET}{Style.RESET_ALL}")
     except FileNotFoundError as e:
       logger.info(f"{Fore.RED}Unable to create local channel list file:{Fore.RESET} {e}")
+
+# get_emoji(emoji_name)
+# emoji_name[required]: str
+# get an emoji by name
+# will fail softly if emoji doesn't exist on the server!
+def get_emoji(emoji_name:str):
+  emoji = config["all_emoji"].get(emoji_name)
+  if not emoji:
+    emoji = random.choice(["🤖", "👽", "🛠"])
+  return emoji

@@ -5,8 +5,6 @@ import requests
 from common import *
 from utils.check_channel_access import access_check
 
-emojis = config["emojis"]
-
 # nexttrek() - Entrypoint for /nexttrek command
 # Retrieve the next Trek episode, or next episode for a specific show
 nexttrek_config = config["commands"]["nexttrek"]
@@ -52,14 +50,14 @@ async def nexttrek(ctx, show:str):
     show_name = show_data["name"]
     next_episode = show_data["_links"].get("nextepisode")
     if (next_episode == None):
-      await ctx.respond(f"{emojis.get('ezri_frown_sad')} Sorry, doesn't look like we have info scheduled for the next episode of {show_name}.", ephemeral=True)
+      await ctx.respond(f"{get_emoji('ezri_frown_sad')} Sorry, doesn't look like we have info scheduled for the next episode of {show_name}.", ephemeral=True)
     else:
       episode_data = requests.get(next_episode["href"]).json()
       embed = await get_show_embed(show_data, episode_data)
       await ctx.respond(embed=embed)
   except BaseException as err:
     logger.error(err)
-    await ctx.respond(f"{emojis.get('emh_doctor_omg_wtf_zoom')} Sorry, something went wrong with the request!", ephemeral=True)
+    await ctx.respond(f"{get_emoji('emh_doctor_omg_wtf_zoom')} Sorry, something went wrong with the request!", ephemeral=True)
 
 
 # nextep() - Entrypoint for /nextep command
@@ -83,14 +81,14 @@ async def nextep(ctx, query:str):
   try:
     show_lookup = requests.get(f"https://api.tvmaze.com/singlesearch/shows?q={encoded_query}")
     if show_lookup.status_code == 404:
-      await ctx.respond(f"{emojis['ohno']} Sorry, no show matches your query!", ephemeral=True)
+      await ctx.respond(f"{get_emoji('ohno')} Sorry, no show matches your query!", ephemeral=True)
       return
 
     show_data = show_lookup.json()
     show_name = show_data["name"]
     next_episode = show_data["_links"].get("nextepisode")
     if (next_episode == None):
-      await ctx.respond(f"{emojis['ezri_frown_sad']} Sorry, doesn't look like we have info scheduled for the next episode of {show_name}.", ephemeral=True)
+      await ctx.respond(f"{get_emoji('ezri_frown_sad')} Sorry, doesn't look like we have info scheduled for the next episode of {show_name}.", ephemeral=True)
     else:
       episode_data = requests.get(next_episode["href"]).json()
       embed = await get_next_episode_embed(show_data, episode_data)
@@ -98,7 +96,7 @@ async def nextep(ctx, query:str):
   except BaseException as err:
     logger.error(err)
     logger.error(traceback.format_exc())
-    await ctx.respond(f"{emojis['emh_doctor_omg_wtf_zoom']} Sorry, something went wrong with the request!", ephemeral=True)
+    await ctx.respond(f"{get_emoji('emh_doctor_omg_wtf_zoom')} Sorry, something went wrong with the request!", ephemeral=True)
 
 
 async def get_next_episode_embed(show_data, episode_data):
