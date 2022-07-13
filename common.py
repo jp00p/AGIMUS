@@ -230,12 +230,10 @@ def register_player(user):
 # value[required]: string
 # This function will update a specific value for a specific user
 def update_user(discord_id, key, value):
-  #logger.info(f"Running: {Fore.LIGHTMAGENTA_EX}update_user({discord_id}, {key}, {value}){Fore.RESET}")
   modifiable = ["score", "spins", "jackpots", "wager", "high_roller", "chips", "xp", "profile_card", "profile_badge"]
   if key not in modifiable:
     logger.error(f"{Fore.RED}{key} not in {modifiable}{Fore.RESET}")
   else:
-    #logger.info(f"updating: {Fore.LIGHTMAGENTA_EX}({discord_id}, {key}, {value}){Fore.RESET}")
     db = getDB()
     query = db.cursor()
     if key == "score":
@@ -257,10 +255,8 @@ def update_user(discord_id, key, value):
     elif key == "xp":
       sql = "UPDATE users SET xp = %s WHERE discord_id = %s"
     vals = (value, discord_id)
-    #logger.info(f"{Fore.LIGHTYELLOW_EX}{sql}{Fore.RESET}")
-    #logger.info(f"{Fore.LIGHTRED_EX}{vals}{Fore.RESET}")
     query.execute(sql, vals)
-    #logger.info(f"{Fore.LIGHTGREEN_EX}{db.commit()}{Fore.RESET}")
+    db.commit()
     query.close()
     db.close()
 
