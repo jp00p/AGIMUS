@@ -53,7 +53,7 @@ async def nexttrek(ctx, show:str):
       await ctx.respond(f"{get_emoji('ezri_frown_sad')} Sorry, doesn't look like we have info scheduled for the next episode of {show_name}.", ephemeral=True)
     else:
       episode_data = requests.get(next_episode["href"]).json()
-      embed = await get_show_embed(show_data, episode_data)
+      embed = await get_next_episode_embed(show_data, episode_data)
       await ctx.respond(embed=embed)
   except BaseException as err:
     logger.error(err)
@@ -118,7 +118,7 @@ async def get_next_episode_embed(show_data, episode_data):
     summary = re.sub('<[^<]+?>', '', episode_data["summary"])
     embed.add_field(
       name="Summary",
-      value=summary,
+      value=f"||{summary}||",
       inline=False
     )
   # Number
