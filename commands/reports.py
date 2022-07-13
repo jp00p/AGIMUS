@@ -21,6 +21,10 @@ from utils.check_channel_access import access_check
     discord.OptionChoice(
       name="XP gains in the last hour",
       value="gains"
+    ),
+    discord.OptionChoice(
+      name="Level 1 Diagnostic",
+      value="diagnostic"
     )
   ]
 )
@@ -31,10 +35,12 @@ from utils.check_channel_access import access_check
 async def reports(ctx:discord.ApplicationContext, report:str):
   if report == "xp":
     image = generate_xp_report_card()
-  if report == "scores":
+  elif report == "scores":
     image = generate_scores_report_card()
-  if report == "gains":
+  elif report == "gains":
     image = generate_gainers_report_card()
+  elif report == "diagnostic":
+    image = generate_diagnostic_card()
   if image:
     await ctx.respond(file=image, ephemeral=False)
 
@@ -106,6 +112,28 @@ def generate_gainers_report_card():
       rank += 1
   return generate_report_card(title, description, rows)
 
+def generate_diagnostic_card():
+  logger.info("generate_diagnostic_card()")
+  arows = []
+  brows = []
+  crows = []
+  rows = []
+  with os.popen("hostname") as line:
+    arows = line.readlines()
+  with os.popen("make --no-print-directory version") as line:
+    brows = line.readlines()
+  with os.popen("df -h") as line:
+    crows = line.readlines()
+  for row in arows:
+    rows.append("Container Name: " + row.replace("\n", "").replace("\t"," "))
+  for row in brows:
+    rows.append("Version: " + row.replace("\n", "").replace("\t"," "))
+  for row in crows:
+    rows.append(row.replace("\n", "").replace("\t"," "))
+  logger.info(f"rows: '{rows}'")
+  title = "LEVEL 1 DIAGNOSTIC"
+  description = "AGIMUS System Information"
+  return generate_report_card(title, description, rows)
 
 # process the scores data and generate an image
 def generate_scores_report_card():

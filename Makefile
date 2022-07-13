@@ -55,6 +55,11 @@ docker-logs: ## Tail the logs of running containers
 .PHONY: docker-cleanup
 docker-cleanup: ## Remove all AGIMUS containers from this system
 	docker images | grep agimus | awk '{print $$3}' | xargs -I {} docker rmi -f {}
+	docker images | grep mysql | awk '{print $$3}' | xargs -I {} docker rmi -f {}
+
+.PHONY: docker-exec
+docker-exec: ## Get a shell in a running AGIMUS container
+	@docker-compose exec app bash
 
 .PHONY: docker-lint
 docker-lint: ## Lint the container with dockle

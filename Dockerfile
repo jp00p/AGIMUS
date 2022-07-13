@@ -5,7 +5,7 @@ FROM ubuntu:20.04
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
     && apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        curl wget apt-utils python3 python3-pip make build-essential locales openssl git jq tzdata sudo \
+        curl wget apt-utils python3 python3-pip make build-essential locales openssl git jq tzdata sudo lsb-release \
     && touch /etc/sudoers.d/bot-user \
     && echo "bot ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/bot-user \
     && useradd -ms /bin/bash bot \
@@ -20,7 +20,7 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
         | grep '"tag_name":' \
         | sed -E 's/.*"([^"]+)".*/\1/') \
     && wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_${OS}_${ARCH} \
-        -O /usr/local/bin/yq \
+        -q -O /usr/local/bin/yq \
     && chmod +x /usr/local/bin/yq
 
 # configure timezone and set UTF8 charset
