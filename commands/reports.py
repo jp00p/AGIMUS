@@ -1,3 +1,4 @@
+from os import system
 from common import *
 import platform
 from datetime import date as dtdate
@@ -157,17 +158,23 @@ def get_num_users():
 def generate_diagnostic_card():
   storage = []
   version_raw = []
+  arch_info = []
+  os_info = []
+  system_info = ""
   num_users_raw = get_num_users()
   for row in num_users_raw:
     num_users = row["num_users"]
   rows = []
-  
+  with os.popen("uname -m") as line:
+    arch_info = line.readlines()  
+  with os.popen("uname | tr [[:upper:]] [[:lower:]]") as line:
+    os_info = line.readlines()
+  system_info = arch_info[0].replace("\n", " ").strip() + " • " + os_info[0].replace("\n", " ").strip()
   with os.popen("make --no-print-directory version") as line:
     version_raw = line.readlines()
-  for row in version_raw:
-    rows.append("AGIMUS " + row.replace("\n", "").replace("\t"," ").strip() + " • " + str(num_users) + " users • " + datetime.now().isoformat())
-
-  rows.append("HOST: " + platform.node())
+  version = version_raw[0].replace("\n", "").replace("\t"," ").strip()
+  rows.append("AGIMUS " + version + " • " + str(num_users) + " users • " + datetime.now().isoformat())
+  rows.append("HOST: " + platform.node() + " • " + system_info)
   rows.append("DATABASE: " + DB_HOST)
   with os.popen("df -h") as line:
     storage = line.readlines()
