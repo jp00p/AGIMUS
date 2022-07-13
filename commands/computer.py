@@ -1,4 +1,5 @@
 import wolframalpha
+import openai
 
 from common import *
 
@@ -17,12 +18,16 @@ async def computer(message:discord.Message):
   if not wa_client:
     return
 
+  logger.info("in computer")
+
   # Question may start with "Computer:" or "AGIMUS:"
   # So split on first : and gather remainder of list into a single string
   question_split = message.content.lower().split(":")
   question = "".join(question_split[1:]).strip()
 
   # logger.info(f">> question: {question}")
+  await handle_openai_response(question, message)
+  return
 
   handled_question = await handle_special_questions(question, message)
   if handled_question:
@@ -171,6 +176,49 @@ async def handle_non_primary_result(res, message:discord.Message):
   await message.reply(embed=embed)
   return
 
+async def handle_openai_response(question, message):
+  completion = openai.Completion.create(
+    engine="text-davinci-002",
+    prompt=f": {question}",
+    temperature=0.75,
+    max_tokens=128
+  )
+  logger.info(pprint(completion))
+  completion_text = completion.choices[0].text
+
+  # Filter out Questionable Content
+  filterLabel = openai.Completion.create(
+    engine="content-filter-alpha",
+    prompt="< endoftext|>" + completion_text + "\n--\nLabel:",
+    temperature=0,
+    max_tokens=1,
+    top_p=0,
+    logprobs=10
+  )
+  if filterLabel.choices[0].text != "0":
+    completion_text = "||**REDACTED**||"
+
+  agimus_channel_id = get_channel_id("megalomaniacal-computer-storage")
+  agimus_channel = await message.guild.fetch_channel(agimus_channel_id)
+
+  if message.channel.id != agimus_channel_id:
+    await message.reply(embed=discord.Embed(
+      title=f"Response sent in {agimus_channel.mention}"
+    ).set_footer(f"Please keep similiar questions to this channel"))
+
+    await agimus_channel.send(embed=discord.embed(
+      title=f"To answer your question {message.author.mention}...",
+      description=f"{completion_text}",
+      color=discord.Color.dark_orange()
+    ).set_footer(text=f"Predicted Accuracy: {random.randrange(15, 75)}%"))
+    return
+  else:
+    await message.reply(embed=discord.Embed(
+      title=get_random_title(),
+      description=f"{completion_text}",
+      color=discord.Color.blurple()
+    ).set_footer(text=f"Predicted Accuracy: {random.randrange(15, 75)}%"))
+    return
 
 def get_random_title():
   titles = [

@@ -115,7 +115,7 @@ async def on_message(message:discord.Message):
   
   # Bang Command Handling
   #logger.debug(message)
-  if message.content.startswith("!") or any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
+  if message.content.startswith("!") or any(message.content.lower().startswith(x) for x in ["junior:"]):
     logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
     try:
       await process_command(message)
@@ -135,7 +135,7 @@ async def process_command(message:discord.Message):
   split_string = message.content.lower().split(" ")
   if message.content.startswith("!"):
     user_command = split_string[0].replace("!","")
-  elif any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
+  elif any(message.content.lower().startswith(x) for x in ["junior:"]):
     user_command = "computer"
 
   # If the user's first word matches one of the commands in configuration
