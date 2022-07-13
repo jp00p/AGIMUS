@@ -160,6 +160,7 @@
       "channels": [],
       "enabled": true,
       "data": "data/computer.json",
+      "openai_model": "text-davinci-002",
       "parameters": []
     },
     "dustbuster": {
