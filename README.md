@@ -1,6 +1,8 @@
 # AGIMUS
 
-The Friends of DeSoto are a group of fans of Star Trek and [The Greatest Generation podcast](http://gagh.biz).
+The Friends of DeSoto are a group of fans of Star Trek and [The Greatest Generation podcast](http://gagh.biz). AGIMUS is our Discord bot for [The USS Hood Discord Server](https://drunkshimoda.com).
+
+Details on how to contribute to the project can be found in [CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ## Makefile
 
