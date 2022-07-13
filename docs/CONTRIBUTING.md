@@ -78,4 +78,4 @@ Once you're satisfied, go ahead and click on the **"Propose changes"** button to
 
 All code contributions and ideas are welcome! If you're of the nerdy programming type (for a Star Trek Podcast Fan Discord Server!?) please feel free to fork the repo and pull it down experiment with it on your own system.
 
-The [README.md] should be relatively thorough on what steps need to be taken to get the project up and running, and you're welcome to ping us on the Discord in [**"#megalomaniacal-computer-storage"**](https://discord.com/channels/689512841887481875/994412232052052089) if you run into trouble!
+The [README.md](README.md) should be relatively thorough on what steps need to be taken to get the project up and running, and you're welcome to ping us on the Discord in [**"#megalomaniacal-computer-storage"**](https://discord.com/channels/689512841887481875/994412232052052089) if you run into trouble!
