@@ -147,7 +147,7 @@ def generate_gainers_report_card(type:str):
       table.add_row([rank, row["amt"], truncated_name])
       #rows.append("#{:>02d}{spacer:^2}{:>03d}{spacer:^2}{}".format(rank, int(row["amt"]), truncated_name, spacer="•"))
       rank += 1
-  return generate_report_card(title, description, table, type)
+  return generate_report_card(title, description, table, type, rows)
 
 def get_num_users():
   db = getDB()
@@ -340,10 +340,10 @@ def generate_report_card(title:str, description:str, table:PrettyTable, type:str
       line_y = text_y + (line_height * counter) # calculate our y position for this line
       draw.text( (text_x, line_y), row, fill="white", font=normal_font, anchor="lt", align="left")
       counter += 1
-
-    line_y = text_y + (line_height * counter)
-    # now draw the pretty table in the report
-    draw.text( (text_x, line_y), table_text, fill="white", font=normal_font, align="left")
+    if len(table.rows) > 0:
+      line_y = text_y + (line_height * counter)
+      # now draw the pretty table in the report
+      draw.text( (text_x, line_y), table_text, fill="white", font=normal_font, align="left")
     # save it
     base_image.save("./images/reports/report.png")
     # all done
