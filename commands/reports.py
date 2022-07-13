@@ -108,7 +108,7 @@ def generate_gainers_report_card():
   else:
     for row in gainers_data:
       truncated_name = row["name"][:31]
-      rows.append("#{:>02d}{spacer:^8}{:>03d}{spacer:^8}{}".format(rank, int(row["amt"]), truncated_name, spacer="•"))
+      rows.append("#{:>02d}{spacer:^2}{:>03d}{spacer:^2}{}".format(rank, int(row["amt"]), truncated_name, spacer="•"))
       rank += 1
   return generate_report_card(title, description, rows)
 
@@ -129,7 +129,9 @@ def generate_diagnostic_card():
   for row in brows:
     rows.append("Version: " + row.replace("\n", "").replace("\t"," "))
   for row in crows:
-    rows.append(row.replace("\n", "").replace("\t"," "))
+    row = row.replace("Mounted on", "Mounted_on").strip().split()
+    cleaned_up_string = f"{row[0]:<11s}{row[1]:<6s}{row[2]:<6s}{row[3]:<6s}{row[4]:<6s}{row[5]:<14s}".replace("Mounted_on", "Mounted on")
+    rows.append(cleaned_up_string)
   logger.info(f"rows: '{rows}'")
   title = "LEVEL 1 DIAGNOSTIC"
   description = "AGIMUS System Information"
@@ -144,7 +146,7 @@ def generate_scores_report_card():
   rank = 1
   for row in score_data:
     truncated_name = row["name"][:31]
-    rows.append("#{:>02d}{spacer:^8}{:>08d}{spacer:^8}{}".format(rank, row["score"], truncated_name, spacer="•"))
+    rows.append("#{:>02d}{spacer:^2}{:>08d}{spacer:^2}{}".format(rank, row["score"], truncated_name, spacer="•"))
     rank += 1
   return generate_report_card(title, description, rows)
 
@@ -155,7 +157,7 @@ def generate_scores_report_card():
 # rows[required]: a list of rows for the report (max 10 items)
 def generate_report_card(title:str, description:str, rows:list):
 
-  normal_font = ImageFont.truetype("images/context.ttf", 34)
+  normal_font = ImageFont.truetype("images/fixed_width.otf", 18)
   title_font = ImageFont.truetype("images/context.ttf", 63)
   deco_font = ImageFont.truetype("images/context.ttf", 20)
 
