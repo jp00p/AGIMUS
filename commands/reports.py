@@ -1,4 +1,6 @@
 from common import *
+import platform
+from datetime import date as dtdate
 from utils.check_channel_access import access_check
 
 @bot.slash_command(
@@ -113,11 +115,10 @@ def generate_gainers_report_card():
       rank += 1
   return generate_report_card(title, description, rows)
 
-
-def get_tables():
+def get_num_users():
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = "show tables;"
+  sql = "select count(id) as `num_users` from users;"
   query.execute(sql)
   results = query.fetchall()
   db.commit()
@@ -126,22 +127,23 @@ def get_tables():
   return results
 
 def generate_diagnostic_card():
-  arows = []
-  brows = []
-  crows = []
+  storage = []
+  version_raw = []
+  num_users_raw = get_num_users()
+  for row in num_users_raw:
+    num_users = row["num_users"]
   rows = []
-  with os.popen("hostname") as line:
-    arows = line.readlines()
+  
   with os.popen("make --no-print-directory version") as line:
-    brows = line.readlines()
+    version_raw = line.readlines()
+  for row in version_raw:
+    rows.append("AGIMUS " + row.replace("\n", "").replace("\t"," ").strip() + " • " + str(num_users) + " users • " + datetime.now().isoformat())
+
+  rows.append("HOST: " + platform.node())
+  rows.append("DATABASE: " + DB_HOST)
   with os.popen("df -h") as line:
-    crows = line.readlines()
-  for row in arows:
-    rows.append("Container Name: " + row.replace("\n", "").replace("\t"," ").strip())
-  for row in brows:
-    rows.append("Version: " + row.replace("\n", "").replace("\t"," ").strip())
-  rows.append("DB_HOST: " + DB_HOST)
-  for row in crows:
+    storage = line.readlines()
+  for row in storage:
     row = row.replace("Mounted on", "Mounted_on").strip().split()
     cleaned_up_string = f"{row[0]:<16s}{row[1]:<6s}{row[2]:<6s}{row[3]:<6s}{row[4]:<6s}{row[5]:<s}".replace("Mounted_on", "Mounted on").strip()
     rows.append(cleaned_up_string)
@@ -243,7 +245,7 @@ def generate_report_card(title:str, description:str, rows:list):
   text_y = 188
   line_height = 44 # jump this much each line
   counter = 0
-  for row in rows[:10]:
+  for row in rows[:20]:
     line_y = text_y + (line_height * counter) # calculate our y position for this line
     draw.text( (text_x, line_y), row, fill="white", font=normal_font, anchor="lt", align="left")
     counter += 1
