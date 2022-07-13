@@ -126,7 +126,6 @@ def get_tables():
   return results
 
 def generate_diagnostic_card():
-  logger.info("generate_diagnostic_card()")
   arows = []
   brows = []
   crows = []
@@ -146,7 +145,6 @@ def generate_diagnostic_card():
     row = row.replace("Mounted on", "Mounted_on").strip().split()
     cleaned_up_string = f"{row[0]:<16s}{row[1]:<6s}{row[2]:<6s}{row[3]:<6s}{row[4]:<6s}{row[5]:<s}".replace("Mounted_on", "Mounted on").strip()
     rows.append(cleaned_up_string)
-  logger.info(f"rows: '{rows}'")
   title = "LEVEL 1 DIAGNOSTIC"
   description = "AGIMUS System Information"
   return generate_report_card(title, description, rows)
