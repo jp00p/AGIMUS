@@ -112,6 +112,18 @@ def generate_gainers_report_card():
       rank += 1
   return generate_report_card(title, description, rows)
 
+
+def get_tables():
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = "show tables;"
+  query.execute(sql)
+  results = query.fetchall()
+  db.commit()
+  query.close()
+  db.close()
+  return results
+
 def generate_diagnostic_card():
   logger.info("generate_diagnostic_card()")
   arows = []
@@ -128,6 +140,7 @@ def generate_diagnostic_card():
     rows.append("Container Name: " + row.replace("\n", "").replace("\t"," "))
   for row in brows:
     rows.append("Version: " + row.replace("\n", "").replace("\t"," "))
+  rows.append("DB_HOST: " + DB_HOST)
   for row in crows:
     row = row.replace("Mounted on", "Mounted_on").strip().split()
     cleaned_up_string = f"{row[0]:<11s}{row[1]:<6s}{row[2]:<6s}{row[3]:<6s}{row[4]:<6s}{row[5]:<14s}".replace("Mounted_on", "Mounted on")
