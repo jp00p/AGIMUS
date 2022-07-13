@@ -33,6 +33,7 @@ from utils.check_channel_access import access_check
 # reports() - entrypoint for /reports command
 # will help us build fancy looking reports for administration and fun
 async def reports(ctx:discord.ApplicationContext, report:str):
+  await ctx.defer()
   if report == "xp":
     image = generate_xp_report_card()
   elif report == "scores":
@@ -42,7 +43,7 @@ async def reports(ctx:discord.ApplicationContext, report:str):
   elif report == "diagnostic":
     image = generate_diagnostic_card()
   if image:
-    await ctx.respond(file=image, ephemeral=False)
+    await ctx.followup.send(file=image, ephemeral=False)
 
 
 # get_xp_report() - returns a dictionary of overall top xp users
@@ -137,13 +138,13 @@ def generate_diagnostic_card():
   with os.popen("df -h") as line:
     crows = line.readlines()
   for row in arows:
-    rows.append("Container Name: " + row.replace("\n", "").replace("\t"," "))
+    rows.append("Container Name: " + row.replace("\n", "").replace("\t"," ").strip())
   for row in brows:
-    rows.append("Version: " + row.replace("\n", "").replace("\t"," "))
+    rows.append("Version: " + row.replace("\n", "").replace("\t"," ").strip())
   rows.append("DB_HOST: " + DB_HOST)
   for row in crows:
     row = row.replace("Mounted on", "Mounted_on").strip().split()
-    cleaned_up_string = f"{row[0]:<11s}{row[1]:<6s}{row[2]:<6s}{row[3]:<6s}{row[4]:<6s}{row[5]:<14s}".replace("Mounted_on", "Mounted on")
+    cleaned_up_string = f"{row[0]:<16s}{row[1]:<6s}{row[2]:<6s}{row[3]:<6s}{row[4]:<6s}{row[5]:<s}".replace("Mounted_on", "Mounted on").strip()
     rows.append(cleaned_up_string)
   logger.info(f"rows: '{rows}'")
   title = "LEVEL 1 DIAGNOSTIC"
@@ -170,19 +171,35 @@ def generate_scores_report_card():
 # rows[required]: a list of rows for the report (max 10 items)
 def generate_report_card(title:str, description:str, rows:list):
 
-  normal_font = ImageFont.truetype("images/fixed_width.otf", 18)
+  normal_font = ImageFont.truetype("images/FiraCode-SemiBold.ttf", 24)
   title_font = ImageFont.truetype("images/context.ttf", 63)
-  deco_font = ImageFont.truetype("images/context.ttf", 20)
+  deco_font = ImageFont.truetype("images/context.ttf", 22)
 
-  template_image = "report-template.png" # the base image for all reports (for now)
-  image = Image.open(f"./images/{template_image}", "r")
-  image = image.convert("RGBA") # just in case
+  image_padding = 15
+  image_min_width = 712
+  image_min_height = 500
+  row_text_height = (len(rows) * 18) + image_padding
+  row_text_width = len(max(rows, key=len).rstrip()) * 20 + 20
+  if row_text_width > image_min_width:
+    image_min_width = row_text_width
+  image_base_width = image_min_width + (image_padding*2) 
+  image_base_height = image_min_height + (image_padding*2) + row_text_height
+  base_image = Image.new("RGBA", (image_base_width, image_base_height), (0, 0, 0))
 
-  draw = ImageDraw.Draw(image) # prepare thy pencil!
+  template_part_top_left = Image.open("./images/templates/report_template_top_left.png")
+  base_image.paste(template_part_top_left, (image_padding, image_padding), template_part_top_left)
 
-  # draw title and report description at the top right
-  draw.text( (715, 6), title, fill="#ff0000", font=title_font, anchor="rt", align="right")
-  draw.text( (715, 70), description, fill="white", font=normal_font, anchor="rt", align="right")
+  template_part_top_right = Image.open("./images/templates/report_template_top_right.png")
+  tr_w, tr_h = template_part_top_right.size
+  base_image.paste(template_part_top_right, (image_base_width-tr_w-image_padding, 120), template_part_top_right)
+
+  template_part_bottom_left = Image.open("./images/templates/report_template_bottom_left.png")
+  bl_w, bl_h = template_part_bottom_left.size
+  base_image.paste(template_part_bottom_left, (image_padding, image_base_height-bl_h-image_padding), template_part_bottom_left)
+  
+  draw = ImageDraw.Draw(base_image) # prepare thy pencil!
+  base_w, base_h = base_image.size
+  
 
   # generate a bunch of fancy random numbers for the top, why not!
   deco_rows = 4 # 4 rows of number
@@ -205,8 +222,8 @@ def generate_report_card(title:str, description:str, rows:list):
     bit_stream[i][9] = f"{random_bits[9]}"
     bit_stream[i][10] = f"{random_bits[10]:04}"
 
-  stream_x = 127 # start here
-  stream_y = 6
+  stream_x = 135 # start here
+  stream_y = image_padding
   stream_line_height = 24 # jump this much each line
   stream_colors = ["#882211", "#BB6622", "#BB4411"] # each line could be one of these colors
 
@@ -218,15 +235,20 @@ def generate_report_card(title:str, description:str, rows:list):
     counter += 1
 
   # done making the silly numbers at the top
+
+  # draw title and report description at the top right
+  draw.text( (base_w-image_padding, image_padding), title, fill="#ff0000", font=title_font, anchor="rt", align="right")
+  draw.text( (base_w-image_padding, 73), description, fill="white", font=normal_font, anchor="rt", align="right")
+
   # now draw the actual data in the rows
-  text_x = 127 # start here
-  text_y = 178
-  line_height = 38 # jump this much each line
+  text_x = 135 # start here
+  text_y = 188
+  line_height = 44 # jump this much each line
   counter = 0
   for row in rows[:10]:
     line_y = text_y + (line_height * counter) # calculate our y position for this line
     draw.text( (text_x, line_y), row, fill="white", font=normal_font, anchor="lt", align="left")
     counter += 1
 
-  image.save("./images/reports/report.png")
+  base_image.save("./images/reports/report.png")
   return discord.File("./images/reports/report.png")
