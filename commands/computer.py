@@ -1,8 +1,10 @@
 import wolframalpha
+import openai
 
 from common import *
 
 WOLFRAM_ALPHA_ID = os.getenv('WOLFRAM_ALPHA_ID')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 wa_client = None
 if WOLFRAM_ALPHA_ID:
@@ -22,13 +24,11 @@ async def computer(message:discord.Message):
   question_split = message.content.lower().split(":")
   question = "".join(question_split[1:]).strip()
 
-  # logger.info(f">> question: {question}")
-
   handled_question = await handle_special_questions(question, message)
   if handled_question:
     return
-
   elif len(question):
+    response_sent = False
     try:
       res = wa_client.query(question)
       if res.success:
@@ -36,10 +36,17 @@ async def computer(message:discord.Message):
 
         # Handle Primary Result
         if result.text:
-          await handle_text_result(res, message)
+          response_sent = await handle_text_result(res, message)
         else:
-          await handle_image_result(res, message)
-
+          response_sent = await handle_image_result(res, message)
+    except StopIteration:
+      # Handle Non-Primary Result
+      response_sent = await handle_non_primary_result(res, message)
+      return
+    
+    if not response_sent:
+      if OPENAI_API_KEY:
+        await handle_openai_response(question, message)
       else:
         embed = discord.Embed(
           title="No Results Found.",
@@ -47,11 +54,6 @@ async def computer(message:discord.Message):
           color=discord.Color.red()
         )
         await message.reply(embed=embed)
-        return
-    except StopIteration:
-      # Handle Non-Primary Result
-      await handle_non_primary_result(res, message)
-      return
   else:
     embed = discord.Embed(
       title="No Results Found.",
@@ -111,7 +113,7 @@ async def handle_text_result(res, message:discord.Message):
     color=discord.Color.teal()
   )
   await message.reply(embed=embed)
-  return
+  return True
 
 
 async def handle_image_result(res, message:discord.Message):
@@ -132,15 +134,9 @@ async def handle_image_result(res, message:discord.Message):
     )
     embed.set_image(url=image_url)
     await message.reply(embed=embed)
-    return
+    return True
   else:
-    embed = discord.Embed(
-    title="No Results Found.",
-    description="Unable to retrieve a proper result.",
-    color=discord.Color.red()
-  )
-  await message.reply(embed=embed)
-  return
+    return False
 
 async def handle_non_primary_result(res, message:discord.Message):
   # Attempt to handle Image-Based Primary Results
@@ -161,16 +157,55 @@ async def handle_non_primary_result(res, message:discord.Message):
     )
     embed.set_image(url=image_url)
     await message.reply(embed=embed)
+    return True
+  else:
+    return False
+
+async def handle_openai_response(question, message):
+  completion = openai.Completion.create(
+    engine=command_config["openai_model"],
+    prompt=f"Computer: {question}",
+    temperature=0.75,
+    max_tokens=196,
+    stop=["  "]
+  )
+  completion_text = completion.choices[0].text
+
+  # Filter out Questionable Content
+  filterLabel = openai.Completion.create(
+    engine="content-filter-alpha",
+    prompt="< endoftext|>" + completion_text + "\n--\nLabel:",
+    temperature=0,
+    max_tokens=1,
+    top_p=0,
+    logprobs=10
+  )
+  if filterLabel.choices[0].text != "0":
+    completion_text = "||**REDACTED**||"
+
+  agimus_channel_id = get_channel_id("megalomaniacal-computer-storage")
+  agimus_channel = await message.guild.fetch_channel(agimus_channel_id)
+
+  if message.channel.id != agimus_channel_id:
+    await message.reply(embed=discord.Embed(
+      title=f"Redirecting...",
+      description=f"Query response located in {agimus_channel.mention}.",
+      color=discord.Color.blue()
+    ).set_footer(text=  f"Please keep similiar questions to that channel."))
+
+    await agimus_channel.send(embed=discord.Embed(
+      title="To \"answer\" your question...",
+      description=f"{message.author.mention} asked:\n\n> {message.content}\n\n**Answer:** {completion_text}",
+      color=discord.Color.blurple()
+    ).set_footer(text=f"Predicted Accuracy: {random.randrange(15, 75)}%"))
     return
   else:
-    embed = discord.Embed(
-    title="No Result Found.",
-    description="Unable to retrieve a proper result.",
-    color=discord.Color.red()
-  )
-  await message.reply(embed=embed)
-  return
-
+    await message.reply(embed=discord.Embed(
+      title=get_random_creative_title(),
+      description=f"{completion_text}",
+      color=discord.Color.blurple()
+    ).set_footer(text=f"Predicted Accuracy: {random.randrange(15, 75)}%"))
+    return
 
 def get_random_title():
   titles = [
@@ -181,8 +216,14 @@ def get_random_title():
   ]
   return random.choice(titles)
 
-def catch_cheeky_questions(question):
-  return
+def get_random_creative_title():
+  titles = [
+    "Creativity Circuits Activated:",
+    "Positronic Brain Relays Firing:",
+    "Generating... Generating...",
+    "Result Fabricated:"
+  ]
+  return random.choice(titles)
 
 # We may want to catch a couple questions with AGIMUS-specific answers.
 # Rather than trying to parse the question for these, we can catch the specific
