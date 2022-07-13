@@ -206,17 +206,23 @@ class Shop(commands.Cog):
       color=discord.Color(0xFFFFFF)
     )
 
-    page_interaction_type = type(page_interaction).__name__
-    if page_interaction_type == 'Interaction':
-      await page_interaction.edit_original_message(
-        embed=thank_you_embed,
-        view=None
-      )
-    elif page_interaction_type == 'InteractionMessage':
-      await page_interaction.edit(
-        embed=thank_you_embed,
-        view=None
-      )
+    try:
+      page_interaction_type = type(page_interaction).__name__
+      if page_interaction_type == 'Interaction':
+        await page_interaction.edit_original_message(
+          embed=thank_you_embed,
+          view=None
+        )
+      elif page_interaction_type == 'InteractionMessage':
+        await page_interaction.edit(
+          embed=thank_you_embed,
+          view=None
+        )
+    except discord.HTTPException as e:
+      logger.info("Encountered error editing original shop message. Passing as okay, logging error:")
+      logger.info(traceback.format_exc())
+      pass
+
 
 
   async def buy_button_callback(self, interaction):
