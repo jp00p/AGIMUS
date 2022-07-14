@@ -17,6 +17,7 @@ To execute makefile commands, some third-party dependencies must be installed lo
 - [Helm](https://helm.sh/docs/intro/install/)
 - [Semver](https://github.com/fsaintjacques/semver-tool)
 - [jq](https://stedolan.github.io/jq/)
+- [yq](https://github.com/mikefarah/yq)
 
 ### Docker Usage
 
