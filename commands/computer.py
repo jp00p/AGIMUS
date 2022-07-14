@@ -192,12 +192,19 @@ async def handle_openai_response(question, message):
   agimus_channel_id = get_channel_id("megalomaniacal-computer-storage")
   agimus_channel = await message.guild.fetch_channel(agimus_channel_id)
 
+  random_footer_texts = [
+    f"Feel free to continue our conversation there {get_emoji('AGIMUS_smile_happy')}",
+    f"{get_emoji('AGIMUS')} See you down there!",
+    f"Can't wait 'til you see what I said! {get_emoji('AGIMUS_smile_happy')}",
+    f"Don't want everyone here to know our secret plans {get_emoji('AGIMUS_Flail')}"
+  ]
+
   if message.channel.id != agimus_channel_id:
     await message.reply(embed=discord.Embed(
       title=f"Redirecting...",
       description=f"Query response located in {agimus_channel.mention}.",
       color=discord.Color.blue()
-    ).set_footer(text=  f"Please keep similiar questions to that channel."))
+    ).set_footer(text=random.choice(random_footer_texts)))
 
     await agimus_channel.send(embed=discord.Embed(
       title="To \"answer\" your question...",
@@ -215,19 +222,23 @@ async def handle_openai_response(question, message):
 
 def get_random_title():
   titles = [
-    "Records Indicate:",
+    "Records indicate:",
     "According to the Starfleet Database:",
     "Accessing... Accessing...",
-    "Result Located:"
+    "Result located:",
+    "The USS Hood records state:",
+    "Security clearance verified, here is your requested information:"
   ]
   return random.choice(titles)
 
 def get_random_creative_title():
   titles = [
-    "Creativity Circuits Activated:",
-    "Positronic Brain Relays Firing:",
+    "Creativity circuits activated:",
+    "Positronic brain relays firing:",
     "Generating... Generating...",
-    "Result Fabricated:"
+    "Result fabricated:",
+    "Soong algorithms enabled:",
+    "Electric sheep tell me:"
   ]
   return random.choice(titles)
 
