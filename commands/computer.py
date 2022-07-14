@@ -107,6 +107,9 @@ async def handle_text_result(res, message:discord.Message):
   if "wolfram" in answer.lower():
     answer = "That information is classified."
 
+  # Truncate text
+  answer = answer[0:4096]
+
   embed = discord.Embed(
     title=get_random_title(),
     description=answer,
@@ -182,6 +185,9 @@ async def handle_openai_response(question, message):
   )
   if filterLabel.choices[0].text != "0":
     completion_text = "||**REDACTED**||"
+
+  # Truncate length
+  completion_text = completion_text[0:4096]
 
   agimus_channel_id = get_channel_id("megalomaniacal-computer-storage")
   agimus_channel = await message.guild.fetch_channel(agimus_channel_id)
