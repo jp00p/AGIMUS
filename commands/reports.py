@@ -161,21 +161,23 @@ def get_num_users():
   return results
 
 def generate_diagnostic_card(type:str):
-  storage = []
-  version_raw = []
   arch_info = []
+  free = []
   os_info = []
+  version_raw = []
+  storage = []
   system_info = ""
   num_users_raw = get_num_users()
   for row in num_users_raw:
     num_users = row["num_users"]
-  
   intro_data = [] # data that will appear above the table in the report
   with os.popen("uname -m") as line:
     arch_info = line.readlines()  
   with os.popen("uname | tr [[:upper:]] [[:lower:]]") as line:
     os_info = line.readlines()
-  system_info = arch_info[0].replace("\n", " ").strip() + " • " + os_info[0].replace("\n", " ").strip()
+  with os.popen("free -h | grep Mem: | awk '{print $3 \"/\" $2}'") as line:
+    free = line.readlines()
+  system_info = arch_info[0].replace("\n", " ").strip() + " • " + os_info[0].replace("\n", " ").strip() + " • RAM " + free[0].replace("\n", " ").strip()
   with os.popen("make --no-print-directory version") as line:
     version_raw = line.readlines()
   version = version_raw[0].replace("\n", "").replace("\t"," ").strip()
@@ -184,7 +186,6 @@ def generate_diagnostic_card(type:str):
   intro_data.append("DATABASE: " + DB_HOST)
   with os.popen("df -h") as line:
     storage = line.readlines()
-
   table = PrettyTable()
   table.field_names = ["Filesystem", "Size", "Used", "Avail", "Use%", "Mounted on"]
   for row in storage[1:]:
