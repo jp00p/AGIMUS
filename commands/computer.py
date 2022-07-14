@@ -193,10 +193,10 @@ async def handle_openai_response(question, message):
   agimus_channel = await message.guild.fetch_channel(agimus_channel_id)
 
   random_footer_texts = [
-    f"Feel free to continue our conversation there {get_emoji('AGIMUS_smile_happy')}",
-    f"{get_emoji('AGIMUS')} See you down there!",
-    f"Can't wait 'til you see what I said! {get_emoji('AGIMUS_smile_happy')}",
-    f"Don't want everyone here to know our secret plans {get_emoji('AGIMUS_Flail')}"
+    f"Feel free to continue our conversation there!",
+    f"See you down there!",
+    f"Can't wait 'til you see what I said!",
+    f"Don't want everyone here to know our secret plans..."
   ]
 
   if message.channel.id != agimus_channel_id:
