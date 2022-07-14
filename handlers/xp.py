@@ -102,7 +102,7 @@ async def handle_intro_channel_promotion(message):
       await member.add_roles(cadet_role)
         
       # add reactions to the message they posted
-      welcome_reacts = [get_emoji("ben_wave"), get_emoji("adam_wave")]
+      welcome_reacts = [get_emoji("ben_wave_hello"), get_emoji("adam_wave_hello")]
       random.shuffle(welcome_reacts)
       for i in welcome_reacts:
         logger.info(f"{Fore.LIGHTBLACK_EX}Adding react {i} to intro message{Fore.RESET}")

@@ -351,5 +351,6 @@ def generate_local_channel_list(client):
 def get_emoji(emoji_name:str):
   emoji = config["all_emoji"].get(emoji_name)
   if not emoji:
+    logger.info(f"Emoji: {Fore.LIGHTWHITE_EX}{Style.BRIGHT}{emoji_name}{Style.RESET_ALL}{Fore.RESET} not found, falling back to default bot emoji")
     emoji = random.choice(["🤖", "👽", "🛠"])
   return emoji
