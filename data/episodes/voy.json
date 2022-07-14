@@ -1635,7 +1635,15 @@
       "episode": "07",
       "imdb": "tt0708967",
       "memoryalpha": "Scientific_Method_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 426,
+          "airdate": "2022.07.11",
+          "episode": "Liberate the Washlet",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-426-liberate-the-washlet-voy-s4e7/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/cSQOUuorv5VeXQoHyKromVRVM4A.jpg"
