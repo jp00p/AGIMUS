@@ -197,8 +197,8 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   threshold_relevant_emojis = [
     get_emoji("data_lmao_lol"),
     get_emoji("picard_yes_happy_celebrate"),
-    get_emoji("tgg_love_heart"),
-    get_emoji("bits"),
+    get_emoji("love_heart_tgg"),
+    get_emoji("BITS"),
     get_emoji("weyoun_love_heart"),
     get_emoji("tendi_smile_happy"),
     get_emoji("THIS"),
