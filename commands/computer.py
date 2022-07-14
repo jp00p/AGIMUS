@@ -165,9 +165,12 @@ async def handle_non_primary_result(res, message:discord.Message):
     return False
 
 async def handle_openai_response(question, message):
+
+  prompt_start = "You are a mischievous computer intelligence named AGIMUS. Answer the following prompt"
+
   completion = openai.Completion.create(
     engine=command_config["openai_model"],
-    prompt=f"Computer: {question}",
+    prompt=f"{prompt_start}: {question}",
     temperature=0.75,
     max_tokens=196,
     stop=["  "]
