@@ -56,7 +56,7 @@ from handlers.bot_autoresponse import handle_bot_affirmations
 from handlers.save_message import save_message_to_db
 from handlers.server_logs import *
 from handlers.starboard import get_all_starboard_posts, handle_starboard_reactions
-from handlers.xp import handle_message_xp, handle_react_xp, calculate_xp_for_next_level
+from handlers.xp import handle_message_xp, handle_react_xp, increment_user_xp
 
 # Tasks
 from tasks.bingbong import bingbong_task

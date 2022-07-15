@@ -1,6 +1,6 @@
 import math
-
 from common import *
+from handlers.xp import increment_user_xp
 from utils.check_channel_access import access_check
 
 command_config = config["commands"]["slots spin"]
@@ -154,6 +154,7 @@ class Slots(commands.Cog):
       embed.set_image(url="attachment://{0}.png".format(ctx.author.id))
       embed.set_footer(text="{}'s score: {}".format(player["name"], player["score"]+total_profit))
       set_player_score(ctx.author, total_profit)
+      await increment_user_xp(ctx.author, 1, "slot_win", ctx.channel)
       await ctx.respond(embed=embed, file=file)
 
     else:

@@ -73,6 +73,7 @@
         "megalomaniacal-computer-storage"
       ],
       "notification_channel": "megalomaniacal-computer-storage",
+      "badge_data": "data/badges.json",
       "celebration_images": [
         "https://i.imgur.com/iKFMgpr.jpg",
         "https://i.imgur.com/TnL6lGz.jpg",

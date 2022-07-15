@@ -5,6 +5,9 @@ import math
 from utils.check_channel_access import access_check
 
 notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
+f = open(config["handlers"]["xp"]["badge_data"])
+badge_data = json.loads(f.read())
+f.close()
 
 @bot.slash_command(
   name="badges",
@@ -60,17 +63,25 @@ async def gift_badge_error(ctx, error):
   if isinstance(error, commands.MissingPermissions):
     await ctx.respond("Sorry, you do not have permission to do that!", ephemeral=True)
   else:
-    await ctx.respond("Sensoars indicate some kind of ...error has occured!", ephemeral=True)
+    await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
 
 async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge:str, user:discord.User):
+  
+  badge_info = badge_data.get(badge)
+  badge_name = badge.replace("_", " ").replace(".png", "")
+  if badge_info:
+    badge_url = badge_info["reference"]
+    embed_description += f"\n\n**{badge_name}**\n{badge_url}"
   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
   embed.set_thumbnail(url=thumbnail_image)
-  badge_name = badge.replace("_", " ").replace(".png", "")
-  embed.add_field(name="Badge name", value=badge_name)
-  embed_filename = str(user.id) + str(abs(hash(badge_name))) + ".png"
-  discord_image = discord.File(fp=f"./images/badges/{badge}", filename=embed_filename)
-  embed.set_image(url=f"attachment://{embed_filename}")
-  await channel.send(content=message, file=discord_image, embed=embed)
+  if badge_info:
+    embed.set_image(url=f"{badge_info['image_url']}")
+    await channel.send(content=message, embed=embed)
+  else:
+    embed_filename = str(user.id) + str(abs(hash(badge_name))) + ".png"
+    discord_image = discord.File(fp=f"./images/badges/{badge}", filename=embed_filename)
+    embed.set_image(url=f"attachment://{embed_filename}")
+    await channel.send(content=message, file=discord_image, embed=embed)
 
 # big expensive function that generates a nice grid of images for the user
 # returns discord.file
@@ -107,13 +118,14 @@ def generate_badge_showcase_for_user(user:discord.User):
 
   draw = ImageDraw.Draw(badge_base_image)
     
-  draw.text( (base_width/2, 100), f"{user.display_name}'s Badge collection", fill="white", font=title_font, anchor="mm", align="center")
-  draw.text( (base_width/2, base_h-50), f"Collected on the USS Hood", fill="white", font=credits_font, anchor="mm", align="center")
+  draw.text( (base_width/2, 100), f"{user.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge collection", fill="white", font=title_font, anchor="mm", align="center")
+  draw.text( (base_width/2, base_h-50), f"Total of {len(badge_list)} badges collected on the USS Hood", fill="white", font=credits_font, anchor="mm", align="center",stroke_width=2,stroke_fill="#000000")
 
   start_x = image_padding
   current_x = start_x
   current_y = header_height
   counter = 0
+  badge_border_color = random.choice(["#774466", "#6688CC", "#BB4411", "#0011EE"])
 
   for badge in badge_list:
     # todo: create slot border/stuff, lcars stuff
@@ -121,7 +133,7 @@ def generate_badge_showcase_for_user(user:discord.User):
     # slot
     s = Image.new("RGBA", (badge_slot_size, badge_slot_size), (0, 0, 0, 0))
     badge_draw = ImageDraw.Draw(s)
-    badge_draw.rounded_rectangle( (0, 0, badge_slot_size, badge_slot_size), fill="#111111", outline="#9a99ff", width=2, radius=32 )
+    badge_draw.rounded_rectangle( (0, 0, badge_slot_size, badge_slot_size), fill="#000000", outline=badge_border_color, width=4, radius=32 )
     
 
     # badge

@@ -1,6 +1,6 @@
 import datetime
-
 from common import *
+from handlers.xp import increment_user_xp
 
 # TODO: 
 # react to original post?
@@ -101,9 +101,12 @@ async def add_starboard_post(message, board):
   # repost in appropriate board
   embed_description = f"{message.content}\n\n[View original message]({message.jump_url})"
   embed = discord.Embed(description=embed_description, color=discord.Color.random())
+  embed_thumb = "https://i.imgur.com/LdNH7MK.png"
+  if message.author.avatar.url:
+    embed_thumb = message.author.avatar.url
   embed.set_author(
     name=message.author.display_name,
-    icon_url=message.author.avatar.url
+    icon_url=embed_thumb
   )
 
   date_posted = message.created_at.strftime("%A %B %-d, %Y")
@@ -112,9 +115,13 @@ async def add_starboard_post(message, board):
   )
   if len(message.attachments) > 0:
     embed.set_image(url=message.attachments[0].url)
+  elif message.content.startswith("https://tenor.com/") and message.content != "https://tenor.com/":
+    embed.set_image(url=message.content)
+
   channel = bot.get_channel(board_channel)
   await channel.send(content=message.channel.mention, embed=embed)
-  await message.add_reaction("🌟")
+  await message.add_reaction(random.choice(["🌟","⭐","✨"]))
+  await increment_user_xp(message.author, 2, "starboard_post", message.channel)
   logger.info(f"{Fore.RED}AGIMUS{Fore.RESET} has added a post to {Style.BRIGHT}{board}{Style.RESET_ALL}!")
 
 

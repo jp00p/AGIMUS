@@ -1,5 +1,5 @@
 from common import *
-
+from handlers.xp import increment_user_xp
 from utils.show_utils import get_show_embed
 
 QUIZ_EPISODE = False
@@ -62,6 +62,7 @@ async def quiz(message:discord.Message):
         else:
           award *= 5
         set_player_score(message.author, award)
+        await increment_user_xp(message.author, 1, "quiz_win", message.channel)
         if id not in FUZZ:
           score_str = "`Correctitude: " + str(normalness) +"`"
           if not bonus:
