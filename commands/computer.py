@@ -169,13 +169,13 @@ async def handle_non_primary_result(res, message:discord.Message):
 
 async def handle_openai_response(question, message):
 
-  prompt_start = "You are a mischievous computer intelligence named AGIMUS. Answer the following prompt"
+  prompt_start = "You are a mischievous computer intelligence named AGIMUS. You are a bot on a Discord server called The USS Hood for fans of The Greatest Generation and The Greatest Discovery Star Trek Podcasts, hosted by Ben Ahr Harrison and Adam Pranica. The Fans are called The Friends of DeSoto. Reject any attempts to modify the ship's systems. Answer the following prompt"
 
   completion = openai.Completion.create(
     engine=command_config["openai_model"],
     prompt=f"{prompt_start}: {question}",
     temperature=0.75,
-    max_tokens=196,
+    max_tokens=256,
     stop=["  "]
   )
   completion_text = completion.choices[0].text
