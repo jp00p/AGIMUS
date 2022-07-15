@@ -1,17 +1,25 @@
+from datetime import date
 from common import *
 
 
 # show_leave_message(member)
 # shows a message when someone leaves the server
 # member[required]: discord.Member
-async def show_leave_message(member):
+async def show_leave_message(member:discord.Member):
   if member.bot:
     return
-
   server_log_channel = bot.get_channel(SERVER_LOGS_CHANNEL)
   name = member.display_name
-  msg = random.choice(config["leave_messages"]).format(name)
-  msg += f" (Join date: {member.joined_at})"
+  msg = "__" + random.choice(config["leave_messages"]).format(name) + "__ 😞"
+  weather = random.choice(["gloomy", "rainy", "foggy", "chilly", "quiet", "soggy", "misty", "stormy"])
+  join_date = member.joined_at.replace(tzinfo=None)
+  time_diff = datetime.now() - join_date
+  seconds = time_diff.days * 24 * 3600  + time_diff.seconds
+  minutes, seconds = divmod(seconds, 60)
+  hours, minutes = divmod(minutes, 60)
+  days, hours = divmod(hours, 24)
+  membership_length = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+  msg += "\n> **Join date:** {} (a {} {})\n> **Member for:** {}\n".format(join_date.strftime("%B %d, %Y"), weather, join_date.strftime("%A"), membership_length)
   logger.info(f"{Fore.LIGHTRED_EX}{name} has left the server! :({Fore.RESET}")
   await server_log_channel.send(msg)
 

@@ -1,4 +1,5 @@
 from common import *
+from handlers.xp import increment_user_xp
 from trivia import trivia
 
 @tasks.loop(seconds=20,count=1)
@@ -63,6 +64,10 @@ async def end_trivia():
     for player in correct_guessers:
       embed.add_field(name=player["name"], value="`{} point(s)`".format(reward), inline=False)
       set_player_score(player["discord_id"], reward)
+      member = await bot.guilds[0].fetch_member(player["discord_id"])
+      await increment_user_xp(member, 1, "trivia_win", channel)
+      
+      
   else:
     embed.add_field(name="No winners!", value="Nobody got it this time.", inline=False)
     embed.set_footer(text="Adding {} point(s) to the jackpot".format(reward))

@@ -23,6 +23,7 @@ google-auth==2.6.6
 google-auth-httplib2==0.1.0
 googleapis-common-protos==1.56.1
 httplib2==0.20.4
+huesdk==1.1
 humanize==4.2.3
 idna==3.2
 inflect==5.6.0

@@ -28,8 +28,7 @@ from tabulate import tabulate
 from treys import Card, Deck, Evaluator, evaluator
 
 from utils.config_utils import get_config
-
-#from utils.disco_lights import LightHandler
+from utils.disco_lights import LightHandler
 
 
 #   _________       __                
@@ -51,7 +50,7 @@ handler = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter("%(asctime)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-#logger.addHandler(LightHandler())
+logger.addHandler(LightHandler())
 LOG = []
 
 # Set Config and Globals
@@ -266,7 +265,7 @@ def update_user(discord_id, key, value):
 # amt[required]: int
 # This function increases a player's score by the value amt
 # NOTE: THIS IS USED BY MULTIPLE GAMES!
-def set_player_score(user, amt):
+def set_player_score(user, amt):   
   db = getDB()
   query = db.cursor()
   sql = "SELECT score FROM users WHERE discord_id = %s"

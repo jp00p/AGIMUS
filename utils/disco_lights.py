@@ -1,20 +1,35 @@
 import logging
 import random
 import re
-
-from phue import Bridge
+import requests
+from urllib3.exceptions import InsecureRequestWarning
+from huesdk import Hue # https://pypi.org/project/huesdk/
 
 from utils.config_utils import get_config
 
+# supress insecure request warning for this
+# this is because the connection to the Hue bridge is insecure and requests gets cranky
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+
 config = get_config()
-
-b = None
-
 lights_config = config.get("lights")
+
 if lights_config:
-  bridge_ip = lights_config.get("bridge_ip")
-  b = Bridge(bridge_ip)
-  b.connect()
+  bridge_ip = lights_config.get("bridge_ip") # https://discovery.meethue.com/ get your IP
+  bridge_user = lights_config.get("hue_username") # see below
+  ### 
+  # make a tiny file with this in it:
+  # ----------------------------------
+  # from huesdk import Hue
+  # username = Hue.connect(bridge_ip=YOUR_BRIDGE_IP)
+  # print(f"HUE USERNAME: {username}")
+  # ----------------------------------
+  # press your hue bridge button
+  # then run your tiny file
+  # you will get a username to use for your config file
+  ###
+
+  hue = Hue(bridge_ip=bridge_ip, username=bridge_user)
 
 class LightHandler(logging.Handler):
   def emit(self, record):
@@ -22,7 +37,7 @@ class LightHandler(logging.Handler):
       Show a random color when a log message comes through
       """
 
-      if not b:
+      if not hue:
         return
 
       target_light_name = lights_config.get("light_name")
@@ -35,18 +50,12 @@ class LightHandler(logging.Handler):
       if "*" not in log_line:
         return
 
-      # get all lights (maybe i want to make a whole house disco)
-      light_names = b.get_light_objects('name')
+      light = hue.get_light(name=target_light_name)
 
-      # but just one light for now
-      light = light_names[target_light_name]
-
-      if not light.on:
+      if not light.is_on:
         return
 
-      light.transitiontime = 1
-      light.saturation = 254
-      light.hue = random.randint(1,65535)
+      light.set_color(hue=random.randint(1,65535), transition=3)
            
       # b.set_light(light_name, "xy", (random.random(), random.random()))
 

@@ -23,11 +23,17 @@ current_color = 0
 blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
 notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
 
+# {user} got xp for {reason}
 reasons = {
   "posted_message" : "posting a message",
   "added_reaction" : "adding a reaction",
-  "got_reactions"  : "getting lots of reactions"
-
+  "got_reactions"  : "getting lots of reactions",
+  "intro_message"  : "posting an introduction in #first-contact",
+  "starboard_post" : "got a post sent to the starboard",
+  "slot_win"       : "winning the slots",
+  "quiz_win"       : "winning a quiz",
+  "trivia_win"     : "winning at trivia",
+  "poker_win"      : "winning a hand of poker"
 }
 
 # handle_message_xp(message) - calculates xp for a given message
@@ -100,12 +106,12 @@ async def handle_intro_channel_promotion(message):
       # if they don't have this role, give them this role!
       logger.info(f"Adding {Fore.CYAN}Cadet{Fore.RESET} role to {Style.BRIGHT}{message.author.name}{Style.RESET_ALL}")
       await member.add_roles(cadet_role)
+      await increment_user_xp(member, 10, "intro_message", message.channel)
         
       # add reactions to the message they posted
       welcome_reacts = [get_emoji("ben_wave_hello"), get_emoji("adam_wave_hello")]
       random.shuffle(welcome_reacts)
       for i in welcome_reacts:
-        logger.info(f"{Fore.LIGHTBLACK_EX}Adding react {i} to intro message{Fore.RESET}")
         await message.add_reaction(i)
 
 # If they've hit an XP threshold, auto-promote to general ranks
@@ -274,7 +280,7 @@ async def send_level_up_message(user:discord.User, level:int, badge:str):
 # amt[required]: int
 # channel[required]: discord.Channel
 # This function will increment a users' XP and log the gain to the history
-async def increment_user_xp(user, amt, reason, channel):
+async def increment_user_xp(user:discord.User, amt:int, reason:str, channel):
   global current_color
   msg_color = xp_colors[current_color]
   star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"

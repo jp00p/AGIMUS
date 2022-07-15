@@ -12,22 +12,22 @@ async def watch_func(name):
   await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=name))
 
 change_presence_funcs = {
-  "game": game_func,
-  "listen": listen_func,
-  "watch": watch_func
+  "playing": game_func,
+  "listening": listen_func,
+  "watching": watch_func
 }
 
 change_presence_prefixes = {
-  "game": "Playing",
-  "listen": "Listening to",
-  "watch": "Watching"
+  "playing": "Playing",
+  "listening": "Listening to",
+  "watching": "Watching"
 }
 
 # update_status() - Entrypoint for !update_status command
 # message[required]: discord.Message
 # This function is the main entrypoint of the !update_status command
 # The user must provide the `<type>` of status:
-#   * game
+#   * playing
 #   * listening
 #   * watching
 # The remainder of the message will be used for the status text
@@ -46,10 +46,10 @@ async def update_status(message:discord.Message):
     type = argument_list[0]
     status = message.content.replace(f"!update_status {type} ", "")
 
-    if type not in ['game', 'listen', 'watch']:
+    if type not in ['playing', 'listening', 'watching']:
       await message.reply(embed=discord.Embed(
         title="Invalid <type> Provided",
-        description="Must provide one of: `game`, `listen`, or `watch`",
+        description="Must provide one of: `playing`, `listening`, or `watching`",
         color=discord.Color.red()
       ))
       logger.info(f"{Fore.RED}Unable to update status. Invalid type for status request: {Style.BRIGHT}{type}{Fore.RESET}")

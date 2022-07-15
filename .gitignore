@@ -113,6 +113,7 @@ dmypy.json
 
 # local bot configuration
 local.json
+local-channel-list.json
 /local-*.json
 /local_*.json
 *dump.sql
@@ -126,7 +127,8 @@ data/drops/*.mp4
 images/reports/*
 images/profiles/*.png
 images/profiles/*.jpg
-!images/profiles/template*
+images/cards/users/*.png
 images/ep.jpg
 images/slot_results/*.png
 !images/slot_results/template*
+!images/profiles/template*
