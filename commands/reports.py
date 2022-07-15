@@ -190,7 +190,7 @@ def generate_diagnostic_card(type:str):
   table.field_names = ["Filesystem", "Size", "Used", "Avail", "Use%", "Mounted on"]
   for row in storage[1:]:
     # remove all whitespace, all double whitespace, and turn into a list
-    row = row.strip().replace("\n", "").replace("\t", "")
+    row = row.replace("\n", "").replace("\t", "").strip()
     row = re.sub(" +", " ", row)
     row = row.split()
     # add to prettytable
