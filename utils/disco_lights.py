@@ -29,13 +29,18 @@ if lights_config:
   # you will get a username to use for your config file
   ###
 
-  hue = Hue(bridge_ip=bridge_ip, username=bridge_user)
+  
 
 class LightHandler(logging.Handler):
   def emit(self, record):
       """
       Show a random color when a log message comes through
       """
+
+      if not lights_config:
+        return
+
+      hue = Hue(bridge_ip=bridge_ip, username=bridge_user)
 
       if not hue:
         return
