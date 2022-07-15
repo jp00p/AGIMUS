@@ -149,6 +149,7 @@ def generate_gainers_report_card(type:str):
       rank += 1
   return generate_report_card(title, description, table, type, rows)
 
+
 def get_num_users():
   db = getDB()
   query = db.cursor(dictionary=True)
