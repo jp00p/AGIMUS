@@ -47,10 +47,7 @@ async def badge_stats(ctx:discord.ApplicationContext):
   embed.add_field(name="Total badges collected on the USS Hood", value=f"{results['total_badges'][0]['count']}")
   embed.add_field(name="Most popular badge somehow", value=f'{results["most_collected"][0]["badge_name"].replace("_", " ").replace(".png", "")} ({results["most_collected"][0]["count"]} collected)')
   embed.add_field(name="Crew member with the most badges right now", value=f"{results['number_one'][0]['name']} ({results['number_one'][0]['count']})")
-  await ctx.respond(embed=embed, ephemeral=True)
-
-  
-  
+  await ctx.respond(embed=embed, ephemeral=False)  
 @bot.slash_command(
   name="gift_badge",
   description="Give a user a badge (admin only)"
