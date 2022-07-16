@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS badges (
   id int(11) NOT NULL AUTO_INCREMENT,
   user_discord_id varchar(64) NOT NULL,
   badge_name varchar(128) NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id)
 );
 CREATE TABLE IF NOT EXISTS reactions (

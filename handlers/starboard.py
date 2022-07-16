@@ -98,26 +98,28 @@ async def add_starboard_post(message, board):
   
   board_channel = get_channel_id(board)
 
+  # can't really re-embed tenor gifs quicky and they aren't REALLY starboard worthy imo
+  # feel free to suggest alternates!
+  if len(message.attachments) <= 0 and message.content.lower().startswith("https://tenor.com/"):
+    return
+
   # repost in appropriate board
   embed_description = f"{message.content}\n\n[View original message]({message.jump_url})"
   embed = discord.Embed(description=embed_description, color=discord.Color.random())
   embed_thumb = "https://i.imgur.com/LdNH7MK.png"
-  if message.author.avatar.url:
+  if message.author.avatar is not None:
     embed_thumb = message.author.avatar.url
   embed.set_author(
     name=message.author.display_name,
     icon_url=embed_thumb
   )
-
   date_posted = message.created_at.strftime("%A %B %-d, %Y")
   embed.set_footer(
     text=f"{date_posted}"
   )
   if len(message.attachments) > 0:
     embed.set_image(url=message.attachments[0].url)
-  elif message.content.startswith("https://tenor.com/") and message.content != "https://tenor.com/":
-    embed.set_image(url=message.content)
-
+  
   channel = bot.get_channel(board_channel)
   await channel.send(content=message.channel.mention, embed=embed)
   await message.add_reaction(random.choice(["🌟","⭐","✨"]))
