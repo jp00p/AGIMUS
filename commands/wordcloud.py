@@ -2,6 +2,8 @@ from numpy import full
 from common import *
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 
+from handlers.xp import increment_user_xp
+
 # wordcloud() - Entrypoint for `/wordcloud` command
 # generates a wordcloud image based on users most-used words
 # also allows users to opt-in or out of logging their messages
@@ -73,9 +75,11 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
   if user_details is None:
     await ctx.respond(content="No user data is available for you yet.", ephemeral=True)
     return
+  else:
+    await increment_user_xp(ctx.author, 1, "used_wordcloud", ctx.channel)
 
   # performing these modifications to the user's data again (in case they have old, uncleaned up data)
-  full_wordlist = set(user_details['full_message_text'].split(' '))
+  full_wordlist = set(user_details['full_message_text'].lower().split(' '))
   full_wordlist = " ".join(full_wordlist)
   remove_emoji = re.compile('<.*?>')
   special_chars = re.escape(string.punctuation)
@@ -83,13 +87,13 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
   full_wordlist = re.sub(remove_emoji, '', full_wordlist) # strip discord emoji from message
   full_wordlist = re.sub(r'https?:\/\/\S*', '', full_wordlist) # strip all URLs from the content
   full_wordlist = re.sub(r'['+special_chars+']', '', full_wordlist) # strip any remaining special characters
-  full_wordlist = full_wordlist.replace("  ", " ") # convert double spaces to single space
+  full_wordlist = full_wordlist.replace("  ", " ").strip() # convert double spaces to single space
   
   # mask image (combadge in this case, something else might work better)
   mask = np.array(Image.open("./images/cloud_masks/combadge_mask.png"))
 
   # build wordcloud with magic of wordcloud lib
-  wc = WordCloud(contour_color="#000044", contour_width=5, max_words=350, min_font_size=14, stopwords=STOPWORDS, mask=mask, font_path="./images/tng_font.ttf", background_color="black", mode="RGB", width=822, height=800, min_word_length=4).generate(full_wordlist)
+  wc = WordCloud(scale=2, contour_color="#000000", color_func=lambda *args, **kwargs: random.choice(["#6688CC", "#BB4411", "#9977AA", "#774466", "#DD6644", "#EE9955"]), contour_width=1, max_words=800, stopwords=STOPWORDS, mask=mask, font_path="./images/lcars2.ttf", background_color="black", mode="RGB", width=822, height=800, min_word_length=3).generate(full_wordlist)
 
   # create PIL image 
   image = wc.to_image()
@@ -106,8 +110,9 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
 def get_wordcloud_text_for_user(user_discord_id:int):
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = "SELECT message_history.user_discord_id, message_history.message_text as text, users.name FROM message_history LEFT JOIN users ON message_history.user_discord_id = users.discord_id WHERE message_history.user_discord_id = %s LIMIT 500"
-  vals = (user_discord_id,)
+  max_limit = 1701
+  sql = "SELECT message_history.user_discord_id, message_history.message_text as text, users.name FROM message_history LEFT JOIN users ON message_history.user_discord_id = users.discord_id WHERE message_history.user_discord_id = %s LIMIT %s"
+  vals = (user_discord_id,max_limit)
   query.execute(sql, vals)
   results = query.fetchall()
   db.commit()

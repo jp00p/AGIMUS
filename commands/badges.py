@@ -34,6 +34,23 @@ async def badges(ctx:discord.ApplicationContext, public:str):
   showcase_image = generate_badge_showcase_for_user(ctx.author)
   await ctx.followup.send(file=showcase_image, ephemeral=not public)
 
+
+# slash command to get common badge stats
+@bot.slash_command(
+  name="badge_stats",
+  description="See the server-wide badge statistics"
+)
+async def badge_stats(ctx:discord.ApplicationContext):
+  results = {}
+  results = run_badge_stats_queries()
+  embed = discord.Embed(color=discord.Color.random(), description="", title="")  
+  embed.add_field(name="Total badges collected on the USS Hood", value=f"{results['total_badges'][0]['count']}")
+  embed.add_field(name="Most popular badge somehow", value=f'{results["most_collected"][0]["badge_name"].replace("_", " ").replace(".png", "")} ({results["most_collected"][0]["count"]} collected)')
+  embed.add_field(name="Crew member with the most badges right now", value=f"{results['number_one'][0]['name']} ({results['number_one'][0]['count']})")
+  await ctx.respond(embed=embed, ephemeral=True)
+
+  
+  
 @bot.slash_command(
   name="gift_badge",
   description="Give a user a badge (admin only)"
@@ -134,7 +151,6 @@ def generate_badge_showcase_for_user(user:discord.User):
     s = Image.new("RGBA", (badge_slot_size, badge_slot_size), (0, 0, 0, 0))
     badge_draw = ImageDraw.Draw(s)
     badge_draw.rounded_rectangle( (0, 0, badge_slot_size, badge_slot_size), fill="#000000", outline=badge_border_color, width=4, radius=32 )
-    
 
     # badge
     b = Image.open(f"./images/badges/{badge}").convert("RGBA")
@@ -211,3 +227,21 @@ def get_user_badges(user_discord_id:int):
   query.close()
   db.close()
   return badges
+
+def run_badge_stats_queries():
+  queries = {
+    "most_collected" : "SELECT badge_name, COUNT(id) as count FROM badges GROUP BY badge_name ORDER BY count DESC LIMIT 1;",
+    "total_badges" : "SELECT COUNT(id) as count FROM badges;",
+    "number_one" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 1;"
+    #"today" : "SELECT * FROM badges WHERE time_created > DATE('now', '-1 day')"
+  }
+  db = getDB()
+  results = {}
+  for name,sql in queries.items():
+    query = db.cursor(dictionary=True)
+    query.execute(sql)
+    results[name] = query.fetchall()
+    db.commit()
+    query.close()
+  db.close()
+  return results

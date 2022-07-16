@@ -29,11 +29,13 @@ reasons = {
   "added_reaction" : "adding a reaction",
   "got_reactions"  : "getting lots of reactions",
   "intro_message"  : "posting an introduction in #first-contact",
-  "starboard_post" : "got a post sent to the starboard",
+  "starboard_post" : "getting a post sent to the starboard",
   "slot_win"       : "winning the slots",
   "quiz_win"       : "winning a quiz",
   "trivia_win"     : "winning at trivia",
-  "poker_win"      : "winning a hand of poker"
+  "poker_win"      : "winning a hand of poker",
+  "used_computer"  : "using the computer",
+  "used_wordcloud" : "generating a wordcloud"
 }
 
 # handle_message_xp(message) - calculates xp for a given message
@@ -299,7 +301,7 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel):
     reason_text = reasons[reason]
     if not reason_text:
       reason_text = reason
-    logger.info(f"{star} {msg_color}{user.display_name}{Fore.RESET} earns {msg_color}{amt} XP{Fore.RESET} for {reason_text}! {star}")
+    logger.info(f"{star} {msg_color}{user.display_name}{Fore.RESET} earns {msg_color}{amt} XP{Fore.RESET} for {Style.BRIGHT}{reason_text}{Style.RESET_ALL}! {star}")
     current_color = current_color + 1
     if current_color >= len(xp_colors):
         current_color = 0

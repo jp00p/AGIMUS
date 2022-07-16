@@ -1,4 +1,5 @@
 import wolframalpha
+from handlers.xp import increment_user_xp
 import openai
 
 from common import *
@@ -36,7 +37,7 @@ async def computer(message:discord.Message):
       res = wa_client.query(question)
       if res.success:
         result = next(res.results)
-
+        await increment_user_xp(message.author, 1, "used_computer", message.channel)
         # Handle Primary Result
         if result.text:
           response_sent = await handle_text_result(res, message)
@@ -204,7 +205,6 @@ async def handle_openai_response(question, message):
     f"Can't wait 'til you see what I said!",
     f"Don't want everyone here to know our secret plans..."
   ]
-
   if message.channel.id != agimus_channel_id:
     await message.reply(embed=discord.Embed(
       title=f"Redirecting...",
