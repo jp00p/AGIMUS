@@ -214,4 +214,3 @@ encode-config: ## Print the base64 encoded contents of $(BOT_CONFIGURATION_FILEP
 .PHONY: encode-env
 encode-env: ## Print the base64 encoded contents of the .env file  (Pro-Tip: pipe to pbcopy on mac)
 	@cat .env | base64
-
