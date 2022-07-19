@@ -77,11 +77,16 @@ async def profile(ctx:discord.ApplicationContext, public:str):
 
   # get rank
   ranks = [761763205809963008, 689531038619140130, 689529335862001833, 761688344630394880, 738606028903546931, 789278115599745024]
-  top_role = "Civilian"
-  for role in member.roles:
-    if role.id in ranks:
-      top_role = role.name.encode("ascii", errors="ignore").decode().strip()
-      break
+  top_role = member.top_role.name
+  if member.top_role.id not in ranks:
+    for rank in ranks:
+      for role in member.roles:
+        if role.id == rank:
+          top_role = role.name
+          break
+      else:
+        continue
+  top_role = top_role.encode("ascii", errors="ignore").decode().strip()
 
   # find their assignment (vanity role)
   assignments = [846843197836623972, 765301878309257227, 846844057892421704, 846844534217769000, 847986805571059722, 846847075911991326, 846844634579730463, 846845685357871124, 902717922475126854]
