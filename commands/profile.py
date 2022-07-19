@@ -1,5 +1,42 @@
 from common import *
+from handlers.xp import calculate_xp_for_next_level
+from commands.badges import get_user_badges
 from utils.check_channel_access import access_check
+import pilgram
+
+@bot.slash_command(
+  name="set_tagline",
+  description="Set your profile tagline (or unset it!)"
+)
+@option(
+  name="tagline",
+  description="Your tagline (up to 60 characters, follow the server rules please!)"
+)
+# set a user's tagline for their profile card
+# users can also unset it by sending an empty string
+async def set_tagline(ctx:discord.ApplicationContext, tagline:str):
+  if not tagline or tagline.strip() == "":
+    db = getDB()
+    query = db.cursor()
+    sql = "UPDATE users SET tagline = %s WHERE discord_id = %s"
+    vals = ("", ctx.author.id)
+    query.execute(sql, vals)
+    db.commit()
+    query.close()
+    db.close()
+    await ctx.respond(f"Your tagline has been cleared!", ephemeral=True)
+  else:
+    tagline = tagline[0:60].encode("ascii", errors="ignore").decode().strip()
+    db = getDB()
+    query = db.cursor()
+    sql = "UPDATE users SET tagline = %s WHERE discord_id = %s"
+    vals = (tagline, ctx.author.id)
+    query.execute(sql, vals)
+    db.commit()
+    query.close()
+    db.close()
+    await ctx.respond(f"Your tagline has been updated!", ephemeral=True)
+    logger.info(f"{ctx.author} has changed their tagline to: \"{tagline}\"")
 
 
 # slash_profile() - Entrypoint for /profile command
@@ -24,130 +61,198 @@ from utils.check_channel_access import access_check
     )
   ]
 )
-@commands.check(access_check)
+
 async def profile(ctx:discord.ApplicationContext, public:str):
   public = bool(public == "yes")
-  await ctx.defer(ephemeral=not public)
-  user = ctx.author
-  player = get_user(user.id)
-  logger.info(f"{Fore.CYAN}{user.display_name} is looking at their own {Back.WHITE}{Fore.BLACK}profile card!{Back.RESET}{Fore.RESET}")
-
-  # fonts (same font, different sizes) used for building image
-  name_font = ImageFont.truetype("images/lcars3.ttf", 56)
-  rank_font = ImageFont.truetype("images/lcars3.ttf", 26)
-  spins_font = ImageFont.truetype("images/lcars3.ttf", 20)
-  rank_value_font = ImageFont.truetype("images/lcars3.ttf", 28)
-  spins_value_font = ImageFont.truetype("images/lcars3.ttf", 24)
+  await ctx.defer(ephemeral=not public)  
   
-  template_image = "template.png" # base template image
-  badge_image = None # little badge in the corner
+  member = ctx.author # discord obj
+  user = get_user(member.id) # our DB
+  logger.info(f"{Fore.CYAN}{member.display_name} is looking at their own {Back.WHITE}{Fore.BLACK}profile card!{Back.RESET}{Fore.RESET}")
 
-  if player["profile_card"] != None:
-    # do they have a different template base?
-    template_image = "template_{}.png".format(player["profile_card"].replace(" ", "_"))
-
-  if player["profile_badge"] != None:
-    # get the profile badge image
-    badge_image = "./images/profiles/badges/{}".format(player["profile_badge"])
-
-  # open template file
-  image = Image.open(f"./images/profiles/{template_image}", "r")
-  image = image.convert("RGBA")
-  image_data = np.array(image) # load image data into bytes array
-
-  # replace white in the base template with the user's color
-  red, green, blue = image_data[:,:,0], image_data[:,:,1], image_data[:,:,2]
-  r1, g1, b1 = 255,255,255
-  user_color = user.color.to_rgb()
-  if user.color.value == 0:
-    user_color = (255,255,255)
-  r2, g2, b2 = user_color
-  
-  mask = (red == r1) & (green == g1) & (blue == b1)
-  image_data[:,:,:3][mask] = [r2, g2, b2]
-
-  # now we have the base template with colors replaced ready to go
-  image = Image.fromarray(image_data)
-  image = image.convert("RGBA")
-  
-  # grab user name and clean up special chars
-  user_name = f"{user.display_name}"
+  # clean up username
+  user_name = f"{member.display_name}"
   user_name_encode = user_name.encode("ascii", errors="ignore")
   user_name = user_name_encode.decode().strip()
-  
-  # grab user's top role and clean up special chars
-  top_role = user.top_role
+
+  # clean up role name
+  top_role = member.top_role
   top_role_name = top_role.name.encode("ascii", errors="ignore")
   top_role = top_role_name.decode().strip()
+
+  # find their assignment (vanity role)
+  assignments = [993234668428206114, 993234668428206113, 993234668428206112, 993234668428206111, 993234668394664015, 993234668394664014, 993234668394664013, 993234668394664012, 993234668394664011]
+  assignment_names = []
+  for role in member.roles:
+    if role.id in assignments:
+      assignment_names.append(role.name)
+  # no vanity role, give them this one
+  if len(assignment_names) <= 0:
+    second_role = "Stowaway"
+  else:
+    second_role = assignment_names[-1]
+
+  user_join = member.joined_at.strftime("%d %B %Y")
+  score = user["score"]
+  spins = user["spins"]
+  level = user["level"]
+  xp = user["xp"]
+  badges = get_user_badges(member.id)
+  badge_count = len(badges)
+  next_level = calculate_xp_for_next_level(level)
+  percent_completed = (xp/next_level) # for calculating width of xp bar
+
+  # fonts (same font, different sizes) used for building image
+  name_font = ImageFont.truetype("images/lcars3.ttf", 61)
+  agimus_font = ImageFont.truetype("images/lcars3.ttf", 22)
+  level_font = ImageFont.truetype("images/lcars3.ttf", 50) # also main header font
+  small_button_font = ImageFont.truetype("images/lcars3.ttf", 24)
+  big_button_font = ImageFont.truetype("images/lcars3.ttf", 28)
+  title_font = ImageFont.truetype("images/lcars3.ttf", 34) # also subtitle font and score font
+  xp_font = ImageFont.truetype("images/lcars3.ttf", 32)
+  entry_font = ImageFont.truetype("images/lcars3.ttf", 40)
+
+  # build the base bg
+  base_bg = Image.new(mode="RGBA", size=(787, 1024))
+  padd_bg = Image.new(size=(700, 839), color="black", mode="RGBA")
+  base_bg.paste(padd_bg, (41, 50), padd_bg)
+
+  # get user profile color
+  profile_color = member.color.to_rgb()
+  if member.color.value == 0:
+    # default to white lcars
+    profile_color = (255, 255, 255)
+
+  # list of all template pieces we'll be coloring
+  template_pieces = [
+    "./images/profiles/template_pieces/lcars/lighter-pieces.png",
+    "./images/profiles/template_pieces/lcars/pieces-1.png",
+    "./images/profiles/template_pieces/lcars/pieces-2.png",
+    "./images/profiles/template_pieces/lcars/pieces-3.png",
+    "./images/profiles/template_pieces/lcars/xp-bar.png"
+  ]
+
+  # modifiers for the lcars pieces
+  profile_shades = [
+    (random.randint(25,40), random.randint(25,40), random.randint(25,40)), # lighten up the first element
+    (random.randint(-25,25), random.randint(-25,25), random.randint(-25,25)),
+    (random.randint(-45,45), random.randint(-45,45), random.randint(-45,45)),
+    (random.randint(-35,35), random.randint(-35,35), random.randint(-35,35)),
+    (random.randint(128,128), random.randint(128,128), random.randint(128,128)), # lighten up the xp element too
+  ]
+
+  lcars_colors = []
+  # special colors just for Sara
+  admiral_colors = [
+    (255, 255, 0),
+    (0, 164, 164),
+    (200, 200, 0),
+    (0, 128, 128),
+    (200, 200, 0)
+  ]
+
+  # adjust shades of colors!
+  for i in range(len(profile_shades)):
+    logger.info(f"Profile colors: {profile_color[0]} {profile_color[1]} {profile_color[2]}")
+    logger.info(f"Current shades: {profile_shades[i]} {profile_shades[i][0]} {profile_shades[i][1]} {profile_shades[i][2]}")
+    r = sorted([profile_color[0]+profile_shades[i][0], 0, 255])[1]
+    g = sorted([profile_color[1]+profile_shades[i][1], 0, 255])[1]
+    b = sorted([profile_color[2]+profile_shades[i][2], 0, 255])[1]
+    lcars_colors.append((r,g,b))
+
+  if profile_color == (12, 13, 14):
+    # special Sara colors
+    lcars_colors = admiral_colors
+
+  draw = ImageDraw.Draw(base_bg) # pencil time
   
-  # grab other user data
-  user_join = user.joined_at.strftime("%Y.%m.%d")
-  score = "SCORE: {}".format(player["score"])
-  
-  # grab user's avatar and paste it on the template
-  avatar = user.display_avatar.replace(size=128, static_format="png")
-  await avatar.save("./images/profiles/"+str(user.id)+"_a.jpg") 
-  avatar_image = Image.open("./images/profiles/"+str(user.id)+"_a.jpg")
+  # draw xp progress bar
+  w, h = 244, 26
+  x, y = 394, 839
+  shape =(x+32, y, min(percent_completed, 1)*(w)+x, h+y)
+  draw.rectangle(shape, fill=lcars_colors[2])
+
+  # draw each lcars piece
+  for i in range(len(template_pieces)):
+    image = Image.open(template_pieces[i])
+    image = image.convert("RGBA")
+    image_data = np.array(image) # load image data into bytes array
+    # replace white in the base template with the user's color
+    red, green, blue, alpha = image_data.T # ignore alpha
+    white_areas = (red >= 75) & (green >= 75) & (blue >= 75)
+    image_data[..., :-1][white_areas.T] = lcars_colors[i] # magic
+    image = Image.fromarray(image_data)
+    image = image.convert("RGBA")
+    base_bg.paste(image, (0, 0), image)
+
+  # draw all the texty bits  
+  draw.text( (283, 80), f"USS HOOD PERSONNEL FILE #{member.discriminator}", fill=random.choice(lcars_colors), font=level_font, align="right")
+  draw.text( (79, 95), f"AGIMUS MAIN TERMINAL", fill="#dd4444", font=agimus_font, align="center",)
+  draw.text( (470, 182), f"{user_name[0:32]}", fill="white", font=name_font, align="center", anchor="ms")
+  if user['tagline']:
+    draw.text( (470, 233), f"\"{user['tagline']}\"", fill="white", font=entry_font, align="center", anchor="ms")
+  draw.text( (578, 381), f"LEVEL: {user['level']:03d}", fill="white", font=level_font, align="right" )
+  title_color = random.choice(lcars_colors[1:3])
+  draw.text( (250, 385), f"CURRENT RANK:", fill=title_color, font=title_font, align="left")
+  draw.text( (250, 418), f"{top_role}", fill="white", font=entry_font, align="left")
+  draw.text( (250, 478), f"CURRENT ASSIGNMENT:", fill=title_color, font=title_font, align="left")
+  draw.text( (250, 508), f"{second_role} / USS Hood NCC-42296", fill="white", font=entry_font, align="left")
+  draw.text( (250, 568), f"DUTY STARTED:", fill=title_color, font=title_font, align="left")
+  draw.text( (250, 598), f"{user_join}", fill="white", font=entry_font, align="left")
+  draw.text( (485, 698), f"BADGES: {badge_count:03d}", fill="black", font=small_button_font, align="center")
+  draw.text( (624, 698), f"SPINS: {spins:04d}", fill="black", font=small_button_font, align="center")
+  draw.text( (510, 755), f"RECREATIONAL CREDITS:", fill="black", font=big_button_font, align="center")
+  draw.text( (555, 783), f"{score:08d}", fill="black", font=title_font, align="center")
+  draw.text( (388, 850), f"XP: {xp:05d}", fill="black", font=xp_font, align="right", anchor="rm")
+
+  # add users avatar to card
+  avatar = member.display_avatar.with_size(128)
+  await avatar.save("./images/profiles/"+str(member.id)+"_a.png") 
+  avatar_image = Image.open("./images/profiles/"+str(member.id)+"_a.png")
+  avatar_image = avatar_image.convert("RGBA")
   avatar_image.resize((128,128))
-  image.paste(avatar_image, (11, 142))
+  base_bg.paste(avatar_image, (79, 583))
 
-  # if they have a badge image, paste it on the template
-  if badge_image:
-    badge_template = Image.new("RGBA", (600,400))
-    badge = Image.open(badge_image)
-    badge = badge.convert("RGBA")
-    badge = badge.resize((50,50))
-    badge_template.paste(badge, (542, 341))
-    image = Image.alpha_composite(image, badge_template)
+  # add screen glare to screen
+  screen_glare = Image.open("./images/profiles/template_pieces/lcars/screen-glare.png").convert("RGBA")
+  base_bg.paste(screen_glare, (0, 0), screen_glare)
 
-  # if they are a high roller, paste the special high roller badge on the template
-  # probably should remove this
-  if player["high_roller"] == 1:
-    vip_template = Image.new("RGBA", (600, 400))
-    vip_badge = Image.open("./images/profiles/badges/ferengi.png")
-    vip_badge = vip_badge.resize((64,64))
-    vip_template.paste(vip_badge, (56, 327))
-    image = Image.alpha_composite(image, vip_template)
+  # add PADD frame to whole image
+  padd_frame = Image.open("./images/profiles/template_pieces/lcars/padd-frame.png").convert("RGBA")
+  base_bg.paste(padd_frame, (0, 0), padd_frame)
+
+  # put sticker on
+  if user["profile_badge"]:
+    sticker_image = Image.open("./images/profiles/template_pieces/lcars/sticker-1.png").convert("RGBA")
+    sticker_mask  = Image.open("./images/profiles/template_pieces/lcars/sticker-1-mask.png").convert("L").resize(sticker_image.size)
+    sticker       = Image.open(f"./images/profiles/badges/{user['profile_badge']}").convert("RGBA").resize(sticker_image.size)
+    sticker_bg    = Image.open("./images/profiles/template_pieces/lcars/sticker-bg.png").convert("RGBA")
+    composed  = Image.composite(sticker_image, sticker, sticker_mask).convert("RGBA")
+    sticker_bg.paste(composed, (0, 0), composed)
+    sticker_bg = sticker_bg.rotate(random.randint(-6,6), expand=True, resample=Image.BICUBIC)
+    sticker_bg.save(f"./images/profiles/usersticker{member.id}.png")
+    base_bg.paste(sticker_bg, (406+random.randint(-10,5), 886+random.randint(-3,3)), sticker_bg)
+
+  # put polaroid on
+  if user["profile_card"]:
+    profile_card = user['profile_card'].replace(" ", "_")
+    photo_image = Image.open("./images/profiles/template_pieces/lcars/photo-frame.png").convert("RGBA")
+    photo_content = Image.open(f"./images/profiles/polaroids/{profile_card}.jpg").convert("RGBA")
+    photo_content = pilgram.nashville(photo_content).convert("RGBA")
+    photo_content.thumbnail((263, 200), Image.ANTIALIAS)
+    photo_content = photo_content.crop((0,0,200,200))
+    photo_glare = Image.open("./images/profiles/template_pieces/lcars/photo-glare.png").convert("RGBA")
+    photo_content.paste(photo_glare, (0, 0), photo_glare)
+    rotation = random.randint(-7, 7)
+    photo_image.rotate(rotation, expand=True, resample=Image.BICUBIC)
+    photo_content.rotate(rotation, expand=True, resample=Image.BICUBIC)
+    base_bg.paste(photo_content, (6+20, 164+10), photo_content)
+    base_bg.paste(photo_image, (6+random.randint(-1,1), 164+random.randint(-5,5)), photo_image)
   
-
-  white50 = (255, 255, 255, 64)
-  
-  # lots of text drawing
-  draw = ImageDraw.Draw(image)
-  draw.line([(0, 0), (600, 0)], fill=(r2,g2,b2), width=5) # and a fun line across the top why not
-  
-  draw.text( (547, 16), user_name[0:15], fill="black", font=name_font, anchor="rt", align="right") # shadow
-  draw.text( (546, 15), user_name[0:15], fill="white", font=name_font, anchor="rt", align="right")
-  
-  draw.text( (63, 84), "RANK", fill=white50, font=rank_font, align="right", anchor="rt") # shadow
-  draw.text( (62, 83), "RANK", fill="black", font=rank_font, align="right", anchor="rt")
-  draw.text( (78, 84), top_role, fill="black", font=rank_value_font, anchor="lt", align="left") # shadow
-  draw.text( (77, 83), top_role, fill="white", font=rank_value_font, anchor="lt", align="left") 
-
-  draw.text( (63, 115), "JOINED", fill=white50, font=rank_font, align="right", anchor="rt") # shadow
-  draw.text( (62, 114), "JOINED", fill="black", font=rank_font, align="right", anchor="rt")
-  draw.text( (78, 114), user_join, fill="black", font=rank_value_font, anchor="lt", align="left") # shadow
-  draw.text( (77, 113), user_join, fill="white", font=rank_value_font, anchor="lt", align="left")
-
-  draw.text( (66, 279), "SPINS", fill=white50, font=spins_font, align="right", anchor="rt") # shadow
-  draw.text( (65, 278), "SPINS", fill="black", font=spins_font, align="right", anchor="rt")
-  draw.text( (74, 277), str(player["spins"]), fill="black", font=spins_value_font, anchor="lt", align="left") # shadow
-  draw.text( (73, 276), str(player["spins"]), fill="white", font=spins_value_font, anchor="lt", align="left")
-  
-  draw.text( (66, 305), "XP", fill=white50, font=spins_font, align="right", anchor="rt") # shadow
-  draw.text( (65, 304), "XP", fill="black", font=spins_font, align="right", anchor="rt")
-  draw.text( (74, 303), str(player["xp"]), fill="black", font=spins_value_font, anchor="lt", align="left") # shadow
-  draw.text( (73, 302), str(player["xp"]), fill="white", font=spins_value_font, anchor="lt", align="left")
-
-  draw.text( (63, 53), "LEVEL", fill=white50, font=rank_font, align="right", anchor="rt") # shadow
-  draw.text( (62, 52), "LEVEL", fill="black", font=rank_font, align="right", anchor="rt")
-  draw.text( (78, 53), f"{player['level']:>03d}", fill="black", font=rank_value_font, anchor="lt", align="left") # shadow
-  draw.text( (77, 52), f"{player['level']:>03d}", fill="white", font=rank_value_font, anchor="lt", align="left")
-
-  draw.text( (322, 367), score, fill="black", font=rank_value_font) # shadow
-  draw.text( (321, 366), score, fill="white", font=rank_value_font)
+  base_w, base_h = base_bg.size
+  base_bg = base_bg.resize((int(base_w*2), int(base_h*2))) # makes it more legible maybe
   
   # finalize image
-  image.save("./images/profiles/"+str(user.id)+".png")
-  discord_image = discord.File("./images/profiles/"+str(user.id)+".png")
+  base_bg.save("./images/profiles/drunkshimodanumber"+str(member.id)+".png")
+  discord_image = discord.File("./images/profiles/drunkshimodanumber"+str(member.id)+".png")
   await ctx.followup.send(file=discord_image, ephemeral=not public)

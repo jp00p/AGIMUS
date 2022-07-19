@@ -43,6 +43,7 @@ numpy==1.21.2
 openai==0.20.0
 packaging==21.3
 phue==1.1
+pilgram==1.2.1
 Pillow==8.3.2
 Pint==0.19.2
 pipreqs==0.4.10
