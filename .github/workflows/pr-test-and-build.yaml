@@ -70,12 +70,10 @@ jobs:
               && echo "${{ secrets.CONFIGJSON }}" | base64 -d | sed -e 's/\r//' > local.json;
           fi
           if [ -z "${ENVFILE}" ]; then
-            echo "Problem loading github secret ENVFILE" \
-              && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r//' > .env \
-              && cat .env
+            echo "Problem loading github secret ENVFILE"
           else
             echo "Loading secrets" \
-              && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r//' > .env \
+              && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r//' | sed -e 's/configuration\.json/local.json/g' > .env \
               && source .env
           fi
           ls -alF
@@ -97,36 +95,41 @@ jobs:
           echo "Running tests..." \
             && make --no-print-directory kind-test
           sleep 5
+          echo "Delete (restart) AGIMUS pod now that MySQL should be running and seeded..."
           kubectl --namespace agimus delete pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
-          sleep 10
-          kubectl --namespace agimus get deployments -o wide
-          sleep 10
-          kubectl --namespace agimus get pods -o wide
-          sleep 10
-          kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
-          sleep 10
-          kubectl --namespace agimus get deployments -o wide
-          kubectl --namespace agimus get pods -o wide
-          kubectl --namespace agimus get secrets
-          kubectl --namespace agimus get configmaps
-          kubectl --namespace agimus get configmaps agimus-config -o yaml
-          kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
+          echo "If after 20 seconds the string 'BOT IS ONLINE AND READY FOR COMMANDS' is not present in the logs, the test has failed..."
+          sleep 20
+          bash_test="$(kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') | grep 'BOT IS ONLINE AND READY FOR COMMANDS')"
+          echo "$bash_test"
+          if [[ -n "$bash_test" ]]; then
+            echo "AGIMUS is online!!!"
+            exit 0
+          else
+            echo "AGIMUS is NOT online!!!"
+            exit 1
+          fi
+          
       -
-        name: Debug failure
-        if: ${{ failure() }}
+        name: Debug 
+        if: ${{ always() }}
         shell: bash
         env:
           CONFIGJSON: ${{ secrets.CONFIGJSON }}
         run: |
           make help
           ls -alF
+          echo "Deployments:"
           kubectl --namespace agimus get deployments -o wide
+          echo "Pods:"
           kubectl --namespace agimus get pods -o wide
+          echo "Secrets:"
           kubectl --namespace agimus get secrets
+          echo "Configmaps:"
           kubectl --namespace agimus get configmaps
+          echo "Agimus Config:"
           kubectl --namespace agimus get configmaps agimus-config -o yaml
+          echo "Describe Agimus pod:"
           kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
+          echo "Logs:"
           kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
-          kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep mysql | awk '{print $1}') || true
-          kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep mysql | awk '{print $1}') || true
 
