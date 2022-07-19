@@ -79,6 +79,7 @@ jobs:
               && source .env
           fi
           ls -alF
+          export BOT_CONFIGURATION_FILEPATH=./local.json
           echo "DB_SEED_FILEPATH=$DB_SEED_FILEPATH"
           echo "DB_HOST=$DB_HOST"
           echo "DB_NAME=$DB_NAME"
