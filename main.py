@@ -25,6 +25,7 @@ import commands.drop
 import commands.clip
 
 # Bang Commands
+from commands.agimus import agimus
 from commands.categories import categories
 from commands.clear_media import clear_media
 from commands.computer import computer
@@ -135,7 +136,9 @@ async def process_command(message:discord.Message):
   split_string = message.content.lower().split(" ")
   if message.content.startswith("!"):
     user_command = split_string[0].replace("!","")
-  elif any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
+  elif message.content.lower().startswith("agimus:"):
+    user_command = "agimus"
+  elif message.content.lower().startswith("computer:"):
     user_command = "computer"
 
   # If the user's first word matches one of the commands in configuration
