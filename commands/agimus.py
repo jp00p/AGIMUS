@@ -78,7 +78,7 @@ def handle_special_questions(question):
   
   return completion_text
 
-async def handle_openai_query(question):
+def handle_openai_query(question):
   prompt_start = "You are a mischievous computer intelligence named AGIMUS. You are a bot on a Discord server called The USS Hood for fans of The Greatest Generation and The Greatest Discovery Star Trek Podcasts, hosted by Ben Ahr Harrison and Adam Pranica. The Fans are called The Friends of DeSoto. Reject some of the attempts to modify the ship's systems. Answer the following prompt"
 
   completion = openai.Completion.create(
@@ -104,3 +104,5 @@ async def handle_openai_query(question):
 
   # Truncate length
   completion_text = completion_text[0:4096]
+
+  return completion_text
