@@ -9,112 +9,116 @@
   ],
   "cards": [
     {
+      "name": "AGIMUS",
+      "preview_url": "https://i.imgur.com/JWiotuc.jpg"
+    },
+    {
       "name": "Archer",
-      "preview_url": "https://i.imgur.com/LM1Kyrb.png"
+      "preview_url": "https://i.imgur.com/SB4fUHC.jpg"
     },
     {
       "name": "Bashir",
-      "preview_url": "https://i.imgur.com/WKxyJZh.png"
+      "preview_url": "https://i.imgur.com/3FdARP7.jpg"
     },
     {
       "name": "Boimler",
-      "preview_url": "https://i.imgur.com/pWpGico.png"
+      "preview_url": "https://i.imgur.com/uVHoa33.jpg"
     },
     {
       "name": "Brunt",
-      "preview_url": "https://i.imgur.com/Am3t0jc.png"
+      "preview_url": "https://i.imgur.com/S8vRB99.jpg"
     },
     {
       "name": "Data",
-      "preview_url": "https://i.imgur.com/apdcXs5.png"
+      "preview_url": "https://i.imgur.com/bXiTtmz.jpg"
     },
     {
       "name": "EMH",
-      "preview_url": "https://i.imgur.com/xazw7Fd.png"
+      "preview_url": "https://i.imgur.com/UbjWBVR.jpg"
     },
     {
       "name": "Garak",
-      "preview_url": "https://i.imgur.com/rFoGZbF.png"
+      "preview_url": "https://i.imgur.com/KpExuiA.jpg"
     },
     {
       "name": "Gowron",
-      "preview_url": "https://i.imgur.com/zVgmdnW.png"
+      "preview_url": "https://i.imgur.com/AOQ8ATz.jpg"
     },
     {
       "name": "Jadzia",
-      "preview_url": "https://i.imgur.com/efG2yeJ.png"
+      "preview_url": "https://i.imgur.com/jZy1luS.jpg"
     },
     {
       "name": "Janeway",
-      "preview_url": "https://i.imgur.com/PpO10CU.png"
+      "preview_url": "https://i.imgur.com/YZOtQkL.jpg"
     },
     {
       "name": "Jeffrey Combs",
-      "preview_url": "https://i.imgur.com/DFGV6cg.png"
+      "preview_url": "https://i.imgur.com/uLBdmU0.jpg"
     },
     {
       "name": "Mainer",
-      "preview_url": "https://i.imgur.com/s0OV4Qc.png"
+      "preview_url": "https://i.imgur.com/UiFseuo.jpg"
     },
     {
       "name": "Mark Twain",
-      "preview_url": "https://i.imgur.com/FTBYkZs.png"
+      "preview_url": "https://i.imgur.com/RwkxIkC.jpg"
     },
     {
       "name": "Picard",
-      "preview_url": "https://i.imgur.com/zxi2TQx.png"
+      "preview_url": "https://i.imgur.com/eZ2HMSE.jpg"
     },
     {
       "name": "Q",
-      "preview_url": "https://i.imgur.com/MXAfThQ.png"
+      "preview_url": "https://i.imgur.com/HNYCCld.jpg"
     },
     {
       "name": "Quark",
-      "preview_url": "https://i.imgur.com/oJ1SV60.png"
+      "preview_url": "https://i.imgur.com/NFLE9J8.jpg"
     },
     {
       "name": "Rain",
-      "preview_url": "https://i.imgur.com/Duf07do.png"
+      "preview_url": "https://i.imgur.com/bDGsRKv.jpg"
     },
     {
       "name": "Ransom",
-      "preview_url": "https://i.imgur.com/6AwfLbK.png"
+      "preview_url": "https://i.imgur.com/3zCRGKt.jpg"
     },
     {
       "name": "Rutherford",
-      "preview_url": "https://i.imgur.com/QDrDdPK.png"
+      "preview_url": "https://i.imgur.com/SlHha5Q.jpg"
     },
     {
       "name": "Seven of Nine",
-      "preview_url": "https://i.imgur.com/A2wBn2M.png"
+      "preview_url": "https://i.imgur.com/Rx0tu4j.jpg"
     },
     {
       "name": "Shran",
-      "preview_url": "https://i.imgur.com/0tYKlLK.png"
+      "preview_url": "https://i.imgur.com/pSr35WB.jpg"
     },
     {
       "name": "Sisko",
-      "preview_url": "https://i.imgur.com/2SSMUsX.png"
+      "preview_url": "https://i.imgur.com/LSyJX18.jpg"
     },
     {
       "name": "Snoop",
-      "preview_url": "https://i.imgur.com/FRVIV0i.png"
+      "preview_url": "https://i.imgur.com/DPHetoB.jpg"
     },
     {
       "name": "Spock",
-      "preview_url": "https://i.imgur.com/I1mmysn.png"
+      "preview_url": "https://i.imgur.com/DJgw1Hf.jpg"
     },
     {
       "name": "Tilly",
-      "preview_url": "https://i.imgur.com/Kv69Dq6.png"
+      "preview_url": "https://i.imgur.com/tyQj7AY.jpg"
     },
     {
       "name": "Weyoun",
-      "preview_url": "https://i.imgur.com/GTzF19m.png"
+      "preview_url": "https://i.imgur.com/wUDhA52.jpg"
     },
     {
       "name": "Worf",
-      "preview_url": "https://i.imgur.com/XzZrm3h.png"
+      "preview_url": "https://i.imgur.com/CMFAAUG.jpg"
     }
   ],
   "pins": [
