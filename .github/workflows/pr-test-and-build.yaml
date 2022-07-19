@@ -70,16 +70,13 @@ jobs:
               && echo "${{ secrets.CONFIGJSON }}" | base64 -d | sed -e 's/\r//' > local.json;
           fi
           if [ -z "${ENVFILE}" ]; then
-            echo "Problem loading github secret ENVFILE" \
-              && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r//' > .env \
-              && cat .env
+            echo "Problem loading github secret ENVFILE"
           else
             echo "Loading secrets" \
-              && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r//' > .env \
+              && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r//' | sed -e 's/configuration\.json/local.json/g' > .env \
               && source .env
           fi
           ls -alF
-          export BOT_CONFIGURATION_FILEPATH=./local.json
           echo "DB_SEED_FILEPATH=$DB_SEED_FILEPATH"
           echo "DB_HOST=$DB_HOST"
           echo "DB_NAME=$DB_NAME"
@@ -106,11 +103,17 @@ jobs:
           sleep 10
           kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
           sleep 10
+          echo "Deployments:"
           kubectl --namespace agimus get deployments -o wide
+          echo "Pods:"
           kubectl --namespace agimus get pods -o wide
+          echo "Secrets:"
           kubectl --namespace agimus get secrets
+          echo "Configmaps:"
           kubectl --namespace agimus get configmaps
+          echo "Agimus Config:"
           kubectl --namespace agimus get configmaps agimus-config -o yaml
+          echo "Deployments:"
           kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
       -
         name: Debug failure
