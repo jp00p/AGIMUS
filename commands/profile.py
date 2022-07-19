@@ -12,6 +12,8 @@ import pilgram
   name="tagline",
   description="Your tagline (up to 60 characters, follow the server rules please!)"
 )
+# set a user's tagline for their profile card
+# users can also unset it by sending an empty string
 async def set_tagline(ctx:discord.ApplicationContext, tagline:str):
   if not tagline or tagline.strip() == "":
     db = getDB()
@@ -61,32 +63,35 @@ async def set_tagline(ctx:discord.ApplicationContext, tagline:str):
 )
 
 async def profile(ctx:discord.ApplicationContext, public:str):
-  
   public = bool(public == "yes")
-  await ctx.defer(ephemeral=not public)
+  await ctx.defer(ephemeral=not public)  
   
   member = ctx.author # discord obj
   user = get_user(member.id) # our DB
   logger.info(f"{Fore.CYAN}{member.display_name} is looking at their own {Back.WHITE}{Fore.BLACK}profile card!{Back.RESET}{Fore.RESET}")
 
+  # clean up username
   user_name = f"{member.display_name}"
   user_name_encode = user_name.encode("ascii", errors="ignore")
   user_name = user_name_encode.decode().strip()
 
+  # clean up role name
   top_role = member.top_role
   top_role_name = top_role.name.encode("ascii", errors="ignore")
   top_role = top_role_name.decode().strip()
 
+  # find their assignment (vanity role)
   assignments = [993234668428206114, 993234668428206113, 993234668428206112, 993234668428206111, 993234668394664015, 993234668394664014, 993234668394664013, 993234668394664012, 993234668394664011]
   assignment_names = []
   for role in member.roles:
     if role.id in assignments:
       assignment_names.append(role.name)
-
+  # no vanity role, give them this one
   if len(assignment_names) <= 0:
     second_role = "Stowaway"
   else:
     second_role = assignment_names[-1]
+
   user_join = member.joined_at.strftime("%d %B %Y")
   score = user["score"]
   spins = user["spins"]
@@ -95,7 +100,7 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   badges = get_user_badges(member.id)
   badge_count = len(badges)
   next_level = calculate_xp_for_next_level(level)
-  percent_completed = (xp/next_level)
+  percent_completed = (xp/next_level) # for calculating width of xp bar
 
   # fonts (same font, different sizes) used for building image
   name_font = ImageFont.truetype("images/lcars3.ttf", 61)
@@ -107,24 +112,18 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   xp_font = ImageFont.truetype("images/lcars3.ttf", 32)
   entry_font = ImageFont.truetype("images/lcars3.ttf", 40)
 
-
-  # build black BG
-  # draw XP bar
-  # load & color & paste template parts
-  # add text
-  # add lcars frame
-  # add photo, stickers, etc
-
+  # build the base bg
   base_bg = Image.new(mode="RGBA", size=(787, 1024))
   padd_bg = Image.new(size=(700, 839), color="black", mode="RGBA")
   base_bg.paste(padd_bg, (41, 50), padd_bg)
 
+  # get user profile color
   profile_color = member.color.to_rgb()
   if member.color.value == 0:
     # default to white lcars
     profile_color = (255, 255, 255)
 
-
+  # list of all template pieces we'll be coloring
   template_pieces = [
     "./images/profiles/template_pieces/lcars/lighter-pieces.png",
     "./images/profiles/template_pieces/lcars/pieces-1.png",
@@ -133,7 +132,7 @@ async def profile(ctx:discord.ApplicationContext, public:str):
     "./images/profiles/template_pieces/lcars/xp-bar.png"
   ]
 
-  # will probably need a better lightening method
+  # modifiers for the lcars pieces
   profile_shades = [
     (random.randint(25,40), random.randint(25,40), random.randint(25,40)), # lighten up the first element
     (random.randint(-25,25), random.randint(-25,25), random.randint(-25,25)),
@@ -143,6 +142,7 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   ]
 
   lcars_colors = []
+  # special colors just for Sara
   admiral_colors = [
     (255, 255, 0),
     (0, 164, 164),
@@ -161,16 +161,18 @@ async def profile(ctx:discord.ApplicationContext, public:str):
     lcars_colors.append((r,g,b))
 
   if profile_color == (12, 13, 14):
+    # special Sara colors
     lcars_colors = admiral_colors
 
   draw = ImageDraw.Draw(base_bg) # pencil time
   
-  # draw xp progress
+  # draw xp progress bar
   w, h = 244, 26
   x, y = 394, 839
   shape =(x+32, y, min(percent_completed, 1)*(w)+x, h+y)
   draw.rectangle(shape, fill=lcars_colors[2])
 
+  # draw each lcars piece
   for i in range(len(template_pieces)):
     image = Image.open(template_pieces[i])
     image = image.convert("RGBA")
@@ -183,15 +185,13 @@ async def profile(ctx:discord.ApplicationContext, public:str):
     image = image.convert("RGBA")
     base_bg.paste(image, (0, 0), image)
 
-  
+  # draw all the texty bits  
   draw.text( (283, 80), f"USS HOOD PERSONNEL FILE #{member.discriminator}", fill=random.choice(lcars_colors), font=level_font, align="right")
   draw.text( (79, 95), f"AGIMUS MAIN TERMINAL", fill="#dd4444", font=agimus_font, align="center",)
   draw.text( (470, 182), f"{user_name[0:32]}", fill="white", font=name_font, align="center", anchor="ms")
   if user['tagline']:
     draw.text( (470, 233), f"\"{user['tagline']}\"", fill="white", font=entry_font, align="center", anchor="ms")
-  
   draw.text( (578, 381), f"LEVEL: {user['level']:03d}", fill="white", font=level_font, align="right" )
-  
   title_color = random.choice(lcars_colors[1:3])
   draw.text( (250, 385), f"CURRENT RANK:", fill=title_color, font=title_font, align="left")
   draw.text( (250, 418), f"{top_role}", fill="white", font=entry_font, align="left")
@@ -199,15 +199,13 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   draw.text( (250, 508), f"{second_role} / USS Hood NCC-42296", fill="white", font=entry_font, align="left")
   draw.text( (250, 568), f"DUTY STARTED:", fill=title_color, font=title_font, align="left")
   draw.text( (250, 598), f"{user_join}", fill="white", font=entry_font, align="left")
-
   draw.text( (485, 698), f"BADGES: {badge_count:03d}", fill="black", font=small_button_font, align="center")
   draw.text( (624, 698), f"SPINS: {spins:04d}", fill="black", font=small_button_font, align="center")
   draw.text( (510, 755), f"RECREATIONAL CREDITS:", fill="black", font=big_button_font, align="center")
   draw.text( (555, 783), f"{score:08d}", fill="black", font=title_font, align="center")
-
   draw.text( (388, 850), f"XP: {xp:05d}", fill="black", font=xp_font, align="right", anchor="rm")
-  #draw.text( (397, 840), f"{xp}", fill="black", font=title_font, align="left")
 
+  # add users avatar to card
   avatar = member.display_avatar.with_size(128)
   await avatar.save("./images/profiles/"+str(member.id)+"_a.png") 
   avatar_image = Image.open("./images/profiles/"+str(member.id)+"_a.png")
@@ -215,12 +213,15 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   avatar_image.resize((128,128))
   base_bg.paste(avatar_image, (79, 583))
 
+  # add screen glare to screen
   screen_glare = Image.open("./images/profiles/template_pieces/lcars/screen-glare.png").convert("RGBA")
   base_bg.paste(screen_glare, (0, 0), screen_glare)
 
+  # add PADD frame to whole image
   padd_frame = Image.open("./images/profiles/template_pieces/lcars/padd-frame.png").convert("RGBA")
   base_bg.paste(padd_frame, (0, 0), padd_frame)
 
+  # put sticker on
   if user["profile_badge"]:
     sticker_image = Image.open("./images/profiles/template_pieces/lcars/sticker-1.png").convert("RGBA")
     sticker_mask  = Image.open("./images/profiles/template_pieces/lcars/sticker-1-mask.png").convert("L").resize(sticker_image.size)
@@ -232,6 +233,7 @@ async def profile(ctx:discord.ApplicationContext, public:str):
     sticker_bg.save(f"./images/profiles/usersticker{member.id}.png")
     base_bg.paste(sticker_bg, (406+random.randint(-10,5), 886+random.randint(-3,3)), sticker_bg)
 
+  # put polaroid on
   if user["profile_card"]:
     profile_card = user['profile_card'].replace(" ", "_")
     photo_image = Image.open("./images/profiles/template_pieces/lcars/photo-frame.png").convert("RGBA")
@@ -241,7 +243,6 @@ async def profile(ctx:discord.ApplicationContext, public:str):
     photo_content = photo_content.crop((0,0,200,200))
     photo_glare = Image.open("./images/profiles/template_pieces/lcars/photo-glare.png").convert("RGBA")
     photo_content.paste(photo_glare, (0, 0), photo_glare)
-
     rotation = random.randint(-7, 7)
     photo_image.rotate(rotation, expand=True, resample=Image.BICUBIC)
     photo_content.rotate(rotation, expand=True, resample=Image.BICUBIC)
@@ -249,7 +250,8 @@ async def profile(ctx:discord.ApplicationContext, public:str):
     base_bg.paste(photo_image, (6+random.randint(-1,1), 164+random.randint(-5,5)), photo_image)
   
   base_w, base_h = base_bg.size
-  base_bg = base_bg.resize((int(base_w*2), int(base_h*2)))
+  base_bg = base_bg.resize((int(base_w*2), int(base_h*2))) # makes it more legible maybe
+  
   # finalize image
   base_bg.save("./images/profiles/drunkshimodanumber"+str(member.id)+".png")
   discord_image = discord.File("./images/profiles/drunkshimodanumber"+str(member.id)+".png")
