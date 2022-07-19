@@ -70,7 +70,7 @@ docker-lint: ## Lint the container with dockle
 
 .PHONY: db-mysql
 db-mysql: ## MySQL session in running db container
-	@docker-compose exec db mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"
+	@docker-compose exec db mysql -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"
 
 .PHONY: db-bash
 db-bash: ## Bash session in running db container
@@ -78,11 +78,17 @@ db-bash: ## Bash session in running db container
 
 .PHONY: db-dump
 db-dump: ## Dump the database to a file at ./$DB_DUMP_FILENAME
-	@docker-compose exec db bash -c 'mysqldump -u"${DB_USER}" -p"${DB_PASS}" -B ${DB_NAME} 2>/dev/null' > ./${DB_DUMP_FILENAME}
+	@docker-compose exec db bash -c 'mysqldump -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" -B ${DB_NAME} 2>/dev/null' > ./${DB_DUMP_FILENAME}
 
 .PHONY: db-load
 db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
-	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_DUMP_FILENAME}
+	@docker-compose exec -T db sh -c 'exec mysql -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_DUMP_FILENAME}
+
+.PHONY: db-seed
+db-seed: ## Reload the database from a file at ./$DB_SEED_FILEPATH
+	@docker-compose exec -T db sh -c 'exec mysql -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" <<< "DROP DATABASE IF EXISTS FoD;"'
+	@docker-compose exec -T db sh -c 'exec mysql -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" <<< "create database FoD;"'
+	@docker-compose exec -T db sh -c 'exec mysql -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_SEED_FILEPATH}
 
 # mysql session in pod
 # kubectl exec -it my-cluster-mysql-0 -c mysql -- mysql -uroot -ppassword
@@ -149,9 +155,9 @@ helm-uninstall: helm-config-rm ## Remove AGIMUS helm chart
 	@helm --namespace $(namespace) delete agimus
 
 .PHONY: helm-db-load
-helm-db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
+helm-db-load: ## Load the database from a file at ./$DB_SEED_FILEPATH
 	@kubectl --namespace $(namespace) exec -i $(shell make --no-print-directory helm-db-pod) \
-		-- bash -c 'exec mysql -h127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}"' < ${DB_DUMP_FILENAME}
+		-- bash -c 'exec mysql -h127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}"' < ${DB_SEED_FILEPATH}
 
 .PHONY: helm-db-mysql
 helm-db-mysql: ## Mysql session in mysql pod
