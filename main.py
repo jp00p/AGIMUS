@@ -247,11 +247,11 @@ async def on_application_command(ctx):
     logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
     ALL_USERS.append(register_player(ctx.author))
 
-@bot.event
-async def on_application_command_error(ctx, exception):
-  logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
-  logger.info(traceback.format_exc())
-  logger.exception(exception)
+# @bot.event
+# async def on_application_command_error(ctx, exception):
+#   logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
+#   logger.info(traceback.format_exc())
+#   logger.exception(exception)
 
 # Schedule Tasks
 scheduled_tasks = [
