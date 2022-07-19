@@ -14,7 +14,7 @@ async def agimus(message:discord.Message):
   if not OPENAI_API_KEY:
     return
 
-  await increment_user_xp(message.author, 1, "used_agimus", message.channel)
+  await increment_user_xp(message.author, 1, "asked_agimus", message.channel)
   # Message text starts with "AGIMUS:"
   # So split on first : and gather remainder of list into a single string
   question_split = message.content.lower().split(":")
