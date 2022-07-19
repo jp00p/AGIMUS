@@ -99,7 +99,9 @@ jobs:
           kubectl --namespace agimus delete pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
           echo "If after 20 seconds the string 'BOT IS ONLINE AND READY FOR COMMANDS' is not present in the logs, the test has failed..."
           sleep 20
-          if [[ -z "$(kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') | grep 'BOT IS ONLINE AND READY FOR COMMANDS')" ]]; then
+          bash_test="$(kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') | grep 'BOT IS ONLINE AND READY FOR COMMANDS')"
+          echo "$bash_test"
+          if [[ -n "$bash_test" ]]; then
             echo "AGIMUS is online!!!"
             exit 0
           else
