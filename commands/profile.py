@@ -75,10 +75,13 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   user_name_encode = user_name.encode("ascii", errors="ignore")
   user_name = user_name_encode.decode().strip()
 
-  # clean up role name
-  top_role = member.top_role
-  top_role_name = top_role.name.encode("ascii", errors="ignore")
-  top_role = top_role_name.decode().strip()
+  # get rank
+  ranks = [761763205809963008, 689531038619140130, 689529335862001833, 761688344630394880, 738606028903546931, 789278115599745024]
+  top_role = "Civilian"
+  for role in member.roles:
+    if role.id in ranks:
+      top_role = role.name.encode("ascii", errors="ignore").decode().strip()
+      break
 
   # find their assignment (vanity role)
   assignments = [846843197836623972, 765301878309257227, 846844057892421704, 846844534217769000, 847986805571059722, 846847075911991326, 846844634579730463, 846845685357871124, 902717922475126854]
@@ -153,8 +156,8 @@ async def profile(ctx:discord.ApplicationContext, public:str):
 
   # adjust shades of colors!
   for i in range(len(profile_shades)):
-    logger.info(f"Profile colors: {profile_color[0]} {profile_color[1]} {profile_color[2]}")
-    logger.info(f"Current shades: {profile_shades[i]} {profile_shades[i][0]} {profile_shades[i][1]} {profile_shades[i][2]}")
+    #logger.info(f"Profile colors: {profile_color[0]} {profile_color[1]} {profile_color[2]}")
+    #logger.info(f"Current shades: {profile_shades[i]} {profile_shades[i][0]} {profile_shades[i][1]} {profile_shades[i][2]}")
     r = sorted([profile_color[0]+profile_shades[i][0], 0, 255])[1]
     g = sorted([profile_color[1]+profile_shades[i][1], 0, 255])[1]
     b = sorted([profile_color[2]+profile_shades[i][2], 0, 255])[1]
@@ -246,7 +249,7 @@ async def profile(ctx:discord.ApplicationContext, public:str):
     rotation = random.randint(-7, 7)
     photo_image.rotate(rotation, expand=True, resample=Image.BICUBIC)
     photo_content.rotate(rotation, expand=True, resample=Image.BICUBIC)
-    base_bg.paste(photo_content, (6+20, 164+10), photo_content)
+    base_bg.paste(photo_content, (6+22, 164+10), photo_content)
     base_bg.paste(photo_image, (6+random.randint(-1,1), 164+random.randint(-5,5)), photo_image)
   
   base_w, base_h = base_bg.size
