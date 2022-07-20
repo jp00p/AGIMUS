@@ -33,6 +33,7 @@ reasons = {
   "slot_win"       : "winning the slots",
   "quiz_win"       : "winning a quiz",
   "trivia_win"     : "winning at trivia",
+  "trivia_play"    : "participating in trivia",
   "poker_win"      : "winning a hand of poker",
   "used_computer"  : "using the computer",
   "asked_agimus"   : "asked agimus a question",
