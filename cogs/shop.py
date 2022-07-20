@@ -201,7 +201,7 @@ class Shop(commands.Cog):
 
 
   async def edit_interaction_with_thanks(self, page_interaction):
-    thank_you_embed=discord.Embed(
+    thank_you_embed = discord.Embed(
       title="Thank you for visiting The Shop!",
       color=discord.Color(0xFFFFFF)
     )
@@ -209,10 +209,12 @@ class Shop(commands.Cog):
     try:
       page_interaction_type = type(page_interaction).__name__
       if page_interaction_type == 'Interaction':
-        await page_interaction.edit_original_message(
-          embed=thank_you_embed,
-          view=None
-        )
+        original_message = await page_interaction.original_message()
+        if original_message != None:
+          await original_message.edit(
+            embed=thank_you_embed,
+            view=None
+          )
       elif page_interaction_type == 'InteractionMessage':
         await page_interaction.edit(
           embed=thank_you_embed,

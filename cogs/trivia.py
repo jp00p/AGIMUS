@@ -53,14 +53,12 @@ class Trivia(commands.Cog):
     self.trivia_answers = {}
     self.trivia_message = None
     self.trivia_running = False
-    self.original_response = None
   
   def clear_data(self):
     self.trivia_data = {}
     self.trivia_answers = {}
     self.trivia_message = None
     self.trivia_running = False
-    self.original_response = None
 
   async def answer_button_callback(self, interaction, answer_index):
     trivia_answer = {
@@ -124,7 +122,7 @@ class Trivia(commands.Cog):
 
       embed.set_footer(text="Select a button below with your answer!")
       # channel = bot.get_channel(config["channels"]["quizzing-booth"])
-      self.original_response = self.trivia_message = await ctx.respond(
+      self.trivia_message = await ctx.respond(
         embed=embed,
         file=thumb,
         view=view
@@ -195,7 +193,9 @@ class Trivia(commands.Cog):
         increase_jackpot(reward)
 
       # Disable all the answer buttons now that the trivia session is over
-      await self.original_response.edit_original_message(view=None)
+      original_message = await self.trivia_message.original_message()
+      if original_message != None:
+        await original_message.edit(view=None)
 
       self.clear_data()
 
