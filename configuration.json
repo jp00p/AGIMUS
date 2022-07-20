@@ -132,14 +132,6 @@
       "enabled": true,
       "parameters": []
     },
-    "categories": {
-      "channels": [
-        "quizzing-booth"
-      ],
-      "enabled": true,
-      "data": "data/triv.json",
-      "parameters": []
-    },
     "clear_media": {
       "channels": [],
       "enabled": true,
@@ -382,12 +374,6 @@
         }
       ]
     },
-    "restrict_emojis": {
-      "channels": [],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
     "setwager": {
       "channels": [
         "slots-slots-slots",
@@ -508,43 +494,13 @@
       "data": "data/duel_characters.txt",
       "parameters": []
     },
-    "triv": {
+    "trivia": {
       "channels": [
         "quizzing-booth"
       ],
       "enabled": true,
-      "data": "data/triv.json",
-      "parameters": [
-        {
-          "name": "category",
-          "allowed": [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            19,
-            20,
-            21,
-            22,
-            23
-          ],
-          "required": false
-        }
-      ]
+      "data": "data/trivia.json",
+      "parameters": []
     },
     "tuvix": {
       "channels": [

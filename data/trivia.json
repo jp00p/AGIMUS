@@ -1,0 +1,28 @@
+{
+  "categories": {
+    "Animals": 19,
+    "Art": 17,
+    "Celebrities": 18,
+    "Entertainment: Board Games": 8,
+    "Entertainment: Books": 2,
+    "Entertainment: Cartoon & Animations": 24,
+    "Entertainment: Comics": 21,
+    "Entertainment: Film": 3,
+    "Entertainment: Japanese Anime & Manga": 23,
+    "Entertainment: Music": 4,
+    "Entertainment: Musicals & Theatres": 5,
+    "Entertainment: Television": 6,
+    "Entertainment: Video Games": 7,
+    "General Knowledge": 1,
+    "Geography": 14,
+    "History": 15,
+    "Mythology": 12,
+    "Politics": 16,
+    "Science & Nature": 9,
+    "Science: Computers": 10,
+    "Science: Gadgets": 22,
+    "Science: Mathematics": 11,
+    "Sports": 13,
+    "Vehicles": 20
+  }
+}

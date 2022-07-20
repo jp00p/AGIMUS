@@ -15,37 +15,37 @@ from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
 from commands.profile import profile
 from commands.randomep import randomep
-#from commands.restrict_emojis import restrict_emojis
+from commands.report import report
+from commands.reports import reports
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
+from commands.wordcloud import wordcloud
 
 # Slash Command Groups
 import commands.drop
 import commands.clip
 
-# Bang Commands
-from commands.agimus import agimus
-from commands.categories import categories
+# Bang
 from commands.clear_media import clear_media
-from commands.computer import computer
 from commands.ping import ping
 from commands.q import qget, qset
-from commands.report import report
-from commands.reports import reports
 from commands.quiz import quiz
-from commands.report import report
 from commands.scores import scores
 from commands.setwager import setwager
-from commands.triv import *
 from commands.update_status import update_status
-from commands.wordcloud import wordcloud
+
+# Prompts
+from commands.agimus import agimus
+from commands.computer import computer
 
 # Cogs
+from cogs.trivia import Trivia
 from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.ping import Ping
 from cogs.poker import Poker
+bot.add_cog(Trivia(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Ping(bot))
@@ -215,7 +215,6 @@ async def on_reaction_add(reaction, user):
 async def on_raw_reaction_add(payload):
   if payload.event_type == "REACTION_ADD":
     await handle_starboard_reactions(payload)
-    await handle_trivia_reactions(payload)
 
 # listen to server leave events
 @bot.event
