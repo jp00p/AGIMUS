@@ -13,6 +13,5 @@ Only one quiz can be active at a time
 `!info [tng|voy|ds9|friends|firefly|simpsons|enterprise|tos|lowerdecks|disco|picard|tas|sunny] [s##e##]` - Get information about a specific episode!
 
 **TRIVIA COMMANDS**
-`!triv` - get a random trivia question!
-`!triv 1` - get trivia from a specific category
-`!categories` - list all the trivia categories
+`/trivia` - get a random trivia question!
+`/triva <category>` - get trivia from a specific category (categories listed in dropdown)
