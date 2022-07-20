@@ -8,6 +8,12 @@ f = open(config["commands"]["trivia"]["data"])
 trivia_data = json.load(f)
 f.close()
 
+#    _____                                     __________        __    __                 
+#   /  _  \   ____   ________  _  __ __________\______   \__ ___/  |__/  |_  ____   ____  
+#  /  /_\  \ /    \ /  ___/\ \/ \/ // __ \_  __ \    |  _/  |  \   __\   __\/  _ \ /    \ 
+# /    |    \   |  \\___ \  \     /\  ___/|  | \/    |   \  |  /|  |  |  | (  <_> )   |  \
+# \____|__  /___|  /____  >  \/\_/  \___  >__|  |______  /____/ |__|  |__|  \____/|___|  /
+#         \/     \/     \/              \/             \/                              \/ 
 categories = trivia_data["categories"]
 category_choices = []
 for category in categories.keys():
@@ -16,7 +22,6 @@ for category in categories.keys():
       value=category
     )
   category_choices.append(category_choice)
-
 
 class AnswerButton(discord.ui.Button):
   def __init__(self, cog, answer_index):
@@ -32,6 +37,13 @@ class AnswerButton(discord.ui.Button):
     await self.cog.answer_button_callback(interaction, self.answer_index)
     await interaction.response.send_message(f"You guessed: **{self.answer_index + 1}**", ephemeral=True)
 
+
+# ___________      .__      .__        
+# \__    ___/______|__|__  _|__|____   
+#   |    |  \_  __ \  \  \/ /  \__  \  
+#   |    |   |  | \/  |\   /|  |/ __ \_
+#   |____|   |__|  |__| \_/ |__(____  /
+#                                   \/ 
 class Trivia(commands.Cog):
   def __init__(self, bot):
     self.bot = bot

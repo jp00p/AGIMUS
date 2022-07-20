@@ -132,14 +132,6 @@
       "enabled": true,
       "parameters": []
     },
-    "categories": {
-      "channels": [
-        "quizzing-booth"
-      ],
-      "enabled": true,
-      "data": "data/triv.json",
-      "parameters": []
-    },
     "clear_media": {
       "channels": [],
       "enabled": true,
