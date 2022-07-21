@@ -11,30 +11,29 @@ async def access_check(ctx):
     if not has_channel_access:
       allowed_channels_list = command_config["channels"]
       if len(allowed_channels_list):
-        allowed_channel_ids = get_channel_ids_list(allowed_channels_list)
-        guild_channels = await ctx.guild.fetch_channels()
-        allowed_channels = []
-        for guild_channel in guild_channels:
-          if guild_channel.id in allowed_channel_ids:
-            allowed_channels.append(guild_channel.mention)
-
-        allowed_embed = discord.Embed(
-          title="Allowed Channels:",
-          description="\n".join(allowed_channels)
-        )
-        allowed_embed.set_footer(
-          text=f"Sorry! This command is not allowed in this channel.",
-        )
         if ctx_type == 'ApplicationContext':
-          await ctx.respond(embed=allowed_embed, ephemeral=True)
-        elif ctx_type == 'Context':
-          await ctx.reply(embed=allowed_embed)
+          # We only want the ! commands to be admin-available
+          # So only send the response message with the
+          # channel allowed list for `/` commands 
+          allowed_channel_ids = get_channel_ids_list(allowed_channels_list)
+          guild_channels = await ctx.guild.fetch_channels()
+          allowed_channels = []
+          for guild_channel in guild_channels:
+            if guild_channel.id in allowed_channel_ids:
+              allowed_channels.append(guild_channel.mention)
 
+          allowed_embed = discord.Embed(
+            title="Allowed Channels:",
+            description="\n".join(allowed_channels)
+          )
+          allowed_embed.set_footer(
+            text=f"Sorry! This command is not allowed in this channel.",
+          )
+
+          await ctx.respond(embed=allowed_embed, ephemeral=True)
       else:
         if ctx_type == 'ApplicationContext':
           await ctx.respond(f"{get_emoji('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.", ephemeral=True)
-        elif ctx_type == 'Context':
-          await ctx.reply(f"{get_emoji('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.")
       
     return has_channel_access
   except BaseException as e:
