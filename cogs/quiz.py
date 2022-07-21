@@ -167,12 +167,14 @@ class Quiz(commands.Cog):
     if len(self.log) != 0:
       embed = discord.Embed(
         title="Quiz Report",
-        description="What was the fuzziness of the previous round's answers?"
+        description="What was the fuzziness of the previous round's answers?",
+        color=discord.Color.blurple()
       )
       for l in self.log:
         embed.add_field(
           name=f"{l[0]}",
-          value=f"({l[1]} - {l[2]}:{l[3]})"
+          value=f"({l[1]} - {l[2]}:{l[3]})",
+          inline=False
         )
       await ctx.respond(embed=embed)
     else:
