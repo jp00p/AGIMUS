@@ -307,7 +307,7 @@
       "data": null,
       "parameters": []
     },
-    "quiz": {
+    "quiz start": {
       "channels": [
         "quizzing-booth"
       ],
@@ -317,23 +317,31 @@
         {
           "name": "show",
           "allowed": [
+            "tos",
+            "tas",
             "tng",
             "voy",
             "ds9",
+            "enterprise",
+            "disco",
+            "picard",
+            "lowerdecks",
             "friends",
             "firefly",
             "simpsons",
-            "enterprise",
-            "tos",
-            "lowerdecks",
-            "disco",
-            "picard",
-            "tas",
             "sunny"
           ],
           "required": false
         }
       ]
+    },
+    "quiz answer": {
+      "channels": [
+        "quizzing-booth"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
     },
     "report": {
       "channels": [

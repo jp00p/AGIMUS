@@ -1,0 +1,237 @@
+from common import *
+from handlers.xp import increment_user_xp
+from utils.show_utils import get_show_embed
+from utils.check_channel_access import access_check
+
+command_config = config["commands"]["quiz start"]
+
+class Quiz(commands.Cog):
+  def __init__(self, bot):
+    self.bot = bot
+
+    self.quiz_running = False
+    self.quiz_channel = None
+    self.log = []
+    self.previous_episodes = {}
+
+    self.quiz_episode = None
+    self.quiz_index = -1
+    self.correct_answers = {}
+    self.fuzz = {}
+
+    self.threshold = 72  # fuzz threshold
+
+    self.shows = command_config["parameters"][0]["allowed"]
+  
+  quiz = discord.SlashCommandGroup("quiz", "Commands for interacting with the Quiz Game")
+
+  shows = command_config["parameters"][0]["allowed"]
+  show_choices = []
+  for show in shows:
+    show_choice = discord.OptionChoice(
+      name=show,
+      value=show
+    )
+    show_choices.append(show_choice)
+
+  @quiz.command(
+    name="start",
+    description="Start a Quiz round"
+  )
+  @option(
+    name="show",
+    description="Which Show?",
+    required=False,
+    choices=show_choices
+  )
+  @commands.check(access_check)
+  async def start(self, ctx: discord.ApplicationContext, show:str):
+    if self.quiz_running:
+      ctx.respond("There's already a round of Quiz happening! Play along with `/quiz answer`", ephemeral=True)
+      return
+    else:
+      self.quiz_channel = ctx.channel
+      await self.quiz_start.start(ctx, show)
+
+
+  @quiz.command(
+    name="answer",
+    description="Submit your Quiz answer"
+  )
+  @option(
+    name="answer",
+    description="Your answer:",
+    required=True
+  )
+  @commands.check(access_check)
+  async def answer(self, ctx: discord.ApplicationContext, answer:str):
+    if not self.quiz_running:
+      ctx.respond("There's no current Quiz, try starting one with `/quiz start`!", ephemeral=True)
+      return
+    else:
+      correct_answer = self.quiz_episode["title"].lower().strip()
+      guess = answer.lower().strip()
+
+      # remove all punctuation
+      correct_answer = "".join(l for l in correct_answer if l not in string.punctuation).split()
+      guess = "".join(l for l in guess if l not in string.punctuation).split()
+      # remove common words
+      stopwords = ["the", "a", "of", "is", "teh", "th", "eht", "eth", "of", "for", "part 1", "part 2", "part 3", "part i", "part ii", "part iii", "(1)", "(2)", "(3)", "in", "are", "an", "as", "and"]
+      resultwords  = [word for word in correct_answer if word.lower() not in stopwords]
+      guesswords = [word for word in guess if word.lower() not in stopwords]
+      # rejoin the strings
+      correct_answer = ' '.join(resultwords)
+      guess = ' '.join(guesswords)
+      # check ratios
+      ratio = fuzz.ratio(correct_answer, guess)
+      pratio = fuzz.partial_ratio(correct_answer, guess)
+      # arbitrary single-number score
+      normalness = round((ratio + pratio) / 2)
+
+      # add message to the log for reporting
+      if (ratio != 0) and (pratio != 0):
+        self.log.append([guess, ratio, pratio])
+      
+      await ctx.respond("👍", ephemeral=True)
+
+      # check answer
+      if (ratio >= self.threshold and pratio >= self.threshold) or (guess == correct_answer):
+        # correct answer      
+        award = 1
+        bonus = False
+        if (ratio < 80 and pratio < 80):
+          # bonus
+          bonus = True
+          award = 2
+        id = ctx.author.id
+        if id not in self.correct_answers:
+          if not self.correct_answers:
+            award *= 10
+          else:
+            award *= 5
+          set_player_score(ctx.author, award)
+          await increment_user_xp(ctx.author, 1, "quiz_win", ctx.channel)
+          if id not in self.fuzz:
+            score_str = "`Correctitude: " + str(normalness) +"`"
+            if not bonus:
+              score_str += f" {get_emoji('combadge')}"
+            else:
+              score_str += f" {get_emoji('combadge_spin')}"
+            self.fuzz[id] = score_str
+          self.correct_answers[id] = { "user": ctx.author, "points": award, "score_str": score_str }
+      else:
+        if (ratio >= self.threshold-6 and pratio >= self.threshold-6):
+          await ctx.reply(f"{get_emoji('q_shocking')}", ephemeral=True)
+
+
+  @tasks.loop(seconds=20,count=2)
+  async def quiz_start(self, ctx:discord.ApplicationContext, show:str):
+    try:
+      logger.info(f">> Current Loop: {self.quiz_start.current_loop}")
+      # If we're on the 2nd loop and no correct answers have been give yet
+      # Give a clue and return, otherwise we're in the first loop and can start it up
+      if self.quiz_start.current_loop == 1 and len(self.correct_answers) == 0:
+        embed = discord.Embed(
+          title="No correct answers yet... Here's a clue...",
+          description=f"||{self.quiz_episode['description']}||",
+          color=discord.Color.blurple()
+        )
+        await self.quiz_channel.send(embed=embed)
+        return
+
+      logger.info(f"{Fore.MAGENTA}Starting quiz!{Fore.RESET}")
+      if not show:
+        show = random.choice(self.shows)
+      
+      self.show = show
+
+      f = open(f"./data/episodes/{show}.json")
+      self.show_data = json.load(f)
+      f.close()
+
+      # don't pick one of the same episodes we've played previously
+      if show not in self.previous_episodes.keys():
+        self.previous_episodes[show] = []
+
+      # Reset previous episodes if we've run through _all_ of the show's episodes already
+      if len(self.previous_episodes[show]) == len(self.show_data["episodes"]):
+        self.previous_episodes[show] = []
+      
+      episode_index = random.randrange(len(self.show_data["episodes"]))
+      while episode_index in self.previous_episodes[show]:
+        episode_index = random.randrange(len(self.show_data["episodes"]))
+      self.previous_episodes[show].append(episode_index)
+      
+      self.quiz_index = episode_index
+      self.quiz_episode = self.show_data["episodes"][episode_index]
+      # self.quiz_show = show
+
+      image_url = random.choice(self.quiz_episode["stills"])
+      r = requests.get(image_url, headers={'user-agent': 'Mozilla/5.0'})
+      with open('./images/ep.jpg', 'wb') as f:
+        f.write(r.content)
+      
+      file = discord.File("./images/ep.jpg", filename="image.jpg")
+      embed = discord.Embed(
+        title=f"Which episode of **__{self.show_data['title']}__** is this? {get_emoji('horgahn_dance')}",
+        description=f"DEV HINT: {self.quiz_episode['title']}\n\nUse `/quiz answer` to submit your guess!",
+        color=discord.Color.blurple()
+      )
+      embed.set_image(url="attachment://image.jpg")
+      await ctx.respond(file=file, embed=embed)
+
+      self.quiz_running = True
+    except Exception as e:
+      logger.info(traceback.format_exc())
+
+
+  @quiz_start.after_loop
+  async def quiz_finished(self):
+    try:
+      logger.info(">>> In quiz_finished...")
+      title = f"The episode title was: **{self.quiz_episode['title']}** (Season {self.quiz_episode['season']} Episode {self.quiz_episode['episode']})"
+      embed = None
+      if len(self.correct_answers) == 0:
+        roll = random.randint(5,10)
+        #todo: add random lose msgs
+        embed = discord.Embed(
+          title=title,
+          description=f"Did you win? Hardly! Adding `{roll} point(s)` to the jackpot.",
+          color=discord.Color.red()
+        )
+        increase_jackpot(roll)
+      else:
+        #todo: add random win msgs
+        embed = discord.Embed(
+          title=title,
+          description="Chula! These crewmembers got it:",
+          color=discord.Color.green()   
+        )
+        for key in self.correct_answers.keys():
+          answer = self.correct_answers[key]
+          user = answer["user"]
+          embed.add_field(
+            name=f"{user.display_name}",
+            value=f"{answer['points']} Points! ({answer['score_str']})"
+          )
+
+      show_embed = get_show_embed(self.show_data, self.quiz_index, self.show)
+      await self.quiz_channel.send(embed=embed)
+      await self.quiz_channel.send(embed=show_embed)
+
+      self.reset_quiz()
+    except Exception as e:
+      logger.info(traceback.format_exc())
+
+  def reset_quiz(self):
+    # Cancel Loop
+    self.quiz_start.cancel()
+
+    # Reset round-specific data
+    self.quiz_running = False
+    self.quiz_channel = None
+
+    self.quiz_episode = None
+    self.quiz_index = -1
+    self.correct_answers = {}
+    self.fuzz = {}

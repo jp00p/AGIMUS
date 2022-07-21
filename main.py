@@ -30,7 +30,7 @@ import commands.clip
 from commands.clear_media import clear_media
 from commands.ping import ping
 from commands.q import qget, qset
-from commands.quiz import quiz
+# from commands.quiz import quiz
 from commands.scores import scores
 from commands.setwager import setwager
 from commands.update_status import update_status
@@ -45,11 +45,13 @@ from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.ping import Ping
 from cogs.poker import Poker
+from cogs.quiz import Quiz
 bot.add_cog(Trivia(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Ping(bot))
 bot.add_cog(Poker(bot))
+bot.add_cog(Quiz(bot))
 
 # Handlers
 from handlers.alerts import handle_alerts
