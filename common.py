@@ -322,7 +322,7 @@ def increase_jackpot(amt):
 
 # generate_local_channel_list(client)
 # client[required]: discord.Bot
-# run this if you need a nice json list of channel names + ids for your config file
+# This runs to apply the local channel list on top of the existing channel config
 def generate_local_channel_list(client):
   if client.guilds[0]:
     channels = client.guilds[0].channels
