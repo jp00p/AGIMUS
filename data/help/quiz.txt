@@ -6,11 +6,12 @@ Correctitude is calculated using: <https://en.wikipedia.org/wiki/Levenshtein_dis
 Only one quiz can be active at a time
 
 **QUIZ COMMANDS**
-`!quiz [tng|voy|ds9|friends|firefly|simpsons|enterprise|tos|lowerdecks|disco|picard|tas|sunny]` - Guess the episode from a screen-shot!
-`!scores` - see the top scores
-`!report` - see the fuzziness of the last quiz answers (you want both numbers between 72-80 for the bonus)
+`/quiz start <show (optional)>` - start a round of Quiz!
+`/quiz answer <title>` - provide an answer for the current Quiz round
+`/quiz report` - see the fuzziness of the last quiz answers (you want both numbers between 72-80 for the bonus)
+`/scores` - see the top scores
 `/profile` - see your profile card
-`!info [tng|voy|ds9|friends|firefly|simpsons|enterprise|tos|lowerdecks|disco|picard|tas|sunny] [s##e##]` - Get information about a specific episode!
+`/info <show> <episode (s##e##)>` - Get information about a specific episode!
 
 **TRIVIA COMMANDS**
 `/trivia` - get a random trivia question!

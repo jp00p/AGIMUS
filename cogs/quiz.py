@@ -75,6 +75,7 @@ class Quiz(commands.Cog):
       await ctx.respond("There's already a round of Quiz happening! Play along with `/quiz answer`", ephemeral=True)
       return
     else:
+      self.log = []
       self.quiz_channel = ctx.channel
       await self.quiz_start.start(ctx, show)
 
@@ -115,7 +116,7 @@ class Quiz(commands.Cog):
 
       # add message to the log for reporting
       if (ratio != 0) and (pratio != 0):
-        self.log.append([guess, ratio, pratio])
+        self.log.append([ctx.author.display_name, guess, ratio, pratio])
       
       await ctx.respond("Answer registered! 👍", ephemeral=True)
 
@@ -155,6 +156,27 @@ class Quiz(commands.Cog):
       else:
         if (ratio >= self.threshold-6 and pratio >= self.threshold-6):
           await ctx.reply(f"{get_emoji('q_shocking')}", ephemeral=True)
+
+
+  @quiz.command(
+    name="report",
+    description="See a report on the fuzziness of the last Quiz round"
+  )
+  @commands.check(access_check)
+  async def report(self, ctx:discord.ApplicationContext):
+    if len(self.log) != 0:
+      embed = discord.Embed(
+        title="Quiz Report",
+        description="What was the fuzziness of the previous round's answers?"
+      )
+      for l in self.log:
+        embed.add_field(
+          name=f"{l[0]}",
+          value=f"({l[1]} - {l[2]}:{l[3]})"
+        )
+      await ctx.respond(embed=embed)
+    else:
+      await ctx.respond("No log entries currently", ephemeral=True)
 
 
   @tasks.loop(seconds=35,count=1)

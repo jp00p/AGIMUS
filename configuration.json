@@ -307,6 +307,14 @@
       "data": null,
       "parameters": []
     },
+    "quiz answer": {
+      "channels": [
+        "quizzing-booth"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "quiz start": {
       "channels": [
         "quizzing-booth"
@@ -374,15 +382,7 @@
         }
       ]
     },
-    "quiz answer": {
-      "channels": [
-        "quizzing-booth"
-      ],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
-    "report": {
+    "quiz report": {
       "channels": [
         "quizzing-booth"
       ],

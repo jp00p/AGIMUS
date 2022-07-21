@@ -15,7 +15,6 @@ from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
 from commands.profile import profile
 from commands.randomep import randomep
-from commands.report import report
 from commands.reports import reports
 from commands.scores import scores
 from commands.setwager import setwager
