@@ -27,7 +27,7 @@ from PIL import Image, ImageColor, ImageDraw, ImageFont
 from tabulate import tabulate
 from treys import Card, Deck, Evaluator, evaluator
 
-from utils.config_utils import get_config
+from utils.config_utils import get_config, deep_dict_update
 from utils.disco_lights import LightHandler
 
 
@@ -331,13 +331,10 @@ def generate_local_channel_list(client):
       if channel.type == discord.ChannelType.text:
         channel_name = channel.name.encode("ascii", errors="ignore").decode().strip()
         channel_list[channel_name] = channel.id
-    channel_list_json = json.dumps(channel_list, indent=2, sort_keys=True)
-    try:
-      with open('./local-channel-list.json', 'w') as f:
-        f.write(channel_list_json)
-        logger.info(f"{Style.BRIGHT}Local channel list has been written to {Fore.GREEN}./local-channel-list.json{Fore.RESET}{Style.RESET_ALL}")
-    except FileNotFoundError as e:
-      logger.info(f"{Fore.RED}Unable to create local channel list file:{Fore.RESET} {e}")
+    # channel_list_json = json.dumps(channel_list, indent=2, sort_keys=True)
+    updated_channel_list = deep_dict_update({ "channels": config['channels'] }, { "channels" : channel_list })
+
+    config["channels"] = updated_channel_list["channels"]
 
 # get_emoji(emoji_name)
 # emoji_name[required]: str
