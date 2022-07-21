@@ -17,6 +17,8 @@ from commands.profile import profile
 from commands.randomep import randomep
 from commands.report import report
 from commands.reports import reports
+from commands.scores import scores
+from commands.setwager import setwager
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
@@ -30,9 +32,6 @@ import commands.clip
 from commands.clear_media import clear_media
 from commands.ping import ping
 from commands.q import qget, qset
-# from commands.quiz import quiz
-from commands.scores import scores
-from commands.setwager import setwager
 from commands.update_status import update_status
 
 # Prompts
