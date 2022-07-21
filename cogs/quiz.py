@@ -1,3 +1,6 @@
+import math
+from re import S
+
 from common import *
 from handlers.xp import increment_user_xp
 from utils.show_utils import get_show_embed
@@ -5,11 +8,32 @@ from utils.check_channel_access import access_check
 
 command_config = config["commands"]["quiz start"]
 
+class HintButton(discord.ui.Button):
+  def __init__(self, cog):
+    self.cog = cog
+    super().__init__(
+      label="             Hint             ",
+      style=discord.ButtonStyle.primary,
+      row=0
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    episode_description = self.cog.quiz_episode["description"]
+    embed = discord.Embed(
+      title="Episode Summary",
+      description=episode_description,
+      color=discord.Color.blurple()
+    )
+    embed.set_footer(text="Note that now that you've used a hint, if you get it correct the reward is reduced!")
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+    self.cog.register_hint(interaction)
+
 class Quiz(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
 
     self.quiz_running = False
+    self.quiz_message = None
     self.quiz_channel = None
     self.log = []
     self.previous_episodes = {}
@@ -18,6 +42,7 @@ class Quiz(commands.Cog):
     self.quiz_index = -1
     self.correct_answers = {}
     self.fuzz = {}
+    self.hint_users = []
 
     self.threshold = 72  # fuzz threshold
 
@@ -29,8 +54,8 @@ class Quiz(commands.Cog):
   show_choices = []
   for show in shows:
     show_choice = discord.OptionChoice(
-      name=show,
-      value=show
+      name=show["name"],
+      value=show["value"]
     )
     show_choices.append(show_choice)
 
@@ -47,7 +72,7 @@ class Quiz(commands.Cog):
   @commands.check(access_check)
   async def start(self, ctx: discord.ApplicationContext, show:str):
     if self.quiz_running:
-      ctx.respond("There's already a round of Quiz happening! Play along with `/quiz answer`", ephemeral=True)
+      await ctx.respond("There's already a round of Quiz happening! Play along with `/quiz answer`", ephemeral=True)
       return
     else:
       self.quiz_channel = ctx.channel
@@ -66,7 +91,7 @@ class Quiz(commands.Cog):
   @commands.check(access_check)
   async def answer(self, ctx: discord.ApplicationContext, answer:str):
     if not self.quiz_running:
-      ctx.respond("There's no current Quiz, try starting one with `/quiz start`!", ephemeral=True)
+      await ctx.respond("There's no current Quiz, try starting one with `/quiz start`!", ephemeral=True)
       return
     else:
       correct_answer = self.quiz_episode["title"].lower().strip()
@@ -92,7 +117,7 @@ class Quiz(commands.Cog):
       if (ratio != 0) and (pratio != 0):
         self.log.append([guess, ratio, pratio])
       
-      await ctx.respond("👍", ephemeral=True)
+      await ctx.respond("Answer registered! 👍", ephemeral=True)
 
       # check answer
       if (ratio >= self.threshold and pratio >= self.threshold) or (guess == correct_answer):
@@ -109,8 +134,16 @@ class Quiz(commands.Cog):
             award *= 10
           else:
             award *= 5
+          
+          # Cut award in half if they used a hint
+          used_hint = False
+          if ctx.author.id in self.hint_users:
+            used_hint = True
+            award = math.ceil(award / 2)
+
           set_player_score(ctx.author, award)
           await increment_user_xp(ctx.author, 1, "quiz_win", ctx.channel)
+
           if id not in self.fuzz:
             score_str = "`Correctitude: " + str(normalness) +"`"
             if not bonus:
@@ -118,30 +151,19 @@ class Quiz(commands.Cog):
             else:
               score_str += f" {get_emoji('combadge_spin')}"
             self.fuzz[id] = score_str
-          self.correct_answers[id] = { "user": ctx.author, "points": award, "score_str": score_str }
+          self.correct_answers[id] = { "user": ctx.author, "points": award, "score_str": score_str, "used_hint": used_hint }
       else:
         if (ratio >= self.threshold-6 and pratio >= self.threshold-6):
           await ctx.reply(f"{get_emoji('q_shocking')}", ephemeral=True)
 
 
-  @tasks.loop(seconds=20,count=2)
+  @tasks.loop(seconds=35,count=1)
   async def quiz_start(self, ctx:discord.ApplicationContext, show:str):
     try:
-      logger.info(f">> Current Loop: {self.quiz_start.current_loop}")
-      # If we're on the 2nd loop and no correct answers have been give yet
-      # Give a clue and return, otherwise we're in the first loop and can start it up
-      if self.quiz_start.current_loop == 1 and len(self.correct_answers) == 0:
-        embed = discord.Embed(
-          title="No correct answers yet... Here's a clue...",
-          description=f"||{self.quiz_episode['description']}||",
-          color=discord.Color.blurple()
-        )
-        await self.quiz_channel.send(embed=embed)
-        return
-
       logger.info(f"{Fore.MAGENTA}Starting quiz!{Fore.RESET}")
       if not show:
-        show = random.choice(self.shows)
+        s = random.choice(self.shows)
+        show = s["value"]
       
       self.show = show
 
@@ -173,12 +195,15 @@ class Quiz(commands.Cog):
       
       file = discord.File("./images/ep.jpg", filename="image.jpg")
       embed = discord.Embed(
-        title=f"Which episode of **__{self.show_data['title']}__** is this? {get_emoji('horgahn_dance')}",
-        description=f"DEV HINT: {self.quiz_episode['title']}\n\nUse `/quiz answer` to submit your guess!",
+        title=f"Which episode of **{self.show_data['title']}** is this? {get_emoji('horgahn_dance')}",
+        description=f"Use `/quiz answer` to submit your guess!",
         color=discord.Color.blurple()
       )
+      embed.set_footer(text="Press the button below for a hint, but doing so will reduce your reward!")
       embed.set_image(url="attachment://image.jpg")
-      await ctx.respond(file=file, embed=embed)
+      view = discord.ui.View()
+      view.add_item(HintButton(self))
+      self.quiz_message = await ctx.respond(file=file, embed=embed, view=view)
 
       self.quiz_running = True
     except Exception as e:
@@ -188,7 +213,6 @@ class Quiz(commands.Cog):
   @quiz_start.after_loop
   async def quiz_finished(self):
     try:
-      logger.info(">>> In quiz_finished...")
       title = f"The episode title was: **{self.quiz_episode['title']}** (Season {self.quiz_episode['season']} Episode {self.quiz_episode['episode']})"
       embed = None
       if len(self.correct_answers) == 0:
@@ -210,14 +234,22 @@ class Quiz(commands.Cog):
         for key in self.correct_answers.keys():
           answer = self.correct_answers[key]
           user = answer["user"]
+          msg = f"{answer['points']} Points! ({answer['score_str']})"
+          if answer["used_hint"]:
+            msg += " (Used a hint!)"
           embed.add_field(
             name=f"{user.display_name}",
-            value=f"{answer['points']} Points! ({answer['score_str']})"
+            value=msg
           )
 
       show_embed = get_show_embed(self.show_data, self.quiz_index, self.show)
       await self.quiz_channel.send(embed=embed)
       await self.quiz_channel.send(embed=show_embed)
+
+      # Remove the hint button now that the round is done
+      original_message = await self.quiz_message.original_message()
+      if original_message != None:
+        await original_message.edit(view=None)
 
       self.reset_quiz()
     except Exception as e:
@@ -234,4 +266,10 @@ class Quiz(commands.Cog):
     self.quiz_episode = None
     self.quiz_index = -1
     self.correct_answers = {}
+    self.hint_users = []
     self.fuzz = {}
+  
+  def register_hint(self, interaction):
+    user_id = interaction.user.id
+    if user_id not in self.hint_users:
+      self.hint_users.append(user_id)
