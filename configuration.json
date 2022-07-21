@@ -263,7 +263,9 @@
       "parameters": []
     },
     "ping": {
-      "channels": [],
+      "channels": [
+        "robot-diagnostics"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -295,6 +297,7 @@
     },
     "qget": {
       "channels": [
+        "robot-diagnostics",
         "mclaughlin-group"
       ],
       "enabled": true,
@@ -302,7 +305,9 @@
       "parameters": []
     },
     "qset": {
-      "channels": [],
+      "channels": [
+        "robot-diagnostics"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []

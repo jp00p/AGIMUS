@@ -1,8 +1,9 @@
-from common import *
-
 import os
 from glob import glob
 from pathlib import Path
+
+from common import *
+from utils.check_channel_access import access_check
 
 # Path to base bot directory
 base_path = Path(__file__).parent.parent
@@ -12,7 +13,9 @@ base_path = Path(__file__).parent.parent
 # This function is the main entrypoint of the !clear_media command
 # This will remove all .mp4 files from the data/clips and data/drops directories
 # and allow the bot to re-load them as needed. Useful for debugging.
-async def clear_media(message:discord.Message):
+@bot.command()
+@commands.check(access_check)
+async def clear_media(ctx):
   drop_files = glob(os.path.join(base_path, 'data/drops/', '*.mp4'))
   clip_files = glob(os.path.join(base_path, 'data/clips/', '*.mp4'))
 
@@ -36,6 +39,6 @@ async def clear_media(message:discord.Message):
       color=discord.Color.green()
     )
   
-  await message.channel.send(embed=embed)
+  await ctx.send(embed=embed)
   
   

@@ -81,7 +81,7 @@ bot = commands.Bot(
   intents=intents,
   test_guilds=config["guild_ids"],
   auto_sync_commands=True,
-  command_prefix="$"
+  command_prefix="!"
 )
 
 # Channel Helpers
