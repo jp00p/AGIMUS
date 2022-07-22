@@ -36,6 +36,54 @@ CREATE TABLE IF NOT EXISTS badges (
   time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id)
 );
+CREATE TABLE IF NOT EXISTS trades (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  requestor_id varchar(128) NOT NULL,
+  requestee_id varchar(128) NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT 0,
+  pending BOOLEAN NOT NULL DEFAULT 1,
+  completed BOOLEAN NOT NULL DEFAULT 0,
+  rejected BOOLEAN NOT NULL DEFAULT 0,
+  canceled BOOLEAN NOT NULL DEFAULT 0,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  FOREIGN KEY (requestor_id)
+    REFERENCES users(discord_id),
+  FOREIGN KEY (requestee_id)
+    REFERENCES users(discord_id)
+);
+CREATE TABLE IF NOT EXISTS badge_info (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  badge_name varchar(128) NOT NULL,
+  affiliation varchar(128) DEFAULT NULL,
+  quadrant varchar(128) DEFAULT NULL,
+  time_period varchar(128) DEFAULT NULL,
+  universe varchar(128) DEFAULT NULL,
+  franchise varchar(128) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+CREATE TABLE IF NOT EXISTS trade_offered (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  badge_id int(11) NOT NULL,
+  trade_id int(11) NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  FOREIGN KEY (badge_id)
+    REFERENCES badge_info(id),
+  FOREIGN KEY (trade_id)
+    REFERENCES trades(id)
+);
+CREATE TABLE IF NOT EXISTS trade_requested (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  badge_id int(11) NOT NULL,
+  trade_id int(11) NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  FOREIGN KEY (badge_id)
+    REFERENCES badge_info(id),
+  FOREIGN KEY (trade_id)
+    REFERENCES trades(id)
+);
 CREATE TABLE IF NOT EXISTS reactions (
   id int(11) NOT NULL AUTO_INCREMENT,
   user_id varchar(64) NOT NULL,

@@ -39,16 +39,18 @@ from commands.agimus import agimus
 from commands.computer import computer
 
 # Cogs
-from cogs.trivia import Trivia
-from cogs.shop import Shop
-from cogs.slots import Slots
 from cogs.poker import Poker
 from cogs.quiz import Quiz
-bot.add_cog(Trivia(bot))
-bot.add_cog(Shop(bot))
-bot.add_cog(Slots(bot))
+from cogs.shop import Shop
+from cogs.slots import Slots
+from cogs.trade import Trade
+from cogs.trivia import Trivia
 bot.add_cog(Poker(bot))
 bot.add_cog(Quiz(bot))
+bot.add_cog(Shop(bot))
+bot.add_cog(Slots(bot))
+bot.add_cog(Trade(bot))
+bot.add_cog(Trivia(bot))
 
 # Handlers
 from handlers.alerts import handle_alerts
@@ -180,6 +182,9 @@ async def on_ready():
     # generate local channels list
     generate_local_channel_list(bot)
 
+    # XXX REMOVE ME LATER
+    # seed_badge_info_table()
+
     # Set a fun random presence
     random_presences = [
       { 'name': "PRAISE THE FOUNDERS", 'type': discord.ActivityType.listening },
@@ -197,6 +202,26 @@ async def on_ready():
   except Exception as e:
     logger.info(f"Error in on_ready: {e}")
     logger.info(traceback.format_exc())
+
+
+
+# XXX REMOVE ME LATER
+def seed_badge_info_table():
+  f = open("./data/badges.json")
+  badges = json.load(f)
+  f.close()
+
+  db = getDB()
+  for badge_key in badges.keys():
+    badge_name = badge_key.replace(".png", "").replace("_", " ")
+    logger.info(f">> badge_name: {badge_name}")
+    query = db.cursor()
+    sql = "INSERT INTO badge_info (badge_name) VALUES (%s)"
+    vals = (badge_name,)
+    query.execute(sql, vals)
+    db.commit()
+    query.close()
+  db.close()
 
 
 # listen to reactions

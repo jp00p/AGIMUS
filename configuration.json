@@ -580,6 +580,22 @@
       "data": "data/testslots.json",
       "parameters": []
     },
+    "trade cancel": {
+      "channels": [
+        "megalomaniacal-computer-storage"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "trade initiate": {
+      "channels": [
+        "megalomaniacal-computer-storage"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "trektalk": {
       "channels": [
         "after-dinner-conversation"
