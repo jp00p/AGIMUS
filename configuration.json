@@ -596,6 +596,22 @@
       "data": null,
       "parameters": []
     },
+    "trade offer": {
+      "channels": [
+        "megalomaniacal-computer-storage"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "trade request": {
+      "channels": [
+        "megalomaniacal-computer-storage"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "trektalk": {
       "channels": [
         "after-dinner-conversation"
