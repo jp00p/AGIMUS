@@ -1,4 +1,5 @@
 from common import *
+from utils.badge_utils import generate_badge_trade_showcase
 from utils.check_channel_access import access_check
 
 
@@ -24,6 +25,32 @@ async def requestee_badges(ctx:discord.AutocompleteContext):
     badge_name = badge["badge_name"].replace(".png", "").replace("_", " ")
     autocomplete_results.append(badge_name)
   return autocomplete_results
+
+
+# Define a simple View that gives us a confirmation menu.
+class SendConfirm(discord.ui.View):
+  def __init__(self, cog):
+    super().__init__()
+    self.value = None
+
+  @discord.ui.button(label="Cancel", style=discord.ButtonStyle.grey)
+  async def cancel_callback(self, button:discord.ui.Button, interaction:discord.Interaction):
+    self.disable_all_items()
+    await interaction.response.edit_message(view=self)
+    self.value = False
+    self.stop()
+
+  @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
+  async def confirm_callback(self, button:discord.ui.Button, interaction:discord.Interaction):
+    self.disable_all_items()
+    await interaction.response.edit_message(view=self)
+    await interaction.followup.send(embed=discord.Embed(
+      title="Trade Sent!",
+      description="Let's see if they accept!",
+      color=discord.Color.green()
+    ), ephemeral=True)
+    self.value = True
+    self.stop()
 
 
 
@@ -80,7 +107,7 @@ class Trade(commands.Cog):
 
       # Deny requests to users that do not have XP enabled
       requestee_details = get_user(requestee_id)
-      if not requestee_details["xp_enabled"]:
+      if not requestee_details or not requestee_details["xp_enabled"]:
         opted_out_embed = discord.Embed(
           title="🚫 This user is not participating.",
           description=f"Sorry, {requestee.mention} has opted out of the XP system and is not available for trading.",
@@ -159,31 +186,32 @@ class Trade(commands.Cog):
 
       active_trade_requestee = await self.bot.fetch_user(active_trade["requestee_id"])
       confirmation_description = f"Your trade with {active_trade_requestee.mention} has been canceled!\n\n"
-      if active_trade["active"]:
-        confirmation_description += "**Reason:** {reason }\n\n"
+      if active_trade["status"] == 'active' and reason:
+        confirmation_description += f"**Reason:** {reason}\n\n"
       confirmation_description += "You may now begin a new trade request with `/trade initiate`"
       confirmation_embed = discord.Embed(
         title="❌ Trade Canceled!",
         description=confirmation_description,
         color=discord.Color.dark_purple()
       )
-      if active_trade["active"]:
+      if active_trade["status"] == 'active':
         confirmation_embed.set_footer(text="Because the trade was active, we've let them know you have canceled the request.")
       await ctx.respond(embed=confirmation_embed, ephemeral=True)
 
       # If the trade was active, alert the requestee that the trade has been canceled
-      if active_trade["active"]:
-        requestor = ctx.author
-        notification_description = f"Heads up! {requestor.mention} has canceled their pending trade request with you."
-        if reason:
-          notification_description += f"\n\n**Reason:** {reason}"
+      # TODO: Uncomment this when ready to start pinging users for testing
+      # if active_trade["status"] == 'active':
+        # requestor = ctx.author
+        # notification_description = f"Heads up! {requestor.mention} has canceled their pending trade request with you."
+        # if reason:
+        #   notification_description += f"\n\n**Reason:** {reason}"
 
-        notification_embed = discord.Embed(
-          title="❌ Trade Canceled!",
-          description=notification_description,
-          color=discord.Color.dark_purple()
-        )
-        await active_trade_requestee.send(embed=notification_embed)
+        # notification_embed = discord.Embed(
+        #   title="❌ Trade Canceled!",
+        #   description=notification_description,
+        #   color=discord.Color.dark_purple()
+        # )
+        # await active_trade_requestee.send(embed=notification_embed)
     except Exception as e:
       logger.info(traceback.format_exc())
 
@@ -191,36 +219,130 @@ class Trade(commands.Cog):
     name="status",
     description="Check the current status of your Outgoing Trade"
   )
+  @commands.check(access_check)
   async def status(self, ctx):
     active_trade = await self.check_for_active_trade(ctx)
     if not active_trade:
       return
 
+    await ctx.defer(ephemeral=False)
+
+    trade_pages = await self._generate_trade_pages(active_trade)
+
+    trade_buttons = [
+      pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton(
+        "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
+      ),
+      pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
+    ]
+    paginator = pages.Paginator(
+      pages=trade_pages,
+      use_default_buttons=False,
+      custom_buttons=trade_buttons,
+      loop_pages=True
+    )
+
+    await paginator.respond(ctx.interaction, ephemeral=False)
+
+  async def _generate_trade_pages(self, active_trade):
+    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
+    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+
+    # Offered Page
+    offered_badges = get_trade_offered_badges(active_trade)
+    offered_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in offered_badges]
+    offered_image_id = f"{active_trade['id']}-offered"
+    offered_image = generate_badge_trade_showcase(
+      offered_badge_filenames,
+      offered_image_id,
+      "Badges Offered",
+      f"{len(offered_badge_filenames)} Badges"
+    )
+    offered_embed = discord.Embed(
+      title="Offered",
+      description=f"Badges offered by {requestor.mention}"
+    )
+    offered_embed.set_image(url=f"attachment://{offered_image_id}.png")
+
+    # Requested Page
+    requested_badges = get_trade_requested_badges(active_trade)
+    requested_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in requested_badges]
+    requested_image_id = f"{active_trade['id']}-requested"
+    requested_image = generate_badge_trade_showcase(
+      requested_badge_filenames,
+      requested_image_id,
+      "Badges Requested",
+      f"{len(requested_badge_filenames)} Badges"
+    )
+    requested_embed = discord.Embed(
+      title="Requested",
+      description=f"Badges requested from {requestee.mention}"
+    )
+    requested_embed.set_image(url=f"attachment://{requested_image_id}.png")
+
+    # Home Page
+    home_embed = discord.Embed(
+      title="Trade Details",
+      description=f"Wheelin and Dealin! {requestor.mention} has offered a trade to {requestee.mention}!"
+    )
+    home_embed.set_footer(text="Use the buttons below to browse!")
+    home_image = discord.File(fp="./images/trades/assets/trade_offer.png", filename="trade_offer.png")
+    home_embed.set_image(url=f"attachment://trade_offer.png")
+
+
+    # PAGINATOR
+    trade_pages = [
+      pages.Page(
+        embeds=[home_embed],
+        files=[home_image]
+      ),
+      pages.Page(
+        embeds=[offered_embed],
+        files=[offered_image]
+      ),
+      pages.Page(
+        embeds=[requested_embed],
+        files=[requested_image]
+      )
+    ]
+
+    return trade_pages
+
+  async def get_trade_status_embed(self, title, active_trade):
     # NOTE: Do these with sexy list comprehensions later
     offered_badges = get_trade_offered_badges(active_trade)
     offered_badge_names = []
-    offered_badges_string = ""
+    offered_badges_string = "None"
+    if len(offered_badges) > 0:
+      offered_badges_string = ""
     for o in offered_badges:
       badge_name = o["badge_name"]
       offered_badge_names.append(badge_name)
       offered_badges_string += f"{badge_name}\n"
+
     requested_badges = get_trade_requested_badges(active_trade)
     requested_badge_names = []
-    requested_badges_string = ""
+    requested_badges_string = "None"
+    if len(requested_badges) > 0:
+      requested_badges_string = ""
     for r in requested_badges:
       badge_name = r["badge_name"]
       requested_badge_names.append(r["badge_name"])
       requested_badges_string += f"{badge_name}\n"
 
-    # NOTE: Change separate columns for `pending`, `active`, etc
-    # into one "status" column with different possible values
-
+    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
     requestee = await self.bot.fetch_user(active_trade['requestee_id'])
 
     status_embed = discord.Embed(
-      title="ℹ️ Current Trade Status",
-      description=f"Status: `pending`",
+      title=title,
+      description=f"Status: `{active_trade['status'].title()}`",
       color=discord.Color.blurple()
+    )
+    status_embed.add_field(
+      name="Offered By",
+      value=requestor.mention,
+      inline=False
     )
     status_embed.add_field(
       name="Requested From",
@@ -235,9 +357,52 @@ class Trade(commands.Cog):
       name="Requested Badges",
       value=requested_badges_string
     )
-    status_embed.set_footer(text="VitaZed sez: This will later be replaced with sexy LCARS style images with pagination to view the Offered and Requested Badges!")
-    await ctx.respond(embed=status_embed, ephemeral=True)
+    status_embed.set_footer(text="Redesign of this information is pending!")
 
+    return status_embed
+
+
+  @trade.command(
+    name="send",
+    description="Send your current Trade Offer to the recipient and channel"
+  )
+  async def send(self, ctx):
+    active_trade = await self.check_for_active_trade(ctx)
+    if not active_trade:
+      return
+
+    if not does_trade_contain_badges(active_trade):
+      await ctx.respond(embed=discord.Embed(
+        title="Invalid Trade",
+        description="You must either request or offer at least one badge before sending request.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+    
+    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+
+    view = SendConfirm(self)
+    await ctx.respond(
+      embed=discord.Embed(
+        title="Please confirm this trade.",
+        description=f"You're about to send your trade request to {requestee.mention}. Are you sure?",
+        color=discord.Color.blurple()
+      ),
+      view=view,
+      ephemeral=True
+    )
+    await view.wait()
+    if view.value:
+      activate_trade(active_trade)
+      active_trade["status"] = "active"
+      status_embed = await self.get_trade_status_embed("🏛️ New Trade Request!", active_trade)
+      await ctx.channel.send(embed=status_embed)
+    else:
+      await ctx.send_followup(embed=discord.Embed(
+        title="Canceled",
+        description="No action taken. You may continue to modify the pending trade with `/trade offer` and `/trade request`",
+        color=discord.Color.red()
+      ), ephemeral=True)
 
   @trade.command(
     name="offer",
@@ -361,7 +526,7 @@ class Trade(commands.Cog):
     # If we don't have an active trade for this user, go ahead and let them know
     if not active_trade:
       inactive_embed = discord.Embed(
-        title="⁉️ You don't have an outgoing trade open!",
+        title="⁉️ You don't have a pending trade open!",
         description="You can start a new trade with `/trade initiate`!",
         color=discord.Color.red()
       )
@@ -371,6 +536,16 @@ class Trade(commands.Cog):
 
 
 
+
+# Check helpers
+def does_trade_contain_badges(active_trade):
+  offered_badges = get_trade_offered_badges(active_trade)
+  requested_badges = get_trade_requested_badges(active_trade)
+
+  if len(offered_badges) > 0 or len(requested_badges) > 0:
+    return True
+  else:
+    return False
 
 # ________                      .__               
 # \_____  \  __ __   ___________|__| ____   ______
@@ -396,7 +571,6 @@ def get_trade_requested_badges(active_trade):
   query.close()
   db.close()
   return trades
-
 
 def get_trade_offered_badges(active_trade):
   active_trade_id = active_trade["id"]
@@ -481,7 +655,6 @@ def remove_badge_from_trade_request(active_trade, badge_name):
   query.close()
   db.close()
 
-
 def get_user_badge_names(discord_id):
   db = getDB()
   query = db.cursor(dictionary=True)
@@ -497,7 +670,7 @@ def get_user_badge_names(discord_id):
 def get_active_requestee_trades(requestee_id):
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = "SELECT * FROM trades WHERE requestee_id = %s AND active = 1"
+  sql = "SELECT * FROM trades WHERE requestee_id = %s AND status = 'active'"
   vals = (requestee_id,)
   query.execute(sql, vals)
   trades = query.fetchall()
@@ -509,7 +682,7 @@ def get_active_requestee_trades(requestee_id):
 def get_active_requestor_trade(requestor_id):
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = "SELECT * FROM trades WHERE requestor_id = %s AND (active = 1 OR pending = 1) LIMIT 1"
+  sql = "SELECT * FROM trades WHERE requestor_id = %s AND (status = 'active' OR status = 'pending') LIMIT 1"
   vals = (requestor_id,)
   query.execute(sql, vals)
   trade = query.fetchone()
@@ -521,8 +694,20 @@ def get_active_requestor_trade(requestor_id):
 def initiate_trade(requestor_id, requestee_id):
   db = getDB()
   query = db.cursor()
-  sql = "INSERT INTO trades (requestor_id, requestee_id, pending) VALUES (%s, %s, %s)"
-  vals = (requestor_id, requestee_id, 1)
+  sql = "INSERT INTO trades (requestor_id, requestee_id, status) VALUES (%s, %s, 'pending')"
+  vals = (requestor_id, requestee_id)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+
+def activate_trade(active_trade):
+  active_trade_id = active_trade["id"]
+
+  db = getDB()
+  query = db.cursor()
+  sql = "UPDATE trades SET status = 'active' WHERE id = %s"
+  vals = (active_trade_id,)
   query.execute(sql, vals)
   db.commit()
   query.close()
@@ -531,7 +716,7 @@ def initiate_trade(requestor_id, requestee_id):
 def cancel_trade(trade_id):
   db = getDB()
   query = db.cursor()
-  sql = "UPDATE trades SET pending = 0, active = 0, completed = 0, canceled = 1 WHERE id = %s"
+  sql = "UPDATE trades SET status = 'canceled' WHERE id = %s"
   vals = (trade_id,)
   query.execute(sql, vals)
   db.commit()

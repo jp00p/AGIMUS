@@ -612,6 +612,22 @@
       "data": null,
       "parameters": []
     },
+    "trade send": {
+      "channels": [
+        "megalomaniacal-computer-storage"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "trade status": {
+      "channels": [
+        "megalomaniacal-computer-storage"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "trektalk": {
       "channels": [
         "after-dinner-conversation"

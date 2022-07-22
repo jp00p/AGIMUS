@@ -40,11 +40,7 @@ CREATE TABLE IF NOT EXISTS trades (
   id int(11) NOT NULL AUTO_INCREMENT,
   requestor_id varchar(128) NOT NULL,
   requestee_id varchar(128) NOT NULL,
-  active BOOLEAN NOT NULL DEFAULT 0,
-  pending BOOLEAN NOT NULL DEFAULT 1,
-  completed BOOLEAN NOT NULL DEFAULT 0,
-  rejected BOOLEAN NOT NULL DEFAULT 0,
-  canceled BOOLEAN NOT NULL DEFAULT 0,
+  status varchar(64) NOT NULL DEFAULT 'pending',
   time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id),
   FOREIGN KEY (requestor_id)
