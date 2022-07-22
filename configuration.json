@@ -263,7 +263,9 @@
       "parameters": []
     },
     "ping": {
-      "channels": [],
+      "channels": [
+        "robot-diagnostics"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -295,6 +297,7 @@
     },
     "qget": {
       "channels": [
+        "robot-diagnostics",
         "mclaughlin-group"
       ],
       "enabled": true,
@@ -302,12 +305,22 @@
       "parameters": []
     },
     "qset": {
-      "channels": [],
+      "channels": [
+        "robot-diagnostics"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
-    "quiz": {
+    "quiz answer": {
+      "channels": [
+        "quizzing-booth"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "quiz start": {
       "channels": [
         "quizzing-booth"
       ],
@@ -317,25 +330,64 @@
         {
           "name": "show",
           "allowed": [
-            "tng",
-            "voy",
-            "ds9",
-            "friends",
-            "firefly",
-            "simpsons",
-            "enterprise",
-            "tos",
-            "lowerdecks",
-            "disco",
-            "picard",
-            "tas",
-            "sunny"
+            {
+              "name": "Star Trek: The Original Series",
+              "value": "tos"
+            },
+            {
+              "name": "Star Trek: The Animated Series",
+              "value": "tas"
+            },
+            {
+              "name": "Star Trek: The Next Generation",
+              "value": "tng"
+            },
+            {
+              "name": "Star Trek: Deep Space Nine",
+              "value": "ds9"
+            },
+            {
+              "name": "Star Trek: Voyager",
+              "value": "voy"
+            },
+            {
+              "name": "Star Trek: Enterprise",
+              "value": "enterprise"
+            },
+            {
+              "name": "Star Trek: Discovery",
+              "value": "disco"
+            },
+            {
+              "name": "Star Trek: Picard",
+              "value": "picard"
+            },
+            {
+              "name": "Star Trek: Lower Decks",
+              "value": "lowerdecks"
+            },
+            {
+              "name": "Friends",
+              "value": "friends"
+            },
+            {
+              "name": "Firefly",
+              "value": "firefly"
+            },
+            {
+              "name": "It's Always Sunny in Philadelphia",
+              "value": "sunny"
+            },
+            {
+              "name": "The Simpsons",
+              "value": "simpsons"
+            }
           ],
           "required": false
         }
       ]
     },
-    "report": {
+    "quiz report": {
       "channels": [
         "quizzing-booth"
       ],

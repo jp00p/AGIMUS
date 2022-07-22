@@ -1,5 +1,5 @@
 from common import *
-
+from utils.check_channel_access import access_check
 
 # change_presence functions
 async def game_func(name):
@@ -31,23 +31,25 @@ change_presence_prefixes = {
 #   * listening
 #   * watching
 # The remainder of the message will be used for the status text
-async def update_status(message:discord.Message):
-  logger.info(f"{Fore.LIGHTGREEN_EX}Updating Status! Requested by {Style.BRIGHT}{message.author.display_name}{Fore.RESET}")
-  argument_list = message.content.lower().replace("!update_status ", "").split()
+@bot.command()
+@commands.check(access_check)
+async def update_status(ctx, *, arg):
+  logger.info(f"{Fore.LIGHTGREEN_EX}Updating Status! Requested by {Style.BRIGHT}{ctx.author.display_name}{Fore.RESET}")
+  argument_list = arg.split()
 
   if len(argument_list) < 2:
-    await message.reply(embed=discord.Embed(
+    await ctx.reply(embed=discord.Embed(
       title="Usage:",
-      description="`!update_status [game|watch|listen] <status>`",
+      description="`!update_status [playing|listening|watching] <status>`",
       color=discord.Color.blue()
     ))
     return
   else:
     type = argument_list[0]
-    status = message.content.replace(f"!update_status {type} ", "")
+    status = ctx.message.content.replace(f"!update_status {type} ", "")
 
     if type not in ['playing', 'listening', 'watching']:
-      await message.reply(embed=discord.Embed(
+      await ctx.reply(embed=discord.Embed(
         title="Invalid <type> Provided",
         description="Must provide one of: `playing`, `listening`, or `watching`",
         color=discord.Color.red()
@@ -56,7 +58,7 @@ async def update_status(message:discord.Message):
       return
 
     await change_presence_funcs[type](status)
-    await message.reply(embed=discord.Embed(
+    await ctx.reply(embed=discord.Embed(
       title="Status Updated Successfully!",
       color=discord.Color.green()
     ))

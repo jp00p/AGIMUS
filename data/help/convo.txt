@@ -2,11 +2,11 @@
 A place to generate conversation prompts!
 
 **COMMANDS**
-`!tuvix` - create your own Tuvix
-`!dustbuster` - beam em down, let god sort em out
-`!randomep [trek|nontrek|any|tos|tas|tng|ds9|voy|enterprise|lowerdecks|disco|picard|friends|firefly|simpsons|sunny]` - pick a random episode from all trek everywhere
-`!trektalk` - generate a conversation piece
-`!trekduel` - who will win?
-`!fmk` - you know the deal
+`/tuvix` - create your own Tuvix
+`/dustbuster` - beam em down, let god sort em out
+`/randomep [trek|nontrek|any|tos|tas|tng|ds9|voy|enterprise|lowerdecks|disco|picard|friends|firefly|simpsons|sunny]` - pick a random episode from all trek everywhere
+`/trektalk` - generate a conversation piece
+`/trekduel` - who will win?
+`/fmk` - you know the deal
 `/profile` - see your profile card
-`!info [tng|voy|ds9|friends|firefly|simpsons|enterprise|tos|lowerdecks|disco|picard|tas|sunny] [s##e##]` - Get information about a specific episode!
+`/info [tng|voy|ds9|friends|firefly|simpsons|enterprise|tos|lowerdecks|disco|picard|tas|sunny] [s##e##]` - Get information about a specific episode!

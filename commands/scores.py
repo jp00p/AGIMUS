@@ -1,19 +1,32 @@
 from common import *
+from utils.check_channel_access import access_check
 
-
-# scores() - Entrypoint for !scores command
-# message[required]: discord.Message
-# This function is the main entrypoint of the !scores command
-# and will return the leaderboard for the top 25 players
-async def scores(message:discord.Message):
+# scores() - Entrypoint for /scores command
+# This function is the main entrypoint of the /scores command
+@bot.slash_command(
+  name="scores",
+  description="Get the leaderboard for the top 25 players"
+)
+@commands.check(access_check)
+async def scores(ctx:discord.ApplicationContext):
   scores = get_high_scores()
-  table = []
-  table.append(["SCORE", "NAME", "SPINS", "JACKPOTS"])
-  for player in scores:
-    table.append([player["score"], player["name"], player["spins"], player["jackpots"]])
-    #msg += "{0} - {1} (Spins: {2} Jackpots: {3})\n".format(player["score"], player["name"], player["spins"], player["jackpots"])
-  msg = tabulate(table, headers="firstrow")
-  await message.channel.send("```"+msg+"```")
+  # table = []
+  # table.append(["SCORE", "NAME", "SPINS", "JACKPOTS"])
+  embed = discord.Embed(
+    title="Scores Leaderboard",
+    description="Top 25 Players",
+    color=discord.Color.blurple()
+  )
+  for idx, player in enumerate(scores):
+    embed.add_field(
+      name=f"#{idx+1} - {player['name']}",
+      value=f"Score: **{player['score']}** - Spins: **{player['spins']}** - Jackpots: **{player['jackpots']}**",
+      inline=False
+    )
+    # table.append([player["score"], player["name"], player["spins"], player["jackpots"]])
+  # msg = tabulate(table, headers="firstrow")
+  # await ctx.respond("```"+msg+"```")
+  await ctx.respond(embed=embed)
 
 
 # get_high_scores()

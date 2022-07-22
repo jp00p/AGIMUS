@@ -25,4 +25,4 @@ You need to match three Star Trek characters/ships to win the jackpot!
 `/slots jackpots` - see a history of jackpots
 `/profile` - see your profile card
 `/setwager [1-25]` - set your default wager
-`!scores` - see the top scores
+`/scores` - see the top scores

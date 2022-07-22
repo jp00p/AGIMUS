@@ -2,5 +2,5 @@ apiVersion: v2
 name: agimus
 description: A helm chart for a discord bot that also runs a mysql db
 type: application
-version: v0.2.26
-appVersion: v0.2.26
+version: v1.0.0
+appVersion: v1.0.0

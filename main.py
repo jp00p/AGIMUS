@@ -15,8 +15,9 @@ from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
 from commands.profile import profile
 from commands.randomep import randomep
-from commands.report import report
 from commands.reports import reports
+from commands.scores import scores
+from commands.setwager import setwager
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
@@ -30,9 +31,6 @@ import commands.clip
 from commands.clear_media import clear_media
 from commands.ping import ping
 from commands.q import qget, qset
-from commands.quiz import quiz
-from commands.scores import scores
-from commands.setwager import setwager
 from commands.update_status import update_status
 
 # Prompts
@@ -43,13 +41,13 @@ from commands.computer import computer
 from cogs.trivia import Trivia
 from cogs.shop import Shop
 from cogs.slots import Slots
-from cogs.ping import Ping
 from cogs.poker import Poker
+from cogs.quiz import Quiz
 bot.add_cog(Trivia(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
-bot.add_cog(Ping(bot))
 bot.add_cog(Poker(bot))
+bot.add_cog(Quiz(bot))
 
 # Handlers
 from handlers.alerts import handle_alerts
@@ -83,6 +81,7 @@ async def on_message(message:discord.Message):
     return
   
   try:
+    # Process commands that use the command_prefix
     await bot.process_commands(message)
   except BaseException as e:
     logger.info(f"{Fore.RED}<! ERROR: Encountered error in process_commands !> {e}{Fore.RESET}")
@@ -114,9 +113,8 @@ async def on_message(message:discord.Message):
     logger.error(f"{Fore.RED}<! ERROR: Failed to process message for xp !> {e}{Fore.RESET}")
     logger.error(traceback.format_exc())
   
-  # Bang Command Handling
-  #logger.debug(message)
-  if message.content.startswith("!") or any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
+  # Computer/AGIMUS Message Handling
+  if any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
     logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
     try:
       await process_command(message)
@@ -132,11 +130,7 @@ async def on_message(message:discord.Message):
       await logging_channel.send(embed=exception_embed)
 
 async def process_command(message:discord.Message):
-  # Split the user's command by space and remove "!"
-  split_string = message.content.lower().split(" ")
-  if message.content.startswith("!"):
-    user_command = split_string[0].replace("!","")
-  elif message.content.lower().startswith("agimus:"):
+  if message.content.lower().startswith("agimus:"):
     user_command = "agimus"
   elif message.content.lower().startswith("computer:"):
     user_command = "computer"
@@ -250,10 +244,21 @@ async def on_application_command(ctx):
     ALL_USERS.append(register_player(ctx.author))
 
 @bot.event
-async def on_application_command_error(ctx, exception):
+async def on_application_command_error(ctx, error):
   logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
-  logger.info(traceback.format_exc())
-  logger.exception(exception)
+  logger.info(traceback.print_exception(type(error), error, error.__traceback__))
+
+# listen to context (!) command events
+@bot.event
+async def on_command_error(ctx, error):
+  if isinstance(error, commands.errors.CheckFailure):
+    # We don't care about check errors,
+    # it means the check is succeeding in blocking access
+    pass
+  else:
+    logger.error(f"{Fore.RED}Error encountered in ! command: !{ctx.command}")
+    logger.info(traceback.print_exception(type(error), error, error.__traceback__))
+
 
 # Schedule Tasks
 scheduled_tasks = [
