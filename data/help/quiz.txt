@@ -1,18 +1,26 @@
-**QUIZ INFO**
-You get bonus points for being slightly wrong!
-You get bonus points for being the first to get it right!
-You get extra bonus points for being first + silly!
-Correctitude is calculated using: <https://en.wikipedia.org/wiki/Levenshtein_distance>
-Only one quiz can be active at a time
+**Quiz info**
 
-**QUIZ COMMANDS**
-`/quiz start <show (optional)>` - start a round of Quiz!
-`/quiz answer <title>` - provide an answer for the current Quiz round
-`/quiz report` - see the fuzziness of the last quiz answers (you want both numbers between 72-80 for the bonus)
+> You'll get a screenshot from an episode of a show, and you need to guess what the name of the episode is!
+> You do not have to be EXACTLY correct with your spelling or anything, just guess what the name of the episode is.
+> You actually get bonus points for spelling it slightly wrong or in a silly way.
+> You get bonus points for being the first to get it right (even more if you're first with a silly answer)!
+> Correctitude is calculated using: <https://en.wikipedia.org/wiki/Levenshtein_distance>
+> __Only one quiz can be active at a time!__
+
+**Trivia info**
+
+> Trivia is pulled from a public database, not all questions are great quality (but most seem to be!)
+> More info about the dabtabase here: <https://opentdb.com/>
+
+**Quiz commands**
+
+`/quiz start` - start a round of quiz!
+`/quiz answer [your answer]` - provide an answer for the current quiz round
+`/quiz report` - see how we calculated your answers for the last round
 `/scores` - see the top scores
-`/profile` - see your profile card
-`/info <show> <episode (s##e##)>` - Get information about a specific episode!
+`/info` - Get information about a specific episode!
 
-**TRIVIA COMMANDS**
+**Trivia commands**
+
 `/trivia` - get a random trivia question!
-`/triva <category>` - get trivia from a specific category (categories listed in dropdown)
+`/trivia [category]` - get trivia from a specific category (categories listed in dropdown)

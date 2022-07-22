@@ -1,12 +1,15 @@
-**ABOUT THIS CHANNEL**
-A place to generate conversation prompts!
+**About this channel**
 
-**COMMANDS**
+> A place to generate random text, conversation prompts, and other miscelleaneous bot stuff!
+
+> Feel free to talk to AGIMUS in here by starting a message with "agimus:" -- who knows what you'll get!
+
+**Channel commands**
+
 `/tuvix` - create your own Tuvix
 `/dustbuster` - beam em down, let god sort em out
-`/randomep [trek|nontrek|any|tos|tas|tng|ds9|voy|enterprise|lowerdecks|disco|picard|friends|firefly|simpsons|sunny]` - pick a random episode from all trek everywhere
+`/randomep` - pick a random episode from all trek everywhere
 `/trektalk` - generate a conversation piece
 `/trekduel` - who will win?
 `/fmk` - you know the deal
-`/profile` - see your profile card
-`/info [tng|voy|ds9|friends|firefly|simpsons|enterprise|tos|lowerdecks|disco|picard|tas|sunny] [s##e##]` - Get information about a specific episode!
+`/info` - Get information about a specific episode!

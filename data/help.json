@@ -4,15 +4,7 @@
     "enabled": true,
     "file": "data/help/slots.txt",
     "channels": [
-      "slots-slots-slots"
-    ]
-  },
-  {
-    "name": "shop",
-    "enabled": true,
-    "file": "data/help/shop.txt",
-    "channels": [
-      "slotshop-dot-biz"
+      "dabo-table"
     ]
   },
   {
@@ -20,7 +12,7 @@
     "enabled": true,
     "file": "data/help/convo.txt",
     "channels": [
-      "conversation-booth"
+      "after-dinner-conversation"
     ]
   },
   {
@@ -28,7 +20,7 @@
     "enabled": true,
     "file": "data/help/poker.txt",
     "channels": [
-      "poker-table"
+      "poker-night"
     ]
   },
   {
@@ -36,7 +28,7 @@
     "enabled": true,
     "file": "data/help/quiz.txt",
     "channels": [
-      "quizzing-booth"
+      "morns-nonstop-quiz"
     ]
   }
 ]

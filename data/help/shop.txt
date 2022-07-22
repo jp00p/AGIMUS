@@ -1,7 +1,0 @@
-**SHOP INFO**
-A silly shop to waste your points on!
-All proceeds go directly to the jackpot.
-
-**COMMANDS**
-`/shop [profiles|pins|roles]` - start the interactive shop
-`/profile` - see your profile card
