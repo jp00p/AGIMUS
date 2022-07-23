@@ -20,7 +20,7 @@ async def agimus(message:discord.Message):
   question_split = message.content.lower().split(":")
   question = "".join(question_split[1:]).strip()
   
-  agimus_channel_id = get_channel_id("megalomaniacal-computer-storage")
+  agimus_channel_id = get_channel_id("after-dinner-conversation")
   agimus_channel = await message.guild.fetch_channel(agimus_channel_id)
 
   completion_text = handle_special_questions(question)

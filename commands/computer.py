@@ -42,7 +42,7 @@ async def computer(message:discord.Message):
       response_sent = await handle_non_primary_result(res, message)
     
     if not response_sent:
-      agimus_channel_id = get_channel_id("megalomaniacal-computer-storage")
+      agimus_channel_id = get_channel_id("after-dinner-conversation")
       agimus_channel = await message.guild.fetch_channel(agimus_channel_id)
       embed = discord.Embed(
         title="No Results Found.",
