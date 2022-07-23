@@ -10,12 +10,11 @@ react_threshold = 3 # how many reactions required
 argus_threshold = 10
 user_threshold = 3 # how many users required
 
-board_dict = config["handlers"]["starboard"]["boards"]
-blocked_channels = get_channel_ids_list(config["handlers"]["starboard"]["blocked_channels"])
-boards = get_channel_ids_list(board_dict.keys())
-
-
 async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
+
+  board_dict = config["handlers"]["starboard"]["boards"]
+  blocked_channels = get_channel_ids_list(config["handlers"]["starboard"]["blocked_channels"])
+  boards = get_channel_ids_list(board_dict.keys())
 
   if payload.message_id in ALL_STARBOARD_POSTS:
     return

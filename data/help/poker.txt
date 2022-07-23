@@ -1,17 +1,21 @@
-**POKER INFO**
-Just plain, basic poker -- Riker style.
+**Poker info**
 
-**COMMANDS**
+> Just plain, basic poker -- Riker style. Use the reactions on your poker hand to discard, double your wager, and advance the betting round.
+
+**Poker commands**
+
 `/poker` - play a round
-`/setwager #` set your wager to 1-25!
+`/setwager` - set your default wager (from 1 to 25)
+`/scores` see the top scores
 
-**PAYOUTS**
-`high card -------> x0`
-`pair ------------> x1`
-`two pair --------> x1.5`
-`three of a kind -> x2`
-`straight --------> x4`
-`flush -----------> x5`
-`full house ------> x6`
-`four of a kind --> x10`
-`royal flush -----> x1000`
+**Payouts**
+
+> `high card -------> x0`
+> `pair ------------> x1`
+> `two pair --------> x1.5`
+> `three of a kind -> x2`
+> `straight --------> x4`
+> `flush -----------> x5`
+> `full house ------> x6`
+> `four of a kind --> x10`
+> `royal flush -----> x1000`

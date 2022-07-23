@@ -20,8 +20,8 @@ xp_colors = [
     Fore.LIGHTMAGENTA_EX
 ]
 current_color = 0
-blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
-notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
+
+
 
 # {user} got xp for {reason}
 reasons = {
@@ -36,13 +36,14 @@ reasons = {
   "trivia_play"    : "participating in trivia",
   "poker_win"      : "winning a hand of poker",
   "used_computer"  : "using the computer",
-  "asked_agimus"   : "asked agimus a question",
+  "asked_agimus"   : "asking agimus a question",
   "used_wordcloud" : "generating a wordcloud"
 }
 
 # handle_message_xp(message) - calculates xp for a given message
 # message[required]: discord.Message
-async def handle_message_xp(message:discord.Message):   
+async def handle_message_xp(message:discord.Message): 
+    blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])  
     # we don't like bots round here, or some channels
     if message.author.bot or message.channel.id in blocked_channel_ids:
       return
@@ -190,7 +191,7 @@ async def disable_xp(ctx:discord.ApplicationContext, disable:str):
 
 async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   # Check if this user has already reacted to this message with this emoji
-
+  blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
   if reaction.message.author.bot or user.bot or reaction.message.channel.id in blocked_channel_ids:
     return
 
@@ -272,11 +273,13 @@ async def level_up_user(user:discord.User, level:int):
 # level[required]:int
 # badge[required]:str
 async def send_level_up_message(user:discord.User, level:int, badge:str):
+  notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   channel = bot.get_channel(notification_channel_id)
   embed_title = "Level up!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has reached **level {level}** and earned a new badge!"
-  message = f"{user.mention} - Level up! See all your badges by typing `/badges` - disable this by typing `/disable_xp`"
+  messages = config["handlers"]["xp"]["level_up_messages"]
+  message = random.choice(messages).format(user=user.mention, level=level)
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
 
 # increment_user_xp(author, amt)

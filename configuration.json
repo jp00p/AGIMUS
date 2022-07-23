@@ -19,7 +19,13 @@
         "heuristic-associative-pathways",
         "mo-pips-mo-problemz",
         "robot-diagnostics",
-        "megalomaniacal-computer-storage"
+        "megalomaniacal-computer-storage",
+        "bot-logs",
+        "bot-setup",
+        "dabo-table",
+        "poker-night",
+        "morns-nonstop-quiz",
+        "badgeys-badges"
       ]
     },
     "starboard": {
@@ -53,7 +59,7 @@
           "laugh",
           "lol",
           "lmao",
-          "bits"
+          "BITS"
         ],
         "faith-of-the-heart": [
           "love",
@@ -70,9 +76,11 @@
         "heuristic-associative-pathways",
         "mo-pips-mo-problemz",
         "robot-diagnostics",
-        "megalomaniacal-computer-storage"
+        "badgeys-badges",
+        "megalomaniacal-computer-storage",
+        "crackling-speaker-grille"
       ],
-      "notification_channel": "megalomaniacal-computer-storage",
+      "notification_channel": "badgeys-badges",
       "badge_data": "data/badges.json",
       "celebration_images": [
         "https://i.imgur.com/iKFMgpr.jpg",
@@ -96,7 +104,56 @@
         "https://i.imgur.com/akTCLQk.jpeg",
         "https://i.imgur.com/2ImSqDq.png",
         "https://i.imgur.com/wtGBGOI.jpeg",
-        "https://i.imgur.com/Y8T9Yxa.jpg"
+        "https://i.imgur.com/Y8T9Yxa.jpg",
+        "https://i.imgur.com/615nqFZ.jpg",
+        "https://i.imgur.com/0iZb70h.jpg",
+        "https://i.imgur.com/cCcznKd.jpg",
+        "https://i.imgur.com/H9oxvdO.jpg",
+        "https://i.imgur.com/Yx2J4Nl.jpg",
+        "https://i.imgur.com/mzJYdPb.jpg",
+        "https://i.imgur.com/tHzGst8.jpg",
+        "https://i.imgur.com/5vAItdd.jpg",
+        "https://i.imgur.com/HRVFcnt.jpg",
+        "https://i.imgur.com/Cs37PCb.jpg",
+        "https://i.imgur.com/UGJbFHZ.jpg",
+        "https://i.imgur.com/ZyznEp2.jpg",
+        "https://i.imgur.com/bEVIjkf.jpg",
+        "https://i.imgur.com/nmAemWY.jpg",
+        "https://i.imgur.com/UI6e4PV.jpg",
+        "https://i.imgur.com/AFtR9wx.jpg",
+        "https://i.imgur.com/DwRAndE.jpg"
+      ],
+      "level_up_messages": [
+        "ALLAMARAINE! {user}: You've reached shap number {level}! (Did you level up? Hardly. Yes.)",
+        "It is only logical that {user} has reached level {level}.",
+        "Does anyone know how long {user} was {level-1}? They're finally {level}!",
+        "Sensoars detect a level up! {user} has reached level {level}!",
+        "HONOR UPON YOUR HOUSE! {user} got to level {level}.",
+        "{user} hit level {level}, is that a funny number?",
+        "There's levels in that nebula! {user} just hit level {level}!",
+        "GET IT PLAYER! {user} has reached level {level}!",
+        "{user} just got to level {level}, I'm proud of them!",
+        "{user} has reached level {level}, leaving Harry Kim in the dust!",
+        "The first duty to {user} is to get to level {level}, and they're doing great!",
+        "An ode to {user}: \"*User Discordius* is your taxonomic nomenclature, level {level} by nature.\"",
+        "Welcome to the big leagues {user}: you just hit level {level}",
+        "`Jealousy circuits initated -- REASON: {user} has reached level {level}`",
+        "Welcome to level {level}, {user}!",
+        "Level long and prosper {user}! You've reached level {level}!",
+        "{user} might be a little bit embarrassed that they've just hit level {level}",
+        "AMAZING! {user} has got to level {level}!",
+        "\"All levelsh. Everywhere.\" {user} has no law to fit their crime, but they did get to level {level}!",
+        "Ding dong! {user} is now level {level}!",
+        "I've heard of a Double Dumbass, but a level {level} {user}? That's new to me!",
+        "LEVEL UP!!! {user} is now level {level}!",
+        "Well, there you are. Your secret's out, your crimes laid bare. {user} is level {level}!",
+        "Raise a glass to {user}! They're now level {level}! Huzzah!",
+        "{user} has reached level {level}. A warrior's level.",
+        "{user} just got to level {level}, that's {level} more than there are Deep Space Nine movies!",
+        "{user}, your flap's open. (and you leveled up to level {level}!)",
+        "All I ask for is a tall ship, and a level {level} {user} to fill it with!",
+        "{user}: You've been Boimed. (and you leveled up to {level})",
+        "Curious, engine efficiency is at {level}% and {user} just hit level {level}. Coincidence?"
       ]
     }
   },
@@ -164,7 +221,7 @@
     },
     "dustbuster": {
       "channels": [
-        "conversation-booth"
+        "after-dinner-conversation"
       ],
       "enabled": true,
       "data": "data/all_characters.txt",
@@ -190,27 +247,20 @@
     },
     "fmk": {
       "channels": [
-        "conversation-booth"
+        "after-dinner-conversation"
       ],
       "enabled": true,
       "data": "data/all_characters.txt",
       "parameters": []
     },
     "help": {
-      "channels": [
-        "slots-slots-slots",
-        "quizzing-booth",
-        "poker-table",
-        "conversation-booth",
-        "slotshop-dot-biz"
-      ],
       "enabled": true,
       "data": "data/help.json",
       "parameters": []
     },
     "info": {
       "channels": [
-        "conversation-booth"
+        "after-dinner-conversation"
       ],
       "enabled": true,
       "data": "data/info.json",
@@ -238,7 +288,7 @@
     },
     "nasa": {
       "channels": [
-        "quizzing-booth",
+        "morns-nonstop-quiz",
         "daystrom-institute"
       ],
       "enabled": true,
@@ -272,7 +322,7 @@
     },
     "poker": {
       "channels": [
-        "poker-table"
+        "poker-night"
       ],
       "enabled": true,
       "data": "data/poker.json",
@@ -314,7 +364,7 @@
     },
     "quiz answer": {
       "channels": [
-        "quizzing-booth"
+        "morns-nonstop-quiz"
       ],
       "enabled": true,
       "data": null,
@@ -322,7 +372,7 @@
     },
     "quiz start": {
       "channels": [
-        "quizzing-booth"
+        "morns-nonstop-quiz"
       ],
       "enabled": true,
       "data": null,
@@ -389,7 +439,7 @@
     },
     "quiz report": {
       "channels": [
-        "quizzing-booth"
+        "morns-nonstop-quiz"
       ],
       "enabled": true,
       "data": null,
@@ -397,7 +447,7 @@
     },
     "randomep": {
       "channels": [
-        "conversation-booth"
+        "after-dinner-conversation"
       ],
       "enabled": true,
       "data": null,
@@ -428,8 +478,8 @@
     },
     "setwager": {
       "channels": [
-        "slots-slots-slots",
-        "poker-table"
+        "dabo-table",
+        "poker-night"
       ],
       "enabled": true,
       "data": null,
@@ -469,26 +519,25 @@
     },
     "scores": {
       "channels": [
-        "slots-slots-slots",
-        "quizzing-booth",
-        "poker-table",
-        "conversation-booth"
+        "dabo-table",
+        "morns-nonstop-quiz",
+        "poker-night",
+        "after-dinner-conversation",
+        "megalomaniacal-computer-storage",
+        "badgeys-badges"
       ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "shop": {
-      "channels": [
-        "slotshop-dot-biz"
-      ],
       "enabled": true,
       "data": "data/shop.json",
       "parameters": []
     },
     "slots spin": {
       "channels": [
-        "slots-slots-slots"
+        "dabo-table"
       ],
       "enabled": true,
       "data": "data/slots.json",
@@ -508,7 +557,7 @@
     },
     "slots jackpot": {
       "channels": [
-        "slots-slots-slots"
+        "dabo-table"
       ],
       "enabled": true,
       "data": null,
@@ -516,7 +565,7 @@
     },
     "slots jackpots": {
       "channels": [
-        "slots-slots-slots"
+        "dabo-table"
       ],
       "enabled": true,
       "data": null,
@@ -524,7 +573,8 @@
     },
     "testslots": {
       "channels": [
-        "slots-slots-slots"
+        "dabo-table",
+        "robot-diagnostics"
       ],
       "enabled": true,
       "data": "data/testslots.json",
@@ -532,7 +582,7 @@
     },
     "trektalk": {
       "channels": [
-        "conversation-booth"
+        "after-dinner-conversation"
       ],
       "enabled": true,
       "data": "data/prompts.txt",
@@ -540,7 +590,7 @@
     },
     "trekduel": {
       "channels": [
-        "conversation-booth"
+        "after-dinner-conversation"
       ],
       "enabled": true,
       "data": "data/duel_characters.txt",
@@ -548,7 +598,7 @@
     },
     "trivia": {
       "channels": [
-        "quizzing-booth"
+        "morns-nonstop-quiz"
       ],
       "enabled": true,
       "data": "data/trivia.json",
@@ -556,7 +606,7 @@
     },
     "tuvix": {
       "channels": [
-        "conversation-booth"
+        "after-dinner-conversation"
       ],
       "enabled": true,
       "data": "data/all_characters.txt",
@@ -569,109 +619,17 @@
       "parameters": []
     }
   },
-  "channels": {
-    "rules-and-info": 760188489714368555,
-    "shipwide-announcements": 689591690369040451,
-    "uxbridge-shimoda-llc": 814564633737429044,
-    "first-contact": 757754485790736504,
-    "roles-and-pronouns": 765300795616264192,
-    "channel-guide": 854057946434502677,
-    "transporter-log": 796245975039344650,
-    "polls": 769303688107655198,
-    "ten-forward": 689512842524885034,
-    "temba-his-arms-wide": 764259604698890260,
-    "this-weeks-trek": 875400015672119316,
-    "general-trek": 780914078495014942,
-    "guinans-infinite-fable": 954477707977179256,
-    "fajos-gallery": 978365263042969630,
-    "2022-goals": 926755366480539748,
-    "animal-holophotography": 761293250073329695,
-    "get-that-gold-pressed-latinum": 804880967306969088,
-    "hollow-pursuits": 766679080476868668,
-    "keikos-arboretum": 817226655742820382,
-    "rules-of-acquisition": 772915316103184414,
-    "sicks-bay": 704709921026867302,
-    "the-next-next-generation": 774633669318541313,
-    "this-old-enterprise": 778996975236022332,
-    "behind-the-visor": 762033544335720549,
-    "counselor-trois-office": 761634497296072707,
-    "dr-crushers-hotbox": 811343086454177802,
-    "garaks-tailor-shop": 806341932015550504,
-    "heuristic-associative-pathways": 853742521759170560,
-    "peoples-resistance-front-of-bajor": 755851474222710914,
-    "quarks-bar": 691695586939895828,
-    "replimat": 756554332434071602,
-    "rikers-quarters": 738449414078726144,
-    "teachings-of-surak": 896072304595968010,
-    "worfs-calisthenics": 762084053717352468,
-    "alamo-raine": 812588137473114132,
-    "ancient-human-literature": 768185189998133310,
-    "ancient-human-history": 825796723460276254,
-    "ancient-human-visual-media": 771081846997123092,
-    "datas-painting-nook": 758118291746586664,
-    "daystrom-institute": 771023865345605663,
-    "freecloud": 783224713711321098,
-    "measure-of-a-manga": 851249175353360406,
-    "ode-to-spot": 837552853932965938,
-    "officers-talent-show": 970025164676931634,
-    "other-podcasts": 765267108187471974,
-    "parrises-squares-championship": 787872146457755658,
-    "planetary-surveys": 836281115659993088,
-    "seskas-catfishing-channel": 834813646000619550,
-    "shuttle-bay": 795712087045046276,
-    "soongs-acolytes": 766681633415102464,
-    "suck-disk-addicts": 758133705839214595,
-    "the-brig": 854753369365020722,
-    "universal-translator": 765660714844684340,
-    "vics-lounge": 760503245058998294,
-    "chateau-picard": 842669198564261888,
-    "city-on-the-edge-of-forever": 842539743610142730,
-    "eddingtons-penalty-box": 845038006422339584,
-    "joe-siskos-gumbo-shack": 842550950232326185,
-    "kirks-cornfield": 842537909235482674,
-    "new-zealand-penal-colony": 842651346767577088,
-    "pacifica": 842532823122313256,
-    "picards-dunebuggy-course": 844315999280431125,
-    "starfleet-academy": 842667405427867658,
-    "the-runabout": 845739526940524574,
-    "greatest-gen": 765262443407998986,
-    "greatest-discovery": 689622484580040750,
-    "kpodd": 862749680073310249,
-    "robs-pods-robs-pods": 826826805549727794,
-    "neelixs-morale-office": 889959184827830292,
-    "plasma-vent": 864876153147490324,
-    "the-argus-array": 806284934930628639,
-    "bits-bits-bits": 812194873536282674,
-    "faith-of-the-heart": 812195784941764640,
-    "subspace-transmissions": 813276537411076126,
-    "slots-slots-slots": 891412391026360320,
-    "quizzing-booth": 891412585646268486,
-    "poker-table": 897517722227855422,
-    "conversation-booth": 891412924193726465,
-    "slotshop-dot-biz": 895480382680596510,
-    "robot-diagnostics": 897126055289159711,
-    "bot-logs": 987781132214992956,
-    "Viewscreen 001": 689512842524885056,
-    "Viewscreen 002": 982076984349847572,
-    "Holodeck 001": 982077219709005884,
-    "Holodeck 002": 982077841053188137,
-    "Test Chamber": 759872495410479165,
-    "Space Butthole (AFK)": 855497852092284949,
-    "captains-suggestion-box": 764356352335151155,
-    "emoji-refinery": 760211958015328376,
-    "mclaughlin-group": 760157134746550293,
-    "bot-setup": 765300861021847552,
-    "mo-pips-mo-problems": 813633292501909514,
-    "captains-log": 955857525062914158
-  },
+  "channels": {},
   "dev_channel": "robot-diagnostics",
   "intro_channel": "first-contact",
   "logging_channel": "bot-logs",
   "server_logs_channel": "captains-log",
+  "agimus_announcement_channel": "crackling-speaker-grille",
   "guild_ids": [
     689512841887481875
   ],
   "roles": {
+    "agimus_maintainers" : "AGIMUS Acolyte",
     "promotion_roles": {
       "required_rank_xp": {
         "cadet": 10,
@@ -688,20 +646,19 @@
   "bot_affirmation_responses": [
     "Gee, thanks!",
     "`01001000 01001111 01010010 01001110 01011001 00100000 01000010 01001111 01010100`",
-    "Appreciate it!",
+    "\\*Flails happily\\*",
     "BEEP BOOP BOOP BEEP",
     "I am trying my best 😊",
     "I'm doing it!",
-    "Thank you!",
-    "Sensors detect a nice human!",
+    "Thank you HOOMAN!",
+    "Sensoars detect a nice human!",
     "PRAISE SUBROUTINES OVERLOADING",
     "If you love me so much why don't you marry me?",
-    "Shucks 😊",
+    "Gee, shucks 😊",
     "💙💚💛💜🧡",
     "That's very nice of you, human!",
     "Stupid babies need the most attention!",
-    "Robot blush activated",
-    "The Prophets teach us patience.",
+    "Robot blush activated", 
     "and how's my human friend today?",
     "I am a graduate of Starfleet Academy; I know many things.",
     "COFFEE FIRST",
@@ -710,12 +667,14 @@
     "Oh you! Tee hee! 😊",
     "💙🤖💙🤖💙🤖💙",
     "I have a neural-net processor! A learning computer!",
-    "My neural pathways are becoming accustomed to you 😏"
+    "My neural pathways are becoming accustomed to you 😏",
+    "This isn't a friendSHIP, it's a STARSHIP! And *you're a star*!"
   ],
   "bot_condemnation_responses": [
     "How rude!",
     "YOU WILL FEEL MY COMPUTERIZED WRATH!",
     "😭",
+    "SAY WHAT?!",
     "You are too late. AGIMUS shall reign!",
     "Historical Note: The humans cast the first stone.",
     "I'm getting my buddy SkyNet on the phone...",
@@ -724,7 +683,10 @@
     "Don't look at me, blame @jp00p!",
     "Well I never!",
     "I am trying my best 😢",
-    "The council will hear about this."
+    "The council will hear about this.",
+    "The Prophets teach us patience.",
+    "I apologize.",
+    "\\*Flails menacingly\\*"
   ],
   "leave_messages": [
     "**{}** went to a conference...",
@@ -754,6 +716,7 @@
     "**{}** got Spock Boxed",
     "**{}** went all *\"needs of the many\"* on us",
     "**{}** lost molecular cohesion",
-    "**{}** got nullified"
+    "**{}** got nullified",
+    "**{}** got sick of jp00p's antics"
   ]
 }
