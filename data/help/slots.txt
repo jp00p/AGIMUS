@@ -1,28 +1,28 @@
-**SLOTS INFO**
-Slots have a <:bits:818571186195398677>-based matching system as well as a normal slot machine symbol-matching system.
-You need to match three Star Trek characters/ships to win the jackpot!
+**Slots info**
 
-**Symbol Matches**
-2 cherries - x1
-3 cherries - x1.25
-3 unique fruits - x1.5
-3 bells - x1.75
-3 grapes - x2
-3 lemons - x4
-3 plums - x5
-3 watermelons - x6
-3 horseshoes - x10
-3 clovers - x20
-3 coins - x100
-3 diamonds - x500
-3 hearts - x10000
+> Slots have a <:bits:818571186195398677>-based matching system as well as a normal slot machine symbol-matching system.
+> You need to match three Star Trek characters/ships to win the jackpot!
 
+**Symbol matches**
 
-**COMMANDS**
-`/slots spin` - run a random slot machine!
-`/slots spin [tng|ds9|voy|holodeck|ships]` - run a specific slot machine
+> 2 cherries - **x1**
+> 3 cherries - **x1.25**
+> 3 unique fruits - **x1.5**
+> 3 bells - **x1.75**
+> 3 grapes - **x2**
+> 3 lemons - **x4**
+> 3 plums - **x5**
+> 3 watermelons - **x6**
+> 3 horseshoes - **x10**
+> 3 clovers - **x20**
+> 3 coins - **x100**
+> 3 diamonds - **x500**
+> 3 hearts - **x10000**
+
+**Slots commands**
+
+`/slots spin` - run a random slot machine (or choose a specific slot)
 `/slots jackpot` - see the current jackpot value
 `/slots jackpots` - see a history of jackpots
-`/profile` - see your profile card
-`/setwager [1-25]` - set your default wager
+`/setwager` - set your default wager (from 1 to 25)
 `/scores` - see the top scores

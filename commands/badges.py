@@ -4,7 +4,7 @@ import time
 import math
 from utils.check_channel_access import access_check
 
-notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
+
 f = open(config["handlers"]["xp"]["badge_data"])
 badge_data = json.loads(f.read())
 f.close()
@@ -48,6 +48,8 @@ async def badge_stats(ctx:discord.ApplicationContext):
   embed.add_field(name="Most popular badge somehow", value=f'{results["most_collected"][0]["badge_name"].replace("_", " ").replace(".png", "")} ({results["most_collected"][0]["count"]} collected)')
   embed.add_field(name="Crew member with the most badges right now", value=f"{results['number_one'][0]['name']} ({results['number_one'][0]['count']})")
   await ctx.respond(embed=embed, ephemeral=False)  
+
+
 @bot.slash_command(
   name="gift_badge",
   description="Give a user a badge (admin only)"
@@ -59,6 +61,7 @@ async def badge_stats(ctx:discord.ApplicationContext):
 )
 # give a random badge to a user
 async def gift_badge(ctx:discord.ApplicationContext, mention:str):
+  notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   mention = mention.replace(" ", "")
   selected_user = int(mention[1:][:len(mention)-2].replace("@","").replace("!",""))
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a badge{Style.RESET_ALL} to {selected_user}")
@@ -68,7 +71,7 @@ async def gift_badge(ctx:discord.ApplicationContext, mention:str):
   embed_title = "You got rewarded a badge!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has been gifted a random badge by {ctx.author.mention}!"
-  message = f"{user.mention} - Nice work, you got a free badge! See all your badges by typing `/badges`"
+  message = f"{user.mention} - Nice work, you got a free badge!"
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
   await ctx.respond("Your gift has been sent!", ephemeral=True)
 
@@ -79,15 +82,18 @@ async def gift_badge_error(ctx, error):
   else:
     await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
 
+
 async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge:str, user:discord.User):
-  
   badge_info = badge_data.get(badge)
   badge_name = badge.replace("_", " ").replace(".png", "")
+  star_str = "⭐\u00A0"*9
   if badge_info:
-    badge_url = badge_info["reference"]
+    badge_url = badge_info["badge_url"]
     embed_description += f"\n\n**{badge_name}**\n{badge_url}"
+  embed_description += f"\n{star_str}\n"
   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
   embed.set_thumbnail(url=thumbnail_image)
+  embed.set_footer(text="See all your badges by typing /badges - disable this by typing /disable_xp")
   if badge_info:
     embed.set_image(url=f"{badge_info['image_url']}")
     await channel.send(content=message, embed=embed)
