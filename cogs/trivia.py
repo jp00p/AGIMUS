@@ -131,8 +131,7 @@ class Trivia(commands.Cog):
       await ctx.respond(embed=discord.Embed(
         title="Error Encountered with Trivia! Sorry, we're on it!",
         color=discord.Color.red(),
-        ephemeral=True
-      ))
+      ), ephemeral=True)
       logger.info(f">>> ENCOUNTERED ERROR WITH /trivia: {e}")
       logger.info(traceback.format_exc())
 
