@@ -121,6 +121,7 @@ local.json
 .pyre/
 
 # Media Files
+.DS_Store
 data/clips/*.mp4
 data/drops/*.mp4
 images/reports/*
