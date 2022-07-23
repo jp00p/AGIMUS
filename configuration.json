@@ -588,6 +588,14 @@
       "data": null,
       "parameters": []
     },
+    "trade incoming": {
+      "channels": [
+        "megalomaniacal-computer-storage"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "trade initiate": {
       "channels": [
         "megalomaniacal-computer-storage"
