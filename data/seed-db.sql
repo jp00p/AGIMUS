@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS trades (
 CREATE TABLE IF NOT EXISTS badge_info (
   id int(11) NOT NULL AUTO_INCREMENT,
   badge_name varchar(128) NOT NULL,
+  badge_filename varchar(128) NOT NULL,
   affiliation varchar(128) DEFAULT NULL,
   quadrant varchar(128) DEFAULT NULL,
   time_period varchar(128) DEFAULT NULL,

@@ -10,28 +10,28 @@ from utils.check_channel_access import access_check
 # \    Y    /\  ___/|  |_|  |_> >  ___/|  | \/\___ \ 
 #  \___|_  /  \___  >____/   __/ \___  >__|  /____  >
 #        \/       \/     |__|        \/           \/ 
-async def requestor_badges(ctx:discord.AutocompleteContext):
-  requestor_badges = get_user_badge_names(ctx.interaction.user.id)
+async def autocomplete_requestor_badges(ctx:discord.AutocompleteContext):
+  requestor_badges = db_get_user_badge_names(ctx.interaction.user.id)
   autocomplete_results = []
   for badge in requestor_badges:
     badge_name = badge["badge_name"].replace(".png", "").replace("_", " ")
     autocomplete_results.append(badge_name)
-  return autocomplete_results
+  return [result for result in autocomplete_results if ctx.value.lower() in result.lower()]
 
-async def requestee_badges(ctx:discord.AutocompleteContext):
-  active_trade = get_active_requestor_trade(ctx.interaction.user.id)
+async def autocomplete_requestee_badges(ctx:discord.AutocompleteContext):
+  active_trade = db_get_active_requestor_trade(ctx.interaction.user.id)
   if not active_trade:
     return []
-  requestee_badges = get_user_badge_names(active_trade['requestee_id'])
+  requestee_badges = db_get_user_badge_names(active_trade['requestee_id'])
   autocomplete_results = []
   for badge in requestee_badges:
     badge_name = badge["badge_name"].replace(".png", "").replace("_", " ")
     autocomplete_results.append(badge_name)
-  return autocomplete_results
+  return [result for result in autocomplete_results if ctx.value.lower() in result.lower()]
 
 
 # Define a simple View that gives us a confirmation menu.
-class SendConfirm(discord.ui.View):
+class SendConfirmView(discord.ui.View):
   def __init__(self, cog):
     super().__init__()
     self.value = None
@@ -72,13 +72,59 @@ class RequestsDropDown(discord.ui.Select):
       )
     
     async def callback(self, interaction: discord.Interaction):
+      # Disable View Once Selected
+      view = self.view
+      view.disable_all_items()
+      await interaction.response.edit_message(view=view)
+      # Send the user the trade interface for this request
       requestor = self.values[0]
-      await self.cog.send_trade_interface(interaction, requestor)
+      await self.cog._send_trade_interface(interaction, requestor)
 
 class Requests(discord.ui.View):
   def __init__(self, cog, requestors):
     super().__init__()
     self.add_item(RequestsDropDown(cog, requestors))
+
+
+class AcceptButton(discord.ui.Button):
+  def __init__(self, cog, active_trade):
+    self.cog = cog
+    self.active_trade = active_trade
+    super().__init__(
+      label="     Accept    ",
+      style=discord.ButtonStyle.success,
+      row=2
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    # view = self.view
+    # view.disable_all_items()
+    # await interaction.response.edit_message(view=view)
+    await self.cog._accept_trade_callback(interaction, self.active_trade)
+
+class RejectButton(discord.ui.Button):
+  def __init__(self, cog, active_trade):
+    self.cog = cog
+    self.active_trade = active_trade
+    super().__init__(
+      label="    Reject     ",
+      style=discord.ButtonStyle.red,
+      row=2
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    # view = self.view
+    # view.disable_all_items()
+    # await interaction.response.edit_message(view=view)
+    await self.cog._reject_trade_callback(interaction, self.active_trade)
+
+class AcceptRejectView(discord.ui.View):
+  def __init__(self, cog, active_trade):
+    super().__init__()
+    self.add_item(RejectButton(cog, active_trade))
+    self.add_item(AcceptButton(cog, active_trade))
+
+
 
 # ___________                  .___     _________                
 # \__    ___/___________     __| _/____ \_   ___ \  ____   ____  
@@ -99,6 +145,50 @@ class Trade(commands.Cog):
       ),
       pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
     ]
+    # TODO: Put this somewhere better
+    self.rules_of_acquisition = [
+      "No. 1: Once you have their money, you never give it back.",
+      "No. 3: Never spend more for an acquisition than you have to.",
+      "No. 6: Never allow family to stand in the way of opportunity.",
+      "No. 7: Keep your ears open.",
+      "No. 9: Opportunity plus instinct equals profit.",
+      "No. 10: Greed is eternal.",
+      "No. 16: A deal is a deal.",
+      "No. 17: A contract is a contract is a contract… but only between Ferengi.",
+      "No. 18: A Ferengi without profit is no Ferengi at all.",
+      "No. 21: Never place friendship above profit.",
+      "No. 22: A wise man can hear profit in the wind.",
+      "No. 23: Nothing is more important than your health… except for your money.",
+      "No. 31: Never make fun of a Ferengi's mother.",
+      "No. 33: It never hurts to suck up to the boss.",
+      "No. 34: War is good for business.",
+      "No. 35: Peace is good for business.",
+      "No. 45: Expand or die.",
+      "No. 47: Don't trust a man wearing a better suit than your own.",
+      "No. 48: The bigger the smile, the sharper the knife.",
+      "No. 57: Good customers are as rare as latinum. Treasure them.",
+      "No. 59: Free advice is seldom cheap.",
+      "No. 62: The riskier the road, the greater the profit.",
+      "No. 74: Knowledge equals profit.",
+      "No. 75: Home is where the heart is, but the stars are made of latinum.",
+      "No. 76: Every once in a while, declare peace. It confuses the hell out of your enemies.",
+      "No. 98: Every man has his price.",
+      "No. 102: Nature decays, but latinum lasts forever.",
+      "No. 109: Dignity and an empty sack is worth the sack.",
+      "No. 111: Treat people in your debt like family… exploit them.",
+      "No. 125: You can't make a deal if you're dead.",
+      "No. 168: Whisper your way to success.",
+      "No. 190: Hear all, trust nothing.",
+      "No. 194: It's always good business to know about new customers before they walk in your door.",
+      "No. 203: New customers are like razor-toothed gree-worms. They can be succulent, but sometimes they bite back.",
+      "No. 208: Sometimes the only thing more dangerous than a question is an answer.",
+      "No. 214: Never begin a business negotiation on an empty stomach.",
+      "No. 217: You can't free a fish from water.",
+      "No. 239: Never be afraid to mislabel a product.",
+      "No. 263: Never allow doubt to tarnish your lust for latinum.",
+      "No. 285: No good deed ever goes unpunished."
+    ]
+
 
   # NOTE:
   # EDGECASES:
@@ -115,35 +205,71 @@ class Trade(commands.Cog):
   )
   @commands.check(access_check)
   async def incoming(self, ctx:discord.ApplicationContext):
-    # incoming_trades = get_active_requestee_trades(ctx.user.id)
+    incoming_trades = db_get_active_requestee_trades(ctx.user.id)
 
-    # if not incoming_trades:
-    #   await ctx.respond(embed=discord.Embed(
-    #     title="No Incoming Trade Requests",
-    #     description="No one has any active trades requested from you. Get out there are start hustlin!",
-    #     color=discord.Color.blurple()
-    #   ))
-    #   return
+    if not incoming_trades:
+      await ctx.respond(embed=discord.Embed(
+        title="No Incoming Trade Requests",
+        description="No one has any active trades requested from you. Get out there are start hustlin!",
+        color=discord.Color.blurple()
+      ), ephemeral=True)
+      return
 
-    # incoming_requestor_ids = [t["requestor_id"] for t in incoming_trades]
-    # requestors = []
-    # for user_id in incoming_requestor_ids:
-    #   r = await self.bot.fetch_user(user_id)
-    #   requestors.append(r)
-    requestor = await self.bot.fetch_user(572540272563716116)
-    requestors = [requestor]
+    incoming_requestor_ids = [t["requestor_id"] for t in incoming_trades]
+    requestors = []
+    for user_id in incoming_requestor_ids:
+      requestor = await self.bot.fetch_user(user_id)
+      requestors.append(requestor)
     
     view = Requests(self, requestors)
 
     await ctx.respond(
       embed=discord.Embed(
         title="Incoming Trade Requests",
-        description="The users in the dropdown below have requested a trade from you.\n\nSelect one to review their offer."
+        description="The users in the dropdown below have requested a trade from you.",
+        color=discord.Color.dark_purple()
       ),
       view=view,
       ephemeral=True
     )
 
+  async def _send_trade_interface(self, interaction, requestor_id):
+    requestee_id = interaction.user.id
+    active_trade = db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_id)
+
+    trade_pages = await self._generate_trade_pages(active_trade)
+    view = AcceptRejectView(self, active_trade)
+    paginator = pages.Paginator(
+      pages=trade_pages,
+      use_default_buttons=False,
+      custom_buttons=self.trade_buttons,
+      custom_view=view,
+      loop_pages=True
+    )
+
+    await paginator.respond(interaction, ephemeral=True)
+
+  async def _accept_trade_callback(self, interaction, active_trade):
+    db_perform_badge_transfer(active_trade)
+    db_complete_trade(active_trade)
+
+    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
+    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+
+    success_embed = discord.Embed(
+      title="Successful Trade!",
+      description=f"{requestor.mention} and {requestee.mention} came to an agreement!\n\nBadges transferred successfully!",
+      color=discord.Color.dark_purple()
+    )
+    success_image = discord.File(fp="./images/trades/assets/trade_success.png", filename="trade_success.png")
+    success_embed.set_image(url=f"attachment://trade_success.png")
+    success_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(self.rules_of_acquisition)}")
+
+    await interaction.response.send_message(embed=success_embed, file=success_image)
+  
+  async def _reject_trade_callback(self, interaction, active_trade):
+    db_reject_trade(active_trade)
+    await interaction.response.send_message("Trade rejected", ephemeral=True)
 
 
   # OUTGOING TRADE!
@@ -192,7 +318,7 @@ class Trade(commands.Cog):
 
 
       # Deny the trade request if there's an existing trade in progress by the requestor
-      active_trade = get_active_requestor_trade(requestor_id)
+      active_trade = db_get_active_requestor_trade(requestor_id)
       if active_trade:
         active_trade_requestee = await self.bot.fetch_user(active_trade['requestee_id'])
         already_active_embed = discord.Embed(
@@ -206,7 +332,7 @@ class Trade(commands.Cog):
 
 
       # Deny the trade request if the requestee already has 3 active trades pending
-      requestee_trades = get_active_requestee_trades(requestee_id)
+      requestee_trades = db_get_active_requestee_trades(requestee_id)
       if len(requestee_trades) >= self.max_trades:
         max_requestee_trades_embed = discord.Embed(
           title=f"🚫 {requestee.display_name} has too many pending trades!",
@@ -217,12 +343,12 @@ class Trade(commands.Cog):
         return
 
       # If not denied, go ahead and initiate the new trade!
-      initiate_trade(requestor_id, requestee_id)
+      db_initiate_trade(requestor_id, requestee_id)
 
-      # Send confirmation to the requestor
+      # Confirmation initiation with the requestor
       confirmation_embed = discord.Embed(
         title="🔀 Trade Initiated!",
-        description="Your trade has been initiated with status: `pending`.\n\nFollow up with `/trade request` and `/trade offer` to fill out the trade details!\n\nOnce you have added the badges you'd like to offer and request, use `/trade send`!\n\nNote: You may only have one open trade request at a time!\nUse `/trade cancel` if you wish to dismiss the current trade.",
+        description="Your trade has been initiated with status: `pending`.\n\nFollow up with `/trade request` and `/trade offer` to fill out the trade details!\n\nOnce you have added the badges you'd like to offer and request, use `/trade activate`!\n\nNote: You may only have one open trade request at a time!\nUse `/trade cancel` if you wish to dismiss the current trade.",
         color=discord.Color.blurple()
       ).add_field(
         name="Requestor",
@@ -255,7 +381,7 @@ class Trade(commands.Cog):
         return
 
       # Otherwise, cancel the trade and send confirmation
-      cancel_trade(active_trade['id'])
+      db_cancel_trade(active_trade['id'])
 
       active_trade_requestee = await self.bot.fetch_user(active_trade["requestee_id"])
       confirmation_description = f"Your trade with {active_trade_requestee.mention} has been canceled!\n\n"
@@ -302,18 +428,10 @@ class Trade(commands.Cog):
     await ctx.defer(ephemeral=True)
 
     trade_pages = await self._generate_trade_pages(active_trade)
-
-    trade_buttons = [
-      pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
-      pages.PaginatorButton(
-        "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
-      ),
-      pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
-    ]
     paginator = pages.Paginator(
       pages=trade_pages,
       use_default_buttons=False,
-      custom_buttons=trade_buttons,
+      custom_buttons=self.trade_buttons,
       loop_pages=True
     )
 
@@ -324,13 +442,16 @@ class Trade(commands.Cog):
     requestee = await self.bot.fetch_user(active_trade["requestee_id"])
 
     # Offered Page
-    offered_badges = get_trade_offered_badges(active_trade)
+    offered_badges = db_get_trade_offered_badges(active_trade)
+    offered_badges_string = "None"
+    if offered_badges:
+      offered_badges_string = "\n".join([b['badge_name'] for b in offered_badges])
     offered_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in offered_badges]
     offered_image_id = f"{active_trade['id']}-offered"
     offered_image = generate_badge_trade_showcase(
       offered_badge_filenames,
       offered_image_id,
-      "Badges Offered",
+      f"Badges Offered by {requestor.display_name}",
       f"{len(offered_badge_filenames)} Badges"
     )
     offered_embed = discord.Embed(
@@ -341,13 +462,16 @@ class Trade(commands.Cog):
     offered_embed.set_image(url=f"attachment://{offered_image_id}.png")
 
     # Requested Page
-    requested_badges = get_trade_requested_badges(active_trade)
+    requested_badges = db_get_trade_requested_badges(active_trade)
+    requested_badges_string = "None"
+    if requested_badges:
+      requested_badges_string = "\n".join([b['badge_name'] for b in requested_badges])
     requested_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in requested_badges]
     requested_image_id = f"{active_trade['id']}-requested"
     requested_image = generate_badge_trade_showcase(
       requested_badge_filenames,
       requested_image_id,
-      "Badges Requested",
+      f"Badges Requested from {requestee.display_name}",
       f"{len(requested_badge_filenames)} Badges"
     )
     requested_embed = discord.Embed(
@@ -360,9 +484,18 @@ class Trade(commands.Cog):
     # Home Page
     home_embed = discord.Embed(
       title="Trade Offered!",
-      description=f"Wheelin and Dealin! {requestor.mention} has offered a trade to {requestee.mention}!",
+      description=f"Wheelin and Dealin!\n\n{requestor.mention} has offered a trade to {requestee.mention}!",
       color=discord.Color.dark_purple()
     )
+    home_embed.add_field(
+      name=f"Offered by {requestor.display_name}",
+      value=offered_badges_string
+    )
+    home_embed.add_field(
+      name=f"Requested from {requestee.display_name}",
+      value=requested_badges_string
+    )
+
     home_embed.set_footer(text="Use the buttons below to browse!")
     home_image = discord.File(fp="./images/trades/assets/trade_offer.png", filename="trade_offer.png")
     home_embed.set_image(url=f"attachment://trade_offer.png")
@@ -385,65 +518,11 @@ class Trade(commands.Cog):
 
     return trade_pages
 
-  # XX THIS IS NO LONGER NEEDED?
-  async def get_trade_status_embed(self, title, active_trade):
-    # NOTE: Do these with sexy list comprehensions later
-    offered_badges = get_trade_offered_badges(active_trade)
-    offered_badge_names = []
-    offered_badges_string = "None"
-    if len(offered_badges) > 0:
-      offered_badges_string = ""
-    for o in offered_badges:
-      badge_name = o["badge_name"]
-      offered_badge_names.append(badge_name)
-      offered_badges_string += f"{badge_name}\n"
-
-    requested_badges = get_trade_requested_badges(active_trade)
-    requested_badge_names = []
-    requested_badges_string = "None"
-    if len(requested_badges) > 0:
-      requested_badges_string = ""
-    for r in requested_badges:
-      badge_name = r["badge_name"]
-      requested_badge_names.append(r["badge_name"])
-      requested_badges_string += f"{badge_name}\n"
-
-    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
-    requestee = await self.bot.fetch_user(active_trade['requestee_id'])
-
-    status_embed = discord.Embed(
-      title=title,
-      description=f"Status: `{active_trade['status'].title()}`",
-      color=discord.Color.blurple()
-    )
-    status_embed.add_field(
-      name="Offered By",
-      value=requestor.mention,
-      inline=False
-    )
-    status_embed.add_field(
-      name="Requested From",
-      value=requestee.mention,
-      inline=False
-    )
-    status_embed.add_field(
-      name="Offered Badges",
-      value=offered_badges_string
-    )
-    status_embed.add_field(
-      name="Requested Badges",
-      value=requested_badges_string
-    )
-    status_embed.set_footer(text="Redesign of this information is pending!")
-
-    return status_embed
-
-
   @trade.command(
-    name="send",
+    name="activate",
     description="Send your current Trade Offer to the recipient and channel"
   )
-  async def send(self, ctx):
+  async def activate(self, ctx):
     try:
       active_trade = await self.check_for_active_trade(ctx)
       if not active_trade:
@@ -468,20 +547,20 @@ class Trade(commands.Cog):
         ), ephemeral=True)
         return
 
-      offered_badges = get_trade_offered_badges(active_trade)
+      offered_badges = db_get_trade_offered_badges(active_trade)
       offered_badges_names = "None"
       if offered_badges:
         offered_badges_names = "\n".join([b['badge_name'] for b in offered_badges])
 
-      requested_badges = get_trade_requested_badges(active_trade)
+      requested_badges = db_get_trade_requested_badges(active_trade)
       requested_badges_names = "None"
       if requested_badges:
         requested_badges_names = "\n".join([b['badge_name'] for b in requested_badges])
 
-      view = SendConfirm(self)
+      view = SendConfirmView(self)
       confirmation_embed = discord.Embed(
         title="Trade Confirmation",
-        description=f"You're about to send your trade request to {requestee.mention}. Are you sure?",
+        description=f"You're about to send your trade request to {requestee.mention}.\n\nAre you sure?",
         color=discord.Color.blurple()
       ).add_field(
         name=f"Offered by {requestor.display_name}",
@@ -498,7 +577,7 @@ class Trade(commands.Cog):
       )
       await view.wait()
       if view.value:
-        activate_trade(active_trade)
+        db_activate_trade(active_trade)
         active_trade["status"] = "active"
 
         trade_pages = await self._generate_trade_pages(active_trade)
@@ -544,7 +623,7 @@ class Trade(commands.Cog):
     name="badge",
     description="The name of your Badge",
     required=True,
-    autocomplete=discord.utils.basic_autocomplete(requestor_badges)
+    autocomplete=autocomplete_requestor_badges
   )
   @commands.check(access_check)
   async def offer(self, ctx, action:str, badge:str):
@@ -552,27 +631,34 @@ class Trade(commands.Cog):
     if not active_trade:
       return
 
-    trade_badges = get_trade_offered_badges(active_trade)
+    requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
+    requestor_badge_names = [b["badge_name"].replace(".png", "").replace("_", " ") for b in requestor_badges]
+    if badge not in requestor_badge_names:
+      await ctx.respond(embed=discord.Embed(
+        title="You don't possess that badge",
+        description=f"`{badge}` does not match any badges you possess.\n\nUse `/badges` to view your current badge collection!",
+        color=discord.Color.red()
+      ), ephemera=True)
+      return
 
+    trade_badges = db_get_trade_offered_badges(active_trade)
     trade_badge_names = [b["badge_name"] for b in trade_badges]
-    # for b in trade_badges:
-    #   trade_badge_names.append(b["badge_name"])
 
     if badge in trade_badge_names:
       if action == 'add':
         await ctx.respond(f"**{badge}** already exists in offer. No action taken.", ephemeral=True)
         return
       elif action == 'remove':
-        remove_badge_from_trade_offer(active_trade, badge)
+        db_remove_badge_from_trade_offer(active_trade, badge)
         await ctx.respond(f"**{badge}** removed from offer.", ephemeral=True)
         return
     else:
       if action == 'add':
-        if len(trade_badges) >= 5:
+        if len(trade_badges) >= self.max_badges_per_trade:
           await ctx.respond(f"Unable to add {badge} to offer. You're at the max number of badges allowed per trade (5)!")
           return
         else:
-          add_badge_to_trade_offer(active_trade, badge)
+          db_add_badge_to_trade_offer(active_trade, badge)
           await ctx.respond(f"**{badge}** added to offer.", ephemeral=True)
           return
       elif action == 'remove':
@@ -602,7 +688,7 @@ class Trade(commands.Cog):
     name="badge",
     description="The name of your badge you would like to add/remove from the request",
     required=True,
-    autocomplete=discord.utils.basic_autocomplete(requestee_badges)
+    autocomplete=autocomplete_requestee_badges
   )
   @commands.check(access_check)
   async def request(self, ctx, action:str, badge:str):
@@ -610,35 +696,45 @@ class Trade(commands.Cog):
     if not active_trade:
       return
 
-    trade_badges = get_trade_requested_badges(active_trade)
+    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
 
+    requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
+    requestee_badge_names = [b["badge_name"].replace(".png", "").replace("_", " ") for b in requestee_badges]
+
+    if badge not in requestee_badge_names:
+      await ctx.respond(embed=discord.Embed(
+        title=f"{requestee.display_name} does not possess that badge",
+        description=f"`{badge}` does not match any badges they possess.\n\nYou can use the autocomplete in the query to find the badges they do have!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+    trade_badges = db_get_trade_requested_badges(active_trade)
     trade_badge_names = [b["badge_name"] for b in trade_badges]
-    # for b in trade_badges:
-    #   trade_badge_names.append(b["badge_name"])
 
     if badge in trade_badge_names:
       if action == 'add':
-        await ctx.respond(f"{badge} already exists in request. No action taken.", ephemeral=True)
+        await ctx.respond(f"**{badge}** already exists in request. No action taken.", ephemeral=True)
         return
       elif action == 'remove':
-        remove_badge_from_trade_request(active_trade, badge)
-        await ctx.respond(f"{badge} removed from request.", ephemeral=True)
+        db_remove_badge_from_trade_request(active_trade, badge)
+        await ctx.respond(f"**{badge}** removed from request.", ephemeral=True)
         return
     else:
       if action == 'add':
-        if len(trade_badges) >= 5:
-          await ctx.respond(f"Unable to add {badge} to request. You're at the max number of badges allowed per trade (5)!")
+        if len(trade_badges) >= self.max_badges_per_trade:
+          await ctx.respond(f"Unable to add **{badge}** to request. You're at the max number of badges allowed per trade (5)!")
           return
         else:
-          add_badge_to_trade_request(active_trade, badge)
-          await ctx.respond(f"{badge} added to request.", ephemeral=True)
+          db_add_badge_to_trade_request(active_trade, badge)
+          await ctx.respond(f"**{badge}** added to request.", ephemeral=True)
           return
       elif action == 'remove':
-        await ctx.respond(f"{badge} did not exist in request. No action taken.", ephemeral=True)
+        await ctx.respond(f"**{badge}** did not exist in request. No action taken.", ephemeral=True)
 
 
   async def check_for_active_trade(self, ctx):
-    active_trade = get_active_requestor_trade(ctx.author.id)
+    active_trade = db_get_active_requestor_trade(ctx.author.id)
 
     # If we don't have an active trade for this user, go ahead and let them know
     if not active_trade:
@@ -651,13 +747,10 @@ class Trade(commands.Cog):
 
     return active_trade
 
-
-
-
 # Check helpers
 def does_trade_contain_badges(active_trade):
-  offered_badges = get_trade_offered_badges(active_trade)
-  requested_badges = get_trade_requested_badges(active_trade)
+  offered_badges = db_get_trade_offered_badges(active_trade)
+  requested_badges = db_get_trade_requested_badges(active_trade)
 
   if len(offered_badges) > 0 or len(requested_badges) > 0:
     return True
@@ -670,7 +763,7 @@ def does_trade_contain_badges(active_trade):
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \ 
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/ 
-def get_trade_requested_badges(active_trade):
+def db_get_trade_requested_badges(active_trade):
   active_trade_id = active_trade["id"]
 
   db = getDB()
@@ -689,7 +782,7 @@ def get_trade_requested_badges(active_trade):
   db.close()
   return trades
 
-def get_trade_offered_badges(active_trade):
+def db_get_trade_offered_badges(active_trade):
   active_trade_id = active_trade["id"]
 
   db = getDB()
@@ -708,7 +801,7 @@ def get_trade_offered_badges(active_trade):
   db.close()
   return trades
 
-def add_badge_to_trade_offer(active_trade, badge_name):
+def db_add_badge_to_trade_offer(active_trade, badge_name):
   active_trade_id = active_trade["id"]
 
   db = getDB()
@@ -724,7 +817,7 @@ def add_badge_to_trade_offer(active_trade, badge_name):
   query.close()
   db.close()
 
-def remove_badge_from_trade_offer(active_trade, badge_name):
+def db_remove_badge_from_trade_offer(active_trade, badge_name):
   active_trade_id = active_trade["id"]
 
   db = getDB()
@@ -740,7 +833,7 @@ def remove_badge_from_trade_offer(active_trade, badge_name):
   query.close()
   db.close()
 
-def add_badge_to_trade_request(active_trade, badge_name):
+def db_add_badge_to_trade_request(active_trade, badge_name):
   active_trade_id = active_trade["id"]
 
   db = getDB()
@@ -756,7 +849,7 @@ def add_badge_to_trade_request(active_trade, badge_name):
   query.close()
   db.close()
 
-def remove_badge_from_trade_request(active_trade, badge_name):
+def db_remove_badge_from_trade_request(active_trade, badge_name):
   active_trade_id = active_trade["id"]
 
   db = getDB()
@@ -772,7 +865,7 @@ def remove_badge_from_trade_request(active_trade, badge_name):
   query.close()
   db.close()
 
-def get_user_badge_names(discord_id):
+def db_get_user_badge_names(discord_id):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = "SELECT badge_name FROM badges WHERE user_discord_id = %s"
@@ -784,7 +877,7 @@ def get_user_badge_names(discord_id):
   db.close()
   return badge_names
 
-def get_active_requestee_trades(requestee_id):
+def db_get_active_requestee_trades(requestee_id):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = "SELECT * FROM trades WHERE requestee_id = %s AND status = 'active'"
@@ -796,7 +889,7 @@ def get_active_requestee_trades(requestee_id):
   db.close()
   return trades
 
-def get_active_requestor_trade(requestor_id):
+def db_get_active_requestor_trade(requestor_id):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = "SELECT * FROM trades WHERE requestor_id = %s AND (status = 'active' OR status = 'pending') LIMIT 1"
@@ -808,7 +901,19 @@ def get_active_requestor_trade(requestor_id):
   db.close()
   return trade
 
-def initiate_trade(requestor_id, requestee_id):
+def db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_id):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = "SELECT * FROM trades WHERE requestor_id = %s AND requestee_id = %s AND status = 'active' LIMIT 1"
+  vals = (requestor_id, requestee_id)
+  query.execute(sql, vals)
+  trade = query.fetchone()
+  db.commit()
+  query.close()
+  db.close()
+  return trade
+
+def db_initiate_trade(requestor_id, requestee_id):
   db = getDB()
   query = db.cursor()
   sql = "INSERT INTO trades (requestor_id, requestee_id, status) VALUES (%s, %s, 'pending')"
@@ -818,7 +923,7 @@ def initiate_trade(requestor_id, requestee_id):
   query.close()
   db.close()
 
-def activate_trade(active_trade):
+def db_activate_trade(active_trade):
   active_trade_id = active_trade["id"]
 
   db = getDB()
@@ -830,10 +935,89 @@ def activate_trade(active_trade):
   query.close()
   db.close()
 
-def cancel_trade(trade_id):
+def db_cancel_trade(trade_id):
   db = getDB()
   query = db.cursor()
   sql = "UPDATE trades SET status = 'canceled' WHERE id = %s"
+  vals = (trade_id,)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+
+def db_perform_badge_transfer(active_trade):
+  trade_id = active_trade['id']
+  requestor_id = active_trade['requestor_id']
+  requestee_id = active_trade['requestee_id']
+  db = getDB()
+  query = db.cursor(dictionary=True)
+
+  # Transfer Requested Badges to Requestor
+  sql = '''
+    INSERT INTO badges (user_discord_id, badge_name)
+      SELECT t.requestor_id, b_i.badge_filename
+        FROM trades as t
+        JOIN badge_info as b_i
+        JOIN trade_requested as t_r
+          ON t.id = %s AND t_r.trade_id = t.id AND t_r.badge_id = b_i.id
+  '''
+  vals = (trade_id,)
+  query.execute(sql, vals)
+
+  # Delete Requested Badges from Requestee
+  sql = '''
+    DELETE b FROM badges b
+      JOIN badge_info b_i ON b.badge_name = b_i.badge_filename
+      JOIN trade_requested t_r ON t_r.badge_id = b_i.id
+      JOIN trades t ON t_r.trade_id = t.id
+        WHERE (t.id = %s AND t.requestee_id = %s AND b.user_discord_id = %s)
+  '''
+  vals = (trade_id, requestee_id, requestee_id)
+  query.execute(sql, vals)
+
+  # Transfer Offered Badges to Requestee
+  sql = '''
+    INSERT INTO badges (user_discord_id, badge_name)
+      SELECT t.requestee_id, b_i.badge_filename
+        FROM trades as t
+        JOIN badge_info as b_i
+        JOIN trade_offered as t_o
+          ON t.id = %s AND t_o.trade_id = t.id AND t_o.badge_id = b_i.id
+  '''
+  vals = (trade_id,)
+  query.execute(sql, vals)
+
+  # Delete Offered Badges from Requestor
+  sql = '''
+    DELETE b FROM badges b
+      JOIN badge_info b_i ON b.badge_name = b_i.badge_filename
+      JOIN trade_offered t_o ON t_o.badge_id = b_i.id
+      JOIN trades t ON t_o.trade_id = t.id
+        WHERE (t.id = %s AND t.requestor_id = %s AND b.user_discord_id = %s)
+  '''
+  vals = (trade_id, requestor_id, requestor_id)
+  query.execute(sql, vals)
+
+  db.commit()
+  query.close()
+  db.close()
+
+def db_complete_trade(active_trade):
+  trade_id = active_trade['id']
+  db = getDB()
+  query = db.cursor()
+  sql = "UPDATE trades SET status = 'complete' WHERE id = %s"
+  vals = (trade_id,)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+
+def db_reject_trade(active_trade):
+  trade_id = active_trade['id']
+  db = getDB()
+  query = db.cursor()
+  sql = "UPDATE trades SET status = 'rejected' WHERE id = %s"
   vals = (trade_id,)
   query.execute(sql, vals)
   db.commit()

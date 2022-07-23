@@ -216,8 +216,8 @@ def seed_badge_info_table():
     badge_name = badge_key.replace(".png", "").replace("_", " ")
     logger.info(f">> badge_name: {badge_name}")
     query = db.cursor()
-    sql = "INSERT INTO badge_info (badge_name) VALUES (%s)"
-    vals = (badge_name,)
+    sql = "INSERT INTO badge_info (badge_name, badge_filename) VALUES (%s, %s)"
+    vals = (badge_name, badge_key)
     query.execute(sql, vals)
     db.commit()
     query.close()

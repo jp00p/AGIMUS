@@ -580,6 +580,14 @@
       "data": "data/testslots.json",
       "parameters": []
     },
+    "trade activate": {
+      "channels": [
+        "megalomaniacal-computer-storage"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "trade cancel": {
       "channels": [
         "megalomaniacal-computer-storage"
@@ -613,14 +621,6 @@
       "parameters": []
     },
     "trade request": {
-      "channels": [
-        "megalomaniacal-computer-storage"
-      ],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
-    "trade send": {
       "channels": [
         "megalomaniacal-computer-storage"
       ],
