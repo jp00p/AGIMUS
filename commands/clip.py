@@ -11,7 +11,8 @@ clip_data = json.load(f)
 f.close()
 
 async def clip_autocomplete(ctx:discord.AutocompleteContext):
-  return clip_data.keys()
+  clip_keys = clip_data.keys()
+  return [key for key in clip_keys if ctx.value.lower() in key.lower()]
 
 # Create drop Slash Command Group
 clip = bot.create_group("clip", "Clip Commands!")
@@ -49,7 +50,7 @@ async def clips_list(ctx:discord.ApplicationContext):
   name="query",
   description="Which clip? NOTE: Uses autocomplete, start typing and it should show relevant results!",
   required=True,
-  autocomplete=discord.utils.basic_autocomplete(clip_autocomplete)
+  autocomplete=clip_autocomplete
 )
 @option(
   name="private",

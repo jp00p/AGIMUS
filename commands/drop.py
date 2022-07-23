@@ -11,7 +11,9 @@ drop_data = json.load(f)
 f.close()
 
 async def drop_autocomplete(ctx:discord.AutocompleteContext):
-  return drop_data.keys()
+  drop_keys = drop_data.keys()
+  return [key for key in drop_keys if ctx.value.lower() in key.lower()]
+  # return drop_data.keys()
 
 # Create drop Slash Command Group
 drop = bot.create_group("drop", "Drop Commands!")
@@ -48,7 +50,7 @@ async def drop_list(ctx:discord.ApplicationContext):
   name="query",
   description="Which drop? NOTE: Uses autocomplete, start typing and it should show relevant results!",
   required=True,
-  autocomplete=discord.utils.basic_autocomplete(drop_autocomplete)
+  autocomplete=drop_autocomplete
 )
 @option(
   name="private",
