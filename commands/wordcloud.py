@@ -1,8 +1,16 @@
 from numpy import full
 from common import *
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
-
 from handlers.xp import increment_user_xp
+
+image_masks = [
+  Image.open("./images/cloud_masks/combadge_mask.png"),
+  Image.open("./images/cloud_masks/ds9_mask.png"),
+  Image.open("./images/cloud_masks/enterprise_d_mask.png"),
+  Image.open("./images/cloud_masks/exocomp_mask.png"),
+  Image.open("./images/cloud_masks/llap_mask.png"),
+  Image.open("./images/cloud_masks/spock_mask.png")
+]
 
 # wordcloud() - Entrypoint for `/wordcloud` command
 # generates a wordcloud image based on users most-used words
@@ -88,12 +96,29 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
   full_wordlist = re.sub(r'https?:\/\/\S*', '', full_wordlist) # strip all URLs from the content
   full_wordlist = re.sub(r'['+special_chars+']', '', full_wordlist) # strip any remaining special characters
   full_wordlist = full_wordlist.replace("  ", " ").strip() # convert double spaces to single space
+  command_words = ["profile", "help", "wordcloud", "quiz", "trivia", "slots", "poker", "set_tagline", "reports", "badges"]
+  for word in command_words:
+    STOPWORDS.add(word)
   
   # mask image (combadge in this case, something else might work better)
-  mask = np.array(Image.open("./images/cloud_masks/combadge_mask.png"))
+  mask = np.array(random.choice(image_masks))
 
   # build wordcloud with magic of wordcloud lib
-  wc = WordCloud(scale=2, contour_color="#000000", color_func=lambda *args, **kwargs: random.choice(["#6688CC", "#BB4411", "#9977AA", "#774466", "#DD6644", "#EE9955"]), contour_width=1, max_words=800, stopwords=STOPWORDS, mask=mask, font_path="./images/lcars2.ttf", background_color="black", mode="RGB", width=822, height=800, min_word_length=3).generate(full_wordlist)
+  wc = WordCloud(
+    scale=1, 
+    contour_color="#000000", 
+    color_func=lambda *args, **kwargs: random.choice(["#ffaa00", "#33cc99", "#ff2200", "#ff9966", "#cc33ff"]), 
+    contour_width=1,
+    min_font_size=8,
+    max_words=500, 
+    stopwords=STOPWORDS, 
+    mask=mask,
+    font_path="./images/tng_credits.ttf", 
+    background_color="#111111", 
+    mode="RGB", 
+    width=1200, 
+    height=800, 
+    min_word_length=3).generate(full_wordlist)
 
   # create PIL image 
   image = wc.to_image()
