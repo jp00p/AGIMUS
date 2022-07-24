@@ -4,6 +4,10 @@ from common import *
 from utils.badge_utils import generate_badge_trade_showcase
 from utils.check_channel_access import access_check
 
+f = open("./data/rules_of_acquisition.txt", "r")
+data = f.read()
+rules_of_acquisition = data.split("\n")
+f.close()
 
 #    _____          __                                     .__          __          
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____  
@@ -42,14 +46,14 @@ class SendConfirmView(discord.ui.View):
     super().__init__()
     self.value = None
 
-  @discord.ui.button(label="   Cancel   ", style=discord.ButtonStyle.grey)
+  @discord.ui.button(label="    Cancel    ", style=discord.ButtonStyle.grey)
   async def cancel_callback(self, button:discord.ui.Button, interaction:discord.Interaction):
     self.disable_all_items()
     await interaction.response.edit_message(view=self)
     self.value = False
     self.stop()
 
-  @discord.ui.button(label="   Confirm   ", style=discord.ButtonStyle.green)
+  @discord.ui.button(label="    Confirm    ", style=discord.ButtonStyle.green)
   async def confirm_callback(self, button:discord.ui.Button, interaction:discord.Interaction):
     self.disable_all_items()
     await interaction.response.edit_message(view=self)
@@ -77,10 +81,17 @@ class RequestsDropDown(discord.ui.Select):
       )
     
     async def callback(self, interaction: discord.Interaction):
-      # Disable View Once Selected
+      # Clear view once selected
       view = self.view
-      view.disable_all_items()
-      await interaction.response.edit_message(view=view)
+      view.clear_items()
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title="Confirmed Selection",
+          description="Just a moment while AGIMUS pulls up the request...",
+          color=discord.Color.dark_purple()
+        ),
+        view=view
+      )
       # Send the user the trade interface for this request
       requestor = self.values[0]
       await self.cog._send_trade_interface(interaction, requestor)
@@ -118,8 +129,6 @@ class DeclineButton(discord.ui.Button):
     )
 
   async def callback(self, interaction:discord.Interaction):
-    view = self.view
-    view.disable_all_items()
     await self.cog._decline_trade_callback(interaction, self.active_trade)
 
 class AcceptDeclineView(discord.ui.View):
@@ -149,49 +158,7 @@ class Trade(commands.Cog):
       ),
       pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
     ]
-    # TODO: Put this somewhere better
-    self.rules_of_acquisition = [
-      "No. 1: Once you have their money, you never give it back.",
-      "No. 3: Never spend more for an acquisition than you have to.",
-      "No. 6: Never allow family to stand in the way of opportunity.",
-      "No. 7: Keep your ears open.",
-      "No. 9: Opportunity plus instinct equals profit.",
-      "No. 10: Greed is eternal.",
-      "No. 16: A deal is a deal.",
-      "No. 17: A contract is a contract is a contract… but only between Ferengi.",
-      "No. 18: A Ferengi without profit is no Ferengi at all.",
-      "No. 21: Never place friendship above profit.",
-      "No. 22: A wise man can hear profit in the wind.",
-      "No. 23: Nothing is more important than your health… except for your money.",
-      "No. 31: Never make fun of a Ferengi's mother.",
-      "No. 33: It never hurts to suck up to the boss.",
-      "No. 34: War is good for business.",
-      "No. 35: Peace is good for business.",
-      "No. 45: Expand or die.",
-      "No. 47: Don't trust a man wearing a better suit than your own.",
-      "No. 48: The bigger the smile, the sharper the knife.",
-      "No. 57: Good customers are as rare as latinum. Treasure them.",
-      "No. 59: Free advice is seldom cheap.",
-      "No. 62: The riskier the road, the greater the profit.",
-      "No. 74: Knowledge equals profit.",
-      "No. 75: Home is where the heart is, but the stars are made of latinum.",
-      "No. 76: Every once in a while, declare peace. It confuses the hell out of your enemies.",
-      "No. 98: Every man has his price.",
-      "No. 102: Nature decays, but latinum lasts forever.",
-      "No. 109: Dignity and an empty sack is worth the sack.",
-      "No. 111: Treat people in your debt like family… exploit them.",
-      "No. 125: You can't make a deal if you're dead.",
-      "No. 168: Whisper your way to success.",
-      "No. 190: Hear all, trust nothing.",
-      "No. 194: It's always good business to know about new customers before they walk in your door.",
-      "No. 203: New customers are like razor-toothed gree-worms. They can be succulent, but sometimes they bite back.",
-      "No. 208: Sometimes the only thing more dangerous than a question is an answer.",
-      "No. 214: Never begin a business negotiation on an empty stomach.",
-      "No. 217: You can't free a fish from water.",
-      "No. 239: Never be afraid to mislabel a product.",
-      "No. 263: Never allow doubt to tarnish your lust for latinum.",
-      "No. 285: No good deed ever goes unpunished."
-    ]
+
 
 
   # NOTE:
@@ -201,14 +168,13 @@ class Trade(commands.Cog):
 
   trade = discord.SlashCommandGroup("trade", "Commands for trading badges")
 
-
   # INCOMING TRADE
   @trade.command(
-    name="accept",
-    description="View and Accept/Decline incoming trades from other users"
+    name="reply",
+    description="View and accept/decline incoming trades from other users"
   )
   @commands.check(access_check)
-  async def accept(self, ctx:discord.ApplicationContext):
+  async def reply(self, ctx:discord.ApplicationContext):
     incoming_trades = db_get_active_requestee_trades(ctx.user.id)
 
     if not incoming_trades:
@@ -216,7 +182,7 @@ class Trade(commands.Cog):
           title="No Incoming Trade Requests",
           description="No one has any active trades requested from you. Get out there are start hustlin!",
           color=discord.Color.blurple()
-        ).set_footer(text="Note: Selecting an option may take a few seconds to register."),
+        ),
         ephemeral=True
       )
       return
@@ -234,7 +200,7 @@ class Trade(commands.Cog):
         title="Incoming Trade Requests",
         description="The users in the dropdown below have requested a trade from you.",
         color=discord.Color.dark_purple()
-      ),
+      ).set_footer(text="Note: Selecting an option may take a few seconds to register."),
       view=view,
       ephemeral=True
     )
@@ -250,7 +216,8 @@ class Trade(commands.Cog):
       use_default_buttons=False,
       custom_buttons=self.trade_buttons,
       custom_view=view,
-      loop_pages=True
+      loop_pages=True,
+      disable_on_timeout=False
     )
 
     await paginator.respond(interaction, ephemeral=True)
@@ -283,18 +250,23 @@ class Trade(commands.Cog):
     )
     success_image = discord.File(fp="./images/trades/assets/trade_success.png", filename="trade_success.png")
     success_embed.set_image(url=f"attachment://trade_success.png")
-    success_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(self.rules_of_acquisition)}")
+    success_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
 
     channel = interaction.channel
     await channel.send(embed=success_embed, file=success_image)
 
   async def _cancel_invalid_related_trades(self, active_trade):
-    # These are all the trades that involve either the requestee or requestor
-    # and the badges that are involved with the the trade we're about to cancel
+    # These are all the active or pending trades that involved either the requestee or 
+    # requestor and include the badges that are involved with the confirmed trade which
+    # are thus no longer valid and need to be canceled
     related_trades = db_get_related_badge_trades(active_trade)
+    logger.info("related trades:")
+    logger.info(pprint(related_trades))
 
     # Filter out the current trade itself, then cancel the others
     trades_to_cancel = [t for t in related_trades if t["id"] != active_trade["id"]]
+    logger.info("trades to cancel:")
+    logger.info(pprint(trades_to_cancel))
 
     # Iterate through to cancel, and then 
     for trade in trades_to_cancel:
@@ -357,11 +329,10 @@ class Trade(commands.Cog):
         description=f"You've declined the proposed trade with {requestor.mention}.\n\nIf their DMs are open, they've been sent a notification to let them know.",
         color=discord.Color.blurple()
       ),
-      delete_after=30
+      view=None
     )
 
     db_decline_trade(active_trade)
-
     offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
 
     try:
@@ -461,16 +432,16 @@ class Trade(commands.Cog):
       # Confirmation initiation with the requestor
       initiated_embed = discord.Embed(
         title="Trade Initiated!",
-        description="Your trade has been initiated with status: `pending`.\n\nFollow up with `/trade request` and `/trade offer` to fill out the trade details!\n\nOnce you have added the badges you'd like to offer and request,\nuse `/trade activate` to send the trade to the user!\n\nNote: You may only have one open trade request at a time!\nUse `/trade cancel` if you wish to dismiss the current trade.",
-        color=discord.Color.blurple()
+        description="Your pending trade has been initiated!\n\nFollow up with `/trade request` and `/trade offer` to fill out the trade details!\n\nOnce you have added the badges you'd like to offer and request, use \n`/trade activate` to send the trade to the user!\n\nUse `/trade cancel` if you wish to dismiss the current trade.\n\nNote: You may only have one open outgoing trade request at a time!",
+        color=discord.Color.dark_purple()
       ).add_field(
-        name="Requestor",
+        name="Requested By (You)",
         value=f"{ctx.author.mention}"
       ).add_field(
-        name="Requestee",
+        name="Requested From",
         value=f"{requestee.mention}"
       )
-      initiated_embed.set_footer(text="Happy trading!")
+      initiated_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
       await ctx.respond(embed=initiated_embed, ephemeral=True)
 
     except Exception as e:
@@ -479,7 +450,7 @@ class Trade(commands.Cog):
 
   @trade.command(
     name="cancel",
-    description="Cancel your currently active or pending trade"
+    description="Cancel your currently active or pending outgoing trade"
   )
   @option(
     name="reason",
@@ -542,7 +513,7 @@ class Trade(commands.Cog):
 
   @trade.command(
     name="status",
-    description="Check the current status of your Outgoing Trade"
+    description="Check the current status of your outgoing trade"
   )
   @commands.check(access_check)
   async def status(self, ctx):
@@ -590,6 +561,7 @@ class Trade(commands.Cog):
     return trade_pages
 
   async def _generate_offered_embed_and_image(self, active_trade):
+    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
     requestor = await self.bot.fetch_user(active_trade["requestor_id"])
 
     offered_badges = db_get_trade_offered_badges(active_trade)
@@ -603,7 +575,7 @@ class Trade(commands.Cog):
     )
     offered_embed = discord.Embed(
       title="Offered",
-      description=f"Badges offered by {requestor.mention}",
+      description=f"Badges offered by {requestor.mention} to {requestee.mention}",
       color=discord.Color.dark_purple()
     )
     offered_embed.set_image(url=f"attachment://{offered_image_id}.png")
@@ -612,6 +584,7 @@ class Trade(commands.Cog):
 
   async def _generate_requested_embed_and_image(self, active_trade):
     requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
 
     requested_badges = db_get_trade_requested_badges(active_trade)
     requested_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in requested_badges]
@@ -624,7 +597,7 @@ class Trade(commands.Cog):
     )
     requested_embed = discord.Embed(
       title="Requested",
-      description=f"Badges requested from {requestee.mention}",
+      description=f"Badges requested from {requestee.mention} by {requestor.mention}",
       color=discord.Color.dark_purple()
     )
     requested_embed.set_image(url=f"attachment://{requested_image_id}.png")
@@ -653,8 +626,8 @@ class Trade(commands.Cog):
         name=f"Requested from {requestee.display_name}",
         value=requested_badge_names
       )
+      home_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
 
-      home_embed.set_footer(text="Use the buttons below to browse!")
       home_image = discord.File(fp="./images/trades/assets/trade_offer.png", filename="trade_offer.png")
       home_embed.set_image(url=f"attachment://trade_offer.png")
     elif active_trade["status"] == 'pending':
@@ -672,7 +645,6 @@ class Trade(commands.Cog):
         value=requested_badge_names
       )
 
-      home_embed.set_footer(text="Use the buttons below to browse!")
       home_image = discord.File(fp="./images/trades/assets/trade_pending.png", filename="trade_pending.png")
       home_embed.set_image(url=f"attachment://trade_pending.png")
 
@@ -681,7 +653,7 @@ class Trade(commands.Cog):
 
   @trade.command(
     name="activate",
-    description="Send your current Trade Offer to the recipient and channel"
+    description="Send your pending trade offer to the recipient and alert the channel"
   )
   async def activate(self, ctx):
     try:
@@ -744,17 +716,8 @@ class Trade(commands.Cog):
         await ctx.channel.send(embed=offered_embed, file=offered_image)
         await ctx.channel.send(embed=requested_embed, file=requested_image)
 
-        # trade_pages = await self._generate_trade_pages(active_trade)
-        # trade_buttons = self.trade_buttons
-        # paginator = pages.Paginator(
-        #   pages=trade_pages,
-        #   use_default_buttons=False,
-        #   custom_buttons=trade_buttons,
-        #   loop_pages=True,
-        #   timeout=None
-        # )
-
-        # await paginator.respond(ctx.interaction, ephemeral=False)
+        logger.info("Activated trade:")
+        logger.info(pprint(active_trade))
       else:
         await ctx.send_followup(embed=discord.Embed(
           title="Confirmation Canceled",
@@ -974,7 +937,7 @@ class Trade(commands.Cog):
     # If we don't have an active trade for this user, go ahead and let them know
     if not active_trade:
       inactive_embed = discord.Embed(
-        title="⁉️ You don't have a pending or active trade open!",
+        title="You don't have a pending or active trade open!",
         description="You can start a new trade with `/trade initiate`!",
         color=discord.Color.red()
       )
@@ -1274,36 +1237,35 @@ def db_decline_trade(active_trade):
 
 def db_get_related_badge_trades(active_trade):
   active_trade_id = active_trade["id"]
-  requestor_id = active_trade["requestor_id"]
   requestee_id = active_trade["requestee_id"]
+  requestor_id = active_trade["requestor_id"]
 
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
     SELECT * FROM trades
-      WHERE (status = 'active' OR status = 'pending')
-      AND (
-        (requestee_id = %s OR requestor_id = %s)
-        OR
-        (requestee_id = %s OR requestor_id = %s)
-      )
-      AND (
-        id IN (
+      WHERE status = 'active' OR status = 'pending'
+      AND (requestee_id = %s OR requestor_id = %s OR requestee_id = %s OR requestor_id = %s)
+      AND (id IN (
           SELECT trade_id FROM trade_requested
             WHERE badge_id IN (
               SELECT badge_id FROM trade_requested WHERE trade_id = %s
+            ) OR badge_id IN (
+              SELECT badge_id FROM trade_offered WHERE trade_id = %s
             )
         ) OR id IN (
           SELECT trade_id FROM trade_offered
             WHERE badge_id IN (
               SELECT badge_id FROM trade_offered WHERE trade_id = %s
+            ) OR badge_id IN (
+              SELECT badge_id FROM trade_requested WHERE trade_id = %s
             )
         )
       )
   '''
   vals = (
-    requestor_id, requestor_id,
     requestee_id, requestee_id,
+    requestor_id, requestor_id,
     active_trade_id, active_trade_id
   )
   query.execute(sql, vals)
