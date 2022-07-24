@@ -1,4 +1,5 @@
 from distutils.command.build_scripts import build_scripts
+from re import L
 from common import *
 from utils.badge_utils import generate_badge_trade_showcase
 from utils.check_channel_access import access_check
@@ -106,26 +107,25 @@ class AcceptButton(discord.ui.Button):
     await interaction.response.edit_message(view=view)
     await self.cog._accept_trade_callback(interaction, self.active_trade)
 
-class RejectButton(discord.ui.Button):
+class DeclineButton(discord.ui.Button):
   def __init__(self, cog, active_trade):
     self.cog = cog
     self.active_trade = active_trade
     super().__init__(
-      label="     Reject     ",
+      label="     Decline     ",
       style=discord.ButtonStyle.red,
       row=2
     )
 
-  async def callback(self, interaction: discord.Interaction):
+  async def callback(self, interaction:discord.Interaction):
     view = self.view
     view.disable_all_items()
-    await interaction.response.edit_message(view=view)
-    await self.cog._reject_trade_callback(interaction, self.active_trade)
+    await self.cog._decline_trade_callback(interaction, self.active_trade)
 
-class AcceptRejectView(discord.ui.View):
+class AcceptDeclineView(discord.ui.View):
   def __init__(self, cog, active_trade):
     super().__init__()
-    self.add_item(RejectButton(cog, active_trade))
+    self.add_item(DeclineButton(cog, active_trade))
     self.add_item(AcceptButton(cog, active_trade))
 
 
@@ -197,7 +197,7 @@ class Trade(commands.Cog):
   # NOTE:
   # EDGECASES:
   # - Need to make sure if trade is requested but the requestee or requestor doesn't have the pins anymore, it's rejected and canceled
-  # - On trade completed, cancel any existing trades for those users that may have included those pins that were transferred
+  # X On trade completed, cancel any existing trades for those users that may have included those pins that were transferred
 
   trade = discord.SlashCommandGroup("trade", "Commands for trading badges")
 
@@ -205,7 +205,7 @@ class Trade(commands.Cog):
   # INCOMING TRADE
   @trade.command(
     name="accept",
-    description="View and Accept/Reject incoming trades from other users"
+    description="View and Accept/Decline incoming trades from other users"
   )
   @commands.check(access_check)
   async def accept(self, ctx:discord.ApplicationContext):
@@ -213,10 +213,12 @@ class Trade(commands.Cog):
 
     if not incoming_trades:
       await ctx.respond(embed=discord.Embed(
-        title="No Incoming Trade Requests",
-        description="No one has any active trades requested from you. Get out there are start hustlin!",
-        color=discord.Color.blurple()
-      ), ephemeral=True)
+          title="No Incoming Trade Requests",
+          description="No one has any active trades requested from you. Get out there are start hustlin!",
+          color=discord.Color.blurple()
+        ).set_footer(text="Note: Selecting an option may take a few seconds to register."),
+        ephemeral=True
+      )
       return
 
     incoming_requestor_ids = [t["requestor_id"] for t in incoming_trades]
@@ -242,7 +244,7 @@ class Trade(commands.Cog):
     active_trade = db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_id)
 
     trade_pages = await self._generate_trade_pages(active_trade)
-    view = AcceptRejectView(self, active_trade)
+    view = AcceptDeclineView(self, active_trade)
     paginator = pages.Paginator(
       pages=trade_pages,
       use_default_buttons=False,
@@ -264,15 +266,7 @@ class Trade(commands.Cog):
     requestor = await self.bot.fetch_user(active_trade["requestor_id"])
     requestee = await self.bot.fetch_user(active_trade["requestee_id"])
 
-    offered_badges = db_get_trade_offered_badges(active_trade)
-    offered_badges_string = "None"
-    if offered_badges:
-      offered_badges_string = "\n".join([b['badge_name'] for b in offered_badges])
-    
-    requested_badges = db_get_trade_requested_badges(active_trade)
-    requested_badges_string = "None"
-    if offered_badges:
-      requested_badges_string = "\n".join([b['badge_name'] for b in requested_badges])
+    offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
 
     success_embed = discord.Embed(
       title="Successful Trade!",
@@ -281,11 +275,11 @@ class Trade(commands.Cog):
     )
     success_embed.add_field(
       name=f"{requestor.display_name} received",
-      value=requested_badges_string
+      value=requested_badge_names
     )
     success_embed.add_field(
       name=f"{requestee.display_name} received",
-      value=offered_badges_string
+      value=offered_badge_names
     )
     success_image = discord.File(fp="./images/trades/assets/trade_success.png", filename="trade_success.png")
     success_embed.set_image(url=f"attachment://trade_success.png")
@@ -308,47 +302,87 @@ class Trade(commands.Cog):
       requestee = await self.bot.fetch_user(trade['requestee_id'])
       requestor = await self.bot.fetch_user(trade['requestor_id'])
 
-      offered_badges = db_get_trade_offered_badges(trade)
-      offered_badges_string = "None"
-      if offered_badges:
-        offered_badges_string = "\n".join([b["badge_name"] for b in offered_badges])
-
-      requested_badges = db_get_trade_requested_badges(trade)
-      requested_badges_string = "None"
-      if requested_badges:
-        requested_badges_string = "\n".join([b["badge_name"] for b in requested_badges])
+      offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(trade)
 
       # Give notice to Requestee
-      await requestee.send(embed=discord.Embed(
+      try:
+        requestee_embed = discord.Embed(
           title="Trade Canceled",
           description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestor.mention} was canceled because one or more of the badges involved were traded to another user.",
           color=discord.Color.purple()
-        ).set_footer(
-          text="Thank you and have a nice day!"
-        ).add_field(
-          name=f"Offered by {requestor.display_name}", value=offered_badges_string
-        ).add_field(
-          name=f"Requested from {requestee.display_name}", value=requested_badges_string
         )
-      )
+        requestee_embed.add_field(
+          name=f"Offered by {requestor.display_name}",
+          value=offered_badge_names
+        )
+        requestee_embed.add_field(
+          name=f"Requested from {requestee.display_name}",
+          value=requested_badge_names
+        )
+        requestee_embed.set_footer(text="Thank you and have a nice day!")
+        await requestor.send(embed=requestee_embed)
+      except discord.Forbidden as e:
+        logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+        pass
 
       # Give notice to Requestor
-      await requestor.send(embed=discord.Embed(
+      try:
+        requestor_embed = discord.Embed(
           title="Trade Canceled",
           description=f"Just a heads up! Your USS Hood Badge Trade requested by {requestee.mention} was canceled because one or more of the badges involved were traded to another user.",
           color=discord.Color.purple()
-        ).set_footer(
-          text="Thank you and have a nice day!"
-        ).add_field(
-          name=f"Offered by {requestor.display_name}", value=offered_badges_string
-        ).add_field(
-          name=f"Requested from {requestee.display_name}", value=requested_badges_string
         )
-      )
+        requestor_embed.add_field(
+          name=f"Offered by {requestor.display_name}",
+          value=offered_badge_names
+        )
+        requestor_embed.add_field(
+          name=f"Requested from {requestee.display_name}",
+          value=requested_badge_names
+        )
+        requestor_embed.set_footer(text="Thank you and have a nice day!")
+        await requestor.send(embed=requestor_embed)
+      except discord.Forbidden as e:
+        logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+        pass
 
-  async def _reject_trade_callback(self, interaction, active_trade):
-    db_reject_trade(active_trade)
-    await interaction.response.send_message("Trade rejected", ephemeral=True)
+  async def _decline_trade_callback(self, interaction, active_trade):
+    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
+    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+
+    # await interaction.delete_original_message()
+    await interaction.response.edit_message(
+      embed=discord.Embed(
+        title="Trade Declined",
+        description=f"You've declined the proposed trade with {requestor.mention}.\n\nIf their DMs are open, they've been sent a notification to let them know.",
+        color=discord.Color.blurple()
+      ),
+      delete_after=30
+    )
+
+    db_decline_trade(active_trade)
+
+    offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+
+    try:
+      declined_embed = discord.Embed(
+        title="Trade Declined",
+        description=f"Your USS Hood Badge Trade to {requestee.mention} was declined.",
+        color=discord.Color.dark_purple()
+      )
+      declined_embed.add_field(
+        name=f"Offered by {requestor.display_name}",
+        value=offered_badge_names
+      )
+      declined_embed.add_field(
+        name=f"Requested from {requestee.display_name}",
+        value=requested_badge_names
+      )
+      declined_embed.set_footer(text="Thank you and have a nice day!")
+      await requestor.send(embed=declined_embed)
+    except discord.Forbidden as e:
+      logger.info(f"Unable to send trade declined message to {requestor.display_name}, they have their DMs closed.")
+      pass
 
 
   # OUTGOING TRADE!
@@ -425,7 +459,7 @@ class Trade(commands.Cog):
       db_initiate_trade(requestor_id, requestee_id)
 
       # Confirmation initiation with the requestor
-      confirmation_embed = discord.Embed(
+      initiated_embed = discord.Embed(
         title="Trade Initiated!",
         description="Your trade has been initiated with status: `pending`.\n\nFollow up with `/trade request` and `/trade offer` to fill out the trade details!\n\nOnce you have added the badges you'd like to offer and request,\nuse `/trade activate` to send the trade to the user!\n\nNote: You may only have one open trade request at a time!\nUse `/trade cancel` if you wish to dismiss the current trade.",
         color=discord.Color.blurple()
@@ -436,8 +470,8 @@ class Trade(commands.Cog):
         name="Requestee",
         value=f"{requestee.mention}"
       )
-      confirmation_embed.set_footer(text="Happy trading!")
-      await ctx.respond(embed=confirmation_embed, ephemeral=True)
+      initiated_embed.set_footer(text="Happy trading!")
+      await ctx.respond(embed=initiated_embed, ephemeral=True)
 
     except Exception as e:
       logger.info(traceback.format_exc())
@@ -476,20 +510,32 @@ class Trade(commands.Cog):
         confirmation_embed.set_footer(text="Because the trade was active, we've let them know you have canceled the request.")
       await ctx.respond(embed=confirmation_embed, ephemeral=True)
 
-      # If the trade was active, alert the requestee that the trade has been canceled
-      # TODO: Uncomment this when ready to start pinging users for testing
-      # if active_trade["status"] == 'active':
-        # requestor = ctx.author
-        # notification_description = f"Heads up! {requestor.mention} has canceled their pending trade request with you."
-        # if reason:
-        #   notification_description += f"\n\n**Reason:** {reason}"
+      # Alert the requestee that the trade has been canceled if the trade was active
+      if active_trade["status"] == 'active':
+        requestor = ctx.author
+        requestee = await self.bot.fetch_user(active_trade["requestee_id"])
 
-        # notification_embed = discord.Embed(
-        #   title="Trade Canceled!",
-        #   description=notification_description,
-        #   color=discord.Color.dark_purple()
-        # )
-        # await active_trade_requestee.send(embed=notification_embed)
+        offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+
+        notification_description = f"Heads up! {requestor.mention} has canceled their pending trade request with you."
+        if reason:
+          notification_description += f"\n\n**Reason:** {reason}"
+
+        notification_embed = discord.Embed(
+          title="Trade Canceled!",
+          description=notification_description,
+          color=discord.Color.dark_purple()
+        )
+        notification_embed.add_field(
+          name=f"Offered by {requestor.display_name}",
+          value=offered_badge_names
+        )
+        notification_embed.add_field(
+          name=f"Requested from {requestee.display_name}",
+          value=requested_badge_names
+        )
+
+        await active_trade_requestee.send(embed=notification_embed)
     except Exception as e:
       logger.info(traceback.format_exc())
 
@@ -511,96 +557,21 @@ class Trade(commands.Cog):
       pages=trade_pages,
       use_default_buttons=False,
       custom_buttons=self.trade_buttons,
-      loop_pages=True
+      loop_pages=True,
+      timeout=720
     )
 
     await paginator.respond(ctx.interaction, ephemeral=True)
 
   async def _generate_trade_pages(self, active_trade):
-    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
-    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
-
-    # Offered Page
-    offered_badges = db_get_trade_offered_badges(active_trade)
-    offered_badges_string = "None"
-    if offered_badges:
-      offered_badges_string = "\n".join([b['badge_name'] for b in offered_badges])
-    offered_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in offered_badges]
-    offered_image_id = f"{active_trade['id']}-offered"
-    offered_image = generate_badge_trade_showcase(
-      offered_badge_filenames,
-      offered_image_id,
-      f"Badges Offered by {requestor.display_name}",
-      f"{len(offered_badge_filenames)} Badges"
-    )
-    offered_embed = discord.Embed(
-      title="Offered",
-      description=f"Badges offered by {requestor.mention}",
-      color=discord.Color.dark_purple()
-    )
-    offered_embed.set_image(url=f"attachment://{offered_image_id}.png")
-
-    # Requested Page
-    requested_badges = db_get_trade_requested_badges(active_trade)
-    requested_badges_string = "None"
-    if requested_badges:
-      requested_badges_string = "\n".join([b['badge_name'] for b in requested_badges])
-    requested_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in requested_badges]
-    requested_image_id = f"{active_trade['id']}-requested"
-    requested_image = generate_badge_trade_showcase(
-      requested_badge_filenames,
-      requested_image_id,
-      f"Badges Requested from {requestee.display_name}",
-      f"{len(requested_badge_filenames)} Badges"
-    )
-    requested_embed = discord.Embed(
-      title="Requested",
-      description=f"Badges requested from {requestee.mention}",
-      color=discord.Color.dark_purple()
-    )
-    requested_embed.set_image(url=f"attachment://{requested_image_id}.png")
-
     # Home Page
-    home_embed = None
-    home_image = None
-    if active_trade["status"] == 'active':
-      home_embed = discord.Embed(
-        title="Trade Offered!",
-        description=f"Get that, get that, gold pressed latinum!\n\n{requestor.mention} has offered a trade to {requestee.mention}!",
-        color=discord.Color.dark_purple()
-      )
-      home_embed.add_field(
-        name=f"Offered by {requestor.display_name}",
-        value=offered_badges_string
-      )
-      home_embed.add_field(
-        name=f"Requested from {requestee.display_name}",
-        value=requested_badges_string
-      )
-
-      home_embed.set_footer(text="Use the buttons below to browse!")
-      home_image = discord.File(fp="./images/trades/assets/trade_offer.png", filename="trade_offer.png")
-      home_embed.set_image(url=f"attachment://trade_offer.png")
-    elif active_trade["status"] == 'pending':
-      home_embed = discord.Embed(
-        title="Trade Pending...",
-        description=f"Ready to send?\n\nThis your pending trade with {requestee.mention}.\n\nUse `/trade activate` to send the request if it looks good to go!",
-        color=discord.Color(0x99aab5)
-      )
-      home_embed.add_field(
-        name=f"Offered by {requestor.display_name}",
-        value=offered_badges_string
-      )
-      home_embed.add_field(
-        name=f"Requested from {requestee.display_name}",
-        value=requested_badges_string
-      )
-
-      home_embed.set_footer(text="Use the buttons below to browse!")
-      home_image = discord.File(fp="./images/trades/assets/trade_pending.png", filename="trade_pending.png")
-      home_embed.set_image(url=f"attachment://trade_pending.png")
-
-    # PAGINATOR
+    home_embed, home_image = await self._generate_home_embed_and_image(active_trade)
+    # Offered page
+    offered_embed, offered_image = await self._generate_offered_embed_and_image(active_trade)
+    # Requested Page
+    requested_embed, requested_image = await self._generate_requested_embed_and_image(active_trade)
+    
+    # Paginator Pages
     trade_pages = [
       pages.Page(
         embeds=[home_embed],
@@ -617,6 +588,96 @@ class Trade(commands.Cog):
     ]
 
     return trade_pages
+
+  async def _generate_offered_embed_and_image(self, active_trade):
+    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
+
+    offered_badges = db_get_trade_offered_badges(active_trade)
+    offered_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in offered_badges]
+    offered_image_id = f"{active_trade['id']}-offered"
+    offered_image = generate_badge_trade_showcase(
+      offered_badge_filenames,
+      offered_image_id,
+      f"Badges Offered by {requestor.display_name}",
+      f"{len(offered_badge_filenames)} Badges"
+    )
+    offered_embed = discord.Embed(
+      title="Offered",
+      description=f"Badges offered by {requestor.mention}",
+      color=discord.Color.dark_purple()
+    )
+    offered_embed.set_image(url=f"attachment://{offered_image_id}.png")
+
+    return offered_embed, offered_image
+
+  async def _generate_requested_embed_and_image(self, active_trade):
+    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+
+    requested_badges = db_get_trade_requested_badges(active_trade)
+    requested_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in requested_badges]
+    requested_image_id = f"{active_trade['id']}-requested"
+    requested_image = generate_badge_trade_showcase(
+      requested_badge_filenames,
+      requested_image_id,
+      f"Badges Requested from {requestee.display_name}",
+      f"{len(requested_badge_filenames)} Badges"
+    )
+    requested_embed = discord.Embed(
+      title="Requested",
+      description=f"Badges requested from {requestee.mention}",
+      color=discord.Color.dark_purple()
+    )
+    requested_embed.set_image(url=f"attachment://{requested_image_id}.png")
+
+    return requested_embed, requested_image
+
+  async def _generate_home_embed_and_image(self, active_trade):
+    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
+    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+
+    offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+
+    home_embed = None
+    home_image = None
+    if active_trade["status"] == 'active':
+      home_embed = discord.Embed(
+        title="Trade Offered!",
+        description=f"Get that, get that, gold pressed latinum!\n\n{requestor.mention} has offered a trade to {requestee.mention}!",
+        color=discord.Color.dark_purple()
+      )
+      home_embed.add_field(
+        name=f"Offered by {requestor.display_name}",
+        value=offered_badge_names
+      )
+      home_embed.add_field(
+        name=f"Requested from {requestee.display_name}",
+        value=requested_badge_names
+      )
+
+      home_embed.set_footer(text="Use the buttons below to browse!")
+      home_image = discord.File(fp="./images/trades/assets/trade_offer.png", filename="trade_offer.png")
+      home_embed.set_image(url=f"attachment://trade_offer.png")
+    elif active_trade["status"] == 'pending':
+      home_embed = discord.Embed(
+        title="Trade Pending...",
+        description=f"Ready to send?\n\nThis your pending trade with {requestee.mention}.\n\nUse `/trade activate` to send the request if it looks good to go!",
+        color=discord.Color(0x99aab5)
+      )
+      home_embed.add_field(
+        name=f"Offered by {requestor.display_name}",
+        value=offered_badge_names
+      )
+      home_embed.add_field(
+        name=f"Requested from {requestee.display_name}",
+        value=requested_badge_names
+      )
+
+      home_embed.set_footer(text="Use the buttons below to browse!")
+      home_image = discord.File(fp="./images/trades/assets/trade_pending.png", filename="trade_pending.png")
+      home_embed.set_image(url=f"attachment://trade_pending.png")
+
+    return home_embed, home_image
+
 
   @trade.command(
     name="activate",
@@ -647,15 +708,7 @@ class Trade(commands.Cog):
         ), ephemeral=True)
         return
 
-      offered_badges = db_get_trade_offered_badges(active_trade)
-      offered_badges_names = "None"
-      if offered_badges:
-        offered_badges_names = "\n".join([b['badge_name'] for b in offered_badges])
-
-      requested_badges = db_get_trade_requested_badges(active_trade)
-      requested_badges_names = "None"
-      if requested_badges:
-        requested_badges_names = "\n".join([b['badge_name'] for b in requested_badges])
+      offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
 
       view = SendConfirmView(self)
       confirmation_embed = discord.Embed(
@@ -664,13 +717,13 @@ class Trade(commands.Cog):
         color=discord.Color.blurple()
       ).add_field(
         name=f"Offered by {requestor.display_name}",
-        value=offered_badges_names
+        value=offered_badge_names
       ).add_field(
         name=f"Requested from {requestee.display_name}",
-        value=requested_badges_names
+        value=requested_badge_names
       )
 
-      confirmation = await ctx.respond(
+      await ctx.respond(
         embed=confirmation_embed,
         view=view,
         ephemeral=True
@@ -680,16 +733,28 @@ class Trade(commands.Cog):
         db_activate_trade(active_trade)
         active_trade["status"] = "active"
 
-        trade_pages = await self._generate_trade_pages(active_trade)
-        trade_buttons = self.trade_buttons
-        paginator = pages.Paginator(
-          pages=trade_pages,
-          use_default_buttons=False,
-          custom_buttons=trade_buttons,
-          loop_pages=True
-        )
+        # Home Page
+        home_embed, home_image = await self._generate_home_embed_and_image(active_trade)
+        # Offered page
+        offered_embed, offered_image = await self._generate_offered_embed_and_image(active_trade)
+        # Requested Page
+        requested_embed, requested_image = await self._generate_requested_embed_and_image(active_trade)
 
-        await paginator.respond(confirmation, ephemeral=False)
+        await ctx.channel.send(embed=home_embed, file=home_image)
+        await ctx.channel.send(embed=offered_embed, file=offered_image)
+        await ctx.channel.send(embed=requested_embed, file=requested_image)
+
+        # trade_pages = await self._generate_trade_pages(active_trade)
+        # trade_buttons = self.trade_buttons
+        # paginator = pages.Paginator(
+        #   pages=trade_pages,
+        #   use_default_buttons=False,
+        #   custom_buttons=trade_buttons,
+        #   loop_pages=True,
+        #   timeout=None
+        # )
+
+        # await paginator.respond(ctx.interaction, ephemeral=False)
       else:
         await ctx.send_followup(embed=discord.Embed(
           title="Confirmation Canceled",
@@ -916,6 +981,20 @@ class Trade(commands.Cog):
       await ctx.respond(embed=inactive_embed, ephemeral=True)
 
     return active_trade
+  
+  async def _get_offered_and_requested_badge_names(self, active_trade):
+    offered_badges = db_get_trade_offered_badges(active_trade)
+    offered_badge_names = "None"
+    if offered_badges:
+      offered_badge_names = "\n".join([b['badge_name'] for b in offered_badges])
+    
+    requested_badges = db_get_trade_requested_badges(active_trade)
+    requested_badge_names = "None"
+    if requested_badges:
+      requested_badge_names = "\n".join([b['badge_name'] for b in requested_badges])
+
+    return offered_badge_names, requested_badge_names
+
 
 # Check helpers
 def does_trade_contain_badges(active_trade):
@@ -1182,11 +1261,11 @@ def db_complete_trade(active_trade):
   query.close()
   db.close()
 
-def db_reject_trade(active_trade):
+def db_decline_trade(active_trade):
   trade_id = active_trade['id']
   db = getDB()
   query = db.cursor()
-  sql = "UPDATE trades SET status = 'rejected' WHERE id = %s"
+  sql = "UPDATE trades SET status = 'declined' WHERE id = %s"
   vals = (trade_id,)
   query.execute(sql, vals)
   db.commit()
