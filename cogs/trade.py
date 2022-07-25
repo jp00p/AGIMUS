@@ -450,7 +450,7 @@ class Trade(commands.Cog):
         active_trade_requestee = await self.bot.fetch_user(active_trade['requestee_id'])
         already_active_embed = discord.Embed(
           title="You already have an active trade!",
-          description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade cancel` cancel the current trade if desired!\n\nThis must be resolved before you can open another request.",
+          description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade status` cancel the current trade if desired!\n\nThis must be resolved before you can open another request.",
           color=discord.Color.red()
         )
         already_active_embed.set_footer(text="You may want to check on this trade to see if they have had a chance to review your request!")
