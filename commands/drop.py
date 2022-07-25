@@ -32,10 +32,14 @@ async def drop_list(ctx:discord.ApplicationContext):
     description=drops_list,
     color=discord.Color.blue()
   )
-  try:
-    await ctx.author.send(embed=embed)
-    await ctx.respond(f"{get_emoji('tendi_smile_happy')} Sent you a DM with the full List of Drops!", ephemeral=True)
-  except BaseException as e:
+  user = get_user(ctx.author.id)
+  if user['receive_notifications']:
+    try:
+      await ctx.author.send(embed=embed)
+      await ctx.respond(f"{get_emoji('tendi_smile_happy')} Sent you a DM with the full List of Drops!", ephemeral=True)
+    except BaseException as e:
+      await ctx.respond(embed=embed, ephemeral=True)
+  else:
     await ctx.respond(embed=embed, ephemeral=True)
 
 # drop_post() - Entrypoint for `/drops post` command
@@ -65,7 +69,7 @@ async def drop_post(ctx:discord.ApplicationContext, query:str, private:bool):
   if not private:
     drop_allowed = await check_timekeeper(ctx)
 
-  if (drop_allowed):  
+  if (drop_allowed):
     q = query.lower().strip()
     drop_metadata = get_media_metadata(drop_data, q)
 
@@ -79,9 +83,8 @@ async def drop_post(ctx:discord.ApplicationContext, query:str, private:bool):
         logger.info(f"{Fore.RED}ERROR LOADING DROP: {err}{Fore.RESET}")
         userid = command_config.get("error_contact_id")
         if userid:
-          await ctx.respond(f"{get_emoji('emh_doctor_omg_wtf_zoom')} Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", ephemeral=True)  
+          await ctx.respond(f"{get_emoji('emh_doctor_omg_wtf_zoom')} Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", ephemeral=True)
     else:
       await ctx.respond(f"{get_emoji('ezri_frown_sad')} Drop not found! To get a list of drops run: /drops list", ephemeral=True)
   else:
     await ctx.respond(f"{get_emoji('ohno')} Someone in the channel has already dropped too recently. Please wait a minute before another drop!", ephemeral=True)
-    

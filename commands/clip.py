@@ -31,10 +31,14 @@ async def clips_list(ctx:discord.ApplicationContext):
     description=clips_list,
     color=discord.Color.blue()
   )
-  try:
-    await ctx.author.send(embed=embed)
-    await ctx.respond(f"{get_emoji('tendi_smile_happy')} Sent you a DM with the full List of Clips!", ephemeral=True)
-  except:
+  user = get_user(ctx.author.id)
+  if user['receive_notifications']:
+    try:
+      await ctx.author.send(embed=embed)
+      await ctx.respond(f"{get_emoji('tendi_smile_happy')} Sent you a DM with the full List of Clips!", ephemeral=True)
+    except:
+      await ctx.respond(embed=embed, ephemeral=True)
+  else:
     await ctx.respond(embed=embed, ephemeral=True)
 
 
@@ -65,7 +69,7 @@ async def clip_post(ctx:discord.ApplicationContext, query:str, private:bool):
   if not private:
     clip_allowed = await check_timekeeper(ctx)
 
-  if clip_allowed:  
+  if clip_allowed:
     q = query.lower().strip()
     clip_metadata = get_media_metadata(clip_data, q)
 
@@ -81,4 +85,3 @@ async def clip_post(ctx:discord.ApplicationContext, query:str, private:bool):
       await ctx.respond(f"{get_emoji('ezri_frown_sad')} Clip not found! To get a list of clips run: /clips list", ephemeral=True)
   else:
     await ctx.respond(f"{get_emoji('ohno')} Someone in the channel has already posted a clip too recently. Please wait a minute before another clip!", ephemeral=True)
-    

@@ -121,6 +121,7 @@ local.json
 .pyre/
 
 # Media Files
+.DS_Store
 data/clips/*.mp4
 data/drops/*.mp4
 images/reports/*
@@ -129,5 +130,6 @@ images/profiles/*.jpg
 images/cards/users/*.png
 images/ep.jpg
 images/slot_results/*.png
+images/trades/*.png
 !images/slot_results/template*
 !images/profiles/template*

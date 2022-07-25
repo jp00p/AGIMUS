@@ -580,6 +580,54 @@
       "data": "data/testslots.json",
       "parameters": []
     },
+    "trade send": {
+      "channels": [
+        "badgeys-badges"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "trade cancel": {
+      "channels": [
+        "badgeys-badges"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "trade start": {
+      "channels": [
+        "badgeys-badges"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "trade propose": {
+      "channels": [
+        "badgeys-badges"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "trade pending": {
+      "channels": [
+        "badgeys-badges"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "trade status": {
+      "channels": [
+        "badgeys-badges"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "trektalk": {
       "channels": [
         "after-dinner-conversation"
@@ -629,7 +677,7 @@
     689512841887481875
   ],
   "roles": {
-    "agimus_maintainers" : "AGIMUS Acolyte",
+    "agimus_maintainers": "AGIMUS Acolyte",
     "promotion_roles": {
       "required_rank_xp": {
         "cadet": 10,
@@ -658,7 +706,7 @@
     "💙💚💛💜🧡",
     "That's very nice of you, human!",
     "Stupid babies need the most attention!",
-    "Robot blush activated", 
+    "Robot blush activated",
     "and how's my human friend today?",
     "I am a graduate of Starfleet Academy; I know many things.",
     "COFFEE FIRST",

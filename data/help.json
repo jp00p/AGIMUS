@@ -1,5 +1,13 @@
 [
   {
+    "name": "badge",
+    "enabled": true,
+    "file": "data/help/badges.txt",
+    "channels": [
+      "badgeys-badges"
+    ]
+  },
+  {
     "name": "slots",
     "enabled": true,
     "file": "data/help/slots.txt",

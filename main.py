@@ -1,8 +1,8 @@
-#  █████   ██████  ██ ███    ███ ██    ██ ███████ 
-# ██   ██ ██       ██ ████  ████ ██    ██ ██      
-# ███████ ██   ███ ██ ██ ████ ██ ██    ██ ███████ 
-# ██   ██ ██    ██ ██ ██  ██  ██ ██    ██      ██ 
-# ██   ██  ██████  ██ ██      ██  ██████  ███████ 
+#  █████   ██████  ██ ███    ███ ██    ██ ███████
+# ██   ██ ██       ██ ████  ████ ██    ██ ██
+# ███████ ██   ███ ██ ██ ████ ██ ██    ██ ███████
+# ██   ██ ██    ██ ██ ██  ██  ██ ██    ██      ██
+# ██   ██  ██████  ██ ██      ██  ██████  ███████
 from common import *
 
 # Slash Commands
@@ -19,6 +19,7 @@ from commands.reports import reports
 from commands.scores import scores
 from commands.setwager import setwager
 from commands.speak import speak
+from commands.toggle_notifications import toggle_notifications
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
@@ -39,16 +40,18 @@ from commands.agimus import agimus
 from commands.computer import computer
 
 # Cogs
-from cogs.trivia import Trivia
-from cogs.shop import Shop
-from cogs.slots import Slots
 from cogs.poker import Poker
 from cogs.quiz import Quiz
-bot.add_cog(Trivia(bot))
-bot.add_cog(Shop(bot))
-bot.add_cog(Slots(bot))
+from cogs.shop import Shop
+from cogs.slots import Slots
+from cogs.trade import Trade
+from cogs.trivia import Trivia
 bot.add_cog(Poker(bot))
 bot.add_cog(Quiz(bot))
+bot.add_cog(Shop(bot))
+bot.add_cog(Slots(bot))
+bot.add_cog(Trade(bot))
+bot.add_cog(Trivia(bot))
 
 # Handlers
 from handlers.alerts import handle_alerts
@@ -80,7 +83,7 @@ async def on_message(message:discord.Message):
   # Ignore all messages from any bot
   if message.author == bot.user or message.author.bot:
     return
-  
+
   try:
     # Process commands that use the command_prefix
     await bot.process_commands(message)
@@ -113,7 +116,7 @@ async def on_message(message:discord.Message):
   except Exception as e:
     logger.error(f"{Fore.RED}<! ERROR: Failed to process message for xp !> {e}{Fore.RESET}")
     logger.error(traceback.format_exc())
-  
+
   # Computer/AGIMUS Message Handling
   if any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
     logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
@@ -141,7 +144,7 @@ async def process_command(message:discord.Message):
     # Check enabled
     #logger.info(f"Parsed command: {Fore.LIGHTBLUE_EX}{user_command}{Fore.RESET}")
     if config["commands"][user_command]["enabled"]:
-      # Check Channel Access Restrictions 
+      # Check Channel Access Restrictions
       access_granted = await perform_channel_check(message, config["commands"][user_command])
       logger.info(f"Access granted? {Fore.LIGHTGREEN_EX}{access_granted}{Fore.RESET}")
       if access_granted:
@@ -163,7 +166,7 @@ async def on_ready():
     logger.info(f"{Back.RED}{Fore.LIGHTWHITE_EX} CURRENT ASSIGNMENT: {bot.guilds[0].name} (COMPLIMENT: {len(ALL_USERS)}) {Fore.RESET}{Back.RESET}")
 
     global ALL_STARBOARD_POSTS
-  
+
     ALL_STARBOARD_POSTS = get_all_starboard_posts()
     number_of_starboard_posts = len(ALL_STARBOARD_POSTS)
     for emoji in bot.emojis:
@@ -175,7 +178,7 @@ async def on_ready():
       agimus_ascii = f.readlines()
     logger.info(''.join(agimus_ascii))
     logger.info(f"{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}")
-    logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")      
+    logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")
 
     # generate local channels list
     generate_local_channel_list(bot)
@@ -204,8 +207,8 @@ async def on_ready():
 @bot.event
 async def on_reaction_add(reaction, user):
   await handle_react_xp(reaction, user)
-  
-# listen to raw reactions  
+
+# listen to raw reactions
 @bot.event
 async def on_raw_reaction_add(payload):
   if payload.event_type == "REACTION_ADD":
@@ -220,7 +223,7 @@ async def on_member_remove(member):
 @bot.event
 async def on_member_update(memberBefore,memberAfter):
   if memberBefore.nick != memberAfter.nick:
-    await show_nick_change_message(memberBefore, memberAfter) 
+    await show_nick_change_message(memberBefore, memberAfter)
 
 # Listen to channel updates
 @bot.event
