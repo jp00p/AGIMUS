@@ -19,7 +19,7 @@ You may have up to three incoming trades at a time.
 **Outgoing Trades**
 `/trade start <user>` - Must be done initially! Create a 'pending' trade with a user which you can modify to add offered/requested badges
 
-`/trade propose <offer/request> <badge name>` - Add your offer and requested badges to the pending trade.
+`/trade propose <offer/request> <badge name>` - Add your offered and requested badges to the pending trade.
 
 `/trade status` - View the current details of your Active or Pending trade. Has buttons to Cancel and if currently pending, Send the proposed trade.
 
