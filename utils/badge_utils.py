@@ -30,7 +30,7 @@ def generate_badge_trade_showcase(badge_list, id, title, footer):
   # create base image to paste all badges on to
   # what if they have 900 badges?
   badge_base_image = Image.new("RGBA", (base_width+(image_padding*2), base_height+header_height+(image_padding*2)), (200, 200, 200))
-  badge_bg_image = Image.open("./images/stars/" + random.choice(os.listdir("./images/stars/")))
+  badge_bg_image = Image.open("./images/trades/assets/trade_bg.jpg")
   
   base_w, base_h = badge_base_image.size
   bg_w, bg_h = badge_bg_image.size

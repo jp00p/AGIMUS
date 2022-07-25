@@ -52,12 +52,36 @@ CREATE TABLE IF NOT EXISTS badge_info (
   id int(11) NOT NULL AUTO_INCREMENT,
   badge_name varchar(128) NOT NULL,
   badge_filename varchar(128) NOT NULL,
-  affiliation varchar(128) DEFAULT NULL,
+  badge_url varchar(256) NOT NULL,
   quadrant varchar(128) DEFAULT NULL,
   time_period varchar(128) DEFAULT NULL,
-  universe varchar(128) DEFAULT NULL,
   franchise varchar(128) DEFAULT NULL,
+  reference varchar(128) DEFAULT NULL,
   PRIMARY KEY (id)
+);
+CREATE TABLE IF NOT EXISTS badge_affiliation (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  badge_id int (11) NOT NULL,
+  affiliation_name varchar(128) NOT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (badge_id)
+    REFERENCES badge_info(id)
+);
+CREATE TABLE IF NOT EXISTS badge_type (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  badge_id int (11) NOT NULL,
+  type_name varchar(128) NOT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (badge_id)
+    REFERENCES badge_info(id)
+);
+CREATE TABLE IF NOT EXISTS badge_universe (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  badge_id int (11) NOT NULL,
+  universe_name varchar(128) NOT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (badge_id)
+    REFERENCES badge_info(id)
 );
 CREATE TABLE IF NOT EXISTS trade_offered (
   id int(11) NOT NULL AUTO_INCREMENT,

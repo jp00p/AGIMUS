@@ -582,7 +582,7 @@
     },
     "trade activate": {
       "channels": [
-        "megalomaniacal-computer-storage"
+        "badgeys-badges"
       ],
       "enabled": true,
       "data": null,
@@ -590,7 +590,7 @@
     },
     "trade cancel": {
       "channels": [
-        "megalomaniacal-computer-storage"
+        "badgeys-badges"
       ],
       "enabled": true,
       "data": null,
@@ -598,7 +598,7 @@
     },
     "trade initiate": {
       "channels": [
-        "megalomaniacal-computer-storage"
+        "badgeys-badges"
       ],
       "enabled": true,
       "data": null,
@@ -606,7 +606,7 @@
     },
     "trade offer": {
       "channels": [
-        "megalomaniacal-computer-storage"
+        "badgeys-badges"
       ],
       "enabled": true,
       "data": null,
@@ -614,7 +614,7 @@
     },
     "trade reply": {
       "channels": [
-        "megalomaniacal-computer-storage"
+        "badgeys-badges"
       ],
       "enabled": true,
       "data": null,
@@ -622,7 +622,7 @@
     },
     "trade request": {
       "channels": [
-        "megalomaniacal-computer-storage"
+        "badgeys-badges"
       ],
       "enabled": true,
       "data": null,
@@ -630,7 +630,7 @@
     },
     "trade status": {
       "channels": [
-        "megalomaniacal-computer-storage"
+        "badgeys-badges"
       ],
       "enabled": true,
       "data": null,
@@ -685,7 +685,7 @@
     689512841887481875
   ],
   "roles": {
-    "agimus_maintainers" : "AGIMUS Acolyte",
+    "agimus_maintainers": "AGIMUS Acolyte",
     "promotion_roles": {
       "required_rank_xp": {
         "cadet": 10,
@@ -714,7 +714,7 @@
     "💙💚💛💜🧡",
     "That's very nice of you, human!",
     "Stupid babies need the most attention!",
-    "Robot blush activated", 
+    "Robot blush activated",
     "and how's my human friend today?",
     "I am a graduate of Starfleet Academy; I know many things.",
     "COFFEE FIRST",
