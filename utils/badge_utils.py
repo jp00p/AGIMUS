@@ -14,24 +14,23 @@ def generate_badge_trade_showcase(badge_list, id, title, footer):
   title_font = ImageFont.truetype("images/tng_credits.ttf", 68)
   credits_font = ImageFont.truetype("images/tng_credits.ttf", 42)
   badge_font = ImageFont.truetype("images/context_bold.ttf", 28)
-  
+
   badge_size = 200
   badge_padding = 40
   badge_margin = 10
   badge_slot_size = badge_size + (badge_padding * 2) # size of badge slot size (must be square!)
   badges_per_row = 6
-  
+
   base_width = (badge_slot_size+badge_margin) * badges_per_row
   base_height = math.ceil((len(badge_list) / badges_per_row)) * (badge_slot_size + badge_margin)
-  
+
   header_height = badge_size
   image_padding = 50
-  
+
   # create base image to paste all badges on to
-  # what if they have 900 badges?
   badge_base_image = Image.new("RGBA", (base_width+(image_padding*2), base_height+header_height+(image_padding*2)), (200, 200, 200))
   badge_bg_image = Image.open("./images/trades/assets/trade_bg.jpg")
-  
+
   base_w, base_h = badge_base_image.size
   bg_w, bg_h = badge_bg_image.size
 
@@ -40,11 +39,16 @@ def generate_badge_trade_showcase(badge_list, id, title, footer):
       badge_base_image.paste(badge_bg_image, (i, j))
 
   draw = ImageDraw.Draw(badge_base_image)
-    
+
   draw.text( (base_width/2, 100), title, fill="white", font=title_font, anchor="mm", align="center")
   draw.text( (base_width/2, base_h-50), footer, fill="white", font=credits_font, anchor="mm", align="center",stroke_width=2,stroke_fill="#000000")
 
-  start_x = image_padding
+
+  # Center positioning. Move start_x to center of image then - 1/2 of the width of each image * the length of images
+  half_badge_slot_size = int(badge_slot_size / 2)
+  start_x = int(base_width/2 - (half_badge_slot_size * len(badge_list)))
+
+  # start_x = image_padding
   current_x = start_x
   current_y = header_height
   counter = 0
@@ -79,13 +83,13 @@ def generate_badge_trade_showcase(badge_list, id, title, footer):
 
     current_x += badge_slot_size + badge_margin
     counter += 1
-    
+
     if counter % badges_per_row == 0:
       # typewriter sound effects:
       current_x = start_x # ding!
       current_y += badge_slot_size + badge_margin # ka-chunk
       counter = 0 #...
-  
+
   badge_base_image.save(f"./images/trades/{id}.png")
 
   while True:

@@ -330,7 +330,6 @@ class Trade(commands.Cog):
     requestor = await self.bot.fetch_user(active_trade["requestor_id"])
     requestee = await self.bot.fetch_user(active_trade["requestee_id"])
 
-    # await interaction.delete_original_message()
     await interaction.response.edit_message(
       embed=discord.Embed(
         title="Trade Declined",
@@ -428,7 +427,7 @@ class Trade(commands.Cog):
         await ctx.respond(embed=already_active_embed, ephemeral=True)
         return
 
-      # Deny the trade request if the requestee already has 3 active trades pending
+      # Deny the trade request if the requestee already has too many active trades pending
       requestee_trades = db_get_active_requestee_trades(requestee_id)
       if len(requestee_trades) >= self.max_trades:
         max_requestee_trades_embed = discord.Embed(
@@ -442,7 +441,7 @@ class Trade(commands.Cog):
       # If not denied, go ahead and initiate the new trade!
       db_initiate_trade(requestor_id, requestee_id)
 
-      # Confirmation initiation with the requestor
+      # Confirmation of initiation with the requestor
       initiated_embed = discord.Embed(
         title="Trade Initiated!",
         description="Your pending trade has been initiated!\n\nFollow up with `/trade request` and `/trade offer` to fill out the trade details!\n\nOnce you have added the badges you'd like to offer and request, use \n`/trade activate` to send the trade to the user!\n\nUse `/trade cancel` if you wish to dismiss the current trade.\n\nNote: You may only have one open outgoing trade request at a time!",
