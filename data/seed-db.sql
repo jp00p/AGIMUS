@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS users (
   log_messages int(11) NOT NULL DEFAULT 0,
   xp_enabled BOOLEAN NOT NULL DEFAULT 1,
   tagline VARCHAR(255) DEFAULT NULL,
-  level int(11) DEFAULT 1,  
+  receive_notifications BOOLEAN NOT NULL DEFAULT 1,
+  level int(11) DEFAULT 1,
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)
 );

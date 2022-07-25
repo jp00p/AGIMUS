@@ -1,8 +1,8 @@
-#  █████   ██████  ██ ███    ███ ██    ██ ███████ 
-# ██   ██ ██       ██ ████  ████ ██    ██ ██      
-# ███████ ██   ███ ██ ██ ████ ██ ██    ██ ███████ 
-# ██   ██ ██    ██ ██ ██  ██  ██ ██    ██      ██ 
-# ██   ██  ██████  ██ ██      ██  ██████  ███████ 
+#  █████   ██████  ██ ███    ███ ██    ██ ███████
+# ██   ██ ██       ██ ████  ████ ██    ██ ██
+# ███████ ██   ███ ██ ██ ████ ██ ██    ██ ███████
+# ██   ██ ██    ██ ██ ██  ██  ██ ██    ██      ██
+# ██   ██  ██████  ██ ██      ██  ██████  ███████
 from common import *
 
 # Slash Commands
@@ -19,6 +19,7 @@ from commands.reports import reports
 from commands.scores import scores
 from commands.setwager import setwager
 from commands.speak import speak
+from commands.toggle_notifications import toggle_notifications
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
@@ -82,7 +83,7 @@ async def on_message(message:discord.Message):
   # Ignore all messages from any bot
   if message.author == bot.user or message.author.bot:
     return
-  
+
   try:
     # Process commands that use the command_prefix
     await bot.process_commands(message)
@@ -115,7 +116,7 @@ async def on_message(message:discord.Message):
   except Exception as e:
     logger.error(f"{Fore.RED}<! ERROR: Failed to process message for xp !> {e}{Fore.RESET}")
     logger.error(traceback.format_exc())
-  
+
   # Computer/AGIMUS Message Handling
   if any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
     logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
@@ -143,7 +144,7 @@ async def process_command(message:discord.Message):
     # Check enabled
     #logger.info(f"Parsed command: {Fore.LIGHTBLUE_EX}{user_command}{Fore.RESET}")
     if config["commands"][user_command]["enabled"]:
-      # Check Channel Access Restrictions 
+      # Check Channel Access Restrictions
       access_granted = await perform_channel_check(message, config["commands"][user_command])
       logger.info(f"Access granted? {Fore.LIGHTGREEN_EX}{access_granted}{Fore.RESET}")
       if access_granted:
@@ -165,7 +166,7 @@ async def on_ready():
     logger.info(f"{Back.RED}{Fore.LIGHTWHITE_EX} CURRENT ASSIGNMENT: {bot.guilds[0].name} (COMPLIMENT: {len(ALL_USERS)}) {Fore.RESET}{Back.RESET}")
 
     global ALL_STARBOARD_POSTS
-  
+
     ALL_STARBOARD_POSTS = get_all_starboard_posts()
     number_of_starboard_posts = len(ALL_STARBOARD_POSTS)
     for emoji in bot.emojis:
@@ -177,13 +178,10 @@ async def on_ready():
       agimus_ascii = f.readlines()
     logger.info(''.join(agimus_ascii))
     logger.info(f"{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}")
-    logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")      
+    logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")
 
     # generate local channels list
     generate_local_channel_list(bot)
-
-    # XXX REMOVE ME LATER
-    # seed_badge_tables()
 
     # Set a fun random presence
     random_presences = [
@@ -204,125 +202,13 @@ async def on_ready():
     logger.info(traceback.format_exc())
 
 
-
-# XXX REMOVE ME LATER
-def seed_badge_tables():
-  f = open("./data/badges-metadata.json")
-  badges = json.load(f)
-  f.close()
-
-  db = getDB()
-  for badge_key in badges.keys():
-    badge_name = badge_key
-    badge_filename = f"{badge_key.replace(' ', '_')}.png"
-
-    badge_info = badges[badge_key]
-
-    badge_url = badge_info['badge_url']
-    quadrant = badge_info.get('quadrant')
-    time_period = badge_info.get('time period'),
-    franchise = badge_info.get('franchise'),
-    reference = badge_info.get('reference')
-
-    if type(time_period) is tuple:
-      time_period = time_period[0]
-
-    if type(franchise) is tuple:
-      franchise = franchise[0]
-
-    # Affiliations may be a list
-    affiliations = badge_info.get('affiliations')
-    affiliations_list = []
-    if affiliations is not None:
-      if (type(affiliations) is list):
-        affiliations_list = affiliations
-      elif (type(affiliations) is tuple):
-        affiliations_list = [affiliations[0]]
-      elif (type(affiliations) is string):
-        affiliations_list = [affiliations]
-
-    # Types may be a list
-    types = badge_info.get('types')
-    types_list = []
-    if types is not None:
-      if (type(types) is list):
-        types_list = types
-      elif (type(types) is tuple):
-        types_list = [types[0]]
-      elif (type(types) is string):
-        types_list = [types]
-
-    # Universes may be a list
-    universes = badge_info.get('universes')
-    universes_list = []
-    if universes is not None:
-      if (type(universes) is list):
-        universes_list = universes
-      elif (type(universes) is tuple):
-        universes_list = [universes[0]]
-      elif (type(universes) is string):
-        universes_list = [universes]
-
-    logger.info(f">> Inserting badge_name: {badge_name}")
-
-    query = db.cursor(dictionary=True, buffered=True)
-    # Insert basic info into badge_info
-    sql = '''
-      INSERT INTO badge_info
-        (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-    '''
-    vals = (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference)
-    query.execute(sql, vals)
-
-    # Now get the id of the new badge_info row
-    sql = "SELECT id FROM badge_info WHERE badge_name = %s"
-    vals = (badge_name,)
-    query.execute(sql, vals)
-    badge_row = query.fetchone()
-    badge_info_row_id = badge_row['id']
-
-    # Now create the badge_affiliation row(s)
-    if affiliations_list is not None:
-      for a in affiliations_list:
-        sql = '''INSERT IGNORE INTO badge_affiliation
-          (badge_id, affiliation_name)
-          VALUES (%s, %s)
-        '''
-        vals = (badge_info_row_id, a)
-        query.execute(sql, vals)
-    
-    # Same for types
-    if types_list is not None:
-      for t in types_list:
-        sql = '''INSERT IGNORE INTO badge_type
-          (badge_id, type_name)
-          VALUES (%s, %s)
-        '''
-        vals = (badge_info_row_id, t)
-        query.execute(sql, vals)
-    
-    # Same for universes
-    if universes_list is not None:
-      for u in universes_list:
-        sql = '''INSERT IGNORE INTO badge_universe
-          (badge_id, universe_name)
-          VALUES (%s, %s)
-        '''
-        vals = (badge_info_row_id, u)
-        query.execute(sql, vals)
-
-    db.commit()
-    query.close()
-
-
 # listen to reactions
 # TODO: change to on_raw_reaction_add so old messages are counted too!
 @bot.event
 async def on_reaction_add(reaction, user):
   await handle_react_xp(reaction, user)
-  
-# listen to raw reactions  
+
+# listen to raw reactions
 @bot.event
 async def on_raw_reaction_add(payload):
   if payload.event_type == "REACTION_ADD":
@@ -337,7 +223,7 @@ async def on_member_remove(member):
 @bot.event
 async def on_member_update(memberBefore,memberAfter):
   if memberBefore.nick != memberAfter.nick:
-    await show_nick_change_message(memberBefore, memberAfter) 
+    await show_nick_change_message(memberBefore, memberAfter)
 
 # Listen to channel updates
 @bot.event

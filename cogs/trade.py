@@ -9,12 +9,12 @@ data = f.read()
 rules_of_acquisition = data.split("\n")
 f.close()
 
-#    _____          __                                     .__          __          
-#   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____  
-#  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \ 
-# /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/ 
+#    _____          __                                     .__          __
+#   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
+#  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \
+# /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
-#         \/                        \/            \/|__|             \/          \/ 
+#         \/                        \/            \/|__|             \/          \/
 async def autocomplete_requestor_badges(ctx:discord.AutocompleteContext):
   requestor_badges = db_get_user_badge_names(ctx.interaction.user.id)
   autocomplete_results = []
@@ -35,12 +35,12 @@ async def autocomplete_requestee_badges(ctx:discord.AutocompleteContext):
   return [result for result in autocomplete_results if ctx.value.lower() in result.lower()]
 
 
-# ____   ____.__                     
+# ____   ____.__
 # \   \ /   /|__| ______  _  ________
 #  \   Y   / |  |/ __ \ \/ \/ /  ___/
-#   \     /  |  \  ___/\     /\___ \ 
+#   \     /  |  \  ___/\     /\___ \
 #    \___/   |__|\___  >\/\_//____  >
-#                    \/           \/ 
+#                    \/           \/
 class SendConfirmView(discord.ui.View):
   def __init__(self, cog):
     super().__init__()
@@ -79,7 +79,7 @@ class RequestsDropDown(discord.ui.Select):
         max_values=1,
         options=options,
       )
-    
+
     async def callback(self, interaction: discord.Interaction):
       # Clear view once selected
       view = self.view
@@ -139,12 +139,12 @@ class AcceptDeclineView(discord.ui.View):
 
 
 
-# ___________                  .___     _________                
-# \__    ___/___________     __| _/____ \_   ___ \  ____   ____  
-#   |    |  \_  __ \__  \   / __ |/ __ \/    \  \/ /  _ \ / ___\ 
+# ___________                  .___     _________
+# \__    ___/___________     __| _/____ \_   ___ \  ____   ____
+#   |    |  \_  __ \__  \   / __ |/ __ \/    \  \/ /  _ \ / ___\
 #   |    |   |  | \// __ \_/ /_/ \  ___/\     \___(  <_> ) /_/  >
-#   |____|   |__|  (____  /\____ |\___  >\______  /\____/\___  / 
-#                       \/      \/    \/        \/      /_____/  
+#   |____|   |__|  (____  /\____ |\___  >\______  /\____/\___  /
+#                       \/      \/    \/        \/      /_____/
 class Trade(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
@@ -162,11 +162,11 @@ class Trade(commands.Cog):
   trade = discord.SlashCommandGroup("trade", "Commands for trading badges")
 
 
-  #   ___                   _             _____            _     
-  #  |_ _|_ _  __ ___ _ __ (_)_ _  __ _  |_   _| _ __ _ __| |___ 
+  #   ___                   _             _____            _
+  #  |_ _|_ _  __ ___ _ __ (_)_ _  __ _  |_   _| _ __ _ __| |___
   #   | || ' \/ _/ _ \ '  \| | ' \/ _` |   | || '_/ _` / _` / -_)
   #  |___|_||_\__\___/_|_|_|_|_||_\__, |   |_||_| \__,_\__,_\___|
-  #                               |___/                          
+  #                               |___/
   @trade.command(
     name="reply",
     description="View and accept/decline incoming trades from other users"
@@ -190,7 +190,7 @@ class Trade(commands.Cog):
     for user_id in incoming_requestor_ids:
       requestor = await self.bot.fetch_user(user_id)
       requestors.append(requestor)
-    
+
     view = Requests(self, requestors)
 
     await ctx.respond(
@@ -254,15 +254,17 @@ class Trade(commands.Cog):
     await channel.send(embed=success_embed, file=success_image)
 
     # Send notification to requestor the the trade was successful
-    try:
-      await requestor.send(embed=success_embed)
-    except discord.Forbidden as e:
-      logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
-      pass
+    user = get_user(requestor.id)
+    if user["receive_notifications"]:
+      try:
+        await requestor.send(embed=success_embed)
+      except discord.Forbidden as e:
+        logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+        pass
 
 
   async def _cancel_invalid_related_trades(self, active_trade):
-    # These are all the active or pending trades that involved either the requestee or 
+    # These are all the active or pending trades that involved either the requestee or
     # requestor and include the badges that are involved with the confirmed trade which
     # are thus no longer valid and need to be canceled
     related_trades = db_get_related_badge_trades(active_trade)
@@ -274,7 +276,7 @@ class Trade(commands.Cog):
     logger.info("trades to cancel:")
     logger.info(pprint(trades_to_cancel))
 
-    # Iterate through to cancel, and then 
+    # Iterate through to cancel, and then
     for trade in trades_to_cancel:
       db_cancel_trade(trade)
       requestee = await self.bot.fetch_user(trade['requestee_id'])
@@ -283,46 +285,50 @@ class Trade(commands.Cog):
       offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(trade)
 
       # Give notice to Requestee
-      try:
-        requestee_embed = discord.Embed(
-          title="Trade Canceled",
-          description=f"Just a heads up! Your USS Hood Badge Trade initiated by {requestor.mention} was canceled because one or more of the badges involved were traded to another user.",
-          color=discord.Color.purple()
-        )
-        requestee_embed.add_field(
-          name=f"Offered by {requestor.display_name}",
-          value=offered_badge_names
-        )
-        requestee_embed.add_field(
-          name=f"Requested from {requestee.display_name}",
-          value=requested_badge_names
-        )
-        requestee_embed.set_footer(text="Thank you and have a nice day!")
-        await requestee.send(embed=requestee_embed)
-      except discord.Forbidden as e:
-        logger.info(f"Unable to send trade cancelation message to {requestee.display_name}, they have their DMs closed.")
-        pass
+      user = get_user(requestee.id)
+      if user["receive_notifications"]:
+        try:
+          requestee_embed = discord.Embed(
+            title="Trade Canceled",
+            description=f"Just a heads up! Your USS Hood Badge Trade initiated by {requestor.mention} was canceled because one or more of the badges involved were traded to another user.",
+            color=discord.Color.purple()
+          )
+          requestee_embed.add_field(
+            name=f"Offered by {requestor.display_name}",
+            value=offered_badge_names
+          )
+          requestee_embed.add_field(
+            name=f"Requested from {requestee.display_name}",
+            value=requested_badge_names
+          )
+          requestee_embed.set_footer(text="Thank you and have a nice day!")
+          await requestee.send(embed=requestee_embed)
+        except discord.Forbidden as e:
+          logger.info(f"Unable to send trade cancelation message to {requestee.display_name}, they have their DMs closed.")
+          pass
 
       # Give notice to Requestor
-      try:
-        requestor_embed = discord.Embed(
-          title="Trade Canceled",
-          description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because one or more of the badges involved were traded to another user.",
-          color=discord.Color.purple()
-        )
-        requestor_embed.add_field(
-          name=f"Offered by {requestor.display_name}",
-          value=offered_badge_names
-        )
-        requestor_embed.add_field(
-          name=f"Requested from {requestee.display_name}",
-          value=requested_badge_names
-        )
-        requestor_embed.set_footer(text="Thank you and have a nice day!")
-        await requestor.send(embed=requestor_embed)
-      except discord.Forbidden as e:
-        logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
-        pass
+      user = get_user(requestor.id)
+      if user["receive_notifications"]:
+        try:
+          requestor_embed = discord.Embed(
+            title="Trade Canceled",
+            description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because one or more of the badges involved were traded to another user.",
+            color=discord.Color.purple()
+          )
+          requestor_embed.add_field(
+            name=f"Offered by {requestor.display_name}",
+            value=offered_badge_names
+          )
+          requestor_embed.add_field(
+            name=f"Requested from {requestee.display_name}",
+            value=requested_badge_names
+          )
+          requestor_embed.set_footer(text="Thank you and have a nice day!")
+          await requestor.send(embed=requestor_embed)
+        except discord.Forbidden as e:
+          logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+          pass
 
   async def _decline_trade_callback(self, interaction, active_trade):
     requestor = await self.bot.fetch_user(active_trade["requestor_id"])
@@ -341,33 +347,35 @@ class Trade(commands.Cog):
     db_decline_trade(active_trade)
     offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
 
-    try:
-      declined_embed = discord.Embed(
-        title="Trade Declined",
-        description=f"Your USS Hood Badge Trade to {requestee.mention} was declined.",
-        color=discord.Color.dark_purple()
-      )
-      declined_embed.add_field(
-        name=f"Offered by {requestor.display_name}",
-        value=offered_badge_names
-      )
-      declined_embed.add_field(
-        name=f"Requested from {requestee.display_name}",
-        value=requested_badge_names
-      )
-      declined_embed.set_footer(text="Thank you and have a nice day!")
-      await requestor.send(embed=declined_embed)
-    except discord.Forbidden as e:
-      logger.info(f"Unable to send trade declined message to {requestor.display_name}, they have their DMs closed.")
-      pass
+    user = get_user(requestor.id)
+    if user["receive_notifications"]:
+      try:
+        declined_embed = discord.Embed(
+          title="Trade Declined",
+          description=f"Your USS Hood Badge Trade to {requestee.mention} was declined.",
+          color=discord.Color.dark_purple()
+        )
+        declined_embed.add_field(
+          name=f"Offered by {requestor.display_name}",
+          value=offered_badge_names
+        )
+        declined_embed.add_field(
+          name=f"Requested from {requestee.display_name}",
+          value=requested_badge_names
+        )
+        declined_embed.set_footer(text="Thank you and have a nice day!")
+        await requestor.send(embed=declined_embed)
+      except discord.Forbidden as e:
+        logger.info(f"Unable to send trade declined message to {requestor.display_name}, they have their DMs closed.")
+        pass
 
 
 
-  #    ___       _            _             _____            _     
-  #   / _ \ _  _| |_ __ _ ___(_)_ _  __ _  |_   _| _ __ _ __| |___ 
+  #    ___       _            _             _____            _
+  #   / _ \ _  _| |_ __ _ ___(_)_ _  __ _  |_   _| _ __ _ __| |___
   #  | (_) | || |  _/ _` / _ \ | ' \/ _` |   | || '_/ _` / _` / -_)
   #   \___/ \_,_|\__\__, \___/_|_||_\__, |   |_||_| \__,_\__,_\___|
-  #                 |___/           |___/                          
+  #                 |___/           |___/
   @trade.command(
     name="initiate",
     description="Initiate a trade with a specified user (only one outgoing trade active at a time)"
@@ -492,7 +500,8 @@ class Trade(commands.Cog):
       await ctx.respond(embed=confirmation_embed, ephemeral=True)
 
       # Alert the requestee that the trade has been canceled if the trade was active
-      if active_trade["status"] == 'active':
+      user = get_user(requestee.id)
+      if active_trade["status"] == 'active' and user["receive_notifications"]:
         try:
           offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
 
@@ -531,7 +540,7 @@ class Trade(commands.Cog):
     active_trade = await self.check_for_active_trade(ctx)
     if not active_trade:
       return
-    
+
     logger.info(f"{Fore.CYAN}{ctx.author.display_name} is checking the status of their current trade.{Style.RESET_ALL}")
 
     await ctx.defer(ephemeral=True)
@@ -554,7 +563,7 @@ class Trade(commands.Cog):
     offered_embed, offered_image = await self._generate_offered_embed_and_image(active_trade)
     # Requested Page
     requested_embed, requested_image = await self._generate_requested_embed_and_image(active_trade)
-    
+
     # Paginator Pages
     trade_pages = [
       pages.Page(
@@ -733,24 +742,26 @@ class Trade(commands.Cog):
         await ctx.channel.send(embed=requested_embed, file=requested_image)
 
         # Give notice to Requestee
-        try:
-          requestee_embed = discord.Embed(
-            title="Trade Offered",
-            description=f"Hey there, wanted to let you know that {requestor.mention} has requested a trade from you on The USS Hood.\n\nUse `/trade reply` in the channel review and either accept or deny!\n\nYou can also see their offer at {home_message.jump_url}!",
-            color=discord.Color.dark_purple()
-          )
-          requestee_embed.add_field(
-            name=f"Offered by {requestor.display_name}",
-            value=offered_badge_names
-          )
-          requestee_embed.add_field(
-            name=f"Requested from {requestee.display_name}",
-            value=requested_badge_names
-          )
-          await requestee.send(embed=requestee_embed)
-        except discord.Forbidden as e:
-          logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
-          pass
+        user = get_user(requestee.id)
+        if user["receive_notifications"]:
+          try:
+            requestee_embed = discord.Embed(
+              title="Trade Offered",
+              description=f"Hey there, wanted to let you know that {requestor.mention} has requested a trade from you on The USS Hood.\n\nUse `/trade reply` in the channel review and either accept or deny!\n\nYou can also see their offer at {home_message.jump_url}!",
+              color=discord.Color.dark_purple()
+            )
+            requestee_embed.add_field(
+              name=f"Offered by {requestor.display_name}",
+              value=offered_badge_names
+            )
+            requestee_embed.add_field(
+              name=f"Requested from {requestee.display_name}",
+              value=requested_badge_names
+            )
+            await requestee.send(embed=requestee_embed)
+          except discord.Forbidden as e:
+            logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+            pass
 
 
       else:
@@ -987,13 +998,13 @@ class Trade(commands.Cog):
       await ctx.respond(embed=inactive_embed, ephemeral=True)
 
     return active_trade
-  
+
   async def _get_offered_and_requested_badge_names(self, active_trade):
     offered_badges = db_get_trade_offered_badges(active_trade)
     offered_badge_names = "None"
     if offered_badges:
       offered_badge_names = "\n".join([b['badge_name'] for b in offered_badges])
-    
+
     requested_badges = db_get_trade_requested_badges(active_trade)
     requested_badge_names = "None"
     if requested_badges:
@@ -1002,7 +1013,13 @@ class Trade(commands.Cog):
     return offered_badge_names, requested_badge_names
 
 
-# Check helpers
+
+#  ____ ___   __  .__.__
+# |    |   \_/  |_|__|  |   ______
+# |    |   /\   __\  |  |  /  ___/
+# |    |  /  |  | |  |  |__\___ \
+# |______/   |__| |__|____/____  >
+#                              \/
 def does_trade_contain_badges(active_trade):
   offered_badges = db_get_trade_offered_badges(active_trade)
   requested_badges = db_get_trade_requested_badges(active_trade)
@@ -1012,12 +1029,12 @@ def does_trade_contain_badges(active_trade):
   else:
     return False
 
-# ________                      .__               
+# ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
 #  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
-# /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \ 
+# /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
-#        \__>           \/              \/     \/ 
+#        \__>           \/              \/     \/
 def db_get_trade_requested_badges(active_trade):
   active_trade_id = active_trade["id"]
 

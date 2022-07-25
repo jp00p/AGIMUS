@@ -58,7 +58,7 @@ def seed_badge_tables():
         universes_list = [universes[0]]
       elif (type(universes) is str):
         universes_list = [universes]
- 
+
 
     query = db.cursor(dictionary=True, buffered=True)
     # Insert basic info into badge_info
@@ -86,7 +86,7 @@ def seed_badge_tables():
         '''
         vals = (badge_info_row_id, a)
         query.execute(sql, vals)
-    
+
     # Same for types
     if types_list is not None:
       for t in types_list:
@@ -96,7 +96,7 @@ def seed_badge_tables():
         '''
         vals = (badge_info_row_id, t)
         query.execute(sql, vals)
-    
+
     # Same for universes
     if universes_list is not None:
       for u in universes_list:
