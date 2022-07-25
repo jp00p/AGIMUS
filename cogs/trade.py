@@ -142,9 +142,6 @@ class AcceptButton(discord.ui.Button):
     )
 
   async def callback(self, interaction: discord.Interaction):
-    view = self.view
-    view.disable_all_items()
-    await interaction.response.edit_message(view=view)
     await self.cog._accept_trade_callback(interaction, self.active_trade)
 
 class DeclineButton(discord.ui.Button):
@@ -255,6 +252,15 @@ class Trade(commands.Cog):
     # Perform the actual swap
     db_perform_badge_transfer(active_trade)
     db_complete_trade(active_trade)
+
+    await interaction.response.edit_message(
+      embed=discord.Embed(
+        title="Trade Successful!",
+        color=discord.Color.dark_purple()
+      ),
+      view=None,
+      attachments=[]
+    )
 
     # Send Message to Channel
     requestor = await self.bot.fetch_user(active_trade["requestor_id"])
