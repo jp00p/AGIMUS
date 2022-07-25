@@ -286,6 +286,9 @@ class Trade(commands.Cog):
     user = get_user(requestor.id)
     if user["receive_notifications"]:
       try:
+        success_embed.set_footer(
+          text="Note: You can use /toggle_notifications to enable or disable these messages."
+        )
         await requestor.send(embed=success_embed)
       except discord.Forbidden as e:
         logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
@@ -326,7 +329,9 @@ class Trade(commands.Cog):
             name=f"Requested from {requestee.display_name}",
             value=requested_badge_names
           )
-          requestee_embed.set_footer(text="Thank you and have a nice day!")
+          requestee_embed.set_footer(
+            text="Note: You can use /toggle_notifications to enable or disable these messages."
+          )
           await requestee.send(embed=requestee_embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send trade cancelation message to {requestee.display_name}, they have their DMs closed.")
@@ -349,7 +354,9 @@ class Trade(commands.Cog):
             name=f"Requested from {requestee.display_name}",
             value=requested_badge_names
           )
-          requestor_embed.set_footer(text="Thank you and have a nice day!")
+          requestor_embed.set_footer(
+            text="Note: You can use /toggle_notifications to enable or disable these messages."
+          )
           await requestor.send(embed=requestor_embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
@@ -388,7 +395,9 @@ class Trade(commands.Cog):
           name=f"Requested from {requestee.display_name}",
           value=requested_badge_names
         )
-        declined_embed.set_footer(text="Thank you and have a nice day!")
+        declined_embed.set_footer(
+          text="Note: You can use /toggle_notifications to enable or disable these messages."
+        )
         await requestor.send(embed=declined_embed)
       except discord.Forbidden as e:
         logger.info(f"Unable to send trade declined message to {requestor.display_name}, they have their DMs closed.")
@@ -561,7 +570,9 @@ class Trade(commands.Cog):
             name=f"Requested from {requestee.display_name}",
             value=requested_badge_names
           )
-
+          notification_embed.set_footer(
+            text="Note: You can use /toggle_notifications to enable or disable these messages."
+          )
           await requestee.send(embed=notification_embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send message to trade requestee {requestee.display_name} because they have DMs disabled.")
@@ -630,6 +641,9 @@ class Trade(commands.Cog):
           requestee_embed.add_field(
             name=f"Requested from {requestee.display_name}",
             value=requested_badge_names
+          )
+          requestee_embed.set_footer(
+            text="Note: You can use /toggle_notifications to enable or disable these messages."
           )
           await requestee.send(embed=requestee_embed)
         except discord.Forbidden as e:
