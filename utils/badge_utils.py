@@ -40,13 +40,13 @@ def generate_badge_trade_showcase(badge_list, id, title, footer):
 
   draw = ImageDraw.Draw(badge_base_image)
 
-  draw.text( (base_width/2, 100), title, fill="white", font=title_font, anchor="mm", align="center")
-  draw.text( (base_width/2, base_h-50), footer, fill="white", font=credits_font, anchor="mm", align="center",stroke_width=2,stroke_fill="#000000")
+  draw.text( (base_width/2 + image_padding, 100), title, fill="white", font=title_font, anchor="mm", align="center")
+  draw.text( (base_width/2 + image_padding, base_h-50), footer, fill="white", font=credits_font, anchor="mm", align="center",stroke_width=2,stroke_fill="#000000")
 
 
   # Center positioning. Move start_x to center of image then - 1/2 of the width of each image * the length of images
   half_badge_slot_size = int(badge_slot_size / 2)
-  start_x = int(base_width/2 - (half_badge_slot_size * len(badge_list)))
+  start_x = int((base_width/2 + image_padding/2) - (half_badge_slot_size * len(badge_list)))
 
   # start_x = image_padding
   current_x = start_x
