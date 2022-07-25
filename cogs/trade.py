@@ -271,8 +271,6 @@ class Trade(commands.Cog):
 
     # Filter out the current trade itself, then cancel the others
     trades_to_cancel = [t for t in related_trades if t["id"] != active_trade["id"]]
-    logger.info("trades to cancel:")
-    logger.info(pprint(trades_to_cancel))
 
     # Iterate through to cancel, and then
     for trade in trades_to_cancel:
