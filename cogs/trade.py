@@ -761,69 +761,6 @@ class Trade(commands.Cog):
 
     return home_embed, home_image
 
-
-  # @trade.command(
-  #   name="send",
-  #   description="Send your pending trade offer to the recipient and alert the channel"
-  # )
-  # async def activate(self, ctx):
-  #   try:
-  #     active_trade = await self.check_for_active_trade(ctx)
-  #     if not active_trade:
-  #       return
-
-  #     requestor = await self.bot.fetch_user(active_trade["requestor_id"])
-  #     requestee = await self.bot.fetch_user(active_trade["requestee_id"])
-
-  #     if active_trade["status"] == 'active':
-  #       await ctx.respond(embed=discord.Embed(
-  #         title="Already Active",
-  #         description=f"You already have an active request open with {requestee.mention}!\n\nYou can cancel this request with `/trade` cancel if you wish to start a new one!",
-  #         color=discord.Color.blurple()
-  #       ), ephemeral=True)
-  #       return
-
-  #     if not does_trade_contain_badges(active_trade):
-  #       await ctx.respond(embed=discord.Embed(
-  #         title="Invalid Trade",
-  #         description="You must use `/trade propose` to include at least one badge before sending a request.",
-  #         color=discord.Color.red()
-  #       ), ephemeral=True)
-  #       return
-
-  #     offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
-
-  #     view = SendConfirmView(self)
-  #     confirmation_embed = discord.Embed(
-  #       title="Trade Confirmation",
-  #       description=f"You're about to send your trade request to {requestee.mention}.\n\nAre you sure?",
-  #       color=discord.Color.blurple()
-  #     ).add_field(
-  #       name=f"Offered by {requestor.display_name}",
-  #       value=offered_badge_names
-  #     ).add_field(
-  #       name=f"Requested from {requestee.display_name}",
-  #       value=requested_badge_names
-  #     )
-
-  #     await ctx.respond(
-  #       embed=confirmation_embed,
-  #       view=view,
-  #       ephemeral=True
-  #     )
-  #     await view.wait()
-  #     if view.value:
-
-
-  #     else:
-  #       await ctx.send_followup(embed=discord.Embed(
-  #         title="Confirmation Canceled",
-  #         description="No action taken.\n\nYou may continue to modify the pending trade with \n`/trade offer` and `/trade request`",
-  #         color=discord.Color.dark_purple()
-  #       ), ephemeral=True)
-  #   except Exception as e:
-  #     logger.info(traceback.format_exc())
-
   @trade.command(
     name="propose",
     description="Offer or Request badges for your current pending trade"
