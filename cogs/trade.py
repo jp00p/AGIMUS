@@ -1,5 +1,3 @@
-from distutils.command.build_scripts import build_scripts
-from re import L
 from common import *
 from utils.badge_utils import generate_badge_trade_showcase
 from utils.check_channel_access import access_check
