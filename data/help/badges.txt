@@ -14,39 +14,33 @@ You may have up to three incoming trades at a time.
 **TRADING COMMANDS**
 
 **Incoming Trades**
-`/trade reply` - View any incoming trades other users have requested from you and respond to accept/decline the offer
+`/trade pending` - View any incoming trades other users have requested from you and respond to accept/decline the offer
 
 **Outgoing Trades**
-`/trade initiate <user>` - Must be done initially! Create a 'pending' trade with a user which you can modify to add offered/requested badges
+`/trade start <user>` - Must be done initially! Create a 'pending' trade with a user which you can modify to add offered/requested badges
 
-`/trade offer <add/remove> <badge name>` - Add or remove the badges you are offering to the user in your current pending trade
+`/trade propose <offer/request> <badge name>` - Add your offer and requested badges to the pending trade.
 
-`/trade request <add/remove> <badge name>` - Add or remove the badges you are requesting from the user in your current pending trade
-
-`/trade activate` - Send the pending trade to the user and notify the channel with the details
-
-`/trade status` - View the current details of your Active or Pending trade
-
-`/trade cancel` - Cancel your current Active or Pending trade
+`/trade status` - View the current details of your Active or Pending trade. Has buttons to Cancel and if currently pending, Send the proposed trade.
 
 **EXAMPLE OF A TRADE**
 
 1. Quark really wants the *"Volleyball Court"* Badge and is willing to trade his *"The Lucky Ferengi"* and *"Tongo Card (Sample)"* badges to get it. He sees that Weyoun has the *"Volleyball Court"* badge and decides to make an offer.
 
-2. Quark uses `/trade initiate @Weyoun` to start a pending trade with Weyoun as the recipient.
+2. Quark uses `/trade start @Weyoun` to start a pending trade with Weyoun as the recipient.
 
-3. Quark uses `/trade offer <add> "The Lucky Ferengi"` to add his first badge to the pending trade.
+3. Quark uses `/trade propose <offer> "The Lucky Ferengi"` to add his first badge to the pending trade.
 
-4. Quark uses `/trade offer <add> "Tongo Card (Sample)"` to add his second badge to the pending trade.
+4. Quark uses `/trade propose <offer> "Tongo Card (Sample)"` to add his second badge to the pending trade.
 
-5. Quark uses `/trade request <add> "Volleyball Court"` to add Weyoun's badge to the pending trade.
+5. Quark uses `/trade propose <request> "Volleyball Court"` to add Weyoun's badge to the pending trade.
 
-6. Quark uses `/trade status` to verify everything looks good to go.
+7. Quark uses `/trade status` to verify everything looks good to go, and then presses the Send button. Weyoun gets a notification letting them know that Quark has made an offer and the channel is also alerted that the trade is underway!
 
-7. Quark uses `/trade activate` to send the request to Weyoun.  Weyoun gets a notification letting them know that Quark has made an offer and the channel is also alerted that the trade is underway!
+8. Weyoun uses `/trade pending` to view Quark's offer and presses Accept (Weyoun also could have also pressed Decline if they did not wish to engage the trade).
 
-9. Weyoun uses `/trade reply` to view Quark's offer and presses Accept (they could have also pressed Decline if they did not wish to engage the trade).
+9. Successful trade! A notification is sent to both Quark and the channel to let them know that the transfer was made successfully! Quark now owns the *"Volleyball Court"* badge and Weyoun owns both *"The Lucky Ferengi"* and *"Tongo Card (Sample)"* badges.
 
-10. Successful trade! A notification is sent to both Quark and the channel to let them know that the transfer was made successfully! Quark now owns the *"Volleyball Court"* badge and Weyoun owns both *"The Lucky Ferengi"* and *"Tongo Card (Sample)"* badges.
+10. There is much rejoicing.
 
 

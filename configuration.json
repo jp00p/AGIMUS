@@ -580,7 +580,7 @@
       "data": "data/testslots.json",
       "parameters": []
     },
-    "trade activate": {
+    "trade send": {
       "channels": [
         "badgeys-badges"
       ],
@@ -596,7 +596,7 @@
       "data": null,
       "parameters": []
     },
-    "trade initiate": {
+    "trade start": {
       "channels": [
         "badgeys-badges"
       ],
@@ -604,7 +604,7 @@
       "data": null,
       "parameters": []
     },
-    "trade offer": {
+    "trade propose": {
       "channels": [
         "badgeys-badges"
       ],
@@ -612,15 +612,7 @@
       "data": null,
       "parameters": []
     },
-    "trade reply": {
-      "channels": [
-        "badgeys-badges"
-      ],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
-    "trade request": {
+    "trade pending": {
       "channels": [
         "badgeys-badges"
       ],
