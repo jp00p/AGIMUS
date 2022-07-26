@@ -9,6 +9,10 @@ f = open(config["handlers"]["xp"]["badge_data"])
 badge_data = json.loads(f.read())
 f.close()
 
+async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
+  all_badges = [key.replace('_', '').replace('.png', '') for key in badge_data.keys()]
+  return [badge for badge in all_badges if ctx.value.lower() in badge.lower()]
+
 @bot.slash_command(
   name="badges",
   description="Show off all your badges!"
@@ -52,38 +56,21 @@ async def badge_stats(ctx:discord.ApplicationContext):
 
 @bot.slash_command(
   name="gift_badge",
-  description="Give a user a badge (admin only)"
+  description="Give a user a random badge (admin only)"
 )
 @commands.has_permissions(administrator=True)
 @option(
-  name="user",
-  description="Which user to gift the badge to"
-)
-@option(
-  name="badge",
-  description="Specific badge?",
-  required=False
+  "user",
+  discord.User,
+  description="Which user to gift the badge to",
+  required=True
 )
 # give a random badge to a user
-async def gift_badge(ctx:discord.ApplicationContext, mention:str, specific_badge:str):
+async def gift_badge(ctx:discord.ApplicationContext, user:discord.User):
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
-  mention = mention.replace(" ", "")
-  selected_user = int(mention[1:][:len(mention)-2].replace("@","").replace("!",""))
-  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a badge{Style.RESET_ALL} to {selected_user}")
-  user = await bot.fetch_user(selected_user)
+  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a random badge{Style.RESET_ALL} to {user.display_name}")
 
-  if specific_badge:
-    specific_badge_filename = f"{specific_badge.replace(' ', '_')}.png"
-    badge_info = badge_data.get(specific_badge_filename)
-    if badge_info == None:
-      await ctx.respond(f"Can't send {specific_badge}, it doesn't look like that badge exists!", ephemeral=True)
-    else:
-      user_badges = get_user_badges(selected_user)
-      if specific_badge not in user_badges:
-        badge = specific_badge_filename
-        give_user_specific_badge(selected_user, specific_badge)
-  else:
-    badge = give_user_badge(user.id)
+  badge = give_user_badge(user.id)
 
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a badge!"
@@ -95,6 +82,56 @@ async def gift_badge(ctx:discord.ApplicationContext, mention:str, specific_badge
 
 @gift_badge.error
 async def gift_badge_error(ctx, error):
+  if isinstance(error, commands.MissingPermissions):
+    await ctx.respond("Sorry, you do not have permission to do that!", ephemeral=True)
+  else:
+    await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
+
+
+@bot.slash_command(
+  name="gift_specific_badge",
+  description="Give a user a specific badge (admin only)"
+)
+@commands.has_permissions(administrator=True)
+@option(
+  "user",
+  discord.User,
+  description="Which user to gift the badge to",
+  required=True
+)
+@option(
+  name="specific_badge",
+  description="The name of the Badge to Gift",
+  required=True,
+  autocomplete=all_badges_autocomplete
+)
+# give a random badge to a user
+async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User, specific_badge:str):
+  notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
+  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift {specific_badge}{Style.RESET_ALL} to {user.display_name}")
+
+  specific_badge_filename = f"{specific_badge.replace(' ', '_')}.png"
+  badge_info = badge_data.get(specific_badge_filename)
+  if badge_info == None:
+    await ctx.respond(f"Can't send {specific_badge}, it doesn't look like that badge exists!", ephemeral=True)
+    return
+  else:
+    user_badges = get_user_badges(user.id)
+    if specific_badge not in user_badges:
+      badge = specific_badge_filename
+      give_user_specific_badge(user.id, specific_badge_filename)
+
+  channel = bot.get_channel(notification_channel_id)
+  embed_title = "You got rewarded a badge!"
+  thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
+  embed_description = f"{user.mention} has been gifted a badge by {ctx.author.mention}!"
+  message = f"{user.mention} - Nice work, you got a free badge!"
+  await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
+  await ctx.respond("Your gift has been sent!", ephemeral=True)
+
+
+@gift_specific_badge.error
+async def gift_specific_badge_error(ctx, error):
   if isinstance(error, commands.MissingPermissions):
     await ctx.respond("Sorry, you do not have permission to do that!", ephemeral=True)
   else:
