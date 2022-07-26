@@ -10,7 +10,7 @@ badge_data = json.loads(f.read())
 f.close()
 
 async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
-  all_badges = [key.replace('_', '').replace('.png', '') for key in badge_data.keys()]
+  all_badges = [key.replace('_', ' ').replace('.png', '') for key in badge_data.keys()]
   return [badge for badge in all_badges if ctx.value.lower() in badge.lower()]
 
 @bot.slash_command(

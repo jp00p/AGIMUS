@@ -259,10 +259,8 @@ class Trade(commands.Cog):
     # IF they do, then cancel the trade
     requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
     existing_requestor_badges = [b["badge_name"].replace('_', ' ').replace('.png', '') for b in requestor_badges]
-    logger.info(f"existing_requestor_badges - {existing_requestor_badges}")
     trade_requestor_badges = db_get_trade_requested_badges(active_trade)
     trade_requestor_badge_names = [b["badge_name"] for b in trade_requestor_badges]
-    logger.info(f"trade_requestor_badge_names - {trade_requestor_badge_names}")
     existing_requestor_trade_badges = [t for t in existing_requestor_badges if t in trade_requestor_badge_names]
     if len(existing_requestor_trade_badges) > 0:
       db_cancel_trade(active_trade)
@@ -300,10 +298,8 @@ class Trade(commands.Cog):
 
     requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
     existing_requestee_badges = [b["badge_name"].replace('_', ' ').replace('.png', '') for b in requestee_badges]
-    logger.info(f"existing_requestee_badges - {existing_requestee_badges}")
     trade_requestee_badges = db_get_trade_offered_badges(active_trade)
     trade_requestee_badge_names = [b["badge_name"] for b in trade_requestee_badges]
-    logger.info(f"trade_requestee_badge_names - {trade_requestee_badge_names}")
     existing_requestee_trade_badges = [t for t in existing_requestee_badges if t in trade_requestee_badge_names]
     if len(existing_requestee_trade_badges) > 0:
       db_cancel_trade(active_trade)
