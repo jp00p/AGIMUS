@@ -43,11 +43,11 @@ async def badges(ctx:discord.ApplicationContext, public:str):
 async def badge_stats(ctx:discord.ApplicationContext):
   results = {}
   results = run_badge_stats_queries()
-  embed = discord.Embed(color=discord.Color.random(), description="", title="")  
+  embed = discord.Embed(color=discord.Color.random(), description="", title="")
   embed.add_field(name="Total badges collected on the USS Hood", value=f"{results['total_badges'][0]['count']}")
   embed.add_field(name="Most popular badge somehow", value=f'{results["most_collected"][0]["badge_name"].replace("_", " ").replace(".png", "")} ({results["most_collected"][0]["count"]} collected)')
   embed.add_field(name="Crew member with the most badges right now", value=f"{results['number_one'][0]['name']} ({results['number_one'][0]['count']})")
-  await ctx.respond(embed=embed, ephemeral=False)  
+  await ctx.respond(embed=embed, ephemeral=False)
 
 
 @bot.slash_command(
@@ -59,18 +59,36 @@ async def badge_stats(ctx:discord.ApplicationContext):
   name="user",
   description="Which user to gift the badge to"
 )
+@option(
+  name="badge",
+  description="Specific badge?",
+  required=False
+)
 # give a random badge to a user
-async def gift_badge(ctx:discord.ApplicationContext, mention:str):
+async def gift_badge(ctx:discord.ApplicationContext, mention:str, specific_badge:str):
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   mention = mention.replace(" ", "")
   selected_user = int(mention[1:][:len(mention)-2].replace("@","").replace("!",""))
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a badge{Style.RESET_ALL} to {selected_user}")
   user = await bot.fetch_user(selected_user)
-  badge = give_user_badge(user.id)
+
+  if specific_badge:
+    specific_badge_filename = f"{specific_badge.replace(' ', '_')}.png"
+    badge_info = badge_data.get(specific_badge_filename)
+    if badge_info == None:
+      await ctx.respond(f"Can't send {specific_badge}, it doesn't look like that badge exists!", ephemeral=True)
+    else:
+      user_badges = get_user_badges(selected_user)
+      if specific_badge not in user_badges:
+        badge = specific_badge_filename
+        give_user_specific_badge(selected_user, specific_badge)
+  else:
+    badge = give_user_badge(user.id)
+
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a badge!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
-  embed_description = f"{user.mention} has been gifted a random badge by {ctx.author.mention}!"
+  embed_description = f"{user.mention} has been gifted a badge by {ctx.author.mention}!"
   message = f"{user.mention} - Nice work, you got a free badge!"
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
   await ctx.respond("Your gift has been sent!", ephemeral=True)
@@ -111,24 +129,24 @@ def generate_badge_showcase_for_user(user:discord.User):
   title_font = ImageFont.truetype("images/tng_credits.ttf", 68)
   credits_font = ImageFont.truetype("images/tng_credits.ttf", 42)
   badge_font = ImageFont.truetype("images/context_bold.ttf", 28)
-  
+
   badge_size = 200
   badge_padding = 40
   badge_margin = 10
   badge_slot_size = badge_size + (badge_padding * 2) # size of badge slot size (must be square!)
   badges_per_row = 6
-  
+
   base_width = (badge_slot_size+badge_margin) * badges_per_row
   base_height = math.ceil((len(badge_list) / badges_per_row)) * (badge_slot_size + badge_margin)
-  
+
   header_height = badge_size
   image_padding = 50
-  
+
   # create base image to paste all badges on to
   # what if they have 900 badges?
   badge_base_image = Image.new("RGBA", (base_width+(image_padding*2), base_height+header_height+(image_padding*2)), (200, 200, 200))
   badge_bg_image = Image.open("./images/stars/" + random.choice(os.listdir("./images/stars/")))
-  
+
   base_w, base_h = badge_base_image.size
   bg_w, bg_h = badge_bg_image.size
 
@@ -137,7 +155,7 @@ def generate_badge_showcase_for_user(user:discord.User):
       badge_base_image.paste(badge_bg_image, (i, j))
 
   draw = ImageDraw.Draw(badge_base_image)
-    
+
   draw.text( (base_width/2, 100), f"{user.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge collection", fill="white", font=title_font, anchor="mm", align="center")
   draw.text( (base_width/2, base_h-50), f"Total of {len(badge_list)} badges collected on the USS Hood", fill="white", font=credits_font, anchor="mm", align="center",stroke_width=2,stroke_fill="#000000")
 
@@ -176,13 +194,13 @@ def generate_badge_showcase_for_user(user:discord.User):
 
     current_x += badge_slot_size + badge_margin
     counter += 1
-    
+
     if counter % badges_per_row == 0:
       # typewriter sound effects:
       current_x = start_x # ding!
       current_y += badge_slot_size + badge_margin # ka-chunk
       counter = 0 #...
-  
+
   badge_base_image.save(f"./images/profiles/badge_list_{user.id}.png")
 
   while True:
@@ -215,7 +233,18 @@ def give_user_badge(user_discord_id:int):
   query.close()
   db.close()
   return badge_choice
-  
+
+def give_user_specific_badge(user_discord_id:int, badge_choice:str):
+  db = getDB()
+  query = db.cursor()
+  sql = "INSERT INTO badges (user_discord_id, badge_name) VALUES (%s, %s)"
+  vals = (user_discord_id, badge_choice)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+  return badge_choice
+
 # get_user_badges(user_discord_id)
 # user_discord_id[required]: int
 # returns a list of badges the user has

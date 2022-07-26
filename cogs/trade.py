@@ -249,6 +249,96 @@ class Trade(commands.Cog):
   async def _accept_trade_callback(self, interaction, active_trade):
     await self._cancel_invalid_related_trades(active_trade)
 
+    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
+    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+    offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+
+    # Get offered badges
+    # Get requested badges
+    # Ensure that each user does not have them currently
+    # IF they do, then cancel the trade
+    requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
+    existing_requestor_badges = [b["badge_name"].replace('_', ' ').replace('.png', '') for b in requestor_badges]
+    logger.info(f"existing_requestor_badges - {existing_requestor_badges}")
+    trade_requestor_badges = db_get_trade_requested_badges(active_trade)
+    trade_requestor_badge_names = [b["badge_name"] for b in trade_requestor_badges]
+    logger.info(f"trade_requestor_badge_names - {trade_requestor_badge_names}")
+    existing_requestor_trade_badges = [t for t in existing_requestor_badges if t in trade_requestor_badge_names]
+    if len(existing_requestor_trade_badges) > 0:
+      db_cancel_trade(active_trade)
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title="Invalid Trade",
+          description="Sorry! They've already received some of the badges you requested elsewhere while this trade was pending!\n\nTrade has been canceled.",
+          color=discord.Color.red()
+        ),
+        view=None,
+        attachments=[]
+      )
+      try:
+        requestor_embed = discord.Embed(
+          title="Trade Canceled",
+          description=f"Just a heads up! Your USS Hood Badge Trade initiated by {requestor.mention} was canceled because one or more of the badges involved you already own now!",
+          color=discord.Color.purple()
+        )
+        requestor_embed.add_field(
+          name=f"Offered by {requestor.display_name}",
+          value=offered_badge_names
+        )
+        requestor_embed.add_field(
+          name=f"Requested from {requestee.display_name}",
+          value=requested_badge_names
+        )
+        requestor_embed.set_footer(
+          text="Note: You can use /toggle_notifications to enable or disable these messages."
+        )
+        await requestor.send(embed=requestor_embed)
+      except discord.Forbidden as e:
+        logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+        pass
+      return
+
+    requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
+    existing_requestee_badges = [b["badge_name"].replace('_', ' ').replace('.png', '') for b in requestee_badges]
+    logger.info(f"existing_requestee_badges - {existing_requestee_badges}")
+    trade_requestee_badges = db_get_trade_offered_badges(active_trade)
+    trade_requestee_badge_names = [b["badge_name"] for b in trade_requestee_badges]
+    logger.info(f"trade_requestee_badge_names - {trade_requestee_badge_names}")
+    existing_requestee_trade_badges = [t for t in existing_requestee_badges if t in trade_requestee_badge_names]
+    if len(existing_requestee_trade_badges) > 0:
+      db_cancel_trade(active_trade)
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title="Invalid Trade",
+          description="Sorry! You already received some of the badges they offered elsewhere while this trade was pending!\n\nTrade has been canceled.",
+          color=discord.Color.red()
+        ),
+        view=None,
+        attachments=[]
+      )
+      try:
+        requestee_embed = discord.Embed(
+          title="Trade Canceled",
+          description=f"Just a heads up! Your USS Hood Badge Trade sent to {requestee.mention} was canceled because one or more of the badges involved they already own now!",
+          color=discord.Color.purple()
+        )
+        requestee_embed.add_field(
+          name=f"Offered by {requestor.display_name}",
+          value=offered_badge_names
+        )
+        requestee_embed.add_field(
+          name=f"Requested from {requestee.display_name}",
+          value=requested_badge_names
+        )
+        requestee_embed.set_footer(
+          text="Note: You can use /toggle_notifications to enable or disable these messages."
+        )
+        await requestee.send(embed=requestor_embed)
+      except discord.Forbidden as e:
+        logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+        pass
+      return
+
     # Perform the actual swap
     db_perform_badge_transfer(active_trade)
     db_complete_trade(active_trade)
@@ -263,11 +353,6 @@ class Trade(commands.Cog):
     )
 
     # Send Message to Channel
-    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
-    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
-
-    offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
-
     success_embed = discord.Embed(
       title="Successful Trade!",
       description=f"{requestor.mention} and {requestee.mention} came to an agreement!\n\nBadges transferred successfully!",
