@@ -11,8 +11,14 @@ clip_data = json.load(f)
 f.close()
 
 async def clip_autocomplete(ctx:discord.AutocompleteContext):
-  clip_keys = clip_data.keys()
-  return [key for key in clip_keys if ctx.value.lower() in key.lower()]
+  results = []
+  for clip_key in clip_data.keys():
+    clip_info = clip_data[clip_key]
+    clip_description = clip_info["description"]
+    if ctx.value.lower() in clip_key.lower() or ctx.value.lower() in clip_description:
+      results.append(clip_key)
+
+  return results
 
 # Create drop Slash Command Group
 clip = bot.create_group("clip", "Clip Commands!")
