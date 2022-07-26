@@ -18,7 +18,7 @@ async def autocomplete_badges(ctx:discord.AutocompleteContext):
   action = ctx.options["action"]
   active_trade = db_get_active_requestor_trade(ctx.interaction.user.id)
   if not active_trade:
-    return []
+    return ['You must use /trade start first!']
 
   if action == 'offer':
     results = await _autocomplete_requestor_badges(ctx, active_trade['requestor_id'])
