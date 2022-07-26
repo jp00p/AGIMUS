@@ -142,9 +142,6 @@ class AcceptButton(discord.ui.Button):
     )
 
   async def callback(self, interaction: discord.Interaction):
-    view = self.view
-    view.disable_all_items()
-    await interaction.response.edit_message(view=view)
     await self.cog._accept_trade_callback(interaction, self.active_trade)
 
 class DeclineButton(discord.ui.Button):
@@ -256,6 +253,15 @@ class Trade(commands.Cog):
     db_perform_badge_transfer(active_trade)
     db_complete_trade(active_trade)
 
+    await interaction.response.edit_message(
+      embed=discord.Embed(
+        title="Trade Successful!",
+        color=discord.Color.dark_purple()
+      ),
+      view=None,
+      attachments=[]
+    )
+
     # Send Message to Channel
     requestor = await self.bot.fetch_user(active_trade["requestor_id"])
     requestee = await self.bot.fetch_user(active_trade["requestee_id"])
@@ -286,6 +292,9 @@ class Trade(commands.Cog):
     user = get_user(requestor.id)
     if user["receive_notifications"]:
       try:
+        success_embed.set_footer(
+          text="Note: You can use /toggle_notifications to enable or disable these messages."
+        )
         await requestor.send(embed=success_embed)
       except discord.Forbidden as e:
         logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
@@ -326,7 +335,9 @@ class Trade(commands.Cog):
             name=f"Requested from {requestee.display_name}",
             value=requested_badge_names
           )
-          requestee_embed.set_footer(text="Thank you and have a nice day!")
+          requestee_embed.set_footer(
+            text="Note: You can use /toggle_notifications to enable or disable these messages."
+          )
           await requestee.send(embed=requestee_embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send trade cancelation message to {requestee.display_name}, they have their DMs closed.")
@@ -349,7 +360,9 @@ class Trade(commands.Cog):
             name=f"Requested from {requestee.display_name}",
             value=requested_badge_names
           )
-          requestor_embed.set_footer(text="Thank you and have a nice day!")
+          requestor_embed.set_footer(
+            text="Note: You can use /toggle_notifications to enable or disable these messages."
+          )
           await requestor.send(embed=requestor_embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
@@ -450,7 +463,7 @@ class Trade(commands.Cog):
         active_trade_requestee = await self.bot.fetch_user(active_trade['requestee_id'])
         already_active_embed = discord.Embed(
           title="You already have an active trade!",
-          description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade cancel` cancel the current trade if desired!\n\nThis must be resolved before you can open another request.",
+          description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade status` to cancel the current trade if desired!\n\nThis must be resolved before you can open another request.",
           color=discord.Color.red()
         )
         already_active_embed.set_footer(text="You may want to check on this trade to see if they have had a chance to review your request!")
@@ -561,6 +574,9 @@ class Trade(commands.Cog):
             name=f"Requested from {requestee.display_name}",
             value=requested_badge_names
           )
+          notification_embed.set_footer(
+            text="Note: You can use /toggle_notifications to enable or disable these messages."
+          )
 
           await requestee.send(embed=notification_embed)
         except discord.Forbidden as e:
@@ -630,6 +646,9 @@ class Trade(commands.Cog):
           requestee_embed.add_field(
             name=f"Requested from {requestee.display_name}",
             value=requested_badge_names
+          )
+          requestee_embed.set_footer(
+            text="Note: You can use /toggle_notifications to enable or disable these messages."
           )
           await requestee.send(embed=requestee_embed)
         except discord.Forbidden as e:
