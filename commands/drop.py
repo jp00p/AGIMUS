@@ -11,9 +11,14 @@ drop_data = json.load(f)
 f.close()
 
 async def drop_autocomplete(ctx:discord.AutocompleteContext):
-  drop_keys = drop_data.keys()
-  return [key for key in drop_keys if ctx.value.lower() in key.lower()]
-  # return drop_data.keys()
+  results = []
+  for drop_key in drop_data.keys():
+    drop_info = drop_data[drop_key]
+    drop_description = drop_info["description"]
+    if ctx.value.lower() in drop_key.lower() or ctx.value.lower() in drop_description:
+      results.append(drop_key)
+
+  return results
 
 # Create drop Slash Command Group
 drop = bot.create_group("drop", "Drop Commands!")

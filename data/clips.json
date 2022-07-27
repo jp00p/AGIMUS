@@ -1,4 +1,14 @@
 {
+  "AGIMUS Reigns!": {
+    "file": "data/clips/agimusreigns.mp4",
+    "description": "AGIMUS reigns with this ship's materials I will produce a whole fleet of murder drones this planet nay this system will be mine you fool you trusted me",
+    "url": "https://i.imgur.com/uiacPCt.mp4"
+  },
+  "AGIMUS YESSS!": {
+    "file": "data/clips/agimusyes.mp4",
+    "description": "AGIMUS yes",
+    "url": "https://i.imgur.com/KxfDkTT.mp4"
+  },
   "Data - It Is Green!": {
     "file": "data/clips/dataitisgreen.mp4",
     "description": "Data it is green",
@@ -6,12 +16,12 @@
   },
   "Data - It Is Revolting!": {
     "file": "data/clips/dataitisrevolting.mp4",
-    "description": "Data it is its revolting green",
+    "description": "Data it is its revolting",
     "url": "https://i.imgur.com/I9mvDej.mp4"
   },
   "Data - Oh Shit!": {
     "file": "data/clips/dataohshit.mp4",
-    "description": "Data Ohhhh Shit!",
+    "description": "Data Ohhhh Shit",
     "url": "https://i.imgur.com/GH7Dy2J.mp4"
   },
   "Data - Yesss!": {
@@ -43,6 +53,11 @@
     "file": "data/clips/picarddamnyou.mp4",
     "description": "Picard Damn You",
     "url": "https://i.imgur.com/vuDmv7F.mp4"
+  },
+  "Picard - Get Off My Bridge": {
+    "file": "data/clips/picardgetoffmybridge.mp4",
+    "description": "Picard get off my bridge",
+    "url": "https://i.imgur.com/ZABuj44.mp4"
   },
   "Picard - Engage!": {
     "file": "data/clips/picardengage.mp4",

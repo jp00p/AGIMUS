@@ -21,8 +21,13 @@
   },
   "Ben's Gonna Talk About Africa": {
     "file": "data/drops/bensgonnatalkaboutafrica.mp4",
-    "description": "Ben is Ben's Going To Gonna Talk About Africa.",
+    "description": "Ben is Ben's Going To Gonna Talk About Africa song",
     "url": "https://i.imgur.com/UyqYbwe.mp4"
+  },
+  "Buddy Husnock": {
+    "file": "data/drops/buddyhusnock.mp4",
+    "description": "Buddy Husnock Weezer Buddy Holly parody song",
+    "url": "https://i.imgur.com/jHNoqFg.mp4"
   },
   "Bible Study": {
     "file": "data/drops/biblestudy.mp4",
@@ -174,6 +179,11 @@
     "description": "Madlibs",
     "url": "https://i.imgur.com/a3AAZ0r.mp4"
   },
+  "Man In The Mirror (Time Beam Version)": {
+    "file": "data/drops/maninthemirror.mp4",
+    "description": "Man In The Mirror time beam parody song",
+    "url": "https://i.imgur.com/dZV54k7.mp4"
+  },
   "Mayqueese": {
     "file": "data/drops/mayqueese.mp4",
     "description": "Mayqueese, Maquis",
@@ -243,6 +253,11 @@
     "file": "data/drops/raincheck.mp4",
     "description": "Raincheck Segment",
     "url": "https://i.imgur.com/UAXeJQ8.mp4"
+  },
+  "Return of Dukat": {
+    "file": "data/drops/returnofdukat.mp4",
+    "description": "Return of Dukat song",
+    "url": "https://i.imgur.com/SmMridO.mp4"
   },
   "Schismd": {
     "file": "data/drops/schismd.mp4",
