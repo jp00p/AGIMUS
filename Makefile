@@ -82,7 +82,7 @@ db-dump: ## Dump the database to a file at ./$DB_DUMP_FILENAME
 
 .PHONY: db-load
 db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
-	@docker-compose exec -T db sh -c 'exec mysql -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_DUMP_FILENAME}
+	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_DUMP_FILENAME}
 
 .PHONY: db-seed
 db-seed: ## Reload the database from a file at ./$DB_SEED_FILEPATH
