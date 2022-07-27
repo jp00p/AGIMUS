@@ -107,7 +107,7 @@ class Trivia(commands.Cog):
         title="Trivia Alert!".format(self.trivia_data["difficulty"]),
         description=f"Category: *{self.trivia_data['category']}*\n\n> **{self.trivia_data['question']}**"
       )
-      thumb = discord.File(f"./images/{self.trivia_data['difficulty']}.png")
+      thumb = discord.File(f"./images/trivia/{self.trivia_data['difficulty']}.png")
       embed.set_thumbnail(url=f"attachment://{self.trivia_data['difficulty']}.png")
 
       view = discord.ui.View()

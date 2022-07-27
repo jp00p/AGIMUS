@@ -96,7 +96,7 @@ async def handle_message_xp(message:discord.Message):
 async def handle_intro_channel_promotion(message):
   promotion_roles_config = config["roles"]["promotion_roles"]
 
-  if message.channel.id == INTRO_CHANNEL:
+  if message.channel.id == get_channel_id(config["intro_channel"]):
     member = message.author
     cadet_role_name = promotion_roles_config["ranks"]["cadet"]
     author_role_names = [r.name for r in message.author.roles]
@@ -118,6 +118,13 @@ async def handle_intro_channel_promotion(message):
       random.shuffle(welcome_reacts)
       for i in welcome_reacts:
         await message.add_reaction(i)
+
+      # send message to admins
+      usher_msgs = config["handlers"]["xp"]["usher_messages"]
+      admin_msg = f"**{message.author.mention} has just posted an intro!** Could someone {random.choice(usher_msgs)}? \n\nFind their intro here: {message.jump_url}"
+      admin_channel = bot.get_channel(get_channel_id(config["admin_channel"]))
+      logger.info(f"Admin channel: {admin_channel}")
+      await admin_channel.send(admin_msg)
 
 # If they've hit an XP threshold, auto-promote to general ranks
 async def handle_rank_xp_promotion(message, xp):
@@ -279,7 +286,7 @@ async def send_level_up_message(user:discord.User, level:int, badge:str):
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has reached **level {level}** and earned a new badge!"
   messages = config["handlers"]["xp"]["level_up_messages"]
-  message = random.choice(messages).format(user=user.mention, level=level)
+  message = random.choice(messages).format(user=user.mention, level=level, prev_level=(level-1))
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
 
 # increment_user_xp(author, amt)
@@ -319,6 +326,7 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel):
         await level_up_user(user, user_xp_data["level"]+1)
       except Exception as e:
         logger.info(f"Error trying to level up user: {e}")
+        logger.info(traceback.format_exc())
 
 # get_user_xp(discord_id)
 # discord_id[required]: int

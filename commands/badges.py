@@ -108,9 +108,9 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
 def generate_badge_showcase_for_user(user:discord.User):
   text_wrapper = textwrap.TextWrapper(width=22)
   badge_list = get_user_badges(user.id)
-  title_font = ImageFont.truetype("images/tng_credits.ttf", 68)
-  credits_font = ImageFont.truetype("images/tng_credits.ttf", 42)
-  badge_font = ImageFont.truetype("images/context_bold.ttf", 28)
+  title_font = ImageFont.truetype("fonts/tng_credits.ttf", 68)
+  credits_font = ImageFont.truetype("fonts/tng_credits.ttf", 42)
+  badge_font = ImageFont.truetype("fonts/context_bold.ttf", 28)
   
   badge_size = 200
   badge_padding = 40
@@ -160,7 +160,7 @@ def generate_badge_showcase_for_user(user:discord.User):
     b = b.resize((190, 190))
 
     w, h = b.size # badge size
-    offset_x = min(0, (badge_size+badge_padding)-w) # center badge x
+    offset_x = min(0, (badge_size+badge_padding+2)-w) # center badge x
     offset_y = 5
     badge_name = text_wrapper.wrap(badge.replace("_", " ").replace(".png", ""))
     wrapped_badge_name = ""

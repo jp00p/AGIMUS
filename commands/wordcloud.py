@@ -113,12 +113,15 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
     max_words=500, 
     stopwords=STOPWORDS, 
     mask=mask,
-    font_path="./images/tng_credits.ttf", 
-    background_color="#111111", 
+    font_path="./fonts/tng_credits.ttf", 
+    background_color="#000000", 
     mode="RGB", 
     width=1200, 
     height=800, 
     min_word_length=3).generate(full_wordlist)
+
+  wc_array = wc.to_array()
+  logger.info(wc_array)
 
   # create PIL image 
   image = wc.to_image()

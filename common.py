@@ -225,7 +225,7 @@ def register_player(user):
 # value[required]: string
 # This function will update a specific value for a specific user
 def update_user(discord_id, key, value):
-  modifiable = ["score", "spins", "jackpots", "wager", "high_roller", "chips", "xp", "profile_card", "profile_badge"]
+  modifiable = ["score", "spins", "jackpots", "wager", "high_roller", "xp", "profile_photo", "profile_sticker_1"]
   if key not in modifiable:
     logger.error(f"{Fore.RED}{key} not in {modifiable}{Fore.RESET}")
   else:
@@ -241,12 +241,10 @@ def update_user(discord_id, key, value):
       sql = "UPDATE users SET wager = %s WHERE discord_id = %s"
     elif key == "high_roller":
       sql = "UPDATE users SET high_roller = %s WHERE discord_id = %s"
-    elif key == "chips":
-      sql = "UPDATE users SET chips = %s WHERE discord_id = %s"
-    elif key == "profile_card":
-      sql = "UPDATE users SET profile_card = %s WHERE discord_id = %s"
-    elif key == "profile_badge":
-      sql = "UPDATE users SET profile_badge = %s WHERE discord_id = %s"
+    elif key == "profile_photo":
+      sql = "UPDATE users SET profile_photo = %s WHERE discord_id = %s"
+    elif key == "profile_sticker_1":
+      sql = "UPDATE users SET profile_sticker_1 = %s WHERE discord_id = %s"
     elif key == "xp":
       sql = "UPDATE users SET xp = %s WHERE discord_id = %s"
     vals = (value, discord_id)

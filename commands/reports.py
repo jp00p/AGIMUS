@@ -24,6 +24,10 @@ from prettytable.colortable import ColorTable, Themes
       value="scores"
     ),
     discord.OptionChoice(
+      name="Channel Activity",
+      value="activity"
+    ),
+    discord.OptionChoice(
       name="XP gains in the last hour",
       value="gains"
     ),
@@ -63,9 +67,13 @@ async def reports(ctx:discord.ApplicationContext, report:str, report_style:str):
       response = generate_gainers_report_card(report_style)
     elif report == "diagnostic":
       response = generate_diagnostic_card(report_style)
+    elif report == "activity":
+      response = generate_channel_activity_report_card(report_style)
     if response:
+      # send an image-based report
       if report_style == "fancy":
         await ctx.followup.send(file=response, ephemeral=False)
+      # send a markdown text-based report
       if report_style == "markdown":
         await ctx.followup.send(response)
     else:
@@ -100,6 +108,17 @@ def get_scores_report():
   db.close()
   return results
 
+def get_channel_activity_report():
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = "SELECT SUM(amount) as xp_amount, channel_id FROM xp_history WHERE time_created > NOW() - INTERVAL 1 DAY GROUP BY channel_id ORDER BY SUM(amount) DESC"
+  query.execute(sql)
+  results = query.fetchall()
+  db.commit()
+  query.close()
+  db.close()
+  return results
+
 # get_gainers_report() - returns a dictionary of users who gained the most xp in the last hour
 def get_gainers_report():
   db = getDB()
@@ -113,18 +132,30 @@ def get_gainers_report():
   return results
     
 
+def generate_channel_activity_report_card(type:str):
+  channel_names = {v:k for k,v in config["channels"].items()} 
+  activity_data = get_channel_activity_report()
+  title = "AGIMUS REPORT"
+  description = "Most active channels in the last day"
+  rank = 1
+  table = PrettyTable()
+  table.field_names = ["Rank", "Channel", "XP gains"] 
+  for row in activity_data:
+    channel_name = channel_names[int(row["channel_id"])]
+    table.add_row([rank, channel_name, row["xp_amount"]])
+    rank += 1
+  return generate_report_card(title, description, table, type)
+
 # process the xp data and generate an image
 def generate_xp_report_card(type:str):
   xp_data = get_xp_report()
   title = "AGIMUS REPORT"
   description = "Total XP Overall"
-  rows = []
   rank = 1
   table = PrettyTable()
   table.field_names = ["Rank", "XP", "Name"]
   for row in xp_data:
     truncated_name = row["name"][:31]
-    #rows.append("#{:>02d}{spacer:^8}{:>08d}{spacer:^8}{}".format(rank, row["xp"], truncated_name, spacer="•"))
     table.add_row([rank, row["xp"], truncated_name])
     rank += 1
   return generate_report_card(title, description, table, type)
@@ -149,7 +180,7 @@ def generate_gainers_report_card(type:str):
       rank += 1
   return generate_report_card(title, description, table, type, rows)
 
-
+# get number of users registered to the database
 def get_num_users():
   db = getDB()
   query = db.cursor(dictionary=True)
@@ -241,9 +272,9 @@ def generate_report_card(title:str, description:str, table:PrettyTable, type:str
     return md_message
   else:
     # generate fancy report
-    normal_font = ImageFont.truetype("images/FiraCode-SemiBold.ttf", 24)
-    title_font = ImageFont.truetype("images/context.ttf", 63)
-    deco_font = ImageFont.truetype("images/context.ttf", 22)
+    normal_font = ImageFont.truetype("fonts/FiraCode-SemiBold.ttf", 24)
+    title_font = ImageFont.truetype("fonts/context.ttf", 63)
+    deco_font = ImageFont.truetype("fonts/context.ttf", 22)
     table_rows = table_text.split("\n")
 
     image_padding = 15
@@ -257,10 +288,10 @@ def generate_report_card(title:str, description:str, table:PrettyTable, type:str
     if len(additional_rows) > 0:
       row_text_height += (len(additional_rows) * 18) + 44
 
-    row_text_width = len(max(table_rows, key=len).rstrip()) * 20 + 35
+    row_text_width = len(max(table_rows, key=len).rstrip()) * 19 + 100
     
     if len(additional_rows) > 0:
-      additional_row_width = len(max(additional_rows, key=len).rstrip()) * 20 + 35
+      additional_row_width = len(max(additional_rows, key=len).rstrip()) * 19 + 100
 
     if row_text_width > image_min_width:
       image_min_width = row_text_width

@@ -7,8 +7,7 @@
     "jackpots",
     "wager",
     "xp",
-    "high_roller",
-    "chips"
+    "high_roller"
   ],
   "headers": [
     "id",
@@ -17,10 +16,9 @@
     "spins",
     "jackpots",
     "wager",
-    "profile_card",
-    "profile_badge",
+    "profile_photo",
+    "profile_sticker_1",
     "xp",
-    "high_roller",
-    "chips"
+    "high_roller"
   ]
 }

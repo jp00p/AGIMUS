@@ -29,8 +29,8 @@ async def qset(ctx, user:str, key:str, value:str):
   change_column = key
   change_value  = value
   this_user = get_user(selected_user)
-  modifiable_ints = ["score", "spins", "jackpots", "wager", "high_roller", "chips", "xp"]
-  modifiable_strings = ["profile_card", "profile_badge"]
+  modifiable_ints = ["score", "spins", "jackpots", "wager", "high_roller", "xp"]
+  modifiable_strings = ["profile_photo", "profile_sticker_1"]
   logger.info(f"{Fore.LIGHTBLUE_EX}{ctx.author.display_name}{Fore.RESET} is using mysterious Q powers on {Fore.GREEN}{this_user['name']}{Fore.RESET}")
 
   if change_column not in modifiable_ints and change_column not in modifiable_strings:

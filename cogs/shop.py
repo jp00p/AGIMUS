@@ -63,47 +63,47 @@ class Shop(commands.Cog):
     self.shop_data = json.load(f)
     f.close()
 
-    self.init_card_pages()
-    self.init_pin_pages()
+    self.init_photo_pages()
+    self.init_sticker_pages()
     self.init_role_pages()
 
 
-  def init_card_pages(self):
-    self.card_pages = []
-    for idx, card in enumerate(self.shop_data["cards"]):
-      card_embed = discord.Embed(
-        title="💳  Profile Card Shop  💳",
-        description=f"`100 points` each.\n\n**{card['name']}**",
+  def init_photo_pages(self):
+    self.photo_pages = []
+    for idx, photo in enumerate(self.shop_data["photos"]):
+      photo_embed = discord.Embed(
+        title="💳  Profile Photo Shop  💳",
+        description=f"`100 points` each.\n\n**{photo['name']}**",
         color=discord.Color(0xFFFFFF)
       )
-      card_embed.set_image(url=card["preview_url"])
-      card_embed.set_footer(
+      photo_embed.set_image(url=photo["preview_url"])
+      photo_embed.set_footer(
         text="All proceeds go directly to the jackpot!"
       )
-      card_page = ShopPage(self, card_embed, "cards", idx)
-      self.card_pages.append(card_page)
+      photo_page = ShopPage(self, photo_embed, "photos", idx)
+      self.photo_pages.append(photo_page)
   
-  def get_card_pages(self):
-    return self.card_pages
+  def get_photo_pages(self):
+    return self.photo_pages
 
 
-  def init_pin_pages(self):
-    self.pin_pages = []
-    for idx, pin in enumerate(self.shop_data["pins"]):
-      pin_embed = discord.Embed(
-        title="🎖️ Profile Pin Shop 🎖️",
-        description=f"`25 points` each.\n\n**{pin['name']}**",
+  def init_sticker_pages(self):
+    self.sticker_pages = []
+    for idx, sticker in enumerate(self.shop_data["stickers"]):
+      sticker_embed = discord.Embed(
+        title="🎖️ Profile Sticker Shop 🎖️",
+        description=f"`25 points` each.\n\n**{sticker['name']}**",
         color=discord.Color(0xFFFFFF)
       )
-      pin_embed.set_image(url=pin["preview_url"])
-      pin_embed.set_footer(
+      sticker_embed.set_image(url=sticker["preview_url"])
+      sticker_embed.set_footer(
         text="All proceeds go directly to the jackpot!"
       )
-      card_page = ShopPage(self, pin_embed, "pins", idx)
-      self.pin_pages.append(card_page)
+      sticker_page = ShopPage(self, sticker_embed, "stickers", idx)
+      self.sticker_pages.append(sticker_page)
 
-  def get_pin_pages(self):
-    return self.pin_pages
+  def get_sticker_pages(self):
+    return self.sticker_pages
 
 
   def init_role_pages(self):
@@ -141,9 +141,9 @@ class Shop(commands.Cog):
     try:
       cost = 0
       category = purchase_record["category"]
-      if category == "cards":
+      if category == "photos":
         cost = 100
-      elif category == "pins":
+      elif category == "stickers":
         cost = 25
 
       player = get_user(interaction.user.id)
@@ -152,27 +152,27 @@ class Shop(commands.Cog):
         result["success"] = False
         result["message"] = f"You need `{cost} points` to buy that item!"
       else:
-        if category == "cards":
-          card = self.shop_data["cards"][purchase_record["page"]]
-          card_name = card["name"].lower()
-          if card_name == player["profile_card"]:
+        if category == "photos":
+          photo = self.shop_data["photos"][purchase_record["page"]]
+          photo_name = photo["name"].lower()
+          if photo_name == player["profile_photo"]:
             result["success"] = False
-            result["message"] = f"You already have the **{card_name}** card set in your profile!\nWe gotchu, no points spent.\n\nType `/profile` to check it out!"  
+            result["message"] = f"You already have the **{photo_name}** photo on your profile!\nWe gotchu, no points spent.\n\nType `/profile` to check it out!"  
           else:
-            update_player_profile_card(interaction.user.id, card_name)
+            update_player_profile_photo(interaction.user.id, photo_name)
             result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{card_name.title()}** profile card!\n\nType `/profile` to check it out!"
-        elif category == "pins":
-          pin = self.shop_data["pins"][purchase_record["page"]]
-          pin_file = pin["file"]
-          pin_name = pin["name"]
-          if pin_file == player["profile_badge"]:
+            result["message"] = f"You have spent `{cost} points` and purchased the **{photo_name.title()}** profile photo!\n\nType `/profile` to check it out!"
+        elif category == "stickers":
+          sticker = self.shop_data["stickers"][purchase_record["page"]]
+          sticker_file = sticker["file"]
+          sticker_name = sticker["name"]
+          if sticker_file == player["profile_sticker_1"]:
             result["success"] = False
-            result["message"] = f"You already have the **{pin_name}** pin set in your profile! \nWe gotchu, no points spent.\n\nType `/profile` to check it out!"  
+            result["message"] = f"You already have the **{sticker_name}** sticker on your profile! \nWe gotchu, no points spent.\n\nType `/profile` to check it out!"  
           else:
-            update_player_profile_pin(interaction.user.id, pin_file)
+            update_player_profile_sticker(interaction.user.id, sticker_file)
             result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{pin_name}** pin!\n\nType `/profile` to check it out!"
+            result["message"] = f"You have spent `{cost} points` and purchased the **{sticker_name}** sticker!\n\nType `/profile` to check it out!"
         elif category == "roles":
           role = self.shop_data["roles"][purchase_record["page"]]
           role_name = role["name"]
@@ -265,10 +265,10 @@ class Shop(commands.Cog):
   shop = discord.SlashCommandGroup("shop", "Commands for purchasing /profile items")
 
   @shop.command(
-    name="cards",
-    description="Shop for Profile Cards!"
+    name="photos",
+    description="Shop for Profile photos!"
   )
-  async def cards(self, ctx: discord.ApplicationContext):
+  async def photos(self, ctx: discord.ApplicationContext):
     try:
       existing_purchase_record = self.get_purchase_record(ctx)
 
@@ -280,7 +280,7 @@ class Shop(commands.Cog):
       view.add_item(BuyButton(self))
 
       paginator = pages.Paginator(
-        pages=self.get_card_pages(),
+        pages=self.get_photo_pages(),
         use_default_buttons=False,
         custom_buttons=self.get_custom_buttons(),
         trigger_on_display=True,
@@ -289,7 +289,7 @@ class Shop(commands.Cog):
       )
       original_interaction = await paginator.respond(ctx.interaction, ephemeral=True)
       self.upsert_purchase_record(ctx.author.id, {
-        "category": "cards",
+        "category": "photos",
         "page": 0,
         "page_interaction": original_interaction
       })
@@ -298,10 +298,10 @@ class Shop(commands.Cog):
 
 
   @shop.command(
-    name="pins",
-    description="Shop for Profile pins!"
+    name="stickers",
+    description="Shop for profile stickers!"
   )
-  async def pins(self, ctx: discord.ApplicationContext):
+  async def stickers(self, ctx: discord.ApplicationContext):
     try:
       existing_purchase_record = self.get_purchase_record(ctx)
 
@@ -313,7 +313,7 @@ class Shop(commands.Cog):
       view.add_item(BuyButton(self))
 
       paginator = pages.Paginator(
-        pages=self.get_pin_pages(),
+        pages=self.get_sticker_pages(),
         use_default_buttons=False,
         custom_buttons=self.get_custom_buttons(),
         trigger_on_display=True,
@@ -322,7 +322,7 @@ class Shop(commands.Cog):
       )
       original_interaction = await paginator.respond(ctx.interaction, ephemeral=True)
       self.upsert_purchase_record(ctx.author.id, {
-        "category": "pins",
+        "category": "stickers",
         "page": 0,
         "page_interaction": original_interaction
       })
@@ -371,34 +371,34 @@ class Shop(commands.Cog):
 # /_______  (____  /__| (____  /___  (____  /____  >\___  >
 #         \/     \/          \/    \/     \/     \/     \/ 
 
-# update_player_profile_card(discord_id, card)
+# update_player_profile_photo(discord_id, card)
 # discord_id[required]: int
-# card[required]: string
-# This function will update the profile_card value
+# photo[required]: string
+# This function will update the profile_photo value
 # for a specific user
-def update_player_profile_card(discord_id, card):
-  logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new card: {Fore.CYAN}{card}{Fore.RESET}")
+def update_player_profile_photo(discord_id, photo):
+  logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new photo: {Fore.CYAN}{photo}{Fore.RESET}")
   db = getDB()
   query = db.cursor()
-  sql = "UPDATE users SET profile_card = %s WHERE discord_id = %s"
-  vals = (card, discord_id)
+  sql = "UPDATE users SET profile_photo = %s WHERE discord_id = %s"
+  vals = (photo, discord_id)
   query.execute(sql, vals)
   db.commit()
   query.close()
   db.close()
 
 
-# update_player_profile_pin(discord_id, pin)
+# update_player_profile_sticker(discord_id, pin)
 # discord_id[required]: int
-# pin[required]: string
-# This function will update the profile_badge value
+# sticker[required]: string
+# This function will update the profile_sticker_1 value
 # for a specific user
-def update_player_profile_pin(discord_id, pin):
-  logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new pin: {Fore.CYAN}{pin}{Fore.RESET}")
+def update_player_profile_sticker(discord_id, sticker):
+  logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new sticker: {Fore.CYAN}{sticker}{Fore.RESET}")
   db = getDB()
   query = db.cursor()
-  sql = "UPDATE users SET profile_badge = %s WHERE discord_id = %s"
-  vals = (pin, discord_id)
+  sql = "UPDATE users SET profile_sticker_1 = %s WHERE discord_id = %s"
+  vals = (sticker, discord_id)
   query.execute(sql, vals)
   db.commit()
   query.close()

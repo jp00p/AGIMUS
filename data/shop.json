@@ -7,7 +7,7 @@
       "preview_url": "https://i.imgur.com/4dMPsKM.png"
     }
   ],
-  "cards": [
+  "photos": [
     {
       "name": "AGIMUS",
       "preview_url": "https://i.imgur.com/JWiotuc.jpg"
@@ -29,6 +29,10 @@
       "preview_url": "https://i.imgur.com/S8vRB99.jpg"
     },
     {
+      "name": "Chapel",
+      "preview_url": "https://i.imgur.com/dMKb1JX.jpg"
+    },
+    {
       "name": "Data",
       "preview_url": "https://i.imgur.com/bXiTtmz.jpg"
     },
@@ -43,6 +47,10 @@
     {
       "name": "Gowron",
       "preview_url": "https://i.imgur.com/AOQ8ATz.jpg"
+    },
+    {
+      "name": "Hemmer",
+      "preview_url": "https://i.imgur.com/TflSN61.jpg"
     },
     {
       "name": "Jadzia",
@@ -65,8 +73,20 @@
       "preview_url": "https://i.imgur.com/RwkxIkC.jpg"
     },
     {
+      "name": "Neelix",
+      "preview_url": "https://i.imgur.com/rFSlCiu.jpg"
+    },
+    {
+      "name": "Ortegas",
+      "preview_url": "https://i.imgur.com/zj1stZM.jpg"
+    },
+    {
       "name": "Picard",
       "preview_url": "https://i.imgur.com/eZ2HMSE.jpg"
+    },
+    {
+      "name": "Pike",
+      "preview_url": "https://i.imgur.com/HinnBwh.jpg"
     },
     {
       "name": "Q",
@@ -113,6 +133,10 @@
       "preview_url": "https://i.imgur.com/tyQj7AY.jpg"
     },
     {
+      "name": "Uhura",
+      "preview_url": "https://i.imgur.com/hjjm9IN.jpg"
+    },
+    {
       "name": "Weyoun",
       "preview_url": "https://i.imgur.com/wUDhA52.jpg"
     },
@@ -121,7 +145,7 @@
       "preview_url": "https://i.imgur.com/CMFAAUG.jpg"
     }
   ],
-  "pins": [
+  "stickers": [
     {
       "name": "Adam Pranica",
       "preview_url": "https://i.imgur.com/BK5j27J.png",
@@ -151,6 +175,11 @@
       "name": "Ding!",
       "preview_url": "https://i.imgur.com/Y7nrwjf.png",
       "file": "ding_bell.png"
+    },
+    {
+      "name": "Factory Seconds Logo",
+      "preview_url": "https://i.imgur.com/KwMqUoE.png",
+      "file": "factory_seconds.png"
     },
     {
       "name": "Heart",

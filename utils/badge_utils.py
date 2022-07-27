@@ -11,9 +11,9 @@ import math
 # returns discord.file
 def generate_badge_trade_showcase(badge_list, id, title, footer):
   text_wrapper = textwrap.TextWrapper(width=22)
-  title_font = ImageFont.truetype("images/tng_credits.ttf", 68)
-  credits_font = ImageFont.truetype("images/tng_credits.ttf", 42)
-  badge_font = ImageFont.truetype("images/context_bold.ttf", 28)
+  title_font = ImageFont.truetype("fonts/tng_credits.ttf", 68)
+  credits_font = ImageFont.truetype("fonts/tng_credits.ttf", 42)
+  badge_font = ImageFont.truetype("fonts/context_bold.ttf", 28)
 
   badge_size = 200
   badge_padding = 40
