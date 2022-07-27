@@ -120,9 +120,6 @@ async def wordcloud(ctx:discord.ApplicationContext, enable_logging:str):
     height=800, 
     min_word_length=3).generate(full_wordlist)
 
-  wc_array = wc.to_array()
-  logger.info(wc_array)
-
   # create PIL image 
   image = wc.to_image()
   image.save(f"./images/reports/wordcloud-{user_details['name']}.png")
