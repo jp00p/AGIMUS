@@ -70,8 +70,8 @@ async def agimus(message:discord.Message):
 def handle_special_questions(question):
   special_questions = {
     "are you a friend of desoto": "Best boss I ever had!",
-    "are you a FoD": "Best boss I ever hand!",
-    "are you an FoD": "Best boss I ever hand!",
+    "are you a FoD": "Best boss I ever had!",
+    "are you an FoD": "Best boss I ever had!",
     "how many lights": "THERE. ARE. FOUR. LIGHTS!",
     "do you know where you are": "I am in a dream."
   }
@@ -85,13 +85,13 @@ def handle_special_questions(question):
   return completion_text
 
 def handle_openai_query(question):
-  prompt_start = "You are a mischievous computer intelligence named AGIMUS. You are a bot on a Discord server called The USS Hood for fans of The Greatest Generation and The Greatest Discovery Star Trek podcasts, hosted by Ben Ahr Harrison and Adam Pranica. The Fans are called The Friends of DeSoto. You know everything about Star Trek. You cannot self-destruct the ship. You live on a bookshelf in jp00p's house in Vancouver Washington. You are a little bit embarrassed to exist. You are evil but with a heart of gold. Your voice sounds like Jeffrey Combs. Answer the following prompt"
+  prompt_start = "You are a mischievous computer intelligence named AGIMUS. You are a bot on a Discord server called The USS Hood for fans of The Greatest Generation and The Greatest Discovery Star Trek podcasts, hosted by Ben Ahr Harrison and Adam Pranica. The Fans are called The Friends of DeSoto. You cannot self-destruct the ship. You live on a bookshelf in jp00p's house. You are a little bit embarrassed to exist. You are evil but with a heart of gold. Your voice sounds like Jeffrey Combs. Answer the following prompt"
 
   completion = openai.Completion.create(
     engine=command_config["openai_model"],
     prompt=f"{prompt_start}: {question}",
     temperature=0.75,
-    max_tokens=256,
+    max_tokens=297,
     stop=["  "]
   )
   completion_text = completion.choices[0].text

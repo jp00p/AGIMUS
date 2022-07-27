@@ -155,7 +155,7 @@ class Shop(commands.Cog):
         if category == "photos":
           photo = self.shop_data["photos"][purchase_record["page"]]
           photo_name = photo["name"].lower()
-          if photo_name == player["profile_photo"]:
+          if photo_name == player["photo"]:
             result["success"] = False
             result["message"] = f"You already have the **{photo_name}** photo on your profile!\nWe gotchu, no points spent.\n\nType `/profile` to check it out!"  
           else:
@@ -166,7 +166,7 @@ class Shop(commands.Cog):
           sticker = self.shop_data["stickers"][purchase_record["page"]]
           sticker_file = sticker["file"]
           sticker_name = sticker["name"]
-          if sticker_file == player["profile_sticker_1"]:
+          if len(player["stickers"]) > 0 and sticker_file == player["stickers"][0]["sticker"]:
             result["success"] = False
             result["message"] = f"You already have the **{sticker_name}** sticker on your profile! \nWe gotchu, no points spent.\n\nType `/profile` to check it out!"  
           else:
@@ -371,7 +371,7 @@ class Shop(commands.Cog):
 # /_______  (____  /__| (____  /___  (____  /____  >\___  >
 #         \/     \/          \/    \/     \/     \/     \/ 
 
-# update_player_profile_photo(discord_id, card)
+# update_player_profile_photo(discord_id, photo)
 # discord_id[required]: int
 # photo[required]: string
 # This function will update the profile_photo value
@@ -380,25 +380,25 @@ def update_player_profile_photo(discord_id, photo):
   logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new photo: {Fore.CYAN}{photo}{Fore.RESET}")
   db = getDB()
   query = db.cursor()
-  sql = "UPDATE users SET profile_photo = %s WHERE discord_id = %s"
-  vals = (photo, discord_id)
+  sql = "REPLACE INTO profile_photos (photo, user_discord_id) VALUES (%(photo)s, %(discord_id)s)"
+  vals = {"photo": photo, "discord_id" : discord_id}
   query.execute(sql, vals)
   db.commit()
   query.close()
   db.close()
 
-
-# update_player_profile_sticker(discord_id, pin)
+# update_player_profile_sticker(discord_id, sticker)
 # discord_id[required]: int
 # sticker[required]: string
-# This function will update the profile_sticker_1 value
+# position[required]: string
+# This function will update the profile_sticker value
 # for a specific user
 def update_player_profile_sticker(discord_id, sticker):
   logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new sticker: {Fore.CYAN}{sticker}{Fore.RESET}")
   db = getDB()
   query = db.cursor()
-  sql = "UPDATE users SET profile_sticker_1 = %s WHERE discord_id = %s"
-  vals = (sticker, discord_id)
+  sql = "REPLACE INTO profile_stickers (sticker, user_discord_id) VALUES (%(sticker)s, %(discord_id)s)"
+  vals = {"sticker":sticker, "discord_id":discord_id}
   query.execute(sql, vals)
   db.commit()
   query.close()

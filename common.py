@@ -179,14 +179,22 @@ def uniq_channels(config):
 # discord_id[required]: int
 # This function will return a user's record from their id
 def get_user(discord_id:int):
-  logger.debug(f"Running: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}get_user({discord_id}){Fore.RESET}{Style.RESET_ALL}")
   db = getDB()
   query = db.cursor(dictionary=True)
-  query.execute("SELECT * FROM users WHERE discord_id = %s", (discord_id,))
-  player_data = query.fetchone()
+  # get user basic info
+  sql = "SELECT users.*, profile_photos.photo as photo, profile_taglines.tagline as tagline FROM users LEFT JOIN profile_taglines ON profile_taglines.user_discord_id = users.discord_id LEFT JOIN profile_photos ON profile_photos.user_discord_id = users.discord_id WHERE discord_id = %s"
+  vals = (discord_id,)
+  query.execute(sql, vals)
+  user_data = query.fetchone()
+  # get user stickers
+  sql = "SELECT sticker, position FROM profile_stickers WHERE user_discord_id = %s"
+  vals = (discord_id,)
+  query.execute(sql, vals)
+  user_stickers = query.fetchall()
   query.close()
   db.close()
-  return player_data
+  user_data["stickers"] = user_stickers
+  return user_data
 
 
 # get_all_users()
@@ -207,7 +215,7 @@ def get_all_users():
 # register_player(user)
 # user[required]: object
 # This function will insert a new user into the database
-def register_player(user):
+def register_user(user):
   db = getDB()
   query = db.cursor()
   sql = "INSERT INTO users (discord_id, name, mention) VALUES (%s, %s, %s)"
@@ -344,3 +352,14 @@ def get_emoji(emoji_name:str):
     logger.info(f"Emoji: {Fore.LIGHTWHITE_EX}{Style.BRIGHT}{emoji_name}{Style.RESET_ALL}{Fore.RESET} not found, falling back to default bot emoji")
     emoji = random.choice(["🤖", "👽", "🛠"])
   return emoji
+
+
+# returns a pretend stardate based on the given datetime
+def calculate_stardate(date:datetime.date):
+  # calculate the stardate
+  stardate = date.year * 100 + date.month * 10 + date.day
+  # calculate the stardate offset
+  stardate_offset = (date.year - 2300) * 365 + (date.year - 2300) // 4 + (date.month - 1) * 30 + date.day
+  # calculate the stardate
+  stardate += stardate_offset
+  return stardate

@@ -86,9 +86,9 @@ db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
 
 .PHONY: db-seed
 db-seed: ## Reload the database from a file at ./$DB_SEED_FILEPATH
-	@docker-compose exec -T db sh -c 'exec mysql -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" <<< "DROP DATABASE IF EXISTS FoD;"'
-	@docker-compose exec -T db sh -c 'exec mysql -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" <<< "create database FoD;"'
-	@docker-compose exec -T db sh -c 'exec mysql -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_SEED_FILEPATH}
+	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" <<< "DROP DATABASE IF EXISTS FoD;"'
+	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" <<< "create database FoD;"'
+	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_SEED_FILEPATH}
 
 # mysql session in pod
 # kubectl exec -it my-cluster-mysql-0 -c mysql -- mysql -uroot -ppassword
