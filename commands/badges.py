@@ -215,7 +215,7 @@ def generate_badge_showcase_for_user(user:discord.User):
     b = b.resize((190, 190))
 
     w, h = b.size # badge size
-    offset_x = min(0, (badge_size+badge_padding+2)-w) # center badge x
+    offset_x = min(0, (badge_size+badge_padding)-w) # center badge x
     offset_y = 5
     badge_name = text_wrapper.wrap(badge.replace("_", " ").replace(".png", ""))
     wrapped_badge_name = ""
@@ -223,7 +223,7 @@ def generate_badge_showcase_for_user(user:discord.User):
       wrapped_badge_name = wrapped_badge_name + i + "\n"
     wrapped_badge_name += badge_name[-1]
     # add badge to slot
-    s.paste(b, (badge_padding+offset_x, offset_y), b)
+    s.paste(b, (badge_padding+offset_x+4, offset_y), b)
     badge_draw.text( (int(badge_slot_size/2), 222), f"{wrapped_badge_name}", fill="white", font=badge_font, anchor="mm", align="center")
 
     # add slot to base image
