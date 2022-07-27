@@ -19,10 +19,12 @@ filters = ["_1977", "aden", "brannan", "brooklyn", "clarendon", "earlybird", "gi
 # users can also unset it by sending an empty string
 async def set_tagline(ctx:discord.ApplicationContext, tagline:str):
   if not tagline or tagline.strip() == "":
+    
     db = getDB()
     query = db.cursor()
-    sql = "UPDATE users SET tagline = %s WHERE discord_id = %s"
-    vals = ("", ctx.author.id)
+    sql = "REPLACE INTO profile_taglines (tagline, user_discord_id) VALUES (%(tagline)s, %(discord_id)s)"
+    vals = {"tagline" : "", "discord_id" : ctx.author.id}
+    logger.info(f"CLEARING TAGLINE {sql}")
     query.execute(sql, vals)
     db.commit()
     query.close()
@@ -32,8 +34,9 @@ async def set_tagline(ctx:discord.ApplicationContext, tagline:str):
     tagline = tagline[0:60].encode("ascii", errors="ignore").decode().strip()
     db = getDB()
     query = db.cursor()
-    sql = "UPDATE users SET tagline = %s WHERE discord_id = %s"
-    vals = (tagline, ctx.author.id)
+    sql = "REPLACE INTO profile_taglines (tagline, user_discord_id) VALUES (%(tagline)s, %(discord_id)s)"
+    vals = {"tagline" : tagline, "discord_id" : ctx.author.id}
+    logger.info(f"UPDATING TAGLINE {sql} {vals}")
     query.execute(sql, vals)
     db.commit()
     query.close()
@@ -67,7 +70,7 @@ async def set_tagline(ctx:discord.ApplicationContext, tagline:str):
 
 async def profile(ctx:discord.ApplicationContext, public:str):
   public = bool(public == "yes")
-  await ctx.defer(ephemeral=not public)  
+  await ctx.defer(ephemeral=not public)
   
   member = ctx.author # discord obj
   user = get_user(member.id) # our DB
@@ -102,6 +105,7 @@ async def profile(ctx:discord.ApplicationContext, public:str):
     second_role = assignment_names[-1]
 
   user_join = member.joined_at.strftime("%d %B %Y")
+  user_join_stardate = calculate_stardate(member.joined_at)
   score = user["score"]
   spins = user["spins"]
   level = user["level"]
@@ -116,14 +120,14 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   percent_completed = (((xp - prev_level)*100) / (next_level - prev_level))/100  # for calculating width of xp bar
   
   # fonts (same font, different sizes) used for building image
-  name_font = ImageFont.truetype("images/lcars3.ttf", 61)
-  agimus_font = ImageFont.truetype("images/lcars3.ttf", 22)
-  level_font = ImageFont.truetype("images/lcars3.ttf", 50) # also main header font
-  small_button_font = ImageFont.truetype("images/lcars3.ttf", 30)
-  big_button_font = ImageFont.truetype("images/lcars3.ttf", 28)
-  title_font = ImageFont.truetype("images/lcars3.ttf", 34) # also subtitle font and score font
-  xp_font = ImageFont.truetype("images/lcars3.ttf", 32)
-  entry_font = ImageFont.truetype("images/lcars3.ttf", 40)
+  name_font = ImageFont.truetype("fonts/lcars3.ttf", 61)
+  agimus_font = ImageFont.truetype("fonts/lcars3.ttf", 22)
+  level_font = ImageFont.truetype("fonts/lcars3.ttf", 50) # also main header font
+  small_button_font = ImageFont.truetype("fonts/lcars3.ttf", 30)
+  big_button_font = ImageFont.truetype("fonts/lcars3.ttf", 28)
+  title_font = ImageFont.truetype("fonts/lcars3.ttf", 34) # also subtitle font and score font
+  xp_font = ImageFont.truetype("fonts/lcars3.ttf", 32)
+  entry_font = ImageFont.truetype("fonts/lcars3.ttf", 40)
 
   # build the base bg
   base_bg = Image.new(mode="RGBA", size=(787, 1024))
@@ -180,7 +184,7 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   draw = ImageDraw.Draw(base_bg) # pencil time
   
   # draw xp progress bar
-  w, h = 244, 26
+  w, h = 244-32, 26
   x, y = 394+32, 839
   shape =(x, y, (percent_completed*w)+x, h+y)
   draw.rectangle(shape, fill=lcars_colors[0])
@@ -211,6 +215,8 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   draw.text( (250, 478), f"CURRENT ASSIGNMENT:", fill=title_color, font=title_font, align="left")
   draw.text( (250, 508), f"{second_role} / USS Hood NCC-42296", fill="white", font=entry_font, align="left")
   draw.text( (250, 568), f"DUTY STARTED:", fill=title_color, font=title_font, align="left")
+  # TODO: come back to this
+  #draw.text( (250, 598), f"STARDATE: {user_join_stardate}", fill="white", font=entry_font, align="left")
   draw.text( (250, 598), f"{user_join}", fill="white", font=entry_font, align="left")
   draw.text( (350, 740), f"BADGES: {badge_count:03d}", fill="black", font=small_button_font, align="center")
   draw.text( (350, 791), f"SPINS: {spins:04d}", fill="black", font=small_button_font, align="center")
@@ -235,10 +241,10 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   base_bg.paste(padd_frame, (0, 0), padd_frame)
 
   # put sticker on
-  if user["profile_badge"]:
+  if len(user["stickers"]) > 0:
     sticker_image = Image.open("./images/profiles/template_pieces/lcars/sticker-1.png").convert("RGBA")
     sticker_mask  = Image.open("./images/profiles/template_pieces/lcars/sticker-1-mask.png").convert("L").resize(sticker_image.size)
-    sticker       = Image.open(f"./images/profiles/badges/{user['profile_badge']}").convert("RGBA").resize(sticker_image.size)
+    sticker       = Image.open(f"./images/profiles/stickers/{user['stickers'][0]['sticker']}").convert("RGBA").resize(sticker_image.size)
     sticker_bg    = Image.open("./images/profiles/template_pieces/lcars/sticker-bg.png").convert("RGBA")
     composed  = Image.composite(sticker_image, sticker, sticker_mask).convert("RGBA")
     sticker_bg.paste(composed, (0, 0), composed)
@@ -247,10 +253,10 @@ async def profile(ctx:discord.ApplicationContext, public:str):
     base_bg.paste(sticker_bg, (406+random.randint(-10,5), 886+random.randint(-3,3)), sticker_bg)
 
   # put polaroid on
-  if user["profile_card"]:
-    profile_card = user['profile_card'].replace(" ", "_")
+  if user["photo"]:
+    profile_photo = user['photo'].replace(" ", "_")
     photo_image = Image.open("./images/profiles/template_pieces/lcars/photo-frame.png").convert("RGBA")
-    photo_content = Image.open(f"./images/profiles/polaroids/{profile_card}.jpg").convert("RGBA")
+    photo_content = Image.open(f"./images/profiles/polaroids/{profile_photo}.jpg").convert("RGBA")
 
     photo_filter = getattr(pilgram, random.choice(filters))
     photo_content = photo_filter(photo_content).convert("RGBA")

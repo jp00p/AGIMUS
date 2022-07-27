@@ -110,7 +110,7 @@ async def on_message(message:discord.Message):
 
   if int(message.author.id) not in ALL_USERS:
     logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
-    ALL_USERS.append(register_player(message.author))
+    ALL_USERS.append(register_user(message.author))
   try:
     await handle_message_xp(message)
   except Exception as e:
@@ -245,7 +245,7 @@ async def on_application_command(ctx):
   # Register user if they haven't been previously
   if int(ctx.author.id) not in ALL_USERS:
     logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
-    ALL_USERS.append(register_player(ctx.author))
+    ALL_USERS.append(register_user(ctx.author))
 
 @bot.event
 async def on_application_command_error(ctx, error):

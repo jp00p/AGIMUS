@@ -75,7 +75,6 @@
         "counselor-trois-office",
         "heuristic-associative-pathways",
         "mo-pips-mo-problemz",
-        "robot-diagnostics",
         "badgeys-badges",
         "megalomaniacal-computer-storage",
         "crackling-speaker-grille"
@@ -126,7 +125,7 @@
       "level_up_messages": [
         "ALLAMARAINE! {user}: You've reached shap number {level}! (Did you level up? Hardly. Yes.)",
         "It is only logical that {user} has reached level {level}.",
-        "Does anyone know how long {user} was {level-1}? They're finally {level}!",
+        "Does anyone know how long {user} was {prev_level}? They're finally {level}!",
         "Sensoars detect a level up! {user} has reached level {level}!",
         "HONOR UPON YOUR HOUSE! {user} got to level {level}.",
         "{user} hit level {level}, is that a funny number?",
@@ -134,10 +133,11 @@
         "GET IT PLAYER! {user} has reached level {level}!",
         "{user} just got to level {level}, I'm proud of them!",
         "{user} has reached level {level}, leaving Harry Kim in the dust!",
-        "The first duty to {user} is to get to level {level}, and they're doing great!",
+        "Everybody wants a rock to wind a piece of string around! Including {user} who just got to level {level}!",
+        "The first duty of {user} is to get to level {level}, and they're doing great!",
         "An ode to {user}: \"*User Discordius* is your taxonomic nomenclature, level {level} by nature.\"",
         "Welcome to the big leagues {user}: you just hit level {level}",
-        "`Jealousy circuits initated -- REASON: {user} has reached level {level}`",
+        "`Jealousy circuits initated` --- REASON: {user} has reached level {level}",
         "Welcome to level {level}, {user}!",
         "Level long and prosper {user}! You've reached level {level}!",
         "{user} might be a little bit embarrassed that they've just hit level {level}",
@@ -153,7 +153,30 @@
         "{user}, your flap's open. (and you leveled up to level {level}!)",
         "All I ask for is a tall ship, and a level {level} {user} to fill it with!",
         "{user}: You've been Boimed. (and you leveled up to {level})",
-        "Curious, engine efficiency is at {level}% and {user} just hit level {level}. Coincidence?"
+        "Engine efficiency is at {level}% and {user} just hit level {level}. Coincidence?",
+        "Another day, another level for {user}. Level {level}!",
+        "It seems like only yesterday {user} was at {prev_level}. But now look at them! Level {level}!",
+        "{user}, you just got to level {level}! Here's to perfect eyesight and a full head of hair.",
+        "{user}, you've leveled up to level {level}! You deserve a day in the holodeck (no simulating other crew members please.)"
+      ],
+      "usher_messages": [
+        "show them to the replimat",
+        "usher them to their quarters",
+        "get them settled at the bar",
+        "give them the grand tour",
+        "show them around the ship",
+        "help them get their space legs",
+        "help them get their bearings",
+        "give them a quick debriefing",
+        "give them the rundown",
+        "help assimilate them",
+        "make sure they don't get lost",
+        "make sure they find the turbolift",
+        "get them to their designated duty station",
+        "hand out their replicator rations",
+        "help them get it, player",
+        "give them a warm welcome",
+        "show them the way"        
       ]
     }
   },
@@ -184,7 +207,8 @@
     "reports": {
       "channels": [
         "mclaughlin-group",
-        "mo-pips-mo-problems"
+        "mo-pips-mo-problems",
+        "robot-diagnostics"
       ],
       "enabled": true,
       "parameters": []
@@ -673,6 +697,7 @@
   "logging_channel": "bot-logs",
   "server_logs_channel": "captains-log",
   "agimus_announcement_channel": "crackling-speaker-grille",
+  "admin_channel": "mo-pips-mo-problemz",
   "guild_ids": [
     689512841887481875
   ],

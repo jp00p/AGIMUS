@@ -163,10 +163,10 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
 def generate_badge_showcase_for_user(user:discord.User):
   text_wrapper = textwrap.TextWrapper(width=22)
   badge_list = get_user_badges(user.id)
-  title_font = ImageFont.truetype("images/tng_credits.ttf", 68)
-  credits_font = ImageFont.truetype("images/tng_credits.ttf", 42)
-  badge_font = ImageFont.truetype("images/context_bold.ttf", 28)
-
+  title_font = ImageFont.truetype("fonts/tng_credits.ttf", 68)
+  credits_font = ImageFont.truetype("fonts/tng_credits.ttf", 42)
+  badge_font = ImageFont.truetype("fonts/context_bold.ttf", 28)
+  
   badge_size = 200
   badge_padding = 40
   badge_margin = 10
@@ -223,7 +223,7 @@ def generate_badge_showcase_for_user(user:discord.User):
       wrapped_badge_name = wrapped_badge_name + i + "\n"
     wrapped_badge_name += badge_name[-1]
     # add badge to slot
-    s.paste(b, (badge_padding+offset_x, offset_y), b)
+    s.paste(b, (badge_padding+offset_x+4, offset_y), b)
     badge_draw.text( (int(badge_slot_size/2), 222), f"{wrapped_badge_name}", fill="white", font=badge_font, anchor="mm", align="center")
 
     # add slot to base image

@@ -26,7 +26,7 @@ def get_random_weyounsday_meme():
 
   return random.choice(memes)
 
-def weyounsday_task(client):
+def weyounsday_task(bot):
 
   async def weyounsday():
     enabled = config["tasks"]["weyounsday"]["enabled"]
@@ -40,7 +40,7 @@ def weyounsday_task(client):
     embed.set_image(url=get_random_weyounsday_meme())
     channel_ids = get_channel_ids_list(config["tasks"]["weyounsday"]["channels"])
     for channel_id in channel_ids:
-      channel = client.get_channel(id=channel_id)
+      channel = bot.get_channel(channel_id)
       await channel.send(embed=embed)
 
   return {

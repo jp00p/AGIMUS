@@ -17,25 +17,39 @@ CREATE TABLE IF NOT EXISTS users (
   spins int(11) NOT NULL DEFAULT 0,
   jackpots int(11) NOT NULL DEFAULT 0,
   wager int(11) NOT NULL DEFAULT 1,
-  profile_card longtext DEFAULT NULL,
-  profile_badge varchar(255) DEFAULT NULL,
   high_roller tinyint(1) DEFAULT 0,
-  chips varchar(255) DEFAULT '10',
   xp int(11) DEFAULT 0,
   log_messages int(11) NOT NULL DEFAULT 0,
   xp_enabled BOOLEAN NOT NULL DEFAULT 1,
-  tagline VARCHAR(255) DEFAULT NULL,
   receive_notifications BOOLEAN NOT NULL DEFAULT 1,
   level int(11) DEFAULT 1,
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)
 );
-CREATE TABLE IF NOT EXISTS badges (
+CREATE TABLE IF NOT EXISTS profile_photos (
   id int(11) NOT NULL AUTO_INCREMENT,
-  user_discord_id varchar(64) NOT NULL,
-  badge_name varchar(128) NOT NULL,
-  time_created timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (id)
+  user_discord_id VARCHAR(64) NOT NULL,
+  photo VARCHAR(255) DEFAULT NULL,
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+  PRIMARY KEY (id),
+  UNIQUE KEY (user_discord_id)
+);
+CREATE TABLE IF NOT EXISTS profile_stickers (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id VARCHAR(64) NOT NULL,
+  sticker VARCHAR(255) DEFAULT NULL,
+  position VARCHAR(24) DEFAULT NULL,
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+  PRIMARY KEY (id),
+  UNIQUE KEY (user_discord_id)
+);
+CREATE TABLE IF NOT EXISTS profile_taglines (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id VARCHAR(64) NOT NULL,
+  tagline VARCHAR(255) DEFAULT NULL,
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY (user_discord_id)
 );
 CREATE TABLE IF NOT EXISTS trades (
   id int(11) NOT NULL AUTO_INCREMENT,
@@ -48,6 +62,13 @@ CREATE TABLE IF NOT EXISTS trades (
     REFERENCES users(discord_id),
   FOREIGN KEY (requestee_id)
     REFERENCES users(discord_id)
+);
+CREATE TABLE IF NOT EXISTS badges (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id varchar(64) NOT NULL,
+  badge_name varchar(128) NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id)
 );
 CREATE TABLE IF NOT EXISTS badge_info (
   id int(11) NOT NULL AUTO_INCREMENT,

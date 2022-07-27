@@ -31,20 +31,25 @@ async def agimus(message:discord.Message):
     f"Feel free to continue our conversation there!",
     f"See you down there!",
     f"Can't wait 'til you see what I said!",
-    f"Don't want everyone here to know our secret plans..."
+    f"Don't want everyone here to know our secret plans...",
+    f"SECRETS",
+    f"It's more fun this way",
+    f"LOBE ENLARGEMENT heh heh heh..."
   ]
   if message.channel.id != agimus_channel_id:
-    await message.reply(embed=discord.Embed(
-      title=f"Redirecting...",
-      description=f"Query response located in {agimus_channel.mention}.",
-      color=discord.Color.blue()
-    ).set_footer(text=random.choice(random_footer_texts)))
 
-    await agimus_channel.send(embed=discord.Embed(
+    agimus_response_message = await agimus_channel.send(embed=discord.Embed(
       title="To \"answer\" your question...",
       description=f"{message.author.mention} asked:\n\n> {message.content}\n\n**Answer:** {completion_text}",
-      color=discord.Color.blurple()
-    ).set_footer(text="Response generated via AI Algorithms"))
+      color=discord.Color.random()
+    ).set_footer(text="Response generated via AI Algorithms. This does not constitute legal, medical or financial advice. You are talking to a robot."))
+
+    await message.reply(embed=discord.Embed(
+      title=f"Redirecting...",
+      description=f"Find your response here: {agimus_response_message.jump_url}.",
+      color=discord.Color.random()
+    ).set_footer(text=random.choice(random_footer_texts)))
+
     return
   else:
     random_titles = [
@@ -65,7 +70,8 @@ async def agimus(message:discord.Message):
 def handle_special_questions(question):
   special_questions = {
     "are you a friend of desoto": "Best boss I ever had!",
-    "are you a FoD": "Best boss I ever hand!",
+    "are you a FoD": "Best boss I ever had!",
+    "are you an FoD": "Best boss I ever had!",
     "how many lights": "THERE. ARE. FOUR. LIGHTS!",
     "do you know where you are": "I am in a dream."
   }
@@ -79,13 +85,13 @@ def handle_special_questions(question):
   return completion_text
 
 def handle_openai_query(question):
-  prompt_start = "You are a mischievous computer intelligence named AGIMUS. You are a bot on a Discord server called The USS Hood for fans of The Greatest Generation and The Greatest Discovery Star Trek Podcasts, hosted by Ben Ahr Harrison and Adam Pranica. The Fans are called The Friends of DeSoto. You cannot self-destruct the ship. Answer the following prompt"
+  prompt_start = "You are a mischievous computer intelligence named AGIMUS. You are a bot on a Discord server called The USS Hood for fans of The Greatest Generation and The Greatest Discovery Star Trek podcasts, hosted by Ben Ahr Harrison and Adam Pranica. The Fans are called The Friends of DeSoto. You cannot self-destruct the ship. You live on a bookshelf in jp00p's house. You are a little bit embarrassed to exist. You are evil but with a heart of gold. Your voice sounds like Jeffrey Combs. Answer the following prompt"
 
   completion = openai.Completion.create(
     engine=command_config["openai_model"],
     prompt=f"{prompt_start}: {question}",
     temperature=0.75,
-    max_tokens=256,
+    max_tokens=297,
     stop=["  "]
   )
   completion_text = completion.choices[0].text

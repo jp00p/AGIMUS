@@ -92,8 +92,8 @@ class Poker(commands.Cog):
   async def generate_poker_image(self, hand:treys.Card, filename:str):
     # channel = self.bot.get_channel(config["channels"]["poker-table"])
     base = Image.new("RGBA", (1120,350), (0,0,0,0))
-    value_font = ImageFont.truetype("images/lcars3.ttf", 64)
-    # smaller_font = ImageFont.truetype("images/lcars3.ttf", 32)
+    value_font = ImageFont.truetype("fonts/lcars3.ttf", 64)
+    # smaller_font = ImageFont.truetype("fonts/lcars3.ttf", 32)
     suit_map = {
       "c" : "club.png",
       "d" : "diamond.png",
