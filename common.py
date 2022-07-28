@@ -194,7 +194,7 @@ def get_user(discord_id:int):
   query.close()
   db.close()
   user_data["stickers"] = user_stickers
-  logger.info(f"USER DATA: {user_data}")
+  logger.debug(f"USER DATA: {user_data}")
   return user_data
 
 

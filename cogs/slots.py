@@ -36,7 +36,11 @@ class Slots(commands.Cog):
   )
   @commands.check(access_check)
   async def spin(self, ctx:discord.ApplicationContext, show:str):
+    await ctx.defer()
     logger.info(f"{Fore.YELLOW}Rolling the slots!{Fore.RESET}")
+
+    slots_channel = bot.get_channel(config["channels"]["dabo-table"])
+    logger.info(slots_channel)
     
     # Load slots data
     f = open(config["commands"]["slots spin"]["data"])
@@ -68,7 +72,7 @@ class Slots(commands.Cog):
       # if they don't have enough bits to play
       await ctx.respond(embed=discord.Embed(
         title="Not Enough Points!",
-        description=f"You need at least {wager} point(s) to spin! Play the quiz to get more points or try changing your wager"
+        description=f"{ctx.author.mention}: You need at least {wager} point(s) to spin! Play the quiz to get more points or try changing your wager"
       ))
       return
     else:
@@ -88,27 +92,21 @@ class Slots(commands.Cog):
     ] 
     # pick a spin message
     spin_msg = f"{ctx.author.mention}: "
+    spin_msg += f"**{random.choice(spinnin)}**\n"
     # build the rest of the message
     if free_spin:
       spin_msg += "**This one's on the house!** (after 5 free spins, they will cost you points!)"
     else:
       spin_msg += f"Spending `{wager}` of your points!"
-
-    spin_embed = discord.Embed(
-      title=random.choice(spinnin).title(),
-      description=spin_msg,
-      color=discord.Color.gold()
-    )
-    spin_embed.set_footer(text=f"This is spin #{player['spins']+1} for you.")
-    await ctx.respond(embed=spin_embed)
-
+    spin_msg += f"\nThis is spin #{player['spins']+1} for you."
+    
     # roll the slots!
     silly_matches, matching_chars, jackpot, symbol_matches = self.roll_slot(show, SLOTS[show], filename=str(ctx.author.id))
     try:
       file = discord.File(f"{self.slot_results_dir}{player_id}.png", filename=str(ctx.author.id)+".png")
     except:
       logger.info(f"{Fore.RED}Error generating discord file placeholder{Fore.RESET}")
-    match_msg = f"{ctx.author.mention}'s spin results: \n\n"
+    match_msg = f"\nResults: \n\n"
 
     if len(symbol_matches) > 0:
       match_msg += "**"+symbol_matches[0].upper()+":** "
@@ -140,8 +138,7 @@ class Slots(commands.Cog):
       win_jackpot(ctx.author.display_name, ctx.author.id)
       jackpot_embed = discord.Embed(color=embed_color)
       jackpot_embed.set_image(url="https://i.imgur.com/S7Pv9lM.jpg")
-      await ctx.respond(embed=jackpot_embed)
-
+      await slots_channel.send(embed=jackpot_embed)
     if total_rewards != 0:
       # WIN
       total_profit = total_rewards - wager
@@ -149,14 +146,14 @@ class Slots(commands.Cog):
       embed = discord.Embed(
         title=title,
         color=embed_color,
-        description=match_msg,
+        description=f"{spin_msg}\n{match_msg}\n",
       )
       embed.set_image(url="attachment://{0}.png".format(ctx.author.id))
       embed.set_footer(text="{}'s score: {}".format(player["name"], player["score"]+total_profit))
       set_player_score(ctx.author, total_profit)
       await increment_user_xp(ctx.author, 1, "slot_win", ctx.channel)
-      await ctx.respond(embed=embed, file=file)
-
+      await ctx.followup.send(embed=embed, file=file)
+      return
     else:
       # LOSS
       increase_jackpot(score_mult)
@@ -165,11 +162,12 @@ class Slots(commands.Cog):
       embed = discord.Embed(
         title="Results",
         color=discord.Color(0xe74c3c),
-        description="{0}: {1}\n\n`{2}` point(s) added to the jackpot, increasing its bounty to `{3}`.".format(ctx.author.mention, random.choice(loser), score_mult, self.get_jackpot()),
+        description=f"{spin_msg}\n{ctx.author.mention}: {random.choice(loser)}\n\n`{score_mult}` point(s) added to the jackpot, increasing its bounty to `{self.get_jackpot()}`.",
       )
       embed.set_footer(text="{}'s score: {}".format(player["name"], player["score"]-wager))
       embed.set_image(url="attachment://{0}.png".format(ctx.author.id))
-      await ctx.respond(embed=embed, file=file)
+      await ctx.followup.send(embed=embed, file=file)
+      return
 
   # increment_player_spins(discord_id)
   # discord_id[required]: int
