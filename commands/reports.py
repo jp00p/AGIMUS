@@ -88,7 +88,7 @@ async def reports(ctx:discord.ApplicationContext, report:str, report_style:str):
 def get_xp_report():
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = "SELECT name,xp FROM users ORDER BY xp DESC LIMIT 10"
+  sql = "SELECT name,xp FROM users ORDER BY xp DESC LIMIT 25"
   query.execute(sql)
   results = query.fetchall()
   db.commit()
@@ -100,7 +100,7 @@ def get_xp_report():
 def get_scores_report():
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = "SELECT name,score FROM users ORDER BY score DESC LIMIT 10"
+  sql = "SELECT name,score FROM users ORDER BY score DESC LIMIT 25"
   query.execute(sql)
   results = query.fetchall()
   db.commit()
@@ -111,7 +111,7 @@ def get_scores_report():
 def get_channel_activity_report():
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = "SELECT SUM(amount) as xp_amount, channel_id FROM xp_history WHERE time_created > NOW() - INTERVAL 1 DAY GROUP BY channel_id ORDER BY SUM(amount) DESC"
+  sql = "SELECT SUM(amount) as xp_amount, channel_id FROM xp_history WHERE time_created > NOW() - INTERVAL 1 DAY GROUP BY channel_id ORDER BY SUM(amount) DESC LIMIT 25"
   query.execute(sql)
   results = query.fetchall()
   db.commit()
@@ -123,7 +123,7 @@ def get_channel_activity_report():
 def get_gainers_report():
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = "SELECT xp_history.user_discord_id, SUM(xp_history.amount) as amt, users.name FROM xp_history LEFT JOIN users ON xp_history.user_discord_id = users.discord_id WHERE xp_history.time_created > now() - interval 1 hour GROUP BY users.name, xp_history.user_discord_id ORDER BY amt DESC LIMIT 10;"
+  sql = "SELECT xp_history.user_discord_id, SUM(xp_history.amount) as amt, users.name FROM xp_history LEFT JOIN users ON xp_history.user_discord_id = users.discord_id WHERE xp_history.time_created > now() - interval 1 hour GROUP BY users.name, xp_history.user_discord_id ORDER BY amt DESC LIMIT 25;"
   query.execute(sql)
   results = query.fetchall()
   db.commit()
@@ -133,7 +133,7 @@ def get_gainers_report():
     
 
 def generate_channel_activity_report_card(type:str):
-  channel_names = {v:k for k,v in config["channels"].items()} 
+  channel_names = {v:k for k,v in config["channels"].items()}
   activity_data = get_channel_activity_report()
   title = "AGIMUS REPORT"
   description = "Most active channels in the last day"

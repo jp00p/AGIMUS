@@ -187,13 +187,14 @@ def get_user(discord_id:int):
   query.execute(sql, vals)
   user_data = query.fetchone()
   # get user stickers
-  sql = "SELECT sticker, position FROM profile_stickers WHERE user_discord_id = %s"
+  sql = "SELECT sticker, position FROM profile_stickers WHERE user_discord_id = %s AND sticker IS NOT NULL"
   vals = (discord_id,)
   query.execute(sql, vals)
   user_stickers = query.fetchall()
   query.close()
   db.close()
   user_data["stickers"] = user_stickers
+  logger.info(f"USER DATA: {user_data}")
   return user_data
 
 
