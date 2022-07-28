@@ -241,7 +241,7 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   base_bg.paste(padd_frame, (0, 0), padd_frame)
 
   # put sticker on
-  if len(user["stickers"]) > 0:
+  if len(user["stickers"]) > 0 and user['stickers'][0]['sticker']:
     sticker_image = Image.open("./images/profiles/template_pieces/lcars/sticker-1.png").convert("RGBA")
     sticker_mask  = Image.open("./images/profiles/template_pieces/lcars/sticker-1-mask.png").convert("L").resize(sticker_image.size)
     sticker       = Image.open(f"./images/profiles/stickers/{user['stickers'][0]['sticker']}").convert("RGBA").resize(sticker_image.size)
