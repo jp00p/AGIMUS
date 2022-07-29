@@ -332,15 +332,13 @@ def increase_jackpot(amt):
 # This runs to apply the local channel list on top of the existing channel config
 def generate_local_channel_list(client):
   if client.guilds[0]:
-    channels = client.guilds[0].channels
+    channels = client.guilds[0].channels + client.guilds[0].threads + client.guilds[0].voice_channels
     channel_list = {}
     for channel in channels:
-      if channel.type == discord.ChannelType.text:
-        channel_name = channel.name.encode("ascii", errors="ignore").decode().strip()
-        channel_list[channel_name] = channel.id
+      channel_name = channel.name.encode("ascii", errors="ignore").decode().strip()
+      channel_list[channel_name] = channel.id
     # channel_list_json = json.dumps(channel_list, indent=2, sort_keys=True)
     updated_channel_list = deep_dict_update({ "channels": config['channels'] }, { "channels" : channel_list })
-
     config["channels"] = updated_channel_list["channels"]
 
 # get_emoji(emoji_name)
