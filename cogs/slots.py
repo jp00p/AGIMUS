@@ -37,12 +37,9 @@ class Slots(commands.Cog):
   )
   @commands.check(access_check)
   async def spin(self, ctx:discord.ApplicationContext, show:str):
-    await ctx.defer()
+    await ctx.defer(ephemeral=True)
 
-    logger.info(f"{Style.BRIGHT}{ctx.author.name}{Style.RESET_ALL} is {Fore.LIGHTYELLOW_EX}rolling the slots!{Fore.RESET}")
-
-    slots_channel = bot.get_channel(config["channels"]["dabo-table"])
-    #logger.info(slots_channel)
+    logger.info(f"{Style.BRIGHT}{ctx.author.name}{Style.RESET_ALL} is {Fore.LIGHTYELLOW_EX}rolling the slots!{Fore.RESET}")   
     
     # Load slots data
     f = open(config["commands"]["slots spin"]["data"])
@@ -92,23 +89,30 @@ class Slots(commands.Cog):
       "Activating slot subroutines!", 
       "Reversing polarity on Alpha-probability particle emitters.",
     ] 
-    # pick a spin message
-    spin_msg = f"{ctx.author.mention}: "
-    spin_msg += f"**{random.choice(spinnin)}**\n"
-    # build the rest of the message
+    
+    # build the spin embed (spinbed)    
+    spin_msg = ""
+   
     if free_spin:
       spin_msg += "**This one's on the house!** (after 5 free spins, they will cost you points!)"
     else:
-      spin_msg += f"Spending `{wager}` of your points!"
-    spin_msg += f" This is spin `#{player['spins']+1}` for you."
-    
+      spin_msg += f"Spending `{wager}` of your points!"    
+
+    spinbed = discord.Embed(
+      title=random.choice(spinnin),
+      description=spin_msg,
+      color=discord.Color.random()
+    )
+    spinbed.set_footer(text=f"This is spin #{player['spins']+1} for you.")
+    await ctx.send_followup(embed=spinbed, ephemeral=False) # first followup 
+
     # roll the slots!
     silly_matches, matching_chars, jackpot, symbol_matches = self.roll_slot(show, SLOTS[show], filename=str(ctx.author.id))
     try:
       file = discord.File(f"{self.slot_results_dir}{player_id}.png", filename=str(ctx.author.id)+".png")
     except:
       logger.info(f"{Fore.RED}Error generating discord file placeholder{Fore.RESET}")
-    match_msg = f"\n__Results__\n"
+    match_msg = f"\n__Results for spin #{player['spins']+1}__\n"
 
     if len(symbol_matches) > 0:
       match_msg += "**"+symbol_matches[0].upper()+":** "
@@ -128,21 +132,28 @@ class Slots(commands.Cog):
       match_msg += " `({0} points)`\n".format(3 * score_mult)
       total_rewards += 3 * score_mult
 
-    title = "WIN"
+    title = f"{ctx.author.display_name} wins!"
     embed_color = discord.Color(0x1abc9c)
+
     if jackpot:
-      title = "**JACKPOT!!!**"
+      title = f"**{ctx.author.display_name}** won the jackpot! {get_emoji('q_shocking')}"
       embed_color = discord.Color.dark_gold()
       jackpot_amt = self.get_jackpot()
       total_rewards += round(jackpot_amt * themed_payout)
       match_msg += "\n "+ctx.author.mention+" wins the pot of: `{0}` ...multiplied by the slots' jackpot payout rate of x{1}... **for a total winnings of `{2}`**\n\nJackpot has been reset to: **`250`**\n\n".format(jackpot_amt, themed_payout, round(jackpot_amt*themed_payout))
       win_jackpot(ctx.author.display_name, ctx.author.id)
-      jackpot_embed = discord.Embed(color=embed_color)
+      jackpot_embed = discord.Embed(
+        title=f"**{ctx.author.display_name} WINS THE JACKPOT!!!**".upper(),
+        color=embed_color        
+      )
       jackpot_embed.set_image(url="https://i.imgur.com/S7Pv9lM.jpg")
-      await slots_channel.send(embed=jackpot_embed)
+      await ctx.send_followup(embed=jackpot_embed, ephemeral=False)
+
     if total_rewards > 0:
       # WIN
       total_profit = total_rewards - wager
+      if total_profit == 0:
+        title = f"{ctx.author.display_name} broke even!"
       match_msg += f"**Total Profit:** `{total_profit} point(s)`.\n"
       embed = discord.Embed(
         title=title,
@@ -153,21 +164,22 @@ class Slots(commands.Cog):
       embed.set_footer(text="{}'s score: {}".format(player["name"], player["score"]+total_profit))
       set_player_score(ctx.author, total_profit)
       await increment_user_xp(ctx.author, 1, "slot_win", ctx.channel)
-      await ctx.followup.send(content=f"{spin_msg}", embed=embed, file=file)
+      await ctx.send_followup(embed=embed, file=file, ephemeral=False)
       return
     else:
       # LOSS
+      title = f"{ctx.author.display_name} lost!"
       increase_jackpot(score_mult)
       set_player_score(ctx.author, -wager)
       loser = ["No dice!", "Bust!", "No matches!", "Better luck next time!", "Sad trombone!", "You didn't win!", "We have no prize to fit your loss -- ", "You may have won in the mirror universe, but not here!", "Sensors detect no matches.", "JACKP-- no wait, that's a loss.", "Close, but no cigar.", "Not a win!", "You would have won if it were opposite day!"]
       embed = discord.Embed(
-        title="LOSS",
+        title=title,
         color=discord.Color(0xe74c3c),
         description=f"{random.choice(loser)}\n\n`{score_mult}` point(s) added to the jackpot, increasing its bounty to `{self.get_jackpot()}`.",
       )
       embed.set_footer(text="{}'s score: {}".format(player["name"], player["score"]-wager))
       embed.set_image(url="attachment://{0}.png".format(ctx.author.id))
-      await ctx.followup.send(content=f"{spin_msg}", embed=embed, file=file)
+      await ctx.send_followup(embed=embed, file=file, ephemeral=True)
       return
 
   # increment_player_spins(discord_id)
