@@ -1679,7 +1679,15 @@
       "episode": "09",
       "imdb": "tt0709015",
       "memoryalpha": "Final_Mission_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 428,
+          "airdate": "2022.07.25",
+          "episode": "Hairy Fingers with a Galaxy Brain",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-428-hairy-fingers-with-a-galaxy-brain-voy-s4e9/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/6xOYPewfBepGMST5L8J9rxgpHRZ.jpg"

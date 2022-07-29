@@ -8,12 +8,12 @@ f = open(config["commands"]["trivia"]["data"])
 trivia_data = json.load(f)
 f.close()
 
-#    _____                                     __________        __    __                 
-#   /  _  \   ____   ________  _  __ __________\______   \__ ___/  |__/  |_  ____   ____  
-#  /  /_\  \ /    \ /  ___/\ \/ \/ // __ \_  __ \    |  _/  |  \   __\   __\/  _ \ /    \ 
+#    _____                                     __________        __    __
+#   /  _  \   ____   ________  _  __ __________\______   \__ ___/  |__/  |_  ____   ____
+#  /  /_\  \ /    \ /  ___/\ \/ \/ // __ \_  __ \    |  _/  |  \   __\   __\/  _ \ /    \
 # /    |    \   |  \\___ \  \     /\  ___/|  | \/    |   \  |  /|  |  |  | (  <_> )   |  \
 # \____|__  /___|  /____  >  \/\_/  \___  >__|  |______  /____/ |__|  |__|  \____/|___|  /
-#         \/     \/     \/              \/             \/                              \/ 
+#         \/     \/     \/              \/             \/                              \/
 categories = trivia_data["categories"]
 category_choices = []
 for category in categories.keys():
@@ -39,12 +39,12 @@ class AnswerButton(discord.ui.Button):
     await interaction.response.send_message(f"You guessed: **{self.answer_index + 1}** - {self.answer_text}", ephemeral=True)
 
 
-# ___________      .__      .__        
-# \__    ___/______|__|__  _|__|____   
-#   |    |  \_  __ \  \  \/ /  \__  \  
+# ___________      .__      .__
+# \__    ___/______|__|__  _|__|____
+#   |    |  \_  __ \  \  \/ /  \__  \
 #   |    |   |  | \/  |\   /|  |/ __ \_
 #   |____|   |__|  |__| \_/ |__(____  /
-#                                   \/ 
+#                                   \/
 class Trivia(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
@@ -53,7 +53,7 @@ class Trivia(commands.Cog):
     self.trivia_answers = {}
     self.trivia_message = None
     self.trivia_running = False
-  
+
   def clear_data(self):
     self.trivia_data = {}
     self.trivia_answers = {}
@@ -87,6 +87,7 @@ class Trivia(commands.Cog):
   @tasks.loop(seconds=20,count=1)
   async def trivia_quiz(self, ctx:discord.ApplicationContext, category:str):
     try:
+      await ctx.defer()
       self.trivia_running = True
 
       if category:
@@ -121,14 +122,13 @@ class Trivia(commands.Cog):
         view.add_item(button)
 
       embed.set_footer(text="Select a button below with your answer!")
-      # channel = bot.get_channel(config["channels"]["quizzing-booth"])
-      self.trivia_message = await ctx.respond(
+      self.trivia_message = await ctx.followup.send(
         embed=embed,
         file=thumb,
         view=view
       )
     except Exception as e:
-      await ctx.respond(embed=discord.Embed(
+      await ctx.followup.send(embed=discord.Embed(
         title="Error Encountered with Trivia! Sorry, we're on it!",
         color=discord.Color.red(),
       ), ephemeral=True)
@@ -161,7 +161,7 @@ class Trivia(commands.Cog):
         else:
           incorrect_guessers.append(trivia_answer)
 
-      channel = bot.get_channel(config["channels"]["quizzing-booth"])
+      channel = bot.get_channel(config["channels"]["morns-nonstop-quiz"])
       embed = discord.Embed(
         title="Trivia Complete!",
         description="The correct answer was:\n\n**{}**: {} \n \n** **".format(self.trivia_data['correct_choice'] + 1, self.trivia_data["correct_answer"])
@@ -192,9 +192,7 @@ class Trivia(commands.Cog):
         increase_jackpot(reward)
 
       # Disable all the answer buttons now that the trivia session is over
-      original_message = await self.trivia_message.original_message()
-      if original_message != None:
-        await original_message.edit(view=None)
+      await self.trivia_message.edit(view=None)
 
       self.clear_data()
 
