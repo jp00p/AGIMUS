@@ -1,4 +1,5 @@
 import math
+import time
 from common import *
 from handlers.xp import increment_user_xp
 from utils.check_channel_access import access_check
@@ -37,8 +38,9 @@ class Slots(commands.Cog):
   @commands.check(access_check)
   async def spin(self, ctx:discord.ApplicationContext, show:str):
     await ctx.defer(ephemeral=True)
-    logger.info(f"{Fore.YELLOW}Rolling the slots!{Fore.RESET}")
 
+    logger.info(f"{Style.BRIGHT}{ctx.author.name}{Style.RESET_ALL} is {Fore.LIGHTYELLOW_EX}rolling the slots!{Fore.RESET}")   
+    
     # Load slots data
     f = open(config["commands"]["slots spin"]["data"])
     SLOTS = json.load(f)
@@ -47,20 +49,20 @@ class Slots(commands.Cog):
     # Use the option the user selected or pick a random show
     if show not in command_config["parameters"][0]["allowed"]:
       show = random.choice(["TNG", "DS9", "VOY", "HOLODECK"])
-
-    logger.info(f"{Fore.LIGHTRED_EX}Rolling slot theme:{Fore.RESET} {Style.BRIGHT}{show}{Style.RESET_ALL}")
-    # player data
+    
+    #logger.info(f"{Fore.LIGHTRED_EX}Rolling slot theme:{Fore.RESET} {Style.BRIGHT}{show}{Style.RESET_ALL}")
+    # player data  
     player_id = ctx.author.id
     player = get_user(player_id)
     free_spin = player["spins"] < 5 # true or false
     wager = player["wager"]
     score_mult = wager
-
+    
     # if they have less than 5 total spins, give em a free one
     if free_spin:
       wager = 0
       score_mult = 1
-
+    
     total_rewards = 0
     themed_payout = SLOTS[show]["payout"]
     #logger.info("payout" + str(themed_payout))
@@ -76,33 +78,33 @@ class Slots(commands.Cog):
       self.increment_player_spins(player_id)
 
     spinnin = [
-      "All I do is *slots slots slots*!",
-      "Time to pluck a pigeon!",
-      "Rollin' with my homies...",
-      "It's time to spin!",
-      "Let's roll.",
-      "ROLL OUT!",
-      "Get it player.",
-      "Go go gadget slots!",
-      "Activating slot subroutines!",
+      "All I do is *slots slots slots*!", 
+      "Time to pluck a pigeon!", 
+      "Rollin' with my homies...", 
+      "It's time to spin!", 
+      "Let's roll.", 
+      "ROLL OUT!", 
+      "Get it player.", 
+      "Go go gadget slots!", 
+      "Activating slot subroutines!", 
       "Reversing polarity on Alpha-probability particle emitters.",
-    ]
-    # pick a spin message
-    spin_msg = f"{ctx.author.mention}: "
-    spin_msg += f"**{random.choice(spinnin)}**\n"
-    # build the rest of the message
+    ] 
+    
+    # build the spin embed (spinbed)    
+    spin_msg = ""
+   
     if free_spin:
       spin_msg += "**This one's on the house!** (after 5 free spins, they will cost you points!)"
     else:
-      spin_msg += f"Spending `{wager}` of your points!"
+      spin_msg += f"Spending `{wager}` of your points!"    
 
-    spin_embed = discord.Embed(
-      title=random.choice(spinnin).title(),
+    spinbed = discord.Embed(
+      title=random.choice(spinnin),
       description=spin_msg,
-      color=discord.Color.gold()
+      color=discord.Color.random()
     )
-    spin_embed.set_footer(text=f"This is spin #{player['spins']+1} for you.")
-    await ctx.followup.send(embed=spin_embed)
+    spinbed.set_footer(text=f"This is spin #{player['spins']+1} for you.")
+    await ctx.send_followup(embed=spinbed, ephemeral=False) # first followup 
 
     # roll the slots!
     silly_matches, matching_chars, jackpot, symbol_matches = self.roll_slot(show, SLOTS[show], filename=str(ctx.author.id))
@@ -110,7 +112,7 @@ class Slots(commands.Cog):
       file = discord.File(f"{self.slot_results_dir}{player_id}.png", filename=str(ctx.author.id)+".png")
     except:
       logger.info(f"{Fore.RED}Error generating discord file placeholder{Fore.RESET}")
-    match_msg = f"\nResults: \n\n"
+    match_msg = f"\n__Results for spin #{player['spins']+1}__\n"
 
     if len(symbol_matches) > 0:
       match_msg += "**"+symbol_matches[0].upper()+":** "
@@ -123,55 +125,62 @@ class Slots(commands.Cog):
       match_msg += f" `{str(len(silly_matches)*score_mult)} point(s)`\n"
       total_rewards += len(silly_matches) * score_mult
 
-    # matching characters (transporter clones)
+    # matching characters (transporter clones)  
     if len(matching_chars) > 0:
       match_msg += "**Transporter clones: ** "
       match_msg += ", ".join(matching_chars).replace("_", " ").title()
       match_msg += " `({0} points)`\n".format(3 * score_mult)
       total_rewards += 3 * score_mult
 
-    title = "Results"
+    title = f"{ctx.author.display_name} wins!"
     embed_color = discord.Color(0x1abc9c)
-    if jackpot:
-      title = "**JACKPOT!!!**"
-      embed_color = discord.Color.dark_gold()
 
+    if jackpot:
+      title = f"**{ctx.author.display_name}** won the jackpot! {get_emoji('q_shocking')}"
+      embed_color = discord.Color.dark_gold()
       jackpot_amt = self.get_jackpot()
       total_rewards += round(jackpot_amt * themed_payout)
       match_msg += "\n "+ctx.author.mention+" wins the pot of: `{0}` ...multiplied by the slots' jackpot payout rate of x{1}... **for a total winnings of `{2}`**\n\nJackpot has been reset to: **`250`**\n\n".format(jackpot_amt, themed_payout, round(jackpot_amt*themed_payout))
       win_jackpot(ctx.author.display_name, ctx.author.id)
-      jackpot_embed = discord.Embed(color=embed_color)
+      jackpot_embed = discord.Embed(
+        title=f"**{ctx.author.display_name} WINS THE JACKPOT!!!**".upper(),
+        color=embed_color        
+      )
       jackpot_embed.set_image(url="https://i.imgur.com/S7Pv9lM.jpg")
-      await ctx.followup.send(embed=jackpot_embed, ephemeral=False)
+      await ctx.send_followup(embed=jackpot_embed, ephemeral=False)
 
-    if total_rewards != 0:
+    if total_rewards > 0:
       # WIN
       total_profit = total_rewards - wager
+      if total_profit == 0:
+        title = f"{ctx.author.display_name} broke even!"
       match_msg += f"**Total Profit:** `{total_profit} point(s)`.\n"
       embed = discord.Embed(
         title=title,
         color=embed_color,
-        description=f"{spin_msg}\n{match_msg}\n",
+        description=f"{match_msg}\n",
       )
       embed.set_image(url="attachment://{0}.png".format(ctx.author.id))
       embed.set_footer(text="{}'s score: {}".format(player["name"], player["score"]+total_profit))
       set_player_score(ctx.author, total_profit)
       await increment_user_xp(ctx.author, 1, "slot_win", ctx.channel)
-      await ctx.followup.send(embed=embed, file=file, ephemeral=False)
-
+      await ctx.send_followup(embed=embed, file=file, ephemeral=False)
+      return
     else:
       # LOSS
+      title = f"{ctx.author.display_name} lost!"
       increase_jackpot(score_mult)
       set_player_score(ctx.author, -wager)
       loser = ["No dice!", "Bust!", "No matches!", "Better luck next time!", "Sad trombone!", "You didn't win!", "We have no prize to fit your loss -- ", "You may have won in the mirror universe, but not here!", "Sensors detect no matches.", "JACKP-- no wait, that's a loss.", "Close, but no cigar.", "Not a win!", "You would have won if it were opposite day!"]
       embed = discord.Embed(
-        title="Results",
+        title=title,
         color=discord.Color(0xe74c3c),
-        description=f"{spin_msg}\n{ctx.author.mention}: {random.choice(loser)}\n\n`{score_mult}` point(s) added to the jackpot, increasing its bounty to `{self.get_jackpot()}`.",
+        description=f"{random.choice(loser)}\n\n`{score_mult}` point(s) added to the jackpot, increasing its bounty to `{self.get_jackpot()}`.",
       )
       embed.set_footer(text="{}'s score: {}".format(player["name"], player["score"]-wager))
       embed.set_image(url="attachment://{0}.png".format(ctx.author.id))
-      await ctx.followup.send(embed=embed, file=file, ephemeral=False)
+      await ctx.send_followup(embed=embed, file=file, ephemeral=True)
+      return
 
   # increment_player_spins(discord_id)
   # discord_id[required]: int
@@ -225,7 +234,7 @@ class Slots(commands.Cog):
 
     fruits = ["cherry", "grapes", "lemon", "plum", "watermelon"]
 
-    # check the symbols winnings
+    # check the symbols winnings  
     if len(symbol_matches) == 1:
       win_sym = list(symbol_matches)[0]
       win_string = f"3 {win_sym}"
@@ -247,7 +256,7 @@ class Slots(commands.Cog):
 
     for match_title in slot_to_roll["matches"]:
       # check the silly/bits-based matches
-      matches = slot_to_roll["matches"][match_title]
+      matches = slot_to_roll["matches"][match_title]   
       match_count = 0
 
       for m in matches:
@@ -257,9 +266,13 @@ class Slots(commands.Cog):
         silly_matches.append(match_title)
 
     if generate_image:
+      start_time = time.time()
+      #logger.info("Generating slot images...")
       image1 = Image.open(f"{ROOT_DIR}{slot_to_roll['files']}" + results[0]).resize((150,150))
       image2 = Image.open(f"{ROOT_DIR}{slot_to_roll['files']}" + results[1]).resize((150,150))
       image3 = Image.open(f"{ROOT_DIR}{slot_to_roll['files']}" + results[2]).resize((150,150))
+      end_time = time.time()
+      #logger.info(f"Finished generating slot images {end_time-start_time}")
 
 
     matching_chars = []
@@ -286,7 +299,7 @@ class Slots(commands.Cog):
       self.generate_slot_image(image1,image2,image3,symbol_roll,color,logo).save(f"{ROOT_DIR}/images/slot_results/{str(filename)}.png")
 
     return silly_matches, matching_chars, jackpot, symbol_result
-
+  
   # generate_slot_image(im1, im2, im3, color, logo)
   # im1[required]: object
   # im2[required]: object
@@ -459,7 +472,7 @@ class Slots(commands.Cog):
         profits = []
 
         for i in range(spins):
-          logger.info(f"Spin #{i}")
+          #logger.info(f"Spin #{i}")
           silly,clones,jackpot,symbol_result = self.roll_slot(show, SLOTS[show], generate_image=False)
           profit = len(silly)
           if len(silly) > 0 or len(clones) > 0:
@@ -471,7 +484,7 @@ class Slots(commands.Cog):
           if jackpot:
             jackpots += 1
           profits.append(profit)
-
+          
         chance_to_win = (wins/spins)*100
         chance_to_jackpot = (jackpots/spins)*100
         chance_for_profit = (profitable_wins/spins)*100
@@ -485,4 +498,4 @@ class Slots(commands.Cog):
       else:
         await ctx.send("Ah ah ah, you didn't say the magic word", ephemeral=True)
     except BaseException as e:
-      logger.info(traceback.format_exc())
+      logger.info(traceback.format_exc())   

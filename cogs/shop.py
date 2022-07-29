@@ -176,7 +176,6 @@ class Shop(commands.Cog):
         elif category == "roles":
           role = self.shop_data["roles"][purchase_record["page"]]
           role_name = role["name"]
-
           # Special Case for Roles, they may have different prices so need to check this again here:
           cost = role["price"]
           if player["score"] < cost:
@@ -188,7 +187,6 @@ class Shop(commands.Cog):
             result["message"] = f"You already have the **{role_name}** role! \nWe gotchu, no points spent.\n\nType `/profile` to check it out!"  
           else:
             await update_player_role(interaction.user, role)
-            add_high_roller(interaction.user.id)
             result["success"] = True
             result["message"] = f"You have spent `{cost} points` and purchased the **{role_name}** role!\n\nType `/profile` to check it out!"
       
@@ -407,7 +405,7 @@ def update_player_profile_sticker(discord_id, sticker):
 
 # update_player_role(user, role)
 # user[required]: object
-# rolep[required]: string
+# role[required]: string
 # This function will add a discord role to a specific user
 async def update_player_role(user, role):
   logger.info(f"Updating user {Style.BRIGHT}{user.id}{Style.RESET_ALL} with new role: {Fore.CYAN}{role['name']}{Fore.RESET}")
