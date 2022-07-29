@@ -23,7 +23,7 @@ from discord import option
 from discord.ext import commands, tasks, pages
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
-from PIL import Image, ImageColor, ImageDraw, ImageFont
+from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps
 from tabulate import tabulate
 from treys import Card, Deck, Evaluator, evaluator
 
@@ -31,12 +31,12 @@ from utils.config_utils import get_config, deep_dict_update
 from utils.disco_lights import LightHandler
 
 
-#   _________       __                
-#  /   _____/ _____/  |_ __ ________  
-#  \_____  \_/ __ \   __\  |  \____ \ 
+#   _________       __
+#  /   _____/ _____/  |_ __ ________
+#  \_____  \_/ __ \   __\  |  \____ \
 #  /        \  ___/|  | |  |  /  |_> >
-# /_______  /\___  >__| |____/|   __/ 
-#         \/     \/           |__|    
+# /_______  /\___  >__| |____/|   __/
+#         \/     \/           |__|
 
 # Load variables from .env file
 load_dotenv()
@@ -69,12 +69,12 @@ DB_SEED_FILEPATH = os.getenv('DB_SEED_FILEPATH')
 ROLES = config["roles"]
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# __________        __   
-# \______   \ _____/  |_ 
+# __________        __
+# \______   \ _____/  |_
 #  |    |  _//  _ \   __\
-#  |    |   (  <_> )  |  
-#  |______  /\____/|__|  
-#         \/             
+#  |    |   (  <_> )  |
+#  |______  /\____/|__|
+#         \/
 
 intents = discord.Intents.all()
 bot = commands.Bot(
@@ -108,12 +108,12 @@ LOGGING_CHANNEL = get_channel_id(config["logging_channel"])
 SERVER_LOGS_CHANNEL = get_channel_id(config["server_logs_channel"])
 
 
-# ________          __        ___.                         
-# \______ \ _____ _/  |______ \_ |__ _____    ______ ____  
-#  |    |  \\__  \\   __\__  \ | __ \\__  \  /  ___// __ \ 
-#  |    `   \/ __ \|  |  / __ \| \_\ \/ __ \_\___ \\  ___/ 
+# ________          __        ___.
+# \______ \ _____ _/  |______ \_ |__ _____    ______ ____
+#  |    |  \\__  \\   __\__  \ | __ \\__  \  /  ___// __ \
+#  |    `   \/ __ \|  |  / __ \| \_\ \/ __ \_\___ \\  ___/
 # /_______  (____  /__| (____  /___  (____  /____  >\___  >
-#         \/     \/          \/    \/     \/     \/     \/ 
+#         \/     \/          \/    \/     \/     \/     \/
 
 def getDB():
   db = mysql.connector.connect(
@@ -169,7 +169,7 @@ def is_integer(n):
 def uniq_channels(config):
   tkeys = []
   for key in config["channels"].keys():
-    tkeys = tkeys + config["channels"][key]    
+    tkeys = tkeys + config["channels"][key]
   res = []
   [res.append(int(x)) for x in tkeys if x not in res]
   return res
@@ -211,7 +211,7 @@ def get_all_users():
   query.close()
   db.close()
   return users
-  
+
 
 # register_player(user)
 # user[required]: object
@@ -268,7 +268,7 @@ def update_user(discord_id, key, value):
 # amt[required]: int
 # This function increases a player's score by the value amt
 # NOTE: THIS IS USED BY MULTIPLE GAMES!
-def set_player_score(user, amt):   
+def set_player_score(user, amt):
   db = getDB()
   query = db.cursor()
   sql = "SELECT score FROM users WHERE discord_id = %s"
@@ -295,7 +295,7 @@ def set_player_score(user, amt):
 # winner[required]: string
 # id[required]: int
 # This function will set the current jackpot winner
-# and reset the jackpot with a default value 
+# and reset the jackpot with a default value
 def win_jackpot(winner, id):
   db = getDB()
   query = db.cursor()
@@ -311,7 +311,7 @@ def win_jackpot(winner, id):
   db.commit()
   query.close()
   db.close()
-  
+
 
 # increase_jackpot(amt)
 # amt[required]: int

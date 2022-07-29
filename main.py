@@ -8,6 +8,7 @@ import aiohttp
 
 # Slash Commands
 from commands.badges import badges
+from commands.badge_sets import badge_sets
 from commands.dustbuster import dustbuster
 from commands.fmk import fmk
 from commands.help import help
