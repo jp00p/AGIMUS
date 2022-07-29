@@ -4,6 +4,7 @@
 # ██   ██ ██    ██ ██ ██  ██  ██ ██    ██      ██
 # ██   ██  ██████  ██ ██      ██  ██████  ███████
 from common import *
+import aiohttp
 
 # Slash Commands
 from commands.badges import badges
@@ -45,13 +46,20 @@ from cogs.quiz import Quiz
 from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.trade import Trade
-from cogs.trivia import Trivia
 bot.add_cog(Poker(bot))
 bot.add_cog(Quiz(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Trade(bot))
-bot.add_cog(Trivia(bot))
+
+
+## Trivia relies on an external JSON request which might fail, in that case log the error but continue
+try:
+  from cogs.trivia import Trivia
+  bot.add_cog(Trivia(bot))
+except (aiohttp.client_exceptions.ContentTypeError, json.decoder.JSONDecodeError) as e:
+  logger.error(f"{Fore.RED}<! ERROR: Trivia Failed on Import, unable to register cog. !> {e}{Fore.RESET}")
+  pass
 
 # Handlers
 from handlers.alerts import handle_alerts
@@ -249,8 +257,13 @@ async def on_application_command(ctx):
 
 @bot.event
 async def on_application_command_error(ctx, error):
-  logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
-  logger.info(traceback.print_exception(type(error), error, error.__traceback__))
+  if isinstance(error, commands.errors.CheckFailure):
+    # We don't care about check errors,
+    # it means the check is succeeding in blocking access
+    pass
+  else:
+    logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
+    logger.info(traceback.print_exception(type(error), error, error.__traceback__))
 
 # listen to context (!) command events
 @bot.event
