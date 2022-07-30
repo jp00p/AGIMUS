@@ -97,8 +97,9 @@ jobs:
           sleep 5
           echo "Delete (restart) AGIMUS pod now that MySQL should be running and seeded..."
           kubectl --namespace agimus delete pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
+          sleep 3
           echo "If after 20 seconds the string 'BOT IS ONLINE AND READY FOR COMMANDS' is not present in the logs, the test has failed..."
-          sleep 20
+          timeout 20s kubectl --namespace agimus logs -f $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
           bash_test="$(kubectl --namespace agimus logs $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') | grep 'BOT IS ONLINE AND READY FOR COMMANDS')"
           echo "$bash_test"
           if [[ -n "$bash_test" ]]; then
@@ -127,7 +128,7 @@ jobs:
           echo "Configmaps:"
           kubectl --namespace agimus get configmaps
           echo "Agimus Config:"
-          kubectl --namespace agimus get configmaps agimus-config -o yaml
+          kubectl --namespace agimus get configmaps agimus-config -o jsonpath='{.data.local\.json}' | jq '.' || true
           echo "Describe Agimus pod:"
           kubectl --namespace agimus describe pod $(kubectl --namespace agimus get pods | grep agimus | awk '{print $1}') || true
           echo "Logs:"

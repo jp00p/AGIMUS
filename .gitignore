@@ -133,3 +133,5 @@ images/slot_results/*.png
 images/trades/*.png
 !images/slot_results/template*
 !images/profiles/template*
+database/*
+database

@@ -5,7 +5,7 @@ FROM ubuntu:20.04
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
     && apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        curl wget apt-utils python3 python3-pip make build-essential locales openssl git jq tzdata sudo lsb-release \
+        curl wget apt-utils python3 python3-pip make build-essential locales openssl git jq tzdata sudo lsb-release mysql-client \
     && touch /etc/sudoers.d/bot-user \
     && echo "bot ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/bot-user \
     && useradd -ms /bin/bash bot \
