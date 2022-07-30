@@ -2,6 +2,8 @@ import math
 import textwrap
 import time
 
+from random import randint
+
 from common import *
 
 from utils.check_channel_access import access_check
@@ -146,8 +148,26 @@ async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, s
 
   set_image = generate_badge_set_showcase_for_user(ctx.author, set, selection, category_title)
 
+
+  random_titles = [
+    "Gotta catch em all!",
+    "He who has the most toys...",
+    f"Currently {randint(10, 220)}% Encumbered",
+    "My badges, let me show you them."
+  ]
+
   public = bool(public == "yes")
-  await ctx.followup.send(file=set_image, ephemeral=not public)
+  await ctx.followup.send(
+    embed=discord.Embed(
+      title=f"Badge Set - **{category_title}** - **{selection}**",
+      description=f"{ctx.author.mention} has collected {len(user_set_badges)} of {len(all_set_badges)}!\n\nClick and Open Original to view the details below.",
+      color=discord.Color(0x2D698D)
+    )
+    .set_image(url=f"attachment://badge_set.png")
+    .set_footer(text=random.choice(random_titles)),
+    file=set_image,
+    ephemeral=not public
+  )
 
 
 # .___
@@ -260,7 +280,7 @@ def generate_badge_set_showcase_for_user(user:discord.User, badge_set, selection
       current_y += badge_slot_size + badge_margin # ka-chunk
       counter = 0 #...
 
-  badge_set_filepath = f"./images/profiles/badge_set_{user.id}_{selection.lower().replace(' ', '-')}.png"
+  badge_set_filepath = f"./images/profiles/badge_set_{user.id}_{selection.lower().replace(' ', '-').replace('/', '-')}.png"
   badge_base_image.save(badge_set_filepath)
 
   while True:
@@ -268,7 +288,7 @@ def generate_badge_set_showcase_for_user(user:discord.User, badge_set, selection
     if os.path.isfile(badge_set_filepath):
       break
 
-  discord_image = discord.File(badge_set_filepath)
+  discord_image = discord.File(badge_set_filepath, filename="badge_set.png")
   return discord_image
 
 
