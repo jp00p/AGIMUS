@@ -135,3 +135,4 @@ images/trades/*.png
 !images/profiles/template*
 database/*
 database
+deploy/
