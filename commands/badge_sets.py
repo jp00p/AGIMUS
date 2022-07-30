@@ -162,6 +162,10 @@ def generate_badge_set_showcase_for_user(user:discord.User, badge_set, selection
   text_wrapper = textwrap.TextWrapper(width=22)
   # badge_list = get_user_badges(user.id)
   title_font = ImageFont.truetype("fonts/lcars3.ttf", 110)
+  if len(user.display_name) > 16:
+    title_font = ImageFont.truetype("fonts/lcars3.ttf", 90)
+  if len(user.display_name) > 21:
+    title_font = ImageFont.truetype("fonts/lcars3.ttf", 82)
   collected_font = ImageFont.truetype("fonts/lcars3.ttf", 70)
   total_font = ImageFont.truetype("fonts/lcars3.ttf", 54)
   badge_font = ImageFont.truetype("fonts/context_bold.ttf", 28)
