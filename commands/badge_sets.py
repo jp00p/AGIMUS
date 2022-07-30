@@ -4,9 +4,14 @@ import time
 
 from common import *
 
-# from utils.check_channel_access import access_check
+from utils.check_channel_access import access_check
 
-# AUTOCOMPLETE
+#    _____          __                                     .__          __
+#   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
+#  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \
+# /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
+# \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
+#         \/                        \/            \/|__|             \/          \/
 async def autocomplete_selections(ctx:discord.AutocompleteContext):
   category = ctx.options["category"]
 
@@ -14,23 +19,40 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
 
   if category == 'affiliation':
     selections = db_get_all_affiliations()
-    # return [result for result in affiliations if ctx.value.lower() in result.lower()]
   elif category == 'franchise':
     selections = db_get_all_franchises()
-    # return [result for result in franchises if ctx.value.lower() in result.lower()]
   elif category == 'time_period':
     selections = db_get_all_time_periods()
-    # return [result for result in time_periods if ctx.value.lower() in result.lower()]
   elif category == 'type':
     selections = db_get_all_types()
-    # return [result for result in types if ctx.value.lower() in result.lower()]
 
   return [result for result in selections if ctx.value.lower() in result.lower()]
 
-# COMMAND
+
+# _________                                           .___
+# \_   ___ \  ____   _____   _____ _____    ____    __| _/
+# /    \  \/ /  _ \ /     \ /     \\__  \  /    \  / __ |
+# \     \___(  <_> )  Y Y  \  Y Y  \/ __ \|   |  \/ /_/ |
+#  \______  /\____/|__|_|  /__|_|  (____  /___|  /\____ |
+#         \/             \/      \/     \/     \/      \/
 @bot.slash_command(
   name="badge_sets",
   description="Show off sets of your badges!"
+)
+@option(
+  name="public",
+  description="Show to public?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="No",
+      value="no"
+    ),
+    discord.OptionChoice(
+      name="Yes",
+      value="yes"
+    )
+  ]
 )
 @option(
   name="category",
@@ -61,7 +83,8 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
   required=True,
   autocomplete=autocomplete_selections
 )
-async def badge_sets(ctx:discord.ApplicationContext, category:str, selection:str):
+@commands.check(access_check)
+async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, selection:str):
   await ctx.defer(ephemeral=True)
 
   user_set_badges = []
@@ -106,7 +129,7 @@ async def badge_sets(ctx:discord.ApplicationContext, category:str, selection:str
 
   set = []
   for badge in all_set_badges:
-    badge_filename = badge.replace(" ", "_").replace("/", "-")
+    badge_filename = badge.replace(" ", "_").replace("/", "-").replace(":", "-")
     record = {
       'badge_name': badge,
       'badge_filename': f"{badge_filename}.png",
@@ -116,13 +139,23 @@ async def badge_sets(ctx:discord.ApplicationContext, category:str, selection:str
 
   category_title = category.replace("_", " ").title()
 
+  await ctx.followup.send(embed=discord.Embed(
+    title="One moment while we pull up your set!",
+    color=discord.Color(0x2D698D)
+  ), ephemeral=True)
+
   set_image = generate_badge_set_showcase_for_user(ctx.author, set, selection, category_title)
 
-  await ctx.followup.send(file=set_image, ephemeral=False)
+  public = bool(public == "yes")
+  await ctx.followup.send(file=set_image, ephemeral=not public)
 
 
-# big expensive function that generates a nice grid of images for the user
-# returns discord.file
+# .___
+# |   | _____ _____     ____   ____
+# |   |/     \\__  \   / ___\_/ __ \
+# |   |  Y Y  \/ __ \_/ /_/  >  ___/
+# |___|__|_|  (____  /\___  / \___  >
+#           \/     \//_____/      \/
 def generate_badge_set_showcase_for_user(user:discord.User, badge_set, selection, category_title):
   total_user_badges = db_get_badge_count_for_user(user.id)
 
@@ -235,10 +268,15 @@ def generate_badge_set_showcase_for_user(user:discord.User, badge_set, selection
   return discord_image
 
 
-#
-# AFFILIATIONS
-#
 
+# ________                      .__
+# \_____  \  __ __   ___________|__| ____   ______
+#  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
+# /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
+# \_____\ \_/____/  \___  >__|  |__|\___  >____  >
+#        \__>           \/              \/     \/
+
+# Affiliations
 def db_get_all_affiliations():
   db = getDB()
   query = db.cursor(dictionary=True)
@@ -299,9 +337,7 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
 
   return user_badges
 
-#
-# FRANCHISES
-#
+# Franchises
 def db_get_all_franchises():
   db = getDB()
   query = db.cursor(dictionary=True)
@@ -358,9 +394,7 @@ def db_get_badges_user_has_from_franchise(user_id, franchise):
 
   return user_badges
 
-#
-# TIME PERIODS
-#
+# Time Periods
 def db_get_all_time_periods():
   db = getDB()
   query = db.cursor(dictionary=True)
@@ -425,9 +459,7 @@ def db_get_badges_user_has_from_time_period(user_id, time_period):
 
   return user_badges
 
-#
-# TYPES
-#
+# Types
 def db_get_all_types():
   db = getDB()
   query = db.cursor(dictionary=True)
@@ -488,9 +520,7 @@ def db_get_badges_user_has_from_type(user_id, type):
 
   return user_badges
 
-#
-# GENERAL
-#
+# General
 def db_get_badge_count_for_user(user_id):
   db = getDB()
   query = db.cursor(dictionary=True)

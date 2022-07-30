@@ -69,7 +69,7 @@ make kind-create
 # Build AGIMUS, and load it into the running KinD cluster
 make kind-load
 
-# Install AGIMUS via helm and 
+# Install AGIMUS via helm and
 make kind-test
 ```
 
@@ -123,6 +123,7 @@ Slash commands are triggered by typing a forward slash (`/`) followed by the com
 | Command                                                                                                                                                           | File                                       | Description                                                                                                                                         |
 | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/badges [show_to_public]`                                                                                                                                        | [badges.py](commands/badges.py)            | Shows your collected badges                                                                                                                         |
+| `/badge_sets [show_to_public] <category> <selection>`                                                                                                             | [badge_sets.py](commands/badges.py)        | Show off a set of badges and which ones you've collected so far                                                                                     |
 | `/clip [post\|list] <query> (<private>)`                                                                                                                          | [clip.py](commands/clip.py)                | Posts a .mp4 clip file if it finds a match from the user's query. Clips are short videos while drops are for pod audio.                             |
 | `/drop [post\list] <query> (<private>)`                                                                                                                           | [drop.py](commands/drop.py)                | Posts a .mp4 drop file if it finds a match from the user's query. Drops are for audio from the pod while clips are for short videos.                |
 | `/dustbuster`                                                                                                                                                     | [dustbuster.py](commands/dustbuster.py)    | Return 5 random trek characters as discussion prompt                                                                                                |
@@ -269,7 +270,7 @@ The automation detailed below run in github action runners.
 
 ### Pull Requests and Merges
 
-Pull requests to the main branch of the AGIMUS repository will automatically build a container and attempt to run the bot in a [KinD cluster](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-from-release-binaries) and it uses [helm](https://helm.sh/docs/intro/install/) to install the kubernetes manifests into a running cluster. There are also make targets to assist in building and running AGIMUS in a KinD cluster locally. On merges to the main branch, another action will run to build and push the AGIMUS container to the github container registry and release a helm chart hosted as a github pages deployment.  
+Pull requests to the main branch of the AGIMUS repository will automatically build a container and attempt to run the bot in a [KinD cluster](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-from-release-binaries) and it uses [helm](https://helm.sh/docs/intro/install/) to install the kubernetes manifests into a running cluster. There are also make targets to assist in building and running AGIMUS in a KinD cluster locally. On merges to the main branch, another action will run to build and push the AGIMUS container to the github container registry and release a helm chart hosted as a github pages deployment.
 
 ### generate_episode_json.py
 
