@@ -4,6 +4,7 @@ BOT_CONTAINER_NAME?=agimus
 LOCAL_KIND_CONFIG?=kind-config.yaml
 namespace?=agimus
 SHELL=/bin/bash
+DB_BACKUP_RESTORE_COMMIT?=main
 ifneq (,$(wildcard ./.env))
     include .env
     export
@@ -70,30 +71,63 @@ docker-lint: ## Lint the container with dockle
 
 .PHONY: db-mysql
 db-mysql: ## MySQL session in running db container
-	@docker-compose exec db mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"
+	@docker-compose exec db mysql -u$(DB_USER) -p$(DB_PASS) $(DB_NAME)
 
 .PHONY: db-bash
 db-bash: ## Bash session in running db container
 	@docker-compose exec db bash
 
 .PHONY: db-dump
-db-dump: ## Dump the database to a file at ./$DB_DUMP_FILENAME
-	@docker-compose exec db bash -c 'mysqldump -u"${DB_USER}" -p"${DB_PASS}" -B ${DB_NAME} 2>/dev/null' > ./${DB_DUMP_FILENAME}
+db-dump: ## Dump the database to a file at $DB_DUMP_FILENAME
+	@docker-compose exec app mysqldump -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) -B $(DB_NAME) 2>/dev/null > $(DB_DUMP_FILENAME)
 
 .PHONY: db-load
-db-load: ## Load the database from a file at ./$DB_DUMP_FILENAME
-	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_DUMP_FILENAME}
+db-load: ## Load the database from a file at $DB_DUMP_FILENAME
+	@docker-compose exec app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_DUMP_FILENAME)
 
 .PHONY: db-seed
-db-seed: ## Reload the database from a file at ./$DB_SEED_FILEPATH
-	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" <<< "DROP DATABASE IF EXISTS FoD;"'
-	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" <<< "create database FoD;"'
-	@docker-compose exec -T db sh -c 'exec mysql -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}"' < ./${DB_SEED_FILEPATH}
+db-seed: ## Reload the database from a file at $DB_SEED_FILEPATH
+	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "DROP DATABASE IF EXISTS FoD;"
+	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "create database FoD;"
+	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_SEED_FILEPATH)
 
-# mysql session in pod
-# kubectl exec -it my-cluster-mysql-0 -c mysql -- mysql -uroot -ppassword
-# Run sql file in pod
-# kubectl exec my-cluster-mysql-0 -c mysql -- mysql -uroot -ppassword < bot-dump.sql
+.PHONY: db-backup
+db-backup: db-setup-git ## Back the database to a file at $DB_DUMP_FILENAME then commit it to the private database repository (intended to run inside AGIMUS container)
+	@echo "Dumping db to $(DB_DUMP_FILENAME)"
+	@mysqldump -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) -B $(DB_NAME) > $(DB_DUMP_FILENAME)
+	@rm -rf database || true
+	git clone git@github.com:Friends-of-DeSoto/database.git
+	@mkdir -p database/$(DB_BACKUP_SUB_DIR)
+	cp $(DB_DUMP_FILENAME) database/$(DB_BACKUP_SUB_DIR)/agimus.sql
+	cd database \
+		&& git add $(DB_BACKUP_SUB_DIR)/agimus.sql \
+		&& git commit -m "Backup AGIMUS DB: $(DB_BACKUP_SUB_DIR) $(shell date)" \
+		&& git push origin main
+
+.PHONY: db-restore
+db-restore: db-setup-git ## Restore the database from the private database repository (intended to run inside AGIMUS container)
+	@rm -rf database || true
+	git clone git@github.com:Friends-of-DeSoto/database.git \
+		&& cd database \
+		&& git reset --hard $(DB_BACKUP_RESTORE_COMMIT)
+	@mkdir -p database/$(DB_BACKUP_SUB_DIR)
+	cp database/$(DB_BACKUP_SUB_DIR)/agimus.sql $(DB_DUMP_FILENAME)
+	@mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "DROP DATABASE IF EXISTS FoD;"
+	@mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "create database FoD;"
+	@mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_DUMP_FILENAME)
+
+.PHONY: db-setup-git
+db-setup-git: ## Decode private deploy key environment variable and set up git for that user (intended to run inside AGIMUS container)
+ifneq ("$(wildcard $(HOME)/.ssh/id_ed25519)","")
+	@echo "$(HOME)/.ssh/id_ed25519 - ssh key already exists. skipping git setup..."
+else
+	mkdir -p $(HOME)/.ssh
+	@echo $(DB_BACKUP_DEPLOY_KEY) | base64 -d > $(HOME)/.ssh/id_ed25519
+	chmod 600 $(HOME)/.ssh/id_ed25519
+	git config --global user.name $(DB_BACKUP_GITHUB_USER)
+	git config --global user.email $(DB_BACKUP_GITHUB_EMAIL)
+	ssh-keyscan github.com >> $(HOME)/.ssh/known_hosts
+endif
 
 ##@ Kubernetes in Docker (KinD) stuff
 
@@ -155,7 +189,7 @@ helm-uninstall: helm-config-rm ## Remove AGIMUS helm chart
 	@helm --namespace $(namespace) delete agimus
 
 .PHONY: helm-db-load
-helm-db-load: ## Load the database from a file at ./$DB_SEED_FILEPATH
+helm-db-load: ## Load the database from a file at $DB_SEED_FILEPATH
 	@kubectl --namespace $(namespace) exec -i $(shell make --no-print-directory helm-db-pod) \
 		-- bash -c 'exec mysql -h127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}"' < ${DB_SEED_FILEPATH}
 
