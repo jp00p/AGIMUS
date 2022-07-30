@@ -2303,7 +2303,7 @@
     "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1556073167/StarfleetCrewAdmiral2250s.png",
     "badge_url": "https://startrekdesignproject.com/symbols/starfleet-crew-admiral-2250s/"
   },
-  "Starfleet_Crew_(Comm/Helm/Navigation)_2270s.png": {
+  "Starfleet_Crew_(Comm-Helm-Navigation)_2270s.png": {
     "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1555443506/StarfleetCrewComm-Helm-Nav2270s.png",
     "badge_url": "https://startrekdesignproject.com/symbols/starfleet-crew-security-service-ops-2270s/"
   },
@@ -2399,7 +2399,7 @@
     "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1556135772/StarfleetCrew_Sciences-LtJr-2250s.png",
     "badge_url": "https://startrekdesignproject.com/symbols/starfleet-crew-sciences-commander-2250s/"
   },
-  "Starfleet_Crew_(Security/Service_Ops)_2270s.png": {
+  "Starfleet_Crew_(Security-Service_Ops)_2270s.png": {
     "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1555443506/StarfleetCrewSecurity-ServiceOps2270s.png",
     "badge_url": "https://startrekdesignproject.com/symbols/starfleet-crew-medical-2270s/"
   },
@@ -2495,7 +2495,7 @@
     "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1612224211/StarfleetTricomm_LieutenantJr.png",
     "badge_url": "https://startrekdesignproject.com/symbols/starfleet-crew-tricom-lieutenant-jr.grade/"
   },
-  "Starfleet_Damage/Repair_Division_Insignia.png": {
+  "Starfleet_Damage-Repair_Division_Insignia.png": {
     "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1585950602/StarfleetDamage-RepairInsignia.png",
     "badge_url": "https://startrekdesignproject.com/symbols/san-francisco-air-tram/"
   },
@@ -2599,7 +2599,7 @@
     "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1554922271/StarfleetMedicalPersonnel.png",
     "badge_url": "https://startrekdesignproject.com/symbols/starfleet-medical-personnel/"
   },
-  "Starfleet_Medical_Technician/Scrubs.png": {
+  "Starfleet_Medical_Technician-Scrubs.png": {
     "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1554863014/StarfleetGeneralShipMedical.png",
     "badge_url": "https://startrekdesignproject.com/symbols/starfleet-general-ship-medical/"
   },
@@ -2671,7 +2671,7 @@
     "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1572640956/StarfleetVisitorBadge.png",
     "badge_url": "https://startrekdesignproject.com/symbols/starfleet-visitor-badge/"
   },
-  "Starfleet_Weapons/Tactical_Division.png": {
+  "Starfleet_Weapons-Tactical_Division.png": {
     "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1567720903/StarfleetWeapons-TacticalDiv.png",
     "badge_url": "https://startrekdesignproject.com/symbols/starfleet-engineering-division/"
   },
