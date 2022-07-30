@@ -172,7 +172,7 @@ async def process_command(message:discord.Message):
 async def on_ready():
   try:
     logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX} LOGGED IN AS {bot.user} {Fore.RESET}{Back.RESET}")
-    logger.info(f"{Back.RED}{Fore.LIGHTWHITE_EX} CURRENT ASSIGNMENT: {bot.guilds[0].name} (COMPLIMENT: {len(ALL_USERS)}) {Fore.RESET}{Back.RESET}")
+    logger.info(f"{Back.RED}{Fore.LIGHTWHITE_EX} CURRENT ASSIGNMENT: {bot.guilds[0].name} (COMPLEMENT: {len(ALL_USERS)}) {Fore.RESET}{Back.RESET}")
 
     global ALL_STARBOARD_POSTS
 
