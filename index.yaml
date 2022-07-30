@@ -12,6 +12,16 @@ entries:
     - https://github.com/jp00p/AGIMUS/releases/download/agimus-v1.3.10/agimus-v1.3.10.tgz
     version: v1.3.10
   - apiVersion: v2
+    appVersion: v1.3.9
+    created: "2022-07-30T22:19:12.587308379Z"
+    description: A helm chart for a discord bot that also runs a mysql db
+    digest: 0aa10a48dc3cc1d19d9a07f056e4733a9cd9ad522e70a6158fd830607b0a2649
+    name: agimus
+    type: application
+    urls:
+    - https://github.com/jp00p/AGIMUS/releases/download/agimus-v1.3.9/agimus-v1.3.9.tgz
+    version: v1.3.9
+  - apiVersion: v2
     appVersion: v1.3.8
     created: "2022-07-30T18:49:56.664629249Z"
     description: A helm chart for a discord bot that also runs a mysql db
