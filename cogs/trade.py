@@ -1011,7 +1011,7 @@ class Trade(commands.Cog):
   )
   @option(
     name="badge",
-    description="The name of the Badge to Offer/Request",
+    description="Name of the Badge to Offer/Request. NOTE: Only shows those badges not already in inventories!",
     required=True,
     autocomplete=autocomplete_badges
   )

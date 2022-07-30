@@ -2,7 +2,8 @@
 Level-up Announcements and Badge Trading!
 
 **GENERAL COMMANDS**
-`/badges` - View your current badge collection! (note this can be used anywhere!)
+`/badges` - View your entire current badge collection! (note this can be used anywhere!)
+`/badge_sets` - View subcategories of your badge collection, try to collect em all!
 `/toggle_notifications <yes/no>` - Enable or disable DMs from AGIMUS (trades normally send notifications on incoming, declined, or canceled trades)
 
 **TRADING**

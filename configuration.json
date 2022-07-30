@@ -208,7 +208,7 @@
         "hand out their replicator rations",
         "help them get it, player",
         "give them a warm welcome",
-        "show them the way"        
+        "show them the way"
       ]
     }
   },
@@ -241,6 +241,13 @@
         "mclaughlin-group",
         "mo-pips-mo-problems",
         "robot-diagnostics"
+      ],
+      "enabled": true,
+      "parameters": []
+    },
+    "badge_sets": {
+      "channels": [
+        "badgeys-badges"
       ],
       "enabled": true,
       "parameters": []
