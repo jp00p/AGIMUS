@@ -41,10 +41,10 @@ async def badges(ctx:discord.ApplicationContext, public:str):
 
 # slash command to get common badge stats
 @bot.slash_command(
-  name="badge_stats",
+  name="badge_statistics",
   description="See the server-wide badge statistics"
 )
-async def badge_stats(ctx:discord.ApplicationContext):
+async def badge_statistics(ctx:discord.ApplicationContext):
   results = {}
   results = run_badge_stats_queries()
   top_collectors = [res for res in results["top_collectors"]]
@@ -170,7 +170,7 @@ def generate_badge_showcase_for_user(user:discord.User):
   title_font = ImageFont.truetype("fonts/tng_credits.ttf", 68)
   credits_font = ImageFont.truetype("fonts/tng_credits.ttf", 42)
   badge_font = ImageFont.truetype("fonts/context_bold.ttf", 28)
-  
+
   badge_size = 200
   badge_padding = 40
   badge_margin = 10

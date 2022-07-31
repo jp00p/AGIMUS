@@ -1,8 +1,7 @@
+import functools
 import math
 import textwrap
 import time
-
-from random import randint
 
 from common import *
 
@@ -30,7 +29,6 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
 
   return [result for result in selections if ctx.value.lower() in result.lower()]
 
-
 # _________                                           .___
 # \_   ___ \  ____   _____   _____ _____    ____    __| _/
 # /    \  \/ /  _ \ /     \ /     \\__  \  /    \  / __ |
@@ -39,7 +37,7 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
 #         \/             \/      \/     \/     \/      \/
 @bot.slash_command(
   name="badge_sets",
-  description="Show off sets of your badges!"
+  description="Show off sets of your badges! Please be mindful of posting very large sets publicly."
 )
 @option(
   name="public",
@@ -142,25 +140,44 @@ async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, s
 
   category_title = category.replace("_", " ").title()
 
-  # set_image = generate_badge_set_showcase_for_user(ctx.author, set, selection, category_title)
-
+  # Set up text values for paginated pages
   title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Set: {category_title} - {selection}"
   collected = f"{len([b for b in all_badges if b['in_user_collection']])} OF {len(all_badges)}"
   filename_prefix = f"badge_set_{ctx.author.id}_{selection.lower().replace(' ', '-').replace('/', '-')}-page-"
 
-  set_images = generate_badge_set_images(ctx.author, all_badges, title, collected, filename_prefix)
+  set_images = await generate_badge_set_images(ctx.author, all_badges, title, collected, filename_prefix)
 
-  await ctx.followup.send(
-    embed=discord.Embed(
-      title=f"Badge Set: **{category_title}** - **{selection}**",
-      description=f"{ctx.author.mention} has collected {len(user_set_badges)} of {len(all_set_badges)}!",
-      color=discord.Color(0x2D698D)
-    ),
-    files=set_images,
-    ephemeral=not public
+  embed = discord.Embed(
+    title=f"Badge Set: **{category_title}** - **{selection}**",
+    description=f"{ctx.author.mention} has collected {len(user_set_badges)} of {len(all_set_badges)}!",
+    color=discord.Color(0x2D698D)
   )
 
-def generate_badge_set_images(user:discord.User, all_badges, title, collected, filename_prefix):
+  # If we're doing a public display, use the images directly
+  # Otherwise private displays can use the paginator
+  if not public:
+    set_pages = [
+      pages.Page(files=[image], embeds=[embed])
+      for image in set_images
+    ]
+    paginator = pages.Paginator(
+        pages=set_pages,
+        show_disabled=True,
+        show_indicator=True,
+        loop_pages=True
+    )
+    await paginator.respond(ctx.interaction, ephemeral=True)
+  else:
+    # We can only attach up to 10 files per message, so if it's public send them in chunks
+    file_chunks = [set_images[i:i + 10] for i in range(0, len(set_images), 10)]
+    for chunk_index, chunk in enumerate(file_chunks):
+      # Only post the embed on the last chunk
+      if chunk_index + 1 == len(file_chunks):
+        await ctx.followup.send(embed=embed, files=chunk, ephemeral=not public)
+      else:
+        await ctx.followup.send(files=chunk, ephemeral=not public)
+
+async def generate_badge_set_images(user:discord.User, all_badges, title, collected, filename_prefix):
   user_display_name = user.display_name
   total_user_badges = db_get_badge_count_for_user(user.id)
 
@@ -168,7 +185,7 @@ def generate_badge_set_images(user:discord.User, all_badges, title, collected, f
   all_pages = [all_badges[i:i + max_per_image] for i in range(0, len(all_badges), max_per_image)]
   total_pages = len(all_pages)
   badge_set_images = [
-    generate_badge_set_showcase_for_user(
+    await generate_badge_set_showcase_for_user(
       user_display_name,
       page,
       page_number + 1, # Account for zero index
@@ -188,6 +205,15 @@ def generate_badge_set_images(user:discord.User, all_badges, title, collected, f
 # |   |  Y Y  \/ __ \_/ /_/  >  ___/
 # |___|__|_|  (____  /\___  / \___  >
 #           \/     \//_____/      \/
+def to_thread(func):
+  @functools.wraps(func)
+  async def wrapper(*args, **kwargs):
+    loop = asyncio.get_event_loop()
+    wrapped = functools.partial(func, *args, **kwargs)
+    return await loop.run_in_executor(None, wrapped)
+  return wrapper
+
+@to_thread
 def generate_badge_set_showcase_for_user(user_display_name, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
 
   text_wrapper = textwrap.TextWrapper(width=22)
@@ -212,8 +238,13 @@ def generate_badge_set_showcase_for_user(user_display_name, page, page_number, t
   base_row_height = 290
   base_footer_height = 200
 
-  # number_of_rows = math.ceil((len(page) / badges_per_row)) - 1
-  number_of_rows = 4 # NOTE: We want these to be static now?
+
+  # If we're generating more than one page we want the rows to simply expand to what's necessary
+  # Otherwise if there's multiple pages we want to have all of them be consistent
+  if page_number == 1 and total_pages == 1:
+    number_of_rows = math.ceil((len(page) / badges_per_row)) - 1
+  else:
+    number_of_rows = 4
 
   base_height = base_header_height + (base_row_height * number_of_rows) + base_footer_height
   # base_height = math.ceil((len(badge_set) / badges_per_row)) * (badge_slot_size + badge_margin)
