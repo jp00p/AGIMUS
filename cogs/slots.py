@@ -7,13 +7,11 @@ from utils.check_channel_access import access_check
 command_config = config["commands"]["slots spin"]
 
 # Set up Slot Choices
-slot_choices = []
-for show in command_config["parameters"][0]["allowed"]:
-  slot_option = discord.OptionChoice(
-    name=show,
-    value=show.upper()
-  )
-  slot_choices.append(slot_option)
+slot_choices = [
+  discord.OptionChoice(name=show, value=show.upper())
+  for show in command_config["parameters"][0]["allowed"]
+]
+
 
 class Slots(commands.Cog):
   def __init__(self, bot):
@@ -42,7 +40,7 @@ class Slots(commands.Cog):
     logger.info(f"{Style.BRIGHT}{ctx.author.name}{Style.RESET_ALL} is {Fore.LIGHTYELLOW_EX}rolling the slots!{Fore.RESET}")   
     
     # Load slots data
-    f = open(config["commands"]["slots spin"]["data"])
+    f = open(command_config["data"])
     SLOTS = json.load(f)
     f.close()
 
@@ -72,10 +70,8 @@ class Slots(commands.Cog):
       await ctx.respond(embed=discord.Embed(
         title="Not Enough Points!",
         description=f"{ctx.author.mention}: You need at least {wager} point(s) to spin! Play the quiz to get more points or try changing your wager"
-      ))
+      ), ephemeral=True)
       return
-    else:
-      self.increment_player_spins(player_id)
 
     spinnin = [
       "All I do is *slots slots slots*!", 
@@ -107,29 +103,33 @@ class Slots(commands.Cog):
     await ctx.send_followup(embed=spinbed, ephemeral=False) # first followup 
 
     # roll the slots!
-    silly_matches, matching_chars, jackpot, symbol_matches = self.roll_slot(show, SLOTS[show], filename=str(ctx.author.id))
+    silly_matches, matching_chars, jackpot, symbol_matches = self.roll_slot(show, SLOTS[show], filename=str(player_id))
+    self.increment_player_spins(player_id)
+
     try:
-      file = discord.File(f"{self.slot_results_dir}{player_id}.png", filename=str(ctx.author.id)+".png")
-    except:
+      file = discord.File(f"{self.slot_results_dir}{player_id}.png", filename=f"{player_id}.png")
+    except Exception:
       logger.info(f"{Fore.RED}Error generating discord file placeholder{Fore.RESET}")
+      file = None
+
     match_msg = f"\n__Results for spin #{player['spins']+1}__\n"
 
     if len(symbol_matches) > 0:
       match_msg += "**"+symbol_matches[0].upper()+":** "
-      match_msg += "`{0} points`\n".format(round(score_mult * symbol_matches[1]))
+      match_msg += f"`{round(score_mult * symbol_matches[1])} points`\n"
       total_rewards += int(math.ceil(score_mult * symbol_matches[1]))
 
     if len(silly_matches) > 0:
-      match_msg += "**Discovered Bits: ** "
+      match_msg += "**Discovered Bits:** "
       match_msg += "; ".join(silly_matches)
-      match_msg += f" `{str(len(silly_matches)*score_mult)} point(s)`\n"
+      match_msg += f" `{len(silly_matches) * score_mult} point(s)`\n"
       total_rewards += len(silly_matches) * score_mult
 
     # matching characters (transporter clones)  
     if len(matching_chars) > 0:
       match_msg += "**Transporter clones: ** "
       match_msg += ", ".join(matching_chars).replace("_", " ").title()
-      match_msg += " `({0} points)`\n".format(3 * score_mult)
+      match_msg += f" `({3 * score_mult} points)`\n"
       total_rewards += 3 * score_mult
 
     title = f"{ctx.author.display_name} wins!"
@@ -140,8 +140,8 @@ class Slots(commands.Cog):
       embed_color = discord.Color.dark_gold()
       jackpot_amt = self.get_jackpot()
       total_rewards += round(jackpot_amt * themed_payout)
-      match_msg += "\n "+ctx.author.mention+" wins the pot of: `{0}` ...multiplied by the slots' jackpot payout rate of x{1}... **for a total winnings of `{2}`**\n\nJackpot has been reset to: **`250`**\n\n".format(jackpot_amt, themed_payout, round(jackpot_amt*themed_payout))
-      win_jackpot(ctx.author.display_name, ctx.author.id)
+      match_msg += f"\n {ctx.author.mention} wins the pot of: `{jackpot_amt}` ...multiplied by the slots' jackpot payout rate of x{themed_payout}... **for a total winnings of `{round(jackpot_amt*themed_payout)}`**\n\nJackpot has been reset to: **`250`**\n\n"
+      win_jackpot(ctx.author.display_name, player_id)
       jackpot_embed = discord.Embed(
         title=f"**{ctx.author.display_name} WINS THE JACKPOT!!!**".upper(),
         color=embed_color        
@@ -153,15 +153,15 @@ class Slots(commands.Cog):
       # WIN
       total_profit = total_rewards - wager
       if total_profit == 0:
-        title = f"{ctx.author.display_name} broke even!"
+        title = f"{player['name']} broke even!"
       match_msg += f"**Total Profit:** `{total_profit} point(s)`.\n"
       embed = discord.Embed(
         title=title,
         color=embed_color,
         description=f"{match_msg}\n",
       )
-      embed.set_image(url="attachment://{0}.png".format(ctx.author.id))
-      embed.set_footer(text="{}'s score: {}".format(player["name"], player["score"]+total_profit))
+      embed.set_image(url=f"attachment://{player_id}.png")
+      embed.set_footer(text=f"{player['name']}'s score: {player['score']+total_profit}")
       set_player_score(ctx.author, total_profit)
       await increment_user_xp(ctx.author, 1, "slot_win", ctx.channel)
       await ctx.send_followup(embed=embed, file=file, ephemeral=False)
@@ -171,22 +171,25 @@ class Slots(commands.Cog):
       title = f"{ctx.author.display_name} lost!"
       increase_jackpot(score_mult)
       set_player_score(ctx.author, -wager)
-      loser = ["No dice!", "Bust!", "No matches!", "Better luck next time!", "Sad trombone!", "You didn't win!", "We have no prize to fit your loss -- ", "You may have won in the mirror universe, but not here!", "Sensors detect no matches.", "JACKP-- no wait, that's a loss.", "Close, but no cigar.", "Not a win!", "You would have won if it were opposite day!"]
+      loser = ["No dice!", "Bust!", "No matches!", "Better luck next time!", "Sad trombone!", "You didn't win!",
+               "We have no prize to fit your loss -- ", "You may have won in the mirror universe, but not here!",
+               "Sensors detect no matches.", "JACKP-- no wait, that's a loss.", "Close, but no cigar.",
+               "Not a win!", "You would have won if it were opposite day!"]
       embed = discord.Embed(
         title=title,
         color=discord.Color(0xe74c3c),
         description=f"{random.choice(loser)}\n\n`{score_mult}` point(s) added to the jackpot, increasing its bounty to `{self.get_jackpot()}`.",
       )
-      embed.set_footer(text="{}'s score: {}".format(player["name"], player["score"]-wager))
-      embed.set_image(url="attachment://{0}.png".format(ctx.author.id))
+      embed.set_footer(text=f"{player['name']}'s score: {player['score']-wager}")
+      embed.set_image(url=f"attachment://{player_id}.png")
       await ctx.send_followup(embed=embed, file=file, ephemeral=True)
       return
 
-  # increment_player_spins(discord_id)
-  # discord_id[required]: int
-  # This function increases the number of a
-  # user's spin value by one
-  def increment_player_spins(self, discord_id):
+  def increment_player_spins(self, discord_id: int):
+    """
+    This function increases the number of a
+    user's spin value by one
+    """
     db = getDB()
     query = db.cursor()
     sql = "UPDATE users SET spins = spins + 1 WHERE discord_id = %s"
@@ -196,19 +199,11 @@ class Slots(commands.Cog):
     query.close()
     db.close()
 
-  # roll_slot(slot_series, slot_to_roll, generate_image=True, filename="slot_results.png")
-  # slot_series[required]: string
-  # slot_to_roll[required]: object
-  # generate_image[optional]: bool (default: true)
-  # filename[optional]: string (default: slot_results.png)
-  # This function picks three random images from a target show
-  # and returns categories of matches (silly, character and jackpot)
-  def roll_slot(self, slot_series, slot_to_roll, generate_image=True, filename="slot_results.png"):
-
-    # pull out image files for selected slot
-    files = os.listdir(f"{ROOT_DIR}{slot_to_roll['files']}")
-    results = []
-
+  def roll_slot(self, slot_series: str, slot_to_roll: dict, generate_image=True, filename="slot_results.png"):
+    """
+    This function picks three random images from a target show
+    and returns categories of matches (silly, character, jackpot, symbols)
+    """
     # slot machine symbols - standard across all slots
     # name, weight, payout
     symbols = {
@@ -225,106 +220,92 @@ class Slots(commands.Cog):
       "heart": [100, 10000]
     }
 
-    roll_weights = []
-    for symbol in symbols:
-      roll_weights.append(symbols[symbol][0])
+    roll_weights = [sym[0] for sym in symbols.values()]
     symbol_roll = random.choices(list(symbols.keys()), weights=roll_weights, k=3)
     symbol_matches = set(symbol_roll)
     symbol_result = []
 
     fruits = ["cherry", "grapes", "lemon", "plum", "watermelon"]
 
-    # check the symbols winnings  
+    # check the symbols winnings
     if len(symbol_matches) == 1:
-      win_sym = list(symbol_matches)[0]
+      win_sym = symbol_roll[0]
       win_string = f"3 {win_sym}"
       symbol_result = [win_string, symbols[win_sym][1]]
     elif list(symbol_roll).count("cherry") == 2:
       # 2 cherries in the result give them their winnings back
       symbol_result = ["2 Cherries", 1]
-    elif len(symbol_matches) == 3 and all(fruit in fruits for fruit in list(symbol_roll)):
+    elif len(symbol_matches) == 3 and all(sym in fruits for sym in symbol_roll):
       # if they get 3 different fruits
       symbol_result = ["Fruit Salad", 1.5]
 
+    # pull out image files for selected slot
+    slot_dir = f"{ROOT_DIR}{slot_to_roll['files']}"
+    files = os.listdir(slot_dir)
+    results = []
     # pick 3 random themed slots
     for i in range(3):
       results.append(random.choice(files))
 
-    matching_results = [s.replace(".png", "") for s in results]
-    silly_matches = []
-    #print("match results", matching_results)
-
-    for match_title in slot_to_roll["matches"]:
-      # check the silly/bits-based matches
-      matches = slot_to_roll["matches"][match_title]   
-      match_count = 0
-
-      for m in matches:
-        if m in matching_results:
-          match_count += 1
-      if match_count >= 2:
-        silly_matches.append(match_title)
-
     if generate_image:
       start_time = time.time()
       #logger.info("Generating slot images...")
-      image1 = Image.open(f"{ROOT_DIR}{slot_to_roll['files']}" + results[0]).resize((150,150))
-      image2 = Image.open(f"{ROOT_DIR}{slot_to_roll['files']}" + results[1]).resize((150,150))
-      image3 = Image.open(f"{ROOT_DIR}{slot_to_roll['files']}" + results[2]).resize((150,150))
+      image1 = Image.open(slot_dir + results[0]).resize((150,150))
+      image2 = Image.open(slot_dir + results[1]).resize((150,150))
+      image3 = Image.open(slot_dir + results[2]).resize((150,150))
       end_time = time.time()
       #logger.info(f"Finished generating slot images {end_time-start_time}")
+      logo = slot_series + "_logo.png"
+      color = (0, 0, 0, 100)  # black bg
+      self.generate_slot_image(image1, image2, image3, symbol_roll, color, logo).save(f"{self.slot_results_dir}{filename}.png")
 
-
+    result_set = set(s.replace(".png", "") for s in results)
+    silly_matches = []
     matching_chars = []
-    result_set = set(results)
-    matching_results = [s.replace(".png", "") for s in result_set]
     jackpot = False
+
+    for match_title, matches in slot_to_roll["matches"].items():
+      # check the silly/bits-based matches
+      match_count = len([m for m in matches if m in result_set])
+      if match_count >= 2:
+        silly_matches.append(match_title)
 
     if len(result_set) == 1:
       matching_chars.append(results[0].replace(".png", ""))
       jackpot = True
 
     for jackpot_match in slot_to_roll["custom_jackpots"]:
-      if set(jackpot_match) == set(matching_results):
+      if set(jackpot_match) == result_set:
         jackpot = True
 
     if len(result_set) == 2:
       for r in result_set:
-        if results.count(r) > 1:
-          matching_chars.append(r.replace(".png", ""))
-    logo = slot_series + "_logo.png"
-    color = (0,0,0,100) # black bg
-
-    if generate_image:
-      self.generate_slot_image(image1,image2,image3,symbol_roll,color,logo).save(f"{ROOT_DIR}/images/slot_results/{str(filename)}.png")
+        if results.count(f"{r}.png") > 1:
+          matching_chars.append(r)
 
     return silly_matches, matching_chars, jackpot, symbol_result
-  
-  # generate_slot_image(im1, im2, im3, color, logo)
-  # im1[required]: object
-  # im2[required]: object
-  # im3[required]: object
-  # symbols[required]: list of symbols
-  # color[required]: array of ints
-  # logo[required]: string
-  # returns an Image object
-  # This function combines three images and a logo to display to the user
-  def generate_slot_image(self, im1, im2, im3, symbols, color, logo):
+
+  def generate_slot_image(self, im1: Image, im2: Image, im3: Image, symbols, color, logo: str) -> Image:
+    """
+    This function combines three images and a logo to display to the user
+    """
+
     logo_location = "./images/slots/" + logo
 
     # destination image
-    dst = Image.new('RGBA', (im1.width + im2.width + im3.width + 32, max(im1.height, im2.height, im3.height+16)), color)
+    dst = Image.new('RGBA', (im1.width + im2.width + im3.width + 32, max(im1.height, im2.height, im3.height + 16)),
+                    color)
 
-    # mask image
-    mask = Image.open(logo_location).convert('RGBA').resize((150,150))
+    # background image
+    background = Image.open(logo_location).convert('RGBA').resize((150, 150))
 
     final_images = []
     originals = [im1, im2, im3]
 
-    # paste the mask and the image on to the background
+    # paste the background and the image on to the background
     for i in range(1,3+1):
       img = Image.new('RGBA', (150,150), (0,0,0))
-      img.paste(mask)
+      img.paste(background)
       img.paste(originals[i-1], (0,0), originals[i-1])
       final_images.append(img)
 
@@ -341,33 +322,29 @@ class Slots(commands.Cog):
 
     return dst
 
-  # jackpot() - Entrypoint for `/slots jackpot` command
-  # ctx[required]: discord.ApplicationContext
-  # Sends the current jackpot bounty value
   @slots.command(
     name="jackpot",
     description="Get the current Slots Jackpot!"
   )
   @commands.check(access_check)
-  async def jackpot(self, ctx:discord.ApplicationContext):
-    jackpot_value = self.get_jackpot()
-    if jackpot_value is None:
-      jackpot_value = 0
-
+  async def jackpot(self, ctx: discord.ApplicationContext):
+    """
+    Sends the current jackpot bounty value
+    """
     await ctx.respond(embed=discord.Embed(
       description=f"Current jackpot bounty is: **{self.get_jackpot()}**",
       color=discord.Color.dark_gold()
     ))
 
-  # jackpots() - Entrypoint for `/slots jackpots`` command
-  # ctx[required]: discord.ApplicationContext
-  # Sends a list of the current top 10 jackpots
   @slots.command(
     name="jackpots",
-    description="Get the Top 10 Slots Jackpots and Winners!"
+    description="Get the last 10 Slots Jackpots and Winners!"
   )
-  async def jackpots(self, ctx:discord.ApplicationContext):
-    jackpots = self.get_top_jackpots()
+  async def jackpots(self, ctx: discord.ApplicationContext):
+    """
+    Sends a list of the current top 10 jackpots
+    """
+    jackpots = self.get_recent_jackpots()
 
     if not jackpots:
       await ctx.respond(embed=discord.Embed(
@@ -377,7 +354,7 @@ class Slots(commands.Cog):
       return
 
     embed = discord.Embed(
-      title="**Top Jackpots!**",
+      title="**Recent Jackpots!**",
       color=discord.Color.dark_gold()
     )
     embed.add_field(
@@ -395,7 +372,7 @@ class Slots(commands.Cog):
 
       lifespan = jackpot["time_won"] - jackpot["time_created"]
       lifespan_str = humanize.naturaltime(datetime.now() - jackpot['time_created'])
-      lifespan_str += " ({}d {}h {}m)".format(lifespan.days, lifespan.seconds//3600, (lifespan.seconds//60)%60)
+      lifespan_str += f" ({lifespan.days}d {lifespan.seconds // 3600}h {(lifespan.seconds // 60) % 60}m)"
       lifespans.append(lifespan_str)
 
     embed.add_field(
@@ -409,11 +386,10 @@ class Slots(commands.Cog):
 
     await ctx.respond(embed=embed)
 
-  # get_jackpot(config)
-  # This function takes no arguments
-  # and returns the most recent jackpot_value from the jackpots table
-  def get_jackpot(self):
-    # get the current jackpot
+  def get_jackpot(self) -> int:
+    """
+    get the current jackpot
+    """
     db = getDB()
     query = db.cursor()
     sql = "SELECT jackpot_value FROM jackpots ORDER BY id DESC LIMIT 1"
@@ -424,10 +400,10 @@ class Slots(commands.Cog):
     db.close()
     return jackpot_amt[0]
 
-  # get_top_jackpots(config)
-  # This function takes no arguments
-  # and returns the 10 most recent jackpot_value from the jackpots table
-  def get_top_jackpots(self):
+  def get_recent_jackpots(self):
+    """
+    returns the 10 most recent jackpot_value from the jackpots table
+    """
     db = getDB()
     query = db.cursor(dictionary=True)
     sql = "SELECT * FROM jackpots WHERE winner IS NOT NULL ORDER BY id DESC LIMIT 10"
@@ -437,13 +413,12 @@ class Slots(commands.Cog):
     db.close()
     return jackpot_data
 
-  # testslots() - Entrypoint for !testslots command
-  # message[required]: discord.Message
-  # This function is the main entrypoint of the !testslots command
-  # and will run the !slots command 1000 times to gather statistics
   @commands.command()
   @commands.check(access_check)
-  async def testslots(self, ctx:discord.Message, show=''):
+  async def testslots(self, ctx: discord.Message, show=''):
+    """
+    will run the !slots command 1000 times to gather statistics
+    """
     try:
       f = open(config["commands"]["testslots"]["data"])
       allowlist = json.load(f)
