@@ -166,9 +166,9 @@ def generate_paginated_badge_images(type, user_display_name, page, page_number, 
 
   # create base image to paste all badges on to
   badge_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
-  base_header_image = Image.open(f"./images/templates/badge_sets/badge_set_header_{color}.png")
-  base_row_image = Image.open(f"./images/templates/badge_sets/badge_set_row_{color}.png")
-  base_footer_image = Image.open(f"./images/templates/badge_sets/badge_set_footer_{color}.png")
+  base_header_image = Image.open(f"./images/templates/badges/badge_set_header_{color}.png")
+  base_row_image = Image.open(f"./images/templates/badges/badge_set_row_{color}.png")
+  base_footer_image = Image.open(f"./images/templates/badges/badge_set_footer_{color}.png")
 
   # Start image with header
   badge_base_image.paste(base_header_image, (0, 0))
