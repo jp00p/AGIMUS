@@ -269,6 +269,11 @@
     "description": "Shipwide Announcement",
     "url": "https://i.imgur.com/wJVjSWw.mp4"
   },
+  "Stargate SG1 Intro": {
+    "file": "data/drops/stargatesg1intro.mp4",
+    "description": "Stargate SG1 Intro Interstitial",
+    "url": "https://i.imgur.com/2ou8aUO.mp4"
+  },
   "Tasha Yar: I Don't Believe This!": {
     "file": "data/drops/tashayaridontbelievethis.mp4",
     "description": "Tasha Yar: I Don't Believe This!",
@@ -308,6 +313,11 @@
     "file": "data/drops/theboy.mp4",
     "description": "Wesley? The boy? Young Wesley Crusher. My son! Baker Street.",
     "url": "https://i.imgur.com/sXMyQgn.mp4"
+  },
+  "The Brone Zone": {
+    "file": "data/drops/thebronezone.mp4",
+    "description": "He's entered The Brone Zone",
+    "url": "https://i.imgur.com/UevF9d2.mp4"
   },
   "The Buoy!": {
     "file": "data/drops/thebuoy.mp4",

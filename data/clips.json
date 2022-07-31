@@ -9,6 +9,21 @@
     "description": "AGIMUS yes",
     "url": "https://i.imgur.com/KxfDkTT.mp4"
   },
+  "Blooper - Michael Dorn/Worf - God, JESUS!": {
+    "file": "data/clips/blooperworfgodjesus.mp4",
+    "description": "Blooper Michael Dorn Worf God JESUS",
+    "url": "https://i.imgur.com/YS5gQtL.mp4"
+  },
+  "Blooper - Michael Dorn/Worf - Oh shit!": {
+    "file": "data/clips/blooperworfohshit.mp4",
+    "description": "Blooper Michael Dorn Worf oh shit",
+    "url": "https://i.imgur.com/aaUzAyk.mp4"
+  },
+  "Blooper - Whoopi Goldberg/Guinan - Ferengi Fuckin": {
+    "file": "data/clips/blooperguinanferengifuckin.mp4",
+    "description": "You think that Ferengi fuckin killed himself",
+    "url": "https://i.imgur.com/MTNIhNO.mp4"
+  },
   "Data - It Is Green!": {
     "file": "data/clips/dataitisgreen.mp4",
     "description": "Data it is green",
@@ -19,8 +34,13 @@
     "description": "Data it is its revolting",
     "url": "https://i.imgur.com/I9mvDej.mp4"
   },
-  "Data - Oh Shit!": {
-    "file": "data/clips/dataohshit.mp4",
+  "Data - Petty Bickering": {
+    "file": "data/clips/datapettybickering.mp4",
+    "description": "Data could you please continue the petty bickering I find it most intriguing",
+    "url": "https://i.imgur.com/ep7lGpE.mp4"
+  },
+  "Data - Petty Bickering": {
+    "file": "data/clips/datapettybickering.mp4",
     "description": "Data Ohhhh Shit",
     "url": "https://i.imgur.com/GH7Dy2J.mp4"
   },
