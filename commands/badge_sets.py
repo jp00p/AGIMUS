@@ -87,7 +87,8 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
 )
 @commands.check(access_check)
 async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, selection:str):
-  await ctx.defer(ephemeral=True)
+  public = bool(public == "yes")
+  await ctx.defer(ephemeral=not public)
 
   user_set_badges = []
   all_set_badges = []
@@ -129,7 +130,7 @@ async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, s
     all_set_badges = db_get_all_type_badges(selection)
 
 
-  set = []
+  all_badges = []
   for badge in all_set_badges:
     badge_filename = badge.replace(" ", "_").replace("/", "-").replace(":", "-")
     record = {
@@ -137,38 +138,49 @@ async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, s
       'badge_filename': f"{badge_filename}.png",
       'in_user_collection': badge in user_set_badges
     }
-    set.append(record)
+    all_badges.append(record)
 
   category_title = category.replace("_", " ").title()
 
-  await ctx.followup.send(embed=discord.Embed(
-    title="One moment while we pull up your set!",
-    color=discord.Color(0x2D698D)
-  ), ephemeral=True)
+  # set_image = generate_badge_set_showcase_for_user(ctx.author, set, selection, category_title)
 
-  set_image = generate_badge_set_showcase_for_user(ctx.author, set, selection, category_title)
+  title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Set: {category_title} - {selection}"
+  collected = f"{len([b for b in all_badges if b['in_user_collection']])} OF {len(all_badges)}"
+  filename_prefix = f"badge_set_{ctx.author.id}_{selection.lower().replace(' ', '-').replace('/', '-')}-page-"
 
+  set_images = generate_badge_set_images(ctx.author, all_badges, title, collected, filename_prefix)
 
-  random_titles = [
-    "Gotta catch em all!",
-    "He who has the most toys...",
-    f"Currently {randint(10, 220)}% Encumbered",
-    "My badges, let me show you them."
-  ]
-
-  public = bool(public == "yes")
   await ctx.followup.send(
     embed=discord.Embed(
-      title=f"Badge Set - **{category_title}** - **{selection}**",
-      description=f"{ctx.author.mention} has collected {len(user_set_badges)} of {len(all_set_badges)}!\n\nClick and Open Original to view the details below.",
+      title=f"Badge Set: **{category_title}** - **{selection}**",
+      description=f"{ctx.author.mention} has collected {len(user_set_badges)} of {len(all_set_badges)}!",
       color=discord.Color(0x2D698D)
-    )
-    .set_image(url=f"attachment://badge_set.png")
-    .set_footer(text=random.choice(random_titles)),
-    file=set_image,
+    ),
+    files=set_images,
     ephemeral=not public
   )
 
+def generate_badge_set_images(user:discord.User, all_badges, title, collected, filename_prefix):
+  user_display_name = user.display_name
+  total_user_badges = db_get_badge_count_for_user(user.id)
+
+  max_per_image = 30
+  all_pages = [all_badges[i:i + max_per_image] for i in range(0, len(all_badges), max_per_image)]
+  total_pages = len(all_pages)
+  badge_set_images = [
+    generate_badge_set_showcase_for_user(
+      user_display_name,
+      page,
+      page_number + 1, # Account for zero index
+      total_pages,
+      total_user_badges,
+      title,
+      collected,
+      filename_prefix
+    )
+    for page_number, page in enumerate(all_pages)
+  ]
+  return badge_set_images
 
 # .___
 # |   | _____ _____     ____   ____
@@ -176,18 +188,17 @@ async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, s
 # |   |  Y Y  \/ __ \_/ /_/  >  ___/
 # |___|__|_|  (____  /\___  / \___  >
 #           \/     \//_____/      \/
-def generate_badge_set_showcase_for_user(user:discord.User, badge_set, selection, category_title):
-  total_user_badges = db_get_badge_count_for_user(user.id)
+def generate_badge_set_showcase_for_user(user_display_name, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
 
   text_wrapper = textwrap.TextWrapper(width=22)
-  # badge_list = get_user_badges(user.id)
   title_font = ImageFont.truetype("fonts/lcars3.ttf", 110)
-  if len(user.display_name) > 16:
+  if len(user_display_name) > 16:
     title_font = ImageFont.truetype("fonts/lcars3.ttf", 90)
-  if len(user.display_name) > 21:
+  if len(user_display_name) > 21:
     title_font = ImageFont.truetype("fonts/lcars3.ttf", 82)
   collected_font = ImageFont.truetype("fonts/lcars3.ttf", 70)
   total_font = ImageFont.truetype("fonts/lcars3.ttf", 54)
+  page_number_font = ImageFont.truetype("fonts/lcars3.ttf", 80)
   badge_font = ImageFont.truetype("fonts/context_bold.ttf", 28)
 
   badge_size = 200
@@ -201,7 +212,8 @@ def generate_badge_set_showcase_for_user(user:discord.User, badge_set, selection
   base_row_height = 290
   base_footer_height = 200
 
-  number_of_rows = math.ceil((len(badge_set) / badges_per_row)) - 1
+  # number_of_rows = math.ceil((len(page) / badges_per_row)) - 1
+  number_of_rows = 4 # NOTE: We want these to be static now?
 
   base_height = base_header_height + (base_row_height * number_of_rows) + base_footer_height
   # base_height = math.ceil((len(badge_set) / badges_per_row)) * (badge_slot_size + badge_margin)
@@ -226,16 +238,17 @@ def generate_badge_set_showcase_for_user(user:discord.User, badge_set, selection
 
   draw = ImageDraw.Draw(badge_base_image)
 
-  draw.text( (100, 65), f"{user.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Set: {category_title} - {selection}", fill="#8DB9B5", font=title_font, align="left")
-  draw.text( (590, base_height - 113), f"{len([b for b in badge_set if b['in_user_collection']])} OF {len(badge_set)}", fill="#47AAB1", font=collected_font, align="left")
+  draw.text( (100, 65), title, fill="#8DB9B5", font=title_font, align="left")
+  draw.text( (590, base_height - 113), collected, fill="#47AAB1", font=collected_font, align="left")
   draw.text( (32, base_height - 90), f"{total_user_badges}", fill="#47AAB1", font=total_font, align="left")
+  draw.text( (base_width - 370, base_height - 115), f"PAGE {'{:02d}'.format(page_number)} OF {'{:02d}'.format(total_pages)}", fill="#47AAB1", font=page_number_font, align="right")
 
   start_x = 100
   current_x = start_x
   current_y = 245
   counter = 0
 
-  for badge_record in badge_set:
+  for badge_record in page:
     badge_border_color = "#47AAB1"
     badge_text_color = "white"
     if not badge_record['in_user_collection']:
@@ -280,7 +293,7 @@ def generate_badge_set_showcase_for_user(user:discord.User, badge_set, selection
       current_y += badge_slot_size + badge_margin # ka-chunk
       counter = 0 #...
 
-  badge_set_filepath = f"./images/profiles/badge_set_{user.id}_{selection.lower().replace(' ', '-').replace('/', '-')}.png"
+  badge_set_filepath = f"./images/profiles/{filename_prefix}{page_number}.png"
   badge_base_image.save(badge_set_filepath)
 
   while True:
@@ -288,7 +301,7 @@ def generate_badge_set_showcase_for_user(user:discord.User, badge_set, selection
     if os.path.isfile(badge_set_filepath):
       break
 
-  discord_image = discord.File(badge_set_filepath, filename="badge_set.png")
+  discord_image = discord.File(badge_set_filepath, filename=f"{filename_prefix}{page_number}.png")
   return discord_image
 
 
