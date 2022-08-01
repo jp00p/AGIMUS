@@ -1,10 +1,10 @@
+import functools
 import math
 import textwrap
 import time
 
-from random import randint
-
 from common import *
+from utils.badge_utils import generate_paginated_badge_images, db_get_badge_count_for_user
 
 from utils.check_channel_access import access_check
 
@@ -30,7 +30,6 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
 
   return [result for result in selections if ctx.value.lower() in result.lower()]
 
-
 # _________                                           .___
 # \_   ___ \  ____   _____   _____ _____    ____    __| _/
 # /    \  \/ /  _ \ /     \ /     \\__  \  /    \  / __ |
@@ -39,7 +38,7 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
 #         \/             \/      \/     \/     \/      \/
 @bot.slash_command(
   name="badge_sets",
-  description="Show off sets of your badges!"
+  description="Show off sets of your badges! Please be mindful of posting very large sets publicly."
 )
 @option(
   name="public",
@@ -87,7 +86,8 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
 )
 @commands.check(access_check)
 async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, selection:str):
-  await ctx.defer(ephemeral=True)
+  public = bool(public == "yes")
+  await ctx.defer(ephemeral=not public)
 
   user_set_badges = []
   all_set_badges = []
@@ -129,7 +129,7 @@ async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, s
     all_set_badges = db_get_all_type_badges(selection)
 
 
-  set = []
+  all_badges = []
   for badge in all_set_badges:
     badge_filename = badge.replace(" ", "_").replace("/", "-").replace(":", "-")
     record = {
@@ -137,161 +137,58 @@ async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, s
       'badge_filename': f"{badge_filename}.png",
       'in_user_collection': badge in user_set_badges
     }
-    set.append(record)
+    all_badges.append(record)
 
   category_title = category.replace("_", " ").title()
 
-  await ctx.followup.send(embed=discord.Embed(
-    title="One moment while we pull up your set!",
+  total_badges = db_get_badge_count_for_user(ctx.author.id)
+
+  # Set up text values for paginated pages
+  title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Set: {category_title} - {selection}"
+  collected = f"{len([b for b in all_badges if b['in_user_collection']])} OF {len(all_set_badges)}"
+  filename_prefix = f"badge_set_{ctx.author.id}_{selection.lower().replace(' ', '-').replace('/', '-')}-page-"
+
+  badge_images = await generate_paginated_badge_images(ctx.author, 'sets', all_badges, total_badges, title, collected, filename_prefix)
+
+  embed = discord.Embed(
+    title=f"Badge Set: **{category_title}** - **{selection}**",
+    description=f"{ctx.author.mention} has collected {len(user_set_badges)} of {len(all_set_badges)}!",
     color=discord.Color(0x2D698D)
-  ), ephemeral=True)
-
-  set_image = generate_badge_set_showcase_for_user(ctx.author, set, selection, category_title)
-
-
-  random_titles = [
-    "Gotta catch em all!",
-    "He who has the most toys...",
-    f"Currently {randint(10, 220)}% Encumbered",
-    "My badges, let me show you them."
-  ]
-
-  public = bool(public == "yes")
-  await ctx.followup.send(
-    embed=discord.Embed(
-      title=f"Badge Set - **{category_title}** - **{selection}**",
-      description=f"{ctx.author.mention} has collected {len(user_set_badges)} of {len(all_set_badges)}!\n\nClick and Open Original to view the details below.",
-      color=discord.Color(0x2D698D)
-    )
-    .set_image(url=f"attachment://badge_set.png")
-    .set_footer(text=random.choice(random_titles)),
-    file=set_image,
-    ephemeral=not public
   )
 
+  # If we're doing a public display, use the images directly
+  # Otherwise private displays can use the paginator
+  if not public:
+    buttons = [
+      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_badges) <= 30), row=1),
+      pages.PaginatorButton(
+        "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
+      ),
+      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_badges) <= 30), row=1),
+    ]
 
-# .___
-# |   | _____ _____     ____   ____
-# |   |/     \\__  \   / ___\_/ __ \
-# |   |  Y Y  \/ __ \_/ /_/  >  ___/
-# |___|__|_|  (____  /\___  / \___  >
-#           \/     \//_____/      \/
-def generate_badge_set_showcase_for_user(user:discord.User, badge_set, selection, category_title):
-  total_user_badges = db_get_badge_count_for_user(user.id)
-
-  text_wrapper = textwrap.TextWrapper(width=22)
-  # badge_list = get_user_badges(user.id)
-  title_font = ImageFont.truetype("fonts/lcars3.ttf", 110)
-  if len(user.display_name) > 16:
-    title_font = ImageFont.truetype("fonts/lcars3.ttf", 90)
-  if len(user.display_name) > 21:
-    title_font = ImageFont.truetype("fonts/lcars3.ttf", 82)
-  collected_font = ImageFont.truetype("fonts/lcars3.ttf", 70)
-  total_font = ImageFont.truetype("fonts/lcars3.ttf", 54)
-  badge_font = ImageFont.truetype("fonts/context_bold.ttf", 28)
-
-  badge_size = 200
-  badge_padding = 40
-  badge_margin = 10
-  badge_slot_size = badge_size + (badge_padding * 2) # size of badge slot size (must be square!)
-  badges_per_row = 6
-
-  base_width = 1890
-  base_header_height = 530
-  base_row_height = 290
-  base_footer_height = 200
-
-  number_of_rows = math.ceil((len(badge_set) / badges_per_row)) - 1
-
-  base_height = base_header_height + (base_row_height * number_of_rows) + base_footer_height
-  # base_height = math.ceil((len(badge_set) / badges_per_row)) * (badge_slot_size + badge_margin)
-
-  # create base image to paste all badges on to
-  badge_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
-  base_header_image = Image.open("./images/templates/badge_sets/badge_set_header.png")
-  base_row_image = Image.open("./images/templates/badge_sets/badge_set_row.png")
-  base_footer_image = Image.open("./images/templates/badge_sets/badge_set_footer.png")
-
-  # Start image with header
-  badge_base_image.paste(base_header_image, (0, 0))
-
-  # Stamp rows (if needed, header includes first row)
-  base_current_y = base_header_height
-  for i in range(number_of_rows):
-    badge_base_image.paste(base_row_image, (0, base_current_y))
-    base_current_y += base_row_height
-
-  # Stamp footer
-  badge_base_image.paste(base_footer_image, (0, base_current_y))
-
-  draw = ImageDraw.Draw(badge_base_image)
-
-  draw.text( (100, 65), f"{user.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Set: {category_title} - {selection}", fill="#8DB9B5", font=title_font, align="left")
-  draw.text( (590, base_height - 113), f"{len([b for b in badge_set if b['in_user_collection']])} OF {len(badge_set)}", fill="#47AAB1", font=collected_font, align="left")
-  draw.text( (32, base_height - 90), f"{total_user_badges}", fill="#47AAB1", font=total_font, align="left")
-
-  start_x = 100
-  current_x = start_x
-  current_y = 245
-  counter = 0
-
-  for badge_record in badge_set:
-    badge_border_color = "#47AAB1"
-    badge_text_color = "white"
-    if not badge_record['in_user_collection']:
-      badge_border_color = "#575757"
-      badge_text_color = "#888888"
-
-    # slot
-    s = Image.new("RGBA", (badge_slot_size, badge_slot_size), (0, 0, 0, 0))
-    badge_draw = ImageDraw.Draw(s)
-    badge_draw.rounded_rectangle( (0, 0, badge_slot_size, badge_slot_size), fill="#000000", outline=badge_border_color, width=4, radius=32 )
-
-    # badge
-    b = Image.open(f"./images/badges/{badge_record['badge_filename']}").convert("RGBA")
-    if not badge_record['in_user_collection']:
-      # Create a mask layer to apply a 1/4th opacity to
-      b2 = b.copy()
-      b2.putalpha(64)
-      b.paste(b2, b)
-    b = b.resize((190, 190))
-
-    w, h = b.size # badge size
-    offset_x = min(0, (badge_size+badge_padding)-w) # center badge x
-    offset_y = 5
-    badge_name = text_wrapper.wrap(badge_record['badge_name'])
-    wrapped_badge_name = ""
-    for i in badge_name[:-1]:
-      wrapped_badge_name = wrapped_badge_name + i + "\n"
-    wrapped_badge_name += badge_name[-1]
-    # add badge to slot
-    s.paste(b, (badge_padding+offset_x+4, offset_y), b)
-    badge_draw.text( (int(badge_slot_size/2), 222), f"{wrapped_badge_name}", fill=badge_text_color, font=badge_font, anchor="mm", align="center")
-
-    # add slot to base image
-    badge_base_image.paste(s, (current_x, current_y), s)
-
-    current_x += badge_slot_size + badge_margin
-    counter += 1
-
-    if counter % badges_per_row == 0:
-      # typewriter sound effects:
-      current_x = start_x # ding!
-      current_y += badge_slot_size + badge_margin # ka-chunk
-      counter = 0 #...
-
-  badge_set_filepath = f"./images/profiles/badge_set_{user.id}_{selection.lower().replace(' ', '-').replace('/', '-')}.png"
-  badge_base_image.save(badge_set_filepath)
-
-  while True:
-    time.sleep(0.05)
-    if os.path.isfile(badge_set_filepath):
-      break
-
-  discord_image = discord.File(badge_set_filepath, filename="badge_set.png")
-  return discord_image
-
-
+    set_pages = [
+      pages.Page(files=[image], embeds=[embed])
+      for image in badge_images
+    ]
+    paginator = pages.Paginator(
+        pages=set_pages,
+        show_disabled=True,
+        show_indicator=True,
+        use_default_buttons=False,
+        custom_buttons=buttons,
+        loop_pages=True
+    )
+    await paginator.respond(ctx.interaction, ephemeral=True)
+  else:
+    # We can only attach up to 10 files per message, so if it's public send them in chunks
+    file_chunks = [badge_images[i:i + 10] for i in range(0, len(badge_images), 10)]
+    for chunk_index, chunk in enumerate(file_chunks):
+      # Only post the embed on the last chunk
+      if chunk_index + 1 == len(file_chunks):
+        await ctx.followup.send(embed=embed, files=chunk, ephemeral=not public)
+      else:
+        await ctx.followup.send(files=chunk, ephemeral=not public)
 
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
@@ -543,19 +440,3 @@ def db_get_badges_user_has_from_type(user_id, type):
   user_badges.sort()
 
   return user_badges
-
-# General
-def db_get_badge_count_for_user(user_id):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT count(*) FROM badges WHERE user_discord_id = %s
-  '''
-  vals = (user_id,)
-  query.execute(sql, vals)
-  result = query.fetchone()
-  db.commit()
-  query.close()
-  db.close()
-
-  return result['count(*)']
