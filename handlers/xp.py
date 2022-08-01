@@ -124,18 +124,16 @@ async def handle_intro_channel_promotion(message):
       welcome_embed = discord.Embed(
         title=f"Could someone {random.choice(usher_msgs)}?",
         color=discord.Color.random(),
-        description="Here are tips for welcoming a Friend of Desoto aboard the Hood:\n"
+        description=f"Please greet our new crewmember in <#{get_channel_id(config['channels']['ten-forward'])}>! Here are tips for welcoming a Friend of Desoto aboard the Hood:\n"
       )
 
       welcome_embed.set_image(url=random.choice(config["handlers"]["xp"]["welcome_images"]))
       
-      welcome_embed.add_field(name=f"Offer advice {get_emoji('pakled_smart_lol')}", value=f"Recommend they visit the <#{get_channel_id(config['channels']['channel-guide'])}> and <#{get_channel_id(config['channels']['roles-and-pronouns'])}> channels", inline=True)
-      welcome_embed.add_field(name=f"{get_emoji('adam_wave_hello')}", value=f"{get_emoji('ben_wave_hello')}", inline=True)
-      welcome_embed.add_field(name=f"Greet them in the spirit of Shimoda {get_emoji('drunk_shimoda_smile_happy')}", value="Provide a humorous, fun, and even a little bit embarrassing welcome to them", inline=True)
+      welcome_embed.add_field(name=f"Offer advice {get_emoji('pakled_smart_lol')}", value=f"Recommend they visit the <#{get_channel_id(config['channels']['channel-guide'])}> and <#{get_channel_id(config['channels']['roles-and-pronouns'])}> channels", inline=False)
+      welcome_embed.add_field(name=f"Greet them in the spirit of Shimoda {get_emoji('drunk_shimoda_smile_happy')}", value="Provide a humorous, fun, and even a little bit embarrassing welcome to them", inline=False)
       
-      welcome_embed.add_field(name=f"Read their intro {get_emoji('bashir_zoom_look_huh')}", value=f"Make your greeting personalized based on what they posted! Find their intro here: {message.jump_url}", inline=True)
-      welcome_embed.add_field(name=f"{get_emoji('ben_wave_hello')}", value=f"{get_emoji('adam_wave_hello')}", inline=True)
-      welcome_embed.add_field(name=f"Bring them into the fold {get_emoji('kira_good_morning_hello')}", value=f"Let them know it's okay to jump in anywhere, anytime. Offer a channel for them to get started on! (like <#{get_channel_id(config['channels']['animal-holophotography'])}>)", inline=True)
+      welcome_embed.add_field(name=f"Read their intro {get_emoji('bashir_zoom_look_huh')}", value=f"Make your greeting personalized based on what they posted! Find their intro here: {message.jump_url}", inline=False)
+      welcome_embed.add_field(name=f"Bring them into the fold {get_emoji('kira_good_morning_hello')}", value=f"Let them know it's okay to jump in anywhere, anytime. Offer a channel for them to get started on! (like <#{get_channel_id(config['channels']['animal-holophotography'])}>)", inline=False)
 
       welcome_embed.set_footer(text="Thank you officers! 💖")
       mods_channel = bot.get_channel(get_channel_id(config["mods_channel"]))
