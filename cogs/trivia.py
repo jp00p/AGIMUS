@@ -129,15 +129,18 @@ class Trivia(commands.Cog):
       )
     except Exception as e:
       await ctx.followup.send(embed=discord.Embed(
-        title="Error Encountered with Trivia! Sorry, we're on it!",
+        title="Error Encountered with Trivia! Sorry, we're on it! Resetting all trivia games in progress. Please start your games again!",
         color=discord.Color.red(),
       ), ephemeral=True)
+      self.clear_data()
       logger.info(f">>> ENCOUNTERED ERROR WITH /trivia: {e}")
       logger.info(traceback.format_exc())
 
 
+
   @trivia_quiz.after_loop
   async def end_trivia(self):
+    channel = bot.get_channel(config["channels"]["morns-nonstop-quiz"])
     try:
       logger.info(f"{Fore.LIGHTYELLOW_EX}Trivia complete!{Fore.RESET}")
       rewards = {
@@ -160,8 +163,6 @@ class Trivia(commands.Cog):
           correct_guessers.append(trivia_answer)
         else:
           incorrect_guessers.append(trivia_answer)
-
-      channel = bot.get_channel(config["channels"]["morns-nonstop-quiz"])
       embed = discord.Embed(
         title="Trivia Complete!",
         description="The correct answer was:\n\n**{}**: {} \n \n** **".format(self.trivia_data['correct_choice'] + 1, self.trivia_data["correct_answer"])
@@ -193,10 +194,11 @@ class Trivia(commands.Cog):
 
       # Disable all the answer buttons now that the trivia session is over
       await self.trivia_message.edit(view=None)
-
       self.clear_data()
 
       await channel.send(embed=embed)
     except Exception as e:
+      channel.send("Sorry, there was an error with the trivia game.  All games in progress have been reset, please start your games again!")
       logger.info(f">>> ENCOUNTERED ERROR WITH end_trivia: {e}")
       logger.info(traceback.format_exc())
+      self.clear_data()

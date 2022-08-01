@@ -47,12 +47,16 @@ async def badges(ctx:discord.ApplicationContext, public:str):
 async def badge_stats(ctx:discord.ApplicationContext):
   results = {}
   results = run_badge_stats_queries()
+  top_collectors = [res for res in results["top_collectors"]]
+  top_three = [res for res in results["most_collected"]]  
   embed = discord.Embed(color=discord.Color.random(), description="", title="")
-  embed.add_field(name="Total badges collected on the USS Hood", value=f"{results['total_badges'][0]['count']}")
-  embed.add_field(name="Most popular badge somehow", value=f'{results["most_collected"][0]["badge_name"].replace("_", " ").replace(".png", "")} ({results["most_collected"][0]["count"]} collected)')
-  embed.add_field(name="Crew member with the most badges right now", value=f"{results['number_one'][0]['name']} ({results['number_one'][0]['count']})")
+  embed.add_field(name="Total badges collected\non the USS Hood", value=f"{results['total_badges'][0]['count']}", inline=True)
+  embed.add_field(name=f"{get_emoji('combadge')}", value="⠀", inline=True)
+  embed.add_field(name="Badges collected today", value=f"{results['badges_today'][0]['count']}", inline=True)
+  embed.add_field(name="Top 3 most-collected badges", value=str("\n".join(f"{t['badge_name'].replace('_', ' ').replace('.png', '')} ({t['count']})" for t in top_three)), inline=True)
+  embed.add_field(name=f"{get_emoji('combadge')}", value="⠀", inline=True)
+  embed.add_field(name="Top 3 badge collectors", value=str("\n".join(f"{t['name']} ({t['count']})" for t in top_collectors)), inline=True)
   await ctx.respond(embed=embed, ephemeral=False)
-
 
 @bot.slash_command(
   name="gift_badge",
@@ -299,10 +303,10 @@ def get_user_badges(user_discord_id:int):
 
 def run_badge_stats_queries():
   queries = {
-    "most_collected" : "SELECT badge_name, COUNT(id) as count FROM badges GROUP BY badge_name ORDER BY count DESC LIMIT 1;",
+    "most_collected" : "SELECT badge_name, COUNT(id) as count FROM badges GROUP BY badge_name ORDER BY count DESC LIMIT 3;",
     "total_badges" : "SELECT COUNT(id) as count FROM badges;",
-    "number_one" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 1;"
-    #"today" : "SELECT * FROM badges WHERE time_created > DATE('now', '-1 day')"
+    "badges_today" : "SELECT COUNT(id) as count FROM badges WHERE time_created > NOW() - INTERVAL 1 DAY;",
+    "top_collectors" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 3;"
   }
   db = getDB()
   results = {}
