@@ -125,13 +125,40 @@ def generate_badge_trade_showcase(badge_list, id, title, footer):
 #  |    |     / __ \_/ /_/  >  |   |  \/ __ \|  | |  (  <_> )   |  \
 #  |____|    (____  /\___  /|__|___|  (____  /__| |__|\____/|___|  /
 #                 \//_____/         \/     \/                    \/
+async def generate_paginated_badge_images(user:discord.User, type, all_badges, total_badges, title, collected, filename_prefix):
+  user_display_name = user.display_name
+  # total_user_badges = db_get_badge_count_for_user(user.id)
+
+  max_per_image = 30
+  all_pages = [all_badges[i:i + max_per_image] for i in range(0, len(all_badges), max_per_image)]
+  total_pages = len(all_pages)
+  badge_images = [
+    await generate_badge_images(
+      type,
+      user_display_name,
+      page,
+      page_number + 1, # Account for zero index
+      total_pages,
+      total_badges,
+      title,
+      collected,
+      filename_prefix
+    )
+    for page_number, page in enumerate(all_pages)
+  ]
+  return badge_images
+
 @to_thread
-def generate_paginated_badge_images(type, user_display_name, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
+def generate_badge_images(type, user_display_name, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
 
   if type == "showcase":
-    color = "purple"
+    color = "green"
+    title_color = "#99B98D"
+    highlight_color = "#54B145"
   if type == "sets":
     color = "teal"
+    title_color = "#8DB9B5"
+    highlight_color = "#2D698D"
 
   text_wrapper = textwrap.TextWrapper(width=22)
   title_font = ImageFont.truetype("fonts/lcars3.ttf", 110)
@@ -184,10 +211,10 @@ def generate_paginated_badge_images(type, user_display_name, page, page_number, 
 
   draw = ImageDraw.Draw(badge_base_image)
 
-  draw.text( (100, 65), title, fill="#8DB9B5", font=title_font, align="left")
-  draw.text( (590, base_height - 125), collected, fill="#47AAB1", font=collected_font, align="left")
-  draw.text( (32, base_height - 90), f"{total_user_badges}", fill="#47AAB1", font=total_font, align="left")
-  draw.text( (base_width - 370, base_height - 115), f"PAGE {'{:02d}'.format(page_number)} OF {'{:02d}'.format(total_pages)}", fill="#47AAB1", font=page_number_font, align="right")
+  draw.text( (100, 65), title, fill=title_color, font=title_font, align="left")
+  draw.text( (590, base_height - 125), collected, fill=highlight_color, font=collected_font, align="left")
+  draw.text( (32, base_height - 90), f"{total_user_badges}", fill=highlight_color, font=total_font, align="left")
+  draw.text( (base_width - 370, base_height - 115), f"PAGE {'{:02d}'.format(page_number)} OF {'{:02d}'.format(total_pages)}", fill=highlight_color, font=page_number_font, align="right")
 
   start_x = 100
   current_x = start_x
@@ -197,7 +224,7 @@ def generate_paginated_badge_images(type, user_display_name, page, page_number, 
   for badge_record in page:
     badge_border_color = "#47AAB1"
     badge_text_color = "white"
-    if not badge_record['in_user_collection']:
+    if type == 'sets' and not badge_record['in_user_collection']:
       badge_border_color = "#575757"
       badge_text_color = "#888888"
 
@@ -249,3 +276,19 @@ def generate_paginated_badge_images(type, user_display_name, page, page_number, 
 
   discord_image = discord.File(badge_set_filepath, filename=f"{filename_prefix}{page_number}.png")
   return discord_image
+
+# QUERIES
+def db_get_badge_count_for_user(user_id):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT count(*) FROM badges WHERE user_discord_id = %s
+  '''
+  vals = (user_id,)
+  query.execute(sql, vals)
+  result = query.fetchone()
+  db.commit()
+  query.close()
+  db.close()
+
+  return result['count(*)']

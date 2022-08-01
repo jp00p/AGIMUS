@@ -1,7 +1,9 @@
-from common import *
 import textwrap
 import time
 import math
+
+from common import *
+from utils.badge_utils import generate_paginated_badge_images
 from utils.check_channel_access import access_check
 
 
@@ -15,7 +17,7 @@ async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
 
 @bot.slash_command(
   name="badges",
-  description="Show off all your badges!"
+  description="Show off all your badges! Please be mindful of posting very large collections publicly."
 )
 @option(
   name="public",
@@ -35,8 +37,66 @@ async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
 async def badges(ctx:discord.ApplicationContext, public:str):
   public = bool(public == "yes")
   await ctx.defer(ephemeral=not public)
-  showcase_image = generate_badge_showcase_for_user(ctx.author)
-  await ctx.followup.send(file=showcase_image, ephemeral=not public)
+
+  badges = os.listdir("./images/badges/")
+  badge_list = get_user_badges(ctx.author.id)
+
+  all_badges = []
+  for badge in badge_list:
+    badge_filename = badge.replace(" ", "_").replace("/", "-").replace(":", "-")
+    record = {
+      'badge_name': badge,
+      'badge_filename': badge_filename,
+    }
+    all_badges.append(record)
+
+  # Set up text values for paginated pages
+  total_badges = len(badges)
+  title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
+  collected = f"{len(badge_list)} TOTAL ON THE USS HOOD"
+  filename_prefix = f"badge_list_{ctx.author.id}-page-"
+
+  badge_images = await generate_paginated_badge_images(ctx.author, 'showcase', all_badges, total_badges, title, collected, filename_prefix)
+
+  embed = discord.Embed(
+    title=f"Badge Collection",
+    description=f"{ctx.author.mention} has collected {len(all_badges)} of {len(badges)}!",
+    color=discord.Color(0x54B145)
+  )
+
+  # If we're doing a public display, use the images directly
+  # Otherwise private displays can use the paginator
+  if not public:
+    buttons = [
+      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_badges) <= 30), row=1),
+      pages.PaginatorButton(
+        "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
+      ),
+      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_badges) <= 30), row=1),
+    ]
+
+    set_pages = [
+      pages.Page(files=[image], embeds=[embed])
+      for image in badge_images
+    ]
+    paginator = pages.Paginator(
+        pages=set_pages,
+        show_disabled=True,
+        show_indicator=True,
+        use_default_buttons=False,
+        custom_buttons=buttons,
+        loop_pages=True
+    )
+    await paginator.respond(ctx.interaction, ephemeral=True)
+  else:
+    # We can only attach up to 10 files per message, so if it's public send them in chunks
+    file_chunks = [badge_images[i:i + 10] for i in range(0, len(badge_images), 10)]
+    for chunk_index, chunk in enumerate(file_chunks):
+      # Only post the embed on the last chunk
+      if chunk_index + 1 == len(file_chunks):
+        await ctx.followup.send(embed=embed, files=chunk, ephemeral=not public)
+      else:
+        await ctx.followup.send(files=chunk, ephemeral=not public)
 
 
 # slash command to get common badge stats
@@ -161,96 +221,6 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
     discord_image = discord.File(fp=f"./images/badges/{badge}", filename=embed_filename)
     embed.set_image(url=f"attachment://{embed_filename}")
     await channel.send(content=message, file=discord_image, embed=embed)
-
-# big expensive function that generates a nice grid of images for the user
-# returns discord.file
-def generate_badge_showcase_for_user(user:discord.User):
-  text_wrapper = textwrap.TextWrapper(width=22)
-  badge_list = get_user_badges(user.id)
-  title_font = ImageFont.truetype("fonts/tng_credits.ttf", 68)
-  credits_font = ImageFont.truetype("fonts/tng_credits.ttf", 42)
-  badge_font = ImageFont.truetype("fonts/context_bold.ttf", 28)
-
-  badge_size = 200
-  badge_padding = 40
-  badge_margin = 10
-  badge_slot_size = badge_size + (badge_padding * 2) # size of badge slot size (must be square!)
-  badges_per_row = 6
-
-  base_width = (badge_slot_size+badge_margin) * badges_per_row
-  base_height = math.ceil((len(badge_list) / badges_per_row)) * (badge_slot_size + badge_margin)
-
-  header_height = badge_size
-  image_padding = 50
-
-  # create base image to paste all badges on to
-  # what if they have 900 badges?
-  badge_base_image = Image.new("RGBA", (base_width+(image_padding*2), base_height+header_height+(image_padding*2)), (200, 200, 200))
-  badge_bg_image = Image.open("./images/stars/" + random.choice(os.listdir("./images/stars/")))
-
-  base_w, base_h = badge_base_image.size
-  bg_w, bg_h = badge_bg_image.size
-
-  for i in range(0, base_w, bg_w):
-    for j in range(0, base_h, bg_h):
-      badge_base_image.paste(badge_bg_image, (i, j))
-
-  draw = ImageDraw.Draw(badge_base_image)
-
-  draw.text( (base_width/2, 100), f"{user.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge collection", fill="white", font=title_font, anchor="mm", align="center")
-  draw.text( (base_width/2, base_h-50), f"Total of {len(badge_list)} badges collected on the USS Hood", fill="white", font=credits_font, anchor="mm", align="center",stroke_width=2,stroke_fill="#000000")
-
-  start_x = image_padding
-  current_x = start_x
-  current_y = header_height
-  counter = 0
-  badge_border_color = random.choice(["#774466", "#6688CC", "#BB4411", "#0011EE"])
-
-  for badge in badge_list:
-    # todo: create slot border/stuff, lcars stuff
-
-    # slot
-    s = Image.new("RGBA", (badge_slot_size, badge_slot_size), (0, 0, 0, 0))
-    badge_draw = ImageDraw.Draw(s)
-    badge_draw.rounded_rectangle( (0, 0, badge_slot_size, badge_slot_size), fill="#000000", outline=badge_border_color, width=4, radius=32 )
-
-    # badge
-    b = Image.open(f"./images/badges/{badge}").convert("RGBA")
-    b = b.resize((190, 190))
-
-    w, h = b.size # badge size
-    offset_x = min(0, (badge_size+badge_padding)-w) # center badge x
-    offset_y = 5
-    badge_name = text_wrapper.wrap(badge.replace("_", " ").replace(".png", ""))
-    wrapped_badge_name = ""
-    for i in badge_name[:-1]:
-      wrapped_badge_name = wrapped_badge_name + i + "\n"
-    wrapped_badge_name += badge_name[-1]
-    # add badge to slot
-    s.paste(b, (badge_padding+offset_x+4, offset_y), b)
-    badge_draw.text( (int(badge_slot_size/2), 222), f"{wrapped_badge_name}", fill="white", font=badge_font, anchor="mm", align="center")
-
-    # add slot to base image
-    badge_base_image.paste(s, (current_x, current_y), s)
-
-    current_x += badge_slot_size + badge_margin
-    counter += 1
-
-    if counter % badges_per_row == 0:
-      # typewriter sound effects:
-      current_x = start_x # ding!
-      current_y += badge_slot_size + badge_margin # ka-chunk
-      counter = 0 #...
-
-  badge_base_image.save(f"./images/profiles/badge_list_{user.id}.png")
-
-  while True:
-    time.sleep(0.05)
-    if os.path.isfile(f"./images/profiles/badge_list_{user.id}.png"):
-      break
-
-  discord_image = discord.File(f"./images/profiles/badge_list_{user.id}.png")
-  return discord_image
 
 
 # give_user_badge(user_discord_id)

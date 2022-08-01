@@ -4,7 +4,7 @@ import textwrap
 import time
 
 from common import *
-from utils.badge_utils import generate_paginated_badge_images
+from utils.badge_utils import generate_paginated_badge_images, db_get_badge_count_for_user
 
 from utils.check_channel_access import access_check
 
@@ -141,12 +141,14 @@ async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, s
 
   category_title = category.replace("_", " ").title()
 
+  total_badges = db_get_badge_count_for_user(ctx.author.id)
+
   # Set up text values for paginated pages
   title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Set: {category_title} - {selection}"
-  collected = f"{len([b for b in all_badges if b['in_user_collection']])} OF {len(all_badges)}"
+  collected = f"{len([b for b in all_badges if b['in_user_collection']])} OF {len(all_set_badges)}"
   filename_prefix = f"badge_set_{ctx.author.id}_{selection.lower().replace(' ', '-').replace('/', '-')}-page-"
 
-  set_images = await generate_badge_set_images(ctx.author, all_badges, title, collected, filename_prefix)
+  badge_images = await generate_paginated_badge_images(ctx.author, 'sets', all_badges, total_badges, title, collected, filename_prefix)
 
   embed = discord.Embed(
     title=f"Badge Set: **{category_title}** - **{selection}**",
@@ -158,16 +160,16 @@ async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, s
   # Otherwise private displays can use the paginator
   if not public:
     buttons = [
-      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_badges) <= 30), row=1),
       pages.PaginatorButton(
         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
       ),
-      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_badges) <= 30), row=1),
     ]
 
     set_pages = [
       pages.Page(files=[image], embeds=[embed])
-      for image in set_images
+      for image in badge_images
     ]
     paginator = pages.Paginator(
         pages=set_pages,
@@ -180,37 +182,13 @@ async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, s
     await paginator.respond(ctx.interaction, ephemeral=True)
   else:
     # We can only attach up to 10 files per message, so if it's public send them in chunks
-    file_chunks = [set_images[i:i + 10] for i in range(0, len(set_images), 10)]
+    file_chunks = [badge_images[i:i + 10] for i in range(0, len(badge_images), 10)]
     for chunk_index, chunk in enumerate(file_chunks):
       # Only post the embed on the last chunk
       if chunk_index + 1 == len(file_chunks):
         await ctx.followup.send(embed=embed, files=chunk, ephemeral=not public)
       else:
         await ctx.followup.send(files=chunk, ephemeral=not public)
-
-async def generate_badge_set_images(user:discord.User, all_badges, title, collected, filename_prefix):
-  user_display_name = user.display_name
-  total_user_badges = db_get_badge_count_for_user(user.id)
-
-  max_per_image = 30
-  all_pages = [all_badges[i:i + max_per_image] for i in range(0, len(all_badges), max_per_image)]
-  total_pages = len(all_pages)
-  badge_set_images = [
-    await generate_paginated_badge_images(
-      'sets', # type
-      user_display_name,
-      page,
-      page_number + 1, # Account for zero index
-      total_pages,
-      total_user_badges,
-      title,
-      collected,
-      filename_prefix
-    )
-    for page_number, page in enumerate(all_pages)
-  ]
-  return badge_set_images
-
 
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
@@ -462,19 +440,3 @@ def db_get_badges_user_has_from_type(user_id, type):
   user_badges.sort()
 
   return user_badges
-
-# General
-def db_get_badge_count_for_user(user_id):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT count(*) FROM badges WHERE user_discord_id = %s
-  '''
-  vals = (user_id,)
-  query.execute(sql, vals)
-  result = query.fetchone()
-  db.commit()
-  query.close()
-  db.close()
-
-  return result['count(*)']
