@@ -85,6 +85,10 @@ db-dump: ## Dump the database to a file at $DB_DUMP_FILENAME
 db-load: ## Load the database from a file at $DB_DUMP_FILENAME
 	@docker-compose exec app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_DUMP_FILENAME)
 
+.PHONY: db-migrate
+db-migrate: ## Apply a migration/sql file to the database from a file at ./migrations/v#.#.#.sql
+	@docker-compose exec app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ./migrations/$(shell make version).sql
+
 .PHONY: db-seed
 db-seed: ## Reload the database from a file at $DB_SEED_FILEPATH
 	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "DROP DATABASE IF EXISTS FoD;"
@@ -192,6 +196,11 @@ helm-uninstall: helm-config-rm ## Remove AGIMUS helm chart
 helm-db-load: ## Load the database from a file at $DB_SEED_FILEPATH
 	@kubectl --namespace $(namespace) exec -i $(shell make --no-print-directory helm-db-pod) \
 		-- bash -c 'exec mysql -h127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}"' < ${DB_SEED_FILEPATH}
+
+.PHONY: helm-db-migrate
+helm-db-migrate: ## Load the database from a file at $DB_SEED_FILEPATH
+	@kubectl --namespace $(namespace) exec -i $(shell make --no-print-directory helm-db-pod) \
+		-- bash -c 'exec mysql -h127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}" ${DB_NAME}' < ./migrations/$(shell --no-print-directory make version).sql
 
 .PHONY: helm-db-mysql
 helm-db-mysql: ## Mysql session in mysql pod
