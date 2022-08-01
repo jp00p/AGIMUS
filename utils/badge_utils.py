@@ -292,3 +292,26 @@ def db_get_badge_count_for_user(user_id):
   db.close()
 
   return result['count(*)']
+
+def db_get_user_badge_names(user_id):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = "SELECT badge_name FROM badges WHERE user_discord_id = %s"
+  vals = (user_id,)
+  query.execute(sql, vals)
+  badge_names = query.fetchall()
+  db.commit()
+  query.close()
+  db.close()
+  return badge_names
+
+def db_remove_user_profile_badge(user_id):
+  db = getDB()
+  query = db.cursor()
+  sql = "REPLACE INTO profile_badges (tagline, user_discord_id) VALUES (%(badge_name)s, %(user_discord_id)s)"
+  vals = {"badge_name" : "", "user_discord_id" : user_id}
+  logger.info(f"CLEARING PROFILE BADGE {sql}")
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
