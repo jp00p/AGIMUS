@@ -102,7 +102,7 @@ async def badges(ctx:discord.ApplicationContext, public:str, color:str):
   embed = discord.Embed(
     title=f"Badge Collection",
     description=f"{ctx.author.mention} has collected {len(all_badges)} of {len(badges)}!",
-    color=discord.Color(0x54B145)
+    color=discord.Color.blurple()
   )
 
   # If we're doing a public display, use the images directly
@@ -274,7 +274,7 @@ async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, s
   embed = discord.Embed(
     title=f"Badge Set: **{category_title}** - **{selection}**",
     description=f"{ctx.author.mention} has collected {len(user_set_badges)} of {len(all_set_badges)}!",
-    color=discord.Color(0x2D698D)
+    color=discord.Color.blurple()
   )
 
   # If we're doing a public display, use the images directly

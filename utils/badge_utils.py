@@ -126,9 +126,6 @@ def generate_badge_trade_showcase(badge_list, id, title, footer):
 #  |____|    (____  /\___  /|__|___|  (____  /__| |__|\____/|___|  /
 #                 \//_____/         \/     \/                    \/
 async def generate_paginated_badge_images(user:discord.User, type, all_badges, total_badges, title, collected, filename_prefix):
-  # user_display_name = user.display_name
-  # total_user_badges = db_get_badge_count_for_user(user.id)
-
   max_per_image = 30
   all_pages = [all_badges[i:i + max_per_image] for i in range(0, len(all_badges), max_per_image)]
   total_pages = len(all_pages)
