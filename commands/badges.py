@@ -74,7 +74,7 @@ badge_group = bot.create_group("badges", "Badge Commands!")
     for color_choice in ["Green", "Orange", "Purple", "Teal"]
   ]
 )
-async def badges(ctx:discord.ApplicationContext, public:str, color:str):
+async def showcase(ctx:discord.ApplicationContext, public:str, color:str):
   public = bool(public == "yes")
   await ctx.defer(ephemeral=not public)
 
@@ -96,7 +96,7 @@ async def badges(ctx:discord.ApplicationContext, public:str, color:str):
   filename_prefix = f"badge_list_{ctx.author.id}-page-"
 
   if color:
-    db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
+    db_set_user_badge_page_color_preference(ctx.author.id, "showcase", color)
   badge_images = await generate_paginated_badge_images(ctx.author, 'showcase', all_badges, total_badges, title, collected, filename_prefix)
 
   embed = discord.Embed(
@@ -204,7 +204,7 @@ async def badges(ctx:discord.ApplicationContext, public:str, color:str):
   ]
 )
 @commands.check(access_check)
-async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, selection:str, color:str):
+async def sets(ctx:discord.ApplicationContext, public:str, category:str, selection:str, color:str):
   public = bool(public == "yes")
   await ctx.defer(ephemeral=not public)
 
