@@ -43,10 +43,10 @@ async def badges(ctx:discord.ApplicationContext, public:str):
 
   all_badges = []
   for badge in badge_list:
-    badge_filename = badge.replace(" ", "_").replace("/", "-").replace(":", "-")
+    # badge_filename = badge.replace(" ", "_").replace("/", "-").replace(":", "-")
     record = {
-      'badge_name': badge,
-      'badge_filename': badge_filename,
+      'badge_name': badge.replace("_", " ").replace(".png", ""),
+      'badge_filename': badge,
     }
     all_badges.append(record)
 
@@ -108,7 +108,7 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   results = {}
   results = run_badge_stats_queries()
   top_collectors = [res for res in results["top_collectors"]]
-  top_three = [res for res in results["most_collected"]]  
+  top_three = [res for res in results["most_collected"]]
   embed = discord.Embed(color=discord.Color.random(), description="", title="")
   embed.add_field(name="Total badges collected\non the USS Hood", value=f"{results['total_badges'][0]['count']}", inline=True)
   embed.add_field(name=f"{get_emoji('combadge')}", value="⠀", inline=True)

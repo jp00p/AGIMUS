@@ -158,7 +158,7 @@ def generate_badge_images(type, user_display_name, page, page_number, total_page
   if type == "sets":
     color = "teal"
     title_color = "#8DB9B5"
-    highlight_color = "#2D698D"
+    highlight_color = "#47AAB1"
 
   text_wrapper = textwrap.TextWrapper(width=22)
   title_font = ImageFont.truetype("fonts/lcars3.ttf", 110)
@@ -222,7 +222,7 @@ def generate_badge_images(type, user_display_name, page, page_number, total_page
   counter = 0
 
   for badge_record in page:
-    badge_border_color = "#47AAB1"
+    badge_border_color = highlight_color
     badge_text_color = "white"
     if type == 'sets' and not badge_record['in_user_collection']:
       badge_border_color = "#575757"
