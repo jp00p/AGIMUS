@@ -1,5 +1,5 @@
 from common import *
-from utils.badge_utils import generate_badge_trade_showcase
+from utils.badge_utils import generate_badge_trade_showcase, db_get_user_badge_names
 from utils.check_channel_access import access_check
 
 f = open("./data/rules_of_acquisition.txt", "r")
@@ -1306,18 +1306,6 @@ def db_remove_badge_from_trade_request(active_trade, badge_name):
   db.commit()
   query.close()
   db.close()
-
-def db_get_user_badge_names(discord_id):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT badge_name FROM badges WHERE user_discord_id = %s"
-  vals = (discord_id,)
-  query.execute(sql, vals)
-  badge_names = query.fetchall()
-  db.commit()
-  query.close()
-  db.close()
-  return badge_names
 
 def db_get_active_requestee_trades(requestee_id):
   db = getDB()

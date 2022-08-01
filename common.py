@@ -191,9 +191,16 @@ def get_user(discord_id:int):
   vals = (discord_id,)
   query.execute(sql, vals)
   user_stickers = query.fetchall()
+  # get user featured badges
+  sql = "SELECT badge_name FROM profile_badges WHERE user_discord_id = %s AND badge_name IS NOT NULL"
+  vals = (discord_id,)
+  query.execute(sql, vals)
+  user_badges = query.fetchall()
+  # close db
   query.close()
   db.close()
   user_data["stickers"] = user_stickers
+  user_data["badges"] = user_badges
   logger.debug(f"USER DATA: {user_data}")
   return user_data
 

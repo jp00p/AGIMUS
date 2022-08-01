@@ -51,6 +51,14 @@ CREATE TABLE IF NOT EXISTS profile_taglines (
   PRIMARY KEY (id),
   UNIQUE KEY (user_discord_id)
 );
+CREATE TABLE IF NOT EXISTS profile_badges (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id VARCHAR(64) NOT NULL,
+  badge_name VARCHAR(255) DEFAULT NULL,
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY (user_discord_id)
+);
 CREATE TABLE IF NOT EXISTS trades (
   id int(11) NOT NULL AUTO_INCREMENT,
   requestor_id varchar(128) NOT NULL,
