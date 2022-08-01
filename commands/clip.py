@@ -42,7 +42,7 @@ async def clips_list(ctx:discord.ApplicationContext):
     try:
       await ctx.author.send(embed=embed)
       await ctx.respond(f"{get_emoji('tendi_smile_happy')} Sent you a DM with the full List of Clips!", ephemeral=True)
-    except:
+    except Exception:
       await ctx.respond(embed=embed, ephemeral=True)
   else:
     await ctx.respond(embed=embed, ephemeral=True)
@@ -85,7 +85,7 @@ async def clip_post(ctx:discord.ApplicationContext, query:str, private:bool):
         await ctx.respond(file=discord.File(filename), ephemeral=private)
         if not private:
           set_timekeeper(ctx)
-      except BaseException as err:
+      except Exception as err:
         logger.info(f"{Fore.RED}ERROR LOADING CLIP: {err}{Fore.RESET}")
     else:
       await ctx.respond(f"{get_emoji('ezri_frown_sad')} Clip not found! To get a list of clips run: /clips list", ephemeral=True)

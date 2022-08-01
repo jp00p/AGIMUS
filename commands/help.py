@@ -41,15 +41,16 @@ basic_commands = [
   }
 ]
 
-# help() - Entrypoint for /help command
-# This function is the main entrypoint of the /help command
-# and will display each help message in the channel that it was
-# initiated, for the channel it was initiated.
 @bot.slash_command(
   name="help",
   description="Display a help message for the current channel-specific commands"
 )
 async def help(ctx:discord.ApplicationContext):
+  """
+  This function is the main entrypoint of the /help command
+  and will display each help message in the channel that it was
+  initiated, for the channel it was initiated.
+  """
   try:
 
     logger.info(f"{Style.BRIGHT}{ctx.author.display_name}{Style.RESET_ALL} is checking out the help page in {Style.BRIGHT}{ctx.channel.name}{Style.RESET_ALL}!")
@@ -62,12 +63,9 @@ async def help(ctx:discord.ApplicationContext):
     help_data = json.load(f)
     f.close()
 
-    default_help = True
-
     for help_page in help_data:
       if ctx.channel.id in get_channel_ids_list(help_page["channels"]) and help_page["enabled"]:
         
-        default_help = False
         text_file = open(help_page["file"], "r")
         help_text = text_file.read()
         text_file.close()
@@ -84,28 +82,26 @@ async def help(ctx:discord.ApplicationContext):
         await ctx.respond(embed=embed, ephemeral=True)
         return
     
-    if default_help:
+    with os.popen("make --no-print-directory version") as line:
+      version_raw = line.readlines()
+    version = version_raw[0].replace("\n", "").replace("\t"," ").strip()
 
-      with os.popen("make --no-print-directory version") as line:
-        version_raw = line.readlines()
-      version = version_raw[0].replace("\n", "").replace("\t"," ").strip()
-      
-      message = f"__**AGIMUS {version}** - Help and About__\n"
-      message += default_help_text + "\n"
+    message = f"__**AGIMUS {version}** - Help and About__\n"
+    message += default_help_text + "\n"
 
-      embed = discord.Embed(
-        description="These commands can be used mostly anywhere:",
-        title=f"**Basic commands**",
-        color=discord.Color.random()
-      )
-      
-      for command in basic_commands:
-        embed.add_field(name=f'`{command["name"]}`', value=command["description"], inline=True)
+    embed = discord.Embed(
+      description="These commands can be used mostly anywhere:",
+      title=f"**Basic commands**",
+      color=discord.Color.random()
+    )
 
-      embed.set_footer(text="Use this /help command in specific game channels for more detailed help on those games.")
-      
-      await ctx.respond(content=message, embed=embed, ephemeral=True)
+    for command in basic_commands:
+      embed.add_field(name=f'`{command["name"]}`', value=command["description"], inline=True)
 
-  except BaseException as e:
+    embed.set_footer(text="Use this /help command in specific game channels for more detailed help on those games.")
+
+    await ctx.respond(content=message, embed=embed, ephemeral=True)
+
+  except Exception as e:
     logger.info(">>> Encountered error in /help")
     logger.info(traceback.format_exc())

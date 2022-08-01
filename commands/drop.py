@@ -23,13 +23,15 @@ async def drop_autocomplete(ctx:discord.AutocompleteContext):
 # Create drop Slash Command Group
 drop = bot.create_group("drop", "Drop Commands!")
 
-# drop_list() - Entrypoint for `/drops list`` command
-# List the available drops by key and send to user as ephemeral
 @drop.command(
   name="list",
   description="Retrieve the List of Drops"
 )
 async def drop_list(ctx:discord.ApplicationContext):
+  """
+  Entrypoint for `/drops list`` command
+  List the available drops by key and send to user as ephemeral
+  """
   logger.info(f"{Fore.RED}Firing `/drop list` command, requested by {ctx.author.name}!{Fore.RESET}")
   drops_list = "\n".join(drop_data)
   embed = discord.Embed(
@@ -47,10 +49,6 @@ async def drop_list(ctx:discord.ApplicationContext):
   else:
     await ctx.respond(embed=embed, ephemeral=True)
 
-# drop_post() - Entrypoint for `/drops post` command
-# Parses a query, determines if it's allowed in the channel,
-# and if allowed retrieve from metadata to do matching and
-# then send the .mp4 file
 @drop.command(
   name="post",
   description="Send a drop to the channel or to just yourself via the <private> option",
@@ -68,6 +66,12 @@ async def drop_list(ctx:discord.ApplicationContext):
 )
 @commands.check(access_check)
 async def drop_post(ctx:discord.ApplicationContext, query:str, private:bool):
+  """
+  Entrypoint for `/drops post` command
+  Parses a query, determines if it's allowed in the channel,
+  and if allowed retrieve from metadata to do matching and
+  then send the .mp4 file
+  """
   logger.info(f"{Fore.RED}Firing `/drop post` command, requested by {ctx.author.name}!{Fore.RESET}")
   # Private drops are not on the timer
   drop_allowed = True

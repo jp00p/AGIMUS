@@ -1,14 +1,15 @@
 from common import *
 from utils.check_channel_access import access_check
 
-# scores() - Entrypoint for /scores command
-# This function is the main entrypoint of the /scores command
 @bot.slash_command(
   name="scores",
   description="Get the leaderboard for the top 25 players"
 )
 @commands.check(access_check)
 async def scores(ctx:discord.ApplicationContext):
+  """
+  This function is the main entrypoint of the /scores command
+  """
   scores = get_high_scores()
   # table = []
   # table.append(["SCORE", "NAME", "SPINS", "JACKPOTS"])
@@ -29,10 +30,10 @@ async def scores(ctx:discord.ApplicationContext):
   await ctx.respond(embed=embed)
 
 
-# get_high_scores()
-# This function takes no arguments
-# and returns the top 25 users ordered by their score value
 def get_high_scores():
+  """
+  returns the top 25 users ordered by their score value
+  """
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = "SELECT * FROM users ORDER BY score DESC LIMIT 25"

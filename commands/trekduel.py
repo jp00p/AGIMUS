@@ -1,16 +1,16 @@
 from common import *
 from utils.check_channel_access import access_check
 
-# trekduel() - Entrypoint for /trekduel command
-# message[required]: discord.Message
-# This function is the main entrypoint of the /trekduel command
-# and will return a prompt with two random characters
 @bot.slash_command(
   name="trekduel",
   description="Return 2 random Trek Characters to fight to the death"
 )
 @commands.check(access_check)
 async def trekduel(ctx:discord.ApplicationContext):
+  """
+  This function is the main entrypoint of the /trekduel command
+  and will return a prompt with two random characters
+  """
   f = open(config["commands"]["trekduel"]["data"])
   characters = f.read().splitlines()
   f.close()

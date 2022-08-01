@@ -1,15 +1,16 @@
 from common import *
 from utils.check_channel_access import access_check
 
-# tuvix() - Entrypoint for !tuvix command
-# This function is the main entrypoint of the !tuvix command
-# and will return a prompt with two random characters
 @bot.slash_command(
   name="tuvix",
   description="Return two Trek characters to be Tuvix'd as a discussion prompt"
 )
 @commands.check(access_check)
 async def tuvix(ctx:discord.ApplicationContext):
+  """
+  This function is the main entrypoint of the !tuvix command
+  and will return a prompt with two random characters
+  """
   f = open(config["commands"]["tuvix"]["data"])
   tuvixes = f.read().splitlines()
   f.close()

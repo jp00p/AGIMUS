@@ -5,10 +5,6 @@ import requests
 from common import *
 from utils.check_channel_access import access_check
 
-# nexttrek() - Entrypoint for /nexttrek command
-# Retrieve the next Trek episode, or next episode for a specific show
-nexttrek_config = config["commands"]["nexttrek"]
-
 @bot.slash_command(
   name="nexttrek",
   description="Retrieve info on the next Trek episode",
@@ -55,14 +51,10 @@ async def nexttrek(ctx, show:str):
       episode_data = requests.get(next_episode["href"]).json()
       embed = await get_next_episode_embed(show_data, episode_data)
       await ctx.respond(embed=embed)
-  except BaseException as err:
+  except Exception as err:
     logger.error(err)
     await ctx.respond(f"{get_emoji('emh_doctor_omg_wtf_zoom')} Sorry, something went wrong with the request!", ephemeral=True)
 
-
-# nextep() - Entrypoint for /nextep command
-# Retrieve the next episode of any given show query
-nextep_config = config["commands"]["nextep"]
 
 @bot.slash_command(
   name="nextep",

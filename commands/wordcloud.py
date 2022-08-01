@@ -12,9 +12,6 @@ image_masks = [
   Image.open("./images/cloud_masks/spock_mask.png")
 ]
 
-# wordcloud() - Entrypoint for `/wordcloud` command
-# generates a wordcloud image based on users most-used words
-# also allows users to opt-in or out of logging their messages
 @bot.slash_command(
   name="wordcloud",
   description="Show your own most popular words in a wordcloud! Enable with /settings to allow cloud generation."
@@ -35,6 +32,11 @@ image_masks = [
   ]
 )
 async def wordcloud(ctx:discord.ApplicationContext, public:str):
+  """
+  Entrypoint for `/wordcloud` command
+  generates a wordcloud image based on users most-used words
+  also allows users to opt-in or out of logging their messages
+  """
   user = get_user(ctx.author.id)
 
   # if they have previously disabled logging
@@ -100,8 +102,10 @@ async def wordcloud(ctx:discord.ApplicationContext, public:str):
   await ctx.followup.send(content=f"(Based on your last {user_details['num_messages']} messages)", file=discord_image, ephemeral=not public)
   logger.info(f"{Style.BRIGHT}{ctx.author.display_name}{Style.RESET_ALL} has generated a {Fore.CYAN}wordcloud!{Fore.RESET}")
 
-# get user's message history and return it in a dict
 def get_wordcloud_text_for_user(user_discord_id:int):
+  """
+  get user's message history and return it in a dict
+  """
   db = getDB()
   query = db.cursor(dictionary=True)
   max_limit = 1701
@@ -109,7 +113,6 @@ def get_wordcloud_text_for_user(user_discord_id:int):
   vals = (user_discord_id,max_limit)
   query.execute(sql, vals)
   results = query.fetchall()
-  db.commit()
   query.close()
   db.close()
   if len(results) < 1:
