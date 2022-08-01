@@ -4,7 +4,7 @@ import textwrap
 import time
 
 from common import *
-from utils.badge_utils import generate_paginated_badge_images, db_get_badge_count_for_user
+from utils.badge_utils import generate_paginated_badge_images, db_get_badge_count_for_user, db_set_user_badge_page_color_preference
 
 from utils.check_channel_access import access_check
 
@@ -84,8 +84,17 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
   required=True,
   autocomplete=autocomplete_selections
 )
+@option(
+  name="color",
+  description="Which colorscheme would you like?",
+  required=False,
+  choices = [
+    discord.OptionChoice(name=color_choice, value=color_choice.lower())
+    for color_choice in ["Green", "Orange", "Purple", "Teal"]
+  ]
+)
 @commands.check(access_check)
-async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, selection:str):
+async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, selection:str, color:str):
   public = bool(public == "yes")
   await ctx.defer(ephemeral=not public)
 
@@ -148,6 +157,8 @@ async def badge_sets(ctx:discord.ApplicationContext, public:str, category:str, s
   collected = f"{len([b for b in all_badges if b['in_user_collection']])} OF {len(all_set_badges)}"
   filename_prefix = f"badge_set_{ctx.author.id}_{selection.lower().replace(' ', '-').replace('/', '-')}-page-"
 
+  if color:
+    db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
   badge_images = await generate_paginated_badge_images(ctx.author, 'sets', all_badges, total_badges, title, collected, filename_prefix)
 
   embed = discord.Embed(

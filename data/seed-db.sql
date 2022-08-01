@@ -26,6 +26,15 @@ CREATE TABLE IF NOT EXISTS users (
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)
 );
+CREATE TABLE IF NOT EXISTS user_preferences (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id VARCHAR(64) NOT NULL,
+  badge_showcase_color VARCHAR(32) NOT NULL DEFAULT 'orange',
+  badge_sets_color VARCHAR(32) NOT NULL DEFAULT 'teal',
+  PRIMARY KEY (id),
+  FOREIGN KEY (user_discord_id)
+    REFERENCES users(discord_id)
+);
 CREATE TABLE IF NOT EXISTS profile_photos (
   id int(11) NOT NULL AUTO_INCREMENT,
   user_discord_id VARCHAR(64) NOT NULL,

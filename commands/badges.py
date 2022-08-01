@@ -3,7 +3,7 @@ import time
 import math
 
 from common import *
-from utils.badge_utils import generate_paginated_badge_images
+from utils.badge_utils import generate_paginated_badge_images, db_set_user_badge_page_color_preference
 from utils.check_channel_access import access_check
 
 
@@ -34,7 +34,16 @@ async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
     )
   ]
 )
-async def badges(ctx:discord.ApplicationContext, public:str):
+@option(
+  name="color",
+  description="Which colorscheme would you like?",
+  required=False,
+  choices = [
+    discord.OptionChoice(name=color_choice, value=color_choice.lower())
+    for color_choice in ["Green", "Orange", "Purple", "Teal"]
+  ]
+)
+async def badges(ctx:discord.ApplicationContext, public:str, color:str):
   public = bool(public == "yes")
   await ctx.defer(ephemeral=not public)
 
@@ -56,6 +65,8 @@ async def badges(ctx:discord.ApplicationContext, public:str):
   collected = f"{len(badge_list)} TOTAL ON THE USS HOOD"
   filename_prefix = f"badge_list_{ctx.author.id}-page-"
 
+  if color:
+    db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
   badge_images = await generate_paginated_badge_images(ctx.author, 'showcase', all_badges, total_badges, title, collected, filename_prefix)
 
   embed = discord.Embed(
