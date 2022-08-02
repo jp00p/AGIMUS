@@ -432,7 +432,7 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
   embed_description += f"\n{star_str}\n"
   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
   embed.set_thumbnail(url=thumbnail_image)
-  embed.set_footer(text="See all your badges by typing /badges - disable this by typing /disable_xp")
+  embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/disable_xp'")
   if badge_info:
     embed.set_image(url=f"{badge_info['image_url']}")
     await channel.send(content=message, embed=embed)
