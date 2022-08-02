@@ -87,7 +87,7 @@ db-load: ## Load the database from a file at $DB_DUMP_FILENAME
 
 .PHONY: db-migrate
 db-migrate: ## Apply a migration/sql file to the database from a file at ./migrations/v#.#.#.sql
-	@docker-compose exec app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ./migrations/$(shell make version).sql
+	@docker-compose exec -T app mysql -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ./migrations/$(shell make version).sql
 
 .PHONY: db-seed
 db-seed: ## Reload the database from a file at $DB_SEED_FILEPATH
@@ -98,7 +98,7 @@ db-seed: ## Reload the database from a file at $DB_SEED_FILEPATH
 .PHONY: db-backup
 db-backup: db-setup-git ## Back the database to a file at $DB_DUMP_FILENAME then commit it to the private database repository (intended to run inside AGIMUS container)
 	@echo "Dumping db to $(DB_DUMP_FILENAME)"
-	@mysqldump -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) -B $(DB_NAME) > $(DB_DUMP_FILENAME)
+	@mysqldump -u$(DB_USER) -p$(DB_PASS) -B $(DB_NAME) > $(DB_DUMP_FILENAME)
 	@rm -rf database || true
 	git clone git@github.com:Friends-of-DeSoto/database.git
 	@mkdir -p database/$(DB_BACKUP_SUB_DIR)
