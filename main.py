@@ -7,8 +7,7 @@ from common import *
 import aiohttp
 
 # Slash Commands
-from commands.badges import badges
-from commands.badge_sets import badge_sets
+from commands.badges import *
 from commands.dustbuster import dustbuster
 from commands.fmk import fmk
 from commands.help import help

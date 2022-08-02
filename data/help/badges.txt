@@ -2,8 +2,8 @@
 Level-up Announcements and Badge Trading!
 
 **GENERAL COMMANDS**
-`/badges` - View your entire current badge collection! (note this can be used anywhere!)
-`/badge_sets` - View subcategories of your badge collection, try to collect em all!
+`/badges showcase` - View your entire current badge collection! (note this can be used anywhere!)
+`/badges sets` - View subcategories of your badge collection, try to collect em all!
 `/toggle_notifications <yes/no>` - Enable or disable DMs from AGIMUS (trades normally send notifications on incoming, declined, or canceled trades)
 
 **TRADING**
@@ -43,5 +43,3 @@ You may have up to three incoming trades at a time.
 9. Successful trade! A notification is sent to both Quark and the channel to let them know that the transfer was made successfully! Quark now owns the *"Volleyball Court"* badge and Weyoun owns both *"The Lucky Ferengi"* and *"Tongo Card (Sample)"* badges.
 
 10. There is much rejoicing.
-
-
