@@ -126,16 +126,13 @@ def generate_badge_trade_showcase(badge_list, id, title, footer):
 #  |____|    (____  /\___  /|__|___|  (____  /__| |__|\____/|___|  /
 #                 \//_____/         \/     \/                    \/
 async def generate_paginated_badge_images(user:discord.User, type, all_badges, total_badges, title, collected, filename_prefix):
-  user_display_name = user.display_name
-  # total_user_badges = db_get_badge_count_for_user(user.id)
-
   max_per_image = 30
   all_pages = [all_badges[i:i + max_per_image] for i in range(0, len(all_badges), max_per_image)]
   total_pages = len(all_pages)
   badge_images = [
     await generate_badge_images(
       type,
-      user_display_name,
+      user,
       page,
       page_number + 1, # Account for zero index
       total_pages,
@@ -149,14 +146,21 @@ async def generate_paginated_badge_images(user:discord.User, type, all_badges, t
   return badge_images
 
 @to_thread
-def generate_badge_images(type, user_display_name, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
+def generate_badge_images(type, user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
 
-  if type == "showcase":
-    color = "green"
+  user_display_name = user.display_name
+  color_preference = db_get_user_badge_page_color_preference(user.id, type)
+
+  if color_preference == "green":
     title_color = "#99B98D"
     highlight_color = "#54B145"
-  if type == "sets":
-    color = "teal"
+  elif color_preference == "orange":
+    title_color = "#BD9789"
+    highlight_color = "#BA6F3B"
+  elif color_preference == "purple":
+    title_color = "#6455A1"
+    highlight_color = "#9593B2"
+  elif color_preference == "teal":
     title_color = "#8DB9B5"
     highlight_color = "#47AAB1"
 
@@ -193,9 +197,9 @@ def generate_badge_images(type, user_display_name, page, page_number, total_page
 
   # create base image to paste all badges on to
   badge_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
-  base_header_image = Image.open(f"./images/templates/badges/badge_set_header_{color}.png")
-  base_row_image = Image.open(f"./images/templates/badges/badge_set_row_{color}.png")
-  base_footer_image = Image.open(f"./images/templates/badges/badge_set_footer_{color}.png")
+  base_header_image = Image.open(f"./images/templates/badges/badge_page_header_{color_preference}.png")
+  base_row_image = Image.open(f"./images/templates/badges/badge_page_row_{color_preference}.png")
+  base_footer_image = Image.open(f"./images/templates/badges/badge_page_footer_{color_preference}.png")
 
   # Start image with header
   badge_base_image.paste(base_header_image, (0, 0))
@@ -305,13 +309,43 @@ def db_get_user_badge_names(user_id):
   db.close()
   return badge_names
 
-def db_remove_user_profile_badge(user_id):
+def db_set_user_badge_page_color_preference(user_id, type, color):
   db = getDB()
-  query = db.cursor()
-  sql = "REPLACE INTO profile_badges (tagline, user_discord_id) VALUES (%(badge_name)s, %(user_discord_id)s)"
-  vals = {"badge_name" : "", "user_discord_id" : user_id}
-  logger.info(f"CLEARING PROFILE BADGE {sql}")
+  query = db.cursor(dictionary=True)
+
+  if type == "showcase":
+    sql = "UPDATE user_preferences SET badge_showcase_color = %s WHERE user_discord_id = %s"
+  elif type == "sets":
+    sql = "UPDATE user_preferences SET badge_sets_color = %s WHERE user_discord_id = %s"
+
+  vals = (color, user_id)
   query.execute(sql, vals)
   db.commit()
   query.close()
   db.close()
+
+def db_get_user_badge_page_color_preference(user_id, type):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+
+  sql = "SELECT * FROM user_preferences WHERE user_discord_id = %s"
+  vals = (user_id,)
+  query.execute(sql, vals)
+  result = query.fetchone()
+  if result is None:
+    sql = "INSERT INTO user_preferences (user_discord_id) VALUES (%s)"
+    query.execute(sql, vals)
+
+  if type == "showcase":
+    sql = "SELECT badge_showcase_color AS color_preference FROM user_preferences WHERE user_discord_id = %s"
+  elif type == "sets":
+    sql = "SELECT badge_sets_color AS color_preference FROM user_preferences WHERE user_discord_id = %s"
+
+  query.execute(sql, vals)
+  result = query.fetchone()
+  db.commit()
+  query.close()
+  db.close()
+  color_preference = result['color_preference']
+
+  return color_preference

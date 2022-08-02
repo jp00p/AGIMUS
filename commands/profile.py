@@ -85,7 +85,7 @@ async def set_profile_badge(ctx:discord.ApplicationContext, badge:str):
       title="Unable To Set Featured Profile Badge",
       description="You don't appear to have that badge yet!",
       color=discord.Color.red()
-    ))
+    ), ephemeral=True)
     return
 
   # If it looks good, go ahead and add the badge to their profile
