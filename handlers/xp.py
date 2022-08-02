@@ -3,6 +3,7 @@ from time import sleep
 from numpy import block
 from common import *
 from commands.badges import give_user_badge, send_badge_reward_message
+from utils.badge_utils import db_get_user_badge_names
 
 # rainbow of colors to cycle through for the logs
 xp_colors = [
@@ -15,7 +16,7 @@ xp_colors = [
     Fore.LIGHTCYAN_EX,
     Fore.CYAN,
     Fore.LIGHTBLUE_EX,
-    Fore.BLUE, 
+    Fore.BLUE,
     Fore.MAGENTA,
     Fore.LIGHTMAGENTA_EX
 ]
@@ -42,8 +43,8 @@ reasons = {
 
 # handle_message_xp(message) - calculates xp for a given message
 # message[required]: discord.Message
-async def handle_message_xp(message:discord.Message): 
-    blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])  
+async def handle_message_xp(message:discord.Message):
+    blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
     # we don't like bots round here, or some channels
     if message.author.bot or message.channel.id in blocked_channel_ids:
       return
@@ -54,7 +55,7 @@ async def handle_message_xp(message:discord.Message):
     # if the message is equal to or longer than 3 words +1 xp
     if len(message.content.split()) >= 3:
       xp_amt += 1
-      
+
       # if that message also has any of our server emoji, +1 xp
       # case sensitive (cool != COOL)
       for e in config["all_emoji"]:
@@ -72,7 +73,7 @@ async def handle_message_xp(message:discord.Message):
 
     # if there's an attachment, +1 xp
     if len(message.attachments) > 0:
-      xp_amt += 1 
+      xp_amt += 1
 
     if xp_amt != 0:
       await increment_user_xp(message.author, xp_amt, "posted_message", message.channel) # commit the xp gain to the db
@@ -112,12 +113,15 @@ async def handle_intro_channel_promotion(message):
       logger.info(f"Adding {Fore.CYAN}Cadet{Fore.RESET} role to {Style.BRIGHT}{message.author.name}{Style.RESET_ALL}")
       await member.add_roles(cadet_role)
       await increment_user_xp(member, 10, "intro_message", message.channel)
-        
+
       # add reactions to the message they posted
       welcome_reacts = [get_emoji("ben_wave_hello"), get_emoji("adam_wave_hello")]
       random.shuffle(welcome_reacts)
       for i in welcome_reacts:
         await message.add_reaction(i)
+
+      # Give them a nice welcoming badge if they don't have one already
+      give_welcome_badge(message.author.id)
 
       # send message to admins
       usher_msgs = config["handlers"]["xp"]["usher_messages"]
@@ -128,10 +132,10 @@ async def handle_intro_channel_promotion(message):
       )
 
       welcome_embed.set_image(url=random.choice(config["handlers"]["xp"]["welcome_images"]))
-      
+
       welcome_embed.add_field(name=f"Offer advice {get_emoji('pakled_smart_lol')}", value=f"Recommend they visit the <#{get_channel_id(config['channels']['channel-guide'])}> and <#{get_channel_id(config['channels']['roles-and-pronouns'])}> channels", inline=False)
       welcome_embed.add_field(name=f"Greet them in the spirit of Shimoda {get_emoji('drunk_shimoda_smile_happy')}", value="Provide a humorous, fun, and even a little bit embarrassing welcome to them", inline=False)
-      
+
       welcome_embed.add_field(name=f"Read their intro {get_emoji('bashir_zoom_look_huh')}", value=f"Make your greeting personalized based on what they posted! Find their intro here: {message.jump_url}", inline=False)
       welcome_embed.add_field(name=f"Bring them into the fold {get_emoji('kira_good_morning_hello')}", value=f"Let them know it's okay to jump in anywhere, anytime. Offer a channel for them to get started on! (like <#{get_channel_id(config['channels']['animal-holophotography'])}>)", inline=False)
 
@@ -164,6 +168,8 @@ async def handle_rank_xp_promotion(message, xp):
     if user_xp >= promotion_roles_config["required_rank_xp"]["cadet"]:
       await message.author.add_roles(cadet_role)
       logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.CYAN}Cadet{Fore.RESET} via XP!")
+      # Give them a nice welcoming badge if they don't have one already
+      give_welcome_badge(message.author.id)
   elif ensign_role_name not in author_role_names:
     # if they do have cadet but not ensign yet, give it to them
     if user_xp >= promotion_roles_config["required_rank_xp"]["ensign"]:
@@ -220,7 +226,7 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   reaction_already_counted = check_react_history(reaction, user)
   if reaction_already_counted:
     return
-  
+
   log_react_history(reaction, user)
   await increment_user_xp(user, 1, "added_reaction", reaction.message.channel)
 
@@ -241,7 +247,7 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   xp_amt = 0
   if reaction.emoji in threshold_relevant_emojis and reaction.count >= 5 and reaction.count < 10:
     xp_amt = 1
-  
+
   if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 10 and reaction.count < 20:
     xp_amt = 2
 
@@ -249,7 +255,7 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
     xp_amt = 5
 
   if xp_amt > 0:
-    await increment_user_xp(reaction.message.author, xp_amt, "got_reactions", reaction.message.channel) 
+    await increment_user_xp(reaction.message.author, xp_amt, "got_reactions", reaction.message.channel)
 
 # calculate_xp_for_next_level(current_level)
 # current_level[required]: int
@@ -288,6 +294,19 @@ async def level_up_user(user:discord.User, level:int):
   badge = give_user_badge(user.id)
   await send_level_up_message(user, level, badge)
 
+def give_welcome_badge(user_id):
+  user_badge_names = [b['badge_name'] for b in db_get_user_badge_names(user_id)]
+  if "Friends_Of_DeSoto.png" not in user_badge_names:
+    db = getDB()
+    query = db.cursor()
+    sql = "SELECT * "
+    sql = "INSERT INTO badges (user_discord_id, badge_name) VALUES (%s, 'Friends_Of_DeSoto.png');"
+    vals = (user_id,)
+    query.execute(sql, vals)
+    db.commit()
+    query.close()
+    db.close()
+
 # send_level_up_message(user, level, badge)
 # user[required]:discord.User
 # level[required]:int
@@ -298,6 +317,8 @@ async def send_level_up_message(user:discord.User, level:int, badge:str):
   embed_title = "Level up!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has reached **level {level}** and earned a new badge!"
+  if level == 2:
+    embed_description = f"{user.mention} has reached **level {level}** and earned their first new unique badge!\n\nCongrats! To check out your full list of badges use `/badges showcase`.\n\nMore info about XP and the badge system and XP can be found by using `/help` in this channel."
   messages = config["handlers"]["xp"]["level_up_messages"]
   message = random.choice(messages).format(user=user.mention, level=level, prev_level=(level-1))
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)

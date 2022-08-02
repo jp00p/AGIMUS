@@ -190,6 +190,7 @@ class Trade(commands.Cog):
     # We only allow requestees to have n trades pending for managability's sake
     self.max_trades = 3
     self.max_badges_per_trade = 6
+    self.untradeable_badges = ["Friends Of DeSoto"]
     self.trade_buttons = [
       pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
       pages.PaginatorButton(
@@ -1039,6 +1040,15 @@ class Trade(commands.Cog):
 
     logger.info(f"{Fore.CYAN}{requestor.display_name} is looking to offer `{badge}` to {requestee.display_name}.")
 
+    if badge in self.untradeable_badges:
+      logger.info(f"{Fore.CYAN}{requestor.display_name} tried to offer `{badge}` to {requestee.display_name} but it's untradeable!")
+      await ctx.respond(embed=discord.Embed(
+        title="That badge is untradeable",
+        description=f"Sorry, you can't trade away `{badge}`! It's a special edition!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
     if badge not in requestor_badge_names:
       logger.info(f"{Fore.CYAN}{requestor.display_name} doesn't possess `{badge}`, unable to add to offer to {requestee.display_name}.")
       await ctx.respond(embed=discord.Embed(
@@ -1104,6 +1114,15 @@ class Trade(commands.Cog):
     requestor_badge_names = [b["badge_name"].replace(".png", "").replace("_", " ") for b in requestor_badges]
 
     logger.info(f"{Fore.CYAN}{requestor.display_name} is looking to request `{badge}` from {requestee.display_name}.")
+
+    if badge in self.untradeable_badges:
+      logger.info(f"{Fore.CYAN}{requestor.display_name} tried to request `{badge}` from {requestee.display_name} but it's untradeable!")
+      await ctx.respond(embed=discord.Embed(
+        title="That badge is untradeable!",
+        description=f"Sorry, you can't request `{badge}`! It's a very shiny and special one!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
 
     if badge not in requestee_badge_names:
       logger.info(f"{Fore.CYAN}{requestee.display_name} doesn't possess `{badge}`, unable to add to request from {requestor.display_name}.")
