@@ -190,6 +190,7 @@ async def on_ready():
 
     # generate local channels list
     generate_local_channel_list(bot)
+    bot.current_guild = bot.guilds[0]
 
     # Set a fun random presence
     random_presences = [
@@ -208,6 +209,12 @@ async def on_ready():
   except Exception as e:
     logger.info(f"Error in on_ready: {e}")
     logger.info(traceback.format_exc())
+
+# Listen to initial guild join
+# Since our bots should only join one guild we can use this to stash the current guild
+@bot.event
+async def on_guild_join(guild):
+  logger.info(">>>>>>>>>> JOINED GUILD!!! <<<<<<<<<<")
 
 
 # listen to reactions
