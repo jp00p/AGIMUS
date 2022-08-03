@@ -119,6 +119,11 @@
     "description": "Get that gold pressed latinum. Am I right?",
     "url": "https://i.imgur.com/jrV65iz.mp4"
   },
+  "Gonna Need A Lockdown": {
+    "file": "data/drops/gonnaneedalockdown.mp4",
+    "description": "Adam Gonna Need A Lockdown Song",
+    "url": "https://i.imgur.com/5jcMZg8.mp4"
+  },
   "Gul Dukat, Gul Dukat, Gul Dukat": {
     "file": "data/drops/guldukat.mp4",
     "description": "Gul Dukat",
@@ -228,6 +233,11 @@
     "file": "data/drops/picardnooo.mp4",
     "description": "Picard: Nooo! No! Glass Crashing",
     "url": "https://i.imgur.com/1LK0Oa2.mp4"
+  },
+  "Picard's A Borg!": {
+    "file": "data/drops/picardsaborg.mp4",
+    "description": "He's a borg oh no ahh picard's a borg",
+    "url": "https://i.imgur.com/4Trg2O4.mp4"
   },
   "Planning A Heist? Gold!": {
     "file": "data/drops/fortknox.mp4",

@@ -902,7 +902,7 @@ class Trade(commands.Cog):
     offered_badges = db_get_trade_offered_badges(active_trade)
     offered_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in offered_badges]
     offered_image_id = f"{active_trade['id']}-offered"
-    offered_image = generate_badge_trade_showcase(
+    offered_image = await generate_badge_trade_showcase(
       offered_badge_filenames,
       offered_image_id,
       f"Badge(s) Offered by {requestor.display_name}",
@@ -924,7 +924,7 @@ class Trade(commands.Cog):
     requested_badges = db_get_trade_requested_badges(active_trade)
     requested_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in requested_badges]
     requested_image_id = f"{active_trade['id']}-requested"
-    requested_image = generate_badge_trade_showcase(
+    requested_image = await generate_badge_trade_showcase(
       requested_badge_filenames,
       requested_image_id,
       f"Badge(s) Requested from {requestee.display_name}",
