@@ -210,13 +210,6 @@ async def on_ready():
     logger.info(f"Error in on_ready: {e}")
     logger.info(traceback.format_exc())
 
-# Listen to initial guild join
-# Since our bots should only join one guild we can use this to stash the current guild
-@bot.event
-async def on_guild_join(guild):
-  logger.info(">>>>>>>>>> JOINED GUILD!!! <<<<<<<<<<")
-
-
 # listen to reactions
 # TODO: change to on_raw_reaction_add so old messages are counted too!
 @bot.event
