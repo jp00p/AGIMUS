@@ -86,7 +86,7 @@ async def wordcloud(ctx:discord.ApplicationContext, public:str, enable_logging:s
 
   # if they have previously disabled logging
   if user["log_messages"] and user["log_messages"] != 1:
-    await ctx.respond(content="You do not have logging enabled. Use `/wordcloud enable_logging Yes` to start logging so AGIMUS can generate a wordcloud for you!", ephemeral=True)
+    await ctx.respond(content="You do not have logging enabled. Use `/settings` to start logging so AGIMUS can generate a wordcloud for you!", ephemeral=True)
     return
 
   public = bool(public == "yes")

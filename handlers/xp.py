@@ -177,44 +177,6 @@ async def handle_rank_xp_promotion(message, xp):
       logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.GREEN}Ensign{Fore.RESET} via XP!")
 
 
-@bot.slash_command(
-  name="disable_xp",
-  description="Disable XP and stop receiving notifications from the bot"
-)
-@option(
-  name="disable",
-  description="Disable the notifications and stop participating in the XP game?",
-  required=True,
-  choices=[
-    discord.OptionChoice(
-      name="No",
-      value="no"
-    ),
-    discord.OptionChoice(
-      name="Yes",
-      value="yes"
-    )
-  ]
-)
-async def disable_xp(ctx:discord.ApplicationContext, disable:str):
-  user_selection = (disable == "yes")
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE users SET xp_enabled = %s WHERE discord_id = %s"
-  vals = (not user_selection, ctx.user.id,)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
-  response_msg = ""
-  if user_selection:
-    response_msg = "XP logging and notifications have been disabled for you!"
-    logger.info(f"{ctx.user.display_name} has disabled xp")
-  else:
-    response_msg = "XP logging and notifications have been re-enabled for you!"
-  await ctx.respond(response_msg, ephemeral=True)
-
-
 async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   # Check if this user has already reacted to this message with this emoji
   blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
@@ -299,7 +261,6 @@ def give_welcome_badge(user_id):
   if "Friends_Of_DeSoto.png" not in user_badge_names:
     db = getDB()
     query = db.cursor()
-    sql = "SELECT * "
     sql = "INSERT INTO badges (user_discord_id, badge_name) VALUES (%s, 'Friends_Of_DeSoto.png');"
     vals = (user_id,)
     query.execute(sql, vals)
