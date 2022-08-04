@@ -31,7 +31,7 @@ class XPDropdown(discord.ui.Select):
         embed=discord.Embed(
           title="You have successfully chosen to participate in the XP and Badge System.",
           color=discord.Color.green()
-        ).set_footer(text="You can always come back to this interface and re-enable in the future!"),
+        ).set_footer(text="You can always come back to this interface to reconfigure in the future!"),
         ephemeral=True
       )
     elif selection == "Disable XP":
@@ -83,7 +83,7 @@ class NotificationsDropdown(discord.ui.Select):
         embed=discord.Embed(
           title="You have successfully allowed AGIMUS to send you DMs.",
           color=discord.Color.green()
-        ).set_footer(text="You can always come back to this interface and re-enable in the future!"),
+        ).set_footer(text="You can always come back to this interface and reconfigure in the future!"),
         ephemeral=True
       )
     elif selection == "Disable Notifications":
@@ -135,11 +135,11 @@ class WordcloudDropdown(discord.ui.Select):
         embed=discord.Embed(
           title="You have successfully allowed AGIMUS to log your common words for the purpose of generating Wordclouds.",
           color=discord.Color.green()
-        ).set_footer(text="You can always come back to this interface and re-enable in the future!"),
+        ).set_footer(text="You can always come back to this interface and reconfigure in the future!"),
         ephemeral=True
       )
     elif selection == "Disable Wordcloud":
-      deleted_message_count = db_toggle_notifications(interaction.user.id, False)
+      deleted_message_count = db_toggle_wordcloud(interaction.user.id, False)
       await interaction.response.send_message(
         embed=discord.Embed(
           title=f"You have successfully disabled AGIMUS from logging your common words and cleared any current data ({deleted_message_count} messages deleted).",
@@ -168,7 +168,7 @@ class Settings(commands.Cog):
 
   @commands.slash_command(
     name="settings",
-    description="Set up your AGIMUS settings!"
+    description="Configure your AGIMUS settings!"
   )
   async def settings(self, ctx):
     home_embed, home_thumbnail = await self._get_home_embed_and_thumbnail()
@@ -261,7 +261,7 @@ class Settings(commands.Cog):
     thumbnail = discord.File(fp="./images/templates/settings/xp_system.png", filename="xp_system.png")
     embed = discord.Embed(
       title="XP System Preferences",
-      description=f"The XP System on the USS Hood awards users XP points for participating in the server in various ways. Some of these include posting messages, reacting to messages, and receiving reactions to your own messages.\n\nOnce you've received a set amount of XP, you will Level Up and receive a new Badge with a notification in {badge_channel.mention}. If you don't wish to participate, you can configure that here. You can always re-enable if desired in the future!",
+      description=f"The XP System on the USS Hood awards users XP points for participating in the server in various ways. Some of these include posting messages, reacting to messages, and receiving reactions to your own messages.\n\nOnce you've received a set amount of XP, you will Level Up and receive a new Badge with a notification in {badge_channel.mention}. You can use `/badges` to see the various badge-specific commands available for taking a look at your collection!\n\nIf you don't wish to participate, you can configure that here. You can always re-enable if desired in the future!",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
@@ -307,7 +307,7 @@ class Settings(commands.Cog):
 
     embed = discord.Embed(
       title="Wordcloud Logging",
-      description=f"AGIMUS has an opt-in Wordcloud feature which you can enable to track the most common words that you use to create images which weigh each word based on frequency.\n\nIf wish to opt out in the future, your existing message data will be deleted.\n\nNote that the following channels are not included in logging for the Wordcloud: {wordcloud_blocked_channels_string}\n**Example Wordcloud:**",
+      description=f"AGIMUS has an opt-in Wordcloud feature which you can enable to track the most common words that you use. When the command is executed with `/wordcloud` a new image is generated which weighs each word based on frequency.\n\nIf wish to opt out in the future, your existing message data will be deleted.\n\nNote that the following channels are not included in logging for the Wordcloud: {wordcloud_blocked_channels_string}\n**Example Wordcloud:**",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
@@ -363,6 +363,7 @@ def db_toggle_wordcloud(user_id, toggle):
     vals = (user_id,)
     query.execute(sql, vals)
     deleted_row_count = query.rowcount
+    logger.info(deleted_row_count)
 
   db.commit()
   query.close()

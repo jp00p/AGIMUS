@@ -17,7 +17,7 @@ image_masks = [
 # also allows users to opt-in or out of logging their messages
 @bot.slash_command(
   name="wordcloud",
-  description="Show your own most popular words in a wordcloud! Enable logging with /settings allow cloud generation."
+  description="Show your own most popular words in a wordcloud! Enable with /settings to allow cloud generation."
 )
 @option(
   name="public",
@@ -34,26 +34,11 @@ image_masks = [
     )
   ]
 )
-@option(
-  name="enable_logging",
-  description="Enable message logging to be able to generate wordclouds",
-  required=False,
-  choices=[
-    discord.OptionChoice(
-      name="Yes - save words in my public messages to your database",
-      value="yes"
-    ),
-    discord.OptionChoice(
-      name="No - and please delete all my data",
-      value="no"
-    )
-  ]
-)
 async def wordcloud(ctx:discord.ApplicationContext, public:str):
   user = get_user(ctx.author.id)
 
   # if they have previously disabled logging
-  if user["log_messages"] and user["log_messages"] != 1:
+  if user.get("log_messages") != 1:
     await ctx.respond(content="You do not have logging enabled. Use `/settings` to start logging so AGIMUS can generate a wordcloud for you!", ephemeral=True)
     return
 
