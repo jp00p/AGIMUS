@@ -1,7 +1,5 @@
 from common import *
 
-from typing import List, Optional
-
 # ____  _____________
 # \   \/  /\______   \
 #  \     /  |     ___/
@@ -252,6 +250,7 @@ class Settings(commands.Cog):
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please use the dropdown below to select a category and begin.")
+    embed.set_image(url="https://i.imgur.com/TfDEuSS.jpg")
     embed.set_thumbnail(url=f"attachment://settings.png")
 
     return embed, thumbnail
@@ -262,10 +261,11 @@ class Settings(commands.Cog):
     thumbnail = discord.File(fp="./images/templates/settings/xp_system.png", filename="xp_system.png")
     embed = discord.Embed(
       title="XP System Preferences",
-      description=f"The XP System on the USS Hood awards users XP points for participating in the server in various ways. Some of these include posting messages, reacting to messages, and receiving reactions to your own messages.\n\nOnce you've received a set amount of XP, you will Level Up and receive a new Badge with a notification in {badge_channel.mention}.",
+      description=f"The XP System on the USS Hood awards users XP points for participating in the server in various ways. Some of these include posting messages, reacting to messages, and receiving reactions to your own messages.\n\nOnce you've received a set amount of XP, you will Level Up and receive a new Badge with a notification in {badge_channel.mention}. If you don't wish to participate, you can configure that here. You can always re-enable if desired in the future!",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
+    embed.set_image(url="https://i.imgur.com/upuEFlq.png")
     embed.set_thumbnail(url=f"attachment://xp_system.png")
 
     return embed, thumbnail
@@ -278,6 +278,7 @@ class Settings(commands.Cog):
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
+    embed.set_image(url="https://i.imgur.com/XMnho37.png")
     embed.set_thumbnail(url=f"attachment://notifications.png")
 
     return embed, thumbnail
@@ -306,7 +307,7 @@ class Settings(commands.Cog):
 
     embed = discord.Embed(
       title="Wordcloud Logging",
-      description=f"AGIMUS has an opt-in Wordcloud feature which you can enable to track the most common words that you use to create images which weight each word based on frequency.\n\nIf wish to opt out in the future, your existing message data will be deleted.\n\nNote that the following channels are not included in logging for the Wordcloud: {wordcloud_blocked_channels_string}\n**Example Wordcloud:**",
+      description=f"AGIMUS has an opt-in Wordcloud feature which you can enable to track the most common words that you use to create images which weigh each word based on frequency.\n\nIf wish to opt out in the future, your existing message data will be deleted.\n\nNote that the following channels are not included in logging for the Wordcloud: {wordcloud_blocked_channels_string}\n**Example Wordcloud:**",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")

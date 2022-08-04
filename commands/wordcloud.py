@@ -17,7 +17,7 @@ image_masks = [
 # also allows users to opt-in or out of logging their messages
 @bot.slash_command(
   name="wordcloud",
-  description="Show your own most popular words in a wordcloud! Enable logging to be able to generate a cloud."
+  description="Show your own most popular words in a wordcloud! Enable logging with /settings allow cloud generation."
 )
 @option(
   name="public",
@@ -49,39 +49,7 @@ image_masks = [
     )
   ]
 )
-async def wordcloud(ctx:discord.ApplicationContext, public:str, enable_logging:str):
-
-  # handle logging toggle on/off
-  if enable_logging == "yes":
-    db = getDB()
-    query = db.cursor(dictionary=True)
-    sql = "UPDATE users SET log_messages = 1 WHERE discord_id = %s"
-    vals = (ctx.author.id,)
-    query.execute(sql, vals)
-    db.commit()
-    query.close()
-    db.close()
-    await ctx.respond(content=f"Now logging your messages in the database! Once you have posted a few messages, check your wordcloud by typing `/wordcloud`! Disable logging and delete all your saved data by selecting \"No\" instead to /wordcloud.", ephemeral=True)
-    logger.info(f"{Style.BRIGHT}{ctx.author.display_name}{Style.RESET_ALL} has {Fore.GREEN}enabled{Fore.RESET} {Fore.CYAN}message logging!{Fore.RESET}")
-    return
-
-  if enable_logging == "no":
-    db = getDB()
-    query = db.cursor(dictionary=True)
-    sql = "UPDATE users SET log_messages = 0 WHERE discord_id = %s"
-    vals = (ctx.author.id,)
-    query.execute(sql, vals)
-    sql = "DELETE FROM message_history WHERE user_discord_id = %s"
-    vals = (ctx.author.id,)
-    query.execute(sql, vals)
-    deleted_row_count = query.rowcount
-    query.close()
-    db.commit()
-    db.close()
-    await ctx.respond(content=f"Your messages will no longer be logged and all previous data has been removed. ({deleted_row_count} messages deleted from the database)", ephemeral=True)
-    logger.info(f"{Style.BRIGHT}{ctx.author.display_name}{Style.RESET_ALL} has {Fore.RED}disabled{Fore.RESET} {Fore.CYAN}message logging!{Fore.RESET}")
-    return
-
+async def wordcloud(ctx:discord.ApplicationContext, public:str):
   user = get_user(ctx.author.id)
 
   # if they have previously disabled logging
