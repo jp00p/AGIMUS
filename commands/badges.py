@@ -311,6 +311,22 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
       else:
         await ctx.followup.send(files=chunk, ephemeral=not public)
 
+@badge_group.command(
+  name="set_completion",
+  description="Get a report of how close to completion you are on various sets."
+)
+async def set_completion(ctx:discord.ApplicationContext):
+  report = db_get_set_completion_for_affiliations(ctx.author.id)
+  report_string = ''
+  for r in report:
+    report_string += f"**{r['affiliation_name']}** - {int(r['percentage'])}% ({r['user_count']} of {r['all_count']})\n"
+  embed = discord.Embed(
+    title="Badge Set Completion - Affiliations",
+    description=report_string,
+    color=discord.Color.blurple()
+  )
+  await ctx.respond(embed=embed, ephemeral=True)
+
 
 @badge_group.command(
   name="statistics",
@@ -516,6 +532,62 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
   user_badges.sort()
 
   return user_badges
+
+def db_get_set_completion_for_affiliations(user_id):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT affiliation_name, count(*) FROM badge_affiliation AS b_a
+      JOIN badge_info AS b_i
+      INNER JOIN badges AS b
+        ON b_a.badge_id = b_i.id
+        AND b_i.badge_filename = b.badge_name
+        AND b.user_discord_id = %s
+      GROUP BY affiliation_name;
+  '''
+  vals = (user_id,)
+  query.execute(sql, vals)
+  user_set_counts = query.fetchall()
+
+  sql = '''
+    SELECT affiliation_name, count(*) FROM badge_affiliation AS b_a
+      GROUP BY affiliation_name;
+  '''
+  query.execute(sql)
+  all_set_counts = query.fetchall()
+
+  db.commit()
+  query.close()
+  db.close()
+
+  all_record = {}
+  for a in all_set_counts:
+    affiliation_name = a['affiliation_name']
+    all_count = a['count(*)']
+    all_record[affiliation_name] = {
+      'all_count': all_count
+    }
+  user_record = {}
+  for u in user_set_counts:
+    affiliation_name = u['affiliation_name']
+    user_count = u['count(*)']
+
+    entry = all_record[affiliation_name]
+    entry['affiliation_name'] = affiliation_name
+    entry['user_count'] = user_count
+    entry['percentage'] = user_count / entry['all_count'] * 100
+    user_record[affiliation_name] = entry
+
+  logger.info(pprint(user_record))
+
+  sorted_keys = sorted(user_record, key=lambda x: user_record[x]['percentage'], reverse=True)
+  report = [user_record[k] for k in sorted_keys]
+
+  logger.info(pprint(report))
+
+  return report
+
+
 
 # Franchises
 def db_get_all_franchises():
