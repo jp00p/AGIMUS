@@ -30,8 +30,8 @@ async def autocomplete_badges(ctx:discord.AutocompleteContext):
   return results
 
 async def _autocomplete_requestor_badges(ctx, requestor_id, requestee_id):
-  requestor_badges = [b['badge_name'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(requestor_id)]
-  requestee_badges = [b['badge_name'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(requestee_id)]
+  requestor_badges = [b['badge_filename'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(requestor_id)] # @TODO improve query to pull badge_name
+  requestee_badges = [b['badge_filename'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(requestee_id)] # @TODO improve query to pull badge_name
   badge_names = [b for b in requestor_badges if b not in requestee_badges]
   if len(badge_names) == 0:
     badge_names = ["This user already has all badges that you possess! Use '/trade cancel' to cancel this trade."]
@@ -41,8 +41,8 @@ async def _autocomplete_requestor_badges(ctx, requestor_id, requestee_id):
   return [result for result in badge_names if ctx.value.lower() in result.lower()]
 
 async def _autocomplete_requestee_badges(ctx, requestee_id, requestor_id):
-  requestor_badges = [b['badge_name'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(requestor_id)]
-  requestee_badges = [b['badge_name'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(requestee_id)]
+  requestor_badges = [b['badge_filename'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(requestor_id)] # @TODO improve query to pull badge_name
+  requestee_badges = [b['badge_filename'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(requestee_id)] # @TODO improve query to pull badge name
   badge_names = [b for b in requestee_badges if b not in requestor_badges]
   if len(badge_names) == 0:
       badge_names = ["You already have all badges that this user possesses! Use '/trade cancel' to cancel this trade."]
@@ -403,10 +403,10 @@ class Trade(commands.Cog):
 
   async def _requestor_already_has_badges(self, interaction, active_trade, requestor, requestee):
     requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
-    requestor_badges = [b["badge_name"].replace('_', ' ').replace('.png', '') for b in requestor_badges]
+    requestor_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in requestor_badges]
 
     trade_requested_badges = db_get_trade_requested_badges(active_trade)
-    trade_requested_badges = [b["badge_name"].replace('_', ' ').replace('.png', '') for b in trade_requested_badges]
+    trade_requested_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in trade_requested_badges]
 
     badges_in_trade_requestor_has = [t for t in requestor_badges if t in trade_requested_badges]
 
@@ -448,10 +448,10 @@ class Trade(commands.Cog):
 
   async def _requestee_already_has_badges(self, interaction, active_trade, requestor, requestee):
     requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
-    requestee_badges = [b["badge_name"].replace('_', ' ').replace('.png', '') for b in requestee_badges]
+    requestee_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in requestee_badges]
 
     trade_offered_badges = db_get_trade_offered_badges(active_trade)
-    trade_offered_badges = [b["badge_name"].replace('_', ' ').replace('.png', '') for b in trade_offered_badges]
+    trade_offered_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in trade_offered_badges]
 
     badges_in_trade_requestee_has = [t for t in requestee_badges if t in trade_offered_badges]
 
@@ -492,10 +492,10 @@ class Trade(commands.Cog):
 
   async def _requestor_still_has_badges(self, interaction, active_trade, requestor, requestee):
     requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
-    requestor_badges = [b["badge_name"].replace('_', ' ').replace('.png', '') for b in requestor_badges]
+    requestor_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in requestor_badges]
 
     trade_offered_badges = db_get_trade_offered_badges(active_trade)
-    trade_offered_badges = [b["badge_name"].replace('_', ' ').replace('.png', '') for b in trade_offered_badges]
+    trade_offered_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in trade_offered_badges]
 
     badges_in_trade_requestor_has = [t for t in requestor_badges if t in trade_offered_badges]
 
@@ -536,10 +536,10 @@ class Trade(commands.Cog):
 
   async def _requestee_still_has_badges(self, interaction, active_trade, requestor, requestee):
     requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
-    requestee_badges = [b["badge_name"].replace('_', ' ').replace('.png', '') for b in requestee_badges]
+    requestee_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in requestee_badges]
 
     trade_requested_badges = db_get_trade_requested_badges(active_trade)
-    trade_requested_badges = [b["badge_name"].replace('_', ' ').replace('.png', '') for b in trade_requested_badges]
+    trade_requested_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in trade_requested_badges]
 
     badges_in_trade_requestee_has = [t for t in requestee_badges if t in trade_requested_badges]
 
@@ -900,7 +900,7 @@ class Trade(commands.Cog):
     requestor = await self.bot.fetch_user(active_trade["requestor_id"])
 
     offered_badges = db_get_trade_offered_badges(active_trade)
-    offered_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in offered_badges]
+    offered_badge_filenames = [f"{b['badge_filename']}" for b in offered_badges]
     offered_image_id = f"{active_trade['id']}-offered"
     offered_image = await generate_badge_trade_showcase(
       offered_badge_filenames,
@@ -922,7 +922,7 @@ class Trade(commands.Cog):
     requestor = await self.bot.fetch_user(active_trade["requestor_id"])
 
     requested_badges = db_get_trade_requested_badges(active_trade)
-    requested_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in requested_badges]
+    requested_badge_filenames = [f"{b['badge_filename']}" for b in requested_badges]
     requested_image_id = f"{active_trade['id']}-requested"
     requested_image = await generate_badge_trade_showcase(
       requested_badge_filenames,
@@ -1032,11 +1032,11 @@ class Trade(commands.Cog):
     # Don't need to check for active because already done so in propose()
     requestee = await self.bot.fetch_user(active_trade["requestee_id"])
     requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
-    requestee_badge_names = [b["badge_name"].replace(".png", "").replace("_", " ") for b in requestee_badges]
+    requestee_badge_names = [b["badge_filename"].replace(".png", "").replace("_", " ") for b in requestee_badges]
 
     requestor = await self.bot.fetch_user(active_trade["requestor_id"])
     requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
-    requestor_badge_names = [b["badge_name"].replace(".png", "").replace("_", " ") for b in requestor_badges]
+    requestor_badge_names = [b["badge_filename"].replace(".png", "").replace("_", " ") for b in requestor_badges]
 
     logger.info(f"{Fore.CYAN}{requestor.display_name} is looking to offer `{badge}` to {requestee.display_name}.")
 
@@ -1107,11 +1107,11 @@ class Trade(commands.Cog):
     # Don't need to check for active because already done so in propose()
     requestee = await self.bot.fetch_user(active_trade["requestee_id"])
     requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
-    requestee_badge_names = [b["badge_name"].replace(".png", "").replace("_", " ") for b in requestee_badges]
+    requestee_badge_names = [b["badge_filename"].replace(".png", "").replace("_", " ") for b in requestee_badges]
 
     requestor = await self.bot.fetch_user(active_trade["requestor_id"])
     requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
-    requestor_badge_names = [b["badge_name"].replace(".png", "").replace("_", " ") for b in requestor_badges]
+    requestor_badge_names = [b["badge_filename"].replace(".png", "").replace("_", " ") for b in requestor_badges]
 
     logger.info(f"{Fore.CYAN}{requestor.display_name} is looking to request `{badge}` from {requestee.display_name}.")
 
@@ -1234,10 +1234,10 @@ def db_get_trade_requested_badges(active_trade):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name
+    SELECT b_i.badge_name, b_i.badge_filename
     FROM badge_info as b_i
       JOIN trade_requested AS t_r
-      ON t_r.trade_id = %s AND t_r.badge_id = b_i.id
+      ON t_r.trade_id = %s AND t_r.badge_filename = b_i.badge_filename
   '''
   vals = (active_trade_id,)
   query.execute(sql, vals)
@@ -1253,10 +1253,10 @@ def db_get_trade_offered_badges(active_trade):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name
+    SELECT b_i.badge_name, b_i.badge_filename
     FROM badge_info as b_i
       JOIN trade_offered AS t_o
-      ON t_o.trade_id = %s AND t_o.badge_id = b_i.id
+      ON t_o.trade_id = %s AND t_o.badge_filename = b_i.badge_filename
   '''
   vals = (active_trade_id,)
   query.execute(sql, vals)
@@ -1272,8 +1272,8 @@ def db_add_badge_to_trade_offer(active_trade, badge_name):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    INSERT INTO trade_offered (trade_id, badge_id)
-      VALUES (%s, (SELECT id FROM badge_info WHERE badge_name = %s))
+    INSERT INTO trade_offered (trade_id, badge_filename)
+      VALUES (%s, (SELECT badge_filename FROM badge_info WHERE badge_name = %s))
   '''
   vals = (active_trade_id, badge_name)
   query.execute(sql, vals)
@@ -1288,7 +1288,7 @@ def db_remove_badge_from_trade_offer(active_trade, badge_name):
   query = db.cursor(dictionary=True)
   sql = '''
     DELETE FROM trade_offered
-      WHERE trade_id = %s AND badge_id = (SELECT id FROM badge_info WHERE badge_name = %s)
+      WHERE trade_id = %s AND badge_filename = (SELECT badge_filename FROM badge_info WHERE badge_name = %s)
   '''
   vals = (active_trade_id, badge_name)
   query.execute(sql, vals)
@@ -1302,8 +1302,8 @@ def db_add_badge_to_trade_request(active_trade, badge_name):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    INSERT INTO trade_requested (trade_id, badge_id)
-      VALUES (%s, (SELECT id FROM badge_info WHERE badge_name = %s))
+    INSERT INTO trade_requested (trade_id, badge_filename)
+      VALUES (%s, (SELECT badge_filename FROM badge_info WHERE badge_name = %s))
   '''
   vals = (active_trade_id, badge_name)
   query.execute(sql, vals)
@@ -1318,7 +1318,7 @@ def db_remove_badge_from_trade_request(active_trade, badge_name):
   query = db.cursor(dictionary=True)
   sql = '''
     DELETE FROM trade_requested
-      WHERE trade_id = %s AND badge_id = (SELECT id FROM badge_info WHERE badge_name = %s)
+      WHERE trade_id = %s AND badge_filename = (SELECT badge_filename FROM badge_info WHERE badge_name = %s)
   '''
   vals = (active_trade_id, badge_name)
   query.execute(sql, vals)
@@ -1404,12 +1404,12 @@ def db_perform_badge_transfer(active_trade):
 
   # Transfer Requested Badges to Requestor
   sql = '''
-    INSERT INTO badges (user_discord_id, badge_name)
+    INSERT INTO badges (user_discord_id, badge_filename)
       SELECT t.requestor_id, b_i.badge_filename
         FROM trades as t
         JOIN badge_info as b_i
         JOIN trade_requested as t_r
-          ON t.id = %s AND t_r.trade_id = t.id AND t_r.badge_id = b_i.id
+          ON t.id = %s AND t_r.trade_id = t.id AND t_r.badge_filename = b_i.badge_filename
   '''
   vals = (trade_id,)
   query.execute(sql, vals)
@@ -1417,8 +1417,8 @@ def db_perform_badge_transfer(active_trade):
   # Delete Requested Badges from Requestee
   sql = '''
     DELETE b FROM badges b
-      JOIN badge_info b_i ON b.badge_name = b_i.badge_filename
-      JOIN trade_requested t_r ON t_r.badge_id = b_i.id
+      JOIN badge_info b_i ON b.badge_filename = b_i.badge_filename
+      JOIN trade_requested t_r ON t_r.badge_filename = b_i.badge_filename
       JOIN trades t ON t_r.trade_id = t.id
         WHERE (t.id = %s AND t.requestee_id = %s AND b.user_discord_id = %s)
   '''
@@ -1427,12 +1427,12 @@ def db_perform_badge_transfer(active_trade):
 
   # Transfer Offered Badges to Requestee
   sql = '''
-    INSERT INTO badges (user_discord_id, badge_name)
+    INSERT INTO badges (user_discord_id, badge_filename)
       SELECT t.requestee_id, b_i.badge_filename
         FROM trades as t
         JOIN badge_info as b_i
         JOIN trade_offered as t_o
-          ON t.id = %s AND t_o.trade_id = t.id AND t_o.badge_id = b_i.id
+          ON t.id = %s AND t_o.trade_id = t.id AND t_o.badge_filename = b_i.badge_filename
   '''
   vals = (trade_id,)
   query.execute(sql, vals)
@@ -1440,8 +1440,8 @@ def db_perform_badge_transfer(active_trade):
   # Delete Offered Badges from Requestor
   sql = '''
     DELETE b FROM badges b
-      JOIN badge_info b_i ON b.badge_name = b_i.badge_filename
-      JOIN trade_offered t_o ON t_o.badge_id = b_i.id
+      JOIN badge_info b_i ON b.badge_filename = b_i.badge_filename
+      JOIN trade_offered t_o ON t_o.badge_filename = b_i.badge_filename
       JOIN trades t ON t_o.trade_id = t.id
         WHERE (t.id = %s AND t.requestor_id = %s AND b.user_discord_id = %s)
   '''
@@ -1490,11 +1490,11 @@ def db_get_related_badge_trades(active_trade):
     LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
 
     INNER JOIN (
-        SELECT trade_id, requestor_id, requestee_id, badge_id
+        SELECT trade_id, requestor_id, requestee_id, badge_filename
         FROM trade_requested
         INNER JOIN trades ON trade_requested.trade_id = trades.id AND trades.id = %s
         UNION ALL
-        SELECT trade_id, requestor_id, requestee_id, badge_id
+        SELECT trade_id, requestor_id, requestee_id, badge_filename
         FROM trade_offered
         INNER JOIN trades ON trade_offered.trade_id = trades.id AND trades.id = %s
     ) as activeTrade ON 1
@@ -1509,7 +1509,7 @@ def db_get_related_badge_trades(active_trade):
     AND (t.requestor_id IN (activeTrade.requestor_id, activeTrade.requestee_id) OR t.requestee_id IN (activeTrade.requestor_id, activeTrade.requestee_id))
 
     -- involves one or more of the badges involved in the active trade
-    AND (to.badge_id = activeTrade.badge_id OR tr.badge_id = activeTrade.badge_id)
+    AND (to.badge_filename = activeTrade.badge_filename OR tr.badge_filename = activeTrade.badge_filename)
     GROUP BY t.id
   '''
   vals = (active_trade_id, active_trade_id)

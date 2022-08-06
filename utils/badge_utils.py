@@ -300,7 +300,7 @@ def db_get_badge_count_for_user(user_id):
 def db_get_user_badge_names(user_id):
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = "SELECT badge_name FROM badges WHERE user_discord_id = %s"
+  sql = "SELECT badge_filename FROM badges WHERE user_discord_id = %s"
   vals = (user_id,)
   query.execute(sql, vals)
   badge_names = query.fetchall()
