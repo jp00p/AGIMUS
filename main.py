@@ -20,7 +20,6 @@ from commands.reports import reports
 from commands.scores import scores
 from commands.setwager import setwager
 from commands.speak import speak, speak_embed
-from commands.toggle_notifications import toggle_notifications
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
@@ -43,11 +42,13 @@ from commands.computer import computer
 # Cogs
 from cogs.poker import Poker
 from cogs.quiz import Quiz
+from cogs.settings import Settings
 from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.trade import Trade
 bot.add_cog(Poker(bot))
 bot.add_cog(Quiz(bot))
+bot.add_cog(Settings(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Trade(bot))

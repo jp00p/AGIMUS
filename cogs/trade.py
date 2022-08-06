@@ -326,7 +326,7 @@ class Trade(commands.Cog):
     if user["receive_notifications"]:
       try:
         success_embed.set_footer(
-          text="Note: You can use /toggle_notifications to enable or disable these messages."
+          text="Note: You can use /settings to enable or disable these messages."
         )
         await requestor.send(embed=success_embed)
       except discord.Forbidden as e:
@@ -368,7 +368,7 @@ class Trade(commands.Cog):
             value=requested_badge_names
           )
           requestee_embed.set_footer(
-            text="Note: You can use /toggle_notifications to enable or disable these messages."
+            text="Note: You can use /settings to enable or disable these messages."
           )
           await requestee.send(embed=requestee_embed)
         except discord.Forbidden as e:
@@ -393,7 +393,7 @@ class Trade(commands.Cog):
             value=requested_badge_names
           )
           requestor_embed.set_footer(
-            text="Note: You can use /toggle_notifications to enable or disable these messages."
+            text="Note: You can use /settings to enable or disable these messages."
           )
           await requestor.send(embed=requestor_embed)
         except discord.Forbidden as e:
@@ -435,7 +435,7 @@ class Trade(commands.Cog):
           value=requested_badge_names
         )
         embed.set_footer(
-          text="Note: You can use /toggle_notifications to enable or disable these messages."
+          text="Note: You can use /settings to enable or disable these messages."
         )
         await requestor.send(embed=embed)
         return True
@@ -480,7 +480,7 @@ class Trade(commands.Cog):
           value=requested_badge_names
         )
         embed.set_footer(
-          text="Note: You can use /toggle_notifications to enable or disable these messages."
+          text="Note: You can use /settings to enable or disable these messages."
         )
         await requestor.send(embed=embed)
         return True
@@ -524,7 +524,7 @@ class Trade(commands.Cog):
           value=requested_badge_names
         )
         embed.set_footer(
-          text="Note: You can use /toggle_notifications to enable or disable these messages."
+          text="Note: You can use /settings to enable or disable these messages."
         )
         await requestor.send(embed=embed)
         return False
@@ -568,7 +568,7 @@ class Trade(commands.Cog):
           value=requested_badge_names
         )
         embed.set_footer(
-          text="Note: You can use /toggle_notifications to enable or disable these messages."
+          text="Note: You can use /settings to enable or disable these messages."
         )
         await requestor.send(embed=embed)
         return False
@@ -786,7 +786,7 @@ class Trade(commands.Cog):
             value=requested_badge_names
           )
           notification_embed.set_footer(
-            text="Note: You can use /toggle_notifications to enable or disable these messages."
+            text="Note: You can use /settings to enable or disable these messages."
           )
 
           await requestee.send(embed=notification_embed)
@@ -859,7 +859,7 @@ class Trade(commands.Cog):
             value=requested_badge_names
           )
           requestee_embed.set_footer(
-            text="Note: You can use /toggle_notifications to enable or disable these messages."
+            text="Note: You can use /settings to enable or disable these messages."
           )
           await requestee.send(embed=requestee_embed)
         except discord.Forbidden as e:
