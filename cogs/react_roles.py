@@ -15,9 +15,8 @@ class ReactRoles(commands.Cog):
   
   @commands.Cog.listener()
   async def on_ready(self):
-    # load role dict for reaction parsing
     self.roles_channel = self.bot.get_channel(config["channels"]["roles-and-pronouns"])
-    self.reaction_roles = self.load_role_reactions()
+    self.reaction_roles = self.load_role_reactions() # gather all our data for reactions
 
   # listen to raw reaction additions
   @commands.Cog.listener()
@@ -35,34 +34,28 @@ class ReactRoles(commands.Cog):
         message_id = rdb["message_id"]
         message_name = rdb["message_name"]
         response[message_id] = { "reactions": {}, "reaction_type": rdb["reaction_type"] }
-        # loop over json and pull out emoji:role_id
+        # loop over json and pull out emoji:role
         for rr in self.reaction_data[message_name]["reactions"]:
           response[message_id]["reactions"][rr["emoji"]] = discord.utils.get(bot.guilds[0].roles,name=rr["role"])
     return response
 
+  # handle a reaction, either add or remove roles when a user reacts
   async def parse_reaction(self, payload:discord.RawReactionActionEvent):
-    # determine what to do with this reaction
-    # either add or remove role(s)
+    await message.remove_reaction(payload.emoji, user) # remove their reaction immediately
     data = self.reaction_roles.get(str(payload.message_id))
     reaction_type = data.get("reaction_type")
     user = self.bot.guilds[0].get_member(payload.user_id)
-    logger.info(payload.message_id)
     message = self.roles_channel.get_partial_message(payload.message_id)
     role = data["reactions"].get(str(payload.emoji))
-    await message.remove_reaction(payload.emoji, user)
-    logger.info(data)
-    logger.info(user)
-    logger.info(role)
 
     if user and role:
-      logger.info("Role and user found")
-
+      # user is valid and we found a valid role associated with the reaction
       if user.get_role(role.id) == None:
-        logger.info("Adding role")
+        logger.info(f"Adding role {role.name} to {user.display_name}!")
         # add role!
         await user.add_roles(role, reason="ReactionRole")
-        # if its a single type reaction, remove all other roles
         if reaction_type == "single":
+          # if its a single type reaction, remove all other associated roles
           roles_to_remove = []
           for rr in data["reactions"].values():
             if rr.id != role.id:
@@ -70,7 +63,7 @@ class ReactRoles(commands.Cog):
           if len(roles_to_remove) > 0:
             await user.remove_roles(*roles_to_remove, reason="ReactionRole")
       else:
-        # remove role!
+        # they already have the role, remove it!
         if user.get_role(role.id) != None:
           await user.remove_roles(role, reason="ReactionRole")
 
@@ -99,13 +92,11 @@ class ReactRoles(commands.Cog):
       query.close()
     db.close()
     
-    
   # add initial reactions to message
   async def add_role_reactions(self, message, reacts):
     if len(reacts) > 0:
       for r in reacts:
         await message.add_reaction(r["emoji"])
-        #role = discord.utils.get(ctx.guild.roles,name=r["role"])
 
   # get all existing reaction message data
   def get_reaction_db_data(self):
@@ -119,23 +110,11 @@ class ReactRoles(commands.Cog):
     db.close()
     return reaction_data
 
-  # find the ID of the reaction messages from the DB
-  def get_reaction_message_ids(self):
-    db = getDB()
-    query = db.cursor()
-    sql = "SELECT message_id FROM reaction_role_messages;"
-    query.execute(sql)
-    reaction_message_ids = query.fetchall()
-    db.commit()
-    query.close()
-    db.close()
-    return [i[0] for i in reaction_message_ids]
-
   @commands.command()
+  @commands.has_permissions(administrator=True)
   async def q_update_role_messages(self, ctx:discord.ApplicationContext):
-    
+    logger.info(f"{ctx.author.display_name} is running the top secret {Back.RED}{Fore.WHITE}UPDATE ROLE MESSAGES{Fore.RESET}{Back.RESET} command!")
     await ctx.message.delete()
-
     # if there are existing messages, remove them
     if self.reaction_db_data and len(self.reaction_db_data) > 0:
       for rm in self.reaction_db_data:
@@ -158,12 +137,13 @@ class ReactRoles(commands.Cog):
         # post the header image first
         header_msg = await self.roles_channel.send(content=p["header_image_url"])
 
+      # build the embed
       if p.get("embed"):
         embed_description = p["embed"]["description"]
         if p.get("embed_channel_name_placeholder"):
+          # add channel name mention to embed if there is one
           channel_string = f"<#{get_channel_id(config['channels'][p['embed_channel_name_placeholder']])}>"
           embed_description = embed_description.format(channel_string)
-
         embed = discord.Embed(
           title=p["embed"]["title"],
           description=f'{embed_description}',
@@ -179,7 +159,7 @@ class ReactRoles(commands.Cog):
             if reaction.get("description"):
               embed_desc += f"\n{reaction['description']}\n"
             list_of_reactions.append(embed_desc)
-            
+          # one field with lots of content and a blank name
           embed.add_field(
             name="⠀",
             value="\n".join(list_of_reactions),
@@ -199,3 +179,10 @@ class ReactRoles(commands.Cog):
     self.role_reactions = self.load_role_reactions()
     # reload db data
     self.reaction_db_data = self.get_reaction_db_data()
+
+  @q_update_role_messages.error
+  async def q_update_role_messages_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+      await ctx.respond("You think you're clever!", ephemeral=True)
+    else:
+      await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
