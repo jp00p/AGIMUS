@@ -8,6 +8,15 @@ CREATE TABLE IF NOT EXISTS jackpots (
   time_won timestamp NULL DEFAULT NULL,
   PRIMARY KEY (id)
 );
+CREATE TABLE IF NOT EXISTS reaction_role_messages (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  message_id VARCHAR(64) NOT NULL,
+  message_name VARCHAR(64) NOT NULL,
+  reaction_type VARCHAR(64) DEFAULT NULL,
+  time_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  PRIMARY KEY (id),
+  UNIQUE KEY (message_id)
+);
 CREATE TABLE IF NOT EXISTS users (
   id int(11) NOT NULL AUTO_INCREMENT,
   discord_id varchar(64) NOT NULL,

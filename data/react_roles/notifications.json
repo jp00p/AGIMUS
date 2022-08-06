@@ -1,0 +1,33 @@
+{
+  "reaction_type": "multiple",
+  "message_content": "",
+  "header_image_url": "https://i.imgur.com/4Km3hJU.png",
+  "thumbnail_url": "https://c.tenor.com/LYdDoiU3n5gAAAAC/sean-connery.gif",
+  "embed" : {
+    "title": "Get notified about different server events!",
+    "description": "Use these roles to choose what kind of notifications you get. Everyone will be notified when Greatest Trek events are happening, as well as other server updates.\n\nYou can choose as many of these as you like, and you can change these at any time.",
+    "footer": "React to the emoji below to add/remove the corresponding notification type."
+  },
+  "reactions": [
+    {
+      "emoji": "🖖",
+      "role": "Star Trek Fanatic",
+      "description": "Get notified when **Star Trek-related events** are happening"
+    },
+    {
+      "emoji": "📺",
+      "role": "Television Enthusiast",
+      "description": "Get notified when **non-Trek television** watch parties are happening"
+    },
+    {
+      "emoji": "🎬",
+      "role": "Movie Buff",
+      "description": "Get notified when **non-Trek movie** watch parties are happening"
+    },
+    {
+      "emoji": "🕹",
+      "role": "Game Enjoyer",
+      "description": "Get notified when **Game-related** events are happening"
+    }
+  ]
+}
