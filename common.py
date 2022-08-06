@@ -369,3 +369,10 @@ def calculate_stardate(date:datetime.date):
   # calculate the stardate
   stardate += stardate_offset
   return stardate
+
+def print_agimus_ansi_art():
+  agimus_ansi = []
+  ansi_file = random.choice(os.listdir("data/ansi/"))
+  with open(f"data/ansi/{ansi_file}") as f:
+    agimus_ansi = f.readlines()
+  logger.info(''.join(agimus_ansi))
