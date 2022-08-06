@@ -181,10 +181,8 @@ async def on_ready():
       config["all_emoji"][emoji.name] = emoji
 
     # Print AGIMUS ANSI Art
-    agimus_ascii = []
-    with open('data/ascii/agimus.txt') as f:
-      agimus_ascii = f.readlines()
-    logger.info(''.join(agimus_ascii))
+    print_agimus_ansi_art()
+
     logger.info(f"{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}")
     logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")
 
