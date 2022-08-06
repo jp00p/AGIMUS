@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS profile_taglines (
 CREATE TABLE IF NOT EXISTS profile_badges (
   id int(11) NOT NULL AUTO_INCREMENT,
   user_discord_id VARCHAR(64) NOT NULL,
-  badge_name VARCHAR(255) DEFAULT NULL,
+  badge_filename VARCHAR(128) DEFAULT NULL,
   last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY (user_discord_id)
@@ -83,64 +83,63 @@ CREATE TABLE IF NOT EXISTS trades (
 CREATE TABLE IF NOT EXISTS badges (
   id int(11) NOT NULL AUTO_INCREMENT,
   user_discord_id varchar(64) NOT NULL,
-  badge_name varchar(128) NOT NULL,
+  badge_filename varchar(128) NOT NULL,
   time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id)
 );
-CREATE TABLE IF NOT EXISTS badge_info (
-  id int(11) NOT NULL AUTO_INCREMENT,
-  badge_name varchar(128) NOT NULL,
-  badge_filename varchar(128) NOT NULL,
-  badge_url varchar(256) NOT NULL,
-  quadrant varchar(128) DEFAULT NULL,
-  time_period varchar(128) DEFAULT NULL,
-  franchise varchar(128) DEFAULT NULL,
-  reference varchar(128) DEFAULT NULL,
-  PRIMARY KEY (id)
+CREATE TABLE IF NOT EXISTS `badge_info` (
+    `badge_filename` varchar(128) NOT NULL,
+    `badge_name` varchar(128) NOT NULL,
+    `badge_url` varchar(256) NOT NULL,
+    `quadrant` varchar(128) DEFAULT NULL,
+    `time_period` varchar(128) DEFAULT NULL,
+    `franchise` varchar(128) DEFAULT NULL,
+    `reference` varchar(128) DEFAULT NULL,
+    PRIMARY KEY (`badge_filename`)
 );
 CREATE TABLE IF NOT EXISTS badge_affiliation (
-  id int(11) NOT NULL AUTO_INCREMENT,
-  badge_id int (11) NOT NULL,
-  affiliation_name varchar(128) NOT NULL,
-  PRIMARY KEY (id),
-  FOREIGN KEY (badge_id)
-    REFERENCES badge_info(id)
+    `id` int NOT NULL AUTO_INCREMENT,
+    `badge_filename` varchar(128) NOT NULL,
+    `affiliation_name` varchar(128) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `badge_filename` (`badge_filename`),
+    CONSTRAINT `badge_affiliation_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
 CREATE TABLE IF NOT EXISTS badge_type (
-  id int(11) NOT NULL AUTO_INCREMENT,
-  badge_id int (11) NOT NULL,
-  type_name varchar(128) NOT NULL,
-  PRIMARY KEY (id),
-  FOREIGN KEY (badge_id)
-    REFERENCES badge_info(id)
+    `id` int NOT NULL AUTO_INCREMENT,
+    `badge_filename` varchar(128) NOT NULL,
+    `type_name` varchar(128) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `badge_filename` (`badge_filename`),
+    CONSTRAINT `badge_type_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
 CREATE TABLE IF NOT EXISTS badge_universe (
-  id int(11) NOT NULL AUTO_INCREMENT,
-  badge_id int (11) NOT NULL,
-  universe_name varchar(128) NOT NULL,
-  PRIMARY KEY (id),
-  FOREIGN KEY (badge_id)
-    REFERENCES badge_info(id)
+    `id` int NOT NULL AUTO_INCREMENT,
+    `badge_filename` varchar(128) NOT NULL,
+    `universe_name` varchar(128) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `badge_filename` (`badge_filename`),
+    CONSTRAINT `badge_universe_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
 CREATE TABLE IF NOT EXISTS trade_offered (
   id int(11) NOT NULL AUTO_INCREMENT,
-  badge_id int(11) NOT NULL,
+  badge_filename VARCHAR(128) NOT NULL,
   trade_id int(11) NOT NULL,
   time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id),
-  FOREIGN KEY (badge_id)
-    REFERENCES badge_info(id),
+  FOREIGN KEY (badge_filename)
+    REFERENCES badge_info(badge_filename),
   FOREIGN KEY (trade_id)
     REFERENCES trades(id)
 );
 CREATE TABLE IF NOT EXISTS trade_requested (
   id int(11) NOT NULL AUTO_INCREMENT,
-  badge_id int(11) NOT NULL,
+  badge_filename VARCHAR(128) NOT NULL,
   trade_id int(11) NOT NULL,
   time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id),
-  FOREIGN KEY (badge_id)
-    REFERENCES badge_info(id),
+  FOREIGN KEY (badge_filename)
+    REFERENCES badge_info(badge_filename),
   FOREIGN KEY (trade_id)
     REFERENCES trades(id)
 );
