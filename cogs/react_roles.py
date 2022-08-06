@@ -41,11 +41,11 @@ class ReactRoles(commands.Cog):
 
   # handle a reaction, either add or remove roles when a user reacts
   async def parse_reaction(self, payload:discord.RawReactionActionEvent):
+    user = self.bot.guilds[0].get_member(payload.user_id)
     message = self.roles_channel.get_partial_message(payload.message_id)
     await message.remove_reaction(payload.emoji, user) # remove their reaction immediately
     data = self.reaction_roles.get(str(payload.message_id))
     reaction_type = data.get("reaction_type")
-    user = self.bot.guilds[0].get_member(payload.user_id)
     role = data["reactions"].get(str(payload.emoji))
 
     if user and role:
