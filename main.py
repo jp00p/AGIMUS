@@ -188,6 +188,7 @@ async def on_ready():
 
     # generate local channels list
     generate_local_channel_list(bot)
+    bot.current_guild = bot.guilds[0]
 
     # Set a fun random presence
     random_presences = [
@@ -206,7 +207,6 @@ async def on_ready():
   except Exception as e:
     logger.info(f"Error in on_ready: {e}")
     logger.info(traceback.format_exc())
-
 
 # listen to reactions
 # TODO: change to on_raw_reaction_add so old messages are counted too!
