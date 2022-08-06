@@ -20,7 +20,6 @@ from commands.reports import reports
 from commands.scores import scores
 from commands.setwager import setwager
 from commands.speak import speak, speak_embed
-from commands.toggle_notifications import toggle_notifications
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
@@ -43,12 +42,14 @@ from commands.computer import computer
 # Cogs
 from cogs.poker import Poker
 from cogs.quiz import Quiz
+from cogs.settings import Settings
 from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.trade import Trade
 from cogs.react_roles import ReactRoles
 bot.add_cog(Poker(bot))
 bot.add_cog(Quiz(bot))
+bot.add_cog(Settings(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Trade(bot))
@@ -183,15 +184,14 @@ async def on_ready():
       config["all_emoji"][emoji.name] = emoji
 
     # Print AGIMUS ANSI Art
-    agimus_ascii = []
-    with open('data/ascii/agimus.txt') as f:
-      agimus_ascii = f.readlines()
-    logger.info(''.join(agimus_ascii))
+    print_agimus_ansi_art()
+
     logger.info(f"{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}")
     logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")
 
     # generate local channels list
     generate_local_channel_list(bot)
+    bot.current_guild = bot.guilds[0]
 
     # Set a fun random presence
     random_presences = [
@@ -210,7 +210,6 @@ async def on_ready():
   except Exception as e:
     logger.info(f"Error in on_ready: {e}")
     logger.info(traceback.format_exc())
-
 
 # listen to reactions
 # TODO: change to on_raw_reaction_add so old messages are counted too!

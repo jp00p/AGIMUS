@@ -119,6 +119,11 @@
     "description": "Get that gold pressed latinum. Am I right?",
     "url": "https://i.imgur.com/jrV65iz.mp4"
   },
+  "Gonna Need A Lockdown": {
+    "file": "data/drops/gonnaneedalockdown.mp4",
+    "description": "Adam Gonna Need A Lockdown Song",
+    "url": "https://i.imgur.com/5jcMZg8.mp4"
+  },
   "Gul Dukat, Gul Dukat, Gul Dukat": {
     "file": "data/drops/guldukat.mp4",
     "description": "Gul Dukat",
@@ -228,6 +233,11 @@
     "file": "data/drops/picardnooo.mp4",
     "description": "Picard: Nooo! No! Glass Crashing",
     "url": "https://i.imgur.com/1LK0Oa2.mp4"
+  },
+  "Picard's A Borg!": {
+    "file": "data/drops/picardsaborg.mp4",
+    "description": "He's a borg oh no ahh picard's a borg",
+    "url": "https://i.imgur.com/4Trg2O4.mp4"
   },
   "Planning A Heist? Gold!": {
     "file": "data/drops/fortknox.mp4",
@@ -519,6 +529,11 @@
     "description": "I am Chief Miles Edward O'Brien. This is fucking spectacular!",
     "url": "https://i.imgur.com/NnBORtU.mp4"
   },
+  "Time Travel": {
+    "file": "data/drops/timetravel.mp4",
+    "description": "Riker - Time Travel",
+    "url": "https://i.imgur.com/EH7tF6o.mp4"
+  },
   "Timpani Drum": {
     "file": "data/drops/timpanidrum.mp4",
     "description": "Timpani Drum Sound Effect",
@@ -553,6 +568,41 @@
     "file": "data/drops/uxbridgemusicbox.mp4",
     "description": "Uxbridge Music Box",
     "url": "https://i.imgur.com/ZxaGyf0.mp4"
+  },
+  "VOY Interstitial - Coffee, Black. Make It Yourself!": {
+    "file": "data/drops/voycoffeeblackmakeityourself.mp4",
+    "description": "Janeway: Coffee. Black. Make it yourself. I'm trying to help you see this as an opportunity to grow.",
+    "url": "https://i.imgur.com/8dBY1ak.mp4"
+  },
+  "VOY Interstitial - Janeway Wants You To Do It!": {
+    "file": "data/drops/voylockedindoit.mp4",
+    "description": "Our course is locked in. Do it. Listen to me very carefully because I'm only going to say this once.",
+    "url": "https://i.imgur.com/GX4t2o7.mp4"
+  },
+  "VOY Interstitial - Gold?": {
+    "file": "data/drops/voyfortknoxgold.mp4",
+    "description": "I've got to get that latnium. Fort Knox. Are you planning a heist? Gold?",
+    "url": "https://i.imgur.com/INURWxk.mp4"
+  },
+  "VOY Interstitial - Got To Get That Latinum!": {
+    "file": "data/drops/voygottogetthatlatinum.mp4",
+    "description": "Janeway: Got to get that latinum. Get that lobe enlargment heh heh.",
+    "url": "https://i.imgur.com/pWixrft.mp4"
+  },
+  "VOY Interstitial - I Don't Like Bullies...": {
+    "file": "data/drops/voydontlikebullies.mp4",
+    "description": "Janeway: You know I'm really easy to get along with most of the time. But I don't like bullies, I don't like threats, and I don't like you. JUST DO IT. Understood?",
+    "url": "https://i.imgur.com/D7zc9mM.mp4"
+  },
+  "VOY Interstitial - I'm Not Turning Around": {
+    "file": "data/drops/voytorpedotubes.mp4",
+    "description": "Revert course. Unless you've got something a little bigger in your torpedo tubes I'm not turning around. BURN!",
+    "url": "https://i.imgur.com/X8WwdqL.mp4"
+  },
+  "VOY Interstitial - Objection Noted": {
+    "file": "data/drops/voyobjectionnoted.mp4",
+    "description": "Objection note, we'll do this without you. What are you waiting for? DO IT!",
+    "url": "https://i.imgur.com/n8T6xZp.mp4"
   },
   "War!": {
     "file": "data/drops/war.mp4",

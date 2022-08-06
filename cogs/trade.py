@@ -231,7 +231,7 @@ class Trade(commands.Cog):
     incoming_requestor_ids = [int(t["requestor_id"]) for t in incoming_trades]
     requestors = []
     for user_id in incoming_requestor_ids:
-      requestor = await self.bot.fetch_user(user_id)
+      requestor = await self.bot.current_guild.fetch_member(user_id)
       requestors.append(requestor)
 
     view = Requests(self, requestors)
@@ -266,8 +266,8 @@ class Trade(commands.Cog):
   async def _accept_trade_callback(self, interaction, active_trade):
     await self._cancel_invalid_related_trades(active_trade)
 
-    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
-    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+    requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
+    requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
     offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
 
     # FAILSAFES!
@@ -326,7 +326,7 @@ class Trade(commands.Cog):
     if user["receive_notifications"]:
       try:
         success_embed.set_footer(
-          text="Note: You can use /toggle_notifications to enable or disable these messages."
+          text="Note: You can use /settings to enable or disable these messages."
         )
         await requestor.send(embed=success_embed)
       except discord.Forbidden as e:
@@ -345,8 +345,8 @@ class Trade(commands.Cog):
     # Iterate through to cancel, and then
     for trade in trades_to_cancel:
       db_cancel_trade(trade)
-      requestee = await self.bot.fetch_user(trade['requestee_id'])
-      requestor = await self.bot.fetch_user(trade['requestor_id'])
+      requestee = await self.bot.current_guild.fetch_member(trade['requestee_id'])
+      requestor = await self.bot.current_guild.fetch_member(trade['requestor_id'])
 
       offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(trade)
 
@@ -368,7 +368,7 @@ class Trade(commands.Cog):
             value=requested_badge_names
           )
           requestee_embed.set_footer(
-            text="Note: You can use /toggle_notifications to enable or disable these messages."
+            text="Note: You can use /settings to enable or disable these messages."
           )
           await requestee.send(embed=requestee_embed)
         except discord.Forbidden as e:
@@ -393,7 +393,7 @@ class Trade(commands.Cog):
             value=requested_badge_names
           )
           requestor_embed.set_footer(
-            text="Note: You can use /toggle_notifications to enable or disable these messages."
+            text="Note: You can use /settings to enable or disable these messages."
           )
           await requestor.send(embed=requestor_embed)
         except discord.Forbidden as e:
@@ -435,7 +435,7 @@ class Trade(commands.Cog):
           value=requested_badge_names
         )
         embed.set_footer(
-          text="Note: You can use /toggle_notifications to enable or disable these messages."
+          text="Note: You can use /settings to enable or disable these messages."
         )
         await requestor.send(embed=embed)
         return True
@@ -480,7 +480,7 @@ class Trade(commands.Cog):
           value=requested_badge_names
         )
         embed.set_footer(
-          text="Note: You can use /toggle_notifications to enable or disable these messages."
+          text="Note: You can use /settings to enable or disable these messages."
         )
         await requestor.send(embed=embed)
         return True
@@ -524,7 +524,7 @@ class Trade(commands.Cog):
           value=requested_badge_names
         )
         embed.set_footer(
-          text="Note: You can use /toggle_notifications to enable or disable these messages."
+          text="Note: You can use /settings to enable or disable these messages."
         )
         await requestor.send(embed=embed)
         return False
@@ -568,7 +568,7 @@ class Trade(commands.Cog):
           value=requested_badge_names
         )
         embed.set_footer(
-          text="Note: You can use /toggle_notifications to enable or disable these messages."
+          text="Note: You can use /settings to enable or disable these messages."
         )
         await requestor.send(embed=embed)
         return False
@@ -580,8 +580,8 @@ class Trade(commands.Cog):
 
 
   async def _decline_trade_callback(self, interaction, active_trade):
-    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
-    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+    requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
+    requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
 
     await interaction.response.edit_message(
       embed=discord.Embed(
@@ -671,7 +671,7 @@ class Trade(commands.Cog):
       # Deny the trade request if there's an existing trade in progress by the requestor
       active_trade = db_get_active_requestor_trade(requestor_id)
       if active_trade:
-        active_trade_requestee = await self.bot.fetch_user(active_trade['requestee_id'])
+        active_trade_requestee = await self.bot.current_guild.fetch_member(active_trade['requestee_id'])
         already_active_embed = discord.Embed(
           title="You already have an active trade!",
           description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade status` to cancel the current trade if desired!\n\nThis must be resolved before you can open another request.",
@@ -744,8 +744,8 @@ class Trade(commands.Cog):
     try:
       # Cancel the trade and send confirmation
       db_cancel_trade(active_trade)
-      requestor = await self.bot.fetch_user(active_trade["requestor_id"])
-      requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+      requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
+      requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
 
       confirmation_description = f"Your trade with {requestee.mention} has been canceled!\n\n"
       confirmation_description += "You may now begin a new trade request with `/trade start`"
@@ -786,7 +786,7 @@ class Trade(commands.Cog):
             value=requested_badge_names
           )
           notification_embed.set_footer(
-            text="Note: You can use /toggle_notifications to enable or disable these messages."
+            text="Note: You can use /settings to enable or disable these messages."
           )
 
           await requestee.send(embed=notification_embed)
@@ -812,8 +812,8 @@ class Trade(commands.Cog):
 
       # Activate the trade and send confirmation
       db_activate_trade(active_trade)
-      requestor = await self.bot.fetch_user(active_trade["requestor_id"])
-      requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+      requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
+      requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
 
       logger.info(f"{Fore.CYAN}{requestor.display_name} has activated a trade with {requestee.display_name}{Style.RESET_ALL}")
 
@@ -859,7 +859,7 @@ class Trade(commands.Cog):
             value=requested_badge_names
           )
           requestee_embed.set_footer(
-            text="Note: You can use /toggle_notifications to enable or disable these messages."
+            text="Note: You can use /settings to enable or disable these messages."
           )
           await requestee.send(embed=requestee_embed)
         except discord.Forbidden as e:
@@ -896,13 +896,13 @@ class Trade(commands.Cog):
     return trade_pages
 
   async def _generate_offered_embed_and_image(self, active_trade):
-    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
-    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
+    requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
+    requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
 
     offered_badges = db_get_trade_offered_badges(active_trade)
     offered_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in offered_badges]
     offered_image_id = f"{active_trade['id']}-offered"
-    offered_image = generate_badge_trade_showcase(
+    offered_image = await generate_badge_trade_showcase(
       offered_badge_filenames,
       offered_image_id,
       f"Badge(s) Offered by {requestor.display_name}",
@@ -918,13 +918,13 @@ class Trade(commands.Cog):
     return offered_embed, offered_image
 
   async def _generate_requested_embed_and_image(self, active_trade):
-    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
-    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
+    requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
+    requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
 
     requested_badges = db_get_trade_requested_badges(active_trade)
     requested_badge_filenames = [f"{b['badge_name'].replace(' ', '_')}.png" for b in requested_badges]
     requested_image_id = f"{active_trade['id']}-requested"
-    requested_image = generate_badge_trade_showcase(
+    requested_image = await generate_badge_trade_showcase(
       requested_badge_filenames,
       requested_image_id,
       f"Badge(s) Requested from {requestee.display_name}",
@@ -940,8 +940,8 @@ class Trade(commands.Cog):
     return requested_embed, requested_image
 
   async def _generate_home_embed_and_image(self, active_trade):
-    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
-    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+    requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
+    requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
 
     offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
 
@@ -1030,11 +1030,11 @@ class Trade(commands.Cog):
   # Offer the badge or reply with error message
   async def _add_offered_badge_to_trade(self, ctx, active_trade, badge):
     # Don't need to check for active because already done so in propose()
-    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+    requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
     requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
     requestee_badge_names = [b["badge_name"].replace(".png", "").replace("_", " ") for b in requestee_badges]
 
-    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
+    requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
     requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
     requestor_badge_names = [b["badge_name"].replace(".png", "").replace("_", " ") for b in requestor_badges]
 
@@ -1105,11 +1105,11 @@ class Trade(commands.Cog):
   # Request the badge or reply with error message
   async def _add_requested_badge_to_trade(self, ctx, active_trade, badge):
     # Don't need to check for active because already done so in propose()
-    requestee = await self.bot.fetch_user(active_trade["requestee_id"])
+    requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
     requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
     requestee_badge_names = [b["badge_name"].replace(".png", "").replace("_", " ") for b in requestee_badges]
 
-    requestor = await self.bot.fetch_user(active_trade["requestor_id"])
+    requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
     requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
     requestor_badge_names = [b["badge_name"].replace(".png", "").replace("_", " ") for b in requestor_badges]
 
