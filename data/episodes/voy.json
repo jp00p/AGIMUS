@@ -1701,7 +1701,15 @@
       "episode": "10",
       "imdb": "tt0708953",
       "memoryalpha": "Random_Thoughts_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 429,
+          "airdate": "2022.08.01",
+          "episode": "Overdressed Caesar ",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/6eaqezHBdUGWZVedKHQvir8ZXLe.jpg"

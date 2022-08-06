@@ -529,6 +529,11 @@
     "description": "I am Chief Miles Edward O'Brien. This is fucking spectacular!",
     "url": "https://i.imgur.com/NnBORtU.mp4"
   },
+  "Time Travel": {
+    "file": "data/drops/timetravel.mp4",
+    "description": "Riker - Time Travel",
+    "url": "https://i.imgur.com/EH7tF6o.mp4"
+  },
   "Timpani Drum": {
     "file": "data/drops/timpanidrum.mp4",
     "description": "Timpani Drum Sound Effect",
