@@ -46,11 +46,13 @@ from cogs.quiz import Quiz
 from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.trade import Trade
+from cogs.react_roles import ReactRoles
 bot.add_cog(Poker(bot))
 bot.add_cog(Quiz(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Trade(bot))
+bot.add_cog(ReactRoles(bot))
 
 
 ## Trivia relies on an external JSON request which might fail, in that case log the error but continue

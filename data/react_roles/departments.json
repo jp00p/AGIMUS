@@ -1,0 +1,49 @@
+{
+  "reaction_type": "single",
+  "message_content": "",
+  "header_image_url": "https://i.imgur.com/sI1umgC.png",
+  "thumbnail_url": "https://c.tenor.com/eWMVNY7fJ_cAAAAC/kate-mulgrew-ready.gif",
+  "embed" : {
+    "title": "Add color and an icon to your name!",
+    "description": "Choose your department to make your name that color, and you'll also get a little icon! This is just for fun, you will not be required to do any work aboard the starship if you choose a department.\n\nYou can only be in one department at a time, but you can change it at any time.",
+    "footer": "React to the emoji below to select your department and change your name color."
+  },
+  "reactions": [
+    {
+      "emoji": "👽",
+      "role": "Exobiology"
+    },
+    {
+      "emoji": "🔧",
+      "role": "Engineering"
+    },
+    {
+      "emoji": "🕵️",
+      "role": "Information Sciences"
+    },
+    {
+      "emoji": "⚕",
+      "role": "Life Sciences"
+    },
+    {
+      "emoji": "🪨",
+      "role": "Physical Sciences"
+    },
+    {
+      "emoji": "🪐",
+      "role": "Planetary Ops"
+    },
+    {
+      "emoji": "⚛",
+      "role": "Quantum Mechanics"
+    },
+    {
+      "emoji": "🚀",
+      "role": "Stellar Sciences"
+    },
+    {
+      "emoji": "🧹",
+      "role": "Supply and Maintenance"
+    }
+  ]
+}
