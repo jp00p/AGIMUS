@@ -147,7 +147,6 @@ async def generate_paginated_badge_images(user:discord.User, type, all_badges, t
 
 @to_thread
 def generate_badge_images(type, user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
-
   user_display_name = user.display_name
   color_preference = db_get_user_badge_page_color_preference(user.id, type)
 
@@ -280,6 +279,198 @@ def generate_badge_images(type, user, page, page_number, total_pages, total_user
 
   discord_image = discord.File(badge_set_filepath, filename=f"{filename_prefix}{page_number}.png")
   return discord_image
+
+
+#   _________       __    _________                       .__          __  .__
+#  /   _____/ _____/  |_  \_   ___ \  ____   _____ ______ |  |   _____/  |_|__| ____   ____
+#  \_____  \_/ __ \   __\ /    \  \/ /  _ \ /     \\____ \|  | _/ __ \   __\  |/  _ \ /    \
+#  /        \  ___/|  |   \     \___(  <_> )  Y Y  \  |_> >  |_\  ___/|  | |  (  <_> )   |  \
+# /_______  /\___  >__|    \______  /\____/|__|_|  /   __/|____/\___  >__| |__|\____/|___|  /
+#         \/     \/               \/             \/|__|             \/                    \/
+# async def generate_paginated_set_completion_images(user:discord.User, type, all_rows, total_badges, title, collected, filename_prefix):
+#   max_per_image = 5
+#   all_pages = [all_rows[i:i + max_per_image] for i in range(0, len(all_rows), max_per_image)]
+#   total_pages = len(all_pages)
+#   badge_images = [
+#     await generate_badge_completion_images(
+#       type,
+#       user,
+#       page,
+#       page_number + 1, # Account for zero index
+#       total_pages,
+#       total_badges,
+#       title,
+#       collected,
+#       filename_prefix
+#     )
+#     for page_number, page in enumerate(all_pages)
+#   ]
+#   return badge_images
+
+@to_thread
+def generate_badge_completion_images(user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
+  try:
+    user_display_name = user.display_name
+    color_preference = db_get_user_badge_page_color_preference(user.id, "sets")
+
+    if color_preference == "green":
+      title_color = "#99B98D"
+      highlight_color = "#54B145"
+    elif color_preference == "orange":
+      title_color = "#BD9789"
+      highlight_color = "#BA6F3B"
+    elif color_preference == "purple":
+      title_color = "#6455A1"
+      highlight_color = "#9593B2"
+    elif color_preference == "teal":
+      title_color = "#8DB9B5"
+      highlight_color = "#47AAB1"
+
+    # text_wrapper = textwrap.TextWrapper(width=22)
+    title_font = ImageFont.truetype("fonts/lcars3.ttf", 110)
+    if len(user_display_name) > 16:
+      title_font = ImageFont.truetype("fonts/lcars3.ttf", 90)
+    if len(user_display_name) > 21:
+      title_font = ImageFont.truetype("fonts/lcars3.ttf", 82)
+    collected_font = ImageFont.truetype("fonts/lcars3.ttf", 100)
+    total_font = ImageFont.truetype("fonts/lcars3.ttf", 54)
+    page_number_font = ImageFont.truetype("fonts/lcars3.ttf", 80)
+
+    row_title_font = ImageFont.truetype("fonts/lcars3.ttf", 160)
+    row_tag_font = ImageFont.truetype("fonts/lcars3.ttf", 120)
+
+    # row_height = 200
+    # badge_size = 200
+    # badge_padding = 40
+    # badge_margin = 10
+    # badge_slot_size = badge_size + (badge_padding * 2) # size of badge slot size (must be square!)
+    # badges_per_row = 6
+
+    row_height = 290
+    row_width = 1700
+    row_margin = 20
+
+    base_width = 1890
+    base_header_height = 530
+    base_row_height = 290
+    base_footer_height = 200
+
+    number_of_rows = len(page)
+
+    # # If we're generating just one page we want the rows to simply expand to only what's necessary
+    # # Otherwise if there's multiple pages we want to have all of them be consistent
+    # if page_number == 1 and total_pages == 1:
+    #   number_of_rows = math.ceil((len(page) / badges_per_row)) - 1
+    # else:
+    #   number_of_rows = 4
+
+    base_height = base_header_height + (base_row_height * number_of_rows) + base_footer_height
+
+    # create base image to paste all badges on to
+    badge_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
+    base_header_image = Image.open(f"./images/templates/badges/badge_page_header_{color_preference}.png")
+    base_row_image = Image.open(f"./images/templates/badges/badge_page_row_{color_preference}.png")
+    base_footer_image = Image.open(f"./images/templates/badges/badge_page_footer_{color_preference}.png")
+
+    # Start image with header
+    badge_base_image.paste(base_header_image, (0, 0))
+
+    # Stamp rows (if needed, header includes first row)
+    base_current_y = base_header_height
+    for i in range(number_of_rows):
+      badge_base_image.paste(base_row_image, (0, base_current_y))
+      base_current_y += base_row_height
+
+    # Stamp footer
+    badge_base_image.paste(base_footer_image, (0, base_current_y))
+
+    draw = ImageDraw.Draw(badge_base_image)
+
+    draw.text( (100, 65), title, fill=title_color, font=title_font, align="left")
+    draw.text( (590, base_height - 125), collected, fill=highlight_color, font=collected_font, align="left")
+    draw.text( (32, base_height - 90), f"{total_user_badges}", fill=highlight_color, font=total_font, align="left")
+    draw.text( (base_width - 370, base_height - 115), f"PAGE {'{:02d}'.format(page_number)} OF {'{:02d}'.format(total_pages)}", fill=highlight_color, font=page_number_font, align="right")
+
+    start_x = 120
+    current_x = start_x
+    current_y = 280
+    # counter = 0
+
+    for set_row in page:
+      # badge_border_color = highlight_color
+      # badge_text_color = "white"
+      # if type == 'sets' and not badge_record['in_user_collection']:
+      #   badge_border_color = "#575757"
+      #   badge_text_color = "#888888"
+
+      offset = 250
+
+      # row
+      row_image = Image.new("RGBA", (row_width, row_height), (0, 0, 0, 0))
+      r_draw = ImageDraw.Draw(row_image)
+
+      r_draw.rounded_rectangle( (0, 0, row_width, row_height), fill="#101010", outline="#101010", width=4, radius=32 )
+
+      r_title = set_row['name']
+      r_draw.text( (offset, 70), r_title, fill=title_color, font=row_title_font, align="left")
+
+      r_tag = f"{set_row['percentage']}% ({set_row['owned']} of {set_row['total']})"
+      r_draw.text( (row_width - 20, row_height / 2), r_tag, fill=title_color, anchor="rb", font=row_tag_font, align="right")
+
+      # draw percentage bar
+      w, h = row_width - offset, 32
+      x, y = offset, 0
+
+      base_shape = (x, y, (w+x, h+y))
+      r_draw.rectangle(base_shape, fill="#265B5F")
+
+      percentage_shape = (x, y, ((set_row['percentage'] / 100)*w)+x, h+y)
+      r_draw.rectangle(percentage_shape, fill=highlight_color)
+
+      # badge
+      b = Image.open(f"./images/badges/{set_row['featured_badge']}").convert("RGBA")
+      b = b.resize((190, 190))
+      row_image.paste(b, (20, 50), b)
+
+      # w, h = b.size # badge size
+      # offset_x = min(0, (badge_size+badge_padding)-w) # center badge x
+      # offset_y = 5
+      # badge_name = text_wrapper.wrap(badge_record['badge_name'])
+      # wrapped_badge_name = ""
+      # for i in badge_name[:-1]:
+      #   wrapped_badge_name = wrapped_badge_name + i + "\n"
+      # wrapped_badge_name += badge_name[-1]
+      # # add badge to slot
+      # s.paste(b, (badge_padding+offset_x+4, offset_y), b)
+      # badge_draw.text( (int(badge_slot_size/2), 222), f"{wrapped_badge_name}", fill=badge_text_color, font=badge_font, anchor="mm", align="center")
+
+      # add slot to base image
+      badge_base_image.paste(row_image, (current_x, current_y), row_image)
+
+      current_y += row_height + row_margin
+
+      # current_x += badge_slot_size + badge_margin
+      # counter += 1
+
+      # if counter % badges_per_row == 0:
+      #   # typewriter sound effects:
+      #   current_x = start_x # ding!
+      #   current_y += badge_slot_size + badge_margin # ka-chunk
+      #   counter = 0 #...
+
+    badge_completion_filepath = f"./images/profiles/{filename_prefix}{page_number}.png"
+    badge_base_image.save(badge_completion_filepath)
+
+    while True:
+      time.sleep(0.05)
+      if os.path.isfile(badge_completion_filepath):
+        break
+
+    discord_image = discord.File(badge_completion_filepath, filename=f"{filename_prefix}{page_number}.png")
+    return discord_image
+  except Exception as e:
+    logger.info(traceback.format_exc())
+
 
 # QUERIES
 def db_get_badge_count_for_user(user_id):

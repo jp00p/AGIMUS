@@ -312,21 +312,42 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
         await ctx.followup.send(files=chunk, ephemeral=not public)
 
 @badge_group.command(
-  name="set_completion",
+  name="completion",
   description="Get a report of how close to completion you are on various sets."
 )
-async def set_completion(ctx:discord.ApplicationContext):
+async def completion(ctx:discord.ApplicationContext):
   report = db_get_set_completion_for_affiliations(ctx.author.id)
-  report_string = ''
-  for r in report:
-    report_string += f"**{r['affiliation_name']}** - {int(r['percentage'])}% ({r['user_count']} of {r['all_count']})\n"
+  report = _append_featured_completion_badges(ctx.author.id, report)
+  # report_string = ''
+  # for r in report:
+  #   report_string += f"**{r['name']}** - {int(r['percentage'])}% ({r['owned']} of {r['total']})\n"
   embed = discord.Embed(
     title="Badge Set Completion - Affiliations",
-    description=report_string,
+    # description=report_string,
     color=discord.Color.blurple()
   )
-  await ctx.respond(embed=embed, ephemeral=True)
 
+  user = ctx.author
+  page = report
+  page_number = 1
+  total_pages = 1
+  total_user_badges = 69
+  title = "VitaZed's Set Completion - Affiliations"
+  collected = "69 of 420 ON THE USS HOOD"
+  filename_prefix = f"badge_set_completion_{ctx.author.id}_affiliations-page-"
+
+  completion_image = await generate_badge_completion_images(
+    user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix
+  )
+
+  await ctx.respond(embed=embed, file=completion_image, ephemeral=True)
+  # await ctx.respond("Thanks! ^_^", ephemeral=True)
+
+def _append_featured_completion_badges(user_id, report):
+  for r in report:
+    badges = db_get_badge_filenames_user_has_from_affiliation(user_id, r['name'])
+    r['featured_badge'] = random.choice(badges)
+  return report
 
 @badge_group.command(
   name="statistics",
@@ -533,61 +554,66 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
 
   return user_badges
 
+# XXX
+def db_get_badge_filenames_user_has_from_affiliation(user_id, affiliation):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT b_i.badge_filename FROM badges b
+      JOIN badge_info AS b_i
+        ON b.badge_name = b_i.badge_filename
+      JOIN badge_affiliation AS b_a
+        ON b_i.id = b_a.badge_id
+      WHERE b.user_discord_id = %s
+        AND b_a.affiliation_name = %s
+  '''
+  vals = (user_id, affiliation)
+  query.execute(sql, vals)
+  rows = query.fetchall()
+  db.commit()
+  query.close()
+  db.close()
+
+  user_badges = [r['badge_filename'] for r in rows]
+  user_badges.sort()
+
+  return user_badges
+
 def db_get_set_completion_for_affiliations(user_id):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT affiliation_name, count(*) FROM badge_affiliation AS b_a
-      JOIN badge_info AS b_i
-      INNER JOIN badges AS b
-        ON b_a.badge_id = b_i.id
-        AND b_i.badge_filename = b.badge_name
+    SELECT
+        affiliation_name,
+        count(DISTINCT b_i.badge_filename) as totalBadgeCount,
+        count(DISTINCT b.badge_name) as ownedBadgeCount
+    FROM badge_info AS b_i
+    INNER JOIN badge_affiliation AS b_a
+        ON b_i.id = b_a.badge_id -- will be replaced with b_i.badge_filename = b_a.badge_filename
+    LEFT JOIN badges AS b
+        ON b_i.badge_filename = b.badge_name -- bad fieldname on badges
         AND b.user_discord_id = %s
-      GROUP BY affiliation_name;
+    GROUP BY b_a.affiliation_name;
   '''
   vals = (user_id,)
   query.execute(sql, vals)
-  user_set_counts = query.fetchall()
-
-  sql = '''
-    SELECT affiliation_name, count(*) FROM badge_affiliation AS b_a
-      GROUP BY affiliation_name;
-  '''
-  query.execute(sql)
-  all_set_counts = query.fetchall()
+  rows = query.fetchall()
 
   db.commit()
   query.close()
   db.close()
 
-  all_record = {}
-  for a in all_set_counts:
-    affiliation_name = a['affiliation_name']
-    all_count = a['count(*)']
-    all_record[affiliation_name] = {
-      'all_count': all_count
-    }
-  user_record = {}
-  for u in user_set_counts:
-    affiliation_name = u['affiliation_name']
-    user_count = u['count(*)']
-
-    entry = all_record[affiliation_name]
-    entry['affiliation_name'] = affiliation_name
-    entry['user_count'] = user_count
-    entry['percentage'] = user_count / entry['all_count'] * 100
-    user_record[affiliation_name] = entry
-
-  logger.info(pprint(user_record))
-
-  sorted_keys = sorted(user_record, key=lambda x: user_record[x]['percentage'], reverse=True)
-  report = [user_record[k] for k in sorted_keys]
-
-  logger.info(pprint(report))
-
-  return report
-
-
+  results = [
+    {
+      "name": r['affiliation_name'],
+      "owned": r['ownedBadgeCount'],
+      'total': r['totalBadgeCount'],
+      'percentage': int((r['ownedBadgeCount'] / r['totalBadgeCount']) * 100)
+    } for r in rows if r['ownedBadgeCount'] != 0
+  ]
+  results = sorted(results, key=lambda r: r['percentage'], reverse=True)
+  logger.info(pprint(results))
+  return results
 
 # Franchises
 def db_get_all_franchises():
