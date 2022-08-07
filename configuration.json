@@ -218,7 +218,11 @@
         "general-trek"
       ],
       "crontab": "15 8 * * WED",
-      "enabled": true
+      "enabled": false
+    },
+    "backups":{
+      "crontab": "0 */6 * * *",
+      "enabled": false
     },
     "bingbong": {
       "channels": [

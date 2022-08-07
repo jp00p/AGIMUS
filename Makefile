@@ -98,7 +98,7 @@ db-seed: ## Reload the database from a file at $DB_SEED_FILEPATH
 .PHONY: db-backup
 db-backup: db-setup-git ## Back the database to a file at $DB_DUMP_FILENAME then commit it to the private database repository (intended to run inside AGIMUS container)
 	@echo "Dumping db to $(DB_DUMP_FILENAME)"
-	@mysqldump -u$(DB_USER) -p$(DB_PASS) -B $(DB_NAME) > $(DB_DUMP_FILENAME)
+	@mysqldump -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) -B $(DB_NAME) > $(DB_DUMP_FILENAME)
 	@rm -rf database || true
 	git clone git@github.com:Friends-of-DeSoto/database.git
 	@mkdir -p database/$(DB_BACKUP_SUB_DIR)
@@ -128,8 +128,8 @@ else
 	mkdir -p $(HOME)/.ssh
 	@echo $(DB_BACKUP_DEPLOY_KEY) | base64 -d > $(HOME)/.ssh/id_ed25519
 	chmod 600 $(HOME)/.ssh/id_ed25519
-	git config --global user.name $(DB_BACKUP_GITHUB_USER)
-	git config --global user.email $(DB_BACKUP_GITHUB_EMAIL)
+	@git config --global user.name $(DB_BACKUP_GITHUB_USER)
+	@git config --global user.email $(DB_BACKUP_GITHUB_EMAIL)
 	ssh-keyscan github.com >> $(HOME)/.ssh/known_hosts
 endif
 
