@@ -1,0 +1,58 @@
+{
+  "reaction_type": "multiple",
+  "message_content": "",
+  "header_image_url": "https://i.imgur.com/0aKhwKA.png",
+  "thumbnail_url": "https://c.tenor.com/k8aYHTNkvA8AAAAC/chief-carmen.gif",
+  "embed" : {
+    "title": "Add your location to your profile!",
+    "description": "Use these roles to add your general location to your profile! You can add multiple locations if it makes sense.\n\nPlease leave us a message in {} if you don't see a location that fits for you.",
+    "footer": "React to the emoji below to add/remove the corresponding location."
+  },
+  "embed_channel_name_placeholder": "captains-suggestion-box",
+  "reactions": [
+    {
+      "emoji": "🇺🇸",
+      "role": "United States"
+    },
+    {
+      "emoji": "🇨🇦",
+      "role": "Canada"
+    },
+    {
+      "emoji": "🇪🇺",
+      "role": "Europe"
+    },
+    {
+      "emoji": "🇬🇧",
+      "role": "United Kingdom"
+    },
+    {
+      "emoji": "🇦🇺",
+      "role": "Australia"
+    },
+    {
+      "emoji": "🇮🇱",
+      "role": "Israel"
+    },
+    {
+      "emoji": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+      "role": "Scotland"
+    },
+    {
+      "emoji": "🇳🇿",
+      "role": "New Zealand"
+    },
+    {
+      "emoji": "🇯🇵",
+      "role": "Japan"
+    },
+    {
+      "emoji": "🇨🇳",
+      "role": "China"
+    },
+    {
+      "emoji": "🌲",
+      "role": "Pacific Northwest"
+    } 
+  ]
+}

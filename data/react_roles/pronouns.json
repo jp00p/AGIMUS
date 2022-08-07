@@ -1,0 +1,38 @@
+{
+  "reaction_type": "multiple",
+  "message_content": "",
+  "header_image_url": "https://i.imgur.com/rULYurt.png",
+  "thumbnail_url": "https://c.tenor.com/oYjzBCfk6VQAAAAC/song-aesthetic.gif",
+  "embed" : {
+    "title": "Add pronouns to your profile!",
+    "description": "Feel free to add as many as you like. You can change these at any time.\n\nVisit {} if you have any suggestions or feedback.",
+    "footer": "React to the emoji below to add/remove the corresponding pronoun."
+  },
+  "embed_channel_name_placeholder": "captains-suggestion-box",
+  "reactions": [
+    {
+      "emoji": "1️⃣",
+      "role": "they/them"
+    },
+    {
+      "emoji": "2️⃣",
+      "role": "she/her"
+    },
+    {
+      "emoji": "3️⃣",
+      "role": "he/him"
+    },
+    {
+      "emoji": "4️⃣",
+      "role": "no pronouns"
+    },
+    {
+      "emoji": "5️⃣",
+      "role": "other pronouns"
+    },
+    {
+      "emoji": "6️⃣",
+      "role": "ask me"
+    }
+  ]
+}

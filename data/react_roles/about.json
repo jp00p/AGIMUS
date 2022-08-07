@@ -1,0 +1,41 @@
+{
+  "message_content": "**Welcome to the USS Hood!**\nPlease react to the different messages below this one to add some custom roles to your profile!",
+  "header_image_url": "https://i.imgur.com/MKQ3KSP.png",
+  "embed" : {
+    "title": "USS Hood roles and ranks",
+    "description": "Complete access to the ship is fairly easy to attain with some minor participation.\n\nHere is a list of ranks, their privileges, and how they can be attained:",
+    "footer": "Official records last updated: {}",
+    "fields": [
+      {
+        "title": "Cadet",
+        "value": "**How to get:** Achieve this rank by posting an introduction in #first-contact or by lightly participating in the server!\n**Privileges:** You will be able to view all channels, although some sensitive channels may be read-only for you.",
+        "inline": false
+      },
+      {
+        "title": "Ensign",
+        "value": "**How to get:** Achieve this rank by further participating in the ship's community.\n**Privileges:** You will gain full access to all of the ship's channels, excluding mod channels.",
+        "inline": false
+      },
+      {
+        "title": "Lieutenant",
+        "value": "**How to get:** Building community, hosting events and just being awesome will eventually get you promoted. You can only be promoted to this rank by someone of rank Commander or higher.\n**Privileges:** You will be able to moderate voice channels, post announcements, and you will have access to moderator chat as well as a test voice channel.",
+        "inline": false
+      },
+      {
+        "title": "Commander",
+        "value": "**How to get:** Senior staff will occassionally promote those who show exceptional community-building or leadership skills to Commander. Also doesn't hurt to ask if you think you are ready!\n**Privileges:** You will be able to manage and moderate all channels, post announcements, and you will gain access to the senior staff chat.\nCommanders will also tend to bear some of the responsibility of helping with disputes and other issues on the server.",
+        "inline": false
+      },
+      {
+        "title": "Captain",
+        "value": "The Captain is @jp00p. As well as mangling the server as a whole, the captain will assist with most any technical issues or disputes.",
+        "inline": false
+      },
+      {
+        "title": "Admiral",
+        "value": "The mysterious Admiral @Sara, founder and creator of this server, rumored to be a high-ranking Section 31 official. Will sometimes appear from a hole in the ceiling and bless your posts, granting you +10 luck for the rest of the day.",
+        "inline": false
+      }
+    ]
+  }
+}

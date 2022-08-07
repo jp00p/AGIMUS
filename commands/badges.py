@@ -425,7 +425,7 @@ async def gift_specific_badge_error(ctx, error):
 async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge:str, user:discord.User):
   badge_info = badge_data.get(badge)
   badge_name = badge.replace("_", " ").replace(".png", "")
-  star_str = "⭐\u00A0"*9
+  star_str = "🌟 ⠀"*8
   if badge_info:
     badge_url = badge_info["badge_url"]
     embed_description += f"\n\n**{badge_name}**\n{badge_url}"
