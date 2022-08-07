@@ -311,9 +311,13 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
       else:
         await ctx.followup.send(files=chunk, ephemeral=not public)
 
-#
-# XXX
-#
+
+# _________                       .__          __  .__
+# \_   ___ \  ____   _____ ______ |  |   _____/  |_|__| ____   ____
+# /    \  \/ /  _ \ /     \\____ \|  | _/ __ \   __\  |/  _ \ /    \
+# \     \___(  <_> )  Y Y  \  |_> >  |_\  ___/|  | |  (  <_> )   |  \
+#  \______  /\____/|__|_|  /   __/|____/\___  >__| |__|\____/|___|  /
+#         \/             \/|__|             \/                    \/
 @badge_group.command(
   name="completion",
   description="Get a report of how close to completion you are on various sets."
@@ -418,13 +422,19 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
       else:
         await ctx.followup.send(files=chunk, ephemeral=not public)
 
-
 def _append_featured_completion_badges(user_id, report):
   for r in report:
     badges = db_get_badge_filenames_user_has_from_affiliation(user_id, r['name'])
     r['featured_badge'] = random.choice(badges)
   return report
 
+
+#   _________ __          __  .__          __  .__
+#  /   _____//  |______ _/  |_|__| _______/  |_|__| ____   ______
+#  \_____  \\   __\__  \\   __\  |/  ___/\   __\  |/ ___\ /  ___/
+#  /        \|  |  / __ \|  | |  |\___ \  |  | |  \  \___ \___ \
+# /_______  /|__| (____  /__| |__/____  > |__| |__|\___  >____  >
+#         \/           \/             \/               \/     \/
 @badge_group.command(
   name="statistics",
   description="See the server-wide badge statistics"
@@ -450,12 +460,12 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   await ctx.respond(embed=embed, ephemeral=False)
 
 
-#   ________.__  _____  __  .__
-#  /  _____/|__|/ ____\/  |_|__| ____    ____
-# /   \  ___|  \   __\\   __\  |/    \  / ___\
-# \    \_\  \  ||  |   |  | |  |   |  \/ /_/  >
-#  \______  /__||__|   |__| |__|___|  /\___  /
-#         \/                        \//_____/
+#   ________.__  _____  __
+#  /  _____/|__|/ ____\/  |_
+# /   \  ___|  \   __\\   __\
+# \    \_\  \  ||  |   |  |
+#  \______  /__||__|   |__|
+#         \/
 @bot.slash_command(
   name="gift_badge",
   description="Give a user a random badge (admin only)"
@@ -492,6 +502,12 @@ async def gift_badge_error(ctx, error):
     await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
 
 
+#   ________.__  _____  __      _________                    .__  _____.__
+#  /  _____/|__|/ ____\/  |_   /   _____/_____   ____   ____ |__|/ ____\__| ____
+# /   \  ___|  \   __\\   __\  \_____  \\____ \_/ __ \_/ ___\|  \   __\|  |/ ___\
+# \    \_\  \  ||  |   |  |    /        \  |_> >  ___/\  \___|  ||  |  |  \  \___
+#  \______  /__||__|   |__|   /_______  /   __/ \___  >\___  >__||__|  |__|\___  >
+#         \/                          \/|__|        \/     \/                  \/
 @bot.slash_command(
   name="gift_specific_badge",
   description="Give a user a specific badge (admin only)"
@@ -630,16 +646,15 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
 
   return user_badges
 
-# XXX
 def db_get_badge_filenames_user_has_from_affiliation(user_id, affiliation):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
     SELECT b_i.badge_filename FROM badges b
       JOIN badge_info AS b_i
-        ON b.badge_name = b_i.badge_filename
+        ON b.badge_filename = b_i.badge_filename
       JOIN badge_affiliation AS b_a
-        ON b_i.id = b_a.badge_id
+        ON b_i.badge_filename = b_a.badge_filename
       WHERE b.user_discord_id = %s
         AND b_a.affiliation_name = %s
   '''
@@ -662,12 +677,12 @@ def db_get_set_completion_for_affiliations(user_id):
     SELECT
         affiliation_name,
         count(DISTINCT b_i.badge_filename) as totalBadgeCount,
-        count(DISTINCT b.badge_name) as ownedBadgeCount
+        count(DISTINCT b.badge_filename) as ownedBadgeCount
     FROM badge_info AS b_i
     INNER JOIN badge_affiliation AS b_a
-        ON b_i.id = b_a.badge_id -- will be replaced with b_i.badge_filename = b_a.badge_filename
+        ON b_i.badge_filename = b_a.badge_filename
     LEFT JOIN badges AS b
-        ON b_i.badge_filename = b.badge_name -- bad fieldname on badges
+        ON b_i.badge_filename = b.badge_filename
         AND b.user_discord_id = %s
     GROUP BY b_a.affiliation_name;
   '''
