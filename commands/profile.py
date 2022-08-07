@@ -16,9 +16,11 @@ filters = ["_1977", "aden", "brannan", "brooklyn", "clarendon", "earlybird", "gi
   description="Your tagline (up to 60 characters, follow the server rules please!)",
   required=False
 )
-# set a user's tagline for their profile card
-# users can also unset it by sending an empty string
 async def set_tagline(ctx:discord.ApplicationContext, tagline:str):
+  """
+  set a user's tagline for their profile card
+  users can also unset it by sending an empty string
+  """
   if not tagline or tagline.strip() == "":
 
     db = getDB()
@@ -103,9 +105,6 @@ async def set_profile_badge(ctx:discord.ApplicationContext, badge:str):
 
 
 
-# slash_profile() - Entrypoint for /profile command
-# This function is the main entrypoint of the /profile command
-# and will return a user's profile card
 @bot.slash_command(
   name="profile",
   description="Show your own profile card"
@@ -125,8 +124,11 @@ async def set_profile_badge(ctx:discord.ApplicationContext, badge:str):
     )
   ]
 )
-
 async def profile(ctx:discord.ApplicationContext, public:str):
+  """
+  This function is the main entrypoint of the /profile command
+  and will return a user's profile card
+  """
   public = bool(public == "yes")
   await ctx.defer(ephemeral=not public)
 
@@ -393,7 +395,6 @@ def db_get_badge_filename_for_badge(badge_name):
   vals = (badge_name,)
   query.execute(sql, vals)
   row = query.fetchone()
-  db.commit()
   query.close()
   db.close()
 

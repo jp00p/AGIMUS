@@ -23,17 +23,17 @@ change_presence_prefixes = {
   "watching": "Watching"
 }
 
-# update_status() - Entrypoint for !update_status command
-# message[required]: discord.Message
-# This function is the main entrypoint of the !update_status command
-# The user must provide the `<type>` of status:
-#   * playing
-#   * listening
-#   * watching
-# The remainder of the message will be used for the status text
 @bot.command()
 @commands.check(access_check)
 async def update_status(ctx, *, arg):
+  """
+  This function is the main entrypoint of the !update_status command
+  The user must provide the `<type>` of status:
+    * playing
+    * listening
+    * watching
+  The remainder of the message will be used for the status text
+  """
   logger.info(f"{Fore.LIGHTGREEN_EX}Updating Status! Requested by {Style.BRIGHT}{ctx.author.display_name}{Fore.RESET}")
   argument_list = arg.split()
 

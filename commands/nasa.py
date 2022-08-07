@@ -6,8 +6,6 @@ from utils.check_channel_access import access_check
 
 NASA_TOKEN = os.getenv('NASA_TOKEN')
 
-# nasa() - Entrypoint for /nasa command
-# This function is the main entrypoint of the /nasa command
 @bot.slash_command(
   name="nasa",
   description="Get a random or specific 'Picture of the Day' from NASA"
@@ -19,6 +17,9 @@ NASA_TOKEN = os.getenv('NASA_TOKEN')
 )
 @commands.check(access_check)
 async def nasa(ctx:discord.ApplicationContext, date:str):
+  """
+  This function is the main entrypoint of the /nasa command
+  """
   try:
     logger.info(f"{Fore.LIGHTBLUE_EX}NASA: Starting NASA API call{Fore.RESET}")
     if not NASA_TOKEN:
@@ -86,5 +87,5 @@ async def nasa(ctx:discord.ApplicationContext, date:str):
       )
       embed.set_thumbnail(url="https://i.imgur.com/quQnKnk.jpeg")
       await ctx.respond(embed=embed)
-  except BaseException as e:
+  except Exception as e:
     logger.info(traceback.format_exc())

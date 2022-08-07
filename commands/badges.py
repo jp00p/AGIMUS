@@ -312,12 +312,14 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
         await ctx.followup.send(files=chunk, ephemeral=not public)
 
 
-# slash command to get common badge stats
 @badge_group.command(
   name="statistics",
   description="See the server-wide badge statistics"
 )
 async def badge_statistics(ctx:discord.ApplicationContext):
+  """
+  slash command to get common badge stats
+  """
   results = {}
   results = run_badge_stats_queries()
   top_collectors = [res for res in results["top_collectors"]]
@@ -349,8 +351,10 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   description="Which user to gift the badge to",
   required=True
 )
-# give a random badge to a user
 async def gift_badge(ctx:discord.ApplicationContext, user:discord.User):
+  """
+  give a random badge to a user
+  """
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a random badge{Style.RESET_ALL} to {user.display_name}")
 
@@ -389,8 +393,10 @@ async def gift_badge_error(ctx, error):
   required=True,
   autocomplete=all_badges_autocomplete
 )
-# give a random badge to a user
 async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User, specific_badge:str):
+  """
+  give a random badge to a user
+  """
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift {specific_badge}{Style.RESET_ALL} to {user.display_name}")
 
@@ -457,7 +463,6 @@ def db_get_all_affiliations():
   sql = "SELECT distinct(affiliation_name) FROM badge_affiliation"
   query.execute(sql)
   rows = query.fetchall()
-  db.commit()
   query.close()
   db.close()
 
@@ -478,7 +483,6 @@ def db_get_all_affiliation_badges(affiliation):
   vals = (affiliation,)
   query.execute(sql, vals)
   rows = query.fetchall()
-  db.commit()
   query.close()
   db.close()
 
@@ -502,7 +506,6 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
   vals = (user_id, affiliation)
   query.execute(sql, vals)
   rows = query.fetchall()
-  db.commit()
   query.close()
   db.close()
 
@@ -518,7 +521,6 @@ def db_get_all_franchises():
   sql = "SELECT distinct(franchise) FROM badge_info"
   query.execute(sql)
   rows = query.fetchall()
-  db.commit()
   query.close()
   db.close()
 
@@ -537,7 +539,6 @@ def db_get_all_franchise_badges(franchise):
   vals = (franchise,)
   query.execute(sql, vals)
   rows = query.fetchall()
-  db.commit()
   query.close()
   db.close()
 
@@ -559,7 +560,6 @@ def db_get_badges_user_has_from_franchise(user_id, franchise):
   vals = (user_id, franchise)
   query.execute(sql, vals)
   rows = query.fetchall()
-  db.commit()
   query.close()
   db.close()
 
@@ -575,7 +575,6 @@ def db_get_all_time_periods():
   sql = "SELECT distinct(time_period) FROM badge_info"
   query.execute(sql)
   rows = query.fetchall()
-  db.commit()
   query.close()
   db.close()
 
@@ -602,7 +601,6 @@ def db_get_all_time_period_badges(time_period):
   vals = (time_period,)
   query.execute(sql, vals)
   rows = query.fetchall()
-  db.commit()
   query.close()
   db.close()
 
@@ -624,7 +622,6 @@ def db_get_badges_user_has_from_time_period(user_id, time_period):
   vals = (user_id, time_period)
   query.execute(sql, vals)
   rows = query.fetchall()
-  db.commit()
   query.close()
   db.close()
 
@@ -640,7 +637,6 @@ def db_get_all_types():
   sql = "SELECT distinct(type_name) FROM badge_type"
   query.execute(sql)
   rows = query.fetchall()
-  db.commit()
   query.close()
   db.close()
 
@@ -661,7 +657,6 @@ def db_get_all_type_badges(type):
   vals = (type,)
   query.execute(sql, vals)
   rows = query.fetchall()
-  db.commit()
   query.close()
   db.close()
 
@@ -685,7 +680,6 @@ def db_get_badges_user_has_from_type(user_id, type):
   vals = (user_id, type)
   query.execute(sql, vals)
   rows = query.fetchall()
-  db.commit()
   query.close()
   db.close()
 
@@ -738,7 +732,6 @@ def get_user_badges(user_discord_id:int):
   vals = (user_discord_id,)
   query.execute(sql, vals)
   badges = [badge[0] for badge in query.fetchall()]
-  db.commit()
   query.close()
   db.close()
   return badges
@@ -756,7 +749,6 @@ def run_badge_stats_queries():
     query = db.cursor(dictionary=True)
     query.execute(sql)
     results[name] = query.fetchall()
-    db.commit()
     query.close()
   db.close()
   return results

@@ -4,10 +4,6 @@ from utils.check_channel_access import access_check
 from utils.show_utils import get_show_embed
 
 
-# randomep() - Entrypoint for !randomep command
-# message[required]: discord.Message
-# This function is the main entrypoint of the !randomep command
-# and will return a random episode of the shows listed in the data/episodes directory
 @bot.slash_command(
   name="randomep",
   description="Retrieve info on a random episode of Trek or Non-Trek Shows",
@@ -21,6 +17,10 @@ from utils.show_utils import get_show_embed
 )
 @commands.check(access_check)
 async def randomep(ctx:discord.ApplicationContext, show:str):
+  """
+  This function is the main entrypoint of the !randomep command
+  and will return a random episode of the shows listed in the data/episodes directory
+  """
   logger.info(f"{Fore.LIGHTGREEN_EX}Selected Show:{Fore.RESET} {Style.BRIGHT}{show}{Style.RESET_ALL}")
   trek = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "lowerdecks", "disco", "picard"]
   nontrek = ["friends", "firefly", "simpsons", "sunny"]

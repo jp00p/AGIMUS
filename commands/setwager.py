@@ -1,18 +1,14 @@
 from common import *
 
 
-wager_choices = []
-for i in range(1, 26):
-  wager_choice = discord.OptionChoice(
+wager_choices = [
+  discord.OptionChoice(
     name=str(i),
     value=i
   )
-  wager_choices.append(wager_choice)
+  for i in range(1, 26)
+]
 
-# setwager() - Entrypoint for /setwager command
-# message[required]: discord.Message
-# This function is the main entrypoint of the /setwager command
-# and will a user's wager value to the amount passed between 1-25
 @bot.slash_command(
   name="setwager",
   description="Set your default wager for /poker and /slots"
@@ -24,11 +20,15 @@ for i in range(1, 26):
   choices=wager_choices
 )
 async def setwager(ctx:discord.ApplicationContext, wager:int):
+  """
+  This function is the main entrypoint of the /setwager command
+  and will a user's wager value to the amount passed between 1-25
+  """
   min_wager = 1
   max_wager = 25
   player = get_user(ctx.author.id)
   current_wager = player["wager"]
-  if wager >= min_wager and wager <= max_wager:
+  if min_wager <= wager <= max_wager:
     set_player_wager(ctx.author.id, wager)
     await ctx.respond(embed=discord.Embed(
       title="Wager Updated!",
@@ -43,13 +43,12 @@ async def setwager(ctx:discord.ApplicationContext, wager:int):
     ), ephemeral=True)
 
 
-# set_player_wager(discord_id, amt)
-# discord_id[required]: int
-# amt[required]: int
-# This function takes a player's discord ID
-# and a positive integer and updates the wager
-# value for that user in the db
 def set_player_wager(discord_id, amt):
+  """
+  This function takes a player's discord ID
+  and a positive integer and updates the wager
+  value for that user in the db
+  """
   db = getDB()
   amt = max(amt, 0)
   query = db.cursor()

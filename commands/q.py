@@ -1,13 +1,13 @@
 from common import *
 from utils.check_channel_access import access_check
 
-# qget() - Entrypoint for !qget command
-# message[required]: discord.Message
-# This function is the main entrypoint of the !qget command
-# and will get a user's DB details
 @bot.command()
 @commands.check(access_check)
 async def qget(ctx, user:str):
+  """
+  This function is the main entrypoint of the !qget command
+  and will get a user's DB details
+  """
   selected_user = user.replace("<@", "").replace(">","")
   if is_integer(selected_user):
     await display_user(selected_user, ctx)
@@ -15,15 +15,15 @@ async def qget(ctx, user:str):
     await ctx.send("Usage: !qget [user]")
 
 
-# qset() - Entrypoint for !qset command
-# message[required]: discord.Message
-# This function is the main entrypoint of the !qset command
-# and will set a user's DB details
 @bot.command()
 @commands.check(access_check)
 async def qset(ctx, user:str, key:str, value:str):
-  f = open(config["commands"]["qget"]["data"])
-  f.close()
+  """
+  This function is the main entrypoint of the !qset command
+  and will set a user's DB details
+  """
+  # f = open(config["commands"]["qget"]["data"])
+  # f.close()
   # qspl = message.content.lower().replace("!qset ", "").split()
   selected_user = user.replace("<@", "").replace(">","")
   change_column = key

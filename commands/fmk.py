@@ -1,15 +1,16 @@
 from common import *
 from utils.check_channel_access import access_check
 
-# fmk() - Entrypoint for /fmk command
-# This function is the main entrypoint of the /fmk command
-# and will return a prompt with three random characters
 @bot.slash_command(
   name="fmk",
   description="Return 3 random Trek Characters as an FMK prompt"
 )
 @commands.check(access_check)
 async def fmk(ctx:discord.ApplicationContext):
+  """
+  This function is the main entrypoint of the /fmk command
+  and will return a prompt with three random characters
+  """
   f = open(config["commands"]["fmk"]["data"])
   fmk_characters = f.read().splitlines()
   f.close()

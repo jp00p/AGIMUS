@@ -52,11 +52,12 @@ from prettytable.colortable import ColorTable, Themes
     )
   ]
 )
-
 @commands.check(access_check)
-# reports() - entrypoint for /reports command
-# will help us build fancy looking reports for administration and fun
 async def reports(ctx:discord.ApplicationContext, report:str, report_style:str):
+  """
+  entrypoint for /reports command
+  will help us build fancy looking reports for administration and fun
+  """
   await ctx.defer()
   try:
     if report == "xp":
@@ -84,26 +85,28 @@ async def reports(ctx:discord.ApplicationContext, report:str, report_style:str):
     
 
 
-# get_xp_report() - returns a dictionary of overall top xp users
 def get_xp_report():
+  """
+  returns a dictionary of overall top xp users
+  """
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = "SELECT name,xp FROM users ORDER BY xp DESC LIMIT 25"
   query.execute(sql)
   results = query.fetchall()
-  db.commit()
   query.close()
   db.close()
   return results
 
-# get_scores_report() - returns a dictionary of users sorted by top scores
 def get_scores_report():
+  """
+  returns a dictionary of users sorted by top scores
+  """
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = "SELECT name,score FROM users ORDER BY score DESC LIMIT 25"
   query.execute(sql)
   results = query.fetchall()
-  db.commit()
   query.close()
   db.close()
   return results
@@ -114,19 +117,19 @@ def get_channel_activity_report():
   sql = "SELECT SUM(amount) as xp_amount, channel_id FROM xp_history WHERE time_created > NOW() - INTERVAL 1 DAY GROUP BY channel_id ORDER BY SUM(amount) DESC LIMIT 25"
   query.execute(sql)
   results = query.fetchall()
-  db.commit()
   query.close()
   db.close()
   return results
 
-# get_gainers_report() - returns a dictionary of users who gained the most xp in the last hour
 def get_gainers_report():
+  """
+  returns a dictionary of users who gained the most xp in the last hour
+  """
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = "SELECT xp_history.user_discord_id, SUM(xp_history.amount) as amt, users.name FROM xp_history LEFT JOIN users ON xp_history.user_discord_id = users.discord_id WHERE xp_history.time_created > now() - interval 1 hour GROUP BY users.name, xp_history.user_discord_id ORDER BY amt DESC LIMIT 25;"
   query.execute(sql)
   results = query.fetchall()
-  db.commit()
   query.close()
   db.close()
   return results
@@ -146,8 +149,10 @@ def generate_channel_activity_report_card(type:str):
     rank += 1
   return generate_report_card(title, description, table, type)
 
-# process the xp data and generate an image
 def generate_xp_report_card(type:str):
+  """
+  process the xp data and generate an image
+  """
   xp_data = get_xp_report()
   title = "AGIMUS REPORT"
   description = "Total XP Overall"
@@ -161,8 +166,10 @@ def generate_xp_report_card(type:str):
   return generate_report_card(title, description, table, type)
 
 
-# process the gainers data and generate an image
 def generate_gainers_report_card(type:str):
+  """
+  process the gainers data and generate an image
+  """
   gainers_data = get_gainers_report()
   title = "AGIMUS REPORT"
   description = "Top XP gains in the last hour"
@@ -180,14 +187,16 @@ def generate_gainers_report_card(type:str):
       rank += 1
   return generate_report_card(title, description, table, type, rows)
 
-# get number of users registered to the database
+
 def get_num_users():
+  """
+  get number of users registered to the database
+  """
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = "select count(id) as `num_users` from users;"
   query.execute(sql)
   results = query.fetchall()
-  db.commit()
   query.close()
   db.close()
   return results
@@ -231,8 +240,10 @@ def generate_diagnostic_card(type:str):
   description = "AGIMUS System Information"
   return generate_report_card(title, description, table, type, intro_data)
 
-# process the scores data and generate an image
 def generate_scores_report_card(type:str):
+  """
+  process the scores data and generate an image
+  """
   score_data = get_scores_report()
   title = "AGIMUS REPORT"
   description = "Top scores"
@@ -252,10 +263,6 @@ def generate_scores_report_card(type:str):
   return generate_report_card(title, description, table, type)
 
 
-# generate_report_card(title:str, description:str, rows:list) - generate a generic report - returns a discord.File ready for embedding
-# title[required]: the report title
-# description[required]: the report description
-# rows[required]: a list of rows for the report (max 10 items)
 def generate_report_card(title:str, description:str, table:PrettyTable, type:str, additional_rows:list=[]):
   table.align = "l"
   table.set_style(ORGMODE)

@@ -31,8 +31,10 @@ from common import *
   required=False
 )
 @commands.has_role(config["roles"]["agimus_maintainers"])
-# make agimus talk!
 async def speak(ctx:discord.ApplicationContext, content:str, dry_run:str, channel:discord.TextChannel):
+  """
+  make agimus talk!
+  """
   try:
     content = content.replace("<br>", "\n")
     dry_run = bool(dry_run == "yes")

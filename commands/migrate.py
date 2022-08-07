@@ -11,10 +11,10 @@ def load_file_into_array(file_name):
   return lines
 
 
-# migrate() - Entrypoint for !migrate command
-# message[required]: discord.Message
-# This function is the main entrypoint of the !migrate command
 async def migrate(message:discord.Message):
+  """
+  This function is the main entrypoint of the !migrate command
+  """
 
   shows = {
     "tng": {
@@ -159,7 +159,7 @@ async def migrate(message:discord.Message):
           this_episode["title"] = episode_details["name"]
           this_episode["tvdb"] = episode_details["id"]
 
-        except:
+        except Exception:
           failed = failed + 1
           logger.warning("This episode does not exist[" + str(failed) + "][" + str(moveon) + "]: s" + tseason + "e" + tepisode)
           await asyncio.sleep(.3)
@@ -190,7 +190,7 @@ async def migrate(message:discord.Message):
           for s in episode_stills["stills"]:
             tstills.append(TMDB_IMG_PATH + s["file_path"])
           this_episode["stills"] = tstills
-        except:
+        except Exception:
             pass
 
         episodes.append(this_episode)

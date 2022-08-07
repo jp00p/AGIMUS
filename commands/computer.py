@@ -145,14 +145,16 @@ def get_random_title():
   ]
   return random.choice(titles)
 
-# We may want to catch a couple questions with Ship Computer-specific answers.
-# Rather than trying to parse the question for these, we can catch the specific
-# answer that is returned by WA and infer that it should have a different answer instead.
-#
-# e.g. "Who are you?" and "What is your name?" both return "My name is Wolfram|Alpha."
-# so we only need to catch that answer versus trying to figure out all permutations that
-# would prompt it.
 def catch_special_case_responses(answer):
+  """
+  We may want to catch a couple questions with Ship Computer-specific answers.
+  Rather than trying to parse the question for these, we can catch the specific
+  answer that is returned by WA and infer that it should have a different answer instead.
+
+  e.g. "Who are you?" and "What is your name?" both return "My name is Wolfram|Alpha."
+  so we only need to catch that answer versus trying to figure out all permutations that
+  would prompt it.
+  """
   special_cases = {
     "My name is Wolfram|Alpha.": "I am The USS Hood Main Library Computer.",
     "I was created by Stephen Wolfram and his team.": "I was designed by various data cybernetic scientists at The Daystrom Institute.",
@@ -164,7 +166,6 @@ def catch_special_case_responses(answer):
 
   for key in special_cases.keys():
     if key in answer:
-      answer = special_cases[key]
-      break
+      return special_cases[key]
 
   return answer

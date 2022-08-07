@@ -24,8 +24,6 @@ for show_key in show_keys:
     )
     show_choices.append(show_choice)
 
-# info() - Entrypoint for /info command
-# This function is the main entrypoint of the /info command
 @bot.slash_command(
   name="info",
   description="Get information about episodes of a show"
@@ -43,6 +41,9 @@ for show_key in show_keys:
 )
 @commands.check(access_check)
 async def info(ctx:discord.ApplicationContext, show:str, episode:str):
+  """
+  This function is the main entrypoint of the /info command
+  """
   try:
     logger.info(f"{Fore.CYAN}Firing /info command!{Fore.RESET}")
     if not bool(re.search(r'^s\d\de\d\d$', episode, re.IGNORECASE)):
@@ -74,10 +75,10 @@ async def info(ctx:discord.ApplicationContext, show:str, episode:str):
       display_embed = get_show_embed(show_data, episode_index, show)
       await ctx.respond(embed=display_embed)
     else:
-      await ctx.respond("Could not find this episode.\n" \
-        + "If this episode should exist, or is incorrect, help fix the source data here:\n" \
-        + "https://github.com/jp00p/FoDBot-SQL/tree/main/data/episodes",
+      await ctx.respond("Could not find this episode.\n"
+         "If this episode should exist, or is incorrect, help fix the source data here:\n"
+         "https://github.com/jp00p/FoDBot-SQL/tree/main/data/episodes",
         ephemeral=True
       )
-  except BaseException as e:
+  except Exception as e:
     logger.info(f">>> ERROR: {e}")
