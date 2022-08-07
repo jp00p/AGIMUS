@@ -218,7 +218,7 @@
         "general-trek"
       ],
       "crontab": "15 8 * * WED",
-      "enabled": false
+      "enabled": true
     },
     "backups":{
       "crontab": "0 */6 * * *",
