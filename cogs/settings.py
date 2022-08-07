@@ -261,7 +261,7 @@ class Settings(commands.Cog):
     thumbnail = discord.File(fp="./images/templates/settings/xp_system.png", filename="xp_system.png")
     embed = discord.Embed(
       title="XP System Preferences",
-      description=f"The XP System on the USS Hood awards users XP points for participating in the server in various ways. Some of these include posting messages, reacting to messages, and receiving reactions to your own messages.\n\nOnce you've received a set amount of XP, you will Level Up and receive a new Badge with a notification in {badge_channel.mention}. You can use `/badges` to see the various badge-specific commands available for taking a look at your collection!\n\nIf you don't wish to participate, you can configure that here. You can always re-enable if desired in the future!",
+      description=f"The XP System on the USS Hood awards users XP for participating in the server in various ways. Some of these include posting messages, reacting to messages, and receiving reactions to your own messages.\n\nOnce you've received a set amount of XP, you will Level Up and receive a new Badge with a notification in {badge_channel.mention}. You can start typing `/badges` to see the various badge-specific commands available for taking a look at your collection!\n\nIf you don't wish to participate, you can configure that here. You can always re-enable if desired in the future!",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
