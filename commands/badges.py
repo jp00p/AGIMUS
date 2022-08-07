@@ -328,7 +328,7 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   embed.add_field(name="Total badges collected\non the USS Hood", value=f"{results['total_badges'][0]['count']}", inline=True)
   embed.add_field(name=f"{get_emoji('combadge')}", value="⠀", inline=True)
   embed.add_field(name="Badges collected today", value=f"{results['badges_today'][0]['count']}", inline=True)
-  embed.add_field(name="Top 3 most-collected badges", value=str("\n".join(f"{t['badge_name'].replace('_', ' ').replace('.png', '')} ({t['count']})" for t in top_three)), inline=True)
+  embed.add_field(name="Top 3 most-collected badges", value=str("\n".join(f"{t['badge_filename'].replace('_', ' ').replace('.png', '')} ({t['count']})" for t in top_three)), inline=True)
   embed.add_field(name=f"{get_emoji('combadge')}", value="⠀", inline=True)
   embed.add_field(name="Top 3 badge collectors", value=str("\n".join(f"{t['name']} ({t['count']})" for t in top_collectors)), inline=True)
   await ctx.respond(embed=embed, ephemeral=False)
@@ -477,7 +477,7 @@ def db_get_all_affiliation_badges(affiliation):
   sql = '''
     SELECT badge_name FROM badge_info b_i
       JOIN badge_affiliation AS b_a
-        ON b_i.id = b_a.badge_id
+        ON b_i.badge_filename = b_a.badge_filename
       WHERE b_a.affiliation_name = %s
   '''
   vals = (affiliation,)
@@ -497,9 +497,9 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
   sql = '''
     SELECT b_i.badge_name FROM badges b
       JOIN badge_info AS b_i
-        ON b.badge_name = b_i.badge_filename
+        ON b.badge_filename = b_i.badge_filename
       JOIN badge_affiliation AS b_a
-        ON b_i.id = b_a.badge_id
+        ON b_i.badge_filename = b_a.badge_filename
       WHERE b.user_discord_id = %s
         AND b_a.affiliation_name = %s
   '''
@@ -553,7 +553,7 @@ def db_get_badges_user_has_from_franchise(user_id, franchise):
   sql = '''
     SELECT b_i.badge_name FROM badges b
       JOIN badge_info AS b_i
-        ON b.badge_name = b_i.badge_filename
+        ON b.badge_filename = b_i.badge_filename
       WHERE b.user_discord_id = %s
         AND b_i.franchise = %s
   '''
@@ -615,7 +615,7 @@ def db_get_badges_user_has_from_time_period(user_id, time_period):
   sql = '''
     SELECT b_i.badge_name FROM badges b
       JOIN badge_info AS b_i
-        ON b.badge_name = b_i.badge_filename
+        ON b.badge_filename = b_i.badge_filename
       WHERE b.user_discord_id = %s
         AND b_i.time_period = %s
   '''
@@ -651,7 +651,7 @@ def db_get_all_type_badges(type):
   sql = '''
     SELECT badge_name FROM badge_info b_i
       JOIN badge_type AS b_t
-        ON b_i.id = b_t.badge_id
+        ON b_i.badge_filename = b_t.badge_filename
       WHERE b_t.type_name = %s
   '''
   vals = (type,)
@@ -671,9 +671,9 @@ def db_get_badges_user_has_from_type(user_id, type):
   sql = '''
     SELECT b_i.badge_name FROM badges b
       JOIN badge_info AS b_i
-        ON b.badge_name = b_i.badge_filename
+        ON b.badge_filename = b_i.badge_filename
       JOIN badge_type AS b_t
-        ON b_i.id = b_t.badge_id
+        ON b_i.badge_filename = b_t.badge_filename
       WHERE b.user_discord_id = %s
         AND b_t.type_name = %s
   '''
@@ -703,7 +703,7 @@ def give_user_badge(user_discord_id:int):
     badge_choice = random.choice(badges)
   db = getDB()
   query = db.cursor()
-  sql = "INSERT INTO badges (user_discord_id, badge_name) VALUES (%s, %s)"
+  sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
   vals = (user_discord_id, badge_choice)
   query.execute(sql, vals)
   db.commit()
@@ -714,7 +714,7 @@ def give_user_badge(user_discord_id:int):
 def give_user_specific_badge(user_discord_id:int, badge_choice:str):
   db = getDB()
   query = db.cursor()
-  sql = "INSERT INTO badges (user_discord_id, badge_name) VALUES (%s, %s)"
+  sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
   vals = (user_discord_id, badge_choice)
   query.execute(sql, vals)
   db.commit()
@@ -728,7 +728,7 @@ def give_user_specific_badge(user_discord_id:int, badge_choice:str):
 def get_user_badges(user_discord_id:int):
   db = getDB()
   query = db.cursor()
-  sql = "SELECT badge_name FROM badges WHERE user_discord_id = %s ORDER BY badge_name ASC"
+  sql = "SELECT badge_filename FROM badges WHERE user_discord_id = %s ORDER BY badge_filename ASC"
   vals = (user_discord_id,)
   query.execute(sql, vals)
   badges = [badge[0] for badge in query.fetchall()]
@@ -738,7 +738,7 @@ def get_user_badges(user_discord_id:int):
 
 def run_badge_stats_queries():
   queries = {
-    "most_collected" : "SELECT badge_name, COUNT(id) as count FROM badges GROUP BY badge_name ORDER BY count DESC LIMIT 3;",
+    "most_collected" : "SELECT badge_filename, COUNT(id) as count FROM badges GROUP BY badge_filename ORDER BY count DESC LIMIT 3;",
     "total_badges" : "SELECT COUNT(id) as count FROM badges;",
     "badges_today" : "SELECT COUNT(id) as count FROM badges WHERE time_created > NOW() - INTERVAL 1 DAY;",
     "top_collectors" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 3;"

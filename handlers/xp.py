@@ -257,11 +257,11 @@ async def level_up_user(user:discord.User, level:int):
   await send_level_up_message(user, level, badge)
 
 def give_welcome_badge(user_id):
-  user_badge_names = [b['badge_name'] for b in db_get_user_badge_names(user_id)]
+  user_badge_names = [b['badge_filename'] for b in db_get_user_badge_names(user_id)]
   if "Friends_Of_DeSoto.png" not in user_badge_names:
     db = getDB()
     query = db.cursor()
-    sql = "INSERT INTO badges (user_discord_id, badge_name) VALUES (%s, 'Friends_Of_DeSoto.png');"
+    sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, 'Friends_Of_DeSoto.png');"
     vals = (user_id,)
     query.execute(sql, vals)
     db.commit()

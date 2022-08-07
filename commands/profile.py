@@ -49,7 +49,7 @@ async def set_tagline(ctx:discord.ApplicationContext, tagline:str):
 
 
 def user_badges_autocomplete(ctx:discord.AutocompleteContext):
-  user_badges = [b['badge_name'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(ctx.interaction.user.id)]
+  user_badges = [b['badge_filename'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(ctx.interaction.user.id)]
   if len(user_badges) == 0:
     user_badges = ["You don't have any badges yet!"]
   user_badges.sort()
@@ -81,7 +81,7 @@ async def set_profile_badge(ctx:discord.ApplicationContext, badge:str):
     return
 
   # Check to make sure they own the badge
-  user_badges = [b['badge_name'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(ctx.author.id)]
+  user_badges = [b['badge_filename'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(ctx.author.id)]
   if badge not in user_badges:
     await ctx.respond(embed=discord.Embed(
       title="Unable To Set Featured Profile Badge",
@@ -313,10 +313,10 @@ async def profile(ctx:discord.ApplicationContext, public:str):
     base_bg.paste(sticker_bg, (406+random.randint(-10,5), 886+random.randint(-3,3)), sticker_bg)
 
   # put badge on
-  if len(user["badges"]) > 0 and user['badges'][0]['badge_name']:
-    badge_name = user['badges'][0]['badge_name']
+  if len(user["badges"]) > 0 and user['badges'][0]['badge_filename']:
+    badge_filename = user['badges'][0]['badge_filename']
     user_badges = db_get_user_badge_names(user['discord_id'])
-    if badge_name not in [b['badge_name'] for b in user_badges]:
+    if badge_filename not in [b['badge_filename'] for b in user_badges]:
       # Catch if the user had a badge present that they no longer have, if so clear it from the table
       db_remove_user_profile_badge(user['discord_id'])
       if user["receive_notifications"]:
@@ -324,7 +324,7 @@ async def profile(ctx:discord.ApplicationContext, public:str):
           await ctx.author.send(
             embed=discord.Embed(
               title="Profile Badge No Longer Present",
-              description=f"Just a heads up, you had a badge on your profile previously, \"{badge_name.replace('_', ' ').replace('.png', '')}\", which is no longer in your inventory.\n\nYou can set a new featured badge with `/set_profile_badge`!",
+              description=f"Just a heads up, you had a badge on your profile previously, \"{badge_filename.replace('_', ' ').replace('.png', '')}\", which is no longer in your inventory.\n\nYou can set a new featured badge with `/set_profile_badge`!",
               color=discord.Color.red()
             )
           )
@@ -332,7 +332,7 @@ async def profile(ctx:discord.ApplicationContext, public:str):
           logger.info(f"Unable to send notification to {ctx.author.display_name} regarding their cleared profile badge, they have their DMs closed.")
     else:
       # Otherwise go ahead and stamp the badge on their profile PADD
-      badge_image = Image.open(f"./images/badges/{badge_name}").convert("RGBA").resize((170, 170))
+      badge_image = Image.open(f"./images/badges/{badge_filename}").convert("RGBA").resize((170, 170))
       base_bg.paste(badge_image, (540, 550), badge_image)
 
 
@@ -368,8 +368,8 @@ async def profile(ctx:discord.ApplicationContext, public:str):
 def db_remove_user_profile_badge(user_id):
   db = getDB()
   query = db.cursor()
-  sql = "REPLACE INTO profile_badges (badge_name, user_discord_id) VALUES (%(badge_name)s, %(user_discord_id)s)"
-  vals = {"badge_name" : "", "user_discord_id" : user_id}
+  sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
+  vals = {"badge_filename" : "", "user_discord_id" : user_id}
   logger.info(f"CLEARING PROFILE BADGE {sql}")
   query.execute(sql, vals)
   db.commit()
@@ -379,19 +379,20 @@ def db_remove_user_profile_badge(user_id):
 def db_add_user_profile_badge(user_id, badge):
   db = getDB()
   query = db.cursor()
-  sql = "REPLACE INTO profile_badges (badge_name, user_discord_id) VALUES (%(badge_name)s, %(user_discord_id)s)"
-  vals = {"badge_name" : badge, "user_discord_id" : user_id}
+  sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
+  vals = {"badge_filename" : badge, "user_discord_id" : user_id}
   logger.info(f"UPDATING PROFILE BADGE {sql} {vals}")
   query.execute(sql, vals)
   db.commit()
   query.close()
   db.close()
 
-def db_get_badge_filename_for_badge(badge):
+# Given a badge name, retrieves the badge_filename
+def db_get_badge_filename_for_badge(badge_name):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = "SELECT badge_filename FROM badge_info WHERE badge_name = %s"
-  vals = (badge,)
+  vals = (badge_name,)
   query.execute(sql, vals)
   row = query.fetchone()
   query.close()
