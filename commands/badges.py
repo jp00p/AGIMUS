@@ -745,7 +745,7 @@ def get_user_badges(user_discord_id:int):
 
 def run_badge_stats_queries():
   queries = {
-    "most_collected" : "SELECT badge_name, COUNT(id) as count FROM badges GROUP BY badge_name ORDER BY count DESC LIMIT 3;",
+    "most_collected" : "SELECT badge_filename, COUNT(id) as count FROM badges GROUP BY badge_filename ORDER BY count DESC LIMIT 3;",
     "total_badges" : "SELECT COUNT(id) as count FROM badges;",
     "badges_today" : "SELECT COUNT(id) as count FROM badges WHERE time_created > NOW() - INTERVAL 1 DAY;",
     "top_collectors" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 3;"
