@@ -311,37 +311,113 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
       else:
         await ctx.followup.send(files=chunk, ephemeral=not public)
 
+#
+# XXX
+#
 @badge_group.command(
   name="completion",
   description="Get a report of how close to completion you are on various sets."
 )
-async def completion(ctx:discord.ApplicationContext):
-  report = db_get_set_completion_for_affiliations(ctx.author.id)
-  report = _append_featured_completion_badges(ctx.author.id, report)
-  # report_string = ''
-  # for r in report:
-  #   report_string += f"**{r['name']}** - {int(r['percentage'])}% ({r['owned']} of {r['total']})\n"
-  embed = discord.Embed(
-    title="Badge Set Completion - Affiliations",
-    # description=report_string,
-    color=discord.Color.blurple()
-  )
+@option(
+  name="public",
+  description="Show to public?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="No",
+      value="no"
+    ),
+    discord.OptionChoice(
+      name="Yes",
+      value="yes"
+    )
+  ]
+)
+@option(
+  name="category",
+  description="Which category of set?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="Affiliation",
+      value="affiliation"
+    ),
+    discord.OptionChoice(
+      name="Franchise",
+      value="franchise"
+    ),
+    discord.OptionChoice(
+      name="Time Period",
+      value="time_period"
+    ),
+    discord.OptionChoice(
+      name="Type",
+      value="type"
+    )
+  ]
+)
+@option(
+  name="color",
+  description="Which colorscheme would you like?",
+  required=False,
+  choices = [
+    discord.OptionChoice(name=color_choice, value=color_choice.lower())
+    for color_choice in ["Green", "Orange", "Purple", "Teal"]
+  ]
+)
+async def completion(ctx:discord.ApplicationContext, public:str, category:str, color:str):
+  public = bool(public == "yes")
+  await ctx.defer(ephemeral=not public)
 
-  user = ctx.author
-  page = report
-  page_number = 1
-  total_pages = 1
-  total_user_badges = 69
+  all_rows = db_get_set_completion_for_affiliations(ctx.author.id)
+  all_rows = _append_featured_completion_badges(ctx.author.id, all_rows)
+
+  total_badges = 69
   title = "VitaZed's Set Completion - Affiliations"
   collected = "69 of 420 ON THE USS HOOD"
   filename_prefix = f"badge_set_completion_{ctx.author.id}_affiliations-page-"
 
-  completion_image = await generate_badge_completion_images(
-    user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix
+  completion_images = await generate_paginated_set_completion_images(ctx.author, all_rows, total_badges, title, collected, filename_prefix)
+
+  embed = discord.Embed(
+    title="Badge Set Completion - Affiliations",
+    color=discord.Color.blurple()
   )
 
-  await ctx.respond(embed=embed, file=completion_image, ephemeral=True)
-  # await ctx.respond("Thanks! ^_^", ephemeral=True)
+  # If we're doing a public display, use the images directly
+  # Otherwise private displays can use the paginator
+  if not public:
+    buttons = [
+      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_rows) <= 7), row=1),
+      pages.PaginatorButton(
+        "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
+      ),
+      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_rows) <= 7), row=1),
+    ]
+
+    set_pages = [
+      pages.Page(files=[image], embeds=[embed])
+      for image in completion_images
+    ]
+    paginator = pages.Paginator(
+        pages=set_pages,
+        show_disabled=True,
+        show_indicator=True,
+        use_default_buttons=False,
+        custom_buttons=buttons,
+        loop_pages=True
+    )
+    await paginator.respond(ctx.interaction, ephemeral=True)
+  else:
+    # We can only attach up to 10 files per message, so if it's public send them in chunks
+    file_chunks = [completion_images[i:i + 10] for i in range(0, len(completion_images), 10)]
+    for chunk_index, chunk in enumerate(file_chunks):
+      # Only post the embed on the last chunk
+      if chunk_index + 1 == len(file_chunks):
+        await ctx.followup.send(embed=embed, files=chunk, ephemeral=not public)
+      else:
+        await ctx.followup.send(files=chunk, ephemeral=not public)
+
 
 def _append_featured_completion_badges(user_id, report):
   for r in report:
@@ -612,7 +688,6 @@ def db_get_set_completion_for_affiliations(user_id):
     } for r in rows if r['ownedBadgeCount'] != 0
   ]
   results = sorted(results, key=lambda r: r['percentage'], reverse=True)
-  logger.info(pprint(results))
   return results
 
 # Franchises
