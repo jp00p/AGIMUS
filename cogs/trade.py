@@ -1,5 +1,5 @@
 from common import *
-from utils.badge_utils import generate_badge_trade_showcase, db_get_user_badge_names
+from utils.badge_utils import generate_badge_trade_showcase, db_get_user_badges
 from utils.check_channel_access import access_check
 
 f = open("./data/rules_of_acquisition.txt", "r")
@@ -13,7 +13,6 @@ f.close()
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
-
 async def autocomplete_badges(ctx:discord.AutocompleteContext):
   action = ctx.options["action"]
   active_trade = db_get_active_requestor_trade(ctx.interaction.user.id)
@@ -30,8 +29,8 @@ async def autocomplete_badges(ctx:discord.AutocompleteContext):
   return results
 
 async def _autocomplete_requestor_badges(ctx, requestor_id, requestee_id):
-  requestor_badges = [b['badge_filename'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(requestor_id)] # @TODO improve query to pull badge_name
-  requestee_badges = [b['badge_filename'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(requestee_id)] # @TODO improve query to pull badge_name
+  requestor_badges = [b['badge_name'] for b in db_get_user_badges(requestor_id)]
+  requestee_badges = [b['badge_name'] for b in db_get_user_badges(requestee_id)]
   badge_names = [b for b in requestor_badges if b not in requestee_badges]
   if len(badge_names) == 0:
     badge_names = ["This user already has all badges that you possess! Use '/trade cancel' to cancel this trade."]
@@ -41,8 +40,8 @@ async def _autocomplete_requestor_badges(ctx, requestor_id, requestee_id):
   return [result for result in badge_names if ctx.value.lower() in result.lower()]
 
 async def _autocomplete_requestee_badges(ctx, requestee_id, requestor_id):
-  requestor_badges = [b['badge_filename'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(requestor_id)] # @TODO improve query to pull badge_name
-  requestee_badges = [b['badge_filename'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(requestee_id)] # @TODO improve query to pull badge name
+  requestor_badges = [b['badge_name'] for b in db_get_user_badges(requestor_id)]
+  requestee_badges = [b['badge_name'] for b in db_get_user_badges(requestee_id)]
   badge_names = [b for b in requestee_badges if b not in requestor_badges]
   if len(badge_names) == 0:
       badge_names = ["You already have all badges that this user possesses! Use '/trade cancel' to cancel this trade."]
@@ -402,8 +401,7 @@ class Trade(commands.Cog):
 
 
   async def _requestor_already_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
-    requestor_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in requestor_badges]
+    requestor_badges = [b['badge_name'] for b in db_get_user_badges(active_trade["requestor_id"])]
 
     trade_requested_badges = db_get_trade_requested_badges(active_trade)
     trade_requested_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in trade_requested_badges]
@@ -447,8 +445,7 @@ class Trade(commands.Cog):
 
 
   async def _requestee_already_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
-    requestee_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in requestee_badges]
+    requestee_badges = [b['badge_name'] for b in db_get_user_badges(active_trade["requestee_id"])]
 
     trade_offered_badges = db_get_trade_offered_badges(active_trade)
     trade_offered_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in trade_offered_badges]
@@ -491,8 +488,7 @@ class Trade(commands.Cog):
     return False
 
   async def _requestor_still_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
-    requestor_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in requestor_badges]
+    requestor_badges = [b['badge_name'] for b in db_get_user_badges(active_trade["requestor_id"])]
 
     trade_offered_badges = db_get_trade_offered_badges(active_trade)
     trade_offered_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in trade_offered_badges]
@@ -535,8 +531,7 @@ class Trade(commands.Cog):
     return True
 
   async def _requestee_still_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
-    requestee_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in requestee_badges]
+    requestee_badges = [b["badge_name"] for b in db_get_user_badges(active_trade["requestee_id"])]
 
     trade_requested_badges = db_get_trade_requested_badges(active_trade)
     trade_requested_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in trade_requested_badges]
@@ -1031,12 +1026,10 @@ class Trade(commands.Cog):
   async def _add_offered_badge_to_trade(self, ctx, active_trade, badge):
     # Don't need to check for active because already done so in propose()
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
-    requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
-    requestee_badge_names = [b["badge_filename"].replace(".png", "").replace("_", " ") for b in requestee_badges]
+    requestee_badge_names = [b["badge_name"] for b in db_get_user_badges(active_trade["requestee_id"])]
 
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
-    requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
-    requestor_badge_names = [b["badge_filename"].replace(".png", "").replace("_", " ") for b in requestor_badges]
+    requestor_badge_names = [b["badge_name"] for b in db_get_user_badges(active_trade["requestor_id"])]
 
     logger.info(f"{Fore.CYAN}{requestor.display_name} is looking to offer `{badge}` to {requestee.display_name}.")
 
@@ -1106,12 +1099,10 @@ class Trade(commands.Cog):
   async def _add_requested_badge_to_trade(self, ctx, active_trade, badge):
     # Don't need to check for active because already done so in propose()
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
-    requestee_badges = db_get_user_badge_names(active_trade["requestee_id"])
-    requestee_badge_names = [b["badge_filename"].replace(".png", "").replace("_", " ") for b in requestee_badges]
+    requestee_badge_names = [b["badge_name"] for b in db_get_user_badges(active_trade["requestee_id"])]
 
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
-    requestor_badges = db_get_user_badge_names(active_trade["requestor_id"])
-    requestor_badge_names = [b["badge_filename"].replace(".png", "").replace("_", " ") for b in requestor_badges]
+    requestor_badge_names = [b["badge_name"] for b in db_get_user_badges(active_trade["requestor_id"])]
 
     logger.info(f"{Fore.CYAN}{requestor.display_name} is looking to request `{badge}` from {requestee.display_name}.")
 

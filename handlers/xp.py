@@ -3,7 +3,7 @@ from time import sleep
 from numpy import block
 from common import *
 from commands.badges import give_user_badge, send_badge_reward_message
-from utils.badge_utils import db_get_user_badge_names
+from utils.badge_utils import db_get_user_badges
 
 # rainbow of colors to cycle through for the logs
 xp_colors = [
@@ -257,7 +257,7 @@ async def level_up_user(user:discord.User, level:int):
   await send_level_up_message(user, level, badge)
 
 def give_welcome_badge(user_id):
-  user_badge_names = [b['badge_filename'] for b in db_get_user_badge_names(user_id)]
+  user_badge_names = [b['badge_filename'] for b in db_get_user_badges(user_id)]
   if "Friends_Of_DeSoto.png" not in user_badge_names:
     db = getDB()
     query = db.cursor()
