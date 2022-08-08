@@ -220,7 +220,7 @@
       "crontab": "15 8 * * WED",
       "enabled": true
     },
-    "backups":{
+    "backups": {
       "crontab": "0 */6 * * *",
       "enabled": false
     },
@@ -649,7 +649,7 @@
     },
     "trade send": {
       "channels": [
-        "badgeys-badges"
+        "bahrats-bazaar"
       ],
       "enabled": true,
       "data": null,
@@ -657,7 +657,7 @@
     },
     "trade cancel": {
       "channels": [
-        "badgeys-badges"
+        "bahrats-bazaar"
       ],
       "enabled": true,
       "data": null,
@@ -665,7 +665,7 @@
     },
     "trade start": {
       "channels": [
-        "badgeys-badges"
+        "bahrats-bazaar"
       ],
       "enabled": true,
       "data": null,
@@ -673,7 +673,7 @@
     },
     "trade propose": {
       "channels": [
-        "badgeys-badges"
+        "bahrats-bazaar"
       ],
       "enabled": true,
       "data": null,
@@ -681,7 +681,7 @@
     },
     "trade pending": {
       "channels": [
-        "badgeys-badges"
+        "bahrats-bazaar"
       ],
       "enabled": true,
       "data": null,
@@ -689,7 +689,7 @@
     },
     "trade status": {
       "channels": [
-        "badgeys-badges"
+        "bahrats-bazaar"
       ],
       "enabled": true,
       "data": null,
