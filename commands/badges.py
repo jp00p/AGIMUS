@@ -320,17 +320,20 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   """
   slash command to get common badge stats
   """
+  emoji_numbers = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
   results = {}
   results = run_badge_stats_queries()
+  total_badges = "".join(emoji_numbers[int(n)] for n in list(str(results['total_badges'][0]['count'])))
+  badges_today = "".join(emoji_numbers[int(n)] for n in list(str(results['badges_today'][0]['count'])))
   top_collectors = [res for res in results["top_collectors"]]
   top_three = [res for res in results["most_collected"]]
   embed = discord.Embed(color=discord.Color.random(), description="", title="")
-  embed.add_field(name="Total badges collected\non the USS Hood", value=f"{results['total_badges'][0]['count']}", inline=True)
-  embed.add_field(name=f"{get_emoji('combadge')}", value="⠀", inline=True)
-  embed.add_field(name="Badges collected today", value=f"{results['badges_today'][0]['count']}", inline=True)
-  embed.add_field(name="Top 3 most-collected badges", value=str("\n".join(f"{t['badge_filename'].replace('_', ' ').replace('.png', '')} ({t['count']})" for t in top_three)), inline=True)
-  embed.add_field(name=f"{get_emoji('combadge')}", value="⠀", inline=True)
-  embed.add_field(name="Top 3 badge collectors", value=str("\n".join(f"{t['name']} ({t['count']})" for t in top_collectors)), inline=True)
+  embed.add_field(name=f"{get_emoji('combadge')} Total badges collected\non the USS Hood", value=f"{total_badges}\n⠀", inline=True)
+  embed.add_field(name="⠀", value="⠀", inline=True)
+  embed.add_field(name=f"{get_emoji('combadge')} Badges collected in\nthe last 24 hours", value=f"{badges_today}\n⠀", inline=True)
+  embed.add_field(name=f"{get_emoji('combadge')} Top 5 most collected", value=str("\n".join(f"{t['badge_filename'].replace('_', ' ').replace('.png', '')} ({t['count']})" for t in top_three)), inline=True)
+  embed.add_field(name="⠀", value="⠀", inline=True)
+  embed.add_field(name=f"{get_emoji('combadge')} Top 5 badge collectors", value=str("\n".join(f"{t['name']} ({t['count']})" for t in top_collectors)), inline=True)
   await ctx.respond(embed=embed, ephemeral=False)
 
 
@@ -738,10 +741,10 @@ def get_user_badges(user_discord_id:int):
 
 def run_badge_stats_queries():
   queries = {
-    "most_collected" : "SELECT badge_filename, COUNT(id) as count FROM badges GROUP BY badge_filename ORDER BY count DESC LIMIT 3;",
+    "most_collected" : "SELECT badge_filename, COUNT(id) as count FROM badges WHERE badge_filename != 'Friends_Of_DeSoto.png' GROUP BY badge_filename ORDER BY count DESC LIMIT 5;",
     "total_badges" : "SELECT COUNT(id) as count FROM badges;",
     "badges_today" : "SELECT COUNT(id) as count FROM badges WHERE time_created > NOW() - INTERVAL 1 DAY;",
-    "top_collectors" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 3;"
+    "top_collectors" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 5;"
   }
   db = getDB()
   results = {}
