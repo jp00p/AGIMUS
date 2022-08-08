@@ -243,7 +243,6 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
 
   all_badges = []
   for badge in all_set_badges:
-    # badge_filename = badge.replace(" ", "_").replace("/", "-").replace(":", "-")
     record = {
       'badge_name': badge['badge_name'],
       'badge_filename': badge['badge_filename'],
@@ -807,10 +806,7 @@ def db_get_all_franchise_badges(franchise):
   query.close()
   db.close()
 
-  franchise_badges = [r['badge_name'] for r in rows]
-  franchise_badges.sort()
-
-  return franchise_badges
+  return rows
 
 def db_get_badges_user_has_from_franchise(user_id, franchise):
   db = getDB()
