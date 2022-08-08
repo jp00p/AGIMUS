@@ -362,6 +362,7 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
     for color_choice in ["Green", "Orange", "Purple", "Teal"]
   ]
 )
+@commands.check(access_check)
 async def completion(ctx:discord.ApplicationContext, public:str, category:str, color:str):
   public = bool(public == "yes")
   await ctx.defer(ephemeral=not public)
@@ -611,23 +612,22 @@ async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User,
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift {specific_badge}{Style.RESET_ALL} to {user.display_name}")
 
-  specific_badge_filename = f"{specific_badge.replace(' ', '_')}.png"
-  badge_info = badge_data.get(specific_badge_filename)
+  badge_info = db_get_badge_info_by_name(specific_badge)
   if badge_info == None:
     await ctx.respond(f"Can't send {specific_badge}, it doesn't look like that badge exists!", ephemeral=True)
     return
   else:
     user_badges = db_get_user_badges(user.id)
+    badge_filename = badge_info['badge_filename']
     if specific_badge not in [b['badge_name'] for b in user_badges]:
-      badge = specific_badge_filename
-      give_user_specific_badge(user.id, specific_badge_filename)
+      give_user_specific_badge(user.id, badge_filename)
 
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a badge!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has been gifted a badge by {ctx.author.mention}!"
   message = f"{user.mention} - Nice work, you got a free badge!"
-  await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
+  await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge_filename, user)
   await ctx.respond("Your gift has been sent!", ephemeral=True)
 
 
@@ -639,25 +639,25 @@ async def gift_specific_badge_error(ctx, error):
     await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
 
 
-async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge:str, user:discord.User):
-  badge_info = badge_data.get(badge)
-  badge_name = badge.replace("_", " ").replace(".png", "")
+async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge_filename:str, user:discord.User):
+  badge_info = db_get_badge_info_by_filename(badge_filename)
+
+  badge_name = badge_info['badge_name']
+  badge_url = badge_info['badge_url']
   star_str = "🌟 ⠀"*8
-  if badge_info:
-    badge_url = badge_info["badge_url"]
-    embed_description += f"\n\n**{badge_name}**\n{badge_url}"
+
+  embed_description += f"\n\n**{badge_name}**\n{badge_url}"
   embed_description += f"\n{star_str}\n"
+
   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
   embed.set_thumbnail(url=thumbnail_image)
   embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
-  if badge_info:
-    embed.set_image(url=f"{badge_info['image_url']}")
-    await channel.send(content=message, embed=embed)
-  else:
-    embed_filename = str(user.id) + str(abs(hash(badge_name))) + ".png"
-    discord_image = discord.File(fp=f"./images/badges/{badge}", filename=embed_filename)
-    embed.set_image(url=f"attachment://{embed_filename}")
-    await channel.send(content=message, file=discord_image, embed=embed)
+
+  embed_filename = str(user.id) + str(abs(hash(badge_name))) + ".png"
+  discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=embed_filename)
+  embed.set_image(url=f"attachment://{embed_filename}")
+
+  await channel.send(content=message, file=discord_image, embed=embed)
 
 
 # ________                      .__

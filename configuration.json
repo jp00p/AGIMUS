@@ -249,9 +249,18 @@
       "enabled": true,
       "parameters": []
     },
+    "badges completion": {
+      "channels": [
+        "badgeys-badges",
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "parameters": []
+    },
     "badges sets": {
       "channels": [
-        "badgeys-badges"
+        "badgeys-badges",
+        "bahrats-bazaar"
       ],
       "enabled": true,
       "parameters": []
