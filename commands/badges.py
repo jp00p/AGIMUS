@@ -477,9 +477,9 @@ async def badge_lookup(ctx:discord.ApplicationContext, name:str):
       description += f"Reference: **{badge['reference']}**\n"
 
       embed = discord.Embed(
-        title=f"Badge Lookup For \"{badge['badge_name']}\"",
+        title=badge['badge_name'],
         description=description,
-        color=0xFFFFFF
+        color=discord.Color.random() # jp00p made me do it
       )
       discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'])
       embed.set_image(url=f"attachment://{badge['badge_filename']}")
