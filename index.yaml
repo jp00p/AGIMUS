@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   agimus:
   - apiVersion: v2
+    appVersion: v1.4.17
+    created: "2022-08-08T17:44:09.359257258Z"
+    description: A helm chart for a discord bot that also runs a mysql db
+    digest: 7d5b3d6d72c2839e84167381beabf8b849c8702b5d3e03ea3c3b50385e2d004a
+    name: agimus
+    type: application
+    urls:
+    - https://github.com/jp00p/AGIMUS/releases/download/agimus-v1.4.17/agimus-v1.4.17.tgz
+    version: v1.4.17
+  - apiVersion: v2
     appVersion: v1.4.16
     created: "2022-08-08T17:04:53.729762837Z"
     description: A helm chart for a discord bot that also runs a mysql db
