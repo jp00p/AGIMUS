@@ -18,9 +18,10 @@ f.close()
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
 
+all_badge_info = db_get_all_badge_info()
+
 async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
-  all_badges = [key.replace('_', ' ').replace('.png', '') for key in badge_data.keys()]
-  return [badge for badge in all_badges if ctx.value.lower() in badge.lower()]
+  return [badge['badge_name'] for badge in all_badge_info if ctx.value.lower() in badge['badge_name'].lower()]
 
 async def autocomplete_selections(ctx:discord.AutocompleteContext):
   category = ctx.options["category"]
@@ -242,11 +243,11 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
 
   all_badges = []
   for badge in all_set_badges:
-    badge_filename = badge.replace(" ", "_").replace("/", "-").replace(":", "-")
+    # badge_filename = badge.replace(" ", "_").replace("/", "-").replace(":", "-")
     record = {
-      'badge_name': badge,
-      'badge_filename': f"{badge_filename}.png",
-      'in_user_collection': badge in user_set_badges
+      'badge_name': badge['badge_name'],
+      'badge_filename': badge['badge_filename'],
+      'in_user_collection': badge['badge_name'] in [b['badge_name'] for b in user_set_badges]
     }
     all_badges.append(record)
 
@@ -433,22 +434,25 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
 def _append_featured_completion_badges(user_id, report, category):
   for r in report:
     if category == "affiliation":
-      badges = db_get_badge_filenames_user_has_from_affiliation(user_id, r['name'])
+      badges = db_get_badges_user_has_from_affiliation(user_id, r['name'])
     elif category == "franchise":
-      badges = db_get_badge_filenames_user_has_from_franchise(user_id, r['name'])
+      badges = db_get_badges_user_has_from_franchise(user_id, r['name'])
     elif category == "time_period":
-      badges = db_get_badge_filenames_user_has_from_time_period(user_id, r['name'])
+      badges = db_get_badges_user_has_from_time_period(user_id, r['name'])
     if category == "type":
-      badges = db_get_badge_filenames_user_has_from_type(user_id, r['name'])
+      badges = db_get_badges_user_has_from_type(user_id, r['name'])
 
-    r['featured_badge'] = random.choice(badges)
+    selected_badge = random.choice(badges)
+    r['featured_badge'] = selected_badge['badge_filename']
   return report
 
-#
-#
-# Lookup
-#
-#
+
+# .____                  __
+# |    |    ____   ____ |  | ____ ________
+# |    |   /  _ \ /  _ \|  |/ /  |  \____ \
+# |    |__(  <_> |  <_> )    <|  |  /  |_> >
+# |_______ \____/ \____/|__|_ \____/|   __/
+#         \/                 \/     |__|
 @badge_group.command(
   name="lookup",
   description="Look up information about a specific badge"
@@ -470,11 +474,24 @@ async def badge_lookup(ctx:discord.ApplicationContext, name:str):
     logger.info(f"{Fore.CYAN}Firing /badge lookup command for '{name}'!{Fore.RESET}")
     badge = db_get_badge_info_by_name(name)
     if (badge):
+      affiliations = [
+        a['affiliation_name']
+        for a in db_get_badge_affiliations_by_badge_name(name)
+      ]
+      types = [
+        t['type_name']
+        for t in db_get_badge_types_by_badge_name(name)
+      ]
 
       description = f"Quadrant: **{badge['quadrant']}**\n"
       description += f"Time Period: **{badge['time_period']}**\n"
+      if affiliations:
+        description += f"Affiliations: **{','.join(affiliations)}**\n"
+      if types:
+        description += f"Types: **{','.join(types)}**\n"
       description += f"Franchise: **{badge['franchise']}**\n"
-      description += f"Reference: **{badge['reference']}**\n"
+      description += f"Reference: **{badge['reference']}**\n\n"
+      description += f"{badge['badge_url']}"
 
       embed = discord.Embed(
         title=f"{badge['badge_name']}",
@@ -650,27 +667,11 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
 
-def db_get_badge_info_by_name(name):
-  """
-  Given the name of a badge, retrieves its information from badge_info
-  :param name: the name of the badge.
-  :return:
-  """
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT * FROM badge_info WHERE badge_name = %s"
-  query.execute(sql, (name,))
-  row = query.fetchone()
-  query.close()
-  db.close()
-
-  return row
-
 # Affiliations
 def db_get_all_affiliations():
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = "SELECT distinct(affiliation_name) FROM badge_affiliation"
+  sql = "SELECT distinct(affiliation_name) FROM badge_affiliation;"
   query.execute(sql)
   rows = query.fetchall()
   query.close()
@@ -685,10 +686,11 @@ def db_get_all_affiliation_badges(affiliation):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT badge_name FROM badge_info b_i
+    SELECT b_i.badge_name, b_i.badge_filename FROM badge_info b_i
       JOIN badge_affiliation AS b_a
         ON b_i.badge_filename = b_a.badge_filename
       WHERE b_a.affiliation_name = %s
+      ORDER BY b_i.badge_name ASC;
   '''
   vals = (affiliation,)
   query.execute(sql, vals)
@@ -696,22 +698,42 @@ def db_get_all_affiliation_badges(affiliation):
   query.close()
   db.close()
 
-  affiliation_badges = [r['badge_name'] for r in rows]
-  affiliation_badges.sort()
+  return rows
 
-  return affiliation_badges
+def db_get_badge_affiliations_by_badge_name(name):
+  """
+  Given the name of a badge, retrieves the affiliation(s) associated with it
+  :param name: the name of the badge.
+  :return: list of row dicts
+  """
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT affiliation_name FROM badge_affiliation b_a
+    JOIN badge_info as b_i
+      ON b_i.badge_filename = b_a.badge_filename
+    WHERE badge_name = %s;
+  '''
+  vals = (name,)
+  query.execute(sql, vals)
+  rows = query.fetchall()
+  query.close()
+  db.close()
+
+  return rows
 
 def db_get_badges_user_has_from_affiliation(user_id, affiliation):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name FROM badges b
+    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
       JOIN badge_affiliation AS b_a
         ON b_i.badge_filename = b_a.badge_filename
       WHERE b.user_discord_id = %s
         AND b_a.affiliation_name = %s
+      ORDER BY b_i.badge_name ASC;
   '''
   vals = (user_id, affiliation)
   query.execute(sql, vals)
@@ -719,34 +741,7 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
   query.close()
   db.close()
 
-  user_badges = [r['badge_name'] for r in rows]
-  user_badges.sort()
-
-  return user_badges
-
-def db_get_badge_filenames_user_has_from_affiliation(user_id, affiliation):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_filename FROM badges b
-      JOIN badge_info AS b_i
-        ON b.badge_filename = b_i.badge_filename
-      JOIN badge_affiliation AS b_a
-        ON b_i.badge_filename = b_a.badge_filename
-      WHERE b.user_discord_id = %s
-        AND b_a.affiliation_name = %s
-  '''
-  vals = (user_id, affiliation)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  db.commit()
-  query.close()
-  db.close()
-
-  user_badges = [r['badge_filename'] for r in rows]
-  user_badges.sort()
-
-  return user_badges
+  return rows
 
 def db_get_set_completion_for_affiliations(user_id):
   db = getDB()
@@ -802,8 +797,9 @@ def db_get_all_franchise_badges(franchise):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT badge_name FROM badge_info b_i
+    SELECT badge_name, badge_filename FROM badge_info
       WHERE franchise = %s
+      ORDER BY badge_name ASC;
   '''
   vals = (franchise,)
   query.execute(sql, vals)
@@ -820,11 +816,12 @@ def db_get_badges_user_has_from_franchise(user_id, franchise):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name FROM badges b
+    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
       WHERE b.user_discord_id = %s
         AND b_i.franchise = %s
+      ORDER BY b_i.badge_name ASC;
   '''
   vals = (user_id, franchise)
   query.execute(sql, vals)
@@ -832,32 +829,7 @@ def db_get_badges_user_has_from_franchise(user_id, franchise):
   query.close()
   db.close()
 
-  user_badges = [r['badge_name'] for r in rows]
-  user_badges.sort()
-
-  return user_badges
-
-def db_get_badge_filenames_user_has_from_franchise(user_id, franchise):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_filename FROM badges b
-      JOIN badge_info AS b_i
-        ON b.badge_filename = b_i.badge_filename
-      WHERE b.user_discord_id = %s
-        AND b_i.franchise = %s
-  '''
-  vals = (user_id, franchise)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  db.commit()
-  query.close()
-  db.close()
-
-  user_badges = [r['badge_filename'] for r in rows]
-  user_badges.sort()
-
-  return user_badges
+  return rows
 
 def db_get_set_completion_for_franchises(user_id):
   db = getDB()
@@ -919,8 +891,9 @@ def db_get_all_time_period_badges(time_period):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT badge_name FROM badge_info b_i
+    SELECT badge_name, badge_filename FROM badge_info b_i
       WHERE time_period = %s
+      ORDER BY badge_name ASC
   '''
   vals = (time_period,)
   query.execute(sql, vals)
@@ -928,20 +901,18 @@ def db_get_all_time_period_badges(time_period):
   query.close()
   db.close()
 
-  time_period_badges = [r['badge_name'] for r in rows]
-  time_period_badges.sort()
-
-  return time_period_badges
+  return rows
 
 def db_get_badges_user_has_from_time_period(user_id, time_period):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name FROM badges b
+    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
       WHERE b.user_discord_id = %s
         AND b_i.time_period = %s
+      ORDER BY b_i.badge_name ASC
   '''
   vals = (user_id, time_period)
   query.execute(sql, vals)
@@ -949,33 +920,7 @@ def db_get_badges_user_has_from_time_period(user_id, time_period):
   query.close()
   db.close()
 
-  user_badges = [r['badge_name'] for r in rows]
-  user_badges.sort()
-
-  return user_badges
-
-
-def db_get_badge_filenames_user_has_from_time_period(user_id, franchise):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_filename FROM badges b
-      JOIN badge_info AS b_i
-        ON b.badge_filename = b_i.badge_filename
-      WHERE b.user_discord_id = %s
-        AND b_i.time_period = %s
-  '''
-  vals = (user_id, franchise)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  db.commit()
-  query.close()
-  db.close()
-
-  user_badges = [r['badge_filename'] for r in rows]
-  user_badges.sort()
-
-  return user_badges
+  return rows
 
 def db_get_set_completion_for_time_periods(user_id):
   db = getDB()
@@ -1029,10 +974,11 @@ def db_get_all_type_badges(type):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT badge_name FROM badge_info b_i
+    SELECT b_i.badge_name, b_i.badge_filename FROM badge_info b_i
       JOIN badge_type AS b_t
         ON b_i.badge_filename = b_t.badge_filename
       WHERE b_t.type_name = %s
+      ORDER BY b_i.badge_name ASC
   '''
   vals = (type,)
   query.execute(sql, vals)
@@ -1040,22 +986,43 @@ def db_get_all_type_badges(type):
   query.close()
   db.close()
 
-  type_badges = [r['badge_name'] for r in rows]
-  type_badges.sort()
+  return rows
 
-  return type_badges
+def db_get_badge_types_by_badge_name(name):
+  """
+  Given the name of a badge, retrieves the types(s) associated with it
+  :param name: the name of the badge.
+  :return: list of row dicts
+  """
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT type_name FROM badge_type b_t
+    JOIN badge_info as b_i
+      ON b_i.badge_filename = b_t.badge_filename
+    WHERE badge_name = %s;
+  '''
+  vals = (name,)
+  query.execute(sql, vals)
+  rows = query.fetchall()
+  query.close()
+  db.close()
+
+  return rows
+
 
 def db_get_badges_user_has_from_type(user_id, type):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name FROM badges b
+    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
       JOIN badge_type AS b_t
         ON b_i.badge_filename = b_t.badge_filename
       WHERE b.user_discord_id = %s
         AND b_t.type_name = %s
+      ORDER BY b_i.badge_name ASC
   '''
   vals = (user_id, type)
   query.execute(sql, vals)
@@ -1063,34 +1030,7 @@ def db_get_badges_user_has_from_type(user_id, type):
   query.close()
   db.close()
 
-  user_badges = [r['badge_name'] for r in rows]
-  user_badges.sort()
-
-  return user_badges
-
-def db_get_badge_filenames_user_has_from_type(user_id, type):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_filename FROM badges b
-      JOIN badge_info AS b_i
-        ON b.badge_filename = b_i.badge_filename
-      JOIN badge_type AS b_t
-        ON b_i.badge_filename = b_t.badge_filename
-      WHERE b.user_discord_id = %s
-        AND b_t.type_name = %s
-  '''
-  vals = (user_id, type)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  db.commit()
-  query.close()
-  db.close()
-
-  user_badges = [r['badge_filename'] for r in rows]
-  user_badges.sort()
-
-  return user_badges
+  return rows
 
 def db_get_set_completion_for_types(user_id):
   db = getDB()
