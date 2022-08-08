@@ -1,5 +1,5 @@
 from common import *
-from utils.badge_utils import generate_badge_trade_showcase, db_get_user_badges
+from utils.badge_utils import db_get_badge_info_by_name, generate_badge_trade_showcase, db_get_user_badges
 from utils.check_channel_access import access_check
 
 f = open("./data/rules_of_acquisition.txt", "r")
@@ -404,7 +404,7 @@ class Trade(commands.Cog):
     requestor_badges = [b['badge_name'] for b in db_get_user_badges(active_trade["requestor_id"])]
 
     trade_requested_badges = db_get_trade_requested_badges(active_trade)
-    trade_requested_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in trade_requested_badges]
+    trade_requested_badges = [b["badge_name"] for b in trade_requested_badges]
 
     badges_in_trade_requestor_has = [t for t in requestor_badges if t in trade_requested_badges]
 
@@ -448,7 +448,7 @@ class Trade(commands.Cog):
     requestee_badges = [b['badge_name'] for b in db_get_user_badges(active_trade["requestee_id"])]
 
     trade_offered_badges = db_get_trade_offered_badges(active_trade)
-    trade_offered_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in trade_offered_badges]
+    trade_offered_badges = [b["badge_name"] for b in trade_offered_badges]
 
     badges_in_trade_requestee_has = [t for t in requestee_badges if t in trade_offered_badges]
 
@@ -491,7 +491,7 @@ class Trade(commands.Cog):
     requestor_badges = [b['badge_name'] for b in db_get_user_badges(active_trade["requestor_id"])]
 
     trade_offered_badges = db_get_trade_offered_badges(active_trade)
-    trade_offered_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in trade_offered_badges]
+    trade_offered_badges = [b["badge_name"] for b in trade_offered_badges]
 
     badges_in_trade_requestor_has = [t for t in requestor_badges if t in trade_offered_badges]
 
@@ -534,7 +534,7 @@ class Trade(commands.Cog):
     requestee_badges = [b["badge_name"] for b in db_get_user_badges(active_trade["requestee_id"])]
 
     trade_requested_badges = db_get_trade_requested_badges(active_trade)
-    trade_requested_badges = [b["badge_filename"].replace('_', ' ').replace('.png', '') for b in trade_requested_badges]
+    trade_requested_badges = [b["badge_name"] for b in trade_requested_badges]
 
     badges_in_trade_requestee_has = [t for t in requestee_badges if t in trade_requested_badges]
 
@@ -1051,7 +1051,9 @@ class Trade(commands.Cog):
       ), ephemeral=True)
       return
 
-    badge_filename = f"{badge.replace(' ', '_')}.png"
+
+    badge_info = db_get_badge_info_by_name(badge)
+    badge_filename = badge_info['badge_filename']
     discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=badge_filename)
 
     trade_badges = db_get_trade_offered_badges(active_trade)
@@ -1124,7 +1126,8 @@ class Trade(commands.Cog):
       ), ephemeral=True)
       return
 
-    badge_filename = f"{badge.replace(' ', '_')}.png"
+    badge_info = db_get_badge_info_by_name(badge)
+    badge_filename = badge_info['badge_filename']
     discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=badge_filename)
 
     trade_badges = db_get_trade_requested_badges(active_trade)
