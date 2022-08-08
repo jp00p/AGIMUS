@@ -386,6 +386,8 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
   collected = f"{len(user_badges)} TOTAL ON THE USS HOOD"
   filename_prefix = f"badge_set_completion_{ctx.author.id}_affiliations-page-"
 
+  if color:
+    db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
   completion_images = await generate_paginated_set_completion_images(ctx.author, all_rows, total_badges, title, collected, filename_prefix)
 
   embed = discord.Embed(

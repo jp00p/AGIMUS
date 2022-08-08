@@ -314,15 +314,19 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
   if color_preference == "green":
     title_color = "#99B98D"
     highlight_color = "#54B145"
+    bar_color = "#265F26"
   elif color_preference == "orange":
     title_color = "#BD9789"
     highlight_color = "#BA6F3B"
+    bar_color = "#5F3C26"
   elif color_preference == "purple":
     title_color = "#6455A1"
     highlight_color = "#9593B2"
+    bar_color = "#31265F"
   elif color_preference == "teal":
     title_color = "#8DB9B5"
     highlight_color = "#47AAB1"
+    bar_color = "#265B5F"
 
   title_font = ImageFont.truetype("fonts/lcars3.ttf", 110)
   if len(user_display_name) > 16:
@@ -418,7 +422,7 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
       x, y = offset, 0
 
       base_shape = (x, y, (w+x, h+y))
-      r_draw.rectangle(base_shape, fill="#265B5F")
+      r_draw.rectangle(base_shape, fill=bar_color)
 
       percentage_shape = (x, y, ((set_row['percentage'] / 100)*w)+x, h+y)
       r_draw.rectangle(percentage_shape, fill=highlight_color)
