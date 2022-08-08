@@ -477,12 +477,12 @@ async def badge_lookup(ctx:discord.ApplicationContext, name:str):
       description += f"Reference: **{badge['reference']}**\n"
 
       embed = discord.Embed(
-        title=badge['badge_name'],
+        title=f"{badge['badge_name']}",
         description=description,
         color=discord.Color.random() # jp00p made me do it
       )
-      discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'])
-      embed.set_image(url=f"attachment://{badge['badge_filename']}")
+      discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'].replace(',','_'))
+      embed.set_image(url=f"attachment://{badge['badge_filename'].replace(',','_')}")
       await ctx.send_response(embed=embed, file=discord_image, ephemeral=True)
 
     else:
