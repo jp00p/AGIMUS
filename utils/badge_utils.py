@@ -456,6 +456,55 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
+def db_get_all_badge_info():
+  """
+  Returns all rows from badge_info table
+  :return: list of row dicts
+  """
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = "SELECT * FROM badge_info ORDER BY badge_name ASC;"
+  query.execute(sql)
+  rows = query.fetchall()
+  query.close()
+  db.close()
+
+  return rows
+
+def db_get_badge_info_by_name(name):
+  """
+  Given the name of a badge, retrieves its information from badge_info
+  :param name: the name of the badge.
+  :return: row dict
+  """
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = "SELECT * FROM badge_info WHERE badge_name = %s;"
+  vals = (name,)
+  query.execute(sql, vals)
+  row = query.fetchone()
+  query.close()
+  db.close()
+
+  return row
+
+def db_get_badge_info_by_filename(filename):
+  """
+  Given the filename of a badge, retrieves its information from badge_info
+  :param filename: the name of the badge.
+  :return: row dict
+  """
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = "SELECT * FROM badge_info WHERE badge_filename = %s;"
+  vals = (filename,)
+  query.execute(sql, vals)
+  row = query.fetchone()
+  query.close()
+  db.close()
+
+  return row
+
 def db_get_user_badges(user_discord_id:int):
   '''
     get_user_badges(user_discord_id)
@@ -469,6 +518,7 @@ def db_get_user_badges(user_discord_id:int):
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
         WHERE b.user_discord_id = %s
+        ORDER BY b_i.badge_filename ASC
   '''
   vals = (user_discord_id,)
   query.execute(sql, vals)
