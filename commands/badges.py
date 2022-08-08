@@ -79,20 +79,12 @@ async def showcase(ctx:discord.ApplicationContext, public:str, color:str):
   await ctx.defer(ephemeral=not public)
 
   badges = os.listdir("./images/badges/")
-  badge_list = get_user_badges(ctx.author.id)
-
-  all_badges = []
-  for badge in badge_list:
-    record = {
-      'badge_name': badge.replace("_", " ").replace(".png", ""),
-      'badge_filename': badge,
-    }
-    all_badges.append(record)
+  all_badges = db_get_user_badges(ctx.author.id)
 
   # Set up text values for paginated pages
   total_badges = len(badges)
   title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
-  collected = f"{len(badge_list)} TOTAL ON THE USS HOOD"
+  collected = f"{len(all_badges)} TOTAL ON THE USS HOOD"
   filename_prefix = f"badge_list_{ctx.author.id}-page-"
 
   if color:
@@ -373,18 +365,32 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
   public = bool(public == "yes")
   await ctx.defer(ephemeral=not public)
 
-  all_rows = db_get_set_completion_for_affiliations(ctx.author.id)
-  all_rows = _append_featured_completion_badges(ctx.author.id, all_rows)
+  all_badges = os.listdir("./images/badges/")
+  user_badges = db_get_user_badges(ctx.author.id)
 
-  total_badges = 69
-  title = "VitaZed's Set Completion - Affiliations"
-  collected = "69 of 420 ON THE USS HOOD"
+  all_rows = []
+  if category == "affiliation":
+    all_rows = db_get_set_completion_for_affiliations(ctx.author.id)
+  if category == "franchise":
+    all_rows = db_get_set_completion_for_franchises(ctx.author.id)
+  if category == "time_period":
+    all_rows = db_get_set_completion_for_time_periods(ctx.author.id)
+  if category == "type":
+    all_rows = db_get_set_completion_for_types(ctx.author.id)
+  all_rows = _append_featured_completion_badges(ctx.author.id, all_rows, category)
+
+  category_title = category.replace('_', ' ').title()
+
+  total_badges = len(all_badges)
+  title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Completion - {category_title}"
+  collected = f"{len(user_badges)} TOTAL ON THE USS HOOD"
   filename_prefix = f"badge_set_completion_{ctx.author.id}_affiliations-page-"
 
   completion_images = await generate_paginated_set_completion_images(ctx.author, all_rows, total_badges, title, collected, filename_prefix)
 
   embed = discord.Embed(
-    title="Badge Set Completion - Affiliations",
+    title=f"Badge Set Completion - {category_title}",
+    description=f"{ctx.author.mention}'s Current Set Completion Progress",
     color=discord.Color.blurple()
   )
 
@@ -422,9 +428,17 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
       else:
         await ctx.followup.send(files=chunk, ephemeral=not public)
 
-def _append_featured_completion_badges(user_id, report):
+def _append_featured_completion_badges(user_id, report, category):
   for r in report:
-    badges = db_get_badge_filenames_user_has_from_affiliation(user_id, r['name'])
+    if category == "affiliation":
+      badges = db_get_badge_filenames_user_has_from_affiliation(user_id, r['name'])
+    elif category == "franchise":
+      badges = db_get_badge_filenames_user_has_from_franchise(user_id, r['name'])
+    elif category == "time_period":
+      badges = db_get_badge_filenames_user_has_from_time_period(user_id, r['name'])
+    if category == "type":
+      badges = db_get_badge_filenames_user_has_from_type(user_id, r['name'])
+
     r['featured_badge'] = random.choice(badges)
   return report
 
@@ -458,7 +472,6 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   embed.add_field(name="⠀", value="⠀", inline=True)
   embed.add_field(name=f"{get_emoji('combadge')} Top 5 badge collectors", value=str("\n".join(f"{t['name']} ({t['count']})" for t in top_collectors)), inline=True)
   await ctx.respond(embed=embed, ephemeral=False)
-
 
 #   ________.__  _____  __
 #  /  _____/|__|/ ____\/  |_
@@ -538,8 +551,8 @@ async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User,
     await ctx.respond(f"Can't send {specific_badge}, it doesn't look like that badge exists!", ephemeral=True)
     return
   else:
-    user_badges = get_user_badges(user.id)
-    if specific_badge not in user_badges:
+    user_badges = db_get_user_badges(user.id)
+    if specific_badge not in [b['badge_name'] for b in user_badges]:
       badge = specific_badge_filename
       give_user_specific_badge(user.id, specific_badge_filename)
 
@@ -759,6 +772,61 @@ def db_get_badges_user_has_from_franchise(user_id, franchise):
 
   return user_badges
 
+def db_get_badge_filenames_user_has_from_franchise(user_id, franchise):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT b_i.badge_filename FROM badges b
+      JOIN badge_info AS b_i
+        ON b.badge_filename = b_i.badge_filename
+      WHERE b.user_discord_id = %s
+        AND b_i.franchise = %s
+  '''
+  vals = (user_id, franchise)
+  query.execute(sql, vals)
+  rows = query.fetchall()
+  db.commit()
+  query.close()
+  db.close()
+
+  user_badges = [r['badge_filename'] for r in rows]
+  user_badges.sort()
+
+  return user_badges
+
+def db_get_set_completion_for_franchises(user_id):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT
+        b_i.franchise,
+        count(DISTINCT b_i.badge_filename) as totalBadgeCount,
+        count(DISTINCT b.badge_filename) as ownedBadgeCount
+    FROM badge_info AS b_i
+    LEFT JOIN badges AS b
+        ON b_i.badge_filename = b.badge_filename
+        AND b.user_discord_id = %s
+    GROUP BY b_i.franchise;
+  '''
+  vals = (user_id,)
+  query.execute(sql, vals)
+  rows = query.fetchall()
+
+  db.commit()
+  query.close()
+  db.close()
+
+  results = [
+    {
+      "name": r['franchise'],
+      "owned": r['ownedBadgeCount'],
+      'total': r['totalBadgeCount'],
+      'percentage': int((r['ownedBadgeCount'] / r['totalBadgeCount']) * 100)
+    } for r in rows if r['ownedBadgeCount'] != 0
+  ]
+  results = sorted(results, key=lambda r: r['percentage'], reverse=True)
+  return results
+
 # Time Periods
 def db_get_all_time_periods():
   db = getDB()
@@ -821,6 +889,62 @@ def db_get_badges_user_has_from_time_period(user_id, time_period):
 
   return user_badges
 
+
+def db_get_badge_filenames_user_has_from_time_period(user_id, franchise):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT b_i.badge_filename FROM badges b
+      JOIN badge_info AS b_i
+        ON b.badge_filename = b_i.badge_filename
+      WHERE b.user_discord_id = %s
+        AND b_i.time_period = %s
+  '''
+  vals = (user_id, franchise)
+  query.execute(sql, vals)
+  rows = query.fetchall()
+  db.commit()
+  query.close()
+  db.close()
+
+  user_badges = [r['badge_filename'] for r in rows]
+  user_badges.sort()
+
+  return user_badges
+
+def db_get_set_completion_for_time_periods(user_id):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT
+        b_i.time_period,
+        count(DISTINCT b_i.badge_filename) as totalBadgeCount,
+        count(DISTINCT b.badge_filename) as ownedBadgeCount
+    FROM badge_info AS b_i
+    LEFT JOIN badges AS b
+        ON b_i.badge_filename = b.badge_filename
+        AND b.user_discord_id = %s
+    GROUP BY b_i.time_period;
+  '''
+  vals = (user_id,)
+  query.execute(sql, vals)
+  rows = query.fetchall()
+
+  db.commit()
+  query.close()
+  db.close()
+
+  results = [
+    {
+      "name": r['time_period'],
+      "owned": r['ownedBadgeCount'],
+      'total': r['totalBadgeCount'],
+      'percentage': int((r['ownedBadgeCount'] / r['totalBadgeCount']) * 100)
+    } for r in rows if r['ownedBadgeCount'] != 0
+  ]
+  results = sorted(results, key=lambda r: r['percentage'], reverse=True)
+  return results
+
 # Types
 def db_get_all_types():
   db = getDB()
@@ -879,6 +1003,64 @@ def db_get_badges_user_has_from_type(user_id, type):
 
   return user_badges
 
+def db_get_badge_filenames_user_has_from_type(user_id, type):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT b_i.badge_filename FROM badges b
+      JOIN badge_info AS b_i
+        ON b.badge_filename = b_i.badge_filename
+      JOIN badge_type AS b_t
+        ON b_i.badge_filename = b_t.badge_filename
+      WHERE b.user_discord_id = %s
+        AND b_t.type_name = %s
+  '''
+  vals = (user_id, type)
+  query.execute(sql, vals)
+  rows = query.fetchall()
+  db.commit()
+  query.close()
+  db.close()
+
+  user_badges = [r['badge_filename'] for r in rows]
+  user_badges.sort()
+
+  return user_badges
+
+def db_get_set_completion_for_types(user_id):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT
+        type_name,
+        count(DISTINCT b_i.badge_filename) as totalBadgeCount,
+        count(DISTINCT b.badge_filename) as ownedBadgeCount
+    FROM badge_info AS b_i
+    INNER JOIN badge_type AS b_t
+        ON b_i.badge_filename = b_t.badge_filename
+    LEFT JOIN badges AS b
+        ON b_i.badge_filename = b.badge_filename
+        AND b.user_discord_id = %s
+    GROUP BY b_t.type_name;
+  '''
+  vals = (user_id,)
+  query.execute(sql, vals)
+  rows = query.fetchall()
+
+  db.commit()
+  query.close()
+  db.close()
+
+  results = [
+    {
+      "name": r['type_name'],
+      "owned": r['ownedBadgeCount'],
+      'total': r['totalBadgeCount'],
+      'percentage': int((r['ownedBadgeCount'] / r['totalBadgeCount']) * 100)
+    } for r in rows if r['ownedBadgeCount'] != 0
+  ]
+  results = sorted(results, key=lambda r: r['percentage'], reverse=True)
+  return results
 
 # give_user_badge(user_discord_id)
 # user_discord_id[required]:int
@@ -887,7 +1069,7 @@ def give_user_badge(user_discord_id:int):
   # list files in images/badges directory
   badges = os.listdir("./images/badges/")
   # get the users current badges
-  user_badges = get_user_badges(user_discord_id)
+  user_badges = [b['badge_filename'] for b in db_get_user_badges(user_discord_id)]
   badge_choice = random.choice(badges)
   # don't give them a badge they already have
   while badge_choice in user_badges:
@@ -912,20 +1094,6 @@ def give_user_specific_badge(user_discord_id:int, badge_choice:str):
   query.close()
   db.close()
   return badge_choice
-
-# get_user_badges(user_discord_id)
-# user_discord_id[required]: int
-# returns a list of badges the user has
-def get_user_badges(user_discord_id:int):
-  db = getDB()
-  query = db.cursor()
-  sql = "SELECT badge_filename FROM badges WHERE user_discord_id = %s ORDER BY badge_filename ASC"
-  vals = (user_discord_id,)
-  query.execute(sql, vals)
-  badges = [badge[0] for badge in query.fetchall()]
-  query.close()
-  db.close()
-  return badges
 
 def run_badge_stats_queries():
   queries = {

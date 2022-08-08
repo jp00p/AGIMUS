@@ -1,7 +1,6 @@
 from common import *
 from handlers.xp import calculate_xp_for_next_level
-from commands.badges import get_user_badges
-from utils.badge_utils import db_get_user_badge_names
+from utils.badge_utils import db_get_user_badges
 from utils.check_channel_access import access_check
 import pilgram
 
@@ -49,7 +48,7 @@ async def set_tagline(ctx:discord.ApplicationContext, tagline:str):
 
 
 def user_badges_autocomplete(ctx:discord.AutocompleteContext):
-  user_badges = [b['badge_filename'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(ctx.interaction.user.id)]
+  user_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id)]
   if len(user_badges) == 0:
     user_badges = ["You don't have any badges yet!"]
   user_badges.sort()
@@ -81,7 +80,7 @@ async def set_profile_badge(ctx:discord.ApplicationContext, badge:str):
     return
 
   # Check to make sure they own the badge
-  user_badges = [b['badge_filename'].replace('_', ' ').replace('.png', '') for b in db_get_user_badge_names(ctx.author.id)]
+  user_badges = [b['badge_name'] for b in db_get_user_badges(ctx.author.id)]
   if badge not in user_badges:
     await ctx.respond(embed=discord.Embed(
       title="Unable To Set Featured Profile Badge",
@@ -170,7 +169,7 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   spins = user["spins"]
   level = user["level"]
   xp = user["xp"]
-  badges = get_user_badges(member.id)
+  badges = db_get_user_badges(member.id)
   badge_count = len(badges)
   next_level = calculate_xp_for_next_level(level)
   prev_level = 0
@@ -315,7 +314,7 @@ async def profile(ctx:discord.ApplicationContext, public:str):
   # put badge on
   if len(user["badges"]) > 0 and user['badges'][0]['badge_filename']:
     badge_filename = user['badges'][0]['badge_filename']
-    user_badges = db_get_user_badge_names(user['discord_id'])
+    user_badges = db_get_user_badges(user['discord_id'])
     if badge_filename not in [b['badge_filename'] for b in user_badges]:
       # Catch if the user had a badge present that they no longer have, if so clear it from the table
       db_remove_user_profile_badge(user['discord_id'])

@@ -337,11 +337,9 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
   row_tag_font = ImageFont.truetype("fonts/lcars3.ttf", 120)
 
   # Set up rows and dimensions
-  rows_per_page = 7
-
-  row_height = 290
+  row_height = 280
   row_width = 1700
-  row_margin = 40
+  row_margin = 10
 
   base_width = 1890
   base_header_height = 530
@@ -350,12 +348,12 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
 
   # If we're generating just one page we want the rows to simply expand to only what's necessary
   # Otherwise if there's multiple pages we want to have all of them be consistent
-  if len(page) is 0:
+  if len(page) == 0:
     number_of_rows = 0
   elif page_number == 1 and total_pages == 1:
-    number_of_rows = math.ceil((len(page) / rows_per_page))
+    number_of_rows = len(page) - 1
   else:
-    number_of_rows = rows_per_page
+    number_of_rows = 6
 
   base_height = base_header_height + (base_row_height * number_of_rows) + base_footer_height
 
@@ -386,11 +384,11 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
 
   start_x = 120
   current_x = start_x
-  current_y = 280
+  current_y = 245
 
   # If the user has no badges that are within sets of this category,
   # Stamp an empty message
-  if len(page) is 0:
+  if len(page) == 0:
     row_image = Image.new("RGBA", (row_width, row_height), (0, 0, 0, 0))
     r_draw = ImageDraw.Draw(row_image)
 
@@ -454,6 +452,27 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
+def db_get_user_badges(user_discord_id:int):
+  '''
+    get_user_badges(user_discord_id)
+    user_discord_id[required]: int
+    returns a list of badges the user has
+  '''
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
+      JOIN badge_info AS b_i
+        ON b.badge_filename = b_i.badge_filename
+        WHERE b.user_discord_id = %s
+  '''
+  vals = (user_discord_id,)
+  query.execute(sql, vals)
+  badges = query.fetchall()
+  query.close()
+  db.close()
+  return badges
+
 def db_get_badge_count_for_user(user_id):
   db = getDB()
   query = db.cursor(dictionary=True)
@@ -468,18 +487,6 @@ def db_get_badge_count_for_user(user_id):
   db.close()
 
   return result['count(*)']
-
-def db_get_user_badge_names(user_id):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT badge_filename FROM badges WHERE user_discord_id = %s"
-  vals = (user_id,)
-  query.execute(sql, vals)
-  badge_names = query.fetchall()
-  db.commit()
-  query.close()
-  db.close()
-  return badge_names
 
 def db_set_user_badge_page_color_preference(user_id, type, color):
   db = getDB()
