@@ -2,10 +2,10 @@
 Level-up Announcements and Badge Trading!
 
 **GENERAL COMMANDS**
-`/badges showcase` - View your entire current badge collection! (note this can be used anywhere!)
-`/badges sets` - View subcategories of your badge collection, try to collect em all!
 `/badges completion` - View how close you are to completing the various sets.
 `/badges lookup` - Get info on a specific badge
+`/badges showcase` - View your entire current badge collection! (note this can be used anywhere!)
+`/badges sets` - View subcategories of your badge collection, try to collect em all!
 `/settings` - Configure various user settings including enabling or disabling DMs from AGIMUS (trades normally send notifications on incoming, declined, or canceled trades)
 
 **TRADING**
