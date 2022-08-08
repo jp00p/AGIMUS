@@ -47,6 +47,7 @@ from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.trade import Trade
 from cogs.react_roles import ReactRoles
+from cogs.backups import Backups
 bot.add_cog(Poker(bot))
 bot.add_cog(Quiz(bot))
 bot.add_cog(Settings(bot))
@@ -54,6 +55,7 @@ bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Trade(bot))
 bot.add_cog(ReactRoles(bot))
+bot.add_cog(Backups(bot))
 
 
 ## Trivia relies on an external JSON request which might fail, in that case log the error but continue
@@ -76,6 +78,7 @@ from handlers.xp import handle_message_xp, handle_react_xp, increment_user_xp
 from tasks.bingbong import bingbong_task
 from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
+from tasks.backups import backups_task
 
 # Utils
 from utils.check_channel_access import perform_channel_check
@@ -281,7 +284,8 @@ async def on_command_error(ctx, error):
 # Schedule Tasks
 scheduled_tasks = [
   bingbong_task(bot),
-  weyounsday_task(bot)
+  weyounsday_task(bot),
+  backups_task(bot)
 ]
 scheduler = Scheduler()
 for task in scheduled_tasks:

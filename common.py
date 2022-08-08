@@ -359,6 +359,17 @@ def get_emoji(emoji_name:str):
     emoji = random.choice(["🤖", "👽", "🛠"])
   return emoji
 
+# run_make_backup()
+# util function that runs our `make db-backup` command
+# returns the new hash from git
+def run_make_backup():
+  hashes = { "old":"", "new":"" }
+  raw_new_hash = []
+  os.system("make db-backup")
+  with os.popen("cd database && git rev-parse HEAD") as line:
+    raw_new_hash = line.readlines()
+  hashes["new"] = raw_new_hash[-1].replace("\n", "")
+  return hashes
 
 # returns a pretend stardate based on the given datetime
 def calculate_stardate(date:datetime.date):

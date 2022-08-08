@@ -220,6 +220,10 @@
       "crontab": "15 8 * * WED",
       "enabled": true
     },
+    "backups":{
+      "crontab": "0 */6 * * *",
+      "enabled": false
+    },
     "bingbong": {
       "channels": [
         "bot-logs"
