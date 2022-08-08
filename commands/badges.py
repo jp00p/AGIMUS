@@ -444,6 +444,53 @@ def _append_featured_completion_badges(user_id, report, category):
     r['featured_badge'] = random.choice(badges)
   return report
 
+#
+#
+# Lookup
+#
+#
+@badge_group.command(
+  name="lookup",
+  description="Look up information about a specific badge"
+)
+@option(
+  name="name",
+  description="Which badge do you want to look up?",
+  required=True,
+  autocomplete=all_badges_autocomplete
+)
+async def badge_lookup(ctx:discord.ApplicationContext, name:str):
+  """
+  This function executes the lookup for the /badge lookup command
+  :param ctx:
+  :param name: The name of the badge to be looked up.
+  :return:
+  """
+  try:
+    logger.info(f"{Fore.CYAN}Firing /badge lookup command for '{name}'!{Fore.RESET}")
+    badge = db_get_badge_info_by_name(name)
+    if (badge):
+
+      description = f"Quadrant: **{badge['quadrant']}**\n"
+      description += f"Time Period: **{badge['time_period']}**\n"
+      description += f"Franchise: **{badge['franchise']}**\n"
+      description += f"Reference: **{badge['reference']}**\n"
+
+      embed = discord.Embed(
+        title=f"Badge Lookup For \"{badge['badge_name']}\"",
+        description=description,
+        color=0xFFFFFF
+      )
+      discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'])
+      embed.set_image(url=f"attachment://{badge['badge_filename']}")
+      await ctx.send_response(embed=embed, file=discord_image, ephemeral=True)
+
+    else:
+      await ctx.respond("Could not find this badge.\n")
+  except Exception as e:
+    logger.info(f">>> ERROR: {e}")
+
+
 
 #   _________ __          __  .__          __  .__
 #  /   _____//  |______ _/  |_|__| _______/  |_|__| ____   ______
@@ -602,6 +649,22 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
+
+def db_get_badge_info_by_name(name):
+  """
+  Given the name of a badge, retrieves its information from badge_info
+  :param name: the name of the badge.
+  :return:
+  """
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = "SELECT * FROM badge_info WHERE badge_name = %s"
+  query.execute(sql, (name,))
+  row = query.fetchone()
+  query.close()
+  db.close()
+
+  return row
 
 # Affiliations
 def db_get_all_affiliations():
