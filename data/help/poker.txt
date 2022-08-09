@@ -18,4 +18,5 @@
 > `flush -----------> x5`
 > `full house ------> x6`
 > `four of a kind --> x10`
+> `straight flush --> x500`
 > `royal flush -----> x1000`
