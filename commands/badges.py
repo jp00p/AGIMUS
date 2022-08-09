@@ -369,15 +369,7 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
   all_badges = os.listdir("./images/badges/")
   user_badges = db_get_user_badges(ctx.author.id)
 
-  all_rows = []
-  if category == "affiliation":
-    all_rows = db_get_set_completion_for_affiliations(ctx.author.id)
-  if category == "franchise":
-    all_rows = db_get_set_completion_for_franchises(ctx.author.id)
-  if category == "time_period":
-    all_rows = db_get_set_completion_for_time_periods(ctx.author.id)
-  if category == "type":
-    all_rows = db_get_set_completion_for_types(ctx.author.id)
+  all_rows = db_get_set_completion_for_category(category, ctx.author.id)
   all_rows = _append_featured_completion_badges(ctx.author.id, all_rows, category)
 
   category_title = category.replace('_', ' ').title()
@@ -385,7 +377,7 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
   total_badges = len(all_badges)
   title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Completion - {category_title}"
   collected = f"{len(user_badges)} TOTAL ON THE USS HOOD"
-  filename_prefix = f"badge_set_completion_{ctx.author.id}_affiliations-page-"
+  filename_prefix = f"badge_set_completion_{ctx.author.id}_{category}-page-"
 
   if color:
     db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
@@ -742,41 +734,6 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
 
   return rows
 
-def db_get_set_completion_for_affiliations(user_id):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT
-        affiliation_name,
-        count(DISTINCT b_i.badge_filename) as totalBadgeCount,
-        count(DISTINCT b.badge_filename) as ownedBadgeCount
-    FROM badge_info AS b_i
-    INNER JOIN badge_affiliation AS b_a
-        ON b_i.badge_filename = b_a.badge_filename
-    LEFT JOIN badges AS b
-        ON b_i.badge_filename = b.badge_filename
-        AND b.user_discord_id = %s
-    GROUP BY b_a.affiliation_name;
-  '''
-  vals = (user_id,)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-
-  db.commit()
-  query.close()
-  db.close()
-
-  results = [
-    {
-      "name": r['affiliation_name'],
-      "owned": r['ownedBadgeCount'],
-      'total': r['totalBadgeCount'],
-      'percentage': int((r['ownedBadgeCount'] / r['totalBadgeCount']) * 100)
-    } for r in rows if r['ownedBadgeCount'] != 0
-  ]
-  results = sorted(results, key=lambda r: r['percentage'], reverse=True)
-  return results
-
 # Franchises
 def db_get_all_franchises():
   db = getDB()
@@ -826,39 +783,6 @@ def db_get_badges_user_has_from_franchise(user_id, franchise):
   db.close()
 
   return rows
-
-def db_get_set_completion_for_franchises(user_id):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT
-        b_i.franchise,
-        count(DISTINCT b_i.badge_filename) as totalBadgeCount,
-        count(DISTINCT b.badge_filename) as ownedBadgeCount
-    FROM badge_info AS b_i
-    LEFT JOIN badges AS b
-        ON b_i.badge_filename = b.badge_filename
-        AND b.user_discord_id = %s
-    GROUP BY b_i.franchise;
-  '''
-  vals = (user_id,)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-
-  db.commit()
-  query.close()
-  db.close()
-
-  results = [
-    {
-      "name": r['franchise'],
-      "owned": r['ownedBadgeCount'],
-      'total': r['totalBadgeCount'],
-      'percentage': int((r['ownedBadgeCount'] / r['totalBadgeCount']) * 100)
-    } for r in rows if r['ownedBadgeCount'] != 0
-  ]
-  results = sorted(results, key=lambda r: r['percentage'], reverse=True)
-  return results
 
 # Time Periods
 def db_get_all_time_periods():
@@ -918,39 +842,6 @@ def db_get_badges_user_has_from_time_period(user_id, time_period):
 
   return rows
 
-def db_get_set_completion_for_time_periods(user_id):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT
-        b_i.time_period,
-        count(DISTINCT b_i.badge_filename) as totalBadgeCount,
-        count(DISTINCT b.badge_filename) as ownedBadgeCount
-    FROM badge_info AS b_i
-    LEFT JOIN badges AS b
-        ON b_i.badge_filename = b.badge_filename
-        AND b.user_discord_id = %s
-    GROUP BY b_i.time_period;
-  '''
-  vals = (user_id,)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-
-  db.commit()
-  query.close()
-  db.close()
-
-  results = [
-    {
-      "name": r['time_period'],
-      "owned": r['ownedBadgeCount'],
-      'total': r['totalBadgeCount'],
-      'percentage': int((r['ownedBadgeCount'] / r['totalBadgeCount']) * 100)
-    } for r in rows if r['ownedBadgeCount'] != 0
-  ]
-  results = sorted(results, key=lambda r: r['percentage'], reverse=True)
-  return results
-
 # Types
 def db_get_all_types():
   db = getDB()
@@ -1006,7 +897,6 @@ def db_get_badge_types_by_badge_name(name):
 
   return rows
 
-
 def db_get_badges_user_has_from_type(user_id, type):
   db = getDB()
   query = db.cursor(dictionary=True)
@@ -1028,22 +918,76 @@ def db_get_badges_user_has_from_type(user_id, type):
 
   return rows
 
-def db_get_set_completion_for_types(user_id):
+#
+#
+#
+def db_get_set_completion_for_category(category, user_id):
+  '''
+  Given the a category
+  and a discord user id, retrives the names, total badges of each,
+  and of those badges how many the user owns.
+  :param category: string, (affiliation, franchise, time_period, type)
+  :return: list of row dicts
+  '''
+  sql = ""
+  if category == "affiliation":
+    sql = '''
+      SELECT
+          affiliation_name AS name,
+          count(DISTINCT b_i.badge_filename) as totalBadgeCount,
+          count(DISTINCT b.badge_filename) as ownedBadgeCount
+      FROM badge_info AS b_i
+      INNER JOIN badge_affiliation AS b_a
+          ON b_i.badge_filename = b_a.badge_filename
+      LEFT JOIN badges AS b
+          ON b_i.badge_filename = b.badge_filename
+          AND b.user_discord_id = %s
+      GROUP BY b_a.affiliation_name;
+    '''
+  elif category == "franchise":
+    sql = '''
+      SELECT
+          b_i.franchise AS name,
+          count(DISTINCT b_i.badge_filename) as totalBadgeCount,
+          count(DISTINCT b.badge_filename) as ownedBadgeCount
+      FROM badge_info AS b_i
+      LEFT JOIN badges AS b
+          ON b_i.badge_filename = b.badge_filename
+          AND b.user_discord_id = %s
+      GROUP BY b_i.franchise;
+    '''
+  elif category == "time_period":
+    sql = '''
+      SELECT
+          b_i.time_period AS name,
+          count(DISTINCT b_i.badge_filename) as totalBadgeCount,
+          count(DISTINCT b.badge_filename) as ownedBadgeCount
+      FROM badge_info AS b_i
+      LEFT JOIN badges AS b
+          ON b_i.badge_filename = b.badge_filename
+          AND b.user_discord_id = %s
+      GROUP BY b_i.time_period;
+    '''
+  elif category == "type":
+    sql = '''
+      SELECT
+          type_name AS name,
+          count(DISTINCT b_i.badge_filename) as totalBadgeCount,
+          count(DISTINCT b.badge_filename) as ownedBadgeCount
+      FROM badge_info AS b_i
+      INNER JOIN badge_type AS b_t
+          ON b_i.badge_filename = b_t.badge_filename
+      LEFT JOIN badges AS b
+          ON b_i.badge_filename = b.badge_filename
+          AND b.user_discord_id = %s
+      GROUP BY b_t.type_name;
+    '''
+
+  logger.info(sql)
+
+
   db = getDB()
   query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT
-        type_name,
-        count(DISTINCT b_i.badge_filename) as totalBadgeCount,
-        count(DISTINCT b.badge_filename) as ownedBadgeCount
-    FROM badge_info AS b_i
-    INNER JOIN badge_type AS b_t
-        ON b_i.badge_filename = b_t.badge_filename
-    LEFT JOIN badges AS b
-        ON b_i.badge_filename = b.badge_filename
-        AND b.user_discord_id = %s
-    GROUP BY b_t.type_name;
-  '''
   vals = (user_id,)
   query.execute(sql, vals)
   rows = query.fetchall()
@@ -1054,14 +998,15 @@ def db_get_set_completion_for_types(user_id):
 
   results = [
     {
-      "name": r['type_name'],
+      "name": r['name'],
       "owned": r['ownedBadgeCount'],
       'total': r['totalBadgeCount'],
-      'percentage': int((r['ownedBadgeCount'] / r['totalBadgeCount']) * 100)
-    } for r in rows if r['ownedBadgeCount'] != 0
+      'percentage': 0 if r['ownedBadgeCount'] == 0 else int((r['ownedBadgeCount'] / r['totalBadgeCount']) * 100)
+    } for r in rows if r['ownedBadgeCount']
   ]
   results = sorted(results, key=lambda r: r['percentage'], reverse=True)
   return results
+
 
 # give_user_badge(user_discord_id)
 # user_discord_id[required]:int
