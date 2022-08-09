@@ -22,8 +22,6 @@ xp_colors = [
 ]
 current_color = 0
 
-
-
 # {user} got xp for {reason}
 reasons = {
   "posted_message" : "posting a message",
@@ -293,6 +291,11 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel):
   global current_color
   msg_color = xp_colors[current_color]
   star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
+  is_weekend = bool(datetime.today().weekday() > 4)
+  xp_multiplier = 1
+  if is_weekend:
+    xp_multiplier = 2
+  amt = int(amt * xp_multiplier)
   db = getDB()
   query = db.cursor()
   sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s AND xp_enabled = 1"
