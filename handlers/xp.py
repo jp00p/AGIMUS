@@ -22,6 +22,10 @@ xp_colors = [
 ]
 current_color = 0
 
+f = open("./data/level_up_messages.json")
+random_level_up_messages = json.load(f)
+f.close()
+
 # {user} got xp for {reason}
 reasons = {
   "posted_message" : "posting a message",
@@ -273,13 +277,13 @@ def give_welcome_badge(user_id):
 async def send_level_up_message(user:discord.User, level:int, badge:str):
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   channel = bot.get_channel(notification_channel_id)
+  
   embed_title = "Level up!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has reached **level {level}** and earned a new badge!"
   if level == 2:
     embed_description = f"{user.mention} has reached **level {level}** and earned their first new unique badge!\n\nCongrats! To check out your full list of badges use `/badges showcase`.\n\nMore info about XP and the badge system and XP can be found by using `/help` in this channel."
-  messages = config["handlers"]["xp"]["level_up_messages"]
-  message = random.choice(messages).format(user=user.mention, level=level, prev_level=(level-1))
+  message = random.choice(random_level_up_messages["messages"]).format(user=user.mention, level=level, prev_level=(level-1))
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
 
 # increment_user_xp(author, amt)
