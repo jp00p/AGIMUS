@@ -8,11 +8,11 @@ filters = ["_1977", "aden", "brannan", "brooklyn", "clarendon", "earlybird", "gi
 
 @bot.slash_command(
   name="set_tagline",
-  description="Set your profile tagline (or unset it!)"
+  description="Set your profile tagline (or leave empty unset it!)"
 )
 @option(
   name="tagline",
-  description="Your tagline (up to 60 characters, follow the server rules please!)",
+  description="Your tagline (follow the server rules please!)",
   required=False
 )
 async def set_tagline(ctx:discord.ApplicationContext, tagline:str):
@@ -33,7 +33,7 @@ async def set_tagline(ctx:discord.ApplicationContext, tagline:str):
     db.close()
     await ctx.respond(f"Your tagline has been cleared!", ephemeral=True)
   else:
-    tagline = tagline[0:60].encode("ascii", errors="ignore").decode().strip()
+    tagline = tagline[0:38].encode("ascii", errors="ignore").decode().strip()
     db = getDB()
     query = db.cursor()
     sql = "REPLACE INTO profile_taglines (tagline, user_discord_id) VALUES (%(tagline)s, %(user_discord_id)s)"
