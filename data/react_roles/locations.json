@@ -6,7 +6,7 @@
   "embed" : {
     "title": "Add your location to your profile!",
     "description": "Use these roles to add your general location to your profile! You can add multiple locations if it makes sense.\n\nPlease leave us a message in {} if you don't see a location that fits for you.",
-    "footer": "React to the emoji below to add/remove the corresponding location."
+    "footer": "React to the emoji below to add/remove the corresponding location.\nIf you already have the role but your react hasn't been added yet, add then remove the reaction to remove the role!"
   },
   "embed_channel_name_placeholder": "captains-suggestion-box",
   "reactions": [

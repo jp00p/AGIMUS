@@ -6,7 +6,7 @@
   "embed" : {
     "title": "Get notified about different server events!",
     "description": "Use these roles to choose what kind of notifications you get. Everyone will be notified when Greatest Trek events are happening, as well as other server updates.\n\nYou can choose as many of these as you like, and you can change these at any time.",
-    "footer": "React to the emoji below to add/remove the corresponding notification type."
+    "footer": "React to the emoji below to add/remove the corresponding notification type.\nIf you already have the role but your react hasn't been added yet, add then remove the reaction to remove the role!"
   },
   "reactions": [
     {
