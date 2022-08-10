@@ -6,7 +6,7 @@
   "embed" : {
     "title": "Add color and an icon to your name!",
     "description": "Choose your department to make your name that color, and you'll also get a little icon! This is just for fun, you will not be required to do any work aboard the starship if you choose a department.\n\nYou can only be in one department at a time, but you can change it at any time.",
-    "footer": "React to the emoji below to select your department and change your name color."
+    "footer": "React to the emoji below to add/remove your department and change your name color.\nIf you already have the role but your react hasn't been added yet, add then remove the reaction to remove the role!"
   },
   "reactions": [
     {

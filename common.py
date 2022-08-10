@@ -339,7 +339,7 @@ def increase_jackpot(amt):
 # This runs to apply the local channel list on top of the existing channel config
 def generate_local_channel_list(client):
   if client.guilds[0]:
-    channels = client.guilds[0].channels + client.guilds[0].threads + client.guilds[0].voice_channels
+    channels = client.guilds[0].channels + client.guilds[0].threads + client.guilds[0].voice_channels + client.guilds[0].forum_channels
     channel_list = {}
     for channel in channels:
       channel_name = channel.name.encode("ascii", errors="ignore").decode().strip()

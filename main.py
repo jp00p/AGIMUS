@@ -54,8 +54,9 @@ bot.add_cog(Settings(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Trade(bot))
-bot.add_cog(ReactRoles(bot))
 bot.add_cog(Backups(bot))
+if config["roles"]["reaction_roles_enabled"]:
+  bot.add_cog(ReactRoles(bot))
 
 
 ## Trivia relies on an external JSON request which might fail, in that case log the error but continue
