@@ -18,8 +18,6 @@ def hoodiversary_task(bot):
         if m.joined_at.day == today.day and m.joined_at.month == today.month and m.joined_at.year != today.year
       ]
 
-      logger.info(hoodiversary_members)
-
       if not hoodiversary_members:
         return
 
@@ -33,7 +31,8 @@ def hoodiversary_task(bot):
 
       description = ""
       for m in hoodiversary_members:
-        description += f"{random.choice(emoji_list)} {m['member'].mention} has been aboard The Hood for {m['age']} years!\nJoined {m['member'].joined_at.strftime('%x')}\n\n"
+        year_string = 'year' if m['age'] == 1 else 'years'
+        description += f"{random.choice(emoji_list)} {m['member'].mention} has been aboard The Hood for {m['age']} {year_string}!\nJoined {m['member'].joined_at.strftime('%x')}\n\n"
 
       embed = discord.Embed(
         title="These FoDs Are Celebrating Their Hoodiversary!",
