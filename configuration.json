@@ -193,6 +193,13 @@
       ],
       "crontab": "0 * * * *",
       "enabled": false
+    },
+    "hoodiversary": {
+      "channels": [
+        "captain-picard-day"
+      ],
+      "crontab": "15 8 * * *",
+      "enabled": true
     }
   },
   "commands": {
