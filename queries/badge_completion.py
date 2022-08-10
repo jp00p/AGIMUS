@@ -23,27 +23,28 @@ def execute_and_return(sql, user_id):
     results = [
         {
             "name": r['name'],
-            "owned": r['ownedBadgeCount'],
-            'total': r['totalBadgeCount'],
-            'percentage': 0 if r['ownedBadgeCount'] == 0 else int((r['ownedBadgeCount'] / r['totalBadgeCount']) * 100)
+            "owned": r['owned'],
+            'total': r['total'],
+            'percentage': int(r['percentage'])
         } for r in rows
     ]
-    results = sorted(results, key=lambda r: r['percentage'], reverse=True)
     return results
 
 def by_affiliation(user_id):
     sql = '''
       SELECT
           affiliation_name AS name,
-          count(DISTINCT b_i.badge_filename) as totalBadgeCount,
-          count(DISTINCT b.badge_filename) as ownedBadgeCount
+          count(DISTINCT b_i.badge_filename) as total,
+          count(DISTINCT b.badge_filename) as owned,
+          count(DISTINCT b.badge_filename) * 100 / count(DISTINCT b_i.badge_filename) as percentage
       FROM badge_info AS b_i
       INNER JOIN badge_affiliation AS b_a
           ON b_i.badge_filename = b_a.badge_filename
       LEFT JOIN badges AS b
           ON b_i.badge_filename = b.badge_filename
           AND b.user_discord_id = %s
-      GROUP BY b_a.affiliation_name;
+      GROUP BY b_a.affiliation_name
+      ORDER BY percentage DESC, affiliation_name
     '''
     return execute_and_return(sql, user_id)
 
@@ -51,13 +52,15 @@ def by_franchise(user_id):
     sql = '''
       SELECT
           b_i.franchise AS name,
-          count(DISTINCT b_i.badge_filename) as totalBadgeCount,
-          count(DISTINCT b.badge_filename) as ownedBadgeCount
+          count(DISTINCT b_i.badge_filename) as total,
+          count(DISTINCT b.badge_filename) as owned,
+          count(DISTINCT b.badge_filename) * 100 / count(DISTINCT b_i.badge_filename) as percentage
       FROM badge_info AS b_i
       LEFT JOIN badges AS b
           ON b_i.badge_filename = b.badge_filename
           AND b.user_discord_id = %s
-      GROUP BY b_i.franchise;
+      GROUP BY b_i.franchise
+      ORDER BY percentage DESC, b_i.franchise
     '''
     return execute_and_return(sql, user_id)
 
@@ -65,13 +68,15 @@ def by_time_period(user_id):
     sql = '''
       SELECT
           b_i.time_period AS name,
-          count(DISTINCT b_i.badge_filename) as totalBadgeCount,
-          count(DISTINCT b.badge_filename) as ownedBadgeCount
+          count(DISTINCT b_i.badge_filename) as total,
+          count(DISTINCT b.badge_filename) as owned,
+          count(DISTINCT b.badge_filename) * 100 / count(DISTINCT b_i.badge_filename) as percentage
       FROM badge_info AS b_i
       LEFT JOIN badges AS b
           ON b_i.badge_filename = b.badge_filename
           AND b.user_discord_id = %s
-      GROUP BY b_i.time_period;
+      GROUP BY b_i.time_period
+      ORDER BY percentage DESC, b_i.time_period
     '''
     return execute_and_return(sql, user_id)
 
@@ -79,14 +84,16 @@ def by_type(user_id):
     sql = '''
       SELECT
           type_name AS name,
-          count(DISTINCT b_i.badge_filename) as totalBadgeCount,
-          count(DISTINCT b.badge_filename) as ownedBadgeCount
+          count(DISTINCT b_i.badge_filename) as total,
+          count(DISTINCT b.badge_filename) as owned,
+          count(DISTINCT b.badge_filename) * 100 / count(DISTINCT b_i.badge_filename) as percentage
       FROM badge_info AS b_i
       INNER JOIN badge_type AS b_t
           ON b_i.badge_filename = b_t.badge_filename
       LEFT JOIN badges AS b
           ON b_i.badge_filename = b.badge_filename
           AND b.user_discord_id = %s
-      GROUP BY b_t.type_name;
+      GROUP BY b_t.type_name
+      ORDER BY percentage DESC, type_name
     '''
     return execute_and_return(sql, user_id)
