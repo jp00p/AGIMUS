@@ -7,6 +7,7 @@
 #                                __/ |                                | |
 #                               |___/                                 |_|
 
+import math
 from common import *
 
 def execute_and_return(sql, user_id):
@@ -25,7 +26,7 @@ def execute_and_return(sql, user_id):
             "name": r['name'],
             "owned": r['owned'],
             'total': r['total'],
-            'percentage': int(r['percentage'])
+            'percentage': math.ceil(r['percentage'])
         } for r in rows
     ]
     return results
