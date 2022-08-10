@@ -412,6 +412,9 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
       r_draw.rounded_rectangle( (0, 0, row_width, row_height), fill="#101010", outline="#101010", width=4, radius=32 )
 
       r_title = set_row['name']
+      if r_title == None:
+        continue # Skip this row if the category doesn't have a name
+
       r_draw.text( (offset, 70), r_title, fill=title_color, font=row_title_font, align="left")
 
       r_tag = f"{set_row['percentage']}% ({set_row['owned']} of {set_row['total']})"
@@ -428,9 +431,10 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
       r_draw.rectangle(percentage_shape, fill=highlight_color)
 
       # badge
-      b = Image.open(f"./images/badges/{set_row['featured_badge']}").convert("RGBA")
-      b = b.resize((190, 190))
-      row_image.paste(b, (20, 50), b)
+      if 'featured_badge' in set_row:
+        b = Image.open(f"./images/badges/{set_row['featured_badge']}").convert("RGBA")
+        b = b.resize((190, 190))
+        row_image.paste(b, (20, 50), b)
 
       # add row to base image
       badge_base_image.paste(row_image, (current_x, current_y), row_image)
