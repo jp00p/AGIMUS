@@ -3,6 +3,7 @@ from common import *
 def hoodiversary_task(bot):
 
   async def hoodiversary():
+    header_image_url = "https://i.imgur.com/9aEHbYd.png"
     try:
       enabled = config["tasks"]["hoodiversary"]["enabled"]
       if not enabled:
@@ -41,9 +42,11 @@ def hoodiversary_task(bot):
         description=description,
         color=discord.Color.random()
       )
+      embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
       channel_ids = get_channel_ids_list(config["tasks"]["hoodiversary"]["channels"])
       for channel_id in channel_ids:
         channel = bot.get_channel(channel_id)
+        await channel.send(f"{header_image_url}")
         await channel.send(f"Happy Hoodiversary to you {mentions_string}!")
         await channel.send(embed=embed)
     except Exception as e:
