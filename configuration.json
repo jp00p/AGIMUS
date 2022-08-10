@@ -757,6 +757,14 @@
       "enabled": true,
       "data": null,
       "parameters": []
+    },
+    "zork": {
+      "channels": [
+        "dabo-table"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
     }
   },
   "channels": {},
