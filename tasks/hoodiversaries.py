@@ -30,7 +30,9 @@ def hoodiversary_task(bot):
       ]
 
       description = ""
+      mentions_string = ""
       for m in hoodiversary_members:
+        mentions_string += f"{m['member'].mention} "
         year_string = 'year' if m['age'] == 1 else 'years'
         description += f"{random.choice(emoji_list)} {m['member'].mention} has been aboard The Hood for {m['age']} {year_string}!\nJoined {m['member'].joined_at.strftime('%x')}\n\n"
 
@@ -42,6 +44,7 @@ def hoodiversary_task(bot):
       channel_ids = get_channel_ids_list(config["tasks"]["hoodiversary"]["channels"])
       for channel_id in channel_ids:
         channel = bot.get_channel(channel_id)
+        await channel.send(f"Happy Hoodiversary to you {mentions_string}!")
         await channel.send(embed=embed)
     except Exception as e:
       logger.info(traceback.format_exc())
