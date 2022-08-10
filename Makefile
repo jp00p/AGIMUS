@@ -83,7 +83,7 @@ db-dump: ## Dump the database to a file at $DB_DUMP_FILENAME
 
 .PHONY: db-load
 db-load: ## Load the database from a file at $DB_DUMP_FILENAME
-	@docker-compose exec app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_DUMP_FILENAME)
+	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_DUMP_FILENAME)
 
 .PHONY: db-migrate
 db-migrate: ## Apply a migration/sql file to the database from a file at ./migrations/v#.#.#.sql

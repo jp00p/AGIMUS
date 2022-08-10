@@ -6,7 +6,7 @@
   "embed" : {
     "title": "Add pronouns to your profile!",
     "description": "Feel free to add as many as you like. You can change these at any time.\n\nVisit {} if you have any suggestions or feedback.",
-    "footer": "React to the emoji below to add/remove the corresponding pronoun."
+    "footer": "React to the emoji below to add/remove the corresponding pronoun.\nIf you already have the role but your react hasn't been added yet, add then remove the reaction to remove the role!"
   },
   "embed_channel_name_placeholder": "captains-suggestion-box",
   "reactions": [

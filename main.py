@@ -54,8 +54,9 @@ bot.add_cog(Settings(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Trade(bot))
-bot.add_cog(ReactRoles(bot))
 bot.add_cog(Backups(bot))
+if config["roles"]["reaction_roles_enabled"]:
+  bot.add_cog(ReactRoles(bot))
 
 
 ## Trivia relies on an external JSON request which might fail, in that case log the error but continue
@@ -261,6 +262,15 @@ async def on_application_command(ctx):
 
 @bot.event
 async def on_application_command_error(ctx, error):
+  # This prevents any commands with local handlers being handled here in on_command_error.
+  if hasattr(ctx.command, 'on_error'):
+      return
+
+  # This prevents any cogs with an overwritten cog_command_error being handled here.
+  cog = ctx.cog
+  if cog:
+      if cog._get_overridden_method(cog.cog_command_error) is not None:
+          return
   if isinstance(error, commands.errors.CheckFailure):
     # We don't care about check errors,
     # it means the check is succeeding in blocking access
@@ -272,6 +282,14 @@ async def on_application_command_error(ctx, error):
 # listen to context (!) command events
 @bot.event
 async def on_command_error(ctx, error):
+  # This prevents any commands with local handlers being handled here in on_command_error.
+  if hasattr(ctx.command, 'on_error'):
+      return
+  # This prevents any cogs with an overwritten cog_command_error being handled here.
+  cog = ctx.cog
+  if cog:
+      if cog._get_overridden_method(cog.cog_command_error) is not None:
+          return
   if isinstance(error, commands.errors.CheckFailure):
     # We don't care about check errors,
     # it means the check is succeeding in blocking access

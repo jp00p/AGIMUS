@@ -8,6 +8,7 @@
     "flush" : 5,
     "full house" : 6,
     "four of a kind" : 10,
+    "straight flush" : 500,
     "royal flush" : 1000
   }
 }

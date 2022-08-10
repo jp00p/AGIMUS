@@ -34,6 +34,7 @@ class Slots(commands.Cog):
     choices=slot_choices
   )
   @commands.check(access_check)
+  @commands.cooldown(1, 1, commands.BucketType.user)
   async def spin(self, ctx:discord.ApplicationContext, show:str):
     await ctx.defer(ephemeral=True)
 
@@ -184,6 +185,11 @@ class Slots(commands.Cog):
       embed.set_image(url=f"attachment://{player_id}.png")
       await ctx.send_followup(embed=embed, file=file, ephemeral=True)
       return
+
+  @spin.error
+  async def spin_error(self, ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+      await ctx.respond(f"You're spinning the slots at warp 10! To prevent you from becoming a promiscuous iguana, I've slowed you down to warp 9.5. Try spinning again in {round(error.retry_after, 2)} seconds", ephemeral=True)
 
   def increment_player_spins(self, discord_id: int):
     """
