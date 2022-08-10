@@ -35,7 +35,7 @@ def weyounsday_task(bot):
 
     embed = discord.Embed(
       title="It's Weyounsday My Dudes!",
-      color=discord.Color.blurple()
+      color=discord.Color.random()
     )
     embed.set_image(url=get_random_weyounsday_meme())
     channel_ids = get_channel_ids_list(config["tasks"]["weyounsday"]["channels"])

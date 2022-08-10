@@ -76,8 +76,9 @@ from handlers.starboard import get_all_starboard_posts, handle_starboard_reactio
 from handlers.xp import handle_message_xp, handle_react_xp, increment_user_xp
 
 # Tasks
-from tasks.bingbong import bingbong_task
 from tasks.scheduler import Scheduler
+from tasks.bingbong import bingbong_task
+from tasks.hoodiversaries import hoodiversary_task
 from tasks.weyounsday import weyounsday_task
 from tasks.backups import backups_task
 
@@ -302,6 +303,7 @@ async def on_command_error(ctx, error):
 # Schedule Tasks
 scheduled_tasks = [
   bingbong_task(bot),
+  hoodiversary_task(bot),
   weyounsday_task(bot),
   backups_task(bot)
 ]
