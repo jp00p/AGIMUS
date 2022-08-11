@@ -40,7 +40,8 @@ reasons = {
   "poker_win"      : "winning a hand of poker",
   "used_computer"  : "using the computer",
   "asked_agimus"   : "asking agimus a question",
-  "used_wordcloud" : "generating a wordcloud"
+  "used_wordcloud" : "generating a wordcloud",
+  "played_zork"    : "playing zork"
 }
 
 # handle_message_xp(message) - calculates xp for a given message

@@ -40,6 +40,7 @@ from commands.agimus import agimus
 from commands.computer import computer
 
 # Cogs
+from cogs.chaoszork import ChaosZork
 from cogs.poker import Poker
 from cogs.quiz import Quiz
 from cogs.settings import Settings
@@ -48,6 +49,7 @@ from cogs.slots import Slots
 from cogs.trade import Trade
 from cogs.react_roles import ReactRoles
 from cogs.backups import Backups
+bot.add_cog(ChaosZork(bot))
 bot.add_cog(Poker(bot))
 bot.add_cog(Quiz(bot))
 bot.add_cog(Settings(bot))
