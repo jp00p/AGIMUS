@@ -415,14 +415,14 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
       if r_title == None:
         continue # Skip this row if the category doesn't have a name
 
-      r_draw.text( (offset, 70), r_title, fill=title_color, font=row_title_font, align="left")
+      r_draw.text( (offset, 50), r_title, fill=title_color, font=row_title_font, align="left")
 
       r_tag = f"{set_row['percentage']}% ({set_row['owned']} of {set_row['total']})"
-      r_draw.text( (row_width - 20, row_height / 2), r_tag, fill=title_color, anchor="rb", font=row_tag_font, align="right")
+      r_draw.text( (row_width - 20, 170), r_tag, fill=title_color, anchor="rb", font=row_tag_font, align="right")
 
       # draw percentage bar
-      w, h = row_width - offset, 32
-      x, y = offset, 0
+      w, h = row_width - offset, 64
+      x, y = offset, row_height - 64
 
       base_shape = (x, y, (w+x, h+y))
       r_draw.rectangle(base_shape, fill=bar_color)
