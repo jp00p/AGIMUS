@@ -77,7 +77,7 @@ class ChaosZork(commands.Cog):
     replace_text = """Welcome to ZORK.
 Release 12 / Serial number 990623 / Inform v6.14 Library 6/7
 
-WEST OF HOUSE
+  WEST OF HOUSE
 This is an open field west of a white house, with a boarded front door.
 There is a small mailbox here.
 A rubber mat saying 'Welcome to Zork!' lies by the door.
