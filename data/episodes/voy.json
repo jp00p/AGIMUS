@@ -1723,7 +1723,15 @@
       "episode": "11",
       "imdb": "tt0708868",
       "memoryalpha": "Concerning_Flight_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 430,
+          "airdate": "2022.08.08",
+          "episode": "Fortune Favors the Flying Machine",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/gEVHpunLf8VabattgBLARUF0q3e.jpg"
