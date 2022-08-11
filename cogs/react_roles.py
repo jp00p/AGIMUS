@@ -211,7 +211,7 @@ class ReactRoles(commands.Cog):
   # rebuild embeds (so role counts update)
   @tasks.loop(seconds=60)
   async def rebuild_embeds(self):
-    logger.info("Rebuilding embeds")
+    #logger.info("Rebuilding embeds")
     rr = self.reaction_roles
     for message_id in rr:
       message_name = rr[message_id]["message_name"]

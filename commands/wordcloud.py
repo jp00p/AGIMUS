@@ -109,7 +109,7 @@ def get_wordcloud_text_for_user(user_discord_id:int):
   db = getDB()
   query = db.cursor(dictionary=True)
   max_limit = 1701
-  sql = "SELECT message_history.user_discord_id, message_history.message_text as text, users.name FROM message_history LEFT JOIN users ON message_history.user_discord_id = users.discord_id WHERE message_history.user_discord_id = %s LIMIT %s"
+  sql = "SELECT message_history.user_discord_id, message_history.message_text as text, users.name FROM message_history LEFT JOIN users ON message_history.user_discord_id = users.discord_id WHERE message_history.user_discord_id = %s ORDER BY message_history.time_created DESC LIMIT %s"
   vals = (user_discord_id,max_limit)
   query.execute(sql, vals)
   results = query.fetchall()
