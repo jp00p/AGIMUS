@@ -79,6 +79,11 @@
     "description": "Edward Larkin!",
     "url": "https://i.imgur.com/YFWACsb.mp4"
   },
+  "Esatto!": {
+    "file": "data/drops/esatto.mp4",
+    "description": "Esatto! Leonardo da Vinci",
+    "url": "https://i.imgur.com/66Jo50a.mp4"
+  },
   "First Contact": {
     "file": "data/drops/firstcontact.mp4",
     "description": "First Contact",
@@ -224,6 +229,11 @@
     "description": "Michael Dorn: Neutrogena T Gel, it works!",
     "url": "https://i.imgur.com/sWToO17.mp4"
   },
+  "One Of The Greatest Creative Minds": {
+    "file": "data/drops/oneofthegreatestcreativeminds.mp4",
+    "description": "He's one of the greatest creative minds in Earth's history",
+    "url": "https://i.imgur.com/uBar7CL.mp4"
+  },
   "Photon Torpedos: Full Spread": {
     "file": "data/drops/photontorpedos.mp4",
     "description": "Photon Torpedos: Full Spread",
@@ -269,6 +279,11 @@
     "description": "Return of Dukat song",
     "url": "https://i.imgur.com/SmMridO.mp4"
   },
+  "Saves Ya Money Buster": {
+    "file": "data/drops/savesyamoneybuster.mp4",
+    "description": "Subaru Brat. Just tell me it saves ya money buster.",
+    "url": "https://i.imgur.com/eZHrAtn.mp4"
+  },
   "Schismd": {
     "file": "data/drops/schismd.mp4",
     "description": "Schismd Schismed",
@@ -301,22 +316,22 @@
   },
   "The 359truther Drop": {
     "file": "data/drops/the359trutherdrop.mp4",
-    "description": "The 359truther Drop",
+    "description": "The 359truther Drop. User drop.",
     "url": "https://i.imgur.com/P5e7cQ3.mp4"
   },
   "The AGIMUS Drop": {
     "file": "data/drops/theagimusdrop.mp4",
-    "description": "The AGIMUS Drop",
+    "description": "The AGIMUS Drop. User drop.",
     "url": "https://i.imgur.com/ZeKmQNS.mp4"
   },
   "The astuary Drop!": {
     "file": "data/drops/theastuarydrop.mp4",
-    "description": "The astuary Drop",
+    "description": "The astuary Drop. User drop.",
     "url": "https://i.imgur.com/TveAysC.mp4"
   },
   "The ayluge Drop": {
     "file": "data/drops/theaylugedrop.mp4",
-    "description": "The ayluge Drop",
+    "description": "The ayluge Drop. User drop.",
     "url": "https://i.imgur.com/PcvZ25e.mp4"
   },
   "The Boy!": {
@@ -341,12 +356,12 @@
   },
   "The Card Daddy Drop": {
     "file": "data/drops/thecarddaddydrop.mp4",
-    "description": "The Card Daddy Drop Bill Tilley",
+    "description": "The Card Daddy Drop Bill Tilley. User drop.",
     "url": "https://i.imgur.com/EVDJhDW.mp4"
   },
   "The Cynthia Drop": {
     "file": "data/drops/thecynthiadrop.mp4",
-    "description": "The Cynthia Drop",
+    "description": "The Cynthia Drop. User drop.",
     "url": "https://i.imgur.com/p4Quk1q.mp4"
   },
   "The Darwin Drop": {
@@ -361,27 +376,27 @@
   },
   "The Draxiom Drop": {
     "file": "data/drops/thedraxiomdrop.mp4",
-    "description": "The Draxiom Drop",
+    "description": "The Draxiom Drop. User drop.",
     "url": "https://i.imgur.com/XD9kgCe.mp4"
   },
   "The Dr N Drop": {
     "file": "data/drops/thedrndrop.mp4",
-    "description": "The Dr N Drop",
+    "description": "The Dr N Drop. User drop.",
     "url": "https://i.imgur.com/lnh3EWh.mp4"
   },
   "The Dr Z Drop": {
     "file": "data/drops/thedrzdrop.mp4",
-    "description": "The DrZ Dr Z Drop",
+    "description": "The DrZ Dr Z Drop. User drop.",
     "url": "https://i.imgur.com/MXqbvdQ.mp4"
   },
   "The Dr Z (v2.0) Drop": {
     "file": "data/drops/thedrzv2drop.mp4",
-    "description": "The Dr Z (v2.0) Drop",
+    "description": "The Dr Z (v2.0) Drop. User drop.",
     "url": "https://i.imgur.com/uyOBghv.mp4"
   },
   "The Erica Drop": {
     "file": "data/drops/theericadrop.mp4",
-    "description": "The Erica Drop",
+    "description": "The Erica Drop. User drop.",
     "url": "https://i.imgur.com/30Xjhnh.mp4"
   },
   "The Harry Kim Drop": {
@@ -391,48 +406,53 @@
   },
   "The jp00p Drop": {
     "file": "data/drops/thejp00pdrop.mp4",
-    "description": "jp00p's Drop",
+    "description": "jp00p's Drop. User drop.",
     "url": "https://i.imgur.com/xiy9Oiz.mp4"
   },
   "The Kage23 Drop": {
     "file": "data/drops/thekage23drop.mp4",
-    "description": "The Kage23 Drop",
+    "description": "The Kage23 Drop. User drop.",
     "url": "https://i.imgur.com/iqvWEib.mp4"
   },
   "The Kahless Whisper Drop": {
     "file": "data/drops/thekahlesswhisperdrop.mp4",
-    "description": "The Kahless Whisper Drop",
+    "description": "The Kahless Whisper Drop. User drop.",
     "url": "https://i.imgur.com/WEHSh2O.mp4"
   },
   "The Mosaic Drop": {
     "file": "data/drops/themosaicdrop.mp4",
-    "description": "The Mosaic Drop",
+    "description": "The Mosaic Drop. User drop.",
     "url": "https://i.imgur.com/Vg4hHIn.mp4"
   },
   "The Mr Flex Drop": {
     "file": "data/drops/themrflexdrop.mp4",
-    "description": "The Mr Flex Drop",
+    "description": "The Mr Flex Drop. User drop.",
     "url": "https://i.imgur.com/5VUlnii.mp4"
   },
   "The Mumu Drop": {
     "file": "data/drops/themumudrop.mp4",
-    "description": "The Mumu Drop",
+    "description": "The Mumu Drop. User drop.",
     "url": "https://i.imgur.com/ojMWeHd.mp4"
   },
   "The Nubbin Bug Drop": {
     "file": "data/drops/thenubbinbugdrop.mp4",
-    "description": "The Nubbin Bug Drop",
+    "description": "The Nubbin Bug Drop. User drop.",
     "url": "https://i.imgur.com/MogdPbZ.mp4"
   },
   "The odosbucket_13 Drop": {
     "file": "data/drops/theodosbucket_13drop.mp4",
-    "description": "The odosbucket_13 Drop",
+    "description": "The odosbucket_13 Drop. User drop.",
     "url": "https://i.imgur.com/WTzOfZA.mp4"
   },
   "The OKB-1 Drop": {
     "file": "data/drops/theokb-1drop.mp4",
-    "description": "The OKB-1 Drop",
+    "description": "The OKB-1 Drop. User drop.",
     "url": "https://i.imgur.com/vHkqjFJ.mp4"
+  },
+  "The Ole Doug Drop": {
+    "file": "data/drops/theoledougdrop.mp4",
+    "description": "The Ole Doug Drop. User drop.",
+    "url": "https://i.imgur.com/kNGjLkv.mp4"
   },
   "The Parrises Squares Championship Drop": {
     "file": "data/drops/theparrisessquareschampionshipdrop.mp4",
@@ -441,12 +461,12 @@
   },
   "The Peter of the Norse Drop": {
     "file": "data/drops/thepeterofthenorsedrop.mp4",
-    "description": "The Peter of the Norse Drop",
+    "description": "The Peter of the Norse Drop. User drop.",
     "url": "https://i.imgur.com/soCO6Mq.mp4"
   },
   "The Pittbaster Drop": {
     "file": "data/drops/thepittbasterdrop.mp4",
-    "description": "The Pittbaster Drop",
+    "description": "The Pittbaster Drop. User drop.",
     "url": "https://i.imgur.com/Xhh9UT7.mp4"
   },
   "The Ro Laren Drop": {
@@ -456,7 +476,7 @@
   },
   "The Sara Drop": {
     "file": "data/drops/thesaradrop.mp4",
-    "description": "The Sara Drop",
+    "description": "The Sara Drop. User drop.",
     "url": "https://i.imgur.com/iWfo5MX.mp4"
   },
   "The Seska Drop": {
@@ -466,17 +486,17 @@
   },
   "The Shouperman Drop": {
     "file": "data/drops/theshoupermandrop.mp4",
-    "description": "The Shoup Shouperman Drop",
+    "description": "The Shoup Shouperman Drop. User drop.",
     "url": "https://i.imgur.com/9j3Cy4a.mp4"
   },
   "The Starborn Drop": {
     "file": "data/drops/thestarborndrop.mp4",
-    "description": "The Starborn Drop",
+    "description": "The Starborn Drop. User drop.",
     "url": "https://i.imgur.com/IarPe1v.mp4"
   },
   "The Taq Drop": {
     "file": "data/drops/thetaqdrop.mp4",
-    "description": "The Taq Drop",
+    "description": "The Taq Drop. User drop.",
     "url": "https://i.imgur.com/gjJvNT2.mp4"
   },
   "The Ten Forward Drop": {
@@ -486,12 +506,12 @@
   },
   "The thousand Drop": {
     "file": "data/drops/thethousanddrop.mp4",
-    "description": "The thousand Drop",
+    "description": "The thousand Drop. User drop.",
     "url": "https://i.imgur.com/GQ6FKpt.mp4"
   },
   "The ultranurd Drop": {
     "file": "data/drops/theultranurddrop.mp4",
-    "description": "The ultranurd Drop",
+    "description": "The ultranurd Drop. User drop.",
     "url": "https://i.imgur.com/xlkcPMy.mp4"
   },
   "The Very Name Is Racist": {
@@ -501,17 +521,17 @@
   },
   "The VitaZed Drop": {
     "file": "data/drops/thevitazedrop.mp4",
-    "description": "The VitaZed Drop",
+    "description": "The VitaZed Drop. User drop.",
     "url": "https://i.imgur.com/4mBAcZI.mp4"
   },
   "The VitaZed Drop - Dr Z Mix": {
     "file": "data/drops/thevitazedrop_drzmix.mp4",
-    "description": "The VitaZed Drop - Dr Z Mix",
+    "description": "The VitaZed Drop - Dr Z Mix. User drop.",
     "url": "https://i.imgur.com/SbCiq6o.mp4"
   },
   "The Vulpesia Drop": {
     "file": "data/drops/thevulpesiadrop.mp4",
-    "description": "The Vulpesia Drop",
+    "description": "The Vulpesia Drop. User drop.",
     "url": "https://i.imgur.com/sNZaGdb.mp4"
   },
   "The Worf's Calisthenics Drop": {
@@ -521,7 +541,7 @@
   },
   "The Wynde Drop": {
     "file": "data/drops/thewyndedrop.mp4",
-    "description": "The Wynde Drop",
+    "description": "The Wynde Drop. User drop.",
     "url": "https://i.imgur.com/qjDTN7j.mp4"
   },
   "This Is Fucking Spectacular!": {
@@ -572,7 +592,7 @@
   "VOY Interstitial - Coffee, Black. Make It Yourself!": {
     "file": "data/drops/voycoffeeblackmakeityourself.mp4",
     "description": "Janeway: Coffee. Black. Make it yourself. I'm trying to help you see this as an opportunity to grow.",
-    "url": "https://i.imgur.com/8dBY1ak.mp4"
+    "url": "https://i.imgur.com/DvUSR5q.mp4"
   },
   "VOY Interstitial - Janeway Wants You To Do It!": {
     "file": "data/drops/voylockedindoit.mp4",
