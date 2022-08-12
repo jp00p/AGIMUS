@@ -6,6 +6,7 @@ from common import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 import queries.badge_completion as queries_badge_completion
+from queries.badge_scrap import *
 
 
 f = open(config["handlers"]["xp"]["badge_data"])
@@ -468,12 +469,15 @@ def _append_featured_completion_badges(user_id, report, category):
   return report
 
 
-#
-# SCRAPPER
-#
+#   _________
+#  /   _____/ ________________  ______ ______   ___________
+#  \_____  \_/ ___\_  __ \__  \ \____ \\____ \_/ __ \_  __ \
+#  /        \  \___|  | \// __ \|  |_> >  |_> >  ___/|  | \/
+# /_______  /\___  >__|  (____  /   __/|   __/ \___  >__|
+#         \/     \/           \/|__|   |__|        \/
 @badge_group.command(
   name="scrap",
-  description="Turn in 3 badges for 1 newly generated one"
+  description="Turn in 3 badges for 1 new random badge instead"
 )
 @option(
   name="first_badge",
@@ -502,9 +506,10 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   :param third_badge: The name of the third badge to scrap.
   :return:
   """
+  user_id = ctx.interaction.user.id
 
   selected_badges = [first_badge, second_badge, third_badge]
-  user_badges = db_get_user_badges(ctx.interaction.user.id)
+  user_badges = db_get_user_badges(user_id)
   user_badge_names = [b['badge_name'] for b in user_badges]
 
   selected_user_badges = [b for b in selected_badges if b in user_badge_names]
@@ -534,8 +539,43 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     ), ephemeral=True)
     return
 
+  # If all basics checks pass, check that they're within the allowed time window
+  last_scrap_time = db_get_scrap_last_timestamp(user_id)
+  time_difference = datetime.utcnow() - last_scrap_time
+  if time_difference.days == 0:
+    human_time_left = humanize.precisedelta(timedelta(hours=24) - time_difference)
+    await ctx.respond(embed=discord.Embed(
+      title="Scrapper On Cooldown",
+      description=f"You may only perform one scrap every 24 hours.\n\nYou still have {human_time_left} left.",
+      color=discord.Color.red()
+    ), ephemeral=True)
+    return
 
-  await ctx.respond(f"You selected `{first_badge}`, `{second_badge}`, and `{third_badge}`", ephemeral=True)
+  # If time check okay, select a new random badge
+  all_possible_badges = [b['badge_name'] for b in all_badge_info]
+  valid_choices = [b for b in all_possible_badges if b not in user_badge_names]
+  badge_choice = random.choice(valid_choices)
+  # don't give them a badge they already have
+  while badge_choice in user_badge_names and len(valid_choices) > 1:
+    # Remove this choice from the list to pick from randomly
+    valid_choices.remove(badge_choice)
+    badge_choice = random.choice(valid_choices)
+
+  if len(valid_choices) == 0:
+    await ctx.respond(embed=discord.Embed(
+      title="You already have *ALL BADGES!?!*",
+      description=f"Amazing! You've collected every badge we have, so scrapping is unnecessary. Get it player.",
+      color=discord.Color.random()
+    ), ephemeral=True)
+    return
+
+  badge_filename_to_add = db_get_badge_info_by_name(badge_choice)['badge_filename']
+  badge_filenames_to_scrap = [db_get_badge_info_by_name(b)['badge_filename'] for b in selected_user_badges]
+
+  # Do the actual scrappage
+  db_perform_badge_scrap(user_id, badge_filename_to_add, badge_filenames_to_scrap)
+
+  await ctx.respond(f"You received: `{badge_choice}`. You scrapped `{first_badge}`, `{second_badge}`, and `{third_badge}`", ephemeral=True)
 
 
 # .____                  __
