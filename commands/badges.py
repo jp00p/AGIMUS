@@ -24,6 +24,22 @@ all_badge_info = db_get_all_badge_info()
 async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
   return [badge['badge_name'] for badge in all_badge_info if ctx.value.lower() in badge['badge_name'].lower()]
 
+unscrappable_badges = ["Friends Of DeSoto"]
+
+async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
+  first_badge = ctx.options["first_badge"]
+  second_badge = ctx.options["second_badge"]
+  third_badge = ctx.options["third_badge"]
+
+  user_badges = db_get_user_badges(ctx.interaction.user.id)
+
+  filtered_badges = [first_badge, second_badge, third_badge] + unscrappable_badges
+
+  filtered_badge_names = [badge['badge_name'] for badge in user_badges if badge['badge_name'] not in filtered_badges]
+
+  return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
+
+
 async def autocomplete_selections(ctx:discord.AutocompleteContext):
   category = ctx.options["category"]
 
@@ -452,6 +468,76 @@ def _append_featured_completion_badges(user_id, report, category):
   return report
 
 
+#
+# SCRAPPER
+#
+@badge_group.command(
+  name="scrap",
+  description="Turn in 3 badges for 1 newly generated one"
+)
+@option(
+  name="first_badge",
+  description="First badge to scrap",
+  required=True,
+  autocomplete=scrapper_autocomplete
+)
+@option(
+  name="second_badge",
+  description="Second badge to scrap",
+  required=True,
+  autocomplete=scrapper_autocomplete
+)
+@option(
+  name="third_badge",
+  description="Third badge to scrap",
+  required=True,
+  autocomplete=scrapper_autocomplete
+)
+async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
+  """
+  This function executes the scrap for the /badge scrap command
+  :param ctx:
+  :param first_badge: The name of the first badge to scrap.
+  :param second_badge: The name of the second badge to scrap.
+  :param third_badge: The name of the third badge to scrap.
+  :return:
+  """
+
+  selected_badges = [first_badge, second_badge, third_badge]
+  user_badges = db_get_user_badges(ctx.interaction.user.id)
+  user_badge_names = [b['badge_name'] for b in user_badges]
+
+  selected_user_badges = [b for b in selected_badges if b in user_badge_names]
+
+  if len(selected_user_badges) != 3:
+    await ctx.respond(embed=discord.Embed(
+      title="Invalid Selection",
+      description=f"You must own all of the badges you've selected to scrap!",
+      color=discord.Color.red()
+    ), ephemeral=True)
+    return
+
+  if len(selected_user_badges) > len(set(selected_user_badges)):
+    await ctx.respond(embed=discord.Embed(
+      title="Invalid Selection",
+      description=f"All badges selected must be unique!",
+      color=discord.Color.red()
+    ), ephemeral=True)
+    return
+
+  restricted_badges = [b for b in selected_user_badges if b in unscrappable_badges]
+  if restricted_badges:
+    await ctx.respond(embed=discord.Embed(
+      title="Invalid Selection",
+      description=f"You cannot scrap the following: {','.join(restricted_badges)}!",
+      color=discord.Color.red()
+    ), ephemeral=True)
+    return
+
+
+  await ctx.respond(f"You selected `{first_badge}`, `{second_badge}`, and `{third_badge}`", ephemeral=True)
+
+
 # .____                  __
 # |    |    ____   ____ |  | ____ ________
 # |    |   /  _ \ /  _ \|  |/ /  |  \____ \
@@ -513,7 +599,6 @@ async def badge_lookup(ctx:discord.ApplicationContext, name:str):
     logger.info(f">>> ERROR: {e}")
 
 
-
 #   _________ __          __  .__          __  .__
 #  /   _____//  |______ _/  |_|__| _______/  |_|__| ____   ______
 #  \_____  \\   __\__  \\   __\  |/  ___/\   __\  |/ ___\ /  ___/
@@ -543,6 +628,7 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   embed.add_field(name="⠀", value="⠀", inline=True)
   embed.add_field(name=f"{get_emoji('combadge')} Top 5 badge collectors", value=str("\n".join(f"{t['name']} ({t['count']})" for t in top_collectors)), inline=True)
   await ctx.respond(embed=embed, ephemeral=False)
+
 
 #   ________.__  _____  __
 #  /  _____/|__|/ ____\/  |_
