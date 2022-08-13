@@ -460,7 +460,85 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
 #  /        \  \___|  | \// __ \|  |_> >  |_> >  ___/|  | \/
 # /_______  /\___  >__|  (____  /   __/|   __/ \___  >__|
 #         \/     \/           \/|__|   |__|        \/
-def generate_badge_scrapper_gif(user_id, badge_created_filename, badges_scrapped):
+def generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
+  replicator_image = Image.open(f"./images/templates/scrap/replicator.png")
+
+  base_image = Image.new("RGBA", (replicator_image.width, replicator_image.height), (0, 0, 0))
+  base_image.paste(replicator_image, (0, 0))
+
+  b1 = Image.open(f"./images/badges/{badges_to_scrap[0]['badge_filename']}").convert("RGBA").resize((125, 125))
+  b2 = Image.open(f"./images/badges/{badges_to_scrap[1]['badge_filename']}").convert("RGBA").resize((125, 125))
+  b3 = Image.open(f"./images/badges/{badges_to_scrap[2]['badge_filename']}").convert("RGBA").resize((125, 125))
+
+  b_list = [b1, b2, b3]
+
+  frames = []
+  badge_position_x = 75
+  badge_position_y = 130
+
+  # Add 30 frames of just the replicator and the badges by themselves
+  for n in range(1, 31):
+    frame = base_image.copy()
+    frame_badges = [b.copy() for b in b_list]
+
+    current_x = badge_position_x
+    for f_b in frame_badges:
+      frame.paste(f_b, (current_x, badge_position_y), f_b)
+      current_x = current_x + 130
+
+    frames.append(frame)
+
+  # Create the badge transporter effect animation
+  for n in range(1, 71):
+    frame = base_image.copy()
+
+    frame_badges = [b.copy() for b in b_list]
+
+    current_x = badge_position_x
+    for f_b in frame_badges:
+      # Determine opacity of badge
+      # As the animation continues the opacity decreases
+      # based on the percentage of the animation length to 255 (70 total frames)
+      opacity_value = round((100 - (n / 70 * 100)) * 2.55)
+      badge_with_opacity = f_b.copy()
+      badge_with_opacity.putalpha(opacity_value)
+      f_b.paste(badge_with_opacity, f_b)
+
+      # Layer effect over badge image
+      badge_with_effect = Image.new("RGBA", (125, 125), (255, 255, 255, 0))
+      badge_with_effect.paste(f_b, (0, 0), f_b)
+      effect_frame = Image.open(f"./images/templates/scrap/effect/{'{:02d}'.format(n)}.png").convert('RGBA').resize((125, 125))
+      badge_with_effect.paste(effect_frame, (0, 0), effect_frame)
+
+      # Stick badge onto replicator background
+      frame.paste(badge_with_effect, (current_x, badge_position_y), badge_with_effect)
+
+      current_x = current_x + 130
+
+    frames.append(frame)
+
+  # Add 10 frames of the replicator by itself
+  for n in range(1, 11):
+    frame = base_image.copy()
+    frames.append(frame)
+
+  gif_save_filepath = f"./images/scrap/{user_id}-confirm.gif"
+  frames[0].save(
+    gif_save_filepath,
+    save_all=True, append_images=frames[1:], optimize=False, duration=40, loop=0
+  )
+
+  while True:
+    time.sleep(0.05)
+    if os.path.isfile(gif_save_filepath):
+      break
+
+  discord_image = discord.File(gif_save_filepath, filename=f"scrap_{user_id}-confirm.gif")
+  return discord_image
+
+
+def generate_badge_scrapper_result_gif(user_id, badge_to_add):
+  badge_created_filename = badge_to_add['badge_filename']
   replicator_image = Image.open(f"./images/templates/scrap/replicator.png")
 
   base_image = Image.new("RGBA", (replicator_image.width, replicator_image.height), (0, 0, 0))

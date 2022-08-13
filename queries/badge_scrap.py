@@ -16,7 +16,10 @@ def db_get_scrap_last_timestamp(user_discord_id):
 
   return timestamp
 
-def db_perform_badge_scrap(user_discord_id, badge_filename_to_add, badge_filenames_to_scrap):
+def db_perform_badge_scrap(user_discord_id, badge_to_add, badges_to_scrap):
+  badge_filename_to_add = badge_to_add['badge_filename']
+  badge_filenames_to_scrap = [b['badge_filename'] for b in badges_to_scrap]
+
   db = getDB()
   query = db.cursor(dictionary=True)
 

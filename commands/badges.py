@@ -476,6 +476,102 @@ def _append_featured_completion_badges(user_id, report, category):
 #  /        \  \___|  | \// __ \|  |_> >  |_> >  ___/|  | \/
 # /_______  /\___  >__|  (____  /   __/|   __/ \___  >__|
 #         \/     \/           \/|__|   |__|        \/
+class ScrapButton(discord.ui.Button):
+  def __init__(self, user_id, badge_to_add, badges_to_scrap):
+    self.user_id = user_id
+    self.badge_to_add = badge_to_add
+    self.badges_to_scrap = badges_to_scrap
+    super().__init__(
+      label="     Scrap     ",
+      style=discord.ButtonStyle.primary,
+      row=2
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    # Re-check conditions to ensure this action is still valid
+    # Ensure user still owns the badges
+    user_badges = db_get_user_badges(self.user_id)
+    user_badge_filenames = [b['badge_filename'] for b in user_badges]
+    owned_user_badges = [b for b in self.badges_to_scrap if b['badge_filename'] in user_badge_filenames]
+    # Ensure they haven't performed another scrap within the time period
+    last_scrap_time = db_get_scrap_last_timestamp(self.user_id)
+    time_difference = datetime.utcnow() - last_scrap_time
+
+    if (len(owned_user_badges) != 3) or (time_difference.days == 0):
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title="Error",
+          description=f"There's been a problem with this scrap request.\n\nEither you no longer possess the badges outlined or another scrap has been performed in the intervening time.",
+          color=discord.Color.red()
+        ),
+        view=None,
+        attachments=[]
+      )
+    else:
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title="Scrap Initiated",
+          description="Just a moment please...",
+          color=discord.Color.teal()
+        ),
+        view=None,
+        attachments=[]
+      )
+
+      # Cancel any existing trades that may be out requesting or offering these badges from this user
+      trades_to_cancel = db_get_trades_to_cancel_from_scrapped_badges(self.user_id, self.badges_to_scrap)
+      await _cancel_invalid_scrapped_trades(trades_to_cancel)
+
+      # Do the actual scrappage
+      db_perform_badge_scrap(self.user_id, self.badge_to_add, self.badges_to_scrap)
+
+      # Post message about successful scrap
+      scrapper_gif = generate_badge_scrapper_result_gif(self.user_id, self.badge_to_add)
+
+      embed = discord.Embed(
+        title="Scrap Complete",
+        description=f"{interaction.user.mention}'s matter-energy conversion matrix reconfiguration complete, pattern buffer stable, rematerializing.",
+        color=discord.Color.teal()
+      )
+      embed.add_field(
+        name="Scrapped Badges",
+        value="\n".join([b['badge_name'] for b in self.badges_to_scrap]),
+        inline=True
+      )
+      embed.add_field(
+        name="Badge Result",
+        value=self.badge_to_add['badge_name'],
+        inline=True
+      )
+      embed.set_image(url=f"attachment://scrap_{self.user_id}.gif")
+      await interaction.channel.send(embed=embed, file=scrapper_gif)
+
+class CancelScrapButton(discord.ui.Button):
+  def __init__(self):
+    super().__init__(
+      label="     Cancel     ",
+      style=discord.ButtonStyle.red,
+      row=2
+    )
+
+  async def callback(self, interaction:discord.Interaction):
+    await interaction.response.edit_message(
+      embed=discord.Embed(
+        title="Scrap Canceled",
+        description="You may initiate a new scrap with `/badges scrap` at any time.",
+        color=discord.Color.teal()
+      ),
+      view=None,
+      attachments=[]
+    )
+
+class ScrapCancelView(discord.ui.View):
+  def __init__(self, user_id, badge_to_add, badges_to_scrap):
+    super().__init__()
+    self.add_item(CancelScrapButton())
+    self.add_item(ScrapButton(user_id, badge_to_add, badges_to_scrap))
+
+
 @badge_group.command(
   name="scrap",
   description="Turn in 3 badges for 1 new random badge instead. One scrap allowed every 24hrs."
@@ -508,7 +604,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   :param third_badge: The name of the third badge to scrap.
   :return:
   """
-  await ctx.defer()
+  await ctx.defer(ephemeral=True)
   user_id = ctx.interaction.user.id
 
   selected_badges = [first_badge, second_badge, third_badge]
@@ -573,36 +669,26 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     ), ephemeral=True)
     return
 
-  badge_filename_to_add = db_get_badge_info_by_name(badge_choice)['badge_filename']
-  badge_filenames_to_scrap = [db_get_badge_info_by_name(b)['badge_filename'] for b in selected_user_badges]
+  badge_to_add = db_get_badge_info_by_name(badge_choice)
+  badges_to_scrap = [db_get_badge_info_by_name(b) for b in selected_user_badges]
 
-  # Cancel any existing trades that may be out requesting or offering these badges from this user
-  trades_to_cancel = db_get_trades_to_cancel_from_scrapped_badges(user_id, badge_filenames_to_scrap)
-  await _cancel_invalid_scrapped_trades(trades_to_cancel)
-
-  # Do the actual scrappage
-  db_perform_badge_scrap(user_id, badge_filename_to_add, badge_filenames_to_scrap)
-
-  # Post message about successful scrap
-  scrapper_gif = generate_badge_scrapper_gif(user_id, badge_filename_to_add, badge_filenames_to_scrap)
+  # Send confirmation message with interaction view
+  scrapper_confirm_gif = generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
 
   embed = discord.Embed(
-    title="Scrap Complete",
-    description=f"{ctx.author.mention}'s matter-energy conversion matrix reconfiguration complete, pattern buffer stable, rematerializing.",
+    title="Are you sure you want to scrap these badges?",
+    description="\n".join(selected_user_badges),
     color=discord.Color.teal()
   )
-  embed.add_field(
-    name="Badge Result",
-    value=badge_choice,
-    inline=True
+  embed.set_image(url=f"attachment://scrap_{user_id}-confirm.gif")
+
+  view = ScrapCancelView(user_id, badge_to_add, badges_to_scrap)
+  await ctx.followup.send(
+    embed=embed,
+    file=scrapper_confirm_gif,
+    view=view,
+    ephemeral=True
   )
-  embed.add_field(
-    name="Scrapped Badges",
-    value="\n".join(selected_user_badges),
-    inline=True
-  )
-  embed.set_image(url=f"attachment://scrap_{user_id}.gif")
-  await ctx.followup.send(embed=embed, file=scrapper_gif, ephemeral=False)
 
 
 async def _cancel_invalid_scrapped_trades(trades_to_cancel):
@@ -1201,7 +1287,8 @@ def run_badge_stats_queries():
   return results
 
 
-def db_get_trades_to_cancel_from_scrapped_badges(user_id, badge_filenames):
+def db_get_trades_to_cancel_from_scrapped_badges(user_id, badges_to_scrap):
+  badge_filenames = [b['badge_filename'] for b in badges_to_scrap]
   db = getDB()
   query = db.cursor(dictionary=True)
   # All credit for this query to Danma! Praise be!!!
