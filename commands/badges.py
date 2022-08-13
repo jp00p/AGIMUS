@@ -3,9 +3,11 @@ import time
 import math
 
 from common import *
+from cogs.trade import db_cancel_trade, get_offered_and_requested_badge_names
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 import queries.badge_completion as queries_badge_completion
+from queries.badge_scrap import *
 
 
 f = open(config["handlers"]["xp"]["badge_data"])
@@ -23,6 +25,22 @@ all_badge_info = db_get_all_badge_info()
 
 async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
   return [badge['badge_name'] for badge in all_badge_info if ctx.value.lower() in badge['badge_name'].lower()]
+
+unscrappable_badges = ["Friends Of DeSoto"]
+
+async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
+  first_badge = ctx.options["first_badge"]
+  second_badge = ctx.options["second_badge"]
+  third_badge = ctx.options["third_badge"]
+
+  user_badges = db_get_user_badges(ctx.interaction.user.id)
+
+  filtered_badges = [first_badge, second_badge, third_badge] + unscrappable_badges
+
+  filtered_badge_names = [badge['badge_name'] for badge in user_badges if badge['badge_name'] not in filtered_badges]
+
+  return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
+
 
 async def autocomplete_selections(ctx:discord.AutocompleteContext):
   category = ctx.options["category"]
@@ -495,8 +513,8 @@ class ScrapButton(discord.ui.Button):
     else:
       await interaction.response.edit_message(
         embed=discord.Embed(
-          title="Scrapper initiated!",
-          description="Your badges are being broken down into their constituent components.\nJust a moment please...",
+          title="Scrap Initiated",
+          description="Just a moment please...",
           color=discord.Color.teal()
         ),
         view=None,
@@ -513,34 +531,20 @@ class ScrapButton(discord.ui.Button):
       # Post message about successful scrap
       scrapper_gif = await generate_badge_scrapper_result_gif(self.user_id, self.badge_to_add)
 
-      scrap_complete_messages = [
-        "{} reaches into AGIMUS' warm scrap hole and pulls out a shiny new badge!",
-        "{} uses the Scrap-o-matic! Three old badges become one shiny new badge. That's science, baby!",
-        "{} has replicator rations to spare, so they've scrapped some old badges for a new one!",
-        "{} performs some strange gestures in front of the replicator. They hold a new badge above their head!",
-        "{} adds 3 old crusty badges to the scrapper, and yanks out a new shiny badge!",
-        "{} is using the scrapper on the clock. Don't tell the captain!",
-        "{} is donating three old badges to the void, and gets a brand new badge in return!",
-        "{} suspiciously shoves three badges into the slot and hastily pulls a fresh badge out, hoping you didn't see anything.",
-        "Scrap complete! {} has recycled three old badges into one new badge!",
-        "{} has used the badge scrapper! Tonight is the night when 3 become 1 🎶"
-      ]
-
       embed = discord.Embed(
-        title="Scrap complete!",
-        description=random.choice(scrap_complete_messages).format(interaction.user.mention),
+        title="Scrap Complete",
+        description=f"{interaction.user.mention}'s matter-energy matrix reconfiguration complete, pattern buffer stable, rematerializing.",
         color=discord.Color.teal()
       )
-      logger.info(self.badges_to_scrap)
       embed.add_field(
-        name="Scrapped badges: ❌",
-        value="\n".join(["~~"+b['badge_name']+"~~" for b in self.badges_to_scrap]),
-        inline=False
+        name="Scrapped Badges",
+        value="\n".join([b['badge_name'] for b in self.badges_to_scrap]),
+        inline=True
       )
       embed.add_field(
-        name="New badge: 🆕",
-        value=f"🌟 **{self.badge_to_add['badge_name']}** [(badge details)]({self.badge_to_add['badge_url']})",
-        inline=False
+        name="Badge Result",
+        value=self.badge_to_add['badge_name'],
+        inline=True
       )
       embed.set_image(url=f"attachment://scrap_{self.user_id}.gif")
       await interaction.channel.send(embed=embed, file=scrapper_gif)
@@ -556,7 +560,7 @@ class CancelScrapButton(discord.ui.Button):
   async def callback(self, interaction:discord.Interaction):
     await interaction.response.edit_message(
       embed=discord.Embed(
-        title="Scrap cancelled!",
+        title="Scrap Canceled",
         description="You may initiate a new scrap with `/badges scrap` at any time.",
         color=discord.Color.teal()
       ),
@@ -573,7 +577,7 @@ class ScrapCancelView(discord.ui.View):
 
 @badge_group.command(
   name="scrap",
-  description="Turn in 3 badges for 1 new random badge. One scrap allowed every 24 hours."
+  description="Turn in 3 badges for 1 new random badge instead. One scrap allowed every 24hrs."
 )
 @option(
   name="first_badge",
@@ -645,7 +649,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     if time_difference.days == 0:
       humanized_time_left = humanize.precisedelta(timedelta(hours=24) - time_difference)
       await ctx.followup.send(embed=discord.Embed(
-        title="Scrapper recharging, please wait.",
+        title="Scrapper On Cooldown",
         description=f"You may only perform one scrap every 24 hours.\n\nYou still have {humanized_time_left} left.",
         color=discord.Color.red()
       ), ephemeral=True)
@@ -677,7 +681,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
 
   embed = discord.Embed(
     title="Are you sure you want to scrap these badges?",
-    description=str("** This cannot be undone.\n**") + str("\n".join(selected_user_badges)),
+    description="\n".join(selected_user_badges),
     color=discord.Color.teal()
   )
   embed.set_image(url=f"attachment://scrap_{user_id}-confirm.gif")
@@ -706,7 +710,7 @@ async def _cancel_invalid_scrapped_trades(trades_to_cancel):
       try:
         requestee_embed = discord.Embed(
           title="Trade Canceled",
-          description=f"Just a heads up! Your pending trade initiated by {requestor.mention} was canceled because one or more of the badges involved were scrapped!",
+          description=f"Just a heads up! Your USS Hood Badge Trade initiated by {requestor.mention} was canceled because one or more of the badges involved were scrapped!",
           color=discord.Color.purple()
         )
         requestee_embed.add_field(
@@ -731,7 +735,7 @@ async def _cancel_invalid_scrapped_trades(trades_to_cancel):
       try:
         requestor_embed = discord.Embed(
           title="Trade Canceled",
-          description=f"Just a heads up! Your pending trade requested from {requestee.mention} was canceled because one or more of the badges involved were scrapped!",
+          description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because one or more of the badges involved were scrapped!",
           color=discord.Color.purple()
         )
         requestor_embed.add_field(
@@ -811,7 +815,6 @@ async def badge_lookup(ctx:discord.ApplicationContext, name:str):
     logger.info(f">>> ERROR: {e}")
 
 
-
 #   _________ __          __  .__          __  .__
 #  /   _____//  |______ _/  |_|__| _______/  |_|__| ____   ______
 #  \_____  \\   __\__  \\   __\  |/  ___/\   __\  |/ ___\ /  ___/
@@ -841,6 +844,7 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   embed.add_field(name="⠀", value="⠀", inline=True)
   embed.add_field(name=f"{get_emoji('combadge')} Top 5 badge collectors", value=str("\n".join(f"{t['name']} ({t['count']})" for t in top_collectors)), inline=True)
   await ctx.respond(embed=embed, ephemeral=False)
+
 
 #   ________.__  _____  __
 #  /  _____/|__|/ ____\/  |_
@@ -1285,3 +1289,32 @@ def run_badge_stats_queries():
     query.close()
   db.close()
   return results
+
+
+def db_get_trades_to_cancel_from_scrapped_badges(user_id, badges_to_scrap):
+  badge_filenames = [b['badge_filename'] for b in badges_to_scrap]
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  # All credit for this query to Danma! Praise be!!!
+  sql = '''
+    SELECT t.*
+    FROM trades as t
+    LEFT JOIN trade_offered `to` ON t.id = to.trade_id
+    LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
+    WHERE t.status IN ('pending','active')
+    AND (
+      (t.requestor_id = %s AND to.badge_filename IN (%s, %s, %s))
+      OR
+      (t.requestee_id = %s AND tr.badge_filename IN (%s, %s, %s))
+    )
+  '''
+  vals = (
+    user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2],
+    user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2]
+  )
+  query.execute(sql, vals)
+  trades = query.fetchall()
+  db.commit()
+  query.close()
+  db.close()
+  return trades

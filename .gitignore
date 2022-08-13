@@ -132,6 +132,7 @@ images/cards/users/*.png
 images/ep.jpg
 images/slot_results/*.png
 images/trades/*.png
+images/scrap/*.gif
 !images/slot_results/template*
 !images/profiles/template*
 database/*

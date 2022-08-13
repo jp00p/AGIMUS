@@ -152,6 +152,25 @@ CREATE TABLE IF NOT EXISTS trade_requested (
   FOREIGN KEY (trade_id)
     REFERENCES trades(id)
 );
+CREATE TABLE IF NOT EXISTS `badge_scraps` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `badge_filename` varchar(128) NOT NULL,
+    `user_discord_id` varchar(128) NOT NULL,
+    `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`),
+    KEY `badge_filename` (`badge_filename`),
+    CONSTRAINT `badge_scraps_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+);
+CREATE TABLE IF NOT EXISTS `badge_scrapped` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `scrap_id` int(11) NOT NULL,
+    `badge_filename` varchar(128) NOT NULL,
+    `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`),
+    KEY `badge_filename` (`badge_filename`),
+    FOREIGN KEY (`scrap_id`) REFERENCES `badge_scraps` (`id`),
+    FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+);
 CREATE TABLE IF NOT EXISTS reactions (
   id int(11) NOT NULL AUTO_INCREMENT,
   user_id varchar(64) NOT NULL,
