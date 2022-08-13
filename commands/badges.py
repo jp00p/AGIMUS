@@ -533,7 +533,7 @@ class ScrapButton(discord.ui.Button):
 
       embed = discord.Embed(
         title="Scrap Complete",
-        description=f"{interaction.user.mention}'s matter-energy conversion matrix reconfiguration complete, pattern buffer stable, rematerializing.",
+        description=f"{interaction.user.mention}'s matter-energy matrix reconfiguration complete, pattern buffer stable, rematerializing.",
         color=discord.Color.teal()
       )
       embed.add_field(
