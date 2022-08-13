@@ -281,6 +281,13 @@
       "enabled": true,
       "parameters": []
     },
+    "badges scrap": {
+      "channels": [
+        "badgeys-badges"
+      ],
+      "enabled": true,
+      "parameters": []
+    },
     "clear_media": {
       "channels": [],
       "enabled": true,
