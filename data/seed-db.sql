@@ -156,7 +156,6 @@ CREATE TABLE IF NOT EXISTS `badge_scraps` (
     `id` int NOT NULL AUTO_INCREMENT,
     `badge_filename` varchar(128) NOT NULL,
     `user_discord_id` varchar(128) NOT NULL,
-    `status` varchar(32) NOT NULL DEFAULT `pending`,
     `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
     PRIMARY KEY (`id`),
     KEY `badge_filename` (`badge_filename`),
