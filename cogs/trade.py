@@ -216,6 +216,7 @@ class Trade(commands.Cog):
 
   trade = discord.SlashCommandGroup("trade", "Commands for trading badges")
 
+
   #   ___                   _             _____            _
   #  |_ _|_ _  __ ___ _ __ (_)_ _  __ _  |_   _| _ __ _ __| |___
   #   | || ' \/ _/ _ \ '  \| | ' \/ _` |   | || '_/ _` / _` / -_)
@@ -282,7 +283,7 @@ class Trade(commands.Cog):
 
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
-    offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+    offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
 
     # FAILSAFES!
 
@@ -362,7 +363,7 @@ class Trade(commands.Cog):
       requestee = await self.bot.current_guild.fetch_member(trade['requestee_id'])
       requestor = await self.bot.current_guild.fetch_member(trade['requestor_id'])
 
-      offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(trade)
+      offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(trade)
 
       # Give notice to Requestee
       user = get_user(requestee.id)
@@ -433,7 +434,7 @@ class Trade(commands.Cog):
         )
       )
       try:
-        offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+        offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
           description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because you already own some of the badges requested!",
@@ -477,7 +478,7 @@ class Trade(commands.Cog):
         )
       )
       try:
-        offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+        offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
           description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because they already own some of the badges offered!",
@@ -520,7 +521,7 @@ class Trade(commands.Cog):
         )
       )
       try:
-        offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+        offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
           description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because you no longer have some of the badges you offered!",
@@ -563,7 +564,7 @@ class Trade(commands.Cog):
         )
       )
       try:
-        offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+        offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
           description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because they no longer have some of the badges you requested!",
@@ -604,7 +605,7 @@ class Trade(commands.Cog):
     )
 
     db_decline_trade(active_trade)
-    offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+    offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
 
     user = get_user(requestor.id)
     if user["receive_notifications"]:
@@ -833,7 +834,7 @@ class Trade(commands.Cog):
       user = get_user(requestee.id)
       if active_trade["status"] == 'active' and user["receive_notifications"]:
         try:
-          offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+          offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
 
           notification_description = f"Heads up! {requestor.mention} has canceled their pending trade request with you."
 
@@ -908,7 +909,7 @@ class Trade(commands.Cog):
       user = get_user(requestee.id)
       if user["receive_notifications"]:
         try:
-          offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+          offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
 
           requestee_embed = discord.Embed(
             title="Trade Offered",
@@ -1008,7 +1009,7 @@ class Trade(commands.Cog):
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
 
-    offered_badge_names, requested_badge_names = await self._get_offered_and_requested_badge_names(active_trade)
+    offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
 
     home_embed = None
     home_image = None
@@ -1241,20 +1242,6 @@ class Trade(commands.Cog):
 
     return active_trade
 
-  async def _get_offered_and_requested_badge_names(self, active_trade) -> tuple[str, str]:
-    offered_badges = db_get_trade_offered_badges(active_trade)
-    offered_badge_names = "None"
-    if offered_badges:
-      offered_badge_names = "\n".join([b['badge_name'] for b in offered_badges])
-
-    requested_badges = db_get_trade_requested_badges(active_trade)
-    requested_badge_names = "None"
-    if requested_badges:
-      requested_badge_names = "\n".join([b['badge_name'] for b in requested_badges])
-
-    return offered_badge_names, requested_badge_names
-
-
 
 #  ____ ___   __  .__.__
 # |    |   \_/  |_|__|  |   ______
@@ -1270,6 +1257,19 @@ def does_trade_contain_badges(active_trade):
     return True
   else:
     return False
+
+def get_offered_and_requested_badge_names(active_trade):
+  offered_badges = db_get_trade_offered_badges(active_trade)
+  offered_badge_names = "None"
+  if offered_badges:
+    offered_badge_names = "\n".join([b['badge_name'] for b in offered_badges])
+
+  requested_badges = db_get_trade_requested_badges(active_trade)
+  requested_badge_names = "None"
+  if requested_badges:
+    requested_badge_names = "\n".join([b['badge_name'] for b in requested_badges])
+
+  return offered_badge_names, requested_badge_names
 
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
