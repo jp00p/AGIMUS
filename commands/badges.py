@@ -494,10 +494,13 @@ class ScrapButton(discord.ui.Button):
     user_badge_filenames = [b['badge_filename'] for b in user_badges]
     owned_user_badges = [b for b in self.badges_to_scrap if b['badge_filename'] in user_badge_filenames]
     # Ensure they haven't performed another scrap within the time period
+    time_check_fail = False
     last_scrap_time = db_get_scrap_last_timestamp(self.user_id)
-    time_difference = datetime.utcnow() - last_scrap_time
+    if last_scrap_time:
+      time_difference = datetime.utcnow() - last_scrap_time
+      time_check_fail = time_difference.days == 0
 
-    if (len(owned_user_badges) != 3) or (time_difference.days == 0):
+    if (len(owned_user_badges) != 3) or (time_check_fail):
       await interaction.response.edit_message(
         embed=discord.Embed(
           title="Error",
@@ -526,7 +529,7 @@ class ScrapButton(discord.ui.Button):
       db_perform_badge_scrap(self.user_id, self.badge_to_add, self.badges_to_scrap)
 
       # Post message about successful scrap
-      scrapper_gif = generate_badge_scrapper_result_gif(self.user_id, self.badge_to_add)
+      scrapper_gif = await generate_badge_scrapper_result_gif(self.user_id, self.badge_to_add)
 
       embed = discord.Embed(
         title="Scrap Complete",
@@ -641,15 +644,16 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   # If all basics checks pass,
   # check that they're within the allowed time window
   last_scrap_time = db_get_scrap_last_timestamp(user_id)
-  time_difference = datetime.utcnow() - last_scrap_time
-  if time_difference.days == 0:
-    humanized_time_left = humanize.precisedelta(timedelta(hours=24) - time_difference)
-    await ctx.followup.send(embed=discord.Embed(
-      title="Scrapper On Cooldown",
-      description=f"You may only perform one scrap every 24 hours.\n\nYou still have {humanized_time_left} left.",
-      color=discord.Color.red()
-    ), ephemeral=True)
-    return
+  if last_scrap_time:
+    time_difference = datetime.utcnow() - last_scrap_time
+    if time_difference.days == 0:
+      humanized_time_left = humanize.precisedelta(timedelta(hours=24) - time_difference)
+      await ctx.followup.send(embed=discord.Embed(
+        title="Scrapper On Cooldown",
+        description=f"You may only perform one scrap every 24 hours.\n\nYou still have {humanized_time_left} left.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
 
   # If time check okay, select a new random badge
   all_possible_badges = [b['badge_name'] for b in all_badge_info]
@@ -673,7 +677,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   badges_to_scrap = [db_get_badge_info_by_name(b) for b in selected_user_badges]
 
   # Send confirmation message with interaction view
-  scrapper_confirm_gif = generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
+  scrapper_confirm_gif = await generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
 
   embed = discord.Embed(
     title="Are you sure you want to scrap these badges?",

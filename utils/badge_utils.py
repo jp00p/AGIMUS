@@ -460,6 +460,7 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
 #  /        \  \___|  | \// __ \|  |_> >  |_> >  ___/|  | \/
 # /_______  /\___  >__|  (____  /   __/|   __/ \___  >__|
 #         \/     \/           \/|__|   |__|        \/
+@to_thread
 def generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
   replicator_image = Image.open(f"./images/templates/scrap/replicator.png")
 
@@ -536,7 +537,7 @@ def generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
   discord_image = discord.File(gif_save_filepath, filename=f"scrap_{user_id}-confirm.gif")
   return discord_image
 
-
+@to_thread
 def generate_badge_scrapper_result_gif(user_id, badge_to_add):
   badge_created_filename = badge_to_add['badge_filename']
   replicator_image = Image.open(f"./images/templates/scrap/replicator.png")
