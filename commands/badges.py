@@ -3,6 +3,7 @@ import time
 import math
 
 from common import *
+from cogs.trade import db_cancel_trade, get_offered_and_requested_badge_names
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 import queries.badge_completion as queries_badge_completion
@@ -497,6 +498,7 @@ def _append_featured_completion_badges(user_id, report, category):
   required=True,
   autocomplete=scrapper_autocomplete
 )
+@commands.check(access_check)
 async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
   """
   This function executes the scrap for the /badge scrap command
@@ -506,7 +508,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   :param third_badge: The name of the third badge to scrap.
   :return:
   """
-  await ctx.defer(ephemeral=True)
+  await ctx.defer()
   user_id = ctx.interaction.user.id
 
   selected_badges = [first_badge, second_badge, third_badge]
@@ -540,7 +542,8 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     ), ephemeral=True)
     return
 
-  # If all basics checks pass, check that they're within the allowed time window
+  # If all basics checks pass,
+  # check that they're within the allowed time window
   last_scrap_time = db_get_scrap_last_timestamp(user_id)
   time_difference = datetime.utcnow() - last_scrap_time
   if time_difference.days == 0:
@@ -573,9 +576,14 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   badge_filename_to_add = db_get_badge_info_by_name(badge_choice)['badge_filename']
   badge_filenames_to_scrap = [db_get_badge_info_by_name(b)['badge_filename'] for b in selected_user_badges]
 
+  # Cancel any existing trades that may be out requesting or offering these badges from this user
+  trades_to_cancel = db_get_trades_to_cancel_from_scrapped_badges(user_id, badge_filenames_to_scrap)
+  await _cancel_invalid_scrapped_trades(trades_to_cancel)
+
   # Do the actual scrappage
   db_perform_badge_scrap(user_id, badge_filename_to_add, badge_filenames_to_scrap)
 
+  # Post message about successful scrap
   scrapper_gif = generate_badge_scrapper_gif(user_id, badge_filename_to_add, badge_filenames_to_scrap)
 
   embed = discord.Embed(
@@ -594,8 +602,67 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     inline=True
   )
   embed.set_image(url=f"attachment://scrap_{user_id}.gif")
-  await ctx.followup.send(embed=embed, file=scrapper_gif, ephemeral=True)
+  await ctx.followup.send(embed=embed, file=scrapper_gif, ephemeral=False)
 
+
+async def _cancel_invalid_scrapped_trades(trades_to_cancel):
+  # Iterate through to cancel
+  for trade in trades_to_cancel:
+    db_cancel_trade(trade)
+    requestee = await bot.current_guild.fetch_member(trade['requestee_id'])
+    requestor = await bot.current_guild.fetch_member(trade['requestor_id'])
+
+    offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(trade)
+
+    # Give notice to Requestee
+    user = get_user(requestee.id)
+    if user["receive_notifications"]:
+      try:
+        requestee_embed = discord.Embed(
+          title="Trade Canceled",
+          description=f"Just a heads up! Your USS Hood Badge Trade initiated by {requestor.mention} was canceled because one or more of the badges involved were scrapped!",
+          color=discord.Color.purple()
+        )
+        requestee_embed.add_field(
+          name=f"Offered by {requestor.display_name}",
+          value=offered_badge_names
+        )
+        requestee_embed.add_field(
+          name=f"Requested from {requestee.display_name}",
+          value=requested_badge_names
+        )
+        requestee_embed.set_footer(
+          text="Note: You can use /settings to enable or disable these messages."
+        )
+        await requestee.send(embed=requestee_embed)
+      except discord.Forbidden as e:
+        logger.info(f"Unable to send trade cancelation message to {requestee.display_name}, they have their DMs closed.")
+        pass
+
+    # Give notice to Requestor
+    user = get_user(requestor.id)
+    if user["receive_notifications"]:
+      try:
+        requestor_embed = discord.Embed(
+          title="Trade Canceled",
+          description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because one or more of the badges involved were scrapped!",
+          color=discord.Color.purple()
+        )
+        requestor_embed.add_field(
+          name=f"Offered by {requestor.display_name}",
+          value=offered_badge_names
+        )
+        requestor_embed.add_field(
+          name=f"Requested from {requestee.display_name}",
+          value=requested_badge_names
+        )
+        requestor_embed.set_footer(
+          text="Note: You can use /settings to enable or disable these messages."
+        )
+        await requestor.send(embed=requestor_embed)
+      except discord.Forbidden as e:
+        logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+        pass
 
 # .____                  __
 # |    |    ____   ____ |  | ____ ________
@@ -1132,3 +1199,31 @@ def run_badge_stats_queries():
     query.close()
   db.close()
   return results
+
+
+def db_get_trades_to_cancel_from_scrapped_badges(user_id, badge_filenames):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  # All credit for this query to Danma! Praise be!!!
+  sql = '''
+    SELECT t.*
+    FROM trades as t
+    LEFT JOIN trade_offered `to` ON t.id = to.trade_id
+    LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
+    WHERE t.status IN ('pending','active')
+    AND (
+      (t.requestor_id = %s AND to.badge_filename IN (%s, %s, %s))
+      OR
+      (t.requestee_id = %s AND tr.badge_filename IN (%s, %s, %s))
+    )
+  '''
+  vals = (
+    user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2],
+    user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2]
+  )
+  query.execute(sql, vals)
+  trades = query.fetchall()
+  db.commit()
+  query.close()
+  db.close()
+  return trades

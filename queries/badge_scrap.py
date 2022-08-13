@@ -3,7 +3,7 @@ from common import *
 def db_get_scrap_last_timestamp(user_discord_id):
   db = getDB()
   query = db.cursor(dictionary=True, buffered=True)
-  sql = "SELECT time_created FROM badge_scraps WHERE user_discord_id = %s ORDER BY time_created ASC"
+  sql = "SELECT time_created FROM badge_scraps WHERE user_discord_id = %s ORDER BY time_created DESC"
   vals = (user_discord_id, )
   query.execute(sql, vals)
   row = query.fetchone()
@@ -27,8 +27,6 @@ def db_perform_badge_scrap(user_discord_id, badge_filename_to_add, badge_filenam
   '''
   vals = (user_discord_id, badge_filename_to_add)
   query.execute(sql, vals)
-
-  logger.info(f"query.lastrowid: {query.lastrowid}")
 
   # Associate badges scrapped with scrap record
   # Create scrap record
