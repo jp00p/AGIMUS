@@ -513,8 +513,8 @@ class ScrapButton(discord.ui.Button):
     else:
       await interaction.response.edit_message(
         embed=discord.Embed(
-          title="Scrap Initiated",
-          description="Just a moment please...",
+          title="Scrapper initiated!",
+          description="Your badges are being broken down into their constituent components.\nJust a moment please...",
           color=discord.Color.teal()
         ),
         view=None,
@@ -531,20 +531,34 @@ class ScrapButton(discord.ui.Button):
       # Post message about successful scrap
       scrapper_gif = await generate_badge_scrapper_result_gif(self.user_id, self.badge_to_add)
 
+      scrap_complete_messages = [
+        "{} reaches into AGIMUS' warm scrap hole and pulls out a shiny new badge!",
+        "{} uses the Scrap-o-matic! Three old badges become one shiny new badge. That's science, baby!",
+        "{} has replicator rations to spare, so they've scrapped some old badges for a new one!",
+        "{} performs some strange gestures in front of the replicator. They hold a new badge above their head!",
+        "{} adds 3 old crusty badges to the scrapper, and yanks out a new shiny badge!",
+        "{} is using the scrapper on the clock. Don't tell the captain!",
+        "{} is donating three old badges to the void, and gets a brand new badge in return!",
+        "{} suspiciously shoves three badges into the slot and hastily pulls a fresh badge out, hoping you didn't see anything.",
+        "Scrap complete! {} has recycled three old badges into one new badge!",
+        "{} has used the badge scrapper! Tonight is the night when 3 become 1 🎶"
+      ]
+
       embed = discord.Embed(
-        title="Scrap Complete",
-        description=f"{interaction.user.mention}'s matter-energy matrix reconfiguration complete, pattern buffer stable, rematerializing.",
+        title="Scrap complete!",
+        description=random.choice(scrap_complete_messages).format(interaction.user.mention),
         color=discord.Color.teal()
       )
+      logger.info(self.badges_to_scrap)
       embed.add_field(
-        name="Scrapped Badges",
-        value="\n".join([b['badge_name'] for b in self.badges_to_scrap]),
-        inline=True
+        name="Scrapped badges: ❌",
+        value="\n".join(["~~"+b['badge_name']+"~~" for b in self.badges_to_scrap]),
+        inline=False
       )
       embed.add_field(
-        name="Badge Result",
-        value=self.badge_to_add['badge_name'],
-        inline=True
+        name="New badge: 🆕",
+        value=f"🌟 **{self.badge_to_add['badge_name']}** [(badge details)]({self.badge_to_add['badge_url']})",
+        inline=False
       )
       embed.set_image(url=f"attachment://scrap_{self.user_id}.gif")
       await interaction.channel.send(embed=embed, file=scrapper_gif)
@@ -560,7 +574,7 @@ class CancelScrapButton(discord.ui.Button):
   async def callback(self, interaction:discord.Interaction):
     await interaction.response.edit_message(
       embed=discord.Embed(
-        title="Scrap Canceled",
+        title="Scrap cancelled!",
         description="You may initiate a new scrap with `/badges scrap` at any time.",
         color=discord.Color.teal()
       ),
@@ -577,7 +591,7 @@ class ScrapCancelView(discord.ui.View):
 
 @badge_group.command(
   name="scrap",
-  description="Turn in 3 badges for 1 new random badge instead. One scrap allowed every 24hrs."
+  description="Turn in 3 badges for 1 new random badge. One scrap allowed every 24 hours."
 )
 @option(
   name="first_badge",
@@ -649,7 +663,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     if time_difference.days == 0:
       humanized_time_left = humanize.precisedelta(timedelta(hours=24) - time_difference)
       await ctx.followup.send(embed=discord.Embed(
-        title="Scrapper On Cooldown",
+        title="Scrapper recharging, please wait.",
         description=f"You may only perform one scrap every 24 hours.\n\nYou still have {humanized_time_left} left.",
         color=discord.Color.red()
       ), ephemeral=True)
@@ -681,7 +695,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
 
   embed = discord.Embed(
     title="Are you sure you want to scrap these badges?",
-    description="\n".join(selected_user_badges),
+    description=str("** This cannot be undone.\n**") + str("\n".join(selected_user_badges)),
     color=discord.Color.teal()
   )
   embed.set_image(url=f"attachment://scrap_{user_id}-confirm.gif")
@@ -710,7 +724,7 @@ async def _cancel_invalid_scrapped_trades(trades_to_cancel):
       try:
         requestee_embed = discord.Embed(
           title="Trade Canceled",
-          description=f"Just a heads up! Your USS Hood Badge Trade initiated by {requestor.mention} was canceled because one or more of the badges involved were scrapped!",
+          description=f"Just a heads up! Your pending trade initiated by {requestor.mention} was canceled because one or more of the badges involved were scrapped!",
           color=discord.Color.purple()
         )
         requestee_embed.add_field(
@@ -735,7 +749,7 @@ async def _cancel_invalid_scrapped_trades(trades_to_cancel):
       try:
         requestor_embed = discord.Embed(
           title="Trade Canceled",
-          description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because one or more of the badges involved were scrapped!",
+          description=f"Just a heads up! Your pending trade requested from {requestee.mention} was canceled because one or more of the badges involved were scrapped!",
           color=discord.Color.purple()
         )
         requestor_embed.add_field(
