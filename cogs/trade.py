@@ -13,41 +13,57 @@ f.close()
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
-async def autocomplete_badges(ctx:discord.AutocompleteContext):
-  action = ctx.options["action"]
-  active_trade = db_get_active_requestor_trade(ctx.interaction.user.id)
-  if not active_trade:
-    return ['You must use /trade start first!']
+async def autocomplete_offering_badges(ctx: discord.AutocompleteContext, requestee_id: int=None) -> list[str]:
+  """
+  Autocomplete of badges that the user making the trade has and are not already in the other user’s collection.
+  """
+  if requestee_id is None:
+    # Find the user in the other end of the trade, either from the user selection or the existing trade
+    if 'user' in ctx.options:
+      requestee_id = ctx.options['user'].id
+    else:
+      active_trade = db_get_active_requestor_trade(ctx.interaction.user.id)
+      if active_trade:
+        requestee_id = active_trade['requestee_id']
 
-  if action == 'offer':
-    results = await _autocomplete_requestor_badges(ctx, active_trade['requestor_id'], active_trade['requestee_id'])
-  elif action == 'request':
-    results = await _autocomplete_requestee_badges(ctx, active_trade['requestee_id'], active_trade['requestor_id'])
+  requestor_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id)]
+  if requestee_id:
+    requestee_badges = [b['badge_name'] for b in db_get_user_badges(requestee_id)]
+    badge_names = [b for b in requestor_badges if b not in requestee_badges]
   else:
-    return []
+    badge_names = requestor_badges
 
-  return results
-
-async def _autocomplete_requestor_badges(ctx, requestor_id, requestee_id):
-  requestor_badges = [b['badge_name'] for b in db_get_user_badges(requestor_id)]
-  requestee_badges = [b['badge_name'] for b in db_get_user_badges(requestee_id)]
-  badge_names = [b for b in requestor_badges if b not in requestee_badges]
   if len(badge_names) == 0:
-    badge_names = ["This user already has all badges that you possess! Use '/trade cancel' to cancel this trade."]
+    badge_names = ["This user already has all badges that you possesses! Use '/trade cancel' to cancel this trade."]
 
   badge_names.sort()
-
   return [result for result in badge_names if ctx.value.lower() in result.lower()]
 
-async def _autocomplete_requestee_badges(ctx, requestee_id, requestor_id):
-  requestor_badges = [b['badge_name'] for b in db_get_user_badges(requestor_id)]
-  requestee_badges = [b['badge_name'] for b in db_get_user_badges(requestee_id)]
-  badge_names = [b for b in requestee_badges if b not in requestor_badges]
+
+async def autocomplete_requesting_badges(ctx, requestee_id=None) -> list[str]:
+  """
+  Autocomplete of badges that the user on the other end of the trade has, and this user doesn’t
+  """
+  if requestee_id is None:
+    # Find the user in the other end of the trade, either from the user selection or the existing trade
+    if 'user' in ctx.options:
+      requestee_id = ctx.options['user'].id
+    else:
+      active_trade = db_get_active_requestor_trade(ctx.interaction.user.id)
+      if active_trade:
+        requestee_id = active_trade['requestee_id']
+
+  if requestee_id:
+    requestor_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id)]
+    requestee_badges = [b['badge_name'] for b in db_get_user_badges(requestee_id)]
+    badge_names = [b for b in requestee_badges if b not in requestor_badges]
+  else:
+    badge_names = ["You must have another user to trade with to select their badges. Use '/trade start' to start a trade."]
+
   if len(badge_names) == 0:
-      badge_names = ["You already have all badges that this user possesses! Use '/trade cancel' to cancel this trade."]
+    badge_names = ["You already have all badges that this user possesses! Use '/trade cancel' to cancel this trade."]
 
   badge_names.sort()
-
   return [result for result in badge_names if ctx.value.lower() in result.lower()]
 
 
@@ -199,7 +215,6 @@ class Trade(commands.Cog):
     ]
 
   trade = discord.SlashCommandGroup("trade", "Commands for trading badges")
-
 
   #   ___                   _             _____            _
   #  |_ _|_ _  __ ___ _ __ (_)_ _  __ _  |_   _| _ __ _ __| |___
@@ -630,8 +645,22 @@ class Trade(commands.Cog):
     description="The user you wish to start a trade with",
     required=True
   )
+  @option(
+    'offer',
+    str,
+    description="A badge you are offering",
+    required=False,
+    autocomplete=autocomplete_offering_badges
+  )
+  @option(
+    'request',
+    str,
+    description="A badge you are requesting",
+    required=False,
+    autocomplete=autocomplete_requesting_badges
+  )
   @commands.check(access_check)
-  async def start(self, ctx:discord.ApplicationContext, requestee:discord.User):
+  async def start(self, ctx:discord.ApplicationContext, requestee:discord.User, offer: str, request: str):
     try:
       requestor_id = ctx.author.id
       requestee_id = requestee.id
@@ -669,10 +698,13 @@ class Trade(commands.Cog):
         active_trade_requestee = await self.bot.current_guild.fetch_member(active_trade['requestee_id'])
         already_active_embed = discord.Embed(
           title="You already have an active trade!",
-          description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade status` to cancel the current trade if desired!\n\nThis must be resolved before you can open another request.",
+          description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade status` "
+                      f"to cancel the current trade if desired!\n\nThis must be resolved before you can open another "
+                      f"request.",
           color=discord.Color.red()
         )
-        already_active_embed.set_footer(text="You may want to check on this trade to see if they have had a chance to review your request!")
+        already_active_embed.set_footer(text="You may want to check on this trade to see if they have had a chance to "
+                                             "review your request!")
         await ctx.respond(embed=already_active_embed, ephemeral=True)
         return
 
@@ -681,27 +713,65 @@ class Trade(commands.Cog):
       if len(requestee_trades) >= self.max_trades:
         max_requestee_trades_embed = discord.Embed(
           title=f"{requestee.display_name} has too many pending trades!",
-          description=f"Sorry, the person you've requested a trade from already has the maximum number of incoming trade requests pending ({self.max_trades}).",
+          description=f"Sorry, the person you've requested a trade from already has the maximum number of incoming "
+                      f"trade requests pending ({self.max_trades}).",
           color=discord.Color.red()
         )
         await ctx.respond(embed=max_requestee_trades_embed, ephemeral=True)
         return
 
       # If not denied, go ahead and initiate the new trade!
-      db_initiate_trade(requestor_id, requestee_id)
+      trade_id = db_initiate_trade(requestor_id, requestee_id)
+      active_trade = {
+        'id': trade_id,
+        'requestor_id': requestor_id,
+        'requestee_id': requestee_id,
+      }
+
+      if offer:
+        if await self._is_untradeable(ctx, offer, ctx.author, requestee, active_trade, 'offer'):
+          offer = None
+        else:
+          db_add_badge_to_trade_offer(active_trade, offer)
+
+      if request:
+        if await self._is_untradeable(ctx, request, ctx.author, requestee, active_trade, 'request'):
+          request = None
+        else:
+          db_add_badge_to_trade_request(active_trade, request)
 
       # Confirmation of initiation with the requestor
+      if not offer and not request:
+        follow_up_message = "Follow up with `/trade propose` to fill out the trade details!"
+      else:
+        follow_up_message = "You can add more badges with with `/trade propose`."
       initiated_embed = discord.Embed(
         title="Trade Started!",
-        description="Your pending trade has been started!\n\nFollow up with `/trade propose` to fill out the trade details!\n\nOnce you have added the badges you'd like to offer and request, use \n`/trade status` to send the trade to the user, or to cancel!\n\nNote: You may only have one open outgoing trade request at a time!",
+        description=f"Your pending trade has been started!\n\n{follow_up_message}\n\nOnce you have added the badges "
+                    "you'd like to offer and request, use \n`/trade status` to send the trade to the user, "
+                    "or to cancel!\n\nNote: You may only have one open outgoing trade request at a time!",
         color=discord.Color.dark_purple()
-      ).add_field(
-        name="Requested By (You)",
-        value=f"{ctx.author.mention}"
-      ).add_field(
-        name="Requested From",
-        value=f"{requestee.mention}"
       )
+      if offer:
+        initiated_embed.add_field(
+          name="Badges offered by you",
+          value=offer
+        )
+      else:
+        initiated_embed.add_field(
+          name="Requested By (You)",
+          value=f"{ctx.author.mention}"
+        )
+      if request:
+        initiated_embed.add_field(
+          name=f"Badges requested from {requestee.mention}",
+          value=request
+        )
+      else:
+        initiated_embed.add_field(
+          name="Requested From",
+          value=f"{requestee.mention}"
+        )
       initiated_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
       await ctx.respond(embed=initiated_embed, ephemeral=True)
 
@@ -991,188 +1061,173 @@ class Trade(commands.Cog):
     description="Offer or Request badges for your current pending trade"
   )
   @option(
-    name="action",
-    description="Offering or Requesting Badges?",
-    required=True,
-    choices=[
-      discord.OptionChoice(
-        name="Offer Badge",
-        value="offer"
-      ),
-      discord.OptionChoice(
-        name="Request Badge",
-        value="request"
-      )
-    ]
+    'offer',
+    str,
+    description="A badge you are offering",
+    required=False,
+    autocomplete=autocomplete_offering_badges,
   )
   @option(
-    name="badge",
-    description="Name of the Badge to Offer/Request. NOTE: Only shows those badges not already in inventories!",
-    required=True,
-    autocomplete=autocomplete_badges
+    'request',
+    str,
+    description="A badge you are requesting",
+    required=False,
+    autocomplete=autocomplete_requesting_badges
   )
   @commands.check(access_check)
-  async def propose(self, ctx, action:str, badge:str):
+  async def propose(self, ctx, offer:str, request:str):
     active_trade = await self.check_for_active_trade(ctx)
     if not active_trade:
       return
 
-    if action == "offer":
-      await self._add_offered_badge_to_trade(ctx, active_trade, badge)
-    if action == "request":
-      await self._add_requested_badge_to_trade(ctx, active_trade, badge)
+    if offer:
+      await self._add_offered_badge_to_trade(ctx, active_trade, offer)
+    if request:
+      await self._add_requested_badge_to_trade(ctx, active_trade, request)
+    if not offer and not request:
+      embed = discord.Embed(
+        title=f"Please select a badge to offer or trade",
+        description=f"If you want to update your trade, you need to give a badge",
+        color=discord.Color.dark_red()
+      )
+      await ctx.respond(embed=embed, ephemeral=True)
 
-  # Offer the badge or reply with error message
   async def _add_offered_badge_to_trade(self, ctx, active_trade, badge):
+    """ Offer the badge or reply with error message """
     # Don't need to check for active because already done so in propose()
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
-    requestee_badge_names = [b["badge_name"] for b in db_get_user_badges(active_trade["requestee_id"])]
-
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
-    requestor_badge_names = [b["badge_name"] for b in db_get_user_badges(active_trade["requestor_id"])]
 
     logger.info(f"{Fore.CYAN}{requestor.display_name} is looking to offer `{badge}` to {requestee.display_name}.")
 
-    if badge in self.untradeable_badges:
-      logger.info(f"{Fore.CYAN}{requestor.display_name} tried to offer `{badge}` to {requestee.display_name} but it's untradeable!")
-      await ctx.respond(embed=discord.Embed(
-        title="That badge is untradeable",
-        description=f"Sorry, you can't trade away `{badge}`! It's a special edition!",
-        color=discord.Color.red()
-      ), ephemeral=True)
+    if await self._is_untradeable(ctx, badge, requestor, requestee, active_trade, 'offer'):
       return
 
-    if badge not in requestor_badge_names:
-      logger.info(f"{Fore.CYAN}{requestor.display_name} doesn't possess `{badge}`, unable to add to offer to {requestee.display_name}.")
-      await ctx.respond(embed=discord.Embed(
-        title="You don't possess that badge",
-        description=f"`{badge}` does not match any badges you possess.\n\nUse `/badges` to view your current badge collection!",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return
-
+    db_add_badge_to_trade_offer(active_trade, badge)
+    logger.info(f"{Fore.CYAN}{requestor.display_name} has added the badge `{badge}` to their pending trade offer to {requestee.display_name}{Style.RESET_ALL}")
 
     badge_info = db_get_badge_info_by_name(badge)
     badge_filename = badge_info['badge_filename']
     discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=badge_filename)
 
-    trade_badges = db_get_trade_offered_badges(active_trade)
-    trade_badge_names = [b["badge_name"] for b in trade_badges]
+    badge_offered_embed = discord.Embed(
+      title=f"{badge} added to offer.",
+      description=f"This badge has been added to your offer to {requestee.mention}",
+      color=discord.Color.dark_green()
+    )
+    badge_offered_embed.set_image(url=f"attachment://{badge_filename}")
+    await ctx.respond(embed=badge_offered_embed, file=discord_image, ephemeral=True)
 
-    if badge in trade_badge_names:
-      logger.info(f"{Fore.CYAN}{requestor.display_name} already had badge `{badge}` present in their pending trade offer to {requestee.display_name}. No action taken.{Style.RESET_ALL}")
-      await ctx.respond(embed=discord.Embed(
-        title=f"{badge} already exists in offer.",
-        description="No action taken.",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return
-    else:
-      if len(trade_badges) >= self.max_badges_per_trade:
-        logger.info(f"{Fore.CYAN}{requestor.display_name} was unable to add `{badge}` to their pending trade offer to {requestee.display_name} because the trade is already at the maximum number of offers allowed: {self.max_badges_per_trade}. No action taken.{Style.RESET_ALL}")
-        await ctx.respond(embed=discord.Embed(
-          title=f"Unable to add {badge} to offer.",
-          description=f"You're at the max number of badges allowed per trade ({self.max_badges_per_trade})!",
-          color=discord.Color.red()
-        ), ephemeral=True)
-        return
-      elif badge in requestee_badge_names:
-        logger.info(f"{Fore.CYAN}{requestor.display_name} was unable to add `{badge}` to their pending trade offer to {requestee.display_name} because {requestee.display_name} already owns the badge! No action taken.{Style.RESET_ALL}")
-        await ctx.respond(embed=discord.Embed(
-          title=f"{requestee.display_name} already has {badge}",
-          description=f"Please try a different badge!",
-          color=discord.Color.red()
-        ), ephemeral=True)
-        return
-      else:
-        db_add_badge_to_trade_offer(active_trade, badge)
-        logger.info(f"{Fore.CYAN}{requestor.display_name} has added the badge `{badge}` to their pending trade offer to {requestee.display_name}{Style.RESET_ALL}")
-
-        badge_offered_embed = discord.Embed(
-          title=f"{badge} added to offer.",
-          description=f"This badge has been added to your offer to {requestee.mention}",
-          color=discord.Color.dark_green()
-        )
-        badge_offered_embed.set_image(url=f"attachment://{badge_filename}")
-        await ctx.respond(embed=badge_offered_embed, file=discord_image, ephemeral=True)
-        return
-
-  # Request the badge or reply with error message
   async def _add_requested_badge_to_trade(self, ctx, active_trade, badge):
+    """ Request the badge or reply with error message """
     # Don't need to check for active because already done so in propose()
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
-    requestee_badge_names = [b["badge_name"] for b in db_get_user_badges(active_trade["requestee_id"])]
-
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
-    requestor_badge_names = [b["badge_name"] for b in db_get_user_badges(active_trade["requestor_id"])]
 
     logger.info(f"{Fore.CYAN}{requestor.display_name} is looking to request `{badge}` from {requestee.display_name}.")
 
+    if await self._is_untradeable(ctx, badge, requestor, requestee, active_trade, 'request'):
+      return
+
+    db_add_badge_to_trade_request(active_trade, badge)
+    logger.info(f"{Fore.CYAN}{requestor.display_name} has added the badge `{badge}` to their pending trade request from {requestee.display_name}{Style.RESET_ALL}")
+
+    badge_info = db_get_badge_info_by_name(badge)
+    badge_filename = badge_info['badge_filename']
+    discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=badge_filename)
+
+    addition_embed = discord.Embed(
+      title=f"{badge} added to request.",
+      description=f"This badge has been added to your request from {requestee.mention}",
+      color=discord.Color.dark_green()
+    )
+    addition_embed.set_image(url=f"attachment://{badge_filename}")
+    await ctx.respond(embed=addition_embed, file=discord_image, ephemeral=True)
+
+  async def _is_untradeable(self, ctx: discord.ApplicationContext, badge: str,
+                            requestor: discord.User, requestee: discord.User, active_trade: dict[str, str],
+                            direction: "either 'offer' or 'request'") -> bool:
+    """
+    Test this badge to see if it can be added to the trade.  If it can't, show the user an error message.  It’s a
+    little complicated because the logic and language changes based on if the badge is going from the user making the
+    request or not. But this is still better than ^C^V the next error that comes up.
+    """
+    if direction == 'offer':
+      dir_preposition = 'to'
+      to_user = requestee
+      from_user = requestor
+    else:
+      dir_preposition = 'from'
+      to_user = requestor
+      from_user = requestee
+
     if badge in self.untradeable_badges:
-      logger.info(f"{Fore.CYAN}{requestor.display_name} tried to request `{badge}` from {requestee.display_name} but it's untradeable!")
+      logger.info(f"{Fore.CYAN}{requestor.display_name} tried to {direction} `{badge}` {dir_preposition} "
+                  f"{requestee.display_name} but it's untradeable!")
       await ctx.respond(embed=discord.Embed(
         title="That badge is untradeable!",
         description=f"Sorry, you can't request `{badge}`! It's a very shiny and special one!",
         color=discord.Color.red()
       ), ephemeral=True)
-      return
+      return True
 
-    if badge not in requestee_badge_names:
-      logger.info(f"{Fore.CYAN}{requestee.display_name} doesn't possess `{badge}`, unable to add to request from {requestor.display_name}.")
+    user_badges = [b["badge_name"] for b in db_get_user_badges(from_user.id)]
+    if badge not in user_badges:
+      logger.info(f"{Fore.CYAN}{from_user.display_name} doesn't possess `{badge}`, unable to add to {direction} "
+                  f"{dir_preposition} {to_user.display_name}.")
       await ctx.respond(embed=discord.Embed(
-        title=f"{requestee.display_name} does not possess that badge",
-        description=f"`{badge}` does not match any badges they possess.\n\nYou can use the autocomplete in the query to find the badges they do have!",
+        title=f"{'You' if direction == 'offer' else 'They'} does not possess that badge",
+        description=f"`{badge}` does not match any badges {'you' if direction == 'offer' else 'they'} possess.\n\n"
+                    f"You can use the autocomplete in the query to find the badges "
+                    f"{'you' if direction == 'offer' else 'they'} do have!",
         color=discord.Color.red()
       ), ephemeral=True)
-      return
+      return True
 
-    badge_info = db_get_badge_info_by_name(badge)
-    badge_filename = badge_info['badge_filename']
-    discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=badge_filename)
+    user_badges = [b["badge_name"] for b in db_get_user_badges(to_user.id)]
+    if badge in user_badges:
+      logger.info(f"{Fore.CYAN}{requestor.display_name} was unable to add `{badge}` to their pending trade {direction} "
+                  f"{dir_preposition} {requestee.display_name} because {to_user.display_name} already owns the badge! "
+                  f"No action taken.{Style.RESET_ALL}")
+      await ctx.respond(embed=discord.Embed(
+        title=f"{'You' if direction == 'request' else 'They'} already have {badge}!",
+        description=f"No need to {direction} this one!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return True
 
-    trade_badges = db_get_trade_requested_badges(active_trade)
+    trade_badges = (db_get_trade_offered_badges(active_trade)
+                    if direction == 'offer' else
+                    db_get_trade_requested_badges(active_trade))
     trade_badge_names = [b["badge_name"] for b in trade_badges]
 
     if badge in trade_badge_names:
-      logger.info(f"{Fore.CYAN}{requestor.display_name} already had badge `{badge}` present in their pending trade request from {requestee.display_name}. No action taken.{Style.RESET_ALL}")
+      logger.info(f"{Fore.CYAN}{requestor.display_name} already had badge `{badge}` present in their pending trade "
+                  f"{direction} {dir_preposition} {requestee.display_name}. No action taken.{Style.RESET_ALL}")
       await ctx.respond(embed=discord.Embed(
-        title=f"{badge} already exists in request.",
+        title=f"{badge} already exists in {direction}.",
         description="No action taken.",
         color=discord.Color.red()
       ), ephemeral=True)
-      return
-    else:
-      if len(trade_badges) >= self.max_badges_per_trade:
-        logger.info(f"{Fore.CYAN}{requestor.display_name} was unable to add `{badge}` to their pending trade offer to {requestee.display_name} because the trade is already at the maximum number of requests allowed: {self.max_badges_per_trade}. No action taken.{Style.RESET_ALL}")
-        await ctx.respond(embed=discord.Embed(
-          title=f"Unable to add {badge} to request.",
-          description=f"You're at the max number of badges allowed per trade ({self.max_badges_per_trade})!",
-          color=discord.Color.red()
-        ), ephemeral=True)
-        return
-      elif badge in requestor_badge_names:
-        logger.info(f"{Fore.CYAN}{requestor.display_name} was unable to add `{badge}` to their pending trade request from {requestee.display_name} because {requestor.display_name} already owns the badge! No action taken.{Style.RESET_ALL}")
-        await ctx.respond(embed=discord.Embed(
-          title=f"You already have {badge}!",
-          description=f"No need to request this one!",
-          color=discord.Color.red()
-        ), ephemeral=True)
-        return
-      else:
-        db_add_badge_to_trade_request(active_trade, badge)
-        logger.info(f"{Fore.CYAN}{requestor.display_name} has added the badge `{badge}` to their pending trade request from {requestee.display_name}{Style.RESET_ALL}")
+      return True
 
-        addition_embed = discord.Embed(
-          title=f"{badge} added to request.",
-          description=f"This badge has been added to your request from {requestee.mention}",
-          color=discord.Color.dark_green()
-        )
-        addition_embed.set_image(url=f"attachment://{badge_filename}")
-        await ctx.respond(embed=addition_embed, file=discord_image, ephemeral=True)
-        return
+    if len(trade_badges) >= self.max_badges_per_trade:
+      logger.info(f"{Fore.CYAN}{requestor.display_name} was unable to add `{badge}` to their pending trade "
+                  f"{direction} {dir_preposition} {requestee.display_name} because the trade is already at the maximum "
+                  f"number of offers allowed: {self.max_badges_per_trade}. No action taken.{Style.RESET_ALL}")
+      await ctx.respond(embed=discord.Embed(
+        title=f"Unable to add {badge} to offer.",
+        description=f"You're at the max number of badges allowed per trade ({self.max_badges_per_trade})!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return True
 
+    return False
 
-  async def check_for_active_trade(self, ctx):
+  async def check_for_active_trade(self, ctx: discord.ApplicationContext) -> dict[str, str]:
+    """
+    Return the active trade started by this user.  If it doesn't exist, show an error message.
+    """
     active_trade = db_get_active_requestor_trade(ctx.author.id)
 
     # If we don't have an active trade for this user, go ahead and let them know
@@ -1186,7 +1241,7 @@ class Trade(commands.Cog):
 
     return active_trade
 
-  async def _get_offered_and_requested_badge_names(self, active_trade):
+  async def _get_offered_and_requested_badge_names(self, active_trade) -> tuple[str, str]:
     offered_badges = db_get_trade_offered_badges(active_trade)
     offered_badge_names = "None"
     if offered_badges:
@@ -1255,7 +1310,6 @@ def db_get_trade_offered_badges(active_trade):
   vals = (active_trade_id,)
   query.execute(sql, vals)
   trades = query.fetchall()
-  db.commit()
   query.close()
   db.close()
   return trades
@@ -1327,7 +1381,6 @@ def db_get_active_requestee_trades(requestee_id):
   vals = (requestee_id,)
   query.execute(sql, vals)
   trades = query.fetchall()
-  db.commit()
   query.close()
   db.close()
   return trades
@@ -1339,7 +1392,6 @@ def db_get_active_requestor_trade(requestor_id):
   vals = (requestor_id,)
   query.execute(sql, vals)
   trade = query.fetchone()
-  db.commit()
   query.close()
   db.close()
   return trade
@@ -1351,20 +1403,20 @@ def db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_
   vals = (requestor_id, requestee_id)
   query.execute(sql, vals)
   trade = query.fetchone()
-  db.commit()
   query.close()
   db.close()
   return trade
 
-def db_initiate_trade(requestor_id, requestee_id):
+def db_initiate_trade(requestor_id:int, requestee_id:int) -> int:
   db = getDB()
   query = db.cursor()
   sql = "INSERT INTO trades (requestor_id, requestee_id, status) VALUES (%s, %s, 'pending')"
   vals = (requestor_id, requestee_id)
-  query.execute(sql, vals)
+  result = query.execute(sql, vals)
   db.commit()
   query.close()
   db.close()
+  return result.lastrowid
 
 def db_activate_trade(active_trade):
   active_trade_id = active_trade["id"]
