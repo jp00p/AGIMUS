@@ -506,6 +506,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   :param third_badge: The name of the third badge to scrap.
   :return:
   """
+  await ctx.defer(ephemeral=True)
   user_id = ctx.interaction.user.id
 
   selected_badges = [first_badge, second_badge, third_badge]
@@ -515,7 +516,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   selected_user_badges = [b for b in selected_badges if b in user_badge_names]
 
   if len(selected_user_badges) != 3:
-    await ctx.respond(embed=discord.Embed(
+    await ctx.followup.send(embed=discord.Embed(
       title="Invalid Selection",
       description=f"You must own all of the badges you've selected to scrap!",
       color=discord.Color.red()
@@ -523,7 +524,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     return
 
   if len(selected_user_badges) > len(set(selected_user_badges)):
-    await ctx.respond(embed=discord.Embed(
+    await ctx.followup.send(embed=discord.Embed(
       title="Invalid Selection",
       description=f"All badges selected must be unique!",
       color=discord.Color.red()
@@ -532,7 +533,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
 
   restricted_badges = [b for b in selected_user_badges if b in unscrappable_badges]
   if restricted_badges:
-    await ctx.respond(embed=discord.Embed(
+    await ctx.followup.send(embed=discord.Embed(
       title="Invalid Selection",
       description=f"You cannot scrap the following: {','.join(restricted_badges)}!",
       color=discord.Color.red()
@@ -543,10 +544,10 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   last_scrap_time = db_get_scrap_last_timestamp(user_id)
   time_difference = datetime.utcnow() - last_scrap_time
   if time_difference.days == 0:
-    human_time_left = humanize.precisedelta(timedelta(hours=24) - time_difference)
-    await ctx.respond(embed=discord.Embed(
+    humanized_time_left = humanize.precisedelta(timedelta(hours=24) - time_difference)
+    await ctx.followup.send(embed=discord.Embed(
       title="Scrapper On Cooldown",
-      description=f"You may only perform one scrap every 24 hours.\n\nYou still have {human_time_left} left.",
+      description=f"You may only perform one scrap every 24 hours.\n\nYou still have {humanized_time_left} left.",
       color=discord.Color.red()
     ), ephemeral=True)
     return
@@ -575,7 +576,25 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   # Do the actual scrappage
   db_perform_badge_scrap(user_id, badge_filename_to_add, badge_filenames_to_scrap)
 
-  await ctx.respond(f"You received: `{badge_choice}`. You scrapped `{first_badge}`, `{second_badge}`, and `{third_badge}`", ephemeral=True)
+  scrapper_gif = generate_badge_scrapper_gif(user_id, badge_filename_to_add, badge_filenames_to_scrap)
+
+  embed = discord.Embed(
+    title="Scrap Complete",
+    description=f"{ctx.author.mention}'s matter-energy conversion matrix reconfiguration complete, pattern buffer stable, rematerializing.",
+    color=discord.Color.teal()
+  )
+  embed.add_field(
+    name="Badge Result",
+    value=badge_choice,
+    inline=True
+  )
+  embed.add_field(
+    name="Scrapped Badges",
+    value="\n".join(selected_user_badges),
+    inline=True
+  )
+  embed.set_image(url=f"attachment://scrap_{user_id}.gif")
+  await ctx.followup.send(embed=embed, file=scrapper_gif, ephemeral=True)
 
 
 # .____                  __
