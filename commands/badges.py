@@ -452,6 +452,304 @@ def _append_featured_completion_badges(user_id, report, category):
   return report
 
 
+#   _________
+#  /   _____/ ________________  ______ ______   ___________
+#  \_____  \_/ ___\_  __ \__  \ \____ \\____ \_/ __ \_  __ \
+#  /        \  \___|  | \// __ \|  |_> >  |_> >  ___/|  | \/
+# /_______  /\___  >__|  (____  /   __/|   __/ \___  >__|
+#         \/     \/           \/|__|   |__|        \/
+class ScrapButton(discord.ui.Button):
+  def __init__(self, user_id, badge_to_add, badges_to_scrap):
+    self.user_id = user_id
+    self.badge_to_add = badge_to_add
+    self.badges_to_scrap = badges_to_scrap
+    super().__init__(
+      label="     Scrap     ",
+      style=discord.ButtonStyle.primary,
+      row=2
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    # Re-check conditions to ensure this action is still valid
+    # Ensure user still owns the badges
+    user_badges = db_get_user_badges(self.user_id)
+    user_badge_filenames = [b['badge_filename'] for b in user_badges]
+    owned_user_badges = [b for b in self.badges_to_scrap if b['badge_filename'] in user_badge_filenames]
+    # Ensure they haven't performed another scrap within the time period
+    time_check_fail = False
+    last_scrap_time = db_get_scrap_last_timestamp(self.user_id)
+    if last_scrap_time:
+      time_difference = datetime.utcnow() - last_scrap_time
+      time_check_fail = time_difference.days == 0
+
+    if (len(owned_user_badges) != 3) or (time_check_fail):
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title="Error",
+          description=f"There's been a problem with this scrap request.\n\nEither you no longer possess the badges outlined or another scrap has been performed in the intervening time.",
+          color=discord.Color.red()
+        ),
+        view=None,
+        attachments=[]
+      )
+    else:
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title="Scrapper initiated!",
+          description="Your badges are being broken down into their constituent components.\nJust a moment please...",
+          color=discord.Color.teal()
+        ),
+        view=None,
+        attachments=[]
+      )
+
+      # Cancel any existing trades that may be out requesting or offering these badges from this user
+      trades_to_cancel = db_get_trades_to_cancel_from_scrapped_badges(self.user_id, self.badges_to_scrap)
+      await _cancel_invalid_scrapped_trades(trades_to_cancel)
+
+      # Do the actual scrappage
+      db_perform_badge_scrap(self.user_id, self.badge_to_add, self.badges_to_scrap)
+
+      # Post message about successful scrap
+      scrapper_gif = await generate_badge_scrapper_result_gif(self.user_id, self.badge_to_add)
+
+      scrap_complete_messages = [
+        "{} reaches into AGIMUS' warm scrap hole and pulls out a shiny new badge!",
+        "{} uses the Scrap-o-matic! Three old badges become one shiny new badge. That's science, baby!",
+        "{} has replicator rations to spare, so they've scrapped some old badges for a new one!",
+        "{} performs some strange gestures in front of the replicator. They hold a new badge above their head!",
+        "{} adds 3 old crusty badges to the scrapper, and yanks out a new shiny badge!",
+        "{} is using the scrapper on the clock. Don't tell the captain!",
+        "{} is donating three old badges to the void, and gets a brand new badge in return!",
+        "{} suspiciously shoves three badges into the slot and hastily pulls a fresh badge out, hoping you didn't see anything.",
+        "Scrap complete! {} has recycled three old badges into one new badge!",
+        "{} has used the badge scrapper! Tonight is the night when 3 become 1 🎶"
+      ]
+
+      embed = discord.Embed(
+        title="Scrap complete!",
+        description=random.choice(scrap_complete_messages).format(interaction.user.mention),
+        color=discord.Color.teal()
+      )
+      logger.info(self.badges_to_scrap)
+      embed.add_field(
+        name="Scrapped badges: ❌",
+        value="\n".join(["~~"+b['badge_name']+"~~" for b in self.badges_to_scrap]),
+        inline=False
+      )
+      embed.add_field(
+        name="New badge: 🆕",
+        value=f"🌟 **{self.badge_to_add['badge_name']}** [(badge details)]({self.badge_to_add['badge_url']})",
+        inline=False
+      )
+      embed.set_image(url=f"attachment://scrap_{self.user_id}.gif")
+      await interaction.channel.send(embed=embed, file=scrapper_gif)
+
+class CancelScrapButton(discord.ui.Button):
+  def __init__(self):
+    super().__init__(
+      label="     Cancel     ",
+      style=discord.ButtonStyle.red,
+      row=2
+    )
+
+  async def callback(self, interaction:discord.Interaction):
+    await interaction.response.edit_message(
+      embed=discord.Embed(
+        title="Scrap cancelled!",
+        description="You may initiate a new scrap with `/badges scrap` at any time.",
+        color=discord.Color.teal()
+      ),
+      view=None,
+      attachments=[]
+    )
+
+class ScrapCancelView(discord.ui.View):
+  def __init__(self, user_id, badge_to_add, badges_to_scrap):
+    super().__init__()
+    self.add_item(CancelScrapButton())
+    self.add_item(ScrapButton(user_id, badge_to_add, badges_to_scrap))
+
+
+@badge_group.command(
+  name="scrap",
+  description="Turn in 3 badges for 1 new random badge. One scrap allowed every 24 hours."
+)
+@option(
+  name="first_badge",
+  description="First badge to scrap",
+  required=True,
+  autocomplete=scrapper_autocomplete
+)
+@option(
+  name="second_badge",
+  description="Second badge to scrap",
+  required=True,
+  autocomplete=scrapper_autocomplete
+)
+@option(
+  name="third_badge",
+  description="Third badge to scrap",
+  required=True,
+  autocomplete=scrapper_autocomplete
+)
+@commands.check(access_check)
+async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
+  """
+  This function executes the scrap for the /badge scrap command
+  :param ctx:
+  :param first_badge: The name of the first badge to scrap.
+  :param second_badge: The name of the second badge to scrap.
+  :param third_badge: The name of the third badge to scrap.
+  :return:
+  """
+  await ctx.defer(ephemeral=True)
+  user_id = ctx.interaction.user.id
+
+  selected_badges = [first_badge, second_badge, third_badge]
+  user_badges = db_get_user_badges(user_id)
+  user_badge_names = [b['badge_name'] for b in user_badges]
+
+  selected_user_badges = [b for b in selected_badges if b in user_badge_names]
+
+  if len(selected_user_badges) != 3:
+    await ctx.followup.send(embed=discord.Embed(
+      title="Invalid Selection",
+      description=f"You must own all of the badges you've selected to scrap!",
+      color=discord.Color.red()
+    ), ephemeral=True)
+    return
+
+  if len(selected_user_badges) > len(set(selected_user_badges)):
+    await ctx.followup.send(embed=discord.Embed(
+      title="Invalid Selection",
+      description=f"All badges selected must be unique!",
+      color=discord.Color.red()
+    ), ephemeral=True)
+    return
+
+  restricted_badges = [b for b in selected_user_badges if b in unscrappable_badges]
+  if restricted_badges:
+    await ctx.followup.send(embed=discord.Embed(
+      title="Invalid Selection",
+      description=f"You cannot scrap the following: {','.join(restricted_badges)}!",
+      color=discord.Color.red()
+    ), ephemeral=True)
+    return
+
+  # If all basics checks pass,
+  # check that they're within the allowed time window
+  last_scrap_time = db_get_scrap_last_timestamp(user_id)
+  if last_scrap_time:
+    time_difference = datetime.utcnow() - last_scrap_time
+    if time_difference.days == 0:
+      humanized_time_left = humanize.precisedelta(timedelta(hours=24) - time_difference)
+      await ctx.followup.send(embed=discord.Embed(
+        title="Scrapper recharging, please wait.",
+        description=f"You may only perform one scrap every 24 hours.\n\nYou still have {humanized_time_left} left.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+  # If time check okay, select a new random badge
+  all_possible_badges = [b['badge_name'] for b in all_badge_info]
+  valid_choices = [b for b in all_possible_badges if b not in user_badge_names]
+  badge_choice = random.choice(valid_choices)
+  # don't give them a badge they already have
+  while badge_choice in user_badge_names and len(valid_choices) > 1:
+    # Remove this choice from the list to pick from randomly
+    valid_choices.remove(badge_choice)
+    badge_choice = random.choice(valid_choices)
+
+  if len(valid_choices) == 0:
+    await ctx.respond(embed=discord.Embed(
+      title="You already have *ALL BADGES!?!*",
+      description=f"Amazing! You've collected every badge we have, so scrapping is unnecessary. Get it player.",
+      color=discord.Color.random()
+    ), ephemeral=True)
+    return
+
+  badge_to_add = db_get_badge_info_by_name(badge_choice)
+  badges_to_scrap = [db_get_badge_info_by_name(b) for b in selected_user_badges]
+
+  # Send confirmation message with interaction view
+  scrapper_confirm_gif = await generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
+
+  embed = discord.Embed(
+    title="Are you sure you want to scrap these badges?",
+    description=str("** This cannot be undone.\n**") + str("\n".join(selected_user_badges)),
+    color=discord.Color.teal()
+  )
+  embed.set_image(url=f"attachment://scrap_{user_id}-confirm.gif")
+
+  view = ScrapCancelView(user_id, badge_to_add, badges_to_scrap)
+  await ctx.followup.send(
+    embed=embed,
+    file=scrapper_confirm_gif,
+    view=view,
+    ephemeral=True
+  )
+
+
+async def _cancel_invalid_scrapped_trades(trades_to_cancel):
+  # Iterate through to cancel
+  for trade in trades_to_cancel:
+    db_cancel_trade(trade)
+    requestee = await bot.current_guild.fetch_member(trade['requestee_id'])
+    requestor = await bot.current_guild.fetch_member(trade['requestor_id'])
+
+    offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(trade)
+
+    # Give notice to Requestee
+    user = get_user(requestee.id)
+    if user["receive_notifications"]:
+      try:
+        requestee_embed = discord.Embed(
+          title="Trade Canceled",
+          description=f"Just a heads up! Your pending trade initiated by {requestor.mention} was canceled because one or more of the badges involved were scrapped!",
+          color=discord.Color.purple()
+        )
+        requestee_embed.add_field(
+          name=f"Offered by {requestor.display_name}",
+          value=offered_badge_names
+        )
+        requestee_embed.add_field(
+          name=f"Requested from {requestee.display_name}",
+          value=requested_badge_names
+        )
+        requestee_embed.set_footer(
+          text="Note: You can use /settings to enable or disable these messages."
+        )
+        await requestee.send(embed=requestee_embed)
+      except discord.Forbidden as e:
+        logger.info(f"Unable to send trade cancelation message to {requestee.display_name}, they have their DMs closed.")
+        pass
+
+    # Give notice to Requestor
+    user = get_user(requestor.id)
+    if user["receive_notifications"]:
+      try:
+        requestor_embed = discord.Embed(
+          title="Trade Canceled",
+          description=f"Just a heads up! Your pending trade requested from {requestee.mention} was canceled because one or more of the badges involved were scrapped!",
+          color=discord.Color.purple()
+        )
+        requestor_embed.add_field(
+          name=f"Offered by {requestor.display_name}",
+          value=offered_badge_names
+        )
+        requestor_embed.add_field(
+          name=f"Requested from {requestee.display_name}",
+          value=requested_badge_names
+        )
+        requestor_embed.set_footer(
+          text="Note: You can use /settings to enable or disable these messages."
+        )
+        await requestor.send(embed=requestor_embed)
+      except discord.Forbidden as e:
+        logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+        pass
+
 # .____                  __
 # |    |    ____   ____ |  | ____ ________
 # |    |   /  _ \ /  _ \|  |/ /  |  \____ \

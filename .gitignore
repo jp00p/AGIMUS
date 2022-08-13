@@ -124,6 +124,7 @@ local.json
 .DS_Store
 data/clips/*.mp4
 data/drops/*.mp4
+images/scrap/*
 images/reports/*
 images/profiles/*.png
 images/profiles/*.jpg
