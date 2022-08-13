@@ -478,7 +478,7 @@ def _append_featured_completion_badges(user_id, report, category):
 #         \/     \/           \/|__|   |__|        \/
 @badge_group.command(
   name="scrap",
-  description="Turn in 3 badges for 1 new random badge instead"
+  description="Turn in 3 badges for 1 new random badge instead. One scrap allowed every 24hrs."
 )
 @option(
   name="first_badge",
