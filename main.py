@@ -90,7 +90,7 @@ from utils.check_channel_access import perform_channel_check
 logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}{Style.RESET_ALL}")
 logger.info(f"{Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}CONNECTING TO DATABASE{Fore.RESET}{Style.RESET_ALL}")
 seed_db()
-ALL_USERS = get_all_users() # used for registering new users without a db lookup
+ALL_USERS = dict.fromkeys(get_all_users(), True) # used for registering new users without a db lookup
 logger.info(f"{Style.BRIGHT}{Fore.LIGHTGREEN_EX}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}{Style.RESET_ALL}")
 
 background_tasks = set() # for non-blocking tasks
@@ -126,9 +126,6 @@ async def on_message(message:discord.Message):
     logger.error(f"{Fore.RED}<! ERROR: Encountered error in handlers !> {e}{Fore.RESET}")
     logger.error(traceback.format_exc())
 
-  if int(message.author.id) not in ALL_USERS:
-    logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
-    ALL_USERS.append(register_user(message.author))
   try:
     await handle_message_xp(message)
   except Exception as e:
@@ -207,7 +204,7 @@ async def on_ready():
       { 'name': "The Greatest Discovery", 'type': discord.ActivityType.listening },
       { 'name': "A Nice Game of Chess", 'type': discord.ActivityType.playing },
       { 'name': "Thermonuclear War", 'type': discord.ActivityType.playing },
-      { 'name': "Dials", 'type': discord.ActivityType.playing },
+      { 'name': "Gauges", 'type': discord.ActivityType.playing },
       { 'name': "The Stream At Home", 'type': discord.ActivityType.watching },
       { 'name': "and waiting...", 'type': discord.ActivityType.watching },
       { 'name': "Terminator 2: Judgement Day", 'type': discord.ActivityType.watching }
@@ -217,6 +214,14 @@ async def on_ready():
   except Exception as e:
     logger.info(f"Error in on_ready: {e}")
     logger.info(traceback.format_exc())
+
+# listen to typing events
+@bot.event
+async def on_typing(channel, user, when):
+  # Register user if they haven't been previously
+  if not ALL_USERS.get(int(user.id)):
+    logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
+    ALL_USERS[register_user(user)] = True
 
 # listen to reactions
 # TODO: change to on_raw_reaction_add so old messages are counted too!
@@ -234,9 +239,9 @@ async def on_raw_reaction_add(payload):
 @bot.event
 async def on_member_join(member):
   # Register user if they haven't been previously
-  if int(member.id) not in ALL_USERS:
+  if not ALL_USERS.get(int(member.id)):
     logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
-    ALL_USERS.append(register_user(member))
+    ALL_USERS[register_user(member)] = True
 
 @bot.event
 async def on_member_remove(member):
@@ -263,15 +268,6 @@ async def on_guild_channel_update(before, after):
  await show_channel_topic_change_message(before, after)
 
 # listen to application (slash) command events
-@bot.event
-async def on_application_command(ctx):
-  # Register user if they haven't been previously
-  # Note this occurrs _after_ the command has been executed,
-  # so we should primarily rely on registration through `on_member_join`
-  if int(ctx.author.id) not in ALL_USERS:
-    logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
-    ALL_USERS.append(register_user(ctx.author))
-
 @bot.event
 async def on_application_command_error(ctx, error):
   # This prevents any commands with local handlers being handled here in on_command_error.
