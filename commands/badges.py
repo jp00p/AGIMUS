@@ -26,8 +26,6 @@ all_badge_info = db_get_all_badge_info()
 async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
   return [badge['badge_name'] for badge in all_badge_info if ctx.value.lower() in badge['badge_name'].lower()]
 
-unscrappable_badges = ["Friends Of DeSoto"]
-
 async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
   first_badge = ctx.options["first_badge"]
   second_badge = ctx.options["second_badge"]
@@ -35,7 +33,7 @@ async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
 
   user_badges = db_get_user_badges(ctx.interaction.user.id)
 
-  filtered_badges = [first_badge, second_badge, third_badge] + unscrappable_badges
+  filtered_badges = [first_badge, second_badge, third_badge] + SPECIAL_BADGE_NAMES
 
   filtered_badge_names = [badge['badge_name'] for badge in user_badges if badge['badge_name'] not in filtered_badges]
 
@@ -646,7 +644,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     ), ephemeral=True)
     return
 
-  restricted_badges = [b for b in selected_user_badges if b in unscrappable_badges]
+  restricted_badges = [b for b in selected_user_badges if b in SPECIAL_BADGE_NAMES]
   if restricted_badges:
     await ctx.followup.send(embed=discord.Embed(
       title="Invalid Selection",
