@@ -1,5 +1,7 @@
 from common import *
 
+from utils.badge_utils import db_get_user_badges
+
 def hoodiversary_task(bot):
 
   async def hoodiversary():
@@ -22,6 +24,19 @@ def hoodiversary_task(bot):
       if not hoodiversary_members:
         return
 
+      # Award special Captain Picard Day badge!
+      for m in hoodiversary_members:
+        existing_badges = db_get_user_badges(m["member"].id)
+        if "Captain Picard Day" not in [b['badge_name'] for b in existing_badges]:
+          db = getDB()
+          query = db.cursor()
+          sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
+          vals = (m["member"].id, 'Captain_Picard_Day.png')
+          query.execute(sql, vals)
+          db.commit()
+          query.close()
+          db.close()
+
       emoji_list = [
         get_emoji('picard_yes_happy_celebrate'),
         get_emoji('picard_party_dance'),
@@ -43,6 +58,7 @@ def hoodiversary_task(bot):
         color=discord.Color.random()
       )
       embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
+      embed.set_footer(text="If not already present, you've also been awarded a Captain Picard Day badge!\nUse '/badges showcase' to check it out!")
       channel_ids = get_channel_ids_list(config["tasks"]["hoodiversary"]["channels"])
       for channel_id in channel_ids:
         channel = bot.get_channel(channel_id)

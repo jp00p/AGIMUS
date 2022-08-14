@@ -5,6 +5,7 @@ import math
 
 from common import *
 
+SPECIAL_BADGE_NAMES = ["Friends Of DeSoto", "Captain Picard Day"]
 
 # ___________.__                              .___.__
 # \__    ___/|  |_________   ____ _____     __| _/|__| ____    ____
