@@ -446,7 +446,8 @@ def _append_featured_completion_badges(user_id, report, category):
     badges = {}
 
   for r in report:
-    r['featured_badge'] = badges.get(r['name'])
+    if r['name'] in badges:
+      r['featured_badge'] = badges.get(r['name'])
 
   return report
 
@@ -1044,7 +1045,7 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
 
   return rows
 
-def db_get_random_badges_from_user_by_affiliations(user_id: int) -> dict[str, str]:
+def db_get_random_badges_from_user_by_affiliations(user_id: int):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
@@ -1055,8 +1056,7 @@ def db_get_random_badges_from_user_by_affiliations(user_id: int) -> dict[str, st
     INNER JOIN badge_affiliation AS b_a
         ON b_i.badge_filename = b_a.badge_filename
     WHERE b.user_discord_id = %s
-    ORDER BY RANDOM()
-    GROUP BY b_a.affiliation_name
+    ORDER BY RAND()
   '''
   query.execute(sql, (user_id,))
   rows = query.fetchall()
@@ -1115,7 +1115,7 @@ def db_get_badges_user_has_from_franchise(user_id, franchise):
 
   return rows
 
-def db_get_random_badges_from_user_by_franchises(user_id: int) -> dict[str, str]:
+def db_get_random_badges_from_user_by_franchises(user_id: int):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
@@ -1124,8 +1124,7 @@ def db_get_random_badges_from_user_by_franchises(user_id: int) -> dict[str, str]
     INNER JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
     WHERE b.user_discord_id = %s
-    ORDER BY RANDOM()
-    GROUP BY b_i.franchise
+    ORDER BY RAND()
   '''
   query.execute(sql, (user_id,))
   rows = query.fetchall()
@@ -1196,7 +1195,7 @@ def db_get_badges_user_has_from_time_period(user_id, time_period):
   return rows
 
 
-def db_get_random_badges_from_user_by_time_periods(user_id: int) -> dict[str, str]:
+def db_get_random_badges_from_user_by_time_periods(user_id: int):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
@@ -1205,8 +1204,7 @@ def db_get_random_badges_from_user_by_time_periods(user_id: int) -> dict[str, st
     INNER JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
     WHERE b.user_discord_id = %s
-    ORDER BY RANDOM()
-    GROUP BY b_i.time_period
+    ORDER BY RAND()
   '''
   query.execute(sql, (user_id,))
   rows = query.fetchall()
@@ -1293,7 +1291,7 @@ def db_get_badges_user_has_from_type(user_id, type):
 
   return rows
 
-def db_get_random_badges_from_user_by_types(user_id: int) -> dict[str, str]:
+def db_get_random_badges_from_user_by_types(user_id: int):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
@@ -1304,8 +1302,7 @@ def db_get_random_badges_from_user_by_types(user_id: int) -> dict[str, str]:
     INNER JOIN badge_type AS b_t
         ON b_i.badge_filename = b_t.badge_filename
     WHERE b.user_discord_id = %s
-    ORDER BY RANDOM()
-    GROUP BY b_t.type_name
+    ORDER BY RAND()
   '''
   query.execute(sql, (user_id,))
   rows = query.fetchall()

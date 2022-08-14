@@ -13,7 +13,7 @@ f.close()
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
-async def autocomplete_offering_badges(ctx: discord.AutocompleteContext, requestee_id: int=None) -> list[str]:
+async def autocomplete_offering_badges(ctx: discord.AutocompleteContext, requestee_id: int=None):
   """
   Autocomplete of badges that the user making the trade has and are not already in the other user’s collection.
   """
@@ -40,7 +40,7 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext, request
   return [result for result in badge_names if ctx.value.lower() in result.lower()]
 
 
-async def autocomplete_requesting_badges(ctx, requestee_id=None) -> list[str]:
+async def autocomplete_requesting_badges(ctx, requestee_id=None):
   """
   Autocomplete of badges that the user on the other end of the trade has, and this user doesn’t
   """
@@ -1146,7 +1146,7 @@ class Trade(commands.Cog):
     await ctx.respond(embed=addition_embed, file=discord_image, ephemeral=True)
 
   async def _is_untradeable(self, ctx: discord.ApplicationContext, badge: str,
-                            requestor: discord.User, requestee: discord.User, active_trade: dict[str, str],
+                            requestor: discord.User, requestee: discord.User, active_trade,
                             direction: "either 'offer' or 'request'") -> bool:
     """
     Test this badge to see if it can be added to the trade.  If it can't, show the user an error message.  It’s a
@@ -1225,7 +1225,7 @@ class Trade(commands.Cog):
 
     return False
 
-  async def check_for_active_trade(self, ctx: discord.ApplicationContext) -> dict[str, str]:
+  async def check_for_active_trade(self, ctx: discord.ApplicationContext):
     """
     Return the active trade started by this user.  If it doesn't exist, show an error message.
     """
