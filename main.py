@@ -230,7 +230,14 @@ async def on_raw_reaction_add(payload):
   if payload.event_type == "REACTION_ADD":
     await handle_starboard_reactions(payload)
 
-# listen to server leave events
+# listen to server join/leave events
+@bot.event
+async def on_member_join(member):
+  # Register user if they haven't been previously
+  if int(member.id) not in ALL_USERS:
+    logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
+    ALL_USERS.append(register_user(member))
+
 @bot.event
 async def on_member_remove(member):
   await show_leave_message(member)
@@ -259,6 +266,8 @@ async def on_guild_channel_update(before, after):
 @bot.event
 async def on_application_command(ctx):
   # Register user if they haven't been previously
+  # Note this occurrs _after_ the command has been executed,
+  # so we should primarily rely on registration through `on_member_join`
   if int(ctx.author.id) not in ALL_USERS:
     logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
     ALL_USERS.append(register_user(ctx.author))
