@@ -5,6 +5,16 @@ import math
 
 from common import *
 
+SPECIAL_BADGES = [
+  {
+    "badge_name": "Friends Of DeSoto",
+    "badge_filename": "Friends_Of_DeSoto.png"
+  },
+  {
+    "badge_name": "Captain Picard Day",
+    "badge_filename": "Captain_Picard_Day.png"
+  }
+]
 
 # ___________.__                              .___.__
 # \__    ___/|  |_________   ____ _____     __| _/|__| ____    ____

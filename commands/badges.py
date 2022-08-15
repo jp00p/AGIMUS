@@ -11,7 +11,7 @@ from queries.badge_scrap import *
 
 
 with open(config["handlers"]["xp"]["badge_data"]) as f:
-  badge_data = json.loads(f.read())
+badge_data = json.loads(f.read())
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
@@ -25,8 +25,6 @@ all_badge_info = db_get_all_badge_info()
 async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
   return [badge['badge_name'] for badge in all_badge_info if ctx.value.lower() in badge['badge_name'].lower()]
 
-unscrappable_badges = ["Friends Of DeSoto"]
-
 async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
   first_badge = ctx.options["first_badge"]
   second_badge = ctx.options["second_badge"]
@@ -34,7 +32,7 @@ async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
 
   user_badges = db_get_user_badges(ctx.interaction.user.id)
 
-  filtered_badges = [first_badge, second_badge, third_badge] + unscrappable_badges
+  filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in SPECIAL_BADGES]
 
   filtered_badge_names = [badge['badge_name'] for badge in user_badges if badge['badge_name'] not in filtered_badges]
 
@@ -434,11 +432,11 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
         await ctx.followup.send(files=chunk, ephemeral=not public)
 
 def _append_featured_completion_badges(user_id, report, category):
-  if category == "affiliation":
+    if category == "affiliation":
     badges = db_get_random_badges_from_user_by_affiliations(user_id)
-  elif category == "franchise":
+    elif category == "franchise":
     badges = db_get_random_badges_from_user_by_franchises(user_id)
-  elif category == "time_period":
+    elif category == "time_period":
     badges = db_get_random_badges_from_user_by_time_periods(user_id)
   elif category == "type":
     badges = db_get_random_badges_from_user_by_types(user_id)
@@ -531,7 +529,6 @@ class ScrapButton(discord.ui.Button):
         description=random.choice(scrap_complete_messages).format(interaction.user.mention),
         color=discord.Color.teal()
       )
-      logger.info(self.badges_to_scrap)
       embed.add_field(
         name="Scrapped badges: ❌",
         value="\n".join(["~~"+b['badge_name']+"~~" for b in self.badges_to_scrap]),
@@ -628,7 +625,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     ), ephemeral=True)
     return
 
-  restricted_badges = [b for b in selected_user_badges if b in unscrappable_badges]
+  restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in SPECIAL_BADGES]]
   if restricted_badges:
     await ctx.followup.send(embed=discord.Embed(
       title="Invalid Selection",
@@ -653,21 +650,18 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
 
   # If time check okay, select a new random badge
   all_possible_badges = [b['badge_name'] for b in all_badge_info]
-  valid_choices = [b for b in all_possible_badges if b not in user_badge_names]
-  badge_choice = random.choice(valid_choices)
-  # don't give them a badge they already have
-  while badge_choice in user_badge_names and len(valid_choices) > 1:
-    # Remove this choice from the list to pick from randomly
-    valid_choices.remove(badge_choice)
-    badge_choice = random.choice(valid_choices)
-
+  special_badge_names = [b['badge_name'] for b in SPECIAL_BADGES]
+  # Don't give them a badge they don't have or a special badge
+  valid_choices = [b for b in all_possible_badges if b not in user_badge_names and b not in special_badge_names]
   if len(valid_choices) == 0:
     await ctx.respond(embed=discord.Embed(
       title="You already have *ALL BADGES!?!*",
-      description=f"Amazing! You've collected every badge we have, so scrapping is unnecessary. Get it player.",
+      description=f"Amazing! You've collected every unique badge we have, so scrapping is unnecessary. Get it player.",
       color=discord.Color.random()
     ), ephemeral=True)
     return
+
+  badge_choice = random.choice(valid_choices)
 
   badge_to_add = db_get_badge_info_by_name(badge_choice)
   badges_to_scrap = [db_get_badge_info_by_name(b) for b in selected_user_badges]
@@ -860,6 +854,7 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   required=True
 )
 async def gift_badge(ctx:discord.ApplicationContext, user:discord.User):
+  await ctx.defer(ephemeral=True)
   """
   give a random badge to a user
   """
@@ -867,6 +862,13 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User):
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a random badge{Style.RESET_ALL} to {user.display_name}")
 
   badge = give_user_badge(user.id)
+  if badge is None:
+    await ctx.respond(embed=discord.Embed(
+      title="This user already has *ALL BADGES!?!*",
+      description=f"Amazing! This user already has every badge we've got! Gifting unnecessary/impossible!",
+      color=discord.Color.random()
+    ), ephemeral=True)
+    return
 
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a badge!"
@@ -1318,11 +1320,20 @@ def give_user_badge(user_discord_id:int):
   badges = os.listdir("./images/badges/")
   # get the users current badges
   user_badges = [b['badge_filename'] for b in db_get_user_badges(user_discord_id)]
-  badge_choice = random.choice(badges)
-  # don't give them a badge they already have
-  while badge_choice in user_badges:
-    badge_choice = random.choice(badges)
-  give_user_specific_badge(user_discord_id, badge_choice)
+  special_badge_filenames = [b['badge_filename'] for b in SPECIAL_BADGES]
+  valid_choices = [b for b in badges if b not in user_badges and b not in special_badge_filenames]
+  if len(valid_choices) == 0:
+    return None
+
+  badge_choice = random.choice(valid_choices)
+  db = getDB()
+  query = db.cursor()
+  sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
+  vals = (user_discord_id, badge_choice)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
   return badge_choice
 
 def give_user_specific_badge(user_discord_id:int, badge_choice:str):
@@ -1338,13 +1349,22 @@ def give_user_specific_badge(user_discord_id:int, badge_choice:str):
 
 def run_badge_stats_queries():
   queries = {
-    "most_collected" : "SELECT badge_filename, COUNT(id) as count FROM badges WHERE badge_filename != 'Friends_Of_DeSoto.png' GROUP BY badge_filename ORDER BY count DESC LIMIT 5;",
     "total_badges" : "SELECT COUNT(id) as count FROM badges;",
     "badges_today" : "SELECT COUNT(id) as count FROM badges WHERE time_created > NOW() - INTERVAL 1 DAY;",
     "top_collectors" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 5;"
   }
   db = getDB()
   results = {}
+
+  # Run most collected while filtering out special badges
+  query = db.cursor(dictionary=True)
+  special_badge_filenames = [b['badge_filename'] for b in SPECIAL_BADGES]
+  format_strings = ','.join(['%s'] * len(special_badge_filenames))
+  sql = "SELECT badge_filename, COUNT(id) as count FROM badges WHERE badge_filename NOT IN (%s) GROUP BY badge_filename ORDER BY count DESC LIMIT 5;"
+  query.execute(sql % format_strings, tuple(special_badge_filenames))
+  results["most_collected"] = query.fetchall()
+
+  # Run remaining queries
   for name,sql in queries.items():
     query = db.cursor(dictionary=True)
     query.execute(sql)

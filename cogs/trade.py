@@ -1,5 +1,5 @@
 from common import *
-from utils.badge_utils import db_get_badge_info_by_name, generate_badge_trade_showcase, db_get_user_badges
+from utils.badge_utils import *
 from utils.check_channel_access import access_check
 
 f = open("./data/rules_of_acquisition.txt", "r")
@@ -205,7 +205,7 @@ class Trade(commands.Cog):
     # We only allow requestees to have n trades pending for managability's sake
     self.max_trades = 3
     self.max_badges_per_trade = 6
-    self.untradeable_badges = ["Friends Of DeSoto"]
+    self.untradeable_badges = [b['badge_name'] for b in SPECIAL_BADGES]
     self.trade_buttons = [
       pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
       pages.PaginatorButton(
