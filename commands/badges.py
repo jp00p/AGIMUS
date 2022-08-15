@@ -547,7 +547,6 @@ class ScrapButton(discord.ui.Button):
         description=random.choice(scrap_complete_messages).format(interaction.user.mention),
         color=discord.Color.teal()
       )
-      logger.info(self.badges_to_scrap)
       embed.add_field(
         name="Scrapped badges: ❌",
         value="\n".join(["~~"+b['badge_name']+"~~" for b in self.badges_to_scrap]),
@@ -669,21 +668,18 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
 
   # If time check okay, select a new random badge
   all_possible_badges = [b['badge_name'] for b in all_badge_info]
-  valid_choices = [b for b in all_possible_badges if b not in user_badge_names]
-  badge_choice = random.choice(valid_choices)
-  # don't give them a badge they already have
-  while badge_choice in user_badge_names and len(valid_choices) > 1:
-    # Remove this choice from the list to pick from randomly
-    valid_choices.remove(badge_choice)
-    badge_choice = random.choice(valid_choices)
-
+  special_badge_names = [b['badge_name'] for b in SPECIAL_BADGES]
+  # Don't give them a badge they don't have or a special badge
+  valid_choices = [b for b in all_possible_badges if b not in user_badge_names and b not in special_badge_names]
   if len(valid_choices) == 0:
     await ctx.respond(embed=discord.Embed(
       title="You already have *ALL BADGES!?!*",
-      description=f"Amazing! You've collected every badge we have, so scrapping is unnecessary. Get it player.",
+      description=f"Amazing! You've collected every unique badge we have, so scrapping is unnecessary. Get it player.",
       color=discord.Color.random()
     ), ephemeral=True)
     return
+
+  badge_choice = random.choice(valid_choices)
 
   badge_to_add = db_get_badge_info_by_name(badge_choice)
   badges_to_scrap = [db_get_badge_info_by_name(b) for b in selected_user_badges]
@@ -876,6 +872,7 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   required=True
 )
 async def gift_badge(ctx:discord.ApplicationContext, user:discord.User):
+  await ctx.defer(ephemeral=True)
   """
   give a random badge to a user
   """
@@ -883,6 +880,13 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User):
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a random badge{Style.RESET_ALL} to {user.display_name}")
 
   badge = give_user_badge(user.id)
+  if badge is None:
+    await ctx.respond(embed=discord.Embed(
+      title="This user already has *ALL BADGES!?!*",
+      description=f"Amazing! This user already has every badge we've got! Gifting unnecessary/impossible!",
+      color=discord.Color.random()
+    ), ephemeral=True)
+    return
 
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a badge!"
@@ -1260,10 +1264,12 @@ def give_user_badge(user_discord_id:int):
   badges = os.listdir("./images/badges/")
   # get the users current badges
   user_badges = [b['badge_filename'] for b in db_get_user_badges(user_discord_id)]
-  badge_choice = random.choice(badges)
-  # don't give them a badge they already have
-  while badge_choice in user_badges:
-    badge_choice = random.choice(badges)
+  special_badge_filenames = [b['badge_filename'] for b in SPECIAL_BADGES]
+  valid_choices = [b for b in badges if b not in user_badges and b not in special_badge_filenames]
+  if len(valid_choices) == 0:
+    return None
+
+  badge_choice = random.choice(valid_choices)
   db = getDB()
   query = db.cursor()
   sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
