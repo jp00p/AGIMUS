@@ -72,6 +72,7 @@ except (aiohttp.client_exceptions.ContentTypeError, json.decoder.JSONDecodeError
 # Handlers
 from handlers.alerts import handle_alerts
 from handlers.bot_autoresponse import handle_bot_affirmations
+from handlers.loudbot import handle_loudbot
 from handlers.save_message import save_message_to_db
 from handlers.server_logs import *
 from handlers.starboard import get_all_starboard_posts, handle_starboard_reactions
@@ -121,6 +122,7 @@ async def on_message(message:discord.Message):
   # Special message Handlers
   try:
     await handle_bot_affirmations(message)
+    await handle_loudbot(message)
     await handle_alerts(message)
   except Exception as e:
     logger.error(f"{Fore.RED}<! ERROR: Encountered error in handlers !> {e}{Fore.RESET}")

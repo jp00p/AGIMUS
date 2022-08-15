@@ -11,6 +11,23 @@
         735658100958298154
       ]
     },
+    "loudbot": {
+      "enabled": true,
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-office",
+        "heuristic-associative-pathways",
+        "mo-pips-mo-problemz",
+        "megalomaniacal-computer-storage",
+        "bot-logs",
+        "bot-setup",
+        "dabo-table",
+        "poker-night",
+        "morns-nonstop-quiz",
+        "badgeys-badges"
+      ]
+    },
     "save_message": {
       "blocked_channels": [
         "neelixs-morale-office",
