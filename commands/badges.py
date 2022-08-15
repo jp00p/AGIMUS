@@ -547,7 +547,6 @@ class ScrapButton(discord.ui.Button):
         description=random.choice(scrap_complete_messages).format(interaction.user.mention),
         color=discord.Color.teal()
       )
-      logger.info(self.badges_to_scrap)
       embed.add_field(
         name="Scrapped badges: ❌",
         value="\n".join(["~~"+b['badge_name']+"~~" for b in self.badges_to_scrap]),
