@@ -13,18 +13,18 @@ f.close()
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
-async def autocomplete_offering_badges(ctx: discord.AutocompleteContext, requestee_id: int=None):
+def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   """
   Autocomplete of badges that the user making the trade has and are not already in the other user’s collection.
   """
-  if requestee_id is None:
-    # Find the user in the other end of the trade, either from the user selection or the existing trade
-    if 'user' in ctx.options:
-      requestee_id = ctx.options['user'].id
-    else:
-      active_trade = db_get_active_requestor_trade(ctx.interaction.user.id)
-      if active_trade:
-        requestee_id = active_trade['requestee_id']
+  # Find the user in the other end of the trade, either from the user selection or the existing trade
+  requestee_id = None
+  if 'requestee' in ctx.options:
+    requestee_id = ctx.options['requestee']
+  else:
+    active_trade = db_get_active_requestor_trade(ctx.interaction.user.id)
+    if active_trade:
+      requestee_id = active_trade['requestee_id']
 
   requestor_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id)]
   if requestee_id:
@@ -34,31 +34,31 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext, request
     badge_names = requestor_badges
 
   if len(badge_names) == 0:
-    badge_names = ["This user already has all badges that you possesses! Use '/trade cancel' to cancel this trade."]
+    badge_names = ["This user already has all badges that you possess! Use '/trade cancel' to cancel this trade."]
 
   badge_names.sort()
   return [result for result in badge_names if ctx.value.lower() in result.lower()]
 
 
-async def autocomplete_requesting_badges(ctx, requestee_id=None):
+def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   """
   Autocomplete of badges that the user on the other end of the trade has, and this user doesn’t
   """
-  if requestee_id is None:
-    # Find the user in the other end of the trade, either from the user selection or the existing trade
-    if 'user' in ctx.options:
-      requestee_id = ctx.options['user'].id
-    else:
-      active_trade = db_get_active_requestor_trade(ctx.interaction.user.id)
-      if active_trade:
-        requestee_id = active_trade['requestee_id']
+  # Find the user in the other end of the trade, either from the user selection or the existing trade
+  requestee_id = None
+  if 'requestee' in ctx.options:
+    requestee_id = ctx.options['requestee']
+  else:
+    active_trade = db_get_active_requestor_trade(ctx.interaction.user.id)
+    if active_trade:
+      requestee_id = active_trade['requestee_id']
 
   if requestee_id:
     requestor_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id)]
     requestee_badges = [b['badge_name'] for b in db_get_user_badges(requestee_id)]
     badge_names = [b for b in requestee_badges if b not in requestor_badges]
   else:
-    badge_names = ["You must have another user to trade with to select their badges. Use '/trade start' to start a trade."]
+    badge_names = ["Use '/trade start' to start a trade and make sure you choose someone."]
 
   if len(badge_names) == 0:
     badge_names = ["You already have all badges that this user possesses! Use '/trade cancel' to cancel this trade."]
@@ -752,27 +752,13 @@ class Trade(commands.Cog):
                     "you'd like to offer and request, use \n`/trade status` to send the trade to the user, "
                     "or to cancel!\n\nNote: You may only have one open outgoing trade request at a time!",
         color=discord.Color.dark_purple()
+      ).add_field(
+        name="Badges offered by you",
+        value=offer
+      ).add_field(
+        name=f"Badges requested from {requestee.name}",
+        value=request
       )
-      if offer:
-        initiated_embed.add_field(
-          name="Badges offered by you",
-          value=offer
-        )
-      else:
-        initiated_embed.add_field(
-          name="Requested By (You)",
-          value=f"{ctx.author.mention}"
-        )
-      if request:
-        initiated_embed.add_field(
-          name=f"Badges requested from {requestee.mention}",
-          value=request
-        )
-      else:
-        initiated_embed.add_field(
-          name="Requested From",
-          value=f"{requestee.mention}"
-        )
       initiated_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
       await ctx.respond(embed=initiated_embed, ephemeral=True)
 
@@ -1412,11 +1398,12 @@ def db_initiate_trade(requestor_id:int, requestee_id:int) -> int:
   query = db.cursor()
   sql = "INSERT INTO trades (requestor_id, requestee_id, status) VALUES (%s, %s, 'pending')"
   vals = (requestor_id, requestee_id)
-  result = query.execute(sql, vals)
+  query.execute(sql, vals)
+  result = query.lastrowid
   db.commit()
   query.close()
   db.close()
-  return result.lastrowid
+  return result
 
 def db_activate_trade(active_trade):
   active_trade_id = active_trade["id"]
