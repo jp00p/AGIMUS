@@ -33,7 +33,7 @@ async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
 
   user_badges = db_get_user_badges(ctx.interaction.user.id)
 
-  filtered_badges = [first_badge, second_badge, third_badge] + SPECIAL_BADGE_NAMES
+  filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in SPECIAL_BADGES]
 
   filtered_badge_names = [badge['badge_name'] for badge in user_badges if badge['badge_name'] not in filtered_badges]
 
@@ -644,7 +644,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     ), ephemeral=True)
     return
 
-  restricted_badges = [b for b in selected_user_badges if b in SPECIAL_BADGE_NAMES]
+  restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in SPECIAL_BADGES]]
   if restricted_badges:
     await ctx.followup.send(embed=discord.Embed(
       title="Invalid Selection",
@@ -1287,13 +1287,22 @@ def give_user_specific_badge(user_discord_id:int, badge_choice:str):
 
 def run_badge_stats_queries():
   queries = {
-    "most_collected" : "SELECT badge_filename, COUNT(id) as count FROM badges WHERE badge_filename != 'Friends_Of_DeSoto.png' GROUP BY badge_filename ORDER BY count DESC LIMIT 5;",
     "total_badges" : "SELECT COUNT(id) as count FROM badges;",
     "badges_today" : "SELECT COUNT(id) as count FROM badges WHERE time_created > NOW() - INTERVAL 1 DAY;",
     "top_collectors" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 5;"
   }
   db = getDB()
   results = {}
+
+  # Run most collected while filtering out special badges
+  query = db.cursor(dictionary=True)
+  special_badge_filenames = [b['badge_filename'] for b in SPECIAL_BADGES]
+  format_strings = ','.join(['%s'] * len(special_badge_filenames))
+  sql = "SELECT badge_filename, COUNT(id) as count FROM badges WHERE badge_filename NOT IN (%s) GROUP BY badge_filename ORDER BY count DESC LIMIT 5;"
+  query.execute(sql % format_strings, tuple(special_badge_filenames))
+  results["most_collected"] = query.fetchall()
+
+  # Run remaining queries
   for name,sql in queries.items():
     query = db.cursor(dictionary=True)
     query.execute(sql)
