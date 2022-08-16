@@ -54,18 +54,28 @@ async def drop_list(ctx:discord.ApplicationContext):
   description="Send a drop to the channel or to just yourself via the <private> option",
 )
 @option(
+  name="public",
+  description="Show to public?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="No",
+      value="no"
+    ),
+    discord.OptionChoice(
+      name="Yes",
+      value="yes"
+    )
+  ]
+)
+@option(
   name="query",
   description="Which drop? NOTE: Uses autocomplete, start typing and it should show relevant results!",
   required=True,
   autocomplete=drop_autocomplete
 )
-@option(
-  name="private",
-  description="Send drop to just yourself?",
-  required=False,
-)
 @commands.check(access_check)
-async def drop_post(ctx:discord.ApplicationContext, query:str, private:bool):
+async def drop_post(ctx:discord.ApplicationContext, public:str, query:str):
   """
   Entrypoint for `/drops post` command
   Parses a query, determines if it's allowed in the channel,
@@ -74,25 +84,23 @@ async def drop_post(ctx:discord.ApplicationContext, query:str, private:bool):
   """
   logger.info(f"{Fore.RED}Firing `/drop post` command, requested by {ctx.author.name}!{Fore.RESET}")
   # Private drops are not on the timer
-  drop_allowed = True
-  if not private:
-    drop_allowed = await check_timekeeper(ctx)
+  public = bool(public == "yes")
+  allowed = True
+  if public:
+    allowed = await check_timekeeper(ctx)
 
-  if (drop_allowed):
+  if (allowed):
     q = query.lower().strip()
     drop_metadata = get_media_metadata(drop_data, q)
 
     if drop_metadata:
       try:
         filename = get_media_file(drop_metadata)
-        await ctx.respond(file=discord.File(filename), ephemeral=private)
-        if not private:
+        await ctx.respond(file=discord.File(filename), ephemeral=not public)
+        if public:
           set_timekeeper(ctx)
-      except BaseException as err:
+      except Exception as err:
         logger.info(f"{Fore.RED}ERROR LOADING DROP: {err}{Fore.RESET}")
-        userid = command_config.get("error_contact_id")
-        if userid:
-          await ctx.respond(f"{get_emoji('emh_doctor_omg_wtf_zoom')} Something has gone horribly awry, we may have a coolant leak. Contact Lieutenant Engineer <@{userid}>", ephemeral=True)
     else:
       await ctx.respond(f"{get_emoji('ezri_frown_sad')} Drop not found! To get a list of drops run: /drops list", ephemeral=True)
   else:
