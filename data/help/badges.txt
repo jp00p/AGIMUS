@@ -12,6 +12,8 @@ Level-up Announcements and Badge Trading!
 **TRADING**
 You can trade the badges you earn from leveling up with other users!
 
+Note that you can offer/request from 0 to 6 badges each either way (so a 6 for 6 trade is the maximum for a single trade).
+
 You may only have one active outgoing trade at a time.
 You may have up to three incoming trades at a time.
 
@@ -21,9 +23,9 @@ You may have up to three incoming trades at a time.
 `/trade pending` - View any incoming trades other users have requested from you and respond to accept/decline the offer
 
 **Outgoing Trades**
-`/trade start <user>` - Must be done initially! Create a 'pending' trade with a user which you can modify to add offered/requested badges
+`/trade start <user> <offer> <request>` - Must be done initially! Create a 'pending' trade with a user. You can specify an initial offer and request here as well.
 
-`/trade propose <offer/request> <badge name>` - Add your offered and requested badges to the pending trade.
+`/trade propose <offer> <request>` - Add additional offered and requested badges to the pending trade.
 
 `/trade status` - View the current details of your Active or Pending trade. Has buttons to Cancel and if currently pending, Send the proposed trade.
 
@@ -31,13 +33,9 @@ You may have up to three incoming trades at a time.
 
 1. Quark really wants the *"Volleyball Court"* Badge and is willing to trade his *"The Lucky Ferengi"* and *"Tongo Card (Sample)"* badges to get it. He sees that Weyoun has the *"Volleyball Court"* badge and decides to make an offer.
 
-2. Quark uses `/trade start @Weyoun` to start a pending trade with Weyoun as the recipient.
+2. Quark uses `/trade start user:@Weyoun offer:"The Lucky Ferengi" request:"Volleyball Court"` to start a pending trade with Weyoun as the recipient.
 
-3. Quark uses `/trade propose <offer> "The Lucky Ferengi"` to add his first badge to the pending trade.
-
-4. Quark uses `/trade propose <offer> "Tongo Card (Sample)"` to add his second badge to the pending trade.
-
-5. Quark uses `/trade propose <request> "Volleyball Court"` to add Weyoun's badge to the pending trade.
+3. Quark uses `/trade propose offer:"Tongo Card (Sample)"` to add his first badge to the pending trade.
 
 7. Quark uses `/trade status` to verify everything looks good to go, and then presses the Send button. Weyoun gets a notification letting them know that Quark has made an offer and the channel is also alerted that the trade is underway!
 

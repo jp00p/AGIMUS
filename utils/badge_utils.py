@@ -650,6 +650,23 @@ def db_get_badge_info_by_name(name):
 
   return row
 
+def db_get_badge_count_by_filename(filename):
+  """
+  Given the name of a badge, retrieves its information from badge_info
+  :param name: the name of the badge.
+  :return: row dict
+  """
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = "SELECT count(*) FROM badges WHERE badge_filename = %s;"
+  vals = (filename,)
+  query.execute(sql, vals)
+  row = query.fetchone()
+  query.close()
+  db.close()
+
+  return row["count(*)"]
+
 def db_get_badge_info_by_filename(filename):
   """
   Given the filename of a badge, retrieves its information from badge_info
