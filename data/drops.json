@@ -1,4 +1,9 @@
 {
+  "Alien Trash Of The Galaxy": {
+    "file": "data/drops/alientrashofthegalaxy.mp4",
+    "description": "Admiral Cartwright: The alien trash of the galaxy.",
+    "url": "https://i.imgur.com/9ZaFArE.mp4"
+  },
   "All I Do Is Bits, Bits, Bits": {
     "file": "data/drops/allidoisbitsbitsbits.mp4",
     "description": "All I do is Bits, Bits, Bits! No matter what!",
@@ -23,6 +28,11 @@
     "file": "data/drops/bensgonnatalkaboutafrica.mp4",
     "description": "Ben is Ben's Going To Gonna Talk About Africa song",
     "url": "https://i.imgur.com/UyqYbwe.mp4"
+  },
+  "Bring Them To Their Knees": {
+    "file": "data/drops/bringthemtotheirknees.mp4",
+    "description": "Admiral Cartwright: The opportunity here is to bring them to their knees.",
+    "url": "https://i.imgur.com/8slokk5.mp4"
   },
   "Buddy Husnock": {
     "file": "data/drops/buddyhusnock.mp4",
@@ -158,6 +168,11 @@
     "file": "data/drops/idontusethebucketanymore.mp4",
     "description": "Odo. Mr. Bucket. I don't use the bucket anymore.",
     "url": "https://i.imgur.com/qq0RMDG.mp4"
+  },
+  "Bajoran Tablet: I'm A Running Character!": {
+    "file": "data/drops/imarunningcharacter.mp4",
+    "description": "Mr. Bajoran Tablet: I'm a running character!",
+    "url": "https://i.imgur.com/hzFS7TG.mp4"
   },
   "I'm Not Picard": {
     "file": "data/drops/notpicard.mp4",
