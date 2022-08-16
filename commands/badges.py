@@ -10,9 +10,8 @@ import queries.badge_completion as queries_badge_completion
 from queries.badge_scrap import *
 
 
-f = open(config["handlers"]["xp"]["badge_data"])
+with open(config["handlers"]["xp"]["badge_data"]) as f:
 badge_data = json.loads(f.read())
-f.close()
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
@@ -93,25 +92,25 @@ badge_group = bot.create_group("badges", "Badge Commands!")
   ]
 )
 async def showcase(ctx:discord.ApplicationContext, public:str, color:str):
-  public = bool(public == "yes")
+  public = (public == "yes")
   await ctx.defer(ephemeral=not public)
 
-  badges = os.listdir("./images/badges/")
-  all_badges = db_get_user_badges(ctx.author.id)
+  user_badges = db_get_user_badges(ctx.author.id)
 
   # Set up text values for paginated pages
-  total_badges = len(badges)
+  total_badges_cnt = len(badge_data)
+  user_badges_cnt = len(user_badges)
   title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
-  collected = f"{len(all_badges)} TOTAL ON THE USS HOOD"
+  collected = f"{user_badges_cnt} TOTAL ON THE USS HOOD"
   filename_prefix = f"badge_list_{ctx.author.id}-page-"
 
   if color:
     db_set_user_badge_page_color_preference(ctx.author.id, "showcase", color)
-  badge_images = await generate_paginated_badge_images(ctx.author, 'showcase', all_badges, total_badges, title, collected, filename_prefix)
+  badge_images = await generate_paginated_badge_images(ctx.author, 'showcase', user_badges, total_badges_cnt, title, collected, filename_prefix)
 
   embed = discord.Embed(
     title=f"Badge Collection",
-    description=f"{ctx.author.mention} has collected {len(all_badges)} of {len(badges)}!",
+    description=f"{ctx.author.mention} has collected {user_badges_cnt} of {total_badges_cnt}!",
     color=discord.Color.blurple()
   )
 
@@ -119,19 +118,19 @@ async def showcase(ctx:discord.ApplicationContext, public:str, color:str):
   # Otherwise private displays can use the paginator
   if not public:
     buttons = [
-      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_badges) <= 30), row=1),
+      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(user_badges_cnt <= 30), row=1),
       pages.PaginatorButton(
         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
       ),
-      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_badges) <= 30), row=1),
+      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(user_badges_cnt <= 30), row=1),
     ]
 
-    set_pages = [
+    pages_list = [
       pages.Page(files=[image], embeds=[embed])
       for image in badge_images
     ]
     paginator = pages.Paginator(
-        pages=set_pages,
+        pages=pages_list,
         show_disabled=True,
         show_indicator=True,
         use_default_buttons=False,
@@ -145,9 +144,9 @@ async def showcase(ctx:discord.ApplicationContext, public:str, color:str):
     for chunk_index, chunk in enumerate(file_chunks):
       # Only post the embed on the last chunk
       if chunk_index + 1 == len(file_chunks):
-        await ctx.followup.send(embed=embed, files=chunk, ephemeral=not public)
+        await ctx.followup.send(embed=embed, files=chunk, ephemeral=False)
       else:
-        await ctx.followup.send(files=chunk, ephemeral=not public)
+        await ctx.followup.send(files=chunk, ephemeral=False)
 
 
 #   _________       __
@@ -218,71 +217,53 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
   public = bool(public == "yes")
   await ctx.defer(ephemeral=not public)
 
-  user_set_badges = []
-  all_set_badges = []
+  category_title = category.replace("_", " ").title()
 
   if category == 'affiliation':
-    affiliations = db_get_all_affiliations()
-    if selection not in affiliations:
-      await ctx.followup.send("Your entry was not in the list of Affiliations!", ephemeral=True)
-      return
-
     user_set_badges = db_get_badges_user_has_from_affiliation(ctx.author.id, selection)
     all_set_badges = db_get_all_affiliation_badges(selection)
-
   elif category == 'franchise':
-    franchises = db_get_all_franchises()
-    if selection not in franchises:
-      await ctx.followup.send("Your entry was not in the list of Franchises!", ephemeral=True)
-      return
-
     user_set_badges = db_get_badges_user_has_from_franchise(ctx.author.id, selection)
     all_set_badges = db_get_all_franchise_badges(selection)
-
   elif category == 'time_period':
-    time_periods = db_get_all_time_periods()
-    if selection not in time_periods:
-      await ctx.followup.send("Your entry was not in the list of Time Periods!", ephemeral=True)
-      return
-
     user_set_badges = db_get_badges_user_has_from_time_period(ctx.author.id, selection)
     all_set_badges = db_get_all_time_period_badges(selection)
-
   elif category == 'type':
-    types = db_get_all_types()
-    if selection not in types:
-      await ctx.followup.send("Your entry was not in the list of Types!", ephemeral=True)
-      return
-
     user_set_badges = db_get_badges_user_has_from_type(ctx.author.id, selection)
     all_set_badges = db_get_all_type_badges(selection)
+  else:
+    await ctx.followup.send("Select a category", ephemeral=True)
+    return
+
+  if not all_set_badges:
+    await ctx.followup.send(f"Your entry was not in the list of {category_title}s!", ephemeral=True)
+    return
 
 
-  all_badges = []
+  set_badges = []
   for badge in all_set_badges:
     record = {
       'badge_name': badge['badge_name'],
       'badge_filename': badge['badge_filename'],
       'in_user_collection': badge['badge_name'] in [b['badge_name'] for b in user_set_badges]
     }
-    all_badges.append(record)
+    set_badges.append(record)
 
-  category_title = category.replace("_", " ").title()
-
-  total_badges = db_get_badge_count_for_user(ctx.author.id)
+  user_set_badge_cnt = len([b for b in set_badges if b['in_user_collection']])
+  user_all_badge_cnt = db_get_badge_count_for_user(ctx.author.id)
 
   # Set up text values for paginated pages
   title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Set: {category_title} - {selection}"
-  collected = f"{len([b for b in all_badges if b['in_user_collection']])} OF {len(all_set_badges)}"
+  collected = f"{user_set_badge_cnt} OF {len(set_badges)}"
   filename_prefix = f"badge_set_{ctx.author.id}_{selection.lower().replace(' ', '-').replace('/', '-')}-page-"
 
   if color:
     db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
-  badge_images = await generate_paginated_badge_images(ctx.author, 'sets', all_badges, total_badges, title, collected, filename_prefix)
+  badge_images = await generate_paginated_badge_images(ctx.author, 'sets', set_badges, user_all_badge_cnt, title, collected, filename_prefix)
 
   embed = discord.Embed(
     title=f"Badge Set: **{category_title}** - **{selection}**",
-    description=f"{ctx.author.mention} has collected {len(user_set_badges)} of {len(all_set_badges)}!",
+    description=f"{ctx.author.mention} has collected {user_set_badge_cnt} of {len(set_badges)}!",
     color=discord.Color.blurple()
   )
 
@@ -290,11 +271,11 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
   # Otherwise private displays can use the paginator
   if not public:
     buttons = [
-      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_badges) <= 30), row=1),
+      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(len(set_badges) <= 30), row=1),
       pages.PaginatorButton(
         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
       ),
-      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_badges) <= 30), row=1),
+      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(len(set_badges) <= 30), row=1),
     ]
 
     set_pages = [
@@ -316,9 +297,9 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
     for chunk_index, chunk in enumerate(file_chunks):
       # Only post the embed on the last chunk
       if chunk_index + 1 == len(file_chunks):
-        await ctx.followup.send(embed=embed, files=chunk, ephemeral=not public)
+        await ctx.followup.send(embed=embed, files=chunk, ephemeral=False)
       else:
-        await ctx.followup.send(files=chunk, ephemeral=not public)
+        await ctx.followup.send(files=chunk, ephemeral=False)
 
 
 # _________                       .__          __  .__
@@ -451,19 +432,20 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
         await ctx.followup.send(files=chunk, ephemeral=not public)
 
 def _append_featured_completion_badges(user_id, report, category):
-  for r in report:
     if category == "affiliation":
-      badges = db_get_badges_user_has_from_affiliation(user_id, r['name'])
+    badges = db_get_random_badges_from_user_by_affiliations(user_id)
     elif category == "franchise":
-      badges = db_get_badges_user_has_from_franchise(user_id, r['name'])
+    badges = db_get_random_badges_from_user_by_franchises(user_id)
     elif category == "time_period":
-      badges = db_get_badges_user_has_from_time_period(user_id, r['name'])
-    if category == "type":
-      badges = db_get_badges_user_has_from_type(user_id, r['name'])
+    badges = db_get_random_badges_from_user_by_time_periods(user_id)
+  elif category == "type":
+    badges = db_get_random_badges_from_user_by_types(user_id)
+  else:
+    badges = {}
 
-    if (badges):
-      selected_badge = random.choice(badges)
-      r['featured_badge'] = selected_badge['badge_filename']
+  for r in report:
+    if r['name'] in badges:
+      r['featured_badge'] = badges.get(r['name'])
 
   return report
 
@@ -1065,7 +1047,25 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
 
   return rows
 
+def db_get_random_badges_from_user_by_affiliations(user_id: int):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT b_i.badge_filename, b_a.affiliation_name
+    FROM badges b
+    INNER JOIN badge_info AS b_i
+        ON b.badge_filename = b_i.badge_filename
+    INNER JOIN badge_affiliation AS b_a
+        ON b_i.badge_filename = b_a.badge_filename
+    WHERE b.user_discord_id = %s
+    ORDER BY RAND()
+  '''
+  query.execute(sql, (user_id,))
+  rows = query.fetchall()
+  query.close()
+  db.close()
 
+  return {r['affiliation_name']: r['badge_filename'] for r in rows}
 
 # Franchises
 def db_get_all_franchises():
@@ -1117,6 +1117,25 @@ def db_get_badges_user_has_from_franchise(user_id, franchise):
 
   return rows
 
+def db_get_random_badges_from_user_by_franchises(user_id: int):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT b_i.badge_filename, b_i.franchise
+    FROM badges b
+    INNER JOIN badge_info AS b_i
+        ON b.badge_filename = b_i.badge_filename
+    WHERE b.user_discord_id = %s
+    ORDER BY RAND()
+  '''
+  query.execute(sql, (user_id,))
+  rows = query.fetchall()
+  query.close()
+  db.close()
+
+  return {r['franchise']: r['badge_filename'] for r in rows}
+
+
 # Time Periods
 def db_get_all_time_periods():
   db = getDB()
@@ -1132,9 +1151,11 @@ def db_get_all_time_periods():
 
   return time_periods
 
-# We may be dealing with time periods before 1000,
-# so tack on a 0 prefix for these for proper sorting
 def _time_period_sort(time_period):
+  """
+  We may be dealing with time periods before 1000,
+  so tack on a 0 prefix for these for proper sorting
+  """
   if len(time_period) == 4:
     return f"0{time_period}"
   else:
@@ -1175,6 +1196,24 @@ def db_get_badges_user_has_from_time_period(user_id, time_period):
 
   return rows
 
+
+def db_get_random_badges_from_user_by_time_periods(user_id: int):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT b_i.badge_filename, b_i.time_period
+    FROM badges b
+    INNER JOIN badge_info AS b_i
+        ON b.badge_filename = b_i.badge_filename
+    WHERE b.user_discord_id = %s
+    ORDER BY RAND()
+  '''
+  query.execute(sql, (user_id,))
+  rows = query.fetchall()
+  query.close()
+  db.close()
+
+  return {r['time_period']: r['badge_filename'] for r in rows}
 
 
 # Types
@@ -1254,12 +1293,29 @@ def db_get_badges_user_has_from_type(user_id, type):
 
   return rows
 
+def db_get_random_badges_from_user_by_types(user_id: int):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT b_i.badge_filename, b_t.type_name
+    FROM badges b
+    INNER JOIN badge_info AS b_i
+        ON b.badge_filename = b_i.badge_filename
+    INNER JOIN badge_type AS b_t
+        ON b_i.badge_filename = b_t.badge_filename
+    WHERE b.user_discord_id = %s
+    ORDER BY RAND()
+  '''
+  query.execute(sql, (user_id,))
+  rows = query.fetchall()
+  query.close()
+  db.close()
+
+  return {r['type_name']: r['badge_filename'] for r in rows}
 
 
-# give_user_badge(user_discord_id)
-# user_discord_id[required]:int
-# pick a badge, update badges DB, return badge name
 def give_user_badge(user_discord_id:int):
+  """ pick a badge, update badges DB, return badge name """
   # list files in images/badges directory
   badges = os.listdir("./images/badges/")
   # get the users current badges
