@@ -11,7 +11,7 @@ from queries.badge_scrap import *
 
 
 with open(config["handlers"]["xp"]["badge_data"]) as f:
-badge_data = json.loads(f.read())
+  badge_data = json.loads(f.read())
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
@@ -433,21 +433,20 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
 
 def _append_featured_completion_badges(user_id, report, category):
     if category == "affiliation":
-    badges = db_get_random_badges_from_user_by_affiliations(user_id)
+      badges = db_get_random_badges_from_user_by_affiliations(user_id)
     elif category == "franchise":
-    badges = db_get_random_badges_from_user_by_franchises(user_id)
+      badges = db_get_random_badges_from_user_by_franchises(user_id)
     elif category == "time_period":
-    badges = db_get_random_badges_from_user_by_time_periods(user_id)
-  elif category == "type":
-    badges = db_get_random_badges_from_user_by_types(user_id)
-  else:
-    badges = {}
+      badges = db_get_random_badges_from_user_by_time_periods(user_id)
+    elif category == "type":
+      badges = db_get_random_badges_from_user_by_types(user_id)
+    else:
+      badges = {}
 
-  for r in report:
-    if r['name'] in badges:
-      r['featured_badge'] = badges.get(r['name'])
-
-  return report
+    for r in report:
+      if r['name'] in badges:
+        r['featured_badge'] = badges.get(r['name'])
+        return report
 
 
 #   _________
