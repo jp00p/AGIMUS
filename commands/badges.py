@@ -769,6 +769,7 @@ async def badge_lookup(ctx:discord.ApplicationContext, name:str):
   try:
     logger.info(f"{Fore.CYAN}Firing /badge lookup command for '{name}'!{Fore.RESET}")
     badge = db_get_badge_info_by_name(name)
+    badge_count = db_get_badge_count_by_filename(badge['badge_filename'])
     if (badge):
       affiliations = [
         a['affiliation_name']
@@ -787,6 +788,7 @@ async def badge_lookup(ctx:discord.ApplicationContext, name:str):
         description += f"Types: **{','.join(types)}**\n"
       description += f"Franchise: **{badge['franchise']}**\n"
       description += f"Reference: **{badge['reference']}**\n\n"
+      description += f"Total number collected on The USS Hood: **{badge_count}**\n\n"
       description += f"{badge['badge_url']}"
 
       embed = discord.Embed(
