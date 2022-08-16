@@ -71,44 +71,45 @@ def seed_badge_tables():
     query.execute(sql, vals)
 
     # Now get the id of the new badge_info row
-    sql = "SELECT id FROM badge_info WHERE badge_name = %s"
-    vals = (badge_name,)
-    query.execute(sql, vals)
-    badge_row = query.fetchone()
-    badge_info_row_id = badge_row['id']
+    # sql = "SELECT id FROM badge_info WHERE badge_name = %s"
+    # vals = (badge_name,)
+    # query.execute(sql, vals)
+    # badge_row = query.fetchone()
+    # badge_info_row_id = badge_row['id']
 
     # Now create the badge_affiliation row(s)
     if affiliations_list is not None:
       for a in affiliations_list:
         sql = '''INSERT IGNORE INTO badge_affiliation
-          (badge_id, affiliation_name)
+          (badge_filename, affiliation_name)
           VALUES (%s, %s)
         '''
-        vals = (badge_info_row_id, a)
+        vals = (badge_filename, a)
         query.execute(sql, vals)
 
     # Same for types
     if types_list is not None:
       for t in types_list:
         sql = '''INSERT IGNORE INTO badge_type
-          (badge_id, type_name)
+          (badge_filename, type_name)
           VALUES (%s, %s)
         '''
-        vals = (badge_info_row_id, t)
+        vals = (badge_filename, t)
         query.execute(sql, vals)
 
     # Same for universes
     if universes_list is not None:
       for u in universes_list:
         sql = '''INSERT IGNORE INTO badge_universe
-          (badge_id, universe_name)
+          (badge_filename, universe_name)
           VALUES (%s, %s)
         '''
-        vals = (badge_info_row_id, u)
+        vals = (badge_filename, u)
         query.execute(sql, vals)
 
     db.commit()
     query.close()
 
 # Run
-seed_badge_tables()
+if __name__ == "__main__":
+  seed_badge_tables()
