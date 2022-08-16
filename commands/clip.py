@@ -57,33 +57,44 @@ async def clips_list(ctx:discord.ApplicationContext):
   description="Send a clip to the channel or to just yourself via the <private> option",
 )
 @option(
+  name="public",
+  description="Show to public?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="No",
+      value="no"
+    ),
+    discord.OptionChoice(
+      name="Yes",
+      value="yes"
+    )
+  ]
+)
+@option(
   name="query",
   description="Which clip? NOTE: Uses autocomplete, start typing and it should show relevant results!",
   required=True,
   autocomplete=clip_autocomplete
 )
-@option(
-  name="private",
-  description="Send clip to just yourself?",
-  required=False
-)
 @commands.check(access_check)
-async def clip_post(ctx:discord.ApplicationContext, query:str, private:bool):
+async def clip_post(ctx:discord.ApplicationContext, public:str, query:str):
   logger.info(f"{Fore.RED}Firing `/clip post` command, requested by {ctx.author.name}!{Fore.RESET}")
   # Private drops are not on the timer
-  clip_allowed = True
-  if not private:
-    clip_allowed = await check_timekeeper(ctx)
+  public = bool(public == "yes")
+  allowed = True
+  if public:
+    allowed = await check_timekeeper(ctx)
 
-  if clip_allowed:
+  if allowed:
     q = query.lower().strip()
     clip_metadata = get_media_metadata(clip_data, q)
 
     if clip_metadata:
       try:
         filename = get_media_file(clip_metadata)
-        await ctx.respond(file=discord.File(filename), ephemeral=private)
-        if not private:
+        await ctx.respond(file=discord.File(filename), ephemeral=not public)
+        if public:
           set_timekeeper(ctx)
       except Exception as err:
         logger.info(f"{Fore.RED}ERROR LOADING CLIP: {err}{Fore.RESET}")
