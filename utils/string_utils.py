@@ -31,7 +31,7 @@ def strip_punctuation(string):
 # After stripping out allowed characters, return if the remaining string is uppercase or not
 def is_loud(message):
   # Strip out emojis because these are ok to be lowercase (and will not work as uppercase)
-  message = re.sub(emoji_regex, '', message).strip()
+  # message = re.sub(emoji_regex, '', message).strip()
   # Strip out tagging of specific people because future pokes are fun
   message = re.sub(tag_regex, '', message)
   # Strip out any punctuation
