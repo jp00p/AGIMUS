@@ -156,6 +156,57 @@ class WordcloudView(discord.ui.View):
     self.add_item(WordcloudDropdown(self.cog))
 
 
+# .____                    .______.           __
+# |    |    ____  __ __  __| _/\_ |__   _____/  |_
+# |    |   /  _ \|  |  \/ __ |  | __ \ /  _ \   __\
+# |    |__(  <_> )  |  / /_/ |  | \_\ (  <_> )  |
+# |_______ \____/|____/\____ |  |___  /\____/|__|
+#         \/                \/      \/
+class LoudbotDropdown(discord.ui.Select):
+  def __init__(self, cog):
+    self.cog = cog
+    options = [
+      discord.SelectOption(label="Enable Loudbot", description="Allow Loudbot auto-responses and log messages."),
+      discord.SelectOption(label="Disable Loudbot", description="Disable Loudbot and clear existing logged messages.")
+    ]
+
+    super().__init__(
+      placeholder="Choose your preference",
+      min_values=1,
+      max_values=1,
+      options=options,
+      row=1
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    selection = self.values[0]
+
+    if selection == "Enable Loudbot":
+      db_toggle_loudbot(interaction.user.id, True)
+      await interaction.response.send_message(
+        embed=discord.Embed(
+          title=f"You have successfully allowed AGIMUS to auto-respond to your all-caps messages and log them for parroting in the future.",
+          color=discord.Color.green()
+        ).set_footer(text="You can always come back to this interface and reconfigure in the future!"),
+        ephemeral=True
+      )
+    elif selection == "Disable Loudbot":
+      deleted_message_count = db_toggle_loudbot(interaction.user.id, False)
+      await interaction.response.send_message(
+        embed=discord.Embed(
+          title=f"You have successfully disabled AGIMUS auto-responding to your all-caps messages and logging messages for the purpose of parroting them in the future. Cleared {deleted_message_count} messages.",
+          color=discord.Color.blurple()
+        ).set_footer(text="You can always come back to this interface and re-enable in the future!"),
+        ephemeral=True
+      )
+
+class LoudbotView(discord.ui.View):
+  def __init__(self, cog):
+    self.cog = cog
+    super().__init__()
+
+    self.add_item(LoudbotDropdown(self.cog))
+
 # _________
 # \_   ___ \  ____   ____
 # /    \  \/ /  _ \ / ___\
@@ -171,6 +222,7 @@ class Settings(commands.Cog):
     description="Configure your AGIMUS settings!"
   )
   async def settings(self, ctx):
+    await ctx.defer(ephemeral=True)
     home_embed, home_thumbnail = await self._get_home_embed_and_thumbnail()
 
     current_xp_setting = db_get_current_xp_enabled_value(ctx.user.id)
@@ -178,6 +230,7 @@ class Settings(commands.Cog):
 
     notifications_embed, notifications_thumbnail = await self._get_notifications_embed_and_thumbnail()
     wordcloud_embed, wordcloud_thumbnail = await self._get_wordcloud_embed_and_thumbnail()
+    loudbot_embed, loudbot_thumbnail = await self._get_loudbot_embed_and_thumbnail()
 
     page_groups = [
       pages.PageGroup(
@@ -230,6 +283,19 @@ class Settings(commands.Cog):
         use_default_buttons=False,
         custom_view=WordcloudView(self)
       ),
+      pages.PageGroup(
+        pages=[
+          pages.Page(
+            embeds=[loudbot_embed],
+            files=[loudbot_thumbnail]
+          )
+        ],
+        label="Loudbot",
+        description="Enable or Disable Loudbot Auto-Responses and Logging",
+        custom_buttons=[],
+        use_default_buttons=False,
+        custom_view=LoudbotView(self)
+      )
     ]
     paginator = pages.Paginator(
       pages=page_groups,
@@ -261,7 +327,14 @@ class Settings(commands.Cog):
     thumbnail = discord.File(fp="./images/templates/settings/xp_system.png", filename="xp_system.png")
     embed = discord.Embed(
       title="XP System Preferences",
-      description=f"The XP System on the USS Hood awards users XP for participating in the server in various ways. Some of these include posting messages, reacting to messages, and receiving reactions to your own messages.\n\nOnce you've received a set amount of XP, you will Level Up and receive a new Badge with a notification in {badge_channel.mention}. You can start typing `/badges` to see the various badge-specific commands available for taking a look at your collection!\n\nIf you don't wish to participate, you can configure that here. You can always re-enable if desired in the future!",
+      description=f"The XP System on the USS Hood awards users XP for participating in the server in "
+                  f"various ways. Some of these include posting messages, reacting to messages, and "
+                  f"receiving reactions to your own messages.\n\nOnce you've received a set amount of "
+                  f"XP, you will Level Up and receive a new Badge with a notification in "
+                  f"{badge_channel.mention}. You can start typing `/badges` to see the various "
+                  f"badge-specific commands available for taking a look at your collection!\n\nIf you "
+                  f"don't wish to participate, you can configure that here. You can always re-enable "
+                  f"if desired in the future!",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
@@ -274,7 +347,10 @@ class Settings(commands.Cog):
     thumbnail = discord.File(fp="./images/templates/settings/notifications.png", filename="notifications.png")
     embed = discord.Embed(
       title="AGIMUS Notifications",
-      description="AGIMUS may occasionally want to send you a Direct Message with useful information.\n\nSome examples include sending Drops/Clips lists when requested and notably, DMs are used in the Badge Trading System to give alerts when a trade has been initiated or one of your existing trades has been canceled.",
+      description=f"AGIMUS may occasionally want to send you a Direct Message with useful information."
+                  f"\n\nSome examples include sending Drops/Clips lists when requested and notably, DMs "
+                  f"are used in the Badge Trading System to give alerts when a trade has been initiated "
+                  f"or one of your existing trades has been canceled.",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
@@ -307,7 +383,12 @@ class Settings(commands.Cog):
 
     embed = discord.Embed(
       title="Wordcloud Logging",
-      description=f"AGIMUS has an opt-in Wordcloud feature which you can enable to track the most common words that you use. When the command is executed with `/wordcloud` a new image is generated which weighs each word based on frequency.\n\nIf wish to opt out in the future, your existing message data will be deleted.\n\nNote that the following channels are not included in logging for the Wordcloud: {wordcloud_blocked_channels_string}\n**Example Wordcloud:**",
+      description=f"AGIMUS has an opt-in Wordcloud feature which you can enable to track the most common "
+                  f"words that you use. When the command is executed with `/wordcloud` a new image is "
+                  f"generated which weighs each word based on frequency.\n\nIf wish to opt out in the "
+                  f"future, your existing message data will be deleted.\n\nNote that the following "
+                  f"channels are not included in logging for the Wordcloud: "
+                  f"{wordcloud_blocked_channels_string}\n**Example Wordcloud:**",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
@@ -316,6 +397,43 @@ class Settings(commands.Cog):
 
     return embed, thumbnail
 
+  async def _get_loudbot_embed_and_thumbnail(self):
+    loudbot_enabled_channel_ids = get_channel_ids_list([
+      "after-dinner-conversation",
+      "badgeys-badges",
+      "bahrats-bazaar",
+      "dabo-table",
+      "dr-crushers-hotbox",
+      "megalomaniacal-computer-storage",
+      "morns-nonstop-quiz",
+      "poker-night",
+      "seskas-catfishing-channel",
+      "ten-forward",
+      "temba-his-arms-wide"
+    ])
+    loudbot_enabled_channels = [
+      await self.bot.fetch_channel(channel_id) for channel_id in loudbot_enabled_channel_ids
+    ]
+    loudbot_enabled_channels_string = "\n\n"
+    for channel in loudbot_enabled_channels:
+      loudbot_enabled_channels_string += f"{channel.mention}\n"
+
+    thumbnail = discord.File(fp="./images/templates/settings/loudbot.png", filename="loudbot.png")
+
+    embed = discord.Embed(
+      title="Loudbot Auto-Responses and Logging",
+      description=f"AGIMUS has an opt-in Loudbot feature which you can enable to allow to have it auto-respond "
+                  f"to messages you post that are in all-caps. When your message is registered it also logs the "
+                  f"message to be used as a response to other users who have the feature enabled.\n\nIf wish to "
+                  f"opt out in the future, your existing message data will be deleted.\n\nNote that the following "
+                  f"channels are where Loudbot is allowed to auto-respond: {loudbot_enabled_channels_string}",
+      color=discord.Color(0xFF0000)
+    )
+    embed.set_footer(text="Please select your choice from the preference dropdown below.")
+    embed.set_image(url="https://i.imgur.com/wq34YDD.png")
+    embed.set_thumbnail(url=f"attachment://loudbot.png")
+
+    return embed, thumbnail
 
 def db_get_current_xp_enabled_value(user_id):
   db = getDB()
@@ -363,7 +481,26 @@ def db_toggle_wordcloud(user_id, toggle):
     vals = (user_id,)
     query.execute(sql, vals)
     deleted_row_count = query.rowcount
-    logger.info(deleted_row_count)
+
+  db.commit()
+  query.close()
+  db.close()
+
+  return deleted_row_count
+
+def db_toggle_loudbot(user_id, toggle):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = "UPDATE users SET loudbot_enabled = %s WHERE discord_id = %s"
+  vals = (toggle, user_id)
+  query.execute(sql, vals)
+
+  deleted_row_count = None
+  if not toggle:
+    sql = "DELETE FROM shouts WHERE user_discord_id = %s"
+    vals = (user_id,)
+    query.execute(sql, vals)
+    deleted_row_count = query.rowcount
 
   db.commit()
   query.close()
