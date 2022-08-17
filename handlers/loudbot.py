@@ -6,7 +6,7 @@ from utils.string_utils import *
 # handle_loudbot(message) - responds to uppercase messages
 # message[required]: discord.Message
 async def handle_loudbot(message:discord.Message):
-  
+
   if message.author.bot:
     return
 
@@ -16,13 +16,25 @@ async def handle_loudbot(message:discord.Message):
   if not config["handlers"]["loudbot"]["enabled"]:
     return
 
-  allowed_channels = get_channel_ids_list(config["handlers"]["loudbot"]["allowed_channels"])
-  if message.channel.id not in allowed_channels:
+  if not await get_enabled_setting(message):
+    return
+
+  blocked_channels = get_channel_ids_list(config["handlers"]["loudbot"]["blocked_channels"])
+  if message.channel.id in blocked_channels:
     return
 
   if is_loud(message.content):
     await put_shout(message)
     await message.reply(await get_shout())
+
+async def get_enabled_setting(message):
+  sql = "SELECT loudbot_enabled FROM users WHERE discord_id = %s;"
+  vals = (message.author.id,)
+  db = getDB()
+  query = db.cursor()
+  query.execute(sql, vals)
+  result = query.fetchone()
+  return result[0]
 
 async def get_shout():
   sql = "SELECT shout FROM shouts ORDER BY RAND() LIMIT 1;"
@@ -48,4 +60,4 @@ async def put_shout(message):
   query.close()
   db.close()
   return last_id
-  
+
