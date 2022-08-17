@@ -13,19 +13,14 @@
     },
     "loudbot": {
       "enabled": true,
-      "blocked_channels": [
-        "neelixs-morale-office",
-        "plasma-vent",
-        "counselor-trois-office",
-        "heuristic-associative-pathways",
-        "mo-pips-mo-problemz",
+      "allowed_channels": [
+        "after-dinner-conversation",
+        "badgeys-badges",
+        "bahrats-bazaar",
         "megalomaniacal-computer-storage",
-        "bot-logs",
-        "bot-setup",
-        "dabo-table",
-        "poker-night",
-        "morns-nonstop-quiz",
-        "badgeys-badges"
+        "seskas-catfishing-channel",
+        "ten-forward",
+        "temba-his-arms-wide"
       ]
     },
     "save_message": {
