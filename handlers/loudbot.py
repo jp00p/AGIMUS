@@ -19,8 +19,8 @@ async def handle_loudbot(message:discord.Message):
   if not await get_enabled_setting(message):
     return
 
-  blocked_channels = get_channel_ids_list(config["handlers"]["loudbot"]["blocked_channels"])
-  if message.channel.id in blocked_channels:
+  allowed_channels = get_channel_ids_list(config["handlers"]["loudbot"]["allowed_channels"])
+  if message.channel.id not in allowed_channels:
     return
 
   if is_loud(message.content):
