@@ -232,5 +232,5 @@ CREATE TABLE IF NOT EXISTS badge_offerlists (
   `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `badge_filename` (`badge_filename`),
-  CONSTRAINT `badge_wishlists_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  CONSTRAINT `badge_offerlists_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
