@@ -1277,7 +1277,6 @@ def db_get_trade_requested_badges(active_trade):
   vals = (active_trade_id,)
   query.execute(sql, vals)
   trades = query.fetchall()
-  db.commit()
   query.close()
   db.close()
   return trades

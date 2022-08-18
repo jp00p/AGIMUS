@@ -95,18 +95,38 @@ async def remove_autocomplete(ctx:discord.AutocompleteContext):
     )
   ]
 )
-async def showcase(ctx:discord.ApplicationContext, public:str):
+async def display(ctx:discord.ApplicationContext, public:str):
   public = (public == "yes")
   await ctx.defer(ephemeral=not public)
+  user_discord_id = ctx.author.id
 
-  await ctx.followup.send("Not Implemented Yet")
+  wishlist_badges = db_get_user_wishlist_badges(user_discord_id)
+  offerlist_badges = db_get_user_offerlist_badges(user_discord_id)
 
-# ________  .__               .__
-# \______ \ |__| ____________ |  | _____  ___.__.
-#  |    |  \|  |/  ___/\____ \|  | \__  \<   |  |
-#  |    `   \  |\___ \ |  |_> >  |__/ __ \\___  |
-# /_______  /__/____  >|   __/|____(____  / ____|
-#         \/        \/ |__|             \/\/
+  embed = discord.Embed(
+    title="Your Lists"
+  )
+
+  if len(wishlist_badges):
+    embed.add_field(
+      name="Wishlist Badges",
+      value="\n".join([b['badge_name'] for b in wishlist_badges])
+    )
+  if len(offerlist_badges):
+    embed.add_field(
+      name="Offerlist Badges",
+      value="\n".join([b['badge_name'] for b in offerlist_badges])
+    )
+
+  await ctx.followup.send(embed=embed)
+
+
+#    _____       .___  .___
+#   /  _  \    __| _/__| _/
+#  /  /_\  \  / __ |/ __ |
+# /    |    \/ /_/ / /_/ |
+# \____|__  /\____ \____ |
+#         \/      \/    \/
 @wishlist_group.command(
   name="add",
   description="Add up to 6 badges to your Wishlist or Offerlist."
@@ -355,3 +375,94 @@ async def remove(
                 f"{selected_badges_string}",
     color=discord.Color.green()
   ))
+
+
+@wishlist_group.command(
+  name="matches",
+  description="Find matches from other users to your Wishlist and Offerlist."
+)
+async def matches(ctx:discord.ApplicationContext):
+  await ctx.defer(ephemeral=True)
+  user_discord_id = ctx.author.id
+
+  # exact_matches = db_get_exact_list_matches(user_discord_id)
+
+  wishlist_matches = db_get_wishlist_matches(user_discord_id)
+  logger.info(wishlist_matches)
+  wishlist_aggregate = {}
+  if wishlist_matches:
+    wishlist_aggregate = {}
+    for match in wishlist_matches:
+      user_id = match['user_discord_id']
+      user_record = match.get(user_id)
+      if not user_record:
+        wishlist_aggregate[user_id] = [match['badge_name']]
+      else:
+        wishlist_aggregate[user_id].append(match['badge_name'])
+
+    # description = "The following users have items in your Wishlist:\n\n"
+
+    # for key in wishlist_aggregate:
+    #   user = await bot.current_guild.fetch_member(key)
+    #   badge_names = wishlist_aggregate[key]
+    #   description += f"**{user.display_name}**\n"
+    #   description += "\n".join(badge_names)
+
+    # embed = discord.Embed(
+    #   title="Wishlist Matches",
+    #   description=description
+    # )
+    # await ctx.followup.send(embed=embed)
+
+  offerlist_matches = db_get_offerlist_matches(user_discord_id)
+  logger.info(offerlist_matches)
+  offerlist_aggregate = {}
+  if offerlist_matches:
+    for match in offerlist_matches:
+      user_id = match['user_discord_id']
+      user_record = match.get(user_id)
+      if not user_record:
+        offerlist_aggregate[user_id] = [match['badge_name']]
+      else:
+        offerlist_aggregate[user_id].append(match['badge_name'])
+
+    # description = "The following users want items in your Offerlist:\n\n"
+
+    # # for key in offerlist_aggregate:
+    # #   user = await bot.current_guild.fetch_member(key)
+    # #   badge_names = offerlist_aggregate[key]
+    # #   description += f"**{user.display_name}**\n"
+    # #   description += "\n".join(badge_names)
+
+    # # embed = discord.Embed(
+    # #   title="Offerlist Matches",
+    # #   description=description
+    # # )
+    # # await ctx.followup.send(embed=embed)
+
+  exact_matches_aggregate = {}
+  for key in wishlist_aggregate:
+    if key in offerlist_aggregate:
+      exact_matches_aggregate[key] = {
+        'has': wishlist_aggregate[key],
+        'wants': offerlist_aggregate[key]
+      }
+
+  if len(exact_matches_aggregate.keys()):
+    embed = discord.Embed(
+      title="Matches",
+    )
+    # value = ""
+    for user_id in exact_matches_aggregate.keys():
+      user = await bot.current_guild.fetch_member(user_id)
+      value = f"**Has:**\n"
+      value += "\n".join(exact_matches_aggregate[user_id]['has'])
+      value += f"\n**Wants:**\n"
+      value += "\n".join(exact_matches_aggregate[user_id]['wants'])
+      embed.add_field(
+        name=user.display_name,
+        value=value
+      )
+    await ctx.followup.send(embed=embed, ephemeral=True)
+
+  await ctx.followup.send("Gathering matches...", ephemeral=True)

@@ -98,38 +98,38 @@ CREATE TABLE IF NOT EXISTS badges (
   PRIMARY KEY (id)
 );
 CREATE TABLE IF NOT EXISTS `badge_info` (
-    `badge_filename` varchar(128) NOT NULL,
-    `badge_name` varchar(128) NOT NULL,
-    `badge_url` varchar(256) NOT NULL,
-    `quadrant` varchar(128) DEFAULT NULL,
-    `time_period` varchar(128) DEFAULT NULL,
-    `franchise` varchar(128) DEFAULT NULL,
-    `reference` varchar(128) DEFAULT NULL,
-    PRIMARY KEY (`badge_filename`)
+  `badge_filename` varchar(128) NOT NULL,
+  `badge_name` varchar(128) NOT NULL,
+  `badge_url` varchar(256) NOT NULL,
+  `quadrant` varchar(128) DEFAULT NULL,
+  `time_period` varchar(128) DEFAULT NULL,
+  `franchise` varchar(128) DEFAULT NULL,
+  `reference` varchar(128) DEFAULT NULL,
+  PRIMARY KEY (`badge_filename`)
 );
 CREATE TABLE IF NOT EXISTS badge_affiliation (
-    `id` int NOT NULL AUTO_INCREMENT,
-    `badge_filename` varchar(128) NOT NULL,
-    `affiliation_name` varchar(128) NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `badge_filename` (`badge_filename`),
-    CONSTRAINT `badge_affiliation_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  `id` int NOT NULL AUTO_INCREMENT,
+  `badge_filename` varchar(128) NOT NULL,
+  `affiliation_name` varchar(128) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `badge_filename` (`badge_filename`),
+  CONSTRAINT `badge_affiliation_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
 CREATE TABLE IF NOT EXISTS badge_type (
-    `id` int NOT NULL AUTO_INCREMENT,
-    `badge_filename` varchar(128) NOT NULL,
-    `type_name` varchar(128) NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `badge_filename` (`badge_filename`),
-    CONSTRAINT `badge_type_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  `id` int NOT NULL AUTO_INCREMENT,
+  `badge_filename` varchar(128) NOT NULL,
+  `type_name` varchar(128) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `badge_filename` (`badge_filename`),
+  CONSTRAINT `badge_type_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
 CREATE TABLE IF NOT EXISTS badge_universe (
-    `id` int NOT NULL AUTO_INCREMENT,
-    `badge_filename` varchar(128) NOT NULL,
-    `universe_name` varchar(128) NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `badge_filename` (`badge_filename`),
-    CONSTRAINT `badge_universe_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  `id` int NOT NULL AUTO_INCREMENT,
+  `badge_filename` varchar(128) NOT NULL,
+  `universe_name` varchar(128) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `badge_filename` (`badge_filename`),
+  CONSTRAINT `badge_universe_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
 CREATE TABLE IF NOT EXISTS trade_offered (
   id int(11) NOT NULL AUTO_INCREMENT,
@@ -154,13 +154,13 @@ CREATE TABLE IF NOT EXISTS trade_requested (
     REFERENCES trades(id)
 );
 CREATE TABLE IF NOT EXISTS `badge_scraps` (
-    `id` int NOT NULL AUTO_INCREMENT,
-    `badge_filename` varchar(128) NOT NULL,
-    `user_discord_id` varchar(128) NOT NULL,
-    `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
-    PRIMARY KEY (`id`),
-    KEY `badge_filename` (`badge_filename`),
-    CONSTRAINT `badge_scraps_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  `id` int NOT NULL AUTO_INCREMENT,
+  `badge_filename` varchar(128) NOT NULL,
+  `user_discord_id` varchar(128) NOT NULL,
+  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `badge_filename` (`badge_filename`),
+  CONSTRAINT `badge_scraps_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
 CREATE TABLE IF NOT EXISTS `badge_scrapped` (
     `id` int NOT NULL AUTO_INCREMENT,
