@@ -1745,7 +1745,15 @@
       "episode": "12",
       "imdb": "tt0708932",
       "memoryalpha": "Mortal_Coil_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 431,
+          "airdate": "2022.08.15",
+          "episode": "Couldn\u2019t See the Forest for the Ropes",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-431-couldnt-see-the-forest-for-the-ropes-voy-s4e12/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/rS9eWGHm78rnHlisr7tiqfc2p7D.jpg"
