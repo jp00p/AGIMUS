@@ -3,6 +3,8 @@ from common import *
 from utils.string_utils import *
 
 
+PERCENTAGE_THRESHOLD = 10
+
 # handle_loudbot(message) - responds to uppercase messages
 # message[required]: discord.Message
 async def handle_loudbot(message:discord.Message):
@@ -25,7 +27,8 @@ async def handle_loudbot(message:discord.Message):
 
   if is_loud(message.content):
     await put_shout(message)
-    await message.reply(await get_shout())
+    if random.randint(0,100) < PERCENTAGE_THRESHOLD:
+      await message.reply(await get_shout())
 
 async def get_enabled_setting(message):
   sql = "SELECT loudbot_enabled FROM users WHERE discord_id = %s;"
