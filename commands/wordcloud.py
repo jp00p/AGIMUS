@@ -58,11 +58,10 @@ async def wordcloud(ctx:discord.ApplicationContext, public:str):
     await increment_user_xp(ctx.author, 1, "used_wordcloud", ctx.channel)
 
   # performing these modifications to the user's data again (in case they have old, uncleaned up data)
-  full_wordlist = set(user_details['full_message_text'].lower().split(' '))
+  full_wordlist = user_details['full_message_text'].lower().split(' ')
   full_wordlist = " ".join(full_wordlist)
   remove_emoji = re.compile('<.*?>')
   special_chars = re.escape(string.punctuation)
-
   full_wordlist = re.sub(remove_emoji, '', full_wordlist) # strip discord emoji from message
   full_wordlist = re.sub(r'https?:\/\/\S*', '', full_wordlist) # strip all URLs from the content
   full_wordlist = re.sub(r'['+special_chars+']', '', full_wordlist) # strip any remaining special characters
