@@ -93,10 +93,10 @@ def db_get_wishlist_matches(user_discord_id):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_o.user_discord_id FROM badge_info AS b_i
-      JOIN badge_offerlists AS b_o
-        ON b_o.badge_filename = b_i.badge_filename
-      WHERE b_o.badge_filename IN (
+    SELECT b_i.badge_name, b.user_discord_id FROM badge_info AS b_i
+      JOIN badges AS b
+        ON b_i.badge_filename = b.badge_filename
+      WHERE b.badge_filename IN (
         SELECT badge_filename FROM badge_wishlists WHERE user_discord_id = %s
       )
   '''
@@ -108,16 +108,16 @@ def db_get_wishlist_matches(user_discord_id):
   db.close()
   return results
 
-def db_get_offerlist_matches(user_discord_id):
+def db_get_wishlist_inventory_matches(user_discord_id):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
     SELECT b_i.badge_name, b_w.user_discord_id FROM badge_info AS b_i
       JOIN badge_wishlists AS b_w
         ON b_w.badge_filename = b_i.badge_filename
-      WHERE b_w.badge_filename IN (
-        SELECT badge_filename FROM badge_offerlists WHERE user_discord_id = %s
-      )
+      JOIN badges AS b
+        ON b.badge_filename = b_i.badge_filename
+      WHERE b.user_discord_id = %s
   '''
   vals = (user_discord_id, )
   query.execute(sql, vals)

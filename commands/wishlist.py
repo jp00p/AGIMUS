@@ -379,14 +379,13 @@ async def remove(
 
 @wishlist_group.command(
   name="matches",
-  description="Find matches from other users to your Wishlist and Offerlist."
+  description="Find matches from other users who have what you want, and want what you have!"
 )
 async def matches(ctx:discord.ApplicationContext):
   await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
 
-  # exact_matches = db_get_exact_list_matches(user_discord_id)
-
+  # Get all the users and the badgenames that have the badges the user wants
   wishlist_matches = db_get_wishlist_matches(user_discord_id)
   logger.info(wishlist_matches)
   wishlist_aggregate = {}
@@ -400,69 +399,52 @@ async def matches(ctx:discord.ApplicationContext):
       else:
         wishlist_aggregate[user_id].append(match['badge_name'])
 
-    # description = "The following users have items in your Wishlist:\n\n"
-
-    # for key in wishlist_aggregate:
-    #   user = await bot.current_guild.fetch_member(key)
-    #   badge_names = wishlist_aggregate[key]
-    #   description += f"**{user.display_name}**\n"
-    #   description += "\n".join(badge_names)
-
-    # embed = discord.Embed(
-    #   title="Wishlist Matches",
-    #   description=description
-    # )
-    # await ctx.followup.send(embed=embed)
-
-  offerlist_matches = db_get_offerlist_matches(user_discord_id)
-  logger.info(offerlist_matches)
-  offerlist_aggregate = {}
-  if offerlist_matches:
-    for match in offerlist_matches:
+  # Get all the users and the badgenames that want badges that the user has
+  inventory_matches = db_get_wishlist_inventory_matches(user_discord_id)
+  logger.info(inventory_matches)
+  inventory_matches_aggregate = {}
+  if inventory_matches:
+    for match in inventory_matches:
       user_id = match['user_discord_id']
       user_record = match.get(user_id)
       if not user_record:
-        offerlist_aggregate[user_id] = [match['badge_name']]
+        inventory_matches_aggregate[user_id] = [match['badge_name']]
       else:
-        offerlist_aggregate[user_id].append(match['badge_name'])
+        inventory_matches_aggregate[user_id].append(match['badge_name'])
 
-    # description = "The following users want items in your Offerlist:\n\n"
-
-    # # for key in offerlist_aggregate:
-    # #   user = await bot.current_guild.fetch_member(key)
-    # #   badge_names = offerlist_aggregate[key]
-    # #   description += f"**{user.display_name}**\n"
-    # #   description += "\n".join(badge_names)
-
-    # # embed = discord.Embed(
-    # #   title="Offerlist Matches",
-    # #   description=description
-    # # )
-    # # await ctx.followup.send(embed=embed)
-
+  # Now create an aggregate of the users that intersect
   exact_matches_aggregate = {}
   for key in wishlist_aggregate:
-    if key in offerlist_aggregate:
+    if key in inventory_matches_aggregate:
       exact_matches_aggregate[key] = {
         'has': wishlist_aggregate[key],
-        'wants': offerlist_aggregate[key]
+        'wants': inventory_matches_aggregate[key]
       }
 
   if len(exact_matches_aggregate.keys()):
-    embed = discord.Embed(
-      title="Matches",
-    )
-    # value = ""
     for user_id in exact_matches_aggregate.keys():
       user = await bot.current_guild.fetch_member(user_id)
-      value = f"**Has:**\n"
-      value += "\n".join(exact_matches_aggregate[user_id]['has'])
-      value += f"\n**Wants:**\n"
-      value += "\n".join(exact_matches_aggregate[user_id]['wants'])
-      embed.add_field(
-        name=user.display_name,
-        value=value
+      embed = discord.Embed(
+        title="Wishlist Match!",
+        description=f"{user.mention} has a wishlist match with you.",
+        color=discord.Color.random()
       )
-    await ctx.followup.send(embed=embed, ephemeral=True)
-
-  await ctx.followup.send("Gathering matches...", ephemeral=True)
+      embed.add_field(
+        name="Has From Your Wishlist:",
+        value="\n".join(exact_matches_aggregate[user_id]['has']),
+        inline=False
+      )
+      embed.add_field(
+        name="Wants From Your Inventory:",
+        value="\n".join(exact_matches_aggregate[user_id]['wants']),
+        inline=False
+      )
+      embed.set_footer(text="Make them an offer with '/trade start'!")
+      await ctx.followup.send(embed=embed, ephemeral=True)
+  else:
+    await ctx.followup.send(embed=discord.Embed(
+        title="No Wishlist Matches Found",
+        description="Please check back later!"
+      ),
+      ephemeral=True
+    )
