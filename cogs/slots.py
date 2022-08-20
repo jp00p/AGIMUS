@@ -254,13 +254,9 @@ class Slots(commands.Cog):
       results.append(random.choice(files))
 
     if generate_image:
-      start_time = time.time()
-      #logger.info("Generating slot images...")
       image1 = Image.open(slot_dir + results[0]).resize((150,150))
       image2 = Image.open(slot_dir + results[1]).resize((150,150))
       image3 = Image.open(slot_dir + results[2]).resize((150,150))
-      end_time = time.time()
-      #logger.info(f"Finished generating slot images {end_time-start_time}")
       logo = slot_series + "_logo.png"
       color = (0, 0, 0, 100)  # black bg
       self.generate_slot_image(image1, image2, image3, symbol_roll, color, logo).save(f"{self.slot_results_dir}{filename}.png")
@@ -324,6 +320,7 @@ class Slots(commands.Cog):
 
     for i,s in enumerate(symbols):
       simg = Image.open("./images/slot_symbols/"+s+".png")
+      simg = ImageOps.contain(simg, (50,50))
       dst.paste(simg, (symbols_positions[i], 150-simg.height), simg)
 
     return dst

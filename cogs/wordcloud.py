@@ -135,6 +135,6 @@ class Wordcloud(commands.Cog):
       }
       for row in results:
         # strip out duplicate words (in old messages)
-        response["full_message_text"] += " ".join(set(row["text"].split(" ")))
+        response["full_message_text"] += " " + " ".join(set(row["text"].split(" ")))
     return response
     
