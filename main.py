@@ -23,7 +23,6 @@ from commands.speak import speak, speak_embed
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
-from commands.wordcloud import wordcloud
 
 # Slash Command Groups
 import commands.drop
@@ -49,6 +48,7 @@ from cogs.slots import Slots
 from cogs.trade import Trade
 from cogs.react_roles import ReactRoles
 from cogs.backups import Backups
+from cogs.wordcloud import Wordcloud
 bot.add_cog(ChaosZork(bot))
 bot.add_cog(Poker(bot))
 bot.add_cog(Quiz(bot))
@@ -57,6 +57,7 @@ bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Trade(bot))
 bot.add_cog(Backups(bot))
+bot.add_cog(Wordcloud(bot))
 if config["roles"]["reaction_roles_enabled"]:
   bot.add_cog(ReactRoles(bot))
 

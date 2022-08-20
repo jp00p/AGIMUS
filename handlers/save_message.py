@@ -15,7 +15,7 @@ async def save_message_to_db(message:discord.Message):
     # convert message to plaintext
     message_content = message.content.encode("ascii", errors="ignore").decode().strip()
 
-    message_modified = message_content.split(" ")
+    message_modified = set(message_content.split(" "))
 
     # sort words (obfuscation in db)
     message_modified = sorted(list(message_modified))
@@ -34,6 +34,8 @@ async def save_message_to_db(message:discord.Message):
     
     if message_content.strip() == "":
       return None
+
+    logger.info(f"Saving message: {message_content}")
 
     db = getDB()
     query = db.cursor()
