@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS badges (
   user_discord_id varchar(64) NOT NULL,
   badge_filename varchar(128) NOT NULL,
   time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  locked BOOLEAN NOT NULL DEFAULT 0,
   PRIMARY KEY (id)
 );
 CREATE TABLE IF NOT EXISTS `badge_info` (

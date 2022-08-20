@@ -693,7 +693,7 @@ def db_get_user_badges(user_discord_id:int):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
+    SELECT b_i.badge_name, b_i.badge_filename, b.locked FROM badges b
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
         WHERE b.user_discord_id = %s

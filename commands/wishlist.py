@@ -34,6 +34,29 @@ async def remove_autocomplete(ctx:discord.AutocompleteContext):
 
   return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
 
+async def lock_autocomplete(ctx:discord.AutocompleteContext):
+  filtered_badges = [b['badge_name'] for b in SPECIAL_BADGES]
+
+  current_user_badges = [b for b in db_get_user_badges(ctx.interaction.user.id) if not b['locked']]
+  filtered_badge_names = [b for b in current_user_badges if b not in filtered_badges]
+
+  list_badges = [b for b in filtered_badge_names]
+  if not list_badges:
+    return ['All Badges are currently Locked!']
+  else:
+    return [b for b in list_badges if ctx.value.lower() in b.lower()]
+
+async def unlock_autocomplete(ctx:discord.AutocompleteContext):
+  filtered_badges = [b['badge_name'] for b in SPECIAL_BADGES]
+
+  current_user_badges = [b for b in db_get_user_badges(ctx.interaction.user.id) if b['locked']]
+  filtered_badge_names = [b for b in current_user_badges if b not in filtered_badges]
+
+  list_badges = [b for b in filtered_badge_names]
+  if not list_badges:
+    return ['All Badges are currently Unlocked!']
+  else:
+    return [b for b in list_badges if ctx.value.lower() in b.lower()]
 
 # ________  .__               .__
 # \______ \ |__| ____________ |  | _____  ___.__.
@@ -237,3 +260,115 @@ async def matches(ctx:discord.ApplicationContext):
       ),
       ephemeral=True
     )
+
+# .____                  __
+# |    |    ____   ____ |  | __
+# |    |   /  _ \_/ ___\|  |/ /
+# |    |__(  <_> )  \___|    <
+# |_______ \____/ \___  >__|_ \
+#         \/          \/     \/
+@wishlist_group.command(
+  name="lock",
+  description="Lock a badge from being listed in Wishlist matches and trading."
+)
+@option(
+  name="badge",
+  description="Badge to lock",
+  required=False,
+  autocomplete=lock_autocomplete
+)
+async def lock(ctx:discord.ApplicationContext, badge:str):
+  await ctx.defer(ephemeral=True)
+  user_discord_id = ctx.author.id
+
+  # Check to make sure badge is present in inventory
+  existing_badges = [b['badge_name'] for b in db_get_user_badges(user_discord_id)]
+  if badge not in existing_badges:
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Badge Not Present in Inventory!",
+        description=f"Unable to complete your request, {badge} is not present in your inventory.",
+        color=discord.Color.red()
+      )
+    )
+    return
+
+  badge_info = db_get_badge_locked_status_by_name(badge)
+  if badge_info['locked']:
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Badge Already Locked!",
+        description=f"Unable to complete your request, {badge} has already been locked in your inventory.",
+        color=discord.Color.red()
+      )
+    )
+    return
+
+  # Otherwise, good to go and add the badge
+  db_lock_badge_by_filename(user_discord_id, badge_info['badge_filename'])
+
+  discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
+  embed = discord.Embed(
+    title="Badge Locked Successfully",
+    description=f"You've successfully locked {badge} from being traded and listed in Wishlist matches.",
+    color=discord.Color.green()
+  )
+  embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
+  await ctx.followup.send(embed=embed, file=discord_image)
+
+
+
+#  ____ ___      .__                 __
+# |    |   \____ |  |   ____   ____ |  | __
+# |    |   /    \|  |  /  _ \_/ ___\|  |/ /
+# |    |  /   |  \  |_(  <_> )  \___|    <
+# |______/|___|  /____/\____/ \___  >__|_ \
+#              \/                 \/     \/
+@wishlist_group.command(
+  name="unlock",
+  description="Unlock a badge from being listed in Wishlist matches and trading."
+)
+@option(
+  name="badge",
+  description="Badge to unlock",
+  required=False,
+  autocomplete=unlock_autocomplete
+)
+async def unlock(ctx:discord.ApplicationContext, badge:str):
+  await ctx.defer(ephemeral=True)
+  user_discord_id = ctx.author.id
+
+  # Check to make sure badge is present in inventory
+  existing_badges = [b['badge_name'] for b in db_get_user_badges(user_discord_id)]
+  if badge not in existing_badges:
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Badge Not Present in Inventory!",
+        description=f"Unable to complete your request, {badge} is not present in your inventory.",
+        color=discord.Color.red()
+      )
+    )
+    return
+
+  badge_info = db_get_badge_locked_status_by_name(badge)
+  if not badge_info['locked']:
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Badge Unlocked!",
+        description=f"Unable to complete your request, {badge} has already been unlocked in your inventory.",
+        color=discord.Color.red()
+      )
+    )
+    return
+
+  # Otherwise, good to go and add the badge
+  db_unlock_badge_by_filename(user_discord_id, badge_info['badge_filename'])
+
+  discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
+  embed = discord.Embed(
+    title="Badge Unlocked Successfully",
+    description=f"You've successfully unlocked {badge} and is now available for being traded and listed in Wishlist matches.",
+    color=discord.Color.green()
+  )
+  embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
+  await ctx.followup.send(embed=embed, file=discord_image)

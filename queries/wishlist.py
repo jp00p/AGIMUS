@@ -44,6 +44,45 @@ def db_remove_badge_name_from_users_wishlist(user_discord_id, badge_name):
   db.close()
 
 #
+# Locked
+#
+def db_get_badge_locked_status_by_name(user_discord_id, badge_name):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT badge_info.*, b.locked FROM badges AS b
+      JOIN badge_info AS b_i
+        ON b_i.badge_filename = b.badge_filename
+      WHERE b_i.badge_name = %s
+  '''
+  vals = (user_discord_id, badge_name)
+  query.execute(sql, vals)
+  results = query.fetchall()
+  query.close()
+  db.close()
+  return results
+
+def db_lock_badge_by_filename(user_discord_id, badge_filename):
+  db = getDB()
+  query = db.cursor()
+  sql = "UPDATE badges SET locked = 1 WHERE user_discord_id = %s AND badge_filename = %s"
+  vals = (user_discord_id, badge_filename)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+
+def db_unlock_badge_by_filename(user_discord_id, badge_filename):
+  db = getDB()
+  query = db.cursor()
+  sql = "UPDATE badges SET locked = 0 WHERE user_discord_id = %s AND badge_filename = %s"
+  vals = (user_discord_id, badge_filename)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+
+#
 # List Matches
 #
 def db_get_wishlist_matches(user_discord_id):
@@ -60,7 +99,6 @@ def db_get_wishlist_matches(user_discord_id):
   vals = (user_discord_id, )
   query.execute(sql, vals)
   results = query.fetchall()
-  db.commit()
   query.close()
   db.close()
   return results
@@ -79,7 +117,6 @@ def db_get_wishlist_inventory_matches(user_discord_id):
   vals = (user_discord_id, )
   query.execute(sql, vals)
   results = query.fetchall()
-  db.commit()
   query.close()
   db.close()
   return results
