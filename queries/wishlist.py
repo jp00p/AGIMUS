@@ -50,14 +50,14 @@ def db_get_badge_locked_status_by_name(user_discord_id, badge_name):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT badge_info.*, b.locked FROM badges AS b
-      JOIN badge_info AS b_i
+    SELECT b_i.*, b.locked FROM badge_info AS b_i
+      JOIN badges AS b
         ON b_i.badge_filename = b.badge_filename
-      WHERE b_i.badge_name = %s
+      WHERE b.user_discord_id = %s AND b_i.badge_name = %s
   '''
   vals = (user_discord_id, badge_name)
   query.execute(sql, vals)
-  results = query.fetchall()
+  results = query.fetchone()
   query.close()
   db.close()
   return results
@@ -94,7 +94,7 @@ def db_get_wishlist_matches(user_discord_id):
         ON b_i.badge_filename = b.badge_filename
       WHERE b.badge_filename IN (
         SELECT badge_filename FROM badge_wishlists WHERE user_discord_id = %s
-      )
+      ) AND NOT b.locked
   '''
   vals = (user_discord_id, )
   query.execute(sql, vals)
@@ -112,7 +112,7 @@ def db_get_wishlist_inventory_matches(user_discord_id):
         ON b_w.badge_filename = b_i.badge_filename
       JOIN badges AS b
         ON b.badge_filename = b_i.badge_filename
-      WHERE b.user_discord_id = %s
+      WHERE b.user_discord_id = %s AND NOT b.locked
   '''
   vals = (user_discord_id, )
   query.execute(sql, vals)

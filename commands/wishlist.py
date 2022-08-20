@@ -37,7 +37,7 @@ async def remove_autocomplete(ctx:discord.AutocompleteContext):
 async def lock_autocomplete(ctx:discord.AutocompleteContext):
   filtered_badges = [b['badge_name'] for b in SPECIAL_BADGES]
 
-  current_user_badges = [b for b in db_get_user_badges(ctx.interaction.user.id) if not b['locked']]
+  current_user_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id) if not b['locked']]
   filtered_badge_names = [b for b in current_user_badges if b not in filtered_badges]
 
   list_badges = [b for b in filtered_badge_names]
@@ -49,7 +49,7 @@ async def lock_autocomplete(ctx:discord.AutocompleteContext):
 async def unlock_autocomplete(ctx:discord.AutocompleteContext):
   filtered_badges = [b['badge_name'] for b in SPECIAL_BADGES]
 
-  current_user_badges = [b for b in db_get_user_badges(ctx.interaction.user.id) if b['locked']]
+  current_user_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id) if b['locked']]
   filtered_badge_names = [b for b in current_user_badges if b not in filtered_badges]
 
   list_badges = [b for b in filtered_badge_names]
@@ -118,7 +118,7 @@ async def display(ctx:discord.ApplicationContext, public:str):
 @option(
   name="badge",
   description="Badge to add",
-  required=False,
+  required=True,
   autocomplete=add_autocomplete
 )
 async def add(ctx:discord.ApplicationContext, badge:str):
@@ -164,7 +164,7 @@ async def add(ctx:discord.ApplicationContext, badge:str):
 @option(
   name="badge",
   description="Badge to remove",
-  required=False,
+  required=True,
   autocomplete=remove_autocomplete
 )
 async def remove(ctx:discord.ApplicationContext, badge:str):
@@ -203,10 +203,9 @@ async def matches(ctx:discord.ApplicationContext):
   wishlist_matches = db_get_wishlist_matches(user_discord_id)
   wishlist_aggregate = {}
   if wishlist_matches:
-    wishlist_aggregate = {}
     for match in wishlist_matches:
       user_id = match['user_discord_id']
-      user_record = match.get(user_id)
+      user_record = wishlist_aggregate.get(user_id)
       if not user_record:
         wishlist_aggregate[user_id] = [match['badge_name']]
       else:
@@ -214,23 +213,23 @@ async def matches(ctx:discord.ApplicationContext):
 
   # Get all the users and the badgenames that want badges that the user has
   inventory_matches = db_get_wishlist_inventory_matches(user_discord_id)
-  inventory_matches_aggregate = {}
+  inventory_aggregate = {}
   if inventory_matches:
     for match in inventory_matches:
       user_id = match['user_discord_id']
-      user_record = match.get(user_id)
+      user_record = inventory_aggregate.get(user_id)
       if not user_record:
-        inventory_matches_aggregate[user_id] = [match['badge_name']]
+        inventory_aggregate[user_id] = [match['badge_name']]
       else:
-        inventory_matches_aggregate[user_id].append(match['badge_name'])
+        inventory_aggregate[user_id].append(match['badge_name'])
 
   # Now create an aggregate of the users that intersect
   exact_matches_aggregate = {}
   for key in wishlist_aggregate:
-    if key in inventory_matches_aggregate:
+    if key in inventory_aggregate:
       exact_matches_aggregate[key] = {
         'has': wishlist_aggregate[key],
-        'wants': inventory_matches_aggregate[key]
+        'wants': inventory_aggregate[key]
       }
 
   if len(exact_matches_aggregate.keys()):
@@ -269,12 +268,12 @@ async def matches(ctx:discord.ApplicationContext):
 #         \/          \/     \/
 @wishlist_group.command(
   name="lock",
-  description="Lock a badge from being listed in Wishlist matches and trading."
+  description="Lock a badge from being listed in Wishlist matches."
 )
 @option(
   name="badge",
   description="Badge to lock",
-  required=False,
+  required=True,
   autocomplete=lock_autocomplete
 )
 async def lock(ctx:discord.ApplicationContext, badge:str):
@@ -287,18 +286,18 @@ async def lock(ctx:discord.ApplicationContext, badge:str):
     await ctx.followup.send(
       embed=discord.Embed(
         title="Badge Not Present in Inventory!",
-        description=f"Unable to complete your request, {badge} is not present in your inventory.",
+        description=f"Unable to complete your request, `{badge}` is not present in your inventory.",
         color=discord.Color.red()
       )
     )
     return
 
-  badge_info = db_get_badge_locked_status_by_name(badge)
+  badge_info = db_get_badge_locked_status_by_name(user_discord_id, badge)
   if badge_info['locked']:
     await ctx.followup.send(
       embed=discord.Embed(
         title="Badge Already Locked!",
-        description=f"Unable to complete your request, {badge} has already been locked in your inventory.",
+        description=f"Unable to complete your request, `{badge}` has already been locked in your inventory.",
         color=discord.Color.red()
       )
     )
@@ -310,13 +309,84 @@ async def lock(ctx:discord.ApplicationContext, badge:str):
   discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
   embed = discord.Embed(
     title="Badge Locked Successfully",
-    description=f"You've successfully locked {badge} from being traded and listed in Wishlist matches.",
+    description=f"You've successfully locked `{badge}` from being listed in Wishlist matches.",
     color=discord.Color.green()
   )
   embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
   await ctx.followup.send(embed=embed, file=discord_image)
 
 
+# .____                  __      _________       __
+# |    |    ____   ____ |  | __ /   _____/ _____/  |_
+# |    |   /  _ \_/ ___\|  |/ / \_____  \_/ __ \   __\
+# |    |__(  <_> )  \___|    <  /        \  ___/|  |
+# |_______ \____/ \___  >__|_ \/_______  /\___  >__|
+#         \/          \/     \/        \/     \/
+@wishlist_group.command(
+  name="lock_set",
+  description="Lock your current items in a set from being listed in Wishlist matches."
+)
+@option(
+  name="category",
+  description="Which category of set?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="Affiliation",
+      value="affiliation"
+    ),
+    discord.OptionChoice(
+      name="Franchise",
+      value="franchise"
+    ),
+    discord.OptionChoice(
+      name="Time Period",
+      value="time_period"
+    ),
+    discord.OptionChoice(
+      name="Type",
+      value="type"
+    )
+  ]
+)
+@option(
+  name="selection",
+  description="Which one?",
+  required=True,
+  autocomplete=autocomplete_selections
+)
+async def lock_set(ctx:discord.ApplicationContext, category:str, selection:str):
+  await ctx.defer(ephemeral=True)
+  user_discord_id = ctx.author.id
+
+  if category == 'affiliation':
+    all_set_badges = db_get_all_affiliation_badges(selection)
+  elif category == 'franchise':
+    all_set_badges = db_get_all_franchise_badges(selection)
+  elif category == 'time_period':
+    all_set_badges = db_get_all_time_period_badges(selection)
+  elif category == 'type':
+    all_set_badges = db_get_all_type_badges(selection)
+  else:
+    await ctx.followup.send("Select a category", ephemeral=True)
+    return
+
+  category_title = category.replace("_", " ").title()
+
+  if not all_set_badges:
+    await ctx.followup.send(f"Your entry was not in the list of {category_title}s!", ephemeral=True)
+    return
+
+  # Otherwise, good to go and lock the badges
+  for badge_info in all_set_badges:
+    db_lock_badge_by_filename(user_discord_id, badge_info['badge_filename'])
+
+  embed = discord.Embed(
+    title="Badge Set Locked Successfully",
+    description=f"You've successfully locked all of the `{selection}` badges in your inventory from being listed in Wishlist matches.",
+    color=discord.Color.green()
+  )
+  await ctx.followup.send(embed=embed)
 
 #  ____ ___      .__                 __
 # |    |   \____ |  |   ____   ____ |  | __
@@ -326,12 +396,12 @@ async def lock(ctx:discord.ApplicationContext, badge:str):
 #              \/                 \/     \/
 @wishlist_group.command(
   name="unlock",
-  description="Unlock a badge from being listed in Wishlist matches and trading."
+  description="Unlock a badge from being listed in Wishlist matches."
 )
 @option(
   name="badge",
   description="Badge to unlock",
-  required=False,
+  required=True,
   autocomplete=unlock_autocomplete
 )
 async def unlock(ctx:discord.ApplicationContext, badge:str):
@@ -344,18 +414,18 @@ async def unlock(ctx:discord.ApplicationContext, badge:str):
     await ctx.followup.send(
       embed=discord.Embed(
         title="Badge Not Present in Inventory!",
-        description=f"Unable to complete your request, {badge} is not present in your inventory.",
+        description=f"Unable to complete your request, `{badge}` is not present in your inventory.",
         color=discord.Color.red()
       )
     )
     return
 
-  badge_info = db_get_badge_locked_status_by_name(badge)
+  badge_info = db_get_badge_locked_status_by_name(user_discord_id, badge)
   if not badge_info['locked']:
     await ctx.followup.send(
       embed=discord.Embed(
         title="Badge Unlocked!",
-        description=f"Unable to complete your request, {badge} has already been unlocked in your inventory.",
+        description=f"Unable to complete your request, `{badge}` has already been unlocked in your inventory.",
         color=discord.Color.red()
       )
     )
@@ -367,8 +437,81 @@ async def unlock(ctx:discord.ApplicationContext, badge:str):
   discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
   embed = discord.Embed(
     title="Badge Unlocked Successfully",
-    description=f"You've successfully unlocked {badge} and is now available for being traded and listed in Wishlist matches.",
+    description=f"You've successfully unlocked `{badge}` and it is now available for being listed in Wishlist matches.",
     color=discord.Color.green()
   )
   embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
   await ctx.followup.send(embed=embed, file=discord_image)
+
+
+# .____                  __      _________       __
+# |    |    ____   ____ |  | __ /   _____/ _____/  |_
+# |    |   /  _ \_/ ___\|  |/ / \_____  \_/ __ \   __\
+# |    |__(  <_> )  \___|    <  /        \  ___/|  |
+# |_______ \____/ \___  >__|_ \/_______  /\___  >__|
+#         \/          \/     \/        \/     \/
+@wishlist_group.command(
+  name="unlock_set",
+  description="Unlock your current items in a set so they are listed in Wishlist matches."
+)
+@option(
+  name="category",
+  description="Which category of set?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="Affiliation",
+      value="affiliation"
+    ),
+    discord.OptionChoice(
+      name="Franchise",
+      value="franchise"
+    ),
+    discord.OptionChoice(
+      name="Time Period",
+      value="time_period"
+    ),
+    discord.OptionChoice(
+      name="Type",
+      value="type"
+    )
+  ]
+)
+@option(
+  name="selection",
+  description="Which one?",
+  required=True,
+  autocomplete=autocomplete_selections
+)
+async def unlock_set(ctx:discord.ApplicationContext, category:str, selection:str):
+  await ctx.defer(ephemeral=True)
+  user_discord_id = ctx.author.id
+
+  if category == 'affiliation':
+    all_set_badges = db_get_all_affiliation_badges(selection)
+  elif category == 'franchise':
+    all_set_badges = db_get_all_franchise_badges(selection)
+  elif category == 'time_period':
+    all_set_badges = db_get_all_time_period_badges(selection)
+  elif category == 'type':
+    all_set_badges = db_get_all_type_badges(selection)
+  else:
+    await ctx.followup.send("Select a category", ephemeral=True)
+    return
+
+  category_title = category.replace("_", " ").title()
+
+  if not all_set_badges:
+    await ctx.followup.send(f"Your entry was not in the list of {category_title}s!", ephemeral=True)
+    return
+
+  # Otherwise, good to go and lock the badges
+  for badge_info in all_set_badges:
+    db_unlock_badge_by_filename(user_discord_id, badge_info['badge_filename'])
+
+  embed = discord.Embed(
+    title="Badge Set Locked Successfully",
+    description=f"You've successfully unlocked all of the `{selection}` badges in your inventory and they will now be listed in Wishlist matches.",
+    color=discord.Color.green()
+  )
+  await ctx.followup.send(embed=embed)
