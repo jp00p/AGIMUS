@@ -662,115 +662,137 @@ class Trade(commands.Cog):
   )
   @commands.check(access_check)
   async def start(self, ctx:discord.ApplicationContext, requestee:discord.User, offer: str, request: str):
-    try:
-      requestor_id = ctx.author.id
-      requestee_id = requestee.id
+    await ctx.defer(ephemeral=True)
+    requestor_id = ctx.author.id
+    requestee_id = requestee.id
 
-      if requestor_id == requestee_id:
-        await ctx.respond(embed=discord.Embed(
-          title="Don't be silly!",
-          description="You can't request a trade from yourself!",
-          color=discord.Color.red()
-        ), ephemeral=True)
-        return
+    if requestor_id == requestee_id:
+      await ctx.followup.send(embed=discord.Embed(
+        title="Don't be silly!",
+        description="You can't request a trade from yourself!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
 
-      if requestee_id == self.bot.user.id:
-        await ctx.respond(embed=discord.Embed(
-          title="Nope",
-          description="AGIMUS has no badges to trade!",
-          color=discord.Color.red()
-        ), ephemeral=True)
-        return
+    if requestee_id == self.bot.user.id:
+      await ctx.followup.send(embed=discord.Embed(
+        title="Nope",
+        description="AGIMUS has no badges to trade!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
 
-      # Deny requests to users that do not have XP enabled
-      requestee_details = get_user(requestee_id)
-      if not requestee_details or not requestee_details["xp_enabled"]:
-        opted_out_embed = discord.Embed(
-          title="This user is not participating.",
-          description=f"Sorry, {requestee.mention} has opted out of the XP system and is not available for trading.",
-          color=discord.Color.red()
-        )
-        await ctx.respond(embed=opted_out_embed, ephemeral=True)
-        return
-
-      # Deny the trade request if there's an existing trade in progress by the requestor
-      active_trade = db_get_active_requestor_trade(requestor_id)
-      if active_trade:
-        active_trade_requestee = await self.bot.current_guild.fetch_member(active_trade['requestee_id'])
-        already_active_embed = discord.Embed(
-          title="You already have an active trade!",
-          description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade status` "
-                      f"to cancel the current trade if desired!\n\nThis must be resolved before you can open another "
-                      f"request.",
-          color=discord.Color.red()
-        )
-        already_active_embed.set_footer(text="You may want to check on this trade to see if they have had a chance to "
-                                             "review your request!")
-        await ctx.respond(embed=already_active_embed, ephemeral=True)
-        return
-
-      # Deny the trade request if the requestee already has too many active trades pending
-      requestee_trades = db_get_active_requestee_trades(requestee_id)
-      if len(requestee_trades) >= self.max_trades:
-        max_requestee_trades_embed = discord.Embed(
-          title=f"{requestee.display_name} has too many pending trades!",
-          description=f"Sorry, the person you've requested a trade from already has the maximum number of incoming "
-                      f"trade requests pending ({self.max_trades}).",
-          color=discord.Color.red()
-        )
-        await ctx.respond(embed=max_requestee_trades_embed, ephemeral=True)
-        return
-
-      # If not denied, go ahead and initiate the new trade!
-      trade_id = db_initiate_trade(requestor_id, requestee_id)
-      active_trade = {
-        'id': trade_id,
-        'requestor_id': requestor_id,
-        'requestee_id': requestee_id,
-      }
-
-      if offer:
-        if await self._is_untradeable(ctx, offer, ctx.author, requestee, active_trade, 'offer'):
-          offer = None
-        else:
-          db_add_badge_to_trade_offer(active_trade, offer)
-
-      if request:
-        if await self._is_untradeable(ctx, request, ctx.author, requestee, active_trade, 'request'):
-          request = None
-        else:
-          db_add_badge_to_trade_request(active_trade, request)
-
-      # Confirmation of initiation with the requestor
-      if not offer and not request:
-        follow_up_message = "Follow up with `/trade propose` to fill out the trade details!"
-      else:
-        follow_up_message = "You can add more badges with with `/trade propose`."
-      initiated_embed = discord.Embed(
-        title="Trade Started!",
-        description=f"Your pending trade has been started!\n\n{follow_up_message}\n\nOnce you have added the badges "
-                    "you'd like to offer and request, use \n`/trade status` to send the trade to the user, "
-                    "or to cancel!\n\nNote: You may only have one open outgoing trade request at a time!",
-        color=discord.Color.dark_purple()
-      ).add_field(
-        name="Badges offered by you",
-        value=offer
-      ).add_field(
-        name=f"Badges requested from {requestee.name}",
-        value=request
+    # Deny requests to users that do not have XP enabled
+    requestee_details = get_user(requestee_id)
+    if not requestee_details or not requestee_details["xp_enabled"]:
+      opted_out_embed = discord.Embed(
+        title="This user is not participating.",
+        description=f"Sorry, {requestee.mention} has opted out of the XP system and is not available for trading.",
+        color=discord.Color.red()
       )
-      initiated_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
-      await ctx.respond(embed=initiated_embed, ephemeral=True)
+      await ctx.followup.seend(embed=opted_out_embed, ephemeral=True)
+      return
 
-    except Exception as e:
-      logger.info(traceback.format_exc())
+    # Deny the trade request if there's an existing trade in progress by the requestor
+    active_trade = db_get_active_requestor_trade(requestor_id)
+    if active_trade:
+      active_trade_requestee = await self.bot.current_guild.fetch_member(active_trade['requestee_id'])
+      already_active_embed = discord.Embed(
+        title="You already have an active trade!",
+        description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade status` "
+                    f"to cancel the current trade if desired!\n\nThis must be resolved before you can open another "
+                    f"request.",
+        color=discord.Color.red()
+      )
+      already_active_embed.set_footer(text="You may want to check on this trade to see if they have had a chance to "
+                                            "review your request!")
+      await ctx.followup.send(embed=already_active_embed, ephemeral=True)
+      return
+
+    # Deny the trade request if the requestee already has too many active trades pending
+    requestee_trades = db_get_active_requestee_trades(requestee_id)
+    if len(requestee_trades) >= self.max_trades:
+      max_requestee_trades_embed = discord.Embed(
+        title=f"{requestee.display_name} has too many pending trades!",
+        description=f"Sorry, the person you've requested a trade from already has the maximum number of incoming "
+                    f"trade requests pending ({self.max_trades}).",
+        color=discord.Color.red()
+      )
+      await ctx.followup.send(embed=max_requestee_trades_embed, ephemeral=True)
+      return
+
+    # If not denied, go ahead and initiate the new trade!
+    trade_id = db_initiate_trade(requestor_id, requestee_id)
+    active_trade = {
+      'id': trade_id,
+      'requestor_id': requestor_id,
+      'requestee_id': requestee_id,
+    }
+
+    if offer:
+      if await self._is_untradeable(ctx, offer, ctx.author, requestee, active_trade, 'offer'):
+        offer = None
+      else:
+        db_add_badge_to_trade_offer(active_trade, offer)
+
+    if request:
+      if await self._is_untradeable(ctx, request, ctx.author, requestee, active_trade, 'request'):
+        request = None
+      else:
+        db_add_badge_to_trade_request(active_trade, request)
+
+    # Confirmation of initiation with the requestor
+    if not offer and not request:
+      follow_up_message = "Follow up with `/trade propose` to fill out the trade details!"
+    else:
+      follow_up_message = "You can add more badges with with `/trade propose`."
+
+    initiated_embed = discord.Embed(
+      title="Trade Started!",
+      description=f"Your pending trade has been started!\n\n{follow_up_message}\n\nOnce you have added the badges "
+                  "you'd like to offer and request, use \n`/trade status` to send the trade to the user, "
+                  "or to cancel!\n\nNote: You may only have one open outgoing trade request at a time!",
+      color=discord.Color.dark_purple()
+    ).add_field(
+      name="Badges offered by you",
+      value=offer
+    ).add_field(
+      name=f"Badges requested from {requestee.name}",
+      value=request
+    )
+    initiated_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
+    await ctx.followup.send(embed=initiated_embed)
+
+    if offer:
+      badge_info = db_get_badge_info_by_name(offer)
+      discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
+
+      offer_embed = discord.Embed(
+        title=f"{offer} added to offer.",
+        description=f"This badge has been added to your offer to {requestee.mention}",
+        color=discord.Color.dark_green()
+      )
+      offer_embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
+      await ctx.followup.send(embed=offer_embed, file=discord_image)
+    if request:
+      badge_info = db_get_badge_info_by_name(request)
+      discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
+
+      offer_embed = discord.Embed(
+        title=f"{offer} added to request.",
+        description=f"This badge has been added to your request from {requestee.mention}",
+        color=discord.Color.dark_green()
+      )
+      offer_embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
+      await ctx.followup.send(embed=offer_embed, file=discord_image)
+
 
   @trade.command(
-    name="status",
-    description="Check the current status of your outgoing trade"
+    name="send",
+    description="Check the current status and send your outgoing trade"
   )
   @commands.check(access_check)
-  async def status(self, ctx):
+  async def send(self, ctx):
     active_trade = await self.check_for_active_trade(ctx)
     if not active_trade:
       return

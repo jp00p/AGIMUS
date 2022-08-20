@@ -225,12 +225,3 @@ CREATE TABLE IF NOT EXISTS badge_wishlists (
   KEY `badge_filename` (`badge_filename`),
   CONSTRAINT `badge_wishlists_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
-CREATE TABLE IF NOT EXISTS badge_offerlists (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `badge_filename` varchar(128) NOT NULL,
-  `user_discord_id` varchar(128) NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `badge_filename` (`badge_filename`),
-  CONSTRAINT `badge_offerlists_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
-);
