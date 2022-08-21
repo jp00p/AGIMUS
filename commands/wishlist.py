@@ -80,6 +80,7 @@ async def display(ctx:discord.ApplicationContext):
     all_pages = [wishlist_badges[i:i + max_badges_per_page] for i in range(0, len(wishlist_badges), max_badges_per_page)]
     total_pages = len(all_pages)
 
+    wishlist_pages = []
     for page_index, page in enumerate(all_pages):
       embed = discord.Embed(
         title="Wishlist",
@@ -87,7 +88,15 @@ async def display(ctx:discord.ApplicationContext):
         color=discord.Color.blurple()
       )
       embed.set_footer(text=f"Page {page_index + 1} of {total_pages}")
-      await ctx.followup.send(embed=embed)
+      wishlist_pages.append(embed)
+
+    paginator = pages.Paginator(
+      pages=wishlist_pages,
+      loop_pages=True,
+      disable_on_timeout=True
+    )
+
+    await paginator.respond(ctx.interaction, ephemeral=True)
   else:
     await ctx.followup.send(embed=discord.Embed(
       title="No Current Wishlist Badges Present",
@@ -161,7 +170,7 @@ async def matches(ctx:discord.ApplicationContext):
         inline=False
       )
       embed.set_footer(text="Make them an offer with '/trade start'!")
-      await ctx.followup.send(embed=embed)
+      await ctx.followup.send(embed=embed, ephemeral=True)
   else:
     await ctx.followup.send(
       embed=discord.Embed(
