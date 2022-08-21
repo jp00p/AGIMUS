@@ -49,7 +49,7 @@ You may have up to three incoming trades at a time.
 
 To help manage trading, you can set up a Wishlist of badges that you're looking to collect!
 
-Once you've set up your wishlist, using `/wishlist matches` will check other users wishlists to determine if there's a match where they have one or more badges you want, provided *they* have one or more of the badges *you* want!
+Once you've set up your wishlist, using `/wishlist matches` will check other users wishlists to determine if there's a match where they have one or more badges you want, provided *you* have one or more of the badges *they* want!
 
 You can also Lock badges in your inventory from being included in wishlist matches. This is useful for badges that you wish to keep and not trade away! Locked badges are shown in your `/badges showcase` and `/badges sets` list with a small lock icon.
 
