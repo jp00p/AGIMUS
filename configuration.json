@@ -696,14 +696,6 @@
       "data": "data/testslots.json",
       "parameters": []
     },
-    "trade send": {
-      "channels": [
-        "bahrats-bazaar"
-      ],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
     "trade cancel": {
       "channels": [
         "bahrats-bazaar"
@@ -712,7 +704,7 @@
       "data": null,
       "parameters": []
     },
-    "trade start": {
+    "trade incoming": {
       "channels": [
         "bahrats-bazaar"
       ],
@@ -728,7 +720,7 @@
       "data": null,
       "parameters": []
     },
-    "trade pending": {
+    "trade send": {
       "channels": [
         "bahrats-bazaar"
       ],
@@ -736,7 +728,7 @@
       "data": null,
       "parameters": []
     },
-    "trade status": {
+    "trade start": {
       "channels": [
         "bahrats-bazaar"
       ],
