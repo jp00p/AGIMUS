@@ -215,7 +215,12 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
     return
 
   if not all_set_badges:
-    await ctx.followup.send(f"Your entry was not in the list of {category_title}s!", ephemeral=True)
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title=f"Your entry was not in the list of {category_title}s!",
+        color=discord.Color.red()
+      ), ephemeral=True
+    )
     return
 
   set_badges = []

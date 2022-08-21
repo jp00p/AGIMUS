@@ -18,12 +18,12 @@ async def add_autocomplete(ctx:discord.AutocompleteContext):
   filtered_badges = [b['badge_name'] for b in SPECIAL_BADGES]
 
   current_user_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id)]
+  current_wishlist_badges = [b['badge_name'] for b in db_get_user_wishlist_badges(ctx.interaction.user.id)]
+  filtered_badges = filtered_badges + current_user_badges + current_wishlist_badges
 
-  source_list = [b['badge_name'] for b in all_badge_info]
-  current_list_badges = [b['badge_name'] for b in db_get_user_wishlist_badges(ctx.interaction.user.id)]
-  filtered_badges = filtered_badges + current_user_badges + current_list_badges
+  all_badge_names = [b['badge_name'] for b in all_badge_info]
 
-  filtered_badge_names = [b for b in source_list if b not in filtered_badges]
+  filtered_badge_names = [b for b in all_badge_names if b not in filtered_badges]
 
   return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
 
@@ -37,8 +37,8 @@ async def remove_autocomplete(ctx:discord.AutocompleteContext):
 async def lock_autocomplete(ctx:discord.AutocompleteContext):
   filtered_badges = [b['badge_name'] for b in SPECIAL_BADGES]
 
-  current_user_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id) if not b['locked']]
-  filtered_badge_names = [b for b in current_user_badges if b not in filtered_badges]
+  current_unlocked_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id) if not b['locked']]
+  filtered_badge_names = [b for b in current_unlocked_badges if b not in filtered_badges]
 
   list_badges = [b for b in filtered_badge_names]
   if not list_badges:
@@ -49,8 +49,8 @@ async def lock_autocomplete(ctx:discord.AutocompleteContext):
 async def unlock_autocomplete(ctx:discord.AutocompleteContext):
   filtered_badges = [b['badge_name'] for b in SPECIAL_BADGES]
 
-  current_user_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id) if b['locked']]
-  filtered_badge_names = [b for b in current_user_badges if b not in filtered_badges]
+  current_locked_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id) if b['locked']]
+  filtered_badge_names = [b for b in current_locked_badges if b not in filtered_badges]
 
   list_badges = [b for b in filtered_badge_names]
   if not list_badges:
@@ -161,14 +161,14 @@ async def matches(ctx:discord.ApplicationContext):
         inline=False
       )
       embed.set_footer(text="Make them an offer with '/trade start'!")
-      await ctx.followup.send(embed=embed, ephemeral=True)
+      await ctx.followup.send(embed=embed)
   else:
-    await ctx.followup.send(embed=discord.Embed(
+    await ctx.followup.send(
+      embed=discord.Embed(
         title="No Wishlist Matches Found",
         description="Please check back later!",
         color=discord.Color.blurple()
-      ),
-      ephemeral=True
+      )
     )
 
 
@@ -282,13 +282,18 @@ async def add_set(ctx:discord.ApplicationContext, category:str, selection:str):
   elif category == 'type':
     all_set_badges = db_get_all_type_badges(selection)
   else:
-    await ctx.followup.send("Select a category", ephemeral=True)
+    await ctx.followup.send("Select a category")
     return
 
   category_title = category.replace("_", " ").title()
 
   if not all_set_badges:
-    await ctx.followup.send(f"Your entry was not in the list of {category_title}s!", ephemeral=True)
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title=f"Your entry was not in the list of {category_title}s!",
+        color=discord.Color.red()
+      )
+    )
     return
 
   existing_user_badges = [b['badge_name'] for b in db_get_user_badges(user_discord_id)]
@@ -412,13 +417,18 @@ async def remove_set(ctx:discord.ApplicationContext, category:str, selection:str
   elif category == 'type':
     all_set_badges = db_get_all_type_badges(selection)
   else:
-    await ctx.followup.send("Select a category", ephemeral=True)
+    await ctx.followup.send("Select a category")
     return
 
   category_title = category.replace("_", " ").title()
 
   if not all_set_badges:
-    await ctx.followup.send(f"Your entry was not in the list of {category_title}s!", ephemeral=True)
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title=f"Your entry was not in the list of {category_title}s!",
+        color=discord.Color.red()
+      )
+    )
     return
 
   existing_wishlist_badges = [b['badge_name'] for b in db_get_user_wishlist_badges(user_discord_id)]
@@ -557,13 +567,18 @@ async def lock_set(ctx:discord.ApplicationContext, category:str, selection:str):
   elif category == 'type':
     all_set_badges = db_get_all_type_badges(selection)
   else:
-    await ctx.followup.send("Select a category", ephemeral=True)
+    await ctx.followup.send("Select a category")
     return
 
   category_title = category.replace("_", " ").title()
 
   if not all_set_badges:
-    await ctx.followup.send(f"Your entry was not in the list of {category_title}s!", ephemeral=True)
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title=f"Your entry was not in the list of {category_title}s!",
+        color=discord.Color.red()
+      )
+    )
     return
 
   # Otherwise, good to go and lock the badges
@@ -685,13 +700,18 @@ async def unlock_set(ctx:discord.ApplicationContext, category:str, selection:str
   elif category == 'type':
     all_set_badges = db_get_all_type_badges(selection)
   else:
-    await ctx.followup.send("Select a category", ephemeral=True)
+    await ctx.followup.send("Select a category")
     return
 
   category_title = category.replace("_", " ").title()
 
   if not all_set_badges:
-    await ctx.followup.send(f"Your entry was not in the list of {category_title}s!", ephemeral=True)
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title=f"Your entry was not in the list of {category_title}s!",
+        color=discord.Color.red()
+      )
+    )
     return
 
   # Otherwise, good to go and lock the badges
