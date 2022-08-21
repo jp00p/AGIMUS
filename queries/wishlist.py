@@ -7,6 +7,7 @@ def db_get_user_wishlist_badges(user_discord_id):
     SELECT * FROM badge_info AS b_i
       JOIN badge_wishlists AS b_w
       ON b_w.user_discord_id = %s AND b_i.badge_filename = b_w.badge_filename
+      ORDER BY b_i.badge_name ASC
   '''
   vals = (user_discord_id,)
   query.execute(sql, vals)

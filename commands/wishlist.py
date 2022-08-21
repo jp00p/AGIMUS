@@ -68,129 +68,39 @@ async def unlock_autocomplete(ctx:discord.AutocompleteContext):
   name="display",
   description="List all of the badges on your current wishlist."
 )
-@option(
-  name="public",
-  description="Show to public?",
-  required=True,
-  choices=[
-    discord.OptionChoice(
-      name="No",
-      value="no"
-    ),
-    discord.OptionChoice(
-      name="Yes",
-      value="yes"
-    )
-  ]
-)
-async def display(ctx:discord.ApplicationContext, public:str):
-  public = (public == "yes")
-  await ctx.defer(ephemeral=not public)
+async def display(ctx:discord.ApplicationContext):
+  await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
 
   wishlist_badges = db_get_user_wishlist_badges(user_discord_id)
 
   if len(wishlist_badges):
-    embed = discord.Embed(
-      title="Your Wishlist"
-    )
-    embed.add_field(
-      name="Wishlist Badges",
-      value="\n".join([b['badge_name'] for b in wishlist_badges])
-    )
-    await ctx.followup.send(embed=embed, ephemeral=not public)
+    # Set up paginated results
+    max_badges_per_page = 50
+    all_pages = [wishlist_badges[i:i + max_badges_per_page] for i in range(0, len(wishlist_badges), max_badges_per_page)]
+    total_pages = len(all_pages)
+
+    for page_index, page in enumerate(all_pages):
+      embed = discord.Embed(
+        title="Wishlist",
+        description="\n".join([b['badge_name'] for b in page]),
+        color=discord.Color.blurple()
+      )
+      embed.set_footer(text=f"Page {page_index + 1} of {total_pages}")
+      await ctx.followup.send(embed=embed)
   else:
     await ctx.followup.send(embed=discord.Embed(
       title="No Current Wishlist Badges Present",
       color=discord.Color.red()
-    ), ephemeral=True)
-
-#    _____       .___  .___
-#   /  _  \    __| _/__| _/
-#  /  /_\  \  / __ |/ __ |
-# /    |    \/ /_/ / /_/ |
-# \____|__  /\____ \____ |
-#         \/      \/    \/
-@wishlist_group.command(
-  name="add",
-  description="Add badges to your Wishlist."
-)
-@option(
-  name="badge",
-  description="Badge to add",
-  required=True,
-  autocomplete=add_autocomplete
-)
-async def add(ctx:discord.ApplicationContext, badge:str):
-  await ctx.defer(ephemeral=True)
-  user_discord_id = ctx.author.id
-
-  # Check to make sure none of the badges are already present in their wishlist
-  existing_wishlist_badges = [b['badge_name'] for b in db_get_user_wishlist_badges(user_discord_id)]
-  if badge in existing_wishlist_badges:
-    await ctx.followup.send(
-      embed=discord.Embed(
-        title="Badge Already Present in Wishlist!",
-        description=f"Unable to complete your request, {badge} is already present in your Wishlist.",
-        color=discord.Color.red()
-      )
-    )
-    return
-
-  # Otherwise, good to go and add the badge
-  db_add_badge_name_to_users_wishlist(user_discord_id, badge)
-
-  badge_info = db_get_badge_info_by_name(badge)
-  discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
-  embed = discord.Embed(
-    title="Badge Added Successfully",
-    description=f"You've successfully added {badge} to your wishlist.",
-    color=discord.Color.green()
-  )
-  embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
-  await ctx.followup.send(embed=embed, file=discord_image)
-
-
-# __________
-# \______   \ ____   _____   _______  __ ____
-#  |       _// __ \ /     \ /  _ \  \/ // __ \
-#  |    |   \  ___/|  Y Y  (  <_> )   /\  ___/
-#  |____|_  /\___  >__|_|  /\____/ \_/  \___  >
-#         \/     \/      \/                 \/
-@wishlist_group.command(
-  name="remove",
-  description="Remove a badge from your wishlist."
-)
-@option(
-  name="badge",
-  description="Badge to remove",
-  required=True,
-  autocomplete=remove_autocomplete
-)
-async def remove(ctx:discord.ApplicationContext, badge:str):
-  await ctx.defer(ephemeral=True)
-  user_discord_id = ctx.author.id
-
-  # Check to make sure the badges are present in their wishlist
-  user_wishlist_badge_names =  [b['badge_name'] for b in db_get_user_wishlist_badges(user_discord_id)]
-  if badge not in user_wishlist_badge_names:
-    await ctx.followup.send(embed=discord.Embed(
-      title="Badge Not Present in Wishlist!",
-      description=f"Unable to complete your request, {badge} is not present in your Wishlist",
-      color=discord.Color.red()
     ))
-    return
-
-  # If they are go ahead and remove the badges
-  db_remove_badge_name_from_users_wishlist(user_discord_id, badge)
-
-  await ctx.followup.send(embed=discord.Embed(
-    title="Badge Removed Successfully",
-    description=f"You've successfully removed {badge} from your wishlist",
-    color=discord.Color.green()
-  ))
 
 
+#    _____          __         .__
+#   /     \ _____ _/  |_  ____ |  |__   ____   ______
+#  /  \ /  \\__  \\   __\/ ___\|  |  \_/ __ \ /  ___/
+# /    Y    \/ __ \|  | \  \___|   Y  \  ___/ \___ \
+# \____|__  (____  /__|  \___  >___|  /\___  >____  >
+#         \/     \/          \/     \/     \/     \/
 @wishlist_group.command(
   name="matches",
   description="Find matches from other users who have what you want, and want what you have!"
@@ -259,6 +169,284 @@ async def matches(ctx:discord.ApplicationContext):
       ),
       ephemeral=True
     )
+
+
+#    _____       .___  .___
+#   /  _  \    __| _/__| _/
+#  /  /_\  \  / __ |/ __ |
+# /    |    \/ /_/ / /_/ |
+# \____|__  /\____ \____ |
+#         \/      \/    \/
+@wishlist_group.command(
+  name="add",
+  description="Add badges to your Wishlist."
+)
+@option(
+  name="badge",
+  description="Badge to add",
+  required=True,
+  autocomplete=add_autocomplete
+)
+async def add(ctx:discord.ApplicationContext, badge:str):
+  await ctx.defer(ephemeral=True)
+  user_discord_id = ctx.author.id
+
+  # Check to make sure the badge is not already present in their wishlist
+  existing_wishlist_badges = [b['badge_name'] for b in db_get_user_wishlist_badges(user_discord_id)]
+  if badge in existing_wishlist_badges:
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Badge Already Present in Wishlist!",
+        description=f"Unable to complete your request, {badge} is already present in your Wishlist.",
+        color=discord.Color.red()
+      )
+    )
+    return
+
+  # Check to make sure the badge is not already present in their inventory
+  existing_user_badges = [b['badge_name'] for b in db_get_user_badges(user_discord_id)]
+  if badge in existing_user_badges:
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Badge Already Present in Inventory!",
+        description=f"Unable to complete your request, {badge} is already present in your Inventory. No need to wish for it!",
+        color=discord.Color.red()
+      )
+    )
+    return
+
+  # Otherwise, good to go and add the badge
+  db_add_badge_name_to_users_wishlist(user_discord_id, badge)
+
+  badge_info = db_get_badge_info_by_name(badge)
+  discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
+  embed = discord.Embed(
+    title="Badge Added Successfully",
+    description=f"You've successfully added {badge} to your wishlist.",
+    color=discord.Color.green()
+  )
+  embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
+  await ctx.followup.send(embed=embed, file=discord_image)
+
+
+#    _____       .___  .____________       __
+#   /  _  \    __| _/__| _/   _____/ _____/  |_
+#  /  /_\  \  / __ |/ __ |\_____  \_/ __ \   __\
+# /    |    \/ /_/ / /_/ |/        \  ___/|  |
+# \____|__  /\____ \____ /_______  /\___  >__|
+#         \/      \/    \/       \/     \/
+@wishlist_group.command(
+  name="add_set",
+  description="Add a full set of badges to your Wishlist."
+)
+@option(
+  name="category",
+  description="Which category of set?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="Affiliation",
+      value="affiliation"
+    ),
+    discord.OptionChoice(
+      name="Franchise",
+      value="franchise"
+    ),
+    discord.OptionChoice(
+      name="Time Period",
+      value="time_period"
+    ),
+    discord.OptionChoice(
+      name="Type",
+      value="type"
+    )
+  ]
+)
+@option(
+  name="selection",
+  description="Which one?",
+  required=True,
+  autocomplete=autocomplete_selections
+)
+async def add_set(ctx:discord.ApplicationContext, category:str, selection:str):
+  await ctx.defer(ephemeral=True)
+  user_discord_id = ctx.author.id
+
+  if category == 'affiliation':
+    all_set_badges = db_get_all_affiliation_badges(selection)
+  elif category == 'franchise':
+    all_set_badges = db_get_all_franchise_badges(selection)
+  elif category == 'time_period':
+    all_set_badges = db_get_all_time_period_badges(selection)
+  elif category == 'type':
+    all_set_badges = db_get_all_type_badges(selection)
+  else:
+    await ctx.followup.send("Select a category", ephemeral=True)
+    return
+
+  category_title = category.replace("_", " ").title()
+
+  if not all_set_badges:
+    await ctx.followup.send(f"Your entry was not in the list of {category_title}s!", ephemeral=True)
+    return
+
+  existing_user_badges = [b['badge_name'] for b in db_get_user_badges(user_discord_id)]
+  existing_wishlist_badges = [b['badge_name'] for b in db_get_user_wishlist_badges(user_discord_id)]
+
+  # Filter out those badges that are already present in the Wishlist and user's Inventory
+  valid_badges = [b['badge_name'] for b in all_set_badges if b['badge_name'] not in existing_user_badges and b['badge_name'] not in existing_wishlist_badges]
+
+  # If there are no badges to add, error to user
+  if not valid_badges:
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="All Set Badges Already Present!",
+        description=f"Unable to complete your request, all of the `{selection}` badges are already present in your Wishlist or in your Inventory.",
+        color=discord.Color.red()
+      )
+    )
+    return
+
+  # Otherwise go ahead and add them
+  for badge_name in valid_badges:
+    db_add_badge_name_to_users_wishlist(user_discord_id, badge_name)
+
+  embed = discord.Embed(
+    title="Badge Set Added Successfully",
+    description=f"You've successfully added all of the `{selection}` badges to your Wishlist.",
+    color=discord.Color.green()
+  )
+  await ctx.followup.send(embed=embed)
+
+
+# __________
+# \______   \ ____   _____   _______  __ ____
+#  |       _// __ \ /     \ /  _ \  \/ // __ \
+#  |    |   \  ___/|  Y Y  (  <_> )   /\  ___/
+#  |____|_  /\___  >__|_|  /\____/ \_/  \___  >
+#         \/     \/      \/                 \/
+@wishlist_group.command(
+  name="remove",
+  description="Remove a badge from your wishlist."
+)
+@option(
+  name="badge",
+  description="Badge to remove",
+  required=True,
+  autocomplete=remove_autocomplete
+)
+async def remove(ctx:discord.ApplicationContext, badge:str):
+  await ctx.defer(ephemeral=True)
+  user_discord_id = ctx.author.id
+
+  # Check to make sure the badges are present in their wishlist
+  user_wishlist_badge_names =  [b['badge_name'] for b in db_get_user_wishlist_badges(user_discord_id)]
+  if badge not in user_wishlist_badge_names:
+    await ctx.followup.send(embed=discord.Embed(
+      title="Badge Not Present in Wishlist!",
+      description=f"Unable to complete your request, {badge} is not present in your Wishlist",
+      color=discord.Color.red()
+    ))
+    return
+
+  # If they are go ahead and remove the badges
+  db_remove_badge_name_from_users_wishlist(user_discord_id, badge)
+
+  await ctx.followup.send(embed=discord.Embed(
+    title="Badge Removed Successfully",
+    description=f"You've successfully removed {badge} from your wishlist",
+    color=discord.Color.green()
+  ))
+
+
+# __________                                    _________       __
+# \______   \ ____   _____   _______  __ ____  /   _____/ _____/  |_
+#  |       _// __ \ /     \ /  _ \  \/ // __ \ \_____  \_/ __ \   __\
+#  |    |   \  ___/|  Y Y  (  <_> )   /\  ___/ /        \  ___/|  |
+#  |____|_  /\___  >__|_|  /\____/ \_/  \___  >_______  /\___  >__|
+#         \/     \/      \/                 \/        \/     \/
+@wishlist_group.command(
+  name="remove_set",
+  description="Remove a full set of badges from your Wishlist."
+)
+@option(
+  name="category",
+  description="Which category of set?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="Affiliation",
+      value="affiliation"
+    ),
+    discord.OptionChoice(
+      name="Franchise",
+      value="franchise"
+    ),
+    discord.OptionChoice(
+      name="Time Period",
+      value="time_period"
+    ),
+    discord.OptionChoice(
+      name="Type",
+      value="type"
+    )
+  ]
+)
+@option(
+  name="selection",
+  description="Which one?",
+  required=True,
+  autocomplete=autocomplete_selections
+)
+async def remove_set(ctx:discord.ApplicationContext, category:str, selection:str):
+  await ctx.defer(ephemeral=True)
+  user_discord_id = ctx.author.id
+
+  if category == 'affiliation':
+    all_set_badges = db_get_all_affiliation_badges(selection)
+  elif category == 'franchise':
+    all_set_badges = db_get_all_franchise_badges(selection)
+  elif category == 'time_period':
+    all_set_badges = db_get_all_time_period_badges(selection)
+  elif category == 'type':
+    all_set_badges = db_get_all_type_badges(selection)
+  else:
+    await ctx.followup.send("Select a category", ephemeral=True)
+    return
+
+  category_title = category.replace("_", " ").title()
+
+  if not all_set_badges:
+    await ctx.followup.send(f"Your entry was not in the list of {category_title}s!", ephemeral=True)
+    return
+
+  existing_wishlist_badges = [b['badge_name'] for b in db_get_user_wishlist_badges(user_discord_id)]
+
+  # Filter out those badges that are not already present in the Wishlist and user's Inventory
+  valid_badges = [b['badge_name'] for b in all_set_badges if b['badge_name'] in existing_wishlist_badges]
+
+  # If there are no badges to add, error to user
+  if not valid_badges:
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="No Set Badges Present in Wishlist!",
+        description=f"Unable to complete your request, none of the `{selection}` badges are currently present in your Wishlist.",
+        color=discord.Color.red()
+      )
+    )
+    return
+
+  # Otherwise go ahead and add them
+  for badge_name in valid_badges:
+    db_remove_badge_name_from_users_wishlist(user_discord_id, badge_name)
+
+  embed = discord.Embed(
+    title="Badge Set Removed Successfully",
+    description=f"You've successfully removed all of the `{selection}` badges from your Wishlist.",
+    color=discord.Color.green()
+  )
+  await ctx.followup.send(embed=embed)
+
 
 # .____                  __
 # |    |    ____   ____ |  | __
@@ -396,7 +584,7 @@ async def lock_set(ctx:discord.ApplicationContext, category:str, selection:str):
 #              \/                 \/     \/
 @wishlist_group.command(
   name="unlock",
-  description="Unlock a badge from being listed in Wishlist matches."
+  description="Unlock a badge so that it is listed again in Wishlist matches."
 )
 @option(
   name="badge",
@@ -431,25 +619,25 @@ async def unlock(ctx:discord.ApplicationContext, badge:str):
     )
     return
 
-  # Otherwise, good to go and add the badge
+  # Otherwise, good to go and unlock the badge
   db_unlock_badge_by_filename(user_discord_id, badge_info['badge_filename'])
 
   discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
   embed = discord.Embed(
     title="Badge Unlocked Successfully",
-    description=f"You've successfully unlocked `{badge}` and it is now available for being listed in Wishlist matches.",
+    description=f"You've successfully unlocked `{badge}` and it will now be available for listing in Wishlist matches.",
     color=discord.Color.green()
   )
   embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
   await ctx.followup.send(embed=embed, file=discord_image)
 
 
-# .____                  __      _________       __
-# |    |    ____   ____ |  | __ /   _____/ _____/  |_
-# |    |   /  _ \_/ ___\|  |/ / \_____  \_/ __ \   __\
-# |    |__(  <_> )  \___|    <  /        \  ___/|  |
-# |_______ \____/ \___  >__|_ \/_______  /\___  >__|
-#         \/          \/     \/        \/     \/
+#  ____ ___                     __      _________       __
+# |    |   \____   ____   ____ |  | __ /   _____/ _____/  |_
+# |    |   /    \ /  _ \_/ ___\|  |/ / \_____  \_/ __ \   __\
+# |    |  /   |  (  <_> )  \___|    <  /        \  ___/|  |
+# |______/|___|  /\____/ \___  >__|_ \/_______  /\___  >__|
+#              \/            \/     \/        \/     \/
 @wishlist_group.command(
   name="unlock_set",
   description="Unlock your current items in a set so they are listed in Wishlist matches."

@@ -3,7 +3,7 @@ from time import sleep
 from numpy import block
 from common import *
 from commands.badges import give_user_badge, send_badge_reward_message
-from utils.badge_utils import db_get_user_badges
+from utils.badge_utils import db_get_user_badges, db_purge_users_wishlist
 
 # rainbow of colors to cycle through for the logs
 xp_colors = [
@@ -257,6 +257,8 @@ async def level_up_user(user:discord.User, level:int):
   query.close()
   db.close()
   badge = give_user_badge(user.id)
+  # Remove any badges the user may have on their wishlist that they now possess
+  db_purge_users_wishlist(user.id)
   await send_level_up_message(user, level, badge)
 
 def give_welcome_badge(user_id):
@@ -278,7 +280,7 @@ def give_welcome_badge(user_id):
 async def send_level_up_message(user:discord.User, level:int, badge:str):
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   channel = bot.get_channel(notification_channel_id)
-  
+
   embed_title = "Level up!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has reached **level {level}** and earned a new badge!"

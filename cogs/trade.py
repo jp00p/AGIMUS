@@ -223,11 +223,11 @@ class Trade(commands.Cog):
   #  |___|_||_\__\___/_|_|_|_|_||_\__, |   |_||_| \__,_\__,_\___|
   #                               |___/
   @trade.command(
-    name="pending",
+    name="incoming",
     description="View and accept/decline incoming trades from other users"
   )
   @commands.check(access_check)
-  async def pending(self, ctx:discord.ApplicationContext):
+  async def incoming(self, ctx:discord.ApplicationContext):
     incoming_trades = db_get_active_requestee_trades(ctx.user.id)
 
     if not incoming_trades:
@@ -314,6 +314,10 @@ class Trade(commands.Cog):
     # Perform the actual swap
     db_perform_badge_transfer(active_trade)
     db_complete_trade(active_trade)
+
+    # Delete Badges From Users Wishlists
+    db_purge_users_wishlist(requestor.id)
+    db_purge_users_wishlist(requestee.id)
 
     # Send Message to Channel
     success_embed = discord.Embed(

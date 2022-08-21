@@ -764,9 +764,9 @@ async def badge_lookup(ctx:discord.ApplicationContext, name:str):
       description = f"Quadrant: **{badge['quadrant']}**\n"
       description += f"Time Period: **{badge['time_period']}**\n"
       if affiliations:
-        description += f"Affiliations: **{','.join(affiliations)}**\n"
+        description += f"Affiliations: **{', '.join(affiliations)}**\n"
       if types:
-        description += f"Types: **{','.join(types)}**\n"
+        description += f"Types: **{', '.join(types)}**\n"
       description += f"Franchise: **{badge['franchise']}**\n"
       description += f"Reference: **{badge['reference']}**\n\n"
       description += f"Total number collected on The USS Hood: **{badge_count}**\n\n"
@@ -852,6 +852,9 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User):
     ), ephemeral=True)
     return
 
+  # Remove any badges the user may have on their wishlist that they now possess
+  db_purge_users_wishlist(user.id)
+
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a badge!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
@@ -907,6 +910,8 @@ async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User,
     badge_filename = badge_info['badge_filename']
     if specific_badge not in [b['badge_name'] for b in user_badges]:
       give_user_specific_badge(user.id, badge_filename)
+      # Remove any badges the user may have on their wishlist that they now possess
+      db_purge_users_wishlist(user.id)
 
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a badge!"

@@ -1130,3 +1130,22 @@ def db_get_random_badges_from_user_by_types(user_id: int):
   db.close()
 
   return {r['type_name']: r['badge_filename'] for r in rows}
+
+def db_purge_users_wishlist(user_discord_id: int):
+  """
+  Deletes all rows from `badge_wishlists` where the user already has the
+  badge present in `badges`
+  """
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    DELETE b_w FROM badge_wishlists AS b_w
+      JOIN badges AS b
+        ON b_w.badge_filename = b.badge_filename
+      WHERE b.user_discord_id = %s
+  '''
+  vals = (user_discord_id,)
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
