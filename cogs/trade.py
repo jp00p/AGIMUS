@@ -703,9 +703,9 @@ class Trade(commands.Cog):
       active_trade_requestee = await self.bot.current_guild.fetch_member(active_trade['requestee_id'])
       already_active_embed = discord.Embed(
         title="You already have an active trade!",
-        description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade status` "
-                    f"to cancel the current trade if desired!\n\nThis must be resolved before you can open another "
-                    f"request.",
+        description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade send` "
+                    f"to check the status and cancel the current trade if desired!\n\nThis must be resolved before "
+                    f"you can open another request.",
         color=discord.Color.red()
       )
       already_active_embed.set_footer(text="You may want to check on this trade to see if they have had a chance to "
@@ -754,7 +754,7 @@ class Trade(commands.Cog):
     initiated_embed = discord.Embed(
       title="Trade Started!",
       description=f"Your pending trade has been started!\n\n{follow_up_message}\n\nOnce you have added the badges "
-                  "you'd like to offer and request, use \n`/trade status` to send the trade to the user, "
+                  "you'd like to offer and request, use \n`/trade send` to send the trade to the user, "
                   "or to cancel!\n\nNote: You may only have one open outgoing trade request at a time!",
       color=discord.Color.dark_purple()
     ).add_field(
@@ -925,7 +925,7 @@ class Trade(commands.Cog):
 
           requestee_embed = discord.Embed(
             title="Trade Offered",
-            description=f"Hey there, wanted to let you know that {requestor.mention} has requested a trade from you on The USS Hood.\n\nUse `/trade pending` in the channel review and either accept or deny!\n\nYou can also see their offer at {home_message.jump_url}!",
+            description=f"Hey there, wanted to let you know that {requestor.mention} has requested a trade from you on The USS Hood.\n\nUse `/trade incoming` in the channel review and either accept or deny!\n\nYou can also see their offer at {home_message.jump_url}!",
             color=discord.Color.dark_purple()
           )
           requestee_embed.add_field(

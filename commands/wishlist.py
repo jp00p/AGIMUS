@@ -165,7 +165,8 @@ async def matches(ctx:discord.ApplicationContext):
   else:
     await ctx.followup.send(embed=discord.Embed(
         title="No Wishlist Matches Found",
-        description="Please check back later!"
+        description="Please check back later!",
+        color=discord.Color.blurple()
       ),
       ephemeral=True
     )
@@ -313,7 +314,7 @@ async def add_set(ctx:discord.ApplicationContext, category:str, selection:str):
 
   embed = discord.Embed(
     title="Badge Set Added Successfully",
-    description=f"You've successfully added all of the `{selection}` badges to your Wishlist.",
+    description=f"You've successfully added all of the `{selection}` badges to your Wishlist you do not currently possess.",
     color=discord.Color.green()
   )
   await ctx.followup.send(embed=embed)
