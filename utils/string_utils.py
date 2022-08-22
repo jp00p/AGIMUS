@@ -34,7 +34,7 @@ def strip_punctuation(string):
 
 # turns a string into plain ASCII text
 def plaintext(string):
-  return string.content.encode("ascii", errors="ignore").decode().strip()
+  return string.encode("ascii", errors="ignore").decode().strip()
 
 # After stripping out allowed characters, return if the remaining string is uppercase or not
 def is_loud(message):
