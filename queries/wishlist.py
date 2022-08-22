@@ -1,5 +1,11 @@
 from common import *
 
+#   ________        __
+#  /  _____/  _____/  |_
+# /   \  ____/ __ \   __\
+# \    \_\  \  ___/|  |
+#  \______  /\___  >__|
+#         \/     \/
 def db_get_user_wishlist_badges(user_discord_id):
   db = getDB()
   query = db.cursor(dictionary=True)
@@ -16,6 +22,13 @@ def db_get_user_wishlist_badges(user_discord_id):
   db.close()
   return badges
 
+
+#    _____       .___  .___     /\ __________
+#   /  _  \    __| _/__| _/    / / \______   \ ____   _____   _______  __ ____
+#  /  /_\  \  / __ |/ __ |    / /   |       _// __ \ /     \ /  _ \  \/ // __ \
+# /    |    \/ /_/ / /_/ |   / /    |    |   \  ___/|  Y Y  (  <_> )   /\  ___/
+# \____|__  /\____ \____ |  / /     |____|_  /\___  >__|_|  /\____/ \_/  \___  >
+#         \/      \/    \/  \/             \/     \/      \/                 \/
 def db_add_badge_name_to_users_wishlist(user_discord_id, badge_name):
   db = getDB()
   query = db.cursor()
@@ -25,6 +38,25 @@ def db_add_badge_name_to_users_wishlist(user_discord_id, badge_name):
   '''
   vals = (user_discord_id, badge_name)
   query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
+
+def db_add_badge_filenames_to_users_wishlist(user_discord_id, badge_filenames):
+  badges_values_list = []
+  for b in badge_filenames:
+    tuple = (user_discord_id, b)
+    badges_values_list.append(tuple)
+
+  logger.info(pprint(badges_values_list))
+
+  db = getDB()
+  query = db.cursor()
+  sql = '''
+    INSERT INTO badge_wishlists (user_discord_id, badge_filename)
+      VALUES (%s, %s)
+  '''
+  query.executemany(sql, badges_values_list)
   db.commit()
   query.close()
   db.close()
@@ -44,9 +76,29 @@ def db_remove_badge_name_from_users_wishlist(user_discord_id, badge_name):
   query.close()
   db.close()
 
-#
-# Locked
-#
+def db_remove_badge_filenames_from_users_wishlist(user_discord_id, badge_filenames):
+  badges_values_list = []
+  for b in badge_filenames:
+    tuple = (user_discord_id, b)
+    badges_values_list.append(tuple)
+
+  db = getDB()
+  query = db.cursor()
+  sql = '''
+    DELETE FROM badge_wishlists WHERE user_discord_id = %s AND badge_filename = %s
+  '''
+  query.executemany(sql, badges_values_list)
+  db.commit()
+  query.close()
+  db.close()
+
+
+# .____                  __         /\  ____ ___      .__                 __
+# |    |    ____   ____ |  | __    / / |    |   \____ |  |   ____   ____ |  | __
+# |    |   /  _ \_/ ___\|  |/ /   / /  |    |   /    \|  |  /  _ \_/ ___\|  |/ /
+# |    |__(  <_> )  \___|    <   / /   |    |  /   |  \  |_(  <_> )  \___|    <
+# |_______ \____/ \___  >__|_ \ / /    |______/|___|  /____/\____/ \___  >__|_ \
+#         \/          \/     \/ \/                  \/                 \/     \/
 def db_get_badge_locked_status_by_name(user_discord_id, badge_name):
   db = getDB()
   query = db.cursor(dictionary=True)
@@ -73,6 +125,22 @@ def db_lock_badge_by_filename(user_discord_id, badge_filename):
   query.close()
   db.close()
 
+def db_lock_badges_by_filenames(user_discord_id, badge_filenames):
+  badges_values_list = []
+  for b in badge_filenames:
+    tuple = (user_discord_id, b)
+    badges_values_list.append(tuple)
+
+  db = getDB()
+  query = db.cursor()
+  sql = '''
+    UPDATE badges SET locked = 1 WHERE user_discord_id = %s AND badge_filename = %s
+  '''
+  query.executemany(sql, badges_values_list)
+  db.commit()
+  query.close()
+  db.close()
+
 def db_unlock_badge_by_filename(user_discord_id, badge_filename):
   db = getDB()
   query = db.cursor()
@@ -83,9 +151,29 @@ def db_unlock_badge_by_filename(user_discord_id, badge_filename):
   query.close()
   db.close()
 
-#
-# List Matches
-#
+def db_unlock_badges_by_filenames(user_discord_id, badge_filenames):
+  badges_values_list = []
+  for b in badge_filenames:
+    tuple = (user_discord_id, b)
+    badges_values_list.append(tuple)
+
+  db = getDB()
+  query = db.cursor()
+  sql = '''
+    UPDATE badges SET locked = 0 WHERE user_discord_id = %s AND badge_filename = %s
+  '''
+  query.executemany(sql, badges_values_list)
+  db.commit()
+  query.close()
+  db.close()
+
+
+#    _____          __         .__
+#   /     \ _____ _/  |_  ____ |  |__   ____   ______
+#  /  \ /  \\__  \\   __\/ ___\|  |  \_/ __ \ /  ___/
+# /    Y    \/ __ \|  | \  \___|   Y  \  ___/ \___ \
+# \____|__  (____  /__|  \___  >___|  /\___  >____  >
+#         \/     \/          \/     \/     \/     \/
 def db_get_wishlist_matches(user_discord_id):
   db = getDB()
   query = db.cursor(dictionary=True)

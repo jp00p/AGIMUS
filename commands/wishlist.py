@@ -305,11 +305,11 @@ async def add_set(ctx:discord.ApplicationContext, category:str, selection:str):
     )
     return
 
-  existing_user_badges = [b['badge_name'] for b in db_get_user_badges(user_discord_id)]
-  existing_wishlist_badges = [b['badge_name'] for b in db_get_user_wishlist_badges(user_discord_id)]
+  existing_user_badges = [b['badge_filename'] for b in db_get_user_badges(user_discord_id)]
+  existing_wishlist_badges = [b['badge_filename'] for b in db_get_user_wishlist_badges(user_discord_id)]
 
   # Filter out those badges that are already present in the Wishlist and user's Inventory
-  valid_badges = [b['badge_name'] for b in all_set_badges if b['badge_name'] not in existing_user_badges and b['badge_name'] not in existing_wishlist_badges]
+  valid_badges = [b['badge_filename'] for b in all_set_badges if b['badge_filename'] not in existing_user_badges and b['badge_filename'] not in existing_wishlist_badges]
 
   # If there are no badges to add, error to user
   if not valid_badges:
@@ -323,8 +323,7 @@ async def add_set(ctx:discord.ApplicationContext, category:str, selection:str):
     return
 
   # Otherwise go ahead and add them
-  for badge_name in valid_badges:
-    db_add_badge_name_to_users_wishlist(user_discord_id, badge_name)
+  db_add_badge_filenames_to_users_wishlist(user_discord_id, valid_badges)
 
   embed = discord.Embed(
     title="Badge Set Added Successfully",
@@ -440,10 +439,10 @@ async def remove_set(ctx:discord.ApplicationContext, category:str, selection:str
     )
     return
 
-  existing_wishlist_badges = [b['badge_name'] for b in db_get_user_wishlist_badges(user_discord_id)]
+  existing_wishlist_badges = [b['badge_filename'] for b in db_get_user_wishlist_badges(user_discord_id)]
 
   # Filter out those badges that are not already present in the Wishlist and user's Inventory
-  valid_badges = [b['badge_name'] for b in all_set_badges if b['badge_name'] in existing_wishlist_badges]
+  valid_badges = [b['badge_filename'] for b in all_set_badges if b['badge_filename'] in existing_wishlist_badges]
 
   # If there are no badges to add, error to user
   if not valid_badges:
@@ -456,9 +455,8 @@ async def remove_set(ctx:discord.ApplicationContext, category:str, selection:str
     )
     return
 
-  # Otherwise go ahead and add them
-  for badge_name in valid_badges:
-    db_remove_badge_name_from_users_wishlist(user_discord_id, badge_name)
+  # Otherwise go ahead and remove them
+  db_remove_badge_filenames_from_users_wishlist(user_discord_id, valid_badges)
 
   embed = discord.Embed(
     title="Badge Set Removed Successfully",
@@ -591,8 +589,8 @@ async def lock_set(ctx:discord.ApplicationContext, category:str, selection:str):
     return
 
   # Otherwise, good to go and lock the badges
-  for badge_info in all_set_badges:
-    db_lock_badge_by_filename(user_discord_id, badge_info['badge_filename'])
+  valid_badges = [b['badge_filename'] for b in all_set_badges]
+  db_lock_badges_by_filenames(user_discord_id, valid_badges)
 
   embed = discord.Embed(
     title="Badge Set Locked Successfully",
@@ -724,8 +722,8 @@ async def unlock_set(ctx:discord.ApplicationContext, category:str, selection:str
     return
 
   # Otherwise, good to go and lock the badges
-  for badge_info in all_set_badges:
-    db_unlock_badge_by_filename(user_discord_id, badge_info['badge_filename'])
+  valid_badges = [b['badge_filename'] for b in all_set_badges]
+  db_unlock_badges_by_filenames(user_discord_id, valid_badges)
 
   embed = discord.Embed(
     title="Badge Set Locked Successfully",
