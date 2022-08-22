@@ -90,6 +90,17 @@ def db_remove_badge_filenames_from_users_wishlist(user_discord_id, badge_filenam
   query.close()
   db.close()
 
+def db_clear_users_wishlist(user_discord_id):
+  db = getDB()
+  query = db.cursor()
+  sql = '''
+    DELETE FROM badge_wishlists WHERE user_discord_id = %s
+  '''
+  vals = (user_discord_id, )
+  query.execute(sql, vals)
+  db.commit()
+  query.close()
+  db.close()
 
 # .____                  __         /\  ____ ___      .__                 __
 # |    |    ____   ____ |  | __    / / |    |   \____ |  |   ____   ____ |  | __

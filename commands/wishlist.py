@@ -71,6 +71,7 @@ async def unlock_autocomplete(ctx:discord.AutocompleteContext):
 async def display(ctx:discord.ApplicationContext):
   await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
+  logger.info(f"{ctx.author.display_name} is {Style.BRIGHT}displaying {Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
   wishlist_badges = db_get_user_wishlist_badges(user_discord_id)
 
@@ -118,6 +119,8 @@ async def display(ctx:discord.ApplicationContext):
 async def matches(ctx:discord.ApplicationContext):
   await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
+
+  logger.info(f"{ctx.author.display_name} is checking for {Style.BRIGHT}matches {Style.RESET_ALL} to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
   # Get all the users and the badgenames that have the badges the user wants
   wishlist_matches = db_get_wishlist_matches(user_discord_id)
@@ -267,6 +270,8 @@ async def add(ctx:discord.ApplicationContext, badge:str):
   await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
 
+  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}add {Style.RESET_ALL} the badge {Style.BRIGHT}{badge} {Style.RESET_ALL} to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
+
   # Check to make sure the badge is not already present in their wishlist
   existing_wishlist_badges = [b['badge_name'] for b in db_get_user_wishlist_badges(user_discord_id)]
   if badge in existing_wishlist_badges:
@@ -348,6 +353,8 @@ async def add_set(ctx:discord.ApplicationContext, category:str, selection:str):
   await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
 
+  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}add a set{Style.RESET_ALL},  {Style.BRIGHT}{category} - {selection} {Style.RESET_ALL}, to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
+
   if category == 'affiliation':
     all_set_badges = db_get_all_affiliation_badges(selection)
   elif category == 'franchise':
@@ -393,7 +400,7 @@ async def add_set(ctx:discord.ApplicationContext, category:str, selection:str):
 
   embed = discord.Embed(
     title="Badge Set Added Successfully",
-    description=f"You've successfully added all of the `{selection}` badges to your Wishlist you do not currently possess.",
+    description=f"You've successfully added all of the `{selection}` badges to your Wishlist that you do not currently possess.",
     color=discord.Color.green()
   )
   await ctx.followup.send(embed=embed)
@@ -418,6 +425,8 @@ async def add_set(ctx:discord.ApplicationContext, category:str, selection:str):
 async def remove(ctx:discord.ApplicationContext, badge:str):
   await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
+
+  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}remove {Style.RESET_ALL} the badge {Style.BRIGHT}{badge} {Style.RESET_ALL} from their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
   # Check to make sure the badges are present in their wishlist
   user_wishlist_badge_names =  [b['badge_name'] for b in db_get_user_wishlist_badges(user_discord_id)]
@@ -482,6 +491,8 @@ async def remove_set(ctx:discord.ApplicationContext, category:str, selection:str
   await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
 
+  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}remove a set{Style.RESET_ALL},  {Style.BRIGHT}{category} - {selection} {Style.RESET_ALL}, from their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
+
   if category == 'affiliation':
     all_set_badges = db_get_all_affiliation_badges(selection)
   elif category == 'franchise':
@@ -526,10 +537,56 @@ async def remove_set(ctx:discord.ApplicationContext, category:str, selection:str
 
   embed = discord.Embed(
     title="Badge Set Removed Successfully",
-    description=f"You've successfully removed all of the `{selection}` badges from your Wishlist.",
+    description=f"You've successfully removed all `{selection}` badges from your Wishlist.",
     color=discord.Color.green()
   )
   await ctx.followup.send(embed=embed)
+
+
+@wishlist_group.command(
+  name="clear",
+  description="Remove all badges from your Wishlist."
+)
+@option(
+  name="confirm",
+  description="Confirm you wish to clear your Wishlist",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="No, don't clear.",
+      value="no"
+    ),
+    discord.OptionChoice(
+      name="Yes, clear my Wishlist.",
+      value="yes"
+    )
+  ]
+)
+async def clear(ctx:discord.ApplicationContext, confirm:str):
+  await ctx.defer(ephemeral=True)
+  confirmed = bool(confirm == "yes")
+
+  user_discord_id = ctx.author.id
+
+  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}clear{Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
+
+  if confirmed:
+    db_clear_users_wishlist(user_discord_id)
+    logger.info(f"{ctx.author.display_name} has {Style.BRIGHT}cleared {Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
+
+    embed = discord.Embed(
+      title="Wishlist Cleared Successfully",
+      description=f"You've successfully removed all badges from your Wishlist.",
+      color=discord.Color.green()
+    )
+    await ctx.followup.send(embed=embed)
+  else:
+    embed = discord.Embed(
+      title="No Action Taken",
+      description=f"Confirmation was not verified. If you intend to clear your wishlist, please select Yes as your confirmation choice.",
+      color=discord.Color.red()
+    )
+    await ctx.followup.send(embed=embed)
 
 
 # .____                  __
@@ -551,6 +608,8 @@ async def remove_set(ctx:discord.ApplicationContext, category:str, selection:str
 async def lock(ctx:discord.ApplicationContext, badge:str):
   await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
+
+  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}lock {Style.RESET_ALL} the badge {Style.BRIGHT}{badge} {Style.RESET_ALL} from being listed in their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
   # Check to make sure badge is present in inventory
   existing_badges = [b['badge_name'] for b in db_get_user_badges(user_discord_id)]
@@ -631,6 +690,8 @@ async def lock_set(ctx:discord.ApplicationContext, category:str, selection:str):
   await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
 
+  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}lock a set{Style.RESET_ALL},  {Style.BRIGHT}{category} - {selection} {Style.RESET_ALL}, from being listed in their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
+
   if category == 'affiliation':
     all_set_badges = db_get_all_affiliation_badges(selection)
   elif category == 'franchise':
@@ -684,6 +745,8 @@ async def lock_set(ctx:discord.ApplicationContext, category:str, selection:str):
 async def unlock(ctx:discord.ApplicationContext, badge:str):
   await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
+
+  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}unlock {Style.RESET_ALL} the badge {Style.BRIGHT}{badge} {Style.RESET_ALL} from being listed in their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
   # Check to make sure badge is present in inventory
   existing_badges = [b['badge_name'] for b in db_get_user_badges(user_discord_id)]
@@ -763,6 +826,8 @@ async def unlock(ctx:discord.ApplicationContext, badge:str):
 async def unlock_set(ctx:discord.ApplicationContext, category:str, selection:str):
   await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
+
+  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}lock a set{Style.RESET_ALL},  {Style.BRIGHT}{category} - {selection} {Style.RESET_ALL}, from being listed in their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
   if category == 'affiliation':
     all_set_badges = db_get_all_affiliation_badges(selection)

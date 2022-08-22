@@ -10,7 +10,7 @@ Level-up Announcements and Badge Trading!
 `/settings` - Configure various user settings including enabling or disabling DMs from AGIMUS (trades normally send notifications on incoming, declined, or canceled trades)
 
 **TRADING**
-You can trade the badges you earn from leveling up with other users!
+Trade the badges you earn from leveling up with other users!
 
 Note that you can offer/request from 0 to 6 badges each either way (so a 6 for 6 trade is the maximum for a single trade).
 
@@ -35,13 +35,13 @@ You may have up to three incoming trades at a time.
 
 2. Quark uses `/trade start user:@Weyoun offer:"The Lucky Ferengi" request:"Volleyball Court"` to start a pending trade with Weyoun as the recipient.
 
-3. Quark uses `/trade propose offer:"Tongo Card (Sample)"` to add his first badge to the pending trade.
+3. Quark uses `/trade propose offer:"Tongo Card (Sample)"` to add the badge to the pending trade.
 
 7. Quark uses `/trade send` to verify everything looks good to go, and then presses the Send button. Weyoun gets a notification letting them know that Quark has made an offer and the channel is also alerted that the trade is underway!
 
 8. Weyoun uses `/trade incoming` to view Quark's offer and presses Accept (Weyoun also could have also pressed Decline if they did not wish to engage the trade).
 
-9. Successful trade! A notification is sent to both Quark and the channel to let them know that the transfer was made successfully! Quark now owns the *"Volleyball Court"* badge and Weyoun owns both *"The Lucky Ferengi"* and *"Tongo Card (Sample)"* badges.
+9. Successful trade! A notification is sent to both Quark and the channel to let them know that the transfer was made successfully! Quark now owns *"Volleyball Court"* and Weyoun owns *"The Lucky Ferengi"* and *"Tongo Card (Sample)"*.
 
 10. There is much rejoicing.
 
@@ -62,3 +62,5 @@ You can also Lock badges in your inventory from being included in wishlist match
 `/wishlist lock` and `/wishlist lock_set` - Lock items to your inventory from being listed in Wishlist matches by single badge or in bulk by set.
 
 `/wishlist unlock` and `/wishlist unlock_set` - Unlock items to your inventory so they're again listed in Wishlist matches by single badge or in bulk by set.
+
+`/wishlist clear` - Remove all badges from your wishlist.
