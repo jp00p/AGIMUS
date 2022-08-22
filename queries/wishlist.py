@@ -48,8 +48,6 @@ def db_add_badge_filenames_to_users_wishlist(user_discord_id, badge_filenames):
     tuple = (user_discord_id, b)
     badges_values_list.append(tuple)
 
-  logger.info(pprint(badges_values_list))
-
   db = getDB()
   query = db.cursor()
   sql = '''

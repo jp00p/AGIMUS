@@ -114,6 +114,7 @@ async def display(ctx:discord.ApplicationContext):
   name="matches",
   description="Find matches from other users who have what you want, and want what you have!"
 )
+@commands.check(access_check)
 async def matches(ctx:discord.ApplicationContext):
   await ctx.defer(ephemeral=True)
   user_discord_id = ctx.author.id
@@ -152,25 +153,95 @@ async def matches(ctx:discord.ApplicationContext):
       }
 
   if len(exact_matches_aggregate.keys()):
+
+    paginator_buttons = [
+      pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton(
+        "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
+      ),
+      pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
+    ]
+
     for user_id in exact_matches_aggregate.keys():
       user = await bot.current_guild.fetch_member(user_id)
-      embed = discord.Embed(
-        title="Wishlist Match!",
-        description=f"{user.mention} has a wishlist match with you.",
-        color=discord.Color.random()
+
+      max_badges_per_page = 50
+
+      # Pages for Badges Match Has
+      has_badges = exact_matches_aggregate[user_id]['has']
+      has_badges.sort()
+      all_has_pages = [has_badges[i:i + max_badges_per_page] for i in range(0, len(has_badges), max_badges_per_page)]
+      total_has_pages = len(all_has_pages)
+
+      has_pages = []
+      for page_index, page_badges in enumerate(all_has_pages):
+        embed = discord.Embed(
+          title="Has From Your Wishlist:",
+          description="\n".join(page_badges),
+          color=discord.Color.blurple()
+        )
+        embed.set_footer(text=f"Page {page_index + 1} of {total_has_pages}")
+        has_pages.append(embed)
+
+      # Pages for Badges Match Wants
+      wants_badges = exact_matches_aggregate[user_id]['wants']
+      wants_badges.sort()
+      all_wants_pages = [wants_badges[i:i + max_badges_per_page] for i in range(0, len(wants_badges), max_badges_per_page)]
+      total_wants_pages = len(all_wants_pages)
+
+      wants_pages = []
+      for page_index, page_badges in enumerate(all_wants_pages):
+        embed = discord.Embed(
+          title="Wants From Your Inventory:",
+          description="\n".join(page_badges),
+          color=discord.Color.blurple()
+        )
+        embed.set_footer(text=f"Page {page_index + 1} of {total_wants_pages}")
+        wants_pages.append(embed)
+
+      page_groups = [
+        pages.PageGroup(
+          pages=[
+            discord.Embed(
+              title="Wishlist Match!",
+              description=f"{user.mention} has a wishlist match with you!" "\n\n"
+                          f"Use the menu below to view which items {user.display_name} "
+                          "has that are present in your wishlist, and which items you have "
+                          "that are present in *their* wishlist.\n\n"
+                          "If you find something interesting, drop them a line and you can "
+                          "use `/trade start` to send them a request!",
+              color=discord.Color.blurple()
+            )
+          ],
+          label=f"{user.display_name}'s Match!",
+          description="Details and Info",
+          custom_buttons=paginator_buttons,
+          use_default_buttons=False
+        ),
+        pages.PageGroup(
+          pages=has_pages,
+          label="What You Want",
+          description="Badges The Match Has From Your Wishlist",
+          custom_buttons=paginator_buttons,
+          use_default_buttons=False
+        ),
+        pages.PageGroup(
+          pages=wants_pages,
+          label="What They Want",
+          description="Badges The Match Is Looking For",
+          custom_buttons=paginator_buttons,
+          use_default_buttons=False
+        )
+      ]
+
+      paginator = pages.Paginator(
+        pages=page_groups,
+        show_menu=True,
+        custom_buttons=paginator_buttons,
+        use_default_buttons=False
       )
-      embed.add_field(
-        name="Has From Your Wishlist:",
-        value="\n".join(exact_matches_aggregate[user_id]['has']),
-        inline=False
-      )
-      embed.add_field(
-        name="Wants From Your Inventory:",
-        value="\n".join(exact_matches_aggregate[user_id]['wants']),
-        inline=False
-      )
-      embed.set_footer(text="Make them an offer with '/trade start'!")
-      await ctx.followup.send(embed=embed, ephemeral=True)
+      await paginator.respond(ctx.interaction, ephemeral=True)
+
   else:
     await ctx.followup.send(
       embed=discord.Embed(

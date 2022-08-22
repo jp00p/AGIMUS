@@ -774,6 +774,14 @@
       "data": null,
       "parameters": []
     },
+    "wishlist matches": {
+      "channels": [
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "zork": {
       "channels": [
         "after-dinner-conversation"
