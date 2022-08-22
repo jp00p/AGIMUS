@@ -204,12 +204,7 @@ async def matches(ctx:discord.ApplicationContext):
           pages=[
             discord.Embed(
               title="Wishlist Match!",
-              description=f"{user.mention} has a wishlist match with you!" "\n\n"
-                          f"Use the menu below to view which items {user.display_name} "
-                          "has that are present in your wishlist, and which items you have "
-                          "that are present in *their* wishlist.\n\n"
-                          "If you find something interesting, drop them a line and you can "
-                          "use `/trade start` to send them a request!",
+              description=f"{user.mention} has a wishlist match with you!",
               color=discord.Color.blurple()
             )
           ],
