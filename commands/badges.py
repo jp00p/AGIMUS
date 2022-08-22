@@ -465,7 +465,6 @@ class ScrapButton(discord.ui.Button):
     last_scrap_time = db_get_scrap_last_timestamp(self.user_id)
     if last_scrap_time:
       to_zone = tz.tzlocal()
-      # past_time = datetime.fromtimestamp(last_scrap_time)
       last_scrap_time.replace(tzinfo=to_zone)
       current_time = datetime.now()
       if last_scrap_time.date() < current_time.date():
@@ -634,7 +633,6 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     time_check_fail = True
 
     to_zone = tz.tzlocal()
-    # past_time = datetime.fromtimestamp(last_scrap_time)
     last_scrap_time.replace(tzinfo=to_zone)
     current_time = datetime.now()
     current_time.replace(tzinfo=to_zone)
@@ -648,7 +646,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
       humanized_time_left = humanize.precisedelta(midnight_tomorrow - current_time, suppress=["days"])
       await ctx.followup.send(embed=discord.Embed(
         title="Scrapper recharging, please wait.",
-        description=f"You may only perform one scrap every 24 hours.\n\nYou still must wait until Midnight Pacific ({humanized_time_left} left).",
+        description=f"Reset time at Midnight Pacific ({humanized_time_left} left).",
         color=discord.Color.red()
       ), ephemeral=True)
       return
