@@ -777,7 +777,7 @@ class Trade(commands.Cog):
         color=discord.Color.dark_green()
       )
       offer_embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
-      await ctx.followup.send(embed=offer_embed, file=discord_image)
+      await ctx.followup.send(embed=offer_embed, file=discord_image, ephemeral=True)
     if request:
       badge_info = db_get_badge_info_by_name(request)
       discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
@@ -788,7 +788,7 @@ class Trade(commands.Cog):
         color=discord.Color.dark_green()
       )
       offer_embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
-      await ctx.followup.send(embed=offer_embed, file=discord_image)
+      await ctx.followup.send(embed=offer_embed, file=discord_image, ephemeral=True)
 
 
   @trade.command(
