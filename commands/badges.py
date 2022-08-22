@@ -1,9 +1,6 @@
-import textwrap
-import time
-import math
-
 from common import *
 from cogs.trade import db_cancel_trade, get_offered_and_requested_badge_names
+from queries.wishlist import db_get_badge_locked_status_by_name
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 import queries.badge_completion as queries_badge_completion
@@ -13,15 +10,14 @@ from queries.badge_scrap import *
 with open(config["handlers"]["xp"]["badge_data"]) as f:
   badge_data = json.loads(f.read())
 
+all_badge_info = db_get_all_badge_info()
+
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
 #  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
-
-all_badge_info = db_get_all_badge_info()
-
 async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
   return [badge['badge_name'] for badge in all_badge_info if ctx.value.lower() in badge['badge_name'].lower()]
 
@@ -37,23 +33,6 @@ async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
   filtered_badge_names = [badge['badge_name'] for badge in user_badges if badge['badge_name'] not in filtered_badges]
 
   return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
-
-
-async def autocomplete_selections(ctx:discord.AutocompleteContext):
-  category = ctx.options["category"]
-
-  selections = []
-
-  if category == 'affiliation':
-    selections = db_get_all_affiliations()
-  elif category == 'franchise':
-    selections = db_get_all_franchises()
-  elif category == 'time_period':
-    selections = db_get_all_time_periods()
-  elif category == 'type':
-    selections = db_get_all_types()
-
-  return [result for result in selections if ctx.value.lower() in result.lower()]
 
 badge_group = bot.create_group("badges", "Badge Commands!")
 
@@ -236,15 +215,22 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
     return
 
   if not all_set_badges:
-    await ctx.followup.send(f"Your entry was not in the list of {category_title}s!", ephemeral=True)
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title=f"Your entry was not in the list of {category_title}s!",
+        color=discord.Color.red()
+      ), ephemeral=True
+    )
     return
-
 
   set_badges = []
   for badge in all_set_badges:
+    result = db_get_badge_locked_status_by_name(ctx.author.id, badge['badge_name'])
+    locked = result['locked'] if result else False
     record = {
       'badge_name': badge['badge_name'],
       'badge_filename': badge['badge_filename'],
+      'locked': locked,
       'in_user_collection': badge['badge_name'] in [b['badge_name'] for b in user_set_badges]
     }
     set_badges.append(record)
@@ -783,9 +769,9 @@ async def badge_lookup(ctx:discord.ApplicationContext, name:str):
       description = f"Quadrant: **{badge['quadrant']}**\n"
       description += f"Time Period: **{badge['time_period']}**\n"
       if affiliations:
-        description += f"Affiliations: **{','.join(affiliations)}**\n"
+        description += f"Affiliations: **{', '.join(affiliations)}**\n"
       if types:
-        description += f"Types: **{','.join(types)}**\n"
+        description += f"Types: **{', '.join(types)}**\n"
       description += f"Franchise: **{badge['franchise']}**\n"
       description += f"Reference: **{badge['reference']}**\n\n"
       description += f"Total number collected on The USS Hood: **{badge_count}**\n\n"
@@ -871,6 +857,9 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User):
     ), ephemeral=True)
     return
 
+  # Remove any badges the user may have on their wishlist that they now possess
+  db_purge_users_wishlist(user.id)
+
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a badge!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
@@ -926,6 +915,8 @@ async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User,
     badge_filename = badge_info['badge_filename']
     if specific_badge not in [b['badge_name'] for b in user_badges]:
       give_user_specific_badge(user.id, badge_filename)
+      # Remove any badges the user may have on their wishlist that they now possess
+      db_purge_users_wishlist(user.id)
 
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a badge!"
@@ -971,349 +962,6 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
-
-# Affiliations
-def db_get_all_affiliations():
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT distinct(affiliation_name) FROM badge_affiliation;"
-  query.execute(sql)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  affiliations = [r['affiliation_name'] for r in rows if r['affiliation_name'] is not None]
-  affiliations.sort()
-
-  return affiliations
-
-def db_get_all_affiliation_badges(affiliation):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badge_info b_i
-      JOIN badge_affiliation AS b_a
-        ON b_i.badge_filename = b_a.badge_filename
-      WHERE b_a.affiliation_name = %s
-      ORDER BY b_i.badge_name ASC;
-  '''
-  vals = (affiliation,)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return rows
-
-def db_get_badge_affiliations_by_badge_name(name):
-  """
-  Given the name of a badge, retrieves the affiliation(s) associated with it
-  :param name: the name of the badge.
-  :return: list of row dicts
-  """
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT affiliation_name FROM badge_affiliation b_a
-    JOIN badge_info as b_i
-      ON b_i.badge_filename = b_a.badge_filename
-    WHERE badge_name = %s;
-  '''
-  vals = (name,)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return rows
-
-def db_get_badges_user_has_from_affiliation(user_id, affiliation):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
-      JOIN badge_info AS b_i
-        ON b.badge_filename = b_i.badge_filename
-      JOIN badge_affiliation AS b_a
-        ON b_i.badge_filename = b_a.badge_filename
-      WHERE b.user_discord_id = %s
-        AND b_a.affiliation_name = %s
-      ORDER BY b_i.badge_name ASC;
-  '''
-  vals = (user_id, affiliation)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return rows
-
-def db_get_random_badges_from_user_by_affiliations(user_id: int):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_filename, b_a.affiliation_name
-    FROM badges b
-    INNER JOIN badge_info AS b_i
-        ON b.badge_filename = b_i.badge_filename
-    INNER JOIN badge_affiliation AS b_a
-        ON b_i.badge_filename = b_a.badge_filename
-    WHERE b.user_discord_id = %s
-    ORDER BY RAND()
-  '''
-  query.execute(sql, (user_id,))
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return {r['affiliation_name']: r['badge_filename'] for r in rows}
-
-# Franchises
-def db_get_all_franchises():
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT distinct(franchise) FROM badge_info"
-  query.execute(sql)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  franchises = [r['franchise'] for r in rows if r['franchise'] is not None]
-  franchises.sort()
-
-  return franchises
-
-def db_get_all_franchise_badges(franchise):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT badge_name, badge_filename FROM badge_info
-      WHERE franchise = %s
-      ORDER BY badge_name ASC;
-  '''
-  vals = (franchise,)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return rows
-
-def db_get_badges_user_has_from_franchise(user_id, franchise):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
-      JOIN badge_info AS b_i
-        ON b.badge_filename = b_i.badge_filename
-      WHERE b.user_discord_id = %s
-        AND b_i.franchise = %s
-      ORDER BY b_i.badge_name ASC;
-  '''
-  vals = (user_id, franchise)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return rows
-
-def db_get_random_badges_from_user_by_franchises(user_id: int):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_filename, b_i.franchise
-    FROM badges b
-    INNER JOIN badge_info AS b_i
-        ON b.badge_filename = b_i.badge_filename
-    WHERE b.user_discord_id = %s
-    ORDER BY RAND()
-  '''
-  query.execute(sql, (user_id,))
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return {r['franchise']: r['badge_filename'] for r in rows}
-
-
-# Time Periods
-def db_get_all_time_periods():
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT distinct(time_period) FROM badge_info"
-  query.execute(sql)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  time_periods = [r['time_period'] for r in rows if r['time_period'] is not None]
-  time_periods.sort(key=_time_period_sort)
-
-  return time_periods
-
-def _time_period_sort(time_period):
-  """
-  We may be dealing with time periods before 1000,
-  so tack on a 0 prefix for these for proper sorting
-  """
-  if len(time_period) == 4:
-    return f"0{time_period}"
-  else:
-    return time_period
-
-def db_get_all_time_period_badges(time_period):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT badge_name, badge_filename FROM badge_info b_i
-      WHERE time_period = %s
-      ORDER BY badge_name ASC
-  '''
-  vals = (time_period,)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return rows
-
-def db_get_badges_user_has_from_time_period(user_id, time_period):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
-      JOIN badge_info AS b_i
-        ON b.badge_filename = b_i.badge_filename
-      WHERE b.user_discord_id = %s
-        AND b_i.time_period = %s
-      ORDER BY b_i.badge_name ASC
-  '''
-  vals = (user_id, time_period)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return rows
-
-
-def db_get_random_badges_from_user_by_time_periods(user_id: int):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_filename, b_i.time_period
-    FROM badges b
-    INNER JOIN badge_info AS b_i
-        ON b.badge_filename = b_i.badge_filename
-    WHERE b.user_discord_id = %s
-    ORDER BY RAND()
-  '''
-  query.execute(sql, (user_id,))
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return {r['time_period']: r['badge_filename'] for r in rows}
-
-
-# Types
-def db_get_all_types():
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT distinct(type_name) FROM badge_type"
-  query.execute(sql)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  types = [r['type_name'] for r in rows if r['type_name'] is not None]
-  types.sort()
-
-  return types
-
-def db_get_all_type_badges(type):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badge_info b_i
-      JOIN badge_type AS b_t
-        ON b_i.badge_filename = b_t.badge_filename
-      WHERE b_t.type_name = %s
-      ORDER BY b_i.badge_name ASC
-  '''
-  vals = (type,)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return rows
-
-def db_get_badge_types_by_badge_name(name):
-  """
-  Given the name of a badge, retrieves the types(s) associated with it
-  :param name: the name of the badge.
-  :return: list of row dicts
-  """
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT type_name FROM badge_type b_t
-    JOIN badge_info as b_i
-      ON b_i.badge_filename = b_t.badge_filename
-    WHERE badge_name = %s;
-  '''
-  vals = (name,)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return rows
-
-
-def db_get_badges_user_has_from_type(user_id, type):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
-      JOIN badge_info AS b_i
-        ON b.badge_filename = b_i.badge_filename
-      JOIN badge_type AS b_t
-        ON b_i.badge_filename = b_t.badge_filename
-      WHERE b.user_discord_id = %s
-        AND b_t.type_name = %s
-      ORDER BY b_i.badge_name ASC
-  '''
-  vals = (user_id, type)
-  query.execute(sql, vals)
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return rows
-
-def db_get_random_badges_from_user_by_types(user_id: int):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.badge_filename, b_t.type_name
-    FROM badges b
-    INNER JOIN badge_info AS b_i
-        ON b.badge_filename = b_i.badge_filename
-    INNER JOIN badge_type AS b_t
-        ON b_i.badge_filename = b_t.badge_filename
-    WHERE b.user_discord_id = %s
-    ORDER BY RAND()
-  '''
-  query.execute(sql, (user_id,))
-  rows = query.fetchall()
-  query.close()
-  db.close()
-
-  return {r['type_name']: r['badge_filename'] for r in rows}
-
 
 def give_user_badge(user_discord_id:int):
   """ pick a badge, update badges DB, return badge name """

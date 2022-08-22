@@ -10,7 +10,7 @@ Level-up Announcements and Badge Trading!
 `/settings` - Configure various user settings including enabling or disabling DMs from AGIMUS (trades normally send notifications on incoming, declined, or canceled trades)
 
 **TRADING**
-You can trade the badges you earn from leveling up with other users!
+Trade the badges you earn from leveling up with other users!
 
 Note that you can offer/request from 0 to 6 badges each either way (so a 6 for 6 trade is the maximum for a single trade).
 
@@ -20,14 +20,14 @@ You may have up to three incoming trades at a time.
 **TRADING COMMANDS**
 
 **Incoming Trades**
-`/trade pending` - View any incoming trades other users have requested from you and respond to accept/decline the offer
+`/trade incoming` - View any incoming trades other users have requested from you and respond to accept/decline the offer
 
 **Outgoing Trades**
 `/trade start <user> <offer> <request>` - Must be done initially! Create a 'pending' trade with a user. You can specify an initial offer and request here as well.
 
 `/trade propose <offer> <request>` - Add additional offered and requested badges to the pending trade.
 
-`/trade status` - View the current details of your Active or Pending trade. Has buttons to Cancel and if currently pending, Send the proposed trade.
+`/trade send` - Review the current details of your Active or Pending trade before Sending (or Canceling).
 
 **EXAMPLE OF A TRADE**
 
@@ -35,12 +35,32 @@ You may have up to three incoming trades at a time.
 
 2. Quark uses `/trade start user:@Weyoun offer:"The Lucky Ferengi" request:"Volleyball Court"` to start a pending trade with Weyoun as the recipient.
 
-3. Quark uses `/trade propose offer:"Tongo Card (Sample)"` to add his first badge to the pending trade.
+3. Quark uses `/trade propose offer:"Tongo Card (Sample)"` to add the badge to the pending trade.
 
-7. Quark uses `/trade status` to verify everything looks good to go, and then presses the Send button. Weyoun gets a notification letting them know that Quark has made an offer and the channel is also alerted that the trade is underway!
+7. Quark uses `/trade send` to verify everything looks good to go, and then presses the Send button. Weyoun gets a notification letting them know that Quark has made an offer and the channel is also alerted that the trade is underway!
 
-8. Weyoun uses `/trade pending` to view Quark's offer and presses Accept (Weyoun also could have also pressed Decline if they did not wish to engage the trade).
+8. Weyoun uses `/trade incoming` to view Quark's offer and presses Accept (Weyoun also could have also pressed Decline if they did not wish to engage the trade).
 
-9. Successful trade! A notification is sent to both Quark and the channel to let them know that the transfer was made successfully! Quark now owns the *"Volleyball Court"* badge and Weyoun owns both *"The Lucky Ferengi"* and *"Tongo Card (Sample)"* badges.
+9. Successful trade! A notification is sent to both Quark and the channel to let them know that the transfer was made successfully! Quark now owns *"Volleyball Court"* and Weyoun owns *"The Lucky Ferengi"* and *"Tongo Card (Sample)"*.
 
 10. There is much rejoicing.
+
+**WISHLIST COMMANDS**
+
+To help manage trading, you can set up a Wishlist of badges that you're looking to collect!
+
+Once you've set up your wishlist, using `/wishlist matches` will check other users wishlists to determine if there's a match where they have one or more badges you want, provided *you* have one or more of the badges *they* want!
+
+You can also Lock badges in your inventory from being included in wishlist matches. This is useful for badges that you wish to keep and not trade away! Locked badges are shown in your `/badges showcase` and `/badges sets` list with a small lock icon.
+
+`/wishlist matches` - View any potential matches where your wishlist and inventory intersect with another user's.
+
+`/wishlist add` and `/wishlist add_set` - Add items to your wishlist by single badge or in bulk by set.
+
+`/wishlist remove` and `/wishlist remove_set` - Remove items to your wishlist by single badge or in bulk by set.
+
+`/wishlist lock` and `/wishlist lock_set` - Lock items to your inventory from being listed in Wishlist matches by single badge or in bulk by set.
+
+`/wishlist unlock` and `/wishlist unlock_set` - Unlock items to your inventory so they're again listed in Wishlist matches by single badge or in bulk by set.
+
+`/wishlist clear` - Remove all badges from your wishlist.

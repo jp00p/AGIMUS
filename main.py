@@ -23,6 +23,7 @@ from commands.speak import speak, speak_embed
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
+from commands.wishlist import *
 
 # Slash Command Groups
 import commands.drop

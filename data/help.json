@@ -4,7 +4,8 @@
     "enabled": true,
     "file": "data/help/badges.txt",
     "channels": [
-      "badgeys-badges"
+      "badgeys-badges",
+      "bahrats-bazaar"
     ]
   },
   {
