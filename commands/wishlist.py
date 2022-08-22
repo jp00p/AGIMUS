@@ -397,6 +397,8 @@ async def add_set(ctx:discord.ApplicationContext, category:str, selection:str):
 
   # Otherwise go ahead and add them
   db_add_badge_filenames_to_users_wishlist(user_discord_id, valid_badges)
+  # And lock them down!
+  db_lock_badges_by_filenames(user_discord_id, valid_badges)
 
   embed = discord.Embed(
     title="Badge Set Added Successfully",
