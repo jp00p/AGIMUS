@@ -1,8 +1,10 @@
 from common import *
+from utils import string_utils
 from wordcloud import STOPWORDS
 
 # save_message_to_db() - saves a users message to the database after doing some cleanup on the message 
 # strips emoji and converts message to basic ascii, shuffles words in message, sorts words in message
+# used for wordcloud only at the moment!
 async def save_message_to_db(message:discord.Message):
   
   blocked_channels = get_channel_ids_list(config["handlers"]["save_message"]["blocked_channels"])
@@ -13,7 +15,7 @@ async def save_message_to_db(message:discord.Message):
   if user["log_messages"] and user["log_messages"] == 1:
     
     # convert message to plaintext
-    message_content = message.content.encode("ascii", errors="ignore").decode().strip()
+    message_content = string_utils.plaintext(message.content)
 
     message_modified = set(message_content.split(" "))
 
@@ -35,8 +37,7 @@ async def save_message_to_db(message:discord.Message):
     if message_content.strip() == "":
       return None
 
-    logger.info(f"Saving message: {message_content}")
-
+    #logger.info(f"Saving message: {message_content}")
     db = getDB()
     query = db.cursor()
     sql = "INSERT INTO message_history (user_discord_id, channel_id, message_text) VALUES (%s, %s, %s)"
