@@ -110,7 +110,7 @@ def db_clear_users_wishlist(user_discord_id):
 #         \/          \/     \/ \/                  \/                 \/     \/
 def db_get_badge_locked_status_by_name(user_discord_id, badge_name):
   db = getDB()
-  query = db.cursor(dictionary=True)
+  query = db.cursor(dictionary=True, buffered=True)
   sql = '''
     SELECT b_i.*, b.locked FROM badge_info AS b_i
       JOIN badges AS b
