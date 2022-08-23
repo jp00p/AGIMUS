@@ -226,3 +226,27 @@ CREATE TABLE IF NOT EXISTS badge_wishlists (
   KEY `badge_filename` (`badge_filename`),
   CONSTRAINT `badge_wishlists_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
+CREATE TABLE IF NOT EXISTS ps_players (
+  'id',
+  'user_id',
+  'time_created'
+);
+CREATE TABLE IF NOT EXISTS ps_shimodae (
+  'id',
+  'owner_id',
+  'name',
+  'display_name',
+  'level',
+  'xp'
+  'time_created'
+);
+CREATE TABLE IF NOT EXISTS ps_battles (
+  'id',
+  'combatant1',
+  'combatant2',
+  'turn',
+  'status',
+  'outcome'
+  'time_started',
+  'time_ended',
+);
