@@ -273,7 +273,7 @@ async def add(ctx:discord.ApplicationContext, badge:str):
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}add{Style.RESET_ALL} the badge {Style.BRIGHT}{badge}{Style.RESET_ALL} to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
   if badge not in [b['badge_name'] for b in all_badge_info]:
-    channel = bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
+    channel = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
     await ctx.followup.send(
       embed=discord.Embed(
         title="That Badge Doesn't Exist (Yet?)",

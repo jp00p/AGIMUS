@@ -8,11 +8,9 @@ def seed_badge_tables():
   db = getDB()
   for badge_key in badges.keys():
     badge_name = badge_key
-    badge_filename = f"{badge_key.replace(' ', '_')}.png"
+    badge_filename = f"{badge_key.replace(' ', '_').replace(':', '-').replace('/', '-')}.png"
 
     badge_info = badges[badge_key]
-
-    logger.info(f">> Inserting badge_name: {badge_name}")
 
     badge_url = badge_info['badge_url']
     quadrant = badge_info.get('quadrant')
@@ -61,9 +59,22 @@ def seed_badge_tables():
 
 
     query = db.cursor(dictionary=True, buffered=True)
+    # Check if badge already exists and if so skip
+    sql = '''
+      SELECT * FROM badge_info WHERE badge_filename = %s
+    '''
+    vals = (badge_filename,)
+    query.execute(sql, vals)
+    result = query.fetchone()
+    if result is not None:
+      query.close()
+      continue
+
+    logger.info(f">> Inserting badge_name: {badge_name}")
+
     # Insert basic info into badge_info
     sql = '''
-      INSERT IGNORE INTO badge_info
+      INSERT INTO badge_info
         (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
     '''
