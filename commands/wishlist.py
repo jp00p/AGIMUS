@@ -272,6 +272,17 @@ async def add(ctx:discord.ApplicationContext, badge:str):
 
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}add{Style.RESET_ALL} the badge {Style.BRIGHT}{badge}{Style.RESET_ALL} to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
+  if badge not in [b['badge_name'] for b in all_badge_info]:
+    channel = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="That Badge Doesn't Exist (Yet?)",
+        description=f"We don't have `{badge}` in our databanks, if you think this is an error please let us know in {channel.mention}!",
+        color=discord.Color.red()
+      )
+    )
+    return
+
   # Check to make sure the badge is not already present in their wishlist
   existing_wishlist_badges = [b['badge_name'] for b in db_get_user_wishlist_badges(user_discord_id)]
   if badge in existing_wishlist_badges:
@@ -364,7 +375,13 @@ async def add_set(ctx:discord.ApplicationContext, category:str, selection:str):
   elif category == 'type':
     all_set_badges = db_get_all_type_badges(selection)
   else:
-    await ctx.followup.send("Select a category")
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Invalid Category",
+        description=f"The category `{category}` does not match our databanks, please select a valid category from the list!",
+        color=discord.Color.red()
+      )
+    )
     return
 
   category_title = category.replace("_", " ").title()
@@ -703,7 +720,13 @@ async def lock_set(ctx:discord.ApplicationContext, category:str, selection:str):
   elif category == 'type':
     all_set_badges = db_get_all_type_badges(selection)
   else:
-    await ctx.followup.send("Select a category")
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Invalid Category",
+        description=f"The category `{category}` does not match our databanks, please select a valid category from the list!",
+        color=discord.Color.red()
+      )
+    )
     return
 
   category_title = category.replace("_", " ").title()

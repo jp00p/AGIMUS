@@ -8,10 +8,6 @@ from utils.check_channel_access import access_check
 import queries.badge_completion as queries_badge_completion
 from queries.badge_scrap import *
 
-
-with open(config["handlers"]["xp"]["badge_data"]) as f:
-  badge_data = json.loads(f.read())
-
 all_badge_info = db_get_all_badge_info()
 
 #    _____          __                                     .__          __
@@ -79,7 +75,7 @@ async def showcase(ctx:discord.ApplicationContext, public:str, color:str):
   user_badges = db_get_user_badges(ctx.author.id)
 
   # Set up text values for paginated pages
-  total_badges_cnt = len(badge_data)
+  total_badges_cnt = len(all_badge_info)
   user_badges_cnt = len(user_badges)
   title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
   collected = f"{user_badges_cnt} TOTAL ON THE USS HOOD"
