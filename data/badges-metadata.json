@@ -1882,7 +1882,7 @@
   "Cryotherm Systems": {
     "affiliations": "Starfleet",
     "badge_url": "https://startrekdesignproject.com/symbols/cryotherm-systems/",
-    "filename": "CryothremSystems.png",
+    "filename": "CryothermSystems.png",
     "franchise": "The Next Generation",
     "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1568329354/CryothremSystems.png",
     "quadrant": "Alpha",
@@ -1891,6 +1891,21 @@
       "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1568329354/CryothermSystems_HideAndQ.jpg"
     ],
     "time period": "2300s",
+    "types": "Pictogram",
+    "universes": "Prime"
+  },
+  "Cryotherm Systems 2250s": {
+    "affiliations": "Starfleet",
+    "badge_url": "https://startrekdesignproject.com/symbols/cryotherm-systems-2250s/",
+    "filename": "CryothermSystems2250s.png",
+    "franchise": "Strange New Worlds",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1140,f_auto/v1659472189/Cryotherm-Systems-2250s.png",
+    "quadrant": "Alpha",
+    "reference": "S01E04 Memento Mori",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1140,f_auto/v1659472188/Cryotherm-Systems-2250s_SNW-1x4-2.jpg"
+    ],
+    "time period": "2200s",
     "types": "Pictogram",
     "universes": "Prime"
   },
@@ -5044,6 +5059,21 @@
     "time period": "2200s",
     "universes": "Prime"
   },
+  "Life Support Systems": {
+    "affiliations": "Starfleet",
+    "badge_url": "https://startrekdesignproject.com/symbols/life-support-systems/",
+    "filename": "LifeSupportSystems.png",
+    "franchise": "Strange New Worlds",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1140,f_auto/v1660770963/Life-Support-Systems.png",
+    "quadrant": "Alpha",
+    "reference": "S02E04 Memento Mori",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1140,f_auto/v1660770963/Life-Support-Systems_SNW-1x4-1.png"
+    ],
+    "time period": "2200s",
+    "types": "Pictogram",
+    "universes": "Prime"
+  },
   "Light Cube Tables": {
     "affiliations": "Starfleet",
     "badge_url": "https://startrekdesignproject.com/symbols/light-cube-tables/",
@@ -5071,6 +5101,24 @@
     ],
     "time period": "2300s",
     "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "Live Vaccines Medical Cargo Label": {
+    "badge_url": "https://startrekdesignproject.com/symbols/live-vaccines-medical-cargo-label/",
+    "filename": "LiveVaccinesMedicalCargoLabel.png",
+    "franchise": "Picard",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1140,f_auto/v1659472189/Live-Vaccines-Medical-Cargo-Label.png",
+    "quadrant": "Alpha",
+    "reference": "S02E01 The Star Gazer",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1140,f_auto/v1659472188/Cryonic-Live-Vaccines_PIC-2x1-1.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1140,f_auto/v1659472189/Cryonic-Live-Vaccines_PIC-2x1-2.jpg"
+    ],
+    "time period": "2400s",
+    "types": [
+      "Science/Research",
+      "Commerce"
+    ],
     "universes": "Prime"
   },
   "London Kings": {
@@ -11158,6 +11206,24 @@
     "types": "Commerce",
     "universes": "Prime"
   },
+  "The Pallid Son": {
+    "affiliations": "Earth",
+    "badge_url": "https://startrekdesignproject.com/symbols/the-pallid-son/",
+    "filename": "ThePallidSon.png",
+    "franchise": "Picard",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1659472188/The-Pallid-Son.png",
+    "quadrant": "Alpha",
+    "reference": "S02E04 Watcher",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1140,f_auto/v1659472188/The-Pallid-Son_PIC-2x4-1.jpg"
+    ],
+    "time period": "2000s",
+    "types": [
+      "Product",
+      "Commerce"
+    ],
+    "universes": "Prime"
+  },
   "The Red Bolian": {
     "affiliations": "Freecloud",
     "badge_url": "https://startrekdesignproject.com/symbols/the-red-bolian/",
@@ -11216,6 +11282,21 @@
       "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1608251010/TiganMining_sevvap.jpg"
     ],
     "time period": "2300s",
+    "types": "Commerce",
+    "universes": "Prime"
+  },
+  "Tipton Bros Deli": {
+    "affiliations": "Earth",
+    "badge_url": "https://startrekdesignproject.com/symbols/tipton-bros.deli/",
+    "filename": "TiptonBrosDeli.png",
+    "franchise": "Picard",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1140,f_auto/v1660770964/Tipton-Bros-Deli.png",
+    "quadrant": "Alpha",
+    "reference": "S02E03 Assimilation",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1140,f_auto/v1660770963/Tipton-Bros-Deli_PCD-2x3-1.jpg"
+    ],
+    "time period": "2000s",
     "types": "Commerce",
     "universes": "Prime"
   },

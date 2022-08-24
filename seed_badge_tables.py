@@ -63,7 +63,7 @@ def seed_badge_tables():
     query = db.cursor(dictionary=True, buffered=True)
     # Insert basic info into badge_info
     sql = '''
-      INSERT INTO badge_info
+      INSERT IGNORE INTO badge_info
         (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
     '''
