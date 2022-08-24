@@ -1,3 +1,5 @@
+from dateutil import tz
+
 from common import *
 from cogs.trade import db_cancel_trade, get_offered_and_requested_badge_names
 from queries.wishlist import db_get_badge_locked_status_by_name
@@ -455,11 +457,16 @@ class ScrapButton(discord.ui.Button):
     user_badge_filenames = [b['badge_filename'] for b in user_badges]
     owned_user_badges = [b for b in self.badges_to_scrap if b['badge_filename'] in user_badge_filenames]
     # Ensure they haven't performed another scrap within the time period
-    time_check_fail = False
+    time_check_fail = True
     last_scrap_time = db_get_scrap_last_timestamp(self.user_id)
     if last_scrap_time:
-      time_difference = datetime.utcnow() - last_scrap_time
-      time_check_fail = time_difference.days == 0
+      to_zone = tz.tzlocal()
+      last_scrap_time.replace(tzinfo=to_zone)
+      current_time = datetime.now()
+      if last_scrap_time.date() < current_time.date():
+        time_check_fail = False
+    else:
+        time_check_fail = False
 
     if (len(owned_user_badges) != 3) or (time_check_fail):
       await interaction.response.edit_message(
@@ -619,12 +626,23 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   # check that they're within the allowed time window
   last_scrap_time = db_get_scrap_last_timestamp(user_id)
   if last_scrap_time:
-    time_difference = datetime.utcnow() - last_scrap_time
-    if time_difference.days == 0:
-      humanized_time_left = humanize.precisedelta(timedelta(hours=24) - time_difference)
+    time_check_fail = True
+
+    to_zone = tz.tzlocal()
+    last_scrap_time.replace(tzinfo=to_zone)
+    current_time = datetime.now()
+    current_time.replace(tzinfo=to_zone)
+    if last_scrap_time.date() < current_time.date():
+      time_check_fail = False
+
+    if time_check_fail:
+      midnight_tomorrow = current_time.date() + timedelta(days=1)
+      midnight_tomorrow = datetime.combine(midnight_tomorrow, datetime.min.time())
+
+      humanized_time_left = humanize.precisedelta(midnight_tomorrow - current_time, suppress=["days"])
       await ctx.followup.send(embed=discord.Embed(
         title="Scrapper recharging, please wait.",
-        description=f"You may only perform one scrap every 24 hours.\n\nYou still have {humanized_time_left} left.",
+        description=f"Reset time at Midnight Pacific ({humanized_time_left} left).",
         color=discord.Color.red()
       ), ephemeral=True)
       return
