@@ -1,4 +1,4 @@
 # moves are commands that pokemoda can use in battle
-class ShimodaMove():
+class PoshimoMove:
   def __init__():
     pass

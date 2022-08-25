@@ -2,16 +2,32 @@
 # affect strengths and weaknesses
 """
 types:
-normal
+
+drunk
+dutiful
+horny
+
 synth
+photonic
 psychic
+
 warrior
-diplomat
+spiritual
+civilian
+
 science
-holographic
-scamp
+engineering
+medical
+
+diplomat
+merchant
+criminal
+
+rascal
+saboteur
+villain
 """
 
-class ShimodaType():
-  def __init__():
+class PoshimoType:
+  def __init__(self):
     pass

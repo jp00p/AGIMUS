@@ -1,6 +1,11 @@
 from math import sqrt, floor, log10
 
-class Shimoda():
+def load_poshimo_data_from_db(poshimo_id):
+  # returns all the data needed to initialize a poshimo object
+  # return (name, level, character_data)
+  pass
+
+class Poshimo:
   __slots__ = 'name', 'type', 'level', 'xp', 'base_attack', 'base_defense', 'base_special_attack', 'base_special_defense', 'base_speed', 'attack', 'defense', 'special_attack', 'special_defense', 'speed', 'evasion', 'accuracy', 'move_list', 'held_item', 'evolve_at', 'evolve_to', 'learnable_moves', 'hp', 'max_hp', 'growth_rate', 'status', 'owner'
   level_checkpoints = [2, 7, 10, 15, 18, 23, 30, 39, 46, 55, 60, 64, 67, 72, 78, 89, 95, 100] # growth checkpoints
   xp_chart = [0] + [5 + 2 * (i + 1) ** 2 for i in range(100)] # xp starts at 0 and maxes out at 20005
@@ -9,43 +14,20 @@ class Shimoda():
     "normal":1,
     "fast":1.2
   }
-  def __init__(self, name, character_data, level=1, **kwargs):
+  def __init__(self, name, owner=None):
+    self.owner = owner
     self.name = name
-    self.level = level
-    self.status = None
-    self.owner = None
-    self.next_level = self.xp_chart[level+1]
-    self.display_name = character_data['display_name']
-    self.type = character_data['type']
-    self.xp = character_data['xp']
-    self.max_hp = 15 + floor(log10(self.level * 23 + 1) * self.level ** 1.7)
-    self.hp = self.max_hp
-    self.base_attack = character_data['base_attack']
-    self.base_defense = character_data['base_defense']
-    self.base_special_attack = character_data['base_special_attack']
-    self.base_special_defense = character_data['base_special_defense']
-    self.base_speed = character_data['base_speed']
-    self.attack = character_data['attack']
-    self.defense = character_data['defense']
-    self.special_attack = character_data['special_attack']
-    self.special_defense = character_data['special_defense']
-    self.speed = character_data['speed']
-    self.evasion = character_data['evasion']
-    self.move_list = character_data['move_list']
-    self.evolve_at = character_data['evolve_at']
-    self.evolve_to = character_data['evolve_to']
-    self.growth_rate = self.base_growth_rates[character_data['growth']]
+    self.poshimo_data = load_poshimo_data_from_db(self.name)
+    self._display_name = None
+    self._level = 0
 
   def set_stat(self, stat, value):
     # update stat save to db
     pass
 
   def get_stat(self, stat):
-    pass
-
-  def set_xp(self, amt):
-    pass
-
+    return self.get(stat)
+  
   def level_up(self):
     # increase max hp
     # increase stats
@@ -71,7 +53,7 @@ class Shimoda():
     pass
 
   def use_item(self, item):
-    # apply item effect to this pocket shimoda
+    # apply item effect to this pocket poshimo
     pass
 
   def hold_item(self, item):
