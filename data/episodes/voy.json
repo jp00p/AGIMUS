@@ -1767,7 +1767,15 @@
       "episode": "13",
       "imdb": "tt0709008",
       "memoryalpha": "Waking_Moments_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 432,
+          "airdate": "2022.08.22",
+          "episode": "The Modesty Arch",
+          "link": "https://maximumfun.org/episodes/greatest-generation/the-modesty-arch-voy-s4e13/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/vKcegwzdNseWOgeQtROBxI4VayJ.jpg"
