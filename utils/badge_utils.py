@@ -1142,6 +1142,7 @@ def db_purge_users_wishlist(user_discord_id: int):
     DELETE b_w FROM badge_wishlists AS b_w
       JOIN badges AS b
         ON b_w.badge_filename = b.badge_filename
+        AND b_w.user_discord_id = b.user_discord_id
       WHERE b.user_discord_id = %s
   '''
   vals = (user_discord_id,)
