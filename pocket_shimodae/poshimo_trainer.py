@@ -1,3 +1,7 @@
+import poshimo, item, location, quest
+
+max_poshimo = 6 # the maximum poshimo a player can have
+
 # aka the player class
 # this will represent either a discord user or an npc
 class PoshimoTrainer():
@@ -9,8 +13,10 @@ class PoshimoTrainer():
     self._losses = 0
     self._active_poshimo = None # current poShimo
     self._shimoda_sac = [] # all poShimo owned
-    self._inventory = []
+    self._inventory = [] # all items
     self._location = None
+    self._scarves = 0
+    self._poshimopedia = {} # which poShimo has this player seen
 
   @property
   def wins(self):
@@ -67,6 +73,17 @@ class PoshimoTrainer():
       pass
       #self.update_db_column(self)
 
+  @property
+  def scarves(self):
+    return self._scarves
+
+  @scarves.setter
+  def scarves(self, amt):
+    self._scarves = amt
+    if self.is_human:
+      pass
+      #self.update_db_column(self)
+
   def add_poshimo(self, poshimo):
     # add a poshimo to the sac
     pass
@@ -75,11 +92,22 @@ class PoshimoTrainer():
     # set current active poshimo
     pass
 
+  def remove_poshimo(self, poshimo):
+    # remove poshimo from sac
+    pass
+
   def give_item(self, item):
     # give player an item
+    pass
+
+  def use_item(self, item):
+    # use an item
+    pass
+
+  def remove_item(self, item):
+    # remove item from inventory
     pass
 
   def update_db_column(self, column, value):
     # update player db info
     return
-  
