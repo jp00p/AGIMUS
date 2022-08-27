@@ -1,49 +1,58 @@
 from math import sqrt, floor, log10
 from enum import Enum
-import item, move, personality, type
+from .move import PoshimoMove
+from .item import PoshimoItem
+from .type import PoshimoType
+from .personality import PoshimoPersonality
+from .poshimo_trainer import PoshimoTrainer
 
-level_checkpoints = [2, 7, 10, 15, 18, 23, 30, 39, 46, 55, 60, 64, 67, 72, 78, 89, 95, 100] # growth checkpoints
-xp_chart = [0] + [5 + 2 * (i + 1) ** 2 for i in range(100)] # xp starts at 0 and maxes out at 20005
-base_growth_rates = {
-  "slow":0.8,
-  "normal":1,
-  "fast":1.2
-}
-
-def load_poshimo_data_from_db(name):
-  # returns all the data needed to initialize a poshimo object
-  # return (name, level, character_data)
-  pass
-
-def load_poshimo_data_from_file(name, level):
-  # returns all base poshimo data
-  pass
-
-class StatusEffect(Enum):
-  BURN = 1
-  CONFUSE = 2
-  FAINTED = 3
-  FLINCH = 4
-  FREEZE = 5
-  PARALYZE = 6
-  POISON = 7
-  SLEEP = 8
+MAX_LEVEL = 100
 
 class Poshimo: 
-  def __init__(self, name, owner=None):
+  def __init__(self, name, is_human=False, owner=None, level=1):
+    self.is_human = is_human 
     self.owner = owner
+    
     self.name = name
-    self._level = 0
-    self._display_name = None
-    self._status = None
-    self._max_hp = 0
-    self._hp = self._max_hp
-
-    if self.owner != "human":
-      self.poshimo_data = load_poshimo_data_from_file(self.name, self._level)
+    self.level = level
+    self.xp = 0
+    if self.owner:
+      # load stats from db
+      self.types = ()
+      self.personality = None
+      self.level = level
+      self.status = None
+      self.attack = 0
+      self.defense = 0
+      self.special_attack = 0
+      self.special_defense = 0
+      self.evasion = 0
+      self.speed = 0
+      self.hp = 0
+      self.move_list = []
     else:
-      self.poshimo_data = load_poshimo_data_from_db(self.name)
-  
+      # load stats from file, adjust for level
+      self.types = ()
+      self.personality = None
+      self.level = level
+      self.status = None
+      self.attack = 0
+      self.defense = 0
+      self.special_attack = 0
+      self.special_defense = 0
+      self.evasion = 0
+      self.speed = 0
+      self.hp = 0
+      self.move_list = []
+    
+  def save(self):
+    # save to db
+    pass
+
+  def attempt_capture(self):
+    # transfer to player
+    pass
+
   def level_up(self):
     # increase max hp
     # increase stats
@@ -68,10 +77,6 @@ class Poshimo:
     # calculate attack
     pass
 
-  def use_item(self, item):
-    # apply item effect to this pocket poshimo
-    pass
-
   def hold_item(self, item):
     # add item to held slot
     # return held item to bag if already holding
@@ -80,3 +85,52 @@ class Poshimo:
   def release_item(self, item):
     # return item to bag
     pass
+
+
+
+
+  """ from ultranurd 
+  
+  import sys
+import math
+​
+class Experience:
+    def slow(self, level):
+        return 5 * level3 / 4
+​
+    def medium_slow(self, level):
+        return 6 * level3 / 5 - 15 * level2 + 100 * level - 140
+​
+    def medium_fast(self, level):
+        return level3
+​
+    def fast(self, level):
+        return 4 * level3 / 5
+​
+    def fluctuating(self, level):
+        if level < 15:
+            factor = (math.floor((level + 1)/3.0) + 24)/50
+        elif level < 36:
+            factor = (level + 14)/50
+        elif level < 100:
+            factor = (math.floor(level/2.0) + 32)/50
+        return factor * level3
+​
+    def erratic(self, level):
+        if level < 50:
+            factor = (100 - level)/50
+        elif level < 68:
+            factor = (150 - level)/100
+        elif level < 98:
+            factor = math.floor((1911 - 10level)/3.0)/500
+        elif level < 100:
+            factor = (160 - level)/100
+        return factor level*3
+​
+def experience(leveling, level):
+    print(getattr(Experience(), leveling)(int(level)))
+​
+if name == "main":
+    experience(sys.argv[1:])
+  
+  """

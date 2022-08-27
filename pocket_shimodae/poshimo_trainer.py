@@ -1,22 +1,21 @@
-import poshimo, item, location, quest
-
-max_poshimo = 6 # the maximum poshimo a player can have
-
-# aka the player class
+MAX_POSHIMO = 6 # the maximum poshimo a player can have
 # this will represent either a discord user or an npc
 class PoshimoTrainer():
-  def __init__(self, is_human=False, discord_id=None, trainer_data={}):
+  def __init__(self, is_human=False, discord_id=None, player_data={}):
     self.is_human = is_human
     self.discord_id = discord_id
-    self.trainer_data = trainer_data
+    self.player_data = player_data
     self._wins = 0
     self._losses = 0
+    self._status = None # what are you doing
     self._active_poshimo = None # current poShimo
     self._shimoda_sac = [] # all poShimo owned
-    self._inventory = [] # all items
-    self._location = None
-    self._scarves = 0
-    self._poshimopedia = {} # which poShimo has this player seen
+    self._inventory = [] # all items (if not human, these are items that can be dropped)
+    self._location = None # where are you
+    self._scarves = 0 # money
+    self._buckles = [] # like pokemon badges
+    self.shimodaepedia = {} # which poShimo has this player seen (list of ids)
+    self.avatar = ""
 
   @property
   def wins(self):
@@ -25,7 +24,7 @@ class PoshimoTrainer():
   @wins.setter
   def wins(self, amt):
     self._wins = amt
-    if self.is_human:
+    if self.is_human: 
       pass
       #self.update_db_column(self)
 

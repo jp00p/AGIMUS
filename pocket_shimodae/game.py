@@ -1,6 +1,7 @@
 from common import *
-import battle
-import poshimo_trainer
+from .battle import PoshimoBattle
+from .poshimo_trainer import PoshimoTrainer
+from .location import PoshimoLocation
 
 # main poShimo game functionality
 # probably some utility stuff too
@@ -14,4 +15,12 @@ class PoshimoGame:
     pass
 
   def register_trainer(self, trainer_info):
+    pass
+
+  # player wants to explore
+  def start_exploration(self, player):
+    pass
+
+  # resolve and show results of player exploration
+  def resolve_exploration(self, player):
     pass

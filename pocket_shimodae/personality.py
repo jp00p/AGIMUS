@@ -5,7 +5,7 @@ personality_data = json.load(f) # load personality data
 f.close()
 
 # personality determines stat growth
-class ShimodaPersonality:
+class PoshimoPersonality:
   def __init__(self, name):
     self.pdata = personality_data.get(name)
     if self.pdata:
