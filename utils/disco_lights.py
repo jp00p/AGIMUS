@@ -47,8 +47,6 @@ class LightHandler(logging.Handler):
       if not hue:
         return
 
-      print("hue present")
-
       target_light_name = lights_config.get("light_name")
 
       if not target_light_name:
