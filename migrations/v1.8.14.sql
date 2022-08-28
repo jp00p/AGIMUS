@@ -1,0 +1,1 @@
+INSERT INTO badge_affiliation (affiliation_name, badge_filename) VALUES ("Vidiian", "Vidiian_A.png");
