@@ -49,6 +49,6 @@ if broadcast_enabled:
     loop.run_until_complete(server)
     loop.run_forever()
 
-  start_server = websockets.serve(socket_handler, "0.0.0.0", 7890, loop=new_loop, ping_interval=None)
+  start_server = websockets.serve(socket_handler, "0.0.0.0", 7890, loop=new_loop, ping_timeout=None)
   t = Thread(target=start_loop, args=(new_loop, start_server), daemon=True)
   t.start()
