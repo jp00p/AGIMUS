@@ -50,6 +50,7 @@ from cogs.trade import Trade
 from cogs.react_roles import ReactRoles
 from cogs.backups import Backups
 from cogs.wordcloud import Wordcloud
+from cogs.poshimo import PocketShimodae
 bot.add_cog(ChaosZork(bot))
 bot.add_cog(Poker(bot))
 bot.add_cog(Quiz(bot))
@@ -59,6 +60,7 @@ bot.add_cog(Slots(bot))
 bot.add_cog(Trade(bot))
 bot.add_cog(Backups(bot))
 bot.add_cog(Wordcloud(bot))
+bot.add_cog(PocketShimodae(bot))
 if config["roles"]["reaction_roles_enabled"]:
   bot.add_cog(ReactRoles(bot))
 

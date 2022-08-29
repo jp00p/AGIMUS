@@ -226,55 +226,56 @@ CREATE TABLE IF NOT EXISTS badge_wishlists (
   KEY `badge_filename` (`badge_filename`),
   CONSTRAINT `badge_wishlists_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
-CREATE TABLE IF NOT EXISTS poshimo_players (
-  'id' INT NOT NULL AUTO_INCREMENT,
-  'user_id' INT NOT NULL,
-  'wins' INT DEFAULT 0,
-  'losses' INT DEFAULT 0,
-  'status' VARCHAR(64) DEFAULT NULL,
-  'location' VARCHAR(128) DEFAULT NULL,
-  'shimodapedia' TEXT DEFAULT NULL,
-  'poshimodae' TEXT DEFAULT NULL,
-  'inventory' TEXT DEFAULT NULL,
-  'buckles' TEXT DEFAULT NULL,
-  'money' INT DEFAULT 0 NOT NULL,
-  'time_created' TIMESTAMP NOT NULL DEFAULT current_timestamp(),
-   PRIMARY KEY (id),
-   FOREIGN KEY (user_id) REFERENCES users(id)
+CREATE TABLE IF NOT EXISTS poshimo_trainers (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  userid int(11) NOT NULL,
+  wins INT(11) NOT NULL DEFAULT 0,
+  losses INT(11) NOT NULL DEFAULT 0,
+  status VARCHAR(64) DEFAULT NULL,
+  location VARCHAR(128) DEFAULT NULL,
+  poshimodae TEXT DEFAULT NULL,
+  active_poshimo INT(11) DEFAULT NULL,
+  inventory TEXT DEFAULT NULL,
+  buckles TEXT DEFAULT NULL,
+  scarves INT(11) NOT NULL DEFAULT 0,
+  discovered_poshimo TEXT DEFAULT NULL,
+  time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  FOREIGN KEY (userid) REFERENCES users (id)
 );
 CREATE TABLE IF NOT EXISTS poshimodae (
-  'id' INT NOT NULL AUTO_INCREMENT,
-  'owner_id' INT NOT NULL,
-  'name' VARCHAR(128) NOT NULL,
-  'display_name' VARCHAR(128) DEFAULT NULL,
-  'level' INT NOT NULL DEFAULT 1,
-  'xp' INT NOT NULL DEFAULT 0,
-  'time_created' TIMESTAMP NOT NULL DEFAULT current_timestamp(),
-  PRIMARY_KEY(id),
-  FOREIGN_KEY(owner_id) REFERENCES poshimo_players(id)
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  owner_id INT(11) NOT NULL,
+  name VARCHAR(128) NOT NULL,
+  display_name VARCHAR(128) DEFAULT NULL,
+  level INT(11) NOT NULL DEFAULT 1,
+  xp INT(11) NOT NULL DEFAULT 0,
+  time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  FOREIGN KEY (owner_id) REFERENCES poshimo_trainers (id)
 );
 CREATE TABLE IF NOT EXISTS poshimo_battles (
-  'id' INT NOT NULL AUTO_INCREMENT,
-  'combatant1' INT NOT NULL,
-  'combatant2' INT NOT NULL,
-  'turn' INT NOT NULL,
-  'status' VARCHAR(128) NOT NULL,
-  'outcome' VARCHAR(128) NOT NULL,
-  'time_started' TIMESTAMP DEFAULT current_timestamp(),
-  'time_ended' TIMESTAMP DEFAULT NULL,
-  PRIMARY_KEY(id),
-  FOREIGN KEY (combatant1) REFERENCES poshimo_players(id),
-  FOREIGN KEY (combatant2) REFERENCES poshimo_players(id)
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  combatant1 INT(11) NOT NULL,
+  combatant2 INT(11) NOT NULL,
+  turn INT(11) NOT NULL,
+  status VARCHAR(128) NOT NULL,
+  outcome VARCHAR(128) NOT NULL,
+  time_started TIMESTAMP DEFAULT current_timestamp(),
+  time_ended TIMESTAMP DEFAULT NULL,
+  PRIMARY KEY(id),
+  FOREIGN KEY (combatant1) REFERENCES poshimo_trainers (id),
+  FOREIGN KEY (combatant2) REFERENCES poshimo_trainers (id)
 );
 CREATE TABLE IF NOT EXISTS poshimo_battle_logs (
-  'id' INT NOT NULL AUTO_INCREMENT,
-  'battle_id' INT NOT NULL,
-  'combatant1' INT NOT NULL,
-  'combatant2' INT NOT NULL,
-  'turn' INT NOT NULL,
-  'event' TEXT NOT NULL,
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  battle_id INT(11) NOT NULL,
+  combatant1 INT(11) NOT NULL,
+  combatant2 INT(11) NOT NULL,
+  turn INT(11) NOT NULL,
+  event_log TEXT NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (battle_id) REFERENCES poshimo_battles(id),
-  FOREIGN KEY (combatant1) REFERENCES poshimo_players(id),
-  FOREIGN KEY (combatant2) REFERENCES poshimo_players(id),
-)
+  FOREIGN KEY (battle_id) REFERENCES poshimo_battles (id),
+  FOREIGN KEY (combatant1) REFERENCES poshimo_trainers (id),
+  FOREIGN KEY (combatant2) REFERENCES poshimo_trainers (id)
+);

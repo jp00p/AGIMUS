@@ -13,8 +13,8 @@ class PoshimoTrainer():
     self._inventory = [] # all items (if not human, these are items that can be dropped)
     self._location = None # where are you
     self._scarves = 0 # money
-    self._buckles = [] # like pokemon badges
-    self.shimodaepedia = {} # which poShimo has this player seen (list of ids)
+    self._buckles = [] # these are like pokemon badges
+    self.shimodaepedia = [] # which poShimo has this player seen (list of ids)
     self.avatar = ""
 
   @property

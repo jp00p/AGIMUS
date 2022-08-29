@@ -1,0 +1,3 @@
+name,display_name,type,kind,power,accuracy,max_stamina,description
+test,Testing Move,drunk,test2,100,100,50,This is just a test
+test2,Second Test,horny,test3,50,50,25,Another test
