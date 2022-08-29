@@ -74,6 +74,11 @@
     "description": "Do you realize how incredible this is?",
     "url": "https://i.imgur.com/KHgV0K1.mp4"
   },
+  "Drugs... Can Make You Feel Good": {
+    "file": "data/drops/drugscanmakeyoufeelgood.mp4",
+    "description": "Tasha Yar: Drugs can make you feel good",
+    "url": "https://i.imgur.com/uv0IR8z.mp4"
+  },
   "Drunk Shimoda": {
     "file": "data/drops/drunkshimoda.mp4",
     "description": "Drunk Shimoda!",
@@ -92,7 +97,7 @@
   "Esatto!": {
     "file": "data/drops/esatto.mp4",
     "description": "Esatto! Leonardo da Vinci",
-    "url": "https://i.imgur.com/66Jo50a.mp4"
+    "url": "https://i.imgur.com/LyBJSAn.mp4"
   },
   "First Contact": {
     "file": "data/drops/firstcontact.mp4",
@@ -143,6 +148,11 @@
     "file": "data/drops/guldukat.mp4",
     "description": "Gul Dukat",
     "url": "https://i.imgur.com/GNU5rhv.mp4"
+  },
+  "He Just Kept Talking In One Long Incredibly Unbroken Sentence": {
+    "file": "data/drops/onelongincrediblyunbrokensentence.mp4",
+    "description": "He Just Kept Talking In One Long Incredibly Unbroken Sentence",
+    "url": "https://i.imgur.com/e9CY7Nu.mp4"
   },
   "Hell Of A Combination": {
     "file": "data/drops/hellofacombination.mp4",
@@ -243,6 +253,11 @@
     "file": "data/drops/neutrogenatgelitworks.mp4",
     "description": "Michael Dorn: Neutrogena T Gel, it works!",
     "url": "https://i.imgur.com/sWToO17.mp4"
+  },
+  "Not Everybody Keeps Their Genitals In The Same Place": {
+    "file": "data/drops/genitalsinthesameplace.mp4",
+    "description": "Not everybody keeps their genitals in the same place, Captain",
+    "url": "https://i.imgur.com/VSQGV8j.mp4"
   },
   "One Of The Greatest Creative Minds": {
     "file": "data/drops/oneofthegreatestcreativeminds.mp4",
@@ -668,6 +683,11 @@
     "file": "data/drops/worfisthisyourideaofsex.mp4",
     "description": "Worf! Is This Your Idea Of Sex?",
     "url": "https://i.imgur.com/0VrchoT.mp4"
+  },
+  "WUB WUB WUB": {
+    "file": "data/drops/wubwubwub.mp4",
+    "description": "Wub Wub Wub Star Trek IV The One With The Whales Space Probe",
+    "url": "https://i.imgur.com/WFDmWKJ.mp4"
   },
   "You Really Want To Do This?": {
     "file": "data/drops/youreallywanttodothis.mp4",
