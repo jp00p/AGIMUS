@@ -731,6 +731,50 @@ def db_get_user_badges(user_discord_id:int):
   db.close()
   return badges
 
+def db_get_user_unlocked_badges(user_discord_id:int):
+  '''
+    get_unlocked_user_badges(user_discord_id)
+    user_discord_id[required]: int
+    returns a list of unlocked badges the user has
+  '''
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT b_i.badge_name, b_i.badge_filename, b.locked FROM badges b
+      JOIN badge_info AS b_i
+        ON b.badge_filename = b_i.badge_filename
+        WHERE b.user_discord_id = %s AND b.locked = 0
+        ORDER BY b_i.badge_filename ASC
+  '''
+  vals = (user_discord_id,)
+  query.execute(sql, vals)
+  badges = query.fetchall()
+  query.close()
+  db.close()
+  return badges
+
+def db_get_user_locked_badges(user_discord_id:int):
+  '''
+    get_unlocked_user_badges(user_discord_id)
+    user_discord_id[required]: int
+    returns a list of unlocked badges the user has
+  '''
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT b_i.badge_name, b_i.badge_filename, b.locked FROM badges b
+      JOIN badge_info AS b_i
+        ON b.badge_filename = b_i.badge_filename
+        WHERE b.user_discord_id = %s AND b.locked = 1
+        ORDER BY b_i.badge_filename ASC
+  '''
+  vals = (user_discord_id,)
+  query.execute(sql, vals)
+  badges = query.fetchall()
+  query.close()
+  db.close()
+  return badges
+
 def db_get_badge_count_for_user(user_id):
   db = getDB()
   query = db.cursor(dictionary=True)
