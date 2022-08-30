@@ -1,0 +1,2 @@
+INSERT INTO badge_affiliation (affiliation_name, badge_filename) VALUES ("Vidiian", "Vidiian_A.png");
+UPDATE badge_affiliation SET affiliation_name = "Romulan Star Empire" WHERE badge_filename = "Romulan_Free_State_Flag.png";
