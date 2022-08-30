@@ -60,6 +60,21 @@ badge_group = bot.create_group("badges", "Badge Commands!")
   ]
 )
 @option(
+  name="available",
+  description="Show only Locked or Unlocked badges?",
+  required=False,
+  choices=[
+    discord.OptionChoice(
+      name="Unlocked",
+      value="unlocked"
+    ),
+    discord.OptionChoice(
+      name="Locked",
+      value="locked"
+    )
+  ]
+)
+@option(
   name="color",
   description="Which colorscheme would you like?",
   required=False,
@@ -68,16 +83,24 @@ badge_group = bot.create_group("badges", "Badge Commands!")
     for color_choice in ["Green", "Orange", "Purple", "Teal"]
   ]
 )
-async def showcase(ctx:discord.ApplicationContext, public:str, color:str):
+async def showcase(ctx:discord.ApplicationContext, public:str, available:str, color:str):
   public = (public == "yes")
   await ctx.defer(ephemeral=not public)
 
-  user_badges = db_get_user_badges(ctx.author.id)
+  if available is not None:
+    if available == 'unlocked':
+      title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection - Unlocked"
+      user_badges = db_get_user_unlocked_badges(ctx.author.id)
+    else:
+      title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection - Locked"
+      user_badges = db_get_user_locked_badges(ctx.author.id)
+  else:
+    title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
+    user_badges = db_get_user_badges(ctx.author.id)
 
   # Set up text values for paginated pages
   total_badges_cnt = len(all_badge_info)
   user_badges_cnt = len(user_badges)
-  title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
   collected = f"{user_badges_cnt} TOTAL ON THE USS HOOD"
   filename_prefix = f"badge_list_{ctx.author.id}-page-"
 
