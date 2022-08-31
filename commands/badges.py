@@ -60,8 +60,8 @@ badge_group = bot.create_group("badges", "Badge Commands!")
   ]
 )
 @option(
-  name="available",
-  description="Show only Locked or Unlocked badges?",
+  name="filter",
+  description="Show only Locked, Unlocked, or Special badges?",
   required=False,
   choices=[
     discord.OptionChoice(
@@ -71,6 +71,10 @@ badge_group = bot.create_group("badges", "Badge Commands!")
     discord.OptionChoice(
       name="Locked",
       value="locked"
+    ),
+    discord.OptionChoice(
+      name="Special",
+      value="special"
     )
   ]
 )
@@ -83,17 +87,20 @@ badge_group = bot.create_group("badges", "Badge Commands!")
     for color_choice in ["Green", "Orange", "Purple", "Teal"]
   ]
 )
-async def showcase(ctx:discord.ApplicationContext, public:str, available:str, color:str):
+async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, color:str):
   public = (public == "yes")
   await ctx.defer(ephemeral=not public)
 
-  if available is not None:
-    if available == 'unlocked':
+  if filter is not None:
+    if filter == 'unlocked':
       title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection - Unlocked"
       user_badges = db_get_user_unlocked_badges(ctx.author.id)
-    else:
+    elif filter == 'locked':
       title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection - Locked"
       user_badges = db_get_user_locked_badges(ctx.author.id)
+    elif filter == 'special':
+      title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection - Special"
+      user_badges = db_get_user_special_badges(ctx.author.id)
   else:
     title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
     user_badges = db_get_user_badges(ctx.author.id)

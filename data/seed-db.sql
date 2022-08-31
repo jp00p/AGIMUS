@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS `badge_info` (
   `time_period` varchar(128) DEFAULT NULL,
   `franchise` varchar(128) DEFAULT NULL,
   `reference` varchar(128) DEFAULT NULL,
+  `special` BOOLEAN NOT NULL DEFAULT 0,
   PRIMARY KEY (`badge_filename`)
 );
 CREATE TABLE IF NOT EXISTS badge_affiliation (
