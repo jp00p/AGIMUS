@@ -33,6 +33,9 @@ def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   else:
     badge_names = requestor_badges
 
+  special_badge_names = [b['badge_name'] for b in SPECIAL_BADGES]
+  badge_names = [b for b in badge_names if b not in special_badge_names]
+
   if len(badge_names) == 0:
     badge_names = ["This user already has all badges that you possess! Use '/trade cancel' to cancel this trade."]
 
@@ -59,6 +62,9 @@ def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
     badge_names = [b for b in requestee_badges if b not in requestor_badges]
   else:
     badge_names = ["Use '/trade start' to start a trade and make sure you choose someone."]
+
+  special_badge_names = [b['badge_name'] for b in SPECIAL_BADGES]
+  badge_names = [b for b in badge_names if b not in special_badge_names]
 
   if len(badge_names) == 0:
     badge_names = ["You already have all badges that this user possesses! Use '/trade cancel' to cancel this trade."]

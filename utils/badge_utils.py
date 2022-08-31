@@ -5,16 +5,30 @@ import math
 
 from common import *
 
-SPECIAL_BADGES = [
-  {
-    "badge_name": "Friends Of DeSoto",
-    "badge_filename": "Friends_Of_DeSoto.png"
-  },
-  {
-    "badge_name": "Captain Picard Day",
-    "badge_filename": "Captain_Picard_Day.png"
-  }
-]
+
+#   _________                    .__       .__ __________             .___
+#  /   _____/_____   ____   ____ |__|____  |  |\______   \_____     __| _/ ____   ____   ______
+#  \_____  \\____ \_/ __ \_/ ___\|  \__  \ |  | |    |  _/\__  \   / __ | / ___\_/ __ \ /  ___/
+#  /        \  |_> >  ___/\  \___|  |/ __ \|  |_|    |   \ / __ \_/ /_/ |/ /_/  >  ___/ \___ \
+# /_______  /   __/ \___  >\___  >__(____  /____/______  /(____  /\____ |\___  / \___  >____  >
+#         \/|__|        \/     \/        \/            \/      \/      \/_____/      \/     \/
+def db_get_special_badges():
+  """
+  Return all badge_info rows where special = 1
+  :return:
+  """
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = "SELECT * FROM badge_info WHERE special = 1;"
+  vals = ()
+  query.execute(sql, vals)
+  rows = query.fetchall()
+  query.close()
+  db.close()
+
+  return rows
+
+SPECIAL_BADGES = db_get_special_badges()
 
 
 #    _____          __                                     .__          __
@@ -288,7 +302,10 @@ def generate_badge_images(type, user, page, page_number, total_pages, total_user
     s.paste(b, (badge_padding+offset_x+4, offset_y), b)
     badge_draw.text( (int(badge_slot_size/2), 222), f"{wrapped_badge_name}", fill=badge_text_color, font=badge_font, anchor="mm", align="center")
 
-    if badge_record['locked']:
+    if badge_record['special']:
+      special_icon = Image.open(f"./images/templates/badges/special_icon.png").convert("RGBA")
+      s.paste(special_icon, (badge_slot_size-54, 16), special_icon)
+    elif badge_record['locked']:
       lock_icon = Image.open(f"./images/templates/badges/lock_icon.png").convert("RGBA")
       s.paste(lock_icon, (badge_slot_size-54, 16), lock_icon)
 
@@ -718,7 +735,7 @@ def db_get_user_badges(user_discord_id:int):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename, b.locked FROM badges b
+    SELECT b_i.badge_name, b_i.badge_filename, b.locked, b_i.special FROM badges b
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
         WHERE b.user_discord_id = %s
@@ -733,17 +750,17 @@ def db_get_user_badges(user_discord_id:int):
 
 def db_get_user_unlocked_badges(user_discord_id:int):
   '''
-    get_unlocked_user_badges(user_discord_id)
+    db_get_user_unlocked_badges(user_discord_id)
     user_discord_id[required]: int
     returns a list of unlocked badges the user has
   '''
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename, b.locked FROM badges b
+    SELECT b_i.badge_name, b_i.badge_filename, b.locked, b_i.special FROM badges b
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
-        WHERE b.user_discord_id = %s AND b.locked = 0
+        WHERE b.user_discord_id = %s AND b.locked = 0 AND b_i.special = 0
         ORDER BY b_i.badge_filename ASC
   '''
   vals = (user_discord_id,)
@@ -755,17 +772,39 @@ def db_get_user_unlocked_badges(user_discord_id:int):
 
 def db_get_user_locked_badges(user_discord_id:int):
   '''
-    get_unlocked_user_badges(user_discord_id)
+    db_get_user_locked_badges(user_discord_id)
     user_discord_id[required]: int
     returns a list of unlocked badges the user has
   '''
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename, b.locked FROM badges b
+    SELECT b_i.badge_name, b_i.badge_filename, b.locked, b_i.special FROM badges b
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
-        WHERE b.user_discord_id = %s AND b.locked = 1
+        WHERE b.user_discord_id = %s AND b.locked = 1 AND b_i.special = 0
+        ORDER BY b_i.badge_filename ASC
+  '''
+  vals = (user_discord_id,)
+  query.execute(sql, vals)
+  badges = query.fetchall()
+  query.close()
+  db.close()
+  return badges
+
+def db_get_user_special_badges(user_discord_id:int):
+  '''
+    get_user_special_badges(user_discord_id)
+    user_discord_id[required]: int
+    returns a list of special badges the user has
+  '''
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT b_i.badge_name, b_i.badge_filename, b.locked, b_i.special FROM badges b
+      JOIN badge_info AS b_i
+        ON b.badge_filename = b_i.badge_filename
+        WHERE b.user_discord_id = %s AND b_i.special = 1
         ORDER BY b_i.badge_filename ASC
   '''
   vals = (user_discord_id,)
