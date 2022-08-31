@@ -891,7 +891,7 @@ def db_get_all_affiliation_badges(affiliation):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badge_info b_i
+    SELECT b_i.* FROM badge_info b_i
       JOIN badge_affiliation AS b_a
         ON b_i.badge_filename = b_a.badge_filename
       WHERE b_a.affiliation_name = %s
@@ -931,7 +931,7 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
+    SELECT b_i.* FROM badges b
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
       JOIN badge_affiliation AS b_a
@@ -952,7 +952,7 @@ def db_get_random_badges_from_user_by_affiliations(user_id: int):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_filename, b_a.affiliation_name
+    SELECT b_i.*, b_a.affiliation_name
     FROM badges b
     INNER JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
@@ -987,7 +987,7 @@ def db_get_all_franchise_badges(franchise):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT badge_name, badge_filename FROM badge_info
+    SELECT * FROM badge_info
       WHERE franchise = %s
       ORDER BY badge_name ASC;
   '''
@@ -1003,7 +1003,7 @@ def db_get_badges_user_has_from_franchise(user_id, franchise):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
+    SELECT b_i.* FROM badges b
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
       WHERE b.user_discord_id = %s
@@ -1022,7 +1022,7 @@ def db_get_random_badges_from_user_by_franchises(user_id: int):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_filename, b_i.franchise
+    SELECT b_i.*
     FROM badges b
     INNER JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
@@ -1066,7 +1066,7 @@ def db_get_all_time_period_badges(time_period):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT badge_name, badge_filename FROM badge_info b_i
+    SELECT * FROM badge_info b_i
       WHERE time_period = %s
       ORDER BY badge_name ASC
   '''
@@ -1082,7 +1082,7 @@ def db_get_badges_user_has_from_time_period(user_id, time_period):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
+    SELECT b_i.* FROM badges b
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
       WHERE b.user_discord_id = %s
@@ -1102,7 +1102,7 @@ def db_get_random_badges_from_user_by_time_periods(user_id: int):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_filename, b_i.time_period
+    SELECT b_i.*, b_i.time_period
     FROM badges b
     INNER JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
@@ -1136,7 +1136,7 @@ def db_get_all_type_badges(type):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badge_info b_i
+    SELECT b_i.* FROM badge_info b_i
       JOIN badge_type AS b_t
         ON b_i.badge_filename = b_t.badge_filename
       WHERE b_t.type_name = %s
@@ -1177,7 +1177,7 @@ def db_get_badges_user_has_from_type(user_id, type):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename FROM badges b
+    SELECT b_i.* FROM badges b
       JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename
       JOIN badge_type AS b_t
@@ -1198,7 +1198,7 @@ def db_get_random_badges_from_user_by_types(user_id: int):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_filename, b_t.type_name
+    SELECT b_i.*, b_t.type_name
     FROM badges b
     INNER JOIN badge_info AS b_i
         ON b.badge_filename = b_i.badge_filename

@@ -258,6 +258,7 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
     record = {
       'badge_name': badge['badge_name'],
       'badge_filename': badge['badge_filename'],
+      'special': badge['special'],
       'locked': locked,
       'in_user_collection': badge['badge_name'] in [b['badge_name'] for b in user_set_badges]
     }
