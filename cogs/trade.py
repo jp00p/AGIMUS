@@ -1,4 +1,5 @@
 from common import *
+from queries.wishlist import db_lock_badges_by_filenames
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 
@@ -324,6 +325,12 @@ class Trade(commands.Cog):
     # Delete Badges From Users Wishlists
     db_purge_users_wishlist(requestor.id)
     db_purge_users_wishlist(requestee.id)
+
+    # Lock badges the users now possess that were in their wishlists
+    requested_badge_filenames = [b['badge_filename'] for b in db_get_trade_requested_badges(active_trade)]
+    db_lock_badges_by_filenames(requestor.id, requested_badge_filenames)
+    offered_badge_filenames = [b['badge_filename'] for b in db_get_trade_offered_badges(active_trade)]
+    db_lock_badges_by_filenames(requestee.id, offered_badge_filenames)
 
     # Send Message to Channel
     success_embed = discord.Embed(
@@ -1301,7 +1308,7 @@ def db_get_trade_requested_badges(active_trade):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename
+    SELECT b_i.*
     FROM badge_info as b_i
       JOIN trade_requested AS t_r
       ON t_r.trade_id = %s AND t_r.badge_filename = b_i.badge_filename
@@ -1319,7 +1326,7 @@ def db_get_trade_offered_badges(active_trade):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename
+    SELECT b_i.*
     FROM badge_info as b_i
       JOIN trade_offered AS t_o
       ON t_o.trade_id = %s AND t_o.badge_filename = b_i.badge_filename

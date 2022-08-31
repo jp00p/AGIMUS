@@ -2,7 +2,7 @@ from dateutil import tz
 
 from common import *
 from cogs.trade import db_cancel_trade, get_offered_and_requested_badge_names
-from queries.wishlist import db_get_badge_locked_status_by_name
+from queries.wishlist import db_get_badge_locked_status_by_name, db_lock_badge_by_filename
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 import queries.badge_completion as queries_badge_completion
@@ -909,6 +909,8 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User):
 
   # Remove any badges the user may have on their wishlist that they now possess
   db_purge_users_wishlist(user.id)
+  # Lock the badge if it was in their wishlist
+  db_lock_badge_by_filename(user.id, badge)
 
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a badge!"
@@ -967,6 +969,8 @@ async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User,
       give_user_specific_badge(user.id, badge_filename)
       # Remove any badges the user may have on their wishlist that they now possess
       db_purge_users_wishlist(user.id)
+      # Lock the badge if it was in their wishlist
+      db_lock_badge_by_filename(user.id, badge_filename)
 
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a badge!"
