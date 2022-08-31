@@ -1,12 +1,12 @@
 from common import *
 
 
-#   _________.__                 __________                        
-#  /   _____/|  |__   ____ ______\______   \_____     ____   ____  
-#  \_____  \ |  |  \ /  _ \\____ \|     ___/\__  \   / ___\_/ __ \ 
-#  /        \|   Y  (  <_> )  |_> >    |     / __ \_/ /_/  >  ___/ 
+#   _________.__                 __________
+#  /   _____/|  |__   ____ ______\______   \_____     ____   ____
+#  \_____  \ |  |  \ /  _ \\____ \|     ___/\__  \   / ___\_/ __ \
+#  /        \|   Y  (  <_> )  |_> >    |     / __ \_/ /_/  >  ___/
 # /_______  /|___|  /\____/|   __/|____|    (____  /\___  / \___  >
-#         \/      \/       |__|                  \//_____/      \/ 
+#         \/      \/       |__|                  \//_____/      \/
 class ShopPage(pages.Page):
   def __init__(self, cog, embed, category, page_id):
     self.category = category
@@ -28,12 +28,12 @@ class ShopPage(pages.Page):
       logger.info(traceback.format_exc())
 
 
-# __________              __________        __    __                 
-# \______   \__ __ ___.__.\______   \__ ___/  |__/  |_  ____   ____  
-#  |    |  _/  |  <   |  | |    |  _/  |  \   __\   __\/  _ \ /    \ 
+# __________              __________        __    __
+# \______   \__ __ ___.__.\______   \__ ___/  |__/  |_  ____   ____
+#  |    |  _/  |  <   |  | |    |  _/  |  \   __\   __\/  _ \ /    \
 #  |    |   \  |  /\___  | |    |   \  |  /|  |  |  | (  <_> )   |  \
 #  |______  /____/ / ____| |______  /____/ |__|  |__|  \____/|___|  /
-#         \/       \/             \/                              \/ 
+#         \/       \/             \/                              \/
 class BuyButton(discord.ui.Button):
   def __init__(self, cog):
     self.cog = cog
@@ -48,12 +48,12 @@ class BuyButton(discord.ui.Button):
 
 
 
-#   _________.__                    _________                
-#  /   _____/|  |__   ____ ______   \_   ___ \  ____   ____  
-#  \_____  \ |  |  \ /  _ \\____ \  /    \  \/ /  _ \ / ___\ 
+#   _________.__                    _________
+#  /   _____/|  |__   ____ ______   \_   ___ \  ____   ____
+#  \_____  \ |  |  \ /  _ \\____ \  /    \  \/ /  _ \ / ___\
 #  /        \|   Y  (  <_> )  |_> > \     \___(  <_> ) /_/  >
-# /_______  /|___|  /\____/|   __/   \______  /\____/\___  / 
-#         \/      \/       |__|             \/      /_____/  
+# /_______  /|___|  /\____/|   __/   \______  /\____/\___  /
+#         \/      \/       |__|             \/      /_____/
 class Shop(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
@@ -82,7 +82,7 @@ class Shop(commands.Cog):
       )
       photo_page = ShopPage(self, photo_embed, "photos", idx)
       self.photo_pages.append(photo_page)
-  
+
   def get_photo_pages(self):
     return self.photo_pages
 
@@ -157,22 +157,22 @@ class Shop(commands.Cog):
           photo_name = photo["name"].lower()
           if photo_name == player["photo"]:
             result["success"] = False
-            result["message"] = f"You already have the **{photo_name}** photo on your profile!\nWe gotchu, no points spent.\n\nType `/profile` to check it out!"  
+            result["message"] = f"You already have the **{photo_name}** photo on your profile!\nWe gotchu, no points spent.\n\nType `/profile display` to check it out!"
           else:
             update_player_profile_photo(interaction.user.id, photo_name)
             result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{photo_name.title()}** profile photo!\n\nType `/profile` to check it out!"
+            result["message"] = f"You have spent `{cost} points` and purchased the **{photo_name.title()}** profile photo!\n\nType `/profile display` to check it out!"
         elif category == "stickers":
           sticker = self.shop_data["stickers"][purchase_record["page"]]
           sticker_file = sticker["file"]
           sticker_name = sticker["name"]
           if len(player["stickers"]) > 0 and sticker_file == player["stickers"][0]["sticker"]:
             result["success"] = False
-            result["message"] = f"You already have the **{sticker_name}** sticker on your profile! \nWe gotchu, no points spent.\n\nType `/profile` to check it out!"  
+            result["message"] = f"You already have the **{sticker_name}** sticker on your profile! \nWe gotchu, no points spent.\n\nType `/profile display` to check it out!"
           else:
             update_player_profile_sticker(interaction.user.id, sticker_file)
             result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{sticker_name}** sticker!\n\nType `/profile` to check it out!"
+            result["message"] = f"You have spent `{cost} points` and purchased the **{sticker_name}** sticker!\n\nType `/profile display` to check it out!"
         elif category == "roles":
           role = self.shop_data["roles"][purchase_record["page"]]
           role_name = role["name"]
@@ -184,12 +184,12 @@ class Shop(commands.Cog):
           # NOTE: We'll need to clean this check up later if we add additional roles...
           elif player["high_roller"]:
             result["success"] = False
-            result["message"] = f"You already have the **{role_name}** role! \nWe gotchu, no points spent.\n\nType `/profile` to check it out!"  
+            result["message"] = f"You already have the **{role_name}** role! \nWe gotchu, no points spent.\n\nType `/profile display` to check it out!"
           else:
             await update_player_role(interaction.user, role)
             result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{role_name}** role!\n\nType `/profile` to check it out!"
-      
+            result["message"] = f"You have spent `{cost} points` and purchased the **{role_name}** role!\n\nType `/profile display` to check it out!"
+
       if result["success"]:
         set_player_score(interaction.user, -cost)
 
@@ -362,12 +362,12 @@ class Shop(commands.Cog):
 
 
 
-# ________          __        ___.                         
-# \______ \ _____ _/  |______ \_ |__ _____    ______ ____  
-#  |    |  \\__  \\   __\__  \ | __ \\__  \  /  ___// __ \ 
-#  |    `   \/ __ \|  |  / __ \| \_\ \/ __ \_\___ \\  ___/ 
+# ________          __        ___.
+# \______ \ _____ _/  |______ \_ |__ _____    ______ ____
+#  |    |  \\__  \\   __\__  \ | __ \\__  \  /  ___// __ \
+#  |    `   \/ __ \|  |  / __ \| \_\ \/ __ \_\___ \\  ___/
 # /_______  (____  /__| (____  /___  (____  /____  >\___  >
-#         \/     \/          \/    \/     \/     \/     \/ 
+#         \/     \/          \/    \/     \/     \/     \/
 
 # update_player_profile_photo(discord_id, photo)
 # discord_id[required]: int

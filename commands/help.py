@@ -21,23 +21,23 @@ basic_commands = [
   },
   {
     "name" : "/profile",
-    "description" : "View your profile PADD"
+    "description" : "View and customize your profile PADD"
   },
-  {
-    "name" : "/wordcloud",
-    "description" : "Generate a wordcloud of your most used words"
-  },
-  {
-    "name" : "/badges",
-    "description" : "See the badges you've collected"
-  }, 
   {
     "name" : "/shop",
     "description" : "Purchase items for your PADD with an interactive shop"
   },
   {
-    "name" : "/set_tagline",
-    "description" : "Set the tagline on your PADD"
+    "name" : "/badges",
+    "description" : "See the badges you've collected"
+  },
+  {
+    "name" : "/trade",
+    "description" : "Trade badges with other users"
+  },
+  {
+    "name" : "/wordcloud",
+    "description" : "Generate a wordcloud of your most used words"
   }
 ]
 
@@ -65,12 +65,12 @@ async def help(ctx:discord.ApplicationContext):
 
     for help_page in help_data:
       if ctx.channel.id in get_channel_ids_list(help_page["channels"]) and help_page["enabled"]:
-        
+
         text_file = open(help_page["file"], "r")
         help_text = text_file.read()
         text_file.close()
         help_text += "\n\n**Basic commands**\nThese commands can be used mostly anywhere:"
-        
+
         embed=discord.Embed(
           description=help_text,
           color=discord.Color.dark_gold()
@@ -81,7 +81,7 @@ async def help(ctx:discord.ApplicationContext):
 
         await ctx.respond(embed=embed, ephemeral=True)
         return
-    
+
     with os.popen("make --no-print-directory version") as line:
       version_raw = line.readlines()
     version = version_raw[0].replace("\n", "").replace("\t"," ").strip()
