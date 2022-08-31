@@ -201,6 +201,19 @@ def db_get_wishlist_matches(user_discord_id):
   db.close()
   return results
 
+def db_get_wishlist_badge_matches(badge_filename):
+  db = getDB()
+  query = db.cursor(dictionary=True)
+  sql = '''
+    SELECT badge_filename, user_discord_id FROM badge_wishlists where badge_filename = %s
+  '''
+  vals = (badge_filename,)
+  query.execute(sql, vals)
+  results = query.fetchall()
+  query.close()
+  db.close()
+  return results
+
 def db_get_wishlist_inventory_matches(user_discord_id):
   db = getDB()
   query = db.cursor(dictionary=True)

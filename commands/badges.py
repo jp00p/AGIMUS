@@ -2,7 +2,7 @@ from dateutil import tz
 
 from common import *
 from cogs.trade import db_cancel_trade, get_offered_and_requested_badge_names
-from queries.wishlist import db_get_badge_locked_status_by_name, db_lock_badge_by_filename
+from queries.wishlist import db_get_badge_locked_status_by_name, db_get_wishlist_badge_matches, db_lock_badge_by_filename
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 import queries.badge_completion as queries_badge_completion
@@ -696,23 +696,57 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   badge_to_add = db_get_badge_info_by_name(badge_choice)
   badges_to_scrap = [db_get_badge_info_by_name(b) for b in selected_user_badges]
 
-  # Send confirmation message with interaction view
+  # Check for wishlist badges
+  wishlist_matches_groups = [m for m in (db_get_wishlist_badge_matches(b['badge_filename']) for b in badges_to_scrap) if m]
+
+  # Generate Animated Scrapper Gif
   scrapper_confirm_gif = await generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
 
-  embed = discord.Embed(
+  # Create the first page
+  scrap_embed_description = "** This cannot be undone.\n**" + str("\n".join(selected_user_badges))
+  if len(wishlist_matches_groups):
+    scrap_embed_description += "\n\n**NOTE:** One or more of the badges you're looking to scrap are on other user's wishlists! Check the following pages for more details, you may want to reach out to see if they'd like to trade!"
+
+  scrap_embed = discord.Embed(
     title="Are you sure you want to scrap these badges?",
-    description=str("** This cannot be undone.\n**") + str("\n".join(selected_user_badges)),
+    description=scrap_embed_description,
     color=discord.Color.teal()
   )
-  embed.set_image(url=f"attachment://scrap_{user_id}-confirm.gif")
-
-  view = ScrapCancelView(user_id, badge_to_add, badges_to_scrap)
-  await ctx.followup.send(
-    embed=embed,
-    file=scrapper_confirm_gif,
-    view=view,
-    ephemeral=True
+  scrap_embed.set_image(url=f"attachment://scrap_{user_id}-confirm.gif")
+  scrap_page = pages.Page(
+    embeds=[scrap_embed],
+    files=[scrapper_confirm_gif]
   )
+
+  # Iterate over any wishlist matches if present and add them to paginator pages
+  scrapper_pages = [scrap_page]
+  for wishlist_matches in wishlist_matches_groups:
+    if len(wishlist_matches):
+      badge_filename = wishlist_matches[0]['badge_filename']
+      badge_info = db_get_badge_info_by_filename(badge_filename)
+      users = [await bot.current_guild.fetch_member(m['user_discord_id']) for m in wishlist_matches]
+      wishlist_match_embed = discord.Embed(
+        title=f"The following users want {badge_info['badge_name']}",
+        description="\n".join([u.mention for u in users]),
+        color=discord.Color.teal()
+      )
+      scrapper_pages.append(wishlist_match_embed)
+
+  # Send scrapper paginator
+  view = ScrapCancelView(user_id, badge_to_add, badges_to_scrap)
+  paginator = pages.Paginator(
+    pages=scrapper_pages,
+    custom_buttons=[
+      pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton(
+        "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
+      ),
+      pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
+    ],
+    use_default_buttons=False,
+    custom_view=view
+  )
+  await paginator.respond(ctx.interaction, ephemeral=True)
 
 
 async def _cancel_invalid_scrapped_trades(trades_to_cancel):
