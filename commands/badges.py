@@ -697,19 +697,14 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   badges_to_scrap = [db_get_badge_info_by_name(b) for b in selected_user_badges]
 
   # Check for wishlist badges
-  first_scrap_badge = badges_to_scrap[0]
-  first_badge_wishlist_matches = db_get_wishlist_badge_matches(first_scrap_badge['badge_filename'])
-  second_scrap_badge = badges_to_scrap[1]
-  second_badge_wishlist_matches = db_get_wishlist_badge_matches(second_scrap_badge['badge_filename'])
-  third_scrap_badge = badges_to_scrap[2]
-  third_badge_wishlist_matches = db_get_wishlist_badge_matches(third_scrap_badge['badge_filename'])
+  wishlist_matches_groups = [m for m in (db_get_wishlist_badge_matches(b['badge_filename']) for b in badges_to_scrap) if m]
 
   # Generate Animated Scrapper Gif
   scrapper_confirm_gif = await generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
 
   # Create the first page
   scrap_embed_description = "** This cannot be undone.\n**" + str("\n".join(selected_user_badges))
-  if len(first_badge_wishlist_matches) or len(second_badge_wishlist_matches) or len(third_badge_wishlist_matches):
+  if len(wishlist_matches_groups):
     scrap_embed_description += "\n\n**NOTE:** One or more of the badges you're looking to scrap are on other user's wishlists! Check the following pages for more details, you may want to reach out to see if they'd like to trade!"
 
   scrap_embed = discord.Embed(
@@ -725,7 +720,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
 
   # Iterate over any wishlist matches if present and add them to paginator pages
   scrapper_pages = [scrap_page]
-  for wishlist_matches in [first_badge_wishlist_matches, second_badge_wishlist_matches, third_badge_wishlist_matches]:
+  for wishlist_matches in wishlist_matches_groups:
     if len(wishlist_matches):
       badge_filename = wishlist_matches[0]['badge_filename']
       badge_info = db_get_badge_info_by_filename(badge_filename)
