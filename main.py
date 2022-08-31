@@ -14,7 +14,6 @@ from commands.help import help
 from commands.info import info
 from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
-from commands.profile import profile
 from commands.randomep import randomep
 from commands.reports import reports
 from commands.scores import scores
@@ -42,6 +41,7 @@ from commands.computer import computer
 # Cogs
 from cogs.chaoszork import ChaosZork
 from cogs.poker import Poker
+from cogs.profile import Profile
 from cogs.quiz import Quiz
 from cogs.settings import Settings
 from cogs.shop import Shop
@@ -52,6 +52,7 @@ from cogs.backups import Backups
 from cogs.wordcloud import Wordcloud
 bot.add_cog(ChaosZork(bot))
 bot.add_cog(Poker(bot))
+bot.add_cog(Profile(bot))
 bot.add_cog(Quiz(bot))
 bot.add_cog(Settings(bot))
 bot.add_cog(Shop(bot))
