@@ -1,5 +1,5 @@
 from common import *
-from queries.wishlist import db_lock_badges_by_filenames
+from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 
@@ -322,15 +322,15 @@ class Trade(commands.Cog):
     db_perform_badge_transfer(active_trade)
     db_complete_trade(active_trade)
 
+    # Lock badges the users now possess that were in their wishlists
+    requested_badge_filenames = [b['badge_filename'] for b in db_get_trade_requested_badges(active_trade)]
+    db_autolock_badges_by_filenames_if_in_wishlist(requestor.id, requested_badge_filenames)
+    offered_badge_filenames = [b['badge_filename'] for b in db_get_trade_offered_badges(active_trade)]
+    db_autolock_badges_by_filenames_if_in_wishlist(requestee.id, offered_badge_filenames)
+
     # Delete Badges From Users Wishlists
     db_purge_users_wishlist(requestor.id)
     db_purge_users_wishlist(requestee.id)
-
-    # Lock badges the users now possess that were in their wishlists
-    requested_badge_filenames = [b['badge_filename'] for b in db_get_trade_requested_badges(active_trade)]
-    db_lock_badges_by_filenames(requestor.id, requested_badge_filenames)
-    offered_badge_filenames = [b['badge_filename'] for b in db_get_trade_offered_badges(active_trade)]
-    db_lock_badges_by_filenames(requestee.id, offered_badge_filenames)
 
     # Send Message to Channel
     success_embed = discord.Embed(
@@ -351,12 +351,17 @@ class Trade(commands.Cog):
     success_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
 
     channel = interaction.channel
-    await channel.send(embed=success_embed, file=success_image)
+    message = await channel.send(embed=success_embed, file=success_image)
 
     # Send notification to requestor the the trade was successful
     user = get_user(requestor.id)
     if user["receive_notifications"]:
       try:
+        success_embed.add_field(
+          name="View Confirmation",
+          value=f"{message.jump_url}",
+          inline=False
+        )
         success_embed.set_footer(
           text="Note: You can use /settings to enable or disable these messages."
         )

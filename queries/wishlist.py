@@ -108,6 +108,25 @@ def db_clear_users_wishlist(user_discord_id):
 # |    |__(  <_> )  \___|    <   / /   |    |  /   |  \  |_(  <_> )  \___|    <
 # |_______ \____/ \___  >__|_ \ / /    |______/|___|  /____/\____/ \___  >__|_ \
 #         \/          \/     \/ \/                  \/                 \/     \/
+def db_autolock_badges_by_filenames_if_in_wishlist(user_discord_id, badge_filenames):
+  badges_values_list = []
+  for b in badge_filenames:
+    tuple = (user_discord_id, b)
+    badges_values_list.append(tuple)
+
+  db = getDB()
+  query = db.cursor()
+  sql = '''
+    UPDATE badges AS b
+      JOIN badge_wishlists AS b_w
+        ON b.user_discord_id = b_w.user_discord_id AND b.badge_filename = b_w.badge_filename
+        SET b.locked = 1 WHERE b.user_discord_id = %s AND b.badge_filename = %s
+  '''
+  query.executemany(sql, badges_values_list)
+  db.commit()
+  query.close()
+  db.close()
+
 def db_get_badge_locked_status_by_name(user_discord_id, badge_name):
   db = getDB()
   query = db.cursor(dictionary=True, buffered=True)
