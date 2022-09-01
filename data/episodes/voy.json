@@ -1789,7 +1789,15 @@
       "episode": "14",
       "imdb": "tt0708931",
       "memoryalpha": "Message_in_a_Bottle_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 433,
+          "airdate": "2022.08.29",
+          "episode": "EMH Mark Dick",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-433-emh-mark-dick-voy-s4e14/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/lXwMkt4Dvevw6NjhLOVWfUJ079p.jpg"
