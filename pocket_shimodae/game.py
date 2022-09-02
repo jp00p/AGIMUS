@@ -21,8 +21,6 @@ class PoshimoGame:
   `get_trainer(discord_id)`
     Get trainer details by Discord ID
 
-  
-
   """
   def __init__(self):
     self.active_battles = [] # need to load any battles that were in progress

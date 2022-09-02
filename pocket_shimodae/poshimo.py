@@ -60,12 +60,12 @@ class Poshimo:
     self.move_list = [PoshimoMove(i) for i in self.poshimodata["move_list"]]
   
   def __repr__(self) -> str:
-    return f"{self.name.title()}: {list(self.types)}"
+    return f"{self.name}: (Types: {[t for t in list(self.types)]})"
   
-  def save(self):
+  def save(self) -> None:
     # save to db
     pass
-
+  
   def attempt_capture(self):
     # transfer to player
     pass
