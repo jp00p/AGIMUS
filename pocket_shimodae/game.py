@@ -1,6 +1,7 @@
 from common import *
+from .poshimo import Poshimo
 from .move import PoshimoMove
-from .poshimo_trainer import PoshimoTrainer
+from .trainer import PoshimoTrainer
 
 # main poShimo game functionality
 # probably some utility stuff too
@@ -8,13 +9,24 @@ class PoshimoGame:
   """
   The base poShimo game object
   
-  *Methods*  
+  Methods
+  ----
+
   `register_trainer(trainer_info)`
     Register a new trainer to the database
+  
+  `get_all_trainers()`
+    Returns a list of all trainers in the database
+
+  `get_trainer(discord_id)`
+    Get trainer details by Discord ID
+
+  
 
   """
   def __init__(self):
     self.active_battles = [] # need to load any battles that were in progress
+    self.starter_poshimo = [Poshimo("Worf"), Poshimo("Jim Shimoda"), Poshimo("Captain Picard")]
 
   def register_battle(self, contender_1, contender_2) -> int:
     # add contenders to the db
@@ -72,7 +84,6 @@ class PoshimoGame:
     logger.info(f"REGISTERING POSHIMO TRAINER: {trainer_info}")
     return insert_id
 
-
   # player wants to explore
   def start_exploration(self, player) -> None:
     pass
@@ -81,7 +92,7 @@ class PoshimoGame:
   def resolve_exploration(self, player) -> None:
     pass
 
-  def test_moves(self) -> None:
+  def test_moves(self) -> tuple:
     move1 = PoshimoMove("test")
     move2 = PoshimoMove("test2")
     return (move1, move2)

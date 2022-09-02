@@ -21,9 +21,9 @@ class PocketShimodae(commands.Cog):
     description="testing testing 123"
   )
   async def test(self, ctx:discord.ApplicationContext):
-    test_moves = self.game.test_moves()
-    await ctx.respond(test_moves)
-    logger.info(test_moves)
+    starters = self.game.starter_poshimo
+    await ctx.respond(starters)
+    logger.info(starters)
 
 
   @ps.command(
@@ -32,15 +32,21 @@ class PocketShimodae(commands.Cog):
   )
   async def start(self, ctx:discord.ApplicationContext):
     """Starts the game for a new player (does nothing if you are already registered)"""
+
     if ctx.author.id in self.all_trainers:
       await ctx.respond("You're already registered!", ephemeral=True)
       return
 
     user_info = get_user(ctx.author.id)
 
+    # start building the dict we'll send to register_player
     trainer_info = {
       "userid" : user_info["id"]
     }
+
+    # pick your starter poShimo
+    
+
     trainer_id = self.game.register_trainer(trainer_info)
     if trainer_id != 0:
       await ctx.respond(f"You've been registered: TRAINER ID NUMBER: {trainer_id}")

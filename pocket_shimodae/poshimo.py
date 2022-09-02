@@ -1,50 +1,67 @@
 from math import sqrt, floor, log10
+import csv
 from enum import Enum
 from .move import PoshimoMove
 from .item import PoshimoItem
 from .type import PoshimoType
 from .personality import PoshimoPersonality
-from .poshimo_trainer import PoshimoTrainer
+from .trainer import PoshimoTrainer
+
+# load the base poshimo data from csv
+with open("pocket_shimodae/data/shimodaepedia.csv") as file:
+  csvdata = csv.DictReader(file)
+  pdata = {}
+  for id,row in enumerate(csvdata):
+    pdata[row["name"]] = {
+      "id" : id,
+      "type1" : row["type1"],
+      "type2" : row["type2"],
+      "base_attack" : row["base_attack"],
+      "base_defense" : row["base_defense"],
+      "base_special_attack" : row["base_special_attack"],
+      "base_special_defense" : row["base_special_defense"],
+      "evasion" : row["evasion"],
+      "speed" : row["speed"],
+      "hp" : row["hp"],
+      "move_list" : [
+        row["move1"], row["move2"], row["move3"], row["move4"]
+      ]
+    }
+
 
 MAX_LEVEL = 100
 
-class Poshimo: 
-  def __init__(self, name, is_human=False, owner=None, level=1):
-    self.is_human = is_human 
-    self.owner = owner
-    
+class Poshimo:
+  """
+  A Pocket Shimoda!\n
+  You do not create these from scratch, they are predefined in the CSV or DB.\n
+  Pass a name to get the base stats\n
+  Pass a name and level to get level-adjusted stats (for wild Poshimo)\n
+  Pass a name and owner to get the Poshimo stats from the DB (for player-owned Poshimo)
+  """
+  def __init__(self, name, owner=None, level=1):
     self.name = name
+    if not pdata.get(self.name):
+      return None
+    self.poshimodata = pdata[self.name]
+  
+    self.types = (PoshimoType(self.poshimodata["type1"]), PoshimoType(self.poshimodata["type2"]))
+    self.personality = None
     self.level = level
-    self.xp = 0
-    if self.owner:
-      # load stats from db
-      self.types = ()
-      self.personality = None
-      self.level = level
-      self.status = None
-      self.attack = 0
-      self.defense = 0
-      self.special_attack = 0
-      self.special_defense = 0
-      self.evasion = 0
-      self.speed = 0
-      self.hp = 0
-      self.move_list = []
-    else:
-      # load stats from file, adjust for level
-      self.types = ()
-      self.personality = None
-      self.level = level
-      self.status = None
-      self.attack = 0
-      self.defense = 0
-      self.special_attack = 0
-      self.special_defense = 0
-      self.evasion = 0
-      self.speed = 0
-      self.hp = 0
-      self.move_list = []
-    
+    self.status = None
+    self.attack = self.poshimodata["base_attack"]
+    self.defense = self.poshimodata["base_defense"]
+    self.special_attack = self.poshimodata["base_special_attack"]
+    self.special_defense = self.poshimodata["base_special_defense"]
+    self.evasion = self.poshimodata["evasion"]
+    self.speed = self.poshimodata["speed"]
+    self.max_hp = self.poshimodata["hp"]
+    self.hp = self.max_hp
+    self.move_list = [PoshimoMove(i) for i in self.poshimodata["move_list"]]
+  
+  def __repr__(self) -> str:
+    return f"{self.name.title()}: {list(self.types)}"
+  
   def save(self):
     # save to db
     pass
@@ -89,9 +106,9 @@ class Poshimo:
 
 
 
-  """ from ultranurd 
+""" from ultranurd 
   
-  import sys
+import sys
 import math
 ​
 class Experience:
