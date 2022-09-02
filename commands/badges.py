@@ -24,7 +24,7 @@ async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
   second_badge = ctx.options["second_badge"]
   third_badge = ctx.options["third_badge"]
 
-  user_badges = db_get_user_badges(ctx.interaction.user.id)
+  user_badges = db_get_user_unlocked_badges(ctx.interaction.user.id)
 
   filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in SPECIAL_BADGES]
 
@@ -589,7 +589,7 @@ class ScrapCancelView(discord.ui.View):
 
 @badge_group.command(
   name="scrap",
-  description="Turn in 3 badges for 1 new random badge. One scrap allowed every 24 hours."
+  description="Turn in 3 unlocked badges for 1 new random badge. One scrap allowed every 24 hours."
 )
 @option(
   name="first_badge",
@@ -623,7 +623,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   user_id = ctx.interaction.user.id
 
   selected_badges = [first_badge, second_badge, third_badge]
-  user_badges = db_get_user_badges(user_id)
+  user_badges = db_get_user_unlocked_badges(user_id)
   user_badge_names = [b['badge_name'] for b in user_badges]
 
   selected_user_badges = [b for b in selected_badges if b in user_badge_names]
@@ -631,7 +631,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   if len(selected_user_badges) != 3:
     await ctx.followup.send(embed=discord.Embed(
       title="Invalid Selection",
-      description=f"You must own all of the badges you've selected to scrap!",
+      description=f"You must own all of the badges you've selected to scrap and they must be unlocked!",
       color=discord.Color.red()
     ), ephemeral=True)
     return
