@@ -1028,12 +1028,13 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
 
   badge_name = badge_info['badge_name']
   badge_url = badge_info['badge_url']
-  star_str = "🌟 ⠀"*8
-
-  embed_description += f"\n\n**{badge_name}**\n{badge_url}"
-  embed_description += f"\n{star_str}\n"
 
   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
+  embed.add_field(
+    name=badge_name,
+    value=badge_url,
+    inline=False
+  )
   embed.set_thumbnail(url=thumbnail_image)
   embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
 
@@ -1041,7 +1042,9 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
   discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=embed_filename)
   embed.set_image(url=f"attachment://{embed_filename}")
 
-  await channel.send(content=message, file=discord_image, embed=embed)
+  message = await channel.send(content=message, file=discord_image, embed=embed)
+  # Add + emoji so that users can add it as well to add the badge to their wishlist
+  await message.add_reaction("➕")
 
 
 # ________                      .__
