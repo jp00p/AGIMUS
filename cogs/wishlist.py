@@ -79,7 +79,7 @@ class Wishlist(commands.Cog):
       return
     if payload.channel_id != get_channel_id("badgeys-badges"):
       return
-    if payload.emoji.name != "➕":
+    if payload.emoji.name != "✅":
       return
 
     channel = self.bot.get_channel(payload.channel_id)

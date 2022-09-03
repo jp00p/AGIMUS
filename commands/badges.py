@@ -1044,7 +1044,7 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
 
   message = await channel.send(content=message, file=discord_image, embed=embed)
   # Add + emoji so that users can add it as well to add the badge to their wishlist
-  await message.add_reaction("➕")
+  await message.add_reaction("✅")
 
 
 # ________                      .__
