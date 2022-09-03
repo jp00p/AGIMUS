@@ -712,7 +712,7 @@ class Trade(commands.Cog):
         description=f"Sorry, {requestee.mention} has opted out of the XP system and is not available for trading.",
         color=discord.Color.red()
       )
-      await ctx.followup.seend(embed=opted_out_embed, ephemeral=True)
+      await ctx.followup.send(embed=opted_out_embed, ephemeral=True)
       return
 
     # Deny the trade request if there's an existing trade in progress by the requestor
@@ -801,7 +801,7 @@ class Trade(commands.Cog):
       discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
 
       offer_embed = discord.Embed(
-        title=f"{offer} added to request.",
+        title=f"{request} added to request.",
         description=f"This badge has been added to your request from {requestee.mention}",
         color=discord.Color.dark_green()
       )
@@ -1207,7 +1207,7 @@ class Trade(commands.Cog):
       logger.info(f"{Fore.CYAN}{from_user.display_name} doesn't possess `{badge}`, unable to add to {direction} "
                   f"{dir_preposition} {to_user.display_name}.")
       await ctx.respond(embed=discord.Embed(
-        title=f"{'You' if direction == 'offer' else 'They'} does not possess that badge",
+        title=f"{'You' if direction == 'offer' else 'They'} do not possess that badge",
         description=f"`{badge}` does not match any badges {'you' if direction == 'offer' else 'they'} possess.\n\n"
                     f"You can use the autocomplete in the query to find the badges "
                     f"{'you' if direction == 'offer' else 'they'} do have!",
