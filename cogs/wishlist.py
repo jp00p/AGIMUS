@@ -134,7 +134,7 @@ class Wishlist(commands.Cog):
       for page_index, page in enumerate(all_pages):
         embed = discord.Embed(
           title="Wishlist",
-          description="\n".join([b['badge_name'] for b in page]),
+          description="\n".join([f"[{b['badge_name']}]({b['badge_url']})" for b in page]),
           color=discord.Color.blurple()
         )
         embed.set_footer(text=f"Page {page_index + 1} of {total_pages}")
@@ -179,9 +179,9 @@ class Wishlist(commands.Cog):
         user_id = match['user_discord_id']
         user_record = wishlist_aggregate.get(user_id)
         if not user_record:
-          wishlist_aggregate[user_id] = [match['badge_name']]
+          wishlist_aggregate[user_id] = [match]
         else:
-          wishlist_aggregate[user_id].append(match['badge_name'])
+          wishlist_aggregate[user_id].append(match)
 
     # Get all the users and the badgenames that want badges that the user has
     inventory_matches = db_get_wishlist_inventory_matches(user_discord_id)
@@ -191,9 +191,9 @@ class Wishlist(commands.Cog):
         user_id = match['user_discord_id']
         user_record = inventory_aggregate.get(user_id)
         if not user_record:
-          inventory_aggregate[user_id] = [match['badge_name']]
+          inventory_aggregate[user_id] = [match]
         else:
-          inventory_aggregate[user_id].append(match['badge_name'])
+          inventory_aggregate[user_id].append(match)
 
     # Now create an aggregate of the users that intersect
     exact_matches_aggregate = {}
@@ -221,7 +221,7 @@ class Wishlist(commands.Cog):
 
         # Pages for Badges Match Has
         has_badges = exact_matches_aggregate[user_id]['has']
-        has_badges.sort()
+        has_badges = sorted(has_badges, key=lambda b: b['badge_name'])
         all_has_pages = [has_badges[i:i + max_badges_per_page] for i in range(0, len(has_badges), max_badges_per_page)]
         total_has_pages = len(all_has_pages)
 
@@ -229,15 +229,15 @@ class Wishlist(commands.Cog):
         for page_index, page_badges in enumerate(all_has_pages):
           embed = discord.Embed(
             title="Has From Your Wishlist:",
-            description="\n".join(page_badges),
+            description="\n".join([f"[{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
             color=discord.Color.blurple()
           )
-          embed.set_footer(text=f"Page {page_index + 1} of {total_has_pages}")
+          embed.set_footer(text=f"Match with {user.display_name}\nPage {page_index + 1} of {total_has_pages}")
           has_pages.append(embed)
 
         # Pages for Badges Match Wants
         wants_badges = exact_matches_aggregate[user_id]['wants']
-        wants_badges.sort()
+        wants_badges = sorted(wants_badges, key=lambda b: b['badge_name'])
         all_wants_pages = [wants_badges[i:i + max_badges_per_page] for i in range(0, len(wants_badges), max_badges_per_page)]
         total_wants_pages = len(all_wants_pages)
 
@@ -245,10 +245,10 @@ class Wishlist(commands.Cog):
         for page_index, page_badges in enumerate(all_wants_pages):
           embed = discord.Embed(
             title="Wants From Your Inventory:",
-            description="\n".join(page_badges),
+            description="\n".join([f"[{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
             color=discord.Color.blurple()
           )
-          embed.set_footer(text=f"Page {page_index + 1} of {total_wants_pages}")
+          embed.set_footer(text=f"Match with {user.display_name}\nPage {page_index + 1} of {total_wants_pages}")
           wants_pages.append(embed)
 
         page_groups = [
