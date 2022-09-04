@@ -1,14 +1,10 @@
-import datetime
 from common import *
+from copy import deepcopy
 from handlers.xp import increment_user_xp
 
-# TODO:
-# react to original post?
-# add more details to starboard post?
-
-react_threshold = 3 # how many reactions required
-high_react_threshold = 5
-argus_threshold = 10
+react_threshold = 1 # how many reactions required
+high_react_threshold = 1
+argus_threshold = 10 # NBU
 user_threshold = 3 # how many users required
 
 async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
@@ -33,8 +29,8 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
   reaction = payload.emoji
 
   # don't count users adding reacts to their own posts
-  if message.author == reacting_user:
-    return
+  #if message.author == reacting_user:
+  #  return
 
   # weird edge case where reaction can be a string (never seen it happen)
   if isinstance(reaction, str):
@@ -44,7 +40,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
   # it might be safe to see if this is a starboard-worthy post now
   # each starboard can have a set of words to match against,
   # here we loop over each board and then each word that board has
-  # the words will be in the emoji, not the message
+  # the words will be in the emoji name, not the message text
   for board,match_reacts in board_dict.items():
 
     if match_reacts:
@@ -54,7 +50,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
       message_reaction_people = set()
       total_reacts_for_this_match = 0
 
-      # loop over each matching word for this board
+      # loop over each matching word for this board (word is in emoji name)
       for match in match_reacts:
         # loop over each reaction in the message
         for reaction in all_reacts:
@@ -65,10 +61,10 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
               # count the users who reacted with this one
               async for user in reaction.users():
                 # if they haven't already reacted with one of the matching reactions, count this reaction
-                if user != message.author and user not in message_reaction_people:
+                #if user != message.author and user not in message_reaction_people:
+                if user not in message_reaction_people:
                   total_reacts_for_this_match += 1
                   message_reaction_people.add(user) # and don't count them again!
-
 
       #total_people = len(message_reaction_people)
       #logger.info(f"{Fore.LIGHTWHITE_EX}{Style.BRIGHT}{board}: report for this post {message.content}...: reacts {total_reacts_for_this_match} -- total reacting people: {total_people}{Style.RESET_ALL}{Fore.RESET}")
@@ -78,7 +74,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
       high_react_channel_ids = get_channel_ids_list(config["handlers"]["starboard"]["high_react_channels"])
       if payload.channel_id in high_react_channel_ids:
         adjusted_react_threshold = high_react_threshold
-
+      await add_starboard_post(message, board)
       # finally, if this match category has enough reactions and enough people, let's save it to the starboard channel!
       if total_reacts_for_this_match >= adjusted_react_threshold and len(message_reaction_people) >= user_threshold:
         if await get_starboard_post(message.id, board) is None: # checking again just in case (might be expensive)
@@ -89,29 +85,31 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent):
 async def add_starboard_post(message, board):
   global ALL_STARBOARD_POSTS
 
-  #logger.info(f"ADDING A POST TO THE STARBOARD: {board}")
-  # add post to DB
-  db = getDB()
-  query = db.cursor()
-  sql = "INSERT INTO starboard_posts (message_id, user_id, board_channel) VALUES (%s, %s, %s);"
-  vals = (message.id, message.author.id, board)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
-
-  ALL_STARBOARD_POSTS.append(message.id)
-
-  board_channel = get_channel_id(board)
-
   # can't really re-embed tenor gifs quicky and they aren't REALLY starboard worthy imo
-  # feel free to suggest alternates!
+  # feel free to suggest changes to this policy i made up randomly
   if len(message.attachments) <= 0 and message.content.lower().startswith("https://tenor.com/"):
     return
 
-  # repost in appropriate board
-  embed_description = f"{message.content}\n\n[View original message]({message.jump_url})"
-  embed = discord.Embed(description=embed_description, color=discord.Color.random())
+  #logger.info(f"ADDING A POST TO THE STARBOARD: {board}")
+  # add post to DB
+  with getDB() as db:
+    query = db.cursor()
+    sql = "INSERT INTO starboard_posts (message_id, user_id, board_channel) VALUES (%s, %s, %s);"
+    vals = (message.id, message.author.id, board)
+    query.execute(sql, vals)
+
+  ALL_STARBOARD_POSTS.append(message.id)
+  board_channel = get_channel_id(board)
+
+  
+  if len(message.embeds) > 0:
+    # repost the original embed if there was one!
+    embed = deepcopy(message.embeds[0])
+    embed_description = f"(via {message.embeds[0].author} {message.embeds[0].description}\n\n[View original message]({message.jump_url})"
+  else:
+    # repost in appropriate board
+    embed_description = f"{message.content}\n\n[View original message]({message.jump_url})"
+    embed = discord.Embed(description=embed_description, color=discord.Color.random())
   embed_thumb = "https://i.imgur.com/LdNH7MK.png"
   if message.author.avatar is not None:
     embed_thumb = message.author.avatar.url
@@ -121,41 +119,34 @@ async def add_starboard_post(message, board):
   )
   date_posted = message.created_at.strftime("%A %B %-d, %Y")
   embed.set_footer(
-    text=f"{date_posted}"
+    text=f"{date_posted} {get_emoji('AGIMUS')}"
   )
   if len(message.attachments) > 0:
+    #if there are attachments to this message, add the first one as the embed image
     embed.set_image(url=message.attachments[0].url)
 
   channel = bot.get_channel(board_channel)
   await channel.send(content=message.channel.mention, embed=embed)
+  
   await message.add_reaction(random.choice(["🌟","⭐","✨"]))
   await increment_user_xp(message.author, 2, "starboard_post", message.channel)
   logger.info(f"{Fore.RED}AGIMUS{Fore.RESET} has added a post to {Style.BRIGHT}{board}{Style.RESET_ALL}!")
 
-
 async def get_starboard_post(message_id, board):
-  #logger.info(f"CHECKING IF POST ALREADY EXISTS IN {board}")
-  db = getDB()
-  query = db.cursor()
-  sql = "SELECT board_channel FROM starboard_posts WHERE message_id = %s and board_channel = %s"
-  vals = (message_id, board)
-  query.execute(sql, vals)
-  message = query.fetchone()
-  #logger.info(f"DB RESULT: {message}")
-  db.commit()
-  query.close()
-  db.close()
-  return message
+  with getDB() as db:
+    query = db.cursor()
+    sql = "SELECT board_channel FROM starboard_posts WHERE message_id = %s and board_channel = %s"
+    vals = (message_id, board)
+    query.execute(sql, vals)
+    message = query.fetchone()
+  return message  
 
 def get_all_starboard_posts():
   posts = []
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT message_id FROM starboard_posts"
-  query.execute(sql)
-  for post in query.fetchall():
-    posts.append(int(post["message_id"]))
-  db.commit()
-  query.close()
-  db.close()
+  with getDB() as db:
+    query = db.cursor(dictionary=True)
+    sql = "SELECT message_id FROM starboard_posts"
+    query.execute(sql)
+    for post in query.fetchall():
+      posts.append(int(post["message_id"]))
   return posts
