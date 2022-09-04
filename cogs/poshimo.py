@@ -10,6 +10,12 @@ class PocketShimodae(commands.Cog):
   
   ps = discord.SlashCommandGroup("ps", "poShimo game commands")
 
+  async def pick_starter(self, interaction:discord.Interaction):
+    logger.info(interaction)
+    await interaction.response.edit_message(
+      content="You clicked it wow"
+    )
+    
   @commands.Cog.listener()
   async def on_ready(self):
     self.game = PoshimoGame() # load the game
@@ -21,17 +27,7 @@ class PocketShimodae(commands.Cog):
     description="testing testing 123"
   )
   async def test(self, ctx:discord.ApplicationContext):
-    starter_pages = psViews.StarterPages(self.game)
-    paginator = pages.Paginator(
-      pages=starter_pages.get_pages(),
-      show_disabled=False,
-      loop_pages=True,
-      disable_on_timeout=True,
-      timeout=60,
-      custom_view=starter_pages.get_view()
-    )
-    paginator.remove_button("first")
-    paginator.remove_button("last")
+    paginator = psViews.StarterPages(self).get_paginator()
     await paginator.respond(ctx.interaction, ephemeral=False)
 
   @ps.command(
