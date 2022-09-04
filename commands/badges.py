@@ -1,14 +1,12 @@
+from dateutil import tz
+
 from common import *
 from cogs.trade import db_cancel_trade, get_offered_and_requested_badge_names
-from queries.wishlist import db_get_badge_locked_status_by_name
-from utils.badge_utils import *
-from utils.check_channel_access import access_check
 import queries.badge_completion as queries_badge_completion
 from queries.badge_scrap import *
-
-
-with open(config["handlers"]["xp"]["badge_data"]) as f:
-  badge_data = json.loads(f.read())
+from queries.wishlist import *
+from utils.badge_utils import *
+from utils.check_channel_access import access_check
 
 all_badge_info = db_get_all_badge_info()
 
@@ -26,7 +24,7 @@ async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
   second_badge = ctx.options["second_badge"]
   third_badge = ctx.options["third_badge"]
 
-  user_badges = db_get_user_badges(ctx.interaction.user.id)
+  user_badges = db_get_user_unlocked_badges(ctx.interaction.user.id)
 
   filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in SPECIAL_BADGES]
 
@@ -62,6 +60,25 @@ badge_group = bot.create_group("badges", "Badge Commands!")
   ]
 )
 @option(
+  name="filter",
+  description="Show only Locked, Unlocked, or Special badges?",
+  required=False,
+  choices=[
+    discord.OptionChoice(
+      name="Unlocked",
+      value="unlocked"
+    ),
+    discord.OptionChoice(
+      name="Locked",
+      value="locked"
+    ),
+    discord.OptionChoice(
+      name="Special",
+      value="special"
+    )
+  ]
+)
+@option(
   name="color",
   description="Which colorscheme would you like?",
   required=False,
@@ -70,16 +87,27 @@ badge_group = bot.create_group("badges", "Badge Commands!")
     for color_choice in ["Green", "Orange", "Purple", "Teal"]
   ]
 )
-async def showcase(ctx:discord.ApplicationContext, public:str, color:str):
+async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, color:str):
   public = (public == "yes")
   await ctx.defer(ephemeral=not public)
 
-  user_badges = db_get_user_badges(ctx.author.id)
+  if filter is not None:
+    if filter == 'unlocked':
+      title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection - Unlocked"
+      user_badges = db_get_user_unlocked_badges(ctx.author.id)
+    elif filter == 'locked':
+      title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection - Locked"
+      user_badges = db_get_user_locked_badges(ctx.author.id)
+    elif filter == 'special':
+      title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection - Special"
+      user_badges = db_get_user_special_badges(ctx.author.id)
+  else:
+    title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
+    user_badges = db_get_user_badges(ctx.author.id)
 
   # Set up text values for paginated pages
-  total_badges_cnt = len(badge_data)
+  total_badges_cnt = len(all_badge_info)
   user_badges_cnt = len(user_badges)
-  title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
   collected = f"{user_badges_cnt} TOTAL ON THE USS HOOD"
   filename_prefix = f"badge_list_{ctx.author.id}-page-"
 
@@ -230,6 +258,7 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
     record = {
       'badge_name': badge['badge_name'],
       'badge_filename': badge['badge_filename'],
+      'special': badge['special'],
       'locked': locked,
       'in_user_collection': badge['badge_name'] in [b['badge_name'] for b in user_set_badges]
     }
@@ -459,11 +488,16 @@ class ScrapButton(discord.ui.Button):
     user_badge_filenames = [b['badge_filename'] for b in user_badges]
     owned_user_badges = [b for b in self.badges_to_scrap if b['badge_filename'] in user_badge_filenames]
     # Ensure they haven't performed another scrap within the time period
-    time_check_fail = False
+    time_check_fail = True
     last_scrap_time = db_get_scrap_last_timestamp(self.user_id)
     if last_scrap_time:
-      time_difference = datetime.utcnow() - last_scrap_time
-      time_check_fail = time_difference.days == 0
+      to_zone = tz.tzlocal()
+      last_scrap_time.replace(tzinfo=to_zone)
+      current_time = datetime.now()
+      if last_scrap_time.date() < current_time.date():
+        time_check_fail = False
+    else:
+        time_check_fail = False
 
     if (len(owned_user_badges) != 3) or (time_check_fail):
       await interaction.response.edit_message(
@@ -555,7 +589,7 @@ class ScrapCancelView(discord.ui.View):
 
 @badge_group.command(
   name="scrap",
-  description="Turn in 3 badges for 1 new random badge. One scrap allowed every 24 hours."
+  description="Turn in 3 unlocked badges for 1 new random badge. One scrap allowed every 24 hours."
 )
 @option(
   name="first_badge",
@@ -589,7 +623,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   user_id = ctx.interaction.user.id
 
   selected_badges = [first_badge, second_badge, third_badge]
-  user_badges = db_get_user_badges(user_id)
+  user_badges = db_get_user_unlocked_badges(user_id)
   user_badge_names = [b['badge_name'] for b in user_badges]
 
   selected_user_badges = [b for b in selected_badges if b in user_badge_names]
@@ -597,7 +631,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   if len(selected_user_badges) != 3:
     await ctx.followup.send(embed=discord.Embed(
       title="Invalid Selection",
-      description=f"You must own all of the badges you've selected to scrap!",
+      description=f"You must own all of the badges you've selected to scrap and they must be unlocked!",
       color=discord.Color.red()
     ), ephemeral=True)
     return
@@ -623,12 +657,23 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   # check that they're within the allowed time window
   last_scrap_time = db_get_scrap_last_timestamp(user_id)
   if last_scrap_time:
-    time_difference = datetime.utcnow() - last_scrap_time
-    if time_difference.days == 0:
-      humanized_time_left = humanize.precisedelta(timedelta(hours=24) - time_difference)
+    time_check_fail = True
+
+    to_zone = tz.tzlocal()
+    last_scrap_time.replace(tzinfo=to_zone)
+    current_time = datetime.now()
+    current_time.replace(tzinfo=to_zone)
+    if last_scrap_time.date() < current_time.date():
+      time_check_fail = False
+
+    if time_check_fail:
+      midnight_tomorrow = current_time.date() + timedelta(days=1)
+      midnight_tomorrow = datetime.combine(midnight_tomorrow, datetime.min.time())
+
+      humanized_time_left = humanize.precisedelta(midnight_tomorrow - current_time, suppress=["days"])
       await ctx.followup.send(embed=discord.Embed(
         title="Scrapper recharging, please wait.",
-        description=f"You may only perform one scrap every 24 hours.\n\nYou still have {humanized_time_left} left.",
+        description=f"Reset time at Midnight Pacific ({humanized_time_left} left).",
         color=discord.Color.red()
       ), ephemeral=True)
       return
@@ -651,23 +696,57 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   badge_to_add = db_get_badge_info_by_name(badge_choice)
   badges_to_scrap = [db_get_badge_info_by_name(b) for b in selected_user_badges]
 
-  # Send confirmation message with interaction view
+  # Check for wishlist badges
+  wishlist_matches_groups = [m for m in (db_get_wishlist_badge_matches(b['badge_filename']) for b in badges_to_scrap) if m]
+
+  # Generate Animated Scrapper Gif
   scrapper_confirm_gif = await generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
 
-  embed = discord.Embed(
+  # Create the first page
+  scrap_embed_description = "** This cannot be undone.\n**" + str("\n".join(selected_user_badges))
+  if len(wishlist_matches_groups):
+    scrap_embed_description += "\n\n**NOTE:** One or more of the badges you're looking to scrap are on other user's wishlists! Check the following pages for more details, you may want to reach out to see if they'd like to trade!"
+
+  scrap_embed = discord.Embed(
     title="Are you sure you want to scrap these badges?",
-    description=str("** This cannot be undone.\n**") + str("\n".join(selected_user_badges)),
+    description=scrap_embed_description,
     color=discord.Color.teal()
   )
-  embed.set_image(url=f"attachment://scrap_{user_id}-confirm.gif")
-
-  view = ScrapCancelView(user_id, badge_to_add, badges_to_scrap)
-  await ctx.followup.send(
-    embed=embed,
-    file=scrapper_confirm_gif,
-    view=view,
-    ephemeral=True
+  scrap_embed.set_image(url=f"attachment://scrap_{user_id}-confirm.gif")
+  scrap_page = pages.Page(
+    embeds=[scrap_embed],
+    files=[scrapper_confirm_gif]
   )
+
+  # Iterate over any wishlist matches if present and add them to paginator pages
+  scrapper_pages = [scrap_page]
+  for wishlist_matches in wishlist_matches_groups:
+    if len(wishlist_matches):
+      badge_filename = wishlist_matches[0]['badge_filename']
+      badge_info = db_get_badge_info_by_filename(badge_filename)
+      users = [await bot.current_guild.fetch_member(m['user_discord_id']) for m in wishlist_matches]
+      wishlist_match_embed = discord.Embed(
+        title=f"The following users want {badge_info['badge_name']}",
+        description="\n".join([u.mention for u in users]),
+        color=discord.Color.teal()
+      )
+      scrapper_pages.append(wishlist_match_embed)
+
+  # Send scrapper paginator
+  view = ScrapCancelView(user_id, badge_to_add, badges_to_scrap)
+  paginator = pages.Paginator(
+    pages=scrapper_pages,
+    custom_buttons=[
+      pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton(
+        "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
+      ),
+      pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
+    ],
+    use_default_buttons=False,
+    custom_view=view
+  )
+  await paginator.respond(ctx.interaction, ephemeral=True)
 
 
 async def _cancel_invalid_scrapped_trades(trades_to_cancel):
@@ -813,6 +892,8 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   badges_today = "".join(emoji_numbers[int(n)] for n in list(str(results['badges_today'][0]['count'])))
   top_collectors = [res for res in results["top_collectors"]]
   top_three = [res for res in results["most_collected"]]
+  top_wishlisted = [res for res in results["most_wishlisted"]]
+  top_locked = [res for res in results["most_locked"]]
   embed = discord.Embed(color=discord.Color.random(), description="", title="")
   embed.add_field(name=f"{get_emoji('combadge')} Total badges collected\non the USS Hood", value=f"{total_badges}\n⠀", inline=True)
   embed.add_field(name="⠀", value="⠀", inline=True)
@@ -820,6 +901,9 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   embed.add_field(name=f"{get_emoji('combadge')} Top 5 most collected", value=str("\n".join(f"{t['badge_filename'].replace('_', ' ').replace('.png', '')} ({t['count']})" for t in top_three)), inline=True)
   embed.add_field(name="⠀", value="⠀", inline=True)
   embed.add_field(name=f"{get_emoji('combadge')} Top 5 badge collectors", value=str("\n".join(f"{t['name']} ({t['count']})" for t in top_collectors)), inline=True)
+  embed.add_field(name=f"{get_emoji('combadge')} Top 5 most wishlisted", value=str("\n".join(f"{t['badge_name']} ({t['count']})" for t in top_wishlisted)), inline=True)
+  embed.add_field(name="⠀", value="⠀", inline=True)
+  embed.add_field(name=f"{get_emoji('combadge')} Top 5 most locked", value=str("\n".join(f"{t['badge_name']} ({t['count']})" for t in top_locked)), inline=True)
   await ctx.respond(embed=embed, ephemeral=False)
 
 
@@ -857,6 +941,8 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User):
     ), ephemeral=True)
     return
 
+  # Lock the badge if it was in their wishlist
+  db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
   # Remove any badges the user may have on their wishlist that they now possess
   db_purge_users_wishlist(user.id)
 
@@ -915,6 +1001,8 @@ async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User,
     badge_filename = badge_info['badge_filename']
     if specific_badge not in [b['badge_name'] for b in user_badges]:
       give_user_specific_badge(user.id, badge_filename)
+      # Lock the badge if it was in their wishlist
+      db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge_filename])
       # Remove any badges the user may have on their wishlist that they now possess
       db_purge_users_wishlist(user.id)
 
@@ -940,12 +1028,13 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
 
   badge_name = badge_info['badge_name']
   badge_url = badge_info['badge_url']
-  star_str = "🌟 ⠀"*8
-
-  embed_description += f"\n\n**{badge_name}**\n{badge_url}"
-  embed_description += f"\n{star_str}\n"
 
   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
+  embed.add_field(
+    name=badge_name,
+    value=badge_url,
+    inline=False
+  )
   embed.set_thumbnail(url=thumbnail_image)
   embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
 
@@ -953,7 +1042,9 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
   discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=embed_filename)
   embed.set_image(url=f"attachment://{embed_filename}")
 
-  await channel.send(content=message, file=discord_image, embed=embed)
+  message = await channel.send(content=message, file=discord_image, embed=embed)
+  # Add + emoji so that users can add it as well to add the badge to their wishlist
+  await message.add_reaction("✅")
 
 
 # ________                      .__
@@ -1000,7 +1091,9 @@ def run_badge_stats_queries():
   queries = {
     "total_badges" : "SELECT COUNT(id) as count FROM badges;",
     "badges_today" : "SELECT COUNT(id) as count FROM badges WHERE time_created > NOW() - INTERVAL 1 DAY;",
-    "top_collectors" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 5;"
+    "top_collectors" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 5;",
+    "most_wishlisted" : "SELECT b_i.badge_name, COUNT(b_w.id) as count FROM badge_info AS b_i JOIN badge_wishlists AS b_w WHERE b_i.badge_filename = b_w.badge_filename GROUP BY b_w.badge_filename ORDER BY COUNT(b_w.badge_filename) DESC, b_i.badge_name ASC LIMIT 5;",
+    "most_locked" : "SELECT b_i.badge_name, COUNT(b.locked) as count FROM badge_info AS b_i JOIN badges AS b ON b_i.badge_filename = b.badge_filename WHERE b.locked = 1 GROUP BY b.badge_filename ORDER BY COUNT(b.locked) DESC, b_i.badge_name ASC LIMIT 5;",
   }
   db = getDB()
   results = {}

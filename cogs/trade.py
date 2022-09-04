@@ -1,4 +1,5 @@
 from common import *
+from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 
@@ -33,6 +34,9 @@ def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   else:
     badge_names = requestor_badges
 
+  special_badge_names = [b['badge_name'] for b in SPECIAL_BADGES]
+  badge_names = [b for b in badge_names if b not in special_badge_names]
+
   if len(badge_names) == 0:
     badge_names = ["This user already has all badges that you possess! Use '/trade cancel' to cancel this trade."]
 
@@ -59,6 +63,9 @@ def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
     badge_names = [b for b in requestee_badges if b not in requestor_badges]
   else:
     badge_names = ["Use '/trade start' to start a trade and make sure you choose someone."]
+
+  special_badge_names = [b['badge_name'] for b in SPECIAL_BADGES]
+  badge_names = [b for b in badge_names if b not in special_badge_names]
 
   if len(badge_names) == 0:
     badge_names = ["You already have all badges that this user possesses! Use '/trade cancel' to cancel this trade."]
@@ -315,6 +322,12 @@ class Trade(commands.Cog):
     db_perform_badge_transfer(active_trade)
     db_complete_trade(active_trade)
 
+    # Lock badges the users now possess that were in their wishlists
+    requested_badge_filenames = [b['badge_filename'] for b in db_get_trade_requested_badges(active_trade)]
+    db_autolock_badges_by_filenames_if_in_wishlist(requestor.id, requested_badge_filenames)
+    offered_badge_filenames = [b['badge_filename'] for b in db_get_trade_offered_badges(active_trade)]
+    db_autolock_badges_by_filenames_if_in_wishlist(requestee.id, offered_badge_filenames)
+
     # Delete Badges From Users Wishlists
     db_purge_users_wishlist(requestor.id)
     db_purge_users_wishlist(requestee.id)
@@ -338,12 +351,17 @@ class Trade(commands.Cog):
     success_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
 
     channel = interaction.channel
-    await channel.send(embed=success_embed, file=success_image)
+    message = await channel.send(embed=success_embed, file=success_image)
 
     # Send notification to requestor the the trade was successful
     user = get_user(requestor.id)
     if user["receive_notifications"]:
       try:
+        success_embed.add_field(
+          name="View Confirmation",
+          value=f"{message.jump_url}",
+          inline=False
+        )
         success_embed.set_footer(
           text="Note: You can use /settings to enable or disable these messages."
         )
@@ -694,7 +712,7 @@ class Trade(commands.Cog):
         description=f"Sorry, {requestee.mention} has opted out of the XP system and is not available for trading.",
         color=discord.Color.red()
       )
-      await ctx.followup.seend(embed=opted_out_embed, ephemeral=True)
+      await ctx.followup.send(embed=opted_out_embed, ephemeral=True)
       return
 
     # Deny the trade request if there's an existing trade in progress by the requestor
@@ -783,7 +801,7 @@ class Trade(commands.Cog):
       discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
 
       offer_embed = discord.Embed(
-        title=f"{offer} added to request.",
+        title=f"{request} added to request.",
         description=f"This badge has been added to your request from {requestee.mention}",
         color=discord.Color.dark_green()
       )
@@ -1189,7 +1207,7 @@ class Trade(commands.Cog):
       logger.info(f"{Fore.CYAN}{from_user.display_name} doesn't possess `{badge}`, unable to add to {direction} "
                   f"{dir_preposition} {to_user.display_name}.")
       await ctx.respond(embed=discord.Embed(
-        title=f"{'You' if direction == 'offer' else 'They'} does not possess that badge",
+        title=f"{'You' if direction == 'offer' else 'They'} do not possess that badge",
         description=f"`{badge}` does not match any badges {'you' if direction == 'offer' else 'they'} possess.\n\n"
                     f"You can use the autocomplete in the query to find the badges "
                     f"{'you' if direction == 'offer' else 'they'} do have!",
@@ -1295,7 +1313,7 @@ def db_get_trade_requested_badges(active_trade):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename
+    SELECT b_i.*
     FROM badge_info as b_i
       JOIN trade_requested AS t_r
       ON t_r.trade_id = %s AND t_r.badge_filename = b_i.badge_filename
@@ -1313,7 +1331,7 @@ def db_get_trade_offered_badges(active_trade):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_i.badge_filename
+    SELECT b_i.*
     FROM badge_info as b_i
       JOIN trade_offered AS t_o
       ON t_o.trade_id = %s AND t_o.badge_filename = b_i.badge_filename

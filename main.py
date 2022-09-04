@@ -14,7 +14,6 @@ from commands.help import help
 from commands.info import info
 from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
-from commands.profile import profile
 from commands.randomep import randomep
 from commands.reports import reports
 from commands.scores import scores
@@ -23,7 +22,6 @@ from commands.speak import speak, speak_embed
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
-from commands.wishlist import *
 
 # Slash Command Groups
 import commands.drop
@@ -42,6 +40,7 @@ from commands.computer import computer
 # Cogs
 from cogs.chaoszork import ChaosZork
 from cogs.poker import Poker
+from cogs.profile import Profile
 from cogs.quiz import Quiz
 from cogs.settings import Settings
 from cogs.shop import Shop
@@ -49,16 +48,19 @@ from cogs.slots import Slots
 from cogs.trade import Trade
 from cogs.react_roles import ReactRoles
 from cogs.backups import Backups
+from cogs.wishlist import Wishlist
 from cogs.wordcloud import Wordcloud
 from cogs.poshimo import PocketShimodae
 bot.add_cog(ChaosZork(bot))
 bot.add_cog(Poker(bot))
+bot.add_cog(Profile(bot))
 bot.add_cog(Quiz(bot))
 bot.add_cog(Settings(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Trade(bot))
 bot.add_cog(Backups(bot))
+bot.add_cog(Wishlist(bot))
 bot.add_cog(Wordcloud(bot))
 bot.add_cog(PocketShimodae(bot))
 if config["roles"]["reaction_roles_enabled"]:

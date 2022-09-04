@@ -70,6 +70,11 @@
         "transporter-log",
         "polls"
       ],
+      "high_react_channels": [
+        "ten-forward",
+        "general-trek",
+        "temba-his-arms-wide"
+      ],
       "boards": {
         "the-argus-array": [],
         "bits-bits-bits": [

@@ -88,6 +88,7 @@ tzlocal==4.2
 uritemplate==4.1.1
 urllib3==1.26.7
 wcwidth==0.2.5
+websockets==10.3
 Werkzeug==2.0.1
 wolframalpha==5.0.0
 wordcloud==1.8.2.2

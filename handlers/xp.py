@@ -3,6 +3,7 @@ from time import sleep
 from numpy import block
 from common import *
 from commands.badges import give_user_badge, send_badge_reward_message
+from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist
 from utils.badge_utils import db_get_user_badges, db_purge_users_wishlist
 
 # rainbow of colors to cycle through for the logs
@@ -257,8 +258,11 @@ async def level_up_user(user:discord.User, level:int):
   query.close()
   db.close()
   badge = give_user_badge(user.id)
+  # Lock the badge if it was in their wishlist
+  db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
   # Remove any badges the user may have on their wishlist that they now possess
   db_purge_users_wishlist(user.id)
+
   await send_level_up_message(user, level, badge)
 
 def give_welcome_badge(user_id):
