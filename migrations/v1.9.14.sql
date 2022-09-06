@@ -1,0 +1,13 @@
+SET FOREIGN_KEY_CHECKS=0;
+UPDATE badges SET badge_filename = "Vulcan_Guard.png" WHERE badge_filename = "Vulcan_Gaurd.png";
+UPDATE badge_info SET badge_name = "Vulcan Guard", badge_filename = "Vulcan_Guard.png" WHERE badge_filename = "Vulcan_Gaurd.png";
+UPDATE badge_affiliation SET badge_filename = "Vulcan_Guard.png" WHERE badge_filename = "Vulcan_Gaurd.png";
+UPDATE badge_type SET badge_filename = "Vulcan_Guard.png" WHERE badge_filename = "Vulcan_Gaurd.png";
+UPDATE badge_universe SET badge_filename = "Vulcan_Guard.png" WHERE badge_filename = "Vulcan_Gaurd.png";
+UPDATE trade_offered SET badge_filename = "Vulcan_Guard.png" WHERE badge_filename = "Vulcan_Gaurd.png";
+UPDATE trade_requested SET badge_filename = "Vulcan_Guard.png" WHERE badge_filename = "Vulcan_Gaurd.png";
+UPDATE badge_scraps SET badge_filename = "Vulcan_Guard.png" WHERE badge_filename = "Vulcan_Gaurd.png";
+UPDATE badge_scrapped SET badge_filename = "Vulcan_Guard.png" WHERE badge_filename = "Vulcan_Gaurd.png";
+UPDATE badge_wishlists SET badge_filename = "Vulcan_Guard.png" WHERE badge_filename = "Vulcan_Gaurd.png";
+SET FOREIGN_KEY_CHECKS=1;
+DELETE FROM badge_type WHERE badge_filename = "Starfleet_Crew_(Medical)_2260s_(Kelvin).png" AND type_name = "Science/Research";
