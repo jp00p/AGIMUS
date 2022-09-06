@@ -3,8 +3,8 @@ from common import *
 from copy import deepcopy
 from handlers.xp import increment_user_xp
 
-react_threshold = 1 # how many reactions required
-high_react_threshold = 1
+react_threshold = 3 # how many reactions required
+high_react_threshold = 5
 argus_threshold = 10 # not being used yet
 user_threshold = 3 # how many users required
 
@@ -30,8 +30,8 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
   reaction = payload.emoji
 
   # don't count users adding reacts to their own posts
-  #if message.author == reacting_user:
-  #  return
+  if message.author == reacting_user:
+    return
 
   # weird edge case where reaction can be a string (never seen it happen)
   if isinstance(reaction, str):
