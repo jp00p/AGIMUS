@@ -62,8 +62,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
               # count the users who reacted with this one
               async for user in reaction.users():
                 # if they haven't already reacted with one of the matching reactions, count this reaction
-                #if user != message.author and user not in message_reaction_people:
-                if user not in message_reaction_people:
+                if user != message.author and user not in message_reaction_people:
                   total_reacts_for_this_match += 1
                   message_reaction_people.add(user) # and don't count them again!
 
