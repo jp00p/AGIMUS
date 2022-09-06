@@ -76,7 +76,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
         adjusted_react_threshold = high_react_threshold
       # finally, if this match category has enough reactions and enough people, let's save it to the starboard channel!
       if total_reacts_for_this_match >= adjusted_react_threshold and len(message_reaction_people) >= user_threshold:
-        if await get_starboard_post(message.id, board) is None: # checking again just in case (might be expensive)
+        if get_starboard_post(message.id, board) is None: # checking again just in case (might be expensive)
           await add_starboard_post(message, board)
           return
 
@@ -197,7 +197,7 @@ def insert_starboard_post(message_id, user_id, channel_id) -> None:
     query.execute(sql, vals)
     db.commit()
 
-def get_starboard_post(message_id, board) -> tuple:
+def get_starboard_post(message_id, board):
   """
   returns the post's channel ID or None if not found
   """
