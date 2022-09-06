@@ -126,7 +126,7 @@ class Wishlist(commands.Cog):
 
     if len(wishlist_badges):
       # Set up paginated results
-      max_badges_per_page = 50
+      max_badges_per_page = 30
       all_pages = [wishlist_badges[i:i + max_badges_per_page] for i in range(0, len(wishlist_badges), max_badges_per_page)]
       total_pages = len(all_pages)
 
@@ -217,7 +217,7 @@ class Wishlist(commands.Cog):
       for user_id in exact_matches_aggregate.keys():
         user = await bot.current_guild.fetch_member(user_id)
 
-        max_badges_per_page = 50
+        max_badges_per_page = 30
 
         # Pages for Badges Match Has
         has_badges = exact_matches_aggregate[user_id]['has']
