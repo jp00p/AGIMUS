@@ -74,7 +74,6 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
       high_react_channel_ids = get_channel_ids_list(config["handlers"]["starboard"]["high_react_channels"])
       if payload.channel_id in high_react_channel_ids:
         adjusted_react_threshold = high_react_threshold
-      await add_starboard_post(message, board)
       # finally, if this match category has enough reactions and enough people, let's save it to the starboard channel!
       if total_reacts_for_this_match >= adjusted_react_threshold and len(message_reaction_people) >= user_threshold:
         if await get_starboard_post(message.id, board) is None: # checking again just in case (might be expensive)
