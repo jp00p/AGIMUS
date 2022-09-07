@@ -20,10 +20,12 @@ def user_badges_autocomplete(ctx:discord.AutocompleteContext):
 
 
 async def tags_autocomplete(ctx:discord.AutocompleteContext):
-  current_user_tags = [t['tag_name'] for t in db_get_user_badge_tags(ctx.interaction.user.id)]
-  current_user_tags.sort()
+  user_tags = [t['tag_name'] for t in db_get_user_badge_tags(ctx.interaction.user.id)]
+  user_tags.sort()
+  if len(user_tags) == 0:
+    user_tags = ["You don't have any tags yet!"]
 
-  return [t for t in current_user_tags if ctx.value.lower() in t.lower()]
+  return [t for t in user_tags if ctx.value.lower() in t.lower()]
 
 # ____   ____.__
 # \   \ /   /|__| ______  _  ________
@@ -46,7 +48,7 @@ class TagSelector(discord.ui.Select):
     ]
 
     super().__init__(
-      placeholder="Select the tags you'd like to associate with this badge",
+      placeholder="Select/Deselect Tags",
       min_values=0,
       max_values=len(user_badge_tags),
       options=options,
@@ -148,7 +150,7 @@ class BadgeTags(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="This Tag Already Exists",
-          description=f"You've already created **{tag}**!\n\nYou can associate your badges with this tag via `/tags tag`!",
+          description=f"You've already created **{tag}**!" + "\n\n" + "You can associate your badges with this tag via `/tags tag`!",
           color=discord.Color.red()
         ),
         ephemeral=True
@@ -159,7 +161,7 @@ class BadgeTags(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="Maximum Tags Allowed Reached",
-          description=f"You've reached the maximum number of tags allowed ({self.max_tags})!\n\nYou can remove a tag if desired via `/tags delete`!",
+          description=f"You've reached the maximum number of tags allowed ({self.max_tags})!" + "\n\n" + "You can remove a tag if desired via `/tags delete`!",
           color=discord.Color.red()
         ),
         ephemeral=True
@@ -171,7 +173,7 @@ class BadgeTags(commands.Cog):
     await ctx.followup.send(
       embed=discord.Embed(
         title="Tag Created Successfully!",
-        description=f"You've created a new tag: **{tag}**!\n\nYou can associate your badges with this tag now via `/tags tag`",
+        description=f"You've created a new tag: **{tag}**!" + "\n\n" f"You can tag your badges with this tag now via `/tags tag`",
         color=discord.Color.green()
       ),
       ephemeral=True
@@ -191,12 +193,24 @@ class BadgeTags(commands.Cog):
   async def delete(self, ctx:discord.ApplicationContext, tag:str):
     await ctx.defer(ephemeral=True)
 
+    # Checks
     tag = tag.strip()
     if len(tag) == 0:
       await ctx.followup.send(
         embed=discord.Embed(
           title="You Must Enter A Tag!",
           description=f"Tag name cannot be empty!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    if tag == "You don't have any tags yet!":
+      await ctx.respond(
+        embed=discord.Embed(
+          title="No Tags Present",
+          description="You'll need to set up some tags first via `/tags create`!",
           color=discord.Color.red()
         ),
         ephemeral=True
@@ -210,7 +224,7 @@ class BadgeTags(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="This Tag Does Not Exist",
-          description=f"**{tag}** is not a tag you have created!\n\nYou can create a new tag via `/tags create`!",
+          description=f"**{tag}** is not a tag you have created!" + "\n\n" + "You can create a new tag via `/tags create`!",
           color=discord.Color.red()
         ),
         ephemeral=True
@@ -222,7 +236,7 @@ class BadgeTags(commands.Cog):
     await ctx.followup.send(
       embed=discord.Embed(
         title="Tag Deleted Successfully!",
-        description=f"You've deleted the tag: **{tag}**!\n\nNote that any badges that were previously associated with the tag have been disassociated as well.",
+        description=f"You've deleted the tag: **{tag}**!" + "\n\n" + f"Note that any badges that were previously tagged **{tag}** have been untagged as well.",
         color=discord.Color.green()
       ),
       ephemeral=True
@@ -309,23 +323,50 @@ class BadgeTags(commands.Cog):
   @commands.check(access_check)
   async def showcase(self, ctx:discord.ApplicationContext, public:str, tag:str):
     public = (public == "yes")
+
+    current_user_tags = db_get_user_badge_tags(ctx.author.id)
+    current_user_tag_names = [t['tag_name'] for t in current_user_tags]
+
+    # Checks
+    if tag == "You don't have any tags yet!":
+      await ctx.respond(
+        embed=discord.Embed(
+          title="No Tags Present",
+          description="You'll need to set up some tags first via `/tags create`!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    if tag not in current_user_tag_names:
+      await ctx.respond(
+        embed=discord.Embed(
+          title="This Tag Does Not Exist",
+          description=f"**{tag}** is not a tag you have created!" + "\n\n" + "You can create a new tag via `/tags create`!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    tagged_badges = db_get_user_tagged_badges(ctx.author.id, tag)
+    if not tagged_badges:
+      await ctx.respond(
+        embed=discord.Embed(
+          title="No Badges Tagged",
+          description=f"You haven't tagged any badges with {tag} yet!\n\nUse `/tags tag` to tag some badges first!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    # If checks pass, go ahead and start the process
     await ctx.defer(ephemeral=not public)
 
-    title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Tagged Badges - {tag}"
-    tagged_badges = db_get_user_tagged_badges(ctx.author.id, tag)
-
-    # if not tagged_badges:
-    #   await ctx.followup.send(
-    #     embed=discord.Embed(
-    #       title="No Badges Tagged",
-    #       description=f"You haven't associated any badges with this tag yet!\n\nUse `/tags tag` to create a tag some badges first!",
-    #       color=discord.Color.red()
-    #     ),
-    #     ephemeral=True
-    #   )
-    #   return
-
     # Set up text values for paginated pages
+    title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Tagged Badges - {tag}"
     total_badges_cnt = len(all_badge_info)
     tagged_badges_cnt = len(tagged_badges)
     collected = f"{tagged_badges_cnt} TAGGED ON THE USS HOOD"
@@ -335,7 +376,7 @@ class BadgeTags(commands.Cog):
 
     embed = discord.Embed(
       title=f"Tagged Badges",
-      description=f'{ctx.author.mention} has tagged {tagged_badges_cnt} "{tag}" badges!',
+      description=f'{ctx.author.mention} has tagged {tagged_badges_cnt} **{tag}** badges!',
       color=discord.Color.blurple()
     )
 
@@ -343,11 +384,11 @@ class BadgeTags(commands.Cog):
     # Otherwise private displays can use the paginator
     if not public:
       buttons = [
-        pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(user_badges_cnt <= 30), row=1),
+        pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(tagged_badges_cnt <= 30), row=1),
         pages.PaginatorButton(
           "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
         ),
-        pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(user_badges_cnt <= 30), row=1),
+        pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(tagged_badges_cnt <= 30), row=1),
       ]
 
       pages_list = [
