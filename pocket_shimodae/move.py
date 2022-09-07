@@ -14,7 +14,6 @@ leg over chair
 squint
 axe handle
 flail
-
 """
 
 # load all the base move data from csv

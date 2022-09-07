@@ -10,25 +10,19 @@ class PocketShimodae(commands.Cog):
   
   ps = discord.SlashCommandGroup("ps", "poShimo game commands")
 
-  async def pick_starter(self, interaction:discord.Interaction):
-    logger.info(interaction)
-    await interaction.response.edit_message(
-      content="You clicked it wow"
-    )
-    
   @commands.Cog.listener()
   async def on_ready(self):
     self.game = PoshimoGame() # load the game
-    self.all_trainers = PoshimoGame().get_all_trainers() # get a list of all active poshimo trainers
-    logger.info(self.all_trainers)
+    self.all_trainers = self.game.get_all_trainers() # get a list of all active poshimo trainers
+    logger.info(f"ALL POSHIMO TRAINERS: {self.all_trainers}")
 
   @ps.command(
     name="test",
     description="testing testing 123"
   )
   async def test(self, ctx:discord.ApplicationContext):
-    paginator = psViews.StarterPages(self).get_paginator()
-    await paginator.respond(ctx.interaction, ephemeral=False)
+    view = psViews.StarterPages(self)
+    await view.get_paginator().respond(ctx.interaction)
 
   @ps.command(
     name="start",
@@ -49,10 +43,9 @@ class PocketShimodae(commands.Cog):
     }
 
     # pick your starter poShimo
-    
 
     trainer_id = self.game.register_trainer(trainer_info)
     if trainer_id != 0:
-      await ctx.respond(f"You've been registered: Welcome to POSHIMO, Trainer ##{trainer_id}")
+      await ctx.respond(f"You've been registered: Welcome to the world of POCKET SHIMODA, Trainer #{trainer_id:03d}!")
     else:
       await ctx.respond(f"There was some kind of anomaly trying to registering you! Maybe you're already registered.")

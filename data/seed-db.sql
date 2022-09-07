@@ -242,8 +242,7 @@ CREATE TABLE IF NOT EXISTS poshimo_trainers (
   discovered_poshimo TEXT DEFAULT NULL,
   time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id),
-  FOREIGN KEY (userid) REFERENCES users (id),
-  FOREIGN KEY (active_poshimo) REFERENCES poshimodae (id)
+  FOREIGN KEY (userid) REFERENCES users (id)
 );
 CREATE TABLE IF NOT EXISTS poshimodae (
   id INT(11) NOT NULL AUTO_INCREMENT,
@@ -256,6 +255,8 @@ CREATE TABLE IF NOT EXISTS poshimodae (
   PRIMARY KEY (id),
   FOREIGN KEY (owner_id) REFERENCES poshimo_trainers (id)
 );
+ALTER TABLE poshimo_trainers ADD CONSTRAINT FOREIGN KEY (active_poshimo) REFERENCES poshimodae (id);
+
 CREATE TABLE IF NOT EXISTS poshimo_battles (
   id INT(11) NOT NULL AUTO_INCREMENT,
   combatant1 INT(11) NOT NULL,
