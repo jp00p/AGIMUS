@@ -1,5 +1,5 @@
 from common import *
-# from queries.badge_tags import *
+from queries.badge_tags import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 
@@ -35,12 +35,12 @@ class TagSelector(discord.ui.Select):
   def __init__(self, user_discord_id, badge_name):
     user_badge_tags = db_get_user_badge_tags(user_discord_id)
     associated_tags = db_get_associated_badge_tags(user_discord_id, badge_name)
-    associated_tag_names = [t['tag_name'] for t in associated_tags]
+    associated_tag_ids = [t['id'] for t in associated_tags]
     options = [
       discord.SelectOption(
         label=t['tag_name'],
         value=str(t['id']),
-        default=t['tag_name'] in associated_tag_names
+        default=t['id'] in associated_tag_ids
       )
       for t in user_badge_tags
     ]
@@ -59,8 +59,7 @@ class TagSelector(discord.ui.Select):
 
 
 class TagButton(discord.ui.Button):
-  def __init__(self, cog, user_discord_id, badge_name):
-    self.cog = cog
+  def __init__(self, user_discord_id, badge_name):
     self.user_discord_id = user_discord_id
     self.badge_name = badge_name
     super().__init__(
@@ -71,18 +70,16 @@ class TagButton(discord.ui.Button):
 
   async def callback(self, interaction:discord.Interaction):
     associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_name)
-    logger.info(associated_tags)
     tag_ids_to_delete = [t['id'] for t in associated_tags if t['id'] not in self.view.tag_ids]
-    logger.info(tag_ids_to_delete)
     db_delete_badge_tags_associations(tag_ids_to_delete)
     if len(self.view.tag_ids):
       db_create_badge_tags_associations(self.user_discord_id, self.badge_name, self.view.tag_ids)
 
     new_associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_name)
-    associated_tag_names = [t['tag_name'] for t in new_associated_tags]
+    new_associated_tag_names = [t['tag_name'] for t in new_associated_tags]
 
-    if len(associated_tag_names):
-      description = f"**{self.badge_name}** is now tagged with:" + "\n\n" + "\n".join(associated_tag_names)
+    if len(new_associated_tag_names):
+      description = f"**{self.badge_name}** is now tagged with:" + "\n\n- " + "\n- ".join(new_associated_tag_names) + "\n\n" + "Use `/tags showcase` to show off your tags!"
     else:
       description = f"**{self.badge_name}** no longer has any tags associated!"
 
@@ -100,10 +97,10 @@ class TagButton(discord.ui.Button):
 class TagBadgeView(discord.ui.View):
   def __init__(self, cog, user_discord_id, badge_name):
     super().__init__()
-
+    self.cog = cog
     self.tag_ids = []
     self.add_item(TagSelector(user_discord_id, badge_name))
-    self.add_item(TagButton(cog, user_discord_id, badge_name))
+    self.add_item(TagButton(user_discord_id, badge_name))
 
 # __________             .___           ___________                    _________
 # \______   \_____     __| _/ ____   ___\__    ___/____     ____  _____\_   ___ \  ____   ____
@@ -151,7 +148,7 @@ class BadgeTags(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="This Tag Already Exists",
-          description=f"You've already created **{tag}**!\n\nYou can associate your badges with this tag via `/tags tag_badge`!",
+          description=f"You've already created **{tag}**!\n\nYou can associate your badges with this tag via `/tags tag`!",
           color=discord.Color.red()
         ),
         ephemeral=True
@@ -174,7 +171,7 @@ class BadgeTags(commands.Cog):
     await ctx.followup.send(
       embed=discord.Embed(
         title="Tag Created Successfully!",
-        description=f"You've created a new tag: **{tag}**!\n\nYou can associate your badges with this tag now via `/tags tag_badge`",
+        description=f"You've created a new tag: **{tag}**!\n\nYou can associate your badges with this tag now via `/tags tag`",
         color=discord.Color.green()
       ),
       ephemeral=True
@@ -191,7 +188,7 @@ class BadgeTags(commands.Cog):
     required=True,
     autocomplete=tags_autocomplete
   )
-  async def create(self, ctx:discord.ApplicationContext, tag:str):
+  async def delete(self, ctx:discord.ApplicationContext, tag:str):
     await ctx.defer(ephemeral=True)
 
     tag = tag.strip()
@@ -232,8 +229,9 @@ class BadgeTags(commands.Cog):
     )
     return
 
+
   @tags_group.command(
-    name="tag_badge",
+    name="tag",
     description="Tag one of your badges!"
   )
   @option(
@@ -242,8 +240,20 @@ class BadgeTags(commands.Cog):
     required=True,
     autocomplete=user_badges_autocomplete
   )
-  async def tag_badge(self, ctx:discord.ApplicationContext, badge:str):
+  async def tag(self, ctx:discord.ApplicationContext, badge:str):
     await ctx.defer(ephemeral=True)
+
+    badge_tags = db_get_user_badge_tags(ctx.author.id)
+    if not badge_tags:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="No Tags Present",
+          description=f"You haven't set up any tags yet!\n\nUse `/tags create` to set up some custom tags first!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
 
     user_badges = db_get_user_badges(ctx.author.id)
     user_badge_names = [b['badge_name'] for b in user_badges]
@@ -270,6 +280,7 @@ class BadgeTags(commands.Cog):
 
     await ctx.followup.send(embed=embed, file=badge_image, view=view, ephemeral=True)
 
+
   @tags_group.command(
     name="showcase",
     description="Display a showcase of tagged badges"
@@ -295,6 +306,7 @@ class BadgeTags(commands.Cog):
     required=True,
     autocomplete=tags_autocomplete
   )
+  @commands.check(access_check)
   async def showcase(self, ctx:discord.ApplicationContext, public:str, tag:str):
     public = (public == "yes")
     await ctx.defer(ephemeral=not public)
@@ -302,7 +314,16 @@ class BadgeTags(commands.Cog):
     title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Tagged Badges - {tag}"
     tagged_badges = db_get_user_tagged_badges(ctx.author.id, tag)
 
-    logger.info(tagged_badges)
+    # if not tagged_badges:
+    #   await ctx.followup.send(
+    #     embed=discord.Embed(
+    #       title="No Badges Tagged",
+    #       description=f"You haven't associated any badges with this tag yet!\n\nUse `/tags tag` to create a tag some badges first!",
+    #       color=discord.Color.red()
+    #     ),
+    #     ephemeral=True
+    #   )
+    #   return
 
     # Set up text values for paginated pages
     total_badges_cnt = len(all_badge_info)
@@ -351,130 +372,3 @@ class BadgeTags(commands.Cog):
           await ctx.followup.send(embed=embed, files=chunk, ephemeral=False)
         else:
           await ctx.followup.send(files=chunk, ephemeral=False)
-
-# ________                      .__
-# \_____  \  __ __   ___________|__| ____   ______
-#  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
-# /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
-# \_____\ \_/____/  \___  >__|  |__|\___  >____  >
-#        \__>           \/              \/     \/
-
-# TODO: Move this into queries.badge_tags
-
-def db_get_user_badge_tags(user_discord_id) -> list:
-  """
-  returns a list of the users's current custom badge tags
-  """
-  with getDB() as db:
-    query = db.cursor(dictionary=True)
-    sql = "SELECT * FROM badge_tags WHERE user_discord_id = %s ORDER BY tag_name ASC"
-    vals = (user_discord_id,)
-    query.execute(sql, vals)
-    results = query.fetchall()
-  return results
-
-
-def db_create_user_tag(user_discord_id, tag) -> None:
-  """
-  creates a new tag for the user in question
-  """
-  with getDB() as db:
-    query = db.cursor()
-    sql = "INSERT INTO badge_tags (user_discord_id, tag_name) VALUES (%s, %s)"
-    vals = (user_discord_id, tag)
-    query.execute(sql, vals)
-    db.commit()
-
-
-def db_delete_user_tag(user_discord_id, tag) -> None:
-  """
-  delete a tag for the user in question
-  """
-  with getDB() as db:
-    query = db.cursor()
-    sql = "DELETE FROM badge_tags WHERE user_discord_id = %s AND tag_name = %s"
-    vals = (user_discord_id, tag)
-    query.execute(sql, vals)
-    db.commit()
-
-
-def db_get_associated_badge_tags(user_discord_id, badge_name) -> list:
-  """
-  returns a list of the current tags the user has associated with a given badge
-  """
-  with getDB() as db:
-    query = db.cursor(dictionary=True)
-    sql = '''
-      SELECT b_t.* FROM badge_tags AS b_t
-        JOIN badge_tags_associations AS t_a ON b_t.id = t_a.badge_tags_id
-        JOIN badges AS b ON t_a.badges_id = b.id
-        JOIN badge_info AS b_i ON b_i.badge_filename = b.badge_filename
-          WHERE b_i.badge_name = %s AND b_t.user_discord_id = %s
-    '''
-    vals = (badge_name, user_discord_id)
-    query.execute(sql, vals)
-    results = query.fetchall()
-  return results
-
-
-def db_create_badge_tags_associations(user_discord_id, badge_name, tag_ids):
-  """
-  associates a list of tags with a user's specific badge
-  """
-  tags_values_list = []
-  for id in tag_ids:
-    tuple = (id, badge_name, user_discord_id)
-    tags_values_list.append(tuple)
-
-  with getDB() as db:
-    query = db.cursor(dictionary=True)
-    sql = '''
-      INSERT INTO badge_tags_associations (badges_id, badge_tags_id)
-        SELECT b.id, %s
-          FROM badges AS b
-          JOIN badge_info AS b_i ON b_i.badge_filename = b.badge_filename
-            WHERE b_i.badge_name = %s AND b.user_discord_id = %s
-    '''
-    query.executemany(sql, tags_values_list)
-    db.commit()
-
-def db_delete_badge_tags_associations(tag_ids):
-  """
-  deletes a list of tags from association with a user's specific badge
-  """
-  tags_values_list = []
-  for id in tag_ids:
-    tuple = (id,)
-    tags_values_list.append(tuple)
-
-  with getDB() as db:
-    query = db.cursor(dictionary=True)
-    sql = '''
-      DELETE FROM badge_tags_associations WHERE badge_tags_id = %s
-    '''
-    query.executemany(sql, tags_values_list)
-    db.commit()
-
-def db_get_user_tagged_badges(user_discord_id, tag):
-  '''
-    get_user_badges(user_discord_id)
-    user_discord_id[required]: int
-    returns a list of badges the user has
-  '''
-  with getDB() as db:
-    query = db.cursor(dictionary=True)
-    sql = '''
-      SELECT b_i.badge_name, b_i.badge_filename, b.locked, b_i.special FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-        JOIN badge_tags_associations AS t_a
-          ON t_a.badges_id = b.id
-        JOIN badge_tags AS b_t
-          ON b.user_discord_id = b_t.user_discord_id AND t_a.badge_tags_id = b_t.id
-        WHERE b.user_discord_id = %s AND b_t.tag_name = %s
-          ORDER BY b_i.badge_filename ASC
-    '''
-    vals = (user_discord_id, tag)
-    query.execute(sql, vals)
-    badges = query.fetchall()
-  return badges
