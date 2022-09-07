@@ -151,7 +151,7 @@ class BadgeTags(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="This Tag Already Exists",
-          description=f"You've already created **{tag}**!\n\nYou can associate your badges with this tag via `/tags tag`!",
+          description=f"You've already created **{tag}**!\n\nYou can associate your badges with this tag via `/tags tag_badge`!",
           color=discord.Color.red()
         ),
         ephemeral=True
@@ -174,7 +174,7 @@ class BadgeTags(commands.Cog):
     await ctx.followup.send(
       embed=discord.Embed(
         title="Tag Created Successfully!",
-        description=f"You've created a new tag: **{tag}**!\n\nYou can associate your badges with this tag now via `/tags tag`",
+        description=f"You've created a new tag: **{tag}**!\n\nYou can associate your badges with this tag now via `/tags tag_badge`",
         color=discord.Color.green()
       ),
       ephemeral=True
@@ -263,7 +263,6 @@ class BadgeTags(commands.Cog):
     view = TagBadgeView(self, ctx.author.id, badge)
     embed = discord.Embed(
       title=badge,
-      description="Select the tags below you'd like to associate with this badge.",
       color=discord.Color.dark_purple()
     )
     badge_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
