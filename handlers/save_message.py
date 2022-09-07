@@ -24,27 +24,23 @@ async def save_message_to_db(message:discord.Message):
 
     # combine back into string
     message_content = " ".join(message_modified)
+
     
-    remove_emoji = re.compile('<.*?>')
-    special_chars = re.escape(string.punctuation)
-    
-    message_content = re.sub(remove_emoji, '', message_content) # strip discord emoji from message
-    message_content = re.sub(r'https?:\/\/\S*', '', message_content) # strip all URLs from the content
-    message_content = re.sub(r'['+special_chars+']', '', message_content) # strip any remaining special characters
+    message_content = string_utils.strip_emoji(message_content)
+    message_content = string_utils.strip_urls(message_content)
+    message_content = string_utils.strip_punctuation(message_content)
     message_content = message_content.replace("  ", " ") # convert double spaces to single space
     message_content = message_content.strip()
     
     if message_content.strip() == "":
       return None
 
-    #logger.info(f"Saving message: {message_content}")
-    db = getDB()
-    query = db.cursor()
-    sql = "INSERT INTO message_history (user_discord_id, channel_id, message_text) VALUES (%s, %s, %s)"
-    vals = (message.author.id, message.channel.id, message_content)
-    query.execute(sql, vals)
-    last_id = query.lastrowid
-    db.commit()
-    query.close()
-    db.close()
+    with getDB() as db:
+      query = db.cursor()
+      sql = "INSERT INTO message_history (user_discord_id, channel_id, message_text) VALUES (%s, %s, %s)"
+      vals = (message.author.id, message.channel.id, message_content)
+      query.execute(sql, vals)
+      last_id = query.lastrowid
+      db.commit()
+
     return last_id

@@ -206,7 +206,7 @@ def db_get_wishlist_matches(user_discord_id):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b.user_discord_id FROM badge_info AS b_i
+    SELECT b_i.*, b.user_discord_id FROM badge_info AS b_i
       JOIN badges AS b
         ON b_i.badge_filename = b.badge_filename
       WHERE b.badge_filename IN (
@@ -237,7 +237,7 @@ def db_get_wishlist_inventory_matches(user_discord_id):
   db = getDB()
   query = db.cursor(dictionary=True)
   sql = '''
-    SELECT b_i.badge_name, b_w.user_discord_id FROM badge_info AS b_i
+    SELECT b_i.*, b_w.user_discord_id FROM badge_info AS b_i
       JOIN badge_wishlists AS b_w
         ON b_w.badge_filename = b_i.badge_filename
       JOIN badges AS b
