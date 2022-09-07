@@ -92,8 +92,9 @@ async def add_starboard_post(message, board) -> None:
   
   await increment_user_xp(message.author, 2, "starboard_post", message.channel) # give em that sweet sweet xp first
   ALL_STARBOARD_POSTS.append(message.id) # add post ID to in-memory list
-  board_channel_id = get_channel_id(board) 
-  insert_starboard_post(message.id, message.author.id, board_channel_id) # add post to DB
+  board_channel_id = get_channel_id(board)
+  channel = bot.get_channel(board_channel_id) # where it will be posted
+  insert_starboard_post(message.id, message.author.id, board) # add post to DB
   
   provider_name, message_str, embed_image_url, embed_title, embed_desc, embed_thumb = ["" for i in range(6)] # initialize all the blank strings
   jumplink = f"[View original message]({message.jump_url}) from {message.channel.name}"
@@ -180,7 +181,7 @@ async def add_starboard_post(message, board) -> None:
   
   star_embed.description += f"\n{get_emoji('combadge')}\n\n{jumplink}"
 
-  channel = bot.get_channel(board_channel_id)
+  
   await channel.send(content=message_str, embed=star_embed) # send main embed
   await message.add_reaction(random.choice(["🌟","⭐","✨"])) # react to original post
   logger.info(f"{Fore.RED}AGIMUS{Fore.RESET} has added {message.author.display_name}'s post to {Style.BRIGHT}{board}{Style.RESET_ALL}!")
