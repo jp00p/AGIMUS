@@ -623,10 +623,10 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   user_id = ctx.interaction.user.id
 
   selected_badges = [first_badge, second_badge, third_badge]
-  user_badges = db_get_user_unlocked_badges(user_id)
-  user_badge_names = [b['badge_name'] for b in user_badges]
+  unlocked_user_badges = db_get_user_unlocked_badges(user_id)
+  unlocked_user_badge_names = [b['badge_name'] for b in unlocked_user_badges]
 
-  selected_user_badges = [b for b in selected_badges if b in user_badge_names]
+  selected_user_badges = [b for b in selected_badges if b in unlocked_user_badge_names]
 
   if len(selected_user_badges) != 3:
     await ctx.followup.send(embed=discord.Embed(
@@ -681,8 +681,9 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   # If time check okay, select a new random badge
   all_possible_badges = [b['badge_name'] for b in all_badge_info]
   special_badge_names = [b['badge_name'] for b in SPECIAL_BADGES]
-  # Don't give them a badge they don't have or a special badge
-  valid_choices = [b for b in all_possible_badges if b not in user_badge_names and b not in special_badge_names]
+  # Don't give them a badge they already have or a special badge
+  all_user_badge_names = [b['badge_name'] for b in db_get_user_badges(user_id)]
+  valid_choices = [b for b in all_possible_badges if b not in all_user_badge_names and b not in special_badge_names]
   if len(valid_choices) == 0:
     await ctx.respond(embed=discord.Embed(
       title="You already have *ALL BADGES!?!*",
