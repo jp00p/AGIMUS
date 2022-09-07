@@ -73,7 +73,8 @@ class TagButton(discord.ui.Button):
   async def callback(self, interaction:discord.Interaction):
     associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_name)
     tag_ids_to_delete = [t['id'] for t in associated_tags if t['id'] not in self.view.tag_ids]
-    db_delete_badge_tags_associations(tag_ids_to_delete)
+    badge_info = db_get_badge_info_by_name(self.badge_name)
+    db_delete_badge_tags_associations(tag_ids_to_delete, badge_info['badge_filename'])
     if len(self.view.tag_ids):
       db_create_badge_tags_associations(self.user_discord_id, self.badge_name, self.view.tag_ids)
 

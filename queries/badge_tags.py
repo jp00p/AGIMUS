@@ -84,19 +84,21 @@ def db_create_badge_tags_associations(user_discord_id, badge_name, tag_ids):
     query.executemany(sql, tags_values_list)
     db.commit()
 
-def db_delete_badge_tags_associations(tag_ids):
+def db_delete_badge_tags_associations(tag_ids, badge_filename):
   """
   deletes a list of tags from association with a user's specific badge
   """
   tags_values_list = []
   for id in tag_ids:
-    tuple = (id,)
+    tuple = (id, badge_filename)
     tags_values_list.append(tuple)
 
   with getDB() as db:
     query = db.cursor(dictionary=True)
     sql = '''
-      DELETE FROM badge_tags_associations WHERE badge_tags_id = %s
+      DELETE t_a FROM badge_tags_associations AS t_a
+        JOIN badges AS b ON b.id = t_a.badges_id
+          WHERE t_a.badge_tags_id = %s AND b.badge_filename = %s
     '''
     query.executemany(sql, tags_values_list)
     db.commit()
