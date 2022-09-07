@@ -38,6 +38,7 @@ from commands.agimus import agimus
 from commands.computer import computer
 
 # Cogs
+from cogs.badge_tags import BadgeTags
 from cogs.chaoszork import ChaosZork
 from cogs.poker import Poker
 from cogs.profile import Profile
@@ -50,6 +51,7 @@ from cogs.react_roles import ReactRoles
 from cogs.backups import Backups
 from cogs.wishlist import Wishlist
 from cogs.wordcloud import Wordcloud
+bot.add_cog(BadgeTags(bot))
 bot.add_cog(ChaosZork(bot))
 bot.add_cog(Poker(bot))
 bot.add_cog(Profile(bot))
