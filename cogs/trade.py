@@ -783,7 +783,7 @@ class Trade(commands.Cog):
       value=request
     )
     initiated_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
-    await ctx.followup.send(embed=initiated_embed)
+    await ctx.followup.send(embed=initiated_embed, ephemeral=True)
 
     if offer:
       badge_info = db_get_badge_info_by_name(offer)
@@ -858,7 +858,6 @@ class Trade(commands.Cog):
         view=None,
         attachments=[]
       )
-
 
       # Alert the requestee that the trade has been canceled if the trade was active
       user = get_user(requestee.id)
