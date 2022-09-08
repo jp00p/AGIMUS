@@ -1811,7 +1811,15 @@
       "episode": "15",
       "imdb": "tt0708910",
       "memoryalpha": "Hunters_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 434,
+          "airdate": "2022.09.05",
+          "episode": "Friend to the Brass Plaque",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-434-friend-to-the-brass-plaque-voy-s4e15/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/fodU05SyZr5tGhGav8pXrhdd2jR.jpg"
