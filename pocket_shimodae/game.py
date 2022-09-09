@@ -69,17 +69,12 @@ class PoshimoGame:
     ----
     PoshimoTrainer
     """
-    db = getDB()
-    sql = "INSERT INTO poshimo_trainers (userid) VALUES (%s)"
-    vals = (user_id,)
-    query = db.cursor()
-    query.execute(sql, vals)
-    db.commit()
-    trainer_id = query.lastrowid
-    query.close()
-    db.close()
-    logger.info(f"REGISTERING POSHIMO TRAINER: #{trainer_id}")
-    return PoshimoTrainer(trainer_id)
+    with AgimusDB() as query:
+      sql = "INSERT INTO poshimo_trainers (userid) VALUES (%s)"
+      vals = (user_id,)    
+      query.execute(sql, vals)
+      trainer_id = query.lastrowid
+      return PoshimoTrainer(trainer_id)
 
   # player wants to explore
   def start_exploration(self, player) -> None:

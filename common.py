@@ -18,6 +18,7 @@ import numpy as np
 import requests
 import tmdbsimple as tmdb
 import treys
+from contextlib import closing
 from colorama import Back, Fore, Style
 from discord import option
 from discord.ext import commands, tasks, pages
@@ -118,6 +119,7 @@ SERVER_LOGS_CHANNEL = get_channel_id(config["server_logs_channel"])
 #         \/     \/          \/    \/     \/     \/     \/
 
 def getDB():
+  """Legacy DB connector"""
   db = mysql.connector.connect(
     host=DB_HOST,
     user=DB_USER,
@@ -125,6 +127,48 @@ def getDB():
     password=DB_PASS,
   )
   return db
+
+class AgimusDB():
+  """
+  Database wrapper for AGIMUS
+
+  utilizes context managers for less repeating code.
+
+  ----
+  Usage: 
+  ```
+  with AgimusDB() as query:
+    sql = "INSERT INTO table (col) VALUES (%s)"
+    vals = (user_id,)
+    query.execute(sql, vals)
+  ```
+  
+  ----
+  Returns:
+
+  `mysql.connection.Cursor`
+    A self-closing cursor to work with
+
+  """
+  def __init__(self):
+    self.db = None
+    self.cursor = None
+
+  def __enter__(self):
+    self.db = mysql.connector.connect(
+      host=DB_HOST,
+      user=DB_USER,
+      database=DB_NAME,
+      password=DB_PASS,
+    )
+    self.cursor = self.db.cursor()
+    return self.cursor
+
+  def __exit__(self, exc_class, exc, traceback):
+      self.db.commit()
+      self.cursor.close()
+      self.db.close()
+
 
 # seed_db()
 # This function takes no arguments
