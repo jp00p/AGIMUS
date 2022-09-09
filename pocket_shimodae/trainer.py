@@ -3,9 +3,10 @@ from common import *
 MAX_POSHIMO = 6 # the maximum poshimo a player can have
 # this will represent either a discord user or an npc
 class PoshimoTrainer():
-  def __init__(self, trainer_id=None, player_data={}):
-    self.trainer_id = trainer_id
-    self.player_data = player_data
+  def __init__(self, trainer_id=None):
+    self.id = trainer_id
+    self.discord_id = None
+    self.user_id = None
     self._wins = 0
     self._losses = 0
     self._status = None # what are you doing
@@ -17,22 +18,20 @@ class PoshimoTrainer():
     self._buckles = [] # these are like pokemon badges
     self.shimodaepedia = [] # which poShimo has this player seen (list of ids)
     self.avatar = ""
-    if self.trainer_id:
-      self.load()
 
   def __repr__(self) -> str:
     return f"TRAINER ID: {self.trainer_id}"
 
   def load(self):
     """ Load a human Trainer's data from DB """
-    db = getDB()
-    sql = "SELECT * FROM poshimo_trainers, poshimodae, users LEFT JOIN poshimodae ON poshimodae.owner_id = poshimo_trainers.id WHERE poshimo_trainers.id = %s LEFT JOIN"
-    vals = (self.trainer_id)
-    query = db.cursor(dictionary=True)
-    query.execute(sql, vals)
-    trainer_data = query.fetchall()
-    query.close()
-    db.close()
+    with getDB() as db:
+      sql = "SELECT * FROM poshimo_trainers, poshimodae, users LEFT JOIN poshimodae ON poshimodae.owner_id = poshimo_trainers.id WHERE poshimo_trainers.id = %s LEFT JOIN"
+      vals = (self.trainer_id)
+      query = db.cursor(dictionary=True)
+      query.execute(sql, vals)
+      trainer_data = query.fetchall()
+      query.close()
+      db.close()
     self._wins = trainer_data.get("wins")
     self._losses = trainer_data.get("losses")
     self._status = trainer_data.get("status")

@@ -33,7 +33,7 @@ class PoshimoGame:
 
   def get_all_trainers(self):
     db = getDB()
-    sql = "SELECT users.discord_id FROM users LEFT JOIN poshimo_trainers ON poshimo_trainers.userid = users.id"
+    sql = "SELECT users.discord_id, poshimo_trainers.id FROM poshimo_trainers LEFT JOIN users ON poshimo_trainers.userid = users.id"
     query = db.cursor()
     query.execute(sql)
     all_trainers = [int(i[0]) for i in query.fetchall()]
@@ -56,31 +56,30 @@ class PoshimoGame:
     db.close()   
     return trainer_data
 
-  def register_trainer(self, trainer_info:dict) -> int:
+  def register_trainer(self, user_id) -> PoshimoTrainer:
     """
     Register a new trainer to the database
 
     Parameters
     ----
-    `trainer_info`:`dict`
-      A dictionary of the user's info
+    `user_id`:`int`
+      the users ID from the `users` table
 
     Returns
     ----
-    - `int` The ID of user in the DB
-    - `0` If the user is already registered or an error occurred
+    PoshimoTrainer
     """
     db = getDB()
     sql = "INSERT INTO poshimo_trainers (userid) VALUES (%s)"
-    vals = (trainer_info.get("userid"),)
+    vals = (user_id,)
     query = db.cursor()
     query.execute(sql, vals)
     db.commit()
-    insert_id = query.lastrowid
+    trainer_id = query.lastrowid
     query.close()
     db.close()
-    logger.info(f"REGISTERING POSHIMO TRAINER: {trainer_info}")
-    return insert_id
+    logger.info(f"REGISTERING POSHIMO TRAINER: #{trainer_id}")
+    return PoshimoTrainer(trainer_id)
 
   # player wants to explore
   def start_exploration(self, player) -> None:

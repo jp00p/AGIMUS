@@ -1,3 +1,4 @@
+from common import *
 from math import sqrt, floor, log10
 import csv
 from enum import Enum
@@ -39,12 +40,12 @@ class Poshimo:
   Pass a name and level to get level-adjusted stats (for wild Poshimo)\n
   Pass a name and owner to get the Poshimo stats from the DB (for player-owned Poshimo)
   """
-  def __init__(self, name, owner=None, level=1):
+  def __init__(self, name, level=1, owner=None, id=None):
     self.name = name
     if not pdata.get(self.name):
       return None
+    self.id = id
     self.poshimodata = pdata[self.name]
-  
     self.types = (PoshimoType(self.poshimodata["type1"]), PoshimoType(self.poshimodata["type2"]))
     self.personality = None
     self.level = level
@@ -62,9 +63,15 @@ class Poshimo:
   def __repr__(self) -> str:
     return f"{self.name}: (Types: {[t for t in list(self.types)]})"
   
-  def save(self) -> None:
+  def save(self) -> int:
     # save to db
-    pass
+    with getDB() as db:
+      query = """
+      INSERT INTO poshimodae (id, owner_id, name, display_name, level, xp) 
+                      VALUES (%(id)s, %(owner_id)s, %(name)s, %(display_name)s, %(level)s, %(xp)s) 
+      ON DUPLICATE KEY UPDATE display_name=%(display_name)s, level=%(level)s, xp=%(xp)s
+      """
+
   
   def attempt_capture(self):
     # transfer to player
