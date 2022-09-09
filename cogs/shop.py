@@ -422,11 +422,7 @@ async def update_player_role(user, role):
 # This function will set a specific user's high_roller
 # value to '1' by discord user id
 def add_high_roller(discord_id):
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE users SET high_roller = 1 WHERE discord_id = %s"
-  vals = (discord_id,)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "UPDATE users SET high_roller = 1 WHERE discord_id = %s"
+    vals = (discord_id,)
+    query.execute(sql, vals)

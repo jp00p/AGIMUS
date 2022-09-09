@@ -191,19 +191,16 @@ def insert_starboard_post(message_id, user_id, channel_id) -> None:
   """ 
   inserts a post into the DB - only saves the message ID, user ID and channel ID 
   """
-  with getDB() as db:
-    query = db.cursor()
+  with AgimusDB() as query:
     sql = "INSERT INTO starboard_posts (message_id, user_id, board_channel) VALUES (%s, %s, %s);"
     vals = (message_id, user_id, channel_id)
     query.execute(sql, vals)
-    db.commit()
 
 def get_starboard_post(message_id, board):
   """
   returns the post's channel ID or None if not found
   """
-  with getDB() as db:
-    query = db.cursor()
+  with AgimusDB() as query:
     sql = "SELECT board_channel FROM starboard_posts WHERE message_id = %s and board_channel = %s"
     vals = (message_id, board)
     query.execute(sql, vals)
@@ -215,8 +212,7 @@ def get_all_starboard_posts() -> list:
   returns a list of all starboard post IDs
   """
   posts = []
-  with getDB() as db:
-    query = db.cursor(dictionary=True)
+  with AgimusDB(cursor_dict=True) as query:
     sql = "SELECT message_id FROM starboard_posts"
     query.execute(sql)
     for post in query.fetchall():
