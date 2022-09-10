@@ -376,14 +376,10 @@ class Shop(commands.Cog):
 # for a specific user
 def update_player_profile_photo(discord_id, photo):
   logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new photo: {Fore.CYAN}{photo}{Fore.RESET}")
-  db = getDB()
-  query = db.cursor()
-  sql = "REPLACE INTO profile_photos (photo, user_discord_id) VALUES (%(photo)s, %(discord_id)s)"
-  vals = {"photo": photo, "discord_id" : discord_id}
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "REPLACE INTO profile_photos (photo, user_discord_id) VALUES (%(photo)s, %(discord_id)s)"
+    vals = {"photo": photo, "discord_id" : discord_id}
+    query.execute(sql, vals)
 
 # update_player_profile_sticker(discord_id, sticker)
 # discord_id[required]: int
@@ -393,14 +389,10 @@ def update_player_profile_photo(discord_id, photo):
 # for a specific user
 def update_player_profile_sticker(discord_id, sticker):
   logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new sticker: {Fore.CYAN}{sticker}{Fore.RESET}")
-  db = getDB()
-  query = db.cursor()
-  sql = "REPLACE INTO profile_stickers (sticker, user_discord_id) VALUES (%(sticker)s, %(discord_id)s)"
-  vals = {"sticker":sticker, "discord_id":discord_id}
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "REPLACE INTO profile_stickers (sticker, user_discord_id) VALUES (%(sticker)s, %(discord_id)s)"
+    vals = {"sticker":sticker, "discord_id":discord_id}
+    query.execute(sql, vals)
 
 
 # update_player_role(user, role)

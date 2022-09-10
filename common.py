@@ -143,21 +143,16 @@ def seed_db():
   )
   with open(DB_SEED_FILEPATH, 'r') as f:
     seed = f.read()
-  c = db.cursor(buffered=True)
-  c.execute(seed, multi=True)
-  db.close()
-  db = getDB()
-  # If the jackpot table is empty, set an initial pot value to 250
-  query = db.cursor(dictionary=True)
-  query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
-  data = query.fetchone()
+  with AgimusDB(buffered=True) as query:
+    query.execute(seed, multi=True)
+  with AgimusDB(dictionary=True) as query:
+    # If the jackpot table is empty, set an initial pot value to 250
+    query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
+    data = query.fetchone()
   if data["total_jackpots"] == 0:
     logger.info(f"{Fore.GREEN}SEEDING JACKPOT{Fore.RESET}")
-    insert = db.cursor()
-    insert.execute("INSERT INTO jackpots (jackpot_value) VALUES (250)")
-    db.commit()
-    insert.close()
-  db.close()
+    with AgimusDB() as query:
+      query.execute("INSERT INTO jackpots (jackpot_value) VALUES (250)")
 
 def is_integer(n):
   try:
@@ -189,20 +184,21 @@ def get_user(discord_id:int):
     vals = (discord_id,)
     query.execute(sql, vals)
     user_data = query.fetchone()
-    # get user stickers
-    sql = "SELECT sticker, position FROM profile_stickers WHERE user_discord_id = %s AND sticker IS NOT NULL"
-    vals = (discord_id,)
-    query.execute(sql, vals)
-    user_stickers = query.fetchall()
-    # get user featured badges
-    sql = "SELECT badge_filename FROM profile_badges WHERE user_discord_id = %s AND badge_filename IS NOT NULL"
-    vals = (discord_id,)
-    query.execute(sql, vals)
-    user_badges = query.fetchall()
-    # close db
-    user_data["stickers"] = user_stickers
-    user_data["badges"] = user_badges
-    logger.debug(f"USER DATA: {user_data}")
+    if user_data:
+      # get user stickers
+      sql = "SELECT sticker, position FROM profile_stickers WHERE user_discord_id = %s AND sticker IS NOT NULL"
+      vals = (discord_id,)
+      query.execute(sql, vals)
+      user_stickers = query.fetchall()
+      # get user featured badges
+      sql = "SELECT badge_filename FROM profile_badges WHERE user_discord_id = %s AND badge_filename IS NOT NULL"
+      vals = (discord_id,)
+      query.execute(sql, vals)
+      user_badges = query.fetchall()
+      # close db
+      user_data["stickers"] = user_stickers
+      user_data["badges"] = user_badges
+      logger.debug(f"USER DATA: {user_data}")
   return user_data
 
 
@@ -218,7 +214,7 @@ def get_all_users():
   return users
 
 
-# register_player(user)
+# register_user(user)
 # user[required]: object
 # This function will insert a new user into the database
 def register_user(user):

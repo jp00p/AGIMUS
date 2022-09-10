@@ -89,26 +89,23 @@ class ReactRoles(commands.Cog):
   # updates db with new message details and deletes old messages from db
   def store_reaction_data(self, header_id, message_id, message_name, reaction_type):
     header_message_name = f"{message_name}_header"
-    db = getDB()
+    with AgimusDB() as query:
     
-    sql = [
-      "DELETE FROM reaction_role_messages WHERE message_name IN (%(message_name)s, %(header_name)s)", 
-      "INSERT INTO reaction_role_messages (message_id, reaction_type, message_name) VALUES (%(message_id)s, %(reaction_type)s, %(message_name)s)",
-      "INSERT INTO reaction_role_messages (message_id, message_name) VALUES (%(header_id)s, %(header_name)s)"
-    ]
-    vals = { 
-      "message_name": message_name, 
-      "header_name": header_message_name, 
-      "message_id": message_id, 
-      "header_id": header_id, 
-      "reaction_type": reaction_type 
-    }
-    for q in sql:
-      query = db.cursor()
-      query.execute(q, vals)
-      db.commit()
-      query.close()
-    db.close()
+      sql = [
+        "DELETE FROM reaction_role_messages WHERE message_name IN (%(message_name)s, %(header_name)s)", 
+        "INSERT INTO reaction_role_messages (message_id, reaction_type, message_name) VALUES (%(message_id)s, %(reaction_type)s, %(message_name)s)",
+        "INSERT INTO reaction_role_messages (message_id, message_name) VALUES (%(header_id)s, %(header_name)s)"
+      ]
+      vals = { 
+        "message_name": message_name, 
+        "header_name": header_message_name, 
+        "message_id": message_id, 
+        "header_id": header_id, 
+        "reaction_type": reaction_type 
+      }
+      for q in sql:
+        query.execute(q, vals)
+        
     self.reaction_roles = self.load_role_reactions()
     
   # add initial reactions to message
@@ -119,13 +116,10 @@ class ReactRoles(commands.Cog):
 
   # get all existing reaction message data
   def get_reaction_db_data(self):
-    db = getDB()
-    sql = "SELECT * FROM reaction_role_messages"
-    query = db.cursor(dictionary=True)
-    query.execute(sql)
-    reaction_data = query.fetchall()
-    query.close()
-    db.close()
+    with AgimusDB(dictionary=True) as query:
+      sql = "SELECT * FROM reaction_role_messages"
+      query.execute(sql)
+      reaction_data = query.fetchall()
     return reaction_data
 
   @commands.command()

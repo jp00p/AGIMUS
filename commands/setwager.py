@@ -49,13 +49,9 @@ def set_player_wager(discord_id, amt):
   and a positive integer and updates the wager
   value for that user in the db
   """
-  db = getDB()
-  amt = max(amt, 0)
-  query = db.cursor()
-  sql = "UPDATE users SET wager = %s WHERE discord_id = %s"
-  vals = (amt, discord_id)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    amt = max(amt, 0)
+    sql = "UPDATE users SET wager = %s WHERE discord_id = %s"
+    vals = (amt, discord_id)
+    query.execute(sql, vals)
   
