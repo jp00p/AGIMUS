@@ -136,19 +136,22 @@ def getDB():
 # with an opening pot of 250
 def seed_db():
   # Seed db structure if it doesn't exist
-  db = mysql.connector.connect(
-    host=DB_HOST,
-    user=DB_USER,
-    password=DB_PASS,
-  )
   with open(DB_SEED_FILEPATH, 'r') as f:
     seed = f.read()
-  with AgimusDB(buffered=True) as query:
-    query.execute(seed, multi=True)
+
+  
+  db = getDB()
+  with open(DB_SEED_FILEPATH, 'r') as f:
+    seed = f.read()
+  c = db.cursor(buffered=True) # this doesn't like my context manager for some reason
+  c.execute(seed, multi=True) # or this
+  db.close()
+
   with AgimusDB(dictionary=True) as query:
     # If the jackpot table is empty, set an initial pot value to 250
     query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
     data = query.fetchone()
+  
   if data["total_jackpots"] == 0:
     logger.info(f"{Fore.GREEN}SEEDING JACKPOT{Fore.RESET}")
     with AgimusDB() as query:
@@ -178,7 +181,7 @@ def uniq_channels(config):
 # discord_id[required]: int
 # This function will return a user's record from their id
 def get_user(discord_id:int):
-  with AgimusDB(cursor_dict=True) as query:
+  with AgimusDB(dictionary=True) as query:
     # get user basic info
     sql = "SELECT users.*, profile_photos.photo as photo, profile_taglines.tagline as tagline FROM users LEFT JOIN profile_taglines ON profile_taglines.user_discord_id = users.discord_id LEFT JOIN profile_photos ON profile_photos.user_discord_id = users.discord_id WHERE discord_id = %s"
     vals = (discord_id,)
@@ -206,7 +209,7 @@ def get_user(discord_id:int):
 # This function takes no arguments
 # and returns a list of all user discord ids
 def get_all_users():
-  with AgimusDB(cursor_dict=True) as query:
+  with AgimusDB(dictionary=True) as query:
     query.execute("SELECT discord_id FROM users")
     users = []
     for user in query.fetchall():

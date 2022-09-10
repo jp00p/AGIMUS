@@ -22,11 +22,12 @@ class AgimusDB():
     A self-closing cursor to work with
 
   """
-  def __init__(self, dictionary=False, buffered=False):
+  def __init__(self, dictionary=False, buffered=False, multi=False):
     self.db = None
     self.cursor = None
     self.dictionary = dictionary
     self.buffered = buffered
+    self.multi = multi
 
   def __enter__(self):
     """ context manager opening """
@@ -34,7 +35,7 @@ class AgimusDB():
       host=DB_HOST,
       user=DB_USER,
       database=DB_NAME,
-      password=DB_PASS,
+      password=DB_PASS
     )
     self.cursor = self.db.cursor(
       dictionary=self.dictionary,
@@ -44,6 +45,6 @@ class AgimusDB():
 
   def __exit__(self, exc_class, exc, traceback):
     """ context manager closing """
-    self.db.commit()
     self.cursor.close()
+    self.db.commit()
     self.db.close()

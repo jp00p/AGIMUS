@@ -212,7 +212,7 @@ def get_all_starboard_posts() -> list:
   returns a list of all starboard post IDs
   """
   posts = []
-  with AgimusDB(cursor_dict=True) as query:
+  with AgimusDB(dictionary=True) as query:
     sql = "SELECT message_id FROM starboard_posts"
     query.execute(sql)
     for post in query.fetchall():
