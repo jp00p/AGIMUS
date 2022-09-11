@@ -167,7 +167,7 @@ class DfrotzRunner(commands.Cog):
     """
     await ctx.defer()
     self.start_process()
-    cmd = cmd.strip()
+    cmd = cmd.strip().replace('\\', '\\\\')
 
     if cmd.lower() == 'save':
       return await self.save(ctx)
@@ -181,14 +181,19 @@ class DfrotzRunner(commands.Cog):
     output = self.run_command(cmd)
     if len(output) > 2000:
       current_output = ''
+      first_output = True
       for line in output.splitlines(keepends=True):
         if line[:3] == '```':
           continue
         if len(current_output) + len(line) + 12 > 2000:
-          await ctx.channel.send(f"```ansi\n{current_output}\n```")
+          if first_output:
+            await ctx.respond(f"```ansi\n{current_output}\n```")
+            first_output = False
+          else:
+            await ctx.channel.send(f"```ansi\n{current_output}\n```")
           current_output = ''
         current_output += line
-      await ctx.respond(f"```ansi\n{current_output}\n```")
+      await ctx.channel.send(f"```ansi\n{current_output}\n```")
     else:
       await ctx.respond(output)
 
