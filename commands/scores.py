@@ -34,9 +34,8 @@ def get_high_scores():
   """
   returns the top 25 users ordered by their score value
   """
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT * FROM users ORDER BY score DESC LIMIT 25"
-  query.execute(sql)
-  scores = query.fetchall()
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT * FROM users ORDER BY score DESC LIMIT 25"
+    query.execute(sql)
+    scores = query.fetchall()
   return scores

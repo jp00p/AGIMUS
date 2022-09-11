@@ -31,21 +31,21 @@ async def handle_loudbot(message:discord.Message):
       await message.reply(await get_shout())
 
 async def get_enabled_setting(message):
-  sql = "SELECT loudbot_enabled FROM users WHERE discord_id = %s;"
-  vals = (message.author.id,)
-  db = getDB()
-  query = db.cursor()
-  query.execute(sql, vals)
-  result = query.fetchone()
+  
+  with AgimusDB() as query:
+    sql = "SELECT loudbot_enabled FROM users WHERE discord_id = %s;"
+    vals = (message.author.id,)
+    query.execute(sql, vals)
+    result = query.fetchone()
   return result[0]
 
 async def get_shout():
-  sql = "SELECT shout FROM shouts ORDER BY RAND() LIMIT 1;"
-  db = getDB()
-  query = db.cursor()
-  query.execute(sql)
-  shout = query.fetchone()
-  yell = shout[0]
+  
+  with AgimusDB() as query:
+    sql = "SELECT shout FROM shouts ORDER BY RAND() LIMIT 1;"
+    query.execute(sql)
+    shout = query.fetchone()
+    yell = shout[0]
   logger.info(f"YELL: {yell}")
   return yell
 
@@ -53,14 +53,10 @@ async def put_shout(message):
   message_content = strip_tags(message.content)
   message_content = re.sub(r'https?:\/\/\S*', '', message_content)
   logger.info("SHOUT: " + message_content)
-  db = getDB()
-  query = db.cursor()
-  sql = "INSERT IGNORE INTO shouts (user_discord_id, channel_id, shout) VALUES (%s, %s, %s)"
-  vals = (message.author.id, message.channel.id, message_content)
-  query.execute(sql, vals)
-  last_id = query.lastrowid
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "INSERT IGNORE INTO shouts (user_discord_id, channel_id, shout) VALUES (%s, %s, %s)"
+    vals = (message.author.id, message.channel.id, message_content)
+    query.execute(sql, vals)
+    last_id = query.lastrowid
   return last_id
 

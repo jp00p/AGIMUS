@@ -35,12 +35,9 @@ async def save_message_to_db(message:discord.Message):
     if message_content.strip() == "":
       return None
 
-    with getDB() as db:
-      query = db.cursor()
+    with AgimusDB() as query:
       sql = "INSERT INTO message_history (user_discord_id, channel_id, message_text) VALUES (%s, %s, %s)"
       vals = (message.author.id, message.channel.id, message_content)
       query.execute(sql, vals)
       last_id = query.lastrowid
-      db.commit()
-
     return last_id

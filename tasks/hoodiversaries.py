@@ -28,14 +28,10 @@ def hoodiversary_task(bot):
       for m in hoodiversary_members:
         existing_badges = db_get_user_badges(m["member"].id)
         if "Captain Picard Day" not in [b['badge_name'] for b in existing_badges]:
-          db = getDB()
-          query = db.cursor()
-          sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
-          vals = (m["member"].id, 'Captain_Picard_Day.png')
-          query.execute(sql, vals)
-          db.commit()
-          query.close()
-          db.close()
+          with AgimusDB() as query:
+            sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
+            vals = (m["member"].id, 'Captain_Picard_Day.png')
+            query.execute(sql, vals)
 
       emoji_list = [
         get_emoji('picard_yes_happy_celebrate'),
