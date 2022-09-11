@@ -139,13 +139,10 @@ def seed_db():
   with open(DB_SEED_FILEPATH, 'r') as f:
     seed = f.read()
 
-  
-  db = getDB()
-  with open(DB_SEED_FILEPATH, 'r') as f:
-    seed = f.read()
-  c = db.cursor(buffered=True) # this doesn't like my context manager for some reason
-  c.execute(seed, multi=True) # or this
-  db.close()
+  with AgimusDB(buffered=True) as query:
+    with open(DB_SEED_FILEPATH, 'r') as f:
+      seed = f.read()
+      query.execute(seed, multi=True)
 
   with AgimusDB(dictionary=True) as query:
     # If the jackpot table is empty, set an initial pot value to 250

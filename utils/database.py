@@ -45,6 +45,11 @@ class AgimusDB():
 
   def __exit__(self, exc_class, exc, traceback):
     """ context manager closing """
+    if not self.buffered: 
+      self.db.commit()
     self.cursor.close()
-    self.db.commit()
+    self.db.close()
+
+  def __del__(self):
+    self.cursor.close()
     self.db.close()
