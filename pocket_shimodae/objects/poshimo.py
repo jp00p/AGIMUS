@@ -2,11 +2,7 @@ from common import *
 from math import sqrt, floor, log10
 import csv
 from enum import Enum
-from .move import PoshimoMove
-from .item import PoshimoItem
-from .type import PoshimoType
-from .personality import PoshimoPersonality
-from .trainer import PoshimoTrainer
+from . import PoshimoType, PoshimoMove, PoshimoPersonality
 
 # load the base poshimo data from csv
 with open("pocket_shimodae/data/shimodaepedia.csv") as file:
@@ -44,8 +40,10 @@ class Poshimo:
     self.name = name
     if not pdata.get(self.name):
       return None
+    self.owner = owner
+    self.display_name = self.name # for custom player-named Poshimo
     self.id = id
-    self.poshimodata = pdata[self.name]
+    self.poshimodata = pdata[self.name] # load the base poshimo data
     self.types = (PoshimoType(self.poshimodata["type1"]), PoshimoType(self.poshimodata["type2"]))
     self.personality = None
     self.level = level
@@ -58,19 +56,36 @@ class Poshimo:
     self.speed = self.poshimodata["speed"]
     self.max_hp = self.poshimodata["hp"]
     self.hp = self.max_hp
+    self.xp = 0
     self.move_list = [PoshimoMove(i) for i in self.poshimodata["move_list"]]
   
   def __repr__(self) -> str:
     return f"{self.name}: (Types: {[t for t in list(self.types)]})"
   
   def save(self) -> int:
-    # save to db
-    with getDB() as db:
-      query = """
+    """
+    saves to the db or updates the db with this poshimo's data
+    """
+    with AgimusDB() as query:
+      sql = """
       INSERT INTO poshimodae (id, owner_id, name, display_name, level, xp) 
-                      VALUES (%(id)s, %(owner_id)s, %(name)s, %(display_name)s, %(level)s, %(xp)s) 
-      ON DUPLICATE KEY UPDATE display_name=%(display_name)s, level=%(level)s, xp=%(xp)s
+        VALUES (%(id)s, %(owner_id)s, %(name)s, %(display_name)s, %(level)s, %(xp)s) 
+      ON DUPLICATE KEY UPDATE 
+        display_name=%(display_name)s, level=%(level)s, xp=%(xp)s
       """
+      vals = {
+        "id" : self.id,
+        "owner_id" : self.owner,
+        "name" : self.name,
+        "display_name" : self.display_name,
+        "level" : self.level,
+        "xp" : self.xp
+      }
+      query.execute(sql, vals)
+      logger.info(f"Saving poshimo: {vals}")
+      poshi_row = query.lastrowid
+      self.id = poshi_row
+    return self.id
 
   
   def attempt_capture(self):

@@ -1,4 +1,3 @@
-import poshimo, poshimo_trainer
 from enum import Enum
 
 class BattleStates(Enum):

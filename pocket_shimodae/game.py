@@ -1,10 +1,6 @@
 from common import *
-from .poshimo import Poshimo
-from .move import PoshimoMove
-from .trainer import PoshimoTrainer
+from .objects import *
 
-# main poShimo game functionality
-# probably some utility stuff too
 class PoshimoGame:
   """
   The base poShimo game object
@@ -12,7 +8,7 @@ class PoshimoGame:
   Methods
   ----
 
-  `register_trainer(trainer_info)`
+  `register_trainer(user_id)`
     Register a new trainer to the database
   
   `get_all_trainers()`
@@ -32,28 +28,22 @@ class PoshimoGame:
     pass
 
   def get_all_trainers(self):
-    db = getDB()
-    sql = "SELECT users.discord_id, poshimo_trainers.id FROM poshimo_trainers LEFT JOIN users ON poshimo_trainers.userid = users.id"
-    query = db.cursor()
-    query.execute(sql)
-    all_trainers = [int(i[0]) for i in query.fetchall()]
-    query.close()
-    db.close()
+    with AgimusDB() as query:
+      sql = "SELECT users.discord_id, poshimo_trainers.id FROM poshimo_trainers LEFT JOIN users ON poshimo_trainers.userid = users.id"
+      query.execute(sql)
+      all_trainers = [int(i[0]) for i in query.fetchall()]
     return all_trainers
 
   def get_trainer(self, discord_id):
     """Get trainer data from the database based on discord ID"""
-    db = getDB()
-    sql = "SELECT * FROM poshimo_trainers \
-          LEFT JOIN users ON poshimo_trainers.userid = users.id \
-          LEFT JOIN poshimodae ON owner_id = poshimo_trainers.id \
-          WHERE users.discord_id = %s"
-    vals = (discord_id,)
-    query = db.cursor(dictionary=True)
-    query.execute(sql, vals)
-    trainer_data = query.fetchall()
-    query.close()
-    db.close()   
+    with AgimusDB(dictionary=True) as query:
+      sql = "SELECT * FROM poshimo_trainers \
+            LEFT JOIN users ON poshimo_trainers.userid = users.id \
+            LEFT JOIN poshimodae ON owner_id = poshimo_trainers.id \
+            WHERE users.discord_id = %s"
+      vals = (discord_id,)
+      query.execute(sql, vals)
+      trainer_data = query.fetchall()
     return trainer_data
 
   def register_trainer(self, user_id) -> PoshimoTrainer:
@@ -74,7 +64,7 @@ class PoshimoGame:
       vals = (user_id,)    
       query.execute(sql, vals)
       trainer_id = query.lastrowid
-      return PoshimoTrainer(trainer_id)
+    return PoshimoTrainer(trainer_id)
 
   # player wants to explore
   def start_exploration(self, player) -> None:

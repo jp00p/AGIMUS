@@ -1,4 +1,5 @@
 from common import *
+from . import Poshimo
 
 MAX_POSHIMO = 6 # the maximum poshimo a player can have
 # this will represent either a discord user or an npc
@@ -11,7 +12,7 @@ class PoshimoTrainer():
     self._losses = 0
     self._status = None # what are you doing
     self._active_poshimo = None # current poShimo
-    self._shimoda_sac = [] # all poShimo owned
+    self.poshimo_sac = [] # all poShimo owned
     self._inventory = [] # all items (if not human, these are items that can be dropped)
     self._location = None # where are you
     self._scarves = 0 # money
@@ -24,14 +25,11 @@ class PoshimoTrainer():
 
   def load(self):
     """ Load a human Trainer's data from DB """
-    with getDB() as db:
+    with AgimusDB(dictionary=True) as query:
       sql = "SELECT * FROM poshimo_trainers, poshimodae, users LEFT JOIN poshimodae ON poshimodae.owner_id = poshimo_trainers.id WHERE poshimo_trainers.id = %s LEFT JOIN"
       vals = (self.trainer_id)
-      query = db.cursor(dictionary=True)
       query.execute(sql, vals)
       trainer_data = query.fetchall()
-      query.close()
-      db.close()
     self._wins = trainer_data.get("wins")
     self._losses = trainer_data.get("losses")
     self._status = trainer_data.get("status")
@@ -113,9 +111,14 @@ class PoshimoTrainer():
       pass
       #self.update_db_column(self)
 
-  def add_poshimo(self, poshimo):
-    # add a poshimo to the sac
-    pass
+  def add_poshimo(self, poshimo:Poshimo):
+    """ 
+    add a poshimo to your sac and save it to the db
+    """
+    poshimo.owner = self.id
+    poshimo.save()
+    self.poshimo_sac.append(poshimo)
+    return poshimo
 
   def set_active_poshimo(self, poshimo):
     # set current active poshimo

@@ -1,8 +1,9 @@
-""" all the registration stuff, choosing a poshimo and other stuff """
+""" 
+this contains all the views for registering a player and choosing their first poshimo
+the StarterChosen view will actually do the registration, everything else is just UI
+"""
 from common import *
-from pocket_shimodae.trainer import PoshimoTrainer
 from ..ui import PoshimoView, Confirmation
-
 
 class Welcome(PoshimoView):
   """ first message a new user sees """
@@ -14,7 +15,6 @@ class Welcome(PoshimoView):
         description="This is a brief description of the game. Let's go!"
       )
     ]
-
 
 class StarterPoshimoConfirmation(Confirmation):
   """ confirmation for picking your starter poshimo """
@@ -28,14 +28,13 @@ class StarterPoshimoConfirmation(Confirmation):
     ]
     
   async def cancel_callback(self, button, interaction:discord.Interaction):
+    """ cancel the starter poshimo choice, nothing happens """
     await interaction.response.edit_message(content="Give it a good hard think and come back when you're ready! (Type `/ps start` to try again)", view=None, embed=None)
     self.stop()
     
   async def confirm_callback(self, button, interaction:discord.Interaction):
-    # register player
-    user = get_user(interaction.user.id)
-    trainer = self.game.register_trainer(user["id"])
-    view = StarterChosen(self.cog, self.choice, trainer)
+    """ confirm the poshimo choice, register the player! """
+    view = StarterChosen(self.cog, self.choice, get_user(interaction.user.id))
     await interaction.response.edit_message(view=view, embeds=view.embeds)
 
 class StarterPages(PoshimoView):
@@ -46,7 +45,6 @@ class StarterPages(PoshimoView):
     self.welcome_embed = Welcome(self.cog).get_embed()
     
     for s in self.starters:
-      """ list all the poshimo available as starters """
       embed = discord.Embed(
         title="Choose your starter Poshimo", 
         description=f"**{s.name}**", 
@@ -65,21 +63,25 @@ class StarterPages(PoshimoView):
 
   @discord.ui.button(label="Choose this one", emoji="🟢", style=discord.ButtonStyle.blurple, row=2)
   async def button_callback(self, button, interaction:discord.Interaction):
-    """ confirm their selection """
-    pchoice = self.starters[self.paginator.current_page]
+    """ a single button to confirm their selection, depending on which page they were on """
+    pchoice = self.starters[self.paginator.current_page] # page corresponds to the starter poshimo
     view = StarterPoshimoConfirmation(self.cog, pchoice)
-    
     await interaction.response.edit_message(view=view, embeds=view.embeds)
 
 class StarterChosen(PoshimoView):
-  """ when you have successfully chosen a starter """
-  def __init__(self, cog, choice, trainer):
-    self.choice = choice
-    self.trainer = trainer
+  """ 
+  when you have successfully chosen a starter 
+  - this actually registers the player and their poshimo to the DB
+  - not really a view after all heh heh heh
+  """
+  def __init__(self, cog, choice, user):
     super().__init__(cog)
+    self.trainer = self.game.register_trainer(user["id"]) # register player
+    self.poshimo = self.trainer.add_poshimo(choice)
+    logger.info(self.trainer.poshimo_sac)
     self.embeds = [
       discord.Embed(
-        title=f"Congratulations TRAINER #{trainer.id}! You have selected your first poshimo: **{self.choice.name}**!", 
+        title=f"Congratulations TRAINER #{self.trainer.id}! You have selected your first poshimo: **{self.poshimo.name}**! Poshimo ID: {self.poshimo.id}", 
         description="Live long, and may the force prosper within you."
       )
     ]

@@ -1,10 +1,11 @@
 from common import *
+from .game import PoshimoGame
 
 class PoshimoView(discord.ui.View):
   """ base view boilerplate """
   def __init__(self, cog):
     self.cog = cog
-    self.game = cog.game
+    self.game:PoshimoGame = cog.game
     self.pages = []
     self.paginator = None
     self.message = None
