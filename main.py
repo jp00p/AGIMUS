@@ -18,6 +18,7 @@ from commands.randomep import randomep
 from commands.reports import reports
 from commands.scores import scores
 from commands.setwager import setwager
+from commands.shimoda import shimoda
 from commands.speak import speak, speak_embed
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
