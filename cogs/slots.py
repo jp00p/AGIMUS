@@ -196,14 +196,10 @@ class Slots(commands.Cog):
     This function increases the number of a
     user's spin value by one
     """
-    db = getDB()
-    query = db.cursor()
-    sql = "UPDATE users SET spins = spins + 1 WHERE discord_id = %s"
-    vals = (discord_id,)
-    query.execute(sql, vals)
-    db.commit()
-    query.close()
-    db.close()
+    with AgimusDB() as query:
+      sql = "UPDATE users SET spins = spins + 1 WHERE discord_id = %s"
+      vals = (discord_id,)
+      query.execute(sql, vals)
 
   def roll_slot(self, slot_series: str, slot_to_roll: dict, generate_image=True, filename="slot_results.png"):
     """
@@ -393,27 +389,20 @@ class Slots(commands.Cog):
     """
     get the current jackpot
     """
-    db = getDB()
-    query = db.cursor()
-    sql = "SELECT jackpot_value FROM jackpots ORDER BY id DESC LIMIT 1"
-    query.execute(sql)
-    jackpot_amt = query.fetchone()
-    db.commit()
-    query.close()
-    db.close()
+    with AgimusDB() as query:
+      sql = "SELECT jackpot_value FROM jackpots ORDER BY id DESC LIMIT 1"
+      query.execute(sql)
+      jackpot_amt = query.fetchone()
     return jackpot_amt[0]
 
   def get_recent_jackpots(self):
     """
     returns the 10 most recent jackpot_value from the jackpots table
     """
-    db = getDB()
-    query = db.cursor(dictionary=True)
-    sql = "SELECT * FROM jackpots WHERE winner IS NOT NULL ORDER BY id DESC LIMIT 10"
-    query.execute(sql)
-    jackpot_data = query.fetchall()
-    query.close()
-    db.close()
+    with AgimusDB(dictionary=True) as query:
+      sql = "SELECT * FROM jackpots WHERE winner IS NOT NULL ORDER BY id DESC LIMIT 10"
+      query.execute(sql)
+      jackpot_data = query.fetchall()
     return jackpot_data
 
   @commands.command()

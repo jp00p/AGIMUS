@@ -390,42 +390,25 @@ class Profile(commands.Cog):
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
 def db_remove_user_profile_tagline(user_id):
-  db = getDB()
-  query = db.cursor()
-  sql = "REPLACE INTO profile_taglines (tagline, user_discord_id) VALUES (%(tagline)s, %(user_discord_id)s)"
-  vals = {"tagline" : "", "user_discord_id" : user_id}
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "REPLACE INTO profile_taglines (tagline, user_discord_id) VALUES (%(tagline)s, %(user_discord_id)s)"
+    vals = {"tagline" : "", "user_discord_id" : user_id}
+    query.execute(sql, vals)
 
 def db_add_user_profile_tagline(user_id, tagline):
-  db = getDB()
-  query = db.cursor()
-  sql = "REPLACE INTO profile_taglines (tagline, user_discord_id) VALUES (%(tagline)s, %(user_discord_id)s)"
-  vals = {"tagline" : tagline, "user_discord_id" : user_id}
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
-
+  with AgimusDB() as query:
+    sql = "REPLACE INTO profile_taglines (tagline, user_discord_id) VALUES (%(tagline)s, %(user_discord_id)s)"
+    vals = {"tagline" : tagline, "user_discord_id" : user_id}
+    query.execute(sql, vals)
 
 def db_remove_user_profile_badge(user_id):
-  db = getDB()
-  query = db.cursor()
-  sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
-  vals = {"badge_filename" : "", "user_discord_id" : user_id}
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
-
+  with AgimusDB() as query:
+    sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
+    vals = {"badge_filename" : "", "user_discord_id" : user_id}
+    query.execute(sql, vals)
+  
 def db_add_user_profile_badge(user_id, badge_filename):
-  db = getDB()
-  query = db.cursor()
-  sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
-  vals = {"badge_filename" : badge_filename, "user_discord_id" : user_id}
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
+    vals = {"badge_filename" : badge_filename, "user_discord_id" : user_id}
+    query.execute(sql, vals)

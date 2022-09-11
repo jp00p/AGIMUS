@@ -249,14 +249,10 @@ async def level_up_user(user:discord.User, level:int):
   rainbow_l = f"{Back.RESET}{Back.RED} {Back.YELLOW} {Back.GREEN} {Back.CYAN} {Back.BLUE} {Back.MAGENTA} {Back.RESET}"
   rainbow_r = f"{Back.RESET}{Back.MAGENTA} {Back.BLUE} {Back.CYAN} {Back.GREEN} {Back.YELLOW} {Back.RED} {Back.RESET}"
   logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} has reached {Style.BRIGHT}level {level}!{Style.RESET_ALL} {rainbow_r}")
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE users SET level = level + 1 WHERE discord_id = %s"
-  vals = (user.id,)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "UPDATE users SET level = level + 1 WHERE discord_id = %s"
+    vals = (user.id,)
+    query.execute(sql, vals)
   badge = give_user_badge(user.id)
   # Lock the badge if it was in their wishlist
   db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
@@ -268,15 +264,11 @@ async def level_up_user(user:discord.User, level:int):
 def give_welcome_badge(user_id):
   user_badge_names = [b['badge_filename'] for b in db_get_user_badges(user_id)]
   if "Friends_Of_DeSoto.png" not in user_badge_names:
-    db = getDB()
-    query = db.cursor()
-    sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, 'Friends_Of_DeSoto.png');"
-    vals = (user_id,)
-    query.execute(sql, vals)
-    db.commit()
-    query.close()
-    db.close()
-
+    with AgimusDB() as query:
+      sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, 'Friends_Of_DeSoto.png');"
+      vals = (user_id,)
+      query.execute(sql, vals)
+    
 # send_level_up_message(user, level, badge)
 # user[required]:discord.User
 # level[required]:int
@@ -307,15 +299,11 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel):
   if is_weekend:
     xp_multiplier = 2
   amt = int(amt * xp_multiplier)
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s AND xp_enabled = 1"
-  vals = (amt, user.display_name, user.id)
-  query.execute(sql, vals)
-  updated = query.rowcount
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s AND xp_enabled = 1"
+    vals = (amt, user.display_name, user.id)
+    query.execute(sql, vals)
+    updated = query.rowcount
   if updated > 0:
     log_xp_history(user.id, amt, channel.id, reason)
     # If reaction hasn't been logged already, go ahead and do so and then award some XP!
@@ -341,38 +329,27 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel):
 # discord_id[required]: int
 # Returns a users current XP
 def get_user_xp(discord_id):
-  db = getDB()
-  query = db.cursor()
-  sql = "SELECT level, xp FROM users WHERE discord_id = %s"
-  vals = (discord_id,)
-  query.execute(sql, vals)
-  user_xp = query.fetchone()
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "SELECT level, xp FROM users WHERE discord_id = %s"
+    vals = (discord_id,)
+    query.execute(sql, vals)
+    user_xp = query.fetchone()
   return { "level": user_xp[0], "xp" : user_xp[1] }
 
 
 def check_react_history(reaction:discord.Reaction, user:discord.User):
-  db = getDB()
-  query = db.cursor()
-  sql = "SELECT id FROM reactions WHERE user_id = %s AND reaction = %s AND reaction_message_id = %s"
-  vals = (user.id, f"{reaction}", reaction.message.id)
-  query.execute(sql, vals)
-  reaction_exists = query.fetchone()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "SELECT id FROM reactions WHERE user_id = %s AND reaction = %s AND reaction_message_id = %s"
+    vals = (user.id, f"{reaction}", reaction.message.id)
+    query.execute(sql, vals)
+    reaction_exists = query.fetchone()
   return reaction_exists
 
 def log_react_history(reaction:discord.Reaction, user:discord.User):
-  db = getDB()
-  query = db.cursor()
-  sql = "INSERT INTO reactions (user_id, user_name, reaction, reaction_message_id) VALUES (%s, %s, %s, %s)"
-  vals = (user.id, user.display_name, f"{reaction}", reaction.message.id)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "INSERT INTO reactions (user_id, user_name, reaction, reaction_message_id) VALUES (%s, %s, %s, %s)"
+    vals = (user.id, user.display_name, f"{reaction}", reaction.message.id)
+    query.execute(sql, vals)
 
 # log_xp_history(user_discord_id:int, amt:int, channel_name:str, reason:str)
 # user_discord_id[required]: int
@@ -381,11 +358,7 @@ def log_react_history(reaction:discord.Reaction, user:discord.User):
 # reason[required]: str
 # This function will log xp gains to a table for reporting
 def log_xp_history(user_discord_id:int, amt:int, channel_id:int, reason:str):
-  db = getDB()
-  query = db.cursor()
-  sql = "INSERT INTO xp_history (user_discord_id, amount, channel_id, reason) VALUES (%s, %s, %s, %s)"
-  vals = (user_discord_id, amt, channel_id, reason)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "INSERT INTO xp_history (user_discord_id, amount, channel_id, reason) VALUES (%s, %s, %s, %s)"
+    vals = (user_discord_id, amt, channel_id, reason)
+    query.execute(sql, vals)
