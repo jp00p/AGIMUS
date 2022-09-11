@@ -826,6 +826,7 @@
   ],
   "roles": {
     "agimus_maintainers": "AGIMUS Acolyte",
+    "shimoda_pollsters": "T'Pollsters",
     "reaction_roles_enabled": true,
     "promotion_roles": {
       "required_rank_xp": {
