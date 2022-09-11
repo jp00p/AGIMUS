@@ -456,29 +456,27 @@ def db_toggle_notifications(user_id, toggle):
     query.execute(sql, vals)
   
 def db_toggle_wordcloud(user_id, toggle):
+  deleted_row_count = None
   with AgimusDB(dictionary=True) as query:
     sql = "UPDATE users SET log_messages = %s WHERE discord_id = %s"
     vals = (toggle, user_id)
     query.execute(sql, vals)
-
-  deleted_row_count = None
-  if not toggle:
-    sql = "DELETE FROM message_history WHERE user_discord_id = %s"
-    vals = (user_id,)
-    query.execute(sql, vals)
-    deleted_row_count = query.rowcount
+    if not toggle:
+      sql = "DELETE FROM message_history WHERE user_discord_id = %s"
+      vals = (user_id,)
+      query.execute(sql, vals)
+      deleted_row_count = query.rowcount
   return deleted_row_count
 
 def db_toggle_loudbot(user_id, toggle):
+  deleted_row_count = None
   with AgimusDB(dictionary=True) as query:
     sql = "UPDATE users SET loudbot_enabled = %s WHERE discord_id = %s"
     vals = (toggle, user_id)
     query.execute(sql, vals)
-
-  deleted_row_count = None
-  if not toggle:
-    sql = "DELETE FROM shouts WHERE user_discord_id = %s"
-    vals = (user_id,)
-    query.execute(sql, vals)
-    deleted_row_count = query.rowcount
+    if not toggle:
+      sql = "DELETE FROM shouts WHERE user_discord_id = %s"
+      vals = (user_id,)
+      query.execute(sql, vals)
+      deleted_row_count = query.rowcount
   return deleted_row_count
