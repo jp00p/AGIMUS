@@ -13,12 +13,9 @@ from common import *
 def execute_and_return(sql, user_id):
 
     # Execute query
-    db = getDB()
-    query = db.cursor(dictionary=True)
-    query.execute(sql, (user_id,))
-    rows = query.fetchall()
-    query.close()
-    db.close()
+    with AgimusDB(dictionary=True) as query:
+      query.execute(sql, (user_id,))
+      rows = query.fetchall()
 
     # Deliver results
     results = [

@@ -11,8 +11,7 @@ def db_get_user_badge_tags(user_discord_id) -> list:
   """
   returns a list of the users's current custom badge tags
   """
-  with getDB() as db:
-    query = db.cursor(dictionary=True)
+  with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM badge_tags WHERE user_discord_id = %s ORDER BY tag_name ASC"
     vals = (user_discord_id,)
     query.execute(sql, vals)
@@ -24,32 +23,25 @@ def db_create_user_tag(user_discord_id, tag) -> None:
   """
   creates a new tag for the user in question
   """
-  with getDB() as db:
-    query = db.cursor()
+  with AgimusDB() as query:
     sql = "INSERT INTO badge_tags (user_discord_id, tag_name) VALUES (%s, %s)"
     vals = (user_discord_id, tag)
     query.execute(sql, vals)
-    db.commit()
-
 
 def db_delete_user_tag(user_discord_id, tag) -> None:
   """
   delete a tag for the user in question
   """
-  with getDB() as db:
-    query = db.cursor()
+  with AgimusDB() as query:
     sql = "DELETE FROM badge_tags WHERE user_discord_id = %s AND tag_name = %s"
     vals = (user_discord_id, tag)
     query.execute(sql, vals)
-    db.commit()
-
 
 def db_get_associated_badge_tags(user_discord_id, badge_name) -> list:
   """
   returns a list of the current tags the user has associated with a given badge
   """
-  with getDB() as db:
-    query = db.cursor(dictionary=True)
+  with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_t.* FROM badge_tags AS b_t
         JOIN badge_tags_associations AS t_a ON b_t.id = t_a.badge_tags_id
@@ -72,8 +64,7 @@ def db_create_badge_tags_associations(user_discord_id, badge_name, tag_ids):
     tuple = (id, badge_name, user_discord_id)
     tags_values_list.append(tuple)
 
-  with getDB() as db:
-    query = db.cursor(dictionary=True)
+  with AgimusDB(dictionary=True) as query:
     sql = '''
       INSERT INTO badge_tags_associations (badges_id, badge_tags_id)
         SELECT b.id, %s
@@ -82,7 +73,6 @@ def db_create_badge_tags_associations(user_discord_id, badge_name, tag_ids):
             WHERE b_i.badge_name = %s AND b.user_discord_id = %s
     '''
     query.executemany(sql, tags_values_list)
-    db.commit()
 
 def db_delete_badge_tags_associations(tag_ids, badge_filename):
   """
@@ -93,15 +83,13 @@ def db_delete_badge_tags_associations(tag_ids, badge_filename):
     tuple = (id, badge_filename)
     tags_values_list.append(tuple)
 
-  with getDB() as db:
-    query = db.cursor(dictionary=True)
+  with AgimusDB(dictionary=True) as query:
     sql = '''
       DELETE t_a FROM badge_tags_associations AS t_a
         JOIN badges AS b ON b.id = t_a.badges_id
           WHERE t_a.badge_tags_id = %s AND b.badge_filename = %s
     '''
     query.executemany(sql, tags_values_list)
-    db.commit()
 
 def db_get_user_tagged_badges(user_discord_id, tag):
   '''
@@ -109,8 +97,7 @@ def db_get_user_tagged_badges(user_discord_id, tag):
     user_discord_id[required]: int
     returns a list of badges the user has
   '''
-  with getDB() as db:
-    query = db.cursor(dictionary=True)
+  with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.badge_name, b_i.badge_filename, b.locked, b_i.special FROM badges b
         JOIN badge_info AS b_i

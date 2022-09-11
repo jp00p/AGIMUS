@@ -89,49 +89,37 @@ def get_xp_report():
   """
   returns a dictionary of overall top xp users
   """
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT name,xp FROM users ORDER BY xp DESC LIMIT 25"
-  query.execute(sql)
-  results = query.fetchall()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT name,xp FROM users ORDER BY xp DESC LIMIT 25"
+    query.execute(sql)
+    results = query.fetchall()
   return results
 
 def get_scores_report():
   """
   returns a dictionary of users sorted by top scores
   """
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT name,score FROM users ORDER BY score DESC LIMIT 25"
-  query.execute(sql)
-  results = query.fetchall()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT name,score FROM users ORDER BY score DESC LIMIT 25"
+    query.execute(sql)
+    results = query.fetchall()
   return results
 
 def get_channel_activity_report():
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT SUM(amount) as xp_amount, channel_id FROM xp_history WHERE time_created > NOW() - INTERVAL 1 DAY GROUP BY channel_id ORDER BY SUM(amount) DESC LIMIT 25"
-  query.execute(sql)
-  results = query.fetchall()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT SUM(amount) as xp_amount, channel_id FROM xp_history WHERE time_created > NOW() - INTERVAL 1 DAY GROUP BY channel_id ORDER BY SUM(amount) DESC LIMIT 25"
+    query.execute(sql)
+    results = query.fetchall()
   return results
 
 def get_gainers_report():
   """
   returns a dictionary of users who gained the most xp in the last hour
   """
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT xp_history.user_discord_id, SUM(xp_history.amount) as amt, users.name FROM xp_history LEFT JOIN users ON xp_history.user_discord_id = users.discord_id WHERE xp_history.time_created > now() - interval 1 hour GROUP BY users.name, xp_history.user_discord_id ORDER BY amt DESC LIMIT 25;"
-  query.execute(sql)
-  results = query.fetchall()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT xp_history.user_discord_id, SUM(xp_history.amount) as amt, users.name FROM xp_history LEFT JOIN users ON xp_history.user_discord_id = users.discord_id WHERE xp_history.time_created > now() - interval 1 hour GROUP BY users.name, xp_history.user_discord_id ORDER BY amt DESC LIMIT 25;"
+    query.execute(sql)
+    results = query.fetchall()
   return results
     
 
@@ -192,13 +180,10 @@ def get_num_users():
   """
   get number of users registered to the database
   """
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "select count(id) as `num_users` from users;"
-  query.execute(sql)
-  results = query.fetchall()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    sql = "select count(id) as `num_users` from users;"
+    query.execute(sql)
+    results = query.fetchall()
   return results
 
 def generate_diagnostic_card(type:str):

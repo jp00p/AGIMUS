@@ -71,6 +71,10 @@ class Wishlist(commands.Cog):
     await self.handle_wishlist_reaction_toggle(payload)
 
   async def handle_wishlist_reaction_toggle(self, payload):
+    if self.bot.user.id == payload.user_id:
+      return
+
+    user = get_user(payload.user_id)
     member = self.bot.current_guild.get_member(payload.user_id)
 
     if member and member.bot:
@@ -96,16 +100,45 @@ class Wishlist(commands.Cog):
     field = embed.fields[0]
     badge_name = field.name.strip()
 
-    user_wishlist_badges = db_get_user_wishlist_badges(payload.user_id)
-    user_wishlist_badge_names = [b['badge_name'] for b in user_wishlist_badges]
+    user_badge_names = [b['badge_name'] for b in db_get_user_badges(payload.user_id)]
+    user_wishlist_badge_names = [b['badge_name'] for b in db_get_user_wishlist_badges(payload.user_id)]
 
-    if payload.event_type == "REACTION_ADD" and badge_name not in user_wishlist_badge_names:
+    if payload.event_type == "REACTION_ADD" and badge_name not in user_badge_names and badge_name not in user_wishlist_badge_names:
       logger.info(f"Adding {Style.BRIGHT}{badge_name}{Style.RESET_ALL} to {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
       db_add_badge_name_to_users_wishlist(member.id, badge_name)
+      if user["receive_notifications"]:
+        try:
+          embed = discord.Embed(
+            title="Badge Added to Wishlist",
+            description=f"**{badge_name}** has been added to your wishlist via your ✅ react!",
+            color=discord.Color.green()
+          )
+          embed.set_footer(
+            text="Note: You can use /settings to enable or disable these messages."
+          )
+          await member.send(embed=embed)
+        except discord.Forbidden as e:
+          logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
+          pass
 
     if payload.event_type == "REACTION_REMOVE" and badge_name in user_wishlist_badge_names:
       logger.info(f"Removing {Style.BRIGHT}{badge_name}{Style.RESET_ALL} from {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
       db_remove_badge_name_from_users_wishlist(member.id, badge_name)
+      if user["receive_notifications"]:
+        try:
+          embed = discord.Embed(
+            title="Badge Removed from Wishlist",
+            description=f"**{badge_name}** has been removed from your wishlist via your removal of the ✅ react!",
+            color=discord.Color.green()
+          )
+          embed.set_footer(
+            text="Note: You can use /settings to enable or disable these messages."
+          )
+          await member.send(embed=embed)
+        except discord.Forbidden as e:
+          logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
+          pass
+
 
   # ________  .__               .__
   # \______ \ |__| ____________ |  | _____  ___.__.
