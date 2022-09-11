@@ -623,10 +623,10 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   user_id = ctx.interaction.user.id
 
   selected_badges = [first_badge, second_badge, third_badge]
-  user_badges = db_get_user_unlocked_badges(user_id)
-  user_badge_names = [b['badge_name'] for b in user_badges]
+  unlocked_user_badges = db_get_user_unlocked_badges(user_id)
+  unlocked_user_badge_names = [b['badge_name'] for b in unlocked_user_badges]
 
-  selected_user_badges = [b for b in selected_badges if b in user_badge_names]
+  selected_user_badges = [b for b in selected_badges if b in unlocked_user_badge_names]
 
   if len(selected_user_badges) != 3:
     await ctx.followup.send(embed=discord.Embed(
@@ -681,8 +681,9 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   # If time check okay, select a new random badge
   all_possible_badges = [b['badge_name'] for b in all_badge_info]
   special_badge_names = [b['badge_name'] for b in SPECIAL_BADGES]
-  # Don't give them a badge they don't have or a special badge
-  valid_choices = [b for b in all_possible_badges if b not in user_badge_names and b not in special_badge_names]
+  # Don't give them a badge they already have or a special badge
+  all_user_badge_names = [b['badge_name'] for b in db_get_user_badges(user_id)]
+  valid_choices = [b for b in all_possible_badges if b not in all_user_badge_names and b not in special_badge_names]
   if len(valid_choices) == 0:
     await ctx.respond(embed=discord.Embed(
       title="You already have *ALL BADGES!?!*",
@@ -1066,25 +1067,17 @@ def give_user_badge(user_discord_id:int):
     return None
 
   badge_choice = random.choice(valid_choices)
-  db = getDB()
-  query = db.cursor()
-  sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
-  vals = (user_discord_id, badge_choice)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
+    vals = (user_discord_id, badge_choice)
+    query.execute(sql, vals)
   return badge_choice
 
 def give_user_specific_badge(user_discord_id:int, badge_choice:str):
-  db = getDB()
-  query = db.cursor()
-  sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
-  vals = (user_discord_id, badge_choice)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
+    vals = (user_discord_id, badge_choice)
+    query.execute(sql, vals)
   return badge_choice
 
 def run_badge_stats_queries():
@@ -1095,51 +1088,43 @@ def run_badge_stats_queries():
     "most_wishlisted" : "SELECT b_i.badge_name, COUNT(b_w.id) as count FROM badge_info AS b_i JOIN badge_wishlists AS b_w WHERE b_i.badge_filename = b_w.badge_filename GROUP BY b_w.badge_filename ORDER BY COUNT(b_w.badge_filename) DESC, b_i.badge_name ASC LIMIT 5;",
     "most_locked" : "SELECT b_i.badge_name, COUNT(b.locked) as count FROM badge_info AS b_i JOIN badges AS b ON b_i.badge_filename = b.badge_filename WHERE b.locked = 1 GROUP BY b.badge_filename ORDER BY COUNT(b.locked) DESC, b_i.badge_name ASC LIMIT 5;",
   }
-  db = getDB()
+  
   results = {}
-
+  with AgimusDB(dictionary=True) as query:
   # Run most collected while filtering out special badges
-  query = db.cursor(dictionary=True)
-  special_badge_filenames = [b['badge_filename'] for b in SPECIAL_BADGES]
-  format_strings = ','.join(['%s'] * len(special_badge_filenames))
-  sql = "SELECT badge_filename, COUNT(id) as count FROM badges WHERE badge_filename NOT IN (%s) GROUP BY badge_filename ORDER BY count DESC LIMIT 5;"
-  query.execute(sql % format_strings, tuple(special_badge_filenames))
-  results["most_collected"] = query.fetchall()
+    special_badge_filenames = [b['badge_filename'] for b in SPECIAL_BADGES]
+    format_strings = ','.join(['%s'] * len(special_badge_filenames))
+    sql = "SELECT badge_filename, COUNT(id) as count FROM badges WHERE badge_filename NOT IN (%s) GROUP BY badge_filename ORDER BY count DESC LIMIT 5;"
+    query.execute(sql % format_strings, tuple(special_badge_filenames))
+    results["most_collected"] = query.fetchall()
 
   # Run remaining queries
   for name,sql in queries.items():
-    query = db.cursor(dictionary=True)
     query.execute(sql)
     results[name] = query.fetchall()
-    query.close()
-  db.close()
   return results
 
 
 def db_get_trades_to_cancel_from_scrapped_badges(user_id, badges_to_scrap):
   badge_filenames = [b['badge_filename'] for b in badges_to_scrap]
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  # All credit for this query to Danma! Praise be!!!
-  sql = '''
-    SELECT t.*
-    FROM trades as t
-    LEFT JOIN trade_offered `to` ON t.id = to.trade_id
-    LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
-    WHERE t.status IN ('pending','active')
-    AND (
-      (t.requestor_id = %s AND to.badge_filename IN (%s, %s, %s))
-      OR
-      (t.requestee_id = %s AND tr.badge_filename IN (%s, %s, %s))
+  with AgimusDB(dictionary=True) as query:
+    # All credit for this query to Danma! Praise be!!!
+    sql = '''
+      SELECT t.*
+      FROM trades as t
+      LEFT JOIN trade_offered `to` ON t.id = to.trade_id
+      LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
+      WHERE t.status IN ('pending','active')
+      AND (
+        (t.requestor_id = %s AND to.badge_filename IN (%s, %s, %s))
+        OR
+        (t.requestee_id = %s AND tr.badge_filename IN (%s, %s, %s))
+      )
+    '''
+    vals = (
+      user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2],
+      user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2]
     )
-  '''
-  vals = (
-    user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2],
-    user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2]
-  )
-  query.execute(sql, vals)
-  trades = query.fetchall()
-  db.commit()
-  query.close()
-  db.close()
+    query.execute(sql, vals)
+    trades = query.fetchall()
   return trades

@@ -92,8 +92,9 @@ async def add_starboard_post(message, board) -> None:
   
   await increment_user_xp(message.author, 2, "starboard_post", message.channel) # give em that sweet sweet xp first
   ALL_STARBOARD_POSTS.append(message.id) # add post ID to in-memory list
-  board_channel_id = get_channel_id(board) 
-  insert_starboard_post(message.id, message.author.id, board_channel_id) # add post to DB
+  board_channel_id = get_channel_id(board)
+  channel = bot.get_channel(board_channel_id) # where it will be posted
+  insert_starboard_post(message.id, message.author.id, board) # add post to DB
   
   provider_name, message_str, embed_image_url, embed_title, embed_desc, embed_thumb = ["" for i in range(6)] # initialize all the blank strings
   jumplink = f"[View original message]({message.jump_url}) from {message.channel.name}"
@@ -180,7 +181,7 @@ async def add_starboard_post(message, board) -> None:
   
   star_embed.description += f"\n{get_emoji('combadge')}\n\n{jumplink}"
 
-  channel = bot.get_channel(board_channel_id)
+  
   await channel.send(content=message_str, embed=star_embed) # send main embed
   await message.add_reaction(random.choice(["🌟","⭐","✨"])) # react to original post
   logger.info(f"{Fore.RED}AGIMUS{Fore.RESET} has added {message.author.display_name}'s post to {Style.BRIGHT}{board}{Style.RESET_ALL}!")
@@ -190,19 +191,16 @@ def insert_starboard_post(message_id, user_id, channel_id) -> None:
   """ 
   inserts a post into the DB - only saves the message ID, user ID and channel ID 
   """
-  with getDB() as db:
-    query = db.cursor()
+  with AgimusDB() as query:
     sql = "INSERT INTO starboard_posts (message_id, user_id, board_channel) VALUES (%s, %s, %s);"
     vals = (message_id, user_id, channel_id)
     query.execute(sql, vals)
-    db.commit()
 
 def get_starboard_post(message_id, board):
   """
   returns the post's channel ID or None if not found
   """
-  with getDB() as db:
-    query = db.cursor()
+  with AgimusDB() as query:
     sql = "SELECT board_channel FROM starboard_posts WHERE message_id = %s and board_channel = %s"
     vals = (message_id, board)
     query.execute(sql, vals)
@@ -214,8 +212,7 @@ def get_all_starboard_posts() -> list:
   returns a list of all starboard post IDs
   """
   posts = []
-  with getDB() as db:
-    query = db.cursor(dictionary=True)
+  with AgimusDB(dictionary=True) as query:
     sql = "SELECT message_id FROM starboard_posts"
     query.execute(sql)
     for post in query.fetchall():

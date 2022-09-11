@@ -165,14 +165,14 @@ CREATE TABLE IF NOT EXISTS `badge_scraps` (
   CONSTRAINT `badge_scraps_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
 CREATE TABLE IF NOT EXISTS `badge_scrapped` (
-    `id` int NOT NULL AUTO_INCREMENT,
-    `scrap_id` int(11) NOT NULL,
-    `badge_filename` varchar(128) NOT NULL,
-    `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
-    PRIMARY KEY (`id`),
-    KEY `badge_filename` (`badge_filename`),
-    FOREIGN KEY (`scrap_id`) REFERENCES `badge_scraps` (`id`),
-    FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  `id` int NOT NULL AUTO_INCREMENT,
+  `scrap_id` int(11) NOT NULL,
+  `badge_filename` varchar(128) NOT NULL,
+  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `badge_filename` (`badge_filename`),
+  FOREIGN KEY (`scrap_id`) REFERENCES `badge_scraps` (`id`),
+  FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
 CREATE TABLE IF NOT EXISTS reactions (
   id int(11) NOT NULL AUTO_INCREMENT,
@@ -281,4 +281,20 @@ CREATE TABLE IF NOT EXISTS poshimo_battle_logs (
   FOREIGN KEY (battle_id) REFERENCES poshimo_battles (id),
   FOREIGN KEY (combatant1) REFERENCES poshimo_trainers (id),
   FOREIGN KEY (combatant2) REFERENCES poshimo_trainers (id)
+
+CREATE TABLE IF NOT EXISTS badge_tags (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_discord_id` varchar(128) NOT NULL,
+  `tag_name` varchar(24) NOT NULL,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE IF NOT EXISTS badge_tags_associations (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `badges_id` int(11) NOT NULL,
+  `badge_tags_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `badges_id` (`badges_id`),
+  CONSTRAINT `badges_tags_associations_fk_badges_id` FOREIGN KEY (`badges_id`) REFERENCES `badges` (`id`) ON DELETE CASCADE,
+  KEY `badge_tags_id` (`badge_tags_id`),
+  CONSTRAINT `badge_tags_associations_fk_badge_tags_id` FOREIGN KEY (`badge_tags_id`) REFERENCES `badge_tags` (`id`) ON DELETE CASCADE
 );

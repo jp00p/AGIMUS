@@ -9254,8 +9254,7 @@
     ],
     "time period": "2200s",
     "types": [
-      "Insignia",
-      "Science/Research"
+      "Insignia"
     ],
     "universes": "Kelvin"
   },
@@ -12824,10 +12823,10 @@
     "types": "Flag/Banner",
     "universes": "Prime"
   },
-  "Vulcan Gaurd": {
+  "Vulcan Guard": {
     "affiliations": "Vulcan",
     "badge_url": "https://startrekdesignproject.com/symbols/vulcan-gaurd/",
-    "filename": "VulcanGaurd.png",
+    "filename": "VulcanGuard.png",
     "franchise": "TOS",
     "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1613705681/VulcanGaurd.png",
     "quadrant": "Alpha",

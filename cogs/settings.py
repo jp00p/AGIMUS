@@ -436,44 +436,30 @@ class Settings(commands.Cog):
     return embed, thumbnail
 
 def db_get_current_xp_enabled_value(user_id):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT xp_enabled FROM users WHERE discord_id = %s"
-  vals = (user_id,)
-  query.execute(sql, vals)
-  row = query.fetchone()
-  db.commit()
-  query.close()
-  db.close()
-
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT xp_enabled FROM users WHERE discord_id = %s"
+    vals = (user_id,)
+    query.execute(sql, vals)
+    row = query.fetchone()
   return row['xp_enabled']
 
 def db_toggle_xp(user_id, value:bool):
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE users SET xp_enabled = %s WHERE discord_id = %s"
-  vals = (value, user_id)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "UPDATE users SET xp_enabled = %s WHERE discord_id = %s"
+    vals = (value, user_id)
+    query.execute(sql, vals)  
 
 def db_toggle_notifications(user_id, toggle):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "UPDATE users SET receive_notifications = %s WHERE discord_id = %s"
-  vals = (toggle, user_id)
-  query.execute(sql, vals)
-  query.close()
-  db.commit()
-  db.close()
-
+  with AgimusDB(dictionary=True) as query:
+    sql = "UPDATE users SET receive_notifications = %s WHERE discord_id = %s"
+    vals = (toggle, user_id)
+    query.execute(sql, vals)
+  
 def db_toggle_wordcloud(user_id, toggle):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "UPDATE users SET log_messages = %s WHERE discord_id = %s"
-  vals = (toggle, user_id)
-  query.execute(sql, vals)
+  with AgimusDB(dictionary=True) as query:
+    sql = "UPDATE users SET log_messages = %s WHERE discord_id = %s"
+    vals = (toggle, user_id)
+    query.execute(sql, vals)
 
   deleted_row_count = None
   if not toggle:
@@ -481,19 +467,13 @@ def db_toggle_wordcloud(user_id, toggle):
     vals = (user_id,)
     query.execute(sql, vals)
     deleted_row_count = query.rowcount
-
-  db.commit()
-  query.close()
-  db.close()
-
   return deleted_row_count
 
 def db_toggle_loudbot(user_id, toggle):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "UPDATE users SET loudbot_enabled = %s WHERE discord_id = %s"
-  vals = (toggle, user_id)
-  query.execute(sql, vals)
+  with AgimusDB(dictionary=True) as query:
+    sql = "UPDATE users SET loudbot_enabled = %s WHERE discord_id = %s"
+    vals = (toggle, user_id)
+    query.execute(sql, vals)
 
   deleted_row_count = None
   if not toggle:
@@ -501,9 +481,4 @@ def db_toggle_loudbot(user_id, toggle):
     vals = (user_id,)
     query.execute(sql, vals)
     deleted_row_count = query.rowcount
-
-  db.commit()
-  query.close()
-  db.close()
-
   return deleted_row_count

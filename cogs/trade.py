@@ -783,7 +783,7 @@ class Trade(commands.Cog):
       value=request
     )
     initiated_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
-    await ctx.followup.send(embed=initiated_embed)
+    await ctx.followup.send(embed=initiated_embed, ephemeral=True)
 
     if offer:
       badge_info = db_get_badge_info_by_name(offer)
@@ -858,7 +858,6 @@ class Trade(commands.Cog):
         view=None,
         attachments=[]
       )
-
 
       # Alert the requestee that the trade has been canceled if the trade was active
       user = get_user(requestee.id)
@@ -1175,9 +1174,7 @@ class Trade(commands.Cog):
     addition_embed.set_image(url=f"attachment://{badge_filename}")
     await ctx.respond(embed=addition_embed, file=discord_image, ephemeral=True)
 
-  async def _is_untradeable(self, ctx: discord.ApplicationContext, badge: str,
-                            requestor: discord.User, requestee: discord.User, active_trade,
-                            direction: "either 'offer' or 'request'") -> bool:
+  async def _is_untradeable(self, ctx: discord.ApplicationContext, badge: str, requestor: discord.User, requestee: discord.User, active_trade, direction="either 'offer' or 'request'") -> bool:
     """
     Test this badge to see if it can be added to the trade.  If it can't, show the user an error message.  It’s a
     little complicated because the logic and language changes based on if the badge is going from the user making the
@@ -1310,288 +1307,227 @@ def get_offered_and_requested_badge_names(active_trade):
 def db_get_trade_requested_badges(active_trade):
   active_trade_id = active_trade["id"]
 
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.*
-    FROM badge_info as b_i
-      JOIN trade_requested AS t_r
-      ON t_r.trade_id = %s AND t_r.badge_filename = b_i.badge_filename
-  '''
-  vals = (active_trade_id,)
-  query.execute(sql, vals)
-  trades = query.fetchall()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    sql = '''
+      SELECT b_i.*
+      FROM badge_info as b_i
+        JOIN trade_requested AS t_r
+        ON t_r.trade_id = %s AND t_r.badge_filename = b_i.badge_filename
+    '''
+    vals = (active_trade_id,)
+    query.execute(sql, vals)
+    trades = query.fetchall()
   return trades
 
 def db_get_trade_offered_badges(active_trade):
   active_trade_id = active_trade["id"]
 
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    SELECT b_i.*
-    FROM badge_info as b_i
-      JOIN trade_offered AS t_o
-      ON t_o.trade_id = %s AND t_o.badge_filename = b_i.badge_filename
-  '''
-  vals = (active_trade_id,)
-  query.execute(sql, vals)
-  trades = query.fetchall()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    sql = '''
+      SELECT b_i.*
+      FROM badge_info as b_i
+        JOIN trade_offered AS t_o
+        ON t_o.trade_id = %s AND t_o.badge_filename = b_i.badge_filename
+    '''
+    vals = (active_trade_id,)
+    query.execute(sql, vals)
+    trades = query.fetchall()
   return trades
 
 def db_add_badge_to_trade_offer(active_trade, badge_name):
   active_trade_id = active_trade["id"]
 
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    INSERT INTO trade_offered (trade_id, badge_filename)
-      VALUES (%s, (SELECT badge_filename FROM badge_info WHERE badge_name = %s))
-  '''
-  vals = (active_trade_id, badge_name)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    sql = '''
+      INSERT INTO trade_offered (trade_id, badge_filename)
+        VALUES (%s, (SELECT badge_filename FROM badge_info WHERE badge_name = %s))
+    '''
+    vals = (active_trade_id, badge_name)
+    query.execute(sql, vals)
 
 def db_remove_badge_from_trade_offer(active_trade, badge_name):
   active_trade_id = active_trade["id"]
 
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    DELETE FROM trade_offered
-      WHERE trade_id = %s AND badge_filename = (SELECT badge_filename FROM badge_info WHERE badge_name = %s)
-  '''
-  vals = (active_trade_id, badge_name)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
-
+  with AgimusDB(dictionary=True) as query:
+    sql = '''
+      DELETE FROM trade_offered
+        WHERE trade_id = %s AND badge_filename = (SELECT badge_filename FROM badge_info WHERE badge_name = %s)
+    '''
+    vals = (active_trade_id, badge_name)
+    query.execute(sql, vals)
+  
 def db_add_badge_to_trade_request(active_trade, badge_name):
   active_trade_id = active_trade["id"]
 
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    INSERT INTO trade_requested (trade_id, badge_filename)
-      VALUES (%s, (SELECT badge_filename FROM badge_info WHERE badge_name = %s))
-  '''
-  vals = (active_trade_id, badge_name)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
-
+  with AgimusDB(dictionary=True) as query:
+    sql = '''
+      INSERT INTO trade_requested (trade_id, badge_filename)
+        VALUES (%s, (SELECT badge_filename FROM badge_info WHERE badge_name = %s))
+    '''
+    vals = (active_trade_id, badge_name)
+    query.execute(sql, vals)
+  
 def db_remove_badge_from_trade_request(active_trade, badge_name):
   active_trade_id = active_trade["id"]
-
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = '''
-    DELETE FROM trade_requested
-      WHERE trade_id = %s AND badge_filename = (SELECT badge_filename FROM badge_info WHERE badge_name = %s)
-  '''
-  vals = (active_trade_id, badge_name)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    sql = '''
+      DELETE FROM trade_requested
+        WHERE trade_id = %s AND badge_filename = (SELECT badge_filename FROM badge_info WHERE badge_name = %s)
+    '''
+    vals = (active_trade_id, badge_name)
+    query.execute(sql, vals)
 
 def db_get_active_requestee_trades(requestee_id):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT * FROM trades WHERE requestee_id = %s AND status = 'active'"
-  vals = (requestee_id,)
-  query.execute(sql, vals)
-  trades = query.fetchall()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT * FROM trades WHERE requestee_id = %s AND status = 'active'"
+    vals = (requestee_id,)
+    query.execute(sql, vals)
+    trades = query.fetchall()
   return trades
 
 def db_get_active_requestor_trade(requestor_id):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT * FROM trades WHERE requestor_id = %s AND (status = 'active' OR status = 'pending') LIMIT 1"
-  vals = (requestor_id,)
-  query.execute(sql, vals)
-  trade = query.fetchone()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT * FROM trades WHERE requestor_id = %s AND (status = 'active' OR status = 'pending') LIMIT 1"
+    vals = (requestor_id,)
+    query.execute(sql, vals)
+    trade = query.fetchone()
   return trade
 
 def db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_id):
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  sql = "SELECT * FROM trades WHERE requestor_id = %s AND requestee_id = %s AND status = 'active' LIMIT 1"
-  vals = (requestor_id, requestee_id)
-  query.execute(sql, vals)
-  trade = query.fetchone()
-  query.close()
-  db.close()
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT * FROM trades WHERE requestor_id = %s AND requestee_id = %s AND status = 'active' LIMIT 1"
+    vals = (requestor_id, requestee_id)
+    query.execute(sql, vals)
+    trade = query.fetchone()
   return trade
 
 def db_initiate_trade(requestor_id:int, requestee_id:int) -> int:
-  db = getDB()
-  query = db.cursor()
-  sql = "INSERT INTO trades (requestor_id, requestee_id, status) VALUES (%s, %s, 'pending')"
-  vals = (requestor_id, requestee_id)
-  query.execute(sql, vals)
-  result = query.lastrowid
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "INSERT INTO trades (requestor_id, requestee_id, status) VALUES (%s, %s, 'pending')"
+    vals = (requestor_id, requestee_id)
+    query.execute(sql, vals)
+    result = query.lastrowid
   return result
 
 def db_activate_trade(active_trade):
   active_trade_id = active_trade["id"]
 
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE trades SET status = 'active' WHERE id = %s"
-  vals = (active_trade_id,)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "UPDATE trades SET status = 'active' WHERE id = %s"
+    vals = (active_trade_id,)
+    query.execute(sql, vals)
 
 def db_cancel_trade(trade):
   trade_id = trade['id']
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE trades SET status = 'canceled' WHERE id = %s"
-  vals = (trade_id,)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "UPDATE trades SET status = 'canceled' WHERE id = %s"
+    vals = (trade_id,)
+    query.execute(sql, vals)
 
 def db_perform_badge_transfer(active_trade):
   trade_id = active_trade['id']
   requestor_id = active_trade['requestor_id']
   requestee_id = active_trade['requestee_id']
-  db = getDB()
-  query = db.cursor(dictionary=True)
+  with AgimusDB(dictionary=True) as query:
 
-  # Transfer Requested Badges to Requestor
-  sql = '''
-    INSERT INTO badges (user_discord_id, badge_filename)
-      SELECT t.requestor_id, b_i.badge_filename
-        FROM trades as t
-        JOIN badge_info as b_i
-        JOIN trade_requested as t_r
-          ON t.id = %s AND t_r.trade_id = t.id AND t_r.badge_filename = b_i.badge_filename
-  '''
-  vals = (trade_id,)
-  query.execute(sql, vals)
+    # Transfer Requested Badges to Requestor
+    sql = '''
+      INSERT INTO badges (user_discord_id, badge_filename)
+        SELECT t.requestor_id, b_i.badge_filename
+          FROM trades as t
+          JOIN badge_info as b_i
+          JOIN trade_requested as t_r
+            ON t.id = %s AND t_r.trade_id = t.id AND t_r.badge_filename = b_i.badge_filename
+    '''
+    vals = (trade_id,)
+    query.execute(sql, vals)
 
-  # Delete Requested Badges from Requestee
-  sql = '''
-    DELETE b FROM badges b
-      JOIN badge_info b_i ON b.badge_filename = b_i.badge_filename
-      JOIN trade_requested t_r ON t_r.badge_filename = b_i.badge_filename
-      JOIN trades t ON t_r.trade_id = t.id
-        WHERE (t.id = %s AND t.requestee_id = %s AND b.user_discord_id = %s)
-  '''
-  vals = (trade_id, requestee_id, requestee_id)
-  query.execute(sql, vals)
+    # Delete Requested Badges from Requestee
+    sql = '''
+      DELETE b FROM badges b
+        JOIN badge_info b_i ON b.badge_filename = b_i.badge_filename
+        JOIN trade_requested t_r ON t_r.badge_filename = b_i.badge_filename
+        JOIN trades t ON t_r.trade_id = t.id
+          WHERE (t.id = %s AND t.requestee_id = %s AND b.user_discord_id = %s)
+    '''
+    vals = (trade_id, requestee_id, requestee_id)
+    query.execute(sql, vals)
 
-  # Transfer Offered Badges to Requestee
-  sql = '''
-    INSERT INTO badges (user_discord_id, badge_filename)
-      SELECT t.requestee_id, b_i.badge_filename
-        FROM trades as t
-        JOIN badge_info as b_i
-        JOIN trade_offered as t_o
-          ON t.id = %s AND t_o.trade_id = t.id AND t_o.badge_filename = b_i.badge_filename
-  '''
-  vals = (trade_id,)
-  query.execute(sql, vals)
+    # Transfer Offered Badges to Requestee
+    sql = '''
+      INSERT INTO badges (user_discord_id, badge_filename)
+        SELECT t.requestee_id, b_i.badge_filename
+          FROM trades as t
+          JOIN badge_info as b_i
+          JOIN trade_offered as t_o
+            ON t.id = %s AND t_o.trade_id = t.id AND t_o.badge_filename = b_i.badge_filename
+    '''
+    vals = (trade_id,)
+    query.execute(sql, vals)
 
-  # Delete Offered Badges from Requestor
-  sql = '''
-    DELETE b FROM badges b
-      JOIN badge_info b_i ON b.badge_filename = b_i.badge_filename
-      JOIN trade_offered t_o ON t_o.badge_filename = b_i.badge_filename
-      JOIN trades t ON t_o.trade_id = t.id
-        WHERE (t.id = %s AND t.requestor_id = %s AND b.user_discord_id = %s)
-  '''
-  vals = (trade_id, requestor_id, requestor_id)
-  query.execute(sql, vals)
-
-  db.commit()
-  query.close()
-  db.close()
+    # Delete Offered Badges from Requestor
+    sql = '''
+      DELETE b FROM badges b
+        JOIN badge_info b_i ON b.badge_filename = b_i.badge_filename
+        JOIN trade_offered t_o ON t_o.badge_filename = b_i.badge_filename
+        JOIN trades t ON t_o.trade_id = t.id
+          WHERE (t.id = %s AND t.requestor_id = %s AND b.user_discord_id = %s)
+    '''
+    vals = (trade_id, requestor_id, requestor_id)
+    query.execute(sql, vals)
 
 def db_complete_trade(active_trade):
   trade_id = active_trade['id']
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE trades SET status = 'complete' WHERE id = %s"
-  vals = (trade_id,)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "UPDATE trades SET status = 'complete' WHERE id = %s"
+    vals = (trade_id,)
+    query.execute(sql, vals)
 
 def db_decline_trade(active_trade):
   trade_id = active_trade['id']
-  db = getDB()
-  query = db.cursor()
-  sql = "UPDATE trades SET status = 'declined' WHERE id = %s"
-  vals = (trade_id,)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
+  with AgimusDB() as query:
+    sql = "UPDATE trades SET status = 'declined' WHERE id = %s"
+    vals = (trade_id,)
+    query.execute(sql, vals)
 
 def db_get_related_badge_trades(active_trade):
   active_trade_id = active_trade["id"]
   requestee_id = active_trade["requestee_id"]
   requestor_id = active_trade["requestor_id"]
 
-  db = getDB()
-  query = db.cursor(dictionary=True)
-  # All credit for this query to Danma! Praise be!!!
-  sql = '''
-    SELECT t.*
+  with AgimusDB(dictionary=True) as query:
+    # All credit for this query to Danma! Praise be!!!
+    sql = '''
+      SELECT t.*
 
-    FROM trades as t
-    LEFT JOIN trade_offered `to` ON t.id = to.trade_id
-    LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
+      FROM trades as t
+      LEFT JOIN trade_offered `to` ON t.id = to.trade_id
+      LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
 
-    INNER JOIN (
-        SELECT trade_id, requestor_id, requestee_id, badge_filename
-        FROM trade_requested
-        INNER JOIN trades ON trade_requested.trade_id = trades.id AND trades.id = %s
-        UNION ALL
-        SELECT trade_id, requestor_id, requestee_id, badge_filename
-        FROM trade_offered
-        INNER JOIN trades ON trade_offered.trade_id = trades.id AND trades.id = %s
-    ) as activeTrade ON 1
+      INNER JOIN (
+          SELECT trade_id, requestor_id, requestee_id, badge_filename
+          FROM trade_requested
+          INNER JOIN trades ON trade_requested.trade_id = trades.id AND trades.id = %s
+          UNION ALL
+          SELECT trade_id, requestor_id, requestee_id, badge_filename
+          FROM trade_offered
+          INNER JOIN trades ON trade_offered.trade_id = trades.id AND trades.id = %s
+      ) as activeTrade ON 1
 
-    -- not the active trade
-    WHERE t.id != activeTrade.trade_id
+      -- not the active trade
+      WHERE t.id != activeTrade.trade_id
 
-    -- pending or active
-    AND t.status IN ('pending','active')
+      -- pending or active
+      AND t.status IN ('pending','active')
 
-    -- involves one or more of the users involved in the active trade
-    AND (t.requestor_id IN (activeTrade.requestor_id, activeTrade.requestee_id) OR t.requestee_id IN (activeTrade.requestor_id, activeTrade.requestee_id))
+      -- involves one or more of the users involved in the active trade
+      AND (t.requestor_id IN (activeTrade.requestor_id, activeTrade.requestee_id) OR t.requestee_id IN (activeTrade.requestor_id, activeTrade.requestee_id))
 
-    -- involves one or more of the badges involved in the active trade
-    AND (to.badge_filename = activeTrade.badge_filename OR tr.badge_filename = activeTrade.badge_filename)
-    GROUP BY t.id
-  '''
-  vals = (active_trade_id, active_trade_id)
-  query.execute(sql, vals)
-  trades = query.fetchall()
-  db.commit()
-  query.close()
-  db.close()
+      -- involves one or more of the badges involved in the active trade
+      AND (to.badge_filename = activeTrade.badge_filename OR tr.badge_filename = activeTrade.badge_filename)
+      GROUP BY t.id
+    '''
+    vals = (active_trade_id, active_trade_id)
+    query.execute(sql, vals)
+    trades = query.fetchall()
   return trades

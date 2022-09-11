@@ -116,14 +116,12 @@ class Wordcloud(commands.Cog):
     """
     get user's message history and return it in a dict
     """
-    db = getDB()
-    query = db.cursor(dictionary=True)
-    sql = "SELECT message_history.user_discord_id, message_history.message_text as text, users.name FROM message_history LEFT JOIN users ON message_history.user_discord_id = users.discord_id WHERE message_history.user_discord_id = %s ORDER BY message_history.time_created DESC LIMIT %s"
-    vals = (user_discord_id,self.max_query_limit)
-    query.execute(sql, vals)
-    results = query.fetchall()
-    query.close()
-    db.close()
+    with AgimusDB(dictionary=True) as query:
+      sql = "SELECT message_history.user_discord_id, message_history.message_text as text, users.name FROM message_history LEFT JOIN users ON message_history.user_discord_id = users.discord_id WHERE message_history.user_discord_id = %s ORDER BY message_history.time_created DESC LIMIT %s"
+      vals = (user_discord_id,self.max_query_limit)
+      query.execute(sql, vals)
+      results = query.fetchall()
+    
     if len(results) < 1:
       response = None
     else:

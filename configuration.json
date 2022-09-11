@@ -568,7 +568,8 @@
     },
     "randomep": {
       "channels": [
-        "after-dinner-conversation"
+        "after-dinner-conversation",
+        "general-trek"
       ],
       "enabled": true,
       "data": null,
@@ -690,6 +691,22 @@
       ],
       "enabled": true,
       "data": null,
+      "parameters": []
+    },
+    "tags tag": {
+      "channels": [
+        "badgeys-badges",
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "parameters": []
+    },
+    "tags showcase": {
+      "channels": [
+        "badgeys-badges",
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
       "parameters": []
     },
     "testslots": {
