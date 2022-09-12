@@ -3,7 +3,7 @@ from .game import PoshimoGame
 
 class PoshimoView(discord.ui.View):
   """ base view boilerplate """
-  def __init__(self, cog):
+  def __init__(self:discord.ui.View, cog:discord.Cog):
     self.cog = cog
     self.game:PoshimoGame = cog.game
     self.pages = []

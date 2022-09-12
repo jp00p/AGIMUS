@@ -1,3 +1,4 @@
+from common import *
 import csv
 
 with open("pocket_shimodae/data/poshimo_types.csv") as file:

@@ -27,15 +27,18 @@ class PoshimoGame:
     # return ID (?)
     pass
 
-  def get_all_trainers(self):
+  def get_all_trainers(self) -> list:
     with AgimusDB() as query:
       sql = "SELECT users.discord_id, poshimo_trainers.id FROM poshimo_trainers LEFT JOIN users ON poshimo_trainers.userid = users.id"
       query.execute(sql)
       all_trainers = [int(i[0]) for i in query.fetchall()]
     return all_trainers
 
-  def get_trainer(self, discord_id):
-    """Get trainer data from the database based on discord ID"""
+  def get_trainer(self, discord_id) -> PoshimoTrainer:
+    """
+    Get trainer data from the database based on discord ID
+    returns a PoshimoTrainer()
+    """
     with AgimusDB(dictionary=True) as query:
       sql = "SELECT * FROM poshimo_trainers \
             LEFT JOIN users ON poshimo_trainers.userid = users.id \
@@ -43,8 +46,9 @@ class PoshimoGame:
             WHERE users.discord_id = %s"
       vals = (discord_id,)
       query.execute(sql, vals)
-      trainer_data = query.fetchall()
-    return trainer_data
+      trainer_data = query.fetchone()
+      logger.info(trainer_data)
+    return PoshimoTrainer(trainer_data["id"])
 
   def register_trainer(self, user_id) -> PoshimoTrainer:
     """

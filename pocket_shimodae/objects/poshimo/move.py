@@ -1,8 +1,8 @@
+from common import *
 import json
 import csv
 from enum import Enum, auto
-from .type import PoshimoType
-from .effect import EffectTypes, PoshimoEffect
+from . import PoshimoType
 
 """
 glass table toss

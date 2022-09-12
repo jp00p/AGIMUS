@@ -2,7 +2,7 @@ from common import *
 from math import sqrt, floor, log10
 import csv
 from enum import Enum
-from . import PoshimoType, PoshimoMove, PoshimoPersonality
+from . import PoshimoMove, PoshimoPersonality, PoshimoType
 
 # load the base poshimo data from csv
 with open("pocket_shimodae/data/shimodaepedia.csv") as file:

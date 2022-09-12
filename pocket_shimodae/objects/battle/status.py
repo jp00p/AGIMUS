@@ -1,3 +1,5 @@
+from common import *
+
 class PoshimoStatus:
   """
   A status that can be applied to poshimo in battle (can be good or bad!)

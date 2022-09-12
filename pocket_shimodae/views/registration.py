@@ -72,13 +72,14 @@ class StarterChosen(PoshimoView):
   """ 
   when you have successfully chosen a starter 
   - this actually registers the player and their poshimo to the DB
-  - not really a view after all heh heh heh
+  - not really a view after all, is it? heh heh heh
   """
   def __init__(self, cog, choice, user):
     super().__init__(cog)
+    # ~ THE MAGIC HAPPENS HERE ~ #
     self.trainer = self.game.register_trainer(user["id"]) # register player
     self.poshimo = self.trainer.add_poshimo(choice)
-    logger.info(self.trainer.poshimo_sac)
+    self.trainer.active_poshimo = self.poshimo
     self.embeds = [
       discord.Embed(
         title=f"Congratulations TRAINER #{self.trainer.id}! You have selected your first poshimo: **{self.poshimo.name}**! Poshimo ID: {self.poshimo.id}", 

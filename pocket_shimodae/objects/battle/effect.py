@@ -1,3 +1,4 @@
+from common import *
 from enum import Enum, auto
 
 class EffectTypes(Enum):

@@ -227,6 +227,22 @@ CREATE TABLE IF NOT EXISTS badge_wishlists (
   KEY `badge_filename` (`badge_filename`),
   CONSTRAINT `badge_wishlists_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
+CREATE TABLE IF NOT EXISTS badge_tags (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_discord_id` varchar(128) NOT NULL,
+  `tag_name` varchar(24) NOT NULL,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE IF NOT EXISTS badge_tags_associations (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `badges_id` int(11) NOT NULL,
+  `badge_tags_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `badges_id` (`badges_id`),
+  CONSTRAINT `badges_tags_associations_fk_badges_id` FOREIGN KEY (`badges_id`) REFERENCES `badges` (`id`) ON DELETE CASCADE,
+  KEY `badge_tags_id` (`badge_tags_id`),
+  CONSTRAINT `badge_tags_associations_fk_badge_tags_id` FOREIGN KEY (`badge_tags_id`) REFERENCES `badge_tags` (`id`) ON DELETE CASCADE
+);
 CREATE TABLE IF NOT EXISTS poshimo_trainers (
   id INT(11) NOT NULL AUTO_INCREMENT,
   userid int(11) NOT NULL,
@@ -234,7 +250,7 @@ CREATE TABLE IF NOT EXISTS poshimo_trainers (
   losses INT(11) NOT NULL DEFAULT 0,
   status VARCHAR(64) DEFAULT NULL,
   location VARCHAR(128) DEFAULT NULL,
-  poshimodae TEXT DEFAULT NULL,
+  poshimo_sac TEXT DEFAULT NULL,
   active_poshimo INT(11) DEFAULT NULL,
   inventory TEXT DEFAULT NULL,
   buckles TEXT DEFAULT NULL,
@@ -281,20 +297,4 @@ CREATE TABLE IF NOT EXISTS poshimo_battle_logs (
   FOREIGN KEY (battle_id) REFERENCES poshimo_battles (id),
   FOREIGN KEY (combatant1) REFERENCES poshimo_trainers (id),
   FOREIGN KEY (combatant2) REFERENCES poshimo_trainers (id)
-
-CREATE TABLE IF NOT EXISTS badge_tags (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_discord_id` varchar(128) NOT NULL,
-  `tag_name` varchar(24) NOT NULL,
-  PRIMARY KEY (`id`)
-);
-CREATE TABLE IF NOT EXISTS badge_tags_associations (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `badges_id` int(11) NOT NULL,
-  `badge_tags_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `badges_id` (`badges_id`),
-  CONSTRAINT `badges_tags_associations_fk_badges_id` FOREIGN KEY (`badges_id`) REFERENCES `badges` (`id`) ON DELETE CASCADE,
-  KEY `badge_tags_id` (`badge_tags_id`),
-  CONSTRAINT `badge_tags_associations_fk_badge_tags_id` FOREIGN KEY (`badge_tags_id`) REFERENCES `badge_tags` (`id`) ON DELETE CASCADE
 );
