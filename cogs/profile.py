@@ -1,8 +1,10 @@
+from enum import Enum
 import pilgram
 
 from common import *
 from handlers.xp import calculate_xp_for_next_level
 from utils.badge_utils import *
+
 
 
 #    _____          __                                     .__          __
@@ -15,10 +17,23 @@ def user_badges_autocomplete(ctx:discord.AutocompleteContext):
   user_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id)]
   if len(user_badges) == 0:
     user_badges = ["You don't have any badges yet!"]
+    return user_badges
+
   user_badges.sort()
   user_badges.insert(0, '[CLEAR BADGE]')
 
   return [result for result in user_badges if ctx.value.lower() in result.lower()]
+
+def user_styles_autocomplete(ctx:discord.AutocompleteContext):
+  user_styles = [s['item_name'] for s in db_get_user_profile_styles(ctx.interaction.user.id)]
+  if len(user_styles) == 0:
+    user_styles = ["You don't have any additional styles yet!"]
+    return user_styles
+
+  user_styles.sort()
+  user_styles.insert(0, 'Default')
+
+  return [result for result in user_styles if ctx.value.lower() in result.lower()]
 
 
 # __________                _____.__.__         _________
@@ -227,7 +242,10 @@ class Profile(commands.Cog):
     base_bg.paste(screen_glare, (0, 0), screen_glare)
 
     # add PADD frame to whole image
-    padd_frame = Image.open("./images/profiles/template_pieces/lcars/padd-frame.png").convert("RGBA")
+    padd_style = db_get_user_profile_style(member.id)
+    frame_filename = f"padd-frame-{padd_style}.png"
+
+    padd_frame = Image.open(f"./images/profiles/template_pieces/lcars/{frame_filename}").convert("RGBA")
     base_bg.paste(padd_frame, (0, 0), padd_frame)
 
     # put sticker on
@@ -346,6 +364,14 @@ class Profile(commands.Cog):
     set a user's badge for their profile card
     users can also unset it by selecting the "[CLEAR BADGE]" option from the autocomplete
     """
+    # User selected the warning message, return as no-op
+    if badge == "You don't have any badges yet!":
+      await ctx.respond(embed=discord.Embed(
+        title="No Action Taken",
+        color=discord.Color.red(),
+      ), ephemeral=True)
+      return
+
     # Remove badge if desired by user
     remove = bool(badge == '[CLEAR BADGE]')
     if remove:
@@ -383,6 +409,51 @@ class Profile(commands.Cog):
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile badge{Style.RESET_ALL} to: {Style.BRIGHT}\"{badge}\"{Style.RESET_ALL}")
 
 
+  @profile.command(
+    name="set_style",
+    description="Set your PADD Style!"
+  )
+  @option(
+    name="style",
+    description="Your PADD style",
+    required=True,
+    autocomplete=user_styles_autocomplete
+  )
+  async def set_style(self, ctx:discord.ApplicationContext, style:str):
+    """
+    This function is the main entrypoint of the `/profile set_style` command
+    set a user's PADD style for their profile out of a list of what they have available in their inventory
+    """
+    # User selected the warning message, return as no-op
+    if style == "You don't have any additional styles yet!":
+      await ctx.respond(embed=discord.Embed(
+        title="No Action Taken",
+        color=discord.Color.red(),
+      ), ephemeral=True)
+      return
+
+    # Check to make sure they own the style
+    user_styles = [s['item_name'] for s in db_get_user_profile_styles(ctx.author.id)] + ['Default']
+    if style not in user_styles:
+      await ctx.respond(embed=discord.Embed(
+        title="Unable To Set Featured PADD Style",
+        description="You don't appear to own that style yet!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+    # If it looks good, go ahead and change the style
+    db_update_user_profile_style(ctx.author.id, style)
+    await ctx.respond(
+      embed=discord.Embed(
+        title="Your profile PADD style has been updated!",
+        description=f"You've successfully set your PADD style as \"{style}\"\n\nUse `/profile display` to check it out!",
+        color=discord.Color.green()
+      ),
+      ephemeral=True
+    )
+    logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile style{Style.RESET_ALL} to: {Style.BRIGHT}\"{style}\"{Style.RESET_ALL}")
+
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
 #  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
@@ -406,9 +477,34 @@ def db_remove_user_profile_badge(user_id):
     sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
     vals = {"badge_filename" : "", "user_discord_id" : user_id}
     query.execute(sql, vals)
-  
+
 def db_add_user_profile_badge(user_id, badge_filename):
   with AgimusDB() as query:
     sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
     vals = {"badge_filename" : badge_filename, "user_discord_id" : user_id}
+    query.execute(sql, vals)
+
+def db_get_user_profile_styles(user_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT * FROM profile_inventory WHERE user_discord_id = %s AND item_category = 'style'"
+    vals = (user_id,)
+    query.execute(sql, vals)
+    results = query.fetchall()
+  return results
+
+def db_get_user_profile_style(user_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT style FROM profile_style WHERE user_discord_id = %s"
+    vals = (user_id,)
+    query.execute(sql, vals)
+    result = query.fetchone()
+  if result:
+    return result['style']
+  else:
+    return 'Default'
+
+def db_update_user_profile_style(user_id, style):
+  with AgimusDB() as query:
+    sql = "REPLACE INTO profile_style (style, user_discord_id) VALUES (%(style)s, %(user_discord_id)s)"
+    vals = {"style" : style, "user_discord_id" : user_id}
     query.execute(sql, vals)
