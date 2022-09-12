@@ -25,6 +25,10 @@ class DfrotzRunner(commands.Cog):
   game_name: str
   game_file_name: str
 
+  embed_color = discord.Color.teal()
+  command_line_color = '1;36'
+  """An escape color code.  Mixing them up so that different games will be visually distinct."""
+
   file_path = os.path.abspath(os.path.join(__file__, '../../data/zfiles'))
 
   def __init__(self, bot):
@@ -95,18 +99,24 @@ class DfrotzRunner(commands.Cog):
 
     lines = self.clean_lines(lines)
 
-    lines = '\x1b[0m\n'.join(lines)
-    return f"```ansi\n\x1b[0;36m> {cmd}\x1b[0m\n{lines}\n```"
+    lines = '\n'.join(lines)
+    return f"```ansi\n\x1b[{self.command_line_color}m> {cmd}\x1b[0m\n{lines}\n```"
 
   def clean_lines(self, lines: List[str]) -> List[str]:
     cleaned_lines = []
+    other_escape_sequences = re.compile('\x1b\\[[0-9;]*[A-Za-ln-z]')
+    opening_color_changes = re.compile(r'^([^] .>)}TtD]+)..')
     for line in lines:
+      line = other_escape_sequences.sub('', line)
       if line[0] == '>':
         line = line.lstrip(' >')
-      if line[0] == '\x1b':
-        continue  # Opening escape sequences break everything
-      line = line.replace('\x1b[0K', '')  # Most lines end with this, and I don't know what it does
-      line = line[2:]  # Most lines start with a two character sillyness that doesn't make sense
+      elif line[0] == '\x1b':
+        line = opening_color_changes.sub(r'\1', line)
+      else:
+        line = line[2:]  # Most lines start with a two character sillyness that doesn't make sense
+      line = line.replace('\x1b[22m', '\x1b[0m') \
+                 .replace('\x1b[27m', '\x1b[0m') \
+                 .replace('\x1b[7m', '\x1b[30;47m')  # This replacement shouldn't be used, but Discord
       line = line.rstrip()
       cleaned_lines.append(line)
 
@@ -129,7 +139,7 @@ class DfrotzRunner(commands.Cog):
       title="Saving game",
       description="Game successfully saved.  You will return to this point any time AGIMUS restarts or you use the "
                   "RESTORE command.",
-      color=discord.Color.blue()
+      color=self.embed_color
     )
     await ctx.followup.send(embed=embed)
 
@@ -150,7 +160,7 @@ class DfrotzRunner(commands.Cog):
     embed = discord.Embed(
       title="Restoring game",
       description="Continuing from the last save",
-      color=discord.Color.blue()
+      color=self.embed_color
     )
     await ctx.followup.send(embed=embed)
 
@@ -214,3 +224,7 @@ class ChaosZork(DfrotzRunner):
   @commands.check(access_check)
   async def zork(self, ctx: discord.ApplicationContext, cmd: str):
     await self.slash_command(ctx, cmd)
+
+  def clean_lines(self, lines: List[str]) -> List[str]:
+    lines = [line for line in lines if line[0] not in ('\x1b', '>')]
+    return super().clean_lines(lines)
