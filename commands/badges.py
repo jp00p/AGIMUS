@@ -1088,20 +1088,21 @@ def run_badge_stats_queries():
     "most_wishlisted" : "SELECT b_i.badge_name, COUNT(b_w.id) as count FROM badge_info AS b_i JOIN badge_wishlists AS b_w WHERE b_i.badge_filename = b_w.badge_filename GROUP BY b_w.badge_filename ORDER BY COUNT(b_w.badge_filename) DESC, b_i.badge_name ASC LIMIT 5;",
     "most_locked" : "SELECT b_i.badge_name, COUNT(b.locked) as count FROM badge_info AS b_i JOIN badges AS b ON b_i.badge_filename = b.badge_filename WHERE b.locked = 1 GROUP BY b.badge_filename ORDER BY COUNT(b.locked) DESC, b_i.badge_name ASC LIMIT 5;",
   }
-  
+
   results = {}
   with AgimusDB(dictionary=True) as query:
-  # Run most collected while filtering out special badges
+    # Run most collected while filtering out special badges
     special_badge_filenames = [b['badge_filename'] for b in SPECIAL_BADGES]
     format_strings = ','.join(['%s'] * len(special_badge_filenames))
     sql = "SELECT badge_filename, COUNT(id) as count FROM badges WHERE badge_filename NOT IN (%s) GROUP BY badge_filename ORDER BY count DESC LIMIT 5;"
     query.execute(sql % format_strings, tuple(special_badge_filenames))
     results["most_collected"] = query.fetchall()
 
-  # Run remaining queries
-  for name,sql in queries.items():
-    query.execute(sql)
-    results[name] = query.fetchall()
+    # Run remaining queries
+    for name,sql in queries.items():
+      query.execute(sql)
+      results[name] = query.fetchall()
+
   return results
 
 
