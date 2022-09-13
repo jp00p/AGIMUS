@@ -33,20 +33,24 @@ class Poshimo:
   A Pocket Shimoda!\n
   You do not create these from scratch, they are predefined in the CSV or DB.\n
   Pass a name to get the base stats\n
-  Pass a name and level to get level-adjusted stats (for wild Poshimo)\n
-  Pass a name and owner to get the Poshimo stats from the DB (for player-owned Poshimo)
+  Pass an id to load from DB
+  Pass an owner to add then load from DB
   """
-  def __init__(self, name, level=1, owner=None, id=None):
-    self.name = name
-    if not pdata.get(self.name):
-      return None
+  def __init__(self, name=None, level=None, id=None, owner=None):
     self.owner = owner
-    self.display_name = self.name # for custom player-named Poshimo
     self.id = id
-    self.poshimodata = pdata[self.name] # load the base poshimo data
+    if self.owner:
+      self.id = self.create()
+    if self.id:
+      # load custom poshimo
+      self.load()
+    else:
+      self.name = name
+      self.display_name = self.name # for custom player-named Poshimo
+      self.poshimodata = pdata[self.name] # load the base poshimo data
+      self.level = level
     self.types = (PoshimoType(self.poshimodata["type1"]), PoshimoType(self.poshimodata["type2"]))
     self.personality = None
-    self.level = level
     self.status = None
     self.attack = self.poshimodata["base_attack"]
     self.defense = self.poshimodata["base_defense"]
@@ -62,11 +66,37 @@ class Poshimo:
   def __repr__(self) -> str:
     return f"{self.name}: (Types: {[t for t in list(self.types)]})"
   
+  def load(self):
+    logger.info(f"Attempting to load poshimo {self.id}")
+    with AgimusDB(dictionary=True) as query:
+      sql = '''
+      SELECT * FROM poshimodae 
+        LEFT JOIN poshimo_trainers.id = poshimodae.owner_id 
+        ON poshimo_trainers 
+      WHERE poshimodae.id = %s LIMIT 1
+      '''
+      vals = (self.id,)
+      query.execute(sql, vals)
+      self.poshiomodata = query.fetchone()
+      self.level = self.poshimodata["level"]
+      self.display_name = self.poshimodata["display_name"]
+      logger.info(f"Loaded poshimo: {self.poshimodata}")
+  
+  def create(self):
+    if not self.owner:
+      return
+    self.poshimodata = pdata[self.name]
+    self.level = 1
+    self.display_name = self.name
+    logger.info(f"Attempting to create poshimo: {self.poshimodata}")
+    return self.save()
+
   def save(self) -> int:
     """
     saves to the db or updates the db with this poshimo's data
     """
     with AgimusDB() as query:
+      
       sql = """
       INSERT INTO poshimodae (id, owner_id, name, display_name, level, xp) 
         VALUES (%(id)s, %(owner_id)s, %(name)s, %(display_name)s, %(level)s, %(xp)s) 
@@ -81,10 +111,12 @@ class Poshimo:
         "level" : self.level,
         "xp" : self.xp
       }
+      logger.info(f"Attempting to save poshimo: {vals}")
       query.execute(sql, vals)
       logger.info(f"Saving poshimo: {vals}")
       poshi_row = query.lastrowid
       self.id = poshi_row
+      logger.info(f"Save successful: {self.id}")
     return self.id
 
   

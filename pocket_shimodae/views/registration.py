@@ -11,8 +11,15 @@ class Welcome(PoshimoView):
     super().__init__(cog)
     self.embeds = [
       discord.Embed(
-        title=f"Welcome to the world of Pocket Shimodae!",
-        description="This is a brief description of the game. Let's go!"
+        title=f"You heard about this game going around the ship...",
+        description="""
+        Supposedly it's a holodeck program that's intensely immersive, addicting, and nobody knows who wrote it. Everyone's been talking about it, or at least they were a few days ago, but now the ship seems oddly quiet.\n
+        Having never been briefed on the dangers of alien games or even Ktarians, you naively decide to try it for yourself: you punch in your access codes, and step into the holodeck.\n
+        The doors quickly close behind you, and a familiar voice crackles from the intercom:\n
+        "WELCOME TO POCKET SHIMODAE, FOOLISH MORTAL!\n
+        The doors are locked, and of course the safeties are off. You must play the game and prove your worth as a Poshimo Trainer before I will consider letting you escape."\n\n
+        It seems AGIMUS has trapped you in here until you have finished the game or the game finishes you...
+        """
       )
     ]
 
@@ -79,6 +86,7 @@ class StarterChosen(PoshimoView):
     # ~ THE MAGIC HAPPENS HERE ~ #
     self.trainer = self.game.register_trainer(user["id"]) # register player
     self.poshimo = self.trainer.add_poshimo(choice)
+    self.cog.all_trainers = self.game.get_all_trainers()
     self.trainer.active_poshimo = self.poshimo
     self.embeds = [
       discord.Embed(

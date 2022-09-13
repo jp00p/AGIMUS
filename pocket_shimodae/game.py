@@ -39,16 +39,16 @@ class PoshimoGame:
     Get trainer data from the database based on discord ID
     returns a PoshimoTrainer()
     """
+    logger.info(f"Attempting lookup on poshimo trainer {discord_id}")
     with AgimusDB(dictionary=True) as query:
-      sql = "SELECT * FROM poshimo_trainers \
-            LEFT JOIN users ON poshimo_trainers.userid = users.id \
-            LEFT JOIN poshimodae ON owner_id = poshimo_trainers.id \
-            WHERE users.discord_id = %s"
+      sql = '''SELECT *, poshimo_trainers.id as trainer_id FROM poshimo_trainers 
+            LEFT JOIN users ON poshimo_trainers.userid = users.id 
+            WHERE users.discord_id = %s'''
       vals = (discord_id,)
       query.execute(sql, vals)
       trainer_data = query.fetchone()
-      logger.info(trainer_data)
-    return PoshimoTrainer(trainer_data["id"])
+      logger.info(f"Trainer found: {trainer_data}")
+    return PoshimoTrainer(trainer_id=trainer_data["trainer_id"])
 
   def register_trainer(self, user_id) -> PoshimoTrainer:
     """
@@ -63,11 +63,14 @@ class PoshimoGame:
     ----
     PoshimoTrainer
     """
+    logger.info(f"Attempting to register new trainer {user_id}")
     with AgimusDB() as query:
       sql = "INSERT INTO poshimo_trainers (userid) VALUES (%s)"
       vals = (user_id,)    
       query.execute(sql, vals)
       trainer_id = query.lastrowid
+      if trainer_id:
+        logger.info(f"Success! new trainer ID: {trainer_id}")
     return PoshimoTrainer(trainer_id)
 
   # player wants to explore

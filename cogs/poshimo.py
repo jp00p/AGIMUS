@@ -24,9 +24,9 @@ class PocketShimodae(commands.Cog):
   async def start(self, ctx:discord.ApplicationContext):
     """Starts the game for a new player (does nothing if you are already registered)"""
 
-    #if ctx.author.id in self.all_trainers:
-    #  await ctx.respond("You're already registered!", ephemeral=True)
-    #  return
+    if ctx.author.id in self.all_trainers:
+     await ctx.respond("You're already registered!", ephemeral=True)
+     return
     await ctx.defer(ephemeral=True)
     intro = registration.StarterPages(self)
     await intro.paginator.respond(ctx.interaction, ephemeral=True)
@@ -42,42 +42,42 @@ class PocketShimodae(commands.Cog):
     
   @ps.command(
     name="help",
-    description="Get information about this game and the commands"
+    description="DOES NOTHING YET Get information about this game and the commands"
   )
   async def help(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
 
   @ps.command(
     name="sac",
-    description="Manage your Poshimo Sac"
+    description="DOES NOTHING YET Manage your Poshimo Sac"
   )
   async def sac(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
   
   @ps.command(
     name="swap",
-    description="Swap out your active Poshimo"
+    description="DOES NOTHING YET Swap out your active Poshimo"
   )
   async def swap(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
 
   @ps.command(
     name="explore",
-    description="Explore your current location"
+    description="DOES NOTHING YET Explore your current location"
   )
   async def explore(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
 
   @ps.command(
     name="move",
-    description="Move to a new location"
+    description="DOES NOTHING YET Move to a new location"
   )
   async def move(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
 
   @ps.command(
     name="duel",
-    description="Start a duel with another trainer"
+    description="DOES NOTHING YET Start a duel with another trainer"
   )
   async def explore(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)

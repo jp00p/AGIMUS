@@ -248,7 +248,7 @@ CREATE TABLE IF NOT EXISTS poshimo_trainers (
   userid int(11) NOT NULL,
   wins INT(11) NOT NULL DEFAULT 0,
   losses INT(11) NOT NULL DEFAULT 0,
-  status VARCHAR(64) DEFAULT NULL,
+  status INT(11) DEFAULT 0,
   location VARCHAR(128) DEFAULT NULL,
   poshimo_sac TEXT DEFAULT NULL,
   active_poshimo INT(11) DEFAULT NULL,
@@ -262,16 +262,15 @@ CREATE TABLE IF NOT EXISTS poshimo_trainers (
 );
 CREATE TABLE IF NOT EXISTS poshimodae (
   id INT(11) NOT NULL AUTO_INCREMENT,
-  owner_id INT(11) NOT NULL,
+  owner_id INT(11),
   name VARCHAR(128) NOT NULL,
   display_name VARCHAR(128) DEFAULT NULL,
   level INT(11) NOT NULL DEFAULT 1,
   xp INT(11) NOT NULL DEFAULT 0,
   time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id),
-  FOREIGN KEY (owner_id) REFERENCES poshimo_trainers (id)
+  FOREIGN KEY (owner_id) REFERENCES poshimo_trainers (id) ON DELETE SET NULL
 );
-ALTER TABLE poshimo_trainers ADD CONSTRAINT FOREIGN KEY (active_poshimo) REFERENCES poshimodae (id);
 
 CREATE TABLE IF NOT EXISTS poshimo_battles (
   id INT(11) NOT NULL AUTO_INCREMENT,
