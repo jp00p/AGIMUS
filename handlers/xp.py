@@ -42,7 +42,8 @@ reasons = {
   "used_computer"  : "using the computer",
   "asked_agimus"   : "asking agimus a question",
   "used_wordcloud" : "generating a wordcloud",
-  "played_zork"    : "playing zork"
+  "played_zork"    : "playing zork",
+  "created_event"  : "creating an event"
 }
 
 # handle_message_xp(message) - calculates xp for a given message
@@ -223,6 +224,14 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   if xp_amt > 0:
     await increment_user_xp(reaction.message.author, xp_amt, "got_reactions", reaction.message.channel)
 
+async def handle_event_creation_xp(event):
+  creator = await bot.fetch_user(event.creator_id)
+  location = event.location.value
+  if type(location) == str:
+    # Users might create an event that isn't a VoiceChannel
+    return
+  await increment_user_xp(creator, 30, "created_event", location)
+
 # calculate_xp_for_next_level(current_level)
 # current_level[required]: int
 # returns the amount of xp required to level up for the given level
@@ -268,7 +277,7 @@ def give_welcome_badge(user_id):
       sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, 'Friends_Of_DeSoto.png');"
       vals = (user_id,)
       query.execute(sql, vals)
-    
+
 # send_level_up_message(user, level, badge)
 # user[required]:discord.User
 # level[required]:int
