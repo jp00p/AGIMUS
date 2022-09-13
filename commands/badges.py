@@ -7,6 +7,7 @@ from queries.badge_scrap import *
 from queries.wishlist import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
+from utils.string_utils import *
 
 all_badge_info = db_get_all_badge_info()
 
@@ -925,11 +926,18 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   description="Which user to gift the badge to",
   required=True
 )
-async def gift_badge(ctx:discord.ApplicationContext, user:discord.User):
-  await ctx.defer(ephemeral=True)
+@option(
+  "reason",
+  str,
+  description="The reason for the gift!",
+  required=False
+)
+async def gift_badge(ctx:discord.ApplicationContext, user:discord.User, reason:str=""):
   """
   give a random badge to a user
   """
+  await ctx.defer(ephemeral=True)
+  
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a random badge{Style.RESET_ALL} to {user.display_name}")
 
@@ -948,10 +956,13 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User):
   db_purge_users_wishlist(user.id)
 
   channel = bot.get_channel(notification_channel_id)
-  embed_title = "You got rewarded a badge!"
+  embed_title = "You got rewarded a free badge!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has been gifted a badge by {ctx.author.mention}!"
-  message = f"{user.mention} - Nice work, you got a free badge!"
+  if reason != "":
+    message = f"{user.mention} - {strip_emoji(reason)}"
+  else:
+    message = f"{user.mention} - Nice work, whatever you did!"
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
   await ctx.respond("Your gift has been sent!", ephemeral=True)
 
