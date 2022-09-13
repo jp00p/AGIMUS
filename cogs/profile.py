@@ -5,7 +5,29 @@ from common import *
 from handlers.xp import calculate_xp_for_next_level
 from utils.badge_utils import *
 
+f = open(config["commands"]["shop"]["data"])
+shop_data = json.load(f)
+f.close()
 
+def get_sticker_name_from_filename(filename):
+  stickers = shop_data['stickers']
+  sticker_name = ''
+  for s in stickers:
+    if s['file'] == filename:
+      sticker_name = s['name']
+      break
+
+  return sticker_name
+
+def get_sticker_filename_from_name(name):
+  stickers = shop_data['stickers']
+  sticker_filename = ''
+  for s in stickers:
+    if s['name'] == name:
+      sticker_filename = s['file']
+      break
+
+  return sticker_filename
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
@@ -25,7 +47,7 @@ def user_badges_autocomplete(ctx:discord.AutocompleteContext):
   return [result for result in user_badges if ctx.value.lower() in result.lower()]
 
 def user_styles_autocomplete(ctx:discord.AutocompleteContext):
-  user_styles = [s['item_name'] for s in db_get_user_profile_styles(ctx.interaction.user.id)]
+  user_styles = [s['item_name'] for s in db_get_user_profile_styles_from_inventory(ctx.interaction.user.id)]
   if len(user_styles) == 0:
     user_styles = ["You don't have any additional styles yet!"]
     return user_styles
@@ -35,6 +57,18 @@ def user_styles_autocomplete(ctx:discord.AutocompleteContext):
 
   return [result for result in user_styles if ctx.value.lower() in result.lower()]
 
+
+def user_stickers_autocomplete(ctx:discord.AutocompleteContext):
+  user_stickers = [s['item_name'] for s in db_get_user_profile_stickers_from_inventory(ctx.interaction.user.id)]
+  user_stickers = [get_sticker_name_from_filename(s) for s in user_stickers]
+  if len(user_stickers) == 0:
+    user_stickers = ["You don't have any additional stickers yet!"]
+    return user_stickers
+
+  user_stickers.sort()
+  user_stickers.insert(0, '[CLEAR STICKER]')
+
+  return [result for result in user_stickers if ctx.value.lower() in result.lower()]
 
 # __________                _____.__.__         _________
 # \______   \_______  _____/ ____\__|  |   ____ \_   ___ \  ____   ____
@@ -249,10 +283,13 @@ class Profile(commands.Cog):
     base_bg.paste(padd_frame, (0, 0), padd_frame)
 
     # put sticker on
-    if len(user["stickers"]) > 0 and user['stickers'][0]['sticker']:
+    if len(user["stickers"]) > 0 and user['stickers'][0]['sticker'] and user['stickers'][0]['sticker'] != "none":
+      sticker_selection = user['stickers'][0]['sticker']
+      if '.png' not in sticker_selection:
+        sticker_selection = get_sticker_filename_from_name(sticker_selection)
       sticker_image = Image.open("./images/profiles/template_pieces/lcars/sticker-1.png").convert("RGBA")
       sticker_mask  = Image.open("./images/profiles/template_pieces/lcars/sticker-1-mask.png").convert("L").resize(sticker_image.size)
-      sticker       = Image.open(f"./images/profiles/stickers/{user['stickers'][0]['sticker']}").convert("RGBA").resize(sticker_image.size)
+      sticker       = Image.open(f"./images/profiles/stickers/{sticker_selection}").convert("RGBA").resize(sticker_image.size)
       sticker_bg    = Image.open("./images/profiles/template_pieces/lcars/sticker-bg.png").convert("RGBA")
       composed  = Image.composite(sticker_image, sticker, sticker_mask).convert("RGBA")
       sticker_bg.paste(composed, (0, 0), composed)
@@ -433,7 +470,7 @@ class Profile(commands.Cog):
       return
 
     # Check to make sure they own the style
-    user_styles = [s['item_name'] for s in db_get_user_profile_styles(ctx.author.id)] + ['Default']
+    user_styles = [s['item_name'] for s in db_get_user_profile_styles_from_inventory(ctx.author.id)] + ['Default']
     if style not in user_styles:
       await ctx.respond(embed=discord.Embed(
         title="Unable To Set Featured PADD Style",
@@ -454,12 +491,70 @@ class Profile(commands.Cog):
     )
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile style{Style.RESET_ALL} to: {Style.BRIGHT}\"{style}\"{Style.RESET_ALL}")
 
+  @profile.command(
+    name="set_sticker",
+    description="Set your PADD Sticker!"
+  )
+  @option(
+    name="sticker",
+    description="Your PADD sticker",
+    required=True,
+    autocomplete=user_stickers_autocomplete
+  )
+  async def set_sticker(self, ctx:discord.ApplicationContext, sticker:str):
+    """
+    This function is the main entrypoint of the `/profile set_sticker` command
+    set a user's PADD sticker for their profile out of a list of what they have available in their inventory
+    """
+    # User selected the warning message, return as no-op
+    if sticker == "You don't have any additional stickers yet!":
+      await ctx.respond(embed=discord.Embed(
+        title="No Action Taken",
+        color=discord.Color.red(),
+      ), ephemeral=True)
+      return
+
+    # Remove sticker if desired by user
+    remove = bool(sticker == '[CLEAR STICKER]')
+    if remove:
+      db_update_user_profile_sticker(ctx.author.id, "none")
+      await ctx.respond(embed=discord.Embed(
+        title="Cleared Profile Sticker",
+        color=discord.Color.green(),
+      ), ephemeral=True)
+      logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their profile sticker!{Style.RESET_ALL}")
+      return
+
+    # Check to make sure they own the sticker
+    user_stickers = [s['item_name'] for s in db_get_user_profile_stickers_from_inventory(ctx.author.id)] + ['Default']
+    if sticker not in user_stickers:
+      await ctx.respond(embed=discord.Embed(
+        title="Unable To Set Featured PADD Sticker",
+        description="You don't appear to own that sticker yet!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+    # If it looks good, go ahead and change the sticker
+    db_update_user_profile_sticker(ctx.author.id, sticker)
+    await ctx.respond(
+      embed=discord.Embed(
+        title="Your profile PADD sticker has been updated!",
+        description=f"You've successfully set your PADD sticker as \"{sticker}\"\n\nUse `/profile display` to check it out!",
+        color=discord.Color.green()
+      ),
+      ephemeral=True
+    )
+    logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile sticker{Style.RESET_ALL} to: {Style.BRIGHT}\"{sticker}\"{Style.RESET_ALL}")
+
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
 #  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
+
+# Tagline
 def db_remove_user_profile_tagline(user_id):
   with AgimusDB() as query:
     sql = "REPLACE INTO profile_taglines (tagline, user_discord_id) VALUES (%(tagline)s, %(user_discord_id)s)"
@@ -472,6 +567,7 @@ def db_add_user_profile_tagline(user_id, tagline):
     vals = {"tagline" : tagline, "user_discord_id" : user_id}
     query.execute(sql, vals)
 
+# Badges
 def db_remove_user_profile_badge(user_id):
   with AgimusDB() as query:
     sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
@@ -484,7 +580,8 @@ def db_add_user_profile_badge(user_id, badge_filename):
     vals = {"badge_filename" : badge_filename, "user_discord_id" : user_id}
     query.execute(sql, vals)
 
-def db_get_user_profile_styles(user_id):
+# Styles
+def db_get_user_profile_styles_from_inventory(user_id):
   with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM profile_inventory WHERE user_discord_id = %s AND item_category = 'style'"
     vals = (user_id,)
@@ -507,4 +604,29 @@ def db_update_user_profile_style(user_id, style):
   with AgimusDB() as query:
     sql = "REPLACE INTO profile_style (style, user_discord_id) VALUES (%(style)s, %(user_discord_id)s)"
     vals = {"style" : style, "user_discord_id" : user_id}
+    query.execute(sql, vals)
+
+# Stickers
+def db_get_user_profile_stickers_from_inventory(user_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT * FROM profile_inventory WHERE user_discord_id = %s AND item_category = 'sticker'"
+    vals = (user_id,)
+    query.execute(sql, vals)
+    results = query.fetchall()
+  return results
+
+def db_get_user_profile_sticker(user_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT style FROM profile_stickers WHERE user_discord_id = %s"
+    vals = (user_id,)
+    query.execute(sql, vals)
+    result = query.fetchone()
+  return result['sticker']
+
+def db_update_user_profile_sticker(user_id, sticker):
+  if sticker != 'none':
+    sticker = get_sticker_filename_from_name(sticker)
+  with AgimusDB() as query:
+    sql = "REPLACE INTO profile_stickers (sticker, user_discord_id) VALUES (%(sticker)s, %(user_discord_id)s)"
+    vals = {"sticker" : sticker, "user_discord_id" : user_id}
     query.execute(sql, vals)
