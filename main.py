@@ -18,6 +18,7 @@ from commands.randomep import randomep
 from commands.reports import reports
 from commands.scores import scores
 from commands.setwager import setwager
+from commands.shimoda import shimoda
 from commands.speak import speak, speak_embed
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
@@ -84,7 +85,7 @@ from handlers.loudbot import handle_loudbot
 from handlers.save_message import save_message_to_db
 from handlers.server_logs import *
 from handlers.starboard import get_all_starboard_posts, handle_starboard_reactions
-from handlers.xp import handle_message_xp, handle_react_xp, increment_user_xp
+from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_react_xp, increment_user_xp
 
 # Tasks
 from tasks.scheduler import Scheduler
@@ -244,6 +245,11 @@ async def on_reaction_add(reaction, user):
 async def on_raw_reaction_add(payload):
   if payload.event_type == "REACTION_ADD":
     await handle_starboard_reactions(payload)
+
+# listen to event creations (streams, pub trivia, etc)
+@bot.event
+async def on_scheduled_event_create(event):
+  await handle_event_creation_xp(event)
 
 # listen to server join/leave events
 @bot.event
