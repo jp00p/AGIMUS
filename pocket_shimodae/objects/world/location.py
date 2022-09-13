@@ -1,30 +1,21 @@
 from common import *
-from enum import Enum, auto
-
-weather_emoji = ["🌞","🌤","⛅","🌧","🌨","🍃","🌩","🌫"]
-
-class Weather(Enum):  
-  SUNNY = 1
-  PARTLY_CLOUDY = 2
-  CLOUDY = 3
-  RAINY = 4
-  SNOWY = 5
-  WINDY = 6
-  STORMY = 7
-  FOGGY = 8
-  def __str__(self):
-    return f'{self.name.lower().replace("_", " ").capitalize()} {weather_emoji[self.value-1]}'
+from .weather import Weather
+from .biome import PoshimoBiome
 
 class PoshimoLocation:
   """ A location in our game world """
   def __init__(self, name):
+    self.name = name
     self.location_data = {} # pull from file based on name
     self.wild_poshimo = {}
-    self.weather = None
-    self.biome = None
+    self.weather = Weather.SUNNY
+    self.biome = PoshimoBiome("Default")
     self.fish = {}
     self.items = {}
-    self.description = None
+    self.description = "A default description of a location"
     self.quests = None
     self.shop = None
     self.paths = {}
+
+  def __str__(self):
+    return f"{self.name} {self.weather} ({self.biome})"

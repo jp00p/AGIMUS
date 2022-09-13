@@ -10,7 +10,7 @@ class Status(PoshimoView):
     super().__init__(cog)
     self.discord_id = discord_id
     self.trainer = self.game.get_trainer(self.discord_id)
-    logger.info(f"Running status for user: {self.trainer.__dict__}")
+    self.trainer_location = self.game.find_in_world(self.trainer.location)
     self.embeds = [
       discord.Embed(
         title=f"TRAINER #{self.trainer.id} STATUS",
@@ -21,7 +21,7 @@ class Status(PoshimoView):
           discord.EmbedField(name="Active Poshimo", value=f"{self.trainer.active_poshimo}"),
           discord.EmbedField(name="Poshimo in sac", value=f"{self.trainer.list_sac()}"),
           discord.EmbedField(name="Scarves", value=f"{self.trainer.scarves}"),
-          discord.EmbedField(name="Belt buckles", value=f"{self.trainer.buckles}")
+          discord.EmbedField(name="Belt buckles", value=f"{self.trainer.buckles}"),
+          discord.EmbedField(name="Location", value=f"{self.trainer_location.name}\n**weather**: {self.trainer_location.weather}\n**biome**: {self.trainer_location.biome}", inline=False)
         ]
       )
-    ]

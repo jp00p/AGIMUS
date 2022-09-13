@@ -21,7 +21,7 @@ class PoshimoTrainer(object):
     self._losses = 0
     self._active_poshimo = None # current poshimo
     self._inventory = {} # all items
-    self._location = None # where are you
+    self._location = "starting_zone" # where are you
     self._scarves = 0 # money
     self._buckles = "None" # these are like pokemon badges
     self.shimodaepedia = [] # aka pokedex, which poshimo has this player seen (list of ids)
@@ -69,7 +69,7 @@ class PoshimoTrainer(object):
         self.sac_data = json.loads(sac_data)
         self._poshimo_sac = [p["id"] for p in self.sac_data]
       self._inventory = trainer_data.get("inventory")
-      self._location = trainer_data.get("location")
+      #self._location = trainer_data.get("location")
       self._scarves = trainer_data.get("scarves")
       self._buckles = trainer_data.get("buckles")
       self._shimodaepedia = trainer_data.get("discovered_poshimo")

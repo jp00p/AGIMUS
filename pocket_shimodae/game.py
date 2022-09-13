@@ -19,8 +19,18 @@ class PoshimoGame:
 
   """
   def __init__(self):
+    self.world = PoshimoWorld() # init the world
     self.active_battles = [] # need to load any battles that were in progress
-    self.starter_poshimo = [Poshimo("Worf"), Poshimo("Jim Shimoda"), Poshimo("Captain Picard")]
+    self.starter_poshimo = [
+      Poshimo("Worf"), 
+      Poshimo("Jim Shimoda"), 
+      Poshimo("Captain Picard")
+    ]
+    
+
+  def find_in_world(self, location_name) -> PoshimoLocation:
+    """ find a location in the world """
+    return self.world.all_locations[location_name]
 
   def register_battle(self, contender_1, contender_2) -> int:
     # add contenders to the db
