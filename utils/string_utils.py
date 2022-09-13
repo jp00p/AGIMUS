@@ -37,7 +37,9 @@ def strip_punctuation(string):
 
 def strip_emoji(string) -> string:
   """ remove discord emoji from a string """
-  return re.sub(match_discord_emoji, '', string)
+  string = re.sub(match_discord_emoji, '', string)
+  string = re.sub(emoji_regex, '', string)
+  return string
 
 def strip_urls(string) -> string:
   """ remove any urls (http[s]) from the string """
