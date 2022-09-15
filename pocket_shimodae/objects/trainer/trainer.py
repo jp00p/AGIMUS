@@ -1,9 +1,10 @@
 from enum import Enum, auto
 from common import *
 from ..poshimo import *
+from typing import List
 
 MAX_POSHIMO = 6 # the maximum poshimo a player can have
-class TRAINER_STATUS(Enum):
+class TrainerStatus(Enum):
   IDLE = 0
   EXPLORING = 1
   BATTLING = 2
@@ -15,8 +16,8 @@ class PoshimoTrainer(object):
   def __init__(self, trainer_id=None):
     self.id = trainer_id
     self.discord_id = None
-    self._poshimo_sac = []
-    self._status = TRAINER_STATUS.IDLE
+    self._poshimo_sac:list = []
+    self._status = TrainerStatus.IDLE
     self._wins = 0
     self._losses = 0
     self._active_poshimo = None # current poshimo
@@ -36,58 +37,54 @@ class PoshimoTrainer(object):
     update a col in the db for this trainer 
     HUMANS ONLY ew
     """
-    if not self.id: 
+    logger.info(f"{Style.BRIGHT}Attempting to update trainer {self.id}'s {Fore.CYAN}{col_name}{Fore.RESET}{Style.RESET_ALL} with new value: {Fore.LIGHTGREEN_EX}{value}{Fore.RESET}")
+    if not self.id:
       return
     with AgimusDB() as query:
       sql = f"UPDATE poshimo_trainers SET {col_name} = %s WHERE id = %s" # col_name is a trusted input or so we hope
       vals = (value, self.id)
       query.execute(sql, vals)
-      logger.info(f"Updated {self.id}'s {col_name} with new value {value}")
+    
 
   def load(self):
     """ Load a human Trainer's data from DB """
-    logger.info(f"Attempting to load user {self.id}")
+    logger.info(f"Loading trainer {self.id} from DB...")
     with AgimusDB(dictionary=True) as query:
       sql = '''
       SELECT * FROM poshimo_trainers
-        LEFT JOIN users ON poshimo_trainers.userid = users.id
+        LEFT JOIN users ON poshimo_trainers.user_id = users.id
       WHERE poshimo_trainers.id = %s LIMIT 1
       '''
       vals = (self.id,)
       query.execute(sql, vals)
       trainer_data = query.fetchone()
-      logger.info(f"TRAINER DATA: {trainer_data}")
-    
+    logger.info(f"Trainer data: {Fore.LIGHTMAGENTA_EX}{trainer_data}{Fore.RESET} ")
     if trainer_data:
       self._wins = trainer_data.get("wins")
       self._losses = trainer_data.get("losses")
-      self._status = TRAINER_STATUS(trainer_data.get("status"))
-      self._active_poshimo = self.get_active_poshimo()
+      self._status = TrainerStatus(trainer_data.get("status"))
+      
+      
+      
       sac_data = trainer_data.get("poshimo_sac")
-      logger.info(f"SAC DATA: {sac_data}")
       if sac_data:
-        self.sac_data = json.loads(sac_data)
-        self._poshimo_sac = [p["id"] for p in self.sac_data]
+        logger.info(f"SAC DATA: {sac_data}")
+        sac_data = json.loads(sac_data)
+        self._poshimo_sac = [Poshimo(id=p) for p in sac_data]
+      else:
+        self._poshimo_sac = []
+      
+      if trainer_data.get("active_poshimo"):
+        self._active_poshimo = Poshimo(id=trainer_data.get("active_poshimo"))
+      else:
+        self._active_poshimo = None
+
       self._inventory = trainer_data.get("inventory")
-      #self._location = trainer_data.get("location")
       self._scarves = trainer_data.get("scarves")
       self._buckles = trainer_data.get("buckles")
       self._shimodaepedia = trainer_data.get("discovered_poshimo")
     else:
-      logger.info(f"There was an error loading {self.id} as a Trainer!")
-
-  def get_active_poshimo(self):
-    """ Get this trainer's active Poshimo """
-    with AgimusDB(dictionary=True) as query:
-      sql = "SELECT * FROM poshimodae LEFT JOIN poshimo_trainers ON poshimo_trainers.active_poshimo = poshimodae.id WHERE poshimo_trainers.id = %s"
-      vals = (self.id,)
-      query.execute(sql, vals)
-      poshimo_data = query.fetchone()
-      logger.info(f"Loading trainer's active poshimo: {poshimo_data}")
-    if poshimo_data:
-      return Poshimo(poshimo_data["name"]) # hmm
-    else:
-      return None
+      logger.info(f"There was an error loading trainer {self.id}'s info!")
 
   @property
   def wins(self):
@@ -145,7 +142,7 @@ class PoshimoTrainer(object):
 
   @property
   def status(self):
-    return TRAINER_STATUS(self._status)
+    return self._status
 
   @status.setter
   def status(self, val):
@@ -167,6 +164,7 @@ class PoshimoTrainer(object):
 
   @poshimo_sac.setter
   def poshimo_sac(self, obj):
+    logger.info("Sac setter")
     self._poshimo_sac = obj
     if self._poshimo_sac:
       sac_json = json.dumps([i.id for i in self._poshimo_sac])
@@ -182,22 +180,42 @@ class PoshimoTrainer(object):
   def shimodaepedia(self, obj):
     self._shimodaepedia = obj
 
-  def add_poshimo(self, poshimo:Poshimo):
+  def add_poshimo(self, poshimo:Poshimo, set_active=False):
     """ 
-    add a new poshimo to the sac and save it to the db
+    give this player a poshimo
     """
     poshimo.owner = self.id
-    poshimo.create()
-    self.poshimo_sac.append(poshimo)
+    if poshimo.id:
+      poshimo_id = poshimo.save()
+    else:
+      poshimo_id = poshimo.create()
+    poshimo = Poshimo(id=poshimo_id)
+    temp_sac = self.poshimo_sac
+    if set_active: # if we're adding this as an active poshimo, put the current active poshimo in our sac
+      if self.active_poshimo:
+        temp_sac.append(self.active_poshimo)
+        self.poshimo_sac = temp_sac
+      self.active_poshimo = poshimo
+    else:
+      temp_sac.append(poshimo)
+      self.poshimo_sac = temp_sac
     return poshimo
 
-  def set_active_poshimo(self, poshimo):
-    self.active_poshimo = poshimo
-
   def list_sac(self):
-    if len(self._poshimo_sac) <= 0:
+    temp_sac = self.poshimo_sac
+    if self.active_poshimo in temp_sac:
+      # dont show the active poshimo in the sac
+      temp_sac.remove(self.active_poshimo)
+    if len(temp_sac) <= 0:
       return "None"
-    return "\n".join([p.display_name for p in self._poshimo_sac])
+    
+    return "\n".join([p.display_name for p in temp_sac])
+
+  def list_all_poshimo(self) -> List[Poshimo]:
+    """ Get a list of all poshimo this Trainer owns """
+    all_poshimo = [self._active_poshimo] + self._poshimo_sac
+    logger.info(f"All this users poshimo: {all_poshimo}")
+    return all_poshimo
 
   def remove_poshimo(self, poshimo):
     # remove poshimo from sac

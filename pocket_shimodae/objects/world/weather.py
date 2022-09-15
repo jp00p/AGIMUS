@@ -12,4 +12,4 @@ class Weather(Enum):
   STORMY = 6
   FOGGY = 7
   def __str__(self):
-    return f'{self.name.lower().replace("_", " ").capitalize()} {weather_emoji[self.value]}'
+    return f"{weather_emoji[self.value]}"

@@ -243,9 +243,20 @@ CREATE TABLE IF NOT EXISTS badge_tags_associations (
   KEY `badge_tags_id` (`badge_tags_id`),
   CONSTRAINT `badge_tags_associations_fk_badge_tags_id` FOREIGN KEY (`badge_tags_id`) REFERENCES `badge_tags` (`id`) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS poshimodae (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  owner_id INT(11),
+  name VARCHAR(128) NOT NULL,
+  display_name VARCHAR(128) DEFAULT NULL,
+  level INT(11) NOT NULL DEFAULT 1,
+  xp INT(11) NOT NULL DEFAULT 0,
+  time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id)
+);
 CREATE TABLE IF NOT EXISTS poshimo_trainers (
   id INT(11) NOT NULL AUTO_INCREMENT,
-  userid int(11) NOT NULL,
+  user_id int(11) NOT NULL,
   wins INT(11) NOT NULL DEFAULT 0,
   losses INT(11) NOT NULL DEFAULT 0,
   status INT(11) DEFAULT 0,
@@ -258,20 +269,8 @@ CREATE TABLE IF NOT EXISTS poshimo_trainers (
   discovered_poshimo TEXT DEFAULT NULL,
   time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id),
-  FOREIGN KEY (userid) REFERENCES users (id)
+  FOREIGN KEY (user_id) REFERENCES users (id)
 );
-CREATE TABLE IF NOT EXISTS poshimodae (
-  id INT(11) NOT NULL AUTO_INCREMENT,
-  owner_id INT(11),
-  name VARCHAR(128) NOT NULL,
-  display_name VARCHAR(128) DEFAULT NULL,
-  level INT(11) NOT NULL DEFAULT 1,
-  xp INT(11) NOT NULL DEFAULT 0,
-  time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (id),
-  FOREIGN KEY (owner_id) REFERENCES poshimo_trainers (id) ON DELETE SET NULL
-);
-
 CREATE TABLE IF NOT EXISTS poshimo_battles (
   id INT(11) NOT NULL AUTO_INCREMENT,
   combatant1 INT(11) NOT NULL,

@@ -10,6 +10,7 @@ with open("pocket_shimodae/data/shimodaepedia.csv") as file:
   pdata = {}
   for id,row in enumerate(csvdata):
     pdata[row["name"]] = {
+      "name" : row["name"],
       "id" : id,
       "type1" : row["type1"],
       "type2" : row["type2"],
@@ -33,21 +34,24 @@ class Poshimo:
   A Pocket Shimoda!\n
   You do not create these from scratch, they are predefined in the CSV or DB.\n
   Pass a name to get the base stats\n
-  Pass an id to load from DB
-  Pass an owner to add then load from DB
+  Pass only an id to load from DB
+  Pass only an owner to add a new poshimo
   """
   def __init__(self, name=None, level=None, id=None, owner=None):
     self.owner = owner
     self.id = id
+    self.name = name
     if self.owner:
+      #poshimo is created and saved in db, then self.poshimodata loaded + merged
       self.id = self.create()
-    if self.id:
-      # load custom poshimo
+    elif self.id:
+      #self.poshimodata is loaded from db and merged with file
       self.load()
-    else:
+    elif self.name:
+      # assuming this is an npc poshimo
+      self.poshimodata = pdata[self.name] # load the base poshimo data, we'll update this dict if there's db data
       self.name = name
-      self.display_name = self.name # for custom player-named Poshimo
-      self.poshimodata = pdata[self.name] # load the base poshimo data
+      self.display_name = self.name # for custom player-named Poshimo  
       self.level = level
     self.types = (PoshimoType(self.poshimodata["type1"]), PoshimoType(self.poshimodata["type2"]))
     self.personality = None
@@ -67,28 +71,35 @@ class Poshimo:
     return f"{self.name}: (Types: {[t for t in list(self.types)]})"
   
   def load(self):
-    logger.info(f"Attempting to load poshimo {self.id}")
+    logger.info(f"Attempting to load poshimo: {self.id}")
     with AgimusDB(dictionary=True) as query:
       sql = '''
       SELECT * FROM poshimodae 
-        LEFT JOIN poshimo_trainers.id = poshimodae.owner_id 
-        ON poshimo_trainers 
+        LEFT JOIN poshimo_trainers
+        ON poshimo_trainers.id = poshimodae.owner_id 
       WHERE poshimodae.id = %s LIMIT 1
       '''
       vals = (self.id,)
       query.execute(sql, vals)
-      self.poshiomodata = query.fetchone()
+      results = query.fetchone()
+      self.poshimodata = dict(results)
+      temp_pdata = pdata[results["name"]] # load poshimo data from file
+      temp_pdata["id"] = results["id"] # gotta update the original ID from the poshimodex
+      self.poshimodata.update(temp_pdata) # merge file info with db info
       self.level = self.poshimodata["level"]
+      self.name = self.poshimodata["name"]
       self.display_name = self.poshimodata["display_name"]
       logger.info(f"Loaded poshimo: {self.poshimodata}")
   
   def create(self):
+    """ creates a new poshimo for DB insertion """
     if not self.owner:
       return
     self.poshimodata = pdata[self.name]
-    self.level = 1
+    self.level = 1 #TODO: levels
+    self.name = self.poshimodata["name"]
     self.display_name = self.name
-    logger.info(f"Attempting to create poshimo: {self.poshimodata}")
+    logger.info(f"Attempting to insert poshimo into db: {self.poshimodata}")
     return self.save()
 
   def save(self) -> int:
@@ -101,7 +112,7 @@ class Poshimo:
       INSERT INTO poshimodae (id, owner_id, name, display_name, level, xp) 
         VALUES (%(id)s, %(owner_id)s, %(name)s, %(display_name)s, %(level)s, %(xp)s) 
       ON DUPLICATE KEY UPDATE 
-        display_name=%(display_name)s, level=%(level)s, xp=%(xp)s
+        display_name=%(display_name)s, level=%(level)s, xp=%(xp)s, owner_id=%(owner_id)s
       """
       vals = {
         "id" : self.id,

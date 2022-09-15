@@ -14,14 +14,15 @@ class Status(PoshimoView):
     self.embeds = [
       discord.Embed(
         title=f"TRAINER #{self.trainer.id} STATUS",
-        description=f"Your details, my lord.",
+        description=f"",
         fields=[
-          discord.EmbedField(name="Current status", value=f"{self.trainer.status}"),
+          discord.EmbedField(name="Status", value=f"{self.trainer.status}"),
           discord.EmbedField(name="Wins/losses", value=f"{self.trainer.wins}/{self.trainer.losses}"),
           discord.EmbedField(name="Active Poshimo", value=f"{self.trainer.active_poshimo}"),
           discord.EmbedField(name="Poshimo in sac", value=f"{self.trainer.list_sac()}"),
           discord.EmbedField(name="Scarves", value=f"{self.trainer.scarves}"),
           discord.EmbedField(name="Belt buckles", value=f"{self.trainer.buckles}"),
-          discord.EmbedField(name="Location", value=f"{self.trainer_location.name}\n**weather**: {self.trainer_location.weather}\n**biome**: {self.trainer_location.biome}", inline=False)
+          discord.EmbedField(name="Location", value=f"{self.trainer_location}", inline=False)
         ]
       )
+    ]

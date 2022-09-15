@@ -85,9 +85,8 @@ class StarterChosen(PoshimoView):
     super().__init__(cog)
     # ~ THE MAGIC HAPPENS HERE ~ #
     self.trainer = self.game.register_trainer(user["id"]) # register player
-    self.poshimo = self.trainer.add_poshimo(choice)
+    self.poshimo = self.trainer.add_poshimo(choice, True)
     self.cog.all_trainers = self.game.get_all_trainers()
-    self.trainer.active_poshimo = self.poshimo
     self.embeds = [
       discord.Embed(
         title=f"Congratulations TRAINER #{self.trainer.id}! You have selected your first poshimo: **{self.poshimo.name}**! Poshimo ID: {self.poshimo.id}", 

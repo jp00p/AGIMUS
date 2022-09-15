@@ -1,5 +1,6 @@
 from common import *
 from .game import PoshimoGame
+from typing import List
 
 class PoshimoView(discord.ui.View):
   """ base view boilerplate """
@@ -46,4 +47,23 @@ class Confirmation(PoshimoView):
     pass
   async def confirm_callback(self, button, interaction):
     """ what happens when they click the confirm button """
+    pass
+
+class PoshimoSelect(discord.ui.Select):
+  """ base poshimo select menu """
+  def __init__(self, cog, placeholder, items:List[discord.SelectOption], min_values=1, max_values=1):
+    self.cog = cog
+    self.game:PoshimoGame = cog.game
+    self.items = items
+    self.placeholder = placeholder
+    self.min_values = min_values
+    self.max_values = max_values
+    super().__init__(
+      placeholder=self.placeholder,
+      min_values=self.min_values,
+      max_values=self.max_values,
+      options=self.items
+    )
+    
+  async def callback(self, interaction):
     pass
