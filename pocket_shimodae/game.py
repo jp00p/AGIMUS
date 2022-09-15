@@ -84,3 +84,9 @@ class PoshimoGame:
     trainer.add_poshimo(random.choice(self.starter_poshimo))
     trainer.wins += 5
     trainer.scarves += 69
+
+  def test_unlock_loc(self, discord_id, location_name):
+    trainer = self.get_trainer(discord_id)
+    trainer_locs = trainer.locations_unlocked
+    trainer_locs.add(location_name)
+    trainer.locations_unlocked = trainer_locs

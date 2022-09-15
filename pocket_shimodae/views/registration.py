@@ -13,6 +13,7 @@ class Welcome(PoshimoView):
       discord.Embed(
         title=f"You heard about this game going around the ship...",
         description="""
+        INTRO TEXT WILL GO HERE THIS ISNT REAL
         Supposedly it's a holodeck program that's intensely immersive, addicting, and nobody knows who wrote it. Everyone's been talking about it, or at least they were a few days ago, but now the ship seems oddly quiet.\n
         Having never been briefed on the dangers of alien games or even Ktarians, you naively decide to try it for yourself: you punch in your access codes, and step into the holodeck.\n
         The doors quickly close behind you, and a familiar voice crackles from the intercom:\n
@@ -43,6 +44,7 @@ class StarterPoshimoConfirmation(Confirmation):
     """ confirm the poshimo choice, register the player! """
     view = StarterChosen(self.cog, self.choice, get_user(interaction.user.id))
     await interaction.response.edit_message(view=view, embeds=view.embeds)
+
 
 class StarterPages(PoshimoView):
   """ The pages for choosing a starter poshimo """

@@ -1,6 +1,8 @@
 from common import *
 from random import Random
 from datetime import date
+
+from pocket_shimodae.objects.poshimo.poshimo import Poshimo
 from .biome import PoshimoBiome
 from .weather import Weather
 from .location import PoshimoLocation
@@ -17,8 +19,56 @@ class PoshimoWorld(object):
     logger.info(f"\nNOW: {now}\nSEED: {today_seed}\nRANDOM INT 1-100: {self.random.randint(1,100)} {self.random.randint(1,100)} {self.random.randint(1,100)}")
 
     self.biomes = {
-      "grasslands" : PoshimoBiome("Grasslands", weather_types=[Weather.SUNNY, Weather.CLOUDY, Weather.PARTLY_CLOUDY, Weather.RAINY], emoji="🌼")
+      "grasslands" : PoshimoBiome(
+        name="Grasslands", 
+        weather_types=[Weather.SUNNY, Weather.CLOUDY, Weather.PARTLY_CLOUDY, Weather.RAINY], 
+        emoji="🌼"
+      ),
+      "wastelands" : PoshimoBiome(
+        name="Wastelands", 
+        weather_types=[Weather.STORMY], 
+        emoji="🚧"
+      ),
+      "metropolis" : PoshimoBiome(
+        name="Metropolis",
+        weather_types=[Weather.CLOUDY, Weather.RAINY],
+        emoji="🏙"
+      ),
+      "tundra" : PoshimoBiome(
+        name="Snowy Tundra",
+        weather_types=[Weather.SNOWY],
+        emoji="⛰"
+      )
     }
     self.locations = {
-      "starting_zone" : PoshimoLocation("Vertiform City", self)
+      "starter_zone" : PoshimoLocation(
+        name="Vertiform City",
+        biome=self.biomes["metropolis"], 
+        world=self,
+        description="The mysterious city of legend, where Poshimo are said to have been born.",
+        s="test_zone"
+      ),
+      "test_zone" : PoshimoLocation(
+        name="The Brown Fields", 
+        biome=self.biomes["wastelands"], 
+        world=self,
+        description="A central juncture in this realm. No place for lovemaking.",
+        n="starter_zone",
+        e="field",
+        w="plowland"
+      ),
+      "field" : PoshimoLocation(
+        name="Field of Dreams",
+        biome=self.biomes["grasslands"],
+        world=self,
+        description="They built it. You came.",
+        w="test_zone"
+      ),
+      "plowland" : PoshimoLocation(
+        name="Mr. Plow's Winter Wonderland",
+        biome=self.biomes["tundra"],
+        world=self,
+        description="Pornography stores as far as the eye can see.  Open all night.",
+        e="test_zone"
+      )
     }

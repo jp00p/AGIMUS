@@ -25,6 +25,7 @@ class PoshimoTrainer(object):
     self._location = "starting_zone" # where are you
     self._scarves = 0 # money
     self._buckles = "None" # these are like pokemon badges
+    self._locations_unlocked = set()
     self.shimodaepedia = [] # aka pokedex, which poshimo has this player seen (list of ids)
     if self.id:
       self.load()
@@ -60,12 +61,11 @@ class PoshimoTrainer(object):
       trainer_data = query.fetchone()
     logger.info(f"Trainer data: {Fore.LIGHTMAGENTA_EX}{trainer_data}{Fore.RESET} ")
     if trainer_data:
+      # load all the trainer data from the DB here
       self._wins = trainer_data.get("wins")
       self._losses = trainer_data.get("losses")
       self._status = TrainerStatus(trainer_data.get("status"))
-      
-      
-      
+      self._location = trainer_data.get("location")
       sac_data = trainer_data.get("poshimo_sac")
       if sac_data:
         logger.info(f"SAC DATA: {sac_data}")
@@ -78,6 +78,11 @@ class PoshimoTrainer(object):
         self._active_poshimo = Poshimo(id=trainer_data.get("active_poshimo"))
       else:
         self._active_poshimo = None
+
+      loc_data = trainer_data.get("locations_unlocked")
+      if loc_data:
+        loc_data = json.loads(loc_data)
+        self._locations_unlocked = set(loc_data)
 
       self._inventory = trainer_data.get("inventory")
       self._scarves = trainer_data.get("scarves")
@@ -180,6 +185,19 @@ class PoshimoTrainer(object):
   def shimodaepedia(self, obj):
     self._shimodaepedia = obj
 
+  @property
+  def locations_unlocked(self):
+    return self._locations_unlocked
+  
+  @locations_unlocked.setter
+  def locations_unlocked(self, obj):
+    self._locations_unlocked = obj
+    if self._locations_unlocked:
+      loc_json = json.dumps(list(self._locations_unlocked))
+    else:
+      loc_json = json.dumps([])
+    self.update("locations_unlocked", loc_json)
+
   def add_poshimo(self, poshimo:Poshimo, set_active=False):
     """ 
     give this player a poshimo
@@ -191,14 +209,13 @@ class PoshimoTrainer(object):
       poshimo_id = poshimo.create()
     poshimo = Poshimo(id=poshimo_id)
     temp_sac = self.poshimo_sac
-    if set_active: # if we're adding this as an active poshimo, put the current active poshimo in our sac
+    if set_active: # if we're adding this as an active poshimo...
       if self.active_poshimo:
-        temp_sac.append(self.active_poshimo)
-        self.poshimo_sac = temp_sac
-      self.active_poshimo = poshimo
-    else:
-      temp_sac.append(poshimo)
-      self.poshimo_sac = temp_sac
+        temp_sac.append(self.active_poshimo) # put the current active poshimo in our sac
+      self.active_poshimo = poshimo # then make this new poshimo our active one
+    else: 
+      temp_sac.append(poshimo) # otherwise just put it in the sac
+    self.poshimo_sac = temp_sac # have to do this to trigger the setter
     return poshimo
 
   def list_sac(self):

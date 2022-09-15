@@ -22,8 +22,11 @@ class PocketShimodae(commands.Cog):
     description="Who knows what this will do?!"
   )
   async def test(self, ctx:discord.ApplicationContext):
-    self.game.test_add_poshimo(ctx.author.id)
-    await ctx.respond("Added a poshimo to your sac!")
+    self.game.test_unlock_loc(ctx.author.id, "starter_zone")
+    self.game.test_unlock_loc(ctx.author.id, "test_zone")
+    self.game.test_unlock_loc(ctx.author.id, "field")
+    self.game.test_unlock_loc(ctx.author.id, "plowland")
+    await ctx.respond("Unlocked all locations for you", ephemeral=True)
 
   @ps.command(
     name="start",
@@ -85,11 +88,13 @@ class PocketShimodae(commands.Cog):
     await ctx.defer(ephemeral=True)
 
   @ps.command(
-    name="move",
-    description="DOES NOTHING YET Move to a new location"
+    name="travel",
+    description="Move to a different location"
   )
-  async def move(self, ctx:discord.ApplicationContext):
+  async def travel(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
+    travel_agency = travel.TravelMenu(self, ctx.author.id)
+    await ctx.followup.send(embed=travel_agency.get_embed(), view=travel_agency)
 
   @ps.command(
     name="duel",
