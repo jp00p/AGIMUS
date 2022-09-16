@@ -263,10 +263,12 @@ async def level_up_user(user:discord.User, level:int):
     vals = (user.id,)
     query.execute(sql, vals)
   badge = give_user_badge(user.id)
-  # Lock the badge if it was in their wishlist
-  db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
-  # Remove any badges the user may have on their wishlist that they now possess
-  db_purge_users_wishlist(user.id)
+
+  if badge != None:
+    # Lock the badge if it was in their wishlist
+    db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
+    # Remove any badges the user may have on their wishlist that they now possess
+    db_purge_users_wishlist(user.id)
 
   await send_level_up_message(user, level, badge)
 
@@ -288,9 +290,13 @@ async def send_level_up_message(user:discord.User, level:int, badge:str):
 
   embed_title = "Level up!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
-  embed_description = f"{user.mention} has reached **level {level}** and earned a new badge!"
+  embed_description = f"{user.mention} has reached **level {level}**"
+  if badge == None:
+    embed_description += "! They've already collected ALL BADGES EVERYWHERE! Congratulations on the impressive feat!"
+  else:
+    embed_description += f" and earned a new badge!"
   if level == 2:
-    embed_description = f"{user.mention} has reached **level {level}** and earned their first new unique badge!\n\nCongrats! To check out your full list of badges use `/badges showcase`.\n\nMore info about XP and the badge system and XP can be found by using `/help` in this channel."
+    embed_description += " and earned their first new unique badge!\n\nCongrats! To check out your full list of badges use `/badges showcase`.\n\nMore info about XP and the badge system and XP can be found by using `/help` in this channel."
   message = random.choice(random_level_up_messages["messages"]).format(user=user.mention, level=level, prev_level=(level-1))
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
 

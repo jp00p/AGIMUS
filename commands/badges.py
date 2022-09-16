@@ -937,7 +937,7 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User, reason:s
   give a random badge to a user
   """
   await ctx.defer(ephemeral=True)
-  
+
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a random badge{Style.RESET_ALL} to {user.display_name}")
 
@@ -1036,23 +1036,24 @@ async def gift_specific_badge_error(ctx, error):
 
 
 async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge_filename:str, user:discord.User):
-  badge_info = db_get_badge_info_by_filename(badge_filename)
-
-  badge_name = badge_info['badge_name']
-  badge_url = badge_info['badge_url']
-
   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
-  embed.add_field(
-    name=badge_name,
-    value=badge_url,
-    inline=False
-  )
-  embed.set_thumbnail(url=thumbnail_image)
-  embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
 
-  embed_filename = str(user.id) + str(abs(hash(badge_name))) + ".png"
-  discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=embed_filename)
-  embed.set_image(url=f"attachment://{embed_filename}")
+  if badge_filename != None:
+    badge_info = db_get_badge_info_by_filename(badge_filename)
+    badge_name = badge_info['badge_name']
+    badge_url = badge_info['badge_url']
+
+    embed.add_field(
+      name=badge_name,
+      value=badge_url,
+      inline=False
+    )
+    embed_filename = str(user.id) + str(abs(hash(badge_name))) + ".png"
+    discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=embed_filename)
+    embed.set_image(url=f"attachment://{embed_filename}")
+    embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
+
+  embed.set_thumbnail(url=thumbnail_image)
 
   message = await channel.send(content=message, file=discord_image, embed=embed)
   # Add + emoji so that users can add it as well to add the badge to their wishlist
