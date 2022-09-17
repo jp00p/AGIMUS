@@ -13,12 +13,19 @@ with open("pocket_shimodae/data/poshimo_types.csv") as file:
 
 class PoshimoType:
   def __init__(self, name):
-    self.name = name
+    if not name:
+      self.name = ""
+    else:
+      self.name = name
     self.weakness = None
     self.strength = None
-    self.typedata = typedata[self.name]
-    self.weakness = self.typedata["weakness"]
-    self.strength = self.typedata["strength"]
+    if self.name:
+      self.typedata = typedata[self.name]
+      self.weakness = self.typedata["weakness"]
+      self.strength = self.typedata["strength"]
+    else:
+      self.weakness = None
+      self.strength = None
 
   def __repr__(self):
     return f"{self.name.title()}"

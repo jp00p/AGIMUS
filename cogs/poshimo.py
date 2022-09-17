@@ -13,20 +13,25 @@ class PocketShimodae(commands.Cog):
 
   @commands.Cog.listener()
   async def on_ready(self):
-    self.game = PoshimoGame() # load the game, this will be important later i think
+    self.game = PoshimoGame(self) # load the game, this will be important later i think
     self.all_trainers = self.game.get_all_trainers()
     logger.info(f"ALL POSHIMO TRAINERS: {self.all_trainers}")
 
   @ps.command(
-    name="test",
-    description="Who knows what this will do?!"
+    name="test_add_poshimo",
+    description="DEBUG"
   )
-  async def test(self, ctx:discord.ApplicationContext):
-    self.game.test_unlock_loc(ctx.author.id, "starter_zone")
-    self.game.test_unlock_loc(ctx.author.id, "test_zone")
-    self.game.test_unlock_loc(ctx.author.id, "field")
-    self.game.test_unlock_loc(ctx.author.id, "plowland")
-    await ctx.respond("Unlocked all locations for you", ephemeral=True)
+  async def test_add_poshimo(self, ctx:discord.ApplicationContext):
+    p = self.game.test_add_poshimo(ctx.author.id)
+    await ctx.respond(f"Did you win? {p.display_name}")
+
+  @ps.command(
+    name="test_clear_db",
+    description="DEBUG"
+  )
+  async def test_clear_db(self, ctx:discord.ApplicationContext):
+    self.game.test_clear_db()
+    await ctx.respond(f"Did you feel that?")
 
   @ps.command(
     name="start",
@@ -56,7 +61,7 @@ class PocketShimodae(commands.Cog):
   )
   async def manage(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
-    manage_screen = manage.ManageScreen(self, ctx.author.id)
+    manage_screen = manage.ManageStart(self, ctx.author.id)
     await ctx.followup.send(embed=manage_screen.get_embed(), view=manage_screen)
 
   @ps.command(

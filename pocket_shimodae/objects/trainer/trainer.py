@@ -200,14 +200,15 @@ class PoshimoTrainer(object):
 
   def add_poshimo(self, poshimo:Poshimo, set_active=False):
     """ 
-    give this player a poshimo
+    give this player a new poshimo
     """
-    poshimo.owner = self.id
-    if poshimo.id:
-      poshimo_id = poshimo.save()
-    else:
+    if not poshimo.owner:
+      poshimo.owner = self.id
       poshimo_id = poshimo.create()
-    poshimo = Poshimo(id=poshimo_id)
+      new_poshimo = Poshimo(id=poshimo_id) # reinstance the object from the db
+    else:
+      new_poshimo = poshimo
+      new_poshimo.owner = self.id
     temp_sac = self.poshimo_sac
     if set_active: # if we're adding this as an active poshimo...
       if self.active_poshimo:
@@ -216,7 +217,7 @@ class PoshimoTrainer(object):
     else: 
       temp_sac.append(poshimo) # otherwise just put it in the sac
     self.poshimo_sac = temp_sac # have to do this to trigger the setter
-    return poshimo
+    return new_poshimo
 
   def list_sac(self):
     temp_sac = self.poshimo_sac
@@ -225,7 +226,6 @@ class PoshimoTrainer(object):
       temp_sac.remove(self.active_poshimo)
     if len(temp_sac) <= 0:
       return "None"
-    
     return "\n".join([p.display_name for p in temp_sac])
 
   def list_all_poshimo(self) -> List[Poshimo]:

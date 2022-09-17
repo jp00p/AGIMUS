@@ -46,7 +46,8 @@ class PoshimoWorld(object):
         biome=self.biomes["metropolis"], 
         world=self,
         description="The mysterious city of legend, where Poshimo are said to have been born.",
-        s="test_zone"
+        s="test_zone",
+        color=f"{Fore.LIGHTBLUE_EX}"
       ),
       "test_zone" : PoshimoLocation(
         name="The Brown Fields", 
@@ -55,20 +56,23 @@ class PoshimoWorld(object):
         description="A central juncture in this realm. No place for lovemaking.",
         n="starter_zone",
         e="field",
-        w="plowland"
+        w="plowland",
+        color=f"{Fore.LIGHTMAGENTA_EX}"
       ),
       "field" : PoshimoLocation(
         name="Field of Dreams",
         biome=self.biomes["grasslands"],
         world=self,
         description="They built it. You came.",
-        w="test_zone"
+        w="test_zone",
+        color=f"{Fore.LIGHTGREEN_EX}"
       ),
       "plowland" : PoshimoLocation(
         name="Mr. Plow's Winter Wonderland",
         biome=self.biomes["tundra"],
         world=self,
         description="Pornography stores as far as the eye can see.  Open all night.",
-        e="test_zone"
+        e="test_zone",
+        color=f"{Fore.LIGHTWHITE_EX}"
       )
     }

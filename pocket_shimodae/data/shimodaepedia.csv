@@ -1,4 +1,4 @@
-name,type1,type2,base_attack,base_defense,base_special_attack,base_special_defense,evasion,speed,hp,move1,move2,move3,move4
-Jim Shimoda,drunk,horny,0,0,0,0,0,0,0,test,test2,test,test2
-Captain Picard,dutiful,diplomat,0,0,0,0,0,0,0,test,test2,test,test2
-Worf,warrior,drunk,69,69,69,69,69,0,0,test,test2,test,test2
+name,type1,type2,base_attack,base_defense,attack,defense,base_special_attack,special_attack,base_special_defense,special_defense,base_evasion,evasion,base_speed,speed,hp,max_hp,move1,move2,move3,move4,evolutions,graphics
+Worf,warrior,dutiful,0,0,0,0,0,0,0,0,0,0,0,0,0,0,test,test2,test3,test4,,
+Jim Shimoda,drunk,rascal,0,0,0,0,0,0,0,0,0,0,0,0,0,0,test2,test4,,,,
+Captain Picard,diplomat,synth,0,0,0,0,0,0,0,0,0,0,,0,0,0,test3,test,,,,

@@ -1,5 +1,23 @@
+from http.client import EXPECTATION_FAILED
 from common import *
 from ..ui import PoshimoView, Confirmation
+import textwrap
+from prettytable import PrettyTable, MARKDOWN, PLAIN_COLUMNS, ORGMODE
+from prettytable.colortable import ColorTable, Themes
+
+direction_arrows = {
+  "n": "⬆",
+  "e": "➡",
+  "s": "⬇",
+  "w": "⬅"
+}
+
+direction_names = {
+  "n": "north",
+  "e": "east",
+  "s": "south",
+  "w": "west"
+}
 
 class LocationButton(discord.ui.Button):
   def __init__(self, cog, trainer, dir, location, location_key, row):
@@ -10,7 +28,7 @@ class LocationButton(discord.ui.Button):
     self.row = row
     self.trainer = trainer
     super().__init__(
-      label=self.location.name,
+      label=direction_arrows[dir],
       row=self.row,
       style=discord.ButtonStyle.green
     )
@@ -42,12 +60,14 @@ class TravelMenu(PoshimoView):
     self.discord_id = discord_id
     self.trainer = self.game.get_trainer(self.discord_id)
     self.trainer_location = self.game.find_in_world(self.trainer.location)
-    self.exits = {}
+    self.exits = {
+    }
+    self.exit_description = ""
     self.rows = [
       # build a grid of buttons
-      # maybe expand to 8 dirs someday
+      # maybe expand to 8 dirs someday...
       ["nw", "n", "ne"],
-      ["e", "x", "w"],
+      ["w", "x", "e"],
       ["sw", "s", "se"]
     ]
     
@@ -55,28 +75,85 @@ class TravelMenu(PoshimoView):
     for dir,loc in self.trainer_location.paths.items():
       if loc in self.trainer.locations_unlocked and loc != self.trainer_location:
         # if the location is unlocked by the player, add it to the list of exits
-        self.exits[dir] = loc
-    
+        self.exits[dir] = loc   
+
     if len(self.exits) < 1:
       self.embeds = [
-        discord.Embed(title="You haven't unlocked any locations connected to this one!", description="You may need to do some questing, exploring, or other activities to find a new location to travel to.")
+        discord.Embed(
+          title="You haven't unlocked any locations connected to this one!", 
+          description="You may need to do some questing, exploring, or other activities to find a new location to travel to.")
       ]
     else:
+      # build the lil map
+      exit_names = {
+        'n': '',
+        'e': '',
+        's': '',
+        'w': ''
+      }
+      wrapper = textwrap.TextWrapper(width=24)
+      for dir, loc_key in self.exits.items():
+        location = self.game.find_in_world(loc_key)
+        locname = textwrap.dedent(location.name)
+        exit_names[dir] = wrapper.fill(locname)
+
+# LIL MAP ACTION ===============================================
+#       exit_description = f"""```ansi
+# {Fore.YELLOW}{'N'.center(48)}{Fore.RESET}
+# {exit_names['n'].center(48)}
+# {exit_names['w'].ljust(48)} 🧭 {exit_names['e'].rjust(48)}
+# {exit_names['s']:^48}```"""
+      map_top = PrettyTable()
+      map_top.set_style(MARKDOWN)
+      map_top.field_names = ["locname"]
+      map_top.align["locname"] = "c"
+      map_top.add_row([f"{exit_names['n']:^48}"])
+      map_top.header = False
+      map_top.border = False
+      
+
+      map_center = PrettyTable()
+      map_center.set_style(MARKDOWN)
+      map_center.field_names = ["locname_w", "x", "locname_e"]
+      map_center.align["locname_w"] = "l"
+      map_center.align["locname_e"] = "r"
+      map_center.align["x"] = "c"
+      map_center.add_row([
+        f"{exit_names['w']:<20}", 
+        f"{'^':^10}\n{'<':<4} {'>':>4}\n{'v':^10}", 
+        f"{exit_names['e']:>20}"
+        ])
+      map_center.header = False
+      map_center.border = False
+      
+
+      map_bottom = PrettyTable()
+      map_bottom.set_style(MARKDOWN)
+      map_bottom.field_names = ["locname"]
+      map_bottom.align["locname"] = "c"
+      map_bottom.add_row([f"{exit_names['s']:^50}"])
+      map_bottom.header = False
+      map_bottom.border = False
+      exit_description = f"""```ansi
+{map_top.get_string()}
+{map_center.get_string()}
+{map_bottom.get_string()}
+```"""
+
+# ==============================================================
+
       self.embeds = [
-        discord.Embed(title="Where do you want to go?", description="Choose a location to move to")
+        discord.Embed(
+          title="Where do you want to go today™?", 
+          description=f"""Choose a location to move to:
+          {exit_description}
+          """
+        )
       ]
     
     logger.info(f"Exits: {self.exits} || {self.exits.keys()}")    
+    
     cur_row = 1
-    max_str_len = 0
-    for row,r in enumerate(self.rows):
-      for col,cell in enumerate(r):
-        if cell in self.exits.keys():
-          location = self.game.find_in_world(self.exits[cell])
-          str_len = len(location.name)
-          if str_len > max_str_len:
-            max_str_len = str_len
-
     for row in self.rows:
       for cell in row:
         if cell in self.exits.keys():

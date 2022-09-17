@@ -27,6 +27,7 @@ with open("pocket_shimodae/data/poshimo_moves.csv") as file:
       "kind" : row["kind"],
       "power" : row["power"],
       "accuracy" : row["accuracy"],
+      "stamina" : row["max_stamina"],
       "max_stamina" : row["max_stamina"],
       #"effect" : row["effect"],
       #"effect_chance" : row["effect_chance"],
@@ -48,13 +49,14 @@ class PoshimoMove:
   Moves can do multiple effects (damage, heal, or status)
   """
   def __init__(self, name, owner=None, stamina=None):
-    self.movedata = movedata.get(name)
+    self.name = name
+    self.movedata = movedata.get(self.name)
     self.display_name = self.movedata["display_name"]
     self.type = PoshimoType(self.movedata["type"])
     self.kind = self.movedata["kind"]
     self.power = self.movedata["power"]
     self.accuracy = self.movedata["accuracy"]
-    self.max_stamina = self.movedata["max_stamina"]
+    self._max_stamina = self.movedata["max_stamina"]
     if stamina:
       self._stamina = stamina
     else:
@@ -84,7 +86,16 @@ Description: {self.description}
   @stamina.setter
   def stamina(self, val):
     self._stamina = val
-    # update db here
+    # update db
+
+  @property
+  def max_stamina(self):
+    return self._max_stamina
+  
+  @max_stamina.setter
+  def max_stamina(self, val):
+    self._max_stamina = val
+    # update db
 
   def refill_stamina(self, amt=None) -> None:
     """ Refill a move's stamina """

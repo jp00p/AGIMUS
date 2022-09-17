@@ -20,7 +20,8 @@ class PoshimoGame:
     Get trainer details by Discord ID
 
   """
-  def __init__(self):
+  def __init__(self, cog):
+    self.cog = cog
     self.world = PoshimoWorld() 
     self.active_battles = [] 
     self.starter_poshimo = [
@@ -90,3 +91,15 @@ class PoshimoGame:
     trainer_locs = trainer.locations_unlocked
     trainer_locs.add(location_name)
     trainer.locations_unlocked = trainer_locs
+
+  def test_give_poshimo(self, discord_id):
+    trainer = self.get_trainer(discord_id)
+    sample_poshimo = Poshimo(name="Worf")
+    new_poshimo = trainer.add_poshimo(sample_poshimo)
+    return new_poshimo
+
+  def test_clear_db(self):
+    with AgimusDB() as query:
+      sql = "DELETE FROM poshimo_trainers WHERE id > 0;"
+      query.execute(sql)
+    self.cog.all_trainers = []

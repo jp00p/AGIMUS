@@ -3,19 +3,24 @@ import csv
 
 with open("pocket_shimodae/data/poshimo_personalities.csv") as file:
   csvdata = csv.DictReader(file)
-  idata = {}
-  for id,row in enumerate(csvdata):
-    pass
-  
-# personality determines stat growth
+  persdata = {}
+  for row in csvdata:
+    persdata[row["name"]] = {
+      "name" : row["name"],
+      "bonus" : row.get("bonus_stat"),
+      "penalty" : row.get("penalized_stat")
+    }
+
 class PoshimoPersonality:
-  def __init__(self, name):
-    self.name = name
-    # self.pdata = personality_data.get(name)
-    # if self.pdata:
-    #   self.name = name.title()
-    #   self.bonus = self.pdata[0] # 10% increase to this stat
-    #   self.penality = self.pdata[1] # 10% decreate to this stat
+  """ a personality determines how some stats grow when leveling up """
+  def __init__(self, name=None):
+    if not name:
+      self.pdata=random.choice(list(persdata.values()))
+    else:
+      self.pdata = persdata[name]
+    self.name:str = self.pdata["name"]
+    self.bonus:str = self.pdata["bonus"]
+    self.penalty:str = self.pdata["penalty"]
 
   def __str__(self):
-    return self.name
+    return f"{self.name.title()}"

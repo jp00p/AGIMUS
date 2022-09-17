@@ -18,7 +18,7 @@ class Status(PoshimoView):
         fields=[
           discord.EmbedField(name="Status", value=f"{self.trainer.status}"),
           discord.EmbedField(name="Wins/losses", value=f"{self.trainer.wins}/{self.trainer.losses}"),
-          discord.EmbedField(name="Active Poshimo", value=f"{self.trainer.active_poshimo}"),
+          discord.EmbedField(name="Active Poshimo", value=f"{self.trainer.active_poshimo.display_name}"),
           discord.EmbedField(name="Poshimo in sac", value=f"{self.trainer.list_sac()}"),
           discord.EmbedField(name="Scarves", value=f"{self.trainer.scarves}"),
           discord.EmbedField(name="Belt buckles", value=f"{self.trainer.buckles}"),

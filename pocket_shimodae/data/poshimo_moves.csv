@@ -1,3 +1,5 @@
-name,display_name,type,kind,power,accuracy,max_stamina,effect,effect_chance,flags,description
-test,Punch,drunk,1,100,100,50,This is just a test
-test2,Second Test,horny,3,50,50,25,Another test
+name,display_name,type,kind,power,accuracy,stamina,max_stamina,effect,effect_chance,description,flags
+test,Punch,warrior,normal,1,2,3,4,5,6,A mighty blow!,None
+test2,Kick,warrior,normal,1,2,3,4,5,6,it's all in the mind,None
+test3,Phaser,science,normal,1,2,3,4,5,6,"Wide beam, set to kill.",None
+test4,Growl,diplomat,normal,1,2,3,4,5,6,A warrior's grumble,None

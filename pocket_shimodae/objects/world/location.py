@@ -4,7 +4,18 @@ from .biome import PoshimoBiome
 
 class PoshimoLocation:
   """ A location in our game world """
-  def __init__(self, name:str="", biome:PoshimoBiome=None, world=None, description=None, n=None, e=None, s=None, w=None):
+  def __init__(
+      self, 
+      name:str="", 
+      biome:PoshimoBiome=None, 
+      world=None, 
+      description=None, 
+      color=f"{Fore.WHITE}",
+      n=None, 
+      e=None, 
+      s=None, 
+      w=None
+    ):
     self.name = name
     self.world = world
     self.wild_poshimo = {}
@@ -15,6 +26,7 @@ class PoshimoLocation:
     self.description = description
     self.quests = None
     self.shop = None
+    self.color = color
     self.paths = {
       "n" : n,
       "e" : e,
