@@ -950,6 +950,9 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User, reason:s
     ), ephemeral=True)
     return
 
+  user_wishlist_badges = db_get_user_wishlist_badges(user.id)
+  badge_was_on_wishlist = badge in [b['badge_filename'] for b in user_wishlist_badges]
+
   # Lock the badge if it was in their wishlist
   db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
   # Remove any badges the user may have on their wishlist that they now possess
@@ -959,6 +962,8 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User, reason:s
   embed_title = "You got rewarded a free badge!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has been gifted a badge by {ctx.author.mention}!"
+  if badge_was_on_wishlist:
+    embed_description += "\n\n" + f" Exciting! It was also one they had on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
   if reason != "":
     message = f"{user.mention} - {strip_emoji(reason)}"
   else:
@@ -1012,6 +1017,9 @@ async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User,
     user_badges = db_get_user_badges(user.id)
     badge_filename = badge_info['badge_filename']
     if specific_badge not in [b['badge_name'] for b in user_badges]:
+      user_wishlist_badges = db_get_user_wishlist_badges(user.id)
+      badge_was_on_wishlist = badge_filename in [b['badge_filename'] for b in user_wishlist_badges]
+
       give_user_specific_badge(user.id, badge_filename)
       # Lock the badge if it was in their wishlist
       db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge_filename])
@@ -1022,6 +1030,9 @@ async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User,
   embed_title = "You got rewarded a badge!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has been gifted a badge by {ctx.author.mention}!"
+  if badge_was_on_wishlist:
+    embed_description += "\n\n" + f"Exciting! It was also one they had on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
+
   message = f"{user.mention} - Nice work, you got a free badge!"
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge_filename, user)
   await ctx.respond("Your gift has been sent!", ephemeral=True)
