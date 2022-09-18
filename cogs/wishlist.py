@@ -211,7 +211,7 @@ class Wishlist(commands.Cog):
       for match in wishlist_matches:
         user_id = match['user_discord_id']
         user_record = wishlist_aggregate.get(user_id)
-        if not user_record:
+        if not user_record and user_id != user_discord_id:
           wishlist_aggregate[user_id] = [match]
         else:
           wishlist_aggregate[user_id].append(match)
@@ -330,7 +330,6 @@ class Wishlist(commands.Cog):
           color=discord.Color.blurple()
         )
       )
-
 
   #    _____       .___  .___
   #   /  _  \    __| _/__| _/
