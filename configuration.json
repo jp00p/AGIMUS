@@ -811,7 +811,16 @@
       "enabled": true,
       "data": null,
       "parameters": []
+    },
+    "hhgttg": {
+      "channels": [
+        "after-dinner-conversation"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
     }
+
   },
   "channels": {},
   "dev_channel": "robot-diagnostics",

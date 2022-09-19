@@ -31,6 +31,16 @@ ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 
+# Setup a local copy of dfrotz
+RUN cd /; \
+    git clone https://gitlab.com/DavidGriffith/frotz; \
+    cd frotz; \
+    git checkout 2.52; \
+    make dumb; \
+    mv dfrotz /usr/local/bin/; \
+    cd /; \
+    rm -r frotz
+
 # Use 'bot' user to avoid pip warning messages
 USER bot
 # Add source code
