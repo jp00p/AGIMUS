@@ -3,7 +3,7 @@ from time import sleep
 from numpy import block
 from common import *
 from commands.badges import give_user_badge, send_badge_reward_message
-from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist
+from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist, db_get_user_wishlist_badges
 from utils.badge_utils import db_get_user_badges, db_purge_users_wishlist
 
 # rainbow of colors to cycle through for the logs
@@ -263,12 +263,17 @@ async def level_up_user(user:discord.User, level:int):
     vals = (user.id,)
     query.execute(sql, vals)
   badge = give_user_badge(user.id)
-  # Lock the badge if it was in their wishlist
-  db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
-  # Remove any badges the user may have on their wishlist that they now possess
-  db_purge_users_wishlist(user.id)
+  was_on_wishlist = False
 
-  await send_level_up_message(user, level, badge)
+  if badge != None:
+    user_wishlist_badges = db_get_user_wishlist_badges(user.id)
+    was_on_wishlist = badge in [b['badge_filename'] for b in user_wishlist_badges]
+    # Lock the badge if it was in their wishlist
+    db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
+    # Remove any badges the user may have on their wishlist that they now possess
+    db_purge_users_wishlist(user.id)
+
+  await send_level_up_message(user, level, badge, was_on_wishlist)
 
 def give_welcome_badge(user_id):
   user_badge_names = [b['badge_filename'] for b in db_get_user_badges(user_id)]
@@ -282,15 +287,23 @@ def give_welcome_badge(user_id):
 # user[required]:discord.User
 # level[required]:int
 # badge[required]:str
-async def send_level_up_message(user:discord.User, level:int, badge:str):
+async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_wishlist:bool):
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   channel = bot.get_channel(notification_channel_id)
 
   embed_title = "Level up!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
-  embed_description = f"{user.mention} has reached **level {level}** and earned a new badge!"
+  embed_description = f"{user.mention} has reached **Level {level}**"
+  if badge == None:
+    embed_description += "! They've already collected ALL BADGES EVERYWHERE! Congratulations on the impressive feat!"
+  else:
+    embed_description += f" and earned a new badge!"
+
   if level == 2:
-    embed_description = f"{user.mention} has reached **level {level}** and earned their first new unique badge!\n\nCongrats! To check out your full list of badges use `/badges showcase`.\n\nMore info about XP and the badge system and XP can be found by using `/help` in this channel."
+    embed_description += " and earned their first new unique badge!\n\nCongrats! To check out your full list of badges use `/badges showcase`.\n\nMore info about XP and the badge system and XP can be found by using `/help` in this channel."
+  if was_on_wishlist:
+    embed_description += "\n\n" + f"Exciting! This was also one they had on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
+
   message = random.choice(random_level_up_messages["messages"]).format(user=user.mention, level=level, prev_level=(level-1))
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
 
