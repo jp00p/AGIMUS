@@ -1,8 +1,8 @@
-import os
 import queue
 import re
-import subprocess
+from subprocess import Popen, PIPE
 import threading
+from pathlib import Path
 from typing import AnyStr, IO, List
 
 import discord
@@ -27,25 +27,30 @@ class DfrotzRunner(commands.Cog):
 
   embed_color = discord.Color.teal()
   command_line_color = '1;36'
-  """An escape color code.  Mixing them up so that different games will be visually distinct."""
+  """An escape color code.  Mixing them up means different games will be visually distinct."""
 
-  file_path = os.path.abspath(os.path.join(__file__, '../../data/zfiles'))
+  header_lines: int = 1
+  """
+  Most games have a header.  This will suppress it.  Set to 0 to include, or higher if the header spans mulitiple lines.
+  """
+
+  file_path: Path = Path(__file__).parent.parent / 'data' / 'zfiles'
 
   def __init__(self, bot):
     self.bot = bot
-    self.save_file = os.path.join(self.file_path, self.game_name + '.qzl')
+    self.save_file = self.game_name + '.qzl'
 
     self.queue: queue.Queue = None
     self.queue_thread: threading.Thread = None
-    self.process: subprocess.Popen = None
+    self.process: Popen = None
 
   def start_process(self):
     """Start the dfrotz process"""
-    if self.process:
+    if self.process and self.process.returncode is None:
       return
 
     self.queue = queue.Queue()
-    self.process = subprocess.Popen(self.get_dfrotz_args(), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    self.process = Popen(self.get_dfrotz_args(), stdin=PIPE, stdout=PIPE, cwd=self.file_path)
     self.queue_thread = threading.Thread(target=self.enqueue, args=(self.process.stdout, self.queue))
     self.queue_thread.daemon = True
     self.queue_thread.start()
@@ -56,13 +61,15 @@ class DfrotzRunner(commands.Cog):
     args = ['dfrotz',
             '-f', 'ansi',  # For the pretty formatting
             '-h', '1000',  # So we don't get [MORE] messages
-            '-R', self.file_path,  # keep out of the rest of the system
+            '-R', '.',  # keep out of the rest of the system
+            '-r', f'ch{self.header_lines}',  # supress the header lines
+            '-r', 'lt0',  # Don't display the line types
             '-Z', '0']  # supress errors
-    if os.path.exists(self.save_file):
+    if (self.file_path / self.save_file).exists():
       args.append('-L')
       args.append(self.save_file)
 
-    args.append(os.path.join(self.file_path, self.game_file_name))
+    args.append(self.game_file_name)
     return args
 
   def enqueue(self, outfile: IO[AnyStr], q: queue.Queue):
@@ -72,9 +79,9 @@ class DfrotzRunner(commands.Cog):
     outfile.close()
 
   def clean_startup(self):
-    """There are two lines to clean at first saying "Using ANSI formatting." and "Loading game_file_name" """
-    self.queue.get()
-    self.queue.get()
+    """ There are 4 lines when you start up the process that should be hidden """
+    for i in range(4):
+      self.queue.get()
 
   def get_from_queue(self) -> List[str]:
     """Get everything from the stdout queue as a list"""
@@ -105,18 +112,13 @@ class DfrotzRunner(commands.Cog):
   def clean_lines(self, lines: List[str]) -> List[str]:
     cleaned_lines = []
     other_escape_sequences = re.compile('\x1b\\[[0-9;]*[A-Za-ln-z]')
-    opening_color_changes = re.compile(r'^([^] .>)}TtD]+)..')
     for line in lines:
       line = other_escape_sequences.sub('', line)
       if line[0] == '>':
         line = line.lstrip(' >')
-      elif line[0] == '\x1b':
-        line = opening_color_changes.sub(r'\1', line)
-      else:
-        line = line[2:]  # Most lines start with a two character sillyness that doesn't make sense
-      line = line.replace('\x1b[22m', '\x1b[0m') \
-                 .replace('\x1b[27m', '\x1b[0m') \
-                 .replace('\x1b[7m', '\x1b[30;47m')  # This replacement shouldn't be used, but Discord
+      line = (line.replace('\x1b[22m', '\x1b[0m')
+              .replace('\x1b[27m', '\x1b[0m')  # This replacement shouldn't be, but Discord
+              .replace('\x1b[7m', '\x1b[30;47m'))  # https://gist.github.com/kkrypt0nn/a02506f3712ff2d1c8ca7c9e0aed7c06
       line = line.rstrip()
       cleaned_lines.append(line)
 
@@ -130,7 +132,7 @@ class DfrotzRunner(commands.Cog):
 
   async def save(self, ctx: discord.ApplicationContext):
     self.send_output('save')
-    self.send_output(self.save_file)
+    self.send_output(str(self.save_file))
     self.send_output('yes')
     # flush the output
     self.get_from_queue()
@@ -144,7 +146,7 @@ class DfrotzRunner(commands.Cog):
     await ctx.followup.send(embed=embed)
 
   async def load(self, ctx: discord.ApplicationContext):
-    if not os.path.exists(self.save_file):
+    if not self.save_file.exists():
       await ctx.followup.send(embed=discord.Embed(
         title="Restoring game",
         description="There is no saved game",
@@ -153,7 +155,7 @@ class DfrotzRunner(commands.Cog):
       return
 
     self.send_output('restore')
-    self.send_output(self.save_file)
+    self.send_output(str(self.save_file))
     # flush the output
     self.get_from_queue()
 
@@ -217,7 +219,7 @@ class ChaosZork(DfrotzRunner):
     description="Play Zork!"
   )
   @option(
-    name="input",
+    name="cmd",
     description="What do you want to do next?",
     required=True
   )
@@ -225,6 +227,29 @@ class ChaosZork(DfrotzRunner):
   async def zork(self, ctx: discord.ApplicationContext, cmd: str):
     await self.slash_command(ctx, cmd)
 
-  def clean_lines(self, lines: List[str]) -> List[str]:
-    lines = [line for line in lines if line[0] not in ('\x1b', '>')]
-    return super().clean_lines(lines)
+
+class HitchHikers(DfrotzRunner):
+  embed_color = discord.Color.yellow()
+  command_line_color = '1;33;40'
+
+  game_name = 'hhgttg'
+  game_file_name = 'hhgg.z3'
+
+  header_lines = 0
+
+  @commands.slash_command(
+    name="hhgttg",
+    description="Play Hitchhiker’s guide to the galaxy!"
+  )
+  @option(
+    name="cmd",
+    description="What do you want to do next?",
+    required=True
+  )
+  @commands.check(access_check)
+  async def hhgttg(self, ctx: discord.ApplicationContext, cmd: str):
+    await self.slash_command(ctx, cmd)
+
+  def __init__(self, bot):
+    super().__init__(bot)
+    self.save_file = 'hhgttg_save_file'  # bug doesn't allow suffixes
