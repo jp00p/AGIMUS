@@ -31,6 +31,7 @@ start: setup ## Start the bot via python
 
 .PHONY: docker-build
 docker-build: ## Build the docker containers for the bot and the database
+	@echo "echo \"\$$GIT_TOKEN\" | docker login ghcr.io --username [docker-username] --password-stdin"
 	@docker-compose build
 
 .PHONY: docker-pull

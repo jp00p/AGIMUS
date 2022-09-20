@@ -1,5 +1,6 @@
+FROM ghcr.io/friends-of-desoto/frotz-builder:2.52 as dfrotz
 FROM ubuntu:20.04
-
+COPY --from=dfrotz /usr/local/bin/dfrotz-* /usr/local/bin/dfrotz
 
 # Install apt dependencies
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh \
@@ -30,16 +31,6 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
-
-# Setup a local copy of dfrotz
-RUN cd /; \
-    git clone https://gitlab.com/DavidGriffith/frotz; \
-    cd frotz; \
-    git checkout 2.52; \
-    make dumb; \
-    mv dfrotz /usr/local/bin/; \
-    cd /; \
-    rm -r frotz
 
 # Use 'bot' user to avoid pip warning messages
 USER bot
