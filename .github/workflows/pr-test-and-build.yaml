@@ -62,6 +62,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       -
         name: KinD Tests
         shell: bash
@@ -83,7 +84,6 @@ jobs:
               && echo "${{ secrets.ENVFILE }}" | base64 -d | sed -e 's/\r//' | sed -e 's/configuration\.json/local.json/g' > .env \
               && source .env
           fi
-          docker pull ghcr.io/friends-of-desoto/frotz-builder:2.52
           ls -alF
           echo "DB_SEED_FILEPATH=$DB_SEED_FILEPATH"
           echo "DB_HOST=$DB_HOST"
