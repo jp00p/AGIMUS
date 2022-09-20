@@ -37,6 +37,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - 
+        name: Pull dfrotz
+        run: |
+          docker pull ghcr.io/friends-of-desoto/frotz-builder:2.52
       -
         name: Build and Push Containers
         id: docker_build
