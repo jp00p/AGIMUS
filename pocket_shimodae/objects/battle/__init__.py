@@ -1,3 +1,3 @@
 from .effect import PoshimoEffect
 from .status import PoshimoStatus
-from .combat import PoshimoBattle
+from .battle import PoshimoBattle, BattleStates, BattleTypes

@@ -1,1 +1,1 @@
-from .trainer import PoshimoTrainer
+from .trainer import PoshimoTrainer, TrainerStatus

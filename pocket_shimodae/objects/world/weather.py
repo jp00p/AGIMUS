@@ -1,5 +1,6 @@
 from common import *
 from enum import Enum
+
 weather_emoji = ["🌞","🌤","⛅","🌧","🌨","🍃","🌩","🌫"]
 
 class Weather(Enum):

@@ -1,101 +1,36 @@
+""" Poshimo and their moves, types and personalities """
 from common import *
 from math import sqrt, floor, log10
 from typing import List
 import csv
-from . import PoshimoMove, PoshimoPersonality, PoshimoType
-from .personality import PoshimoPersonality
+from . import PoshimoMove, PoshimoPersonality, PoshimoType, PoshimoStat
+
+MAX_POSHIMO_LEVEL = 99
 
 with open("pocket_shimodae/data/shimodaepedia.csv") as file:
   # load the base poshimo data from file
   csvdata = csv.DictReader(file)
   pdata = {}
   for id,row in enumerate(csvdata):
-    pdata[row["name"]] = {
+    pdata[row["name"].lower()] = {
       "name" : row["name"],
-      "id" : id,
-      "type1" : row["type1"],
-      "type2" : row["type2"],
-      "base_attack" : row["base_attack"],
-      "attack" : row["base_attack"],
-      "base_defense" : row["base_defense"],
-      "defense" : row["base_defense"],
-      "base_special_attack" : row["base_special_attack"],
-      "special_attack" : row["base_special_attack"],
-      "base_special_defense" : row["base_special_defense"],
-      "special_defense" : row["special_defense"],
-      "base_speed" : row["speed"],
-      "base_evasion" : row["evasion"],
-      "speed" : row["speed"],
-      "evasion" : row["evasion"],
-      "max_hp" : row["hp"],
+      "dex_id" : id,
+      "type_1" : row["type_1"],
+      "type_2" : row["type_2"],
+      "attack" : (row["attack"],0),
+      "defense" : (row["defense"],0),
+      "special_attack" : (row["special_attack"],0),
+      "special_defense" : (row["special_defense"],0),
+      "speed" : (row["speed"],0),
       "hp" : row["hp"],
       "move_list" : [
-        row["move1"], row["move2"], row["move3"], row["move4"]
+        row["move_1"].lower(), 
+        row["move_2"].lower(), 
+        row["move_3"].lower(), 
+        row["move_4"].lower()
       ]
     }
   logger.info(f"Poshimo data loaded!")
-
-
-def getset(arg, proptype):
-  """ 
-  very sneaky util for making lots of getters/setters at once 
-  arg: the variable name that should get the property wrapper
-  proptype: what kind of property is this? only using "int" for now
-  """
-  logger.info(f"Adding getset for {arg}")
-  @property
-  def prop(self):
-    _arg = '_' + arg
-    return getattr(self, _arg)
-  @prop.setter
-  def prop(self, val):
-    _arg = '_' + arg
-    if proptype == "int":
-      setattr(self, _arg, max(val, 0)) # dont let ints go below 0
-      self.update(arg, max(val, 0))
-    else:
-      setattr(self, _arg, val)
-      self.update(arg, val)
-  return prop
-
-
-
-
-MAX_LEVEL = 100
-
-class Stats():
-  """ 
-  holds some info about a poshimo's stat definitions 
-  ...i probably should have made all the stats part of this... 
-  then i could have done self.stats = Stats(level=x) abd referred to stats with self.stats.whatever ugh
-  maybe some other day!
-  """
-  def __init__(self):
-    # these are the names of all the attrs that will get the basic getter/setter
-    # NOTE: there's still custom setters/getters in Poshimo too!
-    self.int_keys = [
-      'owner',
-      'max_hp', 
-      'attack', 
-      'defense', 
-      'special_attack', 
-      'special_defense', 
-      'evasion', 
-      'speed', 
-      'base_attack', 
-      'base_defense', 
-      'base_special_attack', 
-      'base_special_defense', 
-      'base_evasion', 
-      'base_speed', 
-      'xp'
-    ]
-
-    self.str_keys = [
-      'display_name', 
-      'personality'
-    ]
-
 
 class Poshimo(object):
   """
@@ -112,121 +47,103 @@ class Poshimo(object):
   2. Load a Poshimo from DB:
     `Poshimo(id=12)`
  
-  4. Get a random Poshimo:
+  3. Get a random Poshimo:
     `Poshimo()` or `Poshimo(level=15)`
   """
-
-  def __init__(self, name:str=None, level:int=1, id:int=None, owner:int=None):
+  
+  def __init__(self, name:str=None, level:int=1, id:int=None, owner:int=None, is_wild:bool=False):
     self.id:int = id
     self.name:str = name
-    self.owner = self._owner = owner
+    self._owner:int = owner
+    self.is_wild:bool = is_wild
 
-    self.poshimodata = {} # this will hold our file and db stats eventually
+    self.poshimodata:dict = {} # this will hold our file and db stats eventually
     if self.name:
-      self.poshimodata = pdata[self.name] # fire this up early if we have it
+      self.poshimodata = pdata[self.name.lower()] # fire this up early if we have it
     
-    # init this shit
-    # these attrs use basic int setters
-    self.max_hp = self._max_hp = 0
-    self.attack = self._attack = 0
-    self.defense = self._defense = 0
-    self.special_attach = self._special_attack = 0
-    self.special_defense = self._special_defense = 0
-    self.base_attack = self._base_attack = 0
-    self.base_defense = self._base_defense = 0
-    self.base_special_attack = self._base_special_attack = 0
-    self.base_special_defense = self._base_special_defense = 0
-    self.base_evasion = self._base_evasion = 0
-    self.base_speed = self._base_speed = 0
-    self.evasion = self._evasion = 0
-    self.speed = self._speed = 0
-    self.xp = self._xp = 0
-    # these attrs get special str setters
-    self.display_name:str = None
-    self._display_name:str = None
-    self.personality:PoshimoPersonality = None
-    self._personality:PoshimoPersonality = None
-    
-    # these attrs get special handmade setters (no need for double init)
+    self._max_hp:int = 0
     self._hp:int = 0
-    self._level:int = level
-    self._move_list:List[PoshimoMove] = []
-    # done with the init shit
     
-    if self.id:
-      self.load()
-    else:      
-      if not self.name:
-        self.poshimodata = pdata[self.name] # load the base poshimo data
+    self._attack:PoshimoStat = PoshimoStat(0)
+    self._defense:PoshimoStat = PoshimoStat(0)
+    self._special_attack:PoshimoStat = PoshimoStat(0)
+    self._special_defense:PoshimoStat = PoshimoStat(0)
+    self._speed:PoshimoStat = PoshimoStat(0)
+    
+    self._xp:int = 0
+    self._display_name:str = self.name
+    self._personality:PoshimoPersonality = PoshimoPersonality()
+    self._level:int = level
+    self._move_list:List[PoshimoMove] = [] 
+    
+    if self.name:
+      # loading base poshimo data from file
       self._display_name = self.name # npc is always the proper name
       self._level = level # default is 1
       self._personality = PoshimoPersonality() # load random personality
+      self._move_list = self.init_move_list()
 
-    # we should now have self.poshimodata full of data
-    # either a real poshimo or a freshly created one
-    # now lets fill in the real stats!
+    if is_wild and not self.id:
+      # create new wild poshimo in the db (so it can be persistent in case bot restarts)
+      self.id = self.save()
+
+    if self.id:
+      # load poshimo from db if it has an id
+      self.load()
+      self._owner = self.poshimodata["owner"]
     
+    self._level = 1#self.poshimodata["level"]
+    self._name = self.poshimodata["name"]
+    self._display_name = self.poshimodata.get("display_name")
+    self._personality = PoshimoPersonality(self.poshimodata.get("personality"))
+
     self.types = (
-      PoshimoType(self.poshimodata["type1"]), 
-      PoshimoType(self.poshimodata["type2"])
+      self.poshimodata["type_1"],
+      self.poshimodata["type_2"]
+      #PoshimoType(self.poshimodata["type1"]), 
+      #PoshimoType(self.poshimodata["type2"])
     ) # types never(?) change
 
-    self._base_attack = self.poshimodata["base_attack"]
-    self._base_defense = self.poshimodata["base_defense"]
-    
-    self._attack = self.poshimodata["attack"]
-    self._defense = self.poshimodata["defense"]
-    
-    self._base_special_attack = self.poshimodata["base_special_attack"]
-    self._base_special_defense = self.poshimodata["base_special_defense"]
-    
-    self._special_attack = self.poshimodata["special_attack"]
-    self._special_defense = self.poshimodata["special_defense"]
-    
-    self._base_evasion = self.poshimodata["base_evasion"]
-    self._base_speed = self.poshimodata["base_speed"]
-
-    self._evasion = self.poshimodata["evasion"]
-    self._speed = self.poshimodata["speed"]
-    
-    self._max_hp = self.poshimodata["hp"]
-    self._hp = self.poshimodata["max_hp"]
+    self._attack = PoshimoStat(self.poshimodata["attack"][0], self.poshimodata["attack"][1])
+    self._defense = PoshimoStat(self.poshimodata["defense"][0], self.poshimodata["defense"][1])
+    self._special_attack = PoshimoStat(self.poshimodata["special_attack"][0], self.poshimodata["special_attack"][1])
+    self._special_defense = PoshimoStat(self.poshimodata["special_defense"][0], self.poshimodata["special_defense"][1])
+    self._speed = PoshimoStat(self.poshimodata["speed"][0], self.poshimodata["speed"][1])
+    self._max_hp = self.poshimodata.get("hp")
+    self._hp = self._max_hp
     
     self._xp = 0
-    
-    self.status = None # TODO: Statuses
 
-    for move in self.poshimodata["move_list"]:
-      if move:
-        self._move_list.append(PoshimoMove(move))
-    
-    if not self._owner and self._level > 1:
-      pass # generate leveled up stats for this NPC pokemon
-
-    self.set_setters_and_getters()
+  
+    self.status = None # TODO: Statuses      
 
     # 
     # end of __init__ =====================================================
   
-  def set_setters_and_getters(self):
-    # register the setters and getters for the basic attrs (int_keys, str_keys)
-    for proptype in ['int', 'str']:
-      for key in getattr(Stats(), f"{proptype}_keys"):
-        exec(f"{key} = getset('{key}', '{proptype}')")
-        # what this does:
-        # e.g.: for the key "xp" with proptype "int", it will create this:
+  def load_wild(self) -> None:
+    """ 
+    load a wild poshimo (computer controlled) 
+    assumes this poshimo has an id
+    """
+    with AgimusDB(dictionary=True) as query:
+      sql = """
+      SELECT * FROM poshimodae WHERE id = %s LIMIT 1
+      """
+      vals = (self.id,)
+      query.execute(sql, vals)
+      results = query.fetchone()
+    self.poshimodata = dict(results)
+    temp_pdata = pdata[results["name"].lower()]
+    temp_pdata["id"] = results["id"]
+    self.poshimodata.update(temp_pdata)
+    self._move_list = self.load_move_list(results["move_list"])
+    logger.info(f"Loaded wild poshimo: {Fore.YELLOW}{self.poshimodata}{Fore.RESET}")
 
-        # @property
-        # def xp(self):
-        #  return self._xp
-        # 
-        # @xp.setter
-        # def xp(self,val):
-        #  self._xp = max(0, val)
-        #  self.update("xp", val) 
-
-
-  def load(self):
+  def load(self) -> None:
+    """ 
+    load a human-controlled poshimo 
+    assumes this poshimo has an id
+    """
     logger.info(f"Attempting to load poshimo: {self.id}")
     with AgimusDB(dictionary=True) as query:
       sql = '''
@@ -238,115 +155,137 @@ class Poshimo(object):
       vals = (self.id,)
       query.execute(sql, vals)
       results = query.fetchone()
-      self.poshimodata = dict(results)
-      temp_pdata = pdata[results["name"]] # load poshimo data from file
-      temp_pdata["id"] = results["id"] # gotta update the original ID from the poshimodex
-      self._owner = self.poshimodata["owner"]
-      self.poshimodata.update(temp_pdata) # merge with db info (so its not a base poshimo)
-      logger.info(f"POSHIMODATA: {self.poshimodata}")
-      self._level = self.poshimodata["level"]
-      self._name = self.poshimodata["name"]
-      self._display_name = self.poshimodata["display_name"]
-      self._personality = PoshimoPersonality(self.poshimodata["personality"])
-      logger.info(f"Loaded poshimo: {Fore.GREEN}{self.poshimodata}{Fore.RESET}")
+    self.poshimodata = dict(results)
+    temp_pdata = pdata[results["name"].lower()] # load poshimo data from file
+    temp_pdata["id"] = results["id"] # gotta update the original ID from the poshimodex
+    self.poshimodata.update(temp_pdata) # merge with db info (so its not a base poshimo)
+    self._move_list = self.load_move_list(results["move_list"]) # unpack json moves
+    logger.info(f"Loaded poshimo: {Fore.GREEN}{self.poshimodata}{Fore.RESET}")
   
-  def create(self):
-    """ initialize a new poshimo for DB insertion """
-    if not self.owner:
-      return
-    self.poshimodata = pdata[self.name] # base data
-    self._level = 1 #TODO: levels
-    self.name = self.poshimodata["name"]
-    self._display_name = self.name # default name
-    self._personality = PoshimoPersonality()
-    logger.info(f"Attempting to insert poshimo into db: {self.poshimodata}")
-    return self.save()
-
   def save(self) -> int:
-    self.poshimodata = pdata[self.name] # base data
+    """ 
+    save this poshimo to the db (when giving a trainer a Poshimo) 
+    returns the ID of this poshimo in the db
     """
-    saves to the db or updates the db with this poshimo's data
-    """
+    self.poshimodata = pdata[self.name.lower()] # base data
+    self._level = 1 #TODO: leveling
+    self._display_name = self.name
+    self._personality = PoshimoPersonality()
+    logger.info(f"Preparing this poshimo for creation: DISPLAY NAME: {self._display_name} OWNER: {self.owner} PERSONALITY: {self._personality}")
+
     with AgimusDB() as query:
       
       sql = """
       INSERT INTO poshimodae 
-        (
-          id, owner, name, display_name, level, xp, hp, max_hp,
-          base_attack, base_defense, attack, defense,
-          base_special_attack, base_special_defense, special_attack, special_defense,
-          base_speed, base_evasion, speed, evasion,
-          personality, move_list
-        ) 
+        (id, owner, name, display_name, level, xp, hp, max_hp, attack, defense, special_attack, special_defense, speed, personality, move_list) 
         VALUES 
-          (
-            %(id)s, %(owner)s, %(name)s, %(display_name)s, %(level)s, %(xp)s, %(hp)s, %(max_hp)s,            
-            %(base_attack)s,%(base_defense)s,%(attack)s, %(defense)s, 
-            %(base_special_attack)s, %(base_special_defense)s, %(special_attack)s, %(special_defense)s, 
-            %(base_speed)s, %(base_evasion)s, %(speed)s, %(evasion)s,
-            %(personality)s, %(move_list)s    
-          ) 
-      ON DUPLICATE KEY UPDATE 
-        display_name=%(display_name)s, level=%(level)s, xp=%(xp)s, owner=%(owner)s, hp=%(hp)s, max_hp=%(max_hp)s,
-        base_attack=%(base_attack)s, base_defense=%(base_defense)s, attack=%(attack)s, defense=%(defense)s, 
-        base_special_attack=%(base_special_attack)s, base_special_defense=%(base_special_defense)s, special_attack=%(special_attack)s, special_defense=%(special_defense)s, 
-        base_speed=%(base_speed)s, base_evasion=%(base_evasion)s, speed=%(speed)s, evasion=%(evasion)s,
-        personality=%(personality)s, move_list=%(move_list)s
+          (%(id)s, %(owner)s, %(name)s, %(display_name)s, %(level)s, %(xp)s, %(hp)s, %(max_hp)s, %(attack)s, %(defense)s, %(special_attack)s, %(special_defense)s, %(speed)s, %(personality)s, %(move_list)s)
       """
       vals = {
         "id" : self.id,
         "owner" : self.owner,
         "name" : self.name,
-        "display_name" : self.display_name,
-        "personality" : self.personality.name.lower(),
-        "level" : self.level,
-        "xp" : self.xp,
-        "hp" : self.hp,
-        "max_hp" : self.max_hp,
-        "base_attack" : self.base_attack,
-        "base_defense" : self.base_defense,
-        "attack" : self.attack,
-        "defense" : self.defense,
-        "base_special_attack":self.base_special_attack,
-        "base_special_defense":self.base_special_defense,
-        "special_attack":self.special_attack,
-        "special_defense":self.special_defense,
-        "base_speed":self.base_speed,
-        "base_evasion":self.base_evasion,
-        "speed":self.speed,
-        "evasion":self.evasion,
-        "personality":self.personality.name,
-        "move_list":self.move_list_json()
+        "display_name" : self._display_name,
+        "level" : self._level,
+        "xp" : self._xp,
+        "hp" : self._hp,
+        "max_hp" : self._max_hp,
+        "attack" : self._attack.to_json(),
+        "defense" : self._defense.to_json(),
+        "special_attack" : self._special_attack.to_json(),
+        "special_defense" : self._special_defense.to_json(),
+        "speed":self._speed.to_json(),
+        "personality":self._personality.name.lower(),
+        "move_list":self.dump_move_list()
       }
-      logger.info(f"Attempting to save poshimo: {vals}")
       query.execute(sql, vals)
       logger.info(f"Saving poshimo: {vals}")
       poshi_row = query.lastrowid
       self.id = poshi_row
-      logger.info(f"Save successful, Poshimo inserted or updated: {self.id}")
+      logger.info(f"Save successful, Poshimo inserted into DB: {self.id}")
     return self.id
 
   def update(self, col_name, value=None) -> None:
     """ 
-    update a col in the db for this poshimo 
+    update a col in the db for this poshimo
+    used by setters to do their magic
     """
-    if not self.id and not self.owner: # only human-owned poshimo please
+    if not self.id: # only update poshimo in the DB
       return
-
     logger.info(f"{Style.BRIGHT}💾 Attempting to update Poshimo {self.id}'s {Fore.CYAN}{col_name}{Fore.RESET}{Style.RESET_ALL} with new value: {Fore.LIGHTGREEN_EX}{value}{Fore.RESET}")
-    
     with AgimusDB() as query:
       sql = f"UPDATE poshimodae SET {col_name} = %s WHERE id = %s" # col_name is a trusted input or so we hope
       vals = (value, self.id)
       query.execute(sql, vals)
 
-  def move_list_json(self) -> str:
-    ''' dump the move list into json '''
-    return json.dumps([move.name if move else "" for move in self.move_list])
-
+  @property
+  def owner(self) -> int:
+    return self._owner
+  @owner.setter
+  def owner(self, val):
+    self._owner = val
+    self.update("owner", self._owner)
+  
+  @property
+  def max_hp(self) -> int:
+    return self._max_hp
+  @max_hp.setter
+  def max_hp(self,val):
+    self._max_hp = max(1, val) # max_hp can't go below 1
+    self.update("max_hp", self._max_hp)
 
   @property
-  def hp(self):
+  def attack(self) -> PoshimoStat:
+    return self._attack
+  @attack.setter
+  def attack(self, val, stage=None):
+    if not stage:
+      stage = self._attack.stage
+    self._attack = PoshimoStat(max(0, val), stage)
+    self.update("attack", self._attack.to_json())
+
+  @property
+  def defense(self) -> PoshimoStat:
+    return self._defense
+  @defense.setter
+  def defense(self,val,stage=None):
+    if not stage:
+      stage = self._defense.stage
+    self._defense = PoshimoStat(max(0, val), stage)
+    self.update("defense", self._defense.to_json())
+
+  @property
+  def special_attack(self) -> PoshimoStat:
+    return self._special_attack
+  @special_attack.setter
+  def special_attack(self,val,stage=None):
+    if not stage:
+      stage = self._special_attack.stage
+    self._special_attack = PoshimoStat(max(0, val), stage)
+    self.update("special_attack", self._special_attack.to_json())
+
+  @property
+  def special_defense(self) -> PoshimoStat:
+    return self._special_defense
+  @special_defense.setter
+  def special_defense(self,val,stage=None):
+    if not stage:
+      stage = self._special_defense.stage
+    self._special_defense = PoshimoStat(max(0, val), stage)
+    self.update("special_defense", self._special_defense)    
+
+  @property
+  def speed(self) -> PoshimoStat:
+    return self._speed
+  @speed.setter
+  def speed(self,val,stage=None):
+    if not stage:
+      stage = self._speed.stage
+    self._speed = PoshimoStat(max(0, val), 0)
+    self.update("speed", self._speed.to_json())
+
+  @property
+  def hp(self) -> int:
     return self._hp
   
   @hp.setter
@@ -355,14 +294,22 @@ class Poshimo(object):
     self.update("hp", self._hp)
 
   @property
-  def level(self):
+  def level(self) -> int:
     return self._level
 
   @level.setter
   def level(self, val):
     '''TODO: handle level up stuff '''
-    self._level = max(val, 0)
+    self._level = min(MAX_POSHIMO_LEVEL, max(0, val))
     self.update("level", self._level)
+
+  @property
+  def xp(self) -> int:
+    return self._xp
+  @xp.setter
+  def xp(self, val):
+    self._xp = max(0, val)
+    self.update("xp", self._xp)
 
   @property
   def move_list(self) -> List[PoshimoMove]:
@@ -371,30 +318,96 @@ class Poshimo(object):
   @move_list.setter
   def move_list(self, obj:List[PoshimoMove]):
     ''' set move list and update json in db '''
+    if not isinstance(obj,list):
+      return
     self._move_list = obj
-    self.update("move_list", self.move_list_json())
-  
-  
+    self.update("move_list", self.dump_move_list())
 
-  def list_stats(self) -> dict:
+  @property
+  def display_name(self) -> str:
+    return self._display_name
+
+  @display_name.setter
+  def display_name(self, val):
+    self._display_name = val[0:48] # don't let them have infinite names
+    self.update("display_name", self._display_name)
+
+  @property
+  def personality(self) -> PoshimoPersonality:
+    return self._personality
+  @personality.setter
+  def personality(self, val:PoshimoPersonality):
+    self._personality = val
+    self.update("personality", self._personality.name)
+
+  def list_stats(self, for_battle=False) -> dict:
     """ returns a dictionary of this poshimo's stats """
-    stats_to_display = [
-      "level", "xp", "personality", 
-      "hp", "attack", "defense", 
-      "special_attack", "special_defense", 
-      "speed", "evasion"
-    ]
-    stats = {}
-    
-    for stat in stats_to_display:
-      stats[stat] = getattr(self, stat)
+    stats:dict = {}
+    if not for_battle:
+      stats_to_display = [
+        "level", "xp", "personality", 
+        "hp", "attack", "defense", 
+        "special_attack", "special_defense", 
+        "speed",
+      ]
+      for stat in stats_to_display:
+        stats[stat] = getattr(self, stat)
     # add hp.max_hp to our stats list
-    stats["hp"] = f"{self.hp}/{self.max_hp}"    
+    stats["hp"] = f"{self.hp}/{self.max_hp}"
     return stats
 
-  def __str__(self) -> str:
-    return f"{self._display_name}: ({[t for t in list(self.types)]})"
+  def __repr__(self) -> str:
+    if self.id:
+      return f"{self._display_name} {self.id}"
+    else:
+      return f"{self._display_name}"
+
+  def init_move_list(self) -> List[PoshimoMove]:
+    """ 
+    initialize a movelist from file 
+    returns a list of PoshimoMoves
+    """
+    temp_move_list:list = []
+    for move in self.poshimodata["move_list"]:
+      if move is not None:
+        logger.info(f"Trying to add move: {move}")
+        temp_move_list.append(PoshimoMove(name=move))
+    #logger.info(f"Move list init: {temp_move_list}")
+    return temp_move_list
+
+  def dump_move_list(self) -> str:
+    """ 
+    dump move list to json for DB insertion 
+    returns a json string
+    """
+    db_move_list:list = []
+    for move in self.move_list:
+      if move:
+        db_move_list.append(move.to_json())
+    logger.info(f"Dumping json: {db_move_list}")
+    return json.dumps(db_move_list)
   
+  def load_move_list(self, movelist) -> List[PoshimoMove]:
+    """ 
+    load move list from json 
+    returns a list of PoshimoMoves
+    """
+    #logger.info(f"Move list to load from JSON: {movelist}")
+    temp_move_list = []
+    loaded_move_list = json.loads(movelist)
+    for move in loaded_move_list:
+      if move and move != "":
+        dbmove = PoshimoMove(name=move["name"], stamina=move["stamina"], max_stamina=move["max_stamina"])
+        logger.info(f"Loading {move['name']} from DB: {dbmove}")
+        temp_move_list.append(dbmove)
+    return temp_move_list
+
+
+  def apply_move(self, move:PoshimoMove) -> str:
+    # apply damage, effects, status from a move to this poshimo
+    # returns a string for log lines
+    return f"{self.display_name} uses {move.display_name}! it does something!"
+    
 
 
 """ from ultranurd 

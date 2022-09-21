@@ -1,7 +1,7 @@
-from doctest import debug_script
 from common import *
 from pocket_shimodae.game import *
 from pocket_shimodae.views import *
+from pocket_shimodae.utils import get_all_trainers
 
 class PocketShimodae(commands.Cog):
   def __init__(self, bot):
@@ -13,17 +13,34 @@ class PocketShimodae(commands.Cog):
 
   @commands.Cog.listener()
   async def on_ready(self):
+    """ when everything is happily loaded, this will run """
     self.game = PoshimoGame(self) # load the game, this will be important later i think
-    self.all_trainers = self.game.get_all_trainers()
+    self.all_trainers = get_all_trainers()
     logger.info(f"ALL POSHIMO TRAINERS: {self.all_trainers}")
 
+  @tasks.loop(hours=1.0)
+  async def set_poshimo_weather(self):
+    """ every hour the weather changes """
+    self.game.world.set_weather()
+
   @ps.command(
-    name="test_add_poshimo",
+    name="test_give_poshimo",
     description="DEBUG"
   )
-  async def test_add_poshimo(self, ctx:discord.ApplicationContext):
-    p = self.game.test_add_poshimo(ctx.author.id)
+  async def test_give_poshimo(self, ctx:discord.ApplicationContext):
+    p = self.game.test_give_poshimo(ctx.author.id)
     await ctx.respond(f"Did you win? {p.display_name}")
+
+  @ps.command(
+    name="test_unlock_locations",
+    description="DEBUG"
+  )
+  async def test_clear_db(self, ctx:discord.ApplicationContext):
+    self.game.test_unlock_loc(ctx.author.id, "starter_zone")
+    self.game.test_unlock_loc(ctx.author.id, "test_zone")
+    self.game.test_unlock_loc(ctx.author.id, "field")
+    self.game.test_unlock_loc(ctx.author.id, "plowland")
+    await ctx.respond(f"All locations unlocked", ephemeral=True)
 
   @ps.command(
     name="test_clear_db",
@@ -31,7 +48,7 @@ class PocketShimodae(commands.Cog):
   )
   async def test_clear_db(self, ctx:discord.ApplicationContext):
     self.game.test_clear_db()
-    await ctx.respond(f"Did you feel that?")
+    await ctx.respond(f"Did you feel that?", ephemeral=True)
 
   @ps.command(
     name="start",
@@ -107,3 +124,13 @@ class PocketShimodae(commands.Cog):
   )
   async def explore(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
+
+  @ps.command(
+    name="hunt",
+    description="Hunt for wild Poshimo"
+  )
+  async def hunt(self, ctx:discord.ApplicationContext):
+    await ctx.defer(ephemeral=True)
+    hunt = self.game.start_hunt(ctx.author.id)
+    initial_turn = battle.BattleTurn(self, hunt)
+    await ctx.followup.send(embed=initial_turn.get_embed(), view=initial_turn)

@@ -1,9 +1,9 @@
-from http.client import EXPECTATION_FAILED
 from common import *
-from ..ui import PoshimoView, Confirmation
 import textwrap
 from prettytable import PrettyTable, MARKDOWN, PLAIN_COLUMNS, ORGMODE
 from prettytable.colortable import ColorTable, Themes
+from ..ui import PoshimoView, Confirmation
+import pocket_shimodae.utils as utils
 
 direction_arrows = {
   "n": "⬆",
@@ -58,7 +58,7 @@ class TravelMenu(PoshimoView):
   def __init__(self, cog, discord_id):
     super().__init__(cog)
     self.discord_id = discord_id
-    self.trainer = self.game.get_trainer(self.discord_id)
+    self.trainer = utils.get_trainer(discord_id=self.discord_id)
     self.trainer_location = self.game.find_in_world(self.trainer.location)
     self.exits = {
     }

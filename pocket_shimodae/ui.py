@@ -11,7 +11,7 @@ class PoshimoView(discord.ui.View):
     self.paginator = None
     self.message = None
     self.embeds = None
-    super().__init__()
+    super().__init__(timeout=None)
 
   def get_pages(self):
     return self.pages
@@ -26,6 +26,10 @@ class PoshimoView(discord.ui.View):
   def get_embeds(self):
     """ get all the embeds! """
     return self.embeds
+
+  async def on_timeout(self) -> None:
+    logger.info("Timing out the view!")
+    self.clear_items()
 
 
 class Confirmation(PoshimoView):

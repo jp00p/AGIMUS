@@ -5,6 +5,7 @@ the StarterChosen view will actually do the registration, everything else is jus
 from common import *
 from ..ui import PoshimoView, Confirmation
 from ..objects import Poshimo
+import pocket_shimodae.utils as utils
 
 class Welcome(PoshimoView):
   """ first message a new user sees """
@@ -51,7 +52,7 @@ class StarterPages(PoshimoView):
   """ The pages for choosing a starter poshimo """
   def __init__(self, cog):
     super().__init__(cog)
-    self.starters = self.game.starter_poshimo
+    self.starters = [Poshimo(name=s) for s in self.game.starter_poshimo]
     self.welcome_embed = Welcome(self.cog).get_embed()
     
     for s in self.starters:
@@ -59,8 +60,8 @@ class StarterPages(PoshimoView):
         title="Choose your starter Poshimo", 
         description=f"**{s.name}**", 
         fields=[
-          discord.EmbedField(name="Types", value=f"{' and '.join([s.name for s in s.types])}"), 
-          discord.EmbedField(name="Moves", value=f"{', '.join([m.display_name for m in s.move_list if m is not None])}")]
+          discord.EmbedField(name="Types", value=f"{' and '.join([s for s in s.types])}"), 
+          discord.EmbedField(name="Moves", value=f"{', '.join([m.name for m in s.move_list if m is not None])}")]
       )
       self.pages.append(pages.Page(
         embeds=[self.welcome_embed, embed]
@@ -87,12 +88,12 @@ class StarterChosen(PoshimoView):
   def __init__(self, cog, choice:Poshimo, user):
     super().__init__(cog)
     # ~ THE MAGIC HAPPENS HERE ~ #
-    self.trainer = self.game.register_trainer(user["id"]) # register player
+    self.trainer = utils.register_trainer(user["id"]) # register player
     self.poshimo = self.trainer.add_poshimo(choice, True) # give them this poshimo as their active poshimo
-    self.cog.all_trainers = self.game.get_all_trainers() # add em to the big list
+    self.cog.all_trainers = utils.get_all_trainers() # add em to the big list
     self.embeds = [
       discord.Embed(
-        title=f"Congratulations TRAINER #{self.trainer.id}! You have selected your first poshimo: **{self.poshimo.name}**! Poshimo ID: {self.poshimo.id}", 
+        title=f"Congratulations TRAINER #{self.trainer.id}! You have selected your first poshimo: **{self.poshimo.display_name}**! Poshimo ID: {self.poshimo.id}", 
         description="Live long, and may the force prosper within you."
       )
     ]

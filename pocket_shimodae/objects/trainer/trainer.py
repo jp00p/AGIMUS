@@ -1,9 +1,10 @@
-from enum import Enum, auto
+""" a Trainer is the base character of our game """
+from enum import Enum
 from common import *
-from ..poshimo import *
+from ..world import PoshimoBiome
+from ..poshimo import Poshimo, PoshimoMove
 from typing import List
 
-MAX_POSHIMO = 6 # the maximum poshimo a player can have
 class TrainerStatus(Enum):
   IDLE = 0
   EXPLORING = 1
@@ -13,30 +14,40 @@ class TrainerStatus(Enum):
 
 # this will represent either a discord user or an npc
 class PoshimoTrainer(object):
-  def __init__(self, trainer_id=None):
-    self.id = trainer_id
-    self.discord_id = None
-    self._poshimo_sac:list = []
-    self._status = TrainerStatus.IDLE
-    self._wins = 0
-    self._losses = 0
-    self._active_poshimo = None # current poshimo
-    self._inventory = {} # all items
-    self._location = "starting_zone" # where are you
-    self._scarves = 0 # money
-    self._buckles = "None" # these are like pokemon badges
-    self._locations_unlocked = set()
-    self.shimodaepedia = [] # aka pokedex, which poshimo has this player seen (list of ids)
+  """
+  The base Trainer object, either a real player or an NPC
+
+  pass a `trainer_id` to load from the DB
+
+  pass a `name` to generate a basic NPC
+  """
+  MAX_POSHIMO = 6 # the maximum poshimo a player can have
+  def __init__(self, trainer_id:int=None, name:str=None):
+    self.id:int = trainer_id
+    self.discord_id:int = None
+    self.name:str = name # for NPCs only for now
+    self._poshimo_sac:List[Poshimo] = []
+    self._status:TrainerStatus = TrainerStatus.IDLE
+    self._wins:int = 0
+    self._losses:int = 0
+    self._active_poshimo:Poshimo = None # current poshimo
+    self._inventory:dict = {} # all items
+    self._location:str = "starting_zone" # where are you
+    self._scarves:int = 0 # money
+    self._buckles:int = None # these are like pokemon badges TBD
+    self._locations_unlocked:set = set()
+    self.shimodaepedia:list = [] # aka pokedex, which poshimo has this player seen (list of ids) TBD
+    
     if self.id:
       self.load()
 
-  def __str__(self) -> str:
+  def __repr__(self) -> str:
     return f"TRAINER ID: {self.id}"
 
   def update(self, col_name, value=None) -> None:
     """ 
+    Internal only:
     update a col in the db for this trainer 
-    HUMANS ONLY ew
     """
     logger.info(f"{Style.BRIGHT}Attempting to update trainer {self.id}'s {Fore.CYAN}{col_name}{Fore.RESET}{Style.RESET_ALL} with new value: {Fore.LIGHTGREEN_EX}{value}{Fore.RESET}")
     if not self.id:
@@ -47,8 +58,11 @@ class PoshimoTrainer(object):
       query.execute(sql, vals)
     
 
-  def load(self):
-    """ Load a human Trainer's data from DB """
+  def load(self) -> None:
+    """ 
+    Internal only: 
+    Load a human Trainer's data from DB 
+    """
     logger.info(f"Loading trainer {self.id} from DB...")
     with AgimusDB(dictionary=True) as query:
       sql = '''
@@ -66,6 +80,7 @@ class PoshimoTrainer(object):
       self._losses = trainer_data.get("losses")
       self._status = TrainerStatus(trainer_data.get("status"))
       self._location = trainer_data.get("location")
+      self.discord_id = trainer_data.get("discord_id")
       sac_data = trainer_data.get("poshimo_sac")
       if sac_data:
         logger.info(f"SAC DATA: {sac_data}")
@@ -92,16 +107,16 @@ class PoshimoTrainer(object):
       logger.info(f"There was an error loading trainer {self.id}'s info!")
 
   @property
-  def wins(self):
+  def wins(self) -> int:
     return self._wins
   
   @wins.setter
   def wins(self, amt):
-    self._wins = amt
+    self._wins = max(0, amt)
     self.update("wins", self._wins)
 
   @property
-  def losses(self):
+  def losses(self) -> int:
     return self._losses
   
   @losses.setter
@@ -110,25 +125,29 @@ class PoshimoTrainer(object):
     self.update("losses", self._losses)
 
   @property
-  def active_poshimo(self):
+  def active_poshimo(self) -> Poshimo:
     return self._active_poshimo
   
   @active_poshimo.setter
   def active_poshimo(self, poshimo:Poshimo):
-    self._active_poshimo = poshimo
-    self.update("active_poshimo", poshimo.id)
+    if isinstance(poshimo, Poshimo):
+      self._active_poshimo = poshimo
+      self.update("active_poshimo", poshimo.id)
+    else:
+      self._active_poshimo = None
+      self.update("active_poshimo", None)
   
   @property
-  def inventory(self):
+  def inventory(self) -> dict:
     return self._inventory
 
   @inventory.setter
-  def inventory(self, value):
-    self._inventory = value
-    self.update("inventory", self._inventory)
+  def inventory(self, obj:dict):
+    self._inventory = obj
+    self.update("inventory", self._inventory) # will probably need json
     
   @property
-  def location(self):
+  def location(self) -> str:
     return self._location
 
   @location.setter
@@ -137,48 +156,47 @@ class PoshimoTrainer(object):
     self.update("location", self._location)
 
   @property
-  def scarves(self):
+  def scarves(self) -> int:
     return self._scarves
 
   @scarves.setter
   def scarves(self, amt):
-    self._scarves = amt
+    self._scarves = max(0, amt)
     self.update("scarves", self._scarves)
 
   @property
-  def status(self):
+  def status(self) -> TrainerStatus:
     return self._status
 
   @status.setter
   def status(self, val):
-    self._status = val
-    self.update("status", self._status)
+    self._status:TrainerStatus = val
+    self.update("status", self._status.value)
 
   @property
-  def buckles(self):
+  def buckles(self) -> int:
     return self._buckles
 
   @buckles.setter
-  def buckles(self, obj):
-    self._buckles = obj
-    self.update("buckles", self._buckles)
+  def buckles(self, val):
+    self._buckles = val
+    self.update("buckles", self._buckles) # TODO: all this
 
   @property
-  def poshimo_sac(self):
+  def poshimo_sac(self) -> list:
     return self._poshimo_sac
 
   @poshimo_sac.setter
   def poshimo_sac(self, obj):
-    logger.info("Sac setter")
     self._poshimo_sac = obj
-    if self._poshimo_sac:
+    if len(self._poshimo_sac) > 0:
       sac_json = json.dumps([i.id for i in self._poshimo_sac])
     else:
       sac_json = json.dumps([])
     self.update("poshimo_sac", sac_json)
 
   @property
-  def shimodaepedia(self):
+  def shimodaepedia(self) -> list:
     return self._shimodaepedia
   
   @shimodaepedia.setter
@@ -186,7 +204,7 @@ class PoshimoTrainer(object):
     self._shimodaepedia = obj
 
   @property
-  def locations_unlocked(self):
+  def locations_unlocked(self) -> list:
     return self._locations_unlocked
   
   @locations_unlocked.setter
@@ -198,41 +216,67 @@ class PoshimoTrainer(object):
       loc_json = json.dumps([])
     self.update("locations_unlocked", loc_json)
 
-  def add_poshimo(self, poshimo:Poshimo, set_active=False):
+  def add_poshimo(self, poshimo:Poshimo, set_active=False) -> Poshimo:
     """ 
     give this player a new poshimo
     """
-    if not poshimo.owner:
-      poshimo.owner = self.id
-      poshimo_id = poshimo.create()
-      new_poshimo = Poshimo(id=poshimo_id) # reinstance the object from the db
-    else:
-      new_poshimo = poshimo
-      new_poshimo.owner = self.id
+    new_poshimo = poshimo
+    new_poshimo.owner = self.id # set poshimo owner
+    poshimo_id = new_poshimo.save() # save this poshimo in the db
+
+    new_poshimo = Poshimo(id=poshimo_id) # reinstance the object from the db
+    new_poshimo.owner = self.id
+    logger.info(f"Adding {str(new_poshimo)}")
+
     temp_sac = self.poshimo_sac
     if set_active: # if we're adding this as an active poshimo...
-      if self.active_poshimo:
+      if self.active_poshimo is not None:
         temp_sac.append(self.active_poshimo) # put the current active poshimo in our sac
-      self.active_poshimo = poshimo # then make this new poshimo our active one
+      self.active_poshimo = new_poshimo # then make this new poshimo our active one
     else: 
-      temp_sac.append(poshimo) # otherwise just put it in the sac
+      temp_sac.append(new_poshimo) # otherwise just put it in the sac
     self.poshimo_sac = temp_sac # have to do this to trigger the setter
     return new_poshimo
 
-  def list_sac(self):
-    temp_sac = self.poshimo_sac
+  def release_poshimo(self, poshimo:Poshimo) -> None:
+    """ release a poshimo into the wild (remove ownership) """
+    if poshimo.id == self.active_poshimo.id:
+      self.active_poshimo = None
+    temp_sac:List[Poshimo] = self.poshimo_sac
+    for p in temp_sac:
+      if poshimo.id == p.id:
+        temp_sac.remove(p)
+    self.poshimo_sac = temp_sac
+    poshimo.owner = None # will fire update on the poshimo object
+
+  def list_sac(self) -> str:
+    """ list the contents of your sac """
+    temp_sac:List[Poshimo] = self.poshimo_sac
     if self.active_poshimo in temp_sac:
       # dont show the active poshimo in the sac
       temp_sac.remove(self.active_poshimo)
     if len(temp_sac) <= 0:
-      return "None"
-    return "\n".join([p.display_name for p in temp_sac])
+      return "Empty sac"
+    return "\n".join([p for p in temp_sac])
 
   def list_all_poshimo(self) -> List[Poshimo]:
     """ Get a list of all poshimo this Trainer owns """
-    all_poshimo = [self._active_poshimo] + self._poshimo_sac
-    logger.info(f"All this users poshimo: {all_poshimo}")
+    if self.active_poshimo:
+      all_poshimo = list([self.active_poshimo] + self.poshimo_sac)
+    else:
+      all_poshimo = self.poshimo_sac
+    logger.info(f"All this users poshimo: {','.join([str(p.id) for p in all_poshimo])}")
     return all_poshimo
+
+  def pick_move(self) -> PoshimoMove:
+    possible_moves = []
+    for move in self.active_poshimo.move_list:
+      if move.stamina > 0:
+        possible_moves.append(move)
+    
+    if len(possible_moves) < 1:
+      return PoshimoMove(name="struggle")
+    return move
 
   def remove_poshimo(self, poshimo):
     # remove poshimo from sac

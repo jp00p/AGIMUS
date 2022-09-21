@@ -1,3 +1,4 @@
+""" a Personality, determines stat growth """
 from common import *
 import csv
 
@@ -10,6 +11,7 @@ with open("pocket_shimodae/data/poshimo_personalities.csv") as file:
       "bonus" : row.get("bonus_stat"),
       "penalty" : row.get("penalized_stat")
     }
+  logger.info(f"Poshimo personality data loaded!")
 
 class PoshimoPersonality:
   """ a personality determines how some stats grow when leveling up """

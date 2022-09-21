@@ -1,6 +1,5 @@
 from common import *
-from .weather import Weather
-from .biome import PoshimoBiome
+from . import PoshimoBiome, Weather
 
 class PoshimoLocation:
   """ A location in our game world """
@@ -8,16 +7,15 @@ class PoshimoLocation:
       self, 
       name:str="", 
       biome:PoshimoBiome=None, 
-      world=None, 
       description=None, 
       color=f"{Fore.WHITE}",
+      wild_poshimo=[],
       n=None, 
       e=None, 
       s=None, 
       w=None
     ):
-    self.name = name
-    self.world = world
+    self.name:str = name
     self.wild_poshimo = {}
     self.weather:Weather = Weather.SUNNY
     self.biome:PoshimoBiome = biome
@@ -27,19 +25,17 @@ class PoshimoLocation:
     self.quests = None
     self.shop = None
     self.color = color
+    self.wild_poshimo = set(list(self.biome.wild_poshimo) + list(wild_poshimo))
     self.paths = {
       "n" : n,
       "e" : e,
       "s" : s,
       "w" : w
     }
-    self.set_weather()
 
   def __str__(self):
     return f"{self.biome} {self.name} {self.weather}"
 
-  def set_weather(self):
-    #TODO: this will need to happen every hour or so, as well
-    weather_choice = self.world.random.choice(self.biome.possible_weather_types)
+  def set_weather(self, weather_choice):
     self.weather = weather_choice
     logger.info(f"Weather in {self.name} has been changed to {self.weather.name}")
