@@ -1855,7 +1855,15 @@
       "episode": "17",
       "imdb": "tt0708962",
       "memoryalpha": "Retrospect_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 436,
+          "airdate": "2022.09.19",
+          "episode": "Asshole Rashomon",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-436-asshole-rashomon-voy-s4e17/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/ks7PXjDMoTIDA3FzBeOrHrgjeyO.jpg"
