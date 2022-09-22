@@ -246,6 +246,98 @@ class BadgeTags(commands.Cog):
 
 
   @tags_group.command(
+    name="rename",
+    description="Rename an existing badge tag"
+  )
+  @option(
+    name="tag",
+    description="Name of the tag to rename",
+    required=True,
+    autocomplete=tags_autocomplete
+  )
+  @option(
+    name="new_name",
+    description="New name for the tag",
+    required=True
+  )
+  async def rename(self, ctx:discord.ApplicationContext, tag:str, new_name:str):
+    await ctx.defer(ephemeral=True)
+
+    # Checks
+    tag = tag.strip()
+    new_name = new_name.strip()
+    if len(tag) == 0 or len(new_name) == 0:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="You Must Enter A Tag!",
+          description=f"Tag name cannot be empty!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    if len(new_name) > 24:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="Tag Is Too Long!",
+          description=f"Tag name cannot exceed 24 characters!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    if tag == "You don't have any tags yet!":
+      await ctx.respond(
+        embed=discord.Embed(
+          title="No Tags Present",
+          description="You'll need to set up some tags first via `/tags create`!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    current_user_tags = db_get_user_badge_tags(ctx.author.id)
+    current_user_tag_names = [t['tag_name'] for t in current_user_tags]
+
+    if tag not in current_user_tag_names:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="This Tag Does Not Exist",
+          description=f"**{tag}** is not a tag you have created!" + "\n\n" + "You can create a new tag via `/tags create`!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    if new_name in current_user_tag_names:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="This Tag Name Already Exists",
+          description=f"You already have a tag named **{new_name}**!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    # If checks pass, go ahead and rename the tag for the user
+    db_rename_user_tag(ctx.author.id, tag, new_name)
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Tag Renamed Successfully!",
+        description=f"You've successfully the tag **{tag}** as **{new_name}**!",
+        color=discord.Color.green()
+      ),
+      ephemeral=True
+    )
+    return
+
+
+  @tags_group.command(
     name="tag",
     description="Tag one of your badges!"
   )

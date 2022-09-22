@@ -37,6 +37,15 @@ def db_delete_user_tag(user_discord_id, tag) -> None:
     vals = (user_discord_id, tag)
     query.execute(sql, vals)
 
+def db_rename_user_tag(user_discord_id, tag, new_name) -> None:
+  """
+  renames a tag for the user in question
+  """
+  with AgimusDB() as query:
+    sql = "UPDATE badge_tags SET tag_name = %s WHERE user_discord_id = %s AND tag_name = %s"
+    vals = (new_name, user_discord_id, tag)
+    query.execute(sql, vals)
+
 def db_get_associated_badge_tags(user_discord_id, badge_name) -> list:
   """
   returns a list of the current tags the user has associated with a given badge
