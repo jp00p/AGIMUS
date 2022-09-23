@@ -214,9 +214,19 @@
   ],
   "styles": [
     {
+      "name": "Latinum",
+      "price": 50000,
+      "preview_url": "https://i.imgur.com/u5Do84K.jpg"
+    },
+    {
+      "name": "Phased",
+      "price": 2500,
+      "preview_url": "https://i.imgur.com/0yKyQYy.jpg"
+    },
+    {
       "name": "T-88",
       "price": 9999,
-      "preview_url": "https://i.imgur.com/Ms0Oqrj.png"
+      "preview_url": "https://i.imgur.com/r9fXKIV.jpg"
     }
   ]
 }

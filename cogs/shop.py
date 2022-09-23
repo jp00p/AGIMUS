@@ -1,6 +1,6 @@
 from common import *
 
-from cogs.profile import db_get_user_profile_styles_from_inventory
+from cogs.profile import db_get_user_profile_styles_from_inventory, db_get_user_profile_stickers_from_inventory, db_get_user_profile_photos_from_inventory
 
 
 #   _________.__                 __________
@@ -131,7 +131,7 @@ class Shop(commands.Cog):
     self.style_pages = []
     for idx, style in enumerate(self.shop_data["styles"]):
       style_embed = discord.Embed(
-        title="✨ Profile Styles Shop ✨",
+        title="📱 Profile Styles Shop 📱",
         description=f"`{style['price']} points`.\n\n**{style['name']}**",
         color=discord.Color(0xFFFFFF)
       )
@@ -172,28 +172,34 @@ class Shop(commands.Cog):
       if player["score"] < cost:
         result["success"] = False
         result["message"] = f"You need `{cost} points` to buy that item!"
+
       else:
         if category == "photos":
           photo = self.shop_data["photos"][purchase_record["page"]]
-          photo_name = photo["name"].lower()
-          if photo_name == player["photo"]:
+          photo_name = photo["name"]
+          existing_player_photos = [s['item_name'] for s in db_get_user_profile_photos_from_inventory(interaction.user.id)]
+
+          if photo_name in existing_player_photos:
             result["success"] = False
-            result["message"] = f"You already have the **{photo_name}** photo on your profile!\nWe gotchu, no points spent.\n\nType `/profile display` to check it out!"
+            result["message"] = f"You already own {photo_name}! No action taken."
           else:
-            update_player_profile_photo(interaction.user.id, photo_name)
+            await purchase_player_photo(interaction.user, photo_name)
             result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{photo_name.title()}** profile photo!\n\nType `/profile display` to check it out!"
+            result["message"] = f"You have spent `{cost} points` and purchased the **{photo_name}** profile photo!\n\nType `/profile set_photo` to apply it to your PADD!"
+
         elif category == "stickers":
           sticker = self.shop_data["stickers"][purchase_record["page"]]
-          sticker_file = sticker["file"]
           sticker_name = sticker["name"]
-          if len(player["stickers"]) > 0 and sticker_file == player["stickers"][0]["sticker"]:
+          existing_player_stickers = [s['item_name'] for s in db_get_user_profile_stickers_from_inventory(interaction.user.id)]
+
+          if sticker_name in existing_player_stickers:
             result["success"] = False
-            result["message"] = f"You already have the **{sticker_name}** sticker on your profile! \nWe gotchu, no points spent.\n\nType `/profile display` to check it out!"
+            result["message"] = f"You already own {sticker_name}! No action taken."
           else:
-            update_player_profile_sticker(interaction.user.id, sticker_file)
+            await purchase_player_sticker(interaction.user, sticker_name)
             result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{sticker_name}** sticker!\n\nType `/profile display` to check it out!"
+            result["message"] = f"You have spent `{cost} points` and purchased the **{sticker_name}** sticker!\n\nType `/profile set_sticker` to apply it to your PADD!"
+
         elif category == "roles":
           role = self.shop_data["roles"][purchase_record["page"]]
           role_name = role["name"]
@@ -210,6 +216,7 @@ class Shop(commands.Cog):
             await update_player_role(interaction.user, role)
             result["success"] = True
             result["message"] = f"You have spent `{cost} points` and purchased the **{role_name}** role!\n\nType `/profile display` to check it out!"
+
         elif category == "styles":
           style = self.shop_data["styles"][purchase_record["page"]]
           style_name = style["name"]
@@ -233,7 +240,7 @@ class Shop(commands.Cog):
         set_player_score(interaction.user, -cost)
 
       return result
-    except BaseException:
+    except Exception:
       logger.info(traceback.format_exc())
 
 
@@ -441,36 +448,27 @@ class Shop(commands.Cog):
 # /_______  (____  /__| (____  /___  (____  /____  >\___  >
 #         \/     \/          \/    \/     \/     \/     \/
 
-def update_player_profile_photo(discord_id, photo):
-  """
-  update_player_profile_photo(discord_id, photo)
-
-  discord_id[required]: int
-  photo[required]: string
-
-  This function will update the profile_photo value for a specific user
-  """
-  logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new photo: {Fore.CYAN}{photo}{Fore.RESET}")
+async def purchase_player_photo(user, photo_name):
+  logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Photo: {Fore.CYAN}{photo_name}{Fore.RESET}")
   with AgimusDB() as query:
-    sql = "REPLACE INTO profile_photos (photo, user_discord_id) VALUES (%(photo)s, %(discord_id)s)"
-    vals = {"photo": photo, "discord_id" : discord_id}
+    sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
+    vals = (user.id, "photo", photo_name)
     query.execute(sql, vals)
 
 
-def update_player_profile_sticker(discord_id, sticker):
-  """
-  update_player_profile_sticker(discord_id, sticker)
-
-  discord_id[required]: int
-  sticker[required]: string
-  position[required]: string
-
-  This function will update the profile_sticker value for a specific user
-  """
-  logger.info(f"Updating user {Style.BRIGHT}{discord_id}{Style.RESET_ALL} with new sticker: {Fore.CYAN}{sticker}{Fore.RESET}")
+async def purchase_player_sticker(user, sticker_name):
+  logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Sticker: {Fore.CYAN}{sticker_name}{Fore.RESET}")
   with AgimusDB() as query:
-    sql = "REPLACE INTO profile_stickers (sticker, user_discord_id) VALUES (%(sticker)s, %(discord_id)s)"
-    vals = {"sticker":sticker, "discord_id":discord_id}
+    sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
+    vals = (user.id, "sticker", sticker_name)
+    query.execute(sql, vals)
+
+
+async def purchase_player_style(user, style_name):
+  logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Style: {Fore.CYAN}{style_name}{Fore.RESET}")
+  with AgimusDB() as query:
+    sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
+    vals = (user.id, "style", style_name)
     query.execute(sql, vals)
 
 
@@ -503,12 +501,4 @@ def add_high_roller(discord_id):
   with AgimusDB() as query:
     sql = "UPDATE users SET high_roller = 1 WHERE discord_id = %s"
     vals = (discord_id,)
-    query.execute(sql, vals)
-
-
-async def purchase_player_style(user, style_name):
-  logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Style: {Fore.CYAN}{style_name}{Fore.RESET}")
-  with AgimusDB() as query:
-    sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
-    vals = (user.id, "style", style_name)
     query.execute(sql, vals)

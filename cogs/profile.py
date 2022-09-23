@@ -46,6 +46,28 @@ def user_badges_autocomplete(ctx:discord.AutocompleteContext):
 
   return [result for result in user_badges if ctx.value.lower() in result.lower()]
 
+def user_photos_autocomplete(ctx:discord.AutocompleteContext):
+  user_photos = [s['item_name'] for s in db_get_user_profile_photos_from_inventory(ctx.interaction.user.id)]
+  if len(user_photos) == 0:
+    user_photos = ["You don't have any additional photos yet!"]
+    return user_photos
+
+  user_photos.sort()
+  user_photos.insert(0, '[CLEAR PHOTO]')
+
+  return [result for result in user_photos if ctx.value.lower() in result.lower()]
+
+def user_stickers_autocomplete(ctx:discord.AutocompleteContext):
+  user_stickers = [s['item_name'] for s in db_get_user_profile_stickers_from_inventory(ctx.interaction.user.id)]
+  if len(user_stickers) == 0:
+    user_stickers = ["You don't have any additional stickers yet!"]
+    return user_stickers
+
+  user_stickers.sort()
+  user_stickers.insert(0, '[CLEAR STICKER]')
+
+  return [result for result in user_stickers if ctx.value.lower() in result.lower()]
+
 def user_styles_autocomplete(ctx:discord.AutocompleteContext):
   user_styles = [s['item_name'] for s in db_get_user_profile_styles_from_inventory(ctx.interaction.user.id)]
   if len(user_styles) == 0:
@@ -56,19 +78,6 @@ def user_styles_autocomplete(ctx:discord.AutocompleteContext):
   user_styles.insert(0, 'Default')
 
   return [result for result in user_styles if ctx.value.lower() in result.lower()]
-
-
-def user_stickers_autocomplete(ctx:discord.AutocompleteContext):
-  user_stickers = [s['item_name'] for s in db_get_user_profile_stickers_from_inventory(ctx.interaction.user.id)]
-  user_stickers = [get_sticker_name_from_filename(s) for s in user_stickers]
-  if len(user_stickers) == 0:
-    user_stickers = ["You don't have any additional stickers yet!"]
-    return user_stickers
-
-  user_stickers.sort()
-  user_stickers.insert(0, '[CLEAR STICKER]')
-
-  return [result for result in user_stickers if ctx.value.lower() in result.lower()]
 
 # __________                _____.__.__         _________
 # \______   \_______  _____/ ____\__|  |   ____ \_   ___ \  ____   ____
@@ -322,7 +331,7 @@ class Profile(commands.Cog):
 
 
     # put polaroid on
-    if user["photo"]:
+    if user["photo"] and user["photo"] != "none":
       profile_photo = user['photo'].replace(" ", "_")
       photo_image = Image.open("./images/profiles/template_pieces/lcars/photo-frame.png").convert("RGBA")
       photo_content = Image.open(f"./images/profiles/polaroids/{profile_photo}.jpg").convert("RGBA")
@@ -446,50 +455,63 @@ class Profile(commands.Cog):
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile badge{Style.RESET_ALL} to: {Style.BRIGHT}\"{badge}\"{Style.RESET_ALL}")
 
 
+
   @profile.command(
-    name="set_style",
-    description="Set your PADD Style!"
+    name="set_photo",
+    description="Set your PADD Photo!"
   )
   @option(
-    name="style",
-    description="Your PADD style",
+    name="photo",
+    description="Your PADD photo",
     required=True,
-    autocomplete=user_styles_autocomplete
+    autocomplete=user_photos_autocomplete
   )
-  async def set_style(self, ctx:discord.ApplicationContext, style:str):
+  async def set_photo(self, ctx:discord.ApplicationContext, photo:str):
     """
-    This function is the main entrypoint of the `/profile set_style` command
-    set a user's PADD style for their profile out of a list of what they have available in their inventory
+    This function is the main entrypoint of the `/profile set_photo` command
+    set a user's PADD photo for their profile out of a list of what they have available in their inventory
     """
     # User selected the warning message, return as no-op
-    if style == "You don't have any additional styles yet!":
+    if photo == "You don't have any additional photos yet!":
       await ctx.respond(embed=discord.Embed(
         title="No Action Taken",
         color=discord.Color.red(),
       ), ephemeral=True)
       return
 
-    # Check to make sure they own the style
-    user_styles = [s['item_name'] for s in db_get_user_profile_styles_from_inventory(ctx.author.id)] + ['Default']
-    if style not in user_styles:
+    # Remove photo if desired by user
+    remove = bool(photo == '[CLEAR PHOTO]')
+    if remove:
+      db_update_user_profile_photo(ctx.author.id, "none")
       await ctx.respond(embed=discord.Embed(
-        title="Unable To Set Featured PADD Style",
-        description="You don't appear to own that style yet!",
+        title="Cleared Profile Photo",
+        color=discord.Color.green(),
+      ), ephemeral=True)
+      logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their profile photo!{Style.RESET_ALL}")
+      return
+
+    # Check to make sure they own the photo
+    user_photos = [s['item_name'] for s in db_get_user_profile_photos_from_inventory(ctx.author.id)] + ['None']
+    if photo not in user_photos:
+      await ctx.respond(embed=discord.Embed(
+        title="Unable To Set Featured PADD Photo",
+        description="You don't appear to own that photo yet!",
         color=discord.Color.red()
       ), ephemeral=True)
       return
 
-    # If it looks good, go ahead and change the style
-    db_update_user_profile_style(ctx.author.id, style)
+    # If it looks good, go ahead and change the sticker
+    db_update_user_profile_photo(ctx.author.id, photo)
     await ctx.respond(
       embed=discord.Embed(
-        title="Your profile PADD style has been updated!",
-        description=f"You've successfully set your PADD style as \"{style}\"\n\nUse `/profile display` to check it out!",
+        title="Your profile PADD photo has been updated!",
+        description=f"You've successfully set your PADD photo as \"{photo}\"\n\nUse `/profile display` to check it out!",
         color=discord.Color.green()
       ),
       ephemeral=True
     )
-    logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile style{Style.RESET_ALL} to: {Style.BRIGHT}\"{style}\"{Style.RESET_ALL}")
+    logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile photo{Style.RESET_ALL} to: {Style.BRIGHT}\"{photo}\"{Style.RESET_ALL}")
+
 
   @profile.command(
     name="set_sticker",
@@ -547,6 +569,53 @@ class Profile(commands.Cog):
     )
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile sticker{Style.RESET_ALL} to: {Style.BRIGHT}\"{sticker}\"{Style.RESET_ALL}")
 
+
+  @profile.command(
+    name="set_style",
+    description="Set your PADD Style!"
+  )
+  @option(
+    name="style",
+    description="Your PADD style",
+    required=True,
+    autocomplete=user_styles_autocomplete
+  )
+  async def set_style(self, ctx:discord.ApplicationContext, style:str):
+    """
+    This function is the main entrypoint of the `/profile set_style` command
+    set a user's PADD style for their profile out of a list of what they have available in their inventory
+    """
+    # User selected the warning message, return as no-op
+    if style == "You don't have any additional styles yet!":
+      await ctx.respond(embed=discord.Embed(
+        title="No Action Taken",
+        color=discord.Color.red(),
+      ), ephemeral=True)
+      return
+
+    # Check to make sure they own the style
+    user_styles = [s['item_name'] for s in db_get_user_profile_styles_from_inventory(ctx.author.id)] + ['Default']
+    if style not in user_styles:
+      await ctx.respond(embed=discord.Embed(
+        title="Unable To Set Featured PADD Style",
+        description="You don't appear to own that style yet!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+    # If it looks good, go ahead and change the style
+    db_update_user_profile_style(ctx.author.id, style)
+    await ctx.respond(
+      embed=discord.Embed(
+        title="Your profile PADD style has been updated!",
+        description=f"You've successfully set your PADD style as \"{style}\"\n\nUse `/profile display` to check it out!",
+        color=discord.Color.green()
+      ),
+      ephemeral=True
+    )
+    logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile style{Style.RESET_ALL} to: {Style.BRIGHT}\"{style}\"{Style.RESET_ALL}")
+
+
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
 #  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
@@ -580,6 +649,57 @@ def db_add_user_profile_badge(user_id, badge_filename):
     vals = {"badge_filename" : badge_filename, "user_discord_id" : user_id}
     query.execute(sql, vals)
 
+# Photos
+def db_get_user_profile_photos_from_inventory(user_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT * FROM profile_inventory WHERE user_discord_id = %s AND item_category = 'photo'"
+    vals = (user_id,)
+    query.execute(sql, vals)
+    results = query.fetchall()
+  return results
+
+def db_get_user_profile_photo(user_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT photo FROM profile_photos WHERE user_discord_id = %s"
+    vals = (user_id,)
+    query.execute(sql, vals)
+    result = query.fetchone()
+  if result:
+    return result['style']
+  else:
+    return 'Default'
+
+def db_update_user_profile_photo(user_id, photo):
+  with AgimusDB() as query:
+    sql = "REPLACE INTO profile_photos (photo, user_discord_id) VALUES (%(photo)s, %(user_discord_id)s)"
+    vals = {"photo" : photo.lower(), "user_discord_id" : user_id}
+    query.execute(sql, vals)
+
+# Stickers
+def db_get_user_profile_stickers_from_inventory(user_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT * FROM profile_inventory WHERE user_discord_id = %s AND item_category = 'sticker'"
+    vals = (user_id,)
+    query.execute(sql, vals)
+    results = query.fetchall()
+  return results
+
+def db_get_user_profile_sticker(user_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT sticker FROM profile_stickers WHERE user_discord_id = %s"
+    vals = (user_id,)
+    query.execute(sql, vals)
+    result = query.fetchone()
+  return result['sticker']
+
+def db_update_user_profile_sticker(user_id, sticker):
+  if sticker != 'none':
+    sticker = get_sticker_filename_from_name(sticker)
+  with AgimusDB() as query:
+    sql = "REPLACE INTO profile_stickers (sticker, user_discord_id) VALUES (%(sticker)s, %(user_discord_id)s)"
+    vals = {"sticker" : sticker, "user_discord_id" : user_id}
+    query.execute(sql, vals)
+
 # Styles
 def db_get_user_profile_styles_from_inventory(user_id):
   with AgimusDB(dictionary=True) as query:
@@ -606,27 +726,3 @@ def db_update_user_profile_style(user_id, style):
     vals = {"style" : style, "user_discord_id" : user_id}
     query.execute(sql, vals)
 
-# Stickers
-def db_get_user_profile_stickers_from_inventory(user_id):
-  with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM profile_inventory WHERE user_discord_id = %s AND item_category = 'sticker'"
-    vals = (user_id,)
-    query.execute(sql, vals)
-    results = query.fetchall()
-  return results
-
-def db_get_user_profile_sticker(user_id):
-  with AgimusDB(dictionary=True) as query:
-    sql = "SELECT style FROM profile_stickers WHERE user_discord_id = %s"
-    vals = (user_id,)
-    query.execute(sql, vals)
-    result = query.fetchone()
-  return result['sticker']
-
-def db_update_user_profile_sticker(user_id, sticker):
-  if sticker != 'none':
-    sticker = get_sticker_filename_from_name(sticker)
-  with AgimusDB() as query:
-    sql = "REPLACE INTO profile_stickers (sticker, user_discord_id) VALUES (%(sticker)s, %(user_discord_id)s)"
-    vals = {"sticker" : sticker, "user_discord_id" : user_id}
-    query.execute(sql, vals)
