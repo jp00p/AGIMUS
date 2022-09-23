@@ -821,56 +821,79 @@ async def _cancel_invalid_scrapped_trades(trades_to_cancel):
   description="Look up information about a specific badge"
 )
 @option(
+  name="public",
+  description="Show to public?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="No",
+      value="no"
+    ),
+    discord.OptionChoice(
+      name="Yes",
+      value="yes"
+    )
+  ]
+)
+@option(
   name="name",
   description="Which badge do you want to look up?",
   required=True,
   autocomplete=all_badges_autocomplete
 )
-async def badge_lookup(ctx:discord.ApplicationContext, name:str):
+async def badge_lookup(ctx:discord.ApplicationContext, public:str, name:str):
   """
   This function executes the lookup for the /badge lookup command
   :param ctx:
   :param name: The name of the badge to be looked up.
   :return:
   """
-  try:
-    logger.info(f"{Fore.CYAN}Firing /badge lookup command for '{name}'!{Fore.RESET}")
-    badge = db_get_badge_info_by_name(name)
-    badge_count = db_get_badge_count_by_filename(badge['badge_filename'])
-    if (badge):
-      affiliations = [
-        a['affiliation_name']
-        for a in db_get_badge_affiliations_by_badge_name(name)
-      ]
-      types = [
-        t['type_name']
-        for t in db_get_badge_types_by_badge_name(name)
-      ]
+  public = bool(public == "yes")
+  await ctx.defer(ephemeral=not public)
 
-      description = f"Quadrant: **{badge['quadrant']}**\n"
-      description += f"Time Period: **{badge['time_period']}**\n"
-      if affiliations:
-        description += f"Affiliations: **{', '.join(affiliations)}**\n"
-      if types:
-        description += f"Types: **{', '.join(types)}**\n"
-      description += f"Franchise: **{badge['franchise']}**\n"
-      description += f"Reference: **{badge['reference']}**\n\n"
-      description += f"Total number collected on The USS Hood: **{badge_count}**\n\n"
-      description += f"{badge['badge_url']}"
+  logger.info(f"{Fore.CYAN}Firing /badge lookup command for '{name}'!{Fore.RESET}")
 
-      embed = discord.Embed(
-        title=f"{badge['badge_name']}",
-        description=description,
-        color=discord.Color.random() # jp00p made me do it
-      )
-      discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'].replace(',','_'))
-      embed.set_image(url=f"attachment://{badge['badge_filename'].replace(',','_')}")
-      await ctx.send_response(embed=embed, file=discord_image, ephemeral=True)
+  if badge not in [b['badge_name'] for b in all_badge_info]:
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Could Not Find This Badge",
+        description=f"**{name}** does not appear to exist",
+        color=discord.Color.red()
+      ), ephemeral=True
+    )
+    return
 
-    else:
-      await ctx.respond("Could not find this badge.\n")
-  except Exception as e:
-    logger.info(f">>> ERROR: {e}")
+  badge = db_get_badge_info_by_name(name)
+  badge_count = db_get_badge_count_by_filename(badge['badge_filename'])
+
+  affiliations = [
+    a['affiliation_name']
+    for a in db_get_badge_affiliations_by_badge_name(name)
+  ]
+  types = [
+    t['type_name']
+    for t in db_get_badge_types_by_badge_name(name)
+  ]
+
+  description = f"Quadrant: **{badge['quadrant']}**\n"
+  description += f"Time Period: **{badge['time_period']}**\n"
+  if affiliations:
+    description += f"Affiliations: **{', '.join(affiliations)}**\n"
+  if types:
+    description += f"Types: **{', '.join(types)}**\n"
+  description += f"Franchise: **{badge['franchise']}**\n"
+  description += f"Reference: **{badge['reference']}**\n\n"
+  description += f"Total number collected on The USS Hood: **{badge_count}**\n\n"
+  description += f"{badge['badge_url']}"
+
+  embed = discord.Embed(
+    title=f"{badge['badge_name']}",
+    description=description,
+    color=discord.Color.random() # jp00p made me do it
+  )
+  discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'].replace(',','_'))
+  embed.set_image(url=f"attachment://{badge['badge_filename'].replace(',','_')}")
+  await ctx.followup.send(embed=embed, file=discord_image, ephemeral=not public)
 
 
 #   _________ __          __  .__          __  .__

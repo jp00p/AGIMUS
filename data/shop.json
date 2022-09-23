@@ -211,5 +211,22 @@
       "preview_url": "https://i.imgur.com/eo5jsUF.jpg",
       "file": "TGG_TNG_logo.jpg"
     }
+  ],
+  "styles": [
+    {
+      "name": "Latinum",
+      "price": 50000,
+      "preview_url": "https://i.imgur.com/u5Do84K.jpg"
+    },
+    {
+      "name": "Phased",
+      "price": 2500,
+      "preview_url": "https://i.imgur.com/0yKyQYy.jpg"
+    },
+    {
+      "name": "T-88",
+      "price": 9999,
+      "preview_url": "https://i.imgur.com/r9fXKIV.jpg"
+    }
   ]
 }

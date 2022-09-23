@@ -1355,7 +1355,7 @@ def db_remove_badge_from_trade_offer(active_trade, badge_name):
     '''
     vals = (active_trade_id, badge_name)
     query.execute(sql, vals)
-  
+
 def db_add_badge_to_trade_request(active_trade, badge_name):
   active_trade_id = active_trade["id"]
 
@@ -1366,7 +1366,7 @@ def db_add_badge_to_trade_request(active_trade, badge_name):
     '''
     vals = (active_trade_id, badge_name)
     query.execute(sql, vals)
-  
+
 def db_remove_badge_from_trade_request(active_trade, badge_name):
   active_trade_id = active_trade["id"]
   with AgimusDB(dictionary=True) as query:
