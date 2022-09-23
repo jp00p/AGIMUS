@@ -234,7 +234,7 @@ class Shop(commands.Cog):
           else:
             await purchase_player_style(interaction.user, style_name)
             result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{style_name}** role!\n\nType `/profile display` to check it out!"
+            result["message"] = f"You have spent `{cost} points` and purchased the **{style_name}** profile style!\n\nType `/profile set_style` to enable it, then `/profile display` to show it off!"
 
       if result["success"]:
         set_player_score(interaction.user, -cost)

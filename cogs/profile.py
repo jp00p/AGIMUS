@@ -79,6 +79,11 @@ def user_styles_autocomplete(ctx:discord.AutocompleteContext):
 
   return [result for result in user_styles if ctx.value.lower() in result.lower()]
 
+def photo_filters_autocomplete(ctx:discord.AutocompleteContext):
+  filters = Profile.filters
+  return ['random', 'none'] + filters  
+  
+
 # __________                _____.__.__         _________
 # \______   \_______  _____/ ____\__|  |   ____ \_   ___ \  ____   ____
 #  |     ___/\_  __ \/  _ \   __\|  |  | _/ __ \/    \  \/ /  _ \ / ___\
@@ -86,10 +91,9 @@ def user_styles_autocomplete(ctx:discord.AutocompleteContext):
 #  |____|     |__|   \____/|__|  |__|____/\___  >\______  /\____/\___  /
 #                                             \/        \/      /_____/
 class Profile(commands.Cog):
+  filters = ["_1977", "aden", "brannan", "brooklyn", "clarendon", "earlybird", "gingham", "hudson", "inkwell", "kelvin", "lark", "lofi", "maven", "mayfair", "moon", "nashville", "perpetua", "reyes", "rise", "slumber", "stinson", "toaster", "valencia", "walden", "willow", "xpro2"]
   def __init__(self, bot):
     self.bot = bot
-
-    self.filters = ["_1977", "aden", "brannan", "brooklyn", "clarendon", "earlybird", "gingham", "hudson", "inkwell", "kelvin", "lark", "lofi", "maven", "mayfair", "moon", "nashville", "perpetua", "reyes", "rise", "slumber", "stinson", "toaster", "valencia", "walden", "willow", "xpro2"]
 
   profile = discord.SlashCommandGroup("profile", "Commands for displaying and customizing your profile")
 
@@ -336,8 +340,13 @@ class Profile(commands.Cog):
       photo_image = Image.open("./images/profiles/template_pieces/lcars/photo-frame.png").convert("RGBA")
       photo_content = Image.open(f"./images/profiles/polaroids/{profile_photo}.jpg").convert("RGBA")
 
-      photo_filter = getattr(pilgram, random.choice(self.filters))
-      photo_content = photo_filter(photo_content).convert("RGBA")
+      user_filter = db_get_user_profile_photo_filter(ctx.author.id)       
+      if user_filter:
+        if user_filter != 'random':
+          photo_filter = getattr(pilgram, user_filter)
+        else:
+          photo_filter = getattr(pilgram, random.choice(Profile.filters))
+        photo_content = photo_filter(photo_content).convert("RGBA")
 
       photo_content.thumbnail((263, 200), Image.ANTIALIAS)
       photo_content = photo_content.crop((0,0,200,200))
@@ -453,7 +462,6 @@ class Profile(commands.Cog):
       ephemeral=True
     )
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile badge{Style.RESET_ALL} to: {Style.BRIGHT}\"{badge}\"{Style.RESET_ALL}")
-
 
 
   @profile.command(
@@ -615,6 +623,25 @@ class Profile(commands.Cog):
     )
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile style{Style.RESET_ALL} to: {Style.BRIGHT}\"{style}\"{Style.RESET_ALL}")
 
+  @profile.command(
+    name="set_photo_filter",
+    description="Set your PADD photo filter!"
+  )
+  @option(
+    name="filter",
+    description="The photo filter you want applied to your profile photo",
+    required=True,
+    autocomplete=photo_filters_autocomplete
+  )
+  async def set_photo_filter(self, ctx:discord.ApplicationContext, filter:str):
+    """ allows a user to set their own instagram-style photo filter on their profile photo """
+    filter = filter.lower()
+    if filter not in Profile.filters and filter not in ['random', 'none']:
+      await ctx.respond("What the devil is going on here, Q", ephemeral=True)
+    else:
+      db_update_user_profile_photo_filter(ctx.author.id, filter)
+      await ctx.respond(f"Your profile photo filter has been changed to **{filter}**!", ephemeral=True)
+    logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their photo filter{Style.RESET_ALL} to: {Style.BRIGHT}\"{filter}\"{Style.RESET_ALL}")
 
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
@@ -726,3 +753,23 @@ def db_update_user_profile_style(user_id, style):
     vals = {"style" : style, "user_discord_id" : user_id}
     query.execute(sql, vals)
 
+# photo filters
+def db_get_user_profile_photo_filter(user_id:int):
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT filter FROM profile_photo_filters WHERE user_discord_id = %s"
+    vals = (user_id,)
+    query.execute(sql, vals)
+    result = query.fetchone()
+  if result:
+    if str(result['filter']).lower() == 'none':
+      return None
+    else:
+      return str(result['filter']).lower()
+  else:
+    return 'random'
+
+def db_update_user_profile_photo_filter(user_id:int, filter:str):
+  with AgimusDB() as query:
+    sql = "REPLACE INTO profile_photo_filters (filter, user_discord_id) VALUES (%(filter)s, %(user_discord_id)s)"
+    vals = {"filter" : filter.lower(), "user_discord_id" : user_id}
+    query.execute(sql,vals)
