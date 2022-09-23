@@ -58,11 +58,12 @@ class MoveButton(discord.ui.Button):
     )
 
   async def callback(self, interaction:discord.Interaction):
-    temp_list = self.you.active_poshimo.move_list
-    move_in_list:PoshimoMove = temp_list.index(self.move)
+    """ reduce this move's stamina by one and add the move to the queue! """
+    temp_list:List[PoshimoMove] = self.you.active_poshimo.move_list
+    move_in_list:int = temp_list.index(self.move)
     temp_list[move_in_list].stamina -= 1
-    self.battle.enqueue_move(self.move)
-    self.you.active_poshimo.move_list = temp_list
+    self.battle.enqueue_move(self.move, self.you)
+    self.you.active_poshimo.move_list = temp_list # update stamina
     await interaction.response.send_message(content=f"Nice, you clicked {self.label}", ephemeral=True)
 
 class ActionButton(discord.ui.Button):

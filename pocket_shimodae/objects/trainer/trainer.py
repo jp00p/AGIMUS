@@ -269,13 +269,20 @@ class PoshimoTrainer(object):
     return all_poshimo
 
   def pick_move(self) -> PoshimoMove:
+    """ 
+    pick a random move from the available moves
+    used by NPCs
+    """
     possible_moves = []
     for move in self.active_poshimo.move_list:
       if move.stamina > 0:
         possible_moves.append(move)
     
     if len(possible_moves) < 1:
-      return PoshimoMove(name="struggle")
+      move = PoshimoMove(name="struggle")
+    else:
+      move = random.choice(possible_moves)
+    logger.info(f"NPC has picked {move.display_name}!")
     return move
 
   def remove_poshimo(self, poshimo):

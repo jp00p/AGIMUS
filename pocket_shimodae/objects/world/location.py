@@ -37,5 +37,5 @@ class PoshimoLocation:
     return f"{self.biome} {self.name} {self.weather}"
 
   def set_weather(self, weather_choice):
-    self.weather = weather_choice
-    logger.info(f"Weather in {self.name} has been changed to {self.weather.name}")
+    self.weather:Weather = weather_choice
+    logger.info(f"{Fore.CYAN}Weather{Fore.RESET} in {Style.BRIGHT}{self.name}{Style.RESET_ALL} has been changed to {Fore.LIGHTYELLOW_EX}{self.weather.name}{Fore.RESET}")

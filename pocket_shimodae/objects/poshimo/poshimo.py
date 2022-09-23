@@ -3,54 +3,45 @@ from common import *
 from math import sqrt, floor, log10
 from typing import List
 import csv
-from . import PoshimoMove, PoshimoPersonality, PoshimoType, PoshimoStat
+from ..poshimo import PoshimoMove,PoshimoPersonality, PoshimoType, PoshimoStat
+
 
 MAX_POSHIMO_LEVEL = 99
 
 with open("pocket_shimodae/data/shimodaepedia.csv") as file:
   # load the base poshimo data from file
+  # will eventually get merged with DB data for "real" poshimo
   csvdata = csv.DictReader(file)
   pdata = {}
-  for id,row in enumerate(csvdata):
+  for row in csvdata:
     pdata[row["name"].lower()] = {
-      "name" : row["name"],
-      "dex_id" : id,
-      "type_1" : row["type_1"],
-      "type_2" : row["type_2"],
-      "attack" : (row["attack"],0),
-      "defense" : (row["defense"],0),
-      "special_attack" : (row["special_attack"],0),
-      "special_defense" : (row["special_defense"],0),
-      "speed" : (row["speed"],0),
-      "hp" : row["hp"],
+      "name" : row.get("name", ""),
+      "dex_id" : row.get("id", 0),
+      "type_1" : row.get("type_1", ""),
+      "type_2" : row.get("type_2", ""),
+      "attack" : (row.get("attack", 0),0),
+      "defense" : (row.get("defense", 0),0),
+      "special_attack" : (row.get("special_attack", 0),0),
+      "special_defense" : (row.get("special_defense", 0),0),
+      "speed" : (row.get("speed", 0),0),
+      "hp" : row.get("hp",0),
       "move_list" : [
-        row["move_1"].lower(), 
-        row["move_2"].lower(), 
-        row["move_3"].lower(), 
-        row["move_4"].lower()
+        row.get("move_1","").lower(), 
+        row.get("move_2","").lower(), 
+        row.get("move_3","").lower(), 
+        row.get("move_4","").lower()
       ]
     }
-  logger.info(f"Poshimo data loaded!")
+  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo data loaded!{Fore.RESET}{Back.RESET}")
 
 class Poshimo(object):
-  """
-  A Pocket Shimoda!\n
-  We couldn't have a game without these.
-  You do not create these from scratch, they are predefined in the CSV or DB.\n
+  """A Pocket Shimoda!
   ----
+  We couldn't have a game without these.
 
-  1. Get a specific Poshimo's base data or generate one for an NPC:
-    `Poshimo(name="pikachu")` 
-    or 
-    `Poshimo(name="pikachu", level=5)`
-  
-  2. Load a Poshimo from DB:
-    `Poshimo(id=12)`
- 
-  3. Get a random Poshimo:
-    `Poshimo()` or `Poshimo(level=15)`
+  You do not create these from scratch, they are predefined in the CSV and DB.
   """
-  
+
   def __init__(self, name:str=None, level:int=1, id:int=None, owner:int=None, is_wild:bool=False):
     self.id:int = id
     self.name:str = name
@@ -92,6 +83,8 @@ class Poshimo(object):
       self.load()
       self._owner = self.poshimodata["owner"]
     
+    # poshimodata should be fully loaded now, if not ... wha happen???
+
     self._level = 1#self.poshimodata["level"]
     self._name = self.poshimodata["name"]
     self._display_name = self.poshimodata.get("display_name")
@@ -113,7 +106,7 @@ class Poshimo(object):
     self._hp = self._max_hp
     
     self._xp = 0
-
+    self._last_damaging_move:PoshimoMove = None
   
     self.status = None # TODO: Statuses      
 
@@ -154,12 +147,12 @@ class Poshimo(object):
       '''
       vals = (self.id,)
       query.execute(sql, vals)
-      results = query.fetchone()
+      results:dict = query.fetchone()
     self.poshimodata = dict(results)
-    temp_pdata = pdata[results["name"].lower()] # load poshimo data from file
-    temp_pdata["id"] = results["id"] # gotta update the original ID from the poshimodex
+    temp_pdata = pdata.get(results["name"], "").lower() # load poshimo data from file
+    temp_pdata["id"] = results.get("id", 0) # gotta update the original ID from the poshimodex
     self.poshimodata.update(temp_pdata) # merge with db info (so its not a base poshimo)
-    self._move_list = self.load_move_list(results["move_list"]) # unpack json moves
+    self._move_list = self.load_move_list(results.get("move_list")) # unpack json moves
     logger.info(f"Loaded poshimo: {Fore.GREEN}{self.poshimodata}{Fore.RESET}")
   
   def save(self) -> int:
@@ -353,6 +346,7 @@ class Poshimo(object):
       for stat in stats_to_display:
         stats[stat] = getattr(self, stat)
     # add hp.max_hp to our stats list
+    logger.info(stats)
     stats["hp"] = f"{self.hp}/{self.max_hp}"
     return stats
 
@@ -401,13 +395,6 @@ class Poshimo(object):
         logger.info(f"Loading {move['name']} from DB: {dbmove}")
         temp_move_list.append(dbmove)
     return temp_move_list
-
-
-  def apply_move(self, move:PoshimoMove) -> str:
-    # apply damage, effects, status from a move to this poshimo
-    # returns a string for log lines
-    return f"{self.display_name} uses {move.display_name}! it does something!"
-    
 
 
 """ from ultranurd 

@@ -83,7 +83,7 @@ class PoshimoWorld(object):
     }
 
     self.set_weather() # set the initial weather on load
-    logger.info(f"Poshimo World loaded!")
+    logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo world loaded!{Fore.RESET}{Back.RESET}")
     # end of init
 
 

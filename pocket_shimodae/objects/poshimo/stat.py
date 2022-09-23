@@ -31,4 +31,4 @@ class PoshimoStat(object):
     return json.dumps([int(self.stat_value), int(self.stage)])
 
   def __repr__(self) -> str:
-    return self.value()
+    return str(self.value())

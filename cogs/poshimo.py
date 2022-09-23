@@ -131,6 +131,10 @@ class PocketShimodae(commands.Cog):
   )
   async def hunt(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
-    hunt = self.game.start_hunt(ctx.author.id)
-    initial_turn = battle.BattleTurn(self, hunt)
-    await ctx.followup.send(embed=initial_turn.get_embed(), view=initial_turn)
+    trainer = utils.get_trainer(ctx.author.id)
+    if trainer.status is TrainerStatus.BATTLING:
+      await ctx.followup.send("You're already in combat, you can't start another hunt!")
+    else:
+      hunt = self.game.start_hunt(ctx.author.id)
+      initial_turn = battle.BattleTurn(self, hunt)
+      await ctx.followup.send(embed=initial_turn.get_embed(), view=initial_turn)

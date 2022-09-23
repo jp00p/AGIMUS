@@ -1,8 +1,10 @@
 from common import *
-from typing import List
+from math import floor
+from typing import List, Tuple
 from enum import Enum
+from pocket_shimodae.objects.battle import effect
 import pocket_shimodae.utils as utils
-from ..poshimo import Poshimo, PoshimoMove
+from ..poshimo import Poshimo, PoshimoMove, MoveKinds, MoveTargets
 from ..trainer import PoshimoTrainer, TrainerStatus
 
 class BattleStates(Enum):
@@ -21,7 +23,7 @@ class PoshimoBattle(object):
     self.id:int = id
     self._battle_type:BattleTypes = battle_type
     self.trainers:List[PoshimoTrainer] = [trainer_1, trainer_2] # trainer 1 should always be the initiator of the battle, trainer 2 is optional and will be a dummy trainer if not specified
-    self._queued_moves:List[PoshimoMove] = [] 
+    self._queued_moves:List[Tuple[PoshimoMove,PoshimoTrainer]] = [] 
     self._state:BattleStates = BattleStates.ACTIVE
     self._current_turn:int = 0
     self._round:int = 1
@@ -65,7 +67,7 @@ class PoshimoBattle(object):
   @current_turn.setter
   def current_turn(self, val:int):
     self._current_turn = val
-    self.update("turn", self._current_turn)
+    self.update("current_turn", self._current_turn)
 
   @property
   def round(self) -> int:
@@ -108,18 +110,22 @@ class PoshimoBattle(object):
     if not self.id:
       return
     with AgimusDB() as query:
-      sql = "UPDATE poshimo_battles SET %s = %s WHERE id = %s"
-      vals = (col, val, self.id)
+      sql = f"UPDATE poshimo_battles SET {col} = %s WHERE id = %s;"
+      vals = (val, self.id)
       query.execute(sql, vals)
       logger.info(f"Updated poshimo battle #{self.id}'s {col} with value {val}")
   
   def start(self) -> int:
-    """ 
-    register this battle in the database 
-    returns the battle ID
     """
+    begin a new battle! 
+
+    register this battle in the database 
+
+    returns the new battle's ID
+    """
+
     for trainer in self.trainers:
-      trainer.status = TrainerStatus.BATTLING
+      trainer.status = TrainerStatus.BATTLING # set trainers to battling
     
     with AgimusDB() as query:
       sql = """INSERT INTO poshimo_battles (battle_type,trainer_1,trainer_2,wild_poshimo) VALUES (%s, %s, %s, %s)"""
@@ -165,65 +171,129 @@ class PoshimoBattle(object):
     self.current_turn += 1   
     self.turn_start() # apply status effects
     self.handle_actions() # if someone used an action, these happen first
-    self.handle_moves() # process move effects
+    self.handle_moves() # process moves
     self.turn_end() # more status effects
 
   def turn_start(self):
+    self.add_log(f"Turn {self.current_turn} starts!")
     self.process_statuses(start=True)
 
   def turn_end(self):
+    self.add_log(f"Turn {self.current_turn} is over!")
     self.process_statuses(end=True)
-    pass
 
   def handle_actions(self):
-    # add logs
     pass
 
   def handle_moves(self):
-    # add logs
     """ process moves in order based on speed """
-    first_move,target = self.calculate_speed()
-    move = self._queued_moves.pop(first_move)
-    target = self.trainers[target].active_poshimo
-    results = target.apply_move(move)
-    logger.info(results)
-    self.add_log(results)
-
-    second_target = 1
-    if target == 1:
-      second_target = 0
     
-    second_move = self._queued_moves.pop()
-    target = self.trainers[second_target].active_poshimo
-    results = target.apply_move(second_move)
-    logger.info(results)
-    self.add_log(results)
+    self.calculate_speed() # determine which move goes first
+    final_moves:List[Tuple[PoshimoMove, PoshimoTrainer, PoshimoTrainer]] = []
 
-  def calculate_speed(self) -> tuple:
-    """ 
-    returns a tuple (1,0) the first number being who goes first, second being their target
-    using these numbers to access index in queued_moves and self.trainers 
-    """
-    posh1,posh2 = self.trainers[0].active_poshimo,self.trainers[1].active_poshimo
-    if posh1.speed > posh2.speed:
-      return (0,1)
-    return (1,0)
+    # first move
+    move1,trainer1 = self._queued_moves[0]
+    target1 = self._queued_moves[1][1]
+    final_moves.append((move1, target1, trainer1))
 
-  def enqueue_move(self, move:PoshimoMove):
-    self._queued_moves.append(move)
+    # second move!
+    move2,trainer2 = self._queued_moves[1]
+    target2 = self._queued_moves[0][1]
+    final_moves.append((move2, target2, trainer2))
+
+    # now we have both moves in order, apply them to each poshimo in order!
+    for move,target,trainer in final_moves:
+      results = target.active_poshimo.apply_move(move, trainer)
+      logger.info(results)
+      self.add_log(results)
+
+    self._queued_moves = [] # empty the queue
+    
+
+  def calculate_speed(self) -> None:
+    """ updates queued_moves to be in the order they should happen """
+    #TODO: some moves happen first regardless of speed
+    move1,move2 = self._queued_moves[0][0], self._queued_moves[0][0]
+    posh1,posh2 = self._queued_moves[0][1].active_poshimo, self._queued_moves[1][1].active_poshimo
+    trainer1,trainer2 = self._queued_moves[0][1], self._queued_moves[1][1]
+    
+    if posh1.speed.value() > posh2.speed.value():
+      self._queued_moves = [(move1, trainer1), (move2, trainer2)]
+    else:
+      self._queued_moves = [(move2, trainer2), (move1, trainer1)]
+
+  def enqueue_move(self, move:PoshimoMove, trainer:PoshimoTrainer):
+    """ add a move to the queue. once the queue is full, the turn will process """
+    self._queued_moves.append((move, trainer))
     
     if self.battle_type == BattleTypes.HUNT:
       # pick computer move if this is a hunt
-      self._queued_moves.append(self.trainers[1].pick_move())
+      self._queued_moves.append((self.trainers[1].pick_move(), self.trainers[1]))
     
     if len(self._queued_moves) == len(self.trainers):
       # everyone has input their moves, let's roll
       self.do_turn()
 
   def process_statuses(self,start=False,end=False):
+    """ figure out if any poshimo need to deal with status effects """
     # add logs
     if start:
       pass # handle beginning of turn status
     if end:
       pass # handle end of turn status
 
+  def apply_move(self, move:PoshimoMove, target:PoshimoTrainer, inflictor:PoshimoTrainer) -> str:
+    """
+    apply damage, effects, status from a move to a poshimo!
+    this is the big kahuna
+    this is where all the magic happens
+    """
+    # TODO:multiple hits
+    # TODO:accuracy
+    # TODO:keep track of last damaging move used against this poshimo
+    # TODO:weather mods?
+    # TODO:special stuff???
+    # TODO:AHHH
+    
+    poshimo = inflictor.active_poshimo # the poshimo doing the move
+    victim = target.active_poshimo # the poshimo taking the move
+    
+    if move.kind is MoveKinds.STATUS:
+      damage = 0
+    else:
+      # calculate the damage for this move!
+      critical_hit = bool( min(255,int(floor(poshimo.speed/2))) > random.randint(0,256) ) # if speed/2 is greater than random(0,256) then the move is a crit - speed/2 can't be greater than 255
+      damage, attack, defense = 0, 0, 0
+      damage_modifier = 1
+      
+      if critical_hit:
+        damage_modifier *= 1.5
+
+      # random fluctuation in every attack
+      damage_modifier *= random.uniform(0.85, 1.0)
+
+      # STAB bonus (Same-Type-Attack-Bonus)
+      # if a move is the same type as the poshimo it's hitting
+      if move.type in victim.types:
+        damage_modifier *= 1.5
+      
+      power = move.power
+
+      if move.kind == MoveKinds.SPECIAL:
+        attack = poshimo.special_attack
+        defense = victim.special_defense
+      elif move.kind == MoveKinds.PHYSICAL:
+        attack = poshimo.attack
+        defense = victim.defense
+
+      damage = (floor(floor(floor(((2 * poshimo.level) / 5) + 2) * attack * power / defense) / 50) + 2) # the base damage formula from pokemon
+      damage = floor(damage * damage_modifier)
+
+    for func in move.function_codes:
+      # figure out which functions to call
+      effect_function = getattr(victim,func)
+      if effect_function:
+        effect_function() # not victim.effect_function() ?
+      
+
+    #line = f"{inflictor.id} used {move.display_name} on {self.display_name}!"

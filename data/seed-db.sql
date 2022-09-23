@@ -287,7 +287,7 @@ CREATE TABLE IF NOT EXISTS poshimo_battles (
   trainer_1 INT(11) NOT NULL,  
   trainer_2 VARCHAR(128) NULL, 
   wild_poshimo INT(11) NULL,
-  turn INT(11) NOT NULL DEFAULT 0,
+  current_turn INT(11) NOT NULL DEFAULT 0,
   state INT(11) NOT NULL DEFAULT 0,
   outcome VARCHAR(128) NULL,
   time_started TIMESTAMP DEFAULT current_timestamp(),
