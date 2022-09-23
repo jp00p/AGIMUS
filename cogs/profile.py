@@ -68,7 +68,7 @@ class Profile(commands.Cog):
 
     # clean up username
     user_name = f"{member.display_name}"
-    user_name_encode = user_name.encode("ascii", errors="ignore")
+    user_name_encode = user_name.encode("utf-8", errors="ignore")
     user_name = user_name_encode.decode().strip()
 
     # get rank
@@ -319,7 +319,7 @@ class Profile(commands.Cog):
       )
       logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their tagline!{Style.RESET_ALL}")
     else:
-      tagline = tagline[0:38].encode("ascii", errors="ignore").decode().strip()
+      tagline = tagline[0:38].encode("utf-8").decode().strip()
       db_add_user_profile_tagline(ctx.author.id, tagline)
       await ctx.respond(
         embed=discord.Embed(
