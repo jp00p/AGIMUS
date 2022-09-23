@@ -81,8 +81,8 @@ def user_styles_autocomplete(ctx:discord.AutocompleteContext):
 
 def photo_filters_autocomplete(ctx:discord.AutocompleteContext):
   filters = Profile.filters
-  return ['random', 'none'] + filters  
-  
+  return ['random', 'none'] + filters
+
 
 # __________                _____.__.__         _________
 # \______   \_______  _____/ ____\__|  |   ____ \_   ___ \  ____   ____
@@ -340,7 +340,7 @@ class Profile(commands.Cog):
       photo_image = Image.open("./images/profiles/template_pieces/lcars/photo-frame.png").convert("RGBA")
       photo_content = Image.open(f"./images/profiles/polaroids/{profile_photo}.jpg").convert("RGBA")
 
-      user_filter = db_get_user_profile_photo_filter(ctx.author.id)       
+      user_filter = db_get_user_profile_photo_filter(ctx.author.id)
       if user_filter:
         if user_filter != 'random':
           photo_filter = getattr(pilgram, user_filter)
@@ -637,10 +637,22 @@ class Profile(commands.Cog):
     """ allows a user to set their own instagram-style photo filter on their profile photo """
     filter = filter.lower()
     if filter not in Profile.filters and filter not in ['random', 'none']:
-      await ctx.respond("What the devil is going on here, Q", ephemeral=True)
+      await ctx.respond(
+        embed=discord.Embed(
+          title="That filter doesn't exist!",
+          description="What the devil is going on here, Q",
+          color=discord.Color.red()
+        ), ephemeral=True
+      )
     else:
       db_update_user_profile_photo_filter(ctx.author.id, filter)
-      await ctx.respond(f"Your profile photo filter has been changed to **{filter}**!", ephemeral=True)
+      await ctx.respond(
+        embed=discord.Embed(
+          title="Your profile PADD photo filter has been updated!",
+          description=f"Profile photo filter has been changed to **{filter}**!",
+          color=discord.Color.red()
+        ), ephemeral=True
+      )
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their photo filter{Style.RESET_ALL} to: {Style.BRIGHT}\"{filter}\"{Style.RESET_ALL}")
 
 # ________                      .__
