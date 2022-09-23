@@ -211,5 +211,12 @@
       "preview_url": "https://i.imgur.com/eo5jsUF.jpg",
       "file": "TGG_TNG_logo.jpg"
     }
+  ],
+  "styles": [
+    {
+      "name": "T-88",
+      "price": 9999,
+      "preview_url": "https://i.imgur.com/Ms0Oqrj.png"
+    }
   ]
 }
