@@ -853,7 +853,7 @@ async def badge_lookup(ctx:discord.ApplicationContext, public:str, name:str):
 
   logger.info(f"{Fore.CYAN}Firing /badge lookup command for '{name}'!{Fore.RESET}")
 
-  if badge not in [b['badge_name'] for b in all_badge_info]:
+  if name not in [b['badge_name'] for b in all_badge_info]:
     await ctx.followup.send(
       embed=discord.Embed(
         title="Could Not Find This Badge",
