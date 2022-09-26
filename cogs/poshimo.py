@@ -35,7 +35,7 @@ class PocketShimodae(commands.Cog):
     name="test_unlock_locations",
     description="DEBUG"
   )
-  async def test_clear_db(self, ctx:discord.ApplicationContext):
+  async def test_unlock_locations(self, ctx:discord.ApplicationContext):
     self.game.test_unlock_loc(ctx.author.id, "starter_zone")
     self.game.test_unlock_loc(ctx.author.id, "test_zone")
     self.game.test_unlock_loc(ctx.author.id, "field")
@@ -133,7 +133,9 @@ class PocketShimodae(commands.Cog):
     await ctx.defer(ephemeral=True)
     trainer = utils.get_trainer(ctx.author.id)
     if trainer.status is TrainerStatus.BATTLING:
-      await ctx.followup.send("You're already in combat, you can't start another hunt!")
+      old_hunt = self.game.resume_battle(ctx.author.id)
+      resumed_battle = battle.BattleTurn(self, old_hunt)
+      await ctx.followup.send(embed=resumed_battle.get_embed(), view=resumed_battle)
     else:
       hunt = self.game.start_hunt(ctx.author.id)
       initial_turn = battle.BattleTurn(self, hunt)

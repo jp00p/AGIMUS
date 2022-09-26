@@ -11,7 +11,7 @@ with open("pocket_shimodae/data/poshimo_types.csv") as file:
       "weakness" : row["weakness"] if row["weakness"] else None,
       "strength" : row["strength"] if row["strength"] else None
     }
-  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo types data loaded!{Fore.RESET}{Back.RESET}")
+  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}TYPES DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
 
 class PoshimoType(object):
   """
@@ -29,5 +29,5 @@ class PoshimoType(object):
     self.weakness:str = self.typedata.get("weakness")
     self.strength:str = self.typedata.get("strength")
 
-  def __repr__(self) -> str:
+  def __str__(self) -> str:
     return f"{self.name.title()}"

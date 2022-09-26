@@ -5,7 +5,6 @@ from typing import List
 import csv
 from ..poshimo import PoshimoMove,PoshimoPersonality, PoshimoType, PoshimoStat
 
-
 MAX_POSHIMO_LEVEL = 99
 
 with open("pocket_shimodae/data/shimodaepedia.csv") as file:
@@ -32,7 +31,7 @@ with open("pocket_shimodae/data/shimodaepedia.csv") as file:
         row.get("move_4","").lower()
       ]
     }
-  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo data loaded!{Fore.RESET}{Back.RESET}")
+  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}BASE POSHIMO DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
 
 class Poshimo(object):
   """A Pocket Shimoda!
@@ -84,8 +83,7 @@ class Poshimo(object):
       self._owner = self.poshimodata["owner"]
     
     # poshimodata should be fully loaded now, if not ... wha happen???
-
-    self._level = 1#self.poshimodata["level"]
+    self._level = self.poshimodata.get("level", 1)
     self._name = self.poshimodata["name"]
     self._display_name = self.poshimodata.get("display_name")
     self._personality = PoshimoPersonality(self.poshimodata.get("personality"))
@@ -97,15 +95,14 @@ class Poshimo(object):
       #PoshimoType(self.poshimodata["type2"])
     ) # types never(?) change
 
-    self._attack = PoshimoStat(self.poshimodata["attack"][0], self.poshimodata["attack"][1])
-    self._defense = PoshimoStat(self.poshimodata["defense"][0], self.poshimodata["defense"][1])
-    self._special_attack = PoshimoStat(self.poshimodata["special_attack"][0], self.poshimodata["special_attack"][1])
-    self._special_defense = PoshimoStat(self.poshimodata["special_defense"][0], self.poshimodata["special_defense"][1])
-    self._speed = PoshimoStat(self.poshimodata["speed"][0], self.poshimodata["speed"][1])
-    self._max_hp = self.poshimodata.get("hp")
-    self._hp = self._max_hp
-    
-    self._xp = 0
+    self._attack:PoshimoStat = PoshimoStat(self.poshimodata["attack"][0], self.poshimodata["attack"][1])
+    self._defense:PoshimoStat = PoshimoStat(self.poshimodata["defense"][0], self.poshimodata["defense"][1])
+    self._special_attack:PoshimoStat = PoshimoStat(self.poshimodata["special_attack"][0], self.poshimodata["special_attack"][1])
+    self._special_defense:PoshimoStat = PoshimoStat(self.poshimodata["special_defense"][0], self.poshimodata["special_defense"][1])
+    self._speed:PoshimoStat = PoshimoStat(self.poshimodata["speed"][0], self.poshimodata["speed"][1])
+    self._max_hp:int = int(self.poshimodata.get("hp", 1))
+    self._hp:int = int(self._max_hp)   
+    self._xp:int = 0
     self._last_damaging_move:PoshimoMove = None
   
     self.status = None # TODO: Statuses      
@@ -149,11 +146,11 @@ class Poshimo(object):
       query.execute(sql, vals)
       results:dict = query.fetchone()
     self.poshimodata = dict(results)
-    temp_pdata = pdata.get(results["name"], "").lower() # load poshimo data from file
+    temp_pdata = pdata[results["name"].lower()] # load poshimo data from file
     temp_pdata["id"] = results.get("id", 0) # gotta update the original ID from the poshimodex
     self.poshimodata.update(temp_pdata) # merge with db info (so its not a base poshimo)
     self._move_list = self.load_move_list(results.get("move_list")) # unpack json moves
-    logger.info(f"Loaded poshimo: {Fore.GREEN}{self.poshimodata}{Fore.RESET}")
+    #logger.info(f"Loaded poshimo: {Fore.GREEN}{self.poshimodata}{Fore.RESET}")
   
   def save(self) -> int:
     """ 
@@ -192,7 +189,7 @@ class Poshimo(object):
         "move_list":self.dump_move_list()
       }
       query.execute(sql, vals)
-      logger.info(f"Saving poshimo: {vals}")
+      #logger.info(f"Saving poshimo: {vals}")
       poshi_row = query.lastrowid
       self.id = poshi_row
       logger.info(f"Save successful, Poshimo inserted into DB: {self.id}")
@@ -205,7 +202,7 @@ class Poshimo(object):
     """
     if not self.id: # only update poshimo in the DB
       return
-    logger.info(f"{Style.BRIGHT}💾 Attempting to update Poshimo {self.id}'s {Fore.CYAN}{col_name}{Fore.RESET}{Style.RESET_ALL} with new value: {Fore.LIGHTGREEN_EX}{value}{Fore.RESET}")
+    #logger.info(f"{Style.BRIGHT}Attempting to update Poshimo {self.id}'s {Fore.CYAN}{col_name}{Fore.RESET}{Style.RESET_ALL} with new value: {Fore.LIGHTGREEN_EX}{value}{Fore.RESET}")
     with AgimusDB() as query:
       sql = f"UPDATE poshimodae SET {col_name} = %s WHERE id = %s" # col_name is a trusted input or so we hope
       vals = (value, self.id)
@@ -221,10 +218,11 @@ class Poshimo(object):
   
   @property
   def max_hp(self) -> int:
-    return self._max_hp
+    return int(self._max_hp)
+
   @max_hp.setter
-  def max_hp(self,val):
-    self._max_hp = max(1, val) # max_hp can't go below 1
+  def max_hp(self,val:int):
+    self._max_hp = int(max(1, int(val))) # max_hp can't go below 1
     self.update("max_hp", self._max_hp)
 
   @property
@@ -279,11 +277,11 @@ class Poshimo(object):
 
   @property
   def hp(self) -> int:
-    return self._hp
+    return int(self._hp)
   
   @hp.setter
-  def hp(self, val):
-    self._hp = max(0, min(val, self._max_hp)) # clamp hp between 0 and max_hp
+  def hp(self, val:int):
+    self._hp = max(0, min(int(val), int(self._max_hp))) # clamp hp between 0 and max_hp
     self.update("hp", self._hp)
 
   @property
@@ -300,8 +298,8 @@ class Poshimo(object):
   def xp(self) -> int:
     return self._xp
   @xp.setter
-  def xp(self, val):
-    self._xp = max(0, val)
+  def xp(self, val:int):
+    self._xp = max(0, int(val))
     self.update("xp", self._xp)
 
   @property
@@ -346,11 +344,10 @@ class Poshimo(object):
       for stat in stats_to_display:
         stats[stat] = getattr(self, stat)
     # add hp.max_hp to our stats list
-    logger.info(stats)
     stats["hp"] = f"{self.hp}/{self.max_hp}"
     return stats
 
-  def __repr__(self) -> str:
+  def __str__(self) -> str:
     if self.id:
       return f"{self._display_name} {self.id}"
     else:
@@ -364,7 +361,6 @@ class Poshimo(object):
     temp_move_list:list = []
     for move in self.poshimodata["move_list"]:
       if move is not None:
-        logger.info(f"Trying to add move: {move}")
         temp_move_list.append(PoshimoMove(name=move))
     #logger.info(f"Move list init: {temp_move_list}")
     return temp_move_list
@@ -378,7 +374,7 @@ class Poshimo(object):
     for move in self.move_list:
       if move:
         db_move_list.append(move.to_json())
-    logger.info(f"Dumping json: {db_move_list}")
+    #logger.info(f"Dumping json: {db_move_list}")
     return json.dumps(db_move_list)
   
   def load_move_list(self, movelist) -> List[PoshimoMove]:
@@ -392,7 +388,7 @@ class Poshimo(object):
     for move in loaded_move_list:
       if move and move != "":
         dbmove = PoshimoMove(name=move["name"], stamina=move["stamina"], max_stamina=move["max_stamina"])
-        logger.info(f"Loading {move['name']} from DB: {dbmove}")
+        #logger.info(f"Loading {move['name']} from DB: {dbmove}")
         temp_move_list.append(dbmove)
     return temp_move_list
 

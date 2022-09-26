@@ -73,7 +73,7 @@ class PoshimoTrainer(object):
       vals = (self.id,)
       query.execute(sql, vals)
       trainer_data = query.fetchone()
-    logger.info(f"Trainer data: {Fore.LIGHTMAGENTA_EX}{trainer_data}{Fore.RESET} ")
+    
     if trainer_data:
       # load all the trainer data from the DB here
       self._wins = trainer_data.get("wins")
@@ -83,7 +83,6 @@ class PoshimoTrainer(object):
       self.discord_id = trainer_data.get("discord_id")
       sac_data = trainer_data.get("poshimo_sac")
       if sac_data:
-        logger.info(f"SAC DATA: {sac_data}")
         sac_data = json.loads(sac_data)
         self._poshimo_sac = [Poshimo(id=p) for p in sac_data]
       else:
@@ -226,7 +225,7 @@ class PoshimoTrainer(object):
 
     new_poshimo = Poshimo(id=poshimo_id) # reinstance the object from the db
     new_poshimo.owner = self.id
-    logger.info(f"Adding {str(new_poshimo)}")
+    #logger.info(f"Adding {str(new_poshimo)}")
 
     temp_sac = self.poshimo_sac
     if set_active: # if we're adding this as an active poshimo...
@@ -265,7 +264,7 @@ class PoshimoTrainer(object):
       all_poshimo = list([self.active_poshimo] + self.poshimo_sac)
     else:
       all_poshimo = self.poshimo_sac
-    logger.info(f"All this users poshimo: {','.join([str(p.id) for p in all_poshimo])}")
+    #logger.info(f"All this users poshimo: {','.join([str(p.id) for p in all_poshimo])}")
     return all_poshimo
 
   def pick_move(self) -> PoshimoMove:

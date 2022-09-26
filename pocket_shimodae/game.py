@@ -66,7 +66,19 @@ class PoshimoGame:
   #     logger.info(trainer_data)
   #   return PoshimoTrainer(trainer_data["trainer_id"])
 
-  def start_hunt(self, discord_id):
+  def resume_battle(self, discord_id) -> PoshimoBattle:
+    battler = utils.get_trainer(discord_id)
+    with AgimusDB(dictionary=True) as query:
+      sql = "SELECT id FROM poshimo_battles WHERE trainer_1 = %s or trainer_2 = %s ORDER BY id DESC LIMIT 1"
+      vals = (battler.id, battler.id)
+      query.execute(sql, vals)
+      results = query.fetchone()
+    if not results:
+      return None
+    old_battle = PoshimoBattle(id=results["id"])
+    return old_battle
+
+  def start_hunt(self, discord_id) -> PoshimoBattle:
     """ begins a hunt for this user! """
     hunter = utils.get_trainer(discord_id=discord_id)
     location = self.find_in_world(hunter.location)

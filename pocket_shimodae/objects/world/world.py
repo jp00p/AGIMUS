@@ -4,7 +4,6 @@ from datetime import date
 from typing import Dict
 from . import PoshimoBiome, Weather, PoshimoLocation
 
-
 class PoshimoWorld(object):
   """ The (a?) world of Poshimo! Contains all the Locations a trainer can visit """
   def __init__(self):
@@ -23,6 +22,9 @@ class PoshimoWorld(object):
         emoji="🌼",
         wild_poshimo=[
           (100, "Pikachu"),
+          (100, "Bulbasaur"),
+          (100, "Weedle"),
+          (100, "Oddish")
         ]
       ),
       "wastelands" : PoshimoBiome(
@@ -30,7 +32,8 @@ class PoshimoWorld(object):
         weather_types=[Weather.STORMY], 
         emoji="🚧",
         wild_poshimo=[
-          (100, "Pikachu"),
+          (100, "Koffing"),
+          (50, "Ekans")
         ]
       ),
       "metropolis" : PoshimoBiome(
@@ -38,7 +41,8 @@ class PoshimoWorld(object):
         weather_types=[Weather.CLOUDY, Weather.RAINY],
         emoji="🏙",
         wild_poshimo=[
-          (100, "Pikachu"),
+          (100, "Squirtle"),
+          (50, "Meowth")
         ]
       ),
       "tundra" : PoshimoBiome(
@@ -46,7 +50,8 @@ class PoshimoWorld(object):
         weather_types=[Weather.SNOWY],
         emoji="⛰",
         wild_poshimo=[
-          (100, "Pikachu"),
+          (100, "Dewgong"),
+          (50, "Cloyster")
         ]
       )
     }
@@ -82,8 +87,8 @@ class PoshimoWorld(object):
       )
     }
 
+    logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}WORLD{Style.RESET_ALL} pops back into existence!{Fore.RESET}{Back.RESET}")
     self.set_weather() # set the initial weather on load
-    logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo world loaded!{Fore.RESET}{Back.RESET}")
     # end of init
 
 

@@ -288,11 +288,12 @@ CREATE TABLE IF NOT EXISTS poshimo_battles (
   trainer_2 VARCHAR(128) NULL, 
   wild_poshimo INT(11) NULL,
   current_turn INT(11) NOT NULL DEFAULT 0,
+  round INT(11) NOT NULL DEFAULT 0,
   state INT(11) NOT NULL DEFAULT 0,
   outcome VARCHAR(128) NULL,
   time_started TIMESTAMP DEFAULT current_timestamp(),
   time_ended TIMESTAMP DEFAULT NULL,
-  logs TEXT DEFAULT NULL,
+  logs BLOB DEFAULT NULL,
   PRIMARY KEY(id),
   FOREIGN KEY (wild_poshimo) REFERENCES poshimodae (id)
 );

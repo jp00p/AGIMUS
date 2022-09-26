@@ -16,7 +16,7 @@ id,name,type,kind,power,accuracy,stamina,function_codes,flags,description
 15,Cut,Horny,Physical,50,95%,30,,,Deals damage with no additional effect.
 16,Gust,Drunk,Special,40,100%,35,,,Power doubles if the target is in mid-air via Fly or Bounce.
 17,Wing Attack,Warrior,Physical,60,100%,35,,,Deals damage with no additional effect.
-18,Whirlwind,Horny,s+,0,100%,20,,,Almost always goes last; in trainer battles the target is switched out for a random member of its team. Escapes from wild battles. Has no effect if the target has Suction Cups or used Ingrain.
+18,Whirlwind,Horny,Special,0,100%,20,,,Almost always goes last; in trainer battles the target is switched out for a random member of its team. Escapes from wild battles. Has no effect if the target has Suction Cups or used Ingrain.
 19,Fly,Drunk,Physical,90,95%,15,,,On the first turn the user flies into the air becoming uncontrollable and evades most attacks. Gust Twister Thunder and Sky Uppercut have normal accuracy against a mid-air Pokemon with Gust and Twister also gaining doubled power. The user may also be hit in mid-air if it was previously targeted by Lock-On or Mind Reader or if it is attacked by a Pokemon with No Guard. On the second turn the user attacks.
 20,Bind,Warrior,Physical,15,85%,20,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or U-Turn.
 21,Slam,Horny,Physical,80,75%,20,,,Deals damage with no additional effect.
@@ -37,22 +37,22 @@ id,name,type,kind,power,accuracy,stamina,function_codes,flags,description
 36,Take Down,Drunk,Physical,90,85%,20,,,The user receives 1/4 recoil damage.
 37,Thrash,Warrior,Physical,120,100%,10,,,The user attacks uncontrollably for 2-3 turns and then gets confused.
 38,Double-Edge,Horny,Physical,120,100%,15,,,The user receives 1/3 recoil damage.
-39,Tail Whip,Drunk,d-,0,100%,30,,,Lowers the target's Defense by 1 stage.
+39,Tail Whip,Drunk,Special,0,100%,30,,,Lowers the target's Defense by 1 stage.
 40,Poison Sting,Warrior,Physical,15,100%,35,,,Has a 30% chance to poison the target.
 41,Twineedle,Horny,Physical,25,100%,20,,,Strikes twice; if the first hit breaks the target's Substitute the real Pokemon will take damage from the second hit. Has a 20% chance to poison the target .
 42,Pin Missile,Drunk,Physical,14,85%,20,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-43,Leer,Warrior,d-,0,100%,30,,,Lowers the target's Defense by 1 stage.
+43,Leer,Warrior,Special,0,100%,30,,,Lowers the target's Defense by 1 stage.
 44,Bite,Horny,Physical,60,100%,25,,,Has a 30% chance to make the target flinch.
-45,Growl,Drunk,a-,0,100%,40,,,Lowers the target's Attack by 1 stage.
+45,Growl,Drunk,Special,0,100%,40,,,Lowers the target's Attack by 1 stage.
 46,Roar,Warrior,Status,0,100%,20,,,Almost always goes last; in trainer battles the target is switched out for a random member of its team. Escapes from wild battles. Has no effect if the target has Suction Cups Soundproof or used Ingrain.
 47,Sing,Horny,Status,0,55%,15,,,Puts the target to sleep.
 48,Supersonic,Drunk,Status,0,55%,20,,,Confuses the target.
 49,SonicBoom,Warrior,Special,20,90%,20,,,Always deals 20 points of damage.
-50,Disable,Horny,d-,0,100%,20,,,The target cannot choose its last move for 4-7 turns. Disable only works on one move at a time and fails if the target has not yet used a move or if its move has run out of PP. The target does nothing if it is about to use a move that becomes disabled.
+50,Disable,Horny,Special,0,100%,20,,,The target cannot choose its last move for 4-7 turns. Disable only works on one move at a time and fails if the target has not yet used a move or if its move has run out of PP. The target does nothing if it is about to use a move that becomes disabled.
 51,Acid,Drunk,Special,40,100%,30,,,Has a 10% chance to lower the target's Special Defense by 1 stage.
 52,Ember,Warrior,Special,40,100%,25,,,Has a 10% chance to burn the target.
 53,Flamethrower,Horny,Special,95,100%,15,,,Has a 10% chance to burn the target.
-54,Mist,Drunk,d+,0,,30,,,Protects every Pokemon on the user's team from negative stat modifiers caused by other Pokemon (including teammates) but not by itself for five turns. The team's Accuracy and Evasion stats are also protected. Moves that cause negative stat modifiers as a secondary effect such as Psychic still deal their regular damage.
+54,Mist,Drunk,Special,0,,30,,,Protects every Pokemon on the user's team from negative stat modifiers caused by other Pokemon (including teammates) but not by itself for five turns. The team's Accuracy and Evasion stats are also protected. Moves that cause negative stat modifiers as a secondary effect such as Psychic still deal their regular damage.
 55,Water Gun,Drunk,Special,40,100%,25,,,Deals damage with no additional effect.
 56,Hydro Pump,Warrior,Special,120,80%,5,,,Deals damage with no additional effect.
 57,Surf,Horny,Special,95,100%,15,,,Power doubles against a target who is in the middle of using Dive.
@@ -71,50 +71,50 @@ id,name,type,kind,power,accuracy,stamina,function_codes,flags,description
 70,Strength,Drunk,Physical,80,100%,15,,,Deals damage with no additional effect.
 71,Absorb,Warrior,Special,20,100%,25,,,Restores the user's HP by 1/2 of the damage inflicted on the target.
 72,Mega Drain,Horny,Special,40,100%,15,,,Restores the user's HP by 1/2 of the damage inflicted on the target.
-73,Leech Seed,Drunk,d-,0,90%,10,,,The user steals 1/8 of the target's max HP until the target is switched out is KO'ed or uses Rapid Spin; does not work against Grass-type Pokemon or Pokemon behind Substitutes.
-74,Growth,Warrior,a+,0,,40,,,"Raises the user's Attack and Special Attack by 1 stage. If the weather is Sun Growth raises Attack and SpAttk two stages each. "
+73,Leech Seed,Drunk,Special,0,90%,10,,,The user steals 1/8 of the target's max HP until the target is switched out is KO'ed or uses Rapid Spin; does not work against Grass-type Pokemon or Pokemon behind Substitutes.
+74,Growth,Warrior,Special,0,,40,,,"Raises the user's Attack and Special Attack by 1 stage. If the weather is Sun Growth raises Attack and SpAttk two stages each. "
 75,Razor Leaf,Horny,Physical,55,95%,25,,,Has a high critical hit ratio.
 76,SolarBeam,Drunk,Special,120,100%,10,,,The user prepares on turn one becoming uncontrollable and then attacks on turn two. During Sunny Day this move fires immediately; during Rain Dance Sandstorm and Hail this move has half power.
-77,PoisonPowder,Warrior,d-,0,75%,35,,,Poisons the target.
-78,Stun Spore,Horny,s-,0,75%,30,,,Paralyzes the target.
-79,Sleep Powder,Drunk,s-,0,75%,15,,,Puts the target to sleep.
+77,PoisonPowder,Warrior,Special,0,75%,35,,,Poisons the target.
+78,Stun Spore,Horny,Special,0,75%,30,,,Paralyzes the target.
+79,Sleep Powder,Drunk,Special,0,75%,15,,,Puts the target to sleep.
 80,Petal Dance,Warrior,Special,120,100%,10,,,The user attacks uncontrollably for 2-3 turns and then gets confused.
-81,String Shot,Horny,s-,0,95%,40,,,Lowers the target's Speed by 1 stage.
+81,String Shot,Horny,Special,0,95%,40,,,Lowers the target's Speed by 1 stage.
 82,Dragon Rage,Drunk,Special,40,100%,10,,,Always deals 40 points of damage.
 83,Fire Spin,Warrior,Special,35,85%,15,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or it uses U-Turn.
 84,ThunderShock,Horny,Special,40,100%,30,,,Has a 10% chance to paralyze the target.
 85,Thunderbolt,Drunk,Special,95,100%,15,,,Has a 10% chance to paralyze the target.
-86,Thunder Wave,Warrior,s-,0,100%,20,,,Paralyzes the target. This move activates Motor Drive.
+86,Thunder Wave,Warrior,Special,0,100%,20,,,Paralyzes the target. This move activates Motor Drive.
 87,Thunder,Horny,Special,120,70%,10,,,Has a 30% chance to paralyze the target. It also has normal accuracy against mid-air Pokemon who have used Fly or Bounce. During Sunny Day this move has 50% accuracy. During Rain Dance this move will never miss under normal circumstances and has a 30% chance to hit through a target's Protect or Detect.
 88,Rock Throw,Drunk,Physical,50,90%,15,,,Deals damage with no additional effect.
 89,Earthquake,Drunk,Physical,100,100%,10,,,Power doubles when performed against Pokemon using Dig.
 90,Fissure,Warrior,Physical,0,30%,5,,,The target faints; doesn't work on higher-leveled Pokemon.
 91,Dig,Horny,Physical,80,100%,10,,,On the first turn the user digs underground becoming uncontrollable and evades all attacks. Earthquake and Magnitude can hit underground and gain doubled power. The user may also be hit underground if it was previously targeted by Lock-On or Mind Reader or if it is attacked by a Pokemon with No Guard. On the second turn the user attacks.
-92,Toxic,Drunk,d-,0,90%,10,,,The target is badly poisoned with the damage caused by poison doubling after each turn. Toxic poisoning will remain with the Pokemon during the battle even after switching out.
+92,Toxic,Drunk,Special,0,90%,10,,,The target is badly poisoned with the damage caused by poison doubling after each turn. Toxic poisoning will remain with the Pokemon during the battle even after switching out.
 93,Confusion,Warrior,Special,50,100%,25,,,Has a 10% chance to confuse the target.
 94,Psychic,Horny,Special,90,100%,10,,,Has a 10% chance to lower the target's Special Defense by 1 stage.
-95,Hypnosis,Drunk,s-,0,60%,20,,,Puts the target to sleep.
-96,Meditate,Warrior,a+,0,,40,,,Raises the user's Attack by 1 stage.
-97,Agility,Horny,s+,0,,30,,,Raises the user's Speed by 2 stages.
+95,Hypnosis,Drunk,Special,0,60%,20,,,Puts the target to sleep.
+96,Meditate,Warrior,Special,0,,40,,,Raises the user's Attack by 1 stage.
+97,Agility,Horny,Special,0,,30,,,Raises the user's Speed by 2 stages.
 98,Quick Attack,Drunk,Physical,40,100%,30,,,Usually goes first.
 99,Rage,Warrior,Physical,20,100%,20,,,The user's Attack rises by 1 stage if attacked before its next move.
-100,Teleport,Horny,s+,0,,20,,,Escapes from wild battles; fails automatically in trainer and link battles.
+100,Teleport,Horny,Special,0,,20,,,Escapes from wild battles; fails automatically in trainer and link battles.
 101,Night Shade,Drunk,Special,50,100%,15,,,Does damage equal to user's level.
-102,Mimic,Warrior,a+,0,100%,10,,,This move is temporarily replaced by the target's last move; the replacement move will have 5 PP and become part of the user's moveset until the user switches out or the battle ends. Mimic copies attacks even if they miss or the user has immunity toward their type; it cannot copy itself Struggle Transform Sketch Metronome or moves that the user already knows and it will fail if the target has yet to use a move.
-103,Screech,Horny,d-,0,85%,40,,,Lowers the target's Defense by 2 stages.
+102,Mimic,Warrior,Special,0,100%,10,,,This move is temporarily replaced by the target's last move; the replacement move will have 5 PP and become part of the user's moveset until the user switches out or the battle ends. Mimic copies attacks even if they miss or the user has immunity toward their type; it cannot copy itself Struggle Transform Sketch Metronome or moves that the user already knows and it will fail if the target has yet to use a move.
+103,Screech,Horny,Special,0,85%,40,,,Lowers the target's Defense by 2 stages.
 104,Double Team,Drunk,acc-,0,,15,,,Raises the user's Evasion by 1 stage.
-105,Recover,Warrior,d+,0,,10,,,Restores 1/2 of the user's max HP.
-106,Harden,Horny,d+,0,,30,,,Raises the user's Defense by 1 stage.
+105,Recover,Warrior,Special,0,,10,,,Restores 1/2 of the user's max HP.
+106,Harden,Horny,Special,0,,30,,,Raises the user's Defense by 1 stage.
 107,Minimize,Drunk,acc-,0,,20,,,Raises the user's Evasion by 2 stage; however Stomp retains its normal accuracy and gains doubled power against Minimized Pokemon.
 108,SmokeScreen,Warrior,acc-,0,100%,20,,,Lowers the target's Accuracy by 1 stage.
-109,Confuse Ray,Horny,d-,0,100%,10,,,Confuses the target.
-110,Withdraw,Drunk,d+,0,,40,,,Raises the user's Defense by 1 stage.
-111,Defense Curl,Warrior,d+,0,,40,,,Raises the user's Defense by 1 stage; after one use of this move the user's starting base power is doubled for every use of Rollout or Ice Ball.
-112,Barrier,Horny,d+,0,,30,,,Raises the user's Defense by 2 stages.
-113,Light Screen,Drunk,sd+,0,,30,,,All Pokemon in the user's party receive 1/2 damage from Special attacks for 5 turns. Light Screen will be removed from the user's field if an opponent's Pokemon uses Brick Break. It will also last for eight turns if its user is holding Light Clay. In double battles both Pokemon are shielded but damage protection is reduced from 1/2 to 1/3.
-114,Haze,Warrior,d+,0,,30,,,Eliminates any stat modifiers from all active Pokemon. The stat boosts from Choice Band Choice Lens and Choice Scarf are not affected.
-115,Reflect,Horny,d+,0,,20,,,All Pokemon in the user's party receive 1/2 damage from Physical attacks for 5 turns. Reflect will be removed from the user's field if an opponent's Pokemon uses Brick Break. It will also last for eight turns if its user is holding Light Clay. In double battles both Pokemon are shielded but damage protection is reduced from 1/2 to 1/3.
-116,Focus Energy,Drunk,a+,0,,30,,,Raises the user's chance for a Critical Hit by two domains.
+109,Confuse Ray,Horny,Special,0,100%,10,,,Confuses the target.
+110,Withdraw,Drunk,Special,0,,40,,,Raises the user's Defense by 1 stage.
+111,Defense Curl,Warrior,Special,0,,40,,,Raises the user's Defense by 1 stage; after one use of this move the user's starting base power is doubled for every use of Rollout or Ice Ball.
+112,Barrier,Horny,Special,0,,30,,,Raises the user's Defense by 2 stages.
+113,Light Screen,Drunk,sSpecial,0,,30,,,All Pokemon in the user's party receive 1/2 damage from Special attacks for 5 turns. Light Screen will be removed from the user's field if an opponent's Pokemon uses Brick Break. It will also last for eight turns if its user is holding Light Clay. In double battles both Pokemon are shielded but damage protection is reduced from 1/2 to 1/3.
+114,Haze,Warrior,Special,0,,30,,,Eliminates any stat modifiers from all active Pokemon. The stat boosts from Choice Band Choice Lens and Choice Scarf are not affected.
+115,Reflect,Horny,Special,0,,20,,,All Pokemon in the user's party receive 1/2 damage from Physical attacks for 5 turns. Reflect will be removed from the user's field if an opponent's Pokemon uses Brick Break. It will also last for eight turns if its user is holding Light Clay. In double battles both Pokemon are shielded but damage protection is reduced from 1/2 to 1/3.
+116,Focus Energy,Drunk,Special,0,,30,,,Raises the user's chance for a Critical Hit by two domains.
 117,Bide,Warrior,Physical,50,100%,10,,,Usually goes first for the duration of the move. The user absorbs all damage for two turns and then during the third turn the user inflicts twice the absorbed damage on its target. This move ignores the target's type and even hits Ghost-type Pokemon.
 118,Metronome,Horny,Status,0,,10,,,The user performs a randomly selected move; almost any move in the game could be picked. Metronome cannot generate itself Assist Chatter Copycat Counter Covet Destiny Bond Detect Endure Feint Focus Punch Follow Me Helping Hand Me First Mimic Mirror Coat Mirror Move Protect Sketch Sleep Talk Snatch Struggle Switcheroo Thief Trick or any move that the user already knows.
 119,Mirror Move,Drunk,Status,0,,20,,,The user performs the last move executed by its target; if applicable an attack's damage is calculated with the user's stats level and type(s). This moves fails if the target has not yet used a move. Mirror Move cannot copy Encore Struggle global moves affecting all Pokemon on the field (such as Gravity Hail Rain Dance Sandstorm and Sunny Day) moves that can bypass Protect (Acupressure Doom Desire Future Sight Imprison Perish Song Psych Up Role Play and Transform) and moves that do not have a specific target (such as Light Screen Reflect Safeguard Spikes Stealth Rock and Toxic Spikes).
@@ -131,39 +131,39 @@ id,name,type,kind,power,accuracy,stamina,function_codes,flags,description
 130,Skull Bash,Horny,Physical,100,100%,15,,,The user prepares on turn one raising its Defense by 1 stage and becoming uncontrollable and then attacks on turn two.
 131,Spike Cannon,Drunk,Physical,20,100%,15,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
 132,Constrict,Warrior,Physical,10,100%,35,,,Has a 10% chance to lower the target's Speed by 1 stage.
-133,Amnesia,Horny,sd+,0,,20,,,Raises the user's Special Defense by 2 stages.
+133,Amnesia,Horny,sSpecial,0,,20,,,Raises the user's Special Defense by 2 stages.
 134,Kinesis,Drunk,acc-,0,80%,15,,,Lowers the target's Accuracy by 1 stage.
-135,Softboiled,Warrior,d+,0,100%,10,,,Restores 1/2 of the user's max HP.
+135,Softboiled,Warrior,Special,0,100%,10,,,Restores 1/2 of the user's max HP.
 136,Hi Jump Kick,Horny,Physical,130,90%,10,,,If this attack misses the target the user half of its max health in recoil damage.
-137,Glare,Drunk,s-,0,90%,30,,,Paralyzes the target.
+137,Glare,Drunk,Special,0,90%,30,,,Paralyzes the target.
 138,Dream Eater,Warrior,Special,100,100%,15,,,Restores the user's HP by 1/2 of the damage inflicted on the target but only works on a sleeping target.
-139,Poison Gas,Horny,d-,0,90%,40,,,Poisons the target.
+139,Poison Gas,Horny,Special,0,90%,40,,,Poisons the target.
 140,Barrage,Drunk,Physical,15,85%,20,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
 141,Leech Life,Warrior,Physical,20,100%,15,,,Restores the user's HP by 1/2 of the damage inflicted on the target.
-142,Lovely Kiss,Horny,s-,0,75%,10,,,Puts the target to sleep.
+142,Lovely Kiss,Horny,Special,0,75%,10,,,Puts the target to sleep.
 143,Sky Attack,Drunk,Physical,140,90%,5,,,The user prepares on turn one becoming uncontrollable and then attacks on turn two. Also has a 30% chance to make the target flinch.
 144,Transform,Warrior,Status,0,,10,,,The user morphs into a near-exact copy of the target. Stats stat modifiers type moves Hidden Power data and appearance are changed; the user's level and HP remain the same and each copied move receives only 5 PP. (If Transform is used by Ditto the effects of Metal Powder and Quick Powder stop working after transformation.)
 145,Bubble,Drunk,Special,20,100%,30,,,Has a 10% chance to lower the target's Speed by 1 stage.
 146,Dizzy Punch,Warrior,Physical,70,100%,10,,,Has a 20% chance to confuse the target.
-147,Spore,Horny,s-,0,100%,15,,,Puts the target to sleep.
+147,Spore,Horny,Special,0,100%,15,,,Puts the target to sleep.
 148,Flash,Drunk,acc-,0,100%,20,,,Lowers the target's Accuracy by 1 stage.
 149,Psywave,Warrior,Special,50,80%,15,,,Randomly inflicts set damage equal to .5x .6x .7x .8x .9x 1.0x 1.1x 1.2x 1.3x 1.4x or 1.5x the user's level.
 150,Splash,Horny,Status,0,,40,,,Doesn't do anything (but we still love it). Unfortunately it also cannot be used during the effects of Gravity! :(
-151,Acid Armor,Drunk,d+,0,,40,,,Raises the user's Defense by 2 stages.
+151,Acid Armor,Drunk,Special,0,,40,,,Raises the user's Defense by 2 stages.
 152,Crabhammer,Warrior,Physical,90,90%,10,,,Has a high critical hit ratio.
 153,Explosion,Horny,Physical,250,100%,5,,,Causes the user to faint.
 154,Fury Swipes,Drunk,Physical,18,80%,15,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
 155,Bonemerang,Warrior,Physical,50,90%,10,,,Strikes twice; if the first hit breaks the target's Substitute the real Pokemon will take damage from the second hit.
-156,Rest,Horny,d+,0,,10,,,The user is cured of status effects (and confusion) and recovers full HP but falls asleep for 2 turns. Pokemon who have Early Bird will wake up one turn early.
+156,Rest,Horny,Special,0,,10,,,The user is cured of status effects (and confusion) and recovers full HP but falls asleep for 2 turns. Pokemon who have Early Bird will wake up one turn early.
 157,Rock Slide,Drunk,Physical,75,90%,10,,,Has a 30% chance to make the target flinch.
 158,Hyper Fang,Warrior,Physical,80,90%,15,,,Has a 10% chance to make the target flinch.
-159,Sharpen,Horny,a+,0,,30,,,Raises the user's Attack by 1 stage.
+159,Sharpen,Horny,Special,0,,30,,,Raises the user's Attack by 1 stage.
 160,Conversion,Drunk,Status,0,,30,,,The user's type changes to match the type of one of its four attacks. This move fails if the user cannot change its type under this condition.
 161,Tri Attack,Warrior,Special,80,100%,10,,,Has a 20% chance to burn paralyze or freeze the target.
 162,Super Fang,Horny,Physical,50,90%,10,,,This move halves the target's current HP.
 163,Slash,Drunk,Physical,70,100%,20,,,Has a high critical hit ratio.
-164,Substitute,Warrior,d+,0,,10,,,The user takes one-fourth of its maximum HP to create a substitute; this move fails if the user does not have enough HP for this. Until the substitute is broken it receives damage from all attacks made by other Pokemon and shields the user from status effects and stat modifiers caused by other Pokemon. The user is still affected by Tickle Hail Sandstorm and Attract from behind its Substitute. If a Substitute breaks from a hit during a multistrike move such as Fury Attack the user takes damage from the remaining strikes.
-165,Struggle,Horny,Physical,50,100%,1,,,Used automatically when all of the user's other moves have run out of PP or are otherwise inaccessible. The user receives recoil damage equal to 1/4 of its max HP. Struggle is classified as a typeless move and will hit any Pokemon for normal damage.
+164,Substitute,Warrior,Special,0,,10,,,The user takes one-fourth of its maximum HP to create a substitute; this move fails if the user does not have enough HP for this. Until the substitute is broken it receives damage from all attacks made by other Pokemon and shields the user from status effects and stat modifiers caused by other Pokemon. The user is still affected by Tickle Hail Sandstorm and Attract from behind its Substitute. If a Substitute breaks from a hit during a multistrike move such as Fury Attack the user takes damage from the remaining strikes.
+165,Struggle,Horny,Physical,50,100%,1,,21,Used automatically when all of the user's other moves have run out of PP or are otherwise inaccessible. The user receives recoil damage equal to 1/4 of its max HP. Struggle is classified as a typeless move and will hit any Pokemon for normal damage.
 166,Sketch,Drunk,Status,0,,1,,,The user permanently replaces Sketch with the last move used by the target. Sketch cannot copy itself Chatter Memento or Struggle. Transform and moves that generate other moves can be Sketched successfully as can Explosion and Selfdestruct if a Pokemon with Damp is present. Healing Wish and Lunar Dance can be Sketched because they automatically fail when the user is the last Pokemon of its team. This move fails automatically when selected in wireless or Wi-Fi battles.
 167,Triple Kick,Warrior,Physical,10,90%,10,,,Attacks three times in one turn adding 10 BP for each kick. If a kick misses the move ends instantly; if one of the kicks breaks a target's Substitute the real Pokemon will take damage for the remaining kicks.
 168,Thief,Horny,Physical,40,100%,10,,,Steals the target's held item unless the user is already holding an item or the target has Sticky Hold or Multitype. A stolen item cannot be recovered by using Recycle.
@@ -172,20 +172,20 @@ id,name,type,kind,power,accuracy,stamina,function_codes,flags,description
 171,Nightmare,Horny,Status,0,100%,15,,,This move only works on a sleeping target; as long as the target remains asleep and in battle 1/4 of its max HP is sapped after each turn.
 172,Flame Wheel,Drunk,Physical,60,100%,25,,,Has a 10% chance to burn the target; can be used while frozen which both attacks the target normally and thaws the user.
 173,Snore,Drunk,Special,40,100%,15,,,Has a 30% chance to make the target flinch; fails if user is awake.
-174,Curse,Warrior,a-,0,,10,,,When used by a Ghost-type the user sacrifices half of its max HP to sap the target by 1/4 of its max HP per turn. When used by anything else the user's Speed is decreased by 1 stage and its Attack and Defense are increased by 1 stage.
+174,Curse,Warrior,Special,0,,10,,,When used by a Ghost-type the user sacrifices half of its max HP to sap the target by 1/4 of its max HP per turn. When used by anything else the user's Speed is decreased by 1 stage and its Attack and Defense are increased by 1 stage.
 175,Flail,Horny,Physical,50,100%,15,,,Base power increases as the user's HP decreases.
 176,Conversion 2,Drunk,Status,0,100%,30,,,The user's type changes to one that resists the type of the last attack that hit the user. In double battles this situation holds even when the user is last hit by an attack from its partner.
 177,Aeroblast,Warrior,Special,100,95%,5,,,Has a high critical hit ratio.
-178,Cotton Spore,Horny,s-,0,100%,40,,,Lowers the target's Speed by 2 stages.
+178,Cotton Spore,Horny,Special,0,100%,40,,,Lowers the target's Speed by 2 stages.
 179,Reversal,Drunk,Physical,50,100%,15,,,Base power increases as the user's HP decreases.
-180,Spite,Warrior,d-,0,100%,10,,,The target's most recent move is reduced by 4 PP; this fails if the target has not yet performed a move if the target's last move has run out of PP or if the target can only use Struggle.
+180,Spite,Warrior,Special,0,100%,10,,,The target's most recent move is reduced by 4 PP; this fails if the target has not yet performed a move if the target's last move has run out of PP or if the target can only use Struggle.
 181,Powder Snow,Horny,Special,40,100%,25,,,Has a 10% chance to freeze the target.
-182,Protect,Drunk,d+,0,,10,,,Almost always goes first. The user is protected from all attacks for one turn but the move's success rate halves with each consecutive use of Protect Detect or Endure. If a Pokemon has No Guard or used Lock-On or Mind Reader against the user during the previous turn its attack has a [100 Varmove's normal accuracy]% chance to hit through Protect; OHKO moves do not benefit from this effect. Blizzard has a 30% to hit through this move during Hail as does Thunder during Rain Dance.
+182,Protect,Drunk,Special,0,,10,,,Almost always goes first. The user is protected from all attacks for one turn but the move's success rate halves with each consecutive use of Protect Detect or Endure. If a Pokemon has No Guard or used Lock-On or Mind Reader against the user during the previous turn its attack has a [100 Varmove's normal accuracy]% chance to hit through Protect; OHKO moves do not benefit from this effect. Blizzard has a 30% to hit through this move during Hail as does Thunder during Rain Dance.
 183,Mach Punch,Warrior,Physical,40,100%,30,,,Usually goes first.
-184,Scary Face,Horny,s-,0,90%,10,,,Lowers the target's Speed by 2 stages.
+184,Scary Face,Horny,Special,0,90%,10,,,Lowers the target's Speed by 2 stages.
 185,Faint Attack,Drunk,Physical,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
-186,Sweet Kiss,Warrior,d-,0,75%,10,,,Confuses the target.
-187,Belly Drum,Horny,a+,0,,10,,,The user maximizes its Attack but sacrifices 50% of its max HP.
+186,Sweet Kiss,Warrior,Special,0,75%,10,,,Confuses the target.
+187,Belly Drum,Horny,Special,0,,10,,,The user maximizes its Attack but sacrifices 50% of its max HP.
 188,Sludge Bomb,Drunk,Special,90,100%,10,,,Has a 30% chance to poison the target.
 189,Mud-Slap,Warrior,Special,20,100%,10,,,Has a 30% chance to lower the target's Accuracy by 1 stage.
 190,Octazooka,Horny,Special,65,85%,10,,,Has a 50% chance to lower the target's Accuracy by 1 stage.
@@ -205,7 +205,7 @@ id,name,type,kind,power,accuracy,stamina,function_codes,flags,description
 204,Charm,Drunk,Status,0,100%,20,,,Lowers the target's Attack by 2 stages.
 205,Rollout,Warrior,Physical,30,90%,20,,,The user attacks uncontrollably for five turns; this move's power doubles after each turn and also if Defense Curl was used beforehand. Its power resets after five turns have ended or if the attack misses.
 206,False Swipe,Horny,Physical,40,100%,40,,,Leaves the target with at least 1 HP.
-207,Swagger,Drunk,a-,0,90%,15,,,Confuses the target and raises its Attack by 2 stages.
+207,Swagger,Drunk,Special,0,90%,15,,,Confuses the target and raises its Attack by 2 stages.
 208,Milk Drink,Warrior,Status,0,,10,,,Restores 1/2 of the user's max HP.
 209,Spark,Horny,Physical,65,100%,20,,,Has a 30% chance to paralyze the target.
 210,Fury Cutter,Drunk,Physical,20,95%,20,,,The base power of this move doubles with each consecutive hit; however power is capped at a maximum 160 BP and remains there for any subsequent uses. If this move misses base power will be reset to 10 BP on the next turn. The user can also select other attacks without resetting this move's power; it will continue to double after each use until it either misses or reaches the 160 BP cap.

@@ -11,7 +11,7 @@ with open("pocket_shimodae/data/poshimo_personalities.csv") as file:
       "bonus" : row.get("bonus_stat"),
       "penalty" : row.get("penalized_stat")
     }
-  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo personality data loaded!{Fore.RESET}{Back.RESET}")
+  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}PERSONALITY DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
 
 class PoshimoPersonality:
   """ a personality determines how some stats grow when leveling up """
