@@ -308,7 +308,10 @@ class Profile(commands.Cog):
       sticker_bg.paste(composed, (0, 0), composed)
       sticker_bg = sticker_bg.rotate(random.randint(-6,6), expand=True, resample=Image.BICUBIC)
       sticker_bg.save(f"./images/profiles/usersticker{member.id}.png")
-      base_bg.paste(sticker_bg, (406+random.randint(-10,5), 886+random.randint(-3,3)), sticker_bg)
+      sticker_offset = 406
+      if padd_style == "Latinum":
+        sticker_offset = 466
+      base_bg.paste(sticker_bg, (sticker_offset+random.randint(-10,5), 886+random.randint(-3,3)), sticker_bg)
 
     # put badge on
     if len(user["badges"]) > 0 and user['badges'][0]['badge_filename']:
