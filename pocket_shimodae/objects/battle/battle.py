@@ -145,7 +145,7 @@ class PoshimoBattle(object):
       return query.lastrowid
 
   def load(self) -> None:
-    """ Internal only: load battle from DB """
+    """ Internal only: load in-progress battle from DB """
     if not self.id:
       return
     with AgimusDB(dictionary=True) as query:
@@ -181,18 +181,23 @@ class PoshimoBattle(object):
     self.turn_end() # more status effects
 
   def turn_start(self):
+    """ handle things that happen at the start of the turn """
     #self.add_log(f"Turn {self.current_turn} starts!")
     self.process_statuses(start=True)
 
   def turn_end(self):
+    """ handle things that happen at the end of the turn """
     #self.add_log(f"Turn {self.current_turn} is over!")
     self.process_statuses(end=True)
 
   def handle_actions(self):
+    """ handle actions like items, swapping, etc """
     pass
 
   def handle_moves(self):
-    """ process moves in order based on speed """
+    """ 
+    determine the order of operations and determine the outcome for each poshimo
+    """
     
     self.calculate_speed() # determine which move goes first
     final_moves:List[Tuple[PoshimoMove, PoshimoTrainer, PoshimoTrainer]] = []
@@ -216,7 +221,9 @@ class PoshimoBattle(object):
     
 
   def calculate_speed(self) -> None:
-    """ updates queued_moves to be in the order they should happen """
+    """ 
+    updates queued_moves to be in the order they should happen 
+    """
     #TODO: some moves happen first regardless of speed
     move1,move2 = self._queued_moves[0][0], self._queued_moves[1][0]
     posh1,posh2 = self._queued_moves[0][1].active_poshimo, self._queued_moves[1][1].active_poshimo
@@ -226,6 +233,7 @@ class PoshimoBattle(object):
       self._queued_moves = [(move1, trainer1), (move2, trainer2)]
     else:
       self._queued_moves = [(move2, trainer2), (move1, trainer1)]
+
 
   def enqueue_move(self, move:PoshimoMove, trainer:PoshimoTrainer):
     """ add a move to the queue. once the queue is full, the turn will process """
@@ -248,6 +256,7 @@ class PoshimoBattle(object):
       pass # handle beginning of turn status
     if end:
       pass # handle end of turn status
+
 
   def apply_move(self, move:PoshimoMove, target:PoshimoTrainer, inflictor:PoshimoTrainer) -> str:
     """
@@ -324,12 +333,21 @@ class PoshimoBattle(object):
         log_line.append(f"It deals **{damage} damage!**")
         victim.hp = int(victim.hp) - int(damage)
 
+    
+
     if move.function_codes:
       for func in move.function_codes:
         # figure out which functions to call
         effect_function = getattr(victim,func)
         if effect_function:
           effect_function() # not victim.effect_function() ?
+    
+    if victim.hp <= 0:
+      # victim ded
+      pass
+    if poshimo.hp <= 0:
+      # person who did the move ded (recoil, etc)
+      pass
       
     # end of apply_move
     self.add_log(" ".join([line for line in log_line]))
