@@ -3,7 +3,11 @@ from .game import PoshimoGame
 from typing import List
 
 class PoshimoView(discord.ui.View):
-  """ base view boilerplate """
+  """ 
+  base view boilerplate 
+  ----
+  contains the game object for your conveninence
+  """
   def __init__(self:discord.ui.View, cog:discord.Cog):
     self.cog = cog
     self.game:PoshimoGame = cog.game
@@ -31,7 +35,15 @@ class PoshimoView(discord.ui.View):
     logger.info("Timing out the view!")
     self.clear_items()
 
+  def generate_battle_logs(self) -> str:
+    description = ""
+    if self.battle.logs:
+      for log in self.battle.logs[self.battle.current_turn]:
+        if log['log_entry']:
+          description += log['log_entry']+'\n'
+    return description
 
+    
 class Confirmation(PoshimoView):
   """ base confirmation boilerplate """
   def __init__(self, cog, choice=None):

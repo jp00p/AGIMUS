@@ -51,9 +51,6 @@ class Poshimo(object):
     if self.name:
       self.poshimodata = pdata[self.name.lower()] # fire this up early if we have it
     
-    self._max_hp:int = 0
-    self._hp:int = 0
-    
     self._attack:PoshimoStat = PoshimoStat(0)
     self._defense:PoshimoStat = PoshimoStat(0)
     self._special_attack:PoshimoStat = PoshimoStat(0)
@@ -83,11 +80,14 @@ class Poshimo(object):
       self._owner = self.poshimodata["owner"]
     
     # poshimodata should be fully loaded now, if not ... wha happen???
+    
     self._level = self.poshimodata.get("level", 1)
     self._name = self.poshimodata["name"]
     self._display_name = self.poshimodata.get("display_name")
     self._personality = PoshimoPersonality(self.poshimodata.get("personality"))
-
+    self._hp = self.poshimodata.get("hp", 1)
+    self._max_hp = self.poshimodata.get("max_hp", self._hp) # only real poshimo have max_hp
+    
     self.types = (
       self.poshimodata["type_1"],
       self.poshimodata["type_2"]
@@ -100,11 +100,8 @@ class Poshimo(object):
     self._special_attack:PoshimoStat = PoshimoStat(self.poshimodata["special_attack"][0], self.poshimodata["special_attack"][1])
     self._special_defense:PoshimoStat = PoshimoStat(self.poshimodata["special_defense"][0], self.poshimodata["special_defense"][1])
     self._speed:PoshimoStat = PoshimoStat(self.poshimodata["speed"][0], self.poshimodata["speed"][1])
-    self._max_hp:int = int(self.poshimodata.get("hp", 1))
-    self._hp:int = int(self._max_hp)   
     self._xp:int = 0
     self._last_damaging_move:PoshimoMove = None
-  
     self.status = None # TODO: Statuses      
 
     # 
@@ -146,8 +143,13 @@ class Poshimo(object):
       query.execute(sql, vals)
       results:dict = query.fetchone()
     self.poshimodata = dict(results)
+    logger.info(f"What's goin on here: {self.poshimodata}")
     temp_pdata = pdata[results["name"].lower()] # load poshimo data from file
+    
     temp_pdata["id"] = results.get("id", 0) # gotta update the original ID from the poshimodex
+    temp_pdata["max_hp"] = results.get("max_hp")
+    temp_pdata["hp"] = results.get("hp")
+    
     self.poshimodata.update(temp_pdata) # merge with db info (so its not a base poshimo)
     self._move_list = self.load_move_list(results.get("move_list")) # unpack json moves
     #logger.info(f"Loaded poshimo: {Fore.GREEN}{self.poshimodata}{Fore.RESET}")
@@ -161,6 +163,8 @@ class Poshimo(object):
     self._level = 1 #TODO: leveling
     self._display_name = self.name
     self._personality = PoshimoPersonality()
+    self._hp = self.poshimodata.get("hp", 1)
+    self._max_hp = self._hp
     logger.info(f"Preparing this poshimo for creation: DISPLAY NAME: {self._display_name} OWNER: {self.owner} PERSONALITY: {self._personality}")
 
     with AgimusDB() as query:
@@ -179,7 +183,7 @@ class Poshimo(object):
         "level" : self._level,
         "xp" : self._xp,
         "hp" : self._hp,
-        "max_hp" : self._max_hp,
+        "max_hp" : self._hp,
         "attack" : self._attack.to_json(),
         "defense" : self._defense.to_json(),
         "special_attack" : self._special_attack.to_json(),

@@ -10,13 +10,17 @@ from ..trainer import PoshimoTrainer, TrainerStatus
 
 class BattleStates(Enum):
   ACTIVE = 0
-  PENDING = 1
-  FINISHED = 2
+  FINISHED = 1
 
 class BattleTypes(Enum):
   HUNT = 0
   NPC = 1
   DUEL = 2
+
+class BattleOutcomes(Enum):
+  FAINTED = 0
+  CAPTURED = 1
+  FLED = 2
 
 class PoshimoBattle(object):
   """ a poshimo battle between two trainers or a trainer and a wild poshimo """
@@ -28,12 +32,14 @@ class PoshimoBattle(object):
     self._state:BattleStates = BattleStates.ACTIVE
     self._current_turn:int = 0
     self._round:int = 1
+    self._outcome:BattleOutcomes = None
     self.wild_poshimo:Poshimo = wild_poshimo
     self._logs:Dict[int,List[dict]] = {}
     self.battle_actions:list = ["item", "swap", "flee"] # the base actions for the actions menu
-
+    self._can_flee = True
+    self.dead_bodies:List[Tuple[Poshimo, PoshimoTrainer]] = []
+    
     if self._battle_type is BattleTypes.HUNT:
-      self.battle_actions.insert(-1, "capture") # add capture to actions menu if this is a hunt
       self.trainers[1] = self.load_npc(self.wild_poshimo, name="Test NPC") # create the fake NPC
 
     if self.id:
@@ -42,6 +48,14 @@ class PoshimoBattle(object):
     else:
       # new battle
       self.id = self.start()
+      self.logs[self.current_turn] = []
+      self.add_log(f"The battle between {self.trainers[0]} and {self.trainers[1]} begins!")
+    if self._battle_type is BattleTypes.HUNT:
+      self.add_snatch()
+    
+  def add_snatch(self):
+    """ add capture to actions menu """
+    self.battle_actions.insert(-1, "snatch")
 
   @property
   def battle_type(self) -> BattleTypes:
@@ -89,6 +103,15 @@ class PoshimoBattle(object):
     pickled_logs = pickle.dumps(self._logs)
     self.update("logs", pickled_logs)
 
+  @property
+  def outcome(self) -> BattleOutcomes:
+    return self._outcome
+  
+  @outcome.setter
+  def outcome(self, val:BattleOutcomes) -> None:
+    self._outcome = val
+    self.update("outcome", self._outcome.value)
+
   def add_log(self, logline) -> None:
     """ adds a line to the combat log """
     newline = {
@@ -101,7 +124,8 @@ class PoshimoBattle(object):
     self.logs = temp_logs # fire the update
     
   def load_npc(self, poshimo:Poshimo, name=None) -> PoshimoTrainer:
-    """ load an NPC, give it a name """
+    """ load an NPC, give it a name -- this NPC never really gets loaded into the DB, but their Poshimo does """
+    #TODO: generate random name
     npc = PoshimoTrainer(name=name)
     npc.active_poshimo = poshimo
     logger.info(f"Created an NPC! {npc}")
@@ -154,6 +178,7 @@ class PoshimoBattle(object):
       query.execute(sql, vals)
       battle_data = query.fetchone()
     self._battle_type = BattleTypes(battle_data["battle_type"])
+    logger.info(f"{Fore.LIGHTRED_EX}Loaded battle {self.id} ({self._battle_type})!{Fore.RESET}")
     self._state = BattleStates(battle_data["state"])
     self._current_turn:int = battle_data["current_turn"]
     self._round = battle_data["round"]
@@ -171,17 +196,17 @@ class PoshimoBattle(object):
         self.trainers[i] = self.load_npc(self.wild_poshimo, name=trainer) # npc trainer
 
   def do_turn(self):
-    """ once both sides have input their moves, this will run """
-    logger.info(f"Doing the turn!")
-    self.current_turn = self.current_turn + 1
-    self._logs[self.current_turn] = [] # init the log list (this won't trigger a db update)
-    self.turn_start() # apply status effects
-    self.handle_actions() # if someone used an action, these happen first
+    """ once both sides have input their moves, this will run """   
+    self.turn_start() # update turn, apply status effects
+    self.handle_actions() # handle player actions
     self.handle_moves() # process moves
+    self.handle_dead_bodies() # test
     self.turn_end() # more status effects
 
   def turn_start(self):
     """ handle things that happen at the start of the turn """
+    self.current_turn = self.current_turn + 1
+    self._logs[self.current_turn] = [] # init the log list (this won't trigger a db update yet)
     #self.add_log(f"Turn {self.current_turn} starts!")
     self.process_statuses(start=True)
 
@@ -198,7 +223,7 @@ class PoshimoBattle(object):
     """ 
     determine the order of operations and determine the outcome for each poshimo
     """
-    
+
     self.calculate_speed() # determine which move goes first
     final_moves:List[Tuple[PoshimoMove, PoshimoTrainer, PoshimoTrainer]] = []
 
@@ -214,11 +239,38 @@ class PoshimoBattle(object):
 
     # now we have both moves in order, apply them to each poshimo in order!
     for move,target,trainer in final_moves:
-      results = self.apply_move(move,target,trainer)      
+      results = self.apply_move(move,target,trainer)
       self.add_log(results)
-
+      if target.active_poshimo.hp <= 0:
+        logger.info("Poshimo fainted!")
+        self.dead_bodies.append((target.active_poshimo, target))
+        break # if someone dies, moves stop
     self._queued_moves = [] # empty the queue
     
+  def handle_dead_bodies(self):
+    for poshimo,trainer in self.dead_bodies:
+      self.add_log(f"{trainer}'s {poshimo} fainted!")
+      # attempt swap
+      swap = trainer.random_swap()
+      if not swap:
+        self.end_battle(loser=trainer)
+        break
+      else:
+        self.add_log(f"{trainer} swapped out {poshimo} for {trainer.active_poshimo}")
+
+  def end_battle(self,loser:PoshimoTrainer):
+    # end of battle (someone lost or won)
+    # all poshimo fainted, or captured
+    self.state = BattleStates.FINISHED
+    for trainer in self.trainers:
+      trainer.status = TrainerStatus.IDLE
+    temp_trainers = self.trainers.copy()
+    temp_trainers.remove(loser)
+    winner = temp_trainers.pop()        
+    if self.battle_type is BattleTypes.DUEL:
+      loser.losses += 1
+      winner.wins += 1
+    self.add_log(f"Battle is over! {loser} was unable to overcome {winner}'s raw strength and tactical prowess.")
 
   def calculate_speed(self) -> None:
     """ 

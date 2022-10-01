@@ -1,0 +1,21 @@
+name,biome,description,n,e,s,w,wild_poshimo,flags,fishing_shape
+New Vertiform City,metropolis,A mysterious and huge city full of weirdos,,,vertiform field,,,,river
+Vertiform Field,grasslands,The expansive fields around Vertiform City,new vertiform city,heorot,vertiform river,forest of forever,,,pond
+Vertiform River,river,The river that marks the end of Vertiform Territority,vertiform field,,,,,,river
+Forest of Forever,forest,A forest full of helpful spirits,,vertiform field,,ktaris pointe,,,river
+Heorot,forest,King Hrothgar's mead hall,,meung-sur-loire,,vertiform field,,,lake
+Meung-sur-Loire,grasslands,Musketeer countryside,,,,,,,
+Marylebone District,town,A dangerous alley and a famous apartment,,,,,,,pond
+Prospero's Island,tropical,An island for recluses,,,,,,,ocean
+Charnock Town,town,Small town famous for entertainers,,,,,,,pond
+Parallax Colony,lunar,A colony of outcasts,,,,,,,
+Risa Water Recreation Park,tropical,A wet and wild pleasure park,,,,,,,ocean
+KTaris Pointe,mountainous,A perfect place to see the moon and make out,,forest of forever,,,,,river
+Henshaw's Stand,tropical,A bar with famous drinks and a long beach,,,,,,,ocean
+Rosseau V,lunar,Mysterious singing space rocks,,,,,,,
+Fair Haven,town,A romantic Irish town,,,,,,,pond
+Niner's Field,grasslands,"The stands, the concessions, the green",,,,,,,pond
+Tuscany Region,grasslands,DaVinci's workshop and the surrounding farmland,,,,,,,river
+Alamo Mission,desert,An adobe church where something happened.,,,,,,,
+Boraal Caves,mountainous,Intricate cave system good for hiding in.,,,,,,,lake
+Kayak River,river,"A mighty rushing river, full of danger",,,,,,,river

@@ -36,10 +36,12 @@ class PocketShimodae(commands.Cog):
     description="DEBUG"
   )
   async def test_unlock_locations(self, ctx:discord.ApplicationContext):
-    self.game.test_unlock_loc(ctx.author.id, "starter_zone")
-    self.game.test_unlock_loc(ctx.author.id, "test_zone")
-    self.game.test_unlock_loc(ctx.author.id, "field")
-    self.game.test_unlock_loc(ctx.author.id, "plowland")
+    self.game.test_unlock_loc(ctx.author.id, "vertiform field")
+    self.game.test_unlock_loc(ctx.author.id, "forest of forever")
+    self.game.test_unlock_loc(ctx.author.id, "heorot")
+    self.game.test_unlock_loc(ctx.author.id, "new vertiform city")
+    self.game.test_unlock_loc(ctx.author.id, "meung-sur-loire")
+    self.game.test_unlock_loc(ctx.author.id, "ktaris pointe")
     await ctx.respond(f"All locations unlocked", ephemeral=True)
 
   @ps.command(
@@ -140,3 +142,13 @@ class PocketShimodae(commands.Cog):
       hunt = self.game.start_hunt(ctx.author.id)
       initial_turn = battle.BattleTurn(self, hunt)
       await ctx.followup.send(embed=initial_turn.get_embed(), view=initial_turn)
+
+  @ps.command(
+    name="fish",
+    description="Fish!"
+  )
+  async def fish(self, ctx:discord.ApplicationContext):
+    await ctx.defer(ephemeral=True)
+    trainer = utils.get_trainer(ctx.author.id)
+    fishing_game = fishing.FishingGame(self, trainer)
+    await ctx.followup.send(embed=fishing_game.get_embed(), view=fishing_game)

@@ -1,17 +1,35 @@
 from common import *
-from enum import Enum
+from enum import Enum, auto
 
-weather_emoji = ["🌞","🌤","⛅","🌧","🌨","🍃","🌩","🌫"]
+weather_emoji = [
+  "🌞",
+  "🌥",
+  "🌦",
+  "☁",
+  "☔",
+  "🌧",
+  "⛈",
+  "❄",
+  "🌨",
+  "🍃",
+  "🌪",
+  "🌫"
+]
 
 class Weather(Enum):
-  SUNNY = 0
-  PARTLY_CLOUDY = 1
-  CLOUDY = 2
-  RAINY = 3
-  SNOWY = 4
-  WINDY = 5
-  STORMY = 6
-  FOGGY = 7
+  SUNNY = auto()
+  PARTLY_CLOUDY = auto()
+  OVERCAST = auto()
+  CLOUDY = auto()
+  RAINY = auto()
+  HEAVY_RAIN = auto()
+  THUNDERSTORM = auto()
+  SNOWY = auto()
+  BLIZZARD = auto()
+  WINDY = auto()
+  WIND_STORM = auto()
+  FOGGY = auto()
+
   def __str__(self):
     return f"{weather_emoji[self.value]}"
   def full_name(self):

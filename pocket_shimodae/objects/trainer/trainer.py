@@ -79,7 +79,7 @@ class PoshimoTrainer(object):
       self._wins = trainer_data.get("wins")
       self._losses = trainer_data.get("losses")
       self._status = TrainerStatus(trainer_data.get("status"))
-      self._location = trainer_data.get("location")
+      self._location = trainer_data.get("location").lower()
       self.discord_id = trainer_data.get("discord_id")
       sac_data = trainer_data.get("poshimo_sac")
       if sac_data:
@@ -97,6 +97,7 @@ class PoshimoTrainer(object):
       if loc_data:
         loc_data = json.loads(loc_data)
         self._locations_unlocked = set(loc_data)
+        logger.info(self._locations_unlocked)
 
       self._inventory = trainer_data.get("inventory")
       self._scarves = trainer_data.get("scarves")
@@ -151,7 +152,7 @@ class PoshimoTrainer(object):
 
   @location.setter
   def location(self, value):
-    self._location = value
+    self._location = value.lower()
     self.update("location", self._location)
 
   @property
@@ -284,22 +285,23 @@ class PoshimoTrainer(object):
     logger.info(f"NPC has picked {move.display_name}!")
     return move
 
-  def remove_poshimo(self, poshimo):
-    # remove poshimo from sac
-    pass
+  def get_eligible_poshimo_for_swap(self) -> list:
+    """ return list of all poshimo eligible for swapping """
+    eligible_poshimo = []
+    for poshimo in self._poshimo_sac:
+      if poshimo.hp > 0:
+        eligible_poshimo.append(poshimo)
+    return eligible_poshimo
 
-  def give_item(self, item):
-    # give player an item
-    pass
+  def random_swap(self):
+    """ do a random swap (when your active poshimo dies) """
+    eligible_poshimo = self.get_eligible_poshimo_for_swap()
+    if len(eligible_poshimo) > 0:
+      self.swap(random.choice(eligible_poshimo))
+    else:
+      return False
 
-  def use_item(self, item):
-    # use an item
-    pass
+  def swap(self, poshimo) -> None:
+    self._poshimo_sac.append(self._active_poshimo)
+    self._active_poshimo = poshimo
 
-  def remove_item(self, item):
-    # remove item from inventory
-    pass
-
-  def update_db_column(self, column, value):
-    # update player db info
-    return

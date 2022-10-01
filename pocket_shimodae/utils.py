@@ -1,4 +1,8 @@
-""" a collection of utility functions for poshimo """
+""" 
+a collection of utility functions for poshimo 
+this mostly exists because i am bad at imports
+"""
+
 from common import *
 from .objects.trainer import PoshimoTrainer
 

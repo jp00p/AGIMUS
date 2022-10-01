@@ -1,8 +1,43 @@
+from email.policy import default
 from common import *
+import csv
 from random import Random
 from datetime import date
 from typing import Dict
 from . import PoshimoBiome, Weather, PoshimoLocation
+
+with open("pocket_shimodae/data/biomes.csv") as file:
+  # load the base biome data from file
+  csvdata = csv.DictReader(file)
+  bdata = {}
+  for row in csvdata:
+    bdata[row["name"].lower()] = {
+      "name" : row.get("name", ""),
+      "weather_types" : row.get("weather_types").split("|"),
+      "emoji" : row.get("emoji", "❓"),
+      "wild_poshimo" : row.get("wild_poshimo","").split("|")
+    }
+  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}BIOME DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
+
+with open("pocket_shimodae/data/locations.csv") as file:
+  # load the base location data from file
+  csvdata = csv.DictReader(file)
+  ldata = {}
+  for row in csvdata:
+    ldata[row["name"].lower()] = {
+      "name" : row.get("name", ""),
+      "biome" : row.get("biome","").lower(),
+      "description" : row.get("description", ""),
+      "wild_poshimo" : row.get("wild_poshimo","").split("|"),
+      "flags" : row.get("flags","").split("|"),
+      "n" : row.get("n", "").lower(),
+      "e" : row.get("e", "").lower(),
+      "s" : row.get("s", "").lower(),
+      "w" : row.get("w", "").lower(),
+      "fishing_shape" : row.get("fishing_shape", None)
+    }
+  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}LOCATION DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
+
 
 class PoshimoWorld(object):
   """ The (a?) world of Poshimo! Contains all the Locations a trainer can visit """
@@ -14,78 +49,44 @@ class PoshimoWorld(object):
     today_seed:str = f"{now.year}{now.month}{now.day}{now.hour}"
     self.random:Random = Random(today_seed)
     #logger.info(f"\nNOW: {now}\nSEED: {today_seed}\nRANDOM INT 1-100: {self.random.randint(1,100)} {self.random.randint(1,100)} {self.random.randint(1,100)}")
+    self.locations : Dict[str, PoshimoLocation] = {}
+    self.biomes : Dict[str, PoshimoBiome] = {}
     
-    self.biomes:Dict[str, PoshimoBiome] = {
-      "grasslands" : PoshimoBiome(
-        name="Grasslands", 
-        weather_types=[Weather.SUNNY, Weather.CLOUDY, Weather.PARTLY_CLOUDY, Weather.RAINY], 
-        emoji="🌼",
-        wild_poshimo=[
-          (100, "Pikachu"),
-          (100, "Bulbasaur"),
-          (100, "Weedle"),
-          (100, "Oddish")
-        ]
-      ),
-      "wastelands" : PoshimoBiome(
-        name="Wastelands", 
-        weather_types=[Weather.STORMY], 
-        emoji="🚧",
-        wild_poshimo=[
-          (100, "Koffing"),
-          (50, "Ekans")
-        ]
-      ),
-      "metropolis" : PoshimoBiome(
-        name="Metropolis",
-        weather_types=[Weather.CLOUDY, Weather.RAINY],
-        emoji="🏙",
-        wild_poshimo=[
-          (100, "Squirtle"),
-          (50, "Meowth")
-        ]
-      ),
-      "tundra" : PoshimoBiome(
-        name="Snowy Tundra",
-        weather_types=[Weather.SNOWY],
-        emoji="⛰",
-        wild_poshimo=[
-          (100, "Dewgong"),
-          (50, "Cloyster")
-        ]
+    
+    for id,biome in bdata.items():
+      biome_poshimo = []
+      for b in biome["wild_poshimo"]:
+        p = b.split(",")
+        if len(p) > 1: 
+          biome_poshimo.append((p[0],float(p[1])))
+
+      self.biomes[id] = PoshimoBiome(
+        name=biome["name"],
+        weather_types=[Weather[w.upper()] for w in biome["weather_types"]],
+        emoji=biome["emoji"],
+        wild_poshimo=biome_poshimo
       )
-    }
-    self.locations : Dict[str, PoshimoLocation] = {
-      "starter_zone" : PoshimoLocation(
-        name="Vertiform City",
-        biome=self.biomes["metropolis"], 
-        description="The mysterious city of legend, where Poshimo are said to have been born.",
-        s="test_zone"
-      ),
-      "test_zone" : PoshimoLocation(
-        name="The Brown Fields", 
-        biome=self.biomes["wastelands"], 
-        description="A central juncture in this realm. No place for lovemaking.",
-        n="starter_zone",
-        e="field",
-        w="plowland"
-      ),
-      "field" : PoshimoLocation(
-        name="Field of Dreams",
-        biome=self.biomes["grasslands"],
-        description="They built it. You came.",
-        w="test_zone"
-      ),
-      "plowland" : PoshimoLocation(
-        name="Mr. Plow's Winter Wonderland",
-        biome=self.biomes["tundra"],
-        description="Pornography stores as far as the eye can see.  Open all night.",
-        e="test_zone",
-        wild_poshimo=[
-          (100, "Pikachu"),
-        ]
+
+    for id,location in ldata.items():
+      location_poshimo = []
+      for l in location["wild_poshimo"]:
+        p = l.split(",")
+        if len(p) > 1: 
+          biome_poshimo.append((p[0],p[1]))
+
+      self.locations[id] = PoshimoLocation(
+        name=location["name"],
+        biome=self.biomes[location["biome"]],
+        description=location["description"],
+        n=location["n"],
+        e=location["e"],
+        s=location["s"],
+        w=location["w"],
+        wild_poshimo=location_poshimo,
+        flags=location["flags"],
+        fishing_shape=location["fishing_shape"]
       )
-    }
+    
 
     logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}WORLD{Style.RESET_ALL} pops back into existence!{Fore.RESET}{Back.RESET}")
     self.set_weather() # set the initial weather on load

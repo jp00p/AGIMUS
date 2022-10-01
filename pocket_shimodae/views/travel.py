@@ -70,12 +70,14 @@ class TravelMenu(PoshimoView):
       ["w", "x", "e"],
       ["sw", "s", "se"]
     ]
-    
+    logger.info(f"Unlocked locations: {self.trainer.locations_unlocked}")
+    logger.info(f"Trainer's current location: {self.trainer.location}")
     # loop over all the paths at this location
     for dir,loc in self.trainer_location.paths.items():
+      logger.info(f"{dir},{loc}")
       if loc in self.trainer.locations_unlocked and loc != self.trainer_location:
         # if the location is unlocked by the player, add it to the list of exits
-        self.exits[dir] = loc   
+        self.exits[dir] = loc  
 
     if len(self.exits) < 1:
       self.embeds = [

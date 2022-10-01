@@ -1,0 +1,12 @@
+name,weather_types,emoji,wild_poshimo
+grasslands,sunny|partly_cloudy|overcast|cloudy|rainy,🌼,"Pikachu,100|Bulbasaur,200"
+wastelands,rainy|heavy_rain|cloudy,🚧,"Pikachu,100|Bulbasaur,200"
+metropolis,cloudy|sunny|overcast|partly_cloudy,🏙,"Pikachu,100|Bulbasaur,200"
+tundra,snowy|blizzard,🏔,"Pikachu,100|Bulbasaur,200"
+forest,overcast|rainy|cloudy,🌲,"Pikachu,100|Bulbasaur,200"
+river,sunny|cloudy|rainy|overcast|heavy_rain,💦,"Pikachu,100|Bulbasaur,200"
+lunar,snowy,🛰,"Pikachu,100|Bulbasaur,200"
+town,sunny|cloudy|overcast,🏘,"Pikachu,100|Bulbasaur,200"
+desert,windy|wind_storm|sunny,🏜,"Pikachu,100|Bulbasaur,200"
+mountainous,snowy|blizzard|sunny|cloudy|rainy,⛰,"Pikachu,100|Bulbasaur,200"
+tropical,wind_storm|sunny|heavy_rain,🏝,"Pikachu,100|Bulbasaur,200"

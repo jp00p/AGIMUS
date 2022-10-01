@@ -1,9 +1,13 @@
 from common import *
 from typing import List
 from ..ui import PoshimoView, Confirmation
-from ..objects import Poshimo, PoshimoBattle, BattleTypes, PoshimoTrainer, PoshimoMove
+from ..objects import Poshimo, PoshimoBattle, BattleTypes, BattleStates, PoshimoTrainer, PoshimoMove
 
-spacer = f"\n{'⠀'*53}"
+spacer = f"\n{'⠀'*53}" # fills out the embed to max width
+
+class ActionScreen(PoshimoView):
+  def __init__(self, cog, action:str, trainer:PoshimoTrainer, battle:PoshimoBattle):
+    super().__init__(cog)
 
 class BattleTurn(PoshimoView):
   """
@@ -18,6 +22,7 @@ class BattleTurn(PoshimoView):
 
   def __init__(self, cog, battle:PoshimoBattle):
     super().__init__(cog)
+    
     self.battle = battle
     self.you = battle.trainers[0]
     self.opponent = battle.trainers[1]
@@ -41,43 +46,60 @@ class BattleTurn(PoshimoView):
       )
     ]
     
-    if self.battle.battle_type == BattleTypes.HUNT and self.battle.current_turn == 0:
-      # HUNT START EMBED
-      battle_embed = discord.Embed(
-        title="Let the hunt begin!",
-        description=f"You encounter a wild {self.opponent.active_poshimo}!",
-        fields=default_battle_fields
-      )
-    if self.battle.battle_type == BattleTypes.HUNT and self.battle.current_turn > 0:
-      # HUNT ACTIVE BATTLE TURNS
-      description = ""
-      if self.battle._logs:
-        for log in self.battle._logs[self.battle.current_turn]:
-          if log['log_entry']:
-            description += log['log_entry']+'\n'
-      battle_embed = discord.Embed(
-        title=f"Round {self.battle.current_turn}:",
-        description=description,
-        fields=default_battle_fields
-      )
-      battle_embed.set_footer(text="Choose your next move wisely")
+    
 
+    if self.battle.battle_type is BattleTypes.HUNT:
+      if self.battle.state is BattleStates.ACTIVE:
+        
+        if self.battle.current_turn == 0:
+          # FIRST ROUND OF HUNT
+          battle_embed = discord.Embed(
+            title="Let the hunt begin!",
+            description=f"You encounter a wild {self.opponent.active_poshimo}!",
+            fields=default_battle_fields
+          )
+
+        if self.battle.current_turn > 0:
+          # SUBSEQUENT ROUNDS OF HUNT
+          description = self.generate_battle_logs()
+          
+          battle_embed = discord.Embed(
+            title=f"Round {self.battle.current_turn}:",
+            description=description,
+            fields=default_battle_fields
+          )
+          battle_embed.set_footer(text="Choose your next move wisely")
+
+      if self.battle.state is BattleStates.FINISHED:
+        # HUNT IS OVER
+        description = self.generate_battle_logs()
+        battle_embed = discord.Embed(
+          title=f"The hunt is over!",
+          description=description,
+          fields=default_battle_fields
+        )
+        battle_embed.set_footer(text="Wow finally.")
+
+    # HUNT OVER EMBED
+    
+    # ---- end of custom embeds ---- #
     battle_embed.description += spacer
     self.embeds = [battle_embed]
     
-    stamina_count = 0
-    for move in self.you.active_poshimo.move_list:
-      # add move buttons
-      self.add_item(MoveButton(self.cog, move, self.you, self.battle))
-      stamina_count += move.stamina
-    
-    if stamina_count == 0:
-      # if they are out of moves, they can always struggle
-      self.add_item(self.cog, PoshimoMove("struggle"), self.you, self.battle)
+    if self.battle.state is BattleStates.ACTIVE:
+      stamina_count = 0
+      for move in self.you.active_poshimo.move_list:
+        # add move buttons
+        self.add_item(MoveButton(self.cog, move, self.you, self.battle))
+        stamina_count += move.stamina
+      
+      if stamina_count == 0:
+        # if they are out of moves, they can always struggle
+        self.add_item(MoveButton(self.cog, PoshimoMove("struggle"), self.you, self.battle))
 
-    for action in self.battle.battle_actions:
-      # add action buttons
-      self.add_item(ActionButton(action))
+      for action in self.battle.battle_actions:
+        # add action buttons
+        self.add_item(ActionButton(action, self.you, self.battle))
 
 class MoveButton(discord.ui.Button):
   ''' 
@@ -120,19 +142,24 @@ class ActionButton(discord.ui.Button):
   ----
   This will queue up an action in battle instead of a move during your turn
   '''
-  def __init__(self, action:str, *args, **kwargs):
+  def __init__(self, action:str, you:PoshimoTrainer, battle:PoshimoBattle, *args, **kwargs):
     self.action = action
+    self.you = you
+    self.battle = battle
     super().__init__(
       label=self.action.title(), 
       row=2, 
       style=discord.ButtonStyle.blurple, 
-      disabled=True,
       *args, 
       **kwargs
     )
   
   async def callback(self, interaction:discord.Interaction):
-    await interaction.response.send_message(content=f"Nice, you clicked {self.action}")
+    error = action_not_possible(self.action, self.battle, self.you)
+    if error:
+      await interaction.response.send_message(content=f"Oops: {error}")
+    else:
+      await interaction.response.send_message(content=f"Nice, you clicked {self.action}")
 
 
 class InventoryScreen(PoshimoView):
@@ -146,3 +173,16 @@ class BattleResults(BattleTurn):
   ''' results of a turn '''
   def __init__(self):
     super().__init__(self.cog, self.battle)
+
+def action_not_possible(action:str, battle:PoshimoBattle, trainer:PoshimoTrainer):
+  if action == "flee":
+    if not battle._can_flee:
+      return "You can't flee this battle!"
+  if action == "item":
+    if not trainer.inventory:
+      return "You have no items!"
+  if action == "snatch":
+    return "You can't snatch ...yet"
+  if action == "swap":
+    return "You can't swap ...yet"
+  return False
