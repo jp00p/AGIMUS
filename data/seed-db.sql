@@ -297,3 +297,13 @@ CREATE TABLE IF NOT EXISTS poshimo_battles (
   PRIMARY KEY(id),
   FOREIGN KEY (wild_poshimo) REFERENCES poshimodae (id)
 );
+CREATE TABLE IF NOT EXISTS poshimo_fishing_log (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  trainer INT(11) NOT NULL,
+  fish VARCHAR(128) NOT NULL,
+  location VARCHAR(128) NOT NULL,
+  length DOUBLE NOT NULL,
+  time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY(id),
+  FOREIGN KEY (trainer) REFERENCES poshimo_trainers (id)
+)

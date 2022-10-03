@@ -15,7 +15,7 @@ with open("pocket_shimodae/data/fish.csv") as file:
   logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}FISH DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
 
 class PoshimoFish(object):
-  def __init__(self, name:str):
+  def __init__(self, name:str,length:float=None):
     self.name = name.lower()
     self.fish_data = fdata[self.name]
     self.display_name = self.fish_data.get("name")
@@ -23,7 +23,12 @@ class PoshimoFish(object):
     self.max_length = float(self.fish_data["max_length"])
     self.difficulty = int(self.fish_data["difficulty"])
     self.emoji = self.fish_data["emoji"]
-    self.length = round(random.uniform(self.min_length, self.max_length) + random.uniform(0.0, 5.0), 2)
+    if not length:
+      self.length = round(random.uniform(self.min_length, self.max_length) + random.uniform(0.0, 5.0), 2)
+    else:
+      self.length = length
 
   def __str__(self):
-    return f"**{self.display_name}** `({self.length}cm)`"
+    return f"{self.display_name}"
+
+  

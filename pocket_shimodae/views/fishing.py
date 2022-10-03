@@ -4,36 +4,36 @@ from ..ui import PoshimoView, Confirmation, PoshimoGame
 from ..objects import PoshimoTrainer, PoshimoLocation, PoshimoFish, FishingShapeDict
 import pocket_shimodae.utils as utils
 
-trash_items = ["🦴", "🥾"]
-trash_items += ["🟦"]*12
+#trash_items = ["🦴", "🥾"]
+trash_items = ["🟦"]*12
 
 class FishingButton(discord.ui.Button):
-  def __init__(self, cog, row, choice, water_contents, available_fish, fishing_shape):
+  def __init__(self, cog, row, choice, water_contents, available_fish, fishing_shape, trainer):
     label = "⠀" #TODO: find a better label, maybe use water ripple emoji???
     self.choice = choice
     self.water_contents = water_contents
     self.cog = cog
-    logger.info(self.water_contents)
     self.win = bool(self.water_contents[self.choice] and self.water_contents[self.choice] == "fish")
     self.available_fish = available_fish
     self.fishing_shape = fishing_shape
+    self.trainer = trainer
     super().__init__(
       label=label,
       row=row,
       style=discord.ButtonStyle.primary
     )
   async def callback(self, interaction):
-    view = FishingResults(self.cog, self.win, self.choice, self.water_contents, self.available_fish, self.fishing_shape)
+    view = FishingResults(self.cog, self.win, self.choice, self.water_contents, self.available_fish, self.fishing_shape, self.trainer)
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
-class FishingResults(PoshimoView):
-  
-  def __init__(self, cog, win:bool, choice:int, water_contents:list, fish:str, fishing_shape:FishingShapeDict):
+class FishingResults(PoshimoView): 
+  def __init__(self, cog, win:bool, choice:int, water_contents:list, fish:str, fishing_shape:FishingShapeDict, trainer:PoshimoTrainer):
     super().__init__(cog)
     self.title = ""
     self.description = ""
     self.fish = fish
     self.fishing_shape = fishing_shape
+    self.trainer = trainer
     fish_in_water = [PoshimoFish(name=f) for f in random.choices(self.fish, weights=None, k=self.fishing_shape["num_fish"])] # decide what the actual fish in the water are
     random.shuffle(fish_in_water)
     self.caught_fish = None 
@@ -43,39 +43,43 @@ class FishingResults(PoshimoView):
     if win:
       self.title = "You got a fish! 😊"
       self.caught_fish = fish_in_water.pop() # only if they won!
-      self.description = "\n" + f"Fish caught: {self.caught_fish}"
+      self.trainer.catch_fish(self.caught_fish)
+      self.description = "\n```ansi\n" + f"FISH: {Fore.CYAN}{self.caught_fish}{Fore.RESET}"
+      self.description += "\n" + f"LENGTH: {Fore.YELLOW}{self.caught_fish.length}{Fore.RESET}cm" + "\n```\n"
       
     else:
       self.title = "You failed to catch a fish 😢"
-      self.description = "Try the wide beam next time!"
+      self.description = "Try the wide beam next time!\n"
 
     # scanner results if they win or lose    
-    self.description += "\n__Fishing hole scanner results__\n\n"
-
+    self.description += "```ansi\n"+f"{Fore.MAGENTA}FISHING HOERL SCANNER{Fore.RESET} {Fore.YELLOW}Mk IV{Fore.RESET} [{Fore.GREEN}ONLINE{Fore.RESET}]"+"\n"
+    self.description += "      SONAR SCAN RESULTS\n\n"
     cell_counter = 0
-
+    
     for row in self.fishing_shape["shape"]:
+      self.description += "         "
       for cell in row:
         if cell_counter == self.choice and win:
-          self.description += "⠀✅⠀"
+          self.description += "✅"
         elif cell_counter == self.choice:
-          self.description += "⠀❌⠀"
+          self.description += "❌"
         elif water_contents[cell_counter] == "fish":
-          self.description += "⠀🐟⠀"
+          self.description += "🐟"
         elif water_contents[cell_counter] == "trash":
-          self.description += f"⠀{random.choice(trash_items)}⠀"
+          self.description += f"{random.choice(trash_items)}"
         else:
-          self.description += "⠀⬛⠀"
+          self.description += "⬛"
         cell_counter += 1
-      self.description += "\n\n"
-
-    logger.info(self.description)
-    
+      self.description += "\n"
+    self.description += "```"
+    footer_text = "❌ = your cast\t 🐟 = fish\t 🟦 = water"
+    if win:
+      footer_text = "✅ = your cast\t 🐟 = fish\t 🟦 = water"
     self.embeds = [
       discord.Embed(
         title=self.title,
         description=self.description
-      )
+      ).set_footer(text=footer_text)
     ]
 
 class FishingGame(PoshimoView):
@@ -88,18 +92,16 @@ class FishingGame(PoshimoView):
     if fishing_shape and len(available_fish) > 0:
       self.embeds = [
         discord.Embed(
-          title=f"You begin fishing at the {fishing_shape['shape_name']} near {fishing_spot}",
-          description="Choose where to cast your line:\n" + "⠀"*25
-        )
+          title=f"You begin holo-fishing at the {fishing_shape['shape_name']} near {fishing_spot}",
+          description="```ansi\n"+f"{Fore.MAGENTA}FISHING HOERL SCANNER{Fore.RESET} {Fore.YELLOW}Mk IV{Fore.RESET} [{Fore.BLACK}OFFLINE{Fore.RESET}]```"+"\n\n"
+        ).set_footer(text="Choose where to cast your line:")
       ]
       
       
 
       water_objects = ["fish"] * fishing_shape["num_fish"] # build array of ['fish','fish'...]
       flat_shape = [item for items in fishing_shape["shape"] for item in items]      
-      logger.info(f"FLAT SHAPE: {flat_shape}")
       num_trash = flat_shape.count(1) - fishing_shape["num_fish"]
-      logger.info(f"TRASH: {num_trash}")      
       water_objects += ["trash"] * num_trash # build array of ['trash',...]]
       random.shuffle(water_objects) # flat list of all the fish/trash
       
@@ -114,12 +116,10 @@ class FishingGame(PoshimoView):
       cell_number = 0
 
       for row in fishing_shape["shape"]:
-        logger.info(f"{button_row}: {row}")
         cell_count = 0
         for cell in row:
-          logger.info(f"CELL {cell_number}: {cell_count} {cell}")
           if cell != 0:
-            self.add_item(FishingButton(self.cog, button_row, cell_number, water_contents, available_fish, fishing_shape))
+            self.add_item(FishingButton(self.cog, button_row, cell_number, water_contents, available_fish, fishing_shape, trainer))
           else:
             self.add_item(discord.ui.Button(label="⠀",style=discord.ButtonStyle.gray, disabled=True))
           cell_count += 1

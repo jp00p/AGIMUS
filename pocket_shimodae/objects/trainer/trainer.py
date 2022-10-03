@@ -1,7 +1,7 @@
 """ a Trainer is the base character of our game """
 from enum import Enum
 from common import *
-from ..world import PoshimoBiome
+from ..world import PoshimoBiome, PoshimoFish
 from ..poshimo import Poshimo, PoshimoMove
 from typing import List
 
@@ -257,7 +257,7 @@ class PoshimoTrainer(object):
       temp_sac.remove(self.active_poshimo)
     if len(temp_sac) <= 0:
       return "Empty sac"
-    return "\n".join([p for p in temp_sac])
+    return "\n".join([p.display_name for p in temp_sac])
 
   def list_all_poshimo(self) -> List[Poshimo]:
     """ Get a list of all poshimo this Trainer owns """
@@ -305,3 +305,22 @@ class PoshimoTrainer(object):
     self._poshimo_sac.append(self._active_poshimo)
     self._active_poshimo = poshimo
 
+  def catch_fish(self, fish):
+    with AgimusDB() as query:
+      sql = "INSERT INTO poshimo_fishing_log (trainer,fish,location,length) VALUES(%s,%s,%s,%s);"
+      vals = (self.id, fish.name, self.location, fish.length)
+      query.execute(sql,vals)
+      last_id = query.lastrowid
+    logger.info(f"Fish added to log DB {fish.name} - id {last_id}")
+
+  def get_fishing_log(self) -> List[PoshimoFish]:
+    """ get a list of the last 10 fish this trainer has caught, sorted by length """
+    with AgimusDB(dictionary=True) as query:
+      sql = "SELECT fish, length FROM poshimo_fishing_log WHERE trainer = %s ORDER BY length DESC LIMIT 10"
+      vals = (self.id,)
+      query.execute(sql,vals)
+      fishing_log = query.fetchall()
+    final_log = []
+    for fish in fishing_log:
+      final_log.append(PoshimoFish(name=fish["fish"], length=fish["length"]))
+    return final_log

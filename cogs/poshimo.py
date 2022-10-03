@@ -29,7 +29,7 @@ class PocketShimodae(commands.Cog):
   )
   async def test_give_poshimo(self, ctx:discord.ApplicationContext):
     p = self.game.test_give_poshimo(ctx.author.id)
-    await ctx.respond(f"Did you win? {p.display_name}")
+    await ctx.respond(f"Did you win? {p.display_name}", ephemeral=True)
 
   @ps.command(
     name="test_unlock_locations",
@@ -53,6 +53,14 @@ class PocketShimodae(commands.Cog):
     await ctx.respond(f"Did you feel that?", ephemeral=True)
 
   @ps.command(
+    name="test_fish_log",
+    description="DEBUG"
+  )
+  async def test_fish_log(self, ctx:discord.ApplicationContext):
+    self.game.test_fish_log(ctx.author.id)
+    await ctx.respond(f"Fish log sent to logger for logging purposes", ephemeral=True)
+
+  @ps.command(
     name="start",
     description="Register as a new player and start your Poshimo journey!"
   )
@@ -67,12 +75,13 @@ class PocketShimodae(commands.Cog):
 
   @ps.command(
     name="status",
-    description="Get your current game status"
+    description="Get your current game status",
+    aliases=["info", "profile"]
   )
   async def status(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
     status_screen = status.Status(self, ctx.author.id)
-    await ctx.followup.send(embed=status_screen.get_embed())
+    await status_screen.paginator.respond(ctx.interaction, ephemeral=True)
   
   @ps.command(
     name="manage",
@@ -113,7 +122,7 @@ class PocketShimodae(commands.Cog):
 
   @ps.command(
     name="travel",
-    description="Move to a different location"
+    description="Move to a different location, if you have any unlocked."
   )
   async def travel(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
@@ -129,7 +138,7 @@ class PocketShimodae(commands.Cog):
 
   @ps.command(
     name="hunt",
-    description="Hunt for wild Poshimo"
+    description="Hunt for wild Poshimo in your current location!"
   )
   async def hunt(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
@@ -145,7 +154,7 @@ class PocketShimodae(commands.Cog):
 
   @ps.command(
     name="fish",
-    description="Fish!"
+    description="Attempt to fish in your current location!",
   )
   async def fish(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)

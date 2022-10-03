@@ -54,11 +54,15 @@ class PoshimoGame:
     location = self.find_in_world(hunter.location)
     location_poshimo = location.wild_poshimo
     logger.info(f"{location.wild_poshimo}")
+    
+    # get the list of poshimo and their rarity from this location (includes biome automatically)
     poshimo, weights = [[i for i,j in location_poshimo],
                         [j for i,j in location_poshimo]]
     
+    # pick a poshimo based on the weights
     found_poshimo = random.choices(poshimo, weights, k=1)[0]
     logger.info(f"Found this poshimo: {found_poshimo}")
+
     #TODO: scale level
     hunt = PoshimoBattle(
       battle_type=BattleTypes.HUNT,
@@ -82,9 +86,9 @@ class PoshimoGame:
   def test_give_poshimo(self, discord_id):
     trainer = utils.get_trainer(discord_id=discord_id)
     sample_poshimo = random.choice([
-      Poshimo(name="Worf"), 
-      Poshimo(name="Captain Picard"), 
-      Poshimo(name="Jim Shimoda")]
+      Poshimo(name="Wartortle"),
+      Poshimo(name="Weedle"),
+      Poshimo(name="Koffing")]
     )
     new_poshimo = trainer.add_poshimo(sample_poshimo)
     return new_poshimo
@@ -95,3 +99,8 @@ class PoshimoGame:
       for truncate in sql:
         query.execute(truncate)
     self.cog.all_trainers = []
+
+  def test_fish_log(self, discord_id):
+    trainer = utils.get_trainer(discord_id=discord_id)
+    log = trainer.get_fishing_log()
+    logger.info(f"FISHING LOG: {log}")
