@@ -40,7 +40,7 @@ from commands.computer import computer
 
 # Cogs
 from cogs.badge_tags import BadgeTags
-from cogs.chaoszork import ChaosZork
+from cogs.chaoszork import ChaosZork, HitchHikers
 from cogs.poker import Poker
 from cogs.profile import Profile
 from cogs.quiz import Quiz
@@ -55,6 +55,7 @@ from cogs.wordcloud import Wordcloud
 from cogs.poshimo import PocketShimodae
 bot.add_cog(BadgeTags(bot))
 bot.add_cog(ChaosZork(bot))
+bot.add_cog(HitchHikers(bot))
 bot.add_cog(Poker(bot))
 bot.add_cog(Profile(bot))
 bot.add_cog(Quiz(bot))

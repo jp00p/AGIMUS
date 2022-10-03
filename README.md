@@ -19,6 +19,11 @@ To execute makefile commands, some third-party dependencies must be installed lo
 - [jq](https://stedolan.github.io/jq/)
 - [yq](https://github.com/mikefarah/yq)
 
+> **Note**  
+> If you're using `homebrew` on macOS, you can install most of these in one go:  
+> `$ brew install kind helm jq yq`  
+> `docker` and `semver` are more easily installed through according to their maintainers' docs.
+
 ### Docker Usage
 
 This discord bot is built with python using the [discord.py library](https://discordpy.readthedocs.io/en/stable/api.html) and requires a mysql db with credentials stored in a .env file ([.env example](.env-example)). To develop locally, docker is used to standardize infrastructure and dependencies.

@@ -821,56 +821,79 @@ async def _cancel_invalid_scrapped_trades(trades_to_cancel):
   description="Look up information about a specific badge"
 )
 @option(
+  name="public",
+  description="Show to public?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="No",
+      value="no"
+    ),
+    discord.OptionChoice(
+      name="Yes",
+      value="yes"
+    )
+  ]
+)
+@option(
   name="name",
   description="Which badge do you want to look up?",
   required=True,
   autocomplete=all_badges_autocomplete
 )
-async def badge_lookup(ctx:discord.ApplicationContext, name:str):
+async def badge_lookup(ctx:discord.ApplicationContext, public:str, name:str):
   """
   This function executes the lookup for the /badge lookup command
   :param ctx:
   :param name: The name of the badge to be looked up.
   :return:
   """
-  try:
-    logger.info(f"{Fore.CYAN}Firing /badge lookup command for '{name}'!{Fore.RESET}")
-    badge = db_get_badge_info_by_name(name)
-    badge_count = db_get_badge_count_by_filename(badge['badge_filename'])
-    if (badge):
-      affiliations = [
-        a['affiliation_name']
-        for a in db_get_badge_affiliations_by_badge_name(name)
-      ]
-      types = [
-        t['type_name']
-        for t in db_get_badge_types_by_badge_name(name)
-      ]
+  public = bool(public == "yes")
+  await ctx.defer(ephemeral=not public)
 
-      description = f"Quadrant: **{badge['quadrant']}**\n"
-      description += f"Time Period: **{badge['time_period']}**\n"
-      if affiliations:
-        description += f"Affiliations: **{', '.join(affiliations)}**\n"
-      if types:
-        description += f"Types: **{', '.join(types)}**\n"
-      description += f"Franchise: **{badge['franchise']}**\n"
-      description += f"Reference: **{badge['reference']}**\n\n"
-      description += f"Total number collected on The USS Hood: **{badge_count}**\n\n"
-      description += f"{badge['badge_url']}"
+  logger.info(f"{Fore.CYAN}Firing /badge lookup command for '{name}'!{Fore.RESET}")
 
-      embed = discord.Embed(
-        title=f"{badge['badge_name']}",
-        description=description,
-        color=discord.Color.random() # jp00p made me do it
-      )
-      discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'].replace(',','_'))
-      embed.set_image(url=f"attachment://{badge['badge_filename'].replace(',','_')}")
-      await ctx.send_response(embed=embed, file=discord_image, ephemeral=True)
+  if name not in [b['badge_name'] for b in all_badge_info]:
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Could Not Find This Badge",
+        description=f"**{name}** does not appear to exist",
+        color=discord.Color.red()
+      ), ephemeral=True
+    )
+    return
 
-    else:
-      await ctx.respond("Could not find this badge.\n")
-  except Exception as e:
-    logger.info(f">>> ERROR: {e}")
+  badge = db_get_badge_info_by_name(name)
+  badge_count = db_get_badge_count_by_filename(badge['badge_filename'])
+
+  affiliations = [
+    a['affiliation_name']
+    for a in db_get_badge_affiliations_by_badge_name(name)
+  ]
+  types = [
+    t['type_name']
+    for t in db_get_badge_types_by_badge_name(name)
+  ]
+
+  description = f"Quadrant: **{badge['quadrant']}**\n"
+  description += f"Time Period: **{badge['time_period']}**\n"
+  if affiliations:
+    description += f"Affiliations: **{', '.join(affiliations)}**\n"
+  if types:
+    description += f"Types: **{', '.join(types)}**\n"
+  description += f"Franchise: **{badge['franchise']}**\n"
+  description += f"Reference: **{badge['reference']}**\n\n"
+  description += f"Total number collected on The USS Hood: **{badge_count}**\n\n"
+  description += f"{badge['badge_url']}"
+
+  embed = discord.Embed(
+    title=f"{badge['badge_name']}",
+    description=description,
+    color=discord.Color.random() # jp00p made me do it
+  )
+  discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'].replace(',','_'))
+  embed.set_image(url=f"attachment://{badge['badge_filename'].replace(',','_')}")
+  await ctx.followup.send(embed=embed, file=discord_image, ephemeral=not public)
 
 
 #   _________ __          __  .__          __  .__
@@ -937,7 +960,7 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User, reason:s
   give a random badge to a user
   """
   await ctx.defer(ephemeral=True)
-  
+
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a random badge{Style.RESET_ALL} to {user.display_name}")
 
@@ -950,6 +973,9 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User, reason:s
     ), ephemeral=True)
     return
 
+  user_wishlist_badges = db_get_user_wishlist_badges(user.id)
+  badge_was_on_wishlist = badge in [b['badge_filename'] for b in user_wishlist_badges]
+
   # Lock the badge if it was in their wishlist
   db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
   # Remove any badges the user may have on their wishlist that they now possess
@@ -959,6 +985,8 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User, reason:s
   embed_title = "You got rewarded a free badge!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has been gifted a badge by {ctx.author.mention}!"
+  if badge_was_on_wishlist:
+    embed_description += "\n\n" + f" Exciting! It was also one they had on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
   if reason != "":
     message = f"{user.mention} - {strip_emoji(reason)}"
   else:
@@ -1012,6 +1040,9 @@ async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User,
     user_badges = db_get_user_badges(user.id)
     badge_filename = badge_info['badge_filename']
     if specific_badge not in [b['badge_name'] for b in user_badges]:
+      user_wishlist_badges = db_get_user_wishlist_badges(user.id)
+      badge_was_on_wishlist = badge_filename in [b['badge_filename'] for b in user_wishlist_badges]
+
       give_user_specific_badge(user.id, badge_filename)
       # Lock the badge if it was in their wishlist
       db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge_filename])
@@ -1022,6 +1053,9 @@ async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User,
   embed_title = "You got rewarded a badge!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has been gifted a badge by {ctx.author.mention}!"
+  if badge_was_on_wishlist:
+    embed_description += "\n\n" + f"Exciting! It was also one they had on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
+
   message = f"{user.mention} - Nice work, you got a free badge!"
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge_filename, user)
   await ctx.respond("Your gift has been sent!", ephemeral=True)
@@ -1036,23 +1070,24 @@ async def gift_specific_badge_error(ctx, error):
 
 
 async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge_filename:str, user:discord.User):
-  badge_info = db_get_badge_info_by_filename(badge_filename)
-
-  badge_name = badge_info['badge_name']
-  badge_url = badge_info['badge_url']
-
   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
-  embed.add_field(
-    name=badge_name,
-    value=badge_url,
-    inline=False
-  )
-  embed.set_thumbnail(url=thumbnail_image)
-  embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
 
-  embed_filename = str(user.id) + str(abs(hash(badge_name))) + ".png"
-  discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=embed_filename)
-  embed.set_image(url=f"attachment://{embed_filename}")
+  if badge_filename != None:
+    badge_info = db_get_badge_info_by_filename(badge_filename)
+    badge_name = badge_info['badge_name']
+    badge_url = badge_info['badge_url']
+
+    embed.add_field(
+      name=badge_name,
+      value=badge_url,
+      inline=False
+    )
+    embed_filename = str(user.id) + str(abs(hash(badge_name))) + ".png"
+    discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=embed_filename)
+    embed.set_image(url=f"attachment://{embed_filename}")
+    embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
+
+  embed.set_thumbnail(url=thumbnail_image)
 
   message = await channel.send(content=message, file=discord_image, embed=embed)
   # Add + emoji so that users can add it as well to add the badge to their wishlist

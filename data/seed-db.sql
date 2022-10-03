@@ -78,6 +78,30 @@ CREATE TABLE IF NOT EXISTS profile_badges (
   PRIMARY KEY (id),
   UNIQUE KEY (user_discord_id)
 );
+CREATE TABLE IF NOT EXISTS profile_style (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id VARCHAR(64) NOT NULL,
+  style VARCHAR(128) DEFAULT 'Default',
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY (user_discord_id)
+);
+CREATE TABLE IF NOT EXISTS profile_inventory (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id VARCHAR(64) NOT NULL,
+  item_category VARCHAR(64) NOT NULL,
+  item_name VARCHAR(128) NOT NULL,
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+);
+CREATE TABLE IF NOT EXISTS profile_photo_filters (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id VARCHAR(64) NOT NULL,
+  filter VARCHAR(64) NOT NULL,
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY (user_discord_id)
+);
 CREATE TABLE IF NOT EXISTS trades (
   id int(11) NOT NULL AUTO_INCREMENT,
   requestor_id varchar(128) NOT NULL,
