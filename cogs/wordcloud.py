@@ -18,6 +18,18 @@ class Wordcloud(commands.Cog):
       Image.open("./images/cloud_masks/spock_mask.png")
     ]
 
+    self.hmasks = [
+      "./images/cloud_masks/halloween/bat_mask.png",
+      "./images/cloud_masks/halloween/cat_mask.png",
+      "./images/cloud_masks/halloween/coffin_mask.png",
+      "./images/cloud_masks/halloween/graveyard_mask.png",
+      "./images/cloud_masks/halloween/house_mask.png",
+      "./images/cloud_masks/halloween/pumpkin1_mask.png",
+      "./images/cloud_masks/halloween/pumpkin2_mask.png",
+      "./images/cloud_masks/halloween/skull_mask.png",
+      "./images/cloud_masks/halloween/wizard_mask.png"
+    ]
+
     self.common_words = string_utils.common_words
     self.more_stopwords = string_utils.more_stopwords
     
@@ -81,15 +93,17 @@ class Wordcloud(commands.Cog):
     for word in self.more_stopwords+self.common_words:
       STOPWORDS.add(word)
 
-    # mask image (combadge in this case, something else might work better)
-    mask = np.array(random.choice(self.image_masks))
+    # mask image
+    mask_choice = random.choice(self.hmasks)
+    mask_choice = Image.open(mask_choice)
+    mask = np.array(mask_choice)
 
     # build wordcloud with magic of wordcloud lib
     wc = WordCloud(
       scale=1,
       contour_color="#000000",
-      color_func=lambda *args, **kwargs: random.choice(["#ffaa00", "#33cc99", "#ff2200", "#ff9966", "#cc33ff"]),
-      contour_width=1,
+      contour_width=0,
+      color_func=lambda *args, **kwargs: random.choice(["#ff9a00", "#09ff00", "#c900ff", "#fbfaf4", "#CC0000"]),
       min_font_size=8,
       max_words=500,
       stopwords=STOPWORDS,
