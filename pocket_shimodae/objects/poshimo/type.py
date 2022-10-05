@@ -31,3 +31,16 @@ class PoshimoType(object):
 
   def __str__(self) -> str:
     return f"{self.name.title()}"
+
+  def __eq__(self, other):
+    return self.name == other
+
+  def is_weak_against(self, other):
+    if isinstance(other,list):
+      return self.weakness in other
+    return self.weakness == other
+
+  def is_strong_against(self, other):
+    if isinstance(other,list):
+      return self.weakness in other
+    return self.strength == other

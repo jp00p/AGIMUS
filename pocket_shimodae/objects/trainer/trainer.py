@@ -25,7 +25,8 @@ class PoshimoTrainer(object):
   def __init__(self, trainer_id:int=None, name:str=None):
     self.id:int = trainer_id
     self.discord_id:int = None
-    self.name:str = name # for NPCs only for now
+    self.name:str = name
+    self.display_name:str = name # real players will have their discord handle here
     self._poshimo_sac:List[Poshimo] = []
     self._status:TrainerStatus = TrainerStatus.IDLE
     self._wins:int = 0
@@ -41,8 +42,8 @@ class PoshimoTrainer(object):
     if self.id:
       self.load()
 
-  def __repr__(self) -> str:
-    return f"TRAINER ID: {self.id}"
+  def __str__(self) -> str:
+    return self.display_name
 
   def update(self, col_name, value=None) -> None:
     """ 
@@ -56,7 +57,6 @@ class PoshimoTrainer(object):
       sql = f"UPDATE poshimo_trainers SET {col_name} = %s WHERE id = %s" # col_name is a trusted input or so we hope
       vals = (value, self.id)
       query.execute(sql, vals)
-    
 
   def load(self) -> None:
     """ 
@@ -81,6 +81,7 @@ class PoshimoTrainer(object):
       self._status = TrainerStatus(trainer_data.get("status"))
       self._location = trainer_data.get("location").lower()
       self.discord_id = trainer_data.get("discord_id")
+      self.display_name = trainer_data.get("name")
       sac_data = trainer_data.get("poshimo_sac")
       if sac_data:
         sac_data = json.loads(sac_data)
@@ -151,7 +152,7 @@ class PoshimoTrainer(object):
     return self._location
 
   @location.setter
-  def location(self, value):
+  def location(self, value:str):
     self._location = value.lower()
     self.update("location", self._location)
 
@@ -239,10 +240,10 @@ class PoshimoTrainer(object):
     return new_poshimo
 
   def release_poshimo(self, poshimo:Poshimo) -> None:
-    """ release a poshimo into the wild (remove ownership) """
+    """ release a poshimo into the wild (remove ownership but not actually delete it) """
     if poshimo.id == self.active_poshimo.id:
       self.active_poshimo = None
-    temp_sac:List[Poshimo] = self.poshimo_sac
+    temp_sac = self.poshimo_sac
     for p in temp_sac:
       if poshimo.id == p.id:
         temp_sac.remove(p)
@@ -251,7 +252,7 @@ class PoshimoTrainer(object):
 
   def list_sac(self) -> str:
     """ list the contents of your sac """
-    temp_sac:List[Poshimo] = self.poshimo_sac
+    temp_sac = self.poshimo_sac
     if self.active_poshimo in temp_sac:
       # dont show the active poshimo in the sac
       temp_sac.remove(self.active_poshimo)
@@ -285,8 +286,8 @@ class PoshimoTrainer(object):
     logger.info(f"NPC has picked {move.display_name}!")
     return move
 
-  def get_eligible_poshimo_for_swap(self) -> list:
-    """ return list of all poshimo eligible for swapping """
+  def get_eligible_poshimo_for_swap(self) -> List[Poshimo]:
+    """ return list of all poshimo eligible for swapping (must be alive) """
     eligible_poshimo = []
     for poshimo in self._poshimo_sac:
       if poshimo.hp > 0:
@@ -301,17 +302,23 @@ class PoshimoTrainer(object):
     else:
       return False
 
-  def swap(self, poshimo) -> None:
+  def swap(self, poshimo:Poshimo) -> str:
+    ''' swap out the active poshimo '''
+    old_poshimo = self._active_poshimo
     self._poshimo_sac.append(self._active_poshimo)
-    self._active_poshimo = poshimo
+    self._poshimo_sac.remove(poshimo)
+    self.active_poshimo = poshimo # fire setters
+    self.poshimo_sac = self._poshimo_sac
+    return f"{self} swapped out {old_poshimo} for {poshimo}!"
 
-  def catch_fish(self, fish):
+  def catch_fish(self, fish) -> int:
+    ''' add a fish to this player's log '''
     with AgimusDB() as query:
       sql = "INSERT INTO poshimo_fishing_log (trainer,fish,location,length) VALUES(%s,%s,%s,%s);"
       vals = (self.id, fish.name, self.location, fish.length)
       query.execute(sql,vals)
       last_id = query.lastrowid
-    logger.info(f"Fish added to log DB {fish.name} - id {last_id}")
+    return last_id
 
   def get_fishing_log(self) -> List[PoshimoFish]:
     """ get a list of the last 10 fish this trainer has caught, sorted by length """

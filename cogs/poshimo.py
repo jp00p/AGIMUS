@@ -143,6 +143,9 @@ class PocketShimodae(commands.Cog):
   async def hunt(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
     trainer = utils.get_trainer(ctx.author.id)
+    if trainer.active_poshimo.hp <= 0:
+      await ctx.followup.send("Your active Poshimo is in no condition to hunt right now!", ephemeral=True)
+      
     if trainer.status is TrainerStatus.BATTLING:
       old_hunt = self.game.resume_battle(ctx.author.id)
       resumed_battle = battle.BattleTurn(self, old_hunt)

@@ -46,7 +46,7 @@ class Poshimo(object):
     self.name:str = name
     self._owner:int = owner
     self.is_wild:bool = is_wild
-
+    self.types = []
     self.poshimodata:dict = {} # this will hold our file and db stats eventually
     if self.name:
       self.poshimodata = pdata[self.name.lower()] # fire this up early if we have it
@@ -88,12 +88,11 @@ class Poshimo(object):
     self._hp = self.poshimodata.get("hp", 1)
     self._max_hp = self.poshimodata.get("max_hp", self._hp) # only real poshimo have max_hp
     
-    self.types = (
-      self.poshimodata["type_1"],
-      self.poshimodata["type_2"]
-      #PoshimoType(self.poshimodata["type1"]), 
-      #PoshimoType(self.poshimodata["type2"])
-    ) # types never(?) change
+
+    for type in ["type_1", "type_2"]:
+      if self.poshimodata[type]:
+        self.types.append(PoshimoType(name=self.poshimodata[type]))
+        
 
     self._attack:PoshimoStat = PoshimoStat(self.poshimodata["attack"][0], self.poshimodata["attack"][1])
     self._defense:PoshimoStat = PoshimoStat(self.poshimodata["defense"][0], self.poshimodata["defense"][1])
@@ -102,7 +101,7 @@ class Poshimo(object):
     self._speed:PoshimoStat = PoshimoStat(self.poshimodata["speed"][0], self.poshimodata["speed"][1])
     self._xp:int = 0
     self._last_damaging_move:PoshimoMove = None
-    self.status = None # TODO: Statuses      
+    self.status = None # TODO: Statuses
 
     # 
     # end of __init__ =====================================================
@@ -350,6 +349,10 @@ class Poshimo(object):
     # add hp.max_hp to our stats list
     stats["hp"] = f"{self.hp}/{self.max_hp}"
     return stats
+
+  def show_types(self) -> str:
+    """ a nicely formatted str of this poshimo's types """
+    return "/".join([str(type) for type in self.types])
 
   def __str__(self) -> str:
     if self.id:

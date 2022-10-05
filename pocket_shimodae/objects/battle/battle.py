@@ -29,6 +29,7 @@ class PoshimoBattle(object):
     self._battle_type:BattleTypes = battle_type
     self.trainers:List[PoshimoTrainer] = [trainer_1, trainer_2] # trainer 1 should always be the initiator of the battle, trainer 2 is optional and will be a dummy trainer if not specified
     self._queued_moves:List[Tuple[PoshimoMove,PoshimoTrainer]] = [] 
+    self._queued_actions:list = []
     self._state:BattleStates = BattleStates.ACTIVE
     self._current_turn:int = 0
     self._round:int = 1
@@ -124,7 +125,7 @@ class PoshimoBattle(object):
     self.logs = temp_logs # fire the update
     
   def load_npc(self, poshimo:Poshimo, name=None) -> PoshimoTrainer:
-    """ load an NPC, give it a name -- this NPC never really gets loaded into the DB, but their Poshimo does """
+    """ load an NPC, give it a name """
     #TODO: generate random name
     npc = PoshimoTrainer(name=name)
     npc.active_poshimo = poshimo
@@ -198,10 +199,10 @@ class PoshimoBattle(object):
   def do_turn(self):
     """ once both sides have input their moves, this will run """   
     self.turn_start() # update turn, apply status effects
-    self.handle_actions() # handle player actions
     self.handle_moves() # process moves
     self.handle_dead_bodies() # test
     self.turn_end() # more status effects
+    
 
   def turn_start(self):
     """ handle things that happen at the start of the turn """
@@ -214,16 +215,13 @@ class PoshimoBattle(object):
     """ handle things that happen at the end of the turn """
     #self.add_log(f"Turn {self.current_turn} is over!")
     self.process_statuses(end=True)
-
-  def handle_actions(self):
-    """ handle actions like items, swapping, etc """
-    pass
+    self._queued_actions = []
+    self._queued_moves = []
 
   def handle_moves(self):
     """ 
     determine the order of operations and determine the outcome for each poshimo
     """
-
     self.calculate_speed() # determine which move goes first
     final_moves:List[Tuple[PoshimoMove, PoshimoTrainer, PoshimoTrainer]] = []
 
@@ -239,14 +237,14 @@ class PoshimoBattle(object):
 
     # now we have both moves in order, apply them to each poshimo in order!
     for move,target,trainer in final_moves:
-      results = self.apply_move(move,target,trainer)
-      self.add_log(results)
-      if target.active_poshimo.hp <= 0:
-        logger.info("Poshimo fainted!")
-        self.dead_bodies.append((target.active_poshimo, target))
-        break # if someone dies, moves stop
-    self._queued_moves = [] # empty the queue
-    
+      if move != "action":
+        results = self.apply_move(move,target,trainer)
+        self.add_log(results)
+        if target.active_poshimo.hp <= 0:
+          logger.info("Poshimo fainted!")
+          self.dead_bodies.append((target.active_poshimo, target))
+          break # if someone dies, moves stop
+
   def handle_dead_bodies(self):
     for poshimo,trainer in self.dead_bodies:
       self.add_log(f"{trainer}'s {poshimo} fainted!")
@@ -254,13 +252,12 @@ class PoshimoBattle(object):
       swap = trainer.random_swap()
       if not swap:
         self.end_battle(loser=trainer)
-        break
+        return
       else:
-        self.add_log(f"{trainer} swapped out {poshimo} for {trainer.active_poshimo}")
+        self.add_log(f"{trainer} frantically swapped out {poshimo} for {trainer.active_poshimo}")
 
   def end_battle(self,loser:PoshimoTrainer):
-    # end of battle (someone lost or won)
-    # all poshimo fainted, or captured
+    ''' end of battle (someone lost or won, all poshimo fainted, or captured) '''
     self.state = BattleStates.FINISHED
     for trainer in self.trainers:
       trainer.status = TrainerStatus.IDLE
@@ -281,7 +278,7 @@ class PoshimoBattle(object):
     posh1,posh2 = self._queued_moves[0][1].active_poshimo, self._queued_moves[1][1].active_poshimo
     trainer1,trainer2 = self._queued_moves[0][1], self._queued_moves[1][1]
     
-    if posh1.speed > posh2.speed:
+    if posh1.speed > posh2.speed or move1 == "action":
       self._queued_moves = [(move1, trainer1), (move2, trainer2)]
     else:
       self._queued_moves = [(move2, trainer2), (move1, trainer1)]
@@ -297,9 +294,14 @@ class PoshimoBattle(object):
       # pick computer move if this is a hunt
       self._queued_moves.append(( self.trainers[1].pick_move(), self.trainers[1] ))
     
-    if len(self._queued_moves) == len(self.trainers):
+    if (len(self._queued_moves)+len(self._queued_actions)) == len(self.trainers):
       # everyone has input their moves, let's roll
       self.do_turn()
+
+  def enqueue_action(self, action:str, trainer:PoshimoTrainer, logline:str):
+    """ if a trainer does an action, it takes up their turn """
+    self.enqueue_move(move="action", trainer=trainer)
+    self.add_log(logline)
 
   def process_statuses(self,start=False,end=False):
     """ figure out if any poshimo need to deal with status effects """
@@ -337,6 +339,8 @@ class PoshimoBattle(object):
     log_line = [] # the line we'll add to the log when this move is finished
     STAB = False
     CRIT = False
+    WEAK = False
+    BUFF = False
 
     if move.kind is MoveKinds.STATUS:
       damage = 0
@@ -365,6 +369,14 @@ class PoshimoBattle(object):
         damage_modifier *= 1.5
         STAB = True
       
+      if move.type.is_strong_against(victim.types):
+        damage_modifier *= 2
+        BUFF = True
+      
+      if move.type.is_weak_against(victim.types):
+        damage_modifier *= 0.5
+        WEAK = True
+
       power = move.power
 
       if move.kind == MoveKinds.SPECIAL:
@@ -380,12 +392,19 @@ class PoshimoBattle(object):
       if damage > 0:
         if CRIT:
           log_line.append("**Critical hit!**")
-        if STAB:
+        if STAB and not BUFF and not WEAK:
           log_line.append("*It's particularly effective!*")
+        if STAB and BUFF and not WEAK:
+          log_line.append("*It's insanely effective!*")
+        if not STAB and BUFF and not WEAK:
+          log_line.append("*It works rather well!*")
+        if WEAK:
+          log_line.append("*The effacaciousness of the move seems diminished.*")
         log_line.append(f"It deals **{damage} damage!**")
         victim.hp = int(victim.hp) - int(damage)
-
-    
+      
+      if damage == 0:
+        log_line.append("It seems to have no effect!")   
 
     if move.function_codes:
       for func in move.function_codes:

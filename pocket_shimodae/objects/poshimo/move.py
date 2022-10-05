@@ -74,7 +74,7 @@ class PoshimoMove(object):
     self.movedata:dict = movedata.get(self.name, {})
     self.description:str = self.movedata.get("description","")
     self.display_name:str = self.name.title()
-    self.type:PoshimoType = PoshimoType(name=self.movedata.get("type", "Normal")) #PoshimoType(self.movedata["type"])
+    self.type:PoshimoType = PoshimoType(name=self.movedata.get("type", "Drunk"))
     self.kind:MoveKinds = MoveKinds[self.movedata.get("kind", "Physical").upper()]
     self.power:int = self.movedata.get("power", 0)
     self.accuracy:int = self.movedata.get("accuracy", "").replace("%", "")

@@ -5,9 +5,18 @@ from ..objects import Poshimo, PoshimoBattle, BattleTypes, BattleStates, Poshimo
 
 spacer = f"\n{'⠀'*53}" # fills out the embed to max width
 
-class ActionScreen(PoshimoView):
-  def __init__(self, cog, action:str, trainer:PoshimoTrainer, battle:PoshimoBattle):
-    super().__init__(cog)
+class CancelButton(discord.ui.Button):
+  def __init__(self, cog, battle):
+    self.cog = cog
+    self.battle = battle
+    super().__init__(
+      label="Cancel",
+      style=discord.ButtonStyle.secondary,
+      emoji="❌",
+      row=1
+    )
+  async def callback(self, interaction:discord.Interaction):
+    pass
 
 class BattleTurn(PoshimoView):
   """
@@ -20,7 +29,7 @@ class BattleTurn(PoshimoView):
   ...if i can make it work gewd
   """
 
-  def __init__(self, cog, battle:PoshimoBattle):
+  def __init__(self, cog, battle:PoshimoBattle, action_mode=False):
     super().__init__(cog)
     
     self.battle = battle
@@ -46,8 +55,6 @@ class BattleTurn(PoshimoView):
       )
     ]
     
-    
-
     if self.battle.battle_type is BattleTypes.HUNT:
       if self.battle.state is BattleStates.ACTIVE:
         
@@ -79,8 +86,6 @@ class BattleTurn(PoshimoView):
           fields=default_battle_fields
         )
         battle_embed.set_footer(text="Wow finally.")
-
-    # HUNT OVER EMBED
     
     # ---- end of custom embeds ---- #
     battle_embed.description += spacer
@@ -90,16 +95,16 @@ class BattleTurn(PoshimoView):
       stamina_count = 0
       for move in self.you.active_poshimo.move_list:
         # add move buttons
-        self.add_item(MoveButton(self.cog, move, self.you, self.battle))
+        self.add_item(MoveButton(self.cog, move, self.you, self.battle, action_mode))
         stamina_count += move.stamina
       
       if stamina_count == 0:
         # if they are out of moves, they can always struggle
-        self.add_item(MoveButton(self.cog, PoshimoMove("struggle"), self.you, self.battle))
+        self.add_item(MoveButton(self.cog, PoshimoMove("struggle"), self.you, self.battle, action_mode))
 
       for action in self.battle.battle_actions:
         # add action buttons
-        self.add_item(ActionButton(action, self.you, self.battle))
+        self.add_item(ActionButton(action, self.cog, self.you, self.battle, action_mode))
 
 class MoveButton(discord.ui.Button):
   ''' 
@@ -107,7 +112,7 @@ class MoveButton(discord.ui.Button):
   ----
   This will enqueue a move for battle, or will be disabled if you're out of stamina
   '''
-  def __init__(self, cog, move:PoshimoMove, you:PoshimoTrainer, battle:PoshimoBattle, *args, **kwargs):
+  def __init__(self, cog, move:PoshimoMove, you:PoshimoTrainer, battle:PoshimoBattle, action_mode=False, *args, **kwargs):
     self.cog = cog
     self.you = you
     self.move = move
@@ -116,9 +121,9 @@ class MoveButton(discord.ui.Button):
 
     super().__init__(
       label=button_label, 
-      row=1, 
+      row=2, 
       style=discord.ButtonStyle.primary, 
-      disabled=self.move.stamina <= 0,
+      disabled=bool(self.move.stamina <= 0 or action_mode),
       *args, 
       **kwargs
     )
@@ -133,7 +138,6 @@ class MoveButton(discord.ui.Button):
     next_view = BattleTurn(self.cog, battle=self.battle)
     content = ""
     #logger.info(self.battle.logs[self.battle.current_turn])
-    
     await interaction.response.edit_message(content=content, view=next_view, embed=next_view.get_embed())
 
 class ActionButton(discord.ui.Button):
@@ -142,32 +146,67 @@ class ActionButton(discord.ui.Button):
   ----
   This will queue up an action in battle instead of a move during your turn
   '''
-  def __init__(self, action:str, you:PoshimoTrainer, battle:PoshimoBattle, *args, **kwargs):
+  def __init__(self, action:str, cog, you:PoshimoTrainer, battle:PoshimoBattle, action_mode=False, *args, **kwargs):
     self.action = action
     self.you = you
     self.battle = battle
+    self.cog = cog
     super().__init__(
       label=self.action.title(), 
-      row=2, 
+      row=3, 
       style=discord.ButtonStyle.blurple, 
+      disabled=action_mode,
       *args, 
       **kwargs
     )
   
   async def callback(self, interaction:discord.Interaction):
+    ''' send the action to Battle if possible '''
     error = action_not_possible(self.action, self.battle, self.you)
     if error:
-      await interaction.response.send_message(content=f"Oops: {error}")
+      await interaction.response.send_message(content=f"Oops: {error}", ephemeral=True)
     else:
-      await interaction.response.send_message(content=f"Nice, you clicked {self.action}")
+      if self.action == "swap":
+        view = BattleTurn(self.cog, self.battle, True)
+        view.add_item(SwapMenu(self.cog, self.you, self.battle))
+        view.add_item(CancelButton(self.cog, self.battle))
+        await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 
 class InventoryScreen(PoshimoView):
   pass
 
-class SwapMenu(discord.SelectMenu):
-  ''' menu for swapping your active poshimo '''
-  pass
+class SwapMenu(discord.ui.Select):
+  ''' menu for swapping your active poshimo in combat '''
+  def __init__(self, cog, trainer:PoshimoTrainer, battle:PoshimoBattle):
+    self.cog = cog
+    self.battle = battle
+    self.trainer = trainer
+    self.eligible = self.trainer.get_eligible_poshimo_for_swap()
+    options = []
+    for index, p in enumerate(self.eligible):
+      logger.info(index)
+      options.append(
+        discord.SelectOption(
+          label=f"{p.display_name}",
+          value=f"{index}"
+        )
+      )
+    super().__init__(
+      placeholder=f"Swap out {self.trainer.active_poshimo} with which Poshimo?",
+      options=options,
+      row=0
+    )
+  
+  async def callback(self, interaction:discord.Interaction):
+    ''' user has selected a poshimo to swap out '''
+    index = int(self.values[0])
+    poshimo = self.eligible[index]
+    log_line = self.trainer.swap(poshimo)
+    self.battle.enqueue_action("swap", self.trainer, log_line)
+    view = BattleTurn(self.cog, self.battle)
+    await interaction.response.edit_message(view=view, embed=view.get_embed())
+    
 
 class BattleResults(BattleTurn):
   ''' results of a turn '''
@@ -184,5 +223,6 @@ def action_not_possible(action:str, battle:PoshimoBattle, trainer:PoshimoTrainer
   if action == "snatch":
     return "You can't snatch ...yet"
   if action == "swap":
-    return "You can't swap ...yet"
+    if len(trainer.get_eligible_poshimo_for_swap()) < 1:
+      return "You don't have any eligible Poshimo to swap out!"
   return False

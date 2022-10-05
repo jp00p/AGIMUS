@@ -60,7 +60,7 @@ class StarterPages(PoshimoView):
         title="Choose your starter Poshimo", 
         description=f"**{s.name}**", 
         fields=[
-          discord.EmbedField(name="Types", value=f"{' and '.join([s for s in s.types])}"), 
+          discord.EmbedField(name="Types", value=f"{s.types}"), 
           discord.EmbedField(name="Moves", value=f"{', '.join([m.name for m in s.move_list if m is not None])}")]
       )
       self.pages.append(pages.Page(

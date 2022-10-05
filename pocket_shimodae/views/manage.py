@@ -29,7 +29,7 @@ class ManageMenu(discord.ui.Select):
     options = []
     for i,poshimo in enumerate(self.trainer.list_all_poshimo()):
       label = f"{poshimo.display_name}"
-      if poshimo.id == self.trainer.active_poshimo.id:
+      if self.trainer.active_poshimo and poshimo.id == self.trainer.active_poshimo.id:
         label += f" (active)"
       options.append(discord.SelectOption(
         label=f"{label}",
@@ -110,14 +110,14 @@ class ReleasePoshimo_Confirmation(Confirmation):
     self.embeds = [
       discord.Embed( # stats embed
         title=f"{poshimo.display_name}:", 
-        description=f"{poshimo.types}",
+        description=f"{poshimo.show_types()}",
         fields=[
           discord.EmbedField(
-            name=f"{stat.replace('_',' ').capitalize()}",
-            value=f"{value}",
+            name=f"{statname.replace('_',' ').capitalize()}",
+            value=f"{stat}",
             inline=True
           ) 
-          for stat,value in self.stats.items()] # fancy list here watch out
+          for statname,stat in self.stats.items()] # fancy list here watch out
       ).set_thumbnail(url="https://i.imgur.com/lIBEIFL.jpeg"),
       discord.Embed(
         title=f"⚠ Are you sure you want to release this Poshimo into the wild? ⚠",
@@ -172,7 +172,7 @@ class ManagePoshimoScreen(PoshimoView):
     self.embeds = [
       discord.Embed( # stats embed
         title=f"{poshimo.display_name}:", 
-        description=f"{poshimo.types}",
+        description=f"{poshimo.show_types()}",
         fields=[
           discord.EmbedField(
             name=f"{stat.replace('_',' ').capitalize()}",
@@ -184,7 +184,7 @@ class ManagePoshimoScreen(PoshimoView):
       
       discord.Embed( # moves embed
         title=f"{poshimo.display_name}'s moves:",
-        description=f"{'-'*80}"
+        description=f"{'-'*40}"
       )
     ]
     move_mojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣"]
@@ -282,4 +282,4 @@ class ManagePoshimoScreen(PoshimoView):
     """
     cancel managing this poshimo
     """
-    await interaction.response.edit_message(content="Thanks for visiting your Poshimo! They will miss you.", view=None, embed=None)
+    await interaction.response.edit_message(content="Your Poshimo will miss you!", view=None, embed=None)

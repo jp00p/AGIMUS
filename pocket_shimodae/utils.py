@@ -64,3 +64,8 @@ def register_trainer(user_id) -> PoshimoTrainer:
     if trainer_id:
       logger.info(f"Success! new trainer ID: {trainer_id}")
   return PoshimoTrainer(trainer_id)
+
+def generate_random_name() -> str:
+  fnames = ["Jean Luc", "Deanna", "Geordi", "Miles", "Tasha", "Brent", "William", "Reginald", "Leah", "Kevin", "Rishon"]
+  lnames = ["Picard", "Troi", "LaForge", "O'Brien", "Yar", "Spiner", "Riker", "Barclay", "Brahams", "Uxbridge", "Okona"]
+  return random.choice(fnames) + " " + random.choice(lnames)
