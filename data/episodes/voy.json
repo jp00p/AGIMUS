@@ -1899,7 +1899,15 @@
       "episode": "19",
       "imdb": "tt0708985",
       "memoryalpha": "The_Killing_Game,_Part_II_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 438,
+          "airdate": "2022.10.03",
+          "episode": "Sweater Buff",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/mLlwk0LksbOiidDORe1n2Vpsjnl.jpg",
