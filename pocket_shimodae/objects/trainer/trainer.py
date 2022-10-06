@@ -1,27 +1,32 @@
-""" a Trainer is the base character of our game """
-from enum import Enum
+''' a Trainer is the base character of our game '''
 from common import *
-from ..world import PoshimoBiome, PoshimoFish
+from enum import Enum
+from typing import List, Dict, TypedDict
+from ..world import PoshimoFish, PoshimoItem, ItemTypes, FunctionCodes
 from ..poshimo import Poshimo, PoshimoMove
-from typing import List
+
+
+InventoryDict = TypedDict('Inventory', {'item': PoshimoItem, 'amount': int})
 
 class TrainerStatus(Enum):
   IDLE = 0
   EXPLORING = 1
   BATTLING = 2
+  TRAVELING = 3
   def __str__(self):
     return f"{str(self.name).title()}"
 
 # this will represent either a discord user or an npc
 class PoshimoTrainer(object):
-  """
+  '''
   The base Trainer object, either a real player or an NPC
 
   pass a `trainer_id` to load from the DB
 
   pass a `name` to generate a basic NPC
-  """
+  '''
   MAX_POSHIMO = 6 # the maximum poshimo a player can have
+  
   def __init__(self, trainer_id:int=None, name:str=None):
     self.id:int = trainer_id
     self.discord_id:int = None
@@ -32,7 +37,7 @@ class PoshimoTrainer(object):
     self._wins:int = 0
     self._losses:int = 0
     self._active_poshimo:Poshimo = None # current poshimo
-    self._inventory:dict = {} # all items
+    self._inventory:Dict[str,InventoryDict] = {} # all items
     self._location:str = "starting_zone" # where are you
     self._scarves:int = 0 # money
     self._buckles:int = None # these are like pokemon badges TBD
@@ -46,10 +51,10 @@ class PoshimoTrainer(object):
     return self.display_name
 
   def update(self, col_name, value=None) -> None:
-    """ 
+    '''
     Internal only:
     update a col in the db for this trainer 
-    """
+    '''
     logger.info(f"{Style.BRIGHT}Attempting to update trainer {self.id}'s {Fore.CYAN}{col_name}{Fore.RESET}{Style.RESET_ALL} with new value: {Fore.LIGHTGREEN_EX}{value}{Fore.RESET}")
     if not self.id:
       return
@@ -59,10 +64,10 @@ class PoshimoTrainer(object):
       query.execute(sql, vals)
 
   def load(self) -> None:
-    """ 
+    ''' 
     Internal only: 
     Load a human Trainer's data from DB 
-    """
+    '''
     logger.info(f"Loading trainer {self.id} from DB...")
     with AgimusDB(dictionary=True) as query:
       sql = '''
@@ -72,14 +77,14 @@ class PoshimoTrainer(object):
       '''
       vals = (self.id,)
       query.execute(sql, vals)
-      trainer_data = query.fetchone()
+      trainer_data:dict = query.fetchone()
     
     if trainer_data:
       # load all the trainer data from the DB here
       self._wins = trainer_data.get("wins")
       self._losses = trainer_data.get("losses")
       self._status = TrainerStatus(trainer_data.get("status"))
-      self._location = trainer_data.get("location").lower()
+      self._location = trainer_data.get("location","").lower()
       self.discord_id = trainer_data.get("discord_id")
       self.display_name = trainer_data.get("name")
       sac_data = trainer_data.get("poshimo_sac")
@@ -99,8 +104,18 @@ class PoshimoTrainer(object):
         loc_data = json.loads(loc_data)
         self._locations_unlocked = set(loc_data)
         logger.info(self._locations_unlocked)
-
-      self._inventory = trainer_data.get("inventory")
+      
+      item_data = trainer_data.get("inventory")
+      if item_data:
+        item_data = json.loads(item_data)
+        for i in item_data:
+          self._inventory[i[0]] = {
+            "item":PoshimoItem(i[0]),
+            "amount":i[1]
+          }
+      else:
+        self._inventory = {}
+      
       self._scarves = trainer_data.get("scarves")
       self._buckles = trainer_data.get("buckles")
       self._shimodaepedia = trainer_data.get("discovered_poshimo")
@@ -121,7 +136,7 @@ class PoshimoTrainer(object):
     return self._losses
   
   @losses.setter
-  def losses(self, amt):
+  def losses(self, amt) -> None:
     self._losses = max(0, amt)
     self.update("losses", self._losses)
 
@@ -130,7 +145,7 @@ class PoshimoTrainer(object):
     return self._active_poshimo
   
   @active_poshimo.setter
-  def active_poshimo(self, poshimo:Poshimo):
+  def active_poshimo(self, poshimo:Poshimo) -> None:
     if isinstance(poshimo, Poshimo):
       self._active_poshimo = poshimo
       self.update("active_poshimo", poshimo.id)
@@ -143,16 +158,20 @@ class PoshimoTrainer(object):
     return self._inventory
 
   @inventory.setter
-  def inventory(self, obj:dict):
+  def inventory(self, obj:dict) -> None:
     self._inventory = obj
-    self.update("inventory", self._inventory) # will probably need json
+    if self._inventory:
+      item_json = json.dumps([(i["item"].name, i["amount"]) for i in self._inventory.values()])
+    else:
+      item_json = json.dumps([])
+    self.update("inventory", item_json) # will probably need json
     
   @property
   def location(self) -> str:
     return self._location
 
   @location.setter
-  def location(self, value:str):
+  def location(self, value:str) -> None:
     self._location = value.lower()
     self.update("location", self._location)
 
@@ -170,7 +189,7 @@ class PoshimoTrainer(object):
     return self._status
 
   @status.setter
-  def status(self, val):
+  def status(self, val) -> None:
     self._status:TrainerStatus = val
     self.update("status", self._status.value)
 
@@ -179,7 +198,7 @@ class PoshimoTrainer(object):
     return self._buckles
 
   @buckles.setter
-  def buckles(self, val):
+  def buckles(self, val) -> None:
     self._buckles = val
     self.update("buckles", self._buckles) # TODO: all this
 
@@ -188,7 +207,7 @@ class PoshimoTrainer(object):
     return self._poshimo_sac
 
   @poshimo_sac.setter
-  def poshimo_sac(self, obj):
+  def poshimo_sac(self, obj) -> None:
     self._poshimo_sac = obj
     if len(self._poshimo_sac) > 0:
       sac_json = json.dumps([i.id for i in self._poshimo_sac])
@@ -201,7 +220,7 @@ class PoshimoTrainer(object):
     return self._shimodaepedia
   
   @shimodaepedia.setter
-  def shimodaepedia(self, obj):
+  def shimodaepedia(self, obj) -> None:
     self._shimodaepedia = obj
 
   @property
@@ -209,7 +228,7 @@ class PoshimoTrainer(object):
     return self._locations_unlocked
   
   @locations_unlocked.setter
-  def locations_unlocked(self, obj):
+  def locations_unlocked(self, obj) -> None:
     self._locations_unlocked = obj
     if self._locations_unlocked:
       loc_json = json.dumps(list(self._locations_unlocked))
@@ -240,7 +259,7 @@ class PoshimoTrainer(object):
     return new_poshimo
 
   def release_poshimo(self, poshimo:Poshimo) -> None:
-    """ release a poshimo into the wild (remove ownership but not actually delete it) """
+    ''' release a poshimo into the wild (remove ownership but not actually delete it) '''
     if poshimo.id == self.active_poshimo.id:
       self.active_poshimo = None
     temp_sac = self.poshimo_sac
@@ -251,7 +270,7 @@ class PoshimoTrainer(object):
     poshimo.owner = None # will fire update on the poshimo object
 
   def list_sac(self) -> str:
-    """ list the contents of your sac """
+    ''' list the contents of your sac '''
     temp_sac = self.poshimo_sac
     if self.active_poshimo in temp_sac:
       # dont show the active poshimo in the sac
@@ -260,8 +279,15 @@ class PoshimoTrainer(object):
       return "Empty sac"
     return "\n".join([p.display_name for p in temp_sac])
 
+  def list_inventory(self) -> str:
+    inv_str = ""
+    for i in self._inventory.values():
+      inv_str += f"{i['item'].name} x{i['amount']}" + "\n"
+    return inv_str
+
+
   def list_all_poshimo(self) -> List[Poshimo]:
-    """ Get a list of all poshimo this Trainer owns """
+    ''' Get a list of all poshimo this Trainer owns '''
     if self.active_poshimo:
       all_poshimo = list([self.active_poshimo] + self.poshimo_sac)
     else:
@@ -270,10 +296,10 @@ class PoshimoTrainer(object):
     return all_poshimo
 
   def pick_move(self) -> PoshimoMove:
-    """ 
+    '''
     pick a random move from the available moves
     used by NPCs
-    """
+    '''
     possible_moves = []
     for move in self.active_poshimo.move_list:
       if move.stamina > 0:
@@ -287,7 +313,7 @@ class PoshimoTrainer(object):
     return move
 
   def get_eligible_poshimo_for_swap(self) -> List[Poshimo]:
-    """ return list of all poshimo eligible for swapping (must be alive) """
+    ''' return list of all poshimo eligible for swapping (must be alive) '''
     eligible_poshimo = []
     for poshimo in self._poshimo_sac:
       if poshimo.hp > 0:
@@ -295,7 +321,7 @@ class PoshimoTrainer(object):
     return eligible_poshimo
 
   def random_swap(self):
-    """ do a random swap (when your active poshimo dies) """
+    ''' do a random swap (when your active poshimo dies) '''
     eligible_poshimo = self.get_eligible_poshimo_for_swap()
     if len(eligible_poshimo) > 0:
       self.swap(random.choice(eligible_poshimo))
@@ -321,7 +347,7 @@ class PoshimoTrainer(object):
     return last_id
 
   def get_fishing_log(self) -> List[PoshimoFish]:
-    """ get a list of the last 10 fish this trainer has caught, sorted by length """
+    ''' get a list of the last 10 fish this trainer has caught, sorted by length '''
     with AgimusDB(dictionary=True) as query:
       sql = "SELECT fish, length FROM poshimo_fishing_log WHERE trainer = %s ORDER BY length DESC LIMIT 10"
       vals = (self.id,)
@@ -331,3 +357,34 @@ class PoshimoTrainer(object):
     for fish in fishing_log:
       final_log.append(PoshimoFish(name=fish["fish"], length=fish["length"]))
     return final_log
+
+  def add_item(self, item:PoshimoItem):
+    ''' add an item to this trainer's inventory '''
+    temp_inventory = self._inventory
+    if temp_inventory.get(item.name.lower()):
+      temp_inventory[item.name.lower()]["amount"] += 1
+    else:
+      temp_inventory[item.name.lower()] = {
+        "item": item,
+        "amount": 1
+      }
+    self.inventory = temp_inventory
+  
+  def use_item(self, item:PoshimoItem, poshimo:Poshimo=None, move:PoshimoMove=None) -> None:
+    temp_inventory = self._inventory
+    temp_inventory[item.name.lower()]["amount"] -= 1
+    self.inventory = temp_inventory
+    item_type = item.type
+    if item_type is ItemTypes.RESTORE:
+      restore_type = item.function_code
+      if restore_type == FunctionCodes.HP:
+        poshimo.hp += item.power
+      if restore_type == FunctionCodes.HP_ALL:
+        for p in self.list_all_poshimo():
+          p.hp += item.power
+      if restore_type == FunctionCodes.STAMINA:
+        move.stamina += item.power
+      if restore_type == FunctionCodes.STAMINA_ALL:
+        for p in self.list_all_poshimo():
+          for m in p.move_list:
+            m.stamina += item.power

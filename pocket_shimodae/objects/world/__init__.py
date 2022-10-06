@@ -1,4 +1,4 @@
-from .item import PoshimoItem
+from .item import PoshimoItem, ItemTypes, FunctionCodes
 from .quest import PoshimoQuest
 from .weather import Weather
 from .biome import PoshimoBiome

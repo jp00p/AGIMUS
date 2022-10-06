@@ -1,3 +1,4 @@
+from dis import disco
 from common import *
 from .objects import *
 import pocket_shimodae.utils as utils
@@ -105,3 +106,9 @@ class PoshimoGame(object):
     trainer = utils.get_trainer(discord_id=discord_id)
     log = trainer.get_fishing_log()
     logger.info(f"FISHING LOG: {log}")
+
+  def test_give_item(self, discord_id):
+    trainer = utils.get_trainer(discord_id=discord_id)
+    item = PoshimoItem("hypospray")
+    trainer.add_item(item)
+    return trainer.list_inventory()

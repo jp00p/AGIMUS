@@ -1,5 +1,5 @@
-from functools import total_ordering
 from common import * 
+from functools import total_ordering
 
 stage_values:dict = {
   -6: 0.25,

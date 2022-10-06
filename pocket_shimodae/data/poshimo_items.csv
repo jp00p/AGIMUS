@@ -1,0 +1,2 @@
+name,description,use_where,type,power,function_code,sell_price
+Hypospray,A basic curative that doesn't puncture the skin,USE_ANYWHERE,RESTORE,50,HP,100

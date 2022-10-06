@@ -1,3 +1,5 @@
+from doctest import debug_script
+from pydoc import describe
 from common import *
 from pocket_shimodae.game import *
 from pocket_shimodae.views import *
@@ -43,6 +45,14 @@ class PocketShimodae(commands.Cog):
     self.game.test_unlock_loc(ctx.author.id, "meung-sur-loire")
     self.game.test_unlock_loc(ctx.author.id, "ktaris pointe")
     await ctx.respond(f"All locations unlocked", ephemeral=True)
+
+  @ps.command(
+    name="test_give_item",
+    description="DEBUG"
+  )
+  async def test_give_item(self,ctx:discord.ApplicationContext):
+    inventory = self.game.test_give_item(ctx.author.id)
+    await ctx.respond("Here's the list:\n"+inventory, ephemeral=True)
 
   @ps.command(
     name="test_clear_db",
