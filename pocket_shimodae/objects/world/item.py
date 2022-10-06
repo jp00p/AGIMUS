@@ -21,17 +21,21 @@ with open("pocket_shimodae/data/poshimo_items.csv") as file:
 
 
 class UseWhere(Enum):
+  ''' where can this item be used? '''
   USE_ANYWHERE = 0
   USE_IN_FIELD = 1
   USE_IN_BATTLE = 2
 
 class ItemTypes(Enum):
+  ''' what kind of item is it? '''
   RESTORE = auto()
   MODIFY_STAGE = auto()
   CURE_STATUS = auto()
+  CAPTURE = auto()
   NONE = auto()
 
 class FunctionCodes(Enum):
+  ''' what does the item do? '''
   HP = auto()
   HP_ALL = auto()
   STAMINA = auto()
