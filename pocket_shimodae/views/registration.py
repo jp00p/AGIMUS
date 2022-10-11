@@ -3,8 +3,9 @@ this contains all the views for registering a player and choosing their first po
 the StarterChosen view will actually do the registration, everything else is just UI
 """
 from common import *
-from ..ui import PoshimoView, Confirmation
+from ..ui import *
 from ..objects import Poshimo
+from ..views import *
 import pocket_shimodae.utils as utils
 
 class Welcome(PoshimoView):
@@ -33,7 +34,7 @@ class StarterPoshimoConfirmation(Confirmation):
     self.embeds = [
       discord.Embed(
         title=f"You chose {choice.name}. Are you sure?",
-        description="You can't undo this, but you can always find the other ones later!"
+        description=fill_embed_text("You can't undo this, but you can always find the other ones later!")
       )
     ]
     
@@ -53,18 +54,17 @@ class StarterPages(PoshimoView):
   def __init__(self, cog):
     super().__init__(cog)
     self.starters = [Poshimo(name=s) for s in self.game.starter_poshimo]
-    self.welcome_embed = Welcome(self.cog).get_embed()
     
     for s in self.starters:
       embed = discord.Embed(
         title="Choose your starter Poshimo", 
-        description=f"**{s.name}**", 
+        description=fill_embed_text(f"**{s.name}**"), 
         fields=[
-          discord.EmbedField(name="Types", value=f"{s.types}"), 
-          discord.EmbedField(name="Moves", value=f"{', '.join([m.name for m in s.move_list if m is not None])}")]
+          discord.EmbedField(name="Types", value=f"{'/'.join([str(t) for t in s.types])}"), 
+          discord.EmbedField(name="Moves", value=f"{', '.join([m.display_name for m in s.move_list if m is not None])}")]
       )
       self.pages.append(pages.Page(
-        embeds=[self.welcome_embed, embed]
+        embeds=[embed]
       ))
     
     self.paginator = pages.Paginator(
@@ -94,6 +94,6 @@ class StarterChosen(PoshimoView):
     self.embeds = [
       discord.Embed(
         title=f"Congratulations TRAINER #{self.trainer.id}! You have selected your first poshimo: **{self.poshimo.display_name}**! Poshimo ID: {self.poshimo.id}", 
-        description="Live long, and may the force prosper within you."
+        description=fill_embed_text("Live long, and may the force prosper within you.")
       )
     ]

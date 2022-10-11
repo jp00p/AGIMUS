@@ -158,8 +158,13 @@ class PoshimoTrainer(object):
     return self._inventory
 
   @inventory.setter
-  def inventory(self, obj:dict) -> None:
-    self._inventory = obj
+  def inventory(self, obj:Dict[str,InventoryDict]) -> None:
+    for key,idata in list(obj.items()):
+      if idata["amount"] > 0:
+        self._inventory[key] = { "item": idata["item"], "amount": idata["amount"] }
+      else:
+        self._inventory.pop(key, None) # delete item from inventory if its 0 or less
+    #self._inventory = obj
     if self._inventory:
       item_json = json.dumps([(i["item"].name, i["amount"]) for i in self._inventory.values()])
     else:
@@ -281,8 +286,11 @@ class PoshimoTrainer(object):
 
   def list_inventory(self) -> str:
     inv_str = ""
-    for i in self._inventory.values():
-      inv_str += f"{i['item'].name} x{i['amount']}" + "\n"
+    if len(self._inventory) > 0:
+      for i in self._inventory.values():
+        inv_str += f"{i['item'].name.title()} x{i['amount']}" + "\n"
+    else:
+      inv_str = "You have no items!"
     return inv_str
 
 
@@ -370,21 +378,35 @@ class PoshimoTrainer(object):
       }
     self.inventory = temp_inventory
   
-  def use_item(self, item:PoshimoItem, poshimo:Poshimo=None, move:PoshimoMove=None) -> None:
+  def use_item(self, item:PoshimoItem, poshimo:Poshimo=None, move:PoshimoMove=None):
     temp_inventory = self._inventory
     temp_inventory[item.name.lower()]["amount"] -= 1
     self.inventory = temp_inventory
     item_type = item.type
+    return_str = "```ansi\n"
+    
+    if poshimo:
+      original_hp = poshimo.hp
+    if move:
+      original_stamina = move.stamina
+    
     if item_type is ItemTypes.RESTORE:
       restore_type = item.function_code
       if restore_type == FunctionCodes.HP:
         poshimo.hp += item.power
+        return_str += f"{Style.BRIGHT}{poshimo.display_name}{Style.RESET_ALL} regained {Fore.LIGHTGREEN_EX}{poshimo.hp - original_hp}{Fore.RESET} HP! 💖"
       if restore_type == FunctionCodes.HP_ALL:
         for p in self.list_all_poshimo():
           p.hp += item.power
+        return_str += f"All your poshimo have regained {Fore.LIGHTGREEN_EX}{item.power}{Fore.RESET} HP! 💖"
       if restore_type == FunctionCodes.STAMINA:
         move.stamina += item.power
+        return_str += f"{Style.BRIGHT}{poshimo.display_name}'s{Style.RESET_ALL} {Fore.CYAN}{move.display_name}{Fore.RESET} regained {Fore.LIGHTBLUE_EX}{move.stamina - original_stamina}{Fore.RESET} stamina! ✨"
       if restore_type == FunctionCodes.STAMINA_ALL:
         for p in self.list_all_poshimo():
           for m in p.move_list:
             m.stamina += item.power
+        return_str += f"All your Poshimo's moves have regained {Fore.LIGHTBLUE_EX}{item.power}{Fore.RESET} stamina! ✨"
+
+      return_str += "```"
+      return return_str

@@ -1,5 +1,3 @@
-from doctest import debug_script
-from pydoc import describe
 from common import *
 from pocket_shimodae.game import *
 from pocket_shimodae.views import *
@@ -84,14 +82,15 @@ class PocketShimodae(commands.Cog):
     await intro.paginator.respond(ctx.interaction, ephemeral=True)
 
   @ps.command(
-    name="status",
+    name="menu",
     description="Get your current game status",
-    aliases=["info", "profile"]
+    aliases=["status", "info"]
   )
   async def status(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
-    status_screen = status.Status(self, ctx.author.id)
-    await status_screen.paginator.respond(ctx.interaction, ephemeral=True)
+    main_menu = menu.MainMenu(self, ctx.author.id)
+    await ctx.followup.send(view=main_menu, embed=main_menu.get_embed())
+    
   
   @ps.command(
     name="manage",
@@ -158,11 +157,11 @@ class PocketShimodae(commands.Cog):
       
     if trainer.status is TrainerStatus.BATTLING:
       old_hunt = self.game.resume_battle(ctx.author.id)
-      resumed_battle = battle.BattleTurn(self, old_hunt)
+      resumed_battle = battle.BattleTurn(self, ctx.author.id, old_hunt)
       await ctx.followup.send(embed=resumed_battle.get_embed(), view=resumed_battle)
     else:
       hunt = self.game.start_hunt(ctx.author.id)
-      initial_turn = battle.BattleTurn(self, hunt)
+      initial_turn = battle.BattleTurn(self, ctx.author.id, hunt)
       await ctx.followup.send(embed=initial_turn.get_embed(), view=initial_turn)
 
   @ps.command(

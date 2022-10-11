@@ -2,7 +2,8 @@ from common import *
 import textwrap
 from prettytable import PrettyTable, MARKDOWN, PLAIN_COLUMNS, ORGMODE
 from prettytable.colortable import ColorTable, Themes
-from ..ui import PoshimoView, Confirmation
+from ..ui import *
+from ..views import *
 import pocket_shimodae.utils as utils
 
 direction_arrows = {
@@ -55,17 +56,16 @@ class LocationButton(discord.ui.Button):
 
 class TravelMenu(PoshimoView):
   """ when a trainer wants to travel, they'll see this first """
-  def __init__(self, cog, discord_id):
-    super().__init__(cog)
-    self.discord_id = discord_id
-    self.trainer = utils.get_trainer(discord_id=self.discord_id)
+  def __init__(self, cog, trainer):
+    super().__init__(cog, trainer)
+
     self.trainer_location = self.game.find_in_world(self.trainer.location)
     self.exits = {
     }
+
     self.exit_description = ""
     self.rows = [
       # build a grid of buttons
-      # maybe expand to 8 dirs someday...
       ["nw", "n", "ne"],
       ["w", "x", "e"],
       ["sw", "s", "se"]

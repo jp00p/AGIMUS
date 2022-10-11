@@ -81,13 +81,12 @@ class Poshimo(object):
     
     # poshimodata should be fully loaded now, if not ... wha happen???
     
-    self._level = self.poshimodata.get("level", 1)
+    self._level:int = self.poshimodata.get("level", 1)
     self._name = self.poshimodata["name"]
-    self._display_name = self.poshimodata.get("display_name")
-    self._personality = PoshimoPersonality(self.poshimodata.get("personality"))
-    self._hp = self.poshimodata.get("hp", 1)
-    self._max_hp = self.poshimodata.get("max_hp", self._hp) # only real poshimo have max_hp
-    
+    self._display_name:str = self.poshimodata.get("display_name")
+    self._personality:PoshimoPersonality = PoshimoPersonality(self.poshimodata.get("personality"))
+    self._hp:int = self.poshimodata.get("hp", 1)
+    self._max_hp:int = self.poshimodata.get("max_hp", self._hp) # only real poshimo have max_hp
 
     for type in ["type_1", "type_2"]:
       if self.poshimodata[type]:
@@ -159,11 +158,11 @@ class Poshimo(object):
     returns the ID of this poshimo in the db
     """
     self.poshimodata = pdata[self.name.lower()] # base data
-    self._level = 1 #TODO: leveling
-    self._display_name = self.name
-    self._personality = PoshimoPersonality()
-    self._hp = self.poshimodata.get("hp", 1)
-    self._max_hp = self._hp
+    self._level:int = 1 #TODO: leveling
+    self._display_name:str = self.name
+    self._personality:PoshimoPersonality = PoshimoPersonality()
+    self._hp:int = self.poshimodata.get("hp", 1)
+    self._max_hp:int = self._hp
     logger.info(f"Preparing this poshimo for creation: DISPLAY NAME: {self._display_name} OWNER: {self.owner} PERSONALITY: {self._personality}")
 
     with AgimusDB() as query:

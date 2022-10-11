@@ -1,23 +1,21 @@
 from common import *
-from ..ui import PoshimoView, Confirmation 
+from ..ui import *
 from ..objects import Poshimo, PoshimoTrainer, PoshimoMove
-import pocket_shimodae.utils as utils
+from ..views import *
 
 class ManageStart(PoshimoView):
   """ 
   start of /ps manage command
   """
-  def __init__(self, cog, discord_id):
-    super().__init__(cog)
-    self.discord_id = discord_id
-    self.trainer = utils.get_trainer(discord_id=self.discord_id)
+  def __init__(self, cog, trainer):
+    super().__init__(cog, trainer)
     self.embeds = [
       discord.Embed(
         title="Manage your Poshimo", 
-        description="Swap, rename, release, or just examine your Poshimo."
+        description=fill_embed_text("Swap, rename, release, or just examine your Poshimo.")
       )
     ]
-    self.add_item(ManageMenu(cog, self.trainer))
+    self.add_item(ManageMenu(self.cog, self.trainer))
 
 class ManageMenu(discord.ui.Select):
   """ 
@@ -75,14 +73,14 @@ class ForgetMove_Confirmation(Confirmation):
   make sure they really want to forget this move
   """
   def __init__(self, cog:discord.Cog, poshimo:Poshimo, move_index, trainer:PoshimoTrainer):
-    super().__init__(cog)
+    super().__init__(cog, trainer)
     self.poshimo = poshimo
     self.move_index = int(move_index)
-    self.trainer = trainer
+    the_move = self.poshimo.move_list[self.move_index]
     self.embeds = [
       discord.Embed(
         title=f"Are you sure you want to forget this move?",
-        description=f"```{self.poshimo.move_list[self.move_index]}```\n**This cannot be undone.**"
+        description=f"> {the_move.display_name}\n> Stamina: {the_move.stamina}/{the_move.max_stamina}\n> {the_move.description}\n⚠ **This cannot be undone.** ⚠"
       )
     ]
   async def cancel_callback(self, button, interaction:discord.Interaction):
@@ -121,7 +119,7 @@ class ReleasePoshimo_Confirmation(Confirmation):
       ).set_thumbnail(url="https://i.imgur.com/lIBEIFL.jpeg"),
       discord.Embed(
         title=f"⚠ Are you sure you want to release this Poshimo into the wild? ⚠",
-        description=f"You cannot undo this. You will lose this Poshimo __forever__... *presumably*."
+        description=fill_embed_text("You cannot undo this. You will lose this Poshimo __forever__... *presumably*.")
       )
     ]
   async def cancel_callback(self, button, interaction):
@@ -164,11 +162,9 @@ class ManagePoshimoScreen(PoshimoView):
   this one has all the buttons
   """
   def __init__(self, cog, poshimo:Poshimo, trainer:PoshimoTrainer):
-    super().__init__(cog)
-    self.cog = cog
+    super().__init__(cog, trainer)
     self.poshimo = poshimo
     self.stats = self.poshimo.list_stats()
-    self.trainer = trainer
     self.embeds = [
       discord.Embed( # stats embed
         title=f"{poshimo.display_name}:", 
@@ -184,7 +180,7 @@ class ManagePoshimoScreen(PoshimoView):
       
       discord.Embed( # moves embed
         title=f"{poshimo.display_name}'s moves:",
-        description=f"{'-'*40}"
+        description=f""
       )
     ]
     move_mojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣"]

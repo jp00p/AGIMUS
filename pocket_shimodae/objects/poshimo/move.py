@@ -3,7 +3,7 @@ from common import *
 import csv
 from enum import Enum, auto
 from typing import List,Dict
-from . import PoshimoType
+from ..poshimo import PoshimoType
 import pocket_shimodae.utils as utils
 
 """

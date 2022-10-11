@@ -1,7 +1,8 @@
 from common import *
 from typing import List
-from ..ui import PoshimoView, Confirmation
+from ..ui import *
 from ..objects import Poshimo, PoshimoBattle, BattleTypes, BattleStates, PoshimoTrainer, PoshimoMove
+from ..views import *
 
 spacer = f"\n{'⠀'*53}" # fills out the embed to max width
 
@@ -29,9 +30,8 @@ class BattleTurn(PoshimoView):
   ...if i can make it work gewd
   """
 
-  def __init__(self, cog, battle:PoshimoBattle, action_mode=False):
-    super().__init__(cog)
-    
+  def __init__(self, cog, trainer, battle:PoshimoBattle, action_mode=False):
+    super().__init__(cog, trainer)
     self.battle = battle
     self.you = battle.trainers[0]
     self.opponent = battle.trainers[1]
@@ -62,7 +62,7 @@ class BattleTurn(PoshimoView):
           # FIRST ROUND OF HUNT
           battle_embed = discord.Embed(
             title="Let the hunt begin!",
-            description=f"You encounter a wild {self.opponent.active_poshimo}!",
+            description=fill_embed_text(f"You encounter a wild {self.opponent.active_poshimo}!"),
             fields=default_battle_fields
           )
 
@@ -82,13 +82,13 @@ class BattleTurn(PoshimoView):
         description = self.generate_battle_logs()
         battle_embed = discord.Embed(
           title=f"The hunt is over!",
-          description=description,
+          description=fill_embed_text(description),
           fields=default_battle_fields
         )
         battle_embed.set_footer(text="Wow finally.")
     
     # ---- end of custom embeds ---- #
-    battle_embed.description += spacer
+    
     self.embeds = [battle_embed]
     
     if self.battle.state is BattleStates.ACTIVE:
@@ -135,7 +135,7 @@ class MoveButton(discord.ui.Button):
     temp_list[move_in_list].stamina -= 1
     self.battle.enqueue_move(self.move, self.you)
     self.you.active_poshimo.move_list = temp_list # update stamina    
-    next_view = BattleTurn(self.cog, battle=self.battle)
+    next_view = BattleTurn(self.cog, self.you, battle=self.battle)
     content = ""
     #logger.info(self.battle.logs[self.battle.current_turn])
     await interaction.response.edit_message(content=content, view=next_view, embed=next_view.get_embed())
@@ -167,14 +167,11 @@ class ActionButton(discord.ui.Button):
       await interaction.response.send_message(content=f"Oops: {error}", ephemeral=True)
     else:
       if self.action == "swap":
-        view = BattleTurn(self.cog, self.battle, True)
+        view = BattleTurn(self.cog, self.you, self.battle, True)
         view.add_item(SwapMenu(self.cog, self.you, self.battle))
         view.add_item(CancelButton(self.cog, self.battle))
         await interaction.response.edit_message(view=view, embed=view.get_embed())
 
-
-class InventoryScreen(PoshimoView):
-  pass
 
 class SwapMenu(discord.ui.Select):
   ''' menu for swapping your active poshimo in combat '''
@@ -204,14 +201,14 @@ class SwapMenu(discord.ui.Select):
     poshimo = self.eligible[index]
     log_line = self.trainer.swap(poshimo)
     self.battle.enqueue_action("swap", self.trainer, log_line)
-    view = BattleTurn(self.cog, self.battle)
+    view = BattleTurn(self.cog, self.trainer, self.battle)
     await interaction.response.edit_message(view=view, embed=view.get_embed())
     
 
 class BattleResults(BattleTurn):
   ''' results of a turn '''
   def __init__(self):
-    super().__init__(self.cog, self.battle)
+    super().__init__(self.cog, self.trainer, self.battle)
 
 def action_not_possible(action:str, battle:PoshimoBattle, trainer:PoshimoTrainer):
   if action == "flee":

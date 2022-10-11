@@ -49,5 +49,8 @@ class PoshimoItem(object):
     self.type:ItemTypes = ItemTypes[self.idata["type"].upper()]
     self.use_where:UseWhere = UseWhere[self.idata["use_where"].upper()]
     self.function_code:str = FunctionCodes[self.idata["function_code"].upper()]
-    self.power:int = self.idata["power"]
-    self.sell_price:int = self.idata["sell_price"]
+    self.power:int = int(self.idata["power"])
+    self.sell_price:int = int(self.idata["sell_price"])
+
+  def __str__(self):
+    return self.name.title()

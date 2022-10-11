@@ -1,8 +1,9 @@
 from common import *
 from typing import TypedDict
-from ..ui import PoshimoView, Confirmation, PoshimoGame
-from ..objects import PoshimoTrainer, PoshimoLocation, PoshimoFish, FishingShapeDict
+from ..ui import *
 import pocket_shimodae.utils as utils
+from ..views import *
+from ..objects import PoshimoTrainer, PoshimoLocation, PoshimoFish, FishingShapeDict
 
 #trash_items = ["🦴", "🥾"]
 trash_items = ["🟦"]*12
@@ -27,13 +28,12 @@ class FishingButton(discord.ui.Button):
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class FishingResults(PoshimoView): 
-  def __init__(self, cog, win:bool, choice:int, water_contents:list, fish:str, fishing_shape:FishingShapeDict, trainer:PoshimoTrainer):
-    super().__init__(cog)
+  def __init__(self, cog, trainer, win:bool, choice:int, water_contents:list, fish:str, fishing_shape:FishingShapeDict):
+    super().__init__(cog, trainer)
     self.title = ""
     self.description = ""
     self.fish = fish
     self.fishing_shape = fishing_shape
-    self.trainer = trainer
     fish_in_water = [PoshimoFish(name=f) for f in random.choices(self.fish, weights=None, k=self.fishing_shape["num_fish"])] # decide what the actual fish in the water are
     random.shuffle(fish_in_water)
     self.caught_fish = None 
@@ -49,7 +49,7 @@ class FishingResults(PoshimoView):
       
     else:
       self.title = "You failed to catch a fish 😢"
-      self.description = "Try the wide beam next time!\n"
+      self.description = fill_embed_text("Try the wide beam next time!")
 
     # scanner results if they win or lose    
     self.description += "```ansi\n"+f"{Fore.MAGENTA}FISHING HOERL SCANNER{Fore.RESET} {Fore.YELLOW}Mk IV{Fore.RESET} [{Fore.GREEN}ONLINE{Fore.RESET}]"+"\n"
@@ -84,8 +84,7 @@ class FishingResults(PoshimoView):
 
 class FishingGame(PoshimoView):
   def __init__(self, cog, trainer:PoshimoTrainer):
-    super().__init__(cog)
-    self.trainer = trainer
+    super().__init__(cog, trainer)
     fishing_spot = self.game.find_in_world(trainer.location)
     fishing_shape = fishing_spot.fishing_shape
     available_fish = fishing_spot.find_fish()
@@ -96,14 +95,12 @@ class FishingGame(PoshimoView):
           description="```ansi\n"+f"{Fore.MAGENTA}FISHING HOERL SCANNER{Fore.RESET} {Fore.YELLOW}Mk IV{Fore.RESET} [{Fore.BLACK}OFFLINE{Fore.RESET}]```"+"\n\n"
         ).set_footer(text="Choose where to cast your line:")
       ]
-      
-      
 
       water_objects = ["fish"] * fishing_shape["num_fish"] # build array of ['fish','fish'...]
-      flat_shape = [item for items in fishing_shape["shape"] for item in items]      
+      flat_shape = [item for items in fishing_shape["shape"] for item in items] # flatten shape into 2d list      
       num_trash = flat_shape.count(1) - fishing_shape["num_fish"]
       water_objects += ["trash"] * num_trash # build array of ['trash',...]]
-      random.shuffle(water_objects) # flat list of all the fish/trash
+      random.shuffle(water_objects) # the final, flat list of all the fish/trash
       
       water_contents = []
       for cell in flat_shape:
@@ -138,3 +135,40 @@ class FishingGame(PoshimoView):
           description=description
         )
       ]
+
+class FishingLog(PoshimoView):
+  ''' the view for your fishinglog '''
+  def __init__(self, cog, trainer):
+    super().__init__(cog, trainer)
+    trainer_fishing_log = self.trainer.get_fishing_log()
+    fields = None
+    description = f"Your lengthiest fish:"
+    
+    if len(trainer_fishing_log) > 0:
+      fields = [discord.EmbedField(name=f"{f.name}", value=f"{f.length}cm") for f in trainer_fishing_log[:10]]
+    else:
+      description = f"You have no fish! 🤯"
+
+    self.embeds = [
+      discord.Embed(
+        title=f"{self.trainer}'s fishing log",
+        description=fill_embed_text(description),
+        fields=fields
+      )
+    ]
+    self.add_item(StartFishingButton(self.cog, self.trainer))
+
+class StartFishingButton(discord.ui.Button):
+  ''' lets go fishing pa '''
+  def __init__(self, cog, trainer, **kwargs):
+    self.cog = cog
+    self.trainer = trainer
+    super().__init__(
+      label="Go fishing",
+      emoji="🎣",
+      **kwargs
+    )
+  async def callback(self, interaction:discord.Interaction):
+    view = FishingGame(self.cog, self.trainer)
+    #view.add_item(BackButton(FishingLog(self.cog, self.trainer), label="Back to fishing log"))
+    await interaction.response.edit_message(view=view, embed=view.get_embed())

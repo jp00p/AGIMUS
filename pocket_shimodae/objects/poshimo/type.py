@@ -30,7 +30,7 @@ class PoshimoType(object):
     self.strength:str = self.typedata.get("strength")
 
   def __str__(self) -> str:
-    return f"{self.name.title()}"
+    return self.name.title()
 
   def __eq__(self, other):
     return self.name == other
