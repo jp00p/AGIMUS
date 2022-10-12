@@ -111,4 +111,5 @@ class PoshimoGame(object):
     trainer = utils.get_trainer(discord_id=discord_id)
     item = PoshimoItem("hypospray")
     trainer.add_item(item)
-    return trainer.list_inventory()
+    trainer.scarves += 100
+    return trainer.list_inventory() 

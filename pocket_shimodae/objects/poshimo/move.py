@@ -3,8 +3,7 @@ from common import *
 import csv
 from enum import Enum, auto
 from typing import List,Dict
-from ..poshimo import PoshimoType
-import pocket_shimodae.utils as utils
+from . import PoshimoType
 
 """
 glass table toss
@@ -141,4 +140,4 @@ Description: {self.description}
     if "no_stamina" in self.flags:
       return
     # clamp stamina between 0 and max_stamina
-    self._stamina:int = utils.clamp(val, 0, self.max_stamina)
+    self._stamina:int = max(0, min(val, self.max_stamina))

@@ -3,7 +3,7 @@ from common import *
 from math import sqrt, floor, log10
 from typing import List
 import csv
-from ..poshimo import PoshimoMove,PoshimoPersonality, PoshimoType, PoshimoStat
+from . import PoshimoMove,PoshimoPersonality, PoshimoType, PoshimoStat
 
 MAX_POSHIMO_LEVEL = 99
 

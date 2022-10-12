@@ -2,9 +2,9 @@
 from common import *
 from enum import Enum
 from typing import List, Dict, TypedDict
-from ..world import PoshimoFish, PoshimoItem, ItemTypes, FunctionCodes
+from ..world import PoshimoItem, ItemTypes, FunctionCodes
+from ..world.fish import PoshimoFish
 from ..poshimo import Poshimo, PoshimoMove
-
 
 InventoryDict = TypedDict('Inventory', {'item': PoshimoItem, 'amount': int})
 
@@ -122,124 +122,7 @@ class PoshimoTrainer(object):
     else:
       logger.info(f"There was an error loading trainer {self.id}'s info!")
 
-  @property
-  def wins(self) -> int:
-    return self._wins
-  
-  @wins.setter
-  def wins(self, amt):
-    self._wins = max(0, amt)
-    self.update("wins", self._wins)
 
-  @property
-  def losses(self) -> int:
-    return self._losses
-  
-  @losses.setter
-  def losses(self, amt) -> None:
-    self._losses = max(0, amt)
-    self.update("losses", self._losses)
-
-  @property
-  def active_poshimo(self) -> Poshimo:
-    return self._active_poshimo
-  
-  @active_poshimo.setter
-  def active_poshimo(self, poshimo:Poshimo) -> None:
-    if isinstance(poshimo, Poshimo):
-      self._active_poshimo = poshimo
-      self.update("active_poshimo", poshimo.id)
-    else:
-      self._active_poshimo = None
-      self.update("active_poshimo", None)
-  
-  @property
-  def inventory(self) -> dict:
-    return self._inventory
-
-  @inventory.setter
-  def inventory(self, obj:Dict[str,InventoryDict]) -> None:
-    for key,idata in list(obj.items()):
-      if idata["amount"] > 0:
-        self._inventory[key] = { "item": idata["item"], "amount": idata["amount"] }
-      else:
-        self._inventory.pop(key, None) # delete item from inventory if its 0 or less
-    #self._inventory = obj
-    if self._inventory:
-      item_json = json.dumps([(i["item"].name, i["amount"]) for i in self._inventory.values()])
-    else:
-      item_json = json.dumps([])
-    self.update("inventory", item_json) # will probably need json
-    
-  @property
-  def location(self) -> str:
-    return self._location
-
-  @location.setter
-  def location(self, value:str) -> None:
-    self._location = value.lower()
-    self.update("location", self._location)
-
-  @property
-  def scarves(self) -> int:
-    return self._scarves
-
-  @scarves.setter
-  def scarves(self, amt):
-    self._scarves = max(0, amt)
-    self.update("scarves", self._scarves)
-
-  @property
-  def status(self) -> TrainerStatus:
-    return self._status
-
-  @status.setter
-  def status(self, val) -> None:
-    self._status:TrainerStatus = val
-    self.update("status", self._status.value)
-
-  @property
-  def buckles(self) -> int:
-    return self._buckles
-
-  @buckles.setter
-  def buckles(self, val) -> None:
-    self._buckles = val
-    self.update("buckles", self._buckles) # TODO: all this
-
-  @property
-  def poshimo_sac(self) -> list:
-    return self._poshimo_sac
-
-  @poshimo_sac.setter
-  def poshimo_sac(self, obj) -> None:
-    self._poshimo_sac = obj
-    if len(self._poshimo_sac) > 0:
-      sac_json = json.dumps([i.id for i in self._poshimo_sac])
-    else:
-      sac_json = json.dumps([])
-    self.update("poshimo_sac", sac_json)
-
-  @property
-  def shimodaepedia(self) -> list:
-    return self._shimodaepedia
-  
-  @shimodaepedia.setter
-  def shimodaepedia(self, obj) -> None:
-    self._shimodaepedia = obj
-
-  @property
-  def locations_unlocked(self) -> list:
-    return self._locations_unlocked
-  
-  @locations_unlocked.setter
-  def locations_unlocked(self, obj) -> None:
-    self._locations_unlocked = obj
-    if self._locations_unlocked:
-      loc_json = json.dumps(list(self._locations_unlocked))
-    else:
-      loc_json = json.dumps([])
-    self.update("locations_unlocked", loc_json)
 
   def add_poshimo(self, poshimo:Poshimo, set_active=False) -> Poshimo:
     """ 
@@ -378,10 +261,13 @@ class PoshimoTrainer(object):
       }
     self.inventory = temp_inventory
   
-  def use_item(self, item:PoshimoItem, poshimo:Poshimo=None, move:PoshimoMove=None):
+  def remove_item(self, item:PoshimoItem):
     temp_inventory = self._inventory
     temp_inventory[item.name.lower()]["amount"] -= 1
     self.inventory = temp_inventory
+
+  def use_item(self, item:PoshimoItem, poshimo:Poshimo=None, move:PoshimoMove=None):
+    self.remove_item(item)
     item_type = item.type
     return_str = "```ansi\n"
     
@@ -410,3 +296,122 @@ class PoshimoTrainer(object):
 
       return_str += "```"
       return return_str
+
+  @property
+  def wins(self) -> int:
+    return self._wins
+  
+  @wins.setter
+  def wins(self, amt):
+    self._wins = max(0, amt)
+    self.update("wins", self._wins)
+
+  @property
+  def losses(self) -> int:
+    return self._losses
+  
+  @losses.setter
+  def losses(self, amt) -> None:
+    self._losses = max(0, amt)
+    self.update("losses", self._losses)
+
+  @property
+  def active_poshimo(self) -> Poshimo:
+    return self._active_poshimo
+  
+  @active_poshimo.setter
+  def active_poshimo(self, poshimo:Poshimo) -> None:
+    if isinstance(poshimo, Poshimo):
+      self._active_poshimo = poshimo
+      self.update("active_poshimo", poshimo.id)
+    else:
+      self._active_poshimo = None
+      self.update("active_poshimo", None)
+  
+  @property
+  def inventory(self) -> dict:
+    return self._inventory
+
+  @inventory.setter
+  def inventory(self, obj:Dict[str,InventoryDict]) -> None:
+    for key,idata in list(obj.items()):
+      if idata["amount"] > 0:
+        self._inventory[key] = { "item": idata["item"], "amount": idata["amount"] }
+      else:
+        self._inventory.pop(key, None) # delete item from inventory if its 0 or less
+    #self._inventory = obj
+    if self._inventory:
+      item_json = json.dumps([(i["item"].name, i["amount"]) for i in self._inventory.values()])
+    else:
+      item_json = json.dumps([])
+    self.update("inventory", item_json) # will probably need json
+    
+  @property
+  def location(self) -> str:
+    return self._location
+
+  @location.setter
+  def location(self, value:str) -> None:
+    self._location = value.lower()
+    self.update("location", self._location)
+
+  @property
+  def scarves(self) -> int:
+    return self._scarves
+
+  @scarves.setter
+  def scarves(self, amt):
+    self._scarves = max(0, amt)
+    self.update("scarves", self._scarves)
+
+  @property
+  def status(self) -> TrainerStatus:
+    return self._status
+
+  @status.setter
+  def status(self, val) -> None:
+    self._status:TrainerStatus = val
+    self.update("status", self._status.value)
+
+  @property
+  def buckles(self) -> int:
+    return self._buckles
+
+  @buckles.setter
+  def buckles(self, val) -> None:
+    self._buckles = val
+    self.update("buckles", self._buckles) # TODO: all this
+
+  @property
+  def poshimo_sac(self) -> list:
+    return self._poshimo_sac
+
+  @poshimo_sac.setter
+  def poshimo_sac(self, obj) -> None:
+    self._poshimo_sac = obj
+    if len(self._poshimo_sac) > 0:
+      sac_json = json.dumps([i.id for i in self._poshimo_sac])
+    else:
+      sac_json = json.dumps([])
+    self.update("poshimo_sac", sac_json)
+
+  @property
+  def shimodaepedia(self) -> list:
+    return self._shimodaepedia
+  
+  @shimodaepedia.setter
+  def shimodaepedia(self, obj) -> None:
+    self._shimodaepedia = obj
+
+  @property
+  def locations_unlocked(self) -> list:
+    return self._locations_unlocked
+  
+  @locations_unlocked.setter
+  def locations_unlocked(self, obj) -> None:
+    self._locations_unlocked = obj
+    if self._locations_unlocked:
+      loc_json = json.dumps(list(self._locations_unlocked))
+    else:
+      loc_json = json.dumps([])
+    self.update("locations_unlocked", loc_json)

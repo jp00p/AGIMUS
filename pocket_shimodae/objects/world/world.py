@@ -1,10 +1,12 @@
-from email.policy import default
 from common import *
 import csv
 from random import Random
 from datetime import date
 from typing import Dict
 from . import PoshimoBiome, Weather, PoshimoLocation
+
+#TODO: move csv readers back into their respective files (like with shop and fish)
+# why did i think this was better in the first place???
 
 with open("pocket_shimodae/data/biomes.csv") as file:
   # load the base biome data from file
@@ -34,10 +36,12 @@ with open("pocket_shimodae/data/locations.csv") as file:
       "e" : row.get("e", "").lower(),
       "s" : row.get("s", "").lower(),
       "w" : row.get("w", "").lower(),
-      "fishing_shape" : row.get("fishing_shape", None)
+      "fishing_shape" : row.get("fishing_shape", None),
+      "shop" : row.get("shop", "").lower()
     }
   logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}LOCATION DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
 
+ 
 
 class PoshimoWorld(object):
   """ The (a?) world of Poshimo! Contains all the Locations a trainer can visit """
@@ -84,7 +88,8 @@ class PoshimoWorld(object):
         w=location["w"],
         wild_poshimo=location_poshimo,
         flags=location["flags"],
-        fishing_shape=location["fishing_shape"]
+        fishing_shape=location["fishing_shape"],
+        shop=location["shop"]
       )
     
 

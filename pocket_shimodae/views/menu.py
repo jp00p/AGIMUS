@@ -1,9 +1,7 @@
-from select import select
 from common import *
+from ..views import FishingLog, ManageStart, ShoppingScreen, TravelMenu
 from ..ui import *
-from ..views import *
-from ..objects import PoshimoTrainer, TrainerStatus
-from pocket_shimodae import views
+from ..objects import PoshimoTrainer, TrainerStatus, PoshimoItem, PoshimoShop
 
 BACK_TO_MAIN_MENU = "Back to main menu"
 
@@ -33,7 +31,7 @@ class MainMenu(PoshimoView):
     
 
     self.add_item(TravelMenuButton(self.cog, self.trainer, row=2))
-    self.add_item(ShopMenuButton(self.cog, self.trainer, row=2))
+    self.add_item(ShopMenuButton(self.cog, self.trainer, self.trainer_location, row=2))
     self.add_item(InnMenuButton(self.cog, self.trainer, row=2))
 
     self.add_item(QuestMenuButton(self.cog, self.trainer, row=3))
@@ -66,7 +64,7 @@ class ItemUseMenu(discord.ui.Select):
   this is where the item gets selected
   '''
   #TODO: items that affect the whole party
-  def __init__(self, cog, trainer, selected_item:str=None, **kwargs):
+  def __init__(self, cog, trainer:PoshimoTrainer, selected_item:str=None, **kwargs):
     self.cog = cog
     self.trainer = trainer
     self.selected_item = selected_item
@@ -148,7 +146,7 @@ class FishingMenuButton(discord.ui.Button):
       **kwargs
     )
   async def callback(self, interaction):
-    view = views.FishingLog(self.cog, self.trainer)
+    view = FishingLog(self.cog, self.trainer)
     view.add_item(BackButton(MainMenu(self.cog, self.trainer), label=BACK_TO_MAIN_MENU))
     
     await interaction.response.edit_message(view=view, embed=view.get_embed())
@@ -177,7 +175,7 @@ class ManageMenuButton(discord.ui.Button):
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
-    view = views.ManageStart(self.cog, self.trainer)
+    view = ManageStart(self.cog, self.trainer)
     view.add_item(BackButton(MainMenu(self.cog, self.trainer), label=BACK_TO_MAIN_MENU))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
@@ -191,21 +189,28 @@ class TravelMenuButton(discord.ui.Button):
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
-    view = views.TravelMenu(self.cog, self.trainer)
+    view = TravelMenu(self.cog, self.trainer)
     view.add_item(BackButton(MainMenu(self.cog, self.trainer), label=BACK_TO_MAIN_MENU))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class ShopMenuButton(discord.ui.Button):
-  def __init__(self, cog, trainer, **kwargs):
+  def __init__(self, cog, trainer, location, **kwargs):
     self.cog = cog
     self.trainer = trainer
+    self.location = location
     super().__init__(
       label="Shopping",
       emoji="🛒",
+      disabled=bool(self.location.shop is None),
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
-    pass
+    view = ShoppingScreen(self.cog, self.trainer, self.location.shop)
+    view.add_item(BackButton(MainMenu(self.cog, self.trainer), label=BACK_TO_MAIN_MENU))
+    view.add_item(ShopBuyMenu(self.cog, self.trainer, self.location.shop))
+    if len(self.trainer.inventory) > 0:
+      view.add_item(ShopSellMenu(self.cog, self.trainer, self.location.shop))
+    await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class QuestMenuButton(discord.ui.Button):
   def __init__(self, cog, trainer, **kwargs):
@@ -267,3 +272,67 @@ class HuntMenuButton(discord.ui.Button):
     )
   async def callback(self, interaction:discord.Interaction):
     pass
+
+class ShopBuyMenu(discord.ui.Select):
+  def __init__(self, cog, trainer:PoshimoTrainer, shop:PoshimoShop, **kwargs):
+    self.cog = cog
+    self.trainer = trainer
+    self.shop = shop
+    options = []
+    for key, stockitem in enumerate(shop.stock):
+      options.append(discord.SelectOption(
+        label=f"{stockitem[0].name.title()} - {stockitem[1]} Scarves",
+        value=f"{key}"
+      ))
+    
+    super().__init__(
+      placeholder="Choose an item to purchase",
+      options=options,
+      **kwargs
+    )
+  async def callback(self, interaction:discord.Interaction):
+    item_choice = self.shop.stock[int(self.values[0])]
+    item = item_choice[0]
+    response = ""
+    purchase = self.shop.buy(self.trainer, int(self.values[0]))
+    if purchase:
+      response = f"**You purchased one {item}!**\n"
+    else:
+      response = "__Not enough scarves!__\n"
+    view = ShoppingScreen(self.cog, self.trainer, self.shop, message=response)
+    view.add_item(BackButton(MainMenu(self.cog, self.trainer), label=BACK_TO_MAIN_MENU))
+    view.add_item(ShopBuyMenu(self.cog, self.trainer, self.shop))
+    if len(self.trainer.inventory) > 0:
+      view.add_item(ShopSellMenu(self.cog, self.trainer, self.shop))
+    await interaction.response.edit_message(view=view, embed=view.get_embed())
+
+
+class ShopSellMenu(discord.ui.Select):
+  def __init__(self, cog, trainer:PoshimoTrainer, shop:PoshimoShop, **kwargs):
+    self.cog = cog
+    self.trainer = trainer
+    self.shop = shop
+    options = []
+    
+    for i in self.trainer.inventory.values():
+      options.append(discord.SelectOption(
+        label=f'{i["item"].sell_price} - {i["item"].name}',
+        value=i["item"].name
+      ))
+    super().__init__(
+      placeholder="Choose an item to sell",
+      options=options,
+      **kwargs
+    )
+  async def callback(self, interaction:discord.Interaction):
+    choice = self.values[0]
+    item:PoshimoItem = self.trainer.inventory[choice]["item"]
+    self.trainer.scarves += item.sell_price
+    self.trainer.remove_item(item)
+    response = f"You sold one {item} for {item.sell_price} Scarves!"
+    view = ShoppingScreen(self.cog, self.trainer, self.shop, message=response)
+    view.add_item(BackButton(MainMenu(self.cog, self.trainer), label=BACK_TO_MAIN_MENU))
+    view.add_item(ShopBuyMenu(self.cog, self.trainer, self.shop))
+    if len(self.trainer.inventory) > 0:
+      view.add_item(ShopSellMenu(self.cog, self.trainer, self.shop))
+    await interaction.response.edit_message(view=view, embed=view.get_embed())

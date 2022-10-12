@@ -1,7 +1,7 @@
 from common import *
 import csv
-from . import PoshimoBiome, Weather
 from typing import List, Dict, TypedDict, Any
+from . import PoshimoBiome, Weather, PoshimoShop
 
 with open("pocket_shimodae/data/fishing_locations.csv") as file:
   csvdata = csv.DictReader(file)
@@ -83,7 +83,8 @@ class PoshimoLocation(object):
       w=None,
       flags=[],
       image=None,
-      fishing_shape=None
+      fishing_shape=None,
+      shop=None
     ):
     self.name:str = name
     self.weather:Weather = Weather.SUNNY
@@ -99,6 +100,10 @@ class PoshimoLocation(object):
     all_wild_poshimo = wild_poshimo + self.biome.wild_poshimo
     self.wild_poshimo:set = set(all_wild_poshimo)
     self.fishing_shape:FishingShapeDict = fishing_shapes.get(fishing_shape, None)
+    self.shop = None
+    if shop:
+      self.shop = PoshimoShop(shop)
+      
     self.paths = {
       "n" : n,
       "e" : e,
