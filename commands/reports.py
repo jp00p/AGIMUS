@@ -107,7 +107,7 @@ def get_scores_report():
 
 def get_channel_activity_report():
   with AgimusDB(dictionary=True) as query:
-    sql = "SELECT SUM(amount) as xp_amount, channel_id FROM xp_history WHERE time_created > NOW() - INTERVAL 1 DAY GROUP BY channel_id ORDER BY SUM(amount) DESC LIMIT 25"
+    sql = "SELECT SUM(amount) as xp_amount, channel_id FROM xp_history WHERE time_created > NOW() - INTERVAL 1 DAY GROUP BY channel_id ORDER BY SUM(amount) DESC LIMIT 15"
     query.execute(sql)
     results = query.fetchall()
   return results
