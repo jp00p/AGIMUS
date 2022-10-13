@@ -31,11 +31,10 @@ class PoshimoStat(object):
   when used in expressions with other numbers, will return the modified value
   """
   
-  def __init__(self, stat_value:int, stage:int=0, xp:int=0, level:int=0):
+  def __init__(self, stat_value:int, stage:int=0, xp:int=0):
     self.stat_value:int = int(stat_value)
     self.stage:int = stage
     self.xp:int = xp
-    self.level:int = level
 
   def _is_valid_operand(self, other):
     return bool(isinstance(other, PoshimoStat) or isinstance(other, int) or isinstance(other, float))
@@ -45,7 +44,7 @@ class PoshimoStat(object):
     return int(round(self.stat_value * stage_values[self.stage]))
 
   def to_json(self) -> str:
-    return json.dumps([int(self.stat_value), int(self.stage)])
+    return json.dumps([int(self.stat_value), int(self.stage), int(self.xp)])
     
   def __eq__(self, other):
     if not self._is_valid_operand(other):
