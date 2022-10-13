@@ -1923,7 +1923,15 @@
       "episode": "20",
       "imdb": "tt0709007",
       "memoryalpha": "Vis_\u00e0_Vis_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 439,
+          "airdate": "2022.10.10",
+          "episode": "Reference Lawnmower",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/dkNSMvsXlxPCgb5EpaFYkQyebzQ.jpg"
