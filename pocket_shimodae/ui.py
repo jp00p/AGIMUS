@@ -12,8 +12,12 @@ def fill_embed_text(text:str):
 
 
 class PoshimoView(discord.ui.View):
-  def __init__(self:discord.ui.View, cog:discord.Cog, trainer:PoshimoTrainer=None):
-    super().__init__(timeout=30.0)
+  ''' basic discord.ui.View with a few extras (game and trainer objects mostly) '''
+  def __init__(self, cog:discord.Cog, trainer:PoshimoTrainer=None):
+    super().__init__(
+      timeout=30.0,
+      disable_on_timeout=True
+    )
     self.cog = cog
     self.trainer:PoshimoTrainer = trainer
     if not isinstance(self.trainer, PoshimoTrainer):
@@ -45,6 +49,8 @@ class PoshimoView(discord.ui.View):
 
   async def on_timeout(self) -> None:
     self.clear_items()
+    self.add_item(discord.Embed(title="Expired", description="This is an old message. Try the command again!"))
+    
 
   def generate_battle_logs(self) -> str:
     description = ""
@@ -117,7 +123,7 @@ class PoshimoPaginator(pages.Paginator):
     )
 
 class BackButton(discord.ui.Button):
-  ''' a back button that edits the message in place '''
+  ''' a back button that edits the message in place with whatever view you pass it '''
   def __init__(self, next_view:PoshimoView, **kwargs):
     self.next_view:PoshimoView = next_view
     super().__init__(emoji="🔙", row=4, **kwargs)  
