@@ -10,6 +10,8 @@ services:
     volumes:
       - .:/bot
     working_dir: /bot
+    # To prevent agimus from starting up in the docker container, uncomment the entrypoint sleep override. Useful when applying multiple migrations or db backup/restores.
+    # entrypoint: ["sleep", "3600"]
     restart: on-failure
     extra_hosts:
       - "host.docker.internal:host-gateway"

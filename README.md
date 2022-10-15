@@ -295,3 +295,22 @@ Once those have been placed in your .env file, you can execute the script by pro
 ```bash
 python utils/generate_episode_json.py -p VOY -o data/episodes/voy.json
 ```
+
+### Backups and Migrations
+
+There is a [task](tasks/backups.py) that runs at 6am/pm and 12am/pm, that triggers a makefile target (db-backup), to clone a [repo](https://github.com/Friends-of-DeSoto/database) within the AGIMUS container, and use mysql commands to dump the whole database as a single sql file. That file then gets compressed as a tarball, and committed to the [database repo](https://github.com/Friends-of-DeSoto/database) (Ask jp00p, VitaZed or draxiom for access). This command can also be triggered outside of the schedule with an ad hoc command within discord `!database_backup` in the robot-diagnostics channel.
+
+The easiest way to apply [migrations](migrations), is to override the entrypoint in the [docker-compose.yml](docker-compose.yml) file with `entrypoint: ["sleep", "3600"]`, then `make docker-start` to start the database and the AGIMUS container, without running the bot itself. In another terminal, run `make docker-exec` to run the following commands in the container that would run the AGIMUS app. Overriding the entrypoint is not necessary to run migrations, but will help in the event of a crash loop.
+
+```bash
+# Pull environment variables secrets
+source .env
+
+# Run an arbitrary migration sql
+mysql -u$DB_USER -p$DB_PASS -h$DB_HOST FoD < ./migrations/v#.#.#.sql
+
+# Restore from backup a specific commit in repo https://github.com/Friends-of-DeSoto/database
+DB_BACKUP_RESTORE_COMMIT=abcdefghijklmnopqrstuvwxyz make db-restore
+```
+
+Don't forget to remove the entrypoint override, so AGIMUS can start up normally.

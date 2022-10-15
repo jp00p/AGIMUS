@@ -100,13 +100,16 @@ db-backup: db-setup-git ## Back the database to a file at $DB_DUMP_FILENAME then
 	@echo "Dumping db to $(DB_DUMP_FILENAME)"
 	@mysqldump -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) -B $(DB_NAME) > $(DB_DUMP_FILENAME)
 	@rm -rf database || true
-	git clone git@github.com:Friends-of-DeSoto/database.git
+	git clone --depth 1 git@github.com:Friends-of-DeSoto/database.git
 	@mkdir -p database/$(DB_BACKUP_SUB_DIR)
 	cp $(DB_DUMP_FILENAME) database/$(DB_BACKUP_SUB_DIR)/agimus.sql
-	cd database \
-		&& git add $(DB_BACKUP_SUB_DIR)/agimus.sql \
+	pushd database/$(DB_BACKUP_SUB_DIR) \
+		&& tar czf agimus.sql.tar.gz agimus.sql \
+		&& du -sh agimus.sql* \
+		&& git add agimus.sql.tar.gz \
 		&& git commit -m "Backup AGIMUS DB: $(DB_BACKUP_SUB_DIR) $(shell date)" \
-		&& git push origin main
+		&& git push origin main \
+		&& popd
 
 .PHONY: db-restore
 db-restore: db-setup-git ## Restore the database from the private database repository (intended to run inside AGIMUS container)
@@ -115,7 +118,11 @@ db-restore: db-setup-git ## Restore the database from the private database repos
 		&& cd database \
 		&& git reset --hard $(DB_BACKUP_RESTORE_COMMIT)
 	@mkdir -p database/$(DB_BACKUP_SUB_DIR)
-	cp database/$(DB_BACKUP_SUB_DIR)/agimus.sql $(DB_DUMP_FILENAME)
+	pushd database/$(DB_BACKUP_SUB_DIR) \
+		&& tar xzf agimus.sql.tar.gz \
+		&& du -sh agimus.sql* \
+		&& popd \
+		&& cp database/$(DB_BACKUP_SUB_DIR)/agimus.sql $(DB_DUMP_FILENAME)
 	@mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "DROP DATABASE IF EXISTS FoD;"
 	@mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "create database FoD;"
 	@mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_DUMP_FILENAME)
