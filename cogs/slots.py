@@ -47,7 +47,7 @@ class Slots(commands.Cog):
 
     # Use the option the user selected or pick a random show
     if show not in command_config["parameters"][0]["allowed"]:
-      show = random.choice(["TNG", "DS9", "VOY", "HOLODECK"])
+      show = random.choice(["TNG", "DS9", "VOY", "HOLODECK", "SHIPS"])
     
     #logger.info(f"{Fore.LIGHTRED_EX}Rolling slot theme:{Fore.RESET} {Style.BRIGHT}{show}{Style.RESET_ALL}")
     # player data  
