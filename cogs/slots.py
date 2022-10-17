@@ -466,3 +466,5 @@ class Slots(commands.Cog):
         await ctx.send("Ah ah ah, you didn't say the magic word", ephemeral=True)
     except BaseException as e:
       logger.info(traceback.format_exc())   
+
+      
