@@ -32,7 +32,7 @@ class PoshimoGame(object):
       "Charmander", 
       "Squirtle"
     ]
-    logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo game loaded and ready to play!{Fore.RESET}{Back.RESET}")
+    ps_log("Game is ready to go! HIT IT")
     
   def find_in_world(self, location_name) -> PoshimoLocation:
     """ find a location in the world based on the location name """

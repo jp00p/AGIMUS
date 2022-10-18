@@ -19,7 +19,7 @@ with open("pocket_shimodae/data/biomes.csv") as file:
       "emoji" : row.get("emoji", "❓"),
       "wild_poshimo" : row.get("wild_poshimo","").split("|")
     }
-  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}BIOME DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
+  ps_log(f"Biomes: {len(bdata)}")
 
 with open("pocket_shimodae/data/locations.csv") as file:
   # load the base location data from file
@@ -39,7 +39,7 @@ with open("pocket_shimodae/data/locations.csv") as file:
       "fishing_shape" : row.get("fishing_shape", None),
       "shop" : row.get("shop", "").lower()
     }
-  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}LOCATION DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
+  ps_log(f"Locations: {len(ldata)}")
 
  
 
@@ -52,7 +52,6 @@ class PoshimoWorld(object):
     now:datetime = datetime.now()
     today_seed:str = f"{now.year}{now.month}{now.day}{now.hour}"
     self.random:Random = Random(today_seed)
-    #logger.info(f"\nNOW: {now}\nSEED: {today_seed}\nRANDOM INT 1-100: {self.random.randint(1,100)} {self.random.randint(1,100)} {self.random.randint(1,100)}")
     self.locations : Dict[str, PoshimoLocation] = {}
     self.biomes : Dict[str, PoshimoBiome] = {}
     
@@ -93,7 +92,7 @@ class PoshimoWorld(object):
       )
     
 
-    logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}WORLD{Style.RESET_ALL} pops back into existence!{Fore.RESET}{Back.RESET}")
+    ps_log("The world comes back to life!")
     self.set_weather() # set the initial weather on load
     # end of init
 

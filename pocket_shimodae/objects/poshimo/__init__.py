@@ -1,5 +1,5 @@
-from .stat import PoshimoStat
-from .type import PoshimoType
-from .move import PoshimoMove, MoveKinds, MoveTargets
-from .personality import PoshimoPersonality
-from .poshimo import Poshimo
+from .stat import *
+from .type import *
+from .move import *
+from .personality import *
+from .poshimo import *

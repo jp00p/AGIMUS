@@ -16,7 +16,7 @@ with open("pocket_shimodae/data/fishing_locations.csv") as file:
       "weather_types": row.get("weather_types").split("|")
     })
 
-  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}LOCATION FISHING DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
+  ps_log(f"Fishing spots: {len(ldata)}")
 
 FishingShapeDict = TypedDict('FishingShape', {'shape': List[List[int]], 'num_fish': int, 'shape_name':str})
 
@@ -110,8 +110,6 @@ class PoshimoLocation(object):
       "s" : s,
       "w" : w
     }
-    logger.info(f"{self.name}: {self.paths}")
-
 
   def __str__(self):
     return f"{self.biome} {self.name} {self.weather}"
@@ -147,7 +145,6 @@ class PoshimoLocation(object):
     """ figure out what kind of fish are available right now """
     biome_fishing_data = self.biome.fishing_data
     biome_list = self.build_fish_list(biome_fishing_data)
-    logger.info(f"BIOME LIST: {biome_list}")
     location_list = self.build_fish_list(self.fishing_data)
     eligible_fish = biome_list + location_list
     return eligible_fish

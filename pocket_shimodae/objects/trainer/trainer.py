@@ -4,7 +4,7 @@ from enum import Enum
 from typing import List, Dict, TypedDict
 from ..world import PoshimoItem, ItemTypes, FunctionCodes
 from ..world.fish import PoshimoFish
-from ..poshimo import Poshimo, PoshimoMove
+from ..poshimo import Poshimo, PoshimoMove, PoshimoStatus
 
 InventoryDict = TypedDict('Inventory', {'item': PoshimoItem, 'amount': int})
 
@@ -168,6 +168,8 @@ class PoshimoTrainer(object):
     return "\n".join([p.display_name for p in temp_sac])
 
   def list_inventory(self) -> str:
+    ''' list all this players items '''
+    #TODO: categorize
     inv_str = ""
     if len(self._inventory) > 0:
       for i in self._inventory.values():
@@ -176,15 +178,29 @@ class PoshimoTrainer(object):
       inv_str = "You have no items!"
     return inv_str
 
-
-  def list_all_poshimo(self) -> List[Poshimo]:
-    ''' Get a list of all poshimo this Trainer owns '''
+  def list_all_poshimo(self, only_list_alive=False, only_list_away=False, only_list_here=False) -> List[Poshimo]:
+    ''' 
+    Get a list of all poshimo this Trainer owns 
+    ----
+    only_list_away: only show poshimo who are away
+    only_list_here: only show poshimo who are NOT away
+    only_list_alive: only show poshimo who are alive (works with the above filters too)
+    '''
     if self.active_poshimo:
-      all_poshimo = list([self.active_poshimo] + self.poshimo_sac)
+      all_poshimo = list([self._active_poshimo] + self._poshimo_sac)
     else:
-      all_poshimo = self.poshimo_sac
+      all_poshimo = self._poshimo_sac
+    
+    if only_list_away:
+      all_poshimo = filter(lambda poshimo: poshimo.status is PoshimoStatus.AWAY, all_poshimo)
+    elif only_list_here:
+      all_poshimo = filter(lambda poshimo: poshimo.status is not PoshimoStatus.AWAY, all_poshimo)
+
+    if only_list_alive:
+      all_poshimo = filter(lambda poshimo: poshimo.hp > 0, all_poshimo)
+
     #logger.info(f"All this users poshimo: {','.join([str(p.id) for p in all_poshimo])}")
-    return all_poshimo
+    return list(all_poshimo)
 
   def pick_move(self) -> PoshimoMove:
     '''

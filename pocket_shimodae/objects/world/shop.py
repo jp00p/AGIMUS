@@ -13,8 +13,7 @@ with open("pocket_shimodae/data/shops.csv") as file:
       "name" : row.get("name", "").title(),
       "stock" : row.get("stock", "").split("|")
     }
-  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}SHOP DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
-  logger.info(sdata)
+  ps_log(f"Shops: {len(sdata)}")
 
 class PoshimoShop(object):
   """ A shop! Lets players buy new items and stuff """

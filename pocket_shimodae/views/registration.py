@@ -5,8 +5,8 @@ the StarterChosen view will actually do the registration, everything else is jus
 from common import *
 from ..ui import *
 from ..objects import Poshimo
-from ..views import *
 import pocket_shimodae.utils as utils
+
 
 class Welcome(PoshimoView):
   """ first message a new user sees """

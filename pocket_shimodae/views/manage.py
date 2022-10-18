@@ -1,7 +1,6 @@
 from common import *
 from ..ui import *
 from ..objects import Poshimo, PoshimoTrainer, PoshimoMove
-from ..views import *
 
 class ManageStart(PoshimoView):
   """ 

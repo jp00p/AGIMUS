@@ -12,7 +12,7 @@ with open("pocket_shimodae/data/fish.csv") as file:
       "difficulty":row.get("difficulty",1),
       "emoji":row.get("emoji", "🐟")
     }
-  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}FISH DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
+  ps_log(f"Fish: {len(fdata)}")
 
 class PoshimoFish(object):
   def __init__(self, name:str,length:float=None):

@@ -1,2 +1,5 @@
-name,description,use_where,type,power,function_code,sell_price
-Hypospray,A basic curative that doesn't puncture the skin,USE_ANYWHERE,RESTORE,50,HP,100
+name,description,use_where,type,power,function_code,sell_price,crafting_mats
+Hypospray,A basic curative that doesn't puncture the skin,USE_ANYWHERE,RESTORE,50,HP,100,raw_vertion:10
+Vertion,A strange material,NONE,MATS,,,50,
+Isolinear Chip,Not made for stacking,NONE,MATS,,,75,
+Gold Pressed Latinum,"Worthless in this world, except for crafting",NONE,MATS,,,20,

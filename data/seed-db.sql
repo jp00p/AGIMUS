@@ -271,6 +271,7 @@ CREATE TABLE IF NOT EXISTS badge_tags_associations (
 CREATE TABLE IF NOT EXISTS poshimodae (
   id INT(11) NOT NULL AUTO_INCREMENT,
   owner INT(11),
+  status INT(11),
   level INT(11) NOT NULL DEFAULT 1,
   name VARCHAR(128) NOT NULL,
   display_name VARCHAR(128) DEFAULT NULL,
@@ -284,9 +285,24 @@ CREATE TABLE IF NOT EXISTS poshimodae (
   personality VARCHAR(128) DEFAULT NULL,
   xp INT(11) NOT NULL DEFAULT 0,
   move_list TEXT DEFAULT NULL,
+  mission INT(11) NULL,
   time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS poshimo_mission_logs(
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  active BOOLEAN DEFAULT 1,
+  poshimo_id INT(11) NOT NULL,
+  mission_name VARCHAR(128) NOT NULL,
+  mission_type INT(11) NOT NULL,
+  time_started TIMESTAMP NOT NULL DEFAULT current_timestamp(),
+  time_ends TIMESTAMP NULL,
+  results TEXT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (poshimo_id) REFERENCES poshimodae (id)
+);
+
 CREATE TABLE IF NOT EXISTS poshimo_trainers (
   id INT(11) NOT NULL AUTO_INCREMENT,
   user_id int(11) NOT NULL,

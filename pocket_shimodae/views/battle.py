@@ -2,7 +2,6 @@ from common import *
 from typing import List
 from ..ui import *
 from ..objects import Poshimo, PoshimoBattle, BattleTypes, BattleStates, PoshimoTrainer, PoshimoMove
-from ..views import *
 
 spacer = f"\n{'⠀'*53}" # fills out the embed to max width
 

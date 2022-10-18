@@ -1,26 +1,28 @@
+from typing import List
+
 from common import *
+
+import pocket_shimodae.utils as utils
+
 from .game import PoshimoGame
 from .objects import PoshimoTrainer
-import pocket_shimodae.utils as utils
-from typing import List
 
 NBSP = "⠀"
 SPACER = NBSP*40
+BACK_TO_MAIN_MENU = "Back to main menu"
 
 def fill_embed_text(text:str):
+  ''' padd out the embed text so it's not a tiny embed '''
   return text.ljust(50, NBSP)
-
 
 class PoshimoView(discord.ui.View):
   ''' basic discord.ui.View with a few extras (game and trainer objects mostly) '''
-  def __init__(self, cog:discord.Cog, trainer:PoshimoTrainer=None):
-    super().__init__(
-      timeout=30.0,
-      disable_on_timeout=True
-    )
+  def __init__(self, cog:discord.Cog, trainer:PoshimoTrainer=None, previous_view:discord.ui.View=None, **kwargs):
+    super().__init__(**kwargs)
     self.cog = cog
+    self.previous_view:discord.ui.View = previous_view
     self.trainer:PoshimoTrainer = trainer
-    if not isinstance(self.trainer, PoshimoTrainer):
+    if self.trainer and not isinstance(self.trainer, PoshimoTrainer):
       self.trainer = int(self.trainer)
       if isinstance(self.trainer, int):
         if len(str(self.trainer)) < 4:
@@ -31,7 +33,8 @@ class PoshimoView(discord.ui.View):
     self.pages = []
     self.paginator = None
     self.message = None
-    self.embeds = None
+    self.embeds = None   
+    
 
   def get_pages(self):
     return self.pages
@@ -48,9 +51,7 @@ class PoshimoView(discord.ui.View):
     return self.embeds
 
   async def on_timeout(self) -> None:
-    self.clear_items()
-    self.add_item(discord.Embed(title="Expired", description="This is an old message. Try the command again!"))
-    
+    self.clear_items()  
 
   def generate_battle_logs(self) -> str:
     description = ""
@@ -61,7 +62,7 @@ class PoshimoView(discord.ui.View):
     return description
     
 class Confirmation(PoshimoView):
-  """ base confirmation boilerplate """
+  """ base confirmation boilerplate, for a simple yes or no question """
   def __init__(self, cog, choice=None):
     self.choice = choice
     super().__init__(cog)
@@ -82,21 +83,34 @@ class Confirmation(PoshimoView):
     pass
 
 class PoshimoSelect(discord.ui.Select):
-  """ base poshimo select menu """
-  def __init__(self, cog, placeholder, items:List[discord.SelectOption], min_values=1, max_values=1):
+  """ a select menu that lists the trainers poshimo """
+  def __init__(self, cog, trainer, only_alive=False, only_here=False, only_away=False, custom_placeholder=None, **kwargs):
     self.cog = cog
-    self.game:PoshimoGame = cog.game
-    self.items = items
-    self.placeholder = placeholder
-    self.min_values = min_values
-    self.max_values = max_values
-    super().__init__(
-      placeholder=self.placeholder,
-      min_values=self.min_values,
-      max_values=self.max_values,
-      options=self.items
-    )
+    self.trainer:PoshimoTrainer = trainer
+    self.poshimo_list = self.trainer.list_all_poshimo(only_list_alive=only_alive, only_list_here=only_here, only_list_away=only_away)
+    self.selected_poshimo = None
+    placeholder = "Select a Poshimo"
+    if custom_placeholder:
+      placeholder = custom_placeholder
     
+    option_list = [
+      discord.SelectOption(
+        label=f"{p.display_name}",
+        value=f"{key}"
+      ) 
+      for key,p in enumerate(self.poshimo_list)
+    ]
+    super().__init__(
+      placeholder=placeholder,
+      min_values=1,
+      max_values=1,
+      options=option_list,
+      **kwargs
+    )
+  
+  def get_selected_poshimo(self):
+    self.selected_poshimo = self.poshimo_list[int(self.values[0])]
+
   async def callback(self, interaction):
     pass
 
@@ -130,3 +144,4 @@ class BackButton(discord.ui.Button):
   async def callback(self, interaction:discord.Interaction):
     view = self.next_view
     await interaction.response.edit_message(view=view, embed=view.get_embed())
+

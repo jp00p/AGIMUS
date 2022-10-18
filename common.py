@@ -361,3 +361,7 @@ def print_agimus_ansi_art():
   with open(f"data/ansi/{ansi_file}") as f:
     agimus_ansi = f.readlines()
   logger.info(''.join(agimus_ansi))
+
+def ps_log(msg):
+  ''' a lil logger for poshimo '''
+  logger.info(f"{Back.YELLOW} ☺ {Back.RESET}{Back.RED} ☺ {Back.RESET}{Back.BLUE} ☺ {Back.RESET}{Back.BLACK} {Fore.LIGHTWHITE_EX}Poshimo: {Fore.RESET}{Fore.LIGHTYELLOW_EX}{msg}{Fore.RESET} {Back.RESET}")

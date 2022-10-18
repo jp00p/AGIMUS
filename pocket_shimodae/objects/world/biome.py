@@ -14,9 +14,7 @@ with open("pocket_shimodae/data/fishing_biomes.csv") as file:
       "months" : row.get("months").split("|"),
       "weather_types": row.get("weather_types").split("|")
     })
-  logger.info(bdata)
-  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}BIOME FISHING DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
-
+  
 class PoshimoBiome(object):
   """ an environment for locations, contains list of fish and wild poshimo and weather """
   def __init__(self, name:str, fish:list=[], weather_types:list=[Weather.SUNNY], emoji:str="🌻", wild_poshimo:list=[]) -> None:

@@ -2,7 +2,6 @@ from common import *
 from typing import TypedDict
 from ..ui import *
 import pocket_shimodae.utils as utils
-from ..views import *
 from ..objects import PoshimoTrainer, PoshimoLocation, PoshimoFish, FishingShapeDict
 
 #trash_items = ["🦴", "🥾"]

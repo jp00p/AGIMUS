@@ -22,9 +22,11 @@ class PoshimoStat(object):
   """ 
   A basic stat that can be affected in stages
   ----
-  usage: `stat = PoshimoStat(x,y)`
+  usage: `stat = PoshimoStat(x,y,z)`
 
   where `x` is the base stat value and `y` is the "stage" that stat is at, from -6 to 6
+
+  `z` is the xp of this stat
 
   `stage` defaults to 0
 
@@ -41,7 +43,17 @@ class PoshimoStat(object):
 
   def value(self) -> int:
     """ returns the modified value """
-    return int(round(self.stat_value * stage_values[self.stage]))
+    return int(round( self.stat_value * stage_values[self.stage] ) )
+
+  def add_xp(self, val) -> int:
+    ''' add xp to this stat, returns amt gained if leveled up '''
+    self.xp = val
+    if self.xp >= 100:
+      self.xp = self._xp - 100
+      increase = random.choice([1,2,3])
+      self.stat_value += increase
+      return increase
+    return False
 
   def to_json(self) -> str:
     return json.dumps([int(self.stat_value), int(self.stage), int(self.xp)])

@@ -3,7 +3,6 @@ import textwrap
 from prettytable import PrettyTable, MARKDOWN, PLAIN_COLUMNS, ORGMODE
 from prettytable.colortable import ColorTable, Themes
 from ..ui import *
-from ..views import *
 import pocket_shimodae.utils as utils
 
 direction_arrows = {

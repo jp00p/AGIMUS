@@ -24,8 +24,6 @@ with open("pocket_shimodae/data/move_flags.csv") as file:
   for id,flag in enumerate(csvdata):
     flagdata[id] = flag["name"]
 
-  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}MOVE FLAGS{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
-
 ######################################
 #! also need to load move meta      #!
 ######################################
@@ -47,7 +45,7 @@ with open("pocket_shimodae/data/poshimo_moves.csv") as file:
       "flags" : row.get("flags"),
       "description" : row["description"]
     }
-  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}MOVES BASE DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
+  ps_log(f"Moves: {len(movedata)}")
 
 class MoveTargets(Enum):
   """ Which entities a target can attack """

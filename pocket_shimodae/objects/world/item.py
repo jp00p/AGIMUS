@@ -13,18 +13,19 @@ with open("pocket_shimodae/data/poshimo_items.csv") as file:
       "function_code":row.get("function_code", ""),
       "power":row.get("power", 0),
       "use_where":row.get("use_where", ""),
-      "sell_price":row.get("sell_price", 0)
+      "sell_price":row.get("sell_price", 0),
+      "crafting_mats":row.get("crafting_mats", None)
 
     }
-  logger.info(f"{Back.LIGHTMAGENTA_EX}{Fore.LIGHTYELLOW_EX}Poshimo {Style.BRIGHT}ITEM DATA{Style.RESET_ALL} loaded!{Fore.RESET}{Back.RESET}")
-  logger.info(idata)
+  ps_log(f"Items: {len(idata)}")
 
 
 class UseWhere(Enum):
   ''' where can this item be used? '''
-  USE_ANYWHERE = 0
-  USE_IN_FIELD = 1
-  USE_IN_BATTLE = 2
+  USE_ANYWHERE = auto()
+  USE_IN_FIELD = auto()
+  USE_IN_BATTLE = auto()
+  NONE = auto()
 
 class ItemTypes(Enum):
   ''' what kind of item is it? '''
@@ -32,6 +33,9 @@ class ItemTypes(Enum):
   MODIFY_STAGE = auto()
   CURE_STATUS = auto()
   CAPTURE = auto()
+  CRAFTING = auto()
+  RECIPE = auto()
+  KEY = auto()
   NONE = auto()
 
 class FunctionCodes(Enum):
@@ -51,6 +55,9 @@ class PoshimoItem(object):
     self.function_code:str = FunctionCodes[self.idata["function_code"].upper()]
     self.power:int = int(self.idata["power"])
     self.sell_price:int = int(self.idata["sell_price"])
+    self.crafting_mats = None
+    if self.idata["crafting_mats"]:
+      self.crafting_mats = self.idata["crafting_mats"].split("|")
 
   def __str__(self):
     return self.name.title()
