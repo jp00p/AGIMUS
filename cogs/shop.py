@@ -65,85 +65,92 @@ class Shop(commands.Cog):
     self.shop_data = json.load(f)
     f.close()
 
-    self.init_photo_pages()
-    self.init_sticker_pages()
-    self.init_role_pages()
-    self.init_style_pages()
-
-
-  def init_photo_pages(self):
-    self.photo_pages = []
+  def get_photo_pages(self, user_id: int = None):
+    """
+    Returns an array of ShopPages with embeds for photos.  If user_id is included, then it will mark already bought.
+    """
+    photo_pages = []
+    user_photos = [s['item_name'] for s in db_get_user_profile_photos_from_inventory(user_id)]
     for idx, photo in enumerate(self.shop_data["photos"]):
+      if photo['name'] in user_photos:
+        description = f"~~100 points each.~~  **Purchased**\n\n**{photo['name']}**"
+      else:
+        description = f"`100 points` each.\n\n**{photo['name']}**"
       photo_embed = discord.Embed(
         title="💳  Profile Photo Shop  💳",
-        description=f"`100 points` each.\n\n**{photo['name']}**",
+        description=description,
         color=discord.Color(0xFFFFFF)
       )
       photo_embed.set_image(url=photo["preview_url"])
-      photo_embed.set_footer(
-        text="All proceeds go directly to the jackpot!"
-      )
       photo_page = ShopPage(self, photo_embed, "photos", idx)
-      self.photo_pages.append(photo_page)
+      photo_pages.append(photo_page)
+    return photo_pages
 
-  def get_photo_pages(self):
-    return self.photo_pages
-
-
-  def init_sticker_pages(self):
-    self.sticker_pages = []
+  def get_sticker_pages(self, user_id: int = None):
+    """
+    Returns an array of ShopPages with embeds for stickers.  If user_id is included, then it will mark already bought.
+    """
+    sticker_pages = []
+    user_stickers = [sticker["item_name"] for sticker in db_get_user_profile_stickers_from_inventory(user_id)]
     for idx, sticker in enumerate(self.shop_data["stickers"]):
+      if sticker['name'] in user_stickers:
+        cost = "~~25 points each~~  **Purchased**"
+      else:
+        cost = "`25 points` each."
       sticker_embed = discord.Embed(
         title="🎖️ Profile Sticker Shop 🎖️",
-        description=f"`25 points` each.\n\n**{sticker['name']}**",
+        description=f"{cost}\n\n**{sticker['name']}**",
         color=discord.Color(0xFFFFFF)
       )
       sticker_embed.set_image(url=sticker["preview_url"])
-      sticker_embed.set_footer(
-        text="All proceeds go directly to the jackpot!"
-      )
       sticker_page = ShopPage(self, sticker_embed, "stickers", idx)
-      self.sticker_pages.append(sticker_page)
+      sticker_pages.append(sticker_page)
+    return sticker_pages
 
-  def get_sticker_pages(self):
-    return self.sticker_pages
-
-
-  def init_role_pages(self):
-    self.role_pages = []
+  def get_role_pages(self, user_id: int = None):
+    """
+    Get the pages for roles.  (Right now it’s only High Roller.  If more are added, then the hard coded things will have
+    to change.)
+    """
+    role_pages = []
+    user = get_user(user_id)
+    print(repr(user))
     for idx, role in enumerate(self.shop_data["roles"]):
+      if user and user["high_roller"]:
+        desc = f"~~{role['price']} points.~~  **Purchased**\n\n**{role['name']}**"
+      else:
+        desc = f"`{role['price']} points`.\n\n**{role['name']}**"
       role_embed = discord.Embed(
         title="✨ Profile Roles Shop ✨",
-        description=f"`{role['price']} points`.\n\n**{role['name']}**",
+        description=desc,
         color=discord.Color(0xFFFFFF)
       )
       role_embed.set_image(url=role["preview_url"])
-      role_embed.set_footer(
-        text="All proceeds go directly to the jackpot!"
-      )
       card_page = ShopPage(self, role_embed, "roles", idx)
-      self.role_pages.append(card_page)
+      role_pages.append(card_page)
+    return role_pages
 
-  def get_role_pages(self):
-    return self.role_pages
+  def get_style_pages(self, user_id: int = None):
+    """
+    Returns an array of ShopPages for styles
+    """
+    style_pages = []
+    user_styles = [s['item_name'] for s in db_get_user_profile_styles_from_inventory(user_id)]
 
-  def init_style_pages(self):
-    self.style_pages = []
     for idx, style in enumerate(self.shop_data["styles"]):
+      if style['name'] in user_styles:
+        desc = f"~~{style['price']} points.~~  **Purchased**\n\n**{style['name']}**"
+      else:
+        desc = f"`{style['price']} points`.\n\n**{style['name']}**"
       style_embed = discord.Embed(
         title="📱 Profile Styles Shop 📱",
-        description=f"`{style['price']} points`.\n\n**{style['name']}**",
+        description=desc,
         color=discord.Color(0xFFFFFF)
       )
       style_embed.set_image(url=style["preview_url"])
-      style_embed.set_footer(
-        text="All proceeds go directly to the jackpot!"
-      )
       card_page = ShopPage(self, style_embed, "styles", idx)
-      self.style_pages.append(card_page)
-
-  def get_style_pages(self):
-    return self.style_pages
+      style_pages.append(card_page)
+    return style_pages
 
 
   def get_purchase_record(self, interaction):
@@ -185,7 +192,7 @@ class Shop(commands.Cog):
           else:
             await purchase_player_photo(interaction.user, photo_name)
             result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{photo_name}** profile photo!\n\nType `/profile set_photo` to apply it to your PADD!"
+            result["message"] = f"You have spent `{cost} points` and purchased the **{photo_name}** profile photo!\n\nType `/profile set photo:` to apply it to your PADD!"
 
         elif category == "stickers":
           sticker = self.shop_data["stickers"][purchase_record["page"]]
@@ -198,7 +205,7 @@ class Shop(commands.Cog):
           else:
             await purchase_player_sticker(interaction.user, sticker_name)
             result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{sticker_name}** sticker!\n\nType `/profile set_sticker` to apply it to your PADD!"
+            result["message"] = f"You have spent `{cost} points` and purchased the **{sticker_name}** sticker!\n\nType `/profile set sticker:` to apply it to your PADD!"
 
         elif category == "roles":
           role = self.shop_data["roles"][purchase_record["page"]]
@@ -234,7 +241,7 @@ class Shop(commands.Cog):
           else:
             await purchase_player_style(interaction.user, style_name)
             result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{style_name}** profile style!\n\nType `/profile set_style` to enable it, then `/profile display` to show it off!"
+            result["message"] = f"You have spent `{cost} points` and purchased the **{style_name}** profile style!\n\nType `/profile set style:` to enable it, then `/profile display` to show it off!"
 
       if result["success"]:
         set_player_score(interaction.user, -cost)
@@ -280,12 +287,13 @@ class Shop(commands.Cog):
     original_interaction = purchase_record["page_interaction"]
     await self.edit_interaction_with_thanks(original_interaction)
 
-    purchase_embed = discord.Embed(
-      title="Purchase Complete!",
-      description=details["message"],
-      color=discord.Color(0xFFFFFF)
-    )
-    if not details["success"]:
+    if details["success"]:
+      purchase_embed = discord.Embed(
+        title="Purchase Complete!",
+        description=details["message"],
+        color=discord.Color(0xFFFFFF)
+      )
+    else:
       purchase_embed = discord.Embed(
         title="Transaction Declined!",
         description=details["message"],
@@ -324,7 +332,7 @@ class Shop(commands.Cog):
       view.add_item(BuyButton(self))
 
       paginator = pages.Paginator(
-        pages=self.get_photo_pages(),
+        pages=self.get_photo_pages(ctx.user.id),
         use_default_buttons=False,
         custom_buttons=self.get_custom_buttons(),
         trigger_on_display=True,
@@ -357,7 +365,7 @@ class Shop(commands.Cog):
       view.add_item(BuyButton(self))
 
       paginator = pages.Paginator(
-        pages=self.get_sticker_pages(),
+        pages=self.get_sticker_pages(ctx.user.id),
         use_default_buttons=False,
         custom_buttons=self.get_custom_buttons(),
         trigger_on_display=True,
@@ -390,7 +398,7 @@ class Shop(commands.Cog):
       view.add_item(BuyButton(self))
 
       paginator = pages.Paginator(
-        pages=self.get_role_pages(),
+        pages=self.get_role_pages(ctx.user.id),
         use_default_buttons=False,
         custom_buttons=self.get_custom_buttons(),
         trigger_on_display=True,
@@ -423,7 +431,7 @@ class Shop(commands.Cog):
       view.add_item(BuyButton(self))
 
       paginator = pages.Paginator(
-        pages=self.get_style_pages(),
+        pages=self.get_style_pages(ctx.user.id),
         use_default_buttons=False,
         custom_buttons=self.get_custom_buttons(),
         trigger_on_display=True,

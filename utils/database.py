@@ -51,5 +51,7 @@ class AgimusDB():
     self.db.close()
 
   def __del__(self):
-    self.cursor.close()
-    self.db.close()
+    if self.cursor:
+      self.cursor.close()
+    if self.db:
+      self.db.close()
