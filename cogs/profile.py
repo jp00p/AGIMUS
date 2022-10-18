@@ -325,7 +325,7 @@ class Profile(commands.Cog):
             await ctx.author.send(
               embed=discord.Embed(
                 title="Profile Badge No Longer Present",
-                description=f"Just a heads up, you had a badge on your profile previously, \"{badge_filename.replace('_', ' ').replace('.png', '')}\", which is no longer in your inventory.\n\nYou can set a new featured badge with `/set_profile_badge`!",
+                description=f"Just a heads up, you had a badge on your profile previously, \"{badge_filename.replace('_', ' ').replace('.png', '')}\", which is no longer in your inventory.\n\nYou can set a new featured badge with `/profile set badge:`!",
                 color=discord.Color.red()
               )
             )
@@ -371,75 +371,119 @@ class Profile(commands.Cog):
 
 
   @profile.command(
-    name="set_tagline",
-    description="Set your profile tagline (or leave empty unset it!)"
+    name="set",
+    description="Change your profile settings"
   )
   @option(
     name="tagline",
-    description="Your tagline (follow the server rules please!)",
+    description="Your tagline or \"none\" to make blank (follow the server rules please!)",
     required=False
-  )
-  async def set_tagline(self, ctx:discord.ApplicationContext, tagline:str):
-    """
-    This function is the main entrypoint of the `/profile set_tagline` command
-    set a user's tagline for their profile card
-    users can also unset it by sending an empty string
-    """
-    if not tagline or tagline.strip() == "":
-      db_remove_user_profile_tagline(ctx.author.id)
-      await ctx.respond(
-        embed=discord.Embed(
-          title=f"Your tagline has been cleared!",
-          color=discord.Color.green()
-        ), ephemeral=True
-      )
-      logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their tagline!{Style.RESET_ALL}")
-    else:
-      tagline = tagline[0:38].encode("utf-8").decode().strip()
-      db_add_user_profile_tagline(ctx.author.id, tagline)
-      await ctx.respond(
-        embed=discord.Embed(
-          title=f"Your tagline has been updated to \"{tagline}\"",
-          color=discord.Color.green()
-        ), ephemeral=True
-      )
-      logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their tagline{Style.RESET_ALL} to: {Style.BRIGHT}\"{tagline}\"{Style.RESET_ALL}")
-
-
-  @profile.command(
-    name="set_badge",
-    description="Set your featured profile badge (or unset it!)"
   )
   @option(
     name="badge",
     description="Your badge name, or use [CLEAR BADGE] to remove",
-    required=True,
+    required=False,
     autocomplete=user_badges_autocomplete
   )
-  async def set_badge(self, ctx:discord.ApplicationContext, badge:str):
+  @option(
+    name="photo",
+    description="Your PADD photo",
+    required=False,
+    autocomplete=user_photos_autocomplete
+  )
+  @option(
+    name="sticker",
+    description="Your PADD sticker",
+    required=False,
+    autocomplete=user_stickers_autocomplete
+  )
+  @option(
+    name="style",
+    description="Your PADD style",
+    required=False,
+    autocomplete=user_styles_autocomplete
+  )
+  @option(
+    name="photo_filter",
+    description="The photo filter you want applied to your profile photo",
+    required=False,
+    autocomplete=photo_filters_autocomplete
+  )
+  async def set(self, ctx:discord.ApplicationContext,
+                tagline: str, badge: str, photo: str, sticker: str, style: str, photo_filter: str):
     """
-    This function is the main entrypoint of the `/profile set_badge` command
-    set a user's badge for their profile card
-    users can also unset it by selecting the "[CLEAR BADGE]" option from the autocomplete
+    Set all profile PADD at once.  At least make it less redundant.
     """
-    # User selected the warning message, return as no-op
-    if badge == "You don't have any badges yet!":
+    messages = []
+    if tagline is not None:
+      messages.append(await self.set_tagline(ctx, tagline))
+
+    if badge is not None:
+      messages.append(await self.set_badge(ctx, badge))
+
+    if photo is not None:
+      messages.append(await self.set_photo(ctx, photo))
+
+    if sticker is not None:
+      messages.append(await self.set_sticker(ctx, sticker))
+
+    if style is not None:
+      messages.append(await self.set_style(ctx, style))
+
+    if photo_filter is not None:
+      messages.append(await self.set_photo_filter(ctx, photo_filter))
+
+    messages = [m for m in messages if m is not None]
+
+    if len(messages) == 0:
       await ctx.respond(embed=discord.Embed(
-        title="No Action Taken",
+        title="You need to set at least one value to make changes",
+        description="\n\n".join(messages),
         color=discord.Color.red(),
       ), ephemeral=True)
       return
+
+    messages.append("Use `/profile display` to check it out!")
+
+    await ctx.respond(embed=discord.Embed(
+      title="Updated Profile Settings",
+      description="\n\n".join(messages),
+      color=discord.Color.green(),
+    ), ephemeral=True)
+
+  async def set_tagline(self, ctx:discord.ApplicationContext, tagline:str) -> str:
+    """
+    Set a user's tagline for their profile card
+    Users can also unset it by sending an empty string
+    """
+    if tagline.strip().lower() in ("", 'none'):
+      db_remove_user_profile_tagline(ctx.author.id)
+      logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their tagline!{Style.RESET_ALL}")
+      return "Your tagline has been cleared!"
+    else:
+      tagline = tagline[0:38].strip()
+      db_add_user_profile_tagline(ctx.author.id, tagline)
+      msg = f"Your tagline has been updated to \"{tagline}\""
+      if tagline.encode('latin-1', errors='ignore').decode('latin-1') != tagline:
+        msg += f'\nIt looks like you are using Unicode characters, and those might not show up.'
+      logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their tagline{Style.RESET_ALL} to: {Style.BRIGHT}\"{tagline}\"{Style.RESET_ALL}")
+    return msg
+
+  async def set_badge(self, ctx:discord.ApplicationContext, badge:str) -> str:
+    """
+    Set a user's badge for their profile card
+    Users can also unset it by selecting the "[CLEAR BADGE]" option from the autocomplete
+    """
+    # User selected the warning message, return as no-op
+    if badge == "You don't have any badges yet!":
+      return None
 
     # Remove badge if desired by user
     remove = bool(badge == '[CLEAR BADGE]')
     if remove:
       db_remove_user_profile_badge(ctx.author.id)
-      await ctx.respond(embed=discord.Embed(
-        title="Cleared Profile Badge",
-        color=discord.Color.green(),
-      ), ephemeral=True)
       logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their profile badge!{Style.RESET_ALL}")
-      return
+      return "Cleared Profile Badge"
 
     # Check to make sure they own the badge
     user_badges = [b['badge_name'] for b in db_get_user_badges(ctx.author.id)]
@@ -449,57 +493,30 @@ class Profile(commands.Cog):
         description="You don't appear to have that badge yet!",
         color=discord.Color.red()
       ), ephemeral=True)
-      return
+      return None
 
     # If it looks good, go ahead and add the badge to their profile
     badge_info = db_get_badge_info_by_name(badge)
     badge_filename = badge_info['badge_filename']
 
     db_add_user_profile_badge(ctx.author.id, badge_filename)
-    await ctx.respond(
-      embed=discord.Embed(
-        title="Your featured profile badge has been updated!",
-        description=f"You've successfully set \"{badge}\" as your profile badge.\n\nUse `/profile display` to check it out!",
-        color=discord.Color.green()
-      ),
-      ephemeral=True
-    )
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile badge{Style.RESET_ALL} to: {Style.BRIGHT}\"{badge}\"{Style.RESET_ALL}")
+    return f"You've successfully set \"{badge}\" as your profile badge."
 
-
-  @profile.command(
-    name="set_photo",
-    description="Set your PADD Photo!"
-  )
-  @option(
-    name="photo",
-    description="Your PADD photo",
-    required=True,
-    autocomplete=user_photos_autocomplete
-  )
-  async def set_photo(self, ctx:discord.ApplicationContext, photo:str):
+  async def set_photo(self, ctx:discord.ApplicationContext, photo:str) -> str:
     """
-    This function is the main entrypoint of the `/profile set_photo` command
-    set a user's PADD photo for their profile out of a list of what they have available in their inventory
+    Set a user's PADD photo for their profile out of a list of what they have available in their inventory
     """
     # User selected the warning message, return as no-op
     if photo == "You don't have any additional photos yet!":
-      await ctx.respond(embed=discord.Embed(
-        title="No Action Taken",
-        color=discord.Color.red(),
-      ), ephemeral=True)
-      return
+      return None
 
     # Remove photo if desired by user
     remove = bool(photo == '[CLEAR PHOTO]')
     if remove:
       db_update_user_profile_photo(ctx.author.id, "none")
-      await ctx.respond(embed=discord.Embed(
-        title="Cleared Profile Photo",
-        color=discord.Color.green(),
-      ), ephemeral=True)
       logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their profile photo!{Style.RESET_ALL}")
-      return
+      return "Cleared Profile Photo"
 
     # Check to make sure they own the photo
     user_photos = [s['item_name'] for s in db_get_user_profile_photos_from_inventory(ctx.author.id)] + ['None']
@@ -509,54 +526,27 @@ class Profile(commands.Cog):
         description="You don't appear to own that photo yet!",
         color=discord.Color.red()
       ), ephemeral=True)
-      return
+      return None
 
     # If it looks good, go ahead and change the sticker
     db_update_user_profile_photo(ctx.author.id, photo)
-    await ctx.respond(
-      embed=discord.Embed(
-        title="Your profile PADD photo has been updated!",
-        description=f"You've successfully set your PADD photo as \"{photo}\"\n\nUse `/profile display` to check it out!",
-        color=discord.Color.green()
-      ),
-      ephemeral=True
-    )
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile photo{Style.RESET_ALL} to: {Style.BRIGHT}\"{photo}\"{Style.RESET_ALL}")
+    return f"You've successfully set your PADD photo as \"{photo}\""
 
-
-  @profile.command(
-    name="set_sticker",
-    description="Set your PADD Sticker!"
-  )
-  @option(
-    name="sticker",
-    description="Your PADD sticker",
-    required=True,
-    autocomplete=user_stickers_autocomplete
-  )
-  async def set_sticker(self, ctx:discord.ApplicationContext, sticker:str):
+  async def set_sticker(self, ctx:discord.ApplicationContext, sticker:str) -> str:
     """
-    This function is the main entrypoint of the `/profile set_sticker` command
     set a user's PADD sticker for their profile out of a list of what they have available in their inventory
     """
     # User selected the warning message, return as no-op
     if sticker == "You don't have any additional stickers yet!":
-      await ctx.respond(embed=discord.Embed(
-        title="No Action Taken",
-        color=discord.Color.red(),
-      ), ephemeral=True)
-      return
+      return None
 
     # Remove sticker if desired by user
     remove = bool(sticker == '[CLEAR STICKER]')
     if remove:
       db_update_user_profile_sticker(ctx.author.id, "none")
-      await ctx.respond(embed=discord.Embed(
-        title="Cleared Profile Sticker",
-        color=discord.Color.green(),
-      ), ephemeral=True)
       logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their profile sticker!{Style.RESET_ALL}")
-      return
+      return "Cleared Profile Sticker"
 
     # Check to make sure they own the sticker
     user_stickers = [s['item_name'] for s in db_get_user_profile_stickers_from_inventory(ctx.author.id)] + ['Default']
@@ -566,43 +556,20 @@ class Profile(commands.Cog):
         description="You don't appear to own that sticker yet!",
         color=discord.Color.red()
       ), ephemeral=True)
-      return
+      return None
 
     # If it looks good, go ahead and change the sticker
     db_update_user_profile_sticker(ctx.author.id, sticker)
-    await ctx.respond(
-      embed=discord.Embed(
-        title="Your profile PADD sticker has been updated!",
-        description=f"You've successfully set your PADD sticker as \"{sticker}\"\n\nUse `/profile display` to check it out!",
-        color=discord.Color.green()
-      ),
-      ephemeral=True
-    )
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile sticker{Style.RESET_ALL} to: {Style.BRIGHT}\"{sticker}\"{Style.RESET_ALL}")
+    return f"You've successfully set your PADD sticker as \"{sticker}\""
 
-
-  @profile.command(
-    name="set_style",
-    description="Set your PADD Style!"
-  )
-  @option(
-    name="style",
-    description="Your PADD style",
-    required=True,
-    autocomplete=user_styles_autocomplete
-  )
   async def set_style(self, ctx:discord.ApplicationContext, style:str):
     """
-    This function is the main entrypoint of the `/profile set_style` command
     set a user's PADD style for their profile out of a list of what they have available in their inventory
     """
     # User selected the warning message, return as no-op
     if style == "You don't have any additional styles yet!":
-      await ctx.respond(embed=discord.Embed(
-        title="No Action Taken",
-        color=discord.Color.red(),
-      ), ephemeral=True)
-      return
+      return None
 
     # Check to make sure they own the style
     user_styles = [s['item_name'] for s in db_get_user_profile_styles_from_inventory(ctx.author.id)] + ['Default']
@@ -616,27 +583,10 @@ class Profile(commands.Cog):
 
     # If it looks good, go ahead and change the style
     db_update_user_profile_style(ctx.author.id, style)
-    await ctx.respond(
-      embed=discord.Embed(
-        title="Your profile PADD style has been updated!",
-        description=f"You've successfully set your PADD style as \"{style}\"\n\nUse `/profile display` to check it out!",
-        color=discord.Color.green()
-      ),
-      ephemeral=True
-    )
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile style{Style.RESET_ALL} to: {Style.BRIGHT}\"{style}\"{Style.RESET_ALL}")
+    return f"You've successfully set your PADD style as \"{style}\""
 
-  @profile.command(
-    name="set_photo_filter",
-    description="Set your PADD photo filter!"
-  )
-  @option(
-    name="filter",
-    description="The photo filter you want applied to your profile photo",
-    required=True,
-    autocomplete=photo_filters_autocomplete
-  )
-  async def set_photo_filter(self, ctx:discord.ApplicationContext, filter:str):
+  async def set_photo_filter(self, ctx:discord.ApplicationContext, filter:str) -> str:
     """ allows a user to set their own instagram-style photo filter on their profile photo """
     filter = filter.lower()
     if filter not in Profile.filters and filter not in ['random', 'none']:
@@ -647,16 +597,12 @@ class Profile(commands.Cog):
           color=discord.Color.red()
         ), ephemeral=True
       )
+      return None
     else:
       db_update_user_profile_photo_filter(ctx.author.id, filter)
-      await ctx.respond(
-        embed=discord.Embed(
-          title="Your profile PADD photo filter has been updated!",
-          description=f"Profile photo filter has been changed to **{filter}**!",
-          color=discord.Color.red()
-        ), ephemeral=True
-      )
-    logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their photo filter{Style.RESET_ALL} to: {Style.BRIGHT}\"{filter}\"{Style.RESET_ALL}")
+      logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their photo filter{Style.RESET_ALL} to: {Style.BRIGHT}\"{filter}\"{Style.RESET_ALL}")
+    return f"Profile photo filter has been changed to **{filter}**!"
+
 
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
