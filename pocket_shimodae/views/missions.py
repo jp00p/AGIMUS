@@ -67,8 +67,8 @@ class SelectPoshimoToSend(PoshimoSelect):
     super().__init__(
       cog, 
       trainer, 
-      only_here=True, 
-      only_alive=True, 
+      only_here=True,
+      only_alive=True,
       custom_placeholder="Choose a Poshimo to send", 
       custom_id="MISSION_POSHIMO_SELECT",
       **kwargs
