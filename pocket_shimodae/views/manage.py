@@ -1,6 +1,7 @@
 from common import *
 from ..ui import *
 from ..objects import Poshimo, PoshimoTrainer, PoshimoMove
+from . import main_menu as mm
 
 class ManageStart(PoshimoView):
   """ 
@@ -14,7 +15,12 @@ class ManageStart(PoshimoView):
         description=fill_embed_text("Swap, rename, release, or just examine your Poshimo.")
       )
     ]
-    self.add_item(ManageMenu(self.cog, self.trainer))
+    if len(self.trainer.list_all_poshimo()) > 0:
+      self.add_item(ManageMenu(self.cog, self.trainer))
+    else:
+      self.embeds[0].description += f"\n\n**All your Poshimo are busy right now!**"
+    
+    self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
 
 class ManageMenu(discord.ui.Select):
   """ 
@@ -24,6 +30,8 @@ class ManageMenu(discord.ui.Select):
     self.cog = cog
     self.trainer = trainer
     options = []
+    
+
     for i,poshimo in enumerate(self.trainer.list_all_poshimo()):
       label = f"{poshimo.display_name}"
       if self.trainer.active_poshimo and poshimo.id == self.trainer.active_poshimo.id:

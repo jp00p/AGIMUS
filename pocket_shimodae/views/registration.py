@@ -2,11 +2,12 @@
 this contains all the views for registering a player and choosing their first poshimo
 the StarterChosen view will actually do the registration, everything else is just UI
 """
-from common import *
-from ..ui import *
-from ..objects import Poshimo
 import pocket_shimodae.utils as utils
+from common import *
 
+from ..objects import Poshimo
+from ..ui import *
+from . import main_menu as mm
 
 class Welcome(PoshimoView):
   """ first message a new user sees """

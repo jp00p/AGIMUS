@@ -285,7 +285,7 @@ CREATE TABLE IF NOT EXISTS poshimodae (
   personality VARCHAR(128) DEFAULT NULL,
   xp INT(11) NOT NULL DEFAULT 0,
   move_list TEXT DEFAULT NULL,
-  mission INT(11) NULL,
+  mission_id INT(11) NULL,
   time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id)
 );
@@ -310,8 +310,9 @@ CREATE TABLE IF NOT EXISTS poshimo_trainers (
   losses INT(11) NOT NULL DEFAULT 0,
   status INT(11) DEFAULT 0,
   location VARCHAR(128) DEFAULT "New Vertiform City",
-  poshimo_sac TEXT DEFAULT NULL,
   active_poshimo INT(11) DEFAULT NULL,
+  poshimo_sac TEXT DEFAULT NULL,
+  away_poshimo TEXT DEFAULT NULL,
   inventory TEXT DEFAULT NULL,
   buckles TEXT DEFAULT NULL,
   scarves INT(11) NOT NULL DEFAULT 0,

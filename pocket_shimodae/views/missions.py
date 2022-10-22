@@ -2,6 +2,7 @@ from select import select
 from common import *
 from ..ui import *
 from ..objects import AwayMission, get_available_missions, MissionTypes, Poshimo
+from . import main_menu as mm
 
 class ManageAwayMissions(PoshimoView):
   ''' 
@@ -11,16 +12,35 @@ class ManageAwayMissions(PoshimoView):
   '''
   def __init__(self, cog, trainer):
     super().__init__(cog, trainer)
+    fields = []
+    active_missions = self.trainer.list_missions_in_progress()
+
+    if active_missions:
+      description = fill_embed_text("Your active away missions") 
+      for m in active_missions:
+        fields.append(
+          discord.EmbedField(
+            name=f"{m.poshimo.display_name} {m.get_emoji()}",
+            value=m.get_status()
+          )
+        )
+      
+    else:
+      description = fill_embed_text("No active away missions!")
 
     self.embeds = [
       discord.Embed(
         title="Away missions",
-        description="Manage your away missions [TODO: List poshimo on away missions]"
+        description=description,
+        fields=fields
       )
     ]
+
     self.add_item(StartAwayMissionButton(self.cog, self.trainer))
     self.add_item(AwayMissionResultsButton(self.cog, self.trainer))
     self.add_item(RecallPoshimoButton(self.cog, self.trainer))
+    self.add_item(RefreshMissionsButton(self.cog, self.trainer))
+    self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
 
 
 class StartAwayMissionButton(discord.ui.Button):
@@ -36,17 +56,20 @@ class StartAwayMissionButton(discord.ui.Button):
     view = PrepareAwayMission(self.cog, self.trainer, previous_view=self.view)
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
+
 class PrepareAwayMission(PoshimoView):
   ''' 
   the staging view for sending a poshimo on an away message
-  first they choose a poshimo
-  then they choose a mission type
-  then they get the women
-  then they choose a mission
+  
+  - first they choose a poshimo
+  - then they choose a mission type
+  - then they get the women
+  - then they choose a mission
+  
+  this view gets updated along the way, hopefully i can keep it that way...
   '''
   def __init__(self, cog, trainer, previous_view):
     super().__init__(cog, trainer, previous_view)
-    
     self.embeds = [
       discord.Embed(
         title="Send a Poshimo on an away mission!",
@@ -63,12 +86,11 @@ class PrepareAwayMission(PoshimoView):
 
 
 class SelectPoshimoToSend(PoshimoSelect):
+  ''' choose a poshimo to send away - edits the staging view '''
   def __init__(self, cog, trainer, **kwargs):
     super().__init__(
       cog, 
       trainer, 
-      only_here=True,
-      only_alive=True,
       custom_placeholder="Choose a Poshimo to send", 
       custom_id="MISSION_POSHIMO_SELECT",
       **kwargs
@@ -83,7 +105,7 @@ class SelectPoshimoToSend(PoshimoSelect):
 
 
 class ChooseMissionTypeSelect(discord.ui.Select):
-  ''' choose the type of away mission '''
+  ''' choose the type of away mission - edits the staging view '''
   def __init__(self, cog, trainer, selected_poshimo, **kwargs):
     self.cog = cog
     self.trainer:PoshimoTrainer = trainer
@@ -124,18 +146,34 @@ class ChooseMissionTypeSelect(discord.ui.Select):
         inline=False
       ) for m in missions
     ]
-    self.view.item_slots["mission_select"] = AvailableMissionsSelect(self.cog, self.trainer, missions)
+    self.view.item_slots["mission_select"] = AvailableMissionsSelect(self.cog, self.trainer, missions, self.poshimo)
     self.view.remove_item(self.view.item_slots["mission_type"])
     self.view.add_item(self.view.item_slots["mission_select"])
     await interaction.response.edit_message(view=self.view, embed=self.view.get_embed())
 
 
+class RefreshMissionsButton(discord.ui.Button):
+  ''' refresh the list of missions '''
+  def __init__(self, cog, trainer):
+    self.cog = cog
+    self.trainer = trainer
+    super().__init__(
+      label="Refresh",
+      emoji="🔃",
+      row=2
+    )
+  async def callback(self, interaction: discord.Interaction):
+    view = ManageAwayMissions(self.cog, self.trainer)
+    await interaction.response.edit_message(view=view, embed=view.get_embed())
+
+
 class AvailableMissionsSelect(discord.ui.Select):
-  ''' selectmenu of the available missions '''
-  def __init__(self, cog, trainer, mission_list):
+  ''' selectmenu of the available missions - launches the staging view '''
+  def __init__(self, cog, trainer, mission_list, poshimo):
     self.cog = cog
     self.trainer = trainer
     self.mission_list = mission_list
+    self.poshimo = poshimo
     options = [
       discord.SelectOption(
         label=m.name,
@@ -147,23 +185,113 @@ class AvailableMissionsSelect(discord.ui.Select):
       options=options
     )
   async def callback(self, interaction:discord.Interaction):
-    await interaction.response.send_message(self.values[0])
+    selected_mission:AwayMission = self.mission_list[int(self.values[0])]
+    mission_id = selected_mission.begin(self.poshimo)
+    self.poshimo.mission_id = mission_id
+    self.trainer.send_poshimo_away(self.poshimo)
+    view = ManageAwayMissions(self.cog, self.trainer)
+    view.embeds[0].description = f"**{self.poshimo} sent on mission {mission_id}!**\n" + view.embeds[0].description
+    await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 
 class AwayMissionResultsButton(discord.ui.Button):
+  ''' button to check results for completed missions '''
   def __init__(self, cog, trainer):
     self.cog = cog
-    self.trainer = trainer
+    self.trainer:PoshimoTrainer = trainer
+    self.missions = self.trainer.list_missions_ready_to_resolve()
     super().__init__(
       label="Check results",
       emoji="✅",
-      row=1
+      row=1,
+      disabled=bool(len(self.missions) <= 0)
     )
   async def callback(self, interaction:discord.Interaction):
-    pass
+    view = AwayMissionsResults(self.cog, self.trainer, self.view)
+    await interaction.response.edit_message(view=view, embed=view.get_embed())
+
+
+class CompletedMissionSelect(discord.ui.Select):
+  ''' choose a mission to resolve '''
+  def __init__(self, cog, trainer):
+    self.cog = cog
+    self.trainer:PoshimoTrainer = trainer
+    self.completed_missions = self.trainer.list_missions_ready_to_resolve()
+    if self.completed_missions:
+      disabled = False
+      placeholder = "Which mission are you ready to resolve?"
+      options = [
+        discord.SelectOption(
+          label=f"{m.poshimo.display_name}: {m.name}",
+          value=f"{key}"
+        ) for key,m in enumerate(self.completed_missions)
+      ]
+    else:
+      placeholder = "No missions left to resolve."
+      options = [discord.SelectOption(label="No poshimo", value="0")]
+      disabled = True
+    super().__init__(
+      placeholder=placeholder,
+      options=options,
+      disabled=disabled
+    )
+  async def callback(self, interaction:discord.Interaction):
+    selected_mission = self.completed_missions[int(self.values[0])]
+    rewards = selected_mission.resolve()
+    self.trainer.return_poshimo_from_mission(selected_mission.poshimo)
+    view = AwayMissionsResults(self.cog, self.trainer)
+    view.embeds = [
+      discord.Embed(
+        title="Mission complete!",
+        description=f"{selected_mission.name} has been completed by {selected_mission.poshimo.display_name}!",
+        fields=[
+          discord.EmbedField(
+            name=f"{r}",
+            value=f"{v}",
+            inline=True
+          ) for r,v in rewards
+        ]
+      )
+    ]
+    await interaction.response.edit_message(view=view, embed=view.get_embed())
+    
+
+
+class AwayMissionsResults(PoshimoView):
+  ''' list of away missions ready to review '''
+  def __init__(self, cog, trainer, prev_view=None):
+    super().__init__(cog, trainer)
+    self.missions = self.trainer.list_missions_ready_to_resolve()
+    desc = "Here are the missions you have ready to resolve:\n"
+    if len(self.missions) <= 0:
+      desc = "No more missions left to resolve!\n"
+      self.embeds = [
+        discord.Embed(
+          title="No missions ready!",
+          description=desc
+        )
+      ]
+    else:
+      self.embeds = [
+        discord.Embed(
+          title="Missions ready:",
+          description=desc,
+          fields=[
+            discord.EmbedField(
+              name=f"{m.poshimo.display_name} {m.get_emoji()}",
+              value=m.get_status()
+            ) for m in self.missions if self.missions
+          ]
+        )
+      ]
+    self.add_item(CompletedMissionSelect(self.cog, self.trainer))
+    self.add_item(BackButton(ManageAwayMissions(self.cog, self.trainer), label="All missions"))   
+    self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
+    #self.add_item(BackButton(self.previous_view, label="Cancel"))
 
 
 class RecallPoshimoButton(discord.ui.Button):
+  ''' end a mission early '''
   def __init__(self, cog, trainer):
     self.cog = cog
     self.trainer = trainer
@@ -176,6 +304,3 @@ class RecallPoshimoButton(discord.ui.Button):
     pass
 
 
-class AwayMissionListing(PoshimoView):
-  def __init__(self, cog, trainer):
-    super().__init__(cog, trainer)

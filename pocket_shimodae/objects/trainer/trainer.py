@@ -2,8 +2,11 @@
 from common import *
 from enum import Enum
 from typing import List, Dict, TypedDict
+
+from pocket_shimodae.objects.poshimo.stat import PoshimoStat
 from ..world import PoshimoItem, ItemTypes, FunctionCodes
 from ..world.fish import PoshimoFish
+from ..world.awaymissions import AwayMission
 from ..poshimo import Poshimo, PoshimoMove, PoshimoStatus
 
 InventoryDict = TypedDict('Inventory', {'item': PoshimoItem, 'amount': int})
@@ -25,7 +28,7 @@ class PoshimoTrainer(object):
 
   pass a `name` to generate a basic NPC
   '''
-  MAX_POSHIMO = 6 # the maximum poshimo a player can have
+  MAX_POSHIMO = 9 # the maximum poshimo a player can have
   
   def __init__(self, trainer_id:int=None, name:str=None):
     self.id:int = trainer_id
@@ -33,6 +36,7 @@ class PoshimoTrainer(object):
     self.name:str = name
     self.display_name:str = name # real players will have their discord handle here
     self._poshimo_sac:List[Poshimo] = []
+    self._away_poshimo: List[Poshimo] = []
     self._status:TrainerStatus = TrainerStatus.IDLE
     self._wins:int = 0
     self._losses:int = 0
@@ -42,6 +46,7 @@ class PoshimoTrainer(object):
     self._scarves:int = 0 # money
     self._buckles:int = None # these are like pokemon badges TBD
     self._locations_unlocked:set = set()
+    
     self.shimodaepedia:list = [] # aka pokedex, which poshimo has this player seen (list of ids) TBD
     
     if self.id:
@@ -94,6 +99,13 @@ class PoshimoTrainer(object):
       else:
         self._poshimo_sac = []
       
+      away_data = trainer_data.get("away_poshimo")
+      if away_data:
+        away_data = json.loads(away_data)
+        self._away_poshimo = [Poshimo(id=p) for p in away_data]
+      else:
+        self._away_poshimo = []
+
       if trainer_data.get("active_poshimo"):
         self._active_poshimo = Poshimo(id=trainer_data.get("active_poshimo"))
       else:
@@ -126,7 +138,7 @@ class PoshimoTrainer(object):
 
   def add_poshimo(self, poshimo:Poshimo, set_active=False) -> Poshimo:
     """ 
-    give this player a new poshimo
+    put a poshimo in this player's sac (or active slot)
     """
     new_poshimo = poshimo
     new_poshimo.owner = self.id # set poshimo owner
@@ -158,7 +170,10 @@ class PoshimoTrainer(object):
     poshimo.owner = None # will fire update on the poshimo object
 
   def list_sac(self) -> str:
-    ''' list the contents of your sac '''
+    ''' 
+    list the contents of your sac 
+    returns a formatted string
+    '''
     temp_sac = self.poshimo_sac
     if self.active_poshimo in temp_sac:
       # dont show the active poshimo in the sac
@@ -166,6 +181,19 @@ class PoshimoTrainer(object):
     if len(temp_sac) <= 0:
       return "Empty sac"
     return "\n".join([p.display_name for p in temp_sac])
+
+  def list_away(self) -> str:
+    ''' 
+    list the poshimo who are away right now 
+    returns a formatted string
+    '''
+    if len(self._away_poshimo) <= 0:
+      return "No Poshimo are away"
+    return_str = ""
+    for p in self._away_poshimo:
+      mission = AwayMission(id=p.mission_id)
+      return_str += f"{p.display_name} {mission.get_emoji()}"
+    return return_str
 
   def list_inventory(self) -> str:
     ''' list all this players items '''
@@ -178,29 +206,16 @@ class PoshimoTrainer(object):
       inv_str = "You have no items!"
     return inv_str
 
-  def list_all_poshimo(self, only_list_alive=False, only_list_away=False, only_list_here=False) -> List[Poshimo]:
+  def list_all_poshimo(self, include_away=False) -> List[Poshimo]:
     ''' 
-    Get a list of all poshimo this Trainer owns 
-    ----
-    only_list_away: only show poshimo who are away
-    only_list_here: only show poshimo who are NOT away
-    only_list_alive: only show poshimo who are alive (works with the above filters too)
+    Get a list of all this trainer's poshimo
     '''
-    if self.active_poshimo:
-      all_poshimo = list([self._active_poshimo] + self._poshimo_sac)
-    else:
-      all_poshimo = self._poshimo_sac
-    
-    if only_list_away:
-      all_poshimo = filter(lambda poshimo: poshimo.status is PoshimoStatus.AWAY, all_poshimo)
-    elif only_list_here:
-      all_poshimo = filter(lambda poshimo: poshimo.status is not PoshimoStatus.AWAY, all_poshimo)
-
-    if only_list_alive:
-      all_poshimo = filter(lambda poshimo: poshimo.hp > 0, all_poshimo)
-
-    #logger.info(f"All this users poshimo: {','.join([str(p.id) for p in all_poshimo])}")
-    return list(all_poshimo)
+    all_poshimo = self._poshimo_sac
+    if self._active_poshimo:
+      all_poshimo += [self._active_poshimo]
+    if include_away:
+      all_poshimo += self._away_poshimo
+    return all_poshimo
 
   def pick_move(self) -> PoshimoMove:
     '''
@@ -226,6 +241,10 @@ class PoshimoTrainer(object):
       if poshimo.hp > 0:
         eligible_poshimo.append(poshimo)
     return eligible_poshimo
+  
+  def is_active_poshimo_ready(self) -> bool:
+    ''' returns true if there is an active poshimo and its HP is greater than 0'''
+    return self.active_poshimo and self.active_poshimo.hp > 0
 
   def random_swap(self):
     ''' do a random swap (when your active poshimo dies) '''
@@ -234,6 +253,55 @@ class PoshimoTrainer(object):
       self.swap(random.choice(eligible_poshimo))
     else:
       return False
+
+  def send_poshimo_away(self, poshimo:Poshimo) -> None:
+    ''' send a poshimo on an away mission, stick it in your away sac '''
+    temp_away_poshimo = self._away_poshimo
+    poshimo.status = PoshimoStatus.AWAY
+    if self._active_poshimo and poshimo.id is self._active_poshimo.id:
+      self.active_poshimo = None
+    else:
+      temp_sac = self._poshimo_sac
+      temp_sac.remove(poshimo)
+      self.poshimo_sac = temp_sac
+    temp_away_poshimo.append(poshimo)
+    self.away_poshimo = temp_away_poshimo
+
+  def return_poshimo_from_mission(self, poshimo:Poshimo):
+    ''' put a poshimo back in your bag and set it to idle '''
+    poshimo.status = PoshimoStatus.IDLE
+    poshimo.mission_id = None
+    away_poshimo = self._away_poshimo
+    for p in away_poshimo:
+      logger.info(p)
+      logger.info(poshimo)
+      if p.id == poshimo.id:
+        away_poshimo.remove(p)
+        break
+    self.away_poshimo = away_poshimo
+    temp_sac = self._poshimo_sac
+    temp_sac.append(poshimo)
+    self.poshimo_sac = temp_sac
+
+  def list_missions_in_progress(self) -> List[AwayMission]:
+    ''' return a list of all missions in progress for this trainer '''
+    if len(self._away_poshimo) < 1:
+      return None
+    active_missions = []
+    for p in self._away_poshimo:
+      active_missions.append( AwayMission(id=int(p.mission_id)) )
+    return active_missions
+  
+  def list_missions_ready_to_resolve(self) -> List[AwayMission]:
+    ''' return a list of all missions ready to resolve for this trainer '''
+    ready_missions = []
+    if len(self._away_poshimo) < 1:
+      return ready_missions
+    for p in self._away_poshimo:
+      mission = AwayMission(id=int(p.mission_id))
+      if mission.complete:
+        ready_missions.append(mission)
+    return ready_missions
 
   def swap(self, poshimo:Poshimo) -> str:
     ''' swap out the active poshimo '''
@@ -370,6 +438,18 @@ class PoshimoTrainer(object):
   def location(self, value:str) -> None:
     self._location = value.lower()
     self.update("location", self._location)
+
+  @property
+  def away_poshimo(self) -> List[Poshimo]:
+    return self._away_poshimo
+  @away_poshimo.setter
+  def away_poshimo(self, val):
+    self._away_poshimo = val
+    if len(self._away_poshimo) > 0:
+      away_json = json.dumps([i.id for i in self._away_poshimo])
+    else:
+      away_json = json.dumps([])
+    self.update("away_poshimo", away_json)
 
   @property
   def scarves(self) -> int:

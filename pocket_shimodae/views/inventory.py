@@ -1,5 +1,6 @@
 from common import *
 from ..ui import *
+from . import main_menu as mm
 
 class InventoryMenu(PoshimoView):
   ''' the view for your inventory '''
@@ -20,7 +21,8 @@ class InventoryMenu(PoshimoView):
     
     if len(self.trainer.inventory) > 0:
       self.add_item(ItemUseMenu(self.cog, self.trainer, selected_item=self.using_item))
-
+    
+    self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
 
 class ItemUseMenu(discord.ui.Select):
   ''' 

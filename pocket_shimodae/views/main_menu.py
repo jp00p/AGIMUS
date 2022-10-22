@@ -1,14 +1,12 @@
 from common import *
-
-from ..objects import PoshimoTrainer, TrainerStatus
 from ..ui import *
-from .battle import *
-from .fishing import *
-from .manage import *
-from .inventory import *
-from .missions import *
-from .shop import *
-from .travel import *
+from . import battle as mm_battle
+from . import fishing as mm_fish
+from . import inventory as mm_inventory
+from . import manage as mm_manage
+from . import missions as mm_missions
+from . import shop as mm_shop
+from . import travel as mm_travel
 
 class MainMenu(PoshimoView):
   ''' the primary menu '''
@@ -26,7 +24,8 @@ class MainMenu(PoshimoView):
           discord.EmbedField(name="Scarves", value=f"{self.trainer.scarves}", inline=True),
           discord.EmbedField(name="Belt buckles", value=f"{self.trainer.buckles}", inline=True),
           discord.EmbedField(name="Active Poshimo", value=f"{self.trainer.active_poshimo}", inline=False),
-          discord.EmbedField(name="Poshimo sac", value=f"{self.trainer.list_sac()}", inline=False)
+          discord.EmbedField(name="Poshimo Sac", value=f"{self.trainer.list_sac()}", inline=False),
+          discord.EmbedField(name="Poshimo on missions", value=f"{self.trainer.list_away()}", inline=False)
         ]
       )
     ]
@@ -40,7 +39,7 @@ class MainMenu(PoshimoView):
     self.add_item(CraftingMenuButton(self.cog, self.trainer, row=2))
     self.add_item(InnMenuButton(self.cog, self.trainer, row=2))
 
-    self.add_item(QuestMenuButton(self.cog, self.trainer, row=3))
+    self.add_item(QuestMenuButton(self.cog, self.trainer, row=3))    
     self.add_item(HuntMenuButton(self.cog, self.trainer, row=3))
     self.add_item(DuelMenuButton(self.cog, self.trainer, row=3))
 
@@ -50,6 +49,7 @@ class BackToMainMenu(BackButton):
       MainMenu(cog, trainer),
       label=BACK_TO_MAIN_MENU
     )
+
 
 class FishingMenuButton(discord.ui.Button):
   ''' the button to open the fishing menu '''
@@ -62,8 +62,8 @@ class FishingMenuButton(discord.ui.Button):
       **kwargs
     )
   async def callback(self, interaction):
-    view = FishingLog(self.cog, self.trainer)
-    view.add_item(BackToMainMenu(self.cog, self.trainer))
+    view = mm_fish.FishingLog(self.cog, self.trainer)
+    # view.add_item(BackToMainMenu(self.cog, self.trainer))
     
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
@@ -78,7 +78,7 @@ class InventoryMenuButton(discord.ui.Button):
       **kwargs
     )
   async def callback(self, interaction):
-    view = InventoryMenu(self.cog, self.trainer)
+    view = mm_inventory.InventoryMenu(self.cog, self.trainer)
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class ManageMenuButton(discord.ui.Button):
@@ -91,8 +91,8 @@ class ManageMenuButton(discord.ui.Button):
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
-    view = ManageStart(self.cog, self.trainer)
-    view.add_item(BackToMainMenu(self.cog, self.trainer))
+    view = mm_manage.ManageStart(self.cog, self.trainer)
+    # view.add_item(BackToMainMenu(self.cog, self.trainer))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class TravelMenuButton(discord.ui.Button):
@@ -105,8 +105,8 @@ class TravelMenuButton(discord.ui.Button):
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
-    view = TravelMenu(self.cog, self.trainer)
-    view.add_item(BackToMainMenu(self.cog, self.trainer))
+    view = mm_travel.TravelMenu(self.cog, self.trainer)
+    # view.add_item(BackToMainMenu(self.cog, self.trainer))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class CraftingMenuButton(discord.ui.Button):
@@ -133,11 +133,11 @@ class ShopMenuButton(discord.ui.Button):
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
-    view = ShoppingScreen(self.cog, self.trainer, self.location.shop)
-    view.add_item(BackToMainMenu(self.cog, self.trainer))
-    view.add_item(ShopBuyMenu(self.cog, self.trainer, self.location.shop))
+    view = mm_shop.ShoppingScreen(self.cog, self.trainer, self.location.shop)
+    # view.add_item(BackToMainMenu(self.cog, self.trainer))
+    view.add_item(mm_shop.ShopBuyMenu(self.cog, self.trainer, self.location.shop))
     if len(self.trainer.inventory) > 0:
-      view.add_item(ShopSellMenu(self.cog, self.trainer, self.location.shop))
+      view.add_item(mm_shop.ShopSellMenu(self.cog, self.trainer, self.location.shop))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class QuestMenuButton(discord.ui.Button):
@@ -150,8 +150,8 @@ class QuestMenuButton(discord.ui.Button):
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
-    view = ManageAwayMissions(self.cog, self.trainer)
-    view.add_item(BackToMainMenu(self.cog, self.trainer))
+    view = mm_missions.ManageAwayMissions(self.cog, self.trainer)
+    # view.add_item(BackToMainMenu(self.cog, self.trainer))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class InnMenuButton(discord.ui.Button):
@@ -190,7 +190,8 @@ class HuntMenuButton(discord.ui.Button):
       label = "Start a hunt"
       emoji = "🏹"
     
-    if self.trainer.active_poshimo.hp <= 0:
+    if not self.trainer.is_active_poshimo_ready():
+      label = "Hunt not ready"
       disabled = True
       emoji = "❌"
 

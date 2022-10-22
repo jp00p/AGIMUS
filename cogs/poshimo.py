@@ -23,6 +23,10 @@ class PocketShimodae(commands.Cog):
     """ every hour the weather changes """
     self.game.world.set_weather()
 
+  @tasks.loop(minutes=1.0)
+  async def check_away_missions(self):
+    logger.info("Checking away missions...")
+
   @ps.command(
     name="test_give_poshimo",
     description="DEBUG"
@@ -88,18 +92,18 @@ class PocketShimodae(commands.Cog):
   )
   async def status(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
-    main_menu = menu.MainMenu(self, ctx.author.id)
-    await ctx.followup.send(view=main_menu, embed=main_menu.get_embed())
+    mm = main_menu.MainMenu(self, ctx.author.id)
+    await ctx.followup.send(view=mm, embed=mm.get_embed())
     
   
-  @ps.command(
-    name="manage",
-    description="Manage your Poshimo"
-  )
-  async def manage(self, ctx:discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
-    manage_screen = manage.ManageStart(self, ctx.author.id)
-    await ctx.followup.send(embed=manage_screen.get_embed(), view=manage_screen)
+  # @ps.command(
+  #   name="manage",
+  #   description="Manage your Poshimo"
+  # )
+  # async def manage(self, ctx:discord.ApplicationContext):
+  #   await ctx.defer(ephemeral=True)
+  #   manage_screen = manage.ManageStart(self, ctx.author.id)
+  #   await ctx.followup.send(embed=manage_screen.get_embed(), view=manage_screen)
 
   @ps.command(
     name="help",
@@ -129,47 +133,33 @@ class PocketShimodae(commands.Cog):
   async def explore(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
 
-  @ps.command(
-    name="travel",
-    description="Move to a different location, if you have any unlocked."
-  )
-  async def travel(self, ctx:discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
-    travel_agency = travel.TravelMenu(self, ctx.author.id)
-    await ctx.followup.send(embed=travel_agency.get_embed(), view=travel_agency)
-
-  @ps.command(
-    name="duel",
-    description="DOES NOTHING YET Start a duel with another trainer"
-  )
-  async def explore(self, ctx:discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
-
-  @ps.command(
-    name="hunt",
-    description="Hunt for wild Poshimo in your current location!"
-  )
-  async def hunt(self, ctx:discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
-    trainer = utils.get_trainer(ctx.author.id)
-    if trainer.active_poshimo.hp <= 0:
-      await ctx.followup.send("Your active Poshimo is in no condition to hunt right now!", ephemeral=True)
+  
+  
+  # @ps.command(
+  #   name="hunt",
+  #   description="Hunt for wild Poshimo in your current location!"
+  # )
+  # async def hunt(self, ctx:discord.ApplicationContext):
+  #   await ctx.defer(ephemeral=True)
+  #   trainer = utils.get_trainer(ctx.author.id)
+  #   if trainer.active_poshimo.hp <= 0:
+  #     await ctx.followup.send("Your active Poshimo is in no condition to hunt right now!", ephemeral=True)
       
-    if trainer.status is TrainerStatus.BATTLING:
-      old_hunt = self.game.resume_battle(ctx.author.id)
-      resumed_battle = battle.BattleTurn(self, ctx.author.id, old_hunt)
-      await ctx.followup.send(embed=resumed_battle.get_embed(), view=resumed_battle)
-    else:
-      hunt = self.game.start_hunt(ctx.author.id)
-      initial_turn = battle.BattleTurn(self, ctx.author.id, hunt)
-      await ctx.followup.send(embed=initial_turn.get_embed(), view=initial_turn)
+  #   if trainer.status is TrainerStatus.BATTLING:
+  #     old_hunt = self.game.resume_battle(ctx.author.id)
+  #     resumed_battle = battle.BattleTurn(self, ctx.author.id, old_hunt)
+  #     await ctx.followup.send(embed=resumed_battle.get_embed(), view=resumed_battle)
+  #   else:
+  #     hunt = self.game.start_hunt(ctx.author.id)
+  #     initial_turn = battle.BattleTurn(self, ctx.author.id, hunt)
+  #     await ctx.followup.send(embed=initial_turn.get_embed(), view=initial_turn)
 
-  @ps.command(
-    name="fish",
-    description="Attempt to fish in your current location!",
-  )
-  async def fish(self, ctx:discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
-    trainer = utils.get_trainer(ctx.author.id)
-    fishing_game = fishing.FishingGame(self, trainer)
-    await ctx.followup.send(embed=fishing_game.get_embed(), view=fishing_game)
+  # @ps.command(
+  #   name="fish",
+  #   description="Attempt to fish in your current location!",
+  # )
+  # async def fish(self, ctx:discord.ApplicationContext):
+  #   await ctx.defer(ephemeral=True)
+  #   trainer = utils.get_trainer(ctx.author.id)
+  #   fishing_game = fishing.FishingGame(self, trainer)
+  #   await ctx.followup.send(embed=fishing_game.get_embed(), view=fishing_game)

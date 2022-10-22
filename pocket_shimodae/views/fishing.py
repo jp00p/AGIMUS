@@ -1,8 +1,9 @@
+from re import M
 from common import *
-from typing import TypedDict
+from ..objects import (FishingShapeDict, PoshimoFish, PoshimoLocation,
+                       PoshimoTrainer)
 from ..ui import *
-import pocket_shimodae.utils as utils
-from ..objects import PoshimoTrainer, PoshimoLocation, PoshimoFish, FishingShapeDict
+from . import main_menu as mm
 
 #trash_items = ["🦴", "🥾"]
 trash_items = ["🟦"]*12
@@ -23,7 +24,7 @@ class FishingButton(discord.ui.Button):
       style=discord.ButtonStyle.primary
     )
   async def callback(self, interaction):
-    view = FishingResults(self.cog, self.win, self.choice, self.water_contents, self.available_fish, self.fishing_shape, self.trainer)
+    view = FishingResults(self.cog, self.trainer, self.win, self.choice, self.water_contents, self.available_fish, self.fishing_shape)
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class FishingResults(PoshimoView): 
@@ -80,6 +81,8 @@ class FishingResults(PoshimoView):
         description=self.description
       ).set_footer(text=footer_text)
     ]
+    self.add_item(BackButton(FishingLog(self.cog, self.trainer), label="Fishing log"))
+    self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
 
 class FishingGame(PoshimoView):
   def __init__(self, cog, trainer:PoshimoTrainer):
@@ -134,6 +137,8 @@ class FishingGame(PoshimoView):
           description=description
         )
       ]
+    
+    self.add_item(BackButton(FishingLog(self.cog, self.trainer), label="Fishing log"))
 
 class FishingLog(PoshimoView):
   ''' the view for your fishinglog '''
@@ -156,6 +161,7 @@ class FishingLog(PoshimoView):
       )
     ]
     self.add_item(StartFishingButton(self.cog, self.trainer))
+    self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
 
 class StartFishingButton(discord.ui.Button):
   ''' lets go fishing pa '''

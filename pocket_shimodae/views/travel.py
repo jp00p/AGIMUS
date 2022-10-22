@@ -1,9 +1,11 @@
-from common import *
 import textwrap
-from prettytable import PrettyTable, MARKDOWN, PLAIN_COLUMNS, ORGMODE
+
+import pocket_shimodae.utils as utils
+from common import *
+from prettytable import MARKDOWN, ORGMODE, PLAIN_COLUMNS, PrettyTable
 from prettytable.colortable import ColorTable, Themes
 from ..ui import *
-import pocket_shimodae.utils as utils
+from . import main_menu as mm
 
 direction_arrows = {
   "n": "⬆",
@@ -167,3 +169,5 @@ class TravelMenu(PoshimoView):
           label = " "
           self.add_item(discord.ui.Button(label=label, row=cur_row, disabled=True))
       cur_row += 1
+      
+    self.add_item(mm.BackToMainMenu(self.cog, self.trainer))

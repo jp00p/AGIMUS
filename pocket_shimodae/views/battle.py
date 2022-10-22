@@ -1,7 +1,12 @@
-from common import *
 from typing import List
+
+from common import *
+
+from ..objects import (BattleStates, BattleTypes, Poshimo, PoshimoBattle,
+                       PoshimoMove, PoshimoTrainer)
+
 from ..ui import *
-from ..objects import Poshimo, PoshimoBattle, BattleTypes, BattleStates, PoshimoTrainer, PoshimoMove
+from . import main_menu as mm
 
 spacer = f"\n{'⠀'*53}" # fills out the embed to max width
 

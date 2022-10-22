@@ -160,6 +160,7 @@ class Poshimo(object):
     
     self.poshimodata.update(temp_pdata) # merge with db info (so its not a base poshimo)
     self._move_list = self.load_move_list(results.get("move_list")) # unpack json moves
+    self._mission_id = self.poshimodata.get("mission_id", None)
     temp_status:int = self.poshimodata.get("status", 0)
     if temp_status:
       self._status = PoshimoStatus(temp_status)
@@ -220,7 +221,7 @@ class Poshimo(object):
     """
     if not self.id: # only update poshimo in the DB
       return
-    #logger.info(f"{Style.BRIGHT}Attempting to update Poshimo {self.id}'s {Fore.CYAN}{col_name}{Fore.RESET}{Style.RESET_ALL} with new value: {Fore.LIGHTGREEN_EX}{value}{Fore.RESET}")
+    logger.info(f"{Style.BRIGHT}Attempting to update Poshimo {self.id}'s {Fore.CYAN}{col_name}{Fore.RESET}{Style.RESET_ALL} with new value: {Fore.LIGHTGREEN_EX}{value}{Fore.RESET}")
     with AgimusDB() as query:
       sql = f"UPDATE poshimodae SET {col_name} = %s WHERE id = %s" # col_name is a trusted input or so we hope
       vals = (value, self.id)
@@ -240,7 +241,7 @@ class Poshimo(object):
   @mission_id.setter
   def mission_id(self, val:int):
     self._mission_id = val
-    self.update("mission", self._mission_id)
+    self.update("mission_id", self._mission_id)
 
   @property
   def max_hp(self) -> int:
@@ -344,7 +345,7 @@ class Poshimo(object):
   @status.setter
   def status(self, status:PoshimoStatus):
     self._status = status
-    self.update("status", status.value)
+    self.update("status", self._status.value)
 
   @property
   def move_list(self) -> List[PoshimoMove]:

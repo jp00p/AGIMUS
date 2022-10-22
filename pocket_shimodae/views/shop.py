@@ -1,6 +1,8 @@
 from common import *
+
+from ..objects import PoshimoItem, PoshimoShop
 from ..ui import *
-from ..objects import PoshimoShop, PoshimoItem
+from . import main_menu as mm
 
 class ShoppingScreen(PoshimoView):
   def __init__(self, cog, trainer, shop:PoshimoShop, message=""):
@@ -18,6 +20,7 @@ class ShoppingScreen(PoshimoView):
     )
     shop_embed.set_footer(text=f"Your Scarves: {self.trainer.scarves}")
     self.embeds = [shop_embed]
+    self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
     
 class ShopBuyMenu(discord.ui.Select):
   def __init__(self, cog, trainer:PoshimoTrainer, shop:PoshimoShop, **kwargs):

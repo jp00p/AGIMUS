@@ -1,4 +1,4 @@
-name,description,length,min_level,possible_rewards
-Investigate woods,There's always a secret stash of something in the woods.  Make a Poshimo go find it!,30,1,"{[""hypospray"", ""0"", ""2""], [""scarves"", ""5"", ""50""], [""raw vertiform"", ""1"", ""2""]}"
-Search trash cans,Some choice looking dumpsters back there... should have a Poshimo go diving,30,1,"{[""raw vertiform"", ""0"", ""5""], [""hypospray"", ""0"", ""1""]}"
-Begging,A cute Poshimo is sure to make some money on the street corner!,30,1,"{[""scarves"", ""1"", ""50""]}"
+name,description,length,min_level
+Investigate woods,There's always a secret stash of something in the woods.  Make a Poshimo go find it!,1,1
+Search trash cans,Some choice looking dumpsters back there... should have a Poshimo go diving,1,1
+Begging,A cute Poshimo is sure to make some money on the street corner!,1,1
