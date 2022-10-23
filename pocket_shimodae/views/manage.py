@@ -178,8 +178,7 @@ class ManagePoshimoScreen(PoshimoView):
     for stat, value in self.stats.items():
       val = f"{value}"
       if stat not in ["hp", "level", "personality", "xp"]:
-        pstat = getattr(self.poshimo, stat)
-        val = f"{value}\n```ansi\n{progress_bar(pstat.xp/100, ansi=True)}```"
+        val = f"{value}\n```ansi\n{progress_bar(value.xp/100, value=int(value.xp), ansi=True)}```"
       elif stat == "hp":
         hpprog = (self.poshimo.hp / self.poshimo.max_hp)
         val = f"{value}\n```ansi\n{progress_bar(hpprog, ansi=True)}```"

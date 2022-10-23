@@ -114,7 +114,7 @@ class PoshimoTrainer(object):
       if loc_data:
         loc_data = json.loads(loc_data)
         self._locations_unlocked = set(loc_data)
-        logger.info(self._locations_unlocked)
+        #logger.info(self._locations_unlocked)
       
       item_data = trainer_data.get("inventory")
       if item_data:
@@ -231,7 +231,7 @@ class PoshimoTrainer(object):
       move = PoshimoMove(name="struggle")
     else:
       move = random.choice(possible_moves)
-    logger.info(f"NPC has picked {move.display_name}!")
+    #logger.info(f"NPC has picked {move.display_name}!")
     return move
 
   def get_eligible_poshimo_for_swap(self) -> List[Poshimo]:
@@ -273,8 +273,6 @@ class PoshimoTrainer(object):
     poshimo.mission_id = None
     away_poshimo = self._away_poshimo
     for p in away_poshimo:
-      logger.info(p)
-      logger.info(poshimo)
       if p.id == poshimo.id:
         away_poshimo.remove(p)
         break
@@ -338,12 +336,13 @@ class PoshimoTrainer(object):
     add an item to this trainer's inventory 
     pass `amount` to add multiple items!
     '''
+    #logger.info(f"Attempting to add item {item}")
     temp_inventory = self._inventory
     if temp_inventory.get(item.name.lower()):
       temp_inventory[item.name.lower()]["amount"] += amount
     else:
       temp_inventory[item.name.lower()] = {
-        "item": item.name,
+        "item": item,
         "amount": amount
       }
     self.inventory = temp_inventory

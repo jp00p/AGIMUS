@@ -176,7 +176,6 @@ class AwayMission(object):
     
     if self.reward_type is RewardTypes.MATS:
       rewards = gathering_rewards_data[self.name.lower()]
-      logger.info(f"POSSIBLE REWARDS: {rewards}")
       final_rewards = self.roll_for_mats(rewards)
 
     if self.reward_type is RewardTypes.STATS:
@@ -195,7 +194,6 @@ class AwayMission(object):
       sql = "UPDATE poshimo_mission_logs SET active = false, results = %s WHERE id = %s"
       vals = (results, self.id)
       query.execute(sql, vals)
-    logger.info(f"FINAL REWARDS {final_rewards}")
 
     trainer.return_poshimo_from_mission(self.poshimo)
     return final_rewards
@@ -203,17 +201,19 @@ class AwayMission(object):
   def hand_out_rewards(self, trainer, rewards:list):
     from ..trainer import PoshimoTrainer
     trainer:PoshimoTrainer = trainer
+    final_rewards = [] # (name of stat, amount gained, new total/level up increase)
     if self.reward_type is RewardTypes.STATS:
       statname = rewards[0][0]
       statval = int(rewards[0][1])
-      ps_log(f"Stat increase for {self.poshimo} [STAT: {statname}, INCREASE: {statval}]")
       if statname == "max_hp":
         self.poshimo.max_hp = self.poshimo.max_hp + statval
+        final_rewards.append(("max_hp", statval, self.poshimo.max_hp))
       else:
         updated_stat:PoshimoStat = getattr(self.poshimo, statname)
         stat_increase = updated_stat.add_xp(statval)
         setattr(self.poshimo, statname, updated_stat)
         logger.info(f"Added stat xp: {statname} +{statval} ({stat_increase} stat points gained)")
+        
 
 
     if self.reward_type is RewardTypes.MATS:

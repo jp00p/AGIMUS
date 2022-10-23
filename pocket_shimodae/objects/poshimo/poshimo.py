@@ -90,7 +90,7 @@ class Poshimo(object):
       self._owner = self.poshimodata["owner"]
     
     # poshimodata should be fully loaded now, if not ... wha happen???
-    logger.info(self.poshimodata)
+    #logger.info(self.poshimodata)
     self._level:int = self.poshimodata.get("level", 1)
     self._name = self.poshimodata["name"]
     self._display_name:str = self.poshimodata.get("display_name")
@@ -106,10 +106,7 @@ class Poshimo(object):
     self._defense:PoshimoStat = PoshimoStat(self.poshimodata["defense"][0], stage=self.poshimodata["defense"][1], xp=self.poshimodata["defense"][2])
     self._special_attack:PoshimoStat = PoshimoStat(self.poshimodata["special_attack"][0], stage=self.poshimodata["special_attack"][1], xp=self.poshimodata["special_attack"][2])
     self._special_defense:PoshimoStat = PoshimoStat(self.poshimodata["special_defense"][0], stage=self.poshimodata["special_defense"][1], xp=self.poshimodata["special_defense"][2])
-    self._speed:PoshimoStat = PoshimoStat(self.poshimodata["speed"][0], stage=int(self.poshimodata["speed"][1]), xp=int(self.poshimodata["speed"][2]))
-
-    logger.info(f"SPEED? {self.poshimodata['speed'][0]} {self.poshimodata['speed'][1]} {self.poshimodata['speed'][2]} {self._speed} {self._speed.stat_value} {self._speed.xp}")
-    
+    self._speed:PoshimoStat = PoshimoStat(self.poshimodata["speed"][0], stage=int(self.poshimodata["speed"][1]), xp=int(self.poshimodata["speed"][2]))    
 
     self._xp:int = 0
     self._last_damaging_move:PoshimoMove = None
@@ -142,7 +139,6 @@ class Poshimo(object):
     temp_pdata["max_hp"] = results.get("max_hp")
     temp_pdata["hp"] = results.get("hp")
     
-    logger.info(results.get("speed"))
     pstats = ["attack", "defense", "special_attack", "special_defense", "speed"]
     for stat in pstats:
       temp_pdata[stat] = json.loads(results.get(stat, "[0,0,0]"))

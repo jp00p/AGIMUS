@@ -15,7 +15,7 @@ def fill_embed_text(text:str):
 class PoshimoView(discord.ui.View):
   ''' basic discord.ui.View with a few extras (game and trainer objects mostly) '''
   def __init__(self, cog:discord.Cog, trainer:PoshimoTrainer=None, previous_view:discord.ui.View=None, **kwargs):
-    super().__init__(**kwargs)
+    super().__init__(timeout=180.0, **kwargs)
     self.cog = cog
     self.previous_view:discord.ui.View = previous_view
     self.trainer:PoshimoTrainer = trainer
@@ -32,6 +32,14 @@ class PoshimoView(discord.ui.View):
     self.message = None
     self.embeds = None    
   
+  # we have no access to message with ephemeral interactions
+  # async def on_timeout(self) -> None:
+  #   embed = discord.Embed(
+  #     title="Thanks for playing!",
+  #     description="This window has expired. Please start a new session!"
+  #   )
+  #   await self.message.edit(view=None, embed=embed)
+
   def get_pages(self):
     return self.pages
 
@@ -159,14 +167,13 @@ class BackButton(discord.ui.Button):
     view = self.next_view
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
-def progress_bar(progress:float, ansi=False):
+def progress_bar(progress:float, value:int=None, ansi=False) -> str:
   ''' 
-  returns a string of a progress bar, made with emojis 
+  returns a string of a progress bar, made with emojis or text
 
   pass a float between 0.0 and 1.0
   '''
   
-
   filled = "◽"
   empty  = "◾"
   num_bricks = 10
@@ -179,6 +186,24 @@ def progress_bar(progress:float, ansi=False):
   ansi_empty = f"{Back.BLACK} {Back.RESET}"
   ansi_progress_str = ansi_filled * filled_num
   ansi_progress_str += ansi_empty * empty_num 
+
+  if value:
+    filled = "X"
+    empty = "O"
+    value = str(value) + "%"
+    ansi_progress_str = filled * filled_num
+    ansi_progress_str += empty * empty_num
+    digits = list(str(value))
+    ansi_progress_str = list(ansi_progress_str)
+    for i,digit in enumerate(digits):
+      if ansi_progress_str[i] == "X":
+        ansi_progress_str[i] = f"{Back.RED}{Fore.WHITE}{digit}{Fore.RESET}{Back.RESET}"
+      else:
+        ansi_progress_str[i] = f"{Back.BLACK}{Fore.WHITE}{digit}{Fore.RESET}{Back.RESET}"
+    ansi_progress_str = "".join(ansi_progress_str)
+    ansi_progress_str = ansi_progress_str.replace("X", ansi_filled)
+    ansi_progress_str = ansi_progress_str.replace("O", ansi_empty)
+      
   if ansi:
     return ansi_progress_str
   return progress_str

@@ -138,7 +138,8 @@ class FishingGame(PoshimoView):
         )
       ]
     
-    self.add_item(BackButton(FishingLog(self.cog, self.trainer), label="Fishing log"))
+    # not enough room for this, too bad!
+    #self.add_item(BackButton(FishingLog(self.cog, self.trainer), label="Fishing log"))
 
 class FishingLog(PoshimoView):
   ''' the view for your fishinglog '''
