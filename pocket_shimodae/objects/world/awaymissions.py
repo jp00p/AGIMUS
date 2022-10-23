@@ -3,10 +3,8 @@ from common import *
 from enum import Enum, auto
 import csv 
 from datetime import timedelta, datetime as dt
-
-from pocket_shimodae.objects.world.item import PoshimoItem
-from ..poshimo import Poshimo, PoshimoStatus
-
+from ..world import PoshimoItem
+from ..poshimo import Poshimo, PoshimoStatus, PoshimoStat
 
 with open("pocket_shimodae/data/awaymissions_gathering_rewards.csv") as file:
   csvdata = csv.DictReader(file)
@@ -165,21 +163,21 @@ class AwayMission(object):
       return "✅"
     return "⏳"
 
-  def resolve(self):
-    ''' hand out the rewards, set to resolved in the db '''
+  def resolve(self, trainer) -> str:
+    from ..trainer import PoshimoTrainer
+    trainer:PoshimoTrainer = trainer
+    ''' 
+    hand out the rewards 
+    set to resolved in the db 
+    return poshimo to trainer
+    return results str
+    '''
     final_rewards = []
-
+    
     if self.reward_type is RewardTypes.MATS:
       rewards = gathering_rewards_data[self.name.lower()]
       logger.info(f"POSSIBLE REWARDS: {rewards}")
-      for reward in rewards:
-        item = reward["item_name"]
-        rarity = int(reward["rarity"])
-        amounts = reward["amounts"]
-        roll = random.randint(1,100)
-        if rarity >= roll:
-          amount = random.randint(int(amounts[0]), int(amounts[1]))
-          final_rewards.append((item, amount))
+      final_rewards = self.roll_for_mats(rewards)
 
     if self.reward_type is RewardTypes.STATS:
       stat = self.mission_data["stat"]
@@ -189,6 +187,8 @@ class AwayMission(object):
 
     if len(final_rewards) < 1:
       final_rewards = [("Nothing", 0)]
+    else:
+      self.hand_out_rewards(trainer, final_rewards)
       
     results = json.dumps(final_rewards)
     with AgimusDB() as query:
@@ -196,8 +196,50 @@ class AwayMission(object):
       vals = (results, self.id)
       query.execute(sql, vals)
     logger.info(f"FINAL REWARDS {final_rewards}")
+
+    trainer.return_poshimo_from_mission(self.poshimo)
     return final_rewards
 
+  def hand_out_rewards(self, trainer, rewards:list):
+    from ..trainer import PoshimoTrainer
+    trainer:PoshimoTrainer = trainer
+    if self.reward_type is RewardTypes.STATS:
+      statname = rewards[0][0]
+      statval = int(rewards[0][1])
+      ps_log(f"Stat increase for {self.poshimo} [STAT: {statname}, INCREASE: {statval}]")
+      if statname == "max_hp":
+        self.poshimo.max_hp = self.poshimo.max_hp + statval
+      else:
+        updated_stat:PoshimoStat = getattr(self.poshimo, statname)
+        stat_increase = updated_stat.add_xp(statval)
+        setattr(self.poshimo, statname, updated_stat)
+        logger.info(f"Added stat xp: {statname} +{statval} ({stat_increase} stat points gained)")
+
+
+    if self.reward_type is RewardTypes.MATS:
+      for mat,amt in rewards:
+        if mat == "scarves":
+          trainer.scarves += amt
+        else:
+          item = PoshimoItem(mat)
+          trainer.add_item(item, amount=amt)
+        logger.info(f"Giving {trainer} {amt}x{mat}")
+
+  def roll_for_mats(self, mat_rewards):
+    ''' 
+    roll for mat rewards 
+    '''
+    roll_results = []
+    for reward in mat_rewards:
+      item = reward["item_name"]
+      rarity = int(reward["rarity"]) # rarity=100 is a guaranteed item
+      amounts = reward["amounts"]
+
+      roll = random.randint(1,100) # roll the die
+      if rarity >= roll:
+        amount = random.randint(int(amounts[0]), int(amounts[1]))
+        roll_results.append((item, int(amount)))
+    return roll_results
 
   def recall(self, poshimo:Poshimo):
     ''' end a mission early, no rewards '''

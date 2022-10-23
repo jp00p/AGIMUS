@@ -237,8 +237,7 @@ class CompletedMissionSelect(discord.ui.Select):
     )
   async def callback(self, interaction:discord.Interaction):
     selected_mission = self.completed_missions[int(self.values[0])]
-    rewards = selected_mission.resolve()
-    self.trainer.return_poshimo_from_mission(selected_mission.poshimo)
+    rewards = selected_mission.resolve(self.trainer)
     view = AwayMissionsResults(self.cog, self.trainer)
     view.embeds = [
       discord.Embed(

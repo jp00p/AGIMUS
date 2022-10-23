@@ -1,10 +1,9 @@
-''' a Trainer is the base character of our game '''
+''' a Trainer is the base character of our game, either a player or NPC '''
 from common import *
 from enum import Enum
 from typing import List, Dict, TypedDict
 
-from pocket_shimodae.objects.poshimo.stat import PoshimoStat
-from ..world import PoshimoItem, ItemTypes, FunctionCodes
+from ..world.item import PoshimoItem, ItemTypes, FunctionCodes
 from ..world.fish import PoshimoFish
 from ..world.awaymissions import AwayMission
 from ..poshimo import Poshimo, PoshimoMove, PoshimoStatus
@@ -210,7 +209,8 @@ class PoshimoTrainer(object):
     ''' 
     Get a list of all this trainer's poshimo
     '''
-    all_poshimo = self._poshimo_sac
+    all_poshimo = []
+    all_poshimo += self._poshimo_sac
     if self._active_poshimo:
       all_poshimo += [self._active_poshimo]
     if include_away:
@@ -333,15 +333,18 @@ class PoshimoTrainer(object):
       final_log.append(PoshimoFish(name=fish["fish"], length=fish["length"]))
     return final_log
 
-  def add_item(self, item:PoshimoItem):
-    ''' add an item to this trainer's inventory '''
+  def add_item(self, item:PoshimoItem, amount:int=1):
+    ''' 
+    add an item to this trainer's inventory 
+    pass `amount` to add multiple items!
+    '''
     temp_inventory = self._inventory
     if temp_inventory.get(item.name.lower()):
-      temp_inventory[item.name.lower()]["amount"] += 1
+      temp_inventory[item.name.lower()]["amount"] += amount
     else:
       temp_inventory[item.name.lower()] = {
-        "item": item,
-        "amount": 1
+        "item": item.name,
+        "amount": amount
       }
     self.inventory = temp_inventory
   
@@ -480,7 +483,7 @@ class PoshimoTrainer(object):
 
   @property
   def poshimo_sac(self) -> list:
-    return self._poshimo_sac
+    return list(set(self._poshimo_sac))
 
   @poshimo_sac.setter
   def poshimo_sac(self, obj) -> None:

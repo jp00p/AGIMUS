@@ -15,7 +15,7 @@ def fill_embed_text(text:str):
 class PoshimoView(discord.ui.View):
   ''' basic discord.ui.View with a few extras (game and trainer objects mostly) '''
   def __init__(self, cog:discord.Cog, trainer:PoshimoTrainer=None, previous_view:discord.ui.View=None, **kwargs):
-    super().__init__(timeout=60.0, **kwargs)
+    super().__init__(**kwargs)
     self.cog = cog
     self.previous_view:discord.ui.View = previous_view
     self.trainer:PoshimoTrainer = trainer
@@ -158,3 +158,27 @@ class BackButton(discord.ui.Button):
   async def callback(self, interaction:discord.Interaction):
     view = self.next_view
     await interaction.response.edit_message(view=view, embed=view.get_embed())
+
+def progress_bar(progress:float, ansi=False):
+  ''' 
+  returns a string of a progress bar, made with emojis 
+
+  pass a float between 0.0 and 1.0
+  '''
+  
+
+  filled = "◽"
+  empty  = "◾"
+  num_bricks = 10
+  filled_num = round(progress * num_bricks)
+  empty_num = num_bricks - filled_num
+  progress_str = filled * filled_num
+  progress_str += empty * empty_num
+
+  ansi_filled = f"{Back.RED} {Back.RESET}"
+  ansi_empty = f"{Back.BLACK} {Back.RESET}"
+  ansi_progress_str = ansi_filled * filled_num
+  ansi_progress_str += ansi_empty * empty_num 
+  if ansi:
+    return ansi_progress_str
+  return progress_str

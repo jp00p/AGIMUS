@@ -60,11 +60,11 @@ class Poshimo(object):
     if self.name:
       self.poshimodata = pdata[self.name.lower()] # fire this up early if we have it
     
-    self._attack:PoshimoStat = PoshimoStat(0,0,0)
-    self._defense:PoshimoStat = PoshimoStat(0,0,0)
-    self._special_attack:PoshimoStat = PoshimoStat(0,0,0)
-    self._special_defense:PoshimoStat = PoshimoStat(0,0,0)
-    self._speed:PoshimoStat = PoshimoStat(0,0,0)
+    self._attack:PoshimoStat = None
+    self._defense:PoshimoStat = None
+    self._special_attack:PoshimoStat = None
+    self._special_defense:PoshimoStat = None
+    self._speed:PoshimoStat = None
     
     self._xp:int = 0
     self._display_name:str = self.name
@@ -90,7 +90,7 @@ class Poshimo(object):
       self._owner = self.poshimodata["owner"]
     
     # poshimodata should be fully loaded now, if not ... wha happen???
-    
+    logger.info(self.poshimodata)
     self._level:int = self.poshimodata.get("level", 1)
     self._name = self.poshimodata["name"]
     self._display_name:str = self.poshimodata.get("display_name")
@@ -102,37 +102,22 @@ class Poshimo(object):
       if self.poshimodata[type]:
         self.types.append(PoshimoType(name=self.poshimodata[type]))
         
+    self._attack:PoshimoStat = PoshimoStat(self.poshimodata["attack"][0], stage=self.poshimodata["attack"][1], xp=self.poshimodata["attack"][2])
+    self._defense:PoshimoStat = PoshimoStat(self.poshimodata["defense"][0], stage=self.poshimodata["defense"][1], xp=self.poshimodata["defense"][2])
+    self._special_attack:PoshimoStat = PoshimoStat(self.poshimodata["special_attack"][0], stage=self.poshimodata["special_attack"][1], xp=self.poshimodata["special_attack"][2])
+    self._special_defense:PoshimoStat = PoshimoStat(self.poshimodata["special_defense"][0], stage=self.poshimodata["special_defense"][1], xp=self.poshimodata["special_defense"][2])
+    self._speed:PoshimoStat = PoshimoStat(self.poshimodata["speed"][0], stage=int(self.poshimodata["speed"][1]), xp=int(self.poshimodata["speed"][2]))
 
-    self._attack:PoshimoStat = PoshimoStat(self.poshimodata["attack"][0], self.poshimodata["attack"][1], self.poshimodata["attack"][2])
-    self._defense:PoshimoStat = PoshimoStat(self.poshimodata["defense"][0], self.poshimodata["defense"][1], self.poshimodata["defense"][2])
-    self._special_attack:PoshimoStat = PoshimoStat(self.poshimodata["special_attack"][0], self.poshimodata["special_attack"][1], self.poshimodata["special_attack"][2])
-    self._special_defense:PoshimoStat = PoshimoStat(self.poshimodata["special_defense"][0], self.poshimodata["special_defense"][1], self.poshimodata["special_defense"][2])
-    self._speed:PoshimoStat = PoshimoStat(self.poshimodata["speed"][0], self.poshimodata["speed"][1], self.poshimodata["speed"][2])
+    logger.info(f"SPEED? {self.poshimodata['speed'][0]} {self.poshimodata['speed'][1]} {self.poshimodata['speed'][2]} {self._speed} {self._speed.stat_value} {self._speed.xp}")
+    
+
     self._xp:int = 0
     self._last_damaging_move:PoshimoMove = None
     self._status = PoshimoStatus.IDLE
 
     # 
     # end of __init__ =====================================================
-  
-  def load_wild(self) -> None:
-    """ 
-    load a wild poshimo (computer controlled) 
-    assumes this poshimo has an id
-    """
-    with AgimusDB(dictionary=True) as query:
-      sql = """
-      SELECT * FROM poshimodae WHERE id = %s LIMIT 1
-      """
-      vals = (self.id,)
-      query.execute(sql, vals)
-      results = query.fetchone()
-    self.poshimodata = dict(results)
-    temp_pdata = pdata[results["name"].lower()]
-    temp_pdata["id"] = results["id"]
-    self.poshimodata.update(temp_pdata)
-    self._move_list = self.load_move_list(results["move_list"])
-    #logger.info(f"Loaded wild poshimo: {Fore.YELLOW}{self.poshimodata}{Fore.RESET}")
+
 
   def load(self) -> None:
     """ 
@@ -151,17 +136,24 @@ class Poshimo(object):
       query.execute(sql, vals)
       results:dict = query.fetchone()
     self.poshimodata = dict(results)
-    #logger.info(f"What's goin on here: {self.poshimodata}")
     temp_pdata = pdata[results["name"].lower()] # load poshimo data from file
     
     temp_pdata["id"] = results.get("id", 0) # gotta update the original ID from the poshimodex
     temp_pdata["max_hp"] = results.get("max_hp")
     temp_pdata["hp"] = results.get("hp")
     
+    logger.info(results.get("speed"))
+    pstats = ["attack", "defense", "special_attack", "special_defense", "speed"]
+    for stat in pstats:
+      temp_pdata[stat] = json.loads(results.get(stat, "[0,0,0]"))
+
     self.poshimodata.update(temp_pdata) # merge with db info (so its not a base poshimo)
     self._move_list = self.load_move_list(results.get("move_list")) # unpack json moves
     self._mission_id = self.poshimodata.get("mission_id", None)
     temp_status:int = self.poshimodata.get("status", 0)
+
+    
+
     if temp_status:
       self._status = PoshimoStatus(temp_status)
     else:
@@ -226,6 +218,8 @@ class Poshimo(object):
       sql = f"UPDATE poshimodae SET {col_name} = %s WHERE id = %s" # col_name is a trusted input or so we hope
       vals = (value, self.id)
       query.execute(sql, vals)
+
+
 
   @property
   def owner(self) -> int:

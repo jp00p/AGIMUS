@@ -47,13 +47,18 @@ class PoshimoStat(object):
 
   def add_xp(self, val) -> int:
     ''' add xp to this stat, returns amt gained if leveled up '''
-    self.xp = val
+    self.xp = self.xp + val
     if self.xp >= 100:
-      self.xp = self._xp - 100
+      self.xp = self.xp - 100
       increase = random.choice([1,2,3])
       self.stat_value += increase
       return increase
-    return False
+    return 0
+  
+  def xp_progress(self) -> float:
+    progress = (self.xp / 10)
+    logger.info(f"{self.xp} progress: {progress}")
+    return progress
 
   def to_json(self) -> str:
     return json.dumps([int(self.stat_value), int(self.stage), int(self.xp)])

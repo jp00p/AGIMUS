@@ -1,7 +1,7 @@
 from common import *
 import csv
 from typing import List, Tuple
-from ..trainer import PoshimoTrainer
+from ..trainer.trainer import PoshimoTrainer
 from ..world import PoshimoItem
 
 with open("pocket_shimodae/data/shops.csv") as file:

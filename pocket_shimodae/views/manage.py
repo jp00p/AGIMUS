@@ -4,9 +4,6 @@ from ..objects import Poshimo, PoshimoTrainer, PoshimoMove
 from . import main_menu as mm
 
 class ManageStart(PoshimoView):
-  """ 
-  start of /ps manage command
-  """
   def __init__(self, cog, trainer):
     super().__init__(cog, trainer)
     self.embeds = [
@@ -29,10 +26,9 @@ class ManageMenu(discord.ui.Select):
   def __init__(self, cog, trainer:PoshimoTrainer):
     self.cog = cog
     self.trainer = trainer
-    options = []
-    
-
-    for i,poshimo in enumerate(self.trainer.list_all_poshimo()):
+    options = []   
+    trainers_poshimo = self.trainer.list_all_poshimo() 
+    for poshimo in trainers_poshimo:
       label = f"{poshimo.display_name}"
       if self.trainer.active_poshimo and poshimo.id == self.trainer.active_poshimo.id:
         label += f" (active)"
@@ -173,23 +169,33 @@ class ManagePoshimoScreen(PoshimoView):
     self.poshimo = poshimo
     self.stats = self.poshimo.list_stats()
     self.embeds = [
-      discord.Embed( # stats embed
-        title=f"{poshimo.display_name}:", 
-        description=f"{poshimo.show_types()}",
-        fields=[
-          discord.EmbedField(
-            name=f"{stat.replace('_',' ').capitalize()}",
-            value=f"{value}",
-            inline=True
-          ) 
-          for stat,value in self.stats.items()] # fancy list here watch out
-      ).set_thumbnail(url="https://i.imgur.com/lIBEIFL.jpeg"),
-      
-      discord.Embed( # moves embed
-        title=f"{poshimo.display_name}'s moves:",
-        description=f""
+      discord.Embed(
+        title=f"{self.poshimo.display_name}",
+        description=f"{self.poshimo.show_types()}"
       )
     ]
+
+    for stat, value in self.stats.items():
+      val = f"{value}"
+      if stat not in ["hp", "level", "personality", "xp"]:
+        pstat = getattr(self.poshimo, stat)
+        val = f"{value}\n```ansi\n{progress_bar(pstat.xp/100, ansi=True)}```"
+      elif stat == "hp":
+        hpprog = (self.poshimo.hp / self.poshimo.max_hp)
+        val = f"{value}\n```ansi\n{progress_bar(hpprog, ansi=True)}```"
+      self.embeds[0].add_field(
+        name=f"{stat.replace('_',' ').capitalize()}",
+        value=val
+      )
+
+    self.embeds[0].set_thumbnail(url="https://i.imgur.com/lIBEIFL.jpeg")
+    self.embeds.append(
+      discord.Embed( # moves embed
+        title=f"{self.poshimo.display_name}'s moves:",
+        description=f""
+      )
+    )
+ 
     move_mojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣"]
     # add moves to fields
     self.embeds[1].fields += [
