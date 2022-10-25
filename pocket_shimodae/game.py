@@ -38,11 +38,12 @@ class PoshimoGame(object):
     """ find a location in the world based on the location name """
     return self.world.locations[location_name.lower()]
 
-  def resume_battle(self, discord_id) -> PoshimoBattle:
-    battler = utils.get_trainer(discord_id)
+  def resume_battle(self, trainer:PoshimoTrainer) -> PoshimoBattle:
+    ''' resume a battle in progress '''
+    #TODO: this will probably get ripped out for dueling
     with AgimusDB(dictionary=True) as query:
       sql = "SELECT id FROM poshimo_battles WHERE trainer_1 = %s or trainer_2 = %s ORDER BY id DESC LIMIT 1"
-      vals = (battler.id, battler.id)
+      vals = (trainer.id, trainer.id)
       query.execute(sql, vals)
       results = query.fetchone()
     if not results:
@@ -50,34 +51,19 @@ class PoshimoGame(object):
     old_battle = PoshimoBattle(id=results["id"])
     return old_battle
 
-  def start_hunt(self, discord_id) -> PoshimoBattle:
+  def start_hunt(self, trainer:PoshimoTrainer) -> PoshimoBattle:
     """ begins a hunt for this user! """
-    hunter = utils.get_trainer(discord_id=discord_id)
-    location = self.find_in_world(hunter.location)
-    location_poshimo = location.wild_poshimo
-    logger.info(f"{location.wild_poshimo}")
-    
-    # get the list of poshimo and their rarity from this location (includes biome automatically)
-    poshimo, weights = [[i for i,j in location_poshimo],
-                        [j for i,j in location_poshimo]]
-    
-    # pick a poshimo based on the weights
-    found_poshimo = random.choices(poshimo, weights, k=1)[0]
-    logger.info(f"Found this poshimo: {found_poshimo}")
+    location = self.find_in_world(trainer.location)
+    found_poshimo = location.find_poshimo()
 
     #TODO: scale level
     hunt = PoshimoBattle(
       battle_type=BattleTypes.HUNT,
-      trainer_1=hunter, 
+      trainer_1=trainer, 
       wild_poshimo=Poshimo(name=found_poshimo, is_wild=True)
     )
     return hunt
 
-  def _old_test(self, discord_id):
-    trainer = utils.get_trainer(discord_id=discord_id)
-    trainer.add_poshimo(random.choice(self.starter_poshimo))
-    trainer.wins += 5
-    trainer.scarves += 69
 
   def test_unlock_loc(self, discord_id, location_name):
     trainer = utils.get_trainer(discord_id=discord_id)

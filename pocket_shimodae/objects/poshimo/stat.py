@@ -56,8 +56,7 @@ class PoshimoStat(object):
     return 0
   
   def xp_progress(self) -> float:
-    progress = (self.xp / 10)
-    logger.info(f"{self.xp} progress: {progress}")
+    progress = (self.xp / 100)
     return progress
 
   def to_json(self) -> str:

@@ -92,14 +92,15 @@ class PoshimoTrainer(object):
       self.discord_id = trainer_data.get("discord_id")
       self.display_name = trainer_data.get("name")
       sac_data = trainer_data.get("poshimo_sac")
-      if sac_data:
+      
+      if sac_data: #unpack the sac
         sac_data = json.loads(sac_data)
         self._poshimo_sac = [Poshimo(id=p) for p in sac_data]
       else:
         self._poshimo_sac = []
       
       away_data = trainer_data.get("away_poshimo")
-      if away_data:
+      if away_data: #unpack missions
         away_data = json.loads(away_data)
         self._away_poshimo = [Poshimo(id=p) for p in away_data]
       else:
@@ -111,13 +112,13 @@ class PoshimoTrainer(object):
         self._active_poshimo = None
 
       loc_data = trainer_data.get("locations_unlocked")
-      if loc_data:
+      if loc_data: #unpack locations
         loc_data = json.loads(loc_data)
         self._locations_unlocked = set(loc_data)
         #logger.info(self._locations_unlocked)
       
       item_data = trainer_data.get("inventory")
-      if item_data:
+      if item_data: #unpack inventory
         item_data = json.loads(item_data)
         for i in item_data:
           self._inventory[i[0]] = {

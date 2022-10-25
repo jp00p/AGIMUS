@@ -79,7 +79,8 @@ class PrepareAwayMission(PoshimoView):
     self.item_slots = {
       "select_poshimo" : SelectPoshimoToSend(self.cog, self.trainer),
       "mission_type": None,
-      "mission_select": None
+      "mission_select": None,
+      "mission_recall":None,
     }
     self.add_item(self.item_slots["select_poshimo"])
     self.add_item(BackButton(self.previous_view, label="Cancel"))
@@ -103,6 +104,26 @@ class SelectPoshimoToSend(PoshimoSelect):
     self.view.remove_item(self.view.item_slots["select_poshimo"])
     await interaction.response.edit_message(view=self.view, embed=self.view.get_embed())
 
+class SelectPoshimoToRecall(PoshimoSelect):
+  def __init__(self, cog, trainer, **kwargs):
+    super().__init__(
+      cog,
+      trainer,
+      custom_placeholder="Choose a Poshimo to recall",
+      custom_id="MISSION_POSHIMO_RECALL",
+      away_poshimo=True,
+      **kwargs
+    )
+  async def callback(self, interaction: discord.Interaction):
+    self.get_selected_poshimo()
+    mission = AwayMission(id=self.selected_poshimo.mission_id)
+    mission.recall(self.trainer)
+    view = ManageAwayMissions(self.cog, self.trainer)
+    view.embeds.append(discord.Embed(
+      title=f"{self.selected_poshimo.display_name} recalled from mission: {mission.name}",
+      description="Nothing has been gained. It was all for naught."
+    ))
+    await interaction.response.edit_message(view=view, embeds=view.get_embeds())
 
 class ChooseMissionTypeSelect(discord.ui.Select):
   ''' choose the type of away mission - edits the staging view '''
@@ -242,16 +263,44 @@ class CompletedMissionSelect(discord.ui.Select):
     view.embeds = [
       discord.Embed(
         title="Mission complete!",
-        description=f"{selected_mission.name} has been completed by {selected_mission.poshimo.display_name}!",
-        fields=[
-          discord.EmbedField(
-            name=f"{r}",
-            value=f"{v}",
-            inline=True
-          ) for r,v in rewards
-        ]
+        description=f"{selected_mission.name} has been completed by {selected_mission.poshimo.display_name}!"
       )
     ]
+    if selected_mission.mission_type is MissionTypes.TRAINING:
+      # stat rewards
+      for reward, amt, total in rewards:
+        stat = getattr(selected_mission.poshimo, reward)
+        if reward == "max_hp": 
+          embedval = selected_mission.poshimo.max_hp
+          view.embeds[0].add_field(
+            name=f"You gained {amt} max HP! Your new max HP is {total}",
+            value=embedval,
+            inline=False
+          )
+        else:
+          embedval = progress_bar(stat.xp_progress())
+          if total != 0:
+            embedval = f"Your {reward} stat has increased by {total} points! 🌟"
+          view.embeds[0].add_field(
+            name=f"You advanced {amt} XP in your {reward} stat!",
+            value=embedval,
+            inline=False
+          )
+    if selected_mission.mission_type is MissionTypes.GATHERING:
+      for reward, amt, total in rewards:
+        if reward == "scarves":
+          view.embeds[0].add_field(
+            name="Scarves",
+            value=f"You got {amt} scarves!",
+            inline=False
+          )
+          view.embeds[0].set_footer(text=f"Total scarves: {total}")
+        else:
+          view.embeds[0].add_field(
+            name=f"{reward.title()}",
+            value=f"x{amt} (total: {total})",
+            inline=False
+          )
     await interaction.response.edit_message(view=view, embed=view.get_embed())
     
 
@@ -300,6 +349,6 @@ class RecallPoshimoButton(discord.ui.Button):
       row=1
     )
   async def callback(self, interaction:discord.Interaction):
-    pass
-
-
+    self.view.add_item(SelectPoshimoToRecall(self.cog, self.trainer))
+    await interaction.response.edit_message(view=self.view, embed=self.view.get_embed())
+    

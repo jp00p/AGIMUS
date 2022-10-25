@@ -1,5 +1,6 @@
 from common import *
 from ..ui import *
+from ..objects.battle import PoshimoBattle
 from . import battle as mm_battle
 from . import fishing as mm_fish
 from . import inventory as mm_inventory
@@ -200,5 +201,12 @@ class HuntMenuButton(discord.ui.Button):
       disabled=disabled,
       **kwargs
     )
-  async def callback(self, interaction:discord.Interaction):
-    pass
+  async def callback(self, interaction:discord.Interaction):     
+    if self.trainer.status is TrainerStatus.BATTLING:
+      old_hunt = self.cog.game.resume_battle(self.trainer)
+      resumed_battle = mm_battle.BattleTurn(self.trainer, old_hunt)
+      await interaction.response.edit_message(embed=resumed_battle.get_embed(), view=resumed_battle)
+    else:
+      hunt = self.cog.game.start_hunt(self.trainer)
+      initial_turn = mm_battle.BattleTurn(self.trainer, hunt)
+      await interaction.response.edit_message(embed=initial_turn.get_embed(), view=initial_turn)

@@ -152,13 +152,13 @@ class AwayMission(object):
 
   def get_status(self) -> str:
     ''' retruns a nicely formatted string of this away mission's status '''
-    
     time_left_str = "__Complete!__"
     if not self.complete:
       time_left_str = str(self.time_left).split(".")[0]
     return f"**Mission:** {self.name.title()}\n**Mission type:** {self.mission_type} ({self.mission_length} min)\n**Time left:** {time_left_str}"
 
   def get_emoji(self):
+    ''' represents if the mission is complete or not '''
     if self.complete:
       return "✅"
     return "⏳"
@@ -167,29 +167,33 @@ class AwayMission(object):
     from ..trainer import PoshimoTrainer
     trainer:PoshimoTrainer = trainer
     ''' 
-    hand out the rewards 
-    set to resolved in the db 
+    determine rewards
+    set to resolved in the db
+    hand out rewards 
     return poshimo to trainer
     return results str
     '''
     final_rewards = []
     
     if self.reward_type is RewardTypes.MATS:
+      # mats/scarves
       rewards = gathering_rewards_data[self.name.lower()]
       final_rewards = self.roll_for_mats(rewards)
 
     if self.reward_type is RewardTypes.STATS:
+      # stats and hp
       stat = self.mission_data["stat"]
       stat_bonuses = self.mission_data["increase"].split("-")
       stat_increase = random.randint(int(stat_bonuses[0]), int(stat_bonuses[1]))
       final_rewards = [(stat, stat_increase)]
 
     if len(final_rewards) < 1:
-      final_rewards = [("Nothing", 0)]
+      final_rewards = [("Nothing", None, None)]
     else:
-      self.hand_out_rewards(trainer, final_rewards)
-      
+      final_rewards = self.hand_out_rewards(trainer, final_rewards)
+    
     results = json.dumps(final_rewards)
+    
     with AgimusDB() as query:
       sql = "UPDATE poshimo_mission_logs SET active = false, results = %s WHERE id = %s"
       vals = (results, self.id)
@@ -198,13 +202,20 @@ class AwayMission(object):
     trainer.return_poshimo_from_mission(self.poshimo)
     return final_rewards
 
-  def hand_out_rewards(self, trainer, rewards:list):
+
+  def hand_out_rewards(self, trainer, rewards:list) -> list:
+    ''' 
+    this takes the rewards list from resolve() and actually gives out the rewards 
+    returns a list of tuples that contains (name of stat, amount gained, new total/level up for stats)
+    '''
     from ..trainer import PoshimoTrainer
     trainer:PoshimoTrainer = trainer
-    final_rewards = [] # (name of stat, amount gained, new total/level up increase)
+    final_rewards = [] # [(name of stat, amount gained, new total/level up increase)]
+    
     if self.reward_type is RewardTypes.STATS:
       statname = rewards[0][0]
       statval = int(rewards[0][1])
+      logger.info(statname)
       if statname == "max_hp":
         self.poshimo.max_hp = self.poshimo.max_hp + statval
         final_rewards.append(("max_hp", statval, self.poshimo.max_hp))
@@ -212,22 +223,27 @@ class AwayMission(object):
         updated_stat:PoshimoStat = getattr(self.poshimo, statname)
         stat_increase = updated_stat.add_xp(statval)
         setattr(self.poshimo, statname, updated_stat)
+        final_rewards.append((statname, statval, stat_increase))
         logger.info(f"Added stat xp: {statname} +{statval} ({stat_increase} stat points gained)")
-        
-
 
     if self.reward_type is RewardTypes.MATS:
       for mat,amt in rewards:
         if mat == "scarves":
           trainer.scarves += amt
+          final_rewards.append(("scarves", amt, trainer.scarves))
         else:
           item = PoshimoItem(mat)
           trainer.add_item(item, amount=amt)
-        logger.info(f"Giving {trainer} {amt}x{mat}")
+          item_total = int(trainer.inventory[item.name.lower()]["amount"])
+          final_rewards.append((item.name, amt, item_total))
+    return final_rewards
+
 
   def roll_for_mats(self, mat_rewards):
     ''' 
-    roll for mat rewards 
+    roll for mat rewards, based on rarity
+    100 is a guaranteed item
+    50 has a 50/50 chance of appearing, etc
     '''
     roll_results = []
     for reward in mat_rewards:
@@ -241,11 +257,12 @@ class AwayMission(object):
         roll_results.append((item, int(amount)))
     return roll_results
 
-  def recall(self, poshimo:Poshimo):
+  def recall(self, trainer):
+    from ..trainer import PoshimoTrainer
+    trainer:PoshimoTrainer = trainer
     ''' end a mission early, no rewards '''
     recall_results = "Recalled"
     with AgimusDB() as query:
       sql = "UPDATE poshimo_mission_logs (active, results) VALUES (%s, %s) WHERE id = %s"
-      vals = (False, recall_results, poshimo.mission_id)
-    poshimo.status = PoshimoStatus.IDLE
-    poshimo.mission_id = None
+      vals = (False, recall_results, self.poshimo.mission_id)
+    trainer.return_poshimo_from_mission(self.poshimo)

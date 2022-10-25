@@ -148,3 +148,14 @@ class PoshimoLocation(object):
     location_list = self.build_fish_list(self.fishing_data)
     eligible_fish = biome_list + location_list
     return eligible_fish
+
+  def find_poshimo(self) -> str:
+    ''' 
+    pick a random poshimo from this location, based on rarity 
+    returns the name of the poshimo
+    '''
+    location_poshimo = self.wild_poshimo
+    poshimo, weights = [[i for i,j in location_poshimo],
+                        [j for i,j in location_poshimo]]    
+    found_poshimo = random.choices(poshimo, weights, k=1)[0]
+    return found_poshimo

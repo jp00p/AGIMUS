@@ -15,7 +15,7 @@ def fill_embed_text(text:str):
 class PoshimoView(discord.ui.View):
   ''' basic discord.ui.View with a few extras (game and trainer objects mostly) '''
   def __init__(self, cog:discord.Cog, trainer:PoshimoTrainer=None, previous_view:discord.ui.View=None, **kwargs):
-    super().__init__(timeout=180.0, **kwargs)
+    super().__init__(**kwargs)
     self.cog = cog
     self.previous_view:discord.ui.View = previous_view
     self.trainer:PoshimoTrainer = trainer
@@ -174,8 +174,8 @@ def progress_bar(progress:float, value:int=None, ansi=False) -> str:
   pass a float between 0.0 and 1.0
   '''
   
-  filled = "◽"
-  empty  = "◾"
+  filled = "⬛"
+  empty  = "🟦"
   num_bricks = 10
   filled_num = round(progress * num_bricks)
   empty_num = num_bricks - filled_num

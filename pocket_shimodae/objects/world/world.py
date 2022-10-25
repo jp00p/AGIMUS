@@ -41,8 +41,8 @@ with open("pocket_shimodae/data/locations.csv") as file:
     }
   ps_log(f"Locations: {len(ldata)}")
 
- 
 
+# don't reinstantiate this object during the game
 class PoshimoWorld(object):
   """ The (a?) world of Poshimo! Contains all the Locations a trainer can visit """
   def __init__(self):
