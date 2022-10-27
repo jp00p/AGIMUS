@@ -1967,7 +1967,15 @@
       "episode": "22",
       "imdb": "tt0709002",
       "memoryalpha": "Unforgettable_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 441,
+          "airdate": "2022.10.24",
+          "episode": "Jazz Tea",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/hCQ5zMhUIE6crlrMpbbx0Msmb4P.jpg"
