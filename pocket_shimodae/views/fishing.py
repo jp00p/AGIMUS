@@ -1,4 +1,3 @@
-from re import M
 from common import *
 from ..objects import (FishingShapeDict, PoshimoFish, PoshimoLocation,
                        PoshimoTrainer)

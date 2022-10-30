@@ -1,8 +1,13 @@
 from typing import List
 from common import *
+from prettytable import MARKDOWN, ORGMODE, PLAIN_COLUMNS, PrettyTable
+from prettytable.colortable import ColorTable, Themes
+import textwrap
+from pocket_shimodae.objects import battle
+from pocket_shimodae.objects.trainer.trainer import InventoryDict
 import pocket_shimodae.utils as utils
 from .game import PoshimoGame
-from .objects import PoshimoTrainer, TrainerStatus
+from .objects import PoshimoTrainer, TrainerStatus, PoshimoItem, UseWhere, ItemTypes, PoshimoStatus
 
 NBSP = "⠀"
 SPACER = NBSP*40
@@ -83,25 +88,64 @@ class Confirmation(PoshimoView):
     """ what happens when they click the confirm button """
     pass
 
+class ItemSelect(discord.ui.Select):
+  '''
+  select menu that lists a trainer's inventory
+  '''
+  def __init__(self, cog, trainer, include_use=[], exclude_use=[], include_type=[], exclude_type=[], **kwargs):
+    # TODO: different filters
+    self.cog = cog
+    self.trainer:PoshimoTrainer = trainer
+    self.item_list = self.trainer.list_inventory(include_use=include_use, exclude_use=exclude_use, include_type=include_type, exclude_type=exclude_type)
+    logger.info(self.item_list)
+    self.selected_item = None
+
+    options = [
+      discord.SelectOption(
+        label=f'{item["item"].name} x{item["amount"]}',
+        value=str(key)
+      ) for key,item in enumerate(self.item_list)
+    ]
+    super().__init__(
+      options = options,
+      **kwargs
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    ''' implement this in instances '''
+    self.selected_item = self.item_list[self.values[0]]
+    pass
+
+
+def build_inventory_tables(items:List[InventoryDict]) -> str:
+  table = PrettyTable(field_names=["Item", "Amount"])
+  table.set_style(MARKDOWN)
+  
+  for item in items:
+    table.add_row([item["item"].name, item["amount"]])
+  return "```\n"+table.get_string()+"```"
+  
+
+
 class PoshimoSelect(discord.ui.Select):
   """ 
   a select menu that lists the trainers poshimo 
   has a lil helper to pass the Poshimo object around
   """
-  def __init__(self, cog, trainer, away_poshimo=False, custom_placeholder=None, **kwargs):
+  def __init__(self, cog, trainer, include=None, custom_placeholder=None, **kwargs):
     self.cog = cog
     self.trainer:PoshimoTrainer = trainer
     disabled = False
     self.selected_poshimo = None
     self.poshimo_list = []
-
-    if away_poshimo:
-      self.poshimo_list = self.trainer.away_poshimo
+    if include:
+      self.poshimo_list = self.trainer.list_all_poshimo(include=[include])
     else:
       self.poshimo_list = self.trainer.list_all_poshimo()
     
     logger.info(self.poshimo_list)
     placeholder = "Select a Poshimo"
+
     if custom_placeholder:
       placeholder = custom_placeholder
     
@@ -167,16 +211,18 @@ class BackButton(discord.ui.Button):
     view = self.next_view
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
-def progress_bar(progress:float, value:int=None, ansi=False) -> str:
+def progress_bar(progress:float, value:int=None, num_bricks:int=10, filled:str="🟪", empty:str="⬛", ansi:bool=False) -> str:
   ''' 
   returns a string of a progress bar, made with emojis or text
 
   pass a float between 0.0 and 1.0
+  value: if you want to display a value on the bar
+  num_bricks: total width of the bar
+  filled: the emoji to use for filled bar
+  empty: the emoji to use for empty bar
+  ansi: set to true to use ansi bars
   '''
-  
-  filled = "⬛"
-  empty  = "🟦"
-  num_bricks = 10
+
   filled_num = round(progress * num_bricks)
   empty_num = num_bricks - filled_num
   progress_str = filled * filled_num

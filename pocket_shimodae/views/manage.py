@@ -1,4 +1,5 @@
 from common import *
+from pocket_shimodae.objects.poshimo.stat import PoshimoStat
 from ..ui import *
 from ..objects import Poshimo, PoshimoTrainer, PoshimoMove
 from . import main_menu as mm
@@ -15,7 +16,7 @@ class ManageStart(PoshimoView):
     if len(self.trainer.list_all_poshimo()) > 0:
       self.add_item(ManageMenu(self.cog, self.trainer))
     else:
-      self.embeds[0].description += f"\n\n**All your Poshimo are busy right now!**"
+      self.embeds[0].description += f"\n> You don't have any Poshimo? What are you doing???"
     
     self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
 
@@ -27,11 +28,12 @@ class ManageMenu(discord.ui.Select):
     self.cog = cog
     self.trainer = trainer
     options = []   
-    trainers_poshimo = self.trainer.list_all_poshimo() 
+    trainers_poshimo = self.trainer.list_all_poshimo()
+    logger.info(trainers_poshimo)
     for poshimo in trainers_poshimo:
-      label = f"{poshimo.display_name}"
+      label = f"{poshimo.display_name} ({poshimo.status})"
       if self.trainer.active_poshimo and poshimo.id == self.trainer.active_poshimo.id:
-        label += f" (active)"
+        label += f" ACTIVE"
       options.append(discord.SelectOption(
         label=f"{label}",
         value=f"{poshimo.id}"
@@ -45,8 +47,13 @@ class ManageMenu(discord.ui.Select):
     user has chosen a poshimo to manage 
     """
     poshimo = Poshimo(id=int(self.values[0]))
-    view = ManagePoshimoScreen(self.cog, poshimo, self.trainer)
-    await interaction.response.edit_message(content=f"Now managing {poshimo.display_name}", view=view, embeds=view.get_embeds())
+    if poshimo.status in [PoshimoStatus.AWAY, PoshimoStatus.DEAD]:
+      view:PoshimoView = self.view
+      view.embeds[0].description = "\n\n**That Poshimo is not available to manage right now.**"
+      await interaction.response.edit_message(view=view, embed=view.get_embed())
+    else:
+      view = ManagePoshimoScreen(self.cog, poshimo, self.trainer)
+      await interaction.response.edit_message(content=f"Now managing {poshimo.display_name}", view=view, embeds=view.get_embeds())
 
 class MoveMenu(discord.ui.Select):
   """ 

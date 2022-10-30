@@ -181,6 +181,7 @@ class DuelMenuButton(discord.ui.Button):
 class HuntMenuButton(discord.ui.Button):
   def __init__(self, cog, trainer:PoshimoTrainer, **kwargs):
     self.cog = cog
+    self.game:PoshimoGame = self.cog.game
     self.trainer = trainer
     disabled = False
     if self.trainer.status is TrainerStatus.BATTLING:
@@ -203,10 +204,10 @@ class HuntMenuButton(discord.ui.Button):
     )
   async def callback(self, interaction:discord.Interaction):     
     if self.trainer.status is TrainerStatus.BATTLING:
-      old_hunt = self.cog.game.resume_battle(self.trainer)
-      resumed_battle = mm_battle.BattleTurn(self.trainer, old_hunt)
+      old_hunt = self.game.resume_battle(self.trainer)
+      resumed_battle = mm_battle.BattleTurn(self.cog, self.trainer, old_hunt)
       await interaction.response.edit_message(embed=resumed_battle.get_embed(), view=resumed_battle)
     else:
-      hunt = self.cog.game.start_hunt(self.trainer)
-      initial_turn = mm_battle.BattleTurn(self.trainer, hunt)
+      hunt = self.game.start_hunt(self.trainer)
+      initial_turn = mm_battle.BattleTurn(self.cog, self.trainer, hunt)
       await interaction.response.edit_message(embed=initial_turn.get_embed(), view=initial_turn)

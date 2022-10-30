@@ -7,14 +7,14 @@ with open("pocket_shimodae/data/poshimo_items.csv") as file:
   idata = {}
   for row in csvdata:
     idata[row.get("name").lower()] = {
-      "name":row.get("name", ""),
-      "description":row.get("description", ""),
-      "type":row.get("type", ""),
-      "function_code":row.get("function_code", ""),
-      "power":row.get("power", 0),
-      "use_where":row.get("use_where", ""),
-      "sell_price":row.get("sell_price", 0),
-      "crafting_mats":row.get("crafting_mats", None)
+      "name": row.get("name", ""),
+      "description": row.get("description", ""),
+      "type": row.get("type", ""),
+      "function_code": row.get("function_code", ""),
+      "power": row.get("power", 0),
+      "use_where": row.get("use_where", ""),
+      "sell_price": row.get("sell_price", 0),
+      "crafting_mats": row.get("crafting_mats", None)
 
     }
   ps_log(f"Items: {len(idata)}")
@@ -44,11 +44,14 @@ class FunctionCodes(Enum):
   HP_ALL = auto()
   STAMINA = auto()
   STAMINA_ALL = auto()
+  NONE = auto()
 
 class PoshimoItem(object):
   def __init__(self, name:str):
     self.name:str = name
-    self.idata:dict = idata[self.name.lower()]
+    self.idata:dict = idata.get(self.name.lower())
+    if not self.idata:
+      self.description = f"ERROR LOADING THIS ITEM {self.name} -- double check the spelling"
     self.description:str = self.idata["description"]
     self.type:ItemTypes = ItemTypes[self.idata["type"].upper()]
     self.use_where:UseWhere = UseWhere[self.idata["use_where"].upper()]
@@ -56,7 +59,7 @@ class PoshimoItem(object):
     self.power:int = int(self.idata["power"])
     self.sell_price:int = int(self.idata["sell_price"])
     self.crafting_mats = None
-    if self.idata["crafting_mats"]:
+    if self.idata["crafting_mats"] != '':
       self.crafting_mats = self.idata["crafting_mats"].split("|")
 
   def __str__(self):

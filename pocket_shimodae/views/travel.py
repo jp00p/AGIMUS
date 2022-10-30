@@ -1,9 +1,5 @@
-import textwrap
-
 import pocket_shimodae.utils as utils
 from common import *
-from prettytable import MARKDOWN, ORGMODE, PLAIN_COLUMNS, PrettyTable
-from prettytable.colortable import ColorTable, Themes
 from ..ui import *
 from . import main_menu as mm
 

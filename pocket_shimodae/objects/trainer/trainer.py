@@ -3,7 +3,7 @@ from common import *
 from enum import Enum
 from typing import List, Dict, TypedDict
 
-from ..world.item import PoshimoItem, ItemTypes, FunctionCodes
+from ..world.item import PoshimoItem, ItemTypes, FunctionCodes, UseWhere
 from ..world.fish import PoshimoFish
 from ..world.awaymissions import AwayMission
 from ..poshimo import Poshimo, PoshimoMove, PoshimoStatus
@@ -195,28 +195,24 @@ class PoshimoTrainer(object):
       return_str += f"{p.display_name} {mission.get_emoji()}"
     return return_str
 
-  def list_inventory(self) -> str:
-    ''' list all this players items '''
-    #TODO: categorize
-    inv_str = ""
-    if len(self._inventory) > 0:
-      for i in self._inventory.values():
-        inv_str += f"{i['item'].name.title()} x{i['amount']}" + "\n"
-    else:
-      inv_str = "You have no items!"
-    return inv_str
-
-  def list_all_poshimo(self, include_away=False) -> List[Poshimo]:
+  def list_all_poshimo(self, include:List[PoshimoStatus]=[PoshimoStatus.IDLE], exclude:List[PoshimoStatus]=None) -> List[Poshimo]:
     ''' 
     Get a list of all this trainer's poshimo
+    use include to include poshimo by status (default all)
+    use exclude to further filter that list if needed
     '''
-    all_poshimo = []
-    all_poshimo += self._poshimo_sac
+    all_poshimo = self._poshimo_sac
+
     if self._active_poshimo:
-      all_poshimo += [self._active_poshimo]
-    if include_away:
-      all_poshimo += self._away_poshimo
-    return all_poshimo
+      all_poshimo.append(self._active_poshimo)
+
+    logger.info(f"ALL POSHIMO: {[p for p in all_poshimo]}")
+    
+    if include:
+      all_poshimo = filter(lambda x: x.status in include, all_poshimo)
+    if exclude:
+      all_poshimo = filter(lambda x: x.status not in exclude, all_poshimo)
+    return list(set(all_poshimo))
 
   def pick_move(self) -> PoshimoMove:
     '''
@@ -234,22 +230,26 @@ class PoshimoTrainer(object):
       move = random.choice(possible_moves)
     #logger.info(f"NPC has picked {move.display_name}!")
     return move
-
-  def get_eligible_poshimo_for_swap(self) -> List[Poshimo]:
-    ''' return list of all poshimo eligible for swapping (must be alive) '''
-    eligible_poshimo = []
-    for poshimo in self._poshimo_sac:
-      if poshimo.hp > 0:
-        eligible_poshimo.append(poshimo)
-    return eligible_poshimo
   
+  def list_inventory(self, include_use=[], exclude_use=[], include_type=[], exclude_type=[]) -> list:
+    inventory = self.inventory.values()
+    if include_use:
+      inventory = list(filter(lambda x: x["item"].use_where in include_use, inventory))
+    if exclude_use:
+      inventory = list(filter(lambda x: x["item"].use_where not in exclude_use, inventory))
+    if include_type:
+      inventory = list(filter(lambda x: x["item"].type in include_type, inventory))
+    if exclude_type:
+      inventory = list(filter(lambda x: x["item"].type not in exclude_type, inventory))
+    return inventory
+
   def is_active_poshimo_ready(self) -> bool:
     ''' returns true if there is an active poshimo and its HP is greater than 0'''
     return self.active_poshimo and self.active_poshimo.hp > 0
 
   def random_swap(self):
     ''' do a random swap (when your active poshimo dies) '''
-    eligible_poshimo = self.get_eligible_poshimo_for_swap()
+    eligible_poshimo = self.list_all_poshimo(exclude=[PoshimoStatus.AWAY, PoshimoStatus.DEAD])
     if len(eligible_poshimo) > 0:
       self.swap(random.choice(eligible_poshimo))
     else:
@@ -353,9 +353,10 @@ class PoshimoTrainer(object):
     temp_inventory[item.name.lower()]["amount"] -= 1
     self.inventory = temp_inventory
 
-  def use_item(self, item:PoshimoItem, poshimo:Poshimo=None, move:PoshimoMove=None):
+  def use_item(self, item:PoshimoItem, poshimo:Poshimo=None, move:PoshimoMove=None) -> list:
     self.remove_item(item)
     item_type = item.type
+    use_success = True # did the item succeed in being used?
     return_str = "```ansi\n"
     
     if poshimo:
@@ -366,24 +367,42 @@ class PoshimoTrainer(object):
     if item_type is ItemTypes.RESTORE:
       restore_type = item.function_code
       if restore_type == FunctionCodes.HP:
+        # restore a poshimo's hp
         poshimo.hp += item.power
         return_str += f"{Style.BRIGHT}{poshimo.display_name}{Style.RESET_ALL} regained {Fore.LIGHTGREEN_EX}{poshimo.hp - original_hp}{Fore.RESET} HP! 💖"
       if restore_type == FunctionCodes.HP_ALL:
+        # restore everyone's hp
         for p in self.list_all_poshimo():
           p.hp += item.power
         return_str += f"All your poshimo have regained {Fore.LIGHTGREEN_EX}{item.power}{Fore.RESET} HP! 💖"
-      if restore_type == FunctionCodes.STAMINA:
+      if restore_type == FunctionCodes.STAMINA: 
+        # restore a move's stamina
         move.stamina += item.power
         return_str += f"{Style.BRIGHT}{poshimo.display_name}'s{Style.RESET_ALL} {Fore.CYAN}{move.display_name}{Fore.RESET} regained {Fore.LIGHTBLUE_EX}{move.stamina - original_stamina}{Fore.RESET} stamina! ✨"
-      if restore_type == FunctionCodes.STAMINA_ALL:
+      if restore_type == FunctionCodes.STAMINA_ALL: 
+        # restore everyone's stamina
         for p in self.list_all_poshimo():
           for m in p.move_list:
             m.stamina += item.power
         return_str += f"All your Poshimo's moves have regained {Fore.LIGHTBLUE_EX}{item.power}{Fore.RESET} stamina! ✨"
 
+      if item_type is ItemTypes.CAPTURE:
+        # determine capture rate for poshimo
+        # based on their HP, status, and the power of the capture item
+        # roll a d100, add power of capture item
+        # if roll >= capture rate, the poshimo is captured
+        capture_rate = round((poshimo.max_hp/poshimo.hp)*100) #TODO: should be a method on the poshimo...
+        capture_strength = 100 + item.power
+        capture_roll = random.randint(1, capture_strength)
+        if capture_roll >= capture_rate:
+          return_str = f"You caught the {poshimo}"
+          self.add_poshimo(poshimo) #TODO: will need to check if we have enough space...
+        else:
+          return_str = f"The {poshimo} was able to avoid your capture!"
+          use_success = False
       return_str += "```"
-      return return_str
-
+      return [use_success, return_str]
+  
   @property
   def wins(self) -> int:
     return self._wins
@@ -416,7 +435,7 @@ class PoshimoTrainer(object):
       self.update("active_poshimo", None)
   
   @property
-  def inventory(self) -> dict:
+  def inventory(self) -> Dict[str, InventoryDict]:
     return self._inventory
 
   @inventory.setter

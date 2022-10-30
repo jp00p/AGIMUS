@@ -111,7 +111,7 @@ class SelectPoshimoToRecall(PoshimoSelect):
       trainer,
       custom_placeholder="Choose a Poshimo to recall",
       custom_id="MISSION_POSHIMO_RECALL",
-      away_poshimo=True,
+      include=[PoshimoStatus.AWAY],
       **kwargs
     )
   async def callback(self, interaction: discord.Interaction):

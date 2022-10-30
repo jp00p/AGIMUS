@@ -5,7 +5,7 @@ from typing import List, Tuple, Dict
 from enum import Enum
 from pocket_shimodae.objects.battle import effect
 import pocket_shimodae.utils as utils
-from ..poshimo import Poshimo, PoshimoMove, MoveKinds, MoveTargets
+from ..poshimo import Poshimo, PoshimoMove, MoveKinds, MoveTargets, PoshimoStatus
 from ..trainer import PoshimoTrainer, TrainerStatus
 
 class BattleStates(Enum):
@@ -28,7 +28,7 @@ class PoshimoBattle(object):
     self.id:int = id
     self._battle_type:BattleTypes = battle_type
     self.trainers:List[PoshimoTrainer] = [trainer_1, trainer_2] # trainer 1 should always be the initiator of the battle, trainer 2 is optional and will be a dummy trainer if not specified
-    self._queued_moves:List[Tuple[PoshimoMove,PoshimoTrainer]] = [] 
+    self._queued_moves:List[Tuple[PoshimoMove,PoshimoTrainer,str]] = [] 
     self._queued_actions:list = []
     self._state:BattleStates = BattleStates.ACTIVE
     self._current_turn:int = 0
@@ -153,6 +153,7 @@ class PoshimoBattle(object):
 
     for trainer in self.trainers:
       trainer.status = TrainerStatus.BATTLING # set trainers to battling
+      trainer.active_poshimo.status = PoshimoStatus.BATTLING
     
     with AgimusDB() as query:
       sql = """INSERT INTO poshimo_battles (battle_type,trainer_1,trainer_2,wild_poshimo) VALUES (%s, %s, %s, %s)"""
@@ -215,7 +216,7 @@ class PoshimoBattle(object):
     """ handle things that happen at the end of the turn """
     #self.add_log(f"Turn {self.current_turn} is over!")
     self.process_statuses(end=True)
-    self._queued_actions = []
+    self._queued_actions = [] # empty queues
     self._queued_moves = []
 
   def handle_moves(self):
@@ -223,16 +224,20 @@ class PoshimoBattle(object):
     determine the order of operations and determine the outcome for each poshimo
     """
     self.calculate_speed() # determine which move goes first
-    final_moves:List[Tuple[PoshimoMove, PoshimoTrainer, PoshimoTrainer]] = []
-
+    final_moves:List[Tuple[PoshimoMove, PoshimoTrainer, PoshimoTrainer]] = [] # final move list after speed and other calcs
+    logger.info(self._queued_moves)
     # first move
-    move1,trainer1 = self._queued_moves[0]
+    move1,trainer1 = self._queued_moves[0][0], self._queued_moves[0][1],
     target1 = self._queued_moves[1][1]
+    if len(self._queued_moves[0]) > 2: # action log
+      self.add_log(self._queued_moves[0][2])
     final_moves.append((move1, target1, trainer1))
 
     # second move!
-    move2,trainer2 = self._queued_moves[1]
+    move2,trainer2 = self._queued_moves[1][0], self._queued_moves[1][1]
     target2 = self._queued_moves[0][1]
+    if len(self._queued_moves[1]) > 2: # action log
+      self.add_log(self._queued_moves[1][2])
     final_moves.append((move2, target2, trainer2))
 
     # now we have both moves in order, apply them to each poshimo in order!
@@ -245,6 +250,7 @@ class PoshimoBattle(object):
           self.dead_bodies.append((target.active_poshimo, target))
           break # if someone dies, moves stop
 
+
   def handle_dead_bodies(self):
     for poshimo,trainer in self.dead_bodies:
       self.add_log(f"{trainer}'s {poshimo} fainted!")
@@ -256,11 +262,14 @@ class PoshimoBattle(object):
       else:
         self.add_log(f"{trainer} frantically swapped out {poshimo} for {trainer.active_poshimo}")
 
+
   def end_battle(self,loser:PoshimoTrainer):
     ''' end of battle (someone lost or won, all poshimo fainted, or captured) '''
     self.state = BattleStates.FINISHED
     for trainer in self.trainers:
       trainer.status = TrainerStatus.IDLE
+      if trainer.active_poshimo.status is not PoshimoStatus.DEAD:
+        trainer.active_poshimo.status = PoshimoStatus.IDLE
     temp_trainers = self.trainers.copy()
     temp_trainers.remove(loser)
     winner = temp_trainers.pop()        
@@ -268,6 +277,7 @@ class PoshimoBattle(object):
       loser.losses += 1
       winner.wins += 1
     self.add_log(f"Battle is over! {loser} was unable to overcome {winner}'s raw strength and tactical prowess.")
+
 
   def calculate_speed(self) -> None:
     """ 
@@ -278,15 +288,17 @@ class PoshimoBattle(object):
     posh1,posh2 = self._queued_moves[0][1].active_poshimo, self._queued_moves[1][1].active_poshimo
     trainer1,trainer2 = self._queued_moves[0][1], self._queued_moves[1][1]
     
-    if posh1.speed > posh2.speed or move1 == "action":
-      self._queued_moves = [(move1, trainer1), (move2, trainer2)]
-    else:
-      self._queued_moves = [(move2, trainer2), (move1, trainer1)]
+    if move1 == "action" or posh1.speed > posh2.speed:
+      self._queued_moves = [self._queued_moves[0], self._queued_moves[1]]
+    elif move2 == "action" or posh2.speed > posh1.speed:
+      self._queued_moves = [self._queued_moves[1], self._queued_moves[0]]
+    
+    logger.info(self._queued_moves)
 
 
-  def enqueue_move(self, move:PoshimoMove, trainer:PoshimoTrainer):
+  def enqueue_move(self, move:PoshimoMove, trainer:PoshimoTrainer, logline:str=None):
     """ add a move to the queue. once the queue is full, the turn will process """
-    self._queued_moves.append((move, trainer))
+    self._queued_moves.append((move, trainer, logline))
 
     logger.info(f"Adding to queued moves: {move} {trainer}")
     
@@ -298,10 +310,13 @@ class PoshimoBattle(object):
       # everyone has input their moves, let's roll
       self.do_turn()
 
+
   def enqueue_action(self, action:str, trainer:PoshimoTrainer, logline:str):
     """ if a trainer does an action, it takes up their turn """
-    self.enqueue_move(move="action", trainer=trainer)
-    self.add_log(logline)
+    self.enqueue_move(move="action", trainer=trainer, logline=logline)
+    #self.add_log(logline)
+    
+
 
   def process_statuses(self,start=False,end=False):
     """ figure out if any poshimo need to deal with status effects """
@@ -337,6 +352,7 @@ class PoshimoBattle(object):
     poshimo = inflictor.active_poshimo # the poshimo doing the move
     victim = target.active_poshimo # the poshimo taking the move
     log_line = [] # the line we'll add to the log when this move is finished
+    
     STAB = False
     CRIT = False
     WEAK = False
@@ -390,15 +406,15 @@ class PoshimoBattle(object):
       damage = int(floor(damage * damage_modifier))
 
       if damage > 0:
-        if CRIT:
+        if CRIT: # CRITICAL HIT
           log_line.append("**Critical hit!**")
-        if STAB and not BUFF and not WEAK:
+        if STAB and not BUFF and not WEAK: # SAME TYPE ATTACK
           log_line.append("*It's particularly effective!*")
-        if STAB and BUFF and not WEAK:
+        if STAB and BUFF and not WEAK: # SAME TYPE, AND STRONG AGAINST
           log_line.append("*It's insanely effective!*")
-        if not STAB and BUFF and not WEAK:
+        if not STAB and BUFF and not WEAK: # NOT SAME TYPE, BUT STRONG AGAINST
           log_line.append("*It works rather well!*")
-        if WEAK:
+        if WEAK: # WEAK AGAINST (STAB DOESN'T COUNT HERE)
           log_line.append("*The effacaciousness of the move seems diminished.*")
         log_line.append(f"It deals **{damage} damage!**")
         victim.hp = int(victim.hp) - int(damage)

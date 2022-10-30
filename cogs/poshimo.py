@@ -54,7 +54,7 @@ class PocketShimodae(commands.Cog):
   )
   async def test_give_item(self,ctx:discord.ApplicationContext):
     inventory = self.game.test_give_item(ctx.author.id)
-    await ctx.respond("Here's the list:\n"+inventory, ephemeral=True)
+    await ctx.respond("Here's the list:\n"+"\n".join(item["item"].name for item in inventory), ephemeral=True)
 
   @ps.command(
     name="test_clear_db",

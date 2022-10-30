@@ -8,8 +8,6 @@ from ..objects import (BattleStates, BattleTypes, Poshimo, PoshimoBattle,
 from ..ui import *
 from . import main_menu as mm
 
-spacer = f"\n{'⠀'*53}" # fills out the embed to max width
-
 class CancelButton(discord.ui.Button):
   def __init__(self, cog, battle):
     self.cog = cog
@@ -41,20 +39,37 @@ class BattleTurn(PoshimoView):
     self.opponent = battle.trainers[1]
     self.embeds = []
     battle_embed = None
+
+    your_hp_bar = (self.you.active_poshimo.hp/self.you.active_poshimo.max_hp)
+    your_filled = them_filled = "🟩"
+    them_hp_bar = (self.opponent.active_poshimo.hp/self.opponent.active_poshimo.max_hp)
+    if your_hp_bar <= 0.3:
+      your_filled = "🟥"
+    if them_hp_bar <= 0.3:
+      them_filled = "🟥"
+    
     default_battle_fields = [
       discord.EmbedField( # your poshimo
         name=f"{self.you.active_poshimo}",
-        value=f'(Your Poshimo)\nHP: {self.you.active_poshimo.hp}/{self.you.active_poshimo.max_hp}',
+        value=f'''
+        (Your Poshimo)
+        HP: {self.you.active_poshimo.hp}/{self.you.active_poshimo.max_hp}
+        {progress_bar(your_hp_bar, filled=your_filled)}
+        ''',
         inline=True,
       ),
       discord.EmbedField(
-        name="🆚",
+        name="⠀\n🆚\n",
         value="⠀",
         inline=True
       ),
       discord.EmbedField( # their poshimo
         name=f"{self.opponent.active_poshimo}",
-        value=f'(Wild Poshimo)\nHP: {self.opponent.active_poshimo.hp}/{self.opponent.active_poshimo.max_hp}',
+        value=f'''
+        (Wild Poshimo)
+        HP: {self.opponent.active_poshimo.hp}/{self.opponent.active_poshimo.max_hp}
+        {progress_bar(them_hp_bar, filled=them_filled)}
+        ''',
         inline=True
       )
     ]
@@ -152,7 +167,7 @@ class ActionButton(discord.ui.Button):
   '''
   def __init__(self, action:str, cog, you:PoshimoTrainer, battle:PoshimoBattle, action_mode=False, *args, **kwargs):
     self.action = action
-    self.you = you
+    self.you = self.trainer = you # i am good programmer
     self.battle = battle
     self.cog = cog
     super().__init__(
@@ -170,9 +185,17 @@ class ActionButton(discord.ui.Button):
     if error:
       await interaction.response.send_message(content=f"Oops: {error}", ephemeral=True)
     else:
+      view = BattleTurn(self.cog, self.you, self.battle)
       if self.action == "swap":
-        view = BattleTurn(self.cog, self.you, self.battle, True)
         view.add_item(SwapMenu(self.cog, self.you, self.battle))
+        view.add_item(CancelButton(self.cog, self.battle))
+        await interaction.response.edit_message(view=view, embed=view.get_embed())
+      if self.action == "snatch":
+        #view.add_item(CaptureBallSelect(self.cog, self.you))
+        view.add_item(CancelButton(self.cog, self.battle))
+        pass
+      if self.action == "item":
+        view.add_item(ItemSelect(self.cog, self.trainer, battle_only=True, placeholder="Choose an item"))
         view.add_item(CancelButton(self.cog, self.battle))
         await interaction.response.edit_message(view=view, embed=view.get_embed())
 
@@ -183,7 +206,7 @@ class SwapMenu(discord.ui.Select):
     self.cog = cog
     self.battle = battle
     self.trainer = trainer
-    self.eligible = self.trainer.get_eligible_poshimo_for_swap()
+    self.eligible = self.trainer.list_all_poshimo(include=[PoshimoStatus.IDLE])
     options = []
     for index, p in enumerate(self.eligible):
       logger.info(index)
@@ -207,7 +230,7 @@ class SwapMenu(discord.ui.Select):
     self.battle.enqueue_action("swap", self.trainer, log_line)
     view = BattleTurn(self.cog, self.trainer, self.battle)
     await interaction.response.edit_message(view=view, embed=view.get_embed())
-    
+
 
 class BattleResults(BattleTurn):
   ''' results of a turn '''
@@ -224,6 +247,6 @@ def action_not_possible(action:str, battle:PoshimoBattle, trainer:PoshimoTrainer
   if action == "snatch":
     return "You can't snatch ...yet"
   if action == "swap":
-    if len(trainer.get_eligible_poshimo_for_swap()) < 1:
+    if len(trainer.list_all_poshimo(exclude=[PoshimoStatus.DEAD, PoshimoStatus.AWAY])) < 1:
       return "You don't have any eligible Poshimo to swap out!"
   return False

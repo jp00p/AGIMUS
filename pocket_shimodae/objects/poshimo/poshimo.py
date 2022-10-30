@@ -26,9 +26,9 @@ with open("pocket_shimodae/data/shimodaepedia.csv") as file:
       "speed" : (row.get("speed", 0),0,0),
       "hp" : row.get("hp",0),
       "move_list" : [
-        row.get("move_1","").lower(), 
-        row.get("move_2","").lower(), 
-        row.get("move_3","").lower(), 
+        row.get("move_1","").lower(),
+        row.get("move_2","").lower(),
+        row.get("move_3","").lower(),
         row.get("move_4","").lower()
       ]
     }
@@ -36,14 +36,17 @@ with open("pocket_shimodae/data/shimodaepedia.csv") as file:
 
 class PoshimoStatus(Enum):
   IDLE = auto()
+  BATTLING = auto()
   DEAD = auto()
   AWAY = auto()
+  WILD = auto()
 
   def __str__(self):
     return f"{str(self.name).title()}"
 
 class Poshimo(object):
-  """A Pocket Shimoda!
+  """
+  A Pocket Shimoda!
   ----
   We couldn't have a game without these.
 
@@ -57,14 +60,15 @@ class Poshimo(object):
     self.is_wild:bool = is_wild
     self.types = []
     self.poshimodata:dict = {} # this will hold our file and db stats eventually
+    
     if self.name:
       self.poshimodata = pdata[self.name.lower()] # fire this up early if we have it
-    
-    self._attack:PoshimoStat = None
-    self._defense:PoshimoStat = None
-    self._special_attack:PoshimoStat = None
-    self._special_defense:PoshimoStat = None
-    self._speed:PoshimoStat = None
+      # init base stats (no stage, no xp)
+      self._attack:PoshimoStat = PoshimoStat(self.poshimodata["attack"][0], 0, 0)
+      self._defense:PoshimoStat = PoshimoStat(self.poshimodata["defense"][0], 0, 0)
+      self._special_attack:PoshimoStat = PoshimoStat(self.poshimodata["special_attack"][0], 0, 0)
+      self._special_defense:PoshimoStat = PoshimoStat(self.poshimodata["special_defense"][0], 0, 0)
+      self._speed:PoshimoStat = PoshimoStat(self.poshimodata["speed"][0], 0, 0)
     
     self._xp:int = 0
     self._display_name:str = self.name
@@ -72,6 +76,7 @@ class Poshimo(object):
     self._level:int = level
     self._move_list:List[PoshimoMove] = []
     self._mission_id = None
+    self._status = PoshimoStatus.IDLE
     
     if self.name:
       # loading base poshimo data from file
@@ -82,8 +87,9 @@ class Poshimo(object):
 
     if is_wild and not self.id:
       # create new wild poshimo in the db (so it can be persistent in case bot restarts)
+      self._status = PoshimoStatus.WILD
       self.id = self.save()
-
+      
     if self.id:
       # load poshimo from db if it has an id
       self.load()
@@ -101,12 +107,6 @@ class Poshimo(object):
     for type in ["type_1", "type_2"]:
       if self.poshimodata[type]:
         self.types.append(PoshimoType(name=self.poshimodata[type]))
-        
-    self._attack:PoshimoStat = PoshimoStat(self.poshimodata["attack"][0], stage=self.poshimodata["attack"][1], xp=self.poshimodata["attack"][2])
-    self._defense:PoshimoStat = PoshimoStat(self.poshimodata["defense"][0], stage=self.poshimodata["defense"][1], xp=self.poshimodata["defense"][2])
-    self._special_attack:PoshimoStat = PoshimoStat(self.poshimodata["special_attack"][0], stage=self.poshimodata["special_attack"][1], xp=self.poshimodata["special_attack"][2])
-    self._special_defense:PoshimoStat = PoshimoStat(self.poshimodata["special_defense"][0], stage=self.poshimodata["special_defense"][1], xp=self.poshimodata["special_defense"][2])
-    self._speed:PoshimoStat = PoshimoStat(self.poshimodata["speed"][0], stage=int(self.poshimodata["speed"][1]), xp=int(self.poshimodata["speed"][2]))    
 
     self._xp:int = 0
     self._last_damaging_move:PoshimoMove = None
@@ -146,16 +146,22 @@ class Poshimo(object):
     self.poshimodata.update(temp_pdata) # merge with db info (so its not a base poshimo)
     self._move_list = self.load_move_list(results.get("move_list")) # unpack json moves
     self._mission_id = self.poshimodata.get("mission_id", None)
-    temp_status:int = self.poshimodata.get("status", 0)
-
-    
+    temp_status:int = self.poshimodata.get("status", 0)   
 
     if temp_status:
       self._status = PoshimoStatus(temp_status)
     else:
       self._status = PoshimoStatus.IDLE
+
+    # load the actual stats 
+    self._attack:PoshimoStat = PoshimoStat(self.poshimodata["attack"][0], stage=self.poshimodata["attack"][1], xp=self.poshimodata["attack"][2])
+    self._defense:PoshimoStat = PoshimoStat(self.poshimodata["defense"][0], stage=self.poshimodata["defense"][1], xp=self.poshimodata["defense"][2])
+    self._special_attack:PoshimoStat = PoshimoStat(self.poshimodata["special_attack"][0], stage=self.poshimodata["special_attack"][1], xp=self.poshimodata["special_attack"][2])
+    self._special_defense:PoshimoStat = PoshimoStat(self.poshimodata["special_defense"][0], stage=self.poshimodata["special_defense"][1], xp=self.poshimodata["special_defense"][2])
+    self._speed:PoshimoStat = PoshimoStat(self.poshimodata["speed"][0], stage=int(self.poshimodata["speed"][1]), xp=int(self.poshimodata["speed"][2]))    
     #logger.info(f"Loaded poshimo: {Fore.GREEN}{self.poshimodata}{Fore.RESET}")
-  
+
+
   def save(self) -> int:
     """ 
     save this poshimo to the db (when giving a trainer a Poshimo) 
@@ -173,9 +179,9 @@ class Poshimo(object):
       
       sql = """
       INSERT INTO poshimodae 
-        (id, owner, name, display_name, level, xp, hp, max_hp, attack, defense, special_attack, special_defense, speed, personality, move_list) 
+        (id, owner, name, display_name, level, xp, hp, max_hp, attack, defense, special_attack, special_defense, speed, personality, move_list, status) 
         VALUES 
-          (%(id)s, %(owner)s, %(name)s, %(display_name)s, %(level)s, %(xp)s, %(hp)s, %(max_hp)s, %(attack)s, %(defense)s, %(special_attack)s, %(special_defense)s, %(speed)s, %(personality)s, %(move_list)s)
+          (%(id)s, %(owner)s, %(name)s, %(display_name)s, %(level)s, %(xp)s, %(hp)s, %(max_hp)s, %(attack)s, %(defense)s, %(special_attack)s, %(special_defense)s, %(speed)s, %(personality)s, %(move_list)s, %(status)s)
       """
       vals = {
         "id" : self.id,
@@ -214,8 +220,6 @@ class Poshimo(object):
       sql = f"UPDATE poshimodae SET {col_name} = %s WHERE id = %s" # col_name is a trusted input or so we hope
       vals = (value, self.id)
       query.execute(sql, vals)
-
-
 
   @property
   def owner(self) -> int:

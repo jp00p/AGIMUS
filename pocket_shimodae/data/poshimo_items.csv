@@ -1,6 +1,6 @@
 name,description,use_where,type,power,function_code,sell_price,crafting_mats
-Hypospray,A basic curative that doesn't puncture the skin,USE_ANYWHERE,RESTORE,50,HP,100,raw_vertion:10
-Vertion,A strange material,NONE,MATS,,,50,
-Isolinear Chip,Not made for stacking,NONE,MATS,,,75,
-Self sealing stem bolt,What does this even do?,NONE,MATS,,,20,
-,,,,,,,
+Hypospray,A basic curative that doesn't puncture the skin,USE_ANYWHERE,RESTORE,50,HP,100,vertion:10
+Raw vertion,A strange material,NONE,CRAFTING,0,NONE,50,
+Isolinear Chip,Not made for stacking,NONE,CRAFTING,0,NONE,75,
+Self sealing stem bolt,What does this even do?,NONE,CRAFTING,0,NONE,20,
+Photonic Remodulator,Use this in battle to capture a wild Poshimo,USE_IN_BATTLE,CAPTURE,10,NONE,50,

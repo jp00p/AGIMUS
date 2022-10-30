@@ -95,7 +95,8 @@ class PoshimoGame(object):
 
   def test_give_item(self, discord_id):
     trainer = utils.get_trainer(discord_id=discord_id)
-    item = PoshimoItem("hypospray")
-    trainer.add_item(item)
-    trainer.scarves += 100
-    return trainer.list_inventory() 
+    items = ["hypospray", "raw vertion", "Photonic Remodulator", "isolinear chip", "self sealing stem bolt"]
+    for i in items:
+      item = PoshimoItem(i)
+      trainer.add_item(item, random.randint(1,5))
+    return trainer.list_inventory()

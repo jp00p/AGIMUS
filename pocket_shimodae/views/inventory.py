@@ -8,28 +8,29 @@ class InventoryMenu(PoshimoView):
     super().__init__(cog, trainer)
 
     self.using_item = using_item
+    self.inventory = self.trainer.list_inventory()
+
     self.embeds = [
       discord.Embed(
         title=f"{self.trainer}'s inventory",
-        description=f"{fill_embed_text(self.trainer.list_inventory())}"
+        description=f"{fill_embed_text('Here are your items YOUR MAJESTY')}\n{build_inventory_tables(self.inventory)}"
       )
     ]
     
     if not using_item:
-      pass
-      #self.add_item(BackButton(MainMenu(self.cog, trainer=self.trainer), label=BACK_TO_MAIN_MENU))
+      self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
     
     if len(self.trainer.inventory) > 0:
       self.add_item(ItemUseMenu(self.cog, self.trainer, selected_item=self.using_item))
-    
-    self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
+
+
 
 class ItemUseMenu(discord.ui.Select):
   ''' 
   the selectmenu that lists your items
-  this is where the item gets selected
   '''
   #TODO: items that affect the whole party
+  #TODO: replace with a global selectmenu
   def __init__(self, cog, trainer:PoshimoTrainer, selected_item:str=None, **kwargs):
     self.cog = cog
     self.trainer = trainer
@@ -76,17 +77,23 @@ class PoshimoSelectMenu(discord.ui.Select):
   def __init__(self, cog, trainer:PoshimoTrainer, item:str):
     self.cog = cog
     self.trainer = trainer
-    self.poshimo_choices = self.trainer.list_all_poshimo()
+    self.poshimo_choices = self.trainer.list_all_poshimo(exclude=[PoshimoStatus.AWAY, PoshimoStatus.BATTLING])
     self.item_choice = self.trainer.inventory[item]["item"]
-    options = []
-    for id,poshimo in enumerate(self.poshimo_choices):
-      options.append(discord.SelectOption(
-        label=f"{poshimo.display_name}",
-        value=f"{id}"
-      ))
+    disabled = False
+    if len(self.poshimo_choices) > 0:
+      options = []
+      for id,poshimo in enumerate(self.poshimo_choices):
+        options.append(discord.SelectOption(
+          label=f"{poshimo.display_name}",
+          value=f"{id}"
+        ))
+    else:
+      options = [discord.SelectOption(label="No Poshimo are around right now", value="NULL")]
+      disabled = True
     super().__init__(
       placeholder=f"Choose which Poshimo to use this {self.item_choice} on",
       options=options,
+      disabled=disabled,
       row=1
     )
   async def callback(self, interaction:discord.Interaction):
