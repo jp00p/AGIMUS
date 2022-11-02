@@ -94,8 +94,8 @@ class Wordcloud(commands.Cog):
       STOPWORDS.add(word)
 
     # mask image
-    mask_choice = random.choice(self.hmasks)
-    mask_choice = Image.open(mask_choice)
+    mask_choice = random.choice(self.image_masks)
+    #mask_choice = Image.open(mask_choice)
     mask = np.array(mask_choice)
 
     # build wordcloud with magic of wordcloud lib
