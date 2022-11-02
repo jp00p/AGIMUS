@@ -27,9 +27,9 @@ from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps
 from tabulate import tabulate
 from treys import Card, Deck, Evaluator, evaluator
 
-from utils.broadcast_logs import BroadcastHandler
+#from utils.broadcast_logs import BroadcastHandler
 from utils.config_utils import get_config, deep_dict_update
-from utils.disco_lights import LightHandler
+#from utils.disco_lights import LightHandler
 
 
 #   _________       __
@@ -51,8 +51,8 @@ handler = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter("%(asctime)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-logger.addHandler(BroadcastHandler())
-logger.addHandler(LightHandler())
+# logger.addHandler(BroadcastHandler())
+# logger.addHandler(LightHandler())
 LOG = []
 
 # Set Config and Globals
