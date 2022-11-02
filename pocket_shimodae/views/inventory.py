@@ -4,26 +4,84 @@ from . import main_menu as mm
 
 class InventoryMenu(PoshimoView):
   ''' the view for your inventory '''
-  def __init__(self, cog, trainer, using_item=None):
+  def __init__(self, cog, trainer, category="Basic items", using_item=None):
     super().__init__(cog, trainer)
 
     self.using_item = using_item
-    self.inventory = self.trainer.list_inventory()
+    self.categories = ["Basic items", "Combat items", "Capture items", "Crafting materials", "Other"]
+    self.inventory = [] 
+    self.category = category
+    can_use = False
+    description = ""
 
-    self.embeds = [
-      discord.Embed(
-        title=f"{self.trainer}'s inventory",
-        description=f"{fill_embed_text('Here are your items YOUR MAJESTY')}\n{build_inventory_tables(self.inventory)}"
-      )
-    ]
-    
+    if self.category == "Basic items":
+      self.inventory = self.trainer.list_inventory(include_use=[UseWhere.USE_ANYWHERE, UseWhere.USE_IN_FIELD])
+      can_use = True
+      description = "Basic items that you can use right now"
+    if self.category == "Combat items":
+      self.inventory = self.trainer.list_inventory(include_use=[UseWhere.USE_IN_BATTLE], exclude_type=[ItemTypes.CAPTURE])
+      description = "Items that can only be used in combat"
+    if self.category == "Capture items":
+      self.inventory = self.trainer.list_inventory(include_type=[ItemTypes.CAPTURE])
+      description = "Items that can be used to capture Poshimo"
+    if self.category == "Crafting materials":
+      self.inventory = self.trainer.list_inventory(include_type=[ItemTypes.CRAFTING])
+      description = "Items that can be used to craft other items"
+    if self.category == "Other":
+      description = "Miscellaneous items"
+      self.inventory = self.trainer.list_inventory(include_type=[ItemTypes.KEY, ItemTypes.NONE])
+           
+
     if not using_item:
       self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
+      self.add_item(ItemCategoryMenu(self.cog, self.trainer, self.categories, self.category))
     
-    if len(self.trainer.inventory) > 0:
-      self.add_item(ItemUseMenu(self.cog, self.trainer, selected_item=self.using_item))
 
+    if len(self.inventory) > 0:
+      if can_use:
+        self.add_item(ItemUseMenu(self.cog, self.trainer, self.inventory, selected_item=self.using_item))
 
+      self.embeds = [
+        discord.Embed(
+          title=self.category,
+          description=description,
+          fields=generate_inventory_fields(self.inventory)
+        )
+      ]
+
+    else:
+      self.embeds = [
+        discord.Embed(
+          title="Crickets...",
+          description=fill_embed_text("No items found!\n")
+        )
+      ]
+
+class ItemCategoryMenu(discord.ui.Select):
+  '''
+  selectmenu for item categories
+  '''
+  def __init__(self, cog, trainer:PoshimoTrainer, categories, selected=None):
+    self.cog = cog
+    self.trainer = trainer
+    self.categories = categories
+    self.selected = selected
+    
+    options = []
+    for cat in self.categories:
+      options.append(discord.SelectOption(
+        label=f"{cat}",
+        value=f"{cat}",
+        default=bool(self.selected == cat)
+      ))
+    super().__init__(
+      placeholder="Select an item category",
+      options=options
+    )
+  async def callback(self, interaction: discord.Interaction):
+    self.selected = self.values[0]
+    view = InventoryMenu(self.cog, self.trainer, category=self.selected)
+    await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class ItemUseMenu(discord.ui.Select):
   ''' 
@@ -31,32 +89,28 @@ class ItemUseMenu(discord.ui.Select):
   '''
   #TODO: items that affect the whole party
   #TODO: replace with a global selectmenu
-  def __init__(self, cog, trainer:PoshimoTrainer, selected_item:str=None, **kwargs):
+  def __init__(self, cog, trainer:PoshimoTrainer, inventory:List[InventoryDict], selected_item:str=None, **kwargs):
     self.cog = cog
     self.trainer = trainer
     self.selected_item = selected_item
-    logger.info(selected_item)
+    self.inventory = inventory
     options = []
-    for id in self.trainer.inventory.keys():
-      id = str(id)
-      
-      if selected_item and self.selected_item == id:
-        options.append(
-          discord.SelectOption(
-            label=id.title(), value=id,
-            default=True
-          )
+
+    for item in self.inventory:
+      default = False
+      if item["item"].name.lower() == self.selected_item:
+        default = True
+      options.append(
+        discord.SelectOption(
+          label=item["item"].name.title(),
+          value=item["item"].name.lower(),
+          default=default
         )
-      else:
-        options.append(
-          discord.SelectOption(
-            label=id.title(), value=id
-          )
-        )
+      )
+    
     super().__init__(
       placeholder="Select an item to use",
       options=options,
-      row=0,
       disabled=bool(self.selected_item),
       **kwargs
     )
@@ -94,7 +148,6 @@ class PoshimoSelectMenu(discord.ui.Select):
       placeholder=f"Choose which Poshimo to use this {self.item_choice} on",
       options=options,
       disabled=disabled,
-      row=1
     )
   async def callback(self, interaction:discord.Interaction):
     selected_poshimo = self.poshimo_choices[int(self.values[0])]

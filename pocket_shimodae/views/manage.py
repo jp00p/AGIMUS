@@ -16,7 +16,7 @@ class ManageStart(PoshimoView):
     if len(self.trainer.list_all_poshimo()) > 0:
       self.add_item(ManageMenu(self.cog, self.trainer))
     else:
-      self.embeds[0].description += f"\n> You don't have any Poshimo? What are you doing???"
+      self.embeds[0].description += f"\nHey where are all your Poshimo???"
     
     self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
 

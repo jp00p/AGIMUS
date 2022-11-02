@@ -8,6 +8,7 @@ from . import manage as mm_manage
 from . import missions as mm_missions
 from . import shop as mm_shop
 from . import travel as mm_travel
+from . import emh as mm_emh
 
 class MainMenu(PoshimoView):
   ''' the primary menu '''
@@ -38,7 +39,7 @@ class MainMenu(PoshimoView):
     self.add_item(TravelMenuButton(self.cog, self.trainer, row=2))
     self.add_item(ShopMenuButton(self.cog, self.trainer, self.trainer_location, row=2))
     self.add_item(CraftingMenuButton(self.cog, self.trainer, row=2))
-    self.add_item(InnMenuButton(self.cog, self.trainer, row=2))
+    self.add_item(EMHMenuButton(self.cog, self.trainer, row=2))
 
     self.add_item(QuestMenuButton(self.cog, self.trainer, row=3))    
     self.add_item(HuntMenuButton(self.cog, self.trainer, row=3))
@@ -65,7 +66,6 @@ class FishingMenuButton(discord.ui.Button):
   async def callback(self, interaction):
     view = mm_fish.FishingLog(self.cog, self.trainer)
     # view.add_item(BackToMainMenu(self.cog, self.trainer))
-    
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class InventoryMenuButton(discord.ui.Button):
@@ -145,7 +145,7 @@ class QuestMenuButton(discord.ui.Button):
     self.cog = cog
     self.trainer = trainer
     super().__init__(
-      label="Quests",
+      label="Missions",
       emoji="💎",
       **kwargs
     )
@@ -154,7 +154,7 @@ class QuestMenuButton(discord.ui.Button):
     # view.add_item(BackToMainMenu(self.cog, self.trainer))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
-class InnMenuButton(discord.ui.Button):
+class EMHMenuButton(discord.ui.Button):
   def __init__(self, cog, trainer, **kwargs):
     self.cog = cog
     self.trainer = trainer
@@ -164,7 +164,9 @@ class InnMenuButton(discord.ui.Button):
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
-    pass
+    view = mm_emh.SummonEMH(self.cog, self.trainer)
+    await interaction.response.edit_message(view=view, embed=view.get_embed())
+
 
 class DuelMenuButton(discord.ui.Button):
   def __init__(self, cog, trainer, **kwargs):

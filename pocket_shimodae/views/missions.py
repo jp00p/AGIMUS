@@ -210,8 +210,9 @@ class AvailableMissionsSelect(discord.ui.Select):
     mission_id = selected_mission.begin(self.poshimo)
     self.poshimo.mission_id = mission_id
     self.trainer.send_poshimo_away(self.poshimo)
+
     view = ManageAwayMissions(self.cog, self.trainer)
-    view.embeds[0].description = f"**{self.poshimo} sent on mission {mission_id}!**\n" + view.embeds[0].description
+    view.embeds[0].description += f"**{self.poshimo} sent on mission {mission_id}!**\n"
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 
@@ -302,8 +303,6 @@ class CompletedMissionSelect(discord.ui.Select):
             inline=False
           )
     await interaction.response.edit_message(view=view, embed=view.get_embed())
-    
-
 
 class AwayMissionsResults(PoshimoView):
   ''' list of away missions ready to review '''

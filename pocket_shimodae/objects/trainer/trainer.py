@@ -121,7 +121,7 @@ class PoshimoTrainer(object):
       if item_data: #unpack inventory
         item_data = json.loads(item_data)
         for i in item_data:
-          self._inventory[i[0]] = {
+          self._inventory[str(i[0]).lower()] = {
             "item":PoshimoItem(i[0]),
             "amount":i[1]
           }
@@ -442,12 +442,12 @@ class PoshimoTrainer(object):
   def inventory(self, obj:Dict[str,InventoryDict]) -> None:
     for key,idata in list(obj.items()):
       if idata["amount"] > 0:
-        self._inventory[key] = { "item": idata["item"], "amount": idata["amount"] }
+        self._inventory[key.lower()] = { "item": idata["item"], "amount": idata["amount"] }
       else:
         self._inventory.pop(key, None) # delete item from inventory if its 0 or less
     #self._inventory = obj
     if self._inventory:
-      item_json = json.dumps([(i["item"].name, i["amount"]) for i in self._inventory.values()])
+      item_json = json.dumps([(i["item"].name.lower(), i["amount"]) for i in self._inventory.values()])
     else:
       item_json = json.dumps([])
     self.update("inventory", item_json) # will probably need json

@@ -95,8 +95,10 @@ class PoshimoGame(object):
 
   def test_give_item(self, discord_id):
     trainer = utils.get_trainer(discord_id=discord_id)
-    items = ["hypospray", "raw vertion", "Photonic Remodulator", "isolinear chip", "self sealing stem bolt"]
+    items = ["hypospray", "raw vertion", "Photonic Remodulator", "isolinear chip", "self sealing stem bolt", "power pill", "mug of root beer"]
     for i in items:
       item = PoshimoItem(i)
-      trainer.add_item(item, random.randint(1,5))
+      trainer.add_item(item, random.randint(10,55))
+    trainer.add_item(PoshimoItem("Hypospray Recipe"))
+    trainer.add_item(PoshimoItem("Key to Forest of Forever"))
     return trainer.list_inventory()

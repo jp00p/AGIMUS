@@ -9,7 +9,7 @@ from ..ui import *
 from . import main_menu as mm
 
 class CancelButton(discord.ui.Button):
-  def __init__(self, cog, battle):
+  def __init__(self, cog, battle=None):
     self.cog = cog
     self.battle = battle
     super().__init__(

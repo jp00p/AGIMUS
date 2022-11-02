@@ -7,7 +7,6 @@ from common import *
 
 from ..objects import Poshimo
 from ..ui import *
-from . import main_menu as mm
 
 class Welcome(PoshimoView):
   """ first message a new user sees """

@@ -13,6 +13,7 @@ NBSP = "⠀"
 SPACER = NBSP*40
 BACK_TO_MAIN_MENU = "Main menu"
 
+
 def fill_embed_text(text:str):
   ''' padd out the embed text so it's not a tiny embed '''
   return text.ljust(50, NBSP)
@@ -35,7 +36,7 @@ class PoshimoView(discord.ui.View):
     self.pages = []
     self.paginator = None
     self.message = None
-    self.embeds = None    
+    self.embeds = []    
   
   # we have no access to message with ephemeral interactions
   # async def on_timeout(self) -> None:
@@ -88,9 +89,11 @@ class Confirmation(PoshimoView):
     """ what happens when they click the confirm button """
     pass
 
+
+
 class ItemSelect(discord.ui.Select):
   '''
-  select menu that lists a trainer's inventory
+  select menu that lists a trainer's inventory, can be filtered like poshimo
   '''
   def __init__(self, cog, trainer, include_use=[], exclude_use=[], include_type=[], exclude_type=[], **kwargs):
     # TODO: different filters
@@ -117,14 +120,28 @@ class ItemSelect(discord.ui.Select):
     pass
 
 
+
 def build_inventory_tables(items:List[InventoryDict]) -> str:
+  ''' build a string of nicely formatted inventory tables '''
   table = PrettyTable(field_names=["Item", "Amount"])
-  table.set_style(MARKDOWN)
-  
-  for item in items:
-    table.add_row([item["item"].name, item["amount"]])
+  table.align["Item"] = "l"
+  table.align["Amount"] = "l"
+  table.min_table_width = 40
+  table.max_table_width = 50
+  for item in items[:25]:
+    table.add_row([item["item"].name.title(), item["amount"]])
   return "```\n"+table.get_string()+"```"
-  
+
+def generate_inventory_fields(items:List[InventoryDict]) -> List[discord.EmbedField]:
+  ''' returns a list of embedfields of these items '''
+  fields = []
+  for item in items:
+    fields.append(discord.EmbedField(
+      name=f'{item["amount"]} x {item["item"].name.title()}',
+      value=f'*{item["item"].description}*',
+      inline=False
+    ))
+  return fields
 
 
 class PoshimoSelect(discord.ui.Select):
@@ -177,26 +194,14 @@ class PoshimoSelect(discord.ui.Select):
   async def callback(self, interaction:discord.Interaction):
     pass
 
+
 class PoshimoPaginator(pages.Paginator):
-  def __init__(
-    self, cog, trainer,
-    pages, show_menu, custom_view,
-    show_disabled, loop_pages, show_indicator,
-    use_default_buttons, custom_buttons, menu_placeholder
-  ):
+  ''' this was the first ui piece i made ... will come back to this '''
+  def __init__(self, cog, trainer, **kwargs):
     self.cog = cog
     self.trainer = trainer
-    super().__init__(
-      pages=pages,
-      show_menu=show_menu,
-      custom_view=custom_view,
-      show_disabled=show_disabled,
-      loop_pages=loop_pages,
-      show_indicator=show_indicator,
-      use_default_buttons=use_default_buttons,
-      custom_buttons=custom_buttons,
-      menu_placeholder=menu_placeholder,
-    )
+    super().__init__(**kwargs)
+
 
 class BackButton(discord.ui.Button):
   ''' a back button that edits the message in place with whatever view you pass it '''
@@ -211,6 +216,7 @@ class BackButton(discord.ui.Button):
     view = self.next_view
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
+
 def progress_bar(progress:float, value:int=None, num_bricks:int=10, filled:str="🟪", empty:str="⬛", ansi:bool=False) -> str:
   ''' 
   returns a string of a progress bar, made with emojis or text
@@ -220,7 +226,7 @@ def progress_bar(progress:float, value:int=None, num_bricks:int=10, filled:str="
   num_bricks: total width of the bar
   filled: the emoji to use for filled bar
   empty: the emoji to use for empty bar
-  ansi: set to true to use ansi bars
+  ansi: set to true to use ansi bars (doesnt work on discord mobile yet)
   '''
 
   filled_num = round(progress * num_bricks)
