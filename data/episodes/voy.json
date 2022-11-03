@@ -1989,7 +1989,15 @@
       "episode": "23",
       "imdb": "tt0708926",
       "memoryalpha": "Living_Witness_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 442,
+          "airdate": "2022.10.31",
+          "episode": "Vaskan Deferenses",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-442-vaskan-deferenses-voy-s4e23/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/aM8Lt9Nx6HVJpLqjKhZXlB38GUd.jpg"
