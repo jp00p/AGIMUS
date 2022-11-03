@@ -4,8 +4,8 @@ from ..ui import *
 from . import main_menu as mm
 
 
-base_heal_cost = 10
-base_revive_cost = 100
+base_heal_cost = 5
+base_revive_cost = 50
 
 class SummonEMH(PoshimoView):
   # EMH appears
@@ -15,7 +15,8 @@ class SummonEMH(PoshimoView):
     
     self.eligible_heal_poshimo = self.trainer.list_all_poshimo(include=[PoshimoStatus.IDLE])
     self.eligible_revive_poshimo = self.trainer.list_all_poshimo(include=[PoshimoStatus.DEAD])
-    total_heal_cost = base_heal_cost + sum([(p.max_hp - p.hp for p in self.eligible_heal_poshimo)])
+    poshimo_hp_cost = sum((p.max_hp - p.hp for p in self.eligible_heal_poshimo))
+    total_heal_cost = poshimo_hp_cost * base_heal_cost
 
     self.embeds = [
       discord.Embed(
