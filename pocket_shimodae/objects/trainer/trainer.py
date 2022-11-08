@@ -27,6 +27,7 @@ class PoshimoTrainer(object):
 
   pass a `name` to generate a basic NPC
   '''
+
   MAX_POSHIMO = 9 # the maximum poshimo a player can have
   
   def __init__(self, trainer_id:int=None, name:str=None):
@@ -174,13 +175,9 @@ class PoshimoTrainer(object):
     list the contents of your sac 
     returns a formatted string
     '''
-    temp_sac = self.poshimo_sac
-    if self.active_poshimo in temp_sac:
-      # dont show the active poshimo in the sac
-      temp_sac.remove(self.active_poshimo)
-    if len(temp_sac) <= 0:
+    if len(self._poshimo_sac) <= 0:
       return "Empty sac"
-    return "\n".join([p.display_name for p in temp_sac])
+    return "\n".join([str(p) for p in self._poshimo_sac])
 
   def list_away(self) -> str:
     ''' 
@@ -195,24 +192,40 @@ class PoshimoTrainer(object):
       return_str += f"{p.display_name} {mission.get_emoji()}"
     return return_str
 
-  def list_all_poshimo(self, include:List[PoshimoStatus]=[PoshimoStatus.IDLE], exclude:List[PoshimoStatus]=None) -> List[Poshimo]:
+  def list_all_poshimo(self, include:List[PoshimoStatus]=None, exclude:List[PoshimoStatus]=None, in_combat=False) -> List[Poshimo]:
     ''' 
     Get a list of all this trainer's poshimo
-    use include to include poshimo by status (default all)
+    use include to include poshimo by status (default all, not in combat)
     use exclude to further filter that list if needed
     '''
-    all_poshimo = self._poshimo_sac
+    all_poshimo = []
 
-    if self._active_poshimo:
-      all_poshimo.append(self._active_poshimo)
+    if self.active_poshimo:
+      all_poshimo.append(self.active_poshimo)
 
-    logger.info(f"ALL POSHIMO: {[p for p in all_poshimo]}")
+    if len(self.poshimo_sac) > 0:
+      all_poshimo.extend(self.poshimo_sac)
     
     if include:
       all_poshimo = filter(lambda x: x.status in include, all_poshimo)
     if exclude:
       all_poshimo = filter(lambda x: x.status not in exclude, all_poshimo)
-    return list(set(all_poshimo))
+    if in_combat:
+      all_poshimo = filter(lambda x: x.in_combat is True, all_poshimo)
+    
+    all_poshimo:List[Poshimo] = list(all_poshimo)
+    
+    logger.info(f"All poshimo before sort: {', '.join([str(p) for p in all_poshimo])}")
+    
+    all_poshimo = sorted(all_poshimo, key=lambda x: (x.display_name.lower()), reverse=False)
+    
+    if self.active_poshimo and self.active_poshimo in all_poshimo:
+      all_poshimo.remove(self.active_poshimo)
+      all_poshimo.insert(0, self.active_poshimo)
+
+    logger.info(f"All poshimo after sort: {', '.join([str(p) for p in all_poshimo])}")
+    
+    return all_poshimo
 
   def pick_move(self) -> PoshimoMove:
     '''
@@ -243,9 +256,26 @@ class PoshimoTrainer(object):
       inventory = list(filter(lambda x: x["item"].type not in exclude_type, inventory))
     return inventory
 
+
   def is_active_poshimo_ready(self) -> bool:
     ''' returns true if there is an active poshimo and its HP is greater than 0'''
     return self.active_poshimo and self.active_poshimo.hp > 0
+
+  def set_active_poshimo(self, poshimo:Poshimo) -> Poshimo:
+    ''' 
+    set a poshimo from your sac to active 
+    returns the old active poshimo if there was one
+    '''
+    temp_sac = self._poshimo_sac
+    old_poshimo = self._active_poshimo
+    for p in temp_sac:
+      if p.id == poshimo.id:
+        temp_sac.remove(p)
+    if old_poshimo:
+      temp_sac.append(old_poshimo)
+    self.poshimo_sac = temp_sac
+    self.active_poshimo = poshimo
+    return old_poshimo
 
   def random_swap(self):
     ''' do a random swap (when your active poshimo dies) '''
@@ -254,6 +284,7 @@ class PoshimoTrainer(object):
       self.swap(random.choice(eligible_poshimo))
     else:
       return False
+
 
   def send_poshimo_away(self, poshimo:Poshimo) -> None:
     ''' send a poshimo on an away mission, stick it in your away sac '''
@@ -282,6 +313,7 @@ class PoshimoTrainer(object):
     temp_sac.append(poshimo)
     self.poshimo_sac = temp_sac
 
+
   def list_missions_in_progress(self) -> List[AwayMission]:
     ''' return a list of all missions in progress for this trainer '''
     if len(self._away_poshimo) < 1:
@@ -291,6 +323,7 @@ class PoshimoTrainer(object):
       active_missions.append( AwayMission(id=int(p.mission_id)) )
     return active_missions
   
+
   def list_missions_ready_to_resolve(self) -> List[AwayMission]:
     ''' return a list of all missions ready to resolve for this trainer '''
     ready_missions = []
@@ -302,14 +335,20 @@ class PoshimoTrainer(object):
         ready_missions.append(mission)
     return ready_missions
 
+
   def swap(self, poshimo:Poshimo) -> str:
     ''' swap out the active poshimo '''
     old_poshimo = self._active_poshimo
-    self._poshimo_sac.append(self._active_poshimo)
+    if old_poshimo:
+      self._poshimo_sac.append(self._active_poshimo)
     self._poshimo_sac.remove(poshimo)
     self.active_poshimo = poshimo # fire setters
     self.poshimo_sac = self._poshimo_sac
-    return f"{self} swapped out {old_poshimo} for {poshimo}!"
+    if old_poshimo:
+      return f"{self} swapped out {old_poshimo} for {poshimo}!"
+    else:
+      return f"{self} brought out {poshimo}!"
+
 
   def catch_fish(self, fish) -> int:
     ''' add a fish to this player's log '''
@@ -319,6 +358,7 @@ class PoshimoTrainer(object):
       query.execute(sql,vals)
       last_id = query.lastrowid
     return last_id
+
 
   def get_fishing_log(self) -> List[PoshimoFish]:
     ''' get a list of the last 10 fish this trainer has caught, sorted by length '''
@@ -331,6 +371,7 @@ class PoshimoTrainer(object):
     for fish in fishing_log:
       final_log.append(PoshimoFish(name=fish["fish"], length=fish["length"]))
     return final_log
+
 
   def add_item(self, item:PoshimoItem, amount:int=1):
     ''' 

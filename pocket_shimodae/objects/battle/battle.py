@@ -153,7 +153,7 @@ class PoshimoBattle(object):
 
     for trainer in self.trainers:
       trainer.status = TrainerStatus.BATTLING # set trainers to battling
-      trainer.active_poshimo.status = PoshimoStatus.BATTLING
+      trainer.active_poshimo.in_combat = True
     
     with AgimusDB() as query:
       sql = """INSERT INTO poshimo_battles (battle_type,trainer_1,trainer_2,wild_poshimo) VALUES (%s, %s, %s, %s)"""

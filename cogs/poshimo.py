@@ -27,50 +27,50 @@ class PocketShimodae(commands.Cog):
   async def check_away_missions(self):
     logger.info("Checking away missions...")
 
-  @ps.command(
-    name="test_give_poshimo",
-    description="DEBUG"
-  )
-  async def test_give_poshimo(self, ctx:discord.ApplicationContext):
-    p = self.game.test_give_poshimo(ctx.author.id)
-    await ctx.respond(f"Did you win? {p.display_name}", ephemeral=True)
+  # @ps.command(
+  #   name="test_give_poshimo",
+  #   description="DEBUG"
+  # )
+  # async def test_give_poshimo(self, ctx:discord.ApplicationContext):
+  #   p = self.game.test_give_poshimo(ctx.author.id)
+  #   await ctx.respond(f"Did you win? {p.display_name}", ephemeral=True)
 
-  @ps.command(
-    name="test_unlock_locations",
-    description="DEBUG"
-  )
-  async def test_unlock_locations(self, ctx:discord.ApplicationContext):
-    self.game.test_unlock_loc(ctx.author.id, "vertiform field")
-    self.game.test_unlock_loc(ctx.author.id, "forest of forever")
-    self.game.test_unlock_loc(ctx.author.id, "heorot")
-    self.game.test_unlock_loc(ctx.author.id, "new vertiform city")
-    self.game.test_unlock_loc(ctx.author.id, "meung-sur-loire")
-    self.game.test_unlock_loc(ctx.author.id, "ktaris pointe")
-    await ctx.respond(f"All locations unlocked", ephemeral=True)
+  # @ps.command(
+  #   name="test_unlock_locations",
+  #   description="DEBUG"
+  # )
+  # async def test_unlock_locations(self, ctx:discord.ApplicationContext):
+  #   self.game.test_unlock_loc(ctx.author.id, "vertiform field")
+  #   self.game.test_unlock_loc(ctx.author.id, "forest of forever")
+  #   self.game.test_unlock_loc(ctx.author.id, "heorot")
+  #   self.game.test_unlock_loc(ctx.author.id, "new vertiform city")
+  #   self.game.test_unlock_loc(ctx.author.id, "meung-sur-loire")
+  #   self.game.test_unlock_loc(ctx.author.id, "ktaris pointe")
+  #   await ctx.respond(f"All locations unlocked", ephemeral=True)
 
-  @ps.command(
-    name="test_give_item",
-    description="DEBUG"
-  )
-  async def test_give_item(self,ctx:discord.ApplicationContext):
-    inventory = self.game.test_give_item(ctx.author.id)
-    await ctx.respond("Here's the list:\n"+"\n".join(item["item"].name for item in inventory), ephemeral=True)
+  # @ps.command(
+  #   name="test_give_item",
+  #   description="DEBUG"
+  # )
+  # async def test_give_item(self,ctx:discord.ApplicationContext):
+  #   inventory = self.game.test_give_item(ctx.author.id)
+  #   await ctx.respond("Here's the list:\n"+"\n".join(item["item"].name for item in inventory), ephemeral=True)
 
-  @ps.command(
-    name="test_clear_db",
-    description="DEBUG"
-  )
-  async def test_clear_db(self, ctx:discord.ApplicationContext):
-    self.game.test_clear_db()
-    await ctx.respond(f"Did you feel that?", ephemeral=True)
+  # @ps.command(
+  #   name="test_clear_db",
+  #   description="DEBUG"
+  # )
+  # async def test_clear_db(self, ctx:discord.ApplicationContext):
+  #   self.game.test_clear_db()
+  #   await ctx.respond(f"Did you feel that?", ephemeral=True)
 
-  @ps.command(
-    name="test_fish_log",
-    description="DEBUG"
-  )
-  async def test_fish_log(self, ctx:discord.ApplicationContext):
-    self.game.test_fish_log(ctx.author.id)
-    await ctx.respond(f"Fish log sent to logger for logging purposes", ephemeral=True)
+  # @ps.command(
+  #   name="test_fish_log",
+  #   description="DEBUG"
+  # )
+  # async def test_fish_log(self, ctx:discord.ApplicationContext):
+  #   self.game.test_fish_log(ctx.author.id)
+  #   await ctx.respond(f"Fish log sent to logger for logging purposes", ephemeral=True)
 
   @ps.command(
     name="start",
@@ -95,71 +95,11 @@ class PocketShimodae(commands.Cog):
     mm = main_menu.MainMenu(self, ctx.author.id)
     await ctx.followup.send(view=mm, embed=mm.get_embed())
     
-  
-  # @ps.command(
-  #   name="manage",
-  #   description="Manage your Poshimo"
-  # )
-  # async def manage(self, ctx:discord.ApplicationContext):
-  #   await ctx.defer(ephemeral=True)
-  #   manage_screen = manage.ManageStart(self, ctx.author.id)
-  #   await ctx.followup.send(embed=manage_screen.get_embed(), view=manage_screen)
-
   @ps.command(
-    name="help",
-    description="DOES NOTHING YET Get information about this game and the commands"
+    name="admin",
+    description="Admin debug menu"
   )
-  async def help(self, ctx:discord.ApplicationContext):
+  async def admin(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
-
-  @ps.command(
-    name="sac",
-    description="DOES NOTHING YET Manage your Poshimo Sac"
-  )
-  async def sac(self, ctx:discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
-  
-  @ps.command(
-    name="swap",
-    description="DOES NOTHING YET Swap out your active Poshimo"
-  )
-  async def swap(self, ctx:discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
-
-  @ps.command(
-    name="explore",
-    description="DOES NOTHING YET Explore your current location"
-  )
-  async def explore(self, ctx:discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
-
-  
-  
-  # @ps.command(
-  #   name="hunt",
-  #   description="Hunt for wild Poshimo in your current location!"
-  # )
-  # async def hunt(self, ctx:discord.ApplicationContext):
-  #   await ctx.defer(ephemeral=True)
-  #   trainer = utils.get_trainer(ctx.author.id)
-  #   if trainer.active_poshimo.hp <= 0:
-  #     await ctx.followup.send("Your active Poshimo is in no condition to hunt right now!", ephemeral=True)
-      
-  #   if trainer.status is TrainerStatus.BATTLING:
-  #     old_hunt = self.game.resume_battle(ctx.author.id)
-  #     resumed_battle = battle.BattleTurn(self, ctx.author.id, old_hunt)
-  #     await ctx.followup.send(embed=resumed_battle.get_embed(), view=resumed_battle)
-  #   else:
-  #     hunt = self.game.start_hunt(ctx.author.id)
-  #     initial_turn = battle.BattleTurn(self, ctx.author.id, hunt)
-  #     await ctx.followup.send(embed=initial_turn.get_embed(), view=initial_turn)
-
-  # @ps.command(
-  #   name="fish",
-  #   description="Attempt to fish in your current location!",
-  # )
-  # async def fish(self, ctx:discord.ApplicationContext):
-  #   await ctx.defer(ephemeral=True)
-  #   trainer = utils.get_trainer(ctx.author.id)
-  #   fishing_game = fishing.FishingGame(self, trainer)
-  #   await ctx.followup.send(embed=fishing_game.get_embed(), view=fishing_game)
+    admin_menu = admin.AdminMenu(self, ctx.author.id)
+    await ctx.followup.send(view=admin_menu, embed=admin_menu.get_embed())

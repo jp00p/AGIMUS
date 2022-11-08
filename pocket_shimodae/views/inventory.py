@@ -131,7 +131,7 @@ class PoshimoSelectMenu(discord.ui.Select):
   def __init__(self, cog, trainer:PoshimoTrainer, item:str):
     self.cog = cog
     self.trainer = trainer
-    self.poshimo_choices = self.trainer.list_all_poshimo(exclude=[PoshimoStatus.AWAY, PoshimoStatus.BATTLING])
+    self.poshimo_choices = self.trainer.list_all_poshimo(exclude=[PoshimoStatus.AWAY])
     self.item_choice = self.trainer.inventory[item]["item"]
     disabled = False
     if len(self.poshimo_choices) > 0:

@@ -71,17 +71,27 @@ class PoshimoGame(object):
     trainer_locs.add(location_name)
     trainer.locations_unlocked = trainer_locs
 
-  def test_give_poshimo(self, discord_id):
-    trainer = utils.get_trainer(discord_id=discord_id)
+  def admin_give_random_poshimo(self, trainer:PoshimoTrainer):
     sample_poshimo = random.choice([
-      Poshimo(name="Wartortle"),
-      Poshimo(name="Weedle"),
-      Poshimo(name="Koffing")]
+        Poshimo(name="Wartortle"),
+        Poshimo(name="Weedle"),
+        Poshimo(name="Koffing"),
+        Poshimo(name="Pikachu"),
+        Poshimo(name="Ditto"),
+        Poshimo(name="Charizard"),
+        Poshimo(name="Raichu"),
+        Poshimo(name="Metapod"),
+        Poshimo(name="Raticate"),
+        Poshimo(name="Arcanine"),
+        Poshimo(name="Graveler"),
+        Poshimo(name="Cubone"),
+        Poshimo(name="Pinsir"),
+      ]
     )
-    new_poshimo = trainer.add_poshimo(sample_poshimo)
-    return new_poshimo
+    return trainer.add_poshimo(sample_poshimo)
+    
 
-  def test_clear_db(self):
+  def admin_clear_db(self):
     with AgimusDB(multi=True) as query:
       sql = ["DELETE FROM poshimo_fishing_log WHERE id > 0;", "DELETE FROM poshimo_mission_logs WHERE id > 0;", "DELETE FROM poshimo_trainers WHERE id > 0;","DELETE FROM poshimo_battles WHERE id > 0;", "DELETE FROM poshimodae WHERE id > 0;"]
       for truncate in sql:

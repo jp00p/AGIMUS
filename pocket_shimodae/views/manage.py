@@ -16,7 +16,7 @@ class ManageStart(PoshimoView):
     if len(self.trainer.list_all_poshimo()) > 0:
       self.add_item(ManageMenu(self.cog, self.trainer))
     else:
-      self.embeds[0].description += f"\nHey where are all your Poshimo???"
+      self.embeds[0].description += f"\nHey, where are all your Poshimo??? WTF?"
     
     self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
 
@@ -29,14 +29,17 @@ class ManageMenu(discord.ui.Select):
     self.trainer = trainer
     options = []   
     trainers_poshimo = self.trainer.list_all_poshimo()
-    logger.info(trainers_poshimo)
+
     for poshimo in trainers_poshimo:
-      label = f"{poshimo.display_name} ({poshimo.status})"
+      label = f"{poshimo.display_name}"
+      emoji = None
       if self.trainer.active_poshimo and poshimo.id == self.trainer.active_poshimo.id:
-        label += f" ACTIVE"
+        emoji = "🎀"
+      
       options.append(discord.SelectOption(
         label=f"{label}",
-        value=f"{poshimo.id}"
+        value=f"{poshimo.id}",
+        emoji=emoji
       ))
     super().__init__(
       placeholder="Select the Poshimo to manage",
@@ -47,13 +50,8 @@ class ManageMenu(discord.ui.Select):
     user has chosen a poshimo to manage 
     """
     poshimo = Poshimo(id=int(self.values[0]))
-    if poshimo.status in [PoshimoStatus.AWAY, PoshimoStatus.DEAD]:
-      view:PoshimoView = self.view
-      view.embeds[0].description = "\n\n**That Poshimo is not available to manage right now.**"
-      await interaction.response.edit_message(view=view, embed=view.get_embed())
-    else:
-      view = ManagePoshimoScreen(self.cog, poshimo, self.trainer)
-      await interaction.response.edit_message(content=f"Now managing {poshimo.display_name}", view=view, embeds=view.get_embeds())
+    view = ManagePoshimoScreen(self.cog, poshimo, self.trainer)
+    await interaction.response.edit_message(content=f"Now managing {poshimo.display_name}", view=view, embeds=view.get_embeds())
 
 class MoveMenu(discord.ui.Select):
   """ 
@@ -75,10 +73,10 @@ class MoveMenu(discord.ui.Select):
       options=options
     )
   async def callback(self, interaction:discord.Interaction):
-    view = ForgetMove_Confirmation(self.cog, self.poshimo, self.values[0], self.trainer)
+    view = ForgetMove_PoshimoConfirmation(self.cog, self.poshimo, self.values[0], self.trainer)
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
-class ForgetMove_Confirmation(Confirmation):
+class ForgetMove_PoshimoConfirmation(PoshimoConfirmation):
   """
   make sure they really want to forget this move
   """
@@ -106,7 +104,7 @@ class ForgetMove_Confirmation(Confirmation):
     view = ManagePoshimoScreen(self.cog, self.poshimo, self.trainer)
     await interaction.response.edit_message(view=view, embeds=view.get_embeds(), content="Move reMoved!")
 
-class ReleasePoshimo_Confirmation(Confirmation):
+class ReleasePoshimo_PoshimoConfirmation(PoshimoConfirmation):
   """
   make sure they really want to release a Poshimo
   """
@@ -134,13 +132,20 @@ class ReleasePoshimo_Confirmation(Confirmation):
     ]
   async def cancel_callback(self, button, interaction):
     view = ManagePoshimoScreen(self.cog, self.poshimo, self.trainer)
-    await interaction.response.edit_message(view=view, embeds=view.get_embeds(), content="Canceled, your Poshimo are safe with you for now.")
+    view.add_notification("Canceled!","Canceled releasing, your Poshimo are safe with you ...for now.")
+    await interaction.response.edit_message(view=view, embeds=view.get_embeds())
 
   async def confirm_callback(self, button, interaction):
     released_poshimo = self.poshimo
     self.trainer.release_poshimo(self.poshimo)
     view = ManageStart(self.cog, self.trainer.discord_id)
-    await interaction.response.edit_message(content=f"{released_poshimo.display_name} has been released into the wild. Goodbye lil friend 🙋‍♀️", view=view, embed=view.get_embed())
+    view.embeds.append(
+      discord.Embed(
+        title="Farewell!",
+        description=f"{released_poshimo.display_name} has been released into the wild. Goodbye lil friend 🙋‍♀️"
+      )
+    )
+    await interaction.response.edit_message(view=view, embeds=view.get_embeds())
     
 
 class PoshiModal_Rename(discord.ui.Modal):
@@ -159,12 +164,8 @@ class PoshiModal_Rename(discord.ui.Modal):
     old_name = self.poshimo.display_name
     self.poshimo.display_name = self.children[0].value # magic
     view = ManagePoshimoScreen(self.cog, self.poshimo, self.trainer)
-    await interaction.response.send_message(
-      content=f"{old_name}'s name has been updated to {self.poshimo.display_name}!",
-      view=view,
-      embeds=view.get_embeds(),
-      ephemeral=True
-    )
+    view.add_notification("Renamed!", f"{old_name}'s name has been updated to {self.poshimo.display_name}!")
+    await interaction.response.edit_message(view=view, embeds=view.get_embeds())
 
 class ManagePoshimoScreen(PoshimoView):
   """ 
@@ -175,84 +176,98 @@ class ManagePoshimoScreen(PoshimoView):
     super().__init__(cog, trainer)
     self.poshimo = poshimo
     self.stats = self.poshimo.list_stats()
+    self.unavailable = bool(self.poshimo.status is PoshimoStatus.AWAY or self.poshimo.status is PoshimoStatus.DEAD or self.poshimo.in_combat)
     self.embeds = [
-      discord.Embed(
-        title=f"{self.poshimo.display_name}",
-        description=f"{self.poshimo.show_types()}"
+      discord.Embed( # main embed
+        title=f"{self.poshimo.display_name} ({poshimo.name})",
+        description=fill_embed_text(f"{self.poshimo.show_types()}\n{self.poshimo.status}")
       )
     ]
+
+    if self.unavailable:
+      if self.poshimo.status is PoshimoStatus.DEAD:
+        reason = "It's dead!"
+      if self.poshimo.status is PoshimoStatus.AWAY:
+        reason = "It's on an away mission!"
+      if self.poshimo.in_combat:
+        reason = "It's in combat!"
+      self.embeds[0].description += f"\nYour Poshimo is currently unavailable to manage: **{reason}**"
 
     for stat, value in self.stats.items():
       val = f"{value}"
       if stat not in ["hp", "level", "personality", "xp"]:
-        val = f"{value}\n```ansi\n{progress_bar(value.xp/100, value=int(value.xp), ansi=True)}```"
+        val = f"{value}\n{progress_bar(value.xp/100, num_bricks=5)}"
       elif stat == "hp":
         hpprog = (self.poshimo.hp / self.poshimo.max_hp)
-        val = f"{value}\n```ansi\n{progress_bar(hpprog, ansi=True)}```"
+        val = f"{value}\n{progress_bar(hpprog, num_bricks=5, filled='🟩')}"
       self.embeds[0].add_field(
         name=f"{stat.replace('_',' ').capitalize()}",
         value=val
       )
 
-    self.embeds[0].set_thumbnail(url="https://i.imgur.com/lIBEIFL.jpeg")
+    #self.embeds[0].set_thumbnail(url="https://i.imgur.com/lIBEIFL.jpeg")
     self.embeds.append(
       discord.Embed( # moves embed
         title=f"{self.poshimo.display_name}'s moves:",
         description=f""
       )
     )
- 
+  
     move_mojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣"]
     # add moves to fields
+    
     self.embeds[1].fields += [
       discord.EmbedField(
-        name=f"{move_mojis[i]} {move.display_name} ({move.stamina}/{move.max_stamina})",
+        name=fill_embed_text(f"{move_mojis[i]} {move.display_name} ({move.stamina}/{move.max_stamina})"),
         value=f"**{move.type.name.title()}**-type move\n*{move.description}*",
         inline=False
       )
       for i,move in enumerate(poshimo.move_list)]
-  
-  @discord.ui.button(style=discord.ButtonStyle.primary,label="Set active", custom_id="activate", emoji="🤙", row=1)
-  async def activate_callback(self, button, interaction:discord.Interaction):
+
+    self.add_item(ActivateButton(self.cog, self.trainer, self.poshimo, self.unavailable))
+    self.add_item(RenameButton(self.cog, self.trainer, self.poshimo, self.unavailable))
+    self.add_item(ForgetMoveButton(self.cog, self.trainer, self.poshimo, self.unavailable))
+    self.add_item(ReleaseButton(self.cog, self.trainer, self.poshimo, self.unavailable))
+    self.add_item(ManageCancel(self.cog, self.trainer))
+    self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
+
+class ActivateButton(discord.ui.Button):
+  def __init__(self, cog, trainer, poshimo, disabled=False):
+    self.cog = cog
+    self.trainer:PoshimoTrainer = trainer
+    self.poshimo:Poshimo = poshimo
+    super().__init__(
+      label="Set to active",
+      emoji="🎀",
+      row=1,
+      style=discord.ButtonStyle.green,
+      disabled=bool(disabled or self.trainer.active_poshimo.id == self.poshimo.id)
+    )
+  async def callback(self, interaction: discord.Interaction):
     """ 
     activate the selected poshimo 
     """
-    if self.trainer.active_poshimo:
-      if int(self.poshimo.id) == int(self.trainer.active_poshimo.id):
-        await interaction.response.edit_message(
-          content="😂 This Poshimo is already active! 🤡"
-        )
-      else:
-        # if they already have an active poshimo, move it into the sac
-        temp_sac = self.trainer.poshimo_sac
-        old_poshimo = self.trainer.active_poshimo
-        
-        self.trainer.active_poshimo = self.poshimo
-        temp_sac.append(old_poshimo)
-        for p in temp_sac:
-          if p.id == self.poshimo.id:
-            temp_sac.remove(p)
-        self.trainer.poshimo_sac = temp_sac
-        await interaction.response.edit_message(
-          content=f"✅ {self.poshimo.display_name} has been set to active! {old_poshimo.display_name} has been stuffed into your sac."
-        )
-    else:
-      self.trainer.active_poshimo = self.poshimo
-      temp_sac = self.trainer.poshimo_sac
-      for p in temp_sac:
-        if p.id == self.poshimo.id:
-          temp_sac.remove(p)
-      self.trainer.poshimo_sac = temp_sac
-      
-      await interaction.response.edit_message(
-        content=f"✅ {self.poshimo.display_name} has been set to active!"
-      )
+    old_poshimo = self.trainer.set_active_poshimo(self.poshimo)
+    message = f"✅ {self.poshimo.display_name} has been set to active!"
+    if old_poshimo:
+      message += f"\n{old_poshimo.display_name} has been returned to your sac."
+    view = ManagePoshimoScreen(self.cog, self.poshimo, self.trainer)
+    view.add_notification("Success", message)
+    await interaction.response.edit_message(view=view, embeds=view.get_embeds())
 
-  @discord.ui.button(style=discord.ButtonStyle.green,label="Rename", custom_id="rename", emoji="✏", row=1)
-  async def rename_callback(self, button, interaction:discord.Interaction):
-    """ 
-    rename the selected poshimo 
-    """
+class RenameButton(discord.ui.Button):
+  def __init__(self, cog, trainer, poshimo, disabled=False):
+    self.cog = cog
+    self.trainer = trainer
+    self.poshimo = poshimo
+    super().__init__(
+      label="Rename",
+      emoji="✏",
+      row=1,
+      style=discord.ButtonStyle.blurple,
+      disabled=disabled
+    )
+  async def callback(self, interaction: discord.Interaction):
     await interaction.response.send_modal(
       PoshiModal_Rename(
         title=f"Rename {self.poshimo.display_name}?",
@@ -262,39 +277,55 @@ class ManagePoshimoScreen(PoshimoView):
       )
     )
 
-  @discord.ui.button(style=discord.ButtonStyle.danger,label="Forget move", custom_id="forget_move", row=1, emoji="🧠")
-  async def forget_callback(self, button, interaction:discord.Interaction):
-    """ 
-    forget a move from the selected poshimo
-    """
+class ForgetMoveButton(discord.ui.Button):
+  def __init__(self, cog, trainer, poshimo, disabled=False):
+    self.cog = cog
+    self.trainer = trainer
+    self.poshimo = poshimo
+    super().__init__(
+      label="Forget a move",
+      emoji="🚫",
+      row=2,
+      style=discord.ButtonStyle.danger,
+      disabled=disabled
+    )
+  async def callback(self, interaction: discord.Interaction):
+    view = ManagePoshimoScreen(self.cog, self.poshimo, self.trainer)
     if len(self.poshimo.move_list) <= 1:
-      await interaction.response.edit_message(content="You cannot forget a Poshimo's last move!")
+      view.add_notification("Whoa!", "You cannot forget a Poshimo's last move!")
     else:
-      self.add_item(MoveMenu(self.cog, self.poshimo, self.trainer))
-      await interaction.response.edit_message(content="", view=self, embeds=self.embeds)
- 
-  @discord.ui.button(style=discord.ButtonStyle.danger,label="Release", custom_id="release", row=1, emoji="⚠")
-  async def release_callback(self, button, interaction:discord.Interaction):
-    """
-    release selected poshimo into the wild
-    """
-    if len(self.trainer.list_all_poshimo()) <= 1:
-      await interaction.response.edit_message(content="⚠ You cannot release your only Poshimo! What are you thinking?!", view=self, embeds=self.embeds)
-    else:
-      view = ReleasePoshimo_Confirmation(self.cog, self.poshimo, self.trainer)
-      await interaction.response.edit_message(content="", view=view, embeds=view.get_embeds())
-  
-  @discord.ui.button(style=discord.ButtonStyle.gray,label="Back to list", custom_id="back", row=2, emoji="🔙")
-  async def back_callback(self, button, interaction:discord.Interaction):
-    """
-    cancel managing this poshimo
-    """
-    view = ManageStart(self.cog, self.trainer.discord_id)
-    await interaction.response.edit_message(content="", view=view, embed=view.get_embed())
+      view.add_item(MoveMenu(self.cog, self.poshimo, self.trainer))
+      await interaction.response.edit_message(view=view, embeds=view.get_embeds())
 
-  @discord.ui.button(style=discord.ButtonStyle.gray,label="Cancel", custom_id="cancel", row=2, emoji="✖")
-  async def cancel_callback(self, button, interaction:discord.Interaction):
-    """
-    cancel managing this poshimo
-    """
-    await interaction.response.edit_message(content="Your Poshimo will miss you!", view=None, embed=None)
+class ReleaseButton(discord.ui.Button):
+  def __init__(self, cog, trainer, poshimo, disabled=False):
+    self.cog = cog
+    self.trainer = trainer
+    self.poshimo = poshimo
+    super().__init__(
+      label="Release this Poshimo",
+      emoji="⚠",
+      row=2,
+      style=discord.ButtonStyle.danger,
+      disabled=disabled
+    )
+  async def callback(self, interaction: discord.Interaction):
+    if len(self.trainer.list_all_poshimo()) <= 1:
+      view = ManagePoshimoScreen(self.cog, self.poshimo, self.trainer)
+      view.add_notification("Hey now", "⚠ You cannot release your only Poshimo! What are you thinking?!") 
+    else:
+      view = ReleasePoshimo_PoshimoConfirmation(self.cog, self.poshimo, self.trainer)
+    await interaction.response.edit_message(view=view, embeds=view.get_embeds())
+
+class ManageCancel(discord.ui.Button):
+  def __init__(self, cog, trainer):
+    self.cog = cog
+    self.trainer = trainer
+    super().__init__(
+      label="Cancel",
+      emoji="🔙",
+      row=4
+    )
+  async def callback(self, interaction: discord.Interaction):
+    view = ManageStart(self.cog, self.trainer)
+    await interaction.response.edit_message(view=view, embed=view.get_embed())

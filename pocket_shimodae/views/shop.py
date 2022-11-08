@@ -16,10 +16,13 @@ class ShoppingScreen(PoshimoView):
 
     shop_embed = discord.Embed(
       title="Welcome to the shop!",
-      description=f"{description}"
+      description=fill_embed_text(f"{description}")
     )
     shop_embed.set_footer(text=f"Your Scarves: {self.trainer.scarves}")
     self.embeds = [shop_embed]
+    self.add_item(ShopBuyMenu(self.cog, self.trainer, self.shop))
+    if len(self.trainer.inventory) > 0:
+      self.add_item(ShopSellMenu(self.cog, self.trainer, self.shop))
     self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
     
 class ShopBuyMenu(discord.ui.Select):
@@ -45,15 +48,15 @@ class ShopBuyMenu(discord.ui.Select):
     response = ""
     purchase = self.shop.buy(self.trainer, int(self.values[0]))
     if purchase:
+      title = "Purchase complete"
       response = f"**You purchased one {item}!**\n"
     else:
-      response = "__Not enough scarves!__\n"
-    view = ShoppingScreen(self.cog, self.trainer, self.shop, message=response)
-    #view.add_item(BackButton(MainMenu(self.cog, self.trainer), label=BACK_TO_MAIN_MENU))
-    view.add_item(ShopBuyMenu(self.cog, self.trainer, self.shop))
-    if len(self.trainer.inventory) > 0:
-      view.add_item(ShopSellMenu(self.cog, self.trainer, self.shop))
-    await interaction.response.edit_message(view=view, embed=view.get_embed())
+      title = "What are you thinking?"
+      response = "__You don't enough scarves!__\n"
+    view = ShoppingScreen(self.cog, self.trainer, self.shop)
+    view.add_notification(title, response)
+    
+    await interaction.response.edit_message(view=view, embeds=view.get_embeds())
 
 
 class ShopSellMenu(discord.ui.Select):
@@ -78,10 +81,8 @@ class ShopSellMenu(discord.ui.Select):
     item:PoshimoItem = self.trainer.inventory[choice]["item"]
     self.trainer.scarves += item.sell_price
     self.trainer.remove_item(item)
-    response = f"You sold one {item} for {item.sell_price} Scarves!"
-    view = ShoppingScreen(self.cog, self.trainer, self.shop, message=response)
-    #view.add_item(BackButton(MainMenu(self.cog, self.trainer), label=BACK_TO_MAIN_MENU))
-    view.add_item(ShopBuyMenu(self.cog, self.trainer, self.shop))
-    if len(self.trainer.inventory) > 0:
-      view.add_item(ShopSellMenu(self.cog, self.trainer, self.shop))
-    await interaction.response.edit_message(view=view, embed=view.get_embed())
+    title = f"Item sold"
+    response = f"You sold one {item} for {item.sell_price} Scarves!"    
+    view = ShoppingScreen(self.cog, self.trainer, self.shop)
+    view.add_notification(title, response)
+    await interaction.response.edit_message(view=view, embeds=view.get_embeds())

@@ -45,6 +45,14 @@ class PoshimoView(discord.ui.View):
   #     description="This window has expired. Please start a new session!"
   #   )
   #   await self.message.edit(view=None, embed=embed)
+  
+  def add_notification(self, title="Notification", message=""):
+    self.embeds.append(
+      discord.Embed(
+        title=title,
+        description=message
+      )
+    )
 
   def get_pages(self):
     return self.pages
@@ -68,24 +76,27 @@ class PoshimoView(discord.ui.View):
           description += log['log_entry']+'\n'
     return description
     
-class Confirmation(PoshimoView):
+
+
+class PoshimoConfirmation(PoshimoView):
   """ base confirmation boilerplate, for a simple yes or no question """
-  def __init__(self, cog, choice=None):
+  def __init__(self, cog, trainer=None, choice=None, **kwargs):
+    self.trainer = trainer
     self.choice = choice
-    super().__init__(cog)
+    super().__init__(cog, trainer)
 
   @discord.ui.button(label="Cancel", emoji="👎", style=discord.ButtonStyle.danger, row=2)
-  async def cancel_button(self, button, interaction):
+  async def cancel_button(self, button, interaction:discord.Interaction):
     await self.cancel_callback(button, interaction)
 
   @discord.ui.button(label="Confirm", emoji="👍", style=discord.ButtonStyle.green, row=2)  
-  async def confirm_button(self, button, interaction):
+  async def confirm_button(self, button, interaction:discord.Interaction):
     await self.confirm_callback(button, interaction)
 
-  async def cancel_callback(self, button, interaction):
+  async def cancel_callback(self, button, interaction:discord.Interaction):
     """ what happens when they click the cancel button """
     pass
-  async def confirm_callback(self, button, interaction):
+  async def confirm_callback(self, button, interaction:discord.Interaction):
     """ what happens when they click the confirm button """
     pass
 
@@ -149,14 +160,15 @@ class PoshimoSelect(discord.ui.Select):
   a select menu that lists the trainers poshimo 
   has a lil helper to pass the Poshimo object around
   """
-  def __init__(self, cog, trainer, include=None, custom_placeholder=None, **kwargs):
+  def __init__(self, cog, trainer:PoshimoTrainer, include=None, custom_placeholder=None, custom_options=None, **kwargs):
     self.cog = cog
     self.trainer:PoshimoTrainer = trainer
     disabled = False
     self.selected_poshimo = None
     self.poshimo_list = []
+    
     if include:
-      self.poshimo_list = self.trainer.list_all_poshimo(include=[include])
+      self.poshimo_list = self.trainer.list_all_poshimo(include=include)
     else:
       self.poshimo_list = self.trainer.list_all_poshimo()
     
@@ -172,13 +184,17 @@ class PoshimoSelect(discord.ui.Select):
       disabled = True
       option_list = [discord.SelectOption(label=f"No Poshimo", value="NULL")]
     else:
-      option_list = [
-        discord.SelectOption(
-          label=f"{p.display_name}",
-          value=f"{key}"
-        ) 
-        for key,p in enumerate(self.poshimo_list)
-      ]
+      if not custom_options:
+        option_list = [
+          discord.SelectOption(
+            label=f"{p.display_name}",
+            value=f"{key}"
+          ) 
+          for key,p in enumerate(self.poshimo_list)
+        ]
+      else:
+        option_list = custom_options
+      
     super().__init__(
       placeholder=placeholder,
       min_values=1,

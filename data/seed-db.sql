@@ -272,6 +272,8 @@ CREATE TABLE IF NOT EXISTS poshimodae (
   id INT(11) NOT NULL AUTO_INCREMENT,
   owner INT(11),
   status INT(11),
+  in_combat INT(11) DEFAULT 0,
+  is_wild INT(11) DEFAULT 0,
   level INT(11) NOT NULL DEFAULT 1,
   name VARCHAR(128) NOT NULL,
   display_name VARCHAR(128) DEFAULT NULL,
@@ -322,6 +324,7 @@ CREATE TABLE IF NOT EXISTS poshimo_trainers (
   PRIMARY KEY (id),
   FOREIGN KEY (user_id) REFERENCES users (id)
 );
+
 CREATE TABLE IF NOT EXISTS poshimo_battles (
   id INT(11) NOT NULL AUTO_INCREMENT,
   battle_type INT(11) NOT NULL,
@@ -338,6 +341,7 @@ CREATE TABLE IF NOT EXISTS poshimo_battles (
   PRIMARY KEY(id),
   FOREIGN KEY (wild_poshimo) REFERENCES poshimodae (id)
 );
+
 CREATE TABLE IF NOT EXISTS poshimo_fishing_log (
   id INT(11) NOT NULL AUTO_INCREMENT,
   trainer INT(11) NOT NULL,
@@ -347,4 +351,4 @@ CREATE TABLE IF NOT EXISTS poshimo_fishing_log (
   time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY(id),
   FOREIGN KEY (trainer) REFERENCES poshimo_trainers (id)
-)
+);

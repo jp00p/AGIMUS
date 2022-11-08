@@ -4,9 +4,9 @@ import csv
 
 with open("pocket_shimodae/data/poshimo_items.csv") as file:
   csvdata = csv.DictReader(file)
-  idata = {}
+  item_data = {}
   for row in csvdata:
-    idata[row.get("name").lower()] = {
+    item_data[row.get("name").lower()] = {
       "name": row.get("name", ""),
       "description": row.get("description", ""),
       "type": row.get("type", ""),
@@ -17,7 +17,7 @@ with open("pocket_shimodae/data/poshimo_items.csv") as file:
       "crafting_mats": row.get("crafting_mats", None)
 
     }
-  ps_log(f"Items: {len(idata)}")
+  ps_log(f"Items: {len(item_data)}")
 
 
 class UseWhere(Enum):
@@ -49,18 +49,18 @@ class FunctionCodes(Enum):
 class PoshimoItem(object):
   def __init__(self, name:str):
     self.name:str = name
-    self.idata:dict = idata.get(self.name.lower())
-    if not self.idata:
+    self.item_data:dict = item_data.get(self.name.lower())
+    if not self.item_data:
       self.description = f"ERROR LOADING THIS ITEM {self.name} -- double check the spelling"
-    self.description:str = self.idata["description"]
-    self.type:ItemTypes = ItemTypes[self.idata["type"].upper()]
-    self.use_where:UseWhere = UseWhere[self.idata["use_where"].upper()]
-    self.function_code:str = FunctionCodes[self.idata["function_code"].upper()]
-    self.power:int = int(self.idata["power"])
-    self.sell_price:int = int(self.idata["sell_price"])
+    self.description:str = self.item_data["description"]
+    self.type:ItemTypes = ItemTypes[self.item_data["type"].upper()]
+    self.use_where:UseWhere = UseWhere[self.item_data["use_where"].upper()]
+    self.function_code:str = FunctionCodes[self.item_data["function_code"].upper()]
+    self.power:int = int(self.item_data["power"])
+    self.sell_price:int = int(self.item_data["sell_price"])
     self.crafting_mats = None
-    if self.idata["crafting_mats"] != '':
-      self.crafting_mats = self.idata["crafting_mats"].split("|")
+    if self.item_data["crafting_mats"] != '':
+      self.crafting_mats = self.item_data["crafting_mats"].split("|")
 
   def __str__(self):
     return self.name.title()

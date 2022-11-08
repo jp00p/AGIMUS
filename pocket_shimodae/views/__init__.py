@@ -7,3 +7,4 @@ from .registration import *
 from .shop import *
 from .travel import *
 from .main_menu import *
+from .admin import *

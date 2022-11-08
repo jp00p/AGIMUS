@@ -34,15 +34,16 @@ with open("pocket_shimodae/data/shimodaepedia.csv") as file:
     }
   ps_log(f"Total Poshimo: {len(pdata)}")
 
+
 class PoshimoStatus(Enum):
   IDLE = auto()
-  BATTLING = auto()
   DEAD = auto()
   AWAY = auto()
   WILD = auto()
 
   def __str__(self):
     return f"{str(self.name).title()}"
+
 
 class Poshimo(object):
   """
@@ -58,6 +59,7 @@ class Poshimo(object):
     self.name:str = name
     self._owner:int = owner
     self.is_wild:bool = is_wild
+    self._in_combat = False
     self.types = []
     self.poshimodata:dict = {} # this will hold our file and db stats eventually
     
@@ -87,7 +89,6 @@ class Poshimo(object):
 
     if is_wild and not self.id:
       # create new wild poshimo in the db (so it can be persistent in case bot restarts)
-      self._status = PoshimoStatus.WILD
       self.id = self.save()
       
     if self.id:
@@ -98,10 +99,14 @@ class Poshimo(object):
     # poshimodata should be fully loaded now, if not ... wha happen???
     #logger.info(self.poshimodata)
     self._level:int = self.poshimodata.get("level", 1)
-    self._name = self.poshimodata["name"]
+    self.name = self.poshimodata["name"]
     self._display_name:str = self.poshimodata.get("display_name")
     self._personality:PoshimoPersonality = PoshimoPersonality(self.poshimodata.get("personality"))
-    self._hp:int = self.poshimodata.get("hp", 1)
+    self._hp:int = int(self.poshimodata.get("hp", 1))
+    
+    if self._hp <= 0:
+      self.status = PoshimoStatus.DEAD
+
     self._max_hp:int = self.poshimodata.get("max_hp", self._hp) # only real poshimo have max_hp
 
     for type in ["type_1", "type_2"]:
@@ -110,7 +115,7 @@ class Poshimo(object):
 
     self._xp:int = 0
     self._last_damaging_move:PoshimoMove = None
-    self._status = PoshimoStatus.IDLE
+    
 
     # 
     # end of __init__ =====================================================
@@ -146,12 +151,9 @@ class Poshimo(object):
     self.poshimodata.update(temp_pdata) # merge with db info (so its not a base poshimo)
     self._move_list = self.load_move_list(results.get("move_list")) # unpack json moves
     self._mission_id = self.poshimodata.get("mission_id", None)
-    temp_status:int = self.poshimodata.get("status", 0)   
-
-    if temp_status:
-      self._status = PoshimoStatus(temp_status)
-    else:
-      self._status = PoshimoStatus.IDLE
+    self._status = PoshimoStatus(int(self.poshimodata.get("status", 0))) 
+    self._in_combat = bool(int(self.poshimodata.get("in_combat")))
+    self.is_wild = bool(int(self.poshimodata.get("is_wild")))
 
     # load the actual stats 
     self._attack:PoshimoStat = PoshimoStat(self.poshimodata["attack"][0], stage=self.poshimodata["attack"][1], xp=self.poshimodata["attack"][2])
@@ -179,9 +181,9 @@ class Poshimo(object):
       
       sql = """
       INSERT INTO poshimodae 
-        (id, owner, name, display_name, level, xp, hp, max_hp, attack, defense, special_attack, special_defense, speed, personality, move_list, status) 
+        (id, owner, name, display_name, level, xp, hp, max_hp, attack, defense, special_attack, special_defense, speed, personality, move_list, status, in_combat) 
         VALUES 
-          (%(id)s, %(owner)s, %(name)s, %(display_name)s, %(level)s, %(xp)s, %(hp)s, %(max_hp)s, %(attack)s, %(defense)s, %(special_attack)s, %(special_defense)s, %(speed)s, %(personality)s, %(move_list)s, %(status)s)
+          (%(id)s, %(owner)s, %(name)s, %(display_name)s, %(level)s, %(xp)s, %(hp)s, %(max_hp)s, %(attack)s, %(defense)s, %(special_attack)s, %(special_defense)s, %(speed)s, %(personality)s, %(move_list)s, %(status)s, %(in_combat)s)
       """
       vals = {
         "id" : self.id,
@@ -199,7 +201,9 @@ class Poshimo(object):
         "speed":self._speed.to_json(),
         "personality":self._personality.name.lower(),
         "move_list":self.dump_move_list(),
-        "status":self._status.value
+        "status":self._status.value,
+        "in_combat":self._in_combat,
+        "is_wild":self.is_wild
       }
       query.execute(sql, vals)
       #logger.info(f"Saving poshimo: {vals}")
@@ -342,6 +346,15 @@ class Poshimo(object):
     self.update("status", self._status.value)
 
   @property
+  def in_combat(self) -> bool:
+    return self._in_combat
+
+  @in_combat.setter
+  def in_combat(self, val:bool):
+    self._in_combat = val
+    self.update("in_combat", self._in_combat)
+
+  @property
   def move_list(self) -> List[PoshimoMove]:
     return self._move_list
   
@@ -425,16 +438,44 @@ class Poshimo(object):
     load move list from json 
     returns a list of PoshimoMoves
     """
-    #logger.info(f"Move list to load from JSON: {movelist}")
     temp_move_list = []
     loaded_move_list = json.loads(movelist)
     for move in loaded_move_list:
       if move and move != "":
         dbmove = PoshimoMove(name=move["name"], stamina=move["stamina"], max_stamina=move["max_stamina"])
-        #logger.info(f"Loading {move['name']} from DB: {dbmove}")
         temp_move_list.append(dbmove)
     return temp_move_list
 
+  def get_all_stamina(self) -> tuple:
+    ''' gets the stam/max stam from all this poshimo's moves '''
+    moves = self._move_list
+    stam = max_stam = 0
+    for m in moves:
+      max_stam += m.max_stamina
+      stam += m.stamina
+    return (stam, max_stam)
+
+  def revive(self) -> None:
+    ''' bring a poshimo back to life '''
+    self.status = PoshimoStatus.IDLE
+    self.hp += 1
+
+  def restore_all_hp(self) -> None:
+    ''' fully restores this poshimo's hp '''
+    self.hp = self.max_hp
+    
+  def restore_all_stamina(self) -> None:
+    ''' fully restore this poshimo's stamina '''
+    moves = self._move_list
+    for m in moves:
+      m.stamina = m.max_stamina
+    self.move_list = moves
+
+  def full_restore(self) -> None:
+    ''' full restore of hp and stamina '''
+    self.restore_all_hp()
+    self.restore_all_stamina()
+    
 
 """ from ultranurd 
   

@@ -27,10 +27,10 @@ class Welcome(PoshimoView):
       )
     ]
 
-class StarterPoshimoConfirmation(Confirmation):
+class StarterPoshimoPoshimoConfirmation(PoshimoConfirmation):
   """ confirmation for picking your starter poshimo """
   def __init__(self, cog, choice:Poshimo):
-    super().__init__(cog, choice)
+    super().__init__(cog, choice=choice)
     self.embeds = [
       discord.Embed(
         title=f"You chose {choice.name}. Are you sure?",
@@ -45,7 +45,7 @@ class StarterPoshimoConfirmation(Confirmation):
     
   async def confirm_callback(self, button, interaction:discord.Interaction):
     """ confirm the poshimo choice, register the player! """
-    view = StarterChosen(self.cog, self.choice, get_user(interaction.user.id))
+    view = StarterChosen(self.cog, get_user(interaction.user.id), self.choice)
     await interaction.response.edit_message(view=view, embeds=view.embeds)
 
 
@@ -76,7 +76,7 @@ class StarterPages(PoshimoView):
   async def button_callback(self, button, interaction:discord.Interaction):
     """ a single button to confirm their selection, depending on which page they were on """
     pchoice = self.starters[self.paginator.current_page] # page corresponds to the starter poshimo
-    view = StarterPoshimoConfirmation(self.cog, pchoice)
+    view = StarterPoshimoPoshimoConfirmation(self.cog, pchoice)
     await interaction.response.edit_message(view=view, embeds=view.embeds)
 
 class StarterChosen(PoshimoView):
@@ -85,7 +85,7 @@ class StarterChosen(PoshimoView):
   - this actually registers the player and their poshimo to the DB
   - not really a view after all, is it? heh heh heh
   """
-  def __init__(self, cog, choice:Poshimo, user):
+  def __init__(self, cog, user, choice:Poshimo):
     super().__init__(cog)
     # ~ THE MAGIC HAPPENS HERE ~ #
     self.trainer = utils.register_trainer(user["id"]) # register player

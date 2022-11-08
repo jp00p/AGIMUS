@@ -34,7 +34,6 @@ class MainMenu(PoshimoView):
     self.add_item(ManageMenuButton(self.cog, self.trainer, row=1))
     self.add_item(FishingMenuButton(self.cog, self.trainer, row=1))
     self.add_item(InventoryMenuButton(self.cog, self.trainer, row=1))
-      
 
     self.add_item(TravelMenuButton(self.cog, self.trainer, row=2))
     self.add_item(ShopMenuButton(self.cog, self.trainer, self.trainer_location, row=2))
@@ -52,7 +51,6 @@ class BackToMainMenu(BackButton):
       label=BACK_TO_MAIN_MENU
     )
 
-
 class FishingMenuButton(discord.ui.Button):
   ''' the button to open the fishing menu '''
   def __init__(self, cog, trainer, **kwargs):
@@ -61,6 +59,7 @@ class FishingMenuButton(discord.ui.Button):
     super().__init__(
       label="Fishing",
       emoji="🐟",
+      disabled=bool(self.trainer.status is TrainerStatus.BATTLING),
       **kwargs
     )
   async def callback(self, interaction):
@@ -76,6 +75,7 @@ class InventoryMenuButton(discord.ui.Button):
     super().__init__(
       label="Inventory",
       emoji="💼",
+      disabled=bool(self.trainer.status is TrainerStatus.BATTLING),
       **kwargs
     )
   async def callback(self, interaction):
@@ -89,6 +89,7 @@ class ManageMenuButton(discord.ui.Button):
     super().__init__(
       label="Manage Poshimo",
       emoji="🔧",
+      disabled=bool(self.trainer.status is TrainerStatus.BATTLING),
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
@@ -102,6 +103,7 @@ class TravelMenuButton(discord.ui.Button):
     super().__init__(
       label="Travel",
       emoji="✈",
+      disabled=bool(self.trainer.status is TrainerStatus.BATTLING),
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
@@ -116,6 +118,7 @@ class CraftingMenuButton(discord.ui.Button):
     super().__init__(
       label="Crafting",
       emoji="🔨",
+      disabled=bool(self.trainer.status is TrainerStatus.BATTLING),
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
@@ -129,15 +132,11 @@ class ShopMenuButton(discord.ui.Button):
     super().__init__(
       label="Shopping",
       emoji="🛒",
-      disabled=bool(self.location.shop is None),
+      disabled=bool(self.location.shop is None or self.trainer.status is TrainerStatus.BATTLING),
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
     view = mm_shop.ShoppingScreen(self.cog, self.trainer, self.location.shop)
-    # view.add_item(BackToMainMenu(self.cog, self.trainer))
-    view.add_item(mm_shop.ShopBuyMenu(self.cog, self.trainer, self.location.shop))
-    if len(self.trainer.inventory) > 0:
-      view.add_item(mm_shop.ShopSellMenu(self.cog, self.trainer, self.location.shop))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class QuestMenuButton(discord.ui.Button):
@@ -147,6 +146,7 @@ class QuestMenuButton(discord.ui.Button):
     super().__init__(
       label="Missions",
       emoji="💎",
+      disabled=bool(self.trainer.status is TrainerStatus.BATTLING),
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
@@ -161,6 +161,7 @@ class EMHMenuButton(discord.ui.Button):
     super().__init__(
       label="Call EMH",
       emoji="🩺",
+      disabled=bool(self.trainer.status is TrainerStatus.BATTLING),
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
@@ -175,6 +176,7 @@ class DuelMenuButton(discord.ui.Button):
     super().__init__(
       label="Duel",
       emoji="⚔",
+      disabled=bool(self.trainer.status is TrainerStatus.BATTLING),
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
@@ -186,9 +188,11 @@ class HuntMenuButton(discord.ui.Button):
     self.game:PoshimoGame = self.cog.game
     self.trainer = trainer
     disabled = False
+
     if self.trainer.status is TrainerStatus.BATTLING:
       label = "Resume your hunt"
       emoji = "⏯"
+      
     else:
       label = "Start a hunt"
       emoji = "🏹"
