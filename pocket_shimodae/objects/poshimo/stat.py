@@ -47,7 +47,7 @@ class PoshimoStat(object):
 
   def add_xp(self, val) -> int:
     ''' add xp to this stat, returns amt gained if leveled up '''
-    self.xp = self.xp + val
+    self.xp = (self.xp + val)
     if self.xp >= 100:
       self.xp = self.xp - 100
       increase = random.choice([1,2,3])

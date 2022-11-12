@@ -215,17 +215,23 @@ class PoshimoTrainer(object):
     
     all_poshimo:List[Poshimo] = list(all_poshimo)
     
-    logger.info(f"All poshimo before sort: {', '.join([str(p) for p in all_poshimo])}")
-    
     all_poshimo = sorted(all_poshimo, key=lambda x: (x.display_name.lower()), reverse=False)
     
     if self.active_poshimo and self.active_poshimo in all_poshimo:
       all_poshimo.remove(self.active_poshimo)
       all_poshimo.insert(0, self.active_poshimo)
 
-    logger.info(f"All poshimo after sort: {', '.join([str(p) for p in all_poshimo])}")
-    
     return all_poshimo
+
+  def end_combat(self):
+    ''' finish combat, set everyone's status to idle '''
+    self.status = TrainerStatus.IDLE
+    self.active_poshimo.in_combat = False
+    temp_sac = self._poshimo_sac
+    for p in temp_sac:
+      if p.in_combat:
+        p.in_combat = False
+    self.poshimo_sac = temp_sac
 
   def pick_move(self) -> PoshimoMove:
     '''

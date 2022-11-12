@@ -9,16 +9,14 @@ class ShoppingScreen(PoshimoView):
     super().__init__(cog, trainer)
     self.shop = shop
     
-    description = ""
-    if message:
-      description = message + "\n"
-    description += shop.list_inventory()
+    description = fill_embed_text("Aye, what can I do for ye?")
+    description += "\n\n" + shop.list_inventory()
 
     shop_embed = discord.Embed(
       title="Welcome to the shop!",
-      description=fill_embed_text(f"{description}")
+      description=f"{description}"
     )
-    shop_embed.set_footer(text=f"Your Scarves: {self.trainer.scarves}")
+    shop_embed.set_footer(text=f"Your funds: {SCARVES_ICON}{self.trainer.scarves} ")
     self.embeds = [shop_embed]
     self.add_item(ShopBuyMenu(self.cog, self.trainer, self.shop))
     if len(self.trainer.inventory) > 0:
@@ -33,7 +31,7 @@ class ShopBuyMenu(discord.ui.Select):
     options = []
     for key, stockitem in enumerate(shop.stock):
       options.append(discord.SelectOption(
-        label=f"{stockitem[0].name.title()} - {stockitem[1]} Scarves",
+        label=f"{stockitem[0].name.title()} - {SCARVES_ICON}{stockitem[1]}",
         value=f"{key}"
       ))
     
@@ -45,11 +43,12 @@ class ShopBuyMenu(discord.ui.Select):
   async def callback(self, interaction:discord.Interaction):
     item_choice = self.shop.stock[int(self.values[0])]
     item = item_choice[0]
+    price = item_choice[1]
     response = ""
     purchase = self.shop.buy(self.trainer, int(self.values[0]))
     if purchase:
       title = "Purchase complete"
-      response = f"**You purchased one {item}!**\n"
+      response = f"You purchased one **{item}** for `{SCARVES_ICON}{price}`\n"
     else:
       title = "What are you thinking?"
       response = "__You don't enough scarves!__\n"
@@ -68,7 +67,7 @@ class ShopSellMenu(discord.ui.Select):
     
     for i in self.trainer.inventory.values():
       options.append(discord.SelectOption(
-        label=f'{i["item"].sell_price} - {i["item"].name}',
+        label=f'{i["item"].name} - {SCARVES_ICON}{i["item"].sell_price}',
         value=i["item"].name
       ))
     super().__init__(
@@ -82,7 +81,7 @@ class ShopSellMenu(discord.ui.Select):
     self.trainer.scarves += item.sell_price
     self.trainer.remove_item(item)
     title = f"Item sold"
-    response = f"You sold one {item} for {item.sell_price} Scarves!"    
+    response = f"You sold one {item} for `{SCARVES_ICON}{item.sell_price}`"
     view = ShoppingScreen(self.cog, self.trainer, self.shop)
     view.add_notification(title, response)
     await interaction.response.edit_message(view=view, embeds=view.get_embeds())

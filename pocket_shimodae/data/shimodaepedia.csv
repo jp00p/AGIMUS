@@ -1,155 +1,155 @@
-name,type_1,type_2,hp,attack,defense,special_attack,special_defense,speed,move_1,move_2,move_3,move_4
-Bulbasaur,drunk,rogue,45,49,49,65,65,45,Razor Leaf,Headbutt,Giga Drain,Vine Whip
-Ivysaur,dutiful,medical,60,62,63,80,80,60,Solarbeam,Fury Cutter,Leech Seed,Sunny Day
-Venusaur,horny,rascal,80,82,83,100,100,80,Giga Drain,Tackle,Poisonpowder,Solarbeam
-Charmander,synth,science,39,52,43,60,50,65,Flamethrower,Slash,Dragonbreath,Ember
-Charmeleon,photonic,engineering,58,64,58,80,65,80,Fire Blast,Strength,Dig,Smokescreen
-Charizard,psychic,synth,78,84,78,109,85,100,Fire Punch,Fly,Dragonbreath,Flamethrower
-Squirtle,warrior,diplomat,44,48,65,60,54,43,Surf,Bite,Blizzard,Growl
-Wartortle,spiritual,photonic,59,63,80,65,80,58,Waterfall,Icy Wind,Dig,Rapid Spin
-Blastoise,civilian,criminal,79,83,100,85,105,78,Hydro Pump,Rapid Spin,Earthquake,Surf
-Caterpie,science,drunk,45,30,35,20,20,45,Tackle,String Shot,Tackle,String Shot
-Metapod,engineering,villain,50,20,55,25,25,30,Tackle,Harden,Tackle,Harden
-Butterfree,medical,psychic,60,45,50,80,80,70,Gust,Psychic,Hyper Beam,Stun Spore
-Weedle,diplomat,spiritual,40,35,30,20,20,50,Poison Sting,String Shot,Poison Sting,String Shot
-Kakuna,merchant,warrior,45,25,50,25,25,35,Tackle,Harden,Tackle,Harden
-Beedrill,criminal,merchant,65,80,40,40,80,75,Twineedle,Sludge Bomb,Pursuit,Focus Energy
-Pidgey,rascal,synth,40,45,40,35,35,56,Fly,Return,Steel Wing,Sand-attack
-Pidgeotto,rogue,horny,63,60,55,50,50,71,Fly,Swift,Steel Wing,Aerial Ace
-Pidgeot,villain,dutiful,83,80,75,70,70,91,Fly,Swift,Hyper Beam,Aerial Ace
-Rattata,drunk,rogue,30,56,35,25,35,72,Super Fang,Headbutt,Shadow Ball,Focus Energy
-Raticate,dutiful,medical,55,81,60,50,70,97,Super Fang,Hyper Fang,Pursuit,Scary Face
-Spearow,horny,rascal,40,60,30,31,31,70,Drill Peck,Frustration,Steel Wing,Growl
-Fearow,synth,science,65,90,65,61,61,100,Drill Peck,Hyper Beam,Pursuit,Fly
-Ekans,photonic,engineering,30,60,44,40,54,55,Sludge Bomb,Bite,Dig,Wrap
-Arbok,psychic,synth,60,85,69,65,79,80,Sludge Bomb,Earthquake,Strength,Dig
-Pikachu,warrior,diplomat,35,55,30,50,40,90,Thunderbolt,Surf,Iron Tail,Thunder Wave
-Raichu,spiritual,photonic,60,90,55,90,80,100,Thunder,Quick Attack,Spark,Body Slam
-Sandshrew,civilian,criminal,50,75,85,20,30,40,Earthquake,Fury Swipes,Defense Curl,Fury Cutter
-Sandslash,science,drunk,75,100,110,45,55,65,Earthquake,Slash,Rollout,Fury Swipes
-Nidoran,engineering,villain,55,47,52,40,40,41,Headbutt,Iron Tail,Blizzard,Poison Sting
-Nidorina,medical,psychic,70,62,67,55,55,56,Strength,Bite,Blizzard,Poison Sting
-Nidoqueen,drunk,spiritual,90,82,87,75,85,76,Body Slam,Earthquake,Ice Punch,Poison Sting
-Nidorino,dutiful,warrior,61,72,57,55,55,65,Strength,Double Kick,Thunder,Horn Attack
-Nidoking,horny,merchant,81,92,77,85,75,85,Thunder,Earthquake,Horn Attack,Mud-Slap
-Clefairy,synth,synth,70,45,48,60,65,35,Strength,Psychic,Growl,Tackle
-Clefable,photonic,horny,95,70,73,85,90,60,Strength,Headbutt,Ice Punch,Psychic
-Vulpix,psychic,dutiful,38,41,40,50,65,65,Flamethrower,Dig,Ember,Quick Attack
-Ninetales,warrior,rogue,73,76,75,81,100,100,Fire Blast,Overheat,Dig,Quick Attack
-Jigglypuff,spiritual,medical,115,45,20,45,25,20,Body Slam,Rollout,Defense Curl,Double-Edge
-Wigglytuff,civilian,rogue,140,70,45,75,50,45,Double-Edge,Fire Punch,Rollout,Body Slam
-Zubat,science,medical,40,45,35,30,40,55,Wing Attack,Giga Drain,Air Cutter,Bite
-Golbat,engineering,rascal,75,80,70,65,75,90,Crunch,Aerial Ace,Wing Attack,Giga Drain
-Oddish,medical,science,45,50,55,75,65,30,Giga Drain,Sludge Bomb,Acid,Solarbeam
-Gloom,diplomat,engineering,60,65,70,85,75,40,Solarbeam,Sludge Bomb,Acid,Giga Drain
-Vileplume,merchant,synth,75,80,85,100,90,50,Petal Dance,Acid,Solarbeam,Giga Drain
-Paras,criminal,diplomat,35,70,55,45,55,25,Giga Drain,Slash,Fury Cutter,Growth
-Parasect,rascal,photonic,60,95,80,60,80,30,Giga Drain,Slash,Fury Cutter,Growth
-Venonat,rogue,criminal,60,55,50,40,55,45,Sludge Bomb,Psychic,Tackle,Growl
-Venomoth,villain,drunk,70,65,60,90,75,90,Sludge Bomb,Psychic,Psybeam,Leech Life
-Diglett,drunk,villain,10,55,25,35,45,95,Earthquake,Slash,Growl,Dig
-Dugtrio,dutiful,psychic,35,80,50,50,70,120,Earthquake,Slash,Dig,Growl
-Meowth,horny,spiritual,40,45,35,40,40,90,Slash,Faint Attack,Shadow Ball,Bite
-Persian,synth,warrior,65,70,60,65,65,115,Headbutt,Slash,Faint Attack,Shadow Ball
-Psyduck,photonic,merchant,50,52,48,65,50,55,Dig,Confusion,Surf,Scratch
-Golduck,psychic,synth,80,82,78,95,80,85,Hydro Pump,Psychic,Dig,Surf
-Mankey,warrior,horny,40,80,35,35,45,70,Cross Chop,Strength,Karate Chop,Rock Smash
-Primeape,spiritual,dutiful,65,105,60,60,70,95,Cross Chop,Strength,Karate Chop,Rock Smash
-Growlithe,civilian,rogue,55,70,45,70,50,60,Ember,Bite,Dig,Tackle
-Arcanine,science,medical,90,110,80,100,80,95,Flame Wheel,Extremespeed,Flamethrower,Dig
-Poliwag,engineering,rascal,40,50,40,40,40,90,Water Gun,Body Slam,Surf,Tackle
-Poliwhirl,medical,science,65,65,65,50,50,90,Surf,Body Slam,Tackle,Water Gun
-Poliwrath,diplomat,engineering,90,85,95,70,90,70,Dynamicpunch,Hydro Pump,Mach Punch,Body Slam
-Abra,merchant,synth,25,20,15,105,55,90,Confusion,Psybeam,Reflect,Thunderpunch
-Kadabra,criminal,diplomat,40,35,30,120,70,105,Psychic,Psybeam,Reflect,Thunderpunch
-Alakazam,rascal,photonic,55,50,45,135,85,120,Psychic,Ice Punch,Thunder,Shadow Ball
-Machop,rogue,criminal,70,80,50,35,35,35,Strength,Rock Smash,Cross Chop,Dig
-Machoke,drunk,drunk,80,100,70,50,60,45,Strength,Rock Smash,Cross Chop,Dig
-Machamp,dutiful,villain,90,130,80,65,85,55,Thunderpunch,Fire Punch,Strength,Cross Chop
-Bellsprout,horny,psychic,50,75,35,70,30,40,Giga Drain,Sludge Bomb,Razor Leaf,Acid
-Weepinbell,synth,spiritual,65,90,50,85,45,55,Giga Drain,Sludge Bomb,Razor Leaf,Acid
-Victreebel,photonic,warrior,80,105,65,100,60,70,Solarbeam,Sludge Bomb,Giga Drain,Razor Leaf
-Tentacool,psychic,merchant,40,40,35,50,100,70,Surf,Sludge Bomb,Blizzard,Bubblebeam
-Tentacruel,warrior,synth,80,70,65,80,120,100,Surf,Sludge Bomb,Blizzard,Bubblebeam
-Geodude,spiritual,horny,40,80,100,30,30,20,Earthquake,Rollout,Rock Slide,Rock Smash
-Graveler,civilian,dutiful,55,95,115,45,45,35,Earthquake,Rollout,Rock Slide,Rock Smash
-Golem,science,rogue,80,110,130,55,65,45,Earthquake,Rollout,Rock Slide,Rock Smash
-Ponyta,engineering,medical,50,85,55,65,65,90,Fire Blast,Headbutt,Flamethrower,Stomp
-Rapidash,medical,rascal,65,100,70,80,80,105,Fire Blast,Headbutt,Flamethrower,Stomp
-Slowpoke,diplomat,science,90,65,65,40,40,15,Surf,Psychic,Earthquake,Ice Beam
-Slowbro,merchant,engineering,95,75,110,100,80,30,Surf,Psychic,Earthquake,Ice Beam
-Magnemite,criminal,synth,25,35,70,95,55,45,Thunder,Swift,Thunderbolt,Shock Wave
-Magneton,rascal,diplomat,50,60,95,120,70,70,Thunder,Swift,Thunderbolt,Shock Wave
-Farfetch'd,rogue,photonic,52,65,55,58,62,60,Slash,Fly,Steel Wing,Wing Attack
-Doduo,villain,criminal,35,85,45,35,35,75,Drill Peck,Tri Attack,Steel Wing,Pursuit
-Dodrio,drunk,drunk,60,110,70,60,60,100,Drill Peck,Tri Attack,Steel Wing,Pursuit
-Seel,dutiful,villain,65,45,55,45,70,45,Surf,Ice Beam,Headbutt,Aurora Beam
-Dewgong,horny,psychic,90,70,80,70,95,70,Surf,Ice Beam,Headbutt,Aurora Beam
-Grimer,synth,spiritual,80,80,50,40,50,25,Sludge Bomb,Sludge,Acid,Dynamicpunch
-Muk,photonic,warrior,105,105,75,65,100,50,Sludge Bomb,Sludge,Acid,Dynamicpunch
-Shellder,psychic,merchant,30,65,100,45,25,40,Surf,Ice Beam,Swift,Aurora Beam
-Cloyster,warrior,synth,50,90,180,85,45,70,Surf,Ice Beam,Swift,Aurora Beam
-Gastly,spiritual,horny,30,35,30,100,35,80,Shadow Ball,Psychic,Thief,Sludge Bomb
-Haunter,civilian,dutiful,45,50,45,115,55,95,Shadow Ball,Psychic,Thief,Sludge Bomb
-Gengar,science,rogue,60,65,60,130,75,110,Shadow Ball,Psychic,Thief,Sludge Bomb
-Onix,engineering,medical,35,45,160,30,45,70,Earthquake,Rock Throw,Strength,Tackle
-Drowzee,medical,rascal,60,48,45,43,90,42,Psychic,Headbutt,"Body Slam ",Confusion
-Hypno,diplomat,science,85,73,70,73,115,67,Psychic,Headbutt,Body Slam,Confusion
-Krabby,merchant,engineering,30,105,90,25,25,50,Crabhammer,Strength,Blizzard,Surf
-Kingler,criminal,synth,55,130,115,50,50,75,Crabhammer,Strength,Blizzard,Surf
-Voltorb,drunk,diplomat,40,30,50,55,55,100,Thunder,Thunderbolt,Shock Wave,Swift
-Electrode,dutiful,photonic,60,50,70,80,80,140,Thunder,Thunderbolt,Shock Wave,Swift
-Exeggcute,horny,criminal,60,40,80,60,45,40,Psychic,Giga Drain,Egg Bomb,Confusion
-Exeggutor,synth,drunk,95,95,85,125,65,55,Psychic,Giga Drain,Egg Bomb,Confusion
-Cubone,photonic,villain,50,50,95,40,50,35,Bonemerang,Headbutt,Icy Wind,Dig
-Marowak,psychic,psychic,60,80,110,50,80,45,Bonemerang,Headbutt,Icy Wind,Dig
-Hitmonlee,warrior,spiritual,50,120,53,35,110,87,Hi Jump Kick,Mega Kick,Double Kick,Strength
-Hitmonchan,spiritual,warrior,50,105,79,35,110,76,Mach Punch,Strength,Ice Punch,Fire Punch
-Lickitung,civilian,merchant,90,55,75,60,75,30,Hyper Beam,Shadow Ball,Surf,Growl
-Koffing,science,synth,40,65,95,60,45,35,Sludge Bomb,Fire Blast,Zap Cannon,Selfdestruct
-Weezing,engineering,horny,65,90,120,85,70,60,Sludge Bomb,Fire Blast,Zap Cannon,Selfdestruct
-Rhyhorn,medical,dutiful,80,85,95,30,30,25,Earthquake,Rollout,Iron Tail,Dig
-Rhydon,diplomat,rogue,105,130,120,45,45,40,Earthquake,Rollout,Iron Tail,Dig
-Chansey,merchant,medical,250,5,5,35,105,50,Egg Bomb,Blizzard,Growl,Body Slam
-Tangela,criminal,rascal,65,55,115,100,40,60,Giga Drain,Thief,Solarbeam,Sleep Powder
-Kangaskhan,rascal,science,105,95,80,40,80,90,Dizzy Punch,Bite,Surf,Earthquake
-Horsea,rogue,engineering,30,40,70,70,25,60,Hydro Pump,Blizzard,Surf,Swift
-Seadra,villain,synth,55,65,95,95,45,85,Hydro Pump,Blizzard,Surf,Dragonbreath
-Goldeen,drunk,diplomat,45,67,60,35,50,63,Surf,Horn Attack,Waterfall,Bubblebeam
-Seaking,dutiful,photonic,80,92,65,65,80,68,Surf,Horn Attack,Waterfall,Bubblebeam
-Staryu,horny,criminal,30,45,55,70,55,85,Psychic,Hydro Pump,Thunder,Rapid Spin
-Starmie,synth,drunk,60,75,85,100,85,115,Psychic,Hydro Pump,Thunder,Rapid Spin
-Mr. Mime,photonic,villain,40,45,65,100,120,90,Psybeam,Psychic,Shadow Ball,Reflect
-Scyther,psychic,psychic,70,110,80,55,80,105,Wing Attack,Pursuit,Slash,Swift
-Jynx,warrior,spiritual,65,50,35,115,95,95,Ice Punch,Psychic,Ice Beam,Lick
-Electabuzz,spiritual,warrior,65,83,57,95,85,105,Thunderpunch,Swift,Thunderbolt,Thunder Wave
-Magmar,civilian,merchant,65,95,57,100,85,93,Fire Punch,Flamethrower,Thunderpunch,Brick Break
-Pinsir,science,synth,65,125,100,55,70,85,Fury Cutter,Vicegrip,Submission,Earthquake
-Tauros,engineering,horny,75,100,95,40,70,110,Take Down,Pursuit,Rock Smash,Body Slam
-Magikarp,medical,dutiful,20,10,55,15,20,80,Tackle,Flail,Tackle,Flail
-Gyarados,diplomat,rogue,95,125,79,60,100,81,Waterfall,Dragonbreath,Surf,Earthquake
-Lapras,merchant,medical,130,85,80,85,95,60,Waterfall,Surf,Ice Beam,Thunderbolt
-Ditto,criminal,rascal,48,48,48,48,48,48,Tackle,Tackle,Tackle,Tackle
-Eevee,rascal,science,55,55,50,45,65,55,Take Down,Iron Tail,Shadow Ball,Growl
-Vaporeon,rogue,engineering,130,65,60,110,95,65,Waterfall,Surf,Ice Beam,Quick Attack
-Jolteon,villain,synth,65,65,60,110,95,130,Thunderbolt,Pin Missile,Double Kick,Quick Attack
-Flareon,drunk,diplomat,65,130,60,95,110,65,Fire Blast,Flamethrower,Flame Wheel,Quick Attack
-Porygon,dutiful,photonic,65,60,70,85,75,40,Tri Attack,Blizzard,Tackle,Growl
-Omanyte,drunk,criminal,35,40,100,90,55,35,Surf,Ancientpower,Blizzard,Spike Cannon
-Omastar,dutiful,drunk,70,60,125,115,70,55,Surf,Ancientpower,Blizzard,Spike Cannon
-Kabuto,horny,villain,30,80,90,55,45,55,Rollout,Giga Drain,Blizzard,Surf
-Kabutops,synth,psychic,60,115,105,65,70,80,Rollout,Giga Drain,Blizzard,Surf
-Aerodactyl,photonic,spiritual,80,105,65,60,75,130,Ancientpower,Steel Wing,Rock Slide,Fly
-Snorlax,psychic,warrior,160,110,65,65,110,30,Headbutt,Fire Punch,Thunderpunch,Body Slam
-Articuno,warrior,merchant,90,85,100,95,125,85,Blizzard,Aerial Ace,Ice Beam,Fly
-Zapdos,spiritual,synth,90,90,85,125,90,100,Thunder,Thunderbolt,Aerial Ace,Fly
-Moltres,civilian,horny,90,100,90,125,85,90,Fire Blast,Flamethrower,Aerial Ace,Fly
-Dratini,science,dutiful,41,64,45,50,50,50,Dragonbreath,Outrage,Thunderbolt,Headbutt
-Dragonair,engineering,rogue,61,84,65,70,70,70,Dragonbreath,Fire Blast,Thunder Wave,Headbutt
-Dragonite,medical,medical,91,134,95,100,100,80,Twister,Wing Attack,Thunder,Hyper Beam
-Mewtwo,diplomat,rascal,106,110,90,154,90,130,Psychic,Ice Beam,Fire Blast,Thunder
-Mew,merchant,science,100,100,100,100,100,100,Psychic,Flamethrower,Shadow Ball,Ice Beam
-,,,,,,,,,,,,
-,,,,,,,,,,,,
-,,,,,,,,,,,,
-,,,,,,,,,,,,
+name,type_1,type_2,hp,attack,defense,special_attack,special_defense,speed,leveling_type,move_1,move_2,move_3,move_4
+Bulbasaur,drunk,rogue,45,49,49,65,65,45,medium_fast,Razor Leaf,Headbutt,Giga Drain,Vine Whip
+Ivysaur,dutiful,medical,60,62,63,80,80,60,medium_fast,Solarbeam,Fury Cutter,Leech Seed,Sunny Day
+Venusaur,horny,rascal,80,82,83,100,100,80,medium_fast,Giga Drain,Tackle,Poisonpowder,Solarbeam
+Charmander,synth,science,39,52,43,60,50,65,medium_fast,Flamethrower,Slash,Dragonbreath,Ember
+Charmeleon,photonic,engineering,58,64,58,80,65,80,medium_fast,Fire Blast,Strength,Dig,Smokescreen
+Charizard,psychic,synth,78,84,78,109,85,100,medium_fast,Fire Punch,Fly,Dragonbreath,Flamethrower
+Squirtle,warrior,diplomat,44,48,65,60,54,43,medium_fast,Surf,Bite,Blizzard,Growl
+Wartortle,spiritual,photonic,59,63,80,65,80,58,medium_fast,Waterfall,Icy Wind,Dig,Rapid Spin
+Blastoise,civilian,criminal,79,83,100,85,105,78,medium_fast,Hydro Pump,Rapid Spin,Earthquake,Surf
+Caterpie,science,drunk,45,30,35,20,20,45,medium_fast,Tackle,String Shot,Tackle,String Shot
+Metapod,engineering,villain,50,20,55,25,25,30,medium_fast,Tackle,Harden,Tackle,Harden
+Butterfree,medical,psychic,60,45,50,80,80,70,medium_fast,Gust,Psychic,Hyper Beam,Stun Spore
+Weedle,diplomat,spiritual,40,35,30,20,20,50,medium_fast,Poison Sting,String Shot,Poison Sting,String Shot
+Kakuna,merchant,warrior,45,25,50,25,25,35,medium_fast,Tackle,Harden,Tackle,Harden
+Beedrill,criminal,merchant,65,80,40,40,80,75,medium_fast,Twineedle,Sludge Bomb,Pursuit,Focus Energy
+Pidgey,rascal,synth,40,45,40,35,35,56,medium_fast,Fly,Return,Steel Wing,Sand-attack
+Pidgeotto,rogue,horny,63,60,55,50,50,71,medium_fast,Fly,Swift,Steel Wing,Aerial Ace
+Pidgeot,villain,dutiful,83,80,75,70,70,91,medium_fast,Fly,Swift,Hyper Beam,Aerial Ace
+Rattata,drunk,rogue,30,56,35,25,35,72,medium_fast,Super Fang,Headbutt,Shadow Ball,Focus Energy
+Raticate,dutiful,medical,55,81,60,50,70,97,medium_fast,Super Fang,Hyper Fang,Pursuit,Scary Face
+Spearow,horny,rascal,40,60,30,31,31,70,medium_fast,Drill Peck,Frustration,Steel Wing,Growl
+Fearow,synth,science,65,90,65,61,61,100,medium_fast,Drill Peck,Hyper Beam,Pursuit,Fly
+Ekans,photonic,engineering,30,60,44,40,54,55,medium_fast,Sludge Bomb,Bite,Dig,Wrap
+Arbok,psychic,synth,60,85,69,65,79,80,medium_fast,Sludge Bomb,Earthquake,Strength,Dig
+Pikachu,warrior,diplomat,35,55,30,50,40,90,medium_fast,Thunderbolt,Surf,Iron Tail,Thunder Wave
+Raichu,spiritual,photonic,60,90,55,90,80,100,medium_fast,Thunder,Quick Attack,Spark,Body Slam
+Sandshrew,civilian,criminal,50,75,85,20,30,40,medium_fast,Earthquake,Fury Swipes,Defense Curl,Fury Cutter
+Sandslash,science,drunk,75,100,110,45,55,65,medium_fast,Earthquake,Slash,Rollout,Fury Swipes
+Nidoran,engineering,villain,55,47,52,40,40,41,medium_fast,Headbutt,Iron Tail,Blizzard,Poison Sting
+Nidorina,medical,psychic,70,62,67,55,55,56,medium_fast,Strength,Bite,Blizzard,Poison Sting
+Nidoqueen,drunk,spiritual,90,82,87,75,85,76,medium_fast,Body Slam,Earthquake,Ice Punch,Poison Sting
+Nidorino,dutiful,warrior,61,72,57,55,55,65,medium_fast,Strength,Double Kick,Thunder,Horn Attack
+Nidoking,horny,merchant,81,92,77,85,75,85,medium_fast,Thunder,Earthquake,Horn Attack,Mud-Slap
+Clefairy,synth,synth,70,45,48,60,65,35,medium_fast,Strength,Psychic,Growl,Tackle
+Clefable,photonic,horny,95,70,73,85,90,60,medium_fast,Strength,Headbutt,Ice Punch,Psychic
+Vulpix,psychic,dutiful,38,41,40,50,65,65,medium_fast,Flamethrower,Dig,Ember,Quick Attack
+Ninetales,warrior,rogue,73,76,75,81,100,100,medium_fast,Fire Blast,Overheat,Dig,Quick Attack
+Jigglypuff,spiritual,medical,115,45,20,45,25,20,medium_fast,Body Slam,Rollout,Defense Curl,Double-Edge
+Wigglytuff,civilian,rogue,140,70,45,75,50,45,medium_fast,Double-Edge,Fire Punch,Rollout,Body Slam
+Zubat,science,medical,40,45,35,30,40,55,medium_fast,Wing Attack,Giga Drain,Air Cutter,Bite
+Golbat,engineering,rascal,75,80,70,65,75,90,medium_fast,Crunch,Aerial Ace,Wing Attack,Giga Drain
+Oddish,medical,science,45,50,55,75,65,30,medium_fast,Giga Drain,Sludge Bomb,Acid,Solarbeam
+Gloom,diplomat,engineering,60,65,70,85,75,40,medium_fast,Solarbeam,Sludge Bomb,Acid,Giga Drain
+Vileplume,merchant,synth,75,80,85,100,90,50,medium_fast,Petal Dance,Acid,Solarbeam,Giga Drain
+Paras,criminal,diplomat,35,70,55,45,55,25,medium_fast,Giga Drain,Slash,Fury Cutter,Growth
+Parasect,rascal,photonic,60,95,80,60,80,30,medium_fast,Giga Drain,Slash,Fury Cutter,Growth
+Venonat,rogue,criminal,60,55,50,40,55,45,medium_fast,Sludge Bomb,Psychic,Tackle,Growl
+Venomoth,villain,drunk,70,65,60,90,75,90,medium_fast,Sludge Bomb,Psychic,Psybeam,Leech Life
+Diglett,drunk,villain,10,55,25,35,45,95,medium_fast,Earthquake,Slash,Growl,Dig
+Dugtrio,dutiful,psychic,35,80,50,50,70,120,medium_fast,Earthquake,Slash,Dig,Growl
+Meowth,horny,spiritual,40,45,35,40,40,90,medium_fast,Slash,Faint Attack,Shadow Ball,Bite
+Persian,synth,warrior,65,70,60,65,65,115,medium_fast,Headbutt,Slash,Faint Attack,Shadow Ball
+Psyduck,photonic,merchant,50,52,48,65,50,55,medium_fast,Dig,Confusion,Surf,Scratch
+Golduck,psychic,synth,80,82,78,95,80,85,medium_fast,Hydro Pump,Psychic,Dig,Surf
+Mankey,warrior,horny,40,80,35,35,45,70,medium_fast,Cross Chop,Strength,Karate Chop,Rock Smash
+Primeape,spiritual,dutiful,65,105,60,60,70,95,medium_fast,Cross Chop,Strength,Karate Chop,Rock Smash
+Growlithe,civilian,rogue,55,70,45,70,50,60,medium_fast,Ember,Bite,Dig,Tackle
+Arcanine,science,medical,90,110,80,100,80,95,medium_fast,Flame Wheel,Extremespeed,Flamethrower,Dig
+Poliwag,engineering,rascal,40,50,40,40,40,90,medium_fast,Water Gun,Body Slam,Surf,Tackle
+Poliwhirl,medical,science,65,65,65,50,50,90,medium_fast,Surf,Body Slam,Tackle,Water Gun
+Poliwrath,diplomat,engineering,90,85,95,70,90,70,medium_fast,Dynamicpunch,Hydro Pump,Mach Punch,Body Slam
+Abra,merchant,synth,25,20,15,105,55,90,medium_fast,Confusion,Psybeam,Reflect,Thunderpunch
+Kadabra,criminal,diplomat,40,35,30,120,70,105,medium_fast,Psychic,Psybeam,Reflect,Thunderpunch
+Alakazam,rascal,photonic,55,50,45,135,85,120,medium_fast,Psychic,Ice Punch,Thunder,Shadow Ball
+Machop,rogue,criminal,70,80,50,35,35,35,medium_fast,Strength,Rock Smash,Cross Chop,Dig
+Machoke,drunk,drunk,80,100,70,50,60,45,medium_fast,Strength,Rock Smash,Cross Chop,Dig
+Machamp,dutiful,villain,90,130,80,65,85,55,medium_fast,Thunderpunch,Fire Punch,Strength,Cross Chop
+Bellsprout,horny,psychic,50,75,35,70,30,40,medium_fast,Giga Drain,Sludge Bomb,Razor Leaf,Acid
+Weepinbell,synth,spiritual,65,90,50,85,45,55,medium_fast,Giga Drain,Sludge Bomb,Razor Leaf,Acid
+Victreebel,photonic,warrior,80,105,65,100,60,70,medium_fast,Solarbeam,Sludge Bomb,Giga Drain,Razor Leaf
+Tentacool,psychic,merchant,40,40,35,50,100,70,medium_fast,Surf,Sludge Bomb,Blizzard,Bubblebeam
+Tentacruel,warrior,synth,80,70,65,80,120,100,medium_fast,Surf,Sludge Bomb,Blizzard,Bubblebeam
+Geodude,spiritual,horny,40,80,100,30,30,20,medium_fast,Earthquake,Rollout,Rock Slide,Rock Smash
+Graveler,civilian,dutiful,55,95,115,45,45,35,medium_fast,Earthquake,Rollout,Rock Slide,Rock Smash
+Golem,science,rogue,80,110,130,55,65,45,medium_fast,Earthquake,Rollout,Rock Slide,Rock Smash
+Ponyta,engineering,medical,50,85,55,65,65,90,medium_fast,Fire Blast,Headbutt,Flamethrower,Stomp
+Rapidash,medical,rascal,65,100,70,80,80,105,medium_fast,Fire Blast,Headbutt,Flamethrower,Stomp
+Slowpoke,diplomat,science,90,65,65,40,40,15,medium_fast,Surf,Psychic,Earthquake,Ice Beam
+Slowbro,merchant,engineering,95,75,110,100,80,30,medium_fast,Surf,Psychic,Earthquake,Ice Beam
+Magnemite,criminal,synth,25,35,70,95,55,45,medium_fast,Thunder,Swift,Thunderbolt,Shock Wave
+Magneton,rascal,diplomat,50,60,95,120,70,70,medium_fast,Thunder,Swift,Thunderbolt,Shock Wave
+Farfetch'd,rogue,photonic,52,65,55,58,62,60,medium_fast,Slash,Fly,Steel Wing,Wing Attack
+Doduo,villain,criminal,35,85,45,35,35,75,medium_fast,Drill Peck,Tri Attack,Steel Wing,Pursuit
+Dodrio,drunk,drunk,60,110,70,60,60,100,medium_fast,Drill Peck,Tri Attack,Steel Wing,Pursuit
+Seel,dutiful,villain,65,45,55,45,70,45,medium_fast,Surf,Ice Beam,Headbutt,Aurora Beam
+Dewgong,horny,psychic,90,70,80,70,95,70,medium_fast,Surf,Ice Beam,Headbutt,Aurora Beam
+Grimer,synth,spiritual,80,80,50,40,50,25,medium_fast,Sludge Bomb,Sludge,Acid,Dynamicpunch
+Muk,photonic,warrior,105,105,75,65,100,50,medium_fast,Sludge Bomb,Sludge,Acid,Dynamicpunch
+Shellder,psychic,merchant,30,65,100,45,25,40,medium_fast,Surf,Ice Beam,Swift,Aurora Beam
+Cloyster,warrior,synth,50,90,180,85,45,70,medium_fast,Surf,Ice Beam,Swift,Aurora Beam
+Gastly,spiritual,horny,30,35,30,100,35,80,medium_fast,Shadow Ball,Psychic,Thief,Sludge Bomb
+Haunter,civilian,dutiful,45,50,45,115,55,95,medium_fast,Shadow Ball,Psychic,Thief,Sludge Bomb
+Gengar,science,rogue,60,65,60,130,75,110,medium_fast,Shadow Ball,Psychic,Thief,Sludge Bomb
+Onix,engineering,medical,35,45,160,30,45,70,medium_fast,Earthquake,Rock Throw,Strength,Tackle
+Drowzee,medical,rascal,60,48,45,43,90,42,medium_fast,Psychic,Headbutt,"Body Slam ",Confusion
+Hypno,diplomat,science,85,73,70,73,115,67,medium_fast,Psychic,Headbutt,Body Slam,Confusion
+Krabby,merchant,engineering,30,105,90,25,25,50,medium_fast,Crabhammer,Strength,Blizzard,Surf
+Kingler,criminal,synth,55,130,115,50,50,75,medium_fast,Crabhammer,Strength,Blizzard,Surf
+Voltorb,drunk,diplomat,40,30,50,55,55,100,medium_fast,Thunder,Thunderbolt,Shock Wave,Swift
+Electrode,dutiful,photonic,60,50,70,80,80,140,medium_fast,Thunder,Thunderbolt,Shock Wave,Swift
+Exeggcute,horny,criminal,60,40,80,60,45,40,medium_fast,Psychic,Giga Drain,Egg Bomb,Confusion
+Exeggutor,synth,drunk,95,95,85,125,65,55,medium_fast,Psychic,Giga Drain,Egg Bomb,Confusion
+Cubone,photonic,villain,50,50,95,40,50,35,medium_fast,Bonemerang,Headbutt,Icy Wind,Dig
+Marowak,psychic,psychic,60,80,110,50,80,45,medium_fast,Bonemerang,Headbutt,Icy Wind,Dig
+Hitmonlee,warrior,spiritual,50,120,53,35,110,87,medium_fast,Hi Jump Kick,Mega Kick,Double Kick,Strength
+Hitmonchan,spiritual,warrior,50,105,79,35,110,76,medium_fast,Mach Punch,Strength,Ice Punch,Fire Punch
+Lickitung,civilian,merchant,90,55,75,60,75,30,medium_fast,Hyper Beam,Shadow Ball,Surf,Growl
+Koffing,science,synth,40,65,95,60,45,35,medium_fast,Sludge Bomb,Fire Blast,Zap Cannon,Selfdestruct
+Weezing,engineering,horny,65,90,120,85,70,60,medium_fast,Sludge Bomb,Fire Blast,Zap Cannon,Selfdestruct
+Rhyhorn,medical,dutiful,80,85,95,30,30,25,medium_fast,Earthquake,Rollout,Iron Tail,Dig
+Rhydon,diplomat,rogue,105,130,120,45,45,40,medium_fast,Earthquake,Rollout,Iron Tail,Dig
+Chansey,merchant,medical,250,5,5,35,105,50,medium_fast,Egg Bomb,Blizzard,Growl,Body Slam
+Tangela,criminal,rascal,65,55,115,100,40,60,medium_fast,Giga Drain,Thief,Solarbeam,Sleep Powder
+Kangaskhan,rascal,science,105,95,80,40,80,90,medium_fast,Dizzy Punch,Bite,Surf,Earthquake
+Horsea,rogue,engineering,30,40,70,70,25,60,medium_fast,Hydro Pump,Blizzard,Surf,Swift
+Seadra,villain,synth,55,65,95,95,45,85,medium_fast,Hydro Pump,Blizzard,Surf,Dragonbreath
+Goldeen,drunk,diplomat,45,67,60,35,50,63,medium_fast,Surf,Horn Attack,Waterfall,Bubblebeam
+Seaking,dutiful,photonic,80,92,65,65,80,68,medium_fast,Surf,Horn Attack,Waterfall,Bubblebeam
+Staryu,horny,criminal,30,45,55,70,55,85,medium_fast,Psychic,Hydro Pump,Thunder,Rapid Spin
+Starmie,synth,drunk,60,75,85,100,85,115,medium_fast,Psychic,Hydro Pump,Thunder,Rapid Spin
+Mr. Mime,photonic,villain,40,45,65,100,120,90,medium_fast,Psybeam,Psychic,Shadow Ball,Reflect
+Scyther,psychic,psychic,70,110,80,55,80,105,medium_fast,Wing Attack,Pursuit,Slash,Swift
+Jynx,warrior,spiritual,65,50,35,115,95,95,medium_fast,Ice Punch,Psychic,Ice Beam,Lick
+Electabuzz,spiritual,warrior,65,83,57,95,85,105,medium_fast,Thunderpunch,Swift,Thunderbolt,Thunder Wave
+Magmar,civilian,merchant,65,95,57,100,85,93,medium_fast,Fire Punch,Flamethrower,Thunderpunch,Brick Break
+Pinsir,science,synth,65,125,100,55,70,85,medium_fast,Fury Cutter,Vicegrip,Submission,Earthquake
+Tauros,engineering,horny,75,100,95,40,70,110,medium_fast,Take Down,Pursuit,Rock Smash,Body Slam
+Magikarp,medical,dutiful,20,10,55,15,20,80,medium_fast,Tackle,Flail,Tackle,Flail
+Gyarados,diplomat,rogue,95,125,79,60,100,81,medium_fast,Waterfall,Dragonbreath,Surf,Earthquake
+Lapras,merchant,medical,130,85,80,85,95,60,medium_fast,Waterfall,Surf,Ice Beam,Thunderbolt
+Ditto,criminal,rascal,48,48,48,48,48,48,medium_fast,Tackle,Tackle,Tackle,Tackle
+Eevee,rascal,science,55,55,50,45,65,55,medium_fast,Take Down,Iron Tail,Shadow Ball,Growl
+Vaporeon,rogue,engineering,130,65,60,110,95,65,medium_fast,Waterfall,Surf,Ice Beam,Quick Attack
+Jolteon,villain,synth,65,65,60,110,95,130,medium_fast,Thunderbolt,Pin Missile,Double Kick,Quick Attack
+Flareon,drunk,diplomat,65,130,60,95,110,65,medium_fast,Fire Blast,Flamethrower,Flame Wheel,Quick Attack
+Porygon,dutiful,photonic,65,60,70,85,75,40,medium_fast,Tri Attack,Blizzard,Tackle,Growl
+Omanyte,drunk,criminal,35,40,100,90,55,35,medium_fast,Surf,Ancientpower,Blizzard,Spike Cannon
+Omastar,dutiful,drunk,70,60,125,115,70,55,medium_fast,Surf,Ancientpower,Blizzard,Spike Cannon
+Kabuto,horny,villain,30,80,90,55,45,55,medium_fast,Rollout,Giga Drain,Blizzard,Surf
+Kabutops,synth,psychic,60,115,105,65,70,80,medium_fast,Rollout,Giga Drain,Blizzard,Surf
+Aerodactyl,photonic,spiritual,80,105,65,60,75,130,medium_fast,Ancientpower,Steel Wing,Rock Slide,Fly
+Snorlax,psychic,warrior,160,110,65,65,110,30,medium_fast,Headbutt,Fire Punch,Thunderpunch,Body Slam
+Articuno,warrior,merchant,90,85,100,95,125,85,medium_fast,Blizzard,Aerial Ace,Ice Beam,Fly
+Zapdos,spiritual,synth,90,90,85,125,90,100,medium_fast,Thunder,Thunderbolt,Aerial Ace,Fly
+Moltres,civilian,horny,90,100,90,125,85,90,medium_fast,Fire Blast,Flamethrower,Aerial Ace,Fly
+Dratini,science,dutiful,41,64,45,50,50,50,medium_fast,Dragonbreath,Outrage,Thunderbolt,Headbutt
+Dragonair,engineering,rogue,61,84,65,70,70,70,medium_fast,Dragonbreath,Fire Blast,Thunder Wave,Headbutt
+Dragonite,medical,medical,91,134,95,100,100,80,medium_fast,Twister,Wing Attack,Thunder,Hyper Beam
+Mewtwo,diplomat,rascal,106,110,90,154,90,130,medium_fast,Psychic,Ice Beam,Fire Blast,Thunder
+Mew,merchant,science,100,100,100,100,100,100,medium_fast,Psychic,Flamethrower,Shadow Ball,Ice Beam
+,,,,,,,,,,,,,
+,,,,,,,,,,,,,
+,,,,,,,,,,,,,
+,,,,,,,,,,,,,

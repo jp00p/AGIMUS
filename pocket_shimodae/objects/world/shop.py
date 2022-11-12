@@ -46,5 +46,5 @@ class PoshimoShop(object):
     for entry in self.stock:
       item = entry[0]
       price = entry[1]
-      results += f"> **{item}** `{price} Scarves`\n*{item.description}*\n\n"
+      results += f"**{item}** - `🧣{price}`\n*{item.description}*\n\n"
     return results

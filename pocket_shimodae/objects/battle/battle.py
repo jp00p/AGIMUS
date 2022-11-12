@@ -226,6 +226,7 @@ class PoshimoBattle(object):
     self.calculate_speed() # determine which move goes first
     final_moves:List[Tuple[PoshimoMove, PoshimoTrainer, PoshimoTrainer]] = [] # final move list after speed and other calcs
     logger.info(self._queued_moves)
+    
     # first move
     move1,trainer1 = self._queued_moves[0][0], self._queued_moves[0][1],
     target1 = self._queued_moves[1][1]
@@ -264,20 +265,27 @@ class PoshimoBattle(object):
 
 
   def end_battle(self,loser:PoshimoTrainer):
-    ''' end of battle (someone lost or won, all poshimo fainted, or captured) '''
+    ''' 
+    end of battle (someone lost or won, all poshimo fainted, or captured) 
+    reset states, hand out rewards, etc
+    '''
     self.state = BattleStates.FINISHED
     for trainer in self.trainers:
-      trainer.status = TrainerStatus.IDLE
-      if trainer.active_poshimo.status is not PoshimoStatus.DEAD:
-        trainer.active_poshimo.status = PoshimoStatus.IDLE
+      trainer.end_combat()
     temp_trainers = self.trainers.copy()
     temp_trainers.remove(loser)
-    winner = temp_trainers.pop()        
+    winner = temp_trainers.pop()
+
+    xp_gained = loser.active_poshimo.xp_given()
+    winner.active_poshimo.xp += xp_gained
+    stat_xp = loser.active_poshimo.stat_xp_given()
+    winner.active_poshimo.apply_stat_xp(stat_xp)
+
     if self.battle_type is BattleTypes.DUEL:
       loser.losses += 1
       winner.wins += 1
-    self.add_log(f"Battle is over! {loser} was unable to overcome {winner}'s raw strength and tactical prowess.")
 
+    self.add_log(f"Battle is over! {loser} was unable to overcome {winner}'s raw strength and tactical prowess.")
 
   def calculate_speed(self) -> None:
     """ 
@@ -295,7 +303,6 @@ class PoshimoBattle(object):
     
     logger.info(self._queued_moves)
 
-
   def enqueue_move(self, move:PoshimoMove, trainer:PoshimoTrainer, logline:str=None):
     """ add a move to the queue. once the queue is full, the turn will process """
     self._queued_moves.append((move, trainer, logline))
@@ -310,14 +317,11 @@ class PoshimoBattle(object):
       # everyone has input their moves, let's roll
       self.do_turn()
 
-
   def enqueue_action(self, action:str, trainer:PoshimoTrainer, logline:str):
     """ if a trainer does an action, it takes up their turn """
     self.enqueue_move(move="action", trainer=trainer, logline=logline)
     #self.add_log(logline)
     
-
-
   def process_statuses(self,start=False,end=False):
     """ figure out if any poshimo need to deal with status effects """
     # add logs
@@ -325,7 +329,6 @@ class PoshimoBattle(object):
       pass # handle beginning of turn status
     if end:
       pass # handle end of turn status
-
 
   def apply_move(self, move:PoshimoMove, target:PoshimoTrainer, inflictor:PoshimoTrainer) -> str:
     """

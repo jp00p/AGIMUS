@@ -1,356 +1,356 @@
 id,name,type,kind,power,accuracy,stamina,function_codes,flags,description
-1,Pound,rogue,Physical,40,100%,35,,,Deals damage with no additional effect.
-2,Karate Chop,medical,Physical,50,100%,25,,,Has a high critical hit ratio.
-3,DoubleSlap,rascal,Physical,15,85%,10,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-4,Comet Punch,science,Physical,18,85%,15,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-5,Mega Punch,engineering,Physical,80,85%,20,,,Deals damage with no additional effect.
-6,Pay Day,synth,Physical,40,100%,20,,,The player picks up extra money after in-game battles; the money received is equal to: [user's level * 5 * number of times Pay Day is used]. The player does not lose money if the opponent uses Pay Day but the player wins the battle.
-7,Fire Punch,diplomat,Physical,75,100%,15,,,Has a 10% chance to burn the target.
-8,Ice Punch,photonic,Physical,75,100%,15,,,Has a 10% chance to freeze the target.
-9,ThunderPunch,criminal,Physical,75,100%,15,,,Has a 10% chance to paralyze the target.
-10,Scratch,drunk,Physical,40,100%,35,,,Deals damage with no additional effect.
-11,ViceGrip,villain,Physical,55,100%,30,,,Deals damage with no additional effect.
-12,Guillotine,psychic,Physical,0,30%,5,,,The target faints; doesn't work on higher-leveled Pokemon.
-13,Razor Wind,spiritual,Special,80,100%,10,,,The user prepares on turn one becoming uncontrollable and then attacks on turn two. Has a high critical hit ratio.
-14,Swords Dance,warrior,Status,0,,30,,,Raises the user's Attack by 2 stages.
-15,Cut,merchant,Physical,50,95%,30,,,Deals damage with no additional effect.
-16,Gust,synth,Special,40,100%,35,,,Power doubles if the target is in mid-air via Fly or Bounce.
-17,Wing Attack,horny,Physical,60,100%,35,,,Deals damage with no additional effect.
-18,Whirlwind,dutiful,Special,0,100%,20,,,Almost always goes last; in trainer battles the target is switched out for a random member of its team. Escapes from wild battles. Has no effect if the target has Suction Cups or used Ingrain.
-19,Fly,rogue,Physical,90,95%,15,,,On the first turn the user flies into the air becoming uncontrollable and evades most attacks. Gust Twister Thunder and Sky Uppercut have normal accuracy against a mid-air Pokemon with Gust and Twister also gaining doubled power. The user may also be hit in mid-air if it was previously targeted by Lock-On or Mind Reader or if it is attacked by a Pokemon with No Guard. On the second turn the user attacks.
-20,Bind,medical,Physical,15,85%,20,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or U-Turn.
-21,Slam,rascal,Physical,80,75%,20,,,Deals damage with no additional effect.
-22,Vine Whip,science,Physical,35,100%,15,,,Deals damage with no additional effect.
-23,Stomp,engineering,Physical,65,100%,20,,,Has a 30% chance to make the target flinch; also retains its normal accuracy and gains doubled power against Minimized Pokemon.
-24,Double Kick,synth,Physical,30,100%,30,,,Strikes twice; if the first hit breaks the target's Substitute the real Pokemon will take damage from the second hit.
-25,Mega Kick,diplomat,Physical,120,75%,5,,,Deals damage with no additional effect.
-26,Jump Kick,photonic,Physical,100,95%,10,,,If this attack misses the target the user half of its max health in recoil damage.
-27,Rolling Kick,criminal,Physical,60,85%,15,,,Has a 30% chance to make the target flinch.
-28,Sand-Attack,drunk,acc-,0,100%,15,,,Lowers the target's Accuracy by 1 stage.
-29,Headbutt,villain,Physical,70,100%,15,,,Has a 30% chance to make the target flinch.
-30,Horn Attack,psychic,Physical,65,100%,25,,,Deals damage with no additional effect.
-31,Fury Attack,spiritual,Physical,15,85%,20,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-32,Horn Drill,warrior,Physical,0,30%,5,,,The target faints; doesn't work on higher-leveled Pokemon.
-33,Tackle,merchant,Physical,50,100%,35,,,Deals damage with no additional effect.
-34,Body Slam,synth,Physical,85,100%,15,,,Has a 30% chance to paralyze the target.
-35,Wrap,rogue,Physical,15,90%,20,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or U-Turn.
-36,Take Down,medical,Physical,90,85%,20,,,The user receives 1/4 recoil damage.
-37,Thrash,rascal,Physical,120,100%,10,,,The user attacks uncontrollably for 2-3 turns and then gets confused.
-38,Double-Edge,science,Physical,120,100%,15,,,The user receives 1/3 recoil damage.
-39,Tail Whip,engineering,Special,0,100%,30,,,Lowers the target's Defense by 1 stage.
-40,Poison Sting,synth,Physical,15,100%,35,,,Has a 30% chance to poison the target.
-41,Twineedle,diplomat,Physical,25,100%,20,,,Strikes twice; if the first hit breaks the target's Substitute the real Pokemon will take damage from the second hit. Has a 20% chance to poison the target .
-42,Pin Missile,photonic,Physical,14,85%,20,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-43,Leer,criminal,Special,0,100%,30,,,Lowers the target's Defense by 1 stage.
-44,Bite,drunk,Physical,60,100%,25,,,Has a 30% chance to make the target flinch.
-45,Growl,villain,Special,0,100%,40,,,Lowers the target's Attack by 1 stage.
-46,Roar,psychic,Status,0,100%,20,,,Almost always goes last; in trainer battles the target is switched out for a random member of its team. Escapes from wild battles. Has no effect if the target has Suction Cups Soundproof or used Ingrain.
-47,Sing,spiritual,Status,0,55%,15,,,Puts the target to sleep.
-48,Supersonic,warrior,Status,0,55%,20,,,Confuses the target.
-49,SonicBoom,merchant,Special,20,90%,20,,,Always deals 20 points of damage.
-50,Disable,synth,Special,0,100%,20,,,The target cannot choose its last move for 4-7 turns. Disable only works on one move at a time and fails if the target has not yet used a move or if its move has run out of PP. The target does nothing if it is about to use a move that becomes disabled.
-51,Acid,horny,Special,40,100%,30,,,Has a 10% chance to lower the target's Special Defense by 1 stage.
-52,Ember,dutiful,Special,40,100%,25,,,Has a 10% chance to burn the target.
-53,Flamethrower,rogue,Special,95,100%,15,,,Has a 10% chance to burn the target.
-54,Mist,medical,Special,0,,30,,,Protects every Pokemon on the user's team from negative stat modifiers caused by other Pokemon (including teammates) but not by itself for five turns. The team's Accuracy and Evasion stats are also protected. Moves that cause negative stat modifiers as a secondary effect such as Psychic still deal their regular damage.
-55,Water Gun,rascal,Special,40,100%,25,,,Deals damage with no additional effect.
-56,Hydro Pump,science,Special,120,80%,5,,,Deals damage with no additional effect.
-57,Surf,engineering,Special,95,100%,15,,,Power doubles against a target who is in the middle of using Dive.
-58,Ice Beam,synth,Special,95,100%,10,,,Has a 10% chance to freeze the target.
-59,Blizzard,diplomat,Special,120,70%,5,,,Has a 10% chance to freeze the target. During Hail this move will never miss under normal circumstances and has a 30% chance to hit through a target's Protect or Detect.
-60,Psybeam,photonic,Special,65,100%,20,,,Has a 10% chance to confuse the target.
-61,BubbleBeam,rogue,Special,65,100%,20,,,Has a 10% chance to lower the target's Speed by 1 stage.
-62,Aurora Beam,medical,Special,65,100%,20,,,Has a 10% chance to lower the target's Attack by 1 stage.
-63,Hyper Beam,rascal,Special,150,90%,5,,,The user recharges during its next turn; as a result until the end of the next turn the user becomes uncontrollable.
-64,Peck,science,Physical,35,100%,35,,,Deals damage with no additional effect.
-65,Drill Peck,engineering,Physical,80,100%,20,,,Deals damage with no additional effect.
-66,Submission,synth,Physical,80,80%,25,,,The user receives 1/4 recoil damage.
-67,Low Kick,diplomat,Physical,50,100%,20,,,Base power increases as the target's weight increases.
-68,Counter,photonic,Physical,50,100%,20,,,Almost always goes last; if an opponent strikes with a Physical attack before the user's turn the user retaliates for twice the damage it had endured. In double battles this attack targets the last opponent to hit the user with a Physical attack and cannot hit the user's teammate.
-69,Seismic Toss,criminal,Physical,50,100%,20,,,Does damage equal to user's level.
-70,Strength,drunk,Physical,80,100%,15,,,Deals damage with no additional effect.
 71,Absorb,villain,Special,20,100%,25,,,Restores the user's HP by 1/2 of the damage inflicted on the target.
-72,Mega Drain,psychic,Special,40,100%,15,,,Restores the user's HP by 1/2 of the damage inflicted on the target.
-73,Leech Seed,spiritual,Special,0,90%,10,,,The user steals 1/8 of the target's max HP until the target is switched out is KO'ed or uses Rapid Spin; does not work against Grass-type Pokemon or Pokemon behind Substitutes.
-74,Growth,warrior,Special,0,,40,,,"Raises the user's Attack and Special Attack by 1 stage. If the weather is Sun Growth raises Attack and SpAttk two stages each. "
-75,Razor Leaf,merchant,Physical,55,95%,25,,,Has a high critical hit ratio.
-76,SolarBeam,synth,Special,120,100%,10,,,The user prepares on turn one becoming uncontrollable and then attacks on turn two. During Sunny Day this move fires immediately; during Rain Dance Sandstorm and Hail this move has half power.
-77,PoisonPowder,horny,Special,0,75%,35,,,Poisons the target.
-78,Stun Spore,dutiful,Special,0,75%,30,,,Paralyzes the target.
-79,Sleep Powder,rogue,Special,0,75%,15,,,Puts the target to sleep.
-80,Petal Dance,medical,Special,120,100%,10,,,The user attacks uncontrollably for 2-3 turns and then gets confused.
-81,String Shot,rascal,Special,0,95%,40,,,Lowers the target's Speed by 1 stage.
-82,Dragon Rage,science,Special,40,100%,10,,,Always deals 40 points of damage.
-83,Fire Spin,engineering,Special,35,85%,15,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or it uses U-Turn.
-84,ThunderShock,synth,Special,40,100%,30,,,Has a 10% chance to paralyze the target.
-85,Thunderbolt,diplomat,Special,95,100%,15,,,Has a 10% chance to paralyze the target.
-86,Thunder Wave,photonic,Special,0,100%,20,,,Paralyzes the target. This move activates Motor Drive.
-87,Thunder,criminal,Special,120,70%,10,,,Has a 30% chance to paralyze the target. It also has normal accuracy against mid-air Pokemon who have used Fly or Bounce. During Sunny Day this move has 50% accuracy. During Rain Dance this move will never miss under normal circumstances and has a 30% chance to hit through a target's Protect or Detect.
-88,Rock Throw,drunk,Physical,50,90%,15,,,Deals damage with no additional effect.
-89,Earthquake,villain,Physical,100,100%,10,,,Power doubles when performed against Pokemon using Dig.
-90,Fissure,psychic,Physical,0,30%,5,,,The target faints; doesn't work on higher-leveled Pokemon.
-91,Dig,spiritual,Physical,80,100%,10,,,On the first turn the user digs underground becoming uncontrollable and evades all attacks. Earthquake and Magnitude can hit underground and gain doubled power. The user may also be hit underground if it was previously targeted by Lock-On or Mind Reader or if it is attacked by a Pokemon with No Guard. On the second turn the user attacks.
-92,Toxic,warrior,Special,0,90%,10,,,The target is badly poisoned with the damage caused by poison doubling after each turn. Toxic poisoning will remain with the Pokemon during the battle even after switching out.
-93,Confusion,merchant,Special,50,100%,25,,,Has a 10% chance to confuse the target.
-94,Psychic,synth,Special,90,100%,10,,,Has a 10% chance to lower the target's Special Defense by 1 stage.
-95,Hypnosis,horny,Special,0,60%,20,,,Puts the target to sleep.
-96,Meditate,dutiful,Special,0,,40,,,Raises the user's Attack by 1 stage.
-97,Agility,rogue,Special,0,,30,,,Raises the user's Speed by 2 stages.
-98,Quick Attack,medical,Physical,40,100%,30,,,Usually goes first.
-99,Rage,rascal,Physical,20,100%,20,,,The user's Attack rises by 1 stage if attacked before its next move.
-100,Teleport,science,Special,0,,20,,,Escapes from wild battles; fails automatically in trainer and link battles.
-101,Night Shade,engineering,Special,50,100%,15,,,Does damage equal to user's level.
-102,Mimic,synth,Special,0,100%,10,,,This move is temporarily replaced by the target's last move; the replacement move will have 5 PP and become part of the user's moveset until the user switches out or the battle ends. Mimic copies attacks even if they miss or the user has immunity toward their type; it cannot copy itself Struggle Transform Sketch Metronome or moves that the user already knows and it will fail if the target has yet to use a move.
-103,Screech,diplomat,Special,0,85%,40,,,Lowers the target's Defense by 2 stages.
-104,Double Team,photonic,acc-,0,,15,,,Raises the user's Evasion by 1 stage.
-105,Recover,criminal,Special,0,,10,,,Restores 1/2 of the user's max HP.
-106,Harden,drunk,Special,0,,30,,,Raises the user's Defense by 1 stage.
-107,Minimize,villain,acc-,0,,20,,,Raises the user's Evasion by 2 stage; however Stomp retains its normal accuracy and gains doubled power against Minimized Pokemon.
-108,SmokeScreen,psychic,acc-,0,100%,20,,,Lowers the target's Accuracy by 1 stage.
-109,Confuse Ray,spiritual,Special,0,100%,10,,,Confuses the target.
-110,Withdraw,warrior,Special,0,,40,,,Raises the user's Defense by 1 stage.
-111,Defense Curl,merchant,Special,0,,40,,,Raises the user's Defense by 1 stage; after one use of this move the user's starting base power is doubled for every use of Rollout or Ice Ball.
-112,Barrier,synth,Special,0,,30,,,Raises the user's Defense by 2 stages.
-113,Light Screen,horny,sSpecial,0,,30,,,All Pokemon in the user's party receive 1/2 damage from Special attacks for 5 turns. Light Screen will be removed from the user's field if an opponent's Pokemon uses Brick Break. It will also last for eight turns if its user is holding Light Clay. In double battles both Pokemon are shielded but damage protection is reduced from 1/2 to 1/3.
-114,Haze,dutiful,Special,0,,30,,,Eliminates any stat modifiers from all active Pokemon. The stat boosts from Choice Band Choice Lens and Choice Scarf are not affected.
-115,Reflect,rogue,Special,0,,20,,,All Pokemon in the user's party receive 1/2 damage from Physical attacks for 5 turns. Reflect will be removed from the user's field if an opponent's Pokemon uses Brick Break. It will also last for eight turns if its user is holding Light Clay. In double battles both Pokemon are shielded but damage protection is reduced from 1/2 to 1/3.
-116,Focus Energy,medical,Special,0,,30,,,Raises the user's chance for a Critical Hit by two domains.
-117,Bide,rascal,Physical,50,100%,10,,,Usually goes first for the duration of the move. The user absorbs all damage for two turns and then during the third turn the user inflicts twice the absorbed damage on its target. This move ignores the target's type and even hits Ghost-type Pokemon.
-118,Metronome,science,Status,0,,10,,,The user performs a randomly selected move; almost any move in the game could be picked. Metronome cannot generate itself Assist Chatter Copycat Counter Covet Destiny Bond Detect Endure Feint Focus Punch Follow Me Helping Hand Me First Mimic Mirror Coat Mirror Move Protect Sketch Sleep Talk Snatch Struggle Switcheroo Thief Trick or any move that the user already knows.
-119,Mirror Move,engineering,Status,0,,20,,,The user performs the last move executed by its target; if applicable an attack's damage is calculated with the user's stats level and type(s). This moves fails if the target has not yet used a move. Mirror Move cannot copy Encore Struggle global moves affecting all Pokemon on the field (such as Gravity Hail Rain Dance Sandstorm and Sunny Day) moves that can bypass Protect (Acupressure Doom Desire Future Sight Imprison Perish Song Psych Up Role Play and Transform) and moves that do not have a specific target (such as Light Screen Reflect Safeguard Spikes Stealth Rock and Toxic Spikes).
-120,Selfdestruct,synth,Physical,200,100%,5,,,Causes the user to faint.
-121,Egg Bomb,diplomat,Physical,100,75%,10,,,Deals damage with no additional effect.
-122,Lick,photonic,Physical,20,100%,30,,,Has a 30% chance to paralyze the target.
-123,Smog,criminal,Special,20,70%,20,,,Has a 40% chance to poison the target.
-124,Sludge,drunk,Special,65,100%,20,,,Has a 30% chance to poison the target.
-125,Bone Club,villain,Physical,65,85%,20,,,Has a 10% chance to make the target flinch.
-126,Fire Blast,psychic,Special,120,85%,5,,,Has a 10% chance to burn the target.
-127,Waterfall,spiritual,Physical,80,100%,15,,,Has a 20% chance to make the target flinch.
-128,Clamp,warrior,Physical,35,85%,10,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or U-Turn.
-129,Swift,merchant,Special,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
-130,Skull Bash,synth,Physical,100,100%,15,,,The user prepares on turn one raising its Defense by 1 stage and becoming uncontrollable and then attacks on turn two.
-131,Spike Cannon,horny,Physical,20,100%,15,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-132,Constrict,dutiful,Physical,10,100%,35,,,Has a 10% chance to lower the target's Speed by 1 stage.
-133,Amnesia,rogue,sSpecial,0,,20,,,Raises the user's Special Defense by 2 stages.
-134,Kinesis,medical,acc-,0,80%,15,,,Lowers the target's Accuracy by 1 stage.
-135,Softboiled,rascal,Special,0,100%,10,,,Restores 1/2 of the user's max HP.
-136,Hi Jump Kick,science,Physical,130,90%,10,,,If this attack misses the target the user half of its max health in recoil damage.
-137,Glare,engineering,Special,0,90%,30,,,Paralyzes the target.
-138,Dream Eater,synth,Special,100,100%,15,,,Restores the user's HP by 1/2 of the damage inflicted on the target but only works on a sleeping target.
-139,Poison Gas,diplomat,Special,0,90%,40,,,Poisons the target.
-140,Barrage,photonic,Physical,15,85%,20,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-141,Leech Life,criminal,Physical,20,100%,15,,,Restores the user's HP by 1/2 of the damage inflicted on the target.
-142,Lovely Kiss,drunk,Special,0,75%,10,,,Puts the target to sleep.
-143,Sky Attack,villain,Physical,140,90%,5,,,The user prepares on turn one becoming uncontrollable and then attacks on turn two. Also has a 30% chance to make the target flinch.
-144,Transform,psychic,Status,0,,10,,,The user morphs into a near-exact copy of the target. Stats stat modifiers type moves Hidden Power data and appearance are changed; the user's level and HP remain the same and each copied move receives only 5 PP. (If Transform is used by Ditto the effects of Metal Powder and Quick Powder stop working after transformation.)
-145,Bubble,spiritual,Special,20,100%,30,,,Has a 10% chance to lower the target's Speed by 1 stage.
-146,Dizzy Punch,warrior,Physical,70,100%,10,,,Has a 20% chance to confuse the target.
-147,Spore,merchant,Special,0,100%,15,,,Puts the target to sleep.
-148,Flash,synth,acc-,0,100%,20,,,Lowers the target's Accuracy by 1 stage.
-149,Psywave,horny,Special,50,80%,15,,,Randomly inflicts set damage equal to .5x .6x .7x .8x .9x 1.0x 1.1x 1.2x 1.3x 1.4x or 1.5x the user's level.
-150,Splash,dutiful,Status,0,,40,,,Doesn't do anything (but we still love it). Unfortunately it also cannot be used during the effects of Gravity! :(
+51,Acid,horny,Special,40,100%,30,,,Has a 10% chance to lower the target's Special Defense by 1 stage.
 151,Acid Armor,rogue,Special,0,,40,,,Raises the user's Defense by 2 stages.
-152,Crabhammer,medical,Physical,90,90%,10,,,Has a high critical hit ratio.
-153,Explosion,rascal,Physical,250,100%,5,,,Causes the user to faint.
-154,Fury Swipes,science,Physical,18,80%,15,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-155,Bonemerang,engineering,Physical,50,90%,10,,,Strikes twice; if the first hit breaks the target's Substitute the real Pokemon will take damage from the second hit.
-156,Rest,synth,Special,0,,10,,,The user is cured of status effects (and confusion) and recovers full HP but falls asleep for 2 turns. Pokemon who have Early Bird will wake up one turn early.
-157,Rock Slide,diplomat,Physical,75,90%,10,,,Has a 30% chance to make the target flinch.
-158,Hyper Fang,photonic,Physical,80,90%,15,,,Has a 10% chance to make the target flinch.
-159,Sharpen,criminal,Special,0,,30,,,Raises the user's Attack by 1 stage.
-160,Conversion,drunk,Status,0,,30,,,The user's type changes to match the type of one of its four attacks. This move fails if the user cannot change its type under this condition.
-161,Tri Attack,villain,Special,80,100%,10,,,Has a 20% chance to burn paralyze or freeze the target.
-162,Super Fang,psychic,Physical,50,90%,10,,,This move halves the target's current HP.
-163,Slash,spiritual,Physical,70,100%,20,,,Has a high critical hit ratio.
-164,Substitute,warrior,Special,0,,10,,,The user takes one-fourth of its maximum HP to create a substitute; this move fails if the user does not have enough HP for this. Until the substitute is broken it receives damage from all attacks made by other Pokemon and shields the user from status effects and stat modifiers caused by other Pokemon. The user is still affected by Tickle Hail Sandstorm and Attract from behind its Substitute. If a Substitute breaks from a hit during a multistrike move such as Fury Attack the user takes damage from the remaining strikes.
-165,Struggle,merchant,Physical,50,100%,1,,21,Used automatically when all of the user's other moves have run out of PP or are otherwise inaccessible. The user receives recoil damage equal to 1/4 of its max HP. Struggle is classified as a typeless move and will hit any Pokemon for normal damage.
-166,Sketch,synth,Status,0,,1,,,The user permanently replaces Sketch with the last move used by the target. Sketch cannot copy itself Chatter Memento or Struggle. Transform and moves that generate other moves can be Sketched successfully as can Explosion and Selfdestruct if a Pokemon with Damp is present. Healing Wish and Lunar Dance can be Sketched because they automatically fail when the user is the last Pokemon of its team. This move fails automatically when selected in wireless or Wi-Fi battles.
-167,Triple Kick,horny,Physical,10,90%,10,,,Attacks three times in one turn adding 10 BP for each kick. If a kick misses the move ends instantly; if one of the kicks breaks a target's Substitute the real Pokemon will take damage for the remaining kicks.
-168,Thief,dutiful,Physical,40,100%,10,,,Steals the target's held item unless the user is already holding an item or the target has Sticky Hold or Multitype. A stolen item cannot be recovered by using Recycle.
-169,Spider Web,rogue,Status,0,100%,10,,,As long as the user remains in battle the target cannot switch out unless it is holding Shed Shell or uses Baton Pass or U-Turn. The target will still be trapped if the user switches out by using Baton Pass.
-170,Mind Reader,medical,Status,0,100%,5,,,This move ensures that the user's next attack will hit against its current target. This effect can be Baton Passed to another Pokemon. Mind Reader fails against Pokemon in the middle of using Protect Detect Dig Fly Bounce or Dive as well as Pokemon behind a Substitute. If the target uses Protect or Detect during its next turn the user's next move has a [100 Varmove's normal accuracy]% chance to hit through Protect or Detect. OHKO moves do not benefit from this trait.
-171,Nightmare,rascal,Status,0,100%,15,,,This move only works on a sleeping target; as long as the target remains asleep and in battle 1/4 of its max HP is sapped after each turn.
-172,Flame Wheel,science,Physical,60,100%,25,,,Has a 10% chance to burn the target; can be used while frozen which both attacks the target normally and thaws the user.
-173,Snore,engineering,Special,40,100%,15,,,Has a 30% chance to make the target flinch; fails if user is awake.
-174,Curse,synth,Special,0,,10,,,When used by a Ghost-type the user sacrifices half of its max HP to sap the target by 1/4 of its max HP per turn. When used by anything else the user's Speed is decreased by 1 stage and its Attack and Defense are increased by 1 stage.
-175,Flail,diplomat,Physical,50,100%,15,,,Base power increases as the user's HP decreases.
-176,Conversion 2,photonic,Status,0,100%,30,,,The user's type changes to one that resists the type of the last attack that hit the user. In double battles this situation holds even when the user is last hit by an attack from its partner.
+332,Aerial Ace,rascal,Physical,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
 177,Aeroblast,criminal,Special,100,95%,5,,,Has a high critical hit ratio.
-178,Cotton Spore,drunk,Special,0,100%,40,,,Lowers the target's Speed by 2 stages.
-179,Reversal,villain,Physical,50,100%,15,,,Base power increases as the user's HP decreases.
-180,Spite,psychic,Special,0,100%,10,,,The target's most recent move is reduced by 4 PP; this fails if the target has not yet performed a move if the target's last move has run out of PP or if the target can only use Struggle.
-181,Powder Snow,spiritual,Special,40,100%,25,,,Has a 10% chance to freeze the target.
-182,Protect,warrior,Special,0,,10,,,Almost always goes first. The user is protected from all attacks for one turn but the move's success rate halves with each consecutive use of Protect Detect or Endure. If a Pokemon has No Guard or used Lock-On or Mind Reader against the user during the previous turn its attack has a [100 Varmove's normal accuracy]% chance to hit through Protect; OHKO moves do not benefit from this effect. Blizzard has a 30% to hit through this move during Hail as does Thunder during Rain Dance.
-183,Mach Punch,merchant,Physical,40,100%,30,,,Usually goes first.
-184,Scary Face,synth,Special,0,90%,10,,,Lowers the target's Speed by 2 stages.
-185,Faint Attack,horny,Physical,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
-186,Sweet Kiss,dutiful,Special,0,75%,10,,,Confuses the target.
-187,Belly Drum,rogue,Special,0,,10,,,The user maximizes its Attack but sacrifices 50% of its max HP.
-188,Sludge Bomb,medical,Special,90,100%,10,,,Has a 30% chance to poison the target.
-189,Mud-Slap,rascal,Special,20,100%,10,,,Has a 30% chance to lower the target's Accuracy by 1 stage.
-190,Octazooka,science,Special,65,85%,10,,,Has a 50% chance to lower the target's Accuracy by 1 stage.
-191,Spikes,engineering,Status,0,,20,,,Damages opponents unless they are Flying-type or have Levitate every time they are switched in; hits through Wonder Guard. Can be used up to three times: saps 1/8 of max HP with one layer 3/16 of max HP with two layers and 1/4 of max HP for three layers.
-192,Zap Cannon,synth,Special,120,50%,5,,,Paralyzes the target.
-193,Foresight,diplomat,Status,0,100%,40,,,Until the target faints or switches the user's Accuracy modifiers and the target's Evasion modifiers are ignored. Ghost-type targets also lose their immunities against Normal-type and Fighting-type moves.
-194,Destiny Bond,photonic,Status,0,,5,,,Causes an opponent to faint if its next attack KOs the user.
-195,Perish Song,criminal,Status,0,,5,,,All active Pokemon will faint in 3 turns unless they are switched out.
-196,Icy Wind,drunk,Special,55,95%,15,,,Lowers the target's Speed by 1 stage.
-197,Detect,villain,Status,0,,5,,,Almost always goes first. The user is protected from all attacks for one turn but the move's success rate halves with each consecutive use of Protect Detect or Endure. If a Pokemon has No Guard or used Lock-On or Mind Reader against the user during the previous turn its attack has a [100 Varmove's normal accuracy]% chance to hit through Detect; OHKO moves do not benefit from this effect. Blizzard has a 30% to hit through this move during Hail as does Thunder during Rain Dance.
-198,Bone Rush,psychic,Physical,25,80%,10,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-199,Lock-On,spiritual,Status,0,100%,5,,,This move ensures that the user's next attack will hit against its current target. This effect can be Baton Passed to another Pokemon. Lock-On fails against Pokemon in the middle of using Protect Detect Dig Fly Bounce or Dive as well as Pokemon behind a Substitute. If the target uses Protect or Detect during its next turn the user's next move has a [100 Varmove's normal accuracy]% chance to hit through Protect or Detect. OHKO moves do not benefit from this trait.
-200,Outrage,warrior,Physical,120,100%,15,,,The user attacks uncontrollably for 2-3 turns and then gets confused.
-201,Sandstorm,merchant,Status,0,,10,,,Cancels all other weather moves. For 5 turns: the Special Defense of Rock-type Pokemon is boosted by 50% each active Pokemon even when protected by a Substitute loses 1/16 of its max HP unless it has Sand Veil or is a Ground- Rock- or Steel-type the power of Solarbeam is halved and the healing power of Morning Sun Synthesis and Moonlight is halved. The effects of Sandstorm will last for eight turns if its user is holding Smooth Rock.
-202,Giga Drain,synth,Special,75,100%,10,,,Restores the user's HP by 1/2 of the damage inflicted on the target.
-203,Endure,horny,Status,0,,10,,,Almost always goes first. The user is left with at least 1 HP following any attacks for one turn but the move's success rate halves with each consecutive use of Protect Detect or Endure.
-204,Charm,dutiful,Status,0,100%,20,,,Lowers the target's Attack by 2 stages.
-205,Rollout,rogue,Physical,30,90%,20,,,The user attacks uncontrollably for five turns; this move's power doubles after each turn and also if Defense Curl was used beforehand. Its power resets after five turns have ended or if the attack misses.
-206,False Swipe,medical,Physical,40,100%,40,,,Leaves the target with at least 1 HP.
-207,Swagger,rascal,Special,0,90%,15,,,Confuses the target and raises its Attack by 2 stages.
-208,Milk Drink,science,Status,0,,10,,,Restores 1/2 of the user's max HP.
-209,Spark,engineering,Physical,65,100%,20,,,Has a 30% chance to paralyze the target.
-210,Fury Cutter,synth,Physical,20,95%,20,,,The base power of this move doubles with each consecutive hit; however power is capped at a maximum 160 BP and remains there for any subsequent uses. If this move misses base power will be reset to 10 BP on the next turn. The user can also select other attacks without resetting this move's power; it will continue to double after each use until it either misses or reaches the 160 BP cap.
-211,Steel Wing,diplomat,Physical,70,90%,25,,,Has a 10% chance to raise the user's Defense by 1 stage.
-212,Mean Look,photonic,Status,0,100%,5,,,As long as the user remains in battle the target cannot switch out unless it is holding Shed Shell or uses Baton Pass or U-Turn. The target will still be trapped if the user switches out by using Baton Pass.
-213,Attract,criminal,Status,0,100%,15,,,Infatuates Pokemon of the opposite gender even if they have a Substitute causing a 50% chance for the target's attack to fail.
-214,Sleep Talk,drunk,Status,0,,10,,,Does nothing if the user is awake. If the user asleep it randomly performs one of its attacks. Rest will fail if it is selected. Sleep Talk's generated attacks do not cost PP but it cannot generate moves with 0 PP itself Assist Bide Chatter Copycat Disabled attacks Focus Punch Me First Metronome Mirror Move Uproar or attacks with a charge-up turn like Fly or Skull Bash. (Moves with a recharge turn like Hyper Beam can be generated.)
-215,Heal Bell,villain,Status,0,,5,,,Every Pokemon in the user's party is cured of status conditions. Allied Pokemon who have Soundproof are not affected.
-216,Return,psychic,Physical,50,100%,20,,,Power increases as user's happiness increases; maximum 102 BP.
-217,Present,spiritual,Physical,50,90%,15,,,Randomly either attacks with a variable power between 40 base power and 120 base power or heals the target by 80 HP.
-218,Frustration,warrior,Physical,50,100%,20,,,Power increases as user's happiness decreases; maximum 102 BP.
-219,Safeguard,merchant,Status,0,,25,,,Protects the user's entire team from status conditions for five turns.
-220,Pain Split,synth,Status,0,100%,20,,,Calculates the average of the user's current HP and the target's HP; the HP of both Pokemon is set to this average. Pokemon can be healed by Pain Split even under the effects of Heal Block.
-221,Sacred Fire,horny,Physical,100,95%,5,,,Has a 50% chance to burn the target; can be used while frozen which both attacks the target normally and thaws the user.
-222,Magnitude,dutiful,Physical,50,100%,30,,,Deals variable damage between 10 base power and 130 base power as well as double damage against Digging Pokemon.
-223,DynamicPunch,rogue,Physical,100,50%,5,,,Confuses the target.
-224,Megahorn,medical,Physical,120,85%,10,,,Deals damage with no additional effect.
-225,DragonBreath,rascal,Special,60,100%,20,,,Has a 30% chance to paralyze the target.
-226,Baton Pass,science,Status,0,,40,,,The user returns to its party bypassing any trapping moves and Pursuit; it passes all stat modifiers (positive or negative including from Charge and Stockpile) as well as confusion Focus Energy/Lansat Berry boosts Ingrain Aqua Ring Embargo Gastro Acid Power Trick Magnet Rise Stockpiles Perish Song count Mist Leech Seed Ghost Curses Mind Reader Lock-On Block Mean Look Spider Web and Substitute to the replacement Pokemon.
-227,Encore,engineering,Status,0,100%,5,,,The target is forced to use its last attack for the next 3 turns. The effects of this move will end immediately if the target runs out of PP for the repeated attack. In double battles a Pokemon who has received an Encore will target a random opponent with single-target attacks.
-228,Pursuit,synth,Physical,80,100%,20,,,If the target switches out on the current turn this move strikes with doubled power before the switch. Baton Passers still escape safely. When a faster Pokemon uses Pursuit against a U-Turner the U-Turner is hit for normal damage; when a slower Pokemon uses Pursuit against a U-Turner the U-Turner makes its attack then is hit by Pursuit for double power and switches out.
-229,Rapid Spin,diplomat,Physical,20,100%,40,,,Removes Spikes Stealth Rock Toxic Spikes and Leech Seed from the user's side of the field; also frees the user from Bind Clamp Fire Spin Magma Storm Sand Tomb Whirlpool and Wrap. These effects do not occur if the move misses or is used against Ghost-type Pokemon.
-230,Sweet Scent,photonic,Status,0,100%,20,,,Lowers the target's Evasion by 1 stage.
-231,Iron Tail,criminal,Physical,100,75%,15,,,Has a 30% chance to lower the target's Defense by 1 stage.
-232,Metal Claw,drunk,Physical,50,95%,35,,,Has a 10% chance to raise the user's Attack by 1 stage.
-233,Vital Throw,villain,Physical,70,100%,10,,,This move usually goes last. It ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
-234,Morning Sun,psychic,Status,0,,5,,,Restores a fraction of the user's max HP depending on the weather: 2/3 during Sunny Day 1/2 during regular weather and 1/4 during Rain Dance Hail and Sandstorm.
-235,Synthesis,spiritual,Status,0,,5,,,Restores a fraction of the user's max HP depending on the weather: 2/3 during Sunny Day 1/2 during regular weather and 1/4 during Rain Dance Hail and Sandstorm.
-236,Moonlight,warrior,Status,0,,5,,,Restores a fraction of the user's max HP depending on the weather: 2/3 during Sunny Day 1/2 during regular weather and 1/4 during Rain Dance Hail and Sandstorm.
-237,Hidden Power,merchant,Special,70,100%,15,,,Varies in power and type depending on the user's IVs; maximum 70 BP.
-238,Cross Chop,synth,Physical,100,80%,5,,,Has a high critical hit ratio.
-239,Twister,horny,Special,40,100%,20,,,Has a 20% chance to make the target flinch; power doubles while the target is in mid-air via Fly or Bounce.
-240,Rain Dance,dutiful,Status,0,,5,,,Cancels all other weather moves. For 5 turns: the power of Water attacks is increased by 50% the power of Fire attacks is decreased by 50% Thunder never misses and has a 30% chance to hit through Protect and Detect the power of Solarbeam is halved and the healing power of Morning Sun Synthesis and Moonlight is decreased from 1/2 to 1/4 of the user's max HP. The effects of Rain Dance will last for eight turns if its user is holding Damp Rock.
-241,Sunny Day,rogue,Status,0,,5,,,Cancels all other weather moves. For 5 turns: freezing is prevented the power of Fire attacks is increased by 50% the power of Water attacks is decreased by 50% Solarbeam fires immediately Thunder becomes 50% accurate and the healing power of Morning Sun Synthesis and Moonlight is increased from 1/2 to 2/3 of the user's max HP. The effects of Sunny Day will last for eight turns if its user is holding Heat Rock.
-242,Crunch,medical,Physical,80,100%,15,,,Has a 20% chance to lower the target's Defense by 1 stage.
-243,Mirror Coat,rascal,Special,50,100%,20,,,Almost always goes last; if an opponent strikes with a Special attack before the user's turn the user retaliates for twice the damage it had endured. In double battles this attack targets the last opponent to hit the user with a Special attack and cannot hit the user's teammate.
-244,Psych Up,science,Status,0,,10,,,The user copies all six of the target's current stat modifiers.
-245,ExtremeSpeed,engineering,Physical,80,100%,5,,,Usually goes first.
+97,Agility,rogue,Special,0,,30,,,Raises the user's Speed by 2 stages.
+314,Air Cutter,rascal,Special,55,95%,25,,,Has a high critical hit ratio.
+133,Amnesia,rogue,sSpecial,0,,20,,,Raises the user's Special Defense by 2 stages.
 246,AncientPower,synth,Special,60,100%,5,,,Has a 10% chance to raise all of the user's stats by 1 stage.
-247,Shadow Ball,diplomat,Special,80,100%,15,,,Has a 20% chance to lower the target's Special Defense by 1 stage.
-248,Future Sight,photonic,Special,100,100%,10,,,This move even if the user and/or the target switch out will strike the active target at the end of the second turn after its use. Only one instance of Future Sight or Doom Desire may be active at a time.
-249,Rock Smash,criminal,Physical,40,100%,15,,,Has a 50% chance to lower the target's Defense by 1 stage.
-250,Whirlpool,drunk,Special,35,85%,15,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or U-Turn. Base power also doubles when performed against a Pokemon in the middle of using Dive.
+292,Arm Thrust,horny,Physical,15,100%,20,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
+312,Aromatherapy,rogue,Status,0,,5,,,"Every Pokemon in the user's party is cured of status conditions. Lists every Pokemon that was healed and what status condition was cured. "
+274,Assist,horny,Status,0,100%,20,,,The user performs a random move from any of the Pokemon on its team. Assist cannot generate itself Chatter Copycat Counter Covet Destiny Bond Detect Endure Feint Focus Punch Follow Me Helping Hand Me First Metronome Mimic Mirror Coat Mirror Move Protect Sketch Sleep Talk Snatch Struggle Switcheroo Thief or Trick.
+310,Astonish,horny,Physical,30,100%,15,,,Has a 30% chance to make the target flinch.
+213,Attract,criminal,Status,0,100%,15,,,Infatuates Pokemon of the opposite gender even if they have a Substitute causing a 50% chance for the target's attack to fail.
+62,Aurora Beam,medical,Special,65,100%,20,,,Has a 10% chance to lower the target's Attack by 1 stage.
+140,Barrage,photonic,Physical,15,85%,20,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
+112,Barrier,synth,Special,0,,30,,,Raises the user's Defense by 2 stages.
+226,Baton Pass,science,Status,0,,40,,,The user returns to its party bypassing any trapping moves and Pursuit; it passes all stat modifiers (positive or negative including from Charge and Stockpile) as well as confusion Focus Energy/Lansat Berry boosts Ingrain Aqua Ring Embargo Gastro Acid Power Trick Magnet Rise Stockpiles Perish Song count Mist Leech Seed Ghost Curses Mind Reader Lock-On Block Mean Look Spider Web and Substitute to the replacement Pokemon.
 251,Beat Up,villain,Physical,50,100%,10,,,Each healthy (i.e. not fainted nor inflicted with a status condition) Pokemon in your party contributes a typeless 10 base power hit determined solely by their base Attack and Defense stats.
-252,Fake Out,psychic,Physical,40,100%,10,,,If this is the user's first move after being sent or switched into battle the target flinches; this move fails otherwise and against targets with Inner Focus.
-253,Uproar,spiritual,Special,90,100%,10,,,The user causes an Uproar and attacks uncontrollably for 3 turns. During the effects of the Uproar active Pokemon cannot fall asleep and sleeping Pokemon sent into battle will wake up.
-254,Stockpile,warrior,Status,0,,20,,,Can be used up to three times to power Spit Up or Swallow. Also raises the user's Defense and Special Defense by 1 stage each. Stockpiles and the defensive boosts are lost when these Swallow or Spit Up is used or the user switches out. However the boosts can be Baton Passed.
-255,Spit Up,merchant,Special,50,100%,10,,,Power increases with user's Stockpile count; fails with zero Stockpiles.
-256,Swallow,synth,Status,0,,10,,,This move only works if the user has at least one Stockpile. Restores 1/4 of user's max HP with one Stockpile 1/2 of user's max HP with two Stockpiles and fully restores the user's HP with three Stockpiles.
-257,Heat Wave,horny,Special,100,90%,10,,,Has a 10% chance to burn the target.
-258,Hail,dutiful,Status,0,,10,,,Cancels all other weather moves. For 5 turns: Blizzard never misses and has a 30% chance to hit through Protect and Detect each active Pokemon even when protected by a Substitute loses 1/16 of its max HP unless it is an Ice-type the power of Solarbeam is halved and the healing power of Morning Sun Synthesis and Moonlight is halved. The effects of Hail will last for eight turns if its user is holding Icy Rock.
-259,Torment,rogue,Status,0,100%,15,,,Prevents the target from using the same move for two turns in a row until the target is switched out. The target will use Struggle every other turn if it cannot attack without using the same move.
-260,Flatter,medical,Status,0,100%,15,,,Confuses the target and raises its Special Attack by 1 stage.
-261,Will-O-Wisp,rascal,Status,0,75%,15,,,Burns the target. This move activates Flash Fire.
-262,Memento,science,Status,0,100%,10,,,The user sacrifices itself to lower the target's Attack and Special Attack by 2 stages each.
+187,Belly Drum,rogue,Special,0,,10,,,The user maximizes its Attack but sacrifices 50% of its max HP.
+117,Bide,rascal,Physical,50,100%,10,,,Usually goes first for the duration of the move. The user absorbs all damage for two turns and then during the third turn the user inflicts twice the absorbed damage on its target. This move ignores the target's type and even hits Ghost-type Pokemon.
+20,Bind,medical,Physical,15,85%,20,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or U-Turn.
+44,Bite,drunk,Physical,60,100%,25,,,Has a 30% chance to make the target flinch.
+307,Blast Burn,warrior,Special,150,90%,5,,,The user recharges during its next turn; as a result until the end of the next turn the user becomes uncontrollable.
+299,Blaze Kick,synth,Physical,85,90%,10,,,Has a high critical hit ratio and a 10% chance to burn the target.
+59,Blizzard,diplomat,Special,120,70%,5,,,Has a 10% chance to freeze the target. During Hail this move will never miss under normal circumstances and has a 30% chance to hit through a target's Protect or Detect.
+335,Block,synth,Status,0,100%,5,,,As long as the user remains in battle the target cannot switch out unless it is holding Shed Shell or uses Baton Pass or U-Turn. The target will still be trapped if the user switches out by using Baton Pass.
+34,Body Slam,synth,Physical,85,100%,15,,,Has a 30% chance to paralyze the target.
+125,Bone Club,villain,Physical,65,85%,20,,,Has a 10% chance to make the target flinch.
+198,Bone Rush,psychic,Physical,25,80%,10,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
+155,Bonemerang,engineering,Physical,50,90%,10,,,Strikes twice; if the first hit breaks the target's Substitute the real Pokemon will take damage from the second hit.
+340,Bounce,villain,Physical,85,85%,5,,,On the first turn the user bounces into the air becoming uncontrollable and evades most attacks. Gust Twister Thunder and Sky Uppercut have normal accuracy against a mid-air Pokemon with Gust and Twister also gaining doubled power. The user may also be hit in mid-air if it was previously targeted by Lock-On or Mind Reader or if it is attacked by a Pokemon with No Guard. On the second turn the user descends and has a 30% chance to paralyze the target.
+280,Brick Break,engineering,Physical,75,100%,15,,,Reflect and Light Screen are removed from the target's field even if the attack misses or the target is a Ghost-type.
+145,Bubble,spiritual,Special,20,100%,30,,,Has a 10% chance to lower the target's Speed by 1 stage.
+61,BubbleBeam,rogue,Special,65,100%,20,,,Has a 10% chance to lower the target's Speed by 1 stage.
+339,Bulk Up,drunk,Status,0,,20,,,Raises the user's Attack and Defense by 1 stage each.
+331,Bullet Seed,medical,Physical,25,100%,30,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
+347,Calm Mind,dutiful,Status,0,,20,,,Raises the user's Special Attack and Special Defense by 1 stage each.
+293,Camouflage,dutiful,Status,0,100%,20,,,"The user's type changes according to the current terrain. It becomes Grass-type in tall grass and very tall grass (as well as in puddles) Water-type while surfing on any body of water Rock-type while inside any caves or on any rocky terrain Ground-type on beach sand desert sand and dirt roads Ice-type in snow and Normal-type everywhere else. The user will always become Normal-type during Wi-Fi battles. "
+268,Charge,villain,Status,0,100%,20,,,Doubles the power of the user's Electric attacks on the next turn and increases the user's Special Defense by 1 stage.
+204,Charm,dutiful,Status,0,100%,20,,,Lowers the target's Attack by 2 stages.
+128,Clamp,warrior,Physical,35,85%,10,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or U-Turn.
+4,Comet Punch,science,Physical,18,85%,15,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
+109,Confuse Ray,spiritual,Special,0,100%,10,,,Confuses the target.
+93,Confusion,merchant,Special,50,100%,25,,,Has a 10% chance to confuse the target.
+132,Constrict,dutiful,Physical,10,100%,35,,,Has a 10% chance to lower the target's Speed by 1 stage.
+160,Conversion,drunk,Status,0,,30,,,The user's type changes to match the type of one of its four attacks. This move fails if the user cannot change its type under this condition.
+176,Conversion 2,photonic,Status,0,100%,30,,,The user's type changes to one that resists the type of the last attack that hit the user. In double battles this situation holds even when the user is last hit by an attack from its partner.
+322,Cosmic Power,villain,Status,0,,20,,,Raises the user's Defense and Special Defense by 1 stage each.
+178,Cotton Spore,drunk,Special,0,100%,40,,,Lowers the target's Speed by 2 stages.
+68,Counter,photonic,Physical,50,100%,20,,,Almost always goes last; if an opponent strikes with a Physical attack before the user's turn the user retaliates for twice the damage it had endured. In double battles this attack targets the last opponent to hit the user with a Physical attack and cannot hit the user's teammate.
+343,Covet,warrior,Physical,60,100%,40,,,Steals the target's held item unless the user is already holding an item or the target has Sticky Hold or Multitype. Recycle cannot recover the stolen item.
+152,Crabhammer,medical,Physical,90,90%,10,,,Has a high critical hit ratio.
+238,Cross Chop,synth,Physical,100,80%,5,,,Has a high critical hit ratio.
+242,Crunch,medical,Physical,80,100%,15,,,Has a 20% chance to lower the target's Defense by 1 stage.
+306,Crush Claw,spiritual,Physical,75,95%,10,,,Has a 50% chance to lower the target's Defense by 1 stage.
+174,Curse,synth,Special,0,,10,,,When used by a Ghost-type the user sacrifices half of its max HP to sap the target by 1/4 of its max HP per turn. When used by anything else the user's Speed is decreased by 1 stage and its Attack and Defense are increased by 1 stage.
+15,Cut,merchant,Physical,50,95%,30,,,Deals damage with no additional effect.
+111,Defense Curl,merchant,Special,0,,40,,,Raises the user's Defense by 1 stage; after one use of this move the user's starting base power is doubled for every use of Rollout or Ice Ball.
+194,Destiny Bond,photonic,Status,0,,5,,,Causes an opponent to faint if its next attack KOs the user.
+197,Detect,villain,Status,0,,5,,,Almost always goes first. The user is protected from all attacks for one turn but the move's success rate halves with each consecutive use of Protect Detect or Endure. If a Pokemon has No Guard or used Lock-On or Mind Reader against the user during the previous turn its attack has a [100 Varmove's normal accuracy]% chance to hit through Detect; OHKO moves do not benefit from this effect. Blizzard has a 30% to hit through this move during Hail as does Thunder during Rain Dance.
+91,Dig,spiritual,Physical,80,100%,10,,,On the first turn the user digs underground becoming uncontrollable and evades all attacks. Earthquake and Magnitude can hit underground and gain doubled power. The user may also be hit underground if it was previously targeted by Lock-On or Mind Reader or if it is attacked by a Pokemon with No Guard. On the second turn the user attacks.
+50,Disable,synth,Special,0,100%,20,,,The target cannot choose its last move for 4-7 turns. Disable only works on one move at a time and fails if the target has not yet used a move or if its move has run out of PP. The target does nothing if it is about to use a move that becomes disabled.
+291,Dive,synth,Physical,80,100%,10,,,On the first turn the user dives underwater becoming uncontrollable and evades all attacks except for Surf and Whirlpool which have doubled power; the user may also be hit underwater if it was previously targeted by Lock-On or Mind Reader or if it is attacked by a Pokemon with No Guard. On the second turn the user attacks.
+146,Dizzy Punch,warrior,Physical,70,100%,10,,,Has a 20% chance to confuse the target.
+353,Doom Desire,synth,Special,140,100%,5,,,This move even if the user and/or the target switch out will strike the active target at the end of the second turn after its use.  Only one instance of Doom Desire or Future Sight may be active at a time.
+24,Double Kick,synth,Physical,30,100%,30,,,Strikes twice; if the first hit breaks the target's Substitute the real Pokemon will take damage from the second hit.
+104,Double Team,photonic,acc-,0,,15,,,Raises the user's Evasion by 1 stage.
+38,Double-Edge,science,Physical,120,100%,15,,,The user receives 1/3 recoil damage.
+3,DoubleSlap,rascal,Physical,15,85%,10,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
+337,Dragon Claw,photonic,Physical,80,100%,15,,,Deals damage with no additional effect.
+349,Dragon Dance,medical,Status,0,,20,,,Raises the user's Attack and Speed by 1 stage each.
+82,Dragon Rage,science,Special,40,100%,10,,,Always deals 40 points of damage.
+225,DragonBreath,rascal,Special,60,100%,20,,,Has a 30% chance to paralyze the target.
+138,Dream Eater,synth,Special,100,100%,15,,,Restores the user's HP by 1/2 of the damage inflicted on the target but only works on a sleeping target.
+65,Drill Peck,engineering,Physical,80,100%,20,,,Deals damage with no additional effect.
+223,DynamicPunch,rogue,Physical,100,50%,5,,,Confuses the target.
+89,Earthquake,villain,Physical,100,100%,10,,,Power doubles when performed against Pokemon using Dig.
+121,Egg Bomb,diplomat,Physical,100,75%,10,,,Deals damage with no additional effect.
+52,Ember,dutiful,Special,40,100%,25,,,Has a 10% chance to burn the target.
+227,Encore,engineering,Status,0,100%,5,,,The target is forced to use its last attack for the next 3 turns. The effects of this move will end immediately if the target runs out of PP for the repeated attack. In double battles a Pokemon who has received an Encore will target a random opponent with single-target attacks.
+283,Endeavor,photonic,Physical,50,100%,5,,,Inflicts damage equal to the target's current HP Varthe user's current HP.
+203,Endure,horny,Status,0,,10,,,Almost always goes first. The user is left with at least 1 HP following any attacks for one turn but the move's success rate halves with each consecutive use of Protect Detect or Endure.
+284,Eruption,criminal,Special,50,100%,5,,,Base power decreases as the user's HP decreases.
+153,Explosion,rascal,Physical,250,100%,5,,,Causes the user to faint.
+326,Extrasensory,merchant,Special,80,100%,30,,,Has a 10% chance to make the target flinch.
+245,ExtremeSpeed,engineering,Physical,80,100%,5,,,Usually goes first.
 263,Facade,engineering,Physical,50,100%,20,,,Power doubles if the user is inflicted with burn paralysis or poison.
+185,Faint Attack,horny,Physical,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
+252,Fake Out,psychic,Physical,40,100%,10,,,If this is the user's first move after being sent or switched into battle the target flinches; this move fails otherwise and against targets with Inner Focus.
+313,Fake Tears,medical,Status,0,100%,20,,,Lowers the target's Special Defense by 2 stages.
+206,False Swipe,medical,Physical,40,100%,40,,,Leaves the target with at least 1 HP.
+297,FeatherDance,science,Status,0,100%,15,,,Lowers the target's Attack by 2 stages.
+126,Fire Blast,psychic,Special,120,85%,5,,,Has a 10% chance to burn the target.
+7,Fire Punch,diplomat,Physical,75,100%,15,,,Has a 10% chance to burn the target.
+83,Fire Spin,engineering,Special,35,85%,15,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or it uses U-Turn.
+90,Fissure,psychic,Physical,0,30%,5,,,The target faints; doesn't work on higher-leveled Pokemon.
+175,Flail,diplomat,Physical,50,100%,15,,,Base power increases as the user's HP decreases.
+172,Flame Wheel,science,Physical,60,100%,25,,,Has a 10% chance to burn the target; can be used while frozen which both attacks the target normally and thaws the user.
+53,Flamethrower,rogue,Special,95,100%,15,,,Has a 10% chance to burn the target.
+148,Flash,synth,acc-,0,100%,20,,,Lowers the target's Accuracy by 1 stage.
+260,Flatter,medical,Status,0,100%,15,,,Confuses the target and raises its Special Attack by 1 stage.
+19,Fly,rogue,Physical,90,95%,15,,,On the first turn the user flies into the air becoming uncontrollable and evades most attacks. Gust Twister Thunder and Sky Uppercut have normal accuracy against a mid-air Pokemon with Gust and Twister also gaining doubled power. The user may also be hit in mid-air if it was previously targeted by Lock-On or Mind Reader or if it is attacked by a Pokemon with No Guard. On the second turn the user attacks.
+116,Focus Energy,medical,Special,0,,30,,,Raises the user's chance for a Critical Hit by two domains.
 264,Focus Punch,synth,Physical,150,100%,20,,,At the beginning of the round the user tightens its focus; the attack itself usually goes last and will fail if the user is attacked by any other Pokemon during the turn.
-265,SmellingSalt,diplomat,Physical,60,100%,10,,,If the target is paralyzed power is doubled but the target will be cured.
 266,Follow Me,photonic,Status,0,100%,20,,,Almost always goes first. For the rest of the turn all attacks from the opponent's team that target the user's team are redirected toward the user. In double battles the user's teammate will not be protected from attacks that have more than one intended target.
+193,Foresight,diplomat,Status,0,100%,40,,,Until the target faints or switches the user's Accuracy modifiers and the target's Evasion modifiers are ignored. Ghost-type targets also lose their immunities against Normal-type and Fighting-type moves.
+338,Frenzy Plant,criminal,Special,150,90%,5,,,The user recharges during its next turn; as a result until the end of the next turn the user becomes uncontrollable.
+218,Frustration,warrior,Physical,50,100%,20,,,Power increases as user's happiness decreases; maximum 102 BP.
+31,Fury Attack,spiritual,Physical,15,85%,20,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
+210,Fury Cutter,synth,Physical,20,95%,20,,,The base power of this move doubles with each consecutive hit; however power is capped at a maximum 160 BP and remains there for any subsequent uses. If this move misses base power will be reset to 10 BP on the next turn. The user can also select other attacks without resetting this move's power; it will continue to double after each use until it either misses or reaches the 160 BP cap.
+154,Fury Swipes,science,Physical,18,80%,15,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
+248,Future Sight,photonic,Special,100,100%,10,,,This move even if the user and/or the target switch out will strike the active target at the end of the second turn after its use. Only one instance of Future Sight or Doom Desire may be active at a time.
+202,Giga Drain,synth,Special,75,100%,10,,,Restores the user's HP by 1/2 of the damage inflicted on the target.
+137,Glare,engineering,Special,0,90%,30,,,Paralyzes the target.
+320,GrassWhistle,criminal,Status,0,55%,15,,,Puts the target to sleep.
+45,Growl,villain,Special,0,100%,40,,,Lowers the target's Attack by 1 stage.
+74,Growth,warrior,Special,0,,40,,,"Raises the user's Attack and Special Attack by 1 stage. If the weather is Sun Growth raises Attack and SpAttk two stages each. "
+288,Grudge,spiritual,Status,0,100%,5,,,The target's next move is set to 0 PP if it directly KOs the user.
+12,Guillotine,psychic,Physical,0,30%,5,,,The target faints; doesn't work on higher-leveled Pokemon.
+16,Gust,synth,Special,40,100%,35,,,Power doubles if the target is in mid-air via Fly or Bounce.
+258,Hail,dutiful,Status,0,,10,,,Cancels all other weather moves. For 5 turns: Blizzard never misses and has a 30% chance to hit through Protect and Detect each active Pokemon even when protected by a Substitute loses 1/16 of its max HP unless it is an Ice-type the power of Solarbeam is halved and the healing power of Morning Sun Synthesis and Moonlight is halved. The effects of Hail will last for eight turns if its user is holding Icy Rock.
+106,Harden,drunk,Special,0,,30,,,Raises the user's Defense by 1 stage.
+114,Haze,dutiful,Special,0,,30,,,Eliminates any stat modifiers from all active Pokemon. The stat boosts from Choice Band Choice Lens and Choice Scarf are not affected.
+29,Headbutt,villain,Physical,70,100%,15,,,Has a 30% chance to make the target flinch.
+215,Heal Bell,villain,Status,0,,5,,,Every Pokemon in the user's party is cured of status conditions. Allied Pokemon who have Soundproof are not affected.
+257,Heat Wave,horny,Special,100,90%,10,,,Has a 10% chance to burn the target.
+270,Helping Hand,spiritual,Status,0,100%,20,,,Always goes first. In double battles the power of the user's partner's attacks is increased by 1.5x for that turn; does nothing in single battles.
+136,Hi Jump Kick,science,Physical,130,90%,10,,,If this attack misses the target the user half of its max health in recoil damage.
+237,Hidden Power,merchant,Special,70,100%,15,,,Varies in power and type depending on the user's IVs; maximum 70 BP.
+30,Horn Attack,psychic,Physical,65,100%,25,,,Deals damage with no additional effect.
+32,Horn Drill,warrior,Physical,0,30%,5,,,The target faints; doesn't work on higher-leveled Pokemon.
+336,Howl,diplomat,Status,0,,40,,,Raises the user's Attack by 1 stage.
+308,Hydro Cannon,merchant,Special,150,90%,5,,,The user recharges during its next turn; as a result until the end of the next turn the user becomes uncontrollable.
+56,Hydro Pump,science,Special,120,80%,5,,,Deals damage with no additional effect.
+63,Hyper Beam,rascal,Special,150,90%,5,,,The user recharges during its next turn; as a result until the end of the next turn the user becomes uncontrollable.
+158,Hyper Fang,photonic,Physical,80,90%,15,,,Has a 10% chance to make the target flinch.
+304,Hyper Voice,villain,Special,90,100%,10,,,Deals damage with no additional effect.
+95,Hypnosis,horny,Special,0,60%,20,,,Puts the target to sleep.
+301,Ice Ball,photonic,Physical,30,90%,20,,,The user attacks uncontrollably for five turns; this move's power doubles after each turn and also if Defense Curl was used beforehand. Its power resets after five turns have ended or if the attack misses.
+58,Ice Beam,synth,Special,95,100%,10,,,Has a 10% chance to freeze the target.
+8,Ice Punch,photonic,Physical,75,100%,15,,,Has a 10% chance to freeze the target.
+333,Icicle Spear,science,Physical,25,100%,30,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
+196,Icy Wind,drunk,Special,55,95%,15,,,Lowers the target's Speed by 1 stage.
+286,Imprison,villain,Status,0,100%,10,,,Until the user faints or switches out the opponent cannot select any moves that it has in common with the user. In double battles this move affects both opponents.
+275,Ingrain,dutiful,Status,0,100%,20,,,The user recovers 1/16 of its max HP after each turn but it cannot be switched out or forced to switch out. If a Flying-type Pokemon or a Pokemon with Levitate comes under the effect of Ingrain it will no longer have immunity from Ground-type attacks.
+334,Iron Defense,engineering,Status,0,,15,,,Raises the user's Defense by 2 stages.
+231,Iron Tail,criminal,Physical,100,75%,15,,,Has a 30% chance to lower the target's Defense by 1 stage.
+26,Jump Kick,photonic,Physical,100,95%,10,,,If this attack misses the target the user half of its max health in recoil damage.
+2,Karate Chop,medical,Physical,50,100%,25,,,Has a high critical hit ratio.
+134,Kinesis,medical,acc-,0,80%,15,,,Lowers the target's Accuracy by 1 stage.
+282,Knock Off,diplomat,Physical,20,100%,20,,,Disables the target's held item unless it has Sticky Hold or Multitype. Items lost to this move cannot be recovered by using Recycle.
+348,Leaf Blade,rogue,Physical,90,100%,15,,,Has a high critical hit ratio.
+141,Leech Life,criminal,Physical,20,100%,15,,,Restores the user's HP by 1/2 of the damage inflicted on the target.
+73,Leech Seed,spiritual,Special,0,90%,10,,,The user steals 1/8 of the target's max HP until the target is switched out is KO'ed or uses Rapid Spin; does not work against Grass-type Pokemon or Pokemon behind Substitutes.
+43,Leer,criminal,Special,0,100%,30,,,Lowers the target's Defense by 1 stage.
+122,Lick,photonic,Physical,20,100%,30,,,Has a 30% chance to paralyze the target.
+113,Light Screen,horny,sSpecial,0,,30,,,All Pokemon in the user's party receive 1/2 damage from Special attacks for 5 turns. Light Screen will be removed from the user's field if an opponent's Pokemon uses Brick Break. It will also last for eight turns if its user is holding Light Clay. In double battles both Pokemon are shielded but damage protection is reduced from 1/2 to 1/3.
+199,Lock-On,spiritual,Status,0,100%,5,,,This move ensures that the user's next attack will hit against its current target. This effect can be Baton Passed to another Pokemon. Lock-On fails against Pokemon in the middle of using Protect Detect Dig Fly Bounce or Dive as well as Pokemon behind a Substitute. If the target uses Protect or Detect during its next turn the user's next move has a [100 Varmove's normal accuracy]% chance to hit through Protect or Detect. OHKO moves do not benefit from this trait.
+142,Lovely Kiss,drunk,Special,0,75%,10,,,Puts the target to sleep.
+67,Low Kick,diplomat,Physical,50,100%,20,,,Base power increases as the target's weight increases.
+295,Luster Purge,medical,Special,70,100%,5,,,Has a 50% chance to lower the target's Special Defense by 1 stage.
+183,Mach Punch,merchant,Physical,40,100%,30,,,Usually goes first.
+277,Magic Coat,medical,Status,0,100%,15,,,Almost always goes first. Until the end of the turn the user will reflect one disabling move back at its user (including teammates); these include status effect inducers confusion inducers (including Flatter and Swagger) Attract trapping moves that do not damage Leech Seed Worry Seed Gastro Acid and negative stat modifiers (except Defog). In double battles Magic Coat will only reflect the first applicable move performed against its user before wearing off.
+345,Magical Leaf,synth,Special,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
+222,Magnitude,dutiful,Physical,50,100%,30,,,Deals variable damage between 10 base power and 130 base power as well as double damage against Digging Pokemon.
+212,Mean Look,photonic,Status,0,100%,5,,,As long as the user remains in battle the target cannot switch out unless it is holding Shed Shell or uses Baton Pass or U-Turn. The target will still be trapped if the user switches out by using Baton Pass.
+96,Meditate,dutiful,Special,0,,40,,,Raises the user's Attack by 1 stage.
+72,Mega Drain,psychic,Special,40,100%,15,,,Restores the user's HP by 1/2 of the damage inflicted on the target.
+25,Mega Kick,diplomat,Physical,120,75%,5,,,Deals damage with no additional effect.
+5,Mega Punch,engineering,Physical,80,85%,20,,,Deals damage with no additional effect.
+224,Megahorn,medical,Physical,120,85%,10,,,Deals damage with no additional effect.
+262,Memento,science,Status,0,100%,10,,,The user sacrifices itself to lower the target's Attack and Special Attack by 2 stages each.
+232,Metal Claw,drunk,Physical,50,95%,35,,,Has a 10% chance to raise the user's Attack by 1 stage.
+319,Metal Sound,photonic,Status,0,85%,40,,,Lowers the target's Special Defense by 2 stages.
+309,Meteor Mash,synth,Physical,100,85%,10,,,Has a 20% chance to raise the user's Attack by 1 stage.
+118,Metronome,science,Status,0,,10,,,The user performs a randomly selected move; almost any move in the game could be picked. Metronome cannot generate itself Assist Chatter Copycat Counter Covet Destiny Bond Detect Endure Feint Focus Punch Follow Me Helping Hand Me First Mimic Mirror Coat Mirror Move Protect Sketch Sleep Talk Snatch Struggle Switcheroo Thief Trick or any move that the user already knows.
+208,Milk Drink,science,Status,0,,10,,,Restores 1/2 of the user's max HP.
+102,Mimic,synth,Special,0,100%,10,,,This move is temporarily replaced by the target's last move; the replacement move will have 5 PP and become part of the user's moveset until the user switches out or the battle ends. Mimic copies attacks even if they miss or the user has immunity toward their type; it cannot copy itself Struggle Transform Sketch Metronome or moves that the user already knows and it will fail if the target has yet to use a move.
+170,Mind Reader,medical,Status,0,100%,5,,,This move ensures that the user's next attack will hit against its current target. This effect can be Baton Passed to another Pokemon. Mind Reader fails against Pokemon in the middle of using Protect Detect Dig Fly Bounce or Dive as well as Pokemon behind a Substitute. If the target uses Protect or Detect during its next turn the user's next move has a [100 Varmove's normal accuracy]% chance to hit through Protect or Detect. OHKO moves do not benefit from this trait.
+107,Minimize,villain,acc-,0,,20,,,Raises the user's Evasion by 2 stage; however Stomp retains its normal accuracy and gains doubled power against Minimized Pokemon.
+243,Mirror Coat,rascal,Special,50,100%,20,,,Almost always goes last; if an opponent strikes with a Special attack before the user's turn the user retaliates for twice the damage it had endured. In double battles this attack targets the last opponent to hit the user with a Special attack and cannot hit the user's teammate.
+119,Mirror Move,engineering,Status,0,,20,,,The user performs the last move executed by its target; if applicable an attack's damage is calculated with the user's stats level and type(s). This moves fails if the target has not yet used a move. Mirror Move cannot copy Encore Struggle global moves affecting all Pokemon on the field (such as Gravity Hail Rain Dance Sandstorm and Sunny Day) moves that can bypass Protect (Acupressure Doom Desire Future Sight Imprison Perish Song Psych Up Role Play and Transform) and moves that do not have a specific target (such as Light Screen Reflect Safeguard Spikes Stealth Rock and Toxic Spikes).
+54,Mist,medical,Special,0,,30,,,Protects every Pokemon on the user's team from negative stat modifiers caused by other Pokemon (including teammates) but not by itself for five turns. The team's Accuracy and Evasion stats are also protected. Moves that cause negative stat modifiers as a secondary effect such as Psychic still deal their regular damage.
+296,Mist Ball,rascal,Special,70,100%,5,,,Has a 50% chance to lower the target's Special Attack by 1 stage.
+236,Moonlight,warrior,Status,0,,5,,,Restores a fraction of the user's max HP depending on the weather: 2/3 during Sunny Day 1/2 during regular weather and 1/4 during Rain Dance Hail and Sandstorm.
+234,Morning Sun,psychic,Status,0,,5,,,Restores a fraction of the user's max HP depending on the weather: 2/3 during Sunny Day 1/2 during regular weather and 1/4 during Rain Dance Hail and Sandstorm.
+341,Mud Shot,psychic,Special,55,95%,15,,,Lowers the target's Speed by 1 stage.
+300,Mud Sport,diplomat,Status,0,100%,15,,,All Electric-type moves are 50% weaker until the user switches out.
+189,Mud-Slap,rascal,Special,20,100%,10,,,Has a 30% chance to lower the target's Accuracy by 1 stage.
+330,Muddy Water,rogue,Special,95,85%,10,,,Lowers the target's Accuracy by 1 stage.
 267,Nature Power,criminal,Status,50,95%,20,,,The user generates another move depending on the battle's current terrain. It generates Seed Bomb in any type of grass (as well as in puddles) Hydro Pump while surfing on top of water Rock Slide on any rocky outdoor terrain and inside of caves Earthquake on beach sand desert sand and dirt paths (as well as Wifi) Blizzard in snow and Tri Attack everywhere else. In Battle Revolution the move generates Tri Attack at Courtyard Main Street and Neon Seed Bomb at Sunny Park and Waterfall Hydro Pump at Gateway Rock Slide at Crystal Magma and Stargazer and Earthquake at Sunset.
 267,Nature Power (Wifi),drunk,Physical,100,95%,20,,,Earthquake.
-268,Charge,villain,Status,0,100%,20,,,Doubles the power of the user's Electric attacks on the next turn and increases the user's Special Defense by 1 stage.
-269,Taunt,psychic,Status,0,100%,20,,,Prevents the target from using non-damaging moves for 3 turns. Assist Copycat Me First Metronome Mirror Move and Sleep Talk are prevented during this time but Bide Counter Endeavor Metal Burst and Mirror Coat are not prevented.
-270,Helping Hand,spiritual,Status,0,100%,20,,,Always goes first. In double battles the power of the user's partner's attacks is increased by 1.5x for that turn; does nothing in single battles.
-271,Trick,warrior,Status,0,100%,10,,,Exchanges items with the target unless it has Sticky Hold or Multitype. Items lost to this move cannot be recovered by using Recycle.
-272,Role Play,merchant,Status,0,100%,10,,,The user's own ability is overwritten with the target's ability; does nothing if the target's ability is Wonder Guard.
-273,Wish,synth,Status,0,100%,10,,,At the end of the next turn the active Pokemon from the user's team is healed by 1/2 of the user's HP; this can be any member of the user's team.
-274,Assist,horny,Status,0,100%,20,,,The user performs a random move from any of the Pokemon on its team. Assist cannot generate itself Chatter Copycat Counter Covet Destiny Bond Detect Endure Feint Focus Punch Follow Me Helping Hand Me First Metronome Mimic Mirror Coat Mirror Move Protect Sketch Sleep Talk Snatch Struggle Switcheroo Thief or Trick.
-275,Ingrain,dutiful,Status,0,100%,20,,,The user recovers 1/16 of its max HP after each turn but it cannot be switched out or forced to switch out. If a Flying-type Pokemon or a Pokemon with Levitate comes under the effect of Ingrain it will no longer have immunity from Ground-type attacks.
-276,Superpower,rogue,Physical,120,100%,5,,,Lowers the user's Attack and Defense by 1 stage each after use.
-277,Magic Coat,medical,Status,0,100%,15,,,Almost always goes first. Until the end of the turn the user will reflect one disabling move back at its user (including teammates); these include status effect inducers confusion inducers (including Flatter and Swagger) Attract trapping moves that do not damage Leech Seed Worry Seed Gastro Acid and negative stat modifiers (except Defog). In double battles Magic Coat will only reflect the first applicable move performed against its user before wearing off.
-278,Recycle,rascal,Status,0,100%,10,,,The user's lost item is recovered. Items lost to Bug Bite Fling Natural Gift and Pluck will be recovered if the user of Recycle was the item's original holder; items lost to Trick Switcheroo Thief Covet or Knock Off cannot be recovered.
-279,Revenge,science,Physical,60,100%,10,,,Almost always goes last even after another Pokemon's Focus Punch; this move's base power doubles if the user is damaged before its turn.
-280,Brick Break,engineering,Physical,75,100%,15,,,Reflect and Light Screen are removed from the target's field even if the attack misses or the target is a Ghost-type.
-281,Yawn,synth,Status,0,100%,10,,,If the target stays in battle it falls asleep at the end of the next turn.
-282,Knock Off,diplomat,Physical,20,100%,20,,,Disables the target's held item unless it has Sticky Hold or Multitype. Items lost to this move cannot be recovered by using Recycle.
-283,Endeavor,photonic,Physical,50,100%,5,,,Inflicts damage equal to the target's current HP Varthe user's current HP.
-284,Eruption,criminal,Special,50,100%,5,,,Base power decreases as the user's HP decreases.
-285,Skill Swap,drunk,Status,0,100%,10,,,The user exchanges abilities with the target; does not work if Wonder Guard is the ability of either the user or the target.
-286,Imprison,villain,Status,0,100%,10,,,Until the user faints or switches out the opponent cannot select any moves that it has in common with the user. In double battles this move affects both opponents.
-287,Refresh,psychic,Status,0,100%,20,,,The user recovers from burn poison and paralysis.
-288,Grudge,spiritual,Status,0,100%,5,,,The target's next move is set to 0 PP if it directly KOs the user.
-289,Snatch,warrior,Status,0,100%,10,,,Almost always goes first. Until the end of the turn the user will steal a supporting move from another Pokemon (including teammates). In double battles Snatch only steals the first applicable move performed by another Pokemon before wearing off.
-290,Secret Power,merchant,Physical,70,100%,20,,,This move has a 30% chance to inflict a side effect depending on the battle's current terrain. The target may be put to sleep in any type of grass (or in puddles) its Attack may be lowered by 1 stage while surfing on any body of water its Speed may be lowered by 1 stage while on marshy terrain its Accuracy may be lowered by 1 stage on beach sand desert sand and dirt paths (and also in Wifi battles) it may flinch in caves or on rocky outdoor terrain it may become frozen on snowy terrain and it may become paralyzed everywhere else.
-291,Dive,synth,Physical,80,100%,10,,,On the first turn the user dives underwater becoming uncontrollable and evades all attacks except for Surf and Whirlpool which have doubled power; the user may also be hit underwater if it was previously targeted by Lock-On or Mind Reader or if it is attacked by a Pokemon with No Guard. On the second turn the user attacks.
-292,Arm Thrust,horny,Physical,15,100%,20,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-293,Camouflage,dutiful,Status,0,100%,20,,,"The user's type changes according to the current terrain. It becomes Grass-type in tall grass and very tall grass (as well as in puddles) Water-type while surfing on any body of water Rock-type while inside any caves or on any rocky terrain Ground-type on beach sand desert sand and dirt roads Ice-type in snow and Normal-type everywhere else. The user will always become Normal-type during Wi-Fi battles. "
-294,Tail Glow,rogue,Status,0,100%,20,,,Raises the user's Special Attack by 2 stages.
-295,Luster Purge,medical,Special,70,100%,5,,,Has a 50% chance to lower the target's Special Defense by 1 stage.
-296,Mist Ball,rascal,Special,70,100%,5,,,Has a 50% chance to lower the target's Special Attack by 1 stage.
-297,FeatherDance,science,Status,0,100%,15,,,Lowers the target's Attack by 2 stages.
-298,Teeter Dance,engineering,Status,0,100%,20,,,Each active Pokemon except the user becomes confused.
-299,Blaze Kick,synth,Physical,85,90%,10,,,Has a high critical hit ratio and a 10% chance to burn the target.
-300,Mud Sport,diplomat,Status,0,100%,15,,,All Electric-type moves are 50% weaker until the user switches out.
-301,Ice Ball,photonic,Physical,30,90%,20,,,The user attacks uncontrollably for five turns; this move's power doubles after each turn and also if Defense Curl was used beforehand. Its power resets after five turns have ended or if the attack misses.
 302,Needle Arm,criminal,Physical,60,100%,15,,,Has a 30% chance to make the target flinch.
-303,Slack Off,drunk,Status,0,100%,10,,,Restores 1/2 of the user's max HP.
-304,Hyper Voice,villain,Special,90,100%,10,,,Deals damage with no additional effect.
-305,Poison Fang,psychic,Physical,50,100%,15,,,Has a 30% chance to inflict Toxic poison on the target.
-306,Crush Claw,spiritual,Physical,75,95%,10,,,Has a 50% chance to lower the target's Defense by 1 stage.
-307,Blast Burn,warrior,Special,150,90%,5,,,The user recharges during its next turn; as a result until the end of the next turn the user becomes uncontrollable.
-308,Hydro Cannon,merchant,Special,150,90%,5,,,The user recharges during its next turn; as a result until the end of the next turn the user becomes uncontrollable.
-309,Meteor Mash,synth,Physical,100,85%,10,,,Has a 20% chance to raise the user's Attack by 1 stage.
-310,Astonish,horny,Physical,30,100%,15,,,Has a 30% chance to make the target flinch.
-311,Weather Ball,dutiful,Special,50,100%,10,,,Base power is 50; Base power doubles and move's type changes during weather effects: becomes Fire-type during Sunny Day Water-type during Rain Dance Ice-type during Hail and Rock-type during Sandstorm.
-312,Aromatherapy,rogue,Status,0,,5,,,"Every Pokemon in the user's party is cured of status conditions. Lists every Pokemon that was healed and what status condition was cured. "
-313,Fake Tears,medical,Status,0,100%,20,,,Lowers the target's Special Defense by 2 stages.
-314,Air Cutter,rascal,Special,55,95%,25,,,Has a high critical hit ratio.
-315,Overheat,science,Special,140,90%,5,,,Lowers the user's Special Attack by 2 stages after use.
+101,Night Shade,engineering,Special,50,100%,15,,,Does damage equal to user's level.
+171,Nightmare,rascal,Status,0,100%,15,,,This move only works on a sleeping target; as long as the target remains asleep and in battle 1/4 of its max HP is sapped after each turn.
+190,Octazooka,science,Special,65,85%,10,,,Has a 50% chance to lower the target's Accuracy by 1 stage.
 316,Odor Sleuth,engineering,Status,0,100%,40,,,Until the target faints or switches the user's Accuracy modifiers and the target's Evasion modifiers are ignored. Ghost-type targets also lose their immunities against Normal-type and Fighting-type moves.
-317,Rock Tomb,synth,Physical,50,80%,10,,,Lowers the target's Speed by 1 stage.
-318,Silver Wind,diplomat,Special,60,100%,5,,,Has a 10% chance to raise all of the user's stats by 1 stage.
-319,Metal Sound,photonic,Status,0,85%,40,,,Lowers the target's Special Defense by 2 stages.
-320,GrassWhistle,criminal,Status,0,55%,15,,,Puts the target to sleep.
-321,Tickle,drunk,Status,0,100%,20,,,Lowers the target's Attack and Defense by 1 stage each.
-322,Cosmic Power,villain,Status,0,,20,,,Raises the user's Defense and Special Defense by 1 stage each.
-323,Water Spout,psychic,Special,50,100%,5,,,Base power decreases as the user's HP decreases.
-324,Signal Beam,spiritual,Special,75,100%,15,,,Has a 10% chance to confuse the target.
-325,Shadow Punch,warrior,Physical,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
-326,Extrasensory,merchant,Special,80,100%,30,,,Has a 10% chance to make the target flinch.
-327,Sky Uppercut,synth,Physical,85,90%,15,,,Also hits targets in mid-air via Fly or Bounce.
-328,Sand Tomb,horny,Physical,35,85%,15,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or U-Turn.
-329,Sheer Cold,dutiful,Special,0,30%,5,,,The target faints; doesn't work on higher-leveled Pokemon.
-330,Muddy Water,rogue,Special,95,85%,10,,,Lowers the target's Accuracy by 1 stage.
-331,Bullet Seed,medical,Physical,25,100%,30,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-332,Aerial Ace,rascal,Physical,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
-333,Icicle Spear,science,Physical,25,100%,30,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-334,Iron Defense,engineering,Status,0,,15,,,Raises the user's Defense by 2 stages.
-335,Block,synth,Status,0,100%,5,,,As long as the user remains in battle the target cannot switch out unless it is holding Shed Shell or uses Baton Pass or U-Turn. The target will still be trapped if the user switches out by using Baton Pass.
-336,Howl,diplomat,Status,0,,40,,,Raises the user's Attack by 1 stage.
-337,Dragon Claw,photonic,Physical,80,100%,15,,,Deals damage with no additional effect.
-338,Frenzy Plant,criminal,Special,150,90%,5,,,The user recharges during its next turn; as a result until the end of the next turn the user becomes uncontrollable.
-339,Bulk Up,drunk,Status,0,,20,,,Raises the user's Attack and Defense by 1 stage each.
-340,Bounce,villain,Physical,85,85%,5,,,On the first turn the user bounces into the air becoming uncontrollable and evades most attacks. Gust Twister Thunder and Sky Uppercut have normal accuracy against a mid-air Pokemon with Gust and Twister also gaining doubled power. The user may also be hit in mid-air if it was previously targeted by Lock-On or Mind Reader or if it is attacked by a Pokemon with No Guard. On the second turn the user descends and has a 30% chance to paralyze the target.
-341,Mud Shot,psychic,Special,55,95%,15,,,Lowers the target's Speed by 1 stage.
+200,Outrage,warrior,Physical,120,100%,15,,,The user attacks uncontrollably for 2-3 turns and then gets confused.
+315,Overheat,science,Special,140,90%,5,,,Lowers the user's Special Attack by 2 stages after use.
+220,Pain Split,synth,Status,0,100%,20,,,Calculates the average of the user's current HP and the target's HP; the HP of both Pokemon is set to this average. Pokemon can be healed by Pain Split even under the effects of Heal Block.
+6,Pay Day,synth,Physical,40,100%,20,,,The player picks up extra money after in-game battles; the money received is equal to: [user's level * 5 * number of times Pay Day is used]. The player does not lose money if the opponent uses Pay Day but the player wins the battle.
+64,Peck,science,Physical,35,100%,35,,,Deals damage with no additional effect.
+195,Perish Song,criminal,Status,0,,5,,,All active Pokemon will faint in 3 turns unless they are switched out.
+80,Petal Dance,medical,Special,120,100%,10,,,The user attacks uncontrollably for 2-3 turns and then gets confused.
+42,Pin Missile,photonic,Physical,14,85%,20,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
+305,Poison Fang,psychic,Physical,50,100%,15,,,Has a 30% chance to inflict Toxic poison on the target.
+139,Poison Gas,diplomat,Special,0,90%,40,,,Poisons the target.
+40,Poison Sting,synth,Physical,15,100%,35,,,Has a 30% chance to poison the target.
 342,Poison Tail,spiritual,Physical,50,100%,25,,,Has a high critical hit ratio and a 10% chance to poison the target.
-343,Covet,warrior,Physical,60,100%,40,,,Steals the target's held item unless the user is already holding an item or the target has Sticky Hold or Multitype. Recycle cannot recover the stolen item.
-344,Volt Tackle,merchant,Physical,120,100%,15,,,The user receives 1/3 recoil damage; has a 10% chance to paralyze the target.
-345,Magical Leaf,synth,Special,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
-346,Water Sport,horny,Status,0,100%,15,,,All Fire-type moves are 50% weaker until the user switches out.
-347,Calm Mind,dutiful,Status,0,,20,,,Raises the user's Special Attack and Special Defense by 1 stage each.
-348,Leaf Blade,rogue,Physical,90,100%,15,,,Has a high critical hit ratio.
-349,Dragon Dance,medical,Status,0,,20,,,Raises the user's Attack and Speed by 1 stage each.
-350,Rock Blast,rascal,Physical,25,90%,10,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
-351,Shock Wave,science,Special,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
-352,Water Pulse,engineering,Special,60,100%,20,,,Has a 20% chance to confuse the target.
-353,Doom Desire,synth,Special,140,100%,5,,,This move even if the user and/or the target switch out will strike the active target at the end of the second turn after its use.  Only one instance of Doom Desire or Future Sight may be active at a time.
+77,PoisonPowder,horny,Special,0,75%,35,,,Poisons the target.
+1,Pound,rogue,Physical,40,100%,35,,,Deals damage with no additional effect.
+181,Powder Snow,spiritual,Special,40,100%,25,,,Has a 10% chance to freeze the target.
+217,Present,spiritual,Physical,50,90%,15,,,Randomly either attacks with a variable power between 40 base power and 120 base power or heals the target by 80 HP.
+182,Protect,warrior,Special,0,,10,,,Almost always goes first. The user is protected from all attacks for one turn but the move's success rate halves with each consecutive use of Protect Detect or Endure. If a Pokemon has No Guard or used Lock-On or Mind Reader against the user during the previous turn its attack has a [100 Varmove's normal accuracy]% chance to hit through Protect; OHKO moves do not benefit from this effect. Blizzard has a 30% to hit through this move during Hail as does Thunder during Rain Dance.
+60,Psybeam,photonic,Special,65,100%,20,,,Has a 10% chance to confuse the target.
+244,Psych Up,science,Status,0,,10,,,The user copies all six of the target's current stat modifiers.
+94,Psychic,synth,Special,90,100%,10,,,Has a 10% chance to lower the target's Special Defense by 1 stage.
 354,Psycho Boost,diplomat,Special,140,90%,5,,,Lowers the user's Special Attack by 2 stages after use.
+149,Psywave,horny,Special,50,80%,15,,,Randomly inflicts set damage equal to .5x .6x .7x .8x .9x 1.0x 1.1x 1.2x 1.3x 1.4x or 1.5x the user's level.
+228,Pursuit,synth,Physical,80,100%,20,,,If the target switches out on the current turn this move strikes with doubled power before the switch. Baton Passers still escape safely. When a faster Pokemon uses Pursuit against a U-Turner the U-Turner is hit for normal damage; when a slower Pokemon uses Pursuit against a U-Turner the U-Turner makes its attack then is hit by Pursuit for double power and switches out.
+98,Quick Attack,medical,Physical,40,100%,30,,,Usually goes first.
+99,Rage,rascal,Physical,20,100%,20,,,The user's Attack rises by 1 stage if attacked before its next move.
+240,Rain Dance,dutiful,Status,0,,5,,,Cancels all other weather moves. For 5 turns: the power of Water attacks is increased by 50% the power of Fire attacks is decreased by 50% Thunder never misses and has a 30% chance to hit through Protect and Detect the power of Solarbeam is halved and the healing power of Morning Sun Synthesis and Moonlight is decreased from 1/2 to 1/4 of the user's max HP. The effects of Rain Dance will last for eight turns if its user is holding Damp Rock.
+229,Rapid Spin,diplomat,Physical,20,100%,40,,,Removes Spikes Stealth Rock Toxic Spikes and Leech Seed from the user's side of the field; also frees the user from Bind Clamp Fire Spin Magma Storm Sand Tomb Whirlpool and Wrap. These effects do not occur if the move misses or is used against Ghost-type Pokemon.
+75,Razor Leaf,merchant,Physical,55,95%,25,,,Has a high critical hit ratio.
+13,Razor Wind,spiritual,Special,80,100%,10,,,The user prepares on turn one becoming uncontrollable and then attacks on turn two. Has a high critical hit ratio.
+105,Recover,criminal,Special,0,,10,,,Restores 1/2 of the user's max HP.
+278,Recycle,rascal,Status,0,100%,10,,,The user's lost item is recovered. Items lost to Bug Bite Fling Natural Gift and Pluck will be recovered if the user of Recycle was the item's original holder; items lost to Trick Switcheroo Thief Covet or Knock Off cannot be recovered.
+115,Reflect,rogue,Special,0,,20,,,All Pokemon in the user's party receive 1/2 damage from Physical attacks for 5 turns. Reflect will be removed from the user's field if an opponent's Pokemon uses Brick Break. It will also last for eight turns if its user is holding Light Clay. In double battles both Pokemon are shielded but damage protection is reduced from 1/2 to 1/3.
+287,Refresh,psychic,Status,0,100%,20,,,The user recovers from burn poison and paralysis.
+156,Rest,synth,Special,0,,10,,,The user is cured of status effects (and confusion) and recovers full HP but falls asleep for 2 turns. Pokemon who have Early Bird will wake up one turn early.
+216,Return,psychic,Physical,50,100%,20,,,Power increases as user's happiness increases; maximum 102 BP.
+279,Revenge,science,Physical,60,100%,10,,,Almost always goes last even after another Pokemon's Focus Punch; this move's base power doubles if the user is damaged before its turn.
+179,Reversal,villain,Physical,50,100%,15,,,Base power increases as the user's HP decreases.
+46,Roar,psychic,Status,0,100%,20,,,Almost always goes last; in trainer battles the target is switched out for a random member of its team. Escapes from wild battles. Has no effect if the target has Suction Cups Soundproof or used Ingrain.
+350,Rock Blast,rascal,Physical,25,90%,10,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
+157,Rock Slide,diplomat,Physical,75,90%,10,,,Has a 30% chance to make the target flinch.
+249,Rock Smash,criminal,Physical,40,100%,15,,,Has a 50% chance to lower the target's Defense by 1 stage.
+88,Rock Throw,drunk,Physical,50,90%,15,,,Deals damage with no additional effect.
+317,Rock Tomb,synth,Physical,50,80%,10,,,Lowers the target's Speed by 1 stage.
+272,Role Play,merchant,Status,0,100%,10,,,The user's own ability is overwritten with the target's ability; does nothing if the target's ability is Wonder Guard.
+27,Rolling Kick,criminal,Physical,60,85%,15,,,Has a 30% chance to make the target flinch.
+205,Rollout,rogue,Physical,30,90%,20,,,The user attacks uncontrollably for five turns; this move's power doubles after each turn and also if Defense Curl was used beforehand. Its power resets after five turns have ended or if the attack misses.
+221,Sacred Fire,horny,Physical,100,95%,5,,,Has a 50% chance to burn the target; can be used while frozen which both attacks the target normally and thaws the user.
+219,Safeguard,merchant,Status,0,,25,,,Protects the user's entire team from status conditions for five turns.
+328,Sand Tomb,horny,Physical,35,85%,15,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or U-Turn.
+28,Sand-Attack,drunk,acc-,0,100%,15,,,Lowers the target's Accuracy by 1 stage.
+201,Sandstorm,merchant,Status,0,,10,,,Cancels all other weather moves. For 5 turns: the Special Defense of Rock-type Pokemon is boosted by 50% each active Pokemon even when protected by a Substitute loses 1/16 of its max HP unless it has Sand Veil or is a Ground- Rock- or Steel-type the power of Solarbeam is halved and the healing power of Morning Sun Synthesis and Moonlight is halved. The effects of Sandstorm will last for eight turns if its user is holding Smooth Rock.
+184,Scary Face,synth,Special,0,90%,10,,,Lowers the target's Speed by 2 stages.
+10,Scratch,drunk,Physical,40,100%,35,,,Deals damage with no additional effect.
+103,Screech,diplomat,Special,0,85%,40,,,Lowers the target's Defense by 2 stages.
+290,Secret Power,merchant,Physical,70,100%,20,,,This move has a 30% chance to inflict a side effect depending on the battle's current terrain. The target may be put to sleep in any type of grass (or in puddles) its Attack may be lowered by 1 stage while surfing on any body of water its Speed may be lowered by 1 stage while on marshy terrain its Accuracy may be lowered by 1 stage on beach sand desert sand and dirt paths (and also in Wifi battles) it may flinch in caves or on rocky outdoor terrain it may become frozen on snowy terrain and it may become paralyzed everywhere else.
+69,Seismic Toss,criminal,Physical,50,100%,20,,,Does damage equal to user's level.
+120,Selfdestruct,synth,Physical,200,100%,5,,,Causes the user to faint.
+247,Shadow Ball,diplomat,Special,80,100%,15,,,Has a 20% chance to lower the target's Special Defense by 1 stage.
+325,Shadow Punch,warrior,Physical,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
+159,Sharpen,criminal,Special,0,,30,,,Raises the user's Attack by 1 stage.
+329,Sheer Cold,dutiful,Special,0,30%,5,,,The target faints; doesn't work on higher-leveled Pokemon.
+351,Shock Wave,science,Special,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
+324,Signal Beam,spiritual,Special,75,100%,15,,,Has a 10% chance to confuse the target.
+318,Silver Wind,diplomat,Special,60,100%,5,,,Has a 10% chance to raise all of the user's stats by 1 stage.
+47,Sing,spiritual,Status,0,55%,15,,,Puts the target to sleep.
+166,Sketch,synth,Status,0,,1,,,The user permanently replaces Sketch with the last move used by the target. Sketch cannot copy itself Chatter Memento or Struggle. Transform and moves that generate other moves can be Sketched successfully as can Explosion and Selfdestruct if a Pokemon with Damp is present. Healing Wish and Lunar Dance can be Sketched because they automatically fail when the user is the last Pokemon of its team. This move fails automatically when selected in wireless or Wi-Fi battles.
+285,Skill Swap,drunk,Status,0,100%,10,,,The user exchanges abilities with the target; does not work if Wonder Guard is the ability of either the user or the target.
+130,Skull Bash,synth,Physical,100,100%,15,,,The user prepares on turn one raising its Defense by 1 stage and becoming uncontrollable and then attacks on turn two.
+143,Sky Attack,villain,Physical,140,90%,5,,,The user prepares on turn one becoming uncontrollable and then attacks on turn two. Also has a 30% chance to make the target flinch.
+327,Sky Uppercut,synth,Physical,85,90%,15,,,Also hits targets in mid-air via Fly or Bounce.
+303,Slack Off,drunk,Status,0,100%,10,,,Restores 1/2 of the user's max HP.
+21,Slam,rascal,Physical,80,75%,20,,,Deals damage with no additional effect.
+163,Slash,spiritual,Physical,70,100%,20,,,Has a high critical hit ratio.
+79,Sleep Powder,rogue,Special,0,75%,15,,,Puts the target to sleep.
+214,Sleep Talk,drunk,Status,0,,10,,,Does nothing if the user is awake. If the user asleep it randomly performs one of its attacks. Rest will fail if it is selected. Sleep Talk's generated attacks do not cost PP but it cannot generate moves with 0 PP itself Assist Bide Chatter Copycat Disabled attacks Focus Punch Me First Metronome Mirror Move Uproar or attacks with a charge-up turn like Fly or Skull Bash. (Moves with a recharge turn like Hyper Beam can be generated.)
+124,Sludge,drunk,Special,65,100%,20,,,Has a 30% chance to poison the target.
+188,Sludge Bomb,medical,Special,90,100%,10,,,Has a 30% chance to poison the target.
+265,SmellingSalt,diplomat,Physical,60,100%,10,,,If the target is paralyzed power is doubled but the target will be cured.
+123,Smog,criminal,Special,20,70%,20,,,Has a 40% chance to poison the target.
+108,SmokeScreen,psychic,acc-,0,100%,20,,,Lowers the target's Accuracy by 1 stage.
+289,Snatch,warrior,Status,0,100%,10,,,Almost always goes first. Until the end of the turn the user will steal a supporting move from another Pokemon (including teammates). In double battles Snatch only steals the first applicable move performed by another Pokemon before wearing off.
+173,Snore,engineering,Special,40,100%,15,,,Has a 30% chance to make the target flinch; fails if user is awake.
+135,Softboiled,rascal,Special,0,100%,10,,,Restores 1/2 of the user's max HP.
+76,SolarBeam,synth,Special,120,100%,10,,,The user prepares on turn one becoming uncontrollable and then attacks on turn two. During Sunny Day this move fires immediately; during Rain Dance Sandstorm and Hail this move has half power.
+49,SonicBoom,merchant,Special,20,90%,20,,,Always deals 20 points of damage.
+209,Spark,engineering,Physical,65,100%,20,,,Has a 30% chance to paralyze the target.
+169,Spider Web,rogue,Status,0,100%,10,,,As long as the user remains in battle the target cannot switch out unless it is holding Shed Shell or uses Baton Pass or U-Turn. The target will still be trapped if the user switches out by using Baton Pass.
+131,Spike Cannon,horny,Physical,20,100%,15,,,Attacks 2-5 times in one turn; if one of these attacks breaks a target's Substitute the target will take damage for the rest of the hits. This move has a 3/8 chance to hit twice a 3/8 chance to hit three times a 1/8 chance to hit four times and a 1/8 chance to hit five times. If the user of this move has Skill Link this move will always strike five times.
+191,Spikes,engineering,Status,0,,20,,,Damages opponents unless they are Flying-type or have Levitate every time they are switched in; hits through Wonder Guard. Can be used up to three times: saps 1/8 of max HP with one layer 3/16 of max HP with two layers and 1/4 of max HP for three layers.
+255,Spit Up,merchant,Special,50,100%,10,,,Power increases with user's Stockpile count; fails with zero Stockpiles.
+180,Spite,psychic,Special,0,100%,10,,,The target's most recent move is reduced by 4 PP; this fails if the target has not yet performed a move if the target's last move has run out of PP or if the target can only use Struggle.
+150,Splash,dutiful,Status,0,,40,,,Doesn't do anything (but we still love it). Unfortunately it also cannot be used during the effects of Gravity! :(
+147,Spore,merchant,Special,0,100%,15,,,Puts the target to sleep.
+211,Steel Wing,diplomat,Physical,70,90%,25,,,Has a 10% chance to raise the user's Defense by 1 stage.
+254,Stockpile,warrior,Status,0,,20,,,Can be used up to three times to power Spit Up or Swallow. Also raises the user's Defense and Special Defense by 1 stage each. Stockpiles and the defensive boosts are lost when these Swallow or Spit Up is used or the user switches out. However the boosts can be Baton Passed.
+23,Stomp,engineering,Physical,65,100%,20,,,Has a 30% chance to make the target flinch; also retains its normal accuracy and gains doubled power against Minimized Pokemon.
+70,Strength,drunk,Physical,80,100%,15,,,Deals damage with no additional effect.
+81,String Shot,rascal,Special,0,95%,40,,,Lowers the target's Speed by 1 stage.
+165,Struggle,merchant,Physical,50,100%,1,,,Used automatically when all of the user's other moves have run out of PP or are otherwise inaccessible. The user receives recoil damage equal to 1/4 of its max HP. Struggle is classified as a typeless move and will hit any Pokemon for normal damage.
+78,Stun Spore,dutiful,Special,0,75%,30,,,Paralyzes the target.
+66,Submission,synth,Physical,80,80%,25,,,The user receives 1/4 recoil damage.
+164,Substitute,warrior,Special,0,,10,,,The user takes one-fourth of its maximum HP to create a substitute; this move fails if the user does not have enough HP for this. Until the substitute is broken it receives damage from all attacks made by other Pokemon and shields the user from status effects and stat modifiers caused by other Pokemon. The user is still affected by Tickle Hail Sandstorm and Attract from behind its Substitute. If a Substitute breaks from a hit during a multistrike move such as Fury Attack the user takes damage from the remaining strikes.
+241,Sunny Day,rogue,Status,0,,5,,,Cancels all other weather moves. For 5 turns: freezing is prevented the power of Fire attacks is increased by 50% the power of Water attacks is decreased by 50% Solarbeam fires immediately Thunder becomes 50% accurate and the healing power of Morning Sun Synthesis and Moonlight is increased from 1/2 to 2/3 of the user's max HP. The effects of Sunny Day will last for eight turns if its user is holding Heat Rock.
+162,Super Fang,psychic,Physical,50,90%,10,,,This move halves the target's current HP.
+276,Superpower,rogue,Physical,120,100%,5,,,Lowers the user's Attack and Defense by 1 stage each after use.
+48,Supersonic,warrior,Status,0,55%,20,,,Confuses the target.
+57,Surf,engineering,Special,95,100%,15,,,Power doubles against a target who is in the middle of using Dive.
+207,Swagger,rascal,Special,0,90%,15,,,Confuses the target and raises its Attack by 2 stages.
+256,Swallow,synth,Status,0,,10,,,This move only works if the user has at least one Stockpile. Restores 1/4 of user's max HP with one Stockpile 1/2 of user's max HP with two Stockpiles and fully restores the user's HP with three Stockpiles.
+186,Sweet Kiss,dutiful,Special,0,75%,10,,,Confuses the target.
+230,Sweet Scent,photonic,Status,0,100%,20,,,Lowers the target's Evasion by 1 stage.
+129,Swift,merchant,Special,60,101%,20,,,Ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
+14,Swords Dance,warrior,Status,0,,30,,,Raises the user's Attack by 2 stages.
+235,Synthesis,spiritual,Status,0,,5,,,Restores a fraction of the user's max HP depending on the weather: 2/3 during Sunny Day 1/2 during regular weather and 1/4 during Rain Dance Hail and Sandstorm.
+33,Tackle,merchant,Physical,50,100%,35,,,Deals damage with no additional effect.
+294,Tail Glow,rogue,Status,0,100%,20,,,Raises the user's Special Attack by 2 stages.
+39,Tail Whip,engineering,Special,0,100%,30,,,Lowers the target's Defense by 1 stage.
+36,Take Down,medical,Physical,90,85%,20,,,The user receives 1/4 recoil damage.
+269,Taunt,psychic,Status,0,100%,20,,,Prevents the target from using non-damaging moves for 3 turns. Assist Copycat Me First Metronome Mirror Move and Sleep Talk are prevented during this time but Bide Counter Endeavor Metal Burst and Mirror Coat are not prevented.
+298,Teeter Dance,engineering,Status,0,100%,20,,,Each active Pokemon except the user becomes confused.
+100,Teleport,science,Special,0,,20,,,Escapes from wild battles; fails automatically in trainer and link battles.
+168,Thief,dutiful,Physical,40,100%,10,,,Steals the target's held item unless the user is already holding an item or the target has Sticky Hold or Multitype. A stolen item cannot be recovered by using Recycle.
+37,Thrash,rascal,Physical,120,100%,10,,,The user attacks uncontrollably for 2-3 turns and then gets confused.
+87,Thunder,criminal,Special,120,70%,10,,,Has a 30% chance to paralyze the target. It also has normal accuracy against mid-air Pokemon who have used Fly or Bounce. During Sunny Day this move has 50% accuracy. During Rain Dance this move will never miss under normal circumstances and has a 30% chance to hit through a target's Protect or Detect.
+86,Thunder Wave,photonic,Special,0,100%,20,,,Paralyzes the target. This move activates Motor Drive.
+85,Thunderbolt,diplomat,Special,95,100%,15,,,Has a 10% chance to paralyze the target.
+9,ThunderPunch,criminal,Physical,75,100%,15,,,Has a 10% chance to paralyze the target.
+84,ThunderShock,synth,Special,40,100%,30,,,Has a 10% chance to paralyze the target.
+321,Tickle,drunk,Status,0,100%,20,,,Lowers the target's Attack and Defense by 1 stage each.
+259,Torment,rogue,Status,0,100%,15,,,Prevents the target from using the same move for two turns in a row until the target is switched out. The target will use Struggle every other turn if it cannot attack without using the same move.
+92,Toxic,warrior,Special,0,90%,10,,,The target is badly poisoned with the damage caused by poison doubling after each turn. Toxic poisoning will remain with the Pokemon during the battle even after switching out.
+144,Transform,psychic,Status,0,,10,,,The user morphs into a near-exact copy of the target. Stats stat modifiers type moves Hidden Power data and appearance are changed; the user's level and HP remain the same and each copied move receives only 5 PP. (If Transform is used by Ditto the effects of Metal Powder and Quick Powder stop working after transformation.)
+161,Tri Attack,villain,Special,80,100%,10,,,Has a 20% chance to burn paralyze or freeze the target.
+271,Trick,warrior,Status,0,100%,10,,,Exchanges items with the target unless it has Sticky Hold or Multitype. Items lost to this move cannot be recovered by using Recycle.
+167,Triple Kick,horny,Physical,10,90%,10,,,Attacks three times in one turn adding 10 BP for each kick. If a kick misses the move ends instantly; if one of the kicks breaks a target's Substitute the real Pokemon will take damage for the remaining kicks.
+41,Twineedle,diplomat,Physical,25,100%,20,,,Strikes twice; if the first hit breaks the target's Substitute the real Pokemon will take damage from the second hit. Has a 20% chance to poison the target .
+239,Twister,horny,Special,40,100%,20,,,Has a 20% chance to make the target flinch; power doubles while the target is in mid-air via Fly or Bounce.
+253,Uproar,spiritual,Special,90,100%,10,,,The user causes an Uproar and attacks uncontrollably for 3 turns. During the effects of the Uproar active Pokemon cannot fall asleep and sleeping Pokemon sent into battle will wake up.
+11,ViceGrip,villain,Physical,55,100%,30,,,Deals damage with no additional effect.
+22,Vine Whip,science,Physical,35,100%,15,,,Deals damage with no additional effect.
+233,Vital Throw,villain,Physical,70,100%,10,,,This move usually goes last. It ignores Evasion and Accuracy modifiers and never misses except against Protect Detect or a target in the middle of Dig Fly Dive or Bounce.
+344,Volt Tackle,merchant,Physical,120,100%,15,,,The user receives 1/3 recoil damage; has a 10% chance to paralyze the target.
+55,Water Gun,rascal,Special,40,100%,25,,,Deals damage with no additional effect.
+352,Water Pulse,engineering,Special,60,100%,20,,,Has a 20% chance to confuse the target.
+346,Water Sport,horny,Status,0,100%,15,,,All Fire-type moves are 50% weaker until the user switches out.
+323,Water Spout,psychic,Special,50,100%,5,,,Base power decreases as the user's HP decreases.
+127,Waterfall,spiritual,Physical,80,100%,15,,,Has a 20% chance to make the target flinch.
+311,Weather Ball,dutiful,Special,50,100%,10,,,Base power is 50; Base power doubles and move's type changes during weather effects: becomes Fire-type during Sunny Day Water-type during Rain Dance Ice-type during Hail and Rock-type during Sandstorm.
+250,Whirlpool,drunk,Special,35,85%,15,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or U-Turn. Base power also doubles when performed against a Pokemon in the middle of using Dive.
+18,Whirlwind,dutiful,Special,0,100%,20,,,Almost always goes last; in trainer battles the target is switched out for a random member of its team. Escapes from wild battles. Has no effect if the target has Suction Cups or used Ingrain.
+261,Will-O-Wisp,rascal,Status,0,75%,15,,,Burns the target. This move activates Flash Fire.
+17,Wing Attack,horny,Physical,60,100%,35,,,Deals damage with no additional effect.
+273,Wish,synth,Status,0,100%,10,,,At the end of the next turn the active Pokemon from the user's team is healed by 1/2 of the user's HP; this can be any member of the user's team.
+110,Withdraw,warrior,Special,0,,40,,,Raises the user's Defense by 1 stage.
+35,Wrap,rogue,Physical,15,90%,20,,,Traps the target for 5-6 turns causing damage equal to 1/16 of its max HP each turn; this trapped effect can be broken by Rapid Spin. The target can still switch out if it is holding Shed Shell or uses Baton Pass or U-Turn.
+281,Yawn,synth,Status,0,100%,10,,,If the target stays in battle it falls asleep at the end of the next turn.
+192,Zap Cannon,synth,Special,120,50%,5,,,Paralyzes the target.

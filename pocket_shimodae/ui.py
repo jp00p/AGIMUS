@@ -9,14 +9,17 @@ import pocket_shimodae.utils as utils
 from .game import PoshimoGame
 from .objects import PoshimoTrainer, TrainerStatus, PoshimoItem, UseWhere, ItemTypes, PoshimoStatus
 
+
 NBSP = "⠀"
 SPACER = NBSP*40
 BACK_TO_MAIN_MENU = "Main menu"
+SCARVES_ICON = "🧣"
 
 
 def fill_embed_text(text:str):
   ''' padd out the embed text so it's not a tiny embed '''
   return text.ljust(50, NBSP)
+
 
 class PoshimoView(discord.ui.View):
   ''' basic discord.ui.View with a few extras (game and trainer objects mostly) '''
@@ -50,7 +53,7 @@ class PoshimoView(discord.ui.View):
     self.embeds.append(
       discord.Embed(
         title=title,
-        description=message
+        description=fill_embed_text(message)
       )
     )
 

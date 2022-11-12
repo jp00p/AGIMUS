@@ -180,7 +180,7 @@ class ManagePoshimoScreen(PoshimoView):
     self.embeds = [
       discord.Embed( # main embed
         title=f"{self.poshimo.display_name} ({poshimo.name})",
-        description=fill_embed_text(f"{self.poshimo.show_types()}\n{self.poshimo.status}")
+        description=f"{fill_embed_text(self.poshimo.show_types())}\n{fill_embed_text(str(self.poshimo.status))}"
       )
     ]
 

@@ -4,19 +4,21 @@ from math import sqrt, floor, log10
 from typing import List
 import csv
 from enum import Enum, auto
-from . import PoshimoMove,PoshimoPersonality, PoshimoType, PoshimoStat
+from . import PoshimoMove, PoshimoPersonality, PoshimoType, PoshimoStat
+from .experience import get_experience
 
 MAX_POSHIMO_LEVEL = 99
+STAT_NAMES = ["attack", "defense", "special_attack", "special_defense", "speed"]
 
 with open("pocket_shimodae/data/shimodaepedia.csv") as file:
   # load the base poshimo data from file
   # will eventually get merged with DB data for "real" poshimo
   csvdata = csv.DictReader(file)
-  pdata = {}
-  for row in csvdata:
-    pdata[row["name"].lower()] = {
+  base_poshimo_data = {}
+  for id,row in enumerate(csvdata):
+    base_poshimo_data[row["name"].lower()] = {
       "name" : row.get("name", ""),
-      "dex_id" : row.get("id", 0),
+      "dex_id" : int(id),
       "type_1" : row.get("type_1", ""),
       "type_2" : row.get("type_2", ""),
       "attack" : (row.get("attack", 0),0,0),
@@ -25,6 +27,7 @@ with open("pocket_shimodae/data/shimodaepedia.csv") as file:
       "special_defense" : (row.get("special_defense", 0),0,0),
       "speed" : (row.get("speed", 0),0,0),
       "hp" : row.get("hp",0),
+      "leveling_type" : row.get("leveling_type", "medium_slow"),
       "move_list" : [
         row.get("move_1","").lower(),
         row.get("move_2","").lower(),
@@ -32,7 +35,7 @@ with open("pocket_shimodae/data/shimodaepedia.csv") as file:
         row.get("move_4","").lower()
       ]
     }
-  ps_log(f"Total Poshimo: {len(pdata)}")
+  ps_log(f"Total Poshimo: {len(base_poshimo_data)}")
 
 
 class PoshimoStatus(Enum):
@@ -61,17 +64,11 @@ class Poshimo(object):
     self.is_wild:bool = is_wild
     self._in_combat = False
     self.types = []
-    self.poshimodata:dict = {} # this will hold our file and db stats eventually
-    
-    if self.name:
-      self.poshimodata = pdata[self.name.lower()] # fire this up early if we have it
-      # init base stats (no stage, no xp)
-      self._attack:PoshimoStat = PoshimoStat(self.poshimodata["attack"][0], 0, 0)
-      self._defense:PoshimoStat = PoshimoStat(self.poshimodata["defense"][0], 0, 0)
-      self._special_attack:PoshimoStat = PoshimoStat(self.poshimodata["special_attack"][0], 0, 0)
-      self._special_defense:PoshimoStat = PoshimoStat(self.poshimodata["special_defense"][0], 0, 0)
-      self._speed:PoshimoStat = PoshimoStat(self.poshimodata["speed"][0], 0, 0)
-    
+
+    self._pending_moves = None
+    self.levels_gained = []
+    self.stat_increases = {}
+
     self._xp:int = 0
     self._display_name:str = self.name
     self._personality:PoshimoPersonality = PoshimoPersonality()
@@ -80,42 +77,54 @@ class Poshimo(object):
     self._mission_id = None
     self._status = PoshimoStatus.IDLE
     
+    self.poshimodata:dict = {} # this will hold our file and db stats eventually
+    
     if self.name:
-      # loading base poshimo data from file
+      self.poshimodata = base_poshimo_data[self.name.lower()] # fire this up early if we have it
+      # init base stats (no stage, no xp)
+      self._attack:PoshimoStat = PoshimoStat(self.poshimodata["attack"][0], 0, 0)
+      self._defense:PoshimoStat = PoshimoStat(self.poshimodata["defense"][0], 0, 0)
+      self._special_attack:PoshimoStat = PoshimoStat(self.poshimodata["special_attack"][0], 0, 0)
+      self._special_defense:PoshimoStat = PoshimoStat(self.poshimodata["special_defense"][0], 0, 0)
+      self._speed:PoshimoStat = PoshimoStat(self.poshimodata["speed"][0], 0, 0)
       self._display_name = self.name # npc is always the proper name
       self._level = level # default is 1
       self._personality = PoshimoPersonality() # load random personality
       self._move_list = self.init_move_list()
+      logger.info(f"INIT MOVE LIST")
+      for move in self._move_list:
+        logger.info(f"{move.name} {move.stamina}/{move.max_stamina}")
 
-    if is_wild and not self.id:
-      # create new wild poshimo in the db (so it can be persistent in case bot restarts)
+    if not self.id and is_wild:
+      # new wild poshimo created
       self.id = self.save()
-      
+    
     if self.id:
       # load poshimo from db if it has an id
       self.load()
       self._owner = self.poshimodata["owner"]
     
-    # poshimodata should be fully loaded now, if not ... wha happen???
-    #logger.info(self.poshimodata)
-    self._level:int = self.poshimodata.get("level", 1)
+    self._level:int = int(self.poshimodata.get("level", 1))
     self.name = self.poshimodata["name"]
     self._display_name:str = self.poshimodata.get("display_name")
     self._personality:PoshimoPersonality = PoshimoPersonality(self.poshimodata.get("personality"))
     self._hp:int = int(self.poshimodata.get("hp", 1))
-    
+    self.leveling_type:str = self.poshimodata["leveling_type"]
+    self.next_level:int = get_experience(self.leveling_type, self._level+1)
+
+    logger.info(f"Leveling type: {self.leveling_type} - Next level: {self.next_level}")
+
     if self._hp <= 0:
       self.status = PoshimoStatus.DEAD
 
-    self._max_hp:int = self.poshimodata.get("max_hp", self._hp) # only real poshimo have max_hp
+    self._max_hp:int = self.poshimodata.get("max_hp", self._hp)
 
     for type in ["type_1", "type_2"]:
       if self.poshimodata[type]:
         self.types.append(PoshimoType(name=self.poshimodata[type]))
 
-    self._xp:int = 0
-    self._last_damaging_move:PoshimoMove = None
-    
+    logger.info(f"BASE XP: {self.base_xp()} XP GIVEN: {self.xp_given()}")
+    self._last_damaging_move:PoshimoMove = None # TODO: implement
 
     # 
     # end of __init__ =====================================================
@@ -138,22 +147,23 @@ class Poshimo(object):
       query.execute(sql, vals)
       results:dict = query.fetchone()
     self.poshimodata = dict(results)
-    temp_pdata = pdata[results["name"].lower()] # load poshimo data from file
+    temp_base_poshimo_data = base_poshimo_data[results["name"].lower()] # load poshimo data from file
     
-    temp_pdata["id"] = results.get("id", 0) # gotta update the original ID from the poshimodex
-    temp_pdata["max_hp"] = results.get("max_hp")
-    temp_pdata["hp"] = results.get("hp")
+    temp_base_poshimo_data["id"] = results.get("id", 0) # gotta update the original ID from the poshimodex
+    temp_base_poshimo_data["max_hp"] = results.get("max_hp")
+    temp_base_poshimo_data["hp"] = results.get("hp")
     
     pstats = ["attack", "defense", "special_attack", "special_defense", "speed"]
     for stat in pstats:
-      temp_pdata[stat] = json.loads(results.get(stat, "[0,0,0]"))
+      temp_base_poshimo_data[stat] = json.loads(results.get(stat, "[0,0,0]"))
 
-    self.poshimodata.update(temp_pdata) # merge with db info (so its not a base poshimo)
+    self.poshimodata.update(temp_base_poshimo_data) # merge with db info (so its not a base poshimo)
     self._move_list = self.load_move_list(results.get("move_list")) # unpack json moves
-    self._mission_id = self.poshimodata.get("mission_id", None)
+    self._mission_id:int = (self.poshimodata.get("mission_id", None))
     self._status = PoshimoStatus(int(self.poshimodata.get("status", 0))) 
     self._in_combat = bool(int(self.poshimodata.get("in_combat")))
     self.is_wild = bool(int(self.poshimodata.get("is_wild")))
+    self._xp = int(self.poshimodata.get("xp", 0))
 
     # load the actual stats 
     self._attack:PoshimoStat = PoshimoStat(self.poshimodata["attack"][0], stage=self.poshimodata["attack"][1], xp=self.poshimodata["attack"][2])
@@ -169,8 +179,8 @@ class Poshimo(object):
     save this poshimo to the db (when giving a trainer a Poshimo) 
     returns the ID of this poshimo in the db
     """
-    self.poshimodata = pdata[self.name.lower()] # base data
-    self._level:int = 1 #TODO: leveling
+    self.poshimodata = base_poshimo_data[self.name.lower()] # base data
+    self._level:int = self._level #TODO: leveling
     self._display_name:str = self.name
     self._personality:PoshimoPersonality = PoshimoPersonality()
     self._hp:int = self.poshimodata.get("hp", 1)
@@ -181,7 +191,7 @@ class Poshimo(object):
       
       sql = """
       INSERT INTO poshimodae 
-        (id, owner, name, display_name, level, xp, hp, max_hp, attack, defense, special_attack, special_defense, speed, personality, move_list, status, in_combat) 
+        (id, owner, name, display_name, level, xp, hp, max_hp, attack, defense, special_attack, special_defense, speed, personality, move_list, status, in_combat)
         VALUES 
           (%(id)s, %(owner)s, %(name)s, %(display_name)s, %(level)s, %(xp)s, %(hp)s, %(max_hp)s, %(attack)s, %(defense)s, %(special_attack)s, %(special_defense)s, %(speed)s, %(personality)s, %(move_list)s, %(status)s, %(in_combat)s)
       """
@@ -295,7 +305,7 @@ class Poshimo(object):
     if not xp:
       xp = self._special_defense.xp
     self._special_defense = PoshimoStat(max(0, val), stage, xp)
-    self.update("special_defense", self._special_defense)    
+    self.update("special_defense", self._special_defense.to_json())    
 
   @property
   def speed(self) -> PoshimoStat:
@@ -324,7 +334,6 @@ class Poshimo(object):
 
   @level.setter
   def level(self, val):
-    '''TODO: handle level up stuff '''
     self._level = min(MAX_POSHIMO_LEVEL, max(0, val))
     self.update("level", self._level)
 
@@ -335,6 +344,8 @@ class Poshimo(object):
   def xp(self, val:int):
     self._xp = max(0, int(val))
     self.update("xp", self._xp)
+    while self._xp >= self.next_level:
+      self.level_up()
 
   @property
   def status(self):
@@ -383,6 +394,9 @@ class Poshimo(object):
     self._personality = val
     self.update("personality", self._personality.name)
 
+
+    
+
   def list_stats(self, for_battle=False) -> dict:
     """ returns a dictionary of this poshimo's stats """
     stats:dict = {}
@@ -414,11 +428,11 @@ class Poshimo(object):
     initialize a movelist from file 
     returns a list of PoshimoMoves
     """
-    temp_move_list:list = []
+    temp_move_list:List[PoshimoMove] = []
     for move in self.poshimodata["move_list"]:
+      logger.info(f"MOVE: {move}")
       if move is not None:
         temp_move_list.append(PoshimoMove(name=move))
-    #logger.info(f"Move list init: {temp_move_list}")
     return temp_move_list
 
   def dump_move_list(self) -> str:
@@ -427,7 +441,7 @@ class Poshimo(object):
     returns a json string
     """
     db_move_list:list = []
-    for move in self.move_list:
+    for move in self._move_list:
       if move:
         db_move_list.append(move.to_json())
     #logger.info(f"Dumping json: {db_move_list}")
@@ -475,50 +489,84 @@ class Poshimo(object):
     ''' full restore of hp and stamina '''
     self.restore_all_hp()
     self.restore_all_stamina()
-    
 
-""" from ultranurd 
-  
-import sys
-import math
-​
-class Experience:
-    def slow(self, level):
-        return 5 * level3 / 4
-​
-    def medium_slow(self, level):
-        return 6 * level3 / 5 - 15 * level2 + 100 * level - 140
-​
-    def medium_fast(self, level):
-        return level3
-​
-    def fast(self, level):
-        return 4 * level3 / 5
-​
-    def fluctuating(self, level):
-        if level < 15:
-            factor = (math.floor((level + 1)/3.0) + 24)/50
-        elif level < 36:
-            factor = (level + 14)/50
-        elif level < 100:
-            factor = (math.floor(level/2.0) + 32)/50
-        return factor * level3
-​
-    def erratic(self, level):
-        if level < 50:
-            factor = (100 - level)/50
-        elif level < 68:
-            factor = (150 - level)/100
-        elif level < 98:
-            factor = math.floor((1911 - 10level)/3.0)/500
-        elif level < 100:
-            factor = (160 - level)/100
-        return factor level*3
-​
-def experience(leveling, level):
-    print(getattr(Experience(), leveling)(int(level)))
-​
-if name == "main":
-    experience(sys.argv[1:])
-  
-  """
+  def base_xp(self) -> int:
+    ''' 
+    this poshimo's "BASE XP" used for determining levels and how much xp it gives out 
+    combines their base stats and base max_xp and then averages them
+    actually seems pretty close to original pokemon!
+    '''
+    pdata = base_poshimo_data[self.name.lower()]
+    value = 0
+    for stat in STAT_NAMES:
+      value += int(pdata[stat][0])
+    value += int(pdata["max_hp"])
+    total_stats = len(STAT_NAMES) + 1
+    return round(value/total_stats)
+
+  def hp_gain_amount(self):
+    ''' how much xp this poshimo gains when leveling up '''
+    return round((((self.base_xp() + 50) * self.level) / 50) + 10) + random.randint(0,round(self.base_xp()/10))
+
+  def xp_given(self) -> int:
+    ''' the base amount of xp this poshimo will give out when defeated in combat '''
+    wild_bonus = 1
+    if self.is_wild:
+      wild_bonus = 1.5
+    return round(((self.base_xp() * self.level) * wild_bonus) / 7)
+
+  def stat_xp_given(self) -> List[int]:
+    ''' the amount of stat XP this poshimo gives when defeated '''
+    stats = []
+    for s in STAT_NAMES:
+      stats.append( round((int(getattr(self, s)) / 10) + (self.level / 4)) )
+    return stats
+
+  def level_up(self):
+    ''' level up this poshimo '''
+    self.level += 1
+    self.levels_gained.append(self._level)
+    self.stat_increases = self.apply_stats_for_level_up()
+    self.next_level = get_experience(self.leveling_type, self._level+1)
+
+  def reset_level_up_notifications(self):
+    self.levels_gained = []
+    self.stat_increases = {}
+
+  def apply_stats_for_level_up(self) -> dict:
+    ''' gain stat points when you level (not xp) '''
+    stat_increases = []
+    for s in STAT_NAMES:
+      gain = random.randint(1,4)
+      if self.personality.bonus == s:
+        gain *= 1.5
+      if self.personality.penalty == s:
+        gain *= 0.5
+      gain = round(gain)
+      stat:PoshimoStat = getattr(self, s)
+      stat_increases.append(gain)
+      stat.stat_value += gain
+      setattr(self, s, stat) # actually update the stat
+    stat_increases = dict(zip(STAT_NAMES, stat_increases))
+    hp_gain = self.hp_gain_amount()
+    stat_increases["max_hp"] = hp_gain
+    self.max_hp += hp_gain
+    logger.info(f"LEVEL UP STAT INCREASES: {stat_increases}")
+    return stat_increases
+
+  def apply_stat_xp(self, stat_xp:List[int]) -> list:
+    ''' apply stat xp after combat '''
+    logger.info(f"STAT XP REWARD: {stat_xp}")
+    stat_increases = []
+    for i,stat_name in enumerate(STAT_NAMES):
+      logger.info(stat_xp[i])
+      xp_value = stat_xp[i]
+      if self.personality.bonus == stat_name:
+        xp_value *= 1.5
+      if self.personality.penalty == stat_name:
+        xp_value *= 0.5
+      updated_stat:PoshimoStat = getattr(self, stat_name)
+      stat_increase = updated_stat.add_xp(xp_value)
+      stat_increases.append(stat_increase)
+      setattr(self, stat_name, updated_stat)
+    return stat_increases

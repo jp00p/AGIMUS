@@ -3,7 +3,7 @@ from typing import List
 from common import *
 
 from ..objects import (BattleStates, BattleTypes, Poshimo, PoshimoBattle,
-                       PoshimoMove, PoshimoTrainer)
+                       PoshimoMove, PoshimoTrainer, STAT_NAMES)
 
 from ..ui import *
 from . import main_menu as mm
@@ -110,6 +110,23 @@ class BattleTurn(PoshimoView):
     
     self.embeds = [battle_embed]
     
+    if self.battle.state is BattleStates.FINISHED:
+      levels = self.you.active_poshimo.levels_gained
+      description = ""
+      if len(levels) > 0:
+        ''' level up messages '''
+        for level in levels:
+          description += f"{self.you.active_poshimo} has reached level {level}!\n"
+          stats_gained = self.you.active_poshimo.stat_increases
+          for stat in stats_gained:
+            name = stat.replace("_", " ").upper()
+            value = str(stats_gained[stat])
+            description += f"> **{name}** increased by **{value}** \n"
+        
+        self.add_notification("Level up!", description) 
+        self.you.active_poshimo.reset_level_up_notifications()
+
+    
     if self.battle.state is BattleStates.ACTIVE:
       stamina_count = 0
       for move in self.you.active_poshimo.move_list:
@@ -157,7 +174,7 @@ class MoveButton(discord.ui.Button):
     next_view = BattleTurn(self.cog, self.you, battle=self.battle)
     content = ""
     #logger.info(self.battle.logs[self.battle.current_turn])
-    await interaction.response.edit_message(content=content, view=next_view, embed=next_view.get_embed())
+    await interaction.response.edit_message(content=content, view=next_view, embeds=next_view.get_embeds())
 
 class ActionButton(discord.ui.Button):
   '''
@@ -189,7 +206,7 @@ class ActionButton(discord.ui.Button):
       if self.action == "swap":
         view.add_item(SwapMenu(self.cog, self.you, self.battle))
         view.add_item(CancelButton(self.cog, self.battle))
-        await interaction.response.edit_message(view=view, embed=view.get_embed())
+        await interaction.response.edit_message(view=view, embeds=view.get_embeds())
       if self.action == "snatch":
         #view.add_item(CaptureBallSelect(self.cog, self.you))
         view.add_item(CancelButton(self.cog, self.battle))
@@ -197,7 +214,7 @@ class ActionButton(discord.ui.Button):
       if self.action == "item":
         view.add_item(ItemSelect(self.cog, self.trainer, battle_only=True, placeholder="Choose an item"))
         view.add_item(CancelButton(self.cog, self.battle))
-        await interaction.response.edit_message(view=view, embed=view.get_embed())
+        await interaction.response.edit_message(view=view, embeds=view.get_embeds())
 
 
 class SwapMenu(discord.ui.Select):
@@ -229,7 +246,7 @@ class SwapMenu(discord.ui.Select):
     log_line = self.trainer.swap(poshimo)
     self.battle.enqueue_action("swap", self.trainer, log_line)
     view = BattleTurn(self.cog, self.trainer, self.battle)
-    await interaction.response.edit_message(view=view, embed=view.get_embed())
+    await interaction.response.edit_message(view=view, embeds=view.get_embeds())
 
 
 class BattleResults(BattleTurn):
