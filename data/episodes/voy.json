@@ -2033,7 +2033,15 @@
       "episode": "25",
       "imdb": "tt0708941",
       "memoryalpha": "One_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 444,
+          "airdate": "2022.11.14",
+          "episode": "Sammys Jankis, the Podcast",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/xVgtsHg1j6HtIXuSA8RfL6zOJdo.jpg"
