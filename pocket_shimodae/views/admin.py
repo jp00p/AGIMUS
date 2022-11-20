@@ -17,6 +17,7 @@ class AdminMenu(PoshimoView):
     self.add_item(ResetButton(self.game))
     self.add_item(AddItemButton(self.trainer))
     self.add_item(AddScarvesButton(self.trainer))
+    self.add_item(AddRecipeButton(self.trainer))
     self.add_item(AlterPoshimoButton(self.trainer))
 
 
@@ -78,7 +79,28 @@ class AlterPoshimoModal(discord.ui.Modal):
     poshimo = Poshimo(id=int(id))
     poshimo.update(col, value)
     await interaction.response.send_message("Poshimo updated!", ephemeral=True)
-    
+
+class AddRecipeButton(discord.ui.Button):
+  def __init__(self, trainer):
+    self.trainer = trainer
+    super().__init__(
+      label="Add recipe"
+    )
+  async def callback(self, interaction: discord.Interaction):
+    await interaction.response.send_modal(AddRecipeModal(self.trainer))
+
+class AddRecipeModal(discord.ui.Modal):
+  def __init__(self, trainer):
+    self.trainer:PoshimoTrainer = trainer
+    super().__init__(
+      title="Add recipe"
+    )
+    self.add_item(discord.ui.InputText(label="Recipe name", value="makeshift hypospray"))
+  async def callback(self, interaction: discord.Interaction):
+    recipe = self.children[0].value
+    self.trainer.learn_recipe(recipe)
+    await interaction.response.send_message(f"Added {recipe} to the list!")
+
 class AddScarvesButton(discord.ui.Button):
   def __init__(self, trainer):
     self.trainer = trainer

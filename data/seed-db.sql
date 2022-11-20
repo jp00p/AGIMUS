@@ -287,6 +287,7 @@ CREATE TABLE IF NOT EXISTS poshimodae (
   personality VARCHAR(128) DEFAULT NULL,
   xp INT(11) NOT NULL DEFAULT 0,
   move_list TEXT DEFAULT NULL,
+  held_item VARCHAR(128) DEFAULT NULL,
   mission_id INT(11) NULL,
   time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id)
@@ -318,8 +319,10 @@ CREATE TABLE IF NOT EXISTS poshimo_trainers (
   inventory TEXT DEFAULT NULL,
   buckles TEXT DEFAULT NULL,
   scarves INT(11) NOT NULL DEFAULT 0,
+  crafting_xp INT NOT NULL DEFAULT 0,
   discovered_poshimo TEXT DEFAULT NULL,
   locations_unlocked TEXT DEFAULT NULL,
+  recipes_unlocked TEXT DEFAULT NULL,
   time_created TIMESTAMP NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id),
   FOREIGN KEY (user_id) REFERENCES users (id)

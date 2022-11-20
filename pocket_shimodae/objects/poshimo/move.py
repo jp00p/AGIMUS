@@ -115,6 +115,10 @@ Description: {self.description}
 """
 
   def to_json(self) -> dict:
+    ''' 
+    convert this move to a dict so it can be converted to json
+    returns a dict representation of the move
+    '''
     return {
       "name": self.name,
       "stamina" : self._stamina,
@@ -122,13 +126,14 @@ Description: {self.description}
     }
 
   def button_label(self) -> str:
+    ''' outputs a string suitable for use on buttons '''
     label = f"{self.display_name}"
     if "no_stamina" not in self.flags:
       label += f" {self._stamina}/{self.max_stamina}"
     return label
 
   # these do not update the db!
-  # instead you have to update Poshimo.move_list
+  # instead you have to update the Poshimo.move_list
   @property
   def stamina(self) -> int:
     return self._stamina

@@ -13,9 +13,7 @@ with open("pocket_shimodae/data/poshimo_items.csv") as file:
       "function_code": row.get("function_code", ""),
       "power": row.get("power", 0),
       "use_where": row.get("use_where", ""),
-      "sell_price": row.get("sell_price", 0),
-      "crafting_mats": row.get("crafting_mats", None)
-
+      "sell_price": row.get("sell_price", 0)
     }
   ps_log(f"Items: {len(item_data)}")
 
@@ -58,9 +56,6 @@ class PoshimoItem(object):
     self.function_code:str = FunctionCodes[self.item_data["function_code"].upper()]
     self.power:int = int(self.item_data["power"])
     self.sell_price:int = int(self.item_data["sell_price"])
-    self.crafting_mats = None
-    if self.item_data["crafting_mats"] != '':
-      self.crafting_mats = self.item_data["crafting_mats"].split("|")
-
+    
   def __str__(self):
     return self.name.title()

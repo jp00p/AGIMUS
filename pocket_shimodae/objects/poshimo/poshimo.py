@@ -27,6 +27,7 @@ with open("pocket_shimodae/data/shimodaepedia.csv") as file:
       "special_defense" : (row.get("special_defense", 0),0,0),
       "speed" : (row.get("speed", 0),0,0),
       "hp" : row.get("hp",0),
+      "max_hp" : row.get("hp",0),
       "leveling_type" : row.get("leveling_type", "medium_slow"),
       "move_list" : [
         row.get("move_1","").lower(),
@@ -55,6 +56,8 @@ class Poshimo(object):
   We couldn't have a game without these.
 
   You do not create these from scratch, they are predefined in the CSV and DB.
+
+  Pass a name or ID to retrieve your Poshimo
   """
 
   def __init__(self, name:str=None, level:int=1, id:int=None, owner:int=None, is_wild:bool=False):
@@ -76,6 +79,7 @@ class Poshimo(object):
     self._move_list:List[PoshimoMove] = []
     self._mission_id = None
     self._status = PoshimoStatus.IDLE
+    self._held_item = None
     
     self.poshimodata:dict = {} # this will hold our file and db stats eventually
     

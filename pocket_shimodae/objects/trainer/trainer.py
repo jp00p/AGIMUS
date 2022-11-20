@@ -4,13 +4,17 @@ from enum import Enum
 from typing import List, Dict, TypedDict
 
 from ..world.item import PoshimoItem, ItemTypes, FunctionCodes, UseWhere
+from ..world.crafting import PoshimoRecipe
 from ..world.fish import PoshimoFish
 from ..world.awaymissions import AwayMission
 from ..poshimo import Poshimo, PoshimoMove, PoshimoStatus
 
-InventoryDict = TypedDict('Inventory', {'item': PoshimoItem, 'amount': int})
+InventoryDict = TypedDict(
+  'Inventory', {'item': PoshimoItem, 'amount': int}
+)
 
 class TrainerStatus(Enum):
+  ''' what is the trainer doing right now? '''
   IDLE = 0
   EXPLORING = 1
   BATTLING = 2
@@ -34,6 +38,8 @@ class PoshimoTrainer(object):
     self.id:int = trainer_id
     self.discord_id:int = None
     self.name:str = name
+    self.crafting_level:int = 1
+
     self.display_name:str = name # real players will have their discord handle here
     self._poshimo_sac:List[Poshimo] = []
     self._away_poshimo: List[Poshimo] = []
@@ -46,8 +52,9 @@ class PoshimoTrainer(object):
     self._scarves:int = 0 # money
     self._buckles:int = None # these are like pokemon badges TBD
     self._locations_unlocked:set = set()
-    
-    self.shimodaepedia:list = [] # aka pokedex, which poshimo has this player seen (list of ids) TBD
+    self._crafting_xp:int = 0
+    self._recipes_unlocked:List[PoshimoRecipe] = []
+    self.shimodaepedia:list = [] # TODO: pokedex, which poshimo has this player seen (list of ids)
     
     if self.id:
       self.load()
@@ -92,9 +99,9 @@ class PoshimoTrainer(object):
       self._location = trainer_data.get("location","").lower()
       self.discord_id = trainer_data.get("discord_id")
       self.display_name = trainer_data.get("name")
+
       sac_data = trainer_data.get("poshimo_sac")
-      
-      if sac_data: #unpack the sac
+      if sac_data: #unpacc the sac
         sac_data = json.loads(sac_data)
         self._poshimo_sac = [Poshimo(id=p) for p in sac_data]
       else:
@@ -116,7 +123,6 @@ class PoshimoTrainer(object):
       if loc_data: #unpack locations
         loc_data = json.loads(loc_data)
         self._locations_unlocked = set(loc_data)
-        #logger.info(self._locations_unlocked)
       
       item_data = trainer_data.get("inventory")
       if item_data: #unpack inventory
@@ -128,6 +134,14 @@ class PoshimoTrainer(object):
           }
       else:
         self._inventory = {}
+
+      self._crafting_xp = int(trainer_data.get("crafting_xp", 0))
+      self.crafting_level = self.calc_crafting_level()
+
+      recipe_data = trainer_data.get("recipes_unlocked", "")
+      if recipe_data:
+        recipes = json.loads(trainer_data.get("recipes_unlocked", "[]"))
+        self._recipes_unlocked:List[PoshimoRecipe] = [PoshimoRecipe(r) for r in recipes]
       
       self._scarves = trainer_data.get("scarves")
       self._buckles = trainer_data.get("buckles")
@@ -223,6 +237,9 @@ class PoshimoTrainer(object):
 
     return all_poshimo
 
+  def calc_crafting_level(self) -> int: 
+    return max(0, round(self._crafting_xp / 1000))
+
   def end_combat(self):
     ''' finish combat, set everyone's status to idle '''
     self.status = TrainerStatus.IDLE
@@ -262,6 +279,18 @@ class PoshimoTrainer(object):
       inventory = list(filter(lambda x: x["item"].type not in exclude_type, inventory))
     return inventory
 
+  def has_item(self, item, amt:int=1):
+    ''' 
+    check if this trainer has a given amount of items (default 1) 
+    can pass a string or PoshimoItem
+    '''
+    if isinstance(PoshimoItem, item):
+      item = item.name.lower()
+    else:
+      item = item.lower()
+    if item in self._inventory and self._inventory[item]["amount"] >= amt:
+      return True
+    return False
 
   def is_active_poshimo_ready(self) -> bool:
     ''' returns true if there is an active poshimo and its HP is greater than 0'''
@@ -378,7 +407,47 @@ class PoshimoTrainer(object):
       final_log.append(PoshimoFish(name=fish["fish"], length=fish["length"]))
     return final_log
 
+  def learn_recipe(self, recipe_name:str) -> bool:
+    ''' 
+    add a recipe to the unlocked recipe list
+    returns True if the add was successful
+    '''
+    recipe_list = [r.name for r in self._recipes_unlocked]
+    if recipe_name in recipe_list:
+      return False
+    temp_list = self._recipes_unlocked
+    temp_list.append(PoshimoRecipe(recipe_name))
+    self.recipes_unlocked = temp_list
+    return True
 
+  def can_use_recipe(self, recipe:PoshimoRecipe):
+    ''' returns True if this user has enough crafting xp to learn the recipe '''
+    if self.crafting_level >= recipe.level:
+      return True
+    return False
+  
+  def has_recipe_mats(self, recipe:PoshimoRecipe):
+    ''' make sure they have enough mats to use a recipe '''
+    for mat in recipe.materials:
+      key = mat["item"].name.lower()
+      if key not in self._inventory.keys() or self._inventory[key]["amount"] < mat["amount"]:
+        return False
+    return True
+
+  def craft_item(self, recipe:PoshimoRecipe):
+    ''' 
+    attempt to craft item 
+    returns False if crafting fails
+    '''
+    for mat in recipe.materials:
+      self.remove_item(mat["item"], mat["amount"])
+    if recipe.craft():
+      # WRONG
+      self.add_item(mat["item"])
+      return mat["item"]
+    else:
+      return False
+    
   def add_item(self, item:PoshimoItem, amount:int=1):
     ''' 
     add an item to this trainer's inventory 
@@ -395,9 +464,9 @@ class PoshimoTrainer(object):
       }
     self.inventory = temp_inventory
   
-  def remove_item(self, item:PoshimoItem):
+  def remove_item(self, item:PoshimoItem, amount:int=1):
     temp_inventory = self._inventory
-    temp_inventory[item.name.lower()]["amount"] -= 1
+    temp_inventory[item.name.lower()]["amount"] -= amount
     self.inventory = temp_inventory
 
   def use_item(self, item:PoshimoItem, poshimo:Poshimo=None, move:PoshimoMove=None) -> list:
@@ -450,6 +519,7 @@ class PoshimoTrainer(object):
       return_str += "```"
       return [use_success, return_str]
   
+
   @property
   def wins(self) -> int:
     return self._wins
@@ -481,6 +551,27 @@ class PoshimoTrainer(object):
       self._active_poshimo = None
       self.update("active_poshimo", None)
   
+  @property
+  def crafting_xp(self) -> int:
+    return self._crafting_xp
+
+  @crafting_xp.setter
+  def crafting_xp(self, val:int) -> None:
+    self._crafting_xp = val
+    self.update("crafting_xp", self._crafting_xp)
+    self.crafting_level = self.calc_crafting_level()
+
+  @property
+  def recipes_unlocked(self) -> List[PoshimoRecipe]:
+    return self._recipes_unlocked
+  
+  @recipes_unlocked.setter
+  def recipes_unlocked(self, obj) -> None:
+    if obj and len(obj) > 0:
+      self._recipes_unlocked:List[PoshimoRecipe] = obj
+      recipe_json = json.dumps([r.name.lower() for r in self._recipes_unlocked])
+      self.update("recipes_unlocked", recipe_json)
+
   @property
   def inventory(self) -> Dict[str, InventoryDict]:
     return self._inventory

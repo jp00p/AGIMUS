@@ -11,20 +11,30 @@ from .objects import PoshimoTrainer, TrainerStatus, PoshimoItem, UseWhere, ItemT
 
 
 NBSP = "⠀"
-SPACER = NBSP*40
+SPACER = NBSP*49
 BACK_TO_MAIN_MENU = "Main menu"
 SCARVES_ICON = "🧣"
 
 
 def fill_embed_text(text:str):
-  ''' padd out the embed text so it's not a tiny embed '''
+  ''' padd out the embed text so it's not a tiny narrow embed '''
   return text.ljust(50, NBSP)
 
 
 class PoshimoView(discord.ui.View):
-  ''' basic discord.ui.View with a few extras (game and trainer objects mostly) '''
-  def __init__(self, cog:discord.Cog, trainer:PoshimoTrainer=None, previous_view:discord.ui.View=None, **kwargs):
-    super().__init__(**kwargs)
+  ''' 
+  base View for the game
+  ----
+  cog (requiured): gives us access to the game object
+  
+  trainer (optional): pass a trainer object, a discord_id or a trainer_id to look up trainer
+  
+  original_message (optional): set this in the initial interaction followup so we can timeout properly
+
+  previous_view: only used on missions now, should refactor
+  '''
+  def __init__(self, cog:discord.Cog, trainer:PoshimoTrainer=None, previous_view:discord.ui.View=None, original_message=None, **kwargs):
+    super().__init__(timeout=20.0, **kwargs)
     self.cog = cog
     self.previous_view:discord.ui.View = previous_view
     self.trainer:PoshimoTrainer = trainer
@@ -35,19 +45,22 @@ class PoshimoView(discord.ui.View):
           self.trainer = utils.get_trainer(trainer_id=trainer)
         else:
           self.trainer = utils.get_trainer(discord_id=trainer)
-    self.game:PoshimoGame = cog.game
+    self.game:PoshimoGame = self.cog.game
     self.pages = []
     self.paginator = None
-    self.message = None
     self.embeds = []    
+    self.original_message = original_message
   
-  # we have no access to message with ephemeral interactions
-  # async def on_timeout(self) -> None:
-  #   embed = discord.Embed(
-  #     title="Thanks for playing!",
-  #     description="This window has expired. Please start a new session!"
-  #   )
-  #   await self.message.edit(view=None, embed=embed)
+  async def on_timeout(self) -> None:
+    self.clear_items()
+    embed = discord.Embed(
+      title="Thanks for playing!",
+      description="This window has expired. Please start a new session!"
+    )
+    if self.original_message:
+      await self.original_message.edit(view=None, embed=embed)
+    elif self.message:
+      await self.message.edit(view=None, embed=embed)
   
   def add_notification(self, title="Notification", message=""):
     self.embeds.append(
@@ -216,11 +229,26 @@ class PoshimoSelect(discord.ui.Select):
 
 class PoshimoPaginator(pages.Paginator):
   ''' this was the first ui piece i made ... will come back to this '''
-  def __init__(self, cog, trainer, **kwargs):
+  def __init__(self, cog, trainer, original_message=None, **kwargs):
     self.cog = cog
     self.trainer = trainer
-    super().__init__(**kwargs)
-
+    self.original_message = original_message
+    super().__init__(
+      disable_on_timeout=True, 
+      timeout=60.0,
+      **kwargs
+    )
+  async def on_timeout(self) -> None:
+    logger.info("Paginator timed out")
+    self.clear_items()
+    embed = discord.Embed(
+      title="Thanks for playing!",
+      description="This window has expired. Please start a new session!"
+    )
+    if self.original_message:
+      await self.original_message.edit(view=None, embed=embed)
+    elif self.message:
+      await self.message.edit(view=None, embed=embed)
 
 class BackButton(discord.ui.Button):
   ''' a back button that edits the message in place with whatever view you pass it '''
@@ -240,7 +268,7 @@ def progress_bar(progress:float, value:int=None, num_bricks:int=10, filled:str="
   ''' 
   returns a string of a progress bar, made with emojis or text
 
-  pass a float between 0.0 and 1.0
+  progress: pass a float between 0.0 and 1.0
   value: if you want to display a value on the bar
   num_bricks: total width of the bar
   filled: the emoji to use for filled bar

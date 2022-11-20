@@ -78,22 +78,30 @@ class PocketShimodae(commands.Cog):
   )
   async def start(self, ctx:discord.ApplicationContext):
     """Starts the game for a new player (does nothing if you are already registered)"""
+    if ctx.author.id not in get_all_users():
+      register_user(ctx.author)
+
     if ctx.author.id in self.all_trainers:
-     await ctx.respond("You're already registered!", ephemeral=True)
+     await ctx.respond("You're already registered! Use `/ps menu` to play the game!", ephemeral=True)
      return
     await ctx.defer(ephemeral=True)
     intro = registration.StarterPages(self)
-    await intro.paginator.respond(ctx.interaction, ephemeral=True)
+    original_message = await intro.paginator.respond(ctx.interaction, ephemeral=True)
+    intro.original_message = original_message
 
   @ps.command(
     name="menu",
-    description="Get your current game status",
+    description="The main game menu",
     aliases=["status", "info"]
   )
   async def status(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
-    mm = main_menu.MainMenu(self, ctx.author.id)
-    await ctx.followup.send(view=mm, embed=mm.get_embed())
+    if ctx.author.id not in self.all_trainers:
+      await ctx.followup.send("You are not registered as a Poshimo trainer yet!  Use `/ps start` to begin your adventures.", ephemeral=True)
+    else:
+      mm = main_menu.MainMenu(self, ctx.author.id)
+      message = await ctx.followup.send(view=mm, embed=mm.get_embed())
+      mm.original_message = message
     
   @ps.command(
     name="admin",
@@ -102,4 +110,5 @@ class PocketShimodae(commands.Cog):
   async def admin(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
     admin_menu = admin.AdminMenu(self, ctx.author.id)
-    await ctx.followup.send(view=admin_menu, embed=admin_menu.get_embed())
+    original_message = await ctx.followup.send(view=admin_menu, embed=admin_menu.get_embed())
+    admin_menu.original_message = original_message

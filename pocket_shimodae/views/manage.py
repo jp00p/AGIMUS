@@ -284,7 +284,7 @@ class ForgetMoveButton(discord.ui.Button):
     self.poshimo = poshimo
     super().__init__(
       label="Forget a move",
-      emoji="🚫",
+      emoji="🤯",
       row=2,
       style=discord.ButtonStyle.danger,
       disabled=disabled

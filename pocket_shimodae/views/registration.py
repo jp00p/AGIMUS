@@ -58,8 +58,9 @@ class StarterPages(PoshimoView):
     for s in self.starters:
       embed = discord.Embed(
         title="Choose your starter Poshimo", 
-        description=fill_embed_text(f"**{s.name}**"), 
+        description=fill_embed_text(f"This will be your beginning companion! Choose wisely."), 
         fields=[
+          discord.EmbedField(name="Name", value=f"{s.name}"),
           discord.EmbedField(name="Types", value=f"{'/'.join([str(t) for t in s.types])}"), 
           discord.EmbedField(name="Moves", value=f"{', '.join([m.display_name for m in s.move_list if m is not None])}")]
       )
@@ -67,7 +68,9 @@ class StarterPages(PoshimoView):
         embeds=[embed]
       ))
     
-    self.paginator = pages.Paginator(
+    self.paginator = PoshimoPaginator(
+      self.cog,
+      None,
       pages=self.get_pages(),
       custom_view=self
     )
@@ -93,7 +96,7 @@ class StarterChosen(PoshimoView):
     self.cog.all_trainers = utils.get_all_trainers() # add em to the big list
     self.embeds = [
       discord.Embed(
-        title=f"Congratulations TRAINER #{self.trainer.id}! You have selected your first poshimo: **{self.poshimo.display_name}**! Poshimo ID: {self.poshimo.id}", 
-        description=fill_embed_text("Live long, and may the force prosper within you.")
-      )
+        title=f"Congratulations TRAINER #{self.trainer.id:02d}! You have selected your first poshimo: **{self.poshimo.display_name}**! Poshimo ID: {self.poshimo.id}", 
+        description=fill_embed_text("We've also given you some starting goodies to begin your adventure:")
+      ).set_footer(text="Live long, and may the force prosper within you.")
     ]

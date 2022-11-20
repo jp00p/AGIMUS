@@ -9,6 +9,7 @@ from . import missions as mm_missions
 from . import shop as mm_shop
 from . import travel as mm_travel
 from . import emh as mm_emh
+from . import crafting as mm_crafting
 
 class MainMenu(PoshimoView):
   ''' the primary menu '''
@@ -118,11 +119,12 @@ class CraftingMenuButton(discord.ui.Button):
     super().__init__(
       label="Crafting",
       emoji="🔨",
-      disabled=bool(self.trainer.status is TrainerStatus.BATTLING),
+      disabled=False, #bool(self.trainer.status is TrainerStatus.BATTLING),
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):
-    pass
+    view = mm_crafting.CraftingMenu(self.cog, self.trainer)
+    await interaction.response.edit_message(view=view, embeds=view.get_embeds())
 
 class ShopMenuButton(discord.ui.Button):
   def __init__(self, cog, trainer, location, **kwargs):
@@ -176,7 +178,7 @@ class DuelMenuButton(discord.ui.Button):
     super().__init__(
       label="Duel",
       emoji="⚔",
-      disabled=bool(self.trainer.status is TrainerStatus.BATTLING),
+      disabled=True, #bool(self.trainer.status is TrainerStatus.BATTLING),
       **kwargs
     )
   async def callback(self, interaction:discord.Interaction):

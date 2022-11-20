@@ -38,11 +38,11 @@ class SummonEMH(PoshimoView):
             value="Restores all HP and stamina (except away Poshimo)"
           ),
         ]
-      ).set_footer(text=f"Your scarves: {self.trainer.scarves}")
+      ).set_footer(text=f"Your funds: {SCARVES_ICON}{self.trainer.scarves}")
     ]
     
     self.add_item(ReviveButton(self.cog, self.trainer))
-    self.add_item(HealAllButton(self.cog, self.trainer, label=f"Heal all Poshimo (cost: {total_heal_cost})", cost=total_heal_cost))
+    self.add_item(HealAllButton(self.cog, self.trainer, label=f"Heal all Poshimo ({SCARVES_ICON}{total_heal_cost})", cost=total_heal_cost))
     self.add_item(mm.BackToMainMenu(self.cog, self.trainer))
 
 
@@ -83,7 +83,7 @@ class SelectRevive(PoshimoSelect):
   def __init__(self, cog, trainer:PoshimoTrainer, include=[PoshimoStatus.DEAD], custom_placeholder="Choose a Poshimo to revive"):
     poshimo_list = trainer.list_all_poshimo(include=include)
     # custom option list for this poshimoselect
-    custom_options = [discord.SelectOption(label=f"{p.name} (cost: {p.level * base_revive_cost})", value=str(key)) for key,p in enumerate(poshimo_list)]
+    custom_options = [discord.SelectOption(label=f"{p.name} ({SCARVES_ICON}{p.level * base_revive_cost})", value=str(key)) for key,p in enumerate(poshimo_list)]
     super().__init__(cog, trainer, include=include, custom_placeholder=custom_placeholder, custom_options=custom_options, row=0)
   
   async def callback(self, interaction: discord.Interaction):
@@ -96,8 +96,8 @@ class SelectRevive(PoshimoSelect):
     view.embeds.append(
       discord.Embed(
         title=f"{self.selected_poshimo} has been revived!",
-        description=f"You paid {cost} scarves to revive them."
-      ).set_footer(text=f"You have {self.trainer.scarves} scarves left.")
+        description=f"You paid `{SCARVES_ICON}{cost}` to revive them."
+      ).set_footer(text=f"You have `{SCARVES_ICON}{self.trainer.scarves}` left.")
     )
     await interaction.response.edit_message(view=view, embeds=view.get_embeds())
 
@@ -125,7 +125,7 @@ class ConfirmHealAll(PoshimoConfirmation):
     self.embeds = [
       discord.Embed(
         title=f"Fully restore all your Poshimo, are you sure?",
-        description=fill_embed_text(f"This will cost **{self.cost}** scarves.")
+        description=fill_embed_text(f"This will cost **`{SCARVES_ICON}{self.cost}`**")
       )
     ]
   async def cancel_callback(self, button, interaction):
@@ -141,7 +141,7 @@ class ConfirmHealAll(PoshimoConfirmation):
       if heal_amt > 0:
         report.append((p.display_name, heal_amt))
 
-    description = f"You paid {self.cost} scarves!\n"
+    description = f"You paid `{SCARVES_ICON}{self.cost}`!\n"
     description += "\n".join([f"**{m[0]}**: healed {m[1]} hp!" for m in report])
     description += "\n...and all Poshimo's moves have had their stamina restored! (except any poor, dead Poshimo.)\nThank you for using the EMH."
     view = SummonEMH(self.cog, self.trainer)

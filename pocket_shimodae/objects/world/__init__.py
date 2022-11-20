@@ -1,4 +1,5 @@
 from .item import *
+from .crafting import *
 from .shop import *
 from .awaymissions import *
 from .weather import *
