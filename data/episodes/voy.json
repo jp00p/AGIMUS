@@ -2055,7 +2055,15 @@
       "episode": "26",
       "imdb": "tt0708908",
       "memoryalpha": "Hope_and_Fear_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 445,
+          "airdate": "2022.11.21",
+          "episode": "The USS Donger",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/ew6HVWh1AetHPs8Z4UGkg4kWqNu.jpg"
