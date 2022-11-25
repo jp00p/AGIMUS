@@ -146,7 +146,7 @@ class DfrotzRunner(commands.Cog):
     await ctx.followup.send(embed=embed)
 
   async def load(self, ctx: discord.ApplicationContext):
-    if not self.save_file.exists():
+    if not (self.file_path / self.save_file).exists():
       await ctx.followup.send(embed=discord.Embed(
         title="Restoring game",
         description="There is no saved game",
@@ -253,3 +253,21 @@ class HitchHikers(DfrotzRunner):
   def __init__(self, bot):
     super().__init__(bot)
     self.save_file = 'hhgttg_save_file'  # bug doesn't allow suffixes
+
+  def run_command(self, cmd):
+    results = super().run_command(cmd)
+
+    # We just died.  Include the score in the last output before the user RESTART
+    if 'We are about to give you your score' in results:
+      self.send_output('')
+
+      lines = self.get_from_queue()
+
+      lines = self.clean_lines(lines)
+
+      lines = '\n'.join(lines)
+      lines = lines.replace('(Hit RETURN or ENTER when ready.) >', '\n\n')
+
+      results = f"{results[:-3]}{lines}\n```"
+
+    return results
