@@ -41,6 +41,11 @@ RUN cd /; \
     cd /; \
     rm -r frotz
 
+# Install semver
+RUN wget -O /usr/local/bin/semver \
+  https://raw.githubusercontent.com/fsaintjacques/semver-tool/master/src/semver; \
+  chmod +x /usr/local/bin/semver
+
 # Use 'bot' user to avoid pip warning messages
 USER bot
 # Add source code
@@ -48,6 +53,9 @@ WORKDIR /bot
 COPY --chown=bot:bot . .
 # Install requirements.txt with pip
 RUN make setup
+
+# Resolve dubious git ownership
+RUN git config --global --add safe.directory /bot
 
 # Since requirements.txt can be mounted, run install again
 # before running python.py in case of differences/updates

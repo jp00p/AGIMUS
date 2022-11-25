@@ -11,9 +11,19 @@ timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 page_url = "https://startrekdesignproject.com/symbols/"
 destination_path = f"./badge_updates/{timestamp}/"
 
+# Create directory to store badge files/json
 os.makedirs(destination_path)
 
+# Determine the next minor version we should use for our migration script
+stream = os.popen('make version')
+current_version = stream.read().strip()
+stream = os.popen(f'semver bump minor {current_version}')
+new_version = stream.read().strip()
+logger.info(f"New version: {new_version}")
+
+# Load the current badge data for doing comparisons
 current_badges = db_get_all_badge_info()
+
 
 async def get_badges_and_metadata():
   async with aiohttp.ClientSession() as session:
@@ -29,7 +39,7 @@ async def get_badges_and_metadata():
         if badge_name in [b['badge_name'] for b in current_badges]:
           # The STDP symbols page by default lists the newest badges added to the project to the top
           # So if we hit a badge we already have then we can just exit 🤞
-          print(f"\n\nWe already have {badge_name}, halting import.")
+          print(f"\n\nWe already have {badge_name}, end of new badges found.")
           break
 
         symbol_url = card.parent["href"]
@@ -76,114 +86,105 @@ async def get_badges_and_metadata():
     print(f"Unable to write config file: {e}")
 
 
-async def seed_badge_tables():
+async def generate_sql_file():
   f = open(f"{destination_path}/badges-metadata.json")
   badges = json.load(f)
   f.close()
 
-  for badge_key in badges.keys():
-    badge_name = badge_key
-    badge_filename = f"{badge_key.replace(' ', '_').replace(':', '-').replace('/', '-')}.png"
+  with open(f"migrations/v{new_version}.sql", "a") as migration_file:
 
-    badge_info = badges[badge_key]
+    for badge_key in badges.keys():
+      badge_name = badge_key.replace("'", "''").replace('"', '""')
+      badge_filename = f"{badge_key.replace(' ', '_').replace(':', '-').replace('/', '-')}.png"
 
-    badge_url = badge_info['badge_url']
-    quadrant = badge_info.get('quadrant')
-    time_period = badge_info.get('time period'),
-    franchise = badge_info.get('franchise'),
-    reference = badge_info.get('reference')
+      badge_info = badges[badge_key]
 
-    if type(time_period) is tuple:
-      time_period = time_period[0]
+      badge_url = badge_info['badge_url'].replace("'", "''").replace('"', '""')
+      quadrant = badge_info.get('quadrant').replace("'", "''").replace('"', '""')
+      time_period = badge_info.get('time period').replace("'", "''").replace('"', '""')
+      franchise = badge_info.get('franchise').replace("'", "''").replace('"', '""')
+      reference = badge_info.get('reference').replace("'", "''").replace('"', '""')
 
-    if type(franchise) is tuple:
-      franchise = franchise[0]
+      if type(time_period) is tuple:
+        time_period = time_period[0].replace("'", "''").replace('"', '""')
 
-    # Affiliations may be a list
-    affiliations = badge_info.get('affiliations')
-    affiliations_list = []
-    if affiliations is not None:
-      if (type(affiliations) is list):
-        affiliations_list = affiliations
-      elif (type(affiliations) is tuple):
-        affiliations_list = [affiliations[0]]
-      elif (type(affiliations) is str):
-        affiliations_list = [affiliations]
+      if type(franchise) is tuple:
+        franchise = franchise[0].replace("'", "''").replace('"', '""')
 
-    # Types may be a list
-    types = badge_info.get('types')
-    types_list = []
-    if types is not None:
-      if (type(types) is list):
-        types_list = types
-      elif (type(types) is tuple):
-        types_list = [types[0]]
-      elif (type(types) is str):
-        types_list = [types]
+      # Affiliations may be a list
+      affiliations = badge_info.get('affiliations')
+      affiliations_list = []
+      if affiliations is not None:
+        if (type(affiliations) is list):
+          affiliations_list = affiliations
+        elif (type(affiliations) is tuple):
+          affiliations_list = [affiliations[0]]
+        elif (type(affiliations) is str):
+          affiliations_list = [affiliations]
 
-    # Universes may be a list
-    universes = badge_info.get('universes')
-    universes_list = []
-    if universes is not None:
-      if (type(universes) is list):
-        universes_list = universes
-      elif (type(universes) is tuple):
-        universes_list = [universes[0]]
-      elif (type(universes) is str):
-        universes_list = [universes]
+      # Types may be a list
+      types = badge_info.get('types')
+      types_list = []
+      if types is not None:
+        if (type(types) is list):
+          types_list = types
+        elif (type(types) is tuple):
+          types_list = [types[0]]
+        elif (type(types) is str):
+          types_list = [types]
 
+      # Universes may be a list
+      universes = badge_info.get('universes')
+      universes_list = []
+      if universes is not None:
+        if (type(universes) is list):
+          universes_list = universes
+        elif (type(universes) is tuple):
+          universes_list = [universes[0]]
+        elif (type(universes) is str):
+          universes_list = [universes]
 
-    with AgimusDB(dictionary=True) as query:
       # Check if badge already exists and if so skip
-      sql = '''
-        SELECT * FROM badge_info WHERE badge_filename = %s
-      '''
-      vals = (badge_filename,)
-      query.execute(sql, vals)
-      result = query.fetchone()
-      if result is not None:
-        continue
+      with AgimusDB(dictionary=True) as query:
+        sql = '''
+          SELECT * FROM badge_info WHERE badge_filename = %s
+        '''
+        vals = (badge_filename,)
+        query.execute(sql, vals)
+        result = query.fetchone()
+        if result is not None:
+          logger.info(f">> {badge_name} already exists in database, skipping...")
+          continue
 
-      logger.info(f">> Inserting badge_name: {badge_name}")
+      # Badge name is not present, go ahead and generate SQL
+      logger.info(f">> Generating SQL for badge_name: {badge_name}")
 
       # Insert basic info into badge_info
-      sql = '''
-        INSERT INTO badge_info
-          (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference)
-          VALUES (%s, %s, %s, %s, %s, %s, %s)
-      '''
-      vals = (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference)
-      query.execute(sql, vals)
+      sql = f'INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("{badge_name}", "{badge_filename}", "{badge_url}", "{quadrant}", "{time_period}", "{franchise}", "{reference}");\n'
+      migration_file.write(sql)
 
       # Now create the badge_affiliation row(s)
       if affiliations_list is not None:
         for a in affiliations_list:
-          sql = '''INSERT IGNORE INTO badge_affiliation
-            (badge_filename, affiliation_name)
-            VALUES (%s, %s)
-          '''
-          vals = (badge_filename, a)
-          query.execute(sql, vals)
+          a = a.replace("'", "''").replace('"', '""')
+          sql = f'INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("{badge_filename}", "{a}");\n'
+          migration_file.write(sql)
 
       # Same for types
       if types_list is not None:
         for t in types_list:
-          sql = '''INSERT IGNORE INTO badge_type
-            (badge_filename, type_name)
-            VALUES (%s, %s)
-          '''
-          vals = (badge_filename, t)
-          query.execute(sql, vals)
+          t = t.replace("'", "''").replace('"', '""')
+          sql = f'INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("{badge_filename}", "{t}");\n'
+          migration_file.write(sql)
 
       # Same for universes
       if universes_list is not None:
         for u in universes_list:
-          sql = '''INSERT IGNORE INTO badge_universe
-            (badge_filename, universe_name)
-            VALUES (%s, %s)
-          '''
-          vals = (badge_filename, u)
-          query.execute(sql, vals)
+          u = u.replace("'", "''").replace('"', '""')
+          sql = f'INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("{badge_filename}", "{u}");\n'
+          migration_file.write(sql)
+
+  migration_file.close()
 
 
 async def copy_images_to_directory():
@@ -195,7 +196,7 @@ async def copy_images_to_directory():
 # DO THE THINGS
 async def main():
   await get_badges_and_metadata()
-  #await seed_badge_tables()
+  await generate_sql_file()
   await copy_images_to_directory()
   print("\n\nAll done. :D")
 
