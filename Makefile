@@ -245,12 +245,12 @@ update-badges: ## Run the automated badge updater script, then commit the change
 	@echo "Updating badges!"
 	git checkout -b badge_updates/v$(shell semver bump minor $(shell make version))
 	@python badge_updater.py
-	@make helm-bump-minor
+	sed -i 's/'$(shell make version)'/v'$(shell semver bump minor $(shell make version))'/g' charts/agimus/Chart.yaml
 	git add charts \
 		&& git add migrations \
 		&& git add images \
 		&& git commit -m "Committing Badge Update for v$(shell semver bump minor $(shell make version)) - $(shell date)" \
-		&& git push --set-upstream origin badge_updates/v$(shell semver bump minor $(shell make version)) \
+		&& git push git push --set-upstream https://$(GIT_TOKEN)@github.com/$(REPO_OWNER)/$(REPO_NAME).git badge_updates/v$(shell semver bump minor $(shell make version)) /
 		&& git checkout main
 
 .PHONY: update-shows
