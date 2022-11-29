@@ -245,13 +245,21 @@ update-badges: ## Run the automated badge updater script, then commit the change
 	@echo "Updating badges!"
 	git checkout -b badge_updates/v$(shell semver bump minor $(shell make version))
 	@python badge_updater.py
+	git add -N images
+ifneq ($(shell git diff-index --quiet HEAD; echo $$?), 0)
 	sed -i 's/'$(shell make version)'/v'$(shell semver bump minor $(shell make version))'/g' charts/agimus/Chart.yaml
 	git add charts \
 		&& git add migrations \
 		&& git add images \
 		&& git commit -m "Committing Badge Update for v$(shell semver bump minor $(shell make version)) - $(shell date)" \
-		&& git push git push --set-upstream https://$(GIT_TOKEN)@github.com/$(REPO_OWNER)/$(REPO_NAME).git badge_updates/v$(shell semver bump minor $(shell make version)) /
+		&& git push --set-upstream https://$(GIT_TOKEN)@github.com/$(REPO_OWNER)/$(REPO_NAME).git badge_updates/v$(shell semver bump minor $(shell make version)) \
 		&& git checkout main
+	@echo "Success"
+else
+	git checkout main \
+		&& git branch -D badge_updates/v$(shell semver bump minor $(shell make version))
+	@echo "No-op"
+endif
 
 .PHONY: update-shows
 update-shows: ## Update the TGG metadata in the database via github action
