@@ -5,6 +5,7 @@ import os
 import random
 import re
 import string
+import subprocess
 import sys
 import traceback
 from datetime import datetime, timezone, timedelta
@@ -28,9 +29,10 @@ from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps
 from tabulate import tabulate
 from treys import Card, Deck, Evaluator, evaluator
 
-from utils.broadcast_logs import BroadcastHandler
+#from utils.broadcast_logs import BroadcastHandler
 from utils.config_utils import get_config, deep_dict_update
-from utils.disco_lights import LightHandler
+from utils.thread_utils import to_thread
+#from utils.disco_lights import LightHandler
 
 
 #   _________       __
@@ -52,8 +54,8 @@ handler = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter("%(asctime)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-logger.addHandler(BroadcastHandler())
-logger.addHandler(LightHandler())
+# logger.addHandler(BroadcastHandler())
+# logger.addHandler(LightHandler())
 LOG = []
 
 # Set Config and Globals
@@ -150,7 +152,7 @@ def seed_db():
     # If the jackpot table is empty, set an initial pot value to 250
     query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
     data = query.fetchone()
-  
+
   if data["total_jackpots"] == 0:
     logger.info(f"{Fore.GREEN}SEEDING JACKPOT{Fore.RESET}")
     with AgimusDB() as query:
@@ -307,7 +309,7 @@ def increase_jackpot(amt):
     sql = "UPDATE jackpots SET jackpot_value = jackpot_value + %s ORDER BY id DESC LIMIT 1"
     vals = (amt,)
     query.execute(sql, vals)
-  
+
 # generate_local_channel_list(client)
 # client[required]: discord.Bot
 # This runs to apply the local channel list on top of the existing channel config
@@ -344,6 +346,32 @@ def run_make_backup():
     raw_new_hash = line.readlines()
   hashes["new"] = raw_new_hash[-1].replace("\n", "")
   return hashes
+
+# run_make_badger()
+# util function that runs our `make update-badges` command
+# returns a hash containing success details
+def run_make_badger():
+  result = {
+    "completed": False,
+    "error": False,
+    "version": ""
+  }
+  try:
+    process = subprocess.Popen(['make', 'update-badges'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+    stdout, stderr = process.communicate()
+    log = stdout.decode('utf-8')
+    if 'Badge Update Success' in log:
+      result['completed'] = True
+      version_match = re.search(r'New version: (v\d+\.\d+.\d+)', log)
+      result['version'] = version_match.group(1)
+    else:
+      result['completed'] = False
+    return result
+  except Exception as e:
+    logger.info(e)
+    result['completed'] = False
+    result['error'] = stderr.decode('utf-8')
+    return result
 
 # returns a pretend stardate based on the given datetime
 def calculate_stardate(date:datetime.date):

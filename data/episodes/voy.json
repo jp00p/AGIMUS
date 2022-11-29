@@ -1945,7 +1945,15 @@
       "episode": "21",
       "imdb": "tt0708986",
       "memoryalpha": "The_Omega_Directive_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 440,
+          "airdate": "2022.10.17",
+          "episode": "Rhetorical Bathtub",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/aKX8zE9uf225tIl6IihxuEahR2c.jpg"
@@ -1959,7 +1967,15 @@
       "episode": "22",
       "imdb": "tt0709002",
       "memoryalpha": "Unforgettable_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 441,
+          "airdate": "2022.10.24",
+          "episode": "Jazz Tea",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/hCQ5zMhUIE6crlrMpbbx0Msmb4P.jpg"
@@ -1973,7 +1989,15 @@
       "episode": "23",
       "imdb": "tt0708926",
       "memoryalpha": "Living_Witness_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 442,
+          "airdate": "2022.10.31",
+          "episode": "Vaskan Deferenses",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-442-vaskan-deferenses-voy-s4e23/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/aM8Lt9Nx6HVJpLqjKhZXlB38GUd.jpg"
@@ -1987,7 +2011,15 @@
       "episode": "24",
       "imdb": "tt0708876",
       "memoryalpha": "Demon_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 443,
+          "airdate": "2022.11.07",
+          "episode": "The Lightning Bidet Treatment",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-443-the-lightning-bidet-treatment-voy-s4e24/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/51em8wEfohdnufmmP8qgE4gbah3.jpg"
@@ -2001,7 +2033,15 @@
       "episode": "25",
       "imdb": "tt0708941",
       "memoryalpha": "One_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 444,
+          "airdate": "2022.11.14",
+          "episode": "Sammys Jankis, the Podcast",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/xVgtsHg1j6HtIXuSA8RfL6zOJdo.jpg"
@@ -2015,7 +2055,15 @@
       "episode": "26",
       "imdb": "tt0708908",
       "memoryalpha": "Hope_and_Fear_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 445,
+          "airdate": "2022.11.21",
+          "episode": "The USS Donger",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "04",
       "stills": [
         "https://image.tmdb.org/t/p/original/ew6HVWh1AetHPs8Z4UGkg4kWqNu.jpg"
