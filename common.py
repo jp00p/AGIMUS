@@ -358,6 +358,7 @@ def run_make_badger():
     process = subprocess.Popen(['make', 'update-badges'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
     stdout, stderr = process.communicate()
     log = stdout.decode('utf-8')
+    logger.info(log)
     if 'Badge Update Success' in log:
       result['completed'] = True
       version_match = re.search(r'New version: (v\d+\.\d+.\d+)', log)

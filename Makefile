@@ -245,20 +245,22 @@ update-badges: ## Run the automated badge updater script, then commit the change
 	@echo "Updating badges!"
 	git checkout -b badge_updates/v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml));
 	@python badge_updater.py
-ifneq ($(strip $(shell git status images --porcelain 2>/dev/null)),)
-	sed -i 's/'$(shell yq e '.version' charts/agimus/Chart.yaml)'/v'$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml))'/g' charts/agimus/Chart.yaml
-	git add charts \
-		&& git add migrations \
-		&& git add images \
-		&& git commit -m "Committing Badge Update for v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml)) - $(shell date)" \
-		&& git push --set-upstream https://$(GIT_TOKEN)@github.com/$(REPO_OWNER)/$(REPO_NAME).git badge_updates/v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml)) \
-		&& git checkout main
-	@echo "Badge Update Success"
-else
-	git checkout main \
-		&& git branch -D badge_updates/v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml))
-	@echo "No-op"
-endif
+
+	@status=$$(git status images --porcelain); \
+	if test "x$${status}" != x; then \
+		sed -i 's/'$(shell yq e '.version' charts/agimus/Chart.yaml)'/v'$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml))'/g' charts/agimus/Chart.yaml; \
+		git add charts \
+			&& git add migrations \
+				&& git add images \
+				&& git commit -m "Committing Badge Update for v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml)) - $(shell date)" \
+				&& git push --set-upstream https://$(GIT_TOKEN)@github.com/$(REPO_OWNER)/$(REPO_NAME).git badge_updates/v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml)) \
+				&& git checkout main; \
+			echo "Badge Update Success"; \
+	else \
+		git checkout main \
+			&& git branch -D badge_updates/v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml)); \
+		echo "No-op"; \
+	fi
 
 .PHONY: update-shows
 update-shows: ## Update the TGG metadata in the database via github action
