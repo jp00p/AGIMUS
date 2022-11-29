@@ -1,9 +1,10 @@
-import functools
 import textwrap
 import time
 import math
 
 from common import *
+
+from utils.thread_utils import to_thread
 
 
 #   _________                    .__       .__ __________             .___
@@ -48,21 +49,6 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
     selections = db_get_all_types()
 
   return [result for result in selections if ctx.value.lower() in result.lower()]
-
-# ___________.__                              .___.__
-# \__    ___/|  |_________   ____ _____     __| _/|__| ____    ____
-#   |    |   |  |  \_  __ \_/ __ \\__  \   / __ | |  |/    \  / ___\
-#   |    |   |   Y  \  | \/\  ___/ / __ \_/ /_/ | |  |   |  \/ /_/  >
-#   |____|   |___|  /__|    \___  >____  /\____ | |__|___|  /\___  /
-#                 \/            \/     \/      \/         \//_____/
-def to_thread(func):
-  @functools.wraps(func)
-  async def wrapper(*args, **kwargs):
-    loop = asyncio.get_event_loop()
-    wrapped = functools.partial(func, *args, **kwargs)
-    return await loop.run_in_executor(None, wrapped)
-  return wrapper
-
 
 # ___________                  .___.__
 # \__    ___/___________     __| _/|__| ____    ____
@@ -665,7 +651,7 @@ def db_get_all_badge_info():
     sql = "SELECT * FROM badge_info ORDER BY badge_name ASC;"
     query.execute(sql)
     rows = query.fetchall()
-  
+
   return rows
 
 def db_get_badge_info_by_name(name):
@@ -883,7 +869,7 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
     '''
     vals = (user_id, affiliation)
     query.execute(sql, vals)
-    rows = query.fetchall()  
+    rows = query.fetchall()
   return rows
 
 def db_get_random_badges_from_user_by_affiliations(user_id: int):

@@ -30,6 +30,7 @@ from treys import Card, Deck, Evaluator, evaluator
 
 #from utils.broadcast_logs import BroadcastHandler
 from utils.config_utils import get_config, deep_dict_update
+from utils.thread_utils import to_thread
 #from utils.disco_lights import LightHandler
 
 
@@ -353,20 +354,10 @@ def run_make_badger():
     "error": False,
     "version": ""
   }
-  # os.system("make update-badges")
-  # return {
-  #   "completed": True,
-  #   "error": False,
-  #   "version": "v1.14.0"
-  # }
   try:
-    process = subprocess.Popen(['make', 'update-badges'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(['make', 'update-badges'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
     stdout, stderr = process.communicate()
     log = stdout.decode('utf-8')
-    logger.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    logger.info(log)
-    logger.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    # logger.info(log)
     if log.find("Badge Update Success"):
       result['completed'] = True
       version_match = re.search(r'New version: (v\d+\.\d+.\d+)', log)
