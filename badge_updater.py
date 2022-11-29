@@ -11,19 +11,20 @@ timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 page_url = "https://startrekdesignproject.com/symbols/"
 destination_path = f"./badge_updates/{timestamp}/"
 
-# Create directory to store badge files/json
-os.makedirs(destination_path)
-
 # Determine the next minor version we should use for our migration script
-stream = os.popen('make version')
-current_version = stream.read().strip()
-stream = os.popen(f'semver bump minor {current_version}')
-new_version = stream.read().strip()
+# stream = os.popen()
+with os.popen('make version') as current:
+  current_version = current.readlines()[1].strip()
+logger.info(f"Current version: {current_version}")
+with os.popen(f'semver bump minor {current_version}') as new:
+  new_version = new.read().strip()
 logger.info(f"New version: {new_version}")
 
 # Load the current badge data for doing comparisons
 current_badges = db_get_all_badge_info()
 
+# Create directory to store badge files/json
+os.makedirs(destination_path)
 
 async def get_badges_and_metadata():
   async with aiohttp.ClientSession() as session:
@@ -32,7 +33,7 @@ async def get_badges_and_metadata():
       soup = BeautifulSoup(html, 'html.parser')
       cards = soup.select('.card')
 
-      config_json = {}
+      badge_data = {}
 
       for card in cards:
         badge_name = card.select(".name")[0].text.strip().replace(".png", "")
@@ -47,7 +48,7 @@ async def get_badges_and_metadata():
         image_url = image["data-srcset"].split(" ")[0]
         print(f"Downloading {image_url}...")
         image_name = image_url.split('/')[-1]
-        config_json[badge_name] = { "badge_url" : symbol_url, "image_url" : image_url.replace("w_300", "w_1200"), "filename" : image_name }
+        badge_data[badge_name] = { "badge_url" : symbol_url, "image_url" : image_url.replace("w_300", "w_1200"), "filename" : image_name }
         image_path = os.path.join(destination_path, image_name)
         async with session.get(image_url) as image_response:
           urllib.request.urlretrieve(image_url, image_path)
@@ -66,7 +67,7 @@ async def get_badges_and_metadata():
               if "\n\n" in cell_value:
                 cell_value = cell_value.split("\n\n")
             print(f"Adding {cell_name}:{cell_value} to {badge_name}")
-            config_json[badge_name][cell_name] = cell_value
+            badge_data[badge_name][cell_name] = cell_value
           reference_images = meta_soup.select(".post-content picture")
           ref_images_list = []
           for ref in reference_images:
@@ -75,15 +76,20 @@ async def get_badges_and_metadata():
               ref_img_src = ref_img["data-srcset"].split(" ")[0]
               ref_images_list.append(ref_img_src)
           print(f"Adding reference images to {badge_name}: {ref_images_list}")
-          config_json[badge_name]["reference_images"] = ref_images_list
+          badge_data[badge_name]["reference_images"] = ref_images_list
 
+  if not len(badge_data):
+    return False
 
-  config_json = json.dumps(config_json, indent=2, sort_keys=True)
+  config_json = json.dumps(badge_data, indent=2, sort_keys=True)
   try:
+    # Write metadata file
     with open(f"{destination_path}/badges-metadata.json", 'w') as f:
       f.write(config_json)
   except FileNotFoundError as e:
     print(f"Unable to write config file: {e}")
+
+  return True
 
 
 async def generate_sql_file():
@@ -94,22 +100,22 @@ async def generate_sql_file():
   with open(f"migrations/v{new_version}.sql", "a") as migration_file:
 
     for badge_key in badges.keys():
-      badge_name = badge_key.replace("'", "''").replace('"', '""')
+      badge_name = badge_key.replace("'", "''").replace('"', ' ')
       badge_filename = f"{badge_key.replace(' ', '_').replace(':', '-').replace('/', '-')}.png"
 
       badge_info = badges[badge_key]
 
-      badge_url = badge_info['badge_url'].replace("'", "''").replace('"', '""')
-      quadrant = badge_info.get('quadrant').replace("'", "''").replace('"', '""')
-      time_period = badge_info.get('time period').replace("'", "''").replace('"', '""')
-      franchise = badge_info.get('franchise').replace("'", "''").replace('"', '""')
-      reference = badge_info.get('reference').replace("'", "''").replace('"', '""')
+      badge_url = badge_info['badge_url'].replace("'", "''").replace('"', ' ')
+      quadrant = badge_info.get('quadrant').replace("'", "''").replace('"', ' ')
+      time_period = badge_info.get('time period').replace("'", "''").replace('"', ' ')
+      franchise = badge_info.get('franchise').replace("'", "''").replace('"', ' ')
+      reference = badge_info.get('reference').replace("'", "''").replace('"', ' ')
 
       if type(time_period) is tuple:
-        time_period = time_period[0].replace("'", "''").replace('"', '""')
+        time_period = time_period[0].replace("'", "''").replace('"', ' ')
 
       if type(franchise) is tuple:
-        franchise = franchise[0].replace("'", "''").replace('"', '""')
+        franchise = franchise[0].replace("'", "''").replace('"', ' ')
 
       # Affiliations may be a list
       affiliations = badge_info.get('affiliations')
@@ -195,9 +201,12 @@ async def copy_images_to_directory():
 
 # DO THE THINGS
 async def main():
-  await get_badges_and_metadata()
-  await generate_sql_file()
-  await copy_images_to_directory()
-  print("\n\nAll done. :D")
+  new_badges_found = await get_badges_and_metadata()
+  if new_badges_found:
+    await generate_sql_file()
+    await copy_images_to_directory()
+    print("\n\nAll done. :D")
+  else:
+    print("\n\nNo new badges found. Exiting.")
 
 asyncio.run(main())

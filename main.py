@@ -87,11 +87,13 @@ from handlers.starboard import get_all_starboard_posts, handle_starboard_reactio
 from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_react_xp, increment_user_xp
 
 # Tasks
-from tasks.scheduler import Scheduler
+from tasks.backups import backups_task
+from tasks.badger import badger_task
 from tasks.bingbong import bingbong_task
 from tasks.hoodiversaries import hoodiversary_task
+from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
-from tasks.backups import backups_task
+
 
 # Utils
 from utils.check_channel_access import perform_channel_check
@@ -324,10 +326,11 @@ async def on_command_error(ctx, error):
 
 # Schedule Tasks
 scheduled_tasks = [
+  backups_task(bot),
+  badger_task(bot),
   bingbong_task(bot),
   hoodiversary_task(bot),
-  weyounsday_task(bot),
-  backups_task(bot)
+  weyounsday_task(bot)
 ]
 scheduler = Scheduler()
 for task in scheduled_tasks:
