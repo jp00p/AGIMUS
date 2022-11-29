@@ -101,10 +101,10 @@ async def generate_sql_file():
 
     for badge_key in badges.keys():
       badge_name = badge_key.replace("'", "''").replace('"', ' ')
-      badge_filename = f"{badge_key.replace(' ', '_').replace(':', '-').replace('/', '-')}.png"
 
       badge_info = badges[badge_key]
 
+      badge_filename = badge_info['filename']
       badge_url = badge_info['badge_url'].replace("'", "''").replace('"', ' ')
       quadrant = badge_info.get('quadrant').replace("'", "''").replace('"', ' ')
       time_period = badge_info.get('time period').replace("'", "''").replace('"', ' ')
