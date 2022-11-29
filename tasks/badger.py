@@ -7,7 +7,7 @@ def badger_task(client):
     if not enabled:
       return
 
-    repo_base_url = f"https://github.com/{os.getenv('REPO_OWNER')}/{os.getenv('REPO_NAME')}/"
+    repo_base_url = f"https://github.com/{os.getenv('REPO_OWNER')}/{os.getenv('REPO_NAME')}"
     log_channel = client.get_channel(config["channels"]["bot-logs"])
     logger.info("Running automated badge update!")
 

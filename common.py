@@ -367,7 +367,7 @@ def run_make_badger():
     return result
   except IOError:
     result['completed'] = False
-    result['error'] = True
+    result['error'] = stderr.decode('utf-8')
     return result
 
 # returns a pretend stardate based on the given datetime

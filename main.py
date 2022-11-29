@@ -39,6 +39,7 @@ from commands.agimus import agimus
 from commands.computer import computer
 
 # Cogs
+from cogs.backups import Backups
 from cogs.badge_tags import BadgeTags
 from cogs.chaoszork import ChaosZork, HitchHikers
 from cogs.poker import Poker
@@ -48,10 +49,11 @@ from cogs.settings import Settings
 from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.trade import Trade
+from cogs.update_badges import UpdateBadges
 from cogs.react_roles import ReactRoles
-from cogs.backups import Backups
 from cogs.wishlist import Wishlist
 from cogs.wordcloud import Wordcloud
+bot.add_cog(Backups(bot))
 bot.add_cog(BadgeTags(bot))
 bot.add_cog(ChaosZork(bot))
 bot.add_cog(HitchHikers(bot))
@@ -62,7 +64,7 @@ bot.add_cog(Settings(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Trade(bot))
-bot.add_cog(Backups(bot))
+bot.add_cog(UpdateBadges(bot))
 bot.add_cog(Wishlist(bot))
 bot.add_cog(Wordcloud(bot))
 if config["roles"]["reaction_roles_enabled"]:
