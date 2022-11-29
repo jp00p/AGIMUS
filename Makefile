@@ -245,8 +245,7 @@ update-badges: ## Run the automated badge updater script, then commit the change
 	@echo "Updating badges!"
 	git checkout -b badge_updates/v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml));
 	@python badge_updater.py
-	git add -N images
-ifneq ($(shell git diff-index --quiet HEAD; echo $$?), 0)
+ifneq ($(strip $(shell git status images --porcelain 2>/dev/null)),)
 	sed -i 's/'$(shell yq e '.version' charts/agimus/Chart.yaml)'/v'$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml))'/g' charts/agimus/Chart.yaml
 	git add charts \
 		&& git add migrations \

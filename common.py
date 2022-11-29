@@ -365,7 +365,8 @@ def run_make_badger():
     else:
       result['completed'] = False
     return result
-  except IOError:
+  except Exception as e:
+    logger.info(e)
     result['completed'] = False
     result['error'] = stderr.decode('utf-8')
     return result
