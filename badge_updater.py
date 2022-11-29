@@ -100,22 +100,23 @@ async def generate_sql_file():
   with open(f"migrations/v{new_version}.sql", "a") as migration_file:
 
     for badge_key in badges.keys():
-      badge_name = badge_key.replace("'", "''").replace('"', ' ')
+      badge_name = badge_key.replace('"', '""')
 
       badge_info = badges[badge_key]
 
       badge_filename = badge_info['filename']
-      badge_url = badge_info['badge_url'].replace("'", "''").replace('"', ' ')
-      quadrant = badge_info.get('quadrant').replace("'", "''").replace('"', ' ')
-      time_period = badge_info.get('time period').replace("'", "''").replace('"', ' ')
-      franchise = badge_info.get('franchise').replace("'", "''").replace('"', ' ')
-      reference = badge_info.get('reference').replace("'", "''").replace('"', ' ')
+      badge_url = badge_info['badge_url'].replace('"', '""')
+      quadrant = badge_info.get('quadrant').replace('"', '""')
 
+      reference = badge_info.get('reference').replace('"', '""')
+
+      time_period = badge_info.get('time period')
       if type(time_period) is tuple:
-        time_period = time_period[0].replace("'", "''").replace('"', ' ')
+        time_period = time_period[0].replace('"', '""')
 
+      franchise = badge_info.get('franchise')
       if type(franchise) is tuple:
-        franchise = franchise[0].replace("'", "''").replace('"', ' ')
+        franchise = franchise[0].replace('"', '""')
 
       # Affiliations may be a list
       affiliations = badge_info.get('affiliations')
