@@ -175,7 +175,7 @@ kind-destroy: ## Tear the KinD cluster down
 ##@ Helm stuff
 
 .PHONY: helm-config
-helm-config: ## Install the configmaps and secrets from .env and $(BOT_CONFIGURATION_FILEPATH) using helm 
+helm-config: ## Install the configmaps and secrets from .env and $(BOT_CONFIGURATION_FILEPATH) using helm
 	@kubectl --namespace $(namespace) create configmap agimus-dotenv --from-file=.env || true
 	@kubectl --namespace $(namespace) create configmap agimus-config --from-file=$(BOT_CONFIGURATION_FILEPATH) || true
 	@kubectl --namespace $(namespace) create secret generic mysql-secret --from-literal=MYSQL_ROOT_PASSWORD=$(DB_PASS) || true
@@ -239,6 +239,28 @@ helm-bump-major: ## Bump-major the semantic version of the helm chart using semv
 	sed -i 's/'$(shell make version)'/v'$(shell semver bump major $(shell make version))'/g' charts/agimus/Chart.yaml
 
 ##@ Miscellaneous stuff
+
+.PHONY: update-badges
+update-badges: ## Run the automated badge updater script, then commit the changes to a new branch and push
+	@echo "Updating badges!"
+	git checkout -b badge_updates/v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml));
+	@python badge_updater.py
+
+	@status=$$(git status images --porcelain); \
+	if test "x$${status}" != x; then \
+		sed -i 's/'$(shell yq e '.version' charts/agimus/Chart.yaml)'/v'$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml))'/g' charts/agimus/Chart.yaml; \
+		git add charts \
+			&& git add migrations \
+				&& git add images \
+				&& git commit -m "Committing Badge Update for v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml)) - $(shell date)" \
+				&& git push --set-upstream https://$(GIT_TOKEN)@github.com/$(REPO_OWNER)/$(REPO_NAME).git badge_updates/v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml)) \
+				&& git checkout main; \
+			echo "Badge Update Success"; \
+	else \
+		git checkout main \
+			&& git branch -D badge_updates/v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml)); \
+		echo "No-op"; \
+	fi
 
 .PHONY: update-shows
 update-shows: ## Update the TGG metadata in the database via github action

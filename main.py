@@ -39,6 +39,7 @@ from commands.agimus import agimus
 from commands.computer import computer
 
 # Cogs
+from cogs.backups import Backups
 from cogs.badge_tags import BadgeTags
 from cogs.chaoszork import ChaosZork, HitchHikers
 from cogs.poker import Poker
@@ -48,10 +49,11 @@ from cogs.settings import Settings
 from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.trade import Trade
+from cogs.update_badges import UpdateBadges
 from cogs.react_roles import ReactRoles
-from cogs.backups import Backups
 from cogs.wishlist import Wishlist
 from cogs.wordcloud import Wordcloud
+bot.add_cog(Backups(bot))
 bot.add_cog(BadgeTags(bot))
 bot.add_cog(ChaosZork(bot))
 bot.add_cog(HitchHikers(bot))
@@ -62,7 +64,7 @@ bot.add_cog(Settings(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Trade(bot))
-bot.add_cog(Backups(bot))
+bot.add_cog(UpdateBadges(bot))
 bot.add_cog(Wishlist(bot))
 bot.add_cog(Wordcloud(bot))
 if config["roles"]["reaction_roles_enabled"]:
@@ -87,11 +89,13 @@ from handlers.starboard import get_all_starboard_posts, handle_starboard_reactio
 from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_react_xp, increment_user_xp
 
 # Tasks
-from tasks.scheduler import Scheduler
+from tasks.backups import backups_task
+from tasks.badger import badger_task
 from tasks.bingbong import bingbong_task
 from tasks.hoodiversaries import hoodiversary_task
+from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
-from tasks.backups import backups_task
+
 
 # Utils
 from utils.check_channel_access import perform_channel_check
@@ -324,10 +328,11 @@ async def on_command_error(ctx, error):
 
 # Schedule Tasks
 scheduled_tasks = [
+  backups_task(bot),
+  badger_task(bot),
   bingbong_task(bot),
   hoodiversary_task(bot),
-  weyounsday_task(bot),
-  backups_task(bot)
+  weyounsday_task(bot)
 ]
 scheduler = Scheduler()
 for task in scheduled_tasks:
