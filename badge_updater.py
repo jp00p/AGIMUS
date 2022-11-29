@@ -18,7 +18,7 @@ with os.popen('make version') as current:
 logger.info(f"Current version: {current_version}")
 with os.popen(f'semver bump minor {current_version}') as new:
   new_version = new.read().strip()
-logger.info(f"New version: {new_version}")
+logger.info(f"New version: v{new_version}")
 
 # Load the current badge data for doing comparisons
 current_badges = db_get_all_badge_info()

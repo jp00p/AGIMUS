@@ -34,7 +34,7 @@ def badger_task(client):
       pull_request_url = f"{repo_base_url}/pull/new/badge_updates/{result['version']}"
 
       embed = discord.Embed(
-        title=f"AUTOMATED BADGE UPDATE BRANCH COMPLETE",
+        title=f"AUTOMATED BADGE UPDATE BRANCH CREATED",
         color=discord.Color.random(),
         description="",
         url=pull_request_url

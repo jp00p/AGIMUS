@@ -344,7 +344,7 @@ def run_make_backup():
   hashes["new"] = raw_new_hash[-1].replace("\n", "")
   return hashes
 
-# run_badger()
+# run_make_badger()
 # util function that runs our `make update-badges` command
 # returns a hash containing success details
 def run_make_badger():
@@ -353,12 +353,23 @@ def run_make_badger():
     "error": False,
     "version": ""
   }
+  # os.system("make update-badges")
+  # return {
+  #   "completed": True,
+  #   "error": False,
+  #   "version": "v1.14.0"
+  # }
   try:
-    result = subprocess.run(['make', 'update-badges'], stdout=subprocess.PIPE)
-    log = result.stdout
-    if log.find("Success"):
+    process = subprocess.Popen(['make', 'update-badges'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    log = stdout.decode('utf-8')
+    logger.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    logger.info(log)
+    logger.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    # logger.info(log)
+    if log.find("Badge Update Success"):
       result['completed'] = True
-      version_match = re.search(r'new version: (v\d+\.\d+.\d+)', log)
+      version_match = re.search(r'New version: (v\d+\.\d+.\d+)', log)
       result['version'] = version_match.group(1)
     else:
       result['completed'] = False
