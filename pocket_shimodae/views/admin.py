@@ -18,18 +18,8 @@ class AdminMenu(PoshimoView):
     self.add_item(AddItemButton(self.trainer))
     self.add_item(AddScarvesButton(self.trainer))
     self.add_item(AddRecipeButton(self.trainer))
+    self.add_item(UnlockLocsButton(self.trainer))
     self.add_item(AlterPoshimoButton(self.trainer))
-
-
-    # buttons:
-    # reset DB
-    # add poshimo
-    # add item
-    # add scarves
-    # unlock location
-    # alter poshimo (hp, xp, etc)
-    # run queries
-
 
 class ResetButton(discord.ui.Button):
   def __init__(self, game:PoshimoGame):
@@ -41,14 +31,38 @@ class ResetButton(discord.ui.Button):
     )
   async def callback(self, interaction: discord.Interaction):
     self.game.admin_clear_db()
-    await interaction.response.send_message("Database cleared!", ephemeral=True)
+    who = interaction.user.display_name
+    await interaction.response.send_message(f"Poshimo database cleared by {who}", ephemeral=False)
+
+class UnlockLocsButton(discord.ui.Button):
+  def __init__(self, trainer:PoshimoTrainer):
+    self.trainer = trainer
+    super().__init__(
+      label="Unlock location"
+    )
+  async def callback(self, interaction: discord.Interaction):
+    await interaction.response.send_modal(LocationModal(self.trainer))
+
+class LocationModal(discord.ui.Modal):
+  def __init__(self, trainer):
+    self.trainer:PoshimoTrainer = trainer
+    super().__init__(
+      title="Unlock a location"
+    )
+    self.add_item(discord.ui.InputText(label="Location name"))
+  async def callback(self, interaction: discord.Interaction):
+    loc = self.children[0].value
+    self.trainer.unlock_location(loc)
+    await interaction.response.send_message(f"Unlocked {loc.title()} - if you typed it correctly...")
+
 
 class AddPoshimoButton(discord.ui.Button):
   def __init__(self, game:PoshimoGame, trainer:PoshimoTrainer):
     self.game = game
     self.trainer = trainer
     super().__init__(
-      label="Add random Poshimo"
+      label="Add random Poshimo",
+      row=3
     )
   async def callback(self, interaction: discord.Interaction):
     new_poshimo = self.game.admin_give_random_poshimo(self.trainer)
@@ -58,7 +72,8 @@ class AlterPoshimoButton(discord.ui.Button):
   def __init__(self, trainer):
     self.trainer = trainer
     super().__init__(
-      label="Alter a Poshimo"
+      label="Alter a Poshimo",
+      row=3
     )
   async def callback(self, interaction: discord.Interaction):
     await interaction.response.send_modal(AlterPoshimoModal(self.trainer))
@@ -72,6 +87,7 @@ class AlterPoshimoModal(discord.ui.Modal):
     self.add_item(discord.ui.InputText(label="Poshimo ID"))
     self.add_item(discord.ui.InputText(label="Column to update"))
     self.add_item(discord.ui.InputText(label="New value"))
+
   async def callback(self, interaction: discord.Interaction):
     id = self.children[0].value
     col = self.children[1].value
@@ -99,7 +115,7 @@ class AddRecipeModal(discord.ui.Modal):
   async def callback(self, interaction: discord.Interaction):
     recipe = self.children[0].value
     self.trainer.learn_recipe(recipe)
-    await interaction.response.send_message(f"Added {recipe} to the list!")
+    await interaction.response.send_message(f"Added {recipe} to the list!", ephemeral=True)
 
 class AddScarvesButton(discord.ui.Button):
   def __init__(self, trainer):
@@ -120,11 +136,11 @@ class AddScarvesModal(discord.ui.Modal):
   
   async def callback(self, interaction: discord.Interaction):
     if not is_integer(self.children[0].value):
-      await interaction.response.send_message(f"Invalid value: {self.children[0].value} ")
+      await interaction.response.send_message(f"Invalid value: {self.children[0].value} ", ephemeral=True)
     else:
       qty = int(self.children[0].value)
       self.trainer.scarves += qty
-      await interaction.response.send_message(f"Added {qty} scarves! You now have {self.trainer.scarves} scarves.")
+      await interaction.response.send_message(f"Added {qty} scarves! You now have {self.trainer.scarves} scarves.", ephemeral=True)
 
 class AddItemButton(discord.ui.Button):
   def __init__(self, trainer):

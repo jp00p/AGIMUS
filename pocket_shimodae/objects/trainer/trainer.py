@@ -49,6 +49,7 @@ class PoshimoTrainer(object):
     self._active_poshimo:Poshimo = None # current poshimo
     self._inventory:Dict[str,InventoryDict] = {} # all items
     self._location:str = "starting_zone" # where are you
+    self._travel_target:str = ""
     self._scarves:int = 0 # money
     self._buckles:int = None # these are like pokemon badges TBD
     self._locations_unlocked:set = set()
@@ -97,6 +98,7 @@ class PoshimoTrainer(object):
       self._losses = trainer_data.get("losses")
       self._status = TrainerStatus(trainer_data.get("status"))
       self._location = trainer_data.get("location","").lower()
+      self._travel_target = trainer_data.get("travel_target", "").lower()
       self.discord_id = trainer_data.get("discord_id")
       self.display_name = trainer_data.get("name")
 
@@ -148,7 +150,6 @@ class PoshimoTrainer(object):
       self._shimodaepedia = trainer_data.get("discovered_poshimo")
     else:
       logger.info(f"There was an error loading trainer {self.id}'s info!")
-
 
 
   def add_poshimo(self, poshimo:Poshimo, set_active=False) -> Poshimo:
@@ -238,7 +239,15 @@ class PoshimoTrainer(object):
     return all_poshimo
 
   def calc_crafting_level(self) -> int: 
-    return max(0, round(self._crafting_xp / 1000))
+    ''' determine the crafting level based on xp '''
+    if self._crafting_xp > 12499:
+      return 4
+    if self._crafting_xp > 6999:
+      return 3
+    if self._crafting_xp > 2499:
+      return 1
+    if self._crafting_xp <= 999:
+      return 0
 
   def end_combat(self):
     ''' finish combat, set everyone's status to idle '''
@@ -257,7 +266,7 @@ class PoshimoTrainer(object):
     '''
     possible_moves = []
     for move in self.active_poshimo.move_list:
-      if move.stamina > 0:
+      if move.stamina > 0:\
         possible_moves.append(move)
     
     if len(possible_moves) < 1:
@@ -437,16 +446,19 @@ class PoshimoTrainer(object):
   def craft_item(self, recipe:PoshimoRecipe):
     ''' 
     attempt to craft item 
+    returns amount of xp gained if succeeded
     returns False if crafting fails
     '''
+    crafting_success = False
+    crafting_xp = recipe.crafted_xp(self.crafting_level) + round(random.randint(0,recipe.difficulty//2))
+    self.crafting_xp += crafting_xp
+    
     for mat in recipe.materials:
       self.remove_item(mat["item"], mat["amount"])
     if recipe.craft():
-      # WRONG
-      self.add_item(mat["item"])
-      return mat["item"]
-    else:
-      return False
+      crafting_success = True
+      self.add_item(recipe.item)
+    return (crafting_success, crafting_xp)
     
   def add_item(self, item:PoshimoItem, amount:int=1):
     ''' 
@@ -519,6 +531,10 @@ class PoshimoTrainer(object):
       return_str += "```"
       return [use_success, return_str]
   
+  def unlock_location(self, location_name:str):
+    temp_locs = list(self._locations_unlocked)
+    temp_locs.append(location_name.lower())
+    self.locations_unlocked = set(temp_locs)
 
   @property
   def wins(self) -> int:
@@ -671,3 +687,12 @@ class PoshimoTrainer(object):
     else:
       loc_json = json.dumps([])
     self.update("locations_unlocked", loc_json)
+
+  @property
+  def travel_target(self) -> str:
+    return self._travel_target
+  
+  @travel_target.setter
+  def travel_target(self, val) -> None:
+    self._travel_target = val
+    self.update("travel_target", self._travel_target)

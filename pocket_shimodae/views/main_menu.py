@@ -25,6 +25,7 @@ class MainMenu(PoshimoView):
           discord.EmbedField(name="Current status", value=f"{self.trainer.status}", inline=True),
           discord.EmbedField(name="Wins/losses", value=f"{self.trainer.wins}/{self.trainer.losses}", inline=True),
           discord.EmbedField(name="Scarves", value=f"{self.trainer.scarves}", inline=True),
+          discord.EmbedField(name="Crafting level", value=f"{self.trainer.crafting_level} ({self.trainer.crafting_xp} xp)"),
           discord.EmbedField(name="Belt buckles", value=f"{self.trainer.buckles}", inline=True),
           discord.EmbedField(name="Active Poshimo", value=f"{self.trainer.active_poshimo}", inline=False),
           discord.EmbedField(name="Poshimo Sac", value=f"{self.trainer.list_sac()}", inline=False),
@@ -45,12 +46,14 @@ class MainMenu(PoshimoView):
     self.add_item(HuntMenuButton(self.cog, self.trainer, row=3))
     self.add_item(DuelMenuButton(self.cog, self.trainer, row=3))
 
+
 class BackToMainMenu(BackButton):
   def __init__(self, cog, trainer):
     super().__init__(
       MainMenu(cog, trainer),
       label=BACK_TO_MAIN_MENU
     )
+
 
 class FishingMenuButton(discord.ui.Button):
   ''' the button to open the fishing menu '''
@@ -68,6 +71,7 @@ class FishingMenuButton(discord.ui.Button):
     # view.add_item(BackToMainMenu(self.cog, self.trainer))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
+
 class InventoryMenuButton(discord.ui.Button):
   ''' the button to open the inventory menu '''
   def __init__(self, cog, trainer, **kwargs):
@@ -83,6 +87,7 @@ class InventoryMenuButton(discord.ui.Button):
     view = mm_inventory.InventoryMenu(self.cog, self.trainer)
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
+
 class ManageMenuButton(discord.ui.Button):
   def __init__(self, cog, trainer, **kwargs):
     self.cog = cog
@@ -96,6 +101,7 @@ class ManageMenuButton(discord.ui.Button):
   async def callback(self, interaction:discord.Interaction):
     view = mm_manage.ManageStart(self.cog, self.trainer)
     await interaction.response.edit_message(view=view, embed=view.get_embed())
+
 
 class TravelMenuButton(discord.ui.Button):
   def __init__(self, cog, trainer, **kwargs):
@@ -112,6 +118,7 @@ class TravelMenuButton(discord.ui.Button):
     # view.add_item(BackToMainMenu(self.cog, self.trainer))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
+
 class CraftingMenuButton(discord.ui.Button):
   def __init__(self, cog, trainer, **kwargs):
     self.cog = cog
@@ -125,6 +132,7 @@ class CraftingMenuButton(discord.ui.Button):
   async def callback(self, interaction:discord.Interaction):
     view = mm_crafting.CraftingMenu(self.cog, self.trainer)
     await interaction.response.edit_message(view=view, embeds=view.get_embeds())
+
 
 class ShopMenuButton(discord.ui.Button):
   def __init__(self, cog, trainer, location, **kwargs):
@@ -141,6 +149,7 @@ class ShopMenuButton(discord.ui.Button):
     view = mm_shop.ShoppingScreen(self.cog, self.trainer, self.location.shop)
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
+
 class QuestMenuButton(discord.ui.Button):
   def __init__(self, cog, trainer, **kwargs):
     self.cog = cog
@@ -155,6 +164,7 @@ class QuestMenuButton(discord.ui.Button):
     view = mm_missions.ManageAwayMissions(self.cog, self.trainer)
     # view.add_item(BackToMainMenu(self.cog, self.trainer))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
+
 
 class EMHMenuButton(discord.ui.Button):
   def __init__(self, cog, trainer, **kwargs):
@@ -184,6 +194,7 @@ class DuelMenuButton(discord.ui.Button):
   async def callback(self, interaction:discord.Interaction):
     pass
 
+
 class HuntMenuButton(discord.ui.Button):
   def __init__(self, cog, trainer:PoshimoTrainer, **kwargs):
     self.cog = cog
@@ -210,6 +221,7 @@ class HuntMenuButton(discord.ui.Button):
       disabled=disabled,
       **kwargs
     )
+    
   async def callback(self, interaction:discord.Interaction):     
     if self.trainer.status is TrainerStatus.BATTLING:
       old_hunt = self.game.resume_battle(self.trainer)

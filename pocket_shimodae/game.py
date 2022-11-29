@@ -64,13 +64,6 @@ class PoshimoGame(object):
     )
     return hunt
 
-
-  def test_unlock_loc(self, discord_id, location_name):
-    trainer = utils.get_trainer(discord_id=discord_id)
-    trainer_locs = trainer.locations_unlocked
-    trainer_locs.add(location_name)
-    trainer.locations_unlocked = trainer_locs
-
   def admin_give_random_poshimo(self, trainer:PoshimoTrainer):
     sample_poshimo = random.choice([
         Poshimo(name="Wartortle"),

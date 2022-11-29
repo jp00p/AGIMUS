@@ -32,13 +32,18 @@ class PoshimoRecipe(object):
       mat_list = [m.split(":") for m in self.materials]
       self.materials = [{"item":PoshimoItem(mat[0]), "amount":int(mat[1])} for mat in mat_list]
 
-  def crafted_xp(self, crafters_level:int=0) -> int:
+  def crafted_xp(self, crafters_level:int=0, only_base:bool=False) -> int:
     ''' how much xp this recipe gives when crafted '''
-    return round(((self.level+1 * self.difficulty)) / (crafters_level+1))
+    base = round(((self.level+1 * self.difficulty)) / (crafters_level+1))
+    base_fourth = base // 4
+    mod = random.randint(-base_fourth, base_fourth)
+    if only_base:
+      return base 
+    return round(base+mod)
 
   def craft(self) -> bool:
     ''' roll to craft this item '''
-    return random.random() >= self.difficulty
+    return random.randint(1,100) >= self.difficulty
 
   def list_mats(self) -> list:
     return [(r["item"].name.title(), r["amount"]) for r in self.materials]

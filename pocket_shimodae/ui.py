@@ -34,7 +34,7 @@ class PoshimoView(discord.ui.View):
   previous_view: only used on missions now, should refactor
   '''
   def __init__(self, cog:discord.Cog, trainer:PoshimoTrainer=None, previous_view:discord.ui.View=None, original_message=None, **kwargs):
-    super().__init__(timeout=20.0, **kwargs)
+    super().__init__(timeout=300.0, **kwargs)
     self.cog = cog
     self.previous_view:discord.ui.View = previous_view
     self.trainer:PoshimoTrainer = trainer
