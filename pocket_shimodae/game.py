@@ -28,9 +28,9 @@ class PoshimoGame(object):
     self.world = PoshimoWorld() 
     self.active_battles = [] 
     self.starter_poshimo = [
-      "Bulbasaur", 
-      "Charmander", 
-      "Squirtle"
+      "Worf", 
+      "Riker", 
+      "Q"
     ]
     ps_log("Game is ready to go! HIT IT")
     
@@ -66,19 +66,12 @@ class PoshimoGame(object):
 
   def admin_give_random_poshimo(self, trainer:PoshimoTrainer):
     sample_poshimo = random.choice([
-        Poshimo(name="Wartortle"),
-        Poshimo(name="Weedle"),
-        Poshimo(name="Koffing"),
-        Poshimo(name="Pikachu"),
-        Poshimo(name="Ditto"),
-        Poshimo(name="Charizard"),
-        Poshimo(name="Raichu"),
-        Poshimo(name="Metapod"),
-        Poshimo(name="Raticate"),
-        Poshimo(name="Arcanine"),
-        Poshimo(name="Graveler"),
-        Poshimo(name="Cubone"),
-        Poshimo(name="Pinsir"),
+        Poshimo(name="Picard"),
+        Poshimo(name="Worf"),
+        Poshimo(name="Obrien"),
+        Poshimo(name="Wesley"),
+        Poshimo(name="Pulaski"),
+        Poshimo(name="Data"),
       ]
     )
     return trainer.add_poshimo(sample_poshimo)

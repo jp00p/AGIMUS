@@ -2,7 +2,7 @@
 from common import *
 import csv
 from enum import Enum, auto
-from typing import List,Dict
+from typing import List,Dict,Any
 from . import PoshimoType
 
 """
@@ -41,7 +41,10 @@ with open("pocket_shimodae/data/poshimo_moves.csv") as file:
       "power" : row.get("power"),
       "accuracy" : row.get("accuracy"),
       "stamina" : row.get("stamina"),
-      "function_codes" : row.get("function_codes"),
+      "function_code" : row.get("function_code"),
+      "function_target": row.get("function_target", ""),
+      "function_params" : row.get("function_params"),
+      "proc_chance" : row.get("proc_chance"),
       "flags" : row.get("flags"),
       "description" : row["description"]
     }
@@ -77,13 +80,14 @@ class PoshimoMove(object):
     self.accuracy:int = self.movedata.get("accuracy", "").replace("%", "")
     self.max_stamina:int = int(self.movedata.get("stamina", 0))
     self._stamina:int = self.max_stamina
-    self.function_codes:List[str] = None
-    self.flags:list = []
+    self.function_code:str = self.movedata.get("function_code", "")
+    self.function_target:str = self.movedata.get("function_target", "")
+    self.proc_chance:float = self.movedata.get("proc_chance", 1.0)
+    self.function_params:List[Any] = []
+    if self.movedata.get("function_params"):
+      self.function_params = self.movedata["function_params"].split(",")
 
-    # split up the function codes (if any)
-    func_codes:str = self.movedata.get("function_codes", "")
-    if func_codes:
-      self.function_codes:List[str] = [func for func in func_codes.split("|")]
+    self.flags:list = []
     
     flags = self.movedata.get("flags", []) # list of flag ids
     if flags:

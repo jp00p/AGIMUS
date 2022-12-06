@@ -289,6 +289,7 @@ class Poshimo(object):
 
   @property
   def special_attack(self) -> PoshimoStat:
+    logger.info(self._special_attack)
     return self._special_attack
   @special_attack.setter
   def special_attack(self, val, stage=None, xp=None):
@@ -416,6 +417,12 @@ class Poshimo(object):
     # add hp.max_hp to our stats list
     stats["hp"] = f"{self.hp}/{self.max_hp}"
     return stats
+
+  def reset_stat_stages(self) -> None:
+    ''' reset stat stages to 0 '''
+    for s in STAT_NAMES:
+      stat:PoshimoStat = getattr(self, s)
+      stat.stage = 0
 
   def show_types(self) -> str:
     """ a nicely formatted str of this poshimo's types """

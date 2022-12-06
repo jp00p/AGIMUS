@@ -15,6 +15,11 @@ def clamp(n: int, minn: int, maxn: int) -> int:
     return max(min(maxn, n), minn)
 
 
+def roll(chance:float):
+  ''' returns true if roll succeeds '''
+  return random.random() <= chance
+
+
 def get_trainer(discord_id=None, trainer_id=None) -> PoshimoTrainer:
     """
     Get a PoshimoTrainer object from the database based on discord ID or Trainer ID

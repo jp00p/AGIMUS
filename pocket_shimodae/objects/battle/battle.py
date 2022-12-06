@@ -7,6 +7,7 @@ from pocket_shimodae.objects.battle import effect
 import pocket_shimodae.utils as utils
 from ..poshimo import Poshimo, PoshimoMove, MoveKinds, MoveTargets, PoshimoStatus
 from ..trainer import PoshimoTrainer, TrainerStatus
+from . import move_functions
 
 class BattleStates(Enum):
   ACTIVE = 0
@@ -356,10 +357,10 @@ class PoshimoBattle(object):
     victim = target.active_poshimo # the poshimo taking the move
     log_line = [] # the line we'll add to the log when this move is finished
     
-    STAB = False
-    CRIT = False
-    WEAK = False
-    BUFF = False
+    STAB = False # same type attack bonus
+    CRIT = False # critical hit
+    WEAK = False # target is weak against
+    BUFF = False # target is strong against
 
     if move.kind is MoveKinds.STATUS:
       damage = 0
@@ -399,11 +400,12 @@ class PoshimoBattle(object):
       power = move.power
 
       if move.kind == MoveKinds.SPECIAL:
-        attack = poshimo.special_attack
-        defense = victim.special_defense
+        attack = poshimo.special_attack.value()
+        defense = victim.special_defense.value()
       elif move.kind == MoveKinds.PHYSICAL:
-        attack = poshimo.attack
-        defense = victim.defense
+        attack = poshimo.attack.value()
+        defense = victim.defense.value()
+      logger.info(f"attack: {attack}  defense: {defense}")
 
       damage = (floor(floor(floor(((2 * int(poshimo.level)) / 5) + 2) * int(attack) * int(power) / int(defense)) / 50) + 2) # the base damage formula from pokemon
       damage = int(floor(damage * damage_modifier))
@@ -425,19 +427,16 @@ class PoshimoBattle(object):
       if damage == 0:
         log_line.append("It seems to have no effect!")   
 
-    if move.function_codes:
-      for func in move.function_codes:
-        # figure out which functions to call
-        effect_function = getattr(victim,func)
-        if effect_function:
-          effect_function() # not victim.effect_function() ?
-    
-    if victim.hp <= 0:
-      # victim ded
-      pass
-    if poshimo.hp <= 0:
-      # person who did the move ded (recoil, etc)
-      pass
-      
+    if move.function_code:
+      move_method = getattr(move_functions, move.function_code)
+      params = move.function_params
+      if move.function_target == "self":
+        effect_target = poshimo
+      else:
+        effect_target = victim
+      result = move_method(params[0], params[1], move.proc_chance, effect_target) # fire
+      if result:
+        log_line.append(f"__{result}__")
+         
     # end of apply_move
     self.add_log(" ".join([line for line in log_line]))

@@ -250,13 +250,15 @@ class PoshimoTrainer(object):
       return 0
 
   def end_combat(self):
-    ''' finish combat, set everyone's status to idle '''
+    ''' finish combat, set everyone's status to idle and reset stat stages '''
     self.status = TrainerStatus.IDLE
     self.active_poshimo.in_combat = False
+    self.active_poshimo.reset_stat_stages()
     temp_sac = self._poshimo_sac
     for p in temp_sac:
       if p.in_combat:
         p.in_combat = False
+      p.reset_stat_stages()
     self.poshimo_sac = temp_sac
 
   def pick_move(self) -> PoshimoMove:

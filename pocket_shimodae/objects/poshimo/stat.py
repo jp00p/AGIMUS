@@ -34,16 +34,25 @@ class PoshimoStat(object):
   """
   
   def __init__(self, stat_value:int, stage:int=0, xp:int=0):
-    self.stat_value:int = int(stat_value)
-    self.stage:int = stage
+    self.stat_value:int = int(stat_value) # the unmodified stat value
+    self._stage:int = stage
     self.xp:int = xp
 
+  @property
+  def stage(self):
+    return self._stage
+
+  @stage.setter
+  def stage(self, val):
+    self._stage = max(-6, min(6, val))
+
   def _is_valid_operand(self, other):
+    ''' can be compared against other PoshimoStats, or ints, or floats '''
     return bool(isinstance(other, PoshimoStat) or isinstance(other, int) or isinstance(other, float))
 
   def value(self) -> int:
     """ returns the modified value """
-    return int(round( self.stat_value * stage_values[self.stage] ) )
+    return int(round( self.stat_value * stage_values[self._stage] ) )
 
   def add_xp(self, val) -> int:
     ''' add xp to this stat, returns amt gained if leveled up '''
@@ -151,10 +160,10 @@ class PoshimoStat(object):
       return (self.value() > other)
 
   def __str__(self) -> str:
-    return str(self.value())
+    return str(self.stat_value)
 
   def __int__(self) -> int:
-    return int(self.value())
+    return int(self.stat_value)
 
   def __float__(self) -> float:
-    return float(self.value())
+    return float(self.stat_value)
