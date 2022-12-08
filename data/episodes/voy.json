@@ -2099,7 +2099,15 @@
       "episode": "02",
       "imdb": "tt0708882",
       "memoryalpha": "Drone_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 447,
+          "airdate": "2022.12.05",
+          "episode": "Tubules on the Collar",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/pxPxnlir0P7JsiZ9YgnPuSF1COs.jpg"
