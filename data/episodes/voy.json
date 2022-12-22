@@ -2143,7 +2143,15 @@
       "episode": "04",
       "imdb": "tt0708912",
       "memoryalpha": "In_the_Flesh_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 449,
+          "airdate": "2022.12.19",
+          "episode": "Crank Attack Koi",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-449-crank-attack-koi-voy-s5e4/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/whvzxt3KyJZC6UPuq4eHUxZx0N8.jpg"
