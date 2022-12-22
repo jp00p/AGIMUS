@@ -1,0 +1,12 @@
+name,weather_types,emoji,wild_poshimo
+grasslands,sunny|partly_cloudy|overcast|cloudy|rainy,🌼,"Picard,100"
+wastelands,rainy|heavy_rain|cloudy,🚧,"Picard,100"
+metropolis,cloudy|sunny|overcast|partly_cloudy,🏙,"Picard,100"
+tundra,snowy|blizzard,🏔,"Picard,100"
+forest,overcast|rainy|cloudy,🌲,"Picard,100"
+river,sunny|cloudy|rainy|overcast|heavy_rain,💦,"Picard,100"
+lunar,snowy,🛰,"Picard,100"
+town,sunny|cloudy|overcast,🏘,"Picard,100"
+desert,windy|wind_storm|sunny,🏜,"Picard,100"
+mountainous,snowy|blizzard|sunny|cloudy|rainy,⛰,"Picard,100"
+tropical,wind_storm|sunny|heavy_rain,🏝,"Picard,100"

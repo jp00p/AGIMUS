@@ -25,9 +25,7 @@ class PoshimoExperience(object):
     return (0.8 * pow(level, 3))
 
 def get_experience(leveling_type, level):
-  return getattr(PoshimoExperience(), leveling_type)(int(level))
-
-
+  return round(getattr(PoshimoExperience(), leveling_type)(int(level)))
 
 
 

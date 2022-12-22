@@ -17,19 +17,12 @@ axe handle
 flail
 """
 
-# load all the flags for mapping to moves
-with open("pocket_shimodae/data/move_flags.csv") as file:
-  csvdata = csv.DictReader(file)
-  flagdata = {}
-  for id,flag in enumerate(csvdata):
-    flagdata[id] = flag["name"]
-
 ######################################
 #! also need to load move meta      #!
 ######################################
 
 # load all the base move data from csv
-with open("pocket_shimodae/data/poshimo_moves.csv") as file:
+with open("pocket_shimodae/data/Moves.csv") as file:
   csvdata = csv.DictReader(file)
   # id,name,type,kind,power,accuracy,stamina,description
   movedata = {}
@@ -39,7 +32,7 @@ with open("pocket_shimodae/data/poshimo_moves.csv") as file:
       "type" : row.get("type"),
       "kind" : row.get("kind"),
       "power" : row.get("power"),
-      "accuracy" : row.get("accuracy"),
+      "accuracy" : row.get("accuracy", 1.0),
       "stamina" : row.get("stamina"),
       "function_code" : row.get("function_code"),
       "function_target": row.get("function_target", ""),
@@ -77,12 +70,12 @@ class PoshimoMove(object):
     self.type:PoshimoType = PoshimoType(name=self.movedata.get("type", "Drunk"))
     self.kind:MoveKinds = MoveKinds[self.movedata.get("kind", "Physical").upper()]
     self.power:int = self.movedata.get("power", 0)
-    self.accuracy:int = self.movedata.get("accuracy", "").replace("%", "")
+    self.accuracy:float = self.movedata.get("accuracy", 1.0) #default 1.0
     self.max_stamina:int = int(self.movedata.get("stamina", 0))
     self._stamina:int = self.max_stamina
     self.function_code:str = self.movedata.get("function_code", "")
     self.function_target:str = self.movedata.get("function_target", "")
-    self.proc_chance:float = self.movedata.get("proc_chance", 1.0)
+    self.proc_chance:float = self.movedata.get("proc_chance", 1.0) #default 1.0
     self.function_params:List[Any] = []
     if self.movedata.get("function_params"):
       self.function_params = self.movedata["function_params"].split(",")

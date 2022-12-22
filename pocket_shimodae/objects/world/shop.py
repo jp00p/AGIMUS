@@ -4,7 +4,7 @@ from typing import List, Tuple
 from ..trainer.trainer import PoshimoTrainer
 from ..world import PoshimoItem
 
-with open("pocket_shimodae/data/shops.csv") as file:
+with open("pocket_shimodae/data/Shops.csv") as file:
   # load the base biome data from file
   csvdata = csv.DictReader(file)
   sdata = {}

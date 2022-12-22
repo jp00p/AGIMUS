@@ -2,7 +2,7 @@
 from common import *
 import csv
 
-with open("pocket_shimodae/data/poshimo_personalities.csv") as file:
+with open("pocket_shimodae/data/Personalities.csv") as file:
   csvdata = csv.DictReader(file)
   persdata = {}
   for row in csvdata:

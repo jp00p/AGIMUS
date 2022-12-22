@@ -1,7 +1,7 @@
 from common import *
 import csv 
 
-with open("pocket_shimodae/data/fish.csv") as file:
+with open("pocket_shimodae/data/Fish.csv") as file:
   csvdata = csv.DictReader(file)
   fdata = {}
   for row in csvdata:

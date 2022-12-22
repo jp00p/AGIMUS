@@ -7,3 +7,4 @@ from .biome import *
 from .location import *
 from .world import *
 from .fish import *
+from .exploration import *

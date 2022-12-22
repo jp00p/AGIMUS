@@ -4,7 +4,7 @@ from typing import TypedDict
 from . import PoshimoItem
 import csv
 
-with open("pocket_shimodae/data/poshimo_crafting.csv") as file:
+with open("pocket_shimodae/data/Crafting.csv") as file:
   csvdata = csv.DictReader(file)
   recipe_data = {}
   for row in csvdata:

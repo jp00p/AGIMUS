@@ -1,0 +1,10 @@
+name,use_where,type,power,function_code,sell_price,description
+Hypospray,USE_ANYWHERE,RESTORE,50,HP,100,A basic curative that doesn't puncture the skin
+Raw vertion,NONE,CRAFTING,0,NONE,50,A strange green material
+Isolinear Chip,NONE,CRAFTING,0,NONE,75,Not made for stacking
+Self sealing stem bolt,NONE,CRAFTING,0,NONE,20,"Seals itself, what else do you need?"
+Photonic Remodulator,USE_IN_BATTLE,CAPTURE,10,NONE,50,Attempt to capture a Poshimo
+Power pill,USE_IN_BATTLE,MODIFY_STAGE,0,NONE,150,Makes a Poshimo stronger in combat
+Hypospray Recipe,USE_IN_FIELD,RECIPE,0,NONE,1000,Learn to make your own hyposprays
+Key to Forest of Forever,NONE,KEY,0,NONE,0,Unlocks the Forest of Forever
+Mug of Root Beer,USE_IN_BATTLE,CURE_STATUS,0,NONE,100,Heals a status ailment on a Poshimo

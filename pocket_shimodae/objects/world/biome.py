@@ -2,7 +2,7 @@ from common import *
 import csv
 from . import Weather
 
-with open("pocket_shimodae/data/fishing_biomes.csv") as file:
+with open("pocket_shimodae/data/Biomes - Fish.csv") as file:
   csvdata = csv.DictReader(file)
   bdata = {}
   for row in csvdata:

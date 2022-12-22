@@ -1,0 +1,17 @@
+name,season,type_1,type_2,hp,attack,defense,special_attack,special_defense,speed,leveling_type,move_1,move_2,move_3,move_4
+Picard,1,diplomat,dutiful,45,49,49,65,65,45,medium_fast,Test Move,Test Move,Test Move,Test Move
+Riker,1,horny,rascal,60,62,63,80,80,60,slow,Test Move,Life Suck,Acid Spit,Precise Chop
+Data,1,synth,science,80,82,83,100,100,80,medium_fast,Personal Truth,Strobe Light,Transport Buffer,Pipes Mode
+Geordi,1,engineering,horny,39,52,43,60,50,65,medium_fast,Test Move,Test Move,Test Move,Test Move
+Worf,1,warrior,dutiful,58,64,58,80,65,80,fast,Test Move,Test Move,Test Move,Test Move
+Crusher,1,medical,horny,78,84,78,109,85,100,medium_slow,Test Move,Test Move,Test Move,Test Move
+OBrien,1,engineering,dutiful,44,48,65,60,54,43,slow,Test Move,Test Move,Test Move,Test Move
+Wesley,1,criminal,science,59,63,80,65,80,58,medium_slow,Test Move,Precise Chop,Test Move,Test Move
+Troi,1,psychic,diplomat,79,83,100,85,105,78,medium_fast,Test Move,Test Move,Test Move,Test Move
+Broccoli,1,engineering,criminal,45,30,35,20,20,45,fast,Test Move,Test Move,Test Move,Test Move
+Tasha,1,drunk,horny,45,30,35,20,20,45,medium_fast,Test Move,Test Move,Test Move,Test Move
+Pulaski,1,medical,villain,45,30,35,20,20,45,medium_fast,Test Move,Test Move,Test Move,Test Move
+Q,1,drunk,rascal,45,30,35,20,20,45,medium_slow,Test Move,Test Move,Test Move,Test Move
+Lwaxana,1,horny,diplomat,45,30,35,20,20,45,slow,Test Move,Test Move,Test Move,Test Move
+Guinan,1,spiritual,psychic,45,30,35,20,20,45,fast,Test Move,Test Move,Test Move,Test Move
+Ro,1,warrior,rascal,45,30,35,20,20,45,medium_fast,Test Move,Test Move,Test Move,Test Move

@@ -343,15 +343,10 @@ class PoshimoBattle(object):
 
     `inflictor`: who is doing the move?
     """
-    # TODO:struggle
     # TODO:multiple hits
-    # TODO:accuracy
+    # TODO:accuracy <--
     # TODO:keep track of last damaging move used against this poshimo
-    # TODO:func codes
     # TODO:flags
-    # TODO:weather mods?
-    # TODO:special stuff???
-    # TODO:AHHH
     
     poshimo = inflictor.active_poshimo # the poshimo doing the move
     victim = target.active_poshimo # the poshimo taking the move
@@ -405,7 +400,6 @@ class PoshimoBattle(object):
       elif move.kind == MoveKinds.PHYSICAL:
         attack = poshimo.attack.value()
         defense = victim.defense.value()
-      logger.info(f"attack: {attack}  defense: {defense}")
 
       damage = (floor(floor(floor(((2 * int(poshimo.level)) / 5) + 2) * int(attack) * int(power) / int(defense)) / 50) + 2) # the base damage formula from pokemon
       damage = int(floor(damage * damage_modifier))
@@ -419,7 +413,7 @@ class PoshimoBattle(object):
           log_line.append("*It's insanely effective!*")
         if not STAB and BUFF and not WEAK: # NOT SAME TYPE, BUT STRONG AGAINST
           log_line.append("*It works rather well!*")
-        if WEAK: # WEAK AGAINST (STAB DOESN'T COUNT HERE)
+        if WEAK: # WEAK AGAINST (OVERRIDES STAB)
           log_line.append("*The effacaciousness of the move seems diminished.*")
         log_line.append(f"It deals **{damage} damage!**")
         victim.hp = int(victim.hp) - int(damage)
@@ -428,15 +422,19 @@ class PoshimoBattle(object):
         log_line.append("It seems to have no effect!")   
 
     if move.function_code:
-      move_method = getattr(move_functions, move.function_code)
+      move_details = {
+        "damage" : damage
+      }
+      ''' apply function code if there is one '''
+      move_method = getattr(move_functions, move.function_code) # pulls function from move_functions.py
       params = move.function_params
       if move.function_target == "self":
         effect_target = poshimo
       else:
         effect_target = victim
-      result = move_method(params[0], params[1], move.proc_chance, effect_target) # fire
+      result = move_method(*params, chance=move.proc_chance, target=effect_target, move_details=move_details) # fire function
       if result:
-        log_line.append(f"__{result}__")
+        log_line.append(f"**{result}**")
          
     # end of apply_move
     self.add_log(" ".join([line for line in log_line]))

@@ -5,10 +5,7 @@ from datetime import date
 from typing import Dict
 from . import PoshimoBiome, Weather, PoshimoLocation
 
-#TODO: move csv readers back into their respective files (like with shop and fish)
-# why did i think this was better in the first place???
-
-with open("pocket_shimodae/data/biomes.csv") as file:
+with open("pocket_shimodae/data/Biomes.csv") as file:
   # load the base biome data from file
   csvdata = csv.DictReader(file)
   bdata = {}
@@ -21,7 +18,7 @@ with open("pocket_shimodae/data/biomes.csv") as file:
     }
   ps_log(f"Biomes: {len(bdata)}")
 
-with open("pocket_shimodae/data/locations.csv") as file:
+with open("pocket_shimodae/data/Locations.csv") as file:
   # load the base location data from file
   csvdata = csv.DictReader(file)
   ldata = {}
@@ -51,7 +48,7 @@ class PoshimoWorld(object):
     # and no need to save in db! wow!
     now:datetime = datetime.now()
     today_seed:str = f"{now.year}{now.month}{now.day}{now.hour}"
-    self.random:Random = Random(today_seed)
+    self.random:Random = Random(today_seed) # set the seed!
     self.locations : Dict[str, PoshimoLocation] = {}
     self.biomes : Dict[str, PoshimoBiome] = {}
     

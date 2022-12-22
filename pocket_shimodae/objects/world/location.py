@@ -3,7 +3,7 @@ import csv
 from typing import List, Dict, TypedDict, Any
 from . import PoshimoBiome, Weather, PoshimoShop
 
-with open("pocket_shimodae/data/fishing_locations.csv") as file:
+with open("pocket_shimodae/data/Locations - Fishing.csv") as file:
   csvdata = csv.DictReader(file)
   ldata = {}
   for row in csvdata:

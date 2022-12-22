@@ -10,6 +10,7 @@ from . import shop as mm_shop
 from . import travel as mm_travel
 from . import emh as mm_emh
 from . import crafting as mm_crafting
+from . import exploration as mm_exploration
 
 class MainMenu(PoshimoView):
   ''' the primary menu '''
@@ -36,6 +37,7 @@ class MainMenu(PoshimoView):
     self.add_item(ManageMenuButton(self.cog, self.trainer, row=1))
     self.add_item(FishingMenuButton(self.cog, self.trainer, row=1))
     self.add_item(InventoryMenuButton(self.cog, self.trainer, row=1))
+    self.add_item(ExplorationMenuButton(self.cog, self.trainer, row=1))
 
     self.add_item(TravelMenuButton(self.cog, self.trainer, row=2))
     self.add_item(ShopMenuButton(self.cog, self.trainer, self.trainer_location, row=2))
@@ -71,6 +73,18 @@ class FishingMenuButton(discord.ui.Button):
     # view.add_item(BackToMainMenu(self.cog, self.trainer))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
+class ExplorationMenuButton(discord.ui.Button):
+  def __init__(self, cog, trainer, **kwargs):
+    self.trainer = trainer
+    self.cog = cog
+    super().__init__(
+      label="Explore?!",
+      emoji="📼",
+      **kwargs
+    )
+  async def callback(self, interaction):
+    view = mm_exploration.ExploreMenu(self.cog, self.trainer)
+    await interaction.response.edit_message(view=view, embeds=view.get_embeds())
 
 class InventoryMenuButton(discord.ui.Button):
   ''' the button to open the inventory menu '''

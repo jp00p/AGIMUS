@@ -6,7 +6,7 @@ from datetime import timedelta, datetime as dt
 from ..world import PoshimoItem
 from ..poshimo import Poshimo, PoshimoStatus, PoshimoStat
 
-with open("pocket_shimodae/data/awaymissions_gathering_rewards.csv") as file:
+with open("pocket_shimodae/data/Gathering rewards.csv") as file:
   csvdata = csv.DictReader(file)
   gathering_rewards_data = {}
   '''
@@ -32,7 +32,7 @@ with open("pocket_shimodae/data/awaymissions_gathering_rewards.csv") as file:
   ps_log(f"Gathering rewards: {len(gathering_rewards_data)}")
   logger.info(gathering_rewards_data)
 
-with open("pocket_shimodae/data/awaymissions_gathering.csv") as file:
+with open("pocket_shimodae/data/Missions - Gathering.csv") as file:
   csvdata = csv.DictReader(file)
   gathering_data = {}
   for row in csvdata:
@@ -44,7 +44,7 @@ with open("pocket_shimodae/data/awaymissions_gathering.csv") as file:
     }
   ps_log(f"Gathering away missions: {len(gathering_data)}")
 
-with open("pocket_shimodae/data/awaymissions_training.csv") as file:
+with open("pocket_shimodae/data/Missions - Training.csv") as file:
   csvdata = csv.DictReader(file)
   training_data = {}
   for row in csvdata:

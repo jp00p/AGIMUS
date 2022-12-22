@@ -10,9 +10,7 @@ from .experience import get_experience
 MAX_POSHIMO_LEVEL = 99
 STAT_NAMES = ["attack", "defense", "special_attack", "special_defense", "speed"]
 
-with open("pocket_shimodae/data/shimodaepedia.csv") as file:
-  # load the base poshimo data from file
-  # will eventually get merged with DB data for "real" poshimo
+with open("pocket_shimodae/data/Poshimodaepaedia.csv") as file:
   csvdata = csv.DictReader(file)
   base_poshimo_data = {}
   for id,row in enumerate(csvdata):

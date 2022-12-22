@@ -2,7 +2,7 @@ from common import *
 from enum import Enum, auto
 import csv
 
-with open("pocket_shimodae/data/poshimo_items.csv") as file:
+with open("pocket_shimodae/data/Items.csv") as file:
   csvdata = csv.DictReader(file)
   item_data = {}
   for row in csvdata:
