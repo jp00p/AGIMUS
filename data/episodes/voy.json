@@ -2165,7 +2165,15 @@
       "episode": "05",
       "imdb": "tt0708940",
       "memoryalpha": "Once_Upon_a_Time_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 450,
+          "airdate": "2022.12.26",
+          "episode": "The Meryl Streep of Ferns",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/y8im6w5rGGnGifcQUVagRmei18H.jpg"
