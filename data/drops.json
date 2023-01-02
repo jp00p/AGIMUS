@@ -459,6 +459,11 @@
     "description": "Harry Kim. (Lil Kim - Magic stick)",
     "url": "https://i.imgur.com/4pqnOsa.mp4"
   },
+  "The James Drop": {
+    "file": "data/drops/thejamesdrop.mp4",
+    "description": "James' drop. User drop.",
+    "url": "https://i.imgur.com/Cvw9oJc.mp4"
+  },
   "The jp00p Drop": {
     "file": "data/drops/thejp00pdrop.mp4",
     "description": "jp00p's Drop. User drop.",
