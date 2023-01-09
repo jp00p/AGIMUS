@@ -4,7 +4,7 @@ NEW_BADGES_BRANCH_NAME="badge_updates/v$(semver bump minor $(yq e '.version' cha
 
 if [ `git rev-parse --verify $NEW_BADGES_BRANCH_NAME 2>/dev/null` ]; then
   echo "fatal: New badge update branch already exists locally, check github to merge the current update branch: $NEW_BADGES_BRANCH_NAME"
-elif [ `git ls-remote --heads git@github.com:$REPO_OWNER/$REPO_NAME.git $NEW_BADGES_BRANCH_NAME | wc -l` ]; then
+elif [ ! `git ls-remote --heads git@github.com:$REPO_OWNER/$REPO_NAME.git $NEW_BADGES_BRANCH_NAME | wc -l` ]; then
   echo "fatal: New badge update branch already exists remotely, check github to merge the current update branch: $NEW_BADGES_BRANCH_NAME"
 else
   echo "No current branch in progress, running script."
