@@ -87,7 +87,7 @@ db-load: ## Load the database from a file at $DB_DUMP_FILENAME
 
 .PHONY: db-migrate
 db-migrate: ## Apply a migration/sql file to the database from a file at ./migrations/v#.#.#.sql
-	@docker-compose exec -T app mysql -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ./migrations/$(shell make version).sql
+	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ./migrations/$(shell make version).sql
 
 .PHONY: db-seed
 db-seed: ## Reload the database from a file at $DB_SEED_FILEPATH
