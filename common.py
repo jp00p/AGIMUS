@@ -352,7 +352,8 @@ def run_make_badger():
   result = {
     "completed": False,
     "error": False,
-    "version": ""
+    "version": "",
+    "log": ""
   }
   try:
     process = subprocess.Popen(['make', 'update-badges'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
@@ -362,13 +363,19 @@ def run_make_badger():
       result['completed'] = True
       version_match = re.search(r'New version: (v\d+\.\d+.\d+)', log)
       result['version'] = version_match.group(1)
+    elif 'fatal' in log:
+      result['completed'] = False
+      fatal_match = re.search(r'fatal: (.*)\n', log)
+      result['error'] = fatal_match.group(1)
     else:
       result['completed'] = False
+    result['log'] = log
     return result
   except Exception as e:
     logger.info(e)
     result['completed'] = False
     result['error'] = stderr.decode('utf-8')
+    result['log'] = stdout.decode('utf-8')
     return result
 
 # returns a pretend stardate based on the given datetime

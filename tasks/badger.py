@@ -8,8 +8,9 @@ def badger_task(client):
       return
 
     repo_base_url = f"https://github.com/{os.getenv('REPO_OWNER')}/{os.getenv('REPO_NAME')}"
-    log_channel = client.get_channel(config["channels"]["bot-logs"])
     logger.info("Running automated badge update!")
+    log_channel = client.get_channel(LOGGING_CHANNEL)
+    acolytes_channel = client.get_channel(DEV_CHANNEL)
 
     result = run_make_badger()
     if not result['completed']:
@@ -27,6 +28,7 @@ def badger_task(client):
           color=discord.Color.random(),
           description="🚫 No new badges found, no update needed! 🚫",
         )
+      await log_channel.send(embed=embed)
 
     else:
       logger.info(f"Automated badge update branch creation complete, new version: {result['version']}")
@@ -42,7 +44,8 @@ def badger_task(client):
       embed.add_field(name="🌟 NEW BADGE UPDATE VERSION 🌟", value=f"`{result['version']}`", inline=False)
       embed.add_field(name="GitHub URL to create PR", value=pull_request_url, inline=False)
 
-    await log_channel.send(embed=embed)
+      await log_channel.send(embed=embed)
+      await acolytes_channel.send(embed=embed)
 
   return {
     "task": badger,
