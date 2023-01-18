@@ -9,6 +9,21 @@ from utils.show_utils import get_show_embed
   description="Retrieve info on a random episode of Trek or Non-Trek Shows",
     options=[
       discord.Option(
+        name="public",
+        description="Show to public?",
+        required=True,
+        choices=[
+          discord.OptionChoice(
+            name="No",
+            value="no"
+          ),
+          discord.OptionChoice(
+            name="Yes",
+            value="yes"
+          )
+        ]
+      ),
+      discord.Option(
         name="show",
         description="Which show?",
         required=True
@@ -16,12 +31,13 @@ from utils.show_utils import get_show_embed
   ]
 )
 @commands.check(access_check)
-async def randomep(ctx:discord.ApplicationContext, show:str):
+async def randomep(ctx:discord.ApplicationContext, public:str, show:str):
   """
-  This function is the main entrypoint of the !randomep command
+  This function is the main entrypoint of the /randomep command
   and will return a random episode of the shows listed in the data/episodes directory
   """
-  logger.info(f"{Fore.LIGHTGREEN_EX}Selected Show:{Fore.RESET} {Style.BRIGHT}{show}{Style.RESET_ALL}")
+  logger.info(f"{Fore.LIGHTGREEN_EX}randomep Selected Show:{Fore.RESET} {Style.BRIGHT}{show}{Style.RESET_ALL}")
+  public = bool(public == "yes")
   trek = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "lowerdecks", "disco", "picard"]
   nontrek = ["friends", "firefly", "simpsons", "sunny"]
   any = trek + nontrek
@@ -52,5 +68,5 @@ async def randomep(ctx:discord.ApplicationContext, show:str):
   f.close()
   episode = random.randrange(len(show_data["episodes"]))
   show_embed = get_show_embed(show_data, episode, selected_show)
-  await ctx.respond(embed=show_embed)
+  await ctx.respond(embed=show_embed, ephemeral=not public)
   logger.info(f"{Fore.LIGHTGREEN_EX}Random episode finished!{Fore.RESET}")
