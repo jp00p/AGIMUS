@@ -2231,7 +2231,15 @@
       "episode": "08",
       "imdb": "tt0708939",
       "memoryalpha": "Nothing_Human_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 453,
+          "airdate": "2023.01.16",
+          "episode": "The Metaphor Has Been Mengele\u2019d",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/4KldHLVakouWAEa4xuIh8JvKLHQ.jpg"
