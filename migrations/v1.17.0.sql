@@ -1,0 +1,1 @@
+UPDATE badge_info SET badge_name = "Retail Sign A (Qualor II)" WHERE badge_filename = "Shop-Sign-A-_Qualor-II.png";
