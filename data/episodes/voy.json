@@ -2253,7 +2253,15 @@
       "episode": "09",
       "imdb": "tt0708994",
       "memoryalpha": "Thirty_Days_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 454,
+          "airdate": "2023.01.23",
+          "episode": "Leola Root Gruel",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/9o73bwfLIwB42kxeHcaI1Djorir.jpg"
