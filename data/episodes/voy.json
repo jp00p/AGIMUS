@@ -2077,7 +2077,15 @@
       "episode": "01",
       "imdb": "tt0708936",
       "memoryalpha": "Night_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 446,
+          "airdate": "2022.11.28",
+          "episode": "Complex Capitalist",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/bSQKdfVd5v9sx4dUMK0luiXIYs3.jpg"
@@ -2091,7 +2099,15 @@
       "episode": "02",
       "imdb": "tt0708882",
       "memoryalpha": "Drone_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 447,
+          "airdate": "2022.12.05",
+          "episode": "Tubules on the Collar",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/pxPxnlir0P7JsiZ9YgnPuSF1COs.jpg"
@@ -2105,7 +2121,15 @@
       "episode": "03",
       "imdb": "tt0708890",
       "memoryalpha": "Extreme_Risk_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 448,
+          "airdate": "2022.12.12",
+          "episode": "Finishing Freighters",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/4wLPaAhCeelU6qGf92db43ql5yB.jpg"
@@ -2119,7 +2143,15 @@
       "episode": "04",
       "imdb": "tt0708912",
       "memoryalpha": "In_the_Flesh_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 449,
+          "airdate": "2022.12.19",
+          "episode": "Crank Attack Koi",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-449-crank-attack-koi-voy-s5e4/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/whvzxt3KyJZC6UPuq4eHUxZx0N8.jpg"
@@ -2133,7 +2165,15 @@
       "episode": "05",
       "imdb": "tt0708940",
       "memoryalpha": "Once_Upon_a_Time_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 450,
+          "airdate": "2022.12.26",
+          "episode": "The Meryl Streep of Ferns",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/y8im6w5rGGnGifcQUVagRmei18H.jpg"
@@ -2147,7 +2187,15 @@
       "episode": "06",
       "imdb": "tt0708997",
       "memoryalpha": "Timeless_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 451,
+          "airdate": "2023.01.02",
+          "episode": "Gary\u2019s Glitter",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-451-garys-glitter-voy-s5e6/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/tLzszvS1oqbcLYXKPodGJxHpwGT.jpg"
@@ -2161,7 +2209,15 @@
       "episode": "07",
       "imdb": "tt0708913",
       "memoryalpha": "Infinite_Regress_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 452,
+          "airdate": "2023.01.09",
+          "episode": "Process of Elimination",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-452-process-of-elimination-voy-s5e7/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/iq4JcDWpFSd66ROkEPX3RSESwY8.jpg"
@@ -2175,7 +2231,15 @@
       "episode": "08",
       "imdb": "tt0708939",
       "memoryalpha": "Nothing_Human_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 453,
+          "airdate": "2023.01.16",
+          "episode": "The Metaphor Has Been Mengele\u2019d",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/4KldHLVakouWAEa4xuIh8JvKLHQ.jpg"
@@ -2189,7 +2253,15 @@
       "episode": "09",
       "imdb": "tt0708994",
       "memoryalpha": "Thirty_Days_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 454,
+          "airdate": "2023.01.23",
+          "episode": "Leola Root Gruel",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/9o73bwfLIwB42kxeHcaI1Djorir.jpg"

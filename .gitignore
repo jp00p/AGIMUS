@@ -129,7 +129,7 @@ images/reports/*
 images/profiles/*.png
 images/profiles/*.jpg
 images/cards/users/*.png
-images/ep.jpg
+images/ep*
 images/slot_results/*.png
 images/trades/*.png
 images/scrap/*.gif
