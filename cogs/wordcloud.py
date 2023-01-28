@@ -117,10 +117,11 @@ class Wordcloud(commands.Cog):
 
     # create PIL image
     image = wc.to_image()
-    image.save(f"./images/reports/wordcloud-{user_details['name']}.png")
+    filename = f"./images/reports/wordcloud-{string_utils.strip_punctuation(user_details['name'])}.png"
+    image.save(filename)
 
     # create discord image
-    discord_image = discord.File(f"./images/reports/wordcloud-{user_details['name']}.png")
+    discord_image = discord.File(filename)
 
     # send the image!
     await ctx.followup.send(content=f"(Based on your last {user_details['num_messages']} messages)", file=discord_image, ephemeral=not public)
