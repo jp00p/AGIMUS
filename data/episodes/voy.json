@@ -2275,7 +2275,15 @@
       "episode": "10",
       "imdb": "tt0394909",
       "memoryalpha": "Counterpoint_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 455,
+          "airdate": "2023.01.30",
+          "episode": "Buffer Broth",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/q5N0i4dV3BSJbt4nJIH2Wvqy6rG.jpg"
