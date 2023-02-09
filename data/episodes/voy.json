@@ -2297,7 +2297,15 @@
       "episode": "11",
       "imdb": "tt0708920",
       "memoryalpha": "Latent_Image_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 456,
+          "airdate": "2023.02.06",
+          "episode": "Spare the Battle, Spoil the Child",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-456-spare-the-battle-spoil-the-child-voyager-s5e11/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/8KZtaKCOui1i2T8EJrgIsyB3Tme.jpg"
