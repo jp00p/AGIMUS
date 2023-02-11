@@ -37,7 +37,7 @@ class MainMenu(PoshimoView):
     self.add_item(ManageMenuButton(self.cog, self.trainer, row=1))
     self.add_item(FishingMenuButton(self.cog, self.trainer, row=1))
     self.add_item(InventoryMenuButton(self.cog, self.trainer, row=1))
-    self.add_item(ExplorationMenuButton(self.cog, self.trainer, row=1))
+    #self.add_item(ExplorationMenuButton(self.cog, self.trainer, row=1))
 
     self.add_item(TravelMenuButton(self.cog, self.trainer, row=2))
     self.add_item(ShopMenuButton(self.cog, self.trainer, self.trainer_location, row=2))

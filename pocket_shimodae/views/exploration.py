@@ -11,15 +11,18 @@ DIRECTIONS = {
 }
 
 class ExploreMenu(PoshimoView):
-  def __init__(self, cog, trainer, minigame=ExplorationMinigame()):
+  def __init__(self, cog, trainer, minigame=None):
     super().__init__(cog, trainer)
     
-    self.minigame = minigame
+    if not minigame:
+      self.minigame = ExplorationMinigame()
+    else:
+      self.minigame = minigame
     
     self.embeds = [
       discord.Embed(
         title="Explore!",
-        description="The view:\n" + minigame.map_string
+        description="The view:\n" + self.minigame.map_string
       )
     ]
 
@@ -49,4 +52,4 @@ class DirectionButton(discord.ui.Button):
   async def callback(self, interaction):
     self.minigame.move(self.dir)
     view = ExploreMenu(self.cog, self.trainer, self.minigame)
-    await interaction.response.edit_message(view=view, embeds=view.get_embeds())
+    await interaction.response.edit_message(content=self.minigame.show_whole_map())
