@@ -2319,7 +2319,15 @@
       "episode": "12",
       "imdb": "tt0708860",
       "memoryalpha": "Bride_of_Chaotica!_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 457,
+          "airdate": "2023.02.13",
+          "episode": "Friendship Bidet",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-457-friendship-bidet-voy-s5e12/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/jax49Nk16kYEsOpFAkuGF1owkE2.jpg"
