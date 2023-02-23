@@ -2341,7 +2341,15 @@
       "episode": "13",
       "imdb": "tt0708905",
       "memoryalpha": "Gravity_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 458,
+          "airdate": "2023.02.20",
+          "episode": "The Poop Sombrero",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-458-the-poop-sombrero-voy-s5e13/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/3cjMF87yWhnFBoLlCZTSuqnCYov.jpg"
