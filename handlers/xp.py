@@ -31,7 +31,7 @@ f.close()
 reasons = {
   "posted_message" : "posting a message",
   "added_reaction" : "adding a reaction",
-  "got_single_reaction" : "got a reaction",
+  "got_single_reaction" : "getting a reaction",
   "got_reactions"  : "getting lots of reactions",
   "intro_message"  : "posting an introduction in #first-contact",
   "starboard_post" : "getting a post sent to the starboard",
