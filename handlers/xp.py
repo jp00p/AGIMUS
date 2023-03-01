@@ -31,6 +31,7 @@ f.close()
 reasons = {
   "posted_message" : "posting a message",
   "added_reaction" : "adding a reaction",
+  "got_single_reaction" : "got a reaction",
   "got_reactions"  : "getting lots of reactions",
   "intro_message"  : "posting an introduction in #first-contact",
   "starboard_post" : "getting a post sent to the starboard",
@@ -196,6 +197,7 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
 
   log_react_history(reaction, user)
   await increment_user_xp(user, 1, "added_reaction", reaction.message.channel)
+  await increment_user_xp(reaction.message.author, 1, "got_single_reaction", reaction.message.channel)
 
   # Give the author some bonus XP if they've made a particularly reaction-worthy message!
   threshold_relevant_emojis = [
