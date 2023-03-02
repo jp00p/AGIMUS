@@ -106,6 +106,14 @@
       ],
       "notification_channel": "badgeys-badges",
       "badge_data": "data/badges.json",
+      "bonusworthy_emoji": [
+        "happy",
+        "THIS",
+        "NICE",
+        "YES",
+        "point",
+        "ohno"
+      ],
       "welcome_images": [
         "https://c.tenor.com/tjus1y6aLfgAAAAC/star-trek-the-next-generation.gif",
         "https://c.tenor.com/c2J5TfcX4_cAAAAC/star-trek-the-next-generation.gif",

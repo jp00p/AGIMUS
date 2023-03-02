@@ -186,7 +186,9 @@ async def handle_rank_xp_promotion(message, xp):
 async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   # Check if this user has already reacted to this message with this emoji
   blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
-  if reaction.message.author.bot or user.bot or reaction.message.channel.id in blocked_channel_ids:
+  if reaction.message.author.bot or user.bot \
+    or user.id is reaction.message.author.id \
+    or reaction.message.channel.id in blocked_channel_ids:
     return
 
   global current_color
@@ -195,36 +197,38 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   if reaction_already_counted:
     return
 
+  # Grant Standard XP for both User and Author
   log_react_history(reaction, user)
   await increment_user_xp(user, 1, "added_reaction", reaction.message.channel)
   await increment_user_xp(reaction.message.author, 1, "got_single_reaction", reaction.message.channel)
 
-  # Give the author some bonus XP if they've made a particularly reaction-worthy message!
-  threshold_relevant_emojis = [
-    get_emoji("data_lmao_lol"),
-    get_emoji("picard_yes_happy_celebrate"),
-    get_emoji("love_heart_tgg"),
-    get_emoji("BITS"),
-    get_emoji("weyoun_love_heart"),
-    get_emoji("tendi_smile_happy"),
-    get_emoji("THIS"),
-    get_emoji("NICE"),
-    get_emoji("YES"),
-    get_emoji("picard_yes_happy_celebrate")
-  ]
+  # Now give the Author some additional bonus XP if they've made a particularly reaction-worthy message!
 
-  xp_amt = 0
-  if reaction.emoji in threshold_relevant_emojis and reaction.count >= 5 and reaction.count < 10:
-    xp_amt = 1
+  # Get list of relevant bonus emoji from config
+  standard_emoji_matches = config["handlers"]["xp"]["bonusworthy_emoji"]
+  # Check against general starboard inclusion for bonus XP as well
+  starboard_dict = config["handlers"]["starboard"]["boards"]
+  starboard_emoji_matches = [match for sublist in starboard_dict.values() for match in sublist]
+  # Total list
+  bonusworthy_emoji_matches = standard_emoji_matches + starboard_emoji_matches
 
-  if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 10 and reaction.count < 20:
-    xp_amt = 2
+  if hasattr(reaction.emoji, "name"):
+    # if its a real emoji and has one of our words or matches exactly
+    for match in bonusworthy_emoji_matches:
+      if re.search(r"([_]"+ re.escape(match)+")|("+ re.escape(match)+"[_])/igm", reaction.emoji.name.lower()) != None or reaction.emoji.name == match:
 
-  if f"{reaction.emoji}" in threshold_relevant_emojis and reaction.count >= 20:
-    xp_amt = 5
+        xp_amt = 0
 
-  if xp_amt > 0:
-    await increment_user_xp(reaction.message.author, xp_amt, "got_reactions", reaction.message.channel)
+        if reaction.count >= 5 and reaction.count < 10:
+          xp_amt = 1
+        if reaction.count >= 10 and reaction.count < 20:
+          xp_amt = 2
+        if reaction.count >= 20:
+          xp_amt = 5
+        if xp_amt > 0:
+          await increment_user_xp(reaction.message.author, xp_amt, "got_reactions", reaction.message.channel)
+
+        break
 
 async def handle_event_creation_xp(event):
   creator = await bot.fetch_user(event.creator_id)
