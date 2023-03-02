@@ -2363,7 +2363,15 @@
       "episode": "14",
       "imdb": "tt0708857",
       "memoryalpha": "Bliss_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 459,
+          "airdate": "2023.02.27",
+          "episode": "Tripping THE Balls",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-459-tripping-the-balls-voy-s5e14/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/dPILBq48iHYHbJwWbutpxVDedIJ.jpg"
