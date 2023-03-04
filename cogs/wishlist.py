@@ -200,28 +200,38 @@ class Wishlist(commands.Cog):
   @commands.check(access_check)
   async def matches(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
-    user_discord_id = ctx.author.id
+    author_discord_id = ctx.author.id
 
     logger.info(f"{ctx.author.display_name} is checking for {Style.BRIGHT}matches{Style.RESET_ALL} to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
+    # Housekeeping
+    # Clear any badges from the users wishlist that the user may already possess currently
+    db_purge_users_wishlist(author_discord_id)
+
     # Get all the users and the badgenames that have the badges the user wants
-    wishlist_matches = db_get_wishlist_matches(user_discord_id)
+    wishlist_matches = db_get_wishlist_matches(author_discord_id)
     wishlist_aggregate = {}
     if wishlist_matches:
       for match in wishlist_matches:
-        user_id = match['user_discord_id']
+        user_id = int(match['user_discord_id'])
+        if user_id == author_discord_id:
+          continue
+
         user_record = wishlist_aggregate.get(user_id)
-        if not user_record and user_id != user_discord_id:
+        if not user_record:
           wishlist_aggregate[user_id] = [match]
         else:
           wishlist_aggregate[user_id].append(match)
 
     # Get all the users and the badgenames that want badges that the user has
-    inventory_matches = db_get_wishlist_inventory_matches(user_discord_id)
+    inventory_matches = db_get_wishlist_inventory_matches(author_discord_id)
     inventory_aggregate = {}
     if inventory_matches:
       for match in inventory_matches:
-        user_id = match['user_discord_id']
+        user_id = int(match['user_discord_id'])
+        if user_id == author_discord_id:
+          continue
+
         user_record = inventory_aggregate.get(user_id)
         if not user_record:
           inventory_aggregate[user_id] = [match]

@@ -19,6 +19,11 @@
     "description": "Ball Kicking Machine",
     "url": "https://i.imgur.com/qqJVTK5.mp4"
   },
+  "Barniss Franks": {
+    "file": "data/drops/barnissfranks.mp4",
+    "description": "Barnus Franks Barniss Frex",
+    "url": "https://i.imgur.com/daS79kw.mp4"
+  },
   "Ben Gon Give It To Ya": {
     "file": "data/drops/bengongiveittoya.mp4",
     "description": "Angry Ben. Ben gon give it to ya. Ben is going to give it to you.",
@@ -43,6 +48,11 @@
     "file": "data/drops/biblestudy.mp4",
     "description": "Bible Study. The way god wants it.",
     "url": "https://i.imgur.com/Nsr6Zc8.mp4"
+  },
+  "DONGSHOP DOT BIZ": {
+    "file": "data/drops/dongshopdotbiz.mp4",
+    "description": "dongshop dot biz dongshop.biz",
+    "url": "https://i.imgur.com/mA6hSKh.mp4"
   },
   "Chakotay: Sounds Great!": {
     "file": "data/drops/soundsgreat.mp4",
@@ -249,6 +259,11 @@
     "description": "Mclaughlin Group: Issue four! Issue 4.",
     "url": "https://i.imgur.com/RqWI4yY.mp4"
   },
+  "Mic Feedback": {
+    "file": "data/drops/micfeedback.mp4",
+    "description": "Microphone Mic Feedback Get A Life",
+    "url": "https://i.imgur.com/2YlDbh9.mp4"
+  },  
   "Mr. Bucket": {
     "file": "data/drops/mrbucket.mp4",
     "description": "Mr Mister Bucket",
@@ -289,6 +304,11 @@
     "description": "Got to get that latinum. Planning a heist. Gold!",
     "url": "https://i.imgur.com/QfFyGxz.mp4"
   },
+  "PODSHOP DOT BIZ": {
+    "file": "data/drops/micfeedback.mp4",
+    "description": "Podshop Dot Biz podshop.biz",
+    "url": "https://i.imgur.com/ps11rjE.mp4"
+  },  
   "Powdered Toast Man": {
     "file": "data/drops/powderedtoastman.mp4",
     "description": "Eddington, Powdered Toast Man!",
@@ -439,6 +459,11 @@
     "description": "Harry Kim. (Lil Kim - Magic stick)",
     "url": "https://i.imgur.com/4pqnOsa.mp4"
   },
+  "The James Drop": {
+    "file": "data/drops/thejamesdrop.mp4",
+    "description": "James' drop. User drop.",
+    "url": "https://i.imgur.com/Cvw9oJc.mp4"
+  },
   "The jp00p Drop": {
     "file": "data/drops/thejp00pdrop.mp4",
     "description": "jp00p's Drop. User drop.",
@@ -508,6 +533,11 @@
     "file": "data/drops/rolaren.mp4",
     "description": "Ro Laren (John Cena)",
     "url": "https://i.imgur.com/5ks52JL.mp4"
+  },
+  "The Ron Canada Drop": {
+    "file": "data/drops/roncanada.mp4",
+    "description": "Ron Canada",
+    "url": "https://i.imgur.com/4UDe6NL.mp4"
   },
   "The Sara Drop": {
     "file": "data/drops/thesaradrop.mp4",

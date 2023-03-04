@@ -1,0 +1,16 @@
+{
+  "The Old (Q)": {
+    "badge_url": "https://startrekdesignproject.com/symbols/the-old-q/",
+    "filename": "The-Old.png",
+    "franchise": "Voyager",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1669093218/The-Old.png",
+    "quadrant": "Alpha",
+    "reference": "S02E18 Death Wish",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1669093217/The-Old_-Death-wish.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Commerce",
+    "universes": "Prime"
+  }
+}

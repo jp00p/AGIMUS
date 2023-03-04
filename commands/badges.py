@@ -528,6 +528,10 @@ class ScrapButton(discord.ui.Button):
       # Do the actual scrappage
       db_perform_badge_scrap(self.user_id, self.badge_to_add, self.badges_to_scrap)
 
+      # Housekeeping
+      # Clear any badges from the users wishlist that the user may now possess
+      db_purge_users_wishlist(self.user_id)
+
       # Post message about successful scrap
       scrapper_gif = await generate_badge_scrapper_result_gif(self.user_id, self.badge_to_add)
 
