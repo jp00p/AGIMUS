@@ -87,7 +87,7 @@ db-load: ## Load the database from a file at $DB_DUMP_FILENAME
 
 .PHONY: db-migrate
 db-migrate: ## Apply a migration/sql file to the database from a file at ./migrations/v#.#.#.sql
-	@docker-compose exec -T app mysql -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ./migrations/$(shell make version).sql
+	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ./migrations/$(shell make version).sql
 
 .PHONY: db-seed
 db-seed: ## Reload the database from a file at $DB_SEED_FILEPATH
@@ -243,24 +243,7 @@ helm-bump-major: ## Bump-major the semantic version of the helm chart using semv
 .PHONY: update-badges
 update-badges: ## Run the automated badge updater script, then commit the changes to a new branch and push
 	@echo "Updating badges!"
-	git checkout -b badge_updates/v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml));
-	@python badge_updater.py
-
-	@status=$$(git status images --porcelain); \
-	if test "x$${status}" != x; then \
-		sed -i 's/'$(shell yq e '.version' charts/agimus/Chart.yaml)'/v'$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml))'/g' charts/agimus/Chart.yaml; \
-		git add charts \
-			&& git add migrations \
-				&& git add images \
-				&& git commit -m "Committing Badge Update for v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml)) - $(shell date)" \
-				&& git push --set-upstream https://$(GIT_TOKEN)@github.com/$(REPO_OWNER)/$(REPO_NAME).git badge_updates/v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml)) \
-				&& git checkout main; \
-			echo "Badge Update Success"; \
-	else \
-		git checkout main \
-			&& git branch -D badge_updates/v$(shell semver bump minor $(shell yq e '.version' charts/agimus/Chart.yaml)); \
-		echo "No-op"; \
-	fi
+	@sh update_badges.sh
 
 .PHONY: update-shows
 update-shows: ## Update the TGG metadata in the database via github action
