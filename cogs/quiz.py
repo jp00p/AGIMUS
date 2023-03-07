@@ -33,7 +33,7 @@ class Quiz(commands.Cog):
     self.bot = bot
 
     self.quiz_running = False
-    self.quiz_message = None
+    self.quiz_response = None
     self.quiz_channel = None
     self.log = []
     self.previous_episodes = {}
@@ -47,7 +47,7 @@ class Quiz(commands.Cog):
     self.threshold = 72  # fuzz threshold
 
     self.shows = command_config["parameters"][0]["allowed"]
-  
+
   quiz = discord.SlashCommandGroup("quiz", "Commands for interacting with the Quiz Game")
 
   shows = command_config["parameters"][0]["allowed"]
@@ -117,12 +117,12 @@ class Quiz(commands.Cog):
       # add message to the log for reporting
       if (ratio != 0) and (pratio != 0):
         self.log.append([ctx.author.display_name, guess, ratio, pratio])
-      
+
       await ctx.respond("Answer registered! 👍", ephemeral=True)
 
       # check answer
       if (ratio >= self.threshold and pratio >= self.threshold) or (guess == correct_answer):
-        # correct answer      
+        # correct answer
         award = 1
         bonus = False
         if (ratio < 80 and pratio < 80):
@@ -135,7 +135,7 @@ class Quiz(commands.Cog):
             award *= 10
           else:
             award *= 5
-          
+
           # Cut award in half if they used a hint
           used_hint = False
           if ctx.author.id in self.hint_users:
@@ -188,7 +188,7 @@ class Quiz(commands.Cog):
       if not show:
         s = random.choice(self.shows)
         show = s["value"]
-      
+
       self.show = show
 
       f = open(f"./data/episodes/{show}.json")
@@ -202,12 +202,12 @@ class Quiz(commands.Cog):
       # Reset previous episodes if we've run through _all_ of the show's episodes already
       if len(self.previous_episodes[show]) == len(self.show_data["episodes"]):
         self.previous_episodes[show] = []
-      
+
       episode_index = random.randrange(len(self.show_data["episodes"]))
       while episode_index in self.previous_episodes[show]:
         episode_index = random.randrange(len(self.show_data["episodes"]))
       self.previous_episodes[show].append(episode_index)
-      
+
       self.quiz_index = episode_index
       self.quiz_episode = self.show_data["episodes"][episode_index]
       # self.quiz_show = show
@@ -216,7 +216,7 @@ class Quiz(commands.Cog):
       r = requests.get(image_url, headers={'user-agent': 'Mozilla/5.0'})
       with open('./images/ep.jpg', 'wb') as f:
         f.write(r.content)
-      
+
       file = discord.File("./images/ep.jpg", filename="image.jpg")
       embed = discord.Embed(
         title=f"Which episode of **{self.show_data['title']}** is this? {get_emoji('horgahn_dance')}",
@@ -227,7 +227,7 @@ class Quiz(commands.Cog):
       embed.set_image(url="attachment://image.jpg")
       view = discord.ui.View()
       view.add_item(HintButton(self))
-      self.quiz_message = await ctx.respond(file=file, embed=embed, view=view)
+      self.quiz_response = await ctx.respond(file=file, embed=embed, view=view)
 
       self.quiz_running = True
     except Exception as e:
@@ -253,7 +253,7 @@ class Quiz(commands.Cog):
         embed = discord.Embed(
           title=title,
           description="Chula! These crewmembers got it:",
-          color=discord.Color.green()   
+          color=discord.Color.green()
         )
         for key in self.correct_answers.keys():
           answer = self.correct_answers[key]
@@ -271,9 +271,9 @@ class Quiz(commands.Cog):
       await self.quiz_channel.send(embed=show_embed)
 
       # Remove the hint button now that the round is done
-      original_message = await self.quiz_message.original_message()
-      if original_message != None:
-        await original_message.edit(view=None)
+      original_response = await self.quiz_response.original_response()
+      if original_response != None:
+        await original_response.edit(view=None)
 
       self.reset_quiz()
     except Exception as e:
@@ -292,7 +292,7 @@ class Quiz(commands.Cog):
     self.correct_answers = {}
     self.hint_users = []
     self.fuzz = {}
-  
+
   def register_hint(self, interaction):
     user_id = interaction.user.id
     if user_id not in self.hint_users:
