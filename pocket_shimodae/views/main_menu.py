@@ -129,7 +129,6 @@ class TravelMenuButton(discord.ui.Button):
     )
   async def callback(self, interaction:discord.Interaction):
     view = mm_travel.TravelMenu(self.cog, self.trainer)
-    # view.add_item(BackToMainMenu(self.cog, self.trainer))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 

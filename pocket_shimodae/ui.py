@@ -89,7 +89,7 @@ class PoshimoView(discord.ui.View):
     if self.battle.logs:
       for log in self.battle.logs[self.battle.current_turn]:
         if log['log_entry']:
-          description += log['log_entry']+'\n'
+          description += "> " + log['log_entry']+'\n\n'
     return description
     
 

@@ -34,7 +34,7 @@ class LocationButton(discord.ui.Button):
     self.trainer.location = self.location_key
     await interaction.response.edit_message(
       content=f"",
-      view=None,
+      view=TravelMenu(self.cog, self.trainer),
       embed=discord.Embed(
         title=f"You have moved to __{self.location.name}__",
         description=f"{self.location.description}",
@@ -144,7 +144,7 @@ class TravelMenu(PoshimoView):
       self.embeds = [
         discord.Embed(
           title="Where do you want to go today™?", 
-          description=f"""Choose a location to move to:
+          description=fill_embed_text("Choose a location to move to:") + f"""
           {exit_description}
           """
         )
@@ -162,7 +162,7 @@ class TravelMenu(PoshimoView):
             location=location, location_key=self.exits[cell], row=cur_row
           ))
         else:
-          label = " "
+          label = NBSP
           self.add_item(discord.ui.Button(label=label, row=cur_row, disabled=True))
       cur_row += 1
       
