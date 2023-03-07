@@ -36,7 +36,7 @@ class Poker(commands.Cog):
 
     if ctx.author.id in self.poker_players:
       await ctx.respond(
-        embed=discord.Embed(  
+        embed=discord.Embed(
           title=f"{ctx.author.name}: you have a poker game running already! Be patient!",
           color=discord.Color.red()
         ),
@@ -66,10 +66,10 @@ class Poker(commands.Cog):
         embed.set_footer(text="React below with the numbers to discard the corresponding card.\n\nUse the 🤑 react to double your bet.\nUse the ✅ react to draw.")
 
         poker_response = await ctx.respond(embed=embed, file=hand_file)
-        poker_message = await poker_response.original_message()
+        poker_message = await poker_response.original_response()
         for p in self.poker_reacts:
           await poker_message.add_reaction(p)
-        self.poker_games[poker_message.id] = { 
+        self.poker_games[poker_message.id] = {
           "user" : player_id,
           "hand" : hand,
           "discards": [False,False,False,False,False],
@@ -111,7 +111,7 @@ class Poker(commands.Cog):
       image_path = ""
       color = "black"
       value,suit = list(Card.int_to_str(h))
-      if suit == "h":    
+      if suit == "h":
         image_path = "./images/cards/basic/hearts/"
         color = "red"
       if suit == "d":
@@ -147,6 +147,8 @@ class Poker(commands.Cog):
       margin = 10
       base.paste(card_base, (200*i+(margin*i), 13))
       i += 1
+    if not os.path.exists("./images/cards/users"):
+      os.makedirs("./images/cards/users")
     base.save(f"./images/cards/users/{filename}.png")
     return f"./images/cards/users/{filename}.png"
 

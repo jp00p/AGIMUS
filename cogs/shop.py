@@ -260,9 +260,9 @@ class Shop(commands.Cog):
     try:
       page_interaction_type = type(page_interaction).__name__
       if page_interaction_type == 'Interaction':
-        original_message = await page_interaction.original_message()
-        if original_message != None:
-          await original_message.edit(
+        original_response = await page_interaction.original_response()
+        if original_response != None:
+          await original_response.edit(
             embed=thank_you_embed,
             view=None
           )
