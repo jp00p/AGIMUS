@@ -464,7 +464,11 @@ def _append_featured_completion_badges(user_id, report, category):
         r['featured_badge'] = badges.get(r['name'])
         return report
 
-
+# ASCII Art for "Find who wants your bad badges" goes here.
+# This should mostly leverage code already written for the scrapper command
+# Will running this on all badges cause a problem? Can it run on an arbitrary length list? Or am I limited to one at a time?
+      
+      
 #   _________
 #  /   _____/ ________________  ______ ______   ___________
 #  \_____  \_/ ___\_  __ \__  \ \____ \\____ \_/ __ \_  __ \
