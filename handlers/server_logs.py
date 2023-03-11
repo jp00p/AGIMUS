@@ -12,8 +12,8 @@ async def show_leave_message(member:discord.Member):
   name = member.display_name
   msg = "__" + random.choice(config["leave_messages"]).format(name) + "__ 😞"
   weather = random.choice(["gloomy", "rainy", "foggy", "chilly", "quiet", "soggy", "misty", "stormy"])
-  join_date = member.joined_at.replace(tzinfo=None)
-  time_diff = datetime.now() - join_date
+  join_date = member.joined_at
+  time_diff = datetime.now(timezone.utc) - join_date
   seconds = time_diff.days * 24 * 3600  + time_diff.seconds
   minutes, seconds = divmod(seconds, 60)
   hours, minutes = divmod(minutes, 60)
