@@ -62,6 +62,7 @@
         "rikers-quarters",
         "mo-pips-mo-problemz",
         "mclaughlin-group",
+        "lieutenants-lounge",
         "captains-log",
         "bot-setup",
         "shipwide-announcements",
@@ -295,6 +296,7 @@
     },
     "reports": {
       "channels": [
+        "lieutenants-lounge",
         "mclaughlin-group",
         "mo-pips-mo-problems",
         "robot-diagnostics"
@@ -840,6 +842,7 @@
   "server_logs_channel": "captains-log",
   "agimus_announcement_channel": "crackling-speaker-grille",
   "admin_channel": "mo-pips-mo-problemz",
+  "welcome_channel": "lieutenants-lounge",
   "mods_channel": "mclaughlin-group",
   "guild_ids": [
     689512841887481875
