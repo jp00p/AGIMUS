@@ -209,7 +209,7 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   global bonusworthy_emoji_matches
   if bonusworthy_emoji_matches is None:
     # Check against general starboard inclusion for bonus XP as well
-    starboard_dict = config["handlers"]["starboard"]["boards"].clone()
+    starboard_dict = config["handlers"]["starboard"]["boards"].copy()
     # Get list of relevant bonus emoji from config
     starboard_dict['bonusworth_emoji'] = config["handlers"]["xp"]["bonusworthy_emoji"]
     # Get the precompiled regexps

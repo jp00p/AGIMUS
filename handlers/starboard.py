@@ -1,10 +1,13 @@
+import random
 import re
 from typing import Dict, List
 
-from utils import string_utils
-from common import *
-from copy import deepcopy
+import discord
+from colorama import Fore, Style
+
+from common import config, logger, get_channel_id, get_channel_ids_list, get_emoji, bot, ALL_STARBOARD_POSTS
 from handlers.xp import increment_user_xp
+from utils.database import AgimusDB
 
 react_threshold = 3 # how many reactions required
 high_react_threshold = 5
@@ -33,12 +36,10 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
   if channel.type != discord.ChannelType.text: # only textchannels work here for now (FUTURE ME: now i'm trying to remember why...)
     return
   message = await channel.fetch_message(payload.message_id)
-  reactions = message.reactions
-  reacting_user = payload.member
   reaction = payload.emoji
 
   # don't count users adding reacts to their own posts
-  if message.author == reacting_user:
+  if message.author == payload.member:
     return
 
   # weird edge case where reaction can be a string (never seen it happen)
@@ -53,7 +54,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
   for board, match_reacts in board_patterns.items():
     #logger.info(f"CHECKING {board}")
 
-    all_reacts = reactions
+    all_reacts = message.reactions
     message_reaction_people = set()
     total_reacts_for_this_match = 0
 
