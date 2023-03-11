@@ -146,8 +146,8 @@ async def handle_intro_channel_promotion(message):
       welcome_embed.add_field(name=f"Bring them into the fold {get_emoji('kira_good_morning_hello')}", value=f"Let them know it's okay to jump in anywhere, anytime. Offer a channel for them to get started on! (like <#{get_channel_id(config['channels']['animal-holophotography'])}>)", inline=False)
 
       welcome_embed.set_footer(text="Thank you officers! 💖")
-      mods_channel = bot.get_channel(get_channel_id(config["mods_channel"]))
-      await mods_channel.send(content=f"@here -- attention senior officers! {message.author.mention} has just posted an intro!\n\n", embed=welcome_embed)
+      welcome_channel = bot.get_channel(get_channel_id(config["welcome_channel"]))
+      await welcome_channel.send(content=f"@here -- attention senior officers! {message.author.mention} has just posted an intro!\n\n", embed=welcome_embed)
 
 # If they've hit an XP threshold, auto-promote to general ranks
 async def handle_rank_xp_promotion(message, xp):
