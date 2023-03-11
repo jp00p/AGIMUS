@@ -1,19 +1,30 @@
-from utils import string_utils
-from common import *
-from copy import deepcopy
+import random
+import re
+from typing import Dict, List
+
+import discord
+from colorama import Fore, Style
+
+from common import config, logger, get_channel_id, get_channel_ids_list, get_emoji, bot, ALL_STARBOARD_POSTS
 from handlers.xp import increment_user_xp
+from utils.database import AgimusDB
 
 react_threshold = 3 # how many reactions required
 high_react_threshold = 5
 argus_threshold = 10 # not being used yet
 user_threshold = 3 # how many users required
 
+board_patterns = blocked_channels = boards = high_react_channel_ids = None
+
+
 async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> None:
-
-  board_dict = config["handlers"]["starboard"]["boards"]
-  blocked_channels = get_channel_ids_list(config["handlers"]["starboard"]["blocked_channels"])
-  boards = get_channel_ids_list(board_dict.keys())
-
+  global board_patterns, blocked_channels, boards, high_react_channel_ids
+  if board_patterns is None:
+    board_patterns = generate_board_compiled_patterns(config["handlers"]["starboard"]["boards"])
+    blocked_channels = get_channel_ids_list(config["handlers"]["starboard"]["blocked_channels"])
+    boards = get_channel_ids_list(board_patterns.keys())
+    high_react_channel_ids = get_channel_ids_list(config["handlers"]["starboard"]["high_react_channels"])
+  
   if payload.message_id in ALL_STARBOARD_POSTS:
     return
 
@@ -25,12 +36,10 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
   if channel.type != discord.ChannelType.text: # only textchannels work here for now (FUTURE ME: now i'm trying to remember why...)
     return
   message = await channel.fetch_message(payload.message_id)
-  reactions = message.reactions
-  reacting_user = payload.member
   reaction = payload.emoji
 
   # don't count users adding reacts to their own posts
-  if message.author == reacting_user:
+  if message.author == payload.member:
     return
 
   # weird edge case where reaction can be a string (never seen it happen)
@@ -42,43 +51,40 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
   # each starboard can have a set of words to match against,
   # here we loop over each board and then each word that board has
   # the words will be in the emoji name, not the message text
-  for board,match_reacts in board_dict.items():
+  for board, match_reacts in board_patterns.items():
+    #logger.info(f"CHECKING {board}")
 
-    if match_reacts:
-      #logger.info(f"CHECKING {board}")
+    all_reacts = message.reactions
+    message_reaction_people = set()
+    total_reacts_for_this_match = 0
 
-      all_reacts = reactions
-      message_reaction_people = set()
-      total_reacts_for_this_match = 0
+    # loop over each matching word for this board (word is in emoji name)
+    for match in match_reacts:
+      # loop over each reaction in the message
+      for reaction in all_reacts:
+        this_emoji = reaction.emoji
+        if hasattr(this_emoji, "name"):
+          # if its a real emoji and has one of our words or matches exactly
+          if match.search(this_emoji.name.lower()) is not None:
+            # count the users who reacted with this one
+            async for user in reaction.users():
+              # if they haven't already reacted with one of the matching reactions, count this reaction
+              if user != message.author and user not in message_reaction_people:
+                total_reacts_for_this_match += 1
+                message_reaction_people.add(user) # and don't count them again!
 
-      # loop over each matching word for this board (word is in emoji name)
-      for match in match_reacts:
-        # loop over each reaction in the message
-        for reaction in all_reacts:
-          this_emoji = reaction.emoji
-          if hasattr(this_emoji, "name"):
-            # if its a real emoji and has one of our words or matches exactly
-            if re.search(r"([_]"+ re.escape(match)+")|("+ re.escape(match)+"[_])/igm", this_emoji.name.lower()) != None or this_emoji.name == match:
-              # count the users who reacted with this one
-              async for user in reaction.users():
-                # if they haven't already reacted with one of the matching reactions, count this reaction
-                if user != message.author and user not in message_reaction_people:
-                  total_reacts_for_this_match += 1
-                  message_reaction_people.add(user) # and don't count them again!
+    #total_people = len(message_reaction_people)
+    #logger.info(f"{Fore.LIGHTWHITE_EX}{Style.BRIGHT}{board}: report for this post {message.content}...: reacts {total_reacts_for_this_match} -- total reacting people: {total_people}{Style.RESET_ALL}{Fore.RESET}")
 
-      #total_people = len(message_reaction_people)
-      #logger.info(f"{Fore.LIGHTWHITE_EX}{Style.BRIGHT}{board}: report for this post {message.content}...: reacts {total_reacts_for_this_match} -- total reacting people: {total_people}{Style.RESET_ALL}{Fore.RESET}")
-
-      # Some channels have a higher react threshold than others
-      adjusted_react_threshold = react_threshold
-      high_react_channel_ids = get_channel_ids_list(config["handlers"]["starboard"]["high_react_channels"])
-      if payload.channel_id in high_react_channel_ids:
-        adjusted_react_threshold = high_react_threshold
-      # finally, if this match category has enough reactions and enough people, let's save it to the starboard channel!
-      if total_reacts_for_this_match >= adjusted_react_threshold and len(message_reaction_people) >= user_threshold:
-        if get_starboard_post(message.id, board) is None: # checking again just in case (might be expensive)
-          await add_starboard_post(message, board)
-          return
+    # Some channels have a higher react threshold than others
+    adjusted_react_threshold = react_threshold
+    if payload.channel_id in high_react_channel_ids:
+      adjusted_react_threshold = high_react_threshold
+    # finally, if this match category has enough reactions and enough people, let's save it to the starboard channel!
+    if total_reacts_for_this_match >= adjusted_react_threshold and len(message_reaction_people) >= user_threshold:
+      if get_starboard_post(message.id, board) is None: # checking again just in case (might be expensive)
+        await add_starboard_post(message, board)
+        return
 
 
 async def add_starboard_post(message, board) -> None:
@@ -218,3 +224,17 @@ def get_all_starboard_posts() -> list:
     for post in query.fetchall():
       posts.append(int(post["message_id"]))
   return posts
+
+
+def generate_board_compiled_patterns(board_emoji: dict) -> Dict[str, List[re.Pattern]]:
+  """
+  Generate information about the various starboards ahead of time.  Returns a dict where the keys are the board names,
+  and the values are arrays of compiled regular expressions.
+  """
+  result = {}
+  for name, emoji_list in board_emoji.items():
+    result[name] = []
+    for fragment in emoji_list:
+      result[name].append(re.compile(rf"(^|_){re.escape(fragment.lower())}(_|$)"))
+  return result
+

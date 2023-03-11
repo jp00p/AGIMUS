@@ -182,6 +182,8 @@ async def handle_rank_xp_promotion(message, xp):
       await message.author.add_roles(ensign_role)
       logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.GREEN}Ensign{Fore.RESET} via XP!")
 
+bonusworthy_emoji_matches = None
+
 
 async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   # Check if this user has already reacted to this message with this emoji
@@ -204,24 +206,26 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
 
   # Now give the Author some additional bonus XP if they've made a particularly reaction-worthy message!
 
-  # Get list of relevant bonus emoji from config
-  standard_emoji_matches = config["handlers"]["xp"]["bonusworthy_emoji"]
-  # Check against general starboard inclusion for bonus XP as well
-  starboard_dict = config["handlers"]["starboard"]["boards"]
-  starboard_emoji_matches = [match for sublist in starboard_dict.values() for match in sublist]
-  # Total list
-  bonusworthy_emoji_matches = standard_emoji_matches + starboard_emoji_matches
+  global bonusworthy_emoji_matches
+  if bonusworthy_emoji_matches is None:
+    # Check against general starboard inclusion for bonus XP as well
+    starboard_dict = config["handlers"]["starboard"]["boards"].copy()
+    # Get list of relevant bonus emoji from config
+    starboard_dict['bonusworth_emoji'] = config["handlers"]["xp"]["bonusworthy_emoji"]
+    # Get the precompiled regexps
+    from handlers.starboard import generate_board_compiled_patterns
+    starboard_emoji_matches = generate_board_compiled_patterns(starboard_dict).values()
+    bonusworthy_emoji_matches = [match for sublist in starboard_emoji_matches for match in sublist]
 
   if hasattr(reaction.emoji, "name"):
     # if its a real emoji and has one of our words or matches exactly
     for match in bonusworthy_emoji_matches:
-      if re.search(r"([_]"+ re.escape(match)+")|("+ re.escape(match)+"[_])/igm", reaction.emoji.name.lower()) != None or reaction.emoji.name == match:
-
+      if match.search(reaction.emoji.name.lower()) is not None:
         xp_amt = 0
 
-        if reaction.count >= 5 and reaction.count < 10:
+        if 5 <= reaction.count < 10:
           xp_amt = 1
-        if reaction.count >= 10 and reaction.count < 20:
+        if 10 <= reaction.count < 20:
           xp_amt = 2
         if reaction.count >= 20:
           xp_amt = 5
