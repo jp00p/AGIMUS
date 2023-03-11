@@ -2385,7 +2385,15 @@
       "episode": "15",
       "imdb": "tt0394910",
       "memoryalpha": "Dark_Frontier_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 460,
+          "airdate": "2023.03.06",
+          "episode": "No Less Than Most of an Ass",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-460-no-less-than-most-of-an-ass-voy-s5e15/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/bXQUrDn0oeBZLzMV81M4nBDsin1.jpg"
