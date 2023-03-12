@@ -1,5 +1,6 @@
 from enum import Enum
 import pilgram
+import string
 
 from common import *
 from handlers.xp import calculate_xp_for_next_level
@@ -134,13 +135,13 @@ class Profile(commands.Cog):
     user_name = user_name_encode.decode().strip()
 
     # get rank
-    ranks = ["admiral", "captain", "commander", "lieutenant", "ensign", "cadet"]
+    ranks = ["admiral", "captain", "commander", "lt. commander", "lieutenant", "ensign", "cadet"]
     top_role = "Merchant"
     for role in member.roles:
       rolename = role.name.encode("ascii", errors="ignore").decode().strip().lower()
       for rank in ranks:
         if rolename == rank:
-          top_role = rank.capitalize()
+          top_role = string.capwords(rank)
           break
 
 
