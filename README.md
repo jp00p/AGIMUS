@@ -306,8 +306,14 @@ The easiest way to apply [migrations](migrations), is to override the entrypoint
 # Pull environment variables secrets
 source .env
 
-# Run an arbitrary migration sql
-mysql -u$DB_USER -p$DB_PASS -h$DB_HOST FoD < ./migrations/v#.#.#.sql
+# Set the migration file to set
+export MIGRATION_FILE='./migrations/v1.3.18.sql'
+
+# Run an arbitrary migration sql (docker)
+make db-migrate
+
+# Run an arbitrary migration sql (kubernetes)
+make helm-db-migrate
 
 # Restore from backup a specific commit in repo https://github.com/Friends-of-DeSoto/database
 DB_BACKUP_RESTORE_COMMIT=abcdefghijklmnopqrstuvwxyz make db-restore
