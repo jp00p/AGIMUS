@@ -591,8 +591,6 @@
           "name": "show",
           "allowed": [
             "trek",
-            "nontrek",
-            "any",
             "tos",
             "tas",
             "tng",
@@ -602,10 +600,12 @@
             "lowerdecks",
             "disco",
             "picard",
+            "nontrek",
             "friends",
             "firefly",
             "simpsons",
-            "sunny"
+            "sunny",
+            "any"
           ],
           "required": false
         }
