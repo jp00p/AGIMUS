@@ -86,8 +86,8 @@ db-load: ## Load the database from a file at $DB_DUMP_FILENAME
 	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_DUMP_FILENAME)
 
 .PHONY: db-migrate
-db-migrate: ## Apply a migration/sql file to the database from a file at ./migrations/v#.#.#.sql
-	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < ./migrations/$(shell make version).sql
+db-migrate: ## Apply a migration/sql file to the database from a file at the filepath saved in $(MIGRATION_FILE)
+	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(MIGRATION_FILE)
 
 .PHONY: db-seed
 db-seed: ## Reload the database from a file at $DB_SEED_FILEPATH
@@ -205,9 +205,9 @@ helm-db-load: ## Load the database from a file at $DB_SEED_FILEPATH
 		-- bash -c 'exec mysql -h127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}"' < ${DB_SEED_FILEPATH}
 
 .PHONY: helm-db-migrate
-helm-db-migrate: ## Load the database from a file at $DB_SEED_FILEPATH
+helm-db-migrate: ## Load the database from a file at the filepath saved in $(MIGRATION_FILE)
 	@kubectl --namespace $(namespace) exec -i $(shell make --no-print-directory helm-db-pod) \
-		-- bash -c 'exec mysql -h127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}" ${DB_NAME}' < ./migrations/$(shell --no-print-directory make version).sql
+		-- bash -c 'exec mysql -h127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}" ${DB_NAME}' < $(MIGRATION_FILE)
 
 .PHONY: helm-db-mysql
 helm-db-mysql: ## Mysql session in mysql pod
