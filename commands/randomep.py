@@ -26,7 +26,8 @@ from utils.show_utils import get_show_embed
       discord.Option(
         name="show",
         description="Which show?",
-        required=True
+        required=True,
+        choices=config["commands"]["randomep"]["parameters"][0]["allowed"]
     )
   ]
 )
