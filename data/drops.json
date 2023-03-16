@@ -20,13 +20,13 @@
     "url": "https://i.imgur.com/qqJVTK5.mp4"
   },
   "Barniss Franks": {
-    "file": "data/drops/barnissfranks.mp4",
+    "file": "data/drops/barnissfranks.mp4", 
     "description": "Barnus Franks Barniss Frex",
-    "url": "https://i.imgur.com/daS79kw.mp4"
+    "url": "https://i.imgur.com/94iNq9M.mp4"
   },
   "Ben Gon Give It To Ya": {
     "file": "data/drops/bengongiveittoya.mp4",
-    "description": "Angry Ben. Ben gon give it to ya. Ben is going to give it to you.",
+    "description": "Angry Ben. Ben freakout. Ben gon give it to ya. Ben is going to give it to you.",
     "url": "https://i.imgur.com/WFT1cVl.mp4"
   },
   "Ben's Gonna Talk About Africa": {
@@ -53,6 +53,11 @@
     "file": "data/drops/dongshopdotbiz.mp4",
     "description": "dongshop dot biz dongshop.biz",
     "url": "https://i.imgur.com/mA6hSKh.mp4"
+  },
+  "Card Game Segment (Time To Pluck A Pigeon)": {
+    "file": "data/drops/cardgamesegment.mp4",
+    "description": "Card Game Segment (Time To Pluck A Pigeon)",
+    "url": "https://i.imgur.com/mxhWtS8.mp4"
   },
   "Chakotay: Sounds Great!": {
     "file": "data/drops/soundsgreat.mp4",
@@ -83,6 +88,11 @@
     "file": "data/drops/doyourealizehowincrediblethisis.mp4",
     "description": "Do you realize how incredible this is?",
     "url": "https://i.imgur.com/KHgV0K1.mp4"
+  },
+  "Drink! It's The Antidote!": {
+    "file": "data/drops/drinkitstheantidote.mp4",
+    "description": "Bashir: Drink It's The Antidote!",
+    "url": "https://i.imgur.com/cEmtP6h.mp4"
   },
   "Drugs... Can Make You Feel Good": {
     "file": "data/drops/drugscanmakeyoufeelgood.mp4",
@@ -379,6 +389,11 @@
     "description": "The AGIMUS Drop. User drop.",
     "url": "https://i.imgur.com/ZeKmQNS.mp4"
   },
+  "The apers Drop": {
+    "file": "data/drops/theapersdrop.mp4",
+    "description": "The apers Drop. User drop.",
+    "url": "https://i.imgur.com/KN0g9PM.mp4"
+  },
   "The astuary Drop!": {
     "file": "data/drops/theastuarydrop.mp4",
     "description": "The astuary Drop. User drop.",
@@ -643,6 +658,11 @@
     "file": "data/drops/amimakinganysensehere.mp4",
     "description": "Tom Paris: Am I making any sense here?",
     "url": "https://i.imgur.com/OoO8JNi.mp4"
+  },
+  "Trap Sting": {
+    "file": "data/drops/trapsting.mp4",
+    "description": "Trap Music Sting",
+    "url": "https://i.imgur.com/M8nBtbX.mp4"
   },
   "Unadjective X-Men": {
     "file": "data/drops/unadjectivexmen.mp4",
