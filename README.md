@@ -10,7 +10,7 @@ Provided in this repository is a makefile to aid in building, testing and runnin
 
 ```text
 $ make help
-Friends of DeSoto Bot - github.com/jp00p/AGIMUS:latest
+AGIMUS - github.com/jp00p/AGIMUS:latest
                                 _____
                        __...---'-----`---...__
                   _===============================
