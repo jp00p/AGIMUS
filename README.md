@@ -9,7 +9,7 @@ Details on how to contribute to the project can be found in [CONTRIBUTING.md](do
 Provided in this repository is a makefile to aid in building, testing and running AGIMUS in a variety of deployment environments. To see all available makefile targets, clone the repository and run `make help` in a terminal.
 
 ```text
-make help
+$ make help
 Friends of DeSoto Bot - github.com/jp00p/AGIMUS:latest
                                 _____
                        __...---'-----`---...__
