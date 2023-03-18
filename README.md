@@ -8,6 +8,79 @@ Details on how to contribute to the project can be found in [CONTRIBUTING.md](do
 
 Provided in this repository is a makefile to aid in building, testing and running AGIMUS in a variety of deployment environments. To see all available makefile targets, clone the repository and run `make help` in a terminal.
 
+```text
+make help
+Friends of DeSoto Bot - github.com/jp00p/AGIMUS:latest
+                                _____
+                       __...---'-----`---...__
+                  _===============================
+ ______________,/'      `---..._______...---'
+(____________LL). .    ,--'
+ /    /.---'       `. /
+'--------_  - - - - _/
+          `~~~~~~~~'
+
+Usage:
+  make <target>
+  help             Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-username])
+
+Python stuff
+  setup            Install python dependencies via requirements.txt
+  start            Start the bot via python
+
+Docker stuff
+  docker-build     Build the docker containers for the bot and the database
+  docker-pull      Pull the defined upstream containers for BOT_CONTAINER_NAME and BOT_CONTAINER_VERSION
+  docker-start     Start the docker containers for the bot and the database
+  docker-stop      Stop the docker containers for the bot and the database
+  docker-restart   Restart the docker containers running mysql and AGIMUS
+  docker-logs      Tail the logs of running containers
+  docker-cleanup   Remove all AGIMUS containers from this system
+  docker-exec      Get a shell in a running AGIMUS container
+  docker-lint      Lint the container with dockle
+
+MySQL stuff
+  db-mysql         MySQL session in running db container
+  db-bash          Bash session in running db container
+  db-dump          Dump the database to a file at $DB_DUMP_FILENAME
+  db-load          Load the database from a file at $DB_DUMP_FILENAME
+  db-migrate       Apply a migration/sql file to the database from a file at the filepath saved in $(MIGRATION_FILE)
+  db-seed          Reload the database from a file at $DB_SEED_FILEPATH
+  db-backup        Back the database to a file at $DB_DUMP_FILENAME then commit it to the private database repository (intended to run inside AGIMUS container)
+  db-restore       Restore the database from the private database repository (intended to run inside AGIMUS container)
+  db-setup-git     Decode private deploy key environment variable and set up git for that user (intended to run inside AGIMUS container)
+
+Kubernetes in Docker (KinD) stuff
+  kind             Create a KinD cluster, build docker container, load into cluster, and install with helm
+  kind-create      Create a KinD cluster with local config-yaml
+  kind-load        Load $BOT_CONTAINER_NAME into a running kind cluster
+  kind-test        Install AGIMUS into a running KinD cluster with helm
+  kind-destroy     Tear the KinD cluster down
+
+Helm stuff
+  helm-config      Install the configmaps and secrets from .env and $(BOT_CONFIGURATION_FILEPATH) using helm
+  helm-config-rm   Delete configmaps and secrets
+  helm-install     Install AGIMUS helm chart
+  helm-uninstall   Remove AGIMUS helm chart
+  helm-db-load     Load the database from a file at $DB_SEED_FILEPATH
+  helm-db-migrate  Load the database from a file at the filepath saved in $(MIGRATION_FILE)
+  helm-db-mysql    Mysql session in mysql pod
+  helm-db-forward  Forward the mysql port 3306
+  helm-db-pod      Display the pod name for mysql
+  helm-agimus-pod  Display the pod name for AGIMUS
+  helm-bump-patch  Bump-patch the semantic version of the helm chart using semver tool
+  helm-bump-minor  Bump-minor the semantic version of the helm chart using semver tool
+  helm-bump-major  Bump-major the semantic version of the helm chart using semver tool
+
+Miscellaneous stuff
+  update-badges    Run the automated badge updater script, then commit the changes to a new branch and push
+  update-shows     Update the TGG metadata in the database via github action
+  lint-actions     Run .gihtub/workflows/*.yaml|yml through action-valdator tool
+  version          Print the version of the bot from the helm chart (requires yq)
+  encode-config    Print the base64 encoded contents of $(BOT_CONFIGURATION_FILEPATH) (Pro-Tip: pipe to pbcopy on mac)
+  encode-env       Print the base64 encoded contents of the .env file  (Pro-Tip: pipe to pbcopy on mac)
+```
+
 ### Local Dependencies
 
 To execute makefile commands, some third-party dependencies must be installed locally to run, build and test AGIMUS:
