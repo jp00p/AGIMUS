@@ -34,15 +34,29 @@ shows = {
     "title": "Star Trek: Deep Space Nine",
     "trek": True,
     "animated": False,
-    "imdb": ""
+    "imdb": "tt0106145"
   },
   "voy": {
     "tvdb":1855,
     "title": "Star Trek: Voyager",
     "trek": True,
     "animated": False,
-    "imdb": "",
+    "imdb": "tt0112178",
     "episodes": [],
+  },
+  "lowerdecks": {
+    "tvdb":85948,
+    "title": "Star Trek: Lower Decks",
+    "trek": True,
+    "animated": True,
+    "imdb": "tt9184820"
+  },
+  "picard": {
+    "tvdb":85949,
+    "title": "Star Trek: Picard",
+    "trek": True,
+    "animated": False,
+    "imdb": "tt8806524"
   }
 }
 
