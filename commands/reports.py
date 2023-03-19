@@ -369,6 +369,8 @@ def generate_report_card(title:str, description:str, table:PrettyTable, type:str
       line_y = text_y + (line_height * counter)
       # now draw the pretty table in the report
       draw.text( (text_x, line_y), table_text, fill="white", font=normal_font, align="left")
+    if not os.path.exists("./images/reports"):
+      os.makedirs("./images/reports")
     # save it
     base_image.save("./images/reports/report.png")
     # all done
