@@ -16,7 +16,7 @@ with open("pocket_shimodae/data/Poshimodaepaedia.csv") as file:
   for id,row in enumerate(csvdata):
     base_poshimo_data[row["name"].lower()] = {
       "name" : row.get("name", ""),
-      "dex_id" : int(id),
+      "dex_id" : row.get("id", int(id+1)),
       "type_1" : row.get("type_1", ""),
       "type_2" : row.get("type_2", ""),
       "attack" : (row.get("attack", 0),0,0),

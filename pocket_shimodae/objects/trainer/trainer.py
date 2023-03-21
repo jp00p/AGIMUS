@@ -55,7 +55,7 @@ class PoshimoTrainer(object):
     self._locations_unlocked:set = set()
     self._crafting_xp:int = 0
     self._recipes_unlocked:List[PoshimoRecipe] = []
-    self.shimodaepedia:list = [] # TODO: pokedex, which poshimo has this player seen (list of ids)
+    self.shimodaepedia:list = [] # TODO: pokedex, which poshimo has this player seen (list of names)
     
     if self.id:
       self.load()

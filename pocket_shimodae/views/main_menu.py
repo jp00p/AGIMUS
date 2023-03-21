@@ -11,6 +11,7 @@ from . import travel as mm_travel
 from . import emh as mm_emh
 from . import crafting as mm_crafting
 from . import exploration as mm_exploration
+from . import shimodaepaedia as mm_shimodaepaedia
 
 class MainMenu(PoshimoView):
   ''' the primary menu '''
@@ -23,7 +24,7 @@ class MainMenu(PoshimoView):
         description=fill_embed_text("The world of Poshimo awaits"),
         fields=[
           discord.EmbedField(name="Location", value=f"{self.trainer_location}", inline=False),
-          discord.EmbedField(name="Current status", value=f"{self.trainer.status}", inline=True),
+          discord.EmbedField(name="Trainer status", value=f"{self.trainer.status}", inline=True),
           discord.EmbedField(name="Wins/losses", value=f"{self.trainer.wins}/{self.trainer.losses}", inline=True),
           discord.EmbedField(name="Scarves", value=f"{self.trainer.scarves}", inline=True),
           discord.EmbedField(name="Crafting level", value=f"{self.trainer.crafting_level} ({self.trainer.crafting_xp} xp)"),
@@ -34,19 +35,21 @@ class MainMenu(PoshimoView):
         ]
       )
     ]
-    self.add_item(ManageMenuButton(self.cog, self.trainer, row=1))
-    self.add_item(FishingMenuButton(self.cog, self.trainer, row=1))
-    self.add_item(InventoryMenuButton(self.cog, self.trainer, row=1))
+
+    self.add_item(ShimodapaediaButton(self.cog, self.trainer))
+    self.add_item(ManageMenuButton(self.cog, self.trainer))
+    self.add_item(FishingMenuButton(self.cog, self.trainer))
+    self.add_item(InventoryMenuButton(self.cog, self.trainer))
     #self.add_item(ExplorationMenuButton(self.cog, self.trainer, row=1))
 
-    self.add_item(TravelMenuButton(self.cog, self.trainer, row=2))
-    self.add_item(ShopMenuButton(self.cog, self.trainer, self.trainer_location, row=2))
-    self.add_item(CraftingMenuButton(self.cog, self.trainer, row=2))
-    self.add_item(EMHMenuButton(self.cog, self.trainer, row=2))
+    self.add_item(TravelMenuButton(self.cog, self.trainer))
+    self.add_item(ShopMenuButton(self.cog, self.trainer, self.trainer_location))
+    self.add_item(CraftingMenuButton(self.cog, self.trainer))
+    self.add_item(EMHMenuButton(self.cog, self.trainer))
 
-    self.add_item(QuestMenuButton(self.cog, self.trainer, row=3))    
-    self.add_item(HuntMenuButton(self.cog, self.trainer, row=3))
-    self.add_item(DuelMenuButton(self.cog, self.trainer, row=3))
+    self.add_item(QuestMenuButton(self.cog, self.trainer))    
+    self.add_item(HuntMenuButton(self.cog, self.trainer))
+    self.add_item(DuelMenuButton(self.cog, self.trainer))
 
 
 class BackToMainMenu(BackButton):
@@ -55,6 +58,19 @@ class BackToMainMenu(BackButton):
       MainMenu(cog, trainer),
       label=BACK_TO_MAIN_MENU
     )
+
+
+class ShimodapaediaButton(discord.ui.Button):
+  def __init__(self, cog, trainer, **kwargs):
+    self.cog = cog
+    self.trainer = trainer
+    super().__init__(
+      label="Shimodaepaedia",
+      emoji="❓"
+    )
+  async def callback(self, interaction):
+    view = mm_shimodaepaedia(self.cog, self.trainer)
+    await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 
 class FishingMenuButton(discord.ui.Button):
@@ -70,7 +86,7 @@ class FishingMenuButton(discord.ui.Button):
     )
   async def callback(self, interaction):
     view = mm_fish.FishingLog(self.cog, self.trainer)
-    # view.add_item(BackToMainMenu(self.cog, self.trainer))
+    # view.add_item(BackToMainMenu(self.cog, self.tra-iner))
     await interaction.response.edit_message(view=view, embed=view.get_embed())
 
 class ExplorationMenuButton(discord.ui.Button):
@@ -220,11 +236,11 @@ class HuntMenuButton(discord.ui.Button):
       emoji = "⏯"
       
     else:
-      label = "Start a hunt"
+      label = "Hunt"
       emoji = "🏹"
     
     if not self.trainer.is_active_poshimo_ready():
-      label = "Hunt not ready"
+      label = "Hunt not ready (active Poshimo is unavailable)"
       disabled = True
       emoji = "❌"
 

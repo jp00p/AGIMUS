@@ -40,6 +40,9 @@ def increase_stage(statname:str, increase:int, chance:float=1.0, target:Poshimo=
     return f"{target.display_name}'s {statname.title()} stage increased by {increase}!"
   return False
 
+def increase_multiple_stages():
+  pass
+
 def restore_half_damage(chance=None, target:Poshimo=None, move_details:dict=None):
   '''
   restore hp equal to half the damage
@@ -49,5 +52,24 @@ def restore_half_damage(chance=None, target:Poshimo=None, move_details:dict=None
   target.hp += heal_amount
   return f"{target.display_name} healed {heal_amount} hp!"
 
+def deal_specific_damage():
+  pass
+
+def faint():
+  pass
+
+def recoil():
+  pass
+
 def raise_all_stats(increase:int, chance=1.0, target:Poshimo=None, move_details:dict=None):
   pass
+
+def apply_status_effect():
+  pass
+
+def clear_status_effect():
+  pass
+
+def clear_all_status_effects():
+  pass
+
