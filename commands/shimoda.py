@@ -34,7 +34,11 @@ class ShimodaModal(discord.ui.Modal):
 
     recipients = pollster_role.members
     for recipient in recipients:
-      await recipient.send(embed=pollster_embed)
+      try:
+        await recipient.send(embed=pollster_embed)
+      except discord.Forbidden as e:
+        logger.info(f"Unable to send shimoda message to {recipient.display_name}, they have their DMs closed.")
+        pass
 
     nominator_embed = discord.Embed(
       title="Drunk Shimoda Nomination Successfully Sent!",
