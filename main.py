@@ -47,7 +47,7 @@ from cogs.profile import Profile
 from cogs.quiz import Quiz
 from cogs.settings import Settings
 from cogs.shop import Shop
-from cogs.slots import Slots
+from cogs.slotmachine import Slots
 from cogs.trade import Trade
 from cogs.update_badges import UpdateBadges
 from cogs.react_roles import ReactRoles
