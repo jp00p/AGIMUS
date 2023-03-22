@@ -13,23 +13,13 @@ command_config = config["commands"]["agimus"]
 async def agimus(message:discord.Message):
   if not OPENAI_API_KEY:
     return
-  
-  blocked_channels = command_config.get("blocked_channels")
-  blocked_channel_ids = get_channel_ids_list(blocked_channels)
-  if message.channel.id in blocked_channel_ids:
-    await message.reply(embed=discord.Embed(
-      title="AGIMUS Unavailable",
-      description=f"Sorry {message.author.mention}, the AGIMUS prompt is not available in this channel.",
-      color=discord.Color.red()
-    ))
-    return
 
   await increment_user_xp(message.author, 1, "asked_agimus", message.channel)
   # Message text starts with "AGIMUS:"
   # So split on first : and gather remainder of list into a single string
   question_split = message.content.lower().split(":")
   question = "".join(question_split[1:]).strip()
-  
+
   agimus_channel_id = get_channel_id("after-dinner-conversation")
   agimus_channel = await message.guild.fetch_channel(agimus_channel_id)
 
