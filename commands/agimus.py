@@ -13,6 +13,16 @@ command_config = config["commands"]["agimus"]
 async def agimus(message:discord.Message):
   if not OPENAI_API_KEY:
     return
+  
+  blocked_channels = command_config.get("blocked_channels")
+  blocked_channel_ids = get_channel_ids_list(blocked_channels)
+  if message.channel.id in blocked_channel_ids:
+    await message.reply(embed=discord.Embed(
+      title="AGIMUS Unavailable",
+      description=f"Sorry {message.author.mention}, the AGIMUS prompt is not available in this channel.",
+      color=discord.Color.red()
+    ))
+    return
 
   await increment_user_xp(message.author, 1, "asked_agimus", message.channel)
   # Message text starts with "AGIMUS:"

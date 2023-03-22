@@ -299,7 +299,7 @@ class Wishlist(commands.Cog):
             pages=[
               discord.Embed(
                 title="Wishlist Match!",
-                description=f"{user.mention} has a wishlist match with you!",
+                description=f"{user.mention} ({user.display_name}) has a wishlist match with you!",
                 color=discord.Color.blurple()
               )
             ],

@@ -19,7 +19,7 @@ class ShimodaModal(discord.ui.Modal):
     member = await bot.current_guild.fetch_member(interaction.user.id)
     pollster_embed = discord.Embed(
       title="New Shimoda Nomination",
-      description=f"{member.mention} has nominated a new Drunk Shimoda!",
+      description=f"{member.mention} ({member.display_name}) has nominated a new Drunk Shimoda!",
       fields=[
         discord.EmbedField(name="Character", value=self.children[0].value, inline=False),
         discord.EmbedField(name="Reason", value=self.children[1].value, inline=False)
