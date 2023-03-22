@@ -359,6 +359,11 @@
     "description": "Shipwide Announcement",
     "url": "https://i.imgur.com/wJVjSWw.mp4"
   },
+  "Star Trek Fight Music": {
+    "file": "data/drops/startrekfightmusic.mp4",
+    "description": "Star Trek Fight Music (Amok Time)",
+    "url": "https://i.imgur.com/c5BkYk2.mp4"
+  },
   "Stargate SG1 Intro": {
     "file": "data/drops/stargatesg1intro.mp4",
     "description": "Stargate SG1 Intro Interstitial",
@@ -484,6 +489,11 @@
     "description": "jp00p's Drop. User drop.",
     "url": "https://i.imgur.com/xiy9Oiz.mp4"
   },
+  "The Jupiter Drop": {
+    "file": "data/drops/thejupiterdrop.mp4",
+    "description": "The Jupiter Drop. User drop.",
+    "url": "https://i.imgur.com/p9CeUAS.mp4"
+  },
   "The Kage23 Drop": {
     "file": "data/drops/thekage23drop.mp4",
     "description": "The Kage23 Drop. User drop.",
@@ -493,6 +503,16 @@
     "file": "data/drops/thekahlesswhisperdrop.mp4",
     "description": "The Kahless Whisper Drop. User drop.",
     "url": "https://i.imgur.com/WEHSh2O.mp4"
+  },
+  "The Miss Tea Haze Drop": {
+    "file": "data/drops/themissteahazedrop.mp4",
+    "description": "The Miss Tea Haze Drop. User drop.",
+    "url": "https://i.imgur.com/VX0Two3.mp4"
+  },
+  "The Moai Drop": {
+    "file": "data/drops/themoaidrop.mp4",
+    "description": "The Moai Drop. User drop.",
+    "url": "https://i.imgur.com/IiVdQXl.mp4"
   },
   "The Mosaic Drop": {
     "file": "data/drops/themosaicdrop.mp4",
@@ -534,6 +554,11 @@
     "description": "The Parrises Squares Championship Drop",
     "url": "https://i.imgur.com/1lYzqCG.mp4"
   },
+  "The Penny Drop": {
+    "file": "data/drops/thepennydrop.mp4",
+    "description": "The Penny Drop. User drop.",
+    "url": "https://i.imgur.com/u7NP02w.mp4"
+  },
   "The Peter of the Norse Drop": {
     "file": "data/drops/thepeterofthenorsedrop.mp4",
     "description": "The Peter of the Norse Drop. User drop.",
@@ -568,6 +593,11 @@
     "file": "data/drops/theshoupermandrop.mp4",
     "description": "The Shoup Shouperman Drop. User drop.",
     "url": "https://i.imgur.com/9j3Cy4a.mp4"
+  },
+  "The Sinistra Dax Drop": {
+    "file": "data/drops/thesinistradaxdrop.mp4",
+    "description": "The Sinistra Dax Drop. User drop.",
+    "url": "https://i.imgur.com/OXV4juj.mp4"
   },
   "The Starborn Drop": {
     "file": "data/drops/thestarborndrop.mp4",

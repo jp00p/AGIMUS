@@ -19,7 +19,7 @@ async def agimus(message:discord.Message):
   # So split on first : and gather remainder of list into a single string
   question_split = message.content.lower().split(":")
   question = "".join(question_split[1:]).strip()
-  
+
   agimus_channel_id = get_channel_id("after-dinner-conversation")
   agimus_channel = await message.guild.fetch_channel(agimus_channel_id)
 

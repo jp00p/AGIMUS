@@ -288,6 +288,11 @@
   "commands": {
     "agimus": {
       "channels": [],
+      "blocked_channels": [
+        "lieutenants-lounge",
+        "mclaughlin-group",
+        "mo-pips-mo-problemz"
+      ],
       "enabled": true,
       "data": null,
       "openai_model": "text-davinci-002",
