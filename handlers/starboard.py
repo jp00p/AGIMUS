@@ -24,7 +24,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
     blocked_channels = get_channel_ids_list(config["handlers"]["starboard"]["blocked_channels"])
     boards = get_channel_ids_list(board_patterns.keys())
     high_react_channel_ids = get_channel_ids_list(config["handlers"]["starboard"]["high_react_channels"])
-  
+
   if payload.message_id in ALL_STARBOARD_POSTS:
     return
 
@@ -64,17 +64,22 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
       for reaction in all_reacts:
         this_emoji = reaction.emoji
         if hasattr(this_emoji, "name"):
-          # if its a real emoji and has one of our words or matches exactly
-          if match.search(this_emoji.name.lower()) is not None:
-            # count the users who reacted with this one
-            async for user in reaction.users():
-              # if they haven't already reacted with one of the matching reactions, count this reaction
-              if user != message.author and user not in message_reaction_people:
-                total_reacts_for_this_match += 1
-                message_reaction_people.add(user) # and don't count them again!
+          # if its a named emoji and does not have one of our words or matches exactly, skip
+          if match.search(this_emoji.name.lower()) is None:
+            continue
+        # raw emoji like :black_heart: have no name attribute, but can do direct match comparison
+        elif match.search(this_emoji) is None:
+          continue
 
-    #total_people = len(message_reaction_people)
-    #logger.info(f"{Fore.LIGHTWHITE_EX}{Style.BRIGHT}{board}: report for this post {message.content}...: reacts {total_reacts_for_this_match} -- total reacting people: {total_people}{Style.RESET_ALL}{Fore.RESET}")
+        # count the users who reacted with this one
+        async for user in reaction.users():
+          # if they haven't already reacted with one of the matching reactions, count this reaction
+          if user != message.author and user not in message_reaction_people:
+            total_reacts_for_this_match += 1
+            message_reaction_people.add(user) # and don't count them again!
+
+    # total_people = len(message_reaction_people)
+    # logger.info(f"{Fore.LIGHTWHITE_EX}{Style.BRIGHT}{board}: report for this post {message.content}...: reacts {total_reacts_for_this_match} -- total reacting people: {total_people}{Style.RESET_ALL}{Fore.RESET}")
 
     # Some channels have a higher react threshold than others
     adjusted_react_threshold = react_threshold
@@ -95,13 +100,13 @@ async def add_starboard_post(message, board) -> None:
   # feel free to suggest changes to this policy i made up randomly!
   if len(message.attachments) <= 0 and message.content.lower().startswith("https://tenor.com/"):
     return
-  
+
   await increment_user_xp(message.author, 2, "starboard_post", message.channel) # give em that sweet sweet xp first
   ALL_STARBOARD_POSTS.append(message.id) # add post ID to in-memory list
   board_channel_id = get_channel_id(board)
   channel = bot.get_channel(board_channel_id) # where it will be posted
   insert_starboard_post(message.id, message.author.id, board) # add post to DB
-  
+
   provider_name, message_str, embed_image_url, embed_title, embed_desc, embed_thumb = ["" for i in range(6)] # initialize all the blank strings
   jumplink = f"[View original message]({message.jump_url}) from {message.channel.name}"
   author_thumb = "https://i.imgur.com/LdNH7MK.png" # default author thumb
@@ -113,7 +118,7 @@ async def add_starboard_post(message, board) -> None:
     # if the original message contains an embed (e.g. twitter post, youtube post, etc)
     original = message.embeds[0].to_dict()
     original_fields = original.get("fields")
-    
+
     message_without_url = message.content.lower().replace(original["url"].lower(), '').strip()
     if message_without_url != "":
       embed_desc = f"> {message_without_url}\n"
@@ -137,12 +142,12 @@ async def add_starboard_post(message, board) -> None:
       embed_title = original["title"]
     if original.get("description"):
       embed_desc += f"\n{original['description'][0:240]}" # only get as much as a tweet from the original, we have limited space!
-    
+
   else:
     # normal message, ez
     embed_desc = f"{message.content}\n"
     embed_title = f""
-  
+
   # build our starboard embed now!
   star_embed = discord.Embed(
     color=discord.Color.random(),
@@ -154,7 +159,7 @@ async def add_starboard_post(message, board) -> None:
   if original_fields:
     for field in original_fields:
       star_embed.add_field(name=field["name"], value=field["value"])
-  
+
   # add author's avatar as thumb if they have one
   if message.author.avatar is not None:
     author_thumb = message.author.avatar.url
@@ -163,12 +168,12 @@ async def add_starboard_post(message, board) -> None:
     name=message.author.display_name,
     icon_url=author_thumb
   )
-  
+
   star_embed.set_footer(
     text=f"Posted on {date_posted}",
     icon_url=footer_thumb
   )
-  
+
   if embed_image_url != "":
     star_embed.set_image(url=embed_image_url)
   elif len(message.attachments) > 0:
@@ -178,24 +183,24 @@ async def add_starboard_post(message, board) -> None:
         star_embed.description += f"\n[video file]({attachment.proxy_url})\n"
       if embed_image_url == "" and attachment.content_type.startswith("image"):
         embed_image_url = attachment.proxy_url
-  
+
   if embed_image_url != "":
     star_embed.set_image(url=embed_image_url)
 
   if embed_thumb != "":
     star_embed.set_thumbnail(url=embed_thumb)
-  
+
   star_embed.description += f"\n{get_emoji('combadge')}\n\n{jumplink}"
 
-  
+
   await channel.send(content=message_str, embed=star_embed) # send main embed
   await message.add_reaction(random.choice(["🌟","⭐","✨"])) # react to original post
   logger.info(f"{Fore.RED}AGIMUS{Fore.RESET} has added {message.author.display_name}'s post to {Style.BRIGHT}{board}{Style.RESET_ALL}!")
 
 
 def insert_starboard_post(message_id, user_id, channel_id) -> None:
-  """ 
-  inserts a post into the DB - only saves the message ID, user ID and channel ID 
+  """
+  inserts a post into the DB - only saves the message ID, user ID and channel ID
   """
   with AgimusDB() as query:
     sql = "INSERT INTO starboard_posts (message_id, user_id, board_channel) VALUES (%s, %s, %s);"
