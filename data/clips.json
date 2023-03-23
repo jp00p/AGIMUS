@@ -24,6 +24,11 @@
     "description": "You think that Ferengi fucker killed himself",
     "url": "https://i.imgur.com/MTNIhNO.mp4"
   },
+  "Darmok And Jalad At Tanagra": {
+    "file": "data/clips/darmokandjaladattanagra.mp4",
+    "description": "Tamarian Language Darmok And Jalad At Tanagra",
+    "url": "https://i.imgur.com/fIuRXPW.mp4"
+  },
   "Data - It Is Green!": {
     "file": "data/clips/dataitisgreen.mp4",
     "description": "Data it is green",
@@ -33,6 +38,11 @@
     "file": "data/clips/dataitisrevolting.mp4",
     "description": "Data it is its revolting",
     "url": "https://i.imgur.com/I9mvDej.mp4"
+  },
+  "Data - Lifeforms Song": {
+    "file": "data/clips/datalifeforms.mp4",
+    "description": "Generations Data Lifeforms Life Forms Song",
+    "url": "https://i.imgur.com/J4ApFAf.mp4"
   },
   "Data - Petty Bickering": {
     "file": "data/clips/datapettybickering.mp4",
@@ -128,6 +138,16 @@
     "file": "data/clips/rikeranybodycanyon.mp4",
     "description": "Riker - Anybody Canyon",
     "url": "https://i.imgur.com/850Z3MX.mp4"
+  },
+  "Shaka When The Walls Fell": {
+    "file": "data/clips/shakawhenthewallsfell.mp4",
+    "description": "Tamarian Language Shaka When The Walls Fell",
+    "url": "https://i.imgur.com/XzXRAfj.mp4"
+  },
+  "Sokath His Eyes Uncovered": {
+    "file": "data/clips/sokathhiseyesuncovered.mp4",
+    "description": "Tamarian Language Sokath His Eyes Uncovered",
+    "url": "https://i.imgur.com/oBIhXlB.mp4"
   },
   "Spock - Hijinks Are The Most Logical Course Of Action": {
     "file": "data/clips/hijinksarethemostlogicalcourseofaction.mp4",
