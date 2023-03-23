@@ -2429,7 +2429,15 @@
       "episode": "17",
       "imdb": "tt0708980",
       "memoryalpha": "The_Disease_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 462,
+          "airdate": "2023.03.20",
+          "episode": "Monogamish At Most",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-462-monogamish-at-most-voy-s5e17/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/mcY2yjWfUjRGlHckn3o86dmS57L.jpg",
