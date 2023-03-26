@@ -267,3 +267,27 @@ CREATE TABLE IF NOT EXISTS badge_tags_associations (
   KEY `badge_tags_id` (`badge_tags_id`),
   CONSTRAINT `badge_tags_associations_fk_badge_tags_id` FOREIGN KEY (`badge_tags_id`) REFERENCES `badge_tags` (`id`) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS slots__user_data (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_discord_id` VARCHAR(128) NOT NULL,
+  `latinum` INT(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE IF NOT EXISTS slots__spin_data (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL, 
+  `payout` INT(11) NOT NULL,
+  `spin_data` TEXT NULL,
+  `time_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE IF NOT EXISTS slots__user_inventory (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` VARCHAR(128) NOT NULL,
+  `symbol_name` VARCHAR(128) NOT NULL,
+  `symbol_type` VARCHAR(128) NOT NULL,
+  `symbol_data` TEXT NOT NULL,
+  `time_updated` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+);
