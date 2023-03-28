@@ -268,26 +268,29 @@ CREATE TABLE IF NOT EXISTS badge_tags_associations (
   CONSTRAINT `badge_tags_associations_fk_badge_tags_id` FOREIGN KEY (`badge_tags_id`) REFERENCES `badge_tags` (`id`) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS slots__games (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL,
+  `level` INT(11) NOT NULL DEFAULT 1,
+  `day` INT(11) NOT NULL DEFAULT 1,
+  `debt` INT(11) NOT NULL DEFAULT 0,
+  `finished` INT(11) NOT NULL DEFAULT 0,
+  `time_started` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+);
 CREATE TABLE IF NOT EXISTS slots__user_data (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `user_discord_id` VARCHAR(128) NOT NULL,
+  `level` INT(11) NOT NULL DEFAULT 1,
   `latinum` INT(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 );
-CREATE TABLE IF NOT EXISTS slots__spin_data (
+CREATE TABLE IF NOT EXISTS slots__machines (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `user_id` INT(11) NOT NULL, 
-  `payout` INT(11) NOT NULL,
-  `spin_data` TEXT NULL,
-  `time_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
-  PRIMARY KEY (`id`)
-);
-CREATE TABLE IF NOT EXISTS slots__user_inventory (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `user_id` VARCHAR(128) NOT NULL,
-  `symbol_name` VARCHAR(128) NOT NULL,
-  `symbol_type` VARCHAR(128) NOT NULL,
-  `symbol_data` TEXT NOT NULL,
-  `time_updated` timestamp NOT NULL DEFAULT current_timestamp(),
+  `game_id` INT(11) NOT NULL,
+  `symbols` TEXT NULL,
+  `spins` INT(11) NOT NULL DEFAULT 0,
+  `time_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_spin_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 );

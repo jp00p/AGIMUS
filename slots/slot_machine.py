@@ -3,27 +3,82 @@ from typing import List
 from .slots_symbol import *
 from .slots_game import *
 
-# keep track of spin data in the db too
+STARTING_SYMBOLS = [
+    SlotsSymbol(name="Wesley"),
+    ConversionSymbol(name="Tribble", convert_to=SlotsSymbol(name="Tribble")),
+    SlotsSymbol(name="Morn"),
+    ConversionSymbol(name="Ben", convert_to=SlotsSymbol(name="420")),
+    DestructionSymbol(name="Adam"),
+]
 
 
 class SlotMachine:
     """the actual slot machine handles spinning, displaying, applying effects etc..."""
 
-    def __init__(self, symbols, num_rows, num_cols):
-        self.symbols: List[SlotsSymbol] = symbols
+    def __init__(self, num_rows=5, num_cols=5, game_id=None, new_game=False):
+        self.new_game = new_game
+        self.game_id = game_id
         self.num_rows: int = num_rows
         self.num_cols: int = num_cols
+        self._symbols: List[SlotsSymbol] = STARTING_SYMBOLS
+        self._spins: int = 0
         self.spin_results: list = [
             [None for j in range(num_cols)] for i in range(num_rows)
         ]
         self.payout: int = 0
-        self.symbols.extend([SlotsSymbol("---") for _ in range(num_rows * num_cols)])
+        self.startup()
+        self.fill_empty_slots()
+
+    def startup(self):
+        if self.new_game:
+            with AgimusDB() as query:
+                sql = "INSERT INTO slots__machines (game_id, symbols) VALUES (%s, %s)"
+                vals = (
+                    self.game_id,
+                    json.dumps([s.to_json() if s else None for s in self._symbols]),
+                )
+                query.execute(sql, vals)
+
+        else:
+            with AgimusDB(dictionary=True) as query:
+                sql = "SELECT * FROM slots__machines WHERE game_id = %s LIMIT 1"
+                vals = (self.game_id,)
+                query.execute(sql, vals)
+                machine_db_data = query.fetchone()
+                logger.info(f"Machine loaded")
+            self._symbols = load_from_json(json.loads(machine_db_data["symbols"]))
+            self._spins = machine_db_data["spins"]
+
+    @property
+    def spins(self):
+        return self._spins
+
+    @spins.setter
+    def spins(self, val):
+        self._spins = val
+
+    @property
+    def symbols(self):
+        return self._symbols
+
+    @symbols.setter
+    def symbols(self, val):
+        self._symbols = val
+
+    def fill_empty_slots(self):
+        logger.info("Filling empty symbol slots")
+        self._symbols.extend(
+            [EmptySymbol() for _ in range(self.num_rows * self.num_cols)]
+        )
 
     def spin(self):
-        random.shuffle(self.symbols)
+        logger.info("Spinnin the slots!")
+        self.spins = self.spins + 1
+        temp_symbols = self._symbols.copy()
+        random.shuffle(temp_symbols)
         for i in range(self.num_rows):
             for j in range(self.num_cols):
-                symbol = self.symbols.pop()
+                symbol = temp_symbols.pop()
                 self.spin_results[i][j] = symbol
         return self.spin_results
 
@@ -36,10 +91,10 @@ class SlotMachine:
 
     def display_slots(self):
         display_str = ""
-        results = [[symbol.name for symbol in row] for row in self.spin_results]
+        results = [[f"{symbol}" for symbol in row] for row in self.spin_results]
         for row in results:
             display_str += str(row) + "\n"
-        print(display_str)
+        return display_str
 
     def apply_effects(self):
         for i in range(self.num_rows):

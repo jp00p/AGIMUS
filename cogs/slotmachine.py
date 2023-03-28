@@ -16,5 +16,5 @@ class Slots(commands.Cog):
     @sm.command(name="play", description="Play the slots!")
     async def play(self, ctx: discord.ApplicationContext):
         game = SlotsGame(ctx.author.id)
-        view = SlotsMainScreen(ctx.author.id, game)
+        view = SlotsMainScreen(game)
         await ctx.respond(view=view, embeds=view.embeds, ephemeral=True)
