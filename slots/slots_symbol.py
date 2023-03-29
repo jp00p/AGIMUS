@@ -1,21 +1,41 @@
 from common import *
 import json
-from typing import List
+from enum import Enum, auto
+from typing import List, TypeVar
 
 SYMBOLS_GRAPHICS_DIR = "graphics/symbols/"
+Symbol = TypeVar("Symbol", bound="SlotsSymbol")
 
 
-class SlotsSymbol:
+class RARITY(Enum):
+    COMMON = auto()
+    UNCOMMON = auto()
+    RARE = auto()
+    SUPER_RARE = auto()
+
+
+SYMBOL_PROBABILITIES = {
+    RARITY.COMMON: 1,
+    RARITY.UNCOMMON: 0.7,
+    RARITY.RARE: 0.3,
+    RARITY.SUPER_RARE: 0.1,
+}
+
+
+class SlotsSymbol(object):
     """a symbol that can show up on the slot_machine or in the shop!"""
 
     def __init__(self, id=None, **kwargs):
         self.id: int = id
         self.owner: dict = kwargs.get("player", None)
         self.name: str = kwargs.get("name", None)
-        self.rarity: int = kwargs.get("rarity", None)
+        self.rarity: int = RARITY[kwargs.get("rarity", "COMMON")]
         self.description: str = kwargs.get("description", None)
         self.tags: List[str] = kwargs.get("tags", [])
-        self.payout = kwargs.get("payout", 1)
+        self.base_payout: int = kwargs.get("payout", 1)
+        self.payout = self.base_payout
+        self.effect_name = "conversion"  # what effect does this do to other symbols
+        self.effect_where = "any|adjacent"
         self.metadata: dict = None
         self.status = None  # keep track of what happened here
 
@@ -25,9 +45,45 @@ class SlotsSymbol:
     def __str__(self):
         return self.name
 
-    def apply_effect(self, spin_results, row, col):
-        """this gets overloaded in symbol_types"""
-        pass
+    def apply_effect(
+        self, spin_results: List[List[Symbol]], row, col
+    ) -> List[List[Symbol]]:
+        """
+        accepts the entire spin result grid, and this symbol's current x,y in that grid
+        loops over the grid and applies this symbol's effect to the appropriate symbols
+        returns the entire spin result grid
+        """
+        for i in range(row - 1, row + 2):
+            for j in range(col - 1, col + 2):
+                if self.check_surrounding(i, j, spin_results):
+                    spin_results[i][j] = spin_results[i][j].effect(
+                        self.effect_name, self.convert_to
+                    )
+        return spin_results
+
+    def effect(self, **args: any) -> Symbol:
+        """this is run on a symbol being affected by this symbol (does NOT run on the symbol applying effects)"""
+        if getattr(self, "effect_" + self.effect_name):
+            getattr(self, "effect_" + self.effect_name)(**args)
+
+    def effect_conversion(self, convert_to) -> Symbol:
+        return convert_to
+
+    def effect_destroy(self):
+        return EmptySymbol()
+
+    def effect_alter_payout(self, new_payout):
+        self.payout = new_payout
+
+    def check_surrounding(self, inc1, inc2, results):
+        """checks the 8 tiles around a given symbol, excludes self"""
+        return (
+            inc1 >= 0
+            and inc1 < len(results)
+            and inc2 >= 0
+            and inc2 < len(results[0])
+            and results[inc1][inc2] != self
+        )
 
     def save(self, player):
         logger.info(f"Attempting to save symbol {self.name}...")
@@ -46,7 +102,7 @@ class SlotsSymbol:
                 "name": self.name,
                 "type": self.__class__.__name__,
                 "rarity": self.rarity,
-                "payout": self.payout,
+                "payout": self.base_payout,
                 "tags": tags,
                 "description": self.description,
                 "metadata": metadata,
@@ -104,12 +160,18 @@ def load_symbols(user_id) -> List[SlotsSymbol]:
     return symbols
 
 
-""" these are symbols that do special things! """
+""" these are symbol types that do special things! """
 
 
 class EmptySymbol(SlotsSymbol):
     def __init__(self, **kwargs):
-        self.name = "Empty"
+        super().__init__(name="⬛", **kwargs)
+
+    def apply_effect(
+        self, spin_results: List[List[Symbol]], row, col
+    ) -> List[List[Symbol]]:
+        """empty symbol does nothing!"""
+        pass
 
 
 class DestructionSymbol(SlotsSymbol):
@@ -118,12 +180,7 @@ class DestructionSymbol(SlotsSymbol):
     def apply_effect(self, spin_results, row, col):
         for i in range(row - 1, row + 2):
             for j in range(col - 1, col + 2):
-                if (
-                    i >= 0
-                    and i < len(spin_results)
-                    and j >= 0
-                    and j < len(spin_results[0])
-                ):
+                if self.check_surrounding(i, j, spin_results):
                     spin_results[i][j] = EmptySymbol()
 
 
@@ -134,13 +191,35 @@ class ConversionSymbol(SlotsSymbol):
         self.convert_to = convert_to
         super().__init__(**kwargs)
 
+    def apply_effect(self, spin_results: List[List[SlotsSymbol]], row, col):
+        for i in range(row - 1, row + 2):
+            for j in range(col - 1, col + 2):
+                if self.check_surrounding(i, j, spin_results):
+                    spin_results[i][j] = spin_results[i][j].effect(
+                        self.effect_name, self.convert_to
+                    )
+
+
+class ModifyPayoutSymbol(SlotsSymbol):
+    def __init__(self, amt: int = 1, **kwargs):
+        self.amt = amt
+        super().__init__(**kwargs)
+
     def apply_effect(self, spin_results, row, col):
         for i in range(row - 1, row + 2):
             for j in range(col - 1, col + 2):
-                if (
-                    i >= 0
-                    and i < len(spin_results)
-                    and j >= 0
-                    and j < len(spin_results[0])
-                ):
-                    spin_results[i][j] = self.convert_to
+                if self.check_surrounding(i, j, spin_results):
+                    spin_results[i][j].payout = spin_results[i][j].payout + self.amt
+
+
+class MatchTagSymbol(SlotsSymbol):
+    def __init__(
+        self, match_anywhere=False, match_adjacent=False, tags_to_match=[], **kwargs
+    ):
+        self.match_anywhere = match_anywhere
+        self.match_adjacent = match_adjacent
+        self.tags_to_match = tags_to_match
+        super().__init__(**kwargs)
+
+    def apply_effect(self, spin_results, row, col):
+        pass

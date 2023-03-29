@@ -194,6 +194,40 @@ Cool!
         await interaction.response.edit_message(view=view, embed=embed)
 
 
+class SlotsNewSymbolScreen(discord.ui.View):
+    def __init__(self, game, **kwargs):
+        self.game = game
+        super().__init__(**kwargs)
+        self.embeds = [
+            discord.Embed(
+                title="Choose a symbol to add",
+                description="...",
+                fields=[
+                    discord.EmbedField(
+                        name="Symbol1",
+                        value="The description of the symbol",
+                        inline=True,
+                    )
+                ],
+            )
+        ]
+        self.add_item(SkipButton(self.game))
+        self.add_item(AddButton(self.game, 0, 0))
+        self.add_item(CancelButton(self.game))
+
+
+class SkipButton(discord.ui.Button):
+    def __init__(self, game, **kwargs):
+        super().__init__(**kwargs)
+
+
+class AddButton(discord.ui.Button):
+    def __init__(self, game, which, choices, **kwargs):
+        self.chosen = which
+        self.choices = choices
+        super().__init__(**kwargs)
+
+
 class SlotsShopButton(discord.ui.Button["SlotsMainScreen"]):
     """open the shop"""
 

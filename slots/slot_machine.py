@@ -4,11 +4,11 @@ from .slots_symbol import *
 from .slots_game import *
 
 STARTING_SYMBOLS = [
-    SlotsSymbol(name="Wesley"),
-    ConversionSymbol(name="Tribble", convert_to=SlotsSymbol(name="Tribble")),
-    SlotsSymbol(name="Morn"),
-    ConversionSymbol(name="Ben", convert_to=SlotsSymbol(name="420")),
-    DestructionSymbol(name="Adam"),
+    SlotsSymbol(name="💙", description="whatever"),
+    SlotsSymbol(name="💌"),
+    SlotsSymbol(name="👽"),
+    ConversionSymbol(name="💊", convert_to=SlotsSymbol(name="🟨")),
+    DestructionSymbol(name="🎃"),
 ]
 
 
@@ -22,9 +22,7 @@ class SlotMachine:
         self.num_cols: int = num_cols
         self._symbols: List[SlotsSymbol] = STARTING_SYMBOLS
         self._spins: int = 0
-        self.spin_results: list = [
-            [None for j in range(num_cols)] for i in range(num_rows)
-        ]
+        self.spin_results = self.init_spin_results()
         self.payout: int = 0
         self.startup()
         self.fill_empty_slots()
@@ -65,10 +63,18 @@ class SlotMachine:
     def symbols(self, val):
         self._symbols = val
 
+    def init_spin_results(self):
+        return [
+            [EmptySymbol() for j in range(self.num_cols)] for i in range(self.num_rows)
+        ]
+
     def fill_empty_slots(self):
         logger.info("Filling empty symbol slots")
         self._symbols.extend(
-            [EmptySymbol() for _ in range(self.num_rows * self.num_cols)]
+            [
+                EmptySymbol()
+                for _ in (range(self.num_rows * self.num_cols - len(self._symbols)))
+            ]
         )
 
     def spin(self):
@@ -91,9 +97,13 @@ class SlotMachine:
 
     def display_slots(self):
         display_str = ""
-        results = [[f"{symbol}" for symbol in row] for row in self.spin_results]
+        logger.info(f"Results: {self.spin_results}")
+        results = [
+            [f"{symbol}" if symbol is not None else "" for symbol in row]
+            for row in self.spin_results
+        ]
         for row in results:
-            display_str += str(row) + "\n"
+            display_str += "".join(row) + "\n"
         return display_str
 
     def apply_effects(self):
@@ -101,7 +111,7 @@ class SlotMachine:
             for j in range(self.num_cols):
                 symbol = self.spin_results[i][j]
                 if symbol:
-                    symbol.apply_effect(self.spin_results, i, j)
+                    self.spin_results = symbol.apply_effect(self.spin_results, i, j)
 
     def check_column(self, column):
         symbols = [
@@ -132,12 +142,6 @@ class SlotMachine:
         payouts = []
         # Check columns/rows/diaganols for a winning combination
         # TODO: check tags too
-        for x in range(self.num_cols):
-            if self.check_column(x):
-                print(f"Column {x} has a winning combination!")
-        for y in range(self.num_rows):
-            if self.check_row(y):
-                print(f"Row {y} has a winning combination!")
-        if self.check_diagonals():
-            print("A diagonal has a winning combination!")
+        for x in self.spin_results:
+            payouts.append(x.payout)
         return sum(payouts)
