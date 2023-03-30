@@ -2452,7 +2452,15 @@
       "episode": "18",
       "imdb": "tt0795288",
       "memoryalpha": "Course:_Oblivion_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 463,
+          "airdate": "2023.03.27",
+          "episode": "Grandpa's Cum Cave",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/p6MHk5DlOkXBmpKmqQie277UkYt.jpg",
