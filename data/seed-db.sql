@@ -270,12 +270,16 @@ CREATE TABLE IF NOT EXISTS badge_tags_associations (
 
 CREATE TABLE IF NOT EXISTS slots__games (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `user_id` INT(11) NOT NULL,
+  `user_discord_id` VARCHAR(128) NOT NULL,
   `level` INT(11) NOT NULL DEFAULT 1,
   `day` INT(11) NOT NULL DEFAULT 1,
   `debt` INT(11) NOT NULL DEFAULT 0,
   `finished` INT(11) NOT NULL DEFAULT 0,
+  `symbols` TEXT NULL,
+  `last_result` TEXT NULL,
+  `spins` INT(11) NOT NULL DEFAULT 0,
   `time_started` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_spin_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 );
 CREATE TABLE IF NOT EXISTS slots__user_data (
@@ -283,14 +287,5 @@ CREATE TABLE IF NOT EXISTS slots__user_data (
   `user_discord_id` VARCHAR(128) NOT NULL,
   `level` INT(11) NOT NULL DEFAULT 1,
   `latinum` INT(11) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`)
-);
-CREATE TABLE IF NOT EXISTS slots__machines (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `game_id` INT(11) NOT NULL,
-  `symbols` TEXT NULL,
-  `spins` INT(11) NOT NULL DEFAULT 0,
-  `time_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `last_spin_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 );

@@ -1,7 +1,6 @@
 from .slot_machine import SlotMachine
+from .symbol_defs import *
 from .slots_symbol import *
-
-TEST_SYMBOL = SlotsSymbol(id=None, name="Test Symbol")
 
 
 class SlotsGame:
@@ -18,46 +17,52 @@ class SlotsGame:
         self.debt: int = 0
         self.slot_machine: SlotMachine = None
         self.startup()
-        logger.info(f"Game started {self.player} - Existing game ID: {self.id}")
+        logger.info(f"Game initialized for {self.player} - Existing games: {self.id}")
 
     def startup(self):
         """find existing game id if any, load machine if found"""
-        logger.info("Slots starting up...")
         with AgimusDB(dictionary=True) as query:
-            sql = (
-                "SELECT * FROM slots__games WHERE user_id = %s AND finished = 0 LIMIT 1"
-            )
-            vals = (self.player["id"],)
+            sql = "SELECT * FROM slots__games WHERE user_discord_id = %s AND finished = 0 LIMIT 1"
+            vals = (self.player["user_discord_id"],)
             query.execute(sql, vals)
             result = query.fetchone()
         if result is not None:
             logger.info("Existing game found, loading")
             self.id = result["id"]
-            self.slot_machine = SlotMachine(game_id=self.id)
+            self.slot_machine = SlotMachine(
+                self.id, new_game=False, user_id=self.player["user_discord_id"]
+            )
 
     def new_game(self, level):
         """start a new game, set all old games to finished"""
-        logger.info("Starting a new game")
+        logger.info("Starting a new game!")
+        self.slot_machine = None
         self.current_level = level
         queries = [
             {
-                "sql": "UPDATE slots__games SET finished = 1 WHERE user_id = %(user_id)s;",
-                "vals": {"user_id": self.player["id"]},
+                "sql": "UPDATE slots__games SET finished = 1 WHERE user_discord_id = %(user_discord_id)s;",
+                "vals": {"user_discord_id": self.player["user_discord_id"]},
             },
             {
-                "sql": "INSERT INTO slots__games (user_id, level) VALUES (%(user_id)s, %(level)s);",
-                "vals": {"user_id": self.player["id"], "level": self.level},
+                "sql": "INSERT INTO slots__games (user_discord_id, level) VALUES (%(user_discord_id)s, %(level)s);",
+                "vals": {
+                    "user_discord_id": self.player["user_discord_id"],
+                    "level": self.level,
+                },
             },
         ]
         for q in queries:
             with AgimusDB(multi=True) as query:
                 sql = q["sql"]
                 vals = q["vals"]
+                logger.info(f"Running query: {sql}")
                 query.execute(sql, vals)
-                game_id = query.lastrowid
-        logger.info(f"Creating a new game entry in the DB {game_id}")
-        self.id = game_id
-        self.slot_machine = SlotMachine(new_game=True, game_id=self.id)
+
+        self.id = query.lastrowid
+        logger.info(f"Creating a new game entry in the DB #{self.id}")
+        self.slot_machine = SlotMachine(
+            self.id, new_game=True, user_id=self.player["user_discord_id"]
+        )
 
     def calc_debt(self):
         return self.day * 25
@@ -66,7 +71,7 @@ class SlotsGame:
         """lookup player details in DB"""
         logger.info(f"Looking up user {self.user_discord_id}...")
         with AgimusDB(dictionary=True) as query:
-            sql = "SELECT slots__user_data.* FROM slots__user_data LEFT JOIN users ON users.discord_id = %s"
+            sql = "SELECT * FROM slots__user_data WHERE user_discord_id = %s"
             vals = (self.user_discord_id,)
             query.execute(sql, vals)
             result = query.fetchone()
@@ -79,6 +84,7 @@ class SlotsGame:
             sql = "INSERT INTO slots__user_data (user_discord_id, latinum) VALUES (%s, %s)"
             vals = (self.user_discord_id, 0)
             query.execute(sql, vals)
+
         return self.lookup_player()
 
     def give_symbol(self, player, symbol: SlotsSymbol):

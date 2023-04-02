@@ -1,8 +1,6 @@
 from common import *
 from .slots_game import *
 
-TEST_SYMBOL_2 = DestructionSymbol(id=None, name="Test Symbol 2")
-
 
 class SlotsMainScreen(discord.ui.View):
     """main game menu, access all features of the game through here"""
@@ -79,11 +77,14 @@ class SlotsPlayScreen(discord.ui.View):
         super().__init__()
         self.add_item(SpinButton(self.game, row=0))
         self.add_item(CancelButton(self.game))
+        description = f"You may perform the spin manouver whenever you are ready."
+        if self.game.slot_machine:
+            description += "\n```" + self.game.slot_machine.last_result + "\n```\n\n"
         self.embeds = [
             discord.Embed(
                 title=f"GAME #{self.game.id}",
-                description="You may perform the spin manouver whenever you are ready.",
-            )
+                description=description,
+            ).set_footer(text=f"GAME #{self.game.id}")
         ]
 
 
@@ -125,6 +126,7 @@ class SlotsPlayButton(discord.ui.Button["SlotsMainScreen"]):
         description = ""
         if self.game.id:
             description += "> ⚠ This will erase any game currently in play! ⚠\n\n"
+
         description += (
             "Once you've cleared a level, you will be able to move on to the next one!"
         )
@@ -175,23 +177,20 @@ class SpinButton(discord.ui.Button):
         self.slot_machine.apply_effects()
         effects_str = self.slot_machine.display_slots()
         view = SlotsPlayScreen(self.game)
-        embed = discord.Embed(
-            title="Spin Results",
-            description=f"""
-Initial Spin:
-```
-{spin_str}
-```
 
-After applying effects:
-```
-{effects_str}
-```
-
-Cool!
-            """,
+        results_image = discord.File(
+            fp=f"images/slots_2.0/{self.player['user_discord_id']}_slot_anim.gif",
+            filename=f"{self.player['user_discord_id']}_results.gif",
         )
-        await interaction.response.edit_message(view=view, embed=embed)
+        embed = discord.Embed(title="Spin Results", description=f"___",).set_footer(
+            text=f"GAME #{self.game.id} / SPIN #{self.game.slot_machine.spins}"
+        )
+        embed.set_image(
+            url=f"attachment://{self.player['user_discord_id']}_results.gif"
+        )
+        await interaction.response.edit_message(
+            view=view, embed=embed, file=results_image
+        )
 
 
 class SlotsNewSymbolScreen(discord.ui.View):
