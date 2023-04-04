@@ -29,7 +29,7 @@ class SlotsSymbol(object):
 
     def __init__(self, **kwargs):
         self.id: int = kwargs.get("id", None)
-        self.owner: dict = kwargs.get("player", None)
+        self.owner: dict = kwargs.get("player", {})
         self.name: str = kwargs.get("name", None)
         # self.rarity: int = RARITY[kwargs.get("rarity", "COMMON")]
         self.description: str = kwargs.get("description", None)
@@ -38,8 +38,8 @@ class SlotsSymbol(object):
         self.payout = self.base_payout
         self.effect_name: str = kwargs.get("effect_name", "none")
         self.effect_where: str = kwargs.get("effect_where", "none")
+        self.effect_which: str = kwargs.get("effect_which", "none")
         self.effect_args: dict = kwargs.get("effect_args", {})
-        self.metadata: dict = None  # { surely this can be used... }
         self.status = None  # keep track of what happened here
 
     def to_json(self):
@@ -54,8 +54,10 @@ class SlotsSymbol(object):
     def apply_effect(
         self, spin_results: List[List[Symbol]], row, col
     ) -> List[List[Symbol]]:
-        if not self.effect_name or not self.effect_where:
+
+        if self.effect_name == "none" or not self.effect_name:
             return spin_results
+
         """
         accepts the entire spin result grid, and this symbol's current x,y in that grid
         loops over the grid and applies this symbol's effect to the appropriate symbols
@@ -66,31 +68,43 @@ class SlotsSymbol(object):
                 for j in range(col - 1, col + 2):
                     if self.check_surrounding(i, j, spin_results):
                         # add checks for specific types/etc here
-                        spin_results[i][j] = spin_results[i][j].effect()
+                        if self.effect_which != "none":
+                            if spin_results[i][j].name.lower() in self.effect_which:
+                                spin_results[i][j] = spin_results[i][j].effect(
+                                    self.effect_name, self.effect_args
+                                )
+                        if self.effect_which in ["any"]:
+                            spin_results[i][j] = spin_results[i][j].effect(
+                                self.effect_name, self.effect_args
+                            )
+
         if self.effect_where == "any":
-            # look for certain symbols anywhere on the board
-            pass
+            for i in range(5):
+                for j in range(5):
+                    pass
+                    # spin_results[i][j] = spin_results[i][j].effect()
         if self.effect_where == "none":
-            logger.info("NO EFFECT")
             pass
 
         return spin_results
 
-    def effect(self) -> Symbol:
+    def effect(self, effect_name, effect_args) -> Symbol:
         """this is run on a symbol being affected by this symbol (does NOT run on the symbol applying effects)"""
-        if getattr(self, "effect_" + self.effect_name):
-            logger.info(f"Running effect_{self.effect_name}")
-            return getattr(self, "effect_" + self.effect_name)(**self.effect_args)
+        if getattr(self, "effect_" + effect_name):
+            return getattr(self, "effect_" + effect_name)(**effect_args)
 
     # each of these are types of effects to be applied
+    # they are only run on the symbol being affected!
+    # these should return a SlotsSymbol object of some kind
     def effect_conversion(self, convert_to) -> Symbol:
         return convert_to
 
     def effect_destroy(self) -> Symbol:
-        return EmptySymbol()
+        return EmptySymbol(payout=0)
 
     def effect_alter_payout(self, new_payout) -> Symbol:
-        self.payout = new_payout
+        self.payout += new_payout
+        return self
 
     def effect_none(self) -> Symbol:
         return EmptySymbol()
@@ -142,18 +156,15 @@ class SlotsSymbol(object):
 # UTILITIES
 def create_symbol(symbol_db_info: dict) -> SlotsSymbol:
     """create symbol from text data"""
-    logger.info(f"Attempting to create symbol from: {symbol_db_info}")
     if isinstance(symbol_db_info, str):
         symbol_db_info = json.loads(symbol_db_info)
     classname = symbol_db_info.get("type", "SlotsSymbol")
     the_class = globals()[classname]
     instance = the_class(**symbol_db_info)
-    logger.info(f"Creating... {instance}")
     return instance
 
 
 def load_from_json(json_str) -> List[SlotsSymbol]:
-    logger.info("Loading from JSON")
     final_list = []
     for s in json_str:
         if s:

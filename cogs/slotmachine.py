@@ -7,7 +7,7 @@ class Slots(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    sm = discord.SlashCommandGroup("slots", "Slots!")
+    sm = discord.SlashCommandGroup("slots", "Sluts!")
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -15,6 +15,7 @@ class Slots(commands.Cog):
 
     @sm.command(name="play", description="Play the slots!")
     async def play(self, ctx: discord.ApplicationContext):
+        # await ctx.defer(ephemeral=True)
         if ctx.author.id not in get_all_users():
             register_user(ctx.author)
 

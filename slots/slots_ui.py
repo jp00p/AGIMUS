@@ -1,5 +1,6 @@
 from common import *
 from .slots_game import *
+import discord.ext.commands
 
 
 class SlotsMainScreen(discord.ui.View):
@@ -8,7 +9,8 @@ class SlotsMainScreen(discord.ui.View):
     def __init__(self, game):
         self.game: SlotsGame = game
         self.player = game.player
-        super().__init__()
+        timeout = 180
+        super().__init__(timeout=timeout)
 
         self.add_item(SlotsPlayButton(self.game, row=0))
         self.add_item(SlotsContinueButton(self.game, row=0))
@@ -74,9 +76,9 @@ class SlotsPlayScreen(discord.ui.View):
 
         self.game: SlotsGame = game
         self.player = game.player
-        super().__init__()
-        self.add_item(SpinButton(self.game, row=0))
-        self.add_item(CancelButton(self.game))
+        super().__init__(timeout=None)
+        self.add_item(SpinButton(self.game, row=0, custom_id="game:spin"))
+        self.add_item(CancelButton(self.game, custom_id="game:cancel"))
         description = f"You may perform the spin manouver whenever you are ready."
         if self.game.slot_machine:
             description += "\n```" + self.game.slot_machine.last_result + "\n```\n\n"
@@ -156,7 +158,7 @@ class SlotsContinueButton(discord.ui.Button["SlotsPlayScreen"]):
 
 
 class SpinButton(discord.ui.Button):
-    """spin that slot"""
+    """spin that slot you nasty little slot spinner"""
 
     def __init__(self, game, **kwargs):
 
@@ -166,17 +168,10 @@ class SpinButton(discord.ui.Button):
         super().__init__(label="Spin!", style=discord.ButtonStyle.green, **kwargs)
 
     async def callback(self, interaction: discord.Interaction):
-        # spin slots
-        # render graphics
-        # hand out rewards
-        # check day/rent/etc
-        # give another symbol
-
-        self.slot_machine.spin()
-        spin_str = self.slot_machine.display_slots()
-        self.slot_machine.apply_effects()
-        effects_str = self.slot_machine.display_slots()
         view = SlotsPlayScreen(self.game)
+
+        self.disabled = True
+        self.slot_machine.spin()
 
         results_image = discord.File(
             fp=f"images/slots_2.0/{self.player['user_discord_id']}_slot_anim.gif",
@@ -188,6 +183,8 @@ class SpinButton(discord.ui.Button):
         embed.set_image(
             url=f"attachment://{self.player['user_discord_id']}_results.gif"
         )
+        self.disabled = False
+
         await interaction.response.edit_message(
             view=view, embed=embed, file=results_image
         )
@@ -303,11 +300,13 @@ class SlotsInventoryView(discord.ui.View):
 
 
 class CancelButton(discord.ui.Button):
-    def __init__(self, game):
+    def __init__(self, game, **kwargs):
 
         self.game = game
         self.player = game.player
-        super().__init__(style=discord.ButtonStyle.danger, label="Cancel", row=4)
+        super().__init__(
+            style=discord.ButtonStyle.danger, label="Cancel", row=4, **kwargs
+        )
 
     async def callback(self, interaction: discord.Interaction):
         view = SlotsMainScreen(self.game)

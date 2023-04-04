@@ -1,9 +1,12 @@
 import random
+from copy import deepcopy
+from multiprocessing import Pool
 from typing import List
 from .slots_symbol import *
 from .slots_game import *
 from . import symbol_defs as ALL_SYMBOLS
-from wand.image import Image, COMPOSITE_OPERATORS
+from .rendering import *
+
 
 STARTING_SYMBOLS = ALL_SYMBOLS.basic_symbols
 
@@ -24,23 +27,24 @@ class SlotMachine:
         self.user_discord_id = user_id
         self.num_rows: int = num_rows
         self.num_cols: int = num_cols
-        self._symbols: List[SlotsSymbol] = STARTING_SYMBOLS.copy()
+        self._symbols: List[SlotsSymbol] = []
         self._spins: int = 0
         self._spin_results = self.init_spin_results()
+        self.before_results = None
         self.last_result: str = ""
         self.payout: int = 0
         self.effects_applied = False
+        self.before_image = None
+        self.after_image = None
         self.startup()
 
     def startup(self):
         """initialize a new machine or load an existing machine"""
         if self.new_game:
-            self._symbols = STARTING_SYMBOLS.copy()
+            self._symbols = ALL_SYMBOLS.basic_symbols.copy()
             self._spins = 0
             self.last_result = ""
-            logger.info(f"Starting new slot machine: {self.game_id} {self._symbols}")
         else:
-            logger.info(f"Loading existing gamedata: GAME ID {self.game_id}")
             self._symbols = []
             with AgimusDB(dictionary=True) as query:
                 sql = "SELECT * FROM slots__games WHERE id = %s"
@@ -74,11 +78,10 @@ class SlotMachine:
     @symbols.setter
     def symbols(self, val):
         self._symbols = val
-        logger.info(f"Updating symbols to {val}")
         with AgimusDB() as query:
             sql = "UPDATE slots__games SET symbols = %s WHERE id = %s"
             vals = (
-                json.dumps([s.__dict__ for s in self._symbols]),
+                json.dumps([s.__dict__ for s in val]),
                 self.game_id,
             )
             query.execute(sql, vals)
@@ -90,7 +93,6 @@ class SlotMachine:
     @spin_results.setter
     def spin_results(self, val):
         self._spin_results = val
-        logger.info("Updating last_result in DB")
         with AgimusDB() as query:
             sql = "UPDATE slots__games SET last_result = %s WHERE id = %s"
             vals = (
@@ -99,73 +101,23 @@ class SlotMachine:
             )
             query.execute(sql, vals)
 
+    def flatten_results(self, results):
+        flat = []
+        for row in range(self.num_rows):
+            for col in range(self.num_cols):
+                flat.append(results[row][col])
+        return flat
+
     def render_results(self):
-        suffix = "before"
-        image_base = None
-        transition_images = []
 
-        if self.effects_applied:
-            suffix = "after"
-        flat_list = []
+        before_images = self.flatten_results(self.before_results)
+        after_images = self.flatten_results(self._spin_results)
 
-        for col in range(self.num_cols):
-            for row in range(self.num_rows):
-                flat_list.append(self.spin_results[col][row])
-
-        filename = f"images/slots_2.0/{self.user_discord_id}_{suffix}_results.png"
-
-        with Image() as final_result_img:
-            for src in [s.to_img() for s in flat_list]:
-                with Image(width=100, height=100, filename=src) as item:
-                    final_result_img.image_add(item)
-
-            final_result_img.background_color = "black"
-            final_result_img.alpha_channel = True
-            final_result_img.montage(tile="5x5")
-            final_result_img.border("white", 2, 2)
-            final_result_img.save(filename=filename)
-            i = 0
-            if self.effects_applied:
-                base_file = (
-                    f"images/slots_2.0/{self.user_discord_id}_before_results.png"
-                )
-                image_base = Image(filename=base_file)
-                image_base.alpha_channel = True
-
-                with final_result_img.clone() as animation_final_frame:
-                    animation_final_frame.alpha_channel = True
-                    for alpha in [
-                        1.0,
-                        0.9,
-                        0.8,
-                        0.7,
-                        0.6,
-                        0.5,
-                        0.4,
-                        0.3,
-                        0.2,
-                        0.1,
-                        0.0,
-                    ]:
-                        base = image_base.clone()
-                        frame = animation_final_frame.clone()
-
-                        frame.evaluate(
-                            operator="set",
-                            value=frame.quantum_range * alpha,
-                            channel="alpha",
-                        )
-                        base.composite(frame, 0, 0)
-                        base.delay = 8
-                        if alpha == 0.0:
-                            base.delay = 10000
-                        base.loop = 0
-                        animation_final_frame.sequence.append(base)
-
-                    animation_final_frame.type = "optimize"
-                    animation_final_frame.save(
-                        filename=f"images/slots_2.0/{self.user_discord_id}_slot_anim.gif"
-                    )
+        generate_transition_gif(
+            [(s.name.lower().replace(" ", "_"), s.payout) for s in before_images],
+            [(s.name.lower().replace(" ", "_"), s.payout) for s in after_images],
+            output_file=f"images/slots_2.0/{self.user_discord_id}_slot_anim.gif",
+        )
 
     def init_spin_results(self):
         """create empty 2d array"""
@@ -176,12 +128,10 @@ class SlotMachine:
     def fill_empty_slots(self):
         """fill any empty slots with EmptySymbols"""
         symbols_to_fill = self.num_rows * self.num_cols - len(self._symbols)
-        logger.info(f"Filling {symbols_to_fill} empty symbol slots")
         self._symbols.extend([EmptySymbol() for _ in (range(symbols_to_fill))])
 
     def spin(self):
         self.effects_applied = False
-        logger.info(f"Spinnin the slots!")
         self.spins = self.spins + 1
         self.fill_empty_slots()  # pad out the slots with empties
         temp_results = self.init_spin_results()
@@ -191,8 +141,10 @@ class SlotMachine:
             for j in range(self.num_cols):
                 symbol = self._symbols.pop()  # add a symbol to each slot!
                 temp_results[i][j] = symbol
-        self.spin_results = temp_results
-        return self.spin_results
+        self.before_results = deepcopy(temp_results)
+        logger.info(self.before_results)
+        self.spin_results = temp_results.copy()
+        self.apply_effects()
 
     def get_symbol_position(self, symbol):
         for x in range(self.num_cols):
@@ -204,7 +156,6 @@ class SlotMachine:
     def display_slots(self):
 
         display_str = ""
-        # logger.info(f"Results: {self.spin_results}")
         results = [
             [f"{symbol}" if symbol is not None else "" for symbol in row]
             for row in self.spin_results
@@ -215,30 +166,24 @@ class SlotMachine:
 
     def apply_effects(self):
         """apply this symbol's effect to other symbols"""
-        logger.info(f"Applying effects to current spin")
-        self.render_results()  # render a "before" image
-        temp_results = self.spin_results
+        temp_results = self.spin_results.copy()
         for i in range(self.num_rows):
             for j in range(self.num_cols):
                 symbol = temp_results[i][j]  # the symbol we're affecting
-                temp_results = symbol.apply_effect(self.spin_results, i, j)
+                temp_results = symbol.apply_effect(temp_results, i, j)
         self.spin_results = temp_results  # send to db
         self.effects_applied = True
         self.collect_final_symbols()
-        random.shuffle(self._spin_results)
         self.render_results()  # render an "after" image
 
     def collect_final_symbols(self):
         """add/remove symbols from your collection after all effects applied"""
         new_symbols = []
-        for row in self.spin_results:
-            for symbol in row:
-                if not isinstance(symbol, EmptySymbol):
-                    new_symbols.append(symbol)
-        for symbol in self.symbols:
-            if not isinstance(symbol, EmptySymbol):
-                new_symbols.append(symbol)
-        logger.info(f"NEW SYMBOLS: {new_symbols}")
+        final_symbols = self.flatten_results(self.spin_results)
+        for s in final_symbols:
+            if s and not isinstance(s, EmptySymbol):
+                new_symbols.append(s)
+        new_symbols += self._symbols
         self.symbols = new_symbols  # send to db
 
     def check_column(self, column):
