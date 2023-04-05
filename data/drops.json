@@ -9,10 +9,15 @@
     "description": "All I do is Bits, Bits, Bits! No matter what!",
     "url": "https://i.imgur.com/1ZFfsWj.mp4"
   },
-  "Anklyosaur": {
-    "file": "data/drops/anklyosaur.mp4",
-    "description": "Robot Voice: Anklyosaur!",
-    "url": "https://i.imgur.com/aBen9BZ.mp4"
+  "Ankylosaur": {
+    "file": "data/drops/ankylosaur.mp4",
+    "description": "Robot Voice: Ankylosaur! Anklyosaur",
+    "url": "https://i.imgur.com/zbhvQ5f.mp4"
+  },
+  "Bajoran Tablet: I'm A Running Character!": {
+    "file": "data/drops/imarunningcharacter.mp4",
+    "description": "Mr. Bajoran Tablet: I'm a running character!",
+    "url": "https://i.imgur.com/hzFS7TG.mp4"
   },
   "Ball Kicking Machine": {
     "file": "data/drops/ballkickingmachine.mp4",
@@ -209,11 +214,6 @@
     "description": "Odo. Mr. Bucket. I don't use the bucket anymore.",
     "url": "https://i.imgur.com/qq0RMDG.mp4"
   },
-  "Bajoran Tablet: I'm A Running Character!": {
-    "file": "data/drops/imarunningcharacter.mp4",
-    "description": "Mr. Bajoran Tablet: I'm a running character!",
-    "url": "https://i.imgur.com/hzFS7TG.mp4"
-  },
   "I'm Not Picard": {
     "file": "data/drops/notpicard.mp4",
     "description": "Sisko: I'm not Picard.",
@@ -223,6 +223,11 @@
     "file": "data/drops/itsafake.mp4",
     "description": "Vreenak: It's a fake!",
     "url": "https://i.imgur.com/2p9yGr7.mp4"
+  },
+  "It's A Husnock Life": {
+    "file": "data/drops/itsahusnocklife.mp4",
+    "description": "It's A Husnock Life For Us Annie Song",
+    "url": "https://i.imgur.com/1f4syyR.mp4"
   },
   "It Means Omerta": {
     "file": "data/drops/itmeansomerta.mp4",
@@ -323,11 +328,16 @@
     "file": "data/drops/podshopdotbiz.mp4",
     "description": "Podshop Dot Biz podshop.biz",
     "url": "https://i.imgur.com/ps11rjE.mp4"
-  },  
+  },
   "Powdered Toast Man": {
     "file": "data/drops/powderedtoastman.mp4",
     "description": "Eddington, Powdered Toast Man!",
     "url": "https://i.imgur.com/r8v59y3.mp4"
+  },
+  "Powerhouse Alternate Greatest Gen Lyrics": {
+    "file": "data/drops/powerhousealtlyrics.mp4",
+    "description": "Powerhouse Jordan Jesse Go JJGo Lyrics by Tarquynn",
+    "url": "https://i.imgur.com/pjEfGaq.mp4"
   },
   "Pretty Pervy": {
     "file": "data/drops/pervy.mp4",
@@ -479,6 +489,11 @@
     "description": "The Erica Drop. User drop.",
     "url": "https://i.imgur.com/30Xjhnh.mp4"
   },
+  "The Fajita Jane Drop": {
+    "file": "data/drops/thefajitajanedrop.mp4",
+    "description": "The Fajita Jane Drop. User drop.",
+    "url": "https://i.imgur.com/yMiiXl7.mp4"
+  },
   "The Harry Kim Drop": {
     "file": "data/drops/theharrykimdrop.mp4",
     "description": "Harry Kim. (Lil Kim - Magic stick)",
@@ -529,6 +544,11 @@
     "description": "The Mr Flex Drop. User drop.",
     "url": "https://i.imgur.com/5VUlnii.mp4"
   },
+  "The Ms Bowser Drop": {
+    "file": "data/drops/themsbowserdrop.mp4",
+    "description": "The Ms Bowser Drop. User drop.",
+    "url": "https://i.imgur.com/vbAxDHW.mp4"
+  },
   "The Mumu Drop": {
     "file": "data/drops/themumudrop.mp4",
     "description": "The Mumu Drop. User drop.",
@@ -552,7 +572,7 @@
   "The Ole Doug Drop": {
     "file": "data/drops/theoledougdrop.mp4",
     "description": "The Ole Doug Drop. User drop.",
-    "url": "https://i.imgur.com/kNGjLkv.mp4"
+    "url": "https://i.imgur.com/zzWzYeg.mp4"
   },
   "The Parrises Squares Championship Drop": {
     "file": "data/drops/theparrisessquareschampionshipdrop.mp4",
