@@ -106,7 +106,7 @@ async def generate_sql_file():
 
       badge_filename = badge_info['filename']
       badge_url = badge_info['badge_url'].replace('"', '""')
-      quadrant = badge_info.get('quadrant').replace('"', '""')
+      quadrant = badge_info.get('quadrant', "").replace('"', '""')
 
       reference = badge_info.get('reference').replace('"', '""')
 
