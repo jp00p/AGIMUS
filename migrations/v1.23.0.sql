@@ -1,0 +1,274 @@
+-- Delete previous duplicates if present
+DELETE FROM badge_affiliation WHERE badge_filename = "Andoria-2380s.png";
+DELETE FROM badge_type WHERE badge_filename = "Andoria-2380s.png";
+DELETE FROM badge_universe WHERE badge_filename = "Andoria-2380s.png";
+DELETE FROM badge_info WHERE badge_name = "Andorian 2380s";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Argo.png";
+DELETE FROM badge_type WHERE badge_filename = "Argo.png";
+DELETE FROM badge_universe WHERE badge_filename = "Argo.png";
+DELETE FROM badge_info WHERE badge_name = "Argo Shuttle/Ground Transport";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Breen-2380s.png";
+DELETE FROM badge_type WHERE badge_filename = "Breen-2380s.png";
+DELETE FROM badge_universe WHERE badge_filename = "Breen-2380s.png";
+DELETE FROM badge_info WHERE badge_name = "Breen 2370s";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Gorn.png";
+DELETE FROM badge_type WHERE badge_filename = "Gorn.png";
+DELETE FROM badge_universe WHERE badge_filename = "Gorn.png";
+DELETE FROM badge_info WHERE badge_name = "Gorn Hegemony";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Klingon-Kot_baval-Banner-D.png";
+DELETE FROM badge_type WHERE badge_filename = "Klingon-Kot_baval-Banner-D.png";
+DELETE FROM badge_universe WHERE badge_filename = "Klingon-Kot_baval-Banner-D.png";
+DELETE FROM badge_info WHERE badge_name = "Klingon Kot'baval Banner D";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Krenim.png";
+DELETE FROM badge_type WHERE badge_filename = "Krenim.png";
+DELETE FROM badge_universe WHERE badge_filename = "Krenim.png";
+DELETE FROM badge_info WHERE badge_name = "Krenim Imperium";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Multi-Mitt.png";
+DELETE FROM badge_type WHERE badge_filename = "Multi-Mitt.png";
+DELETE FROM badge_universe WHERE badge_filename = "Multi-Mitt.png";
+DELETE FROM badge_info WHERE badge_name = "Multi-Mitt (Jankom Pog)";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Orion-Syndicate.png";
+DELETE FROM badge_type WHERE badge_filename = "Orion-Syndicate.png";
+DELETE FROM badge_universe WHERE badge_filename = "Orion-Syndicate.png";
+DELETE FROM badge_info WHERE badge_name = "Orion Syndicate 2380s";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Ornaran-10K-Run.png";
+DELETE FROM badge_type WHERE badge_filename = "Ornaran-10K-Run.png";
+DELETE FROM badge_universe WHERE badge_filename = "Ornaran-10K-Run.png";
+DELETE FROM badge_info WHERE badge_name = "Ornaran 10K Run";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Protostar-Helm-Control.png";
+DELETE FROM badge_type WHERE badge_filename = "Protostar-Helm-Control.png";
+DELETE FROM badge_universe WHERE badge_filename = "Protostar-Helm-Control.png";
+DELETE FROM badge_info WHERE badge_name = "Protostar Helm Control";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Q-2380s.png";
+DELETE FROM badge_type WHERE badge_filename = "Q-2380s.png";
+DELETE FROM badge_universe WHERE badge_filename = "Q-2380s.png";
+DELETE FROM badge_info WHERE badge_name = "Q 2380s";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Reman-2380s.png";
+DELETE FROM badge_type WHERE badge_filename = "Reman-2380s.png";
+DELETE FROM badge_universe WHERE badge_filename = "Reman-2380s.png";
+DELETE FROM badge_info WHERE badge_name = "Reman 2380s";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Risian-2380s.png";
+DELETE FROM badge_type WHERE badge_filename = "Risian-2380s.png";
+DELETE FROM badge_universe WHERE badge_filename = "Risian-2380s.png";
+DELETE FROM badge_info WHERE badge_name = "Risian 2380s";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Risian-Facial-Mark-B-3100s.png";
+DELETE FROM badge_type WHERE badge_filename = "Risian-Facial-Mark-B-3100s.png";
+DELETE FROM badge_universe WHERE badge_filename = "Risian-Facial-Mark-B-3100s.png";
+DELETE FROM badge_info WHERE badge_name = "Risian Facial Mark B 3100s";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Romulan-2380s-E.png";
+DELETE FROM badge_type WHERE badge_filename = "Romulan-2380s-E.png";
+DELETE FROM badge_universe WHERE badge_filename = "Romulan-2380s-E.png";
+DELETE FROM badge_info WHERE badge_name = "Romulan Empire 2380s";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Species-8472.png";
+DELETE FROM badge_type WHERE badge_filename = "Species-8472.png";
+DELETE FROM badge_universe WHERE badge_filename = "Species-8472.png";
+DELETE FROM badge_info WHERE badge_name = "Species 8472";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Starfleet-Informal-2380s-B.png";
+DELETE FROM badge_type WHERE badge_filename = "Starfleet-Informal-2380s-B.png";
+DELETE FROM badge_universe WHERE badge_filename = "Starfleet-Informal-2380s-B.png";
+DELETE FROM badge_info WHERE badge_name = "Starfleet Informal B 2380s";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Starfleet-Informal-C-2380s.png";
+DELETE FROM badge_type WHERE badge_filename = "Starfleet-Informal-C-2380s.png";
+DELETE FROM badge_universe WHERE badge_filename = "Starfleet-Informal-C-2380s.png";
+DELETE FROM badge_info WHERE badge_name = "Starfleet Informal C 2380s";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Tellarite-2380s.png";
+DELETE FROM badge_type WHERE badge_filename = "Tellarite-2380s.png";
+DELETE FROM badge_universe WHERE badge_filename = "Tellarite-2380s.png";
+DELETE FROM badge_info WHERE badge_name = "Tellarite 2380s";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "The-Many-and-The-One.png";
+DELETE FROM badge_type WHERE badge_filename = "The-Many-and-The-One.png";
+DELETE FROM badge_universe WHERE badge_filename = "The-Many-and-The-One.png";
+DELETE FROM badge_info WHERE badge_name = "The Many and the One";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-A.png";
+DELETE FROM badge_type WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-A.png";
+DELETE FROM badge_universe WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-A.png";
+DELETE FROM badge_info WHERE badge_name = "Tulgana IV Museum of Antiquities Banner A";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-B.png";
+DELETE FROM badge_type WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-B.png";
+DELETE FROM badge_universe WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-B.png";
+DELETE FROM badge_info WHERE badge_name = "Tulgana IV Museum of Antiquities Banner B";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "USS-Arledo-Danger-Alert.png";
+DELETE FROM badge_type WHERE badge_filename = "USS-Arledo-Danger-Alert.png";
+DELETE FROM badge_universe WHERE badge_filename = "USS-Arledo-Danger-Alert.png";
+DELETE FROM badge_info WHERE badge_name = "USS Arledo Danger Alert";
+
+DELETE FROM badge_affiliation WHERE badge_filename = "United-Earth-2380s.png";
+DELETE FROM badge_type WHERE badge_filename = "United-Earth-2380s.png";
+DELETE FROM badge_universe WHERE badge_filename = "United-Earth-2380s.png";
+DELETE FROM badge_info WHERE badge_name = "United Earth 2380s";
+
+-- Insert new info
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Andorian 2380s", "Andoria-2380s.png", "https://startrekdesignproject.com/symbols/andorian-2380s/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Andoria-2380s.png", "Andoria");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Andoria-2380s.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Andoria-2380s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Argo Shuttle/Ground Transport", "Argo.png", "https://startrekdesignproject.com/symbols/argo-shuttle-ground-transport/", "Alpha", "2300s", "Movies", "Star Trek Nemesis");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Argo.png", "Starfleet");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Argo.png", "Starship");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Argo.png", "Transport");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Argo.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Breen 2370s", "Breen-2380s.png", "https://startrekdesignproject.com/symbols/breen-2370s/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Breen-2380s.png", "Breen");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Breen-2380s.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Breen-2380s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Gorn Hegemony", "Gorn.png", "https://startrekdesignproject.com/symbols/gorn-hegemony/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Gorn.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Gorn.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Klingon Kot'baval Banner D", "Klingon-Kot_baval-Banner-D.png", "https://startrekdesignproject.com/symbols/klingon-kot-baval-banner-d-1/", "Beta", "2300s", "The Next Generation", "S07E21 Firstborn");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Klingon-Kot_baval-Banner-D.png", "Klingon Empire");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Klingon-Kot_baval-Banner-D.png", "Flag/Banner");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Klingon-Kot_baval-Banner-D.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Krenim Imperium", "Krenim.png", "https://startrekdesignproject.com/symbols/krenim-imperium/", "Delta", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Krenim.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Krenim.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Multi-Mitt (Jankom Pog)", "Multi-Mitt.png", "https://startrekdesignproject.com/symbols/multi-mitt-jankom-pog/", "Alpha", "2300s", "Prodigy", "S01E20 Supernova, Part 2");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Multi-Mitt.png", "Tellarite");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Multi-Mitt.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Orion Syndicate 2380s", "Orion-Syndicate.png", "https://startrekdesignproject.com/symbols/orion-syndicate/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Orion-Syndicate.png", "Orion");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Orion-Syndicate.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Orion-Syndicate.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Ornaran 10K Run", "Ornaran-10K-Run.png", "https://startrekdesignproject.com/symbols/ornaran-10k-run/", "Alpha", "2300s", "None", "S03E09 Trusted Sources");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Ornaran-10K-Run.png", "Sports");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Ornaran-10K-Run.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Protostar Helm Control", "Protostar-Helm-Control.png", "https://startrekdesignproject.com/symbols/protostar-helm-control/", "Alpha", "2300s", "Prodigy", "S01E06 Kobayashi");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Protostar-Helm-Control.png", "Starfleet");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Protostar-Helm-Control.png", "Advisory");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Protostar-Helm-Control.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Q 2380s", "Q-2380s.png", "https://startrekdesignproject.com/symbols/q-2380s/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Q-2380s.png", "Q");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Q-2380s.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Q-2380s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Reman 2380s", "Reman-2380s.png", "https://startrekdesignproject.com/symbols/reman-2380s/", "Beta", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Reman-2380s.png", "Romulan Star Empire");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Reman-2380s.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Reman-2380s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Risian 2380s", "Risian-2380s.png", "https://startrekdesignproject.com/symbols/risian-2380s/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Risian-2380s.png", "Risa");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Risian-2380s.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Risian-2380s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Risian Facial Mark B 3100s", "Risian-Facial-Mark-B-3100s.png", "https://startrekdesignproject.com/symbols/risian-facial-mark-b-3100s/", "Alpha", "3100s", "Discovery", "S04E13 Coming Home");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Risian-Facial-Mark-B-3100s.png", "Risa");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Risian-Facial-Mark-B-3100s.png", "Insignia");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Risian-Facial-Mark-B-3100s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Romulan Empire 2380s", "Romulan-2380s-E.png", "https://startrekdesignproject.com/symbols/romulan-empire-2380s/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Romulan-2380s-E.png", "Romulan Star Empire");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Romulan-2380s-E.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Romulan-2380s-E.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Andorian 2380s", "Andoria-2380s.png", "https://startrekdesignproject.com/symbols/andorian-2380s/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Andoria-2380s.png", "Andoria");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Andoria-2380s.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Andoria-2380s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Argo Shuttle/Ground Transport", "Argo.png", "https://startrekdesignproject.com/symbols/argo-shuttle-ground-transport/", "Alpha", "2300s", "Movies", "Star Trek Nemesis");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Argo.png", "Starfleet");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Argo.png", "Starship");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Argo.png", "Transport");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Argo.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Breen 2370s", "Breen-2380s.png", "https://startrekdesignproject.com/symbols/breen-2370s/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Breen-2380s.png", "Breen");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Breen-2380s.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Breen-2380s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Gorn Hegemony", "Gorn.png", "https://startrekdesignproject.com/symbols/gorn-hegemony/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Gorn.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Gorn.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Klingon Kot'baval Banner D", "Klingon-Kot_baval-Banner-D.png", "https://startrekdesignproject.com/symbols/klingon-kot-baval-banner-d-1/", "Beta", "2300s", "The Next Generation", "S07E21 Firstborn");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Klingon-Kot_baval-Banner-D.png", "Klingon Empire");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Klingon-Kot_baval-Banner-D.png", "Flag/Banner");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Klingon-Kot_baval-Banner-D.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Krenim Imperium", "Krenim.png", "https://startrekdesignproject.com/symbols/krenim-imperium/", "Delta", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Krenim.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Krenim.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Multi-Mitt (Jankom Pog)", "Multi-Mitt.png", "https://startrekdesignproject.com/symbols/multi-mitt-jankom-pog/", "Alpha", "2300s", "Prodigy", "S01E20 Supernova, Part 2");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Multi-Mitt.png", "Tellarite");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Multi-Mitt.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Orion Syndicate 2380s", "Orion-Syndicate.png", "https://startrekdesignproject.com/symbols/orion-syndicate/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Orion-Syndicate.png", "Orion");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Orion-Syndicate.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Orion-Syndicate.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Ornaran 10K Run", "Ornaran-10K-Run.png", "https://startrekdesignproject.com/symbols/ornaran-10k-run/", "Alpha", "2300s", "None", "S03E09 Trusted Sources");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Ornaran-10K-Run.png", "Sports");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Ornaran-10K-Run.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Protostar Helm Control", "Protostar-Helm-Control.png", "https://startrekdesignproject.com/symbols/protostar-helm-control/", "Alpha", "2300s", "Prodigy", "S01E06 Kobayashi");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Protostar-Helm-Control.png", "Starfleet");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Protostar-Helm-Control.png", "Advisory");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Protostar-Helm-Control.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Q 2380s", "Q-2380s.png", "https://startrekdesignproject.com/symbols/q-2380s/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Q-2380s.png", "Q");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Q-2380s.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Q-2380s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Reman 2380s", "Reman-2380s.png", "https://startrekdesignproject.com/symbols/reman-2380s/", "Beta", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Reman-2380s.png", "Romulan Star Empire");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Reman-2380s.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Reman-2380s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Risian 2380s", "Risian-2380s.png", "https://startrekdesignproject.com/symbols/risian-2380s/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Risian-2380s.png", "Risa");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Risian-2380s.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Risian-2380s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Risian Facial Mark B 3100s", "Risian-Facial-Mark-B-3100s.png", "https://startrekdesignproject.com/symbols/risian-facial-mark-b-3100s/", "Alpha", "3100s", "Discovery", "S04E13 Coming Home");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Risian-Facial-Mark-B-3100s.png", "Risa");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Risian-Facial-Mark-B-3100s.png", "Insignia");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Risian-Facial-Mark-B-3100s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Romulan Empire 2380s", "Romulan-2380s-E.png", "https://startrekdesignproject.com/symbols/romulan-empire-2380s/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Romulan-2380s-E.png", "Romulan Star Empire");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Romulan-2380s-E.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Romulan-2380s-E.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Species 8472", "Species-8472.png", "https://startrekdesignproject.com/symbols/species-8472/", "", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Species-8472.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Species-8472.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Starfleet Informal B 2380s", "Starfleet-Informal-2380s-B.png", "https://startrekdesignproject.com/symbols/starfleet-informal-b-2380s/", "Alpha", "2300s", "Prodigy", "S01E20 Supernova, Part 2");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Starfleet-Informal-2380s-B.png", "Starfleet");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Starfleet-Informal-2380s-B.png", "Insignia");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Starfleet-Informal-2380s-B.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Starfleet Informal C 2380s", "Starfleet-Informal-C-2380s.png", "https://startrekdesignproject.com/symbols/starfleet-informal-c-2380s/", "Alpha", "2300s", "Prodigy", "S01E17 Ghost in the Machine");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Starfleet-Informal-C-2380s.png", "Starfleet");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Starfleet-Informal-C-2380s.png", "Insignia");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Starfleet-Informal-C-2380s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Tellarite 2380s", "Tellarite-2380s.png", "https://startrekdesignproject.com/symbols/tellarite-2380s/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Tellarite-2380s.png", "Tellarite");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Tellarite-2380s.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Tellarite-2380s.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("The Many and the One", "The-Many-and-The-One.png", "https://startrekdesignproject.com/symbols/the-many-and-the-one/", "Beta", "2400s", "Picard", "S02E01 The Star Gazer");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("The-Many-and-The-One.png", "Vulcan");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("The-Many-and-The-One.png", "Commerce");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("The-Many-and-The-One.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Tholian Assembly", "Tholian.png", "https://startrekdesignproject.com/symbols/tholian-assembly/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Tholian.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Tholian.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Tulgana IV Museum of Antiquities Banner A", "Tulgana-IV-Museum-of-Antiquities-Banner-A.png", "https://startrekdesignproject.com/symbols/tulgana-iv-museum-of-antiquities-banner-a/", "Alpha", "2300s", "Lower Decks", "S03E05 Reflections");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Tulgana-IV-Museum-of-Antiquities-Banner-A.png", "Tulgana IV");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Tulgana-IV-Museum-of-Antiquities-Banner-A.png", "Flag/Banner");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Tulgana-IV-Museum-of-Antiquities-Banner-A.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Tulgana IV Museum of Antiquities Banner B", "Tulgana-IV-Museum-of-Antiquities-Banner-B.png", "https://startrekdesignproject.com/symbols/tulgana-iv-museum-of-antiquities-banner-b/", "Alpha", "2300s", "Lower Decks", "S03E05 Reflections");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Tulgana-IV-Museum-of-Antiquities-Banner-B.png", "Tulgana IV");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Tulgana-IV-Museum-of-Antiquities-Banner-B.png", "Flag/Banner");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Tulgana-IV-Museum-of-Antiquities-Banner-B.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("USS Arledo Danger Alert", "USS-Arledo-Danger-Alert.png", "https://startrekdesignproject.com/symbols/uss-arledo-danger-alert/", "Alpha", "2300s", "Lower Decks", "S03E10 The Stars At Night");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("USS-Arledo-Danger-Alert.png", "Starfleet");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("USS-Arledo-Danger-Alert.png", "Advisory");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("USS-Arledo-Danger-Alert.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("United Earth 2380s", "United-Earth-2380s.png", "https://startrekdesignproject.com/symbols/united-earth-2380s/", "Alpha", "2300s", "Prodigy", "S01E15 Masquerade");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("United-Earth-2380s.png", "Earth");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("United-Earth-2380s.png", "Species/Civilization");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("United-Earth-2380s.png", "Prime");
