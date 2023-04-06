@@ -1,0 +1,224 @@
+{
+  "Andorian 2380s": {
+    "affiliations": "Andoria",
+    "badge_url": "https://startrekdesignproject.com/symbols/andorian-2380s/",
+    "designers": "Robert Aehnelt",
+    "filename": "Andoria-2380s.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345732/Andoria-2380s.png",
+    "quadrant": "Alpha",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676347565/Multispecies_PRO-1x15-1.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345732/Andoria-2380s-Detail.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345732/Andorian-2380s-Reference.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "Breen 2370s": {
+    "affiliations": "Breen",
+    "badge_url": "https://startrekdesignproject.com/symbols/breen-2370s/",
+    "filename": "Breen-2380s.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345732/Breen-2380s.png",
+    "quadrant": "Alpha",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Multispecies_PRO-1x18-2.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345733/Breen-2380s-Detail.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "Gorn Hegemony": {
+    "badge_url": "https://startrekdesignproject.com/symbols/gorn-hegemony/",
+    "designers": "Robert Aehnelt",
+    "filename": "Gorn.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345733/Gorn.png",
+    "quadrant": "Alpha",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Orion-Gorn_PRO-1x18-1.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676347888/Gorn-Reference_kebrxj.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "Krenim Imperium": {
+    "badge_url": "https://startrekdesignproject.com/symbols/krenim-imperium/",
+    "designers": "Robert Aehnelt",
+    "filename": "Krenim.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345732/Krenim.png",
+    "quadrant": "Delta",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676347565/Multispecies_PRO-1x15-1.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345732/Krenim-Detail-2.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345732/Krenim-Reference.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "Orion Syndicate 2380s": {
+    "affiliations": "Orion",
+    "badge_url": "https://startrekdesignproject.com/symbols/orion-syndicate/",
+    "designers": "Robert Aehnelt",
+    "filename": "Orion-Syndicate.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345733/Orion-Syndicate.png",
+    "quadrant": "Alpha",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Orion-Gorn_PRO-1x18-1.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Multispecies_PRO-1x15-3.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676349429/Orion-2380s-Reference_hgwoxq.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "Q 2380s": {
+    "affiliations": "Q",
+    "badge_url": "https://startrekdesignproject.com/symbols/q-2380s/",
+    "filename": "Q-2380s.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345733/Q-2380s.png",
+    "quadrant": "Alpha",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676347565/Multispecies_PRO-1x15-1.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345733/Q-2380s-Detail-1.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "Reman 2380s": {
+    "affiliations": "Romulan Star Empire",
+    "badge_url": "https://startrekdesignproject.com/symbols/reman-2380s/",
+    "designers": "Robert Aehnelt",
+    "filename": "Reman-2380s.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345733/Reman-2380s.png",
+    "quadrant": "Beta",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Multispecies_PRO-1x18-2.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345733/Reman-2380s-Detail.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345733/Reman-2380s-Reference.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "Risian 2380s": {
+    "affiliations": "Risa",
+    "badge_url": "https://startrekdesignproject.com/symbols/risian-2380s/",
+    "filename": "Risian-2380s.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345733/Risian-2380s.png",
+    "quadrant": "Alpha",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Multispecies_PRO-1x18-2.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Multispecies_PRO-1x15-3.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345733/Risian-2380s-Detail.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "Romulan Empire 2380s": {
+    "affiliations": "Romulan Star Empire",
+    "badge_url": "https://startrekdesignproject.com/symbols/romulan-empire-2380s/",
+    "filename": "Romulan-2380s-E.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345733/Romulan-2380s-E.png",
+    "quadrant": "Alpha",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676347565/Multispecies_PRO-1x15-1.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345733/Romulan-Empire-2380s-Detail-1.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Romulan-2380s-Reference.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "Species 8472": {
+    "badge_url": "https://startrekdesignproject.com/symbols/species-8472/",
+    "designers": "Robert Aehnelt",
+    "filename": "Species-8472.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345734/Species-8472.png",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Multispecies_PRO-1x18-2.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Tholian-8472-Detail-1.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Species-8472-Reference.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "Tellarite 2380s": {
+    "affiliations": "Tellarite",
+    "badge_url": "https://startrekdesignproject.com/symbols/tellarite-2380s/",
+    "designers": "Robert Aehnelt",
+    "filename": "Tellarite-2380s.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345734/Tellarite-2380s.png",
+    "quadrant": "Alpha",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Multispecies_PRO-1x18-2.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Multispecies_PRO-1x15-3.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Tellarite-2380s-Detail-1.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Tellarite-2380s-Reference.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "Tholian Assembly": {
+    "badge_url": "https://startrekdesignproject.com/symbols/tholian-assembly/",
+    "designers": "Geoffrey Mandel",
+    "filename": "Tholian.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345735/Tholian.png",
+    "quadrant": "Alpha",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Multispecies_PRO-1x18-2.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Tholian-8472-Detail-1.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345735/Tholian-Reference.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  },
+  "United Earth 2380s": {
+    "affiliations": "Earth",
+    "badge_url": "https://startrekdesignproject.com/symbols/united-earth-2380s/",
+    "filename": "United-Earth-2380s.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1676345735/United-Earth-2380s.png",
+    "quadrant": "Alpha",
+    "reference": "S01E15 Masquerade",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Multispecies_PRO-1x18-2.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345734/Multispecies_PRO-1x15-3.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1676345735/United-Earth-2380s-Detail.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Species/Civilization",
+    "universes": "Prime"
+  }
+}
