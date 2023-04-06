@@ -2475,7 +2475,15 @@
       "episode": "19",
       "imdb": "tt0708981",
       "memoryalpha": "The_Fight_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 464,
+          "airdate": "2023.04.03",
+          "episode": "The USS Lenny",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-464-the-uss-lenny-voy-s5e19/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/tweBPCC59c1cN858iG3QNaDPN6c.jpg"
