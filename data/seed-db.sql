@@ -267,3 +267,12 @@ CREATE TABLE IF NOT EXISTS badge_tags_associations (
   KEY `badge_tags_id` (`badge_tags_id`),
   CONSTRAINT `badge_tags_associations_fk_badge_tags_id` FOREIGN KEY (`badge_tags_id`) REFERENCES `badge_tags` (`id`) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS wishlist_dismissals (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_discord_id` varchar(64) NOT NULL,
+  `match_user_discord_id` varchar(64) NOT NULL,
+  `user_has` JSON NOT NULL,
+  `user_wants` JSON NOT NULL,
+  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+)

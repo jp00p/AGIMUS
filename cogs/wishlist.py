@@ -56,6 +56,45 @@ async def unlock_autocomplete(ctx:discord.AutocompleteContext):
   else:
     return [b for b in list_badges if ctx.value.lower() in b.lower()]
 
+
+# ________  .__               .__              __________        __    __                 
+# \______ \ |__| ______ _____ |__| ______ _____\______   \__ ___/  |__/  |_  ____   ____  
+#  |    |  \|  |/  ___//     \|  |/  ___//  ___/|    |  _/  |  \   __\   __\/  _ \ /    \ 
+#  |    `   \  |\___ \|  Y Y  \  |\___ \ \___ \ |    |   \  |  /|  |  |  | (  <_> )   |  \
+# /_______  /__/____  >__|_|  /__/____  >____  >|______  /____/ |__|  |__|  \____/|___|  /
+#         \/        \/      \/        \/     \/        \/                              \/ 
+class DismissButton(discord.ui.Button):
+  def __init__(self, cog, author_discord_id, match_discord_id, has, wants):
+    self.cog = cog
+    self.author_discord_id = author_discord_id
+    self.match_discord_id = match_discord_id
+    self.has = json.dumps(has)
+    self.wants = json.dumps(wants)
+    super().__init__(
+      label="    Dismiss    ",
+      style=discord.ButtonStyle.primary,
+      row=0
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    db_add_wishlist_dismissal(self.author_discord_id, self.match_discord_id, self.has, self.wants)
+    original_response = await interaction.original_response()
+    if original_response != None:
+      await original_response.edit(
+        embed=discord.Embed(
+          title="This wishlist match has been dismissed.",
+          description="If new badges are found in the future the dismissal will be automatically cleared."
+        ),
+        view=None
+      )
+
+
+#  __      __.__       .__    .__  .__          __    _________                
+# /  \    /  \__| _____|  |__ |  | |__| _______/  |_  \_   ___ \  ____   ____  
+# \   \/\/   /  |/  ___/  |  \|  | |  |/  ___/\   __\ /    \  \/ /  _ \ / ___\ 
+#  \        /|  |\___ \|   Y  \  |_|  |\___ \  |  |   \     \___(  <_> ) /_/  >
+#   \__/\  / |__/____  >___|  /____/__/____  > |__|    \______  /\____/\___  / 
+#        \/          \/     \/             \/                 \/      /_____/  
 class Wishlist(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
@@ -260,11 +299,27 @@ class Wishlist(commands.Cog):
       for user_id in exact_matches_aggregate.keys():
         user = await bot.current_guild.fetch_member(user_id)
 
+        has_badges = exact_matches_aggregate[user_id]['has']
+        has_badges = sorted(has_badges, key=lambda b: b['badge_name'])
+        has_badges_names = [b['badge_name'] for b in has_badges]
+
+        wants_badges = exact_matches_aggregate[user_id]['wants']
+        wants_badges = sorted(wants_badges, key=lambda b: b['badge_name'])
+        wants_badges_names = [b['badge_name'] for b in has_badges]
+
+        # Check for Dismissals
+        dismissal = db_get_wishlist_dismissal(author_discord_id, user_id)
+        if dismissal:
+          dismissal_has = dismissal['has']
+          dismissal_wants = dismissal['wants']
+          if has_badges_names == dismissal_has and wants_badges_names == dismissal_wants:
+            continue
+          else:
+            db_delete_wishlist_dismissal(author_discord_id, user_id)
+
         max_badges_per_page = 30
 
         # Pages for Badges Match Has
-        has_badges = exact_matches_aggregate[user_id]['has']
-        has_badges = sorted(has_badges, key=lambda b: b['badge_name'])
         all_has_pages = [has_badges[i:i + max_badges_per_page] for i in range(0, len(has_badges), max_badges_per_page)]
         total_has_pages = len(all_has_pages)
 
@@ -279,8 +334,6 @@ class Wishlist(commands.Cog):
           has_pages.append(embed)
 
         # Pages for Badges Match Wants
-        wants_badges = exact_matches_aggregate[user_id]['wants']
-        wants_badges = sorted(wants_badges, key=lambda b: b['badge_name'])
         all_wants_pages = [wants_badges[i:i + max_badges_per_page] for i in range(0, len(wants_badges), max_badges_per_page)]
         total_wants_pages = len(all_wants_pages)
 
@@ -324,10 +377,14 @@ class Wishlist(commands.Cog):
           )
         ]
 
+        view = discord.ui.View()
+        view.add_item(DismissButton(self, author_discord_id, user_id, has_badges_names, wants_badges_names))
+
         paginator = pages.Paginator(
           pages=page_groups,
           show_menu=True,
           custom_buttons=paginator_buttons,
+          custom_view=view,
           use_default_buttons=False
         )
         await paginator.respond(ctx.interaction, ephemeral=True)

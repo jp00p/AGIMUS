@@ -196,3 +196,37 @@ def db_get_wishlist_inventory_matches(user_discord_id):
     query.execute(sql, vals)
     results = query.fetchall()
   return results
+
+
+# ________  .__               .__                      .__          
+# \______ \ |__| ______ _____ |__| ______ ___________  |  |   ______
+#  |    |  \|  |/  ___//     \|  |/  ___//  ___/\__  \ |  |  /  ___/
+#  |    `   \  |\___ \|  Y Y  \  |\___ \ \___ \  / __ \|  |__\___ \ 
+# /_______  /__/____  >__|_|  /__/____  >____  >(____  /____/____  >
+#         \/        \/      \/        \/     \/      \/          \/ 
+def db_get_wishlist_dismissal(user_discord_id, match_discord_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = '''
+      SELECT * FROM wishlist_dismissals WHERE user_discord_id = %s AND match_discord_id = %s;
+    '''
+    vals = (user_discord_id, match_discord_id)
+    query.execute(sql, vals)
+    results = query.fetchall()
+  return results
+
+def db_delete_wishlist_dismissal(user_discord_id, match_discord_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = '''
+      DELETE FROM wishlist_dismissals WHERE user_discord_id = %s AND match_discord_id = %s;
+    '''
+    vals = (user_discord_id, match_discord_id)
+    query.execute(sql, vals)
+
+def db_add_wishlist_dismissal(user_discord_id, match_discord_id, has, wants):
+  with AgimusDB() as query:
+    sql = '''
+      INSERT INTO wishlist_dismissals (user_discord_id, match_discord_id, has, wants)
+        VALUES (%s, %s, %s, %s)
+    '''
+    vals = (user_discord_id, match_discord_id, has, wants)
+    query.execute(sql, vals)
