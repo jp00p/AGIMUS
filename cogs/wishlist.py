@@ -79,9 +79,10 @@ class DismissButton(discord.ui.Button):
   async def callback(self, interaction: discord.Interaction):
     db_add_wishlist_dismissal(self.author_discord_id, self.match_discord_id, self.has, self.wants)
     await self.view.message.delete()
+    match_user = await bot.current_guild.fetch_member(self.match_discord_id)
     await interaction.response.send_message(
       embed=discord.Embed(
-        title="This wishlist match has been dismissed.",
+        title=f"Your wishlist match with {match_user.display_name} has been dismissed.",
         description="If new badges are found in the future the dismissal will be automatically cleared."
       ),
       ephemeral=True
