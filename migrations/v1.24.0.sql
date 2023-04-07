@@ -1,0 +1,1 @@
+UPDATE badge_affiliation SET affiliation_name = "Starfleet" WHERE affiliation_name = "Sterfleet";
