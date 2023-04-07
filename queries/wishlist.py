@@ -198,12 +198,12 @@ def db_get_wishlist_inventory_matches(user_discord_id):
   return results
 
 
-# ________  .__               .__                      .__          
+# ________  .__               .__                      .__
 # \______ \ |__| ______ _____ |__| ______ ___________  |  |   ______
 #  |    |  \|  |/  ___//     \|  |/  ___//  ___/\__  \ |  |  /  ___/
-#  |    `   \  |\___ \|  Y Y  \  |\___ \ \___ \  / __ \|  |__\___ \ 
+#  |    `   \  |\___ \|  Y Y  \  |\___ \ \___ \  / __ \|  |__\___ \
 # /_______  /__/____  >__|_|  /__/____  >____  >(____  /____/____  >
-#         \/        \/      \/        \/     \/      \/          \/ 
+#         \/        \/      \/        \/     \/      \/          \/
 def db_get_wishlist_dismissal(user_discord_id, match_discord_id):
   with AgimusDB(dictionary=True) as query:
     sql = '''
@@ -211,7 +211,7 @@ def db_get_wishlist_dismissal(user_discord_id, match_discord_id):
     '''
     vals = (user_discord_id, match_discord_id)
     query.execute(sql, vals)
-    results = query.fetchall()
+    results = query.fetchone()
   return results
 
 def db_delete_wishlist_dismissal(user_discord_id, match_discord_id):

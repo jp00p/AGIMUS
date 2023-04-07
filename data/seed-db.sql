@@ -270,9 +270,9 @@ CREATE TABLE IF NOT EXISTS badge_tags_associations (
 CREATE TABLE IF NOT EXISTS wishlist_dismissals (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_discord_id` varchar(64) NOT NULL,
-  `match_user_discord_id` varchar(64) NOT NULL,
-  `user_has` JSON NOT NULL,
-  `user_wants` JSON NOT NULL,
+  `match_discord_id` varchar(64) NOT NULL,
+  `has` JSON NOT NULL,
+  `wants` JSON NOT NULL,
   `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 )
