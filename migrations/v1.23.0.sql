@@ -2,121 +2,193 @@
 DELETE FROM badge_affiliation WHERE badge_filename = "Andoria-2380s.png";
 DELETE FROM badge_type WHERE badge_filename = "Andoria-2380s.png";
 DELETE FROM badge_universe WHERE badge_filename = "Andoria-2380s.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Andoria-2380s.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Andoria-2380s.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Andoria-2380s.png";
 DELETE FROM badge_info WHERE badge_name = "Andorian 2380s";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Argo.png";
 DELETE FROM badge_type WHERE badge_filename = "Argo.png";
 DELETE FROM badge_universe WHERE badge_filename = "Argo.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Argo.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Argo.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Argo.png";
 DELETE FROM badge_info WHERE badge_name = "Argo Shuttle/Ground Transport";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Breen-2380s.png";
 DELETE FROM badge_type WHERE badge_filename = "Breen-2380s.png";
 DELETE FROM badge_universe WHERE badge_filename = "Breen-2380s.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Breen-2380s.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Breen-2380s.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Breen-2380s.png";
 DELETE FROM badge_info WHERE badge_name = "Breen 2370s";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Gorn.png";
 DELETE FROM badge_type WHERE badge_filename = "Gorn.png";
 DELETE FROM badge_universe WHERE badge_filename = "Gorn.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Gorn.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Gorn.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Gorn.png";
 DELETE FROM badge_info WHERE badge_name = "Gorn Hegemony";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Klingon-Kot_baval-Banner-D.png";
 DELETE FROM badge_type WHERE badge_filename = "Klingon-Kot_baval-Banner-D.png";
 DELETE FROM badge_universe WHERE badge_filename = "Klingon-Kot_baval-Banner-D.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Klingon-Kot_baval-Banner-D.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Klingon-Kot_baval-Banner-D.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Klingon-Kot_baval-Banner-D.png";
 DELETE FROM badge_info WHERE badge_name = "Klingon Kot'baval Banner D";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Krenim.png";
 DELETE FROM badge_type WHERE badge_filename = "Krenim.png";
 DELETE FROM badge_universe WHERE badge_filename = "Krenim.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Krenim.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Krenim.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Krenim.png";
 DELETE FROM badge_info WHERE badge_name = "Krenim Imperium";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Multi-Mitt.png";
 DELETE FROM badge_type WHERE badge_filename = "Multi-Mitt.png";
 DELETE FROM badge_universe WHERE badge_filename = "Multi-Mitt.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Multi-Mitt.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Multi-Mitt.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Multi-Mitt.png";
 DELETE FROM badge_info WHERE badge_name = "Multi-Mitt (Jankom Pog)";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Orion-Syndicate.png";
 DELETE FROM badge_type WHERE badge_filename = "Orion-Syndicate.png";
 DELETE FROM badge_universe WHERE badge_filename = "Orion-Syndicate.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Orion-Syndicate.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Orion-Syndicate.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Orion-Syndicate.png";
 DELETE FROM badge_info WHERE badge_name = "Orion Syndicate 2380s";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Ornaran-10K-Run.png";
 DELETE FROM badge_type WHERE badge_filename = "Ornaran-10K-Run.png";
 DELETE FROM badge_universe WHERE badge_filename = "Ornaran-10K-Run.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Ornaran-10K-Run.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Ornaran-10K-Run.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Ornaran-10K-Run.png";
 DELETE FROM badge_info WHERE badge_name = "Ornaran 10K Run";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Protostar-Helm-Control.png";
 DELETE FROM badge_type WHERE badge_filename = "Protostar-Helm-Control.png";
 DELETE FROM badge_universe WHERE badge_filename = "Protostar-Helm-Control.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Protostar-Helm-Control.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Protostar-Helm-Control.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Protostar-Helm-Control.png";
 DELETE FROM badge_info WHERE badge_name = "Protostar Helm Control";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Q-2380s.png";
 DELETE FROM badge_type WHERE badge_filename = "Q-2380s.png";
 DELETE FROM badge_universe WHERE badge_filename = "Q-2380s.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Q-2380s.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Q-2380s.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Q-2380s.png";
 DELETE FROM badge_info WHERE badge_name = "Q 2380s";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Reman-2380s.png";
 DELETE FROM badge_type WHERE badge_filename = "Reman-2380s.png";
 DELETE FROM badge_universe WHERE badge_filename = "Reman-2380s.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Reman-2380s.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Reman-2380s.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Reman-2380s.png";
 DELETE FROM badge_info WHERE badge_name = "Reman 2380s";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Risian-2380s.png";
 DELETE FROM badge_type WHERE badge_filename = "Risian-2380s.png";
 DELETE FROM badge_universe WHERE badge_filename = "Risian-2380s.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Risian-2380s.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Risian-2380s.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Risian-2380s.png";
 DELETE FROM badge_info WHERE badge_name = "Risian 2380s";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Risian-Facial-Mark-B-3100s.png";
 DELETE FROM badge_type WHERE badge_filename = "Risian-Facial-Mark-B-3100s.png";
 DELETE FROM badge_universe WHERE badge_filename = "Risian-Facial-Mark-B-3100s.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Risian-Facial-Mark-B-3100s.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Risian-Facial-Mark-B-3100s.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Risian-Facial-Mark-B-3100s.png";
 DELETE FROM badge_info WHERE badge_name = "Risian Facial Mark B 3100s";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Romulan-2380s-E.png";
 DELETE FROM badge_type WHERE badge_filename = "Romulan-2380s-E.png";
 DELETE FROM badge_universe WHERE badge_filename = "Romulan-2380s-E.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Romulan-2380s-E.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Romulan-2380s-E.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Romulan-2380s-E.png";
 DELETE FROM badge_info WHERE badge_name = "Romulan Empire 2380s";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Species-8472.png";
 DELETE FROM badge_type WHERE badge_filename = "Species-8472.png";
 DELETE FROM badge_universe WHERE badge_filename = "Species-8472.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Species-8472.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Species-8472.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Species-8472.png";
 DELETE FROM badge_info WHERE badge_name = "Species 8472";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Starfleet-Informal-2380s-B.png";
 DELETE FROM badge_type WHERE badge_filename = "Starfleet-Informal-2380s-B.png";
 DELETE FROM badge_universe WHERE badge_filename = "Starfleet-Informal-2380s-B.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Starfleet-Informal-2380s-B.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Starfleet-Informal-2380s-B.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Starfleet-Informal-2380s-B.png";
 DELETE FROM badge_info WHERE badge_name = "Starfleet Informal B 2380s";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Starfleet-Informal-C-2380s.png";
 DELETE FROM badge_type WHERE badge_filename = "Starfleet-Informal-C-2380s.png";
 DELETE FROM badge_universe WHERE badge_filename = "Starfleet-Informal-C-2380s.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Starfleet-Informal-2380s-C.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Starfleet-Informal-2380s-C.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Starfleet-Informal-2380s-C.png";
 DELETE FROM badge_info WHERE badge_name = "Starfleet Informal C 2380s";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Tellarite-2380s.png";
 DELETE FROM badge_type WHERE badge_filename = "Tellarite-2380s.png";
 DELETE FROM badge_universe WHERE badge_filename = "Tellarite-2380s.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Tellarite-2380s.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Tellarite-2380s.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Tellarite-2380s.png";
 DELETE FROM badge_info WHERE badge_name = "Tellarite 2380s";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "The-Many-and-The-One.png";
 DELETE FROM badge_type WHERE badge_filename = "The-Many-and-The-One.png";
 DELETE FROM badge_universe WHERE badge_filename = "The-Many-and-The-One.png";
+DELETE FROM badge_scraps WHERE badge_filename = "The-Many-and-The-One.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "The-Many-and-The-One.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "The-Many-and-The-One.png";
 DELETE FROM badge_info WHERE badge_name = "The Many and the One";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-A.png";
 DELETE FROM badge_type WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-A.png";
 DELETE FROM badge_universe WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-A.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-A.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-A.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-A.png";
 DELETE FROM badge_info WHERE badge_name = "Tulgana IV Museum of Antiquities Banner A";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-B.png";
 DELETE FROM badge_type WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-B.png";
 DELETE FROM badge_universe WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-B.png";
+DELETE FROM badge_scraps WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-B.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-B.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "Tulgana-IV-Museum-of-Antiquities-Banner-B.png";
 DELETE FROM badge_info WHERE badge_name = "Tulgana IV Museum of Antiquities Banner B";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "USS-Arledo-Danger-Alert.png";
 DELETE FROM badge_type WHERE badge_filename = "USS-Arledo-Danger-Alert.png";
 DELETE FROM badge_universe WHERE badge_filename = "USS-Arledo-Danger-Alert.png";
+DELETE FROM badge_scraps WHERE badge_filename = "USS-Arledo-Danger-Alert.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "USS-Arledo-Danger-Alert.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "USS-Arledo-Danger-Alert.png";
 DELETE FROM badge_info WHERE badge_name = "USS Arledo Danger Alert";
 
 DELETE FROM badge_affiliation WHERE badge_filename = "United-Earth-2380s.png";
 DELETE FROM badge_type WHERE badge_filename = "United-Earth-2380s.png";
 DELETE FROM badge_universe WHERE badge_filename = "United-Earth-2380s.png";
+DELETE FROM badge_scraps WHERE badge_filename = "United-Earth-2380s.png";
+DELETE FROM badge_scrapped WHERE badge_filename = "United-Earth-2380s.png";
+DELETE FROM badge_wishlists WHERE badge_filename = "United-Earth-2380s.png";
 DELETE FROM badge_info WHERE badge_name = "United Earth 2380s";
 
 -- Insert new info
