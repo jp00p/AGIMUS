@@ -8,6 +8,16 @@ SYMBOLS_GRAPHICS_DIR = "images/slots_2.0/symbols/"
 # so we can refer to this object in typing
 Symbol = TypeVar("Symbol", bound="SlotsSymbol")
 
+STATUS_COLORS = {
+    "destroy": (255, 0, 0),
+    "alter_payout": (0, 255, 0),
+    "did_destroy": (128, 0, 128),
+    "did_alter_payout": (0, 128, 0),
+    "none": (0, 0, 0),
+    "did_none": (0, 0, 0),
+    None: (0, 0, 0),
+}
+
 
 class RARITY(Enum):
     COMMON = auto()
@@ -34,7 +44,7 @@ class SlotsSymbol(object):
         # self.rarity: int = RARITY[kwargs.get("rarity", "COMMON")]
         self.description: str = kwargs.get("description", None)
         self.tags: List[str] = kwargs.get("tags", [])
-        self.base_payout: int = kwargs.get("payout", 1)
+        self.base_payout: int = kwargs.get("payout", 0)
         self.payout = self.base_payout
         self.effect_name: str = kwargs.get("effect_name", "none")
         self.effect_where: str = kwargs.get("effect_where", "none")
@@ -42,20 +52,23 @@ class SlotsSymbol(object):
         self.effect_args: dict = kwargs.get("effect_args", {})
         self.status = None  # keep track of what happened here
 
-    def to_json(self):
+    def to_json(self) -> str:
         return json.dumps(self, default=lambda o: o.__dict__)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def to_img(self):
+    def slug(self) -> str:
+        return self.name.lower().replace("_", " ")
+
+    def to_img(self) -> str:
         return str(SYMBOLS_GRAPHICS_DIR + self.name.lower().replace(" ", "_") + ".png")
 
     def apply_effect(
         self, spin_results: List[List[Symbol]], row, col
     ) -> List[List[Symbol]]:
-
         if self.effect_name == "none" or not self.effect_name:
+            self.status = "none"
             return spin_results
 
         """
@@ -63,57 +76,78 @@ class SlotsSymbol(object):
         loops over the grid and applies this symbol's effect to the appropriate symbols
         returns the entire spin result grid
         """
+        if self.effect_where == "self":
+            if self.check_surrounding(i, j, spin_results, False):
+                pass
+
         if self.effect_where == "adjacent":
             for i in range(row - 1, row + 2):
                 for j in range(col - 1, col + 2):
                     if self.check_surrounding(i, j, spin_results):
-                        # add checks for specific types/etc here
                         if self.effect_which != "none":
                             if spin_results[i][j].name.lower() in self.effect_which:
                                 spin_results[i][j] = spin_results[i][j].effect(
                                     self.effect_name, self.effect_args
                                 )
-                        if self.effect_which in ["any"]:
+                                self.set_status(self.effect_name)
+                        elif self.effect_which in ["any"]:
                             spin_results[i][j] = spin_results[i][j].effect(
                                 self.effect_name, self.effect_args
                             )
+                            self.set_status(self.effect_name)
 
         if self.effect_where == "any":
+            self.set_status(self.effect_name)
             for i in range(5):
                 for j in range(5):
                     pass
                     # spin_results[i][j] = spin_results[i][j].effect()
         if self.effect_where == "none":
-            pass
+            self.set_status(self.effect_name)
 
         return spin_results
+
+    def set_status(self, effect_name):
+        self.status = "did_" + self.effect_name
 
     def effect(self, effect_name, effect_args) -> Symbol:
         """this is run on a symbol being affected by this symbol (does NOT run on the symbol applying effects)"""
         if getattr(self, "effect_" + effect_name):
+            self.status = effect_name
             return getattr(self, "effect_" + effect_name)(**effect_args)
 
     # each of these are types of effects to be applied
     # they are only run on the symbol being affected!
     # these should return a SlotsSymbol object of some kind
     def effect_conversion(self, convert_to) -> Symbol:
+        """convert to a new symbol"""
         return convert_to
 
-    def effect_destroy(self) -> Symbol:
-        return EmptySymbol(payout=0)
+    def effect_destroy(self, payout=0) -> Symbol:
+        """destroy a symbol, can add money when doing so"""
+        return EmptySymbol(payout=payout)
 
     def effect_alter_payout(self, new_payout) -> Symbol:
+        """change the payout"""
         self.payout += new_payout
         return self
 
     def effect_none(self) -> Symbol:
+        """nothing!"""
         return EmptySymbol()
 
     #
     #
 
-    def check_surrounding(self, inc1, inc2, results):
-        """checks the 8 tiles around a given symbol, excludes self"""
+    def check_surrounding(self, inc1, inc2, results, include_self=True):
+        """checks the 8 tiles around a given symbol, excludes self by default"""
+        if not include_self:
+            return (
+                inc1 >= 0
+                and inc1 < len(results)
+                and inc2 >= 0
+                and inc2 < len(results[0])
+            )
         return (
             inc1 >= 0
             and inc1 < len(results)
@@ -121,32 +155,6 @@ class SlotsSymbol(object):
             and inc2 < len(results[0])
             and results[inc1][inc2] != self
         )
-        self.owner = player
-        tags = json.dumps(self.tags)
-        metadata = json.dumps(self.metadata)
-        with AgimusDB() as query:
-            sql = """
-              INSERT INTO slots__user_inventory (id, user_id, name, type, rarity, payout, tags, description, metadata) 
-              VALUES (%(id)s, %(user_id)s, %(name)s, %(type)s, %(rarity)s, %(payout)s, %(tags)s, %(description)s, %(metadata)s, %(effect_name)s, %(effect_where)s, %(effect_args)%) 
-              ON DUPLICATE KEY UPDATE user_id=%(user_id)s, name=%(name)s, type=%(type)s, rarity=%(rarity)s, payout=%(payout)s, tags=%(tags)s, description=%(description)s
-            """
-            vals = {
-                "id": self.id,
-                "user_id": self.owner["id"],
-                "name": self.name,
-                "type": self.__class__.__name__,
-                "rarity": self.rarity,
-                "payout": self.base_payout,
-                "tags": tags,
-                "description": self.description,
-                "metadata": metadata,
-                "effect_name": self.effect_name,
-                "effect_where": self.effect_where,
-                "effect_args": json.dumps(self.effect_args),
-            }
-            query.execute(sql, vals)
-        self.id = query.lastrowid
-        return query.lastrowid
 
     def check_tag_match(self, tag, against):
         """check if a symbol has the given tag"""

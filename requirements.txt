@@ -27,6 +27,7 @@ huesdk==1.1
 humanize==4.2.3
 idna==3.2
 inflect==5.6.0
+imageio==2.27.0
 itsdangerous==2.0.1
 jaraco.context==4.1.1
 Jinja2==3.0.1

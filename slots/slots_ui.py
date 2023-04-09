@@ -3,6 +3,14 @@ from .slots_game import *
 import discord.ext.commands
 
 
+# each level:
+# requires x amount of money to complete
+# only allowed x amount of spins
+# new symbol added each spin
+# if complete, level increases
+# if fail, the game resets
+
+
 class SlotsMainScreen(discord.ui.View):
     """main game menu, access all features of the game through here"""
 
@@ -15,99 +23,85 @@ class SlotsMainScreen(discord.ui.View):
         self.add_item(SlotsPlayButton(self.game, row=0))
         self.add_item(SlotsContinueButton(self.game, row=0))
 
-        self.add_item(
-            ClearDatabaseButton(self.game, row=4, style=discord.ButtonStyle.danger)
-        )
-
-        ##self.add_item(SlotsShopButton(self.game))
-        ##self.add_item(SlotsStatusButton(self.game))
-
-        self.embeds = [
-            discord.Embed(
-                title="Luck be a Liquidator!",
-                description="Liquidator Brunt, FCA, has called in your debts.  You don't have the money on hand, but Brunt is unusually benevolent today and has granted you a payment plan.\n\nBetter get out there and make some profit before he liquidates your whole world!\n\n",
-                fields=[
-                    discord.EmbedField(
-                        name="Here's today's challenges:", value="----", inline=False
-                    ),
-                    discord.EmbedField(
-                        name="Challenge #1",
-                        value="Get at least 3 aliens in a row",
-                        inline=True,
-                    ),
-                    discord.EmbedField(
-                        name="Challenge #2",
-                        value="Spin the slots 150 times",
-                        inline=True,
-                    ),
-                    discord.EmbedField(
-                        name="Challenge #3",
-                        value="Fill a column with Starfleet",
-                        inline=True,
-                    ),
-                ],
-            ),
-        ]
-
-
-class ClearDatabaseButton(discord.ui.Button):
-    def __init__(self, game, **kwargs):
-        self.game: SlotsGame = game
-        super().__init__(label="Clear slots DB", **kwargs)
-
-    async def callback(self, interaction: discord.Interaction):
-        queries = [
-            "TRUNCATE slots__games;",
-            "TRUNCATE slots__user_data;",
-            "TRUNCATE slots__machines;",
-        ]
-        for q in queries:
-            with AgimusDB(multi=True) as query:
-                query.execute(q)
-        await interaction.response.edit_message(
-            view=None, content="Database cleared of all slots and sluts!"
+        self.embed = discord.Embed(
+            title="Luck be a Liquidator!",
+            description="Liquidator Brunt, FCA, has called in your debts.  You don't have the money on hand, but Brunt is unusually benevolent today and has granted you a payment plan.\n\nBetter get out there and make some profit before he liquidates your whole world!\n\n",
+            fields=[
+                discord.EmbedField(
+                    name="Here's today's challenges:", value="----", inline=False
+                ),
+                discord.EmbedField(
+                    name="Challenge #1",
+                    value="Get at least 3 aliens in a row",
+                    inline=True,
+                ),
+                discord.EmbedField(
+                    name="Challenge #2",
+                    value="Spin the slots 150 times",
+                    inline=True,
+                ),
+                discord.EmbedField(
+                    name="Challenge #3",
+                    value="Fill a column with Starfleet",
+                    inline=True,
+                ),
+            ],
         )
 
 
 class SlotsPlayScreen(discord.ui.View):
-    """main slot machine game screen"""
+    """where most the action happens"""
 
-    def __init__(self, game):
-
+    def __init__(self, game, just_added=None):
         self.game: SlotsGame = game
+        self.slot_machine = self.game.slot_machine
         self.player = game.player
         super().__init__(timeout=None)
-        self.add_item(SpinButton(self.game, row=0, custom_id="game:spin"))
+
+        description = ""
+
+        if just_added:
+            description += f"\n> Added {just_added.name} to your collection!\n"
+
+        self.embed = discord.Embed(
+            title=f"GAME #{self.game.id}",
+            description=description,
+        ).set_footer(text=f"Day: {self.game.day}/10 | Game ID: #{self.game.id}")
+
+        if self.slot_machine and self.game.new_symbols:
+            self.add_item(NewSymbolsButton(self.game))
+        else:
+            self.add_item(SpinButton(self.game, row=0, custom_id="game:spin"))
         self.add_item(CancelButton(self.game, custom_id="game:cancel"))
-        description = f"You may perform the spin manouver whenever you are ready."
-        if self.game.slot_machine:
-            description += "\n```" + self.game.slot_machine.last_result + "\n```\n\n"
-        self.embeds = [
-            discord.Embed(
-                title=f"GAME #{self.game.id}",
-                description=description,
-            ).set_footer(text=f"GAME #{self.game.id}")
-        ]
+        self.game.get_new_symbols()
 
 
-class LevelSelect(discord.ui.Select):
-    """choose a level to start"""
-
-    def __init__(self, game: SlotsGame):
+class SlotsNewSymbolScreen(discord.ui.View):
+    def __init__(self, game, **kwargs):
         self.game: SlotsGame = game
-        options = [
-            discord.SelectOption(label=f"Level {i}", description="")
-            for i in range(1, self.game.player["level"] + 1)
-        ]
-        super().__init__(
-            placeholder="Choose a level", min_values=1, max_values=1, options=options
+        self.new_symbols = game.new_symbols
+        # TODO: Graphics here
+        super().__init__(**kwargs)
+
+        self.embed = discord.Embed(
+            title="Choose a new symbol to add",
+            description="...",
+            fields=[
+                discord.EmbedField(
+                    name=f"{symbol.name}",
+                    value=f"{symbol.description}",
+                    inline=True,
+                )
+                for symbol in self.new_symbols
+            ],
+        ).set_image(
+            url=f"attachment://{self.game.player['user_discord_id']}_symbols.png"
         )
 
-    async def callback(self, interaction: discord.Interaction):
-        level = self.values[0]
-        self.game.new_game(level)
-        view = SlotsPlayScreen(self.game)
-        await interaction.response.edit_message(view=view, embeds=view.embeds)
+        for symbol in self.new_symbols:
+            self.add_item(AddSymbolButton(self.game, symbol))
+        self.add_item(SkipButton(self.game, row=4))
+        # self.add_item(CancelButton(self.game, row=4))
 
 
 class SlotsPlayButton(discord.ui.Button["SlotsMainScreen"]):
@@ -125,7 +119,7 @@ class SlotsPlayButton(discord.ui.Button["SlotsMainScreen"]):
         view.add_item(LevelSelect(self.game))
         view.add_item(CancelButton(self.game))
 
-        description = ""
+        description = f"{self.game.slot_machine}"
         if self.game.id:
             description += "> ⚠ This will erase any game currently in play! ⚠\n\n"
 
@@ -154,160 +148,134 @@ class SlotsContinueButton(discord.ui.Button["SlotsPlayScreen"]):
 
     async def callback(self, interaction: discord.Interaction):
         view = SlotsPlayScreen(self.game)
-        await interaction.response.edit_message(view=view, embeds=view.embeds)
+        await interaction.response.edit_message(view=view, embed=view.embed)
 
 
 class SpinButton(discord.ui.Button):
     """spin that slot you nasty little slot spinner"""
 
     def __init__(self, game, **kwargs):
-
         self.game: SlotsGame = game
-        self.player = game.player
-        self.slot_machine = game.slot_machine
+        self.player = self.game.player
+        self.slot_machine = self.game.slot_machine
         super().__init__(label="Spin!", style=discord.ButtonStyle.green, **kwargs)
 
     async def callback(self, interaction: discord.Interaction):
-        view = SlotsPlayScreen(self.game)
-
-        self.disabled = True
         self.slot_machine.spin()
 
+        embed = discord.Embed(
+            title="Spin Results",
+            description=f"___",
+        ).set_footer(
+            text=f"GAME #{self.game.id} / SPIN #{self.game.slot_machine.spins}"
+        )
+
+        embed.set_image(
+            url=f"attachment://{self.player['user_discord_id']}_results.gif"
+        )
+        view = SlotsPlayScreen(self.game)  # this needs to happen after the spin
         results_image = discord.File(
             fp=f"images/slots_2.0/{self.player['user_discord_id']}_slot_anim.gif",
             filename=f"{self.player['user_discord_id']}_results.gif",
         )
-        embed = discord.Embed(title="Spin Results", description=f"___",).set_footer(
-            text=f"GAME #{self.game.id} / SPIN #{self.game.slot_machine.spins}"
-        )
-        embed.set_image(
-            url=f"attachment://{self.player['user_discord_id']}_results.gif"
-        )
-        self.disabled = False
-
         await interaction.response.edit_message(
             view=view, embed=embed, file=results_image
         )
 
 
-class SlotsNewSymbolScreen(discord.ui.View):
+class NewSymbolsButton(discord.ui.Button):
+    """button to go to the new symbols choice screen"""
+
     def __init__(self, game, **kwargs):
-        self.game = game
-        super().__init__(**kwargs)
-        self.embeds = [
-            discord.Embed(
-                title="Choose a symbol to add",
-                description="...",
-                fields=[
-                    discord.EmbedField(
-                        name="Symbol1",
-                        value="The description of the symbol",
-                        inline=True,
-                    )
-                ],
-            )
-        ]
-        self.add_item(SkipButton(self.game))
-        self.add_item(AddButton(self.game, 0, 0))
-        self.add_item(CancelButton(self.game))
+        self.game: SlotsGame = game
+        super().__init__(label="Add a new symbol", emoji="⭐")
+
+    async def callback(self, interaction: discord.Interaction):
+        symbol_image = discord.File(
+            fp=f"images/slots_2.0/{self.game.player['user_discord_id']}_new_symbols.png",
+            filename=f"{self.game.player['user_discord_id']}_symbols.png",
+        )
+        view = SlotsNewSymbolScreen(self.game)
+
+        await interaction.response.edit_message(
+            view=view, embed=view.embed, file=symbol_image
+        )
+
+
+class AddSymbolButton(discord.ui.Button):
+    def __init__(self, game, symbol, **kwargs):
+        self.game: SlotsGame = game
+        self.symbol: SlotsSymbol = symbol
+        self.slot_machine: SlotMachine = self.game.slot_machine
+        super().__init__(
+            label=f"{self.symbol.name}", style=discord.ButtonStyle.blurple, **kwargs
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        self.slot_machine.symbols.append(self.symbol)
+        self.game.clear_new_symbols()
+        view = SlotsPlayScreen(self.game, just_added=self.symbol)
+        results_image = discord.File(
+            fp=f"images/slots_2.0/{self.game.player['user_discord_id']}_slot_anim.gif",
+            filename=f"{self.game.player['user_discord_id']}_results.gif",
+        )
+        view.embed.set_image(
+            url=f"attachment://{self.game.player['user_discord_id']}_results.gif"
+        )
+        await interaction.response.edit_message(
+            view=view, embed=view.embed, file=results_image, attachments=[]
+        )
 
 
 class SkipButton(discord.ui.Button):
     def __init__(self, game, **kwargs):
-        super().__init__(**kwargs)
-
-
-class AddButton(discord.ui.Button):
-    def __init__(self, game, which, choices, **kwargs):
-        self.chosen = which
-        self.choices = choices
-        super().__init__(**kwargs)
-
-
-class SlotsShopButton(discord.ui.Button["SlotsMainScreen"]):
-    """open the shop"""
-
-    def __init__(self, game, **kwargs):
-
-        self.game = game
-        self.player = game.player
-        super().__init__(label="Shop!", **kwargs)
+        self.game: SlotsGame = game
+        super().__init__(label="Skip", **kwargs)
 
     async def callback(self, interaction: discord.Interaction):
-        view = SlotsShopView(self.game)
-        await interaction.response.edit_message(view=view, embeds=view.embeds)
+        self.game.clear_new_symbols()
+        results_image = discord.File(
+            fp=f"images/slots_2.0/{self.game.player['user_discord_id']}_slot_anim.gif",
+            filename=f"{self.game.player['user_discord_id']}_results.gif",
+        )
 
-
-class SlotsStatusButton(discord.ui.Button["SlotsMainScreen"]):
-    """check your stats/items"""
-
-    def __init__(self, game, **kwargs):
-
-        self.game = game
-        self.player = game.player
-        super().__init__(label="Status", **kwargs)
-
-    async def callback(self, interaction: discord.Interaction):
-        return await super().callback(interaction)
-
-
-class SlotsShopView(discord.ui.View):
-    """the ui for the symbol shop"""
-
-    def __init__(self, game):
-
-        self.game = game
-        self.player = game.player
-        super().__init__()
-        self.add_item(CancelButton(self.game))
-        self.embeds = [
-            discord.Embed(
-                title="Slots shop",
-                description="Expand your slots experience with these new symbols",
-                fields=[
-                    discord.EmbedField(
-                        name="Locutus",
-                        value="Payout: 5\nRarity: Very Rare\nConverts all adjacent Starfleet to Borg drones\nPrice: 1000",
-                    ),
-                    discord.EmbedField(
-                        name="Fajo",
-                        value="Payout: 3\nRarity: Uncommon\nHas a 1% chance to add a rare symbol to an empty adjacent space.\nPrice: 500",
-                    ),
-                    discord.EmbedField(
-                        name="Tribble",
-                        value="Payout: 1\nRarity: Common\nAdds another tribble to your inventory every spin\nPrice: 250",
-                    ),
-                ],
-            )
-        ]
-
-
-class SlotsInventoryView(discord.ui.View):
-    """the ui for user's symbol inventory"""
-
-    def __init__(self, game):
-
-        self.game = game
-        self.player = game.player
-        super().__init__()
-        self.add_item(CancelButton(self.game))
-        self.embeds = [
-            discord.Embed(
-                title="Your inventory",
-                description="Here are all of your current symbols",
-            )
-        ]
+        view = SlotsPlayScreen(self.game)
+        view.embed.set_image(
+            url=f"attachment://{self.game.player['user_discord_id']}_results.gif"
+        )
+        view.embed.description = "> You didn't add a new symbol!\n"
+        await interaction.response.edit_message(
+            view=view, embed=view.embed, file=results_image, attachments=[]
+        )
 
 
 class CancelButton(discord.ui.Button):
     def __init__(self, game, **kwargs):
-
-        self.game = game
+        self.game: SlotsGame = game
         self.player = game.player
-        super().__init__(
-            style=discord.ButtonStyle.danger, label="Cancel", row=4, **kwargs
-        )
+        self.row = kwargs.get("row", 4)
+        super().__init__(style=discord.ButtonStyle.danger, label="Cancel", **kwargs)
 
     async def callback(self, interaction: discord.Interaction):
         view = SlotsMainScreen(self.game)
-        await interaction.response.edit_message(view=view, embeds=view.embeds)
+        await interaction.response.edit_message(view=view, embed=view.embed)
+
+
+class LevelSelect(discord.ui.Select):
+    """choose a level to start"""
+
+    def __init__(self, game: SlotsGame):
+        self.game: SlotsGame = game
+        options = [
+            discord.SelectOption(label=f"Level {i}", description="")
+            for i in range(1, self.game.player["level"] + 1)
+        ]
+        super().__init__(
+            placeholder="Choose a level", min_values=1, max_values=1, options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        level = self.values[0]
+        self.game.new_game(level)
+        view = SlotsPlayScreen(self.game)
+        await interaction.response.edit_message(view=view, embed=view.embed)

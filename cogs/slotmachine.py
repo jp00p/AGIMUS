@@ -21,4 +21,4 @@ class Slots(commands.Cog):
 
         game = SlotsGame(ctx.author.id)
         view = SlotsMainScreen(game)
-        await ctx.respond(view=view, embeds=view.embeds, ephemeral=True)
+        await ctx.respond(view=view, embed=view.embed, ephemeral=True)

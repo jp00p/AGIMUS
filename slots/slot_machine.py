@@ -1,5 +1,6 @@
 import random
 from copy import deepcopy
+from enum import Enum
 from multiprocessing import Pool
 from typing import List
 from .slots_symbol import *
@@ -41,7 +42,7 @@ class SlotMachine:
     def startup(self):
         """initialize a new machine or load an existing machine"""
         if self.new_game:
-            self._symbols = ALL_SYMBOLS.basic_symbols.copy()
+            self._symbols = deepcopy(ALL_SYMBOLS.basic_symbols)
             self._spins = 0
             self.last_result = ""
         else:
@@ -109,13 +110,18 @@ class SlotMachine:
         return flat
 
     def render_results(self):
-
-        before_images = self.flatten_results(self.before_results)
-        after_images = self.flatten_results(self._spin_results)
+        before_images = self.flatten_results(deepcopy(self.before_results))
+        after_images = self.flatten_results(deepcopy(self._spin_results))
 
         generate_transition_gif(
-            [(s.name.lower().replace(" ", "_"), s.payout) for s in before_images],
-            [(s.name.lower().replace(" ", "_"), s.payout) for s in after_images],
+            [
+                (s.name.lower().replace(" ", "_"), s.payout, STATUS_COLORS[s.status])
+                for s in before_images
+            ],
+            [
+                (s.name.lower().replace(" ", "_"), s.payout, STATUS_COLORS[s.status])
+                for s in after_images
+            ],
             output_file=f"images/slots_2.0/{self.user_discord_id}_slot_anim.gif",
         )
 
@@ -143,7 +149,7 @@ class SlotMachine:
                 temp_results[i][j] = symbol
         self.before_results = deepcopy(temp_results)
         logger.info(self.before_results)
-        self.spin_results = temp_results.copy()
+        self.spin_results = deepcopy(temp_results)
         self.apply_effects()
 
     def get_symbol_position(self, symbol):
@@ -154,7 +160,6 @@ class SlotMachine:
         return None
 
     def display_slots(self):
-
         display_str = ""
         results = [
             [f"{symbol}" if symbol is not None else "" for symbol in row]
@@ -166,10 +171,10 @@ class SlotMachine:
 
     def apply_effects(self):
         """apply this symbol's effect to other symbols"""
-        temp_results = self.spin_results.copy()
+        temp_results = deepcopy(self.spin_results)
         for i in range(self.num_rows):
             for j in range(self.num_cols):
-                symbol = temp_results[i][j]  # the symbol we're affecting
+                symbol = temp_results[i][j]  # the symbol doing the effect
                 temp_results = symbol.apply_effect(temp_results, i, j)
         self.spin_results = temp_results  # send to db
         self.effects_applied = True
