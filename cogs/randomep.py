@@ -20,12 +20,13 @@ def generate_random_ep_embed(shows):
 #    \___/   |__|\___  >\/\_//____  >
 #                    \/           \/
 class ShowSelector(discord.ui.Select):
-  def __init__(self):
+  def __init__(self, user_discord_id):
+    selected_shows = db_get_user_randomep_shows(user_discord_id)
     options = [
       discord.SelectOption(
         label=s,
         value=s,
-        default=s in self.view.selected_shows
+        default=s in selected_shows
       )
       for s in all_shows
     ]
@@ -47,12 +48,12 @@ class PublicSelector(discord.ui.Select):
     options = [
       discord.SelectOption(
         label="Public",
-        value=False,
+        value="public",
         default=True
       ),
       discord.SelectOption(
         label="Private",
-        value=True
+        value="private"
       )
     ]
 
@@ -66,42 +67,45 @@ class PublicSelector(discord.ui.Select):
 
   async def callback(self, interaction:discord.Interaction):
     await interaction.response.defer()
-    self.view.public = self.values[0]
+    self.view.private = self.values[0]
 
 class RollButton(discord.ui.Button):
   def __init__(self, user_discord_id):
     self.user_discord_id = user_discord_id
     super().__init__(
-      label="           Roll           ",
+      label="      Roll      ",
       style=discord.ButtonStyle.primary,
       row=3
     )
 
   async def callback(self, interaction:discord.Interaction):
     if len(self.view.selected_shows):
-      await interaction.response.delete_message()
-      db_set_user_randomep_shows(self.user_discord_id)
+      await interaction.response.defer(ephemeral=True)
+      db_set_user_randomep_shows(self.user_discord_id, self.view.selected_shows)
       embed = generate_random_ep_embed(self.view.selected_shows)
-      await interaction.response.send_message(
+      logger.info(self.view.private)
+      await interaction.followup.send(
         embed=embed,
-        ephemeral=self.view.private
+        ephemeral=self.view.private == "private"
       )
     else:
-      await interaction.response.reply(
+      await interaction.response.send_message(
         embed=discord.Embed(
           title="You must select at least one show.",
           color=discord.Color.red()
-        )
+        ),
+        ephemeral=True
       )
 
 class RandomEpSelectView(discord.ui.View):
   def __init__(self, cog, user_discord_id):
     super().__init__()
     self.cog = cog
-    self.private = False
+    self.private = "public"
     self.selected_shows = db_get_user_randomep_shows(user_discord_id)
 
     self.add_item(ShowSelector(user_discord_id))
+    self.add_item(PublicSelector())
     self.add_item(RollButton(user_discord_id))
 
 
@@ -110,39 +114,37 @@ class RandomEp(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
 
-  randomep = discord.SlashCommandGroup("randomep", "Commands for selecting shows and rolling random episodes")
-
-  @randomep.command(
-    name="select",
+  @commands.slash_command(
+    name="randomep",
     description="Select your shows and roll for a random episode!"
   )
-  async def select(self, ctx: discord.ApplicationContext):
+  async def randomep(self, ctx: discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
 
     view = RandomEpSelectView(self, ctx.author.id)
     embed = discord.Embed(
-      title="🎲 Random Ep 🎲",
-      description="Choose the shows you'd like to include below and Roll to receive a random episode from your selection."
+      title="🎲 Random Episode 🎲",
+      description="Choose one or more Shows and Roll!",
       color=discord.Color.dark_purple()
     )
-    embed.set_footer("Your selections will be saved for the next time you use the command!")
+    embed.set_footer(text="Your selections will be saved for the next time you use the command!")
 
     await ctx.followup.send(embed=embed, view=view, ephemeral=True)
 
 
 
-# ________                      .__               
+# ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
 #  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
-# /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \ 
+# /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
-#        \__>           \/              \/     \/ 
+#        \__>           \/              \/     \/
 def db_get_user_randomep_shows(user_discord_id):
   with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT shows FROM randomep_selections WHERE user_discord_id = %s;
     '''
-    vals = (user_discord_id)
+    vals = (user_discord_id,)
     query.execute(sql, vals)
     results = query.fetchone()
 
@@ -153,6 +155,7 @@ def db_get_user_randomep_shows(user_discord_id):
   return results
 
 def db_set_user_randomep_shows(user_discord_id, shows):
+  shows = json.dumps(shows)
   with AgimusDB() as query:
     sql = '''
       INSERT INTO randomep_selections (user_discord_id, shows)
