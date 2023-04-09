@@ -14,7 +14,6 @@ from commands.help import help
 from commands.info import info
 from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
-from commands.randomep import randomep
 from commands.reports import reports
 from commands.scores import scores
 from commands.setwager import setwager
@@ -50,6 +49,7 @@ from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.trade import Trade
 from cogs.update_badges import UpdateBadges
+from cogs.randomep import RandomEp
 from cogs.react_roles import ReactRoles
 from cogs.wishlist import Wishlist
 from cogs.wordcloud import Wordcloud
@@ -60,6 +60,7 @@ bot.add_cog(HitchHikers(bot))
 bot.add_cog(Poker(bot))
 bot.add_cog(Profile(bot))
 bot.add_cog(Quiz(bot))
+bot.add_cog(RandomEp(bot))
 bot.add_cog(Settings(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
