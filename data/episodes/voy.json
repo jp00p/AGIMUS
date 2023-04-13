@@ -2497,7 +2497,15 @@
       "episode": "20",
       "imdb": "tt0708993",
       "memoryalpha": "Think_Tank_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 465,
+          "airdate": "2023.04.10",
+          "episode": "Star Trek Podcast Measuring Contest",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/ptiAkLGvEzBJgUOUb9ZeY1QcbeP.jpg"
