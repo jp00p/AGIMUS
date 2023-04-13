@@ -45,7 +45,7 @@ openai==0.20.0
 packaging==21.3
 phue==1.1
 pilgram==1.2.1
-Pillow==9.5.0
+pillow-simd==9.0.0.post1
 Pint==0.19.2
 pipreqs==0.4.10
 prettytable==3.3.0

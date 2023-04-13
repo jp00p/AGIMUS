@@ -1,34 +1,37 @@
 import time
 import imageio
 from common import *
-from wand.image import Image as WandImage
 from copy import deepcopy
-from PIL import Image, ImageOps
+from PIL import Image, ImageFilter
 from typing import List
 
 PAYOUT_FONT = ImageFont.truetype("fonts/lcars3.ttf", 55)
-symbols_directory = "images/slots_2.0/symbols"
+symbols_directory = "images/slots_2.0/symbols/bmp"
 
 
 def preload_symbols():
     logger.info("Loading symbol graphics...")
     temp_symbols = {}
     for filename in os.listdir(symbols_directory):
-        if filename.endswith(".png"):
+        if filename.endswith(".bmp"):
             img = np.array(
-                Image.open(os.path.join(symbols_directory, filename))
-                .resize((96, 96))
-                .convert("RGB")
+                Image.open(os.path.join(symbols_directory, filename)).convert("RGB")
             )
-            temp_symbols[filename.lower().replace(".png", "")] = img
+            temp_symbols[filename.lower().replace(".bmp", "")] = img
     logger.info(f"Loaded {len(temp_symbols)} symbol graphics!")
     return temp_symbols
 
 
 SYMBOLS = preload_symbols()
+SPINS = [
+    Image.open("images/slots_2.0/spin_1.png"),
+    Image.open("images/slots_2.0/spin_2.png"),
+    Image.open("images/slots_2.0/spin_3.png"),
+]
 font = ImageFont.truetype("fonts/lcars.ttf", 60)
 
 
+@to_thread
 def numpy_grid(
     symbol_data,
     grid_size=(5, 5),
@@ -36,27 +39,28 @@ def numpy_grid(
     gutter=8,
     margin=8,
     background=(0, 0, 0),
-    border_width=2,
+    border_width=4,
     border_color=(0, 0, 0),
 ):
+    start_time = time.time()
     images = [SYMBOLS[symbol[0].lower().replace(" ", "_")] for symbol in symbol_data]
     payouts = [symbol[1] for symbol in symbol_data]
     status_colors = [symbol[2] for symbol in symbol_data]
 
-    # Calculate the size of each grid cell
+    # calculate the size of each grid cell
     cell_width = (images[0].shape[1] + gutter) * grid_size[1] - gutter
     cell_height = (images[0].shape[0] + gutter) * grid_size[0] - gutter
 
-    # Calculate the size of the final image
+    # calculate the size of the final image
     width = cell_width + border * 2 + margin * 2
     height = cell_height + border * 2 + margin * 2
 
-    # Create the final image as a NumPy array
+    # create the final image as a NumPy array
     image = np.ones((height, width, 3), dtype=np.uint8) * np.array(
         background, dtype=np.uint8
     )
 
-    # Draw the images onto the grid
+    # draw the images onto the grid
     for i in range(grid_size[0]):
         for j in range(grid_size[1]):
             index = i * grid_size[1] + j
@@ -69,7 +73,7 @@ def numpy_grid(
 
             border_color = status_colors[index]
 
-            # Add a border to the individual image
+            # add border to the grid cell
             bordered_image = np.ones(
                 (y1 - y0 + border_width * 2, x1 - x0 + border_width * 2, 3),
                 dtype=np.uint8,
@@ -78,20 +82,31 @@ def numpy_grid(
                 border_width:-border_width, border_width:-border_width
             ] = images[index]
 
+            # add text to the grid cell
             if symbol_data[index][1] != 0:
                 bordered_image = Image.fromarray(bordered_image)
                 draw = ImageDraw.Draw(bordered_image)
-                draw.text((8, 50), str(payouts[index]), font=font, fill="white")
+                draw.text(
+                    (8, 50),
+                    str(payouts[index]),
+                    font=font,
+                    fill="white",
+                    stroke_fill="black",
+                    stroke_width=2,
+                )
                 bordered_image = np.array(bordered_image)
 
             image[
                 y0 : y1 + border_width * 2, x0 : x1 + border_width * 2
             ] = bordered_image
 
+    end_time = time.time()
+    total = end_time - start_time
+    logger.info(f"{grid_size} grid Took {total}s")
     return Image.fromarray(image)
 
 
-def generate_transition_gif(
+async def generate_transition_gif(
     images_1: list,
     images_2: list,
     num_cols: int = 5,
@@ -104,19 +119,26 @@ def generate_transition_gif(
     start_time = time.time()
     if images_1 == images_2:
         logger.info("LUCKY!")
-        grid_image = numpy_grid(images_1)
+        grid_image = await numpy_grid(images_2)
         grid_image.save(output_file, format="GIF", compression=0, optimize=True)
     else:
-        grid_image_1 = numpy_grid(images_1)
-        grid_image_2 = numpy_grid(images_2)
+        grid_image_1 = await numpy_grid(images_1)
+        # grid_blur_1 = grid_image_1.filter(ImageFilter.BoxBlur(10))
+        grid_image_2 = await numpy_grid(images_2)
+        # grid_blur_2 = grid_image_2.filter(ImageFilter.GaussianBlur(5))
         # Create a list of frames for the GIF
-        frames = []
-        for i in range(11):
-            alpha = i / 10.0
-            frame = Image.blend(grid_image_1, grid_image_2, alpha)
-            frames.append(frame)
+        frames = [SPINS[2], grid_image_1, SPINS[2], grid_image_2]
 
-        # Save the frames as a GIF file
+        # frame_count = 5
+        # for i in range(frame_count + 1):  # the final frame will be 100% of the alpha
+        #     # generate the alpha frames
+        #     alpha = i / float(frame_count)
+        #     frame = Image.blend(grid_image_1, grid_image_2, alpha)
+        #     frames.append(frame)
+
+        # frames.insert(2, grid_blur_2)
+
+        # save the frames as a GIF file
         frames[0].save(
             output_file,
             format="GIF",
@@ -125,9 +147,14 @@ def generate_transition_gif(
             compression=0,
             optimize=True,
             loop=0,
-            duration=[2000, 100, 100, 50, 50, 20, 20, 20, 20, 50, 10000],
+            duration=[
+                100,
+                800,
+                50,
+                6000,
+            ],  # count should match number of frames
         )
 
     end_time = time.time()
     total = end_time - start_time
-    logger.info(f"Took {total}s")
+    logger.info(f"GIF Took {total}s")

@@ -277,8 +277,10 @@ CREATE TABLE IF NOT EXISTS slots__games (
   `finished` INT(11) NOT NULL DEFAULT 0,
   `symbols` TEXT NULL,
   `last_result` TEXT NULL,
+  `total_winnings` INT(11) NOT NULL DEFAULT 0,
   `spins` INT(11) NOT NULL DEFAULT 0,
   `new_symbols` TEXT NULL,
+  `draft_picks` TEXT NULL,
   `time_started` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_spin_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)

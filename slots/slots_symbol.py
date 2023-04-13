@@ -44,12 +44,13 @@ class SlotsSymbol(object):
         # self.rarity: int = RARITY[kwargs.get("rarity", "COMMON")]
         self.description: str = kwargs.get("description", None)
         self.tags: List[str] = kwargs.get("tags", [])
-        self.base_payout: int = kwargs.get("payout", 0)
+        self.base_payout: int = kwargs.get("payout", 1)
         self.payout = self.base_payout
         self.effect_name: str = kwargs.get("effect_name", "none")
         self.effect_where: str = kwargs.get("effect_where", "none")
         self.effect_which: str = kwargs.get("effect_which", "none")
         self.effect_args: dict = kwargs.get("effect_args", {})
+        self.effect_self: bool = kwargs.get("effect_self", False)
         self.status = None  # keep track of what happened here
 
     def to_json(self) -> str:
@@ -65,7 +66,7 @@ class SlotsSymbol(object):
         return str(SYMBOLS_GRAPHICS_DIR + self.name.lower().replace(" ", "_") + ".png")
 
     def apply_effect(
-        self, spin_results: List[List[Symbol]], row, col
+        self, spin_results: List[List[Symbol]], row: int, col: int
     ) -> List[List[Symbol]]:
         if self.effect_name == "none" or not self.effect_name:
             self.status = "none"
@@ -75,20 +76,22 @@ class SlotsSymbol(object):
         accepts the entire spin result grid, and this symbol's current x,y in that grid
         loops over the grid and applies this symbol's effect to the appropriate symbols
         returns the entire spin result grid
+        this is a mess but it does work
         """
-        if self.effect_where == "self":
-            if self.check_surrounding(i, j, spin_results, False):
-                pass
-
         if self.effect_where == "adjacent":
             for i in range(row - 1, row + 2):
                 for j in range(col - 1, col + 2):
                     if self.check_surrounding(i, j, spin_results):
                         if self.effect_which != "none":
                             if spin_results[i][j].name.lower() in self.effect_which:
-                                spin_results[i][j] = spin_results[i][j].effect(
-                                    self.effect_name, self.effect_args
-                                )
+                                if self.effect_self:
+                                    spin_results[row][col] = self.effect(
+                                        self.effect_name, self.effect_args
+                                    )
+                                else:
+                                    spin_results[i][j] = spin_results[i][j].effect(
+                                        self.effect_name, self.effect_args
+                                    )
                                 self.set_status(self.effect_name)
                         elif self.effect_which in ["any"]:
                             spin_results[i][j] = spin_results[i][j].effect(
@@ -107,8 +110,10 @@ class SlotsSymbol(object):
 
         return spin_results
 
-    def set_status(self, effect_name):
-        self.status = "did_" + self.effect_name
+    def set_status(self, effect_name=None):
+        self.status = None
+        if effect_name:
+            self.status = "did_" + self.effect_name
 
     def effect(self, effect_name, effect_args) -> Symbol:
         """this is run on a symbol being affected by this symbol (does NOT run on the symbol applying effects)"""
@@ -124,8 +129,8 @@ class SlotsSymbol(object):
         return convert_to
 
     def effect_destroy(self, payout=0) -> Symbol:
-        """destroy a symbol, can add money when doing so"""
-        return EmptySymbol(payout=payout)
+        """destroy a symbol"""
+        return EmptySymbol()
 
     def effect_alter_payout(self, new_payout) -> Symbol:
         """change the payout"""
@@ -185,4 +190,4 @@ def load_from_json(json_str) -> List[SlotsSymbol]:
 
 class EmptySymbol(SlotsSymbol):
     def __init__(self, **kwargs):
-        super().__init__(name="Empty", **kwargs)
+        super().__init__(name="Empty", payout=0, **kwargs)

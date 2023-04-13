@@ -11,20 +11,41 @@ from .slots_symbol import *
 from .rendering import *
 
 
+# challenges reset at 8AM PST
+# end of challenge, hand out a badge
+# if game started before current day, start a new game
+# daily leaderboards
+# weekly leaderboards
+# all time?
+
+# choose starting loadout (draft, everyone gets the same draft)
+
+DRAFT_ROUNDS = 5
+DRAFT_PICKS_MAX = 4
+SECRET_SEED_NUMBER = 2141985
+
+
 class SlotsGame:
     """games can be resumed from previous sessions, which is why this is so dumb!"""
-
-    BASE_DEBTS = [25, 50, 75, 100, 125, 150, 175, 200]
 
     def __init__(self, user_discord_id):
         self.id: int = None
         self.user_discord_id: int = user_discord_id
         self.player: dict = self.lookup_player() or self.register_player()
         self.level: int = 1
-        self.day: int = 1
+        self.day: int = datetime.now().timetuple().tm_yday
         self.debt: int = 0
         self.slot_machine: SlotMachine = None
         self._new_symbols: List[SlotsSymbol] = []
+        self.seed = (
+            datetime.now().year
+            + datetime.now().month
+            + datetime.now().day
+            + SECRET_SEED_NUMBER
+        )
+        self.challenges = []
+        self.starting_draft: List[List[SlotsSymbol]] = self.generate_drafts()
+        self._draft_picks: List[SlotsSymbol] = []
         self.startup()
         logger.info(f"Game initialized for {self.player} - Existing games: {self.id}")
 
@@ -36,19 +57,28 @@ class SlotsGame:
             query.execute(sql, vals)
             result = query.fetchone()
         if result is not None:
+            logger.info(result["time_started"])
             self.id = result["id"]
-            new_symbols_json = json.loads(result["new_symbols"])
+            new_symbols_json = result.get("new_symbols", None)
             if new_symbols_json:
-                for s in new_symbols_json:
+                for s in json.loads(new_symbols_json):
                     self._new_symbols.append(create_symbol(s))
+            draft_picks_json = result.get("draft_picks", None)
+            if draft_picks_json:
+                for s in json.loads(draft_picks_json):
+                    self._draft_picks.append(create_symbol(s))
             self.slot_machine = SlotMachine(
-                self.id, new_game=False, user_id=self.player["user_discord_id"]
+                self.id,
+                new_game=False,
+                user_id=self.player["user_discord_id"],
+                starting_symbols=self.draft_picks,
             )
 
     def new_game(self, level):
         """start a new game, set all old games to finished"""
+        # draft cards
         logger.info("Starting a new game!")
-        self.slot_machine = None
+        # self.slot_machine = None
         self.current_level = level
         self.clear_new_symbols()
         queries = [
@@ -73,21 +103,24 @@ class SlotsGame:
 
         self.id = query.lastrowid
         logger.info(f"Creating a new game entry in the DB #{self.id}")
+
         self.slot_machine = SlotMachine(
-            self.id, new_game=True, user_id=self.player["user_discord_id"]
+            self.id,
+            new_game=True,
+            user_id=self.player["user_discord_id"],
+            starting_symbols=self.draft_picks,
         )
 
-    def calc_debt(self):
-        return self.day * 25
-
-    def get_new_symbols(self):
+    async def get_new_symbols(self):
         """load 3 new symbols for choosing after a spin"""
         if not self.new_symbols:
             temp_symbols = basic_symbols.copy()
-            random_choices = random.sample(temp_symbols, k=3)  # TODO: weights
+            random_choices = random.sample(
+                temp_symbols, k=DRAFT_PICKS_MAX
+            )  # TODO: weights
             self.new_symbols = random_choices
             symbol_data = [(s.name, s.payout, (0, 0, 0)) for s in self.new_symbols]
-            new_symbol_graphics = numpy_grid(symbol_data, (1, 3))
+            new_symbol_graphics = await numpy_grid(symbol_data, (1, DRAFT_PICKS_MAX))
             new_symbol_graphics.save(
                 f"images/slots_2.0/{self.player['user_discord_id']}_new_symbols.png"
             )
@@ -109,6 +142,20 @@ class SlotsGame:
             vals = (symbols_json, self.id)
             query.execute(sql, vals)
 
+    @property
+    def draft_picks(self):
+        return self._draft_picks
+
+    @draft_picks.setter
+    def draft_picks(self, val):
+        self._draft_picks = val
+        logger.info(f"Updating draft picks: {val}")
+        draft_picks_json = json.dumps([s.__dict__ for s in val])
+        with AgimusDB() as query:
+            sql = "UPDATE slots__games SET draft_picks = %s WHERE id = %s"
+            vals = (draft_picks_json, self.id)
+            query.execute(sql, vals)
+
     def lookup_player(self):
         """lookup player details in DB"""
         logger.info(f"Looking up user {self.user_discord_id}...")
@@ -128,3 +175,29 @@ class SlotsGame:
             query.execute(sql, vals)
 
         return self.lookup_player()
+
+    def generate_drafts(self) -> List[List[SlotsSymbol]]:
+        """generate the symbols used for today's draft"""
+        # use daily seed for starting draft
+        draft = []
+        for i in range(DRAFT_ROUNDS):
+            draft.append(random.sample(basic_symbols, k=DRAFT_PICKS_MAX))
+        return draft
+
+    async def render_drafts(self):
+        """render the image used for the draft"""
+        d = self.day
+        previous_day = d - 1
+        if os.path.exists(f"images/slots_2.0/draft_{previous_day}_*"):
+            os.remove(f"images/slots_2.0/draft_{previous_day}_*")
+        for p in range(DRAFT_ROUNDS):
+            # generate draft images if they aren't there
+            if not os.path.exists(f"images/slots_2.0/draft_{p}_{d}.png"):
+                grid_data = [(s.name, 0, (0, 0, 0)) for s in self.starting_draft[p]]
+                img = await numpy_grid(grid_data, (1, DRAFT_PICKS_MAX))
+                img.save(f"images/slots_2.0/draft_{d}_{p}.png")
+
+    async def render_player_drafts(self):
+        draft_data = [(d.name, 0, (0, 0, 0)) for d in self.draft_picks]
+        draft_image = await numpy_grid(draft_data, (1, DRAFT_ROUNDS))
+        draft_image.save(f"images/slots_2.0/draft_{self.player['user_discord_id']}.png")

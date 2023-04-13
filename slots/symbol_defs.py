@@ -5,6 +5,7 @@ basic_symbols = [
         name="Janeway",
         effect_where="adjacent",
         effect_which="coffee",
+        effect_self=True,
         effect_name="alter_payout",
         effect_args={"new_payout": 2},
         description="Gains 1 value whenever adjacent to coffee",
