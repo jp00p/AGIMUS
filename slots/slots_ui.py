@@ -87,6 +87,7 @@ class SlotsPlayScreen(discord.ui.View):
         else:
             self.add_item(SpinButton(self.game, row=0, custom_id="game:spin"))
         self.add_item(CancelButton(self.game, custom_id="game:cancel"))
+        self.add_item(ViewInventoryButton(self.game, row=1))
 
 
 class SlotsDraftScreen(discord.ui.View):
@@ -110,6 +111,39 @@ class SlotsDraftScreen(discord.ui.View):
 
         for s in self.game.starting_draft[self.round]:
             self.add_item(SlotsDraftButton(self.game, s))
+
+
+class SlotsInventory(discord.ui.View):
+    """view all symbols owned"""
+
+    def __init__(self, game, **kwargs):
+        self.game: SlotsGame = game
+        super().__init__(**kwargs)
+        self.embed = discord.Embed(title="Inventory", description="Your symbols")
+
+
+class ViewInventoryButton(discord.ui.Button):
+    """go to your inventory screen"""
+
+    def __init__(self, game, **kwargs):
+        self.game: SlotsGame = game
+        label = "Inventory"
+        super().__init__(label=label, **kwargs)
+
+    async def callback(self, interaction: discord.Interaction):
+        all_symbols = self.game.slot_machine.symbols
+        inventory_img = await numpy_grid(
+            [(s.name, s.payout, (0, 0, 0)) for s in all_symbols], (10, 10)
+        )
+        inventory_img.save("images/slots_2.0/inventory.png")
+        view = SlotsInventory(self.game)
+        file = discord.File(
+            fp="images/slots_2.0/inventory.png", filename="inventory.png"
+        )
+        view.embed.set_image(url="attachment://inventory.png")
+        await interaction.response.edit_message(
+            view=view, embed=view.embed, file=file, attachments=[]
+        )
 
 
 class SlotsDraftBegin(discord.ui.Button):

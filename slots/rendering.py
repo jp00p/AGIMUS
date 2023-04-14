@@ -35,25 +35,26 @@ font = ImageFont.truetype("fonts/lcars.ttf", 60)
 def numpy_grid(
     symbol_data,
     grid_size=(5, 5),
-    border=8,
+    image_border=8,
     gutter=8,
     margin=8,
-    background=(0, 0, 0),
-    border_width=4,
-    border_color=(0, 0, 0),
+    background=(33, 33, 33),
+    cell_border=4,
+    border_color=(24, 24, 0),
 ):
     start_time = time.time()
     images = [SYMBOLS[symbol[0].lower().replace(" ", "_")] for symbol in symbol_data]
     payouts = [symbol[1] for symbol in symbol_data]
     status_colors = [symbol[2] for symbol in symbol_data]
+    wiggly = [symbol[3] for symbol in symbol_data]
 
     # calculate the size of each grid cell
     cell_width = (images[0].shape[1] + gutter) * grid_size[1] - gutter
     cell_height = (images[0].shape[0] + gutter) * grid_size[0] - gutter
 
     # calculate the size of the final image
-    width = cell_width + border * 2 + margin * 2
-    height = cell_height + border * 2 + margin * 2
+    width = cell_width + image_border * 2 + margin * 2
+    height = cell_height + image_border * 2 + margin * 2
 
     # create the final image as a NumPy array
     image = np.ones((height, width, 3), dtype=np.uint8) * np.array(
@@ -66,21 +67,29 @@ def numpy_grid(
             index = i * grid_size[1] + j
             if index >= len(images):
                 break
-            x0 = j * (images[0].shape[1] + gutter) + border + margin
-            y0 = i * (images[0].shape[0] + gutter) + border + margin
+            x0 = j * (images[0].shape[1] + gutter) + image_border + margin - cell_border
+            y0 = i * (images[0].shape[0] + gutter) + image_border + margin - cell_border
             x1 = x0 + images[index].shape[1]
             y1 = y0 + images[index].shape[0]
+
+            if wiggly[index]:
+                mod1 = random.randint(-4, 4)
+                mod2 = random.randint(-4, 4)
+                x0 += mod1
+                y0 += mod2
+                x1 += mod1
+                y1 += mod2
 
             border_color = status_colors[index]
 
             # add border to the grid cell
             bordered_image = np.ones(
-                (y1 - y0 + border_width * 2, x1 - x0 + border_width * 2, 3),
+                (y1 - y0 + cell_border * 2, x1 - x0 + cell_border * 2, 3),
                 dtype=np.uint8,
             ) * np.array(border_color, dtype=np.uint8)
-            bordered_image[
-                border_width:-border_width, border_width:-border_width
-            ] = images[index]
+            bordered_image[cell_border:-cell_border, cell_border:-cell_border] = images[
+                index
+            ]
 
             # add text to the grid cell
             if symbol_data[index][1] != 0:
@@ -96,9 +105,7 @@ def numpy_grid(
                 )
                 bordered_image = np.array(bordered_image)
 
-            image[
-                y0 : y1 + border_width * 2, x0 : x1 + border_width * 2
-            ] = bordered_image
+            image[y0 : y1 + cell_border * 2, x0 : x1 + cell_border * 2] = bordered_image
 
     end_time = time.time()
     total = end_time - start_time
@@ -107,53 +114,51 @@ def numpy_grid(
 
 
 async def generate_transition_gif(
-    images_1: list,
-    images_2: list,
-    num_cols: int = 5,
-    margin: int = 5,
-    gutter: int = 5,
-    bg_color: tuple = (0, 0, 0),
-    duration: int = 100,
-    output_file="results.gif",
+    images_1: list, images_2: list, output_file="results.gif", intermediate: list = None
 ) -> None:
     start_time = time.time()
-    if images_1 == images_2:
-        logger.info("LUCKY!")
-        grid_image = await numpy_grid(images_2)
-        grid_image.save(output_file, format="GIF", compression=0, optimize=True)
-    else:
-        grid_image_1 = await numpy_grid(images_1)
-        # grid_blur_1 = grid_image_1.filter(ImageFilter.BoxBlur(10))
-        grid_image_2 = await numpy_grid(images_2)
-        # grid_blur_2 = grid_image_2.filter(ImageFilter.GaussianBlur(5))
-        # Create a list of frames for the GIF
-        frames = [SPINS[2], grid_image_1, SPINS[2], grid_image_2]
+    # if images_1 == images_2:
+    #     logger.info("LUCKY!")
+    #     grid_image = await numpy_grid(images_2)
+    #     grid_image.save(output_file, format="GIF", compression=0, optimize=True)
+    # else:
 
-        # frame_count = 5
-        # for i in range(frame_count + 1):  # the final frame will be 100% of the alpha
-        #     # generate the alpha frames
-        #     alpha = i / float(frame_count)
-        #     frame = Image.blend(grid_image_1, grid_image_2, alpha)
-        #     frames.append(frame)
+    grid_image_1 = await numpy_grid(images_1)
+    grid_image_2 = await numpy_grid(images_2)
 
-        # frames.insert(2, grid_blur_2)
+    # create a list of frames for the GIF
+    frames = [grid_image_1, grid_image_2]
 
-        # save the frames as a GIF file
-        frames[0].save(
-            output_file,
-            format="GIF",
-            append_images=frames[1:],
-            save_all=True,
-            compression=0,
-            optimize=True,
-            loop=0,
-            duration=[
-                100,
-                800,
-                50,
-                6000,
-            ],  # count should match number of frames
-        )
+    if intermediate:
+        for i in range(10):
+            new_frame = await numpy_grid(intermediate)
+            frames.insert(1, new_frame)
+
+    # frame_count = 5
+    # for i in range(frame_count + 1):  # the final frame will be 100% of the alpha
+    #     # generate the alpha frames
+    #     alpha = i / float(frame_count)
+    #     frame = Image.blend(grid_image_1, grid_image_2, alpha)
+    #     frames.append(frame)
+
+    # frames.insert(2, grid_blur_2)
+
+    # save the frames as a GIF file
+    duration = [100, 100]
+    if intermediate:
+        duration = [500, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 8000]
+
+    logger.info(duration)
+    frames[0].save(
+        output_file,
+        format="GIF",
+        append_images=frames[1:],
+        save_all=True,
+        compression=0,
+        optimize=True,
+        loop=0,
+        duration=duration,
+    )
 
     end_time = time.time()
     total = end_time - start_time

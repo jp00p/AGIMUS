@@ -13,9 +13,9 @@ STATUS_COLORS = {
     "alter_payout": (0, 255, 0),
     "did_destroy": (128, 0, 128),
     "did_alter_payout": (0, 128, 0),
-    "none": (0, 0, 0),
-    "did_none": (0, 0, 0),
-    None: (0, 0, 0),
+    "none": (0, 24, 24),
+    "did_none": (0, 24, 24),
+    None: (0, 24, 24),
 }
 
 
@@ -38,20 +38,22 @@ class SlotsSymbol(object):
     """a symbol that can show up on the slot_machine or in the shop!"""
 
     def __init__(self, **kwargs):
-        self.id: int = kwargs.get("id", None)
-        self.owner: dict = kwargs.get("player", {})
         self.name: str = kwargs.get("name", None)
         # self.rarity: int = RARITY[kwargs.get("rarity", "COMMON")]
         self.description: str = kwargs.get("description", None)
         self.tags: List[str] = kwargs.get("tags", [])
-        self.base_payout: int = kwargs.get("payout", 1)
-        self.payout = self.base_payout
+        self.base_payout: int = kwargs.get("base_payout", 0)
+        self.payout: int = kwargs.get("payout", self.base_payout)
         self.effect_name: str = kwargs.get("effect_name", "none")
         self.effect_where: str = kwargs.get("effect_where", "none")
         self.effect_which: str = kwargs.get("effect_which", "none")
         self.effect_args: dict = kwargs.get("effect_args", {})
         self.effect_self: bool = kwargs.get("effect_self", False)
+        self.effect_chance: float = kwargs.get("effect_chance", None)  # 0.0 - 1.0
+        self.times_paid: int = kwargs.get("times_paid", 0)
+        self.times_appeared: int = kwargs.get("times_appeared", 0)
         self.status = None  # keep track of what happened here
+        self.wiggly: bool = False
 
     def to_json(self) -> str:
         return json.dumps(self, default=lambda o: o.__dict__)
@@ -68,27 +70,33 @@ class SlotsSymbol(object):
     def apply_effect(
         self, spin_results: List[List[Symbol]], row: int, col: int
     ) -> List[List[Symbol]]:
-        if self.effect_name == "none" or not self.effect_name:
-            self.status = "none"
-            return spin_results
-
         """
         accepts the entire spin result grid, and this symbol's current x,y in that grid
         loops over the grid and applies this symbol's effect to the appropriate symbols
         returns the entire spin result grid
         this is a mess but it does work
         """
+        if self.effect_name == "none" or not self.effect_name:
+            # no effect at all
+            self.status = "none"
+            return spin_results
+
+        if self.effect_chance and random.random() > self.effect_chance:
+            # if there's a random chance of the effect and it doesn't fire
+            return spin_results
+
+        self.wiggly = True
         if self.effect_where == "adjacent":
             for i in range(row - 1, row + 2):
                 for j in range(col - 1, col + 2):
                     if self.check_surrounding(i, j, spin_results):
                         if self.effect_which != "none":
                             if spin_results[i][j].name.lower() in self.effect_which:
-                                if self.effect_self:
+                                if self.effect_self:  # only affects self
                                     spin_results[row][col] = self.effect(
                                         self.effect_name, self.effect_args
                                     )
-                                else:
+                                else:  # affects those around it
                                     spin_results[i][j] = spin_results[i][j].effect(
                                         self.effect_name, self.effect_args
                                     )
@@ -118,6 +126,8 @@ class SlotsSymbol(object):
     def effect(self, effect_name, effect_args) -> Symbol:
         """this is run on a symbol being affected by this symbol (does NOT run on the symbol applying effects)"""
         if getattr(self, "effect_" + effect_name):
+            self.wiggly = True
+            self.payout = self.base_payout
             self.status = effect_name
             return getattr(self, "effect_" + effect_name)(**effect_args)
 
@@ -130,10 +140,12 @@ class SlotsSymbol(object):
 
     def effect_destroy(self, payout=0) -> Symbol:
         """destroy a symbol"""
-        return EmptySymbol()
+        return EmptySymbol(payout=payout)
 
-    def effect_alter_payout(self, new_payout) -> Symbol:
+    def effect_alter_payout(self, new_payout, permanent=False) -> Symbol:
         """change the payout"""
+        if permanent:
+            self.base_payout += new_payout
         self.payout += new_payout
         return self
 
@@ -141,8 +153,17 @@ class SlotsSymbol(object):
         """nothing!"""
         return EmptySymbol()
 
+    def effect_transform(self) -> Symbol:
+        return SlotsSymbol()
+
+    def effect_prevent_destruction(self):
+        pass
+
     #
     #
+
+    def on_destroy(self) -> Symbol:
+        return self
 
     def check_surrounding(self, inc1, inc2, results, include_self=True):
         """checks the 8 tiles around a given symbol, excludes self by default"""
@@ -161,9 +182,19 @@ class SlotsSymbol(object):
             and results[inc1][inc2] != self
         )
 
-    def check_tag_match(self, tag, against):
+    def check_tag_match(self, tag, against) -> bool:
         """check if a symbol has the given tag"""
         return tag in against.tags
+
+    def added_to_result(self) -> None:
+        """if a symbol showed up in results, this fires"""
+        self.times_appeared += 1
+
+    def grid_info(self, wiggle=False) -> tuple:
+        """build a tuple for building grid images"""
+        if not wiggle:
+            return (self.name, self.payout, STATUS_COLORS[self.status], False)
+        return (self.name, self.payout, STATUS_COLORS[self.status], self.wiggly)
 
 
 # UTILITIES
@@ -190,4 +221,4 @@ def load_from_json(json_str) -> List[SlotsSymbol]:
 
 class EmptySymbol(SlotsSymbol):
     def __init__(self, **kwargs):
-        super().__init__(name="Empty", payout=0, **kwargs)
+        super().__init__(name="Empty", base_payout=0, **kwargs)

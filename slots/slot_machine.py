@@ -51,11 +51,13 @@ class SlotMachine:
             self._spins = 0
             self.last_result = ""
             logger.info(
-                f"NG STARTING SYMBOLS: {[str(s) for s in self.starting_symbols]}"
+                f"NEW GAME STARTING SYMBOLS: {[str(s) for s in self.starting_symbols]}"
             )
         else:
             self._symbols = []
-            logger.info(f"EG STARTING SYMBOLS: {[str(s) for s in self._symbols]}")
+            logger.info(
+                f"EXISTING GAME STARTING SYMBOLS: {[str(s) for s in self._symbols]}"
+            )
             with AgimusDB(dictionary=True) as query:
                 sql = "SELECT * FROM slots__games WHERE id = %s"
                 vals = (self.game_id,)
@@ -63,7 +65,7 @@ class SlotMachine:
                 game_db_data: dict = query.fetchone()
             self.game_id = game_db_data["id"]
             self._total_winnings = game_db_data["total_winnings"]
-            if game_db_data.get("symbols", []):
+            if game_db_data.get("symbols", False):
                 json_data = json.loads(game_db_data["symbols"])
                 for s in json_data:
                     self._symbols.append(create_symbol(s))
@@ -146,14 +148,9 @@ class SlotMachine:
         after_images = self.flatten_results(deepcopy(self._spin_results))
 
         await generate_transition_gif(
-            [
-                (s.name.lower().replace(" ", "_"), s.payout, STATUS_COLORS[s.status])
-                for s in before_images
-            ],
-            [
-                (s.name.lower().replace(" ", "_"), s.payout, STATUS_COLORS[s.status])
-                for s in after_images
-            ],
+            [s.grid_info() for s in before_images],
+            [s.grid_info() for s in after_images],
+            intermediate=[s.grid_info(wiggle=True) for s in after_images],
             output_file=f"images/slots_2.0/{self.user_discord_id}_slot_anim.gif",
         )
         return self
@@ -178,10 +175,12 @@ class SlotMachine:
 
         for i in range(self.num_rows):
             for j in range(self.num_cols):
-                symbol = self._symbols.pop()  # add a symbol to each slot!
+                symbol: SlotsSymbol = self._symbols.pop()  # add a symbol to each slot!
+                symbol.added_to_result()
                 temp_results[i][j] = symbol
-        self.before_results = deepcopy(temp_results)
-        logger.info(self.before_results)
+        self.before_results = deepcopy(
+            temp_results
+        )  # keep track of the initial results before we do stuff to it!
         self.spin_results = deepcopy(temp_results)
         return self
 
@@ -206,6 +205,7 @@ class SlotMachine:
         temp_symbols = self.symbols
         for s in temp_symbols:
             s.set_status()
+            s.wiggly = False
         self.symbols = temp_symbols
 
     def apply_effects(self) -> Machine:

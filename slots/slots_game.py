@@ -37,12 +37,17 @@ class SlotsGame:
         self.debt: int = 0
         self.slot_machine: SlotMachine = None
         self._new_symbols: List[SlotsSymbol] = []
+        # this is a seed that changes based on the day of the year
+        # so each game has the same seed for everyone everyday
         self.seed = (
             datetime.now().year
             + datetime.now().month
             + datetime.now().day
             + SECRET_SEED_NUMBER
         )
+        self.random = random.Random(
+            self.seed
+        )  # instantiating my own Random class with the daily seed
         self.challenges = []
         self.starting_draft: List[List[SlotsSymbol]] = self.generate_drafts()
         self._draft_picks: List[SlotsSymbol] = []
@@ -68,10 +73,7 @@ class SlotsGame:
                 for s in json.loads(draft_picks_json):
                     self._draft_picks.append(create_symbol(s))
             self.slot_machine = SlotMachine(
-                self.id,
-                new_game=False,
-                user_id=self.player["user_discord_id"],
-                starting_symbols=self.draft_picks,
+                self.id, new_game=False, user_id=self.player["user_discord_id"]
             )
 
     def new_game(self, level):
@@ -115,7 +117,7 @@ class SlotsGame:
         """load 3 new symbols for choosing after a spin"""
         if not self.new_symbols:
             temp_symbols = basic_symbols.copy()
-            random_choices = random.sample(
+            random_choices = self.random.sample(
                 temp_symbols, k=DRAFT_PICKS_MAX
             )  # TODO: weights
             self.new_symbols = random_choices
@@ -180,8 +182,13 @@ class SlotsGame:
         """generate the symbols used for today's draft"""
         # use daily seed for starting draft
         draft = []
-        for i in range(DRAFT_ROUNDS):
-            draft.append(random.sample(basic_symbols, k=DRAFT_PICKS_MAX))
+        draft_pool = basic_symbols.copy()
+        self.random.shuffle(draft_pool)
+        for _ in range(DRAFT_ROUNDS):
+            draft_row = []
+            for _ in range(DRAFT_PICKS_MAX):
+                draft_row.append(draft_pool.pop())
+            draft.append(draft_row)
         return draft
 
     async def render_drafts(self):

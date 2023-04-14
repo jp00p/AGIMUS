@@ -133,6 +133,10 @@ images/ep*
 images/slot_results/*.png
 images/trades/*.png
 images/scrap/*.gif
+images/slots_2.0/draft*
+images/slots_2.0/*new_symbols*
+images/slots_2.0/*anim*
+
 !images/slot_results/template*
 !images/profiles/template*
 database/*
