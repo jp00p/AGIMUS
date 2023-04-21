@@ -271,7 +271,12 @@ async def on_member_remove(member):
 @bot.event
 async def on_member_update(memberBefore,memberAfter):
   if memberBefore.nick != memberAfter.nick:
-    await show_nick_change_message(memberBefore, memberAfter)
+    await show_nick_change_message(memberBefore, memberAfter, "server")
+
+@bot.event
+async def on_user_update(memberBefore,memberAfter):
+  if memberBefore.nick != memberAfter.nick:
+    await show_nick_change_message(memberBefore, memberAfter, "Discord")
 
 # Listen to channel updates
 @bot.event

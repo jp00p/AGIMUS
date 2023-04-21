@@ -27,13 +27,13 @@ async def show_leave_message(member:discord.Member):
 # shows a message when someone changes their nickname on the server
 # before[required]: discord.Member
 # after[required]: discord.Member
-async def show_nick_change_message(before,after):
+async def show_nick_change_message(before, after, scope = ""):
   if before.bot or after.bot:
     return
 
   server_log_channel = bot.get_channel(SERVER_LOGS_CHANNEL)
   msg = f"**{before.display_name}** has changed their nickname to: **{after.display_name}**"
-  logger.info(f"{Fore.LIGHTGREEN_EX}{before.display_name}{Fore.RESET} has changed their nickname to: {Fore.GREEN}{after.display_name}{Fore.RESET}")
+  logger.info(f"{Fore.LIGHTGREEN_EX}{before.display_name}{Fore.RESET} has changed their {scope} nickname to: {Fore.GREEN}{after.display_name}{Fore.RESET}")
   await server_log_channel.send(msg)
 
 # show_channel_creation_message(channel)
