@@ -31,10 +31,19 @@ async def show_nick_change_message(before, after, scope = ""):
   if before.bot or after.bot:
     return
 
-  server_log_channel = bot.get_channel(SERVER_LOGS_CHANNEL)
-  msg = f"**{before.display_name}** has changed their nickname to: **{after.display_name}**"
+  # log the nickname change in the aliases table for use with /aliases
+  with AgimusDB() as query:
+    sql = '''
+      INSERT INTO user_aliases (user_discord_id, old_alias, new_alias)
+        VALUES (%s, %s, %s)
+    '''
+    vals = (f"{after.id}", before.display_name, after.display_name)
+    query.execute(sql, vals)
+
+  server_logs_channel = bot.get_channel(get_channel_id(config["server_logs_channel"]))
+  msg = f"**{before.display_name}** has changed their {scope} nickname to: **{after.display_name}**"
   logger.info(f"{Fore.LIGHTGREEN_EX}{before.display_name}{Fore.RESET} has changed their {scope} nickname to: {Fore.GREEN}{after.display_name}{Fore.RESET}")
-  await server_log_channel.send(msg)
+  await server_logs_channel.send(msg)
 
 # show_channel_creation_message(channel)
 # sends a message when someone creates a new channel on the server

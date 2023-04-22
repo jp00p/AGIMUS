@@ -284,3 +284,11 @@ CREATE TABLE IF NOT EXISTS randomep_selections (
   PRIMARY KEY (`id`),
   UNIQUE (`user_discord_id`)
 );
+CREATE TABLE IF NOT EXISTS user_aliases (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_discord_id` varchar(64) NOT NULL,
+  `old_alias` varchar(64) NOT NULL,
+  `new_alias` varchar(64) NOT NULL,
+  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+);

@@ -7,6 +7,7 @@ from common import *
 import aiohttp
 
 # Slash Commands
+from commands.aliases import aliases
 from commands.badges import *
 from commands.dustbuster import dustbuster
 from commands.fmk import fmk
@@ -269,14 +270,14 @@ async def on_member_remove(member):
 
 # listen to nickname change events
 @bot.event
-async def on_member_update(memberBefore,memberAfter):
+async def on_member_update(memberBefore, memberAfter):
   if memberBefore.nick != memberAfter.nick:
     await show_nick_change_message(memberBefore, memberAfter, "server")
 
 @bot.event
-async def on_user_update(memberBefore,memberAfter):
-  if memberBefore.nick != memberAfter.nick:
-    await show_nick_change_message(memberBefore, memberAfter, "Discord")
+async def on_user_update(userBefore, userAfter):
+  if userBefore.display_name != userAfter.display_name:
+    await show_nick_change_message(userBefore, userAfter, "Discord")
 
 # Listen to channel updates
 @bot.event

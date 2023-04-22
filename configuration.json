@@ -326,6 +326,16 @@
       "openai_model": "text-davinci-002",
       "parameters": []
     },
+    "aliases": {
+      "channels": [
+        "mclaughlin-group",
+        "mo-pips-mo-problemz",
+        "code-47",
+        "robot-diagnostics"
+      ],
+      "enabled": true,
+      "parameters": []
+    },
     "reports": {
       "channels": [
         "lieutenants-lounge",
