@@ -214,6 +214,16 @@ def db_get_wishlist_dismissal(user_discord_id, match_discord_id):
     results = query.fetchone()
   return results
 
+def db_get_all_users_wishlist_dismissals(user_discord_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = '''
+      SELECT * FROM wishlist_dismissals WHERE user_discord_id = %s;
+    '''
+    vals = (user_discord_id,)
+    query.execute(sql, vals)
+    results = query.fetchall()
+  return results
+
 def db_delete_wishlist_dismissal(user_discord_id, match_discord_id):
   with AgimusDB(dictionary=True) as query:
     sql = '''
