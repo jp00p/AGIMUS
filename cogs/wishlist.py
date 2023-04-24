@@ -5,6 +5,14 @@ from utils.check_channel_access import access_check
 
 all_badge_info = db_get_all_badge_info()
 
+paginator_buttons = [
+  pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
+  pages.PaginatorButton(
+    "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
+  ),
+  pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
+]
+
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
 #  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \
@@ -88,6 +96,35 @@ class DismissButton(discord.ui.Button):
       ephemeral=True
     )
 
+
+# __________                   __          ________  .__               .__                      .__ __________        __    __
+# \______   \ _______  ______ |  | __ ____ \______ \ |__| ______ _____ |__| ______ ___________  |  |\______   \__ ___/  |__/  |_  ____   ____
+#  |       _// __ \  \/ /  _ \|  |/ // __ \ |    |  \|  |/  ___//     \|  |/  ___//  ___/\__  \ |  | |    |  _/  |  \   __\   __\/  _ \ /    \
+#  |    |   \  ___/\   (  <_> )    <\  ___/ |    `   \  |\___ \|  Y Y  \  |\___ \ \___ \  / __ \|  |_|    |   \  |  /|  |  |  | (  <_> )   |  \
+#  |____|_  /\___  >\_/ \____/|__|_ \\___  >_______  /__/____  >__|_|  /__/____  >____  >(____  /____/______  /____/ |__|  |__|  \____/|___|  /
+#         \/     \/                \/    \/        \/        \/      \/        \/     \/      \/            \/                              \/
+class RevokeDismissalButton(discord.ui.Button):
+  def __init__(self, cog, author_discord_id, match_discord_id):
+    self.cog = cog
+    self.author_discord_id = author_discord_id
+    self.match_discord_id = match_discord_id
+    super().__init__(
+      label="    Revoke Dismissal    ",
+      style=discord.ButtonStyle.primary,
+      row=2
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    db_delete_wishlist_dismissal(self.author_discord_id, self.match_discord_id)
+    await self.view.message.delete()
+    match_user = await bot.current_guild.fetch_member(self.match_discord_id)
+    await interaction.response.send_message(
+      embed=discord.Embed(
+        title=f"Your wishlist dismissal match with {match_user.display_name} has been revoked.",
+        description="You may use `/wishlist matches` in the future to review the match."
+      ),
+      ephemeral=True
+    )
 
 #  __      __.__       .__    .__  .__          __    _________
 # /  \    /  \__| _____|  |__ |  | |__| _______/  |_  \_   ___ \  ____   ____
@@ -286,16 +323,11 @@ class Wishlist(commands.Cog):
           'wants': inventory_aggregate[key]
         }
 
+    # We might iterate through and not display any results because all of the potential matches were dismissed
+    # In this case, keep track and if so display a different result message at the bottom
+    all_dismissed = True
+
     if len(exact_matches_aggregate.keys()):
-
-      paginator_buttons = [
-        pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
-        pages.PaginatorButton(
-          "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
-        ),
-        pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
-      ]
-
       for user_id in exact_matches_aggregate.keys():
         user = await bot.current_guild.fetch_member(user_id)
 
@@ -392,6 +424,7 @@ class Wishlist(commands.Cog):
           custom_view=view
         )
         await paginator.respond(ctx.interaction, ephemeral=True)
+        all_dismissed = False
 
     else:
       await ctx.followup.send(
@@ -401,6 +434,194 @@ class Wishlist(commands.Cog):
           color=discord.Color.blurple()
         )
       )
+      return
+
+    if all_dismissed:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="All Wishlist Matches Dismissed",
+          description="You have one or more matches, but they've been dismissed.\n\nYou can use `/wishlist dismissals` to review them.",
+          color=discord.Color.blurple()
+        )
+      )
+
+
+  # ________  .__               .__                      .__
+  # \______ \ |__| ______ _____ |__| ______ ___________  |  |   ______
+  #  |    |  \|  |/  ___//     \|  |/  ___//  ___/\__  \ |  |  /  ___/
+  #  |    `   \  |\___ \|  Y Y  \  |\___ \ \___ \  / __ \|  |__\___ \
+  # /_______  /__/____  >__|_|  /__/____  >____  >(____  /____/____  >
+  #         \/        \/      \/        \/     \/      \/          \/
+  @wishlist_group.command(
+    name="dismissals",
+    description="Review any wishlist matches which have been dismissed"
+  )
+  @commands.check(access_check)
+  async def dismissals(self, ctx:discord.ApplicationContext):
+    await ctx.defer(ephemeral=True)
+    author_discord_id = ctx.author.id
+
+    logger.info(f"{ctx.author.display_name} is reviewing their {Style.BRIGHT}dismissals{Style.RESET_ALL} on their {Style.BRIGHT}wishlist matches{Style.RESET_ALL}")
+
+    # Housekeeping
+    # Clear any badges from the users wishlist that the user may already possess currently
+    db_purge_users_wishlist(author_discord_id)
+    self._purge_invalid_wishlist_dismissals(author_discord_id)
+
+    dismissals = db_get_all_users_wishlist_dismissals(author_discord_id)
+
+    if dismissals:
+      for dismissal in dismissals:
+        match_discord_id = dismissal['match_discord_id']
+        user = await bot.current_guild.fetch_member(match_discord_id)
+        dismissal_has = json.loads(dismissal.get('has'))
+        dismissal_wants = json.loads(dismissal.get('wants'))
+
+        has_badges = [db_get_badge_info_by_name(b) for b in dismissal_has]
+        wants_badges = [db_get_badge_info_by_name(b) for b in dismissal_wants]
+
+        max_badges_per_page = 30
+
+        # Pages for Badges Match Has
+        all_has_pages = [has_badges[i:i + max_badges_per_page] for i in range(0, len(has_badges), max_badges_per_page)]
+        total_has_pages = len(all_has_pages)
+
+        has_pages = []
+        for page_index, page_badges in enumerate(all_has_pages):
+          embed = discord.Embed(
+            title="Has From Your Wishlist:",
+            description="\n".join([f"[{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
+            color=discord.Color.blurple()
+          )
+          embed.set_footer(text=f"Match with {user.display_name}\nPage {page_index + 1} of {total_has_pages}")
+          has_pages.append(embed)
+
+        # Pages for Badges Match Wants
+        all_wants_pages = [wants_badges[i:i + max_badges_per_page] for i in range(0, len(wants_badges), max_badges_per_page)]
+        total_wants_pages = len(all_wants_pages)
+
+        wants_pages = []
+        for page_index, page_badges in enumerate(all_wants_pages):
+          embed = discord.Embed(
+            title="Wants From Your Inventory:",
+            description="\n".join([f"[{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
+            color=discord.Color.blurple()
+          )
+          embed.set_footer(text=f"Match with {user.display_name}\nPage {page_index + 1} of {total_wants_pages}")
+          wants_pages.append(embed)
+
+
+        view = discord.ui.View()
+        view.add_item(RevokeDismissalButton(self, author_discord_id, match_discord_id))
+
+        page_groups = [
+          pages.PageGroup(
+            pages=[
+              discord.Embed(
+                title="Wishlist Match!",
+                description=f"{user.mention} ({user.display_name}) has a wishlist match with you!",
+                color=discord.Color.blurple()
+              )
+            ],
+            label=f"{user.display_name}'s Match!",
+            description="Details and Info",
+            custom_buttons=paginator_buttons,
+            use_default_buttons=False,
+            custom_view=view
+          ),
+          pages.PageGroup(
+            pages=has_pages,
+            label="What You Want",
+            description="Badges The Match Has From Your Wishlist",
+            custom_buttons=paginator_buttons,
+            use_default_buttons=False,
+            custom_view=view
+          ),
+          pages.PageGroup(
+            pages=wants_pages,
+            label="What They Want",
+            description="Badges The Match Is Looking For",
+            custom_buttons=paginator_buttons,
+            use_default_buttons=False,
+            custom_view=view
+          )
+        ]
+
+        paginator = pages.Paginator(
+          pages=page_groups,
+          show_menu=True,
+          custom_buttons=paginator_buttons,
+          use_default_buttons=False,
+          custom_view=view
+        )
+        await paginator.respond(ctx.interaction, ephemeral=True)
+
+    else:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="No Wishlist Dismissals Found",
+          description="You do not have any currently dismissed wishlist matches!",
+          color=discord.Color.blurple()
+        )
+      )
+
+  def _purge_invalid_wishlist_dismissals(self, author_discord_id):
+    # Get all the users and the badgenames that have the badges the user wants
+    wishlist_matches = db_get_wishlist_matches(author_discord_id)
+    wishlist_aggregate = {}
+    if wishlist_matches:
+      for match in wishlist_matches:
+        user_id = int(match['user_discord_id'])
+        if user_id == author_discord_id:
+          continue
+
+        user_record = wishlist_aggregate.get(user_id)
+        if not user_record:
+          wishlist_aggregate[user_id] = [match]
+        else:
+          wishlist_aggregate[user_id].append(match)
+
+    # Get all the users and the badgenames that want badges that the user has
+    inventory_matches = db_get_wishlist_inventory_matches(author_discord_id)
+    inventory_aggregate = {}
+    if inventory_matches:
+      for match in inventory_matches:
+        user_id = int(match['user_discord_id'])
+        if user_id == author_discord_id:
+          continue
+
+        user_record = inventory_aggregate.get(user_id)
+        if not user_record:
+          inventory_aggregate[user_id] = [match]
+        else:
+          inventory_aggregate[user_id].append(match)
+
+    # Now create an aggregate of the users that intersect
+    exact_matches_aggregate = {}
+    for key in wishlist_aggregate:
+      if key in inventory_aggregate:
+        exact_matches_aggregate[key] = {
+          'has': wishlist_aggregate[key],
+          'wants': inventory_aggregate[key]
+        }
+
+    if len(exact_matches_aggregate.keys()):
+      for user_id in exact_matches_aggregate.keys():
+        has_badges = exact_matches_aggregate[user_id]['has']
+        has_badges = sorted(has_badges, key=lambda b: b['badge_name'])
+        has_badges_names = [b['badge_name'] for b in has_badges]
+
+        wants_badges = exact_matches_aggregate[user_id]['wants']
+        wants_badges = sorted(wants_badges, key=lambda b: b['badge_name'])
+        wants_badges_names = [b['badge_name'] for b in wants_badges]
+
+        # Check for Dismissals
+        dismissal = db_get_wishlist_dismissal(author_discord_id, user_id)
+        if dismissal:
+          dismissal_has = json.loads(dismissal.get('has'))
+          dismissal_wants = json.loads(dismissal.get('wants'))
+          if has_badges_names != dismissal_has and wants_badges_names != dismissal_wants:
+            db_delete_wishlist_dismissal(author_discord_id, user_id)
 
   #    _____       .___  .___
   #   /  _  \    __| _/__| _/
