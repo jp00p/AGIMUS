@@ -853,6 +853,14 @@
       "data": null,
       "parameters": []
     },
+    "wishlist dismissals": {
+      "channels": [
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "wishlist matches": {
       "channels": [
         "bahrats-bazaar"

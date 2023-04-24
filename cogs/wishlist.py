@@ -97,12 +97,12 @@ class DismissButton(discord.ui.Button):
     )
 
 
-# __________                   __          ________  .__               .__                      .__ __________        __    __                 
-# \______   \ _______  ______ |  | __ ____ \______ \ |__| ______ _____ |__| ______ ___________  |  |\______   \__ ___/  |__/  |_  ____   ____  
-#  |       _// __ \  \/ /  _ \|  |/ // __ \ |    |  \|  |/  ___//     \|  |/  ___//  ___/\__  \ |  | |    |  _/  |  \   __\   __\/  _ \ /    \ 
+# __________                   __          ________  .__               .__                      .__ __________        __    __
+# \______   \ _______  ______ |  | __ ____ \______ \ |__| ______ _____ |__| ______ ___________  |  |\______   \__ ___/  |__/  |_  ____   ____
+#  |       _// __ \  \/ /  _ \|  |/ // __ \ |    |  \|  |/  ___//     \|  |/  ___//  ___/\__  \ |  | |    |  _/  |  \   __\   __\/  _ \ /    \
 #  |    |   \  ___/\   (  <_> )    <\  ___/ |    `   \  |\___ \|  Y Y  \  |\___ \ \___ \  / __ \|  |_|    |   \  |  /|  |  |  | (  <_> )   |  \
 #  |____|_  /\___  >\_/ \____/|__|_ \\___  >_______  /__/____  >__|_|  /__/____  >____  >(____  /____/______  /____/ |__|  |__|  \____/|___|  /
-#         \/     \/                \/    \/        \/        \/      \/        \/     \/      \/            \/                              \/ 
+#         \/     \/                \/    \/        \/        \/      \/        \/     \/      \/            \/                              \/
 class RevokeDismissalButton(discord.ui.Button):
   def __init__(self, cog, author_discord_id, match_discord_id):
     self.cog = cog
@@ -440,18 +440,18 @@ class Wishlist(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="All Wishlist Matches Dismissed",
-          description="You have one or more matches, but they've been dismissed. You can use `/wishlist dismissals` to review them.",
+          description="You have one or more matches, but they've been dismissed.\n\nYou can use `/wishlist dismissals` to review them.",
           color=discord.Color.blurple()
         )
       )
 
 
-  # ________  .__               .__                      .__          
+  # ________  .__               .__                      .__
   # \______ \ |__| ______ _____ |__| ______ ___________  |  |   ______
   #  |    |  \|  |/  ___//     \|  |/  ___//  ___/\__  \ |  |  /  ___/
-  #  |    `   \  |\___ \|  Y Y  \  |\___ \ \___ \  / __ \|  |__\___ \ 
+  #  |    `   \  |\___ \|  Y Y  \  |\___ \ \___ \  / __ \|  |__\___ \
   # /_______  /__/____  >__|_|  /__/____  >____  >(____  /____/____  >
-  #         \/        \/      \/        \/     \/      \/          \/ 
+  #         \/        \/      \/        \/     \/      \/          \/
   @wishlist_group.command(
     name="dismissals",
     description="Review any wishlist matches which have been dismissed"
@@ -466,7 +466,7 @@ class Wishlist(commands.Cog):
     # Housekeeping
     # Clear any badges from the users wishlist that the user may already possess currently
     db_purge_users_wishlist(author_discord_id)
-    _purge_invalid_wishlist_dismissals(author_discord_id)
+    self._purge_invalid_wishlist_dismissals(author_discord_id)
 
     dismissals = db_get_all_users_wishlist_dismissals(author_discord_id)
 
@@ -565,64 +565,63 @@ class Wishlist(commands.Cog):
         )
       )
 
-def _purge_invalid_wishlist_dismissals(author_discord_id):
-  # Get all the users and the badgenames that have the badges the user wants
-  wishlist_matches = db_get_wishlist_matches(author_discord_id)
-  wishlist_aggregate = {}
-  if wishlist_matches:
-    for match in wishlist_matches:
-      user_id = int(match['user_discord_id'])
-      if user_id == author_discord_id:
-        continue
+  def _purge_invalid_wishlist_dismissals(self, author_discord_id):
+    # Get all the users and the badgenames that have the badges the user wants
+    wishlist_matches = db_get_wishlist_matches(author_discord_id)
+    wishlist_aggregate = {}
+    if wishlist_matches:
+      for match in wishlist_matches:
+        user_id = int(match['user_discord_id'])
+        if user_id == author_discord_id:
+          continue
 
-      user_record = wishlist_aggregate.get(user_id)
-      if not user_record:
-        wishlist_aggregate[user_id] = [match]
-      else:
-        wishlist_aggregate[user_id].append(match)
+        user_record = wishlist_aggregate.get(user_id)
+        if not user_record:
+          wishlist_aggregate[user_id] = [match]
+        else:
+          wishlist_aggregate[user_id].append(match)
 
-  # Get all the users and the badgenames that want badges that the user has
-  inventory_matches = db_get_wishlist_inventory_matches(author_discord_id)
-  inventory_aggregate = {}
-  if inventory_matches:
-    for match in inventory_matches:
-      user_id = int(match['user_discord_id'])
-      if user_id == author_discord_id:
-        continue
+    # Get all the users and the badgenames that want badges that the user has
+    inventory_matches = db_get_wishlist_inventory_matches(author_discord_id)
+    inventory_aggregate = {}
+    if inventory_matches:
+      for match in inventory_matches:
+        user_id = int(match['user_discord_id'])
+        if user_id == author_discord_id:
+          continue
 
-      user_record = inventory_aggregate.get(user_id)
-      if not user_record:
-        inventory_aggregate[user_id] = [match]
-      else:
-        inventory_aggregate[user_id].append(match)
+        user_record = inventory_aggregate.get(user_id)
+        if not user_record:
+          inventory_aggregate[user_id] = [match]
+        else:
+          inventory_aggregate[user_id].append(match)
 
-  # Now create an aggregate of the users that intersect
-  exact_matches_aggregate = {}
-  for key in wishlist_aggregate:
-    if key in inventory_aggregate:
-      exact_matches_aggregate[key] = {
-        'has': wishlist_aggregate[key],
-        'wants': inventory_aggregate[key]
-      }
+    # Now create an aggregate of the users that intersect
+    exact_matches_aggregate = {}
+    for key in wishlist_aggregate:
+      if key in inventory_aggregate:
+        exact_matches_aggregate[key] = {
+          'has': wishlist_aggregate[key],
+          'wants': inventory_aggregate[key]
+        }
 
-  if len(exact_matches_aggregate.keys()):
-    for user_id in exact_matches_aggregate.keys():
-      has_badges = exact_matches_aggregate[user_id]['has']
-      has_badges = sorted(has_badges, key=lambda b: b['badge_name'])
-      has_badges_names = [b['badge_name'] for b in has_badges]
+    if len(exact_matches_aggregate.keys()):
+      for user_id in exact_matches_aggregate.keys():
+        has_badges = exact_matches_aggregate[user_id]['has']
+        has_badges = sorted(has_badges, key=lambda b: b['badge_name'])
+        has_badges_names = [b['badge_name'] for b in has_badges]
 
-      wants_badges = exact_matches_aggregate[user_id]['wants']
-      wants_badges = sorted(wants_badges, key=lambda b: b['badge_name'])
-      wants_badges_names = [b['badge_name'] for b in wants_badges]
+        wants_badges = exact_matches_aggregate[user_id]['wants']
+        wants_badges = sorted(wants_badges, key=lambda b: b['badge_name'])
+        wants_badges_names = [b['badge_name'] for b in wants_badges]
 
-      # Check for Dismissals
-      dismissal = db_get_wishlist_dismissal(author_discord_id, user_id)
-      if dismissal:
-        dismissal_has = json.loads(dismissal.get('has'))
-        dismissal_wants = json.loads(dismissal.get('wants'))
-        if has_badges_names != dismissal_has and wants_badges_names != dismissal_wants:
-          db_delete_wishlist_dismissal(author_discord_id, user_id)
-
+        # Check for Dismissals
+        dismissal = db_get_wishlist_dismissal(author_discord_id, user_id)
+        if dismissal:
+          dismissal_has = json.loads(dismissal.get('has'))
+          dismissal_wants = json.loads(dismissal.get('wants'))
+          if has_badges_names != dismissal_has and wants_badges_names != dismissal_wants:
+            db_delete_wishlist_dismissal(author_discord_id, user_id)
 
   #    _____       .___  .___
   #   /  _  \    __| _/__| _/
