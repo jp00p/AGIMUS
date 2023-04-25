@@ -99,6 +99,11 @@
     "description": "Do you realize how incredible this is?",
     "url": "https://i.imgur.com/KHgV0K1.mp4"
   },
+  "Dr Evil: How About No?": {
+    "file": "data/drops/howaboutno.mp4",
+    "description": "Dr Evil Doctor Evil How About No",
+    "url": "https://i.imgur.com/YTV8si3.mp4"
+  },
   "Drink! It's The Antidote!": {
     "file": "data/drops/drinkitstheantidote.mp4",
     "description": "Bashir: Drink It's The Antidote!",
@@ -138,6 +143,11 @@
     "file": "data/drops/jakesisko.mp4",
     "description": "Jake Sisko. For some reason Jake.",
     "url": "https://i.imgur.com/xycZQwH.mp4"
+  },
+  "G SEVONN": {
+    "file": "data/drops/gsevonn.mp4",
+    "description": "G Seven G 7 G Sevonn You just hit G 8 G Eight If You Like Pina Coladas",
+    "url": "https://i.imgur.com/9Y9nmt4.mp4"
   },
   "Game of Buttholes: ALLAMARAINE!": {
     "file": "data/drops/gameofbuttholesallamaraine.mp4",
@@ -484,6 +494,11 @@
     "description": "The Dr Z (v2.0) Drop. User drop.",
     "url": "https://i.imgur.com/uyOBghv.mp4"
   },
+  "The DrWeird Drop": {
+    "file": "data/drops/thedrweirddrop.mp4",
+    "description": "The DrWeird Drop. User drop.",
+    "url": "https://i.imgur.com/61uLuXa.mp4"
+  },
   "The Erica Drop": {
     "file": "data/drops/theericadrop.mp4",
     "description": "The Erica Drop. User drop.",
@@ -559,6 +574,11 @@
     "description": "The Nubbin Bug Drop. User drop.",
     "url": "https://i.imgur.com/MogdPbZ.mp4"
   },
+  "The Odo Drop": {
+    "file": "data/drops/theododrop.mp4",
+    "description": "The Odo Drop. User drop.",
+    "url": "https://i.imgur.com/eD4pgEq.mp4"
+  },
   "The odosbucket_13 Drop": {
     "file": "data/drops/theodosbucket_13drop.mp4",
     "description": "The odosbucket_13 Drop. User drop.",
@@ -608,6 +628,11 @@
     "file": "data/drops/thesaradrop.mp4",
     "description": "The Sara Drop. User drop.",
     "url": "https://i.imgur.com/iWfo5MX.mp4"
+  },
+  "The SerniaRS Drop": {
+    "file": "data/drops/theserniarsdrop.mp4",
+    "description": "The SerniaRS Drop. User drop.",
+    "url": "https://i.imgur.com/25CJhlW.mp4"
   },
   "The Seska Drop": {
     "file": "data/drops/theseskadrop.mp4",
