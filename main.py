@@ -15,6 +15,7 @@ from commands.help import help
 from commands.info import info
 from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
+from commands.pin import pin, unpin
 from commands.reports import reports
 from commands.scores import scores
 from commands.setwager import setwager
@@ -209,9 +210,11 @@ async def on_ready():
     logger.info(f"{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}")
     logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")
 
+    bot.current_guild = bot.guilds[0]
     # generate local channels list
     generate_local_channel_list(bot)
-    bot.current_guild = bot.guilds[0]
+    # generate local roles map
+    generate_local_role_map(bot)
 
     # Set a fun random presence
     random_presences = [

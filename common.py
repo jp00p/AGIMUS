@@ -113,6 +113,23 @@ LOGGING_CHANNEL = get_channel_id(config["logging_channel"])
 SERVER_LOGS_CHANNEL = get_channel_id(config["server_logs_channel"])
 
 
+# Role Helpers
+def get_role_ids_list(role_list):
+  role_list = list(role_list)
+  role_list.sort()
+  role_ids = []
+  for x in role_list:
+    id = get_role_id(x)
+    role_ids.append(id)
+  return role_ids
+
+def get_role_id(role_identifier):
+  if isinstance(role_identifier, str):
+    id = config["role_map"].get(role_identifier)
+  else:
+    id = role_identifier
+  return id
+
 # ________          __        ___.
 # \______ \ _____ _/  |______ \_ |__ _____    ______ ____
 #  |    |  \\__  \\   __\__  \ | __ \\__  \  /  ___// __ \
@@ -321,6 +338,20 @@ def generate_local_channel_list(client):
     # channel_list_json = json.dumps(channel_list, indent=2, sort_keys=True)
     updated_channel_list = deep_dict_update({ "channels": config['channels'] }, { "channels" : channel_list })
     config["channels"] = updated_channel_list["channels"]
+
+# generate_local_role_map(client)
+# client[required]: discord.Bot
+# This runs to apply the local role map (name to id) on top of the existing role map config
+def generate_local_role_map(client):
+  if client.guilds[0]:
+    roles = client.guilds[0].roles
+    role_map = {}
+    for role in roles:
+      role_name = role.name.encode("ascii", errors="ignore").decode().strip()
+      role_map[role_name] = role.id
+    # role_map_json = json.dumps(role_map, indent=2, sort_keys=True)
+    updated_role_map = deep_dict_update({ "role_map": config['role_map'] }, { "role_map" : role_map })
+    config["role_map"] = updated_role_map["role_map"]
 
 # get_emoji(emoji_name)
 # emoji_name[required]: str
