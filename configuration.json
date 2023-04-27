@@ -493,6 +493,17 @@
       "data": null,
       "parameters": []
     },
+    "pin": {
+      "allowed_roles": [
+        "Admiral",
+        "Captain",
+        "Commander",
+        "Lt. Commander"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "ping": {
       "channels": [
         "robot-diagnostics"
@@ -847,6 +858,17 @@
       "data": "data/all_characters.txt",
       "parameters": []
     },
+    "unpin": {
+      "allowed_roles": [
+        "Admiral",
+        "Captain",
+        "Commander",
+        "Lt. Commander"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "update_status": {
       "channels": [],
       "enabled": true,
@@ -898,6 +920,7 @@
   "guild_ids": [
     689512841887481875
   ],
+  "role_map": {},
   "roles": {
     "agimus_maintainers": "AGIMUS Acolyte",
     "shimoda_pollsters": "T'Pollsters",
