@@ -1,0 +1,1 @@
+UPDATE badge_type SET type_name = "Science/Research" WHERE type_name = "Research/Science";
