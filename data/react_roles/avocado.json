@@ -12,11 +12,11 @@
   "reactions": [
     {
       "emoji": "🥑",
-      "role": "avocadophile"
+      "role": "avocado lover"
     },
     {
       "emoji": "🚫",
-      "role": "avocadophobe"
+      "role": "avocado hater"
     }
   ]
 }
