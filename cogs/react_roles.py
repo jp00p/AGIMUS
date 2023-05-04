@@ -67,12 +67,16 @@ class ReactRoles(commands.Cog):
         if reaction_type == "single":
           # if its a single type reaction, remove all other associated roles
           roles_to_remove = []
-          for rr in data["reactions"].values():
+          emoji_to_remove = []
+          for role_emoji, rr in data["reactions"].items():
             if rr.id != role.id:
               roles_to_remove.append(rr)
+              emoji_to_remove.append(role_emoji)
           if len(roles_to_remove) > 0:
             await user.remove_roles(*roles_to_remove, reason="ReactionRole")
             user_dm_message += f"\n> This has removed other roles in that same category automatically. Magic!"
+            for role_emoji in emoji_to_remove:
+              await message.remove_reaction(role_emoji, user)
       else:
           # they already have the role, remove it!
           if user.get_role(role.id) != None and payload.event_type == "REACTION_REMOVE":
