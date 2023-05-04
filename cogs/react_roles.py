@@ -13,7 +13,7 @@ class ReactRoles(commands.Cog):
       f = open(f"./data/react_roles/{message_type}.json")
       self.reaction_data[message_type] = json.load(f) # fill the base json for our messages
       f.close()
-  
+
   @commands.Cog.listener()
   async def on_ready(self):
     self.roles_channel = self.bot.get_channel(config["channels"]["roles-and-pronouns"])
@@ -83,31 +83,31 @@ class ReactRoles(commands.Cog):
         if random.choice([0,1,2]) == 1:
           user_dm_message += f"\n\n(PS. Use `/settings` in the server to disable these DMs if you need to.)"
         await user.send(user_dm_message)
-      
-        
+
+
 
   # updates db with new message details and deletes old messages from db
   def store_reaction_data(self, header_id, message_id, message_name, reaction_type):
     header_message_name = f"{message_name}_header"
     with AgimusDB() as query:
-    
+
       sql = [
-        "DELETE FROM reaction_role_messages WHERE message_name IN (%(message_name)s, %(header_name)s)", 
+        "DELETE FROM reaction_role_messages WHERE message_name IN (%(message_name)s, %(header_name)s)",
         "INSERT INTO reaction_role_messages (message_id, reaction_type, message_name) VALUES (%(message_id)s, %(reaction_type)s, %(message_name)s)",
         "INSERT INTO reaction_role_messages (message_id, message_name) VALUES (%(header_id)s, %(header_name)s)"
       ]
-      vals = { 
-        "message_name": message_name, 
-        "header_name": header_message_name, 
-        "message_id": message_id, 
-        "header_id": header_id, 
-        "reaction_type": reaction_type 
+      vals = {
+        "message_name": message_name,
+        "header_name": header_message_name,
+        "message_id": message_id,
+        "header_id": header_id,
+        "reaction_type": reaction_type
       }
       for q in sql:
         query.execute(q, vals)
-        
+
     self.reaction_roles = self.load_role_reactions()
-    
+
   # add initial reactions to message
   async def add_role_reactions(self, message, reacts):
     if len(reacts) > 0:
@@ -124,24 +124,30 @@ class ReactRoles(commands.Cog):
 
   @commands.command()
   @commands.has_permissions(administrator=True)
-  async def q_update_role_messages(self, ctx:discord.ApplicationContext):
+  async def q_update_role_messages(self, ctx:discord.ApplicationContext, clear=False):
     logger.info(f"{ctx.author.display_name} is running the top secret {Back.RED}{Fore.WHITE}UPDATE ROLE MESSAGES{Fore.RESET}{Back.RESET} command!")
     await ctx.message.delete()
     # if there are existing messages, remove them
-    if self.reaction_db_data and len(self.reaction_db_data) > 0:
-      for rm in self.reaction_db_data:
-        message = None
-        try:
-          message = await self.roles_channel.fetch_message(rm["message_id"])
-        except:
-          logger.info("React role message not found, oh well! Moving on with my life.")
-        else:
-          if message:
-            logger.info(f"Deleting old role message {message.id}")
-            await message.delete()  
-    
+    if clear:
+      if self.reaction_db_data and len(self.reaction_db_data) > 0:
+        for rm in self.reaction_db_data:
+          message = None
+          try:
+            message = await self.roles_channel.fetch_message(rm["message_id"])
+          except:
+            logger.info("React role message not found, oh well! Moving on with my life.")
+          else:
+            if message:
+              logger.info(f"Deleting old role message {message.id}")
+              await message.delete()
+    else:
+      existing_messages = {rdb["message_name"]:rdb for rdb in self.reaction_db_data}
+
     # loop over all the reaction data and build out the messages
     for message_name, p in self.reaction_data.items():
+      if not clear and existing_messages.get(message_name):
+        continue
+
       message_content = p["message_content"] # the plain message content
       embed = None # build the embed
 
@@ -154,12 +160,12 @@ class ReactRoles(commands.Cog):
         embed = self.build_react_embed(p)
         # send the message
         react_role_msg = await self.roles_channel.send(content=message_content, embed=embed)
-      
+
       # save some of the message details to the database
       self.store_reaction_data(header_msg.id, react_role_msg.id, message_name, p["reaction_type"])
       self.reaction_roles = self.load_role_reactions()
       # add the reactions to the message
-      await self.add_role_reactions(react_role_msg, p["reactions"])    
+      await self.add_role_reactions(react_role_msg, p["reactions"])
     # update role reactions dict
     self.role_reactions = self.load_role_reactions()
 
