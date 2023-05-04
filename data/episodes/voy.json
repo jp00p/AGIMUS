@@ -2564,7 +2564,15 @@
       "episode": "23",
       "imdb": "tt0708846",
       "memoryalpha": "11:59_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 468,
+          "airdate": "2023.05.01",
+          "episode": "The Bruce McGillification of Our Unhoused Neighbors",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-468-the-bruce-mcgillification-of-our-unhoused-neighbors-voy-s5e23/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/l2Yrx9tDqO81dCP966akDKnypU5.jpg"
