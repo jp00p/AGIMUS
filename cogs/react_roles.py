@@ -2,7 +2,7 @@ from distutils.command.build import build
 from common import *
 
 class ReactRoles(commands.Cog):
-  def __init__(self, bot):
+  def __init__(self, bot:commands.Bot):
     self.bot = bot
     self.roles_channel = None
     self.reaction_roles = {} # role list
@@ -94,18 +94,20 @@ class ReactRoles(commands.Cog):
       sql = [
         "DELETE FROM reaction_role_messages WHERE message_name IN (%(message_name)s, %(header_name)s)",
         "INSERT INTO reaction_role_messages (message_id, reaction_type, message_name) VALUES (%(message_id)s, %(reaction_type)s, %(message_name)s)",
-        "INSERT INTO reaction_role_messages (message_id, message_name) VALUES (%(header_id)s, %(header_name)s)"
       ]
       vals = {
         "message_name": message_name,
         "header_name": header_message_name,
         "message_id": message_id,
-        "header_id": header_id,
         "reaction_type": reaction_type
       }
       for q in sql:
         query.execute(q, vals)
-
+        
+      if header_id:
+        sql = "INSERT INTO reaction_role_messages (message_id, message_name) VALUES (%(header_id)s, %(header_name)s)"
+        query.execute(sql, {'header_id': header_id, 'header_name': header_message_name})
+      
     self.reaction_roles = self.load_role_reactions()
 
   # add initial reactions to message
@@ -129,40 +131,40 @@ class ReactRoles(commands.Cog):
     await ctx.message.delete()
     # if there are existing messages, remove them
     if clear:
-      if self.reaction_db_data and len(self.reaction_db_data) > 0:
+      if len(self.reaction_db_data) > 0:
         for rm in self.reaction_db_data:
-          message = None
           try:
             message = await self.roles_channel.fetch_message(rm["message_id"])
-          except:
+          except discord.NotFound:
             logger.info("React role message not found, oh well! Moving on with my life.")
           else:
-            if message:
-              logger.info(f"Deleting old role message {message.id}")
-              await message.delete()
+            logger.info(f"Deleting old role message {message.id}")
+            await message.delete()
+      existing_messages = {}
     else:
       existing_messages = {rdb["message_name"]:rdb for rdb in self.reaction_db_data}
 
     # loop over all the reaction data and build out the messages
     for message_name, p in self.reaction_data.items():
-      if not clear and existing_messages.get(message_name):
+      if existing_messages.get(message_name):
         continue
 
       message_content = p["message_content"] # the plain message content
-      embed = None # build the embed
 
       if p.get("header_image_url") != "":
         # post the header image first
         header_msg = await self.roles_channel.send(content=p["header_image_url"])
+        header_msg_id = header_msg.id
+      else:
+        header_msg_id = None
 
       # build the embed
-      if p.get("embed"):
-        embed = self.build_react_embed(p)
-        # send the message
-        react_role_msg = await self.roles_channel.send(content=message_content, embed=embed)
+      embed = self.build_react_embed(p)
+      # send the message
+      react_role_msg = await self.roles_channel.send(content=message_content, embed=embed)
 
       # save some of the message details to the database
-      self.store_reaction_data(header_msg.id, react_role_msg.id, message_name, p["reaction_type"])
+      self.store_reaction_data(header_msg_id, react_role_msg.id, message_name, p["reaction_type"])
       self.reaction_roles = self.load_role_reactions()
       # add the reactions to the message
       await self.add_role_reactions(react_role_msg, p["reactions"])
