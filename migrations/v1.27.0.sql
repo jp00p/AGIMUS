@@ -1,0 +1,14 @@
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Denaxi Depot Cargo Label", "Denaxi-Depot-Cargo-Label.png", "https://startrekdesignproject.com/symbols/denaxi-depot-cargo-label/", "Beta", "2300s", "Prodigy", "S01E14 Crossroads");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Denaxi-Depot-Cargo-Label.png", "Commerce");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Denaxi-Depot-Cargo-Label.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Free Spirit", "Starship-Free-Spirit.png", "https://startrekdesignproject.com/symbols/free-spirit/", "Alpha", "2300s", "Lower Decks", "S03E10 The Stars At Night");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Starship-Free-Spirit.png", "Starship");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Starship-Free-Spirit.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Klingon Advisory (Sample)", "Klingon-Advisory.png", "https://startrekdesignproject.com/symbols/klingon-advisory-sample/", "Beta", "2300s", "The Next Generation", "S03E17 Sins of The Father");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Klingon-Advisory.png", "Klingon Empire");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Klingon-Advisory.png", "Advisory");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Klingon-Advisory.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Prodigy Ship Directional (Sample)", "Prodigy-Ship-Directional.png", "https://startrekdesignproject.com/symbols/prodigy-ship-directional-sample/", "Alpha", "2300s", "Prodigy", "S01E10 A Moral Star, Part 2");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Prodigy-Ship-Directional.png", "Starfleet");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Prodigy-Ship-Directional.png", "Pictogram");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Prodigy-Ship-Directional.png", "Prime");
