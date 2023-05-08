@@ -1,0 +1,1 @@
+DELETE FROM reaction_role_messages WHERE message_name = "avocado";

@@ -8,7 +8,7 @@ class ReactRoles(commands.Cog):
     self.reaction_roles = {} # role list
     self.reaction_data = {} # base json data
     self.reaction_db_data = self.get_reaction_db_data() # db data
-    message_names = ["pronouns", "locations", "departments", "notifications", "avocado"]
+    message_names = ["pronouns", "locations", "departments", "notifications"]
     for message_type in message_names:
       f = open(f"./data/react_roles/{message_type}.json")
       self.reaction_data[message_type] = json.load(f) # fill the base json for our messages
