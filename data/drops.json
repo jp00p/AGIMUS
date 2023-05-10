@@ -144,6 +144,16 @@
     "description": "Jake Sisko. For some reason Jake.",
     "url": "https://i.imgur.com/xycZQwH.mp4"
   },
+  "Frakes: It Never Happened": {
+    "file": "data/drops/frakesitneverhappened.mp4",
+    "description": "Frakes It Never Happened",
+    "url": "https://i.imgur.com/4CpvEnI.mp4"
+  },
+  "Frakes: No Way": {
+    "file": "data/drops/frakesnoway.mp4",
+    "description": "Frakes No Way",
+    "url": "https://i.imgur.com/wXrr3Tq.mp4"
+  },
   "G SEVONN": {
     "file": "data/drops/gsevonn.mp4",
     "description": "G Seven G 7 G Sevonn You just hit G 8 G Eight If You Like Pina Coladas",
@@ -293,7 +303,12 @@
     "file": "data/drops/micfeedback.mp4",
     "description": "Microphone Mic Feedback Get A Life",
     "url": "https://i.imgur.com/2YlDbh9.mp4"
-  },  
+  },
+  "Mornhammer (Clang!)": {
+    "file": "data/drops/mornhammerclang.mp4",
+    "description": "Mornhammer Clang",
+    "url": "https://i.imgur.com/dRT0oZX.mp4"
+  },
   "Mr. Bucket": {
     "file": "data/drops/mrbucket.mp4",
     "description": "Mr Mister Bucket",
@@ -364,6 +379,11 @@
     "description": "Raincheck Segment",
     "url": "https://i.imgur.com/UAXeJQ8.mp4"
   },
+  "Replicator: Make It Yourself": {
+    "file": "data/drops/replicatormakeityourself.mp4",
+    "description": "Coffee Black Replicator Make It Yourself",
+    "url": "https://i.imgur.com/N1487pE.mp4"
+  },
   "Return of Dukat": {
     "file": "data/drops/returnofdukat.mp4",
     "description": "Return of Dukat song",
@@ -433,6 +453,11 @@
     "file": "data/drops/theaylugedrop.mp4",
     "description": "The ayluge Drop. User drop.",
     "url": "https://i.imgur.com/PcvZ25e.mp4"
+  },
+  "The Boothby Drop": {
+    "file": "data/drops/theboothbydrop.mp4",
+    "description": "The Boothby Drop",
+    "url": "https://i.imgur.com/dQWu8bK.mp4"
   },
   "The Boy!": {
     "file": "data/drops/theboy.mp4",
