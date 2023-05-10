@@ -1,13 +1,7 @@
 from common import *
 
 
-wager_choices = [
-  discord.OptionChoice(
-    name=str(i),
-    value=i
-  )
-  for i in range(1, 26)
-]
+wager_choices = [1, 5, 10, 25, 50, 100]
 
 @bot.slash_command(
   name="setwager",
@@ -17,18 +11,22 @@ wager_choices = [
   name="wager",
   description="How much would you like to wager?",
   required=True,
-  choices=wager_choices
+  choices=[
+    discord.OptionChoice(
+      name=str(i),
+      value=i
+    )
+    for i in wager_choices
+  ]
 )
 async def setwager(ctx:discord.ApplicationContext, wager:int):
   """
   This function is the main entrypoint of the /setwager command
-  and will a user's wager value to the amount passed between 1-25
+  and will set a user's wager value to the amount passed
   """
-  min_wager = 1
-  max_wager = 25
   player = get_user(ctx.author.id)
   current_wager = player["wager"]
-  if min_wager <= wager <= max_wager:
+  if wager in wager_choices:
     set_player_wager(ctx.author.id, wager)
     await ctx.respond(embed=discord.Embed(
       title="Wager Updated!",
@@ -38,7 +36,7 @@ async def setwager(ctx:discord.ApplicationContext, wager:int):
   else:
     await ctx.respond(embed=discord.Embed(
       title="Invalid Wager",
-      description=f"{ctx.author.mention}: Wager must be between `{min_wager}` and `{max_wager}`\nYour current wager is: `{current_wager}`",
+      description=f"{ctx.author.mention}: Wager must be from the options provided ({', '.join(wager_choices)}).\nYour current wager is: `{current_wager}`",
       color=discord.Color.red()
     ), ephemeral=True)
 
