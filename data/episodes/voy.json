@@ -2586,7 +2586,15 @@
       "episode": "24",
       "imdb": "tt0708955",
       "memoryalpha": "Relativity_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 469,
+          "airdate": "2023.05.08",
+          "episode": "Thermonuclear Dick Pic",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/x04rNvVsktVu3JsueIYZwk4sICW.jpg"
