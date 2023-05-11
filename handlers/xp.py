@@ -316,10 +316,10 @@ async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_
 
   fields=[]
   if source_details:
-    fields.append({ 'name': "Source", 'value': source_details })
+    fields.append({ 'name': "Level Up Source", 'value': source_details })
 
   message = random.choice(random_level_up_messages["messages"]).format(user=user.mention, level=level, prev_level=(level-1))
-  await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
+  await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user, fields)
 
 # increment_user_xp(author, amt)
 # messauge.author[required]: discord.User
@@ -363,11 +363,11 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel, sou
         logger.info(traceback.format_exc())
 
 def determine_level_up_source_details(user, source):
-  if isinstance(source, discord.Message):
+  if isinstance(source, discord.message.Message):
     return f"Their message at: {source.jump_url}"
   elif isinstance(source, discord.Reaction):
     if user is source.message.author:
-      return f"Receiving a {source.emoji} react from {user.mention} on their message at: {source.message.jump_url}"
+      return f"Receiving a {get_emoji(source.emoji.name)} react on their message at: {source.message.jump_url}"
     else:
       return f"Adding a {source.emoji} react to the message at: {source.message.jump_url}"
   elif isinstance(source, discord.ScheduledEvent):
