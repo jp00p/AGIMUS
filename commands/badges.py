@@ -1074,7 +1074,7 @@ async def gift_specific_badge_error(ctx, error):
     await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
 
 
-async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge_filename:str, user:discord.User):
+async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge_filename:str, user:discord.User, fields=[]):
   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
 
   if badge_filename != None:
@@ -1091,6 +1091,9 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
     discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=embed_filename)
     embed.set_image(url=f"attachment://{embed_filename}")
     embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
+
+  for f in fields:
+    embed.add_field(name=f['name'], value=f['value'])
 
   embed.set_thumbnail(url=thumbnail_image)
 

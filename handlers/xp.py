@@ -82,7 +82,7 @@ async def handle_message_xp(message:discord.Message):
       xp_amt += 1
 
     if xp_amt != 0:
-      await increment_user_xp(message.author, xp_amt, "posted_message", message.channel) # commit the xp gain to the db
+      await increment_user_xp(message.author, xp_amt, "posted_message", message.channel, message) # commit the xp gain to the db and potential level up
 
     # Handle Auto-Promotions
     promotion_roles_config = config["roles"]["promotion_roles"]
@@ -118,7 +118,7 @@ async def handle_intro_channel_promotion(message):
       # if they don't have this role, give them this role!
       logger.info(f"Adding {Fore.CYAN}Cadet{Fore.RESET} role to {Style.BRIGHT}{message.author.name}{Style.RESET_ALL}")
       await member.add_roles(cadet_role)
-      await increment_user_xp(member, 10, "intro_message", message.channel)
+      await increment_user_xp(member, 10, "intro_message", message.channel, message)
 
       # add reactions to the message they posted
       welcome_reacts = [get_emoji("ben_wave_hello"), get_emoji("adam_wave_hello")]
@@ -201,8 +201,8 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
 
   # Grant Standard XP for both User and Author
   log_react_history(reaction, user)
-  await increment_user_xp(user, 1, "added_reaction", reaction.message.channel)
-  await increment_user_xp(reaction.message.author, 1, "got_single_reaction", reaction.message.channel)
+  await increment_user_xp(user, 1, "added_reaction", reaction.message.channel, reaction)
+  await increment_user_xp(reaction.message.author, 1, "got_single_reaction", reaction.message.channel, reaction)
 
   # Now give the Author some additional bonus XP if they've made a particularly reaction-worthy message!
 
@@ -230,7 +230,7 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
         if reaction.count >= 20:
           xp_amt = 5
         if xp_amt > 0:
-          await increment_user_xp(reaction.message.author, xp_amt, "got_reactions", reaction.message.channel)
+          await increment_user_xp(reaction.message.author, xp_amt, "got_reactions", reaction.message.channel, reaction)
 
         break
 
@@ -240,7 +240,7 @@ async def handle_event_creation_xp(event):
   if type(location) == str:
     # Users might create an event that isn't a VoiceChannel
     return
-  await increment_user_xp(creator, 30, "created_event", location)
+  await increment_user_xp(creator, 30, "created_event", location, event)
 
 # calculate_xp_for_next_level(current_level)
 # current_level[required]: int
@@ -264,7 +264,7 @@ def show_list_of_levels():
 # level[required]:int
 # level up user to next level and give them a badge (in the DB)
 # also fires the send_level_up_message function
-async def level_up_user(user:discord.User, level:int):
+async def level_up_user(user:discord.User, level:int, source_details):
   rainbow_l = f"{Back.RESET}{Back.RED} {Back.YELLOW} {Back.GREEN} {Back.CYAN} {Back.BLUE} {Back.MAGENTA} {Back.RESET}"
   rainbow_r = f"{Back.RESET}{Back.MAGENTA} {Back.BLUE} {Back.CYAN} {Back.GREEN} {Back.YELLOW} {Back.RED} {Back.RESET}"
   logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} has reached {Style.BRIGHT}level {level}!{Style.RESET_ALL} {rainbow_r}")
@@ -283,7 +283,7 @@ async def level_up_user(user:discord.User, level:int):
     # Remove any badges the user may have on their wishlist that they now possess
     db_purge_users_wishlist(user.id)
 
-  await send_level_up_message(user, level, badge, was_on_wishlist)
+  await send_level_up_message(user, level, badge, was_on_wishlist, source_details)
 
 def give_welcome_badge(user_id):
   user_badge_names = [b['badge_filename'] for b in db_get_user_badges(user_id)]
@@ -297,7 +297,7 @@ def give_welcome_badge(user_id):
 # user[required]:discord.User
 # level[required]:int
 # badge[required]:str
-async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_wishlist:bool):
+async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_wishlist:bool, source_details:str):
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   channel = bot.get_channel(notification_channel_id)
 
@@ -306,23 +306,27 @@ async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_
   embed_description = f"{user.mention} has reached **Level {level}**"
   if badge == None:
     embed_description += "! They've already collected ALL BADGES EVERYWHERE! Congratulations on the impressive feat!"
-  else:
-    embed_description += f" and earned a new badge!"
 
   if level == 2:
     embed_description += " and earned their first new unique badge!\n\nCongrats! To check out your full list of badges use `/badges showcase`.\n\nMore info about XP and the badge system and XP can be found by using `/help` in this channel."
+  else:
+    embed_description += f" and earned a new badge!"
   if was_on_wishlist:
     embed_description += "\n\n" + f"Exciting! This was also one they had on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
 
+  fields=[]
+  if source_details:
+    fields.append({ 'name': "Level Up Source", 'value': source_details })
+
   message = random.choice(random_level_up_messages["messages"]).format(user=user.mention, level=level, prev_level=(level-1))
-  await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
+  await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user, fields)
 
 # increment_user_xp(author, amt)
 # messauge.author[required]: discord.User
 # amt[required]: int
 # channel[required]: discord.Channel
 # This function will increment a users' XP and log the gain to the history
-async def increment_user_xp(user:discord.User, amt:int, reason:str, channel):
+async def increment_user_xp(user:discord.User, amt:int, reason:str, channel, source=None):
   global current_color
   msg_color = xp_colors[current_color]
   star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
@@ -352,10 +356,22 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel):
     #logger.info(f'User XP: {user_xp} User level: {user_xp_data["level"]} Next level XP: {next_level_xp}')
     if user_xp >= next_level_xp:
       try:
-        await level_up_user(user, user_xp_data["level"]+1)
+        source_details = determine_level_up_source_details(user, source)
+        await level_up_user(user, user_xp_data["level"]+1, source_details)
       except Exception as e:
         logger.info(f"Error trying to level up user: {e}")
         logger.info(traceback.format_exc())
+
+def determine_level_up_source_details(user, source):
+  if isinstance(source, discord.message.Message):
+    return f"Their message at: {source.jump_url}"
+  elif isinstance(source, discord.Reaction):
+    if user is source.message.author:
+      return f"Receiving a {get_emoji(source.emoji.name)} react on their message at: {source.message.jump_url}"
+    else:
+      return f"Adding a {source.emoji} react to the message at: {source.message.jump_url}"
+  elif isinstance(source, discord.ScheduledEvent):
+    return f"Scheduing the `{source.name}` event"
 
 # get_user_xp(discord_id)
 # discord_id[required]: int
