@@ -277,6 +277,13 @@
       "crontab": "0 * * * *",
       "enabled": false
     },
+    "daily_slots": {
+      "channels": [
+        "dabo-table"
+      ],
+      "crontab": "48 8 * * *",
+      "enabled": true
+    },
     "hoodiversary": {
       "channels": [
         "captain-picard-day"

@@ -27,6 +27,7 @@ class SlotsMainScreen(discord.ui.View):
             )
         )
         if len(self.game.draft_picks) < DRAFT_ROUNDS:
+            # if they still have draft picks
             self.add_item(SlotsDraftBegin(self.game, label="Draft symbols"))
 
         self.embed = discord.Embed(
@@ -52,7 +53,7 @@ class SlotsMainScreen(discord.ui.View):
                     inline=True,
                 ),
             ],
-        )
+        ).set_footer(text=f"SEED {self.game.seed}")
 
 
 class SlotsPlayScreen(discord.ui.View):
@@ -88,6 +89,22 @@ class SlotsPlayScreen(discord.ui.View):
             self.add_item(SpinButton(self.game, row=0, custom_id="game:spin"))
         self.add_item(CancelButton(self.game, custom_id="game:cancel"))
         self.add_item(ViewInventoryButton(self.game, row=1))
+        self.add_item(LeaderboardsButton(self.game, row=3))
+        self.add_item(DayDebugButton(self.game, row=4))
+
+
+class DayDebugButton(discord.ui.Button):
+    def __init__(self, game, **kwargs):
+        self.game: SlotsGame = game
+        super().__init__(label="Debug (new day)", **kwargs)
+
+    async def callback(self, interaction: discord.Interaction):
+        self.game.new_day()
+        view = SlotsMainScreen(self.game)
+        view.embed.description += "\n> New day triggered!"
+        await interaction.response.edit_message(
+            view=view, embed=view.embed, attachments=[]
+        )
 
 
 class SlotsDraftScreen(discord.ui.View):
@@ -113,6 +130,27 @@ class SlotsDraftScreen(discord.ui.View):
             self.add_item(SlotsDraftButton(self.game, s))
 
 
+class LeaderboardsButton(discord.ui.Button):
+    def __init__(self, game, **kwargs):
+        self.game: SlotsGame = game
+        super().__init__(label="Leaderboards", **kwargs)
+
+    async def callback(self, interaction: discord.Interaction):
+        view = LeaderboardsScreen(self.game)
+        await interaction.response.edit_message(view=view, embed=view.embed)
+
+
+class LeaderboardsScreen(discord.ui.View):
+    def __init__(self, game, **kwargs):
+        self.game: SlotsGame = game
+        super().__init__(**kwargs)
+        leaderboard_data = self.game.get_leaderboards()
+        self.embed = discord.Embed(
+            title="Leaderboards", description=f"{leaderboard_data}"
+        )
+        self.add_item(BackToGameButton(self.game))
+
+
 class SlotsInventory(discord.ui.View):
     """view all symbols owned"""
 
@@ -120,6 +158,7 @@ class SlotsInventory(discord.ui.View):
         self.game: SlotsGame = game
         super().__init__(**kwargs)
         self.embed = discord.Embed(title="Inventory", description="Your symbols")
+        self.add_item(BackToGameButton(self.game))
 
 
 class ViewInventoryButton(discord.ui.Button):
@@ -132,9 +171,8 @@ class ViewInventoryButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         all_symbols = self.game.slot_machine.symbols
-        inventory_img = await numpy_grid(
-            [(s.name, s.payout, (0, 0, 0)) for s in all_symbols], (10, 10)
-        )
+        all_symbols.sort(key=lambda x: x.name, reverse=False)
+        inventory_img = await numpy_grid([s.grid_info() for s in all_symbols], (10, 10))
         inventory_img.save("images/slots_2.0/inventory.png")
         view = SlotsInventory(self.game)
         file = discord.File(
@@ -152,7 +190,6 @@ class SlotsDraftBegin(discord.ui.Button):
     def __init__(self, game, **kwargs):
         self.game: SlotsGame = game
         self.round = len(self.game.draft_picks)
-        self.game.new_game(1)
         super().__init__(**kwargs)
 
     async def callback(self, interaction: discord.Interaction):
@@ -250,7 +287,7 @@ class SlotsPlayButton(discord.ui.Button["SlotsMainScreen"]):
 
     async def callback(self, interaction: discord.Interaction):
         if not self.game.id:
-            self.game.new_game(1)
+            self.game.new_game()
         view = SlotsPlayScreen(self.game)
         await interaction.response.edit_message(view=view, embed=view.embed)
 
@@ -269,7 +306,18 @@ class SpinButton(discord.ui.Button):
         super().__init__(label=label, style=discord.ButtonStyle.green, **kwargs)
 
     async def callback(self, interaction: discord.Interaction):
-        # look at this
+        """if a new game has started, send em back to the menu, otherwise process the spin"""
+        if self.game.check_if_finished():
+            self.game = self.game.new_game()
+            view = SlotsMainScreen(self.game)
+            embed = discord.Embed(
+                title="A new day dawns",
+                description="Your previous slot machine has been shut down while Brunt collects his winnings.",
+            )
+            await interaction.response.edit_message(
+                view=view, embeds=[embed, view.embed], attachments=[]
+            )
+            return
         await self.game.get_new_symbols()
         self.slot_machine.spin().apply_effects().collect_final_symbols()
         await self.slot_machine.render_results()
@@ -320,7 +368,7 @@ class AddSymbolButton(discord.ui.Button):
         self.symbol: SlotsSymbol = symbol
         self.slot_machine: SlotMachine = self.game.slot_machine
         super().__init__(
-            label=f"{self.symbol.name}", style=discord.ButtonStyle.blurple, **kwargs
+            label=f"{self.symbol.name}", style=discord.ButtonStyle.primary, **kwargs
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -361,13 +409,27 @@ class SkipButton(discord.ui.Button):
         )
 
 
+class BackToGameButton(discord.ui.Button):
+    def __init__(self, game, **kwargs):
+        self.game = game
+        super().__init__(label="Back to game", **kwargs)
+
+    async def callback(self, interaction: discord.Interaction):
+        view = SlotsPlayScreen(self.game)
+        await interaction.response.edit_message(
+            view=view, embed=view.embed, attachments=[]
+        )
+
+
 class CancelButton(discord.ui.Button):
     def __init__(self, game, **kwargs):
         self.game: SlotsGame = game
         self.player = game.player
         self.row = kwargs.get("row", 4)
-        super().__init__(style=discord.ButtonStyle.danger, label="Cancel", **kwargs)
+        super().__init__(style=discord.ButtonStyle.danger, label="Main menu", **kwargs)
 
     async def callback(self, interaction: discord.Interaction):
         view = SlotsMainScreen(self.game)
-        await interaction.response.edit_message(view=view, embed=view.embed)
+        await interaction.response.edit_message(
+            view=view, embed=view.embed, attachments=[]
+        )

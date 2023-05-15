@@ -104,6 +104,7 @@ from tasks.bingbong import bingbong_task
 from tasks.hoodiversaries import hoodiversary_task
 from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
+from tasks.daily_slots import daily_slots_task
 
 
 # Utils
@@ -124,6 +125,7 @@ logger.info(
 )
 
 background_tasks = set()  # for non-blocking tasks
+
 
 # listens to every message on the server that the bot can see
 @bot.event
@@ -402,6 +404,7 @@ scheduled_tasks = [
     bingbong_task(bot),
     hoodiversary_task(bot),
     weyounsday_task(bot),
+    daily_slots_task(bot),
 ]
 scheduler = Scheduler()
 for task in scheduled_tasks:

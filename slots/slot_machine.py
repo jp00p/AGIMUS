@@ -144,6 +144,10 @@ class SlotMachine:
         return flat
 
     async def render_results(self) -> Machine:
+        """render the slot machine GIF
+
+        returns self for chaining
+        """
         before_images = self.flatten_results(deepcopy(self.before_results))
         after_images = self.flatten_results(deepcopy(self._spin_results))
 
@@ -156,7 +160,7 @@ class SlotMachine:
         return self
 
     def init_spin_results(self) -> List[List[EmptySymbol]]:
-        """create empty 2d array"""
+        """create a grid of 25 empty symbols"""
         return [
             [EmptySymbol() for j in range(self.num_cols)] for i in range(self.num_rows)
         ]
@@ -167,6 +171,12 @@ class SlotMachine:
         self._symbols.extend([EmptySymbol() for _ in (range(symbols_to_fill))])
 
     def spin(self) -> Machine:
+        """
+        spin the slot machine!
+
+        returns self for chaining
+        """
+
         self.effects_applied = False
         self.spins = self.spins + 1
         self.fill_empty_slots()  # pad out the slots with empties
@@ -182,6 +192,7 @@ class SlotMachine:
             temp_results
         )  # keep track of the initial results before we do stuff to it!
         self.spin_results = deepcopy(temp_results)
+
         return self
 
     def get_symbol_position(self, symbol) -> tuple:
@@ -192,6 +203,7 @@ class SlotMachine:
         return None
 
     def display_slots(self) -> str:
+        """display a string of the slots result"""
         display_str = ""
         results = [
             [f"{symbol}" if symbol is not None else "" for symbol in row]
@@ -202,10 +214,12 @@ class SlotMachine:
         return display_str
 
     def reset_status(self):
+        """reset symbols to their natural state"""
         temp_symbols = self.symbols
         for s in temp_symbols:
             s.set_status()
             s.wiggly = False
+            s.payout = s.base_payout
         self.symbols = temp_symbols
 
     def apply_effects(self) -> Machine:

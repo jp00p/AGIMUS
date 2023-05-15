@@ -271,9 +271,6 @@ CREATE TABLE IF NOT EXISTS badge_tags_associations (
 CREATE TABLE IF NOT EXISTS slots__games (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `user_discord_id` VARCHAR(128) NOT NULL,
-  `level` INT(11) NOT NULL DEFAULT 1,
-  `day` INT(11) NOT NULL DEFAULT 1,
-  `debt` INT(11) NOT NULL DEFAULT 0,
   `finished` INT(11) NOT NULL DEFAULT 0,
   `symbols` TEXT NULL,
   `last_result` TEXT NULL,
