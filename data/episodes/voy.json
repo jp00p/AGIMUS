@@ -2608,7 +2608,15 @@
       "episode": "25",
       "imdb": "tt0709009",
       "memoryalpha": "Warhead_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 470,
+          "airdate": "2023.05.15",
+          "episode": "Nook Conspiracy",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-470-nook-conspiracy-voy-s5e25/"
+        }
+      ],
       "season": "05",
       "stills": [
         "https://image.tmdb.org/t/p/original/a4qcJGraCKy4cvsYDofQ6vZzKfO.jpg"
