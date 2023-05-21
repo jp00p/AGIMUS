@@ -31,7 +31,7 @@ async def computer(message:discord.Message):
       res = wa_client.query(question)
       if res.success:
         result = next(res.results)
-        await increment_user_xp(message.author, 1, "used_computer", message.channel)
+        await increment_user_xp(message.author, 1, "used_computer", message.channel, "Prompting the Computer")
         # Handle Primary Result
         if result.text:
           response_sent = await handle_text_result(res, message)

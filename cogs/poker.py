@@ -203,7 +203,7 @@ class Poker(commands.Cog):
     score_rank = str_score.lower()
     profit = round(poker_payouts[score_rank] * wager)
     if profit != 0:
-      await increment_user_xp(await self.bot.guilds[0].fetch_member(poker_game["user"]), 1, "poker_win", channel)
+      await increment_user_xp(await self.bot.guilds[0].fetch_member(poker_game["user"]), 1, "poker_win", channel, "Winning Poker")
       set_player_score(str(poker_game["user"]), profit)
 
     # Generate Response

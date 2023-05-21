@@ -143,7 +143,7 @@ class Quiz(commands.Cog):
             award = math.ceil(award / 2)
 
           set_player_score(ctx.author, award)
-          await increment_user_xp(ctx.author, 1, "quiz_win", ctx.channel)
+          await increment_user_xp(ctx.author, 1, "quiz_win", ctx.channel, "Winning a round of Quiz")
 
           if id not in self.fuzz:
             score_str = "`Correctitude: " + str(normalness) +"`"

@@ -364,14 +364,29 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel, sou
 
 def determine_level_up_source_details(user, source):
   if isinstance(source, discord.message.Message):
-    return f"Their message at: {source.jump_url}"
+    if is_message_channel_unblocked(source):
+      return f"Their message at: {source.jump_url}"
   elif isinstance(source, discord.Reaction):
-    if user is source.message.author:
-      return f"Receiving a {get_emoji(source.emoji.name)} react on their message at: {source.message.jump_url}"
-    else:
-      return f"Adding a {source.emoji} react to the message at: {source.message.jump_url}"
+    if is_message_channel_unblocked(source.message):
+      if user is source.message.author:
+        return f"Receiving a {get_emoji(source.emoji.name)} react on their message at: {source.message.jump_url}"
+      else:
+        return f"Adding a {source.emoji} react to the message at: {source.message.jump_url}"
   elif isinstance(source, discord.ScheduledEvent):
     return f"Scheduing the `{source.name}` event"
+  elif isinstance(source, str):
+    return source
+
+def is_message_channel_unblocked(message: discord.message.Message):
+  # Use starboard blocked channel list to verify whether we should be reporting the source
+  blocked_channels = get_channel_ids_list(config["handlers"]["starboard"]["blocked_channels"])
+
+  if isinstance(message.channel, discord.Thread):
+    return message.channel.parent.id not in blocked_channels
+  if isinstance(message.channel, discord.TextChannel):
+    return message.channel.id not in blocked_channels
+  
+  return False
 
 # get_user_xp(discord_id)
 # discord_id[required]: int
