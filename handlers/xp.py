@@ -369,7 +369,7 @@ def determine_level_up_source_details(user, source):
   elif isinstance(source, discord.Reaction):
     if is_message_channel_unblocked(source.message):
       if user is source.message.author:
-        return f"Receiving a {get_emoji(source.emoji.name)} react on their message at: {source.message.jump_url}"
+        return f"Receiving a {source.emoji} react on their message at: {source.message.jump_url}"
       else:
         return f"Adding a {source.emoji} react to the message at: {source.message.jump_url}"
   elif isinstance(source, discord.ScheduledEvent):
@@ -385,7 +385,7 @@ def is_message_channel_unblocked(message: discord.message.Message):
     return message.channel.parent.id not in blocked_channels
   if isinstance(message.channel, discord.TextChannel):
     return message.channel.id not in blocked_channels
-  
+
   return False
 
 # get_user_xp(discord_id)
