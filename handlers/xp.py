@@ -383,7 +383,7 @@ def is_message_channel_unblocked(message: discord.message.Message):
 
   if isinstance(message.channel, discord.Thread):
     return message.channel.parent.id not in blocked_channels
-  if isinstance(message.channel, discord.TextChannel):
+  if isinstance(message.channel, (discord.TextChannel, discord.VoiceChannel, discord.StageChannel)):
     return message.channel.id not in blocked_channels
 
   return False
