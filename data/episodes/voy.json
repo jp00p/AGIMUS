@@ -2669,7 +2669,15 @@
       "episode": "02",
       "imdb": "tt0708974",
       "memoryalpha": "Survival_Instinct_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 472,
+          "airdate": "2023.05.29",
+          "episode": "Biff Yeager\u2019s Regional Ice Complex",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-472-biff-yeagers-regional-ice-complex-voy-s6e2/"
+        }
+      ],
       "season": "06",
       "stills": [
         "https://image.tmdb.org/t/p/original/ylgxFpbyyAWReACj2L81cmAGQIJ.jpg",
