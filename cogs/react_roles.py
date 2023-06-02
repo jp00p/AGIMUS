@@ -86,7 +86,11 @@ class ReactRoles(commands.Cog):
       if user_dm_message != "" and user_info["receive_notifications"]:
         if random.choice([0,1,2]) == 1:
           user_dm_message += f"\n\n(PS. Use `/settings` in the server to disable these DMs if you need to.)"
-        await user.send(user_dm_message)
+        try:
+          await user.send(user_dm_message)
+        except discord.Forbidden as e:
+          logger.info(f"Unable to send react role confirmation message to {user.display_name} because they have DMs disabled.")
+          pass
 
 
 
