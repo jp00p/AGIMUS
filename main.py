@@ -279,7 +279,9 @@ async def on_member_update(memberBefore, memberAfter):
 
 @bot.event
 async def on_user_update(userBefore, userAfter):
-  if userBefore.display_name != userAfter.display_name:
+  if userBefore.discriminator != userAfter.discriminator:
+    return
+  elif userBefore.display_name != userAfter.display_name:
     await show_nick_change_message(userBefore, userAfter, "Discord")
 
 # Listen to channel updates
