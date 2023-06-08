@@ -346,12 +346,16 @@ def get_emoji(emoji_name:str):
 # util function that runs our `make db-backup` command
 # returns the new hash from git
 def run_make_backup():
-  hashes = { "old":"", "new":"" }
-  raw_new_hash = []
+  backup_info = {"url": "", "backup_name":""}
   os.system("make db-backup")
-  with os.popen("cd database && git rev-parse HEAD") as line:
-    raw_new_hash = line.readlines()
-  hashes["new"] = raw_new_hash[-1].replace("\n", "")
+  raw_new_backup = []
+  with os.popen("make db-get-latest-backup") as line:
+    raw_new_backup = line.readlines()
+  hashes["backup_name"] = raw_new_backup[-1].replace("\n", "")
+  raw_presigned_url = []
+  with os.popen("make db-get-latest-backup-download-url") as line:
+    raw_presigned_url = line.readlines()
+  hashes["url"] = raw_presigned_url[-1].replace("\n", "")
   return hashes
 
 # run_make_badger()

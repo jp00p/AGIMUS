@@ -119,6 +119,11 @@ db-get-latest-backup:
 	$(call guard,S3_ACCESS_KEY)
 	@./scripts/db-get-latest-backup.sh
 
+db-get-latest-backup-download-url:
+	$(call guard,S3_SECRET_KEY)
+	$(call guard,S3_ACCESS_KEY)
+	@s3cmd --config .s3cmd signurl $(shell make db-get-latest-backup) $(shell date -d 'now + 15 minutes' +%s)
+
 ##@ Kubernetes in Docker (KinD) stuff
 
 .PHONY: kind
