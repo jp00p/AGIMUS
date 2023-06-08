@@ -122,7 +122,7 @@ db-get-latest-backup:
 db-get-latest-backup-download-url:
 	$(call guard,S3_SECRET_KEY)
 	$(call guard,S3_ACCESS_KEY)
-	@s3cmd --config .s3cmd signurl $(shell make db-get-latest-backup) $(shell date -d 'now + 15 minutes' +%s)
+	@s3cmd --host nyc3.digitaloceanspaces.com --region nyc3 signurl $(shell make db-get-latest-backup) $(shell date -d 'now + 15 minutes' +%s)
 
 ##@ Kubernetes in Docker (KinD) stuff
 

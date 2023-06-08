@@ -28,19 +28,19 @@ BACKUP_TO_RESTORE="${1:-}"
 if [ "${BACKUP_TO_RESTORE}" = "--help"  ] || [ "${BACKUP_TO_RESTORE}" = "-h" ]
 then
     echo "Usage: ${0} <backup_to_restore>.sql.gz"
-    echo "Can be found with 's3cmd ls s3://${S3_BUCKET_NAME}/${DB_DUMP_S3_PREFIX}/'"
+    echo "Can be found with 's3cmd --host nyc3.digitaloceanspaces.com --region nyc3 ls s3://${S3_BUCKET_NAME}/${DB_DUMP_S3_PREFIX}/'"
     exit 1
 fi
 
 if [ -z "${BACKUP_TO_RESTORE}" ]
 then
     # List the bucket contents, filter out the directories, sort by time with newest first, take the first one, return only the s3 path
-    BACKUP_TO_RESTORE=$(s3cmd ls "s3://${S3_BUCKET_NAME}/${DB_DUMP_S3_PREFIX}/" | grep -v DIR | sort -rnk2 | head -1 | awk '{ print $4 }')
+    BACKUP_TO_RESTORE=$(s3cmd --host nyc3.digitaloceanspaces.com --region nyc3 ls "s3://${S3_BUCKET_NAME}/${DB_DUMP_S3_PREFIX}/" | grep -v DIR | sort -rnk2 | head -1 | awk '{ print $4 }')
     log "No backup specified, using one of today's backups: ${BACKUP_TO_RESTORE}"
 fi
 
 log "Downloading ${BACKUP_TO_RESTORE} to ${DB_DUMP_FILENAME_WITH_TIMESTAMP}"
-s3cmd --no-progress get "${BACKUP_TO_RESTORE}" - | gunzip > "${DB_DUMP_FILENAME_WITH_TIMESTAMP}"
+s3cmd --host nyc3.digitaloceanspaces.com --region nyc3 --no-progress get "${BACKUP_TO_RESTORE}" - | gunzip > "${DB_DUMP_FILENAME_WITH_TIMESTAMP}"
 
 log "Dropping database ${DB_NAME}"
 mysql -h"${DB_HOST}" -u"${DB_USER}" -p"${DB_PASS}" <<< "DROP DATABASE IF EXISTS FoD;"
