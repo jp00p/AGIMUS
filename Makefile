@@ -99,7 +99,7 @@ db-seed: ## Reload the database from a file at $DB_SEED_FILEPATH
 	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "create database FoD;"
 	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_SEED_FILEPATH)
 
-DB_DUMP_S3_PREFIX=$(shell date +%Y/%m/%d)
+DB_DUMP_S3_PREFIX=$(shell date +%Y-%m-%d)
 DB_DUMP_FILENAME_WITH_TIMESTAMP=$(DB_DUMP_FILENAME)-$(shell date +%s).sql
 
 .PHONY: db-backup
@@ -113,6 +113,11 @@ db-restore: ## Restore the database from the private database repository (intend
 	$(call guard,S3_SECRET_KEY)
 	$(call guard,S3_ACCESS_KEY)
 	@./scripts/db-restore.sh
+
+db-get-latest-backup:
+	$(call guard,S3_SECRET_KEY)
+	$(call guard,S3_ACCESS_KEY)
+	@./scripts/db-get-latest-backup.sh
 
 ##@ Kubernetes in Docker (KinD) stuff
 
