@@ -2695,7 +2695,15 @@
       "episode": "03",
       "imdb": "tt0708852",
       "memoryalpha": "Barge_of_the_Dead_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 473,
+          "airdate": "2023.06.05",
+          "episode": "Star Trek Podcast of the Dead",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "06",
       "stills": [
         "https://image.tmdb.org/t/p/original/7QWckovDBpXvUTACGXaab6ecgD2.jpg",
