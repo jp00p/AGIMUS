@@ -5,7 +5,6 @@ def backups_task(client):
     enabled = config["tasks"]["backups"]["enabled"]
     if not enabled:
       return
-    commit_base_url = "https://github.com/Friends-of-DeSoto/database/commit/"
     log_channel = client.get_channel(config["channels"]["bot-logs"])
     logger.info("Running automated backup!")
     hashes = run_make_backup()
@@ -17,7 +16,7 @@ def backups_task(client):
       url=f"{hashes['url']}"
     )
     embed.add_field(name="🌟 NEW BACKUP 🌟", value=f"`{hashes['backup_name']}`", inline=False)
-    embed.add_field(name="Presigned URL (valid 15m) to new backup", value=f"{backup_hashes['url']}", inline=False)
+    embed.add_field(name="Presigned URL (valid 15m) to new backup", value=f"{hashes['url']}", inline=False)
     await log_channel.send(embed=embed)
 
   return {
