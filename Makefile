@@ -104,25 +104,25 @@ DB_DUMP_FILENAME_WITH_TIMESTAMP=$(DB_DUMP_FILENAME)-$(shell date +%s).sql
 
 .PHONY: db-backup
 db-backup: ## Back the database to a file at $DB_DUMP_FILENAME then commit it to the private database repository (intended to run inside AGIMUS container)
-	$(call guard,S3_SECRET_KEY)
-	$(call guard,S3_ACCESS_KEY)
+	$(call guard,AWS_SECRET_ACCESS_KEY)
+	$(call guard,AWS_ACCESS_KEY_ID)
 	@./scripts/db-backup.sh
 
 .PHONY: db-restore
 db-restore: ## Restore the database from the private database repository (intended to run inside AGIMUS container)
-	$(call guard,S3_SECRET_KEY)
-	$(call guard,S3_ACCESS_KEY)
+	$(call guard,AWS_SECRET_ACCESS_KEY)
+	$(call guard,AWS_ACCESS_KEY_ID)
 	@./scripts/db-restore.sh
 
 db-get-latest-backup:
-	$(call guard,S3_SECRET_KEY)
-	$(call guard,S3_ACCESS_KEY)
+	$(call guard,AWS_SECRET_ACCESS_KEY)
+	$(call guard,AWS_ACCESS_KEY_ID)
 	@./scripts/db-get-latest-backup.sh
 
 db-get-latest-backup-download-url:
-	$(call guard,S3_SECRET_KEY)
-	$(call guard,S3_ACCESS_KEY)
-	@s3cmd --host nyc3.digitaloceanspaces.com --region nyc3 signurl $(shell make db-get-latest-backup) $(shell date -d 'now + 15 minutes' +%s)
+	$(call guard,AWS_SECRET_ACCESS_KEY)
+	$(call guard,AWS_ACCESS_KEY_ID)
+	@s3cmd --config .s3cfg signurl $(shell make db-get-latest-backup) $(shell date -d 'now + 15 minutes' +%s)
 
 ##@ Kubernetes in Docker (KinD) stuff
 
