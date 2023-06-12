@@ -19,12 +19,12 @@ async def handle_bot_affirmations(message:discord.Message):
     await message.add_reaction(get_emoji("AGIMUS"))
 
   for condemnation in bot_condemnations:
-    if f"{condemnation} bot" in message_content:
+    if f"{condemnation} bot\." in message_content or (re.match(fr"{condemnation} bot$", message_content)):
       if not (re.match(fr"not a?\s?{condemnation} bot", message_content)):
         await respond_to_sass(message)
 
   for affirmation in bot_affirmations:
-    if f"{affirmation} bot" in message_content:
+    if f"{affirmation} bot\." in message_content or (re.match(fr"{affirmation} bot$", message_content)):
       if re.match(fr"not a?\s?{affirmation} bot", message_content):
         await respond_to_sass(message)
         return
