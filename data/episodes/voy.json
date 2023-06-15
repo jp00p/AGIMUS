@@ -2721,7 +2721,15 @@
       "episode": "04",
       "imdb": "tt0708998",
       "memoryalpha": "Tinker_Tenor_Doctor_Spy_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 474,
+          "airdate": "2023.06.12",
+          "episode": "Full of Nipple Pickles",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-474-full-of-nipple-pickles-voy-s6e4/"
+        }
+      ],
       "season": "06",
       "stills": [
         "https://image.tmdb.org/t/p/original/9XgRGDthoML84O00cn1V25Y5ACY.jpg",
