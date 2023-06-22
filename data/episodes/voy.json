@@ -2747,7 +2747,15 @@
       "episode": "05",
       "imdb": "tt0708847",
       "memoryalpha": "Alice_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 475,
+          "airdate": "2023.06.19",
+          "episode": "Brone Blown",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-475-brone-blown-voy-s6e5/"
+        }
+      ],
       "season": "06",
       "stills": [
         "https://image.tmdb.org/t/p/original/xGLjdwTMUnKzFQYyf8fmo3Zcigz.jpg",
