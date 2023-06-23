@@ -763,16 +763,20 @@ class Trade(commands.Cog):
       else:
         db_add_badge_to_trade_request(active_trade, request)
 
+
+    initiated_trade = await self.check_for_active_trade(ctx)
+
     # Confirmation of initiation with the requestor
     if not offer and not request:
       follow_up_message = "Follow up with `/trade propose` to fill out the trade details!"
     else:
       follow_up_message = "You can add more badges with with `/trade propose`, or you can **Send** / **Cancel** the trade immediately via the buttons below."
 
+    # Paginator Pages
     initiated_embed = discord.Embed(
       title="Trade Started!",
-      description=f"Your pending trade has been started!\n\n{follow_up_message}\n\nOnce you have added the badges "
-                  "you'd like to offer and request, use \n`/trade send` to send the trade to the user, "
+      description=f"Your pending trade has been started!\n\n{follow_up_message}\n\nIf you have additional badges "
+                  "you need to offer and request, use \n`/trade send` afterwards to send the trade to the user, "
                   "or to cancel!\n\nNote: You may only have one open outgoing trade request at a time!",
       color=discord.Color.dark_purple()
     ).add_field(
@@ -784,15 +788,18 @@ class Trade(commands.Cog):
     )
     initiated_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
 
-    # Paginator Pages
+    initiated_image = discord.File(fp="./images/trades/assets/trade_pending.png", filename="trade_pending.png")
+    initiated_embed.set_image(url=f"attachment://trade_pending.png")
+
     initiated_pages = [
       pages.Page(
-        embeds=[initiated_embed]
+        embeds=[initiated_embed],
+        files=[initiated_image]
       )
     ]
 
     # Offered page
-    offered_embed, offered_image = await self._generate_offered_embed_and_image(active_trade)
+    offered_embed, offered_image = await self._generate_offered_embed_and_image(initiated_trade)
     initiated_pages.append(
       pages.Page(
         embeds=[offered_embed],
@@ -801,7 +808,7 @@ class Trade(commands.Cog):
     )
 
     # Requested Page
-    requested_embed, requested_image = await self._generate_requested_embed_and_image(active_trade)
+    requested_embed, requested_image = await self._generate_requested_embed_and_image(initiated_trade)
     initiated_pages.append(
       pages.Page(
         embeds=[requested_embed],
@@ -810,7 +817,7 @@ class Trade(commands.Cog):
     )
 
     # Provide Send/Cancel UI immediately
-    view = SendCancelView(self, active_trade)
+    view = SendCancelView(self, initiated_trade)
     paginator = pages.Paginator(
       pages=initiated_pages,
       use_default_buttons=False,
