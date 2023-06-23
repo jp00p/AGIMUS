@@ -256,7 +256,7 @@ class Profile(commands.Cog):
       base_bg.paste(image, (0, 0), image)
 
     # draw all the texty bits
-    draw.text( (283, 80), f"USS HOOD PERSONNEL FILE #{str(member.id)[-4]}", fill=random.choice(lcars_colors), font=level_font, align="right")
+    draw.text( (283, 80), f"USS HOOD PERSONNEL FILE #{str(member.id)[-4:]}", fill=random.choice(lcars_colors), font=level_font, align="right")
     draw.text( (79, 95), f"AGIMUS MAIN TERMINAL", fill="#dd4444", font=agimus_font, align="center",)
     draw.text( (470, 182), f"{user_name[0:32]}", fill="white", font=name_font, align="center", anchor="ms")
     if user['tagline']:
