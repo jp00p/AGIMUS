@@ -779,7 +779,7 @@ class Trade(commands.Cog):
       name="Badges offered by you",
       value=offer
     ).add_field(
-      name=f"Badges requested from {requestee.name}",
+      name=f"Badges requested from {requestee.display_name}",
       value=request
     )
     initiated_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
