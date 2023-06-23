@@ -767,7 +767,7 @@ class Trade(commands.Cog):
     if not offer and not request:
       follow_up_message = "Follow up with `/trade propose` to fill out the trade details!"
     else:
-      follow_up_message = "You can add more badges with with `/trade propose`."
+      follow_up_message = "You can add more badges with with `/trade propose`, or you can **Send** / **Cancel** the trade immediately via the buttons below."
 
     initiated_embed = discord.Embed(
       title="Trade Started!",
@@ -783,31 +783,44 @@ class Trade(commands.Cog):
       value=request
     )
     initiated_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
-    await ctx.followup.send(embed=initiated_embed, ephemeral=True)
 
-    if offer:
-      badge_info = db_get_badge_info_by_name(offer)
-      discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
-
-      offer_embed = discord.Embed(
-        title=f"{offer} added to offer.",
-        description=f"This badge has been added to your offer to {requestee.mention}",
-        color=discord.Color.dark_green()
+    # Paginator Pages
+    initiated_pages = [
+      pages.Page(
+        embeds=[initiated_embed]
       )
-      offer_embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
-      await ctx.followup.send(embed=offer_embed, file=discord_image, ephemeral=True)
-    if request:
-      badge_info = db_get_badge_info_by_name(request)
-      discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
+    ]
 
-      offer_embed = discord.Embed(
-        title=f"{request} added to request.",
-        description=f"This badge has been added to your request from {requestee.mention}",
-        color=discord.Color.dark_green()
+    # Offered page
+    offered_embed, offered_image = await self._generate_offered_embed_and_image(active_trade)
+    initiated_pages.append(
+      pages.Page(
+        embeds=[offered_embed],
+        files=[offered_image]
       )
-      offer_embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
-      await ctx.followup.send(embed=offer_embed, file=discord_image, ephemeral=True)
+    )
 
+    # Requested Page
+    requested_embed, requested_image = await self._generate_requested_embed_and_image(active_trade)
+    initiated_pages.append(
+      pages.Page(
+        embeds=[requested_embed],
+        files=[requested_image]
+      )
+    )
+
+    # Provide Send/Cancel UI immediately
+    view = SendCancelView(self, active_trade)
+    paginator = pages.Paginator(
+      pages=initiated_pages,
+      use_default_buttons=False,
+      custom_buttons=self.trade_buttons,
+      custom_view=view,
+      loop_pages=True,
+      disable_on_timeout=False
+    )
+
+    await paginator.respond(ctx.interaction, ephemeral=True)
 
   @trade.command(
     name="send",
