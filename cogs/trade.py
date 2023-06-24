@@ -770,7 +770,7 @@ class Trade(commands.Cog):
     if not offer and not request:
       follow_up_message = "Follow up with `/trade propose` to fill out the trade details!"
     else:
-      follow_up_message = "You can add more badges with with `/trade propose`, or you can **Send** / **Cancel** the trade immediately via the buttons below."
+      follow_up_message = "You can add more badges with `/trade propose`, or you can **Send** / **Cancel** the trade immediately via the buttons below."
 
     # Paginator Pages
     initiated_embed = discord.Embed(
