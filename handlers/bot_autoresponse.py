@@ -9,7 +9,7 @@ with open('bot_condemnations.txt') as f:
 # bot_affirmations(message) - responds to bot compliments/complaints
 # message[required]: discord.Message
 async def handle_bot_affirmations(message:discord.Message):
-  
+
   if message.author.bot:
     return
 
@@ -19,13 +19,13 @@ async def handle_bot_affirmations(message:discord.Message):
     await message.add_reaction(get_emoji("AGIMUS"))
 
   for condemnation in bot_condemnations:
-    if f"{condemnation} bot" in message_content:
-      if not (re.match(fr"not a?\s?{condemnation} bot", message_content)):
+    if (re.match(fr".*{condemnation} bot[^\w\s]+", message_content)) or (re.match(fr".*{condemnation} bot$", message_content)):
+      if not (re.match(fr".*not a?\s?{condemnation} bot", message_content)):
         await respond_to_sass(message)
 
   for affirmation in bot_affirmations:
-    if f"{affirmation} bot" in message_content:
-      if re.match(fr"not a?\s?{affirmation} bot", message_content):
+    if (re.match(fr".*{affirmation} bot[^\w\s]+", message_content)) or (re.match(fr".*{affirmation} bot$", message_content)):
+      if re.match(fr".*not a?\s?{affirmation} bot", message_content):
         await respond_to_sass(message)
         return
       else:
