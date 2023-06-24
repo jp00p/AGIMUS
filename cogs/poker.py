@@ -37,7 +37,7 @@ class Poker(commands.Cog):
     if ctx.author.id in self.poker_players:
       await ctx.respond(
         embed=discord.Embed(
-          title=f"{ctx.author.name}: you have a poker game running already! Be patient!",
+          title=f"{ctx.author.display_name}: you have a poker game running already! Be patient!",
           color=discord.Color.red()
         ),
         ephemeral=True

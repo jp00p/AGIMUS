@@ -763,51 +763,71 @@ class Trade(commands.Cog):
       else:
         db_add_badge_to_trade_request(active_trade, request)
 
+
+    initiated_trade = await self.check_for_active_trade(ctx)
+
     # Confirmation of initiation with the requestor
     if not offer and not request:
       follow_up_message = "Follow up with `/trade propose` to fill out the trade details!"
     else:
-      follow_up_message = "You can add more badges with with `/trade propose`."
+      follow_up_message = "You can add more badges with `/trade propose`, or you can **Send** / **Cancel** the trade immediately via the buttons below."
 
+    # Paginator Pages
     initiated_embed = discord.Embed(
       title="Trade Started!",
-      description=f"Your pending trade has been started!\n\n{follow_up_message}\n\nOnce you have added the badges "
-                  "you'd like to offer and request, use \n`/trade send` to send the trade to the user, "
+      description=f"Your pending trade has been started!\n\n{follow_up_message}\n\nIf you have additional badges "
+                  "you need to offer and request, use \n`/trade send` afterwards to send the trade to the user, "
                   "or to cancel!\n\nNote: You may only have one open outgoing trade request at a time!",
       color=discord.Color.dark_purple()
     ).add_field(
       name="Badges offered by you",
       value=offer
     ).add_field(
-      name=f"Badges requested from {requestee.name}",
+      name=f"Badges requested from {requestee.display_name}",
       value=request
     )
     initiated_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
-    await ctx.followup.send(embed=initiated_embed, ephemeral=True)
 
-    if offer:
-      badge_info = db_get_badge_info_by_name(offer)
-      discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
+    initiated_image = discord.File(fp="./images/trades/assets/trade_pending.png", filename="trade_pending.png")
+    initiated_embed.set_image(url=f"attachment://trade_pending.png")
 
-      offer_embed = discord.Embed(
-        title=f"{offer} added to offer.",
-        description=f"This badge has been added to your offer to {requestee.mention}",
-        color=discord.Color.dark_green()
+    initiated_pages = [
+      pages.Page(
+        embeds=[initiated_embed],
+        files=[initiated_image]
       )
-      offer_embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
-      await ctx.followup.send(embed=offer_embed, file=discord_image, ephemeral=True)
-    if request:
-      badge_info = db_get_badge_info_by_name(request)
-      discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
+    ]
 
-      offer_embed = discord.Embed(
-        title=f"{request} added to request.",
-        description=f"This badge has been added to your request from {requestee.mention}",
-        color=discord.Color.dark_green()
+    # Offered page
+    offered_embed, offered_image = await self._generate_offered_embed_and_image(initiated_trade)
+    initiated_pages.append(
+      pages.Page(
+        embeds=[offered_embed],
+        files=[offered_image]
       )
-      offer_embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
-      await ctx.followup.send(embed=offer_embed, file=discord_image, ephemeral=True)
+    )
 
+    # Requested Page
+    requested_embed, requested_image = await self._generate_requested_embed_and_image(initiated_trade)
+    initiated_pages.append(
+      pages.Page(
+        embeds=[requested_embed],
+        files=[requested_image]
+      )
+    )
+
+    # Provide Send/Cancel UI immediately
+    view = SendCancelView(self, initiated_trade)
+    paginator = pages.Paginator(
+      pages=initiated_pages,
+      use_default_buttons=False,
+      custom_buttons=self.trade_buttons,
+      custom_view=view,
+      loop_pages=True,
+      disable_on_timeout=False
+    )
+
+    await paginator.respond(ctx.interaction, ephemeral=True)
 
   @trade.command(
     name="send",

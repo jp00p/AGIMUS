@@ -219,6 +219,11 @@
     "description": "He Just Kept Talking In One Long Incredibly Unbroken Sentence",
     "url": "https://i.imgur.com/e9CY7Nu.mp4"
   },
+  "He Was A Union Man!": {
+    "file": "data/drops/hewasaunionman.mp4",
+    "description": "O'Brien He Was More Than A Hero He Was A Union Man",
+    "url": "https://i.imgur.com/ttZLeAY.mp4"
+  },
   "Hell Of A Combination": {
     "file": "data/drops/hellofacombination.mp4",
     "description": "Rambo II: That's a hell of a combination!",
@@ -733,6 +738,11 @@
     "file": "data/drops/thevulpesiadrop.mp4",
     "description": "The Vulpesia Drop. User drop.",
     "url": "https://i.imgur.com/sNZaGdb.mp4"
+  },
+  "The Worf Drop": {
+    "file": "data/drops/theworfdrop.mp4",
+    "description": "The Worf Drop A Warrior Must Be Forged Like A Sword The Path Of The Warrior",
+    "url": "https://i.imgur.com/Nv9FGP4.mp4"
   },
   "The Worf's Calisthenics Drop": {
     "file": "data/drops/theworfscalisthenicsdrop.mp4",

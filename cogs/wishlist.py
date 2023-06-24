@@ -79,7 +79,7 @@ class DismissButton(discord.ui.Button):
     self.has = json.dumps(has)
     self.wants = json.dumps(wants)
     super().__init__(
-      label="    Dismiss    ",
+      label="    Dismiss Match    ",
       style=discord.ButtonStyle.primary,
       row=2
     )
