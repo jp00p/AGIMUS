@@ -2773,7 +2773,15 @@
       "episode": "06",
       "imdb": "tt0708964",
       "memoryalpha": "Riddles_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 476,
+          "airdate": "2023.06.26",
+          "episode": "Skinny Lennie",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "06",
       "stills": [
         "https://image.tmdb.org/t/p/original/clpF69idW8FSLmlE6Nuyuoiv1Rq.jpg",
