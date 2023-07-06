@@ -2799,7 +2799,15 @@
       "episode": "07",
       "imdb": "tt0708879",
       "memoryalpha": "Dragon's_Teeth_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 477,
+          "airdate": "2023.07.03",
+          "episode": "Fig Newton Planets",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "06",
       "stills": [
         "https://image.tmdb.org/t/p/original/daRlg8m7QvL9b7tUT2zwK6SoqiF.jpg",
