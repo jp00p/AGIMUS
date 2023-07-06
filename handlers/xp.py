@@ -377,7 +377,7 @@ def determine_level_up_source_details(user, source):
   elif isinstance(source, str):
     return source
   else:
-    return random.choice([ "Personal Log", "Code 47", "Classified" ])
+    return random.choice([ "Personal Log", "Code 47", "Classified by Section 31" ])
 
 def is_message_channel_unblocked(message: discord.message.Message):
   # Use starboard blocked channel list to verify whether we should be reporting the source

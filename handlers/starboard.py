@@ -187,7 +187,7 @@ async def add_starboard_post(message, board) -> None:
       if attachment.is_spoiler():
         spoiler_file = await attachment.to_file(spoiler=True)
       elif attachment.content_type.startswith("image"):
-        star_embed.set_image(attachment.proxy_url)
+        star_embed.set_image(url=attachment.proxy_url)
 
   if embed_thumb != "":
     star_embed.set_thumbnail(url=embed_thumb)
