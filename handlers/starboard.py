@@ -108,7 +108,7 @@ async def add_starboard_post(message, board) -> None:
   insert_starboard_post(message.id, message.author.id, board) # add post to DB
 
   provider_name, message_str, embed_image_url, embed_title, embed_desc, embed_thumb = ["" for i in range(6)] # initialize all the blank strings
-  jumplink = f"[View original message]({message.jump_url}) from {message.channel.name}"
+  jumplink = f"[View original message]({message.jump_url}) from {message.channel.mention}"
   author_thumb = "https://i.imgur.com/LdNH7MK.png" # default author thumb
   footer_thumb = "https://i.imgur.com/Y8T9Yxa.jpg" # default footer thumb
   original_fields = None
@@ -174,18 +174,20 @@ async def add_starboard_post(message, board) -> None:
     icon_url=footer_thumb
   )
 
+  spoiler_file = None
+
   if embed_image_url != "":
     star_embed.set_image(url=embed_image_url)
   elif len(message.attachments) > 0:
     # build attachments
-    for attachment in message.attachments:
-      if attachment.content_type.startswith("video"):
-        star_embed.description += f"\n[video file]({attachment.proxy_url})\n"
-      if embed_image_url == "" and attachment.content_type.startswith("image"):
-        embed_image_url = attachment.proxy_url
-
-  if embed_image_url != "":
-    star_embed.set_image(url=embed_image_url)
+    attachment = message.attachments[0]
+    if attachment.content_type.startswith("video"):
+      star_embed.description += f"\n[video file]({attachment.proxy_url})\n"
+    else:
+      if attachment.is_spoiler():
+        spoiler_file = await attachment.to_file(spoiler=True)
+      elif attachment.content_type.startswith("image"):
+        star_embed.set_image(attachment.proxy_url)
 
   if embed_thumb != "":
     star_embed.set_thumbnail(url=embed_thumb)
@@ -193,7 +195,7 @@ async def add_starboard_post(message, board) -> None:
   star_embed.description += f"\n{get_emoji('combadge')}\n\n{jumplink}"
 
 
-  await channel.send(content=message_str, embed=star_embed) # send main embed
+  await channel.send(content=message_str, embed=star_embed, file=spoiler_file) # send main embed
   await message.add_reaction(random.choice(["🌟","⭐","✨"])) # react to original post
   logger.info(f"{Fore.RED}AGIMUS{Fore.RESET} has added {message.author.display_name}'s post to {Style.BRIGHT}{board}{Style.RESET_ALL}!")
 
