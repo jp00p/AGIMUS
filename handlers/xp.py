@@ -47,6 +47,12 @@ reasons = {
   "created_event"  : "creating an event"
 }
 
+blocked_level_up_sources = [
+  "Personal Log",
+  "Code 47",
+  "Classified by Section 31"
+]
+
 # handle_message_xp(message) - calculates xp for a given message
 # message[required]: discord.Message
 async def handle_message_xp(message:discord.Message):
@@ -366,18 +372,20 @@ def determine_level_up_source_details(user, source):
   if isinstance(source, discord.message.Message):
     if is_message_channel_unblocked(source):
       return f"Their message at: {source.jump_url}"
+    else:
+      return random.choice(blocked_level_up_sources)
   elif isinstance(source, discord.Reaction):
     if is_message_channel_unblocked(source.message):
       if user is source.message.author:
         return f"Receiving a {source.emoji} react on their message at: {source.message.jump_url}"
       else:
         return f"Adding a {source.emoji} react to the message at: {source.message.jump_url}"
+    else:
+      return random.choice(blocked_level_up_sources)
   elif isinstance(source, discord.ScheduledEvent):
     return f"Scheduing the `{source.name}` event"
   elif isinstance(source, str):
     return source
-  else:
-    return random.choice([ "Personal Log", "Code 47", "Classified by Section 31" ])
 
 def is_message_channel_unblocked(message: discord.message.Message):
   # Use starboard blocked channel list to verify whether we should be reporting the source
