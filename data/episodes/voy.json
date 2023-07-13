@@ -2825,7 +2825,15 @@
       "episode": "08",
       "imdb": "tt0708942",
       "memoryalpha": "One_Small_Step_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 478,
+          "airdate": "2023.07.10",
+          "episode": "Curtain Jerkin\u2019",
+          "link": "https://maximumfun.org/episodes/greatest-generation/ep-478-curtain-jerkin-voy-s6e8/"
+        }
+      ],
       "season": "06",
       "stills": [
         "https://image.tmdb.org/t/p/original/fFjU5DOSpKTmjli5j9WJEb3WTQm.jpg",
