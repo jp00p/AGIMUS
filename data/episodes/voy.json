@@ -2851,7 +2851,15 @@
       "episode": "09",
       "imdb": "tt0708992",
       "memoryalpha": "The_Voyager_Conspiracy_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 479,
+          "airdate": "2023.07.17",
+          "episode": "Potato Gun Energy",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "06",
       "stills": [
         "https://image.tmdb.org/t/p/original/qHSllKbXwp9vXFjmvZv4prLfDwU.jpg",
