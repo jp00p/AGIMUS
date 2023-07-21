@@ -19,7 +19,7 @@ def birthdays_task(same_bot: Bot):
     trek_birthdays = json.load(f)
     
   birthday_messages = (
-    "Everyone, wish them well as you see them in the server",
+    "Everybody wish them well as you see them in the server",
     "Fun will now commence",
     "There will be cake",
     "One more trip around the sun",

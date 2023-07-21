@@ -315,7 +315,7 @@
       "channels": [
         "captain-picard-day"
       ],
-      "crontab": "20 19 * * *",
+      "crontab": "30 8 * * *",
       "enabled": true,
       "data": "data/birthdays.json"
     }
