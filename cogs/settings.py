@@ -206,7 +206,8 @@ class LoudbotView(discord.ui.View):
     super().__init__()
 
     self.add_item(LoudbotDropdown(self.cog))
-
+    
+    
 # _________
 # \_   ___ \  ____   ____
 # /    \  \/ /  _ \ / ___\
@@ -295,7 +296,7 @@ class Settings(commands.Cog):
         custom_buttons=[],
         use_default_buttons=False,
         custom_view=LoudbotView(self)
-      )
+      ),
     ]
     paginator = pages.Paginator(
       pages=page_groups,

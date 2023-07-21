@@ -24,6 +24,7 @@ from commands.speak import speak, speak_embed
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
+from commands.birthday import birthday_command_group
 
 # Slash Command Groups
 import commands.drop
@@ -98,6 +99,7 @@ from tasks.bingbong import bingbong_task
 from tasks.hoodiversaries import hoodiversary_task
 from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
+from tasks.birthdays import birthdays_task
 
 
 # Utils
@@ -344,7 +346,8 @@ scheduled_tasks = [
   badger_task(bot),
   bingbong_task(bot),
   hoodiversary_task(bot),
-  weyounsday_task(bot)
+  weyounsday_task(bot),
+  birthdays_task(bot),
 ]
 scheduler = Scheduler()
 for task in scheduled_tasks:

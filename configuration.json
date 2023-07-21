@@ -310,6 +310,14 @@
       ],
       "crontab": "15 8 * * *",
       "enabled": true
+    },
+    "birthdays": {
+      "channels": [
+        "captain-picard-day"
+      ],
+      "crontab": "20 19 * * *",
+      "enabled": true,
+      "data": "data/birthdays.json"
     }
   },
   "commands": {
