@@ -9,7 +9,7 @@ from common import config, get_channel_ids_list, logger
 from queries import birthdays as db
 
 
-def birthdays_task(same_bot: Bot):
+def birthdays_task(bot: Bot):
   """
   Every day, send out a birthday greeting to all users that have saved it to their settings, and also important people
   in Star Trek
@@ -59,7 +59,7 @@ def birthdays_task(same_bot: Bot):
     embed.set_footer(text=random.choice(birthday_messages))
     channel_ids = get_channel_ids_list(config["tasks"]["birthdays"]["channels"])
     for channel_id in channel_ids:
-      channel = same_bot.get_channel(channel_id)
+      channel = bot.get_channel(channel_id)
       # await channel.send(header_image)
       await channel.send(embed=embed)
 

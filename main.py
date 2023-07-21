@@ -24,11 +24,11 @@ from commands.speak import speak, speak_embed
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
-from commands.birthday import birthday_command_group
 
 # Slash Command Groups
-import commands.drop
+import commands.birthday
 import commands.clip
+import commands.drop
 
 # Bang
 from commands.clear_media import clear_media
