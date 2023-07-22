@@ -30,7 +30,7 @@ def birthdays_task(bot: Bot):
     if not enabled:
       return
 
-    # header_image = TBD
+    header_image = "https://i.imgur.com/xMycyhz.png"
     
     today = datetime.date.today()
     user_ids = db.get_users_with_birthday(today.month, today.day)
@@ -51,8 +51,10 @@ def birthdays_task(bot: Bot):
       logger.info("There were no birthdays today")
       return
     
+    random.shuffle(description)
+    
     embed = discord.Embed(
-      title="These people have a birthday today",
+      title="Today's important Star Trek birthdays",
       description="\n\n".join(description),
       color=discord.Color.fuchsia()
     )
@@ -60,7 +62,7 @@ def birthdays_task(bot: Bot):
     channel_ids = get_channel_ids_list(config["tasks"]["birthdays"]["channels"])
     for channel_id in channel_ids:
       channel = bot.get_channel(channel_id)
-      # await channel.send(header_image)
+      await channel.send(header_image)
       await channel.send(embed=embed)
 
   return {
