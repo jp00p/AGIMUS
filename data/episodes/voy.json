@@ -2877,7 +2877,15 @@
       "episode": "10",
       "imdb": "tt0708944",
       "memoryalpha": "Pathfinder_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 480,
+          "airdate": "2023.07.24",
+          "episode": "Dialogue Massage",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "06",
       "stills": [
         "https://image.tmdb.org/t/p/original/ky4esIBMjAqNvXhiRyqThGW6Zzc.jpg",
