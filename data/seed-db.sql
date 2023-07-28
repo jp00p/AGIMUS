@@ -102,6 +102,12 @@ CREATE TABLE IF NOT EXISTS profile_photo_filters (
   PRIMARY KEY (id),
   UNIQUE KEY (user_discord_id)
 );
+CREATE TABLE IF NOT EXISTS user_birthdays (
+  user_discord_id VARCHAR(64) PRIMARY KEY
+    REFERENCES users (discord_id) ON DELETE CASCADE,
+  month TINYINT(2) NOT NULL,
+  day TINYINT(2) NOT NULL
+);
 CREATE TABLE IF NOT EXISTS trades (
   id int(11) NOT NULL AUTO_INCREMENT,
   requestor_id varchar(128) NOT NULL,
