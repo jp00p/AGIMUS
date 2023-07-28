@@ -514,6 +514,11 @@
     "description": "D M A. DMA. (DMX) What does it want!?",
     "url": "https://i.imgur.com/7GnPsqt.mp4"
   },
+  "The Doc Holoday Drop": {
+    "file": "data/drops/thedocholodaydrop.mp4",
+    "description": "The Doc Holoday Drop. The Doctor.",
+    "url": "https://i.imgur.com/pBx03uj.mp4"
+  },
   "The Draxiom Drop": {
     "file": "data/drops/thedraxiomdrop.mp4",
     "description": "The Draxiom Drop. User drop.",
@@ -559,10 +564,20 @@
     "description": "James' drop. User drop.",
     "url": "https://i.imgur.com/Cvw9oJc.mp4"
   },
+  "The Jeffrey Combs Drop": {
+    "file": "data/drops/thejeffreycombsdrop.mp4",
+    "description": "The Jeffrey Combs Drop. Weyoun. AGIMUS.",
+    "url": "https://i.imgur.com/50J9VEi.mp4"
+  },
   "The jp00p Drop": {
     "file": "data/drops/thejp00pdrop.mp4",
     "description": "jp00p's Drop. User drop.",
     "url": "https://i.imgur.com/xiy9Oiz.mp4"
+  },
+  "The jp00p Drop - Dr Z Mix": {
+    "file": "data/drops/thejp00pdropdrzmix.mp4",
+    "description": "jp00p's Drop. Dr Z Mix. User drop.",
+    "url": "https://i.imgur.com/HIXpKJr.mp4"
   },
   "The Jupiter Drop": {
     "file": "data/drops/thejupiterdrop.mp4",
