@@ -2903,7 +2903,15 @@
       "episode": "11",
       "imdb": "tt0708893",
       "memoryalpha": "Fair_Haven_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 481,
+          "airdate": "2023.07.31",
+          "episode": "The Seven Year Shit",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "06",
       "stills": [
         "https://image.tmdb.org/t/p/original/rj89aSseiTx6BdDYy8gVPIelc3C.jpg",
