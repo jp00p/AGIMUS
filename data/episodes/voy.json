@@ -2929,7 +2929,15 @@
       "episode": "12",
       "imdb": "tt0708856",
       "memoryalpha": "Blink_of_an_Eye_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 482,
+          "airdate": "2023.08.07",
+          "episode": "Long Zipper Energy",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "06",
       "stills": [
         "https://image.tmdb.org/t/p/original/v9r0Bu9QfYzWEmL1EcBdTh42pa2.jpg",
