@@ -248,6 +248,18 @@ async def handle_event_creation_xp(event):
     return
   await increment_user_xp(creator, 30, "created_event", location, event)
 
+def should_user_level_up(user):
+    user_xp_data = get_user_xp(user.id)
+    user_xp = user_xp_data["xp"]
+    user_level = user_xp_data["level"]
+    progress = get_xp_cap_progress(user.id)
+    if user_level > 333 and progress is not None:
+      # 734 XP is the amount that would normally get someone from 333 to 334
+      return progress >= 734
+    else:
+      next_level_xp = calculate_xp_for_next_level(user_level)
+      return user_xp >= next_level_xp
+
 # calculate_xp_for_next_level(current_level)
 # current_level[required]: int
 # returns the amount of xp required to level up for the given level
@@ -278,6 +290,11 @@ async def level_up_user(user:discord.User, level:int, source_details):
     sql = "UPDATE users SET level = level + 1 WHERE discord_id = %s"
     vals = (user.id,)
     query.execute(sql, vals)
+
+  # If they're above the level progress cap, reset their progress to next level to zero
+  if level >= 333:
+    reset_xp_cap_progress(user.id)
+
   badge = give_user_badge(user.id)
   was_on_wishlist = False
 
@@ -357,10 +374,12 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel, sou
     if current_color >= len(xp_colors):
         current_color = 0
     user_xp_data = get_user_xp(user.id)
-    user_xp = user_xp_data["xp"]
-    next_level_xp = calculate_xp_for_next_level(user_xp_data["level"])
-    #logger.info(f'User XP: {user_xp} User level: {user_xp_data["level"]} Next level XP: {next_level_xp}')
-    if user_xp >= next_level_xp:
+
+    # If the user is above the level where we flatten the XP requirement per level, track their progress
+    if user_xp_data["level"] >= 333:
+      increment_xp_cap_progress(user.id, amt)
+
+    if should_user_level_up(user):
       try:
         source_details = determine_level_up_source_details(user, source)
         await level_up_user(user, user_xp_data["level"]+1, source_details)
@@ -409,6 +428,25 @@ def get_user_xp(discord_id):
     user_xp = query.fetchone()
   return { "level": user_xp[0], "xp" : user_xp[1] }
 
+def get_xp_cap_progress(user_discord_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT progress FROM xp_cap_progress WHERE user_discord_id = %s"
+    vals = (user_discord_id,)
+    query.execute(sql, vals)
+    result = query.fetchone()
+  return result.get('progress')
+
+def reset_xp_cap_progress(user_discord_id):
+  with AgimusDB() as query:
+    sql = "INSERT INTO xp_cap_progress (user_discord_id, progress) VALUES (%s, 0) ON DUPLICATE KEY UPDATE user_discord_id = %s"
+    vals = (user_discord_id, user_discord_id)
+    query.execute(sql, vals)
+
+def increment_xp_cap_progress(user_discord_id, progress):
+  with AgimusDB() as query:
+    sql = "UPDATE xp_cap_progress SET progress = progress + %s WHERE discord_user_id = %s"
+    vals = (progress, user_discord_id)
+    query.execute(sql, vals)
 
 def check_react_history(reaction:discord.Reaction, user:discord.User):
   with AgimusDB() as query:

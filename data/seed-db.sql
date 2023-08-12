@@ -298,3 +298,9 @@ CREATE TABLE IF NOT EXISTS user_aliases (
   `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 );
+CREATE TABLE IF NOT EXISTS xp_cap_progress (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_discord_id` varchar(64) NOT NULL,
+  `progress` int(4) NOT NULL,
+  PRIMARY KEY (`id`)
+);
