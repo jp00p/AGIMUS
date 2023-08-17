@@ -2956,7 +2956,15 @@
       "episode": "13",
       "imdb": "tt0709006",
       "memoryalpha": "Virtuoso_(episode)",
-      "podcasts": [],
+      "podcasts": [
+        {
+          "title": "The Greatest Generation",
+          "order": 483,
+          "airdate": "2023.08.14",
+          "episode": "Stick Man Arms Race",
+          "link": "https://maximumfun.org/podcasts/greatest-generation/"
+        }
+      ],
       "season": "06",
       "stills": [
         "https://image.tmdb.org/t/p/original/p8A9JZBLpEHX6OKigPQULdaehZr.jpg",
