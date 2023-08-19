@@ -488,7 +488,15 @@
             "episode": "04",
             "imdb": "tt0708438",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 184,
+                    "airdate": "2022.08.09",
+                    "episode": "Erect Arm Status (TOS S2E4)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-184-erect-arm-status-tos-s2e4/"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/tTNlen4ziVgO8LteaxCzYdc7ejv.jpg",

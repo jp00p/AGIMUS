@@ -15,8 +15,9 @@ Options:
     -s --season <list>    A comma separated list of seasons to update.  Default: All possible seasons.
     -e --episode <list>   A comma separated list of episodes to update.  Used with -s.  Default: All possible episodes.
     
-    -p --pod              Update the podcast information.  Useful for old shows that have only just been covered.
-    -d --details          Update the episode details from TVDB.
+    -p --podcast          Update the podcast information.  Useful for old shows that have only just been covered.
+    -d --details          Update the episode details from TVDB.  You will need to update your .env file and put in
+                          TMDB_KEY.  Details on getting one at https://developer.themoviedb.org/docs/getting-started
     -m --memory-alpha     Update the link to the episode in Memory Alpha.
     
                           If -p, -d, and -m are not specified, then all of them will be updated.
@@ -27,10 +28,14 @@ Examples:
     
     Season 3 of LDS has finished, and so it’s time to add all of them
     generate_show_json.py lowerdecks -s 3
+    
+    The first two episodes of SNW season three dropped in the same week
+    generate_show_json.py snw -s 3 -e 1,2
 """
 import json
 import os.path
 import re
+from typing import List, Optional
 
 import docopt
 
@@ -40,6 +45,7 @@ import feedparser
 import requests
 import tmdbsimple
 from dateutil import parser
+from dotenv import load_dotenv
 
 all_shows = {
   "tng": {
@@ -135,49 +141,98 @@ podcasts = {
 
 
 class ShowGenerator:
-  def __init__(self, cli_args: dict):
-    self.show = cli_args['<show>']
-    if self.show not in all_shows:
-      print(f"{self.show} is not one of {all_shows.keys()}")
-      exit(1)
+  """
+  Class for building a .json file to be used with other commands around the bot.
+  """
+  def __init__(self, show: str, filename: str = None,
+               seasons: Optional[List[int]] = None, episodes: Optional[List[int]] = None,
+               update_details=True, update_podcast=True, update_memory_alpha=True):
+    self.show = show
     self.show_settings = all_shows[self.show]
     
-    self.filename = cli_args['<filename>'] or f"../data/episodes/{self.show}.json"
+    self.filename = filename or f"{os.path.dirname(__file__)}/../data/episodes/{self.show}.json"
     
-    try:
-      if cli_args['--season']:
-        self.seasons = [int(s) for s in cli_args['--season'].split(',')]
-      else:
-        self.seasons = range(1, 8)  # So far, no show has gone beyond 7 seasons
-    except ValueError:
-      print(f"-s should be a number or a list of numbers with commas inbetween.  Got “{cli_args['--season']}”")
-      exit(1)
+    self.seasons = seasons or range(1, 8)  # So far, no show has gone beyond 7 seasons
     
-    try:
-      if cli_args['--episode']:
-        self.episodes_to_update = [int(s) for s in cli_args['--episode'].split(',')]
-      else:
-        self.episodes_to_update = range(1, 30)  # Remember when seasons were 20+ episodes?
-    except ValueError:
-      print(f"-e should be a number or a list of numbers with commas inbetween.  Got “{cli_args['--episode']}”")
-      exit(1)
+    self.episodes_to_update = episodes or range(1, 30)  # Remember when seasons were 20+ episodes?
     
-    self.run_tmdb = cli_args['--details']
-    self.run_pod = cli_args['--pod']
-    self.run_memory_alpha = cli_args['--memory-alpha']
-    if not (self.run_pod or self.run_tmdb or self.run_memory_alpha):
-      self.run_pod = self.run_tmdb = self.run_memory_alpha = True
+    self.run_tmdb = update_details
+    self.run_pod = update_podcast
+    self.run_memory_alpha = update_memory_alpha
+    
+    if self.run_tmdb:
+      self.get_tmdb_api()
     
     self.episode_details = []
     self.episode_map = {}
+    self.podcast_episodes = {}
+    self.podcast_name = None
   
+  @staticmethod
+  def clean_and_validate_args(cli_args: dict) -> Optional[dict]:
+    """
+    Takes the command line arguments from docopt and turns them into a dict that can be used as **kwargs for a new
+    instance. If there are any errors, print them out and return None
+    """
+    args = {
+      'show': cli_args['<show>'],
+      'filename': cli_args['<filename>'],
+    }
+    
+    valid = True
+    if cli_args['<show>'] not in all_shows:
+      print(f"{cli_args['<show>']} is not one of {all_shows.keys()}")
+      valid = False
+    
+    try:
+      if cli_args['--season']:
+        args['seasons'] = [int(s) for s in cli_args['--season'].split(',')]
+    except ValueError:
+      print(f"-s should be a number or a list of numbers with commas inbetween.  Got “{cli_args['--season']}”")
+      valid = False
+    
+    try:
+      if cli_args['--episode']:
+        args['episodes'] = [int(s) for s in cli_args['--episode'].split(',')]
+    except ValueError:
+      print(f"-e should be a number or a list of numbers with commas inbetween.  Got “{cli_args['--episode']}”")
+      valid = False
+
+    if cli_args['--details'] or cli_args['--podcast'] or cli_args['--memory-alpha']:
+      args.update({
+        'update_details': cli_args['--details'],
+        'update_podcast': cli_args['--podcast'],
+        'update_memory_alpha': cli_args['--memory-alpha']
+      })
+      
+    if valid:
+      return args
+    else:
+      return None
+
+  def get_tmdb_api(self):
+    """
+    Set the TMDB API key, or disable the function if not available.
+    """
+    load_dotenv()
+    tmdbsimple.API_KEY = os.getenv('TMDB_KEY')
+    if not tmdbsimple.API_KEY:
+      print("You need to setup a TMDB API key at https://www.themoviedb.org/settings/api and put it in your .env "
+            "file.\nYou will not be able to add new shows or update details about existing ones until you do.")
+      self.run_tmdb = False
+
   def run(self):
+    """
+    Actually update the JSON file
+    """
     self.load_current_file()
     if self.run_pod:
       self.load_feed()
     
     for season in self.seasons:
       for episode in self.episodes_to_update:
+        print(f"- Checking for {self.show} S{season:02}E{episode:02}")
+        
         details = self.get_current_details(season, episode)
         if self.run_tmdb:
           details = self.set_tmdb_details(details, season, episode)
@@ -212,13 +267,12 @@ class ShowGenerator:
     """
     Load the feed for the show's podcast, and pull out the pod episodes that match this show.
     """
-    self.podcast_episodes = {}
     show_name = self.show_settings.get('pod_name', self.show)
     podcast = podcasts[self.show_settings['pod']]
     self.podcast_name = podcast['name']
     
     feed = feedparser.parse(podcast['url'])
-    regex = re.compile(fr"\({show_name} S(\d+)E(\d+)\)", re.IGNORECASE)
+    regex = re.compile(fr"{show_name} S(\d+)E(\d+)", re.IGNORECASE)
     
     for entry in feed['entries']:
       regex_match = regex.search(entry['title'])
@@ -228,7 +282,10 @@ class ShowGenerator:
       episode = int(regex_match[2])
       self.podcast_episodes[season, episode] = entry
   
-  def get_current_details(self, season: int, episode: int) -> dict:
+  def get_current_details(self, season: int, episode: int) -> Optional[dict]:
+    """
+    Load the episode details from the current website.  Or none if it doesn't exist (yet)
+    """
     if (season, episode) in self.episode_map:
       return self.episode_details[self.episode_map[season, episode]]
     
@@ -239,8 +296,11 @@ class ShowGenerator:
     Load details from TMDB
     """
     tmdb_episode = tmdbsimple.TV_Episodes(self.show_settings['tmdb'], season, episode)
-    tmdb_details = tmdb_episode.info()
-    
+    try:
+      tmdb_details = tmdb_episode.info()
+    except requests.exceptions.HTTPError:
+      print(f"Unable to find {self.show} S{season:02}E{episode:02} in TMDB")
+      return details
     if not tmdb_details.get('id'):
       print(f"Unable to find {self.show} S{season:02}E{episode:02} in TMDB")
       return details
@@ -266,10 +326,13 @@ class ShowGenerator:
     details['title'] = tmdb_details['name']
     details['tvdb'] = tmdb_details['id']  # It's tMdb, but we're keeping it for consistency
     details['imdb'] = tmdb_episode.external_ids().get('imdb_id')
-    for image in tmdb_episode.images():
-      details['stills'].append(f"https://image.tmdb.org/t/p/original{image['file_path']}")
+    stills = []
+    for image in tmdb_episode.images()['stills']:
+      stills.append(f"https://image.tmdb.org/t/p/original{image['file_path']}")
+    if stills:
+      details['stills'] = stills
     
-    print(f"Updated episode {self.show} S{details['season']}E{details['episode']} “{details['title']}” from TMDB")
+    print(f"Updated episode “{details['title']}” from TMDB")
     return details
   
   def set_memory_alpha(self, details: dict):
@@ -294,9 +357,8 @@ class ShowGenerator:
       print(f"No podcast for {self.show} S{details['season']}E{details['episode']} yet")
       return
     
-    req = requests.get("https://maximumfun.org/search/",
-                       params={"_type": "episode",
-                               "_term": f"{self.podcast_name} EP {podcast['itunes_episode']} {podcast['title']}"})
+    # Search the maxfun website for the link to the episode. For some reason, it's not in the RSS feed
+    req = requests.get("https://maximumfun.org/search/", params={"_type": "episode", "_term": podcast['title']})
     re_match = re.search(r'a href="(https://maximumfun\.org/episodes/.+/)"', req.content.decode(errors='ignore'))
     if re_match:
       page_link = re_match[1]
@@ -315,19 +377,25 @@ class ShowGenerator:
     print(f"Updated the podcast to {podcast['title']}")
   
   def save_current_file(self):
+    """
+    Save the entire file, including all episodes we know about.
+    """
     recordset = {
       "animated": self.show_settings["animated"],
       "episodes": self.episode_details,
-      "imdb": self.show_settings.get("imdb"),
+      "imdb": self.show_settings.get("imdb", ""),
       "title": self.show_settings["title"],
-      "trek": self.show_settings.get("trek"),
-      "tvdb": self.show_settings.get("imdb"),
+      "trek": self.show_settings['trek'],
+      "tvdb": self.show_settings.get("tmdb"),
     }
+    print(f"saving file {self.filename}")
     with open(self.filename, "w") as fp:
-      json.dump(recordset, fp, indent=2)
+      json.dump(recordset, fp, indent=4)
 
 
 if __name__ == '__main__':
   args = docopt.docopt(__doc__)
-  generator = ShowGenerator(args)
-  generator.run()
+  args = ShowGenerator.clean_and_validate_args(args)
+  if args:
+    generator = ShowGenerator(**args)
+    generator.run()

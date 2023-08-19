@@ -1228,8 +1228,16 @@
             "description": "After months spent reconnecting the Federation with distant worlds, Captain Michael Burnham and the crew of the U.S.S. Discovery are sent to assist a damaged space station \u2013 a seemingly routine mission that reveals the existence of a terrifying new threat.",
             "episode": "01",
             "imdb": "tt13345554",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Kobayashi_Maru_(episode)",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 143,
+                    "airdate": "2021.11.23",
+                    "episode": "You\u2019d Die to Get Killed Off of a Show Like This (Discovery S4E1 & Prodigy S1E5)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-143-youd-die-to-get-killed-off-of-a-show-like-this-discovery-s4e1-prodigy-s1e5/"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/6RsRTvxI2Sv6mNmBOOLuEmiAEcy.jpg",
@@ -1261,8 +1269,16 @@
             "description": "Saru returns to help the U.S.S. Discovery uncover the mystery of an unusually destructive new force. As Burnham leads the crew, she must also find a way to help Book cope with an unimaginable loss.",
             "episode": "02",
             "imdb": "tt14074220",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Anomaly_(DIS)_(episode)",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 144,
+                    "airdate": "2021.11.30",
+                    "episode": "Trauma Currency Exchange (Discovery S4E2)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-144-trauma-currency-exchange-discovery-s4e2/"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/3FZ6ZAKxQaVS84uymVdYzwOGUOa.jpg",
@@ -1287,8 +1303,16 @@
             "description": "Burnham and Tilly hunt the killer of a Starfleet officer as Stamets and the science team race against the clock to prevent the anomaly from killing anyone else.",
             "episode": "03",
             "imdb": "tt14074222",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Choose_to_Live_(episode)",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 145,
+                    "airdate": "2021.12.07",
+                    "episode": "Nerd Top Gun (Discovery S4E3)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-145-nerd-top-gun-discovery-s4e3/"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/8tx3avvVJHrXFDIeCafbXn0H2gB.jpg",
@@ -1306,8 +1330,16 @@
             "description": "Tilly and Adira lead a team of Starfleet Academy cadets on a training mission that takes a dangerous turn. Meanwhile, Burnham is pulled into tense negotiations on Ni\u2019Var.",
             "episode": "04",
             "imdb": "tt14074224",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "All_Is_Possible_(episode)",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 146,
+                    "airdate": "2021.12.14",
+                    "episode": "No One Needs to Make a Dead Person Proud (Discovery S4E4)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-146-no-one-needs-to-make-a-dead-person-proud-discovery-s4e4/"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/ahkPNBqicfkfvhhAaopPSl6NrPI.jpg",
@@ -1324,8 +1356,16 @@
             "description": "Burnham and Book race to evacuate a group of stranded colonists in the anomaly\u2019s path as one of the Federation\u2019s brightest scientists comes aboard the U.S.S. Discovery to do high-stakes research with Saru and Stamets.",
             "episode": "05",
             "imdb": "tt14074226",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "The_Examples_(episode)",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 147,
+                    "airdate": "2021.12.21",
+                    "episode": "Star Trethics (Discovery S4E5)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-147-star-trethics-discovery-s4e5/"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/b6x4x2z2XflPcmh3iRGr37CdsxS.jpg"
@@ -1338,8 +1378,16 @@
             "description": "Seeking answers, the U.S.S. Discovery ventures into a subspace rift created by the Dark Matter Anomaly. Meanwhile, Book faces a strange visitor from his past.",
             "episode": "06",
             "imdb": "tt14066802",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Stormy_Weather_(episode)",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 148,
+                    "airdate": "2021.12.28",
+                    "episode": "Zora Could Be Toobining (Discovery S4E6)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-148-zora-could-be-toobining-discovery-s4e6/"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/vOaVmVveQjU5EbSHlNFIr3HxsVQ.jpg",
@@ -1357,8 +1405,16 @@
             "description": "Tensions rise as representatives from across the galaxy gather to confront the threat of the Dark Matter Anomaly. Zora's new sentience raises difficult questions.",
             "episode": "07",
             "imdb": "tt14145492",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "...But_to_Connect_(episode)",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 149,
+                    "airdate": "2022.01.04",
+                    "episode": "Lad Mag Dad Mad (Discovery S4E7)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-149-lad-mag-dad-mad-discovery-s4e7/"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/n7Yc5nn00Fo0dJ8d9uD2v6lIhfh.jpg",
@@ -1369,15 +1425,159 @@
         },
         {
             "airdate": "2022.02.10",
-            "description": "",
+            "description": "Following a hunch, Captain Burnham tracks Book to an old haunt from their courier days and gets drawn into a high-stakes competition for a powerful weapon.",
             "episode": "08",
             "imdb": "tt15170308",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "All_In_(episode)",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 155,
+                    "airdate": "2022.02.15",
+                    "episode": "Chekhov\u2019s Boxing Ring (Discovery S4E8)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-155-chekhovs-boxing-ring-discovery-s4e8/"
+                }
+            ],
             "season": "04",
-            "stills": [],
-            "title": "Episode 8",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/bsXxuEJnwrycdWnFIhlQ2KoGslt.jpg",
+                "https://image.tmdb.org/t/p/original/9IkL6q4773p1iD7lOjHsSc3Q8aA.jpg"
+            ],
+            "title": "All In",
             "tvdb": 3396838
+        },
+        {
+            "airdate": "2022.02.17",
+            "title": "Rubicon",
+            "description": "Captain Burnham and the U.S.S. Discovery race to stop Book and Ruon Tarka from launching a rogue plan that could inadvertently endanger the galaxy.",
+            "season": "04",
+            "episode": "09",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 156,
+                    "airdate": "2022.02.22",
+                    "episode": "Ganglia Stuff (Discovery S4E9)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-156-ganglia-stuff-discovery-s4e9/"
+                }
+            ],
+            "memoryalpha": "Rubicon_(episode)",
+            "tvdb": 3497476,
+            "imdb": "tt15170312",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/p1qtFPO84IQsyHgtZtp2vv492Gi.jpg",
+                "https://image.tmdb.org/t/p/original/3ix1vQrsFbwWenxvktUtIJFmEYL.jpg",
+                "https://image.tmdb.org/t/p/original/lJCYv71U33mQvaZw9D9Xb9jNURW.jpg",
+                "https://image.tmdb.org/t/p/original/pqRzpx68W5tFhUcx5CB2FULdTd0.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.02.24",
+            "title": "The Galactic Barrier",
+            "description": "Captain Burnham and her crew must go where few have gone before: beyond the Galactic Barrier. Meanwhile, Book learns the truth of what drives Ruon Tarka.",
+            "season": "04",
+            "episode": "10",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 157,
+                    "airdate": "2022.03.01",
+                    "episode": "Roly Towel Reveal Party (Discovery S4E10)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-157-roly-towel-reveal-party-discovery-s4e10/"
+                }
+            ],
+            "memoryalpha": "The_Galactic_Barrier_(episode)",
+            "tvdb": 3497477,
+            "imdb": "tt15170316",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/r5OYdsKMaLH0p4Z1te1bKD5VXGK.jpg",
+                "https://image.tmdb.org/t/p/original/j97zPGEcaQ311Czuo7VLuNdFJyv.jpg",
+                "https://image.tmdb.org/t/p/original/mk2INqEWla8q6UFU7EhicRDbQyE.jpg",
+                "https://image.tmdb.org/t/p/original/ifNUPNLBPMtqdzvitn4a8hDbwkx.jpg",
+                "https://image.tmdb.org/t/p/original/m24tZzRfU0Q0idFX0skA3FQP4cI.jpg",
+                "https://image.tmdb.org/t/p/original/5HV8dz6nXOUlE0jAqRAwCF4TwKn.jpg",
+                "https://image.tmdb.org/t/p/original/rJekID0ehTQxMKnbZoRqjPpEwsB.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.03.03",
+            "title": "Rosetta",
+            "description": "While Captain Burnham leads an away mission to a planet that was once home to the aliens responsible for the DMA, Book and Tarka secretly infiltrate the U.S.S. Discovery.",
+            "season": "04",
+            "episode": "11",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 159,
+                    "airdate": "2022.03.08",
+                    "episode": "Rails of Fear Blow (Discovery S4E11)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-159-rails-of-fear-blow-discovery-s4e11/"
+                }
+            ],
+            "memoryalpha": "Rosetta_(episode)",
+            "tvdb": 3525030,
+            "imdb": "tt15170318",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/AlDYsOnyCCSZRtqrP6oCZgateW5.jpg",
+                "https://image.tmdb.org/t/p/original/ddDcYqlAUSnktd3PpymBx3sQWXC.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.03.10",
+            "title": "Species Ten-C",
+            "description": "As the DMA approaches Earth and Ni\u2019Var, Captain Burnham and the crew of the U.S.S. Discovery attempt to make First Contact with the powerful species responsible before it\u2019s too late.",
+            "season": "04",
+            "episode": "12",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 161,
+                    "airdate": "2022.03.15",
+                    "episode": "A Boronite Bouquet (Discovery S4E12)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-161-a-boronite-bouquet-discovery-s4e12/"
+                }
+            ],
+            "memoryalpha": "Species_Ten-C_(episode)",
+            "tvdb": 3578600,
+            "imdb": "tt18298648",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/fTaX2TfdeGFe7K7TRJDdtDUZTQR.jpg",
+                "https://image.tmdb.org/t/p/original/cKR3pMwKtYqpmenieezTBkL1wkZ.jpg",
+                "https://image.tmdb.org/t/p/original/7HRUewSggoe9bYcuF3DbrrkUdsz.jpg",
+                "https://image.tmdb.org/t/p/original/tqE49dNbpYxppu7GsQZLaaKUFqV.jpg",
+                "https://image.tmdb.org/t/p/original/vtPVQEBju2JeiCXbPMPeYRVe5lE.jpg",
+                "https://image.tmdb.org/t/p/original/sgz8GjvAMTiJUca7WOO8tEVsCLR.jpg",
+                "https://image.tmdb.org/t/p/original/gUYn10Ic0bp8Kk9uVwiFif1DKfc.jpg",
+                "https://image.tmdb.org/t/p/original/iNWYr7Nig6GUagrPwhcAoGHvQnP.jpg",
+                "https://image.tmdb.org/t/p/original/k85RYZfW8Yq78535FBU15t49QJb.jpg",
+                "https://image.tmdb.org/t/p/original/4TVXcvD0n9g4lFEv0CpQcAbYQUk.jpg",
+                "https://image.tmdb.org/t/p/original/tvkrez7QoPyjfxNz3KEYmJYVMem.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.03.17",
+            "title": "Coming Home",
+            "description": "The DMA approaches Earth and Ni\u2019Var. With evacuations underway, Burnham and the team aboard the U.S.S. Discovery must find a way to communicate and connect with a species far different from their own before time runs out.",
+            "season": "04",
+            "episode": "13",
+            "podcasts": [
+                {
+                    "title": "Greatest Trek",
+                    "order": 163,
+                    "airdate": "2022.03.22",
+                    "episode": "Quad Boxing the Apology (Discovery S4E13)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-163-quad-boxing-the-apology-discovery-s4e13/"
+                }
+            ],
+            "memoryalpha": "Coming_Home_(episode)",
+            "tvdb": 3587355,
+            "imdb": "tt18298656",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/8aqDSsMHFPReRhzwTcFmXBGQ2A2.jpg",
+                "https://image.tmdb.org/t/p/original/nSF9MWpZJRnkfiIGwgAs8bEMdI2.jpg",
+                "https://image.tmdb.org/t/p/original/yv0AMWeOHLTxs6IeMTASwyKAfsR.jpg",
+                "https://image.tmdb.org/t/p/original/3cMHywoSsd7FZl70Df6frBDfy1D.jpg"
+            ]
         }
     ],
     "imdb": "",
