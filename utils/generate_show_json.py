@@ -150,7 +150,7 @@ class ShowGenerator:
     self.show = show
     self.show_settings = all_shows[self.show]
     
-    self.filename = filename or f"{os.path.dirname(__file__)}/../data/episodes/{self.show}.json"
+    self.filename = filename or os.path.join(os.path.dirname(__file__), f"../data/episodes/{self.show}.json")
     
     self.seasons = seasons or range(1, 8)  # So far, no show has gone beyond 7 seasons
     
@@ -367,11 +367,11 @@ class ShowGenerator:
     
     details['podcasts'] = [
       {
-        "title": self.podcast_name,
-        "order": int(podcast['itunes_episode']),
         "airdate": parser.parse(podcast['published']).strftime('%Y.%m.%d'),
-        "episode": podcast['title'],
-        "link": page_link
+        "episode": re.sub(r' \([^()]+\)$', '', podcast['title']),
+        "link": page_link,
+        "order": int(podcast['itunes_episode']),
+        "title": self.podcast_name,
       }
     ]
     print(f"Updated the podcast to {podcast['title']}")

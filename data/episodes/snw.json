@@ -9,11 +9,11 @@
             "episode": "01",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 170,
                     "airdate": "2022.05.06",
-                    "episode": "Hair Technologies (SNW S1E1)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-170-hair-technologies-snw-s1e1/"
+                    "episode": "Hair Technologies",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-170-hair-technologies-snw-s1e1/",
+                    "order": 170,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Strange_New_Worlds_(episode)",
@@ -49,11 +49,11 @@
             "episode": "02",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 172,
                     "airdate": "2022.05.17",
-                    "episode": "Burnt-End Body Shots (SNW S1E2)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-172-burnt-end-body-shots-snw-s1e2/"
+                    "episode": "Burnt-End Body Shots",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-172-burnt-end-body-shots-snw-s1e2/",
+                    "order": 172,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Children_of_the_Comet_(episode)",
@@ -81,11 +81,11 @@
             "episode": "03",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 173,
                     "airdate": "2022.05.24",
-                    "episode": "Sunburnt Light Junkies (SNW S1E3)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-173-sunburnt-light-junkies-snw-s1e3/"
+                    "episode": "Sunburnt Light Junkies",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-173-sunburnt-light-junkies-snw-s1e3/",
+                    "order": 173,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Ghosts_of_Illyria_(episode)",
@@ -120,11 +120,11 @@
             "episode": "04",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 174,
                     "airdate": "2022.05.31",
-                    "episode": "La\u2019an, a Plan, a Remodulated Phaser, Panama (SNW S1E4)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-174-laan-a-plan-a-remodulated-phaser-panama-snw-s1e4/"
+                    "episode": "La\u2019an, a Plan, a Remodulated Phaser, Panama",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-174-laan-a-plan-a-remodulated-phaser-panama-snw-s1e4/",
+                    "order": 174,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Memento_Mori_(episode)",
@@ -161,11 +161,11 @@
             "episode": "05",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 175,
                     "airdate": "2022.06.07",
-                    "episode": "Take Your Partner\u2019s Katra to Work Day (SNW S1E5)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-175-take-your-partners-katra-to-work-day-snw-s1e5/"
+                    "episode": "Take Your Partner\u2019s Katra to Work Day",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-175-take-your-partners-katra-to-work-day-snw-s1e5/",
+                    "order": 175,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Spock_Amok_(episode)",
@@ -204,11 +204,11 @@
             "episode": "06",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 176,
                     "airdate": "2022.06.14",
-                    "episode": "Nostalgically Smitten (SNW S1E6)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-176-nostalgically-smitten-snw-s1e6/"
+                    "episode": "Nostalgically Smitten",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-176-nostalgically-smitten-snw-s1e6/",
+                    "order": 176,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Lift_Us_Where_Suffering_Cannot_Reach_(episode)",
@@ -252,11 +252,11 @@
             "episode": "07",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 177,
                     "airdate": "2022.06.21",
-                    "episode": "Cyber Pirate (SNW S1E7)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-177-cyber-pirate-snw-s1e7/"
+                    "episode": "Cyber Pirate",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-177-cyber-pirate-snw-s1e7/",
+                    "order": 177,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "The_Serene_Squall_(episode)",
@@ -296,11 +296,11 @@
             "episode": "08",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 178,
                     "airdate": "2022.06.28",
-                    "episode": "Sex Ed with the Cloud (SNW S1E8)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-178-sex-ed-with-the-cloud-snw-s1e8/"
+                    "episode": "Sex Ed with the Cloud",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-178-sex-ed-with-the-cloud-snw-s1e8/",
+                    "order": 178,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "The_Elysian_Kingdom_(episode)",
@@ -352,11 +352,11 @@
             "episode": "09",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 179,
                     "airdate": "2022.07.05",
-                    "episode": "Top Gorns (SNW S1E9)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-179-top-gorns-snw-s1e9/"
+                    "episode": "Top Gorns",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-179-top-gorns-snw-s1e9/",
+                    "order": 179,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "All_Those_Who_Wander_(episode)",
@@ -415,11 +415,11 @@
             "episode": "10",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 180,
                     "airdate": "2022.07.12",
-                    "episode": "Osso Buco, Et Cetera (SNW S1E10)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-180-osso-buco-et-cetera-snw-s1e10/"
+                    "episode": "Osso Buco, Et Cetera",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-180-osso-buco-et-cetera-snw-s1e10/",
+                    "order": 180,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "A_Quality_of_Mercy_(episode)",
@@ -458,11 +458,11 @@
             "episode": "01",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 226,
                     "airdate": "2023.06.16",
-                    "episode": "Stairway to Sha Ka Ree (SNW S2E1)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-226-stairway-to-sha-ka-ree-snw-s2e1/"
+                    "episode": "Stairway to Sha Ka Ree",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-226-stairway-to-sha-ka-ree-snw-s2e1/",
+                    "order": 226,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "The_Broken_Circle_(episode)",
@@ -498,11 +498,11 @@
             "episode": "02",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 227,
                     "airdate": "2023.06.23",
-                    "episode": "Justice Dimple (SNW S2E2)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-227-justice-dimple-snw-s2e2/"
+                    "episode": "Justice Dimple",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-227-justice-dimple-snw-s2e2/",
+                    "order": 227,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Ad_Astra_per_Aspera_(episode)",
@@ -543,11 +543,11 @@
             "episode": "03",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 228,
                     "airdate": "2023.06.30",
-                    "episode": "Side Kirk (SNW S2E3)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-228-side-kirk-snw-s2e3/"
+                    "episode": "Side Kirk",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-228-side-kirk-snw-s2e3/",
+                    "order": 228,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Tomorrow_and_Tomorrow_and_Tomorrow_(episode)",
@@ -578,11 +578,11 @@
             "episode": "04",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 229,
                     "airdate": "2023.07.07",
-                    "episode": "Nobody Goes to the Castle for Free (SNW S2E4)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-229-nobody-goes-to-the-castle-for-free-snw-s2e4/"
+                    "episode": "Nobody Goes to the Castle for Free",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-229-nobody-goes-to-the-castle-for-free-snw-s2e4/",
+                    "order": 229,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Among_the_Lotus_Eaters_(episode)",
@@ -607,11 +607,11 @@
             "episode": "05",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 230,
                     "airdate": "2023.07.14",
-                    "episode": "Space-Time Hall Pass (SNW S2E5)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-230-space-time-hall-pass-snw-s2e5/"
+                    "episode": "Space-Time Hall Pass",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-230-space-time-hall-pass-snw-s2e5/",
+                    "order": 230,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Charades_(episode)",
@@ -638,11 +638,11 @@
             "episode": "06",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 231,
                     "airdate": "2023.07.21",
-                    "episode": "Noteworthy Knuck (SNW S2E6)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-231-noteworthy-knuck-snw-s2e6/"
+                    "episode": "Noteworthy Knuck",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-231-noteworthy-knuck-snw-s2e6/",
+                    "order": 231,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Lost_in_Translation_(episode)",
@@ -668,11 +668,11 @@
             "episode": "07",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 232,
                     "airdate": "2023.07.25",
-                    "episode": "Science and Cigarettes (SNW S2E7)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-232-science-and-cigarettes-snw-s2e7/"
+                    "episode": "Science and Cigarettes",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-232-science-and-cigarettes-snw-s2e7/",
+                    "order": 232,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Those_Old_Scientists_(episode)",
@@ -718,11 +718,11 @@
             "episode": "08",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 233,
                     "airdate": "2023.07.28",
-                    "episode": "Canonical Commuter Mug (SNW S2E8)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-233-canonical-commuter-mug-snw-s2e8/"
+                    "episode": "Canonical Commuter Mug",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-233-canonical-commuter-mug-snw-s2e8/",
+                    "order": 233,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Under_the_Cloak_of_War_(episode)",
@@ -749,11 +749,11 @@
             "episode": "09",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 234,
                     "airdate": "2023.08.04",
-                    "episode": "B\u0153uf Denouement (SNW S2E9)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-234-boeuf-denouement-snw-s2e9/"
+                    "episode": "B\u0153uf Denouement",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-234-boeuf-denouement-snw-s2e9/",
+                    "order": 234,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Subspace_Rhapsody_(episode)",
@@ -791,11 +791,11 @@
             "episode": "10",
             "podcasts": [
                 {
-                    "title": "Greatest Trek",
-                    "order": 235,
                     "airdate": "2023.08.11",
-                    "episode": "Practical Butts (SNW S2E10)",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-235-practical-butts-snw-s2e10/"
+                    "episode": "Practical Butts",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-235-practical-butts-snw-s2e10/",
+                    "order": 235,
+                    "title": "Greatest Trek"
                 }
             ],
             "memoryalpha": "Hegemony_(episode)",
