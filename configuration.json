@@ -468,6 +468,8 @@
             "lowerdecks",
             "disco",
             "picard",
+            "prodigy",
+            "snw",
             "tas",
             "sunny"
           ],
@@ -613,6 +615,14 @@
               "value": "picard"
             },
             {
+              "name": "Star Trek: Prodigy",
+              "value": "prodigy"
+            },
+            {
+              "name": "Star Trek: Strange New Worlds",
+              "value": "snw"
+            },
+            {
               "name": "Star Trek: Lower Decks",
               "value": "lowerdecks"
             },
@@ -663,6 +673,8 @@
             "lowerdecks",
             "disco",
             "picard",
+            "prodigy",
+            "snw",
             "nontrek",
             "friends",
             "firefly",
