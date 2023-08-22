@@ -1,7 +1,8 @@
 from common import *
 from utils.show_utils import get_show_embed
 
-all_shows = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "lowerdecks", "disco", "picard", "friends", "firefly", "simpsons", "sunny"]
+all_shows = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "lowerdecks", "disco", "picard", "prodigy", "snw",
+             "friends", "firefly", "simpsons", "sunny"]
 
 # Util
 def generate_random_ep_embed(shows):

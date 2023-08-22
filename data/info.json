@@ -41,6 +41,18 @@
     "trek": true,
     "source": "./data/episodes/picard.json"
   },
+  "prodigy": {
+    "name": "Star Trek: Prodigy",
+    "enabled": true,
+    "trek": true,
+    "source": "./data/episodes/prodigy.json"
+  },
+  "snw": {
+    "name": "Star Trek: Strange New Worlds",
+    "enabled": true,
+    "trek": true,
+    "source": "./data/episodes/snw.json"
+  },
   "simpsons": {
     "name": "The Simpsons",
     "enabled": true,
@@ -75,6 +87,6 @@
     "name": "Star Trek: Voyager",
     "enabled": true,
     "trek": true,
-    "source": "./data/episodes/voyager.json"
+    "source": "./data/episodes/voy.json"
   }
 }

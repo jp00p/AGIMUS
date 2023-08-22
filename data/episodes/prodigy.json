@@ -1,0 +1,435 @@
+{
+    "animated": true,
+    "episodes": [
+        {
+            "airdate": "2021.10.28",
+            "title": "Lost & Found (1) / Lost & Found (2)",
+            "description": "A group of lawless teens, exiled on a mining colony outside Federation space, discover a derelict Starfleet ship. Dal must gather an unlikely crew for their newfound ship if they are going to escape Tars Lamora, but the Diviner and his daughter Gwyn have other plans.",
+            "season": "01",
+            "episode": "01",
+            "podcasts": [
+                {
+                    "airdate": "2021.11.02",
+                    "episode": "Dump Truck Murph",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-140-dump-truck-murph-prodigy-s1e1/",
+                    "order": 140,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Lost_and_Found_(episode)",
+            "tvdb": 2362968,
+            "imdb": "",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/sPerp6iLSRcnQuor5yD8yX5lGb7.jpg",
+                "https://image.tmdb.org/t/p/original/ekClTM6JIpj0ETegAwAcXfpUxGy.jpg"
+            ]
+        },
+        {
+            "airdate": "2021.11.04",
+            "title": "Starstruck",
+            "description": "Even with the guidance of their hologram advisor Janeway, the crew of The Protostar is tested when their ship is on a dangerous cosmic collision course.",
+            "season": "01",
+            "episode": "03",
+            "podcasts": [],
+            "memoryalpha": "Starstruck_(episode)",
+            "tvdb": 3310786,
+            "imdb": "tt14419876",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/fFXHDfPTmewmiZ1TySjsWPpFhfe.jpg",
+                "https://image.tmdb.org/t/p/original/q50ZI7jD8seR57xwn0xhwucKykI.jpg",
+                "https://image.tmdb.org/t/p/original/uoREIYQRa0tqcWoIhTynylZC2sc.jpg",
+                "https://image.tmdb.org/t/p/original/blttdkWf39NufbZt6ZgYI67XgZG.jpg"
+            ]
+        },
+        {
+            "airdate": "2021.11.11",
+            "title": "Dreamcatcher",
+            "description": "The crew has their first away mission on an undiscovered planet that manifests their deepest desires, only to realize the planet has desires of its own.",
+            "season": "01",
+            "episode": "04",
+            "podcasts": [],
+            "memoryalpha": "Dream_Catcher_(episode)",
+            "tvdb": 3321670,
+            "imdb": "tt14419878",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/roUX9J5clQVDbGrwxAgJ2NYIvCD.jpg",
+                "https://image.tmdb.org/t/p/original/xqWl4H5wFIwefEjCyiHPQyTmA5z.jpg",
+                "https://image.tmdb.org/t/p/original/uLpHvMADTWSDAlYW13hhR1vissh.jpg",
+                "https://image.tmdb.org/t/p/original/bp3k4x9BeEyVRxOsDYwc6MZOpFw.jpg"
+            ]
+        },
+        {
+            "airdate": "2021.11.18",
+            "title": "Terror Firma",
+            "description": "Marooned on a deadly planet, the crew must work together with their captive Gwyn to stay alive\u2026except the planet isn\u2019t the only thing in pursuit.",
+            "season": "01",
+            "episode": "05",
+            "podcasts": [
+                {
+                    "airdate": "2021.11.23",
+                    "episode": "You\u2019d Die to Get Killed Off of a Show Like This",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-143-youd-die-to-get-killed-off-of-a-show-like-this-discovery-s4e1-prodigy-s1e5/",
+                    "order": 143,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Terror_Firma_(episode)",
+            "tvdb": 3340504,
+            "imdb": "tt14419882",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/3vDBrcGxkWSVsj0lEh2MubkCcr6.jpg",
+                "https://image.tmdb.org/t/p/original/auI53rzeW600n6Or9b9dhCWubbr.jpg",
+                "https://image.tmdb.org/t/p/original/sSVuZH8DWAOAlsHQO3QnUfTDs9I.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.01.06",
+            "title": "Kobayashi",
+            "description": "As Gwyn struggles to find her role aboard the U.S.S. Protostar, Dal tests his leadership skills in the newly discovered holodeck.",
+            "season": "01",
+            "episode": "06",
+            "podcasts": [
+                {
+                    "airdate": "2022.01.11",
+                    "episode": "We\u2019ve Been Building to a Fart Joke This Entire Time",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-150-weve-been-building-to-a-fart-joke-this-entire-time-prodigy-s1e6/",
+                    "order": 150,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Kobayashi_(episode)",
+            "tvdb": 3340508,
+            "imdb": "tt14419886",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/d2WwE49tqybtUY0fsJ6g0VuUP3e.jpg",
+                "https://image.tmdb.org/t/p/original/UoiXnRhlq8CknEtvjen8A32ax4.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.01.13",
+            "title": "First Con-tact",
+            "description": "When a mentor from Dal\u2019s past persuades him to use their Federation cover for personal gain, they quickly discover Starfleet has protocols for a reason.",
+            "season": "01",
+            "episode": "07",
+            "podcasts": [
+                {
+                    "airdate": "2022.01.18",
+                    "episode": "Comparably Fucked-Up Childhoods",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-151-comparably-fucked-up-childhoods-prodigy-s1e7/",
+                    "order": 151,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "First_Con-tact_(episode)",
+            "tvdb": 3435925,
+            "imdb": "tt14419888",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/MOLS2qdbRtw0TkcWk4FbJJs21n.jpg",
+                "https://image.tmdb.org/t/p/original/imIcJFMoTgJe0LUjUBQqQUxb1DI.jpg",
+                "https://image.tmdb.org/t/p/original/miu3jGmlTwRYzDdqXn0D7RgNYng.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.01.20",
+            "title": "Time Amok",
+            "description": "When the U.S.S. Protostar is fractured in time by an anomaly, Hologram Janeway must synchronize the disjointed crew and save their ship before it destructs.",
+            "season": "01",
+            "episode": "08",
+            "podcasts": [
+                {
+                    "airdate": "2022.01.25",
+                    "episode": "Dachshund the Robot",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-152-dachshund-the-robot-prodigy-s1e8/",
+                    "order": 152,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Time_Amok_(episode)",
+            "tvdb": 3448051,
+            "imdb": "tt14419890",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/lv4GR9JZtiH8XeepDdRAWxO2ozr.jpg",
+                "https://image.tmdb.org/t/p/original/x7YGUyZlA7uvoko89Y6LzMnINCt.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.01.27",
+            "title": "A Moral Star (1)",
+            "description": "The crew forgo their dreams of Starfleet to return to Tars Lamora in a no-win scenario.",
+            "season": "01",
+            "episode": "09",
+            "podcasts": [
+                {
+                    "airdate": "2022.02.01",
+                    "episode": "Quid Pro Subscribe",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-153-quid-pro-subscribe-prodigy-s1e9/",
+                    "order": 153,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "A_Moral_Star,_Part_1_(episode)",
+            "tvdb": 3448052,
+            "imdb": "tt14419894",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/dwjJalsYHokjSurYRsLTlRPd1BC.jpg",
+                "https://image.tmdb.org/t/p/original/q0dUnxVxUVWki3pkUSDB6t1L2E0.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.02.03",
+            "title": "A Moral Star (2)",
+            "description": "When the plan goes awry, the crew must improvise. Meanwhile, Gwyn discovers a dark truth that will forever jeopardize their quest toward salvation.",
+            "season": "01",
+            "episode": "10",
+            "podcasts": [
+                {
+                    "airdate": "2022.02.08",
+                    "episode": "Ketracel Grape",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-154-ketracel-grape-prodigy-s1e10/",
+                    "order": 154,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "A_Moral_Star,_Part_2_(episode)",
+            "tvdb": 3448053,
+            "imdb": "tt15906704",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/vyxhxX8FEiwPI8judxd9pig8dwj.jpg",
+                "https://image.tmdb.org/t/p/original/w6dRNWp7blSNxy5ZHIzPFA2edZh.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.10.27",
+            "title": "Asylum",
+            "description": "At the edge of Federation space, the crew applies for asylum at a comm relay outpost, only for their starship to reveal its shocking true purpose.",
+            "season": "01",
+            "episode": "11",
+            "podcasts": [
+                {
+                    "airdate": "2022.11.01",
+                    "episode": "Murph in the Mug, Broken by a Hug",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-196-murph-in-the-mug-broken-by-a-hug-prodigy-s1e11/",
+                    "order": 196,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Asylum_(episode)",
+            "tvdb": 3982183,
+            "imdb": "tt17080342",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/fmDg2fviQoRC6g2jEm1pjDmZFVe.jpg",
+                "https://image.tmdb.org/t/p/original/smw35oXsO7O7QcbxkSiWOYuoImL.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.11.03",
+            "title": "Let Sleeping Borg Lie",
+            "description": "When the crew encounters a dormant Borg Cube, Zero risks everything to save their ship.",
+            "season": "01",
+            "episode": "12",
+            "podcasts": [
+                {
+                    "airdate": "2022.11.08",
+                    "episode": "Backwards Family Circus Slug",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-197-backwards-family-circus-slug-prodigy-s1e12/",
+                    "order": 197,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Let_Sleeping_Borg_Lie_(episode)",
+            "tvdb": 3983092,
+            "imdb": "tt17080350",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/zhy7LzHRMts3w8hufQ73mvTZD3Z.jpg",
+                "https://image.tmdb.org/t/p/original/cBobaCdU73v15RK75rAsu5otxFA.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.11.10",
+            "title": "All the World's a Stage",
+            "description": "The crew answers a distress call to find a colony trapped in Starfleet's past.",
+            "season": "01",
+            "episode": "13",
+            "podcasts": [
+                {
+                    "airdate": "2022.11.15",
+                    "episode": "Rushmore Family Players",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-198-rushmore-family-players-prodigy-s1e13/",
+                    "order": 198,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "All_the_World's_a_Stage_(episode)",
+            "tvdb": 3983093,
+            "imdb": "tt17080362",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/qHngIISihWFyeUvfdRRI6tvYksH.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.11.17",
+            "title": "Crossroads",
+            "description": "When the crew attempts to secure transport to the Federation, they unwittingly cross paths with the Vice Admiral who is hunting them.",
+            "season": "01",
+            "episode": "14",
+            "podcasts": [
+                {
+                    "airdate": "2022.11.22",
+                    "episode": "Putting the Parlay To Bed",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-199-putting-the-parlay-to-bed-prodigy-s1e14/",
+                    "order": 199,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Crossroads_(episode)",
+            "tvdb": 3983094,
+            "imdb": "tt17080364",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/vy1cCzPWfqLyTArTd8Oc7ep30HA.jpg",
+                "https://image.tmdb.org/t/p/original/wDz5l4I9l2VBxTsPK4aIA7ZwVWh.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.11.24",
+            "title": "Masquerade",
+            "description": "Trapped in the Neutral Zone, the crew encounters a rogue geneticist who sheds light on Dal\u2019s past.",
+            "season": "01",
+            "episode": "15",
+            "podcasts": [
+                {
+                    "airdate": "2022.11.29",
+                    "episode": "Edward Phaserhands",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep200-edward-phaserhands-prodigy-s1e15/",
+                    "order": 200,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Masquerade_(episode)",
+            "tvdb": 3983095,
+            "imdb": "tt17080370",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/8nNUqKfp5BA2ZDvXcQkArBLjZhJ.jpg",
+                "https://image.tmdb.org/t/p/original/zvWkQkxcQZUA5AmEzuziTKGDKmE.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.12.01",
+            "title": "Preludes",
+            "description": "A Starfleet Admiral digs into the past of the Protostar crew. Meanwhile, the Diviner recalls his life's mission.",
+            "season": "01",
+            "episode": "16",
+            "podcasts": [
+                {
+                    "airdate": "2022.12.06",
+                    "episode": "Star Trek: Slickback",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep201-star-trek-slickback-prodigy-s1e16/",
+                    "order": 201,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Preludes_(episode)",
+            "tvdb": 3983096,
+            "imdb": "tt17080382",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/vMEsP63MgTV9KOkFiZNCO4oE5KD.jpg",
+                "https://image.tmdb.org/t/p/original/D9PxgRcpTri171vF2eDmS82Mtw.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.12.08",
+            "title": "Ghost in the Machine",
+            "description": "When the crew gets trapped in the holodeck by a mysterious malfunction, they aren't sure what's programmed or what's real.",
+            "season": "01",
+            "episode": "17",
+            "podcasts": [
+                {
+                    "airdate": "2022.12.13",
+                    "episode": "Captain Table Ring",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-202-captain-table-ring-prodigy-s1e17/",
+                    "order": 202,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Ghost_in_the_Machine_(episode)",
+            "tvdb": 3983097,
+            "imdb": "tt17080386",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/wDyRKxpk7oKbhv3PikbTpQFTDcu.jpg",
+                "https://image.tmdb.org/t/p/original/ps240oKwHVSoXeyG44oygjK14ut.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.12.15",
+            "title": "Mindwalk",
+            "description": "Desperate to warn Starfleet of their dilemma, a daring experiment goes awry as Dal inadvertently swaps minds with a Starfleet Vice Admiral.",
+            "season": "01",
+            "episode": "18",
+            "podcasts": [
+                {
+                    "airdate": "2022.12.20",
+                    "episode": "Ragnar\u00f6k Hard",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-203-ragnarok-hard-prodigy-s1e18/",
+                    "order": 203,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Mindwalk_(episode)",
+            "tvdb": 3983098,
+            "imdb": "tt17080392",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/5ymyryUQ7pMC82BtupqFzyWXoVg.jpg",
+                "https://image.tmdb.org/t/p/original/swds0qrVtoz62DYwTdFLPWVkMey.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.12.22",
+            "title": "Supernova (1)",
+            "description": "Surrounded by the Federation armada, the crew attempts to stop their ship from destroying all of Starfleet.",
+            "season": "01",
+            "episode": "19",
+            "podcasts": [
+                {
+                    "airdate": "2022.12.27",
+                    "episode": "Murf Likes Murder",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-204-murf-likes-murder-prodigy-s1e19/",
+                    "order": 204,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Supernova,_Part_1_(episode)",
+            "tvdb": 3983099,
+            "imdb": "tt17080400",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/8UeiPpOmdUMOaDJhKo39F0IcuHj.jpg",
+                "https://image.tmdb.org/t/p/original/iVVksBc3T37G4XmiUXwBR46EJZD.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.12.29",
+            "title": "Supernova (2)",
+            "description": "As the Federation hangs in the balance, the crew must make the ultimate sacrifice to save Starfleet's future.",
+            "season": "01",
+            "episode": "20",
+            "podcasts": [
+                {
+                    "airdate": "2023.01.03",
+                    "episode": "First Contact Foreplay",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-205-first-contact-foreplay-prodigy-s1e20/",
+                    "order": 205,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Supernova,_Part_2_(episode)",
+            "tvdb": 3983100,
+            "imdb": "tt17080404",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/8aMbQgu8tFF68TVzLkF4PLKnLou.jpg",
+                "https://image.tmdb.org/t/p/original/bojwBa5YxOO5g846AeayEUJCVOC.jpg"
+            ]
+        }
+    ],
+    "imdb": "",
+    "title": "Star Trek: Prodigy",
+    "trek": true,
+    "tvdb": 106393
+}
