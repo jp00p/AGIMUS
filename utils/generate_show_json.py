@@ -168,6 +168,12 @@ class ShowGenerator:
     self.episode_map = {}
     self.podcast_episodes = {}
     self.podcast_name = None
+
+  @property
+  def memory_alpha_name(self):
+    if self.show == 'lowerdecks':
+      return 'LD'
+    return self.show[:3].upper()
   
   @staticmethod
   def clean_and_validate_args(cli_args: dict) -> Optional[dict]:
@@ -373,7 +379,7 @@ class ShowGenerator:
     """
     req = requests.get("https://memory-alpha.fandom.com/api.php",
                        params={'action': 'query', 'list': 'search', 'srlimit': '1', 'srprop': '', 'format': 'json',
-                               'srsearch': f"{self.show[:3]} {details['season'].strip('0')}x{details['episode']} "
+                               'srsearch': f"{self.memory_alpha_name} {details['season'].strip('0')}x{details['episode']} "
                                            f"{details['title']} (episode)"})
     results = json.loads(req.content)
     details['memoryalpha'] = results['query']['search'][0]['title'].replace(' ', '_')  # there might be more formatting

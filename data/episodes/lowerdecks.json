@@ -6,8 +6,16 @@
             "description": "Ensign Tendi has her first day of work on Starfleet's USS Cerritos, where she meets fellow support crew members. Boimler is tasked with a secret special assignment. Rutherford attempts to keep his dating life intact while a disaster strikes the ship.",
             "episode": "01",
             "imdb": "tt9207516",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Second_Contact_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.08.11",
+                    "episode": "A Very Angry Zit",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/a-very-angry-zit-lower-decks-s1e1/",
+                    "order": 90,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/AvZAQtOAO8n9zj5LMKpkF0ZiwWM.jpg",
@@ -31,8 +39,16 @@
             "description": "Ensigns Boimler and Mariner embark on a shuttle mission to a Klingon compound while Ensigns Tendi and Rutherford spend time together back on the USS Cerritos.",
             "episode": "02",
             "imdb": "tt9207518",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Envoys_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.08.18",
+                    "episode": "Cup O Gagh",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/cup-o-gagh-lower-decks-s1e2/",
+                    "order": 91,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/zT0rLKFtbijTTzkkLzK8SGBeS94.jpg",
@@ -54,8 +70,16 @@
             "description": "A new work protocol eliminating \"buffer time\" has the Lower Decks crew running ragged as they try to keep up with their tightened schedules. Ensign Mariner and Commander Ransom's mutual lack of respect comes to a head during an away mission.",
             "episode": "03",
             "imdb": "tt9207520",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Temporal_Edict_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.08.25",
+                    "episode": "Self Petered",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/self-petered-lower-decks-s1e3/",
+                    "order": 92,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/2SgcWq5W7SO7ijY8WmStJhbkxHB.jpg",
@@ -76,8 +100,16 @@
             "description": "Captain Freeman seeks the ultimate payback after Mariner blatantly disrespects her in front of the crew. A well-meaning Tendi accidentally messes up a Lieutenant's attempt at spiritual ascension and tries to make it right.",
             "episode": "04",
             "imdb": "tt9207522",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Moist_Vessel_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.09.01",
+                    "episode": "The Only Way You Can Ascend",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/the-only-way-you-can-ascend-lower-decks-s1e4/",
+                    "order": 93,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/fs0ts9KqgHv6LRyzBkRDCLTXcsV.jpg",
@@ -101,8 +133,16 @@
             "description": "Ensign Boimler welcomes his girlfriend Barb onto the USS Cerritos, much to Ensign Mariner\u2019s dismay \u2014 while Ensigns Ruthford and Tendi have starship envy when the Cerritos rendezvous with the more-advanced USS Vancouver.",
             "episode": "05",
             "imdb": "tt9207524",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Cupid's_Errant_Arrow_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.09.08",
+                    "episode": "USS Weekly",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/uss-weekly-lower-decks-s1e5/",
+                    "order": 94,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/aR0HdWbTHN7DZIGF08usvaWiJG6.jpg",
@@ -127,8 +167,16 @@
             "description": "The lovable but awkward Ensign Fletcher makes work difficult for Mariner and Boimler. Rutherford introduces Tendi to a holodeck training program he created.",
             "episode": "06",
             "imdb": "tt9207526",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Terminal_Provocations_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.09.15",
+                    "episode": "Amuse-Burger",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/amuse-burger-lower-decks-s1e6/",
+                    "order": 95,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/yAfaNq1IlmpttMR53vIMhPb4fT1.jpg",
@@ -153,8 +201,16 @@
             "description": "Mariner tries to impress her best friend from Starfleet Academy who is now a visiting Captain. Boimler is sent to a Starfleet medical ship after a transporter accident puts him \u201cout of phase.\u201d",
             "episode": "07",
             "imdb": "tt9207528",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Much_Ado_About_Boimler_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.09.22",
+                    "episode": "Dr. Katz, Medicine Woman",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/dr-katz-medicine-woman-lower-decks-s1e7/",
+                    "order": 96,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/posmARKCowthrzUleFGZRA9jgq0.jpg",
@@ -183,8 +239,16 @@
             "description": "Mariner, Boimler, Tendi and Rutherford are caught off guard when aliens force them to testify about a series of seemingly unrelated events.",
             "episode": "08",
             "imdb": "tt9207530",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Veritas_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.09.29",
+                    "episode": "Chicken Tendi",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/chicken-tendi-lower-decks-s1e8/",
+                    "order": 97,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/oHGqURpKvn0b8k6o8Mazomd7YHl.jpg",
@@ -215,8 +279,16 @@
             "description": "Mariner repurposes Boimler's holodeck program to cast herself as the villain in a Lower Decks style movie.",
             "episode": "09",
             "imdb": "tt9207532",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Crisis_Point_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.10.06",
+                    "episode": "Fish vs. Dog",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/fish-vs-dog-lower-decks-s1e9/",
+                    "order": 98,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/kqV5lUdQ5AxVUg4fXXEqivLFqrt.jpg",
@@ -230,8 +302,16 @@
             "description": "The USS Cerritos encounters a familiar enemy. Tendi helps a struggling recruit find her footing.",
             "episode": "10",
             "imdb": "tt9207534",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "No_Small_Parts_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2020.10.13",
+                    "episode": "Hall of Sexual Innuendo Mirrors",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/hall-of-sexual-innuendo-mirrors-lower-decks-s1e10/",
+                    "order": 99,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/mjNqH0027pwphoZVJVa6ChqSoDt.jpg",
@@ -245,8 +325,16 @@
             "description": "Approximately three months after the events of the season one finale, the U.S.S. Cerritos is dispatched on a mission where it ends up in a sci-fi event resulting in \"strange energy,\" which Commander Ransom inadvertently absorbs.",
             "episode": "01",
             "imdb": "tt9207540",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Strange_Energies_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2021.08.17",
+                    "episode": "A Being of Pure Ego",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-130-a-being-of-pure-ego-lower-decks-s2e1/",
+                    "order": 130,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/zesRgabB6QBLohnQ97tOvIodwAF.jpg",
@@ -263,8 +351,16 @@
             "description": "Our Lower Deckers have trouble bonding with Ensign Jet Manhaver, who has been assigned Boimler\u2019s bunk and shift duties. Meanwhile, we get a glimpse of Boimler\u2019s life on the U.S.S. Titan, which is more intense than he thought it would be.",
             "episode": "02",
             "imdb": "tt9207542",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Kayshon,_His_Eyes_Open_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2021.08.24",
+                    "episode": "We Boimlered Greatest Discovery",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-131-we-boimlered-greatest-discovery-lower-decks-s2e2/",
+                    "order": 131,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/jAOq6FIv25Tk0oJjQsE5JtpqvqK.jpg",
@@ -281,8 +377,16 @@
             "description": "Assigned a special task by Dr. T'Ana, Tendi enlists Mariner for help. On the U.S.S. Cerritos, Rutherford is consumed by a bridge crew mystery.",
             "episode": "03",
             "imdb": "tt9207544",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "We'll_Always_Have_Tom_Paris_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2021.08.31",
+                    "episode": "I\u2019ve Got Guramba",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-132-ive-got-guramba-lower-decks-s2e3/",
+                    "order": 132,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/1ISFNYYREGb5Z9DwKdRxRZjya4.jpg",
@@ -296,8 +400,16 @@
             "description": "The U.S.S. Cerritos is dispatched to a planet to investigate an unexplained sighting of a dangerous Mugato.",
             "episode": "04",
             "imdb": "tt9207546",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Mugato,_Gumato_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2021.09.07",
+                    "episode": "Mugato Burgers Patingi",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-133-mugato-burgers-patingi-lower-decks-s2e4/",
+                    "order": 133,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/aBwnEOSziZod2D6XKqOu6vAorMT.jpg",
@@ -311,8 +423,16 @@
             "description": "Mariner and Boimler try to track down the location of a legendary Starfleet party while the bridge crew deals with an insecure alien diplomat.",
             "episode": "05",
             "imdb": "tt9207548",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "An_Embarrassment_Of_Dooplers_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2021.09.14",
+                    "episode": "Doopler Goodbye",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-134-doopler-goodbye-lower-decks-s2e5/",
+                    "order": 134,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/xSoRSb0pXfyKLDE43zI8BSnPayc.jpg",
@@ -333,8 +453,16 @@
             "description": "Anomaly consolidation day on the U.S.S. Cerritos leaves the Lower Deckers with mixed emotions. Captain Freeman attempts to negotiate peace on the Pakled home world.",
             "episode": "06",
             "imdb": "tt9207550",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "The_Spy_Humongous_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2021.09.21",
+                    "episode": "Dumbocracy",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-135-dumbocracy-lower-decks-s2e6/",
+                    "order": 135,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/sU7F61UdLmNvVlL4VNdGWJMIzZy.jpg",
@@ -348,8 +476,16 @@
             "description": "Mariner and Boimler are stranded on an uninhabited planet with a sentient computer. On the Cerritos, Lt. Commander Billups must prove his engineering abilities to an old adversary.",
             "episode": "07",
             "imdb": "tt9207552",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Where_Pleasant_Fountains_Lie_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2021.09.28",
+                    "episode": "Sexy Shakespeare Reference",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-136-where-pleasant-fountains-lie-lower-decks-s2e7/",
+                    "order": 136,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/nWP4Bkv4pCOmTiWFtFpVqavd2l9.jpg",
@@ -364,8 +500,16 @@
             "description": "A consultant arrives on the U.S.S. Cerritos to run drills that require the lower deckers and bridge crew to swap duties.",
             "episode": "08",
             "imdb": "tt9207554",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "I,_Excretus_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2021.10.05",
+                    "episode": "The Dark Knight of Favors",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/the-dark-knight-of-favors-lower-decks-s2e8/",
+                    "order": 137,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/yImQyvFcELANavOwaOj9mInyjKC.jpg",
@@ -385,8 +529,16 @@
             "description": "Boimler tries to find a friend from the bridge, while the crew of the USS Cerritos has free time during a long warp trip.",
             "episode": "09",
             "imdb": "tt9207556",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "Wej_Duj_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2021.10.12",
+                    "episode": "One Show Energy",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/one-show-energy-lower-decks-s2e9/",
+                    "order": 138,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/dbNgwjo6rnGQaMtwcGEJ6Y7bh5Y.jpg"
@@ -399,8 +551,16 @@
             "description": "In the season two finale, the U.S.S. Cerritos is tasked to aid another class starship on a first contact mission.",
             "episode": "10",
             "imdb": "tt9207558",
-            "memoryalpha": "",
-            "podcasts": [],
+            "memoryalpha": "First_First_Contact_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2021.10.19",
+                    "episode": "Auspicnominious",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-139-auspicnominious-lower-decks-s2e10/",
+                    "order": 139,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/c3hk6948lCQ6Kfzr2dxa5Xu30jB.jpg",
@@ -408,6 +568,241 @@
             ],
             "title": "First First Contact",
             "tvdb": 3257086
+        },
+        {
+            "airdate": "2022.08.25",
+            "title": "Grounded",
+            "description": "Mariner enlists her friends on a rogue mission to exonerate her mother, as Captain Freeman faces a military tribunal for the destruction of Pakled Planet.",
+            "season": "03",
+            "episode": "01",
+            "podcasts": [
+                {
+                    "airdate": "2022.08.30",
+                    "episode": "The Lowest Deck",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-186-the-lowest-deck-lower-decks-s3e1/",
+                    "order": 186,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Grounded_(episode)",
+            "tvdb": 3834389,
+            "imdb": "tt14443196",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/7jeFgztTp1NrzjzDTplu8jcnLsB.jpg",
+                "https://image.tmdb.org/t/p/original/uYj9U6y1ebQEGF16IG76mKdmVHx.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.09.01",
+            "title": "The Least Dangerous Game",
+            "description": "On a tropical paradise planet, Mariner questions Commander Ransom on how he structures his away team. Boimler makes a bold career decision.",
+            "season": "03",
+            "episode": "02",
+            "podcasts": [
+                {
+                    "airdate": "2022.09.06",
+                    "episode": "Vending Vendome Dome Outside the Kingdome",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-187-vending-vendome-dome-outside-the-kingdome-lower-decks-s3e2/",
+                    "order": 187,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "The_Least_Dangerous_Game_(episode)",
+            "tvdb": 3834390,
+            "imdb": "tt15192082",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/lR7ZHOKR3Sl2pzcSauEf5fw13Cy.jpg",
+                "https://image.tmdb.org/t/p/original/uMYvJcoUFlmIZJgzdDU2EExK18L.jpg",
+                "https://image.tmdb.org/t/p/original/pWiyL4rmqVBWzWBlcXD10l4TQYl.jpg",
+                "https://image.tmdb.org/t/p/original/4oq1BPvR98ixSOzoKjLUY8Kp3Nz.jpg",
+                "https://image.tmdb.org/t/p/original/pHLBTUcrfokZ4A5aDOB1GS9y4Ap.jpg",
+                "https://image.tmdb.org/t/p/original/lbOUpxRnLB3JXVsQb9NGgZhLYp1.jpg",
+                "https://image.tmdb.org/t/p/original/sfxcwE2IWSLsW8JUcKt5yKKVyfV.jpg",
+                "https://image.tmdb.org/t/p/original/2Z1sA2E2tXNRoRVozagU8Lu3TJ4.jpg",
+                "https://image.tmdb.org/t/p/original/rZHNZPIcLpe8vsRc6QbUnbbbZJE.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.09.08",
+            "title": "Mining The Mind's Mines",
+            "description": "On a remote science outpost, stone orbs are bringing fantasies to life. Tendi starts her first day as a Senior Science Officer Trainee.",
+            "season": "03",
+            "episode": "03",
+            "podcasts": [
+                {
+                    "airdate": "2022.09.13",
+                    "episode": "In the Fuck Candle Category",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-188-in-the-fuck-candle-category-lower-decks-s3e3/",
+                    "order": 188,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Mining_The_Mind's_Mines_(episode)",
+            "tvdb": 3926982,
+            "imdb": "tt15192086",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/xX5zqlqVqPXHlqcqVW7UnQwWmvW.jpg",
+                "https://image.tmdb.org/t/p/original/faI6lktj7cKHhqv1tzfsRGxOGJ7.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.09.15",
+            "title": "Room For Growth",
+            "description": "Mariner, Boimler and Tendi clash with their arch-rivals: Delta Shift. The Cerritos engineers go on mandatory relaxation leave.",
+            "season": "03",
+            "episode": "04",
+            "podcasts": [
+                {
+                    "airdate": "2022.09.20",
+                    "episode": "Churros Would Chafe",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-189-churros-would-chafe-lower-decks-s3e4/",
+                    "order": 189,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Room_for_Growth_(episode)",
+            "tvdb": 3946241,
+            "imdb": "tt15192088",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/AuctpWAj1hQt334a4Wna98c4q5z.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.09.22",
+            "title": "Reflections",
+            "description": "Mariner and Boimler work the Starfleet recruitment booth at an alien job fair, Rutherford challenges himself.",
+            "season": "03",
+            "episode": "05",
+            "podcasts": [
+                {
+                    "airdate": "2022.09.27",
+                    "episode": "Overcooked Baby",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-190-overcooked-baby-lower-decks-s3e5/",
+                    "order": 190,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Reflections_(episode)",
+            "tvdb": 3959019,
+            "imdb": "tt15192092",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/cOMkC7tXkdpVyQ9pTGfeSZ9lbcT.jpg",
+                "https://image.tmdb.org/t/p/original/AaLUJjS89CbCL4hKkJgWIw6pwoC.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.09.29",
+            "title": "Hear All, Trust Nothing",
+            "description": "The Cerritos crew unexpectedly spends a day on Deep Space Nine.",
+            "season": "03",
+            "episode": "06",
+            "podcasts": [
+                {
+                    "airdate": "2022.10.04",
+                    "episode": "Shame Chaperone",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-191-shame-chaperone-lower-decks-s3e6/",
+                    "order": 191,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Hear_All,_Trust_Nothing_(episode)",
+            "tvdb": 3970406,
+            "imdb": "tt15192096",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/AealHSXAmWdGDQwEL6iUOdA2VKe.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.10.06",
+            "title": "A Mathematically Perfect Redemption",
+            "description": "A wayward Starfleet ensign struggles to find a path to redemption.",
+            "season": "03",
+            "episode": "07",
+            "podcasts": [
+                {
+                    "airdate": "2022.10.11",
+                    "episode": "Rawdafractory Period",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-192-rawdafractory-period-lower-decks-s3e7/",
+                    "order": 192,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "A_Mathematically_Perfect_Redemption_(episode)",
+            "tvdb": 3982891,
+            "imdb": "tt15192098",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/ewWTuxG1d4NXJQaP9iQ8Jljob9d.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.10.13",
+            "title": "Crisis Point 2: Paradoxus",
+            "description": "Boimler's holodeck movie sequel tries to live up to the original.",
+            "season": "03",
+            "episode": "08",
+            "podcasts": [
+                {
+                    "airdate": "2022.10.18",
+                    "episode": "Calico Cut Shoulder",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-193-calico-cut-shoulder-lower-decks-s3e8/",
+                    "order": 193,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Crisis_Point_2:_Paradoxus_(episode)",
+            "tvdb": 3993033,
+            "imdb": "tt15192104",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/rZlZ7yO1zJr4tiYtnWnj7A8uL0S.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.10.20",
+            "title": "Trusted Sources",
+            "description": "A visiting reporter on the Cerritos puts Captain Freeman on edge.",
+            "season": "03",
+            "episode": "09",
+            "podcasts": [
+                {
+                    "airdate": "2022.10.25",
+                    "episode": "Hairy Glitter Hot Dogs",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-194-hairy-glitter-hot-dogs-lower-decks-s3e9/",
+                    "order": 194,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Trusted_Sources_(episode)",
+            "tvdb": 4004995,
+            "imdb": "tt15192112",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/nYAKgYJHfxwVRTBl0P8e01bpphZ.jpg"
+            ]
+        },
+        {
+            "airdate": "2022.10.27",
+            "title": "The Stars at Night",
+            "description": "The Cerritos crew must prove their worth in a mission race.",
+            "season": "03",
+            "episode": "10",
+            "podcasts": [
+                {
+                    "airdate": "2022.10.27",
+                    "episode": "The Wrath of Badgey",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-195-the-wrath-of-badgey-lower-decks-s3e10/",
+                    "order": 195,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "The_Stars_At_Night_(episode)",
+            "tvdb": 4018295,
+            "imdb": "tt15192114",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/1uOb8Z3wNN2U7pztlIk85meP9mv.jpg",
+                "https://image.tmdb.org/t/p/original/zwgvlaleoTZGf08NXo4HJnMaOnF.jpg",
+                "https://image.tmdb.org/t/p/original/n46LN0WEEvuRslI0yMLXP1UEwPH.jpg",
+                "https://image.tmdb.org/t/p/original/3tKTW7ALmOZCkQ9uctHljFdkjTC.jpg",
+                "https://image.tmdb.org/t/p/original/kImTrCUFE85g5EY71akdOTbuH4e.jpg"
+            ]
         }
     ],
     "imdb": "",
