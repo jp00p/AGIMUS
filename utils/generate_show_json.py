@@ -14,6 +14,7 @@ Options:
     
     -s --season <list>    A comma separated list of seasons to update.  Default: All possible seasons.
     -e --episode <list>   A comma separated list of episodes to update.  Used with -s.  Default: All possible episodes.
+    -n --next-episode     Only update the next episode that doesn't have this information.  Used with automated tools.
     
     -p --podcast          Update the podcast information.  Useful for old shows that have only just been covered.
     -d --details          Update the episode details from TVDB.  You will need to update your .env file and put in
@@ -145,15 +146,15 @@ class ShowGenerator:
   Class for building a .json file to be used with other commands around the bot.
   """
   def __init__(self, show: str, filename: str = None,
-               seasons: Optional[List[int]] = None, episodes: Optional[List[int]] = None,
+               only_next_episode: bool = False, seasons: Optional[List[int]] = None, episodes: Optional[List[int]] = None,
                update_details=True, update_podcast=True, update_memory_alpha=True):
     self.show = show
     self.show_settings = all_shows[self.show]
     
     self.filename = filename or os.path.join(os.path.dirname(__file__), f"../data/episodes/{self.show}.json")
     
+    self.only_next_episode = only_next_episode
     self.seasons = seasons or range(1, 8)  # So far, no show has gone beyond 7 seasons
-    
     self.episodes_to_update = episodes or range(1, 30)  # Remember when seasons were 20+ episodes?
     
     self.run_tmdb = update_details
@@ -184,19 +185,21 @@ class ShowGenerator:
       print(f"{cli_args['<show>']} is not one of {all_shows.keys()}")
       valid = False
     
-    try:
-      if cli_args['--season']:
-        args['seasons'] = [int(s) for s in cli_args['--season'].split(',')]
-    except ValueError:
-      print(f"-s should be a number or a list of numbers with commas inbetween.  Got “{cli_args['--season']}”")
-      valid = False
-    
-    try:
-      if cli_args['--episode']:
-        args['episodes'] = [int(s) for s in cli_args['--episode'].split(',')]
-    except ValueError:
-      print(f"-e should be a number or a list of numbers with commas inbetween.  Got “{cli_args['--episode']}”")
-      valid = False
+    if cli_args['--next-episode']:
+      args['only_next_episode'] = True
+    else:
+      try:
+        if cli_args['--season']:
+          args['seasons'] = [int(s) for s in cli_args['--season'].split(',')]
+      except ValueError:
+        print(f"-s should be a number or a list of numbers with commas inbetween.  Got “{cli_args['--season']}”")
+        valid = False
+      try:
+        if cli_args['--episode']:
+          args['episodes'] = [int(s) for s in cli_args['--episode'].split(',')]
+      except ValueError:
+        print(f"-e should be a number or a list of numbers with commas inbetween.  Got “{cli_args['--episode']}”")
+        valid = False
 
     if cli_args['--details'] or cli_args['--podcast'] or cli_args['--memory-alpha']:
       args.update({
@@ -226,6 +229,8 @@ class ShowGenerator:
     Actually update the JSON file
     """
     self.load_current_file()
+    if self.only_next_episode:
+      self.get_next_episode()
     if self.run_pod:
       self.load_feed()
     
@@ -262,7 +267,32 @@ class ShowGenerator:
     self.episode_details = json_data['episodes']
     for index, details in enumerate(self.episode_details):
       self.episode_map[int(details['season']), int(details['episode'])] = index
-  
+
+  def get_next_episode(self):
+    episode = None
+    if self.run_tmdb:
+      episode = self.episode_details[-1]
+      self.seasons = [int(episode['season'])]
+      self.episodes_to_update = [int(episode['episode']) + 1]
+      return
+    elif self.run_memory_alpha:
+      for e in self.episode_details:
+        if not e['memoryalpha']:
+          episode = e
+          break
+    elif self.run_pod:
+      for e in self.episode_details:
+        if not e['podcasts']:
+          episode = e
+          break
+    if not episode:
+      print("There is no next episode to update.")
+      self.seasons = []
+      self.episodes_to_update = []
+    else:
+      self.seasons = [int(episode['season'])]
+      self.episodes_to_update = [int(episode['episode'])]
+
   def load_feed(self):
     """
     Load the feed for the show's podcast, and pull out the pod episodes that match this show.
@@ -281,7 +311,7 @@ class ShowGenerator:
       season = int(regex_match[1])
       episode = int(regex_match[2])
       self.podcast_episodes[season, episode] = entry
-  
+
   def get_current_details(self, season: int, episode: int) -> Optional[dict]:
     """
     Load the episode details from the current website.  Or none if it doesn't exist (yet)
@@ -300,6 +330,8 @@ class ShowGenerator:
       tmdb_details = tmdb_episode.info()
     except requests.exceptions.HTTPError:
       print(f"Unable to find {self.show} S{season:02}E{episode:02} in TMDB")
+      if self.only_next_episode and episode > 1:
+        details = self.set_tmdb_details(details, season+1, episode=1)
       return details
     if not tmdb_details.get('id'):
       print(f"Unable to find {self.show} S{season:02}E{episode:02} in TMDB")
