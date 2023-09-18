@@ -138,6 +138,7 @@ Mila
 Miles O'Brien
 Molly O'Brien
 Montgomery Scott
+Moopsy
 Mora Pol
 Morn
 Mot
@@ -149,7 +150,6 @@ Narissa
 Nechayev
 Neelix
 Nhan
-Nhan 
 Nog
 Nyota Uhura
 Odo
