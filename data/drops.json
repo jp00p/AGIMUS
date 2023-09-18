@@ -4,10 +4,15 @@
     "description": "Admiral Cartwright: The alien trash of the galaxy.",
     "url": "https://i.imgur.com/9ZaFArE.mp4"
   },
-  "All I Do Is Bits, Bits, Bits": {
-    "file": "data/drops/allidoisbitsbitsbits.mp4",
-    "description": "All I do is Bits, Bits, Bits! No matter what!",
-    "url": "https://i.imgur.com/1ZFfsWj.mp4"
+  "All I Do Is Bits, Bits, Bits (Bad Bit Moment)": {
+    "file": "data/drops/badbitmoment.mp4",
+    "description": "All I do is Bits, Bits, Bits! No matter what! Bad Bit Moment",
+    "url": "https://i.imgur.com/gf1v2U6.mp4"
+  },
+  "All I Do Is Bits, Bits, Bits (Good Bit Moment)": {
+    "file": "data/drops/goodbitmoment.mp4",
+    "description": "All I do is Bits, Bits, Bits! No matter what! Good Bit Moment",
+    "url": "https://i.imgur.com/F8Y1PWG.mp4"
   },
   "Ankylosaur": {
     "file": "data/drops/ankylosaur.mp4",
@@ -44,6 +49,16 @@
     "description": "Ben is Ben's Going To Gonna Talk About Africa song",
     "url": "https://i.imgur.com/UyqYbwe.mp4"
   },
+  "Bible Study": {
+    "file": "data/drops/biblestudy.mp4",
+    "description": "Bible Study. The way god wants it.",
+    "url": "https://i.imgur.com/Nsr6Zc8.mp4"
+  },
+  "Bosun's Whistle": {
+    "file": "data/drops/bosunswhistle.mp4",
+    "description": "Bosun's Whistle. Boatswain's Whistle",
+    "url": "https://i.imgur.com/PCikSse.mp4"
+  },
   "Bring Them To Their Knees": {
     "file": "data/drops/bringthemtotheirknees.mp4",
     "description": "Admiral Cartwright: The opportunity here is to bring them to their knees.",
@@ -53,11 +68,6 @@
     "file": "data/drops/buddyhusnock.mp4",
     "description": "Buddy Husnock Weezer Buddy Holly parody song",
     "url": "https://i.imgur.com/jHNoqFg.mp4"
-  },
-  "Bible Study": {
-    "file": "data/drops/biblestudy.mp4",
-    "description": "Bible Study. The way god wants it.",
-    "url": "https://i.imgur.com/Nsr6Zc8.mp4"
   },
   "By Metaphor!": {
     "file": "data/drops/bymetaphor.mp4",
@@ -88,6 +98,16 @@
     "file": "data/drops/coconono.mp4",
     "description": "I almost forgot... Another coco no no? Coconono. Nono.",
     "url": "https://i.imgur.com/T0QTvbx.mp4"
+  },
+  "Code 47": {
+    "file": "data/drops/code47.mp4",
+    "description": "I'm receiving a Code 47. Verify. It is Code 47 sir, starfleet emergency frequency. Captain's Eyes Only.",
+    "url": "https://i.imgur.com/0wGwaF2.mp4"
+  },
+  "Crystals!": {
+    "file": "data/drops/crystals.mp4",
+    "description": "Crystals!",
+    "url": "https://i.imgur.com/vKxEek3.mp4"
   },
   "Daily Double": {
     "file": "data/drops/dailydouble.mp4",
@@ -213,6 +233,11 @@
     "file": "data/drops/guldukat.mp4",
     "description": "Gul Dukat",
     "url": "https://i.imgur.com/GNU5rhv.mp4"
+  },
+  "Harry Kim: I Lasted 22 Minutes!": {
+    "file": "data/drops/lasted22minutes.mp4",
+    "description": "Harry Kim: I Lasted 22 Minutes!",
+    "url": "https://i.imgur.com/E1siKJX.mp4"
   },
   "He Just Kept Talking In One Long Incredibly Unbroken Sentence": {
     "file": "data/drops/onelongincrediblyunbrokensentence.mp4",
