@@ -35,7 +35,7 @@ jobs:
         run: |
           make setup
           echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
-            && python ./utils/generate_episode_json.py -p VOY -o data/episodes/voy.json \
+            && python ./utils/generate_show_json.py voy -p --next-episode \
             && rm -rf .env
           rm -rf .env || true
           git config user.name github-actions
