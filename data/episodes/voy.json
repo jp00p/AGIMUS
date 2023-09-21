@@ -3024,7 +3024,15 @@
             "episode": "15",
             "imdb": "tt0708999",
             "memoryalpha": "Tsunkatse_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.08.28",
+                    "episode": "Two Fighters, One Match",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-485-two-fighters-one-match-voy-s6e15/",
+                    "order": 485,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "06",
             "stills": [
                 "https://image.tmdb.org/t/p/original/ext9UB8WrJJcp5hWpSB7yFtMmKL.jpg",
