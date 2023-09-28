@@ -3050,7 +3050,15 @@
             "episode": "16",
             "imdb": "tt0708867",
             "memoryalpha": "Collective_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.09.04",
+                    "episode": "Ratchet Cube",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-486-ratchet-cube-voy-s6e16/",
+                    "order": 486,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "06",
             "stills": [
                 "https://image.tmdb.org/t/p/original/tRlgPoKFItMzle9rjOqMzT9CLBB.jpg",
