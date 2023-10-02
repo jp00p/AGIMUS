@@ -53,8 +53,9 @@ def plaintext(string) -> string:
 def is_loud(message):
   # Strip out emojis because these are ok to be lowercase (and will not work as uppercase)
   # message = re.sub(emoji_regex, '', message).strip()
-  # Strip out tagging of specific people because future pokes are fun
-  message = re.sub(tag_regex, '', message)
+  # If stripping out a tag changes the message, then it had a tag and we shouldn't record it.
+  if re.sub(tag_regex, '', message) != message:
+    return False
   # Strip out any punctuation
   message = re.sub(punct_regex, '', message)
   # Only save shouts that are 3 or more characters
