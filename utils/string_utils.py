@@ -6,7 +6,7 @@ from html.parser import HTMLParser
 punct_regex = r'[' + string.punctuation + ']'
 emoji_regex = r':[^\t\n\f\r ]+:'
 tag_regex = r'<@[^\t\n\f\r ]+>'
-match_discord_emoji = re.compile('<.*?>')
+match_discord_emoji = re.compile('<:.*?>')
 match_urls = re.compile('https?:\/\/\S*')
 #match_all_punctuation = re.escape(string.punctuation)
 
@@ -49,12 +49,13 @@ def plaintext(string) -> string:
   """ turns a string into plain ASCII text """
   return string.encode("ascii", errors="ignore").decode().strip()
 
-# After stripping out allowed characters, return if the remaining string is uppercase or not
-def is_loud(message):
+
+def is_loud(message: str) -> bool:
+  """After stripping out allowed characters, return if the remaining string is uppercase or not"""
   # Strip out emojis because these are ok to be lowercase (and will not work as uppercase)
-  # message = re.sub(emoji_regex, '', message).strip()
+  message = strip_emoji(message).strip()
   # If stripping out a tag changes the message, then it had a tag and we shouldn't record it.
-  if bool(re.search(tag_regex, message))
+  if re.search(tag_regex, message):
     return False
   # Strip out any punctuation
   message = re.sub(punct_regex, '', message)
@@ -62,4 +63,4 @@ def is_loud(message):
   if len(message) < 3:
     return False
   # If the message forced to uppercase matches the string itself, it is LOUD
-  return message.upper() == message
+  return message.upper() == message and message.lower() != message
