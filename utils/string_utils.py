@@ -54,7 +54,7 @@ def is_loud(message):
   # Strip out emojis because these are ok to be lowercase (and will not work as uppercase)
   # message = re.sub(emoji_regex, '', message).strip()
   # If stripping out a tag changes the message, then it had a tag and we shouldn't record it.
-  if re.sub(tag_regex, '', message) != message:
+  if bool(re.search(tag_regex, message))
     return False
   # Strip out any punctuation
   message = re.sub(punct_regex, '', message)
