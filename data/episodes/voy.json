@@ -3077,7 +3077,15 @@
             "episode": "17",
             "imdb": "tt0708972",
             "memoryalpha": "Spirit_Folk_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.09.11",
+                    "episode": "Bros Before Holos",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-487-bros-before-holos-voy-s6e17/",
+                    "order": 487,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "06",
             "stills": [
                 "https://image.tmdb.org/t/p/original/bOAeCrw8rgH6d8eJZ2fiuklVF2j.jpg",
