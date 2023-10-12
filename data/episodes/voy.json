@@ -3103,7 +3103,15 @@
             "episode": "18",
             "imdb": "tt0708850",
             "memoryalpha": "Ashes_to_Ashes_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.09.18",
+                    "episode": "Rocking Kobali Bush",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-488-rocking-kobali-bush-voy-s6e18/",
+                    "order": 488,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "06",
             "stills": [
                 "https://image.tmdb.org/t/p/original/wVSfnLBBkzYgLkLT1o1NeNlJkmD.jpg",
