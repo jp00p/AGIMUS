@@ -3130,7 +3130,15 @@
             "episode": "19",
             "imdb": "tt0708864",
             "memoryalpha": "Child's_Play_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.09.25",
+                    "episode": "A Nike Shoebox Full of Pathogen",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-489-a-nike-shoebox-full-of-pathogen-voy-s6e19/",
+                    "order": 489,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "06",
             "stills": [
                 "https://image.tmdb.org/t/p/original/1JMe4dkLTYDtgHgxiVH9Ow0kYLN.jpg",
@@ -3149,7 +3157,15 @@
             "episode": "20",
             "imdb": "tt0708904",
             "memoryalpha": "Good_Shepherd_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.10.02",
+                    "episode": "Dark Matter Deer Blood",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-490-dark-matter-deer-blood-voy-s6e20/",
+                    "order": 490,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "06",
             "stills": [
                 "https://image.tmdb.org/t/p/original/5GUeq5Ghecb5PabFtjp1cUEZRMp.jpg",
