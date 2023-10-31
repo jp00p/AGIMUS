@@ -125,7 +125,7 @@ class RandomEp(commands.Cog):
     view = RandomEpSelectView(self, ctx.author.id)
     embed = discord.Embed(
       title="🎲 Random Episode 🎲",
-      description="Choose one or more Shows and Roll!",
+      description="Choose one or more shows!",
       color=discord.Color.dark_purple()
     )
     embed.set_footer(text="Your selections will be saved for the next time you use the command!")
