@@ -449,14 +449,6 @@ def get_user_xp(discord_id):
     user_xp = query.fetchone()
   return { "level": user_xp[0], "xp" : user_xp[1] }
 
-def get_total_xp_rank(discord_id):
-  with AgimusDB() as query:
-    sql = "SELECT count(1) FROM users WHERE xp > (SELECT xp FROM users WHERE discord_id = %s) GROUP BY xp"
-    vals = (discord_id,)
-    query.execute(sql, vals)
-    result = query.fetchone()
-  return result[0]
-
 def check_react_history(reaction:discord.Reaction, user:discord.User):
   with AgimusDB() as query:
     sql = "SELECT id FROM reactions WHERE user_id = %s AND reaction = %s AND reaction_message_id = %s"
@@ -502,12 +494,12 @@ def init_xp_cap_progress(user_discord_id, amount):
 
 def increment_xp_cap_progress(user_discord_id, amount):
   with AgimusDB() as query:
-    sql = "UPDATE xp_cap_progress SET progress = progress + %s WHERE discord_user_id = %s"
+    sql = "UPDATE xp_cap_progress SET progress = progress + %s WHERE user_discord_id = %s"
     vals = (amount, user_discord_id)
     query.execute(sql, vals)
 
 def decrement_xp_cap_progress(user_discord_id, amount):
   with AgimusDB() as query:
-    sql = "UPDATE xp_cap_progress SET progress = progress - %s WHERE discord_user_id = %s"
+    sql = "UPDATE xp_cap_progress SET progress = progress - %s WHERE user_discord_id = %s"
     vals = (amount, user_discord_id)
     query.execute(sql, vals)
