@@ -7,6 +7,7 @@
     "jackpots",
     "wager",
     "xp",
+    "level",
     "high_roller"
   ],
   "headers": [
@@ -19,6 +20,7 @@
     "profile_photo",
     "profile_sticker_1",
     "xp",
+    "level",
     "high_roller"
   ]
 }
