@@ -240,7 +240,7 @@ class Trade(commands.Cog):
     if not incoming_trades:
       await ctx.respond(embed=discord.Embed(
           title="No Incoming Trade Requests",
-          description="No one has any active trades requested from you. Get out there are start hustlin!",
+          description="No one has any active trades requested from you. Get out there, arrr, start hustlin' me heartie!",
           color=discord.Color.blurple()
         ),
         ephemeral=True

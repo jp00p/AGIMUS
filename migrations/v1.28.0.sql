@@ -1,0 +1,1 @@
+UPDATE badge_info SET badge_url = replace(badge_url, "/symbols/", "/");

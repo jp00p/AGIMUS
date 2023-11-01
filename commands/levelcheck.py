@@ -21,21 +21,21 @@ async def levelcheck(ctx:discord.ApplicationContext):
       base_xp = cap_progress
       goal_xp = 420
 
-  levelcheck_embed = discord.Embed(
+  embed = discord.Embed(
     title="Level Up Progress:",
     description=f"**Current Level:** {current_level}\n\n",
     color=discord.Color.random()
   )
-  levelcheck_embed.add_field(
+  embed.add_field(
     name="Progress",
     value=f"{base_xp}xp / {goal_xp}xp"
   )
-  levelcheck_embed.add_field(
+  embed.add_field(
     name=f"Total XP",
     value=f"{current_xp}xp"
   )
 
   await ctx.respond(
-    embed=levelcheck_embed,
+    embed=embed,
     ephemeral=True
   )
