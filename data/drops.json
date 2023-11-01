@@ -35,7 +35,7 @@
     "url": "https://i.imgur.com/94iNq9M.mp4"
   },
   "Barniss Franks Compilation": {
-    "file": "data/drops/barnissfrankscompilation.mp4",
+    "file": "data/drops/extended/barnissfrankscompilation.mp4",
     "description": "Barnus Franks Barniss Frex",
     "url": ""
   },
@@ -53,6 +53,11 @@
     "file": "data/drops/biblestudy.mp4",
     "description": "Bible Study. The way god wants it.",
     "url": "https://i.imgur.com/Nsr6Zc8.mp4"
+  },
+  "Bill Bill Bill Bill Bill Bill! (The Card Daddy)": {
+    "file": "data/drops/billbillbillcarddaddy.mp4",
+    "description": "Bill Tilly The Card Daddy",
+    "url": "https://i.imgur.com/sn9RhBd.mp4"
   },
   "Bosun's Whistle": {
     "file": "data/drops/bosunswhistle.mp4",
@@ -159,6 +164,11 @@
     "description": "Esatto! Leonardo da Vinci",
     "url": "https://i.imgur.com/LyBJSAn.mp4"
   },
+  "Film Paper (Dot Matrix Printer)": {
+    "file": "data/drops/dotmatrix.mp4",
+    "description": "Writing A Film Paper Dot Matrix Printer Sound Effect",
+    "url": "https://i.imgur.com/n5fw3Xx.mp4"
+  },
   "First Contact": {
     "file": "data/drops/firstcontact.mp4",
     "description": "First Contact",
@@ -224,7 +234,12 @@
     "description": "Adam Gonna Need A Lockdown Song",
     "url": "https://i.imgur.com/5jcMZg8.mp4"
   },
-  "GTA5 - wasted": {
+  "Greatest Gen Con/Khan (AIRHORNS!!!)": {
+    "file": "data/drops/airhorns.mp4",
+    "description": "Greatest Gen Con Khan Airhorns",
+    "url": "https://i.imgur.com/tumDvrK.mp4"
+  },
+  "GTA5 - Wasted (RSVP)": {
     "file": "data/drops/gta5wasted.mp4",
     "description": "GTA5 'wasted' sound effect, RSVP",
     "url": "https://i.imgur.com/xzrSc5k.mp4"
@@ -428,6 +443,11 @@
     "file": "data/drops/returnofdukat.mp4",
     "description": "Return of Dukat song",
     "url": "https://i.imgur.com/SmMridO.mp4"
+  },
+  "Santa Monica Mountains Podcast Theme": {
+    "file": "data/drops/santamonicamountains.mp4",
+    "description": "Santa Monica Mountains Podcast Theme Baywatch Theme",
+    "url": "https://i.imgur.com/f0BUryx.mp4"
   },
   "Saves Ya Money Buster": {
     "file": "data/drops/savesyamoneybuster.mp4",
@@ -704,6 +724,11 @@
     "description": "Ron Canada",
     "url": "https://i.imgur.com/4UDe6NL.mp4"
   },
+  "The Safi Drop": {
+    "file": "data/drops/thesafidrop.mp4",
+    "description": "The Safi Drop. User drop.",
+    "url": "https://i.imgur.com/dLxMktQ.mp4"
+  },
   "The Sara Drop": {
     "file": "data/drops/thesaradrop.mp4",
     "description": "The Sara Drop. User drop.",
@@ -798,6 +823,11 @@
     "file": "data/drops/thisisfuckingspectacular.mp4",
     "description": "I am Chief Miles Edward O'Brien. This is fucking spectacular!",
     "url": "https://i.imgur.com/NnBORtU.mp4"
+  },
+  "This Old Enterprise": {
+    "file": "data/drops/thisoldenterprise.mp4",
+    "description": "This Old Enterprise This Old House Theme Music",
+    "url": "https://i.imgur.com/nfzWeo9.mp4"
   },
   "Time Travel": {
     "file": "data/drops/timetravel.mp4",

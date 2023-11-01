@@ -270,7 +270,10 @@ def show_list_of_levels():
 # level[required]:int
 # level up user to next level and give them a badge (in the DB)
 # also fires the send_level_up_message function
-async def level_up_user(user:discord.User, level:int, source_details):
+async def level_up_user(user:discord.User, source_details):
+  user_xp_data = get_user_xp(user.id)
+  level = user_xp_data["level"]+1
+
   rainbow_l = f"{Back.RESET}{Back.RED} {Back.YELLOW} {Back.GREEN} {Back.CYAN} {Back.BLUE} {Back.MAGENTA} {Back.RESET}"
   rainbow_r = f"{Back.RESET}{Back.MAGENTA} {Back.BLUE} {Back.CYAN} {Back.GREEN} {Back.YELLOW} {Back.RED} {Back.RESET}"
   logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} has reached {Style.BRIGHT}level {level}!{Style.RESET_ALL} {rainbow_r}")
@@ -278,6 +281,7 @@ async def level_up_user(user:discord.User, level:int, source_details):
     sql = "UPDATE users SET level = level + 1 WHERE discord_id = %s"
     vals = (user.id,)
     query.execute(sql, vals)
+
   badge = give_user_badge(user.id)
   was_on_wishlist = False
 
@@ -327,46 +331,82 @@ async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_
   message = random.choice(random_level_up_messages["messages"]).format(user=user.mention, level=level, prev_level=(level-1))
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user, fields)
 
-# increment_user_xp(author, amt)
-# messauge.author[required]: discord.User
-# amt[required]: int
-# channel[required]: discord.Channel
-# This function will increment a users' XP and log the gain to the history
+# increment_user_xp(author, amt, reason, channel, source)
+# This function will increment a users' XP, log the gain to the history, determines level up status for
+# Standard or High Level XP Cap systems, and fires the level up action if appropriate
 async def increment_user_xp(user:discord.User, amt:int, reason:str, channel, source=None):
-  global current_color
-  msg_color = xp_colors[current_color]
-  star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
-  is_weekend = bool(datetime.today().weekday() >= 4)
+  # Determine multiplier
   xp_multiplier = 1
-  if is_weekend:
+  if bool(datetime.today().weekday() >= 4): # Weekend
     xp_multiplier = 2
+
+  # Update database
   amt = int(amt * xp_multiplier)
   with AgimusDB() as query:
     sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s AND xp_enabled = 1"
     vals = (amt, user.display_name, user.id)
     query.execute(sql, vals)
     updated = query.rowcount
+
   if updated > 0:
+    # Log xp_history
     log_xp_history(user.id, amt, channel.id, reason)
-    # If reaction hasn't been logged already, go ahead and do so and then award some XP!
-    reason_text = reasons[reason]
-    if not reason_text:
-      reason_text = reason
-    logger.info(f"{star} {msg_color}{user.display_name}{Fore.RESET} earns {msg_color}{amt} XP{Fore.RESET} for {Style.BRIGHT}{reason_text}{Style.RESET_ALL}! {star}")
-    current_color = current_color + 1
-    if current_color >= len(xp_colors):
-        current_color = 0
+    console_log_xp_history(user, amt, reason)
+
+    # Determine Level Up
     user_xp_data = get_user_xp(user.id)
-    user_xp = user_xp_data["xp"]
-    next_level_xp = calculate_xp_for_next_level(user_xp_data["level"])
-    #logger.info(f'User XP: {user_xp} User level: {user_xp_data["level"]} Next level XP: {next_level_xp}')
-    if user_xp >= next_level_xp:
+    current_xp = user_xp_data["xp"]
+    current_level = user_xp_data["level"]
+
+    should_user_level_up = False
+    if current_level >= 176:
+      # High Levelers - Static Level Up Progression per Every 420 XP
+      cap_progress = get_xp_cap_progress(user.id)
+      if cap_progress is None:
+        # User hasn't been transitioned to using the cap yet
+        # Check to see if they would level up normally first
+        next_level_xp = calculate_xp_for_next_level(current_level)
+        if current_xp >= next_level_xp:
+          should_user_level_up = True
+          # Now transition them to the new XP Cap System
+          # Initialize progress towards new cap goal with remainder from leveling up
+          xp_remainder = current_xp - next_level_xp
+          init_xp_cap_progress(user.id, xp_remainder)
+      else:
+        # User has been transitioned
+        # So we can increment the progress and check if it has met the goal
+        increment_xp_cap_progress(user.id, amt)
+        total_progress = cap_progress + amt
+        if total_progress >= 420:
+          should_user_level_up = True
+          # Now subtract the progress from the goal mark to reset for next level
+          decrement_xp_cap_progress(user.id, 420)
+    else:
+      # Below Level XP Capper - Standard XP Leveling
+      next_level_xp = calculate_xp_for_next_level(current_level)
+      if current_xp >= next_level_xp:
+        should_user_level_up = True
+
+    # Perform the actual level up if appropriate
+    if should_user_level_up:
       try:
         source_details = determine_level_up_source_details(user, source)
-        await level_up_user(user, user_xp_data["level"]+1, source_details)
+        await level_up_user(user, source_details)
       except Exception as e:
         logger.info(f"Error trying to level up user: {e}")
-        logger.info(traceback.format_exc())
+
+
+def console_log_xp_history(user:discord.User, amt:int, reason:str):
+  global current_color
+  msg_color = xp_colors[current_color]
+  star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
+  reason_text = reasons[reason]
+  if not reason_text:
+    reason_text = reason
+  logger.info(f"{star} {msg_color}{user.display_name}{Fore.RESET} earns {msg_color}{amt} XP{Fore.RESET} for {Style.BRIGHT}{reason_text}{Style.RESET_ALL}! {star}")
+  current_color = current_color + 1
+  if current_color >= len(xp_colors):
+      current_color = 0
 
 def determine_level_up_source_details(user, source):
   if isinstance(source, discord.message.Message):
@@ -409,7 +449,6 @@ def get_user_xp(discord_id):
     user_xp = query.fetchone()
   return { "level": user_xp[0], "xp" : user_xp[1] }
 
-
 def check_react_history(reaction:discord.Reaction, user:discord.User):
   with AgimusDB() as query:
     sql = "SELECT id FROM reactions WHERE user_id = %s AND reaction = %s AND reaction_message_id = %s"
@@ -434,4 +473,33 @@ def log_xp_history(user_discord_id:int, amt:int, channel_id:int, reason:str):
   with AgimusDB() as query:
     sql = "INSERT INTO xp_history (user_discord_id, amount, channel_id, reason) VALUES (%s, %s, %s, %s)"
     vals = (user_discord_id, amt, channel_id, reason)
+    query.execute(sql, vals)
+
+def get_xp_cap_progress(user_discord_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT progress FROM xp_cap_progress WHERE user_discord_id = %s"
+    vals = (user_discord_id,)
+    query.execute(sql, vals)
+    result = query.fetchone()
+  if result is not None:
+    return result.get('progress')
+  else:
+    return result
+
+def init_xp_cap_progress(user_discord_id, amount):
+  with AgimusDB() as query:
+    sql = "INSERT INTO xp_cap_progress (user_discord_id, progress) VALUES (%s, %s)"
+    vals = (user_discord_id, amount)
+    query.execute(sql, vals)
+
+def increment_xp_cap_progress(user_discord_id, amount):
+  with AgimusDB() as query:
+    sql = "UPDATE xp_cap_progress SET progress = progress + %s WHERE user_discord_id = %s"
+    vals = (amount, user_discord_id)
+    query.execute(sql, vals)
+
+def decrement_xp_cap_progress(user_discord_id, amount):
+  with AgimusDB() as query:
+    sql = "UPDATE xp_cap_progress SET progress = progress - %s WHERE user_discord_id = %s"
+    vals = (amount, user_discord_id)
     query.execute(sql, vals)

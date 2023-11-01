@@ -90,7 +90,7 @@ def get_xp_report():
   returns a dictionary of overall top xp users
   """
   with AgimusDB(dictionary=True) as query:
-    sql = "SELECT name,xp FROM users ORDER BY xp DESC LIMIT 25"
+    sql = "SELECT name,level,xp FROM users ORDER BY xp DESC LIMIT 25"
     query.execute(sql)
     results = query.fetchall()
   return results
@@ -146,10 +146,10 @@ def generate_xp_report_card(type:str):
   description = "Total XP Overall"
   rank = 1
   table = PrettyTable()
-  table.field_names = ["Rank", "XP", "Name"]
+  table.field_names = ["Rank", "XP", "Level", "Name"]
   for row in xp_data:
     truncated_name = row["name"][:31]
-    table.add_row([rank, row["xp"], truncated_name])
+    table.add_row([rank, row["xp"], row["level"], truncated_name])
     rank += 1
   return generate_report_card(title, description, table, type)
 

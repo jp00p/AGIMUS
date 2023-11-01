@@ -226,8 +226,25 @@ class Wishlist(commands.Cog):
     name="display",
     description="List all of the badges on your current wishlist."
   )
-  async def display(self, ctx:discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
+  @option(
+    name="public",
+    description="Show to public?",
+    required=True,
+    choices=[
+      discord.OptionChoice(
+        name="No",
+        value="no"
+      ),
+      discord.OptionChoice(
+        name="Yes",
+        value="yes"
+      )
+    ]
+  )
+  async def display(self, ctx:discord.ApplicationContext, public:str):
+    public = bool(public == "yes")
+    await ctx.defer(ephemeral=not public)
+
     user_discord_id = ctx.author.id
     logger.info(f"{ctx.author.display_name} is {Style.BRIGHT}displaying{Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
@@ -242,14 +259,18 @@ class Wishlist(commands.Cog):
       wishlist_pages = []
       for page_index, page in enumerate(all_pages):
         embed = discord.Embed(
-          title="Wishlist",
+          title=f"{ctx.author.display_name}'s Wishlist",
           description="\n".join([f"[{b['badge_name']}]({b['badge_url']})" for b in page]),
           color=discord.Color.blurple()
         )
-        embed.set_footer(text=f"Page {page_index + 1} of {total_pages}")
+        footer_text = f"Page {page_index + 1} of {total_pages}"
+        if public:
+          footer_text += " - Navigation All-Access"
+        embed.set_footer(text=footer_text)
         wishlist_pages.append(embed)
 
       paginator = pages.Paginator(
+        author_check=False,
         pages=wishlist_pages,
         loop_pages=True,
         disable_on_timeout=True

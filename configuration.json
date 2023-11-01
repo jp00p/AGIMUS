@@ -25,7 +25,9 @@
         "robot-diagnostics",
         "seskas-catfishing-channel",
         "ten-forward",
-        "temba-his-arms-wide"
+        "temba-his-arms-wide",
+        "viewscreen-001",
+        "viewscreen-002"
       ]
     },
     "save_message": {
@@ -659,32 +661,7 @@
       "channels": [],
       "enabled": true,
       "data": null,
-      "parameters": [
-        {
-          "name": "show",
-          "allowed": [
-            "trek",
-            "tos",
-            "tas",
-            "tng",
-            "ds9",
-            "voy",
-            "enterprise",
-            "lowerdecks",
-            "disco",
-            "picard",
-            "prodigy",
-            "snw",
-            "nontrek",
-            "friends",
-            "firefly",
-            "simpsons",
-            "sunny",
-            "any"
-          ],
-          "required": false
-        }
-      ]
+      "parameters": []
     },
     "setwager": {
       "channels": [
@@ -693,39 +670,7 @@
       ],
       "enabled": true,
       "data": null,
-      "parameters": [
-        {
-          "name": "wager_value",
-          "allowed": [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            19,
-            20,
-            21,
-            22,
-            23,
-            24,
-            25
-          ],
-          "required": true
-        }
-      ]
+      "parameters": []
     },
     "scores": {
       "channels": [
@@ -897,6 +842,7 @@
     },
     "wishlist dismissals": {
       "channels": [
+        "badgeys-badges",
         "bahrats-bazaar"
       ],
       "enabled": true,
@@ -905,6 +851,7 @@
     },
     "wishlist matches": {
       "channels": [
+        "badgeys-badges",
         "bahrats-bazaar"
       ],
       "enabled": true,
