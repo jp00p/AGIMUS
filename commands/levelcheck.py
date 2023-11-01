@@ -1,5 +1,5 @@
 from common import *
-from handlers.xp import get_user_xp, get_xp_cap_progress, calculate_xp_for_next_level, get_total_xp_rank
+from handlers.xp import get_user_xp, get_xp_cap_progress, calculate_xp_for_next_level
 
 @bot.slash_command(
   name="levelcheck",
@@ -20,19 +20,19 @@ async def levelcheck(ctx:discord.ApplicationContext):
     if cap_progress is not None:
       base_xp = cap_progress
       goal_xp = 420
-  
+
   levelcheck_embed = discord.Embed(
     title="Level Up Progress:",
-    description=f"Current level: {current_level} - {base_xp} out of {goal_xp} to {current_level + 1}.",
+    description=f"**Current Level:** {current_level}\n\n",
     color=discord.Color.random()
   )
   levelcheck_embed.add_field(
-    name=f"Total XP",
-    value=current_xp
+    name="Progress",
+    value=f"{base_xp}xp / {goal_xp}xp"
   )
   levelcheck_embed.add_field(
-    name=f"Rank",
-    value=get_total_xp_rank(ctx.author.id)
+    name=f"Total XP",
+    value=f"{current_xp}xp"
   )
 
   await ctx.respond(
