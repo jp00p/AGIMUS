@@ -13,6 +13,7 @@ from commands.dustbuster import dustbuster
 from commands.fmk import fmk
 from commands.help import help
 from commands.info import info
+from commands.levelcheck import levelcheck
 from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
 from commands.peptalk import peptalk
