@@ -724,6 +724,11 @@
     "description": "Ron Canada",
     "url": "https://i.imgur.com/4UDe6NL.mp4"
   },
+  "The Safi Drop": {
+    "file": "data/drops/thesafidrop.mp4",
+    "description": "The Safi Drop. User drop.",
+    "url": "https://i.imgur.com/dLxMktQ.mp4"
+  },
   "The Sara Drop": {
     "file": "data/drops/thesaradrop.mp4",
     "description": "The Sara Drop. User drop.",
