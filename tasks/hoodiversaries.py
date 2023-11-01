@@ -47,6 +47,11 @@ def hoodiversary_task(bot):
         mentions_string += f"{m['member'].mention} "
         year_string = 'year' if m['age'] == 1 else 'years'
         description += f"{random.choice(emoji_list)} {m['member'].mention} has been aboard The Hood for {m['age']} {year_string}!\nJoined {m['member'].joined_at.strftime('%x')}\n\n"
+      
+      if len(description) > 4096:
+        description = ""
+        for m in hoodiversary_members:
+          description += f"{m['member'].mention} Joined {m['member'].joined_at.strftime('%x')}\n"
 
       embed = discord.Embed(
         title="These FoDs Are Celebrating Their Hoodiversary!",
