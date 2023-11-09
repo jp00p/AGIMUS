@@ -336,11 +336,11 @@ class Trade(commands.Cog):
 
     if active_trade["type"] == 'dabo':
       title = "DABO COMPLETE!"
-      description = f"{requestor.mention} 🔄 {requestee.mention}!\n\nRandomized badges transferred successfully!"
+      description = f"**{requestor.display_name}** 🔄 **{requestee.display_name}**!\n\nRandomized badges transferred successfully!\n## DABO!!!"
       image_filename = "dabo_successful.jpg"
     else:
       title = "Successful Trade!"
-      description = f"{requestor.mention} and {requestee.mention} came to an agreement!\n\nBadges transferred successfully!"
+      description = f"**{requestor.display_name}** and **{requestee.display_name}** came to an agreement!\n\nBadges transferred successfully!"
       image_filename = "trade_successful.jpg"
 
     # Send Message to Channel
@@ -404,7 +404,7 @@ class Trade(commands.Cog):
         try:
           requestee_embed = discord.Embed(
             title="Trade Canceled",
-            description=f"Just a heads up! Your USS Hood Badge Trade initiated by {requestor.mention} was canceled because one or more of the badges involved were traded to another user.",
+            description=f"Just a heads up! Your USS Hood Badge Trade initiated by **{requestor.display_name}** was canceled because one or more of the badges involved were traded to another user.",
             color=discord.Color.purple()
           )
           requestee_embed.add_field(
@@ -429,7 +429,7 @@ class Trade(commands.Cog):
         try:
           requestor_embed = discord.Embed(
             title="Trade Canceled",
-            description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because one or more of the badges involved were traded to another user.",
+            description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because one or more of the badges involved were traded to another user.",
             color=discord.Color.purple()
           )
           requestor_embed.add_field(
@@ -470,7 +470,7 @@ class Trade(commands.Cog):
         offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
-          description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because you already own some of the badges requested!",
+          description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because you already own some of the badges requested!",
           color=discord.Color.purple()
         )
         embed.add_field(
@@ -514,7 +514,7 @@ class Trade(commands.Cog):
         offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
-          description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because they already own some of the badges offered!",
+          description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because they already own some of the badges offered!",
           color=discord.Color.purple()
         )
         embed.add_field(
@@ -557,7 +557,7 @@ class Trade(commands.Cog):
         offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
-          description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because you no longer have some of the badges you offered!",
+          description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because you no longer have some of the badges you offered!",
           color=discord.Color.purple()
         )
         embed.add_field(
@@ -600,7 +600,7 @@ class Trade(commands.Cog):
         offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
-          description=f"Just a heads up! Your USS Hood Badge Trade requested from {requestee.mention} was canceled because they no longer have some of the badges you requested!",
+          description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because they no longer have some of the badges you requested!",
           color=discord.Color.purple()
         )
         embed.add_field(
@@ -630,7 +630,7 @@ class Trade(commands.Cog):
     await interaction.response.edit_message(
       embed=discord.Embed(
         title="Trade Declined",
-        description=f"You've declined the proposed trade with {requestor.mention}.\n\nIf their DMs are open, they've been sent a notification to let them know.",
+        description=f"You've declined the proposed trade with **{requestor.display_name}**.\n\nIf their DMs are open, they've been sent a notification to let them know.",
         color=discord.Color.blurple()
       ),
       view=None,
@@ -645,7 +645,7 @@ class Trade(commands.Cog):
       try:
         declined_embed = discord.Embed(
           title="Trade Declined",
-          description=f"Your USS Hood Badge Trade to {requestee.mention} was declined.",
+          description=f"Your USS Hood Badge Trade to **{requestee.display_name}** was declined.",
           color=discord.Color.dark_purple()
         )
         declined_embed.add_field(
@@ -831,7 +831,7 @@ class Trade(commands.Cog):
     if len(requestor_unlocked_badges) < amount or len(requestee_unlocked_badges) < amount:
       not_enough_embed = discord.Embed(
         title="Dabo Denied! Not enough unlocked badges.",
-        description=f"Whoops, looks like either you or {requestee.mention} don't have the required number unlocked badges ({amount}) "
+        description=f"Whoops, looks like either you or **{requestee.display_name}** don't have the required number unlocked badges ({amount}) "
                     "to start this trade!\n\nMay need to adjust the amount requested and try again!",
         color=discord.Color.red()
       )
@@ -939,7 +939,7 @@ class Trade(commands.Cog):
     if not requestee_details or not requestee_details["xp_enabled"]:
       opted_out_embed = discord.Embed(
         title="This user is not participating.",
-        description=f"Sorry, {requestee.mention} has opted out of the XP system and is not available for trading.",
+        description=f"Sorry, **{requestee.display_name}** has opted out of the XP system and is not available for trading.",
         color=discord.Color.red()
       )
       await ctx.followup.send(embed=opted_out_embed, ephemeral=True)
@@ -951,7 +951,7 @@ class Trade(commands.Cog):
       active_trade_requestee = await self.bot.current_guild.fetch_member(active_trade['requestee_id'])
       already_active_embed = discord.Embed(
         title="You already have an active trade!",
-        description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade send` "
+        description=f"You have a outgoing trade open with **{active_trade_requestee.display_name}**.\n\nUse `/trade send` "
                     f"to check the status and cancel the current trade if desired!\n\nThis must be resolved before "
                     f"you can open another request.",
         color=discord.Color.red()
@@ -1010,7 +1010,7 @@ class Trade(commands.Cog):
       requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
       requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
 
-      confirmation_description = f"Your trade with {requestee.mention} has been canceled!\n\n"
+      confirmation_description = f"Your trade with **{requestee.display_name}** has been canceled!\n\n"
       confirmation_description += "You may now begin a new trade request with `/trade start`"
       confirmation_embed = discord.Embed(
         title="Trade Canceled!",
@@ -1032,7 +1032,7 @@ class Trade(commands.Cog):
         try:
           offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
 
-          notification_description = f"Heads up! {requestor.mention} has canceled their pending trade request with you."
+          notification_description = f"Heads up! **{requestor.display_name}** has canceled their pending trade request with you."
 
           notification_embed = discord.Embed(
             title="Trade Canceled!",
@@ -1109,10 +1109,10 @@ class Trade(commands.Cog):
 
           if active_trade['type'] == 'dabo':
             title = "INCOMING DABO!"
-            description = f"Heya, {requestor.mention} has initiated a randomized trade of unlocked badges with you on The USS Hood.\n\n**DABO!!!**\n\n"
+            description = f"Heya, **{requestor.display_name}** has initiated a randomized trade of unlocked badges with you on The USS Hood.\n\n**DABO!!!**\n\n"
           else:
             title = "Trade Offered"
-            description = f"Hey there, wanted to let you know that {requestor.mention} has requested a trade from you on The USS Hood.\n\n"
+            description = f"Hey there, wanted to let you know that **{requestor.display_name}** has requested a trade from you on The USS Hood.\n\n"
 
           description += f"Use `/trade incoming` in the channel to review and either accept or deny!\n\nYou can jump to their offer directly at at {home_message.jump_url}!"
 
@@ -1181,7 +1181,7 @@ class Trade(commands.Cog):
     )
     offered_embed = discord.Embed(
       title="Offered",
-      description=f"Badges offered by {requestor.mention} to {requestee.mention}",
+      description=f"Badges offered by **{requestor.display_name}** to **{requestee.display_name}**",
       color=discord.Color.dark_purple()
     )
     offered_embed.set_image(url=f"attachment://{offered_image_id}.png")
@@ -1203,7 +1203,7 @@ class Trade(commands.Cog):
     )
     requested_embed = discord.Embed(
       title="Requested",
-      description=f"Badges requested from {requestee.mention} by {requestor.mention}",
+      description=f"Badges requested from **{requestee.display_name}** by **{requestor.display_name}**",
       color=discord.Color.dark_purple()
     )
     requested_embed.set_image(url=f"attachment://{requested_image_id}.png")
@@ -1220,22 +1220,22 @@ class Trade(commands.Cog):
       color = discord.Color.dark_purple()
       if active_trade["type"] == 'dabo':
         title = "DABO TRADE!!!"
-        description=f"A randomized trade of unlocked badges!\n\n{requestor.mention} has offered a Dabo Trade to {requestee.mention}!\n## DABO!!!"
+        description=f"A randomized trade of unlocked badges!\n\n**{requestor.display_name}** has offered a Dabo Trade to **{requestee.display_name}**!\n## DABO!!!"
         image_filename = "dabo.png"
       else:
         title = "Trade Offered!"
-        description = f"Get that, get that, gold pressed latinum!\n\n{requestor.mention} has offered a trade to {requestee.mention}!"
+        description = f"Get that, get that, gold pressed latinum!\n\n**{requestor.display_name}** has offered a trade to **{requestee.display_name}**!"
         image_filename = "trade_offer.png"
 
     elif active_trade["status"] == 'pending':
       color = discord.Color(0x99aab5)
       if active_trade["type"] == 'dabo':
         title = "DABO PENDING!!!"
-        description=f"You've initiated a randomized trade of unlocked badges!\n\nThis your pending Dabo trade with {requestee.mention}!\n## DABO!!!"
+        description=f"You've initiated a randomized trade of unlocked badges!\n\nThis your pending Dabo trade with **{requestee.display_name}**!\n## DABO!!!"
         image_filename = "dabo.png"
       else:
         title = "Trade Pending..."
-        description = f"Ready to send?\n\nThis your pending trade with {requestee.mention}.\n\n"
+        description = f"Ready to send?\n\nThis your pending trade with **{requestee.display_name}**.\n\n"
         if does_trade_contain_badges(active_trade):
           description += "Press the Send button below if it looks good to go!"
         else:
@@ -1324,7 +1324,7 @@ class Trade(commands.Cog):
 
     badge_offered_embed = discord.Embed(
       title=f"{badge} added to offer.",
-      description=f"This badge has been added to your offer to {requestee.mention}",
+      description=f"This badge has been added to your offer to **{requestee.display_name}**",
       color=discord.Color.dark_green()
     )
     badge_offered_embed.set_image(url=f"attachment://{badge_filename}")
@@ -1350,7 +1350,7 @@ class Trade(commands.Cog):
 
     addition_embed = discord.Embed(
       title=f"{badge} added to request.",
-      description=f"This badge has been added to your request from {requestee.mention}",
+      description=f"This badge has been added to your request from **{requestee.display_name}**",
       color=discord.Color.dark_green()
     )
     addition_embed.set_image(url=f"attachment://{badge_filename}")
