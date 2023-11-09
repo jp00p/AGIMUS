@@ -297,7 +297,7 @@ class Trade(commands.Cog):
     # FAILSAFES!
 
     # Check offered badges and check requested badges
-    # Ensure users do not already have them currently
+    # Ensure users do not ALREADY have them currently
     # If they do, then cancel the trade
     requestor_already_has_badges = await self._requestor_already_has_badges(interaction, active_trade, requestor, requestee)
     if requestor_already_has_badges:
@@ -308,7 +308,7 @@ class Trade(commands.Cog):
       return
 
     # Check offered badges and check requested badges
-    # Ensure users still have them available to trade
+    # Ensure users STILL have them available to trade
     # If they don't, then cancel the trade
     requestor_still_has_badges = await self._requestor_still_has_badges(interaction, active_trade, requestor, requestee)
     if not requestor_still_has_badges:
@@ -334,10 +334,17 @@ class Trade(commands.Cog):
     db_purge_users_wishlist(requestor.id)
     db_purge_users_wishlist(requestee.id)
 
+    if active_trade["type"] == 'dabo':
+      title = "DABO COMPLETE!"
+      description = f"{requestor.mention} 🔄 {requestee.mention}!\n\nRandomized badges transferred successfully!"
+    else:
+      title = "Successful Trade!"
+      description = f"{requestor.mention} and {requestee.mention} came to an agreement!\n\nBadges transferred successfully!"
+
     # Send Message to Channel
     success_embed = discord.Embed(
-      title="Successful Trade!",
-      description=f"{requestor.mention} and {requestee.mention} came to an agreement!\n\nBadges transferred successfully!",
+      title=title,
+      description=description,
       color=discord.Color.dark_purple()
     )
     success_embed.add_field(
@@ -822,14 +829,15 @@ class Trade(commands.Cog):
     if len(requestor_unlocked_badges) < amount or len(requestee_unlocked_badges) < amount:
       not_enough_embed = discord.Embed(
         title="Dabo Denied! Not enough unlocked badges.",
-        description=f"Whoops, looks like either you or {requestee.mention} don't have enough unlocked badges to start this trade!",
+        description=f"Whoops, looks like either you or {requestee.mention} don't have the required number unlocked badges ({amount}) "
+                    "to start this trade!\n\nMay need to adjust the amount requested and try again!",
         color=discord.Color.red()
       )
       await ctx.followup.send(embed=not_enough_embed, ephemeral=True)
       return
 
     # If not denied, go ahead and initiate the new trade!
-    trade_id = db_initiate_dabo_trade(requestor_id, requestee_id)
+    trade_id = db_initiate_trade(requestor_id, requestee_id, 'dabo')
     active_trade = {
       'id': trade_id,
       'requestor_id': requestor_id,
@@ -849,16 +857,16 @@ class Trade(commands.Cog):
     # Paginator Pages
     dabo_embed = discord.Embed(
       title="DABO!!!",
-      description=f"Your pending dabo trade has been started!\n\n**{amount} unlocked badges** from both your inventory, "
-                  "and your requestee's inventory have been added to the trade.\n\nYou may send/cancel now below or use `/trade send` "
-                  "to issue the trade or cancel at a later time.\n\nAlso Note: You may still only have one open outgoing trade request at a time!",
+      description=f"Your pending dabo trade has been started!\n\n**{amount} randomly selected unlocked badges** from both your inventory, "
+                  "and your requestee's inventory each have been added to the trade.\n\nYou may send/cancel now below or use `/trade send` "
+                  "to do so later.\n\nNote: Dabo trades count towards only one open outgoing trade request at a time!",
       color=discord.Color.dark_purple()
     ).add_field(
       name="Badges offered by you",
-      value="\n".join([b['badge_name'] for b in random_offers])
+      value="\n".join([f"* {b['badge_name']}" for b in random_offers])
     ).add_field(
       name=f"Badges requested from {requestee.display_name}",
-      value="\n".join([b['badge_name'] for b in random_requests])
+      value="\n".join([f"* {b['badge_name']}" for b in random_requests])
     )
     dabo_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
 
@@ -1097,9 +1105,18 @@ class Trade(commands.Cog):
         try:
           offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
 
+          if active_trade['type'] == 'dabo':
+            title = "INCOMING DABO!"
+            description = f"Heya, {requestor.mention} has initiated a randomized trade of unlocked badges with you on The USS Hood.\n\n**DABO!!!**\n\n"
+          else:
+            title = "Trade Offered"
+            description = f"Hey there, wanted to let you know that {requestor.mention} has requested a trade from you on The USS Hood.\n\n",
+
+          description += f"Use `/trade incoming` in the channel to review and either accept or deny!\n\nYou can jump to their offer directly at at {home_message.jump_url}!"
+
           requestee_embed = discord.Embed(
-            title="Trade Offered",
-            description=f"Hey there, wanted to let you know that {requestor.mention} has requested a trade from you on The USS Hood.\n\nUse `/trade incoming` in the channel review and either accept or deny!\n\nYou can also see their offer at {home_message.jump_url}!",
+            title=title,
+            description=description,
             color=discord.Color.dark_purple()
           )
           requestee_embed.add_field(
@@ -1198,54 +1215,47 @@ class Trade(commands.Cog):
     offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
 
     if active_trade["status"] == 'active':
+      color = discord.Color.dark_purple()
       if active_trade["type"] == 'dabo':
         title = "DABO TRADE!!!"
-        description=f"A randomized trade of unlocked badges! **DABO!!!**\n\n{requestor.mention} has offered a Dabo Trade to {requestee.mention}!"
+        description=f"A randomized trade of unlocked badges!\n\n{requestor.mention} has offered a Dabo Trade to {requestee.mention}!\n## DABO!!!"
         image_filename = "dabo.png"
       else:
         title = "Trade Offered!"
         description = f"Get that, get that, gold pressed latinum!\n\n{requestor.mention} has offered a trade to {requestee.mention}!"
         image_filename = "trade_offer.png"
 
-      home_embed = discord.Embed(
-        title=title,
-        description=description,
-        color=discord.Color.dark_purple()
-      )
-      home_embed.add_field(
-        name=f"Offered by {requestor.display_name}",
-        value=offered_badge_names
-      )
-      home_embed.add_field(
-        name=f"Requested from {requestee.display_name}",
-        value=requested_badge_names
-      )
-      home_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
-      home_image = discord.File(fp=f"./images/trades/assets/{image_filename}", filename=image_filename)
-      home_embed.set_image(url=f"attachment://{image_filename}")
     elif active_trade["status"] == 'pending':
-      description = f"Ready to send?\n\nThis your pending trade with {requestee.mention}.\n\n"
-      if does_trade_contain_badges(active_trade):
-        description += "Press the Send button below if it looks good to go!"
+      color = discord.Color(0x99aab5)
+      if active_trade["type"] == 'dabo':
+        title = "DABO PENDING!!!"
+        description=f"You've initiated a randomized trade of unlocked badges!\n\nThis your pending Dabo trade with {requestee.mention}!\n## DABO!!!"
+        image_filename = "dabo.png"
       else:
-        description += "You'll need to include at least one badge as either offered or requested to proceed!"
+        title = "Trade Pending..."
+        description = f"Ready to send?\n\nThis your pending trade with {requestee.mention}.\n\n"
+        if does_trade_contain_badges(active_trade):
+          description += "Press the Send button below if it looks good to go!"
+        else:
+          description += "You'll need to include at least one badge as either offered or requested to proceed!"
+        image_filename = "trade_pending.png"
 
-      home_embed = discord.Embed(
-        title="Trade Pending...",
-        description=description,
-        color=discord.Color(0x99aab5)
-      )
-      home_embed.add_field(
-        name=f"Offered by {requestor.display_name}",
-        value=offered_badge_names
-      )
-      home_embed.add_field(
-        name=f"Requested from {requestee.display_name}",
-        value=requested_badge_names
-      )
-
-      home_image = discord.File(fp="./images/trades/assets/trade_pending.png", filename="trade_pending.png")
-      home_embed.set_image(url=f"attachment://trade_pending.png")
+    home_embed = discord.Embed(
+      title=title,
+      description=description,
+      color=color
+    )
+    home_embed.add_field(
+      name=f"Offered by {requestor.display_name}",
+      value=offered_badge_names
+    )
+    home_embed.add_field(
+      name=f"Requested from {requestee.display_name}",
+      value=requested_badge_names
+    )
+    home_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
+    home_image = discord.File(fp=f"./images/trades/assets/{image_filename}", filename=image_filename)
+    home_embed.set_image(url=f"attachment://{image_filename}")
 
     return home_embed, home_image
 
@@ -1459,12 +1469,12 @@ def get_offered_and_requested_badge_names(active_trade):
   offered_badges = db_get_trade_offered_badges(active_trade)
   offered_badge_names = "None"
   if offered_badges:
-    offered_badge_names = "\n".join([b['badge_name'] for b in offered_badges])
+    offered_badge_names = "\n".join([f"* {b['badge_name']}" for b in offered_badges])
 
   requested_badges = db_get_trade_requested_badges(active_trade)
   requested_badge_names = "None"
   if requested_badges:
-    requested_badge_names = "\n".join([b['badge_name'] for b in requested_badges])
+    requested_badge_names = "\n".join([f"* {b['badge_name']}" for b in requested_badges])
 
   return offered_badge_names, requested_badge_names
 
@@ -1571,18 +1581,10 @@ def db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_
     trade = query.fetchone()
   return trade
 
-def db_initiate_trade(requestor_id:int, requestee_id:int) -> int:
+def db_initiate_trade(requestor_id:int, requestee_id:int, type="standard") -> int:
   with AgimusDB() as query:
-    sql = "INSERT INTO trades (requestor_id, requestee_id, status) VALUES (%s, %s, 'pending')"
-    vals = (requestor_id, requestee_id)
-    query.execute(sql, vals)
-    result = query.lastrowid
-  return result
-
-def db_initiate_dabo_trade(requestor_id:int, requestee_id:int) -> int:
-  with AgimusDB() as query:
-    sql = "INSERT INTO trades (requestor_id, requestee_id, status, type) VALUES (%s, %s, 'pending', 'dabo')"
-    vals = (requestor_id, requestee_id)
+    sql = "INSERT INTO trades (requestor_id, requestee_id, status) VALUES (%s, %s, 'pending', %s)"
+    vals = (requestor_id, requestee_id, type)
     query.execute(sql, vals)
     result = query.lastrowid
   return result

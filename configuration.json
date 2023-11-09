@@ -759,6 +759,14 @@
       "data": null,
       "parameters": []
     },
+    "trade dabo": {
+      "channels": [
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "trade incoming": {
       "channels": [
         "bahrats-bazaar"
