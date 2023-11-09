@@ -860,7 +860,7 @@ class Trade(commands.Cog):
     dabo_embed = discord.Embed(
       title="DABO!!!",
       description=f"Your pending dabo trade has been started!\n\n**{amount} randomly selected unlocked badges** from both your inventory, "
-                  "and your requestee's inventory each have been added to the trade.\n\nYou may send/cancel now below or use `/trade send` "
+                  "and your requestee's inventory each have been added to the trade.\n\nYou may **Send** / **Cancel** now below or use `/trade send` "
                   "to do so later.\n\nNote: Dabo trades count towards only one open outgoing trade request at a time!",
       color=discord.Color.dark_purple()
     ).add_field(
@@ -1112,7 +1112,7 @@ class Trade(commands.Cog):
             description = f"Heya, {requestor.mention} has initiated a randomized trade of unlocked badges with you on The USS Hood.\n\n**DABO!!!**\n\n"
           else:
             title = "Trade Offered"
-            description = f"Hey there, wanted to let you know that {requestor.mention} has requested a trade from you on The USS Hood.\n\n",
+            description = f"Hey there, wanted to let you know that {requestor.mention} has requested a trade from you on The USS Hood.\n\n"
 
           description += f"Use `/trade incoming` in the channel to review and either accept or deny!\n\nYou can jump to their offer directly at at {home_message.jump_url}!"
 
@@ -1585,7 +1585,7 @@ def db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_
 
 def db_initiate_trade(requestor_id:int, requestee_id:int, type="standard") -> int:
   with AgimusDB() as query:
-    sql = "INSERT INTO trades (requestor_id, requestee_id, status) VALUES (%s, %s, 'pending', %s)"
+    sql = "INSERT INTO trades (requestor_id, requestee_id, status, type) VALUES (%s, %s, 'pending', %s)"
     vals = (requestor_id, requestee_id, type)
     query.execute(sql, vals)
     result = query.lastrowid
