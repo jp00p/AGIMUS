@@ -1,0 +1,1 @@
+ALTER TABLE trades ADD COLUMN type varchar(64) NOT NULL DEFAULT 'standard';

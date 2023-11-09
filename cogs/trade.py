@@ -3,6 +3,8 @@ from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 
+from random import sample
+
 f = open("./data/rules_of_acquisition.txt", "r")
 data = f.read()
 rules_of_acquisition = data.split("\n")
@@ -688,59 +690,7 @@ class Trade(commands.Cog):
     requestor_id = ctx.author.id
     requestee_id = requestee.id
 
-    if requestor_id == requestee_id:
-      await ctx.followup.send(embed=discord.Embed(
-        title="Don't be silly!",
-        description="You can't request a trade from yourself!",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return
-
-    if requestee_id == self.bot.user.id:
-      await ctx.followup.send(embed=discord.Embed(
-        title="Nope",
-        description="AGIMUS has no badges to trade!",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return
-
-    # Deny requests to users that do not have XP enabled
-    requestee_details = get_user(requestee_id)
-    if not requestee_details or not requestee_details["xp_enabled"]:
-      opted_out_embed = discord.Embed(
-        title="This user is not participating.",
-        description=f"Sorry, {requestee.mention} has opted out of the XP system and is not available for trading.",
-        color=discord.Color.red()
-      )
-      await ctx.followup.send(embed=opted_out_embed, ephemeral=True)
-      return
-
-    # Deny the trade request if there's an existing trade in progress by the requestor
-    active_trade = db_get_active_requestor_trade(requestor_id)
-    if active_trade:
-      active_trade_requestee = await self.bot.current_guild.fetch_member(active_trade['requestee_id'])
-      already_active_embed = discord.Embed(
-        title="You already have an active trade!",
-        description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade send` "
-                    f"to check the status and cancel the current trade if desired!\n\nThis must be resolved before "
-                    f"you can open another request.",
-        color=discord.Color.red()
-      )
-      already_active_embed.set_footer(text="You may want to check on this trade to see if they have had a chance to "
-                                            "review your request!")
-      await ctx.followup.send(embed=already_active_embed, ephemeral=True)
-      return
-
-    # Deny the trade request if the requestee already has too many active trades pending
-    requestee_trades = db_get_active_requestee_trades(requestee_id)
-    if len(requestee_trades) >= self.max_trades:
-      max_requestee_trades_embed = discord.Embed(
-        title=f"{requestee.display_name} has too many pending trades!",
-        description=f"Sorry, the person you've requested a trade from already has the maximum number of incoming "
-                    f"trade requests pending ({self.max_trades}).",
-        color=discord.Color.red()
-      )
-      await ctx.followup.send(embed=max_requestee_trades_embed, ephemeral=True)
+    if not await self._is_trade_initialization_valid(ctx, requestee):
       return
 
     # If not denied, go ahead and initiate the new trade!
@@ -828,6 +778,193 @@ class Trade(commands.Cog):
     )
 
     await paginator.respond(ctx.interaction, ephemeral=True)
+
+
+  @trade.command(
+    name="dabo",
+    description="Start a randomized trade of unlocked badges with someone (only one outgoing trade active at a time)"
+  )
+  @option(
+    "user",
+    discord.User,
+    description="The user you wish to start a Dabo trade with",
+    required=True
+  )
+  @option(
+    'amount',
+    int,
+    description="Number of unlocked badges to swap",
+    required=True,
+    choices=[
+      discord.OptionChoice(
+        name=str(i),
+        value=i
+      )
+      for i in range(1, 7)
+    ]
+  )
+  @commands.check(access_check)
+  async def dabo(self, ctx:discord.ApplicationContext, requestee:discord.User, amount:int):
+    await ctx.defer(ephemeral=True)
+    requestor_id = ctx.author.id
+    requestee_id = requestee.id
+
+    if amount < 1 or amount > 6:
+      return
+
+    if not await self._is_trade_initialization_valid(ctx, requestee):
+      return
+
+    requestor_unlocked_badges = db_get_user_unlocked_badges(requestor_id)
+    requestee_unlocked_badges = db_get_user_unlocked_badges(requestee_id)
+
+    # Check to make sure both parties have enough
+    if len(requestor_unlocked_badges) < amount or len(requestee_unlocked_badges) < amount:
+      not_enough_embed = discord.Embed(
+        title="Dabo Denied! Not enough unlocked badges.",
+        description=f"Whoops, looks like either you or {requestee.mention} don't have enough unlocked badges to start this trade!",
+        color=discord.Color.red()
+      )
+      await ctx.followup.send(embed=not_enough_embed, ephemeral=True)
+      return
+
+    # If not denied, go ahead and initiate the new trade!
+    trade_id = db_initiate_dabo_trade(requestor_id, requestee_id)
+    active_trade = {
+      'id': trade_id,
+      'requestor_id': requestor_id,
+      'requestee_id': requestee_id,
+    }
+
+    random_offers = sample(requestor_unlocked_badges, amount)
+    for offer in random_offers:
+      db_add_badge_to_trade_offer(active_trade, offer['badge_name'])
+
+    random_requests = sample(requestee_unlocked_badges, amount)
+    for request in random_requests:
+      db_add_badge_to_trade_request(active_trade, request['badge_name'])
+
+    dabo_trade = await self.check_for_active_trade(ctx)
+
+    # Paginator Pages
+    dabo_embed = discord.Embed(
+      title="DABO!!!",
+      description=f"Your pending dabo trade has been started!\n\n**{amount} unlocked badges** from both your inventory, "
+                  "and your requestee's inventory have been added to the trade.\n\nYou may send/cancel now below or use `/trade send` "
+                  "to issue the trade or cancel at a later time.\n\nAlso Note: You may still only have one open outgoing trade request at a time!",
+      color=discord.Color.dark_purple()
+    ).add_field(
+      name="Badges offered by you",
+      value="\n".join([b['badge_name'] for b in random_offers])
+    ).add_field(
+      name=f"Badges requested from {requestee.display_name}",
+      value="\n".join([b['badge_name'] for b in random_requests])
+    )
+    dabo_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
+
+    dabo_image = discord.File(fp="./images/trades/assets/dabo.png", filename="dabo.png")
+    dabo_embed.set_image(url=f"attachment://dabo.png")
+
+    dabo_pages = [
+      pages.Page(
+        embeds=[dabo_embed],
+        files=[dabo_image]
+      )
+    ]
+
+    # Offered page
+    offered_embed, offered_image = await self._generate_offered_embed_and_image(dabo_trade)
+    dabo_pages.append(
+      pages.Page(
+        embeds=[offered_embed],
+        files=[offered_image]
+      )
+    )
+
+    # Requested Page
+    requested_embed, requested_image = await self._generate_requested_embed_and_image(dabo_trade)
+    dabo_pages.append(
+      pages.Page(
+        embeds=[requested_embed],
+        files=[requested_image]
+      )
+    )
+
+    # Provide Send/Cancel UI immediately
+    view = SendCancelView(self, dabo_trade)
+    paginator = pages.Paginator(
+      pages=dabo_pages,
+      use_default_buttons=False,
+      custom_buttons=self.trade_buttons,
+      custom_view=view,
+      loop_pages=True,
+      disable_on_timeout=False
+    )
+
+    await paginator.respond(ctx.interaction, ephemeral=True)
+
+
+  async def _is_trade_initialization_valid(self, ctx:discord.ApplicationContext, requestee:discord.User):
+    requestor_id = ctx.author.id
+    requestee_id = requestee.id
+
+    if requestor_id == requestee_id:
+      await ctx.followup.send(embed=discord.Embed(
+        title="Don't be silly!",
+        description="You can't request a trade from yourself!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+    if requestee_id == self.bot.user.id:
+      await ctx.followup.send(embed=discord.Embed(
+        title="Nope",
+        description="AGIMUS has no badges to trade!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return False
+
+    # Deny requests to users that do not have XP enabled
+    requestee_details = get_user(requestee_id)
+    if not requestee_details or not requestee_details["xp_enabled"]:
+      opted_out_embed = discord.Embed(
+        title="This user is not participating.",
+        description=f"Sorry, {requestee.mention} has opted out of the XP system and is not available for trading.",
+        color=discord.Color.red()
+      )
+      await ctx.followup.send(embed=opted_out_embed, ephemeral=True)
+      return False
+
+    # Deny the trade request if there's an existing trade in progress by the requestor
+    active_trade = db_get_active_requestor_trade(requestor_id)
+    if active_trade:
+      active_trade_requestee = await self.bot.current_guild.fetch_member(active_trade['requestee_id'])
+      already_active_embed = discord.Embed(
+        title="You already have an active trade!",
+        description=f"You have a outgoing trade open with {active_trade_requestee.mention}.\n\nUse `/trade send` "
+                    f"to check the status and cancel the current trade if desired!\n\nThis must be resolved before "
+                    f"you can open another request.",
+        color=discord.Color.red()
+      )
+      already_active_embed.set_footer(text="You may want to check on this trade to see if they have had a chance to "
+                                            "review your request!")
+      await ctx.followup.send(embed=already_active_embed, ephemeral=True)
+      return False
+
+    # Deny the trade request if the requestee already has too many active trades pending
+    requestee_trades = db_get_active_requestee_trades(requestee_id)
+    if len(requestee_trades) >= self.max_trades:
+      max_requestee_trades_embed = discord.Embed(
+        title=f"{requestee.display_name} has too many pending trades!",
+        description=f"Sorry, the person you've requested a trade from already has the maximum number of incoming "
+                    f"trade requests pending ({self.max_trades}).",
+        color=discord.Color.red()
+      )
+      await ctx.followup.send(embed=max_requestee_trades_embed, ephemeral=True)
+      return False
+
+    # No validation problems
+    return True
 
   @trade.command(
     name="send",
@@ -1060,12 +1197,19 @@ class Trade(commands.Cog):
 
     offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
 
-    home_embed = None
-    home_image = None
     if active_trade["status"] == 'active':
+      if active_trade["type"] == 'dabo':
+        title = "DABO TRADE!!!"
+        description=f"A randomized trade of unlocked badges! **DABO!!!**\n\n{requestor.mention} has offered a Dabo Trade to {requestee.mention}!"
+        image_filename = "dabo.png"
+      else:
+        title = "Trade Offered!"
+        description = f"Get that, get that, gold pressed latinum!\n\n{requestor.mention} has offered a trade to {requestee.mention}!"
+        image_filename = "trade_offer.png"
+
       home_embed = discord.Embed(
-        title="Trade Offered!",
-        description=f"Get that, get that, gold pressed latinum!\n\n{requestor.mention} has offered a trade to {requestee.mention}!",
+        title=title,
+        description=description,
         color=discord.Color.dark_purple()
       )
       home_embed.add_field(
@@ -1077,9 +1221,8 @@ class Trade(commands.Cog):
         value=requested_badge_names
       )
       home_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
-
-      home_image = discord.File(fp="./images/trades/assets/trade_offer.png", filename="trade_offer.png")
-      home_embed.set_image(url=f"attachment://trade_offer.png")
+      home_image = discord.File(fp=f"./images/trades/assets/{image_filename}", filename=image_filename)
+      home_embed.set_image(url=f"attachment://{image_filename}")
     elif active_trade["status"] == 'pending':
       description = f"Ready to send?\n\nThis your pending trade with {requestee.mention}.\n\n"
       if does_trade_contain_badges(active_trade):
@@ -1130,17 +1273,24 @@ class Trade(commands.Cog):
     if not active_trade:
       return
 
+    if active_trade['type'] == 'dabo':
+      await ctx.respond(embed=discord.Embed(
+        title=f"Dabo Trades Are Not Modifiable",
+        description=f"You can however cancel the trade via the `/trade send` interface and generate a new one if needed.",
+        color=discord.Color.dark_red()
+      ), ephemeral=True)
+      return
+
     if offer:
       await self._add_offered_badge_to_trade(ctx, active_trade, offer)
     if request:
       await self._add_requested_badge_to_trade(ctx, active_trade, request)
     if not offer and not request:
-      embed = discord.Embed(
+      await ctx.respond(embed=discord.Embed(
         title=f"Please select a badge to offer or trade",
         description=f"If you want to update your trade, you need to give a badge",
         color=discord.Color.dark_red()
-      )
-      await ctx.respond(embed=embed, ephemeral=True)
+      ), ephemeral=True)
 
   async def _add_offered_badge_to_trade(self, ctx, active_trade, badge):
     """ Offer the badge or reply with error message """
@@ -1424,6 +1574,14 @@ def db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_
 def db_initiate_trade(requestor_id:int, requestee_id:int) -> int:
   with AgimusDB() as query:
     sql = "INSERT INTO trades (requestor_id, requestee_id, status) VALUES (%s, %s, 'pending')"
+    vals = (requestor_id, requestee_id)
+    query.execute(sql, vals)
+    result = query.lastrowid
+  return result
+
+def db_initiate_dabo_trade(requestor_id:int, requestee_id:int) -> int:
+  with AgimusDB() as query:
+    sql = "INSERT INTO trades (requestor_id, requestee_id, status, type) VALUES (%s, %s, 'pending', 'dabo')"
     vals = (requestor_id, requestee_id)
     query.execute(sql, vals)
     result = query.lastrowid

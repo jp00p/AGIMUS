@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS trades (
   requestor_id varchar(128) NOT NULL,
   requestee_id varchar(128) NOT NULL,
   status varchar(64) NOT NULL DEFAULT 'pending',
+  type varchar(64) NOT NULL DEFAULT 'standard',
   time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id),
   FOREIGN KEY (requestor_id)
