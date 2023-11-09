@@ -824,15 +824,23 @@ class Trade(commands.Cog):
     if not await self._is_trade_initialization_valid(ctx, requestee):
       return
 
-    requestor_unlocked_badges = db_get_user_unlocked_badges(requestor_id)
-    requestee_unlocked_badges = db_get_user_unlocked_badges(requestee_id)
+    requestor_total_badges = [b['badge_name'] for b in db_get_user_badges(requestor_id)]
+    requestor_unlocked_badges = [b['badge_name'] for b in db_get_user_unlocked_badges(requestor_id)]
+
+    requestee_total_badges = [b['badge_name'] for b in db_get_user_badges(requestee_id)]
+    requestee_unlocked_badges = [b['badge_name'] for b in db_get_user_unlocked_badges(requestee_id)]
+
+    # Get only the badges to offer/request that are not already present in the other user's inventory yet
+    valid_requestor_badges = np.setdiff1d(requestor_unlocked_badges, requestee_total_badges)
+    valid_requestee_badges = np.setdiff1d(requestee_unlocked_badges, requestor_total_badges)
 
     # Check to make sure both parties have enough
-    if len(requestor_unlocked_badges) < amount or len(requestee_unlocked_badges) < amount:
+    if len(valid_requestor_badges) < amount or len(valid_requestee_badges) < amount:
       not_enough_embed = discord.Embed(
         title="Dabo Denied! Not enough unlocked badges.",
         description=f"Whoops, looks like either you or **{requestee.display_name}** don't have the required number unlocked badges ({amount}) "
-                    "to start this trade!\n\nMay need to adjust the amount requested and try again!",
+                    "to start this trade!\n\nThere either may be not enough total, or not enough that the other user doesn't have already.\n\n"
+                    "May need to adjust the amount requested and try again!",
         color=discord.Color.red()
       )
       await ctx.followup.send(embed=not_enough_embed, ephemeral=True)
@@ -846,13 +854,13 @@ class Trade(commands.Cog):
       'requestee_id': requestee_id,
     }
 
-    random_offers = sample(requestor_unlocked_badges, amount)
+    random_offers = sample(valid_requestor_badges, amount)
     for offer in random_offers:
-      db_add_badge_to_trade_offer(active_trade, offer['badge_name'])
+      db_add_badge_to_trade_offer(active_trade, offer)
 
-    random_requests = sample(requestee_unlocked_badges, amount)
+    random_requests = sample(valid_requestee_badges, amount)
     for request in random_requests:
-      db_add_badge_to_trade_request(active_trade, request['badge_name'])
+      db_add_badge_to_trade_request(active_trade, request)
 
     dabo_trade = await self.check_for_active_trade(ctx)
 
@@ -865,10 +873,10 @@ class Trade(commands.Cog):
       color=discord.Color.dark_purple()
     ).add_field(
       name="Badges offered by you",
-      value="\n".join([f"* {b['badge_name']}" for b in random_offers])
+      value="\n".join([f"* {b}" for b in random_offers])
     ).add_field(
       name=f"Badges requested from {requestee.display_name}",
-      value="\n".join([f"* {b['badge_name']}" for b in random_requests])
+      value="\n".join([f"* {b}" for b in random_requests])
     )
     dabo_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
 
