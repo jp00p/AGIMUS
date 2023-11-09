@@ -3210,7 +3210,15 @@
             "episode": "22",
             "imdb": "tt0708933",
             "memoryalpha": "Muse_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.10.16",
+                    "episode": "The Medkit Device Is a Chode",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-492-the-medkit-device-is-a-chode-voy-s6e22/",
+                    "order": 492,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "06",
             "stills": [
                 "https://image.tmdb.org/t/p/original/y7XsN4ItsKWuYSxpw4ByHp3ot8r.jpg",
