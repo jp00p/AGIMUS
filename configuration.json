@@ -489,18 +489,13 @@
       "parameters": []
     },
     "nextep": {
-      "channels": [
-        "general-trek",
-        "ancient-human-visual-media"
-      ],
+      "channels": [],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "nexttrek": {
-      "channels": [
-        "general-trek"
-      ],
+      "channels": [],
       "enabled": true,
       "data": null,
       "parameters": []
