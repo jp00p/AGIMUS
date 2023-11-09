@@ -337,9 +337,11 @@ class Trade(commands.Cog):
     if active_trade["type"] == 'dabo':
       title = "DABO COMPLETE!"
       description = f"{requestor.mention} 🔄 {requestee.mention}!\n\nRandomized badges transferred successfully!"
+      image_filename = "dabo_successful.jpg"
     else:
       title = "Successful Trade!"
       description = f"{requestor.mention} and {requestee.mention} came to an agreement!\n\nBadges transferred successfully!"
+      image_filename = "trade_successful.jpg"
 
     # Send Message to Channel
     success_embed = discord.Embed(
@@ -355,8 +357,8 @@ class Trade(commands.Cog):
       name=f"{requestee.display_name} received",
       value=offered_badge_names
     )
-    success_image = discord.File(fp="./images/trades/assets/trade_successful.jpg", filename="trade_successful.jpg")
-    success_embed.set_image(url=f"attachment://trade_successful.jpg")
+    success_image = discord.File(fp=f"./images/trades/assets/{image_filename}", filename=image_filename)
+    success_embed.set_image(url=f"attachment://{image_filename}")
     success_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
 
     channel = interaction.channel
