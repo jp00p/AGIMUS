@@ -831,8 +831,8 @@ class Trade(commands.Cog):
     requestee_unlocked_badges = [b['badge_name'] for b in db_get_user_unlocked_badges(requestee_id)]
 
     # Get only the badges to offer/request that are not already present in the other user's inventory yet
-    valid_requestor_badges = np.setdiff1d(requestor_unlocked_badges, requestee_total_badges)
-    valid_requestee_badges = np.setdiff1d(requestee_unlocked_badges, requestor_total_badges)
+    valid_requestor_badges = list(np.setdiff1d(requestor_unlocked_badges, requestee_total_badges))
+    valid_requestee_badges = list(np.setdiff1d(requestee_unlocked_badges, requestor_total_badges))
 
     # Check to make sure both parties have enough
     if len(valid_requestor_badges) < amount or len(valid_requestee_badges) < amount:
