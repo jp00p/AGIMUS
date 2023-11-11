@@ -399,7 +399,7 @@ class Trade(commands.Cog):
             )
             wishlist_success_embed.add_field(
               name="Wishlisted Acquisitions",
-              value=[f"* {b}" for b in requestor_wishlist_successes],
+              value="\n".join([f"* {b}" for b in requestor_wishlist_successes]),
               inline=False
             )
             wishlist_success_embed.set_footer(
@@ -425,7 +425,7 @@ class Trade(commands.Cog):
           )
           wishlist_success_embed.add_field(
             name="Wishlisted Acquisitions",
-            value=[f"* {b}" for b in requestee_wishlist_successes],
+            value="\n".join([f"* {b}" for b in requestee_wishlist_successes]),
             inline=False
           )
           wishlist_success_embed.set_footer(
