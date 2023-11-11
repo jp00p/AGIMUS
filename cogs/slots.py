@@ -1,5 +1,8 @@
 import math
 import time
+from pytz import timezone
+import pytz
+
 from common import *
 from handlers.xp import increment_user_xp
 from utils.check_channel_access import access_check
@@ -369,8 +372,16 @@ class Slots(commands.Cog):
       winner_str = (winner[:24] + '...') if len(winner) > 24 else winner
       winners.append(winner_str)
 
-      lifespan = jackpot["time_won"] - jackpot["time_created"]
-      lifespan_str = humanize.naturaltime(datetime.now() - jackpot['time_created'])
+      pst_tz = timezone('US/Pacific')
+      raw_now = datetime.utcnow().replace(tzinfo=pytz.utc)
+      raw_time_won = pytz.utc.localize(jackpot["time_won"])
+      raw_time_created = pytz.utc.localize(jackpot["time_created"])
+      aware_now = pst_tz.normalize(raw_now.astimezone(pst_tz))
+      aware_time_won = pst_tz.normalize(raw_time_won.astimezone(pst_tz))
+      aware_time_created = pst_tz.normalize(raw_time_created.astimezone(pst_tz))
+
+      lifespan = aware_time_won - aware_time_created
+      lifespan_str = humanize.naturaltime(aware_now - aware_time_created)
       lifespan_str += f" ({lifespan.days}d {lifespan.seconds // 3600}h {(lifespan.seconds // 60) % 60}m)"
       lifespans.append(lifespan_str)
 
