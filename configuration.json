@@ -444,6 +444,18 @@
       "data": "data/all_characters.txt",
       "parameters": []
     },
+    "gifbomb": {
+      "allowed_roles": [
+        "Admiral",
+        "Captain",
+        "Commander",
+        "Lt. Commander",
+        "Lieutenant"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "help": {
       "enabled": true,
       "data": "data/help.json",
