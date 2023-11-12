@@ -11,6 +11,7 @@ from commands.aliases import aliases
 from commands.badges import *
 from commands.dustbuster import dustbuster
 from commands.fmk import fmk
+from commands.gifbomb import gifbomb
 from commands.help import help
 from commands.info import info
 from commands.levelcheck import levelcheck

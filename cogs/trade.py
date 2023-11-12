@@ -1,5 +1,5 @@
 from common import *
-from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist
+from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist, db_get_user_wishlist_badges
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 
@@ -325,10 +325,14 @@ class Trade(commands.Cog):
     db_complete_trade(active_trade)
 
     # Lock badges the users now possess that were in their wishlists
-    requested_badge_filenames = [b['badge_filename'] for b in db_get_trade_requested_badges(active_trade)]
-    db_autolock_badges_by_filenames_if_in_wishlist(requestor.id, requested_badge_filenames)
-    offered_badge_filenames = [b['badge_filename'] for b in db_get_trade_offered_badges(active_trade)]
-    db_autolock_badges_by_filenames_if_in_wishlist(requestee.id, offered_badge_filenames)
+    # Stash the wishlist badges prior to purging to alert users in Dabo matches if they've acquired a Wishlist item
+    requestors_previous_wishlist_badges = db_get_user_wishlist_badges(requestor.id)
+    requested_badges = db_get_trade_requested_badges(active_trade)
+    db_autolock_badges_by_filenames_if_in_wishlist(requestor.id, [b['badge_filename'] for b in requested_badges])
+
+    requestees_previous_wishlist_badges = db_get_user_wishlist_badges(requestee.id)
+    offered_badges = db_get_trade_offered_badges(active_trade)
+    db_autolock_badges_by_filenames_if_in_wishlist(requestee.id, [b['badge_filename'] for b in offered_badges])
 
     # Delete Badges From Users Wishlists
     db_purge_users_wishlist(requestor.id)
@@ -364,9 +368,9 @@ class Trade(commands.Cog):
     channel = interaction.channel
     message = await channel.send(embed=success_embed, file=success_image)
 
-    # Send notification to requestor the the trade was successful
-    user = get_user(requestor.id)
-    if user["receive_notifications"]:
+    # Send notification to requestor that the trade was successful
+    requestor_user = get_user(requestor.id)
+    if requestor_user["receive_notifications"]:
       try:
         success_embed.add_field(
           name="View Confirmation",
@@ -378,8 +382,59 @@ class Trade(commands.Cog):
         )
         await requestor.send(embed=success_embed)
       except discord.Forbidden as e:
-        logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+        logger.info(f"Unable to send trade confirmation message to {requestor.display_name}, they have their DMs closed.")
         pass
+
+       # Send notification to requestor if they completed a Dabo Trade and got some Wishlist badges
+      if active_trade["type"] == 'dabo':
+        requestor_wishlisted_badge_names = [b['badge_name'] for b in requestors_previous_wishlist_badges]
+        requestor_acquired_badge_names = [b['badge_name'] for b in requested_badges]
+        requestor_wishlist_successes = [b for b in requestor_acquired_badge_names if b in requestor_wishlisted_badge_names]
+        if len(requestor_wishlist_successes):
+          try:
+            wishlist_success_embed = discord.Embed(
+              title="You got some Wishlisted Badges from that Dabo Trade!",
+              description=f"Hey just a heads up, one or more of the badges you received from your recent Dabo Trade with **{requestee.display_name}** were on your wishlist! Noice.",
+              color=discord.Color.dark_purple()
+            )
+            wishlist_success_embed.add_field(
+              name="Wishlisted Acquisitions",
+              value="\n".join([f"* {b}" for b in requestor_wishlist_successes]),
+              inline=False
+            )
+            wishlist_success_embed.set_footer(
+              text="Note: You can use /settings to enable or disable these messages."
+            )
+            await requestor.send(embed=wishlist_success_embed)
+          except discord.Forbidden as e:
+            logger.info(f"Unable to send Wishlist Acquisition message to {requestor.display_name}, they have their DMs closed.")
+            pass
+
+    # Send notification to requestee if they completed a Dabo Trade and got some Wishlist badges
+    requestee_user = get_user(requestee.id)
+    if requestee_user["receive_notifications"] and active_trade["type"] == 'dabo':
+      requestee_wishlisted_badge_names = [b['badge_name'] for b in requestees_previous_wishlist_badges]
+      requestee_acquired_badge_names = [b['badge_name'] for b in offered_badges]
+      requestee_wishlist_successes = [b for b in requestee_acquired_badge_names if b in requestee_wishlisted_badge_names]
+      if len(requestee_wishlist_successes):
+        try:
+          wishlist_success_embed = discord.Embed(
+            title="You got Wishlisted Badges from that Dabo Trade!",
+            description=f"Hey just a heads up, one or more of the badges you received from your recent Dabo Trade with **{requestor.display_name}** were on your wishlist! Noice.",
+            color=discord.Color.dark_purple()
+          )
+          wishlist_success_embed.add_field(
+            name="Wishlisted Acquisitions",
+            value="\n".join([f"* {b}" for b in requestee_wishlist_successes]),
+            inline=False
+          )
+          wishlist_success_embed.set_footer(
+            text="Note: You can use /settings to enable or disable these messages."
+          )
+          await requestee.send(embed=wishlist_success_embed)
+        except discord.Forbidden as e:
+          logger.info(f"Unable to send Wishlist Acquisition message to {requestee.display_name}, they have their DMs closed.")
+          pass
 
 
   async def _cancel_invalid_related_trades(self, active_trade):
