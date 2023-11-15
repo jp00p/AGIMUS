@@ -65,7 +65,7 @@ class TagButton(discord.ui.Button):
     self.user_discord_id = user_discord_id
     self.badge_name = badge_name
     super().__init__(
-      label="           Tag Badge           ",
+      label="Tag Badge",
       style=discord.ButtonStyle.primary,
       row=2
     )
@@ -84,7 +84,7 @@ class TagButton(discord.ui.Button):
     if len(new_associated_tag_names):
       description = f"**{self.badge_name}** is now tagged with:" + "\n\n- " + "\n- ".join(new_associated_tag_names) + "\n\n" + "Use `/tags showcase` to show off your tags!"
     else:
-      description = f"**{self.badge_name}** no longer has any tags associated!"
+      description = f"**{self.badge_name}** currently has no tags associated!"
 
     await interaction.response.edit_message(
       embed=discord.Embed(
@@ -102,7 +102,7 @@ class CarouselButton(discord.ui.Button):
     self.user_discord_id = user_discord_id
     self.badge_name = badge_name
     super().__init__(
-      label="           Tag Badge           ",
+      label="Tag Badge / Move On",
       style=discord.ButtonStyle.primary,
       row=2
     )
@@ -122,11 +122,11 @@ class CarouselButton(discord.ui.Button):
     if len(new_associated_tag_names):
       description = f"**{self.badge_name}** is now tagged with:" + "\n\n- " + "\n- ".join(new_associated_tag_names) + "\n\n" + "Use `/tags showcase` to show off your tags!"
     else:
-      description = f"**{self.badge_name}** no longer has any tags associated!"
+      description = f"**{self.badge_name}** currently has no tags associated!"
 
     await interaction.edit(
       embed=discord.Embed(
-        title="Tags Updated",
+        title="Tag Summary",
         description=description,
         color=discord.Color.green()
       ),
