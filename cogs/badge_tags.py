@@ -151,8 +151,10 @@ class CarouselButton(discord.ui.Button):
     next_badge = random.choice(valid_badges)
 
     completed_badges.append(next_badge['badge_name'])
+    next_tags = db_get_associated_badge_tags(self.user_discord_id, next_badge['badge_name'])
+    next_tag_ids = [str(t['id']) for t in next_tags]
 
-    new_view = TagCarouselView(self.user_discord_id, completed_badges, next_badge)
+    new_view = TagCarouselView(self.user_discord_id, completed_badges, next_badge, next_tag_ids)
     embed = discord.Embed(
       title=next_badge['badge_name'],
       color=discord.Color.dark_purple()
@@ -174,11 +176,11 @@ class TagBadgeView(discord.ui.View):
 
 
 class TagCarouselView(discord.ui.View):
-  def __init__(self, user_discord_id, completed_badges, next_badge):
+  def __init__(self, user_discord_id, completed_badges, next_badge, tag_ids):
     super().__init__()
     self.user_discord_id = user_discord_id
     self.completed_badges = completed_badges
-    self.tag_ids = []
+    self.tag_ids = tag_ids
     self.add_item(TagSelector(user_discord_id, next_badge['badge_name']))
     self.add_item(CarouselButton(user_discord_id, next_badge['badge_name']))
 
@@ -606,8 +608,10 @@ class BadgeTags(commands.Cog):
 
     user_badges = db_get_user_badges(ctx.author.id)
     initial_badge = random.choice(user_badges)
+    next_tags = db_get_associated_badge_tags(ctx.author.id, initial_badge['badge_name'])
+    next_tag_ids = [str(t['id']) for t in next_tags]
 
-    view = TagCarouselView(ctx.author.id, [initial_badge['badge_name']], initial_badge)
+    view = TagCarouselView(ctx.author.id, [initial_badge['badge_name']], initial_badge, next_tag_ids)
     embed = discord.Embed(
       title=initial_badge['badge_name'],
       color=discord.Color.dark_purple()
