@@ -207,7 +207,7 @@ def db_get_wishlist_inventory_matches(user_discord_id):
 def db_get_wishlist_dismissal(user_discord_id, match_discord_id):
   with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT * FROM wishlist_dismissals WHERE user_discord_id = %s AND match_discord_id = %s;
+      SELECT * FROM wishlist_dismissals WHERE user_discord_id = %s AND match_discord_id = %s LIMIT 1;
     '''
     vals = (user_discord_id, match_discord_id)
     query.execute(sql, vals)
