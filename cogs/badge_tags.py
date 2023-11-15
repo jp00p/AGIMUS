@@ -97,6 +97,62 @@ class TagButton(discord.ui.Button):
     )
 
 
+class CarouselButton(discord.ui.Button):
+  def __init__(self, user_discord_id, badge_name):
+    self.user_discord_id = user_discord_id
+    self.badge_name = badge_name
+    super().__init__(
+      label="           Tag Badge           ",
+      style=discord.ButtonStyle.primary,
+      row=2
+    )
+
+  async def callback(self, interaction:discord.Interaction):
+    await interaction.response.defer()
+    associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_name)
+    tag_ids_to_delete = [t['id'] for t in associated_tags if t['id'] not in self.view.tag_ids]
+    badge_info = db_get_badge_info_by_name(self.badge_name)
+    db_delete_badge_tags_associations(tag_ids_to_delete, badge_info['badge_filename'])
+    if len(self.view.tag_ids):
+      db_create_badge_tags_associations(self.user_discord_id, self.badge_name, self.view.tag_ids)
+
+    new_associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_name)
+    new_associated_tag_names = [t['tag_name'] for t in new_associated_tags]
+
+    if len(new_associated_tag_names):
+      description = f"**{self.badge_name}** is now tagged with:" + "\n\n- " + "\n- ".join(new_associated_tag_names) + "\n\n" + "Use `/tags showcase` to show off your tags!"
+    else:
+      description = f"**{self.badge_name}** no longer has any tags associated!"
+
+    await interaction.edit(
+      embed=discord.Embed(
+        title="Tags Updated",
+        description=description,
+        color=discord.Color.green()
+      ),
+      view=None,
+      files=[]
+    )
+
+    user_badges = db_get_user_badges(self.user_discord_id)
+    completed_badges = self.view.completed_badges
+    valid_badges = [b for b in user_badges if b['badge_name'] not in completed_badges]
+    next_badge = random.choice(valid_badges)
+
+    completed_badges.append(next_badge['badge_name'])
+
+    new_view = TagCarouselView(self.user_discord_id, completed_badges, next_badge)
+    embed = discord.Embed(
+      title=next_badge['badge_name'],
+      color=discord.Color.dark_purple()
+    )
+    badge_image = discord.File(fp=f"./images/badges/{next_badge['badge_filename']}", filename=next_badge['badge_filename'])
+    embed.set_image(url=f"attachment://{next_badge['badge_filename']}")
+
+    await interaction.respond(embed=embed, file=badge_image, view=new_view, ephemeral=True)
+
+
+
 class TagBadgeView(discord.ui.View):
   def __init__(self, cog, user_discord_id, badge_name):
     super().__init__()
@@ -104,6 +160,16 @@ class TagBadgeView(discord.ui.View):
     self.tag_ids = []
     self.add_item(TagSelector(user_discord_id, badge_name))
     self.add_item(TagButton(user_discord_id, badge_name))
+
+
+class TagCarouselView(discord.ui.View):
+  def __init__(self, user_discord_id, completed_badges, next_badge):
+    super().__init__()
+    self.user_discord_id = user_discord_id
+    self.completed_badges = completed_badges
+    self.tag_ids = []
+    self.add_item(TagSelector(user_discord_id, next_badge['badge_name']))
+    self.add_item(CarouselButton(user_discord_id, next_badge['badge_name']))
 
 # __________             .___           ___________                    _________
 # \______   \_____     __| _/ ____   ___\__    ___/____     ____  _____\_   ___ \  ____   ____
@@ -506,3 +572,36 @@ class BadgeTags(commands.Cog):
           await ctx.followup.send(embed=embed, files=chunk, ephemeral=False)
         else:
           await ctx.followup.send(files=chunk, ephemeral=False)
+
+
+  @tags_group.command(
+    name="carousel",
+    description="Cycle through your badges randomly to apply tags"
+  )
+  async def carousel(self, ctx:discord.ApplicationContext):
+    await ctx.defer(ephemeral=True)
+
+    badge_tags = db_get_user_badge_tags(ctx.author.id)
+    if not badge_tags:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="No Tags Present",
+          description=f"You haven't set up any tags yet!\n\nUse `/tags create` to set up some custom tags first!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    user_badges = db_get_user_badges(ctx.author.id)
+    initial_badge = random.choice(user_badges)
+
+    view = TagCarouselView(ctx.author.id, [initial_badge['badge_name']], initial_badge)
+    embed = discord.Embed(
+      title=initial_badge['badge_name'],
+      color=discord.Color.dark_purple()
+    )
+    badge_image = discord.File(fp=f"./images/badges/{initial_badge['badge_filename']}", filename=initial_badge['badge_filename'])
+    embed.set_image(url=f"attachment://{initial_badge['badge_filename']}")
+
+    await ctx.followup.send(embed=embed, file=badge_image, view=view, ephemeral=True)
