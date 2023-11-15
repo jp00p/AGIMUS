@@ -137,6 +137,17 @@ class CarouselButton(discord.ui.Button):
     user_badges = db_get_user_badges(self.user_discord_id)
     completed_badges = self.view.completed_badges
     valid_badges = [b for b in user_badges if b['badge_name'] not in completed_badges]
+
+    if len(valid_badges) == 0:
+      await interaction.respond(
+        embed=discord.Embed(
+          title="You're done!",
+          description="You've completed tagging every badge in your inventory! Nice."
+        ),
+        ephemeral=True
+      )
+      return
+
     next_badge = random.choice(valid_badges)
 
     completed_badges.append(next_badge['badge_name'])
