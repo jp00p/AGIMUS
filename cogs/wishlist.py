@@ -65,6 +65,27 @@ async def unlock_autocomplete(ctx:discord.AutocompleteContext):
     return [b for b in list_badges if ctx.value.lower() in b.lower()]
 
 
+# __________                .__               __
+# \______   \_____     ____ |__| ____ _____ _/  |_  ___________
+#  |     ___/\__  \   / ___\|  |/    \\__  \\   __\/  _ \_  __ \
+#  |    |     / __ \_/ /_/  >  |   |  \/ __ \|  | (  <_> )  | \/
+#  |____|    (____  /\___  /|__|___|  (____  /__|  \____/|__|
+#                 \//_____/         \/     \/
+class WishlistPaginator(pages.Paginator):
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+
+  async def on_timeout(self):
+    try:
+      await super().on_timeout()
+    except discord.errors.NotFound as e:
+      # Workaround for current issue with Paginator timeouts
+      # If the interaction was edited or dismissed before the paginator timeout is reached
+      # it encounters a 404 when it tries to load the original message to disable the UI elements
+      # We're already done here at that point, so just go ahead and pass
+      pass
+
+
 # ________  .__               .__              __________        __    __
 # \______ \ |__| ______ _____ |__| ______ _____\______   \__ ___/  |__/  |_  ____   ____
 #  |    |  \|  |/  ___//     \|  |/  ___//  ___/|    |  _/  |  \   __\   __\/  _ \ /    \
@@ -84,16 +105,17 @@ class DismissButton(discord.ui.Button):
       row=2
     )
 
-  async def callback(self, interaction: discord.Interaction):
+  async def callback(self, interaction:discord.Interaction):
+    await interaction.response.defer()
     db_add_wishlist_dismissal(self.author_discord_id, self.match_discord_id, self.has, self.wants)
-    await self.view.message.delete()
     match_user = await bot.current_guild.fetch_member(self.match_discord_id)
-    await interaction.response.send_message(
+    await interaction.edit(
       embed=discord.Embed(
         title=f"Your wishlist match with {match_user.display_name} has been dismissed.",
-        description="If new badges are found in the future the dismissal will be automatically cleared."
+        description="If new badges are found in the future the dismissal will be automatically cleared.",
+        color=discord.Color.green()
       ),
-      ephemeral=True
+      view=None
     )
 
 
@@ -114,16 +136,17 @@ class RevokeDismissalButton(discord.ui.Button):
       row=2
     )
 
-  async def callback(self, interaction: discord.Interaction):
+  async def callback(self, interaction:discord.Interaction):
+    await interaction.response.defer()
     db_delete_wishlist_dismissal(self.author_discord_id, self.match_discord_id)
-    await self.view.message.delete()
     match_user = await bot.current_guild.fetch_member(self.match_discord_id)
-    await interaction.response.send_message(
+    await interaction.edit(
       embed=discord.Embed(
-        title=f"Your wishlist dismissal match with {match_user.display_name} has been revoked.",
-        description="You may use `/wishlist matches` in the future to review the match."
+        title=f"Your dismissal of your wishlist match with {match_user.display_name} has been revoked.",
+        description="You may use `/wishlist matches` in the future to review the match.",
+        color=discord.Color.green()
       ),
-      ephemeral=True
+      view=None
     )
 
 #  __      __.__       .__    .__  .__          __    _________
@@ -437,7 +460,7 @@ class Wishlist(commands.Cog):
           )
         ]
 
-        paginator = pages.Paginator(
+        paginator = WishlistPaginator(
           pages=page_groups,
           show_menu=True,
           custom_buttons=paginator_buttons,
@@ -568,7 +591,7 @@ class Wishlist(commands.Cog):
           )
         ]
 
-        paginator = pages.Paginator(
+        paginator = WishlistPaginator(
           pages=page_groups,
           show_menu=True,
           custom_buttons=paginator_buttons,

@@ -1,6 +1,5 @@
 import math
 import time
-from pytz import timezone
 import pytz
 
 from common import *
@@ -41,8 +40,8 @@ class Slots(commands.Cog):
   async def spin(self, ctx:discord.ApplicationContext, show:str):
     await ctx.defer(ephemeral=True)
 
-    logger.info(f"{Style.BRIGHT}{ctx.author.name}{Style.RESET_ALL} is {Fore.LIGHTYELLOW_EX}rolling the slots!{Fore.RESET}")   
-    
+    logger.info(f"{Style.BRIGHT}{ctx.author.name}{Style.RESET_ALL} is {Fore.LIGHTYELLOW_EX}rolling the slots!{Fore.RESET}")
+
     # Load slots data
     f = open(command_config["data"])
     SLOTS = json.load(f)
@@ -51,20 +50,20 @@ class Slots(commands.Cog):
     # Use the option the user selected or pick a random show
     if show not in command_config["parameters"][0]["allowed"]:
       show = random.choice(["TNG", "DS9", "VOY", "HOLODECK", "SHIPS"])
-    
+
     #logger.info(f"{Fore.LIGHTRED_EX}Rolling slot theme:{Fore.RESET} {Style.BRIGHT}{show}{Style.RESET_ALL}")
-    # player data  
+    # player data
     player_id = ctx.author.id
     player = get_user(player_id)
     free_spin = player["spins"] < 5 # true or false
     wager = player["wager"]
     score_mult = wager
-    
+
     # if they have less than 5 total spins, give em a free one
     if free_spin:
       wager = 0
       score_mult = 1
-    
+
     total_rewards = 0
     themed_payout = SLOTS[show]["payout"]
     #logger.info("payout" + str(themed_payout))
@@ -78,25 +77,25 @@ class Slots(commands.Cog):
       return
 
     spinnin = [
-      "All I do is *slots slots slots*!", 
-      "Time to pluck a pigeon!", 
-      "Rollin' with my homies...", 
-      "It's time to spin!", 
-      "Let's roll.", 
-      "ROLL OUT!", 
-      "Get it player.", 
-      "Go go gadget slots!", 
-      "Activating slot subroutines!", 
+      "All I do is *slots slots slots*!",
+      "Time to pluck a pigeon!",
+      "Rollin' with my homies...",
+      "It's time to spin!",
+      "Let's roll.",
+      "ROLL OUT!",
+      "Get it player.",
+      "Go go gadget slots!",
+      "Activating slot subroutines!",
       "Reversing polarity on Alpha-probability particle emitters.",
-    ] 
-    
-    # build the spin embed (spinbed)    
+    ]
+
+    # build the spin embed (spinbed)
     spin_msg = ""
-   
+
     if free_spin:
       spin_msg += "**This one's on the house!** (after 5 free spins, they will cost you points!)"
     else:
-      spin_msg += f"Spending `{wager}` of your points!"    
+      spin_msg += f"Spending `{wager}` of your points!"
 
     spinbed = discord.Embed(
       title=random.choice(spinnin),
@@ -104,7 +103,7 @@ class Slots(commands.Cog):
       color=discord.Color.random()
     )
     spinbed.set_footer(text=f"This is spin #{player['spins']+1} for you.")
-    await ctx.send_followup(embed=spinbed, ephemeral=False) # first followup 
+    await ctx.send_followup(embed=spinbed, ephemeral=False) # first followup
 
     # roll the slots!
     silly_matches, matching_chars, jackpot, symbol_matches = self.roll_slot(show, SLOTS[show], filename=str(player_id))
@@ -129,7 +128,7 @@ class Slots(commands.Cog):
       match_msg += f" `{len(silly_matches) * score_mult} point(s)`\n"
       total_rewards += len(silly_matches) * score_mult
 
-    # matching characters (transporter clones)  
+    # matching characters (transporter clones)
     if len(matching_chars) > 0:
       match_msg += "**Transporter clones: ** "
       match_msg += ", ".join(matching_chars).replace("_", " ").title()
@@ -148,7 +147,7 @@ class Slots(commands.Cog):
       win_jackpot(ctx.author.display_name, player_id)
       jackpot_embed = discord.Embed(
         title=f"**{ctx.author.display_name} WINS THE JACKPOT!!!**".upper(),
-        color=embed_color        
+        color=embed_color
       )
       jackpot_embed.set_image(url="https://i.imgur.com/S7Pv9lM.jpg")
       await ctx.send_followup(embed=jackpot_embed, ephemeral=False)
@@ -372,7 +371,7 @@ class Slots(commands.Cog):
       winner_str = (winner[:24] + '...') if len(winner) > 24 else winner
       winners.append(winner_str)
 
-      pst_tz = timezone('US/Pacific')
+      pst_tz = pytz.timezone('America/Los_Angeles')
       raw_now = datetime.utcnow().replace(tzinfo=pytz.utc)
       raw_time_won = pytz.utc.localize(jackpot["time_won"])
       raw_time_created = pytz.utc.localize(jackpot["time_created"])
@@ -462,7 +461,7 @@ class Slots(commands.Cog):
           if jackpot:
             jackpots += 1
           profits.append(profit)
-          
+
         chance_to_win = (wins/spins)*100
         chance_to_jackpot = (jackpots/spins)*100
         chance_for_profit = (profitable_wins/spins)*100
@@ -476,6 +475,6 @@ class Slots(commands.Cog):
       else:
         await ctx.send("Ah ah ah, you didn't say the magic word", ephemeral=True)
     except BaseException as e:
-      logger.info(traceback.format_exc())   
+      logger.info(traceback.format_exc())
 
-      
+

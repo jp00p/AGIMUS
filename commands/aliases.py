@@ -1,6 +1,5 @@
 from common import *
 from utils.check_channel_access import access_check
-from pytz import timezone
 import pytz
 
 @bot.slash_command(
@@ -27,7 +26,7 @@ async def aliases(ctx:discord.ApplicationContext, user:discord.User):
   old_aliases = "\n".join([a['old_alias'] for a in aliases])
   new_aliases = "\n".join([a['new_alias'] for a in aliases])
 
-  pst_tz = timezone('US/Pacific')
+  pst_tz = pytz.timezone('America/Los_Angeles')
 
   raw_timestamps = [pytz.utc.localize(a['time_created']) for a in aliases]
   aware_timestamps = [pst_tz.normalize(t.astimezone(pst_tz)) for t in raw_timestamps]
