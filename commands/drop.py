@@ -39,15 +39,15 @@ async def drop_list(ctx: discord.ApplicationContext):
 
   drop_names = drop_data.keys()
   drop_pages = ['']
-  drop_name_idx = 0
 
-  while drop_name_idx < len(drop_names):
-    # 5000 char to give a reasonable buffer for the 6000 char limit for embeds
-    # there may be a more precise way to do this using `embed.len()` but modifying the `embed` after it's constructed seems like a PITA --thousand
-    if len(drop_pages[-1]) > 5000:
+  for drop_name in drop_names:
+    # 4000 char to give a reasonable buffer for the 4096 char limit for embed description field
+    # N.B., the longest drop name at time of authoring is "He Just Kept Talking In One Long Incredibly Unbroken Sentence" at 61 chars
+    # there may be a more precise and long term reliable way to do this using `embed.len()` but modifying the `embed` after it's constructed seems like a PITA --thousand
+    if len(drop_pages[-1]) > 4000:
       drop_pages.append('')
     sep = '\n' if len(drop_pages[-1]) > 0 else ''
-    drop_pages[-1] += f"{drop_names[drop_name_idx]}{sep}"
+    drop_pages[-1] += f"{sep}{drop_name}"
 
   for page_idx in range(len(drop_pages)):
     embed = discord.Embed(
