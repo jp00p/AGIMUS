@@ -49,12 +49,18 @@ async def drop_list(ctx: discord.ApplicationContext):
     sep = '\n' if len(drop_pages[-1]) > 0 else ''
     drop_pages[-1] += f"{sep}{drop_name}"
 
+  # Aggy's avatar for the footer
+  avatar_asset = bot.user.avatar
+  avatar_url = avatar_asset.with_size(128).url
+
   for page_idx in range(len(drop_pages)):
     embed = discord.Embed(
-      title=f"List of Drops (page {page_idx+1}/{len(drop_pages)})",
+      title=f"List of Drops",
       description=drop_pages[page_idx],
-      color=discord.Color.blue()
+      color=discord.Color.blue(),
     )
+    embed.set_footer(
+      text=f"Page {page_idx+1} of {len(drop_pages)}", icon_url=avatar_url)
     user = get_user(ctx.author.id)
     if user['receive_notifications']:
       try:
