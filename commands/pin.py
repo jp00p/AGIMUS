@@ -29,7 +29,6 @@ async def pin(ctx, message: discord.Message):
 )
 @commands.check(role_check)
 async def unpin(ctx, message: discord.Message):
-  pinning_user = ctx.author.display_name
   logger.info(
     f"{ctx.author.display_name} is unpinning message {message.id} in {ctx.channel.name}")
   if not message.pinned:
