@@ -3316,7 +3316,15 @@
             "episode": "26",
             "imdb": "tt0709003",
             "memoryalpha": "Unimatrix_Zero_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.11.13",
+                    "episode": "You Do Not Want to Be Laughing at the Loaf",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-496-you-do-not-want-to-be-laughing-at-the-loaf-voy-s6e26/",
+                    "order": 496,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "06",
             "stills": [
                 "https://image.tmdb.org/t/p/original/cF3Y1coBHt7NpPfmOZesfbJL1lj.jpg",
