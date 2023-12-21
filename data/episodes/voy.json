@@ -3371,7 +3371,15 @@
             "episode": "02",
             "imdb": "tt0708911",
             "memoryalpha": "Imperfection_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.11.27",
+                    "episode": "The Turd of an Unknown",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-498-the-turd-of-an-unknown-voy-s7e2/",
+                    "order": 498,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/4xP4Wk3lT9l8jyI5Ob3qU8WpFsS.jpg",
