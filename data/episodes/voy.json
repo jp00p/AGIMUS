@@ -3398,7 +3398,15 @@
             "episode": "03",
             "imdb": "tt0708881",
             "memoryalpha": "Drive_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.12.04",
+                    "episode": "Could I Smash a Zealot?",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-499-could-i-smash-a-zealot-voy-s7e3/",
+                    "order": 499,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/ddChc8K7UsR4dAnKUN5Yd48iF5o.jpg",
