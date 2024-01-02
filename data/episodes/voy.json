@@ -3425,7 +3425,15 @@
             "episode": "04",
             "imdb": "tt0708959",
             "memoryalpha": "Repression_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.12.11",
+                    "episode": "Not Bathtub Serious",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-500-not-bathtub-serious-voy-s7e4/",
+                    "order": 500,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/tKwHas7rA8nObFqxru10VkxBLu2.jpg",
@@ -3445,7 +3453,15 @@
             "episode": "05",
             "imdb": "tt0708870",
             "memoryalpha": "Critical_Care_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.12.18",
+                    "episode": "Tragically Low T",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-501-tragically-low-t-voy-s7e5/",
+                    "order": 501,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/nayxyUBuIQimyvDXRqAeJFzOGcv.jpg",

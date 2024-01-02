@@ -363,7 +363,7 @@ class Settings(commands.Cog):
     wordcloud_blocked_channel_ids = get_channel_ids_list([
       "neelixs-morale-office",
       "plasma-vent",
-      "counselor-trois-office",
+      "counselor-trois-waiting-room",
       "heuristic-associative-pathways",
       "megalomaniacal-computer-storage",
       "bot-setup",
