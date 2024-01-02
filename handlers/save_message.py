@@ -16,23 +16,19 @@ async def save_message_to_db(message:discord.Message):
     
     # convert message to plaintext
     message_content = string_utils.plaintext(message.content)
+    message_content = string_utils.strip_emoji(message_content)
+    message_content = string_utils.strip_urls(message_content)
+    message_content = string_utils.strip_punctuation(message_content)
 
     message_modified = set(message_content.split(" "))
 
     # sort words (obfuscation in db)
-    message_modified = sorted(list(message_modified))
+    message_modified = sorted(m.strip() for m in message_modified if m not in string_utils.common_words)
 
     # combine back into string
     message_content = " ".join(message_modified)
 
-    
-    message_content = string_utils.strip_emoji(message_content)
-    message_content = string_utils.strip_urls(message_content)
-    message_content = string_utils.strip_punctuation(message_content)
-    message_content = message_content.replace("  ", " ") # convert double spaces to single space
-    message_content = message_content.strip()
-    
-    if message_content.strip() == "":
+    if message_content == "":
       return None
 
     with AgimusDB() as query:
