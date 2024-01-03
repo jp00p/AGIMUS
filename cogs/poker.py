@@ -187,7 +187,7 @@ class Poker(commands.Cog):
     i = 0
     for d in poker_game["discards"]:
       if d == True:
-        hand[i] = deck.draw(1)
+        hand[i] = deck.draw()
       i += 1
     if doubled:
       # if they doubled their bet, take that extra out now
