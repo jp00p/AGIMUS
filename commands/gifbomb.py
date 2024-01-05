@@ -37,6 +37,6 @@ async def gifbomb(ctx:discord.ApplicationContext, query:str):
         await ctx.respond(embed=discord.Embed(
             title="Whoops",
             description="There was a problem requesting the Gifs from Tenor!",
-            color=discord.color.red()
+            color=discord.Color.red()
           ), ephemeral=True
         )
