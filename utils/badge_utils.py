@@ -494,8 +494,7 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
 #  /        \  \___|  | \// __ \|  |_> >  |_> >  ___/|  | \/
 # /_______  /\___  >__|  (____  /   __/|   __/ \___  >__|
 #         \/     \/           \/|__|   |__|        \/
-@to_thread
-def generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
+def generate_badge_scrapper_confirmation_frames(badges_to_scrap):
   replicator_image = Image.open(f"./images/templates/scrap/replicator.png")
 
   base_image = Image.new("RGBA", (replicator_image.width, replicator_image.height), (0, 0, 0))
@@ -557,6 +556,12 @@ def generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
     frame = base_image.copy()
     frames.append(frame)
 
+  return frames
+
+@to_thread
+def generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
+  frames = generate_badge_scrapper_confirmation_frames(badges_to_scrap)
+
   gif_save_filepath = f"./images/scrap/{user_id}-confirm.gif"
   frames[0].save(
     gif_save_filepath,
@@ -572,17 +577,18 @@ def generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
   return discord_image
 
 @to_thread
-def generate_badge_scrapper_result_gif(user_id, badge_to_add):
+def generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap):
   badge_created_filename = badge_to_add['badge_filename']
   replicator_image = Image.open(f"./images/templates/scrap/replicator.png")
 
   base_image = Image.new("RGBA", (replicator_image.width, replicator_image.height), (0, 0, 0))
   base_image.paste(replicator_image, (0, 0))
 
+  frames = generate_badge_scrapper_confirmation_frames(badges_to_scrap)
+
   b = Image.open(f"./images/badges/{badge_created_filename}").convert("RGBA")
   b = b.resize((190, 190))
 
-  frames = []
   badge_position_x = 180
   badge_position_y = 75
 
@@ -628,7 +634,7 @@ def generate_badge_scrapper_result_gif(user_id, badge_to_add):
   )
 
   while True:
-    time.sleep(0.05)
+    time.sleep(0.10)
     if os.path.isfile(gif_save_filepath):
       break
 

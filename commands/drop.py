@@ -130,6 +130,16 @@ async def drop_post(ctx: discord.ApplicationContext, public: str, query: str):
       except Exception as err:
         logger.info(f"{Fore.RED}ERROR LOADING DROP: {err}{Fore.RESET}")
     else:
-      await ctx.respond(f"{get_emoji('ezri_frown_sad')} Drop not found! To get a list of drops run: /drops list", ephemeral=True)
+      await ctx.respond(embed=discord.Embed(
+        title="Drop Not Found!",
+        description="To get a list of drops run: `/drops list`",
+        color=discord.Color.red()
+      ), ephemeral=True
+    )
   else:
-    await ctx.respond(f"{get_emoji('ohno')} Someone in the channel has already dropped too recently. Please wait a minute before another drop!", ephemeral=True)
+    await ctx.respond(embed=discord.Embed(
+        title="Denied!",
+        description="Someone in the channel has already dropped too recently! Please wait a minute before another drop!",
+        color=discord.Color.red()
+      ), ephemeral=True
+    )

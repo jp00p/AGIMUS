@@ -4,15 +4,14 @@ from datetime import datetime
 from common import *
 
 # Timekeeper Functions
-# Prevent spamming a channel with too many drops in too short a period
+# Prevent spamming a channel with too many commands in too short a period
 #
 # TIMEKEEPER is a dict of tuples for each channel which have the last timestamp,
 # and a boolean indicating whether we've already told the channel to wait.
-# If we've already sent a wait warning, we just ignore further requests until it has expired
+# If we've already sent a wait warning, we just return False
 TIMEKEEPER = {}
-TIMEOUT = 15
 
-async def check_timekeeper(ctx):
+async def check_timekeeper(ctx:discord.ApplicationContext, timeout=15):
   command = inspect.stack()[1].function
   current_channel = ctx.channel.id
   
@@ -21,13 +20,13 @@ async def check_timekeeper(ctx):
     # If a timekeeper entry for this command hasn't been set yet, go ahead and allow
     return True
 
-  # Check if there's been a command within this channel in the last TIMEOUT seconds 
+  # Check if there's been a command within this channel in the last timeout seconds 
   last_record = command_record.get(current_channel)
   if (last_record != None):
     last_timestamp = last_record[0]
     diff = datetime.now() - last_timestamp
     seconds = diff.total_seconds()
-    if (seconds > TIMEOUT):
+    if (seconds > timeout):
       return True
     else:
       # Check if we've notified the channel if there's a timeout active
