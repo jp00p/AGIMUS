@@ -129,10 +129,10 @@
     "description": "Do you realize how incredible this is?",
     "url": "https://i.imgur.com/KHgV0K1.mp4"
   },
-  "Dr Evil: How About No?": {
-    "file": "data/drops/howaboutno.mp4",
-    "description": "Dr Evil Doctor Evil How About No",
-    "url": "https://i.imgur.com/YTV8si3.mp4"
+  "Dr Evil: How 'Bout No?": {
+    "file": "data/drops/howboutno.mp4",
+    "description": "Dr Evil Doctor Evil How About No How Bout No",
+    "url": "https://i.imgur.com/yWIJ2jV.mp4"
   },
   "Drink! It's The Antidote!": {
     "file": "data/drops/drinkitstheantidote.mp4",
@@ -604,6 +604,11 @@
     "description": "Harry Kim. (Lil Kim - Magic stick)",
     "url": "https://i.imgur.com/4pqnOsa.mp4"
   },
+  "The Hawkstar Drop": {
+    "file": "data/drops/thehawkstardrop.mp4",
+    "description": "The Hawkstar Drop. User drop.",
+    "url": "https://i.imgur.com/byWMYKL.mp4"
+  },
   "The James Drop": {
     "file": "data/drops/thejamesdrop.mp4",
     "description": "James' drop. User drop.",
@@ -643,11 +648,6 @@
     "file": "data/drops/themissteahazedrop.mp4",
     "description": "The Miss Tea Haze Drop. User drop.",
     "url": "https://i.imgur.com/VX0Two3.mp4"
-  },
-  "The Moai Drop": {
-    "file": "data/drops/themoaidrop.mp4",
-    "description": "The Moai Drop. User drop.",
-    "url": "https://i.imgur.com/IiVdQXl.mp4"
   },
   "The Mosaic Drop": {
     "file": "data/drops/themosaicdrop.mp4",
@@ -708,6 +708,11 @@
     "file": "data/drops/thepeterofthenorsedrop.mp4",
     "description": "The Peter of the Norse Drop. User drop.",
     "url": "https://i.imgur.com/soCO6Mq.mp4"
+  },
+  "The Jango Drop": {
+    "file": "data/drops/thejangodrop.mp4",
+    "description": "The Jango Drop. User drop.",
+    "url": "https://i.imgur.com/xwn399y.mp4"
   },
   "The Pittbaster Drop": {
     "file": "data/drops/thepittbasterdrop.mp4",
