@@ -534,7 +534,7 @@ class ScrapButton(discord.ui.Button):
       db_purge_users_wishlist(self.user_id)
 
       # Post message about successful scrap
-      scrapper_gif = await generate_badge_scrapper_result_gif(self.user_id, self.badge_to_add)
+      scrapper_gif = await generate_badge_scrapper_result_gif(self.user_id, self.badge_to_add, self.badges_to_scrap)
 
       scrap_complete_messages = [
         "{} reaches into AGIMUS' warm scrap hole and pulls out a shiny new badge!",
