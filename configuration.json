@@ -374,7 +374,8 @@
     },
     "badges scrap": {
       "channels": [
-        "badgeys-badges"
+        "badgeys-badges",
+        "bahrats-bazaar"
       ],
       "enabled": true,
       "parameters": []
