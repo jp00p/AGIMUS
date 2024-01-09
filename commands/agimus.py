@@ -120,7 +120,7 @@ async def agimus(message:discord.Message):
         title=random.choice(RANDOM_TITLES),
         description=f"{completion_text}",
         color=discord.Color.blurple()
-      ).set_footer(text="Response generated via AI Algorithms"))
+      ).set_footer(text="Response generated via an 'AI' Large Language Model. This does not constitute legal, medical or financial advice. You are talking to a robot."))
 
       set_user_limiter(message.author.id, message.channel.id)
 
