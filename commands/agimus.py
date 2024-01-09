@@ -30,7 +30,7 @@ USER_LIMITER_TIMEOUT = 300 # 5 minutes
 PROMPT_LIMIT = 2
 
 PROMPT_HISTORY = {'messages': []}
-PROMPT_HISTORY_LIMIT = 8
+PROMPT_HISTORY_LIMIT = 10
 
 LAST_TIME_LIMITER = {'latest': datetime.now()} 
 TIME_LIMIT_TIMEOUT = 300 # 5 minutes
@@ -189,7 +189,7 @@ def handle_openai_query(user_prompt:string, username:string):
   forgetful = check_forgetfulness()
   if len(PROMPT_HISTORY['messages']) == 0 or forgetful:
     if forgetful:
-      initial_system_prompt += "but first apologize for forgetting what you were talking about"
+      initial_system_prompt += "but first you've undergone a software glitch so apologize for forgetting what you were talking about"
     init_prompt_history(initial_system_prompt, user_prompt)
   else:
     add_user_prompt_to_history(f"{username} says: {user_prompt}")
