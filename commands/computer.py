@@ -1,14 +1,9 @@
 import wolframalpha
 from handlers.xp import increment_user_xp
-import openai
 
 from common import *
 
-openai_logger = logging.getLogger('openai')
-openai_logger.setLevel('WARNING')
-
 WOLFRAM_ALPHA_ID = os.getenv('WOLFRAM_ALPHA_ID')
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 wa_client = None
 if WOLFRAM_ALPHA_ID:
