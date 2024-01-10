@@ -225,7 +225,7 @@ Slash commands are triggered by typing a forward slash (`/`) followed by the com
 | `/wordcloud [enable logging: yes\| no]`                                                                                                                           | [wordcloud.py](commands/wordcloud.py)      | Generates a wordcloud based on a user's logged messages                                                                                             |
 
 ### "Computer:"/"AGIMUS:" Prompt
-In addition to the `/` and `!` commands we have a special case for handling messages that begin with a "Computer:" or "AGIMUS:" prompt. It has an entry within `configuration.json` and the same rules apply to it as the `!` commands. Extending the feature should be done within `commands/computer.py`.
+In addition to the `/` and `!` commands we have a special case for handling messages that begin with a "Computer:" prompt. It has an entry within `configuration.json` and the same rules apply to it as the `!` commands. Extending the feature should be done within `commands/computer.py`.
 
 | Command                                  | File                                          | Description                                                                                                                             |
 | :--------------------------------------- | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
@@ -244,23 +244,6 @@ export WOLFRAM_ALPHA_ID=YOURKEYHERE
 ```
 
 If the `.env` entry is not present, you'll see logs from the command firing but no action will be taken in response to the messages.
-
-#### Generating an OpenAI API Key
-
-In order to use the "advanced" "Computer:"/"AGIMUS:" prompt you'll need an OpenAI API Key with access to (by default) the "text-davinci-002" model. Signing up is very simple, just go to their site at https://beta.openai.com/ and create an account and you'll be granted a trial with an $18 credit for the first 3 months. The API Key can be found through your profile in the left sidebar.
-
-Once generated it should be placed in your `.env` file as per the section in `.env-example`:
-
-```bash
-export OPENAI_API_KEY=YOURKEYHERE
-```
-
-The .env variable is automatically picked up by the `openai` python package.
-
-
-OpenAI requests use "tokens" and for the Davinci model it costs 6 cents for 1k tokens. Each of our requests uses 196 tokens.
-
-If you'd like to use a different (cheaper) model like "text-curie-002", you can enter one in `configuration.json` "computer" command config under `"openai_model"`
 
 ### configuration.json
 
