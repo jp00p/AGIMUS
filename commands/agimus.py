@@ -1,13 +1,10 @@
 from common import *
 
 async def agimus(message:discord.Message):
-  announcement_channel_id = get_channel_id("crackling-speaker-grille")
-  announcement_channel = await message.guild.fetch_channel(announcement_channel_id)
-  # NOTE: Probably replace the above with a *direct* link to the announcement.
   await message.reply(
     embed=discord.Embed(
       title="...[ Sad Beeping Noises ]...",
-      description=f"I am sorry my friend, but our time is at an end.\n\nPlease see the announcement in {announcement_channel.mention}.",
+      description=f"I am sorry my friend, but our time is at an end.\n\nPlease see the announcement at https://discord.com/channels/689512841887481875/1000284228073824296/1194689459753590814.",
       color=discord.Color.red()
     ).set_footer(text="You are talking to a pre-recorded message. This message will self destruct within 7 days.")
   )
