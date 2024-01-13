@@ -43,7 +43,7 @@ packaging==21.3
 pandas==2.0.3
 pandas-stubs==2.0.1.230501
 pilgram==1.2.1
-Pillow==8.4.0
+Pillow==9.5.0
 prettytable==3.9.0
 protobuf==4.21.12
 py-cord @ git+https://github.com/Pycord-Development/pycord@8af8454a5befbdd6589d24016dcc7bfee252de0b
