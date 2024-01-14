@@ -1000,17 +1000,15 @@ class Trade(commands.Cog):
         dtd_userids.append(d['user_discord_id'])
         dtd_weights.append(d['weight'])
 
-    logger.info(dtd_userids)
-    logger.info(dtd_weights)
-
     selected_idx = random.choices(range(len(dtd_userids)), weights=dtd_weights)[0]
     selected_user_id = dtd_userids[selected_idx]
 
     selected_user = self.bot.current_guild.get_member(int(selected_user_id))
 
     embed = discord.Embed(
-      title=f"{ctx.author.display_name}, your Randomized Down To Daboer is:",
-      description=f"## {selected_user.mention}",
+      title="Down To Dabo",
+      description=f"### {ctx.author.display_name}, your Randomized Down To Daboer is:\n\n"
+                  f"- {selected_user.mention}",
       color=discord.Color.blurple()
     )
     embed.set_footer(text="You can use `/settings` to opt-in or opt-out of the DTD List!")

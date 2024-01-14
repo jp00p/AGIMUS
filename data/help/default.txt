@@ -9,8 +9,6 @@
 >  
 > Check your level, XP, number of badges and more by using the `/profile display` command.
 
-> The "__computer:__" prefix will tell the bot to try to find factual information about whatever you posted. e.g.: "*computer: convert 24f to celsius*"
-
 **The bot don't work!**
 
 >  Please post a message in <#994412232052052089> or ping <@735658100958298154> if you have any problems!

@@ -19,7 +19,7 @@ async def gifbomb(ctx:discord.ApplicationContext, query:str):
       client_key = os.getenv('GOOGLE_CX')
       params = {'q': query, 'key': key, 'client_key': client_key, 'limit': 13, 'contentfilter': 'medium'}
       async with session.get(
-        "https://tenor.googleapis.com/v2/search?q=%s&key=%s&client_key=%s&limit=13&contentfilter=medium",
+        "https://tenor.googleapis.com/v2/search",
         params=params
       ) as response:
         if response.status == 200:
