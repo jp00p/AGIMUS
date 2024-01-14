@@ -1,15 +1,9 @@
-from inspect import trace
 from common import *
-from utils.check_channel_access import access_check
 
 basic_commands = [
   {
     "name" : "Start a message with \"computer:\"",
     "description" : "AGIMUS will try to respond with factual information"
-  },
-  {
-    "name" : "Start a message with \"agimus:\"",
-    "description" : "AGIMUS will respond with a creative, AI-generated response"
   },
   {
     "name" : "/drop",
