@@ -254,6 +254,11 @@
     "description": "Harry Kim: I Lasted 22 Minutes!",
     "url": "https://i.imgur.com/E1siKJX.mp4"
   },
+  "Harry Kim: Stating The Obvious": {
+    "file": "data/drops/statingtheobvious.mp4",
+    "description": "Harry Kim: He was stating the obvious again",
+    "url": "https://i.imgur.com/1hBpWcp.mp4"
+  },
   "He Just Kept Talking In One Long Incredibly Unbroken Sentence": {
     "file": "data/drops/onelongincrediblyunbrokensentence.mp4",
     "description": "He Just Kept Talking In One Long Incredibly Unbroken Sentence",
@@ -283,6 +288,11 @@
     "file": "data/drops/hoerl.mp4",
     "description": "Hole hoerl howel whole heurl!",
     "url": "https://i.imgur.com/NmNNnx9.mp4"
+  },
+  "I CAN'T": {
+    "file": "data/drops/icant.mp4",
+    "description": "Wrath of Khan: I CAN'T I CANT",
+    "url": "https://i.imgur.com/99pH9v3.mp4"
   },
   "I Don't Use The Bucket Anymore": {
     "file": "data/drops/idontusethebucketanymore.mp4",
@@ -943,6 +953,11 @@
     "file": "data/drops/worfisthisyourideaofsex.mp4",
     "description": "Worf! Is This Your Idea Of Sex?",
     "url": "https://i.imgur.com/0VrchoT.mp4"
+  },
+  "WOW!": {
+    "file": "data/drops/wow.mp4",
+    "description": "Huell Howser: WOW WOWW WOWWW",
+    "url": "https://i.imgur.com/HuTbZXy.mp4"
   },
   "WUB WUB WUB": {
     "file": "data/drops/wubwubwub.mp4",
