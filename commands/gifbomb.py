@@ -25,7 +25,7 @@ async def gifbomb(ctx:discord.ApplicationContext, query:str):
         if response.status == 200:
           await ctx.respond(embed=discord.Embed(
               title="GIF BOMB!",
-              description=query,
+              description=f"> {query}",
               color=discord.Color.blurple()
             )
           )
