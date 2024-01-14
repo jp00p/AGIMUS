@@ -963,6 +963,9 @@ class Trade(commands.Cog):
       )
     )
 
+    if db_is_user_in_dtd_list(requestee_id):
+      self._reset_dtd_weights(requestee_id)
+
     # Provide Send/Cancel UI immediately
     view = SendCancelView(self, dabo_trade)
     paginator = pages.Paginator(
@@ -976,6 +979,52 @@ class Trade(commands.Cog):
 
     await paginator.respond(ctx.interaction, ephemeral=True)
 
+  @trade.command(
+    name="dtd",
+    description="Select a weighted randomized choice from the users opted-in to the Down To Dabo List!"
+  )
+  @commands.check(access_check)
+  async def dtd(self, ctx:discord.ApplicationContext):
+    down_to_daboers = db_get_dtd_rows()
+    if down_to_daboers is None:
+      await ctx.followup.send(embed=discord.Embed(
+        title="No Down To Daboers Yet!",
+        description="No one (else?) has opted-in yet! If you'd like to opt-in, use `/settings`!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+    dtd_userids = []
+    dtd_weights = []
+    for d in down_to_daboers:
+      dtd_userids.append(d['user_discord_id'])
+      dtd_weights.append(d['weight'])
+
+    selected_idx = random.choices(range(len(dtd_userids)), weights=dtd_weights)[0]
+    selected_user_id = dtd_userids[selected_idx]
+
+    selected_user = self.bot.current_guild.get_member(selected_user_id)
+
+    await ctx.reply(embed=discord.Embed(
+      title="Randomized Down To Daboer:",
+      description=f"## {selected_user.display_name}",
+      color=discord.Color.blurple()
+    ))
+    return
+
+  def _reset_dtd_weights(self, selected_user_id):
+    down_to_daboers = db_get_dtd_rows()
+    dtd_userids = []
+    dtd_weights = []
+    for d in down_to_daboers:
+      dtd_userids.append(d['user_discord_id'])
+      dtd_weights.append(d['weight'])
+
+    db_reset_user_dtd_weight(selected_user_id)
+    for i in range(len(dtd_userids)):
+      current_user_id = dtd_userids[i]
+      if current_user_id != selected_user_id:
+        db_increment_user_dtd_weight(current_user_id)
 
   async def _is_trade_initialization_valid(self, ctx:discord.ApplicationContext, requestee:discord.User):
     requestor_id = ctx.author.id
@@ -1776,3 +1825,30 @@ def db_get_related_badge_trades(active_trade):
     query.execute(sql, vals)
     trades = query.fetchall()
   return trades
+
+def db_is_user_in_dtd_list(user_discord_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT discord_user_id FROM down_to_dabo WHERE user_discord_id = %s LIMIT 1"
+    vals = (user_discord_id,)
+    query.execute(sql, vals)
+    id = query.fetchone()
+  return id
+
+def db_get_dtd_rows():
+  with AgimusDB(dictionary=True) as query:
+    sql = "SELECT * FROM down_to_dabo"
+    query.execute(sql)
+    rows = query.fetchall()
+  return rows
+
+def db_reset_user_dtd_weight(selected_user_id):
+  with AgimusDB() as query:
+    sql = "UPDATE trades SET weight = 1 WHERE user_discord_id = %s"
+    vals = (selected_user_id,)
+    query.execute(sql, vals)
+
+def db_increment_user_dtd_weight(user_discord_id):
+  with AgimusDB() as query:
+    sql = "UPDATE trades SET weight = weight + 1 WHERE user_discord_id = %s"
+    vals = (user_discord_id,)
+    query.execute(sql, vals)
