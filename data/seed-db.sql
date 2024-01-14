@@ -306,3 +306,10 @@ CREATE TABLE IF NOT EXISTS xp_cap_progress (
   PRIMARY KEY (`id`),
   UNIQUE (`user_discord_id`)  
 );
+CREATE TABLE IF NOT EXISTS down_to_dabo (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_discord_id` varchar(64) NOT NULL,
+  `weight` int(4) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE (`user_discord_id`)  
+);

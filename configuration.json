@@ -794,6 +794,14 @@
       "data": null,
       "parameters": []
     },
+    "trade dtd": {
+      "channels": [
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "trade incoming": {
       "channels": [
         "bahrats-bazaar"

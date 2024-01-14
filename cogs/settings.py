@@ -507,14 +507,14 @@ class Settings(commands.Cog):
     embed = discord.Embed(
       title="Down To Dabo",
       description="Users doing trading in <#1006265911428272239> can use the `/trade dabo` command which "
-                  "randomly selects a number of badges from both user's unlocked inventories to swap. "
-                  "There's an additional command `/trade dtd` which will select a weighted randomized user "
+                  "randomly selects a number of badges from both user's unlocked inventories to swap.\n\n"
+                  "There's an additional command `/trade dtd` which will return a weighted randomized user "
                   "from those who have opted-in to the Down To Dabo List. Select below if you'd like to join "
                   "or remove yourself from this list!",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
-    embed.set_image(url="https://i.imgur.com/XMnho37.png")
+    embed.set_image(url="https://i.imgur.com/SnNqoEl.jpg")
     embed.set_thumbnail(url=f"attachment://dtd.png")
 
     return embed, thumbnail
