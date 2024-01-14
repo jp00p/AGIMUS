@@ -40,7 +40,6 @@ from commands.q import qget, qset
 from commands.update_status import update_status
 
 # Prompts
-from commands.agimus import agimus
 from commands.computer import computer
 
 # Cogs
@@ -154,8 +153,8 @@ async def on_message(message:discord.Message):
     logger.error(f"{Fore.RED}<! ERROR: Failed to process message for xp !> {e}{Fore.RESET}")
     logger.error(traceback.format_exc())
 
-  # Computer/AGIMUS Message Handling
-  if any(message.content.lower().startswith(x) for x in ["computer:", "agimus:"]):
+  # "computer:" Prompt Message Handling
+  if any(message.content.lower().startswith(x) for x in ["computer:"]): # We've removed 'AGIMUS:' but may add other message handling in the future
     logger.info(f"Attempting to process {Fore.CYAN}{message.author.display_name}{Fore.RESET}'s command: {Style.BRIGHT}{Fore.LIGHTGREEN_EX}{message.content}{Fore.RESET}{Style.RESET_ALL}")
     try:
       await process_command(message)

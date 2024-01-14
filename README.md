@@ -224,16 +224,16 @@ Slash commands are triggered by typing a forward slash (`/`) followed by the com
 | `/tuvix`                                                                                                                                                          | [tuvix.py](commands/tuvix.py)              | Return 2 random trek characters as discussion prompt                                                                                                |
 | `/wordcloud [enable logging: yes\| no]`                                                                                                                           | [wordcloud.py](commands/wordcloud.py)      | Generates a wordcloud based on a user's logged messages                                                                                             |
 
-### "Computer:"/"AGIMUS:" Prompt
+### "Computer:" Prompt
 In addition to the `/` and `!` commands we have a special case for handling messages that begin with a "Computer:" prompt. It has an entry within `configuration.json` and the same rules apply to it as the `!` commands. Extending the feature should be done within `commands/computer.py`.
 
-| Command                                  | File                                          | Description                                                                                                                             |
-| :--------------------------------------- | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| `[Computer:\|AGIMUS:] <text query>`      | [computer.py](commands/computer.py)           | Runs the user's query against Wolfram Alpha and OpenAI to provide a Star Trek "Computer"-like experience with context-aware responses.  |
+| Command                         | File                                          | Description                                                                                                                             |
+| :------------------------------ | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `[Computer:] <text query>`      | [computer.py](commands/computer.py)           | Runs the user's query against Wolfram Alpha and OpenAI to provide a Star Trek "Computer"-like experience with context-aware responses.  |
 
 #### Generating a Wolfram Alpha API ID
 
-In order to use the basic "Computer:"/"AGIMUS:" prompt you'll need to also provide a Wolfram Alpha API ID which can be obtained from their site at https://products.wolframalpha.com/api . Full instructions for obtaining the API ID can be found in their [documentation](https://products.wolframalpha.com/api/documentation/).
+In order to use the basic "Computer"" prompt you'll need to also provide a Wolfram Alpha API ID which can be obtained from their site at https://products.wolframalpha.com/api . Full instructions for obtaining the API ID can be found in their [documentation](https://products.wolframalpha.com/api/documentation/).
 
 A development ID key is free and supports up to 2000 queries per month.
 

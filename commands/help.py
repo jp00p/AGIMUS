@@ -80,7 +80,7 @@ async def help(ctx:discord.ApplicationContext):
       version_raw = line.readlines()
     version = version_raw[0].replace("\n", "").replace("\t"," ").strip()
 
-    message = f"__**AGIMUS {version}** - Help and About__\n"
+    message = f"# __**AGIMUS {version}** - Help and About__\n"
     message += default_help_text + "\n"
 
     embed = discord.Embed(
