@@ -700,7 +700,7 @@ def db_get_badge_info_by_filename(filename):
     row = query.fetchone()
   return row
 
-def db_get_user_badges(user_discord_id:int):
+def db_get_user_badges(user_discord_id:int, sortby=None):
   '''
     get_user_badges(user_discord_id)
     user_discord_id[required]: int
@@ -712,8 +712,18 @@ def db_get_user_badges(user_discord_id:int):
         JOIN badge_info AS b_i
           ON b.badge_filename = b_i.badge_filename
           WHERE b.user_discord_id = %s
-          ORDER BY b_i.badge_filename ASC
     '''
+    order_by = " ORDER BY b_i.badge_filename ASC"
+    if sortby is not None:
+      if sortby == 'date_ascending':
+        order_by = " ORDER BY b.time_created ASC, b_i.badge_filename ASC"
+      elif sortby == 'date_descending':
+        order_by = " ORDER BY b.time_created DESC, b_i.badge_filename ASC"
+      elif sortby == 'locked_first':
+        order_by = " ORDER BY b.locked ASC, b_i.badge_filename ASC"
+      elif sortby == 'special_first':
+        order_by = " ORDER BY b_i.special ASC, b_i.badge_filename ASC"
+    sql = sql + order_by
     vals = (user_discord_id,)
     query.execute(sql, vals)
     badges = query.fetchall()
