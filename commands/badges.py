@@ -135,6 +135,16 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
   collected = f"{user_badges_cnt} TOTAL ON THE USS HOOD"
   filename_prefix = f"badge_list_{ctx.author.id}-page-"
 
+  if sortby is not None:
+    if sortby == 'date_ascending':
+      title += " - Date Ascending"
+    elif sortby == 'date_descending':
+      title += " - Date Descending"
+    elif sortby == 'locked_first':
+      title += " - Locked First"
+    elif sortby == 'special_first':
+      title += " - Title First"
+
   if color:
     db_set_user_badge_page_color_preference(ctx.author.id, "showcase", color)
   badge_images = await generate_paginated_badge_images(ctx.author, 'showcase', user_badges, total_badges_cnt, title, collected, filename_prefix)
