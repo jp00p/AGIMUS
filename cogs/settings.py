@@ -258,7 +258,7 @@ class DTDDropdown(discord.ui.Select):
       if not is_user_in_dtd_already:
         await interaction.response.send_message(
           embed=discord.Embed(
-            title="You weren't in the DTD list as-is! No action taken.",
+            title="You weren't in the DTD list! No action taken.",
             color=discord.Color.red()
           ),
           ephemeral=True
@@ -601,5 +601,5 @@ def db_add_user_to_dtd(user_id):
 def db_remove_user_from_dtd(user_id):
   with AgimusDB() as query:
     sql = "DELETE FROM down_to_dabo WHERE user_discord_id = %s"
-    vals = (user_id)
+    vals = (user_id,)
     query.execute(sql, vals)
