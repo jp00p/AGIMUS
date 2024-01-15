@@ -313,3 +313,19 @@ CREATE TABLE IF NOT EXISTS down_to_dabo (
   PRIMARY KEY (`id`),
   UNIQUE (`user_discord_id`)  
 );
+CREATE TABLE IF NOT EXISTS tongo (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `initiator_discord_id` varchar(64) NOT NULL,
+  `status` varchar(64) NOT NULL DEFAULT 'active',
+  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+);
+CREATE TABLE IF NOT EXISTS tongo_pot (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `origin_user_discord_id` varchar(64) NOT NULL,
+  `badge_filename` VARCHAR(128) DEFAULT NOT NULL,
+  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `badge_filename` (`badge_filename`),
+  CONSTRAINT `badge_scraps_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+);

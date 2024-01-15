@@ -1570,71 +1570,12 @@ class Trade(commands.Cog):
 
     return active_trade
 
-
-#  ____ ___   __  .__.__
-# |    |   \_/  |_|__|  |   ______
-# |    |   /\   __\  |  |  /  ___/
-# |    |  /  |  | |  |  |__\___ \
-# |______/   |__| |__|____/____  >
-#                              \/
-def does_trade_contain_badges(active_trade):
-  offered_badges = db_get_trade_offered_badges(active_trade)
-  requested_badges = db_get_trade_requested_badges(active_trade)
-
-  if len(offered_badges) > 0 or len(requested_badges) > 0:
-    return True
-  else:
-    return False
-
-def get_offered_and_requested_badge_names(active_trade):
-  offered_badges = db_get_trade_offered_badges(active_trade)
-  offered_badge_names = "None"
-  if offered_badges:
-    offered_badge_names = "\n".join([f"* {b['badge_name']}" for b in offered_badges])
-
-  requested_badges = db_get_trade_requested_badges(active_trade)
-  requested_badge_names = "None"
-  if requested_badges:
-    requested_badge_names = "\n".join([f"* {b['badge_name']}" for b in requested_badges])
-
-  return offered_badge_names, requested_badge_names
-
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
 #  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
-def db_get_trade_requested_badges(active_trade):
-  active_trade_id = active_trade["id"]
-
-  with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*
-      FROM badge_info as b_i
-        JOIN trade_requested AS t_r
-        ON t_r.trade_id = %s AND t_r.badge_filename = b_i.badge_filename
-    '''
-    vals = (active_trade_id,)
-    query.execute(sql, vals)
-    trades = query.fetchall()
-  return trades
-
-def db_get_trade_offered_badges(active_trade):
-  active_trade_id = active_trade["id"]
-
-  with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*
-      FROM badge_info as b_i
-        JOIN trade_offered AS t_o
-        ON t_o.trade_id = %s AND t_o.badge_filename = b_i.badge_filename
-    '''
-    vals = (active_trade_id,)
-    query.execute(sql, vals)
-    trades = query.fetchall()
-  return trades
-
 def db_add_badge_to_trade_offer(active_trade, badge_name):
   active_trade_id = active_trade["id"]
 

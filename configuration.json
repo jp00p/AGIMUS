@@ -778,6 +778,14 @@
       "data": "data/testslots.json",
       "parameters": []
     },
+    "tongo start": {
+      "channels": [
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "trade cancel": {
       "channels": [
         "bahrats-bazaar"
