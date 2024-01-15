@@ -254,7 +254,7 @@ def generate_report_card(title:str, description:str, table:PrettyTable, type:str
   table_text = table.get_string()
   if type == "markdown":
     # generate markdown report
-    md_message  = f"{get_emoji('AGIMUS')} **{title}** {get_emoji('AGIMUS')}\n"
+    md_message  = f"{get_emoji('agimus')} **{title}** {get_emoji('agimus')}\n"
     md_message += f"- {description}\n"
     md_message += f"```"
     if additional_rows:
