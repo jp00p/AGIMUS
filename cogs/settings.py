@@ -589,7 +589,7 @@ def db_toggle_loudbot(user_id, toggle):
 def db_add_user_to_dtd(user_id):
   with AgimusDB() as query:
     sql = "SELECT user_discord_id FROM down_to_dabo WHERE user_discord_id = %s"
-    vals = (user_id)
+    vals = (user_id,)
     result = query.execute(sql, vals)
     user_already_added = query.fetchone()
     if user_already_added is not None:
