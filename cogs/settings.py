@@ -207,6 +207,59 @@ class LoudbotView(discord.ui.View):
 
     self.add_item(LoudbotDropdown(self.cog))
 
+
+# ________                        ___________      ________        ___.
+# \______ \   ______  _  ______   \__    ___/___   \______ \ _____ \_ |__   ____
+#  |    |  \ /  _ \ \/ \/ /    \    |    | /  _ \   |    |  \\__  \ | __ \ /  _ \
+#  |    `   (  <_> )     /   |  \   |    |(  <_> )  |    `   \/ __ \| \_\ (  <_> )
+# /_______  /\____/ \/\_/|___|  /   |____| \____/  /_______  (____  /___  /\____/
+#         \/                  \/                           \/     \/    \/
+class DTDDropdown(discord.ui.Select):
+  def __init__(self, cog):
+    self.cog = cog
+    options = [
+      discord.SelectOption(label="Enable DTD", description="Opt-in to the Down To Dabo List"),
+      discord.SelectOption(label="Disable DTD", description="Opt-out of the Down To Dabo List"),
+    ]
+
+    super().__init__(
+      placeholder="Choose your preference",
+      min_values=1,
+      max_values=1,
+      options=options,
+      row=1
+    )
+
+  async def callback(self, interaction:discord.Interaction):
+    selection = self.values[0]
+
+    if selection == "Enable DTD":
+      db_add_user_to_dtd(interaction.user.id)
+      await interaction.response.send_message(
+        embed=discord.Embed(
+          title="You have successfully chosen to participate in the Down To Dabo List.",
+          color=discord.Color.green()
+        ).set_footer(text="You can always come back to this interface to reconfigure in the future!"),
+        ephemeral=True
+      )
+    elif selection == "Disable DTD":
+      db_remove_user_from_dtd(interaction.user.id)
+      await interaction.response.send_message(
+        embed=discord.Embed(
+          title="You have successfully opted-out of the Down To Dabo List.",
+          color=discord.Color.blurple()
+        ).set_footer(text="You can always come back to this interface and re-enable in the future!"),
+        ephemeral=True
+      )
+
+class DTDView(discord.ui.View):
+  def __init__(self, cog):
+    self.cog = cog
+    super().__init__()
+
+    self.add_item(DTDDropdown(self.cog))
+
+
 # _________
 # \_   ___ \  ____   ____
 # /    \  \/ /  _ \ / ___\
@@ -231,6 +284,7 @@ class Settings(commands.Cog):
     notifications_embed, notifications_thumbnail = await self._get_notifications_embed_and_thumbnail()
     wordcloud_embed, wordcloud_thumbnail = await self._get_wordcloud_embed_and_thumbnail()
     loudbot_embed, loudbot_thumbnail = await self._get_loudbot_embed_and_thumbnail()
+    dtd_embed, dtd_thumbnail = await self._get_dtd_embed_and_thumbnail()
 
     page_groups = [
       pages.PageGroup(
@@ -295,6 +349,19 @@ class Settings(commands.Cog):
         custom_buttons=[],
         use_default_buttons=False,
         custom_view=LoudbotView(self)
+      ),
+      pages.PageGroup(
+        pages=[
+          pages.Page(
+            embeds=[dtd_embed],
+            files=[dtd_thumbnail]
+          )
+        ],
+        label="Down To Dabo",
+        description="Opt-in or Opt-out of the Down To Dabo List",
+        custom_buttons=[],
+        use_default_buttons=False,
+        custom_view=DTDView(self)
       )
     ]
     paginator = pages.Paginator(
@@ -327,14 +394,14 @@ class Settings(commands.Cog):
     thumbnail = discord.File(fp="./images/templates/settings/xp_system.png", filename="xp_system.png")
     embed = discord.Embed(
       title="XP System Preferences",
-      description=f"The XP System on the USS Hood awards users XP for participating in the server in "
-                  f"various ways. Some of these include posting messages, reacting to messages, and "
-                  f"receiving reactions to your own messages.\n\nOnce you've received a set amount of "
-                  f"XP, you will Level Up and receive a new Badge with a notification in "
+      description="The XP System on the USS Hood awards users XP for participating in the server in "
+                  "various ways. Some of these include posting messages, reacting to messages, and "
+                  "receiving reactions to your own messages.\n\nOnce you've received a set amount of "
+                  "XP, you will Level Up and receive a new Badge with a notification in "
                   f"{badge_channel.mention}. You can start typing `/badges` to see the various "
-                  f"badge-specific commands available for taking a look at your collection!\n\nIf you "
-                  f"don't wish to participate, you can configure that here. You can always re-enable "
-                  f"if desired in the future!",
+                  "badge-specific commands available for taking a look at your collection!\n\nIf you "
+                  "don't wish to participate, you can configure that here. You can always re-enable "
+                  "if desired in the future!",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
@@ -347,10 +414,10 @@ class Settings(commands.Cog):
     thumbnail = discord.File(fp="./images/templates/settings/notifications.png", filename="notifications.png")
     embed = discord.Embed(
       title="AGIMUS Notifications",
-      description=f"AGIMUS may occasionally want to send you a Direct Message with useful information."
-                  f"\n\nSome examples include sending Drops/Clips lists when requested and notably, DMs "
-                  f"are used in the Badge Trading System to give alerts when a trade has been initiated "
-                  f"or one of your existing trades has been canceled.",
+      description="AGIMUS may occasionally want to send you a Direct Message with useful information."
+                  "\n\nSome examples include sending Drops/Clips lists when requested and notably, DMs "
+                  "are used in the Badge Trading System to give alerts when a trade has been initiated "
+                  "or one of your existing trades has been canceled.",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
@@ -383,11 +450,11 @@ class Settings(commands.Cog):
 
     embed = discord.Embed(
       title="Wordcloud Logging",
-      description=f"AGIMUS has an opt-in Wordcloud feature which you can enable to track the most common "
-                  f"words that you use. When the command is executed with `/wordcloud` a new image is "
-                  f"generated which weighs each word based on frequency.\n\nIf wish to opt out in the "
-                  f"future, your existing message data will be deleted.\n\nNote that the following "
-                  f"channels are not included in logging for the Wordcloud: "
+      description="AGIMUS has an opt-in Wordcloud feature which you can enable to track the most common "
+                  "words that you use. When the command is executed with `/wordcloud` a new image is "
+                  "generated which weighs each word based on frequency.\n\nIf wish to opt out in the "
+                  "future, your existing message data will be deleted.\n\nNote that the following "
+                  "channels are not included in logging for the Wordcloud: "
                   f"{wordcloud_blocked_channels_string}\n**Example Wordcloud:**",
       color=discord.Color(0xFF0000)
     )
@@ -422,16 +489,33 @@ class Settings(commands.Cog):
 
     embed = discord.Embed(
       title="Loudbot Auto-Responses and Logging",
-      description=f"AGIMUS has an opt-in Loudbot feature which you can enable to allow to have it auto-respond "
-                  f"to messages you post that are in all-caps. When your message is registered it also logs the "
-                  f"message to be used as a response to other users who have the feature enabled.\n\nIf wish to "
-                  f"opt out in the future, your existing message data will be deleted.\n\nNote that the following "
+      description="AGIMUS has an opt-in Loudbot feature which you can enable to allow to have it auto-respond "
+                  "to messages you post that are in all-caps. When your message is registered it also logs the "
+                  "message to be used as a response to other users who have the feature enabled.\n\nIf wish to "
+                  "opt out in the future, your existing message data will be deleted.\n\nNote that the following "
                   f"channels are where Loudbot is allowed to auto-respond: {loudbot_enabled_channels_string}",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
     embed.set_image(url="https://i.imgur.com/wq34YDD.png")
     embed.set_thumbnail(url=f"attachment://loudbot.png")
+
+    return embed, thumbnail
+
+  async def _get_dtd_embed_and_thumbnail(self):
+    thumbnail = discord.File(fp="./images/templates/settings/dtd.png", filename="dtd.png")
+    embed = discord.Embed(
+      title="Down To Dabo",
+      description="Users doing trading in <#1006265911428272239> can use the `/trade dabo` command which "
+                  "randomly selects a number of badges from both user's unlocked inventories to swap.\n\n"
+                  "There's an additional command `/trade dtd` which will return a weighted randomized user "
+                  "from those who have opted-in to the Down To Dabo List. Select below if you'd like to join "
+                  "or remove yourself from this list!",
+      color=discord.Color(0xFF0000)
+    )
+    embed.set_footer(text="Please select your choice from the preference dropdown below.")
+    embed.set_image(url="https://i.imgur.com/SnNqoEl.jpg")
+    embed.set_thumbnail(url=f"attachment://dtd.png")
 
     return embed, thumbnail
 
@@ -480,3 +564,15 @@ def db_toggle_loudbot(user_id, toggle):
       query.execute(sql, vals)
       deleted_row_count = query.rowcount
   return deleted_row_count
+
+def db_add_user_to_dtd(user_id):
+  with AgimusDB() as query:
+    sql = "INSERT INTO down_to_dabo (user_discord_id, weight) VALUES (%s, %s)"
+    vals = (user_id, 1)
+    query.execute(sql, vals)
+
+def db_remove_user_from_dtd(user_id):
+  with AgimusDB() as query:
+    sql = "DELETE FROM down_to_dabo WHERE user_discord_id = %s"
+    vals = (user_id)
+    query.execute(sql, vals)

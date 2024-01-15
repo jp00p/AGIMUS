@@ -1,5 +1,5 @@
 
-*AGIMUS is a multipurpose Discord bot by the Friends of DeSoto! AGIMUS does all sorts of things, including: XP/leveling, currency, trivia, poker, slots, AI chat, and more!*
+*AGIMUS is a multipurpose Discord bot by the Friends of DeSoto! AGIMUS does all sorts of things, including: XP/leveling, currency, trivia, poker, slots, and more!*
 
 **How does leveling/XP work?**
 
@@ -9,14 +9,8 @@
 >  
 > Check your level, XP, number of badges and more by using the `/profile display` command.
 
-**What's the difference when I start a message with "computer:" and "agimus:"?**
-
-> The "__computer:__" prefix will tell the bot to try to find factual information about whatever you posted. e.g.: "*computer: convert 24f to celsius*"
->  
-> The "__agimus:__" prefix will tell the bot to come up with something from its imagination -- using AI algorithms and various public data. e.g.: "*agimus: what is the meaning of life?*"
-
 **The bot don't work!**
 
->  Please send a message in #〔💾〕megalomaniacal-computer-storage or ping <@572540272563716116> if you have any problems.
+>  Please post a message in <#994412232052052089> or ping <@735658100958298154> if you have any problems!
 
 To learn more, file a bug report, or contribute, visit our GitHub: https://github.com/jp00p/AGIMUS

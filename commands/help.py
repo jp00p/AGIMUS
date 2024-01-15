@@ -1,15 +1,9 @@
-from inspect import trace
 from common import *
-from utils.check_channel_access import access_check
 
 basic_commands = [
   {
     "name" : "Start a message with \"computer:\"",
     "description" : "AGIMUS will try to respond with factual information"
-  },
-  {
-    "name" : "Start a message with \"agimus:\"",
-    "description" : "AGIMUS will respond with a creative, AI-generated response"
   },
   {
     "name" : "/drop",
@@ -86,7 +80,7 @@ async def help(ctx:discord.ApplicationContext):
       version_raw = line.readlines()
     version = version_raw[0].replace("\n", "").replace("\t"," ").strip()
 
-    message = f"__**AGIMUS {version}** - Help and About__\n"
+    message = f"# __**AGIMUS {version}** - Help and About__\n"
     message += default_help_text + "\n"
 
     embed = discord.Embed(

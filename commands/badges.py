@@ -80,6 +80,29 @@ badge_group = bot.create_group("badges", "Badge Commands!")
   ]
 )
 @option(
+  name="sortby",
+  description="Sort your showcase",
+  required=False,
+  choices=[
+    discord.OptionChoice(
+      name="Date Ascending",
+      value="date_ascending"
+    ),
+    discord.OptionChoice(
+      name="Date Descending",
+      value="date_descending"
+    ),
+    discord.OptionChoice(
+      name="Unlocked First",
+      value="locked_first"
+    ),
+    discord.OptionChoice(
+      name="Special First",
+      value="special_first"
+    ),
+  ]
+)
+@option(
   name="color",
   description="Which colorscheme would you like?",
   required=False,
@@ -88,7 +111,7 @@ badge_group = bot.create_group("badges", "Badge Commands!")
     for color_choice in ["Green", "Orange", "Purple", "Teal"]
   ]
 )
-async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, color:str):
+async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortby:str, color:str):
   public = (public == "yes")
   await ctx.defer(ephemeral=not public)
 
@@ -104,7 +127,7 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, color
       user_badges = db_get_user_special_badges(ctx.author.id)
   else:
     title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
-    user_badges = db_get_user_badges(ctx.author.id)
+    user_badges = db_get_user_badges(ctx.author.id, sortby)
 
   # Set up text values for paginated pages
   total_badges_cnt = len(all_badge_info)

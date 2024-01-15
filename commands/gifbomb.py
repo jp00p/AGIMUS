@@ -16,13 +16,16 @@ async def gifbomb(ctx:discord.ApplicationContext, query:str):
   if allowed:
     async with aiohttp.ClientSession() as session:
       key = os.getenv('GOOGLE_API_KEY')
-      ckey = os.getenv('GOOGLE_CX')
+      client_key = os.getenv('GOOGLE_CX')
+      params = {'q': query, 'key': key, 'client_key': client_key, 'limit': 13, 'contentfilter': 'medium'}
       async with session.get(
-        "https://tenor.googleapis.com/v2/search?q=%s&key=%s&client_key=%s&limit=20&contentfilter=medium" % (query, key, ckey)
+        "https://tenor.googleapis.com/v2/search",
+        params=params
       ) as response:
         if response.status == 200:
           await ctx.respond(embed=discord.Embed(
               title="GIF BOMB!",
+              description=f"> {query}",
               color=discord.Color.blurple()
             )
           )
