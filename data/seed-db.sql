@@ -320,6 +320,15 @@ CREATE TABLE IF NOT EXISTS tongo (
   `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 );
+CREATE TABLE IF NOT EXISTS tongo_players (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_discord_id` varchar(64) NOT NULL,
+  `tongo_id` int(11) DEFAULT 0 NOT NULL,
+  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `tongo_id` (`tongo_id`),
+  CONSTRAINT `badge_tongo_players_fk_tongo_id` FOREIGN KEY (`tongo_id`) REFERENCES `tongo` (`id`)
+);
 CREATE TABLE IF NOT EXISTS tongo_pot (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `origin_user_discord_id` varchar(64) NOT NULL,

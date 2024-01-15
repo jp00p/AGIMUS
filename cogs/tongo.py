@@ -16,7 +16,7 @@ f.close()
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
-async def buy_in_autocomplete(ctx:discord.AutocompleteContext):
+async def raise_autocomplete(ctx:discord.AutocompleteContext):
   first_badge = ctx.options["first_badge"]
   second_badge = ctx.options["second_badge"]
   third_badge = ctx.options["third_badge"]
@@ -51,11 +51,10 @@ class Tongo(commands.Cog):
   tongo = discord.SlashCommandGroup("tongo", "Commands for Tongo Badge Game")
 
 
-  #    _____ __             __
-  #   / ___// /_____ ______/ /_
-  #   \__ \/ __/ __ `/ ___/ __/
-  #  ___/ / /_/ /_/ / /  / /_
-  # /____/\__/\__,_/_/   \__/
+  #    ______           __
+  #   / __/ /____ _____/ /_
+  #  _\ \/ __/ _ `/ __/ __/
+  # /___/\__/\_,_/_/  \__/
   @tongo.command(
     name="start",
     description="Begin a game of Tongo!"
@@ -64,30 +63,31 @@ class Tongo(commands.Cog):
     name="first_badge",
     description="First badge to add to the pot!",
     required=True,
-    autocomplete=buy_in_autocomplete
+    autocomplete=raise_autocomplete
   )
   @option(
     name="second_badge",
     description="Second badge to add to the pot!",
     required=True,
-    autocomplete=buy_in_autocomplete
+    autocomplete=raise_autocomplete
   )
   @option(
     name="third_badge",
     description="Third badge to add to the pot!",
     required=True,
-    autocomplete=buy_in_autocomplete
+    autocomplete=raise_autocomplete
   )
   @commands.check(access_check)
   async def start(self, ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
+    user_member = await self.bot.current_guild.fetch_member(user_discord_id)
     active_tongo = db_get_active_tongo()
 
     if active_tongo:
       await ctx.respond(embed=discord.Embed(
           title="Tongo Already In Progress",
-          description="There's already an ongoing tongo game!\n\nUse `/tongo buy_in` to join!",
+          description="There's already an ongoing tongo game!\n\nUse `/tongo raise` to join!",
           color=discord.Color.red()
         ),
         ephemeral=True
@@ -104,20 +104,29 @@ class Tongo(commands.Cog):
       return
 
     # Validation Passed - Continue
-    self._initialize_tongo_game(user_discord_id, selected_badges)
+    # Create new tongo entry
+    tongo_id = db_create_new_tongo(user_discord_id)
+    # Transfer badges to the pot
+    db_add_badges_to_pot(user_discord_id, selected_user_badges)
+    # Associate player with the new game
+    db_add_player_to_tongo(user_discord_id, tongo_id)
+    # Cancel any trades involving the user and the badges they threw in
     await self._cancel_tongo_related_trades(user_discord_id, selected_badges)
 
     tongo_pot_badges = db_get_tongo_pot_badges()
-    badge_names_string = "\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges])
 
     confirmation_embed = discord.Embed(
       title="TONGO!",
-      description="Tongo Game initiated!!!",
+      description=f"A new Tongo game has begun!!!\n\n{user_member.display_name} has kicked things off!",
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
-      name=f"Initial Pot Started by {ctx.interaction.user.display_name}",
-      value=badge_names_string
+      name=f"Badges Bought In By {user_member.display_name}",
+      value="\n".join([f"* {b}" for b in selected_user_badges])
+    )
+    confirmation_embed.add_field(
+      name=f"Current Pot (May Include Extra Badges From Previous Games!)",
+      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges])
     )
     confirmation_embed.set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
@@ -125,44 +134,104 @@ class Tongo(commands.Cog):
     await ctx.channel.send(embed=confirmation_embed)
 
 
-  #    __  ____  _ ___ __  _
-  #   / / / / /_(_) (_) /_(_)__  _____
-  #  / / / / __/ / / / __/ / _ \/ ___/
-  # / /_/ / /_/ / / / /_/ /  __(__  )
-  # \____/\__/_/_/_/\__/_/\___/____/
-  async def _validate_selected_user_badges(self, ctx:discord.ApplicationContext, selected_user_badges):
-    if len(selected_user_badges) != 3:
-      await ctx.followup.send(embed=discord.Embed(
-        title="Invalid Selection",
-        description=f"You must own all of the badges you've selected to buy in with and they must be unlocked!",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return False
+  #    ___       _
+  #   / _ \___ _(_)__ ___
+  #  / , _/ _ `/ (_-</ -_)
+  # /_/|_|\_,_/_/___/\__/
+  @tongo.command(
+    name="raise",
+    description="Join the current game of Tongo!"
+  )
+  @option(
+    name="first_badge",
+    description="First badge to add to the pot!",
+    required=True,
+    autocomplete=raise_autocomplete
+  )
+  @option(
+    name="second_badge",
+    description="Second badge to add to the pot!",
+    required=True,
+    autocomplete=raise_autocomplete
+  )
+  @option(
+    name="third_badge",
+    description="Third badge to add to the pot!",
+    required=True,
+    autocomplete=raise_autocomplete
+  )
+  @commands.check(access_check)
+  async def raise_pot(self, ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
+    await ctx.defer(ephemeral=True)
+    user_discord_id = ctx.interaction.user.id
+    user_member = await self.bot.current_guild.fetch_member(user_discord_id)
+    active_tongo = db_get_active_tongo()
+    tongo_players = db_get_active_tongo_players(active_tongo['id'])
+    tongo_player_ids = [p['user_discord_id'] for p in tongo_players]
 
-    if len(selected_user_badges) > len(set(selected_user_badges)):
-      await ctx.followup.send(embed=discord.Embed(
-        title="Invalid Selection",
-        description=f"All badges selected must be unique!",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return False
+    if not active_tongo:
+      await ctx.respond(embed=discord.Embed(
+          title="No Tongo Game In Progress",
+          description="No one is playing Tongo yet!\n\nUse `/tongo start` to begin a game!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+    elif user_discord_id in tongo_player_ids:
+      description = "Damn player, you've already bought in!"
+      if user_discord_id == active_tongo['initiator_discord_id']:
+        description += f"\n\nPlus you're the one that started it! If you want to deal em out, use `/tongo deal`!"
+      await ctx.respond(embed=discord.Embed(
+          title="You're Already In The Game!",
+          description=description,
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
 
-    restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in SPECIAL_BADGES]]
-    if restricted_badges:
-      await ctx.followup.send(embed=discord.Embed(
-        title="Invalid Selection",
-        description=f"You cannot buy in with the following: {','.join(restricted_badges)}!",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return False
+    selected_badges = [first_badge, second_badge, third_badge]
+    unlocked_user_badges = db_get_user_unlocked_badges(user_discord_id)
+    unlocked_user_badge_names = [b['badge_name'] for b in unlocked_user_badges]
 
-    return True
+    selected_user_badges = [b for b in selected_badges if b in unlocked_user_badge_names]
 
-  def _initialize_tongo_game(self, user_discord_id, selected_user_badges):
-    # Create new tongo table row
-    db_create_new_tongo(user_discord_id)
+    if not await self._validate_selected_user_badges(ctx, selected_user_badges):
+      return
+
+    # Validation passed - continue
     # Transfer badges to the pot
     db_add_badges_to_pot(user_discord_id, selected_user_badges)
+    # Associate player with the new game
+    db_add_player_to_tongo(user_discord_id, active_tongo['id'])
+    # Cancel any trades involving the user and the badges they threw in
+    await self._cancel_tongo_related_trades(user_discord_id, selected_badges)
+
+    tongo_pot_badges = db_get_tongo_pot_badges()
+    tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
+
+    confirmation_embed = discord.Embed(
+      title="TONGO!",
+      description=f"A new challenger appears! {user_member.display_name} has joined the table!",
+      color=discord.Color.dark_purple()
+    )
+    confirmation_embed.add_field(
+      name=f"Badges Thrown In By {user_member.display_name}",
+      value="\n".join([f"* {b}" for b in selected_user_badges])
+    )
+    confirmation_embed.add_field(
+      name=f"Current Players",
+      value="\n".join([f"* {m.display_name}" for m in tongo_player_members])
+    )
+    confirmation_embed.add_field(
+      name=f"Total Badges In The Pot",
+      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges])
+    )
+    confirmation_embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
+    )
+    await ctx.channel.send(embed=confirmation_embed)
 
   async def _cancel_tongo_related_trades(self, active_trade, user_discord_id, selected_badges):
     # These are all the active or pending trades that involved the user as either the 
@@ -229,6 +298,37 @@ class Tongo(commands.Cog):
           pass
 
 
+  #   __  ____  _ ___ __  _
+  #  / / / / /_(_) (_) /_(_)__ ___
+  # / /_/ / __/ / / / __/ / -_|_-<
+  # \____/\__/_/_/_/\__/_/\__/___/
+  async def _validate_selected_user_badges(self, ctx:discord.ApplicationContext, selected_user_badges):
+    if len(selected_user_badges) != 3:
+      await ctx.followup.send(embed=discord.Embed(
+        title="Invalid Selection",
+        description=f"You must own all of the badges you've selected to raise with and they must be unlocked!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return False
+
+    if len(selected_user_badges) > len(set(selected_user_badges)):
+      await ctx.followup.send(embed=discord.Embed(
+        title="Invalid Selection",
+        description=f"All badges selected must be unique!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return False
+
+    restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in SPECIAL_BADGES]]
+    if restricted_badges:
+      await ctx.followup.send(embed=discord.Embed(
+        title="Invalid Selection",
+        description=f"You cannot raise with the following: {','.join(restricted_badges)}!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return False
+
+    return True
 
 
 # ________                      .__
@@ -256,12 +356,36 @@ def db_get_tongo_pot_badges():
     badges = query.fetchall()
   return badges
 
+def db_get_active_tongo_players(tongo_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = '''
+      SELECT * FROM tongo_players AS t_pl
+        JOIN tongo AS t
+          ON t_pl.tongo_id = t.id
+          WHERE t.id = %s
+          ORDER BY t_pl.time_created ASC
+    '''
+    vals = (tongo_id,)
+    query.execute(sql, vals)
+    players = query.fetchall()
+  return players
+
 def db_create_new_tongo(user_discord_id):
   with AgimusDB(dictionary=True) as query:
     sql = '''
       INSERT INTO tongo (initiator_discord_id) VALUES (%s)
     '''
     vals = (user_discord_id,)
+    query.execute(sql, vals)
+    result = query.lastrowid
+  return result
+
+def db_add_player_to_tongo(user_discord_id, tongo_id):
+  with AgimusDB(dictionary=True) as query:
+    sql = '''
+      INSERT INTO tongo_players (user_discord_id, tongo_id) VALUES (%s, %s)
+    '''
+    vals = (user_discord_id, tongo_id)
     query.execute(sql, vals)
     result = query.lastrowid
   return result
