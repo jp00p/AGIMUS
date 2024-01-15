@@ -3,7 +3,7 @@ import pilgram
 import string
 
 from common import *
-from handlers.xp import calculate_xp_for_next_level
+from handlers.xp import calculate_xp_for_next_level, get_xp_cap_progress
 from utils.badge_utils import *
 
 f = open(config["commands"]["shop"]["data"])
@@ -170,7 +170,13 @@ class Profile(commands.Cog):
     if level > 1:
       prev_level = calculate_xp_for_next_level(level-1)
 
-    percent_completed = (((xp - prev_level)*100) / (next_level - prev_level))/100  # for calculating width of xp bar
+    percent_completed = abs((xp - prev_level) / (next_level - prev_level))  # for calculating width of xp bar
+    
+    if level >= 176:
+      # High Levelers - Static Level Up Progression per Every 420 XP
+      cap_progress = get_xp_cap_progress(ctx.author.id)
+      if cap_progress is not None:
+        percent_completed = cap_progress / 420
 
     # fonts (same font, different sizes) used for building image
     name_font = ImageFont.truetype("fonts/lcars3.ttf", 61)
