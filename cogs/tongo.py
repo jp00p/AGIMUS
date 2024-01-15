@@ -100,14 +100,14 @@ class Tongo(commands.Cog):
 
     selected_user_badges = [b for b in selected_badges if b in unlocked_user_badge_names]
 
-    if not self._validate_selected_user_badges(ctx, selected_user_badges):
+    if not await self._validate_selected_user_badges(ctx, selected_user_badges):
       return
 
     # Validation Passed - Continue
     self._initialize_tongo_game(user_discord_id, selected_badges)
-    self._cancel_invalid_tongo_related_trades(user_discord_id, selected_badges)
+    await self._cancel_tongo_related_trades(user_discord_id, selected_badges)
 
-    tongo_pot_badges = self._get_current_tongo_pot()
+    tongo_pot_badges = db_get_tongo_pot_badges()
     badge_names_string = "\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges])
 
     confirmation_embed = discord.Embed(
@@ -116,7 +116,7 @@ class Tongo(commands.Cog):
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
-      name=f"Initial Pot Started by {requestor.display_name}",
+      name=f"Initial Pot Started by {ctx.interaction.user.display_name}",
       value=badge_names_string
     )
     confirmation_embed.set_footer(
@@ -158,19 +158,17 @@ class Tongo(commands.Cog):
 
     return True
 
-  async def db_get_active_tongo
-
-  async def _initialize_tongo_game(self, user_discord_id, selected_user_badges):
+  def _initialize_tongo_game(self, user_discord_id, selected_user_badges):
     # Create new tongo table row
     db_create_new_tongo(user_discord_id)
     # Transfer badges to the pot
     db_add_badges_to_pot(user_discord_id, selected_user_badges)
 
-  async def _cancel_tongo_related_trades(self, user_discord_id, first_badge, second_badge, third_badge):
+  async def _cancel_tongo_related_trades(self, active_trade, user_discord_id, selected_badges):
     # These are all the active or pending trades that involved the user as either the 
     # requestee or requestor and include the badges that were added to the tongo pot
     # are thus no longer valid and need to be canceled
-    trades_to_cancel = db_get_related_tongo_badge_trades(user_discord_id, first_badge, second_badge, third_badge)
+    trades_to_cancel = db_get_related_tongo_badge_trades(user_discord_id, selected_badges)
 
     # Iterate through to cancel, and then
     for trade in trades_to_cancel:
@@ -182,7 +180,7 @@ class Tongo(commands.Cog):
 
       # Give notice to Requestee
       user = get_user(requestee.id)
-      if user["receive_notifications"]:
+      if user["receive_notifications"] and trade['status'] == 'active':
         try:
           requestee_embed = discord.Embed(
             title="Trade Canceled",
@@ -246,7 +244,7 @@ def db_get_active_tongo():
     trades = query.fetchone()
   return trades
 
-def get_tongo_pot_badges():
+def db_get_tongo_pot_badges():
   with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT * FROM badge_info AS b_i
@@ -261,7 +259,7 @@ def get_tongo_pot_badges():
 def db_create_new_tongo(user_discord_id):
   with AgimusDB(dictionary=True) as query:
     sql = '''
-      INSERT INTO tongo (initiator_user_id) VALUES (%s)
+      INSERT INTO tongo (initiator_discord_id) VALUES (%s)
     '''
     vals = (user_discord_id,)
     query.execute(sql, vals)
@@ -304,10 +302,8 @@ def db_add_badges_to_pot(user_discord_id, selected_user_badges):
     )
     query.execute(sql, vals)
 
-def db_get_related_tongo_badge_trades(user_discord_id, first_badge, second_badge, third_badge):
-  first_badge_info = db_get_badge_info_by_name(first_badge)
-  second_badge_info = db_get_badge_info_by_name(second_badge)
-  third_badge_info = db_get_badge_info_by_name(third_badge)
+def db_get_related_tongo_badge_trades(user_discord_id, selected_user_badges):
+  related_badges = [db_get_badge_info_by_name(b) for b in selected_user_badges]
 
   with AgimusDB(dictionary=True) as query:
     sql = '''
@@ -318,7 +314,7 @@ def db_get_related_tongo_badge_trades(user_discord_id, first_badge, second_badge
       LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
 
       -- pending or active
-      AND t.status IN ('pending','active')
+      WHERE t.status IN ('pending','active')
 
       -- involves one or more of the users involved in the active trade
       AND (t.requestor_id = %s OR t.requestee_id = %s)
@@ -329,8 +325,8 @@ def db_get_related_tongo_badge_trades(user_discord_id, first_badge, second_badge
     '''
     vals = (
       user_discord_id, user_discord_id,
-      first_badge_info['badge_filename'], second_badge_info['badge_filename'], third_badge_info['badge_filename'],
-      first_badge_info['badge_filename'], second_badge_info['badge_filename'], third_badge_info['badge_filename']
+      related_badges[0]['badge_filename'], related_badges[1]['badge_filename'], related_badges[2]['badge_filename'],
+      related_badges[0]['badge_filename'], related_badges[1]['badge_filename'], related_badges[2]['badge_filename']
     )
     query.execute(sql, vals)
     trades = query.fetchall()

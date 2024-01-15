@@ -455,7 +455,7 @@ class Trade(commands.Cog):
 
       # Give notice to Requestee
       user = get_user(requestee.id)
-      if user["receive_notifications"]:
+      if user["receive_notifications"] and trade['status'] == 'active':
         try:
           requestee_embed = discord.Embed(
             title="Trade Canceled",

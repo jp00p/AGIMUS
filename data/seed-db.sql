@@ -323,9 +323,9 @@ CREATE TABLE IF NOT EXISTS tongo (
 CREATE TABLE IF NOT EXISTS tongo_pot (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `origin_user_discord_id` varchar(64) NOT NULL,
-  `badge_filename` VARCHAR(128) DEFAULT NOT NULL,
+  `badge_filename` VARCHAR(128) DEFAULT '' NOT NULL,
   `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `badge_filename` (`badge_filename`),
-  CONSTRAINT `badge_scraps_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  CONSTRAINT `badge_tongo_pot_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
