@@ -16,7 +16,7 @@ f.close()
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
-async def raise_autocomplete(ctx:discord.AutocompleteContext):
+async def risk_autocomplete(ctx:discord.AutocompleteContext):
   first_badge = ctx.options["first_badge"]
   second_badge = ctx.options["second_badge"]
   third_badge = ctx.options["third_badge"]
@@ -56,29 +56,29 @@ class Tongo(commands.Cog):
   #  _\ \/ __/ _ `/ __/ __/
   # /___/\__/\_,_/_/  \__/
   @tongo.command(
-    name="start",
+    name="venture",
     description="Begin a game of Tongo!"
   )
   @option(
     name="first_badge",
     description="First badge to add to the pot!",
     required=True,
-    autocomplete=raise_autocomplete
+    autocomplete=risk_autocomplete
   )
   @option(
     name="second_badge",
     description="Second badge to add to the pot!",
     required=True,
-    autocomplete=raise_autocomplete
+    autocomplete=risk_autocomplete
   )
   @option(
     name="third_badge",
     description="Third badge to add to the pot!",
     required=True,
-    autocomplete=raise_autocomplete
+    autocomplete=risk_autocomplete
   )
   @commands.check(access_check)
-  async def start(self, ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
+  async def venture(self, ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
     user_member = await self.bot.current_guild.fetch_member(user_discord_id)
@@ -87,7 +87,7 @@ class Tongo(commands.Cog):
     if active_tongo:
       await ctx.respond(embed=discord.Embed(
           title="Tongo Already In Progress",
-          description="There's already an ongoing tongo game!\n\nUse `/tongo raise` to join!",
+          description="There's already an ongoing tongo game!\n\nUse `/tongo risk` to join!",
           color=discord.Color.red()
         ),
         ephemeral=True
@@ -117,7 +117,7 @@ class Tongo(commands.Cog):
 
     confirmation_embed = discord.Embed(
       title="TONGO!",
-      description=f"A new Tongo game has begun!!!\n\n{user_member.display_name} has kicked things off!",
+      description=f"A new Tongo game has begun!!!\n\n**{user_member.display_name}** has kicked things off!",
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
@@ -139,40 +139,40 @@ class Tongo(commands.Cog):
   #  / , _/ _ `/ (_-</ -_)
   # /_/|_|\_,_/_/___/\__/
   @tongo.command(
-    name="raise",
+    name="risk",
     description="Join the current game of Tongo!"
   )
   @option(
     name="first_badge",
     description="First badge to add to the pot!",
     required=True,
-    autocomplete=raise_autocomplete
+    autocomplete=risk_autocomplete
   )
   @option(
     name="second_badge",
     description="Second badge to add to the pot!",
     required=True,
-    autocomplete=raise_autocomplete
+    autocomplete=risk_autocomplete
   )
   @option(
     name="third_badge",
     description="Third badge to add to the pot!",
     required=True,
-    autocomplete=raise_autocomplete
+    autocomplete=risk_autocomplete
   )
   @commands.check(access_check)
-  async def raise_pot(self, ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
+  async def risk(self, ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
     user_member = await self.bot.current_guild.fetch_member(user_discord_id)
     active_tongo = db_get_active_tongo()
     tongo_players = db_get_active_tongo_players(active_tongo['id'])
-    tongo_player_ids = [p['user_discord_id'] for p in tongo_players]
+    tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
 
     if not active_tongo:
       await ctx.respond(embed=discord.Embed(
           title="No Tongo Game In Progress",
-          description="No one is playing Tongo yet!\n\nUse `/tongo start` to begin a game!",
+          description="No one is playing Tongo yet!\n\nUse `/tongo venture` to begin a game!",
           color=discord.Color.red()
         ),
         ephemeral=True
@@ -213,7 +213,7 @@ class Tongo(commands.Cog):
 
     confirmation_embed = discord.Embed(
       title="TONGO!",
-      description=f"A new challenger appears! {user_member.display_name} has joined the table!",
+      description=f"A new challenger appears! **{user_member.display_name}** has joined the table!",
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
@@ -233,7 +233,7 @@ class Tongo(commands.Cog):
     )
     await ctx.channel.send(embed=confirmation_embed)
 
-  async def _cancel_tongo_related_trades(self, active_trade, user_discord_id, selected_badges):
+  async def _cancel_tongo_related_trades(self, user_discord_id, selected_badges):
     # These are all the active or pending trades that involved the user as either the 
     # requestee or requestor and include the badges that were added to the tongo pot
     # are thus no longer valid and need to be canceled
@@ -306,7 +306,7 @@ class Tongo(commands.Cog):
     if len(selected_user_badges) != 3:
       await ctx.followup.send(embed=discord.Embed(
         title="Invalid Selection",
-        description=f"You must own all of the badges you've selected to raise with and they must be unlocked!",
+        description=f"You must own all of the badges you've selected to risk and they must be unlocked!",
         color=discord.Color.red()
       ), ephemeral=True)
       return False
@@ -323,7 +323,7 @@ class Tongo(commands.Cog):
     if restricted_badges:
       await ctx.followup.send(embed=discord.Embed(
         title="Invalid Selection",
-        description=f"You cannot raise with the following: {','.join(restricted_badges)}!",
+        description=f"You cannot risk with the following: {','.join(restricted_badges)}!",
         color=discord.Color.red()
       ), ephemeral=True)
       return False
