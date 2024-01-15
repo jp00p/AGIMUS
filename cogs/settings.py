@@ -1,4 +1,5 @@
 from common import *
+from cogs.trade import db_is_user_in_dtd_list
 
 # ____  _____________
 # \   \/  /\______   \
@@ -233,24 +234,44 @@ class DTDDropdown(discord.ui.Select):
   async def callback(self, interaction:discord.Interaction):
     selection = self.values[0]
 
+    is_user_in_dtd_already = db_is_user_in_dtd_list(interaction.user.id)
+
     if selection == "Enable DTD":
-      db_add_user_to_dtd(interaction.user.id)
-      await interaction.response.send_message(
-        embed=discord.Embed(
-          title="You have successfully chosen to participate in the Down To Dabo List.",
-          color=discord.Color.green()
-        ).set_footer(text="You can always come back to this interface to reconfigure in the future!"),
-        ephemeral=True
-      )
+      if is_user_in_dtd_already:
+        await interaction.response.send_message(
+          embed=discord.Embed(
+            title="You're already in the DTD List! No action taken.",
+            color=discord.Color.red()
+          ),
+          ephemeral=True
+        )
+      else:
+        db_add_user_to_dtd(interaction.user.id)
+        await interaction.response.send_message(
+          embed=discord.Embed(
+            title="You have successfully chosen to participate in the Down To Dabo List.",
+            color=discord.Color.green()
+          ).set_footer(text="You can always come back to this interface to reconfigure in the future!"),
+          ephemeral=True
+        )
     elif selection == "Disable DTD":
-      db_remove_user_from_dtd(interaction.user.id)
-      await interaction.response.send_message(
-        embed=discord.Embed(
-          title="You have successfully opted-out of the Down To Dabo List.",
-          color=discord.Color.blurple()
-        ).set_footer(text="You can always come back to this interface and re-enable in the future!"),
-        ephemeral=True
-      )
+      if not is_user_in_dtd_already:
+        await interaction.response.send_message(
+          embed=discord.Embed(
+            title="You weren't in the DTD list! No action taken.",
+            color=discord.Color.red()
+          ),
+          ephemeral=True
+        )
+      else:
+        db_remove_user_from_dtd(interaction.user.id)
+        await interaction.response.send_message(
+          embed=discord.Embed(
+            title="You have successfully opted-out of the Down To Dabo List.",
+            color=discord.Color.blurple()
+          ).set_footer(text="You can always come back to this interface and re-enable in the future!"),
+          ephemeral=True
+        )
 
 class DTDView(discord.ui.View):
   def __init__(self, cog):
@@ -567,6 +588,12 @@ def db_toggle_loudbot(user_id, toggle):
 
 def db_add_user_to_dtd(user_id):
   with AgimusDB() as query:
+    sql = "SELECT user_discord_id FROM down_to_dabo WHERE user_discord_id = %s"
+    vals = (user_id)
+    result = query.execute(sql, vals)
+    user_already_added = query.fetchone()
+    if user_already_added is not None:
+      sql = "UPDATE down_to_dabo SET wei"
     sql = "INSERT INTO down_to_dabo (user_discord_id, weight) VALUES (%s, %s)"
     vals = (user_id, 1)
     query.execute(sql, vals)
@@ -574,5 +601,5 @@ def db_add_user_to_dtd(user_id):
 def db_remove_user_from_dtd(user_id):
   with AgimusDB() as query:
     sql = "DELETE FROM down_to_dabo WHERE user_discord_id = %s"
-    vals = (user_id)
+    vals = (user_id,)
     query.execute(sql, vals)
