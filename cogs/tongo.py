@@ -116,7 +116,7 @@ class Tongo(commands.Cog):
 
     confirmation_embed = discord.Embed(
       title="TONGO! Badges Ventured!",
-      description=f"A new Tongo game has begun!!!\n\n**{user_member.display_name}** has kicked things off and is the Chair!\n\n"
+      description=f"A new Tongo game has begun!!!\n\n**{user_member.display_name}** has kicked things off and is The Chair!\n\n"
                   "Only *they* have the ability to end the game via `/tongo confront`!",
       color=discord.Color.dark_purple()
     )
@@ -334,8 +334,6 @@ class Tongo(commands.Cog):
 
     tongo_players = db_get_active_tongo_players(active_tongo['id'])
     tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
-
-    tongo_pot_badges = db_get_tongo_pot_badges()
     tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
 
     confirmation_embed = discord.Embed(
@@ -354,7 +352,7 @@ class Tongo(commands.Cog):
       inline=False
     )
     confirmation_embed.add_field(
-      name=f"Total Badges In The Great Material Continuum!"",
+      name=f"Total Badges In The Great Material Continuum!",
       value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
       inline=False
     )
@@ -378,7 +376,7 @@ class Tongo(commands.Cog):
   # \___/\___/_//_/_//_/  \___/_//_/\__/
   @tongo.command(
     name="confront",
-    description="If you're the Chair, end the current game of Tongo!"
+    description="If you're The Chair, end the current game of Tongo!"
   )
   @commands.check(access_check)
   async def confront(self, ctx:discord.ApplicationContext):
@@ -400,7 +398,7 @@ class Tongo(commands.Cog):
       if active_tongo_chair_id != user_discord_id:
         await ctx.respond(embed=discord.Embed(
             title="You're Not The Chair!",
-            description=f"Only the Chair is allowed to end the Tongo!\n\nThe current Chair is: **{active_chair.display_name}**",
+            description=f"Only The Chair is allowed to end the Tongo!\n\nThe current Chair is: **{active_chair.display_name}**",
             color=discord.Color.red()
           ),
           ephemeral=True
@@ -428,7 +426,7 @@ class Tongo(commands.Cog):
     )
     if tongo_pot_badges:
       results_embed.add_field(
-        name=f"Remaining Badges In The Great Material Continuum!"",
+        name=f"Remaining Badges In The Great Material Continuum!",
         value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
         inline=False
       )
@@ -458,8 +456,9 @@ class Tongo(commands.Cog):
     # We're Done Baybee!
 
   async def _perform_confront_distribution(self):
-    # We gather all of this from the DB here because this will also be fired on a timer 
-    # if it hasn't been ended by the Chair in n many hours in the future
+    # We gather all of this from the DB here because in a future update 
+    # this will also automatically be fired on a timer if it hasn't been ended 
+    # by the Chair after n many hours from when the Tongo it was initiated
     active_tongo = db_get_active_tongo()
     tongo_players = db_get_active_tongo_players(active_tongo['id'])
     tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
