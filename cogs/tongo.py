@@ -60,19 +60,19 @@ class Tongo(commands.Cog):
   )
   @option(
     name="first_badge",
-    description="First badge to add to the pot!",
+    description="First badge to add to The Great Material Continuum!",
     required=True,
     autocomplete=risk_autocomplete
   )
   @option(
     name="second_badge",
-    description="Second badge to add to the pot!",
+    description="Second badge to add to The Great Material Continuum!",
     required=True,
     autocomplete=risk_autocomplete
   )
   @option(
     name="third_badge",
-    description="Third badge to add to the pot!",
+    description="Third badge to add to The Great Material Continuum!",
     required=True,
     autocomplete=risk_autocomplete
   )
@@ -117,7 +117,7 @@ class Tongo(commands.Cog):
     confirmation_embed = discord.Embed(
       title="TONGO! Badges Ventured!",
       description=f"A new Tongo game has begun!!!\n\n**{user_member.display_name}** has kicked things off and is the Chair!\n\n"
-                  "Only they have the ability to end the game via `/tongo confront`!",
+                  "Only *they* have the ability to end the game via `/tongo confront`!",
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
@@ -126,7 +126,7 @@ class Tongo(commands.Cog):
       inline=False
     )
     confirmation_embed.add_field(
-      name=f"Current Pot (May Include Extra Badges From Previous Games!)",
+      name=f"The Great Material Continuum",
       value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
       inline=False
     )
@@ -146,19 +146,19 @@ class Tongo(commands.Cog):
   )
   @option(
     name="first_badge",
-    description="First badge to add to the pot!",
+    description="First badge to add to The Great Material Continuum!",
     required=True,
     autocomplete=risk_autocomplete
   )
   @option(
     name="second_badge",
-    description="Second badge to add to the pot!",
+    description="Second badge to add to The Great Material Continuum!",
     required=True,
     autocomplete=risk_autocomplete
   )
   @option(
     name="third_badge",
-    description="Third badge to add to the pot!",
+    description="Third badge to add to The Great Material Continuum!",
     required=True,
     autocomplete=risk_autocomplete
   )
@@ -168,8 +168,6 @@ class Tongo(commands.Cog):
     user_discord_id = ctx.interaction.user.id
     user_member = await self.bot.current_guild.fetch_member(user_discord_id)
     active_tongo = db_get_active_tongo()
-    tongo_players = db_get_active_tongo_players(active_tongo['id'])
-    tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
 
     if not active_tongo:
       await ctx.respond(embed=discord.Embed(
@@ -180,8 +178,11 @@ class Tongo(commands.Cog):
         ephemeral=True
       )
       return
-    elif user_discord_id in tongo_player_ids:
-      description = "Damn player, you've already bought in!"
+
+    tongo_players = db_get_active_tongo_players(active_tongo['id'])
+    tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
+    if user_discord_id in tongo_player_ids:
+      description = "Damn player, you've already made your Risk!"
       if user_discord_id == active_tongo['chair_discord_id']:
         description += f"\n\nPlus you're the one that started it! If you want to deal em out, use `/tongo deal`!"
       await ctx.respond(embed=discord.Embed(
@@ -216,19 +217,21 @@ class Tongo(commands.Cog):
 
     confirmation_embed = discord.Embed(
       title="TONGO! Badges Risked!",
-      description=f"A new challenger appears!\n\n**{user_member.display_name}** has joined the table!",
+      description=f"A new challenger appears!\n**{user_member.display_name}** has joined the table!",
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
       name=f"Badges Thrown In By {user_member.display_name}",
-      value="\n".join([f"* {b}" for b in selected_user_badges])
+      value="\n".join([f"* {b}" for b in selected_user_badges]),
+      inline=False
     )
     confirmation_embed.add_field(
       name=f"Current Players",
-      value="\n".join([f"* {m.display_name}" for m in tongo_player_members])
+      value="\n".join([f"* {m.display_name}" for m in tongo_player_members]),
+      inline=False
     )
     confirmation_embed.add_field(
-      name=f"Total Badges In The Pot",
+      name=f"Total Badges In The Great Material Continuum!",
       value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
       inline=False
     )
@@ -351,7 +354,7 @@ class Tongo(commands.Cog):
       inline=False
     )
     confirmation_embed.add_field(
-      name=f"Total Badges In The Pot",
+      name=f"Total Badges In The Great Material Continuum!"",
       value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
       inline=False
     )
@@ -360,6 +363,14 @@ class Tongo(commands.Cog):
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
     )
     await ctx.channel.send(embed=confirmation_embed)
+
+    await ctx.respond(embed=discord.Embed(
+        title="Index Request Processed",
+        description="See the channel!",
+        color=discord.Color.dark_purple()
+      ),
+      ephemeral=True
+    )
 
   #   _____          ___              __
   #  / ___/__  ___  / _/______  ___  / /_
@@ -417,7 +428,7 @@ class Tongo(commands.Cog):
     )
     if tongo_pot_badges:
       results_embed.add_field(
-        name=f"Remaining Badges In The Pot",
+        name=f"Remaining Badges In The Great Material Continuum!"",
         value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
         inline=False
       )
@@ -540,7 +551,7 @@ class Tongo(commands.Cog):
     if existing_pot_badges:
       await ctx.followup.send(embed=discord.Embed(
         title="Invalid Selection",
-        description=f"The following badges are already in the pot: {','.join(existing_pot_badges)}!",
+        description=f"The following badges are already in The Great Material Continuum: {','.join(existing_pot_badges)}!",
         color=discord.Color.red()
       ), ephemeral=True)
       return False
