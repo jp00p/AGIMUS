@@ -16,7 +16,7 @@ async def handle_bot_affirmations(message:discord.Message):
   message_content = message.content.lower()
 
   if "agimus" in message_content.lower():
-    await message.add_reaction(get_emoji("AGIMUS"))
+    await message.add_reaction(get_emoji("agimus"))
 
   for condemnation in bot_condemnations:
     if (re.match(fr".*{condemnation} bot[^\w\s]+", message_content)) or (re.match(fr".*{condemnation} bot$", message_content)):
