@@ -1008,7 +1008,7 @@ class Trade(commands.Cog):
     embed = discord.Embed(
       title="Down To Dabo",
       description=f"### {ctx.author.display_name}, your Randomized Down To Daboer is:\n\n"
-                  f"- {selected_user.mention}",
+                  f"- {selected_user.display_name}",
       color=discord.Color.blurple()
     )
     embed.set_footer(text="You can use `/settings` to opt-in or opt-out of the DTD List!")

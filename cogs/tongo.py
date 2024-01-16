@@ -232,7 +232,7 @@ class Tongo(commands.Cog):
       value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
       inline=False
     )
-    confirmation_embed.set_image(url="https://i.imgur.com/m8VXapp.gif")
+    confirmation_embed.set_image(url="https://i.imgur.com/iX9ZCpH.gif")
     confirmation_embed.set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
     )
@@ -413,8 +413,7 @@ class Tongo(commands.Cog):
     tongo_pot_badges = db_get_tongo_pot_badges()
     results_embed = discord.Embed(
       title="TONGO! Complete!",
-      description="Huzzah?",
-      color=discord.Color.red()
+      color=discord.Color.dark_purple()
     )
     if tongo_pot_badges:
       results_embed.add_field(
@@ -422,19 +421,28 @@ class Tongo(commands.Cog):
         value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
         inline=False
       )
+    results_embed.set_image(url="https://i.imgur.com/gdpvba5.gif")
     await ctx.channel.send(embed=results_embed)
 
     for result in results.items():
       player_member = await self.bot.current_guild.fetch_member(result[0])
       player_badges = [db_get_badge_info_by_filename(b) for b in list(result[1])]
 
-      logger.info(player_badges)
+      won_badge_filenames = [b['badge_filename'] for b in player_badges]
+      won_image_id = f"{active_tongo['id']}-won-{result[0]}"
+      won_image = await generate_badge_trade_showcase(
+        won_badge_filenames,
+        won_image_id,
+        f"Badges Won By {player_member.display_name}",
+        f"{len(player_badges)} Badges"
+      )
 
       player_embed = discord.Embed(
         title=f"{player_member.display_name} Received:",
         description="\n".join([f"* {b['badge_name']}" for b in player_badges])
       )
-      await ctx.channel.send(embed=player_embed)
+      player_embed.set_image(url=f"attachment://{won_image_id}.png")
+      await ctx.channel.send(embed=player_embed, file=won_image)
 
     # We're Done Baybee!
 
