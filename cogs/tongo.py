@@ -50,11 +50,10 @@ class Tongo(commands.Cog):
 
   tongo = discord.SlashCommandGroup("tongo", "Commands for Tongo Badge Game")
 
-
-  #    ______           __
-  #   / __/ /____ _____/ /_
-  #  _\ \/ __/ _ `/ __/ __/
-  # /___/\__/\_,_/_/  \__/
+  #   _   __         __ 
+  #  | | / /__ ___  / /___ _________
+  #  | |/ / -_) _ \/ __/ // / __/ -_)
+  #  |___/\__/_//_/\__/\_,_/_/  \__/
   @tongo.command(
     name="venture",
     description="Begin a game of Tongo!"
@@ -117,30 +116,33 @@ class Tongo(commands.Cog):
 
     confirmation_embed = discord.Embed(
       title="TONGO!",
-      description=f"A new Tongo game has begun!!!\n\n**{user_member.display_name}** has kicked things off!",
+      description=f"A new Tongo game has begun!!!\n\n**{user_member.display_name}** has kicked things off and is the Chair!\n\n"
+                  "Only they have the ability to end the game via `/tongo confront`!",
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
-      name=f"Badges Bought In By {user_member.display_name}",
-      value="\n".join([f"* {b}" for b in selected_user_badges])
+      name=f"Badges Ventured By {user_member.display_name}",
+      value="\n".join([f"* {b}" for b in selected_user_badges]),
+      inline=False
     )
     confirmation_embed.add_field(
       name=f"Current Pot (May Include Extra Badges From Previous Games!)",
-      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges])
+      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
+      inline=False
     )
+    confirmation_embed.set_image(url="https://i.imgur.com/tRi1vYq.gif")
     confirmation_embed.set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
     )
     await ctx.channel.send(embed=confirmation_embed)
 
-
-  #    ___       _
-  #   / _ \___ _(_)__ ___
-  #  / , _/ _ `/ (_-</ -_)
-  # /_/|_|\_,_/_/___/\__/
+  #    ___  _     __
+  #   / _ \(_)__ / /__
+  #  / , _/ (_-</  '_/
+  # /_/|_/_/___/_/\_\
   @tongo.command(
     name="risk",
-    description="Join the current game of Tongo!"
+    description="Risk some badges and join the current game of Tongo!"
   )
   @option(
     name="first_badge",
@@ -180,7 +182,7 @@ class Tongo(commands.Cog):
       return
     elif user_discord_id in tongo_player_ids:
       description = "Damn player, you've already bought in!"
-      if user_discord_id == active_tongo['initiator_discord_id']:
+      if user_discord_id == active_tongo['chair_discord_id']:
         description += f"\n\nPlus you're the one that started it! If you want to deal em out, use `/tongo deal`!"
       await ctx.respond(embed=discord.Embed(
           title="You're Already In The Game!",
@@ -226,8 +228,10 @@ class Tongo(commands.Cog):
     )
     confirmation_embed.add_field(
       name=f"Total Badges In The Pot",
-      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges])
+      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
+      inline=False
     )
+    confirmation_embed.set_image(url="https://i.imgur.com/m8VXapp.gif")
     confirmation_embed.set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
     )
@@ -297,6 +301,195 @@ class Tongo(commands.Cog):
           logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
           pass
 
+  #    ____        __
+  #   /  _/__  ___/ /____ __
+  #  _/ // _ \/ _  / -_) \ /
+  # /___/_//_/\_,_/\__/_\_\
+  @tongo.command(
+    name="index",
+    description="Check the current status of the active game of Tongo!"
+  )
+  @commands.check(access_check)
+  async def index(self, ctx:discord.ApplicationContext):
+    user_discord_id = ctx.interaction.user.id
+    user_member = await self.bot.current_guild.fetch_member(user_discord_id)
+    active_tongo = db_get_active_tongo()
+
+    if not active_tongo:
+      await ctx.respond(embed=discord.Embed(
+          title="No Tongo Game In Progress",
+          description="No one is playing Tongo yet!\n\nUse `/tongo venture` to begin a game!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    active_tongo_chair_id = int(active_tongo['chair_discord_id'])
+    active_chair_member = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
+
+    tongo_players = db_get_active_tongo_players(active_tongo['id'])
+    tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
+
+    tongo_pot_badges = db_get_tongo_pot_badges()
+    tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
+
+    confirmation_embed = discord.Embed(
+      title="TONGO!",
+      description=f"Index requested by **{user_member.display_name}**!\n\nDisplaying the status of the current game of Tongo!",
+      color=discord.Color.dark_purple()
+    )
+    confirmation_embed.add_field(
+      name=f"Tongo Chair",
+      value=active_chair_member.display_name
+    )
+    confirmation_embed.add_field(
+      name=f"Current Players",
+      value="\n".join([f"* {m.display_name}" for m in tongo_player_members])
+    )
+    confirmation_embed.add_field(
+      name=f"Total Badges In The Pot",
+      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
+      inline=False
+    )
+    confirmation_embed.set_image(url="https://i.imgur.com/aWLYGKQ.gif")
+    confirmation_embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
+    )
+    await ctx.channel.send(embed=confirmation_embed)
+
+  #   _____          ___              __
+  #  / ___/__  ___  / _/______  ___  / /_
+  # / /__/ _ \/ _ \/ _/ __/ _ \/ _ \/ __/
+  # \___/\___/_//_/_//_/  \___/_//_/\__/
+  @tongo.command(
+    name="confront",
+    description="If you're the Chair, end the current game of Tongo!"
+  )
+  @commands.check(access_check)
+  async def confront(self, ctx:discord.ApplicationContext):
+    user_discord_id = ctx.interaction.user.id
+    active_tongo = db_get_active_tongo()
+
+    if not active_tongo:
+      await ctx.respond(embed=discord.Embed(
+          title="No Tongo Game In Progress",
+          description="No one is playing Tongo yet!\n\nUse `/tongo venture` to begin a game!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+    else:
+      active_tongo_chair_id = int(active_tongo['chair_discord_id'])
+      active_chair = bot.current_guild.fetch_member(active_tongo_chair_id)
+      if active_tongo_chair_id != user_discord_id:
+        await ctx.respond(embed=discord.Embed(
+            title="You're Not The Chair!",
+            description=f"Only the Chair is allowed to end the Tongo!\n\nThe current Chair is: **{active_chair.display_name}**",
+            color=discord.Color.red()
+          ),
+          ephemeral=True
+        )
+        return
+
+    tongo_players = db_get_active_tongo_players(active_tongo['id'])
+    tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
+
+    if len(tongo_player_ids) < 2:
+      await ctx.respond(embed=discord.Embed(
+          title="You're The Only Player!",
+          description="Can't do a Confront when you're the only player in the game! Invite some people!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    results = self._perform_confront_distribution()
+    tongo_pot_badges = db_get_tongo_pot_badges()
+    results_embed = discord.Embed(
+      title="Tongo Complete!",
+      description="Huzzah?",
+      color=discord.Color.red()
+    )
+    if tongo_pot_badges:
+      results_embed.add_field(
+        name=f"Remaining Badges In The Pot",
+        value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
+        inline=False
+      )
+    await ctx.channel.send(embed=results_embed)
+
+    for result in results.items():
+      player_member = await self.bot.current_guild.fetch_member(result[0])
+      player_badges = result[1]
+
+      player_embed = discord.Embed(
+        title=f"{player_member.display_name} Received:",
+        description="\n".join([f"* {b['badge_name']}" for b in player_badges])
+      )
+      await ctx.channel.send(embed=player_embed)
+
+    # We're Done Baybee!
+
+  async def _perform_confront_distribution(self):
+    # We gather all of this from the DB here because this will also be fired on a timer 
+    # if it hasn't been ended by the Chair in n many hours in the future
+    active_tongo = db_get_active_tongo()
+    tongo_players = db_get_active_tongo_players(active_tongo['id'])
+    tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
+    tongo_pot_badges = db_get_tongo_pot_badges()
+
+    player_distribution = { player: set() for player in tongo_player_ids }
+
+    random.shuffle(tongo_pot_badges)
+
+    # We're going to go round-robin and try to distribute all of the shuffled badges
+    badge_index = 0
+    while tongo_pot_badges:
+      current_player = tongo_player_ids[badge_index % len(tongo_player_ids)]
+      current_badge = tongo_pot_badges.pop(0)
+
+      # Check if the player already reached the maximum badges per player
+      if len(player_distribution[current_player]) >= 3:
+        # Move to the next player if the current player reached the limit
+        badge_index += 1
+        continue
+
+      # Check if the player already has all remaining badges
+      if all(badge in player_distribution[current_player] for badge in tongo_pot_badges):
+        break
+
+      # Check if the player already has the badge
+      while current_badge in player_distribution[current_player]:
+        # If they have the badge, try the next one
+        if not tongo_pot_badges:
+          # If no more badges are available, move to the next player
+          break
+        current_badge = tongo_pot_badges.pop(0)
+
+      # Check if the player received a badge
+      if current_badge not in player_distribution[current_player]:
+        player_distribution[current_player].add(current_badge)
+        current_player_member = await self.bot.current_guild.fetch_member(current_player)
+        logger.info(f"{current_player_member.display_name} received badge: {current_badge}")
+
+      badge_index += 1
+
+    # Now go through the distribution and actually perform the handouts and removal from the pot
+    for p in player_distribution.items():
+      player_id = p[0]
+      player_badges = p[1]
+
+      for b in player_badges:
+        db_grant_player_badge(player_id, b['badge_filename'])
+        db_remove_badge_from_pot(b['badge_filename'])
+    
+    # End the current game of tongo
+    db_end_current_tongo(active_tongo['id'])
+
+    return player_distribution
 
   #   __  ____  _ ___ __  _
   #  / / / / /_(_) (_) /_(_)__ ___
@@ -324,6 +517,17 @@ class Tongo(commands.Cog):
       await ctx.followup.send(embed=discord.Embed(
         title="Invalid Selection",
         description=f"You cannot risk with the following: {','.join(restricted_badges)}!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return False
+
+    tongo_pot_badges = db_get_tongo_pot_badges
+    tongo_pot_badge_filenames = [b['badge_filename'] for b in tongo_pot_badges]
+    existing_pot_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in tongo_pot_badge_filenames]]
+    if existing_pot_badges:
+      await ctx.followup.send(embed=discord.Embed(
+        title="Invalid Selection",
+        description=f"The following badges are already in the pot: {','.join(existing_pot_badges)}!",
         color=discord.Color.red()
       ), ephemeral=True)
       return False
@@ -373,7 +577,7 @@ def db_get_active_tongo_players(tongo_id):
 def db_create_new_tongo(user_discord_id):
   with AgimusDB(dictionary=True) as query:
     sql = '''
-      INSERT INTO tongo (initiator_discord_id) VALUES (%s)
+      INSERT INTO tongo (chair_discord_id) VALUES (%s)
     '''
     vals = (user_discord_id,)
     query.execute(sql, vals)
@@ -455,3 +659,21 @@ def db_get_related_tongo_badge_trades(user_discord_id, selected_user_badges):
     query.execute(sql, vals)
     trades = query.fetchall()
   return trades
+
+def db_grant_player_badge(user_discord_id, badge_filename):
+  with AgimusDB() as query:
+    sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
+    vals = (user_discord_id, badge_filename)
+    query.execute(sql, vals)
+
+def db_remove_badge_from_pot(badge_filename):
+  with AgimusDB() as query:
+    sql = "DELETE FROM tongo_pot WHERE badge_filename = %s"
+    vals = (badge_filename,)
+    query.execute(sql, vals)
+
+def db_end_current_tongo(tongo_id):
+  with AgimusDB() as query:
+    sql = "UPDATE tongo SET status = 'complete' WHERE id = %s"
+    vals = (tongo_id,)
+    query.execute(sql, vals)

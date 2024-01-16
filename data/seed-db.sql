@@ -315,7 +315,7 @@ CREATE TABLE IF NOT EXISTS down_to_dabo (
 );
 CREATE TABLE IF NOT EXISTS tongo (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `initiator_discord_id` varchar(64) NOT NULL,
+  `chair_discord_id` varchar(64) NOT NULL,
   `status` varchar(64) NOT NULL DEFAULT 'active',
   `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
