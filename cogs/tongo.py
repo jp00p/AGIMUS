@@ -115,7 +115,7 @@ class Tongo(commands.Cog):
     tongo_pot_badges = db_get_tongo_pot_badges()
 
     confirmation_embed = discord.Embed(
-      title="TONGO!",
+      title="TONGO! Badges Ventured!",
       description=f"A new Tongo game has begun!!!\n\n**{user_member.display_name}** has kicked things off and is the Chair!\n\n"
                   "Only they have the ability to end the game via `/tongo confront`!",
       color=discord.Color.dark_purple()
@@ -211,11 +211,12 @@ class Tongo(commands.Cog):
     await self._cancel_tongo_related_trades(user_discord_id, selected_badges)
 
     tongo_pot_badges = db_get_tongo_pot_badges()
+    tongo_player_ids.append(user_discord_id)
     tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
 
     confirmation_embed = discord.Embed(
-      title="TONGO!",
-      description=f"A new challenger appears! **{user_member.display_name}** has joined the table!",
+      title="TONGO! Badges Risked!",
+      description=f"A new challenger appears!\n\n**{user_member.display_name}** has joined the table!",
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
@@ -335,17 +336,19 @@ class Tongo(commands.Cog):
     tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
 
     confirmation_embed = discord.Embed(
-      title="TONGO!",
+      title="TONGO! Call For Index!",
       description=f"Index requested by **{user_member.display_name}**!\n\nDisplaying the status of the current game of Tongo!",
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
       name=f"Tongo Chair",
-      value=active_chair_member.display_name
+      value=f"* {active_chair_member.display_name}",
+      inline=False
     )
     confirmation_embed.add_field(
       name=f"Current Players",
-      value="\n".join([f"* {m.display_name}" for m in tongo_player_members])
+      value="\n".join([f"* {m.display_name}" for m in tongo_player_members]),
+      inline=False
     )
     confirmation_embed.add_field(
       name=f"Total Badges In The Pot",
@@ -382,7 +385,7 @@ class Tongo(commands.Cog):
       return
     else:
       active_tongo_chair_id = int(active_tongo['chair_discord_id'])
-      active_chair = bot.current_guild.fetch_member(active_tongo_chair_id)
+      active_chair = await bot.current_guild.fetch_member(active_tongo_chair_id)
       if active_tongo_chair_id != user_discord_id:
         await ctx.respond(embed=discord.Embed(
             title="You're Not The Chair!",
@@ -406,10 +409,10 @@ class Tongo(commands.Cog):
       )
       return
 
-    results = self._perform_confront_distribution()
+    results = await self._perform_confront_distribution()
     tongo_pot_badges = db_get_tongo_pot_badges()
     results_embed = discord.Embed(
-      title="Tongo Complete!",
+      title="TONGO! Complete!",
       description="Huzzah?",
       color=discord.Color.red()
     )
@@ -423,7 +426,9 @@ class Tongo(commands.Cog):
 
     for result in results.items():
       player_member = await self.bot.current_guild.fetch_member(result[0])
-      player_badges = result[1]
+      player_badges = [db_get_badge_info_by_filename(b) for b in list(result[1])]
+
+      logger.info(player_badges)
 
       player_embed = discord.Embed(
         title=f"{player_member.display_name} Received:",
@@ -440,16 +445,17 @@ class Tongo(commands.Cog):
     tongo_players = db_get_active_tongo_players(active_tongo['id'])
     tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
     tongo_pot_badges = db_get_tongo_pot_badges()
+    tongo_pot = [b['badge_filename'] for b in tongo_pot_badges]
 
     player_distribution = { player: set() for player in tongo_player_ids }
 
-    random.shuffle(tongo_pot_badges)
+    random.shuffle(tongo_pot)
 
     # We're going to go round-robin and try to distribute all of the shuffled badges
     badge_index = 0
-    while tongo_pot_badges:
+    while tongo_pot:
       current_player = tongo_player_ids[badge_index % len(tongo_player_ids)]
-      current_badge = tongo_pot_badges.pop(0)
+      current_badge = tongo_pot.pop(0)
 
       # Check if the player already reached the maximum badges per player
       if len(player_distribution[current_player]) >= 3:
@@ -458,16 +464,16 @@ class Tongo(commands.Cog):
         continue
 
       # Check if the player already has all remaining badges
-      if all(badge in player_distribution[current_player] for badge in tongo_pot_badges):
+      if all(badge in player_distribution[current_player] for badge in tongo_pot):
         break
 
       # Check if the player already has the badge
       while current_badge in player_distribution[current_player]:
         # If they have the badge, try the next one
-        if not tongo_pot_badges:
+        if not tongo_pot:
           # If no more badges are available, move to the next player
           break
-        current_badge = tongo_pot_badges.pop(0)
+        current_badge = tongo_pot.pop(0)
 
       # Check if the player received a badge
       if current_badge not in player_distribution[current_player]:
@@ -483,8 +489,8 @@ class Tongo(commands.Cog):
       player_badges = p[1]
 
       for b in player_badges:
-        db_grant_player_badge(player_id, b['badge_filename'])
-        db_remove_badge_from_pot(b['badge_filename'])
+        db_grant_player_badge(player_id, b)
+        db_remove_badge_from_pot(b)
     
     # End the current game of tongo
     db_end_current_tongo(active_tongo['id'])
@@ -521,9 +527,8 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
       return False
 
-    tongo_pot_badges = db_get_tongo_pot_badges
-    tongo_pot_badge_filenames = [b['badge_filename'] for b in tongo_pot_badges]
-    existing_pot_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in tongo_pot_badge_filenames]]
+    tongo_pot_badges = db_get_tongo_pot_badges()
+    existing_pot_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in tongo_pot_badges]]
     if existing_pot_badges:
       await ctx.followup.send(embed=discord.Embed(
         title="Invalid Selection",

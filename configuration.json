@@ -778,6 +778,14 @@
       "data": "data/testslots.json",
       "parameters": []
     },
+    "tongo confront": {
+      "channels": [
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "tongo index": {
       "channels": [
         "bahrats-bazaar"
