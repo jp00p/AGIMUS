@@ -515,7 +515,7 @@ class Tongo(commands.Cog):
     self.auto_confront.cancel()
     # We're Done Baybee!
 
-  @tasks.loop(minutes=2)
+  @tasks.loop(hours=8)
   async def auto_confront(self):
     if self.first_auto_confront:
       self.first_auto_confront = False
