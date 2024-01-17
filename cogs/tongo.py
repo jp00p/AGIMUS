@@ -469,7 +469,7 @@ class Tongo(commands.Cog):
         await ctx.channel.send(embed=player_embed, file=won_image)
         
         # Now send message to the player
-        player_message_embed = discord.embed(
+        player_message_embed = discord.Embed(
           title=f"TONGO! Confront!",
           description="Your Tongo game has ended! Your winnings are included below, "
                       f"and you can view the full results at: {channel_message.jump_url}",
@@ -483,18 +483,19 @@ class Tongo(commands.Cog):
           pass
       else:
         player_embed = discord.Embed(
-          title=f"{player_member.display_name} Did Not Receive Any Badges!"
+          title=f"{player_member.display_name} Did Not Receive Any Badges..."
         )
-        # player_embed.set_image(url=f"attachment://{won_image_id}.png")
+        player_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
         await ctx.channel.send(embed=player_embed)
         
         # Now send message to the player
-        player_message_embed = discord.embed(
+        player_message_embed = discord.Embed(
           title=f"TONGO! Confront!",
-          description="Your Tongo game has ended! Sadly you did not receive any badges... "
+          description="Your Tongo game has ended! Sadly you did not receive any badges... \n\n"
                       f"You can view the full results at: {channel_message.jump_url}",
           color=discord.Color.dark_purple()
         )
+        player_message_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
         try:
           await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
@@ -504,7 +505,7 @@ class Tongo(commands.Cog):
     self.auto_confront.cancel()
     # We're Done Baybee!
 
-  @tasks.loop(hours=8)
+  @tasks.loop(minutes=5)
   async def auto_confront(self):
     active_tongo = db_get_active_tongo()
 
@@ -571,13 +572,13 @@ class Tongo(commands.Cog):
           description="\n".join([f"* {b['badge_name']}" for b in player_badges])
         )
         player_embed.set_image(url=f"attachment://{won_image_id}.png")
-        await trade_channel.send(embed=player_embed, file=won_image)
+        confirmation_message = await trade_channel.send(embed=player_embed, file=won_image)
 
         # Now send message to the player
-        player_message_embed = discord.embed(
+        player_message_embed = discord.Embed(
           title=f"TONGO! Game Automatically Ending!",
           description="Time ran out for your Tongo game and it has automatically ended! Your winnings are included below, "
-                      f"and you can view the full results at: {channel_message.jump_url}",
+                      f"and you can view the full results at: {confirmation_message.jump_url}",
           color=discord.Color.dark_purple()
         )
         player_message_embed.set_image(url=f"attachment://{won_image_id}.png")
@@ -590,16 +591,17 @@ class Tongo(commands.Cog):
         player_embed = discord.Embed(
           title=f"{player_member.display_name} Did Not Receive Any Badges!"
         )
-        # player_embed.set_image(url=f"attachment://{won_image_id}.png")
+        player_message_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
         await trade_channel.send(embed=player_embed)
 
         # Now send message to the player
-        player_message_embed = discord.embed(
+        player_message_embed = discord.Embed(
           title=f"TONGO! Confront!",
-          description="Your Tongo game has ended! Sadly you did not receive any badges... "
+          description="Your Tongo game has automatically ended! Sadly you did not receive any badges... \n\n"
                       f"You can view the full results at: {channel_message.jump_url}",
           color=discord.Color.dark_purple()
         )
+        player_message_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
         try:
           await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
@@ -618,43 +620,58 @@ class Tongo(commands.Cog):
     tongo_pot_badges = db_get_tongo_pot_badges()
     tongo_pot = [b['badge_filename'] for b in tongo_pot_badges]
 
-    player_distribution = { player: set() for player in tongo_player_ids }
+    player_distribution = { player_id: set() for player_id in tongo_player_ids }
+    player_inventories = {}
+    for player_id in tongo_player_ids:
+      player_inventories[player_id] = [b['badge_filename'] for b in db_get_user_badges(b)]
 
     random.shuffle(tongo_pot)
 
     # We're going to go round-robin and try to distribute all of the shuffled badges
-    badge_index = 0
+    turn_index = 0
     while tongo_pot:
-      current_player = tongo_player_ids[badge_index % len(tongo_player_ids)]
-      current_badge = tongo_pot.pop(0)
+      logger.info(f"Turn Index Is: {turn_index}")
+      working_pot = tongo_pot.copy()
+      
+      current_player_id = tongo_player_ids[turn_index % len(tongo_player_ids)]
+      current_badge = working_pot.pop(0)
+
+      # logger.info(f"Current player: {current_player_id}")
 
       # Check if the player already reached the maximum badges per player
-      if len(player_distribution[current_player]) >= 3:
-        # Move to the next player if the current player reached the limit
-        badge_index += 1
-        continue
+      if len(player_distribution[current_player_id]) >= 3:
+          # logger.info(f"Current player: {current_player_id} has reached the 3 badge limit")
+          # if the current player has reached the limit
+          turn_index += 1
+          break
 
       # Check if the player already has all remaining badges
-      if all(badge in player_distribution[current_player] for badge in tongo_pot):
-        break
+      if all(b in player_distribution[current_player_id] for b in player_inventories[current_player_id]):
+          # logger.info(f"Current player: {current_player_id} already has all the badges either via the distribution, or in their existing inventory.")
+          # Move to the next player
+          break
 
       # Check if the player already has the badge
-      while current_badge in player_distribution[current_player]:
-        # If they have the badge, try the next one
-        if not tongo_pot:
-          # If no more badges are available, move to the next player
-          break
-        current_badge = tongo_pot.pop(0)
+      while (current_badge in player_distribution[current_player_id]) or (current_badge in player_inventories[current_player_id]):
+          if not working_pot:
+              # If no more badges are available, exit
+              print(f"No badges left to attempt to give to Player {current_player_id}! End the turn.")
+              break
+          # If they have the badge, try the next one
+          previous_badge = current_badge
+          current_badge = working_pot.pop(0)
+          logger.info(f"Player already has {previous_badge}, pop off the next one: {current_badge}")
 
       # Check if the player received a badge
-      if current_badge not in player_distribution[current_player]:
-        player_distribution[current_player].add(current_badge)
-        current_player_member = await self.bot.current_guild.fetch_member(current_player)
-        logger.info(f"{current_player_member.display_name} received badge: {current_badge}")
+      if current_badge not in player_distribution[current_player_id] and current_badge not in player_inventories[current_player_id]:
+          player_distribution[current_player_id].add(current_badge)
+          tongo_pot.remove(current_badge)
+          print(f"{current_player_id} received badge: {current_badge}")
 
-      badge_index += 1
+      turn_index += 1
+      # logger.info(f"Moving to the next turn: {turn_index}")
 
-    # Now go through the distribution and actually perform the handouts and removal from the pot
+    # Now go through the distribution and actually perform the db handouts and removal from the pot
     for p in player_distribution.items():
       player_id = p[0]
       player_badges = p[1]
@@ -662,7 +679,7 @@ class Tongo(commands.Cog):
       for b in player_badges:
         db_grant_player_badge(player_id, b)
         db_remove_badge_from_pot(b)
-    
+
     # End the current game of tongo
     db_end_current_tongo(active_tongo['id'])
 
