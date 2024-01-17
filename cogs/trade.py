@@ -363,7 +363,10 @@ class Trade(commands.Cog):
     )
     success_image = discord.File(fp=f"./images/trades/assets/{image_filename}", filename=image_filename)
     success_embed.set_image(url=f"attachment://{image_filename}")
-    success_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
+    success_embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    )
 
     channel = interaction.channel
     message = await channel.send(embed=success_embed, file=success_image)
@@ -800,7 +803,10 @@ class Trade(commands.Cog):
       name=f"Badges requested from {requestee.display_name}",
       value=request
     )
-    initiated_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
+    initiated_embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    )
 
     initiated_image = discord.File(fp="./images/trades/assets/trade_pending.png", filename="trade_pending.png")
     initiated_embed.set_image(url=f"attachment://trade_pending.png")
@@ -933,7 +939,10 @@ class Trade(commands.Cog):
       name=f"Badges requested from {requestee.display_name}",
       value="\n".join([f"* {b}" for b in random_requests])
     )
-    dabo_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
+    dabo_embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    )
 
     dabo_image = discord.File(fp="./images/trades/assets/dabo.png", filename="dabo.png")
     dabo_embed.set_image(url=f"attachment://dabo.png")
@@ -1374,7 +1383,10 @@ class Trade(commands.Cog):
       name=f"Requested from {requestee.display_name}",
       value=requested_badge_names
     )
-    home_embed.set_footer(text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}")
+    home_embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    )
     home_image = discord.File(fp=f"./images/trades/assets/{image_filename}", filename=image_filename)
     home_embed.set_image(url=f"attachment://{image_filename}")
 
