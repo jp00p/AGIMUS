@@ -613,13 +613,13 @@ class Tongo(commands.Cog):
           )
           db_purge_users_wishlist(player_user_discord_id)
         player_embed.set_image(url=f"attachment://{won_image_id}.png")
-        confirmation_message = await trade_channel.send(embed=player_embed, file=won_image)
+        await trade_channel.send(embed=player_embed, file=won_image)
 
         # Now send message to the player
         player_message_embed = discord.Embed(
           title=f"TONGO! Game Automatically Ending!",
           description="Time ran out for your Tongo game and it has automatically ended! Your winnings are included below, "
-                      f"and you can view the full results at: {confirmation_message.jump_url}",
+                      f"and you can view the full results at: {channel_message.jump_url}",
           color=discord.Color.dark_purple()
         )
         player_message_embed.add_field(
