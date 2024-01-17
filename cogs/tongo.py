@@ -47,6 +47,7 @@ class Tongo(commands.Cog):
       ),
       pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
     ]
+    self.first_auto_confront = True
 
   tongo = discord.SlashCommandGroup("tongo", "Commands for Tongo Badge Game")
 
@@ -137,6 +138,7 @@ class Tongo(commands.Cog):
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
     )
     await ctx.channel.send(embed=confirmation_embed)
+    self.first_auto_confront = True
     self.auto_confront.start()
 
   #    ___  _     __
@@ -220,7 +222,7 @@ class Tongo(commands.Cog):
 
     confirmation_embed = discord.Embed(
       title="TONGO! Badges Risked!",
-      description=f"A new challenger appears!\n**{user_member.display_name}** has joined the table!",
+      description=f"### **{user_member.display_name}** has joined the table!\n\nA new challenger appears!",
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
@@ -343,8 +345,8 @@ class Tongo(commands.Cog):
 
     description=f"Index requested by **{user_member.display_name}**!\n\nDisplaying the status of the current game of Tongo!\n\n"
     if self.auto_confront.next_iteration:
-      current_time = datetime.utcnow()
-      remaining_time = self.auto_confront.next_iteration - current_time
+      current_time = datetime.now(timezone.utc)
+      remaining_time = current_time - self.auto_confront.next_iteration
       description += f"This Tongo game has {humanize.naturaltime(remaining_time)} left before the game is automatically ended!"
 
     confirmation_embed = discord.Embed(
@@ -372,13 +374,10 @@ class Tongo(commands.Cog):
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
     )
     await ctx.channel.send(embed=confirmation_embed)
-
     await ctx.respond(embed=discord.Embed(
-        title="Index Request Processed",
-        description="See the channel!",
+        title="Index Request Processed!",
         color=discord.Color.dark_purple()
-      ),
-      ephemeral=True
+      ), ephemeral=True
     )
 
   #   _____          ___              __
@@ -432,6 +431,13 @@ class Tongo(commands.Cog):
       )
       return
 
+    # Respond to command required
+    await ctx.respond(embed=discord.Embed(
+        title="Confront Acknowledged!",
+        color=discord.Color.dark_purple()
+      ), ephemeral=True
+    )
+
     results = await self._perform_confront_distribution()
     tongo_pot_badges = db_get_tongo_pot_badges()
     results_embed = discord.Embed(
@@ -463,7 +469,8 @@ class Tongo(commands.Cog):
 
         player_embed = discord.Embed(
           title=f"{player_member.display_name} Received:",
-          description="\n".join([f"* {b['badge_name']}" for b in player_badges])
+          description="\n".join([f"* {b['badge_name']}" for b in player_badges]),
+          color=discord.Color.dark_purple()
         )
         player_embed.set_image(url=f"attachment://{won_image_id}.png")
         await ctx.channel.send(embed=player_embed, file=won_image)
@@ -475,9 +482,12 @@ class Tongo(commands.Cog):
                       f"and you can view the full results at: {channel_message.jump_url}",
           color=discord.Color.dark_purple()
         )
-        player_message_embed.set_image(url=f"attachment://{won_image_id}.png")
+        player_message_embed.add_field(
+          name=f"Badges Acquired",
+          value="\n".join([f"* {b['badge_name']}" for b in player_badges])
+        )
         try:
-          await player_member.send(embed=player_message_embed, file=won_image)
+          await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send Tongo completion message to {player_member.display_name}, they have their DMs closed.")
           pass
@@ -505,8 +515,12 @@ class Tongo(commands.Cog):
     self.auto_confront.cancel()
     # We're Done Baybee!
 
-  @tasks.loop(minutes=5)
+  @tasks.loop(minutes=2)
   async def auto_confront(self):
+    if self.first_auto_confront:
+      self.first_auto_confront = False
+      return
+
     active_tongo = db_get_active_tongo()
 
     if not active_tongo:
@@ -540,7 +554,7 @@ class Tongo(commands.Cog):
     tongo_pot_badges = db_get_tongo_pot_badges()
     results_embed = discord.Embed(
       title="TONGO! Game Automatically Ending!",
-      discord=f"Whoops, **{active_chair.display_name}** failed to Confront before the time ran out! Ending the game!",
+      description=f"Whoops, **{active_chair.display_name}** failed to Confront before the time ran out!\n\nEnding the game!",
       color=discord.Color.dark_purple()
     )
     if tongo_pot_badges:
@@ -569,7 +583,8 @@ class Tongo(commands.Cog):
 
         player_embed = discord.Embed(
           title=f"{player_member.display_name} Received:",
-          description="\n".join([f"* {b['badge_name']}" for b in player_badges])
+          description="\n".join([f"* {b['badge_name']}" for b in player_badges]),
+          color=discord.Color.dark_purple()
         )
         player_embed.set_image(url=f"attachment://{won_image_id}.png")
         confirmation_message = await trade_channel.send(embed=player_embed, file=won_image)
@@ -581,9 +596,12 @@ class Tongo(commands.Cog):
                       f"and you can view the full results at: {confirmation_message.jump_url}",
           color=discord.Color.dark_purple()
         )
-        player_message_embed.set_image(url=f"attachment://{won_image_id}.png")
+        player_message_embed.add_field(
+          name=f"Badges Acquired",
+          value="\n".join([f"* {b['badge_name']}" for b in player_badges])
+        )
         try:
-          await player_member.send(embed=player_message_embed, file=won_image)
+          await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send Tongo completion message to {player_member.display_name}, they have their DMs closed.")
           pass
@@ -623,14 +641,14 @@ class Tongo(commands.Cog):
     player_distribution = { player_id: set() for player_id in tongo_player_ids }
     player_inventories = {}
     for player_id in tongo_player_ids:
-      player_inventories[player_id] = [b['badge_filename'] for b in db_get_user_badges(b)]
+      player_inventories[player_id] = [b['badge_filename'] for b in db_get_user_badges(player_id)]
 
     random.shuffle(tongo_pot)
 
     # We're going to go round-robin and try to distribute all of the shuffled badges
     turn_index = 0
     while tongo_pot:
-      logger.info(f"Turn Index Is: {turn_index}")
+      # logger.info(f"Turn Index Is: {turn_index}")
       working_pot = tongo_pot.copy()
       
       current_player_id = tongo_player_ids[turn_index % len(tongo_player_ids)]
@@ -655,18 +673,18 @@ class Tongo(commands.Cog):
       while (current_badge in player_distribution[current_player_id]) or (current_badge in player_inventories[current_player_id]):
           if not working_pot:
               # If no more badges are available, exit
-              print(f"No badges left to attempt to give to Player {current_player_id}! End the turn.")
+              # logger.info(f"No badges left to attempt to give to Player {current_player_id}! End the turn.")
               break
           # If they have the badge, try the next one
           previous_badge = current_badge
           current_badge = working_pot.pop(0)
-          logger.info(f"Player already has {previous_badge}, pop off the next one: {current_badge}")
+          # logger.info(f"Player already has {previous_badge}, pop off the next one: {current_badge}")
 
       # Check if the player received a badge
       if current_badge not in player_distribution[current_player_id] and current_badge not in player_inventories[current_player_id]:
           player_distribution[current_player_id].add(current_badge)
           tongo_pot.remove(current_badge)
-          print(f"{current_player_id} received badge: {current_badge}")
+          #logger.info(f"{current_player_id} received badge: {current_badge}")
 
       turn_index += 1
       # logger.info(f"Moving to the next turn: {turn_index}")
