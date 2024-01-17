@@ -477,7 +477,7 @@ class Tongo(commands.Cog):
           description="\n".join([f"* {b['badge_name']}" for b in player_badges_received]),
           color=discord.Color.dark_purple()
         )
-        wishlist_badges_received = [b for b in player_wishlist if b['badge_filename'] in player_badges_received]
+        wishlist_badges_received = [b for b in player_wishlist if b['badge_filename'] in [b['badge_filename'] for b in player_badges_received]]
         if wishlist_badges_received:
           player_embed.add_field(
             name="Wishlisted Badges Received",
@@ -605,7 +605,7 @@ class Tongo(commands.Cog):
           description="\n".join([f"* {b['badge_name']}" for b in player_badges_received]),
           color=discord.Color.dark_purple()
         )
-        wishlist_badges_received = [b for b in player_wishlist if b['badge_filename'] in player_badges_received]
+        wishlist_badges_received = [b for b in player_wishlist if b['badge_filename'] in [b['badge_filename'] for b in player_badges_received]]
         if wishlist_badges_received:
           player_embed.add_field(
             name="Wishlisted Badges Received",
