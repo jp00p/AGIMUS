@@ -2,6 +2,8 @@ from common import *
 from utils import string_utils
 from wordcloud import STOPWORDS
 
+user_string_pattern = re.compile("^a\d+$")
+
 # save_message_to_db() - saves a users message to the database after doing some cleanup on the message 
 # strips emoji and converts message to basic ascii, shuffles words in message, sorts words in message
 # used for wordcloud only at the moment!
@@ -29,6 +31,10 @@ async def save_message_to_db(message:discord.Message):
     message_content = " ".join(message_modified)
 
     if message_content == "":
+      return None
+
+    if user_string_pattern.match(message_content):
+      # Don't log mentions
       return None
 
     with AgimusDB() as query:
