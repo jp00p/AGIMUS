@@ -80,7 +80,6 @@ class Tongo(commands.Cog):
   )
   @commands.check(access_check)
   async def venture(self, ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
-    await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
     user_member = await self.bot.current_guild.fetch_member(user_discord_id)
     active_tongo = db_get_active_tongo()
@@ -121,7 +120,7 @@ class Tongo(commands.Cog):
       description=f"A new Tongo game has begun!!!\n\n**{user_member.display_name}** has kicked things off and is The Chair!\n\n"
                   "Only *they* have the ability to end the game via `/tongo confront`!\n\n"
                   f"If **{user_member.display_name}** does not Confront within 8 hours, this game will automatically end and "
-                  "the badge distribution from The Continium will automatically occur!",
+                  "the badge distribution from The Continuum will automatically occur!",
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
@@ -349,7 +348,7 @@ class Tongo(commands.Cog):
     if self.auto_confront.next_iteration:
       current_time = datetime.now(timezone.utc)
       remaining_time = current_time - self.auto_confront.next_iteration
-      description += f"This Tongo game has {humanize.naturaltime(remaining_time, minimum_unit='minutes')} left before the game is automatically ended!"
+      description += f"This Tongo game has {humanize.naturaltime(remaining_time)} left before the game is automatically ended!"
 
     confirmation_embed = discord.Embed(
       title="TONGO! Call For Index!",
@@ -454,6 +453,10 @@ class Tongo(commands.Cog):
         inline=False
       )
     results_embed.set_image(url="https://i.imgur.com/gdpvba5.gif")
+    results_embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    )
     channel_message = await ctx.channel.send(embed=results_embed)
 
     for result in results.items():
@@ -503,6 +506,9 @@ class Tongo(commands.Cog):
             name="Wishlisted Badges Received",
             value="\n".join([f"* {b['badge_name']}" for b in wishlist_badges_received])
           )
+        player_message_embed.set_footer(
+          text="Note you can use /settings to enable or disable these messages."
+        )
         try:
           await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
@@ -523,6 +529,9 @@ class Tongo(commands.Cog):
           color=discord.Color.dark_purple()
         )
         player_message_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
+        player_message_embed.set_footer(
+          text="Note you can use /settings to enable or disable these messages."
+        )
         try:
           await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
@@ -581,6 +590,10 @@ class Tongo(commands.Cog):
         inline=False
       )
     results_embed.set_image(url="https://i.imgur.com/gdpvba5.gif")
+    results_embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    )
     trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
     channel_message = await trade_channel.send(embed=results_embed)
 
@@ -631,6 +644,9 @@ class Tongo(commands.Cog):
             name="Wishlisted Badges Received",
             value="\n".join([f"* {b['badge_name']}" for b in wishlist_badges_received])
           )
+        player_message_embed.set_footer(
+          text="Note you can use /settings to enable or disable these messages."
+        )
         try:
           await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
@@ -651,6 +667,9 @@ class Tongo(commands.Cog):
           color=discord.Color.dark_purple()
         )
         player_message_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
+        player_message_embed.set_footer(
+          text="Note you can use /settings to enable or disable these messages."
+        )
         try:
           await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
