@@ -33,6 +33,11 @@
       "emoji": "📚",
       "role": "Book Lover",
       "description": "Get notified when **Book-related** events are happening (Book Club!)"
+    },
+    {
+      "emoji": "🦡",
+      "role": "Badger",
+      "description": "Get notified when **Badge Trading-related** features or feedback are released/requested"
     }
   ]
 }

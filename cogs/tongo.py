@@ -1,4 +1,5 @@
 from common import *
+from queries.wishlist import db_get_user_wishlist_badges, db_autolock_badges_by_filenames_if_in_wishlist
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 
@@ -79,7 +80,6 @@ class Tongo(commands.Cog):
   )
   @commands.check(access_check)
   async def venture(self, ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
-    await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
     user_member = await self.bot.current_guild.fetch_member(user_discord_id)
     active_tongo = db_get_active_tongo()
@@ -104,6 +104,13 @@ class Tongo(commands.Cog):
       return
 
     # Validation Passed - Continue
+    # Respond to command required
+    await ctx.respond(embed=discord.Embed(
+        title="Venture Acknowledged!",
+        color=discord.Color.dark_purple()
+      ), ephemeral=True
+    )
+
     # Create new tongo entry
     tongo_id = db_create_new_tongo(user_discord_id)
     # Transfer badges to the pot
@@ -120,7 +127,7 @@ class Tongo(commands.Cog):
       description=f"A new Tongo game has begun!!!\n\n**{user_member.display_name}** has kicked things off and is The Chair!\n\n"
                   "Only *they* have the ability to end the game via `/tongo confront`!\n\n"
                   f"If **{user_member.display_name}** does not Confront within 8 hours, this game will automatically end and "
-                  "the badge distribution from The Continium will automatically occur!",
+                  "the badge distribution from The Continuum will automatically occur!",
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
@@ -135,7 +142,8 @@ class Tongo(commands.Cog):
     )
     confirmation_embed.set_image(url="https://i.imgur.com/tRi1vYq.gif")
     confirmation_embed.set_footer(
-      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
     await ctx.channel.send(embed=confirmation_embed)
     self.first_auto_confront = True
@@ -169,7 +177,6 @@ class Tongo(commands.Cog):
   )
   @commands.check(access_check)
   async def risk(self, ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
-    await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
     user_member = await self.bot.current_guild.fetch_member(user_discord_id)
     active_tongo = db_get_active_tongo()
@@ -220,6 +227,13 @@ class Tongo(commands.Cog):
     tongo_player_ids.append(user_discord_id)
     tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
 
+    # Respond to command required
+    await ctx.respond(embed=discord.Embed(
+        title="Risk Acknowledged!",
+        color=discord.Color.dark_purple()
+      ), ephemeral=True
+    )
+
     confirmation_embed = discord.Embed(
       title="TONGO! Badges Risked!",
       description=f"### **{user_member.display_name}** has joined the table!\n\nA new challenger appears!",
@@ -242,7 +256,8 @@ class Tongo(commands.Cog):
     )
     confirmation_embed.set_image(url="https://i.imgur.com/iX9ZCpH.gif")
     confirmation_embed.set_footer(
-      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
     await ctx.channel.send(embed=confirmation_embed)
 
@@ -371,7 +386,8 @@ class Tongo(commands.Cog):
     )
     confirmation_embed.set_image(url="https://i.imgur.com/aWLYGKQ.gif")
     confirmation_embed.set_footer(
-      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
     await ctx.channel.send(embed=confirmation_embed)
     await ctx.respond(embed=discord.Embed(
@@ -451,29 +467,42 @@ class Tongo(commands.Cog):
         inline=False
       )
     results_embed.set_image(url="https://i.imgur.com/gdpvba5.gif")
-    channel_message = await ctx.channel.send(embed=results_embed)
+    results_embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    )
+    trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
+    channel_message = await trade_channel.send(embed=results_embed)
 
     for result in results.items():
-      player_member = await self.bot.current_guild.fetch_member(result[0])
-      player_badges = [db_get_badge_info_by_filename(b) for b in list(result[1])]
+      player_user_discord_id = result[0]
+      player_member = await self.bot.current_guild.fetch_member(player_user_discord_id)
+      player_badges_received = [db_get_badge_info_by_filename(b) for b in list(result[1])]
+      player_wishlist = db_get_user_wishlist_badges(player_user_discord_id)
 
-      if len(player_badges) > 0:
-        won_badge_filenames = [b['badge_filename'] for b in player_badges]
+      if len(player_badges_received) > 0:
+        won_badge_filenames = [b['badge_filename'] for b in player_badges_received]
         won_image_id = f"{active_tongo['id']}-won-{result[0]}"
         won_image = await generate_badge_trade_showcase(
           won_badge_filenames,
           won_image_id,
           f"Badges Won By {player_member.display_name}",
-          f"{len(player_badges)} Badges"
+          f"{len(player_badges_received)} Badges"
         )
+        wishlist_badges_received = [b for b in player_wishlist if b['badge_filename'] in [b['badge_filename'] for b in player_badges_received]]
+        wishlist_badge_filenames_received = [b['badge_filename'] for b in wishlist_badges_received]
 
-        player_embed = discord.Embed(
+        player_channel_embed = discord.Embed(
           title=f"{player_member.display_name} Received:",
-          description="\n".join([f"* {b['badge_name']}" for b in player_badges]),
+          description="\n".join([f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames_received else ''}" for b in player_badges_received]),
           color=discord.Color.dark_purple()
         )
-        player_embed.set_image(url=f"attachment://{won_image_id}.png")
-        await ctx.channel.send(embed=player_embed, file=won_image)
+        if wishlist_badges_received:
+          db_autolock_badges_by_filenames_if_in_wishlist(player_user_discord_id, wishlist_badge_filenames_received)
+          db_purge_users_wishlist(player_user_discord_id)
+          player_channel_embed.set_footer(text="✨ - Indicates a wishlist badge!")
+        player_channel_embed.set_image(url=f"attachment://{won_image_id}.png")
+        await trade_channel.send(embed=player_channel_embed, file=won_image)
         
         # Now send message to the player
         player_message_embed = discord.Embed(
@@ -484,19 +513,23 @@ class Tongo(commands.Cog):
         )
         player_message_embed.add_field(
           name=f"Badges Acquired",
-          value="\n".join([f"* {b['badge_name']}" for b in player_badges])
+          value="\n".join([f"* {b['badge_name']}{' ✨' if b['badge_filename'] in [w['badge_filename'] for w in wishlist_badges_received] else ''}" for b in player_badges_received])
         )
+        footer_text = "Note you can use /settings to enable or disable these messages."
+        if wishlist_badges_received:
+          footer_text += "\n✨ - Indicates a wishlist badge!"
+        player_message_embed.set_footer(text=footer_text)
         try:
           await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send Tongo completion message to {player_member.display_name}, they have their DMs closed.")
           pass
       else:
-        player_embed = discord.Embed(
+        player_channel_embed = discord.Embed(
           title=f"{player_member.display_name} Did Not Receive Any Badges..."
         )
-        player_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
-        await ctx.channel.send(embed=player_embed)
+        player_channel_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
+        await ctx.channel.send(embed=player_channel_embed)
         
         # Now send message to the player
         player_message_embed = discord.Embed(
@@ -506,6 +539,7 @@ class Tongo(commands.Cog):
           color=discord.Color.dark_purple()
         )
         player_message_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
+        player_message_embed.set_footer(text="Note you can use /settings to enable or disable these messages.")
         try:
           await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
@@ -515,6 +549,10 @@ class Tongo(commands.Cog):
     self.auto_confront.cancel()
     # We're Done Baybee!
 
+  #    ___       __           _____          ___              __
+  #   / _ |__ __/ /____  ____/ ___/__  ___  / _/______  ___  / /_
+  #  / __ / // / __/ _ \/___/ /__/ _ \/ _ \/ _/ __/ _ \/ _ \/ __/
+  # /_/ |_\_,_/\__/\___/    \___/\___/_//_/_//_/  \___/_//_/\__/
   @tasks.loop(hours=8)
   async def auto_confront(self):
     if self.first_auto_confront:
@@ -564,42 +602,58 @@ class Tongo(commands.Cog):
         inline=False
       )
     results_embed.set_image(url="https://i.imgur.com/gdpvba5.gif")
+    results_embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    )
     trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
     channel_message = await trade_channel.send(embed=results_embed)
 
     for result in results.items():
-      player_member = await self.bot.current_guild.fetch_member(result[0])
-      player_badges = [db_get_badge_info_by_filename(b) for b in list(result[1])]
+      player_user_discord_id = result[0]
+      player_member = await self.bot.current_guild.fetch_member(player_user_discord_id)
+      player_badges_received = [db_get_badge_info_by_filename(b) for b in list(result[1])]
+      player_wishlist = db_get_user_wishlist_badges(player_user_discord_id)
 
-      if len(player_badges) > 0:
-        won_badge_filenames = [b['badge_filename'] for b in player_badges]
+      if len(player_badges_received) > 0:
+        won_badge_filenames = [b['badge_filename'] for b in player_badges_received]
         won_image_id = f"{active_tongo['id']}-won-{result[0]}"
         won_image = await generate_badge_trade_showcase(
           won_badge_filenames,
           won_image_id,
           f"Badges Won By {player_member.display_name}",
-          f"{len(player_badges)} Badges"
+          f"{len(player_badges_received)} Badges"
         )
+        wishlist_badges_received = [b for b in player_wishlist if b['badge_filename'] in [b['badge_filename'] for b in player_badges_received]]
+        wishlist_badge_filenames_received = [b['badge_filename'] for b in wishlist_badges_received]
 
-        player_embed = discord.Embed(
+        player_channel_embed = discord.Embed(
           title=f"{player_member.display_name} Received:",
-          description="\n".join([f"* {b['badge_name']}" for b in player_badges]),
+          description="\n".join([f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames_received else ''}" for b in player_badges_received]),
           color=discord.Color.dark_purple()
         )
-        player_embed.set_image(url=f"attachment://{won_image_id}.png")
-        confirmation_message = await trade_channel.send(embed=player_embed, file=won_image)
+        if wishlist_badges_received:
+          db_autolock_badges_by_filenames_if_in_wishlist(player_user_discord_id, wishlist_badge_filenames_received)
+          db_purge_users_wishlist(player_user_discord_id)
+          player_channel_embed.set_footer(text="✨ - Indicates a wishlist badge!")
+        player_channel_embed.set_image(url=f"attachment://{won_image_id}.png")
+        await trade_channel.send(embed=player_channel_embed, file=won_image)
 
         # Now send message to the player
         player_message_embed = discord.Embed(
           title=f"TONGO! Game Automatically Ending!",
           description="Time ran out for your Tongo game and it has automatically ended! Your winnings are included below, "
-                      f"and you can view the full results at: {confirmation_message.jump_url}",
+                      f"and you can view the full results at: {channel_message.jump_url}",
           color=discord.Color.dark_purple()
         )
         player_message_embed.add_field(
           name=f"Badges Acquired",
-          value="\n".join([f"* {b['badge_name']}" for b in player_badges])
+          value="\n".join([f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames_received else ''}" for b in player_badges_received]),
         )
+        footer_text = "Note you can use /settings to enable or disable these messages."
+        if wishlist_badge_filenames_received:
+          footer_text += "\n✨ - Indicates a wishlist badge!"
+        player_message_embed.set_footer(text=footer_text)
         try:
           await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
@@ -620,6 +674,8 @@ class Tongo(commands.Cog):
           color=discord.Color.dark_purple()
         )
         player_message_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
+        footer_text = "Note you can use /settings to enable or disable these messages."
+        player_message_embed.set_footer(text=footer_text)
         try:
           await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
@@ -629,9 +685,6 @@ class Tongo(commands.Cog):
     self.auto_confront.cancel()
 
   async def _perform_confront_distribution(self):
-    # We gather all of this from the DB here because in a future update 
-    # this will also automatically be fired on a timer if it hasn't been ended 
-    # by the Chair after n many hours from when the Tongo it was initiated
     active_tongo = db_get_active_tongo()
     tongo_players = db_get_active_tongo_players(active_tongo['id'])
     tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
