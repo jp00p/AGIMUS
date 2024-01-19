@@ -23,8 +23,9 @@ async def risk_autocomplete(ctx:discord.AutocompleteContext):
   third_badge = ctx.options["third_badge"]
 
   user_badges = db_get_user_unlocked_badges(ctx.interaction.user.id)
+  tongo_pot = db_get_tongo_pot_badges()
 
-  filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in SPECIAL_BADGES]
+  filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in tongo_pot] + [b['badge_name'] for b in SPECIAL_BADGES]
 
   filtered_badge_names = [badge['badge_name'] for badge in user_badges if badge['badge_name'] not in filtered_badges]
 
@@ -762,7 +763,7 @@ class Tongo(commands.Cog):
   # \____/\__/_/_/_/\__/_/\__/___/
   async def _validate_selected_user_badges(self, ctx:discord.ApplicationContext, selected_user_badges):
     if len(selected_user_badges) != 3:
-      await ctx.followup.send(embed=discord.Embed(
+      await ctx.respond(embed=discord.Embed(
         title="Invalid Selection",
         description=f"You must own all of the badges you've selected to risk and they must be unlocked!",
         color=discord.Color.red()
@@ -770,7 +771,7 @@ class Tongo(commands.Cog):
       return False
 
     if len(selected_user_badges) > len(set(selected_user_badges)):
-      await ctx.followup.send(embed=discord.Embed(
+      await ctx.respond(embed=discord.Embed(
         title="Invalid Selection",
         description=f"All badges selected must be unique!",
         color=discord.Color.red()
@@ -779,7 +780,7 @@ class Tongo(commands.Cog):
 
     restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in SPECIAL_BADGES]]
     if restricted_badges:
-      await ctx.followup.send(embed=discord.Embed(
+      await ctx.respond(embed=discord.Embed(
         title="Invalid Selection",
         description=f"You cannot risk with the following: {','.join(restricted_badges)}!",
         color=discord.Color.red()
@@ -789,7 +790,7 @@ class Tongo(commands.Cog):
     tongo_pot_badges = db_get_tongo_pot_badges()
     existing_pot_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in tongo_pot_badges]]
     if existing_pot_badges:
-      await ctx.followup.send(embed=discord.Embed(
+      await ctx.respond(embed=discord.Embed(
         title="Invalid Selection",
         description=f"The following badges are already in The Great Material Continuum: {','.join(existing_pot_badges)}!",
         color=discord.Color.red()
