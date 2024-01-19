@@ -109,6 +109,11 @@
     "description": "I'm receiving a Code 47. Verify. It is Code 47 sir, starfleet emergency frequency. Captain's Eyes Only.",
     "url": "https://i.imgur.com/0wGwaF2.mp4"
   },
+  "Commander Riker's Quarters": {
+    "file": "data/drops/commanderrikersquarters.mp4",
+    "description": "The Commander Rikers Quarters Drop Commander Riker's Quarters",
+    "url": "https://i.imgur.com/4cUxThX.mp4"
+  },
   "Crystals!": {
     "file": "data/drops/crystals.mp4",
     "description": "Crystals!",
@@ -783,6 +788,11 @@
     "file": "data/drops/thestarborndrop.mp4",
     "description": "The Starborn Drop. User drop.",
     "url": "https://i.imgur.com/IarPe1v.mp4"
+  },
+  "The Tarquynn Drop": {
+    "file": "data/drops/thetarquynndrop.mp4",
+    "description": "The Tarquynn Drop. User drop.",
+    "url": "https://i.imgur.com/lxzVoJ0.mp4"
   },
   "The Taq Drop": {
     "file": "data/drops/thetaqdrop.mp4",
