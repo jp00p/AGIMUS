@@ -9,11 +9,20 @@ from utils.timekeeper import check_timekeeper, set_timekeeper
 )
 @commands.check(access_check)
 async def gifbomb(ctx:discord.ApplicationContext, query:str):
+  await ctx.defer()
   channel = ctx.interaction.channel
 
   allowed = await check_timekeeper(ctx, 120)
 
   if allowed:
+    await ctx.followup.send(
+      discord.Embed(
+        title="Wishlist Match Request Acknowledged",
+        description="Uno moment por favor."
+      ),
+      ephemeral=True
+    )
+
     async with aiohttp.ClientSession() as session:
       key = os.getenv('GOOGLE_API_KEY')
       client_key = os.getenv('GOOGLE_CX')
@@ -46,7 +55,7 @@ async def gifbomb(ctx:discord.ApplicationContext, query:str):
             ), ephemeral=True
           )
   else:
-    await ctx.respond(embed=discord.Embed(
+    await ctx.followup.send(embed=discord.Embed(
         title="Denied!",
         description="Too many gifbombs recently! Give it a minute, Turbo!",
         color=discord.Color.red()
