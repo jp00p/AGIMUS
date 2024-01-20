@@ -324,6 +324,15 @@ class Wishlist(commands.Cog):
 
     logger.info(f"{ctx.author.display_name} is checking for {Style.BRIGHT}matches{Style.RESET_ALL} to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Wishlist Matches Request Acknowledged",
+        description="Uno tomatoes por favor...",
+        color=discord.Color.blurple()
+      ),
+      ephemeral=True
+    )
+
     # Housekeeping
     # Clear any badges from the users wishlist that the user may already possess currently
     db_purge_users_wishlist(author_discord_id)
