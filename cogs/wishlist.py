@@ -325,9 +325,10 @@ class Wishlist(commands.Cog):
     logger.info(f"{ctx.author.display_name} is checking for {Style.BRIGHT}matches{Style.RESET_ALL} to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
     await ctx.followup.send(
-      discord.Embed(
-        title="Wishlist Match Request Acknowledged",
-        description="Uno moment por favor."
+      embed=discord.Embed(
+        title="Wishlist Matches Request Acknowledged",
+        description="Uno tomatoes por favor...",
+        color=discord.Color.blurple()
       ),
       ephemeral=True
     )
