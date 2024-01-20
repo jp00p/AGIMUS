@@ -1,4 +1,10 @@
-from common import *
+import random
+import re
+
+import discord
+from colorama import Fore
+
+from common import get_emoji, logger, BOT_NAME, config
 
 # Load up our list of complimentary and condemnation adjectives
 with open('bot_affirmations.txt') as f:
@@ -19,13 +25,14 @@ async def handle_bot_affirmations(message:discord.Message):
     await message.add_reaction(get_emoji("agimus"))
 
   for condemnation in bot_condemnations:
-    if (re.match(fr".*{condemnation} bot[^\w\s]+", message_content)) or (re.match(fr".*{condemnation} bot$", message_content)):
-      if not (re.match(fr".*not a?\s?{condemnation} bot", message_content)):
+    if re.search(fr"{condemnation} bot\b", message_content):
+      if not re.search(fr"not a?\s?{condemnation} bot", message_content):
         await respond_to_sass(message)
+        return
 
   for affirmation in bot_affirmations:
-    if (re.match(fr".*{affirmation} bot[^\w\s]+", message_content)) or (re.match(fr".*{affirmation} bot$", message_content)):
-      if re.match(fr".*not a?\s?{affirmation} bot", message_content):
+    if re.search(fr"{affirmation} bot\b", message_content):
+      if re.search(fr"not a?\s?{affirmation} bot", message_content):
         await respond_to_sass(message)
         return
       else:
