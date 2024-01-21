@@ -485,7 +485,7 @@ class Wishlist(commands.Cog):
           title="No Wishlist Matches Found",
           description="Please check back later!",
           color=discord.Color.blurple()
-        )
+        ), ephemeral=True
       )
       return
 
@@ -494,8 +494,8 @@ class Wishlist(commands.Cog):
         embed=discord.Embed(
           title="All Wishlist Matches Dismissed",
           description="You have one or more matches, but they've been dismissed.\n\nYou can use `/wishlist dismissals` to review them.",
-          color=discord.Color.blurple()
-        )
+          color=discord.Color.blurple(),
+        ), ephemeral=True
       )
 
 
