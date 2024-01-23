@@ -323,23 +323,23 @@ class Tongo(commands.Cog):
     unlocked_user_badge_names = [b['badge_name'] for b in unlocked_user_badges]
 
     # Validate Leverage Is Viable
+    selectable_unlocked_badge_names = [b for b in unlocked_user_badge_names if b not in tongo_pot_badge_names]
     if all(b in tongo_pot_badge_names for b in unlocked_user_badge_names):
       await ctx.followup.send(embed=discord.Embed(
           title="No Badges Viable For Leverage In The Great Material Continuum!",
-          description="All of the Unlocked Badges you possess are already in the Continuum!\n\nTry unlocking some others!",
+          description="All of the Unlocked Badges you possess are already in the Continuum!",
           color=discord.Color.red()
-        ),
+        ).set_footer(text="Try unlocking some others!"),
         ephemeral=True
       )
       return
 
-    selectable_unlocked_badge_names = [b for b in unlocked_user_badge_names if b not in tongo_pot_badge_names]
     if len(selectable_unlocked_badge_names) < 3:
       await ctx.followup.send(embed=discord.Embed(
           title="Not Enough Viable Unlocked Badges Available For Leverage!",
-          description=f"You only have {len(selectable_unlocked_badge_names)} available to Leverage, you need a minimum of 3!\n\nIf you have more unlocked, they're probably already be present in the Continuum! Try unlocking some others!",
+          description=f"You only have {len(selectable_unlocked_badge_names)} available to Leverage, you need a minimum of 3!",
           color=discord.Color.red()
-        ),
+        ).set_footer(text="Try unlocking some others!"),
         ephemeral=True
       )
       return
@@ -353,6 +353,8 @@ class Tongo(commands.Cog):
     # Cancel any trades involving the user and the badges they threw in
     await self._cancel_tongo_related_trades(user_discord_id, randomized_selected_badge_names)
 
+    # Refresh the tongo pot now that the new badges have been added
+    tongo_pot_badges = db_get_tongo_pot_badges()
     tongo_player_ids.append(user_discord_id)
     tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
 
@@ -593,7 +595,7 @@ class Tongo(commands.Cog):
       ), ephemeral=True
     )
 
-    self._perform_confront(active_tongo, active_chair)
+    await self._perform_confront(active_tongo, active_chair)
     self.auto_confront.cancel()
 
   #    ___       __           _____          ___              __
@@ -635,7 +637,7 @@ class Tongo(commands.Cog):
         pass
       return
 
-    self._perform_confront(active_tongo, active_chair, True)
+    await self._perform_confront(active_tongo, active_chair, True)
     self.auto_confront.cancel()
 
   async def _perform_confront(self, active_tongo, active_chair, auto_confront=False):
