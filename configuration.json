@@ -794,6 +794,14 @@
       "data": null,
       "parameters": []
     },
+    "tongo leverage": {
+      "channels": [
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "tongo risk": {
       "channels": [
         "bahrats-bazaar"
