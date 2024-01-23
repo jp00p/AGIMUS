@@ -32,8 +32,8 @@ async def risk_autocomplete(ctx:discord.AutocompleteContext):
   return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
 
 
-# ___________                          _________  
-# \__    ___/___   ____    ____   ____ \_   ___ \  ____   ____ 
+# ___________                          _________
+# \__    ___/___   ____    ____   ____ \_   ___ \  ____   ____
 #   |    | /  _ \ /    \  / ___\ /  _ \/    \  \/ /  _ \ / ___\
 #   |    |(  <_> )   |  \/ /_/  >  <_> )     \___(  <_> ) /_/  >
 #   |____| \____/|___|  /\___  / \____/ \______  /\____/\___  /
@@ -53,7 +53,7 @@ class Tongo(commands.Cog):
 
   tongo = discord.SlashCommandGroup("tongo", "Commands for Tongo Badge Game")
 
-  #   _   __         __ 
+  #   _   __         __
   #  | | / /__ ___  / /___ _________
   #  | |/ / -_) _ \/ __/ // / __/ -_)
   #  |___/\__/_//_/\__/\_,_/_/  \__/
@@ -81,12 +81,13 @@ class Tongo(commands.Cog):
   )
   @commands.check(access_check)
   async def venture(self, ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
+    await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
     user_member = await self.bot.current_guild.fetch_member(user_discord_id)
     active_tongo = db_get_active_tongo()
 
     if active_tongo:
-      await ctx.respond(embed=discord.Embed(
+      await ctx.followup.send(embed=discord.Embed(
           title="Tongo Already In Progress",
           description="There's already an ongoing tongo game!\n\nUse `/tongo risk` to join!",
           color=discord.Color.red()
@@ -106,7 +107,7 @@ class Tongo(commands.Cog):
 
     # Validation Passed - Continue
     # Respond to command required
-    await ctx.respond(embed=discord.Embed(
+    await ctx.followup.send(embed=discord.Embed(
         title="Venture Acknowledged!",
         color=discord.Color.dark_purple()
       ), ephemeral=True
@@ -178,12 +179,13 @@ class Tongo(commands.Cog):
   )
   @commands.check(access_check)
   async def risk(self, ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
+    await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
     user_member = await self.bot.current_guild.fetch_member(user_discord_id)
     active_tongo = db_get_active_tongo()
 
     if not active_tongo:
-      await ctx.respond(embed=discord.Embed(
+      await ctx.followup.send(embed=discord.Embed(
           title="No Tongo Game In Progress",
           description="No one is playing Tongo yet!\n\nUse `/tongo venture` to begin a game!",
           color=discord.Color.red()
@@ -192,13 +194,16 @@ class Tongo(commands.Cog):
       )
       return
 
+    active_tongo_chair_id = int(active_tongo['chair_discord_id'])
+    active_chair_member = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
+
     tongo_players = db_get_active_tongo_players(active_tongo['id'])
     tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
     if user_discord_id in tongo_player_ids:
-      description = "Damn player, you've already made your Risk!"
+      description = "Damn player, you've already made your Risk/Leverage!"
       if user_discord_id == active_tongo['chair_discord_id']:
-        description += f"\n\nPlus you're the one that started it! If you want to deal em out, use `/tongo deal`!"
-      await ctx.respond(embed=discord.Embed(
+        description += f"\n\nPlus you're the one that started it! If you want to deal em out, use `/tongo confront`!"
+        await ctx.followup.send(embed=discord.Embed(
           title="You're Already In The Game!",
           description=description,
           color=discord.Color.red()
@@ -228,8 +233,10 @@ class Tongo(commands.Cog):
     tongo_player_ids.append(user_discord_id)
     tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
 
+    player_count = len(tongo_player_ids)
+
     # Respond to command required
-    await ctx.respond(embed=discord.Embed(
+    await ctx.followup.send(embed=discord.Embed(
         title="Risk Acknowledged!",
         color=discord.Color.dark_purple()
       ), ephemeral=True
@@ -237,7 +244,7 @@ class Tongo(commands.Cog):
 
     confirmation_embed = discord.Embed(
       title="TONGO! Badges Risked!",
-      description=f"### **{user_member.display_name}** has joined the table!\n\nA new challenger appears!",
+      description=f"### **{user_member.display_name}** has joined the table!\n\nA new challenger appears! Player {player_count} has entered the game!",
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
@@ -246,7 +253,7 @@ class Tongo(commands.Cog):
       inline=False
     )
     confirmation_embed.add_field(
-      name=f"Current Players",
+      name=f"Current Players ({player_count})",
       value="\n".join([f"* {m.display_name}" for m in tongo_player_members]),
       inline=False
     )
@@ -262,8 +269,135 @@ class Tongo(commands.Cog):
     )
     await ctx.channel.send(embed=confirmation_embed)
 
+    if player_count >= 9:
+      await ctx.channel.send(f"Hey {active_chair_member.mention}, your table is getting full!")
+
+
+  #    __
+  #   / /  ___ _  _____ _______ ____ ____
+  #  / /__/ -_) |/ / -_) __/ _ `/ _ `/ -_)
+  # /____/\__/|___/\__/_/  \_,_/\_, /\__/
+  #                            /___/
+  @tongo.command(
+    name="leverage",
+    description="Leverage to Risk some RANDOMIZED badges to join the current game of Tongo!"
+  )
+  @commands.check(access_check)
+  async def leverage(self, ctx:discord.ApplicationContext):
+    await ctx.defer(ephemeral=True)
+    user_discord_id = ctx.interaction.user.id
+    user_member = await self.bot.current_guild.fetch_member(user_discord_id)
+    active_tongo = db_get_active_tongo()
+
+    if not active_tongo:
+      await ctx.followup.send(embed=discord.Embed(
+          title="No Tongo Game In Progress",
+          description="No one is playing Tongo yet!\n\nUse `/tongo venture` to begin a game!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    active_tongo_chair_id = int(active_tongo['chair_discord_id'])
+    active_chair_member = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
+
+    tongo_players = db_get_active_tongo_players(active_tongo['id'])
+    tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
+    if user_discord_id in tongo_player_ids:
+      description = "Damn player, you've already made your Risk/Leverage!"
+      if user_discord_id == active_tongo_chair_id:
+        description += f"\n\nPlus you're the one that started it! If you want to deal em out, use `/tongo confront`!"
+        await ctx.followup.send(embed=discord.Embed(
+          title="You're Already In The Game!",
+          description=description,
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    tongo_pot_badges = db_get_tongo_pot_badges()
+    tongo_pot_badge_names = [b['badge_name'] for b in tongo_pot_badges]
+    unlocked_user_badges = db_get_user_unlocked_badges(user_discord_id)
+    unlocked_user_badge_names = [b['badge_name'] for b in unlocked_user_badges]
+
+    # Validate Leverage Is Viable
+    if all(b in tongo_pot_badge_names for b in unlocked_user_badge_names):
+      await ctx.followup.send(embed=discord.Embed(
+          title="No Badges Viable For Leverage In The Great Material Continuum!",
+          description="All of the Unlocked Badges you possess are already in the Continuum!\n\nTry unlocking some others!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    selectable_unlocked_badge_names = [b for b in unlocked_user_badge_names if b not in tongo_pot_badge_names]
+    if len(selectable_unlocked_badge_names) < 3:
+      await ctx.followup.send(embed=discord.Embed(
+          title="Not Enough Viable Unlocked Badges Available For Leverage!",
+          description=f"You only have {len(selectable_unlocked_badge_names)} available to Leverage, you need a minimum of 3!\n\nIf you have more unlocked, they're probably already be present in the Continuum! Try unlocking some others!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    # Validation passed - continue
+    randomized_selected_badge_names = random.sample(selectable_unlocked_badge_names, 3)
+    # Transfer badges to the pot
+    db_add_badges_to_pot(user_discord_id, randomized_selected_badge_names)
+    # Associate player with the new game
+    db_add_player_to_tongo(user_discord_id, active_tongo['id'])
+    # Cancel any trades involving the user and the badges they threw in
+    await self._cancel_tongo_related_trades(user_discord_id, randomized_selected_badge_names)
+
+    tongo_player_ids.append(user_discord_id)
+    tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
+
+    player_count = len(tongo_player_ids)
+
+    # Respond to command required
+    await ctx.followup.send(embed=discord.Embed(
+        title="Leverage Acknowledged!",
+        color=discord.Color.dark_purple()
+      ), ephemeral=True
+    )
+
+    confirmation_embed = discord.Embed(
+      title="TONGO! Badges Leveraged!",
+      description=f"### **{user_member.display_name}** has Leveraged 3 ***RANDOMIZED*** badges and joined the table!\n\nA new challenger appears! Player {player_count} has entered the game!",
+      color=discord.Color.dark_purple()
+    )
+    confirmation_embed.add_field(
+      name=f"Badges Leveraged By {user_member.display_name}",
+      value="\n".join([f"* {b}" for b in randomized_selected_badge_names]),
+      inline=False
+    )
+    confirmation_embed.add_field(
+      name=f"Current Players",
+      value="\n".join([f"* {m.display_name}" for m in tongo_player_members]),
+      inline=False
+    )
+    confirmation_embed.add_field(
+      name=f"Total Badges In The Great Material Continuum!",
+      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
+      inline=False
+    )
+    confirmation_embed.set_image(url="https://i.imgur.com/zEvF7uO.gif")
+    confirmation_embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    )
+    await ctx.channel.send(embed=confirmation_embed)
+
+    if player_count >= 9:
+      await ctx.channel.send(f"Hey {active_chair_member.mention}, your table is getting full!")
+
+
   async def _cancel_tongo_related_trades(self, user_discord_id, selected_badges):
-    # These are all the active or pending trades that involved the user as either the 
+    # These are all the active or pending trades that involved the user as either the
     # requestee or requestor and include the badges that were added to the tongo pot
     # are thus no longer valid and need to be canceled
     trades_to_cancel = db_get_related_tongo_badge_trades(user_discord_id, selected_badges)
@@ -336,12 +470,13 @@ class Tongo(commands.Cog):
   )
   @commands.check(access_check)
   async def index(self, ctx:discord.ApplicationContext):
+    await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
     user_member = await self.bot.current_guild.fetch_member(user_discord_id)
     active_tongo = db_get_active_tongo()
 
     if not active_tongo:
-      await ctx.respond(embed=discord.Embed(
+      await ctx.followup.send(embed=discord.Embed(
           title="No Tongo Game In Progress",
           description="No one is playing Tongo yet!\n\nUse `/tongo venture` to begin a game!",
           color=discord.Color.red()
@@ -349,6 +484,13 @@ class Tongo(commands.Cog):
         ephemeral=True
       )
       return
+
+    # Respond to command required
+    await ctx.followup.send(embed=discord.Embed(
+        title="Index Request Processed!",
+        color=discord.Color.dark_purple()
+      ), ephemeral=True
+    )
 
     active_tongo_chair_id = int(active_tongo['chair_discord_id'])
     active_chair_member = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
@@ -391,11 +533,6 @@ class Tongo(commands.Cog):
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
     await ctx.channel.send(embed=confirmation_embed)
-    await ctx.respond(embed=discord.Embed(
-        title="Index Request Processed!",
-        color=discord.Color.dark_purple()
-      ), ephemeral=True
-    )
 
   #   _____          ___              __
   #  / ___/__  ___  / _/______  ___  / /_
@@ -407,11 +544,12 @@ class Tongo(commands.Cog):
   )
   @commands.check(access_check)
   async def confront(self, ctx:discord.ApplicationContext):
+    await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
     active_tongo = db_get_active_tongo()
 
     if not active_tongo:
-      await ctx.respond(embed=discord.Embed(
+      await ctx.followup.send(embed=discord.Embed(
           title="No Tongo Game In Progress",
           description="No one is playing Tongo yet!\n\nUse `/tongo venture` to begin a game!",
           color=discord.Color.red()
@@ -423,7 +561,7 @@ class Tongo(commands.Cog):
       active_tongo_chair_id = int(active_tongo['chair_discord_id'])
       active_chair = await bot.current_guild.fetch_member(active_tongo_chair_id)
       if active_tongo_chair_id != user_discord_id:
-        await ctx.respond(embed=discord.Embed(
+        await ctx.followup.send(embed=discord.Embed(
             title="You're Not The Chair!",
             description=f"Only The Chair is allowed to end the Tongo!\n\nThe current Chair is: **{active_chair.display_name}**",
             color=discord.Color.red()
@@ -439,7 +577,7 @@ class Tongo(commands.Cog):
     tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
 
     if len(tongo_player_ids) < 2:
-      await ctx.respond(embed=discord.Embed(
+      await ctx.followup.send(embed=discord.Embed(
           title="You're The Only Player!",
           description="Can't do a Confront when you're the only player in the game! Invite some people!",
           color=discord.Color.red()
@@ -449,7 +587,7 @@ class Tongo(commands.Cog):
       return
 
     # Respond to command required
-    await ctx.respond(embed=discord.Embed(
+    await ctx.followup.send(embed=discord.Embed(
         title="Confront Acknowledged!",
         color=discord.Color.dark_purple()
       ), ephemeral=True
@@ -504,7 +642,7 @@ class Tongo(commands.Cog):
           player_channel_embed.set_footer(text="✨ - Indicates a wishlist badge!")
         player_channel_embed.set_image(url=f"attachment://{won_image_id}.png")
         await trade_channel.send(embed=player_channel_embed, file=won_image)
-        
+
         # Now send message to the player
         player_message_embed = discord.Embed(
           title=f"TONGO! Confront!",
@@ -531,7 +669,7 @@ class Tongo(commands.Cog):
         )
         player_channel_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
         await ctx.channel.send(embed=player_channel_embed)
-        
+
         # Now send message to the player
         player_message_embed = discord.Embed(
           title=f"TONGO! Confront!",
@@ -697,6 +835,7 @@ class Tongo(commands.Cog):
     for player_id in tongo_player_ids:
       player_inventories[player_id] = [b['badge_filename'] for b in db_get_user_badges(player_id)]
 
+    random.shuffle(tongo_player_ids)
     random.shuffle(tongo_pot)
 
     # We're going to go round-robin and try to distribute all of the shuffled badges
@@ -704,7 +843,7 @@ class Tongo(commands.Cog):
     while tongo_pot:
       # logger.info(f"Turn Index Is: {turn_index}")
       working_pot = tongo_pot.copy()
-      
+
       current_player_id = tongo_player_ids[turn_index % len(tongo_player_ids)]
       current_badge = working_pot.pop(0)
 
@@ -762,16 +901,18 @@ class Tongo(commands.Cog):
   # / /_/ / __/ / / / __/ / -_|_-<
   # \____/\__/_/_/_/\__/_/\__/___/
   async def _validate_selected_user_badges(self, ctx:discord.ApplicationContext, selected_user_badges):
+    # XXX Add another check here to see if the all badges in the Continuum are ones they already own
+
     if len(selected_user_badges) != 3:
-      await ctx.respond(embed=discord.Embed(
+      await ctx.followup.send(embed=discord.Embed(
         title="Invalid Selection",
-        description=f"You must own all of the badges you've selected to risk and they must be unlocked!",
+        description=f"You must own all of the badges you've selected to Risk and they must be Unlocked!",
         color=discord.Color.red()
       ), ephemeral=True)
       return False
 
     if len(selected_user_badges) > len(set(selected_user_badges)):
-      await ctx.respond(embed=discord.Embed(
+      await ctx.followup.send(embed=discord.Embed(
         title="Invalid Selection",
         description=f"All badges selected must be unique!",
         color=discord.Color.red()
@@ -780,7 +921,7 @@ class Tongo(commands.Cog):
 
     restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in SPECIAL_BADGES]]
     if restricted_badges:
-      await ctx.respond(embed=discord.Embed(
+      await ctx.followup.send(embed=discord.Embed(
         title="Invalid Selection",
         description=f"You cannot risk with the following: {','.join(restricted_badges)}!",
         color=discord.Color.red()
@@ -790,7 +931,7 @@ class Tongo(commands.Cog):
     tongo_pot_badges = db_get_tongo_pot_badges()
     existing_pot_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in tongo_pot_badges]]
     if existing_pot_badges:
-      await ctx.respond(embed=discord.Embed(
+      await ctx.followup.send(embed=discord.Embed(
         title="Invalid Selection",
         description=f"The following badges are already in The Great Material Continuum: {','.join(existing_pot_badges)}!",
         color=discord.Color.red()
