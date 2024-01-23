@@ -570,9 +570,6 @@ class Tongo(commands.Cog):
         )
         return
 
-    # Cancel the auto_confront that was started when the venture was fired
-    self.auto_confront.cancel()
-
     tongo_players = db_get_active_tongo_players(active_tongo['id'])
     tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
 
@@ -586,6 +583,9 @@ class Tongo(commands.Cog):
       )
       return
 
+    # Cancel the auto_confront that was started when the venture was fired
+    self.auto_confront.cancel()
+
     # Respond to command required
     await ctx.followup.send(embed=discord.Embed(
         title="Confront Acknowledged!",
@@ -593,100 +593,8 @@ class Tongo(commands.Cog):
       ), ephemeral=True
     )
 
-    results = await self._perform_confront_distribution()
-    tongo_pot_badges = db_get_tongo_pot_badges()
-    results_embed = discord.Embed(
-      title="TONGO! Complete!",
-      color=discord.Color.dark_purple()
-    )
-    if tongo_pot_badges:
-      results_embed.add_field(
-        name=f"Remaining Badges In The Great Material Continuum!",
-        value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
-        inline=False
-      )
-    results_embed.set_image(url="https://i.imgur.com/gdpvba5.gif")
-    results_embed.set_footer(
-      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
-      icon_url="https://i.imgur.com/GTN4gQG.jpg"
-    )
-    trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
-    channel_message = await trade_channel.send(embed=results_embed)
-
-    for result in results.items():
-      player_user_discord_id = result[0]
-      player_member = await self.bot.current_guild.fetch_member(player_user_discord_id)
-      player_badges_received = [db_get_badge_info_by_filename(b) for b in list(result[1])]
-      player_wishlist = db_get_user_wishlist_badges(player_user_discord_id)
-
-      if len(player_badges_received) > 0:
-        won_badge_filenames = [b['badge_filename'] for b in player_badges_received]
-        won_image_id = f"{active_tongo['id']}-won-{result[0]}"
-        won_image = await generate_badge_trade_showcase(
-          won_badge_filenames,
-          won_image_id,
-          f"Badges Won By {player_member.display_name}",
-          f"{len(player_badges_received)} Badges"
-        )
-        wishlist_badges_received = [b for b in player_wishlist if b['badge_filename'] in [b['badge_filename'] for b in player_badges_received]]
-        wishlist_badge_filenames_received = [b['badge_filename'] for b in wishlist_badges_received]
-
-        player_channel_embed = discord.Embed(
-          title=f"{player_member.display_name} Received:",
-          description="\n".join([f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames_received else ''}" for b in player_badges_received]),
-          color=discord.Color.dark_purple()
-        )
-        if wishlist_badges_received:
-          db_autolock_badges_by_filenames_if_in_wishlist(player_user_discord_id, wishlist_badge_filenames_received)
-          db_purge_users_wishlist(player_user_discord_id)
-          player_channel_embed.set_footer(text="✨ - Indicates a wishlist badge!")
-        player_channel_embed.set_image(url=f"attachment://{won_image_id}.png")
-        await trade_channel.send(embed=player_channel_embed, file=won_image)
-
-        # Now send message to the player
-        player_message_embed = discord.Embed(
-          title=f"TONGO! Confront!",
-          description="Your Tongo game has ended! Your winnings are included below, "
-                      f"and you can view the full results at: {channel_message.jump_url}",
-          color=discord.Color.dark_purple()
-        )
-        player_message_embed.add_field(
-          name=f"Badges Acquired",
-          value="\n".join([f"* {b['badge_name']}{' ✨' if b['badge_filename'] in [w['badge_filename'] for w in wishlist_badges_received] else ''}" for b in player_badges_received])
-        )
-        footer_text = "Note you can use /settings to enable or disable these messages."
-        if wishlist_badges_received:
-          footer_text += "\n✨ - Indicates a wishlist badge!"
-        player_message_embed.set_footer(text=footer_text)
-        try:
-          await player_member.send(embed=player_message_embed)
-        except discord.Forbidden as e:
-          logger.info(f"Unable to send Tongo completion message to {player_member.display_name}, they have their DMs closed.")
-          pass
-      else:
-        player_channel_embed = discord.Embed(
-          title=f"{player_member.display_name} Did Not Receive Any Badges..."
-        )
-        player_channel_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
-        await ctx.channel.send(embed=player_channel_embed)
-
-        # Now send message to the player
-        player_message_embed = discord.Embed(
-          title=f"TONGO! Confront!",
-          description="Your Tongo game has ended! Sadly you did not receive any badges... \n\n"
-                      f"You can view the full results at: {channel_message.jump_url}",
-          color=discord.Color.dark_purple()
-        )
-        player_message_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
-        player_message_embed.set_footer(text="Note you can use /settings to enable or disable these messages.")
-        try:
-          await player_member.send(embed=player_message_embed)
-        except discord.Forbidden as e:
-          logger.info(f"Unable to send Tongo completion message to {player_member.display_name}, they have their DMs closed.")
-          pass
-
+    self._perform_confront(active_tongo, active_chair)
     self.auto_confront.cancel()
-    # We're Done Baybee!
 
   #    ___       __           _____          ___              __
   #   / _ |__ __/ /____  ____/ ___/__  ___  / _/______  ___  / /_
@@ -727,13 +635,24 @@ class Tongo(commands.Cog):
         pass
       return
 
+    self._perform_confront(active_tongo, active_chair, True)
+    self.auto_confront.cancel()
+
+  async def _perform_confront(self, active_tongo, active_chair, auto_confront=False):
     results = await self._perform_confront_distribution()
     tongo_pot_badges = db_get_tongo_pot_badges()
-    results_embed = discord.Embed(
-      title="TONGO! Game Automatically Ending!",
-      description=f"Whoops, **{active_chair.display_name}** failed to Confront before the time ran out!\n\nEnding the game!",
-      color=discord.Color.dark_purple()
-    )
+    if auto_confront:
+      results_embed = discord.Embed(
+        title="TONGO! Game Automatically Ending!",
+        description=f"Whoops, **{active_chair.display_name}** failed to Confront before the time ran out!\n\nEnding the game!",
+        color=discord.Color.dark_purple()
+      )
+    else:
+      results_embed = discord.Embed(
+        title="TONGO! Complete!",
+        color=discord.Color.dark_purple()
+      )
+
     if tongo_pot_badges:
       results_embed.add_field(
         name=f"Remaining Badges In The Great Material Continuum!",
@@ -779,18 +698,27 @@ class Tongo(commands.Cog):
         await trade_channel.send(embed=player_channel_embed, file=won_image)
 
         # Now send message to the player
-        player_message_embed = discord.Embed(
-          title=f"TONGO! Game Automatically Ending!",
-          description="Time ran out for your Tongo game and it has automatically ended! Your winnings are included below, "
-                      f"and you can view the full results at: {channel_message.jump_url}",
-          color=discord.Color.dark_purple()
-        )
+        if not auto_confront:
+          player_message_embed = discord.Embed(
+            title=f"TONGO! Confront!",
+            description="Your Tongo game has ended! Your winnings are included below, "
+                        f"and you can view the full results at: {channel_message.jump_url}",
+            color=discord.Color.dark_purple()
+          )
+        else:
+          player_message_embed = discord.Embed(
+            title=f"TONGO! Game Automatically Ending!",
+            description="Time ran out for your Tongo game and it has automatically ended! Your winnings are included below, "
+                        f"and you can view the full results at: {channel_message.jump_url}",
+            color=discord.Color.dark_purple()
+          )
+
         player_message_embed.add_field(
           name=f"Badges Acquired",
-          value="\n".join([f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames_received else ''}" for b in player_badges_received]),
+          value="\n".join([f"* {b['badge_name']}{' ✨' if b['badge_filename'] in [w['badge_filename'] for w in wishlist_badges_received] else ''}" for b in player_badges_received])
         )
         footer_text = "Note you can use /settings to enable or disable these messages."
-        if wishlist_badge_filenames_received:
+        if wishlist_badges_received:
           footer_text += "\n✨ - Indicates a wishlist badge!"
         player_message_embed.set_footer(text=footer_text)
         try:
@@ -799,29 +727,35 @@ class Tongo(commands.Cog):
           logger.info(f"Unable to send Tongo completion message to {player_member.display_name}, they have their DMs closed.")
           pass
       else:
-        player_embed = discord.Embed(
-          title=f"{player_member.display_name} Did Not Receive Any Badges!"
+        player_channel_embed = discord.Embed(
+          title=f"{player_member.display_name} Did Not Receive Any Badges..."
         )
-        player_message_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
-        await trade_channel.send(embed=player_embed)
+        player_channel_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
+        await trade_channel.send(embed=player_channel_embed)
 
         # Now send message to the player
-        player_message_embed = discord.Embed(
-          title=f"TONGO! Confront!",
-          description="Your Tongo game has automatically ended! Sadly you did not receive any badges... \n\n"
-                      f"You can view the full results at: {channel_message.jump_url}",
-          color=discord.Color.dark_purple()
-        )
+        if not auto_confront:
+          player_message_embed = discord.Embed(
+            title=f"TONGO! Confront!",
+            description="Your Tongo game has ended! Sadly you did not receive any badges...\n\n"
+                        f"You can view the full results at: {channel_message.jump_url}",
+            color=discord.Color.dark_purple()
+          )
+        else:
+          player_message_embed = discord.Embed(
+            title=f"TONGO! Confront!",
+            description="Your Tongo game has automatically ended! Sadly you did not receive any badges...\n\n"
+                        f"You can view the full results at: {channel_message.jump_url}",
+            color=discord.Color.dark_purple()
+          )
+
         player_message_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
-        footer_text = "Note you can use /settings to enable or disable these messages."
-        player_message_embed.set_footer(text=footer_text)
+        player_message_embed.set_footer(text="Note you can use /settings to enable or disable these messages.")
         try:
           await player_member.send(embed=player_message_embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send Tongo completion message to {player_member.display_name}, they have their DMs closed.")
           pass
-
-    self.auto_confront.cancel()
 
   async def _perform_confront_distribution(self):
     active_tongo = db_get_active_tongo()
