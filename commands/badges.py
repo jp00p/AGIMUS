@@ -129,6 +129,15 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
     title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
     user_badges = db_get_user_badges(ctx.author.id, sortby)
 
+  if not user_badges:
+    await ctx.followup.send(embed=discord.Embed(
+        title="No Badges To Showcase!",
+        description="You don't appear to either have any badges, or any that match this filter!",
+        color=discord.Color.red()
+      ), ephemeral=True
+    )
+    return
+
   # Set up text values for paginated pages
   total_badges_cnt = len(all_badge_info)
   user_badges_cnt = len(user_badges)
