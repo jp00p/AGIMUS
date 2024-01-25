@@ -13,6 +13,7 @@ f.close()
 @commands.check(role_check)
 async def pin(ctx, message: discord.Message):
   pinning_user = ctx.author.display_name
+  pinning_user_mention = ctx.author.mention
   logger.info(
     f"{pinning_user} is pinning message {message.id} in {ctx.channel.name}")
   if message.pinned:
@@ -20,7 +21,7 @@ async def pin(ctx, message: discord.Message):
   else:
     await message.pin()
     await ctx.respond(f"Message pinned! 📌", ephemeral=True)
-    await ctx.channel.send(random.choice(random_pin_messages["messages"]).format(user=pinning_user))
+    await ctx.channel.send(random.choice(random_pin_messages["messages"]).format(user=pinning_user_mention))
 
 
 @bot.message_command(

@@ -147,7 +147,12 @@ class Tongo(commands.Cog):
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
-    await ctx.channel.send(embed=confirmation_embed)
+
+    continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
+    trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
+    await trade_channel.send(embed=confirmation_embed)
+    await self._send_continuum_images_to_channel(trade_channel, continuum_images)
+
     self.first_auto_confront = True
     self.auto_confront.start()
 
@@ -267,10 +272,14 @@ class Tongo(commands.Cog):
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
-    await ctx.channel.send(embed=confirmation_embed)
 
-    if player_count >= 9:
-      await ctx.channel.send(f"Hey {active_chair_member.mention}, your table is getting full!")
+    continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
+    trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
+    await trade_channel.send(embed=confirmation_embed)
+    await self._send_continuum_images_to_channel(trade_channel, continuum_images)
+
+    if player_count == 9:
+      await trade_channel.send(f"Hey {active_chair_member.mention}, your table is getting full!")
 
 
   #    __
@@ -280,7 +289,7 @@ class Tongo(commands.Cog):
   #                            /___/
   @tongo.command(
     name="leverage",
-    description="Leverage to Risk some RANDOMIZED badges to join the current game of Tongo!"
+    description="Leverage to Risk some RANDOMIZED badges and join the current game of Tongo!"
   )
   @commands.check(access_check)
   async def leverage(self, ctx:discord.ApplicationContext):
@@ -392,10 +401,14 @@ class Tongo(commands.Cog):
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
-    await ctx.channel.send(embed=confirmation_embed)
 
-    if player_count >= 9:
-      await ctx.channel.send(f"Hey {active_chair_member.mention}, your table is getting full!")
+    continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
+    trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
+    await trade_channel.send(embed=confirmation_embed)
+    await self._send_continuum_images_to_channel(trade_channel, continuum_images)
+
+    if player_count == 9:
+      await trade_channel.send(f"Hey {active_chair_member.mention}, your table is getting full!")
 
 
   async def _cancel_tongo_related_trades(self, user_discord_id, selected_badges):
@@ -535,16 +548,23 @@ class Tongo(commands.Cog):
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
     continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
-    await ctx.channel.send(embed=confirmation_embed)
-    await ctx.channel.send(embed=discord.Embed(
-      title="The Great Material Continuum!",
-      color=discord.Color.dark_purple()
-    ))
+    trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
+    await trade_channel.send(embed=confirmation_embed)
+    await self._send_continuum_images_to_channel(trade_channel, continuum_images)
 
+  async def _send_continuum_images_to_channel(self, trade_channel, continuum_images):
     # We can only attach up to 10 files per message, so them in chunks if needed
     file_chunks = [continuum_images[i:i + 10] for i in range(0, len(continuum_images), 10)]
     for chunk in file_chunks:
-      await ctx.channel.send(files=chunk)
+      file_number = 1
+      for file in chunk:
+        await trade_channel.send(
+          embed=discord.Embed(
+            color=discord.Color.dark_purple()
+          ).set_image(url=f"attachment://{file.filename}"),
+          file=file
+        )
+        file_number += 1
 
   #   _____          ___              __
   #  / ___/__  ___  / _/______  ___  / /_
@@ -595,9 +615,6 @@ class Tongo(commands.Cog):
       )
       return
 
-    # Cancel the auto_confront that was started when the venture was fired
-    self.auto_confront.cancel()
-
     # Respond to command required
     await ctx.followup.send(embed=discord.Embed(
         title="Confront Acknowledged!",
@@ -606,6 +623,8 @@ class Tongo(commands.Cog):
     )
 
     await self._perform_confront(active_tongo, active_chair)
+
+    # Cancel the auto_confront that was started when the venture was fired
     self.auto_confront.cancel()
 
   #    ___       __           _____          ___              __
@@ -778,6 +797,10 @@ class Tongo(commands.Cog):
         except discord.Forbidden as e:
           logger.info(f"Unable to send Tongo completion message to {player_member.display_name}, they have their DMs closed.")
           pass
+
+    if tongo_pot_badges:
+      continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
+      await self._send_continuum_images_to_channel(trade_channel, continuum_images)
 
   async def _perform_confront_distribution(self):
     active_tongo = db_get_active_tongo()
@@ -1046,14 +1069,16 @@ def db_end_current_tongo(tongo_id):
 #  \______  /\____/|___|  /__| |__|___|  /____/|____/|__|_|  /___|__|_|  (____  /\___  / \___  >____  >
 #         \/            \/             \/                  \/          \/     \//_____/      \/     \/
 async def generate_paginated_continuum_images(continuum_badges):
+  total_badges = len(continuum_badges)
   max_per_image = 12
   all_pages = [continuum_badges[i:i + max_per_image] for i in range(0, len(continuum_badges), max_per_image)]
   total_pages = len(all_pages)
   badge_images = [
     await generate_continuum_images(
-      continuum_badges,
-      page_number,
-      total_pages
+      page,
+      page_number + 1,
+      total_pages,
+      total_badges
     )
     for page_number, page in enumerate(all_pages)
   ]
@@ -1061,79 +1086,106 @@ async def generate_paginated_continuum_images(continuum_badges):
 
 
 @to_thread
-def generate_continuum_images(continuum_badges, page_number=1, total_pages=1):
-  text_wrapper = textwrap.TextWrapper(width=30)
+def generate_continuum_images(page_badges, page_number, total_pages, total_badges):
+  text_wrapper = textwrap.TextWrapper(width=20)
+  badge_font = ImageFont.truetype("fonts/context_bold.ttf", 16)
   footer_font = ImageFont.truetype("fonts/luxury.ttf", 42)
-  badge_font = ImageFont.truetype("fonts/context_bold.ttf", 28)
 
-  badge_size = 200
-  badge_padding = 40
-  badge_margin = 10
+  badge_size = 120
+  badge_padding = 20
+  badge_margin = 40
+  badge_vertical_margin = 40
   badge_slot_size = badge_size + (badge_padding * 2) # size of badge slot size (must be square!)
   badges_per_row = 3
 
-  base_width = 800
-  base_height = math.ceil((len(continuum_badges) / badges_per_row)) * (badge_slot_size + badge_margin)
+  total_rows = math.ceil((len(page_badges) / badges_per_row))
 
   header_height = 110
-  image_padding = 25
+  row_height = 200
+  footer_height = 115
+
+  base_width = 800
+  base_height = (200 * total_rows) + header_height + footer_height
 
   # Create base image to paste all badges on to
   continuum_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
-  continuum_header_image = Image.open("./images/tongo/assets/continuum_bg.png")
-  continuum_bg_image = Image.open("./images/tongo/assets/continuum_bg.png")
+  continuum_header_image = Image.open("./images/templates/tongo/continuum_header.png")
+  continuum_bg_image = Image.open("./images/templates/tongo/continuum_bg.png")
+  continuum_footer_image = Image.open("./images/templates/tongo/continuum_footer.png")
 
   # Start image with header
   continuum_base_image.paste(continuum_header_image, (0, 0))
 
-  base_w, base_h = continuum_base_image.size
-  bg_w, bg_h = continuum_bg_image.size
-
   # Stamp BG Rows
-  for i in range(0, base_w, bg_w):
-    for j in range(0, base_h, bg_h):
-      continuum_base_image.paste(continuum_bg_image, (i, j))
+  bg_y = header_height
+  for i in range(total_rows):
+    continuum_base_image.paste(continuum_bg_image, (0, bg_y))
+    bg_y += row_height
 
-  total_text = f"{len(continuum_badges)} TOTAL"
-  page_number_text = f"PAGE {'{:02d}'.format(page_number)} OF {'{:02d}'.format(total_pages)}"
+  # Stamp Footer
+  continuum_base_image.paste(continuum_footer_image, (0, bg_y))
+
+  total_text = f"{total_badges} TOTAL"
+  page_number_text = ""
+  if total_pages > 1:
+    page_number_text = f" -- PAGE {'{:02d}'.format(page_number)} OF {'{:02d}'.format(total_pages)}"
+  footer_text =f"{total_text}{page_number_text}"
 
   draw = ImageDraw.Draw(continuum_base_image)
-  draw.text( (base_width/2 + image_padding, base_h-50), total_text, fill="white", font=footer_font, anchor="mm", align="center", stroke_width=2, stroke_fill="#000000")
-  draw.text( (image_padding, base_h-50), total_text, fill="white", font=footer_font, anchor="mm", align="center", stroke_width=2, stroke_fill="#000000")
+  base_w, base_h = continuum_base_image.size
+  # draw.text( (150, base_h-50), total_text, fill="white", font=footer_font, anchor="mm", align="right", stroke_width=2, stroke_fill="#DFBD5C")
+  # draw.text( (base_w-200, base_h-50), page_number_text, fill="white", font=footer_font, anchor="mm", align="right", stroke_width=2, stroke_fill="#DFBD5C")
+  draw.text( (base_width/2, base_h-50), footer_text, fill="#FCCE67", font=footer_font, anchor="mm", align="center", stroke_width=2, stroke_fill="#B49847")
 
-  # Center positioning. Move start_x to center of image then - 1/2 of the width of each image * the length of images
-  half_badge_slot_size = int(badge_slot_size / 2)
-  start_row_length = 3
-  if len(continuum_badges) < 3:
-    start_row_length = len(continuum_badges)
-  start_x = int((base_width/2 + image_padding/2) - (half_badge_slot_size * start_row_length))
 
-  current_x = start_x
-  current_y = header_height
+  # Calcuate centering the row
+  half_base_width = int(base_w / 2)
+
+  total_remaining_badges = len(page_badges)
+  start_row_badges_length = total_remaining_badges
+  if start_row_badges_length >= badges_per_row:
+    start_row_badges_length = badges_per_row
+
+  # Get total width of all badges and any margins
+  start_row_width = int((badge_slot_size * start_row_badges_length) + (badge_margin * (start_row_badges_length - 1)))
+  # Subtract that from the midpoint of the base image
+  current_x = int(half_base_width - (start_row_width / 2))
+  # Start point for vertical row
+  current_y = header_height + int(badge_margin / 2)
   counter = 0
-  badge_border_color = "#DFBD5C"
 
-  for badge in continuum_badges:
+  for badge in page_badges:
     # slot
     s = Image.new("RGBA", (badge_slot_size, badge_slot_size), (0, 0, 0, 0))
     badge_draw = ImageDraw.Draw(s)
-    badge_draw.rounded_rectangle( (0, 0, badge_slot_size, badge_slot_size), fill="#000000", outline=badge_border_color, width=4, radius=32 )
+    badge_draw.rounded_rectangle( (0, 0, badge_slot_size, badge_slot_size), fill="#000000", outline="#DFBD5C", width=4, radius=32 )
 
     # badge
-    b = Image.open(f"./images/badges/{badge['badge_filename']}").convert("RGBA")
-    b = b.thumbnail((190, 190), Image.ANTIALIAS)
+    size = (100, 100)
+    b_raw = Image.open(f"./images/badges/{badge['badge_filename']}").convert("RGBA")
+    b_raw.thumbnail(size, Image.ANTIALIAS)
+    b = Image.new('RGBA', size, (255, 255, 255, 0))
+    b.paste(
+      b_raw, (int((size[0] - b_raw.size[0]) // 2), int((size[1] - b_raw.size[1]) // 2))
+    )
 
     w, h = b.size # badge size
-    offset_x = min(0, (badge_size+badge_padding)-w) # center badge x
+    offset_x = int(badge_slot_size / 2) - (int((w) / 2) + badge_padding) # center badge x
     offset_y = 5
-    badge_name = text_wrapper.wrap(badge['badge_name'])
+
+    current_text_wrapper = text_wrapper
+    current_badge_font = badge_font
+    if len(badge['badge_name']) > 20:
+      current_text_wrapper = textwrap.TextWrapper(width=16)
+      current_badge_font = ImageFont.truetype("fonts/context_bold.ttf", 14)
+    badge_name = current_text_wrapper.wrap(badge['badge_name'])
     wrapped_badge_name = ""
     for i in badge_name[:-1]:
       wrapped_badge_name = wrapped_badge_name + i + "\n"
     wrapped_badge_name += badge_name[-1]
     # add badge to slot
     s.paste(b, (badge_padding+offset_x, offset_y), b)
-    badge_draw.text( (int(badge_slot_size/2), 222), f"{wrapped_badge_name}", fill="white", font=badge_font, anchor="mm", align="center")
+    badge_draw.text( (int(badge_slot_size/2), 100 + offset_y + 20), f"{wrapped_badge_name}", fill="white", font=current_badge_font, anchor="mm", align="center")
 
     # add slot to base image
     continuum_base_image.paste(s, (current_x, current_y), s)
@@ -1143,8 +1195,17 @@ def generate_continuum_images(continuum_badges, page_number=1, total_pages=1):
 
     if counter % badges_per_row == 0:
       # typewriter sound effects:
-      current_x = start_x # ding!
-      current_y += badge_slot_size + badge_margin # ka-chunk
+      total_remaining_badges = total_remaining_badges - badges_per_row
+      current_row_length = total_remaining_badges
+      if current_row_length >= badges_per_row:
+        current_row_length = badges_per_row
+
+      # Get total width of all row badge slots and any margins
+      full_row_width = int((badge_slot_size * current_row_length) + (badge_margin * (current_row_length - 1)))
+      # Subtract half the full row width from the midpoint of the base image
+      current_x = int(half_base_width - (full_row_width / 2))
+      # Drop down a row vertically
+      current_y += badge_slot_size + badge_vertical_margin # ka-chunk
       counter = 0 #...
 
   continuum_base_image.save(f"./images/trades/continuum-page{page_number}.png")
