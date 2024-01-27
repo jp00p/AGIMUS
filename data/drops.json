@@ -624,6 +624,11 @@
     "description": "The Erica Drop. User drop.",
     "url": "https://i.imgur.com/30Xjhnh.mp4"
   },
+  "FAJITA!": {
+    "file": "data/drops/fajita.mp4",
+    "description": "Tequila Fajita Jane",
+    "url": "https://i.imgur.com/pMwujWp.mp4"
+  },
   "The Fajita Jane Drop": {
     "file": "data/drops/thefajitajanedrop.mp4",
     "description": "The Fajita Jane Drop. User drop.",
