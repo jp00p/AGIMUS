@@ -152,7 +152,7 @@ class Tongo(commands.Cog):
       selected_user_badges = [db_get_badge_info_by_name(b) for b in selectable_unlocked_badge_names]
     else:
       selected_user_badge_names = [b for b in selected_badge_names if b in unlocked_user_badge_names]
-      selected_user_badges = [db_get_badge_info_by_name(b) for b in selected_user_badges]
+      selected_user_badges = [db_get_badge_info_by_name(b) for b in selected_user_badge_names]
 
       if not await self._validate_selected_user_badges(ctx, selected_user_badge_names):
         return
@@ -178,7 +178,7 @@ class Tongo(commands.Cog):
 
     confirmation_embed = discord.Embed(
       title="TONGO! Badges Ventured!",
-      description=f"A new Tongo game has begun!!!\n\n**{user_member.display_name}** has kicked things off and is The Chair!\n\n"
+      description=f"A new Tongo game has begun!!!\n\n**{user_member.display_name}** has kicked things off {' with 3 **RANDOMLY SELECTED** Badges' if randomized else ''} and is The Chair!\n\n"
                   "Only *they* have the ability to end the game via `/tongo confront`!\n\n"
                   f"If **{user_member.display_name}** does not Confront within 8 hours, this game will automatically end and "
                   "the badge distribution from The Continuum will automatically occur!",
@@ -316,7 +316,7 @@ class Tongo(commands.Cog):
       selected_user_badges = [db_get_badge_info_by_name(b) for b in selectable_unlocked_badge_names]
     else:
       selected_user_badge_names = [b for b in selected_badge_names if b in unlocked_user_badge_names]
-      selected_user_badges = [db_get_badge_info_by_name(b) for b in selected_user_badges]
+      selected_user_badges = [db_get_badge_info_by_name(b) for b in selected_user_badge_names]
 
       if not await self._validate_selected_user_badges(ctx, selected_user_badge_names):
         return
@@ -343,7 +343,7 @@ class Tongo(commands.Cog):
 
     player_count = len(tongo_player_ids)
 
-    description=f"### **{user_member.display_name}** has joined the table!\n\nA new challenger appears! Player {player_count} has entered the game!"
+    description=f"### **{user_member.display_name}** has joined the table!\n\nA new challenger appears! Player {player_count} has entered the game{' with 3 **RANDOMLY SELECTED** Badges' if randomized else ''}!"
     if self.auto_confront.next_iteration:
       current_time = datetime.now(timezone.utc)
       remaining_time = current_time - self.auto_confront.next_iteration
@@ -351,7 +351,7 @@ class Tongo(commands.Cog):
 
     confirmation_embed = discord.Embed(
       title="TONGO! Badges Risked!",
-      description=f"### **{user_member.display_name}** has joined the table!\n\nA new challenger appears! Player {player_count} has entered the game!",
+      description=description,
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
