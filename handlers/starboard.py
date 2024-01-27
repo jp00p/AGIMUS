@@ -101,7 +101,7 @@ async def add_starboard_post(message, board) -> None:
   if len(message.attachments) <= 0 and message.content.lower().startswith("https://tenor.com/"):
     return
 
-  await increment_user_xp(message.author, 2, "starboard_post", message.channel, "Getting a Starboard Post") # give em that sweet sweet xp first
+  await increment_user_xp(message.author, 2, "starboard_post", message.channel, "Getting a Clip Show Device post") # give em that sweet sweet xp first
   ALL_STARBOARD_POSTS.append(message.id) # add post ID to in-memory list
   board_channel_id = get_channel_id(board)
   channel = bot.get_channel(board_channel_id) # where it will be posted
