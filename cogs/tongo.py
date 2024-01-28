@@ -149,7 +149,8 @@ class Tongo(commands.Cog):
         )
         return
 
-      selected_user_badges = [db_get_badge_info_by_name(b) for b in selectable_unlocked_badge_names]
+      randomized_badge_names = random.sample(selectable_unlocked_badge_names, 3)
+      selected_user_badges = [db_get_badge_info_by_name(b) for b in randomized_badge_names]
     else:
       selected_user_badge_names = [b for b in selected_badge_names if b in unlocked_user_badge_names]
       selected_user_badges = [db_get_badge_info_by_name(b) for b in selected_user_badge_names]
@@ -313,7 +314,8 @@ class Tongo(commands.Cog):
         )
         return
 
-      selected_user_badges = [db_get_badge_info_by_name(b) for b in selectable_unlocked_badge_names]
+      randomized_badge_names = random.sample(selectable_unlocked_badge_names, 3)
+      selected_user_badges = [db_get_badge_info_by_name(b) for b in randomized_badge_names]
     else:
       selected_user_badge_names = [b for b in selected_badge_names if b in unlocked_user_badge_names]
       selected_user_badges = [db_get_badge_info_by_name(b) for b in selected_user_badge_names]
@@ -669,6 +671,7 @@ class Tongo(commands.Cog):
     else:
       results_embed = discord.Embed(
         title="TONGO! Complete!",
+        description="Distributing Badge from The Great Material Continuum!",
         color=discord.Color.dark_purple()
       )
 
@@ -1186,12 +1189,14 @@ def generate_continuum_images(page_badges, page_number, total_pages, total_badge
       current_y += badge_slot_size + badge_vertical_margin # ka-chunk
       counter = 0 #...
 
-  continuum_base_image.save(f"./images/trades/continuum-page{page_number}.png")
+  continuum_image_filename = f"continuum-page-{page_number}-{int(time.time())}.png"
+
+  continuum_base_image.save(f"./images/tongo/{continuum_image_filename}")
 
   while True:
     time.sleep(0.05)
-    if os.path.isfile(f"./images/trades/continuum-page{page_number}.png"):
+    if os.path.isfile(f"./images/tongo/{continuum_image_filename}"):
       break
 
-  discord_image = discord.File(fp=f"./images/trades/continuum-page{page_number}.png", filename=f"continuum-page{page_number}.png")
+  discord_image = discord.File(fp=f"./images/tongo/{continuum_image_filename}", filename=f"{continuum_image_filename}")
   return discord_image
