@@ -679,6 +679,11 @@
     "description": "The Kahless Whisper Drop. User drop.",
     "url": "https://i.imgur.com/WEHSh2O.mp4"
   },
+  "The Leprechaun Gangster Drop": {
+    "file": "data/drops/theleprechaungangsterdrop.mp4",
+    "description": "The Leprechaun Gangster Drop. User drop.",
+    "url": "https://i.imgur.com/SXKLuSs.mp4"
+  },
   "The Miss Tea Haze Drop": {
     "file": "data/drops/themissteahazedrop.mp4",
     "description": "The Miss Tea Haze Drop. User drop.",
