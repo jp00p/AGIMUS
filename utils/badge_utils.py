@@ -108,8 +108,13 @@ def generate_badge_trade_showcase(badge_list, id, title, footer):
     badge_draw.rounded_rectangle( (0, 0, badge_slot_size, badge_slot_size), fill="#000000", outline=badge_border_color, width=4, radius=32 )
 
     # badge
-    b = Image.open(f"./images/badges/{badge}").convert("RGBA")
-    b = b.resize((190, 190))
+    size = (190, 190)
+    b_raw = Image.open(f"./images/badges/{badge}").convert("RGBA")
+    b_raw.thumbnail(size, Image.ANTIALIAS)
+    b = Image.new('RGBA', size, (255, 255, 255, 0))
+    b.paste(
+      b_raw, (int((size[0] - b_raw.size[0]) // 2), int((size[1] - b_raw.size[1]) // 2))
+    )
 
     w, h = b.size # badge size
     offset_x = min(0, (badge_size+badge_padding)-w) # center badge x
@@ -362,12 +367,18 @@ def generate_badge_images(type, user, page, page_number, total_pages, total_user
     badge_draw.rounded_rectangle( (0, 0, badge_slot_size, badge_slot_size), fill="#000000", outline=badge_border_color, width=4, radius=32 )
 
     # badge
-    b = Image.open(f"./images/badges/{badge_record['badge_filename']}").convert("RGBA")
+    b_raw = Image.open(f"./images/badges/{badge_record['badge_filename']}").convert("RGBA")
     if type == 'sets' and not badge_record['in_user_collection']:
       # Create a mask layer to apply a 1/4th opacity to
       b2 = b.copy()
       b2.putalpha(64)
-      b.paste(b2, b)
+      b_raw.paste(b2, b_raw)
+    size = (190, 190)
+    b_raw.thumbnail(size, Image.ANTIALIAS)
+    b = Image.new('RGBA', size, (255, 255, 255, 0))
+    b.paste(
+      b_raw, (int((size[0] - b_raw.size[0]) // 2), int((size[1] - b_raw.size[1]) // 2))
+    )
     b = b.resize((190, 190))
 
     w, h = b.size # badge size
@@ -564,8 +575,14 @@ def generate_badge_completion_images(user, page, page_number, total_pages, total
 
       # badge
       if 'featured_badge' in set_row:
-        b = Image.open(f"./images/badges/{set_row['featured_badge']}").convert("RGBA")
-        b = b.resize((190, 190))
+        # badge
+        size = (190, 190)
+        b_raw = Image.open(f"./images/badges/{set_row['featured_badge']}").convert("RGBA")
+        b_raw.thumbnail(size, Image.ANTIALIAS)
+        b = Image.new('RGBA', size, (255, 255, 255, 0))
+        b.paste(
+          b_raw, (int((size[0] - b_raw.size[0]) // 2), int((size[1] - b_raw.size[1]) // 2))
+        )
         row_image.paste(b, (20, 50), b)
 
       # add row to base image

@@ -113,7 +113,7 @@ badge_group = bot.create_group("badges", "Badge Commands!")
 )
 async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortby:str, color:str):
   public = (public == "yes")
-  await ctx.defer(ephemeral=not public)
+  await ctx.defer(ephemeral=True)
 
   if filter is not None:
     if filter == 'unlocked':
@@ -128,6 +128,15 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
   else:
     title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
     user_badges = db_get_user_badges(ctx.author.id, sortby)
+
+  if not user_badges:
+    await ctx.followup.send(embed=discord.Embed(
+        title="No Badges To Showcase!",
+        description="You don't appear to either have any badges, or any that match this filter!",
+        color=discord.Color.red()
+      )
+    )
+    return
 
   # Set up text values for paginated pages
   total_badges_cnt = len(all_badge_info)
@@ -180,14 +189,19 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
     )
     await paginator.respond(ctx.interaction, ephemeral=True)
   else:
+    await ctx.followup.send(embed=discord.Embed(
+        title="Badges Showcase Request Acknowledged!",
+        color=discord.Color.blurple()
+      )
+    )
     # We can only attach up to 10 files per message, so if it's public send them in chunks
     file_chunks = [badge_images[i:i + 10] for i in range(0, len(badge_images), 10)]
     for chunk_index, chunk in enumerate(file_chunks):
       # Only post the embed on the last chunk
       if chunk_index + 1 == len(file_chunks):
-        await ctx.followup.send(embed=embed, files=chunk, ephemeral=False)
+        await ctx.channel.send(embed=embed, files=chunk)
       else:
-        await ctx.followup.send(files=chunk, ephemeral=False)
+        await ctx.channel.send(files=chunk)
 
 
 #   _________       __

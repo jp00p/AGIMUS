@@ -794,6 +794,14 @@
       "data": null,
       "parameters": []
     },
+    "tongo": {
+      "channels": [
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "tongo risk": {
       "channels": [
         "bahrats-bazaar"
@@ -969,8 +977,8 @@
     "reaction_roles_enabled": true,
     "promotion_roles": {
       "required_rank_xp": {
-        "cadet": 10,
-        "ensign": 16
+        "cadet": 5,
+        "ensign": 10
       },
       "ranks": {
         "cadet": "Cadet ○",
