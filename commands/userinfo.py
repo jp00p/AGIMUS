@@ -6,15 +6,31 @@ from common import *
 from utils.check_channel_access import access_check
 from utils.thread_utils import to_thread
 
-userinfo_group = bot.create_group("userinfo", "User Info Commands!")
+userinfo_group = bot.create_group("user_info", "User Information Commands (Top Channels, Etc)!")
 
 @userinfo_group.command(
   name="top_channels",
   description="Get Info about the top channels you visit."
 )
+@option(
+  name="public",
+  description="Show to public?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="No",
+      value="no"
+    ),
+    discord.OptionChoice(
+      name="Yes",
+      value="yes"
+    )
+  ]
+)
 @commands.check(access_check)
-async def top_channels(ctx:discord.ApplicationContext):
+async def top_channels(ctx:discord.ApplicationContext, public:str):
   await ctx.defer(ephemeral=True)
+  public = bool(public == "yes")
 
   user_discord_id = ctx.author.id
 
@@ -56,7 +72,7 @@ async def top_channels(ctx:discord.ApplicationContext):
   values = [d['total'] for d in top_5_filtered_data]
 
   other_sum = sum([d['total'] for d in filtered_data[5:]])
-  labels.append('Other')
+  labels.append(' Other')
   values.append(other_sum)
 
   filepath_and_filename = await generate_user_stats_top_channels_image(ctx, user_member, labels, values)
@@ -76,7 +92,11 @@ async def top_channels(ctx:discord.ApplicationContext):
   )
   embed.set_image(url=f"attachment://{discord_image.filename}")
   embed.set_footer(text=f"{sum(values)} total messages analyzed over the past 90 days.")
-  await ctx.channel.send(embed=embed, file=discord_image)
+  if public:
+    await ctx.followup.send(embed=discord.Embed(title="Info Sent To Channel!", color=discord.Color.blurple()))
+    await ctx.channel.send(embed=embed, file=discord_image)
+  else:
+    await ctx.followup.send(embed=embed, file=discord_image)
 
 @to_thread
 def generate_user_stats_top_channels_image(ctx, user_member, labels, values):
@@ -164,7 +184,7 @@ def generate_user_stats_top_channels_image(ctx, user_member, labels, values):
 
 
   base_filename = f"base-u{ctx.author.id}-t{int(time.time())}.png"
-  base_filepath = f"./images/viz/{fig_filename}"
+  base_filepath = f"./images/viz/{base_filename}"
 
   base_image.save(base_filepath)
 
@@ -186,7 +206,7 @@ def db_get_top_channels(user_discord_id):
         GROUP BY channel_id
         ORDER BY total DESC;
     '''
-#              AND time_created >= DATE_SUB(NOW(), INTERVAL 90 day)
+#          AND time_created >= DATE_SUB(NOW(), INTERVAL 90 day)
     vals = (user_discord_id,)
     query.execute(sql, vals)
     rows = query.fetchall()
