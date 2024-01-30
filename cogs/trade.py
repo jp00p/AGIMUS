@@ -995,12 +995,12 @@ class Trade(commands.Cog):
     required=True,
     choices=[
       discord.OptionChoice(
-        name="No",
-        value="no"
-      ),
-      discord.OptionChoice(
         name="Yes",
         value="yes"
+      ),
+      discord.OptionChoice(
+        name="No",
+        value="no"
       )
     ]
   )
@@ -1037,7 +1037,7 @@ class Trade(commands.Cog):
     )
     embed.set_footer(text="You can use `/settings` to opt-in or opt-out of the DTD List!")
     embed.set_image(url="https://i.imgur.com/SnNqoEl.jpg")
-    await ctx.respond(embed=embed, ephemeral=public)
+    await ctx.respond(embed=embed, ephemeral=not public)
     return
 
   def _reset_dtd_weights(self, selected_user_id):
