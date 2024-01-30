@@ -1,6 +1,5 @@
 import time
 import plotly.graph_objects as go
-from torchvision.transforms import functional as F
 
 from common import *
 from utils.check_channel_access import access_check
@@ -72,7 +71,7 @@ async def top_channels(ctx:discord.ApplicationContext, public:str):
   values = [d['total'] for d in top_5_filtered_data]
 
   other_sum = sum([d['total'] for d in filtered_data[5:]])
-  labels.append(' Other')
+  labels.append(' Total Of Others')
   values.append(other_sum)
 
   filepath_and_filename = await generate_user_stats_top_channels_image(ctx, user_member, labels, values)
@@ -152,14 +151,13 @@ def generate_user_stats_top_channels_image(ctx, user_member, labels, values):
   base_image = Image.new("RGB", (base_width, base_height), (200, 200, 200))
   base_bg_image = Image.open("./images/templates/viz/viz_base_image.jpg")
 
-  size = ((400, 400))
+  size = ((300, 300))
   f_raw = Image.open(fig_filepath).convert("RGBA")
   f_raw.thumbnail(size, Image.ANTIALIAS)
   fig_image = Image.new('RGBA', size, (27, 27, 27, 0))
   fig_image.paste(
     f_raw, (int((size[0] - f_raw.size[0]) // 2), int((size[1] - f_raw.size[1]) // 2)), f_raw
   )
-  fig_image = F.center_crop(fig_image, (300, 300))
 
   base_image.paste(base_bg_image, (0, 0))
   base_image.paste(fig_image, (74, 158))
