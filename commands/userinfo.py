@@ -111,7 +111,10 @@ def generate_user_stats_top_channels_image(ctx, user_member, labels, values):
       values=values,
       direction='clockwise',
       hole=.3,
-      sort=False
+      sort=False,
+      outsidetextfont=dict(
+        color="#FFFFFF"
+      )
     )
   ])
   fig.update_traces(
