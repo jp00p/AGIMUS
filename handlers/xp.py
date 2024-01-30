@@ -44,7 +44,8 @@ reasons = {
   "asked_agimus"   : "asking agimus a question",
   "used_wordcloud" : "generating a wordcloud",
   "played_zork"    : "playing zork",
-  "created_event"  : "creating an event"
+  "created_event"  : "creating an event",
+  "tongo_loss"     : "losing badges in tongo"
 }
 
 blocked_level_up_sources = [

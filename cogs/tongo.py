@@ -1,4 +1,5 @@
 from common import *
+from handlers.xp import increment_user_xp
 from queries.wishlist import db_get_user_wishlist_badges, db_autolock_badges_by_filenames_if_in_wishlist
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
@@ -707,9 +708,24 @@ class Tongo(commands.Cog):
         wishlist_badges_received = [b for b in player_wishlist if b['badge_filename'] in [b['badge_filename'] for b in player_badges_received]]
         wishlist_badge_filenames_received = [b['badge_filename'] for b in wishlist_badges_received]
 
+        description = "\n".join([f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames_received else ''}" for b in player_badges_received])
+
+        # Check if they got less than 3 back, if so grant them XP based on number missing
+        number_of_badges_received = len(player_badges_received)
+        if number_of_badges_received < 3:
+          no_of_badges_missing = abs(number_of_badges_received - 3)
+          xp_to_grant = 110 * no_of_badges_missing
+          increment_user_xp(player_member, xp_to_grant, 'tongo_loss', trade_channel, "Consolation Prize for Tongo Loss")
+
+          xp_granted = xp_to_grant
+          if bool(datetime.today().weekday() >= 4):
+            xp_granted = xp_to_grant * 2
+
+          description += f"\n\nOops, they got back less than they put in! They've been awarded {xp_granted}xp as a consolation prize."
+
         player_channel_embed = discord.Embed(
           title=f"{player_member.display_name} Received:",
-          description="\n".join([f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames_received else ''}" for b in player_badges_received]),
+          description=description,
           color=discord.Color.dark_purple()
         )
         if wishlist_badges_received:
@@ -749,8 +765,16 @@ class Tongo(commands.Cog):
           logger.info(f"Unable to send Tongo completion message to {player_member.display_name}, they have their DMs closed.")
           pass
       else:
+        # Grant consolation prize XP for receiving NO badges
+        xp_to_grant = 110 * 3
+        increment_user_xp(player_member, xp_to_grant, 'tongo_loss', trade_channel, "Consolation Prize for Tongo Loss")
+
+        xp_granted = xp_to_grant
+        if bool(datetime.today().weekday() >= 4):
+          xp_granted = xp_to_grant * 2
+
         player_channel_embed = discord.Embed(
-          title=f"{player_member.display_name} Did Not Receive Any Badges..."
+          title=f"{player_member.display_name} Did Not Receive Any Badges...\n\nbut they've been awarded {xp_granted}xp as a consolation prize!"
         )
         player_channel_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
         await trade_channel.send(embed=player_channel_embed)
@@ -759,14 +783,14 @@ class Tongo(commands.Cog):
         if not auto_confront:
           player_message_embed = discord.Embed(
             title=f"TONGO! Confront!",
-            description="Your Tongo game has ended! Sadly you did not receive any badges...\n\n"
+            description="Your Tongo game has ended! Sadly you did not receive any badges...\n\nbut you got some Bonus XP instead!\n\n"
                         f"You can view the full results at: {channel_message.jump_url}",
             color=discord.Color.dark_purple()
           )
         else:
           player_message_embed = discord.Embed(
             title=f"TONGO! Confront!",
-            description="Your Tongo game has automatically ended! Sadly you did not receive any badges...\n\n"
+            description="Your Tongo game has automatically ended! Sadly you did not receive any badges...\n\nbut you got some Bonus XP instead!\n\n"
                         f"You can view the full results at: {channel_message.jump_url}",
             color=discord.Color.dark_purple()
           )
