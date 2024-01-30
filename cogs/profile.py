@@ -171,7 +171,7 @@ class Profile(commands.Cog):
       prev_level = calculate_xp_for_next_level(level-1)
 
     percent_completed = abs((xp - prev_level) / (next_level - prev_level))  # for calculating width of xp bar
-    
+
     if level >= 176:
       # High Levelers - Static Level Up Progression per Every 420 XP
       cap_progress = get_xp_cap_progress(ctx.author.id)
@@ -327,12 +327,13 @@ class Profile(commands.Cog):
       if badge_filename not in [b['badge_filename'] for b in user_badges]:
         # Catch if the user had a badge present that they no longer have, if so clear it from the table
         db_remove_user_profile_badge(user['discord_id'])
+        badge_info = db_get_badge_info_by_filename(badge_filename)
         if user["receive_notifications"]:
           try:
             await ctx.author.send(
               embed=discord.Embed(
                 title="Profile Badge No Longer Present",
-                description=f"Just a heads up, you had a badge on your profile previously, \"{badge_filename.replace('_', ' ').replace('.png', '')}\", which is no longer in your inventory.\n\nYou can set a new featured badge with `/profile set badge:`!",
+                description=f"Just a heads up, you had a badge on your profile previously, \"{badge_info['badge_name']}\", which is no longer in your inventory.\n\nYou can set a new featured badge with `/profile set badge:`!",
                 color=discord.Color.red()
               )
             )

@@ -968,14 +968,14 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   total_badges = "".join(emoji_numbers[int(n)] for n in list(str(results['total_badges'][0]['count'])))
   badges_today = "".join(emoji_numbers[int(n)] for n in list(str(results['badges_today'][0]['count'])))
   top_collectors = [res for res in results["top_collectors"]]
-  top_three = [res for res in results["most_collected"]]
+  top_collected = [res for res in results["most_collected"]]
   top_wishlisted = [res for res in results["most_wishlisted"]]
   top_locked = [res for res in results["most_locked"]]
   embed = discord.Embed(color=discord.Color.random(), description="", title="")
   embed.add_field(name=f"{get_emoji('combadge')} Total badges collected\non the USS Hood", value=f"{total_badges}\n⠀", inline=True)
   embed.add_field(name="⠀", value="⠀", inline=True)
   embed.add_field(name=f"{get_emoji('combadge')} Badges collected in\nthe last 24 hours", value=f"{badges_today}\n⠀", inline=True)
-  embed.add_field(name=f"{get_emoji('combadge')} Top 5 most collected", value=str("\n".join(f"{t['badge_filename'].replace('_', ' ').replace('.png', '')} ({t['count']})" for t in top_three)), inline=True)
+  embed.add_field(name=f"{get_emoji('combadge')} Top 5 most collected", value=str("\n".join(f"{db_get_badge_info_by_filename[t['badge_filename']]['badge_name']} ({t['count']})" for t in top_collected)), inline=True)
   embed.add_field(name="⠀", value="⠀", inline=True)
   embed.add_field(name=f"{get_emoji('combadge')} Top 5 badge collectors", value=str("\n".join(f"{t['name']} ({t['count']})" for t in top_collectors)), inline=True)
   embed.add_field(name=f"{get_emoji('combadge')} Top 5 most wishlisted", value=str("\n".join(f"{t['badge_name']} ({t['count']})" for t in top_wishlisted)), inline=True)
