@@ -371,7 +371,7 @@ def generate_badge_images(type, user, page, page_number, total_pages, total_user
     b_raw = Image.open(f"./images/badges/{badge_record['badge_filename']}").convert("RGBA")
     if type == 'sets' and not badge_record['in_user_collection']:
       # Create a mask layer to apply a 1/4th opacity to
-      b2 = b.copy()
+      b2 = b_raw.copy()
       b2.putalpha(64)
       b_raw.paste(b2, b_raw)
     size = (190, 190)
