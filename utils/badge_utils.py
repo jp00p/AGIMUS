@@ -119,7 +119,8 @@ def generate_badge_trade_showcase(badge_list, id, title, footer):
     w, h = b.size # badge size
     offset_x = min(0, (badge_size+badge_padding)-w) # center badge x
     offset_y = 5
-    badge_name = text_wrapper.wrap(badge.replace("_", " ").replace(".png", ""))
+    badge_info = db_get_badge_info_by_filename(badge)
+    badge_name = text_wrapper.wrap(badge_info['badge_name'])
     wrapped_badge_name = ""
     for i in badge_name[:-1]:
       wrapped_badge_name = wrapped_badge_name + i + "\n"

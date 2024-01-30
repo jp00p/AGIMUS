@@ -968,14 +968,14 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   total_badges = "".join(emoji_numbers[int(n)] for n in list(str(results['total_badges'][0]['count'])))
   badges_today = "".join(emoji_numbers[int(n)] for n in list(str(results['badges_today'][0]['count'])))
   top_collectors = [res for res in results["top_collectors"]]
-  top_three = [res for res in results["most_collected"]]
+  top_collected = [res for res in results["most_collected"]]
   top_wishlisted = [res for res in results["most_wishlisted"]]
   top_locked = [res for res in results["most_locked"]]
   embed = discord.Embed(color=discord.Color.random(), description="", title="")
   embed.add_field(name=f"{get_emoji('combadge')} Total badges collected\non the USS Hood", value=f"{total_badges}\n⠀", inline=True)
   embed.add_field(name="⠀", value="⠀", inline=True)
   embed.add_field(name=f"{get_emoji('combadge')} Badges collected in\nthe last 24 hours", value=f"{badges_today}\n⠀", inline=True)
-  embed.add_field(name=f"{get_emoji('combadge')} Top 5 most collected", value=str("\n".join(f"{t['badge_filename'].replace('_', ' ').replace('.png', '')} ({t['count']})" for t in top_three)), inline=True)
+  embed.add_field(name=f"{get_emoji('combadge')} Top 5 most collected", value=str("\n".join(f"{t['badge_name']} ({t['count']})" for t in top_collected)), inline=True)
   embed.add_field(name="⠀", value="⠀", inline=True)
   embed.add_field(name=f"{get_emoji('combadge')} Top 5 badge collectors", value=str("\n".join(f"{t['name']} ({t['count']})" for t in top_collectors)), inline=True)
   embed.add_field(name=f"{get_emoji('combadge')} Top 5 most wishlisted", value=str("\n".join(f"{t['badge_name']} ({t['count']})" for t in top_wishlisted)), inline=True)
@@ -1195,7 +1195,16 @@ def run_badge_stats_queries():
     # Run most collected while filtering out special badges
     special_badge_filenames = [b['badge_filename'] for b in SPECIAL_BADGES]
     format_strings = ','.join(['%s'] * len(special_badge_filenames))
-    sql = "SELECT badge_filename, COUNT(id) as count FROM badges WHERE badge_filename NOT IN (%s) GROUP BY badge_filename ORDER BY count DESC LIMIT 5;"
+    sql = '''
+      SELECT b_i.badge_name, COUNT(b.id) AS count
+        FROM badges as b
+          LEFT JOIN badge_info AS b_i
+            ON b.badge_filename = b_i.badge_filename
+          WHERE b.badge_filename NOT IN (%s)
+          GROUP BY b.badge_filename
+          ORDER BY count
+          DESC LIMIT 5;
+    '''
     query.execute(sql % format_strings, tuple(special_badge_filenames))
     results["most_collected"] = query.fetchall()
 

@@ -30,6 +30,7 @@ humanize==4.9.0
 idna==3.6
 ifaddr==0.2.0
 jaraco.context==4.3.0
+kaleido==0.2.1
 kiwisolver==1.4.5
 Levenshtein==0.23.0
 matplotlib==3.8.2
@@ -44,6 +45,7 @@ pandas==2.0.3
 pandas-stubs==2.0.1.230501
 pilgram==1.2.1
 Pillow==9.5.0
+plotly==5.18.0
 prettytable==3.9.0
 protobuf==4.21.12
 py-cord @ git+https://github.com/Pycord-Development/pycord@8af8454a5befbdd6589d24016dcc7bfee252de0b
@@ -64,6 +66,7 @@ six==1.16.0
 soupsieve==2.3.2.post1
 tabulate==0.9.0
 tmdbsimple==2.9.1
+torchvision==0.16.2
 tqdm==4.66.1
 treys==0.1.8
 trivia.py==1.0.8

@@ -989,8 +989,25 @@ class Trade(commands.Cog):
     name="dtd",
     description="Select a weighted randomized choice from the users opted-in to the Down To Dabo List!"
   )
+  @option(
+    name="public",
+    description="Show to public?",
+    required=True,
+    choices=[
+      discord.OptionChoice(
+        name="Yes",
+        value="yes"
+      ),
+      discord.OptionChoice(
+        name="No",
+        value="no"
+      )
+    ]
+  )
   @commands.check(access_check)
-  async def dtd(self, ctx:discord.ApplicationContext):
+  async def dtd(self, ctx:discord.ApplicationContext, public:str):
+    public = bool(public == "yes")
+
     down_to_daboers = db_get_dtd_rows()
     if down_to_daboers is None or len(down_to_daboers) == 1:
       await ctx.respond(embed=discord.Embed(
@@ -999,8 +1016,6 @@ class Trade(commands.Cog):
         color=discord.Color.red()
       ), ephemeral=True)
       return
-
-    logger.info(down_to_daboers)
 
     dtd_userids = []
     dtd_weights = []
@@ -1018,11 +1033,11 @@ class Trade(commands.Cog):
       title="Down To Dabo",
       description=f"### {ctx.author.display_name}, your Randomized Down To Daboer is:\n\n"
                   f"- {selected_user.display_name}",
-      color=discord.Color.blurple()
+      color=discord.Color.blurple(),
     )
     embed.set_footer(text="You can use `/settings` to opt-in or opt-out of the DTD List!")
     embed.set_image(url="https://i.imgur.com/SnNqoEl.jpg")
-    await ctx.respond(embed=embed)
+    await ctx.respond(embed=embed, ephemeral=not public)
     return
 
   def _reset_dtd_weights(self, selected_user_id):
