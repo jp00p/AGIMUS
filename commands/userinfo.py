@@ -200,13 +200,12 @@ def db_get_top_channels(user_discord_id):
     sql = '''
       SELECT channel_id, count(*) AS 'total'
         FROM xp_history
-        WHERE user_discord_id = %s 
-          AND reason = 'posted_message' 
-
+        WHERE user_discord_id = %s
+          AND reason = 'posted_message'
+          AND time_created >= DATE_SUB(NOW(), INTERVAL 90 day)
         GROUP BY channel_id
         ORDER BY total DESC;
     '''
-#          AND time_created >= DATE_SUB(NOW(), INTERVAL 90 day)
     vals = (user_discord_id,)
     query.execute(sql, vals)
     rows = query.fetchall()
