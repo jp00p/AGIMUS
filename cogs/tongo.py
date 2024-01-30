@@ -672,7 +672,7 @@ class Tongo(commands.Cog):
     else:
       results_embed = discord.Embed(
         title="TONGO! Complete!",
-        description="Distributing Badge from The Great Material Continuum!",
+        description="Distributing Badges from The Great Material Continuum!",
         color=discord.Color.dark_purple()
       )
 
@@ -715,13 +715,13 @@ class Tongo(commands.Cog):
         if number_of_badges_received < 3:
           no_of_badges_missing = abs(number_of_badges_received - 3)
           xp_to_grant = 110 * no_of_badges_missing
-          increment_user_xp(player_member, xp_to_grant, 'tongo_loss', trade_channel, "Consolation Prize for Tongo Loss")
+          await increment_user_xp(player_member, xp_to_grant, 'tongo_loss', trade_channel, "Consolation Prize for Tongo Loss")
 
           xp_granted = xp_to_grant
           if bool(datetime.today().weekday() >= 4):
             xp_granted = xp_to_grant * 2
 
-          description += f"\n\nOops, they got back less than they put in! They've been awarded {xp_granted}xp as a consolation prize."
+          description += f"\n\nOops, they got back less than they put in!\nThey've been awarded **{xp_granted}xp** as a consolation prize!"
 
         player_channel_embed = discord.Embed(
           title=f"{player_member.display_name} Received:",
@@ -767,14 +767,14 @@ class Tongo(commands.Cog):
       else:
         # Grant consolation prize XP for receiving NO badges
         xp_to_grant = 110 * 3
-        increment_user_xp(player_member, xp_to_grant, 'tongo_loss', trade_channel, "Consolation Prize for Tongo Loss")
+        await increment_user_xp(player_member, xp_to_grant, 'tongo_loss', trade_channel, "Consolation Prize for Tongo Loss")
 
         xp_granted = xp_to_grant
         if bool(datetime.today().weekday() >= 4):
           xp_granted = xp_to_grant * 2
 
         player_channel_embed = discord.Embed(
-          title=f"{player_member.display_name} Did Not Receive Any Badges...\n\nbut they've been awarded {xp_granted}xp as a consolation prize!"
+          title=f"{player_member.display_name} Did Not Receive Any Badges...\n\nbut they've been awarded **{xp_granted}xp** as a consolation prize!"
         )
         player_channel_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
         await trade_channel.send(embed=player_channel_embed)
