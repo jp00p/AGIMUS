@@ -135,6 +135,7 @@ images/tongo/*.png
 images/trades/*.png
 images/scrap/*.gif
 images/viz/*.png
+images/viz/figs/*.png
 !images/slot_results/template*
 !images/profiles/template*
 database/*
