@@ -538,7 +538,7 @@ class BadgeTags(commands.Cog):
     await ctx.defer(ephemeral=not public)
 
     # Set up text values for paginated pages
-    title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Tagged Badges - {tag}"
+    title = f"{remove_emoji(ctx.author.display_name)}'s Tagged Badges - {tag}"
     total_badges_cnt = len(all_badge_info)
     tagged_badges_cnt = len(tagged_badges)
     collected = f"{tagged_badges_cnt} TAGGED ON THE USS HOOD"

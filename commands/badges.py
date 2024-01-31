@@ -117,16 +117,16 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
 
   if filter is not None:
     if filter == 'unlocked':
-      title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection - Unlocked"
+      title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection - Unlocked"
       user_badges = db_get_user_unlocked_badges(ctx.author.id)
     elif filter == 'locked':
-      title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection - Locked"
+      title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection - Locked"
       user_badges = db_get_user_locked_badges(ctx.author.id)
     elif filter == 'special':
-      title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection - Special"
+      title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection - Special"
       user_badges = db_get_user_special_badges(ctx.author.id)
   else:
-    title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Collection"
+    title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection"
     user_badges = db_get_user_badges(ctx.author.id, sortby)
 
   if not user_badges:
@@ -316,7 +316,7 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
   user_all_badge_cnt = db_get_badge_count_for_user(ctx.author.id)
 
   # Set up text values for paginated pages
-  title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Set: {category_title} - {selection}"
+  title = f"{remove_emoji(ctx.author.display_name)}'s Badge Set: {category_title} - {selection}"
   collected = f"{user_set_badge_cnt} OF {len(set_badges)}"
   filename_prefix = f"badge_set_{ctx.author.id}_{selection.lower().replace(' ', '-').replace('/', '-')}-page-"
 
@@ -446,7 +446,7 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
   # Format data for the returned embed
   category_title = category.replace('_', ' ').title()
   total_badges = len(all_badges)
-  title = f"{ctx.author.display_name.encode('ascii', errors='ignore').decode().strip()}'s Badge Completion - {category_title}"
+  title = f"{remove_emoji(ctx.author.display_name)}'s Badge Completion - {category_title}"
   collected = f"{len(user_badges)} TOTAL ON THE USS HOOD"
   filename_prefix = f"badge_set_completion_{ctx.author.id}_affiliations-page-"
 

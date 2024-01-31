@@ -100,7 +100,7 @@ async def top_channels(ctx:discord.ApplicationContext, public:str):
 @to_thread
 def generate_user_stats_top_channels_image(ctx, user_member, labels, values):
   user_discord_id = user_member.id
-  user_name = user_member.display_name.encode("ascii", errors="ignore").decode().strip()
+  user_name = remove_emoji(user_member.display_name)
 
   fig_filename = f"fig-u{user_discord_id}-t{int(time.time())}.png"
   fig_filepath = f"./images/viz/figs/{fig_filename}"
