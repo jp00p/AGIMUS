@@ -130,9 +130,7 @@ class Profile(commands.Cog):
     logger.info(f"{Fore.CYAN}{member.display_name} is looking at their own {Back.WHITE}{Fore.BLACK}profile card!{Back.RESET}{Fore.RESET}")
 
     # clean up username
-    user_name = f"{member.display_name}"
-    user_name_encode = user_name.encode("utf-8", errors="ignore")
-    user_name = user_name_encode.decode().strip()
+    user_name = remove_emoji(member.display_name)
 
     # get rank
     ranks = ["admiral", "captain", "commander", "lt. commander", "lieutenant", "ensign", "cadet"]
