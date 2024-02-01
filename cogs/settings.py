@@ -299,9 +299,7 @@ class Settings(commands.Cog):
     await ctx.defer(ephemeral=True)
     home_embed, home_thumbnail = await self._get_home_embed_and_thumbnail()
 
-    current_xp_setting = db_get_current_xp_enabled_value(ctx.user.id)
-    xp_embed, xp_thumbnail = await self._get_xp_embed_and_thumbnail(current_xp_setting)
-
+    xp_embed, xp_thumbnail = await self._get_xp_embed_and_thumbnail()
     notifications_embed, notifications_thumbnail = await self._get_notifications_embed_and_thumbnail()
     wordcloud_embed, wordcloud_thumbnail = await self._get_wordcloud_embed_and_thumbnail()
     loudbot_embed, loudbot_thumbnail = await self._get_loudbot_embed_and_thumbnail()
@@ -409,7 +407,7 @@ class Settings(commands.Cog):
 
     return embed, thumbnail
 
-  async def _get_xp_embed_and_thumbnail(self, current_xp_value):
+  async def _get_xp_embed_and_thumbnail(self):
     badge_channel = await self.bot.fetch_channel(get_channel_id("badgeys-badges"))
 
     thumbnail = discord.File(fp="./images/templates/settings/xp_system.png", filename="xp_system.png")
@@ -540,26 +538,18 @@ class Settings(commands.Cog):
 
     return embed, thumbnail
 
-def db_get_current_xp_enabled_value(user_id):
-  with AgimusDB(dictionary=True) as query:
-    sql = "SELECT xp_enabled FROM users WHERE discord_id = %s"
-    vals = (user_id,)
-    query.execute(sql, vals)
-    row = query.fetchone()
-  return row['xp_enabled']
-
 def db_toggle_xp(user_id, value:bool):
   with AgimusDB() as query:
     sql = "UPDATE users SET xp_enabled = %s WHERE discord_id = %s"
     vals = (value, user_id)
-    query.execute(sql, vals)  
+    query.execute(sql, vals)
 
 def db_toggle_notifications(user_id, toggle):
   with AgimusDB(dictionary=True) as query:
     sql = "UPDATE users SET receive_notifications = %s WHERE discord_id = %s"
     vals = (toggle, user_id)
     query.execute(sql, vals)
-  
+
 def db_toggle_wordcloud(user_id, toggle):
   deleted_row_count = None
   with AgimusDB(dictionary=True) as query:

@@ -27,7 +27,7 @@ from commands.speak import speak, speak_embed
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
-from commands.myinfo import info_channels, info_activity
+from commands.xpinfo import xpinfo_channels, xpinfo_activity
 
 # Slash Command Groups
 import commands.birthday

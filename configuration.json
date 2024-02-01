@@ -519,36 +519,6 @@
         }
       ]
     },
-    "myinfo activity": {
-      "blocked_channels": [
-        "neelixs-morale-office",
-        "plasma-vent",
-        "counselor-trois-waiting-room",
-        "peoples-resistance-front-of-bajor",
-        "heuristic-associative-pathways",
-        "behind-the-visor",
-        "the-next-next-generation",
-        "sicks-bay"
-      ],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
-    "myinfo channels": {
-      "blocked_channels": [
-        "neelixs-morale-office",
-        "plasma-vent",
-        "counselor-trois-waiting-room",
-        "peoples-resistance-front-of-bajor",
-        "heuristic-associative-pathways",
-        "behind-the-visor",
-        "the-next-next-generation",
-        "sicks-bay"
-      ],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
     "nasa": {
       "channels": [
         "morns-nonstop-quiz",
@@ -974,6 +944,36 @@
       "channels": [
         "badgeys-badges",
         "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "xpinfo activity": {
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-waiting-room",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "the-next-next-generation",
+        "sicks-bay"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "xpinfo channels": {
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-waiting-room",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "the-next-next-generation",
+        "sicks-bay"
       ],
       "enabled": true,
       "data": null,
