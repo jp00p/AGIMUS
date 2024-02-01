@@ -519,6 +519,36 @@
         }
       ]
     },
+    "myinfo daily_activity": {
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-waiting-room",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "the-next-next-generation",
+        "sicks-bay"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "myinfo top_channels": {
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-waiting-room",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "the-next-next-generation",
+        "sicks-bay"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "nasa": {
       "channels": [
         "morns-nonstop-quiz",
@@ -927,21 +957,6 @@
     },
     "update_status": {
       "channels": [],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
-    "user_info top_channels": {
-      "blocked_channels": [
-        "neelixs-morale-office",
-        "plasma-vent",
-        "counselor-trois-waiting-room",
-        "peoples-resistance-front-of-bajor",
-        "heuristic-associative-pathways",
-        "behind-the-visor",
-        "the-next-next-generation",
-        "sicks-bay"
-      ],
       "enabled": true,
       "data": null,
       "parameters": []
