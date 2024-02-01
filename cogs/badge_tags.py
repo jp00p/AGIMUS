@@ -142,13 +142,14 @@ class CarouselButton(discord.ui.Button):
       await interaction.respond(
         embed=discord.Embed(
           title="You're done!",
-          description="You've completed tagging every badge in your inventory! Nice."
+          description="You've completed tagging every badge in your inventory! Nice.",
+          color=discord.Color.blurple()
         ),
         ephemeral=True
       )
       return
 
-    next_badge = random.choice(valid_badges)
+    next_badge = valid_badges[0]
 
     completed_badges.append(next_badge['badge_name'])
     next_tags = db_get_associated_badge_tags(self.user_discord_id, next_badge['badge_name'])
@@ -607,7 +608,7 @@ class BadgeTags(commands.Cog):
       return
 
     user_badges = db_get_user_badges(ctx.author.id)
-    initial_badge = random.choice(user_badges)
+    initial_badge = user_badges[0]
     next_tags = db_get_associated_badge_tags(ctx.author.id, initial_badge['badge_name'])
     next_tag_ids = [str(t['id']) for t in next_tags]
 
