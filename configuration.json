@@ -519,7 +519,7 @@
         }
       ]
     },
-    "myinfo daily_activity": {
+    "myinfo activity": {
       "blocked_channels": [
         "neelixs-morale-office",
         "plasma-vent",
@@ -534,7 +534,7 @@
       "data": null,
       "parameters": []
     },
-    "myinfo top_channels": {
+    "myinfo channels": {
       "blocked_channels": [
         "neelixs-morale-office",
         "plasma-vent",

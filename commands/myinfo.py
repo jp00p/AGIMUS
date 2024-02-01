@@ -14,7 +14,7 @@ myinfo_group = bot.create_group("myinfo", "User Information Commands (Top Channe
 #  \______  /___|  (____  /___|  /___|  /\___  >____/____  >
 #         \/     \/     \/     \/     \/     \/          \/
 @myinfo_group.command(
-  name="top_channels",
+  name="channels",
   description="Get info about the top channels you visit!"
 )
 @option(
@@ -33,7 +33,7 @@ myinfo_group = bot.create_group("myinfo", "User Information Commands (Top Channe
   ]
 )
 @commands.check(access_check)
-async def top_channels(ctx:discord.ApplicationContext, public:str):
+async def info_channels(ctx:discord.ApplicationContext, public:str):
   await ctx.defer(ephemeral=True)
   public = bool(public == "yes")
 
@@ -151,6 +151,8 @@ def generate_top_channels_image(ctx, user_member, labels, values):
   # Set up stuff for full image
   title_font = ImageFont.truetype("fonts/lcars.ttf", 82)
   title_username_font = ImageFont.truetype("fonts/lcars.ttf", 58)
+  if len(user_name) > 20:
+    title_username_font = ImageFont.truetype("fonts/lcars.ttf", 38)
   legend_title_font = ImageFont.truetype("fonts/lcars.ttf", 50)
   legend_text_font = ImageFont.truetype("fonts/lcars2.ttf", 26)
 
@@ -180,7 +182,7 @@ def generate_top_channels_image(ctx, user_member, labels, values):
 
   draw = ImageDraw.Draw(base_image)
   draw.text( (150, 75), "INFO -", fill="#FF0000", font=title_font, anchor="ls", align="left")
-  draw.text( (290, 68), user_name, fill="#FF0000", font=title_username_font, anchor="ls", align="left")
+  draw.text( (290, 50), user_name, fill="#FF0000", font=title_username_font, anchor="lm", align="left")
   draw.text( (386, 170), "Top Channels", fill="#FFFFFF", font=legend_title_font, anchor="ls", align="left")
 
   current_y = 210
@@ -209,7 +211,7 @@ def generate_top_channels_image(ctx, user_member, labels, values):
 # \____|__  /\___  >__| |__| \_/ |__||__|  / ____|
 #         \/     \/                        \/
 @myinfo_group.command(
-  name="daily_activity",
+  name="activity",
   description="Get info about your activity over the past 30 days!"
 )
 @option(
@@ -228,7 +230,7 @@ def generate_top_channels_image(ctx, user_member, labels, values):
   ]
 )
 @commands.check(access_check)
-async def daily_activity(ctx:discord.ApplicationContext, public:str):
+async def info_activity(ctx:discord.ApplicationContext, public:str):
   await ctx.defer(ephemeral=True)
   public = bool(public == "yes")
 
@@ -243,18 +245,20 @@ async def daily_activity(ctx:discord.ApplicationContext, public:str):
 
   # Set up labels/values for graph
   labels = [d['dt_day'].strftime("%b %d") for d in data]
-  values = [d['activity'] for d in data]
+  values = [d['total'] if d['total'] is not None else 0 for d in data]
+
+  total_actions = sum([d['activity'] for d in data])
 
   filepath_and_filename = await generate_daily_activity_image(ctx, user_member, labels, values)
 
   discord_image = discord.File(filepath_and_filename[0], filename=filepath_and_filename[1])
   embed = discord.Embed(
-    title="INFO - Daily Activity",
-    description=f"{user_member.mention}'s Daily Activity",
+    title="INFO - Activity",
+    description=f"{user_member.mention}'s Daily XP Activity",
     color=discord.Color.red()
   )
   embed.set_image(url=f"attachment://{discord_image.filename}")
-  embed.set_footer(text=f"{sum(values)} total actions analyzed over the past 30 days.")
+  embed.set_footer(text=f"{total_actions} total actions analyzed over the past 30 days.\nDates given are in `US/Pacific` time.")
   if public:
     await ctx.followup.send(embed=discord.Embed(title="Info Sent To Channel!", color=discord.Color.blurple()))
     await ctx.channel.send(embed=embed, file=discord_image)
@@ -304,8 +308,9 @@ def generate_daily_activity_image(ctx, user_member, labels, values):
   # Set up stuff for full image
   title_font = ImageFont.truetype("fonts/lcars.ttf", 82)
   title_username_font = ImageFont.truetype("fonts/lcars.ttf", 58)
+  if len(user_name) > 20:
+    title_username_font = ImageFont.truetype("fonts/lcars.ttf", 38)
   legend_title_font = ImageFont.truetype("fonts/lcars.ttf", 50)
-  legend_text_font = ImageFont.truetype("fonts/lcars2.ttf", 26)
 
   base_width = 700
   base_height = 500
@@ -318,7 +323,7 @@ def generate_daily_activity_image(ctx, user_member, labels, values):
   fig_image = f_raw.resize(size)
 
   base_image.paste(base_bg_image, (0, 0))
-  base_image.paste(fig_image, (74, 158))
+  base_image.paste(fig_image, (75, 170))
 
   # add users avatar to report
   avatar_image = Image.open(f"./images/profiles/{user_discord_id}_a.png")
@@ -329,8 +334,8 @@ def generate_daily_activity_image(ctx, user_member, labels, values):
 
   draw = ImageDraw.Draw(base_image)
   draw.text( (150, 75), "INFO -", fill="#FF0000", font=title_font, anchor="ls", align="left")
-  draw.text( (290, 68), user_name, fill="#FF0000", font=title_username_font, anchor="ls", align="left")
-  draw.text( (290, 170), "Daily Activity (30 Days)", fill="#FFFFFF", font=legend_title_font, anchor="ls", align="left")
+  draw.text( (290, 50), user_name, fill="#FF0000", font=title_username_font, anchor="lm", align="left")
+  draw.text( (420, 160), "Daily XP Activity", fill="#FFFFFF", font=legend_title_font, anchor="ls", align="left")
 
   base_filename = f"base-u{ctx.author.id}-t{int(time.time())}.png"
   base_filepath = f"./images/viz/{base_filename}"
@@ -375,7 +380,7 @@ def db_get_daily_activity(user_discord_id):
         UNION ALL
         SELECT dt_day - interval 1 day FROM cte WHERE dt_day > current_date - interval 29 day
       )
-      SELECT c.dt_day, count(xp.time_created) AS activity
+      SELECT c.dt_day, count(xp.time_created) AS activity, sum(xp.amount) AS total
       FROM cte c
       LEFT JOIN xp_history xp
         ON xp.user_discord_id = %s
