@@ -14,16 +14,11 @@ high_react_threshold = 5
 argus_threshold = 10 # not being used yet
 user_threshold = 3 # how many users required
 
-board_patterns = blocked_channels = boards = high_react_channel_ids = None
-
-
 async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> None:
-  global board_patterns, blocked_channels, boards, high_react_channel_ids
-  if board_patterns is None:
-    board_patterns = generate_board_compiled_patterns(config["handlers"]["starboard"]["boards"])
-    blocked_channels = get_channel_ids_list(config["handlers"]["starboard"]["blocked_channels"])
-    boards = get_channel_ids_list(board_patterns.keys())
-    high_react_channel_ids = get_channel_ids_list(config["handlers"]["starboard"]["high_react_channels"])
+  board_patterns = generate_board_compiled_patterns(config["handlers"]["starboard"]["boards"])
+  blocked_channels = get_channel_ids_list(config["handlers"]["starboard"]["blocked_channels"])
+  boards = get_channel_ids_list(board_patterns.keys())
+  high_react_channel_ids = get_channel_ids_list(config["handlers"]["starboard"]["high_react_channels"])
 
   if payload.message_id in ALL_STARBOARD_POSTS:
     return
