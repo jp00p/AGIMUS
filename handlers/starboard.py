@@ -23,8 +23,8 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
   if payload.message_id in ALL_STARBOARD_POSTS:
     return
 
-  # don't watch blocked channels, or the actual starboard channels
-  if payload.channel_id in blocked_channels or payload.channel_id in boards or payload.member.bot:
+  # don't watch the actual starboard channels, or if the react came from the bot itself, eject
+  if payload.channel_id in boards or payload.member.bot:
     return
 
   channel = bot.get_channel(payload.channel_id)
@@ -48,6 +48,20 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
   # the words will be in the emoji name, not the message text
   for board, match_reacts in board_patterns.items():
     #logger.info(f"CHECKING {board}")
+
+    if payload.channel_id in blocked_channels:
+      # We're looking at a message from a globally blocked channel, check overrides
+      blocked_channels_overrides = config["handlers"]["starboard"]["blocked_channels_override"].get(board)
+      if blocked_channels_overrides is None:
+        # We have no overrides for this board so go ahead and move to the next board
+        continue
+      else:
+        # Overrides present, check
+        override_channel_ids = get_channel_ids_list(blocked_channels_overrides)
+        if payload.channel_id not in override_channel_ids:
+          # The message wasn't from an overridden channel so confirmed that we should skip this board
+          continue
+        # Otherwise, move forward with the remnaining code for this board iteration
 
     all_reacts = message.reactions
     message_reaction_people = set()

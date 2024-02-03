@@ -79,6 +79,11 @@
         "transporter-log",
         "polls"
       ],
+      "blocked_channels_override": {
+        "holodeck-filters": [
+          "rikers-quarters"
+        ]
+      },
       "high_react_channels": [
         "ten-forward",
         "general-trek",
@@ -118,6 +123,16 @@
           "💟",
           "😻",
           "❤️‍🔥"
+        ],
+        "holodeck-filters": [
+          "horny",
+          "flirt",
+          "lip_bite",
+          "gasm",
+          "riker_smile_happy",
+          "LIL_FREAK",
+          "🍆",
+          "🍑"
         ]
       }
     },
