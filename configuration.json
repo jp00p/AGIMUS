@@ -80,7 +80,7 @@
         "polls"
       ],
       "blocked_channels_override": {
-        "holodeck-filters": [
+        "holodeck-biofilter": [
           "rikers-quarters"
         ]
       },
@@ -124,7 +124,7 @@
           "😻",
           "❤️‍🔥"
         ],
-        "holodeck-filters": [
+        "holodeck-biofilter": [
           "horny",
           "flirt",
           "lip_bite",
