@@ -1,0 +1,2 @@
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference, special) VALUES ("Star Trek 3000", "Star_Trek_3000.png", "https://drunkshimoda.com/", "Alpha", "2100s", "The USS Hood", "Commemorating The First 3000 Members Of The USS Hood!", 1) ON DUPLICATE KEY UPDATE badge_name = badge_name;
+INSERT INTO badges (user_discord_id, badge_filename) SELECT discord_id, 'Star_Trek_3000.png' FROM users;

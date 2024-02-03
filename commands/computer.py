@@ -35,13 +35,11 @@ async def computer(message:discord.Message):
     except StopIteration:
       # Handle Non-Primary Result
       response_sent = await handle_non_primary_result(res, message)
-    
+
     if not response_sent:
-      agimus_channel_id = get_channel_id("after-dinner-conversation")
-      agimus_channel = await message.guild.fetch_channel(agimus_channel_id)
       embed = discord.Embed(
         title="No Results Found.",
-        description=f"Please rephrase your query.\n\nIf you'd like, you can try asking AGIMUS for a response instead in {agimus_channel.mention}",
+        description=f"Please rephrase your query.",
         color=discord.Color.red()
       )
       await message.reply(embed=embed)

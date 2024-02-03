@@ -33,7 +33,7 @@ async def gifbomb(ctx:discord.ApplicationContext, query:str):
         if response.status == 200:
           await ctx.respond(embed=discord.Embed(
               title="GIF BOMB!",
-              description=f"> {query}",
+              description=f"{ctx.author.mention} lobs:\n\n> {query}",
               color=discord.Color.blurple()
             )
           )
@@ -56,7 +56,7 @@ async def gifbomb(ctx:discord.ApplicationContext, query:str):
   else:
     await ctx.followup.send(embed=discord.Embed(
         title="Denied!",
-        description="Too many gifbombs recently! Give it a minute, Turbo!",
+        description="Too soon since last gifbomb! Give it a minute, Turbo!",
         color=discord.Color.red()
       ), ephemeral=True
     )
