@@ -376,3 +376,4 @@ DB_BACKUP_RESTORE_COMMIT=abcdefghijklmnopqrstuvwxyz make db-restore
 ```
 
 Don't forget to remove the entrypoint override, so AGIMUS can start up normally.
+
