@@ -157,10 +157,15 @@ async def add_starboard_post(message, board) -> None:
     embed_desc = f"{message.content}\n"
     embed_title = f""
 
+  if len(embed_desc) > 1024:
+    star_description = f"> {embed_desc[0:1024]}..."
+  else:
+    star_description = f"> {embed_desc}"
+
   # build our starboard embed now!
   star_embed = discord.Embed(
     color=discord.Color.random(),
-    description=embed_desc[0:1024],
+    description=star_description,
     title=embed_title,
   )
 
@@ -183,7 +188,7 @@ async def add_starboard_post(message, board) -> None:
     icon_url=footer_thumb
   )
 
-  spoiler_file = None
+  star_file = None
 
   if embed_image_url != "":
     star_embed.set_image(url=embed_image_url)
@@ -191,10 +196,11 @@ async def add_starboard_post(message, board) -> None:
     # build attachments
     attachment = message.attachments[0]
     if attachment.content_type.startswith("video"):
-      star_embed.description += f"\n[video file]({attachment.proxy_url})\n"
+      star_file = await attachment.to_file(spoiler=attachment.is_spoiler())
     else:
       if attachment.is_spoiler():
-        spoiler_file = await attachment.to_file(spoiler=True)
+        # Since we can't embed images as spoilers, attach the file rather than embedding it
+        star_file = await attachment.to_file(spoiler=True)
       elif attachment.content_type.startswith("image"):
         star_embed.set_image(url=attachment.proxy_url)
 
@@ -204,7 +210,7 @@ async def add_starboard_post(message, board) -> None:
   star_embed.description += f"\n{get_emoji('combadge')}\n\n{jumplink}"
 
 
-  await channel.send(content=message_str, embed=star_embed, file=spoiler_file) # send main embed
+  await channel.send(content=message_str, embed=star_embed, file=star_file)
   await message.add_reaction(random.choice(["🌟","⭐","✨"])) # react to original post
   logger.info(f"{Fore.RED}AGIMUS{Fore.RESET} has added {message.author.display_name}'s post to {Style.BRIGHT}{board}{Style.RESET_ALL}!")
 
