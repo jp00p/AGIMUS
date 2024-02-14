@@ -157,9 +157,10 @@ async def add_starboard_post(message, board) -> None:
     embed_desc = f"{message.content}\n"
     embed_title = f""
 
+  star_description = ""
   if len(embed_desc) > 1024:
     star_description = f"> {embed_desc[0:1024]}..."
-  else:
+  elif len(embed_desc):
     star_description = f"> {embed_desc}"
 
   # build our starboard embed now!
