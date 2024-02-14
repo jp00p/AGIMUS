@@ -71,6 +71,7 @@
         "lieutenants-lounge",
         "captains-log",
         "bot-setup",
+        "bosuns-whistle",
         "shipwide-announcements",
         "rules-and-info",
         "first-contact",
@@ -134,6 +135,9 @@
           "LIL_FREAK",
           "🍆",
           "🍑"
+        ],
+        "channel-90": [
+          "📽️"
         ]
       }
     },
