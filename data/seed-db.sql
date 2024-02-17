@@ -304,14 +304,14 @@ CREATE TABLE IF NOT EXISTS xp_cap_progress (
   `user_discord_id` varchar(64) NOT NULL,
   `progress` int(4) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE (`user_discord_id`)  
+  UNIQUE (`user_discord_id`)
 );
 CREATE TABLE IF NOT EXISTS down_to_dabo (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_discord_id` varchar(64) NOT NULL,
   `weight` int(4) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE (`user_discord_id`)  
+  UNIQUE (`user_discord_id`)
 );
 CREATE TABLE IF NOT EXISTS tongo (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -337,4 +337,15 @@ CREATE TABLE IF NOT EXISTS tongo_pot (
   PRIMARY KEY (`id`),
   KEY `badge_filename` (`badge_filename`),
   CONSTRAINT `badge_tongo_pot_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+);
+CREATE TABLE IF NOT EXISTS tags_carousel_position (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_discord_id` varchar(64) NOT NULL,
+  `badge_filename` VARCHAR(128) DEFAULT '' NOT NULL,
+  `last_modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`user_discord_id`),
+  UNIQUE KEY `uID_bID` (`user_discord_id`, `badge_filename`),
+  KEY `badge_filename` (`badge_filename`),
+  CONSTRAINT `badge_tags_carousel_position_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
