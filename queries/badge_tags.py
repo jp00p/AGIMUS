@@ -123,8 +123,12 @@ def db_get_user_tagged_badges(user_discord_id, tag):
     badges = query.fetchall()
   return badges
 
-def db_get_last_tagged_badge_filename(user_discord_id):
+def db_get_last_carousel_tagged_badge_filename(user_discord_id):
   with AgimusDB(dictionary=True) as query:
+    """
+      returns the badge_filename value from the tags_carousel_position
+      associated with the user_discord_id, otherwise if no row return One
+    """
     sql = '''
       SELECT badge_filename FROM tags_carousel_position WHERE user_discord_id = %s LIMIT 1;
     '''
@@ -136,7 +140,7 @@ def db_get_last_tagged_badge_filename(user_discord_id):
   else:
     return None
 
-def db_upsert_last_tagged_badge_filename(user_discord_id, badge_filename):
+def db_upsert_last_carousel_tagged_badge_filename(user_discord_id, badge_filename):
   """
   either creates or modifies the user's tags_carousel_position row
   with the given badge_filename to indicate the last badge they've tagged
@@ -153,7 +157,7 @@ def db_upsert_last_tagged_badge_filename(user_discord_id, badge_filename):
     vals = (user_discord_id, badge_filename, badge_filename)
     query.execute(sql, vals)
 
-def db_clear_last_tagged_badge_filename(user_discord_id):
+def db_clear_last_carousel_tagged_badge_filename(user_discord_id):
   """
   deletes the user's record from the tags_carousel_position table
   so that the next time they load the interface they'll start at the front again
