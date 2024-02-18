@@ -464,14 +464,15 @@ class BadgeTags(commands.Cog):
       return
 
     badge_info = db_get_badge_info_by_name(badge)
+    badge_filename = badge_info['badge_filename']
 
-    view = TagBadgeView(self, ctx.author.id, badge)
+    view = TagBadgeView(self, ctx.author.id, badge_filename)
     embed = discord.Embed(
       title=badge,
       color=discord.Color.dark_purple()
     )
-    badge_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
-    embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
+    badge_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=badge_filename)
+    embed.set_image(url=f"attachment://{badge_filename}")
 
     await ctx.followup.send(embed=embed, file=badge_image, view=view, ephemeral=True)
 
