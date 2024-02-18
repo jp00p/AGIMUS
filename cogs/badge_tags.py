@@ -34,9 +34,9 @@ async def tags_autocomplete(ctx:discord.AutocompleteContext):
 #    \___/   |__|\___  >\/\_//____  >
 #                    \/           \/
 class TagSelector(discord.ui.Select):
-  def __init__(self, user_discord_id, badge_filename):
+  def __init__(self, user_discord_id, badge_info):
     user_badge_tags = db_get_user_badge_tags(user_discord_id)
-    associated_tags = db_get_associated_badge_tags(user_discord_id, badge_filename)
+    associated_tags = db_get_associated_badge_tags(user_discord_id, badge_info['badge_filename'])
     associated_tag_ids = [t['id'] for t in associated_tags]
     options = [
       discord.SelectOption(
@@ -61,9 +61,9 @@ class TagSelector(discord.ui.Select):
 
 
 class TagButton(discord.ui.Button):
-  def __init__(self, user_discord_id, badge_filename):
+  def __init__(self, user_discord_id, badge_info):
     self.user_discord_id = user_discord_id
-    self.badge_name = badge_filename
+    self.badge_info = badge_info
     super().__init__(
       label="Tag Badge",
       style=discord.ButtonStyle.primary,
@@ -71,20 +71,19 @@ class TagButton(discord.ui.Button):
     )
 
   async def callback(self, interaction:discord.Interaction):
-    associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_filename)
+    associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_info['badge_filename'])
     tag_ids_to_delete = [t['id'] for t in associated_tags if t['id'] not in self.view.tag_ids]
-    badge_info = db_get_badge_info_by_filename(self.badge_filename)
-    db_delete_badge_tags_associations(tag_ids_to_delete, badge_info['badge_filename'])
+    db_delete_badge_tags_associations(tag_ids_to_delete, self.badge_info['badge_filename'])
     if len(self.view.tag_ids):
-      db_create_badge_tags_associations(self.user_discord_id, self.badge_filename, self.view.tag_ids)
+      db_create_badge_tags_associations(self.user_discord_id, self.badge_info['badge_filename'], self.view.tag_ids)
 
-    new_associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_filename)
+    new_associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_info['badge_filename'])
     new_associated_tag_names = [t['tag_name'] for t in new_associated_tags]
 
     if len(new_associated_tag_names):
-      description = f"**{self.badge_name}** is now tagged with:" + "\n\n- " + "\n- ".join(new_associated_tag_names) + "\n\n" + "Use `/tags showcase` to show off your tags!"
+      description = f"**{self.badge_info['badge_name']}** is now tagged with:" + "\n\n- " + "\n- ".join(new_associated_tag_names) + "\n\n" + "Use `/tags showcase` to show off your tags!"
     else:
-      description = f"**{self.badge_name}** currently has no tags associated!"
+      description = f"**{self.badge_info['badge_name']}** currently has no tags associated!"
 
     await interaction.response.edit_message(
       embed=discord.Embed(
@@ -98,9 +97,9 @@ class TagButton(discord.ui.Button):
 
 
 class CarouselButton(discord.ui.Button):
-  def __init__(self, user_discord_id, badge_filename):
+  def __init__(self, user_discord_id, badge_info):
     self.user_discord_id = user_discord_id
-    self.badge_filename = badge_filename
+    self.badge_info = badge_info
     super().__init__(
       label="Tag Badge / Move On",
       style=discord.ButtonStyle.primary,
@@ -109,28 +108,27 @@ class CarouselButton(discord.ui.Button):
 
   async def callback(self, interaction:discord.Interaction):
     await interaction.response.defer()
-    associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_filename)
+    associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_info['badge_filename'])
     tag_ids_to_delete = [t['id'] for t in associated_tags if t['id'] not in self.view.tag_ids]
-    badge_info = db_get_badge_info_by_filename(self.badge_filename)
-    db_delete_badge_tags_associations(tag_ids_to_delete, badge_info['badge_filename'])
+    db_delete_badge_tags_associations(tag_ids_to_delete, self.badge_info['badge_filename'])
     if len(self.view.tag_ids):
-      db_create_badge_tags_associations(self.user_discord_id, self.badge_filename, self.view.tag_ids)
+      db_create_badge_tags_associations(self.user_discord_id, self.badge_info['badge_filename'], self.view.tag_ids)
 
-    new_associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_filename)
+    new_associated_tags = db_get_associated_badge_tags(self.user_discord_id, self.badge_info['badge_filename'])
     new_associated_tag_names = [t['tag_name'] for t in new_associated_tags]
 
     if len(new_associated_tag_names):
-      description = f"**{badge_info['badge_name']}** is now tagged with:" + "\n\n- " + "\n- ".join(new_associated_tag_names) + "\n\n" + "Use `/tags showcase` to show off your tags!"
+      description = f"**{self.badge_info['badge_name']}** is now tagged with:" + "\n\n- " + "\n- ".join(new_associated_tag_names) + "\n\n" + "Use `/tags showcase` to show off your tags!"
     else:
-      description = f"**{badge_info['badge_name']}** currently has no tags associated!"
+      description = f"**{self.badge_info['badge_name']}** currently has no tags associated!"
 
     summary_embed = discord.Embed(
         title="Tag Summary",
         description=description,
         color=discord.Color.green()
       )
-    summary_badge_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
-    summary_embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
+    summary_badge_image = discord.File(fp=f"./images/badges/{self.badge_info['badge_filename']}", filename=self.badge_info['badge_filename'])
+    summary_embed.set_image(url=f"attachment://{self.badge_info['badge_filename']}")
     await interaction.edit(
       embed=summary_embed,
       view=None,
@@ -158,40 +156,39 @@ class CarouselButton(discord.ui.Button):
       return
 
     next_badge = user_badges[next_position]
-    next_badge_filename = next_badge['badge_filename']
-    db_upsert_last_carousel_tagged_badge_filename(self.user_discord_id, next_badge_filename)
+    db_upsert_last_carousel_tagged_badge_filename(self.user_discord_id, next_badge['badge_filename'])
 
-    new_view = TagCarouselView(self.user_discord_id, next_badge_filename)
+    new_view = TagCarouselView(self.user_discord_id, next_badge)
     embed = discord.Embed(
       title=next_badge['badge_name'],
       color=discord.Color.dark_purple()
     )
-    badge_image = discord.File(fp=f"./images/badges/{next_badge_filename}", filename=next_badge_filename)
-    embed.set_image(url=f"attachment://{next_badge_filename}")
+    badge_image = discord.File(fp=f"./images/badges/{next_badge['badge_filename']}", filename=next_badge['badge_filename'])
+    embed.set_image(url=f"attachment://{next_badge['badge_filename']}")
 
     await interaction.respond(embed=embed, file=badge_image, view=new_view, ephemeral=True)
 
 
 
 class TagBadgeView(discord.ui.View):
-  def __init__(self, cog, user_discord_id, badge_filename):
+  def __init__(self, cog, user_discord_id, badge_info):
     super().__init__()
     self.cog = cog
     self.tag_ids = []
-    self.add_item(TagSelector(user_discord_id, badge_filename))
-    self.add_item(TagButton(user_discord_id, badge_filename))
+    self.add_item(TagSelector(user_discord_id, badge_info))
+    self.add_item(TagButton(user_discord_id, badge_info))
 
 
 class TagCarouselView(discord.ui.View):
-  def __init__(self, user_discord_id, next_badge_filename):
+  def __init__(self, user_discord_id, badge_info):
     super().__init__()
     self.user_discord_id = user_discord_id
 
-    next_tags = db_get_associated_badge_tags(user_discord_id, next_badge_filename)
-    self.tag_ids = [str(t['id']) for t in next_tags]
+    badge_tags = db_get_associated_badge_tags(user_discord_id, badge_info['badge_filename'])
+    self.tag_ids = [str(t['id']) for t in badge_tags]
 
-    self.add_item(TagSelector(user_discord_id, next_badge_filename))
-    self.add_item(CarouselButton(user_discord_id, next_badge_filename))
+    self.add_item(TagSelector(user_discord_id, badge_info))
+    self.add_item(CarouselButton(user_discord_id, badge_info))
 
 # __________             .___           ___________                    _________
 # \______   \_____     __| _/ ____   ___\__    ___/____     ____  _____\_   ___ \  ____   ____
@@ -464,15 +461,14 @@ class BadgeTags(commands.Cog):
       return
 
     badge_info = db_get_badge_info_by_name(badge)
-    badge_filename = badge_info['badge_filename']
 
-    view = TagBadgeView(self, ctx.author.id, badge_filename)
+    view = TagBadgeView(self, ctx.author.id, badge_info)
     embed = discord.Embed(
       title=badge,
       color=discord.Color.dark_purple()
     )
-    badge_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=badge_filename)
-    embed.set_image(url=f"attachment://{badge_filename}")
+    badge_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
+    embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
 
     await ctx.followup.send(embed=embed, file=badge_image, view=view, ephemeral=True)
 
@@ -607,12 +603,12 @@ class BadgeTags(commands.Cog):
     required=True,
     choices=[
       discord.OptionChoice(
-        name="Beginning",
-        value="beginning"
-      ),
-      discord.OptionChoice(
         name="Resume",
         value="resume"
+      ),
+      discord.OptionChoice(
+        name="Beginning",
+        value="beginning"
       )
     ]
   )
@@ -636,23 +632,22 @@ class BadgeTags(commands.Cog):
     initial_badge_filename = db_get_last_carousel_tagged_badge_filename(user_discord_id)
     if initial_badge_filename and start == 'resume':
       initial_badge = db_get_badge_info_by_filename(initial_badge_filename)
-      description = "**Resuming:**\n\nThis is the last badge you landed on in your previous Carousel session. You can now re-tag or move on to pick up where you left off!"
+      description = "**Resuming:**\n\nThis is the last badge you tagged in your previous Carousel session. You can now re-tag or move and pick up where you left off!"
     else:
-      description = "**Starting: Beginning Carousel from beginning of inventory.**"
+      description = "**Starting:** Beginning Carousel from first badge of inventory."
       if start == 'resume':
         description += "\n\nYou had selected 'Resume' but had no previously stored resume location!"
       user_badges = db_get_user_badges(user_discord_id)
       initial_badge = user_badges[0]
-      initial_badge_filename = initial_badge['badge_filename']
 
-    view = TagCarouselView(user_discord_id, initial_badge_filename)
+    view = TagCarouselView(user_discord_id, initial_badge)
     embed = discord.Embed(
       title=initial_badge['badge_name'],
       description=description,
       color=discord.Color.dark_purple()
     )
-    badge_image = discord.File(fp=f"./images/badges/{initial_badge_filename}", filename=initial_badge_filename)
-    embed.set_image(url=f"attachment://{initial_badge_filename}")
+    badge_image = discord.File(fp=f"./images/badges/{initial_badge['badge_filename']}", filename=initial_badge['badge_filename'])
+    embed.set_image(url=f"attachment://{initial_badge['badge_filename']}")
 
     await ctx.followup.send(embed=embed, file=badge_image, view=view, ephemeral=True)
 
