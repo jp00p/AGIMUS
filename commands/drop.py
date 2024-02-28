@@ -123,8 +123,12 @@ async def drop_post(ctx: discord.ApplicationContext, public: str, query: str):
 
     if drop_metadata:
       try:
-        filename = get_media_file(drop_metadata)
-        await ctx.respond(file=discord.File(filename), ephemeral=not public)
+        filename = drop_metadata['file']
+        if exists(filename):
+          await ctx.respond(file=discord.File(filename), ephemeral=not public)
+        else:
+          url = drop_metadata['url']
+          await ctx.respond(url, ephemeral=not public)
         if public:
           set_timekeeper(ctx)
       except Exception as err:

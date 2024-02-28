@@ -45,7 +45,7 @@ async def speak(ctx:discord.ApplicationContext, content:str, dry_run:str, channe
       await ctx.respond(content, ephemeral=dry_run)
     else:
       await channel.send(content)
-      await ctx.respond(f"Your message has been sent to {channel.name}!", ephemeral=True)
+      await ctx.respond(f"Your message has been sent to {channel.mention}!", ephemeral=True)
   except Exception as e:
     logger.info(f"Something went wrong with /speak!")
 

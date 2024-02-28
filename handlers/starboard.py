@@ -158,10 +158,12 @@ async def add_starboard_post(message, board) -> None:
     embed_title = f""
 
   star_description = ""
-  if len(embed_desc) > 1024:
-    star_description = f"> {embed_desc[0:1024]}..."
-  elif len(embed_desc):
-    star_description = f"> {embed_desc}"
+  if len(embed_desc):
+    embed_desc = "\n> ".join(l for l in embed_desc.splitlines() if l)
+    if len(embed_desc) > 1024:
+      star_description = f"> {embed_desc[0:1024]}..."
+    else:
+      star_description = f"> {embed_desc}"
 
   # build our starboard embed now!
   star_embed = discord.Embed(
