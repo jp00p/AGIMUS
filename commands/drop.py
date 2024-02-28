@@ -123,23 +123,25 @@ async def drop_post(ctx: discord.ApplicationContext, public: str, query: str):
 
     if drop_metadata:
       try:
-        filename = drop_metadata['file']
-        if exists(filename):
-          await ctx.respond(file=discord.File(filename), ephemeral=not public)
-        else:
-          url = drop_metadata['url']
-          await ctx.respond(url, ephemeral=not public)
+        filename = get_media_file(drop_metadata)
+        await ctx.respond(file=discord.File(filename), ephemeral=not public)
         if public:
           set_timekeeper(ctx)
       except Exception as err:
         logger.info(f"{Fore.RED}ERROR LOADING DROP: {err}{Fore.RESET}")
+        await ctx.respond(embed=discord.Embed(
+            title="Error Retrieving Clip!",
+            description="Whoops, something went wrong...",
+            color=discord.Color.red()
+          ), ephemeral=True
+        )
     else:
       await ctx.respond(embed=discord.Embed(
-        title="Drop Not Found!",
-        description="To get a list of drops run: `/drops list`",
-        color=discord.Color.red()
-      ), ephemeral=True
-    )
+          title="Drop Not Found!",
+          description="To get a list of drops run: `/drops list`",
+          color=discord.Color.red()
+        ), ephemeral=True
+      )
   else:
     await ctx.respond(embed=discord.Embed(
         title="Denied!",

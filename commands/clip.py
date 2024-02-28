@@ -92,23 +92,25 @@ async def clip_post(ctx:discord.ApplicationContext, public:str, query:str):
 
     if clip_metadata:
       try:
-        filename = clip_metadata['file']
-        if exists(filename):
-          await ctx.respond(file=discord.File(filename), ephemeral=not public)
-        else:
-          url = clip_metadata['url']
-          await ctx.respond(url, ephemeral=not public)
+        filename = get_media_file(clip_metadata)
+        await ctx.respond(file=discord.File(filename), ephemeral=not public)
         if public:
           set_timekeeper(ctx)
       except Exception as err:
         logger.info(f"{Fore.RED}ERROR LOADING CLIP: {err}{Fore.RESET}")
+        await ctx.respond(embed=discord.Embed(
+            title="Error Retrieving Clip!",
+            description="Whoops, something went wrong...",
+            color=discord.Color.red()
+          ), ephemeral=True
+        )
     else:
       await ctx.respond(embed=discord.Embed(
-        title="Clip Not Found!",
-        description="To get a list of clips run: `/clip list`",
-        color=discord.Color.red()
-      ), ephemeral=True
-    )
+          title="Clip Not Found!",
+          description="To get a list of clips run: `/clip list`",
+          color=discord.Color.red()
+        ), ephemeral=True
+      )
   else:
     await ctx.respond(embed=discord.Embed(
         title="Denied!",

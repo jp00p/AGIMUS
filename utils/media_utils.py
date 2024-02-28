@@ -39,6 +39,13 @@ def get_media_file(media_metadata):
     return filename
   else:
     url = media_metadata['url']
-    r = requests.get(url, allow_redirects=True)
-    open(filename, 'wb').write(r.content)
+    headers = {
+      'user-agent': 'curl/7.84.0',
+      'accept': '*/*'
+    }
+    r = requests.get(url, headers=headers, allow_redirects=True)
+    if not r.ok:
+      raise Exception(f"Imgur request failed: {r.status_code} : {r.reason}")
+    else:
+      open(filename, 'wb').write(r.content)
     return filename
