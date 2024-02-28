@@ -98,7 +98,23 @@ async def clip_post(ctx:discord.ApplicationContext, public:str, query:str):
           set_timekeeper(ctx)
       except Exception as err:
         logger.info(f"{Fore.RED}ERROR LOADING CLIP: {err}{Fore.RESET}")
+        await ctx.respond(embed=discord.Embed(
+            title="Error Retrieving Clip!",
+            description="Whoops, something went wrong...",
+            color=discord.Color.red()
+          ), ephemeral=True
+        )
     else:
-      await ctx.respond(f"{get_emoji('ezri_frown_sad')} Clip not found! To get a list of clips run: /clips list", ephemeral=True)
+      await ctx.respond(embed=discord.Embed(
+          title="Clip Not Found!",
+          description="To get a list of clips run: `/clip list`",
+          color=discord.Color.red()
+        ), ephemeral=True
+      )
   else:
-    await ctx.respond(f"{get_emoji('ohno')} Someone in the channel has already posted a clip too recently. Please wait a minute before another clip!", ephemeral=True)
+    await ctx.respond(embed=discord.Embed(
+        title="Denied!",
+        description="Someone in the channel has already clipped too recently! Please wait a minute before another clip!",
+        color=discord.Color.red()
+      ), ephemeral=True
+    )

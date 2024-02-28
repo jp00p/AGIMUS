@@ -994,6 +994,11 @@
     "description": "Where The USS Hood At",
     "url": "https://i.imgur.com/azbj9FC.mp4"
   },
+  "Why Is The Carpet All Wet Todd?": {
+    "file": "data/drops/carpetallwet.mp4",
+    "description": "And why is the carpet all wet Todd? I don't know Margo!",
+    "url": "https://i.imgur.com/Q6npSpw.mp4"
+  },
   "Worf! Is This Your Idea Of Sex?": {
     "file": "data/drops/worfisthisyourideaofsex.mp4",
     "description": "Worf! Is This Your Idea Of Sex?",
@@ -1008,6 +1013,11 @@
     "file": "data/drops/wubwubwub.mp4",
     "description": "Wub Wub Wub Star Trek IV The One With The Whales Space Probe",
     "url": "https://i.imgur.com/WFDmWKJ.mp4"
+  },
+  "You Blew It!": {
+    "file": "data/drops/youblewit.mp4",
+    "description": "You blew it! Robert de Niro. Cop Land",
+    "url": "https://i.imgur.com/JhQC6YG.mp4"
   },
   "You Really Want To Do This?": {
     "file": "data/drops/youreallywanttodothis.mp4",
