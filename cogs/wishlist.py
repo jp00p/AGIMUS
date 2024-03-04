@@ -704,7 +704,7 @@ class Wishlist(commands.Cog):
 
     # Get list of badge trader userids, we'll filter out any matches that don't have the role
     badge_trader_role = discord.utils.get(bot.current_guild.roles, name=config['roles']['badge_traders'])
-    badge_trader_ids = [m['id'] for m in badge_trader_role.members]
+    badge_trader_ids = [m.id for m in badge_trader_role.members]
 
     # Housekeeping
     # Clear any badges from the users wishlist that the user may already possess currently
@@ -741,19 +741,22 @@ class Wishlist(commands.Cog):
         wants_pages = []
         for page_index, page_badges in enumerate(all_wants_pages):
           embed = discord.Embed(
-            title=f"You Possess The Following From {user.display_name}'s Wishlist",
-            description=f"{user.mention} may be interested in the following from your Unlocked Inventory:\n"  + "\n".join([f"* [{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
+            title=f"Found: {user.display_name}",
+            description=f"You possess Unlocked Badges that are on {user.mention}'s wishlist.\n\nThey may be interested in obtaining the following:\n"  + "\n".join([f"* [{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
             color=discord.Color.blurple()
           )
           embed.set_footer(text=f"Page {page_index + 1} of {total_wants_pages}")
           wants_pages.append(embed)
 
-        paginator = WishlistPaginator(
+        paginator = pages.Paginator(
+          author_check=False,
           pages=wants_pages,
-          show_menu=True,
+          loop_pages=True,
           custom_buttons=paginator_buttons,
-          use_default_buttons=False
+          use_default_buttons=False,
+          disable_on_timeout=True
         )
+
         await paginator.respond(ctx.interaction, ephemeral=True)
     else:
       await ctx.followup.send(
