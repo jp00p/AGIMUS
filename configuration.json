@@ -616,7 +616,7 @@
     "qget": {
       "channels": [
         "robot-diagnostics",
-        "mclaughlin-group"
+        "code-47"
       ],
       "enabled": true,
       "data": "data/user-info.json",
@@ -624,7 +624,7 @@
     },
     "qset": {
       "channels": [
-        "robot-diagnostics"
+        "code-47"
       ],
       "enabled": true,
       "data": null,
