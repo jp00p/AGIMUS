@@ -402,6 +402,14 @@
       "enabled": true,
       "parameters": []
     },
+    "badges status": {
+      "channels": [
+        "badgeys-badges",
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "parameters": []
+    },
     "badges scrap": {
       "channels": [
         "badgeys-badges",
