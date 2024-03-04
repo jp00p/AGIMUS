@@ -706,10 +706,6 @@ class Wishlist(commands.Cog):
     badge_trader_role = discord.utils.get(bot.current_guild.roles, name=config['roles']['badge_traders'])
     badge_trader_ids = [m.id for m in badge_trader_role.members]
 
-    # Housekeeping
-    # Clear any badges from the users wishlist that the user may already possess currently
-    db_purge_users_wishlist(author_discord_id)
-
     # Get all the users and the badgenames that want badges that the user has
     inventory_matches = db_get_wishlist_inventory_matches(author_discord_id)
     inventory_aggregate = {}
@@ -762,7 +758,7 @@ class Wishlist(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="No Traders Found",
-          description="Unable to find any Traders who are interested in items from your unlocked inventory.\n\nPlease try again later!",
+          description="Unable to find any Traders who are interested in items from your Unlocked Inventory.\n\nPlease try again later!",
           color=discord.Color.blurple()
         ), ephemeral=True
       )
