@@ -1026,8 +1026,8 @@ async def badge_status(ctx:discord.ApplicationContext, name:str):
       badge_status = "Not Owned"
 
   embed = discord.Embed(
-    title=f"STATUS: {badge_info['badge_name']}",
-    description=badge_status,
+    title=badge_info['badge_name'],
+    description=f"Status: **{badge_status}**",
     color=discord.Color.blurple()
   )
   discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'].replace(',','_'))
