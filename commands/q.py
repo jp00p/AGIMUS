@@ -52,7 +52,7 @@ async def display_user(user_id, ctx):
   user_columns = json.load(f)
   f.close()
   user_data = get_user(user_id)
-  #logger.debug(f"this_user: {user_data}")
+  logger.info(f"q data: {user_data}")
 
   user = await bot.fetch_user(user_id)
   embed = discord.Embed()

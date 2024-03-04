@@ -402,6 +402,14 @@
       "enabled": true,
       "parameters": []
     },
+    "badges status": {
+      "channels": [
+        "badgeys-badges",
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "parameters": []
+    },
     "badges scrap": {
       "channels": [
         "badgeys-badges",
@@ -608,7 +616,7 @@
     "qget": {
       "channels": [
         "robot-diagnostics",
-        "mclaughlin-group"
+        "code-47"
       ],
       "enabled": true,
       "data": "data/user-info.json",
@@ -616,7 +624,7 @@
     },
     "qset": {
       "channels": [
-        "robot-diagnostics"
+        "code-47"
       ],
       "enabled": true,
       "data": null,
@@ -961,6 +969,15 @@
       "data": null,
       "parameters": []
     },
+    "wishlist find_traders": {
+      "channels": [
+        "badgeys-badges",
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "wishlist matches": {
       "channels": [
         "badgeys-badges",
@@ -1024,6 +1041,7 @@
   "role_map": {},
   "roles": {
     "agimus_maintainers": "AGIMUS Acolyte",
+    "badge_traders": "Badge Trader",
     "shimoda_pollsters": "T'Pollsters",
     "reaction_roles_enabled": true,
     "promotion_roles": {

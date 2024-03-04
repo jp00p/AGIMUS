@@ -676,6 +676,96 @@ class Wishlist(commands.Cog):
           if has_badges_names != dismissal_has and wants_badges_names != dismissal_wants:
             db_delete_wishlist_dismissal(author_discord_id, user_id)
 
+
+  # ___________.__            .___ ___________                  .___
+  # \_   _____/|__| ____    __| _/ \__    ___/___________     __| _/___________  ______
+  #  |    __)  |  |/    \  / __ |    |    |  \_  __ \__  \   / __ |/ __ \_  __ \/  ___/
+  #  |     \   |  |   |  \/ /_/ |    |    |   |  | \// __ \_/ /_/ \  ___/|  | \/\___ \
+  #  \___  /   |__|___|  /\____ |    |____|   |__|  (____  /\____ |\___  >__|  /____  >
+  #      \/            \/      \/                        \/      \/    \/           \/
+  @wishlist_group.command(
+    name="find_traders",
+    description="Find Badge Traders who want Badges from your Unlocked Inventory."
+  )
+  async def find_traders(self, ctx:discord.ApplicationContext):
+    await ctx.defer(ephemeral=True)
+    author_discord_id = ctx.author.id
+
+    logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}find traders{Style.RESET_ALL} for items in their {Style.BRIGHT}unlocked inventory{Style.RESET_ALL}")
+
+    initial_followup = await ctx.followup.send(
+      embed=discord.Embed(
+        title="Finding Traders...",
+        description="Uno tomatoes por favor...",
+        color=discord.Color.blurple()
+      ),
+      ephemeral=True
+    )
+
+    # Get list of badge trader userids, we'll filter out any matches that don't have the role
+    badge_trader_role = discord.utils.get(bot.current_guild.roles, name=config['roles']['badge_traders'])
+    badge_trader_ids = [m.id for m in badge_trader_role.members]
+
+    # Get all the users and the badgenames that want badges that the user has
+    inventory_matches = db_get_wishlist_inventory_matches(author_discord_id)
+    inventory_aggregate = {}
+    if inventory_matches:
+      for match in inventory_matches:
+        user_id = int(match['user_discord_id'])
+        if user_id == author_discord_id or user_id not in badge_trader_ids:
+          continue
+
+        user_record = inventory_aggregate.get(user_id)
+        if not user_record:
+          inventory_aggregate[user_id] = [match]
+        else:
+          inventory_aggregate[user_id].append(match)
+
+    if len(inventory_aggregate.keys()):
+      for user_id in inventory_aggregate.keys():
+        user = await bot.current_guild.fetch_member(user_id)
+
+        wants_badges = inventory_aggregate[user_id]
+        wants_badges = sorted(wants_badges, key=lambda b: b['badge_name'])
+
+        max_badges_per_page = 30
+
+        # Pages for Badges Match Wants
+        all_wants_pages = [wants_badges[i:i + max_badges_per_page] for i in range(0, len(wants_badges), max_badges_per_page)]
+        total_wants_pages = len(all_wants_pages)
+
+        wants_pages = []
+        for page_index, page_badges in enumerate(all_wants_pages):
+          embed = discord.Embed(
+            title=f"Found: {user.display_name}",
+            description=f"You possess Unlocked Badges that are on {user.mention}'s wishlist.\n\nThey may be interested in obtaining the following:\n"  + "\n".join([f"* [{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
+            color=discord.Color.blurple()
+          )
+          embed.set_footer(text=f"Page {page_index + 1} of {total_wants_pages}")
+          wants_pages.append(embed)
+
+        paginator = pages.Paginator(
+          author_check=False,
+          pages=wants_pages,
+          loop_pages=True,
+          custom_buttons=paginator_buttons,
+          use_default_buttons=False,
+          disable_on_timeout=True
+        )
+
+        await paginator.respond(ctx.interaction, ephemeral=True)
+    else:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="No Traders Found",
+          description="Unable to find any Traders who are interested in items from your Unlocked Inventory.\n\nPlease try again later!",
+          color=discord.Color.blurple()
+        ), ephemeral=True
+      )
+
+    await initial_followup.delete()
+
+
   #    _____       .___  .___
   #   /  _  \    __| _/__| _/
   #  /  /_\  \  / __ |/ __ |
