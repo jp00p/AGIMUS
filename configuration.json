@@ -961,6 +961,15 @@
       "data": null,
       "parameters": []
     },
+    "wishlist find_traders": {
+      "channels": [
+        "badgeys-badges",
+        "bahrats-bazaar"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "wishlist matches": {
       "channels": [
         "badgeys-badges",
@@ -1024,6 +1033,7 @@
   "role_map": {},
   "roles": {
     "agimus_maintainers": "AGIMUS Acolyte",
+    "badge_traders": "Badge Trader",
     "shimoda_pollsters": "T'Pollsters",
     "reaction_roles_enabled": true,
     "promotion_roles": {
