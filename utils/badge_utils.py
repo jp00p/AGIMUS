@@ -853,7 +853,7 @@ def db_get_user_unlocked_badges(user_discord_id:int):
   '''
   with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT b_i.badge_name, b_i.badge_filename, b.locked, b_i.special FROM badges b
+      SELECT b_i.*, b.locked FROM badges b
         JOIN badge_info AS b_i
           ON b.badge_filename = b_i.badge_filename
           WHERE b.user_discord_id = %s AND b.locked = 0 AND b_i.special = 0
@@ -872,7 +872,7 @@ def db_get_user_locked_badges(user_discord_id:int):
   '''
   with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT b_i.badge_name, b_i.badge_filename, b.locked, b_i.special FROM badges b
+      SELECT b_i.*, b.locked FROM badges b
         JOIN badge_info AS b_i
           ON b.badge_filename = b_i.badge_filename
           WHERE b.user_discord_id = %s AND b.locked = 1 AND b_i.special = 0
@@ -891,7 +891,7 @@ def db_get_user_special_badges(user_discord_id:int):
   '''
   with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT b_i.badge_name, b_i.badge_filename, b.locked, b_i.special FROM badges b
+      SELECT b_i.*, b.locked FROM badges b
         JOIN badge_info AS b_i
           ON b.badge_filename = b_i.badge_filename
           WHERE b.user_discord_id = %s AND b_i.special = 1
