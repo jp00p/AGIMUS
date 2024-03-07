@@ -154,11 +154,11 @@ async def add_starboard_post(message, board) -> None:
 
   else:
     # normal message, ez
-    embed_desc = f"{message.content}\n"
+    embed_desc = message.content
     embed_title = f""
 
   star_description = ""
-  if len(embed_desc):
+  if embed_desc:
     embed_desc = "\n> ".join(l for l in embed_desc.splitlines() if l)
     if len(embed_desc) > 1024:
       star_description = f"> {embed_desc[0:1024]}..."
