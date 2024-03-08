@@ -19,7 +19,6 @@ paginator_buttons = [
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
-
 async def add_autocomplete(ctx:discord.AutocompleteContext):
   filtered_badges = [b['badge_name'] for b in SPECIAL_BADGES]
 
@@ -687,6 +686,7 @@ class Wishlist(commands.Cog):
     name="find_traders",
     description="Find Badge Traders who want Badges from your Unlocked Inventory."
   )
+  @commands.check(access_check)
   async def find_traders(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
     author_discord_id = ctx.author.id
@@ -722,6 +722,8 @@ class Wishlist(commands.Cog):
           inventory_aggregate[user_id].append(match)
 
     if len(inventory_aggregate.keys()):
+      authors_full_inventory = db_get_user_badges(author_discord_id)
+
       for user_id in inventory_aggregate.keys():
         user = await bot.current_guild.fetch_member(user_id)
 
@@ -737,23 +739,82 @@ class Wishlist(commands.Cog):
         wants_pages = []
         for page_index, page_badges in enumerate(all_wants_pages):
           embed = discord.Embed(
-            title=f"Found: {user.display_name}",
-            description=f"You possess Unlocked Badges that are on {user.mention}'s wishlist.\n\nThey may be interested in obtaining the following:\n"  + "\n".join([f"* [{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
+            title=f"Potentially Interested: {user.display_name}",
+            description=f"You possess Unlocked Badges that are on {user.mention}'s wishlist.\n\nTHEY may be interested in obtaining the following:\n"  + "\n".join([f"* [{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
             color=discord.Color.blurple()
           )
           embed.set_footer(text=f"Page {page_index + 1} of {total_wants_pages}")
           wants_pages.append(embed)
 
-        paginator = pages.Paginator(
-          author_check=False,
-          pages=wants_pages,
-          loop_pages=True,
-          custom_buttons=paginator_buttons,
-          use_default_buttons=False,
-          disable_on_timeout=True
-        )
 
-        await paginator.respond(ctx.interaction, ephemeral=True)
+        # Badges That Exist In User's Unlocked Inventory but NOT already present in Author's Full Inventory
+        users_unlocked_inventory = db_get_user_unlocked_badges(user.id)
+        intersection_badges = [b for b in users_unlocked_inventory if b['badge_filename'] not in [a_b['badge_filename'] for a_b in authors_full_inventory]]
+        intersection_badges = sorted(intersection_badges, key=lambda b: b['badge_name'])
+
+        if not intersection_badges:
+          # Simple Paginator without PageGroups
+          paginator = pages.Paginator(
+            author_check=False,
+            pages=wants_pages,
+            loop_pages=True,
+            custom_buttons=paginator_buttons,
+            use_default_buttons=False,
+            disable_on_timeout=True
+          )
+          await paginator.respond(ctx.interaction, ephemeral=True)
+        else:
+          all_intersection_pages = [intersection_badges[i:i + max_badges_per_page] for i in range(0, len(intersection_badges), max_badges_per_page)]
+          total_intersection_pages = len(all_intersection_pages)
+
+          intersection_pages = []
+          for page_index, page_badges in enumerate(all_intersection_pages):
+            embed = discord.Embed(
+              title=f"Potentially Available: {user.display_name}",
+              description=f"{user.mention} has the following total Unlocked Inventory which you do not already possess.\n\nYOU might be interested in obtaining the following:\n"  + "\n".join([f"* [{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
+              color=discord.Color.blurple()
+            )
+            embed.set_footer(text=f"Page {page_index + 1} of {total_intersection_pages}")
+            intersection_pages.append(embed)
+
+          page_groups = [
+            pages.PageGroup(
+              pages=[
+                discord.Embed(
+                  title=f"Trader Found: {user.display_name}",
+                  description=f"{user.mention} may have a partial match!",
+                  color=discord.Color.blurple()
+                )
+              ],
+              label=f"Partial With Match {user.display_name}!",
+              description="Details and Info",
+              custom_buttons=paginator_buttons,
+              use_default_buttons=False
+            ),
+            pages.PageGroup(
+              pages=wants_pages,
+              label="What They Want",
+              description="Badges The Trader Wants From Your Unlocked Inventory",
+              custom_buttons=paginator_buttons,
+              use_default_buttons=False
+            ),
+            pages.PageGroup(
+              pages=intersection_pages,
+              label="What You May Want",
+              description="Badges The Trader Has Unlocked That You Don't Possess",
+              custom_buttons=paginator_buttons,
+              use_default_buttons=False
+            )
+          ]
+
+          paginator = WishlistPaginator(
+            pages=page_groups,
+            show_menu=True,
+            custom_buttons=paginator_buttons,
+            use_default_buttons=False
+          )
+          await paginator.respond(ctx.interaction, ephemeral=True)
+
     else:
       await ctx.followup.send(
         embed=discord.Embed(
