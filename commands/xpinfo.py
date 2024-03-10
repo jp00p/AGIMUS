@@ -97,7 +97,7 @@ async def xpinfo_channels(ctx:discord.ApplicationContext, public:str):
   discord_image = discord.File(filepath_and_filename[0], filename=filepath_and_filename[1])
   embed = discord.Embed(
     title="INFO - Top Channels",
-    description=f"{user_member.mention}'s Top 5",
+    description=f"{user_member.mention}'s Top 5 (90-Day XP Activity)",
     color=discord.Color.red()
   )
   embed.add_field(
@@ -108,7 +108,7 @@ async def xpinfo_channels(ctx:discord.ApplicationContext, public:str):
     inline=False
   )
   embed.set_image(url=f"attachment://{discord_image.filename}")
-  embed.set_footer(text=f"{sum(values)} total messages analyzed over the past 90 days.")
+  embed.set_footer(text=f"{sum(values)} total messages analyzed over the past 90 days.\nUse /xpinfo to generate your own!")
   if public:
     await ctx.followup.send(embed=discord.Embed(title="Info Sent To Channel!", color=discord.Color.blurple()))
     await ctx.channel.send(embed=embed, file=discord_image)
@@ -279,7 +279,7 @@ async def xpinfo_activity(ctx:discord.ApplicationContext, public:str):
   discord_image = discord.File(filepath_and_filename[0], filename=filepath_and_filename[1])
   embed = discord.Embed(
     title="INFO - XP Activity",
-    description=f"{user_member.mention}'s 30-Day XP Activity",
+    description=f"{user_member.mention}'s Graphed Daily Totals (30-Day XP Activity)",
     color=discord.Color.red()
   )
   embed.add_field(
@@ -296,7 +296,8 @@ async def xpinfo_activity(ctx:discord.ApplicationContext, public:str):
   embed.set_footer(
     text=f"{total_actions} total actions analyzed over the past 30 days.\n"
           "Includes all XP actions i.e. Posts, Reacts, Bot Games, etc.\n"
-          "Dates given are in `US/Pacific` time."
+          "Dates given are in `US/Pacific` time.\n"
+          "Use /xpinfo to generate your own!"
   )
   if public:
     await ctx.followup.send(embed=discord.Embed(title="Info Sent To Channel!", color=discord.Color.blurple()))

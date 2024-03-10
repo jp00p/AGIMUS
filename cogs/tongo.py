@@ -177,6 +177,7 @@ class Tongo(commands.Cog):
     await self._cancel_tongo_related_trades(user_discord_id, selected_user_badges)
 
     tongo_pot_badges = db_get_tongo_pot_badges()
+    tongo_pot_chunks = [tongo_pot_badges[i:i + 30] for i in range(0, len(tongo_pot_badges), 30)]
 
     confirmation_embed = discord.Embed(
       title="TONGO! Badges Ventured!",
@@ -193,7 +194,7 @@ class Tongo(commands.Cog):
     )
     confirmation_embed.add_field(
       name=f"The Great Material Continuum",
-      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
+      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_chunks[0]]),
       inline=False
     )
     confirmation_embed.set_image(url="https://i.imgur.com/tRi1vYq.gif")
@@ -205,6 +206,23 @@ class Tongo(commands.Cog):
     continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
     trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
     await trade_channel.send(embed=confirmation_embed)
+
+    if len(tongo_pot_chunks) > 1:
+      for t_chunk in tongo_pot_chunks[1:]:
+        chunk_embed = discord.Embed(
+          title=f"TONGO! Badges Ventured by **{user_member.display_name}** (Continued)!"
+        )
+        chunk_embed.add_field(
+          name=f"Total Badges In The Great Material Continuum!",
+          value="\n".join([f"* {b['badge_name']}" for b in t_chunk]),
+          inline=False
+        )
+        chunk_embed.set_footer(
+          text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+          icon_url="https://i.imgur.com/GTN4gQG.jpg"
+        )
+        await trade_channel.send(embed=chunk_embed)
+
     await self._send_continuum_images_to_channel(trade_channel, continuum_images)
 
     self.first_auto_confront = True
@@ -496,6 +514,7 @@ class Tongo(commands.Cog):
     tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
 
     tongo_pot_badges = db_get_tongo_pot_badges()
+    tongo_pot_chunks = [tongo_pot_badges[i:i + 30] for i in range(0, len(tongo_pot_badges), 30)]
 
     description=f"Index requested by **{user_member.display_name}**!\n\nDisplaying the status of the current game of Tongo!\n\n"
     if self.auto_confront.next_iteration:
@@ -520,7 +539,7 @@ class Tongo(commands.Cog):
     )
     confirmation_embed.add_field(
       name=f"Total Badges In The Great Material Continuum!",
-      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
+      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_chunks[0]]),
       inline=False
     )
     confirmation_embed.set_image(url="https://i.imgur.com/aWLYGKQ.gif")
@@ -531,6 +550,23 @@ class Tongo(commands.Cog):
     continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
     trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
     await trade_channel.send(embed=confirmation_embed)
+
+    if len(tongo_pot_chunks) > 1:
+      for t_chunk in tongo_pot_chunks[1:]:
+        chunk_embed = discord.Embed(
+          title=f"Index requested by **{user_member.display_name}** (Continued)"
+        )
+        chunk_embed.add_field(
+          name=f"Total Badges In The Great Material Continuum!",
+          value="\n".join([f"* {b['badge_name']}" for b in t_chunk]),
+          inline=False
+        )
+        chunk_embed.set_footer(
+          text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+          icon_url="https://i.imgur.com/GTN4gQG.jpg"
+        )
+        await trade_channel.send(embed=chunk_embed)
+
     await self._send_continuum_images_to_channel(trade_channel, continuum_images)
 
   async def _send_continuum_images_to_channel(self, trade_channel, continuum_images):
