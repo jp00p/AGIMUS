@@ -595,7 +595,7 @@ class BadgeTags(commands.Cog):
 
   @tags_group.command(
     name="carousel",
-    description="Cycle through your badges randomly to apply tags"
+    description="Cycle through your badges to apply tags"
   )
   @option(
     name="start",
