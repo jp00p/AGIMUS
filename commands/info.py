@@ -24,60 +24,72 @@ for show_key in show_keys:
     )
     show_choices.append(show_choice)
 
+async def title_autocomplete(ctx: discord.AutocompleteContext):
+  show = ctx.options['show']
+  if exists(f"./data/episodes/{show}.json"):
+    f = open(f"./data/episodes/{show}.json")
+    show_data = json.load(f)
+    f.close()
+    episode_titles = [e['title'] for e in show_data["episodes"]]
+
+    results = []
+    for t in episode_titles:
+      if ctx.value.lower() in t.lower():
+        results.append(t)
+    return results
+  else:
+    return ['Invalid Show!']
+
 @bot.slash_command(
   name="info",
   description="Get information about episodes of a show"
 )
 @option(
-  name="show",
+  name="Show",
   description="Which show?",
   required=True,
   choices=show_choices
 )
 @option(
-  name="episode",
-  description="Season and Episode Number in sXXeXX format.",
+  name="Episode Title",
+  name="episode_title",
+  description="Episode Title (Search)",
   required=True
 )
 @commands.check(access_check)
-async def info(ctx:discord.ApplicationContext, show:str, episode:str):
+async def info(ctx:discord.ApplicationContext, show:str, episode_title:str):
   """
   This function is the main entrypoint of the /info command
   """
   try:
     logger.info(f"{Fore.CYAN}Firing /info command!{Fore.RESET}")
-    if not bool(re.search(r'^s\d\de\d\d$', episode, re.IGNORECASE)):
-      await ctx.respond(
-        embed=discord.Embed(
-          title="Invalid Episode Format!",
-          description="Please use the format 'sXXeXX'",
-          color=discord.Color.red()
-        ),
-        ephemeral=True
-      )
-      return
 
-    found = False
     if exists(f"./data/episodes/{show}.json"):
       f = open(f"./data/episodes/{show}.json")
       show_data = json.load(f)
       f.close()
-      season_no = re.sub(r'e.*', '', episode, re.IGNORECASE).replace("s","").zfill(2)
-      episode_no = re.sub(r'.*e', '', episode, re.IGNORECASE).zfill(2)
-      logger.info(f"{Fore.LIGHTCYAN_EX}{show} s{season_no}e{episode_no}{Fore.RESET}")
-      episode_index = -1
-      for ep in show_data["episodes"]:
-        episode_index = episode_index + 1
-        if ep["season"] == season_no and ep["episode"] == episode_no:
-          found = True
-          break
-    if found:
-      display_embed = get_show_embed(show_data, episode_index, show)
-      await ctx.respond(embed=display_embed)
+
+      episode_titles = [e['title'] for e in show_data["episodes"]]
+      if episode_title in episode_titles:
+        episode_index = episode_titles.index(episode_title)
+        display_embed = get_show_embed(show_data, episode_index, show)
+        await ctx.respond(embed=display_embed)
+      else:
+        await ctx.respond(
+          embed=discord.Embed(
+            title="Invalid Episode!",
+            description="If this episode should exist, or is incorrect, help fix the source data here:\n"
+                        "https://github.com/jp00p/FoDBot-SQL/tree/main/data/episodes"
+          ),
+          ephemeral=True
+        )
     else:
-      await ctx.respond("Could not find this episode.\n"
-         "If this episode should exist, or is incorrect, help fix the source data here:\n"
-         "https://github.com/jp00p/FoDBot-SQL/tree/main/data/episodes",
+      await ctx.respond(
+        embed=discord.Embed(
+          title="Invalid Show!",
+          description="If this episode should exist, or is incorrect, help fix the source data here:\n"
+                      "https://github.com/jp00p/FoDBot-SQL/tree/main/data/episodes"
+        ),
         ephemeral=True
       )
   except Exception as e:

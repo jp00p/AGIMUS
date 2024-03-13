@@ -519,9 +519,7 @@
       "parameters": []
     },
     "info": {
-      "channels": [
-        "after-dinner-conversation"
-      ],
+      "channels": [],
       "enabled": true,
       "data": "data/info.json",
       "parameters": [
