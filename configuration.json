@@ -930,14 +930,32 @@
       "data": "data/all_characters.txt",
       "parameters": []
     },
-    "user_tags display_tags": {
-      "channels": [],
+    "user_tags display": {
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-waiting-room",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "the-next-next-generation",
+        "sicks-bay"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
     "user_tags tag_user": {
-      "channels": [],
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-waiting-room",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "the-next-next-generation",
+        "sicks-bay"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
