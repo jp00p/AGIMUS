@@ -42,6 +42,19 @@ user_tags = bot.create_group("user_tags", "Commands for managing user tags")
   max_length=128
 )
 async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
+  user = get_user(user.id)
+
+  if user.get("tagging_enabled") != 1:
+    await ctx.respond(
+      embed=discord.Embed(
+        title=f"{user.display_name} Does Not Have Tagging Enabled!",
+        description="No tagging possible.",
+        color=discord.Color.red()
+      ),
+      ephemeral=True
+    )
+    return
+
   user_tags = db_get_user_tags(user.id)
 
   tags = [t['tag'] for t in user_tags]
@@ -55,13 +68,18 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
     )
     return
 
+  if ctx.author.id == user.id:
+    description = f"{ctx.author.mention} tagged themselves with:\n\n > `{tag}`"
+  else:
+    description = f"{ctx.author.mention} tagged {user.mention} with:\n\n > `{tag}`"
+
   db_add_user_tag(user.id, ctx.author.id, tag)
-  await ctx.respond(
-      embed=discord.Embed(
-        title="User Tag Added!",
-        description=f"{ctx.author.mention} tagged {user.mention} with:\n\n > {tag}",
-        color=discord.Color.blurple()
-      )
+  await ctx.respond(f"{user.mention}, tag! You're it!",
+    embed=discord.Embed(
+      title="User Tag Added!",
+      description=description,
+      color=discord.Color.blurple()
+    )
   )
 
 @user_tags.command(
@@ -86,7 +104,8 @@ async def untag_user(ctx:discord.ApplicationContext, tag:str):
         title="No Tags Present!",
         description="You don't have any tags present to untag!",
         color=discord.Color.red()
-      )
+      ),
+      ephemeral=True
     )
     return
 
@@ -96,7 +115,8 @@ async def untag_user(ctx:discord.ApplicationContext, tag:str):
         title="Tag Not Present!",
         description=f"You're not currently tagged with `{tag}`!",
         color=discord.Color.red()
-      )
+      ),
+      ephemeral=True
     )
     return
 
@@ -106,13 +126,14 @@ async def untag_user(ctx:discord.ApplicationContext, tag:str):
       title="Untag Successful!",
       description=f"You have removed the following tag:\n\n> `{tag}`",
       color=discord.Color.blurple()
-    )
+    ),
+    ephemeral=True
   )
 
 
 @user_tags.command(
-  name="display_tags",
-  description="Display all tags for a user"
+  name="display",
+  description="Display all tags applied to a user"
 )
 @option(
   "user",
@@ -120,7 +141,36 @@ async def untag_user(ctx:discord.ApplicationContext, tag:str):
   description="The user for which you wish display tags",
   required=True
 )
-async def display_tags(ctx:discord.ApplicationContext, user:discord.User):
+@option(
+  name="public",
+  description="Show to public?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="No",
+      value="no"
+    ),
+    discord.OptionChoice(
+      name="Yes",
+      value="yes"
+    )
+  ]
+)
+async def display(ctx:discord.ApplicationContext, user:discord.User, public:str):
+  public = (public == "yes")
+  user = get_user(user.id)
+
+  if user.get("tagging_enabled") != 1:
+    await ctx.respond(
+      embed=discord.Embed(
+        title=f"{user.display_name} Does Not Have Tagging Enabled!",
+        description="No tagging possible.",
+        color=discord.Color.red()
+      ),
+      ephemeral=True
+    )
+    return
+
   user_tags = db_get_user_tags(user.id)
 
   if not user_tags:
@@ -147,7 +197,7 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User):
 
   display_embed = discord.Embed(
     title=f"{user.display_name}'s Tags",
-    description=f"{user.mention} is tagged with the following:",
+    description=f"{user.mention} is tagged with the following...",
     color=discord.Color.blurple()
   )
   display_embed.add_field(
@@ -156,7 +206,7 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User):
     inline=False
   )
 
-  await ctx.respond(embed=display_embed)
+  await ctx.respond(embed=display_embed, ephemeral=not public)
 
 
 # ________                      .__

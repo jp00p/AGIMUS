@@ -281,6 +281,52 @@ class DTDView(discord.ui.View):
     self.add_item(DTDDropdown(self.cog))
 
 
+class TaggingDropdown(discord.ui.Select):
+  def __init__(self, cog):
+    self.cog = cog
+    options = [
+      discord.SelectOption(label="Enable Tagging", description="Opt-in to the User Tagging System"),
+      discord.SelectOption(label="Disable Tagging", description="Opt-out of the User Tagging System"),
+    ]
+
+    super().__init__(
+      placeholder="Choose your preference",
+      min_values=1,
+      max_values=1,
+      options=options,
+      row=1
+    )
+
+  async def callback(self, interaction:discord.Interaction):
+    selection = self.values[0]
+
+    if selection == "Enable Tagging":
+      db_toggle_tagging(interaction.user.id, True)
+      await interaction.response.send_message(
+        embed=discord.Embed(
+          title="You have successfully chosen to participate in user tagging!",
+          color=discord.Color.green()
+        ).set_footer(text="You can always come back to this interface to reconfigure in the future!"),
+        ephemeral=True
+      )
+    elif selection == "Disable Tagging":
+      db_toggle_tagging(interaction.user.id, False)
+      await interaction.response.send_message(
+        embed=discord.Embed(
+          title="You have successfully opted-out of being user tagged.",
+          color=discord.Color.blurple()
+        ).set_footer(text="You can always come back to this interface and re-enable in the future!"),
+        ephemeral=True
+      )
+
+class TaggingView(discord.ui.View):
+  def __init__(self, cog):
+    self.cog = cog
+    super().__init__()
+
+    self.add_item(TaggingDropdown(self.cog))
+
+
 # _________
 # \_   ___ \  ____   ____
 # /    \  \/ /  _ \ / ___\
@@ -304,6 +350,7 @@ class Settings(commands.Cog):
     wordcloud_embed, wordcloud_thumbnail = await self._get_wordcloud_embed_and_thumbnail()
     loudbot_embed, loudbot_thumbnail = await self._get_loudbot_embed_and_thumbnail()
     dtd_embed, dtd_thumbnail = await self._get_dtd_embed_and_thumbnail()
+    tagging_embed, tagging_thumbnail = await self._get_tagging_embed_and_thumbnail()
 
     page_groups = [
       pages.PageGroup(
@@ -381,6 +428,19 @@ class Settings(commands.Cog):
         custom_buttons=[],
         use_default_buttons=False,
         custom_view=DTDView(self)
+      )
+      pages.PageGroup(
+        pages=[
+          pages.Page(
+            embeds=[tagging_embed],
+            files=[tagging_thumbnail]
+          )
+        ],
+        label="User Tagging",
+        description="Opt-in or Opt-out of User Tagging",
+        custom_buttons=[],
+        use_default_buttons=False,
+        custom_view=TaggedView(self)
       )
     ]
     paginator = pages.Paginator(
@@ -538,9 +598,33 @@ class Settings(commands.Cog):
 
     return embed, thumbnail
 
+  async def _get_tagging_embed_and_thumbnail(self):
+    thumbnail = discord.File(fp="./images/templates/settings/tagging.png", filename="tagging.png")
+    embed = discord.Embed(
+      title="User Tagging",
+      description="We have an opt-in User Tagging feature which allows FoDs to tag one another "
+                  "with nicknames and other info!\n\n"
+                  "* `/user_tags tag` - Add a tag to a user.\n"
+                  "* `/user_tags untag` - Remove a tag that you've been tagged with.\n"
+                  "* `/user_tags display` - View all tags a user has been tagged with (Posted publicly or privately).\n"
+                  "Select below if you'd like to join enable others or yourself to tag you!",
+      color=discord.Color(0xFF0000)
+    )
+    embed.set_footer(text="Please select your choice from the preference dropdown below.")
+    embed.set_image(url="https://i.imgur.com/AlyYTCA.jpeg")
+    embed.set_thumbnail(url=f"attachment://tagging.png")
+
+    return embed, thumbnail
+
 def db_toggle_xp(user_id, value:bool):
   with AgimusDB() as query:
     sql = "UPDATE users SET xp_enabled = %s WHERE discord_id = %s"
+    vals = (value, user_id)
+    query.execute(sql, vals)
+
+def db_toggle_tagging(user_id, value:bool):
+  with AgimusDB() as query:
+    sql = "UPDATE users SET tagging_enabled = %s WHERE discord_id = %s"
     vals = (value, user_id)
     query.execute(sql, vals)
 
