@@ -428,7 +428,7 @@ class Settings(commands.Cog):
         custom_buttons=[],
         use_default_buttons=False,
         custom_view=DTDView(self)
-      )
+      ),
       pages.PageGroup(
         pages=[
           pages.Page(
@@ -440,7 +440,7 @@ class Settings(commands.Cog):
         description="Opt-in or Opt-out of User Tagging",
         custom_buttons=[],
         use_default_buttons=False,
-        custom_view=TaggedView(self)
+        custom_view=TaggingView(self)
       )
     ]
     paginator = pages.Paginator(
@@ -606,12 +606,12 @@ class Settings(commands.Cog):
                   "with nicknames and other info!\n\n"
                   "* `/user_tags tag` - Add a tag to a user.\n"
                   "* `/user_tags untag` - Remove a tag that you've been tagged with.\n"
-                  "* `/user_tags display` - View all tags a user has been tagged with (Posted publicly or privately).\n"
-                  "Select below if you'd like to join enable others or yourself to tag you!",
+                  "* `/user_tags display` - View all tags a user has been tagged with (Posted publicly or privately).\n\n"
+                  "Select below if you'd like to join enable others to tag you (or add some of your own to yourself)!",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
-    embed.set_image(url="https://i.imgur.com/AlyYTCA.jpeg")
+    embed.set_image(url="https://i.imgur.com/TVAmmjk.jpeg")
     embed.set_thumbnail(url=f"attachment://tagging.png")
 
     return embed, thumbnail
