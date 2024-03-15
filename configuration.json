@@ -519,9 +519,7 @@
       "parameters": []
     },
     "info": {
-      "channels": [
-        "after-dinner-conversation"
-      ],
+      "channels": [],
       "enabled": true,
       "data": "data/info.json",
       "parameters": [
@@ -565,17 +563,6 @@
     },
     "nexttrek": {
       "channels": [],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
-    "pin": {
-      "allowed_roles": [
-        "Admiral",
-        "Captain",
-        "Commander",
-        "Lt. Commander"
-      ],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -943,13 +930,14 @@
       "data": "data/all_characters.txt",
       "parameters": []
     },
-    "unpin": {
-      "allowed_roles": [
-        "Admiral",
-        "Captain",
-        "Commander",
-        "Lt. Commander"
-      ],
+    "user_tags display_tags": {
+      "channels": [],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "user_tags tag_user": {
+      "channels": [],
       "enabled": true,
       "data": null,
       "parameters": []

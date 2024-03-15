@@ -10,8 +10,6 @@ async def show_leave_message(member:discord.Member):
     return
   server_logs_channel = bot.get_channel(get_channel_id(config["server_logs_channel"]))
   name = member.display_name
-  msg = "__" + random.choice(config["leave_messages"]).format(name) + "__ 😞"
-  weather = random.choice(["gloomy", "rainy", "foggy", "chilly", "quiet", "soggy", "misty", "stormy"])
 
   pst_tz = pytz.timezone('America/Los_Angeles')
   raw_now = datetime.utcnow().replace(tzinfo=pytz.utc)
@@ -25,9 +23,33 @@ async def show_leave_message(member:discord.Member):
   days, hours = divmod(hours, 24)
   membership_length = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
 
-  msg += "\n> **Join date:** {} (a {} {})\n> **Member for:** {}\n".format(join_date.strftime("%B %d, %Y"), weather, join_date.strftime("%A"), membership_length)
+  weather = random.choice(["gloomy", "rainy", "foggy", "chilly", "quiet", "soggy", "misty", "stormy"])
+
+  embed = discord.Embed(
+    title=random.choice(config["leave_messages"]).format(name) + " 😞",
+    description=f"Profile: {member.mention}",
+    color=discord.Color.random()
+  )
+  embed.add_field(
+    name="Join Date",
+    value=f"{join_date.strftime('%B %d, %Y')} (a {weather} {join_date.strftime('%A')})",
+    inline=False
+  )
+  embed.add_field(
+    name="Member For:",
+    value=membership_length,
+    inline=False
+  )
+
+  if member.avatar is not None:
+    embed.set_author(
+      name="",
+      icon_url=member.avatar.url
+    )
+
   logger.info(f"{Fore.LIGHTRED_EX}{name} has left the server! :({Fore.RESET}")
-  await server_logs_channel.send(msg)
+
+  await server_logs_channel.send(embed=embed)
 
 # show_nick_change_message(before,after)
 # shows a message when someone changes their nickname on the server
@@ -46,10 +68,31 @@ async def show_nick_change_message(before, after, scope = ""):
     vals = (f"{after.id}", before.display_name, after.display_name)
     query.execute(sql, vals)
 
-  server_logs_channel = bot.get_channel(get_channel_id(config["server_logs_channel"]))
-  msg = f"**{before.display_name}** has changed their {scope} nickname to: **{after.display_name}**"
   logger.info(f"{Fore.LIGHTGREEN_EX}{before.display_name}{Fore.RESET} has changed their {scope} nickname to: {Fore.GREEN}{after.display_name}{Fore.RESET}")
-  await server_logs_channel.send(msg)
+  embed = discord.Embed(
+    title=f"'{before.display_name}' has changed their {scope} nickname!",
+    description=f"Profile: {after.mention}",
+    color=discord.Color.random()
+  )
+  embed.add_field(
+    name="Previous Nickname",
+    value=before.display_name,
+    inline=False
+  )
+  embed.add_field(
+    name="New Nickname",
+    value=after.display_name,
+    inline=False
+  )
+
+  if after.avatar is not None:
+    embed.set_author(
+      name="",
+      icon_url=after.avatar.url
+    )
+
+  server_logs_channel = bot.get_channel(get_channel_id(config["server_logs_channel"]))
+  await server_logs_channel.send(embed=embed)
 
 # show_channel_creation_message(channel)
 # sends a message when someone creates a new channel on the server

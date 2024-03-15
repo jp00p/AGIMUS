@@ -11,14 +11,13 @@ from commands.aliases import aliases
 from commands.badges import *
 from commands.dustbuster import dustbuster
 from commands.fmk import fmk
-from commands.gifbomb import gifbomb
+#from commands.gifbomb import gifbomb
 from commands.help import help
 from commands.info import info
 from commands.levelcheck import levelcheck
 from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
 from commands.peptalk import peptalk
-from commands.pin import pin, unpin
 from commands.reports import reports
 from commands.scores import scores
 from commands.setwager import setwager
@@ -27,6 +26,7 @@ from commands.speak import speak, speak_embed
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
+from commands.user_tags import tag_user, display_tags
 from commands.xpinfo import xpinfo_channels, xpinfo_activity
 
 # Slash Command Groups
