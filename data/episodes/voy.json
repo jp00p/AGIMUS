@@ -3480,7 +3480,15 @@
             "episode": "06",
             "imdb": "tt0708916",
             "memoryalpha": "Inside_Man_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.12.25",
+                    "episode": "Nasty Little Roast Freak",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-502-nasty-little-roast-freak-voy-s7e6/",
+                    "order": 502,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/i5mZ2tQeCVKoQxTTGkWpe9aTAi7.jpg",
@@ -3499,7 +3507,15 @@
             "episode": "07",
             "imdb": "tt0708859",
             "memoryalpha": "Body_and_Soul_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.01.01",
+                    "episode": "Food Cuck",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-503-food-cuck-voy-s7e7/",
+                    "order": 503,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/vhRcqXM3KcELNUVP04fPIYteuuu.jpg",
@@ -3518,7 +3534,15 @@
             "episode": "08",
             "imdb": "tt0708937",
             "memoryalpha": "Nightingale_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.01.08",
+                    "episode": "Syndicated Acne",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-504-syndicated-acne-voy-s7e8/",
+                    "order": 504,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/1sKBpBIgiLSvEyROMXG5oDwyJTf.jpg",
@@ -3537,7 +3561,15 @@
             "episode": "09",
             "imdb": "tt0394912",
             "memoryalpha": "Flesh_and_Blood_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.01.15",
+                    "episode": "The Other Throat Goat",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-505-the-other-throat-goat-voy-s7e9/",
+                    "order": 505,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/25R5mw1KfYiIi4vAVd4hIThwT9e.jpg",
@@ -3556,7 +3588,15 @@
             "episode": "10",
             "imdb": "tt1288527",
             "memoryalpha": "Shattered_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.01.22",
+                    "episode": "Guilt Bank",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-506-guilt-bank-voy-s7e10/",
+                    "order": 506,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/pvfN7NQK4IqzsAL4oRVx0FxI1zx.jpg",
@@ -3576,7 +3616,15 @@
             "episode": "11",
             "imdb": "tt0708970",
             "memoryalpha": "Shattered_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.01.29",
+                    "episode": "A Very Wet Inferno",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-507-a-very-wet-inferno-voy-s7e11/",
+                    "order": 507,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/x6B5LfR3Ft8kJMIxRRnYNWeZneV.jpg",
@@ -3598,7 +3646,15 @@
             "episode": "12",
             "imdb": "tt0394914",
             "memoryalpha": "Lineage_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.02.05",
+                    "episode": "Hosting Trauma",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-508-hosting-trauma-voy-s7e12/",
+                    "order": 508,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/sDJV2e70oLcis8r3YCQX70nfuzK.jpg",
@@ -3617,7 +3673,15 @@
             "episode": "13",
             "imdb": "tt0708958",
             "memoryalpha": "Repentance_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.02.12",
+                    "episode": "To Smash His Hope Nuts",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-509-to-smash-his-hope-nuts-voy-s7e13/",
+                    "order": 509,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/b86GnvdONscp1IUMDaAL40actAP.jpg",
@@ -3636,7 +3700,15 @@
             "episode": "14",
             "imdb": "tt0708950",
             "memoryalpha": "Prophecy_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.02.19",
+                    "episode": "It Seems Like a Plumbing Issue",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-510-it-seems-like-a-plumbing-issue-voy-s7e14/",
+                    "order": 510,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/57S6VUjcIXmngxj1eYXWdRboaUc.jpg",
@@ -3655,7 +3727,15 @@
             "episode": "15",
             "imdb": "tt0708991",
             "memoryalpha": "The_Void_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.02.26",
+                    "episode": "Bad Grain Thresher Mindset",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-511-bad-grain-thresher-mindset-voy-s7e15/",
+                    "order": 511,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/emRuwqLaiXWNSLOJLUqv4zurBNa.jpg",
@@ -3674,7 +3754,15 @@
             "episode": "16",
             "imdb": "tt0394916",
             "memoryalpha": "Workforce_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.03.04",
+                    "episode": "Hot Tiki Drinks",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-512-hot-tiki-drinks-voy-s7e16/",
+                    "order": 512,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/akygTvTLfEgzf28CGLOfekQiB3v.jpg",
