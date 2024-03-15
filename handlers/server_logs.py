@@ -27,7 +27,8 @@ async def show_leave_message(member:discord.Member):
 
   embed = discord.Embed(
     title=random.choice(config["leave_messages"]).format(name) + " 😞",
-    description=f"({member.mention})"
+    description=f"Profile: {member.mention}",
+    color=discord.Color.random()
   )
   embed.add_field(
     name="Join Date",
@@ -41,7 +42,10 @@ async def show_leave_message(member:discord.Member):
   )
 
   if member.avatar is not None:
-    embed.set_author(icon_url=member.avatar.url)
+    embed.set_author(
+      name="",
+      icon_url=member.avatar.url
+    )
 
   logger.info(f"{Fore.LIGHTRED_EX}{name} has left the server! :({Fore.RESET}")
 
@@ -66,8 +70,9 @@ async def show_nick_change_message(before, after, scope = ""):
 
   logger.info(f"{Fore.LIGHTGREEN_EX}{before.display_name}{Fore.RESET} has changed their {scope} nickname to: {Fore.GREEN}{after.display_name}{Fore.RESET}")
   embed = discord.Embed(
-    title=f"{before.display_name} has changed their {scope} Nickname!",
-    description=f"({after.mention})"
+    title=f"'{before.display_name}' has changed their {scope} nickname!",
+    description=f"Profile: {after.mention}",
+    color=discord.Color.random()
   )
   embed.add_field(
     name="Previous Nickname",
@@ -81,10 +86,13 @@ async def show_nick_change_message(before, after, scope = ""):
   )
 
   if after.avatar is not None:
-    embed.set_author(icon_url=after.avatar.url)
+    embed.set_author(
+      name="",
+      icon_url=after.avatar.url
+    )
 
   server_logs_channel = bot.get_channel(get_channel_id(config["server_logs_channel"]))
-  await server_logs_channel.send(msg)
+  await server_logs_channel.send(embed=embed)
 
 # show_channel_creation_message(channel)
 # sends a message when someone creates a new channel on the server
