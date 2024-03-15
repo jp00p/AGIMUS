@@ -18,7 +18,6 @@ from commands.levelcheck import levelcheck
 from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
 from commands.peptalk import peptalk
-from commands.pin import pin, unpin
 from commands.reports import reports
 from commands.scores import scores
 from commands.setwager import setwager

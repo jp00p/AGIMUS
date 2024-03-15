@@ -349,3 +349,11 @@ CREATE TABLE IF NOT EXISTS tags_carousel_position (
   KEY `badge_filename` (`badge_filename`),
   CONSTRAINT `badge_tags_carousel_position_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
+CREATE TABLE IF NOT EXISTS user_tags (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tagged_user_id` varchar(128) NOT NULL,
+  `tagger_user_id` varchar(128) NOT NULL,
+  `tag` varchar(128) NOT NULL,
+  `last_modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`id`)
+);
