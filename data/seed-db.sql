@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS users (
   xp_enabled BOOLEAN NOT NULL DEFAULT 1,
   receive_notifications BOOLEAN NOT NULL DEFAULT 1,
   loudbot_enabled BOOLEAN NOT NULL DEFAULT 0,
+  tagging_enabled BOOLEAN NOT NULL DEFAULT 0,
   level int(11) DEFAULT 1,
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)

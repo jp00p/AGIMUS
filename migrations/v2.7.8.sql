@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN tagging_enabled BOOLEAN NOT NULL DEFAULT 0 AFTER loudbot_enabled;
