@@ -1,24 +1,30 @@
 from common import *
 
-# class UserTagsDropdown(discord.ui.Select):
-#   def __init__(self, cog):
-#     self.cog = cog
-#     options = [
-#       discord.SelectOption(label="Enable XP", description="Opt-in to the XP and Badge System"),
-#       discord.SelectOption(label="Disable XP", description="Opt-out of the XP and Badge System"),
-#     ]
+#    _____          __                                     .__          __
+#   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
+#  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \
+# /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
+# \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
+#         \/                        \/            \/|__|             \/          \/
+def autocomplete_user_tags(ctx: discord.AutocompleteContext):
+  user_discord_id = ctx.interaction.user.id
+  user_tags = db_get_user_tags(user_discord_id)
 
-#     super().__init__(
-#       placeholder="Choose your preference",
-#       min_values=1,
-#       max_values=1,
-#       options=options,
-#       row=1
-#     )
+  if not user_tags:
+    return ['No Tags Present']
 
-tag_user = discord.SlashCommandGroup("tag_user", "Commands for managing user tags")
+  return [t['tag'] for t in user_tags if ctx.value.lower() in t['tag'].lower()]
 
-@tag_user.command(
+
+# _________                                           .___
+# \_   ___ \  ____   _____   _____ _____    ____    __| _/______
+# /    \  \/ /  _ \ /     \ /     \\__  \  /    \  / __ |/  ___/
+# \     \___(  <_> )  Y Y  \  Y Y  \/ __ \|   |  \/ /_/ |\___ \
+#  \______  /\____/|__|_|  /__|_|  (____  /___|  /\____ /____  >
+#         \/             \/      \/     \/     \/      \/    \/
+user_tags = bot.create_group("user_tags", "Commands for managing user tags")
+
+@user_tags.command(
   name="tag",
   description="Add a tag to a user (info about them)"
 )
@@ -29,19 +35,20 @@ tag_user = discord.SlashCommandGroup("tag_user", "Commands for managing user tag
   required=True
 )
 @option(
-  "description",
+  "tag",
   str,
-  description="Name of the badge to tag",
-  required=True
+  description="Tag Text",
+  required=True,
+  max_length=128
 )
 async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
   user_tags = db_get_user_tags(user.id)
 
-  tags = [t['text'] for t in user_tags]
+  tags = [t['tag'] for t in user_tags]
   if tag in tags:
     await ctx.respond(
       embed=discord.Embed(
-        title="This Tag Already Exists!",
+        title="This User Tag Already Exists!",
         color=discord.Color.red()
       ),
       ephemeral=True
@@ -51,13 +58,59 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
   db_add_user_tag(user.id, ctx.author.id, tag)
   await ctx.respond(
       embed=discord.Embed(
-        title=f"{ctx.author.display_name} Added A Tag To {user.display_name}",
-        description=f"**Tag:** {tag}"
-        color=discord.Color.red()
+        title="User Tag Added!",
+        description=f"{ctx.author.mention} tagged {user.mention} with:\n\n > {tag}",
+        color=discord.Color.blurple()
       )
   )
 
-@tag_user.command(
+@user_tags.command(
+  name="untag",
+  description="Remove one of your tags."
+)
+@option(
+  "tag",
+  str,
+  description="Tag Text",
+  required=True,
+  autocomplete=autocomplete_user_tags,
+  max_length=128
+)
+async def untag_user(ctx:discord.ApplicationContext, tag:str):
+  user_discord_id = ctx.author.id
+  user_tags = db_get_user_tags(user_discord_id)
+
+  if not user_tags:
+    await ctx.respond(
+      embed=discord.Embed(
+        title="No Tags Present!",
+        description="You don't have any tags present to untag!",
+        color=discord.Color.red()
+      )
+    )
+    return
+
+  if tag not in [t['tag'] for t in user_tags]:
+    await ctx.respond(
+      embed=discord.Embed(
+        title="Tag Not Present!",
+        description=f"You're not currently tagged with `{tag}`!",
+        color=discord.Color.red()
+      )
+    )
+    return
+
+  db_delete_user_tag(user_discord_id, tag)
+  await ctx.respond(
+    embed=discord.Embed(
+      title="Untag Successful!",
+      description=f"You have removed the following tag:\n\n> `{tag}`",
+      color=discord.Color.blurple()
+    )
+  )
+
+
+@user_tags.command(
   name="display_tags",
   description="Display all tags for a user"
 )
@@ -73,7 +126,7 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User):
   if not user_tags:
     await ctx.respond(
       embed=discord.Embed(
-        title="User has no tags yet!",
+        title="User Has No Tags Yet!",
         description="You can use `/user_tags tag` to add one!",
         color=discord.Color.red()
       ),
@@ -92,26 +145,41 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User):
     )
     return
 
-  await ctx.respond(
-    embed=discord.Embed(
-      title=f"{user.display_name}'s Tags",
-      description=f"{user.mention} is tagged with the following:\n\n"
-                   "\n".join([f"* {t['text']}" for t in user_tags]),
-      color=discord.Color.blurple()
-    )
+  display_embed = discord.Embed(
+    title=f"{user.display_name}'s Tags",
+    description=f"{user.mention} is tagged with the following:",
+    color=discord.Color.blurple()
+  )
+  display_embed.add_field(
+    name=f"Total Tags: {len(user_tags)}",
+    value="\n".join([f"* {t['tag']}" for t in user_tags]),
+    inline=False
   )
 
+  await ctx.respond(embed=display_embed)
 
 
+# ________                      .__
+# \_____  \  __ __   ___________|__| ____   ______
+#  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
+# /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
+# \_____\ \_/____/  \___  >__|  |__|\___  >____  >
+#        \__>           \/              \/     \/
 def db_add_user_tag(target_user_id, tagger_user_id, tag):
   with AgimusDB() as query:
-    sql = "INSERT INTO user_tags (tagged_user_id, tagger_user_id, tag) VALUES (%s, %s)"
+    sql = "INSERT INTO user_tags (tagged_user_id, tagger_user_id, tag) VALUES (%s, %s, %s)"
     vals = (target_user_id, tagger_user_id, tag)
+    query.execute(sql, vals)
+
+def db_delete_user_tag(tagged_user_id, tag):
+  with AgimusDB() as query:
+    sql = "DELETE FROM user_tags WHERE tagged_user_id = %s AND tag = %s"
+    vals = (tagged_user_id, tag)
     query.execute(sql, vals)
 
 def db_get_user_tags(user_discord_id):
   with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM user_tags WHERE tagged_user_id = %s ORDER BY tag_name ASC"
+    sql = "SELECT * FROM user_tags WHERE tagged_user_id = %s ORDER BY tag ASC"
     vals = (user_discord_id,)
     query.execute(sql, vals)
     results = query.fetchall()

@@ -45,16 +45,16 @@ async def title_autocomplete(ctx: discord.AutocompleteContext):
   description="Get information about episodes of a show"
 )
 @option(
-  name="Show",
+  name="show",
   description="Which show?",
   required=True,
   choices=show_choices
 )
 @option(
-  name="Episode Title",
   name="episode_title",
   description="Episode Title (Search)",
-  required=True
+  required=True,
+  autocomplete=title_autocomplete
 )
 @commands.check(access_check)
 async def info(ctx:discord.ApplicationContext, show:str, episode_title:str):

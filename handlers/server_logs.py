@@ -31,7 +31,7 @@ async def show_leave_message(member:discord.Member):
   )
   embed.add_field(
     name="Join Date",
-    value=f"{join_date.strftime('%B %d, %Y')} (a {weather} {join_date.strftime("%A")})",
+    value=f"{join_date.strftime('%B %d, %Y')} (a {weather} {join_date.strftime('%A')})",
     inline=False
   )
   embed.add_field(
