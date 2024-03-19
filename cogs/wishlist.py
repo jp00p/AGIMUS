@@ -200,6 +200,7 @@ class Wishlist(commands.Cog):
 
     user_badge_names = [b['badge_name'] for b in db_get_user_badges(payload.user_id)]
     user_wishlist_badge_names = [b['badge_name'] for b in db_get_user_wishlist_badges(payload.user_id)]
+    user_locked_badge_names = [b['badge_name'] for b in db_get_user_locked_badges(payload.user.id)]
 
     if payload.event_type == "REACTION_ADD" and badge_name not in user_badge_names and badge_name not in user_wishlist_badge_names:
       logger.info(f"Adding {Style.BRIGHT}{badge_name}{Style.RESET_ALL} to {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
@@ -209,6 +210,26 @@ class Wishlist(commands.Cog):
           embed = discord.Embed(
             title="Badge Added to Wishlist",
             description=f"**{badge_name}** has been added to your wishlist via your ✅ react!",
+            color=discord.Color.green()
+          )
+          embed.set_footer(
+            text="Note: You can use /settings to enable or disable these messages."
+          )
+          await member.send(embed=embed)
+        except discord.Forbidden as e:
+          logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
+          pass
+
+    if payload.event_type == "REACTION_ADD" and badge_name in user_badge_names and badge_name not in user_locked_badge_names:
+      logger.info(f"Locking {Style.BRIGHT}{badge_name}{Style.RESET_ALL} in {Style.BRIGHT}{member.display_name}'s inventory{Style.RESET_ALL} via react")
+      badge_info = db_get_badge_info_by_name(badge_name)
+      badge_filename = badge_info['badge_filename']
+      db_lock_badge_by_filename(member.id, badge_filename)
+      if user["receive_notifications"]:
+        try:
+          embed = discord.Embed(
+            title="Badge Locked",
+            description=f"**{badge_name}** has been locked via your ✅ react!\n\nYou can use `/wishlist unlock` if you did this by accident!",
             color=discord.Color.green()
           )
           embed.set_footer(
@@ -683,11 +704,11 @@ class Wishlist(commands.Cog):
   #  \___  /   |__|___|  /\____ |    |____|   |__|  (____  /\____ |\___  >__|  /____  >
   #      \/            \/      \/                        \/      \/    \/           \/
   @wishlist_group.command(
-    name="find_traders",
-    description="Find Badge Traders who want Badges from your Unlocked Inventory."
+    name="partial_matches",
+    description="Find Partial Wishlist Matches"
   )
   @commands.check(access_check)
-  async def find_traders(self, ctx:discord.ApplicationContext):
+  async def partial_matches(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
     author_discord_id = ctx.author.id
 
