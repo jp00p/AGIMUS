@@ -63,7 +63,8 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
     await ctx.respond(
       embed=discord.Embed(
         title=f"Invalid characters!",
-        description="Sorry, you can't use any Discord formatting characters in tags!\n\n* \*\n* \_\n* \~\n* \#\n* \`",
+        description="Sorry, you can't use any Discord formatting characters in tags! These are the following:"
+                    "\n\n* \* (asterisk)\n* \_ (underscore)\n* \~ (tilde)\n* \# (pound)\n* \` (backtick)",
         color=discord.Color.red()
       ),
       ephemeral=True
@@ -187,8 +188,24 @@ async def untag_user(ctx:discord.ApplicationContext, tag:str):
     )
   ]
 )
-async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public:str):
+@option(
+  name="attribute",
+  description="Include who created the tags?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="No",
+      value="no"
+    ),
+    discord.OptionChoice(
+      name="Yes",
+      value="yes"
+    )
+  ]
+)
+async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public:str, attribute:str):
   public = (public == "yes")
+  attribute = (attribute == "yes")
   user_obj = get_user(user.id)
 
   if user_obj.get("tagging_enabled") != 1:
@@ -219,6 +236,15 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public
   for t in user_tags:
     tags_by_tagger.setdefault(t['tagger_user_id'], []).append(t)
 
+  if attribute:
+    field_value = "\n".join(
+      "\n".join(f"* **{t['tag']}**" for t in tags) +
+      (f"\n_by {tags[0]['tagger_name']}_" if user.id != int(tagger_user_id) else "\n_(self-described)_")
+          for tagger_user_id, tags in tags_by_tagger.items()
+    )
+  else:
+    field_value = "\n".join(f"* **{t['tag']}**" for t in user_tags)
+
   display_embed = discord.Embed(
     title=f"{user.display_name}'s Tags",
     description=f"{user.mention} is tagged with the following...",
@@ -226,11 +252,7 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public
   )
   display_embed.add_field(
     name=f"Total Tags: {len(user_tags)}",
-    value="\n".join(
-                "\n". join(f"* **{t['tag']}**" for t in tags) +
-                (f"\nby {tags[0]['tagger_name']}" if user.id != int(tagger_user_id) else "\n(self-described)")
-                    for tagger_user_id, tags in tags_by_tagger.items()
-              ),
+    value=field_value,
     inline=False
   )
 
