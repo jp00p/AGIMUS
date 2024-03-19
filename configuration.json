@@ -936,7 +936,8 @@
       "data": null,
       "parameters": []
     },
-    "user_tags tag_user": {
+    "user_tags tag": {
+      "channels": [],
       "blocked_channels": [
         "neelixs-morale-office",
         "plasma-vent",
@@ -954,6 +955,12 @@
         "bot-logs",
         "bot-setup"
       ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "user_tags untag": {
+      "channels": [],
       "enabled": true,
       "data": null,
       "parameters": []

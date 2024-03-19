@@ -1,7 +1,8 @@
 import discord
 from discord import option
 
-from common import logger, bot, get_user
+from common import logger, bot, get_user, commands, Style
+from utils.check_channel_access import access_check
 from utils.database import AgimusDB
 
 #    _____          __                                     .__          __
@@ -45,6 +46,7 @@ user_tags = bot.create_group("user_tags", "Commands for managing user tags")
   required=True,
   max_length=64
 )
+@commands.check(access_check)
 async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
   user_obj = get_user(user.id)
 
@@ -59,12 +61,12 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
     )
     return
 
-  if any(substring in tag for substring in ['*', '_', '~', '#', '`']):
+  if any(substring in tag for substring in ['*', '_', '~', '#', '`', '>']):
     await ctx.respond(
       embed=discord.Embed(
         title=f"Invalid characters!",
         description="Sorry, you can't use any Discord formatting characters in tags! These are the following:"
-                    "\n\n* \* (asterisk)\n* \_ (underscore)\n* \~ (tilde)\n* \# (pound)\n* \` (backtick)",
+                    "\n\n* \* (asterisk)\n* \_ (underscore)\n* \~ (tilde)\n* \# (pound)\n* \` (backtick)\n* >` (greater than)",
         color=discord.Color.red()
       ),
       ephemeral=True
@@ -103,7 +105,7 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
     msg = f"{user.mention}, tag! You're it!"
     description = f"{ctx.author.mention} tagged {user.mention} with:\n\n > {tag}"
 
-  logger.info(f"{ctx.author.display_name} just tagged {user.display_name} with {tag}")
+  logger.info(f"{Style.BRIGHT}{ctx.author.display_name}{Style.RESET_ALL} just tagged {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} with {Style.BRIGHT}{tag}{Style.RESET_ALL}")
 
   db_add_user_tag(user.id, ctx.author.id, tag)
   await ctx.respond(msg,

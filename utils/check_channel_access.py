@@ -1,11 +1,12 @@
 from common import *
 
 # @commands.check decorator function
-# Can be injected in between @commands.check and your slash function to 
+# Can be injected in between @commands.check and your slash function to
 # restrict access to the "channels" from the command config by matching it with the function name
 async def access_check(ctx):
   ctx_type = type(ctx).__name__
   try:
+    logger.info(f"ctx.command is {ctx.command}")
     command_config = config["commands"][f"{ctx.command}"]
     has_channel_access = await perform_channel_check(ctx, command_config)
     if not has_channel_access:
@@ -14,7 +15,7 @@ async def access_check(ctx):
         if ctx_type == 'ApplicationContext':
           # We only want the ! commands to be admin-available
           # So only send the response message with the
-          # channel allowed list for `/` commands 
+          # channel allowed list for `/` commands
           allowed_channel_ids = get_channel_ids_list(allowed_channels_list)
           guild_channels = await ctx.guild.fetch_channels()
           allowed_channels = []
@@ -33,8 +34,13 @@ async def access_check(ctx):
           await ctx.respond(embed=allowed_embed, ephemeral=True)
       else:
         if ctx_type == 'ApplicationContext':
-          await ctx.respond(f"{get_emoji('guinan_beanflick_stance_threat')} Sorry! This command is not allowed in this channel.", ephemeral=True)
-      
+          allowed_embed = discord.Embed(
+            title="Not Allowed!",
+            description=f"Sorry! This command is not allowed in this channel.",
+            color=discord.Color.red()
+          )
+          await ctx.respond(embed=allowed_embed, ephemeral=True)
+
     return has_channel_access
   except BaseException as e:
     logger.info(e)
