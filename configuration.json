@@ -958,6 +958,12 @@
       "data": null,
       "parameters": []
     },
+    "user_tags untag": {
+      "channels": [],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "update_status": {
       "channels": [],
       "enabled": true,

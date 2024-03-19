@@ -1,7 +1,8 @@
 import discord
 from discord import option
 
-from common import logger, bot, get_user
+from common import logger, bot, get_user, commands
+from utils.check_channel_access import access_check
 from utils.database import AgimusDB
 
 #    _____          __                                     .__          __
@@ -45,6 +46,7 @@ user_tags = bot.create_group("user_tags", "Commands for managing user tags")
   required=True,
   max_length=64
 )
+@commands.check(access_check)
 async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
   user_obj = get_user(user.id)
 
