@@ -41,7 +41,7 @@ user_tags = bot.create_group("user_tags", "Commands for managing user tags")
 @option(
   "tag",
   str,
-  description="Tag Text",
+  description="Tag Text (Discord formatting characters are not allowed)",
   required=True,
   max_length=128
 )
@@ -53,6 +53,17 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
       embed=discord.Embed(
         title=f"{user.display_name} Does Not Have Tagging Enabled!",
         description="No tagging possible.",
+        color=discord.Color.red()
+      ),
+      ephemeral=True
+    )
+    return
+
+  if any(substring in tag for substring in ['*', '_', '~', '#', '`']):
+    await ctx.respond(
+      embed=discord.Embed(
+        title=f"Invalid characters!",
+        description="Sorry, you can't use any Discord formatting characters in tags!\n\n* \*\n* \_\n* \~\n* \#\n* \`",
         color=discord.Color.red()
       ),
       ephemeral=True
@@ -216,7 +227,7 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public
   display_embed.add_field(
     name=f"Total Tags: {len(user_tags)}",
     value="\n".join(
-                "\n". join(f"* {t['tag']}" for t in tags) +
+                "\n". join(f"* **{t['tag']}**" for t in tags) +
                 (f"\nby {tags[0]['tagger_name']}" if user.id != int(tagger_user_id) else "\n(self-described)")
                     for tagger_user_id, tags in tags_by_tagger.items()
               ),
