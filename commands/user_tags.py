@@ -85,14 +85,16 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
     return
 
   if ctx.author.id == user.id:
+    msg = None
     description = f"{ctx.author.mention} tagged themselves with:\n\n > {tag}"
   else:
+    msg = f"{user.mention}, tag! You're it!"
     description = f"{ctx.author.mention} tagged {user.mention} with:\n\n > {tag}"
 
   logger.info(f"{ctx.author.display_name} just tagged {user.display_name} with {tag}")
-  
+
   db_add_user_tag(user.id, ctx.author.id, tag)
-  await ctx.respond(f"{user.mention}, tag! You're it!",
+  await ctx.respond(msg,
     embed=discord.Embed(
       title="User Tag Added!",
       description=description,
