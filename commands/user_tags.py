@@ -1,4 +1,8 @@
-from common import *
+import discord
+from discord import option
+
+from common import logger, bot, get_user
+from utils.database import AgimusDB
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
@@ -68,11 +72,25 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
     )
     return
 
+  if len(user_tags) >= 50:
+    await ctx.respond(
+      embed=discord.Embed(
+        title=f"{user.display_name} Already Has Maximum Number of Tags!",
+        description="They're at the limit of 50 tags! You may want to let them know, and see if they want to manage "
+                    "and delete some!",
+        color=discord.Color.red()
+      ),
+      ephemeral=True
+    )
+    return
+
   if ctx.author.id == user.id:
     description = f"{ctx.author.mention} tagged themselves with:\n\n > {tag}"
   else:
     description = f"{ctx.author.mention} tagged {user.mention} with:\n\n > {tag}"
 
+  logger.info(f"{ctx.author.display_name} just tagged {user.display_name} with {tag}")
+  
   db_add_user_tag(user.id, ctx.author.id, tag)
   await ctx.respond(f"{user.mention}, tag! You're it!",
     embed=discord.Embed(
@@ -184,16 +202,9 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public
     )
     return
 
-  if len(user_tags) >= 50:
-    await ctx.respond(
-      embed=discord.Embed(
-        title=f"{user.display_name} Already Has Maximum Number of Tags!",
-        description="They're at the limit of 50 tags! You may want to let them know, and see if they want to manage and delete some!",
-        color=discord.Color.red()
-      ),
-      ephemeral=True
-    )
-    return
+  tags_by_tagger = {}
+  for t in user_tags:
+    tags_by_tagger.setdefault(t['tagger_user_id'], []).append(t)
 
   display_embed = discord.Embed(
     title=f"{user.display_name}'s Tags",
@@ -202,7 +213,11 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public
   )
   display_embed.add_field(
     name=f"Total Tags: {len(user_tags)}",
-    value="\n".join([f"* {t['tag']}" for t in user_tags]),
+    value="\n".join(
+                "\n". join(f"* {t['tag']}" for t in tags) +
+                (f"\nby {tags[0]['tagger_name']}" if user.id != int(tagger_user_id) else "\n(self-described)")
+                    for tagger_user_id, tags in tags_by_tagger.items()
+              ),
     inline=False
   )
 
@@ -229,7 +244,8 @@ def db_delete_user_tag(tagged_user_id, tag):
 
 def db_get_user_tags(user_discord_id):
   with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM user_tags WHERE tagged_user_id = %s ORDER BY tag ASC"
+    sql = "SELECT *, u.name AS tagger_name FROM user_tags ut INNER JOIN users u ON u.discord_id = ut.tagger_user_id " \
+          "WHERE tagged_user_id = %s ORDER BY tag ASC"
     vals = (user_discord_id,)
     query.execute(sql, vals)
     results = query.fetchall()
