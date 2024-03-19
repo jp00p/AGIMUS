@@ -1,4 +1,8 @@
-from common import *
+import discord
+from discord import option
+
+from common import logger, bot, get_user
+from utils.database import AgimusDB
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
@@ -37,9 +41,9 @@ user_tags = bot.create_group("user_tags", "Commands for managing user tags")
 @option(
   "tag",
   str,
-  description="Tag Text",
+  description="Tag Text (Discord formatting characters are not allowed)",
   required=True,
-  max_length=128
+  max_length=64
 )
 async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
   user_obj = get_user(user.id)
@@ -49,6 +53,18 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
       embed=discord.Embed(
         title=f"{user.display_name} Does Not Have Tagging Enabled!",
         description="No tagging possible.",
+        color=discord.Color.red()
+      ),
+      ephemeral=True
+    )
+    return
+
+  if any(substring in tag for substring in ['*', '_', '~', '#', '`']):
+    await ctx.respond(
+      embed=discord.Embed(
+        title=f"Invalid characters!",
+        description="Sorry, you can't use any Discord formatting characters in tags! These are the following:"
+                    "\n\n* \* (asterisk)\n* \_ (underscore)\n* \~ (tilde)\n* \# (pound)\n* \` (backtick)",
         color=discord.Color.red()
       ),
       ephemeral=True
@@ -68,13 +84,29 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
     )
     return
 
+  if len(user_tags) >= 50:
+    await ctx.respond(
+      embed=discord.Embed(
+        title=f"{user.display_name} Already Has Maximum Number of Tags!",
+        description="They're at the limit of 50 tags! You may want to let them know, and see if they want to manage "
+                    "and delete some!",
+        color=discord.Color.red()
+      ),
+      ephemeral=True
+    )
+    return
+
   if ctx.author.id == user.id:
+    msg = None
     description = f"{ctx.author.mention} tagged themselves with:\n\n > {tag}"
   else:
+    msg = f"{user.mention}, tag! You're it!"
     description = f"{ctx.author.mention} tagged {user.mention} with:\n\n > {tag}"
 
+  logger.info(f"{ctx.author.display_name} just tagged {user.display_name} with {tag}")
+
   db_add_user_tag(user.id, ctx.author.id, tag)
-  await ctx.respond(f"{user.mention}, tag! You're it!",
+  await ctx.respond(msg,
     embed=discord.Embed(
       title="User Tag Added!",
       description=description,
@@ -156,8 +188,24 @@ async def untag_user(ctx:discord.ApplicationContext, tag:str):
     )
   ]
 )
-async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public:str):
+@option(
+  name="attribute",
+  description="Include who created the tags?",
+  required=True,
+  choices=[
+    discord.OptionChoice(
+      name="No",
+      value="no"
+    ),
+    discord.OptionChoice(
+      name="Yes",
+      value="yes"
+    )
+  ]
+)
+async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public:str, attribute:str):
   public = (public == "yes")
+  attribute = (attribute == "yes")
   user_obj = get_user(user.id)
 
   if user_obj.get("tagging_enabled") != 1:
@@ -184,16 +232,18 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public
     )
     return
 
-  if len(user_tags) >= 50:
-    await ctx.respond(
-      embed=discord.Embed(
-        title=f"{user.display_name} Already Has Maximum Number of Tags!",
-        description="They're at the limit of 50 tags! You may want to let them know, and see if they want to manage and delete some!",
-        color=discord.Color.red()
-      ),
-      ephemeral=True
+  tags_by_tagger = {}
+  for t in user_tags:
+    tags_by_tagger.setdefault(t['tagger_user_id'], []).append(t)
+
+  if attribute:
+    field_value = "\n".join(
+      "\n".join(f"* **{t['tag']}**" for t in tags) +
+      (f"\n_by {tags[0]['tagger_name']}_" if user.id != int(tagger_user_id) else "\n_(self-described)_")
+          for tagger_user_id, tags in tags_by_tagger.items()
     )
-    return
+  else:
+    field_value = "\n".join(f"* **{t['tag']}**" for t in user_tags)
 
   display_embed = discord.Embed(
     title=f"{user.display_name}'s Tags",
@@ -202,7 +252,7 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public
   )
   display_embed.add_field(
     name=f"Total Tags: {len(user_tags)}",
-    value="\n".join([f"* {t['tag']}" for t in user_tags]),
+    value=field_value,
     inline=False
   )
 
@@ -229,7 +279,8 @@ def db_delete_user_tag(tagged_user_id, tag):
 
 def db_get_user_tags(user_discord_id):
   with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM user_tags WHERE tagged_user_id = %s ORDER BY tag ASC"
+    sql = "SELECT *, u.name AS tagger_name FROM user_tags ut INNER JOIN users u ON u.discord_id = ut.tagger_user_id " \
+          "WHERE tagged_user_id = %s ORDER BY tag ASC"
     vals = (user_discord_id,)
     query.execute(sql, vals)
     results = query.fetchall()

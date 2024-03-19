@@ -937,7 +937,23 @@
       "parameters": []
     },
     "user_tags tag_user": {
-      "channels": [],
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-waiting-room",
+        "heuristic-associative-pathways",
+        "neelixs-morale-office",
+        "plasma-vent",
+        "sicks-bay",
+        "lieutenants-lounge",
+        "mclaughlin-group",
+        "mo-pips-mo-problemz",
+        "code-47",
+        "robot-diagnostics",
+        "megalomaniacal-computer-storage",
+        "bot-logs",
+        "bot-setup"
+      ],
       "enabled": true,
       "data": null,
       "parameters": []
