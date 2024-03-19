@@ -936,7 +936,8 @@
       "data": null,
       "parameters": []
     },
-    "user_tags tag_user": {
+    "user_tags tag": {
+      "channels": [],
       "blocked_channels": [
         "neelixs-morale-office",
         "plasma-vent",
