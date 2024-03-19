@@ -43,7 +43,7 @@ user_tags = bot.create_group("user_tags", "Commands for managing user tags")
   str,
   description="Tag Text (Discord formatting characters are not allowed)",
   required=True,
-  max_length=128
+  max_length=64
 )
 async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
   user_obj = get_user(user.id)
