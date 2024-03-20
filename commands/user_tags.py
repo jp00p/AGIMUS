@@ -1,3 +1,5 @@
+import re
+
 import discord
 from discord import option
 
@@ -42,7 +44,7 @@ user_tags = bot.create_group("user_tags", "Commands for managing user tags")
 @option(
   "tag",
   str,
-  description="Tag Text (Discord formatting characters are not allowed)",
+  description="Tag Text",
   required=True,
   max_length=64
 )
@@ -61,17 +63,8 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
     )
     return
 
-  if any(substring in tag for substring in ['*', '_', '~', '#', '`', '>']):
-    await ctx.respond(
-      embed=discord.Embed(
-        title=f"Invalid characters!",
-        description="Sorry, you can't use any Discord formatting characters in tags! These are the following:"
-                    "\n\n* \* (asterisk)\n* \_ (underscore)\n* \~ (tilde)\n* \# (pound)\n* \` (backtick)\n* >` (greater than)",
-        color=discord.Color.red()
-      ),
-      ephemeral=True
-    )
-    return
+  # Escape the Markdown characters
+  tag = re.sub(r"[*_~`\\]", r"\\\g<0>", tag)
 
   user_tags = db_get_user_tags(user.id)
 
@@ -86,7 +79,7 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
     )
     return
 
-  if len(user_tags) >= 50:
+  if len(user_tags) >= 25:
     await ctx.respond(
       embed=discord.Embed(
         title=f"{user.display_name} Already Has Maximum Number of Tags!",
@@ -234,29 +227,28 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public
     )
     return
 
-  tags_by_tagger = {}
-  for t in user_tags:
-    tags_by_tagger.setdefault(t['tagger_user_id'], []).append(t)
-
-  if attribute:
-    field_value = "\n".join(
-      "\n".join(f"* **{t['tag']}**" for t in tags) +
-      (f"\n_by {tags[0]['tagger_name']}_" if user.id != int(tagger_user_id) else "\n_(self-described)_")
-          for tagger_user_id, tags in tags_by_tagger.items()
-    )
-  else:
-    field_value = "\n".join(f"* **{t['tag']}**" for t in user_tags)
-
   display_embed = discord.Embed(
     title=f"{user.display_name}'s Tags",
     description=f"{user.mention} is tagged with the following...",
     color=discord.Color.blurple()
   )
-  display_embed.add_field(
-    name=f"Total Tags: {len(user_tags)}",
-    value=field_value,
-    inline=False
-  )
+  if attribute:
+    tags_by_tagger = {}
+    for t in user_tags:
+      tags_by_tagger.setdefault(t['tagger_user_id'], []).append(t)
+
+    for tagger_user_id, tags in tags_by_tagger.items():
+      display_embed.add_field(
+        name=f"by _{tags[0]['tagger_name']}_" if user.id != int(tagger_user_id) else "_(self-described)_",
+        value="\n".join(f"* **{t['tag']}**" for t in tags),
+        inline=False
+      )
+  else:
+    display_embed.add_field(
+      name=f"Total Tags: {len(user_tags)}",
+      value="\n".join(f"* **{t['tag']}**" for t in user_tags),
+      inline=False
+    )
 
   await ctx.respond(embed=display_embed, ephemeral=not public)
 
