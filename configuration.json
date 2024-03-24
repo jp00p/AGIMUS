@@ -980,7 +980,7 @@
       "data": null,
       "parameters": []
     },
-    "wishlist find_traders": {
+    "wishlist matches": {
       "channels": [
         "badgeys-badges",
         "bahrats-bazaar"
@@ -989,7 +989,7 @@
       "data": null,
       "parameters": []
     },
-    "wishlist matches": {
+    "wishlist partial_matches": {
       "channels": [
         "badgeys-badges",
         "bahrats-bazaar"
