@@ -358,3 +358,12 @@ CREATE TABLE IF NOT EXISTS user_tags (
   `last_modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
   PRIMARY KEY (`id`)
 );
+CREATE TABLE IF NOT EXISTS april_fools (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_discord_id` VARCHAR(64) NOT NULL,
+  `cornmander_status` VARCHAR(32) NOT NULL DEFAULT 'unpipped',
+  `last_modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+  PRIMARY KEY (id),
+  FOREIGN KEY (user_discord_id)
+    REFERENCES users(discord_id)
+);
