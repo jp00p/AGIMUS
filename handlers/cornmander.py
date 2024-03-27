@@ -1,10 +1,9 @@
+from datetime import date as d
 from common import *
-
-from datetime import datetime
 
 async def handle_cornmander(message:discord.Message):
   # This is only active on April Fools Day...
-  today = datetime.date.today()
+  today = d.today()
   if today.month != 4 and today.day != 1:
     return
 
@@ -25,14 +24,19 @@ async def handle_cornmander(message:discord.Message):
     if 'corn' in message.content.lower():
       # Strip Em if they said the forbidden word
       db_strip_cornmander_status(message.author.id)
-      message.author.remove_roles(cornmander_role, reason="They said the forbidden word! Piece Of Corn removed!")
+      await message.author.remove_roles(cornmander_role, reason="They said the forbidden word! Piece Of Corn removed!")
+      lower_decks_role = discord.utils.get(message.guild.roles, name="Lower Decks ○")
+      if lower_decks_role:
+        await message.author.add_roles(lower_decks_role, reason="LOWER DECKS! LOWER DECKS!")
       # Then notify!
       try:
         strip_pip_embed = discord.Embed(
           title="Whoops, that Pip was just a Piece of Corn! 🌽",
-          description="**April Fools!!!** You said the forbidden word, *Corn!*\n\n"
-                      "Sadly this means your Corn-mander role has been revoked.\n"
-                      "To keep the prank going, please don't explain the details to others! 🤫",
+          description="You said the forbidden word: *Corn!* **April Fools!!!**\n\n"
+                      "Sadly this means your Corn-mander role has been revoked.\n\n"
+                      "However, you ***have*** been granted a *secret* role, 'Lower Decks', and can now talk freely in the 'Deck 11 Bunk Corridor' channel.\n\n"
+                      "To keep the prank going, please don't *publicly* explain the details to others!\n\n🤫",
+          color=discord.Color.gold()
         )
         strip_pip_embed.set_footer(text="Thank your for being a valued member of The Hood! We ❤️ you!")
         strip_pip_embed.set_image(url="https://i.imgur.com/Sw8TC4R.gif")
