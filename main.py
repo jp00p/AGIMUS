@@ -93,6 +93,7 @@ from handlers.alerts import handle_alerts
 from handlers.bot_autoresponse import handle_bot_affirmations
 from handlers.cornmander import handle_cornmander
 from handlers.loudbot import handle_loudbot
+from handlers.reply_restricted import handle_reply_restricted
 from handlers.save_message import save_message_to_db
 from handlers.server_logs import *
 from handlers.starboard import get_all_starboard_posts, handle_starboard_reactions
@@ -148,6 +149,7 @@ async def on_message(message:discord.Message):
     await handle_loudbot(message)
     await handle_alerts(message)
     await handle_cornmander(message)
+    await handle_reply_restricted(message)
   except Exception as e:
     logger.error(f"{Fore.RED}<! ERROR: Encountered error in handlers !> {e}{Fore.RESET}")
     logger.error(traceback.format_exc())

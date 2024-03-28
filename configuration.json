@@ -302,6 +302,12 @@
         "give them a warm welcome",
         "show them the way"
       ]
+    },
+    "reply_restricted": {
+      "blocked_channels": [
+        "plasma-vent",
+        "neelixs-morale-office"
+      ]
     }
   },
   "tasks": {
