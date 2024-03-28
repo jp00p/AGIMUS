@@ -4,7 +4,7 @@ from common import *
 async def handle_cornmander(message:discord.Message):
   # This is only active on April Fools Day...
   today = d.today()
-  if today.month != 4 and today.day != 1:
+  if today.month != 4 or today.day != 1:
     return
 
   cornmander_role = discord.utils.get(message.guild.roles, name="Cornmander ●●●")
