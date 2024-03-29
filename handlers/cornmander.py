@@ -11,14 +11,16 @@ async def handle_cornmander(message:discord.Message):
   lower_decks_role = discord.utils.get(message.guild.roles, name="Lower Decks ○")
   if cornmander_role is None or lower_decks_role is None:
     return
+  lower_decks_channel_id = get_channel_id('deck-11-bunk-corridor')
+  lower_decks_channel = await bot.fetch_channel(lower_decks_channel_id)
 
   cornmander_status = db_get_cornmander_status(message.author.id)
-  message_content = message.content().replace(" ", "")
+  message_content = message.content.lower().replace(" ", "")
   if cornmander_status == 'unpipped':
     if 'corn' not in message_content and 'c0rn' not in message_content:
       # Pip Em if they're currently unpipped
       try:
-        message.author.add_roles(cornmander_role, reason="Pipping with a Piece Of Corn!")
+        await message.author.add_roles(cornmander_role, reason="Pipping with a Piece Of Corn!")
         db_pip_cornmander_status(message.author.id)
       except Exception as e:
         logger.info(f"Unable to boost {message.author.display_name} to Cornmander role.")
@@ -36,7 +38,7 @@ async def handle_cornmander(message:discord.Message):
           title="Whoops, that Pip was just a Piece of Corn! 🌽",
           description="You said the forbidden word: *Corn!* **April Fools!!!**\n\n"
                       "Sadly this means your Corn-mander role has been revoked.\n\n"
-                      "However, you ***have*** been granted a *secret* role, 'Lower Decks', and can now talk freely in the 'Deck 11 Bunk Corridor' channel.\n\n"
+                      f"However, you ***have*** been granted a *secret* role, 'Lower Decks', and can now talk freely in the {lower_decks_channel.mention} channel.\n\n"
                       "To keep the prank going, please don't *publicly* explain the details to others!\n\n🤫",
           color=discord.Color.gold()
         )
@@ -48,7 +50,6 @@ async def handle_cornmander(message:discord.Message):
         pass
   elif cornmander_status == 'depipped':
     if 'corn' in message_content or 'c0rn' in message_content:
-      lower_decks_channel_id = get_channel_id('deck-11-bunk-corridor')
       if message.channel.id is not lower_decks_channel_id:
         # Hush them up if they mention corn in any non-lower Decks channels!
         await message.delete()
