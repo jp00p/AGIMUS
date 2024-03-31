@@ -6,7 +6,7 @@ from common import *
 async def access_check(ctx):
   ctx_type = type(ctx).__name__
   try:
-    logger.info(f"ctx.command is {ctx.command}")
+    # logger.info(f"ctx.command is {ctx.command}")
     command_config = config["commands"][f"{ctx.command}"]
     has_channel_access = await perform_channel_check(ctx, command_config)
     if not has_channel_access:

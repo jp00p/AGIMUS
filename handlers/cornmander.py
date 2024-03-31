@@ -17,7 +17,11 @@ async def handle_cornmander(message:discord.Message):
   cornmander_status = db_get_cornmander_status(message.author.id)
   message_content = message.content.lower().replace(" ", "")
   if cornmander_status == 'unpipped':
-    if 'corn' not in message_content and 'c0rn' not in message_content:
+    if 'corn' in message_content or 'c0rn' in message_content:
+      if message.channel.id is not lower_decks_channel_id:
+        # Hush them up if they mention corn in any non-Lower Decks channels!
+        await message.delete()
+    elif 'corn' not in message_content and 'c0rn' not in message_content:
       # Pip Em if they're currently unpipped
       try:
         await message.author.add_roles(cornmander_role, reason="Pipping with a Piece Of Corn!")
@@ -51,7 +55,7 @@ async def handle_cornmander(message:discord.Message):
   elif cornmander_status == 'depipped':
     if 'corn' in message_content or 'c0rn' in message_content:
       if message.channel.id is not lower_decks_channel_id:
-        # Hush them up if they mention corn in any non-lower Decks channels!
+        # Hush them up if they mention corn in any non-Lower Decks channels!
         await message.delete()
 
 

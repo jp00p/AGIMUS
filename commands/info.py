@@ -41,7 +41,7 @@ async def title_autocomplete(ctx: discord.AutocompleteContext):
     return ['Invalid Show!']
 
 @bot.slash_command(
-  name="info",
+  name="episode_info",
   description="Get information about episodes of a show"
 )
 @option(

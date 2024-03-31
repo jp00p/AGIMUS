@@ -130,6 +130,8 @@ images/profiles/*.png
 images/profiles/*.jpg
 images/cards/users/*.png
 images/ep*
+images/food_war/*.gif
+images/food_war/*.png
 images/slot_results/*.png
 images/tongo/*.png
 images/trades/*.png
