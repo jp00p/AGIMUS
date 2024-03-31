@@ -11,6 +11,7 @@ from commands.aliases import aliases
 from commands.badges import *
 from commands.dustbuster import dustbuster
 from commands.fmk import fmk
+from commands.food_war import food_war
 #from commands.gifbomb import gifbomb
 from commands.help import help
 from commands.info import info
@@ -84,7 +85,7 @@ if config["roles"]["reaction_roles_enabled"]:
 try:
   from cogs.trivia import Trivia
   bot.add_cog(Trivia(bot))
-except (aiohttp.client_exceptions.ContentTypeError, json.decoder.JSONDecodeError) as e:
+except (aiohttp.client_exceptions.ContentTypeError, aiohttp.client_exceptions.ClientConnectorError, json.decoder.JSONDecodeError) as e:
   logger.error(f"{Fore.RED}<! ERROR: Trivia Failed on Import, unable to register cog. !> {e}{Fore.RESET}")
   pass
 
