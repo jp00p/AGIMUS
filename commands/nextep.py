@@ -10,7 +10,9 @@ from utils.check_channel_access import access_check
   description="Retrieve info on the next upcoming Trek episode",
 )
 @commands.check(access_check)
-async def nexttrek(ctx):
+async def nexttrek(ctx:discord.ApplicationContext):
+  await ctx.defer()
+
   tvmaze_ids = {
     "discovery": 7480,
     "lowerdecks": 39323,
