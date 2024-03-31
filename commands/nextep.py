@@ -20,6 +20,7 @@ async def nexttrek(ctx:discord.ApplicationContext):
   }
   latest_episode_date = None
   latest_episode_data = None
+  latest_show_data = None
   for show_id in tvmaze_ids.values():
     try:
       show_data = requests.get(f"https://api.tvmaze.com/shows/{show_id}").json()
@@ -30,11 +31,12 @@ async def nexttrek(ctx:discord.ApplicationContext):
         if latest_episode_date is None or episode_date > latest_episode_date:
           latest_episode_date = episode_date
           latest_episode_data = episode_data
+          latest_show_data = show_data
     except Exception as err:
       logger.error(err)
 
   if latest_episode_data:
-    embed = await get_next_episode_embed(show_data, latest_episode_data)
+    embed = await get_next_episode_embed(latest_show_data, latest_episode_data)
     await ctx.respond(embed=embed)
   else:
     await ctx.respond(embed=discord.Embed(
