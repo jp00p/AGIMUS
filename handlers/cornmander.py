@@ -14,28 +14,33 @@ async def handle_cornmander(message:discord.Message):
   lower_decks_channel_id = get_channel_id('deck-11-bunk-corridor')
   lower_decks_channel = await bot.fetch_channel(lower_decks_channel_id)
 
+  message_is_corny = False
+  message_content = message.content.lower().replace(' ', '')
+  message_content = re.sub(r'[^\w\s]', '', message_content)
+  if re.search(r'(c|ch|k|kh)(o|0)rn', message_content, re.IGNORECASE):
+    message_is_corny = True
+
   cornmander_status = db_get_cornmander_status(message.author.id)
-  message_content = message.content.lower().replace(" ", "")
   if cornmander_status == 'unpipped':
-    if 'corn' in message_content or 'c0rn' in message_content:
-      if message.channel.id is not lower_decks_channel_id:
-        # Hush them up if they mention corn in any non-Lower Decks channels!
-        await message.delete()
-    elif 'corn' not in message_content and 'c0rn' not in message_content:
-      # Pip Em if they're currently unpipped
-      try:
-        await message.author.add_roles(cornmander_role, reason="Pipping with a Piece Of Corn!")
-        db_pip_cornmander_status(message.author.id)
-      except Exception as e:
-        logger.info(f"Unable to boost {message.author.display_name} to Cornmander role.")
-        pass
+    if message_is_corny:
+      # Hush them up if they said the secret word right off the bat
+      await message.delete()
+
+    try:
       # We don't notify the user, we just semi-secretly Pip them
+      await message.author.add_roles(cornmander_role, reason="Pipping with a Piece Of Corn!")
+      db_pip_cornmander_status(message.author.id)
+    except Exception as e:
+      logger.info(f"Unable to boost {message.author.display_name} to Cornmander role.")
+      pass
   elif cornmander_status == 'pipped':
-    if 'corn' in message_content or 'c0rn' in message_content:
+    if message_is_corny:
       # Strip Em if they said the forbidden word
       db_strip_cornmander_status(message.author.id)
       await message.author.remove_roles(cornmander_role, reason="They said the forbidden word! Piece Of Corn removed!")
       await message.author.add_roles(lower_decks_role, reason="LOWER DECKS! LOWER DECKS!")
+      # SILENCE THEM!
+      await message.delete()
       # Then notify!
       try:
         strip_pip_embed = discord.Embed(
@@ -53,9 +58,9 @@ async def handle_cornmander(message:discord.Message):
         logger.info(f"Unable to send Cornmander stripping message to {message.author.display_name}, they have their DMs closed.")
         pass
   elif cornmander_status == 'depipped':
-    if 'corn' in message_content or 'c0rn' in message_content:
+    if message_is_corny:
       if message.channel.id is not lower_decks_channel_id:
-        # Hush them up if they mention corn in any non-Lower Decks channels!
+        # They can only talk about the secret word in the Lower Decks Channel, so delete em if outside
         await message.delete()
 
 
