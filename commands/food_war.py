@@ -64,42 +64,29 @@ def generate_food_war_reset_gif(days):
   food_war_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
   food_war_base_image.paste(food_war_sign_image, (0, 0))
 
-  frames = []
+  base_text_frame = food_war_base_image.copy()
+  d = ImageDraw.Draw(base_text_frame)
+  d.text( (base_width/2, 200), f"{days}", fill=(0, 0, 0, 255), font=marker_font, anchor="mm", align="center")
+  frames = [base_text_frame]*20
 
-  # Fade out Current Days
-  for n in range(1, 21):
-    frame_b = food_war_base_image.copy()
-    frame_txt = Image.new('RGBA', frame_b.size, (255,255,255,0))
-
-    decreasing_opacity_value = round((100 - (n / 20 * 100)) * 2.55)
-
-    d = ImageDraw.Draw(frame_txt)
-    d.text( (base_width/2, 200), f"{days}", fill=(0, 0, 0, decreasing_opacity_value), font=marker_font, anchor="mm", align="center")
-
-    frame = Image.alpha_composite(frame_b, frame_txt)
+  # Eraser Wipe
+  for n in range(1, 55):
+    frame = base_text_frame.copy()
+    wipe_frame = Image.open(f"./images/templates/food_war/wipe/{'{:02d}'.format(n)}.png").convert('RGBA')
+    frame.paste(wipe_frame, (110, 85), wipe_frame)
     frames.append(frame)
 
-    if n == 1:
-      frames = frames + [frame]*20
-    elif n == 20:
-      frames = frames + [frame]*5
+  # Blank Frames
+  blank_frame = food_war_base_image.copy()
+  frames = frames + [blank_frame]*20
 
-  # Fade in 'Zero' Days
-  for n in range(1, 21):
-    frame_b = food_war_base_image.copy()
-    frame_txt = Image.new('RGBA', frame_b.size, (255,255,255,0))
+  # Final 'Zero' Frame
+  final_frame = food_war_base_image.copy()
+  d = ImageDraw.Draw(final_frame)
+  d.text( (base_width/2, 200), "0", fill=(0, 0, 0, 255), font=marker_font, anchor="mm", align="center")
+  frames = frames + [final_frame]*20
 
-    increasing_opacity_value = round((n / 20 * 100) * 2.55)
-
-    d = ImageDraw.Draw(frame_txt)
-    d.text( (base_width/2, 200), "0", fill=(0, 0, 0, increasing_opacity_value), font=marker_font, anchor="mm", align="center")
-
-    frame = Image.alpha_composite(frame_b, frame_txt)
-    frames.append(frame)
-
-    if n == 20:
-      frames = frames + [frame]*40
-
+  # Save
   image_filename = "days_since_last_fod_food_war.gif"
   image_filepath = f"./images/food_war/{image_filename}"
   if os.path.exists(image_filepath):
