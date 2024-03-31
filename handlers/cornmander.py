@@ -17,8 +17,9 @@ async def handle_cornmander(message:discord.Message):
   message_is_corny = False
   message_content = message.content.lower().replace(' ', '')
   message_content = re.sub(r'[^\w\s]', '', message_content)
-  if re.search(r'(c|ch|k|kh)(o|0)rn', message_content, re.IGNORECASE):
+  if re.search(r'(c|с|ƈ|ċ|k|k)+(o|0|о|ο|օ|ȯ|ọ|ỏ|ơ|ó|ò|ö)+r+(n|ո)+', message_content, re.IGNORECASE):
     message_is_corny = True
+    logger.info(f"{message.author.display_name} posted a -y message! We shall take action!")
 
   cornmander_status = db_get_cornmander_status(message.author.id)
   if cornmander_status == 'unpipped':
