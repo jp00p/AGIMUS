@@ -7,54 +7,40 @@ from utils.check_channel_access import access_check
 
 @bot.slash_command(
   name="nexttrek",
-  description="Retrieve info on the next Trek episode",
-)
-@option(
-  name="show",
-  description="Which show?",
-  required=True,
-  choices=[
-    discord.OptionChoice(
-      name="Lower Decks",
-      value="lowerdecks"
-    ),
-    discord.OptionChoice(
-      name="Picard",
-      value="picard"
-    ),
-    discord.OptionChoice(
-      name="Prodigy",
-      value="prodigy"
-    ),
-    discord.OptionChoice(
-      name="Strange New Worlds",
-      value="snw"
-    )
-  ]
+  description="Retrieve info on the next upcoming Trek episode",
 )
 @commands.check(access_check)
-async def nexttrek(ctx, show:str):
+async def nexttrek(ctx):
   tvmaze_ids = {
+    "discovery": 7480,
     "lowerdecks": 39323,
-    "picard": 42193,
-    "prodigy": 49333,
     "snw": 48090,
   }
-  show_id = tvmaze_ids.get(show)
-  try:
-    show_data = requests.get(f"https://api.tvmaze.com/shows/{show_id}").json()
-    show_name = show_data["name"]
-    next_episode = show_data["_links"].get("nextepisode")
-    if (next_episode == None):
-      await ctx.respond(f"{get_emoji('ezri_frown_sad')} Sorry, doesn't look like we have info scheduled for the next episode of {show_name}.", ephemeral=True)
-    else:
-      episode_data = requests.get(next_episode["href"]).json()
-      embed = await get_next_episode_embed(show_data, episode_data)
-      await ctx.respond(embed=embed)
-  except Exception as err:
-    logger.error(err)
-    await ctx.respond(f"{get_emoji('emh_doctor_omg_wtf_zoom')} Sorry, something went wrong with the request!", ephemeral=True)
+  latest_episode_date = None
+  latest_episode_data = None
+  for show_id in tvmaze_ids.values():
+    try:
+      show_data = requests.get(f"https://api.tvmaze.com/shows/{show_id}").json()
+      next_episode = show_data["_links"].get("nextepisode")
+      if next_episode:
+        episode_data = requests.get(next_episode["href"]).json()
+        episode_date = episode_data['airdate']
+        if latest_episode_date is None or episode_date > latest_episode_date:
+          latest_episode_date = episode_date
+          latest_episode_data = episode_data
+    except Exception as err:
+      logger.error(err)
 
+  if latest_episode_data:
+    embed = await get_next_episode_embed(show_data, latest_episode_data)
+    await ctx.respond(embed=embed)
+  else:
+    await ctx.respond(embed=discord.Embed(
+      title="No Upcoming Trek Episode Data Found!",
+      description="Sadly there doesn't appear to be any impending Trek episodes coming up.\n\n"
+                  "Please try again later!",
+      color=discord.Color.red()
+    ))
 
 @bot.slash_command(
   name="nextep",
