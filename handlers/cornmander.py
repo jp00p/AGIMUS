@@ -26,10 +26,14 @@ async def handle_cornmander(message:discord.Message):
   if message_is_corny:
     logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} posted a 🌽-y message! We shall take action!")
 
+  allowed_roles = ["Admiral", "Captain"]
+  allowed_role_ids = get_role_ids_list(allowed_roles)
+  user_role_ids = [r.id for r in message.author.roles]
+  corny_allowed = any(user_rid in allowed_role_ids for user_rid in user_role_ids)
 
   cornmander_status = db_get_cornmander_status(message.author.id)
   if cornmander_status == 'unpipped':
-    if message_is_corny:
+    if message_is_corny and not corny_allowed:
       # Hush them up if they said the secret word right off the bat
       await message.delete()
 
@@ -41,7 +45,7 @@ async def handle_cornmander(message:discord.Message):
       logger.info(f"Unable to boost {message.author.display_name} to Cornmander role.")
       pass
   elif cornmander_status == 'pipped':
-    if message_is_corny:
+    if message_is_corny and not corny_allowed:
       # Strip Em if they said the forbidden word
       db_strip_cornmander_status(message.author.id)
       await message.author.remove_roles(cornmander_role, reason="They said the forbidden word! Piece Of Corn removed!")
@@ -65,7 +69,7 @@ async def handle_cornmander(message:discord.Message):
         logger.info(f"Unable to send Cornmander stripping message to {message.author.display_name}, they have their DMs closed.")
         pass
   elif cornmander_status == 'depipped':
-    if message_is_corny:
+    if message_is_corny and not corny_allowed:
       if message.channel.id is not lower_decks_channel_id:
         # They can only talk about the secret word in the Lower Decks Channel, so delete em if outside
         await message.delete()
