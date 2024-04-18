@@ -9,6 +9,7 @@ import aiohttp
 # Slash Commands
 from commands.aliases import aliases
 from commands.badges import *
+from commands.dice import dice
 from commands.dustbuster import dustbuster
 from commands.fmk import fmk
 from commands.food_war import food_war
