@@ -200,7 +200,7 @@ class Wishlist(commands.Cog):
 
     user_badge_names = [b['badge_name'] for b in db_get_user_badges(payload.user_id)]
     user_wishlist_badge_names = [b['badge_name'] for b in db_get_user_wishlist_badges(payload.user_id)]
-    user_locked_badge_names = [b['badge_name'] for b in db_get_user_locked_badges(payload.user.id)]
+    user_locked_badge_names = [b['badge_name'] for b in db_get_user_locked_badges(payload.user_id)]
 
     if payload.event_type == "REACTION_ADD" and badge_name not in user_badge_names and badge_name not in user_wishlist_badge_names:
       logger.info(f"Adding {Style.BRIGHT}{badge_name}{Style.RESET_ALL} to {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
