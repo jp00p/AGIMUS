@@ -3781,7 +3781,15 @@
             "episode": "17",
             "imdb": "tt0709012",
             "memoryalpha": "Workforce,_Part_II_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.03.11",
+                    "episode": "Irish Guests",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-513-irish-guests-voy-s7e17/",
+                    "order": 513,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/gZoUMDTvDtkOrDu1YlVjG7bTvq0.jpg",
@@ -3800,7 +3808,15 @@
             "episode": "18",
             "imdb": "tt0708909",
             "memoryalpha": "Human_Error_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.03.18",
+                    "episode": "Quid Pro Dome",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-514-quid-pro-dome-voy-s7e18/",
+                    "order": 514,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/jxpxIUh9zHulC4rjwkgEBJxTmub.jpg",
@@ -3819,7 +3835,15 @@
             "episode": "19",
             "imdb": "tt0708952",
             "memoryalpha": "Q2_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.03.25",
+                    "episode": "Cancel the Coin",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-515-cancel-the-coin-voy-s7e19/",
+                    "order": 515,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/6qbtWXPNC09nMeWywNHp3TcZgA7.jpg",
@@ -3838,7 +3862,15 @@
             "episode": "20",
             "imdb": "tt0708851",
             "memoryalpha": "Author,_Author_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.04.01",
+                    "episode": "All Crust, No Loaf",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-516-all-crust-no-loaf-voy-s7e20/",
+                    "order": 516,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/rfDRWarrGrSEIfXuN4WAPCn83aA.jpg",
@@ -3857,7 +3889,15 @@
             "episode": "21",
             "imdb": "tt0708900",
             "memoryalpha": "Friendship_One_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.04.08",
+                    "episode": "So Many Bubbrles",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-517-so-many-bubbrles-voy-s7e21/",
+                    "order": 517,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/wyOKiiINrjUmAd05ZkpunXBCBB8.jpg",
@@ -3877,7 +3917,15 @@
             "episode": "22",
             "imdb": "tt0708934",
             "memoryalpha": "Natural_Law_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.04.15",
+                    "episode": "Drape Knuck",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-518-drape-knuck-voy-s7e22/",
+                    "order": 518,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/4v1UqMyYxaBj3r8SPepGRMKxprr.jpg",
@@ -3897,7 +3945,15 @@
             "episode": "23",
             "imdb": "tt0708907",
             "memoryalpha": "Homestead_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.04.22",
+                    "episode": "No One\u2019s Paying For Perpetuity Around Here",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-519-no-ones-paying-for-perpetuity-around-here-voy-s7e23/",
+                    "order": 519,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/58JsQB1q5nyr40k20BwIr2TTb4M.jpg",
@@ -3917,7 +3973,15 @@
             "episode": "24",
             "imdb": "tt0708957",
             "memoryalpha": "Renaissance_Man_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.04.29",
+                    "episode": "Lennies of the World Unite",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-520-lennies-of-the-world-unite-voy-s7e24/",
+                    "order": 520,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/cDEtVxLe6gjjp7WX09gxqjD8mAW.jpg",
@@ -3937,7 +4001,15 @@
             "episode": "25",
             "imdb": "tt0394911",
             "memoryalpha": "All_Good_Things..._(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.05.06",
+                    "episode": "The Action Is the Vegetable Broth",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-521-the-action-is-the-vegetable-broth-voy-s7e25-26/",
+                    "order": 521,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "07",
             "stills": [
                 "https://image.tmdb.org/t/p/original/8cK8RCVRtkKghvUnkJt1rLopHxH.jpg",
