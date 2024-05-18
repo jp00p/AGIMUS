@@ -24,10 +24,10 @@ async def setwager(ctx:discord.ApplicationContext, wager:int):
   This function is the main entrypoint of the /setwager command
   and will set a user's wager value to the amount passed
   """
-  player = get_user(ctx.author.id)
+  player = await get_user(ctx.author.id)
   current_wager = player["wager"]
   if wager in wager_choices:
-    set_player_wager(ctx.author.id, wager)
+    await db_set_player_wager(ctx.author.id, wager)
     await ctx.respond(embed=discord.Embed(
       title="Wager Updated!",
       description=f"{ctx.author.mention}: Your default wager has been changed from `{current_wager}` to `{wager}`",
@@ -41,15 +41,14 @@ async def setwager(ctx:discord.ApplicationContext, wager:int):
     ), ephemeral=True)
 
 
-def set_player_wager(discord_id, amt):
+async def db_set_player_wager(discord_id, amt):
   """
   This function takes a player's discord ID
   and a positive integer and updates the wager
   value for that user in the db
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     amt = max(amt, 0)
     sql = "UPDATE users SET wager = %s WHERE discord_id = %s"
     vals = (amt, discord_id)
-    query.execute(sql, vals)
-  
+    await query.execute(sql, vals)

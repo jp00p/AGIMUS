@@ -13,9 +13,9 @@ from utils.database import AgimusDB
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
-def autocomplete_user_tags(ctx: discord.AutocompleteContext):
+async def autocomplete_user_tags(ctx: discord.AutocompleteContext):
   user_discord_id = ctx.interaction.user.id
-  user_tags = db_get_user_tags(user_discord_id)
+  user_tags = await db_get_user_tags(user_discord_id)
 
   if not user_tags:
     return ['No Tags Present']
@@ -50,7 +50,7 @@ user_tags = bot.create_group("user_tags", "Commands for managing user tags")
 )
 @commands.check(access_check)
 async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
-  user_obj = get_user(user.id)
+  user_obj = await get_user(user.id)
 
   if user_obj.get("tagging_enabled") != 1:
     await ctx.respond(
@@ -66,7 +66,7 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
   # Escape the Markdown characters
   tag = re.sub(r"[*_~`\\]", r"\\\g<0>", tag)
 
-  user_tags = db_get_user_tags(user.id)
+  user_tags = await db_get_user_tags(user.id)
 
   tags = [t['tag'] for t in user_tags]
   if tag in tags:
@@ -100,7 +100,7 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
 
   logger.info(f"{Style.BRIGHT}{ctx.author.display_name}{Style.RESET_ALL} just tagged {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} with {Style.BRIGHT}{tag}{Style.RESET_ALL}")
 
-  db_add_user_tag(user.id, ctx.author.id, tag)
+  await db_add_user_tag(user.id, ctx.author.id, tag)
   await ctx.respond(msg,
     embed=discord.Embed(
       title="User Tag Added!",
@@ -123,7 +123,7 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
 )
 async def untag_user(ctx:discord.ApplicationContext, tag:str):
   user_discord_id = ctx.author.id
-  user_tags = db_get_user_tags(user_discord_id)
+  user_tags = await db_get_user_tags(user_discord_id)
 
   if not user_tags:
     await ctx.respond(
@@ -147,7 +147,7 @@ async def untag_user(ctx:discord.ApplicationContext, tag:str):
     )
     return
 
-  db_delete_user_tag(user_discord_id, tag)
+  await db_delete_user_tag(user_discord_id, tag)
   await ctx.respond(
     embed=discord.Embed(
       title="Untag Successful!",
@@ -201,7 +201,7 @@ async def untag_user(ctx:discord.ApplicationContext, tag:str):
 async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public:str, attribute:str):
   public = (public == "yes")
   attribute = (attribute == "yes")
-  user_obj = get_user(user.id)
+  user_obj = await get_user(user.id)
 
   if user_obj.get("tagging_enabled") != 1:
     await ctx.respond(
@@ -214,7 +214,7 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public
     )
     return
 
-  user_tags = db_get_user_tags(user.id)
+  user_tags = await db_get_user_tags(user.id)
 
   if not user_tags:
     await ctx.respond(
@@ -259,23 +259,23 @@ async def display_tags(ctx:discord.ApplicationContext, user:discord.User, public
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
-def db_add_user_tag(target_user_id, tagger_user_id, tag):
-  with AgimusDB() as query:
+async def db_add_user_tag(target_user_id, tagger_user_id, tag):
+  async with AgimusDB() as query:
     sql = "INSERT INTO user_tags (tagged_user_id, tagger_user_id, tag) VALUES (%s, %s, %s)"
     vals = (target_user_id, tagger_user_id, tag)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_delete_user_tag(tagged_user_id, tag):
-  with AgimusDB() as query:
+async def db_delete_user_tag(tagged_user_id, tag):
+  async with AgimusDB() as query:
     sql = "DELETE FROM user_tags WHERE tagged_user_id = %s AND tag = %s"
     vals = (tagged_user_id, tag)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_get_user_tags(user_discord_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_user_tags(user_discord_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT *, u.name AS tagger_name FROM user_tags ut INNER JOIN users u ON u.discord_id = ut.tagger_user_id " \
           "WHERE tagged_user_id = %s ORDER BY tag ASC"
     vals = (user_discord_id,)
-    query.execute(sql, vals)
-    results = query.fetchall()
+    await query.execute(sql, vals)
+    results = await query.fetchall()
   return results

@@ -14,7 +14,7 @@ import pytz
 )
 @commands.check(access_check)
 async def aliases(ctx:discord.ApplicationContext, user:discord.User):
-  aliases = db_get_user_aliases(user.id)
+  aliases = await db_get_user_aliases(user.id)
 
   if not aliases:
     await ctx.respond(embed=discord.Embed(
@@ -51,10 +51,10 @@ async def aliases(ctx:discord.ApplicationContext, user:discord.User):
   await ctx.respond(embed=embed, ephemeral=True)
 
 
-def db_get_user_aliases(user_discord_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_user_aliases(user_discord_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM user_aliases WHERE user_discord_id = %s ORDER BY time_created ASC;"
     vals = (user_discord_id,)
-    query.execute(sql, vals)
-    aliases = query.fetchall()
+    await query.execute(sql, vals)
+    aliases = await query.fetchall()
   return aliases

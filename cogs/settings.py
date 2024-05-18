@@ -27,7 +27,7 @@ class XPDropdown(discord.ui.Select):
     selection = self.values[0]
 
     if selection == "Enable XP":
-      db_toggle_xp(interaction.user.id, True)
+      await db_toggle_xp(interaction.user.id, True)
       await interaction.response.send_message(
         embed=discord.Embed(
           title="You have successfully chosen to participate in the XP and Badge System.",
@@ -36,7 +36,7 @@ class XPDropdown(discord.ui.Select):
         ephemeral=True
       )
     elif selection == "Disable XP":
-      db_toggle_xp(interaction.user.id, False)
+      await db_toggle_xp(interaction.user.id, False)
       await interaction.response.send_message(
         embed=discord.Embed(
           title="You have successfully opted-out of the XP and Badge System.",
@@ -79,7 +79,7 @@ class NotificationsDropdown(discord.ui.Select):
     selection = self.values[0]
 
     if selection == "Enable Notifications":
-      db_toggle_notifications(interaction.user.id, True)
+      await db_toggle_notifications(interaction.user.id, True)
       await interaction.response.send_message(
         embed=discord.Embed(
           title="You have successfully allowed AGIMUS to send you DMs.",
@@ -88,7 +88,7 @@ class NotificationsDropdown(discord.ui.Select):
         ephemeral=True
       )
     elif selection == "Disable Notifications":
-      db_toggle_notifications(interaction.user.id, False)
+      await db_toggle_notifications(interaction.user.id, False)
       await interaction.response.send_message(
         embed=discord.Embed(
           title="You have successfully disabled AGIMUS from sending you DMs",
@@ -131,7 +131,7 @@ class WordcloudDropdown(discord.ui.Select):
     selection = self.values[0]
 
     if selection == "Enable Wordcloud":
-      db_toggle_wordcloud(interaction.user.id, True)
+      await db_toggle_wordcloud(interaction.user.id, True)
       await interaction.response.send_message(
         embed=discord.Embed(
           title="You have successfully allowed AGIMUS to log your common words for the purpose of generating Wordclouds.",
@@ -140,7 +140,7 @@ class WordcloudDropdown(discord.ui.Select):
         ephemeral=True
       )
     elif selection == "Disable Wordcloud":
-      deleted_message_count = db_toggle_wordcloud(interaction.user.id, False)
+      deleted_message_count = await db_toggle_wordcloud(interaction.user.id, False)
       await interaction.response.send_message(
         embed=discord.Embed(
           title=f"You have successfully disabled AGIMUS from logging your common words and cleared any current data ({deleted_message_count} messages deleted).",
@@ -183,7 +183,7 @@ class LoudbotDropdown(discord.ui.Select):
     selection = self.values[0]
 
     if selection == "Enable Loudbot":
-      db_toggle_loudbot(interaction.user.id, True)
+      await db_toggle_loudbot(interaction.user.id, True)
       await interaction.response.send_message(
         embed=discord.Embed(
           title=f"You have successfully allowed AGIMUS to auto-respond to your all-caps messages and log them for parroting in the future.",
@@ -192,7 +192,7 @@ class LoudbotDropdown(discord.ui.Select):
         ephemeral=True
       )
     elif selection == "Disable Loudbot":
-      deleted_message_count = db_toggle_loudbot(interaction.user.id, False)
+      deleted_message_count = await db_toggle_loudbot(interaction.user.id, False)
       await interaction.response.send_message(
         embed=discord.Embed(
           title=f"You have successfully disabled AGIMUS auto-responding to your all-caps messages and logging messages for the purpose of parroting them in the future. Cleared {deleted_message_count} messages.",
@@ -234,7 +234,7 @@ class DTDDropdown(discord.ui.Select):
   async def callback(self, interaction:discord.Interaction):
     selection = self.values[0]
 
-    is_user_in_dtd_already = db_is_user_in_dtd_list(interaction.user.id)
+    is_user_in_dtd_already = await db_is_user_in_dtd_list(interaction.user.id)
 
     if selection == "Enable DTD":
       if is_user_in_dtd_already:
@@ -246,7 +246,7 @@ class DTDDropdown(discord.ui.Select):
           ephemeral=True
         )
       else:
-        db_add_user_to_dtd(interaction.user.id)
+        await db_add_user_to_dtd(interaction.user.id)
         await interaction.response.send_message(
           embed=discord.Embed(
             title="You have successfully chosen to participate in the Down To Dabo List.",
@@ -264,7 +264,7 @@ class DTDDropdown(discord.ui.Select):
           ephemeral=True
         )
       else:
-        db_remove_user_from_dtd(interaction.user.id)
+        await db_remove_user_from_dtd(interaction.user.id)
         await interaction.response.send_message(
           embed=discord.Embed(
             title="You have successfully opted-out of the Down To Dabo List.",
@@ -301,7 +301,7 @@ class TaggingDropdown(discord.ui.Select):
     selection = self.values[0]
 
     if selection == "Enable Tagging":
-      db_toggle_tagging(interaction.user.id, True)
+      await db_toggle_tagging(interaction.user.id, True)
       await interaction.response.send_message(
         embed=discord.Embed(
           title="You have successfully chosen to participate in user tagging!",
@@ -310,7 +310,7 @@ class TaggingDropdown(discord.ui.Select):
         ephemeral=True
       )
     elif selection == "Disable Tagging":
-      db_toggle_tagging(interaction.user.id, False)
+      await db_toggle_tagging(interaction.user.id, False)
       await interaction.response.send_message(
         embed=discord.Embed(
           title="You have successfully opted-out of being user tagged.",
@@ -616,64 +616,64 @@ class Settings(commands.Cog):
 
     return embed, thumbnail
 
-def db_toggle_xp(user_id, value:bool):
-  with AgimusDB() as query:
+async def db_toggle_xp(user_id, value:bool):
+  async with AgimusDB() as query:
     sql = "UPDATE users SET xp_enabled = %s WHERE discord_id = %s"
     vals = (value, user_id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_toggle_tagging(user_id, value:bool):
-  with AgimusDB() as query:
+async def db_toggle_tagging(user_id, value:bool):
+  async with AgimusDB() as query:
     sql = "UPDATE users SET tagging_enabled = %s WHERE discord_id = %s"
     vals = (value, user_id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_toggle_notifications(user_id, toggle):
-  with AgimusDB(dictionary=True) as query:
+async def db_toggle_notifications(user_id, toggle):
+  async with AgimusDB(dictionary=True) as query:
     sql = "UPDATE users SET receive_notifications = %s WHERE discord_id = %s"
     vals = (toggle, user_id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_toggle_wordcloud(user_id, toggle):
+async def db_toggle_wordcloud(user_id, toggle):
   deleted_row_count = None
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "UPDATE users SET log_messages = %s WHERE discord_id = %s"
     vals = (toggle, user_id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
     if not toggle:
       sql = "DELETE FROM message_history WHERE user_discord_id = %s"
       vals = (user_id,)
-      query.execute(sql, vals)
+      await query.execute(sql, vals)
       deleted_row_count = query.rowcount
   return deleted_row_count
 
-def db_toggle_loudbot(user_id, toggle):
+async def db_toggle_loudbot(user_id, toggle):
   deleted_row_count = None
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "UPDATE users SET loudbot_enabled = %s WHERE discord_id = %s"
     vals = (toggle, user_id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
     if not toggle:
       sql = "DELETE FROM shouts WHERE user_discord_id = %s"
       vals = (user_id,)
-      query.execute(sql, vals)
+      await query.execute(sql, vals)
       deleted_row_count = query.rowcount
   return deleted_row_count
 
-def db_add_user_to_dtd(user_id):
-  with AgimusDB() as query:
+async def db_add_user_to_dtd(user_id):
+  async with AgimusDB() as query:
     sql = "SELECT user_discord_id FROM down_to_dabo WHERE user_discord_id = %s"
     vals = (user_id,)
-    result = query.execute(sql, vals)
-    user_already_added = query.fetchone()
+    await query.execute(sql, vals)
+    user_already_added = await query.fetchone()
     if user_already_added is not None:
       sql = "UPDATE down_to_dabo SET wei"
     sql = "INSERT INTO down_to_dabo (user_discord_id, weight) VALUES (%s, %s)"
     vals = (user_id, 1)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_remove_user_from_dtd(user_id):
-  with AgimusDB() as query:
+async def db_remove_user_from_dtd(user_id):
+  async with AgimusDB() as query:
     sql = "DELETE FROM down_to_dabo WHERE user_discord_id = %s"
     vals = (user_id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)

@@ -35,10 +35,10 @@ async def birthday_set(ctx: discord.ApplicationContext, month: int, day: int):
       color=discord.Color.red(),
     ))
     return
-  
+
   user_id = ctx.user.id
-  db.set_birthday(user_id, month, day)
-  
+  await db.set_birthday(user_id, month, day)
+
   today = datetime.date.today()
   if month == 2 and day == 29:
     day -= 1
@@ -46,10 +46,10 @@ async def birthday_set(ctx: discord.ApplicationContext, month: int, day: int):
     year = today.year + 1
   else:
     year = today.year
-  
+
   (minute, hour, *_) = config["tasks"]["birthdays"]["crontab"].split(' ')
   user_birthday = datetime.datetime(year, month, day, int(hour), int(minute))  # Change this if the time changes
-  
+
   embed = discord.Embed(
     title="AGIMUS has your birthday",
     description=f"On <t:{int(user_birthday.timestamp())}:F> we will celebrate you",
@@ -68,8 +68,8 @@ async def birthday_clear(ctx: discord.ApplicationContext):
   I never should have given this evil bot my birthday.
   """
   await ctx.defer(ephemeral=True)
-  db.clear_birthday(ctx.user.id)
-  
+  await db.clear_birthday(ctx.user.id)
+
   await ctx.followup.send(embed=discord.Embed(
     title="AGIMUS does not know your birthday",
     description="I get it.  I wouldn't wait a bunch of randos on the Internet to know my personal information either.",

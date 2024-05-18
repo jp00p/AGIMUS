@@ -1,47 +1,33 @@
-import mysql.connector
+import aiomysql
 from common import *
 
-dbconfig = {
-  "host": DB_HOST,
-  "user": DB_USER,
-  "database": DB_NAME,
-  "password": DB_PASS
-}
-
-connection_pool = mysql.connector.pooling.MySQLConnectionPool(
-  pool_name="agimuspool",
-  pool_size=8,
-  **dbconfig
-)
-
 class AgimusDB:
-  """Database wrapper for AGIMUS with connection pooling"""
+  """Asynchronous Database wrapper for AGIMUS with connection pooling"""
 
-  def __init__(self, dictionary=False, buffered=False, multi=False):
-    self.db = None
+  def __init__(self, dictionary=False):
+    self.pool = None
+    self.conn = None
     self.cursor = None
     self.dictionary = dictionary
-    self.buffered = buffered
-    self.multi = multi
 
-  def __enter__(self):
-    self.db = connection_pool.get_connection()
-    self.cursor = self.db.cursor(dictionary=self.dictionary, buffered=self.buffered)
+  async def __aenter__(self):
+    if not self.pool:
+      self.pool = await aiomysql.create_pool(
+        host=DB_HOST,
+        port=3306,
+        user=DB_USER,
+        password=DB_PASS,
+        db=DB_NAME,
+        autocommit=True,
+        minsize=1,
+        maxsize=5
+      )
+    self.conn = await self.pool.acquire()
+    self.cursor = await self.conn.cursor(aiomysql.DictCursor if self.dictionary else aiomysql.Cursor)
     return self.cursor
 
-  def __exit__(self, exc_type, exc_val, exc_tb):
+  async def __aexit__(self, exc_type, exc_val, exc_tb):
     if self.cursor:
-      self.cursor.close()
-    if self.db:
-      if exc_type is None:
-        self.db.commit()
-      self.db.close()
-
-  def __del__(self):
-    if hasattr(self, 'cursor') and self.cursor:
-      self.cursor.close()
-    if hasattr(self, 'db') and self.db:
-      try:
-        self.db.close()
-      except:
-        pass
+      await self.cursor.close()
+    if self.conn:
+      self.pool.release(self.conn)

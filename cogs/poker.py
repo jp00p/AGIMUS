@@ -46,9 +46,9 @@ class Poker(commands.Cog):
     else:
       # Get (it) Player
       player_id = ctx.author.id
-      player = get_user(player_id)
+      player = await get_user(player_id)
       if player["score"] >= player["wager"]:
-        set_player_score(str(player_id), -player["wager"])
+        await set_player_score(str(player_id), -player["wager"])
 
         # Instantiate Deck and Draw 5
         deck = Deck()
@@ -191,7 +191,7 @@ class Poker(commands.Cog):
       i += 1
     if doubled:
       # if they doubled their bet, take that extra out now
-      set_player_score(str(user_id), -poker_game["wager"])
+      await set_player_score(str(user_id), -poker_game["wager"])
 
     # check hand
     evaluator = Evaluator()
@@ -204,7 +204,7 @@ class Poker(commands.Cog):
     profit = round(poker_payouts[score_rank] * wager)
     if profit != 0:
       await increment_user_xp(await self.bot.guilds[0].fetch_member(poker_game["user"]), 1, "poker_win", channel, "Winning Poker")
-      set_player_score(str(poker_game["user"]), profit)
+      await set_player_score(str(poker_game["user"]), profit)
 
     # Generate Response
     # get new hand image

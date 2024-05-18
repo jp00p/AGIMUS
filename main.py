@@ -97,7 +97,7 @@ from handlers.loudbot import handle_loudbot
 from handlers.reply_restricted import handle_reply_restricted
 from handlers.save_message import save_message_to_db
 from handlers.server_logs import *
-from handlers.starboard import get_all_starboard_posts, handle_starboard_reactions
+from handlers.starboard import db_get_all_starboard_posts, handle_starboard_reactions
 from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_react_xp, increment_user_xp
 
 # Tasks
@@ -113,13 +113,76 @@ from tasks.birthdays import birthdays_task
 # Utils
 from utils.check_channel_access import perform_channel_check
 
-logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}{Style.RESET_ALL}")
-logger.info(f"{Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}CONNECTING TO DATABASE{Fore.RESET}{Style.RESET_ALL}")
-seed_db()
-ALL_USERS = dict.fromkeys(get_all_users(), True) # used for registering new users without a db lookup
-logger.info(f"{Style.BRIGHT}{Fore.LIGHTGREEN_EX}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}{Style.RESET_ALL}")
-
 background_tasks = set() # for non-blocking tasks
+logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}{Style.RESET_ALL}")
+
+DB_IS_SEEDED = False
+ALL_USERS = None
+async def _init_db_and_users():
+  global DB_IS_SEEDED
+  global ALL_USERS
+
+  if not DB_IS_SEEDED:
+    logger.info(f"{Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}CONNECTING TO DATABASE{Fore.RESET}{Style.RESET_ALL}")
+    await seed_db()
+    DB_IS_SEEDED = True
+    logger.info(f"{Style.BRIGHT}{Fore.LIGHTGREEN_EX}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}{Style.RESET_ALL}")
+
+  if ALL_USERS is None:
+    ALL_USERS = dict.fromkeys(await get_all_users(), True) # used for registering new users without a db lookup
+
+@bot.event
+async def on_ready():
+  try:
+    # Generate Local Channels and Roles
+    bot.current_guild = bot.guilds[0]
+    # generate local channels list
+    generate_local_channel_list(bot)
+    # generate local roles map
+    generate_local_role_map(bot)
+
+    # With Asynchronous DB we now seed the db and set up ALL_USERS here
+    try:
+      await _init_db_and_users()
+    except Exception as e:
+      logger.error(f"Error during seed_db: {e}")
+
+
+    global ALL_USERS
+    logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX} LOGGED IN AS {bot.user} {Fore.RESET}{Back.RESET}")
+    logger.info(f"{Back.RED}{Fore.LIGHTWHITE_EX} CURRENT ASSIGNMENT: {bot.guilds[0].name} (COMPLEMENT: {len(ALL_USERS)}) {Fore.RESET}{Back.RESET}")
+
+    global ALL_STARBOARD_POSTS
+
+    ALL_STARBOARD_POSTS = await db_get_all_starboard_posts()
+    number_of_starboard_posts = len(ALL_STARBOARD_POSTS)
+    for emoji in bot.emojis:
+      config["all_emoji"][emoji.name] = emoji
+
+    # Print AGIMUS ANSI Art
+    print_agimus_ansi_art()
+
+    logger.info(f"{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}")
+    logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")
+
+    # Set a fun random presence
+    random_presences = [
+      { 'name': "PRAISE THE FOUNDERS", 'type': discord.ActivityType.listening },
+      { 'name': "The Greatest Generation", 'type': discord.ActivityType.listening },
+      { 'name': "The Greatest Discovery", 'type': discord.ActivityType.listening },
+      { 'name': "A Nice Game of Chess", 'type': discord.ActivityType.playing },
+      { 'name': "Thermonuclear War", 'type': discord.ActivityType.playing },
+      { 'name': "Gauges", 'type': discord.ActivityType.playing },
+      { 'name': "The Stream At Home", 'type': discord.ActivityType.watching },
+      { 'name': "and waiting...", 'type': discord.ActivityType.watching },
+      { 'name': "Terminator 2: Judgement Day", 'type': discord.ActivityType.watching }
+    ]
+    selected_presence = random.choice(random_presences)
+    await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=selected_presence['name'], type=selected_presence['type']))
+  except Exception as e:
+    logger.info(f"Error in on_ready: {e}")
+    logger.info(traceback.format_exc())
+
 
 # listens to every message on the server that the bot can see
 @bot.event
@@ -202,56 +265,14 @@ async def process_command(message:discord.Message):
   else:
     logger.error(f"{Fore.RED}<! ERROR: Unknown command !>{Fore.RESET}")
 
-@bot.event
-async def on_ready():
-  try:
-    logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX} LOGGED IN AS {bot.user} {Fore.RESET}{Back.RESET}")
-    logger.info(f"{Back.RED}{Fore.LIGHTWHITE_EX} CURRENT ASSIGNMENT: {bot.guilds[0].name} (COMPLEMENT: {len(ALL_USERS)}) {Fore.RESET}{Back.RESET}")
-
-    global ALL_STARBOARD_POSTS
-
-    ALL_STARBOARD_POSTS = get_all_starboard_posts()
-    number_of_starboard_posts = len(ALL_STARBOARD_POSTS)
-    for emoji in bot.emojis:
-      config["all_emoji"][emoji.name] = emoji
-
-    # Print AGIMUS ANSI Art
-    print_agimus_ansi_art()
-
-    logger.info(f"{Fore.LIGHTMAGENTA_EX}BOT IS ONLINE AND READY FOR COMMANDS!{Fore.RESET}")
-    logger.info(f"{Fore.LIGHTRED_EX}CURRENT NUMBER OF STARBOARD POSTS:{Fore.RESET}{Style.BRIGHT} {Fore.BLUE}{number_of_starboard_posts}{Fore.RESET}{Style.RESET_ALL}")
-
-    bot.current_guild = bot.guilds[0]
-    # generate local channels list
-    generate_local_channel_list(bot)
-    # generate local roles map
-    generate_local_role_map(bot)
-
-    # Set a fun random presence
-    random_presences = [
-      { 'name': "PRAISE THE FOUNDERS", 'type': discord.ActivityType.listening },
-      { 'name': "The Greatest Generation", 'type': discord.ActivityType.listening },
-      { 'name': "The Greatest Discovery", 'type': discord.ActivityType.listening },
-      { 'name': "A Nice Game of Chess", 'type': discord.ActivityType.playing },
-      { 'name': "Thermonuclear War", 'type': discord.ActivityType.playing },
-      { 'name': "Gauges", 'type': discord.ActivityType.playing },
-      { 'name': "The Stream At Home", 'type': discord.ActivityType.watching },
-      { 'name': "and waiting...", 'type': discord.ActivityType.watching },
-      { 'name': "Terminator 2: Judgement Day", 'type': discord.ActivityType.watching }
-    ]
-    selected_presence = random.choice(random_presences)
-    await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=selected_presence['name'], type=selected_presence['type']))
-  except Exception as e:
-    logger.info(f"Error in on_ready: {e}")
-    logger.info(traceback.format_exc())
-
 # listen to typing events
 @bot.event
 async def on_typing(channel, user, when):
+  global ALL_USERS
   # Register user if they haven't been previously
   if not ALL_USERS.get(int(user.id)):
     logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
-    ALL_USERS[register_user(user)] = True
+    ALL_USERS[await register_user(user)] = True
 
 # listen to reactions
 # TODO: change to on_raw_reaction_add so old messages are counted too!
@@ -273,10 +294,11 @@ async def on_scheduled_event_create(event):
 # listen to server join/leave events
 @bot.event
 async def on_member_join(member):
+  global ALL_USERS
   # Register user if they haven't been previously
   if not ALL_USERS.get(int(member.id)):
     logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
-    ALL_USERS[register_user(member)] = True
+    ALL_USERS[await register_user(member)] = True
 
 @bot.event
 async def on_member_remove(member):

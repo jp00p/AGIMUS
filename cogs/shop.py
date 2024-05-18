@@ -65,12 +65,12 @@ class Shop(commands.Cog):
     self.shop_data = json.load(f)
     f.close()
 
-  def get_photo_pages(self, user_id: int = None):
+  async def get_photo_pages(self, user_id: int = None):
     """
     Returns an array of ShopPages with embeds for photos.  If user_id is included, then it will mark already bought.
     """
     photo_pages = []
-    user_photos = [s['item_name'] for s in db_get_user_profile_photos_from_inventory(user_id)]
+    user_photos = [s['item_name'] for s in await db_get_user_profile_photos_from_inventory(user_id)]
     for idx, photo in enumerate(self.shop_data["photos"]):
       if photo['name'] in user_photos:
         description = f"~~100 points each.~~  **Purchased**\n\n**{photo['name']}**"
@@ -86,12 +86,12 @@ class Shop(commands.Cog):
       photo_pages.append(photo_page)
     return photo_pages
 
-  def get_sticker_pages(self, user_id: int = None):
+  async def get_sticker_pages(self, user_id: int = None):
     """
     Returns an array of ShopPages with embeds for stickers.  If user_id is included, then it will mark already bought.
     """
     sticker_pages = []
-    user_stickers = [sticker["item_name"] for sticker in db_get_user_profile_stickers_from_inventory(user_id)]
+    user_stickers = [sticker["item_name"] for sticker in await db_get_user_profile_stickers_from_inventory(user_id)]
     for idx, sticker in enumerate(self.shop_data["stickers"]):
       if sticker['name'] in user_stickers:
         cost = "~~25 points each~~  **Purchased**"
@@ -107,13 +107,13 @@ class Shop(commands.Cog):
       sticker_pages.append(sticker_page)
     return sticker_pages
 
-  def get_role_pages(self, user_id: int = None):
+  async def get_role_pages(self, user_id: int = None):
     """
     Get the pages for roles.  (Right now it’s only High Roller.  If more are added, then the hard coded things will have
     to change.)
     """
     role_pages = []
-    user = get_user(user_id)
+    user = await get_user(user_id)
     print(repr(user))
     for idx, role in enumerate(self.shop_data["roles"]):
       if user and user["high_roller"]:
@@ -174,7 +174,7 @@ class Shop(commands.Cog):
       elif category == "stickers":
         cost = 25
 
-      player = get_user(interaction.user.id)
+      player = await get_user(interaction.user.id)
       result = {}
       if player["score"] < cost:
         result["success"] = False
@@ -184,7 +184,7 @@ class Shop(commands.Cog):
         if category == "photos":
           photo = self.shop_data["photos"][purchase_record["page"]]
           photo_name = photo["name"]
-          existing_player_photos = [s['item_name'] for s in db_get_user_profile_photos_from_inventory(interaction.user.id)]
+          existing_player_photos = [s['item_name'] for s in await db_get_user_profile_photos_from_inventory(interaction.user.id)]
 
           if photo_name in existing_player_photos:
             result["success"] = False
@@ -197,7 +197,7 @@ class Shop(commands.Cog):
         elif category == "stickers":
           sticker = self.shop_data["stickers"][purchase_record["page"]]
           sticker_name = sticker["name"]
-          existing_player_stickers = [s['item_name'] for s in db_get_user_profile_stickers_from_inventory(interaction.user.id)]
+          existing_player_stickers = [s['item_name'] for s in await db_get_user_profile_stickers_from_inventory(interaction.user.id)]
 
           if sticker_name in existing_player_stickers:
             result["success"] = False
@@ -230,7 +230,7 @@ class Shop(commands.Cog):
           # Special Case for Styles, they may have different prices so need to check this again here:
           cost = style["price"]
 
-          existing_player_styles = [s['item_name'] for s in db_get_user_profile_styles_from_inventory(interaction.user.id)]
+          existing_player_styles = [s['item_name'] for s in await db_get_user_profile_styles_from_inventory(interaction.user.id)]
 
           if style_name in existing_player_styles:
             result["success"] = False
@@ -244,7 +244,7 @@ class Shop(commands.Cog):
             result["message"] = f"You have spent `{cost} points` and purchased the **{style_name}** profile style!\n\nType `/profile set style:` to enable it, then `/profile display` to show it off!"
 
       if result["success"]:
-        set_player_score(interaction.user, -cost)
+        await set_player_score(interaction.user, -cost)
 
       return result
     except Exception:
@@ -331,8 +331,10 @@ class Shop(commands.Cog):
       view = discord.ui.View()
       view.add_item(BuyButton(self))
 
+      photo_pages = await self.get_photo_pages(ctx.user.id)
+
       paginator = pages.Paginator(
-        pages=self.get_photo_pages(ctx.user.id),
+        pages=photo_pages,
         use_default_buttons=False,
         custom_buttons=self.get_custom_buttons(),
         trigger_on_display=True,
@@ -364,8 +366,9 @@ class Shop(commands.Cog):
       view = discord.ui.View()
       view.add_item(BuyButton(self))
 
+      sticker_pages = await self.get_sticker_pages(ctx.user.id)
       paginator = pages.Paginator(
-        pages=self.get_sticker_pages(ctx.user.id),
+        pages=sticker_pages,
         use_default_buttons=False,
         custom_buttons=self.get_custom_buttons(),
         trigger_on_display=True,
@@ -397,8 +400,9 @@ class Shop(commands.Cog):
       view = discord.ui.View()
       view.add_item(BuyButton(self))
 
+      role_pages = await self.get_role_pages(ctx.user.id)
       paginator = pages.Paginator(
-        pages=self.get_role_pages(ctx.user.id),
+        pages=role_pages,
         use_default_buttons=False,
         custom_buttons=self.get_custom_buttons(),
         trigger_on_display=True,
@@ -458,26 +462,26 @@ class Shop(commands.Cog):
 
 async def purchase_player_photo(user, photo_name):
   logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Photo: {Fore.CYAN}{photo_name}{Fore.RESET}")
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
     vals = (user.id, "photo", photo_name)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
 
 async def purchase_player_sticker(user, sticker_name):
   logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Sticker: {Fore.CYAN}{sticker_name}{Fore.RESET}")
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
     vals = (user.id, "sticker", sticker_name)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
 
 async def purchase_player_style(user, style_name):
   logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Style: {Fore.CYAN}{style_name}{Fore.RESET}")
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
     vals = (user.id, "style", style_name)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
 
 async def update_player_role(user, role):
@@ -492,13 +496,13 @@ async def update_player_role(user, role):
   logger.info(f"Updating user {Style.BRIGHT}{user.id}{Style.RESET_ALL} with new role: {Fore.CYAN}{role['name']}{Fore.RESET}")
   role_id = role["id"]
   if role["name"] == "High Roller":
-    add_high_roller(user.id)
+    await add_high_roller(user.id)
   guild_role = user.guild.get_role(role_id)
   if guild_role not in user.roles:
     await user.add_roles(guild_role)
 
 
-def add_high_roller(discord_id):
+async def add_high_roller(discord_id):
   """
   add_high_roller(discord_id)
 
@@ -506,7 +510,7 @@ def add_high_roller(discord_id):
 
   This function will set a specific user's high_roller value to '1' by discord user id
   """
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "UPDATE users SET high_roller = 1 WHERE discord_id = %s"
     vals = (discord_id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)

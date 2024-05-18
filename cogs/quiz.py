@@ -142,7 +142,7 @@ class Quiz(commands.Cog):
             used_hint = True
             award = math.ceil(award / 2)
 
-          set_player_score(ctx.author, award)
+          await set_player_score(ctx.author, award)
           await increment_user_xp(ctx.author, 1, "quiz_win", ctx.channel, "Winning a round of Quiz")
 
           if id not in self.fuzz:
@@ -247,7 +247,7 @@ class Quiz(commands.Cog):
           description=f"Did you win? Hardly! Adding `{roll} point(s)` to the jackpot.",
           color=discord.Color.red()
         )
-        increase_jackpot(roll)
+        await increase_jackpot(roll)
       else:
         #todo: add random win msgs
         embed = discord.Embed(

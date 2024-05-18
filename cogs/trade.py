@@ -16,7 +16,7 @@ f.close()
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
-def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
+async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   """
   Autocomplete of badges that the user making the trade has and are not already in the other user’s collection.
   """
@@ -25,18 +25,19 @@ def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   if 'requestee' in ctx.options:
     requestee_id = ctx.options['requestee']
   else:
-    active_trade = db_get_active_requestor_trade(ctx.interaction.user.id)
+    active_trade = await db_get_active_requestor_trade(ctx.interaction.user.id)
     if active_trade:
       requestee_id = active_trade['requestee_id']
 
-  requestor_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id)]
+  requestor_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.interaction.user.id)]
   if requestee_id:
-    requestee_badges = [b['badge_name'] for b in db_get_user_badges(requestee_id)]
+    requestee_badges = [b['badge_name'] for b in await db_get_user_badges(requestee_id)]
     badge_names = [b for b in requestor_badges if b not in requestee_badges]
   else:
     badge_names = requestor_badges
 
-  special_badge_names = [b['badge_name'] for b in SPECIAL_BADGES]
+  special_badges = await db_get_special_badges()
+  special_badge_names = [b['badge_name'] for b in special_badges]
   badge_names = [b for b in badge_names if b not in special_badge_names]
 
   if len(badge_names) == 0:
@@ -46,7 +47,7 @@ def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   return [result for result in badge_names if ctx.value.lower() in result.lower()]
 
 
-def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
+async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   """
   Autocomplete of badges that the user on the other end of the trade has, and this user doesn’t
   """
@@ -55,18 +56,18 @@ def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   if 'requestee' in ctx.options:
     requestee_id = ctx.options['requestee']
   else:
-    active_trade = db_get_active_requestor_trade(ctx.interaction.user.id)
+    active_trade = await db_get_active_requestor_trade(ctx.interaction.user.id)
     if active_trade:
       requestee_id = active_trade['requestee_id']
 
   if requestee_id:
-    requestor_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id)]
-    requestee_badges = [b['badge_name'] for b in db_get_user_badges(requestee_id)]
+    requestor_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.interaction.user.id)]
+    requestee_badges = [b['badge_name'] for b in await db_get_user_badges(requestee_id)]
     badge_names = [b for b in requestee_badges if b not in requestor_badges]
   else:
     badge_names = ["Use '/trade start' to start a trade and make sure you choose someone."]
 
-  special_badge_names = [b['badge_name'] for b in SPECIAL_BADGES]
+  special_badge_names = [b['badge_name'] for b in await db_get_special_badges()]
   badge_names = [b for b in badge_names if b not in special_badge_names]
 
   if len(badge_names) == 0:
@@ -110,11 +111,11 @@ class CancelButton(discord.ui.Button):
     await self.cog._cancel_trade_callback(interaction, self.active_trade)
 
 class SendCancelView(discord.ui.View):
-  def __init__(self, cog, active_trade):
+  def __init__(self, cog, active_trade, trade_contains_badges):
     super().__init__()
 
     self.add_item(CancelButton(cog, active_trade))
-    if active_trade["status"] != 'active' and does_trade_contain_badges(active_trade):
+    if active_trade["status"] != 'active' and trade_contains_badges:
       self.add_item(SendButton(cog, active_trade))
 
 
@@ -214,7 +215,6 @@ class Trade(commands.Cog):
     # We only allow requestees to have n trades pending for managability's sake
     self.max_trades = 3
     self.max_badges_per_trade = 6
-    self.untradeable_badges = [b['badge_name'] for b in SPECIAL_BADGES]
     self.trade_buttons = [
       pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
       pages.PaginatorButton(
@@ -237,7 +237,7 @@ class Trade(commands.Cog):
   )
   @commands.check(access_check)
   async def incoming(self, ctx:discord.ApplicationContext):
-    incoming_trades = db_get_active_requestee_trades(ctx.user.id)
+    incoming_trades = await db_get_active_requestee_trades(ctx.user.id)
 
     if not incoming_trades:
       await ctx.respond(embed=discord.Embed(
@@ -272,7 +272,7 @@ class Trade(commands.Cog):
 
   async def _send_pending_trade_interface(self, interaction, requestor_id):
     requestee_id = interaction.user.id
-    active_trade = db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_id)
+    active_trade = await db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_id)
 
     trade_pages = await self._generate_trade_pages(active_trade)
     view = AcceptDeclineView(self, active_trade)
@@ -292,7 +292,7 @@ class Trade(commands.Cog):
 
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
-    offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
+    offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
 
     # FAILSAFES!
 
@@ -321,22 +321,22 @@ class Trade(commands.Cog):
     # If failsafes pass, go ahead with the transfer!
 
     # Perform the actual swap
-    db_perform_badge_transfer(active_trade)
-    db_complete_trade(active_trade)
+    await db_perform_badge_transfer(active_trade)
+    await db_complete_trade(active_trade)
 
     # Lock badges the users now possess that were in their wishlists
     # Stash the wishlist badges prior to purging to alert users in Dabo matches if they've acquired a Wishlist item
-    requestors_previous_wishlist_badges = db_get_user_wishlist_badges(requestor.id)
-    requested_badges = db_get_trade_requested_badges(active_trade)
-    db_autolock_badges_by_filenames_if_in_wishlist(requestor.id, [b['badge_filename'] for b in requested_badges])
+    requestors_previous_wishlist_badges = await db_get_user_wishlist_badges(requestor.id)
+    requested_badges = await db_get_trade_requested_badges(active_trade)
+    await db_autolock_badges_by_filenames_if_in_wishlist(requestor.id, [b['badge_filename'] for b in requested_badges])
 
-    requestees_previous_wishlist_badges = db_get_user_wishlist_badges(requestee.id)
-    offered_badges = db_get_trade_offered_badges(active_trade)
-    db_autolock_badges_by_filenames_if_in_wishlist(requestee.id, [b['badge_filename'] for b in offered_badges])
+    requestees_previous_wishlist_badges = await db_get_user_wishlist_badges(requestee.id)
+    offered_badges = await db_get_trade_offered_badges(active_trade)
+    await db_autolock_badges_by_filenames_if_in_wishlist(requestee.id, [b['badge_filename'] for b in offered_badges])
 
     # Delete Badges From Users Wishlists
-    db_purge_users_wishlist(requestor.id)
-    db_purge_users_wishlist(requestee.id)
+    await db_purge_users_wishlist(requestor.id)
+    await db_purge_users_wishlist(requestee.id)
 
     if active_trade["type"] == 'dabo':
       title = "DABO COMPLETE!"
@@ -372,7 +372,7 @@ class Trade(commands.Cog):
     message = await channel.send(embed=success_embed, file=success_image)
 
     # Send notification to requestor that the trade was successful
-    requestor_user = get_user(requestor.id)
+    requestor_user = await get_user(requestor.id)
     if requestor_user["receive_notifications"]:
       try:
         success_embed.add_field(
@@ -414,7 +414,7 @@ class Trade(commands.Cog):
             pass
 
     # Send notification to requestee if they completed a Dabo Trade and got some Wishlist badges
-    requestee_user = get_user(requestee.id)
+    requestee_user = await get_user(requestee.id)
     if requestee_user["receive_notifications"] and active_trade["type"] == 'dabo':
       requestee_wishlisted_badge_names = [b['badge_name'] for b in requestees_previous_wishlist_badges]
       requestee_acquired_badge_names = [b['badge_name'] for b in offered_badges]
@@ -444,20 +444,20 @@ class Trade(commands.Cog):
     # These are all the active or pending trades that involved either the requestee or
     # requestor and include the badges that are involved with the confirmed trade which
     # are thus no longer valid and need to be canceled
-    related_trades = db_get_related_badge_trades(active_trade)
+    related_trades = await db_get_related_badge_trades(active_trade)
 
     # Filter out the current trade itself, then cancel the others
     trades_to_cancel = [t for t in related_trades if t["id"] != active_trade["id"]]
     # Iterate through to cancel, and then
     for trade in trades_to_cancel:
-      db_cancel_trade(trade)
+      await db_cancel_trade(trade)
       requestee = await self.bot.current_guild.fetch_member(trade['requestee_id'])
       requestor = await self.bot.current_guild.fetch_member(trade['requestor_id'])
 
-      offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(trade)
+      offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(trade)
 
       # Give notice to Requestee
-      user = get_user(requestee.id)
+      user = await get_user(requestee.id)
       if user["receive_notifications"] and trade['status'] == 'active':
         try:
           requestee_embed = discord.Embed(
@@ -482,7 +482,7 @@ class Trade(commands.Cog):
           pass
 
       # Give notice to Requestor
-      user = get_user(requestor.id)
+      user = await get_user(requestor.id)
       if user["receive_notifications"]:
         try:
           requestor_embed = discord.Embed(
@@ -508,15 +508,15 @@ class Trade(commands.Cog):
 
 
   async def _requestor_already_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestor_badges = [b['badge_name'] for b in db_get_user_badges(active_trade["requestor_id"])]
+    requestor_badges = [b['badge_name'] for b in await db_get_user_badges(active_trade["requestor_id"])]
 
-    trade_requested_badges = db_get_trade_requested_badges(active_trade)
+    trade_requested_badges = await db_get_trade_requested_badges(active_trade)
     trade_requested_badges = [b["badge_name"] for b in trade_requested_badges]
 
     badges_in_trade_requestor_has = [t for t in requestor_badges if t in trade_requested_badges]
 
     if len(badges_in_trade_requestor_has) != 0:
-      db_cancel_trade(active_trade)
+      await db_cancel_trade(active_trade)
       await interaction.followup.send(
         embed=discord.Embed(
           title="Invalid Trade",
@@ -525,7 +525,7 @@ class Trade(commands.Cog):
         )
       )
       try:
-        offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
+        offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
           description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because you already own some of the badges requested!",
@@ -552,15 +552,15 @@ class Trade(commands.Cog):
 
 
   async def _requestee_already_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestee_badges = [b['badge_name'] for b in db_get_user_badges(active_trade["requestee_id"])]
+    requestee_badges = [b['badge_name'] for b in await db_get_user_badges(active_trade["requestee_id"])]
 
-    trade_offered_badges = db_get_trade_offered_badges(active_trade)
+    trade_offered_badges = await db_get_trade_offered_badges(active_trade)
     trade_offered_badges = [b["badge_name"] for b in trade_offered_badges]
 
     badges_in_trade_requestee_has = [t for t in requestee_badges if t in trade_offered_badges]
 
     if len(badges_in_trade_requestee_has) != 0:
-      db_cancel_trade(active_trade)
+      await db_cancel_trade(active_trade)
       await interaction.followup.send(
         embed=discord.Embed(
           title="Invalid Trade",
@@ -569,7 +569,7 @@ class Trade(commands.Cog):
         )
       )
       try:
-        offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
+        offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
           description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because they already own some of the badges offered!",
@@ -595,15 +595,15 @@ class Trade(commands.Cog):
     return False
 
   async def _requestor_still_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestor_badges = [b['badge_name'] for b in db_get_user_badges(active_trade["requestor_id"])]
+    requestor_badges = [b['badge_name'] for b in await db_get_user_badges(active_trade["requestor_id"])]
 
-    trade_offered_badges = db_get_trade_offered_badges(active_trade)
+    trade_offered_badges = await db_get_trade_offered_badges(active_trade)
     trade_offered_badges = [b["badge_name"] for b in trade_offered_badges]
 
     badges_in_trade_requestor_has = [t for t in requestor_badges if t in trade_offered_badges]
 
     if len(badges_in_trade_requestor_has) != len(trade_offered_badges):
-      db_cancel_trade(active_trade)
+      await db_cancel_trade(active_trade)
       await interaction.followup.send(
         embed=discord.Embed(
           title="Invalid Trade",
@@ -612,7 +612,7 @@ class Trade(commands.Cog):
         )
       )
       try:
-        offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
+        offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
           description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because you no longer have some of the badges you offered!",
@@ -638,15 +638,15 @@ class Trade(commands.Cog):
     return True
 
   async def _requestee_still_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestee_badges = [b["badge_name"] for b in db_get_user_badges(active_trade["requestee_id"])]
+    requestee_badges = [b["badge_name"] for b in await db_get_user_badges(active_trade["requestee_id"])]
 
-    trade_requested_badges = db_get_trade_requested_badges(active_trade)
+    trade_requested_badges = await db_get_trade_requested_badges(active_trade)
     trade_requested_badges = [b["badge_name"] for b in trade_requested_badges]
 
     badges_in_trade_requestee_has = [t for t in requestee_badges if t in trade_requested_badges]
 
     if len(badges_in_trade_requestee_has) != len(trade_requested_badges):
-      db_cancel_trade(active_trade)
+      await db_cancel_trade(active_trade)
       await interaction.followup.send(
         embed=discord.Embed(
           title="Invalid Trade",
@@ -655,7 +655,7 @@ class Trade(commands.Cog):
         )
       )
       try:
-        offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
+        offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
           description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because they no longer have some of the badges you requested!",
@@ -695,10 +695,10 @@ class Trade(commands.Cog):
       attachments=[]
     )
 
-    db_decline_trade(active_trade)
-    offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
+    await db_decline_trade(active_trade)
+    offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
 
-    user = get_user(requestor.id)
+    user = await get_user(requestor.id)
     if user["receive_notifications"]:
       try:
         declined_embed = discord.Embed(
@@ -761,7 +761,7 @@ class Trade(commands.Cog):
       return
 
     # If not denied, go ahead and initiate the new trade!
-    trade_id = db_initiate_trade(requestor_id, requestee_id)
+    trade_id = await db_initiate_trade(requestor_id, requestee_id)
     active_trade = {
       'id': trade_id,
       'requestor_id': requestor_id,
@@ -772,13 +772,13 @@ class Trade(commands.Cog):
       if await self._is_untradeable(ctx, offer, ctx.author, requestee, active_trade, 'offer'):
         offer = None
       else:
-        db_add_badge_to_trade_offer(active_trade, offer)
+        await db_add_badge_to_trade_offer(active_trade, offer)
 
     if request:
       if await self._is_untradeable(ctx, request, ctx.author, requestee, active_trade, 'request'):
         request = None
       else:
-        db_add_badge_to_trade_request(active_trade, request)
+        await db_add_badge_to_trade_request(active_trade, request)
 
 
     initiated_trade = await self.check_for_active_trade(ctx)
@@ -837,7 +837,8 @@ class Trade(commands.Cog):
     )
 
     # Provide Send/Cancel UI immediately
-    view = SendCancelView(self, initiated_trade)
+    trade_contains_badges = await does_trade_contain_badges(initiated_trade)
+    view = SendCancelView(self, initiated_trade, trade_contains_badges)
     paginator = pages.Paginator(
       pages=initiated_pages,
       use_default_buttons=False,
@@ -885,11 +886,11 @@ class Trade(commands.Cog):
     if not await self._is_trade_initialization_valid(ctx, requestee):
       return
 
-    requestor_total_badges = [b['badge_name'] for b in db_get_user_badges(requestor_id)]
-    requestor_unlocked_badges = [b['badge_name'] for b in db_get_user_unlocked_badges(requestor_id)]
+    requestor_total_badges = [b['badge_name'] for b in await db_get_user_badges(requestor_id)]
+    requestor_unlocked_badges = [b['badge_name'] for b in await db_get_user_unlocked_badges(requestor_id)]
 
-    requestee_total_badges = [b['badge_name'] for b in db_get_user_badges(requestee_id)]
-    requestee_unlocked_badges = [b['badge_name'] for b in db_get_user_unlocked_badges(requestee_id)]
+    requestee_total_badges = [b['badge_name'] for b in await db_get_user_badges(requestee_id)]
+    requestee_unlocked_badges = [b['badge_name'] for b in await db_get_user_unlocked_badges(requestee_id)]
 
     # Get only the badges to offer/request that are not already present in the other user's inventory yet
     valid_requestor_badges = list(np.setdiff1d(requestor_unlocked_badges, requestee_total_badges))
@@ -908,7 +909,7 @@ class Trade(commands.Cog):
       return
 
     # If not denied, go ahead and initiate the new trade!
-    trade_id = db_initiate_trade(requestor_id, requestee_id, 'dabo')
+    trade_id = await db_initiate_trade(requestor_id, requestee_id, 'dabo')
     active_trade = {
       'id': trade_id,
       'requestor_id': requestor_id,
@@ -917,11 +918,11 @@ class Trade(commands.Cog):
 
     random_offers = sample(valid_requestor_badges, amount)
     for offer in random_offers:
-      db_add_badge_to_trade_offer(active_trade, offer)
+      await db_add_badge_to_trade_offer(active_trade, offer)
 
     random_requests = sample(valid_requestee_badges, amount)
     for request in random_requests:
-      db_add_badge_to_trade_request(active_trade, request)
+      await db_add_badge_to_trade_request(active_trade, request)
 
     dabo_trade = await self.check_for_active_trade(ctx)
 
@@ -973,7 +974,8 @@ class Trade(commands.Cog):
     )
 
     # Provide Send/Cancel UI immediately
-    view = SendCancelView(self, dabo_trade)
+    trade_contains_badges = await does_trade_contain_badges(dabo_trade)
+    view = SendCancelView(self, dabo_trade, trade_contains_badges)
     paginator = pages.Paginator(
       pages=dabo_pages,
       use_default_buttons=False,
@@ -1008,7 +1010,7 @@ class Trade(commands.Cog):
   async def dtd(self, ctx:discord.ApplicationContext, public:str):
     public = bool(public == "yes")
 
-    down_to_daboers = db_get_dtd_rows()
+    down_to_daboers = await db_get_dtd_rows()
     if down_to_daboers is None or len(down_to_daboers) == 1:
       await ctx.respond(embed=discord.Embed(
         title="No Down To Daboers Yet!",
@@ -1040,19 +1042,19 @@ class Trade(commands.Cog):
     await ctx.respond(embed=embed, ephemeral=not public)
     return
 
-  def _reset_dtd_weights(self, selected_user_id):
-    down_to_daboers = db_get_dtd_rows()
+  async def _reset_dtd_weights(self, selected_user_id):
+    down_to_daboers = await db_get_dtd_rows()
     dtd_userids = []
     dtd_weights = []
     for d in down_to_daboers:
       dtd_userids.append(d['user_discord_id'])
       dtd_weights.append(d['weight'])
 
-    db_reset_user_dtd_weight(selected_user_id)
+    await db_reset_user_dtd_weight(selected_user_id)
     for i in range(len(dtd_userids)):
       current_user_id = dtd_userids[i]
       if current_user_id != selected_user_id:
-        db_increment_user_dtd_weight(current_user_id)
+        await db_increment_user_dtd_weight(current_user_id)
 
   async def _is_trade_initialization_valid(self, ctx:discord.ApplicationContext, requestee:discord.User):
     requestor_id = ctx.author.id
@@ -1075,7 +1077,7 @@ class Trade(commands.Cog):
       return False
 
     # Deny requests to users that do not have XP enabled
-    requestee_details = get_user(requestee_id)
+    requestee_details = await get_user(requestee_id)
     if not requestee_details or not requestee_details["xp_enabled"]:
       opted_out_embed = discord.Embed(
         title="This user is not participating.",
@@ -1086,7 +1088,7 @@ class Trade(commands.Cog):
       return False
 
     # Deny the trade request if there's an existing trade in progress by the requestor
-    active_trade = db_get_active_requestor_trade(requestor_id)
+    active_trade = await db_get_active_requestor_trade(requestor_id)
     if active_trade:
       active_trade_requestee = await self.bot.current_guild.fetch_member(active_trade['requestee_id'])
       already_active_embed = discord.Embed(
@@ -1102,7 +1104,7 @@ class Trade(commands.Cog):
       return False
 
     # Deny the trade request if the requestee already has too many active trades pending
-    requestee_trades = db_get_active_requestee_trades(requestee_id)
+    requestee_trades = await db_get_active_requestee_trades(requestee_id)
     if len(requestee_trades) >= self.max_trades:
       max_requestee_trades_embed = discord.Embed(
         title=f"{requestee.display_name} has too many pending trades!",
@@ -1131,7 +1133,8 @@ class Trade(commands.Cog):
     await ctx.defer(ephemeral=True)
 
     trade_pages = await self._generate_trade_pages(active_trade)
-    view = SendCancelView(self, active_trade)
+    trade_contains_badges = await does_trade_contain_badges(active_trade)
+    view = SendCancelView(self, active_trade, trade_contains_badges)
     paginator = pages.Paginator(
       pages=trade_pages,
       use_default_buttons=False,
@@ -1146,7 +1149,7 @@ class Trade(commands.Cog):
   async def _cancel_trade_callback(self, interaction, active_trade):
     try:
       # Cancel the trade and send confirmation
-      db_cancel_trade(active_trade)
+      await db_cancel_trade(active_trade)
       requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
       requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
 
@@ -1167,10 +1170,10 @@ class Trade(commands.Cog):
       )
 
       # Alert the requestee that the trade has been canceled if the trade was active
-      user = get_user(requestee.id)
+      user = await get_user(requestee.id)
       if active_trade["status"] == 'active' and user["receive_notifications"]:
         try:
-          offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
+          offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
 
           notification_description = f"Heads up! **{requestor.display_name}** has canceled their pending trade request with you."
 
@@ -1200,7 +1203,7 @@ class Trade(commands.Cog):
 
   async def _send_trade_callback(self, interaction, active_trade):
     try:
-      if not does_trade_contain_badges(active_trade):
+      if not await does_trade_contain_badges(active_trade):
         await interaction.response.edit_message(
           embed=discord.Embed(
             title="Invalid Trade",
@@ -1213,7 +1216,7 @@ class Trade(commands.Cog):
         return
 
       # Activate the trade and send confirmation
-      db_activate_trade(active_trade)
+      await db_activate_trade(active_trade)
       requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
       requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
 
@@ -1241,14 +1244,14 @@ class Trade(commands.Cog):
       await interaction.channel.send(embed=offered_embed, file=offered_image)
       await interaction.channel.send(embed=requested_embed, file=requested_image)
 
-      if active_trade['type'] == 'dabo' and db_is_user_in_dtd_list(active_trade["requestee_id"]):
-        self._reset_dtd_weights(active_trade["requestee_id"])
+      if active_trade['type'] == 'dabo' and await db_is_user_in_dtd_list(active_trade["requestee_id"]):
+        await self._reset_dtd_weights(active_trade["requestee_id"])
 
       # Give notice to Requestee
-      user = get_user(requestee.id)
+      user = await get_user(requestee.id)
       if user["receive_notifications"]:
         try:
-          offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
+          offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
 
           if active_trade['type'] == 'dabo':
             title = "INCOMING DABO!"
@@ -1313,7 +1316,7 @@ class Trade(commands.Cog):
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
 
-    offered_badges = db_get_trade_offered_badges(active_trade)
+    offered_badges = await db_get_trade_offered_badges(active_trade)
     offered_badge_filenames = [f"{b['badge_filename']}" for b in offered_badges]
     offered_image_id = f"{active_trade['id']}-offered"
     offered_image = await generate_badge_trade_showcase(
@@ -1335,7 +1338,7 @@ class Trade(commands.Cog):
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
 
-    requested_badges = db_get_trade_requested_badges(active_trade)
+    requested_badges = await db_get_trade_requested_badges(active_trade)
     requested_badge_filenames = [f"{b['badge_filename']}" for b in requested_badges]
     requested_image_id = f"{active_trade['id']}-requested"
     requested_image = await generate_badge_trade_showcase(
@@ -1357,7 +1360,7 @@ class Trade(commands.Cog):
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
 
-    offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(active_trade)
+    offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
 
     if active_trade["status"] == 'active':
       color = discord.Color.dark_purple()
@@ -1379,7 +1382,7 @@ class Trade(commands.Cog):
       else:
         title = "Trade Pending..."
         description = f"Ready to send?\n\nThis your pending trade with **{requestee.display_name}**.\n\n"
-        if does_trade_contain_badges(active_trade):
+        if await does_trade_contain_badges(active_trade):
           description += "Press the Send button below if it looks good to go!"
         else:
           description += "You'll need to include at least one badge as either offered or requested to proceed!"
@@ -1461,10 +1464,10 @@ class Trade(commands.Cog):
     if await self._is_untradeable(ctx, badge, requestor, requestee, active_trade, 'offer'):
       return
 
-    db_add_badge_to_trade_offer(active_trade, badge)
+    await db_add_badge_to_trade_offer(active_trade, badge)
     logger.info(f"{Fore.CYAN}{requestor.display_name} has added the badge `{badge}` to their pending trade offer to {requestee.display_name}{Style.RESET_ALL}")
 
-    badge_info = db_get_badge_info_by_name(badge)
+    badge_info = await db_get_badge_info_by_name(badge)
     badge_filename = badge_info['badge_filename']
     discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=badge_filename)
 
@@ -1487,10 +1490,10 @@ class Trade(commands.Cog):
     if await self._is_untradeable(ctx, badge, requestor, requestee, active_trade, 'request'):
       return
 
-    db_add_badge_to_trade_request(active_trade, badge)
+    await db_add_badge_to_trade_request(active_trade, badge)
     logger.info(f"{Fore.CYAN}{requestor.display_name} has added the badge `{badge}` to their pending trade request from {requestee.display_name}{Style.RESET_ALL}")
 
-    badge_info = db_get_badge_info_by_name(badge)
+    badge_info = await db_get_badge_info_by_name(badge)
     badge_filename = badge_info['badge_filename']
     discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=badge_filename)
 
@@ -1517,7 +1520,7 @@ class Trade(commands.Cog):
       to_user = requestor
       from_user = requestee
 
-    if badge in self.untradeable_badges:
+    if badge in [b['badge_name'] for b in await db_get_special_badges()]:
       logger.info(f"{Fore.CYAN}{requestor.display_name} tried to {direction} `{badge}` {dir_preposition} "
                   f"{requestee.display_name} but it's untradeable!")
       await ctx.respond(embed=discord.Embed(
@@ -1527,7 +1530,7 @@ class Trade(commands.Cog):
       ), ephemeral=True)
       return True
 
-    user_badges = [b["badge_name"] for b in db_get_user_badges(from_user.id)]
+    user_badges = [b["badge_name"] for b in await db_get_user_badges(from_user.id)]
     if badge not in user_badges:
       logger.info(f"{Fore.CYAN}{from_user.display_name} doesn't possess `{badge}`, unable to add to {direction} "
                   f"{dir_preposition} {to_user.display_name}.")
@@ -1540,7 +1543,7 @@ class Trade(commands.Cog):
       ), ephemeral=True)
       return True
 
-    user_badges = [b["badge_name"] for b in db_get_user_badges(to_user.id)]
+    user_badges = [b["badge_name"] for b in await db_get_user_badges(to_user.id)]
     if badge in user_badges:
       logger.info(f"{Fore.CYAN}{requestor.display_name} was unable to add `{badge}` to their pending trade {direction} "
                   f"{dir_preposition} {requestee.display_name} because {to_user.display_name} already owns the badge! "
@@ -1552,9 +1555,9 @@ class Trade(commands.Cog):
       ), ephemeral=True)
       return True
 
-    trade_badges = (db_get_trade_offered_badges(active_trade)
+    trade_badges = (await db_get_trade_offered_badges(active_trade)
                     if direction == 'offer' else
-                    db_get_trade_requested_badges(active_trade))
+                    await db_get_trade_requested_badges(active_trade))
     trade_badge_names = [b["badge_name"] for b in trade_badges]
 
     if badge in trade_badge_names:
@@ -1584,7 +1587,7 @@ class Trade(commands.Cog):
     """
     Return the active trade started by this user.  If it doesn't exist, show an error message.
     """
-    active_trade = db_get_active_requestor_trade(ctx.author.id)
+    active_trade = await db_get_active_requestor_trade(ctx.author.id)
 
     # If we don't have an active trade for this user, go ahead and let them know
     if not active_trade:
@@ -1603,101 +1606,97 @@ class Trade(commands.Cog):
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
-def db_add_badge_to_trade_offer(active_trade, badge_name):
+async def db_add_badge_to_trade_offer(active_trade, badge_name):
   active_trade_id = active_trade["id"]
-
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       INSERT INTO trade_offered (trade_id, badge_filename)
         VALUES (%s, (SELECT badge_filename FROM badge_info WHERE badge_name = %s))
     '''
     vals = (active_trade_id, badge_name)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_remove_badge_from_trade_offer(active_trade, badge_name):
+async def db_remove_badge_from_trade_offer(active_trade, badge_name):
   active_trade_id = active_trade["id"]
-
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       DELETE FROM trade_offered
         WHERE trade_id = %s AND badge_filename = (SELECT badge_filename FROM badge_info WHERE badge_name = %s)
     '''
     vals = (active_trade_id, badge_name)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_add_badge_to_trade_request(active_trade, badge_name):
+async def db_add_badge_to_trade_request(active_trade, badge_name):
   active_trade_id = active_trade["id"]
-
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       INSERT INTO trade_requested (trade_id, badge_filename)
         VALUES (%s, (SELECT badge_filename FROM badge_info WHERE badge_name = %s))
     '''
     vals = (active_trade_id, badge_name)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_remove_badge_from_trade_request(active_trade, badge_name):
+async def db_remove_badge_from_trade_request(active_trade, badge_name):
   active_trade_id = active_trade["id"]
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       DELETE FROM trade_requested
         WHERE trade_id = %s AND badge_filename = (SELECT badge_filename FROM badge_info WHERE badge_name = %s)
     '''
     vals = (active_trade_id, badge_name)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_get_active_requestee_trades(requestee_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_active_requestee_trades(requestee_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM trades WHERE requestee_id = %s AND status = 'active'"
     vals = (requestee_id,)
-    query.execute(sql, vals)
-    trades = query.fetchall()
+    await query.execute(sql, vals)
+    trades = await query.fetchall()
   return trades
 
-def db_get_active_requestor_trade(requestor_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_active_requestor_trade(requestor_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM trades WHERE requestor_id = %s AND (status = 'active' OR status = 'pending') LIMIT 1"
     vals = (requestor_id,)
-    query.execute(sql, vals)
-    trade = query.fetchone()
+    await query.execute(sql, vals)
+    trade = await query.fetchone()
   return trade
 
-def db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM trades WHERE requestor_id = %s AND requestee_id = %s AND status = 'active' LIMIT 1"
     vals = (requestor_id, requestee_id)
-    query.execute(sql, vals)
-    trade = query.fetchone()
+    await query.execute(sql, vals)
+    trade = await query.fetchone()
   return trade
 
-def db_initiate_trade(requestor_id:int, requestee_id:int, type="standard") -> int:
-  with AgimusDB() as query:
+async def db_initiate_trade(requestor_id:int, requestee_id:int, type="standard") -> int:
+  async with AgimusDB() as query:
     sql = "INSERT INTO trades (requestor_id, requestee_id, status, type) VALUES (%s, %s, 'pending', %s)"
     vals = (requestor_id, requestee_id, type)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
     result = query.lastrowid
   return result
 
-def db_activate_trade(active_trade):
+async def db_activate_trade(active_trade):
   active_trade_id = active_trade["id"]
-
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "UPDATE trades SET status = 'active' WHERE id = %s"
     vals = (active_trade_id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_cancel_trade(trade):
+async def db_cancel_trade(trade):
   trade_id = trade['id']
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "UPDATE trades SET status = 'canceled' WHERE id = %s"
     vals = (trade_id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_perform_badge_transfer(active_trade):
+async def db_perform_badge_transfer(active_trade):
   trade_id = active_trade['id']
   requestor_id = active_trade['requestor_id']
   requestee_id = active_trade['requestee_id']
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
 
     # Transfer Requested Badges to Requestor
     sql = '''
@@ -1709,7 +1708,7 @@ def db_perform_badge_transfer(active_trade):
             ON t.id = %s AND t_r.trade_id = t.id AND t_r.badge_filename = b_i.badge_filename
     '''
     vals = (trade_id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
     # Delete Requested Badges from Requestee
     sql = '''
@@ -1720,7 +1719,7 @@ def db_perform_badge_transfer(active_trade):
           WHERE (t.id = %s AND t.requestee_id = %s AND b.user_discord_id = %s)
     '''
     vals = (trade_id, requestee_id, requestee_id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
     # Transfer Offered Badges to Requestee
     sql = '''
@@ -1732,7 +1731,7 @@ def db_perform_badge_transfer(active_trade):
             ON t.id = %s AND t_o.trade_id = t.id AND t_o.badge_filename = b_i.badge_filename
     '''
     vals = (trade_id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
     # Delete Offered Badges from Requestor
     sql = '''
@@ -1743,28 +1742,25 @@ def db_perform_badge_transfer(active_trade):
           WHERE (t.id = %s AND t.requestor_id = %s AND b.user_discord_id = %s)
     '''
     vals = (trade_id, requestor_id, requestor_id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_complete_trade(active_trade):
+async def db_complete_trade(active_trade):
   trade_id = active_trade['id']
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "UPDATE trades SET status = 'complete' WHERE id = %s"
     vals = (trade_id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_decline_trade(active_trade):
+async def db_decline_trade(active_trade):
   trade_id = active_trade['id']
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "UPDATE trades SET status = 'declined' WHERE id = %s"
     vals = (trade_id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_get_related_badge_trades(active_trade):
+async def db_get_related_badge_trades(active_trade):
   active_trade_id = active_trade["id"]
-  requestee_id = active_trade["requestee_id"]
-  requestor_id = active_trade["requestor_id"]
-
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     # All credit for this query to Danma! Praise be!!!
     sql = '''
       SELECT t.*
@@ -1797,33 +1793,33 @@ def db_get_related_badge_trades(active_trade):
       GROUP BY t.id
     '''
     vals = (active_trade_id, active_trade_id)
-    query.execute(sql, vals)
-    trades = query.fetchall()
+    await query.execute(sql, vals)
+    trades = await query.fetchall()
   return trades
 
-def db_is_user_in_dtd_list(user_discord_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_is_user_in_dtd_list(user_discord_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT user_discord_id FROM down_to_dabo WHERE user_discord_id = %s LIMIT 1"
     vals = (user_discord_id,)
-    query.execute(sql, vals)
-    id = query.fetchone()
+    await query.execute(sql, vals)
+    id = await query.fetchone()
   return id
 
-def db_get_dtd_rows():
-  with AgimusDB(dictionary=True) as query:
+async def db_get_dtd_rows():
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM down_to_dabo"
-    query.execute(sql)
-    rows = query.fetchall()
+    await query.execute(sql)
+    rows = await query.fetchall()
   return rows
 
-def db_reset_user_dtd_weight(selected_user_id):
-  with AgimusDB() as query:
+async def db_reset_user_dtd_weight(selected_user_id):
+  async with AgimusDB() as query:
     sql = "UPDATE down_to_dabo SET weight = 1 WHERE user_discord_id = %s"
     vals = (selected_user_id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_increment_user_dtd_weight(user_discord_id):
-  with AgimusDB() as query:
+async def db_increment_user_dtd_weight(user_discord_id):
+  async with AgimusDB() as query:
     sql = "UPDATE down_to_dabo SET weight = weight + 1 WHERE user_discord_id = %s"
     vals = (user_discord_id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)

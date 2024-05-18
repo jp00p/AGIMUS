@@ -10,7 +10,7 @@ async def scores(ctx:discord.ApplicationContext):
   """
   This function is the main entrypoint of the /scores command
   """
-  scores = get_high_scores()
+  scores = await db_get_high_scores()
   # table = []
   # table.append(["SCORE", "NAME", "SPINS", "JACKPOTS"])
   embed = discord.Embed(
@@ -30,12 +30,12 @@ async def scores(ctx:discord.ApplicationContext):
   await ctx.respond(embed=embed)
 
 
-def get_high_scores():
+async def db_get_high_scores():
   """
   returns the top 25 users ordered by their score value
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM users ORDER BY score DESC LIMIT 25"
-    query.execute(sql)
-    scores = query.fetchall()
+    await query.execute(sql)
+    scores = await query.fetchall()
   return scores

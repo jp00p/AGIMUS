@@ -9,8 +9,6 @@ from utils.badge_utils import *
 from utils.check_channel_access import access_check
 from utils.string_utils import *
 
-all_badge_info = db_get_all_badge_info()
-
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
 #  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \
@@ -18,17 +16,16 @@ all_badge_info = db_get_all_badge_info()
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
 async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
-  return [badge['badge_name'] for badge in all_badge_info if ctx.value.lower() in badge['badge_name'].lower()]
+  return [badge['badge_name'] for badge in await db_get_all_badge_info() if ctx.value.lower() in badge['badge_name'].lower()]
 
 async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
   first_badge = ctx.options["first_badge"]
   second_badge = ctx.options["second_badge"]
   third_badge = ctx.options["third_badge"]
 
-  user_badges = db_get_user_unlocked_badges(ctx.interaction.user.id)
+  user_badges = await db_get_user_unlocked_badges(ctx.interaction.user.id)
 
-  filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in SPECIAL_BADGES]
-
+  filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in await db_get_special_badges()]
   filtered_badge_names = [badge['badge_name'] for badge in user_badges if badge['badge_name'] not in filtered_badges]
 
   return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
@@ -113,21 +110,21 @@ badge_group = bot.create_group("badges", "Badge Commands!")
 )
 async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortby:str, color:str):
   public = (public == "yes")
-  await ctx.defer(ephemeral=True)
+  await ctx.defer(ephemeral=not public)
 
   if filter is not None:
     if filter == 'unlocked':
       title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection - Unlocked"
-      user_badges = db_get_user_unlocked_badges(ctx.author.id)
+      user_badges = await db_get_user_unlocked_badges(ctx.author.id)
     elif filter == 'locked':
       title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection - Locked"
-      user_badges = db_get_user_locked_badges(ctx.author.id)
+      user_badges = await db_get_user_locked_badges(ctx.author.id)
     elif filter == 'special':
       title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection - Special"
-      user_badges = db_get_user_special_badges(ctx.author.id)
+      user_badges = await db_get_user_special_badges(ctx.author.id)
   else:
     title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection"
-    user_badges = db_get_user_badges(ctx.author.id, sortby)
+    user_badges = await db_get_user_badges(ctx.author.id, sortby)
 
   if not user_badges:
     await ctx.followup.send(embed=discord.Embed(
@@ -139,7 +136,7 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
     return
 
   # Set up text values for paginated pages
-  total_badges_cnt = len(all_badge_info)
+  total_badges_cnt = len(await db_get_all_badge_info())
   user_badges_cnt = len(user_badges)
   collected = f"{user_badges_cnt} TOTAL ON THE USS HOOD"
   filename_prefix = f"badge_list_{ctx.author.id}-page-"
@@ -155,7 +152,7 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
       title += " - Title First"
 
   if color:
-    db_set_user_badge_page_color_preference(ctx.author.id, "showcase", color)
+    await db_set_user_badge_page_color_preference(ctx.author.id, "showcase", color)
   badge_images = await generate_paginated_badge_images(ctx.author, 'showcase', user_badges, total_badges_cnt, title, collected, filename_prefix)
 
   embed = discord.Embed(
@@ -189,19 +186,14 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
     )
     await paginator.respond(ctx.interaction, ephemeral=True)
   else:
-    await ctx.followup.send(embed=discord.Embed(
-        title="Badges Showcase Request Acknowledged!",
-        color=discord.Color.blurple()
-      )
-    )
     # We can only attach up to 10 files per message, so if it's public send them in chunks
     file_chunks = [badge_images[i:i + 10] for i in range(0, len(badge_images), 10)]
     for chunk_index, chunk in enumerate(file_chunks):
       # Only post the embed on the last chunk
       if chunk_index + 1 == len(file_chunks):
-        await ctx.channel.send(embed=embed, files=chunk)
+        await ctx.followup.send(embed=embed, files=chunk)
       else:
-        await ctx.channel.send(files=chunk)
+        await ctx.followup.send(files=chunk)
 
 
 #   _________       __
@@ -275,17 +267,17 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
   category_title = category.replace("_", " ").title()
 
   if category == 'affiliation':
-    user_set_badges = db_get_badges_user_has_from_affiliation(ctx.author.id, selection)
-    all_set_badges = db_get_all_affiliation_badges(selection)
+    user_set_badges = await db_get_badges_user_has_from_affiliation(ctx.author.id, selection)
+    all_set_badges = await db_get_all_affiliation_badges(selection)
   elif category == 'franchise':
-    user_set_badges = db_get_badges_user_has_from_franchise(ctx.author.id, selection)
-    all_set_badges = db_get_all_franchise_badges(selection)
+    user_set_badges = await db_get_badges_user_has_from_franchise(ctx.author.id, selection)
+    all_set_badges = await db_get_all_franchise_badges(selection)
   elif category == 'time_period':
-    user_set_badges = db_get_badges_user_has_from_time_period(ctx.author.id, selection)
-    all_set_badges = db_get_all_time_period_badges(selection)
+    user_set_badges = await db_get_badges_user_has_from_time_period(ctx.author.id, selection)
+    all_set_badges = await db_get_all_time_period_badges(selection)
   elif category == 'type':
-    user_set_badges = db_get_badges_user_has_from_type(ctx.author.id, selection)
-    all_set_badges = db_get_all_type_badges(selection)
+    user_set_badges = await db_get_badges_user_has_from_type(ctx.author.id, selection)
+    all_set_badges = await db_get_all_type_badges(selection)
   else:
     await ctx.followup.send("Select a category", ephemeral=True)
     return
@@ -301,7 +293,7 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
 
   set_badges = []
   for badge in all_set_badges:
-    result = db_get_badge_locked_status_by_name(ctx.author.id, badge['badge_name'])
+    result = await db_get_badge_locked_status_by_name(ctx.author.id, badge['badge_name'])
     locked = result['locked'] if result else False
     record = {
       'badge_name': badge['badge_name'],
@@ -313,7 +305,7 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
     set_badges.append(record)
 
   user_set_badge_cnt = len([b for b in set_badges if b['in_user_collection']])
-  user_all_badge_cnt = db_get_badge_count_for_user(ctx.author.id)
+  user_all_badge_cnt = await db_get_badge_count_for_user(ctx.author.id)
 
   # Set up text values for paginated pages
   title = f"{remove_emoji(ctx.author.display_name)}'s Badge Set: {category_title} - {selection}"
@@ -321,7 +313,7 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
   filename_prefix = f"badge_set_{ctx.author.id}_{selection.lower().replace(' ', '-').replace('/', '-')}-page-"
 
   if color:
-    db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
+    await db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
   badge_images = await generate_paginated_badge_images(ctx.author, 'sets', set_badges, user_all_badge_cnt, title, collected, filename_prefix)
 
   embed = discord.Embed(
@@ -429,19 +421,19 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
   await ctx.defer(ephemeral=not public)
 
   all_badges = os.listdir("./images/badges/")
-  user_badges = db_get_user_badges(ctx.author.id)
+  user_badges = await db_get_user_badges(ctx.author.id)
 
   # Pull data using the queries.
   all_rows = []
   if category == 'affiliation':
-    all_rows = queries_badge_completion.by_affiliation(ctx.author.id)
+    all_rows = await queries_badge_completion.by_affiliation(ctx.author.id)
   elif category == 'franchise':
-    all_rows = queries_badge_completion.by_franchise(ctx.author.id)
+    all_rows = await queries_badge_completion.by_franchise(ctx.author.id)
   elif category == 'time_period':
-    all_rows = queries_badge_completion.by_time_period(ctx.author.id)
+    all_rows = await queries_badge_completion.by_time_period(ctx.author.id)
   elif category == 'type':
-    all_rows = queries_badge_completion.by_type(ctx.author.id)
-  all_rows = _append_featured_completion_badges(ctx.author.id, all_rows, category)
+    all_rows = await queries_badge_completion.by_type(ctx.author.id)
+  all_rows = await _append_featured_completion_badges(ctx.author.id, all_rows, category)
 
   # Format data for the returned embed
   category_title = category.replace('_', ' ').title()
@@ -451,7 +443,7 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
   filename_prefix = f"badge_set_completion_{ctx.author.id}_affiliations-page-"
 
   if color:
-    db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
+    await db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
   completion_images = await generate_paginated_set_completion_images(ctx.author, all_rows, total_badges, title, collected, filename_prefix)
 
   embed = discord.Embed(
@@ -494,15 +486,15 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
       else:
         await ctx.followup.send(files=chunk, ephemeral=not public)
 
-def _append_featured_completion_badges(user_id, report, category):
+async def _append_featured_completion_badges(user_id, report, category):
   if category == "affiliation":
-    badges = db_get_random_badges_from_user_by_affiliations(user_id)
+    badges = await db_get_random_badges_from_user_by_affiliations(user_id)
   elif category == "franchise":
-    badges = db_get_random_badges_from_user_by_franchises(user_id)
+    badges = await db_get_random_badges_from_user_by_franchises(user_id)
   elif category == "time_period":
-    badges = db_get_random_badges_from_user_by_time_periods(user_id)
+    badges = await db_get_random_badges_from_user_by_time_periods(user_id)
   elif category == "type":
-    badges = db_get_random_badges_from_user_by_types(user_id)
+    badges = await db_get_random_badges_from_user_by_types(user_id)
   else:
     badges = {}
 
@@ -533,12 +525,12 @@ class ScrapButton(discord.ui.Button):
   async def callback(self, interaction: discord.Interaction):
     # Re-check conditions to ensure this action is still valid
     # Ensure user still owns the badges
-    user_badges = db_get_user_badges(self.user_id)
+    user_badges = await db_get_user_badges(self.user_id)
     user_badge_filenames = [b['badge_filename'] for b in user_badges]
     owned_user_badges = [b for b in self.badges_to_scrap if b['badge_filename'] in user_badge_filenames]
     # Ensure they haven't performed another scrap within the time period
     time_check_fail = True
-    last_scrap_time = db_get_scrap_last_timestamp(self.user_id)
+    last_scrap_time = await db_get_scrap_last_timestamp(self.user_id)
     if last_scrap_time:
       to_zone = tz.tzlocal()
       last_scrap_time.replace(tzinfo=to_zone)
@@ -570,15 +562,15 @@ class ScrapButton(discord.ui.Button):
       )
 
       # Cancel any existing trades that may be out requesting or offering these badges from this user
-      trades_to_cancel = db_get_trades_to_cancel_from_scrapped_badges(self.user_id, self.badges_to_scrap)
+      trades_to_cancel = await db_get_trades_to_cancel_from_scrapped_badges(self.user_id, self.badges_to_scrap)
       await _cancel_invalid_scrapped_trades(trades_to_cancel)
 
       # Do the actual scrappage
-      db_perform_badge_scrap(self.user_id, self.badge_to_add, self.badges_to_scrap)
+      await db_perform_badge_scrap(self.user_id, self.badge_to_add, self.badges_to_scrap)
 
       # Housekeeping
       # Clear any badges from the users wishlist that the user may now possess
-      db_purge_users_wishlist(self.user_id)
+      await db_purge_users_wishlist(self.user_id)
 
       # Post message about successful scrap
       scrapper_gif = await generate_badge_scrapper_result_gif(self.user_id, self.badge_to_add, self.badges_to_scrap)
@@ -676,7 +668,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   user_id = ctx.interaction.user.id
 
   selected_badges = [first_badge, second_badge, third_badge]
-  unlocked_user_badges = db_get_user_unlocked_badges(user_id)
+  unlocked_user_badges = await db_get_user_unlocked_badges(user_id)
   unlocked_user_badge_names = [b['badge_name'] for b in unlocked_user_badges]
 
   selected_user_badges = [b for b in selected_badges if b in unlocked_user_badge_names]
@@ -697,7 +689,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     ), ephemeral=True)
     return
 
-  restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in SPECIAL_BADGES]]
+  restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in await db_get_special_badges()]]
   if restricted_badges:
     await ctx.followup.send(embed=discord.Embed(
       title="Invalid Selection",
@@ -708,7 +700,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
 
   # If all basics checks pass,
   # check that they're within the allowed time window
-  last_scrap_time = db_get_scrap_last_timestamp(user_id)
+  last_scrap_time = await db_get_scrap_last_timestamp(user_id)
   if last_scrap_time:
     time_check_fail = True
 
@@ -732,8 +724,8 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
       return
 
   # If time check okay, select a new random badge
-  all_possible_badges = [b['badge_name'] for b in all_badge_info]
-  special_badge_names = [b['badge_name'] for b in SPECIAL_BADGES]
+  all_possible_badges = [b['badge_name'] for b in await db_get_all_badge_info()]
+  special_badge_names = [b['badge_name'] for b in await db_get_special_badges()]
   # Don't give them a badge they already have or a special badge
   all_user_badge_names = [b['badge_name'] for b in db_get_user_badges(user_id)]
   valid_choices = [b for b in all_possible_badges if b not in all_user_badge_names and b not in special_badge_names]
@@ -747,11 +739,11 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
 
   badge_choice = random.choice(valid_choices)
 
-  badge_to_add = db_get_badge_info_by_name(badge_choice)
-  badges_to_scrap = [db_get_badge_info_by_name(b) for b in selected_user_badges]
+  badge_to_add = await db_get_badge_info_by_name(badge_choice)
+  badges_to_scrap = [await db_get_badge_info_by_name(b) for b in selected_user_badges]
 
   # Check for wishlist badges
-  wishlist_matches_groups = [m for m in (db_get_wishlist_badge_matches(b['badge_filename']) for b in badges_to_scrap) if m]
+  wishlist_matches_groups = [m for m in (await db_get_wishlist_badge_matches(b['badge_filename']) for b in badges_to_scrap) if m]
 
   # Generate Animated Scrapper Gif
   scrapper_confirm_gif = await generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
@@ -777,7 +769,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   for wishlist_matches in wishlist_matches_groups:
     if len(wishlist_matches):
       badge_filename = wishlist_matches[0]['badge_filename']
-      badge_info = db_get_badge_info_by_filename(badge_filename)
+      badge_info = await db_get_badge_info_by_filename(badge_filename)
       users = [await bot.current_guild.fetch_member(m['user_discord_id']) for m in wishlist_matches]
       wishlist_match_embed = discord.Embed(
         title=f"The following users want {badge_info['badge_name']}",
@@ -806,14 +798,14 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
 async def _cancel_invalid_scrapped_trades(trades_to_cancel):
   # Iterate through to cancel
   for trade in trades_to_cancel:
-    db_cancel_trade(trade)
+    await db_cancel_trade(trade)
     requestee = await bot.current_guild.fetch_member(trade['requestee_id'])
     requestor = await bot.current_guild.fetch_member(trade['requestor_id'])
 
-    offered_badge_names, requested_badge_names = get_offered_and_requested_badge_names(trade)
+    offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(trade)
 
     # Give notice to Requestee
-    user = get_user(requestee.id)
+    user = await get_user(requestee.id)
     if user["receive_notifications"]:
       try:
         requestee_embed = discord.Embed(
@@ -838,7 +830,7 @@ async def _cancel_invalid_scrapped_trades(trades_to_cancel):
         pass
 
     # Give notice to Requestor
-    user = get_user(requestor.id)
+    user = await get_user(requestor.id)
     if user["receive_notifications"]:
       try:
         requestor_embed = discord.Embed(
@@ -905,7 +897,7 @@ async def badge_lookup(ctx:discord.ApplicationContext, public:str, name:str):
 
   logger.info(f"{Fore.CYAN}Firing /badge lookup command for '{name}'!{Fore.RESET}")
 
-  if name not in [b['badge_name'] for b in all_badge_info]:
+  if name not in [b['badge_name'] for b in await db_get_all_badge_info()]:
     await ctx.followup.send(
       embed=discord.Embed(
         title="Could Not Find This Badge",
@@ -915,16 +907,16 @@ async def badge_lookup(ctx:discord.ApplicationContext, public:str, name:str):
     )
     return
 
-  badge = db_get_badge_info_by_name(name)
-  badge_count = db_get_badge_count_by_filename(badge['badge_filename'])
+  badge = await db_get_badge_info_by_name(name)
+  badge_count = await db_get_badge_count_by_filename(badge['badge_filename'])
 
   affiliations = [
     a['affiliation_name']
-    for a in db_get_badge_affiliations_by_badge_name(name)
+    for a in await db_get_badge_affiliations_by_badge_name(name)
   ]
   types = [
     t['type_name']
-    for t in db_get_badge_types_by_badge_name(name)
+    for t in await db_get_badge_types_by_badge_name(name)
   ]
 
   description = f"Quadrant: **{badge['quadrant']}**\n"
@@ -963,7 +955,7 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   """
   emoji_numbers = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
   results = {}
-  results = run_badge_stats_queries()
+  results = await run_badge_stats_queries()
   total_badges = "".join(emoji_numbers[int(n)] for n in list(str(results['total_badges'][0]['count'])))
   badges_today = "".join(emoji_numbers[int(n)] for n in list(str(results['badges_today'][0]['count'])))
   top_collectors = [res for res in results["top_collectors"]]
@@ -999,7 +991,7 @@ async def badge_status(ctx:discord.ApplicationContext, name:str):
 
   logger.info(f"{Fore.CYAN}Firing /badge status command for {ctx.author.display_name} w/r/t '{name}'!{Fore.RESET}")
 
-  if name not in [b['badge_name'] for b in all_badge_info]:
+  if name not in [b['badge_name'] for b in await db_get_all_badge_info()]:
     await ctx.followup.send(
       embed=discord.Embed(
         title="Could Not Find This Badge",
@@ -1009,17 +1001,16 @@ async def badge_status(ctx:discord.ApplicationContext, name:str):
     )
     return
 
-  badge_info = db_get_badge_info_by_name(name)
-
-  user_badges = db_get_user_badges(user_discord_id)
+  badge_info = await db_get_badge_info_by_name(name)
+  user_badges = await db_get_user_badges(user_discord_id)
   if name in [b['badge_name'] for b in user_badges]:
-    locked_status = db_get_badge_locked_status_by_name(user_discord_id, name)
+    locked_status = await db_get_badge_locked_status_by_name(user_discord_id, name)
     if locked_status['locked']:
       badge_status = "Locked"
     else:
       badge_status = "Unlocked"
   else:
-    wishlist_badges = db_get_user_wishlist_badges(user_discord_id)
+    wishlist_badges = await db_get_user_wishlist_badges(user_discord_id)
     if name in [b['badge_name'] for b in wishlist_badges]:
       badge_status = "Wishlisted"
     else:
@@ -1067,7 +1058,7 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User, reason:s
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a random badge{Style.RESET_ALL} to {user.display_name}")
 
-  badge = give_user_badge(user.id)
+  badge = await give_user_badge(user.id)
   if badge is None:
     await ctx.respond(embed=discord.Embed(
       title="This user already has *ALL BADGES!?!*",
@@ -1076,13 +1067,13 @@ async def gift_badge(ctx:discord.ApplicationContext, user:discord.User, reason:s
     ), ephemeral=True)
     return
 
-  user_wishlist_badges = db_get_user_wishlist_badges(user.id)
+  user_wishlist_badges = await db_get_user_wishlist_badges(user.id)
   badge_was_on_wishlist = badge in [b['badge_filename'] for b in user_wishlist_badges]
 
   # Lock the badge if it was in their wishlist
-  db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
+  await db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
   # Remove any badges the user may have on their wishlist that they now possess
-  db_purge_users_wishlist(user.id)
+  await db_purge_users_wishlist(user.id)
 
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a free badge!"
@@ -1135,22 +1126,22 @@ async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User,
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift {specific_badge}{Style.RESET_ALL} to {user.display_name}")
 
-  badge_info = db_get_badge_info_by_name(specific_badge)
+  badge_info = await db_get_badge_info_by_name(specific_badge)
   if badge_info == None:
     await ctx.respond(f"Can't send {specific_badge}, it doesn't look like that badge exists!", ephemeral=True)
     return
   else:
-    user_badges = db_get_user_badges(user.id)
+    user_badges = await db_get_user_badges(user.id)
     badge_filename = badge_info['badge_filename']
     if specific_badge not in [b['badge_name'] for b in user_badges]:
-      user_wishlist_badges = db_get_user_wishlist_badges(user.id)
+      user_wishlist_badges = await db_get_user_wishlist_badges(user.id)
       badge_was_on_wishlist = badge_filename in [b['badge_filename'] for b in user_wishlist_badges]
 
-      give_user_specific_badge(user.id, badge_filename)
+      await give_user_specific_badge(user.id, badge_filename)
       # Lock the badge if it was in their wishlist
-      db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge_filename])
+      await db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge_filename])
       # Remove any badges the user may have on their wishlist that they now possess
-      db_purge_users_wishlist(user.id)
+      await db_purge_users_wishlist(user.id)
 
   channel = bot.get_channel(notification_channel_id)
   embed_title = "You got rewarded a badge!"
@@ -1176,7 +1167,7 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
 
   if badge_filename != None:
-    badge_info = db_get_badge_info_by_filename(badge_filename)
+    badge_info = await db_get_badge_info_by_filename(badge_filename)
     badge_name = badge_info['badge_name']
     badge_url = badge_info['badge_url']
 
@@ -1207,32 +1198,32 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
 
-def give_user_badge(user_discord_id:int):
+async def give_user_badge(user_discord_id:int):
   """ pick a badge, update badges DB, return badge name """
   # list files in images/badges directory
   badges = os.listdir("./images/badges/")
   # get the users current badges
   user_badges = [b['badge_filename'] for b in db_get_user_badges(user_discord_id)]
-  special_badge_filenames = [b['badge_filename'] for b in SPECIAL_BADGES]
+  special_badge_filenames = [b['badge_filename'] for b in await db_get_special_badges()]
   valid_choices = [b for b in badges if b not in user_badges and b not in special_badge_filenames]
   if len(valid_choices) == 0:
     return None
 
   badge_choice = random.choice(valid_choices)
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
     vals = (user_discord_id, badge_choice)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
   return badge_choice
 
-def give_user_specific_badge(user_discord_id:int, badge_choice:str):
-  with AgimusDB() as query:
+async def give_user_specific_badge(user_discord_id:int, badge_choice:str):
+  async with AgimusDB() as query:
     sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
     vals = (user_discord_id, badge_choice)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
   return badge_choice
 
-def run_badge_stats_queries():
+async def run_badge_stats_queries():
   queries = {
     "total_badges" : "SELECT COUNT(id) as count FROM badges;",
     "badges_today" : "SELECT COUNT(id) as count FROM badges WHERE time_created > NOW() - INTERVAL 1 DAY;",
@@ -1242,9 +1233,9 @@ def run_badge_stats_queries():
   }
 
   results = {}
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     # Run most collected while filtering out special badges
-    special_badge_filenames = [b['badge_filename'] for b in SPECIAL_BADGES]
+    special_badge_filenames = [b['badge_filename'] for b in await db_get_special_badges()]
     format_strings = ','.join(['%s'] * len(special_badge_filenames))
     sql = '''
       SELECT b_i.badge_name, COUNT(b.id) AS count
@@ -1256,20 +1247,20 @@ def run_badge_stats_queries():
           ORDER BY count
           DESC LIMIT 5;
     '''
-    query.execute(sql % format_strings, tuple(special_badge_filenames))
-    results["most_collected"] = query.fetchall()
+    await query.execute(sql % format_strings, tuple(special_badge_filenames))
+    results["most_collected"] = await query.fetchall()
 
     # Run remaining queries
     for name,sql in queries.items():
-      query.execute(sql)
-      results[name] = query.fetchall()
+      await query.execute(sql)
+      results[name] = await query.fetchall()
 
   return results
 
 
-def db_get_trades_to_cancel_from_scrapped_badges(user_id, badges_to_scrap):
+async def db_get_trades_to_cancel_from_scrapped_badges(user_id, badges_to_scrap):
   badge_filenames = [b['badge_filename'] for b in badges_to_scrap]
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     # All credit for this query to Danma! Praise be!!!
     sql = '''
       SELECT t.*
@@ -1287,6 +1278,6 @@ def db_get_trades_to_cancel_from_scrapped_badges(user_id, badges_to_scrap):
       user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2],
       user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2]
     )
-    query.execute(sql, vals)
-    trades = query.fetchall()
+    await query.execute(sql, vals)
+    trades = await query.fetchall()
   return trades

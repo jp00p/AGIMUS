@@ -28,7 +28,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
     return
 
   channel = bot.get_channel(payload.channel_id)
-  if channel.type != discord.ChannelType.text: # only textchannels work here for now (FUTURE ME: now i'm trying to remember why...)
+  if channel.type != discord.ChannelType.text: # only textchannels work here for now (we don't starboard viewscreen chat)
     return
   message = await channel.fetch_message(payload.message_id)
   reaction = payload.emoji
@@ -96,7 +96,7 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
       adjusted_react_threshold = high_react_threshold
     # finally, if this match category has enough reactions and enough people, let's save it to the starboard channel!
     if total_reacts_for_this_match >= adjusted_react_threshold and len(message_reaction_people) >= user_threshold:
-      if get_starboard_post(message.id, board) is None: # checking again just in case (might be expensive)
+      if await db_get_starboard_post(message.id, board) is None: # checking again just in case (might be expensive)
         await add_starboard_post(message, board)
         return
 
@@ -114,7 +114,7 @@ async def add_starboard_post(message, board) -> None:
   ALL_STARBOARD_POSTS.append(message.id) # add post ID to in-memory list
   board_channel_id = get_channel_id(board)
   channel = bot.get_channel(board_channel_id) # where it will be posted
-  insert_starboard_post(message.id, message.author.id, board) # add post to DB
+  await db_insert_starboard_post(message.id, message.author.id, board) # add post to DB
 
   provider_name, message_str, embed_image_url, embed_title, embed_desc, embed_thumb = ["" for i in range(6)] # initialize all the blank strings
   jumplink = f"[View original message]({message.jump_url}) from {message.channel.mention}"
@@ -218,35 +218,35 @@ async def add_starboard_post(message, board) -> None:
   logger.info(f"{Fore.RED}AGIMUS{Fore.RESET} has added {message.author.display_name}'s post to {Style.BRIGHT}{board}{Style.RESET_ALL}!")
 
 
-def insert_starboard_post(message_id, user_id, channel_id) -> None:
+async def db_insert_starboard_post(message_id, user_id, channel_id) -> None:
   """
   inserts a post into the DB - only saves the message ID, user ID and channel ID
   """
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "INSERT INTO starboard_posts (message_id, user_id, board_channel) VALUES (%s, %s, %s);"
     vals = (message_id, user_id, channel_id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def get_starboard_post(message_id, board):
+async def db_get_starboard_post(message_id, board):
   """
   returns the post's channel ID or None if not found
   """
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "SELECT board_channel FROM starboard_posts WHERE message_id = %s and board_channel = %s"
     vals = (message_id, board)
-    query.execute(sql, vals)
-    message = query.fetchone()
+    await query.execute(sql, vals)
+    message = await query.fetchone()
   return message
 
-def get_all_starboard_posts() -> list:
+async def db_get_all_starboard_posts() -> list:
   """
   returns a list of all starboard post IDs
   """
   posts = []
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT message_id FROM starboard_posts"
-    query.execute(sql)
-    for post in query.fetchall():
+    await query.execute(sql)
+    for post in await query.fetchall():
       posts.append(int(post["message_id"]))
   return posts
 

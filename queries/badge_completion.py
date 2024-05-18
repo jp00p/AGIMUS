@@ -10,12 +10,12 @@
 import math
 from common import *
 
-def execute_and_return(sql, user_id):
+async def execute_and_return(sql, user_id):
 
     # Execute query
-    with AgimusDB(dictionary=True) as query:
-      query.execute(sql, (user_id,))
-      rows = query.fetchall()
+    async with AgimusDB(dictionary=True) as query:
+        await query.execute(sql, (user_id,))
+        rows = await query.fetchall()
 
     # Deliver results
     results = [
@@ -28,7 +28,7 @@ def execute_and_return(sql, user_id):
     ]
     return results
 
-def by_affiliation(user_id):
+async def by_affiliation(user_id):
     sql = '''
       SELECT
           affiliation_name AS name,
@@ -44,9 +44,9 @@ def by_affiliation(user_id):
       GROUP BY b_a.affiliation_name
       ORDER BY percentage DESC, affiliation_name
     '''
-    return execute_and_return(sql, user_id)
+    return await execute_and_return(sql, user_id)
 
-def by_franchise(user_id):
+async def by_franchise(user_id):
     sql = '''
       SELECT
           b_i.franchise AS name,
@@ -60,9 +60,9 @@ def by_franchise(user_id):
       GROUP BY b_i.franchise
       ORDER BY percentage DESC, b_i.franchise
     '''
-    return execute_and_return(sql, user_id)
+    return await execute_and_return(sql, user_id)
 
-def by_time_period(user_id):
+async def by_time_period(user_id):
     sql = '''
       SELECT
           b_i.time_period AS name,
@@ -76,9 +76,9 @@ def by_time_period(user_id):
       GROUP BY b_i.time_period
       ORDER BY percentage DESC, b_i.time_period
     '''
-    return execute_and_return(sql, user_id)
+    return await execute_and_return(sql, user_id)
 
-def by_type(user_id):
+async def by_type(user_id):
     sql = '''
       SELECT
           type_name AS name,
@@ -94,4 +94,4 @@ def by_type(user_id):
       GROUP BY b_t.type_name
       ORDER BY percentage DESC, type_name
     '''
-    return execute_and_return(sql, user_id)
+    return await execute_and_return(sql, user_id)

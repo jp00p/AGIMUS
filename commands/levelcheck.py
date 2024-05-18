@@ -16,7 +16,7 @@ async def levelcheck(ctx:discord.ApplicationContext):
 
   if current_level >= 176:
     # High Levelers - Static Level Up Progression per Every 420 XP
-    cap_progress = get_xp_cap_progress(ctx.author.id)
+    cap_progress = await get_xp_cap_progress(ctx.author.id)
     if cap_progress is not None:
       base_xp = cap_progress
       goal_xp = 420

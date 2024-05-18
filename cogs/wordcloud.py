@@ -7,7 +7,7 @@ from utils import string_utils
 class Wordcloud(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
-    
+
     # mask images
     self.image_masks = [
       Image.open("./images/cloud_masks/combadge_mask.png"),
@@ -32,7 +32,7 @@ class Wordcloud(commands.Cog):
 
     self.common_words = string_utils.common_words
     self.more_stopwords = string_utils.more_stopwords
-    
+
     # how many messages to pull from the database
     self.max_query_limit = 1701
 
@@ -60,7 +60,7 @@ class Wordcloud(commands.Cog):
     Entrypoint for `/wordcloud` command
     generates a wordcloud image based on users most-used words
     """
-    user = get_user(ctx.author.id)
+    user = await get_user(ctx.author.id)
 
     # if they have previously disabled logging
     if user.get("log_messages") != 1:
@@ -71,7 +71,7 @@ class Wordcloud(commands.Cog):
 
     await ctx.defer(ephemeral=not public)
     # get their message data
-    user_details = self.get_wordcloud_text_for_user(ctx.author.id)
+    user_details = await self.db_get_wordcloud_text_for_user(ctx.author.id)
 
     # if they have no data yet
     if user_details is None:
@@ -89,7 +89,7 @@ class Wordcloud(commands.Cog):
     full_wordlist = re.sub(r'https?:\/\/\S*', '', full_wordlist) # strip all URLs from the content
     full_wordlist = re.sub(r'['+special_chars+']', '', full_wordlist) # strip any remaining special characters
     full_wordlist = full_wordlist.replace("  ", " ").strip() # convert double spaces to single space
-    
+
     for word in self.more_stopwords+self.common_words:
       STOPWORDS.add(word)
 
@@ -127,16 +127,16 @@ class Wordcloud(commands.Cog):
     await ctx.followup.send(content=f"(Based on your last {user_details['num_messages']} messages)", file=discord_image, ephemeral=not public)
     logger.info(f"{Style.BRIGHT}{ctx.author.display_name}{Style.RESET_ALL} has generated a {Fore.CYAN}wordcloud!{Fore.RESET}")
 
-  def get_wordcloud_text_for_user(self, user_discord_id:int):
+  async def db_get_wordcloud_text_for_user(self, user_discord_id:int):
     """
     get user's message history and return it in a dict
     """
-    with AgimusDB(dictionary=True) as query:
+    async with AgimusDB(dictionary=True) as query:
       sql = "SELECT message_history.user_discord_id, message_history.message_text as text, users.name FROM message_history LEFT JOIN users ON message_history.user_discord_id = users.discord_id WHERE message_history.user_discord_id = %s ORDER BY message_history.time_created DESC LIMIT %s"
       vals = (user_discord_id,self.max_query_limit)
-      query.execute(sql, vals)
-      results = query.fetchall()
-    
+      await query.execute(sql, vals)
+      results = await query.fetchall()
+
     if len(results) < 1:
       response = None
     else:
@@ -149,4 +149,3 @@ class Wordcloud(commands.Cog):
         # strip out duplicate words (in old messages)
         response["full_message_text"] += " " + " ".join(set(row["text"].split(" ")))
     return response
-    

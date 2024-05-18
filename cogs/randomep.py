@@ -21,13 +21,12 @@ def generate_random_ep_embed(shows):
 #    \___/   |__|\___  >\/\_//____  >
 #                    \/           \/
 class ShowSelector(discord.ui.Select):
-  def __init__(self, user_discord_id):
-    selected_shows = db_get_user_randomep_shows(user_discord_id)
+  def __init__(self, user_randomep_shows):
     options = [
       discord.SelectOption(
         label=s,
         value=s,
-        default=s in selected_shows
+        default=s in user_randomep_shows
       )
       for s in all_shows
     ]
@@ -82,7 +81,7 @@ class RollButton(discord.ui.Button):
   async def callback(self, interaction:discord.Interaction):
     if len(self.view.selected_shows):
       await interaction.response.defer(ephemeral=True)
-      db_set_user_randomep_shows(self.user_discord_id, self.view.selected_shows)
+      await db_set_user_randomep_shows(self.user_discord_id, self.view.selected_shows)
       embed = generate_random_ep_embed(self.view.selected_shows)
       logger.info(self.view.private)
       await interaction.followup.send(
@@ -99,13 +98,13 @@ class RollButton(discord.ui.Button):
       )
 
 class RandomEpSelectView(discord.ui.View):
-  def __init__(self, cog, user_discord_id):
+  def __init__(self, cog, user_discord_id, user_randomep_shows):
     super().__init__()
     self.cog = cog
     self.private = "public"
-    self.selected_shows = db_get_user_randomep_shows(user_discord_id)
+    self.selected_shows = user_randomep_shows
 
-    self.add_item(ShowSelector(user_discord_id))
+    self.add_item(ShowSelector(user_discord_id, user_randomep_shows))
     self.add_item(PublicSelector())
     self.add_item(RollButton(user_discord_id))
 
@@ -122,7 +121,9 @@ class RandomEp(commands.Cog):
   async def randomep(self, ctx: discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
 
-    view = RandomEpSelectView(self, ctx.author.id)
+    selected_shows = await db_get_user_randomep_shows(ctx.author.id)
+
+    view = RandomEpSelectView(self, ctx.author.id, selected_shows)
     embed = discord.Embed(
       title="🎲 Random Episode 🎲",
       description="Choose one or more shows!",
@@ -140,14 +141,14 @@ class RandomEp(commands.Cog):
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
-def db_get_user_randomep_shows(user_discord_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_user_randomep_shows(user_discord_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT shows FROM randomep_selections WHERE user_discord_id = %s;
     '''
     vals = (user_discord_id,)
-    query.execute(sql, vals)
-    results = query.fetchone()
+    await query.execute(sql, vals)
+    results = await query.fetchone()
 
   if results:
     results = json.loads(results['shows'])
@@ -155,9 +156,9 @@ def db_get_user_randomep_shows(user_discord_id):
     results = []
   return results
 
-def db_set_user_randomep_shows(user_discord_id, shows):
+async def db_set_user_randomep_shows(user_discord_id, shows):
   shows = json.dumps(shows)
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = '''
       INSERT INTO randomep_selections (user_discord_id, shows)
         VALUES (%s, %s)
@@ -165,4 +166,4 @@ def db_set_user_randomep_shows(user_discord_id, shows):
         user_discord_id = %s, shows = %s
     '''
     vals = (user_discord_id, shows, user_discord_id, shows)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)

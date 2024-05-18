@@ -61,7 +61,7 @@ async def drop_list(ctx: discord.ApplicationContext):
     )
     embed.set_footer(
       text=f"Page {page_idx+1} of {len(drop_pages)}", icon_url=avatar_url)
-    user = get_user(ctx.author.id)
+    user = await get_user(ctx.author.id)
     if user['receive_notifications']:
       try:
         await ctx.author.send(embed=embed)
