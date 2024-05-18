@@ -13,35 +13,57 @@ from common import *
 @option(
   name="Difficulty Class (Optional)",
   description="How high to succeed?",
-  required=True,
+  required=False,
   type=int
 )
 @option(
   name="Attribute Modifier (Optional)",
   description="Apply a modifier to the result to hit the DC? (DC is required)",
-  required=True,
+  required=False,
   type=int
 )
-async def dice(ctx:discord.ApplicationContext, sides:int, dc:int, modifier:int):
-  if isinstance(modifier, int) and not isinstance(dc, int):
+async def dice(ctx:discord.ApplicationContext, sides:int, dc=0, modifier=0):
+  if modifier and not dc:
     await ctx.respond(embed=discord.Embed(
       title=f"Difficulty Class is required if providing a modifier!",
-      color=discord.Color.red()
-    ))
+      color=discord.Color.red(),
+    ), ephemeral=True)
+    return
+  if sides <= 0:
+    await ctx.respond(embed=discord.Embed(
+      title=f"Sides must be a positive number!",
+      color=discord.Color.red(),
+    ), ephemeral=True)
+    return
+  if dc < 0:
+    await ctx.respond(embed=discord.Embed(
+      title=f"DC must be a positive number!",
+      color=discord.Color.red(),
+    ), ephemeral=True)
     return
 
+  description = "## Result: "
   result = random.randint(1, sides)
-  description = f"## Result:\n**{result}**"
-  if isinstance(dc, int):
-    if isinstance(modifier, int):
-      result = result + modifier
-    if result > dc:
+  if dc:
+    final_result = result
+    if modifier != 0:
+      final_result = result + modifier
+      description += f" **{final_result}** ({result} + ({modifier}))"
+    else:
+      description += f" **{final_result}**"
+
+    if final_result > dc:
       description += f"\n\n**SUCCESS!**\n\n(Difficulty Class: {dc})"
-    if isinstance(modifier, int):
+    else:
+      description += f"\n\n**FAIL!**\n\n(Difficulty Class: {dc})"
+
+    if modifier:
       description += f"\n(Modifier: {modifier})"
+  else:
+    description += f" **{result}**"
 
   await ctx.respond(embed=discord.Embed(
-    title=f"{ctx.author.mention} rolled a **d{sides}!**",
+    title=f"{ctx.author.display_name} rolled a **d{sides}!** 🎲",
     description=description,
     color=discord.Color.blurple()
   ))

@@ -161,7 +161,10 @@ def seed_db():
   with AgimusDB(buffered=True) as query:
     with open(DB_SEED_FILEPATH, 'r') as f:
       seed = f.read()
-      query.execute(seed, multi=True)
+      generator = query.execute(seed, multi=True)
+      for cur in generator:
+        # Need to iterate through the generator with a no-op to advance processing
+        pass
 
   with AgimusDB(dictionary=True) as query:
     # If the jackpot table is empty, set an initial pot value to 250

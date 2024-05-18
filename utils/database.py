@@ -1,27 +1,22 @@
 import mysql.connector
 from common import *
 
-class AgimusDB():
-  """Database wrapper for AGIMUS
+dbconfig = {
+  "host": DB_HOST,
+  "user": DB_USER,
+  "database": DB_NAME,
+  "password": DB_PASS
+}
 
-  utilizes context managers for less repeating code.
+connection_pool = mysql.connector.pooling.MySQLConnectionPool(
+  pool_name="agimuspool",
+  pool_size=8,
+  **dbconfig
+)
 
-  ----
-  Usage: 
-  ```
-  with AgimusDB() as query:
-    sql = "INSERT INTO table (col) VALUES (%s)"
-    vals = (user_id,)
-    query.execute(sql, vals)
-  ```
-  
-  ----
-  Returns:
+class AgimusDB:
+  """Database wrapper for AGIMUS with connection pooling"""
 
-  `mysql.connection.Cursor`
-    A self-closing cursor to work with
-
-  """
   def __init__(self, dictionary=False, buffered=False, multi=False):
     self.db = None
     self.cursor = None
@@ -30,28 +25,23 @@ class AgimusDB():
     self.multi = multi
 
   def __enter__(self):
-    """ context manager opening """
-    self.db = mysql.connector.connect(
-      host=DB_HOST,
-      user=DB_USER,
-      database=DB_NAME,
-      password=DB_PASS
-    )
-    self.cursor = self.db.cursor(
-      dictionary=self.dictionary,
-      buffered=self.buffered
-    )
+    self.db = connection_pool.get_connection()
+    self.cursor = self.db.cursor(dictionary=self.dictionary, buffered=self.buffered)
     return self.cursor
 
-  def __exit__(self, exc_class, exc, traceback):
-    """ context manager closing """
-    if not self.buffered: 
-      self.db.commit()
-    self.cursor.close()
-    self.db.close()
-
-  def __del__(self):
+  def __exit__(self, exc_type, exc_val, exc_tb):
     if self.cursor:
       self.cursor.close()
     if self.db:
+      if exc_type is None:
+        self.db.commit()
       self.db.close()
+
+  def __del__(self):
+    if hasattr(self, 'cursor') and self.cursor:
+      self.cursor.close()
+    if hasattr(self, 'db') and self.db:
+      try:
+        self.db.close()
+      except:
+        pass
