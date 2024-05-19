@@ -11,20 +11,16 @@ from utils.database import AgimusDB
 
 react_threshold = 3 # how many reactions required
 high_react_threshold = 5
-argus_threshold = 10 # not being used yet
 user_threshold = 3 # how many users required
 
 async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> None:
   board_patterns = generate_board_compiled_patterns(config["handlers"]["starboard"]["boards"])
   blocked_channels = get_channel_ids_list(config["handlers"]["starboard"]["blocked_channels"])
-  boards = get_channel_ids_list(board_patterns.keys())
+  board_ids = get_channel_ids_list(board_patterns.keys())
   high_react_channel_ids = get_channel_ids_list(config["handlers"]["starboard"]["high_react_channels"])
 
-  if payload.message_id in ALL_STARBOARD_POSTS:
-    return
-
   # don't watch the actual starboard channels, or if the react came from the bot itself, eject
-  if payload.channel_id in boards or payload.member.bot:
+  if payload.channel_id in board_ids or payload.member.bot:
     return
 
   channel = bot.get_channel(payload.channel_id)
@@ -47,7 +43,9 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
   # here we loop over each board and then each word that board has
   # the words will be in the emoji name, not the message text
   for board, match_reacts in board_patterns.items():
-    #logger.info(f"CHECKING {board}")
+    board_posts = ALL_STARBOARD_POSTS.get(board)
+    if board_posts is not None and payload.message_id in board_posts:
+      continue
 
     if payload.channel_id in blocked_channels:
       # We're looking at a message from a globally blocked channel, check overrides
@@ -111,7 +109,10 @@ async def add_starboard_post(message, board) -> None:
     return
 
   await increment_user_xp(message.author, 2, "starboard_post", message.channel, "Getting a Clip Show Device post") # give em that sweet sweet xp first
-  ALL_STARBOARD_POSTS.append(message.id) # add post ID to in-memory list
+  if ALL_STARBOARD_POSTS.get(board) is None:
+    ALL_STARBOARD_POSTS[board] = []
+  ALL_STARBOARD_POSTS[board].append(int(message.id))
+
   board_channel_id = get_channel_id(board)
   channel = bot.get_channel(board_channel_id) # where it will be posted
   await db_insert_starboard_post(message.id, message.author.id, board) # add post to DB
@@ -242,12 +243,14 @@ async def db_get_all_starboard_posts() -> list:
   """
   returns a list of all starboard post IDs
   """
-  posts = []
+  posts = {}
   async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT message_id FROM starboard_posts"
+    sql = "SELECT board_channel, message_id FROM starboard_posts"
     await query.execute(sql)
-    for post in await query.fetchall():
-      posts.append(int(post["message_id"]))
+    for result in await query.fetchall():
+      if posts.get(result['board_channel']) is None:
+        posts[result['board_channel']] = []
+      posts[result['board_channel']].append(int(result["message_id"]))
   return posts
 
 

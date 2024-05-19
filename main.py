@@ -155,7 +155,7 @@ async def on_ready():
     global ALL_STARBOARD_POSTS
 
     ALL_STARBOARD_POSTS = await db_get_all_starboard_posts()
-    number_of_starboard_posts = len(ALL_STARBOARD_POSTS)
+    number_of_starboard_posts = sum([len(ALL_STARBOARD_POSTS[p]) for p in ALL_STARBOARD_POSTS])
     for emoji in bot.emojis:
       config["all_emoji"][emoji.name] = emoji
 

@@ -6,7 +6,7 @@ from handlers.xp import get_user_xp, get_xp_cap_progress, calculate_xp_for_next_
   description="Display how close to your next level you are"
 )
 async def levelcheck(ctx:discord.ApplicationContext):
-  user_xp_data = get_user_xp(ctx.author.id)
+  user_xp_data = await get_user_xp(ctx.author.id)
   current_xp = user_xp_data["xp"]
   current_level = user_xp_data["level"]
 

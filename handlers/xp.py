@@ -174,7 +174,8 @@ async def handle_rank_xp_promotion(message, xp):
     if role.name == ensign_role_name:
       ensign_role = role
 
-  user_xp = await get_user_xp(message.author.id).get("xp") # second element of tuple is the xp
+  xp_record = await get_user_xp(message.author.id)
+  user_xp = xp_record.get("xp")
 
   if cadet_role_name not in author_role_names:
     # if they don't have cadet yet and they are over the required xp, give it to them

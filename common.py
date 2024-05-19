@@ -63,7 +63,7 @@ LOG = []
 config = get_config()
 tmdb.API_KEY = os.getenv('TMDB_KEY')
 
-ALL_STARBOARD_POSTS = []
+ALL_STARBOARD_POSTS = {}
 BOT_NAME = f"{Fore.LIGHTRED_EX}AGIMUS{Fore.RESET}"
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 TMDB_IMG_PATH = "https://image.tmdb.org/t/p/original"
@@ -157,6 +157,8 @@ def getDB():
 # with an opening pot of 250
 async def seed_db():
   with warnings.catch_warnings():
+    # This likes to throw lots of warnings that the tables already exist
+    # from the
     warnings.simplefilter("ignore", category=aiomysql.Warning)
 
     with open(DB_SEED_FILEPATH, 'r') as f:
