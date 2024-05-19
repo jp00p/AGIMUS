@@ -523,7 +523,7 @@ class Profile(commands.Cog):
       return "Cleared Profile Photo"
 
     # Check to make sure they own the photo
-    user_photos = [s['item_name'] for s in db_get_user_profile_photos_from_inventory(ctx.author.id)] + ['None']
+    user_photos = [s['item_name'] for s in await db_get_user_profile_photos_from_inventory(ctx.author.id)] + ['None']
     if photo not in user_photos:
       await ctx.respond(embed=discord.Embed(
         title="Unable To Set Featured PADD Photo",
@@ -553,7 +553,7 @@ class Profile(commands.Cog):
       return "Cleared Profile Sticker"
 
     # Check to make sure they own the sticker
-    user_stickers = [s['item_name'] for s in db_get_user_profile_stickers_from_inventory(ctx.author.id)] + ['Default']
+    user_stickers = [s['item_name'] for s in await db_get_user_profile_stickers_from_inventory(ctx.author.id)] + ['Default']
     if sticker not in user_stickers:
       await ctx.respond(embed=discord.Embed(
         title="Unable To Set Featured PADD Sticker",

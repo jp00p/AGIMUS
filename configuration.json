@@ -479,6 +479,12 @@
       "parameters": [],
       "error_contact_id": 735658100958298154
     },
+    "episode_info": {
+      "channels": [],
+      "enabled": true,
+      "data": "data/info.json",
+      "parameters": []
+    },
     "fmk": {
       "channels": [
         "after-dinner-conversation"
@@ -552,34 +558,6 @@
       "enabled": true,
       "data": null,
       "parameters": []
-    },
-    "info": {
-      "channels": [],
-      "enabled": true,
-      "data": "data/info.json",
-      "parameters": [
-        {
-          "name": "show",
-          "allowed": [
-            "tng",
-            "voy",
-            "ds9",
-            "friends",
-            "firefly",
-            "simpsons",
-            "enterprise",
-            "tos",
-            "lowerdecks",
-            "disco",
-            "picard",
-            "prodigy",
-            "snw",
-            "tas",
-            "sunny"
-          ],
-          "required": false
-        }
-      ]
     },
     "nasa": {
       "channels": [

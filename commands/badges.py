@@ -727,7 +727,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   all_possible_badges = [b['badge_name'] for b in await db_get_all_badge_info()]
   special_badge_names = [b['badge_name'] for b in await db_get_special_badges()]
   # Don't give them a badge they already have or a special badge
-  all_user_badge_names = [b['badge_name'] for b in db_get_user_badges(user_id)]
+  all_user_badge_names = [b['badge_name'] for b in await db_get_user_badges(user_id)]
   valid_choices = [b for b in all_possible_badges if b not in all_user_badge_names and b not in special_badge_names]
   if len(valid_choices) == 0:
     await ctx.respond(embed=discord.Embed(
@@ -743,7 +743,8 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   badges_to_scrap = [await db_get_badge_info_by_name(b) for b in selected_user_badges]
 
   # Check for wishlist badges
-  wishlist_matches_groups = [m for m in (await db_get_wishlist_badge_matches(b['badge_filename']) for b in badges_to_scrap) if m]
+  wishlist_matches = [await db_get_wishlist_badge_matches(b['badge_filename']) for b in badges_to_scrap]
+  wishlist_matches_groups = [m for m in wishlist_matches if m]
 
   # Generate Animated Scrapper Gif
   scrapper_confirm_gif = await generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
@@ -1203,7 +1204,7 @@ async def give_user_badge(user_discord_id:int):
   # list files in images/badges directory
   badges = os.listdir("./images/badges/")
   # get the users current badges
-  user_badges = [b['badge_filename'] for b in db_get_user_badges(user_discord_id)]
+  user_badges = [b['badge_filename'] for b in await db_get_user_badges(user_discord_id)]
   special_badge_filenames = [b['badge_filename'] for b in await db_get_special_badges()]
   valid_choices = [b for b in badges if b not in user_badges and b not in special_badge_filenames]
   if len(valid_choices) == 0:

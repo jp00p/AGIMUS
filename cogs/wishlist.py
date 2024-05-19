@@ -497,7 +497,14 @@ class Wishlist(commands.Cog):
         await paginator.respond(ctx.interaction, ephemeral=True)
 
       all_dismissed = False
-      await acknowledgement_followup.delete()
+      await acknowledgement_followup.edit(
+        embed=discord.Embed(
+          title="Wishlist Matches Listed!",
+          description="BEHOLD!",
+          color=discord.Color.blurple()
+        ),
+        ephemeral=True
+      )
 
     else:
       await acknowledgement_followup.edit(

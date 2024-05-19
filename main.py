@@ -15,7 +15,7 @@ from commands.fmk import fmk
 from commands.food_war import food_war
 #from commands.gifbomb import gifbomb
 from commands.help import help
-from commands.info import info
+from commands.episode_info import episode_info
 from commands.levelcheck import levelcheck
 from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
@@ -343,7 +343,7 @@ async def on_application_command_error(ctx, error):
   if cog:
       if cog._get_overridden_method(cog.cog_command_error) is not None:
           return
-  if isinstance(error, commands.errors.CheckFailure):
+  if isinstance(error, discord.errors.CheckFailure):
     # We don't care about check errors,
     # it means the check is succeeding in blocking access
     pass
@@ -362,7 +362,7 @@ async def on_command_error(ctx, error):
   if cog:
       if cog._get_overridden_method(cog.cog_command_error) is not None:
           return
-  if isinstance(error, commands.errors.CheckFailure):
+  if isinstance(error, discord.errors.CheckFailure):
     # We don't care about check errors,
     # it means the check is succeeding in blocking access
     pass

@@ -22,25 +22,31 @@ from common import *
   required=False,
   type=int
 )
-async def dice(ctx:discord.ApplicationContext, sides:int, dc=0, modifier=0):
+async def dice(ctx:discord.ApplicationContext, sides:int, dc, modifier):
   if modifier and not dc:
     await ctx.respond(embed=discord.Embed(
       title=f"Difficulty Class is required if providing a modifier!",
       color=discord.Color.red(),
     ), ephemeral=True)
     return
-  if sides <= 0:
-    await ctx.respond(embed=discord.Embed(
-      title=f"Sides must be a positive number!",
-      color=discord.Color.red(),
-    ), ephemeral=True)
-    return
-  if dc < 0:
-    await ctx.respond(embed=discord.Embed(
-      title=f"DC must be a positive number!",
-      color=discord.Color.red(),
-    ), ephemeral=True)
-    return
+  if sides:
+    sides = int(sides)
+    if sides <= 0:
+      await ctx.respond(embed=discord.Embed(
+        title=f"Sides must be a positive number!",
+        color=discord.Color.red(),
+      ), ephemeral=True)
+      return
+  if dc:
+    dc = int(dc)
+    if dc < 0:
+      await ctx.respond(embed=discord.Embed(
+        title=f"DC must be a positive number!",
+        color=discord.Color.red(),
+      ), ephemeral=True)
+      return
+  if modifier:
+    modifier = int(modifier)
 
   description = "## Result: "
   result = random.randint(1, sides)

@@ -1,8 +1,27 @@
 from common import *
 from utils.show_utils import get_show_embed
 
-all_shows = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "lowerdecks", "disco", "picard", "prodigy", "snw",
+all_shows = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "disco", "picard", "lowerdecks", "prodigy", "snw",
              "friends", "firefly", "simpsons", "sunny"]
+
+all_show_labels = {
+  "tos": 'Star Trek: The Original Series',
+  "tas": 'Star Trek: The Animated Series',
+  "tng": "Star Trek: The Next Generation",
+  "ds9": "Star Trek: Deep Space Nine",
+  "voy": "Star Trek: Voyager",
+  "enterprise": "Star Trek: Enterprise",
+  "disco": "Star Trek: Discovery",
+  "picard": "Star Trek: Picard",
+  "lowerdecks": "Star Trek: Lower Decks",
+  "snw": "Star Trek: Strange New Worlds",
+  "prodigy": "Star Trek Prodigy",
+  "friends": "Friends",
+  "firefly": "Firefly",
+  "simpsons": "The Simpsons",
+  "sunny": "It's Always Sunny In Philadelphia"
+}
+
 
 # Util
 def generate_random_ep_embed(shows):
@@ -24,11 +43,11 @@ class ShowSelector(discord.ui.Select):
   def __init__(self, user_randomep_shows):
     options = [
       discord.SelectOption(
-        label=s,
+        label=all_show_labels[s],
         value=s,
         default=s in user_randomep_shows
       )
-      for s in all_shows
+      for s in all_show_labels.keys()
     ]
 
     super().__init__(
@@ -83,7 +102,6 @@ class RollButton(discord.ui.Button):
       await interaction.response.defer(ephemeral=True)
       await db_set_user_randomep_shows(self.user_discord_id, self.view.selected_shows)
       embed = generate_random_ep_embed(self.view.selected_shows)
-      logger.info(self.view.private)
       await interaction.followup.send(
         embed=embed,
         ephemeral=self.view.private == "private"
@@ -104,7 +122,7 @@ class RandomEpSelectView(discord.ui.View):
     self.private = "public"
     self.selected_shows = user_randomep_shows
 
-    self.add_item(ShowSelector(user_discord_id, user_randomep_shows))
+    self.add_item(ShowSelector(user_randomep_shows))
     self.add_item(PublicSelector())
     self.add_item(RollButton(user_discord_id))
 
