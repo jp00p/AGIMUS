@@ -338,10 +338,24 @@ class Trade(commands.Cog):
     await db_purge_users_wishlist(requestor.id)
     await db_purge_users_wishlist(requestee.id)
 
+    # Set up text differences between Dabo and Regular Confirmation Embeds
+    footer_text = f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}"
+
     if active_trade["type"] == 'dabo':
       title = "DABO COMPLETE!"
       description = f"**{requestor.display_name}** 🔄 **{requestee.display_name}**!\n\nRandomized badges transferred successfully!\n## DABO!!!"
       image_filename = "dabo_successful.jpg"
+
+      # Indicate Wishlist Dabo wins via ✨s in summary fields if Dabo-ness Achieved
+      # (99% of non-Dabo trades are wishlist related we don't really need to indicate this normally)
+      requested_wishlist_badges_received = [b for b in requested_badges if b['badge_filename'] in [w['badge_filename'] for w in requestors_previous_wishlist_badges]]
+      requested_badge_names = "\n".join([f"* {b['badge_name']}{' ✨' if b['badge_filename'] in [w['badge_filename'] for w in requested_wishlist_badges_received] else ''}" for b in requested_badges])
+
+      offered_wishlist_badges_received = [b for b in offered_badges if b['badge_filename'] in [w['badge_filename'] for w in requestees_previous_wishlist_badges]]
+      offered_badge_names = "\n".join([f"* {b['badge_name']}{' ✨' if b['badge_filename'] in [w['badge_filename'] for w in offered_wishlist_badges_received] else ''}" for b in offered_badges])
+
+      if len(requested_wishlist_badges_received) or len(offered_wishlist_badges_received):
+        footer_text += "\n\n✨ - Indicates a DABO WISHLIST WIN!"
     else:
       title = "Successful Trade!"
       description = f"**{requestor.display_name}** and **{requestee.display_name}** came to an agreement!\n\nBadges transferred successfully!"
@@ -364,7 +378,7 @@ class Trade(commands.Cog):
     success_image = discord.File(fp=f"./images/trades/assets/{image_filename}", filename=image_filename)
     success_embed.set_image(url=f"attachment://{image_filename}")
     success_embed.set_footer(
-      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      text=footer_text,
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
 
