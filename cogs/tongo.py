@@ -854,8 +854,10 @@ class Tongo(commands.Cog):
 
     player_distribution = { player_id: set() for player_id in tongo_player_ids }
     player_inventories = {}
+    player_wishlists = {}
     for player_id in tongo_player_ids:
       player_inventories[player_id] = [b['badge_filename'] for b in await db_get_user_badges(player_id)]
+      player_wishlists[player_id] = [b['badge_filename'] for b in await db_get_user_wishlist_badges(player_id)]
 
     random.shuffle(tongo_player_ids)
     random.shuffle(tongo_pot)
@@ -867,7 +869,17 @@ class Tongo(commands.Cog):
       working_pot = tongo_pot.copy()
 
       current_player_id = tongo_player_ids[turn_index % len(tongo_player_ids)]
-      current_badge = working_pot.pop(0)
+
+      # Try to find the first potential badge in the working pot from the player's wishlist
+      current_badge = None
+      for potential_badge in working_pot:
+        if potential_badge in player_wishlists[current_player_id]:
+          current_badge = potential_badge
+          working_pot.remove(current_badge)
+          break
+      # If we didn't find it from the wishlist, simply pop off the first item from the working pot instead
+      if current_badge is None:
+        current_badge = working_pot.pop(0)
 
       # logger.info(f"Current player: {current_player_id}")
 
@@ -890,9 +902,16 @@ class Tongo(commands.Cog):
               # If no more badges are available, exit
               # logger.info(f"No badges left to attempt to give to Player {current_player_id}! End the turn.")
               break
-          # If they have the badge, try the next one
-          previous_badge = current_badge
-          current_badge = working_pot.pop(0)
+          # If they have the badge, try to find next potential badge in the working pot from the player's wishlist
+          current_badge = None
+          for potential_badge in working_pot:
+            if potential_badge in player_wishlists[current_player_id]:
+              current_badge = potential_badge
+              working_pot.remove(current_badge)
+              break
+          # If we didn't find it from the wishlist, simply pop off the next item from the working pot instead
+          if current_badge is None:
+            current_badge = working_pot.pop(0)
           # logger.info(f"Player already has {previous_badge}, pop off the next one: {current_badge}")
 
       # Check if the player received a badge
