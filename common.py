@@ -149,36 +149,6 @@ def getDB():
   )
   return db
 
-# seed_db()
-# This function takes no arguments
-# and is used to seed the database if the tables
-# described in the file at $DB_SEED_FILEPATH (.env var)
-# If there is no jackpot row, it will also seed that table
-# with an opening pot of 250
-async def seed_db():
-  with warnings.catch_warnings():
-    # This likes to throw lots of warnings that the tables already exist
-    # from the
-    warnings.simplefilter("ignore", category=aiomysql.Warning)
-
-    with open(DB_SEED_FILEPATH, 'r') as f:
-      seed = f.read()
-      statements = seed.split(';')
-      async with AgimusDB() as query:
-        for statement in statements:
-          if statement.strip():
-            await query.execute(statement)
-
-    async with AgimusDB(dictionary=True) as query:
-      # If the jackpot table is empty, set an initial pot value to 250
-      await query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
-      data = await query.fetchone()
-
-    if data["total_jackpots"] == 0:
-      logger.info(f"{Fore.GREEN}SEEDING JACKPOT{Fore.RESET}")
-      async with AgimusDB() as query:
-        await query.execute("INSERT INTO jackpots (jackpot_value) VALUES (250)")
-
 def is_integer(n):
   try:
     float(n)

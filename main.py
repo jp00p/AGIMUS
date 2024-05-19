@@ -118,18 +118,6 @@ logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS
 
 DB_IS_SEEDED = False
 ALL_USERS = None
-async def _init_db_and_users():
-  global DB_IS_SEEDED
-  global ALL_USERS
-
-  if not DB_IS_SEEDED:
-    logger.info(f"{Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}CONNECTING TO DATABASE{Fore.RESET}{Style.RESET_ALL}")
-    await seed_db()
-    DB_IS_SEEDED = True
-    logger.info(f"{Style.BRIGHT}{Fore.LIGHTGREEN_EX}DATABASE CONNECTION SUCCESSFUL{Fore.RESET}{Style.RESET_ALL}")
-
-  if ALL_USERS is None:
-    ALL_USERS = dict.fromkeys(await get_all_users(), True) # used for registering new users without a db lookup
 
 @bot.event
 async def on_ready():
@@ -143,17 +131,43 @@ async def on_ready():
 
     # With Asynchronous DB we now seed the db and set up ALL_USERS here
     try:
-      await _init_db_and_users()
-    except Exception as e:
-      logger.error(f"Error during seed_db: {e}")
+      global DB_IS_SEEDED
+      if not DB_IS_SEEDED:
+        logger.info(f"{Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}CONNECTING TO DATABASE...{Fore.RESET}{Style.RESET_ALL}")
+        with warnings.catch_warnings():
+          # This likes to throw lots of warnings from the "CREATE TABLE IF NOT EXISTS"s that we don't care about
+          warnings.simplefilter("ignore", category=aiomysql.Warning)
 
+          with open(DB_SEED_FILEPATH, 'r') as f:
+            seed = f.read()
+            statements = seed.split(';')
+            async with AgimusDB() as query:
+              for statement in statements:
+                if statement.strip():
+                  await query.execute(statement)
+
+          async with AgimusDB(dictionary=True) as query:
+            # If the jackpot table is empty, set an initial pot value to 250
+            await query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
+            data = await query.fetchone()
+
+          if data["total_jackpots"] == 0:
+            logger.info(f"{Fore.GREEN}SEEDING JACKPOT{Fore.RESET}")
+            async with AgimusDB() as query:
+              await query.execute("INSERT INTO jackpots (jackpot_value) VALUES (250)")
+        DB_IS_SEEDED = True
+        logger.info(f"{Style.BRIGHT}{Fore.LIGHTGREEN_EX}DATABASE CONNECTION SUCCESSFUL!{Fore.RESET}{Style.RESET_ALL}")
+    except Exception as e:
+      logger.error(f"Error during DB Seeding: {e}")
 
     global ALL_USERS
+    if ALL_USERS is None:
+      ALL_USERS = dict.fromkeys(await get_all_users(), True) # used for registering new users without a db lookup
+
     logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX} LOGGED IN AS {bot.user} {Fore.RESET}{Back.RESET}")
     logger.info(f"{Back.RED}{Fore.LIGHTWHITE_EX} CURRENT ASSIGNMENT: {bot.guilds[0].name} (COMPLEMENT: {len(ALL_USERS)}) {Fore.RESET}{Back.RESET}")
 
     global ALL_STARBOARD_POSTS
-
     ALL_STARBOARD_POSTS = await db_get_all_starboard_posts()
     number_of_starboard_posts = sum([len(ALL_STARBOARD_POSTS[p]) for p in ALL_STARBOARD_POSTS])
     for emoji in bot.emojis:
