@@ -189,6 +189,16 @@
     "description": "Writing A Film Paper Dot Matrix Printer Sound Effect",
     "url": "https://i.imgur.com/n5fw3Xx.mp4"
   },
+  "FAJITA!": {
+    "file": "data/drops/fajita.mp4",
+    "description": "Tequila Fajita Jane. User Drop",
+    "url": "https://i.imgur.com/WkuOaFe.mp4"
+  },
+  "FAJTITTIES!": {
+    "file": "data/drops/fatitties.mp4",
+    "description": "Tequila Fajita Jane Titties. User Drop",
+    "url": "https://i.imgur.com/5XI5T5T.mp4"
+  },
   "First Contact": {
     "file": "data/drops/firstcontact.mp4",
     "description": "First Contact",
@@ -349,6 +359,11 @@
     "description": "Space Precinct. Pilot Season.",
     "url": "https://i.imgur.com/YgKG1bc.mp4"
   },
+  "Klingon Sting (Kurn Trumpets)": {
+    "file": "data/drops/klingonsting.mp4",
+    "description": "Klingon Sting Kurn Trumpets Music Klingon Empire",
+    "url": "https://i.imgur.com/3nvvXlg.mp4"
+  },
   "Leedle Leedle Lee": {
     "file": "data/drops/leedleleedlelee.mp4",
     "description": "Patrick from Spongebob: Leedle Leedle Lee.",
@@ -414,10 +429,20 @@
     "description": "Mr Mister Bucket",
     "url": "https://i.imgur.com/PBONtSF.mp4"
   },
+  "Neelix Foot Orgasm": {
+    "file": "data/drops/neelixfootorgasm.mp4",
+    "description": "Neelix Foot Massage Orgasm Ooo Gooning",
+    "url": "https://i.imgur.com/guNsySV.mp4"
+  },
   "Neutrogena T/Gel: It Works": {
     "file": "data/drops/neutrogenatgelitworks.mp4",
     "description": "Michael Dorn: Neutrogena T Gel, it works!",
     "url": "https://i.imgur.com/sWToO17.mp4"
+  },
+  "NIGHT CREW!!! ... Beer Me!": {
+    "file": "data/drops/nightcrewbeerme.mp4",
+    "description": "Picard Night Crew Robot Chicken Beer Me",
+    "url": "https://i.imgur.com/4ILEbBq.mp4"
   },
   "Not Everybody Keeps Their Genitals In The Same Place": {
     "file": "data/drops/genitalsinthesameplace.mp4",
@@ -549,6 +574,11 @@
     "description": "The AGIMUS Drop. User drop.",
     "url": "https://i.imgur.com/ZeKmQNS.mp4"
   },
+  "The AndoriRyn Drop": {
+    "file": "data/drops/theandoriryndrop.mp4",
+    "description": "The AndoriRyn Drop. User drop.",
+    "url": "https://i.imgur.com/OvapDGc.mp4"
+  },
   "The apers Drop": {
     "file": "data/drops/theapersdrop.mp4",
     "description": "The apers Drop. User drop.",
@@ -649,10 +679,10 @@
     "description": "The Erica Drop. User drop.",
     "url": "https://i.imgur.com/30Xjhnh.mp4"
   },
-  "FAJITA!": {
-    "file": "data/drops/fajita.mp4",
-    "description": "Tequila Fajita Jane. User Drop",
-    "url": "https://i.imgur.com/WkuOaFe.mp4"
+  "The Errodiel Drop": {
+    "file": "data/drops/theerrodieldrop.mp4",
+    "description": "The Errodiel Drop. User drop.",
+    "url": "https://i.imgur.com/2KGZAUC.mp4"
   },
   "The Fajita Jane Drop": {
     "file": "data/drops/thefajitajanedrop.mp4",
