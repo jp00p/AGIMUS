@@ -134,27 +134,31 @@ async def on_ready():
       global DB_IS_SEEDED
       if not DB_IS_SEEDED:
         logger.info(f"{Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}CONNECTING TO DATABASE...{Fore.RESET}{Style.RESET_ALL}")
-        with warnings.catch_warnings():
-          # This likes to throw lots of warnings from the "CREATE TABLE IF NOT EXISTS"s that we don't care about
-          warnings.simplefilter("ignore", category=aiomysql.Warning)
 
-          with open(DB_SEED_FILEPATH, 'r') as f:
-            seed = f.read()
-            statements = seed.split(';')
-            async with AgimusDB() as query:
-              for statement in statements:
-                if statement.strip():
-                  await query.execute(statement)
+        # Use legacy mysql.connector for this so we can execute the seed as multi-statement
+        db = mysql.connector.connect(
+          host=DB_HOST,
+          user=DB_USER,
+          database=DB_NAME,
+          password=DB_PASS,
+        )
+        q = db.cursor(buffered=True)
+        with open(DB_SEED_FILEPATH, 'r') as f:
+          seed = f.read()
+          q.execute(seed, multi=True)
+        q.close()
+        db.close()
 
-          async with AgimusDB(dictionary=True) as query:
-            # If the jackpot table is empty, set an initial pot value to 250
-            await query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
-            data = await query.fetchone()
+        # Now set up jackpot table if needed using standard async db wrapper
+        async with AgimusDB(dictionary=True) as query:
+          # If the jackpot table is empty, set an initial pot value to 250
+          await query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
+          data = await query.fetchone()
 
           if data["total_jackpots"] == 0:
             logger.info(f"{Fore.GREEN}SEEDING JACKPOT{Fore.RESET}")
-            async with AgimusDB() as query:
-              await query.execute("INSERT INTO jackpots (jackpot_value) VALUES (250)")
+            await query.execute("INSERT INTO jackpots (jackpot_value) VALUES (250)")
+
         DB_IS_SEEDED = True
         logger.info(f"{Style.BRIGHT}{Fore.LIGHTGREEN_EX}DATABASE CONNECTION SUCCESSFUL!{Fore.RESET}{Style.RESET_ALL}")
     except Exception as e:
