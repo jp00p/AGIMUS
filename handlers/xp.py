@@ -347,7 +347,7 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel, sou
     sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s AND xp_enabled = 1"
     vals = (amt, user.display_name, user.id)
     await query.execute(sql, vals)
-    updated = await query.rowcount
+    updated = query.rowcount
 
   if updated > 0:
     # Log xp_history

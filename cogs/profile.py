@@ -216,15 +216,6 @@ class Profile(commands.Cog):
     ]
 
     lcars_colors = []
-    # special colors just for Sara
-    admiral_colors = [
-      (255, 255, 0),
-      (0, 164, 164),
-      (200, 200, 0),
-      (0, 128, 128),
-      (200, 200, 0)
-    ]
-
     # adjust shades of colors!
     for i in range(len(profile_shades)):
       #logger.info(f"Profile colors: {profile_color[0]} {profile_color[1]} {profile_color[2]}")
@@ -234,9 +225,16 @@ class Profile(commands.Cog):
       b = sorted([profile_color[2]+profile_shades[i][2], 0, 255])[1]
       lcars_colors.append((r,g,b))
 
-    if profile_color == (12, 13, 14):
+    if top_role == "Admiral":
       # special Sara colors
-      lcars_colors = admiral_colors
+      lcars_colors  = [
+        (66, 63, 69),
+        (183, 183, 183),
+        (216, 216, 216),
+        (81, 81, 81),
+        (123, 123, 123)
+
+      ]
 
     draw = ImageDraw.Draw(base_bg) # pencil time
 
