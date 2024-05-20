@@ -284,7 +284,7 @@ async def level_up_user(user:discord.User, source_details):
     vals = (user.id,)
     await query.execute(sql, vals)
 
-  badge = give_user_badge(user.id) ## XXX - Async
+  badge = await give_user_badge(user.id)
   was_on_wishlist = False
 
   if badge != None:
