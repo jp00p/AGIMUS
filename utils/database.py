@@ -4,15 +4,17 @@ from common import *
 class AgimusDB:
   """Asynchronous Database wrapper for AGIMUS with connection pooling"""
 
+  _pool = None
+
   def __init__(self, dictionary=False):
-    self.pool = None
     self.conn = None
     self.cursor = None
     self.dictionary = dictionary
 
-  async def __aenter__(self):
-    if not self.pool:
-      self.pool = await aiomysql.create_pool(
+  @classmethod
+  async def init_pool(cls):
+    if cls._pool is None:
+      cls._pool = await aiomysql.create_pool(
         host=DB_HOST,
         port=3306,
         user=DB_USER,
@@ -20,14 +22,17 @@ class AgimusDB:
         db=DB_NAME,
         autocommit=True,
         minsize=1,
-        maxsize=5
+        maxsize=20
       )
-    self.conn = await self.pool.acquire()
+
+  async def __aenter__(self):
+    await self.init_pool()
+    self.conn = await self._pool.acquire()
     self.cursor = await self.conn.cursor(aiomysql.DictCursor if self.dictionary else aiomysql.Cursor)
     return self.cursor
 
   async def __aexit__(self, exc_type, exc_val, exc_tb):
     if self.cursor:
       await self.cursor.close()
-    if self.conn:
-      self.pool.release(self.conn)
+    if self.conn and self._pool:
+      self._pool.release(self.conn)
