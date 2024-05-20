@@ -61,15 +61,15 @@ async def reports(ctx:discord.ApplicationContext, report:str, report_style:str):
   await ctx.defer()
   try:
     if report == "xp":
-      response = generate_xp_report_card(report_style)
+      response = await generate_xp_report_card(report_style)
     elif report == "scores":
-      response = generate_scores_report_card(report_style)
+      response = await generate_scores_report_card(report_style)
     elif report == "gains":
-      response = generate_gainers_report_card(report_style)
+      response = await generate_gainers_report_card(report_style)
     elif report == "diagnostic":
-      response = generate_diagnostic_card(report_style)
+      response = await generate_diagnostic_card(report_style)
     elif report == "activity":
-      response = generate_channel_activity_report_card(report_style)
+      response = await generate_channel_activity_report_card(report_style)
     if response:
       # send an image-based report
       if report_style == "fancy":
@@ -82,66 +82,66 @@ async def reports(ctx:discord.ApplicationContext, report:str, report_style:str):
   except Exception as e:
     logger.info(traceback.format_exc())
     logger.info(f"Error generating report: {e}")
-    
 
 
-def get_xp_report():
+
+async def db_get_xp_report():
   """
   returns a dictionary of overall top xp users
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT name,level,xp FROM users ORDER BY xp DESC LIMIT 25"
-    query.execute(sql)
-    results = query.fetchall()
+    await query.execute(sql)
+    results = await query.fetchall()
   return results
 
-def get_scores_report():
+async def db_get_scores_report():
   """
   returns a dictionary of users sorted by top scores
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT name,score FROM users ORDER BY score DESC LIMIT 25"
-    query.execute(sql)
-    results = query.fetchall()
+    await query.execute(sql)
+    results = await query.fetchall()
   return results
 
-def get_channel_activity_report():
-  with AgimusDB(dictionary=True) as query:
+async def db_get_channel_activity_report():
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT SUM(amount) as xp_amount, channel_id FROM xp_history WHERE time_created > NOW() - INTERVAL 1 DAY GROUP BY channel_id ORDER BY SUM(amount) DESC LIMIT 15"
-    query.execute(sql)
-    results = query.fetchall()
+    await query.execute(sql)
+    results = await query.fetchall()
   return results
 
-def get_gainers_report():
+async def db_get_gainers_report():
   """
   returns a dictionary of users who gained the most xp in the last hour
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT xp_history.user_discord_id, SUM(xp_history.amount) as amt, users.name FROM xp_history LEFT JOIN users ON xp_history.user_discord_id = users.discord_id WHERE xp_history.time_created > now() - interval 1 hour GROUP BY users.name, xp_history.user_discord_id ORDER BY amt DESC LIMIT 25;"
-    query.execute(sql)
-    results = query.fetchall()
+    await query.execute(sql)
+    results = await query.fetchall()
   return results
-    
 
-def generate_channel_activity_report_card(type:str):
+
+async def generate_channel_activity_report_card(type:str):
   channel_names = {v:k for k,v in config["channels"].items()}
-  activity_data = get_channel_activity_report()
+  activity_data = await db_get_channel_activity_report()
   title = "AGIMUS REPORT"
   description = "Most active channels in the last day"
   rank = 1
   table = PrettyTable()
-  table.field_names = ["Rank", "Channel", "XP gains"] 
+  table.field_names = ["Rank", "Channel", "XP gains"]
   for row in activity_data:
     channel_name = channel_names[int(row["channel_id"])]
     table.add_row([rank, channel_name, row["xp_amount"]])
     rank += 1
   return generate_report_card(title, description, table, type)
 
-def generate_xp_report_card(type:str):
+async def generate_xp_report_card(type:str):
   """
   process the xp data and generate an image
   """
-  xp_data = get_xp_report()
+  xp_data = await db_get_xp_report()
   title = "AGIMUS REPORT"
   description = "Total XP Overall"
   rank = 1
@@ -154,11 +154,11 @@ def generate_xp_report_card(type:str):
   return generate_report_card(title, description, table, type)
 
 
-def generate_gainers_report_card(type:str):
+async def generate_gainers_report_card(type:str):
   """
   process the gainers data and generate an image
   """
-  gainers_data = get_gainers_report()
+  gainers_data = await db_get_gainers_report()
   title = "AGIMUS REPORT"
   description = "Top XP gains in the last hour"
   rows = []
@@ -176,29 +176,29 @@ def generate_gainers_report_card(type:str):
   return generate_report_card(title, description, table, type, rows)
 
 
-def get_num_users():
+async def db_get_num_users():
   """
   get number of users registered to the database
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "select count(id) as `num_users` from users;"
-    query.execute(sql)
-    results = query.fetchall()
+    await query.execute(sql)
+    results = await query.fetchall()
   return results
 
-def generate_diagnostic_card(type:str):
+async def generate_diagnostic_card(type:str):
   arch_info = []
   free = []
   os_info = []
   version_raw = []
   storage = []
   system_info = ""
-  num_users_raw = get_num_users()
+  num_users_raw = await db_get_num_users()
   for row in num_users_raw:
     num_users = row["num_users"]
   intro_data = [] # data that will appear above the table in the report
   with os.popen("uname -m") as line:
-    arch_info = line.readlines()  
+    arch_info = line.readlines()
   with os.popen("uname | tr [[:upper:]] [[:lower:]]") as line:
     os_info = line.readlines()
   with os.popen("free -h | grep Mem: | awk '{print $3 \"/\" $2}'") as line:
@@ -225,11 +225,11 @@ def generate_diagnostic_card(type:str):
   description = "AGIMUS System Information"
   return generate_report_card(title, description, table, type, intro_data)
 
-def generate_scores_report_card(type:str):
+async def generate_scores_report_card(type:str):
   """
   process the scores data and generate an image
   """
-  score_data = get_scores_report()
+  score_data = await db_get_scores_report()
   title = "AGIMUS REPORT"
   description = "Top scores"
   rows = []
@@ -273,25 +273,25 @@ def generate_report_card(title:str, description:str, table:PrettyTable, type:str
     image_min_width = 712
     image_min_height = 460
     additional_row_width = 0
-    
+
     # do all the base image size calculations
     row_text_height = (len(table_rows) * 18)
-    
+
     if len(additional_rows) > 0:
       row_text_height += (len(additional_rows) * 18) + 44
 
     row_text_width = len(max(table_rows, key=len).rstrip()) * 19 + 100
-    
+
     if len(additional_rows) > 0:
       additional_row_width = len(max(additional_rows, key=len).rstrip()) * 19 + 100
 
     if row_text_width > image_min_width:
       image_min_width = row_text_width
-    
+
     if additional_row_width > image_min_width:
       image_min_width = additional_row_width
-    
-    image_base_width = image_min_width + (image_padding*2) 
+
+    image_base_width = image_min_width + (image_padding*2)
     image_base_height = image_min_height + (image_padding*2) + row_text_height
 
     # done calculating size of image, now create the image
@@ -309,9 +309,9 @@ def generate_report_card(title:str, description:str, table:PrettyTable, type:str
     bl_w, bl_h = template_part_bottom_left.size
     base_image.paste(template_part_bottom_left, (image_padding, image_base_height-bl_h-image_padding), template_part_bottom_left)
     # done pasting
-    
+
     # get ready to draw a bunch of text
-    draw = ImageDraw.Draw(base_image) 
+    draw = ImageDraw.Draw(base_image)
     base_w, base_h = base_image.size
 
     # generate a bunch of fancy random numbers for the top, why not!
@@ -324,11 +324,11 @@ def generate_report_card(title:str, description:str, table:PrettyTable, type:str
       for x in range(1,6):
         random_bits[x] = random.randint(0, 999) # random int
         bit_stream[i][x] = "{:03}".format(random_bits[x]) # format the string
-      for x in [0, 6, 8]:    
+      for x in [0, 6, 8]:
         random_bits[x] = random.randint(0, 99)
-        bit_stream[i][x] = f"{random_bits[x]:02}" 
+        bit_stream[i][x] = f"{random_bits[x]:02}"
       for x in [7, 11]:
-        random_bits[x] = random.randint(0, 999) 
+        random_bits[x] = random.randint(0, 999)
         bit_stream[i][x] = f"{random_bits[x]:03}"
       random_bits[9] = "•"
       random_bits[10] = random.randint(0, 9999)

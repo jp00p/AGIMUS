@@ -60,13 +60,13 @@ async def show_nick_change_message(before, after, scope = ""):
     return
 
   # log the nickname change in the aliases table for use with /aliases
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = '''
       INSERT INTO user_aliases (user_discord_id, old_alias, new_alias)
         VALUES (%s, %s, %s)
     '''
     vals = (f"{after.id}", before.display_name, after.display_name)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
   logger.info(f"{Fore.LIGHTGREEN_EX}{before.display_name}{Fore.RESET} has changed their {scope} nickname to: {Fore.GREEN}{after.display_name}{Fore.RESET}")
   embed = discord.Embed(

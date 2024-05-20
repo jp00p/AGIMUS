@@ -39,7 +39,7 @@ async def xpinfo_channels(ctx:discord.ApplicationContext, public:str):
   public = bool(public == "yes")
 
   user_discord_id = ctx.author.id
-  xp_enabled = bool(db_get_current_xp_enabled_value(user_discord_id))
+  xp_enabled = bool(await db_get_current_xp_enabled_value(user_discord_id))
   if not xp_enabled:
     await ctx.followup.send(
       embed=discord.Embed(
@@ -57,7 +57,7 @@ async def xpinfo_channels(ctx:discord.ApplicationContext, public:str):
   await avatar.save(f"./images/profiles/{user_discord_id}_a.png")
 
   # Get Data
-  data = db_get_top_channels(user_discord_id)
+  data = await db_get_top_channels(user_discord_id)
 
   # Filter out blocked channels
   channels = {v:k for k,v in config["channels"].items()}
@@ -247,7 +247,7 @@ async def xpinfo_activity(ctx:discord.ApplicationContext, public:str):
   public = bool(public == "yes")
 
   user_discord_id = ctx.author.id
-  xp_enabled = bool(db_get_current_xp_enabled_value(user_discord_id))
+  xp_enabled = bool(await db_get_current_xp_enabled_value(user_discord_id))
   if not xp_enabled:
     await ctx.followup.send(
       embed=discord.Embed(
@@ -264,7 +264,7 @@ async def xpinfo_activity(ctx:discord.ApplicationContext, public:str):
   avatar = user_member.display_avatar.with_size(128)
   await avatar.save(f"./images/profiles/{user_discord_id}_a.png")
 
-  data = db_get_daily_activity(user_discord_id)
+  data = await db_get_daily_activity(user_discord_id)
 
   # Set up labels/values for graph
   labels = [d['dt_day'].strftime("%b %d") for d in data]
@@ -396,8 +396,8 @@ def generate_daily_activity_image(ctx, user_member, labels, values):
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
-def db_get_top_channels(user_discord_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_top_channels(user_discord_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT channel_id, count(*) AS 'total'
         FROM xp_history
@@ -408,12 +408,12 @@ def db_get_top_channels(user_discord_id):
         ORDER BY total DESC;
     '''
     vals = (user_discord_id,)
-    query.execute(sql, vals)
-    rows = query.fetchall()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
   return rows
 
-def db_get_daily_activity(user_discord_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_daily_activity(user_discord_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       WITH RECURSIVE cte AS (
         SELECT CONVERT_TZ(current_date, 'UTC', 'US/Pacific') AS dt_day
@@ -430,6 +430,6 @@ def db_get_daily_activity(user_discord_id):
       ORDER BY c.dt_day;
     '''
     vals = (user_discord_id,)
-    query.execute(sql, vals)
-    rows = query.fetchall()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
   return rows

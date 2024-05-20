@@ -36,8 +36,8 @@ def get_sticker_filename_from_name(name):
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
-def user_badges_autocomplete(ctx:discord.AutocompleteContext):
-  user_badges = [b['badge_name'] for b in db_get_user_badges(ctx.interaction.user.id)]
+async def user_badges_autocomplete(ctx:discord.AutocompleteContext):
+  user_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.interaction.user.id)]
   if len(user_badges) == 0:
     user_badges = ["You don't have any badges yet!"]
     return user_badges
@@ -47,8 +47,8 @@ def user_badges_autocomplete(ctx:discord.AutocompleteContext):
 
   return [result for result in user_badges if ctx.value.lower() in result.lower()]
 
-def user_photos_autocomplete(ctx:discord.AutocompleteContext):
-  user_photos = [s['item_name'] for s in db_get_user_profile_photos_from_inventory(ctx.interaction.user.id)]
+async def user_photos_autocomplete(ctx:discord.AutocompleteContext):
+  user_photos = [s['item_name'] for s in await db_get_user_profile_photos_from_inventory(ctx.interaction.user.id)]
   if len(user_photos) == 0:
     user_photos = ["You don't have any additional photos yet!"]
     return user_photos
@@ -58,8 +58,8 @@ def user_photos_autocomplete(ctx:discord.AutocompleteContext):
 
   return [result for result in user_photos if ctx.value.lower() in result.lower()]
 
-def user_stickers_autocomplete(ctx:discord.AutocompleteContext):
-  user_stickers = [s['item_name'] for s in db_get_user_profile_stickers_from_inventory(ctx.interaction.user.id)]
+async def user_stickers_autocomplete(ctx:discord.AutocompleteContext):
+  user_stickers = [s['item_name'] for s in await db_get_user_profile_stickers_from_inventory(ctx.interaction.user.id)]
   if len(user_stickers) == 0:
     user_stickers = ["You don't have any additional stickers yet!"]
     return user_stickers
@@ -69,8 +69,8 @@ def user_stickers_autocomplete(ctx:discord.AutocompleteContext):
 
   return [result for result in user_stickers if ctx.value.lower() in result.lower()]
 
-def user_styles_autocomplete(ctx:discord.AutocompleteContext):
-  user_styles = [s['item_name'] for s in db_get_user_profile_styles_from_inventory(ctx.interaction.user.id)]
+async def user_styles_autocomplete(ctx:discord.AutocompleteContext):
+  user_styles = [s['item_name'] for s in await db_get_user_profile_styles_from_inventory(ctx.interaction.user.id)]
   if len(user_styles) == 0:
     user_styles = ["You don't have any additional styles yet!"]
     return user_styles
@@ -80,7 +80,7 @@ def user_styles_autocomplete(ctx:discord.AutocompleteContext):
 
   return [result for result in user_styles if ctx.value.lower() in result.lower()]
 
-def photo_filters_autocomplete(ctx:discord.AutocompleteContext):
+async def photo_filters_autocomplete(ctx:discord.AutocompleteContext):
   filters = Profile.filters
   return ['random', 'none'] + filters
 
@@ -126,7 +126,7 @@ class Profile(commands.Cog):
     await ctx.defer(ephemeral=not public)
 
     member = ctx.author # discord obj
-    user = get_user(member.id) # our DB
+    user = await get_user(member.id) # our DB
     logger.info(f"{Fore.CYAN}{member.display_name} is looking at their own {Back.WHITE}{Fore.BLACK}profile card!{Back.RESET}{Fore.RESET}")
 
     # clean up username
@@ -161,7 +161,7 @@ class Profile(commands.Cog):
     spins = user["spins"]
     level = user["level"]
     xp = user["xp"]
-    badges = db_get_user_badges(member.id)
+    badges = await db_get_user_badges(member.id)
     badge_count = len(badges)
     next_level = calculate_xp_for_next_level(level)
     prev_level = 0
@@ -172,7 +172,7 @@ class Profile(commands.Cog):
 
     if level >= 176:
       # High Levelers - Static Level Up Progression per Every 420 XP
-      cap_progress = get_xp_cap_progress(ctx.author.id)
+      cap_progress = await get_xp_cap_progress(ctx.author.id)
       if cap_progress is not None:
         percent_completed = cap_progress / 420
 
@@ -216,15 +216,6 @@ class Profile(commands.Cog):
     ]
 
     lcars_colors = []
-    # special colors just for Sara
-    admiral_colors = [
-      (255, 255, 0),
-      (0, 164, 164),
-      (200, 200, 0),
-      (0, 128, 128),
-      (200, 200, 0)
-    ]
-
     # adjust shades of colors!
     for i in range(len(profile_shades)):
       #logger.info(f"Profile colors: {profile_color[0]} {profile_color[1]} {profile_color[2]}")
@@ -234,9 +225,16 @@ class Profile(commands.Cog):
       b = sorted([profile_color[2]+profile_shades[i][2], 0, 255])[1]
       lcars_colors.append((r,g,b))
 
-    if profile_color == (12, 13, 14):
+    if top_role == "Admiral":
       # special Sara colors
-      lcars_colors = admiral_colors
+      lcars_colors  = [
+        (66, 63, 69),
+        (183, 183, 183),
+        (216, 216, 216),
+        (81, 81, 81),
+        (123, 123, 123)
+
+      ]
 
     draw = ImageDraw.Draw(base_bg) # pencil time
 
@@ -294,7 +292,7 @@ class Profile(commands.Cog):
     base_bg.paste(screen_glare, (0, 0), screen_glare)
 
     # add PADD frame to whole image
-    padd_style = db_get_user_profile_style(member.id)
+    padd_style = await db_get_user_profile_style(member.id)
     frame_filename = f"padd-frame-{padd_style}.png"
 
     padd_frame = Image.open(f"./images/profiles/template_pieces/lcars/{frame_filename}").convert("RGBA")
@@ -321,11 +319,11 @@ class Profile(commands.Cog):
     # put badge on
     if len(user["badges"]) > 0 and user['badges'][0]['badge_filename']:
       badge_filename = user['badges'][0]['badge_filename']
-      user_badges = db_get_user_badges(user['discord_id'])
+      user_badges = await db_get_user_badges(user['discord_id'])
       if badge_filename not in [b['badge_filename'] for b in user_badges]:
         # Catch if the user had a badge present that they no longer have, if so clear it from the table
-        db_remove_user_profile_badge(user['discord_id'])
-        badge_info = db_get_badge_info_by_filename(badge_filename)
+        await db_remove_user_profile_badge(user['discord_id'])
+        badge_info = await db_get_badge_info_by_filename(badge_filename)
         if user["receive_notifications"]:
           try:
             await ctx.author.send(
@@ -349,7 +347,7 @@ class Profile(commands.Cog):
       photo_image = Image.open("./images/profiles/template_pieces/lcars/photo-frame.png").convert("RGBA")
       photo_content = Image.open(f"./images/profiles/polaroids/{profile_photo}.jpg").convert("RGBA")
 
-      user_filter = db_get_user_profile_photo_filter(ctx.author.id)
+      user_filter = await db_get_user_profile_photo_filter(ctx.author.id)
       if user_filter:
         if user_filter != 'random':
           photo_filter = getattr(pilgram, user_filter)
@@ -463,12 +461,12 @@ class Profile(commands.Cog):
     Users can also unset it by sending an empty string
     """
     if tagline.strip().lower() in ("", 'none'):
-      db_remove_user_profile_tagline(ctx.author.id)
+      await db_remove_user_profile_tagline(ctx.author.id)
       logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their tagline!{Style.RESET_ALL}")
       return "Your tagline has been cleared!"
     else:
       tagline = tagline[0:38].strip()
-      db_add_user_profile_tagline(ctx.author.id, tagline)
+      await db_add_user_profile_tagline(ctx.author.id, tagline)
       msg = f"Your tagline has been updated to \"{tagline}\""
       if tagline.encode('latin-1', errors='ignore').decode('latin-1') != tagline:
         msg += f'\nIt looks like you are using Unicode characters, and those might not show up.'
@@ -487,12 +485,12 @@ class Profile(commands.Cog):
     # Remove badge if desired by user
     remove = bool(badge == '[CLEAR BADGE]')
     if remove:
-      db_remove_user_profile_badge(ctx.author.id)
+      await db_remove_user_profile_badge(ctx.author.id)
       logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their profile badge!{Style.RESET_ALL}")
       return "Cleared Profile Badge"
 
     # Check to make sure they own the badge
-    user_badges = [b['badge_name'] for b in db_get_user_badges(ctx.author.id)]
+    user_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.author.id)]
     if badge not in user_badges:
       await ctx.respond(embed=discord.Embed(
         title="Unable To Set Featured Profile Badge",
@@ -502,10 +500,10 @@ class Profile(commands.Cog):
       return None
 
     # If it looks good, go ahead and add the badge to their profile
-    badge_info = db_get_badge_info_by_name(badge)
+    badge_info = await db_get_badge_info_by_name(badge)
     badge_filename = badge_info['badge_filename']
 
-    db_add_user_profile_badge(ctx.author.id, badge_filename)
+    await db_add_user_profile_badge(ctx.author.id, badge_filename)
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile badge{Style.RESET_ALL} to: {Style.BRIGHT}\"{badge}\"{Style.RESET_ALL}")
     return f"You've successfully set \"{badge}\" as your profile badge."
 
@@ -520,12 +518,12 @@ class Profile(commands.Cog):
     # Remove photo if desired by user
     remove = bool(photo == '[CLEAR PHOTO]')
     if remove:
-      db_update_user_profile_photo(ctx.author.id, "none")
+      await db_update_user_profile_photo(ctx.author.id, "none")
       logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their profile photo!{Style.RESET_ALL}")
       return "Cleared Profile Photo"
 
     # Check to make sure they own the photo
-    user_photos = [s['item_name'] for s in db_get_user_profile_photos_from_inventory(ctx.author.id)] + ['None']
+    user_photos = [s['item_name'] for s in await db_get_user_profile_photos_from_inventory(ctx.author.id)] + ['None']
     if photo not in user_photos:
       await ctx.respond(embed=discord.Embed(
         title="Unable To Set Featured PADD Photo",
@@ -535,7 +533,7 @@ class Profile(commands.Cog):
       return None
 
     # If it looks good, go ahead and change the sticker
-    db_update_user_profile_photo(ctx.author.id, photo)
+    await db_update_user_profile_photo(ctx.author.id, photo)
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile photo{Style.RESET_ALL} to: {Style.BRIGHT}\"{photo}\"{Style.RESET_ALL}")
     return f"You've successfully set your PADD photo as \"{photo}\""
 
@@ -550,12 +548,12 @@ class Profile(commands.Cog):
     # Remove sticker if desired by user
     remove = bool(sticker == '[CLEAR STICKER]')
     if remove:
-      db_update_user_profile_sticker(ctx.author.id, "none")
+      await db_update_user_profile_sticker(ctx.author.id, "none")
       logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their profile sticker!{Style.RESET_ALL}")
       return "Cleared Profile Sticker"
 
     # Check to make sure they own the sticker
-    user_stickers = [s['item_name'] for s in db_get_user_profile_stickers_from_inventory(ctx.author.id)] + ['Default']
+    user_stickers = [s['item_name'] for s in await db_get_user_profile_stickers_from_inventory(ctx.author.id)] + ['Default']
     if sticker not in user_stickers:
       await ctx.respond(embed=discord.Embed(
         title="Unable To Set Featured PADD Sticker",
@@ -565,7 +563,7 @@ class Profile(commands.Cog):
       return None
 
     # If it looks good, go ahead and change the sticker
-    db_update_user_profile_sticker(ctx.author.id, sticker)
+    await db_update_user_profile_sticker(ctx.author.id, sticker)
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile sticker{Style.RESET_ALL} to: {Style.BRIGHT}\"{sticker}\"{Style.RESET_ALL}")
     return f"You've successfully set your PADD sticker as \"{sticker}\""
 
@@ -578,7 +576,7 @@ class Profile(commands.Cog):
       return None
 
     # Check to make sure they own the style
-    user_styles = [s['item_name'] for s in db_get_user_profile_styles_from_inventory(ctx.author.id)] + ['Default']
+    user_styles = [s['item_name'] for s in await db_get_user_profile_styles_from_inventory(ctx.author.id)] + ['Default']
     if style not in user_styles:
       await ctx.respond(embed=discord.Embed(
         title="Unable To Set Featured PADD Style",
@@ -588,7 +586,7 @@ class Profile(commands.Cog):
       return
 
     # If it looks good, go ahead and change the style
-    db_update_user_profile_style(ctx.author.id, style)
+    await db_update_user_profile_style(ctx.author.id, style)
     logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile style{Style.RESET_ALL} to: {Style.BRIGHT}\"{style}\"{Style.RESET_ALL}")
     return f"You've successfully set your PADD style as \"{style}\""
 
@@ -605,7 +603,7 @@ class Profile(commands.Cog):
       )
       return None
     else:
-      db_update_user_profile_photo_filter(ctx.author.id, filter)
+      await db_update_user_profile_photo_filter(ctx.author.id, filter)
       logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their photo filter{Style.RESET_ALL} to: {Style.BRIGHT}\"{filter}\"{Style.RESET_ALL}")
     return f"Profile photo filter has been changed to **{filter}**!"
 
@@ -618,115 +616,115 @@ class Profile(commands.Cog):
 #        \__>           \/              \/     \/
 
 # Tagline
-def db_remove_user_profile_tagline(user_id):
-  with AgimusDB() as query:
+async def db_remove_user_profile_tagline(user_id):
+  async with AgimusDB() as query:
     sql = "REPLACE INTO profile_taglines (tagline, user_discord_id) VALUES (%(tagline)s, %(user_discord_id)s)"
     vals = {"tagline" : "", "user_discord_id" : user_id}
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_add_user_profile_tagline(user_id, tagline):
-  with AgimusDB() as query:
+async def db_add_user_profile_tagline(user_id, tagline):
+  async with AgimusDB() as query:
     sql = "REPLACE INTO profile_taglines (tagline, user_discord_id) VALUES (%(tagline)s, %(user_discord_id)s)"
     vals = {"tagline" : tagline, "user_discord_id" : user_id}
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
 # Badges
-def db_remove_user_profile_badge(user_id):
-  with AgimusDB() as query:
+async def db_remove_user_profile_badge(user_id):
+  async with AgimusDB() as query:
     sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
     vals = {"badge_filename" : "", "user_discord_id" : user_id}
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_add_user_profile_badge(user_id, badge_filename):
-  with AgimusDB() as query:
+async def db_add_user_profile_badge(user_id, badge_filename):
+  async with AgimusDB() as query:
     sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
     vals = {"badge_filename" : badge_filename, "user_discord_id" : user_id}
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
 # Photos
-def db_get_user_profile_photos_from_inventory(user_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_user_profile_photos_from_inventory(user_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM profile_inventory WHERE user_discord_id = %s AND item_category = 'photo'"
     vals = (user_id,)
-    query.execute(sql, vals)
-    results = query.fetchall()
+    await query.execute(sql, vals)
+    results = await query.fetchall()
   return results
 
-def db_get_user_profile_photo(user_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_user_profile_photo(user_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT photo FROM profile_photos WHERE user_discord_id = %s"
     vals = (user_id,)
-    query.execute(sql, vals)
-    result = query.fetchone()
+    await query.execute(sql, vals)
+    result = await query.fetchone()
   if result:
     return result['style']
   else:
     return 'Default'
 
-def db_update_user_profile_photo(user_id, photo):
-  with AgimusDB() as query:
+async def db_update_user_profile_photo(user_id, photo):
+  async with AgimusDB() as query:
     sql = "REPLACE INTO profile_photos (photo, user_discord_id) VALUES (%(photo)s, %(user_discord_id)s)"
     vals = {"photo" : photo.lower(), "user_discord_id" : user_id}
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
 # Stickers
-def db_get_user_profile_stickers_from_inventory(user_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_user_profile_stickers_from_inventory(user_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM profile_inventory WHERE user_discord_id = %s AND item_category = 'sticker'"
     vals = (user_id,)
-    query.execute(sql, vals)
-    results = query.fetchall()
+    await query.execute(sql, vals)
+    results = await query.fetchall()
   return results
 
-def db_get_user_profile_sticker(user_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_user_profile_sticker(user_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT sticker FROM profile_stickers WHERE user_discord_id = %s"
     vals = (user_id,)
-    query.execute(sql, vals)
-    result = query.fetchone()
+    await query.execute(sql, vals)
+    result = await query.fetchone()
   return result['sticker']
 
-def db_update_user_profile_sticker(user_id, sticker):
+async def db_update_user_profile_sticker(user_id, sticker):
   if sticker != 'none':
     sticker = get_sticker_filename_from_name(sticker)
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "REPLACE INTO profile_stickers (sticker, user_discord_id) VALUES (%(sticker)s, %(user_discord_id)s)"
     vals = {"sticker" : sticker, "user_discord_id" : user_id}
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
 # Styles
-def db_get_user_profile_styles_from_inventory(user_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_user_profile_styles_from_inventory(user_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM profile_inventory WHERE user_discord_id = %s AND item_category = 'style'"
     vals = (user_id,)
-    query.execute(sql, vals)
-    results = query.fetchall()
+    await query.execute(sql, vals)
+    results = await query.fetchall()
   return results
 
-def db_get_user_profile_style(user_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_user_profile_style(user_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT style FROM profile_style WHERE user_discord_id = %s"
     vals = (user_id,)
-    query.execute(sql, vals)
-    result = query.fetchone()
+    await query.execute(sql, vals)
+    result = await query.fetchone()
   if result:
     return result['style']
   else:
     return 'Default'
 
-def db_update_user_profile_style(user_id, style):
-  with AgimusDB() as query:
+async def db_update_user_profile_style(user_id, style):
+  async with AgimusDB() as query:
     sql = "REPLACE INTO profile_style (style, user_discord_id) VALUES (%(style)s, %(user_discord_id)s)"
     vals = {"style" : style, "user_discord_id" : user_id}
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
 # photo filters
-def db_get_user_profile_photo_filter(user_id:int):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_user_profile_photo_filter(user_id:int):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT filter FROM profile_photo_filters WHERE user_discord_id = %s"
     vals = (user_id,)
-    query.execute(sql, vals)
-    result = query.fetchone()
+    await query.execute(sql, vals)
+    result = await query.fetchone()
   if result:
     if str(result['filter']).lower() == 'none':
       return None
@@ -735,8 +733,8 @@ def db_get_user_profile_photo_filter(user_id:int):
   else:
     return 'random'
 
-def db_update_user_profile_photo_filter(user_id:int, filter:str):
-  with AgimusDB() as query:
+async def db_update_user_profile_photo_filter(user_id:int, filter:str):
+  async with AgimusDB() as query:
     sql = "REPLACE INTO profile_photo_filters (filter, user_discord_id) VALUES (%(filter)s, %(user_discord_id)s)"
     vals = {"filter" : filter.lower(), "user_discord_id" : user_id}
-    query.execute(sql,vals)
+    await query.execute(sql,vals)

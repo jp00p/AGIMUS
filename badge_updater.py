@@ -152,13 +152,13 @@ async def generate_sql_file():
           universes_list = [universes]
 
       # Check if badge already exists and if so skip
-      with AgimusDB(dictionary=True) as query:
+      async with AgimusDB(dictionary=True) as query:
         sql = '''
           SELECT * FROM badge_info WHERE badge_filename = %s
         '''
         vals = (badge_filename,)
-        query.execute(sql, vals)
-        result = query.fetchone()
+        await query.execute(sql, vals)
+        result = await query.fetchone()
         if result is not None:
           logger.info(f">> {badge_name} already exists in database, skipping...")
           continue

@@ -175,7 +175,7 @@ class Trivia(commands.Cog):
             value=f"`{reward} point(s)`",
             inline=False
           )
-          set_player_score(player, reward)
+          await set_player_score(player, reward)
           await increment_user_xp(player, xp_reward, "trivia_win", channel, "Winning Trivia")
       if len(incorrect_guessers) > 0:
         for trivia_answer in incorrect_guessers:
@@ -185,12 +185,12 @@ class Trivia(commands.Cog):
             value=f"`1 point(s)`",
             inline=False
           )
-          set_player_score(player, 1)
+          await set_player_score(player, 1)
           await increment_user_xp(player, 1, "trivia_play", channel, "Participating in Trivia")
       if len(correct_guessers) == 0:
         embed.add_field(name="\nNo winners!", value="Nobody got it this time.", inline=False)
         embed.set_footer(text=f"Adding {reward} point(s) to the jackpot")
-        increase_jackpot(reward)
+        await increase_jackpot(reward)
 
       # Disable all the answer buttons now that the trivia session is over
       await self.trivia_message.edit(view=None)

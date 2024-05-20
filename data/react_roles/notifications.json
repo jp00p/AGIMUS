@@ -35,14 +35,14 @@
       "description": "Get notified when **Book-related** events are happening (Book Club!)"
     },
     {
-      "emoji": "👥",
-      "role": "Audience Member",
-      "description": "Get notified when **Presentation-related** events are happening (FOD Talks!)"
-    },
-    {
       "emoji": "🦡",
       "role": "Badge Trader",
       "description": "Get notified when **Badge Trading-related** features or feedback are released/requested"
+    },
+    {
+      "emoji": "👥",
+      "role": "Audience Member",
+      "description": "Get notified when **Presentation-related** events are happening (FOD Talks!)"
     }
   ]
 }

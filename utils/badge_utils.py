@@ -13,19 +13,23 @@ from utils.thread_utils import to_thread
 #  /        \  |_> >  ___/\  \___|  |/ __ \|  |_|    |   \ / __ \_/ /_/ |/ /_/  >  ___/ \___ \
 # /_______  /   __/ \___  >\___  >__(____  /____/______  /(____  /\____ |\___  / \___  >____  >
 #         \/|__|        \/     \/        \/            \/      \/      \/_____/      \/     \/
-def db_get_special_badges():
+_SPECIAL_BADGES = None
+async def db_get_special_badges():
+  global _SPECIAL_BADGES
+
+  if _SPECIAL_BADGES is not None:
+    return _SPECIAL_BADGES
   """
   Return all badge_info rows where special = 1
   :return:
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM badge_info WHERE special = 1;"
     vals = ()
-    query.execute(sql, vals)
-    rows = query.fetchall()
-  return rows
-
-SPECIAL_BADGES = db_get_special_badges()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
+  _SPECIAL_BADGES = rows
+  return _SPECIAL_BADGES
 
 
 #    _____          __                                     .__          __
@@ -40,13 +44,13 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
   selections = []
 
   if category == 'affiliation':
-    selections = db_get_all_affiliations()
+    selections = await db_get_all_affiliations()
   elif category == 'franchise':
-    selections = db_get_all_franchises()
+    selections = await db_get_all_franchises()
   elif category == 'time_period':
-    selections = db_get_all_time_periods()
+    selections = await db_get_all_time_periods()
   elif category == 'type':
-    selections = db_get_all_types()
+    selections = await db_get_all_types()
 
   return [result for result in selections if ctx.value.lower() in result.lower()]
 
@@ -56,8 +60,7 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
 #   |    |   |  | \// __ \_/ /_/ | |  |   |  \/ /_/  >
 #   |____|   |__|  (____  /\____ | |__|___|  /\___  /
 #                       \/      \/         \//_____/
-@to_thread
-def generate_badge_trade_showcase(badge_list, id, title, footer):
+async def generate_badge_trade_showcase(badge_list, id, title, footer):
   text_wrapper = textwrap.TextWrapper(width=22)
   title_font = ImageFont.truetype("fonts/tng_credits.ttf", 68)
   credits_font = ImageFont.truetype("fonts/tng_credits.ttf", 42)
@@ -119,7 +122,7 @@ def generate_badge_trade_showcase(badge_list, id, title, footer):
     w, h = b.size # badge size
     offset_x = min(0, (badge_size+badge_padding)-w) # center badge x
     offset_y = 5
-    badge_info = db_get_badge_info_by_filename(badge)
+    badge_info = await db_get_badge_info_by_filename(badge)
     badge_name = text_wrapper.wrap(badge_info['badge_name'])
     wrapped_badge_name = ""
     for i in badge_name[:-1]:
@@ -151,32 +154,31 @@ def generate_badge_trade_showcase(badge_list, id, title, footer):
   discord_image = discord.File(fp=f"./images/trades/{id}.png", filename=f"{id}.png")
   return discord_image
 
-def does_trade_contain_badges(active_trade):
-  offered_badges = db_get_trade_offered_badges(active_trade)
-  requested_badges = db_get_trade_requested_badges(active_trade)
+async def does_trade_contain_badges(active_trade):
+  offered_badges = await db_get_trade_offered_badges(active_trade)
+  requested_badges = await db_get_trade_requested_badges(active_trade)
 
   if len(offered_badges) > 0 or len(requested_badges) > 0:
     return True
   else:
     return False
 
-def get_offered_and_requested_badge_names(active_trade):
-  offered_badges = db_get_trade_offered_badges(active_trade)
+async def get_offered_and_requested_badge_names(active_trade):
+  offered_badges = await db_get_trade_offered_badges(active_trade)
   offered_badge_names = "None"
   if offered_badges:
     offered_badge_names = "\n".join([f"* {b['badge_name']}" for b in offered_badges])
 
-  requested_badges = db_get_trade_requested_badges(active_trade)
+  requested_badges = await db_get_trade_requested_badges(active_trade)
   requested_badge_names = "None"
   if requested_badges:
     requested_badge_names = "\n".join([f"* {b['badge_name']}" for b in requested_badges])
 
   return offered_badge_names, requested_badge_names
 
-def db_get_trade_requested_badges(active_trade):
+async def db_get_trade_requested_badges(active_trade):
   active_trade_id = active_trade["id"]
-
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.*
       FROM badge_info as b_i
@@ -184,14 +186,13 @@ def db_get_trade_requested_badges(active_trade):
         ON t_r.trade_id = %s AND t_r.badge_filename = b_i.badge_filename
     '''
     vals = (active_trade_id,)
-    query.execute(sql, vals)
-    trades = query.fetchall()
+    await query.execute(sql, vals)
+    trades = await query.fetchall()
   return trades
 
-def db_get_trade_offered_badges(active_trade):
+async def db_get_trade_offered_badges(active_trade):
   active_trade_id = active_trade["id"]
-
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.*
       FROM badge_info as b_i
@@ -199,21 +200,21 @@ def db_get_trade_offered_badges(active_trade):
         ON t_o.trade_id = %s AND t_o.badge_filename = b_i.badge_filename
     '''
     vals = (active_trade_id,)
-    query.execute(sql, vals)
-    trades = query.fetchall()
+    await query.execute(sql, vals)
+    trades = await query.fetchall()
   return trades
 
-def db_cancel_trade(trade):
+async def db_cancel_trade(trade):
   trade_id = trade['id']
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "UPDATE trades SET status = 'canceled' WHERE id = %s"
     vals = (trade_id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_get_related_badge_trades(active_trade):
+async def db_get_related_badge_trades(active_trade):
   active_trade_id = active_trade["id"]
 
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     # All credit for this query to Danma! Praise be!!!
     sql = '''
       SELECT t.*
@@ -246,8 +247,8 @@ def db_get_related_badge_trades(active_trade):
       GROUP BY t.id
     '''
     vals = (active_trade_id, active_trade_id)
-    query.execute(sql, vals)
-    trades = query.fetchall()
+    await query.execute(sql, vals)
+    trades = await query.fetchall()
   return trades
 
 # __________                .__               __  .__
@@ -276,10 +277,10 @@ async def generate_paginated_badge_images(user:discord.User, type, all_badges, t
   ]
   return badge_images
 
-@to_thread
-def generate_badge_images(type, user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
+
+async def generate_badge_images(type, user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
   user_display_name = user.display_name
-  color_preference = db_get_user_badge_page_color_preference(user.id, type)
+  color_preference = await db_get_user_badge_page_color_preference(user.id, type)
 
   if color_preference == "green":
     title_color = "#99B98D"
@@ -450,10 +451,10 @@ async def generate_paginated_set_completion_images(user:discord.User, all_rows, 
   ]
   return badge_images
 
-@to_thread
-def generate_badge_completion_images(user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
+
+async def generate_badge_completion_images(user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
   user_display_name = user.display_name
-  color_preference = db_get_user_badge_page_color_preference(user.id, "sets")
+  color_preference = await db_get_user_badge_page_color_preference(user.id, "sets")
 
   if color_preference == "green":
     title_color = "#99B98D"
@@ -764,65 +765,70 @@ def generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap):
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
-def db_get_all_badge_info():
+_ALL_BADGE_INFO = None
+async def db_get_all_badge_info():
+  global _ALL_BADGE_INFO
   """
   Returns all rows from badge_info table
   :return: list of row dicts
   """
-  with AgimusDB(dictionary=True) as query:
+  if _ALL_BADGE_INFO is not None:
+    return _ALL_BADGE_INFO
+
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM badge_info ORDER BY badge_name ASC;"
-    query.execute(sql)
-    rows = query.fetchall()
+    await query.execute(sql)
+    rows = await query.fetchall()
+    _ALL_BADGE_INFO = rows
+  return _ALL_BADGE_INFO
 
-  return rows
-
-def db_get_badge_info_by_name(name):
+async def db_get_badge_info_by_name(name):
   """
   Given the name of a badge, retrieves its information from badge_info
   :param name: the name of the badge.
   :return: row dict
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM badge_info WHERE badge_name = %s;"
     vals = (name,)
-    query.execute(sql, vals)
-    row = query.fetchone()
+    await query.execute(sql, vals)
+    row = await query.fetchone()
 
   return row
 
-def db_get_badge_count_by_filename(filename):
+async def db_get_badge_count_by_filename(filename):
   """
   Given the name of a badge, retrieves its information from badge_info
   :param name: the name of the badge.
   :return: row dict
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT count(*) FROM badges WHERE badge_filename = %s;"
     vals = (filename,)
-    query.execute(sql, vals)
-    row = query.fetchone()
+    await query.execute(sql, vals)
+    row = await query.fetchone()
   return row["count(*)"]
 
-def db_get_badge_info_by_filename(filename):
+async def db_get_badge_info_by_filename(filename):
   """
   Given the filename of a badge, retrieves its information from badge_info
   :param filename: the name of the badge.
   :return: row dict
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM badge_info WHERE badge_filename = %s;"
     vals = (filename,)
-    query.execute(sql, vals)
-    row = query.fetchone()
+    await query.execute(sql, vals)
+    row = await query.fetchone()
   return row
 
-def db_get_user_badges(user_discord_id:int, sortby=None):
+async def db_get_user_badges(user_discord_id:int, sortby=None):
   '''
     get_user_badges(user_discord_id)
     user_discord_id[required]: int
     returns a list of badges the user has
   '''
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.badge_name, b_i.badge_filename, b.locked, b_i.special FROM badges b
         JOIN badge_info AS b_i
@@ -841,17 +847,17 @@ def db_get_user_badges(user_discord_id:int, sortby=None):
         order_by = " ORDER BY b_i.special ASC, b_i.badge_filename ASC"
     sql = sql + order_by
     vals = (user_discord_id,)
-    query.execute(sql, vals)
-    badges = query.fetchall()
+    await query.execute(sql, vals)
+    badges = await query.fetchall()
   return badges
 
-def db_get_user_unlocked_badges(user_discord_id:int):
+async def db_get_user_unlocked_badges(user_discord_id:int):
   '''
     db_get_user_unlocked_badges(user_discord_id)
     user_discord_id[required]: int
     returns a list of unlocked badges the user has
   '''
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.*, b.locked FROM badges b
         JOIN badge_info AS b_i
@@ -860,17 +866,17 @@ def db_get_user_unlocked_badges(user_discord_id:int):
           ORDER BY b_i.badge_filename ASC
     '''
     vals = (user_discord_id,)
-    query.execute(sql, vals)
-    badges = query.fetchall()
+    await query.execute(sql, vals)
+    badges = await query.fetchall()
   return badges
 
-def db_get_user_locked_badges(user_discord_id:int):
+async def db_get_user_locked_badges(user_discord_id:int):
   '''
     db_get_user_locked_badges(user_discord_id)
     user_discord_id[required]: int
     returns a list of unlocked badges the user has
   '''
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.*, b.locked FROM badges b
         JOIN badge_info AS b_i
@@ -879,17 +885,17 @@ def db_get_user_locked_badges(user_discord_id:int):
           ORDER BY b_i.badge_filename ASC
     '''
     vals = (user_discord_id,)
-    query.execute(sql, vals)
-    badges = query.fetchall()
+    await query.execute(sql, vals)
+    badges = await query.fetchall()
   return badges
 
-def db_get_user_special_badges(user_discord_id:int):
+async def db_get_user_special_badges(user_discord_id:int):
   '''
     get_user_special_badges(user_discord_id)
     user_discord_id[required]: int
     returns a list of special badges the user has
   '''
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.*, b.locked FROM badges b
         JOIN badge_info AS b_i
@@ -898,65 +904,64 @@ def db_get_user_special_badges(user_discord_id:int):
           ORDER BY b_i.badge_filename ASC
     '''
     vals = (user_discord_id,)
-    query.execute(sql, vals)
-    badges = query.fetchall()
+    await query.execute(sql, vals)
+    badges = await query.fetchall()
   return badges
 
-def db_get_badge_count_for_user(user_id):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_badge_count_for_user(user_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT count(*) FROM badges WHERE user_discord_id = %s
     '''
     vals = (user_id,)
-    query.execute(sql, vals)
-    result = query.fetchone()
+    await query.execute(sql, vals)
+    result = await query.fetchone()
   return result['count(*)']
 
-def db_set_user_badge_page_color_preference(user_id, type, color):
-  with AgimusDB() as query:
-
+async def db_set_user_badge_page_color_preference(user_id, type, color):
+  async with AgimusDB() as query:
     if type == "showcase":
       sql = "UPDATE user_preferences SET badge_showcase_color = %s WHERE user_discord_id = %s"
     elif type == "sets":
       sql = "UPDATE user_preferences SET badge_sets_color = %s WHERE user_discord_id = %s"
     vals = (color, user_id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_get_user_badge_page_color_preference(user_id, type):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_user_badge_page_color_preference(user_id, type):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM user_preferences WHERE user_discord_id = %s"
     vals = (user_id,)
-    query.execute(sql, vals)
-    result = query.fetchone()
+    await query.execute(sql, vals)
+    result = await query.fetchone()
     if result is None:
       sql = "INSERT INTO user_preferences (user_discord_id) VALUES (%s)"
-      query.execute(sql, vals)
+      await query.execute(sql, vals)
 
     if type == "showcase":
       sql = "SELECT badge_showcase_color AS color_preference FROM user_preferences WHERE user_discord_id = %s"
     elif type == "sets":
       sql = "SELECT badge_sets_color AS color_preference FROM user_preferences WHERE user_discord_id = %s"
 
-    query.execute(sql, vals)
-    result = query.fetchone()
+    await query.execute(sql, vals)
+    result = await query.fetchone()
   color_preference = result['color_preference']
   return color_preference
 
 
 
 # Affiliations
-def db_get_all_affiliations():
-  with AgimusDB(dictionary=True) as query:
+async def db_get_all_affiliations():
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT distinct(affiliation_name) FROM badge_affiliation;"
-    query.execute(sql)
-    rows = query.fetchall()
+    await query.execute(sql)
+    rows = await query.fetchall()
 
   affiliations = [r['affiliation_name'] for r in rows if r['affiliation_name'] is not None]
   affiliations.sort()
   return affiliations
 
-def db_get_all_affiliation_badges(affiliation):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_all_affiliation_badges(affiliation):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.* FROM badge_info b_i
         JOIN badge_affiliation AS b_a
@@ -965,17 +970,17 @@ def db_get_all_affiliation_badges(affiliation):
         ORDER BY b_i.badge_name ASC;
     '''
     vals = (affiliation,)
-    query.execute(sql, vals)
-    rows = query.fetchall()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
   return rows
 
-def db_get_badge_affiliations_by_badge_name(name):
+async def db_get_badge_affiliations_by_badge_name(name):
   """
   Given the name of a badge, retrieves the affiliation(s) associated with it
   :param name: the name of the badge.
   :return: list of row dicts
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT affiliation_name FROM badge_affiliation b_a
       JOIN badge_info as b_i
@@ -983,12 +988,12 @@ def db_get_badge_affiliations_by_badge_name(name):
       WHERE badge_name = %s;
     '''
     vals = (name,)
-    query.execute(sql, vals)
-    rows = query.fetchall()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
   return rows
 
-def db_get_badges_user_has_from_affiliation(user_id, affiliation):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_badges_user_has_from_affiliation(user_id, affiliation):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.* FROM badges b
         JOIN badge_info AS b_i
@@ -1000,12 +1005,12 @@ def db_get_badges_user_has_from_affiliation(user_id, affiliation):
         ORDER BY b_i.badge_name ASC;
     '''
     vals = (user_id, affiliation)
-    query.execute(sql, vals)
-    rows = query.fetchall()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
   return rows
 
-def db_get_random_badges_from_user_by_affiliations(user_id: int):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_random_badges_from_user_by_affiliations(user_id: int):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.*, b_a.affiliation_name
       FROM badges b
@@ -1016,34 +1021,34 @@ def db_get_random_badges_from_user_by_affiliations(user_id: int):
       WHERE b.user_discord_id = %s
       ORDER BY RAND()
     '''
-    query.execute(sql, (user_id,))
-    rows = query.fetchall()
+    await query.execute(sql, (user_id,))
+    rows = await query.fetchall()
   return {r['affiliation_name']: r['badge_filename'] for r in rows}
 
 # Franchises
-def db_get_all_franchises():
-  with AgimusDB(dictionary=True) as query:
+async def db_get_all_franchises():
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT distinct(franchise) FROM badge_info"
-    query.execute(sql)
-    rows = query.fetchall()
+    await query.execute(sql)
+    rows = await query.fetchall()
   franchises = [r['franchise'] for r in rows if r['franchise'] is not None]
   franchises.sort()
   return franchises
 
-def db_get_all_franchise_badges(franchise):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_all_franchise_badges(franchise):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT * FROM badge_info
         WHERE franchise = %s
         ORDER BY badge_name ASC;
     '''
     vals = (franchise,)
-    query.execute(sql, vals)
-    rows = query.fetchall()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
   return rows
 
-def db_get_badges_user_has_from_franchise(user_id, franchise):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_badges_user_has_from_franchise(user_id, franchise):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.* FROM badges b
         JOIN badge_info AS b_i
@@ -1053,12 +1058,12 @@ def db_get_badges_user_has_from_franchise(user_id, franchise):
         ORDER BY b_i.badge_name ASC;
     '''
     vals = (user_id, franchise)
-    query.execute(sql, vals)
-    rows = query.fetchall()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
   return rows
 
-def db_get_random_badges_from_user_by_franchises(user_id: int):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_random_badges_from_user_by_franchises(user_id: int):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.*
       FROM badges b
@@ -1067,17 +1072,17 @@ def db_get_random_badges_from_user_by_franchises(user_id: int):
       WHERE b.user_discord_id = %s
       ORDER BY RAND()
     '''
-    query.execute(sql, (user_id,))
-    rows = query.fetchall()
+    await query.execute(sql, (user_id,))
+    rows = await query.fetchall()
   return {r['franchise']: r['badge_filename'] for r in rows}
 
 
 # Time Periods
-def db_get_all_time_periods():
-  with AgimusDB(dictionary=True) as query:
+async def db_get_all_time_periods():
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT distinct(time_period) FROM badge_info"
-    query.execute(sql)
-    rows = query.fetchall()
+    await query.execute(sql)
+    rows = await query.fetchall()
   time_periods = [r['time_period'] for r in rows if r['time_period'] is not None]
   time_periods.sort(key=_time_period_sort)
   return time_periods
@@ -1092,20 +1097,20 @@ def _time_period_sort(time_period):
   else:
     return time_period
 
-def db_get_all_time_period_badges(time_period):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_all_time_period_badges(time_period):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT * FROM badge_info b_i
         WHERE time_period = %s
         ORDER BY badge_name ASC
     '''
     vals = (time_period,)
-    query.execute(sql, vals)
-    rows = query.fetchall()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
   return rows
 
-def db_get_badges_user_has_from_time_period(user_id, time_period):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_badges_user_has_from_time_period(user_id, time_period):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.* FROM badges b
         JOIN badge_info AS b_i
@@ -1115,13 +1120,13 @@ def db_get_badges_user_has_from_time_period(user_id, time_period):
         ORDER BY b_i.badge_name ASC
     '''
     vals = (user_id, time_period)
-    query.execute(sql, vals)
-    rows = query.fetchall()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
   return rows
 
 
-def db_get_random_badges_from_user_by_time_periods(user_id: int):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_random_badges_from_user_by_time_periods(user_id: int):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.*, b_i.time_period
       FROM badges b
@@ -1130,23 +1135,23 @@ def db_get_random_badges_from_user_by_time_periods(user_id: int):
       WHERE b.user_discord_id = %s
       ORDER BY RAND()
     '''
-    query.execute(sql, (user_id,))
-    rows = query.fetchall()
+    await query.execute(sql, (user_id,))
+    rows = await query.fetchall()
   return {r['time_period']: r['badge_filename'] for r in rows}
 
 
 # Types
-def db_get_all_types():
-  with AgimusDB(dictionary=True) as query:
+async def db_get_all_types():
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT distinct(type_name) FROM badge_type"
-    query.execute(sql)
-    rows = query.fetchall()
+    await query.execute(sql)
+    rows = await query.fetchall()
   types = [r['type_name'] for r in rows if r['type_name'] is not None]
   types.sort()
   return types
 
-def db_get_all_type_badges(type):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_all_type_badges(type):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.* FROM badge_info b_i
         JOIN badge_type AS b_t
@@ -1155,17 +1160,17 @@ def db_get_all_type_badges(type):
         ORDER BY b_i.badge_name ASC
     '''
     vals = (type,)
-    query.execute(sql, vals)
-    rows = query.fetchall()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
   return rows
 
-def db_get_badge_types_by_badge_name(name):
+async def db_get_badge_types_by_badge_name(name):
   """
   Given the name of a badge, retrieves the types(s) associated with it
   :param name: the name of the badge.
   :return: list of row dicts
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT type_name FROM badge_type b_t
       JOIN badge_info as b_i
@@ -1173,13 +1178,13 @@ def db_get_badge_types_by_badge_name(name):
       WHERE badge_name = %s;
     '''
     vals = (name,)
-    query.execute(sql, vals)
-    rows = query.fetchall()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
   return rows
 
 
-def db_get_badges_user_has_from_type(user_id, type):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_badges_user_has_from_type(user_id, type):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.* FROM badges b
         JOIN badge_info AS b_i
@@ -1191,12 +1196,12 @@ def db_get_badges_user_has_from_type(user_id, type):
         ORDER BY b_i.badge_name ASC
     '''
     vals = (user_id, type)
-    query.execute(sql, vals)
-    rows = query.fetchall()
+    await query.execute(sql, vals)
+    rows = await query.fetchall()
   return rows
 
-def db_get_random_badges_from_user_by_types(user_id: int):
-  with AgimusDB(dictionary=True) as query:
+async def db_get_random_badges_from_user_by_types(user_id: int):
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.*, b_t.type_name
       FROM badges b
@@ -1207,16 +1212,16 @@ def db_get_random_badges_from_user_by_types(user_id: int):
       WHERE b.user_discord_id = %s
       ORDER BY RAND()
     '''
-    query.execute(sql, (user_id,))
-    rows = query.fetchall()
+    await query.execute(sql, (user_id,))
+    rows = await query.fetchall()
   return {r['type_name']: r['badge_filename'] for r in rows}
 
-def db_purge_users_wishlist(user_discord_id: int):
+async def db_purge_users_wishlist(user_discord_id: int):
   """
   Deletes all rows from `badge_wishlists` where the user already has the
   badge present in `badges`
   """
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       DELETE b_w FROM badge_wishlists AS b_w
         JOIN badges AS b
@@ -1225,4 +1230,4 @@ def db_purge_users_wishlist(user_discord_id: int):
         WHERE b.user_discord_id = %s
     '''
     vals = (user_discord_id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)

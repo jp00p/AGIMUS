@@ -5,7 +5,7 @@ from common import *
 from utils.check_channel_access import access_check
 from utils.show_utils import get_show_embed
 
-command_config = config["commands"]["info"]
+command_config = config["commands"]["episode_info"]
 
 # Load JSON Data
 f = open(command_config["data"])
@@ -57,12 +57,12 @@ async def title_autocomplete(ctx: discord.AutocompleteContext):
   autocomplete=title_autocomplete
 )
 @commands.check(access_check)
-async def info(ctx:discord.ApplicationContext, show:str, episode_title:str):
+async def episode_info(ctx:discord.ApplicationContext, show:str, episode_title:str):
   """
   This function is the main entrypoint of the /info command
   """
   try:
-    logger.info(f"{Fore.CYAN}Firing /info command!{Fore.RESET}")
+    logger.info(f"{Fore.CYAN}Firing /episode_info command!{Fore.RESET}")
 
     if exists(f"./data/episodes/{show}.json"):
       f = open(f"./data/episodes/{show}.json")

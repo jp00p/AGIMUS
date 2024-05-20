@@ -14,45 +14,45 @@ def birthdays_task(bot: Bot):
   Every day, send out a birthday greeting to all users that have saved it to their settings, and also important people
   in Star Trek
   """
-  
+
   with open(config['tasks']['birthdays']['data']) as f:
     trek_birthdays = json.load(f)
-    
+
   birthday_messages = (
     "Everybody wish them well as you see them in the server",
     "Fun will now commence",
     "There will be cake",
     "One more trip around the sun",
   )
-  
+
   async def birthdays():
     enabled = config["tasks"]["birthdays"]["enabled"]
     if not enabled:
       return
 
     header_image = "https://i.imgur.com/xMycyhz.png"
-    
+
     today = datetime.date.today()
-    user_ids = db.get_users_with_birthday(today.month, today.day)
+    user_ids = await db.get_users_with_birthday(today.month, today.day)
     description = [
       f"<@{uid}>" for uid in user_ids
     ]
-    
+
     celebrities = trek_birthdays[today.strftime('%b')].get(today.strftime('%d'), [])
     description.extend(celebrities)
-      
+
     if today.month == 2 and today.day == 28 and today.year % 4 > 0:
-      user_ids = db.get_users_with_birthday(2, 29)
+      user_ids = await db.get_users_with_birthday(2, 29)
       description.extend(
         f"<@{uid}>" for uid in user_ids
       )
-      
+
     if len(description) == 0:
       logger.info("There were no birthdays today")
       return
-    
+
     random.shuffle(description)
-    
+
     embed = discord.Embed(
       title="Today's important Star Trek birthdays",
       description="\n\n".join(description),

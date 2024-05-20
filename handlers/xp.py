@@ -57,53 +57,53 @@ blocked_level_up_sources = [
 # handle_message_xp(message) - calculates xp for a given message
 # message[required]: discord.Message
 async def handle_message_xp(message:discord.Message):
-    blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
-    # we don't like bots round here, or some channels
-    if message.author.bot or message.channel.id in blocked_channel_ids:
-      return
+  blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
+  # we don't like bots round here, or some channels
+  if message.author.bot or message.channel.id in blocked_channel_ids:
+    return
 
-    # base XP
-    xp_amt = 0
+  # base XP
+  xp_amt = 0
 
-    # if the message is equal to or longer than 3 words +1 xp
-    if len(message.content.split()) >= 3:
-      xp_amt += 1
+  # if the message is equal to or longer than 3 words +1 xp
+  if len(message.content.split()) >= 3:
+    xp_amt += 1
 
-      # if that message also has any of our server emoji, +1 xp
-      # case sensitive (cool != COOL)
-      for e in config["all_emoji"]:
-        if message.content.find(e) != -1:
-          xp_amt += 1
-          break
+    # if that message also has any of our server emoji, +1 xp
+    # case sensitive (cool != COOL)
+    for e in config["all_emoji"]:
+      if message.content.find(e) != -1:
+        xp_amt += 1
+        break
 
-    # if the message is longer than 33 words +1 more xp
-    if len(message.content.split()) > 33:
-      xp_amt += 1
+  # if the message is longer than 33 words +1 more xp
+  if len(message.content.split()) > 33:
+    xp_amt += 1
 
-    # ...and 66, +1 more xp
-    if len(message.content.split()) > 66:
-      xp_amt += 1
+  # ...and 66, +1 more xp
+  if len(message.content.split()) > 66:
+    xp_amt += 1
 
-    # if there's an attachment, +1 xp
-    if len(message.attachments) > 0:
-      xp_amt += 1
+  # if there's an attachment, +1 xp
+  if len(message.attachments) > 0:
+    xp_amt += 1
 
-    if xp_amt != 0:
-      await increment_user_xp(message.author, xp_amt, "posted_message", message.channel, message) # commit the xp gain to the db and potential level up
+  if xp_amt != 0:
+    await increment_user_xp(message.author, xp_amt, "posted_message", message.channel, message) # commit the xp gain to the db and potential level up
 
-    # Handle Auto-Promotions
-    promotion_roles_config = config["roles"]["promotion_roles"]
-    if promotion_roles_config["enabled"]:
-      cadet_role = promotion_roles_config["ranks"]["cadet"]
-      ensign_role = promotion_roles_config["ranks"]["ensign"]
-      guild_roles = await message.author.guild.fetch_roles()
-      guild_role_names = [r.name for r in guild_roles]
-      if cadet_role in guild_role_names and ensign_role in guild_role_names:
-        await handle_intro_channel_promotion(message)
-        await handle_rank_xp_promotion(message, xp_amt)
-      else:
-        logger.info(f"Promotion is enabled but {Fore.CYAN}Cadet{Fore.RESET} and {Fore.CYAN}Ensign{Fore.RESET} roles are not available from the guild!")
-        logger.info(f"Available roles are: {Style.BRIGHT}{guild_role_names}{Style.RESET_ALL}.")
+  # Handle Auto-Promotions
+  promotion_roles_config = config["roles"]["promotion_roles"]
+  if promotion_roles_config["enabled"]:
+    cadet_role = promotion_roles_config["ranks"]["cadet"]
+    ensign_role = promotion_roles_config["ranks"]["ensign"]
+    guild_roles = await message.author.guild.fetch_roles()
+    guild_role_names = [r.name for r in guild_roles]
+    if cadet_role in guild_role_names and ensign_role in guild_role_names:
+      await handle_intro_channel_promotion(message)
+      await handle_rank_xp_promotion(message, xp_amt)
+    else:
+      logger.info(f"Promotion is enabled but {Fore.CYAN}Cadet{Fore.RESET} and {Fore.CYAN}Ensign{Fore.RESET} roles are not available from the guild!")
+      logger.info(f"Available roles are: {Style.BRIGHT}{guild_role_names}{Style.RESET_ALL}.")
 
 
 # If this message is in the intro channel, handle their auto-promotion
@@ -134,7 +134,7 @@ async def handle_intro_channel_promotion(message):
         await message.add_reaction(i)
 
       # Give them a nice welcoming badge if they don't have one already
-      give_welcome_badge(message.author.id)
+      await give_welcome_badge(message.author.id)
 
       # send message to admins
       usher_msgs = config["handlers"]["xp"]["usher_messages"]
@@ -174,7 +174,8 @@ async def handle_rank_xp_promotion(message, xp):
     if role.name == ensign_role_name:
       ensign_role = role
 
-  user_xp = get_user_xp(message.author.id).get("xp") # second element of tuple is the xp
+  xp_record = await get_user_xp(message.author.id)
+  user_xp = xp_record.get("xp")
 
   if cadet_role_name not in author_role_names:
     # if they don't have cadet yet and they are over the required xp, give it to them
@@ -182,7 +183,7 @@ async def handle_rank_xp_promotion(message, xp):
       await message.author.add_roles(cadet_role)
       logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.CYAN}Cadet{Fore.RESET} via XP!")
       # Give them a nice welcoming badge if they don't have one already
-      give_welcome_badge(message.author.id)
+      await give_welcome_badge(message.author.id)
   elif ensign_role_name not in author_role_names:
     # if they do have cadet but not ensign yet, give it to them
     if user_xp >= promotion_roles_config["required_rank_xp"]["ensign"]:
@@ -202,12 +203,12 @@ async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
 
   global current_color
 
-  reaction_already_counted = check_react_history(reaction, user)
+  reaction_already_counted = await check_react_history(reaction, user)
   if reaction_already_counted:
     return
 
   # Grant Standard XP for both User and Author
-  log_react_history(reaction, user)
+  await log_react_history(reaction, user)
   await increment_user_xp(user, 1, "added_reaction", reaction.message.channel, reaction)
   await increment_user_xp(reaction.message.author, 1, "got_single_reaction", reaction.message.channel, reaction)
 
@@ -272,37 +273,37 @@ def show_list_of_levels():
 # level up user to next level and give them a badge (in the DB)
 # also fires the send_level_up_message function
 async def level_up_user(user:discord.User, source_details):
-  user_xp_data = get_user_xp(user.id)
+  user_xp_data = await get_user_xp(user.id)
   level = user_xp_data["level"]+1
 
   rainbow_l = f"{Back.RESET}{Back.RED} {Back.YELLOW} {Back.GREEN} {Back.CYAN} {Back.BLUE} {Back.MAGENTA} {Back.RESET}"
   rainbow_r = f"{Back.RESET}{Back.MAGENTA} {Back.BLUE} {Back.CYAN} {Back.GREEN} {Back.YELLOW} {Back.RED} {Back.RESET}"
   logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} has reached {Style.BRIGHT}level {level}!{Style.RESET_ALL} {rainbow_r}")
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "UPDATE users SET level = level + 1 WHERE discord_id = %s"
     vals = (user.id,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-  badge = give_user_badge(user.id)
+  badge = give_user_badge(user.id) ## XXX - Async
   was_on_wishlist = False
 
   if badge != None:
-    user_wishlist_badges = db_get_user_wishlist_badges(user.id)
+    user_wishlist_badges = await db_get_user_wishlist_badges(user.id)
     was_on_wishlist = badge in [b['badge_filename'] for b in user_wishlist_badges]
     # Lock the badge if it was in their wishlist
-    db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
+    await db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
     # Remove any badges the user may have on their wishlist that they now possess
-    db_purge_users_wishlist(user.id)
+    await db_purge_users_wishlist(user.id)
 
   await send_level_up_message(user, level, badge, was_on_wishlist, source_details)
 
-def give_welcome_badge(user_id):
-  user_badge_names = [b['badge_filename'] for b in db_get_user_badges(user_id)]
-  if "Friends_Of_DeSoto.png" not in user_badge_names:
-    with AgimusDB() as query:
+async def give_welcome_badge(user_id):
+  user_badge_filenames = [b['badge_filename'] for b in await db_get_user_badges(user_id)]
+  if "Friends_Of_DeSoto.png" not in user_badge_filenames:
+    async with AgimusDB() as query:
       sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, 'Friends_Of_DeSoto.png');"
       vals = (user_id,)
-      query.execute(sql, vals)
+      await query.execute(sql, vals)
 
 # send_level_up_message(user, level, badge)
 # user[required]:discord.User
@@ -343,26 +344,26 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel, sou
 
   # Update database
   amt = int(amt * xp_multiplier)
-  with AgimusDB() as query:
+  async with AgimusDB() as query:
     sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s AND xp_enabled = 1"
     vals = (amt, user.display_name, user.id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
     updated = query.rowcount
 
   if updated > 0:
     # Log xp_history
-    log_xp_history(user.id, amt, channel.id, reason)
+    await log_xp_history(user.id, amt, channel.id, reason)
     console_log_xp_history(user, amt, reason)
 
     # Determine Level Up
-    user_xp_data = get_user_xp(user.id)
+    user_xp_data = await get_user_xp(user.id)
     current_xp = user_xp_data["xp"]
     current_level = user_xp_data["level"]
 
     should_user_level_up = False
     if current_level >= 176:
       # High Levelers - Static Level Up Progression per Every 420 XP
-      cap_progress = get_xp_cap_progress(user.id)
+      cap_progress = await get_xp_cap_progress(user.id)
       if cap_progress is None:
         # User hasn't been transitioned to using the cap yet
         # Check to see if they would level up normally first
@@ -372,16 +373,16 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel, sou
           # Now transition them to the new XP Cap System
           # Initialize progress towards new cap goal with remainder from leveling up
           xp_remainder = current_xp - next_level_xp
-          init_xp_cap_progress(user.id, xp_remainder)
+          await init_xp_cap_progress(user.id, xp_remainder)
       else:
         # User has been transitioned
         # So we can increment the progress and check if it has met the goal
-        increment_xp_cap_progress(user.id, amt)
+        await increment_xp_cap_progress(user.id, amt)
         total_progress = cap_progress + amt
         if total_progress >= 420:
           should_user_level_up = True
           # Now subtract the progress from the goal mark to reset for next level
-          decrement_xp_cap_progress(user.id, 420)
+          await decrement_xp_cap_progress(user.id, 420)
     else:
       # Below Level XP Capper - Standard XP Leveling
       next_level_xp = calculate_xp_for_next_level(current_level)
@@ -442,27 +443,27 @@ def is_message_channel_unblocked(message: discord.message.Message):
 # get_user_xp(discord_id)
 # discord_id[required]: int
 # Returns a users current XP
-def get_user_xp(discord_id):
-  with AgimusDB() as query:
+async def get_user_xp(discord_id):
+  async with AgimusDB() as query:
     sql = "SELECT level, xp FROM users WHERE discord_id = %s"
     vals = (discord_id,)
-    query.execute(sql, vals)
-    user_xp = query.fetchone()
+    await query.execute(sql, vals)
+    user_xp = await query.fetchone()
   return { "level": user_xp[0], "xp" : user_xp[1] }
 
-def check_react_history(reaction:discord.Reaction, user:discord.User):
-  with AgimusDB() as query:
+async def check_react_history(reaction:discord.Reaction, user:discord.User):
+  async with AgimusDB() as query:
     sql = "SELECT id FROM reactions WHERE user_id = %s AND reaction = %s AND reaction_message_id = %s"
     vals = (user.id, f"{reaction}", reaction.message.id)
-    query.execute(sql, vals)
-    reaction_exists = query.fetchone()
+    await query.execute(sql, vals)
+    reaction_exists = await query.fetchone()
   return reaction_exists
 
-def log_react_history(reaction:discord.Reaction, user:discord.User):
-  with AgimusDB() as query:
+async def log_react_history(reaction:discord.Reaction, user:discord.User):
+  async with AgimusDB() as query:
     sql = "INSERT INTO reactions (user_id, user_name, reaction, reaction_message_id) VALUES (%s, %s, %s, %s)"
     vals = (user.id, user.display_name, f"{reaction}", reaction.message.id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
 # log_xp_history(user_discord_id:int, amt:int, channel_name:str, reason:str)
 # user_discord_id[required]: int
@@ -470,37 +471,37 @@ def log_react_history(reaction:discord.Reaction, user:discord.User):
 # channel_id[required]: int
 # reason[required]: str
 # This function will log xp gains to a table for reporting
-def log_xp_history(user_discord_id:int, amt:int, channel_id:int, reason:str):
-  with AgimusDB() as query:
+async def log_xp_history(user_discord_id:int, amt:int, channel_id:int, reason:str):
+  async with AgimusDB() as query:
     sql = "INSERT INTO xp_history (user_discord_id, amount, channel_id, reason) VALUES (%s, %s, %s, %s)"
     vals = (user_discord_id, amt, channel_id, reason)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def get_xp_cap_progress(user_discord_id):
-  with AgimusDB(dictionary=True) as query:
+async def get_xp_cap_progress(user_discord_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT progress FROM xp_cap_progress WHERE user_discord_id = %s"
     vals = (user_discord_id,)
-    query.execute(sql, vals)
-    result = query.fetchone()
+    await query.execute(sql, vals)
+    result = await query.fetchone()
   if result is not None:
     return result.get('progress')
   else:
     return result
 
-def init_xp_cap_progress(user_discord_id, amount):
-  with AgimusDB() as query:
+async def init_xp_cap_progress(user_discord_id, amount):
+  async with AgimusDB() as query:
     sql = "INSERT INTO xp_cap_progress (user_discord_id, progress) VALUES (%s, %s)"
     vals = (user_discord_id, amount)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def increment_xp_cap_progress(user_discord_id, amount):
-  with AgimusDB() as query:
+async def increment_xp_cap_progress(user_discord_id, amount):
+  async with AgimusDB() as query:
     sql = "UPDATE xp_cap_progress SET progress = progress + %s WHERE user_discord_id = %s"
     vals = (amount, user_discord_id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def decrement_xp_cap_progress(user_discord_id, amount):
-  with AgimusDB() as query:
+async def decrement_xp_cap_progress(user_discord_id, amount):
+  async with AgimusDB() as query:
     sql = "UPDATE xp_cap_progress SET progress = progress - %s WHERE user_discord_id = %s"
     vals = (amount, user_discord_id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)

@@ -28,7 +28,7 @@ async def qset(ctx, user:str, key:str, value:str):
   selected_user = user.replace("<@", "").replace(">","")
   change_column = key
   change_value  = value
-  this_user = get_user(selected_user)
+  this_user = await get_user(selected_user)
   modifiable_ints = ["score", "spins", "jackpots", "wager", "high_roller", "xp", "level"]
   modifiable_strings = ["profile_photo", "profile_sticker_1"]
   logger.info(f"{Fore.LIGHTBLUE_EX}{ctx.author.display_name}{Fore.RESET} is using mysterious Q powers on {Fore.GREEN}{this_user['name']}{Fore.RESET}")
@@ -41,9 +41,9 @@ async def qset(ctx, user:str, key:str, value:str):
         await ctx.reply(f"`{change_value}` is not an integer!")
         return
       else:
-        update_user(selected_user, change_column, change_value)
+        await update_user(selected_user, change_column, change_value)
     elif change_column in modifiable_strings:
-      update_user(selected_user, change_column, change_value)
+      await update_user(selected_user, change_column, change_value)
     await display_user(selected_user, ctx)
 
 
@@ -51,7 +51,7 @@ async def display_user(user_id, ctx):
   f = open(config["commands"]["qget"]["data"])
   user_columns = json.load(f)
   f.close()
-  user_data = get_user(user_id)
+  user_data = await get_user(user_id)
   logger.info(f"q data: {user_data}")
 
   user = await bot.fetch_user(user_id)

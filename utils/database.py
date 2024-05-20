@@ -1,57 +1,38 @@
-import mysql.connector
+import aiomysql
 from common import *
 
-class AgimusDB():
-  """Database wrapper for AGIMUS
+class AgimusDB:
+  """Asynchronous Database wrapper for AGIMUS with connection pooling"""
 
-  utilizes context managers for less repeating code.
+  _pool = None
 
-  ----
-  Usage: 
-  ```
-  with AgimusDB() as query:
-    sql = "INSERT INTO table (col) VALUES (%s)"
-    vals = (user_id,)
-    query.execute(sql, vals)
-  ```
-  
-  ----
-  Returns:
-
-  `mysql.connection.Cursor`
-    A self-closing cursor to work with
-
-  """
-  def __init__(self, dictionary=False, buffered=False, multi=False):
-    self.db = None
+  def __init__(self, dictionary=False):
+    self.conn = None
     self.cursor = None
     self.dictionary = dictionary
-    self.buffered = buffered
-    self.multi = multi
 
-  def __enter__(self):
-    """ context manager opening """
-    self.db = mysql.connector.connect(
-      host=DB_HOST,
-      user=DB_USER,
-      database=DB_NAME,
-      password=DB_PASS
-    )
-    self.cursor = self.db.cursor(
-      dictionary=self.dictionary,
-      buffered=self.buffered
-    )
+  @classmethod
+  async def init_pool(cls):
+    if cls._pool is None:
+      cls._pool = await aiomysql.create_pool(
+        host=DB_HOST,
+        port=3306,
+        user=DB_USER,
+        password=DB_PASS,
+        db=DB_NAME,
+        autocommit=True,
+        minsize=1,
+        maxsize=20
+      )
+
+  async def __aenter__(self):
+    await self.init_pool()
+    self.conn = await self._pool.acquire()
+    self.cursor = await self.conn.cursor(aiomysql.DictCursor if self.dictionary else aiomysql.Cursor)
     return self.cursor
 
-  def __exit__(self, exc_class, exc, traceback):
-    """ context manager closing """
-    if not self.buffered: 
-      self.db.commit()
-    self.cursor.close()
-    self.db.close()
-
-  def __del__(self):
+  async def __aexit__(self, exc_type, exc_val, exc_tb):
     if self.cursor:
-      self.cursor.close()
-    if self.db:
-      self.db.close()
+      await self.cursor.close()
+    if self.conn and self._pool:
+      self._pool.release(self.conn)

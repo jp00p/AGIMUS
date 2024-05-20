@@ -1,11 +1,11 @@
 from common import *
 
-def db_get_scrap_last_timestamp(user_discord_id):
-  with AgimusDB(dictionary=True, buffered=True) as query:
+async def db_get_scrap_last_timestamp(user_discord_id):
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT time_created FROM badge_scraps WHERE user_discord_id = %s ORDER BY time_created DESC"
     vals = (user_discord_id, )
-    query.execute(sql, vals)
-    row = query.fetchone()
+    await query.execute(sql, vals)
+    row = await query.fetchone()
 
   timestamp = None
   if row is not None:
@@ -13,11 +13,11 @@ def db_get_scrap_last_timestamp(user_discord_id):
 
   return timestamp
 
-def db_perform_badge_scrap(user_discord_id, badge_to_add, badges_to_scrap):
+async def db_perform_badge_scrap(user_discord_id, badge_to_add, badges_to_scrap):
   badge_filename_to_add = badge_to_add['badge_filename']
   badge_filenames_to_scrap = [b['badge_filename'] for b in badges_to_scrap]
 
-  with AgimusDB(dictionary=True) as query:
+  async with AgimusDB(dictionary=True) as query:
 
     # Create scrap record
     sql = '''
@@ -25,7 +25,7 @@ def db_perform_badge_scrap(user_discord_id, badge_to_add, badges_to_scrap):
         VALUES (%s, %s)
     '''
     vals = (user_discord_id, badge_filename_to_add)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
     # Associate badges scrapped with scrap record
     # Create scrap record
@@ -41,7 +41,7 @@ def db_perform_badge_scrap(user_discord_id, badge_to_add, badges_to_scrap):
       query.lastrowid, badge_filenames_to_scrap[1],
       query.lastrowid, badge_filenames_to_scrap[2],
     )
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
     # Give user new badge
     sql = '''
@@ -49,7 +49,7 @@ def db_perform_badge_scrap(user_discord_id, badge_to_add, badges_to_scrap):
         VALUES (%s, %s)
     '''
     vals = (user_discord_id, badge_filename_to_add)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
     # Remove scraped badges from user's inventory'
     sql = '''
@@ -66,4 +66,4 @@ def db_perform_badge_scrap(user_discord_id, badge_to_add, badges_to_scrap):
       user_discord_id, badge_filenames_to_scrap[1],
       user_discord_id, badge_filenames_to_scrap[2],
     )
-    query.execute(sql, vals)
+    await query.execute(sql, vals)

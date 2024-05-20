@@ -37,7 +37,7 @@ async def clips_list(ctx:discord.ApplicationContext):
     description=clips_list,
     color=discord.Color.blue()
   )
-  user = get_user(ctx.author.id)
+  user = await get_user(ctx.author.id)
   if user['receive_notifications']:
     try:
       await ctx.author.send(embed=embed)

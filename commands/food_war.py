@@ -23,7 +23,7 @@ food_war = bot.create_group("food_war", "FoD Food War Commands!")
 async def reset(ctx:discord.ApplicationContext, reason:str):
   await ctx.defer()
 
-  previous_reset = db_get_previous_reset()
+  previous_reset = await db_get_previous_reset()
 
   embed = discord.Embed(
     title="Resetting Days Since Last FoD Food War...",
@@ -56,7 +56,7 @@ async def reset(ctx:discord.ApplicationContext, reason:str):
   else:
     days = 0
 
-  db_reset_days(ctx.author.id, reason, days)
+  await db_reset_days(ctx.author.id, reason, days)
 
   gif = await generate_food_war_reset_gif(days)
   embed.set_image(url=f"attachment://{gif.filename}")
@@ -70,7 +70,7 @@ async def reset(ctx:discord.ApplicationContext, reason:str):
 )
 @commands.check(access_check)
 async def check(ctx:discord.ApplicationContext):
-  previous_reset = db_get_previous_reset()
+  previous_reset = await db_get_previous_reset()
 
   if not previous_reset:
     await ctx.respond(
@@ -108,7 +108,7 @@ async def check(ctx:discord.ApplicationContext):
     value=previous_reset['reason'],
   )
 
-  longest_reset = db_get_longest_reset()
+  longest_reset = await db_get_longest_reset()
   if previous_reset['id'] == longest_reset['id']:
     embed.add_field(
       name="All-Time Longest Streak Was The Previous!",
@@ -219,21 +219,21 @@ def generate_food_war_reset_gif(days):
   return discord_image
 
 
-def db_get_previous_reset():
-  with AgimusDB(dictionary=True) as query:
+async def db_get_previous_reset():
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM food_war ORDER BY id DESC LIMIT 1"
-    query.execute(sql)
-    previous_reset = query.fetchone()
+    await query.execute(sql)
+    previous_reset = await query.fetchone()
   return previous_reset
 
-def db_reset_days(user_discord_id, reason, days):
-  with AgimusDB(dictionary=True) as query:
+async def db_reset_days(user_discord_id, reason, days):
+  async with AgimusDB(dictionary=True) as query:
     sql = "INSERT INTO food_war (user_discord_id, reason, days) VALUES (%s, %s, %s)"
     vals = (user_discord_id, reason, days)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
-def db_get_longest_reset():
-  with AgimusDB(dictionary=True) as query:
+async def db_get_longest_reset():
+  async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT fw.*
         FROM (select fw.*,
@@ -248,6 +248,6 @@ def db_get_longest_reset():
         ORDER BY timestampdiff(second, time_created, next_time_created) DESC
         LIMIT 1;
     '''
-    query.execute(sql)
-    longest_reset = query.fetchone()
+    await query.execute(sql)
+    longest_reset = await query.fetchone()
   return longest_reset

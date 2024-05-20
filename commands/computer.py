@@ -15,7 +15,7 @@ async def computer(message:discord.Message):
   if not wa_client:
     return
 
-  # Question may start with "Computer:" or "AGIMUS:"
+  # Question may start with "Computer:"
   # So split on first : and gather remainder of list into a single string
   question_split = message.content.lower().split(":")
   question = "".join(question_split[1:]).strip()

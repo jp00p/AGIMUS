@@ -8,9 +8,11 @@ import string
 import subprocess
 import sys
 import traceback
+import warnings
 from datetime import datetime, timezone, timedelta
 from pprint import pprint
 
+import aiomysql
 import dateutil.parser
 import discord
 import humanize
@@ -61,7 +63,7 @@ LOG = []
 config = get_config()
 tmdb.API_KEY = os.getenv('TMDB_KEY')
 
-ALL_STARBOARD_POSTS = []
+ALL_STARBOARD_POSTS = {}
 BOT_NAME = f"{Fore.LIGHTRED_EX}AGIMUS{Fore.RESET}"
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 TMDB_IMG_PATH = "https://image.tmdb.org/t/p/original"
@@ -147,32 +149,6 @@ def getDB():
   )
   return db
 
-# seed_db()
-# This function takes no arguments
-# and is used to seed the database if the tables
-# described in the file at $DB_SEED_FILEPATH (.env var)
-# If there is no jackpot row, it will also seed that table
-# with an opening pot of 250
-def seed_db():
-  # Seed db structure if it doesn't exist
-  with open(DB_SEED_FILEPATH, 'r') as f:
-    seed = f.read()
-
-  with AgimusDB(buffered=True) as query:
-    with open(DB_SEED_FILEPATH, 'r') as f:
-      seed = f.read()
-      query.execute(seed, multi=True)
-
-  with AgimusDB(dictionary=True) as query:
-    # If the jackpot table is empty, set an initial pot value to 250
-    query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
-    data = query.fetchone()
-
-  if data["total_jackpots"] == 0:
-    logger.info(f"{Fore.GREEN}SEEDING JACKPOT{Fore.RESET}")
-    with AgimusDB() as query:
-      query.execute("INSERT INTO jackpots (jackpot_value) VALUES (250)")
-
 def is_integer(n):
   try:
     float(n)
@@ -196,24 +172,24 @@ def uniq_channels(config):
 # get_user(discord_id)
 # discord_id[required]: int
 # This function will return a user's record from their id
-def get_user(discord_id:int):
-  with AgimusDB(dictionary=True) as query:
+async def get_user(discord_id:int):
+  async with AgimusDB(dictionary=True) as query:
     # get user basic info
     sql = "SELECT users.*, profile_photos.photo as photo, profile_taglines.tagline as tagline FROM users LEFT JOIN profile_taglines ON profile_taglines.user_discord_id = users.discord_id LEFT JOIN profile_photos ON profile_photos.user_discord_id = users.discord_id WHERE discord_id = %s"
     vals = (discord_id,)
-    query.execute(sql, vals)
-    user_data = query.fetchone()
+    await query.execute(sql, vals)
+    user_data = await query.fetchone()
     if user_data:
       # get user stickers
       sql = "SELECT sticker, position FROM profile_stickers WHERE user_discord_id = %s AND sticker IS NOT NULL"
       vals = (discord_id,)
-      query.execute(sql, vals)
-      user_stickers = query.fetchall()
+      await query.execute(sql, vals)
+      user_stickers = await query.fetchall()
       # get user featured badges
       sql = "SELECT badge_filename FROM profile_badges WHERE user_discord_id = %s AND badge_filename IS NOT NULL"
       vals = (discord_id,)
-      query.execute(sql, vals)
-      user_badges = query.fetchall()
+      await query.execute(sql, vals)
+      user_badges = await query.fetchall()
       # close db
       user_data["stickers"] = user_stickers
       user_data["badges"] = user_badges
@@ -224,11 +200,11 @@ def get_user(discord_id:int):
 # get_all_users()
 # This function takes no arguments
 # and returns a list of all user discord ids
-def get_all_users():
-  with AgimusDB(dictionary=True) as query:
-    query.execute("SELECT discord_id FROM users")
+async def get_all_users():
+  async with AgimusDB(dictionary=True) as query:
+    await query.execute("SELECT discord_id FROM users")
     users = []
-    for user in query.fetchall():
+    for user in await query.fetchall():
       users.append(int(user["discord_id"]))
   return users
 
@@ -236,11 +212,11 @@ def get_all_users():
 # register_user(user)
 # user[required]: object
 # This function will insert a new user into the database
-def register_user(user):
-  with AgimusDB() as query:
+async def register_user(user):
+  async with AgimusDB() as query:
     sql = "INSERT INTO users (discord_id, name, mention) VALUES (%s, %s, %s)"
     vals = (user.id, user.display_name, user.mention)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
     logger.info(f"{Style.BRIGHT}Registering user to DB:{Style.RESET_ALL} {user.id} {user.display_name} {user.mention}")
   return int(user.id)
 
@@ -249,12 +225,12 @@ def register_user(user):
 # key[required]: string
 # value[required]: string
 # This function will update a specific value for a specific user
-def update_user(discord_id, key, value):
+async def update_user(discord_id, key, value):
   modifiable = ["score", "spins", "jackpots", "wager", "high_roller", "xp", "level", "profile_photo", "profile_sticker_1"]
   if key not in modifiable:
     logger.error(f"{Fore.RED}{key} not in {modifiable}{Fore.RESET}")
   else:
-    with AgimusDB() as query:
+    async with AgimusDB() as query:
       if key == "score":
         sql = "UPDATE users SET score = %s WHERE discord_id = %s"
       elif key == "spins":
@@ -274,22 +250,22 @@ def update_user(discord_id, key, value):
       elif key == "level":
         sql = "UPDATE users SET level = %s WHERE discord_id = %s"
       vals = (value, discord_id)
-      query.execute(sql, vals)
+      await query.execute(sql, vals)
 
 # set_player_score(user, amt)
 # user[required]: object
 # amt[required]: int
 # This function increases a player's score by the value amt
 # NOTE: THIS IS USED BY MULTIPLE GAMES!
-def set_player_score(user, amt):
-  with AgimusDB() as query:
+async def set_player_score(user, amt):
+  async with AgimusDB() as query:
     sql = "SELECT score FROM users WHERE discord_id = %s"
     if type(user) is str:
       vals = (user,)
     else:
       vals = (user.id,)
-    query.execute(sql, vals)
-    player_score = query.fetchone()
+    await query.execute(sql, vals)
+    player_score = await query.fetchone()
     updated_amt = max(player_score[0] + amt, 0)
     if type(user) is str:
       sql = "UPDATE users SET score = %s WHERE discord_id = %s"
@@ -297,7 +273,7 @@ def set_player_score(user, amt):
     else:
       sql = "UPDATE users SET score = %s, name = %s WHERE discord_id = %s"
       vals = (updated_amt, user.display_name, user.id)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
 
 # win_jackpot(winner, id)
@@ -305,27 +281,27 @@ def set_player_score(user, amt):
 # id[required]: int
 # This function will set the current jackpot winner
 # and reset the jackpot with a default value
-def win_jackpot(winner, id):
-  with AgimusDB() as query:
+async def win_jackpot(winner, id):
+  async with AgimusDB() as query:
     # update current jackpot row with winning data
     sql = "UPDATE jackpots SET winner=%s, time_won=NOW() ORDER BY id DESC LIMIT 1"
     vals = (winner,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
     new_jackpot = "INSERT INTO jackpots (jackpot_value) VALUES (250)"
-    query.execute(new_jackpot)
+    await query.execute(new_jackpot)
     update_this_user = "UPDATE users SET jackpots = jackpots + 1 WHERE discord_id = %s"
     user_vals = (id,)
-    query.execute(update_this_user, user_vals)
+    await query.execute(update_this_user, user_vals)
 
 # increase_jackpot(amt)
 # amt[required]: int
 # This function increases the current jackpot value
 # by the value passed as an arugument
-def increase_jackpot(amt):
-  with AgimusDB() as query:
+async def increase_jackpot(amt):
+  async with AgimusDB() as query:
     sql = "UPDATE jackpots SET jackpot_value = jackpot_value + %s ORDER BY id DESC LIMIT 1"
     vals = (amt,)
-    query.execute(sql, vals)
+    await query.execute(sql, vals)
 
 # generate_local_channel_list(client)
 # client[required]: discord.Bot

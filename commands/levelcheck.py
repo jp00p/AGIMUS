@@ -6,7 +6,7 @@ from handlers.xp import get_user_xp, get_xp_cap_progress, calculate_xp_for_next_
   description="Display how close to your next level you are"
 )
 async def levelcheck(ctx:discord.ApplicationContext):
-  user_xp_data = get_user_xp(ctx.author.id)
+  user_xp_data = await get_user_xp(ctx.author.id)
   current_xp = user_xp_data["xp"]
   current_level = user_xp_data["level"]
 
@@ -16,7 +16,7 @@ async def levelcheck(ctx:discord.ApplicationContext):
 
   if current_level >= 176:
     # High Levelers - Static Level Up Progression per Every 420 XP
-    cap_progress = get_xp_cap_progress(ctx.author.id)
+    cap_progress = await get_xp_cap_progress(ctx.author.id)
     if cap_progress is not None:
       base_xp = cap_progress
       goal_xp = 420

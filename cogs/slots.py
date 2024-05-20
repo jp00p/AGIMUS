@@ -54,7 +54,7 @@ class Slots(commands.Cog):
     #logger.info(f"{Fore.LIGHTRED_EX}Rolling slot theme:{Fore.RESET} {Style.BRIGHT}{show}{Style.RESET_ALL}")
     # player data
     player_id = ctx.author.id
-    player = get_user(player_id)
+    player = await get_user(player_id)
     free_spin = player["spins"] < 5 # true or false
     wager = player["wager"]
     score_mult = wager
@@ -107,7 +107,7 @@ class Slots(commands.Cog):
 
     # roll the slots!
     silly_matches, matching_chars, jackpot, symbol_matches = self.roll_slot(show, SLOTS[show], filename=str(player_id))
-    self.increment_player_spins(player_id)
+    await self.increment_player_spins(player_id)
 
     try:
       file = discord.File(f"{self.slot_results_dir}{player_id}.png", filename=f"{player_id}.png")
@@ -141,10 +141,10 @@ class Slots(commands.Cog):
     if jackpot:
       title = f"**{ctx.author.display_name}** won the jackpot! {get_emoji('q_shocking')}"
       embed_color = discord.Color.dark_gold()
-      jackpot_amt = self.get_jackpot()
+      jackpot_amt = await self.get_jackpot()
       total_rewards += round(jackpot_amt * themed_payout)
       match_msg += f"\n {ctx.author.mention} wins the pot of: `{jackpot_amt}` ...multiplied by the slots' jackpot payout rate of x{themed_payout}... **for a total winnings of `{round(jackpot_amt*themed_payout)}`**\n\nJackpot has been reset to: **`250`**\n\n"
-      win_jackpot(ctx.author.display_name, player_id)
+      await win_jackpot(ctx.author.display_name, player_id)
       jackpot_embed = discord.Embed(
         title=f"**{ctx.author.display_name} WINS THE JACKPOT!!!**".upper(),
         color=embed_color
@@ -165,15 +165,15 @@ class Slots(commands.Cog):
       )
       embed.set_image(url=f"attachment://{player_id}.png")
       embed.set_footer(text=f"{player['name']}'s score: {player['score']+total_profit}")
-      set_player_score(ctx.author, total_profit)
+      await set_player_score(ctx.author, total_profit)
       await increment_user_xp(ctx.author, 1, "slot_win", ctx.channel, "Winning Slots")
       await ctx.send_followup(embed=embed, file=file, ephemeral=False)
       return
     else:
       # LOSS
       title = f"{ctx.author.display_name} lost!"
-      increase_jackpot(score_mult)
-      set_player_score(ctx.author, -wager)
+      await increase_jackpot(score_mult)
+      await set_player_score(ctx.author, -wager)
       loser = ["No dice!", "Bust!", "No matches!", "Better luck next time!", "Sad trombone!", "You didn't win!",
                "We have no prize to fit your loss -- ", "You may have won in the mirror universe, but not here!",
                "Sensors detect no matches.", "JACKP-- no wait, that's a loss.", "Close, but no cigar.",
@@ -181,7 +181,7 @@ class Slots(commands.Cog):
       embed = discord.Embed(
         title=title,
         color=discord.Color(0xe74c3c),
-        description=f"{random.choice(loser)}\n\n`{score_mult}` point(s) added to the jackpot, increasing its bounty to `{self.get_jackpot()}`.",
+        description=f"{random.choice(loser)}\n\n`{score_mult}` point(s) added to the jackpot, increasing its bounty to `{await self.get_jackpot()}`.",
       )
       embed.set_footer(text=f"{player['name']}'s score: {player['score']-wager}")
       embed.set_image(url=f"attachment://{player_id}.png")
@@ -193,15 +193,15 @@ class Slots(commands.Cog):
     if isinstance(error, commands.CommandOnCooldown):
       await ctx.respond(f"You're spinning the slots at warp 10! To prevent you from becoming a promiscuous iguana, I've slowed you down to warp 9.5. Try spinning again in {round(error.retry_after, 2)} seconds", ephemeral=True)
 
-  def increment_player_spins(self, discord_id: int):
+  async def increment_player_spins(self, discord_id: int):
     """
     This function increases the number of a
     user's spin value by one
     """
-    with AgimusDB() as query:
+    async with AgimusDB() as query:
       sql = "UPDATE users SET spins = spins + 1 WHERE discord_id = %s"
       vals = (discord_id,)
-      query.execute(sql, vals)
+      await query.execute(sql, vals)
 
   def roll_slot(self, slot_series: str, slot_to_roll: dict, generate_image=True, filename="slot_results.png"):
     """
@@ -333,7 +333,7 @@ class Slots(commands.Cog):
     Sends the current jackpot bounty value
     """
     await ctx.respond(embed=discord.Embed(
-      description=f"Current jackpot bounty is: **{self.get_jackpot()}**",
+      description=f"Current jackpot bounty is: **{await self.get_jackpot()}**",
       color=discord.Color.dark_gold()
     ))
 
@@ -395,24 +395,24 @@ class Slots(commands.Cog):
 
     await ctx.respond(embed=embed)
 
-  def get_jackpot(self) -> int:
+  async def get_jackpot(self) -> int:
     """
     get the current jackpot
     """
-    with AgimusDB() as query:
+    async with AgimusDB() as query:
       sql = "SELECT jackpot_value FROM jackpots ORDER BY id DESC LIMIT 1"
-      query.execute(sql)
-      jackpot_amt = query.fetchone()
+      await query.execute(sql)
+      jackpot_amt = await query.fetchone()
     return jackpot_amt[0]
 
-  def get_recent_jackpots(self):
+  async def get_recent_jackpots(self):
     """
     returns the 10 most recent jackpot_value from the jackpots table
     """
-    with AgimusDB(dictionary=True) as query:
+    async with AgimusDB(dictionary=True) as query:
       sql = "SELECT * FROM jackpots WHERE winner IS NOT NULL ORDER BY id DESC LIMIT 10"
-      query.execute(sql)
-      jackpot_data = query.fetchall()
+      await query.execute(sql)
+      jackpot_data = await query.fetchall()
     return jackpot_data
 
   @commands.command()

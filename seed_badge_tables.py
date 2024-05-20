@@ -1,6 +1,6 @@
 from common import *
 
-def seed_badge_tables():
+async def seed_badge_tables():
   f = open("./data/badges-metadata.json")
   badges = json.load(f)
   f.close()
@@ -57,14 +57,14 @@ def seed_badge_tables():
         universes_list = [universes]
 
 
-    with AgimusDB(dictionary=True) as query:
+    async with AgimusDB(dictionary=True) as query:
       # Check if badge already exists and if so skip
       sql = '''
         SELECT * FROM badge_info WHERE badge_filename = %s
       '''
       vals = (badge_filename,)
-      query.execute(sql, vals)
-      result = query.fetchone()
+      await query.execute(sql, vals)
+      result = await query.fetchone()
       if result is not None:
         #query.close()
         continue
@@ -78,7 +78,7 @@ def seed_badge_tables():
           VALUES (%s, %s, %s, %s, %s, %s, %s)
       '''
       vals = (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference)
-      query.execute(sql, vals)
+      await query.execute(sql, vals)
 
       # Now get the id of the new badge_info row
       # sql = "SELECT id FROM badge_info WHERE badge_name = %s"
@@ -95,7 +95,7 @@ def seed_badge_tables():
             VALUES (%s, %s)
           '''
           vals = (badge_filename, a)
-          query.execute(sql, vals)
+          await query.execute(sql, vals)
 
       # Same for types
       if types_list is not None:
@@ -105,7 +105,7 @@ def seed_badge_tables():
             VALUES (%s, %s)
           '''
           vals = (badge_filename, t)
-          query.execute(sql, vals)
+          await query.execute(sql, vals)
 
       # Same for universes
       if universes_list is not None:
@@ -115,8 +115,8 @@ def seed_badge_tables():
             VALUES (%s, %s)
           '''
           vals = (badge_filename, u)
-          query.execute(sql, vals)
+          await query.execute(sql, vals)
 
 # Run
 if __name__ == "__main__":
-  seed_badge_tables()
+  asyncio.run(seed_badge_tables())
