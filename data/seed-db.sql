@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS FoD;
 use FoD;
 CREATE TABLE IF NOT EXISTS jackpots (
   id int(11) NOT NULL AUTO_INCREMENT,
-  jackpot_value bigint(20) NOT NULL,
+  jackpot_value bigint(20) NOT NULL DEFAULT 250,
   winner varchar(128) DEFAULT NULL,
   time_created timestamp NOT NULL DEFAULT current_timestamp(),
   time_won timestamp NULL DEFAULT NULL,

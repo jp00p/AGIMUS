@@ -149,17 +149,6 @@ async def on_ready():
         q.close()
         db.close()
 
-        # Now set up jackpot table if needed using standard async db wrapper
-        async with AgimusDB(dictionary=True) as query:
-          # If the jackpot table is empty, set an initial pot value to 250
-          await query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
-          data = await query.fetchone()
-
-        if data["total_jackpots"] == 0:
-          async with AgimusDB() as query:
-            logger.info(f"{Fore.GREEN}SEEDING JACKPOT{Fore.RESET}")
-            await query.execute("INSERT INTO jackpots (jackpot_value) VALUES (250)")
-
         DB_IS_SEEDED = True
         logger.info(f"{Style.BRIGHT}{Fore.LIGHTGREEN_EX}DATABASE CONNECTION SUCCESSFUL!{Fore.RESET}{Style.RESET_ALL}")
     except Exception as e:
@@ -202,7 +191,6 @@ async def on_ready():
   except Exception as e:
     logger.info(f"Error in on_ready: {e}")
     logger.info(traceback.format_exc())
-
 
 # listens to every message on the server that the bot can see
 @bot.event
