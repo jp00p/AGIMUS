@@ -155,8 +155,8 @@ async def on_ready():
           await query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
           data = await query.fetchone()
 
-        async with AgimusDB() as query:
-          if data["total_jackpots"] == 0:
+        if data["total_jackpots"] == 0:
+          async with AgimusDB() as query:
             logger.info(f"{Fore.GREEN}SEEDING JACKPOT{Fore.RESET}")
             await query.execute("INSERT INTO jackpots (jackpot_value) VALUES (250)")
 
