@@ -117,7 +117,7 @@ background_tasks = set() # for non-blocking tasks
 logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}{Style.RESET_ALL}")
 
 DB_IS_SEEDED = False
-ALL_USERS = None
+ALL_USERS = {}
 
 @bot.event
 async def on_ready():
@@ -165,7 +165,7 @@ async def on_ready():
       logger.error(f"Error during DB Seeding: {e}")
 
     global ALL_USERS
-    if ALL_USERS is None:
+    if not ALL_USERS:
       ALL_USERS = dict.fromkeys(await get_all_users(), True) # used for registering new users without a db lookup
 
     logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX} LOGGED IN AS {bot.user} {Fore.RESET}{Back.RESET}")
