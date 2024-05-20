@@ -32,7 +32,19 @@ class AgimusDB:
     return self.cursor
 
   async def __aexit__(self, exc_type, exc_val, exc_tb):
-    if self.cursor:
-      await self.cursor.close()
-    if self.conn and self._pool:
-      self._pool.release(self.conn)
+    try:
+      if self.cursor:
+        await self.cursor.close()
+    except Exception as e:
+      logger.error(f"Error closing cursor: {e}")
+      logger.info(traceback.format_exc())
+
+    try:
+      if self.conn:
+        if self._pool:
+          self._pool.release(self.conn)
+        else:
+          logger.error("Connection pool is None")
+    except Exception as e:
+      logger.error(f"Error releasing connection: {e}")
+      logger.info(traceback.format_exc())
