@@ -75,6 +75,7 @@ all_shows = {
     "title": "Star Trek: Enterprise",
     "trek": True,
     "animated": False,
+    "pod": "tgg"
   },
   "tos": {
     "tmdb": 253,
