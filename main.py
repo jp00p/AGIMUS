@@ -155,6 +155,7 @@ async def on_ready():
           await query.execute("SELECT count(id) as total_jackpots from jackpots limit 1")
           data = await query.fetchone()
 
+        async with AgimusDB() as query:
           if data["total_jackpots"] == 0:
             logger.info(f"{Fore.GREEN}SEEDING JACKPOT{Fore.RESET}")
             await query.execute("INSERT INTO jackpots (jackpot_value) VALUES (250)")
@@ -163,6 +164,7 @@ async def on_ready():
         logger.info(f"{Style.BRIGHT}{Fore.LIGHTGREEN_EX}DATABASE CONNECTION SUCCESSFUL!{Fore.RESET}{Style.RESET_ALL}")
     except Exception as e:
       logger.error(f"Error during DB Seeding: {e}")
+      logger.info(traceback.format_exc())
 
     global ALL_USERS
     if not ALL_USERS:
