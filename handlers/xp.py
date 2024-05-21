@@ -6,6 +6,8 @@ from commands.badges import give_user_badge, send_badge_reward_message
 from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist, db_get_user_wishlist_badges
 from utils.badge_utils import db_get_user_badges, db_purge_users_wishlist
 
+db_lock = asyncio.Lock()
+
 # rainbow of colors to cycle through for the logs
 xp_colors = [
     Fore.RED,
@@ -337,65 +339,66 @@ async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_
 # This function will increment a users' XP, log the gain to the history, determines level up status for
 # Standard or High Level XP Cap systems, and fires the level up action if appropriate
 async def increment_user_xp(user:discord.User, amt:int, reason:str, channel, source=None):
-  # Determine multiplier
-  xp_multiplier = 1
-  if bool(datetime.today().weekday() >= 4): # Weekend
-    xp_multiplier = 2
+  async with db_lock:
+    # Determine multiplier
+    xp_multiplier = 1
+    if bool(datetime.today().weekday() >= 4): # Weekend
+      xp_multiplier = 2
 
-  # Update database
-  amt = int(amt * xp_multiplier)
-  async with AgimusDB() as query:
-    sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s AND xp_enabled = 1"
-    vals = (amt, user.display_name, user.id)
-    await query.execute(sql, vals)
-    updated = query.rowcount
+    # Update database
+    amt = int(amt * xp_multiplier)
+    async with AgimusDB() as query:
+      sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s AND xp_enabled = 1"
+      vals = (amt, user.display_name, user.id)
+      await query.execute(sql, vals)
+      updated = query.rowcount
 
-  if updated > 0:
-    # Log xp_history
-    await log_xp_history(user.id, amt, channel.id, reason)
-    console_log_xp_history(user, amt, reason)
+    if updated > 0:
+      # Log xp_history
+      await log_xp_history(user.id, amt, channel.id, reason)
+      console_log_xp_history(user, amt, reason)
 
-    # Determine Level Up
-    user_xp_data = await get_user_xp(user.id)
-    current_xp = user_xp_data["xp"]
-    current_level = user_xp_data["level"]
+      # Determine Level Up
+      user_xp_data = await get_user_xp(user.id)
+      current_xp = user_xp_data["xp"]
+      current_level = user_xp_data["level"]
 
-    should_user_level_up = False
-    if current_level >= 176:
-      # High Levelers - Static Level Up Progression per Every 420 XP
-      cap_progress = await get_xp_cap_progress(user.id)
-      if cap_progress is None:
-        # User hasn't been transitioned to using the cap yet
-        # Check to see if they would level up normally first
+      should_user_level_up = False
+      if current_level >= 176:
+        # High Levelers - Static Level Up Progression per Every 420 XP
+        cap_progress = await get_xp_cap_progress(user.id)
+        if cap_progress is None:
+          # User hasn't been transitioned to using the cap yet
+          # Check to see if they would level up normally first
+          next_level_xp = calculate_xp_for_next_level(current_level)
+          if current_xp >= next_level_xp:
+            should_user_level_up = True
+            # Now transition them to the new XP Cap System
+            # Initialize progress towards new cap goal with remainder from leveling up
+            xp_remainder = current_xp - next_level_xp
+            await init_xp_cap_progress(user.id, xp_remainder)
+        else:
+          # User has been transitioned
+          # So we can increment the progress and check if it has met the goal
+          await increment_xp_cap_progress(user.id, amt)
+          total_progress = cap_progress + amt
+          if total_progress >= 420:
+            should_user_level_up = True
+            # Now subtract the progress from the goal mark to reset for next level
+            await decrement_xp_cap_progress(user.id, 420)
+      else:
+        # Below Level XP Capper - Standard XP Leveling
         next_level_xp = calculate_xp_for_next_level(current_level)
         if current_xp >= next_level_xp:
           should_user_level_up = True
-          # Now transition them to the new XP Cap System
-          # Initialize progress towards new cap goal with remainder from leveling up
-          xp_remainder = current_xp - next_level_xp
-          await init_xp_cap_progress(user.id, xp_remainder)
-      else:
-        # User has been transitioned
-        # So we can increment the progress and check if it has met the goal
-        await increment_xp_cap_progress(user.id, amt)
-        total_progress = cap_progress + amt
-        if total_progress >= 420:
-          should_user_level_up = True
-          # Now subtract the progress from the goal mark to reset for next level
-          await decrement_xp_cap_progress(user.id, 420)
-    else:
-      # Below Level XP Capper - Standard XP Leveling
-      next_level_xp = calculate_xp_for_next_level(current_level)
-      if current_xp >= next_level_xp:
-        should_user_level_up = True
 
-    # Perform the actual level up if appropriate
-    if should_user_level_up:
-      try:
-        source_details = determine_level_up_source_details(user, source)
-        await level_up_user(user, source_details)
-      except Exception as e:
-        logger.info(f"Error trying to level up user: {e}")
+      # Perform the actual level up if appropriate
+      if should_user_level_up:
+        try:
+          source_details = determine_level_up_source_details(user, source)
+          await level_up_user(user, source_details)
+        except Exception as e:
+          logger.info(f"Error trying to level up user: {e}")
 
 
 def console_log_xp_history(user:discord.User, amt:int, reason:str):

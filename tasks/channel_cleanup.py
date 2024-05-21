@@ -9,28 +9,31 @@ def channel_cleanup_task(bot):
       return
 
     pst_tz = pytz.timezone('America/Los_Angeles')
-    raw_now = datetime.utcnow().replace(tzinfo=pytz.utc))
+    raw_now = datetime.utcnow().replace(tzinfo=pytz.utc)
     aware_now = pst_tz.normalize(raw_now.astimezone(pst_tz))
 
-    two_days_ago = aware_now - timedelta(days=2)
+    one_day_ago = aware_now - timedelta(days=1)
 
     channel_ids = get_channel_ids_list(config["tasks"]["channel_cleanup"]["channels"])
     for channel_id in channel_ids:
       channel = bot.get_channel(channel_id)
 
-      await channel.send(
-        discord.Embed(
-          title="Deleting previous messages...",
-          color=discord.Color.dark_red()
-        )
+      self_destruct_embed = discord.Embed(
+        title="Deleting previous messages...",
+        color=discord.Color.dark_red()
       )
+      self_destruct_embed.set_footer(text="This message will self-destruct in 10 minutes... 💣")
+      self_destruct_message = await channel.send(embed=self_destruct_embed)
 
-      async for message in channel.history(before=two_days_ago):
+      async for message in channel.history(before=one_day_ago):
         try:
           await message.delete()
         except Exception as e:
           logger.error(f"Error channel_cleanup_task: {e}")
           logger.info(traceback.format_exc())
+
+      await asyncio.sleep(600)
+      await self_destruct_message.delete()
 
   return {
     "task": channel_cleanup,
