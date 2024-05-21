@@ -40,6 +40,7 @@
         "mclaughlin-group",
         "mo-pips-mo-problemz",
         "code-47",
+        "maquis-officers-club",
         "robot-diagnostics",
         "megalomaniacal-computer-storage",
         "bot-logs",
@@ -69,6 +70,7 @@
         "mo-pips-mo-problemz",
         "mclaughlin-group",
         "lieutenants-lounge",
+        "maquis-officers-club",
         "captains-log",
         "bot-setup",
         "bosuns-whistle",
@@ -149,6 +151,7 @@
         "heuristic-associative-pathways",
         "mo-pips-mo-problemz",
         "code-47",
+        "maquis-officers-club",
         "badgeys-badges",
         "megalomaniacal-computer-storage",
         "crackling-speaker-grille"
@@ -332,6 +335,13 @@
       "crontab": "0 * * * *",
       "enabled": false
     },
+    "channel_cleanup": {
+      "channels": [
+        "maquis-officers-club"
+      ],
+      "crontab": "0 12 * * *",
+      "enabled": true
+    },
     "hoodiversary": {
       "channels": [
         "captain-picard-day"
@@ -349,27 +359,6 @@
     }
   },
   "commands": {
-    "agimus": {
-      "channels": [],
-      "blocked_channels": [
-        "neelixs-morale-office",
-        "plasma-vent",
-        "counselor-trois-waiting-room",
-        "peoples-resistance-front-of-bajor",
-        "heuristic-associative-pathways",
-        "behind-the-visor",
-        "garaks-tailor-shop",
-        "the-next-next-generation",
-        "sicks-bay",
-        "lieutenants-lounge",
-        "mclaughlin-group",
-        "mo-pips-mo-problemz",
-        "code-47"
-      ],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
     "aliases": {
       "channels": [
         "mclaughlin-group",
@@ -962,6 +951,7 @@
         "lieutenants-lounge",
         "mclaughlin-group",
         "mo-pips-mo-problemz",
+        "maquis-officers-club",
         "code-47",
         "robot-diagnostics",
         "megalomaniacal-computer-storage",
