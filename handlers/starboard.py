@@ -1,3 +1,4 @@
+import asyncio
 import random
 import re
 from typing import Dict, List
@@ -12,6 +13,8 @@ from utils.database import AgimusDB
 react_threshold = 3 # how many reactions required
 high_react_threshold = 5
 user_threshold = 3 # how many users required
+
+db_lock = asyncio.Lock()
 
 async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> None:
   board_patterns = generate_board_compiled_patterns(config["handlers"]["starboard"]["boards"])
@@ -94,9 +97,10 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
       adjusted_react_threshold = high_react_threshold
     # finally, if this match category has enough reactions and enough people, let's save it to the starboard channel!
     if total_reacts_for_this_match >= adjusted_react_threshold and len(message_reaction_people) >= user_threshold:
-      if await db_get_starboard_post(message.id, board) is None: # checking again just in case (might be expensive)
-        await add_starboard_post(message, board)
-        return
+      async with db_lock:
+        if await db_get_starboard_post(message.id, board) is None: # checking again just in case (might be expensive)
+          await add_starboard_post(message, board)
+          return
 
 
 async def add_starboard_post(message, board) -> None:
