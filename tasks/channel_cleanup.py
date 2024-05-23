@@ -15,7 +15,7 @@ def channel_cleanup_task(bot):
         continue
 
       # Just nuke the entire channel history
-      await channel.purge()
+      await channel.purge(limit=1500, oldest_first=True, reason="Periodic Purge")
 
       self_destruct_embed = discord.Embed(
         title="Channel Nuked From Orbit! 💥",
