@@ -7,7 +7,15 @@
             "episode": "01",
             "imdb": "tt0286610",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.05.20",
+                    "episode": "Neither Oobie Nor Doobie",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-523-neither-oobie-nor-doobie-ent-s1e1-e2/",
+                    "order": 523,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/4jRkxU4tThaEDX2S8iRduwJNQq8.jpg",
@@ -22,7 +30,15 @@
             "episode": "02",
             "imdb": "tt0572184",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.05.20",
+                    "episode": "Neither Oobie Nor Doobie",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-523-neither-oobie-nor-doobie-ent-s1e1-e2/",
+                    "order": 523,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/6fBsTSe9deRkOn1L1mC0cQ7EiVb.jpg",
