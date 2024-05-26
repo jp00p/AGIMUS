@@ -181,7 +181,7 @@ def generate_food_war_reset_gif(days):
   # Eraser Wipe
   for n in range(0, 54):
     frame = base_text_frame.copy()
-    wipe_frame = Image.open(f"./images/templates/food_war/wipe/{'{:02d}'.format(n)}.png").convert('RGBA')
+    wipe_frame = Image.open(f"./images/templates/shared/warning_signs/wipe/{'{:02d}'.format(n)}.png").convert('RGBA')
     frame.paste(wipe_frame, (110, 85), wipe_frame)
     frames.append(frame)
 
@@ -192,7 +192,7 @@ def generate_food_war_reset_gif(days):
   # Draw Zero
   for n in range(0, 13):
     frame = blank_frame.copy()
-    draw_frame = Image.open(f"./images/templates/food_war/draw/{'{:02d}'.format(n)}.png").convert('RGBA')
+    draw_frame = Image.open(f"./images/templates/shared/warning_signs/draw/{'{:02d}'.format(n)}.png").convert('RGBA')
     frame.paste(draw_frame, (110, 85), draw_frame)
     frames.append(frame)
 
