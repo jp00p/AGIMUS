@@ -24,7 +24,7 @@ async def reset(ctx:discord.ApplicationContext):
 
   embed = discord.Embed(
     title="Resetting Days Since Last Sub Rosa Watch...",
-    description=f"{ctx.author.mention} is vaporizing the candle!",
+    description=f"{ctx.author.mention} is vaporizing the candle! {get_emoji('dinnae_light_that_candle_ghost')}",
     color=discord.Color.dark_green()
   )
   if previous_reset:
@@ -67,7 +67,7 @@ async def check(ctx:discord.ApplicationContext):
   if not previous_reset:
     await ctx.respond(
       embed=discord.Embed(
-        title="No Wars Registered Yet!",
+        title="No Watches Registered Yet!",
         color=discord.Color.red()
       ),
       ephemeral=True
@@ -87,24 +87,20 @@ async def check(ctx:discord.ApplicationContext):
 
   embed = discord.Embed(
     title=f"The Last Sub Rosa Watch Was...",
-    description=f"was {days} {'Day' if days == 1 else 'Days'} ago...",
-    color=discord.Color.gold()
+    description=f"was {days} {'Day' if days == 1 else 'Days'} ago... {get_emoji('beverly_horny_ghost_orgasm')}",
+    color=discord.Color.dark_green()
   )
 
   embed.add_field(
     name="Previous Days Streak",
     value=f"{previous_reset['days']} {'Day' if previous_reset['days'] == 1 else 'Days'}",
   )
-  embed.add_field(
-    name=f"Previous Reason",
-    value=previous_reset['reason'],
-  )
 
   longest_reset = await db_get_longest_reset()
   if previous_reset['id'] == longest_reset['id']:
     embed.add_field(
       name="All-Time Longest Streak Was The Previous!",
-      value=f"That must have been a particularly *un-erotic* chapter of Bev's Grandmother's journal! 🕯️",
+      value=f"That must have been a particularly *un-erotic* \nchapter of Bev's Grandmother's journal! 🕯️",
       inline=False
     )
   else:
@@ -209,19 +205,19 @@ def generate_sub_rosa_reset_gif(days):
 
 def get_random_footer_text():
   footer_texts = [
-    "Most people on this colony will remember my grandmother as a healer, but her abilities went beyond that.",
+    "Most people on this colony will remember my grandmother as a healer, \nbut her abilities went beyond that.",
     "Beverly! It's all right! Have trust in me!",
     "THIRTIES!?",
     "Dinnae light that canhdle! An dunnoe go to that hoose!",
-    "It's supposed to symbolise the enduring Howard spirit. Wherever they may go, the shining light to guide them through their fortune!",
+    "It's supposed to symbolise the enduring Howard spirit. \nWherever they may go, the shining light to guide them through their fortune!",
     "That's one hell of a thunderstorm...",
     "A pair of hands. They were moving across my skin...",
-    "I did fall asleep reading a particularly erotic chapter in my grandmother's journal...",
+    "I did fall asleep reading a particularly erotic chapter \nin my grandmother's journal...",
     "I wonder if I'll have another dream tonight...",
     "I'd read two chapters!",
-    "You dinna understand. He's trying to kill us all.",
+    "You dinna understand. He's trying to kill us all!",
     "Then we'll be together, uhllwayyyhhhzz...",
-    "I was about to be initiated into a very unusual relationship. You might call it a family tradition."
+    "I was about to be initiated into a very unusual relationship. \nYou might call it a family tradition."
   ]
   return f"{random.choice(footer_texts)} 🕯️"
 
@@ -232,10 +228,10 @@ async def db_get_previous_reset():
     previous_reset = await query.fetchone()
   return previous_reset
 
-async def db_reset_days(user_discord_id, reason, days):
+async def db_reset_days(user_discord_id, days):
   async with AgimusDB(dictionary=True) as query:
-    sql = "INSERT INTO sub_rosa (user_discord_id, reason, days) VALUES (%s, %s, %s);"
-    vals = (user_discord_id, reason, days)
+    sql = "INSERT INTO sub_rosa (user_discord_id, days) VALUES (%s, %s);"
+    vals = (user_discord_id, days)
     await query.execute(sql, vals)
 
 async def db_get_longest_reset():
