@@ -38,6 +38,7 @@ import commands.drop
 
 # Bang
 from commands.clear_media import clear_media
+from commands.nuke_maquis import nuke_maquis
 from commands.ping import ping
 from commands.q import qget, qset
 from commands.update_status import update_status

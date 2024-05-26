@@ -569,6 +569,16 @@
       "data": null,
       "parameters": []
     },
+    "nuke_maquis": {
+      "allowed_roles": [
+        "Admiral",
+        "Captain"
+      ],
+      "channels": [],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "ping": {
       "channels": [
         "robot-diagnostics"
@@ -774,6 +784,30 @@
     "slots jackpots": {
       "channels": [
         "dabo-table"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "sub_rosa check": {
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-waiting-room",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "the-next-next-generation",
+        "sicks-bay"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "sub_rosa reset": {
+      "allowed_roles": [
+        "Admiral",
+        "Captain"
       ],
       "enabled": true,
       "data": null,

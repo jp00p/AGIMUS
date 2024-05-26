@@ -21,10 +21,11 @@ def channel_cleanup_task(bot):
         title="Channel Nuked From Orbit! 💥",
         color=discord.Color.dark_red()
       )
-      self_destruct_embed.set_footer(text="This message will self-destruct in 10 minutes... 💣")
+      self_destruct_embed.set_image(url="https://i.imgur.com/8W40YCG.gif")
+      self_destruct_embed.set_footer(text="This message will self-destruct in 5 minutes... 💣")
       self_destruct_message = await channel.send(embed=self_destruct_embed)
 
-      await asyncio.sleep(600)
+      await asyncio.sleep(300)
       await self_destruct_message.delete()
 
   return {
