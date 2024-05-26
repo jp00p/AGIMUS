@@ -3,38 +3,30 @@ import pytz
 
 from common import *
 from utils.check_channel_access import access_check
+from utils.check_role_access import role_check
 
 
 # Create drop Slash Command Group
-food_war = bot.create_group("food_war", "FoD Food War Commands!")
+sub_rosa = bot.create_group("sub_rosa", "Sub Rosa Tracker Commands!")
 
-@food_war.command(
+@sub_rosa.command(
   name="reset",
-  description="Reset the days since last FoD Food War",
+  description="Reset the days since last Sub Rosa Watch",
 )
-@option(
-  name="reason",
-  description="Reason for reset?",
-  required=True,
-  min_length=1,
-  max_length=64
-)
-@commands.check(access_check)
-async def reset(ctx:discord.ApplicationContext, reason:str):
+@commands.check(role_check)
+async def reset(ctx:discord.ApplicationContext):
   await ctx.defer()
 
   previous_reset = await db_get_previous_reset()
-  stats = await db_get_food_war_stats()
+  stats = await db_get_sub_rosa_stats()
+  total_watches = stats['total_watches']
+  if total_watches >= 30 and total_watches < 40:
+    total_watches = f"{total_watches}... *Thirties...*"
 
   embed = discord.Embed(
-    title="Resetting Days Since Last FoD Food War...",
-    description=f"{ctx.author.mention} is resetting the clock!",
-    color=discord.Color.gold()
-  )
-  embed.add_field(
-    name="Reason",
-    value=reason,
-    inline=False
+    title="Resetting Days Since Last Sub Rosa Watch...",
+    description=f"{ctx.author.mention} is vaporizing the candle! {get_emoji('dinnae_light_that_candle_ghost')}",
+    color=discord.Color.dark_green()
   )
   if previous_reset:
     pst_tz = pytz.timezone('America/Los_Angeles')
@@ -51,34 +43,29 @@ async def reset(ctx:discord.ApplicationContext, reason:str):
       value=f"{days} {'Day' if days == 1 else 'Days'}",
     )
     embed.add_field(
-      name=f"Previous Reason",
-      value=previous_reset['reason'],
-    )
-
-    embed.add_field(
-      name="Total Number of Food Wars",
-      value=stats['total_wars'],
+      name="Total Watches",
+      value=f"{total_watches}",
       inline=False
     )
     embed.add_field(
-      name="Average Days Between Food Wars",
+      name="Average Days Between Watches",
       value=int(stats['average_days']),
       inline=False
     )
   else:
     days = 0
 
-  await db_reset_days(ctx.author.id, reason, days)
+  await db_reset_days(ctx.author.id, days)
 
-  gif = await generate_food_war_reset_gif(days)
+  gif = await generate_sub_rosa_reset_gif(days)
   embed.set_image(url=f"attachment://{gif.filename}")
-  embed.set_footer(text="Again!? 💣")
+  embed.set_footer(text=get_random_footer_text())
   await ctx.followup.send(embed=embed, file=gif)
 
 
-@food_war.command(
+@sub_rosa.command(
   name="check",
-  description="Check how many days it's been since last FoD Food War",
+  description="Check how many days it's been since last Sub Rosa Watch",
 )
 @commands.check(access_check)
 async def check(ctx:discord.ApplicationContext):
@@ -87,7 +74,7 @@ async def check(ctx:discord.ApplicationContext):
   if not previous_reset:
     await ctx.respond(
       embed=discord.Embed(
-        title="No Wars Registered Yet!",
+        title="No Watches Registered Yet!",
         color=discord.Color.red()
       ),
       ephemeral=True
@@ -95,7 +82,8 @@ async def check(ctx:discord.ApplicationContext):
     return
 
   await ctx.defer()
-  stats = await db_get_food_war_stats()
+
+  stats = await db_get_sub_rosa_stats()
 
   pst_tz = pytz.timezone('America/Los_Angeles')
   raw_now = datetime.utcnow().replace(tzinfo=pytz.utc)
@@ -107,25 +95,21 @@ async def check(ctx:discord.ApplicationContext):
   days = lifespan.days
 
   embed = discord.Embed(
-    title=f"The Last FoD Food War...",
-    description=f"was {days} {'Day' if days == 1 else 'Days'} ago...",
-    color=discord.Color.gold()
+    title=f"The Last Sub Rosa Watch Was...",
+    description=f"was {days} {'Day' if days == 1 else 'Days'} ago... {get_emoji('beverly_horny_ghost_orgasm')}",
+    color=discord.Color.dark_green()
   )
 
   embed.add_field(
     name="Previous Days Streak",
     value=f"{previous_reset['days']} {'Day' if previous_reset['days'] == 1 else 'Days'}",
   )
-  embed.add_field(
-    name="Previous Reason",
-    value=previous_reset['reason'],
-  )
 
   longest_reset = await db_get_longest_reset()
   if previous_reset['id'] == longest_reset['id']:
     embed.add_field(
       name="All-Time Longest Streak Was The Previous!",
-      value="Holy Guacamole! 🥑",
+      value=f"That must have been a particularly *un-erotic* \nchapter of Bev's Grandmother's journal! 🕯️",
       inline=False
     )
   else:
@@ -134,49 +118,44 @@ async def check(ctx:discord.ApplicationContext):
       value=f"{longest_reset['days']} {'Day' if longest_reset['days'] == 1 else 'Days'}",
       inline=False
     )
-    embed.add_field(
-      name="All-Time Longest Streak Reason",
-      value=longest_reset['reason'],
-      inline=False
-    )
 
   embed.add_field(
-    name="Total Number of Food Wars",
-    value=stats['total_wars'],
+    name="Total Number of Watches",
+    value=stats['total_watches'],
     inline=False
   )
   embed.add_field(
-    name="Average Days Between Food Wars",
+    name="Average Days Between Watches",
     value=int(stats['average_days']),
     inline=False
   )
 
-  png = await generate_food_war_check_png(days)
+  png = await generate_sub_rosa_check_png(days)
   embed.set_image(url=f"attachment://{png.filename}")
-  embed.set_footer(text="We can only hope it shall last longer... 🥑 ⚔️ 🙏")
+  embed.set_footer(text=get_random_footer_text())
   await ctx.followup.send(embed=embed, file=png)
 
 
 @to_thread
-def generate_food_war_check_png(days):
+def generate_sub_rosa_check_png(days):
   marker_font = ImageFont.truetype("fonts/PermanentMarker.ttf", 200)
 
   base_width = 600
   base_height = 775
 
-  food_war_sign_image = Image.open("./images/templates/food_war/blank_sign.png").convert("RGBA")
-  food_war_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
-  food_war_base_image.paste(food_war_sign_image, (0, 0))
+  sub_rosa_sign_image = Image.open("./images/templates/sub_rosa/blank_sign.png").convert("RGBA")
+  sub_rosa_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
+  sub_rosa_base_image.paste(sub_rosa_sign_image, (0, 0))
 
-  d = ImageDraw.Draw(food_war_base_image)
+  d = ImageDraw.Draw(sub_rosa_base_image)
   d.text( (base_width/2, 200), f"{days}", fill=(0, 0, 0, 255), font=marker_font, anchor="mm", align="center")
 
   image_filename = "current_days.png"
-  image_filepath = f"./images/food_war/{image_filename}"
+  image_filepath = f"./images/sub_rosa/{image_filename}"
   if os.path.exists(image_filepath):
     os.remove(image_filepath)
 
-  food_war_base_image.save(image_filepath)
+  sub_rosa_base_image.save(image_filepath)
 
   while True:
     time.sleep(0.05)
@@ -187,17 +166,17 @@ def generate_food_war_check_png(days):
   return discord_image
 
 @to_thread
-def generate_food_war_reset_gif(days):
+def generate_sub_rosa_reset_gif(days):
   marker_font = ImageFont.truetype("fonts/PermanentMarker.ttf", 200)
 
   base_width = 600
   base_height = 775
 
-  food_war_sign_image = Image.open("./images/templates/food_war/blank_sign.png").convert("RGBA")
-  food_war_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
-  food_war_base_image.paste(food_war_sign_image, (0, 0))
+  sub_rosa_sign_image = Image.open("./images/templates/sub_rosa/blank_sign.png").convert("RGBA")
+  sub_rosa_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
+  sub_rosa_base_image.paste(sub_rosa_sign_image, (0, 0))
 
-  base_text_frame = food_war_base_image.copy()
+  base_text_frame = sub_rosa_base_image.copy()
   d = ImageDraw.Draw(base_text_frame)
   d.text( (base_width/2, 200), f"{days}", fill=(0, 0, 0, 255), font=marker_font, anchor="mm", align="center")
   frames = [base_text_frame]*20
@@ -210,7 +189,7 @@ def generate_food_war_reset_gif(days):
     frames.append(frame)
 
   # Blank Frames
-  blank_frame = food_war_base_image.copy()
+  blank_frame = sub_rosa_base_image.copy()
   frames = frames + [blank_frame]*10
 
   # Draw Zero
@@ -224,8 +203,8 @@ def generate_food_war_reset_gif(days):
       frames = frames + [frame]*30
 
   # Save
-  image_filename = "days_since_last_fod_food_war.gif"
-  image_filepath = f"./images/food_war/{image_filename}"
+  image_filename = "days_since_last_fod_sub_rosa.gif"
+  image_filepath = f"./images/sub_rosa/{image_filename}"
   if os.path.exists(image_filepath):
     os.remove(image_filepath)
 
@@ -243,17 +222,36 @@ def generate_food_war_reset_gif(days):
   return discord_image
 
 
+
+def get_random_footer_text():
+  footer_texts = [
+    "Most people on this colony will remember my grandmother as a healer, \nbut her abilities went beyond that.",
+    "Beverly! It's all right! Have trust in me!",
+    "THIRTIES!?",
+    "Dinnae light that canhdle! An dunnoe go to that hoose!",
+    "It's supposed to symbolise the enduring Howard spirit. \nWherever they may go, the shining light to guide them through their fortune!",
+    "That's one hell of a thunderstorm...",
+    "A pair of hands. They were moving across my skin...",
+    "I did fall asleep reading a particularly erotic chapter \nin my grandmother's journal...",
+    "I wonder if I'll have another dream tonight...",
+    "I'd read two chapters!",
+    "You dinna understand. He's trying to kill us all!",
+    "Then we'll be together, uhllwayyyhhhzz...",
+    "I was about to be initiated into a very unusual relationship. \nYou might call it a family tradition."
+  ]
+  return f"{random.choice(footer_texts)} 🕯️"
+
 async def db_get_previous_reset():
   async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM food_war ORDER BY id DESC LIMIT 1"
+    sql = "SELECT * FROM sub_rosa ORDER BY id DESC LIMIT 1;"
     await query.execute(sql)
     previous_reset = await query.fetchone()
   return previous_reset
 
-async def db_reset_days(user_discord_id, reason, days):
+async def db_reset_days(user_discord_id, days):
   async with AgimusDB(dictionary=True) as query:
-    sql = "INSERT INTO food_war (user_discord_id, reason, days) VALUES (%s, %s, %s)"
-    vals = (user_discord_id, reason, days)
+    sql = "INSERT INTO sub_rosa (user_discord_id, days) VALUES (%s, %s);"
+    vals = (user_discord_id, days)
     await query.execute(sql, vals)
 
 async def db_get_longest_reset():
@@ -262,12 +260,12 @@ async def db_get_longest_reset():
       SELECT fw.*
         FROM (select fw.*,
                 (SELECT time_created
-                  FROM food_war fw2
+                  FROM sub_rosa fw2
                   WHERE fw2.time_created > fw.time_created
                   ORDER BY time_created
                   LIMIT 1
                 ) AS next_time_created
-            FROM food_war fw
+            FROM sub_rosa fw
           ) fw
         ORDER BY timestampdiff(second, time_created, next_time_created) DESC
         LIMIT 1;
@@ -276,10 +274,10 @@ async def db_get_longest_reset():
     longest_reset = await query.fetchone()
   return longest_reset
 
-async def db_get_food_war_stats():
+async def db_get_sub_rosa_stats():
   async with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT AVG(days) AS average_days, count(*) as total_wars FROM food_war;
+      SELECT AVG(days) AS average_days, count(*) as total_watches FROM sub_rosa;
     '''
     await query.execute(sql)
     stats = await query.fetchone()

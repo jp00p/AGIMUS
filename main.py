@@ -25,6 +25,7 @@ from commands.scores import scores
 from commands.setwager import setwager
 from commands.shimoda import shimoda
 from commands.speak import speak, speak_embed
+from commands.sub_rosa import sub_rosa
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
@@ -38,6 +39,7 @@ import commands.drop
 
 # Bang
 from commands.clear_media import clear_media
+from commands.nuke_maquis import nuke_maquis
 from commands.ping import ping
 from commands.q import qget, qset
 from commands.update_status import update_status

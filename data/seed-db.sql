@@ -377,3 +377,12 @@ CREATE TABLE IF NOT EXISTS food_war (
   FOREIGN KEY (user_discord_id)
     REFERENCES users(discord_id)
 );
+CREATE TABLE IF NOT EXISTS sub_rosa (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_discord_id` VARCHAR(64) NOT NULL,
+  `days` int(5) NOT NULL,
+  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  FOREIGN KEY (user_discord_id)
+    REFERENCES users(discord_id)
+);
