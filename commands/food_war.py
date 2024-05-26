@@ -24,6 +24,7 @@ async def reset(ctx:discord.ApplicationContext, reason:str):
   await ctx.defer()
 
   previous_reset = await db_get_previous_reset()
+  stats = await db_get_food_war_stats()
 
   embed = discord.Embed(
     title="Resetting Days Since Last FoD Food War...",
@@ -52,6 +53,17 @@ async def reset(ctx:discord.ApplicationContext, reason:str):
     embed.add_field(
       name=f"Previous Reason",
       value=previous_reset['reason'],
+    )
+
+    embed.add_field(
+      name="Total Number of Food Wars",
+      value=stats['total_wars'],
+      inline=False
+    )
+    embed.add_field(
+      name="Average Days Between Food Wars",
+      value=int(stats['average_days']),
+      inline=False
     )
   else:
     days = 0
@@ -135,7 +147,7 @@ async def check(ctx:discord.ApplicationContext):
   )
   embed.add_field(
     name="Average Days Between Food Wars",
-    value=stats['average_days'],
+    value=int(stats['average_days']),
     inline=False
   )
 

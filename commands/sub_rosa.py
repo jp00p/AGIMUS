@@ -45,10 +45,12 @@ async def reset(ctx:discord.ApplicationContext):
     embed.add_field(
       name="Total Watches",
       value=f"{total_watches}",
+      inline=False
     )
     embed.add_field(
       name="Average Days Between Watches",
-      value=stats['average_days'],
+      value=int(stats['average_days']),
+      inline=False
     )
   else:
     days = 0
@@ -117,7 +119,6 @@ async def check(ctx:discord.ApplicationContext):
       inline=False
     )
 
-
   embed.add_field(
     name="Total Number of Watches",
     value=stats['total_watches'],
@@ -125,7 +126,7 @@ async def check(ctx:discord.ApplicationContext):
   )
   embed.add_field(
     name="Average Days Between Watches",
-    value=stats['average_days'],
+    value=int(stats['average_days']),
     inline=False
   )
 
