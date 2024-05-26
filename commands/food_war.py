@@ -83,6 +83,7 @@ async def check(ctx:discord.ApplicationContext):
     return
 
   await ctx.defer()
+  stats = await db_get_food_war_stats()
 
   pst_tz = pytz.timezone('America/Los_Angeles')
   raw_now = datetime.utcnow().replace(tzinfo=pytz.utc)
@@ -104,7 +105,7 @@ async def check(ctx:discord.ApplicationContext):
     value=f"{previous_reset['days']} {'Day' if previous_reset['days'] == 1 else 'Days'}",
   )
   embed.add_field(
-    name=f"Previous Reason",
+    name="Previous Reason",
     value=previous_reset['reason'],
   )
 
@@ -112,7 +113,7 @@ async def check(ctx:discord.ApplicationContext):
   if previous_reset['id'] == longest_reset['id']:
     embed.add_field(
       name="All-Time Longest Streak Was The Previous!",
-      value=f"Holy Guacamole! 🥑",
+      value="Holy Guacamole! 🥑",
       inline=False
     )
   else:
@@ -122,10 +123,21 @@ async def check(ctx:discord.ApplicationContext):
       inline=False
     )
     embed.add_field(
-      name=f"All-Time Longest Streak Reason",
+      name="All-Time Longest Streak Reason",
       value=longest_reset['reason'],
       inline=False
     )
+
+  embed.add_field(
+    name="Total Number of Food Wars",
+    value=stats['total_wars'],
+    inline=False
+  )
+  embed.add_field(
+    name="Average Days Between Food Wars",
+    value=stats['average_days'],
+    inline=False
+  )
 
   png = await generate_food_war_check_png(days)
   embed.set_image(url=f"attachment://{png.filename}")
@@ -251,3 +263,12 @@ async def db_get_longest_reset():
     await query.execute(sql)
     longest_reset = await query.fetchone()
   return longest_reset
+
+async def db_get_food_war_stats():
+  async with AgimusDB(dictionary=True) as query:
+    sql = '''
+      SELECT AVG(days) AS average_days, count(*) as total_wars FROM food_war;
+    '''
+    await query.execute(sql)
+    stats = await query.fetchone()
+  return stats

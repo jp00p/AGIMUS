@@ -18,8 +18,9 @@ async def reset(ctx:discord.ApplicationContext):
   await ctx.defer()
 
   previous_reset = await db_get_previous_reset()
-  total_watches = await db_get_total_watches()
-  if total_watches <= 30 and total_watches > 40:
+  stats = await db_get_sub_rosa_stats()
+  total_watches = stats['total_watches']
+  if total_watches >= 30 and total_watches < 40:
     total_watches = f"{total_watches}... *Thirties...*"
 
   embed = discord.Embed(
@@ -42,8 +43,12 @@ async def reset(ctx:discord.ApplicationContext):
       value=f"{days} {'Day' if days == 1 else 'Days'}",
     )
     embed.add_field(
-      name=f"Total Watches",
+      name="Total Watches",
       value=f"{total_watches}",
+    )
+    embed.add_field(
+      name="Average Days Between Watches",
+      value=stats['average_days'],
     )
   else:
     days = 0
@@ -75,6 +80,8 @@ async def check(ctx:discord.ApplicationContext):
     return
 
   await ctx.defer()
+
+  stats = await db_get_sub_rosa_stats()
 
   pst_tz = pytz.timezone('America/Los_Angeles')
   raw_now = datetime.utcnow().replace(tzinfo=pytz.utc)
@@ -109,6 +116,18 @@ async def check(ctx:discord.ApplicationContext):
       value=f"{longest_reset['days']} {'Day' if longest_reset['days'] == 1 else 'Days'}",
       inline=False
     )
+
+
+  embed.add_field(
+    name="Total Number of Watches",
+    value=stats['total_watches'],
+    inline=False
+  )
+  embed.add_field(
+    name="Average Days Between Watches",
+    value=stats['average_days'],
+    inline=False
+  )
 
   png = await generate_sub_rosa_check_png(days)
   embed.set_image(url=f"attachment://{png.filename}")
@@ -254,9 +273,11 @@ async def db_get_longest_reset():
     longest_reset = await query.fetchone()
   return longest_reset
 
-async def db_get_total_watches():
+async def db_get_sub_rosa_stats():
   async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT count(*) FROM sub_rosa;"
+    sql = '''
+      SELECT AVG(days) AS average_days, count(*) as total_watches FROM sub_rosa;
+    '''
     await query.execute(sql)
-    row = await query.fetchone()
-  return row["count(*)"]
+    stats = await query.fetchone()
+  return stats
