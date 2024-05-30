@@ -53,7 +53,15 @@
             "episode": "03",
             "imdb": "tt0572209",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.05.27",
+                    "episode": "Beagle Liver",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-524-beagle-liver-ent-s1e3/",
+                    "order": 524,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/wENa9SoaRI2I3B23kgc7fWjjbkl.jpg",
