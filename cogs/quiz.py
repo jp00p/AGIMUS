@@ -62,8 +62,6 @@ class Quiz(commands.Cog):
 
     self.threshold = 72  # fuzz threshold
 
-    self.shows = command_config["parameters"][0]["allowed"]
-
   quiz = discord.SlashCommandGroup("quiz", "Commands for interacting with the Quiz Game")
 
   @quiz.command(
@@ -193,8 +191,7 @@ class Quiz(commands.Cog):
     try:
       logger.info(f"{Fore.MAGENTA}Starting quiz!{Fore.RESET}")
       if not show:
-        s = random.choice(self.shows)
-        show = s["value"]
+        show = random.choice(show_keys)
 
       self.show = show
 
