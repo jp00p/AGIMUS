@@ -1,0 +1,2 @@
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference, special) VALUES ("FOD Pride 2024", "FOD_Pride_2024.png", "https://drunkshimoda.com/", "Alpha", "2100s", "The USS Hood", "Commemorating Pride Month 2024 on The USS Hood!", 1) ON DUPLICATE KEY UPDATE badge_name = badge_name;
+INSERT INTO badges (user_discord_id, badge_filename) SELECT discord_id, 'FOD_Pride_2024.png' FROM users;
