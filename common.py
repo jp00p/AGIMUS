@@ -177,7 +177,7 @@ async def get_user(discord_id:int):
     # get user basic info
     sql = """
       SELECT
-        users.*,
+        users.*,`x
         profile_photos.photo AS profile_photo,
         profile_taglines.tagline AS profile_tagline
       FROM users
@@ -202,7 +202,7 @@ async def get_user(discord_id:int):
       # close db
       user_data["stickers"] = user_stickers
       user_data["badges"] = user_badges
-      logger.info(f"USER DATA: {user_data}")
+      logger.debug(f"USER DATA: {user_data}")
   return user_data
 
 
