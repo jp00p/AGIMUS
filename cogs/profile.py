@@ -261,8 +261,8 @@ class Profile(commands.Cog):
     draw.text( (283, 80), f"USS HOOD PERSONNEL FILE #{str(member.id)[-4:]}", fill=random.choice(lcars_colors), font=level_font, align="right")
     draw.text( (79, 95), f"AGIMUS MAIN TERMINAL", fill="#dd4444", font=agimus_font, align="center",)
     draw.text( (470, 182), f"{user_name[0:32]}", fill="white", font=name_font, align="center", anchor="ms")
-    if user['tagline']:
-      draw.text( (470, 233), f"\"{user['tagline']}\"", fill="white", font=entry_font, align="center", anchor="ms")
+    if user['profile_tagline']:
+      draw.text( (470, 233), f"\"{user['profile_tagline']}\"", fill="white", font=entry_font, align="center", anchor="ms")
     draw.text( (578, 381), f"LEVEL: {user['level']:03d}", fill="white", font=level_font, align="right" )
     title_color = random.choice(lcars_colors[1:3])
     draw.text( (250, 385), f"CURRENT RANK:", fill=title_color, font=title_font, align="left")
@@ -342,8 +342,8 @@ class Profile(commands.Cog):
 
 
     # put polaroid on
-    if user["photo"] and user["photo"] != "none":
-      profile_photo = user['photo'].replace(" ", "_")
+    if user["profile_photo"] and user["profile_photo"] != "none":
+      profile_photo = user['profile_photo'].replace(" ", "_")
       photo_image = Image.open("./images/profiles/template_pieces/lcars/photo-frame.png").convert("RGBA")
       photo_content = Image.open(f"./images/profiles/polaroids/{profile_photo}.jpg").convert("RGBA")
 

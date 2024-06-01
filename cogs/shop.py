@@ -130,12 +130,12 @@ class Shop(commands.Cog):
       role_pages.append(card_page)
     return role_pages
 
-  def get_style_pages(self, user_id: int = None):
+  async def get_style_pages(self, user_id: int = None):
     """
     Returns an array of ShopPages for styles
     """
     style_pages = []
-    user_styles = [s['item_name'] for s in db_get_user_profile_styles_from_inventory(user_id)]
+    user_styles = [s['item_name'] for s in await db_get_user_profile_styles_from_inventory(user_id)]
 
     for idx, style in enumerate(self.shop_data["styles"]):
       if style['name'] in user_styles:
@@ -434,8 +434,9 @@ class Shop(commands.Cog):
       view = discord.ui.View()
       view.add_item(BuyButton(self))
 
+      style_pages = await self.get_style_pages(ctx.user.id)
       paginator = pages.Paginator(
-        pages=self.get_style_pages(ctx.user.id),
+        pages=style_pages,
         use_default_buttons=False,
         custom_buttons=self.get_custom_buttons(),
         trigger_on_display=True,
