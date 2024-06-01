@@ -8,6 +8,22 @@ from utils.check_channel_access import access_check
 
 command_config = config["commands"]["quiz start"]
 
+# Load JSON Data
+f = open(command_config["data"])
+info_data = json.load(f)
+f.close()
+
+show_choices = []
+show_keys = sorted(list(info_data.keys()), key=lambda k: info_data[k]['name'])
+for show_key in show_keys:
+  show_data = info_data[show_key]
+  if show_data["enabled"]:
+    show_choice = discord.OptionChoice(
+      name=show_data["name"],
+      value=show_key
+    )
+    show_choices.append(show_choice)
+
 class HintButton(discord.ui.Button):
   def __init__(self, cog):
     self.cog = cog
@@ -46,18 +62,7 @@ class Quiz(commands.Cog):
 
     self.threshold = 72  # fuzz threshold
 
-    self.shows = command_config["parameters"][0]["allowed"]
-
   quiz = discord.SlashCommandGroup("quiz", "Commands for interacting with the Quiz Game")
-
-  shows = command_config["parameters"][0]["allowed"]
-  show_choices = []
-  for show in shows:
-    show_choice = discord.OptionChoice(
-      name=show["name"],
-      value=show["value"]
-    )
-    show_choices.append(show_choice)
 
   @quiz.command(
     name="start",
@@ -186,8 +191,7 @@ class Quiz(commands.Cog):
     try:
       logger.info(f"{Fore.MAGENTA}Starting quiz!{Fore.RESET}")
       if not show:
-        s = random.choice(self.shows)
-        show = s["value"]
+        show = random.choice(show_keys)
 
       self.show = show
 

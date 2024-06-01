@@ -339,7 +339,7 @@
       "channels": [
         "maquis-officers-club"
       ],
-      "crontab": "0 */12 * * *",
+      "crontab": "10 */6 * * *",
       "enabled": true
     },
     "hoodiversary": {
@@ -642,75 +642,8 @@
         "morns-nonstop-quiz"
       ],
       "enabled": true,
-      "data": null,
-      "parameters": [
-        {
-          "name": "show",
-          "allowed": [
-            {
-              "name": "Star Trek: The Original Series",
-              "value": "tos"
-            },
-            {
-              "name": "Star Trek: The Animated Series",
-              "value": "tas"
-            },
-            {
-              "name": "Star Trek: The Next Generation",
-              "value": "tng"
-            },
-            {
-              "name": "Star Trek: Deep Space Nine",
-              "value": "ds9"
-            },
-            {
-              "name": "Star Trek: Voyager",
-              "value": "voy"
-            },
-            {
-              "name": "Star Trek: Enterprise",
-              "value": "enterprise"
-            },
-            {
-              "name": "Star Trek: Discovery",
-              "value": "disco"
-            },
-            {
-              "name": "Star Trek: Picard",
-              "value": "picard"
-            },
-            {
-              "name": "Star Trek: Prodigy",
-              "value": "prodigy"
-            },
-            {
-              "name": "Star Trek: Strange New Worlds",
-              "value": "snw"
-            },
-            {
-              "name": "Star Trek: Lower Decks",
-              "value": "lowerdecks"
-            },
-            {
-              "name": "Friends",
-              "value": "friends"
-            },
-            {
-              "name": "Firefly",
-              "value": "firefly"
-            },
-            {
-              "name": "It's Always Sunny in Philadelphia",
-              "value": "sunny"
-            },
-            {
-              "name": "The Simpsons",
-              "value": "simpsons"
-            }
-          ],
-          "required": false
-        }
-      ]
+      "data": "data/info.json",
+      "parameters": []
     },
     "quiz report": {
       "channels": [

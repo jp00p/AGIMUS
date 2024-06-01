@@ -19,7 +19,7 @@ async def reset(ctx:discord.ApplicationContext):
 
   previous_reset = await db_get_previous_reset()
   stats = await db_get_sub_rosa_stats()
-  total_watches = stats['total_watches']
+  total_watches = stats['total_watches'] + 1
   if total_watches >= 30 and total_watches < 40:
     total_watches = f"{total_watches}... *Thirties...*"
 
@@ -95,7 +95,7 @@ async def check(ctx:discord.ApplicationContext):
   days = lifespan.days
 
   embed = discord.Embed(
-    title=f"The Last Sub Rosa Watch Was...",
+    title=f"The Last Sub Rosa Watch...",
     description=f"was {days} {'Day' if days == 1 else 'Days'} ago... {get_emoji('beverly_horny_ghost_orgasm')}",
     color=discord.Color.dark_green()
   )

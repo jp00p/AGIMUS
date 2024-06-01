@@ -1,4 +1,3 @@
-import pytz
 from common import *
 
 def channel_cleanup_task(bot):

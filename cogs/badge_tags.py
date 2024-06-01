@@ -167,11 +167,11 @@ class CarouselButton(discord.ui.Button):
 
 
 class TagBadgeView(discord.ui.View):
-  def __init__(self, cog, user_discord_id, badge_info):
+  def __init__(self, cog, user_discord_id, badge_info, associated_tags):
     super().__init__()
     self.cog = cog
     self.tag_ids = []
-    self.add_item(TagSelector(user_discord_id, badge_info))
+    self.add_item(TagSelector(user_discord_id, associated_tags))
     self.add_item(TagButton(user_discord_id, badge_info))
 
 
@@ -462,8 +462,9 @@ class BadgeTags(commands.Cog):
       return
 
     badge_info = await db_get_badge_info_by_name(badge)
+    associated_tags = await db_get_associated_badge_tags(ctx.author.id, badge_info['badge_filename'])
 
-    view = TagBadgeView(self, ctx.author.id, badge_info)
+    view = TagBadgeView(self, ctx.author.id, badge_info, associated_tags)
     embed = discord.Embed(
       title=badge,
       color=discord.Color.dark_purple()
