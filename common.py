@@ -175,7 +175,16 @@ def uniq_channels(config):
 async def get_user(discord_id:int):
   async with AgimusDB(dictionary=True) as query:
     # get user basic info
-    sql = "SELECT users.*, profile_photos.photo as photo, profile_taglines.tagline as tagline FROM users LEFT JOIN profile_taglines ON profile_taglines.user_discord_id = users.discord_id LEFT JOIN profile_photos ON profile_photos.user_discord_id = users.discord_id WHERE discord_id = %s"
+    sql = """
+      SELECT
+        users.*,`x
+        profile_photos.photo AS profile_photo,
+        profile_taglines.tagline AS profile_tagline
+      FROM users
+        LEFT JOIN profile_taglines ON profile_taglines.user_discord_id = users.discord_id
+        LEFT JOIN profile_photos ON profile_photos.user_discord_id = users.discord_id
+      WHERE users.discord_id = %s
+    """
     vals = (discord_id,)
     await query.execute(sql, vals)
     user_data = await query.fetchone()
