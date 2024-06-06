@@ -78,7 +78,15 @@
             "episode": "04",
             "imdb": "tt0572242",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.06.03",
+                    "episode": "Drain the Cave",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-525-drain-the-cave-ent-s1e4/",
+                    "order": 525,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/eCt2MQi6bX5tyJl1B2Wb75iHjCd.jpg",
