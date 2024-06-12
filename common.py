@@ -356,16 +356,16 @@ def get_emoji(emoji_name:str):
 # returns the new hash from git
 def run_make_backup():
   backup_info = {"url": "", "backup_name":""}
-  os.system("make db-backup")
+  os.system("make db-backup --no-print-directory")
   raw_new_backup = []
-  with os.popen("make db-get-latest-backup") as line:
+  with os.popen("make db-get-latest-backup --no-print-directory") as line:
     raw_new_backup = line.readlines()
-  hashes["backup_name"] = raw_new_backup[-1].replace("\n", "")
+  backup_info["backup_name"] = raw_new_backup[-1].replace("\n", "")
   raw_presigned_url = []
-  with os.popen("make db-get-latest-backup-download-url") as line:
+  with os.popen("make db-get-latest-backup-download-url --no-print-directory") as line:
     raw_presigned_url = line.readlines()
-  hashes["url"] = raw_presigned_url[-1].replace("\n", "")
-  return hashes
+  backup_info["url"] = raw_presigned_url[-1].replace("\n", "")
+  return backup_info
 
 # run_make_badger()
 # util function that runs our `make update-badges` command
