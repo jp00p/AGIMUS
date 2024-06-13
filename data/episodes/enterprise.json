@@ -101,7 +101,15 @@
             "episode": "05",
             "imdb": "tt0572263",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.06.10",
+                    "episode": "A Shower Veg",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-526-a-shower-veg-ent-s1e5/",
+                    "order": 526,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/8wxUwf7YALAgXqPXCy3XvnensWK.jpg",
