@@ -107,10 +107,10 @@ INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_pe
 INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("AGIMUS-Banner-A.png", "AGIMUS");
 INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("AGIMUS-Banner-A.png", "Flag/Banner");
 INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("AGIMUS-Banner-A.png", "Prime");
-INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("AGIMUS Bannner C", "AGIMUS-Bannner-C.png", "https://www.startrekdesignproject.com/symbols/agimus-bannner-c", "Alpha", "2300s", "Lower Decks", "S04E07 A Few Badgeys More");
-INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("AGIMUS-Bannner-C.png", "AGIMUS");
-INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("AGIMUS-Bannner-C.png", "Flag/Banner");
-INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("AGIMUS-Bannner-C.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("AGIMUS Banner C", "AGIMUS-Banner-C.png", "https://www.startrekdesignproject.com/symbols/agimus-banner-c", "Alpha", "2300s", "Lower Decks", "S04E07 A Few Badgeys More");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("AGIMUS-Banner-C.png", "AGIMUS");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("AGIMUS-Banner-C.png", "Flag/Banner");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("AGIMUS-Banner-C.png", "Prime");
 INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("All You Can @#$%!", "All-You-Can-@#$%!.png", "https://www.startrekdesignproject.com/symbols/all-you-can", "Alpha", "2300s", "Lower Decks", "S04E06 Parth Ferengi's Heart Place");
 INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("All-You-Can-@#$%!.png", "Ferengi Alliance");
 INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("All-You-Can-@#$%!.png", "Sign/Poster");
@@ -178,10 +178,10 @@ INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Terra
 INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Tyran B", "Tyran-B.png", "https://www.startrekdesignproject.com/symbols/tyran-b", "Alpha", "2300s", "Lower Decks", "Canon Images");
 INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Tyran-B.png", "Species/Civilization");
 INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Tyran-B.png", "Prime");
-INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Tyran A", "Tyran-A.png", "https://www.startrekdesignproject.com/symbols/tyran-a", "Alpha", "2300s", "The Next Generation", "S06E09 "The Quality of Life");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Tyran A", "Tyran-A.png", "https://www.startrekdesignproject.com/symbols/tyran-a", "Alpha", "2300s", "The Next Generation", "S06E09 The Quality of Life");
 INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Tyran-A.png", "Species/Civilization");
 INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Tyran-A.png", "Prime");
-INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Vulcan IDIC 2370s", "Vulcan-IDIC-2370s.png", "https://www.startrekdesignproject.com/symbols/vulcan-idic-2370s", "Alpha", "2300s", "Deep Space 9", "S01E12 "Vortex");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Vulcan IDIC 2370s", "Vulcan-IDIC-2370s.png", "https://www.startrekdesignproject.com/symbols/vulcan-idic-2370s", "Alpha", "2300s", "Deep Space 9", "S01E12 Vortex");
 INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Vulcan-IDIC-2370s.png", "Vulcan");
 INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Vulcan-IDIC-2370s.png", "Species/Civilization");
 INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Vulcan-IDIC-2370s.png", "Prime");
