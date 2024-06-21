@@ -124,7 +124,15 @@
             "episode": "06",
             "imdb": "tt0572244",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.06.17",
+                    "episode": "Diller Hoof Soup Company",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-527-diller-hoof-soup-company-ent-s1e6/",
+                    "order": 527,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/fVndUpWt6YhQ2FU2DIAas8H7vJd.jpg",
