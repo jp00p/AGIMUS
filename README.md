@@ -92,9 +92,9 @@ To execute makefile commands, some third-party dependencies must be installed lo
 - [jq](https://stedolan.github.io/jq/)
 - [yq](https://github.com/mikefarah/yq)
 
-> **Note**  
-> If you're using `homebrew` on macOS, you can install most of these in one go:  
-> `$ brew install kind helm jq yq`  
+> **Note**
+> If you're using `homebrew` on macOS, you can install most of these in one go:
+> `$ brew install kind helm jq yq`
 > `docker` and `semver` are more easily installed through according to their maintainers' docs.
 
 ### Docker Usage
@@ -377,3 +377,20 @@ DB_BACKUP_RESTORE_COMMIT=abcdefghijklmnopqrstuvwxyz make db-restore
 
 Don't forget to remove the entrypoint override, so AGIMUS can start up normally.
 
+## Licensing
+
+### Code
+The code in this repository is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+
+### Non-Code Content
+The images and other non-code content in this repository are licensed under the Creative Commons Attribution-NonCommercial License (CC BY-NC). See the [LICENSE-CC](LICENSE-CC) file for more details.
+
+### Attribution
+This project contains images and information from the following source:
+
+- The Star Trek Design Project (https://www.startrekdesignproject.com) licensed under Creative Commons Attribution-NonCommercial 4.0 International Public License (CC BY-NC 4.0).
+
+The following images and information are used under the CC BY-NC license:
+- Images: All Images under [/images/badges](/images/badges) (source: [The Star Trek Design Project](https://www.startrekdesignproject.com))
+- Information: Initial Symbol Metadata within [/data/badges.json](/data/badges.json) (source: [The Star Trek Design Project](https://www.startrekdesignproject.com))
+- Information: Supplemental Symbol Metadata within relevant SQL files under [/migrations](/migrations) (source: [The Star Trek Design Project](https://www.startrekdesignproject.com))
