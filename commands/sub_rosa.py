@@ -257,18 +257,20 @@ async def db_reset_days(user_discord_id, days):
 async def db_get_longest_reset():
   async with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT fw.*
-        FROM (select fw.*,
-                (SELECT time_created
-                  FROM sub_rosa fw2
-                  WHERE fw2.time_created > fw.time_created
-                  ORDER BY time_created
-                  LIMIT 1
-                ) AS next_time_created
-            FROM sub_rosa fw
-          ) fw
-        ORDER BY timestampdiff(second, time_created, next_time_created) DESC
-        LIMIT 1;
+      SELECT sr.id, sr.user_discord_id, sr.days, sr.time_created,
+             TIMESTAMPDIFF(SECOND, sr.time_created, sr.next_time_created) AS duration
+        FROM (SELECT sr1.id, sr1.user_discord_id, sr1.days, sr1.time_created,
+                     (SELECT sr2.time_created
+                        FROM sub_rosa sr2
+                       WHERE sr2.time_created > sr1.time_created
+                       ORDER BY sr2.time_created
+                       LIMIT 1
+                     ) AS next_time_created
+                FROM sub_rosa sr1
+             ) sr
+       WHERE sr.next_time_created IS NOT NULL
+       ORDER BY duration DESC
+       LIMIT 1;
     '''
     await query.execute(sql)
     longest_reset = await query.fetchone()
