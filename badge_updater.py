@@ -34,13 +34,13 @@ async def generate_sql(version, badge_data):
       references = badge.get('references')
       if references:
         children = references[0]['children']
-        if len(children) == 2:
+        if len(children) == 1:
+          film_title = children[0]['text']
+          reference = strip_bullshit(film_title)
+        elif len(children) >= 2:
           episode_number = children[0]['text']
           episode_title = children[1]['text']
           reference = strip_bullshit(f"{episode_number}{episode_title}")
-        elif len(children) == 1:
-          film_title = children[0]['text']
-          reference = strip_bullshit(film_title)
 
       time_period = badge.get('timePeriod')
 
