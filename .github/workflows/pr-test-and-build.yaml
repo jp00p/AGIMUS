@@ -148,7 +148,7 @@ jobs:
         with:
           cmd: echo "current_version=$(yq e '.version' './charts/agimus/Chart.yaml')" >> $GITHUB_OUTPUT
       - name: show version
-        run: echo Current version is ${{ needs.bump_helm_chart_version.outputs.current_version }}
+        run: echo Current version is ${{ steps.get_current_version.outputs.current_version }}
       # - uses: vitorfhc/use-semver-tool@v1
       #   id: new_version
       #   with:
