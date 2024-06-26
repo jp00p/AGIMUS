@@ -137,6 +137,9 @@ jobs:
   bump_helm_chart_version:
     name: Bump Helm Chart Version
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -177,6 +180,7 @@ jobs:
 
       - uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             github.rest.issues.createComment({
               issue_number: context.issue.number,
