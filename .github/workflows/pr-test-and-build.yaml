@@ -152,10 +152,10 @@ jobs:
         with:
           cmd: bump patch ${{ steps.get_current_version.outputs.current_version }}
       - name: show new version
-        run: echo New version is ${{ steps.get_new_version.outputs.stdout }}
+        run: echo New version is ${{ steps.get_new_version.outputs.output }}
       # - uses: mikefarah/yq@master
       #   with:
-      #     cmd: yq -i '.version = "v${{ steps.new_version.outputs.stdout }}"' ./charts/agimus/Chart.yaml
+      #     cmd: yq -i '.version = "v${{ steps.new_version.outputs.output }}"' ./charts/agimus/Chart.yaml
       # - uses: mikefarah/yq@master
       #   id: current_app_version
       #   with:
