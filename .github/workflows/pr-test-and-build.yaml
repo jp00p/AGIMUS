@@ -145,17 +145,18 @@ jobs:
         id: get_current_version
         with:
           cmd: echo "current_version=$(yq e '.version' './charts/agimus/Chart.yaml')" >> $GITHUB_OUTPUT
-      - name: show version
-        run: echo Current version is ${{ steps.get_current_version.outputs.current_version }}
       - uses: vitorfhc/use-semver-tool@v1
         id: get_new_version
         with:
           cmd: bump patch ${{ steps.get_current_version.outputs.current_version }}
-      - name: show new version
-        run: echo New version is ${{ steps.get_new_version.outputs.output }}
-      # - uses: mikefarah/yq@master
-      #   with:
-      #     cmd: yq -i '.version = "v${{ steps.new_version.outputs.output }}"' ./charts/agimus/Chart.yaml
+      - uses: mikefarah/yq@master
+        with:
+          cmd: yq -i '.version = "v${{ steps.get_new_version.outputs.output }}"' ./charts/agimus/Chart.yaml
+      - name: verify helm chart version bump
+        run: |
+          echo "Current version: ${{ steps.get_current_version.outputs.current_version }}"
+          echo "New version: ${{ steps.get_new_version.outputs.output }}"
+          cat ./charts/agimus/Chart.yaml
       # - uses: mikefarah/yq@master
       #   id: current_app_version
       #   with:
