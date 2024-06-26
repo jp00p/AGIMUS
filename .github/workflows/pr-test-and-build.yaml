@@ -137,16 +137,18 @@ jobs:
   bump_helm_chart_version:
     name: Bump Helm Chart Version
     runs-on: ubuntu-latest
+    outputs:
+      current_version: ${{ steps.get_current_version.outputs.current_version }}
     env:
       ACTIONS_STEP_DEBUG: true
     steps:
       - uses: actions/checkout@v4
       - uses: mikefarah/yq@master
-        id: current_version
+        id: get_current_version
         with:
-          cmd: yq e '.version' './charts/agimus/Chart.yaml'
+          cmd: echo "current_version=$(yq e '.version' './charts/agimus/Chart.yaml')" >> $GITHUB_OUTPUT
       - name: show version
-        run: echo Current version is ${{ steps.current_version.outputs.stdout }}
+        run: echo Current version is ${{ needs.bump_helm_chart_version.outputs.current_version }}
       # - uses: vitorfhc/use-semver-tool@v1
       #   id: new_version
       #   with:
