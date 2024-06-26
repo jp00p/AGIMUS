@@ -186,5 +186,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '@${{ github.event.issue.user.login }} The helm chart version has been bumped.  You will need to pull down the new changes to your local copy with `git pull`.'
+              body: '@${{ github.event.pull_request.user.login }} The helm chart version has been bumped.  You will need to pull down the new changes to your local copy with `git pull`.'
             })
