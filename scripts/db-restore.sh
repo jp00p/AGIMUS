@@ -27,7 +27,7 @@ BACKUP_TO_RESTORE="${1:-}"
 
 if [ "${BACKUP_TO_RESTORE}" = "--help"  ] || [ "${BACKUP_TO_RESTORE}" = "-h" ]
 then
-    echo "Usage: ${0} <backup_to_restore>.sql.gz"
+    echo "Usage: ${0} s3://bucket_name/path/to/file/backup_to_restore.sql.gz"
     echo "Can be found with 's3cmd --config .s3cfg ls s3://${S3_BUCKET_NAME}/${DB_DUMP_S3_PREFIX}/'"
     exit 1
 fi
@@ -36,7 +36,7 @@ if [ -z "${BACKUP_TO_RESTORE}" ]
 then
     # List the bucket contents, filter out the directories, sort by time with newest first, take the first one, return only the s3 path
     BACKUP_TO_RESTORE=$(s3cmd --config .s3cfg ls "s3://${S3_BUCKET_NAME}/${DB_DUMP_S3_PREFIX}/" | grep -v DIR | sort -rnk2 | head -1 | awk '{ print $4 }')
-    log "No backup specified, using one of today's backups: ${BACKUP_TO_RESTORE}"
+    log "No backup specified, using one of today's backups: s3://${S3_BUCKET_NAME}/${DB_DUMP_S3_PREFIX}/${BACKUP_TO_RESTORE}"
 fi
 
 log "Downloading ${BACKUP_TO_RESTORE} to ${DB_DUMP_FILENAME_WITH_TIMESTAMP}"
