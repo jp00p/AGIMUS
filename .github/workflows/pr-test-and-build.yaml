@@ -137,8 +137,6 @@ jobs:
   bump_helm_chart_version:
     name: Bump Helm Chart Version
     runs-on: ubuntu-latest
-    env:
-      ACTIONS_STEP_DEBUG: true
     steps:
       - uses: actions/checkout@v4
       - uses: mikefarah/yq@master
@@ -152,26 +150,25 @@ jobs:
       - uses: mikefarah/yq@master
         with:
           cmd: yq -i '.version = "v${{ steps.get_new_version.outputs.output }}"' ./charts/agimus/Chart.yaml
-      - name: verify helm chart version bump
-        run: |
+
+      - uses: mikefarah/yq@master
+        id: get_current_app_version
+        with:
+          cmd: echo "current_app_version=$(yq e '.appVersion' './charts/agimus/Chart.yaml')" >> $GITHUB_OUTPUT
+      - uses: vitorfhc/use-semver-tool@v1
+        id: get_new_app_version
+        with:
+          cmd: bump patch ${{ steps.get_current_app_version.outputs.current_app_version }}
+      - uses: mikefarah/yq@master
+        with:
+          cmd: yq -i '.appVersion = "v${{ steps.get_new_app_version.outputs.output }}"' ./charts/agimus/Chart.yaml
+
+      - run: |
           echo "Current version: ${{ steps.get_current_version.outputs.current_version }}"
           echo "New version: ${{ steps.get_new_version.outputs.output }}"
+          echo "Current app version: ${{ steps.get_current_app_version.outputs.current_app_version }}"
+          echo "New app version: ${{ steps.get_new_app_version.outputs.output }}"
           cat ./charts/agimus/Chart.yaml
-      # - uses: mikefarah/yq@master
-      #   id: current_app_version
-      #   with:
-      #     cmd: yq e '.appVersion' ./charts/agimus/Chart.yaml
-      # - uses: vitorfhc/use-semver-tool@v1
-      #   id: new_app_version
-      #   with:
-      #     cmd: bump patch ${{ steps.current_app_version.outputs.stdout }}
-      # - uses: mikefarah/yq@master
-      #   with:
-      #     cmd: yq -i '.appVersion = "v${{ steps.new_app_version.outputs.stdout }}"' ./charts/agimus/Chart.yaml
-
-      # - run: |
-      #     echo "Current version: ${ steps.current_version.outputs.stdout }"
-      #     echo "New version: ${ steps.new_version.outputs.stdout }"
 
       #     # Note: the following account information will not work on GHES
       #     git config user.name "github-actions[bot]"
