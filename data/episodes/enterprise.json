@@ -147,7 +147,15 @@
             "episode": "07",
             "imdb": "tt0572247",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.06.24",
+                    "episode": "Gotta Hover in Science Fiction",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-528-gotta-hover-in-science-fiction-ent-s1e7/",
+                    "order": 528,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/88SiAVX9nSAi1IfzXaTM7LoSOuf.jpg",
