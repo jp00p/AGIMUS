@@ -17,6 +17,10 @@ help: ## Displays this help dialog (to set repo/fork ownker REPO_OWNWER=[github-
 	@echo ""
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
+define guard
+    @[ ! -z "$${$(1)}" ] || (echo 'Environment variable $(1) not set' && false)
+endef
+
 ##@ Python stuff
 
 .PHONY: setup
@@ -95,50 +99,30 @@ db-seed: ## Reload the database from a file at $DB_SEED_FILEPATH
 	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "create database FoD;"
 	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_SEED_FILEPATH)
 
+DB_DUMP_S3_PREFIX=$(shell date +%Y-%m-%d)
+DB_DUMP_FILENAME_WITH_TIMESTAMP=$(DB_DUMP_FILENAME)-$(shell date +%s).sql
+
 .PHONY: db-backup
-db-backup: db-setup-git ## Back the database to a file at $DB_DUMP_FILENAME then commit it to the private database repository (intended to run inside AGIMUS container)
-	@echo "Dumping db to $(DB_DUMP_FILENAME)"
-	@mysqldump -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) -B $(DB_NAME) > $(DB_DUMP_FILENAME)
-	@rm -rf database || true
-	git clone --depth 1 git@github.com:Friends-of-DeSoto/database.git
-	@mkdir -p database/$(DB_BACKUP_SUB_DIR)
-	cp $(DB_DUMP_FILENAME) database/$(DB_BACKUP_SUB_DIR)/agimus.sql
-	pushd database/$(DB_BACKUP_SUB_DIR) \
-		&& tar czf agimus.sql.tar.gz agimus.sql \
-		&& du -sh agimus.sql* \
-		&& git add agimus.sql.tar.gz \
-		&& git commit -m "Backup AGIMUS DB: $(DB_BACKUP_SUB_DIR) $(shell date)" \
-		&& git push origin main \
-		&& popd
+db-backup: ## Back the database to a file at $DB_DUMP_FILENAME then commit it to the private database repository (intended to run inside AGIMUS container)
+	$(call guard,AWS_SECRET_ACCESS_KEY)
+	$(call guard,AWS_ACCESS_KEY_ID)
+	@./scripts/db-backup.sh
 
 .PHONY: db-restore
-db-restore: db-setup-git ## Restore the database from the private database repository (intended to run inside AGIMUS container)
-	@rm -rf database || true
-	git clone git@github.com:Friends-of-DeSoto/database.git \
-		&& cd database \
-		&& git reset --hard $(DB_BACKUP_RESTORE_COMMIT)
-	@mkdir -p database/$(DB_BACKUP_SUB_DIR)
-	pushd database/$(DB_BACKUP_SUB_DIR) \
-		&& tar xzf agimus.sql.tar.gz \
-		&& du -sh agimus.sql* \
-		&& popd \
-		&& cp database/$(DB_BACKUP_SUB_DIR)/agimus.sql $(DB_DUMP_FILENAME)
-	@mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "DROP DATABASE IF EXISTS FoD;"
-	@mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "create database FoD;"
-	@mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_DUMP_FILENAME)
+db-restore: ## Restore the database from the private database repository (intended to run inside AGIMUS container)
+	$(call guard,AWS_SECRET_ACCESS_KEY)
+	$(call guard,AWS_ACCESS_KEY_ID)
+	@./scripts/db-restore.sh
 
-.PHONY: db-setup-git
-db-setup-git: ## Decode private deploy key environment variable and set up git for that user (intended to run inside AGIMUS container)
-ifneq ("$(wildcard $(HOME)/.ssh/id_ed25519)","")
-	@echo "$(HOME)/.ssh/id_ed25519 - ssh key already exists. skipping git setup..."
-else
-	mkdir -p $(HOME)/.ssh
-	@echo $(DB_BACKUP_DEPLOY_KEY) | base64 -d > $(HOME)/.ssh/id_ed25519
-	chmod 600 $(HOME)/.ssh/id_ed25519
-	@git config --global user.name $(DB_BACKUP_GITHUB_USER)
-	@git config --global user.email $(DB_BACKUP_GITHUB_EMAIL)
-	ssh-keyscan github.com >> $(HOME)/.ssh/known_hosts
-endif
+db-get-latest-backup:
+	$(call guard,AWS_SECRET_ACCESS_KEY)
+	$(call guard,AWS_ACCESS_KEY_ID)
+	@./scripts/db-get-latest-backup.sh
+
+db-get-latest-backup-download-url:
+	$(call guard,AWS_SECRET_ACCESS_KEY)
+	$(call guard,AWS_ACCESS_KEY_ID)
+	@s3cmd --config .s3cfg signurl $(shell make db-get-latest-backup --no-print-directory) $(shell date -d 'now + 15 minutes' +%s)
 
 ##@ Kubernetes in Docker (KinD) stuff
 
