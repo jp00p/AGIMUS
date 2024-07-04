@@ -170,7 +170,15 @@
             "episode": "08",
             "imdb": "tt0572182",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.07.01",
+                    "episode": "Chekhov\u2019s Banality",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-529-chekhovs-banality-ent-s1e8/",
+                    "order": 529,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/u2JmTPv1fSsJE9ifanSDStEmPNX.jpg",
