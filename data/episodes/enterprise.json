@@ -193,7 +193,15 @@
             "episode": "09",
             "imdb": "tt0572190",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.07.08",
+                    "episode": "The Civet of Akaali",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-530-the-civet-of-akaali-ent-s1e9/",
+                    "order": 530,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/p2P228klRCetcNPpg6qt2PgbSVq.jpg",
