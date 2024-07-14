@@ -213,7 +213,7 @@ class Trade(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
     # We only allow requestees to have n trades pending for managability's sake
-    self.max_trades = 3
+    self.max_trades = 10
     self.max_badges_per_trade = 6
     self.trade_buttons = [
       pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
