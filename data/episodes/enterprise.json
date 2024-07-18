@@ -216,7 +216,15 @@
             "episode": "10",
             "imdb": "tt0572211",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.07.15",
+                    "episode": "Look at How They Massacred Our Nausicaans",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-531-look-at-how-they-massacred-our-nausicaans-ent-s1e10/",
+                    "order": 531,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/pvbchZuvGUurZuuhPNxOFWBKpmw.jpg",
