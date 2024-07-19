@@ -10,13 +10,13 @@ f = open(command_config["data"])
 drop_data = json.load(f)
 f.close()
 
-
 async def drop_autocomplete(ctx: discord.AutocompleteContext):
   results = []
   for drop_key in drop_data.keys():
     drop_info = drop_data[drop_key]
     drop_description = drop_info["description"]
-    if ctx.value.lower() in drop_key.lower() or ctx.value.lower() in drop_description:
+
+    if ctx.value.lower() in drop_key.lower() or ctx.value.lower() in drop_description.lower():
       results.append(drop_key)
 
   return results
