@@ -10,21 +10,13 @@ f = open(command_config["data"])
 drop_data = json.load(f)
 f.close()
 
-FUZZ_THRESHOLD = 72
-
 async def drop_autocomplete(ctx: discord.AutocompleteContext):
   results = []
   for drop_key in drop_data.keys():
     drop_info = drop_data[drop_key]
     drop_description = drop_info["description"]
 
-    ratio = fuzz.ratio(drop_description.lower(), ctx.value.lower())
-    pratio = fuzz.partial_ratio(drop_description.lower(), ctx.value.lower())
-    score = round((ratio + pratio) / 2)
-
-    fuzzy_match = ((ratio > FUZZ_THRESHOLD) or (pratio > FUZZ_THRESHOLD)) and score > 0
-
-    if ctx.value.lower() in drop_key.lower() or fuzzy_match:
+    if ctx.value.lower() in drop_key.lower() or ctx.value.lower() in drop_description.lower():
       results.append(drop_key)
 
   return results
