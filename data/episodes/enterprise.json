@@ -239,7 +239,15 @@
             "episode": "11",
             "imdb": "tt0572192",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.07.22",
+                    "episode": "Plain-Clothes Docent",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-532-plain-clothes-docent-ent-s1e11/",
+                    "order": 532,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/aG3A0temL5kDMNJ4X0E3MbyT5Rr.jpg",
