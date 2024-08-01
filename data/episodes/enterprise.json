@@ -262,7 +262,15 @@
             "episode": "12",
             "imdb": "tt0572235",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.07.29",
+                    "episode": "Yell at Me Daddy",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-533-yell-at-me-daddy-ent-s1e12/",
+                    "order": 533,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/kOsjPZ3sRUnzVq9suJgc2xfdnPY.jpg",
