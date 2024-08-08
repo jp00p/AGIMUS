@@ -285,7 +285,15 @@
             "episode": "13",
             "imdb": "tt0572199",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.08.05",
+                    "episode": "His Face Is Like a Swimming Diaper",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-534-his-face-is-like-a-swimming-diaper-ent-s1e13/",
+                    "order": 534,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/uZMUn0LsIkNHTc57Im9YYBQUgJX.jpg",
