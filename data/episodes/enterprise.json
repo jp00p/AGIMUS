@@ -309,7 +309,15 @@
             "episode": "14",
             "imdb": "tt0572238",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.08.12",
+                    "episode": "Double Dong Window",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-535-double-dong-window-ent-s1e14/",
+                    "order": 535,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/vdqMjJhPk4XzK2DtTEk7BfNDg5o.jpg",
