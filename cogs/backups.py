@@ -3,7 +3,6 @@ from common import *
 class Backups(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
-    self.commit_base_url = "https://github.com/Friends-of-DeSoto/database/commit/"
 
   # backup_database() - Entrypoint for !backup_database command
   # ctx: discord.ApplicationContext
@@ -14,17 +13,16 @@ class Backups(commands.Cog):
   async def backup_database(self, ctx:discord.ApplicationContext):
     await ctx.message.delete(delay=1.0)
     await ctx.send(f"Backups running, hold your horses.")
-    
     backup_hashes = run_make_backup()
     if not backup_hashes:
       await ctx.send(f"Something went wrong with the backup! No databases have been wiped out, I don't think.")
     else:
       embed = discord.Embed(
-        title=f"BACKUP {backup_hashes['new']} COMPLETE",
+        title=f"BACKUP {backup_hashes['backup_name']} COMPLETE",
         color=discord.Color.random(),
         description="You are safe, for now.",
-        url=f"{self.commit_base_url}{backup_hashes['new']}"
+        url=f"{backup_hashes['url']}"
       )
-      embed.add_field(name="🌟 NEW HASH 🌟", value=f"`{backup_hashes['new']}`", inline=False)
-      embed.add_field(name="GitHub URL to new commit", value=f"{self.commit_base_url}{backup_hashes['new']}", inline=False)
+      embed.add_field(name="🌟 NEW BACKUP 🌟", value=f"`{backup_hashes['backup_name']}`", inline=False)
+      embed.add_field(name="Presigned URL (valid 15m) to new backup", value=f"{backup_hashes['url']}", inline=False)
       await ctx.send(embed=embed)
