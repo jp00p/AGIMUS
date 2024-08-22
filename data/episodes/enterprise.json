@@ -332,7 +332,15 @@
             "episode": "15",
             "imdb": "tt0572232",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.08.19",
+                    "episode": "Gruel Bumps",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-536-gruel-bumps-ent-s1e15/",
+                    "order": 536,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/tCV7PBitgA5wFMsoVLZCctGfR2W.jpg",
