@@ -339,7 +339,7 @@
       "channels": [
         "maquis-officers-club"
       ],
-      "crontab": "10 */6 * * *",
+      "crontab": "*/15 * * * *",
       "enabled": true
     },
     "hoodiversary": {
