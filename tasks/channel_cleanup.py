@@ -22,15 +22,13 @@ def channel_cleanup_task(bot):
       if roll <= NUKE_CHANCE:
         # Nuke the "entire" channel history
         await channel.purge(limit=1500, oldest_first=True, reason="Periodic Purge")
-
-        self_destruct_embed = discord.Embed(
-          title="Channel Nuked From Orbit! 💥",
-          color=discord.Color.dark_red()
-        )
-        self_destruct_embed.set_image(url="https://i.imgur.com/8W40YCG.gif")
-        self_destruct_embed.set_footer(text=f"Rolled a {roll}. Nuke Chance was {NUKE_CHANCE}%, resetting to 5%. 🎲\nLet this message stand record of the latest Nuke... 💣")
-        self_destruct_message = await channel.send(embed=self_destruct_embed)
-
+        # self_destruct_embed = discord.Embed(
+        #   title="Channel Nuked From Orbit! 💥",
+        #   color=discord.Color.dark_red()
+        # )
+        # self_destruct_embed.set_image(url="https://i.imgur.com/8W40YCG.gif")
+        # self_destruct_embed.set_footer(text=f"Rolled a {roll}. Nuke Chance was {NUKE_CHANCE}%, resetting to 5%. 🎲\nLet this message stand record of the latest Nuke... 💣")
+        # self_destruct_message = await channel.send(embed=self_destruct_embed)
         NUKE_CHANCE = 5
       else:
         NUKE_CHANCE += 5
