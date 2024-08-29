@@ -39,7 +39,6 @@ import commands.drop
 
 # Bang
 from commands.clear_media import clear_media
-from commands.nuke_maquis import nuke_maquis
 from commands.ping import ping
 from commands.q import qget, qset
 from commands.update_status import update_status
@@ -106,7 +105,6 @@ from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_reac
 from tasks.backups import backups_task
 from tasks.badger import badger_task
 from tasks.bingbong import bingbong_task
-from tasks.channel_cleanup import channel_cleanup_task
 from tasks.hoodiversaries import hoodiversary_task
 from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
@@ -387,7 +385,6 @@ scheduled_tasks = [
   backups_task(bot),
   badger_task(bot),
   bingbong_task(bot),
-  channel_cleanup_task(bot),
   hoodiversary_task(bot),
   weyounsday_task(bot),
   birthdays_task(bot),

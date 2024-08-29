@@ -40,7 +40,6 @@
         "mclaughlin-group",
         "mo-pips-mo-problemz",
         "code-47",
-        "maquis-officers-club",
         "robot-diagnostics",
         "megalomaniacal-computer-storage",
         "bot-logs",
@@ -70,7 +69,6 @@
         "mo-pips-mo-problemz",
         "mclaughlin-group",
         "lieutenants-lounge",
-        "maquis-officers-club",
         "captains-log",
         "bot-setup",
         "bosuns-whistle",
@@ -151,7 +149,6 @@
         "heuristic-associative-pathways",
         "mo-pips-mo-problemz",
         "code-47",
-        "maquis-officers-club",
         "badgeys-badges",
         "megalomaniacal-computer-storage",
         "crackling-speaker-grille"
@@ -334,13 +331,6 @@
       ],
       "crontab": "0 * * * *",
       "enabled": false
-    },
-    "channel_cleanup": {
-      "channels": [
-        "maquis-officers-club"
-      ],
-      "crontab": "*/20 * * * *",
-      "enabled": true
     },
     "hoodiversary": {
       "channels": [
@@ -564,16 +554,6 @@
       "parameters": []
     },
     "nexttrek": {
-      "channels": [],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
-    "nuke_maquis": {
-      "allowed_roles": [
-        "Admiral",
-        "Captain"
-      ],
       "channels": [],
       "enabled": true,
       "data": null,
@@ -918,7 +898,6 @@
         "lieutenants-lounge",
         "mclaughlin-group",
         "mo-pips-mo-problemz",
-        "maquis-officers-club",
         "code-47",
         "robot-diagnostics",
         "megalomaniacal-computer-storage",
