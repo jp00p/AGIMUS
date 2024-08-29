@@ -355,7 +355,15 @@
             "episode": "16",
             "imdb": "tt0763253",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.08.26",
+                    "episode": "Sub-Innocent Crushing",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-537-sub-innocent-crushing-ent-s1e16/",
+                    "order": 537,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/fCsKBelkoTn8oxSlI177BMJQghZ.jpg",
