@@ -378,7 +378,15 @@
             "episode": "17",
             "imdb": "tt0572212",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.09.02",
+                    "episode": "Jackoff Book Club",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-538-jackoff-book-club-ent-s1e17/",
+                    "order": 538,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/yGuyXtxeKN6eRa08mAaZN9vuqY.jpg",
