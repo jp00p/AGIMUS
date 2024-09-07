@@ -1,4 +1,10 @@
 {
+  "bsg": {
+    "name": "Battlestar Galactica",
+    "enabled": true,
+    "trek": false,
+    "source": "./data/episodes/bsg.json"
+  },
   "disco": {
     "name": "Star Trek: Discovery",
     "enabled": true,
