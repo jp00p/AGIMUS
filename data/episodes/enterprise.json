@@ -401,7 +401,15 @@
             "episode": "18",
             "imdb": "tt0572231",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.09.09",
+                    "episode": "Idiot Meat",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-539-idiot-meat-ent-s1e18/",
+                    "order": 539,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/4Au10yiD244lUpSIvfDZfIorRnq.jpg",
