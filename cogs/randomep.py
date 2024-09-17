@@ -2,7 +2,7 @@ from common import *
 from utils.show_utils import get_show_embed
 
 all_shows = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "disco", "picard", "lowerdecks", "prodigy", "snw",
-             "friends", "firefly", "simpsons", "sunny"]
+             "friends", "firefly", "simpsons", "sunny", "bsg"]
 
 all_show_labels = {
   "tos": 'Star Trek: The Original Series',
@@ -19,7 +19,8 @@ all_show_labels = {
   "friends": "Friends",
   "firefly": "Firefly",
   "simpsons": "The Simpsons",
-  "sunny": "It's Always Sunny In Philadelphia"
+  "sunny": "It's Always Sunny In Philadelphia",
+  "bsg": "Battlestar Galactica",
 }
 
 
