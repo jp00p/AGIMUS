@@ -701,12 +701,22 @@ class Tongo(commands.Cog):
   async def _perform_confront(self, active_tongo, active_chair, auto_confront=False):
     results = await self._perform_confront_distribution()
     tongo_pot_badges = await db_get_tongo_pot_badges()
+
+    liquidation_result = None
+
     if auto_confront:
       results_embed = discord.Embed(
         title="TONGO! Game Automatically Ending!",
-        description=f"Whoops, **{active_chair.display_name}** failed to Confront before the time ran out!\n\nEnding the game!",
+        description=f"The game started by **{active_chair.display_name}** has run out of time!\n\nEnding the game!",
         color=discord.Color.dark_purple()
       )
+
+      # Nagus Zek's Liquidation - Only occurs on auto_confront,
+      # More than 3 badges in pot, and 3 or more players
+      if len(tongo_pot_badges) > 3 and len(results.items()) >= 3:
+        if random.random() < 0.25:  # 25% chance
+          liquidation_result = await self._determine_liquidiation(active_tongo, tongo_pot_badges)
+
     else:
       results_embed = discord.Embed(
         title="TONGO! Complete!",
@@ -841,6 +851,57 @@ class Tongo(commands.Cog):
           logger.info(f"Unable to send Tongo completion message to {player_member.display_name}, they have their DMs closed.")
           pass
 
+    if liquidation_result:
+      liquidation_member = await self.bot.current_guild.fetch_member(liquidation_result['player_id'])
+      liquidation_reward = liquidation_result['badge_to_grant']
+
+      # Perform the nitty gritty of the liquidation
+      # We don't do this earlier because we want to only actually
+      # modify the pot _now_ after the tongo distribution has been completed
+      for badge in liquidation_result['tongo_badges_to_remove']:
+        await db_remove_badge_from_pot(badge['badge_filename'])
+
+      await db_grant_player_badge(liquidation_result['player_id'], liquidation_reward['badge_filename'])
+
+      # Alert the Channel
+      liquidation_embed = discord.Embed(
+        title="LIQUIDATION!!!",
+        description=f"Grand Nagus Zek has stepped in for a Liquidation!\n\n"
+                     "The number of badges in The Great Material Continuum was **TOO DAMN HIGH!** "
+                     "By Decree of the Nagus, **THREE** Badges from the Continuum have been **LIQUIDATED!**\n\n"
+                     f"✨ **{liquidation_member.display_name()}** is the *Lucky Liquidation Beneficiary*!!! ✨",
+        color=discord.Color.gold()
+      )
+      liquidation_embed.add_field(
+        name=f"{liquidation_member.display_name()} received from their wishlist...",
+        value=f"{liquidation_reward['badge_name']} ✨"
+      )
+      liquidation_embed.add_field(
+        name="Badges Liquidated From The Continuum"
+        value="\n".join([f"* {b['badge_name'] for b in liquidation_result['tongo_badges_to_remove']}"])
+      )
+
+      # Alert the User
+      # Notify the player
+      player_embed = discord.Embed(
+          title="LIQUIDATION!",
+          description=f"Grand Nagus Zek has decreed a Liquidation of The Great Material Continuum,\n\n"
+                      "and as the ✨ *Lucky Liquidation Beneficiary* ✨ you have received a randomized badge from your wishlist!\n\n"
+                      "**Congratulations!**",
+          color=discord.Color.gold()
+        )
+      player_embed.add_field(
+        name="You received...",
+        value=f"{liquidation_reward['badge_name']} ✨"
+      )
+      try:
+        await player_member.send(embed=player_embed)
+      except discord.Forbidden:
+        logger.info(f"Unable to send liquidation message to {player_member.display_name}, they have their DMs closed.")
+
+      # Refresh of Tongo Pot after liquidation has occured
+      tongo_pot_badges = await db_get_tongo_pot_badges()
+
     if tongo_pot_badges:
       continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
       await self._send_continuum_images_to_channel(trade_channel, continuum_images)
@@ -864,64 +925,48 @@ class Tongo(commands.Cog):
 
     # We're going to go round-robin and try to distribute all of the shuffled badges
     turn_index = 0
-    while tongo_pot:
-      # logger.info(f"Turn Index Is: {turn_index}")
-      working_pot = tongo_pot.copy()
+    players_with_max_badges = set()
+    players_with_no_assignable_badges = set()
 
+    while tongo_pot and (len(players_with_max_badges) + len(players_with_no_assignable_badges)) < len(tongo_player_ids):
       current_player_id = tongo_player_ids[turn_index % len(tongo_player_ids)]
 
-      # Try to find the first potential badge in the working pot from the player's wishlist
+      # Skip players who can't receive more badges
+      if current_player_id in players_with_max_badges or current_player_id in players_with_no_assignable_badges:
+        turn_index += 1
+        continue  # Move to the next player
+
       current_badge = None
-      for potential_badge in working_pot:
-        if potential_badge in player_wishlists[current_player_id]:
+
+      # Loop through the tongo pot to find a valid badge
+      for potential_badge in tongo_pot:
+        # First, prioritize wishlist badges that the player doesn't already have
+        if potential_badge in player_wishlists[current_player_id] and potential_badge not in player_inventories[current_player_id]:
           current_badge = potential_badge
-          working_pot.remove(current_badge)
+        elif potential_badge not in player_inventories[current_player_id]:
+          # If no wishlist match, assign the first badge the player doesn't already have
+          current_badge = potential_badge
+
+        # If we found a valid badge, break out of the loop
+        if current_badge:
           break
-      # If we didn't find it from the wishlist, simply pop off the first item from the working pot instead
+
+      # If no valid badge is found, mark player as having no assignable badges
       if current_badge is None:
-        current_badge = working_pot.pop(0)
+        players_with_no_assignable_badges.add(current_player_id)
+        turn_index += 1
+        continue  # Move to the next player
 
-      # logger.info(f"Current player: {current_player_id}")
+      # Assign the valid badge to the player and remove it from the pot
+      player_distribution[current_player_id].add(current_badge)
+      tongo_pot.remove(current_badge)  # Remove the badge from the main pot
 
-      # Check if the player already reached the maximum badges per player
+      # Check if the player now has 3 badges
       if len(player_distribution[current_player_id]) >= 3:
-          # logger.info(f"Current player: {current_player_id} has reached the 3 badge limit")
-          # if the current player has reached the limit
-          turn_index += 1
-          break
+        players_with_max_badges.add(current_player_id)
 
-      # Check if the player already has all remaining badges
-      if all(b in player_distribution[current_player_id] for b in player_inventories[current_player_id]):
-          # logger.info(f"Current player: {current_player_id} already has all the badges either via the distribution, or in their existing inventory.")
-          # Move to the next player
-          break
-
-      # Check if the player already has the badge
-      while (current_badge in player_distribution[current_player_id]) or (current_badge in player_inventories[current_player_id]):
-          if not working_pot:
-              # If no more badges are available, exit
-              # logger.info(f"No badges left to attempt to give to Player {current_player_id}! End the turn.")
-              break
-          # If they have the badge, try to find next potential badge in the working pot from the player's wishlist
-          current_badge = None
-          for potential_badge in working_pot:
-            if potential_badge in player_wishlists[current_player_id]:
-              current_badge = potential_badge
-              working_pot.remove(current_badge)
-              break
-          # If we didn't find it from the wishlist, simply pop off the next item from the working pot instead
-          if current_badge is None:
-            current_badge = working_pot.pop(0)
-          # logger.info(f"Player already has {previous_badge}, pop off the next one: {current_badge}")
-
-      # Check if the player received a badge
-      if current_badge not in player_distribution[current_player_id] and current_badge not in player_inventories[current_player_id]:
-          player_distribution[current_player_id].add(current_badge)
-          tongo_pot.remove(current_badge)
-          #logger.info(f"{current_player_id} received badge: {current_badge}")
-
+      # Move to the next player
       turn_index += 1
-      # logger.info(f"Moving to the next turn: {turn_index}")
 
     # Now go through the distribution and actually perform the db handouts and removal from the pot
     for p in player_distribution.items():
@@ -936,6 +981,48 @@ class Tongo(commands.Cog):
     await db_end_current_tongo(active_tongo['id'])
 
     return player_distribution
+
+  async def _determine_liquidation(self, tongo_players):
+    liquidation_result = None
+
+    tongo_pot_badges = await db_get_tongo_pot_badges()
+
+    # Shuffle players
+    players = tongo_players.copy()
+    random.shuffle(players)
+
+    # Iterate over players to find one to grant a randomized wishlist badge
+    for player in players:
+      player_id = int(player['user_discord_id'])
+      # Fetch player's wishlist badges
+      wishlist_badges = await db_get_user_wishlist_badges(player_id)
+      if wishlist_badges:
+        # Fetch player's inventory to ensure they don't already have the badge
+        player_inventory = await db_get_user_badges(player_id)
+        inventory_filenames = [b['badge_filename'] for b in player_inventory]
+
+        # Filter wishlist badges the player doesn't own
+        wishlist_badges_to_grant = [b for b in wishlist_badges if b['badge_filename'] not in inventory_filenames]
+
+        if wishlist_badges_to_grant:
+          liquidation_result = {}
+
+          # Badge to grant
+          random.shuffle(wishlist_badges_to_grant)
+          badge_to_grant = wishlist_badges_to_grant[0]
+          liquidation_result['player_id'] = player_id
+          liquidation_result['badge_to_grant'] = badge_to_grant
+
+          # Badges to remove from pot
+          tongo_pot_badges = await db_get_tongo_pot_badges()
+          random.shuffle(tongo_pot_badges)
+          badges_to_remove = tongo_pot_badges[:3]
+          liquidation_result['tongo_badges_to_remove'] = badges_to_remove
+
+          break # Badge granted, exit loop
+      # Move to the next player if no wishlist badges to grant
+
+    return liquidation_result
 
   #   __  ____  _ ___ __  _
   #  / / / / /_(_) (_) /_(_)__ ___
