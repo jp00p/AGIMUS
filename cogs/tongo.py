@@ -876,7 +876,7 @@ class Tongo(commands.Cog):
       )
       liquidation_embed.set_image(url="https://i.imgur.com/U9U0doQ.gif")
       liquidation_embed.add_field(
-        name=f"{liquidation_member.display_name} received from their wishlist...",
+        name=f"{liquidation_member.display_name} receives a random badge they've been coveting...",
         value=f"* {liquidation_reward['badge_name']} ✨",
         inline=False
       )
@@ -901,8 +901,7 @@ class Tongo(commands.Cog):
       )
       endowment_embed = discord.Embed(
         title="Liquidation Endowment",
-        description=f"As the ✨ *Lucky Liquidation Beneficiary* ✨ **{liquidation_member.display_name}** receives...\n\n"
-                    f"* {liquidation_reward['badge_name']}",
+        description=f"As the ✨ *Lucky Liquidation Beneficiary* ✨ **{liquidation_member.display_name}** has been granted a freshly-minted, randomized badge from their wishlist!",
         color=discord.Color.gold()
 
       )
