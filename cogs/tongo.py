@@ -211,7 +211,8 @@ class Tongo(commands.Cog):
     if len(tongo_pot_chunks) > 1:
       for t_chunk in tongo_pot_chunks[1:]:
         chunk_embed = discord.Embed(
-          title=f"TONGO! Badges Ventured by **{user_member.display_name}** (Continued)!"
+          title=f"TONGO! Badges Ventured by **{user_member.display_name}** (Continued)!",
+          color=discord.Color.dark_purple()
         )
         chunk_embed.add_field(
           name=f"Total Badges In The Great Material Continuum!",
@@ -896,7 +897,7 @@ class Tongo(commands.Cog):
       endowment_image = await generate_badge_trade_showcase(
         [liquidation_reward['badge_filename']],
         endowment_image_id,
-        f"Zek's Endowment For {player_member.display_name}",
+        f"Zek's Endowment For {liquidation_member.display_name}",
         "Greed is Eternal!"
       )
       endowment_embed = discord.Embed(
