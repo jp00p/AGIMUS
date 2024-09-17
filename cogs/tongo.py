@@ -579,7 +579,7 @@ class Tongo(commands.Cog):
       for file in chunk:
         await trade_channel.send(
           embed=discord.Embed(
-            color=discord.Color.dark_purple()
+            color=discord.Color.dark_gold()
           ).set_image(url=f"attachment://{file.filename}"),
           file=file
         )
@@ -701,7 +701,6 @@ class Tongo(commands.Cog):
   async def _perform_confront(self, active_tongo, active_chair, auto_confront=False):
     results = await self._perform_confront_distribution()
     tongo_pot_badges = await db_get_tongo_pot_badges()
-
     liquidation_result = None
 
     if auto_confront:
@@ -711,11 +710,13 @@ class Tongo(commands.Cog):
         color=discord.Color.dark_purple()
       )
 
-      # Nagus Zek's Liquidation - Only occurs on auto_confront,
-      # More than 3 badges in pot, and 3 or more players
-      if len(tongo_pot_badges) > 3 and len(results.items()) >= 3:
-        if random.random() < 0.25:  # 25% chance
-          liquidation_result = await self._determine_liquidiation(active_tongo, tongo_pot_badges)
+      # Grand Nagus Zek's Liquidation
+      # Only occurs on auto_confront, more than 3 badges in pot, and 3 or more players
+      tongo_players = [r[0] for r in results.items()]
+      if len(tongo_pot_badges) > 3 and len(tongo_players) >= 3:
+        # Then there's a 25% chance to Liquidate
+        if random.random() < 0.25:
+          liquidation_result = await self._determine_liquidation(tongo_players)
 
     else:
       results_embed = discord.Embed(
@@ -867,37 +868,82 @@ class Tongo(commands.Cog):
       liquidation_embed = discord.Embed(
         title="LIQUIDATION!!!",
         description=f"Grand Nagus Zek has stepped in for a Liquidation!\n\n"
-                     "The number of badges in The Great Material Continuum was **TOO DAMN HIGH!** "
-                     "By Decree of the Nagus, **THREE** Badges from the Continuum have been **LIQUIDATED!**\n\n"
-                     f"✨ **{liquidation_member.display_name()}** is the *Lucky Liquidation Beneficiary*!!! ✨",
+                     "The number of badges in The Great Material Continuum was **TOO DAMN HIGH!**\n\n"
+                     "By Decree of the Grand Nagus of the Ferengi Alliance, **THREE** Badges from the Continuum have been **LIQUIDATED!**\n\n"
+                     f"✨ **{liquidation_member.display_name}** is the *Lucky Liquidation Beneficiary*!!! ✨\n\n"
+                     "A deal is a deal... until a better one comes along!\n\n",
         color=discord.Color.gold()
       )
+      liquidation_embed.set_image(url="https://i.imgur.com/U9U0doQ.gif")
       liquidation_embed.add_field(
-        name=f"{liquidation_member.display_name()} received from their wishlist...",
-        value=f"{liquidation_reward['badge_name']} ✨"
+        name=f"{liquidation_member.display_name} received from their wishlist...",
+        value=f"* {liquidation_reward['badge_name']} ✨",
+        inline=False
       )
       liquidation_embed.add_field(
-        name="Badges Liquidated From The Continuum"
-        value="\n".join([f"* {b['badge_name'] for b in liquidation_result['tongo_badges_to_remove']}"])
+        name="Badges Liquidated from The Great Material Continuum",
+        value="\n".join([f"* {b['badge_name']}" for b in liquidation_result['tongo_badges_to_remove']]),
+        inline=False
       )
+      liquidation_embed.set_footer(
+        text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+        icon_url="https://i.imgur.com/GTN4gQG.jpg"
+      )
+      await trade_channel.send(embed=liquidation_embed)
+
+      # Show the reward embed/image
+      endowment_image_id = f"{active_tongo['id']}-liquidation-{liquidation_result['player_id']}"
+      endowment_image = await generate_badge_trade_showcase(
+        [liquidation_reward['badge_filename']],
+        endowment_image_id,
+        f"Zek's Endowment For {player_member.display_name}",
+        "Greed is Eternal!"
+      )
+      endowment_embed = discord.Embed(
+        title="Liquidation Endowment",
+        description=f"As the ✨ *Lucky Liquidation Beneficiary* ✨ **{liquidation_member.display_name}** receives...\n\n"
+                    f"* {liquidation_reward['badge_name']}",
+        color=discord.Color.gold()
+
+      )
+      endowment_embed.set_image(url=f"attachment://{endowment_image_id}.png")
+      await trade_channel.send(embed=endowment_embed, file=endowment_image)
+
+      # Show the badges that were liquidated embed/image
+      removal_image_id = f"{active_tongo['id']}-liquidation_badges"
+      removal_image = await generate_badge_trade_showcase(
+        [b['badge_filename'] for b in liquidation_result['tongo_badges_to_remove']],
+        removal_image_id,
+        f"Badges Liquidated",
+        f"{len(liquidation_result['tongo_badges_to_remove'])} Badges Liquidated"
+      )
+      removal_embed = discord.Embed(
+        title="Badges Liquidated",
+        description=f"The following badges have been removed from The Great Material Continuum...",
+        color=discord.Color.gold()
+
+      )
+      removal_embed.set_image(url=f"attachment://{removal_image_id}.png")
+      await trade_channel.send(embed=removal_embed, file=removal_image)
 
       # Alert the User
       # Notify the player
-      player_embed = discord.Embed(
+      player_liquidation_embed = discord.Embed(
           title="LIQUIDATION!",
-          description=f"Grand Nagus Zek has decreed a Liquidation of The Great Material Continuum,\n\n"
+          description=f"Grand Nagus Zek has decreed a Liquidation of The Great Material Continuum, "
                       "and as the ✨ *Lucky Liquidation Beneficiary* ✨ you have received a randomized badge from your wishlist!\n\n"
-                      "**Congratulations!**",
+                      "**Congratulations!** Greed is Eternal!",
           color=discord.Color.gold()
         )
-      player_embed.add_field(
+      player_liquidation_embed.add_field(
         name="You received...",
-        value=f"{liquidation_reward['badge_name']} ✨"
+        value=f"* {liquidation_reward['badge_name']} ✨"
       )
       try:
-        await player_member.send(embed=player_embed)
+        await player_member.send(embed=player_liquidation_embed)
       except discord.Forbidden:
         logger.info(f"Unable to send liquidation message to {player_member.display_name}, they have their DMs closed.")
+        pass
 
       # Refresh of Tongo Pot after liquidation has occured
       tongo_pot_badges = await db_get_tongo_pot_badges()
@@ -993,16 +1039,19 @@ class Tongo(commands.Cog):
 
     # Iterate over players to find one to grant a randomized wishlist badge
     for player in players:
-      player_id = int(player['user_discord_id'])
+      player_id = int(player)
       # Fetch player's wishlist badges
       wishlist_badges = await db_get_user_wishlist_badges(player_id)
       if wishlist_badges:
         # Fetch player's inventory to ensure they don't already have the badge
         player_inventory = await db_get_user_badges(player_id)
-        inventory_filenames = [b['badge_filename'] for b in player_inventory]
 
         # Filter wishlist badges the player doesn't own
-        wishlist_badges_to_grant = [b for b in wishlist_badges if b['badge_filename'] not in inventory_filenames]
+        wishlist_badges_to_grant = [
+          b for b in wishlist_badges if b['badge_filename'] not in [
+            b['badge_filename'] for b in player_inventory
+          ]
+        ]
 
         if wishlist_badges_to_grant:
           liquidation_result = {}
