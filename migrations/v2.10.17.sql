@@ -17,6 +17,13 @@ DELETE FROM badge_type WHERE badge_filename = "Vulcan-IDIC-2370s.png";
 DELETE FROM badge_universe WHERE badge_filename = "Vulcan-IDIC-2370s.png";
 DELETE FROM badge_info WHERE badge_filename = "Vulcan-IDIC-2370s.png";
 /*
+  Delete misc entries
+*/
+DELETE FROM badge_wishlists WHERE badge_filename = "Vulcan-IDIC-2370s.png";
+DELETE FROM profile_badges WHERE badge_filename = "Vulcan-IDIC-2370s.png";
+DELETE FROM tongo_pot WHERE badge_filename = "Vulcan-IDIC-2370s.png";
+DELETE FROM tags_carousel_position WHERE badge_filename = "Vulcan-IDIC-2370s.png";
+/*
   Then delete all instances of "Vulcan-IDIC-2370s.png"
   to remove the dupes from users' inventories
 */
