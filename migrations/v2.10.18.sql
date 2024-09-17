@@ -2,13 +2,13 @@
   Any existing users that have "Vulcan-IDIC-2370s.png" but not "Vulcan_IDIC_2370s.png"
   should instead simply have "Vulcan_IDIC_2370s.png"
 */
-UPDATE badges SET badge_filename = "Vulcan_IDIC_2370s.png"
-  WHERE badge_filename = "Vulcan-IDIC-2370s.png"
-    AND discord_user_id NOT IN (
-      SELECT discord_user_id
-      FROM badges
-      WHERE badge_filename = "Vulcan_IDIC_2370s.png"
-    );
+UPDATE badges
+SET badge_filename = 'Vulcan_IDIC_2370s.png'
+WHERE badge_filename = 'Vulcan-IDIC-2370s.png'
+  AND user_discord_id NOT IN (
+    SELECT user_discord_id
+    FROM (SELECT user_discord_id FROM badges WHERE badge_filename = 'Vulcan_IDIC_2370s.png') AS subquery
+  );
 /*
   Now delete all the badge information about "Vulcan-IDIC-2370s.png"
 */
