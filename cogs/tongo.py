@@ -711,9 +711,9 @@ class Tongo(commands.Cog):
       )
 
       # Grand Nagus Zek's Liquidation
-      # Only occurs on auto_confront, more than 3 badges in pot, and 3 or more players
+      # Only occurs on auto_confront, 5 or more badges in pot, and 3 or more players
       tongo_players = [r[0] for r in results.items()]
-      if len(tongo_pot_badges) > 3 and len(tongo_players) >= 3:
+      if len(tongo_pot_badges) >= 5 and len(tongo_players) >= 3:
         # Then there's a 25% chance to Liquidate
         if random.random() < 0.25:
           liquidation_result = await self._determine_liquidation(tongo_players)
