@@ -211,7 +211,8 @@ class Tongo(commands.Cog):
     if len(tongo_pot_chunks) > 1:
       for t_chunk in tongo_pot_chunks[1:]:
         chunk_embed = discord.Embed(
-          title=f"TONGO! Badges Ventured by **{user_member.display_name}** (Continued)!"
+          title=f"TONGO! Badges Ventured by **{user_member.display_name}** (Continued)!",
+          color=discord.Color.dark_purple()
         )
         chunk_embed.add_field(
           name=f"Total Badges In The Great Material Continuum!",
@@ -361,6 +362,7 @@ class Tongo(commands.Cog):
     await self._cancel_tongo_related_trades(user_discord_id, selected_user_badges)
 
     tongo_pot_badges = await db_get_tongo_pot_badges()
+    tongo_pot_chunks = [tongo_pot_badges[i:i + 30] for i in range(0, len(tongo_pot_badges), 30)]
     tongo_player_ids.append(user_discord_id)
     tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
 
@@ -389,7 +391,7 @@ class Tongo(commands.Cog):
     )
     confirmation_embed.add_field(
       name=f"Total Badges In The Great Material Continuum!",
-      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_badges]),
+      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_chunks[0]]),
       inline=False
     )
     gif_url = "https://i.imgur.com/iX9ZCpH.gif"
@@ -404,6 +406,24 @@ class Tongo(commands.Cog):
     continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
     trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
     await trade_channel.send(embed=confirmation_embed)
+
+    if len(tongo_pot_chunks) > 1:
+      for t_chunk in tongo_pot_chunks[1:]:
+        chunk_embed = discord.Embed(
+          title=f"Index requested by **{user_member.display_name}** (Continued)",
+          color=discord.Color.dark_purple()
+        )
+        chunk_embed.add_field(
+          name=f"Total Badges In The Great Material Continuum!",
+          value="\n".join([f"* {b['badge_name']}" for b in t_chunk]),
+          inline=False
+        )
+        chunk_embed.set_footer(
+          text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+          icon_url="https://i.imgur.com/GTN4gQG.jpg"
+        )
+        await trade_channel.send(embed=chunk_embed)
+
     await self._send_continuum_images_to_channel(trade_channel, continuum_images)
 
     if player_count == 9:
@@ -556,7 +576,8 @@ class Tongo(commands.Cog):
     if len(tongo_pot_chunks) > 1:
       for t_chunk in tongo_pot_chunks[1:]:
         chunk_embed = discord.Embed(
-          title=f"Index requested by **{user_member.display_name}** (Continued)"
+          title=f"Index requested by **{user_member.display_name}** (Continued)",
+          color=discord.Color.dark_purple()
         )
         chunk_embed.add_field(
           name=f"Total Badges In The Great Material Continuum!",
@@ -896,7 +917,7 @@ class Tongo(commands.Cog):
       endowment_image = await generate_badge_trade_showcase(
         [liquidation_reward['badge_filename']],
         endowment_image_id,
-        f"Zek's Endowment For {player_member.display_name}",
+        f"Zek's Endowment For {liquidation_member.display_name}",
         "Greed is Eternal!"
       )
       endowment_embed = discord.Embed(
