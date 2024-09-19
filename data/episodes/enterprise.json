@@ -424,7 +424,15 @@
             "episode": "19",
             "imdb": "tt0572173",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.09.16",
+                    "episode": "Blue Bonch",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-540-blue-bonch-ent-s1e19/",
+                    "order": 540,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/phBjsb4Mt5TpNqKn5oNZ8SgLTGY.jpg",
