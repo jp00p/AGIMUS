@@ -410,7 +410,7 @@ class Tongo(commands.Cog):
     if len(tongo_pot_chunks) > 1:
       for t_chunk in tongo_pot_chunks[1:]:
         chunk_embed = discord.Embed(
-          title=f"Index requested by **{user_member.display_name}** (Continued)",
+          title=f"TONGO! Badges risked by **{user_member.display_name}** (Continued)!",
           color=discord.Color.dark_purple()
         )
         chunk_embed.add_field(
