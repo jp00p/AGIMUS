@@ -960,7 +960,7 @@ class Tongo(commands.Cog):
         value=f"* {liquidation_reward['badge_name']} ✨"
       )
       try:
-        await player_member.send(embed=player_liquidation_embed)
+        await liquidation_member.send(embed=player_liquidation_embed)
       except discord.Forbidden:
         logger.info(f"Unable to send liquidation message to {player_member.display_name}, they have their DMs closed.")
         pass
