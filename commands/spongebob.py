@@ -18,7 +18,7 @@ async def spongebob(ctx:discord.ApplicationContext, content:str):
       title="SpongeBobbed!",
       description=sponged,
       color=discord.Color.blurple()
-    )
+    ).set_image(url="https://i.imgur.com/eOaiaZ6.png")
   )
 
 def sponge(bob):
