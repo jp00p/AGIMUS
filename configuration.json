@@ -304,8 +304,7 @@
     },
     "reply_restricted": {
       "blocked_channels": [
-        "plasma-vent",
-        "neelixs-morale-office"
+        "plasma-vent"
       ]
     }
   },
