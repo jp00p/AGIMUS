@@ -15,11 +15,11 @@ async def spongebob(ctx:discord.ApplicationContext, content:str):
   sponged = sponge(content)
   await ctx.respond(
     embed=discord.Embed(
-      title="SpongeBobbed!",
       description=sponged,
       color=discord.Color.blurple()
     ).set_author(
-      url="https://i.imgur.com/bjDaNDJ.png"
+      name="SpongeBobbed!",
+      icon_url="https://i.imgur.com/bjDaNDJ.png"
     )
   )
 
