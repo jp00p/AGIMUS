@@ -19,6 +19,7 @@ async def spongebob(ctx:discord.ApplicationContext, content:str):
       description=sponged,
       color=discord.Color.blurple()
     ).set_author(
+      name="",
       url="https://i.imgur.com/bjDaNDJ.png"
     )
   )
