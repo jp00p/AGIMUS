@@ -304,8 +304,7 @@
     },
     "reply_restricted": {
       "blocked_channels": [
-        "plasma-vent",
-        "neelixs-morale-office"
+        "plasma-vent"
       ]
     }
   },
@@ -697,6 +696,21 @@
     "slots jackpots": {
       "channels": [
         "dabo-table"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "spongebob": {
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-waiting-room",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "the-next-next-generation",
+        "sicks-bay"
       ],
       "enabled": true,
       "data": null,

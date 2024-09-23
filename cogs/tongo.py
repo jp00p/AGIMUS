@@ -735,8 +735,8 @@ class Tongo(commands.Cog):
       # Only occurs on auto_confront, 5 or more badges in pot, and 3 or more players
       tongo_players = [r[0] for r in results.items()]
       if len(tongo_pot_badges) >= 5 and len(tongo_players) >= 3:
-        # Then there's a 1/3rd chance to Liquidate
-        if random.random() < 0.34:
+        coin_flip = random.randint(0, 1)
+        if coin_flip == 1:
           liquidation_result = await self._determine_liquidation(tongo_players)
 
     else:
