@@ -447,7 +447,15 @@
             "episode": "20",
             "imdb": "tt0572226",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.09.23",
+                    "episode": "I Got Into Loaf for This?",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-541-i-got-into-loaf-for-this-ent-s1e20/",
+                    "order": 541,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/mM4LkgV6YmlFIMUBk3lIZAIFdHw.jpg",
