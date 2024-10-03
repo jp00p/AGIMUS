@@ -470,7 +470,15 @@
             "episode": "21",
             "imdb": "tt0572202",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.09.30",
+                    "episode": "Friend Dead, Shitty Parking",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-542-friend-dead-shitty-parking-ent-s1e21/",
+                    "order": 542,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/v6nkIm8o4J0du4YfwjyUX5MgDu7.jpg",
