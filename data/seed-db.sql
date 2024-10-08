@@ -328,7 +328,8 @@ CREATE TABLE IF NOT EXISTS tongo_players (
   `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `tongo_id` (`tongo_id`),
-  CONSTRAINT `badge_tongo_players_fk_tongo_id` FOREIGN KEY (`tongo_id`) REFERENCES `tongo` (`id`)
+  CONSTRAINT `badge_tongo_players_fk_tongo_id` FOREIGN KEY (`tongo_id`) REFERENCES `tongo` (`id`),
+  CONSTRAINT `unique_user_tongo` UNIQUE (`user_discord_id`, `tongo_id`)
 );
 CREATE TABLE IF NOT EXISTS tongo_pot (
   `id` int(11) NOT NULL AUTO_INCREMENT,
