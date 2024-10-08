@@ -1,0 +1,1 @@
+ALTER TABLE tongo_players ADD CONSTRAINT unique_user_tongo UNIQUE (`user_discord_id`, `tongo_id`);
