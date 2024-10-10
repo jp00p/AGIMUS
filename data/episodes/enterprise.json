@@ -493,7 +493,15 @@
             "episode": "22",
             "imdb": "tt0572266",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.10.07",
+                    "episode": "Planet Cum",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-543-planet-cum-ent-s1e22/",
+                    "order": 543,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/5SCXOWggN4ga2LJux1MYb0oUDK2.jpg",
