@@ -306,6 +306,11 @@
       "blocked_channels": [
         "plasma-vent"
       ]
+    },
+    "server_logs": {
+      "nick_change_ignore_list": [
+        634585800172109826
+      ]
     }
   },
   "tasks": {

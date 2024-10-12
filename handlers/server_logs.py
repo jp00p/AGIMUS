@@ -59,6 +59,9 @@ async def show_nick_change_message(before, after, scope = ""):
   if before.bot or after.bot:
     return
 
+  if after.id in config["handlers"]["server_logs"]["nick_change_ignore_list"]:
+    return
+
   # log the nickname change in the aliases table for use with /aliases
   async with AgimusDB() as query:
     sql = '''
