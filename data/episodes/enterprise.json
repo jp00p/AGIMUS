@@ -516,7 +516,15 @@
             "episode": "23",
             "imdb": "tt0572208",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.10.14",
+                    "episode": "A Thousand Bottles of Baby Oil",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-544-a-thousand-bottles-of-baby-oil-ent-s1e23/",
+                    "order": 544,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/7rbum6UkJh6G6DNSYQZLmGkL2SJ.jpg",
