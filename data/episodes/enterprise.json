@@ -540,7 +540,15 @@
             "episode": "24",
             "imdb": "tt0572201",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.10.21",
+                    "episode": "Structural Bees",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-545-structural-bees-ent-s1e24/",
+                    "order": 545,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/w61p6GXfF8JyaWmm3m3tbArLpUT.jpg",
