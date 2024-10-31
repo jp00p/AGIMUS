@@ -563,7 +563,15 @@
             "episode": "25",
             "imdb": "tt0572262",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.10.28",
+                    "episode": "Coma Wood",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-546-coma-wood-ent-s1e25/",
+                    "order": 546,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/yqAiXxdukV0oMDbV1xC85d3gsNI.jpg",
