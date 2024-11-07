@@ -586,7 +586,15 @@
             "episode": "26",
             "imdb": "tt0572233",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.11.04",
+                    "episode": "Quantum Cliff",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-547-quantum-cliff-ent-s1e26/",
+                    "order": 547,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/mLJhvZP05VbH3GGnHUgm1ilfLBD.jpg",
