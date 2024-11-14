@@ -609,7 +609,15 @@
             "episode": "01",
             "imdb": "tt0572234",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.11.11",
+                    "episode": "Duraflame Money",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-548-duraflame-money-ent-s2e1/",
+                    "order": 548,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/xvaNTsVK1RD4Q4idpY5jxwpFKQr.jpg",
