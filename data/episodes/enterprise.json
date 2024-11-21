@@ -632,7 +632,15 @@
             "episode": "02",
             "imdb": "tt0572186",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.11.18",
+                    "episode": "6pm Tits",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-549-6pm-tits-ent-s2e2/",
+                    "order": 549,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/xi51ULn1HdRTxpA7B0b1TKEAxoR.jpg"
