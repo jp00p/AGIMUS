@@ -654,7 +654,15 @@
             "episode": "03",
             "imdb": "tt0572224",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.11.25",
+                    "episode": "One of the One-Wayest of Holes",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-550-one-of-the-one-wayest-of-holes-ent-s2e3/",
+                    "order": 550,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/zzicvT4XWOxj7Rs1WU4vQwR6YY8.jpg"
