@@ -676,7 +676,15 @@
             "episode": "04",
             "imdb": "tt0572198",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.12.02",
+                    "episode": "Fool Me Twice Beam",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-551-fool-me-twice-beam-ent-s2e4/",
+                    "order": 551,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/drJy5npGSygzomw0IR08rRGRJgR.jpg"
