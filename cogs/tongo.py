@@ -884,6 +884,8 @@ class Tongo(commands.Cog):
         await db_remove_badge_from_pot(badge['badge_filename'])
 
       await db_grant_player_badge(liquidation_result['player_id'], liquidation_reward['badge_filename'])
+      await db_autolock_badges_by_filenames_if_in_wishlist(liquidation_result['player_id'], [liquidation_reward['badge_filename']])
+      await db_purge_users_wishlist(liquidation_result['player_id'])
 
       # Alert the Channel
       liquidation_embed = discord.Embed(
