@@ -698,7 +698,15 @@
             "episode": "05",
             "imdb": "tt0572172",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.12.09",
+                    "episode": "Freudian Slip \u2018N Slide",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-552-freudian-slip-n-slide-ent-s2e5/",
+                    "order": 552,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/cZRuiz4aKAa3aNZmC6jxIgETIhA.jpg",
