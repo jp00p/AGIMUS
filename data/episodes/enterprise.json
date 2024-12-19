@@ -721,7 +721,15 @@
             "episode": "06",
             "imdb": "tt0572223",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.12.16",
+                    "episode": "Untrustworthy Hair",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-553-untrustworthy-hair-ent-s2e6/",
+                    "order": 553,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/8xEn56E3q0XLX9WwCfDAh2EPvZ7.jpg",
