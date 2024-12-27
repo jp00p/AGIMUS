@@ -624,7 +624,7 @@
         },
         {
             "airdate": "2022.09.08",
-            "title": "Mining The Mind's Mines",
+            "title": "Mining the Mind's Mines",
             "description": "On a remote science outpost, stone orbs are bringing fantasies to life. Tendi starts her first day as a Senior Science Officer Trainee.",
             "season": "03",
             "episode": "03",
@@ -647,7 +647,7 @@
         },
         {
             "airdate": "2022.09.15",
-            "title": "Room For Growth",
+            "title": "Room for Growth",
             "description": "Mariner, Boimler and Tendi clash with their arch-rivals: Delta Shift. The Cerritos engineers go on mandatory relaxation leave.",
             "season": "03",
             "episode": "04",
@@ -1168,6 +1168,254 @@
                 "https://image.tmdb.org/t/p/original/1uHAvxO8FZxsJNTWmpI7A44fi4n.jpg",
                 "https://image.tmdb.org/t/p/original/eOUWbWkowWluy75k5wrQT6BPcRs.jpg",
                 "https://image.tmdb.org/t/p/original/j9YFX1TzcRqtLylmc3MKdHunjsJ.jpg"
+            ]
+        },
+        {
+            "airdate": "2024.10.24",
+            "title": "Dos Cerritos",
+            "description": "A spatial anomaly forces the Cerritos crew to face their own faces. Tendi pirates.",
+            "season": "05",
+            "episode": "01",
+            "podcasts": [
+                {
+                    "airdate": "2024.10.25",
+                    "episode": "Interstellar Bidet",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-296-interstellar-bidet-lower-decks-s5e1/",
+                    "order": 296,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Dos_Cerritos_(episode)",
+            "tvdb": 5501431,
+            "imdb": "tt27336105",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/lHkzQhGr3puKjk7MjRyLxSix29B.jpg",
+                "https://image.tmdb.org/t/p/original/fPih51t8JBCJmc8pzpp3eGJQEih.jpg"
+            ]
+        },
+        {
+            "airdate": "2024.10.24",
+            "title": "Shades of Green",
+            "description": "Tendi races to stop a conflict while Boimler & Mariner race to stop capitalists.",
+            "season": "05",
+            "episode": "02",
+            "podcasts": [
+                {
+                    "airdate": "2024.10.29",
+                    "episode": "The Booty Must Flow",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-297-the-booty-must-flow-lower-decks-s5e2/",
+                    "order": 297,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Shades_of_Green_(episode)",
+            "tvdb": 5501761,
+            "imdb": "tt27336117",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/5GLCBGP7V78jGw26VhzozafWA4q.jpg",
+                "https://image.tmdb.org/t/p/original/vVj4NnW6dbfP2gAejFmgtPLs407.jpg"
+            ]
+        },
+        {
+            "airdate": "2024.10.31",
+            "title": "The Best Exotic Nanite Hotel",
+            "description": "The Lower Deckers hunt nanites on a resort...in space?!",
+            "season": "05",
+            "episode": "03",
+            "podcasts": [
+                {
+                    "airdate": "2024.11.01",
+                    "episode": "Suffocate the Nubbin",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-298-suffocate-the-nubbin-lower-decks-s5e3/",
+                    "order": 298,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "The_Best_Exotic_Nanite_Hotel_(episode)",
+            "tvdb": 5501762,
+            "imdb": "tt27336118",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/AtpIPLJrFB7NnNCw6RdQmVHNKTY.jpg",
+                "https://image.tmdb.org/t/p/original/icbqsDO1jRrazdGFaNLb0OZUeOm.jpg"
+            ]
+        },
+        {
+            "airdate": "2024.11.07",
+            "title": "A Farewell to Farms",
+            "description": "Dr. Migleemo cooks up some hot dishes while Mariner prefers hers served cold.",
+            "season": "05",
+            "episode": "04",
+            "podcasts": [
+                {
+                    "airdate": "2024.11.08",
+                    "episode": "Freight Train of Obligation",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-299-freight-train-of-obligation-lower-decks-s5e4/",
+                    "order": 299,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "A_Farewell_To_Farms_(episode)",
+            "tvdb": 5501763,
+            "imdb": "tt27336119",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/bWXQWpWpGHzlCesCymSarDTiUqd.jpg"
+            ]
+        },
+        {
+            "airdate": "2024.11.14",
+            "title": "Starbase 80?!",
+            "description": "Ransom uses too much disinfectant gel while Mariner gets paranoid about curses.",
+            "season": "05",
+            "episode": "05",
+            "podcasts": [
+                {
+                    "airdate": "2024.11.15",
+                    "episode": "Fantasy Junk League",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-300-fantasy-junk-league-lower-decks-s5e5-with-tawny-newsome/",
+                    "order": 300,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Starbase_80%3f!_(episode)",
+            "tvdb": 5501764,
+            "imdb": "tt27336122",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/rP5lZ891fRdQRrcPH25WwaJf7df.jpg"
+            ]
+        },
+        {
+            "airdate": "2024.11.21",
+            "title": "Of Gods and Angles",
+            "description": "Mariner teams up with a troubled ensign while the Cerritos hosts peace talks between civilizations.",
+            "season": "05",
+            "episode": "06",
+            "podcasts": [
+                {
+                    "airdate": "2024.11.22",
+                    "episode": "The Joe Dirt Plateau",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-301-the-joe-dirt-plateau-lower-decks-s5e6/",
+                    "order": 301,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Of_Gods_and_Angles_(episode)",
+            "tvdb": 5501765,
+            "imdb": "tt27336123",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/bQSapZbN5EpsD4DvUZPRwKdxS0A.jpg",
+                "https://image.tmdb.org/t/p/original/phXpgTSwl5yiBB2PLY6cLwt6oik.jpg",
+                "https://image.tmdb.org/t/p/original/l0u3gtzhCvF7cyoSerKJ7CORzzA.jpg"
+            ]
+        },
+        {
+            "airdate": "2024.11.28",
+            "title": "Fully Dilated",
+            "description": "It's a pre-warp society undercover Girls Trip!",
+            "season": "05",
+            "episode": "07",
+            "podcasts": [
+                {
+                    "airdate": "2024.11.29",
+                    "episode": "Real Sturdy Loaf",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-302-real-sturdy-loaf-lower-decks-s5e7/",
+                    "order": 302,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Fully_Dilated_(episode)",
+            "tvdb": 5501766,
+            "imdb": "tt27336125",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/4t4hdbCNrG4VMxDOOJ0JVtCibfA.jpg",
+                "https://image.tmdb.org/t/p/original/8VwMUv2PLCNz1WXIPzHQbG9BPeK.jpg",
+                "https://image.tmdb.org/t/p/original/mwetKlWbhpOlm9XuHnzVldH088i.jpg",
+                "https://image.tmdb.org/t/p/original/rjcRxerdgTvhj9Ds1KyHVNs5UaC.jpg"
+            ]
+        },
+        {
+            "airdate": "2024.12.05",
+            "title": "Upper Decks",
+            "description": "The Lower Deckers have a pumpkin carving party.",
+            "season": "05",
+            "episode": "08",
+            "podcasts": [
+                {
+                    "airdate": "2024.12.06",
+                    "episode": "Colon Goomah",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-303-colon-goomah-lower-decks-s5e8/",
+                    "order": 303,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Upper_Decks_(episode)",
+            "tvdb": 5501767,
+            "imdb": "tt27336126",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/hnMcRvMA0yp5QmFgqG5nhTXtbcy.jpg",
+                "https://image.tmdb.org/t/p/original/hAxVUnefqpOxUjo9UITTlAg92VZ.jpg",
+                "https://image.tmdb.org/t/p/original/9hFDOfND2Pru49Q6kVDlUB2dFAI.jpg",
+                "https://image.tmdb.org/t/p/original/fH8KxunsCrsu1f7RgoOwiOEtsrL.jpg",
+                "https://image.tmdb.org/t/p/original/87FCfeRUnGgOUNXxfi0BuL3c0yE.jpg",
+                "https://image.tmdb.org/t/p/original/3sS933h6jVKLAIUoKE2SJDZCUUx.jpg",
+                "https://image.tmdb.org/t/p/original/5U443hoEy7daNGCTREVCOPYDhFk.jpg",
+                "https://image.tmdb.org/t/p/original/9Eqzl3PNqMpgwr244c9PmS4sR89.jpg",
+                "https://image.tmdb.org/t/p/original/yEJYL2MaFEsrDWex1OqwqTTUQxz.jpg",
+                "https://image.tmdb.org/t/p/original/x7Uu9GDMzfm2YrPiNRLYUPH4SHV.jpg",
+                "https://image.tmdb.org/t/p/original/rNr3h7ltPtOGCvt1UnaT9LcvBnG.jpg",
+                "https://image.tmdb.org/t/p/original/rQI73pNbe2miBAitzxFLJYynVxu.jpg",
+                "https://image.tmdb.org/t/p/original/liI7nyxBoVrCQRLoXizGXt809H9.jpg",
+                "https://image.tmdb.org/t/p/original/5b962gvd6tqe67011U18PhfF2y4.jpg",
+                "https://image.tmdb.org/t/p/original/ajBvt8ycX703bPMx5P0oKkJHo1p.jpg",
+                "https://image.tmdb.org/t/p/original/jvhRILgNL97ev6hUcoTuAvBOlOn.jpg"
+            ]
+        },
+        {
+            "airdate": "2024.12.12",
+            "title": "Fissure Quest",
+            "description": "Fissures must be closed before they get inflamed.",
+            "season": "05",
+            "episode": "09",
+            "podcasts": [
+                {
+                    "airdate": "2024.12.13",
+                    "episode": "Blank Tank",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-304-blank-tank-lower-decks-s5e9/",
+                    "order": 304,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Fissure_Quest_(episode)",
+            "tvdb": 5501768,
+            "imdb": "tt27336127",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/iilJ7g74gclQGh44ymsi7eGjzfq.jpg",
+                "https://image.tmdb.org/t/p/original/a8vJXFFNd9O3hNTbLodrJ6ZGpWU.jpg",
+                "https://image.tmdb.org/t/p/original/rs9cmeLNsIyuavtQU1XcFrVWOeN.jpg"
+            ]
+        },
+        {
+            "airdate": "2024.12.19",
+            "title": "The New Next Generation",
+            "description": "Season/Series finale where lots of wild stuff happens!",
+            "season": "05",
+            "episode": "10",
+            "podcasts": [
+                {
+                    "airdate": "2024.12.20",
+                    "episode": "Deus Ex Ma'ahina",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-305-deus-ex-maahina-lower-decks-s5e10/",
+                    "order": 305,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "The_New_Next_Generation_(episode)",
+            "tvdb": 5501769,
+            "imdb": "tt27336129",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/1gCainIaYfxn7Sh3cGljmj0wwvV.jpg",
+                "https://image.tmdb.org/t/p/original/uwwGqdF3htbJ5nQ11MMCSwOL6Z6.jpg",
+                "https://image.tmdb.org/t/p/original/xdvUm39vX1ILbDlPa8mVFjbhcw1.jpg",
+                "https://image.tmdb.org/t/p/original/gKcq1WYNtidu3l3En3eCkf5DGY1.jpg"
             ]
         }
     ],
