@@ -83,7 +83,7 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
     await ctx.respond(
       embed=discord.Embed(
         title=f"{user.display_name} Already Has Maximum Number of Tags!",
-        description="They're at the limit of 50 tags! You may want to let them know, and see if they want to manage "
+        description="They're at the limit of 25 tags! You may want to let them know, and see if they want to manage "
                     "and delete some!",
         color=discord.Color.red()
       ),
