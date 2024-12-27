@@ -177,7 +177,7 @@ async def get_user(discord_id:int):
     # get user basic info
     sql = """
       SELECT
-        users.*,`x
+        users.*,
         profile_photos.photo AS profile_photo,
         profile_taglines.tagline AS profile_tagline
       FROM users
