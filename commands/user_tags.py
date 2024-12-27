@@ -23,6 +23,57 @@ async def autocomplete_user_tags(ctx: discord.AutocompleteContext):
   return [t['tag'] for t in user_tags if ctx.value.lower() in t['tag'].lower()]
 
 
+# __________        __    __
+# \______   \__ ___/  |__/  |_  ____   ____   ______
+#  |    |  _/  |  \   __\   __\/  _ \ /    \ /  ___/
+#  |    |   \  |  /|  |  |  | (  <_> )   |  \\___ \
+#  |______  /____/ |__|  |__|  \____/|___|  /____  >
+#         \/                              \/     \/
+class ClearConfirmButton(discord.ui.Button):
+  def __init__(self, user_id, badge_to_add, badges_to_scrap):
+    self.user_id = user_id
+    super().__init__(
+      label="Confirm",
+      style=discord.ButtonStyle.primary,
+      row=2
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    await db_clear_all_user_tags(self.user_id)
+    await interaction.response.edit_message(
+      embed=discord.Embed(
+        title="User Tags Cleared Successfully!",
+        description=f"You have removed ALL of your user tags. Daymum.\n\nYou may want to now encourage more tagging, or disable tagging entirely with `/settings`!",
+        color=discord.Color.green()
+      ),
+      ephemeral=True
+    )
+
+class ClearCancelButton(discord.ui.Button):
+  def __init__(self):
+    super().__init__(
+      label="Cancel",
+      style=discord.ButtonStyle.red,
+    )
+
+  async def callback(self, interaction:discord.Interaction):
+    await interaction.response.edit_message(
+      embed=discord.Embed(
+        title="Clear Cancelled!",
+        description="No action taken.",
+        color=discord.Color.red()
+      ),
+      view=None,
+      attachments=[]
+    )
+
+class ClearConfirmView(discord.ui.View):
+  def __init__(self, user_id):
+    super().__init__()
+    self.add_item(ClearConfirmButton(user_id))
+    self.add_item(ClearCancelButton())
+
+
 # _________                                           .___
 # \_   ___ \  ____   _____   _____ _____    ____    __| _/______
 # /    \  \/ /  _ \ /     \ /     \\__  \  /    \  / __ |/  ___/
@@ -79,7 +130,7 @@ async def tag_user(ctx:discord.ApplicationContext, user:discord.User, tag:str):
     )
     return
 
-  if len(user_tags) >= 25:
+  if len(user_tags) >= 50:
     await ctx.respond(
       embed=discord.Embed(
         title=f"{user.display_name} Already Has Maximum Number of Tags!",
@@ -154,6 +205,35 @@ async def untag_user(ctx:discord.ApplicationContext, tag:str):
       description=f"You have removed the following tag:\n\n> {tag}",
       color=discord.Color.blurple()
     ),
+    ephemeral=True
+  )
+
+@user_tags.command(
+  name="clear_tags",
+  description="Remove ALL of your tags."
+)
+async def clear_tags(ctx:discord.ApplicationContext, tag:str):
+  user_discord_id = ctx.author.id
+  user_tags = await db_get_user_tags(user_discord_id)
+
+  if not user_tags:
+    await ctx.respond(
+      embed=discord.Embed(
+        title="No Tags Present!",
+        description="You don't have any tags present to clear!",
+        color=discord.Color.red()
+      ),
+      ephemeral=True
+    )
+    return
+
+  await ctx.respond(
+    embed=discord.Embed(
+      title="Are you sure your want to **REMOVE ALL OF YOUR USER TAGS!?!**",
+      description=f"You currently have {len(user_tags)} which would be cleared! Just double checking...",
+      color=discord.Color.red(),
+      view=ClearConfirmView(user_discord_id)
+    )
     ephemeral=True
   )
 
@@ -269,6 +349,12 @@ async def db_delete_user_tag(tagged_user_id, tag):
   async with AgimusDB() as query:
     sql = "DELETE FROM user_tags WHERE tagged_user_id = %s AND tag = %s"
     vals = (tagged_user_id, tag)
+    await query.execute(sql, vals)
+
+async def db_delete_user_tag(tagged_user_id):
+  async with AgimusDB() as query:
+    sql = "DELETE FROM user_tags WHERE tagged_user_id = %s"
+    vals = (tagged_user_id)
     await query.execute(sql, vals)
 
 async def db_get_user_tags(user_discord_id):
