@@ -30,12 +30,11 @@ async def autocomplete_user_tags(ctx: discord.AutocompleteContext):
 #  |______  /____/ |__|  |__|  \____/|___|  /____  >
 #         \/                              \/     \/
 class ClearConfirmButton(discord.ui.Button):
-  def __init__(self, user_id, badge_to_add, badges_to_scrap):
+  def __init__(self, user_id):
     self.user_id = user_id
     super().__init__(
       label="Confirm",
-      style=discord.ButtonStyle.primary,
-      row=2
+      style=discord.ButtonStyle.primary
     )
 
   async def callback(self, interaction: discord.Interaction):
@@ -46,7 +45,7 @@ class ClearConfirmButton(discord.ui.Button):
         description=f"You have removed ALL of your user tags. Daymum.\n\nYou may want to now encourage more tagging, or disable tagging entirely with `/settings`!",
         color=discord.Color.green()
       ),
-      ephemeral=True
+      view=None
     )
 
 class ClearCancelButton(discord.ui.Button):
@@ -212,7 +211,7 @@ async def untag_user(ctx:discord.ApplicationContext, tag:str):
   name="clear_tags",
   description="Remove ALL of your tags."
 )
-async def clear_tags(ctx:discord.ApplicationContext, tag:str):
+async def clear_tags(ctx:discord.ApplicationContext):
   user_discord_id = ctx.author.id
   user_tags = await db_get_user_tags(user_discord_id)
 
@@ -231,9 +230,9 @@ async def clear_tags(ctx:discord.ApplicationContext, tag:str):
     embed=discord.Embed(
       title="Are you sure your want to **REMOVE ALL OF YOUR USER TAGS!?!**",
       description=f"You currently have {len(user_tags)} which would be cleared! Just double checking...",
-      color=discord.Color.red(),
-      view=ClearConfirmView(user_discord_id)
-    )
+      color=discord.Color.red()
+    ),
+    view=ClearConfirmView(user_discord_id),
     ephemeral=True
   )
 
@@ -351,7 +350,7 @@ async def db_delete_user_tag(tagged_user_id, tag):
     vals = (tagged_user_id, tag)
     await query.execute(sql, vals)
 
-async def db_delete_user_tag(tagged_user_id):
+async def db_clear_all_user_tags(tagged_user_id):
   async with AgimusDB() as query:
     sql = "DELETE FROM user_tags WHERE tagged_user_id = %s"
     vals = (tagged_user_id)
