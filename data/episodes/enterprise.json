@@ -744,7 +744,15 @@
             "episode": "07",
             "imdb": "tt0572257",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.12.23",
+                    "episode": "Hardline Dill",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-554-hardline-dill-ent-s2e7/",
+                    "order": 554,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/6hDRuDDNUJ9EtM1rM0dOLuGeVq1.jpg",
