@@ -61,6 +61,61 @@ class Tongo(commands.Cog):
 
   tongo = discord.SlashCommandGroup("tongo", "Commands for Tongo Badge Game")
 
+  #   _    _    _
+  #  | |  (_)__| |_ ___ _ _  ___ _ _ ___
+  #  | |__| (_-<  _/ -_) ' \/ -_) '_(_-<
+  #  |____|_/__/\__\___|_||_\___|_| /__/
+  @commands.Cog.listener()
+  async def on_ready(self):
+    # If bot restarts, resume the Tongoening
+    active_tongo = await db_get_active_tongo()
+    if active_tongo:
+      active_tongo_chair_id = int(active_tongo['chair_discord_id'])
+      active_chair = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
+      trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
+
+      time_created = active_tongo['time_created']
+      time_created = time_created.replace(tzinfo=timezone.utc)
+
+      current_time = datetime.now(timezone.utc)
+      elapsed_time = (current_time - time_created).total_seconds()
+      remaining_time = max(0, 8 * 3600 - elapsed_time)  # 8 hours in seconds
+
+      if remaining_time > 0:
+        self.auto_confront.change_interval(seconds=remaining_time)
+        self.first_auto_confront = True
+        self.auto_confront.start()
+
+        time_left = current_time + timedelta(seconds=remaining_time)
+        reboot_embed = discord.Embed(
+          title="REBOOT DETECTED! Resuming Tongo...",
+          description="We had a game in progress! ***Rude!***\n\n"
+                      f"The current game chaired by **{active_chair.display_name}** has been resumed.\n\n"
+                      f"This Tongo game has {humanize.naturaltime(time_left)} left before the game is automatically ended!",
+          color=discord.Color.red()
+        )
+        reboot_embed.set_image(url="https://i.imgur.com/K4hUjh6.gif")
+        reboot_embed.set_footer(
+          text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+          icon_url="https://i.imgur.com/GTN4gQG.jpg"
+        )
+        await trade_channel.send(embed=reboot_embed)
+      else:
+        # If time has already passed, trigger auto-confront immediately
+        downtime_embed = discord.Embed(
+          title="DOWNTIME DETECTED! Auto-confronting Tongo...",
+          description=f"**Heywaitaminute!!!** Just woke up and noticed that the previous game chaired by **{active_chair.display_name}** never ended on time!\n\n"
+                      "Since the time has elapsed, confronting now! 👉👈",
+          color=discord.Color.red()
+        )
+        downtime_embed.set_image(url="https://i.imgur.com/t5dZu6O.gif")
+        downtime_embed.set_footer(
+          text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+          icon_url="https://i.imgur.com/GTN4gQG.jpg"
+        )
+        await trade_channel.send(embed=downtime_embed)
+        await self._perform_confront(active_tongo, active_chair, auto_confront=True)
+
   #   _   __         __
   #  | | / /__ ___  / /___ _________
   #  | |/ / -_) _ \/ __/ // / __/ -_)
@@ -227,6 +282,7 @@ class Tongo(commands.Cog):
 
     await self._send_continuum_images_to_channel(trade_channel, continuum_images)
 
+    self.auto_confront.change_interval(hours=8)
     self.first_auto_confront = True
     self.auto_confront.start()
 
