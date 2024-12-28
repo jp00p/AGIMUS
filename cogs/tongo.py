@@ -90,7 +90,7 @@ class Tongo(commands.Cog):
         reboot_embed = discord.Embed(
           title="REBOOT DETECTED! Resuming Tongo...",
           description="We had a game in progress! ***Rude!***\n\n"
-                      f"The current game chaired by {active_chair.display_name} has been resumed.\n\n"
+                      f"The current game chaired by **{active_chair.display_name}** has been resumed.\n\n"
                       f"This Tongo game has {humanize.naturaltime(time_left)} left before the game is automatically ended!",
           color=discord.Color.red()
         )
@@ -104,7 +104,7 @@ class Tongo(commands.Cog):
         # If time has already passed, trigger auto-confront immediately
         downtime_embed = discord.Embed(
           title="DOWNTIME DETECTED! Auto-confronting Tongo...",
-          description=f"**Heywaitaminute!!!** Just woke up and noticed that the previous game chaired by {active_chair.display_name} never ended on time!\n\n"
+          description=f"**Heywaitaminute!!!** Just woke up and noticed that the previous game chaired by **{active_chair.display_name}** never ended on time!\n\n"
                       "Since the time has elapsed, confronting now! 👉👈",
           color=discord.Color.red()
         )
