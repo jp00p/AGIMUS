@@ -768,7 +768,15 @@
             "episode": "08",
             "imdb": "tt0572251",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.12.30",
+                    "episode": "Reverse Scotty",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-555-reverse-scotty-ent-s2e8/",
+                    "order": 555,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/7XgQvM8NwirR5uceuZJ2NHIuNof.jpg",
