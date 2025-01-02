@@ -966,6 +966,12 @@
       "data": null,
       "parameters": []
     },
+    "wrapped": {
+      "channels": [],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "xpinfo activity": {
       "blocked_channels": [
         "neelixs-morale-office",

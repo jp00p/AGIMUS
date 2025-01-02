@@ -52,7 +52,7 @@ async def wrapped(ctx:discord.ApplicationContext, public:str):
     await ctx.followup.send(
       embed=discord.Embed(
         title=f"No {wrapped_year} Data!",
-        description=f"Sorry, but we weren't able to retrieve any of your XP Info from {wrapped_year} so we can't generate an AGIMUS Wrapped for you!"
+        description=f"Sorry, but we weren't able to retrieve any of your XP Info from {wrapped_year} so we can't generate an AGIMUS Wrapped for you!",
         color=discord.Color.red()
       )
     )
@@ -63,6 +63,7 @@ async def wrapped(ctx:discord.ApplicationContext, public:str):
 
   # Words
   db_user = await get_user(ctx.author.id)
+  top_words = None
   if db_user.get("log_messages") != 1:
     top_words = await db_get_wrapped_top_words(user_discord_id)
 
@@ -87,11 +88,11 @@ async def wrapped(ctx:discord.ApplicationContext, public:str):
   )
   wrapped_embed.add_field(
     name="Top XP Day",
-    value=f"{top_xp_day['day'].strftime("%B %d, %Y")} with {top_xp_day['amount']}xp"
+    value=f"{top_xp_day['day'].strftime('%B %d, %Y')} with {top_xp_day['total']}xp"
   )
   wrapped_embed.add_field(
     name="Top XP Month",
-    value=f"{top_xp_month['month']} with {top_xp_month['amount']}xp"
+    value=f"{top_xp_month['month']} with {top_xp_month['total']}xp"
   )
 
   wrapped_embed.add_field(
@@ -120,13 +121,13 @@ async def wrapped(ctx:discord.ApplicationContext, public:str):
   if first_badge:
     wrapped_embed.add_field(
       name="First Badge Collected of the Year",
-      value=f"{first_badge['badge_name']} on {first_badge['time_created'].strftime("%B %d, %Y")}"
+      value=f"{first_badge['badge_name']} on {first_badge['time_created'].strftime('%B %d, %Y')}"
     )
 
   if last_badge:
     wrapped_embed.add_field(
       name="Last Badge Collected of the Year",
-      value=f"{last_badge['badge_name']} on {last_badge['time_created'].strftime("%B %d, %Y")}"
+      value=f"{last_badge['badge_name']} on {last_badge['time_created'].strftime('%B %d, %Y')}"
     )
 
   if badges_collected:
@@ -143,8 +144,8 @@ async def wrapped(ctx:discord.ApplicationContext, public:str):
 
   await ctx.followup.send(embed=wrapped_embed)
 
-async def _generate_wrapped_top_channels():
-  data = db_get_wrapped_top_channels()
+async def _generate_wrapped_top_channels(user_discord_id):
+  data = await db_get_wrapped_top_channels(user_discord_id)
   # Filter out blocked channels
   channels = {v:k for k,v in config["channels"].items()}
   blocked_channel_names = [
@@ -186,13 +187,13 @@ async def db_get_wrapped_total_xp(user_discord_id):
 async def db_get_wrapped_top_xp_day(user_discord_id):
   async with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT DATE(time_created) AS day, SUM(amount) AS total_xp
+      SELECT DATE(time_created) AS day, SUM(amount) AS total
         FROM xp_history
         WHERE user_discord_id = %s
           AND time_created >= DATE(CONCAT(YEAR(CURDATE()) - 1, '-01-01'))
           AND time_created < DATE(CONCAT(YEAR(CURDATE()), '-01-01'))
         GROUP BY DATE(time_created)
-        ORDER BY total_xp DESC
+        ORDER BY total DESC
         LIMIT 1;
     '''
     vals = (user_discord_id,)
@@ -203,14 +204,14 @@ async def db_get_wrapped_top_xp_day(user_discord_id):
 async def db_get_wrapped_top_xp_month(user_discord_id):
   async with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT MONTHNAME(time_created) AS month, SUM(amount) AS total_xp
-        FROM xp_history
-        WHERE user_discord_id = %s
-          AND time_created >= DATE(CONCAT(YEAR(CURDATE()) - 1, '-01-01'))
-          AND time_created < DATE(CONCAT(YEAR(CURDATE()), '-01-01'))
-        GROUP BY MONTH(time_created)
-        ORDER BY total_xp DESC
-        LIMIT 1;
+      SELECT MONTHNAME(time_created) AS month, SUM(amount) AS total
+      FROM xp_history
+      WHERE user_discord_id = %s
+        AND time_created >= DATE(CONCAT(YEAR(CURDATE()) - 1, '-01-01'))
+        AND time_created < DATE(CONCAT(YEAR(CURDATE()), '-01-01'))
+      GROUP BY MONTH(time_created), MONTHNAME(time_created)
+      ORDER BY total DESC
+      LIMIT 1;
     '''
     vals = (user_discord_id,)
     await query.execute(sql, vals)
