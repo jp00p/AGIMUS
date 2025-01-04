@@ -387,3 +387,13 @@ CREATE TABLE IF NOT EXISTS sub_rosa (
   FOREIGN KEY (user_discord_id)
     REFERENCES users(discord_id)
 );
+CREATE TABLE wrapped_queue (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_discord_id` VARCHAR(64) NOT NULL,
+  `status` ENUM('pending', 'processing', 'complete', 'error') DEFAULT 'pending',
+  `wrapped_year` INT NOT NULL,
+  `time_created` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `time_updated` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `video_path` VARCHAR(255),
+  `error` TEXT
+);

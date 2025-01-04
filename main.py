@@ -31,6 +31,7 @@ from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
 from commands.user_tags import tag_user, untag_user, display_tags
+from commands.wrapped import wrapped
 from commands.xpinfo import xpinfo_channels, xpinfo_activity
 
 # Slash Command Groups
@@ -106,10 +107,11 @@ from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_reac
 from tasks.backups import backups_task
 from tasks.badger import badger_task
 from tasks.bingbong import bingbong_task
+from tasks.birthdays import birthdays_task
 from tasks.hoodiversaries import hoodiversary_task
 from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
-from tasks.birthdays import birthdays_task
+from tasks.wrapped_generation import wrapped_generation_task
 
 
 # Utils
@@ -386,9 +388,10 @@ scheduled_tasks = [
   backups_task(bot),
   badger_task(bot),
   bingbong_task(bot),
+  birthdays_task(bot),
   hoodiversary_task(bot),
   weyounsday_task(bot),
-  birthdays_task(bot),
+  wrapped_generation_task(bot)
 ]
 scheduler = Scheduler()
 for task in scheduled_tasks:

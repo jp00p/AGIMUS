@@ -45,7 +45,7 @@ async def xpinfo_channels(ctx:discord.ApplicationContext, public:str):
       embed=discord.Embed(
         title="XP Disabled!",
         description="You have opted out of the XP system so we cannot generate stats for you.\n\n"
-                    "To re-enable please us `/settings`! Note that it may take some time for enough data to populate for these reports.",
+                    "To re-enable please use `/settings`! Note that it may take some time for enough data to populate for these reports.",
         color=discord.Color.red()
       ).set_footer(text="You can always opt-in or opt-out again later on at any time!")
     )

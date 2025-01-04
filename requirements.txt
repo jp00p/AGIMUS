@@ -37,6 +37,7 @@ kiwisolver==1.4.5
 Levenshtein==0.23.0
 matplotlib==3.8.2
 more-itertools==8.14.0
+moviepy==2.1.1
 multidict==5.2.0
 mysql-connector-python==8.2.0
 num2words==0.5.13

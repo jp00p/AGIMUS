@@ -336,13 +336,6 @@
       "crontab": "0 * * * *",
       "enabled": false
     },
-    "hoodiversary": {
-      "channels": [
-        "captain-picard-day"
-      ],
-      "crontab": "15 8 * * *",
-      "enabled": true
-    },
     "birthdays": {
       "channels": [
         "captain-picard-day"
@@ -350,6 +343,19 @@
       "crontab": "30 8 * * *",
       "enabled": true,
       "data": "data/birthdays.json"
+    },
+    "hoodiversary": {
+      "channels": [
+        "captain-picard-day"
+      ],
+      "crontab": "15 8 * * *",
+      "enabled": true
+    },
+    "wrapped_generation": {
+      "channels": [],
+      "crontab": "*/5 * * * *",
+      "enabled": true,
+      "maintainer_user_id": 735658100958298154
     }
   },
   "commands": {
@@ -962,6 +968,12 @@
         "badgeys-badges",
         "bahrats-bazaar"
       ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "wrapped": {
+      "channels": [],
       "enabled": true,
       "data": null,
       "parameters": []
