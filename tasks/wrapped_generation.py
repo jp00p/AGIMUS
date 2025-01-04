@@ -57,8 +57,8 @@ def wrapped_generation_task(bot):
 async def _generate_wrapped(user_discord_id):
   user_member = await bot.current_guild.fetch_member(user_discord_id)
   # Presave User's Avatar if needed
-  avatar = user_member.display_avatar.with_size(512)
-  await avatar.save(f"./images/profiles/{user_discord_id}_a_512.png")
+  avatar = user_member.display_avatar.with_size(128)
+  await avatar.save(f"./images/profiles/{user_discord_id}_a_128.png")
 
   wrapped_data = {
     'top_channels': await _generate_wrapped_top_channels(user_discord_id),
@@ -112,7 +112,7 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
     scale_factor = video_width / profile_name_size
     profile_name = profile_name.with_effects([Resize(scale_factor)])
 
-  profile_image = ImageClip(f"./images/profiles/{user_discord_id}_a_512.png")
+  profile_image = ImageClip(f"./images/profiles/{user_discord_id}_a_128.png")
   profile_image = profile_image.with_effects([Resize(width=400), FadeIn(duration=0.4167)])
   profile_image = profile_image.with_duration(4.375).with_start(5.1667).with_position(("center", 350))
   profile_image = profile_image.with_mask(profile_image.mask.with_effects([FadeOut(duration=0.8333)]))
@@ -301,15 +301,15 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
 
   # Rarest Badge
   rarest_badge_image = ImageClip(f"./images/badges/{wrapped_data['rarest_badge']['badge_filename']}")
-  rarest_badge_image = rarest_badge_image.with_effects([Resize(width=500)])
-  rarest_badge_image = rarest_badge_image.with_duration(3.25).with_start(54.375).with_position(("center", "center"))
-  rarest_badge_image = rarest_badge_image.with_mask(
-    rarest_badge_image.mask.with_effects([
-      FadeOut(duration=0.625)
-    ])
-  )
-
   if rarest_badge_image:
+    rarest_badge_image = rarest_badge_image.with_effects([Resize(width=500)])
+    rarest_badge_image = rarest_badge_image.with_duration(3.25).with_start(54.375).with_position(("center", "center"))
+    rarest_badge_image = rarest_badge_image.with_mask(
+      rarest_badge_image.mask.with_effects([
+        FadeOut(duration=0.625)
+      ])
+    )
+
     rarest_badge_name = TextClip(text=f"{wrapped_data['rarest_badge']['badge_name']}", font_size=50, color="white", stroke_color="black", stroke_width=2, font="fonts/DS9_Credits.ttf", margin=(20, 20))
     rarest_badge_name = rarest_badge_name.with_duration(3.25).with_start(54.375).with_position(("center", 200))
     rarest_badge_name = rarest_badge_name.with_mask(
