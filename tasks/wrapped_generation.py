@@ -23,7 +23,6 @@ def wrapped_generation_task(bot):
         return
 
       await db_update_wrapped_job_status(job['job_id'], 'processing')
-      await user.send("Heads up, we're processing your AGIMUS Wrapped! Get Ready!")
       try:
         video_path = await _generate_wrapped(job['user_discord_id'])
         await db_update_wrapped_job_status(job['job_id'], 'complete', video_path=video_path)
