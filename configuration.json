@@ -353,7 +353,7 @@
     },
     "wrapped_generation": {
       "channels": [],
-      "crontab": "*/5 * * * *",
+      "crontab": "*/3 * * * *",
       "enabled": true,
       "maintainer_user_id": 735658100958298154
     }
