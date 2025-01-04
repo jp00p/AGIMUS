@@ -15,54 +15,37 @@ def wrapped_generation_task(bot):
     if not enabled:
       return
 
-    async with AgimusDB() as db:
-      # Get the oldest pending job for the current Wrapped year
-      job = await db.fetch_one(
-        "SELECT id, user_discord_id FROM wrapped_queue WHERE status = 'pending' AND wrapped_year = %s ORDER BY created_at ASC LIMIT 1",
-        (wrapped_year,)
-      )
+    job = await db_get_top_wrapped_job()
+    if job:
+      user = await bot.current_guild.fetch_member(int(job['user_discord_id']))
+      if not user:
+        await db_delete_wrapped_job(int(job['job_id']))
+        return
 
-      if job:
-        job_id, user_discord_id = job
-        user = bot.get_user(int(user_discord_id))
-        if not user:
-          await db.execute(
-            "DELETE FROM wrapped_queue WHERE id = %s",
-            (job_id,)
-          )
-          return
-
-        # Mark the job as 'processing'
-        await db.execute(
-          "UPDATE wrapped_queue SET status = 'processing' WHERE id = %s",
-          (job_id,)
+      await db_update_wrapped_job_status(job['job_id'], 'processing')
+      await user.send("Heads up, we're processing your AGIMUS Wrapped! Get Ready!")
+      try:
+        video_path = await _generate_wrapped(job['user_discord_id'])
+        await db_update_wrapped_job_status(job['job_id'], 'complete', video_path=video_path)
+        wrapped_embed = discord.Embed(
+          title=f"Your AGIMUS Wrapped {wrapped_year}",
+          description=f"A look back at {wrapped_year}! Ahhh, memories. The fun, the laughter, the screams as I... wait what were we talking about again?",
+          color=discord.Color.dark_red()
         )
-
-        try:
-          video_path = await _generate_wrapped(user_discord_id)
-          await db.execute(
-            "UPDATE wrapped_queue SET status = 'complete', video_path = %s, error = NULL WHERE id = %s and wrapped_year = %s",
-            (video_path, job_id, wrapped_year)
-          )
-          # DM the video directly to the user
-          await user.send(embed=discord.Embed(
-              title=f"Your AGIMUS Wrapped {wrapped_year}",
-              description=f"A look back at {wrapped_year}!",
-              color=discord.Color.dark_red()
-            ), file=discord.File(video_path, filename=f"AGIMUS_Wrapped_{wrapped_year}.mp4")
-          )
-
-        except Exception as e:
-          error_message = str(e)
-          maintainer_user = bot.get_user(int(config["tasks"]["wrapped_generation"]["maintainer_user_id"]))
-          await maintainer_user.send(f"Error processing Wrapped video for {user.display_name}:")
-          await maintainer_user.send(f"```{error_message}```")
-
-          # Mark the job as 'error' and store the error message
-          await db.execute(
-            "UPDATE wrapped_queue SET status = 'error', error = %s WHERE id = %s",
-            (error_message, job_id)
-          )
+        wrapped_embed.set_footer(
+          text="Note: Best viewed in full screen!",
+          icon_url="https://i.imgur.com/DTyVWL2.png"
+        )
+        await user.send(
+          embed=wrapped_embed,
+          file=discord.File(video_path, filename=f"AGIMUS_Wrapped_{wrapped_year}.mp4")
+        )
+      except Exception as e:
+        error_message = str(e)
+        maintainer_user = await bot.current_guild.fetch_member(int(config["tasks"]["wrapped_generation"]["maintainer_user_id"]))
+        await maintainer_user.send(f"Error processing Wrapped video for {user.display_name}:")
+        await maintainer_user.send(f"```{error_message}```")
+        await db_update_wrapped_job_status(job['job_id'], 'error', error_message=error_message)
 
   return {
     "task": wrapped_generation,
@@ -73,8 +56,8 @@ def wrapped_generation_task(bot):
 async def _generate_wrapped(user_discord_id):
   user_member = await bot.current_guild.fetch_member(user_discord_id)
   # Presave User's Avatar if needed
-  avatar = user_member.display_avatar.with_size(128)
-  await avatar.save(f"./images/profiles/{user_discord_id}_a.png")
+  avatar = user_member.display_avatar.with_size(512)
+  await avatar.save(f"./images/profiles/{user_discord_id}_a_512.png")
 
   wrapped_data = {
     'top_channels': await _generate_wrapped_top_channels(user_discord_id),
@@ -128,7 +111,7 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
     scale_factor = video_width / profile_name_size
     profile_name = profile_name.with_effects([Resize(scale_factor)])
 
-  profile_image = ImageClip(f"./images/profiles/{user_discord_id}_a.png")
+  profile_image = ImageClip(f"./images/profiles/{user_discord_id}_a_512.png")
   profile_image = profile_image.with_effects([Resize(width=400), FadeIn(duration=0.4167)])
   profile_image = profile_image.with_duration(4.375).with_start(5.1667).with_position(("center", 350))
   profile_image = profile_image.with_mask(profile_image.mask.with_effects([FadeOut(duration=0.8333)]))
@@ -374,6 +357,54 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
+
+# Task Queue Queries
+async def db_get_top_wrapped_job():
+  async with AgimusDB(dictionary=True) as db:
+    sql = '''
+      SELECT id as job_id, user_discord_id
+      FROM wrapped_queue
+      WHERE status = 'pending'
+        AND wrapped_year = %s
+      ORDER BY time_created ASC
+      LIMIT 1
+    '''
+    vals = (wrapped_year,)
+    await db.execute(sql, vals)
+    job = await db.fetchone()
+  return job
+
+async def db_update_wrapped_job_status(job_id, status, video_path=None, error_message=None):
+  async with AgimusDB(dictionary=True) as db:
+    if status == 'complete':
+      sql = '''
+        UPDATE wrapped_queue
+        SET status = %s, video_path = %s, error = NULL
+        WHERE id = %s AND wrapped_year = %s
+      '''
+      vals = (status, video_path, job_id, wrapped_year)
+    elif status == 'error':
+      sql = '''
+        UPDATE wrapped_queue
+        SET status = %s, error = %s
+        WHERE id = %s
+      '''
+      vals = (status, error_message, job_id)
+    else:
+      sql = '''
+        UPDATE wrapped_queue
+        SET status = %s
+        WHERE id = %s
+      '''
+      vals = (status, job_id)
+    await db.execute(sql, vals)
+
+async def db_delete_wrapped_job(job_id):
+  async with AgimusDB(dictionary=True) as db:
+    sql = "DELETE FROM wrapped_queue WHERE id = %s"
+    await db.execute(sql, (job_id,))
+
+## Stats Queries
 async def db_get_wrapped_total_xp(user_discord_id):
   async with AgimusDB(dictionary=True) as query:
     sql = '''

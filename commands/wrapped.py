@@ -38,39 +38,58 @@ async def wrapped(ctx:discord.ApplicationContext):
 
   if wrapped_job:
     if wrapped_job['status'] == 'complete' and wrapped_job['video_path']:
-      await ctx.followup.send(embed=discord.Embed(
-          title=f"{user_member.display_name}'s AGIMUS Wrapped {wrapped_year}",
-          description=f"A look back at {wrapped_year}!",
-          color=discord.Color.dark_red()
-        ), file=discord.File(wrapped_job['video_path'], filename=f"AGIMUS_Wrapped_{wrapped_year}.mp4")
+      wrapped_embed = discord.Embed(
+        title=f"{user_member.display_name}'s AGIMUS Wrapped {wrapped_year}",
+        description=f"A look back at {wrapped_year}! Ahhh, memories. The fun, the laughter, the screams as I... wait what were we talking about again?",
+        color=discord.Color.dark_red()
+      )
+      wrapped_embed.set_footer(
+        text="Note: Best viewed in full screen!",
+        icon_url="https://i.imgur.com/DTyVWL2.png"
+      )
+      await ctx.followup.send(
+        embed=wrapped_embed,
+        file=discord.File(wrapped_job['video_path'], filename=f"AGIMUS_Wrapped_{wrapped_year}.mp4")
       )
       return
     elif wrapped_job['status'] in ['pending', 'processing']:
-      queue_position = await db_get_wrapped_queue_position(wrapped_job['id'], wrapped_year)
-      await ctx.followup.send(embed=discord.Embed(
-          title=f"Your AGIMUS Wrapped {wrapped_year} is still processing.",
-          description=f"You are at position No. {queue_position + 1}.",
-          color=discord.Color.dark_red()
-        )
+      queue_position = await db_get_wrapped_queue_position(wrapped_job['job_id'], wrapped_year)
+      queue_embed = discord.Embed(
+        title=f"Your AGIMUS Wrapped {wrapped_year} is still processing.",
+        description=f"You are at position No. {queue_position + 1}.",
+        color=discord.Color.dark_red()
       )
+      queue_embed.set_footer(
+        text="I'm working as fast as my little robo-tentacles can!",
+        icon_url="https://i.imgur.com/DTyVWL2.png"
+      )
+      await ctx.followup.send(embed=queue_embed)
       return
     elif wrapped_job['status'] == 'error':
-      await ctx.followup.send(embed=discord.Embed(
-          title=f"There was an error processing your Wrapped information.",
-          description=f"Don't worry, we've been notified and VZ is on it (you can DM him too if you want though)!",
-          color=discord.Color.red()
-        )
+      error_embed = discord.Embed(
+        title=f"There was an error processing your Wrapped information.",
+        description=f"Don't worry, we've been notified and VZ is on it (you can DM him too if you want though)!",
+        color=discord.Color.red()
       )
+      error_embed.set_footer(
+        text="... fuck.",
+        icon_url="https://i.imgur.com/DTyVWL2.png"
+      )
+      await ctx.followup.send(embed=error_embed)
       return
 
   # No job found, add a new one
   await db_add_new_wrapped_job(user_discord_id, wrapped_year)
-  await ctx.followup.send(embed=discord.Embed(
-      title=f"Your AGIMUS Wrapped {wrapped_year} request has been added to the queue!",
-      description="I will notify you once it's ready! 🫡",
-      color=discord.Color.dark_red()
-    )
+  add_embed = discord.Embed(
+    title=f"Your AGIMUS Wrapped {wrapped_year} request has been added to the queue!",
+    description="I will notify you once it's ready! 🫡",
+    color=discord.Color.dark_red()
   )
+  add_embed.set_footer(
+    text="This should be interesting!",
+    icon_url="https://i.imgur.com/DTyVWL2.png"
+  )
+  await ctx.followup.send(embed=add_embed)
 
 
 async def db_get_wrapped_total_xp(user_discord_id):
@@ -94,7 +113,7 @@ async def db_get_user_wrapped_job(user_discord_id, wrapped_year):
       SELECT id as job_id, status, video_path
         FROM wrapped_queue
           WHERE user_discord_id = %s AND wrapped_year = %s
-          ORDER BY created_at DESC
+          ORDER BY time_created DESC
         LIMIT 1
     '''
     vals = (user_discord_id, wrapped_year)
@@ -105,18 +124,18 @@ async def db_get_user_wrapped_job(user_discord_id, wrapped_year):
 async def db_get_wrapped_queue_position(job_id, wrapped_year):
   async with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT COUNT(*)
+      SELECT COUNT(*) as count
       FROM wrapped_queue
-      WHERE status = 'pending' AND created_at < (
-        SELECT created_at
+      WHERE status = 'pending' AND time_created < (
+        SELECT time_created
         FROM wrapped_queue
         WHERE id = %s
       ) AND wrapped_year = %s
     '''
     vals = (job_id, wrapped_year)
     await query.execute(sql, vals)
-    value = await query.fetch_val()
-  return int(value)
+    row = await query.fetchone()
+  return row['count']
 
 async def db_add_new_wrapped_job(user_discord_id, wrapped_year):
   async with AgimusDB(dictionary=True) as query:

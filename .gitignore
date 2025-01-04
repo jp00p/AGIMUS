@@ -140,6 +140,7 @@ images/trades/*.png
 images/scrap/*.gif
 images/viz/*.png
 images/viz/figs/*.png
+videos/wrapped/2024/*.mp4
 !images/slot_results/template*
 !images/profiles/template*
 database/*
