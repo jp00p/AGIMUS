@@ -75,7 +75,7 @@ async def _generate_wrapped(user_discord_id):
   return video_path
 
 async def _generate_wrapped_top_channels(user_discord_id):
-  data = await db_get_wrapped_top_channels(user_discord_id)
+  data = await db_get_wrapped_top_channels(user_discord_id) or []
   # Filter out blocked channels
   channels = {v:k for k,v in config["channels"].items()}
   blocked_channel_names = [
@@ -89,7 +89,7 @@ async def _generate_wrapped_top_channels(user_discord_id):
   blocked_channel_ids = [c for c in blocked_channel_ids if c is not None]
 
   filtered_data = [d for d in data if int(d['channel_id']) not in blocked_channel_ids and channels.get(int(d['channel_id'])) is not None]
-  top_3_filtered_data = filtered_data[:3].reverse()
+  top_3_filtered_data = filtered_data[:3][::-1]
 
   top_channels = [{'channel_name': channels[int(d['channel_id'])], 'total': d['total']} for d in top_3_filtered_data]
   return top_channels
