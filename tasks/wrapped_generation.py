@@ -56,9 +56,12 @@ def wrapped_generation_task(bot):
 
 async def _generate_wrapped(user_discord_id):
   user_member = await bot.current_guild.fetch_member(user_discord_id)
-  # Presave User's Avatar if needed
-  avatar = user_member.display_avatar.with_size(128)
-  await avatar.save(f"./images/profiles/{user_discord_id}_a_128.png")
+  # Presave User's Avatar
+  avatar = user_member.display_avatar.with_size(256).with_static_format("png")
+  avatar_path = f"./images/profiles/{user_discord_id}_a_256.png"
+  await avatar.save(f"./images/profiles/{user_discord_id}_a_256.png")
+  if not os.path.exists(avatar_path):
+    raise FileNotFoundError(f"Avatar file not found at {avatar_path}")
 
   wrapped_data = {
     'top_channels': await _generate_wrapped_top_channels(user_discord_id),
@@ -300,7 +303,11 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
     total_tongos = total_tongos.with_effects([Resize(scale_factor)])
 
   # Rarest Badge
-  rarest_badge_image = ImageClip(f"./images/badges/{wrapped_data['rarest_badge']['badge_filename']}")
+  rarest_badge_filepath = f"./images/badges/{wrapped_data['rarest_badge']['badge_filename']}"
+  if not os.path.exists(rarest_badge_filepath):
+    raise FileNotFoundError(f"Rarest Badge file not found at {rarest_badge_filepath}")
+
+  rarest_badge_image = ImageClip(rarest_badge_filepath)
   if rarest_badge_image:
     rarest_badge_image = rarest_badge_image.with_effects([Resize(width=500)])
     rarest_badge_image = rarest_badge_image.with_duration(3.25).with_start(54.375).with_position(("center", "center"))
