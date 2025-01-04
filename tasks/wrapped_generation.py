@@ -18,6 +18,7 @@ def wrapped_generation_task(bot):
     job = await db_get_top_wrapped_job()
     if job:
       user = await bot.current_guild.fetch_member(int(job['user_discord_id']))
+      maintainer_user = await bot.current_guild.fetch_member(int(config["tasks"]["wrapped_generation"]["maintainer_user_id"]))
       if not user:
         await db_delete_wrapped_job(int(job['job_id']))
         return
@@ -39,11 +40,12 @@ def wrapped_generation_task(bot):
           embed=wrapped_embed,
           file=discord.File(video_path, filename=f"AGIMUS_Wrapped_{wrapped_year}.mp4")
         )
+        await maintainer_user.send(f"Successfully processed job for {user.display_name}:")
       except Exception as e:
+        stacktrace = traceback.format_exc()
         error_message = str(e)
-        maintainer_user = await bot.current_guild.fetch_member(int(config["tasks"]["wrapped_generation"]["maintainer_user_id"]))
         await maintainer_user.send(f"Error processing Wrapped video for {user.display_name}:")
-        await maintainer_user.send(f"```{error_message}```")
+        await maintainer_user.send(f"```{stacktrace}```")
         await db_update_wrapped_job_status(job['job_id'], 'error', error_message=error_message)
 
   return {
