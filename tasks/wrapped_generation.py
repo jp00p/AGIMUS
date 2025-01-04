@@ -40,7 +40,7 @@ def wrapped_generation_task(bot):
           embed=wrapped_embed,
           file=discord.File(video_path, filename=f"AGIMUS_Wrapped_{wrapped_year}.mp4")
         )
-        await maintainer_user.send(f"Successfully processed job for {user.display_name}:")
+        await maintainer_user.send(f"Successfully processed job for {user.display_name}")
       except Exception as e:
         stacktrace = traceback.format_exc()
         error_message = str(e)
@@ -309,33 +309,67 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
     ])
   )
 
-  rarest_badge_name = TextClip(text=f"{wrapped_data['rarest_badge']['badge_name']}", font_size=50, color="white", stroke_color="black", stroke_width=2, font="fonts/DS9_Credits.ttf", margin=(20, 20))
-  rarest_badge_name = rarest_badge_name.with_duration(3.25).with_start(54.375).with_position(("center", 200))
-  rarest_badge_name = rarest_badge_name.with_mask(
-    rarest_badge_name.mask.with_effects([
-      FadeOut(duration=0.625)
-    ])
-  )
-  rarest_badge_name_size = rarest_badge_name.size[0]
-  if rarest_badge_name_size > video_width:
-    scale_factor = video_width / rarest_badge_name_size
-    rarest_badge_name = rarest_badge_name.with_effects([Resize(scale_factor)])
+  if rarest_badge_image:
+    rarest_badge_name = TextClip(text=f"{wrapped_data['rarest_badge']['badge_name']}", font_size=50, color="white", stroke_color="black", stroke_width=2, font="fonts/DS9_Credits.ttf", margin=(20, 20))
+    rarest_badge_name = rarest_badge_name.with_duration(3.25).with_start(54.375).with_position(("center", 200))
+    rarest_badge_name = rarest_badge_name.with_mask(
+      rarest_badge_name.mask.with_effects([
+        FadeOut(duration=0.625)
+      ])
+    )
+    rarest_badge_name_size = rarest_badge_name.size[0]
+    if rarest_badge_name_size > video_width:
+      scale_factor = video_width / rarest_badge_name_size
+      rarest_badge_name = rarest_badge_name.with_effects([Resize(scale_factor)])
 
-  owner_count = wrapped_data['rarest_badge']['owner_count']
-  rarest_badge_text = f"Only owned by {owner_count} users!"
-  if owner_count == 1:
-    rarest_badge_text = f"You were the sole owner!"
-  rarest_badge_owner_rarity = TextClip(text=rarest_badge_text, font_size=50, color="white", stroke_color="black", stroke_width=2, font="fonts/DS9_Credits.ttf", margin=(20, 20))
-  rarest_badge_owner_rarity = rarest_badge_owner_rarity.with_duration(3.25).with_start(54.375).with_position(("center", 700))
-  rarest_badge_owner_rarity = rarest_badge_owner_rarity.with_mask(
-    rarest_badge_owner_rarity.mask.with_effects([
-      FadeOut(duration=0.625)
-    ])
-  )
-  rarest_badge_owner_rarity_size = rarest_badge_owner_rarity.size[0]
-  if rarest_badge_owner_rarity_size > video_width:
-    scale_factor = video_width / rarest_badge_owner_rarity_size
-    rarest_badge_owner_rarity = rarest_badge_owner_rarity.with_effects([Resize(scale_factor)])
+    owner_count = wrapped_data['rarest_badge']['owner_count']
+    rarest_badge_text = f"Only owned by {owner_count} users!"
+    if owner_count == 1:
+      rarest_badge_text = f"You were the sole owner!"
+    rarest_badge_owner_rarity = TextClip(text=rarest_badge_text, font_size=50, color="white", stroke_color="black", stroke_width=2, font="fonts/DS9_Credits.ttf", margin=(20, 20))
+    rarest_badge_owner_rarity = rarest_badge_owner_rarity.with_duration(3.25).with_start(54.375).with_position(("center", 700))
+    rarest_badge_owner_rarity = rarest_badge_owner_rarity.with_mask(
+      rarest_badge_owner_rarity.mask.with_effects([
+        FadeOut(duration=0.625)
+      ])
+    )
+    rarest_badge_owner_rarity_size = rarest_badge_owner_rarity.size[0]
+    if rarest_badge_owner_rarity_size > video_width:
+      scale_factor = video_width / rarest_badge_owner_rarity_size
+      rarest_badge_owner_rarity = rarest_badge_owner_rarity.with_effects([Resize(scale_factor)])
+  else:
+    rarest_badge_image = ImageClip("./images/badges/Friends_Of_DeSoto.png")
+    rarest_badge_image = rarest_badge_image.with_effects([Resize(width=500)])
+    rarest_badge_image = rarest_badge_image.with_duration(3.25).with_start(54.375).with_position(("center", "center"))
+    rarest_badge_image = rarest_badge_image.with_mask(
+      rarest_badge_image.mask.with_effects([
+        FadeOut(duration=0.625)
+      ])
+    )
+
+    rarest_badge_name = TextClip(text="Whoops, you didn't collect a rare badge this year!", font_size=50, color="white", stroke_color="black", stroke_width=2, font="fonts/DS9_Credits.ttf", margin=(20, 20))
+    rarest_badge_name = rarest_badge_name.with_duration(3.25).with_start(54.375).with_position(("center", 200))
+    rarest_badge_name = rarest_badge_name.with_mask(
+      rarest_badge_name.mask.with_effects([
+        FadeOut(duration=0.625)
+      ])
+    )
+    rarest_badge_name_size = rarest_badge_name.size[0]
+    if rarest_badge_name_size > video_width:
+      scale_factor = video_width / rarest_badge_name_size
+      rarest_badge_name = rarest_badge_name.with_effects([Resize(scale_factor)])
+
+    rarest_badge_owner_rarity = TextClip(text="But make no mistake, you're a valued FoD!", font_size=50, color="white", stroke_color="black", stroke_width=2, font="fonts/DS9_Credits.ttf", margin=(20, 20))
+    rarest_badge_owner_rarity = rarest_badge_owner_rarity.with_duration(3.25).with_start(54.375).with_position(("center", 700))
+    rarest_badge_owner_rarity = rarest_badge_owner_rarity.with_mask(
+      rarest_badge_owner_rarity.mask.with_effects([
+        FadeOut(duration=0.625)
+      ])
+    )
+    rarest_badge_owner_rarity_size = rarest_badge_owner_rarity.size[0]
+    if rarest_badge_owner_rarity_size > video_width:
+      scale_factor = video_width / rarest_badge_owner_rarity_size
+      rarest_badge_owner_rarity = rarest_badge_owner_rarity.with_effects([Resize(scale_factor)])
 
   # Combine all elements
   final = CompositeVideoClip([
