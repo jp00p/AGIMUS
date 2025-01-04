@@ -1,5 +1,6 @@
 from common import *
 from utils.settings_utils import db_get_current_xp_enabled_value
+from tasks.wrapped_generation import db_update_wrapped_job_status
 
 @bot.slash_command(
   name="wrapped",
@@ -68,7 +69,8 @@ async def wrapped(ctx:discord.ApplicationContext):
     elif wrapped_job['status'] == 'error':
       error_embed = discord.Embed(
         title=f"There was an error processing your Wrapped information.",
-        description=f"Don't worry, we've been notified and VZ is on it (you can DM him too if you want though)!",
+        description=f"Don't worry, we've been notified and VZ is on it (you can DM him too if you want though)! "
+                     "You can queue a new one now and hope for the best, but may want to check with him first too!",
         color=discord.Color.red()
       )
       error_embed.set_footer(
@@ -76,6 +78,9 @@ async def wrapped(ctx:discord.ApplicationContext):
         icon_url="https://i.imgur.com/DTyVWL2.png"
       )
       await ctx.followup.send(embed=error_embed)
+
+      # Reset for the next attempt
+      await db_update_wrapped_job_status(wrapped_job['job_id'], 'pending')
       return
 
   # No job found, add a new one
