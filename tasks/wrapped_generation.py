@@ -15,7 +15,7 @@ def wrapped_generation_task(bot):
     if not enabled:
       return
 
-    job = await db_get_top_wrapped_job()
+    job = await db_get_top_wrapped_job()m
     if job:
       user = await bot.current_guild.fetch_member(int(job['user_discord_id']))
       maintainer_user = await bot.current_guild.fetch_member(int(config["tasks"]["wrapped_generation"]["maintainer_user_id"]))
@@ -115,7 +115,10 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
     scale_factor = video_width / profile_name_size
     profile_name = profile_name.with_effects([Resize(scale_factor)])
 
-  profile_image = ImageClip(f"./images/profiles/{user_discord_id}_a_128.png")
+  avatar_path = f"./images/profiles/{user_discord_id}_a_256.png"
+  if not os.path.exists(avatar_path):
+    raise FileNotFoundError(avatar_path)
+  profile_image = ImageClip(avatar_path)
   profile_image = profile_image.with_effects([Resize(width=400), FadeIn(duration=0.4167)])
   profile_image = profile_image.with_duration(4.375).with_start(5.1667).with_position(("center", 350))
   profile_image = profile_image.with_mask(profile_image.mask.with_effects([FadeOut(duration=0.8333)]))
