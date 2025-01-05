@@ -118,7 +118,11 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
   avatar_path = f"./images/profiles/{user_discord_id}_a_256.png"
   if not os.path.exists(avatar_path):
     raise FileNotFoundError(avatar_path)
-  profile_image = ImageClip(avatar_path)
+  profile_image = ImageClip(avatar_path, transparent=False)
+
+  if profile_image.mask is None:
+      profile_image = profile_image.add_mask()
+
   profile_image = profile_image.with_effects([Resize(width=400), FadeIn(duration=0.4167)])
   profile_image = profile_image.with_duration(4.375).with_start(5.1667).with_position(("center", 350))
   profile_image = profile_image.with_mask(profile_image.mask.with_effects([FadeOut(duration=0.8333)]))
@@ -311,7 +315,12 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
     raise FileNotFoundError(f"Rarest Badge file not found at {rarest_badge_filepath}")
 
   rarest_badge_image = ImageClip(rarest_badge_filepath)
+  rarest_badge_image = ImageClip(rarest_badge_filepath, transparent=False)
+
   if rarest_badge_image:
+    if rarest_badge_image.mask is None:
+      rarest_badge_image = rarest_badge_image.add_mask()
+
     rarest_badge_image = rarest_badge_image.with_effects([Resize(width=500)])
     rarest_badge_image = rarest_badge_image.with_duration(3.25).with_start(54.375).with_position(("center", "center"))
     rarest_badge_image = rarest_badge_image.with_mask(
@@ -348,7 +357,10 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
       scale_factor = video_width / rarest_badge_owner_rarity_size
       rarest_badge_owner_rarity = rarest_badge_owner_rarity.with_effects([Resize(scale_factor)])
   else:
-    rarest_badge_image = ImageClip("./images/badges/Friends_Of_DeSoto.png")
+    rarest_badge_image = ImageClip("./images/badges/Friends_Of_DeSoto.png", transparent=False)
+    if rarest_badge_image.mask is None:
+      rarest_badge_image = rarest_badge_image.add_mask()
+
     rarest_badge_image = rarest_badge_image.with_effects([Resize(width=500)])
     rarest_badge_image = rarest_badge_image.with_duration(3.25).with_start(54.375).with_position(("center", "center"))
     rarest_badge_image = rarest_badge_image.with_mask(
