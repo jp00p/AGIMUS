@@ -2,10 +2,13 @@ from common import *
 
 from utils.thread_utils import to_thread
 
+import io
+import textwrap
 from moviepy import *
 from moviepy.video.fx.FadeIn import FadeIn
 from moviepy.video.fx.FadeOut import FadeOut
 from moviepy.video.fx.Resize import Resize
+
 
 wrapped_year = datetime.utcnow().year - 1
 
@@ -45,6 +48,11 @@ def wrapped_generation_task(bot):
         stacktrace = traceback.format_exc()
         error_message = str(e)
         await maintainer_user.send(f"Error processing Wrapped video for {user.display_name}:")
+        # Split the stacktrace into chunks of 1994 characters
+        stacktrace_chunks = textwrap.wrap(stacktrace, width=1994)
+
+        for chunk in stacktrace_chunks:
+            await maintainer_user.send(f"```{chunk}```")
         await maintainer_user.send(f"```{stacktrace}```")
         await db_update_wrapped_job_status(job['job_id'], 'error', error_message=error_message)
 
@@ -311,8 +319,17 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
   if not os.path.exists(rarest_badge_filepath):
     raise FileNotFoundError(f"Rarest Badge file not found at {rarest_badge_filepath}")
 
-  rarest_badge_image = ImageClip(rarest_badge_filepath)
-  rarest_badge_image = ImageClip(rarest_badge_filepath)
+  rarest_badge_image = Image.open(io.BytesIO(rarest_badge_filepath))
+
+  # Convert to RGBA in memory
+  rarest_badge_image = rarest_badge_image.convert("RGBA")
+
+  # Convert the PIL image to a format MoviePy can use
+  rarest_badge_image_buffer = io.BytesIO()
+  rarest_badge_image.save(rarest_badge_image_buffer, format="PNG")
+  rarest_badge_image_buffer.seek(0)
+
+  rarest_badge_image = ImageClip(rarest_badge_image_buffer, format="PNG")
 
   if rarest_badge_image:
     rarest_badge_image = rarest_badge_image.with_effects([Resize(width=500)])
