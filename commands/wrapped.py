@@ -1,6 +1,6 @@
 from common import *
 from utils.settings_utils import db_get_current_xp_enabled_value
-from tasks.wrapped_generation import db_update_wrapped_job_status
+from tasks.wrapped_generation import db_update_wrapped_job_status, db_delete_wrapped_job
 
 @bot.slash_command(
   name="wrapped",
@@ -80,7 +80,7 @@ async def wrapped(ctx:discord.ApplicationContext):
       await ctx.followup.send(embed=error_embed)
 
       # Reset for the next attempt
-      await db_update_wrapped_job_status(wrapped_job['job_id'], 'pending')
+      await db_delete_wrapped_job(wrapped_job['job_id'], 'pending')
       return
 
   # No job found, add a new one

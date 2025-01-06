@@ -2,5 +2,10 @@ apiVersion: v2
 name: agimus
 description: A helm chart for a discord bot that also runs a mysql db
 type: application
+<<<<<<< HEAD
 version: v2.12.11
 appVersion: v2.12.11
+=======
+version: v2.12.12
+appVersion: v2.12.12
+>>>>>>> cfe0490 (convert this to an RGBA file and then pass as numpy array)
