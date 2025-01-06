@@ -46,14 +46,14 @@ def wrapped_generation_task(bot):
         await maintainer_user.send(f"Successfully processed job for {user.display_name}")
       except Exception as e:
         stacktrace = traceback.format_exc()
+        print(stacktrace)
         error_message = str(e)
         await maintainer_user.send(f"Error processing Wrapped video for {user.display_name}:")
         # Split the stacktrace into chunks of 1994 characters
-        stacktrace_chunks = textwrap.wrap(stacktrace, width=1994)
+        stacktrace_chunks = textwrap.wrap(stacktrace, width=1994, replace_whitespace=False)
 
         for chunk in stacktrace_chunks:
             await maintainer_user.send(f"```{chunk}```")
-        await maintainer_user.send(f"```{stacktrace}```")
         await db_update_wrapped_job_status(job['job_id'], 'error', error_message=error_message)
 
   return {
@@ -72,7 +72,12 @@ async def _generate_wrapped(user_discord_id):
     raise FileNotFoundError(f"Avatar file not found at {avatar_path}")
 
   wrapped_data = {
-    'top_channels': await _generate_wrapped_top_channels(user_discord_id),
+    # 'top_channels': await _generate_wrapped_top_channels(user_discord_id),
+    'top_channels': [
+      {'channel_name': 'holodeck', 'total': 100},
+      {'channel_name': 'whatevah', 'total': 1000},
+      {'channel_name': 'ten-forward', 'total': 10000},
+    ],
     'total_xp': await db_get_wrapped_total_xp(user_discord_id),
     'total_messages': await db_get_wrapped_total_messages(user_discord_id),
     'total_reacts': await db_get_wrapped_total_reacts(user_discord_id),
@@ -317,19 +322,16 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
   # Rarest Badge
   rarest_badge_filepath = f"./images/badges/{wrapped_data['rarest_badge']['badge_filename']}"
   if not os.path.exists(rarest_badge_filepath):
-    raise FileNotFoundError(f"Rarest Badge file not found at {rarest_badge_filepath}")
+      raise FileNotFoundError(f"Rarest Badge file not found at {rarest_badge_filepath}")
 
-  rarest_badge_image = Image.open(io.BytesIO(rarest_badge_filepath))
+  # Load the image from the filesystem
+  badge_image = Image.open(rarest_badge_filepath)
 
-  # Convert to RGBA in memory
-  rarest_badge_image = rarest_badge_image.convert("RGBA")
+  # Convert the image to RGBA
+  badge_image = badge_image.convert("RGBA")
 
-  # Convert the PIL image to a format MoviePy can use
-  rarest_badge_image_buffer = io.BytesIO()
-  rarest_badge_image.save(rarest_badge_image_buffer, format="PNG")
-  rarest_badge_image_buffer.seek(0)
-
-  rarest_badge_image = ImageClip(rarest_badge_image_buffer, format="PNG")
+  # Create an ImageClip from the resulting numpy array here
+  rarest_badge_image = ImageClip(np.array(badge_image))
 
   if rarest_badge_image:
     rarest_badge_image = rarest_badge_image.with_effects([Resize(width=500)])
@@ -407,6 +409,15 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
   video_path = f"./videos/wrapped/{wrapped_year}/{user_discord_id}.mp4"
   final.write_videofile(video_path, codec="libx264", fps=24)
   return video_path
+
+async def _get_image_bytes(file_path) -> bytes:
+    """Read a badge image from the filesystem and return its bytes."""
+
+    # Use aiofiles to read the file asynchronously
+    async with aiofiles.open(file_path, mode="rb") as f:
+        image_bytes = await f.read()
+
+    return image_bytes
 
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
