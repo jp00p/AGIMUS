@@ -931,6 +931,24 @@ async def badge_lookup(ctx:discord.ApplicationContext, public:str, name:str):
   description += f"Total number collected on The USS Hood: **{badge_count}**\n\n"
   description += f"{badge['badge_url']}"
 
+  if not public:
+    user_discord_id = ctx.author.id
+    user_badges = await db_get_user_badges(user_discord_id)
+    if name in [b['badge_name'] for b in user_badges]:
+      locked_status = await db_get_badge_locked_status_by_name(user_discord_id, name)
+      if locked_status['locked']:
+        badge_status = "Locked"
+      else:
+        badge_status = "Unlocked"
+    else:
+      wishlist_badges = await db_get_user_wishlist_badges(user_discord_id)
+      if name in [b['badge_name'] for b in wishlist_badges]:
+        badge_status = "Wishlisted"
+      else:
+        badge_status = "Not Owned"
+
+    description += f"\n\nBadge Status for {ctx.author.display_name}: **{badge_status}**"
+
   embed = discord.Embed(
     title=f"{badge['badge_name']}",
     description=description,
@@ -974,58 +992,6 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   embed.add_field(name="⠀", value="⠀", inline=True)
   embed.add_field(name=f"{get_emoji('combadge')} Top 5 most locked", value=str("\n".join(f"{t['badge_name']} ({t['count']})" for t in top_locked)), inline=True)
   await ctx.respond(embed=embed, ephemeral=False)
-
-
-@badge_group.command(
-  name="status",
-  description="Get the status of a specific badge w/r/t your inventory"
-)
-@option(
-  name="name",
-  description="Which badge do you want to check the status of?",
-  required=True,
-  autocomplete=all_badges_autocomplete
-)
-async def badge_status(ctx:discord.ApplicationContext, name:str):
-  await ctx.defer(ephemeral=True)
-  user_discord_id = ctx.author.id
-
-  logger.info(f"{Fore.CYAN}Firing /badge status command for {ctx.author.display_name} w/r/t '{name}'!{Fore.RESET}")
-
-  if name not in [b['badge_name'] for b in await db_get_all_badge_info()]:
-    await ctx.followup.send(
-      embed=discord.Embed(
-        title="Could Not Find This Badge",
-        description=f"**{name}** does not appear to exist!",
-        color=discord.Color.red()
-      ), ephemeral=True
-    )
-    return
-
-  badge_info = await db_get_badge_info_by_name(name)
-  user_badges = await db_get_user_badges(user_discord_id)
-  if name in [b['badge_name'] for b in user_badges]:
-    locked_status = await db_get_badge_locked_status_by_name(user_discord_id, name)
-    if locked_status['locked']:
-      badge_status = "Locked"
-    else:
-      badge_status = "Unlocked"
-  else:
-    wishlist_badges = await db_get_user_wishlist_badges(user_discord_id)
-    if name in [b['badge_name'] for b in wishlist_badges]:
-      badge_status = "Wishlisted"
-    else:
-      badge_status = "Not Owned"
-
-  embed = discord.Embed(
-    title=badge_info['badge_name'],
-    description=f"Status: **{badge_status}**",
-    color=discord.Color.blurple()
-  )
-  discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'].replace(',','_'))
-  embed.set_image(url=f"attachment://{badge_info['badge_filename'].replace(',','_')}")
-  embed.set_footer(text="Status will be one of: `Locked`, `Unlocked`, `Wishlisted` or `Not Owned`")
-  await ctx.followup.send(embed=embed, file=discord_image, ephemeral=True)
 
 #   ________.__  _____  __
 #  /  _____/|__|/ ____\/  |_
