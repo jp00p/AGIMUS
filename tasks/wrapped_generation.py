@@ -72,12 +72,7 @@ async def _generate_wrapped(user_discord_id):
     raise FileNotFoundError(f"Avatar file not found at {avatar_path}")
 
   wrapped_data = {
-    # 'top_channels': await _generate_wrapped_top_channels(user_discord_id),
-    'top_channels': [
-      {'channel_name': 'holodeck', 'total': 100},
-      {'channel_name': 'whatevah', 'total': 1000},
-      {'channel_name': 'ten-forward', 'total': 10000},
-    ],
+    'top_channels': await _generate_wrapped_top_channels(user_discord_id),
     'total_xp': await db_get_wrapped_total_xp(user_discord_id),
     'total_messages': await db_get_wrapped_total_messages(user_discord_id),
     'total_reacts': await db_get_wrapped_total_reacts(user_discord_id),
