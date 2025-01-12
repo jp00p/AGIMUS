@@ -557,7 +557,7 @@
   "Shipwide Announcement": {
     "file": "data/drops/shipwideannouncement.mp4",
     "description": "Shipwide Announcement. Dr Z Mix",
-    "url": "https://i.imgur.com/wJVjSWw.mp4"
+    "url": "https://i.imgur.com/Bq4ffXX.mp4"
   },
   "Sober Shimoda": {
     "file": "data/drops/sobershimoda.mp4",
@@ -608,6 +608,11 @@
     "file": "data/drops/theapersdrop.mp4",
     "description": "The apers Drop. User drop.",
     "url": "https://i.imgur.com/KN0g9PM.mp4"
+  },
+  "The Artemis_Hunting Drop": {
+    "file": "data/drops/theartemis_huntingdrop.mp4",
+    "description": "The Artemis_Hunting Drop. User drop.",
+    "url": "  https://i.imgur.com/aJ79PHD.mp4"
   },
   "The Ass Lab": {
     "file": "data/drops/theasslab.mp4",
