@@ -931,24 +931,6 @@ async def badge_lookup(ctx:discord.ApplicationContext, public:str, name:str):
   description += f"Total number collected on The USS Hood: **{badge_count}**\n\n"
   description += f"{badge['badge_url']}"
 
-  if not public:
-    user_discord_id = ctx.author.id
-    user_badges = await db_get_user_badges(user_discord_id)
-    if name in [b['badge_name'] for b in user_badges]:
-      locked_status = await db_get_badge_locked_status_by_name(user_discord_id, name)
-      if locked_status['locked']:
-        badge_status = "Locked"
-      else:
-        badge_status = "Unlocked"
-    else:
-      wishlist_badges = await db_get_user_wishlist_badges(user_discord_id)
-      if name in [b['badge_name'] for b in wishlist_badges]:
-        badge_status = "Wishlisted"
-      else:
-        badge_status = "Not Owned"
-
-    description += f"\n\nBadge Status for {ctx.author.display_name}: **{badge_status}**"
-
   embed = discord.Embed(
     title=f"{badge['badge_name']}",
     description=description,
@@ -956,6 +938,25 @@ async def badge_lookup(ctx:discord.ApplicationContext, public:str, name:str):
   )
   discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'].replace(',','_'))
   embed.set_image(url=f"attachment://{badge['badge_filename'].replace(',','_')}")
+
+  if not public:
+    user_discord_id = ctx.author.id
+    user_badges = await db_get_user_badges(user_discord_id)
+    if name in [b['badge_name'] for b in user_badges]:
+      locked_status = await db_get_badge_locked_status_by_name(user_discord_id, name)
+      if locked_status['locked']:
+        badge_status = "LOCKED"
+      else:
+        badge_status = "UNLOCKED"
+    else:
+      wishlist_badges = await db_get_user_wishlist_badges(user_discord_id)
+      if name in [b['badge_name'] for b in wishlist_badges]:
+        badge_status = "WISHLISTED"
+      else:
+        badge_status = "NOT OWNED"
+
+    embed.set_footer(text=f"\n\nBadge Status for {ctx.author.display_name}: {badge_status}")
+
   await ctx.followup.send(embed=embed, file=discord_image, ephemeral=not public)
 
 #   _________ __          __  .__          __  .__
