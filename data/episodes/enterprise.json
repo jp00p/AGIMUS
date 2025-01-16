@@ -791,7 +791,15 @@
             "episode": "09",
             "imdb": "tt0572237",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.01.06",
+                    "episode": "Spa Day Waterboard",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-556-spa-day-waterboard-ent-s2e9/",
+                    "order": 556,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/k8S8rvILkyKh8cmEaBJqxTFUVz9.jpg",
