@@ -1,6 +1,6 @@
 from common import *
 
-command_config = config["commands"]["drop post"]
+command_config = config["commands"]["curse"]
 
 # Load JSON Data
 f = open(command_config["data"])
@@ -14,7 +14,6 @@ f.close()
 async def curse(ctx:discord.ApplicationContext):
   selected_curse = random.choice(curse_data['curses'])
   embed = discord.Embed(
-    title="💀",
     description=f"> {selected_curse}",
     color=discord.Color.magenta()
   )
