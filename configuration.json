@@ -442,6 +442,12 @@
       "data": null,
       "parameters": []
     },
+    "curse": {
+      "channels": [],
+      "enabled": true,
+      "data": "data/curses.json",
+      "parameters": []
+    },
     "dustbuster": {
       "channels": [
         "after-dinner-conversation"
