@@ -897,7 +897,7 @@ class Wishlist(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="Invalid Badge Selection!",
-          description=f"Unable to complete your request, {badge} is a ✨ *special badge* ✨ and cannot be acquired via trading!",
+          description=f"Unable to complete your request, **{badge}** is a ✨ *special badge* ✨ and cannot be acquired via trading!",
           color=discord.Color.red()
         )
       )
@@ -909,7 +909,7 @@ class Wishlist(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="Badge Already Present in Wishlist!",
-          description=f"Unable to complete your request, {badge} is already present in your Wishlist.",
+          description=f"Unable to complete your request, **{badge}** is already present in your Wishlist.",
           color=discord.Color.red()
         )
       )
@@ -921,7 +921,7 @@ class Wishlist(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="Badge Already Present in Inventory!",
-          description=f"Unable to complete your request, {badge} is already present in your Inventory. No need to wish for it!",
+          description=f"Unable to complete your request, **{badge}** is already present in your Inventory. No need to wish for it!",
           color=discord.Color.red()
         )
       )

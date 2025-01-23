@@ -46,7 +46,7 @@ async def speak(ctx:discord.ApplicationContext, content:str, dry_run:str, channe
     else:
       await channel.send(content)
       await ctx.respond(
-        embed=discord.embed(
+        embed=discord.Embed(
           title="AGIMUS HAS SPOKEN!",
           description=f"Your message has been sent to {channel.mention}!",
           color=discord.Color.red()
@@ -55,6 +55,7 @@ async def speak(ctx:discord.ApplicationContext, content:str, dry_run:str, channe
       )
   except Exception as e:
     logger.info(f"Something went wrong with /speak!")
+    logger.info(traceback.format_exc())
 
 @speak.error
 async def speak_error(ctx, error):
