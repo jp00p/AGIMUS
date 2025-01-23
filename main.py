@@ -299,10 +299,12 @@ async def on_raw_reaction_add(payload):
   if payload.event_type == "REACTION_ADD":
     await handle_starboard_reactions(payload)
 
-# listen to event creations (streams, pub trivia, etc)
+# listen to sceheduled event updates (streams, pub trivia, etc)
 @bot.event
-async def on_scheduled_event_create(event):
-  await handle_event_creation_xp(event)
+async def on_scheduled_event_update(before: discord.ScheduledEvent, after: discord.ScheduledEvent):
+  # Only award XP when the event starts
+  if before.status != after.status and after.status == discord.ScheduledEventStatus.active:
+    await handle_event_creation_xp(after)
 
 # listen to server join/leave events
 @bot.event

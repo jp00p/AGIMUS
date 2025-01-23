@@ -199,8 +199,9 @@ class Wishlist(commands.Cog):
     user_badge_names = [b['badge_name'] for b in await db_get_user_badges(payload.user_id)]
     user_wishlist_badge_names = [b['badge_name'] for b in await db_get_user_wishlist_badges(payload.user_id)]
     user_locked_badge_names = [b['badge_name'] for b in await db_get_user_locked_badges(payload.user_id)]
+    special_badge_names = [b['badge_name'] for b in await db_get_special_badges()]
 
-    if payload.event_type == "REACTION_ADD" and badge_name not in user_badge_names and badge_name not in user_wishlist_badge_names:
+    if payload.event_type == "REACTION_ADD" and badge_name not in user_badge_names and badge_name not in user_wishlist_badge_names and badge_name not in special_badge_names:
       logger.info(f"Adding {Style.BRIGHT}{badge_name}{Style.RESET_ALL} to {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
       await db_add_badge_name_to_users_wishlist(member.id, badge_name)
       if user["receive_notifications"]:
@@ -218,7 +219,7 @@ class Wishlist(commands.Cog):
           logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
           pass
 
-    if payload.event_type == "REACTION_ADD" and badge_name in user_badge_names and badge_name not in user_locked_badge_names:
+    if payload.event_type == "REACTION_ADD" and badge_name in user_badge_names and badge_name not in user_locked_badge_names and badge_name not in special_badge_names:
       logger.info(f"Locking {Style.BRIGHT}{badge_name}{Style.RESET_ALL} in {Style.BRIGHT}{member.display_name}'s inventory{Style.RESET_ALL} via react")
       badge_info = await db_get_badge_info_by_name(badge_name)
       badge_filename = badge_info['badge_filename']
@@ -398,7 +399,10 @@ class Wishlist(commands.Cog):
     # In this case, keep track and if so display a different result message at the bottom
     all_dismissed = True
 
-    if len(exact_matches_aggregate.keys()):
+    match_count = len(exact_matches_aggregate.keys())
+
+    if match_count:
+      dismissal_count = 0
       for user_id in exact_matches_aggregate.keys():
         user = await bot.current_guild.fetch_member(user_id)
 
@@ -416,6 +420,7 @@ class Wishlist(commands.Cog):
           dismissal_has = json.loads(dismissal.get('has'))
           dismissal_wants = json.loads(dismissal.get('wants'))
           if has_badges_names == dismissal_has and wants_badges_names == dismissal_wants:
+            dismissal_count = dismissal_count + 1
             continue
           else:
             await db_delete_wishlist_dismissal(author_discord_id, user_id)
@@ -496,15 +501,7 @@ class Wishlist(commands.Cog):
         )
         await paginator.respond(ctx.interaction, ephemeral=True)
 
-      all_dismissed = False
-      await acknowledgement_followup.edit(
-        embed=discord.Embed(
-          title="Wishlist Matches Listed!",
-          description="BEHOLD!",
-          color=discord.Color.blurple()
-        )
-      )
-
+      all_dismissed = match_count == dismissal_count
     else:
       await acknowledgement_followup.edit(
         embed=discord.Embed(
@@ -515,7 +512,15 @@ class Wishlist(commands.Cog):
       )
       return
 
-    if all_dismissed:
+    if not all_dismissed:
+      await acknowledgement_followup.edit(
+        embed=discord.Embed(
+          title="Wishlist Matches Listed!",
+          description="BEHOLD!",
+          color=discord.Color.blurple()
+        )
+      )
+    else:
       await acknowledgement_followup.edit(
         embed=discord.Embed(
           title="All Wishlist Matches Dismissed",
@@ -887,13 +892,24 @@ class Wishlist(commands.Cog):
       )
       return
 
+    special_badge_names = [b['badge_name'] for b in await db_get_special_badges()]
+    if badge in special_badge_names:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="Invalid Badge Selection!",
+          description=f"Unable to complete your request, **{badge}** is a ✨ *special badge* ✨ and cannot be acquired via trading!",
+          color=discord.Color.red()
+        )
+      )
+      return
+
     # Check to make sure the badge is not already present in their wishlist
     existing_wishlist_badges = [b['badge_name'] for b in await db_get_user_wishlist_badges(user_discord_id)]
     if badge in existing_wishlist_badges:
       await ctx.followup.send(
         embed=discord.Embed(
           title="Badge Already Present in Wishlist!",
-          description=f"Unable to complete your request, {badge} is already present in your Wishlist.",
+          description=f"Unable to complete your request, **{badge}** is already present in your Wishlist.",
           color=discord.Color.red()
         )
       )
@@ -905,7 +921,7 @@ class Wishlist(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="Badge Already Present in Inventory!",
-          description=f"Unable to complete your request, {badge} is already present in your Inventory. No need to wish for it!",
+          description=f"Unable to complete your request, **{badge}** is already present in your Inventory. No need to wish for it!",
           color=discord.Color.red()
         )
       )
@@ -1001,9 +1017,10 @@ class Wishlist(commands.Cog):
 
     existing_user_badges = [b['badge_filename'] for b in await db_get_user_badges(user_discord_id)]
     existing_wishlist_badges = [b['badge_filename'] for b in await db_get_user_wishlist_badges(user_discord_id)]
+    special_badges = [b['badge_filename'] for b in await db_get_special_badges()]
 
     # Filter out those badges that are already present in the Wishlist and user's Inventory
-    valid_badges = [b['badge_filename'] for b in all_set_badges if b['badge_filename'] not in existing_user_badges and b['badge_filename'] not in existing_wishlist_badges]
+    valid_badges = [b['badge_filename'] for b in all_set_badges if b['badge_filename'] not in existing_user_badges and b['badge_filename'] not in existing_wishlist_badges and b['badge_filename'] not in special_badges]
 
     # If there are no badges to add, error to user
     if not valid_badges:

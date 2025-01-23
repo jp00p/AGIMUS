@@ -718,6 +718,15 @@
       "data": null,
       "parameters": []
     },
+    "speak": {
+      "allowed_roles": [
+        "Admiral",
+        "Captain"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "spongebob": {
       "blocked_channels": [
         "neelixs-morale-office",
@@ -751,7 +760,11 @@
     "sub_rosa reset": {
       "allowed_roles": [
         "Admiral",
-        "Captain"
+        "Captain",
+        "Commander",
+        "Lt. Commander",
+        "Lieutenant",
+        "Ensign"
       ],
       "enabled": true,
       "data": null,
