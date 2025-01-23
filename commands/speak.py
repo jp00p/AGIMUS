@@ -1,5 +1,5 @@
 from common import *
-
+from utils.check_role_access import role_check
 
 @bot.slash_command(
   name="speak",
@@ -30,7 +30,7 @@ from common import *
   description="Send to a channel besides AGIMUS' speaker?",
   required=False
 )
-@commands.has_role(config["roles"]["agimus_maintainers"])
+@commands.check(role_check)
 async def speak(ctx:discord.ApplicationContext, content:str, dry_run:str, channel:discord.TextChannel):
   """
   make agimus talk!
@@ -39,13 +39,20 @@ async def speak(ctx:discord.ApplicationContext, content:str, dry_run:str, channe
     content = content.replace("<br>", "\n")
     dry_run = bool(dry_run == "yes")
     if not channel:
-      # default to announcement channel
-      channel = bot.get_channel(get_channel_id(config["agimus_announcement_channel"]))
+      # default to current channel
+      channel = ctx.channel
     if dry_run:
       await ctx.respond(content, ephemeral=dry_run)
     else:
       await channel.send(content)
-      await ctx.respond(f"Your message has been sent to {channel.mention}!", ephemeral=True)
+      await ctx.respond(
+        embed=discord.embed(
+          title="AGIMUS HAS SPOKEN!",
+          description=f"Your message has been sent to {channel.mention}!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
   except Exception as e:
     logger.info(f"Something went wrong with /speak!")
 

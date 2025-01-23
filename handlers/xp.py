@@ -250,7 +250,7 @@ async def handle_event_creation_xp(event):
   if type(location) == str:
     # Users might create an event that isn't a VoiceChannel
     return
-  await increment_user_xp(creator, 30, "created_event", location, event)
+  await increment_user_xp(creator, 45, "created_event", location, event)
 
 # calculate_xp_for_next_level(current_level)
 # current_level[required]: int
