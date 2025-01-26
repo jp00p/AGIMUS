@@ -9,6 +9,7 @@ import aiohttp
 # Slash Commands
 from commands.aliases import aliases
 from commands.badges import *
+from commands.bless import bless
 from commands.curse import curse
 from commands.dice import dice
 from commands.dustbuster import dustbuster
