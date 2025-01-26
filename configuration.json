@@ -412,6 +412,12 @@
       "enabled": true,
       "parameters": []
     },
+    "bless": {
+      "channels": [],
+      "enabled": true,
+      "data": "data/blessings.json",
+      "parameters": []
+    },
     "clear_media": {
       "channels": [],
       "enabled": true,
