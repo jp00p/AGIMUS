@@ -4,7 +4,6 @@ import pytz
 from common import *
 from utils.check_channel_access import access_check
 
-
 # Create drop Slash Command Group
 food_war = bot.create_group("food_war", "FoD Food War Commands!")
 
@@ -20,7 +19,7 @@ food_war = bot.create_group("food_war", "FoD Food War Commands!")
   max_length=64
 )
 @commands.check(access_check)
-async def reset(ctx:discord.ApplicationContext, reason:str):
+async def reset(ctx: discord.ApplicationContext, reason: str):
   await ctx.defer()
 
   previous_reset = await db_get_previous_reset()
@@ -36,6 +35,7 @@ async def reset(ctx:discord.ApplicationContext, reason:str):
     value=reason,
     inline=False
   )
+
   if previous_reset:
     pst_tz = pytz.timezone('America/Los_Angeles')
     raw_now = datetime.utcnow().replace(tzinfo=pytz.utc)
@@ -68,7 +68,7 @@ async def reset(ctx:discord.ApplicationContext, reason:str):
   else:
     days = 0
 
-  await db_reset_days(ctx.author.id, reason, days)
+  await db_reset_days(ctx.author.id, reason)
 
   gif = await generate_food_war_reset_gif(days)
   embed.set_image(url=f"attachment://{gif.filename}")
@@ -81,7 +81,7 @@ async def reset(ctx:discord.ApplicationContext, reason:str):
   description="Check how many days it's been since last FoD Food War",
 )
 @commands.check(access_check)
-async def check(ctx:discord.ApplicationContext):
+async def check(ctx: discord.ApplicationContext):
   previous_reset = await db_get_previous_reset()
 
   if not previous_reset:
@@ -114,7 +114,7 @@ async def check(ctx:discord.ApplicationContext):
 
   embed.add_field(
     name="Previous Days Streak",
-    value=f"{previous_reset['days']} {'Day' if previous_reset['days'] == 1 else 'Days'}",
+    value=f"{days} {'Day' if days == 1 else 'Days'}",
   )
   embed.add_field(
     name="Previous Reason",
@@ -129,9 +129,10 @@ async def check(ctx:discord.ApplicationContext):
       inline=False
     )
   else:
+    streak = longest_reset['duration'] // 86400
     embed.add_field(
       name="All-Time Longest Streak",
-      value=f"{longest_reset['days']} {'Day' if longest_reset['days'] == 1 else 'Days'}",
+      value=f"{streak} {'Day' if streak == 1 else 'Days'}",
       inline=False
     )
     embed.add_field(
@@ -169,7 +170,7 @@ def generate_food_war_check_png(days):
   food_war_base_image.paste(food_war_sign_image, (0, 0))
 
   d = ImageDraw.Draw(food_war_base_image)
-  d.text( (base_width/2, 200), f"{days}", fill=(0, 0, 0, 255), font=marker_font, anchor="mm", align="center")
+  d.text((base_width / 2, 200), f"{days}", fill=(0, 0, 0, 255), font=marker_font, anchor="mm", align="center")
 
   image_filename = "current_days.png"
   image_filepath = f"./images/food_war/{image_filename}"
@@ -186,6 +187,7 @@ def generate_food_war_check_png(days):
   discord_image = discord.File(fp=image_filepath, filename=image_filename)
   return discord_image
 
+
 @to_thread
 def generate_food_war_reset_gif(days):
   marker_font = ImageFont.truetype("fonts/PermanentMarker.ttf", 200)
@@ -199,8 +201,8 @@ def generate_food_war_reset_gif(days):
 
   base_text_frame = food_war_base_image.copy()
   d = ImageDraw.Draw(base_text_frame)
-  d.text( (base_width/2, 200), f"{days}", fill=(0, 0, 0, 255), font=marker_font, anchor="mm", align="center")
-  frames = [base_text_frame]*20
+  d.text((base_width / 2, 200), f"{days}", fill=(0, 0, 0, 255), font=marker_font, anchor="mm", align="center")
+  frames = [base_text_frame] * 20
 
   # Eraser Wipe
   for n in range(0, 54):
@@ -211,7 +213,7 @@ def generate_food_war_reset_gif(days):
 
   # Blank Frames
   blank_frame = food_war_base_image.copy()
-  frames = frames + [blank_frame]*10
+  frames = frames + [blank_frame] * 10
 
   # Draw Zero
   for n in range(0, 13):
@@ -221,7 +223,7 @@ def generate_food_war_reset_gif(days):
     frames.append(frame)
 
     if n == 12:
-      frames = frames + [frame]*30
+      frames = frames + [frame] * 30
 
   # Save
   image_filename = "days_since_last_fod_food_war.gif"
@@ -250,27 +252,33 @@ async def db_get_previous_reset():
     previous_reset = await query.fetchone()
   return previous_reset
 
-async def db_reset_days(user_discord_id, reason, days):
+
+async def db_reset_days(user_discord_id, reason):
   async with AgimusDB(dictionary=True) as query:
-    sql = "INSERT INTO food_war (user_discord_id, reason, days) VALUES (%s, %s, %s)"
-    vals = (user_discord_id, reason, days)
+    sql = "INSERT INTO food_war (user_discord_id, reason) VALUES (%s, %s)"
+    vals = (user_discord_id, reason)
     await query.execute(sql, vals)
+
 
 async def db_get_longest_reset():
   async with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT fw.*
-        FROM (select fw.*,
-                (SELECT time_created
-                  FROM food_war fw2
-                  WHERE fw2.time_created > fw.time_created
-                  ORDER BY time_created
-                  LIMIT 1
-                ) AS next_time_created
-            FROM food_war fw
-          ) fw
-        ORDER BY timestampdiff(second, time_created, next_time_created) DESC
-        LIMIT 1;
+      SELECT
+        fw.id,
+        fw.time_created,
+        fw.reason,
+        TIMESTAMPDIFF(SECOND, fw.time_created, fw.next_time_created) AS duration
+      FROM (
+        SELECT
+          id,
+          time_created,
+          reason,
+          LEAD(time_created) OVER (ORDER BY time_created ASC) AS next_time_created
+        FROM food_war
+      ) AS fw
+      WHERE fw.next_time_created IS NOT NULL
+      ORDER BY duration DESC
+      LIMIT 1;
     '''
     await query.execute(sql)
     longest_reset = await query.fetchone()
