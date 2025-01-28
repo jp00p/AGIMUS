@@ -5,7 +5,6 @@ from common import *
 from utils.check_channel_access import access_check
 from utils.check_role_access import role_check
 
-
 # Create drop Slash Command Group
 sub_rosa = bot.create_group("sub_rosa", "Sub Rosa Tracker Commands!")
 
@@ -14,13 +13,13 @@ sub_rosa = bot.create_group("sub_rosa", "Sub Rosa Tracker Commands!")
   description="Reset the days since last Sub Rosa Watch",
 )
 @commands.check(role_check)
-async def reset(ctx:discord.ApplicationContext):
+async def reset(ctx: discord.ApplicationContext):
   await ctx.defer()
 
   previous_reset = await db_get_previous_reset()
   stats = await db_get_sub_rosa_stats()
   total_watches = stats['total_watches'] + 1
-  if total_watches >= 30 and total_watches < 40:
+  if 30 <= total_watches < 40:
     total_watches = f"{total_watches}... *Thirties...*"
 
   embed = discord.Embed(
@@ -28,6 +27,7 @@ async def reset(ctx:discord.ApplicationContext):
     description=f"{ctx.author.mention} is vaporizing the candle! {get_emoji('dinnae_light_that_candle_ghost')}",
     color=discord.Color.dark_green()
   )
+
   if previous_reset:
     pst_tz = pytz.timezone('America/Los_Angeles')
     raw_now = datetime.utcnow().replace(tzinfo=pytz.utc)
@@ -52,23 +52,18 @@ async def reset(ctx:discord.ApplicationContext):
       value=int(stats['average_days']),
       inline=False
     )
-  else:
-    days = 0
-
-  await db_reset_days(ctx.author.id, days)
 
   gif = await generate_sub_rosa_reset_gif(days)
   embed.set_image(url=f"attachment://{gif.filename}")
   embed.set_footer(text=get_random_footer_text())
   await ctx.followup.send(embed=embed, file=gif)
 
-
 @sub_rosa.command(
   name="check",
   description="Check how many days it's been since last Sub Rosa Watch",
 )
 @commands.check(access_check)
-async def check(ctx:discord.ApplicationContext):
+async def check(ctx: discord.ApplicationContext):
   previous_reset = await db_get_previous_reset()
 
   if not previous_reset:
@@ -102,7 +97,7 @@ async def check(ctx:discord.ApplicationContext):
 
   embed.add_field(
     name="Previous Days Streak",
-    value=f"{previous_reset['days']} {'Day' if previous_reset['days'] == 1 else 'Days'}",
+    value=f"{days} {'Day' if days == 1 else 'Days'}",
   )
 
   longest_reset = await db_get_longest_reset()
@@ -113,9 +108,10 @@ async def check(ctx:discord.ApplicationContext):
       inline=False
     )
   else:
+    streak = longest_reset['duration'] // 86400
     embed.add_field(
       name="All-Time Longest Streak",
-      value=f"{longest_reset['days']} {'Day' if longest_reset['days'] == 1 else 'Days'}",
+      value=f"{streak} {'Day' if streak == 1 else 'Days'}",
       inline=False
     )
 
@@ -135,7 +131,6 @@ async def check(ctx:discord.ApplicationContext):
   embed.set_footer(text=get_random_footer_text())
   await ctx.followup.send(embed=embed, file=png)
 
-
 @to_thread
 def generate_sub_rosa_check_png(days):
   marker_font = ImageFont.truetype("fonts/PermanentMarker.ttf", 200)
@@ -148,7 +143,7 @@ def generate_sub_rosa_check_png(days):
   sub_rosa_base_image.paste(sub_rosa_sign_image, (0, 0))
 
   d = ImageDraw.Draw(sub_rosa_base_image)
-  d.text( (base_width/2, 200), f"{days}", fill=(0, 0, 0, 255), font=marker_font, anchor="mm", align="center")
+  d.text((base_width / 2, 200), f"{days}", fill=(0, 0, 0, 255), font=marker_font, anchor="mm", align="center")
 
   image_filename = "current_days.png"
   image_filepath = f"./images/sub_rosa/{image_filename}"
@@ -178,8 +173,8 @@ def generate_sub_rosa_reset_gif(days):
 
   base_text_frame = sub_rosa_base_image.copy()
   d = ImageDraw.Draw(base_text_frame)
-  d.text( (base_width/2, 200), f"{days}", fill=(0, 0, 0, 255), font=marker_font, anchor="mm", align="center")
-  frames = [base_text_frame]*20
+  d.text((base_width / 2, 200), f"{days}", fill=(0, 0, 0, 255), font=marker_font, anchor="mm", align="center")
+  frames = [base_text_frame] * 20
 
   # Eraser Wipe
   for n in range(0, 54):
@@ -190,7 +185,7 @@ def generate_sub_rosa_reset_gif(days):
 
   # Blank Frames
   blank_frame = sub_rosa_base_image.copy()
-  frames = frames + [blank_frame]*10
+  frames = frames + [blank_frame] * 10
 
   # Draw Zero
   for n in range(0, 13):
@@ -200,10 +195,10 @@ def generate_sub_rosa_reset_gif(days):
     frames.append(frame)
 
     if n == 12:
-      frames = frames + [frame]*30
+      frames = frames + [frame] * 30
 
   # Save
-  image_filename = "days_since_last_fod_sub_rosa.gif"
+  image_filename = "days_since_last_sub_rosa_watch.gif"
   image_filepath = f"./images/sub_rosa/{image_filename}"
   if os.path.exists(image_filepath):
     os.remove(image_filepath)
@@ -220,7 +215,6 @@ def generate_sub_rosa_reset_gif(days):
 
   discord_image = discord.File(fp=image_filepath, filename=image_filename)
   return discord_image
-
 
 
 def get_random_footer_text():
@@ -248,29 +242,25 @@ async def db_get_previous_reset():
     previous_reset = await query.fetchone()
   return previous_reset
 
-async def db_reset_days(user_discord_id, days):
-  async with AgimusDB(dictionary=True) as query:
-    sql = "INSERT INTO sub_rosa (user_discord_id, days) VALUES (%s, %s);"
-    vals = (user_discord_id, days)
-    await query.execute(sql, vals)
-
 async def db_get_longest_reset():
   async with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT sr.id, sr.user_discord_id, sr.days, sr.time_created,
-             TIMESTAMPDIFF(SECOND, sr.time_created, sr.next_time_created) AS duration
-        FROM (SELECT sr1.id, sr1.user_discord_id, sr1.days, sr1.time_created,
-                     (SELECT sr2.time_created
-                        FROM sub_rosa sr2
-                       WHERE sr2.time_created > sr1.time_created
-                       ORDER BY sr2.time_created
-                       LIMIT 1
-                     ) AS next_time_created
-                FROM sub_rosa sr1
-             ) sr
-       WHERE sr.next_time_created IS NOT NULL
-       ORDER BY duration DESC
-       LIMIT 1;
+      SELECT
+        sr.id,
+        sr.user_discord_id,
+        sr.time_created,
+        TIMESTAMPDIFF(SECOND, sr.time_created, sr.next_time_created) AS duration
+      FROM (
+        SELECT
+          id,
+          user_discord_id,
+          time_created,
+          LEAD(time_created) OVER (ORDER BY time_created ASC) AS next_time_created
+        FROM sub_rosa
+      ) AS sr
+      WHERE sr.next_time_created IS NOT NULL
+      ORDER BY duration DESC
+      LIMIT 1;
     '''
     await query.execute(sql)
     longest_reset = await query.fetchone()
