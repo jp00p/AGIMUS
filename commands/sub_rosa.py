@@ -279,7 +279,16 @@ async def db_get_longest_reset():
 async def db_get_sub_rosa_stats():
   async with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT AVG(days) AS average_days, count(*) as total_watches FROM sub_rosa;
+      SELECT
+        AVG(TIMESTAMPDIFF(DAY, time_created, next_time_created)) AS average_days,
+        COUNT(*) AS total_watches
+      FROM (
+        SELECT
+          time_created,
+          LEAD(time_created) OVER (ORDER BY time_created ASC) AS next_time_created
+        FROM sub_rosa
+      ) AS time_differences
+      WHERE next_time_created IS NOT NULL;
     '''
     await query.execute(sql)
     stats = await query.fetchone()
