@@ -242,7 +242,6 @@ async def db_reset_days(user_discord_id):
     sql = "INSERT INTO sub_rosa (user_discord_id, time_created) VALUES (%s, NOW());"
     vals = (user_discord_id,)
     await query.execute(sql, vals)
-    await query.commit()  # Ensure changes are saved
 
 async def db_get_previous_reset():
   async with AgimusDB(dictionary=True) as query:
