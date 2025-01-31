@@ -53,6 +53,8 @@ async def reset(ctx: discord.ApplicationContext):
       inline=False
     )
 
+  await db_reset_days(ctx.author.id)
+
   gif = await generate_sub_rosa_reset_gif(days)
   embed.set_image(url=f"attachment://{gif.filename}")
   embed.set_footer(text=get_random_footer_text())
@@ -234,6 +236,13 @@ def get_random_footer_text():
     "I was about to be initiated into a very unusual relationship. \nYou might call it a family tradition."
   ]
   return f"{random.choice(footer_texts)} 🕯️"
+
+async def db_reset_days(user_discord_id):
+  async with AgimusDB(dictionary=True) as query:
+    sql = "INSERT INTO sub_rosa (user_discord_id, time_created) VALUES (%s, NOW());"
+    vals = (user_discord_id,)
+    await query.execute(sql, vals)
+    await query.commit()  # Ensure changes are saved
 
 async def db_get_previous_reset():
   async with AgimusDB(dictionary=True) as query:
