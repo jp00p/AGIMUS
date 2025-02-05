@@ -166,13 +166,14 @@ async def record(ctx: discord.ApplicationContext):
   wars = await db_get_food_war_records()
 
   total_wars = len(wars)
-  recent_wars = total_wars[:25]
+  recent_wars = wars[:25]
 
   embed = discord.Embed(
     title=f"FoD Food Wars of Days Past",
-    description=f"> Food War. Food War Never Changes.\n\n**Total Wars:** {total_wars}\n\n*(Displaying the most recent {len(recent_wars)})*",
+    description=f"> Food War. Food War Never Changes.",
     color=discord.Color.gold()
   )
+  embed.set_footer(text=f"(Displaying the most recent {len(recent_wars)} of {total_wars} wars)")
 
   for war in recent_wars:
     # Convert the database timestamp to a formatted string
@@ -183,16 +184,12 @@ async def record(ctx: discord.ApplicationContext):
     )
 
     embed.add_field(
-      name="Reason for War",
-      value=war['reason'],
+      name=war['reason'],
+      value=formatted_date,
       inline=False
     )
-    embed.add_field(
-      name="Date",
-      value=formatted_date,
-      inline=True
-    )
-  await ctx.followup.send(embed=embed)
+
+  await ctx.respond(embed=embed)
 
 @to_thread
 def generate_food_war_check_png(days):
