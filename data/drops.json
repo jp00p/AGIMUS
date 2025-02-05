@@ -719,6 +719,11 @@
     "description": "Admiral Hanson. Fail.",
     "url": "https://i.imgur.com/SEPOcsb.mp4"
   },
+  "The GayNerd53 Drop": {
+    "file": "data/drops/thegaynerd53drop.mp4",
+    "description": "The GayNerd53 Drop. User drop.",
+    "url": "https://i.imgur.com/9BFG46w.mp4"
+  },
   "The Harry Kim Drop": {
     "file": "data/drops/theharrykimdrop.mp4",
     "description": "Harry Kim. (Lil Kim - Magic stick)",
@@ -853,6 +858,11 @@
     "file": "data/drops/roncanada.mp4",
     "description": "Ron Canada",
     "url": "https://i.imgur.com/4UDe6NL.mp4"
+  },
+  "The Rhythm Robber Drop": {
+    "file": "data/drops/therhythmrobberdrop.mp4",
+    "description": "The Rhythm Robber Drop. User drop.",
+    "url": "https://i.imgur.com/9E9wdge.mp4"
   },
   "The Safi Drop": {
     "file": "data/drops/thesafidrop.mp4",
