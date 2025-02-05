@@ -157,6 +157,42 @@ async def check(ctx: discord.ApplicationContext):
   embed.set_footer(text="We can only hope it shall last longer... 🥑 ⚔️ 🙏")
   await ctx.followup.send(embed=embed, file=png)
 
+@food_war.command(
+  name="record",
+  description="List the most recent FoD Food War reasons",
+)
+@commands.check(access_check)
+async def record(ctx: discord.ApplicationContext):
+  wars = await db_get_food_war_records()
+
+  total_wars = len(wars)
+  recent_wars = total_wars[:25]
+
+  embed = discord.Embed(
+    title=f"FoD Food Wars of Days Past",
+    description=f"> Food War. Food War Never Changes.\n\n**Total Wars:** {total_wars}\n\n*(Displaying the most recent {len(recent_wars)})*",
+    color=discord.Color.gold()
+  )
+
+  for war in recent_wars:
+    # Convert the database timestamp to a formatted string
+    date_obj = war['time_created']
+    formatted_date = date_obj.strftime("%B {S}, %Y").replace(
+      "{S}",
+      str(date_obj.day) + ("th" if 11 <= date_obj.day <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(date_obj.day % 10, "th"))
+    )
+
+    embed.add_field(
+      name="Reason for War",
+      value=war['reason'],
+      inline=False
+    )
+    embed.add_field(
+      name="Date",
+      value=formatted_date,
+      inline=True
+    )
+  await ctx.followup.send(embed=embed)
 
 @to_thread
 def generate_food_war_check_png(days):
@@ -301,3 +337,14 @@ async def db_get_food_war_stats():
     await query.execute(sql)
     stats = await query.fetchone()
   return stats
+
+async def db_get_food_war_records():
+  async with AgimusDB(dictionary=True) as query:
+    sql = '''
+      SELECT reason, time_created
+      FROM food_war
+      ORDER BY time_created DESC
+    '''
+    await query.execute(sql)
+    records = await query.fetchall()
+  return records
