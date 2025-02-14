@@ -8,6 +8,7 @@ from common import *
 async def show_leave_message(member:discord.Member):
   if member.bot:
     return
+
   server_logs_channel = bot.get_channel(get_channel_id(config["server_logs_channel"]))
   name = member.display_name
 
@@ -17,11 +18,29 @@ async def show_leave_message(member:discord.Member):
   join_date = pst_tz.normalize(member.joined_at.astimezone(pst_tz)) # Member.joined_at is already UTC aware
 
   time_diff = aware_now - join_date
-  seconds = time_diff.days * 24 * 3600  + time_diff.seconds
+  total_days = time_diff.days
+  total_seconds = time_diff.seconds
+
+  years, remaining_days = divmod(total_days, 365)
+  seconds = remaining_days * 24 * 3600 + total_seconds
   minutes, seconds = divmod(seconds, 60)
   hours, minutes = divmod(minutes, 60)
   days, hours = divmod(hours, 24)
-  membership_length = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+
+  membership_length = ""
+  if years >= 1:
+    membership_length += f"{years} year{'s' if years > 1 else ''}, "
+  membership_length += f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+
+  # Check if the user was banned
+  guild = member.guild
+  try:
+    ban_entry = await guild.fetch_ban(member)
+    if ban_entry:
+      await show_banned_message(member, membership_length, join_date, ban_entry.reason)
+      return
+  except discord.NotFound:
+    pass  # Member was not banned
 
   weather = random.choice(["gloomy", "rainy", "foggy", "chilly", "quiet", "soggy", "misty", "stormy"])
 
@@ -48,6 +67,39 @@ async def show_leave_message(member:discord.Member):
     )
 
   logger.info(f"{Fore.LIGHTRED_EX}{name} has left the server! :({Fore.RESET}")
+
+  await server_logs_channel.send(embed=embed)
+
+async def show_banned_message(member:discord.Member, membership_length:str, reason:str, join_date):
+  server_logs_channel = bot.get_channel(get_channel_id(config["server_logs_channel"]))
+
+  embed = discord.Embed(
+    title=f"🚨 {member.display_name} was BLOWN OUT AN AIRLOCK and BANNED! 🚨",
+    description=f"Profile: {member.mention}",
+    color=discord.Color.red()
+  )
+  embed.add_field(
+    name="A PetaQ In The Midst For:",
+    value=membership_length,
+    inline=False
+  )
+  embed.add_field(
+    name="Join Date",
+    value=f"{join_date.strftime('%B %d, %Y')} (a {join_date.strftime('%A')}) that will live in infamy)",
+    inline=False
+  )
+  embed.add_field(
+    name="Reason:",
+    value=reason,
+    inline=False
+  )
+  if member.avatar is not None:
+    embed.set_author(
+      name="",
+      icon_url=member.avatar.url
+    )
+
+  logger.info(f"{Fore.RED}{member.display_name} was banned from the server!{Fore.RESET}")
 
   await server_logs_channel.send(embed=embed)
 
