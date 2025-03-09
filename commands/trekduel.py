@@ -26,8 +26,8 @@ async def trekduel(ctx:discord.ApplicationContext):
     description=f"Who would win in an arbitrary Star Trek duel?!",
     color=discord.Color.dark_gold()
   )
-  embed.add_field(name="Red Corner", value=pick_1)
+  embed.add_field(name="Red Corner", value=make_memory_alpha_link(pick_1))
   embed.add_field(name=" vs", value="⚔️")
-  embed.add_field(name="Blue Corner", value=pick_2)
+  embed.add_field(name="Blue Corner", value=make_memory_alpha_link(pick_2))
   await ctx.respond(embed=embed)
   

@@ -27,7 +27,7 @@ async def tuvix(ctx:discord.ApplicationContext):
 
   embed = discord.Embed(
     title=f"A terrible transporter accident occurred! 💥",
-    description=f"**{pick_1}** and **{pick_2}** have been combined into a Tuvix-like Creature!\n\nDo you sacrifice the two separate characters for this new one?\nDo you give this abomination the Janeway treatment?\nCan you come up with a line of dialog for this character?\n\n*Most importantly*, do you name it:\n",
+    description=f"{make_memory_alpha_link(pick_1)} and {make_memory_alpha_link(pick_2)} have been combined into a Tuvix-like Creature!\n\nDo you sacrifice the two separate characters for this new one?\nDo you give this abomination the Janeway treatment?\nCan you come up with a line of dialog for this character?\n\n*Most importantly*, do you name it:\n",
     color=discord.Color.dark_gold()
   )
   embed.add_field(name="Choice A", value=tuvix1)

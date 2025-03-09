@@ -422,3 +422,13 @@ def remove_emoji(s: str) -> str:
   Cleans out values unprintable in our font.  cp1252 because there are a handful of chars in the font not in latin_1
   """
   return s.replace("€", '').encode("cp1252", errors="ignore").decode("cp1252").strip()
+
+
+def make_memory_alpha_link(name: str) -> str:
+  """
+  Convert the name of this person/ship/tech into a link to https://memory-alpha.fandom.com.  There are _many_ wrong
+  links, but the only way to fix some of them is to have specific overrides for them.  We may want to do that later.
+  """
+  if name.startswith("A "):
+    return name
+  return f"[{name}](https://memory-alpha.fandom.com/wiki/{name.replace(' ', '_')})"
