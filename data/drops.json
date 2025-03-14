@@ -59,6 +59,11 @@
     "description": "Ben is Ben's Going To Gonna Talk About Africa song",
     "url": "https://i.imgur.com/UyqYbwe.mp4"
   },
+  "Ben's Hypercompliance": {
+    "file": "data/drops/benshypercompliance.mp4",
+    "description": "Ben's Hypercomplaince",
+    "url": "https://i.imgur.com/4HXNkLk.mp4"
+  },
   "Bible Study": {
     "file": "data/drops/biblestudy.mp4",
     "description": "Bible Study. The way god wants it.",
@@ -364,6 +369,11 @@
     "description": "It means Omerta. It means Rewenge.",
     "url": "https://i.imgur.com/kWj4YiA.mp4"
   },
+  "Jazz Horse": {
+    "file": "data/drops/jazzhorse.mp4",
+    "description": "Jazz Horse. Red Dead Redemption. Video Games.",
+    "url": "https://i.imgur.com/RyrQ6yw.mp4"
+  },
   "KETCHUP!": {
     "file": "data/drops/ketchup.mp4",
     "description": "Space Precinct. Pilot Season.",
@@ -403,6 +413,11 @@
     "file": "data/drops/extended/mappableassplace.mp4",
     "description": "WAP Wet Ass Pussy Mappable Ass Place Song",
     "url": ""
+  },
+  "Meraviglioso": {
+    "file": "data/drops/meraviglioso.mp4",
+    "description": "Marvelous. Marlivioso. Marlevioso. Meraviglioso. Leonardo Da Vinci. Esatto.",
+    "url": "https://i.imgur.com/C8Khwnq.mp4"
   },
   "Mayqueese": {
     "file": "data/drops/mayqueese.mp4",
@@ -731,7 +746,7 @@
   },
   "The Harry Kim Drop": {
     "file": "data/drops/theharrykimdrop.mp4",
-    "description": "Harry Kim. (Lil Kim - Magic stick)",
+    "description": "Harry Kim. Very Proud. (Lil Kim - Magic Stick)",
     "url": "https://i.imgur.com/4pqnOsa.mp4"
   },
   "The Hawkstar Drop": {
@@ -778,6 +793,16 @@
     "file": "data/drops/theleprechaungangsterdrop.mp4",
     "description": "The Leprechaun Gangster Drop. User drop.",
     "url": "https://i.imgur.com/SXKLuSs.mp4"
+  },
+  "The Maggie O'Halloran Drop": {
+    "file": "data/drops/themaggieohallorandrop.mp4",
+    "description": "Maggie O Halloran. Moo. Cow. Bitch I'm A Cow. Doja Cat.",
+    "url": "https://i.imgur.com/PhchyXv.mp4"
+  },
+  "The Mayweather Drop": {
+    "file": "data/drops/themayweatherdrop.mp4",
+    "description": "Travis Mayweather. Harry Kim. Very Proud. (Lil Kim - Magic Stick)",
+    "url": "https://i.imgur.com/jgWmOIk.mp4"
   },
   "The Miss Tea Haze Drop": {
     "file": "data/drops/themissteahazedrop.mp4",
