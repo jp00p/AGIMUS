@@ -224,11 +224,11 @@ class ReactRoles(commands.Cog):
   # rebuild embeds (so role counts update)
   @tasks.loop(seconds=60)
   async def rebuild_embeds(self):
-    #logger.info("Rebuilding embeds")
     rr = self.reaction_roles
     for message_id in rr:
       message_name = rr[message_id]["message_name"]
       message = self.roles_channel.get_partial_message(message_id)
       new_embed = self.build_react_embed(self.reaction_data[message_name]) # rebuild the embed
       await message.edit(embed=new_embed)
+      await self.add_role_reactions(message, self.reaction_data[message_name]["reactions"])
       await asyncio.sleep(10)
