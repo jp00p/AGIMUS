@@ -121,7 +121,8 @@ class ReactRoles(commands.Cog):
   async def add_role_reactions(self, message, reacts):
     if len(reacts) > 0:
       for r in reacts:
-        await message.add_reaction(r["emoji"])
+        if not r.get('separator'):
+          await message.add_reaction(r["emoji"])
 
   # get all existing reaction message data
   async def get_reaction_db_data(self):
@@ -204,9 +205,12 @@ class ReactRoles(commands.Cog):
     if len(post["reactions"]) > 0:
       for reaction in post["reactions"]:
         role = discord.utils.get(bot.guilds[0].roles,name=reaction["role"])
-        embed_desc = f'{reaction["emoji"]} for {role.mention} ({len(role.members)})'
-        if reaction.get("description"):
-          embed_desc += f"\n{reaction['description']}\n"
+        if reaction.get('separator'):
+          embed_desc = "━━━━━━━━━━━━━━━"
+        else:
+          embed_desc = f'{reaction["emoji"]} for {role.mention} ({len(role.members)})'
+          if reaction.get("description"):
+            embed_desc += f"\n{reaction['description']}\n"
         list_of_reactions.append(embed_desc)
       # one field with lots of content and a blank name
       embed.add_field(
@@ -220,11 +224,11 @@ class ReactRoles(commands.Cog):
   # rebuild embeds (so role counts update)
   @tasks.loop(seconds=60)
   async def rebuild_embeds(self):
-    #logger.info("Rebuilding embeds")
     rr = self.reaction_roles
     for message_id in rr:
       message_name = rr[message_id]["message_name"]
       message = self.roles_channel.get_partial_message(message_id)
       new_embed = self.build_react_embed(self.reaction_data[message_name]) # rebuild the embed
       await message.edit(embed=new_embed)
+      await self.add_role_reactions(message, self.reaction_data[message_name]["reactions"])
       await asyncio.sleep(10)
