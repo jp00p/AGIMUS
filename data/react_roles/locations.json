@@ -51,8 +51,45 @@
       "role": "China"
     },
     {
+      "emoji": "🇿🇦",
+      "role": "South Africa"
+    },
+    {
+      "separator": true,
+      "emoji": "",
+      "role": ""
+    },
+    {
+      "emoji": "🗽",
+      "role": "Northeast US"
+    },
+    {
+      "emoji": "🦐",
+      "role": "Southern US"
+    },
+    {
+      "emoji": "🌽",
+      "role": "Midwest US"
+    },
+    {
+      "emoji": "🤠",
+      "role": "Texas"
+    },
+    {
+      "emoji": "🌵",
+      "role": "Southwest US"
+    },
+    {
       "emoji": "🌲",
-      "role": "Pacific Northwest"
-    } 
+      "role": "Pacific Northwest US"
+    },
+    {
+      "emoji": "🌉",
+      "role": "California"
+    },
+    {
+      "emoji": "🌌",
+      "role": "Space"
+    }
   ]
 }
