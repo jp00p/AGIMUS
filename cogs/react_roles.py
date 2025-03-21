@@ -38,7 +38,7 @@ class ReactRoles(commands.Cog):
     response = {}
     for rdb in await self.get_reaction_db_data():
       if rdb["reaction_type"]:
-        message_id = rdb["message_id"]
+        message_id = int(rdb["message_id"])
         message_name = rdb["message_name"]
         response[message_id] = { "reactions": {}, "reaction_type": rdb["reaction_type"], "message_name": message_name }
         # loop over json and pull out emoji:role
@@ -136,13 +136,18 @@ class ReactRoles(commands.Cog):
   @commands.has_permissions(administrator=True)
   async def q_update_role_messages(self, ctx:discord.ApplicationContext, clear=False):
     logger.info(f"{ctx.author.display_name} is running the top secret {Back.RED}{Fore.WHITE}UPDATE ROLE MESSAGES{Fore.RESET}{Back.RESET} command!")
-    await ctx.message.delete()
+    try:
+      await ctx.message.delete()
+    except (discord.NotFound, AttributeError):
+      pass  # Message already deleted or not a message-type context
+    message_ids = await self.load_role_reactions()
     # if there are existing messages, remove them
     if clear:
-      if len(self.reaction_db_data) > 0:
-        for rm in self.reaction_db_data:
+      if len(message_ids) > 0:
+        for rm in message_ids:
+          logger.error(rm)
           try:
-            message = await self.roles_channel.fetch_message(rm["message_id"])
+            message = await self.roles_channel.fetch_message(rm)
           except discord.NotFound:
             logger.info("React role message not found, oh well! Moving on with my life.")
           else:
@@ -182,9 +187,11 @@ class ReactRoles(commands.Cog):
   @q_update_role_messages.error
   async def q_update_role_messages_error(self, ctx, error):
     if isinstance(error, commands.MissingPermissions):
-      await ctx.respond("You think you're clever!", ephemeral=True)
+      await ctx.send("You think you're clever!", ephemeral=True)
     else:
-      await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
+      await ctx.send("Sensoars indicate some kind of ...*error* has occured!")
+      logger.info(traceback.format_exc())
+      logger.error(error)
 
   # builds and returns the embed for the current reaction post
   def build_react_embed(self, post):
