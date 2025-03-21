@@ -38,7 +38,7 @@ class ReactRoles(commands.Cog):
     response = {}
     for rdb in await self.get_reaction_db_data():
       if rdb["reaction_type"]:
-        message_id = int(rdb["message_id"])
+        message_id = rdb["message_id"]
         message_name = rdb["message_name"]
         response[message_id] = { "reactions": {}, "reaction_type": rdb["reaction_type"], "message_name": message_name }
         # loop over json and pull out emoji:role
