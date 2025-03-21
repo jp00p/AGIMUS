@@ -19,24 +19,24 @@
       "role": "Canada"
     },
     {
-      "emoji": "🇪🇺",
-      "role": "Europe"
-    },
-    {
       "emoji": "🇬🇧",
       "role": "United Kingdom"
     },
     {
-      "emoji": "🇦🇺",
-      "role": "Australia"
+      "emoji": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+      "role": "Scotland"
+    },
+    {
+      "emoji": "🇮🇪",
+      "role": "Ireland"
     },
     {
       "emoji": "🇮🇱",
       "role": "Israel"
     },
     {
-      "emoji": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-      "role": "Scotland"
+      "emoji": "🇦🇺",
+      "role": "Australia"
     },
     {
       "emoji": "🇳🇿",
@@ -58,6 +58,10 @@
       "separator": true,
       "emoji": "",
       "role": ""
+    },
+    {
+      "emoji": "🍷",
+      "role": "Europe"
     },
     {
       "emoji": "🗽",
