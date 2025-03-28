@@ -400,6 +400,7 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel, sou
           await level_up_user(user, source_details)
         except Exception as e:
           logger.info(f"Error trying to level up user: {e}")
+          logger.error(traceback.format_exc())
 
 
 def console_log_xp_history(user:discord.User, amt:int, reason:str):
