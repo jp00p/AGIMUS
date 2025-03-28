@@ -900,6 +900,27 @@ class Trade(commands.Cog):
     if not await self._is_trade_initialization_valid(ctx, requestee):
       return
 
+    # Check if either user would go over the badge cap
+    max_badge_count = await db_get_max_badge_count()
+    requestor_count = await db_get_user_badge_count(requestor_id)
+    requestee_count = await db_get_user_badge_count(requestee_id)
+
+    if requestor_count + amount > max_badge_count:
+      await ctx.followup.send(embed=discord.Embed(
+        title="Trade would exceed badge cap!",
+        description=f"Sorry! Receiving {amount} badges would push you over the badge cap ({max_badge_count}).\n\nYou need to give away or unlock more room before doing Dabo.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+    if requestee_count + amount > max_badge_count:
+      await ctx.followup.send(embed=discord.Embed(
+        title=f"{requestee.display_name} would exceed badge cap!",
+        description=f"This Dabo trade would give **{requestee.display_name}** more badges than the total allowed ({max_badge_count}).",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
     requestor_total_badges = [b['badge_name'] for b in await db_get_user_badges(requestor_id)]
     requestor_unlocked_badges = [b['badge_name'] for b in await db_get_user_unlocked_badges(requestor_id)]
 
@@ -1591,6 +1612,22 @@ class Trade(commands.Cog):
       await ctx.respond(embed=discord.Embed(
         title=f"Unable to add {badge} to offer.",
         description=f"You're at the max number of badges allowed per trade ({self.max_badges_per_trade})!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return True
+
+    # Check to make sure the receiving user wouldn't go over the badge cap limit
+    max_badge_count = await db_get_max_badge_count()
+    to_user_badge_count = await db_get_user_badge_count(to_user.id)
+    if direction == 'offer':
+      incoming_badges = await db_get_trade_offered_badges(active_trade)
+    else:
+      incoming_badges = await db_get_trade_requested_badges(active_trade)
+
+    if to_user_badge_count + len(incoming_badges) + 1 > max_badge_count:
+      await ctx.respond(embed=discord.Embed(
+        title=f"{to_user.display_name} is at the badge cap!",
+        description=f"Adding `{badge}` would exceed the total number of badges which exist ({max_badge_count}).\n\nY'all badgers got too many badges yo, give some away or something.",
         color=discord.Color.red()
       ), ephemeral=True)
       return True
