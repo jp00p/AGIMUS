@@ -424,11 +424,24 @@ def remove_emoji(s: str) -> str:
   return s.replace("€", '').encode("cp1252", errors="ignore").decode("cp1252").strip()
 
 
+IRREGULAR_MEM_ALPHA_LINKS = None
+
 def make_memory_alpha_link(name: str) -> str:
   """
-  Convert the name of this person/ship/tech into a link to https://memory-alpha.fandom.com.  There are _many_ wrong
-  links, but the only way to fix some of them is to have specific overrides for them.  We may want to do that later.
+  Convert the name of this person/ship/tech into a link to https://memory-alpha.fandom.com.  There are exceptions, and
+  they are stored in characters_mem_alpha_links.json.  But it’s still better
   """
+  global IRREGULAR_MEM_ALPHA_LINKS
+  if IRREGULAR_MEM_ALPHA_LINKS is None:
+    with open("data/characters_mem_alpha_links.json") as f:
+      IRREGULAR_MEM_ALPHA_LINKS = json.load(f)
+  
   if name.startswith("A "):
     return name
+  if name in IRREGULAR_MEM_ALPHA_LINKS:
+    link = IRREGULAR_MEM_ALPHA_LINKS[name]
+    if link:  # can be null if no link exists
+      return f"[{name}]({link})"
+    else:
+      return name
   return f"[{name}](https://memory-alpha.fandom.com/wiki/{name.replace(' ', '_')})"
