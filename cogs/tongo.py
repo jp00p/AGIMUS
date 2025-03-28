@@ -776,7 +776,7 @@ class Tongo(commands.Cog):
     self.auto_confront.cancel()
 
   async def _perform_confront(self, active_tongo, active_chair, auto_confront=False):
-    results = await self._perform_confront_distribution()
+    results, players_with_max_badges = await self._perform_confront_distribution()
     tongo_pot_badges = await db_get_tongo_pot_badges()
     liquidation_result = None
 
@@ -895,39 +895,38 @@ class Tongo(commands.Cog):
         xp_to_grant = 110 * 3
         await increment_user_xp(player_member, xp_to_grant, 'tongo_loss', trade_channel, "Consolation Prize for Tongo Loss")
 
-        xp_granted = xp_to_grant
-        if bool(datetime.today().weekday() >= 4):
-          xp_granted = xp_to_grant * 2
+      xp_granted = xp_to_grant
+      if bool(datetime.today().weekday() >= 4):
+        xp_granted = xp_to_grant * 2
 
-        player_channel_embed = discord.Embed(
-          title=f"{player_member.display_name} Did Not Receive Any Badges...\n\nbut they've been awarded **{xp_granted}xp** as a consolation prize!"
+      player_channel_embed = discord.Embed(
+        title=f"{player_member.display_name} Did Not Receive Any Badges...\n\nbut they've been awarded **{xp_granted}xp** as a consolation prize!"
+      )
+      player_channel_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
+      await trade_channel.send(embed=player_channel_embed)
+
+      if not auto_confront:
+        player_message_embed = discord.Embed(
+          title=f"TONGO! Confront!",
+          description="Your Tongo game has ended! Sadly you did not receive any badges...\n\nbut you got some Bonus XP instead!\n\n"
+                      f"You can view the full results at: {channel_message.jump_url}",
+          color=discord.Color.dark_purple()
         )
-        player_channel_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
-        await trade_channel.send(embed=player_channel_embed)
+      else:
+        player_message_embed = discord.Embed(
+          title=f"TONGO! Confront!",
+          description="Your Tongo game has automatically ended! Sadly you did not receive any badges...\n\nbut you got some Bonus XP instead!\n\n"
+                      f"You can view the full results at: {channel_message.jump_url}",
+          color=discord.Color.dark_purple()
+        )
 
-        # Now send message to the player
-        if not auto_confront:
-          player_message_embed = discord.Embed(
-            title=f"TONGO! Confront!",
-            description="Your Tongo game has ended! Sadly you did not receive any badges...\n\nbut you got some Bonus XP instead!\n\n"
-                        f"You can view the full results at: {channel_message.jump_url}",
-            color=discord.Color.dark_purple()
-          )
-        else:
-          player_message_embed = discord.Embed(
-            title=f"TONGO! Confront!",
-            description="Your Tongo game has automatically ended! Sadly you did not receive any badges...\n\nbut you got some Bonus XP instead!\n\n"
-                        f"You can view the full results at: {channel_message.jump_url}",
-            color=discord.Color.dark_purple()
-          )
-
-        player_message_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
-        player_message_embed.set_footer(text="Note you can use /settings to enable or disable these messages.")
-        try:
-          await player_member.send(embed=player_message_embed)
-        except discord.Forbidden as e:
-          logger.info(f"Unable to send Tongo completion message to {player_member.display_name}, they have their DMs closed.")
-          pass
+      player_message_embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")
+      player_message_embed.set_footer(text="Note: You can use /settings to enable or disable these messages.")
+      try:
+        await player_member.send(embed=player_message_embed)
+      except discord.Forbidden:
+        logger.info(f"Unable to send Tongo completion message to {player_member.display_name}, they have their DMs closed.")
+        pass
 
     if liquidation_result:
       liquidation_member = await self.bot.current_guild.fetch_member(liquidation_result['player_id'])
@@ -1040,71 +1039,63 @@ class Tongo(commands.Cog):
     player_distribution = { player_id: set() for player_id in tongo_player_ids }
     player_inventories = {}
     player_wishlists = {}
+    players_with_max_badges = set()
+    players_with_no_assignable_badges = set()
+
+    max_badge_count = await db_get_max_badge_count()
+
     for player_id in tongo_player_ids:
-      player_inventories[player_id] = [b['badge_filename'] for b in await db_get_user_badges(player_id)]
+      inventory = [b['badge_filename'] for b in await db_get_user_badges(player_id)]
+      player_inventories[player_id] = inventory
       player_wishlists[player_id] = [b['badge_filename'] for b in await db_get_user_wishlist_badges(player_id)]
+
+      if len(set(inventory)) >= max_badge_count:
+        players_with_max_badges.add(player_id)
 
     random.shuffle(tongo_player_ids)
     random.shuffle(tongo_pot)
 
-    # We're going to go round-robin and try to distribute all of the shuffled badges
     turn_index = 0
-    players_with_max_badges = set()
-    players_with_no_assignable_badges = set()
-
     while tongo_pot and (len(players_with_max_badges) + len(players_with_no_assignable_badges)) < len(tongo_player_ids):
       current_player_id = tongo_player_ids[turn_index % len(tongo_player_ids)]
 
-      # Skip players who can't receive more badges
       if current_player_id in players_with_max_badges or current_player_id in players_with_no_assignable_badges:
         turn_index += 1
-        continue  # Move to the next player
+        continue
 
       current_badge = None
-
-      # Loop through the tongo pot to find a valid badge
       for potential_badge in tongo_pot:
-        # First, prioritize wishlist badges that the player doesn't already have
         if potential_badge in player_wishlists[current_player_id] and potential_badge not in player_inventories[current_player_id]:
           current_badge = potential_badge
+          break
         elif potential_badge not in player_inventories[current_player_id]:
-          # If no wishlist match, assign the first badge the player doesn't already have
           current_badge = potential_badge
-
-        # If we found a valid badge, break out of the loop
-        if current_badge:
           break
 
-      # If no valid badge is found, mark player as having no assignable badges
       if current_badge is None:
         players_with_no_assignable_badges.add(current_player_id)
         turn_index += 1
-        continue  # Move to the next player
+        continue
 
-      # Assign the valid badge to the player and remove it from the pot
       player_distribution[current_player_id].add(current_badge)
-      tongo_pot.remove(current_badge)  # Remove the badge from the main pot
+      tongo_pot.remove(current_badge)
 
-      # Check if the player now has 3 badges
       if len(player_distribution[current_player_id]) >= 3:
         players_with_max_badges.add(current_player_id)
 
-      # Move to the next player
       turn_index += 1
 
-    # Now go through the distribution and actually perform the db handouts and removal from the pot
+    # Write to DB
     for p in player_distribution.items():
       player_id = p[0]
-      player_badges = p[1]
-
-      for b in player_badges:
+      for b in p[1]:
         await db_grant_player_badge(player_id, b)
         await db_remove_badge_from_pot(b)
 
-    # End the current game of tongo
     await db_end_current_tongo(active_tongo['id'])
 
-    return player_distribution
+    return player_distribution, players_with_max_badges
+
 
   async def _determine_liquidation(self, tongo_players):
     liquidation_result = None
