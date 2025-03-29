@@ -153,6 +153,7 @@ async def handle_intro_channel_promotion(message):
 
       welcome_embed.add_field(name=f"Read their intro {get_emoji('bashir_zoom_look_huh')}", value=f"Make your greeting personalized based on what they posted! Find their intro here: {message.jump_url}", inline=False)
       welcome_embed.add_field(name=f"Bring them into the fold {get_emoji('kira_good_morning_hello')}", value=f"Let them know it's okay to jump in anywhere, anytime. Offer a channel for them to get started on! (like <#{get_channel_id(config['channels']['animal-holophotography'])}>)", inline=False)
+      welcome_embed.add_field(name="Tag this with a 👍 if you're gonna hop in and welcome them!", value="Thank you!", inline=False)
 
       welcome_embed.set_footer(text="Thank you officers! 💖")
       welcome_channel = bot.get_channel(get_channel_id(config["welcome_channel"]))
@@ -399,6 +400,7 @@ async def increment_user_xp(user:discord.User, amt:int, reason:str, channel, sou
           await level_up_user(user, source_details)
         except Exception as e:
           logger.info(f"Error trying to level up user: {e}")
+          logger.error(traceback.format_exc())
 
 
 def console_log_xp_history(user:discord.User, amt:int, reason:str):

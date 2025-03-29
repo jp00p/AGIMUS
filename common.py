@@ -444,4 +444,5 @@ def make_memory_alpha_link(name: str) -> str:
       return f"[{name}]({link})"
     else:
       return name
-  return f"[{name}](https://memory-alpha.fandom.com/wiki/{name.replace(' ', '_')})"
+  link_name = re.sub(r'".*" ', '', name) if '"' in name else name  # "nicknames" are not included in the links
+  return f"[{name}](https://memory-alpha.fandom.com/wiki/{link_name.replace(' ', '_')})"

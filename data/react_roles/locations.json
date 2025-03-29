@@ -19,24 +19,24 @@
       "role": "Canada"
     },
     {
-      "emoji": "🇪🇺",
-      "role": "Europe"
-    },
-    {
       "emoji": "🇬🇧",
       "role": "United Kingdom"
     },
     {
-      "emoji": "🇦🇺",
-      "role": "Australia"
+      "emoji": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+      "role": "Scotland"
+    },
+    {
+      "emoji": "🇮🇪",
+      "role": "Ireland"
     },
     {
       "emoji": "🇮🇱",
       "role": "Israel"
     },
     {
-      "emoji": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-      "role": "Scotland"
+      "emoji": "🇦🇺",
+      "role": "Australia"
     },
     {
       "emoji": "🇳🇿",
@@ -51,8 +51,49 @@
       "role": "China"
     },
     {
+      "emoji": "🇿🇦",
+      "role": "South Africa"
+    },
+    {
+      "separator": true,
+      "emoji": "",
+      "role": ""
+    },
+    {
+      "emoji": "🍷",
+      "role": "Europe"
+    },
+    {
+      "emoji": "🗽",
+      "role": "Northeast US"
+    },
+    {
+      "emoji": "🦐",
+      "role": "Southern US"
+    },
+    {
+      "emoji": "🌽",
+      "role": "Midwest US"
+    },
+    {
+      "emoji": "🤠",
+      "role": "Texas"
+    },
+    {
+      "emoji": "🌵",
+      "role": "Southwest US"
+    },
+    {
       "emoji": "🌲",
-      "role": "Pacific Northwest"
-    } 
+      "role": "Pacific Northwest US"
+    },
+    {
+      "emoji": "🌉",
+      "role": "California"
+    },
+    {
+      "emoji": "🌌",
+      "role": "Space"
+    }
   ]
 }

@@ -31,6 +31,24 @@ async def db_get_special_badges():
   _SPECIAL_BADGES = rows
   return _SPECIAL_BADGES
 
+#   _________                    .__       .__ __________             .___
+#  /   _____/_____   ____   ____ |__|____  |  |\______   \_____     __| _/ ____   ____   ______
+#  \_____  \\____ \_/ __ \_/ ___\|  \__  \ |  | |    |  _/\__  \   / __ | / ___\_/ __ \ /  ___/
+#  /        \  |_> >  ___/\  \___|  |/ __ \|  |_|    |   \ / __ \_/ /_/ |/ /_/  >  ___/ \___ \
+# /_______  /   __/ \___  >\___  >__(____  /____/______  /(____  /\____ |\___  / \___  >____  >
+#         \/|__|        \/     \/        \/            \/      \/      \/_____/      \/     \/
+_MAX_BADGE_COUNT = None
+async def db_get_max_badge_count():
+  global _MAX_BADGE_COUNT
+
+  if _MAX_BADGE_COUNT is not None:
+    return _MAX_BADGE_COUNT
+  """
+  Return the total number of possible badges we have in the system
+  :return:
+  """
+  _MAX_BADGE_COUNT = len(await db_get_all_badge_info())
+  return _MAX_BADGE_COUNT
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
@@ -1231,3 +1249,11 @@ async def db_purge_users_wishlist(user_discord_id: int):
     '''
     vals = (user_discord_id,)
     await query.execute(sql, vals)
+
+async def db_get_user_badge_count(user_discord_id):
+  async with AgimusDB(dictionary=True) as query:
+    sql = "SELECT COUNT(*) as count FROM badges WHERE user_discord_id = %s"
+    vals = (user_discord_id,)
+    await query.execute(sql, vals)
+    result = await query.fetchone()
+  return result['count']

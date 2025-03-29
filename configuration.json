@@ -193,7 +193,8 @@
         "https://c.tenor.com/VYcQGFnzWy8AAAAd/ben-harrison-adam-pranica.gif",
         "https://c.tenor.com/_gnSj8sS_tcAAAAd/star-trek-the-next-generation.gif",
         "https://c.tenor.com/foHAwhrbPdUAAAAd/lower-decks-star-trek.gif",
-        "https://c.tenor.com/lFsCnO6JxgcAAAAC/tgg-the-greatest-generation.gif"
+        "https://c.tenor.com/lFsCnO6JxgcAAAAC/tgg-the-greatest-generation.gif",
+        "https://i.imgur.com/Z28FxRP.gif"
       ],
       "celebration_images": [
         "https://i.imgur.com/615nqFZ.jpg",
@@ -495,6 +496,21 @@
       "parameters": []
     },
     "food_war check": {
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-waiting-room",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "the-next-next-generation",
+        "sicks-bay"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "food_war record": {
       "blocked_channels": [
         "neelixs-morale-office",
         "plasma-vent",

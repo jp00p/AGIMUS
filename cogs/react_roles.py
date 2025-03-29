@@ -121,7 +121,8 @@ class ReactRoles(commands.Cog):
   async def add_role_reactions(self, message, reacts):
     if len(reacts) > 0:
       for r in reacts:
-        await message.add_reaction(r["emoji"])
+        if not r.get('separator'):
+          await message.add_reaction(r["emoji"])
 
   # get all existing reaction message data
   async def get_reaction_db_data(self):
@@ -135,13 +136,18 @@ class ReactRoles(commands.Cog):
   @commands.has_permissions(administrator=True)
   async def q_update_role_messages(self, ctx:discord.ApplicationContext, clear=False):
     logger.info(f"{ctx.author.display_name} is running the top secret {Back.RED}{Fore.WHITE}UPDATE ROLE MESSAGES{Fore.RESET}{Back.RESET} command!")
-    await ctx.message.delete()
+    try:
+      await ctx.message.delete()
+    except (discord.NotFound, AttributeError):
+      pass  # Message already deleted or not a message-type context
+    message_ids = await self.load_role_reactions()
     # if there are existing messages, remove them
     if clear:
-      if len(self.reaction_db_data) > 0:
-        for rm in self.reaction_db_data:
+      if len(message_ids) > 0:
+        for rm in message_ids:
+          logger.error(rm)
           try:
-            message = await self.roles_channel.fetch_message(rm["message_id"])
+            message = await self.roles_channel.fetch_message(rm)
           except discord.NotFound:
             logger.info("React role message not found, oh well! Moving on with my life.")
           else:
@@ -181,9 +187,11 @@ class ReactRoles(commands.Cog):
   @q_update_role_messages.error
   async def q_update_role_messages_error(self, ctx, error):
     if isinstance(error, commands.MissingPermissions):
-      await ctx.respond("You think you're clever!", ephemeral=True)
+      await ctx.send("You think you're clever!", ephemeral=True)
     else:
-      await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
+      await ctx.send("Sensoars indicate some kind of ...*error* has occured!")
+      logger.info(traceback.format_exc())
+      logger.error(error)
 
   # builds and returns the embed for the current reaction post
   def build_react_embed(self, post):
@@ -204,9 +212,12 @@ class ReactRoles(commands.Cog):
     if len(post["reactions"]) > 0:
       for reaction in post["reactions"]:
         role = discord.utils.get(bot.guilds[0].roles,name=reaction["role"])
-        embed_desc = f'{reaction["emoji"]} for {role.mention} ({len(role.members)})'
-        if reaction.get("description"):
-          embed_desc += f"\n{reaction['description']}\n"
+        if reaction.get('separator'):
+          embed_desc = "━━━━━━━━━━━━━━━"
+        else:
+          embed_desc = f'{reaction["emoji"]} for {role.mention} ({len(role.members)})'
+          if reaction.get("description"):
+            embed_desc += f"\n{reaction['description']}\n"
         list_of_reactions.append(embed_desc)
       # one field with lots of content and a blank name
       embed.add_field(
@@ -220,11 +231,11 @@ class ReactRoles(commands.Cog):
   # rebuild embeds (so role counts update)
   @tasks.loop(seconds=60)
   async def rebuild_embeds(self):
-    #logger.info("Rebuilding embeds")
     rr = self.reaction_roles
     for message_id in rr:
       message_name = rr[message_id]["message_name"]
       message = self.roles_channel.get_partial_message(message_id)
       new_embed = self.build_react_embed(self.reaction_data[message_name]) # rebuild the embed
       await message.edit(embed=new_embed)
+      await self.add_role_reactions(message, self.reaction_data[message_name]["reactions"])
       await asyncio.sleep(10)
