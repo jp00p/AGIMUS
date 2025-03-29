@@ -1,6 +1,7 @@
 Adira Tal
 Admiral Bob
 Admiral Satie
+AGIMUS
 Agnes Jurati
 Airiam
 Alexander Rozhenko
@@ -16,7 +17,6 @@ Azan
 B'Elanna Torres
 B'Etor
 Badgey
-Bareil
 Bareil Antos
 Barnes
 Beckett Mariner
@@ -35,12 +35,10 @@ Chang
 Changeleader
 Charles "Trip" Tucker III
 Charles Vance
-Chekov
 Chell
 Christine Chapel
 Christopher Pike
 Cleveland "Book" Booker
-Cleveland Booker
 Cristóbal Ríos
 D'Vana Tendi
 Dahj Asha
@@ -56,6 +54,7 @@ Edward Jellico
 Elim Garak
 Elnor
 Enabran Tain
+Erica Ortegas
 Ezri Dax
 Fletcher
 Fuck Bokai
@@ -63,6 +62,7 @@ Gabriel Lorca
 Garak
 Garrison
 Geordi La Forge
+George Samuel Kirk
 Gillian Taylor
 Gowron
 Grand Nagus Zek
@@ -71,17 +71,19 @@ Guinan
 Gul Madred
 Harry Kim
 Harry Mudd
+Hemmer
 Hikaru Sulu
 Hogan
 Hoshi Sato
-Hugh
 Hugh Culber
 Hugh of Borg
 Icheb
+Icheb’s brother
 Ilia
 Ishara Yar
 Ishka
 J. M. Colt
+Jack Crusher
 Jack Ransom
 Jadzia Dax
 Jake Sisko
@@ -89,13 +91,14 @@ Jal Culluh
 James Moriarty
 James T. Kirk
 Jean-Luc Picard
-Jennifer
+Jennifer Sh'reyan
 Jennifer Sisko
 Jet Manhaver
 Jett Reno
 Joe Carey
 Jonathan Archer
 José Tyler
+Joseph M'Benga
 Joseph Sisko
 Julian Bashir
 K'Ehleyr
@@ -108,21 +111,19 @@ Kes
 Kevin Uxbridge
 Khan Singh
 Kira Nerys
-Kirk
 Kivas Fajo
 Kor
 Kruge
 Kurn
 L'Rell
+La'an Noonien-Singh
 Leeta
 Leonard McCoy
 Leonardo da Vinci
-Leonardo daVinci
 Lily Sloan
 Lon Suder
 Lursa
 Luther Sloan
-Lwaxana
 Lwaxana Troi
 Maihar'du
 Malcolm Reed
@@ -147,18 +148,19 @@ Nagilum
 Naomi Wildman
 Narek
 Narissa
-Nechayev
 Neelix
 Nhan
 Nog
+Noonien Soong
 Nyota Uhura
 Odo
 Opaka
-Opaka Sulan
 Osyraa
 Owen Paris
 Paul Stamets
 Pavel Chekov
+Peanut Hamper
+Pelia
 Philippa Georgiou
 Phillip Boyce
 Phlox
@@ -183,6 +185,7 @@ Sarah Sisko
 Sarek
 Saru
 Scotty
+Sela
 Seska
 Seven of Nine
 Shakaar Edon
@@ -195,11 +198,11 @@ Sonya Gomez
 Soval
 Spock
 Stephen Hawking
-Stevens
-Sulu
+Steve Stevens
 Sybok
 Sylvia Tilly
 T'Ana
+T'Lyn
 T'Pol
 Tal Celes
 Tasha Yar
@@ -213,9 +216,8 @@ Tom Paris
 Tomalak
 Tora Ziyal
 Travis Mayweather
-Trip Tucker
 Tuvok
-Uhura
+Una Chin-Riley
 Valeris
 Vash
 Vendome
