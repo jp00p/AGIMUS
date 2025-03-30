@@ -59,6 +59,10 @@ blocked_level_up_sources = [
 # handle_message_xp(message) - calculates xp for a given message
 # message[required]: discord.Message
 async def handle_message_xp(message:discord.Message):
+  guild = message.guild
+  if guild is None:
+    return  # Message was probably a DM, so we don't need to award XP!
+
   blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
   # we don't like bots round here, or some channels
   if message.author.bot or message.channel.id in blocked_channel_ids:
@@ -316,11 +320,22 @@ async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   channel = bot.get_channel(notification_channel_id)
 
+  message = f"**{random.choice(random_level_up_messages["messages"]).format(user=user.mention, level=level, prev_level=(level-1))}**"
+
   embed_title = "Level up!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has reached **Level {level}**"
   if badge == None:
-    embed_description += "! They've already collected ALL BADGES EVERYWHERE! Congratulations on the impressive feat!"
+    embed_description += "!\n\nBUT they've already collected ***ALL BADGES EVERYWHERE!?!*** Congratulations on the impressive feat! 🎉"
+    embed = discord.Embed(
+      title=embed_title,
+      description=embed_description,
+      color=discord.Color.random()
+    )
+    embed.set_image(url="https://i.imgur.com/x9PjPT3.gif")
+    embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
+    await channel.send(content=message, embed=embed)
+    return
 
   if level == 2:
     embed_description += " and earned their first new unique badge!\n\nCongrats! To check out your full list of badges use `/badges showcase`.\n\nMore info about XP and the badge system and XP can be found by using `/help` in this channel."
@@ -333,7 +348,6 @@ async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_
   if source_details:
     fields.append({ 'name': "Level Up Source", 'value': source_details })
 
-  message = random.choice(random_level_up_messages["messages"]).format(user=user.mention, level=level, prev_level=(level-1))
   await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user, fields)
 
 # increment_user_xp(author, amt, reason, channel, source)
