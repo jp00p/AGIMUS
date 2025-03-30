@@ -50,8 +50,6 @@ async def db_get_max_badge_count():
   _MAX_BADGE_COUNT = len(await db_get_all_badge_info())
   return _MAX_BADGE_COUNT
 
-
-
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
 #  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \
@@ -1253,7 +1251,7 @@ async def db_purge_users_wishlist(user_discord_id: int):
     await query.execute(sql, vals)
 
 async def db_get_user_badge_count(user_discord_id):
-  async with AgimusDB() as query:
+  async with AgimusDB(dictionary=True) as query:
     sql = "SELECT COUNT(*) as count FROM badges WHERE user_discord_id = %s"
     vals = (user_discord_id,)
     await query.execute(sql, vals)
