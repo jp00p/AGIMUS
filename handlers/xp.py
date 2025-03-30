@@ -334,6 +334,7 @@ async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_
     )
     embed.set_image(url="https://i.imgur.com/x9PjPT3.gif")
     embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
+    embed.add_field(name='Level Up Source', value=source_details)
     await channel.send(content=message, embed=embed)
     return
 
