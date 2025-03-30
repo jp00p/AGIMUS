@@ -320,7 +320,7 @@ async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
   channel = bot.get_channel(notification_channel_id)
 
-  message = f"**{random.choice(random_level_up_messages["messages"]).format(user=user.mention, level=level, prev_level=(level-1))}**"
+  message = f"**{random.choice(random_level_up_messages['messages']).format(user=user.mention, level=level, prev_level=(level-1))}**"
 
   embed_title = "Level up!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
