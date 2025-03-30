@@ -325,7 +325,7 @@ async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_
   embed_title = "Level up!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has reached **Level {level}**"
-  if badge == None:
+  if badge is None:
     embed_description += "!\n\nBUT they've already collected ***ALL BADGES EVERYWHERE!?!*** Congratulations on the impressive feat! 🎉"
     embed = discord.Embed(
       title=embed_title,
@@ -334,6 +334,7 @@ async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_
     )
     embed.set_image(url="https://i.imgur.com/x9PjPT3.gif")
     embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
+    embed.add_field(name='Level Up Source', value=source_details)
     await channel.send(content=message, embed=embed)
     return
 

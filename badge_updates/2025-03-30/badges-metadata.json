@@ -1,0 +1,7374 @@
+[
+    {
+    "_createdAt": "2025-03-25T04:16:23Z",
+    "_id": "d46731d0-d155-4bfd-b016-9258aee0cc92",
+    "date": "2025-03-25T04:11:36.881Z",
+    "slug": "n-ob-s",
+    "timePeriod": "2300s",
+    "_type": "post",
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/N'ob's",
+    "_rev": "0rodJK18KtxwxKKHWk4yVO",
+    "title": "N'ob's",
+    "featuredImage": {
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/997d6271e6e24a05f5444bb1b307d85b82d3eb1a-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1
+          }
+        }
+      },
+      "alt": "n-ob-s",
+      "_type": "image"
+    },
+    "excerpt": null,
+    "franchise": "Lower Decks",
+    "_updatedAt": "2025-03-25T04:16:23Z",
+    "types": [
+      "Commerce"
+    ],
+    "body": [
+      {
+        "_key": "7169fbdde572",
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "_key": "c95f7baa8bc1",
+            "text": "Canon Image",
+            "marks": [],
+            "_type": "span"
+          }
+        ],
+        "_type": "block"
+      },
+      {
+        "alt": "n-ob-s",
+        "_key": "fdfd7c0a8ccd",
+        "_type": "image",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-dfa6e2b52b0898e217c6e0cdf41878032c25a7c3-1400x720-jpg"
+        }
+      },
+      {
+        "children": [
+          {
+            "marks": [],
+            "_type": "span",
+            "_key": "9ad5f34f8b90",
+            "text": "Vinyl records tore"
+          }
+        ],
+        "_type": "block",
+        "_key": "e7ef345c38fa",
+        "style": "normal",
+        "markDefs": []
+      }
+    ],
+    "designers": null,
+    "references": [
+      {
+        "_key": "455e2cf1de42",
+        "style": "normal",
+        "markDefs": [
+          {
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Starbase_80%3F!_(episode)",
+            "_key": "ae9241d657d7"
+          }
+        ],
+        "children": [
+          {
+            "text": "S05E05 ",
+            "marks": [],
+            "_type": "span",
+            "_key": "cbd51fc74cac"
+          },
+          {
+            "marks": [
+              "ae9241d657d7"
+            ],
+            "text": "Starbase 80?!",
+            "_key": "bb4d4cb965fd",
+            "_type": "span"
+          }
+        ],
+        "_type": "block"
+      }
+    ],
+    "affiliations": [
+      "Starbase 80"
+    ],
+    "universes": [
+      "Prime"
+    ],
+    "quadrant": "Beta",
+    "objectID": "d46731d0-d155-4bfd-b016-9258aee0cc92",
+    "_highlightResult": {
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "N'ob's",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Commerce",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "body": [
+        {
+          "_key": {
+            "value": "7169fbdde572",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_key": {
+                "value": "c95f7baa8bc1",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "alt": {
+            "value": "n-ob-s",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "fdfd7c0a8ccd",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-dfa6e2b52b0898e217c6e0cdf41878032c25a7c3-1400x720-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        },
+        {
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "9ad5f34f8b90",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Vinyl records tore",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "e7ef345c38fa",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "normal",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "affiliations": [
+        {
+          "value": "Starbase 80",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "quadrant": {
+        "value": "Beta",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "timePeriod": "2300s",
+    "types": [
+      "Product",
+      "Commerce"
+    ],
+    "date": "2025-03-25T04:04:43.118Z",
+    "_updatedAt": "2025-03-25T04:09:55Z",
+    "universes": [
+      "Prime"
+    ],
+    "references": [
+      {
+        "_key": "93341508f4b8",
+        "style": "normal",
+        "markDefs": [
+          {
+            "href": "https://memory-alpha.fandom.com/wiki/A_Farewell_To_Farms_(episode)",
+            "_key": "881662e14044",
+            "_type": "link"
+          }
+        ],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "4e9aa3aa6f98",
+            "text": "S05E04 ",
+            "marks": []
+          },
+          {
+            "_type": "span",
+            "marks": [
+              "881662e14044"
+            ],
+            "text": "A Farewell To Farms",
+            "_key": "a3c3e9ec5980"
+          }
+        ],
+        "_type": "block"
+      }
+    ],
+    "affiliations": [
+      "Klingon Empire"
+    ],
+    "title": "Klingon Spirits 2380s",
+    "body": [
+      {
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "text": "Canon Image",
+            "marks": [],
+            "_type": "span",
+            "_key": "c2abad3b03f0"
+          }
+        ],
+        "_type": "block",
+        "_key": "1e217b8eac6a"
+      },
+      {
+        "_type": "image",
+        "_key": "c607abfa07eb",
+        "asset": {
+          "_ref": "image-4f1b7f960457ecc1fdf4445a93f4bca44e1815b9-1400x788-jpg",
+          "_type": "reference"
+        },
+        "alt": "klingon-spirits-2380s"
+      }
+    ],
+    "franchise": "Lower Decks",
+    "quadrant": "Beta",
+    "featuredImage": {
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/fac532fd415630b6097604155b4aa9c4fd389cdf-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1
+          }
+        }
+      },
+      "alt": "klingon-spirits-2380s"
+    },
+    "slug": "klingon-spirits-2380s",
+    "_id": "dc35f9ff-0106-46c7-bc31-37c4af621b9b",
+    "_rev": "bFF6M54DUigZGOvbdOldsM",
+    "_createdAt": "2025-03-25T04:09:55Z",
+    "_type": "post",
+    "excerpt": null,
+    "designers": null,
+    "objectID": "dc35f9ff-0106-46c7-bc31-37c4af621b9b",
+    "_highlightResult": {
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Product",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Commerce",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "affiliations": [
+        {
+          "value": "Klingon Empire",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Klingon Spirits 2380s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "c2abad3b03f0",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "1e217b8eac6a",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "c607abfa07eb",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-4f1b7f960457ecc1fdf4445a93f4bca44e1815b9-1400x788-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "klingon-spirits-2380s",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Beta",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "franchise": "Lower Decks",
+    "_updatedAt": "2025-03-25T04:02:32Z",
+    "excerpt": null,
+    "designers": null,
+    "_id": "f95f55b9-8161-4f38-903d-15e902c8fc41",
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Starbase_80",
+    "date": "2025-03-25T03:57:19.031Z",
+    "featuredImage": {
+      "_type": "image",
+      "alt": "starbase-80",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/0cf92290f8977f0e21d8556b5bc8d4e0948559b7-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1
+          }
+        }
+      }
+    },
+    "universes": [
+      "Prime"
+    ],
+    "slug": "starbase-80",
+    "affiliations": [
+      "Starfleet"
+    ],
+    "_type": "post",
+    "types": [
+      "Mission Patch"
+    ],
+    "title": "Starbase 80",
+    "timePeriod": "2300s",
+    "_rev": "bFF6M54DUigZGOvbdOl0XL",
+    "_createdAt": "2025-03-25T03:57:22Z",
+    "references": [
+      {
+        "markDefs": [
+          {
+            "href": "https://memory-alpha.fandom.com/wiki/Fissure_Quest_(episode)",
+            "_key": "1cc7303c2926",
+            "_type": "link"
+          }
+        ],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "057d9663efe4",
+            "text": "S05E09 ",
+            "marks": []
+          },
+          {
+            "text": "Fissure Quest",
+            "_key": "9d71fb5c1fd1",
+            "_type": "span",
+            "marks": [
+              "1cc7303c2926"
+            ]
+          }
+        ],
+        "_type": "block",
+        "_key": "85d47f3b282b",
+        "style": "normal"
+      }
+    ],
+    "body": [
+      {
+        "style": "h2",
+        "_key": "1e6c726c62aa",
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Image",
+            "_key": "458e1c98aabd"
+          }
+        ],
+        "markDefs": []
+      },
+      {
+        "alt": "starbase-80",
+        "asset": {
+          "_ref": "image-f8cc0b9f5b45ce11e7d5bec43fb3ae7b2040d1b2-2200x1174-jpg",
+          "_type": "reference"
+        },
+        "_key": "d3bf1a3f4f63",
+        "_type": "image"
+      }
+    ],
+    "quadrant": "Beta",
+    "objectID": "f95f55b9-8161-4f38-903d-15e902c8fc41",
+    "_highlightResult": {
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "affiliations": [
+        {
+          "value": "Starfleet",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Mission Patch",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Starbase 80",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "1e6c726c62aa",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "458e1c98aabd",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ]
+        },
+        {
+          "alt": {
+            "value": "starbase-80",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-f8cc0b9f5b45ce11e7d5bec43fb3ae7b2040d1b2-2200x1174-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "_key": {
+            "value": "d3bf1a3f4f63",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "quadrant": {
+        "value": "Beta",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "slug": "federation-banner-2250s-united-earth",
+    "franchise": "Strange New Worlds",
+    "excerpt": null,
+    "body": [
+      {
+        "markDefs": [],
+        "style": "h2",
+        "_key": "7e90a6a9adf6",
+        "_type": "block",
+        "children": [
+          {
+            "text": "Canon Images",
+            "_key": "639a45655b41",
+            "_type": "span",
+            "marks": []
+          }
+        ]
+      },
+      {
+        "_key": "bddc9e8574b3",
+        "_type": "image",
+        "alt": "federation-banner-2250s-united-earth",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-0524cf685d719a2cd4112d62980090f9c257d226-2200x950-jpg"
+        }
+      },
+      {
+        "_key": "a50680106d8d",
+        "_type": "image",
+        "alt": "federation-banner-2250s-united-earth",
+        "asset": {
+          "_ref": "image-e262e18b3a8426a01d0ad50b28ddbff01c09a4d4-2200x961-jpg",
+          "_type": "reference"
+        }
+      }
+    ],
+    "_createdAt": "2025-03-25T03:41:42Z",
+    "_rev": "O7l6uBcKNN3XYLwDxLGe5n",
+    "timePeriod": "2200s",
+    "types": [
+      "Flag/Banner"
+    ],
+    "designers": null,
+    "title": "Federation Banner 2250s (United Earth)",
+    "universes": [
+      "Prime"
+    ],
+    "_type": "post",
+    "quadrant": "Alpha",
+    "_id": "ca9e3fbe-f38c-4375-81b5-f385ea525511",
+    "references": [
+      {
+        "markDefs": [
+          {
+            "_key": "7e33e5e0b603",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Ad_Astra_per_Aspera_(episode)"
+          }
+        ],
+        "style": "normal",
+        "_key": "58e980d51627",
+        "_type": "block",
+        "children": [
+          {
+            "marks": [],
+            "text": "S02E02  ",
+            "_key": "e16a65ee13d2",
+            "_type": "span"
+          },
+          {
+            "marks": [
+              "7e33e5e0b603"
+            ],
+            "text": "Ad Astra per Aspera",
+            "_key": "5c37bc0199a8",
+            "_type": "span"
+          }
+        ]
+      }
+    ],
+    "date": "2025-03-25T01:00:27.297Z",
+    "featuredImage": {
+      "alt": "federation-banner-2250s-united-earth",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/b93ac7b368482f71e8ea4a0c50279ec8bb1e8cd9-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions",
+            "width": 1100,
+            "height": 1100
+          }
+        }
+      },
+      "_type": "image"
+    },
+    "_updatedAt": "2025-03-25T03:50:57Z",
+    "affiliations": [
+      "UFP",
+      "Earth"
+    ],
+    "objectID": "ca9e3fbe-f38c-4375-81b5-f385ea525511",
+    "_highlightResult": {
+      "franchise": {
+        "value": "Strange New Worlds",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "7e90a6a9adf6",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "text": {
+                "value": "Canon Images",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "639a45655b41",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ]
+        },
+        {
+          "_key": {
+            "value": "bddc9e8574b3",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "federation-banner-2250s-united-earth",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-0524cf685d719a2cd4112d62980090f9c257d226-2200x950-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        },
+        {
+          "_key": {
+            "value": "a50680106d8d",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "federation-banner-2250s-united-earth",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-e262e18b3a8426a01d0ad50b28ddbff01c09a4d4-2200x961-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        }
+      ],
+      "timePeriod": {
+        "value": "2200s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Flag/Banner",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Federation Banner 2250s (United Earth)",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "UFP",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Earth",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  },
+  {
+    "designers": null,
+    "franchise": "Strange New Worlds",
+    "timePeriod": "2200s",
+    "featuredImage": {
+      "_type": "image",
+      "alt": "federation-banner-2250s-andorian",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/6cfc8ea0f4520676063aa9c127bb0839c6e3456b-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions"
+          }
+        }
+      }
+    },
+    "excerpt": null,
+    "quadrant": "Alpha",
+    "universes": [
+      "Prime"
+    ],
+    "slug": "federation-banner-2250s-andorian",
+    "_rev": "O7l6uBcKNN3XYLwDxL8RjF",
+    "_id": "88e358d0-0871-41e5-bdc5-52047a052996",
+    "types": [
+      "Flag/Banner"
+    ],
+    "_createdAt": "2025-03-25T01:09:55Z",
+    "references": [
+      {
+        "markDefs": [
+          {
+            "href": "https://memory-alpha.fandom.com/wiki/Ad_Astra_per_Aspera_(episode)",
+            "_key": "7e33e5e0b603",
+            "_type": "link"
+          }
+        ],
+        "style": "normal",
+        "_key": "58e980d51627",
+        "_type": "block",
+        "children": [
+          {
+            "text": "S02E02  ",
+            "_key": "e16a65ee13d2",
+            "_type": "span",
+            "marks": []
+          },
+          {
+            "_type": "span",
+            "marks": [
+              "7e33e5e0b603"
+            ],
+            "text": "Ad Astra per Aspera",
+            "_key": "5c37bc0199a8"
+          }
+        ]
+      }
+    ],
+    "date": "2025-03-25T01:00:27.297Z",
+    "affiliations": [
+      "UFP",
+      "Andoria"
+    ],
+    "_type": "post",
+    "_updatedAt": "2025-03-25T01:11:48Z",
+    "title": "Federation Banner 2250s (Andorian)",
+    "body": [
+      {
+        "children": [
+          {
+            "_key": "639a45655b41",
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Images"
+          }
+        ],
+        "markDefs": [],
+        "style": "h2",
+        "_key": "7e90a6a9adf6",
+        "_type": "block"
+      },
+      {
+        "asset": {
+          "_ref": "image-0524cf685d719a2cd4112d62980090f9c257d226-2200x950-jpg",
+          "_type": "reference"
+        },
+        "alt": "federation-banner-2250s-andorian",
+        "_type": "image",
+        "_key": "bddc9e8574b3"
+      },
+      {
+        "_key": "1f39888f5b25",
+        "asset": {
+          "_ref": "image-e262e18b3a8426a01d0ad50b28ddbff01c09a4d4-2200x961-jpg",
+          "_type": "reference"
+        },
+        "alt": "federation-banner-2250s-andorian",
+        "_type": "image"
+      }
+    ],
+    "objectID": "88e358d0-0871-41e5-bdc5-52047a052996",
+    "_highlightResult": {
+      "franchise": {
+        "value": "Strange New Worlds",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "2200s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Flag/Banner",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "affiliations": [
+        {
+          "value": "UFP",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Andoria",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Federation Banner 2250s (Andorian)",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "children": [
+            {
+              "_key": {
+                "value": "639a45655b41",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Images",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "7e90a6a9adf6",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "asset": {
+            "_ref": {
+              "value": "image-0524cf685d719a2cd4112d62980090f9c257d226-2200x950-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "federation-banner-2250s-andorian",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "bddc9e8574b3",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "1f39888f5b25",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-e262e18b3a8426a01d0ad50b28ddbff01c09a4d4-2200x961-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "federation-banner-2250s-andorian",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "excerpt": null,
+    "body": [
+      {
+        "_key": "7e90a6a9adf6",
+        "_type": "block",
+        "children": [
+          {
+            "marks": [],
+            "text": "Canon Images",
+            "_key": "639a45655b41",
+            "_type": "span"
+          }
+        ],
+        "markDefs": [],
+        "style": "h2"
+      },
+      {
+        "_type": "image",
+        "alt": "federation-banner-2250s-united-earth",
+        "asset": {
+          "_ref": "image-0524cf685d719a2cd4112d62980090f9c257d226-2200x950-jpg",
+          "_type": "reference"
+        },
+        "_key": "bddc9e8574b3"
+      }
+    ],
+    "date": "2025-03-25T01:00:27.297Z",
+    "quadrant": "Alpha",
+    "affiliations": [
+      "UFP",
+      "Starfleet"
+    ],
+    "_rev": "bFF6M54DUigZGOvbdOjD6m",
+    "universes": [
+      "Prime"
+    ],
+    "franchise": "Strange New Worlds",
+    "_createdAt": "2025-03-25T03:44:43Z",
+    "featuredImage": {
+      "_type": "image",
+      "alt": "federation-banner-2250s-starfleet-command",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/5d7b2fc43c8fb91f11f32a083d38c703ac1e8e86-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions"
+          }
+        }
+      }
+    },
+    "references": [
+      {
+        "style": "normal",
+        "_key": "58e980d51627",
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "marks": [],
+            "text": "S02E02  ",
+            "_key": "e16a65ee13d2"
+          },
+          {
+            "marks": [
+              "7e33e5e0b603"
+            ],
+            "text": "Ad Astra per Aspera",
+            "_key": "5c37bc0199a8",
+            "_type": "span"
+          }
+        ],
+        "markDefs": [
+          {
+            "_key": "7e33e5e0b603",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Ad_Astra_per_Aspera_(episode)"
+          }
+        ]
+      }
+    ],
+    "_updatedAt": "2025-03-25T03:46:10Z",
+    "designers": null,
+    "_type": "post",
+    "timePeriod": "2200s",
+    "title": "Federation Banner 2250s (Starfleet Command)",
+    "_id": "79f2e20d-85fe-4933-a66d-8e2ad604e444",
+    "types": [
+      "Flag/Banner"
+    ],
+    "slug": "federation-banner-2250s-starfleet-command",
+    "objectID": "79f2e20d-85fe-4933-a66d-8e2ad604e444",
+    "_highlightResult": {
+      "body": [
+        {
+          "_key": {
+            "value": "7e90a6a9adf6",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "text": {
+                "value": "Canon Images",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "639a45655b41",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "federation-banner-2250s-united-earth",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-0524cf685d719a2cd4112d62980090f9c257d226-2200x950-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "_key": {
+            "value": "bddc9e8574b3",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "UFP",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Starfleet",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "franchise": {
+        "value": "Strange New Worlds",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "2200s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Federation Banner 2250s (Starfleet Command)",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Flag/Banner",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  },
+  {
+    "quadrant": "Alpha",
+    "featuredImage": {
+      "_type": "image",
+      "alt": "federation-banner-2250s-tellarite",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/4c31c2553c82e713c0ab6226cec7fcc4aab6d3c0-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1
+          }
+        }
+      }
+    },
+    "body": [
+      {
+        "style": "h2",
+        "_key": "7e90a6a9adf6",
+        "_type": "block",
+        "children": [
+          {
+            "_key": "639a45655b41",
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Images"
+          }
+        ],
+        "markDefs": []
+      },
+      {
+        "_type": "image",
+        "alt": "federation-banner-2250s-tellarite",
+        "asset": {
+          "_ref": "image-7a1c834bbabe2dd69e908b464168f00049bdb11a-1400x676-jpg",
+          "_type": "reference"
+        },
+        "_key": "246f0dcbf89e"
+      }
+    ],
+    "franchise": "Strange New Worlds",
+    "title": "Federation Banner 2250s (Tellarite)",
+    "_id": "1b49ecd0-5bfb-4f37-89d2-2290ed7066c1",
+    "affiliations": [
+      "UFP",
+      "Tellarite"
+    ],
+    "date": "2025-03-25T01:00:27.297Z",
+    "universes": [
+      "Prime"
+    ],
+    "excerpt": null,
+    "designers": null,
+    "types": [
+      "Flag/Banner"
+    ],
+    "_rev": "O7l6uBcKNN3XYLwDxL8LqZ",
+    "_updatedAt": "2025-03-25T01:09:10Z",
+    "timePeriod": "2200s",
+    "slug": "federation-banner-2250s-tellarite",
+    "_createdAt": "2025-03-25T01:06:28Z",
+    "_type": "post",
+    "references": [
+      {
+        "markDefs": [
+          {
+            "href": "https://memory-alpha.fandom.com/wiki/Ad_Astra_per_Aspera_(episode)",
+            "_key": "7e33e5e0b603",
+            "_type": "link"
+          }
+        ],
+        "style": "normal",
+        "_key": "58e980d51627",
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "marks": [],
+            "text": "S02E02  ",
+            "_key": "e16a65ee13d2"
+          },
+          {
+            "text": "Ad Astra per Aspera",
+            "_key": "5c37bc0199a8",
+            "_type": "span",
+            "marks": [
+              "7e33e5e0b603"
+            ]
+          }
+        ]
+      }
+    ],
+    "objectID": "1b49ecd0-5bfb-4f37-89d2-2290ed7066c1",
+    "_highlightResult": {
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "7e90a6a9adf6",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_key": {
+                "value": "639a45655b41",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Images",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ]
+        },
+        {
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "federation-banner-2250s-tellarite",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-7a1c834bbabe2dd69e908b464168f00049bdb11a-1400x676-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "_key": {
+            "value": "246f0dcbf89e",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "franchise": {
+        "value": "Strange New Worlds",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Federation Banner 2250s (Tellarite)",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "UFP",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Tellarite",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Flag/Banner",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "timePeriod": {
+        "value": "2200s",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "excerpt": null,
+    "body": [
+      {
+        "_key": "7e90a6a9adf6",
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "639a45655b41",
+            "text": "Canon Images",
+            "marks": []
+          }
+        ],
+        "_type": "block"
+      },
+      {
+        "_type": "image",
+        "_key": "246f0dcbf89e",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-7a1c834bbabe2dd69e908b464168f00049bdb11a-1400x676-jpg"
+        },
+        "alt": "federation-banner-2250s-vulcan"
+      },
+      {
+        "_key": "7aea7cbe4847",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-0524cf685d719a2cd4112d62980090f9c257d226-2200x950-jpg"
+        },
+        "alt": "federation-banner-2250s-vulcan",
+        "_type": "image"
+      }
+    ],
+    "timePeriod": "2200s",
+    "affiliations": [
+      "UFP",
+      "Vulcan"
+    ],
+    "featuredImage": {
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/3241c2e7d5e473580a97a4d273dbca47cc36b1cc-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "height": 1100,
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions",
+            "width": 1100
+          }
+        }
+      },
+      "alt": "federation-banner-2250s-vulcan"
+    },
+    "_createdAt": "2025-03-25T01:04:45Z",
+    "_rev": "O7l6uBcKNN3XYLwDxL8CyX",
+    "universes": [
+      "Prime"
+    ],
+    "_type": "post",
+    "_id": "120376a8-d353-4d1c-a1eb-3ae2b2bcf4e9",
+    "quadrant": "Alpha",
+    "designers": null,
+    "title": "Federation Banner 2250s (Vulcan)",
+    "_updatedAt": "2025-03-25T01:04:45Z",
+    "slug": "federation-banner-2250s-vulcan",
+    "date": "2025-03-25T01:00:27.297Z",
+    "types": [
+      "Flag/Banner"
+    ],
+    "references": [
+      {
+        "_key": "58e980d51627",
+        "style": "normal",
+        "markDefs": [
+          {
+            "href": "https://memory-alpha.fandom.com/wiki/Ad_Astra_per_Aspera_(episode)",
+            "_key": "7e33e5e0b603",
+            "_type": "link"
+          }
+        ],
+        "children": [
+          {
+            "marks": [],
+            "_type": "span",
+            "_key": "e16a65ee13d2",
+            "text": "S02E02  "
+          },
+          {
+            "text": "Ad Astra per Aspera",
+            "_key": "5c37bc0199a8",
+            "_type": "span",
+            "marks": [
+              "7e33e5e0b603"
+            ]
+          }
+        ],
+        "_type": "block"
+      }
+    ],
+    "franchise": "Strange New Worlds",
+    "objectID": "120376a8-d353-4d1c-a1eb-3ae2b2bcf4e9",
+    "_highlightResult": {
+      "body": [
+        {
+          "_key": {
+            "value": "7e90a6a9adf6",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "639a45655b41",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Images",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "246f0dcbf89e",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-7a1c834bbabe2dd69e908b464168f00049bdb11a-1400x676-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "federation-banner-2250s-vulcan",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "7aea7cbe4847",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-0524cf685d719a2cd4112d62980090f9c257d226-2200x950-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "federation-banner-2250s-vulcan",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "timePeriod": {
+        "value": "2200s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "UFP",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Vulcan",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Federation Banner 2250s (Vulcan)",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Flag/Banner",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "franchise": {
+        "value": "Strange New Worlds",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "_updatedAt": "2025-03-25T00:47:22Z",
+    "_type": "post",
+    "quadrant": "Alpha",
+    "_rev": "0rodJK18KtxwxKKHWjcpDK",
+    "date": "2025-03-25T00:43:16.048Z",
+    "references": [
+      {
+        "children": [
+          {
+            "_key": "d63bb233fd220",
+            "_type": "span",
+            "marks": [],
+            "text": "S02E14 "
+          },
+          {
+            "_type": "span",
+            "marks": [
+              "e8402dfc0411"
+            ],
+            "text": "Cracked Mirror",
+            "_key": "d63bb233fd221"
+          }
+        ],
+        "markDefs": [
+          {
+            "_key": "e8402dfc0411",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Cracked_Mirror_(episode)"
+          }
+        ],
+        "_type": "block",
+        "style": "normal",
+        "_key": "3c885d154276"
+      }
+    ],
+    "title": "Terran Banner 2380s",
+    "franchise": "Prodigy",
+    "universes": [
+      "Mirror"
+    ],
+    "_createdAt": "2025-03-25T00:47:22Z",
+    "featuredImage": {
+      "alt": "terran-banner-2380s",
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/4be8d138431559eb427eac9bbe211c455fad6d05-1200x1200.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1200,
+            "height": 1200,
+            "aspectRatio": 1
+          }
+        }
+      }
+    },
+    "affiliations": [
+      "Terran Empire"
+    ],
+    "types": [
+      "Flag/Banner"
+    ],
+    "_id": "48600ba0-dfd0-40d1-98a8-077ac07b7e3f",
+    "excerpt": null,
+    "designers": null,
+    "timePeriod": "2300s",
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Terran_Empire",
+    "slug": "terran-banner-2380s",
+    "body": [
+      {
+        "_key": "80002ff0ee0c",
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "marks": [],
+            "_type": "span",
+            "_key": "bc79de06ecd0",
+            "text": "Canon Images"
+          }
+        ],
+        "_type": "block"
+      },
+      {
+        "alt": "terran-banner-2380s",
+        "_type": "image",
+        "_key": "2d91abdfb9b9",
+        "asset": {
+          "_ref": "image-1b3b3a48a6e59623cd7bde6650cd63efb13d5b19-1920x1051-jpg",
+          "_type": "reference"
+        }
+      },
+      {
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-797e6afb128863199158a34af4e883f0c435ff1f-2000x844-jpg"
+        },
+        "alt": "terran-banner-2380s",
+        "_type": "image",
+        "_key": "563e621ee986"
+      },
+      {
+        "alt": "terran-banner-2380s",
+        "_type": "image",
+        "_key": "c15e698652e0",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-5d67109758caa7a1efa87e4e1fca26cbc06b19e3-2000x1047-jpg"
+        }
+      }
+    ],
+    "objectID": "48600ba0-dfd0-40d1-98a8-077ac07b7e3f",
+    "_highlightResult": {
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Terran Banner 2380s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "franchise": {
+        "value": "Prodigy",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Mirror",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "affiliations": [
+        {
+          "value": "Terran Empire",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Flag/Banner",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "_key": {
+            "value": "80002ff0ee0c",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "bc79de06ecd0",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Images",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "alt": {
+            "value": "terran-banner-2380s",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "2d91abdfb9b9",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-1b3b3a48a6e59623cd7bde6650cd63efb13d5b19-1920x1051-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        },
+        {
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-797e6afb128863199158a34af4e883f0c435ff1f-2000x844-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "terran-banner-2380s",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "563e621ee986",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "alt": {
+            "value": "terran-banner-2380s",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "c15e698652e0",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-5d67109758caa7a1efa87e4e1fca26cbc06b19e3-2000x1047-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "slug": "terran-empire-2380s-b",
+    "_id": "de9a8309-68f3-4b7a-b972-7253744ab1b0",
+    "_updatedAt": "2025-03-25T00:52:00Z",
+    "affiliations": [
+      "Terran Empire"
+    ],
+    "universes": [
+      "Mirror"
+    ],
+    "title": "Terran Empire 2380s B",
+    "_rev": "O7l6uBcKNN3XYLwDxL7J1R",
+    "body": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Image",
+            "_key": "5f8930657bb5"
+          }
+        ],
+        "markDefs": [],
+        "style": "normal",
+        "_key": "704f28b802a8"
+      },
+      {
+        "_type": "image",
+        "alt": "terran-empire-2380s-b",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-1b3b3a48a6e59623cd7bde6650cd63efb13d5b19-1920x1051-jpg"
+        },
+        "_key": "4f4fb287611e"
+      }
+    ],
+    "_type": "post",
+    "timePeriod": "2300s",
+    "date": "2025-03-25T00:37:14.286Z",
+    "_createdAt": "2025-03-25T00:42:44Z",
+    "types": [
+      "Species/Civilization"
+    ],
+    "quadrant": "Alpha",
+    "featuredImage": {
+      "_type": "image",
+      "alt": "terran-empire-2380s-b",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/01089e22a698c921781f1486389329dcc6b73e6a-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1
+          }
+        }
+      }
+    },
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Terran_Empire",
+    "excerpt": null,
+    "designers": null,
+    "franchise": "Prodigy",
+    "references": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "marks": [],
+            "text": "S02E14 ",
+            "_key": "e75e58b0a133",
+            "_type": "span"
+          },
+          {
+            "marks": [
+              "f29c14daa7cb"
+            ],
+            "text": "Cracked Mirror",
+            "_key": "31b1a6f46696",
+            "_type": "span"
+          }
+        ],
+        "markDefs": [
+          {
+            "_key": "f29c14daa7cb",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Cracked_Mirror_(episode)"
+          }
+        ],
+        "style": "normal",
+        "_key": "9c491c336efa"
+      }
+    ],
+    "objectID": "de9a8309-68f3-4b7a-b972-7253744ab1b0",
+    "_highlightResult": {
+      "affiliations": [
+        {
+          "value": "Terran Empire",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Mirror",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Terran Empire 2380s B",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "5f8930657bb5",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "normal",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "704f28b802a8",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "terran-empire-2380s-b",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-1b3b3a48a6e59623cd7bde6650cd63efb13d5b19-1920x1051-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "_key": {
+            "value": "4f4fb287611e",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Species/Civilization",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "franchise": {
+        "value": "Prodigy",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "date": "2025-03-12T05:20:23.290Z",
+    "quadrant": "Alpha",
+    "references": [
+      {
+        "_key": "33f08effacb3",
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "marks": [],
+            "text": "S02E01 ",
+            "_key": "f609549da39b"
+          },
+          {
+            "text": "Into the Breach, Part I",
+            "_key": "99bd34f2dad0",
+            "_type": "span",
+            "marks": [
+              "020ae3618171"
+            ]
+          }
+        ],
+        "markDefs": [
+          {
+            "_key": "020ae3618171",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Into_the_Breach,_Part_I_(episode)"
+          }
+        ],
+        "style": "normal"
+      }
+    ],
+    "title": "Nova Squadron Insignia",
+    "universes": [
+      "Prime"
+    ],
+    "types": [
+      "Insignia"
+    ],
+    "slug": "nova-squadron-insignia",
+    "affiliations": [
+      "Starfleet"
+    ],
+    "_createdAt": "2025-03-12T05:26:19Z",
+    "timePeriod": "2300s",
+    "body": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_key": "c59bfaba8ace",
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Image"
+          }
+        ],
+        "markDefs": [],
+        "style": "h2",
+        "_key": "4bd7cdfaa5c6"
+      },
+      {
+        "_type": "image",
+        "alt": "nova-squadron-insignia",
+        "asset": {
+          "_ref": "image-4d74b0af95a1dbbc99bcd38b20f2009cffa4cda0-1920x1002-jpg",
+          "_type": "reference"
+        },
+        "_key": "fa33bdffddff"
+      },
+      {
+        "_type": "block",
+        "_key": "14070fe52489",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "marks": [
+              "em"
+            ],
+            "_type": "span",
+            "_key": "0a5cf36026b5",
+            "text": "Thanks Juan!"
+          }
+        ]
+      }
+    ],
+    "designers": null,
+    "featuredImage": {
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/a12b3816630da1b09f05e9f81182ea23112d13dc-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1
+          }
+        }
+      },
+      "_type": "image",
+      "alt": "nova-squadron-insignia"
+    },
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Nova_Squadron",
+    "_rev": "0rodJK18KtxwxKKHWjaq79",
+    "excerpt": null,
+    "_id": "8c11dd2a-b70c-4916-9af3-b158d5e0f993",
+    "_updatedAt": "2025-03-25T00:33:07Z",
+    "_type": "post",
+    "franchise": "Prodigy",
+    "objectID": "8c11dd2a-b70c-4916-9af3-b158d5e0f993",
+    "_highlightResult": {
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Nova Squadron Insignia",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Insignia",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "affiliations": [
+        {
+          "value": "Starfleet",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_key": {
+                "value": "c59bfaba8ace",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "4bd7cdfaa5c6",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "nova-squadron-insignia",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-4d74b0af95a1dbbc99bcd38b20f2009cffa4cda0-1920x1002-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "_key": {
+            "value": "fa33bdffddff",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "14070fe52489",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "normal",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "marks": [
+                {
+                  "value": "em",
+                  "matchLevel": "none",
+                  "matchedWords": []
+                }
+              ],
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "0a5cf36026b5",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Thanks Juan!",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ]
+        }
+      ],
+      "franchise": {
+        "value": "Prodigy",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "universes": [
+      "Prime"
+    ],
+    "body": [
+      {
+        "markDefs": [],
+        "children": [
+          {
+            "text": "Canon Image",
+            "marks": [],
+            "_type": "span",
+            "_key": "ff03145540c8"
+          }
+        ],
+        "_type": "block",
+        "_key": "4f9f2ef72cd2",
+        "style": "h1"
+      },
+      {
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-54e1c3dd4ac4bbad6f4dd7aee7f79c110d97592b-2000x948-jpg"
+        },
+        "alt": "daystrom-institute-informal",
+        "_type": "image",
+        "_key": "647bd2f49283"
+      }
+    ],
+    "affiliations": [
+      "Earth",
+      "Daystrom Institute"
+    ],
+    "franchise": "Prodigy",
+    "_type": "post",
+    "references": [
+      {
+        "_type": "block",
+        "_key": "ccf9024a9e22",
+        "style": "normal",
+        "markDefs": [
+          {
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Ouroboros,_Part_II_(episode)",
+            "_key": "4019343f1441"
+          }
+        ],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "752578d2258d",
+            "text": "S02E20 ",
+            "marks": []
+          },
+          {
+            "_type": "span",
+            "marks": [
+              "4019343f1441"
+            ],
+            "text": "Ouroboros, Part II",
+            "_key": "7d4796e969e6"
+          }
+        ]
+      }
+    ],
+    "featuredImage": {
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/884faff6a4ab5d3a5e5a6c6a1da9e4b61f89de6e-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions"
+          }
+        }
+      },
+      "alt": "daystrom-institute-informal",
+      "_type": "image"
+    },
+    "_updatedAt": "2025-03-12T05:15:42Z",
+    "designers": null,
+    "timePeriod": "2300s",
+    "types": [
+      "Science/Research"
+    ],
+    "title": "Daystrom Institute Informal",
+    "_id": "b909f0d7-4870-4b44-aa58-c8537e49711a",
+    "_rev": "mkUPkdlfNXD6WEbKcZbXws",
+    "_createdAt": "2025-03-12T05:15:42Z",
+    "date": "2025-03-12T05:12:32.844Z",
+    "excerpt": null,
+    "quadrant": null,
+    "slug": "daystrom-institute-informal",
+    "objectID": "b909f0d7-4870-4b44-aa58-c8537e49711a",
+    "_highlightResult": {
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "body": [
+        {
+          "children": [
+            {
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "ff03145540c8",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "4f9f2ef72cd2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h1",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-54e1c3dd4ac4bbad6f4dd7aee7f79c110d97592b-2000x948-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "daystrom-institute-informal",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "647bd2f49283",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "affiliations": [
+        {
+          "value": "Earth",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Daystrom Institute",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "franchise": {
+        "value": "Prodigy",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Science/Research",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Daystrom Institute Informal",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "date": "2025-03-12T05:08:27.278Z",
+    "designers": null,
+    "_id": "5a13b1be-062a-46c8-b50c-f5f722a87408",
+    "affiliations": [
+      "Starfleet"
+    ],
+    "universes": [
+      "Prime"
+    ],
+    "excerpt": null,
+    "_rev": "mkUPkdlfNXD6WEbKcZaRXK",
+    "_createdAt": "2025-03-12T05:11:56Z",
+    "types": [
+      "Starship"
+    ],
+    "slug": "uss-protostar-informal",
+    "featuredImage": {
+      "alt": "USS-Protostar-Informal",
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/095c707022b9c8382e07b609a7eeb01961a3b64e-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1
+          }
+        }
+      }
+    },
+    "_type": "post",
+    "timePeriod": null,
+    "title": "USS Protostar Informal",
+    "franchise": "Prodigy",
+    "quadrant": "Alpha",
+    "body": [
+      {
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "text": "Canon Image",
+            "marks": [],
+            "_type": "span",
+            "_key": "5cfe956d887e"
+          }
+        ],
+        "_type": "block",
+        "_key": "716b34faf08b"
+      },
+      {
+        "asset": {
+          "_ref": "image-906ecad6aec65cccd56de87a2a78418f10a777af-1800x906-jpg",
+          "_type": "reference"
+        },
+        "alt": "USS-Protostar-Informal",
+        "_type": "image",
+        "_key": "971cc7d8ef6e"
+      }
+    ],
+    "_updatedAt": "2025-03-12T05:11:56Z",
+    "references": [
+      {
+        "_key": "c6ef0a5cc178",
+        "style": "normal",
+        "markDefs": [
+          {
+            "_key": "961ef146c1ba",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Last_Flight_of_the_Protostar,_Part_I_(episode)"
+          }
+        ],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "5121fac50af0",
+            "text": "S02E11 ",
+            "marks": []
+          },
+          {
+            "_key": "c91b5a640563",
+            "_type": "span",
+            "marks": [
+              "961ef146c1ba"
+            ],
+            "text": "Last Flight of the Protostar, Part I"
+          }
+        ],
+        "_type": "block"
+      }
+    ],
+    "objectID": "5a13b1be-062a-46c8-b50c-f5f722a87408",
+    "_highlightResult": {
+      "affiliations": [
+        {
+          "value": "Starfleet",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Starship",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "USS Protostar Informal",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "franchise": {
+        "value": "Prodigy",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "5cfe956d887e",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "716b34faf08b",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "asset": {
+            "_ref": {
+              "value": "image-906ecad6aec65cccd56de87a2a78418f10a777af-1800x906-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "USS-Protostar-Informal",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "971cc7d8ef6e",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "date": "2025-03-12T05:02:24.312Z",
+    "title": "UFP Starfleet Database",
+    "excerpt": null,
+    "designers": null,
+    "featuredImage": {
+      "_type": "image",
+      "alt": "ufp-starfleet-database",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/29344fe7861aa2e9a8ca56dfdd18a93c741716db-1200x1200.png",
+        "metadata": {
+          "dimensions": {
+            "height": 1200,
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions",
+            "width": 1200
+          }
+        }
+      }
+    },
+    "slug": "ufp-starfleet-database",
+    "_type": "post",
+    "_createdAt": "2025-03-12T05:07:33Z",
+    "references": [
+      {
+        "_type": "block",
+        "_key": "c92d41381778",
+        "style": "normal",
+        "markDefs": [
+          {
+            "_key": "6b5c0320b8df",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Is_There_in_Beauty_No_Truth%3F_(episode)"
+          }
+        ],
+        "children": [
+          {
+            "_key": "d0ff7d6ccc98",
+            "text": "S02E08 ",
+            "marks": [],
+            "_type": "span"
+          },
+          {
+            "text": "Is There in Beauty No Truth?",
+            "_key": "388d3c8037b0",
+            "_type": "span",
+            "marks": [
+              "6b5c0320b8df"
+            ]
+          }
+        ]
+      }
+    ],
+    "quadrant": "Alpha",
+    "body": [
+      {
+        "_key": "5dedb532e0fe",
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "marks": [],
+            "_type": "span",
+            "_key": "746532c0cf80",
+            "text": "Canon Image"
+          }
+        ],
+        "_type": "block"
+      },
+      {
+        "_key": "297c60b4f999",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-308721e15487328e10f71510eb3058302ac8e4d5-1900x973-jpg"
+        },
+        "alt": "ufp-starfleet-databas",
+        "_type": "image"
+      }
+    ],
+    "affiliations": [
+      "Starfleet"
+    ],
+    "timePeriod": "2300s",
+    "universes": [
+      "Prime"
+    ],
+    "_rev": "mkUPkdlfNXD6WEbKcZZAHm",
+    "_id": "172f3fd4-5fa3-4026-9d76-7da0c178fc64",
+    "franchise": "Prodigy",
+    "types": [
+      "Science/Research"
+    ],
+    "_updatedAt": "2025-03-12T05:07:33Z",
+    "objectID": "172f3fd4-5fa3-4026-9d76-7da0c178fc64",
+    "_highlightResult": {
+      "title": {
+        "value": "UFP Starfleet Database",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "_key": {
+            "value": "5dedb532e0fe",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "746532c0cf80",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "297c60b4f999",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-308721e15487328e10f71510eb3058302ac8e4d5-1900x973-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "ufp-starfleet-databas",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "affiliations": [
+        {
+          "value": "Starfleet",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "franchise": {
+        "value": "Prodigy",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Science/Research",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  },
+  {
+    "designers": null,
+    "franchise": "The Next Generation",
+    "_rev": "bFF6M54DUigZGOvbdOjuTQ",
+    "date": "2025-03-12T04:56:44.215Z",
+    "_createdAt": "2025-03-12T05:01:32Z",
+    "excerpt": null,
+    "body": [
+      {
+        "children": [
+          {
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Image",
+            "_key": "78686fc8844c"
+          }
+        ],
+        "markDefs": [],
+        "style": "h2",
+        "_key": "92d5552f1f28",
+        "_type": "block"
+      },
+      {
+        "asset": {
+          "_ref": "image-eae3025f7cef2594e60488c394a49e705535862b-1400x1042-jpg",
+          "_type": "reference"
+        },
+        "_key": "d7638d6c5b6b",
+        "_type": "image",
+        "alt": "idic-370s"
+      }
+    ],
+    "timePeriod": "300s",
+    "_updatedAt": "2025-03-25T03:54:37Z",
+    "_id": "661dc739-8959-4733-b87a-94dba175317e",
+    "title": "IDIC 370s",
+    "universes": [
+      "Prime"
+    ],
+    "quadrant": "Alpha",
+    "slug": "idic-370s",
+    "references": [
+      {
+        "children": [
+          {
+            "_type": "span",
+            "marks": [],
+            "text": "S05E08 ",
+            "_key": "62387e56662a"
+          },
+          {
+            "marks": [
+              "96f6779d4033"
+            ],
+            "text": "Unification II",
+            "_key": "74ac4c7447e0",
+            "_type": "span"
+          }
+        ],
+        "markDefs": [
+          {
+            "_key": "96f6779d4033",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Unification_II_(episode)"
+          }
+        ],
+        "style": "normal",
+        "_key": "65f3771e4c16",
+        "_type": "block"
+      }
+    ],
+    "featuredImage": {
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/f5199ce2ccb4a25d5a216800ffbe76897a7e11c0-960x960.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 960,
+            "height": 960,
+            "aspectRatio": 1
+          }
+        }
+      },
+      "_type": "image",
+      "alt": "idic-370s"
+    },
+    "affiliations": [
+      "Vulcan"
+    ],
+    "types": [
+      "Species/Civilization"
+    ],
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/IDIC",
+    "_type": "post",
+    "objectID": "661dc739-8959-4733-b87a-94dba175317e",
+    "_highlightResult": {
+      "franchise": {
+        "value": "The Next Generation",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "78686fc8844c",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "92d5552f1f28",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "asset": {
+            "_ref": {
+              "value": "image-eae3025f7cef2594e60488c394a49e705535862b-1400x1042-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "_key": {
+            "value": "d7638d6c5b6b",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "idic-370s",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "timePeriod": {
+        "value": "300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "IDIC 370s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "Vulcan",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Species/Civilization",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  },
+  {
+    "excerpt": null,
+    "timePeriod": null,
+    "_rev": "hWqvmS89NmrU2OskkLH695",
+    "body": [
+      {
+        "children": [
+          {
+            "text": "Canon Image",
+            "marks": [],
+            "_type": "span",
+            "_key": "a53562236a2f"
+          }
+        ],
+        "_type": "block",
+        "_key": "51ccd5451a0d",
+        "style": "h2",
+        "markDefs": []
+      },
+      {
+        "_key": "897317b5baaf",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-6a4a51102504d3bca64f4082106046d0da218ae4-1900x989-jpg"
+        },
+        "alt": "temporal-mechanics-201",
+        "_type": "image"
+      }
+    ],
+    "references": [
+      {
+        "markDefs": [
+          {
+            "_key": "507fc2b8be62",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Ouroboros,_Part_II_(episode)"
+          }
+        ],
+        "children": [
+          {
+            "text": "S02E20 ",
+            "marks": [],
+            "_type": "span",
+            "_key": "6616b07590b5"
+          },
+          {
+            "_type": "span",
+            "marks": [
+              "507fc2b8be62"
+            ],
+            "text": "Ouroboros, Part II",
+            "_key": "1fb55376713f"
+          }
+        ],
+        "_type": "block",
+        "_key": "aa7a7bffe536",
+        "style": "normal"
+      }
+    ],
+    "_type": "post",
+    "title": "Temporal Mechanics 201",
+    "slug": "temporal-mechanics-201",
+    "featuredImage": {
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/28212dfef7eef7a011df456ad4c36b6660fa23a3-1000x1000.png",
+        "metadata": {
+          "dimensions": {
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions",
+            "width": 1000,
+            "height": 1000
+          }
+        }
+      },
+      "alt": "temporal-mechanics-201",
+      "_type": "image"
+    },
+    "_createdAt": "2025-03-11T23:27:30Z",
+    "date": "2025-03-11T23:23:26.303Z",
+    "universes": [
+      "Prime"
+    ],
+    "designers": null,
+    "_id": "e0f9358a-d53a-4870-a345-a95064b093d3",
+    "types": [
+      "Science/Research"
+    ],
+    "quadrant": "Alpha",
+    "_updatedAt": "2025-03-11T23:27:30Z",
+    "affiliations": [
+      "Starfleet"
+    ],
+    "franchise": "Prodigy",
+    "objectID": "e0f9358a-d53a-4870-a345-a95064b093d3",
+    "_highlightResult": {
+      "body": [
+        {
+          "children": [
+            {
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "a53562236a2f",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "51ccd5451a0d",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "897317b5baaf",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-6a4a51102504d3bca64f4082106046d0da218ae4-1900x989-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "temporal-mechanics-201",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "title": {
+        "value": "Temporal Mechanics 201",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Science/Research",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "Starfleet",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "franchise": {
+        "value": "Prodigy",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "date": "2025-03-11T23:15:45.374Z",
+    "affiliations": [
+      "Starfleet"
+    ],
+    "_createdAt": "2025-03-11T23:23:03Z",
+    "featuredImage": {
+      "_type": "image",
+      "alt": "temporal-mechanics-101",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/601211ad5966f70c0c3123a7b481c2d42a282934-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions"
+          }
+        }
+      }
+    },
+    "types": [
+      "Science/Research"
+    ],
+    "_rev": "VkIDHWBA1GsoD7LDAALTJd",
+    "references": [
+      {
+        "_type": "block",
+        "_key": "a6ff9c3dc14b",
+        "style": "normal",
+        "markDefs": [
+          {
+            "href": "https://memory-alpha.fandom.com/wiki/Temporal_Mechanics_101_(episode)",
+            "_key": "ee935c380f2d",
+            "_type": "link"
+          }
+        ],
+        "children": [
+          {
+            "text": "S02E04 ",
+            "marks": [],
+            "_type": "span",
+            "_key": "61a1c7198248"
+          },
+          {
+            "text": "Temporal Mechanics 101",
+            "_key": "21c273f163ad",
+            "_type": "span",
+            "marks": [
+              "ee935c380f2d"
+            ]
+          }
+        ]
+      }
+    ],
+    "slug": "temporal-mechanics-101",
+    "_type": "post",
+    "designers": null,
+    "_updatedAt": "2025-03-11T23:23:03Z",
+    "universes": [
+      "Prime"
+    ],
+    "_id": "927c6016-af0c-422e-b5e8-2768ff99b9eb",
+    "title": "Temporal Mechanics 101",
+    "excerpt": null,
+    "body": [
+      {
+        "_type": "block",
+        "_key": "4d8448387322",
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "marks": [],
+            "_type": "span",
+            "_key": "bcfbb875da23",
+            "text": "Canon Image"
+          }
+        ]
+      },
+      {
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-a84a4b6ad80493b28960c42d45adf7bc27507951-1400x666-jpg"
+        },
+        "alt": "temporal-mechanics-101",
+        "_type": "image",
+        "_key": "ad0ec1d35745"
+      }
+    ],
+    "franchise": "Prodigy",
+    "quadrant": "Alpha",
+    "timePeriod": "2300s",
+    "objectID": "927c6016-af0c-422e-b5e8-2768ff99b9eb",
+    "_highlightResult": {
+      "affiliations": [
+        {
+          "value": "Starfleet",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Science/Research",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Temporal Mechanics 101",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "4d8448387322",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "bcfbb875da23",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ]
+        },
+        {
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-a84a4b6ad80493b28960c42d45adf7bc27507951-1400x666-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "temporal-mechanics-101",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "ad0ec1d35745",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "franchise": {
+        "value": "Prodigy",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "_rev": "u2UfsnbnncKJosb1Xil6Fr",
+    "affiliations": [
+      "Romulan Star Empire"
+    ],
+    "_type": "post",
+    "franchise": "Picard",
+    "_createdAt": "2025-03-08T01:40:21Z",
+    "date": "2025-03-08T01:35:32.514Z",
+    "quadrant": "Alpha",
+    "timePeriod": "2400s",
+    "body": [
+      {
+        "_type": "block",
+        "_key": "c3dad403608b",
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "_key": "7b4e714d7a08",
+            "text": "Canon Image",
+            "marks": [],
+            "_type": "span"
+          }
+        ]
+      },
+      {
+        "asset": {
+          "_ref": "image-1716a74846a8de68c69dee9c09d0f1a307271917-1400x719-jpg",
+          "_type": "reference"
+        },
+        "alt": "elnor-s-medallion",
+        "_type": "image",
+        "_key": "1c3774efd0fa"
+      }
+    ],
+    "designers": null,
+    "slug": "elnor-s-medallion",
+    "universes": [
+      "Prime"
+    ],
+    "references": [
+      {
+        "markDefs": [
+          {
+            "href": "https://memory-alpha.fandom.com/wiki/Assimilation_(episode)",
+            "_key": "1896d7f93b12",
+            "_type": "link"
+          }
+        ],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "1859fd3c6b64",
+            "text": "S02E03 ",
+            "marks": []
+          },
+          {
+            "_key": "1c71808933b9",
+            "_type": "span",
+            "marks": [
+              "1896d7f93b12"
+            ],
+            "text": "Assimilation"
+          }
+        ],
+        "_type": "block",
+        "_key": "a2ac753208cf",
+        "style": "normal"
+      }
+    ],
+    "types": [
+      "Religious"
+    ],
+    "_updatedAt": "2025-03-08T01:40:21Z",
+    "featuredImage": {
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/a2044c34bb641b28d0e586b3375a6cfbcda6ffe7-900x900.png",
+        "metadata": {
+          "dimensions": {
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions",
+            "width": 900,
+            "height": 900
+          }
+        }
+      },
+      "alt": "elnor-s-medallion",
+      "_type": "image"
+    },
+    "_id": "a357e26b-6258-4501-a635-7c926f05eee9",
+    "excerpt": null,
+    "title": "Elnor's Medallion",
+    "objectID": "a357e26b-6258-4501-a635-7c926f05eee9",
+    "_highlightResult": {
+      "affiliations": [
+        {
+          "value": "Romulan Star Empire",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "franchise": {
+        "value": "Picard",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "2400s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "c3dad403608b",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_key": {
+                "value": "7b4e714d7a08",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ]
+        },
+        {
+          "asset": {
+            "_ref": {
+              "value": "image-1716a74846a8de68c69dee9c09d0f1a307271917-1400x719-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "elnor-s-medallion",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "1c3774efd0fa",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Religious",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Elnor's Medallion",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "featuredImage": {
+      "alt": "victor-ice-company",
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/1c3eeb7662dfb3f1e8e650feb8f2e34675d02949-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1
+          }
+        }
+      }
+    },
+    "universes": [
+      "Prime"
+    ],
+    "_type": "post",
+    "slug": "victor-ice-company",
+    "_id": "a4274475-3d54-411a-b448-dddf624c1ba0",
+    "types": [
+      "Sign/Poster",
+      "Commerce"
+    ],
+    "_createdAt": "2025-03-08T01:17:45Z",
+    "timePeriod": null,
+    "designers": null,
+    "date": "2025-03-08T01:14:25.700Z",
+    "_updatedAt": "2025-03-08T01:17:45Z",
+    "quadrant": null,
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Victor_Ice_Company",
+    "excerpt": null,
+    "title": "Victor Ice Company",
+    "body": [
+      {
+        "_type": "block",
+        "_key": "26adf66c4e31",
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "96f776abaf55",
+            "text": "Canon Image",
+            "marks": []
+          }
+        ]
+      },
+      {
+        "alt": "victor-ice-company",
+        "_type": "image",
+        "_key": "59e07fd4b51b",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-f5fa52957f4a2e0e1b9e456356c79d1b498d9483-1400x991-jpg"
+        }
+      }
+    ],
+    "franchise": "TOS",
+    "_rev": "1JY8hVilYh3gJnf8bQo6oi",
+    "affiliations": [
+      "Earth"
+    ],
+    "references": [
+      {
+        "_key": "48b705b52561",
+        "style": "normal",
+        "markDefs": [
+          {
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/The_City_on_the_Edge_of_Forever_(episode)",
+            "_key": "dab6da1964d4"
+          }
+        ],
+        "children": [
+          {
+            "text": "S01E28 ",
+            "marks": [],
+            "_type": "span",
+            "_key": "8517faeb5a2a"
+          },
+          {
+            "_type": "span",
+            "marks": [
+              "dab6da1964d4"
+            ],
+            "text": "The City on the Edge of Forever",
+            "_key": "ef2bf7b83d75"
+          }
+        ],
+        "_type": "block"
+      }
+    ],
+    "objectID": "a4274475-3d54-411a-b448-dddf624c1ba0",
+    "_highlightResult": {
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Sign/Poster",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Commerce",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Victor Ice Company",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "26adf66c4e31",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "96f776abaf55",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ]
+        },
+        {
+          "alt": {
+            "value": "victor-ice-company",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "59e07fd4b51b",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-f5fa52957f4a2e0e1b9e456356c79d1b498d9483-1400x991-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        }
+      ],
+      "franchise": {
+        "value": "TOS",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "Earth",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  },
+  {
+    "timePeriod": "2100s",
+    "references": [
+      {
+        "style": "normal",
+        "markDefs": [
+          {
+            "_key": "c5abccb7bead",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Dear_Doctor_(episode)"
+          }
+        ],
+        "children": [
+          {
+            "text": "S01E13 ",
+            "marks": [],
+            "_type": "span",
+            "_key": "62a3b9c96795"
+          },
+          {
+            "marks": [
+              "c5abccb7bead"
+            ],
+            "text": "Dear Doctor",
+            "_key": "9f1fa07dfccf",
+            "_type": "span"
+          }
+        ],
+        "_type": "block",
+        "_key": "df91d7475485"
+      }
+    ],
+    "slug": "valakian-b",
+    "date": "2025-03-08T01:07:52.220Z",
+    "universes": [
+      "Prime"
+    ],
+    "_updatedAt": "2025-03-08T01:12:43Z",
+    "_rev": "1JY8hVilYh3gJnf8bQnjzs",
+    "featuredImage": {
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/332353e57188c39ea248e221a909acf27ff4c8b5-1000x1000.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1000,
+            "height": 1000,
+            "aspectRatio": 1
+          }
+        }
+      },
+      "alt": "valakian-b"
+    },
+    "_createdAt": "2025-03-08T01:12:43Z",
+    "types": [
+      "Species/Civilization"
+    ],
+    "excerpt": null,
+    "quadrant": "Alpha",
+    "franchise": "Enterprise",
+    "affiliations": [
+      "valakian"
+    ],
+    "_type": "post",
+    "_id": "2ac93668-fae5-417e-b6b5-5372a8699841",
+    "title": "Valakian B",
+    "body": [
+      {
+        "_type": "block",
+        "_key": "344ff32e5630",
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "223cfe6499e8",
+            "text": "Canon Images",
+            "marks": []
+          }
+        ]
+      },
+      {
+        "_type": "image",
+        "_key": "c614ace8e651",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-31d668e284797d071dc3fded8e037ae22982329c-1400x848-jpg"
+        },
+        "alt": "valakian-b"
+      },
+      {
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "ce36c6569cfe",
+            "text": "",
+            "marks": []
+          }
+        ],
+        "_type": "block",
+        "_key": "f3d204a41922"
+      },
+      {
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-d0124d5aa5345c48873ae22f96a4842ff18215b6-1400x824-jpg"
+        },
+        "alt": "valakian-b",
+        "_type": "image",
+        "_key": "02943985d7a4"
+      }
+    ],
+    "designers": null,
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Valakian",
+    "objectID": "2ac93668-fae5-417e-b6b5-5372a8699841",
+    "_highlightResult": {
+      "timePeriod": {
+        "value": "2100s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Species/Civilization",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "franchise": {
+        "value": "Enterprise",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "valakian",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Valakian B",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "344ff32e5630",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "223cfe6499e8",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Images",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ]
+        },
+        {
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "c614ace8e651",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-31d668e284797d071dc3fded8e037ae22982329c-1400x848-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "valakian-b",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "style": {
+            "value": "normal",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "ce36c6569cfe",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "f3d204a41922",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-d0124d5aa5345c48873ae22f96a4842ff18215b6-1400x824-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "valakian-b",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "02943985d7a4",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "title": "USS Cerritos Collector Plate",
+    "references": [
+      {
+        "_type": "block",
+        "_key": "9f7d2bd22da4",
+        "style": "normal",
+        "markDefs": [
+          {
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Empathological_Fallacies_(episode)",
+            "_key": "0e8629ae2371"
+          }
+        ],
+        "children": [
+          {
+            "marks": [],
+            "_type": "span",
+            "_key": "b269cc5fdedf",
+            "text": "S04E05 "
+          },
+          {
+            "marks": [
+              "0e8629ae2371"
+            ],
+            "text": "Empathological Fallacies",
+            "_key": "6c68068e0d77",
+            "_type": "span"
+          }
+        ]
+      }
+    ],
+    "quadrant": "Alpha",
+    "date": "2025-03-05T01:01:10.977Z",
+    "slug": "uss-cerritos-collector-plate",
+    "types": [
+      "Commerce",
+      "Product"
+    ],
+    "_type": "post",
+    "designers": null,
+    "_updatedAt": "2025-03-05T01:04:45Z",
+    "_rev": "gdLTuGRzrceu8v55sisnpp",
+    "universes": [
+      "Prime"
+    ],
+    "affiliations": [
+      "Starfleet"
+    ],
+    "body": [
+      {
+        "markDefs": [],
+        "children": [
+          {
+            "_key": "bda0a9a4f662",
+            "text": "Canon Image",
+            "marks": [],
+            "_type": "span"
+          }
+        ],
+        "_type": "block",
+        "_key": "3c157492282d",
+        "style": "h2"
+      },
+      {
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-de3df5f3e449c65c45f5a758fe779babd7c94300-1600x989-jpg"
+        },
+        "alt": "uss-cerritos-collector-plate",
+        "_type": "image",
+        "_key": "916bbf78df55"
+      }
+    ],
+    "_createdAt": "2025-03-05T01:04:45Z",
+    "excerpt": null,
+    "_id": "4a72e567-7f40-42bf-b58a-22c7b10d0d93",
+    "featuredImage": {
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/8fe43d454886e1b8483a32e4de4d4e578a2e7977-860x860.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 860,
+            "height": 860,
+            "aspectRatio": 1
+          }
+        }
+      },
+      "alt": "uss-cerritos-collector-plate"
+    },
+    "timePeriod": "2300s",
+    "franchise": "Lower Decks",
+    "objectID": "4a72e567-7f40-42bf-b58a-22c7b10d0d93",
+    "_highlightResult": {
+      "title": {
+        "value": "USS Cerritos Collector Plate",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Commerce",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Product",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "affiliations": [
+        {
+          "value": "Starfleet",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "body": [
+        {
+          "children": [
+            {
+              "_key": {
+                "value": "bda0a9a4f662",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "3c157492282d",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-de3df5f3e449c65c45f5a758fe779babd7c94300-1600x989-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "uss-cerritos-collector-plate",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "916bbf78df55",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "quadrant": "Beta",
+    "title": "Dominion War Memorial B",
+    "_id": "2702ec47-36ea-4a92-bf77-eea863442038",
+    "_type": "post",
+    "universes": [
+      "Prime"
+    ],
+    "body": [
+      {
+        "children": [
+          {
+            "_type": "span",
+            "_key": "3e12023c3310",
+            "text": "Canon Image",
+            "marks": []
+          }
+        ],
+        "_type": "block",
+        "_key": "4f35438133d8",
+        "style": "h2",
+        "markDefs": []
+      },
+      {
+        "alt": "dominion-war-memorial-b",
+        "_type": "image",
+        "_key": "94f8ba96c185",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-dbfe736991703f08edf0f516d6f5638efe75f1a8-1500x927-jpg"
+        }
+      },
+      {
+        "_key": "cc30c8036cfa",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "text": "",
+            "marks": [],
+            "_type": "span",
+            "_key": "4c62ead50dc3"
+          }
+        ],
+        "_type": "block"
+      }
+    ],
+    "slug": "dominion-war-memorial-b",
+    "franchise": "Lower Decks",
+    "date": "2025-03-05T00:57:08.028Z",
+    "excerpt": null,
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Dominion_War_Memorial",
+    "references": [
+      {
+        "children": [
+          {
+            "_type": "span",
+            "_key": "1bb0dcdb65bf",
+            "text": "S04E06 ",
+            "marks": []
+          },
+          {
+            "_key": "18d7edf1ce82",
+            "_type": "span",
+            "marks": [
+              "bb719071486a"
+            ],
+            "text": "Parth Ferengi's Heart Place"
+          },
+          {
+            "marks": [],
+            "text": "\"",
+            "_key": "9de31785cce3",
+            "_type": "span"
+          }
+        ],
+        "_type": "block",
+        "_key": "523c5f0ed8fe",
+        "style": "normal",
+        "markDefs": [
+          {
+            "_key": "bb719071486a",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Parth_Ferengi%27s_Heart_Place_(episode)"
+          }
+        ]
+      }
+    ],
+    "_updatedAt": "2025-03-05T00:59:29Z",
+    "_createdAt": "2025-03-05T00:59:29Z",
+    "types": [
+      "Sign/Poster"
+    ],
+    "designers": null,
+    "_rev": "8ArjfJY9iUXJ23X913eQTO",
+    "featuredImage": {
+      "alt": "dominion-war-memorial-b",
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/b59b5e792739c370acf7e2eb565e541961224fe5-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "height": 1100,
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions",
+            "width": 1100
+          }
+        }
+      }
+    },
+    "timePeriod": "2300s",
+    "affiliations": [
+      "Ferengi Alliance"
+    ],
+    "objectID": "2702ec47-36ea-4a92-bf77-eea863442038",
+    "_highlightResult": {
+      "quadrant": {
+        "value": "Beta",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Dominion War Memorial B",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "body": [
+        {
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "3e12023c3310",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "4f35438133d8",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "alt": {
+            "value": "dominion-war-memorial-b",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "94f8ba96c185",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-dbfe736991703f08edf0f516d6f5638efe75f1a8-1500x927-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        },
+        {
+          "_key": {
+            "value": "cc30c8036cfa",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "normal",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "text": {
+                "value": "",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "4c62ead50dc3",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Sign/Poster",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "Ferengi Alliance",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  },
+  {
+    "quadrant": "Beta",
+    "_createdAt": "2025-03-05T00:56:54Z",
+    "affiliations": [
+      "Ferengi Alliance"
+    ],
+    "_rev": "8ArjfJY9iUXJ23X913eCyF",
+    "timePeriod": "2300s",
+    "_id": "33acbcf4-9c64-41c4-9e4e-bbb3d41f5b09",
+    "title": "Dominion War Memorial A",
+    "universes": [
+      "Prime"
+    ],
+    "featuredImage": {
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/862536e7791ab175a3ec44588968e4387d476481-1000x1000.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1000,
+            "height": 1000,
+            "aspectRatio": 1
+          }
+        }
+      },
+      "alt": "dominion-war-memorial-a"
+    },
+    "excerpt": null,
+    "references": [
+      {
+        "children": [
+          {
+            "text": "So4E06 ",
+            "marks": [],
+            "_type": "span",
+            "_key": "57f4f44628ae"
+          },
+          {
+            "_type": "span",
+            "marks": [
+              "4c736c617285"
+            ],
+            "text": "Parth Ferengi's Heart Place",
+            "_key": "5221e8c9db20"
+          }
+        ],
+        "_type": "block",
+        "_key": "247b086ebad5",
+        "style": "normal",
+        "markDefs": [
+          {
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Parth_Ferengi%27s_Heart_Place_(episode)",
+            "_key": "4c736c617285"
+          }
+        ]
+      }
+    ],
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Dominion_War_Memorial",
+    "body": [
+      {
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "text": "Canon Image",
+            "marks": [],
+            "_type": "span",
+            "_key": "683e070beae2"
+          }
+        ],
+        "_type": "block",
+        "_key": "3e3ab29ede82"
+      },
+      {
+        "_type": "image",
+        "_key": "59fddbe8df23",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-dbfe736991703f08edf0f516d6f5638efe75f1a8-1500x927-jpg"
+        },
+        "alt": "dominion-war-memorial-a"
+      }
+    ],
+    "types": [
+      "Sign/Poster"
+    ],
+    "slug": "dominion-war-memorial-a",
+    "_type": "post",
+    "_updatedAt": "2025-03-05T00:56:54Z",
+    "franchise": "Lower Decks",
+    "designers": null,
+    "date": "2025-03-05T00:51:55.266Z",
+    "objectID": "33acbcf4-9c64-41c4-9e4e-bbb3d41f5b09",
+    "_highlightResult": {
+      "quadrant": {
+        "value": "Beta",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "Ferengi Alliance",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Dominion War Memorial A",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "body": [
+        {
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "683e070beae2",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "3e3ab29ede82",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "59fddbe8df23",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-dbfe736991703f08edf0f516d6f5638efe75f1a8-1500x927-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "dominion-war-memorial-a",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "types": [
+        {
+          "value": "Sign/Poster",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "_id": "8e8c11e8-0cde-43cf-a1ca-9ccd905ff4a5",
+    "_rev": "qtgthHVgAARWt7wccXxYGK",
+    "quadrant": "Alpha",
+    "franchise": "TOS",
+    "excerpt": null,
+    "designers": null,
+    "affiliations": [
+      "Starfleet"
+    ],
+    "body": [
+      {
+        "_type": "block",
+        "_key": "acac83359609",
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "text": "Canon Image",
+            "marks": [],
+            "_type": "span",
+            "_key": "f866e8ec5cd4"
+          }
+        ]
+      },
+      {
+        "alt": "red-alert-2260s",
+        "_type": "image",
+        "_key": "63578781f657",
+        "asset": {
+          "_ref": "image-77e41ef6f424e9231700d6648993be4bd0fee664-1894x1422-jpg",
+          "_type": "reference"
+        }
+      }
+    ],
+    "slug": "red-alert-2260s",
+    "references": [
+      {
+        "_type": "block",
+        "_key": "470c9fdd818b",
+        "style": "normal",
+        "markDefs": [
+          {
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/The_Doomsday_Machine_(episode)",
+            "_key": "2f2de620dd4f"
+          }
+        ],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "c77b73f4fec8",
+            "text": "S02E06 ",
+            "marks": []
+          },
+          {
+            "_key": "98971b239f1c",
+            "_type": "span",
+            "marks": [
+              "2f2de620dd4f"
+            ],
+            "text": "The Doomsday Machine"
+          }
+        ]
+      }
+    ],
+    "_createdAt": "2025-02-26T21:40:46Z",
+    "date": "2025-02-26T21:36:09.256Z",
+    "universes": [
+      "Prime"
+    ],
+    "featuredImage": {
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/589742ed8ac4001ca7e066a2c7265c8c66131370-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1
+          }
+        }
+      },
+      "alt": "red-alert-2260s"
+    },
+    "title": "Red Alert 2260s",
+    "types": [
+      "Advisory"
+    ],
+    "timePeriod": "2200s",
+    "_updatedAt": "2025-02-26T21:40:46Z",
+    "_type": "post",
+    "objectID": "8e8c11e8-0cde-43cf-a1ca-9ccd905ff4a5",
+    "_highlightResult": {
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "franchise": {
+        "value": "TOS",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "Starfleet",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "body": [
+        {
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "acac83359609",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "f866e8ec5cd4",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ]
+        },
+        {
+          "alt": {
+            "value": "red-alert-2260s",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "63578781f657",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-77e41ef6f424e9231700d6648993be4bd0fee664-1894x1422-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Red Alert 2260s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Advisory",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "timePeriod": {
+        "value": "2200s",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "slug": "moopsy",
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Moopsy",
+    "references": [
+      {
+        "style": "normal",
+        "markDefs": [
+          {
+            "_key": "4520c4124be6",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/I_Have_No_Bones_Yet_I_Must_Flee_(episode)"
+          }
+        ],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "cbabef7e596d",
+            "text": "S04E02 ",
+            "marks": []
+          },
+          {
+            "_key": "6e13647448fe",
+            "_type": "span",
+            "marks": [
+              "4520c4124be6"
+            ],
+            "text": "I Have No Bones Yet I Must Flee"
+          }
+        ],
+        "_type": "block",
+        "_key": "cf9d8227e07e"
+      }
+    ],
+    "quadrant": "Alpha",
+    "franchise": "Lower Decks",
+    "_updatedAt": "2025-02-26T21:30:55Z",
+    "_id": "b20668bb-78c4-4b99-88f0-32ea131a3149",
+    "_rev": "0XC41FdXUyURxjJMPhRL7f",
+    "date": "2025-02-26T05:48:57.539Z",
+    "universes": [
+      "Prime"
+    ],
+    "_type": "post",
+    "body": [
+      {
+        "_type": "block",
+        "_key": "3ac2b56ac68f",
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "text": "Canon Image",
+            "marks": [],
+            "_type": "span",
+            "_key": "d3bcdba61cbd"
+          }
+        ]
+      },
+      {
+        "alt": "moopsy",
+        "_type": "image",
+        "_key": "15876857ef00",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-02e9b9d6cb8de019f9a9195444e97b8e080684fa-1600x989-jpg"
+        }
+      }
+    ],
+    "affiliations": null,
+    "_createdAt": "2025-02-26T21:30:55Z",
+    "title": "Moopsy",
+    "timePeriod": "2300s",
+    "types": [
+      "Species/Civilization"
+    ],
+    "featuredImage": {
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/cba48588ee6b09fd17117b4f480d5fa030db1493-1200x1200.png",
+        "metadata": {
+          "dimensions": {
+            "height": 1200,
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions",
+            "width": 1200
+          }
+        }
+      },
+      "alt": "moopsy"
+    },
+    "excerpt": null,
+    "designers": null,
+    "objectID": "b20668bb-78c4-4b99-88f0-32ea131a3149",
+    "_highlightResult": {
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "body": [
+        {
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "3ac2b56ac68f",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "d3bcdba61cbd",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ]
+        },
+        {
+          "alt": {
+            "value": "moopsy",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "15876857ef00",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-02e9b9d6cb8de019f9a9195444e97b8e080684fa-1600x989-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        }
+      ],
+      "title": {
+        "value": "Moopsy",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Species/Civilization",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  },
+  {
+    "affiliations": [
+      "Angel 1"
+    ],
+    "featuredImage": {
+      "_type": "image",
+      "alt": "angel-1-2380s",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/6d87b3d74c0e972831c6195490499f34ac210322-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "height": 1100,
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions",
+            "width": 1100
+          }
+        }
+      }
+    },
+    "types": [
+      "Species/Civilization"
+    ],
+    "_type": "post",
+    "date": "2024-12-21T21:21:48.065Z",
+    "_id": "73afe3dd-d187-489b-b851-90ff2f4f3b2e",
+    "franchise": "Lower Decks",
+    "body": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "marks": [],
+            "text": "Canon Image",
+            "_key": "2d76c39ddda9",
+            "_type": "span"
+          }
+        ],
+        "markDefs": [],
+        "style": "h2",
+        "_key": "29d941435856"
+      },
+      {
+        "alt": "angel-one-2380s",
+        "asset": {
+          "_ref": "image-d5e17f98a235cfc5c28c961322857e6e86caa488-1600x989-jpg",
+          "_type": "reference"
+        },
+        "_key": "b116d581c740",
+        "_type": "image"
+      },
+      {
+        "_key": "ed514382d2b2",
+        "_type": "image",
+        "alt": "angel-1-2380s",
+        "asset": {
+          "_ref": "image-b7499700546e6adf0c6f9ebd563c723f05fa8dbf-1600x977-jpg",
+          "_type": "reference"
+        }
+      },
+      {
+        "_type": "image",
+        "alt": "angel-I-2380s",
+        "asset": {
+          "_ref": "image-5e59bdd09b770e601ee4ba0522930bac3d40386f-1600x977-jpg",
+          "_type": "reference"
+        },
+        "_key": "bad52d7c6289"
+      }
+    ],
+    "universes": [
+      "Prime"
+    ],
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Angel_I",
+    "references": [
+      {
+        "style": "normal",
+        "_key": "73d53ff28e12",
+        "_type": "block",
+        "children": [
+          {
+            "marks": [],
+            "text": "S04E05 ",
+            "_key": "dd0fdc4da607",
+            "_type": "span"
+          },
+          {
+            "_key": "573fe8acf2eb",
+            "_type": "span",
+            "marks": [
+              "b322365e6525"
+            ],
+            "text": "Empathological Fallacies"
+          }
+        ],
+        "markDefs": [
+          {
+            "href": "https://memory-alpha.fandom.com/wiki/Empathological_Fallacies_(episode)",
+            "_key": "b322365e6525",
+            "_type": "link"
+          }
+        ]
+      }
+    ],
+    "_rev": "j5HmHWP20gURhOR8Mz4mI8",
+    "excerpt": null,
+    "designers": null,
+    "timePeriod": "2300s",
+    "_createdAt": "2024-12-21T21:28:12Z",
+    "slug": "angel-1-2380s",
+    "_updatedAt": "2025-02-26T21:57:48Z",
+    "title": "Angel 1 2380s",
+    "quadrant": "Beta",
+    "objectID": "73afe3dd-d187-489b-b851-90ff2f4f3b2e",
+    "_highlightResult": {
+      "affiliations": [
+        {
+          "value": "Angel 1",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Species/Civilization",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "2d76c39ddda9",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "29d941435856",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "alt": {
+            "value": "angel-one-2380s",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-d5e17f98a235cfc5c28c961322857e6e86caa488-1600x989-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "_key": {
+            "value": "b116d581c740",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "ed514382d2b2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "angel-1-2380s",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-b7499700546e6adf0c6f9ebd563c723f05fa8dbf-1600x977-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        },
+        {
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "angel-I-2380s",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-5e59bdd09b770e601ee4ba0522930bac3d40386f-1600x977-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "_key": {
+            "value": "bad52d7c6289",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Angel 1 2380s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Beta",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "universes": [
+      "Prime"
+    ],
+    "quadrant": "Beta",
+    "_type": "post",
+    "affiliations": [
+      "Ferengi Alliance"
+    ],
+    "franchise": "Lower Decks",
+    "excerpt": null,
+    "_updatedAt": "2024-12-21T21:21:05Z",
+    "references": [
+      {
+        "_key": "581659d78ece",
+        "_type": "block",
+        "children": [
+          {
+            "_key": "408877697a270",
+            "_type": "span",
+            "marks": [],
+            "text": "S04E06 "
+          },
+          {
+            "text": "Parth Ferengi's Heart Place",
+            "_key": "408877697a271",
+            "_type": "span",
+            "marks": [
+              "b1ecf01cc4a0"
+            ]
+          }
+        ],
+        "markDefs": [
+          {
+            "_key": "b1ecf01cc4a0",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Parth_Ferengi%27s_Heart_Place_(episode)"
+          }
+        ],
+        "style": "normal"
+      }
+    ],
+    "body": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_key": "c9c65ca0d775",
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Image"
+          }
+        ],
+        "markDefs": [],
+        "style": "h2",
+        "_key": "bcc3926ec3ef"
+      },
+      {
+        "_key": "0aab1aea43f5",
+        "_type": "image",
+        "alt": "where-no-gift-has-gone-before",
+        "asset": {
+          "_ref": "image-957f698de786682c31ac3956f740f2f819be6bf3-1600x989-jpg",
+          "_type": "reference"
+        }
+      }
+    ],
+    "types": [
+      "Sign/Poster"
+    ],
+    "_createdAt": "2024-12-21T21:19:04Z",
+    "timePeriod": "2300s",
+    "date": "2024-12-21T21:16:51.120Z",
+    "_id": "10a716ed-18c3-47b7-b655-4e753a1b7a5d",
+    "designers": null,
+    "featuredImage": {
+      "_type": "image",
+      "alt": "where-no-gift-has-gone",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/d9b515e691596390097e413b498c3ecc18938731-1200x1200.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1200,
+            "height": 1200,
+            "aspectRatio": 1
+          }
+        }
+      }
+    },
+    "_rev": "FbziG4hixVI5tq0aWWAYMC",
+    "slug": "where-no-gift-has-gone-before",
+    "title": "Where No Gift Has Gone...",
+    "objectID": "10a716ed-18c3-47b7-b655-4e753a1b7a5d",
+    "_highlightResult": {
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "quadrant": {
+        "value": "Beta",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "Ferengi Alliance",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_key": {
+                "value": "c9c65ca0d775",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "bcc3926ec3ef",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "0aab1aea43f5",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "where-no-gift-has-gone-before",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-957f698de786682c31ac3956f740f2f819be6bf3-1600x989-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        }
+      ],
+      "types": [
+        {
+          "value": "Sign/Poster",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Where No Gift Has Gone...",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "_createdAt": "2024-12-21T21:13:31Z",
+    "_updatedAt": "2024-12-21T21:19:21Z",
+    "types": [
+      "Sign/Poster"
+    ],
+    "date": "2024-12-21T21:10:08.276Z",
+    "universes": [
+      "Prime"
+    ],
+    "excerpt": null,
+    "_type": "post",
+    "title": "Jefferies Tube Entrance",
+    "designers": null,
+    "body": [
+      {
+        "_key": "026d93361ee5",
+        "_type": "block",
+        "children": [
+          {
+            "_key": "a6ae26d600cd",
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Image"
+          }
+        ],
+        "markDefs": [],
+        "style": "h2"
+      },
+      {
+        "_key": "45f44f11f67a",
+        "_type": "image",
+        "alt": "jeffries-tube-entrance",
+        "asset": {
+          "_ref": "image-412dc1a9b71c47994f7c2ed485a714cfb17c03a5-1600x990-jpg",
+          "_type": "reference"
+        }
+      }
+    ],
+    "affiliations": [
+      "Ferengi Alliance"
+    ],
+    "quadrant": "Beta",
+    "references": [
+      {
+        "_key": "1c1487e96d2a",
+        "_type": "block",
+        "children": [
+          {
+            "text": "S04E06 ",
+            "_key": "6bfa81637bb00",
+            "_type": "span",
+            "marks": []
+          },
+          {
+            "marks": [
+              "8eddf4f868ca"
+            ],
+            "text": "Parth Ferengi's Heart Place",
+            "_key": "6bfa81637bb01",
+            "_type": "span"
+          }
+        ],
+        "markDefs": [
+          {
+            "_key": "8eddf4f868ca",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Parth_Ferengi%27s_Heart_Place_(episode)"
+          }
+        ],
+        "style": "normal"
+      }
+    ],
+    "franchise": "Lower Decks",
+    "timePeriod": "2300s",
+    "_rev": "FbziG4hixVI5tq0aWWAKxS",
+    "featuredImage": {
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/d52aa8024c42e0f52ef44e5e023ebc0463c380e8-1200x1200.png",
+        "metadata": {
+          "dimensions": {
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions",
+            "width": 1200,
+            "height": 1200
+          }
+        }
+      },
+      "_type": "image",
+      "alt": "jefferies-tube-entrance"
+    },
+    "_id": "492ab6a8-63d0-43dd-ade1-303769b570d8",
+    "slug": "jefferies-tube-entrance",
+    "objectID": "492ab6a8-63d0-43dd-ade1-303769b570d8",
+    "_highlightResult": {
+      "types": [
+        {
+          "value": "Sign/Poster",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Jefferies Tube Entrance",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "_key": {
+            "value": "026d93361ee5",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_key": {
+                "value": "a6ae26d600cd",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "45f44f11f67a",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "jeffries-tube-entrance",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-412dc1a9b71c47994f7c2ed485a714cfb17c03a5-1600x990-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        }
+      ],
+      "affiliations": [
+        {
+          "value": "Ferengi Alliance",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "quadrant": {
+        "value": "Beta",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "timePeriod": "2300s",
+    "slug": "Holodeck-Arcade",
+    "featuredImage": {
+      "alt": "Holodeck-Arcade",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/8b8ef1cdff32b5b58211987348367ff2faf63d41-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions"
+          }
+        }
+      },
+      "_type": "image"
+    },
+    "date": "2024-11-30T21:51:42.484Z",
+    "title": "Holodeck Arcade",
+    "_type": "post",
+    "_rev": "HQMjD9PBJQCBi8lu1iml1k",
+    "designers": null,
+    "types": [
+      "Sign/Poster"
+    ],
+    "_createdAt": "2024-11-30T21:51:51Z",
+    "affiliations": [
+      "Ferengi Alliance"
+    ],
+    "quadrant": "Beta",
+    "_id": "5c889723-90a0-4500-8137-ccf791376387",
+    "body": [
+      {
+        "style": "h2",
+        "markDefs": [],
+        "children": [
+          {
+            "text": "Canon Image",
+            "marks": [],
+            "_type": "span",
+            "_key": "8bafa349c26e"
+          }
+        ],
+        "_type": "block",
+        "_key": "552579ea69e0"
+      },
+      {
+        "_key": "18247f39cee5",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-313fa5987c287b8ab16c7860de856faa5e1d233f-1500x927-jpg"
+        },
+        "alt": "Holodeck-Arcade",
+        "_type": "image"
+      }
+    ],
+    "franchise": "Lower Decks",
+    "_updatedAt": "2024-11-30T21:57:56Z",
+    "excerpt": null,
+    "universes": [
+      "Prime"
+    ],
+    "references": [
+      {
+        "_key": "c23754962266",
+        "style": "normal",
+        "markDefs": [
+          {
+            "_key": "7dff376fb1c9",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Parth_Ferengi%27s_Heart_Place_(episode)"
+          }
+        ],
+        "children": [
+          {
+            "_key": "4c3e0e050d24",
+            "text": "S04E06 ",
+            "marks": [],
+            "_type": "span"
+          },
+          {
+            "text": "Parth Ferengi's Heart Place",
+            "_key": "a6c19e75ae58",
+            "_type": "span",
+            "marks": [
+              "7dff376fb1c9"
+            ]
+          }
+        ],
+        "_type": "block"
+      }
+    ],
+    "objectID": "5c889723-90a0-4500-8137-ccf791376387",
+    "_highlightResult": {
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Holodeck Arcade",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Sign/Poster",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "affiliations": [
+        {
+          "value": "Ferengi Alliance",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "quadrant": {
+        "value": "Beta",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "8bafa349c26e",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "552579ea69e0",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "18247f39cee5",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-313fa5987c287b8ab16c7860de856faa5e1d233f-1500x927-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "Holodeck-Arcade",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  },
+  {
+    "timePeriod": "2300s",
+    "_createdAt": "2024-09-27T20:52:32Z",
+    "body": [
+      {
+        "markDefs": [],
+        "children": [
+          {
+            "_key": "64e046bf3dcd",
+            "text": "Canon Image",
+            "marks": [],
+            "_type": "span"
+          }
+        ],
+        "_type": "block",
+        "_key": "e77d51bd7658",
+        "style": "h2"
+      },
+      {
+        "_key": "1b15b53250ab",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-ee2398ca01edede3c4f02dfd71e8c77a923d2f9a-1600x945-jpg"
+        },
+        "alt": "crisis-point-ii-paradoxus",
+        "_type": "image"
+      }
+    ],
+    "excerpt": null,
+    "affiliations": null,
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Crisis_Point_II:_Paradoxus?so=search",
+    "title": "Crisis Point II: Paradoxus",
+    "date": "2024-09-27T20:47:10.737Z",
+    "_id": "35b38d1a-3a75-484d-b5a9-e169b1c24894",
+    "universes": [
+      "Prime"
+    ],
+    "featuredImage": {
+      "alt": "crisis-point-ii-paradoxus",
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/adfddf94253491685f31a9a30abe5856fa61a4ef-1300x1300.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 1300,
+            "height": 1300,
+            "aspectRatio": 1
+          }
+        }
+      }
+    },
+    "_updatedAt": "2024-09-27T20:52:32Z",
+    "_rev": "Gj96a73o8TKhCsmidFWV8O",
+    "references": [
+      {
+        "_type": "block",
+        "_key": "64e964631de7",
+        "style": "normal",
+        "markDefs": [
+          {
+            "href": "https://memory-alpha.fandom.com/wiki/Crisis_Point_2:_Paradoxus_(episode)",
+            "_key": "04df4d160202",
+            "_type": "link"
+          }
+        ],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "5e322b7037fc",
+            "text": "S03E08 ",
+            "marks": []
+          },
+          {
+            "marks": [
+              "04df4d160202"
+            ],
+            "text": "Crisis Point 2: Paradoxus",
+            "_key": "cb7b24082a52",
+            "_type": "span"
+          }
+        ]
+      }
+    ],
+    "types": [
+      "Media"
+    ],
+    "franchise": "Lower Decks",
+    "slug": "crisis-point-ii-paradoxus",
+    "quadrant": "Alpha",
+    "_type": "post",
+    "designers": null,
+    "objectID": "35b38d1a-3a75-484d-b5a9-e169b1c24894",
+    "_highlightResult": {
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "children": [
+            {
+              "_key": {
+                "value": "64e046bf3dcd",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "e77d51bd7658",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "1b15b53250ab",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-ee2398ca01edede3c4f02dfd71e8c77a923d2f9a-1600x945-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "crisis-point-ii-paradoxus",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "title": {
+        "value": "Crisis Point II: Paradoxus",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Media",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  },
+  {
+    "_id": "b4e116cf-c8fa-4016-ab50-ef56ab146ddc",
+    "types": [
+      "Commerce",
+      "Product"
+    ],
+    "designers": null,
+    "date": "2024-09-27T20:36:23.178Z",
+    "body": [
+      {
+        "children": [
+          {
+            "_key": "01452b192ee5",
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Images"
+          }
+        ],
+        "markDefs": [],
+        "style": "h2",
+        "_key": "fb805e068454",
+        "_type": "block"
+      },
+      {
+        "_key": "e37b604251ec",
+        "_type": "image",
+        "alt": "starfleet-security-series-puzzle",
+        "asset": {
+          "_ref": "image-811c5c33cb381984bc1c5095a453ff908b602498-1600x989-jpg",
+          "_type": "reference"
+        }
+      },
+      {
+        "_key": "694ab2898d94",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-38addf320815bcb85ac812e8c5233a56ddee9f44-1600x989-jpg"
+        },
+        "alt": "starfleet-security-series-puzzle",
+        "_type": "image"
+      }
+    ],
+    "featuredImage": {
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/7c7e91dd9d6c09a5f3a4bcba6a159fefaba45e4a-900x900.png",
+        "metadata": {
+          "dimensions": {
+            "width": 900,
+            "height": 900,
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions"
+          }
+        }
+      },
+      "_type": "image",
+      "alt": "starfleet-security-series-puzzle"
+    },
+    "quadrant": "Alpha",
+    "references": [
+      {
+        "style": "normal",
+        "markDefs": [
+          {
+            "_key": "58ea07d66725",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Empathological_Fallacies_(episode)"
+          }
+        ],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "09fa9c398a66",
+            "text": "S04E05 ",
+            "marks": []
+          },
+          {
+            "_key": "6bae30955827",
+            "_type": "span",
+            "marks": [
+              "58ea07d66725"
+            ],
+            "text": "Empathological Fallacies"
+          }
+        ],
+        "_type": "block",
+        "_key": "d65c53f0aa23"
+      }
+    ],
+    "franchise": "Lower Decks",
+    "timePeriod": "2300s",
+    "slug": "starfleet-security-series-puzzle",
+    "_rev": "QwMm59Oay7ZYj8Ct6exEiv",
+    "_type": "post",
+    "_updatedAt": "2024-09-27T20:43:48Z",
+    "affiliations": [
+      "Starfleet"
+    ],
+    "_createdAt": "2024-09-27T20:36:26Z",
+    "title": "Starfleet Security Series Puzzle",
+    "universes": [
+      "Prime"
+    ],
+    "excerpt": null,
+    "objectID": "b4e116cf-c8fa-4016-ab50-ef56ab146ddc",
+    "_highlightResult": {
+      "types": [
+        {
+          "value": "Commerce",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Product",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "body": [
+        {
+          "children": [
+            {
+              "_key": {
+                "value": "01452b192ee5",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Images",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "fb805e068454",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "e37b604251ec",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "starfleet-security-series-puzzle",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-811c5c33cb381984bc1c5095a453ff908b602498-1600x989-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        },
+        {
+          "_key": {
+            "value": "694ab2898d94",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-38addf320815bcb85ac812e8c5233a56ddee9f44-1600x989-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "starfleet-security-series-puzzle",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "Starfleet",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "Starfleet Security Series Puzzle",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  },
+  {
+    "_createdAt": "2024-09-23T02:26:26Z",
+    "title": "Uncle Quark's Youth Casino",
+    "_type": "post",
+    "_rev": "Lu0Dl1UsR3iWefWTpR9mu6",
+    "universes": [
+      "Prime"
+    ],
+    "types": [
+      "Commerce",
+      "Sign/Poster"
+    ],
+    "body": [
+      {
+        "children": [
+          {
+            "_type": "span",
+            "_key": "2efce02eda67",
+            "text": "Canon Image",
+            "marks": []
+          }
+        ],
+        "_type": "block",
+        "_key": "dd2f95515924",
+        "style": "h2",
+        "markDefs": []
+      },
+      {
+        "asset": {
+          "_ref": "image-61158ba039e6334d3797ba5692754f30cabedbcf-1500x902-jpg",
+          "_type": "reference"
+        },
+        "alt": "uncle-quark-s-youth-casino",
+        "_type": "image",
+        "_key": "a0ee0734ceae"
+      }
+    ],
+    "timePeriod": "2300s",
+    "featuredImage": {
+      "_type": "image",
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/d1e4d7071e94a5a729020874b1fcad4d3445d5dc-1100x1100.png",
+        "metadata": {
+          "dimensions": {
+            "width": 1100,
+            "height": 1100,
+            "aspectRatio": 1,
+            "_type": "sanity.imageDimensions"
+          }
+        }
+      },
+      "alt": "uncle-quark-s-youth-casino"
+    },
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Uncle_Quark's_Youth_Casino?so=search",
+    "designers": null,
+    "references": [
+      {
+        "style": "normal",
+        "markDefs": [
+          {
+            "_key": "dc4061813838",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Parth_Ferengi%27s_Heart_Place_(episode)"
+          }
+        ],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "e5d286c4e69e",
+            "text": "S04E06 ",
+            "marks": []
+          },
+          {
+            "_type": "span",
+            "marks": [
+              "dc4061813838"
+            ],
+            "text": "Parth Ferengi's Heart Place",
+            "_key": "f582019ab44a"
+          }
+        ],
+        "_type": "block",
+        "_key": "438709c56ed8"
+      }
+    ],
+    "slug": "uncle-quark-s-youth-casino",
+    "excerpt": null,
+    "_updatedAt": "2024-09-23T02:26:26Z",
+    "franchise": "Lower Decks",
+    "date": "2024-09-23T02:22:09.210Z",
+    "quadrant": "Beta",
+    "_id": "45fbf02f-c340-4e6d-b055-90b55172e358",
+    "affiliations": [
+      "Ferengi Alliance",
+      "Quark"
+    ],
+    "objectID": "45fbf02f-c340-4e6d-b055-90b55172e358",
+    "_highlightResult": {
+      "title": {
+        "value": "Uncle Quark's Youth Casino",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Commerce",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Sign/Poster",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "body": [
+        {
+          "children": [
+            {
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_key": {
+                "value": "2efce02eda67",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "dd2f95515924",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "asset": {
+            "_ref": {
+              "value": "image-61158ba039e6334d3797ba5692754f30cabedbcf-1500x902-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "alt": {
+            "value": "uncle-quark-s-youth-casino",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "a0ee0734ceae",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Beta",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "affiliations": [
+        {
+          "value": "Ferengi Alliance",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Quark",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  },
+  {
+    "affiliations": [
+      "Ferengi Alliance"
+    ],
+    "_type": "post",
+    "types": [
+      "Commerce",
+      "Science/Research"
+    ],
+    "_rev": "Gj96a73o8TKhCsmidFWbwe",
+    "designers": null,
+    "_createdAt": "2024-09-23T02:10:01Z",
+    "quadrant": "Beta",
+    "universes": [
+      "Prime"
+    ],
+    "excerpt": null,
+    "references": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "text": "S04E06 ",
+            "_key": "ec6e755690ba",
+            "_type": "span",
+            "marks": []
+          },
+          {
+            "_type": "span",
+            "marks": [
+              "9526db208527"
+            ],
+            "text": "Parth Ferengi's Heart Place",
+            "_key": "71a480e0903d"
+          }
+        ],
+        "markDefs": [
+          {
+            "_key": "9526db208527",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Parth_Ferengi%27s_Heart_Place_(episode)"
+          }
+        ],
+        "style": "normal",
+        "_key": "5fdda61c04c3"
+      }
+    ],
+    "title": "History of Dabo",
+    "body": [
+      {
+        "children": [
+          {
+            "_key": "85ae36730b70",
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Image"
+          }
+        ],
+        "markDefs": [],
+        "style": "h2",
+        "_key": "5c4c8df14b3b",
+        "_type": "block"
+      },
+      {
+        "_type": "image",
+        "alt": "history of dabo",
+        "asset": {
+          "_type": "reference",
+          "_ref": "image-0ec57990daba5d4b2127e631f0035a337d78ee39-1400x823-jpg"
+        },
+        "_key": "15036fdb40e2"
+      }
+    ],
+    "franchise": "Lower Decks",
+    "featuredImage": {
+      "asset": {
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/2f652d03c17c2f39ef9f7e16a0d55d5ab46f8acf-960x960.png",
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "width": 960,
+            "height": 960,
+            "aspectRatio": 1
+          }
+        }
+      },
+      "_type": "image",
+      "alt": "history-of-dabo"
+    },
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/History_of_Dabo?so=search",
+    "date": "2024-09-23T02:09:34.120Z",
+    "slug": "history-of-dabo",
+    "_updatedAt": "2024-09-27T20:54:19Z",
+    "_id": "c7a459b6-42ee-4174-9db8-aaa0104743be",
+    "timePeriod": "2300s",
+    "objectID": "c7a459b6-42ee-4174-9db8-aaa0104743be",
+    "_highlightResult": {
+      "affiliations": [
+        {
+          "value": "Ferengi Alliance",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "types": [
+        {
+          "value": "Commerce",
+          "matchLevel": "none",
+          "matchedWords": []
+        },
+        {
+          "value": "Science/Research",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "quadrant": {
+        "value": "Beta",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "title": {
+        "value": "History of Dabo",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "body": [
+        {
+          "children": [
+            {
+              "_key": {
+                "value": "85ae36730b70",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_key": {
+            "value": "5c4c8df14b3b",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "history of dabo",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_ref": {
+              "value": "image-0ec57990daba5d4b2127e631f0035a337d78ee39-1400x823-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          },
+          "_key": {
+            "value": "15036fdb40e2",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "franchise": {
+        "value": "Lower Decks",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      }
+    }
+  }
+]
