@@ -122,8 +122,8 @@ INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_pe
 INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Holodeck-Arcade.png", "Ferengi Alliance");
 INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Holodeck-Arcade.png", "Sign/Poster");
 INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Holodeck-Arcade.png", "Prime");
-INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Crisis Point II: Paradoxus", "Crisis-Point-II:-Paradoxus.png", "https://www.startrekdesignproject.com/symbols/crisis-point-ii-paradoxus", "Alpha", "2300s", "Lower Decks", "S03E08 Crisis Point 2: Paradoxus");
-INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Crisis-Point-II:-Paradoxus.png", "Media");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Crisis Point II: Paradoxus", "Crisis-Point-II_-Paradoxus.png", "https://www.startrekdesignproject.com/symbols/crisis-point-ii-paradoxus", "Alpha", "2300s", "Lower Decks", "S03E08 Crisis Point 2: Paradoxus");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Crisis-Point-II_-Paradoxus.png", "Media");
 INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Crisis-Point-II:-Paradoxus.png", "Prime");
 INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Starfleet Security Series Puzzle", "Starfleet-Security-Series-Puzzle.png", "https://www.startrekdesignproject.com/symbols/starfleet-security-series-puzzle", "Alpha", "2300s", "Lower Decks", "S04E05 Empathological Fallacies");
 INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Starfleet-Security-Series-Puzzle.png", "Starfleet");

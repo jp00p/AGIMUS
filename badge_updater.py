@@ -24,7 +24,7 @@ async def generate_sql(version, badge_data):
       badge_name = strip_bullshit(badge['title'])
       print(f">> Generating SQL for badge_name: {badge_name}")
 
-      badge_filename = f"{badge_name.replace(' ', '-')}.png"
+      badge_filename = f"{badge_name.replace(' ', '-').replace(':', '_')}.png"
 
       badge_url = f"https://www.startrekdesignproject.com/symbols/{badge['slug']}"
 
