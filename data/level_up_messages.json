@@ -59,7 +59,6 @@
     "Here's to the finest {user} on the server! Level {level}!",
     "A warm, wriggling plate of Gagh for {user}! They just got to level {level}!",
     "Will someone check {user} for nubbin bugs? They just got to level {level} and I swear they were level {prev_level} like 5 minutes ago...",
-    "{user} just reached level {level} -- has VZ and Dr Z made them a drop yet?",
     "{user}, I have authorized one level up for you. You are now level {level}!",
     "Congratulations {user} on hitting {level}, Dr Z would be proud."
   ]
