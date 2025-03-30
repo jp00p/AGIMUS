@@ -36,7 +36,10 @@ async def get_enabled_setting(message):
     vals = (message.author.id,)
     await query.execute(sql, vals)
     result = await query.fetchone()
-  return result[0]
+  if result:
+    return result[0]
+  else:
+    return None
 
 async def get_shout():
   async with AgimusDB() as query:
