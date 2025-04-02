@@ -1,13 +1,17 @@
 from dateutil import tz
 
 from common import *
-from cogs.trade import db_cancel_trade, get_offered_and_requested_badge_names
-import queries.badge_completion as queries_badge_completion
-from queries.badge_scrap import *
-from queries.wishlist import *
-from utils.badge_utils import *
+
 from utils.check_channel_access import access_check
 from utils.string_utils import *
+from utils.badge_utils import *
+
+import queries.badge_completion as queries_badge_completion
+from queries.badges import *
+from queries.badge_info import *
+from queries.wishlist import *
+from queries.trade import *
+
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____

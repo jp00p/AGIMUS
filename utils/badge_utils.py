@@ -20,29 +20,50 @@ from queries.badges import (
 )
 
 from queries.badge_info import (
+  db_get_all_badge_info,
   db_get_badge_info_by_name,
   db_get_badge_info_by_filename,
-  db_get_all_badge_info,
   db_get_all_affiliations,
-  db_get_affiliation_badges,
+  db_get_all_affiliation_badges,
+  db_get_badge_affiliations_by_badge_name,
+  db_get_badges_user_has_from_affiliation,
+  db_get_random_badges_from_user_by_affiliations,
   db_get_all_franchises,
-  db_get_franchise_badges,
+  db_get_all_franchise_badges,
+  db_get_badges_user_has_from_franchise,
+  db_get_random_badges_from_user_by_franchises,
   db_get_all_time_periods,
-  db_get_time_period_badges,
+  db_get_all_time_period_badges,
+  db_get_random_badges_from_user_by_time_periods,
   db_get_all_types,
-  db_get_type_badges,
+  db_get_all_type_badges,
+  db_get_badge_types_by_badge_name,
+  db_get_badges_user_has_from_type,
+  db_get_random_badges_from_user_by_types
 )
 
 from queries.wishlist import (
   db_get_user_wishlist_badges,
   db_autolock_badges_by_filenames_if_in_wishlist,
+  db_add_badge_name_to_users_wishlist,
+  db_add_badge_filenames_to_users_wishlist,
+  db_remove_badge_name_from_users_wishlist,
+  db_remove_badge_filenames_from_users_wishlist,
+  db_clear_users_wishlist,
   db_purge_users_wishlist,
-  db_insert_into_wishlist,
-  db_remove_from_wishlist,
-  db_dismiss_badge_from_wishlist,
-  db_get_user_dismissed_wishlist,
-  db_get_user_wishlist_pending,
-  db_match_wishlist_against_inventory,
+  db_autolock_badges_by_filenames_if_in_wishlist,
+  db_get_badge_locked_status_by_name,
+  db_lock_badge_by_filename,
+  db_lock_badges_by_filenames,
+  db_unlock_badge_by_filename,
+  db_unlock_badges_by_filenames,
+  db_get_wishlist_matches,
+  db_get_wishlist_badge_matches,
+  db_get_wishlist_inventory_matches,
+  db_get_wishlist_dismissal,
+  db_get_all_users_wishlist_dismissals,
+  db_delete_wishlist_dismissal,
+  db_add_wishlist_dismissal,
 )
 
 from queries.trade import (
@@ -246,7 +267,7 @@ def generate_badge_page_grids(filenames, overlays=None, per_row=4):
   Generates a paginated list of badge grid images (used for Discord Pagination or as direct message attachments)
   Each grid shows up to `per_row * rows_per_page` badges.
   """
-  rows_per_page = 2
+  rows_per_page = 5
   per_page = per_row * rows_per_page
   pages = []
 
@@ -281,12 +302,12 @@ async def generate_badge_completion_images(user_id, display_name, all_rows):
 
   bg_color, bar_color, highlight_color = get_theme_colors(theme)
   pages = []
-  per_page = 3
-  total_pages = (len(filtered) + per_page - 1) // per_page
+  rows_per_page = 6
+  total_pages = (len(filtered) + rows_per_page - 1) // rows_per_page
 
-  for i in range(0, len(filtered), per_page):
-    chunk = filtered[i:i+per_page]
-    base = build_completion_canvas(display_name, page_number=(i//per_page)+1, total_pages=total_pages, row_count=len(chunk), theme=theme)
+  for i in range(0, len(filtered), rows_per_page):
+    chunk = filtered[i:i+rows_per_page]
+    base = build_completion_canvas(display_name, page_number=(i//rows_per_page)+1, total_pages=total_pages, row_count=len(chunk), theme=theme)
 
     for idx, row_data in enumerate(chunk):
       row_img = compose_completion_row(row_data, title_color=highlight_color, highlight_color=highlight_color, bar_color=bar_color)
@@ -296,7 +317,7 @@ async def generate_badge_completion_images(user_id, display_name, all_rows):
     buf = io.BytesIO()
     base.save(buf, format="PNG")
     buf.seek(0)
-    pages.append(discord.File(buf, filename=f"completion_page_{i//per_page+1}.png"))
+    pages.append(discord.File(buf, filename=f"completion_page_{i//rows_per_page+1}.png"))
 
   return pages
 
@@ -692,24 +713,9 @@ async def generate_badge_images(type, user, page, page_number, total_pages, tota
 # /_______  /\___  >__|    \______  /\____/|__|_|  /   __/|____/\___  >__| |__|\____/|___|  /
 #         \/     \/               \/             \/|__|             \/                    \/
 async def generate_paginated_set_completion_images(user:discord.User, all_rows, total_badges, title, collected, filename_prefix):
-  max_per_image = 7
-  all_pages = [all_rows[i:i + max_per_image] for i in range(0, len(all_rows), max_per_image)]
-  total_pages = len(all_pages)
-  badge_images = [
-    await generate_badge_completion_images(
-      user,
-      page,
-      page_number + 1, # Account for zero index
-      total_pages,
-      total_badges,
-      title,
-      collected,
-      filename_prefix
-    )
-    for page_number, page in enumerate(all_pages)
-  ]
-  return badge_images
-
+  return await generate_badge_completion_images(
+      user.id, user.display_name, all_rows
+  )
 
 # async def generate_badge_completion_images(user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
 #   user_display_name = user.display_name
@@ -1053,34 +1059,3 @@ async def db_get_user_badge_page_color_preference(user_id, type):
     result = await query.fetchone()
   color_preference = result['color_preference']
   return color_preference
-
-__all__ = [
-  # Legacy re-exports
-  "db_get_user_badges",
-  "db_get_user_locked_badges",
-  "db_get_user_unlocked_badges",
-  "db_get_user_special_badges",
-  "db_get_badge_count_for_user",
-  "db_get_total_badge_count_by_filename",
-  "db_get_badge_by_filename",
-  "db_get_badge_info_by_name",
-  "db_get_badge_info_by_filename",
-  "db_get_all_badge_info",
-  "db_get_affiliation_badges",
-  "db_get_franchise_badges",
-  "db_get_time_period_badges",
-  "db_get_type_badges",
-  "db_get_user_wishlist_badges",
-  "db_autolock_badges_by_filenames_if_in_wishlist",
-  "db_purge_users_wishlist",
-  "db_insert_into_wishlist",
-  "db_remove_from_wishlist",
-  "db_dismiss_badge_from_wishlist",
-  "db_get_user_dismissed_wishlist",
-  "db_get_user_wishlist_pending",
-  "db_match_wishlist_against_inventory",
-  "db_get_trade_requested_badges",
-  "db_get_trade_offered_badges",
-  "db_cancel_trade",
-  "db_get_related_badge_trades",
-]

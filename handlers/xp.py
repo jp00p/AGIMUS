@@ -8,7 +8,7 @@ from common import *
 from commands.badges import give_user_badge, send_badge_reward_message
 from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist, db_get_user_wishlist_badges
 from utils.badge_utils import db_get_user_badges, db_purge_users_wishlist
-from utils.shiny_badges import generate_shiny_badge_image, insert_shiny_badge_info
+# from utils.shiny_badges import generate_shiny_badge_image, insert_shiny_badge_info
 
 # XP lock to prevent race conditions
 xp_lock = asyncio.Lock()
@@ -266,7 +266,7 @@ async def _award_level_up_badge(user_id):
     return { "filename": badge, "was_on_wishlist": was_on_wishlist }
 
   # No standard badge awarded — attempt shiny badge fallback
-  return await potentially_award_shiny_badge(user_id)
+  # return await potentially_award_shiny_badge(user_id)
 
 async def _send_level_up_embed(user, level, badge_data, source_details):
   channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
@@ -355,26 +355,26 @@ def _console_log_xp_history(user: discord.User, amt: int, reason: str):
   logger.info(f"{star} {msg_color}{user.display_name}{Fore.RESET} earns {msg_color}{amt} XP{Fore.RESET} for {Style.BRIGHT}{reason_text}{Style.RESET_ALL}! {star}")
   current_color = (current_color + 1) % len(xp_colors)
 
-async def potentially_award_shiny_badge(user_id):
-  user_badges = await db_get_user_badges(user_id)
-  if not user_badges:
-    logger.warning(f"User {user_id} has no badges—unexpected state when attempting shiny award.")
-    return None
+# async def potentially_award_shiny_badge(user_id):
+#   user_badges = await db_get_user_badges(user_id)
+#   if not user_badges:
+#     logger.warning(f"User {user_id} has no badges—unexpected state when attempting shiny award.")
+#     return None
 
-  standard_badges = [b for b in user_badges if b.get("shiny_level", 0) == 0]
-  base_badge = standard_badges[0]  # Use first badge as the shiny base
-  base_filename = base_badge["badge_filename"]
-  shiny_filename = base_filename.replace(".png", "_shiny_1.png")
+#   standard_badges = [b for b in user_badges if b.get("shiny_level", 0) == 0]
+#   base_badge = standard_badges[0]  # Use first badge as the shiny base
+#   base_filename = base_badge["badge_filename"]
+#   shiny_filename = base_filename.replace(".png", "_shiny_1.png")
 
-  await generate_shiny_badge_image(base_filename, shiny_filename)
-  await insert_shiny_badge_info(base_badge, shiny_filename, shiny_level=1)
+#   await generate_shiny_badge_image(base_filename, shiny_filename)
+#   await insert_shiny_badge_info(base_badge, shiny_filename, shiny_level=1)
 
-  async with AgimusDB() as query:
-    sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
-    vals = (user_id, shiny_filename)
-    await query.execute(sql, vals)
+#   async with AgimusDB() as query:
+#     sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
+#     vals = (user_id, shiny_filename)
+#     await query.execute(sql, vals)
 
-  return { "filename": shiny_filename, "was_on_wishlist": False }
+#   return { "filename": shiny_filename, "was_on_wishlist": False }
 
 def determine_level_up_source_details(user, source):
   if isinstance(source, discord.message.Message):
