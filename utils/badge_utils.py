@@ -1,35 +1,63 @@
+import io
+import math
 import textwrap
 import time
-import math
+import os
+
+from PIL import Image, ImageDraw, ImageFont
 
 from common import *
 
 from utils.thread_utils import to_thread
 
+from queries.badges import (
+  db_get_user_badges,
+  db_get_user_locked_badges,
+  db_get_user_unlocked_badges,
+  db_get_user_special_badges,
+  db_get_badge_count_for_user,
+  db_get_total_badge_count_by_filename
+)
 
-#   _________                    .__       .__ __________             .___
-#  /   _____/_____   ____   ____ |__|____  |  |\______   \_____     __| _/ ____   ____   ______
-#  \_____  \\____ \_/ __ \_/ ___\|  \__  \ |  | |    |  _/\__  \   / __ | / ___\_/ __ \ /  ___/
-#  /        \  |_> >  ___/\  \___|  |/ __ \|  |_|    |   \ / __ \_/ /_/ |/ /_/  >  ___/ \___ \
-# /_______  /   __/ \___  >\___  >__(____  /____/______  /(____  /\____ |\___  / \___  >____  >
-#         \/|__|        \/     \/        \/            \/      \/      \/_____/      \/     \/
-_SPECIAL_BADGES = None
-async def db_get_special_badges():
-  global _SPECIAL_BADGES
+from queries.badge_info import (
+  db_get_badge_info_by_name,
+  db_get_badge_info_by_filename,
+  db_get_all_badge_info,
+  db_get_all_affiliations,
+  db_get_affiliation_badges,
+  db_get_all_franchises,
+  db_get_franchise_badges,
+  db_get_all_time_periods,
+  db_get_time_period_badges,
+  db_get_all_types,
+  db_get_type_badges,
+)
 
-  if _SPECIAL_BADGES is not None:
-    return _SPECIAL_BADGES
-  """
-  Return all badge_info rows where special = 1
-  :return:
-  """
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM badge_info WHERE special = 1;"
-    vals = ()
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  _SPECIAL_BADGES = rows
-  return _SPECIAL_BADGES
+from queries.wishlist import (
+  db_get_user_wishlist_badges,
+  db_autolock_badges_by_filenames_if_in_wishlist,
+  db_purge_users_wishlist,
+  db_insert_into_wishlist,
+  db_remove_from_wishlist,
+  db_dismiss_badge_from_wishlist,
+  db_get_user_dismissed_wishlist,
+  db_get_user_wishlist_pending,
+  db_match_wishlist_against_inventory,
+)
+
+from queries.trade import (
+  db_get_trade_requested_badges,
+  db_get_trade_offered_badges,
+  db_cancel_trade,
+  db_get_related_badge_trades,
+)
+
+# Constants
+BADGE_PATH = "./images/badges/"
+BADGE_SIZE = (190, 190)
+BADGE_SPACING = 30
+ROW_WIDTH = 1000
+ROW_HEIGHT = 200
 
 #   _________                    .__       .__ __________             .___
 #  /   _____/_____   ____   ____ |__|____  |  |\______   \_____     __| _/ ____   ____   ______
@@ -71,6 +99,316 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
     selections = await db_get_all_types()
 
   return [result for result in selections if ctx.value.lower() in result.lower()]
+
+
+# Load and prep badge image
+def load_and_prepare_badge(filename, size=BADGE_SIZE):
+  badge_path = os.path.join(BADGE_PATH, filename)
+  b_raw = Image.open(badge_path).convert("RGBA")
+  b_raw.thumbnail(size)
+  badge_img = Image.new("RGBA", size, (255, 255, 255, 0))
+  badge_img.paste(b_raw, ((size[0]-b_raw.width)//2, (size[1]-b_raw.height)//2), b_raw)
+  return badge_img
+
+# Generate preview of badge(s)
+def generate_simple_badge_strip(filenames, spacing=10, badge_size=BADGE_SIZE):
+  """
+  Generate a horizontal strip of badge images used in compact layouts.
+  Used for simple displays like trade or grant confirmation.
+  """
+  images = [load_and_prepare_badge(f, badge_size) for f in filenames]
+  width = len(images) * badge_size[0] + (len(images) - 1) * spacing
+  height = badge_size[1]
+  strip = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+
+  for i, img in enumerate(images):
+    x = i * (badge_size[0] + spacing)
+    strip.paste(img, (x, 0), img)
+
+  return strip
+
+async def get_theme_preference(user_id):
+  theme = "green"
+  try:
+    pref = await db_get_user_badge_page_color_preference(user_id)
+    if pref:
+      theme = pref
+  except:
+    pass
+
+  return theme
+
+def get_theme_colors(theme: str):
+  """
+  Returns (bg_color, fill_color, accent_color) based on the user's theme.
+  """
+  bg_color = (30, 30, 30, 255)  # Default background
+  fill_color = (90, 200, 90, 255)  # Green by default
+  accent_color = (255, 255, 255, 255)  # White title text
+
+  if theme == "purple":
+    fill_color = (180, 100, 255, 255)
+  elif theme == "blue":
+    fill_color = (80, 180, 255, 255)
+  elif theme == "gold":
+    fill_color = (255, 200, 50, 255)
+  elif theme == "red":
+    fill_color = (255, 100, 100, 255)
+
+  return (bg_color, fill_color, accent_color)
+
+def get_lcars_font_by_length(name: str) -> ImageFont.FreeTypeFont:
+  """
+  Dynamically selects a LCARS-style font size based on the length of the user's display name.
+  Falls back to default font if LCARS is unavailable.
+  """
+  try:
+    if len(name) > 21:
+      return ImageFont.truetype("fonts/lcars3.ttf", 82)
+    elif len(name) > 16:
+      return ImageFont.truetype("fonts/lcars3.ttf", 90)
+    else:
+      return ImageFont.truetype("fonts/lcars3.ttf", 110)
+  except:
+    return ImageFont.load_default()
+
+# ANIMATION
+def generate_animation(filenames, duration=120):
+  """
+  Creates a looping GIF animation from a list of image filenames or pre-rendered badge images.
+  """
+  frames = []
+  for filename in filenames:
+    img = load_and_prepare_badge(filename)
+    frames.append(img)
+
+  gif_bytes = io.BytesIO()
+  frames[0].save(
+    gif_bytes,
+    format='GIF',
+    save_all=True,
+    append_images=frames[1:],
+    duration=duration,
+    loop=0,
+    disposal=2,
+    transparency=0
+  )
+  gif_bytes.seek(0)
+  return gif_bytes
+
+# --- Utilities ---
+
+def load_badge_image(filename):
+  path = os.path.join(BADGE_PATH, filename)
+  return Image.open(path).convert("RGBA")
+
+def create_badge_canvas(columns, rows, badge_size=BADGE_SIZE, spacing=BADGE_SPACING):
+  width = columns * badge_size[0] + (columns - 1) * spacing
+  height = rows * badge_size[1] + (rows - 1) * spacing
+  return Image.new("RGBA", (width, height), (255, 255, 255, 0))
+
+def paste_badge(canvas, badge_img, col, row, badge_size=BADGE_SIZE, spacing=BADGE_SPACING):
+  x = col * (badge_size[0] + spacing)
+  y = row * (badge_size[1] + spacing)
+  canvas.paste(badge_img, (x, y), badge_img)
+
+# --- Badge Slot Composition ---
+
+def compose_badge_slot(filename, overlay=None, badge_size=BADGE_SIZE):
+  badge = load_badge_image(filename)
+  badge.thumbnail(badge_size)
+  slot = Image.new("RGBA", badge_size, (255, 255, 255, 0))
+  offset = ((badge_size[0] - badge.width) // 2, (badge_size[1] - badge.height) // 2)
+  slot.paste(badge, offset, badge)
+
+  if overlay:
+    overlay_img = load_badge_image(overlay)
+    overlay_img.thumbnail(badge_size)
+    slot.paste(overlay_img, (0, 0), overlay_img)
+
+  return slot
+
+# --- Grid Renderer ---
+
+def generate_badge_grid(filenames, per_row=4, overlays=None, badge_size=BADGE_SIZE):
+  rows = (len(filenames) + per_row - 1) // per_row
+  canvas = create_badge_canvas(per_row, rows, badge_size)
+
+  for i, filename in enumerate(filenames):
+    overlay = overlays[i] if overlays and i < len(overlays) else None
+    badge_slot = compose_badge_slot(filename, overlay, badge_size)
+    paste_badge(canvas, badge_slot, i % per_row, i // per_row, badge_size)
+
+  return canvas
+
+def generate_badge_page_grids(filenames, overlays=None, per_row=4):
+  """
+  Generates a paginated list of badge grid images (used for Discord Pagination or as direct message attachments)
+  Each grid shows up to `per_row * rows_per_page` badges.
+  """
+  rows_per_page = 2
+  per_page = per_row * rows_per_page
+  pages = []
+
+  for i in range(0, len(filenames), per_page):
+    chunk = filenames[i:i + per_page]
+    chunk_overlays = overlays[i:i + per_page] if overlays else None
+    grid = generate_badge_grid(chunk, per_row=per_row, overlays=chunk_overlays)
+    pages.append(grid)
+
+  return pages
+
+# --- Completion Grid Composition ---
+
+async def generate_badge_completion_images(user_id, display_name, all_rows):
+  """
+  Renders paginated badge completion images using themed components and returns discord.File[]
+  """
+  theme = get_theme_preference(user_id)
+
+  filtered = [r for r in all_rows if r["percent"] > 0]
+  if not filtered:
+    bg_color, bar_color, highlight_color = get_theme_colors(theme)
+    base = build_completion_canvas(display_name, page_number=1, total_pages=1, row_count=1, theme=theme)
+    row_img = compose_empty_completion_row()
+    row_y = base.height - 200 - 112
+    base.paste(row_img, (0, row_y), row_img)
+
+    buf = io.BytesIO()
+    base.save(buf, format="PNG")
+    buf.seek(0)
+    return [discord.File(buf, filename="completion_page_1.png")]
+
+  bg_color, bar_color, highlight_color = get_theme_colors(theme)
+  pages = []
+  per_page = 3
+  total_pages = (len(filtered) + per_page - 1) // per_page
+
+  for i in range(0, len(filtered), per_page):
+    chunk = filtered[i:i+per_page]
+    base = build_completion_canvas(display_name, page_number=(i//per_page)+1, total_pages=total_pages, row_count=len(chunk), theme=theme)
+
+    for idx, row_data in enumerate(chunk):
+      row_img = compose_completion_row(row_data, title_color=highlight_color, highlight_color=highlight_color, bar_color=bar_color)
+      row_y = base.height - 200 * (len(chunk) - idx) - 112  # 112 = footer height
+      base.paste(row_img, (0, row_y), row_img)
+
+    buf = io.BytesIO()
+    base.save(buf, format="PNG")
+    buf.seek(0)
+    pages.append(discord.File(buf, filename=f"completion_page_{i//per_page+1}.png"))
+
+  return pages
+
+def compose_completion_row(row_data, title_color, highlight_color, bar_color):
+  """
+  Draws a single row for a badge set: badge image, title, percent bar.
+  `row_data` = { 'title', 'percent', 'featured_filename' }
+  """
+  row_canvas = Image.new("RGBA", (ROW_WIDTH, ROW_HEIGHT), (0, 0, 0, 0))
+  draw = ImageDraw.Draw(canvas)
+
+  # Load badge image
+  badge_img = None
+  if row_data.get("featured_filename"):
+    try:
+      badge_path = os.path.join(BADGE_PATH, row_data["featured_filename"])
+      badge_img = Image.open(badge_path).convert("RGBA")
+      badge_img.thumbnail((150, 150))
+      row_canvas.paste(badge_img, (25, 25), badge_img)
+    except:
+      pass
+
+  # Fonts
+  try:
+    title_font = ImageFont.truetype("fonts/lcars3.ttf", 160)
+    percent_font = ImageFont.truetype("fonts/lcars3.ttf", 120)
+  except:
+    title_font = percent_font = ImageFont.load_default()
+
+  # Title
+  draw.text((210, 30), row_data["title"].upper(), font=title_font, fill=title_color)
+
+  # Percent text
+  percent_display = f"{int(row_data['percent'] * 100)}%"
+  draw.text((800, 40), percent_display, font=percent_font, fill=highlight_color)
+
+  # Bar
+  bar_x = 210
+  bar_y = 130
+  bar_w = 750
+  bar_h = 20
+  draw.rectangle([bar_x, bar_y, bar_x + bar_w, bar_y + bar_h], fill=(20, 20, 20, 255))
+  fill_w = int(bar_w * row_data['percent'])
+  draw.rectangle([bar_x, bar_y, bar_x + fill_w, bar_y + bar_h], fill=bar_color)
+
+  return row_canvas
+
+
+def compose_empty_completion_row(message: str = "No badges within inventory that match this set type."):
+  """
+  Returns a fallback row image with a centered message.
+  """
+  empty_row_canvas = Image.new("RGBA", (ROW_WIDTH, ROW_HEIGHT), (0, 0, 0, 0))
+  draw = ImageDraw.Draw(empty_row_canvas)
+
+  try:
+    font = ImageFont.truetype("fonts/lcars3.ttf", 48)
+  except:
+    font = ImageFont.load_default()
+
+  text_w = draw.textlength(message, font=font)
+  draw.text(((ROW_WIDTH - text_w) // 2, 80), message, font=font, fill=(255, 255, 255, 255))
+
+  return empty_row_canvas
+
+def build_completion_canvas(display_name: str, page_number: int, total_pages: int, row_count: int, theme: str) -> Image.Image:
+  """
+  Builds the full badge completion page using header, row, and footer images based on the theme.
+  Dynamically draws fonts on top and returns the full canvas.
+  """
+  from PIL import Image
+  import os
+
+  # Load assets based on theme
+  theme = theme.lower()
+  asset_prefix = f"images/themes/{theme}/badge_page_"
+  header_img = Image.open(f"{asset_prefix}header_{theme}.png").convert("RGBA")
+  footer_img = Image.open(f"{asset_prefix}footer_{theme}.png").convert("RGBA")
+  row_img = Image.open(f"{asset_prefix}row_{theme}.png").convert("RGBA")
+
+  header_h = header_img.height
+  footer_h = footer_img.height
+  row_h = row_img.height
+  base_w = header_img.width
+  total_h = header_h + footer_h + row_h * row_count
+
+  canvas = Image.new("RGBA", (base_w, total_h), (0, 0, 0, 0))
+  canvas.paste(header_img, (0, 0), header_img)
+
+  for i in range(row_count):
+    y = header_h + i * row_h
+    canvas.paste(row_img, (0, y), row_img)
+
+  canvas.paste(footer_img, (0, header_h + row_count * row_h), footer_img)
+
+  # Font overlays
+  try:
+    title_font = get_lcars_font_by_length(display_name)
+    collected_font = ImageFont.truetype("fonts/lcars3.ttf", 100)
+    total_font = ImageFont.truetype("fonts/lcars3.ttf", 54)
+    page_font = ImageFont.truetype("fonts/lcars3.ttf", 80)
+  except:
+    title_font = ImageFont.load_default()
+    collected_font = total_font = page_font = title_font
+
+  draw = ImageDraw.Draw(canvas)
+  draw.text((100, 65), display_name.upper(), font=title_font, fill=(255, 255, 255, 255))
+  draw.text((590, total_h - 125), "COLLECTED", font=collected_font, fill=(255, 255, 255, 255))
+  draw.text((32, total_h - 90), "TOTAL BADGES", font=total_font, fill=(255, 255, 255, 255))
+  draw.text((base_w - 370, total_h - 115), f"PAGE {page_number:02d} OF {total_pages:02d}", font=page_font, fill=(255, 255, 255, 255))
+
+  return canvas
 
 # ___________                  .___.__
 # \__    ___/___________     __| _/|__| ____    ____
@@ -171,103 +509,6 @@ async def generate_badge_trade_showcase(badge_list, id, title, footer):
 
   discord_image = discord.File(fp=f"./images/trades/{id}.png", filename=f"{id}.png")
   return discord_image
-
-async def does_trade_contain_badges(active_trade):
-  offered_badges = await db_get_trade_offered_badges(active_trade)
-  requested_badges = await db_get_trade_requested_badges(active_trade)
-
-  if len(offered_badges) > 0 or len(requested_badges) > 0:
-    return True
-  else:
-    return False
-
-async def get_offered_and_requested_badge_names(active_trade):
-  offered_badges = await db_get_trade_offered_badges(active_trade)
-  offered_badge_names = "None"
-  if offered_badges:
-    offered_badge_names = "\n".join([f"* {b['badge_name']}" for b in offered_badges])
-
-  requested_badges = await db_get_trade_requested_badges(active_trade)
-  requested_badge_names = "None"
-  if requested_badges:
-    requested_badge_names = "\n".join([f"* {b['badge_name']}" for b in requested_badges])
-
-  return offered_badge_names, requested_badge_names
-
-async def db_get_trade_requested_badges(active_trade):
-  active_trade_id = active_trade["id"]
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*
-      FROM badge_info as b_i
-        JOIN trade_requested AS t_r
-        ON t_r.trade_id = %s AND t_r.badge_filename = b_i.badge_filename
-    '''
-    vals = (active_trade_id,)
-    await query.execute(sql, vals)
-    trades = await query.fetchall()
-  return trades
-
-async def db_get_trade_offered_badges(active_trade):
-  active_trade_id = active_trade["id"]
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*
-      FROM badge_info as b_i
-        JOIN trade_offered AS t_o
-        ON t_o.trade_id = %s AND t_o.badge_filename = b_i.badge_filename
-    '''
-    vals = (active_trade_id,)
-    await query.execute(sql, vals)
-    trades = await query.fetchall()
-  return trades
-
-async def db_cancel_trade(trade):
-  trade_id = trade['id']
-  async with AgimusDB() as query:
-    sql = "UPDATE trades SET status = 'canceled' WHERE id = %s"
-    vals = (trade_id,)
-    await query.execute(sql, vals)
-
-async def db_get_related_badge_trades(active_trade):
-  active_trade_id = active_trade["id"]
-
-  async with AgimusDB(dictionary=True) as query:
-    # All credit for this query to Danma! Praise be!!!
-    sql = '''
-      SELECT t.*
-
-      FROM trades as t
-      LEFT JOIN trade_offered `to` ON t.id = to.trade_id
-      LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
-
-      INNER JOIN (
-          SELECT trade_id, requestor_id, requestee_id, badge_filename
-          FROM trade_requested
-          INNER JOIN trades ON trade_requested.trade_id = trades.id AND trades.id = %s
-          UNION ALL
-          SELECT trade_id, requestor_id, requestee_id, badge_filename
-          FROM trade_offered
-          INNER JOIN trades ON trade_offered.trade_id = trades.id AND trades.id = %s
-      ) as activeTrade ON 1
-
-      -- not the active trade
-      WHERE t.id != activeTrade.trade_id
-
-      -- pending or active
-      AND t.status IN ('pending','active')
-
-      -- involves one or more of the users involved in the active trade
-      AND (t.requestor_id IN (activeTrade.requestor_id, activeTrade.requestee_id) OR t.requestee_id IN (activeTrade.requestor_id, activeTrade.requestee_id))
-
-      -- involves one or more of the badges involved in the active trade
-      AND (to.badge_filename = activeTrade.badge_filename OR tr.badge_filename = activeTrade.badge_filename)
-      GROUP BY t.id
-    '''
-    vals = (active_trade_id, active_trade_id)
-    await query.execute(sql, vals)
-    trades = await query.fetchall()
-  return trades
 
 # __________                .__               __  .__
 # \______   \_____     ____ |__| ____ _____ _/  |_|__| ____   ____
@@ -470,157 +711,157 @@ async def generate_paginated_set_completion_images(user:discord.User, all_rows, 
   return badge_images
 
 
-async def generate_badge_completion_images(user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
-  user_display_name = user.display_name
-  color_preference = await db_get_user_badge_page_color_preference(user.id, "sets")
+# async def generate_badge_completion_images(user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
+#   user_display_name = user.display_name
+#   color_preference = await db_get_user_badge_page_color_preference(user.id, "sets")
 
-  if color_preference == "green":
-    title_color = "#99B98D"
-    highlight_color = "#54B145"
-    bar_color = "#265F26"
-  elif color_preference == "orange":
-    title_color = "#BD9789"
-    highlight_color = "#BA6F3B"
-    bar_color = "#5F3C26"
-  elif color_preference == "purple":
-    title_color = "#6455A1"
-    highlight_color = "#9593B2"
-    bar_color = "#31265F"
-  elif color_preference == "teal":
-    title_color = "#8DB9B5"
-    highlight_color = "#47AAB1"
-    bar_color = "#265B5F"
+#   if color_preference == "green":
+#     title_color = "#99B98D"
+#     highlight_color = "#54B145"
+#     bar_color = "#265F26"
+#   elif color_preference == "orange":
+#     title_color = "#BD9789"
+#     highlight_color = "#BA6F3B"
+#     bar_color = "#5F3C26"
+#   elif color_preference == "purple":
+#     title_color = "#6455A1"
+#     highlight_color = "#9593B2"
+#     bar_color = "#31265F"
+#   elif color_preference == "teal":
+#     title_color = "#8DB9B5"
+#     highlight_color = "#47AAB1"
+#     bar_color = "#265B5F"
 
-  title_font = ImageFont.truetype("fonts/lcars3.ttf", 110)
-  if len(user_display_name) > 16:
-    title_font = ImageFont.truetype("fonts/lcars3.ttf", 90)
-  if len(user_display_name) > 21:
-    title_font = ImageFont.truetype("fonts/lcars3.ttf", 82)
-  collected_font = ImageFont.truetype("fonts/lcars3.ttf", 100)
-  total_font = ImageFont.truetype("fonts/lcars3.ttf", 54)
-  page_number_font = ImageFont.truetype("fonts/lcars3.ttf", 80)
+#   title_font = ImageFont.truetype("fonts/lcars3.ttf", 110)
+#   if len(user_display_name) > 16:
+#     title_font = ImageFont.truetype("fonts/lcars3.ttf", 90)
+#   if len(user_display_name) > 21:
+#     title_font = ImageFont.truetype("fonts/lcars3.ttf", 82)
+#   collected_font = ImageFont.truetype("fonts/lcars3.ttf", 100)
+#   total_font = ImageFont.truetype("fonts/lcars3.ttf", 54)
+#   page_number_font = ImageFont.truetype("fonts/lcars3.ttf", 80)
 
-  row_title_font = ImageFont.truetype("fonts/lcars3.ttf", 160)
-  row_tag_font = ImageFont.truetype("fonts/lcars3.ttf", 120)
+#   row_title_font = ImageFont.truetype("fonts/lcars3.ttf", 160)
+#   row_tag_font = ImageFont.truetype("fonts/lcars3.ttf", 120)
 
-  # Set up rows and dimensions
-  row_height = 280
-  row_width = 1700
-  row_margin = 10
+#   # Set up rows and dimensions
+#   row_height = 280
+#   row_width = 1700
+#   row_margin = 10
 
-  base_width = 1890
-  base_header_height = 530
-  base_row_height = 290
-  base_footer_height = 200
+#   base_width = 1890
+#   base_header_height = 530
+#   base_row_height = 290
+#   base_footer_height = 200
 
-  # If we're generating just one page we want the rows to simply expand to only what's necessary
-  # Otherwise if there's multiple pages we want to have all of them be consistent
-  if len(page) == 0:
-    number_of_rows = 0
-  elif page_number == 1 and total_pages == 1:
-    number_of_rows = len(page) - 1
-  else:
-    number_of_rows = 6
+#   # If we're generating just one page we want the rows to simply expand to only what's necessary
+#   # Otherwise if there's multiple pages we want to have all of them be consistent
+#   if len(page) == 0:
+#     number_of_rows = 0
+#   elif page_number == 1 and total_pages == 1:
+#     number_of_rows = len(page) - 1
+#   else:
+#     number_of_rows = 6
 
-  base_height = base_header_height + (base_row_height * number_of_rows) + base_footer_height
+#   base_height = base_header_height + (base_row_height * number_of_rows) + base_footer_height
 
-  # create base image to paste all badges on to
-  badge_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
-  base_header_image = Image.open(f"./images/templates/badges/badge_page_header_{color_preference}.png")
-  base_row_image = Image.open(f"./images/templates/badges/badge_page_row_{color_preference}.png")
-  base_footer_image = Image.open(f"./images/templates/badges/badge_page_footer_{color_preference}.png")
+#   # create base image to paste all badges on to
+#   badge_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
+#   base_header_image = Image.open(f"./images/templates/badges/badge_page_header_{color_preference}.png")
+#   base_row_image = Image.open(f"./images/templates/badges/badge_page_row_{color_preference}.png")
+#   base_footer_image = Image.open(f"./images/templates/badges/badge_page_footer_{color_preference}.png")
 
-  # Start image with header
-  badge_base_image.paste(base_header_image, (0, 0))
+#   # Start image with header
+#   badge_base_image.paste(base_header_image, (0, 0))
 
-  # Stamp rows (if needed, header includes first row)
-  base_current_y = base_header_height
-  for i in range(number_of_rows):
-    badge_base_image.paste(base_row_image, (0, base_current_y))
-    base_current_y += base_row_height
+#   # Stamp rows (if needed, header includes first row)
+#   base_current_y = base_header_height
+#   for i in range(number_of_rows):
+#     badge_base_image.paste(base_row_image, (0, base_current_y))
+#     base_current_y += base_row_height
 
-  # Stamp footer
-  badge_base_image.paste(base_footer_image, (0, base_current_y))
+#   # Stamp footer
+#   badge_base_image.paste(base_footer_image, (0, base_current_y))
 
-  draw = ImageDraw.Draw(badge_base_image)
+#   draw = ImageDraw.Draw(badge_base_image)
 
-  draw.text( (100, 65), title, fill=title_color, font=title_font, align="left")
-  draw.text( (590, base_height - 125), collected, fill=highlight_color, font=collected_font, align="left")
-  draw.text( (32, base_height - 90), f"{total_user_badges}", fill=highlight_color, font=total_font, align="left")
-  draw.text( (base_width - 370, base_height - 115), f"PAGE {'{:02d}'.format(page_number)} OF {'{:02d}'.format(total_pages)}", fill=highlight_color, font=page_number_font, align="right")
+#   draw.text( (100, 65), title, fill=title_color, font=title_font, align="left")
+#   draw.text( (590, base_height - 125), collected, fill=highlight_color, font=collected_font, align="left")
+#   draw.text( (32, base_height - 90), f"{total_user_badges}", fill=highlight_color, font=total_font, align="left")
+#   draw.text( (base_width - 370, base_height - 115), f"PAGE {'{:02d}'.format(page_number)} OF {'{:02d}'.format(total_pages)}", fill=highlight_color, font=page_number_font, align="right")
 
-  start_x = 120
-  current_x = start_x
-  current_y = 245
+#   start_x = 120
+#   current_x = start_x
+#   current_y = 245
 
-  # If the user has no badges that are within sets of this category,
-  # Stamp an empty message
-  if len(page) == 0:
-    row_image = Image.new("RGBA", (row_width, row_height), (0, 0, 0, 0))
-    r_draw = ImageDraw.Draw(row_image)
+#   # If the user has no badges that are within sets of this category,
+#   # Stamp an empty message
+#   if len(page) == 0:
+#     row_image = Image.new("RGBA", (row_width, row_height), (0, 0, 0, 0))
+#     r_draw = ImageDraw.Draw(row_image)
 
-    r_title = "No badges within inventory that match this set type."
-    r_draw.rounded_rectangle( (0, 0, row_width, row_height), fill="#101010", outline=highlight_color, width=4, radius=32 )
-    r_draw.text( (row_width / 2, row_height / 2), r_title, fill=title_color, font=row_tag_font, anchor="mm", align="left")
+#     r_title = "No badges within inventory that match this set type."
+#     r_draw.rounded_rectangle( (0, 0, row_width, row_height), fill="#101010", outline=highlight_color, width=4, radius=32 )
+#     r_draw.text( (row_width / 2, row_height / 2), r_title, fill=title_color, font=row_tag_font, anchor="mm", align="left")
 
-    badge_base_image.paste(row_image, (current_x, current_y - 35), row_image)
-  else:
-    for set_row in page:
-      offset = 250
+#     badge_base_image.paste(row_image, (current_x, current_y - 35), row_image)
+#   else:
+#     for set_row in page:
+#       offset = 250
 
-      # row
-      row_image = Image.new("RGBA", (row_width, row_height), (0, 0, 0, 0))
-      r_draw = ImageDraw.Draw(row_image)
+#       # row
+#       row_image = Image.new("RGBA", (row_width, row_height), (0, 0, 0, 0))
+#       r_draw = ImageDraw.Draw(row_image)
 
-      r_draw.rounded_rectangle( (0, 0, row_width, row_height), fill="#101010", outline="#101010", width=4, radius=32 )
+#       r_draw.rounded_rectangle( (0, 0, row_width, row_height), fill="#101010", outline="#101010", width=4, radius=32 )
 
-      r_title = set_row['name']
-      if r_title == None:
-        continue # Skip this row if the category doesn't have a name
+#       r_title = set_row['name']
+#       if r_title == None:
+#         continue # Skip this row if the category doesn't have a name
 
-      r_draw.text( (offset, 50), r_title, fill=title_color, font=row_title_font, align="left")
+#       r_draw.text( (offset, 50), r_title, fill=title_color, font=row_title_font, align="left")
 
-      r_tag = f"{set_row['percentage']}% ({set_row['owned']} of {set_row['total']})"
-      r_draw.text( (row_width - 20, 170), r_tag, fill=title_color, anchor="rb", font=row_tag_font, align="right")
+#       r_tag = f"{set_row['percentage']}% ({set_row['owned']} of {set_row['total']})"
+#       r_draw.text( (row_width - 20, 170), r_tag, fill=title_color, anchor="rb", font=row_tag_font, align="right")
 
-      # draw percentage bar
-      w, h = row_width - offset, 64
-      x, y = offset, row_height - 64
+#       # draw percentage bar
+#       w, h = row_width - offset, 64
+#       x, y = offset, row_height - 64
 
-      base_shape = (x, y, (w+x, h+y))
-      r_draw.rectangle(base_shape, fill=bar_color)
+#       base_shape = (x, y, (w+x, h+y))
+#       r_draw.rectangle(base_shape, fill=bar_color)
 
-      percentage_shape = (x, y, ((set_row['percentage'] / 100)*w)+x, h+y)
-      r_draw.rectangle(percentage_shape, fill=highlight_color)
+#       percentage_shape = (x, y, ((set_row['percentage'] / 100)*w)+x, h+y)
+#       r_draw.rectangle(percentage_shape, fill=highlight_color)
 
-      # badge
-      if 'featured_badge' in set_row:
-        # badge
-        size = (190, 190)
-        b_raw = Image.open(f"./images/badges/{set_row['featured_badge']}").convert("RGBA")
-        b_raw.thumbnail(size, Image.ANTIALIAS)
-        b = Image.new('RGBA', size, (255, 255, 255, 0))
-        b.paste(
-          b_raw, (int((size[0] - b_raw.size[0]) // 2), int((size[1] - b_raw.size[1]) // 2))
-        )
-        row_image.paste(b, (20, 50), b)
+#       # badge
+#       if 'featured_badge' in set_row:
+#         # badge
+#         size = (190, 190)
+#         b_raw = Image.open(f"./images/badges/{set_row['featured_badge']}").convert("RGBA")
+#         b_raw.thumbnail(size, Image.ANTIALIAS)
+#         b = Image.new('RGBA', size, (255, 255, 255, 0))
+#         b.paste(
+#           b_raw, (int((size[0] - b_raw.size[0]) // 2), int((size[1] - b_raw.size[1]) // 2))
+#         )
+#         row_image.paste(b, (20, 50), b)
 
-      # add row to base image
-      badge_base_image.paste(row_image, (current_x, current_y), row_image)
+#       # add row to base image
+#       badge_base_image.paste(row_image, (current_x, current_y), row_image)
 
-      # Move y down to next row
-      current_y += row_height + row_margin
+#       # Move y down to next row
+#       current_y += row_height + row_margin
 
-  badge_completion_filepath = f"./images/profiles/{filename_prefix}{page_number}.png"
-  badge_base_image.save(badge_completion_filepath)
+#   badge_completion_filepath = f"./images/profiles/{filename_prefix}{page_number}.png"
+#   badge_base_image.save(badge_completion_filepath)
 
-  while True:
-    time.sleep(0.05)
-    if os.path.isfile(badge_completion_filepath):
-      break
+#   while True:
+#     time.sleep(0.05)
+#     if os.path.isfile(badge_completion_filepath):
+#       break
 
-  discord_image = discord.File(badge_completion_filepath, filename=f"{filename_prefix}{page_number}.png")
-  return discord_image
+#   discord_image = discord.File(badge_completion_filepath, filename=f"{filename_prefix}{page_number}.png")
+#   return discord_image
 
 
 #   _________
@@ -776,165 +1017,13 @@ def generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap):
   discord_image = discord.File(gif_save_filepath, filename=f"scrap_{user_id}.gif")
   return discord_image
 
+# HELPER FUNCTIONS
+def get_badge_metadata(filename):
+  return db_get_badge_info_by_filename(filename)
 
-# ________                      .__
-# \_____  \  __ __   ___________|__| ____   ______
-#  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
-# /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
-# \_____\ \_/____/  \___  >__|  |__|\___  >____  >
-#        \__>           \/              \/     \/
-_ALL_BADGE_INFO = None
-async def db_get_all_badge_info():
-  global _ALL_BADGE_INFO
-  """
-  Returns all rows from badge_info table
-  :return: list of row dicts
-  """
-  if _ALL_BADGE_INFO is not None:
-    return _ALL_BADGE_INFO
-
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM badge_info ORDER BY badge_name ASC;"
-    await query.execute(sql)
-    rows = await query.fetchall()
-    _ALL_BADGE_INFO = rows
-  return _ALL_BADGE_INFO
-
-async def db_get_badge_info_by_name(name):
-  """
-  Given the name of a badge, retrieves its information from badge_info
-  :param name: the name of the badge.
-  :return: row dict
-  """
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM badge_info WHERE badge_name = %s;"
-    vals = (name,)
-    await query.execute(sql, vals)
-    row = await query.fetchone()
-
-  return row
-
-async def db_get_badge_count_by_filename(filename):
-  """
-  Given the name of a badge, retrieves its information from badge_info
-  :param name: the name of the badge.
-  :return: row dict
-  """
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT count(*) FROM badges WHERE badge_filename = %s;"
-    vals = (filename,)
-    await query.execute(sql, vals)
-    row = await query.fetchone()
-  return row["count(*)"]
-
-async def db_get_badge_info_by_filename(filename):
-  """
-  Given the filename of a badge, retrieves its information from badge_info
-  :param filename: the name of the badge.
-  :return: row dict
-  """
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM badge_info WHERE badge_filename = %s;"
-    vals = (filename,)
-    await query.execute(sql, vals)
-    row = await query.fetchone()
-  return row
-
-async def db_get_user_badges(user_discord_id:int, sortby=None):
-  '''
-    get_user_badges(user_discord_id)
-    user_discord_id[required]: int
-    returns a list of badges the user has
-  '''
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.badge_name, b_i.badge_filename, b.locked, b_i.special FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-          WHERE b.user_discord_id = %s
-    '''
-    order_by = " ORDER BY b_i.badge_filename ASC"
-    if sortby is not None:
-      if sortby == 'date_ascending':
-        order_by = " ORDER BY b.time_created ASC, b_i.badge_filename ASC"
-      elif sortby == 'date_descending':
-        order_by = " ORDER BY b.time_created DESC, b_i.badge_filename ASC"
-      elif sortby == 'locked_first':
-        order_by = " ORDER BY b.locked ASC, b_i.badge_filename ASC"
-      elif sortby == 'special_first':
-        order_by = " ORDER BY b_i.special ASC, b_i.badge_filename ASC"
-    sql = sql + order_by
-    vals = (user_discord_id,)
-    await query.execute(sql, vals)
-    badges = await query.fetchall()
-  return badges
-
-async def db_get_user_unlocked_badges(user_discord_id:int):
-  '''
-    db_get_user_unlocked_badges(user_discord_id)
-    user_discord_id[required]: int
-    returns a list of unlocked badges the user has
-  '''
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*, b.locked FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-          WHERE b.user_discord_id = %s AND b.locked = 0 AND b_i.special = 0
-          ORDER BY b_i.badge_filename ASC
-    '''
-    vals = (user_discord_id,)
-    await query.execute(sql, vals)
-    badges = await query.fetchall()
-  return badges
-
-async def db_get_user_locked_badges(user_discord_id:int):
-  '''
-    db_get_user_locked_badges(user_discord_id)
-    user_discord_id[required]: int
-    returns a list of unlocked badges the user has
-  '''
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*, b.locked FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-          WHERE b.user_discord_id = %s AND b.locked = 1 AND b_i.special = 0
-          ORDER BY b_i.badge_filename ASC
-    '''
-    vals = (user_discord_id,)
-    await query.execute(sql, vals)
-    badges = await query.fetchall()
-  return badges
-
-async def db_get_user_special_badges(user_discord_id:int):
-  '''
-    get_user_special_badges(user_discord_id)
-    user_discord_id[required]: int
-    returns a list of special badges the user has
-  '''
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*, b.locked FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-          WHERE b.user_discord_id = %s AND b_i.special = 1
-          ORDER BY b_i.badge_filename ASC
-    '''
-    vals = (user_discord_id,)
-    await query.execute(sql, vals)
-    badges = await query.fetchall()
-  return badges
-
-async def db_get_badge_count_for_user(user_id):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT count(*) FROM badges WHERE user_discord_id = %s
-    '''
-    vals = (user_id,)
-    await query.execute(sql, vals)
-    result = await query.fetchone()
-  return result['count(*)']
+# Check if badge was on wishlist
+def was_badge_on_wishlist(badge_filename, wishlist):
+  return badge_filename in [b['badge_filename'] for b in wishlist]
 
 async def db_set_user_badge_page_color_preference(user_id, type, color):
   async with AgimusDB() as query:
@@ -965,295 +1054,33 @@ async def db_get_user_badge_page_color_preference(user_id, type):
   color_preference = result['color_preference']
   return color_preference
 
-
-
-# Affiliations
-async def db_get_all_affiliations():
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT distinct(affiliation_name) FROM badge_affiliation;"
-    await query.execute(sql)
-    rows = await query.fetchall()
-
-  affiliations = [r['affiliation_name'] for r in rows if r['affiliation_name'] is not None]
-  affiliations.sort()
-  return affiliations
-
-async def db_get_all_affiliation_badges(affiliation):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.* FROM badge_info b_i
-        JOIN badge_affiliation AS b_a
-          ON b_i.badge_filename = b_a.badge_filename
-        WHERE b_a.affiliation_name = %s
-        ORDER BY b_i.badge_name ASC;
-    '''
-    vals = (affiliation,)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
-
-async def db_get_badge_affiliations_by_badge_name(name):
-  """
-  Given the name of a badge, retrieves the affiliation(s) associated with it
-  :param name: the name of the badge.
-  :return: list of row dicts
-  """
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT affiliation_name FROM badge_affiliation b_a
-      JOIN badge_info as b_i
-        ON b_i.badge_filename = b_a.badge_filename
-      WHERE badge_name = %s;
-    '''
-    vals = (name,)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
-
-async def db_get_badges_user_has_from_affiliation(user_id, affiliation):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.* FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-        JOIN badge_affiliation AS b_a
-          ON b_i.badge_filename = b_a.badge_filename
-        WHERE b.user_discord_id = %s
-          AND b_a.affiliation_name = %s
-        ORDER BY b_i.badge_name ASC;
-    '''
-    vals = (user_id, affiliation)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
-
-async def db_get_random_badges_from_user_by_affiliations(user_id: int):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*, b_a.affiliation_name
-      FROM badges b
-      INNER JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-      INNER JOIN badge_affiliation AS b_a
-          ON b_i.badge_filename = b_a.badge_filename
-      WHERE b.user_discord_id = %s
-      ORDER BY RAND()
-    '''
-    await query.execute(sql, (user_id,))
-    rows = await query.fetchall()
-  return {r['affiliation_name']: r['badge_filename'] for r in rows}
-
-# Franchises
-async def db_get_all_franchises():
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT distinct(franchise) FROM badge_info"
-    await query.execute(sql)
-    rows = await query.fetchall()
-  franchises = [r['franchise'] for r in rows if r['franchise'] is not None]
-  franchises.sort()
-  return franchises
-
-async def db_get_all_franchise_badges(franchise):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT * FROM badge_info
-        WHERE franchise = %s
-        ORDER BY badge_name ASC;
-    '''
-    vals = (franchise,)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
-
-async def db_get_badges_user_has_from_franchise(user_id, franchise):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.* FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-        WHERE b.user_discord_id = %s
-          AND b_i.franchise = %s
-        ORDER BY b_i.badge_name ASC;
-    '''
-    vals = (user_id, franchise)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
-
-async def db_get_random_badges_from_user_by_franchises(user_id: int):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*
-      FROM badges b
-      INNER JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-      WHERE b.user_discord_id = %s
-      ORDER BY RAND()
-    '''
-    await query.execute(sql, (user_id,))
-    rows = await query.fetchall()
-  return {r['franchise']: r['badge_filename'] for r in rows}
-
-
-# Time Periods
-async def db_get_all_time_periods():
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT distinct(time_period) FROM badge_info"
-    await query.execute(sql)
-    rows = await query.fetchall()
-  time_periods = [r['time_period'] for r in rows if r['time_period'] is not None]
-  time_periods.sort(key=_time_period_sort)
-  return time_periods
-
-def _time_period_sort(time_period):
-  """
-  We may be dealing with time periods before 1000,
-  so tack on a 0 prefix for these for proper sorting
-  """
-  if len(time_period) == 4:
-    return f"0{time_period}"
-  else:
-    return time_period
-
-async def db_get_all_time_period_badges(time_period):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT * FROM badge_info b_i
-        WHERE time_period = %s
-        ORDER BY badge_name ASC
-    '''
-    vals = (time_period,)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
-
-async def db_get_badges_user_has_from_time_period(user_id, time_period):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.* FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-        WHERE b.user_discord_id = %s
-          AND b_i.time_period = %s
-        ORDER BY b_i.badge_name ASC
-    '''
-    vals = (user_id, time_period)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
-
-
-async def db_get_random_badges_from_user_by_time_periods(user_id: int):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*, b_i.time_period
-      FROM badges b
-      INNER JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-      WHERE b.user_discord_id = %s
-      ORDER BY RAND()
-    '''
-    await query.execute(sql, (user_id,))
-    rows = await query.fetchall()
-  return {r['time_period']: r['badge_filename'] for r in rows}
-
-
-# Types
-async def db_get_all_types():
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT distinct(type_name) FROM badge_type"
-    await query.execute(sql)
-    rows = await query.fetchall()
-  types = [r['type_name'] for r in rows if r['type_name'] is not None]
-  types.sort()
-  return types
-
-async def db_get_all_type_badges(type):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.* FROM badge_info b_i
-        JOIN badge_type AS b_t
-          ON b_i.badge_filename = b_t.badge_filename
-        WHERE b_t.type_name = %s
-        ORDER BY b_i.badge_name ASC
-    '''
-    vals = (type,)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
-
-async def db_get_badge_types_by_badge_name(name):
-  """
-  Given the name of a badge, retrieves the types(s) associated with it
-  :param name: the name of the badge.
-  :return: list of row dicts
-  """
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT type_name FROM badge_type b_t
-      JOIN badge_info as b_i
-        ON b_i.badge_filename = b_t.badge_filename
-      WHERE badge_name = %s;
-    '''
-    vals = (name,)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
-
-
-async def db_get_badges_user_has_from_type(user_id, type):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.* FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-        JOIN badge_type AS b_t
-          ON b_i.badge_filename = b_t.badge_filename
-        WHERE b.user_discord_id = %s
-          AND b_t.type_name = %s
-        ORDER BY b_i.badge_name ASC
-    '''
-    vals = (user_id, type)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
-
-async def db_get_random_badges_from_user_by_types(user_id: int):
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*, b_t.type_name
-      FROM badges b
-      INNER JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-      INNER JOIN badge_type AS b_t
-          ON b_i.badge_filename = b_t.badge_filename
-      WHERE b.user_discord_id = %s
-      ORDER BY RAND()
-    '''
-    await query.execute(sql, (user_id,))
-    rows = await query.fetchall()
-  return {r['type_name']: r['badge_filename'] for r in rows}
-
-async def db_purge_users_wishlist(user_discord_id: int):
-  """
-  Deletes all rows from `badge_wishlists` where the user already has the
-  badge present in `badges`
-  """
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      DELETE b_w FROM badge_wishlists AS b_w
-        JOIN badges AS b
-          ON b_w.badge_filename = b.badge_filename
-          AND b_w.user_discord_id = b.user_discord_id
-        WHERE b.user_discord_id = %s
-    '''
-    vals = (user_discord_id,)
-    await query.execute(sql, vals)
-
-async def db_get_user_badge_count(user_discord_id):
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT COUNT(*) as count FROM badges WHERE user_discord_id = %s"
-    vals = (user_discord_id,)
-    await query.execute(sql, vals)
-    result = await query.fetchone()
-  return result['count']
+__all__ = [
+  # Legacy re-exports
+  "db_get_user_badges",
+  "db_get_user_locked_badges",
+  "db_get_user_unlocked_badges",
+  "db_get_user_special_badges",
+  "db_get_badge_count_for_user",
+  "db_get_total_badge_count_by_filename",
+  "db_get_badge_by_filename",
+  "db_get_badge_info_by_name",
+  "db_get_badge_info_by_filename",
+  "db_get_all_badge_info",
+  "db_get_affiliation_badges",
+  "db_get_franchise_badges",
+  "db_get_time_period_badges",
+  "db_get_type_badges",
+  "db_get_user_wishlist_badges",
+  "db_autolock_badges_by_filenames_if_in_wishlist",
+  "db_purge_users_wishlist",
+  "db_insert_into_wishlist",
+  "db_remove_from_wishlist",
+  "db_dismiss_badge_from_wishlist",
+  "db_get_user_dismissed_wishlist",
+  "db_get_user_wishlist_pending",
+  "db_match_wishlist_against_inventory",
+  "db_get_trade_requested_badges",
+  "db_get_trade_offered_badges",
+  "db_cancel_trade",
+  "db_get_related_badge_trades",
+]

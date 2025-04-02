@@ -240,3 +240,21 @@ async def db_add_wishlist_dismissal(user_discord_id, match_discord_id, has, want
     '''
     vals = (user_discord_id, match_discord_id, has, wants)
     await query.execute(sql, vals)
+
+
+async def db_purge_users_wishlist(user_discord_id: int):
+  """
+  Deletes all rows from `badge_wishlists` where the user already has the
+  badge present in `badges`
+  """
+  async with AgimusDB(dictionary=True) as query:
+    sql = '''
+      DELETE b_w FROM badge_wishlists AS b_w
+        JOIN badges AS b
+          ON b_w.badge_filename = b.badge_filename
+          AND b_w.user_discord_id = b.user_discord_id
+        WHERE b.user_discord_id = %s
+    '''
+    vals = (user_discord_id,)
+    await query.execute(sql, vals)
+

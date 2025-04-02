@@ -1,204 +1,167 @@
 import math
-from time import sleep
-from numpy import block
+import asyncio
+import random
+from datetime import datetime
+
+import discord
 from common import *
 from commands.badges import give_user_badge, send_badge_reward_message
 from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist, db_get_user_wishlist_badges
 from utils.badge_utils import db_get_user_badges, db_purge_users_wishlist
+from utils.shiny_badges import generate_shiny_badge_image, insert_shiny_badge_info
 
-db_lock = asyncio.Lock()
+# XP lock to prevent race conditions
+xp_lock = asyncio.Lock()
 
-# rainbow of colors to cycle through for the logs
+# XP logging color rotation
 xp_colors = [
-    Fore.RED,
-    Fore.LIGHTRED_EX,
-    Fore.YELLOW,
-    Fore.LIGHTYELLOW_EX,
-    Fore.GREEN,
-    Fore.LIGHTGREEN_EX,
-    Fore.LIGHTCYAN_EX,
-    Fore.CYAN,
-    Fore.LIGHTBLUE_EX,
-    Fore.BLUE,
-    Fore.MAGENTA,
-    Fore.LIGHTMAGENTA_EX
+  Fore.RED, Fore.LIGHTRED_EX, Fore.YELLOW, Fore.LIGHTYELLOW_EX,
+  Fore.GREEN, Fore.LIGHTGREEN_EX, Fore.LIGHTCYAN_EX, Fore.CYAN,
+  Fore.LIGHTBLUE_EX, Fore.BLUE, Fore.MAGENTA, Fore.LIGHTMAGENTA_EX
 ]
 current_color = 0
 
-f = open("./data/level_up_messages.json")
-random_level_up_messages = json.load(f)
-f.close()
+# Load level up messages
+with open("./data/level_up_messages.json") as f:
+  random_level_up_messages = json.load(f)
 
-# {user} got xp for {reason}
+# XP reasons
 reasons = {
-  "posted_message" : "posting a message",
-  "added_reaction" : "adding a reaction",
-  "got_single_reaction" : "getting a reaction",
-  "got_reactions"  : "getting lots of reactions",
-  "intro_message"  : "posting an introduction in #first-contact",
-  "starboard_post" : "getting a post sent to the starboard",
-  "slot_win"       : "winning the slots",
-  "quiz_win"       : "winning a quiz",
-  "trivia_win"     : "winning at trivia",
-  "trivia_play"    : "participating in trivia",
-  "poker_win"      : "winning a hand of poker",
-  "used_computer"  : "using the computer",
-  "asked_agimus"   : "asking agimus a question",
-  "used_wordcloud" : "generating a wordcloud",
-  "played_zork"    : "playing zork",
-  "created_event"  : "creating an event",
-  "tongo_loss"     : "losing badges in tongo"
+  "posted_message": "posting a message",
+  "added_reaction": "adding a reaction",
+  "got_single_reaction": "getting a reaction",
+  "got_reactions": "getting lots of reactions",
+  "intro_message": "posting an introduction in #first-contact",
+  "starboard_post": "getting a post sent to the starboard",
+  "slot_win": "winning the slots",
+  "quiz_win": "winning a quiz",
+  "trivia_win": "winning at trivia",
+  "trivia_play": "participating in trivia",
+  "poker_win": "winning a hand of poker",
+  "used_computer": "using the computer",
+  "asked_agimus": "asking agimus a question",
+  "used_wordcloud": "generating a wordcloud",
+  "played_zork": "playing zork",
+  "created_event": "creating an event",
+  "tongo_loss": "losing badges in tongo"
 }
 
+# Blocked source descriptions
 blocked_level_up_sources = [
   "Personal Log",
   "Code 47",
   "Classified by Section 31"
 ]
 
-# handle_message_xp(message) - calculates xp for a given message
-# message[required]: discord.Message
-async def handle_message_xp(message:discord.Message):
-  guild = message.guild
-  if guild is None:
-    return  # Message was probably a DM, so we don't need to award XP!
+# --- Section 1: XP Calculation & Handling ---
 
-  blocked_channel_ids = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
-  # we don't like bots round here, or some channels
-  if message.author.bot or message.channel.id in blocked_channel_ids:
+# Award XP for a new message
+async def handle_message_xp(message: discord.Message):
+  if message.guild is None or message.author.bot:
     return
 
-  # base XP
+  blocked_channels = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
+  if message.channel.id in blocked_channels:
+    return
+
   xp_amt = 0
+  word_count = len(message.content.split())
 
-  # if the message is equal to or longer than 3 words +1 xp
-  if len(message.content.split()) >= 3:
+  if word_count >= 3:
+    xp_amt += 1
+    if any(e in message.content for e in config["all_emoji"]):
+      xp_amt += 1
+
+  if word_count > 33:
+    xp_amt += 1
+  if word_count > 66:
+    xp_amt += 1
+  if message.attachments:
     xp_amt += 1
 
-    # if that message also has any of our server emoji, +1 xp
-    # case sensitive (cool != COOL)
-    for e in config["all_emoji"]:
-      if message.content.find(e) != -1:
-        xp_amt += 1
-        break
+  if xp_amt > 0:
+    await increment_user_xp(message.author, xp_amt, "posted_message", message.channel, message)
 
-  # if the message is longer than 33 words +1 more xp
-  if len(message.content.split()) > 33:
-    xp_amt += 1
+  await handle_auto_promotions(message, xp_amt)
 
-  # ...and 66, +1 more xp
-  if len(message.content.split()) > 66:
-    xp_amt += 1
+# Auto-promotion routing
+async def handle_auto_promotions(message: discord.Message, xp_amt: int):
+  promotion_config = config["roles"]["promotion_roles"]
+  cadet = promotion_config["ranks"]["cadet"]
+  ensign = promotion_config["ranks"]["ensign"]
+  guild_roles = [r.name for r in await message.guild.fetch_roles()]
 
-  # if there's an attachment, +1 xp
-  if len(message.attachments) > 0:
-    xp_amt += 1
+  if cadet in guild_roles and ensign in guild_roles:
+    await _handle_intro_channel_promotion(message)
+    await _handle_rank_xp_promotion(message, xp_amt)
+  else:
+    logger.info(f"Promotion is enabled but required roles are missing: {guild_roles}")
 
-  if xp_amt != 0:
-    await increment_user_xp(message.author, xp_amt, "posted_message", message.channel, message) # commit the xp gain to the db and potential level up
+# Handle intro promotion if message is in intro channel
+async def _handle_intro_channel_promotion(message):
+  if message.channel.id != get_channel_id(config["intro_channel"]):
+    return
 
-  # Handle Auto-Promotions
-  promotion_roles_config = config["roles"]["promotion_roles"]
-  if promotion_roles_config["enabled"]:
-    cadet_role = promotion_roles_config["ranks"]["cadet"]
-    ensign_role = promotion_roles_config["ranks"]["ensign"]
-    guild_roles = await message.author.guild.fetch_roles()
-    guild_role_names = [r.name for r in guild_roles]
-    if cadet_role in guild_role_names and ensign_role in guild_role_names:
-      await handle_intro_channel_promotion(message)
-      await handle_rank_xp_promotion(message, xp_amt)
-    else:
-      logger.info(f"Promotion is enabled but {Fore.CYAN}Cadet{Fore.RESET} and {Fore.CYAN}Ensign{Fore.RESET} roles are not available from the guild!")
-      logger.info(f"Available roles are: {Style.BRIGHT}{guild_role_names}{Style.RESET_ALL}.")
+  member = message.author
+  promotion_roles = config["roles"]["promotion_roles"]["ranks"]
+  cadet_role_name = promotion_roles["cadet"]
+  author_roles = [r.name for r in member.roles]
 
+  if cadet_role_name in author_roles:
+    return
 
-# If this message is in the intro channel, handle their auto-promotion
-async def handle_intro_channel_promotion(message):
-  promotion_roles_config = config["roles"]["promotion_roles"]
+  cadet_role = discord.utils.get(message.guild.roles, name=cadet_role_name)
+  if cadet_role:
+    logger.info(f"Adding {Fore.CYAN}Cadet{Fore.RESET} role to {Style.BRIGHT}{member.display_name}{Style.RESET_ALL}")
+    await member.add_roles(cadet_role)
+    await increment_user_xp(member, 10, "intro_message", message.channel, message)
+    await give_welcome_badge(member.id)
+    await _send_intro_welcome_embed(message)
 
-  if message.channel.id == get_channel_id(config["intro_channel"]):
-    member = message.author
-    cadet_role_name = promotion_roles_config["ranks"]["cadet"]
-    author_role_names = [r.name for r in message.author.roles]
-    guild_roles = await message.author.guild.fetch_roles()
+# Handle XP-based role promotions
+async def _handle_rank_xp_promotion(message, xp_amt):
+  user = message.author
+  roles = config["roles"]["promotion_roles"]["ranks"]
+  cadet_role = discord.utils.get(message.guild.roles, name=roles["cadet"])
+  ensign_role = discord.utils.get(message.guild.roles, name=roles["ensign"])
+  author_roles = [r.name for r in user.roles]
 
-    cadet_role = None
-    for role in guild_roles:
-      if role.name == cadet_role_name:
-        cadet_role = role
+  xp_data = await get_user_xp(user.id)
+  user_xp = xp_data["xp"]
+  thresholds = config["roles"]["promotion_roles"]["required_rank_xp"]
 
-    if cadet_role_name not in author_role_names:
-      # if they don't have this role, give them this role!
-      logger.info(f"Adding {Fore.CYAN}Cadet{Fore.RESET} role to {Style.BRIGHT}{message.author.name}{Style.RESET_ALL}")
-      await member.add_roles(cadet_role)
-      await increment_user_xp(member, 10, "intro_message", message.channel, message)
+  if roles["cadet"] not in author_roles and user_xp >= thresholds["cadet"]:
+    await user.add_roles(cadet_role)
+    logger.info(f"{Style.BRIGHT}{user.display_name}{Style.RESET_ALL} promoted to {Fore.CYAN}Cadet{Fore.RESET} via XP!")
+    await give_welcome_badge(user.id)
+  elif roles["ensign"] not in author_roles and user_xp >= thresholds["ensign"]:
+    await user.add_roles(ensign_role)
+    logger.info(f"{Style.BRIGHT}{user.display_name}{Style.RESET_ALL} promoted to {Fore.GREEN}Ensign{Fore.RESET} via XP!")
 
-      # add reactions to the message they posted
-      welcome_reacts = [get_emoji("ben_wave_hello"), get_emoji("adam_wave_hello")]
-      random.shuffle(welcome_reacts)
-      for i in welcome_reacts:
-        await message.add_reaction(i)
+# Send custom intro embed for welcoming new users
+async def _send_intro_welcome_embed(message):
+  member = message.author
+  usher_msgs = config["handlers"]["xp"]["usher_messages"]
+  welcome_embed = discord.Embed(
+    title=f"Could someone {random.choice(usher_msgs)}?",
+    color=discord.Color.random(),
+    description=f"Please greet our new crewmember in <#{get_channel_id(config['channels']['ten-forward'])}>!"
+  )
 
-      # Give them a nice welcoming badge if they don't have one already
-      await give_welcome_badge(message.author.id)
+  welcome_embed.set_image(url=random.choice(config["handlers"]["xp"]["welcome_images"]))
 
-      # send message to admins
-      usher_msgs = config["handlers"]["xp"]["usher_messages"]
-      welcome_embed = discord.Embed(
-        title=f"Could someone {random.choice(usher_msgs)}?",
-        color=discord.Color.random(),
-        description=f"Please greet our new crewmember in <#{get_channel_id(config['channels']['ten-forward'])}>! Here are tips for welcoming a Friend of Desoto aboard the Hood:\n"
-      )
+  welcome_embed.add_field(name=f"Offer advice {get_emoji('pakled_smart_lol')}",
+    value=f"Recommend <#{get_channel_id(config['channels']['channel-guide'])}> and <#{get_channel_id(config['channels']['roles-and-pronouns'])}>", inline=False)
+  welcome_embed.add_field(name=f"Read their intro {get_emoji('bashir_zoom_look_huh')}",
+    value=f"Personalize your greeting based on their intro: {message.jump_url}", inline=False)
+  welcome_embed.add_field(name=f"Bring them in {get_emoji('kira_good_morning_hello')}",
+    value=f"Suggest a channel like <#{get_channel_id(config['channels']['animal-holophotography'])}> to start!", inline=False)
 
-      welcome_embed.set_image(url=random.choice(config["handlers"]["xp"]["welcome_images"]))
-
-      welcome_embed.add_field(name=f"Offer advice {get_emoji('pakled_smart_lol')}", value=f"Recommend they visit the <#{get_channel_id(config['channels']['channel-guide'])}> and <#{get_channel_id(config['channels']['roles-and-pronouns'])}> channels", inline=False)
-      welcome_embed.add_field(name=f"Greet them in the spirit of Shimoda {get_emoji('drunk_shimoda_smile_happy')}", value="Provide a humorous, fun, and even a little bit embarrassing welcome to them", inline=False)
-
-      welcome_embed.add_field(name=f"Read their intro {get_emoji('bashir_zoom_look_huh')}", value=f"Make your greeting personalized based on what they posted! Find their intro here: {message.jump_url}", inline=False)
-      welcome_embed.add_field(name=f"Bring them into the fold {get_emoji('kira_good_morning_hello')}", value=f"Let them know it's okay to jump in anywhere, anytime. Offer a channel for them to get started on! (like <#{get_channel_id(config['channels']['animal-holophotography'])}>)", inline=False)
-      welcome_embed.add_field(name="Tag this with a 👍 if you're gonna hop in and welcome them!", value="Thank you!", inline=False)
-
-      welcome_embed.set_footer(text="Thank you officers! 💖")
-      welcome_channel = bot.get_channel(get_channel_id(config["welcome_channel"]))
-      await welcome_channel.send(content=f"@here -- attention senior officers! {message.author.mention} has just posted an intro!\n\n", embed=welcome_embed)
-
-# If they've hit an XP threshold, auto-promote to general ranks
-async def handle_rank_xp_promotion(message, xp):
-  promotion_roles_config = config["roles"]["promotion_roles"]
-
-  cadet_role_name = config["roles"]["promotion_roles"]["ranks"]["cadet"]
-  ensign_role_name = config["roles"]["promotion_roles"]["ranks"]["ensign"]
-  author_role_names = [r.name for r in message.author.roles]
-
-  guild_roles = await message.author.guild.fetch_roles()
-
-  cadet_role = None
-  ensign_role = None
-  for role in guild_roles:
-    if role.name == cadet_role_name:
-      cadet_role = role
-    if role.name == ensign_role_name:
-      ensign_role = role
-
-  xp_record = await get_user_xp(message.author.id)
-  user_xp = xp_record.get("xp")
-
-  if cadet_role_name not in author_role_names:
-    # if they don't have cadet yet and they are over the required xp, give it to them
-    if user_xp >= promotion_roles_config["required_rank_xp"]["cadet"]:
-      await message.author.add_roles(cadet_role)
-      logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.CYAN}Cadet{Fore.RESET} via XP!")
-      # Give them a nice welcoming badge if they don't have one already
-      await give_welcome_badge(message.author.id)
-  elif ensign_role_name not in author_role_names:
-    # if they do have cadet but not ensign yet, give it to them
-    if user_xp >= promotion_roles_config["required_rank_xp"]["ensign"]:
-      await message.author.add_roles(ensign_role)
-      logger.info(f"{Style.BRIGHT}{message.author.display_name}{Style.RESET_ALL} has been promoted to {Fore.GREEN}Ensign{Fore.RESET} via XP!")
+  welcome_embed.set_footer(text="Thank you officers! 💖")
+  welcome_channel = bot.get_channel(get_channel_id(config["welcome_channel"]))
+  await welcome_channel.send(content=f"@here — {member.mention} just posted an intro!", embed=welcome_embed)
 
 bonusworthy_emoji_matches = None
-
 
 async def handle_react_xp(reaction:discord.Reaction, user:discord.User):
   # Check if this user has already reacted to this message with this emoji
@@ -274,161 +237,144 @@ def show_list_of_levels():
     level_chart += f"{i} - {xp_required} - ({amt_diff})\n"
   logger.info(level_chart)
 
-# level_up_user(user, level)
-# user[required]:discord.User
-# level[required]:int
-# level up user to next level and give them a badge (in the DB)
-# also fires the send_level_up_message function
-async def level_up_user(user:discord.User, source_details):
+# Entry point: triggered from increment_user_xp
+async def level_up_user(user: discord.User, source_details: str):
   user_xp_data = await get_user_xp(user.id)
-  level = user_xp_data["level"]+1
+  level = user_xp_data["level"] + 1
 
+  _log_level_up_to_console(user, level)
+
+  async with AgimusDB() as query:
+    await query.execute("UPDATE users SET level = level + 1 WHERE discord_id = %s", (user.id,))
+
+  badge = await _award_level_up_badge(user.id)
+  await _send_level_up_embed(user, level, badge, source_details)
+
+def _log_level_up_to_console(user, level):
   rainbow_l = f"{Back.RESET}{Back.RED} {Back.YELLOW} {Back.GREEN} {Back.CYAN} {Back.BLUE} {Back.MAGENTA} {Back.RESET}"
   rainbow_r = f"{Back.RESET}{Back.MAGENTA} {Back.BLUE} {Back.CYAN} {Back.GREEN} {Back.YELLOW} {Back.RED} {Back.RESET}"
-  logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} has reached {Style.BRIGHT}level {level}!{Style.RESET_ALL} {rainbow_r}")
-  async with AgimusDB() as query:
-    sql = "UPDATE users SET level = level + 1 WHERE discord_id = %s"
-    vals = (user.id,)
-    await query.execute(sql, vals)
+  logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} reached level {level}! {rainbow_r}")
 
-  badge = await give_user_badge(user.id)
-  was_on_wishlist = False
+async def _award_level_up_badge(user_id):
+  badge = await give_user_badge(user_id)
 
-  if badge != None:
-    user_wishlist_badges = await db_get_user_wishlist_badges(user.id)
-    was_on_wishlist = badge in [b['badge_filename'] for b in user_wishlist_badges]
-    # Lock the badge if it was in their wishlist
-    await db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
-    # Remove any badges the user may have on their wishlist that they now possess
-    await db_purge_users_wishlist(user.id)
+  if badge:
+    wishlist_badges = await db_get_user_wishlist_badges(user_id)
+    was_on_wishlist = badge in [b['badge_filename'] for b in wishlist_badges]
+    await db_autolock_badges_by_filenames_if_in_wishlist(user_id, [badge])
+    await db_purge_users_wishlist(user_id)
+    return { "filename": badge, "was_on_wishlist": was_on_wishlist }
 
-  await send_level_up_message(user, level, badge, was_on_wishlist, source_details)
+  # No standard badge awarded — attempt shiny badge fallback
+  return await potentially_award_shiny_badge(user_id)
 
-async def give_welcome_badge(user_id):
-  user_badge_filenames = [b['badge_filename'] for b in await db_get_user_badges(user_id)]
-  if "Friends_Of_DeSoto.png" not in user_badge_filenames:
-    async with AgimusDB() as query:
-      sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, 'Friends_Of_DeSoto.png');"
-      vals = (user_id,)
-      await query.execute(sql, vals)
-
-# send_level_up_message(user, level, badge)
-# user[required]:discord.User
-# level[required]:int
-# badge[required]:str
-async def send_level_up_message(user:discord.User, level:int, badge:str, was_on_wishlist:bool, source_details:str):
-  notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
-  channel = bot.get_channel(notification_channel_id)
-
-  message = f"**{random.choice(random_level_up_messages['messages']).format(user=user.mention, level=level, prev_level=(level-1))}**"
-
+async def _send_level_up_embed(user, level, badge_data, source_details):
+  channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
+  msg = f"**{random.choice(random_level_up_messages['messages']).format(user=user.mention, level=level, prev_level=(level-1))}**"
   embed_title = "Level up!"
-  thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
-  embed_description = f"{user.mention} has reached **Level {level}**"
-  if badge is None:
-    embed_description += "!\n\nBUT they've already collected ***ALL BADGES EVERYWHERE!?!*** Congratulations on the impressive feat! 🎉"
-    embed = discord.Embed(
-      title=embed_title,
-      description=embed_description,
-      color=discord.Color.random()
-    )
+  thumbnail = random.choice(config["handlers"]["xp"]["celebration_images"])
+
+  if badge_data is None:
+    desc = f"{user.mention} reached **Level {level}**!\n\nBUT they've already collected ***ALL BADGES***! 🎉"
+    embed = discord.Embed(title=embed_title, description=desc, color=discord.Color.random())
     embed.set_image(url="https://i.imgur.com/x9PjPT3.gif")
-    embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
+    embed.set_footer(text="See all your badges with '/badges showcase' or hide with '/settings'")
     embed.add_field(name='Level Up Source', value=source_details)
-    await channel.send(content=message, embed=embed)
+    await channel.send(content=msg, embed=embed)
     return
 
+  filename = badge_data["filename"]
+  was_on_wishlist = badge_data["was_on_wishlist"]
+  desc = f"{user.mention} reached **Level {level}** and earned a new badge!"
   if level == 2:
-    embed_description += " and earned their first new unique badge!\n\nCongrats! To check out your full list of badges use `/badges showcase`.\n\nMore info about XP and the badge system and XP can be found by using `/help` in this channel."
-  else:
-    embed_description += f" and earned a new badge!"
+    desc += "\n\nCheck out your full badge list with `/badges showcase`."
   if was_on_wishlist:
-    embed_description += "\n\n" + f"Exciting! This was also one they had on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
+    desc += f"\n\nIt was also on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
 
-  fields=[]
+  fields = []
   if source_details:
     fields.append({ 'name': "Level Up Source", 'value': source_details })
 
-  await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user, fields)
+  await send_badge_reward_message(msg, desc, embed_title, channel, thumbnail, filename, user, fields)
 
-# increment_user_xp(author, amt, reason, channel, source)
-# This function will increment a users' XP, log the gain to the history, determines level up status for
-# Standard or High Level XP Cap systems, and fires the level up action if appropriate
-async def increment_user_xp(user:discord.User, amt:int, reason:str, channel, source=None):
-  async with db_lock:
-    # Determine multiplier
-    xp_multiplier = 1
-    if bool(datetime.today().weekday() >= 4): # Weekend
-      xp_multiplier = 2
-
-    # Update database
+# --- Section 3: XP Increment Logic ---
+async def increment_user_xp(user: discord.User, amt: int, reason: str, channel, source=None):
+  async with xp_lock:
+    xp_multiplier = 2 if datetime.today().weekday() >= 4 else 1
     amt = int(amt * xp_multiplier)
+
     async with AgimusDB() as query:
       sql = "UPDATE users SET xp = xp + %s, name = %s WHERE discord_id = %s AND xp_enabled = 1"
       vals = (amt, user.display_name, user.id)
       await query.execute(sql, vals)
       updated = query.rowcount
 
-    if updated > 0:
-      # Log xp_history
-      await log_xp_history(user.id, amt, channel.id, reason)
-      console_log_xp_history(user, amt, reason)
+    if updated == 0:
+      return
 
-      # Determine Level Up
-      user_xp_data = await get_user_xp(user.id)
-      current_xp = user_xp_data["xp"]
-      current_level = user_xp_data["level"]
+    await log_xp_history(user.id, amt, channel.id, reason)
+    _console_log_xp_history(user, amt, reason)
 
-      should_user_level_up = False
-      if current_level >= 176:
-        # High Levelers - Static Level Up Progression per Every 420 XP
-        cap_progress = await get_xp_cap_progress(user.id)
-        if cap_progress is None:
-          # User hasn't been transitioned to using the cap yet
-          # Check to see if they would level up normally first
-          next_level_xp = calculate_xp_for_next_level(current_level)
-          if current_xp >= next_level_xp:
-            should_user_level_up = True
-            # Now transition them to the new XP Cap System
-            # Initialize progress towards new cap goal with remainder from leveling up
-            xp_remainder = current_xp - next_level_xp
-            await init_xp_cap_progress(user.id, xp_remainder)
-        else:
-          # User has been transitioned
-          # So we can increment the progress and check if it has met the goal
-          await increment_xp_cap_progress(user.id, amt)
-          total_progress = cap_progress + amt
-          if total_progress >= 420:
-            should_user_level_up = True
-            # Now subtract the progress from the goal mark to reset for next level
-            await decrement_xp_cap_progress(user.id, 420)
+    user_xp_data = await get_user_xp(user.id)
+    current_xp = user_xp_data["xp"]
+    current_level = user_xp_data["level"]
+
+    should_level = False
+
+    if current_level >= 176:
+      cap_progress = await get_xp_cap_progress(user.id)
+      if cap_progress is None:
+        next_xp = calculate_xp_for_next_level(current_level)
+        if current_xp >= next_xp:
+          should_level = True
+          await init_xp_cap_progress(user.id, current_xp - next_xp)
       else:
-        # Below Level XP Capper - Standard XP Leveling
-        next_level_xp = calculate_xp_for_next_level(current_level)
-        if current_xp >= next_level_xp:
-          should_user_level_up = True
+        await increment_xp_cap_progress(user.id, amt)
+        if cap_progress + amt >= 420:
+          should_level = True
+          await decrement_xp_cap_progress(user.id, 420)
+    else:
+      next_xp = calculate_xp_for_next_level(current_level)
+      if current_xp >= next_xp:
+        should_level = True
 
-      # Perform the actual level up if appropriate
-      if should_user_level_up:
-        try:
-          source_details = determine_level_up_source_details(user, source)
-          await level_up_user(user, source_details)
-        except Exception as e:
-          logger.info(f"Error trying to level up user: {e}")
-          logger.error(traceback.format_exc())
+    if should_level:
+      try:
+        details = determine_level_up_source_details(user, source)
+        await level_up_user(user, details)
+      except Exception as e:
+        logger.warning(f"Level-up error: {e}")
+        logger.error(traceback.format_exc())
 
-
-def console_log_xp_history(user:discord.User, amt:int, reason:str):
+# UTILS
+def _console_log_xp_history(user: discord.User, amt: int, reason: str):
   global current_color
   msg_color = xp_colors[current_color]
+  reason_text = reasons.get(reason, reason)
   star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
-  reason_text = reasons[reason]
-  if not reason_text:
-    reason_text = reason
   logger.info(f"{star} {msg_color}{user.display_name}{Fore.RESET} earns {msg_color}{amt} XP{Fore.RESET} for {Style.BRIGHT}{reason_text}{Style.RESET_ALL}! {star}")
-  current_color = current_color + 1
-  if current_color >= len(xp_colors):
-      current_color = 0
+  current_color = (current_color + 1) % len(xp_colors)
+
+async def potentially_award_shiny_badge(user_id):
+  user_badges = await db_get_user_badges(user_id)
+  if not user_badges:
+    logger.warning(f"User {user_id} has no badges—unexpected state when attempting shiny award.")
+    return None
+
+  standard_badges = [b for b in user_badges if b.get("shiny_level", 0) == 0]
+  base_badge = standard_badges[0]  # Use first badge as the shiny base
+  base_filename = base_badge["badge_filename"]
+  shiny_filename = base_filename.replace(".png", "_shiny_1.png")
+
+  await generate_shiny_badge_image(base_filename, shiny_filename)
+  await insert_shiny_badge_info(base_badge, shiny_filename, shiny_level=1)
+
+  async with AgimusDB() as query:
+    sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
+    vals = (user_id, shiny_filename)
+    await query.execute(sql, vals)
+
+  return { "filename": shiny_filename, "was_on_wishlist": False }
 
 def determine_level_up_source_details(user, source):
   if isinstance(source, discord.message.Message):
@@ -460,9 +406,16 @@ def is_message_channel_unblocked(message: discord.message.Message):
 
   return False
 
-# get_user_xp(discord_id)
-# discord_id[required]: int
-# Returns a users current XP
+# Utils
+async def give_welcome_badge(user_id):
+  user_badge_filenames = [b['badge_filename'] for b in await db_get_user_badges(user_id)]
+  if "Friends_Of_DeSoto.png" not in user_badge_filenames:
+    async with AgimusDB() as query:
+      sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, 'Friends_Of_DeSoto.png');"
+      vals = (user_id,)
+      await query.execute(sql, vals)
+
+# Database Utils
 async def get_user_xp(discord_id):
   async with AgimusDB() as query:
     sql = "SELECT level, xp FROM users WHERE discord_id = %s"
@@ -485,12 +438,6 @@ async def log_react_history(reaction:discord.Reaction, user:discord.User):
     vals = (user.id, user.display_name, f"{reaction}", reaction.message.id)
     await query.execute(sql, vals)
 
-# log_xp_history(user_discord_id:int, amt:int, channel_name:str, reason:str)
-# user_discord_id[required]: int
-# amt[required]: int
-# channel_id[required]: int
-# reason[required]: str
-# This function will log xp gains to a table for reporting
 async def log_xp_history(user_discord_id:int, amt:int, channel_id:int, reason:str):
   async with AgimusDB() as query:
     sql = "INSERT INTO xp_history (user_discord_id, amount, channel_id, reason) VALUES (%s, %s, %s, %s)"
