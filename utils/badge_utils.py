@@ -133,22 +133,6 @@ def load_and_prepare_badge(filename, size=BADGE_SIZE):
   badge_img.paste(b_raw, ((size[0]-b_raw.width)//2, (size[1]-b_raw.height)//2), b_raw)
   return badge_img
 
-# Generate preview of badge(s)
-def generate_simple_badge_strip(filenames, spacing=10, badge_size=BADGE_SIZE):
-  """
-  Generate a horizontal strip of badge images used in compact layouts.
-  Used for simple displays like trade or grant confirmation.
-  """
-  images = [load_and_prepare_badge(f, badge_size) for f in filenames]
-  width = len(images) * badge_size[0] + (len(images) - 1) * spacing
-  height = badge_size[1]
-  strip = Image.new("RGBA", (width, height), (255, 255, 255, 0))
-
-  for i, img in enumerate(images):
-    x = i * (badge_size[0] + spacing)
-    strip.paste(img, (x, 0), img)
-
-  return strip
 
 async def get_theme_preference(user_id):
   theme = "green"
@@ -161,23 +145,33 @@ async def get_theme_preference(user_id):
 
   return theme
 
+
 def get_theme_colors(theme: str):
   """
   Returns (primary_color, highlight_color) based on the user's theme.
+  Values are RGBA tuples.
   """
-  primary_color = (90, 200, 90, 255)  # Green by default
-  highlight_color = (255, 255, 255, 255)  # White title text, doesn't change (for now?)
+  # Green by default
+  primary_color = (153, 185, 141, 255)
+  highlight_color = (84, 177, 69, 255)
 
-  if theme == "purple":
-    primary_color = (180, 100, 255, 255)
-  elif theme == "blue":
-    primary_color = (80, 180, 255, 255)
-  elif theme == "gold":
-    primary_color = (255, 200, 50, 255)
-  elif theme == "red":
-    primary_color = (255, 100, 100, 255)
+  if theme == "orange":
+    primary_color = (189, 151, 137, 255)
+    highlight_color = (186, 111, 59, 255)
+  elif theme == "purple":
+    primary_color = (100, 85, 161, 255)
+    highlight_color = (149, 147, 178, 255)
+  elif theme == "teal":
+    primary_color = (141, 185, 181, 255)
+    highlight_color = (71, 170, 177, 255)
 
-  return (primary_color, highlight_color)
+  darker_primary_color = tuple(
+    int(channel * 0.65) if index < 3 else channel
+    for index, channel in enumerate(primary_color)
+  )
+
+  return (primary_color, highlight_color, darker_primary_color)
+
 
 def get_lcars_font_by_length(name: str) -> ImageFont.FreeTypeFont:
   """
@@ -193,6 +187,7 @@ def get_lcars_font_by_length(name: str) -> ImageFont.FreeTypeFont:
       return ImageFont.truetype("fonts/lcars3.ttf", 110)
   except:
     return ImageFont.load_default()
+
 
 # ANIMATION
 def generate_animation(filenames, duration=120):
@@ -218,24 +213,26 @@ def generate_animation(filenames, duration=120):
   gif_bytes.seek(0)
   return gif_bytes
 
-# --- Utilities ---
 
+# --- Utilities ---
 def load_badge_image(filename):
   path = os.path.join(BADGE_PATH, filename)
   return Image.open(path).convert("RGBA")
+
 
 def create_badge_canvas(columns, rows, badge_size=BADGE_SIZE, spacing=BADGE_SPACING):
   width = columns * badge_size[0] + (columns - 1) * spacing
   height = rows * badge_size[1] + (rows - 1) * spacing
   return Image.new("RGBA", (width, height), (255, 255, 255, 0))
 
+
 def paste_badge(canvas, badge_img, col, row, badge_size=BADGE_SIZE, spacing=BADGE_SPACING):
   x = col * (badge_size[0] + spacing)
   y = row * (badge_size[1] + spacing)
   canvas.paste(badge_img, (x, y), badge_img)
 
-# --- Badge Slot Composition ---
 
+# --- Badge Slot Composition ---
 def compose_badge_slot(filename, overlay=None, badge_size=BADGE_SIZE):
   badge = load_badge_image(filename)
   badge.thumbnail(badge_size)
@@ -250,19 +247,26 @@ def compose_badge_slot(filename, overlay=None, badge_size=BADGE_SIZE):
 
   return slot
 
+
+# --- Badge Strip --
+def generate_simple_badge_strip(filenames, spacing=10, badge_size=BADGE_SIZE):
+  """
+  Generate a horizontal strip of badge images used in compact layouts.
+  Used for simple displays like trade or grant confirmation.
+  """
+  images = [load_and_prepare_badge(f, badge_size) for f in filenames]
+  width = len(images) * badge_size[0] + (len(images) - 1) * spacing
+  height = badge_size[1]
+  strip = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+
+  for i, img in enumerate(images):
+    x = i * (badge_size[0] + spacing)
+    strip.paste(img, (x, 0), img)
+
+  return strip
+
+
 # --- Grid Renderer ---
-
-def generate_badge_grid(filenames, per_row=4, overlays=None, badge_size=BADGE_SIZE):
-  rows = (len(filenames) + per_row - 1) // per_row
-  canvas = create_badge_canvas(per_row, rows, badge_size)
-
-  for i, filename in enumerate(filenames):
-    overlay = overlays[i] if overlays and i < len(overlays) else None
-    badge_slot = compose_badge_slot(filename, overlay, badge_size)
-    paste_badge(canvas, badge_slot, i % per_row, i // per_row, badge_size)
-
-  return canvas
-
 def generate_badge_page_grids(filenames, overlays=None, per_row=4):
   """
   Generates a paginated list of badge grid images (used for Discord Pagination or as direct message attachments)
@@ -280,8 +284,18 @@ def generate_badge_page_grids(filenames, overlays=None, per_row=4):
 
   return pages
 
-# --- Completion Grid Composition ---
+def generate_badge_grid(filenames, per_row=4, overlays=None, badge_size=BADGE_SIZE):
+  rows = (len(filenames) + per_row - 1) // per_row
+  canvas = create_badge_canvas(per_row, rows, badge_size)
 
+  for i, filename in enumerate(filenames):
+    overlay = overlays[i] if overlays and i < len(overlays) else None
+    badge_slot = compose_badge_slot(filename, overlay, badge_size)
+    paste_badge(canvas, badge_slot, i % per_row, i // per_row, badge_size)
+
+  return canvas
+
+# --- Completion Grid Composition ---
 async def generate_badge_completion_images(user, all_rows, category):
   """
   Renders paginated badge completion images using themed components and returns discord.File[]
@@ -289,26 +303,22 @@ async def generate_badge_completion_images(user, all_rows, category):
   user_id = user.id
   theme = await get_theme_preference(user_id)
 
-  # Hardcoding these for now
-  row_width = 1700
-  row_height = 270
-  row_margin = 20
-  start_y = 245
+  r_dims = _get_completion_row_dimensions()
 
-  # We get these here so we don't have to make a DB call during every iteration
+  # We get these here and pass them so we don't have to make a DB call during every iteration
   max_badge_count = await db_get_max_badge_count()
   collected_count = await db_get_badge_count_for_user(user_id)
 
   filtered = [r for r in all_rows if r["percentage"] > 0]
   if not filtered:
     base = build_completion_canvas(user, max_badge_count, collected_count, category, page_number=1, total_pages=1, row_count=1, theme=theme)
-    row_img = compose_empty_completion_row()
-    base.paste(row_img, (0, start_y), row_img)
+    row_img = compose_empty_completion_row(r_dims, theme)
+    base.paste(row_img, (0, r_dims.start_y), row_img)
 
     buf = io.BytesIO()
     base.save(buf, format="PNG")
     buf.seek(0)
-    return [discord.File(buf, filename="completion_page_1.png")]
+    return [discord.File(buf, filename="empty_completion_page.png")]
 
   pages = []
   rows_per_page = 6
@@ -318,11 +328,11 @@ async def generate_badge_completion_images(user, all_rows, category):
     chunk = filtered[i:i+rows_per_page]
     base = build_completion_canvas(user, max_badge_count, collected_count, category, page_number=(i//rows_per_page)+1, total_pages=total_pages, row_count=len(chunk) - 1, theme=theme)
 
-    current_y = start_y
+    current_y = r_dims.start_y
     for idx, row_data in enumerate(chunk):
-      row_img = compose_completion_row(row_data, theme)
+      row_img = compose_completion_row(row_data, r_dims, theme)
       base.paste(row_img, (120, current_y), row_img)
-      current_y += row_height + row_margin
+      current_y += r_dims.row_height + r_dims.row_margin
 
     buf = io.BytesIO()
     base.save(buf, format="PNG")
@@ -331,7 +341,7 @@ async def generate_badge_completion_images(user, all_rows, category):
 
   return pages
 
-def compose_completion_row(row_data, theme):
+def compose_completion_row(row_data, r_dims, theme):
   """
   Draws a single row for a badge set including:
   - Badge image (optional)
@@ -343,20 +353,12 @@ def compose_completion_row(row_data, theme):
     'name', 'percentage', 'owned', 'total', 'featured_badge'
   """
   primary_color, highlight_color = get_theme_colors(theme)
-  shaded_primary_color = tuple(
-    int(channel * 0.9) if index < 3 else channel
-    for index, channel in enumerate(primary_color)
-  )
 
-  row_width = 1700
-  row_height = 280
-  offset = 250
-
-  row_canvas = Image.new("RGBA", (row_width, row_height), (0, 0, 0, 0))
+  row_canvas = Image.new("RGBA", (r_dims.row_width, r_dims.row_height), (0, 0, 0, 0))
   draw = ImageDraw.Draw(row_canvas)
 
   draw.rounded_rectangle(
-    (0, 0, row_width, row_height),
+    (0, 0, r_dims.row_width, r_dims.row_height),
     fill="#181818",
     outline="#181818",
     width=4,
@@ -370,17 +372,17 @@ def compose_completion_row(row_data, theme):
     title_font = percent_font = ImageFont.load_default()
 
   title = row_data.get("name") or "Unassociated"
-  draw.text((offset, 40), title, font=title_font, fill=shaded_primary_color)
+  draw.text((r_dims.offset, 40), title, font=title_font, fill=highlight_color)
 
   draw.text(
-    (row_width - 20, 170),
+    (r_dims.row_width - 20, 170),
     f"{row_data['percentage']}% ({row_data['owned']} of {row_data['total']})",
-    fill=shaded_primary_color,
+    fill=highlight_color,
     font=percent_font,
     anchor="rb"
   )
 
-  draw_progress_bar(row_canvas, row_data, theme)
+  draw_completion_row_progress_bar(row_canvas, row_data, r_dims, theme)
 
   if row_data.get("featured_badge"):
     try:
@@ -393,33 +395,43 @@ def compose_completion_row(row_data, theme):
 
   return row_canvas
 
-def draw_progress_bar(row_canvas, row_data, theme):
-  primary_color, _ = get_theme_colors(theme)
-  darker_primary_color = tuple(
-    int(channel * 0.65) if index < 3 else channel
-    for index, channel in enumerate(primary_color)
-  )
+def draw_completion_row_progress_bar(row_canvas, row_data, r_dims, theme):
+  """
+  Renders a progress bar onto the given canvas using the row data and theme colors.
+
+  Parameters:
+    canvas (Image): The PIL image to draw onto.
+    row_data (dict): Badge set row data. Requires 'percentage' key.
+    theme (str): User-selected theme name (e.g., "green", "orange").
+    r_dims (dict): Layout dimensions for the row, as returned by _get_completion_row_dimensions().
+                   Must include: bar_x, bar_y, bar_w, bar_h.
+
+  The bar will be filled based on the user's completion percentage, and fade to the
+  background near the right edge if not full.
+  """
+
+  primary_color, _, darker_primary_color = get_theme_colors(theme)
   gradient_end_color = (24, 24, 24)
 
-  row_width = 1700
-  offset = 250
-  bar_margin = 40
-  bar_x = offset
-  bar_w = row_width - offset - bar_margin
-  bar_h = int(64 * 0.5)
-  bar_y = 280 - bar_h - 30
-
   draw = ImageDraw.Draw(row_canvas)
-  draw.rounded_rectangle((bar_x, bar_y, bar_x + bar_w - 1, bar_y + bar_h - 1), fill=darker_primary_color, radius=bar_h // 2)
+  draw.rounded_rectangle(
+    (
+      r_dims.bar_x,
+      r_dims.bar_y,
+      r_dims.bar_x + r_dims.bar_w - 1,
+      r_dims.bar_y + r_dims.bar_h - 1
+    ),
+    fill=darker_primary_color, radius=r_dims.bar_h // 2
+  )
 
-  percentage_width = int((row_data["percentage"] / 100) * bar_w)
+  percentage_width = int((row_data["percentage"] / 100) * r_dims.bar_w)
 
   if row_data["percentage"] < 100:
-    bar_fill = Image.new("RGBA", (bar_w, bar_h), (0, 0, 0, 0))
+    bar_fill = Image.new("RGBA", (r_dims.bar_w, r_dims.bar_h), (0, 0, 0, 0))
     gradient_start = int(percentage_width * 0.8)
 
     for x in range(gradient_start):
-      for y in range(bar_h):
+      for y in range(r_dims.bar_h):
         bar_fill.putpixel((x, y), primary_color)
 
     for x in range(gradient_start, percentage_width):
@@ -428,27 +440,81 @@ def draw_progress_bar(row_canvas, row_data, theme):
       g = int((primary_color[1] * (1 - fade_ratio)) + (gradient_end_color[1] * fade_ratio))
       b = int((primary_color[2] * (1 - fade_ratio)) + (gradient_end_color[2] * fade_ratio))
       a = 255
-      for y in range(bar_h):
+      for y in range(r_dims.bar_h):
         bar_fill.putpixel((x, y), (r, g, b, a))
 
-    for x in range(percentage_width, bar_w):
-      for y in range(bar_h):
+    for x in range(percentage_width, r_dims.bar_w):
+      for y in range(r_dims.bar_h):
         bar_fill.putpixel((x, y), (*gradient_end_color, 255))
 
-    rounded_mask = Image.new("L", (bar_w, bar_h), 0)
+    rounded_mask = Image.new("L", (r_dims.bar_w, r_dims.bar_h), 0)
     draw_mask = ImageDraw.Draw(rounded_mask)
-    draw_mask.rounded_rectangle((0, 0, bar_w, bar_h), radius=bar_h // 2, fill=255)
-    row_canvas.paste(bar_fill, (bar_x, bar_y), rounded_mask)
+    draw_mask.rounded_rectangle((0, 0, r_dims.bar_w, r_dims.bar_h), radius=r_dims.bar_h // 2, fill=255)
+    row_canvas.paste(bar_fill, (r_dims.bar_x, r_dims.bar_y), rounded_mask)
   else:
-    draw.rounded_rectangle((bar_x, bar_y, bar_x + percentage_width, bar_y + bar_h), fill=primary_color, radius=bar_h // 2)
+    draw.rounded_rectangle((
+        r_dims.bar_x,
+        r_dims.bar_y,
+        r_dims.bar_x + percentage_width,
+        r_dims.bar_y + r_dims.bar_h
+      ),
+      fill=primary_color,
+      radius=r_dims.bar_h // 2
+    )
 
+def _get_completion_row_dimensions():
+  """
+  Returns layout metrics for drawing a single badge row and its components.
 
-def compose_empty_completion_row(message: str = "No badges within inventory that match this set type."):
+  Returns:
+    dict: A dictionary containing:
+      - row_width (int): Total width of the row image.
+      - row_height (int): Total height of the row image.
+      - offset (int): Left margin where text and content begin.
+      - bar_margin (int): Right padding after progress bar.
+      - bar_x (int): X-coordinate where progress bar starts.
+      - bar_w (int): Width of the progress bar.
+      - bar_h (int): Height of the progress bar.
+      - bar_y (int): Y-coordinate of the progress bar.
+      - start_y (int): Y-position of the first row on the page image.
+  """
+  row_width = 1700
+  row_height = 280
+  offset = 250
+  bar_margin = 40
+  bar_x = offset
+  bar_w = row_width - offset - bar_margin
+  bar_h = 32
+  bar_y = 280 - bar_h - 30
+  start_y = 245
+
+  return locals()
+
+def compose_empty_completion_row(r_dims, theme, message: str = "No badges within inventory that match this set type."):
   """
   Returns a fallback row image with a centered message.
   """
+  primary_color, highlight_color = get_theme_colors(theme)
+  darker_primary_color = tuple(
+    int(channel * 0.65) if index < 3 else channel
+    for index, channel in enumerate(primary_color)
+  )
+
   empty_row_canvas = Image.new("RGBA", (ROW_WIDTH, ROW_HEIGHT), (0, 0, 0, 0))
   draw = ImageDraw.Draw(empty_row_canvas)
+
+  r_dims = _get_completion_row_dimensions()
+
+  draw.rounded_rectangle(
+    (
+      r_dims.bar_x,
+      r_dims.bar_y,
+      r_dims.bar_x + r_dims.bar_w - 1,
+      r_dims.bar_y + r_dims.bar_h - 1
+    ),
+    fill=darker_primary_color,
+    radius=r_dims.bar_h // 2
+  )
 
   try:
     font = ImageFont.truetype("fonts/lcars3.ttf", 48)
@@ -456,7 +522,7 @@ def compose_empty_completion_row(message: str = "No badges within inventory that
     font = ImageFont.load_default()
 
   text_w = draw.textlength(message, font=font)
-  draw.text(((ROW_WIDTH - text_w) // 2, 80), message, font=font, fill=(255, 255, 255, 255))
+  draw.text(((ROW_WIDTH - text_w) // 2, 80), message, font=font, fill=highlight_color)
 
   return empty_row_canvas
 
@@ -502,10 +568,10 @@ def build_completion_canvas(user: discord.User, max_badge_count: int, collected_
     title_font = collected_font = total_font = page_font = ImageFont.load_default()
 
   draw = ImageDraw.Draw(canvas)
-  draw.text((100, 65), f"{display_name}'s Badge Completion - {category_title}", font=title_font, fill=primary_color)
-  draw.text((590, total_h - 125), f"{collected_count} ON THE USS HOOD", font=collected_font, fill=primary_color)
-  draw.text((32, total_h - 90), f"{max_badge_count}", font=total_font, fill=primary_color)
-  draw.text((base_w - 370, total_h - 115), f"PAGE {page_number:02d} OF {total_pages:02d}", font=page_font, fill=primary_color)
+  draw.text((100, 65), f"{display_name}'s Badge Completion - {category_title}", font=title_font, fill=highlight_color)
+  draw.text((590, total_h - 125), f"{collected_count} ON THE USS HOOD", font=collected_font, fill=highlight_color)
+  draw.text((32, total_h - 90), f"{max_badge_count}", font=total_font, fill=highlight_color)
+  draw.text((base_w - 370, total_h - 115), f"PAGE {page_number:02d} OF {total_pages:02d}", font=page_font, fill=highlight_color)
 
   return canvas
 
@@ -794,159 +860,6 @@ async def generate_paginated_set_completion_images(user:discord.User, all_rows, 
   return await generate_badge_completion_images(
       user, all_rows, category
   )
-
-# async def generate_badge_completion_images(user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
-#   user_display_name = user.display_name
-#   color_preference = await db_get_user_badge_page_color_preference(user.id, "sets")
-
-#   if color_preference == "green":
-#     title_color = "#99B98D"
-#     highlight_color = "#54B145"
-#     bar_color = "#265F26"
-#   elif color_preference == "orange":
-#     title_color = "#BD9789"
-#     highlight_color = "#BA6F3B"
-#     bar_color = "#5F3C26"
-#   elif color_preference == "purple":
-#     title_color = "#6455A1"
-#     highlight_color = "#9593B2"
-#     bar_color = "#31265F"
-#   elif color_preference == "teal":
-#     title_color = "#8DB9B5"
-#     highlight_color = "#47AAB1"
-#     bar_color = "#265B5F"
-
-#   title_font = ImageFont.truetype("fonts/lcars3.ttf", 110)
-#   if len(user_display_name) > 16:
-#     title_font = ImageFont.truetype("fonts/lcars3.ttf", 90)
-#   if len(user_display_name) > 21:
-#     title_font = ImageFont.truetype("fonts/lcars3.ttf", 82)
-#   collected_font = ImageFont.truetype("fonts/lcars3.ttf", 100)
-#   total_font = ImageFont.truetype("fonts/lcars3.ttf", 54)
-#   page_number_font = ImageFont.truetype("fonts/lcars3.ttf", 80)
-
-#   row_title_font = ImageFont.truetype("fonts/lcars3.ttf", 160)
-#   row_tag_font = ImageFont.truetype("fonts/lcars3.ttf", 120)
-
-#   # Set up rows and dimensions
-#   row_height = 280
-#   row_width = 1700
-#   row_margin = 10
-
-#   base_width = 1890
-#   base_header_height = 530
-#   base_row_height = 290
-#   base_footer_height = 200
-
-#   # If we're generating just one page we want the rows to simply expand to only what's necessary
-#   # Otherwise if there's multiple pages we want to have all of them be consistent
-#   if len(page) == 0:
-#     number_of_rows = 0
-#   elif page_number == 1 and total_pages == 1:
-#     number_of_rows = len(page) - 1
-#   else:
-#     number_of_rows = 6
-
-#   base_height = base_header_height + (base_row_height * number_of_rows) + base_footer_height
-
-#   # create base image to paste all badges on to
-#   badge_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
-#   base_header_image = Image.open(f"./images/templates/badges/badge_page_header_{color_preference}.png")
-#   base_row_image = Image.open(f"./images/templates/badges/badge_page_row_{color_preference}.png")
-#   base_footer_image = Image.open(f"./images/templates/badges/badge_page_footer_{color_preference}.png")
-
-#   # Start image with header
-#   badge_base_image.paste(base_header_image, (0, 0))
-
-#   # Stamp rows (if needed, header includes first row)
-#   base_current_y = base_header_height
-#   for i in range(number_of_rows):
-#     badge_base_image.paste(base_row_image, (0, base_current_y))
-#     base_current_y += base_row_height
-
-#   # Stamp footer
-#   badge_base_image.paste(base_footer_image, (0, base_current_y))
-
-#   draw = ImageDraw.Draw(badge_base_image)
-
-#   draw.text( (100, 65), title, fill=title_color, font=title_font, align="left")
-#   draw.text( (590, base_height - 125), collected, fill=highlight_color, font=collected_font, align="left")
-#   draw.text( (32, base_height - 90), f"{total_user_badges}", fill=highlight_color, font=total_font, align="left")
-#   draw.text( (base_width - 370, base_height - 115), f"PAGE {'{:02d}'.format(page_number)} OF {'{:02d}'.format(total_pages)}", fill=highlight_color, font=page_number_font, align="right")
-
-#   start_x = 120
-#   current_x = start_x
-#   current_y = 245
-
-#   # If the user has no badges that are within sets of this category,
-#   # Stamp an empty message
-#   if len(page) == 0:
-#     row_image = Image.new("RGBA", (row_width, row_height), (0, 0, 0, 0))
-#     r_draw = ImageDraw.Draw(row_image)
-
-#     r_title = "No badges within inventory that match this set type."
-#     r_draw.rounded_rectangle( (0, 0, row_width, row_height), fill="#101010", outline=highlight_color, width=4, radius=32 )
-#     r_draw.text( (row_width / 2, row_height / 2), r_title, fill=title_color, font=row_tag_font, anchor="mm", align="left")
-
-#     badge_base_image.paste(row_image, (current_x, current_y - 35), row_image)
-#   else:
-#     for set_row in page:
-#       offset = 250
-
-#       # row
-#       row_image = Image.new("RGBA", (row_width, row_height), (0, 0, 0, 0))
-#       r_draw = ImageDraw.Draw(row_image)
-
-#       r_draw.rounded_rectangle( (0, 0, row_width, row_height), fill="#101010", outline="#101010", width=4, radius=32 )
-
-#       r_title = set_row['name']
-#       if r_title == None:
-#         continue # Skip this row if the category doesn't have a name
-
-#       r_draw.text( (offset, 50), r_title, fill=title_color, font=row_title_font, align="left")
-
-#       r_tag = f"{set_row['percentage']}% ({set_row['owned']} of {set_row['total']})"
-#       r_draw.text( (row_width - 20, 170), r_tag, fill=title_color, anchor="rb", font=row_tag_font, align="right")
-
-#       # draw percentage bar
-#       w, h = row_width - offset, 64
-#       x, y = offset, row_height - 64
-
-#       base_shape = (x, y, (w+x, h+y))
-#       r_draw.rectangle(base_shape, fill=bar_color)
-
-#       percentage_shape = (x, y, ((set_row['percentage'] / 100)*w)+x, h+y)
-#       r_draw.rectangle(percentage_shape, fill=highlight_color)
-
-#       # badge
-#       if 'featured_badge' in set_row:
-#         # badge
-#         size = (190, 190)
-#         b_raw = Image.open(f"./images/badges/{set_row['featured_badge']}").convert("RGBA")
-#         b_raw.thumbnail(size, Image.ANTIALIAS)
-#         b = Image.new('RGBA', size, (255, 255, 255, 0))
-#         b.paste(
-#           b_raw, (int((size[0] - b_raw.size[0]) // 2), int((size[1] - b_raw.size[1]) // 2))
-#         )
-#         row_image.paste(b, (20, 50), b)
-
-#       # add row to base image
-#       badge_base_image.paste(row_image, (current_x, current_y), row_image)
-
-#       # Move y down to next row
-#       current_y += row_height + row_margin
-
-#   badge_completion_filepath = f"./images/profiles/{filename_prefix}{page_number}.png"
-#   badge_base_image.save(badge_completion_filepath)
-
-#   while True:
-#     time.sleep(0.05)
-#     if os.path.isfile(badge_completion_filepath):
-#       break
-
-#   discord_image = discord.File(badge_completion_filepath, filename=f"{filename_prefix}{page_number}.png")
-#   return discord_image
-
 
 #   _________
 #  /   _____/ ________________  ______ ______   ___________
