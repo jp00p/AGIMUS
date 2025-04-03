@@ -5,6 +5,7 @@ import time
 import os
 
 from PIL import Image, ImageDraw, ImageFont
+from collections import namedtuple
 
 from common import *
 
@@ -134,10 +135,10 @@ def load_and_prepare_badge(filename, size=BADGE_SIZE):
   return badge_img
 
 
-async def get_theme_preference(user_id):
+async def get_theme_preference(user_id, theme_type):
   theme = "green"
   try:
-    pref = await db_get_user_badge_page_color_preference(user_id)
+    pref = await db_get_user_badge_page_color_preference(user_id, theme_type)
     if pref:
       theme = pref
   except:
@@ -152,26 +153,32 @@ def get_theme_colors(theme: str):
   Values are RGBA tuples.
   """
   # Green by default
-  primary_color = (153, 185, 141, 255)
-  highlight_color = (84, 177, 69, 255)
+  primary_color = (153, 185, 141)
+  highlight_color = (84, 177, 69)
 
   if theme == "orange":
-    primary_color = (189, 151, 137, 255)
-    highlight_color = (186, 111, 59, 255)
+    primary_color = (189, 151, 137)
+    highlight_color = (186, 111, 59)
   elif theme == "purple":
-    primary_color = (100, 85, 161, 255)
-    highlight_color = (149, 147, 178, 255)
+    primary_color = (100, 85, 161)
+    highlight_color = (87, 64, 183)
   elif theme == "teal":
-    primary_color = (141, 185, 181, 255)
-    highlight_color = (71, 170, 177, 255)
+    primary_color = (141, 185, 181)
+    highlight_color = (71, 170, 177)
 
   darker_primary_color = tuple(
     int(channel * 0.65) if index < 3 else channel
     for index, channel in enumerate(primary_color)
   )
 
-  return (primary_color, highlight_color, darker_primary_color)
+  darker_highlight_color = tuple(
+    int(channel * 0.85) if index < 3 else channel
+    for index, channel in enumerate(highlight_color)
+  )
 
+  return ThemeColors(primary_color, highlight_color, darker_primary_color, darker_highlight_color)
+
+ThemeColors = namedtuple("ThemeColors", ("primary", "highlight", "darker_primary", "darker_highlight"))
 
 def get_lcars_font_by_length(name: str) -> ImageFont.FreeTypeFont:
   """
@@ -301,7 +308,7 @@ async def generate_badge_completion_images(user, all_rows, category):
   Renders paginated badge completion images using themed components and returns discord.File[]
   """
   user_id = user.id
-  theme = await get_theme_preference(user_id)
+  theme = await get_theme_preference(user_id, "sets")
 
   r_dims = _get_completion_row_dimensions()
 
@@ -352,7 +359,7 @@ def compose_completion_row(row_data, r_dims, theme):
   Expects `row_data` with keys:
     'name', 'percentage', 'owned', 'total', 'featured_badge'
   """
-  primary_color, highlight_color = get_theme_colors(theme)
+  colors = get_theme_colors(theme)
 
   row_canvas = Image.new("RGBA", (r_dims.row_width, r_dims.row_height), (0, 0, 0, 0))
   draw = ImageDraw.Draw(row_canvas)
@@ -372,12 +379,12 @@ def compose_completion_row(row_data, r_dims, theme):
     title_font = percent_font = ImageFont.load_default()
 
   title = row_data.get("name") or "Unassociated"
-  draw.text((r_dims.offset, 40), title, font=title_font, fill=highlight_color)
+  draw.text((r_dims.offset, 40), title, font=title_font, fill=colors.highlight)
 
   draw.text(
     (r_dims.row_width - 20, 170),
     f"{row_data['percentage']}% ({row_data['owned']} of {row_data['total']})",
-    fill=highlight_color,
+    fill=colors.highlight,
     font=percent_font,
     anchor="rb"
   )
@@ -400,30 +407,18 @@ def draw_completion_row_progress_bar(row_canvas, row_data, r_dims, theme):
   Renders a progress bar onto the given canvas using the row data and theme colors.
 
   Parameters:
-    canvas (Image): The PIL image to draw onto.
+    row_canvas (Image): The PIL image to draw onto.
     row_data (dict): Badge set row data. Requires 'percentage' key.
-    theme (str): User-selected theme name (e.g., "green", "orange").
     r_dims (dict): Layout dimensions for the row, as returned by _get_completion_row_dimensions().
                    Must include: bar_x, bar_y, bar_w, bar_h.
-
-  The bar will be filled based on the user's completion percentage, and fade to the
-  background near the right edge if not full.
+    theme (str): User-selected theme name (e.g., "green", "orange").
   """
 
-  primary_color, _, darker_primary_color = get_theme_colors(theme)
+  colors = get_theme_colors(theme)
+  # Boosted fill color for visual strength
   gradient_end_color = (24, 24, 24)
 
   draw = ImageDraw.Draw(row_canvas)
-  draw.rounded_rectangle(
-    (
-      r_dims.bar_x,
-      r_dims.bar_y,
-      r_dims.bar_x + r_dims.bar_w - 1,
-      r_dims.bar_y + r_dims.bar_h - 1
-    ),
-    fill=darker_primary_color, radius=r_dims.bar_h // 2
-  )
-
   percentage_width = int((row_data["percentage"] / 100) * r_dims.bar_w)
 
   if row_data["percentage"] < 100:
@@ -432,16 +427,15 @@ def draw_completion_row_progress_bar(row_canvas, row_data, r_dims, theme):
 
     for x in range(gradient_start):
       for y in range(r_dims.bar_h):
-        bar_fill.putpixel((x, y), primary_color)
+        bar_fill.putpixel((x, y), (*colors.darker_highlight, 255))
 
     for x in range(gradient_start, percentage_width):
       fade_ratio = (x - gradient_start) / max(1, (percentage_width - gradient_start))
-      r = int((primary_color[0] * (1 - fade_ratio)) + (gradient_end_color[0] * fade_ratio))
-      g = int((primary_color[1] * (1 - fade_ratio)) + (gradient_end_color[1] * fade_ratio))
-      b = int((primary_color[2] * (1 - fade_ratio)) + (gradient_end_color[2] * fade_ratio))
-      a = 255
+      r = int((colors.darker_highlight[0] * (1 - fade_ratio)) + (gradient_end_color[0] * fade_ratio))
+      g = int((colors.darker_highlight[1] * (1 - fade_ratio)) + (gradient_end_color[1] * fade_ratio))
+      b = int((colors.darker_highlight[2] * (1 - fade_ratio)) + (gradient_end_color[2] * fade_ratio))
       for y in range(r_dims.bar_h):
-        bar_fill.putpixel((x, y), (r, g, b, a))
+        bar_fill.putpixel((x, y), (r, g, b, 255))
 
     for x in range(percentage_width, r_dims.bar_w):
       for y in range(r_dims.bar_h):
@@ -452,15 +446,16 @@ def draw_completion_row_progress_bar(row_canvas, row_data, r_dims, theme):
     draw_mask.rounded_rectangle((0, 0, r_dims.bar_w, r_dims.bar_h), radius=r_dims.bar_h // 2, fill=255)
     row_canvas.paste(bar_fill, (r_dims.bar_x, r_dims.bar_y), rounded_mask)
   else:
-    draw.rounded_rectangle((
+    draw.rounded_rectangle(  (
         r_dims.bar_x,
         r_dims.bar_y,
         r_dims.bar_x + percentage_width,
         r_dims.bar_y + r_dims.bar_h
       ),
-      fill=primary_color,
+      fill=colors.darker_highlight,
       radius=r_dims.bar_h // 2
     )
+
 
 def _get_completion_row_dimensions():
   """
@@ -480,6 +475,7 @@ def _get_completion_row_dimensions():
   """
   row_width = 1700
   row_height = 280
+  row_margin = 10
   offset = 250
   bar_margin = 40
   bar_x = offset
@@ -488,13 +484,37 @@ def _get_completion_row_dimensions():
   bar_y = 280 - bar_h - 30
   start_y = 245
 
-  return locals()
+  return RowDimensions(
+    row_width,
+    row_height,
+    row_margin,
+    offset,
+    bar_margin,
+    bar_x,
+    bar_w,
+    bar_h,
+    bar_y,
+    start_y
+  )
+
+RowDimensions = namedtuple("RowDimensions", [
+  "row_width",
+  "row_height",
+  "row_margin",
+  "offset",
+  "bar_margin",
+  "bar_x",
+  "bar_w",
+  "bar_h",
+  "bar_y",
+  "start_y"
+])
 
 def compose_empty_completion_row(r_dims, theme, message: str = "No badges within inventory that match this set type."):
   """
   Returns a fallback row image with a centered message.
   """
-  primary_color, highlight_color = get_theme_colors(theme)
+  primary_color, highlight_color, darker_primary_color = get_theme_colors(theme)
   darker_primary_color = tuple(
     int(channel * 0.65) if index < 3 else channel
     for index, channel in enumerate(primary_color)
@@ -533,7 +553,7 @@ def build_completion_canvas(user: discord.User, max_badge_count: int, collected_
   """
 
   # Load assets based on theme
-  primary_color, highlight_color = get_theme_colors(theme)
+  colors = get_theme_colors(theme)
 
   asset_prefix = f"images/templates/badges/badge_page_"
   header_img = Image.open(f"{asset_prefix}header_{theme}.png").convert("RGBA")
@@ -568,10 +588,10 @@ def build_completion_canvas(user: discord.User, max_badge_count: int, collected_
     title_font = collected_font = total_font = page_font = ImageFont.load_default()
 
   draw = ImageDraw.Draw(canvas)
-  draw.text((100, 65), f"{display_name}'s Badge Completion - {category_title}", font=title_font, fill=highlight_color)
-  draw.text((590, total_h - 125), f"{collected_count} ON THE USS HOOD", font=collected_font, fill=highlight_color)
-  draw.text((32, total_h - 90), f"{max_badge_count}", font=total_font, fill=highlight_color)
-  draw.text((base_w - 370, total_h - 115), f"PAGE {page_number:02d} OF {total_pages:02d}", font=page_font, fill=highlight_color)
+  draw.text((100, 65), f"{display_name}'s Badge Completion - {category_title}", font=title_font, fill=colors.highlight)
+  draw.text((590, total_h - 125), f"{collected_count} ON THE USS HOOD", font=collected_font, fill=colors.highlight)
+  draw.text((32, total_h - 90), f"{max_badge_count}", font=total_font, fill=colors.highlight)
+  draw.text((base_w - 370, total_h - 115), f"PAGE {page_number:02d} OF {total_pages:02d}", font=page_font, fill=colors.highlight)
 
   return canvas
 
