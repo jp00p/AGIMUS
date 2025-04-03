@@ -424,8 +424,8 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
   public = bool(public == "yes")
   await ctx.defer(ephemeral=not public)
 
-  all_badges = os.listdir("./images/badges/")
-  user_badges = await db_get_user_badges(ctx.author.id)
+  # all_badges = os.listdir("./images/badges/")
+  # user_badges = await db_get_user_badges(ctx.author.id)
 
   # Pull data using the queries.
   all_rows = []
@@ -441,18 +441,18 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
 
   # Format data for the returned embed
   category_title = category.replace('_', ' ').title()
-  total_badges = len(all_badges)
-  title = f"{remove_emoji(ctx.author.display_name)}'s Badge Completion - {category_title}"
-  collected = f"{len(user_badges)} TOTAL ON THE USS HOOD"
-  filename_prefix = f"badge_set_completion_{ctx.author.id}_affiliations-page-"
+  # total_badges = len(all_badges)
+  # title = f"{remove_emoji(ctx.author.display_name)}'s Badge Completion - {category_title}"
+  # collected = f"{len(user_badges)} TOTAL ON THE USS HOOD"
+  # filename_prefix = f"badge_set_completion_{ctx.author.id}_affiliations-page-"
 
   if color:
     await db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
-  completion_images = await generate_paginated_set_completion_images(ctx.author, all_rows, total_badges, title, collected, filename_prefix)
+  completion_images = await generate_paginated_set_completion_images(ctx.author, all_rows, category)
 
   embed = discord.Embed(
     title=f"Badge Set Completion - {category_title}",
-    description=f"{ctx.author.mention}'s Current Set Completion Progress",
+    description=f"{ctx.author.mention}'s Current {category_title} Set Completion Progress",
     color=discord.Color.blurple()
   )
 
