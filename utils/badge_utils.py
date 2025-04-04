@@ -227,18 +227,6 @@ def load_badge_image(filename):
   path = os.path.join(BADGE_PATH, filename)
   return Image.open(path).convert("RGBA")
 
-
-def create_badge_canvas(columns, rows, badge_size=BADGE_SIZE, spacing=BADGE_SPACING):
-  width = columns * badge_size[0] + (columns - 1) * spacing
-  height = rows * badge_size[1] + (rows - 1) * spacing
-  return Image.new("RGBA", (width, height), (255, 255, 255, 0))
-
-
-def paste_badge(canvas, badge_img, col, row, badge_size=BADGE_SIZE, spacing=BADGE_SPACING):
-  x = col * (badge_size[0] + spacing)
-  y = row * (badge_size[1] + spacing)
-  canvas.paste(badge_img, (x, y), badge_img)
-
 # --- Badge Strip --
 def generate_simple_badge_strip(filenames, spacing=10, badge_size=BADGE_SIZE):
   """
@@ -578,30 +566,36 @@ async def generate_paginated_badge_images(user: discord.User, all_rows: list, co
       user, all_rows, collection_type
   )
 
-
-CollectionGridDimensions = namedtuple(
-  "CollectionGridDimensions",
-  ["badge_size", "padding", "header_height", "footer_height", "row_height", "canvas_width"]
-)
-
+CollectionGridDimensions = namedtuple("CollectionGridDimensions", ["margin", "header_height", "footer_height", "row_height", "canvas_width"])
 def _get_collection_grid_dimensions() -> CollectionGridDimensions:
   return CollectionGridDimensions(
-    badge_size=(128, 128),
-    padding=20,
+    margin=20,
     header_height=530,
     footer_height=200,
     row_height=290,
     canvas_width=1890
   )
 
-CollectionGridLayout = namedtuple("CollectionGridLayout", ["badges_per_page", "badges_per_row"])
-
+CollectionGridLayout = namedtuple("CollectionGridLayout", ["badges_per_page", "badges_per_row", "init_x", "init_y"])
 def _get_collection_grid_layout() -> CollectionGridLayout:
   return CollectionGridLayout(
     badges_per_page=30,
-    badges_per_row=5
+    badges_per_row=5,
+    init_x=100,
+    init_y=245
   )
 
+BadgeSlotDimensions = namedtuple("BadgeSlotDimensions", ["slot_width", "slot_height", "badge_width", "badge_height", "badge_padding", "thumbnail_width", "thumbnail_height"])
+def _get_badge_slot_dimensions() -> BadgeSlotDimensions:
+  return BadgeSlotDimensions(
+    slot_width=280,
+    slot_height=280,
+    badge_width=200,
+    badge_height=200,
+    badge_padding=40,
+    thumbnail_width=190,
+    thumbnail_height=190
+  )
 
 def get_collection_font(font_type: str) -> ImageFont.FreeTypeFont:
   try:
@@ -611,6 +605,8 @@ def get_collection_font(font_type: str) -> ImageFont.FreeTypeFont:
       return ImageFont.truetype("fonts/lcars3.ttf", 24)
     elif font_type == "pages":
       return ImageFont.truetype("fonts/lcars3.ttf", 80)
+    elif font_type == "slot":
+      ImageFont.truetype("fonts/context_bold.ttf", 28)
   except:
     return ImageFont.load_default()
 
@@ -683,17 +679,17 @@ def compose_badge_grid_page(
 
   dims = _get_collection_grid_dimensions()
   layout = _get_collection_grid_layout()
+  slot_dims = _get_badge_slot_dimensions()
 
   rows = math.ceil(len(badges) / layout.badges_per_row)
   canvas = build_collection_canvas(rows, title_text, collected_text, page_number_text, theme, dims)
 
   # Draw badges
-  badge_y_offset = (dims.row_height - dims.badge_size[1]) // 2
   for idx, badge in enumerate(badges):
     row = idx // layout.badges_per_row
     col = idx % layout.badges_per_row
-    x = dims.padding + col * (dims.badge_size[0] + dims.padding)
-    y = dims.header_height + row * dims.row_height + badge_y_offset
+    x = (dims.margin + col * (slot_dims.slot_width + dims.margin)) + layout.init_x
+    y = (dims.header_height + row * dims.row_height) - layout.init_y
     composed_badge = compose_collection_badge_slot(badge, dims)
     canvas.paste(composed_badge, (x, y), composed_badge)
 
@@ -741,21 +737,71 @@ def build_collection_canvas(rows, title_text, collected_text, page_number_text, 
   return canvas
 
 
-def compose_collection_badge_slot(badge: dict) -> Image.Image:
+def compose_collection_badge_slot(badge: dict, collection_type, theme) -> Image.Image:
   """Composes and returns a badge image with overlays applied for locked/special badges."""
-  dims = _get_collection_grid_dimensions()
-  badge_path = f"./images/badges/{badge['badge_filename']}"
-  badge_slot = Image.open(badge_path).convert("RGBA").resize(dims.badge_size)
 
-  if badge.get("locked"):
-    overlay = Image.new("RGBA", dims.badge_size, (0, 0, 0, 128))
-    badge_slot = Image.alpha_composite(badge_slot, overlay)
+  dims = _get_badge_slot_dimensions()
+  colors = get_theme_colors(theme)
 
+  border_color = colors.highlight
+  text_color = "#000000"
+  if type == 'sets' and not badge.get('in_user_collection'):
+    border_color = "#575757"
+    text_color = "#888888"
+    add_alpha = True
+
+  # Load image and thumbnailicize
+  badge_image = load_badge_image(badge['badge_filename'])
+  if add_alpha:
+    # Create a mask layer to apply 1/4th opacity to for uncollected badges
+    badge_alpha = badge_image.copy().putalpha(64)
+    badge_image.paste(badge_alpha, badge_image)
+  badge_image.thumbnail((dims.thumbnail_width, dims.thumbnail_height), Image.ANTIALIAS)
+
+  # Create Badge Canvas
+  badge_canvas = Image.new('RGBA', (dims.thumbnail_width, dims.thumbnail_height), (255, 255, 255, 0))
+  badge_canvas.paste(
+   badge_image, (int((dims.thumbnail_width - badge_image.size[0]) // 2), int((dims.thumbnail_width - badge_image.size[1]) // 2))
+  )
+  badge_canvas = badge_canvas.resize((dims.thumbnail_width, dims.thumbnail_height))
+
+  # Create Slot Canvas
+  slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
+  draw = ImageDraw.Draw(slot_canvas)
+  draw.rounded_rectangle( (0, 0, dims.slot_width, dims.slot_height), fill="#000000", outline=border_color, width=4, radius=32 )
+
+  # Slot Canvas Dimensions
+  b_canvas_width, b_canvas_height = badge_canvas.size
+  offset_x = min(0, (dims.slot_width) - b_canvas_width) # center badge x
+  offset_y = 5 # badge 5 pixels from the top of the slot
+
+  # Stamp Badge Canvas on Slot Canvas
+  slot_canvas.paste(badge_canvas, (dims.badge_padding + offset_x + 4, offset_y), badge_canvas)
+
+  # Slot Text
+  text_wrapper = textwrap.TextWrapper(width=22)
+  badge_name = text_wrapper.wrap(badge['badge_name'])
+
+  # Not sure what's going from here
+  wrapped_badge_name = ""
+  for i in badge_name[:-1]:
+    wrapped_badge_name = wrapped_badge_name + i + "\n"
+  wrapped_badge_name += badge_name[-1]
+  # To the line above
+
+  slot_font = get_collection_font("slot")
+  draw.text( (int(dims.badge_slot_size/2), 222), f"{wrapped_badge_name}", fill=text_color, font=slot_font, anchor="mm", align="center")
+
+  overlay = None
   if badge.get("special"):
-    draw = ImageDraw.Draw(badge_slot)
-    draw.rectangle([(0, 0), (dims.badge_size[0] - 1, dims.badge_size[1] - 1)], outline=(255, 215, 0), width=4)
+    overlay = Image.open(f"./images/templates/badges/special_icon.png").convert("RGBA")
+  elif badge.get("locked"):
+    overlay = Image.open(f"./images/templates/badges/lock_icon.png").convert("RGBA")
 
-  return badge_slot
+  if overlay:
+    slot_canvas.paste(overlay, dims.slot_width - 54, 16, overlay)
+
+  return slot_canvas
 
 
 # async def generate_badge_images(type, user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
