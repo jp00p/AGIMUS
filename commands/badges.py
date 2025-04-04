@@ -139,12 +139,6 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
     )
     return
 
-  # Set up text values for paginated pages
-  total_badges_cnt = len(await db_get_all_badge_info())
-  user_badges_cnt = len(user_badges)
-  collected = f"{user_badges_cnt} TOTAL ON THE USS HOOD"
-  filename_prefix = f"badge_list_{ctx.author.id}-page-"
-
   if sortby is not None:
     if sortby == 'date_ascending':
       title += " - Date Ascending"
@@ -161,7 +155,7 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
 
   embed = discord.Embed(
     title=f"Badge Collection",
-    description=f"{ctx.author.mention} has collected {user_badges_cnt} of {total_badges_cnt}!",
+    description=f"{ctx.author.mention} has collected {len(user_badges)} of {await db_get_max_badge_count()}!",
     color=discord.Color.blurple()
   )
 
@@ -414,12 +408,8 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
 )
 @commands.check(access_check)
 async def completion(ctx:discord.ApplicationContext, public:str, category:str, color:str):
-
   public = bool(public == "yes")
   await ctx.defer(ephemeral=not public)
-
-  # all_badges = os.listdir("./images/badges/")
-  # user_badges = await db_get_user_badges(ctx.author.id)
 
   # Pull data using the queries.
   all_rows = []
@@ -433,20 +423,14 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
     all_rows = await queries_badge_completion.by_type(ctx.author.id)
   all_rows = await _append_featured_completion_badges(ctx.author.id, all_rows, category)
 
-  # Format data for the returned embed
-  category_title = category.replace('_', ' ').title()
-  # total_badges = len(all_badges)
-  # title = f"{remove_emoji(ctx.author.display_name)}'s Badge Completion - {category_title}"
-  # collected = f"{len(user_badges)} TOTAL ON THE USS HOOD"
-  # filename_prefix = f"badge_set_completion_{ctx.author.id}_affiliations-page-"
-
   if color:
     await db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
-  completion_images = await generate_paginated_set_completion_images(ctx.author, all_rows, category)
+
+  completion_images = await generate_badge_set_completion_images(ctx.author, all_rows, category)
 
   embed = discord.Embed(
     title=f"Badge Set Completion - {category_title}",
-    description=f"{ctx.author.mention}'s Current {category_title} Set Completion Progress",
+    description=f"{ctx.author.mention}'s Current {category.replace('_', ' ').title()} Set Completion Progress",
     color=discord.Color.blurple()
   )
 
@@ -484,7 +468,8 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
       else:
         await ctx.followup.send(files=chunk, ephemeral=not public)
 
-async def _append_featured_completion_badges(user_id, report, category):
+
+async def _append_featured_completion_badges(user_id, rows, category):
   if category == "affiliation":
     badges = await db_get_random_badges_from_user_by_affiliations(user_id)
   elif category == "franchise":
@@ -496,11 +481,11 @@ async def _append_featured_completion_badges(user_id, report, category):
   else:
     badges = {}
 
-  for r in report:
+  for r in rows:
     if r['name'] in badges:
       r['featured_badge'] = badges.get(r['name'])
 
-  return report
+  return rows
 
 
 #   _________
