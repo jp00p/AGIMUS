@@ -308,21 +308,15 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
     }
     set_badges.append(record)
 
-  user_set_badge_cnt = len([b for b in set_badges if b['in_user_collection']])
-  user_all_badge_cnt = await db_get_badge_count_for_user(ctx.author.id)
-
-  # Set up text values for paginated pages
-  title = f"{remove_emoji(ctx.author.display_name)}'s Badge Set: {category_title} - {selection}"
-  collected = f"{user_set_badge_cnt} OF {len(set_badges)}"
-  filename_prefix = f"badge_set_{ctx.author.id}_{selection.lower().replace(' ', '-').replace('/', '-')}-page-"
-
   if color:
     await db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
-  badge_images = await generate_paginated_badge_images(ctx.author, set_badges, 'sets')
+
+  collection_label = f"{category_title} - {selection}"
+  badge_images = await generate_badge_collection_images(ctx.author, set_badges, 'sets', collection_label)
 
   embed = discord.Embed(
-    title=f"Badge Set: **{category_title}** - **{selection}**",
-    description=f"{ctx.author.mention} has collected {user_set_badge_cnt} of {len(set_badges)}!",
+    title=f"Badge Sets: **{category_title}** - **{selection}**",
+    description=f"{ctx.author.mention} has collected {len([b for b in set_badges if b['in_user_collection']])} of {len(set_badges)}!",
     color=discord.Color.blurple()
   )
 

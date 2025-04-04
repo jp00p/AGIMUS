@@ -33,7 +33,7 @@ from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
 from commands.user_tags import tag_user, untag_user, display_tags
-from commands.wrapped import wrapped
+# from commands.wrapped import wrapped
 from commands.xpinfo import xpinfo_channels, xpinfo_activity
 
 # Slash Command Groups
@@ -113,7 +113,7 @@ from tasks.birthdays import birthdays_task
 from tasks.hoodiversaries import hoodiversary_task
 from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
-from tasks.wrapped_generation import wrapped_generation_task
+# from tasks.wrapped_generation import wrapped_generation_task
 
 
 # Utils
@@ -395,7 +395,7 @@ scheduled_tasks = [
   birthdays_task(bot),
   hoodiversary_task(bot),
   weyounsday_task(bot),
-  wrapped_generation_task(bot)
+  # wrapped_generation_task(bot)
 ]
 scheduler = Scheduler()
 for task in scheduled_tasks:
