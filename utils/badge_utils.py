@@ -573,7 +573,8 @@ def _get_collection_grid_dimensions() -> CollectionGridDimensions:
     header_height=530,
     footer_height=200,
     row_height=290,
-    canvas_width=1890
+    canvas_width=1890,
+    grid_y_offset = 15,
   )
 
 CollectionGridLayout = namedtuple("CollectionGridLayout", ["badges_per_page", "badges_per_row", "init_x", "init_y"])
@@ -600,9 +601,11 @@ def _get_badge_slot_dimensions() -> BadgeSlotDimensions:
 def get_collection_font(font_type: str) -> ImageFont.FreeTypeFont:
   try:
     if font_type == "title":
-      return ImageFont.truetype("fonts/lcars3.ttf", 32)
+      return ImageFont.truetype("fonts/lcars3.ttf", 110)
     elif font_type == "footer":
-      return ImageFont.truetype("fonts/lcars3.ttf", 24)
+      return ImageFont.truetype("fonts/lcars3.ttf", 100)
+    elif font_type == "total":
+      return ImageFont.truetype("fonts/lcars3.ttf", 54)
     elif font_type == "pages":
       return ImageFont.truetype("fonts/lcars3.ttf", 80)
     elif font_type == "slot":
@@ -643,6 +646,7 @@ async def generate_badge_collection_images(
 
   title_text = f"{user.display_name}'s Badge {collection_type.title()}"
   collected_text = f"{await db_get_badge_count_for_user(user_id)} ON THE USS HOOD"
+  total_text = f"{await db_get_badge_count_for_user(user_id)}"
 
   total_pages = math.ceil(len(badge_data) / layout.badges_per_page)
 
@@ -650,13 +654,14 @@ async def generate_badge_collection_images(
   for page_index in range(0, len(badge_data), layout.badges_per_page):
     page_badges = badge_data[page_index:page_index + layout.badges_per_page]
     page_number = (page_index // layout.badges_per_page) + 1
-    page_number_text = f"PAGE {page_number:02d} OF {total_pages:02d}"
+    pages_text = f"PAGE {page_number:02d} OF {total_pages:02d}"
 
-    image = await compose_badge_grid_page(
+    image = compose_badge_grid_page(
       page_badges,
       title_text,
       collected_text,
-      page_number_text,
+      total_text,
+      pages_text,
       theme
     )
 
@@ -667,12 +672,12 @@ async def generate_badge_collection_images(
 
   return pages
 
-
 def compose_badge_grid_page(
   badges: list,
   title_text: str = None,
   collected_text: str = None,
-  page_number_text: str = None,
+  total_text: str = None,
+  pages_text: str = None,
   theme: str = "green"
 ) -> Image.Image:
   """Draws a single badge grid page from the given badge info list."""
@@ -682,7 +687,13 @@ def compose_badge_grid_page(
   slot_dims = _get_badge_slot_dimensions()
 
   rows = math.ceil(len(badges) / layout.badges_per_row)
-  canvas = build_collection_canvas(rows, title_text, collected_text, page_number_text, theme, dims)
+  canvas = build_collection_canvas(rows, title_text, collected_text, total_text, pages_text, theme)
+
+  # Draw badges using full slot size
+  badge_slot_size = (250, 250)
+  padding_x, padding_y = 24, 24
+  start_x = 100
+  badge_y_offset = (dims.row_height - badge_slot_size[1]) // 2
 
   # Draw badges
   for idx, badge in enumerate(badges):
@@ -696,7 +707,7 @@ def compose_badge_grid_page(
   return canvas
 
 
-def build_collection_canvas(rows, title_text, collected_text, page_number_text, theme) -> Image.Image:
+def build_collection_canvas(rows, title_text, collected_text, total_text, pages_text, theme) -> Image.Image:
   """Initializes a blank canvas using defined layout dimensions."""
   colors = get_theme_colors(theme)
   dims = _get_collection_grid_dimensions()
@@ -724,15 +735,19 @@ def build_collection_canvas(rows, title_text, collected_text, page_number_text, 
 
   if title_text:
     title_font = get_collection_font("title")
-    draw.text((20, 20), title_text, font=title_font, fill=colors.primary)
+    draw.text((100, 65), title_text, font=title_font, fill=colors.highlight)
 
   if collected_text:
     footer_font = get_collection_font("footer")
-    draw.text((20, height - 50), collected_text, font=footer_font, fill=colors.primary)
+    draw.text((590, height - 125), collected_text, font=footer_font, fill=colors.highlight)
 
-  if page_number_text:
+  if total_text:
+    total_font = get_collection_font("total")
+    draw.text((32, height - 90),  total_text, font=total_font, fill=colors.highlight)
+
+  if pages_text:
     pages_font = get_collection_font("pages")
-    draw.text((width - 370, height - 115), page_number_text, font=pages_font, fill=colors.primary)
+    draw.text((width - 370, height - 115), pages_text, font=pages_font, fill=colors.highlight)
 
   return canvas
 
@@ -803,6 +818,25 @@ def compose_collection_badge_slot(badge: dict, collection_type, theme) -> Image.
 
   return slot_canvas
 
+  # Load and resize badge image
+  badge_path = f"./images/badges/{badge['badge_filename']}"
+  badge_icon_size = (170, 170)
+  badge_icon = Image.open(badge_path).convert("RGBA").resize(badge_icon_size)
+
+  # Center badge icon
+  icon_x = (slot_width - badge_icon_size[0]) // 2
+  icon_y = 10  # leave space at bottom for label
+  slot_img.paste(badge_icon, (icon_x, icon_y), badge_icon)
+
+  # Draw badge name label
+  font = get_collection_font("total")
+  text = badge.get("badge_name", "")
+  text = textwrap.fill(text, width=18)
+  text_x = slot_width // 2
+  text_y = badge_icon_size[1] + 20
+  draw.text((text_x, text_y), text, font=font, fill="white", anchor="mm")
+
+  return slot_img
 
 # async def generate_badge_images(type, user, page, page_number, total_pages, total_user_badges, title, collected, filename_prefix):
 #   user_display_name = user.display_name
