@@ -157,7 +157,7 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
 
   if color:
     await db_set_user_badge_page_color_preference(ctx.author.id, "showcase", color)
-  badge_images = await generate_paginated_badge_images(ctx.author, 'showcase', user_badges, total_badges_cnt, title, collected, filename_prefix)
+  badge_images = await generate_paginated_badge_images(ctx.author, user_badges, 'showcase')
 
   embed = discord.Embed(
     title=f"Badge Collection",
@@ -318,7 +318,7 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
 
   if color:
     await db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
-  badge_images = await generate_paginated_badge_images(ctx.author, 'sets', set_badges, user_all_badge_cnt, title, collected, filename_prefix)
+  badge_images = await generate_paginated_badge_images(ctx.author, set_badges, 'sets')
 
   embed = discord.Embed(
     title=f"Badge Set: **{category_title}** - **{selection}**",
