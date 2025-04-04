@@ -591,7 +591,7 @@ async def generate_badge_collection_images(
 ) -> list[discord.File]:
   """
   Generates one or more paginated grid images of a user's badge collection, themed according to
-  their preferences and appropriate for `/badges showcase` or `/badges sets` displays.
+  their preferences and appropriate for `/badges collection` or `/badges sets` displays.
 
   Parameters:
     user (discord.User): The Discord user whose collection is being visualized.
@@ -600,7 +600,7 @@ async def generate_badge_collection_images(
       - badge_filename (str)
       - locked (bool)
       - special (bool)
-    collection_type (str): Context for the collection being rendered, e.g., "showcase" or "sets".
+    collection_type (str): Context for the collection being rendered, e.g., "collection" or "sets".
 
   Returns:
     list[discord.File]: A list of image files representing each page of the badge collection.
@@ -1102,7 +1102,7 @@ def generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap):
 #        \__>           \/              \/     \/
 async def db_set_user_badge_page_color_preference(user_id, type, color):
   async with AgimusDB() as query:
-    if type == "showcase":
+    if type == "collection":
       sql = "UPDATE user_preferences SET badge_showcase_color = %s WHERE user_discord_id = %s"
     elif type == "sets":
       sql = "UPDATE user_preferences SET badge_sets_color = %s WHERE user_discord_id = %s"
@@ -1119,7 +1119,7 @@ async def db_get_user_badge_page_color_preference(user_id, type):
       sql = "INSERT INTO user_preferences (user_discord_id) VALUES (%s)"
       await query.execute(sql, vals)
 
-    if type == "showcase":
+    if type == "collection":
       sql = "SELECT badge_showcase_color AS color_preference FROM user_preferences WHERE user_discord_id = %s"
     elif type == "sets":
       sql = "SELECT badge_sets_color AS color_preference FROM user_preferences WHERE user_discord_id = %s"

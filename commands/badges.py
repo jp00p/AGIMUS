@@ -43,7 +43,7 @@ badge_group = bot.create_group("badges", "Badge Commands!")
 # /_______  /|___|  /\____/ \/\_/  \___  >____  /____  >\___  >
 #         \/      \/                   \/     \/     \/     \/
 @badge_group.command(
-  name="showcase",
+  name="collection",
   description="Show off all your badges! Please be mindful of posting very large collections publicly."
 )
 @option(
@@ -82,7 +82,7 @@ badge_group = bot.create_group("badges", "Badge Commands!")
 )
 @option(
   name="sortby",
-  description="Sort your showcase",
+  description="Sort your collection",
   required=False,
   choices=[
     discord.OptionChoice(
@@ -112,7 +112,7 @@ badge_group = bot.create_group("badges", "Badge Commands!")
     for color_choice in ["Green", "Orange", "Purple", "Teal"]
   ]
 )
-async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortby:str, color:str):
+async def collection(ctx:discord.ApplicationContext, public:str, filter:str, sortby:str, color:str):
   public = (public == "yes")
   await ctx.defer(ephemeral=not public)
 
@@ -132,7 +132,7 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
 
   if not user_badges:
     await ctx.followup.send(embed=discord.Embed(
-        title="No Badges To Showcase!",
+        title="No Badges To Display!",
         description="You don't appear to either have any badges, or any that match this filter!",
         color=discord.Color.red()
       )
@@ -149,9 +149,9 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
     title += f" - {sortby.replace('_', ' ').title()}"
 
   if color:
-    await db_set_user_badge_page_color_preference(ctx.author.id, "showcase", color)
+    await db_set_user_badge_page_color_preference(ctx.author.id, "collection", color)
 
-  badge_images = await generate_badge_collection_images(ctx.author, user_badges, 'showcase', collection_label)
+  badge_images = await generate_badge_collection_images(ctx.author, user_badges, 'collection', collection_label)
 
   user_badges_count = await db_get_max_badge_count()
   embed = discord.Embed(
