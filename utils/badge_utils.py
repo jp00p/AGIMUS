@@ -153,30 +153,30 @@ def get_theme_colors(theme: str):
   Values are RGBA tuples.
   """
   # Green by default
-  primary_color = (153, 185, 141)
-  highlight_color = (84, 177, 69)
+  primary = (153, 185, 141)
+  highlight = (84, 177, 69)
 
   if theme == "orange":
-    primary_color = (189, 151, 137)
-    highlight_color = (186, 111, 59)
+    primary = (189, 151, 137)
+    highlight = (186, 111, 59)
   elif theme == "purple":
-    primary_color = (100, 85, 161)
-    highlight_color = (87, 64, 183)
+    primary = (100, 85, 161)
+    highlight = (87, 64, 183)
   elif theme == "teal":
-    primary_color = (141, 185, 181)
-    highlight_color = (71, 170, 177)
+    primary = (141, 185, 181)
+    highlight = (71, 170, 177)
 
-  darker_primary_color = tuple(
+  darker_primary = tuple(
     int(channel * 0.65) if index < 3 else channel
-    for index, channel in enumerate(primary_color)
+    for index, channel in enumerate(primary)
   )
 
-  darker_highlight_color = tuple(
+  darker_highlight = tuple(
     int(channel * 0.85) if index < 3 else channel
-    for index, channel in enumerate(highlight_color)
+    for index, channel in enumerate(highlight)
   )
 
-  return ThemeColors(primary_color, highlight_color, darker_primary_color, darker_highlight_color)
+  return ThemeColors(primary, highlight, darker_primary, darker_highlight)
 
 ThemeColors = namedtuple("ThemeColors", ("primary", "highlight", "darker_primary", "darker_highlight"))
 
