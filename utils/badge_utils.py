@@ -239,23 +239,6 @@ def paste_badge(canvas, badge_img, col, row, badge_size=BADGE_SIZE, spacing=BADG
   y = row * (badge_size[1] + spacing)
   canvas.paste(badge_img, (x, y), badge_img)
 
-
-# --- Badge Slot Composition ---
-def compose_badge_slot(filename, overlay=None, badge_size=BADGE_SIZE):
-  badge = load_badge_image(filename)
-  badge.thumbnail(badge_size)
-  slot = Image.new("RGBA", badge_size, (255, 255, 255, 0))
-  offset = ((badge_size[0] - badge.width) // 2, (badge_size[1] - badge.height) // 2)
-  slot.paste(badge, offset, badge)
-
-  if overlay:
-    overlay_img = load_badge_image(overlay)
-    overlay_img.thumbnail(badge_size)
-    slot.paste(overlay_img, (0, 0), overlay_img)
-
-  return slot
-
-
 # --- Badge Strip --
 def generate_simple_badge_strip(filenames, spacing=10, badge_size=BADGE_SIZE):
   """
@@ -595,18 +578,23 @@ async def generate_paginated_badge_images(user: discord.User, all_rows: list, co
       user, all_rows, collection_type
   )
 
-CollectionGridDimensions = namedtuple("CollectionGridDimensions", ["badge_size", "padding", "title_height", "footer_height"])
-CollectionGridLayout = namedtuple("CollectionGridLayout", ["badges_per_page", "badges_per_row"])
 
+CollectionGridDimensions = namedtuple(
+  "CollectionGridDimensions",
+  ["badge_size", "padding", "header_height", "footer_height", "row_height", "canvas_width"]
+)
 
 def _get_collection_grid_dimensions() -> CollectionGridDimensions:
   return CollectionGridDimensions(
     badge_size=(128, 128),
     padding=20,
-    title_height=80,
-    footer_height=50
+    header_height=530,
+    footer_height=200,
+    row_height=290,
+    canvas_width=1890
   )
 
+CollectionGridLayout = namedtuple("CollectionGridLayout", ["badges_per_page", "badges_per_row"])
 
 def _get_collection_grid_layout() -> CollectionGridLayout:
   return CollectionGridLayout(
@@ -621,42 +609,10 @@ def get_collection_font(font_type: str) -> ImageFont.FreeTypeFont:
       return ImageFont.truetype("fonts/lcars3.ttf", 32)
     elif font_type == "footer":
       return ImageFont.truetype("fonts/lcars3.ttf", 24)
+    elif font_type == "pages":
+      return ImageFont.truetype("fonts/lcars3.ttf", 80)
   except:
     return ImageFont.load_default()
-
-
-def build_collection_canvas(theme: str, title: str = None, collected_text: str = None, rows: int = 0) -> Image.Image:
-  """Initializes a blank canvas and loads themed header/footer assets."""
-  header_path = f"./images/templates/badges/badge_page_header_{theme}.png"
-  row_path = f"./images/templates/badges/badge_page_row_{theme}.png"
-  footer_path = f"./images/templates/badges/badge_page_footer_{theme}.png"
-
-  base_header_image = Image.open(header_path).convert("RGBA")
-  base_row_image = Image.open(row_path).convert("RGBA")
-  base_footer_image = Image.open(footer_path).convert("RGBA")
-
-  width = base_header_image.width
-  height = base_header_image.height + (rows * base_row_image.height) + base_footer_image.height
-
-  canvas = Image.new("RGBA", (width, height), (18, 18, 18, 255))
-  draw = ImageDraw.Draw(canvas)
-  canvas.paste(base_header_image, (0, 0), base_header_image)
-
-  for i in range(rows):
-    y = base_header_image.height + (i * base_row_image.height)
-    canvas.paste(base_row_image, (0, y), base_row_image)
-
-  canvas.paste(base_footer_image, (0, base_header_image.height + rows * base_row_image.height), base_footer_image)
-
-  if title:
-    title_font = get_collection_font("title")
-    draw.text((20, 20), title, font=title_font, fill=(255, 255, 255))
-
-  if collected_text:
-    footer_font = get_collection_font("footer")
-    draw.text((20, height - 50), collected_text, font=footer_font, fill=(200, 200, 200))
-
-  return canvas
 
 
 async def generate_paginated_badge_collection_images(user: discord.User, all_rows: list, collection_type: str):
@@ -670,7 +626,7 @@ async def generate_badge_collection_images(
 ) -> list[discord.File]:
   """
   Generates one or more paginated grid images of a user's badge collection, themed according to
-  their preferences and appropriate for /badges showcase or /badges sets displays.
+  their preferences and appropriate for `/badges showcase` or `/badges sets` displays.
 
   Parameters:
     user (discord.User): The Discord user whose collection is being visualized.
@@ -689,69 +645,114 @@ async def generate_badge_collection_images(
 
   theme = await get_theme_preference(user_id, collection_type)
 
-  title = f"{user.display_name}'s Badge {collection_type.title()}"
-  collected_text = None
+  title_text = f"{user.display_name}'s Badge {collection_type.title()}"
+  collected_text = f"{await db_get_badge_count_for_user(user_id)} ON THE USS HOOD"
+
+  total_pages = math.ceil(len(badge_data) / layout.badges_per_page)
 
   pages = []
   for page_index in range(0, len(badge_data), layout.badges_per_page):
     page_badges = badge_data[page_index:page_index + layout.badges_per_page]
-    image = compose_badge_grid_page(
+    page_number = (page_index // layout.badges_per_page) + 1
+    page_number_text = f"PAGE {page_number:02d} OF {total_pages:02d}"
+
+    image = await compose_badge_grid_page(
       page_badges,
-      title,
+      title_text,
       collected_text,
-      page_index // layout.badges_per_page + 1,
+      page_number_text,
       theme
     )
 
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     buffer.seek(0)
-    pages.append(discord.File(fp=buffer, filename=f"badge_collection_page_{page_index // layout.badges_per_page + 1}.png"))
+    pages.append(discord.File(fp=buffer, filename=f"badge_collection_page_{page_number}.png"))
 
   return pages
 
 
 def compose_badge_grid_page(
   badges: list,
-  title: str = None,
+  title_text: str = None,
   collected_text: str = None,
-  page_number: int = 1,
-  theme: str = "showcase"
+  page_number_text: str = None,
+  theme: str = "green"
 ) -> Image.Image:
   """Draws a single badge grid page from the given badge info list."""
-  import math
 
   dims = _get_collection_grid_dimensions()
   layout = _get_collection_grid_layout()
 
   rows = math.ceil(len(badges) / layout.badges_per_row)
-  canvas = build_collection_canvas(theme, title, collected_text, rows=rows)
-
-    canvas.paste(base_row_image, (0, y), base_row_image)
+  canvas = build_collection_canvas(rows, title_text, collected_text, page_number_text, theme, dims)
 
   # Draw badges
+  badge_y_offset = (dims.row_height - dims.badge_size[1]) // 2
   for idx, badge in enumerate(badges):
     row = idx // layout.badges_per_row
     col = idx % layout.badges_per_row
     x = dims.padding + col * (dims.badge_size[0] + dims.padding)
-    y = dims.title_height + row * (dims.badge_size[1] + dims.padding)
-    composed_badge = compose_badge_slot(badge, dims)
+    y = dims.header_height + row * dims.row_height + badge_y_offset
+    composed_badge = compose_collection_badge_slot(badge, dims)
     canvas.paste(composed_badge, (x, y), composed_badge)
 
   return canvas
 
 
-def compose_badge_slot(badge: dict, dims: CollectionGridDimensions) -> Image.Image:
+def build_collection_canvas(rows, title_text, collected_text, page_number_text, theme) -> Image.Image:
+  """Initializes a blank canvas using defined layout dimensions."""
+  colors = get_theme_colors(theme)
+  dims = _get_collection_grid_dimensions()
+
+  width = dims.canvas_width
+  height = dims.header_height + (rows * dims.row_height) + dims.footer_height
+  canvas = Image.new("RGBA", (width, height), (18, 18, 18, 255))
+  draw = ImageDraw.Draw(canvas)
+
+  header_path = f"./images/templates/badges/badge_page_header_{theme}.png"
+  row_path = f"./images/templates/badges/badge_page_row_{theme}.png"
+  footer_path = f"./images/templates/badges/badge_page_footer_{theme}.png"
+
+  header_img = Image.open(header_path).convert("RGBA")
+  row_img = Image.open(row_path).convert("RGBA")
+  footer_img = Image.open(footer_path).convert("RGBA")
+
+  canvas.paste(header_img, (0, 0), header_img)
+
+  for i in range(rows):
+    y = dims.header_height + i * dims.row_height
+    canvas.paste(row_img, (0, y), row_img)
+
+  canvas.paste(footer_img, (0, dims.header_height + rows * dims.row_height), footer_img)
+
+  if title_text:
+    title_font = get_collection_font("title")
+    draw.text((20, 20), title_text, font=title_font, fill=colors.primary)
+
+  if collected_text:
+    footer_font = get_collection_font("footer")
+    draw.text((20, height - 50), collected_text, font=footer_font, fill=colors.primary)
+
+  if page_number_text:
+    pages_font = get_collection_font("pages")
+    draw.text((width - 370, height - 115), page_number_text, font=pages_font, fill=colors.primary)
+
+  return canvas
+
+
+def compose_collection_badge_slot(badge: dict) -> Image.Image:
   """Composes and returns a badge image with overlays applied for locked/special badges."""
+  dims = _get_collection_grid_dimensions()
   badge_path = f"./images/badges/{badge['badge_filename']}"
   badge_slot = Image.open(badge_path).convert("RGBA").resize(dims.badge_size)
 
   if badge.get("locked"):
     overlay = Image.new("RGBA", dims.badge_size, (0, 0, 0, 128))
-    badge_slot = Image.alpha_composite(badge_img, overlay)
+    badge_slot = Image.alpha_composite(badge_slot, overlay)
 
   if badge.get("special"):
-    draw = ImageDraw.Draw(badge_img)
+    draw = ImageDraw.Draw(badge_slot)
     draw.rectangle([(0, 0), (dims.badge_size[0] - 1, dims.badge_size[1] - 1)], outline=(255, 215, 0), width=4)
 
   return badge_slot
