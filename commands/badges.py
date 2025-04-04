@@ -116,18 +116,18 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
   public = (public == "yes")
   await ctx.defer(ephemeral=not public)
 
+  collection_label = None
   if filter is not None:
     if filter == 'unlocked':
-      title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection - Unlocked"
+      collection_label = ": Unlocked"
       user_badges = await db_get_user_unlocked_badges(ctx.author.id)
     elif filter == 'locked':
-      title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection - Locked"
+      collection_label = ": Locked"
       user_badges = await db_get_user_locked_badges(ctx.author.id)
     elif filter == 'special':
-      title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection - Special"
+      collection_label = ": Special"
       user_badges = await db_get_user_special_badges(ctx.author.id)
   else:
-    title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection"
     user_badges = await db_get_user_badges(ctx.author.id, sortby)
 
   if not user_badges:
@@ -139,23 +139,24 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
     )
     return
 
+  title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection"
+  if collection_label:
+    title += collection_label
+
   if sortby is not None:
-    if sortby == 'date_ascending':
-      title += " - Date Ascending"
-    elif sortby == 'date_descending':
-      title += " - Date Descending"
-    elif sortby == 'locked_first':
-      title += " - Locked First"
-    elif sortby == 'special_first':
-      title += " - Title First"
+    if collection_label:
+      collection_label += f" - {sortby.replace('_', ' ').title()}"
+    title += f" - {sortby.replace('_', ' ').title()}"
 
   if color:
     await db_set_user_badge_page_color_preference(ctx.author.id, "showcase", color)
-  badge_images = await generate_paginated_badge_images(ctx.author, user_badges, 'showcase')
 
+  badge_images = await generate_badge_collection_images(ctx.author, user_badges, 'showcase', collection_label)
+
+  user_badges_count = await db_get_max_badge_count()
   embed = discord.Embed(
-    title=f"Badge Collection",
-    description=f"{ctx.author.mention} has collected {len(user_badges)} of {await db_get_max_badge_count()}!",
+    title=title,
+    description=f"{ctx.author.mention} has collected {len(user_badges)} of {user_badges_count}!",
     color=discord.Color.blurple()
   )
 
@@ -163,11 +164,11 @@ async def showcase(ctx:discord.ApplicationContext, public:str, filter:str, sortb
   # Otherwise private displays can use the paginator
   if not public:
     buttons = [
-      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(user_badges_cnt <= 30), row=1),
+      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(user_badges_count <= 30), row=1),
       pages.PaginatorButton(
         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
       ),
-      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(user_badges_cnt <= 30), row=1),
+      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(user_badges_count <= 30), row=1),
     ]
 
     pages_list = [

@@ -611,9 +611,11 @@ async def generate_badge_collection_images(
   theme = await get_theme_preference(user_id, collection_type)
 
   title_text = f"{user.display_name}'s Badge {collection_type.title()}"
+  if collection_label:
+    title_text += collection_label
+
   collected_text = f"{await db_get_badge_count_for_user(user_id)} ON THE USS HOOD"
   if collection_type == "sets":
-    title_text += f": {collection_label}"
     collected_text = f"{len([b for b in badge_data if b.get('in_user_collection')])} OF {len(badge_data)}"
 
   total_text = f"{await db_get_badge_count_for_user(user_id)}"
