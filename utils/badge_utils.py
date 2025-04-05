@@ -204,7 +204,7 @@ def get_lcars_font_by_length(name: str) -> ImageFont.FreeTypeFont:
 
 
 FontSet = namedtuple("FontSet", ["title", "footer", "total", "pages", "label", "general"])
-def load_fonts(title_size=110, footer_size=100, total_size=54, page_size=80, label_size=22, general_size=70, fallback=True):
+def load_fonts(title_size=110, footer_size=100, total_size=54, page_size=80, label_size=32, general_size=70, fallback=True):
   try:
     return FontSet(
       title=ImageFont.truetype("fonts/lcars3.ttf", title_size),
@@ -220,7 +220,7 @@ def load_fonts(title_size=110, footer_size=100, total_size=54, page_size=80, lab
       return FontSet(default, default, default, default, default, default)
     raise
 
-def draw_canvas_labels(draw, user, label, collected_count, total_count, page_num, base_w, base_h, fonts, colors, mode="collection"):
+def draw_canvas_labels(draw, user, label, collected_count, total_count, page_number, total_pages, base_w, base_h, fonts, colors, mode="collection"):
   draw_scaled_text_with_emoji(
     draw=draw,
     position=(100, 65),
@@ -238,17 +238,17 @@ def draw_canvas_labels(draw, user, label, collected_count, total_count, page_num
   )
 
   draw.text(
-    (590, base_h - 50),
+    (32, base_h - 50),
     f"{total_count} TOTAL BADGES",
     font=fonts.total,
-    fill=(255, 255, 255)
+    fill=colors.highlight
   )
 
   draw.text(
-    (85, base_h - 100),
-    f"PAGE {page_num}",
+    (base_w - 370, base_h - 115),
+    f"PAGE {page_number} OF {total_pages}",
     font=fonts.pages,
-    fill=(255, 255, 255)
+    fill=colors.highlight
   )
 
 def draw_scaled_text_with_emoji(draw: ImageDraw.Draw, position: tuple, text: str, max_width: int, font_obj: ImageFont.FreeTypeFont, starting_size=110, min_size=30, fill=(255, 255, 255)):
@@ -624,9 +624,13 @@ def _get_completion_row_dimensions() -> RowDimensions:
 # \     \___(  <_> )  |_|  |_\  ___/\  \___|  | |  (  <_> )   |  \\___ \
 #  \______  /\____/|____/____/\___  >\___  >__| |__|\____/|___|  /____  >
 #         \/                      \/     \/                    \/     \/
-async def generate_badge_collection_images(user, badge_data, collection_label, collection_type, theme):
+async def generate_badge_collection_images(user, badge_data, collection_label, collection_type):
+  user_id = user.id
+  theme = await get_theme_preference(user_id, collection_type)
+  layout = _get_collection_grid_layout()
+
   images = []
-  pages = list(paginate(badge_data, 18))
+  pages = list(paginate(badge_data, layout.badges_per_page))
   total_pages = len(pages)
 
   for page_badges, page_number in pages:
@@ -640,8 +644,9 @@ async def generate_badge_collection_images(user, badge_data, collection_label, c
       theme=theme
     )
 
-    compose_badge_grid_page(canvas, page_badges, theme)
-    images.append(canvas)
+    await compose_badge_grid_page(canvas, page_badges, theme, collection_type)
+    image = buffer_image_to_discord_file(canvas, f"collection_page{page_number}.png")
+    images.append(image)
 
   return images
 
@@ -684,7 +689,8 @@ async def build_collection_canvas(user, badge_data, page_number, total_pages, co
     label=label,
     collected_count=collected_count,
     total_count=total_count,
-    page_num=page_number,
+    page_number=page_number,
+    total_pages=total_pages,
     base_w=width,
     base_h=height,
     fonts=fonts,
@@ -754,18 +760,18 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
   slot_canvas.paste(badge_canvas, (dims.badge_padding + offset_x, offset_y), badge_canvas)
 
   # Slot Text
+  fonts = load_fonts()
   # Draw badge name label
   text = badge.get("badge_name", "")
   wrapped = textwrap.fill(text, width=30)
 
   # Calculate text block position
-  text_bbox = draw.multiline_textbbox((0, 0), wrapped, font=font)
+  text_bbox = draw.multiline_textbbox((0, 0), wrapped, font=fonts.label)
   text_block_width = text_bbox[2] - text_bbox[0]
   text_x = (dims.slot_width - text_block_width) // 2
   text_y = 222
 
-  fonts = load_fonts()
-  draw.multiline_text((text_x, text_y), wrapped, font=fonts['label'], fill=text_color, align="center")
+  draw.multiline_text((text_x, text_y), wrapped, font=fonts.label, fill=text_color, align="center")
 
   overlay = None
   if badge.get("special"):
