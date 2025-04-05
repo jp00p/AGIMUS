@@ -130,52 +130,6 @@ def load_and_prepare_badge(filename, size=BADGE_SIZE):
   return badge_img
 
 
-async def get_theme_preference(user_id, theme_type):
-  theme = "green"
-  try:
-    pref = await db_get_user_badge_page_color_preference(user_id, theme_type)
-    if pref:
-      theme = pref
-  except:
-    pass
-
-  return theme
-
-
-def get_theme_colors(theme: str):
-  """
-  Returns (primary_color, highlight_color) based on the user's theme.
-  Values are RGBA tuples.
-  """
-  # Green by default
-  primary = (153, 185, 141)
-  highlight = (84, 177, 69)
-
-  if theme == "orange":
-    primary = (189, 151, 137)
-    highlight = (186, 111, 59)
-  elif theme == "purple":
-    primary = (100, 85, 161)
-    highlight = (87, 64, 183)
-  elif theme == "teal":
-    primary = (141, 185, 181)
-    highlight = (71, 170, 177)
-
-  darker_primary = tuple(
-    int(channel * 0.65) if index < 3 else channel
-    for index, channel in enumerate(primary)
-  )
-
-  darker_highlight = tuple(
-    int(channel * 0.85) if index < 3 else channel
-    for index, channel in enumerate(highlight)
-  )
-
-  return ThemeColors(primary, highlight, darker_primary, darker_highlight)
-
-ThemeColors = namedtuple("ThemeColors", ("primary", "highlight", "darker_primary", "darker_highlight"))
-
-
 # ___________.__                          .__
 # \__    ___/|  |__   ____   _____   ____ |__| ____    ____
 #   |    |   |  |  \_/ __ \ /     \_/ __ \|  |/    \  / ___\
@@ -249,6 +203,103 @@ def get_lcars_font_by_length(name: str) -> ImageFont.FreeTypeFont:
     return ImageFont.load_default()
 
 
+FontSet = namedtuple("FontSet", ["title", "footer", "total", "pages", "label", "general"])
+def load_fonts(title_size=110, footer_size=100, total_size=54, page_size=80, label_size=22, general_size=70, fallback=True):
+  try:
+    return FontSet(
+      title=ImageFont.truetype("fonts/lcars3.ttf", title_size),
+      footer=ImageFont.truetype("fonts/lcars3.ttf", footer_size),
+      total=ImageFont.truetype("fonts/lcars3.ttf", total_size),
+      pages=ImageFont.truetype("fonts/lcars3.ttf", page_size),
+      label=ImageFont.truetype("fonts/context_bold.ttf", label_size),
+      general=ImageFont.truetype("fonts/lcars3.ttf", general_size)
+    )
+  except:
+    if fallback:
+      default = ImageFont.load_default()
+      return FontSet(default, default, default, default, default, default)
+    raise
+
+def draw_canvas_labels(draw, user, label, collected_count, total_count, page_num, base_w, base_h, fonts, colors, mode="collection"):
+  draw_scaled_text_with_emoji(
+    draw=draw,
+    position=(100, 65),
+    text=f"{user.display_name}'s Badge {'Completion -' if mode == 'completion' else 'Collection:'} {label}",
+    max_width=base_w - 200,
+    font_obj=fonts.title,
+    fill=colors.highlight
+  )
+
+  draw.text(
+    (590, base_h - 125),
+    f"{collected_count} ON THE USS HOOD",
+    font=fonts.footer,
+    fill=colors.highlight
+  )
+
+  draw.text(
+    (590, base_h - 50),
+    f"{total_count} TOTAL BADGES",
+    font=fonts.total,
+    fill=(255, 255, 255)
+  )
+
+  draw.text(
+    (85, base_h - 100),
+    f"PAGE {page_num}",
+    font=fonts.pages,
+    fill=(255, 255, 255)
+  )
+
+def draw_scaled_text_with_emoji(draw: ImageDraw.Draw, position: tuple, text: str, max_width: int, font_obj: ImageFont.FreeTypeFont, starting_size=110, min_size=30, fill=(255, 255, 255)):
+  """
+  Resizes text (including emoji) to fit within `max_width`, then renders it at `position` using mixed font rendering.
+  Emoji will fall back to a separate font (NotoColorEmoji.ttf).
+  """
+  font_path = font_obj.path if font_obj and hasattr(font_obj, "path") else "fonts/lcars3.ttf"
+  size = starting_size
+
+  while size > min_size:
+    base_font = ImageFont.truetype(font_path, size)
+    emoji_font = ImageFont.truetype("fonts/NotoColorEmoji.ttf", size)
+    total_width = 0
+    for char in text:
+      if not char.isascii() and not base_font.getmask(char).getbbox():
+        total_width += emoji_font.getlength(char)
+      else:
+        total_width += base_font.getlength(char)
+    if total_width <= max_width:
+      break
+    size -= 1
+
+  base_font = ImageFont.truetype(font_path, size)
+  emoji_font = ImageFont.truetype("fonts/NotoColorEmoji.ttf", size)
+
+  x, y = position
+  current_x = x
+  for char in text:
+    try:
+      font = base_font
+      if not char.isascii() and not base_font.getmask(char).getbbox():
+        font = emoji_font
+      width = font.getlength(char)
+      draw.text((current_x, y), char, font=font, fill=fill)
+      current_x += width
+    except Exception as e:
+      print(f"Skipping character {char!r}: {e}")
+
+def fit_text_to_width(text, max_width, font_obj=None, starting_size=110, min_size=30):
+  font_path = font_obj.path if font_obj and hasattr(font_obj, "path") else "fonts/lcars3.ttf"
+  size = starting_size
+
+  while size > min_size:
+    font = ImageFont.truetype(font_path, size)
+    if font.getlength(text) <= max_width:
+      return font
+    size -= 1
+
+  return ImageFont.truetype(font_path, min_size)
+
 #  ____ ___   __  .__.__
 # |    |   \_/  |_|__|  |   ______
 # |    |   /\   __\  |  |  /  ___/
@@ -266,6 +317,9 @@ def load_and_prepare_badge_thumbnail(filename, size=BADGE_SIZE):
   thumbnail.paste(badge_image, ((size[0]-badge_image.width)//2, (size[1]-badge_image.height)//2), badge_image)
   return thumbnail
 
+def paginate(data_list, items_per_page):
+  for i in range(0, len(data_list), items_per_page):
+    yield data_list[i:i + items_per_page], (i // items_per_page) + 1
 
 # __________             .___                 _________ __         .__
 # \______   \_____     __| _/ ____   ____    /   _____//  |________|__|_____
@@ -311,14 +365,12 @@ async def generate_badge_set_completion_images(user, all_rows, category):
 
   filtered = [r for r in all_rows if r["percentage"] > 0]
   if not filtered:
-    base = await build_completion_canvas(user, max_badge_count, collected_count, category, page_number=1, total_pages=1, row_count=1, theme=theme)
+    canvas = await build_completion_canvas(user, max_badge_count, collected_count, category, page_number=1, total_pages=1, row_count=1, theme=theme)
     row_img = await compose_empty_completion_row(dims, theme)
-    base.paste(row_img, (0, dims.start_y), row_img)
+    canvas.paste(row_img, (0, dims.start_y), row_img)
 
-    buf = io.BytesIO()
-    base.save(buf, format="PNG")
-    buf.seek(0)
-    return [discord.File(buf, filename="empty_completion_page.png")]
+    page = buffer_image_to_discord_file(canvas, "empty_completion_page.png")
+    return [page]
 
   pages = []
   rows_per_page = 6
@@ -326,18 +378,16 @@ async def generate_badge_set_completion_images(user, all_rows, category):
 
   for i in range(0, len(filtered), rows_per_page):
     chunk = filtered[i:i+rows_per_page]
-    base = await build_completion_canvas(user, max_badge_count, collected_count, category, page_number=(i//rows_per_page)+1, total_pages=total_pages, row_count=len(chunk) - 1, theme=theme)
+    canvas = await build_completion_canvas(user, max_badge_count, collected_count, category, page_number=(i//rows_per_page)+1, total_pages=total_pages, row_count=len(chunk) - 1, theme=theme)
 
     current_y = dims.start_y
     for idx, row_data in enumerate(chunk):
       row_img = await compose_completion_row(row_data, theme)
-      base.paste(row_img, (120, current_y), row_img)
+      canvas.paste(row_img, (120, current_y), row_img)
       current_y += dims.row_height + dims.row_margin
 
-    buf = io.BytesIO()
-    base.save(buf, format="PNG")
-    buf.seek(0)
-    pages.append(discord.File(buf, filename=f"completion_page_{i//rows_per_page+1}.png"))
+    page = buffer_image_to_discord_file(canvas, f"completion_page_{i//rows_per_page+1}.png")
+    pages.append(page)
 
   return pages
 
@@ -375,19 +425,22 @@ async def build_completion_canvas(user: discord.User, max_badge_count: int, coll
   display_name = remove_emoji(user.display_name)
   category_title = category.replace('_', ' ').title()
 
-  try:
-    title_font = get_lcars_font_by_length(display_name)
-    collected_font = ImageFont.truetype("fonts/lcars3.ttf", 100)
-    total_font = ImageFont.truetype("fonts/lcars3.ttf", 54)
-    page_font = ImageFont.truetype("fonts/lcars3.ttf", 80)
-  except:
-    title_font = collected_font = total_font = page_font = ImageFont.load_default()
+  fonts = load_fonts()
 
   draw = ImageDraw.Draw(canvas)
-  draw.text((100, 65), f"{display_name}'s Badge Completion - {category_title}", font=title_font, fill=colors.highlight)
-  draw.text((590, total_h - 125), f"{collected_count} ON THE USS HOOD", font=collected_font, fill=colors.highlight)
-  draw.text((32, total_h - 90), f"{max_badge_count}", font=total_font, fill=colors.highlight)
-  draw.text((base_w - 370, total_h - 115), f"PAGE {page_number:02d} OF {total_pages:02d}", font=page_font, fill=colors.highlight)
+  draw_canvas_labels(
+    draw=draw,
+    user=user,
+    label=category_title,
+    collected_count=collected_count,
+    total_count=total_count,
+    page_num=page_num,
+    base_w=base_w,
+    base_h=base_h,
+    fonts=fonts,
+    colors=colors,
+    mode="completion"
+  )
 
   return canvas
 
@@ -417,20 +470,16 @@ async def compose_completion_row(row_data, theme):
     radius=32
   )
 
-  try:
-    title_font = ImageFont.truetype("fonts/lcars3.ttf", 160)
-    percent_font = ImageFont.truetype("fonts/lcars3.ttf", 120)
-  except:
-    title_font = percent_font = ImageFont.load_default()
+  fonts = load_fonts(title_size=160, general_size=120)
 
   title = row_data.get("name") or "Unassociated"
-  draw.text((dims.offset, 40), title, font=title_font, fill=colors.highlight)
+  draw.text((dims.offset, 40), title, font=fonts.title, fill=colors.highlight)
 
   draw.text(
     (dims.row_width - 20, 170),
     f"{row_data['percentage']}% ({row_data['owned']} of {row_data['total']})",
     fill=colors.highlight,
-    font=percent_font,
+    font=fonts.general,
     anchor="rb"
   )
 
@@ -505,12 +554,7 @@ async def compose_empty_completion_row(theme, message: str = "No badges within i
   """
   Returns a fallback row image with a centered message.
   """
-  primary_color, highlight_color, darker_primary_color = get_theme_colors(theme)
-  darker_primary_color = tuple(
-    int(channel * 0.65) if index < 3 else channel
-    for index, channel in enumerate(primary_color)
-  )
-
+  colors = get_theme_colors(theme)
   dims = _get_completion_row_dimensions()
 
   empty_row_canvas = Image.new("RGBA", (dims.ROW_WIDTH, dims.ROW_HEIGHT), (0, 0, 0, 0))
@@ -523,17 +567,14 @@ async def compose_empty_completion_row(theme, message: str = "No badges within i
       dims.bar_x + dims.bar_w - 1,
       dims.bar_y + dims.bar_h - 1
     ),
-    fill=darker_primary_color,
+    fill=colors.darker_primary,
     radius=dims.bar_h // 2
   )
 
-  try:
-    font = ImageFont.truetype("fonts/lcars3.ttf", 48)
-  except:
-    font = ImageFont.load_default()
+  fonts = load_fonts(general_size=48)
 
-  text_w = draw.textlength(message, font=font)
-  draw.text(((dims.row_width - text_w) // 2, 80), message, font=font, fill=highlight_color)
+  text_w = draw.textlength(message, font=fonts.general)
+  draw.text(((dims.row_width - text_w) // 2, 80), message, font=font, fill=colors.highlight)
 
   return empty_row_canvas
 
@@ -583,103 +624,33 @@ def _get_completion_row_dimensions() -> RowDimensions:
 # \     \___(  <_> )  |_|  |_\  ___/\  \___|  | |  (  <_> )   |  \\___ \
 #  \______  /\____/|____/____/\___  >\___  >__| |__|\____/|___|  /____  >
 #         \/                      \/     \/                    \/     \/
-async def generate_badge_collection_images(
-  user: discord.User,
-  badge_data: list,
-  collection_type: str,
-  collection_label: str = None
-) -> list[discord.File]:
-  """
-  Generates one or more paginated grid images of a user's badge collection, themed according to
-  their preferences and appropriate for `/badges collection` or `/badges sets` displays.
+async def generate_badge_collection_images(user, badge_data, collection_label, collection_type, theme):
+  images = []
+  pages = list(paginate(badge_data, 18))
+  total_pages = len(pages)
 
-  Parameters:
-    user (discord.User): The Discord user whose collection is being visualized.
-    badge_data (list): A list of badge dicts. Each dict must contain:
-      - badge_name (str)
-      - badge_filename (str)
-      - locked (bool)
-      - special (bool)
-    collection_type (str): Context for the collection being rendered, e.g., "collection" or "sets".
-
-  Returns:
-    list[discord.File]: A list of image files representing each page of the badge collection.
-  """
-  layout = _get_collection_grid_layout()
-  user_id = user.id
-
-  theme = await get_theme_preference(user_id, collection_type)
-
-  title_text = f"{user.display_name}'s Badge {collection_type.title()}"
-  if collection_label:
-    title_text += f": {collection_label}"
-
-  collected_text = f"{await db_get_badge_count_for_user(user_id)} ON THE USS HOOD"
-  if collection_type == "sets":
-    collected_text = f"{len([b for b in badge_data if b.get('in_user_collection')])} OF {len(badge_data)}"
-
-  total_text = f"{await db_get_badge_count_for_user(user_id)}"
-  total_pages = math.ceil(len(badge_data) / layout.badges_per_page)
-
-  pages = []
-  for page_index in range(0, len(badge_data), layout.badges_per_page):
-    page_badges = badge_data[page_index:page_index + layout.badges_per_page]
-    page_number = (page_index // layout.badges_per_page) + 1
-    pages_text = f"PAGE {page_number:02d} OF {total_pages:02d}"
-
-    image = await compose_badge_grid_page(
-      page_badges,
-      title_text,
-      collected_text,
-      total_text,
-      pages_text,
-      collection_type,
-      theme
+  for page_badges, page_number in pages:
+    canvas = await build_collection_canvas(
+      user=user,
+      badge_data=page_badges,
+      page_number=page_number,
+      total_pages=total_pages,
+      collection_label=collection_label,
+      collection_type=collection_type,
+      theme=theme
     )
 
-    buffer = io.BytesIO()
-    image.save(buffer, format="PNG")
-    buffer.seek(0)
-    pages.append(discord.File(fp=buffer, filename=f"badge_collection_page_{page_number}.png"))
+    compose_badge_grid_page(canvas, page_badges, theme)
+    images.append(canvas)
 
-  return pages
+  return images
 
-async def compose_badge_grid_page(
-  badges: list,
-  title_text: str = None,
-  collected_text: str = None,
-  total_text: str = None,
-  pages_text: str = None,
-  collection_type: str = "collection",
-  theme: str = "green"
-) -> Image.Image:
-  """Draws a single badge grid page from the given badge info list."""
-
-  dims = _get_collection_grid_dimensions()
-  layout = _get_collection_grid_layout()
-  slot_dims = _get_badge_slot_dimensions()
-
-  total_rows = max(math.ceil(len(badges) / layout.badges_per_row) - 1, 1)
-  canvas = await build_collection_canvas(total_rows, title_text, collected_text, total_text, pages_text, theme)
-
-  # Draw badges
-  for idx, badge in enumerate(badges):
-    row = idx // layout.badges_per_row
-    col = idx % layout.badges_per_row
-    x = (dims.margin + col * (slot_dims.slot_width + dims.margin)) + layout.init_x
-    y = (dims.header_height + row * dims.row_height) + layout.init_y
-    composed_slot = await compose_collection_badge_slot(badge, collection_type, theme)
-    canvas.paste(composed_slot, (x, y), composed_slot)
-
-  return canvas
-
-
-async def build_collection_canvas(total_rows, title_text, collected_text, total_text, pages_text, theme) -> Image.Image:
-  """Initializes a blank canvas using defined layout dimensions."""
+async def build_collection_canvas(user, badge_data, page_number, total_pages, collection_label, collection_type, theme):
   colors = get_theme_colors(theme)
   dims = _get_collection_grid_dimensions()
 
   width = dims.canvas_width
+  total_rows = max(math.ceil(len(badge_data) / 6) - 1, 1)
   height = dims.header_height + (total_rows * dims.row_height) + dims.footer_height
   canvas = Image.new("RGBA", (width, height), (18, 18, 18, 255))
   draw = ImageDraw.Draw(canvas)
@@ -693,33 +664,53 @@ async def build_collection_canvas(total_rows, title_text, collected_text, total_
   footer_img = Image.open(footer_path).convert("RGBA")
 
   canvas.paste(header_img, (0, 0), header_img)
-
   for i in range(total_rows):
     y = dims.header_height + i * dims.row_height
     canvas.paste(row_img, (0, y), row_img)
-
   canvas.paste(footer_img, (0, dims.header_height + total_rows * dims.row_height), footer_img)
 
-  if title_text:
-    title_font = _get_collection_font("title")
-    draw.text((100, 65), title_text, font=title_font, fill=colors.highlight)
+  fonts = load_fonts()
+  label = collection_label or collection_type.title()
+  if collection_type == "sets":
+    collected_count = len([b for b in badge_data if b.get('in_user_collection')])
+    total_count = len(badge_data)
+  else:
+    collected_count = await db_get_badge_count_for_user(user.id)
+    total_count = collected_count
 
-  if collected_text:
-    footer_font = _get_collection_font("footer")
-    draw.text((590, height - 125), collected_text, font=footer_font, fill=colors.highlight)
+  draw_canvas_labels(
+    draw=draw,
+    user=user,
+    label=label,
+    collected_count=collected_count,
+    total_count=total_count,
+    page_num=page_number,
+    base_w=width,
+    base_h=height,
+    fonts=fonts,
+    colors=colors,
+    mode=collection_type
+  )
 
-  if total_text:
-    total_font = _get_collection_font("total")
-    draw.text((32, height - 90),  total_text, font=total_font, fill=colors.highlight)
+  return canvas
 
-  if pages_text:
-    pages_font = _get_collection_font("pages")
-    draw.text((width - 370, height - 115), pages_text, font=pages_font, fill=colors.highlight)
+async def compose_badge_grid_page(canvas: Image.Image, badge_data: list, theme: str, collection_type: str):
+  dims = _get_collection_grid_dimensions()
+  layout = _get_collection_grid_layout()
+  slot_dims = _get_badge_slot_dimensions()
+
+  for idx, badge in enumerate(badge_data):
+    row = idx // layout.badges_per_row
+    col = idx % layout.badges_per_row
+    x = (dims.margin + col * (slot_dims.slot_width + dims.margin)) + layout.init_x
+    y = (dims.header_height + row * dims.row_height) + layout.init_y
+    composed_slot = await compose_badge_slot(badge, collection_type, theme)
+    canvas.paste(composed_slot, (x, y), composed_slot)
 
   return canvas
 
 
-async def compose_collection_badge_slot(badge: dict, collection_type, theme) -> Image.Image:
+async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image:
   """Composes and returns a badge image with overlays applied for locked/special badges."""
 
   dims = _get_badge_slot_dimensions()
@@ -764,7 +755,6 @@ async def compose_collection_badge_slot(badge: dict, collection_type, theme) -> 
 
   # Slot Text
   # Draw badge name label
-  font = _get_collection_font("slot")
   text = badge.get("badge_name", "")
   wrapped = textwrap.fill(text, width=30)
 
@@ -774,7 +764,8 @@ async def compose_collection_badge_slot(badge: dict, collection_type, theme) -> 
   text_x = (dims.slot_width - text_block_width) // 2
   text_y = 222
 
-  draw.multiline_text((text_x, text_y), wrapped, font=font, fill=text_color, align="center")
+  fonts = load_fonts()
+  draw.multiline_text((text_x, text_y), wrapped, font=fonts['label'], fill=text_color, align="center")
 
   overlay = None
   if badge.get("special"):
@@ -823,20 +814,11 @@ def _get_badge_slot_dimensions() -> BadgeSlotDimensions:
     thumbnail_height=190
   )
 
-def _get_collection_font(font_type: str) -> ImageFont.FreeTypeFont:
-  try:
-    if font_type == "title":
-      return ImageFont.truetype("fonts/lcars3.ttf", 110)
-    elif font_type == "footer":
-      return ImageFont.truetype("fonts/lcars3.ttf", 100)
-    elif font_type == "total":
-      return ImageFont.truetype("fonts/lcars3.ttf", 54)
-    elif font_type == "pages":
-      return ImageFont.truetype("fonts/lcars3.ttf", 80)
-    elif font_type == "slot":
-      return ImageFont.truetype("fonts/context_bold.ttf", 22)
-  except:
-    return ImageFont.load_default()
+def buffer_image_to_discord_file(image: Image.Image, filename: str) -> discord.File:
+  buf = io.BytesIO()
+  image.save(buf, format="PNG")
+  buf.seek(0)
+  return discord.File(buf, filename=filename)
 
 
 # ___________                  .___.__
