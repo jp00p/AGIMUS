@@ -311,8 +311,8 @@ async def generate_badge_set_completion_images(user, all_rows, category):
 
   filtered = [r for r in all_rows if r["percentage"] > 0]
   if not filtered:
-    base = build_completion_canvas(user, max_badge_count, collected_count, category, page_number=1, total_pages=1, row_count=1, theme=theme)
-    row_img = _compose_empty_completion_row(dims, theme)
+    base = await build_completion_canvas(user, max_badge_count, collected_count, category, page_number=1, total_pages=1, row_count=1, theme=theme)
+    row_img = await compose_empty_completion_row(dims, theme)
     base.paste(row_img, (0, dims.start_y), row_img)
 
     buf = io.BytesIO()
@@ -326,11 +326,11 @@ async def generate_badge_set_completion_images(user, all_rows, category):
 
   for i in range(0, len(filtered), rows_per_page):
     chunk = filtered[i:i+rows_per_page]
-    base = build_completion_canvas(user, max_badge_count, collected_count, category, page_number=(i//rows_per_page)+1, total_pages=total_pages, row_count=len(chunk) - 1, theme=theme)
+    base = await build_completion_canvas(user, max_badge_count, collected_count, category, page_number=(i//rows_per_page)+1, total_pages=total_pages, row_count=len(chunk) - 1, theme=theme)
 
     current_y = dims.start_y
     for idx, row_data in enumerate(chunk):
-      row_img = _compose_completion_row(row_data, theme)
+      row_img = await compose_completion_row(row_data, theme)
       base.paste(row_img, (120, current_y), row_img)
       current_y += dims.row_height + dims.row_margin
 
@@ -342,7 +342,7 @@ async def generate_badge_set_completion_images(user, all_rows, category):
   return pages
 
 
-def build_completion_canvas(user: discord.User, max_badge_count: int, collected_count: int, category: str, page_number: int, total_pages: int, row_count: int, theme: str) -> Image.Image:
+async def build_completion_canvas(user: discord.User, max_badge_count: int, collected_count: int, category: str, page_number: int, total_pages: int, row_count: int, theme: str) -> Image.Image:
   """
   Builds the full badge completion page using header, row, and footer images based on the theme.
   Dynamically draws fonts on top and returns the full canvas.
@@ -392,7 +392,7 @@ def build_completion_canvas(user: discord.User, max_badge_count: int, collected_
   return canvas
 
 
-def _compose_completion_row(row_data, theme):
+async def compose_completion_row(row_data, theme):
   """
   Draws a single row for a badge set including:
   - Badge image (optional)
@@ -434,7 +434,7 @@ def _compose_completion_row(row_data, theme):
     anchor="rb"
   )
 
-  _draw_completion_row_progress_bar(row_canvas, row_data, theme)
+  await draw_completion_row_progress_bar(row_canvas, row_data, theme)
 
   if row_data.get("featured_badge"):
     try:
@@ -447,7 +447,7 @@ def _compose_completion_row(row_data, theme):
 
   return row_canvas
 
-def _draw_completion_row_progress_bar(row_canvas, row_data, theme):
+async def draw_completion_row_progress_bar(row_canvas, row_data, theme):
   """
   Renders a progress bar onto the given canvas using the row data and theme colors.
 
@@ -501,7 +501,7 @@ def _draw_completion_row_progress_bar(row_canvas, row_data, theme):
     )
 
 
-def _compose_empty_completion_row(theme, message: str = "No badges within inventory that match this set type."):
+async def compose_empty_completion_row(theme, message: str = "No badges within inventory that match this set type."):
   """
   Returns a fallback row image with a centered message.
   """
@@ -612,7 +612,7 @@ async def generate_badge_collection_images(
 
   title_text = f"{user.display_name}'s Badge {collection_type.title()}"
   if collection_label:
-    title_text += collection_label
+    title_text += f": {collection_label}"
 
   collected_text = f"{await db_get_badge_count_for_user(user_id)} ON THE USS HOOD"
   if collection_type == "sets":
@@ -627,7 +627,7 @@ async def generate_badge_collection_images(
     page_number = (page_index // layout.badges_per_page) + 1
     pages_text = f"PAGE {page_number:02d} OF {total_pages:02d}"
 
-    image = compose_badge_grid_page(
+    image = await compose_badge_grid_page(
       page_badges,
       title_text,
       collected_text,
@@ -644,7 +644,7 @@ async def generate_badge_collection_images(
 
   return pages
 
-def compose_badge_grid_page(
+async def compose_badge_grid_page(
   badges: list,
   title_text: str = None,
   collected_text: str = None,
@@ -660,7 +660,7 @@ def compose_badge_grid_page(
   slot_dims = _get_badge_slot_dimensions()
 
   total_rows = max(math.ceil(len(badges) / layout.badges_per_row) - 1, 1)
-  canvas = build_collection_canvas(total_rows, title_text, collected_text, total_text, pages_text, theme)
+  canvas = await build_collection_canvas(total_rows, title_text, collected_text, total_text, pages_text, theme)
 
   # Draw badges
   for idx, badge in enumerate(badges):
@@ -668,13 +668,13 @@ def compose_badge_grid_page(
     col = idx % layout.badges_per_row
     x = (dims.margin + col * (slot_dims.slot_width + dims.margin)) + layout.init_x
     y = (dims.header_height + row * dims.row_height) + layout.init_y
-    composed_slot = compose_collection_badge_slot(badge, collection_type, theme)
+    composed_slot = await compose_collection_badge_slot(badge, collection_type, theme)
     canvas.paste(composed_slot, (x, y), composed_slot)
 
   return canvas
 
 
-def build_collection_canvas(total_rows, title_text, collected_text, total_text, pages_text, theme) -> Image.Image:
+async def build_collection_canvas(total_rows, title_text, collected_text, total_text, pages_text, theme) -> Image.Image:
   """Initializes a blank canvas using defined layout dimensions."""
   colors = get_theme_colors(theme)
   dims = _get_collection_grid_dimensions()
@@ -719,7 +719,7 @@ def build_collection_canvas(total_rows, title_text, collected_text, total_text, 
   return canvas
 
 
-def compose_collection_badge_slot(badge: dict, collection_type, theme) -> Image.Image:
+async def compose_collection_badge_slot(badge: dict, collection_type, theme) -> Image.Image:
   """Composes and returns a badge image with overlays applied for locked/special badges."""
 
   dims = _get_badge_slot_dimensions()

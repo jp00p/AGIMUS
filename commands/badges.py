@@ -429,9 +429,10 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
 
   completion_images = await generate_badge_set_completion_images(ctx.author, all_rows, category)
 
+  category_title = category.replace('_', ' ').title()
   embed = discord.Embed(
     title=f"Badge Set Completion - {category_title}",
-    description=f"{ctx.author.mention}'s Current {category.replace('_', ' ').title()} Set Completion Progress",
+    description=f"{ctx.author.mention}'s current {category_title} set completion progress",
     color=discord.Color.blurple()
   )
 
