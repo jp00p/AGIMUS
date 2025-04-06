@@ -12,6 +12,7 @@ from queries.badge_info import *
 from queries.wishlist import *
 from queries.trade import *
 
+# commands.badge
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____

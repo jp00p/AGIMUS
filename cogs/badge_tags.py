@@ -479,8 +479,8 @@ class BadgeTags(commands.Cog):
 
 
   @tags_group.command(
-    name="showcase",
-    description="Display a showcase of tagged badges"
+    name="collection",
+    description="Display a collection of tagged badges"
   )
   @option(
     name="public",
@@ -504,7 +504,7 @@ class BadgeTags(commands.Cog):
     autocomplete=tags_autocomplete
   )
   @commands.check(access_check)
-  async def showcase(self, ctx:discord.ApplicationContext, public:str, tag:str):
+  async def collection(self, ctx:discord.ApplicationContext, public:str, tag:str):
     public = (public == "yes")
 
     current_user_tags = await db_get_user_badge_tags(ctx.author.id)
@@ -548,14 +548,11 @@ class BadgeTags(commands.Cog):
     # If checks pass, go ahead and start the process
     await ctx.defer(ephemeral=not public)
 
-    # Set up text values for paginated pages
-    title = f"{remove_emoji(ctx.author.display_name)}'s Tagged Badges - {tag}"
-    total_badges_cnt = len(await db_get_all_badge_info())
+    # Set up text values for paginated images
     tagged_badges_cnt = len(tagged_badges)
-    collected = f"{tagged_badges_cnt} TAGGED ON THE USS HOOD"
-    filename_prefix = f"badge_list_tagged_{ctx.author.id}-page-"
+    collection_label = f"Tagged Badges - {tag}"
 
-    badge_images = await generate_paginated_badge_images(ctx.author, 'showcase', tagged_badges, total_badges_cnt, title, collected, filename_prefix)
+    badge_images = await generate_badge_collection_images(ctx.author, tagged_badges, 'collection', collection_label)
 
     embed = discord.Embed(
       title=f"Tagged Badges",
