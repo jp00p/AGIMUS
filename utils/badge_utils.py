@@ -536,28 +536,13 @@ async def generate_badge_set_completion_images(user, badge_data, collection_type
   max_badge_count = await db_get_max_badge_count()
   collected_count = await db_get_badge_count_for_user(user_id)
 
-  filtered_rows = [r for r in badge_data if r["percentage"] > 0]
-  pages = list(paginate(filtered_rows, rows_per_page))
+  for data in badge_data:
+    logger.info(f"> {data['name']} - {data['percentage']}")
+
+  pages = list(paginate(badge_data, rows_per_page))
   total_pages = len(pages)
 
   images = []
-
-  if not filtered_rows:
-    canvas = await build_completion_canvas(
-      user=user,
-      max_badge_count=max_badge_count,
-      collected_count=collected_count,
-      category=collection_type,
-      page_number=1,
-      total_pages=1,
-      row_count=1,
-      theme=theme
-    )
-    row_img = await compose_empty_completion_row(theme)
-    canvas.paste(row_img, (0, dims.start_y), row_img)
-    image_file = buffer_image_to_discord_file(canvas, "completion_empty_page.png")
-    return [image_file]
-
   for page_rows, page_number in pages:
     canvas = await build_completion_canvas(
       user=user,
@@ -712,7 +697,7 @@ async def compose_empty_completion_row(theme, message: str = "No badges within i
   colors = get_theme_colors(theme)
   dims = _get_completion_row_dimensions()
 
-  empty_row_canvas = Image.new("RGBA", (dims.ROW_WIDTH, dims.ROW_HEIGHT), (0, 0, 0, 0))
+  empty_row_canvas = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
   draw = ImageDraw.Draw(empty_row_canvas)
 
   draw.rounded_rectangle(
@@ -729,7 +714,7 @@ async def compose_empty_completion_row(theme, message: str = "No badges within i
   fonts = load_fonts(general_size=48)
 
   text_w = draw.textlength(message, font=fonts.general)
-  draw.text(((dims.row_width - text_w) // 2, 80), message, font=font, fill=colors.highlight)
+  draw.text(((dims.row_width - text_w) // 2, 80), message, font=fonts.general, fill=colors.highlight)
 
   return empty_row_canvas
 
@@ -867,7 +852,7 @@ def draw_canvas_labels(canvas, draw, user, mode, label, collected_count, total_c
 
   draw.text(
     (base_w - 370, base_h - 115),
-    f"PAGE {page_number} OF {total_pages}",
+    f"PAGE {page_number:02} OF {total_pages:02}",
     font=fonts.pages,
     fill=colors.highlight
   )
