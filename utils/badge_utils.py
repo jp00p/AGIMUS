@@ -223,42 +223,6 @@ def load_fonts(title_size=110, footer_size=100, total_size=54, page_size=80, lab
       return FontSet(default, default, default, default, default, default)
     raise
 
-def draw_canvas_labels(canvas, draw, user, mode, label, collected_count, total_count, page_number, total_pages, base_w, base_h, fonts, colors):
-  title_text = f"{user.display_name}'s Badge {mode.title()}"
-  if label:
-    title_text += f": {label}"
-
-  draw_title(
-    canvas=canvas,
-    draw=draw,
-    position=(100, 65),
-    text=title_text,
-    max_width=base_w - 200,
-    font_obj=fonts.title,
-    fill=colors.highlight
-  )
-
-  draw.text(
-    (590, base_h - 125),
-    f"{collected_count} ON THE USS HOOD",
-    font=fonts.footer,
-    fill=colors.highlight
-  )
-
-  draw.text(
-    (32, base_h - 90),
-    f"{total_count}",
-    font=fonts.total,
-    fill=colors.highlight
-  )
-
-  draw.text(
-    (base_w - 370, base_h - 115),
-    f"PAGE {page_number} OF {total_pages}",
-    font=fonts.pages,
-    fill=colors.highlight
-  )
-
 #   _____ _ _   _
 #  |_   _(_) |_| |___
 #    | | | |  _| / -_)
@@ -366,101 +330,271 @@ def generate_badge_strip(filenames, spacing=10, badge_size=BADGE_SIZE):
   return strip
 
 
+# _________        .__  .__                 __  .__
+# \_   ___ \  ____ |  | |  |   ____   _____/  |_|__| ____   ____   ______
+# /    \  \/ /  _ \|  | |  | _/ __ \_/ ___\   __\  |/  _ \ /    \ /  ___/
+# \     \___(  <_> )  |_|  |_\  ___/\  \___|  | |  (  <_> )   |  \\___ \
+#  \______  /\____/|____/____/\___  >\___  >__| |__|\____/|___|  /____  >
+#         \/                      \/     \/                    \/     \/
+async def generate_badge_collection_images(user, badge_data, collection_type, collection_label):
+  user_id = user.id
+  theme = await get_theme_preference(user_id, collection_type)
+  layout = _get_collection_grid_layout()
+
+  images = []
+  pages = list(paginate(badge_data, layout.badges_per_page))
+  total_pages = len(pages)
+
+  for page_badges, page_number in pages:
+    canvas = await build_collection_canvas(
+      user=user,
+      badge_data=page_badges,
+      page_number=page_number,
+      total_pages=total_pages,
+      collection_type=collection_type,
+      collection_label=collection_label,
+      theme=theme
+    )
+
+    await compose_badge_grid_page(canvas, page_badges, theme, collection_type)
+    image_file = buffer_image_to_discord_file(canvas, f"collection_page{page_number}.png")
+    images.append(image_file)
+
+  return images
+
+
+async def build_collection_canvas(user, badge_data, page_number, total_pages, collection_label, collection_type, theme):
+  total_rows = max(math.ceil(len(badge_data) / 6) - 1, 1)
+
+  if collection_type == "sets":
+    collected_count = len([b for b in badge_data if b.get('in_user_collection')])
+    total_count = len(badge_data)
+  else:
+    collected_count = await db_get_badge_count_for_user(user.id)
+    total_count = collected_count
+
+  label = collection_label or collection_type.title()
+
+  canvas = await build_display_canvas(
+    user=user,
+    theme=theme,
+    layout_type="collection",
+    content_rows=total_rows,
+    page_number=page_number,
+    total_pages=total_pages,
+    collected_count=collected_count,
+    total_count=total_count,
+    label=label
+  )
+
+  return canvas
+
+
+async def compose_badge_grid_page(canvas: Image.Image, badge_data: list, theme: str, collection_type: str):
+  dims = _get_collection_grid_dimensions()
+  layout = _get_collection_grid_layout()
+  slot_dims = _get_badge_slot_dimensions()
+
+  for idx, badge in enumerate(badge_data):
+    row = idx // layout.badges_per_row
+    col = idx % layout.badges_per_row
+    x = (dims.margin + col * (slot_dims.slot_width + dims.margin)) + layout.init_x
+    y = (dims.header_height + row * dims.row_height) + layout.init_y
+    composed_slot = await compose_badge_slot(badge, collection_type, theme)
+    canvas.paste(composed_slot, (x, y), composed_slot)
+
+  return canvas
+
+
+async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image:
+  """Composes and returns a badge image with overlays applied for locked/special badges."""
+
+  dims = _get_badge_slot_dimensions()
+  colors = get_theme_colors(theme)
+
+  border_color = colors.highlight
+  text_color = "#FFFFFF"
+  add_alpha = False
+  if collection_type == 'sets' and not badge.get('in_user_collection'):
+    border_color = "#909090"
+    text_color = "#888888"
+    add_alpha = True
+
+  # Load image and thumbnailicize
+  badge_image = load_badge_image(badge['badge_filename'])
+  if add_alpha:
+    # Create a mask layer to apply 1/4th opacity to for uncollected badges
+    badge_alpha = badge_image.copy()
+    badge_alpha.putalpha(64)
+    badge_image.paste(badge_alpha, badge_image)
+  badge_image.thumbnail((dims.thumbnail_width, dims.thumbnail_height), Image.ANTIALIAS)
+
+  # Create Badge Canvas
+  badge_canvas = Image.new('RGBA', (dims.thumbnail_width, dims.thumbnail_height), (255, 255, 255, 0))
+  badge_canvas.paste(
+   badge_image, (int((dims.thumbnail_width - badge_image.size[0]) // 2), int((dims.thumbnail_width - badge_image.size[1]) // 2))
+  )
+  badge_canvas = badge_canvas.resize((dims.thumbnail_width, dims.thumbnail_height))
+
+  # Create Slot Canvas
+  slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
+  draw = ImageDraw.Draw(slot_canvas)
+  draw.rounded_rectangle( (0, 0, dims.slot_width, dims.slot_height), fill="#000000", outline=border_color, width=4, radius=32 )
+
+  # Slot Canvas Dimensions
+  b_canvas_width, b_canvas_height = badge_canvas.size
+  offset_x = min(0, (dims.slot_width) - b_canvas_width) + 4 # align center, account for border
+  offset_y = 20
+
+  # Stamp Badge Canvas on Slot Canvas
+  slot_canvas.paste(badge_canvas, (dims.badge_padding + offset_x, offset_y), badge_canvas)
+
+  # Slot Text
+  fonts = load_fonts()
+  # Draw badge name label
+  text = badge.get("badge_name", "")
+  wrapped = textwrap.fill(text, width=30)
+
+  # Calculate text block position
+  text_bbox = draw.multiline_textbbox((0, 0), wrapped, font=fonts.label)
+  text_block_width = text_bbox[2] - text_bbox[0]
+  text_x = (dims.slot_width - text_block_width) // 2
+  text_y = 222
+
+  draw.multiline_text((text_x, text_y), wrapped, font=fonts.label, fill=text_color, align="center")
+
+  overlay = None
+  if badge.get("special"):
+    overlay = Image.open(f"./images/templates/badges/special_icon.png").convert("RGBA")
+  elif badge.get("locked"):
+    overlay = Image.open(f"./images/templates/badges/lock_icon.png").convert("RGBA")
+
+  if overlay:
+    slot_canvas.paste(overlay, (dims.slot_width - 54, 16), overlay)
+
+  return slot_canvas
+
+
+#   _   _ _   _ _
+#  | | | | |_(_) |___
+#  | |_| |  _| | (_-<
+#   \___/ \__|_|_/__/
+CollectionGridDimensions = namedtuple("CollectionGridDimensions", ["margin", "header_height", "footer_height", "row_height", "canvas_width"])
+def _get_collection_grid_dimensions() -> CollectionGridDimensions:
+  return CollectionGridDimensions(
+    margin=10,
+    header_height=530,
+    footer_height=200,
+    row_height=290,
+    canvas_width=1890
+  )
+
+CollectionGridLayout = namedtuple("CollectionGridLayout", ["badges_per_page", "badges_per_row", "init_x", "init_y"])
+def _get_collection_grid_layout() -> CollectionGridLayout:
+  return CollectionGridLayout(
+    badges_per_page=30,
+    badges_per_row=6,
+    init_x=90,
+    init_y=-280
+  )
+
+BadgeSlotDimensions = namedtuple("BadgeSlotDimensions", ["slot_width", "slot_height", "badge_width", "badge_height", "badge_padding", "thumbnail_width", "thumbnail_height"])
+def _get_badge_slot_dimensions() -> BadgeSlotDimensions:
+  return BadgeSlotDimensions(
+    slot_width=280,
+    slot_height=280,
+    badge_width=200,
+    badge_height=200,
+    badge_padding=40,
+    thumbnail_width=190,
+    thumbnail_height=190
+  )
+
+def buffer_image_to_discord_file(image: Image.Image, filename: str) -> discord.File:
+  buf = io.BytesIO()
+  image.save(buf, format="PNG")
+  buf.seek(0)
+  return discord.File(buf, filename=filename)
+
+
 #   _________       __    _________                       .__          __  .__
 #  /   _____/ _____/  |_  \_   ___ \  ____   _____ ______ |  |   _____/  |_|__| ____   ____
 #  \_____  \_/ __ \   __\ /    \  \/ /  _ \ /     \\____ \|  | _/ __ \   __\  |/  _ \ /    \
 #  /        \  ___/|  |   \     \___(  <_> )  Y Y  \  |_> >  |_\  ___/|  | |  (  <_> )   |  \
 # /_______  /\___  >__|    \______  /\____/|__|_|  /   __/|____/\___  >__| |__|\____/|___|  /
 #         \/     \/               \/             \/|__|             \/                    \/
-async def generate_badge_set_completion_images(user, all_rows, category):
+async def generate_badge_set_completion_images(user, badge_data, collection_type):
   """
   Renders paginated badge completion images using themed components and returns discord.File[]
   """
   user_id = user.id
-  theme = await get_theme_preference(user_id, "sets")
+  theme = await get_theme_preference(user_id, collection_type)
 
   dims = _get_completion_row_dimensions()
+  rows_per_page = 6
 
-  # We get these here and pass them so we don't have to make a DB call during every iteration
   max_badge_count = await db_get_max_badge_count()
   collected_count = await db_get_badge_count_for_user(user_id)
 
-  filtered = [r for r in all_rows if r["percentage"] > 0]
-  if not filtered:
-    canvas = await build_completion_canvas(user, max_badge_count, collected_count, category, page_number=1, total_pages=1, row_count=1, theme=theme)
-    row_img = await compose_empty_completion_row(dims, theme)
+  filtered_rows = [r for r in badge_data if r["percentage"] > 0]
+  pages = list(paginate(filtered_rows, rows_per_page))
+  total_pages = len(pages)
+
+  images = []
+
+  if not filtered_rows:
+    canvas = await build_completion_canvas(
+      user=user,
+      max_badge_count=max_badge_count,
+      collected_count=collected_count,
+      category=collection_type,
+      page_number=1,
+      total_pages=1,
+      row_count=1,
+      theme=theme
+    )
+    row_img = await compose_empty_completion_row(theme)
     canvas.paste(row_img, (0, dims.start_y), row_img)
+    image_file = buffer_image_to_discord_file(canvas, "completion_empty_page.png")
+    return [image_file]
 
-    page = buffer_image_to_discord_file(canvas, "empty_completion_page.png")
-    return [page]
-
-  pages = []
-  rows_per_page = 6
-  total_pages = (len(filtered) + rows_per_page - 1) // rows_per_page
-
-  for i in range(0, len(filtered), rows_per_page):
-    chunk = filtered[i:i+rows_per_page]
-    canvas = await build_completion_canvas(user, max_badge_count, collected_count, category, page_number=(i//rows_per_page)+1, total_pages=total_pages, row_count=len(chunk) - 1, theme=theme)
+  for page_rows, page_number in pages:
+    canvas = await build_completion_canvas(
+      user=user,
+      max_badge_count=max_badge_count,
+      collected_count=collected_count,
+      category=collection_type,
+      page_number=page_number,
+      total_pages=total_pages,
+      row_count=len(page_rows),
+      theme=theme
+    )
 
     current_y = dims.start_y
-    for idx, row_data in enumerate(chunk):
+    for row_data in page_rows:
       row_img = await compose_completion_row(row_data, theme)
       canvas.paste(row_img, (120, current_y), row_img)
       current_y += dims.row_height + dims.row_margin
 
-    page = buffer_image_to_discord_file(canvas, f"completion_page_{i//rows_per_page+1}.png")
-    pages.append(page)
+    image_file = buffer_image_to_discord_file(canvas, f"completion_page_{page_number}.png")
+    images.append(image_file)
 
-  return pages
+  return images
 
 
-async def build_completion_canvas(user: discord.User, max_badge_count: int, collected_count: int, category: str, page_number: int, total_pages: int, row_count: int, theme: str) -> Image.Image:
-  """
-  Builds the full badge completion page using header, row, and footer images based on the theme.
-  Dynamically draws fonts on top and returns the full canvas.
-  """
+async def build_completion_canvas(user, max_badge_count, collected_count, category, page_number, total_pages, row_count, theme):
+  label = category.replace("_", " ").title()
 
-  # Load assets based on theme
-  colors = get_theme_colors(theme)
-
-  asset_prefix = f"images/templates/badges/badge_page_"
-  header_img = Image.open(f"{asset_prefix}header_{theme}.png").convert("RGBA")
-  footer_img = Image.open(f"{asset_prefix}footer_{theme}.png").convert("RGBA")
-  row_img = Image.open(f"{asset_prefix}row_{theme}.png").convert("RGBA")
-
-  header_h = header_img.height
-  footer_h = footer_img.height
-  row_h = row_img.height
-  base_w = header_img.width
-  total_h = header_h + footer_h + row_h * row_count
-
-  canvas = Image.new("RGBA", (base_w, total_h), (0, 0, 0, 0))
-  canvas.paste(header_img, (0, 0), header_img)
-
-  for i in range(row_count):
-    y = header_h + i * row_h
-    canvas.paste(row_img, (0, y), row_img)
-
-  canvas.paste(footer_img, (0, header_h + row_count * row_h), footer_img)
-
-  # Font overlays
-  display_name = remove_emoji(user.display_name)
-  category_title = category.replace('_', ' ').title()
-
-  fonts = load_fonts()
-
-  draw_canvas_labels(
-    canvas=canvas,
+  canvas = await build_display_canvas(
     user=user,
-    label=category_title,
+    theme=theme,
+    layout_type="completion",
+    content_rows=row_count,
+    page_number=page_number,
+    total_pages=total_pages,
     collected_count=collected_count,
-    total_count=total_count,
-    page_num=page_num,
-    base_w=base_w,
-    base_h=base_h,
-    fonts=fonts,
-    colors=colors,
-    mode="completion"
+    total_count=max_badge_count,
+    label=label
   )
 
   return canvas
@@ -639,214 +773,104 @@ def _get_completion_row_dimensions() -> RowDimensions:
   )
 
 
-# _________        .__  .__                 __  .__
-# \_   ___ \  ____ |  | |  |   ____   _____/  |_|__| ____   ____   ______
-# /    \  \/ /  _ \|  | |  | _/ __ \_/ ___\   __\  |/  _ \ /    \ /  ___/
-# \     \___(  <_> )  |_|  |_\  ___/\  \___|  | |  (  <_> )   |  \\___ \
-#  \______  /\____/|____/____/\___  >\___  >__| |__|\____/|___|  /____  >
-#         \/                      \/     \/                    \/     \/
-async def generate_badge_collection_images(user, badge_data, collection_type, collection_label):
-  user_id = user.id
-  theme = await get_theme_preference(user_id, collection_type)
-  layout = _get_collection_grid_layout()
-
-  images = []
-  pages = list(paginate(badge_data, layout.badges_per_page))
-  total_pages = len(pages)
-
-  for page_badges, page_number in pages:
-    canvas = await build_collection_canvas(
-      user=user,
-      badge_data=page_badges,
-      page_number=page_number,
-      total_pages=total_pages,
-      collection_type=collection_type,
-      collection_label=collection_label,
-      theme=theme
-    )
-
-    await compose_badge_grid_page(canvas, page_badges, theme, collection_type)
-    image = buffer_image_to_discord_file(canvas, f"collection_page{page_number}.png")
-    images.append(image)
-
-  return images
-
-async def build_collection_canvas(user, badge_data, page_number, total_pages, collection_type, collection_label, theme):
+#   _________.__                             .___
+#  /   _____/|  |__ _____ _______   ____   __| _/
+#  \_____  \ |  |  \\__  \\_  __ \_/ __ \ / __ |
+#  /        \|   Y  \/ __ \|  | \/\  ___// /_/ |
+# /_______  /|___|  (____  /__|    \___  >____ |
+#         \/      \/     \/            \/     \/
+async def build_display_canvas(
+  user: discord.User,
+  theme: str,
+  layout_type: str,
+  content_rows: int,
+  page_number: int,
+  total_pages: int,
+  collected_count: int,
+  total_count: int,
+  label: str = None
+) -> Image.Image:
+  """
+  Builds a themed display canvas shared by both collection and completion layouts.
+  """
   colors = get_theme_colors(theme)
-  dims = _get_collection_grid_dimensions()
 
-  width = dims.canvas_width
-  total_rows = max(math.ceil(len(badge_data) / 6) - 1, 1)
-  height = dims.header_height + (total_rows * dims.row_height) + dims.footer_height
-  canvas = Image.new("RGBA", (width, height), (18, 18, 18, 255))
-  draw = ImageDraw.Draw(canvas)
+  asset_prefix = "images/templates/badges/badge_page_"
+  header_img = Image.open(f"{asset_prefix}header_{theme}.png").convert("RGBA")
+  footer_img = Image.open(f"{asset_prefix}footer_{theme}.png").convert("RGBA")
+  row_img = Image.open(f"{asset_prefix}row_{theme}.png").convert("RGBA")
 
-  header_path = f"./images/templates/badges/badge_page_header_{theme}.png"
-  row_path = f"./images/templates/badges/badge_page_row_{theme}.png"
-  footer_path = f"./images/templates/badges/badge_page_footer_{theme}.png"
+  header_h = header_img.height
+  footer_h = footer_img.height
+  row_h = row_img.height
+  base_w = header_img.width
+  total_h = header_h + footer_h + row_h * content_rows
 
-  header_img = Image.open(header_path).convert("RGBA")
-  row_img = Image.open(row_path).convert("RGBA")
-  footer_img = Image.open(footer_path).convert("RGBA")
-
+  canvas = Image.new("RGBA", (base_w, total_h), (0, 0, 0, 0))
   canvas.paste(header_img, (0, 0), header_img)
-  for i in range(total_rows):
-    y = dims.header_height + i * dims.row_height
-    canvas.paste(row_img, (0, y), row_img)
-  canvas.paste(footer_img, (0, dims.header_height + total_rows * dims.row_height), footer_img)
 
+  for i in range(content_rows):
+    y = header_h + i * row_h
+    canvas.paste(row_img, (0, y), row_img)
+
+  canvas.paste(footer_img, (0, header_h + content_rows * row_h), footer_img)
 
   fonts = load_fonts()
-  if collection_type == "sets":
-    collected_count = len([b for b in badge_data if b.get('in_user_collection')])
-    total_count = len(badge_data)
-  else:
-    collected_count = await db_get_badge_count_for_user(user.id)
-    total_count = collected_count
+  draw = ImageDraw.Draw(canvas)
 
   draw_canvas_labels(
     canvas=canvas,
     draw=draw,
     user=user,
-    mode=collection_type,
-    label=collection_label,
+    mode=layout_type,
+    label=label,
     collected_count=collected_count,
     total_count=total_count,
     page_number=page_number,
     total_pages=total_pages,
-    base_w=width,
-    base_h=height,
+    base_w=base_w,
+    base_h=total_h,
     fonts=fonts,
     colors=colors
   )
 
   return canvas
 
-async def compose_badge_grid_page(canvas: Image.Image, badge_data: list, theme: str, collection_type: str):
-  dims = _get_collection_grid_dimensions()
-  layout = _get_collection_grid_layout()
-  slot_dims = _get_badge_slot_dimensions()
+def draw_canvas_labels(canvas, draw, user, mode, label, collected_count, total_count, page_number, total_pages, base_w, base_h, fonts, colors):
+  title_text = f"{user.display_name}'s Badge {mode.title()}"
+  if label:
+    title_text += f": {label}"
 
-  for idx, badge in enumerate(badge_data):
-    row = idx // layout.badges_per_row
-    col = idx % layout.badges_per_row
-    x = (dims.margin + col * (slot_dims.slot_width + dims.margin)) + layout.init_x
-    y = (dims.header_height + row * dims.row_height) + layout.init_y
-    composed_slot = await compose_badge_slot(badge, collection_type, theme)
-    canvas.paste(composed_slot, (x, y), composed_slot)
-
-  return canvas
-
-
-async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image:
-  """Composes and returns a badge image with overlays applied for locked/special badges."""
-
-  dims = _get_badge_slot_dimensions()
-  colors = get_theme_colors(theme)
-
-  border_color = colors.highlight
-  text_color = "#FFFFFF"
-  add_alpha = False
-  if collection_type == 'sets' and not badge.get('in_user_collection'):
-    border_color = "#909090"
-    text_color = "#888888"
-    add_alpha = True
-
-  # Load image and thumbnailicize
-  badge_image = load_badge_image(badge['badge_filename'])
-  if add_alpha:
-    # Create a mask layer to apply 1/4th opacity to for uncollected badges
-    badge_alpha = badge_image.copy()
-    badge_alpha.putalpha(64)
-    badge_image.paste(badge_alpha, badge_image)
-  badge_image.thumbnail((dims.thumbnail_width, dims.thumbnail_height), Image.ANTIALIAS)
-
-  # Create Badge Canvas
-  badge_canvas = Image.new('RGBA', (dims.thumbnail_width, dims.thumbnail_height), (255, 255, 255, 0))
-  badge_canvas.paste(
-   badge_image, (int((dims.thumbnail_width - badge_image.size[0]) // 2), int((dims.thumbnail_width - badge_image.size[1]) // 2))
-  )
-  badge_canvas = badge_canvas.resize((dims.thumbnail_width, dims.thumbnail_height))
-
-  # Create Slot Canvas
-  slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
-  draw = ImageDraw.Draw(slot_canvas)
-  draw.rounded_rectangle( (0, 0, dims.slot_width, dims.slot_height), fill="#000000", outline=border_color, width=4, radius=32 )
-
-  # Slot Canvas Dimensions
-  b_canvas_width, b_canvas_height = badge_canvas.size
-  offset_x = min(0, (dims.slot_width) - b_canvas_width) + 4 # align center, account for border
-  offset_y = 20
-
-  # Stamp Badge Canvas on Slot Canvas
-  slot_canvas.paste(badge_canvas, (dims.badge_padding + offset_x, offset_y), badge_canvas)
-
-  # Slot Text
-  fonts = load_fonts()
-  # Draw badge name label
-  text = badge.get("badge_name", "")
-  wrapped = textwrap.fill(text, width=30)
-
-  # Calculate text block position
-  text_bbox = draw.multiline_textbbox((0, 0), wrapped, font=fonts.label)
-  text_block_width = text_bbox[2] - text_bbox[0]
-  text_x = (dims.slot_width - text_block_width) // 2
-  text_y = 222
-
-  draw.multiline_text((text_x, text_y), wrapped, font=fonts.label, fill=text_color, align="center")
-
-  overlay = None
-  if badge.get("special"):
-    overlay = Image.open(f"./images/templates/badges/special_icon.png").convert("RGBA")
-  elif badge.get("locked"):
-    overlay = Image.open(f"./images/templates/badges/lock_icon.png").convert("RGBA")
-
-  if overlay:
-    slot_canvas.paste(overlay, (dims.slot_width - 54, 16), overlay)
-
-  return slot_canvas
-
-
-#   _   _ _   _ _
-#  | | | | |_(_) |___
-#  | |_| |  _| | (_-<
-#   \___/ \__|_|_/__/
-CollectionGridDimensions = namedtuple("CollectionGridDimensions", ["margin", "header_height", "footer_height", "row_height", "canvas_width"])
-def _get_collection_grid_dimensions() -> CollectionGridDimensions:
-  return CollectionGridDimensions(
-    margin=10,
-    header_height=530,
-    footer_height=200,
-    row_height=290,
-    canvas_width=1890
+  draw_title(
+    canvas=canvas,
+    draw=draw,
+    position=(100, 65),
+    text=title_text,
+    max_width=base_w - 200,
+    font_obj=fonts.title,
+    fill=colors.highlight
   )
 
-CollectionGridLayout = namedtuple("CollectionGridLayout", ["badges_per_page", "badges_per_row", "init_x", "init_y"])
-def _get_collection_grid_layout() -> CollectionGridLayout:
-  return CollectionGridLayout(
-    badges_per_page=30,
-    badges_per_row=6,
-    init_x=90,
-    init_y=-280
+  draw.text(
+    (590, base_h - 125),
+    f"{collected_count} ON THE USS HOOD",
+    font=fonts.footer,
+    fill=colors.highlight
   )
 
-BadgeSlotDimensions = namedtuple("BadgeSlotDimensions", ["slot_width", "slot_height", "badge_width", "badge_height", "badge_padding", "thumbnail_width", "thumbnail_height"])
-def _get_badge_slot_dimensions() -> BadgeSlotDimensions:
-  return BadgeSlotDimensions(
-    slot_width=280,
-    slot_height=280,
-    badge_width=200,
-    badge_height=200,
-    badge_padding=40,
-    thumbnail_width=190,
-    thumbnail_height=190
+  draw.text(
+    (32, base_h - 90),
+    f"{total_count}",
+    font=fonts.total,
+    fill=colors.highlight
   )
 
-def buffer_image_to_discord_file(image: Image.Image, filename: str) -> discord.File:
-  buf = io.BytesIO()
-  image.save(buf, format="PNG")
-  buf.seek(0)
-  return discord.File(buf, filename=filename)
+  draw.text(
+    (base_w - 370, base_h - 115),
+    f"PAGE {page_number} OF {total_pages}",
+    font=fonts.pages,
+    fill=colors.highlight
+  )
 
 
 # ___________                  .___.__
