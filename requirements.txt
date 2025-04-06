@@ -16,6 +16,7 @@ contourpy==1.2.0
 cryptography==42.0.7
 cycler==0.12.1
 docopt==0.6.2
+emoji==2.14.1
 et-xmlfile==1.1.0
 feedparser==6.0.11
 fonttools==4.47.0
@@ -62,6 +63,7 @@ python-dotenv==1.0.0
 pytz==2023.3.post1
 pytz-deprecation-shim==0.1.0.post0
 rapidfuzz==3.6.1
+regex==2024.11.6
 requests==2.31.0
 rsa==4.9
 sgmllib3k==1.0.0

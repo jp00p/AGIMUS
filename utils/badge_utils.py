@@ -3,9 +3,12 @@ import math
 import textwrap
 import time
 import os
+import regex
 
-from PIL import Image, ImageDraw, ImageFont
 from collections import namedtuple
+from emoji import EMOJI_DATA
+from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
 
 from common import *
 
@@ -220,11 +223,16 @@ def load_fonts(title_size=110, footer_size=100, total_size=54, page_size=80, lab
       return FontSet(default, default, default, default, default, default)
     raise
 
-def draw_canvas_labels(draw, user, label, collected_count, total_count, page_number, total_pages, base_w, base_h, fonts, colors, mode="collection"):
-  draw_scaled_text_with_emoji(
+def draw_canvas_labels(canvas, draw, user, mode, label, collected_count, total_count, page_number, total_pages, base_w, base_h, fonts, colors):
+  title_text = f"{user.display_name}'s Badge {mode.title()}"
+  if label:
+    title_text += f": {label}"
+
+  draw_title(
+    canvas=canvas,
     draw=draw,
     position=(100, 65),
-    text=f"{user.display_name}'s Badge {'Completion -' if mode == 'completion' else 'Collection:'} {label}",
+    text=title_text,
     max_width=base_w - 200,
     font_obj=fonts.title,
     fill=colors.highlight
@@ -238,8 +246,8 @@ def draw_canvas_labels(draw, user, label, collected_count, total_count, page_num
   )
 
   draw.text(
-    (32, base_h - 50),
-    f"{total_count} TOTAL BADGES",
+    (32, base_h - 90),
+    f"{total_count}",
     font=fonts.total,
     fill=colors.highlight
   )
@@ -251,54 +259,68 @@ def draw_canvas_labels(draw, user, label, collected_count, total_count, page_num
     fill=colors.highlight
   )
 
-def draw_scaled_text_with_emoji(draw: ImageDraw.Draw, position: tuple, text: str, max_width: int, font_obj: ImageFont.FreeTypeFont, starting_size=110, min_size=30, fill=(255, 255, 255)):
-  """
-  Resizes text (including emoji) to fit within `max_width`, then renders it at `position` using mixed font rendering.
-  Emoji will fall back to a separate font (NotoColorEmoji.ttf).
-  """
-  font_path = font_obj.path if font_obj and hasattr(font_obj, "path") else "fonts/lcars3.ttf"
+#   _____ _ _   _
+#  |_   _(_) |_| |___
+#    | | | |  _| / -_)
+#    |_| |_|\__|_\___|
+# (Handles dynamic resizing and emoji)
+def draw_title(
+  canvas: Image.Image,
+  draw: ImageDraw.ImageDraw,
+  position: tuple,
+  text: str,
+  max_width: int,
+  font_obj: ImageFont.FreeTypeFont,
+  starting_size=110,
+  min_size=30,
+  fill=(255, 255, 255)
+):
+  font_path = font_obj.path if hasattr(font_obj, "path") else "fonts/lcars3.ttf"
   size = starting_size
+  clusters = split_text_into_emoji_clusters(text)
+
+  def get_fonts(size):
+    return ImageFont.truetype(font_path, size), int(size * 0.75)
+
+  def get_width(cluster, font, emoji_size):
+    return emoji_size if is_emoji(cluster) else font.getlength(cluster)
 
   while size > min_size:
-    base_font = ImageFont.truetype(font_path, size)
-    emoji_font = ImageFont.truetype("fonts/NotoColorEmoji.ttf", size)
-    total_width = 0
-    for char in text:
-      if not char.isascii() and not base_font.getmask(char).getbbox():
-        total_width += emoji_font.getlength(char)
-      else:
-        total_width += base_font.getlength(char)
+    font, emoji_size = get_fonts(size)
+    total_width = sum(get_width(cluster, font, emoji_size) for cluster in clusters)
     if total_width <= max_width:
       break
     size -= 1
 
-  base_font = ImageFont.truetype(font_path, size)
-  emoji_font = ImageFont.truetype("fonts/NotoColorEmoji.ttf", size)
+  font, emoji_size = get_fonts(size)
 
   x, y = position
   current_x = x
-  for char in text:
-    try:
-      font = base_font
-      if not char.isascii() and not base_font.getmask(char).getbbox():
-        font = emoji_font
-      width = font.getlength(char)
-      draw.text((current_x, y), char, font=font, fill=fill)
-      current_x += width
-    except Exception as e:
-      print(f"Skipping character {char!r}: {e}")
 
-def fit_text_to_width(text, max_width, font_obj=None, starting_size=110, min_size=30):
-  font_path = font_obj.path if font_obj and hasattr(font_obj, "path") else "fonts/lcars3.ttf"
-  size = starting_size
+  for cluster in clusters:
+    if is_emoji(cluster):
+      emoji_file = EMOJI_IMAGE_PATH / emoji_to_filename(cluster)
+      if emoji_file.exists():
+        emoji_img = Image.open(emoji_file).convert("RGBA").resize((emoji_size, emoji_size))
+        canvas.paste(emoji_img, (int(current_x), int(y)), emoji_img)
+        current_x += emoji_size
+      else:
+        logger.error(f"[emoji-missing] {cluster} → {emoji_file}")
+    else:
+      draw.text((current_x, y), cluster, font=font, fill=fill)
+      current_x += font.getlength(cluster)
 
-  while size > min_size:
-    font = ImageFont.truetype(font_path, size)
-    if font.getlength(text) <= max_width:
-      return font
-    size -= 1
+EMOJI_IMAGE_PATH = Path("fonts/twemoji")
 
-  return ImageFont.truetype(font_path, min_size)
+def is_emoji(seq: str) -> bool:
+  return seq in EMOJI_DATA
+
+def emoji_to_filename(emoji_seq: str) -> str:
+  return "-".join(f"{ord(c):x}" for c in emoji_seq) + ".png"
+
+def split_text_into_emoji_clusters(text: str):
+  return regex.findall(r'\X', text)
+
 
 #  ____ ___   __  .__.__
 # |    |   \_/  |_|__|  |   ______
@@ -427,9 +449,8 @@ async def build_completion_canvas(user: discord.User, max_badge_count: int, coll
 
   fonts = load_fonts()
 
-  draw = ImageDraw.Draw(canvas)
   draw_canvas_labels(
-    draw=draw,
+    canvas=canvas,
     user=user,
     label=category_title,
     collected_count=collected_count,
@@ -624,7 +645,7 @@ def _get_completion_row_dimensions() -> RowDimensions:
 # \     \___(  <_> )  |_|  |_\  ___/\  \___|  | |  (  <_> )   |  \\___ \
 #  \______  /\____/|____/____/\___  >\___  >__| |__|\____/|___|  /____  >
 #         \/                      \/     \/                    \/     \/
-async def generate_badge_collection_images(user, badge_data, collection_label, collection_type):
+async def generate_badge_collection_images(user, badge_data, collection_type, collection_label):
   user_id = user.id
   theme = await get_theme_preference(user_id, collection_type)
   layout = _get_collection_grid_layout()
@@ -639,8 +660,8 @@ async def generate_badge_collection_images(user, badge_data, collection_label, c
       badge_data=page_badges,
       page_number=page_number,
       total_pages=total_pages,
-      collection_label=collection_label,
       collection_type=collection_type,
+      collection_label=collection_label,
       theme=theme
     )
 
@@ -650,7 +671,7 @@ async def generate_badge_collection_images(user, badge_data, collection_label, c
 
   return images
 
-async def build_collection_canvas(user, badge_data, page_number, total_pages, collection_label, collection_type, theme):
+async def build_collection_canvas(user, badge_data, page_number, total_pages, collection_type, collection_label, theme):
   colors = get_theme_colors(theme)
   dims = _get_collection_grid_dimensions()
 
@@ -674,8 +695,8 @@ async def build_collection_canvas(user, badge_data, page_number, total_pages, co
     canvas.paste(row_img, (0, y), row_img)
   canvas.paste(footer_img, (0, dims.header_height + total_rows * dims.row_height), footer_img)
 
+
   fonts = load_fonts()
-  label = collection_label or collection_type.title()
   if collection_type == "sets":
     collected_count = len([b for b in badge_data if b.get('in_user_collection')])
     total_count = len(badge_data)
@@ -684,9 +705,11 @@ async def build_collection_canvas(user, badge_data, page_number, total_pages, co
     total_count = collected_count
 
   draw_canvas_labels(
+    canvas=canvas,
     draw=draw,
     user=user,
-    label=label,
+    mode=collection_type,
+    label=collection_label,
     collected_count=collected_count,
     total_count=total_count,
     page_number=page_number,
@@ -694,8 +717,7 @@ async def build_collection_canvas(user, badge_data, page_number, total_pages, co
     base_w=width,
     base_h=height,
     fonts=fonts,
-    colors=colors,
-    mode=collection_type
+    colors=colors
   )
 
   return canvas
