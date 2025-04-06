@@ -94,7 +94,7 @@ badge_group = bot.create_group("badges", "Badge Commands!")
       value="date_descending"
     ),
     discord.OptionChoice(
-      name="Unlocked First",
+      name="Locked First",
       value="locked_first"
     ),
     discord.OptionChoice(
@@ -116,17 +116,17 @@ async def collection(ctx:discord.ApplicationContext, public:str, filter:str, sor
   public = (public == "yes")
   await ctx.defer(ephemeral=not public)
 
+  max_collected = await db_get_max_badge_count()
   collection_label = None
   if filter is not None:
     if filter == 'unlocked':
-      collection_label = ": Unlocked"
       user_badges = await db_get_user_unlocked_badges(ctx.author.id)
     elif filter == 'locked':
-      collection_label = ": Locked"
       user_badges = await db_get_user_locked_badges(ctx.author.id)
     elif filter == 'special':
-      collection_label = ": Special"
       user_badges = await db_get_user_special_badges(ctx.author.id)
+    max_collected = await db_get_user_badge_count()
+    collection_label = filter.title()
   else:
     user_badges = await db_get_user_badges(ctx.author.id, sortby)
 
@@ -141,7 +141,7 @@ async def collection(ctx:discord.ApplicationContext, public:str, filter:str, sor
 
   title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection"
   if collection_label:
-    title += collection_label
+    title += f": {collection_label}"
 
   if sortby is not None:
     if collection_label:
@@ -153,10 +153,9 @@ async def collection(ctx:discord.ApplicationContext, public:str, filter:str, sor
 
   badge_images = await generate_badge_collection_images(ctx.author, user_badges, 'collection', collection_label)
 
-  user_badges_count = await db_get_max_badge_count()
   embed = discord.Embed(
     title=title,
-    description=f"{ctx.author.mention} has collected {len(user_badges)} of {user_badges_count}!",
+    description=f"{ctx.author.mention} has {len(user_badges)} of {max_collected}!",
     color=discord.Color.blurple()
   )
 
@@ -425,13 +424,13 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
   all_rows = await _append_featured_completion_badges(ctx.author.id, all_rows, category)
 
   if color:
-    await db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
+    await db_set_user_badge_page_color_preference(ctx.author.id, 'sets', color)
 
   completion_images = await generate_badge_set_completion_images(ctx.author, all_rows, category)
 
   category_title = category.replace('_', ' ').title()
   embed = discord.Embed(
-    title=f"Badge Set Completion - {category_title}",
+    title=f"Badge Set Completion: {category_title}",
     description=f"{ctx.author.mention}'s current {category_title} set completion progress",
     color=discord.Color.blurple()
   )

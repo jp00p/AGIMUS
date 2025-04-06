@@ -207,7 +207,7 @@ def get_lcars_font_by_length(name: str) -> ImageFont.FreeTypeFont:
 
 
 FontSet = namedtuple("FontSet", ["title", "footer", "total", "pages", "label", "general"])
-def load_fonts(title_size=110, footer_size=100, total_size=54, page_size=80, label_size=32, general_size=70, fallback=True):
+def load_fonts(title_size=110, footer_size=100, total_size=54, page_size=80, label_size=22, general_size=70, fallback=True):
   try:
     return FontSet(
       title=ImageFont.truetype("fonts/lcars3.ttf", title_size),
@@ -356,7 +356,7 @@ async def generate_badge_collection_images(user, badge_data, collection_type, co
       theme=theme
     )
 
-    await compose_badge_grid_page(canvas, page_badges, theme, collection_type)
+    await compose_badge_grid(canvas, page_badges, theme, collection_label)
     image_file = buffer_image_to_discord_file(canvas, f"collection_page{page_number}.png")
     images.append(image_file)
 
@@ -364,16 +364,16 @@ async def generate_badge_collection_images(user, badge_data, collection_type, co
 
 
 async def build_collection_canvas(user, badge_data, page_number, total_pages, collection_label, collection_type, theme):
-  total_rows = max(math.ceil(len(badge_data) / 6) - 1, 1)
+  total_rows = max(math.ceil(len(badge_data) / 6) - 1, 0)
 
   if collection_type == "sets":
     collected_count = len([b for b in badge_data if b.get('in_user_collection')])
     total_count = len(badge_data)
   else:
-    collected_count = await db_get_badge_count_for_user(user.id)
-    total_count = collected_count
+    collected_count = len(badge_data)
+    total_count = await db_get_badge_count_for_user(user.id)
 
-  label = collection_label or collection_type.title()
+  label = collection_label or None
 
   canvas = await build_display_canvas(
     user=user,
@@ -390,7 +390,7 @@ async def build_collection_canvas(user, badge_data, page_number, total_pages, co
   return canvas
 
 
-async def compose_badge_grid_page(canvas: Image.Image, badge_data: list, theme: str, collection_type: str):
+async def compose_badge_grid(canvas: Image.Image, badge_data: list, theme: str, collection_type: str):
   dims = _get_collection_grid_dimensions()
   layout = _get_collection_grid_layout()
   slot_dims = _get_badge_slot_dimensions()
@@ -408,7 +408,6 @@ async def compose_badge_grid_page(canvas: Image.Image, badge_data: list, theme: 
 
 async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image:
   """Composes and returns a badge image with overlays applied for locked/special badges."""
-
   dims = _get_badge_slot_dimensions()
   colors = get_theme_colors(theme)
 
@@ -523,23 +522,41 @@ def buffer_image_to_discord_file(image: Image.Image, filename: str) -> discord.F
 #  /        \  ___/|  |   \     \___(  <_> )  Y Y  \  |_> >  |_\  ___/|  | |  (  <_> )   |  \
 # /_______  /\___  >__|    \______  /\____/|__|_|  /   __/|____/\___  >__| |__|\____/|___|  /
 #         \/     \/               \/             \/|__|             \/                    \/
-async def generate_badge_set_completion_images(user, badge_data, collection_type):
+async def generate_badge_set_completion_images(user, badge_data, category):
   """
   Renders paginated badge completion images using themed components and returns discord.File[]
   """
-  user_id = user.id
-  theme = await get_theme_preference(user_id, collection_type)
-
+  theme = await get_theme_preference(user.id, 'collection_type')
   dims = _get_completion_row_dimensions()
-  rows_per_page = 6
+
+  rows_per_page = 7
 
   max_badge_count = await db_get_max_badge_count()
-  collected_count = await db_get_badge_count_for_user(user_id)
+  collected_count = await db_get_badge_count_for_user(user.id)
 
-  for data in badge_data:
-    logger.info(f"> {data['name']} - {data['percentage']}")
+  filtered_rows = [r for r in badge_data if r.get("collected", 0) > 0]
 
-  pages = list(paginate(badge_data, rows_per_page))
+  # If we have no data, early return with no data message
+  if not filtered_rows:
+    canvas = await build_completion_canvas(
+      user=user,
+      max_badge_count=max_badge_count,
+      collected_count=collected_count,
+      category=category,
+      page_number=1,
+      total_pages=1,
+      row_count=0,
+      theme=theme
+    )
+
+    row_img = await compose_empty_completion_row(theme)
+    canvas.paste(row_img, (110, dims.start_y), row_img)
+
+    image_file = buffer_image_to_discord_file(canvas, f"completion_no_data.png")
+    return [image_file]
+
+  # Otherwise, paginate out the rows and create the images
+  pages = list(paginate(filtered_rows, rows_per_page))
   total_pages = len(pages)
 
   images = []
@@ -548,17 +565,17 @@ async def generate_badge_set_completion_images(user, badge_data, collection_type
       user=user,
       max_badge_count=max_badge_count,
       collected_count=collected_count,
-      category=collection_type,
+      category=category,
       page_number=page_number,
       total_pages=total_pages,
-      row_count=len(page_rows),
+      row_count=len(page_rows) - 1,
       theme=theme
     )
 
     current_y = dims.start_y
     for row_data in page_rows:
       row_img = await compose_completion_row(row_data, theme)
-      canvas.paste(row_img, (120, current_y), row_img)
+      canvas.paste(row_img, (110, current_y), row_img)
       current_y += dims.row_height + dims.row_margin
 
     image_file = buffer_image_to_discord_file(canvas, f"completion_page_{page_number}.png")
@@ -690,33 +707,30 @@ async def draw_completion_row_progress_bar(row_canvas, row_data, theme):
     )
 
 
-async def compose_empty_completion_row(theme, message: str = "No badges within inventory that match this set type."):
+async def compose_empty_completion_row(theme, message: str = "No Data Available"):
   """
   Returns a fallback row image with a centered message.
   """
   colors = get_theme_colors(theme)
   dims = _get_completion_row_dimensions()
 
-  empty_row_canvas = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
-  draw = ImageDraw.Draw(empty_row_canvas)
+  row_canvas = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
+  draw = ImageDraw.Draw(row_canvas)
 
   draw.rounded_rectangle(
-    (
-      dims.bar_x,
-      dims.bar_y,
-      dims.bar_x + dims.bar_w - 1,
-      dims.bar_y + dims.bar_h - 1
-    ),
-    fill=colors.darker_primary,
-    radius=dims.bar_h // 2
+    (0, 0, dims.row_width, dims.row_height),
+    fill="#181818",
+    outline="#181818",
+    width=4,
+    radius=32
   )
 
-  fonts = load_fonts(general_size=48)
+  fonts = load_fonts(title_size=160)
 
-  text_w = draw.textlength(message, font=fonts.general)
-  draw.text(((dims.row_width - text_w) // 2, 80), message, font=fonts.general, fill=colors.highlight)
+  text_w = draw.textlength(message, font=fonts.title)
+  draw.text(((dims.row_width - text_w) // 2, (dims.row_height // 2) - 50), message, font=fonts.title, fill=colors.highlight)
 
-  return empty_row_canvas
+  return row_canvas
 
 
 #   _   _ _   _ _
