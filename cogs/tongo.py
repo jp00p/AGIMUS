@@ -11,6 +11,7 @@ data = f.read()
 rules_of_acquisition = data.split("\n")
 f.close()
 
+# -> cogs.tongo
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____

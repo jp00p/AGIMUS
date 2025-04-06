@@ -62,7 +62,6 @@ from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.tongo import Tongo
 from cogs.trade import Trade
-from cogs.update_badges import UpdateBadges
 from cogs.randomep import RandomEp
 from cogs.react_roles import ReactRoles
 from cogs.wishlist import Wishlist
@@ -80,7 +79,6 @@ bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Tongo(bot))
 bot.add_cog(Trade(bot))
-bot.add_cog(UpdateBadges(bot))
 bot.add_cog(Wishlist(bot))
 bot.add_cog(Wordcloud(bot))
 if config["roles"]["reaction_roles_enabled"]:

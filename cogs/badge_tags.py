@@ -3,6 +3,8 @@ from queries.badge_tags import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 
+# -> cogs.badge_tags
+
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
 #  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \

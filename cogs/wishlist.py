@@ -11,6 +11,8 @@ paginator_buttons = [
   pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
 ]
 
+# -> cogs.wishlist
+
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
 #  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \

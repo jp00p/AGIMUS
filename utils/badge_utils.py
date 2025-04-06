@@ -77,6 +77,8 @@ from queries.trade import (
   db_get_related_badge_trades,
 )
 
+# -> utils.badge_utils
+
 # Constants
 BADGE_PATH = "./images/badges/"
 BADGE_SIZE = (190, 190)

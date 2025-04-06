@@ -9,10 +9,11 @@ from utils.badge_utils import *
 import queries.badge_completion as queries_badge_completion
 from queries.badges import *
 from queries.badge_info import *
+from queries.badge_scrap import *
 from queries.wishlist import *
 from queries.trade import *
 
-# commands.badge
+# -> commands.badge
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
@@ -164,11 +165,11 @@ async def collection(ctx:discord.ApplicationContext, public:str, filter:str, sor
   # Otherwise private displays can use the paginator
   if not public:
     buttons = [
-      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(user_badges_count <= 30), row=1),
+      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(len(user_badges) <= 30), row=1),
       pages.PaginatorButton(
         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
       ),
-      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(user_badges_count <= 30), row=1),
+      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(len(user_badges) <= 30), row=1),
     ]
 
     pages_list = [

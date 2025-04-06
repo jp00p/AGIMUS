@@ -318,3 +318,16 @@ async def db_get_random_badges_from_user_by_types(user_id: int):
     await query.execute(sql, (user_id,))
     rows = await query.fetchall()
   return {r['type_name']: r['badge_filename'] for r in rows}
+
+async def db_get_badge_count_by_filename(filename):
+  """
+  Given the name of a badge, retrieves its information from badge_info
+  :param name: the name of the badge.
+  :return: row dict
+  """
+  async with AgimusDB(dictionary=True) as query:
+    sql = "SELECT count(*) FROM badges WHERE badge_filename = %s;"
+    vals = (filename,)
+    await query.execute(sql, vals)
+    row = await query.fetchone()
+  return row["count(*)"]
