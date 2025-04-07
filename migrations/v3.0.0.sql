@@ -15,13 +15,20 @@ CREATE TABLE badge_instances (
 );
 
 -- We can now track trading history via specific instances
-CREATE TABLE badge_trade_history (
+CREATE TABLE badge_transfer_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
-  from_user_id BIGINT NOT NULL,
+  from_user_id BIGINT DEFAULT NULL,
   to_user_id BIGINT NOT NULL,
   transferred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  trade_reason TEXT,
+  acquisition_reason ENUM(
+    'epoch',
+    'trade',
+    'tongo',
+    'level_up',
+    'crystal',
+    'admin'
+  ) NOT NULL,
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
 );
 

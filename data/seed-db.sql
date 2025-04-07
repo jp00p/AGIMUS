@@ -479,20 +479,27 @@ CREATE TABLE badge_instances (
   origin_user_id BIGINT,
   acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   preferred_crystal_id INT DEFAULT NULL,
-  status ENUM('active', 'scrapped', 'archived') NOT NULL DEFAULT 'active',
+  status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
   UNIQUE KEY (owner_discord_id, badge_info_id),
   FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
   FOREIGN KEY (preferred_crystal_id) REFERENCES badge_crystals(id) ON DELETE SET NULL
 );
 
--- 5. Badge Trade History
-CREATE TABLE badge_trade_history (
+-- 5. Badge "Provenance" - Ability to track where a badge instance originated from and where its been
+CREATE TABLE badge_transfer_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
-  from_user_id BIGINT NOT NULL,
+  from_user_id BIGINT DEFAULT NULL,
   to_user_id BIGINT NOT NULL,
   transferred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  trade_reason TEXT,
+  acquisition_reason ENUM(
+    'epoch',
+    'trade',
+    'tongo',
+    'level_up',
+    'crystal',
+    'admin'
+  ) NOT NULL,
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
 );
 
@@ -514,3 +521,45 @@ CREATE TABLE crystal_trades (
 ALTER TABLE badge_crystals
   ADD CONSTRAINT fk_badge_crystals_instance
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE;
+
+--
+-- TONGO v2
+--
+
+-- Core Tongo game record
+CREATE TABLE tongo_games (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  status ENUM('open', 'in_progress', 'resolved', 'cancelled') DEFAULT 'open'
+);
+
+-- Players participating in the game, including liability mode
+CREATE TABLE tongo_game_players (
+  game_id INT,
+  user_discord_id BIGINT,
+  liability_mode ENUM('unlocked', 'all_in') NOT NULL,
+  PRIMARY KEY (game_id, user_discord_id),
+  FOREIGN KEY (game_id) REFERENCES tongo_games(id)
+);
+
+-- Persistent shared badge pool (the Great Material Continuum)
+CREATE TABLE tongo_continuum (
+  badge_info_id INT PRIMARY KEY,
+  source_instance_id INT,
+  thrown_by_user_id BIGINT,
+  added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
+  FOREIGN KEY (source_instance_id) REFERENCES badge_instances(id)
+);
+
+-- Rewards distributed at the end of the game
+CREATE TABLE tongo_game_rewards (
+  game_id INT,
+  user_discord_id BIGINT,
+  badge_instance_id INT,
+  crystal_id INT DEFAULT NULL,
+  PRIMARY KEY (game_id, user_discord_id, badge_instance_id),
+  FOREIGN KEY (game_id) REFERENCES tongo_games(id),
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id),
+  FOREIGN KEY (crystal_id) REFERENCES crystal_types(id)
+);
