@@ -7,7 +7,46 @@ class Admin(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
 
+  async def autocomplete_badge_name(self, ctx: discord.AutocompleteContext):
+    user_id = ctx.options.get("user")
+    logger.info(user_id)
+    if not user_id:
+      return []
+
+    all_badges = await db_get_all_badge_info()
+    owned_badges = await db_get_user_badges(user_id)
+    owned_badge_ids = {b['id'] for b in owned_badges}
+
+    filtered = [b['badge_name'] for b in all_badges if b['id'] in owned_badge_ids and ctx.value.lower() in b['badge_name'].lower()]
+    return filtered[:20]
+
+  async def autocomplete_crystal_name(self, ctx: discord.AutocompleteContext):
+    crystals = await db_get_available_crystal_types()
+    return [c['name'] for c in crystals if ctx.value.lower() in c['name'].lower()][:20]
+
   @commands.slash_command(name="crystallize", description="Attach a crystal to a user's badge")
+  @option(
+    "user",
+    discord.User,
+    description="The user whose inventory you wish to crystallize",
+    required=True
+  )
+  @option(
+    "badge_name",
+    str,
+    description="Badge Name",
+    required=True,
+    autocomplete=autocomplete_badge_name,
+    max_length=128
+  )
+  @option(
+    "crystal_name",
+    str,
+    description="Crystal Name",
+    required=True,
+    autocomplete=autocomplete_crystal_name,
+    max_length=128
+  )
   async def crystallize(
     self,
     ctx,
@@ -41,25 +80,7 @@ class Admin(commands.Cog):
     embed = discord.Embed(
       title="Crystal Attached",
       description=f"✅ Attached **{crystal_name}** to {user.mention}'s **{badge_name}**.",
-      color=discord.Color.red()
+      color=discord.Color.green()
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
-  @crystallize.autocomplete("badge_name")
-  async def autocomplete_badge_name(self, ctx: discord.AutocompleteContext):
-    user = ctx.options.get("user")
-    user_id = user.id if user else None
-    if not user_id:
-      return []
-
-    all_badges = await db_get_all_badge_info()
-    owned_badges = await db_get_user_badges(user_id)
-    owned_badge_ids = {b['id'] for b in owned_badges}
-
-    filtered = [b['badge_name'] for b in all_badges if b['id'] in owned_badge_ids and ctx.value.lower() in b['badge_name'].lower()]
-    return filtered[:20]
-
-  @crystallize.autocomplete("crystal_name")
-  async def autocomplete_crystal_name(self, ctx: discord.AutocompleteContext):
-    crystals = await db_get_available_crystal_types()
-    return [c['name'] for c in crystals if ctx.value.lower() in c['name'].lower()][:20]

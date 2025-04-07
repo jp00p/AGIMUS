@@ -51,6 +51,10 @@ from commands.update_status import update_status
 from commands.computer import computer
 
 # Cogs
+if config["DEBUG"]:
+  from cogs.admin import Admin
+  bot.add_cog(Admin(bot))
+
 from cogs.backups import Backups
 from cogs.badge_tags import BadgeTags
 from cogs.chaoszork import ChaosZork, HitchHikers
@@ -63,7 +67,6 @@ from cogs.slots import Slots
 from cogs.tongo import Tongo
 from cogs.trade import Trade
 from cogs.randomep import RandomEp
-from cogs.react_roles import ReactRoles
 from cogs.wishlist import Wishlist
 from cogs.wordcloud import Wordcloud
 bot.add_cog(Backups(bot))
@@ -82,8 +85,8 @@ bot.add_cog(Trade(bot))
 bot.add_cog(Wishlist(bot))
 bot.add_cog(Wordcloud(bot))
 if config["roles"]["reaction_roles_enabled"]:
+  from cogs.react_roles import ReactRoles
   bot.add_cog(ReactRoles(bot))
-
 
 ## Trivia relies on an external JSON request which might fail, in that case log the error but continue
 try:

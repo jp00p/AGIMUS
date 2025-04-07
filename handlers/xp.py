@@ -7,7 +7,7 @@ import discord
 from common import *
 from commands.badges import give_user_badge, send_badge_reward_message
 from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist, db_get_user_wishlist_badges
-from utils.badge_granting import grant_level_up_badge_award
+# from utils.badge_granting import award_level_up_badge
 from utils.badge_utils import db_get_user_badges, db_purge_users_wishlist
 
 # XP lock to prevent race conditions
@@ -247,8 +247,8 @@ async def level_up_user(user: discord.User, source_details: str):
   async with AgimusDB() as query:
     await query.execute("UPDATE users SET level = level + 1 WHERE discord_id = %s", (user.id,))
 
-  badge = await grant_level_up_badge_award(user.id)
-  # badge = await _award_level_up_badge(user.id)
+  # badge = await grant_level_up_badge_award(user.id)
+  badge = await _award_level_up_badge(user.id)
   await _send_level_up_embed(user, level, badge, source_details)
 
 def _log_level_up_to_console(user, level):
