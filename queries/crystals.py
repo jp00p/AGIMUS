@@ -1,24 +1,7 @@
 from common import *
 
 
-async def db_insert_badge_instance_if_missing(user_id: int, badge_info_id: int):
-  async with AgimusDB(dictionary=True) as query:
-    await query.execute(
-      "SELECT id FROM badge_instances WHERE badge_info_id = %s AND owner_discord_id = %s",
-      (badge_info_id, user_id)
-    )
-    existing = await query.fetchone()
-    if existing:
-      return None
-
-    await query.execute(
-      "INSERT INTO badge_instances (badge_info_id, owner_discord_id, locked) VALUES (%s, %s, %s)",
-      (badge_info_id, user_id, False)
-    )
-    return { "id": query.lastrowid }
-
-
-async def db_attach_crystal_to_instance(instance_id: int, crystal_name: str = "Dilithium") -> Optional[int]:
+async def db_attach_crystal_to_instance(instance_id: int, crystal_name: str = "Dilithium"):
   async with AgimusDB(dictionary=True) as query:
     await query.execute("SELECT id FROM crystal_types WHERE name = %s", (crystal_name,))
     crystal_type = await query.fetchone()
@@ -36,7 +19,11 @@ async def db_attach_crystal_to_instance(instance_id: int, crystal_name: str = "D
       "INSERT INTO badge_crystals (badge_instance_id, crystal_type_id) VALUES (%s, %s)",
       (instance_id, crystal_type["id"])
     )
-    return query.lastrowid
+    crystal_id = query.lastrowid
+
+    await query.execute("SELECT * FROM badge_crystals WHERE id = %s", (crystal_id,))
+    crystal = await query.fetchone()
+  return crystal
 
 
 async def db_set_preferred_crystal(instance_id: int, crystal_id: int):
@@ -45,3 +32,26 @@ async def db_set_preferred_crystal(instance_id: int, crystal_id: int):
       "UPDATE badge_instances SET preferred_crystal_id = %s WHERE id = %s",
       (crystal_id, instance_id)
     )
+
+
+async def db_get_existing_crystals_for_instance(instance_id: int):
+  async with AgimusDB(dictionary=True) as query:
+    await query.execute(
+      "SELECT * FROM badge_crystals WHERE badge_instance_id = %s",
+      (instance_id,)
+    )
+    existing_crystals = await query.fetchall()
+  return existing_crystals
+
+
+async def db_get_available_crystal_types():
+  async with AgimusDB(dictionary=True) as query:
+    await query.execute(
+      """
+        SELECT c.*, r.drop_chance
+        FROM crystal_types c
+        JOIN crystal_ranks r ON c.crystal_rank_id = r.id
+      """
+    )
+    crystal_types = await query.fetchall()
+  return crystal_types
