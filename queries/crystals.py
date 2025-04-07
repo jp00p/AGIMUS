@@ -33,6 +33,17 @@ async def db_set_slotted_crystal(instance_id: int, crystal_id: int):
       (crystal_id, instance_id)
     )
 
+async def db_get_crystal_by_id(crystal_id: int) -> dict:
+  async with AgimusDB(dictionary=True) as query:
+    sql = """
+      SELECT ct.*, cr.rarity_rank FROM crystal_types ct
+      JOIN crystal_ranks cr ON ct.crystal_rank_rarity = cr.rarity_rank
+      WHERE ct.id = %s
+    """
+    vals = (crystal_id,)
+    await query.execute(sql, vals)
+    return await query.fetchone()
+
 
 async def db_check_crystal_attached(badge_instance_id: int, crystal_type_id: int):
   async with AgimusDB() as query:
@@ -47,7 +58,7 @@ async def db_check_crystal_attached(badge_instance_id: int, crystal_type_id: int
     return await query.fetchone() is not None
 
 
-async def db_get_existing_crystals_for_instance(instance_id: int):
+async def db_get_attached_crystals(instance_id: int):
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
       """
@@ -80,6 +91,19 @@ async def db_get_existing_crystals_for_instance(instance_id: int):
   return existing_crystals
 
 
+async def db_get_instance_by_crystal(crystal_id: int) -> dict | None:
+  async with AgimusDB(dictionary=True) as query:
+    await query.execute(
+      """
+      SELECT b.id AS badge_instance_id
+      FROM badge_crystals AS bc
+      JOIN badge_instances AS b ON bc.badge_instance_id = b.id
+      WHERE bc.id = %s
+      """,
+      (crystal_id,)
+    )
+    return await query.fetchone()
+
 async def db_get_crystals_by_rarity(rarity_rank: int):
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
@@ -93,7 +117,6 @@ async def db_get_crystals_by_rarity(rarity_rank: int):
     )
     return await query.fetchall()
 
-
 async def db_get_crystal_rarity_weights():
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
@@ -103,6 +126,12 @@ async def db_get_crystal_rarity_weights():
       """
     )
     return await query.fetchall()
+
+
+async def get_rarest_crystal(crystals: list[dict]) -> dict:
+  if not crystals:
+    return None
+  return max(crystals, key=lambda c: c['rarity_rank'])
 
 
 async def db_get_available_crystal_types():
@@ -117,3 +146,11 @@ async def db_get_available_crystal_types():
     crystal_types = await query.fetchall()
   return crystal_types
 
+
+async def db_get_crystallize_autoslot_preference(user_id: int) -> str:
+  async with AgimusDB(dictionary=True) as query:
+    sql = "SELECT crystallize_autoslot FROM users WHERE discord_id = %s"
+    vals = (user_id,)
+    await query.execute(sql, vals)
+    result = await query.fetchone()
+    return result['crystallize_autoslot'] if result else 'manual'

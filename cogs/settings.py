@@ -116,7 +116,7 @@ class CrystallizeAutoSlotDropdown(discord.ui.Select):
     self.cog = cog
     options = [
       discord.SelectOption(label="Manual", description="Manually select Crystals to slot (No Auto-slot)."),
-      discord.SelectOption(label="Auto-slot Rarest", description="Automatically slot rarest Crystals."),
+      discord.SelectOption(label="Auto-slot Rarest", description="Automatically slot rarer Crystals."),
       discord.SelectOption(label="Auto-slot Newest", description="Automatically slot newest Crystals."),
     ]
 
@@ -557,7 +557,7 @@ class Settings(commands.Cog):
       description=(
         "Set how you prefer AGIMUS to handle automatic attachment of Crystals to your badges.\n\n"
         "**Manual** - You'll manually select Crystals afterwards via `/crystals slot_crystal`. No auto-slotting will take place.\n\n"
-        "**Auto-slot Rarest** - Automatically slot a Crystal if it is rarer than what is *currently slotted*.\n\n"
+        "**Auto-slot Rarest** - Automatically slot a Crystal if it is *rarer* (or as rare) than what is *currently slotted*.\n\n"
         "**Auto-slot Newest** - Automatically slot the most recently acquired Crystal first."
       ),
       color=discord.Color(0xFF0000)

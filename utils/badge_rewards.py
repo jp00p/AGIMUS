@@ -30,7 +30,6 @@ async def award_level_up_badge(user_id):
     if random.random() < 0.75:
       selected_badge_filename = random.choice(unowned_badge_filenames)
       mode = "grant"
-    # But, there's a 15% chance we will grant them a crystal instead
     else:
       selected_badge_filename = random.choice(list(owned_badge_filenames))
       mode = "crystallize"
@@ -39,22 +38,32 @@ async def award_level_up_badge(user_id):
   if not badge_info:
     raise(f"Badge filename {selected_badge_filename} not found in badge_info")
 
+  instance = None
+  crystal = None
+
   if mode == "grant":
-    # If we're granting a badge, create the instance and attach the default crystal to it
     instance = await db_create_badge_instance_if_missing(user_id, badge_info['id'])
     if instance is None:
       raise(f"User {user_id} already owns badge {selected_badge_filename} (race condition?)")
     crystal = await db_attach_crystal_to_instance(instance['id'], crystal_name="Dilithium")
-    # TODO: Commented out below, we actaully shouldn't be setting the default as the slotted crystal
-    # before checking with the user's auto-slot preferences
-    #
-    # if crystal is not None:
-    #   await db_set_slotted_crystal(instance['id'], crystal['id'])
+    if crystal:
+      await apply_autoslot_preference(user_id, instance['id'], crystal['id'])
+
   elif mode == "crystallize":
-    # Otherwise, let's attach a fresh randomized crystal to it!
     instance = await db_get_badge_instance(user_id, badge_info['id'])
     crystal = await crystallize_badge(user_id, instance['id'])
-    # TODO: Check the user's auto-slot preferences here and either slot it in or not
+
+    if not crystal:
+      # Fallback to any eligible badge instance
+      crystal = await crystallize_random_owned_badge(user_id)
+
+      if crystal:
+        instance_row = await db_get_instance_by_crystal(crystal['id'])
+        if instance_row:
+          instance = {'id': instance_row['badge_instance_id']}
+
+    if crystal and instance:
+      await apply_autoslot_preference(user_id, instance['id'], crystal['id'])
 
   return {
     "filename": selected_badge_filename,
@@ -63,7 +72,6 @@ async def award_level_up_badge(user_id):
     "crystal": crystal,
     "mode": mode
   }
-
 
 async def crystallize_badge(user_id: int, badge_instance_id: int, rarity_rank: int | None = None) -> dict | None:
   """
@@ -135,3 +143,34 @@ async def crystallize_random_owned_badge(user_id: int) -> dict | None:
 
   logger.info(f"User {user_id} has no eligible badge instances for crystallization.")
   return None
+
+
+async def apply_autoslot_preference(user_id: int, badge_instance_id: int, new_crystal_id: int):
+  """
+  Applies user's auto-slot crystallization preference by either slotting the new crystal
+  or leaving it unslotted based on their configured preference.
+  """
+  preference = await db_get_crystallize_autoslot_preference(user_id)
+
+  if preference == 'manual':
+    # User prefers manual selection; do nothing.
+    return False
+
+  if preference == 'auto_rarest':
+    # Fetch all crystals for this badge and select the rarest
+    all_crystals = await db_get_attached_crystals(badge_instance_id)
+    rarest_crystal = await get_rarest_crystal(all_crystals)
+    new_crystal = await db_get_crystal_by_id(new_crystal_id)
+    if new_crystal['rarity_rank'] >= rarest_crystal['rarity_rank']:
+      await db_set_slotted_crystal(badge_instance_id, new_crystal_id)
+      return True
+    else:
+      return False
+
+  if preference == 'auto_newest':
+    # Automatically slot the newly obtained crystal
+    await db_set_slotted_crystal(badge_instance_id, new_crystal_id)
+    return True
+
+  # Default fallback: do nothing
+  return False

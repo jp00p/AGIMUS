@@ -1,4 +1,5 @@
 from common import *
+from utils.badge_rewards import award_level_up_badge
 from queries.badge_info import db_get_badge_info_by_name, db_get_all_badge_info
 from queries.badge_inventory import db_get_badge_instance, db_get_user_badges
 from queries.crystals import db_attach_crystal_to_instance, db_get_available_crystal_types
@@ -86,3 +87,34 @@ class Admin(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
+  # TEMPORARY TEST COMMANDS
+  @admin_group.command(name="test_level_up_reward")
+  async def test_level_up_reward(self, interaction: discord.Interaction, user_id: int):
+    """Debug: Tests level-up badge logic (including fallback) for any user ID."""
+    await interaction.response.defer(thinking=True)
+
+    result = await award_level_up_badge(user_id)
+
+    embed = discord.Embed(
+      title=f"🧪 Test Level-Up Reward for User ID {user_id}",
+      color=discord.Color.blurple()
+    )
+
+    embed.add_field(name="Mode", value=result['mode'], inline=True)
+    embed.add_field(name="Badge", value=result['filename'], inline=True)
+
+    if result['crystal']:
+      embed.add_field(
+        name="Crystal",
+        value=result['crystal']['crystal_name'],
+        inline=True
+      )
+      embed.add_field(
+        name="Rarity",
+        value=str(result['crystal']['rarity_rank']),
+        inline=True
+      )
+    else:
+      embed.add_field(name="Crystal", value="❌ None awarded", inline=False)
+
+    await interaction.followup.send(embed=embed)

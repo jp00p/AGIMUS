@@ -2,7 +2,7 @@ from common import *
 
 from queries.badge_info import db_get_badge_info_by_name
 from queries.badge_inventory import db_get_badge_instance
-from queries.crystals import db_get_existing_crystals_for_instance, db_set_slotted_crystal
+from queries.crystals import db_get_attached_crystals, db_set_slotted_crystal
 from utils.badge_utils import load_badge_image
 from utils.crystal_effects import apply_crystal_effect
 
@@ -35,7 +35,7 @@ class Crystals(commands.Cog):
     if not instance:
       return []
 
-    crystals = await db_get_existing_crystals_for_instance(instance['id'])
+    crystals = await db_get_attached_crystals(instance['id'])
     return ['[None]'] + [
       f"{c['emoji']} {c['crystal_name']}" if c.get('emoji') else c['crystal_name']
       for c in crystals if ctx.value.lower() in c['crystal_name'].lower()
@@ -81,7 +81,7 @@ class Crystals(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
-    crystals = await db_get_existing_crystals_for_instance(instance['id'])
+    crystals = await db_get_attached_crystals(instance['id'])
 
     if crystal_name.lower() == '[none]':
       if instance.get('preferred_crystal_id') is None:
