@@ -12,6 +12,7 @@ from pathlib import Path
 
 from common import *
 
+from utils.crystal_effects import apply_crystal_effect
 from utils.thread_utils import to_thread
 
 from queries.badges import (
@@ -423,6 +424,7 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
 
   # Load image and thumbnailicize
   badge_image = load_badge_image(badge['badge_filename'])
+  badge_image = apply_crystal_effect(badge_image, badge)
   if add_alpha:
     # Create a mask layer to apply 1/4th opacity to for uncollected badges
     badge_alpha = badge_image.copy()

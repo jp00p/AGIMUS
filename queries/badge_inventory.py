@@ -2,10 +2,6 @@ from common import *
 
 
 async def db_get_user_badges(user_id: int, sortby: str = None):
-  """
-  Returns all badge_info records owned by the user, along with badge_instance data.
-  Supports sorting options similar to the legacy db_get_user_badges().
-  """
   sort_sql = "ORDER BY b_i.badge_filename ASC"
   if sortby is not None:
     if sortby == 'date_ascending':
@@ -20,9 +16,22 @@ async def db_get_user_badges(user_id: int, sortby: str = None):
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
       f"""
-        SELECT b_i.*, b.locked, b.id AS badge_instance_id, b.preferred_crystal_id
+        SELECT
+          b_i.*,
+          b.locked,
+          b.id AS badge_instance_id,
+          b.preferred_crystal_id,
+
+          c.id AS crystal_id,
+          c.crystal_type_id,
+          t.name AS crystal_name,
+          t.effect,
+          t.crystal_rarity_rank
+
         FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+        LEFT JOIN badge_crystals AS c ON b.preferred_crystal_id = c.id
+        LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
         WHERE b.owner_discord_id = %s
         {sort_sql}
       """,

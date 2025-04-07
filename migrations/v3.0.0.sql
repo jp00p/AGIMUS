@@ -28,14 +28,13 @@ INSERT INTO crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order) VA
 CREATE TABLE crystal_types (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) NOT NULL UNIQUE,
-  crystal_rank_id INT NOT NULL,
+  crystal_rank_rarity INT NOT NULL,
   icon VARCHAR(128),
   effect TEXT,
   description TEXT,
-  FOREIGN KEY (crystal_rank_id) REFERENCES crystal_ranks(id)
 );
 
-INSERT INTO crystal_types (name, crystal_rank_id, icon, effect, description) VALUES
+INSERT INTO crystal_types (name, crystal_rank_rarity, icon, effect, description) VALUES
 
   -- Common Crystals
   ("Dilithium", 1, "dilithium.png", NULL, "Good old Dilithium. Standard Starfleet issue!"),
@@ -45,19 +44,19 @@ INSERT INTO crystal_types (name, crystal_rank_id, icon, effect, description) VAL
 
   -- Uncommon Crystals
   ("Isolinear", 2, "isolinear.png", "circuitry", "Shimoda's favorite plaything. Fully stackable!"),
-  ("Optical Mesh", 2, "optical_mesh.png", "optical_filaments", "Data strands utilized by LCARS display terminals."),
+  ("Optical Mesh", 2, "optical_mesh.png", "optical_filaments", "Encoded info strands utilized by LCARS display terminals."),
   ("Positron", 2, "positron.png", "positronic_pattern", "Fully functional. Operates at 60 trillion calculations a second."),
 
   -- Rare Crystals
-  ("Trilithium", 3, "trilithium.png", "fiery_glow", "A volatile compound banned in three quadrants. Handle with care."),
-  ("Tholian Silk", 3, "tholian_silk.png", "web_pattern", "A crystallized thread of energy - elegant, fractical, and deadly."),
-  ("Photonic Shard", 3, "photonic_shard.png", "holo_grid", "Rendered with simulated depth."),
+  ("Trilithium", 3, "trilithium.png", "explosive_glow", "A volatile compound banned in three quadrants. Handle with care."),
+  ("Tholian Silk", 3, "tholian_silk.png", "interconnected_web", "A crystallized thread of energy - elegant, fractical, and deadly."),
+  ("Photonic Shard", 3, "photonic_shard.png", "holo_grid", "Rendered with an uncanny simulated depth."),
 
   -- Legendary Crystals
   ("Raw Warp Plasma", 4, "warp_plasma.png", "pulsing_surge", "Collected from the EPS grid. Hums with that familiar pulse."),
   ("Subspace Ripple", 4, "subspace.png", "ripple_warp", "Always vibrating... but not quite here."),
 
--- Mythic Crystals
+  -- Mythic Crystals
   ("Chroniton", 5, "chroniton.png", "phase_flicker", "Phased slightly out of time. Glitches in and out of this temporal frame."),
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable.");
 
