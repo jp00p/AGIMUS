@@ -115,9 +115,9 @@ class CrystallizeAutoSlotDropdown(discord.ui.Select):
   def __init__(self, cog):
     self.cog = cog
     options = [
-      discord.SelectOption(label="Manual", description="Manually select Crystals to attach (No Auto-slot)."),
-      discord.SelectOption(label="Auto-slot Rarest", description="Automatically attach rarest Crystals."),
-      discord.SelectOption(label="Auto-slot Newest", description="Automatically attach newest Crystals."),
+      discord.SelectOption(label="Manual", description="Manually select Crystals to slot (No Auto-slot)."),
+      discord.SelectOption(label="Auto-slot Rarest", description="Automatically slot rarest Crystals."),
+      discord.SelectOption(label="Auto-slot Newest", description="Automatically slot newest Crystals."),
     ]
 
     super().__init__(
@@ -425,21 +425,6 @@ class Settings(commands.Cog):
         use_default_buttons=False,
         custom_view=XPView(self)
       ),
-      page_groups.append(
-        pages.PageGroup(
-          pages=[
-            pages.Page(
-              embeds=[crystallize_embed],
-              files=[crystallize_thumbnail]
-            )
-          ],
-          label="Crystallization",
-          description="Configure automatic Crystal slotting behavior",
-          custom_buttons=[],
-          use_default_buttons=False,
-          custom_view=CrystallizeAutoSlotView(self)
-        )
-      ),
       pages.PageGroup(
         pages=[
           pages.Page(
@@ -452,6 +437,19 @@ class Settings(commands.Cog):
         custom_buttons=[],
         use_default_buttons=False,
         custom_view=NotificationsView(self)
+      ),
+      pages.PageGroup(
+        pages=[
+          pages.Page(
+            embeds=[crystallize_embed],
+            files=[crystallize_thumbnail]
+          )
+        ],
+        label="Crystallization",
+        description="Configure automatic Crystal slotting behavior",
+        custom_buttons=[],
+        use_default_buttons=False,
+        custom_view=CrystallizeAutoSlotView(self)
       ),
       pages.PageGroup(
         pages=[
@@ -558,10 +556,9 @@ class Settings(commands.Cog):
       title="Crystallization Auto-Slot Preferences",
       description=(
         "Set how you prefer AGIMUS to handle automatic attachment of Crystals to your badges.\n\n"
-        "**Manual** - You'll manually select each Crystal, no auto-slotting will take place.\n"
-        "**Auto-slot Rarest** - Automatically attach a Crystal if it is rarer than what is currently slotted.\n"
-        "**Auto-slot Newest** - Automatically attach the most recently acquired Crystal first.\n\n"
-        "You can change this preference anytime!"
+        "**Manual** - You'll manually select Crystals afterwards via `/crystals slot_crystal`. No auto-slotting will take place.\n\n"
+        "**Auto-slot Rarest** - Automatically slot a Crystal if it is rarer than what is *currently slotted*.\n\n"
+        "**Auto-slot Newest** - Automatically slot the most recently acquired Crystal first."
       ),
       color=discord.Color(0xFF0000)
     )
