@@ -37,7 +37,13 @@ async def db_set_preferred_crystal(instance_id: int, crystal_id: int):
 async def db_get_existing_crystals_for_instance(instance_id: int):
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
-      "SELECT * FROM badge_crystals WHERE badge_instance_id = %s",
+      """
+        SELECT bc.*, ct.*
+        FROM badge_crystals bc
+        JOIN crystal_types ct ON bc.crystal_type_id = ct.id
+        JOIN crystal_ranks cr ON ct.crystal_rarity_rank = cr.rarity_rank
+        WHERE bc.badge_instance_id = %s
+      """,
       (instance_id,)
     )
     existing_crystals = await query.fetchall()
@@ -48,10 +54,11 @@ async def db_get_available_crystal_types():
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
       """
-        SELECT c.*, r.drop_chance
+        SELECT c.*, r.emoji, r.drop_chance
         FROM crystal_types c
-        JOIN crystal_ranks r ON c.crystal_rank_id = r.id
+        JOIN crystal_ranks r ON c.crystal_rarity_rank = r.rarity_rank
       """
     )
     crystal_types = await query.fetchall()
   return crystal_types
+

@@ -37,13 +37,13 @@ class Crystals(commands.Cog):
 
     crystals = await db_get_existing_crystals_for_instance(instance['id'])
     return [
-      f"{c['emoji']} {c['crystal_name']}" if c.get('emoji') else c['crystal_name']
-      for c in crystals if ctx.value.lower() in c['crystal_name'].lower()
+      f"{c['emoji']} {c['name']}" if c.get('emoji') else c['name']
+      for c in crystals if ctx.value.lower() in c['name'].lower()
     ][:25]
 
   crystals_group = discord.SlashCommandGroup("crystals", "Badge Crystal Management.")
 
-  @crystals_group.slash_command(name='slot_crystal', description='Select which crystal to display for one of your badges.')
+  @crystals_group.command(name='slot_crystal', description='Select which crystal to display for one of your badges.')
   @option(
     'badge_name',
     str,
@@ -82,7 +82,7 @@ class Crystals(commands.Cog):
       return
 
     crystals = await db_get_existing_crystals_for_instance(instance['id'])
-    selected = next((c for c in crystals if crystal_name.lower() in c['crystal_name'].lower()), None)
+    selected = next((c for c in crystals if crystal_name.lower() in c['name'].lower()), None)
 
     if not selected:
       embed = discord.Embed(
@@ -106,7 +106,7 @@ class Crystals(commands.Cog):
     base_image = load_badge_image(badge_info['badge_filename'])
     badge = { **badge_info, 'badge_instance_id': instance['id'] }
     crystal = selected
-    preview_img = apply_crystal_effect(base_image, badge)
+    preview_img = apply_crystal_effect(base_image, badge, crystal)
 
     buffer = io.BytesIO()
     preview_img.save(buffer, format='PNG')

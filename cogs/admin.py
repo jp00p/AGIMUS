@@ -26,7 +26,7 @@ class Admin(commands.Cog):
 
   admin_group = discord.SlashCommandGroup("admin", "Admin Commands for Debugging.")
 
-  @commands.slash_command(name="crystallize", description="Attach a crystal to a user's badge")
+  @admin_group.command(name="crystallize", description="Attach a crystal to a user's badge")
   @option(
     "user",
     discord.User,
