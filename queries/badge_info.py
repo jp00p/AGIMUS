@@ -24,6 +24,13 @@ async def db_get_all_badge_info():
   return _ALL_BADGE_INFO
 
 
+async def db_get_badge_info_by_id(badge_info_id):
+  async with AgimusDB(dictionary=True) as query:
+    sql = "SELECT * FROM badge_info WHERE id = %s"
+    await query.execute(sql, (badge_info_id,))
+    return await query.fetchone()
+
+
 async def db_get_badge_info_by_name(name):
   """
   Given the name of a badge, retrieves its information from badge_info
@@ -51,17 +58,22 @@ async def db_get_badge_info_by_filename(filename):
     row = await query.fetchone()
   return row
 
+async def db_get_badge_info_by_instance_id(instance_id: int) -> dict:
+  query = """
+    SELECT bi.*
+    FROM badge_instances AS inst
+    JOIN badge_info AS bi ON inst.badge_info_id = bi.id
+    WHERE inst.id = %s
+  """
+  async with AgimusDB(dictionary=True) as db:
+    return await db.fetchone(query, (instance_id,))
+
+
 async def db_get_special_badges():
   async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM badge_info WHERE is_special = TRUE"
     await query.execute(sql)
     return await query.fetchall()
-
-async def db_get_badge_info_by_id(badge_info_id):
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM badge_info WHERE id = %s"
-    await query.execute(sql, (badge_info_id,))
-    return await query.fetchone()
 
 
 # Affiliations
