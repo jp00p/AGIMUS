@@ -15,7 +15,7 @@ CREATE TABLE badge_instances (
 );
 
 -- We can now track trading history via specific instances
-CREATE TABLE badge_transfer_history (
+CREATE TABLE badge_instance_provenance (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
   from_user_id BIGINT DEFAULT NULL,
@@ -23,12 +23,13 @@ CREATE TABLE badge_transfer_history (
   transferred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   acquisition_reason ENUM(
     'epoch',
+    'level_up',
     'trade',
     'tongo',
-    'level_up',
-    'crystal',
-    'admin'
-  ) NOT NULL,
+    'liquidation'
+    'admin',
+    'unknown'
+  ) NOT NULL DEFAULT 'unknown',
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
 );
 
@@ -117,3 +118,46 @@ ALTER TABLE badge_crystals
 
 -- Add new autoslot setting
 ALTER TABLE users ADD COLUMN crystallize_autoslot ENUM('manual', 'auto_rarest', 'auto_newest') DEFAULT 'manual';
+
+--
+-- TONGO v2
+--
+
+-- Core Tongo game record
+CREATE TABLE tongo_games (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  chair_user_id BIGINT NOT NULL,
+  status ENUM('open', 'in_progress', 'resolved', 'cancelled') DEFAULT 'open'
+);
+
+-- Players participating in the game, including liability mode
+CREATE TABLE tongo_game_players (
+  game_id INT,
+  user_discord_id BIGINT,
+  liability_mode ENUM('unlocked', 'all_in') NOT NULL,
+  PRIMARY KEY (game_id, user_discord_id),
+  FOREIGN KEY (game_id) REFERENCES tongo_games(id)
+);
+
+-- Persistent shared badge pool (the Great Material Continuum)
+CREATE TABLE tongo_continuum (
+  badge_info_id INT PRIMARY KEY,
+  source_instance_id INT,
+  thrown_by_user_id BIGINT,
+  added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
+  FOREIGN KEY (source_instance_id) REFERENCES badge_instances(id)
+);
+
+-- Rewards distributed at the end of the game
+CREATE TABLE tongo_game_rewards (
+  game_id INT,
+  user_discord_id BIGINT,
+  badge_instance_id INT,
+  crystal_id INT DEFAULT NULL,
+  PRIMARY KEY (game_id, user_discord_id, badge_instance_id),
+  FOREIGN KEY (game_id) REFERENCES tongo_games(id),
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id),
+  FOREIGN KEY (crystal_id) REFERENCES crystal_types(id)
+);

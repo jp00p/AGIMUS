@@ -486,7 +486,7 @@ CREATE TABLE badge_instances (
 );
 
 -- 5. Badge "Provenance" - Ability to track where a badge instance originated from and where its been
-CREATE TABLE badge_transfer_history (
+CREATE TABLE badge_instance_provenance (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
   from_user_id BIGINT DEFAULT NULL,
@@ -494,12 +494,13 @@ CREATE TABLE badge_transfer_history (
   transferred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   acquisition_reason ENUM(
     'epoch',
+    'level_up',
     'trade',
     'tongo',
-    'level_up',
-    'crystal',
-    'admin'
-  ) NOT NULL,
+    'liquidation'
+    'admin',
+    'unknown'
+  ) NOT NULL DEFAULT 'unknown',
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
 );
 
@@ -530,6 +531,7 @@ ALTER TABLE badge_crystals
 CREATE TABLE tongo_games (
   id INT AUTO_INCREMENT PRIMARY KEY,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  chair_user_id BIGINT NOT NULL,
   status ENUM('open', 'in_progress', 'resolved', 'cancelled') DEFAULT 'open'
 );
 

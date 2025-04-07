@@ -70,3 +70,39 @@ async def db_create_badge_instance_if_missing(user_id: int, badge_info_id: int):
     instance = query.fetchone()
   return instance
 
+
+async def db_get_owned_badges_by_user_id(user_id: int):
+  query = """
+    SELECT bi.badge_filename
+    FROM badge_instances AS inst
+    JOIN badge_info AS bi ON inst.badge_info_id = bi.id
+    WHERE inst.owner_discord_id = %s AND inst.status = 'active'
+  """
+  async with AgimusDB(dictionary=True) as db:
+    return await db.fetchall(query, (user_id,))
+
+
+async def db_get_locked_badges_for_user(user_discord_id):
+  async with AgimusDB(dictionary=True) as query:
+    sql = """
+      SELECT bi.*, bi.id AS badge_info_id, bi.filename AS badge_filename, b.id
+      FROM badge_instances AS b
+      JOIN badge_info AS bi ON b.badge_info_id = bi.id
+      WHERE b.user_discord_id = %s AND b.locked = TRUE
+    """
+    await query.execute(sql, (user_discord_id,))
+    return await query.fetchall()
+
+
+async def db_get_all_badges_for_user(user_discord_id):
+  async with AgimusDB(dictionary=True) as query:
+    sql = """
+      SELECT bi.*, bi.id AS badge_info_id, bi.filename AS badge_filename, b.id
+      FROM badge_instances AS b
+      JOIN badge_info AS bi ON b.badge_info_id = bi.id
+      WHERE b.user_discord_id = %s
+    """
+    await query.execute(sql, (user_discord_id,))
+    return await query.fetchall()
+
+
