@@ -41,7 +41,9 @@ class Crystals(commands.Cog):
       for c in crystals if ctx.value.lower() in c['crystal_name'].lower()
     ][:25]
 
-  @commands.slash_command(name='slot_crystal', description='Select which crystal to display for one of your badges.')
+  crystals_group = discord.SlashCommandGroup("crystals", "Badge Crystal Management.")
+
+  @crystals_group.slash_command(name='slot_crystal', description='Select which crystal to display for one of your badges.')
   @option(
     'badge_name',
     str,

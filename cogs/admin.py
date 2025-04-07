@@ -24,6 +24,8 @@ class Admin(commands.Cog):
     crystals = await db_get_available_crystal_types()
     return [c['name'] for c in crystals if ctx.value.lower() in c['name'].lower()][:25]
 
+  admin_group = discord.SlashCommandGroup("admin", "Admin Commands for Debugging.")
+
   @commands.slash_command(name="crystallize", description="Attach a crystal to a user's badge")
   @option(
     "user",
