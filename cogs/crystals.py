@@ -3,6 +3,8 @@ from common import *
 from queries.badge_info import db_get_badge_info_by_name
 from queries.badge_inventory import db_get_badge_instance
 from queries.crystals import db_get_existing_crystals_for_instance, db_set_preferred_crystal
+from utils.badge_utils import load_badge_image
+from utils.crystal_effects import apply_crystal_effect
 
 class Crystals(commands.Cog):
   def __init__(self, bot):
@@ -35,7 +37,8 @@ class Crystals(commands.Cog):
 
     crystals = await db_get_existing_crystals_for_instance(instance['id'])
     return [
-      c['crystal_name'] for c in crystals if ctx.value.lower() in c['crystal_name'].lower()
+      f"{c['emoji']} {c['crystal_name']}" if c.get('emoji') else c['crystal_name']
+      for c in crystals if ctx.value.lower() in c['crystal_name'].lower()
     ][:25]
 
   @commands.slash_command(name='slot_crystal', description='Select which crystal to display for one of your badges.')
@@ -77,7 +80,7 @@ class Crystals(commands.Cog):
       return
 
     crystals = await db_get_existing_crystals_for_instance(instance['id'])
-    selected = next((c for c in crystals if c['crystal_name'].lower() == crystal_name.lower()), None)
+    selected = next((c for c in crystals if crystal_name.lower() in c['crystal_name'].lower()), None)
 
     if not selected:
       embed = discord.Embed(
@@ -97,11 +100,48 @@ class Crystals(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
-    await db_set_preferred_crystal(instance['id'], selected['id'])
+    # Generate badge preview image with crystal effect (in-memory)
+    base_image = load_badge_image(badge_info['badge_filename'])
+    badge = { **badge_info, 'badge_instance_id': instance['id'] }
+    crystal = selected
+    preview_img = apply_crystal_effect(base_image, badge)
 
-    embed = discord.Embed(
-      title='Crystal Slotted ✅',
-      description=f"Set **{crystal_name}** as your preferred crystal for **{badge_name}**.",
-      color=discord.Color.green()
+    buffer = io.BytesIO()
+    preview_img.save(buffer, format='PNG')
+    buffer.seek(0)
+    file = discord.File(buffer, filename='preview.png')
+
+    emoji = crystal.get('emoji', '')
+    crystal_label = f"{emoji} {crystal_name}" if emoji else crystal_name
+
+    preview_embed = discord.Embed(
+      title=f"Preview: {badge_name} + {crystal_label}",
+      description="Click **Confirm** to slot this crystal, or **Cancel** to abort.",
+      color=discord.Color.blurple()
     )
-    await ctx.respond(embed=embed, ephemeral=True)
+    preview_embed.set_image(url="attachment://preview.png")
+
+    class ConfirmCancelView(discord.ui.View):
+      def __init__(self):
+        super().__init__(timeout=60)
+
+      @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
+      async def confirm(self, button, interaction):
+        await db_set_preferred_crystal(instance['id'], selected['id'])
+        embed = discord.Embed(
+          title='Crystal Slotted ✅',
+          description=f"Set **{crystal_label}** as your preferred crystal for **{badge_name}**.",
+          color=discord.Color.green()
+        )
+        await interaction.response.edit_message(embed=embed, attachments=[], view=None)
+
+      @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
+      async def cancel(self, button, interaction):
+        embed = discord.Embed(
+          title='Cancelled',
+          description="No changes made to your badge.",
+          color=discord.Color.red()
+        )
+        await interaction.response.edit_message(embed=embed, attachments=[], view=None)
+
+    await ctx.respond(embed=preview_embed, file=file, view=ConfirmCancelView(), ephemeral=True)

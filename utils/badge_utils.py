@@ -1,13 +1,5 @@
-import io
-import math
-import textwrap
-import time
-import os
-import regex
-
 from collections import namedtuple
 from emoji import EMOJI_DATA
-from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 
 from common import *

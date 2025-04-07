@@ -58,6 +58,7 @@ if config["DEBUG"]:
 from cogs.backups import Backups
 from cogs.badge_tags import BadgeTags
 from cogs.chaoszork import ChaosZork, HitchHikers
+from cogs.crystals import Crystals
 from cogs.poker import Poker
 from cogs.profile import Profile
 from cogs.quiz import Quiz
@@ -72,6 +73,7 @@ from cogs.wordcloud import Wordcloud
 bot.add_cog(Backups(bot))
 bot.add_cog(BadgeTags(bot))
 bot.add_cog(ChaosZork(bot))
+bot.add_cog(Crystals(bot))
 bot.add_cog(HitchHikers(bot))
 bot.add_cog(Poker(bot))
 bot.add_cog(Profile(bot))
