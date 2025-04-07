@@ -18,11 +18,11 @@ class Admin(commands.Cog):
     owned_badge_ids = {b['id'] for b in owned_badges}
 
     filtered = [b['badge_name'] for b in all_badges if b['id'] in owned_badge_ids and ctx.value.lower() in b['badge_name'].lower()]
-    return filtered[:20]
+    return filtered[:25]
 
   async def autocomplete_crystal_name(self, ctx: discord.AutocompleteContext):
     crystals = await db_get_available_crystal_types()
-    return [c['name'] for c in crystals if ctx.value.lower() in c['name'].lower()][:20]
+    return [c['name'] for c in crystals if ctx.value.lower() in c['name'].lower()][:25]
 
   @commands.slash_command(name="crystallize", description="Attach a crystal to a user's badge")
   @option(
