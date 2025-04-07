@@ -36,9 +36,9 @@ class Crystals(commands.Cog):
       return []
 
     crystals = await db_get_existing_crystals_for_instance(instance['id'])
-    return [
-      f"{c['emoji']} {c['name']}" if c.get('emoji') else c['name']
-      for c in crystals if ctx.value.lower() in c['name'].lower()
+    return ['[None]'] + [
+      f"{c['emoji']} {c['crystal_name']}" if c.get('emoji') else c['crystal_name']
+      for c in crystals if ctx.value.lower() in c['crystal_name'].lower()
     ][:25]
 
   crystals_group = discord.SlashCommandGroup("crystals", "Badge Crystal Management.")
@@ -82,7 +82,33 @@ class Crystals(commands.Cog):
       return
 
     crystals = await db_get_existing_crystals_for_instance(instance['id'])
-    selected = next((c for c in crystals if crystal_name.lower() in c['name'].lower()), None)
+
+    if crystal_name.lower() == '[none]':
+      if instance.get('preferred_crystal_id') is None:
+        embed = discord.Embed(
+          title='Already Unslotted!',
+          description=f"No crystal is currently slotted for **{badge_name}**.",
+          color=discord.Color.orange()
+        )
+        await ctx.respond(embed=embed, ephemeral=True)
+        return
+
+      # Look up which crystal was previously slotted
+      previous = next((c for c in crystals if c['id'] == instance['preferred_crystal_id']), None)
+      prev_label = f"{previous['emoji']} {previous['crystal_name']}" if previous else "Unknown Crystal"
+
+      await db_set_preferred_crystal(instance['id'], None)
+      embed = discord.Embed(
+        title='Crystal Removed 🧼',
+        description=f"Unslotted **{prev_label}** from **{badge_name}**.",
+        color=discord.Color.green()
+      )
+      return
+
+    selected = next(
+      (c for c in crystals if crystal_name.lower() in f"{c.get('emoji', '')} {c['crystal_name']}".lower()),
+      None
+    )
 
     if not selected:
       embed = discord.Embed(
@@ -113,19 +139,28 @@ class Crystals(commands.Cog):
     buffer.seek(0)
     file = discord.File(buffer, filename='preview.png')
 
-    emoji = crystal.get('emoji', '')
-    crystal_label = f"{emoji} {crystal_name}" if emoji else crystal_name
+    crystal_description = crystal.get('description', '')
+    crystal_label = f"{crystal['emoji']} {crystal['crystal_name']}" if crystal.get('emoji') else crystal['crystal_name']
 
     preview_embed = discord.Embed(
-      title=f"Preview: {badge_name} + {crystal_label}",
-      description="Click **Confirm** to slot this crystal, or **Cancel** to abort.",
+      title=f"Crystallization Preview",
+      description=f"{badge_name} with *{crystal['crystal_name']}* applied.",
       color=discord.Color.blurple()
     )
+    preview_embed.add_field(name=f"{crystal['crystal_name']}", value=f"{crystal_description}", inline=False)
+    preview_embed.add_field(name=f"Rank", value=f"{crystal['emoji']} {crystal['rarity_name']}", inline=False)
+    preview_embed.set_footer(text="Click Confirm to slot this crystal, or Cancel.")
     preview_embed.set_image(url="attachment://preview.png")
 
     class ConfirmCancelView(discord.ui.View):
       def __init__(self):
         super().__init__(timeout=60)
+
+      async def on_timeout(self):
+        for child in self.children:
+          child.disabled = True
+        if self.message:
+          await self.message.edit(view=self)
 
       @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
       async def confirm(self, button, interaction):
@@ -146,4 +181,8 @@ class Crystals(commands.Cog):
         )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
-    await ctx.respond(embed=preview_embed, file=file, view=ConfirmCancelView(), ephemeral=True)
+    view = ConfirmCancelView()
+    await ctx.respond(embed=preview_embed, file=file, view=view, ephemeral=True)
+    view.message = await ctx.interaction.original_response()
+
+

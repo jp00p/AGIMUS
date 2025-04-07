@@ -38,7 +38,24 @@ async def db_get_existing_crystals_for_instance(instance_id: int):
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
       """
-        SELECT bc.*, ct.*
+        SELECT
+          bc.id AS badge_crystal_id,
+          bc.badge_instance_id,
+          bc.crystal_type_id,
+
+          ct.id AS crystal_type_id,
+          ct.name AS crystal_name,
+          ct.effect,
+          ct.description,
+          ct.icon,
+          ct.crystal_rarity_rank,
+
+          cr.rarity_rank,
+          cr.name AS rarity_name,
+          cr.emoji,
+          cr.drop_chance,
+          cr.sort_order
+
         FROM badge_crystals bc
         JOIN crystal_types ct ON bc.crystal_type_id = ct.id
         JOIN crystal_ranks cr ON ct.crystal_rarity_rank = cr.rarity_rank

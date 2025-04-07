@@ -37,7 +37,7 @@ CREATE TABLE crystal_types (
 INSERT INTO crystal_types (name, crystal_rank_rarity, icon, effect, description) VALUES
 
   -- Common Crystals
-  ("Dilithium", 1, "dilithium.png", NULL, "Good old Dilithium. Standard Starfleet issue!"),
+  ("Dilithium", 1, "dilithium.png", "pink_tint", "Good old Dilithium. Standard Starfleet issue!"),
   ("Deuterium", 1, "deuterium.png", "blue_tint", "Refined for warp cores. Imparts a subtle blue glow."),
   ("Tritanium", 1, "tritanium.png", "steel_tint", "Strong and dependable. Hull-grade enhancement."),
   ("Baryon", 1, "baryon.png", "orange_tint", "Sterile and slightly warm. Still glowing a bit."),

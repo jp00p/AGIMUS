@@ -66,18 +66,13 @@ async def migrate_badges(dry_run=False):
         )
         badge_instance_id = cur.lastrowid
 
+        # Give everyone a Dilithium crystal by default
         await cur.execute(
           """
           INSERT INTO badge_crystals (badge_instance_id, crystal_type_id)
           VALUES (%s, %s)
           """,
           (badge_instance_id, dilithium_id)
-        )
-        crystal_id = cur.lastrowid
-
-        await cur.execute(
-          "UPDATE badge_instances SET preferred_crystal_id = %s WHERE id = %s",
-          (crystal_id, badge_instance_id)
         )
 
         migrated += 1
