@@ -130,16 +130,16 @@ CREATE TABLE IF NOT EXISTS badges (
   locked BOOLEAN NOT NULL DEFAULT 0,
   PRIMARY KEY (id)
 );
-CREATE TABLE IF NOT EXISTS `badge_info` (
-  `badge_filename` varchar(128) NOT NULL,
-  `badge_name` varchar(128) NOT NULL,
-  `badge_url` varchar(256) NOT NULL,
-  `quadrant` varchar(128) DEFAULT NULL,
-  `time_period` varchar(128) DEFAULT NULL,
-  `franchise` varchar(128) DEFAULT NULL,
-  `reference` varchar(128) DEFAULT NULL,
-  `special` BOOLEAN NOT NULL DEFAULT 0,
-  PRIMARY KEY (`badge_filename`)
+CREATE TABLE IF NOT EXISTS badge_info (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  badge_filename varchar(128) NOT NULL UNIQUE,
+  badge_name varchar(128) NOT NULL,
+  badge_url varchar(256) NOT NULL,
+  quadrant varchar(128) DEFAULT NULL,
+  time_period varchar(128) DEFAULT NULL,
+  franchise varchar(128) DEFAULT NULL,
+  reference varchar(128) DEFAULT NULL,
+  special BOOLEAN NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS badge_affiliation (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -187,7 +187,7 @@ CREATE TABLE IF NOT EXISTS trade_requested (
   FOREIGN KEY (trade_id)
     REFERENCES trades(id)
 );
-CREATE TABLE IF NOT EXISTS `badge_scraps` (
+CREATE TABLE IF NOT EXISTS badge_scraps (
   `id` int NOT NULL AUTO_INCREMENT,
   `badge_filename` varchar(128) NOT NULL,
   `user_discord_id` varchar(128) NOT NULL,
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS `badge_scraps` (
   KEY `badge_filename` (`badge_filename`),
   CONSTRAINT `badge_scraps_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
 );
-CREATE TABLE IF NOT EXISTS `badge_scrapped` (
+CREATE TABLE IF NOT EXISTS badge_scrapped (
   `id` int NOT NULL AUTO_INCREMENT,
   `scrap_id` int(11) NOT NULL,
   `badge_filename` varchar(128) NOT NULL,
