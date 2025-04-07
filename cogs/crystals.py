@@ -2,7 +2,7 @@ from common import *
 
 from queries.badge_info import db_get_badge_info_by_name
 from queries.badge_inventory import db_get_badge_instance
-from queries.crystals import db_get_existing_crystals_for_instance, db_set_preferred_crystal
+from queries.crystals import db_get_existing_crystals_for_instance, db_set_slotted_crystal
 from utils.badge_utils import load_badge_image
 from utils.crystal_effects import apply_crystal_effect
 
@@ -97,7 +97,7 @@ class Crystals(commands.Cog):
       previous = next((c for c in crystals if c['id'] == instance['preferred_crystal_id']), None)
       prev_label = f"{previous['emoji']} {previous['crystal_name']}" if previous else "Unknown Crystal"
 
-      await db_set_preferred_crystal(instance['id'], None)
+      await db_set_slotted_crystal(instance['id'], None)
       embed = discord.Embed(
         title='Crystal Removed 🧼',
         description=f"Unslotted **{prev_label}** from **{badge_name}**.",
@@ -164,7 +164,7 @@ class Crystals(commands.Cog):
 
       @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
       async def confirm(self, button, interaction):
-        await db_set_preferred_crystal(instance['id'], selected['id'])
+        await db_set_slotted_crystal(instance['id'], selected['id'])
         embed = discord.Embed(
           title='Crystal Slotted ✅',
           description=f"Set **{crystal_label}** as your preferred crystal for **{badge_name}**.",

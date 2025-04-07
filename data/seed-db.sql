@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
   receive_notifications BOOLEAN NOT NULL DEFAULT 1,
   loudbot_enabled BOOLEAN NOT NULL DEFAULT 0,
   tagging_enabled BOOLEAN NOT NULL DEFAULT 0,
+  crystallize_autoslot ENUM('manual', 'auto_rarest', 'auto_newest') DEFAULT 'manual',
   level int(11) DEFAULT 1,
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)
@@ -439,6 +440,8 @@ INSERT INTO crystal_types (name, crystal_rank_rarity, icon, effect, description)
   ("Deuterium", 1, "deuterium.png", "blue_tint", "Refined for warp cores. Imparts a subtle blue glow."),
   ("Tritanium", 1, "tritanium.png", "steel_tint", "Strong and dependable. Hull-grade enhancement."),
   ("Baryon", 1, "baryon.png", "orange_tint", "Sterile and slightly warm. Still glowing a bit."),
+  ("Cormaline", 1, "cormaline.png", "purple_tint", "Ferenginar gemstone. Often gifted during dubious business deals."),
+  ("Tellurium", 1, "tellurium.png", "greenmint_tint", "Essential for biosensor arrays. Slightly toxic when aerosolized, don't breathe this!"),
 
   -- Uncommon Crystals
   ("Isolinear", 2, "isolinear.png", "circuitry", "Shimoda's favorite plaything. Fully stackable!"),

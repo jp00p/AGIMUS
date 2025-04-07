@@ -1,7 +1,14 @@
 from PIL import Image, ImageFilter
 
-# --- Entry Point ---
 
+# Rarity Tier Design Philosophy:
+#
+# Common    – Simple color tints
+# Uncommon  – Visual overlays (e.g. patterns)
+# Rare      – Background effects (may include subtle top overlays)
+# Legendary – Animated overlays or backdrops
+# Mythic    – Animated + prestige visual effects
+#
 def apply_crystal_effect(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
   """
   Applies a crystal's visual effect to a badge image.
@@ -23,7 +30,6 @@ def apply_crystal_effect(badge_image: Image.Image, badge: dict, crystal: dict) -
 
 
 # --- Internal Effect Registry ---
-
 _EFFECT_ROUTER = {}
 
 def register_effect(name):
@@ -34,7 +40,6 @@ def register_effect(name):
 
 
 # --- Common Tier Tint Effects ---
-
 @register_effect("pink_tint")
 def effect_pink_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
   return _apply_tint(img, (255, 105, 180))  # Hot pink
@@ -50,6 +55,14 @@ def effect_steel_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Ima
 @register_effect("orange_tint")
 def effect_orange_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
   return _apply_tint(img, (255, 165, 90))  # Warm orange
+
+@register_effect("purple_tint")
+def effect_purple_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+  return _apply_tint(img, (180, 110, 230))  # Soft violet
+
+@register_effect("greenmint_tint")
+def effect_greenmint_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+  return _apply_tint(img, (100, 220, 180))  # Minty green
 
 
 def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: float = 0.40, glow_radius: int = 6) -> Image.Image:
@@ -83,4 +96,3 @@ def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: flo
   result_img = Image.alpha_composite(glow_layer, Image.merge('RGBA', (*result_rgb.split(), a)))
 
   return result_img
-

@@ -105,6 +105,53 @@ class NotificationsView(discord.ui.View):
     self.add_item(NotificationsDropdown(self.cog))
 
 
+# _________                         __         .__  .__  .__                __  .__
+# \_   ___ \_______ ___.__. _______/  |______  |  | |  | |__|____________ _/  |_|__| ____   ____
+# /    \  \/\_  __ <   |  |/  ___/\   __\__  \ |  | |  | |  \___   /\__  \\   __\  |/  _ \ /    \
+# \     \____|  | \/\___  |\___ \  |  |  / __ \|  |_|  |_|  |/    /  / __ \|  | |  (  <_> )   |  \
+#  \______  /|__|   / ____/____  > |__| (____  /____/____/__/_____ \(____  /__| |__|\____/|___|  /
+#         \/        \/         \/            \/                   \/     \/                    \/
+class CrystallizeAutoSlotDropdown(discord.ui.Select):
+  def __init__(self, cog):
+    self.cog = cog
+    options = [
+      discord.SelectOption(label="Manual", description="Manually select Crystals to attach (No Auto-slot)."),
+      discord.SelectOption(label="Auto-slot Rarest", description="Automatically attach rarest Crystals."),
+      discord.SelectOption(label="Auto-slot Newest", description="Automatically attach newest Crystals."),
+    ]
+
+    super().__init__(
+      placeholder="Choose your Crystallization behavior",
+      min_values=1,
+      max_values=1,
+      options=options,
+      row=1
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    selection_map = {
+      "Manual": "manual",
+      "Auto-slot Rarest": "auto_rarest",
+      "Auto-slot Newest": "auto_newest"
+    }
+    selected_value = selection_map[self.values[0]]
+
+    await db_set_crystallize_autoslot(interaction.user.id, selected_value)
+    await interaction.response.send_message(
+      embed=discord.Embed(
+        title=f"Crystallization Auto-slot behavior set to '{self.values[0]}'.",
+        color=discord.Color.green()
+      ).set_footer(text="You can always come back to this interface and change this in the future!"),
+      ephemeral=True
+    )
+
+class CrystallizeAutoSlotView(discord.ui.View):
+  def __init__(self, cog):
+    self.cog = cog
+    super().__init__()
+    self.add_item(CrystallizeAutoSlotDropdown(self.cog))
+
+
 #  __      __                .___     .__                   .___
 # /  \    /  \___________  __| _/____ |  |   ____  __ __  __| _/
 # \   \/\/   /  _ \_  __ \/ __ |/ ___\|  |  /  _ \|  |  \/ __ |
@@ -346,6 +393,7 @@ class Settings(commands.Cog):
     home_embed, home_thumbnail = await self._get_home_embed_and_thumbnail()
 
     xp_embed, xp_thumbnail = await self._get_xp_embed_and_thumbnail()
+    crystallize_embed, crystallize_thumbnail = await self._get_crystallize_embed_and_thumbnail()
     notifications_embed, notifications_thumbnail = await self._get_notifications_embed_and_thumbnail()
     wordcloud_embed, wordcloud_thumbnail = await self._get_wordcloud_embed_and_thumbnail()
     loudbot_embed, loudbot_thumbnail = await self._get_loudbot_embed_and_thumbnail()
@@ -376,6 +424,21 @@ class Settings(commands.Cog):
         custom_buttons=[],
         use_default_buttons=False,
         custom_view=XPView(self)
+      ),
+      page_groups.append(
+        pages.PageGroup(
+          pages=[
+            pages.Page(
+              embeds=[crystallize_embed],
+              files=[crystallize_thumbnail]
+            )
+          ],
+          label="Crystallization",
+          description="Configure automatic Crystal slotting behavior",
+          custom_buttons=[],
+          use_default_buttons=False,
+          custom_view=CrystallizeAutoSlotView(self)
+        )
       ),
       pages.PageGroup(
         pages=[
@@ -486,6 +549,25 @@ class Settings(commands.Cog):
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
     embed.set_image(url="https://i.imgur.com/upuEFlq.png")
     embed.set_thumbnail(url=f"attachment://xp_system.png")
+
+    return embed, thumbnail
+
+  async def _get_crystallize_embed_and_thumbnail(self):
+    thumbnail = discord.File(fp="./images/templates/settings/crystallization.png", filename="crystallization.png")
+    embed = discord.Embed(
+      title="Crystallization Auto-Slot Preferences",
+      description=(
+        "Set how you prefer AGIMUS to handle automatic attachment of Crystals to your badges.\n\n"
+        "**Manual** - You'll manually select each Crystal, no auto-slotting will take place.\n"
+        "**Auto-slot Rarest** - Automatically attach a Crystal if it is rarer than what is currently slotted.\n"
+        "**Auto-slot Newest** - Automatically attach the most recently acquired Crystal first.\n\n"
+        "You can change this preference anytime!"
+      ),
+      color=discord.Color(0xFF0000)
+    )
+    embed.set_footer(text="Please select your choice from the dropdown below.")
+    embed.set_image(url="https://i.imgur.com/Kkwa9ub.png")
+    embed.set_thumbnail(url=f"attachment://crystallization.png")
 
     return embed, thumbnail
 
@@ -676,4 +758,10 @@ async def db_remove_user_from_dtd(user_id):
   async with AgimusDB() as query:
     sql = "DELETE FROM down_to_dabo WHERE user_discord_id = %s"
     vals = (user_id,)
+    await query.execute(sql, vals)
+
+async def db_set_crystallize_autoslot(user_id, autoslot_behavior: str):
+  async with AgimusDB() as query:
+    sql = "UPDATE users SET crystallize_autoslot = %s WHERE discord_id = %s"
+    vals = (autoslot_behavior, user_id)
     await query.execute(sql, vals)

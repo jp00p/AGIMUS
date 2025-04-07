@@ -1,5 +1,31 @@
--- v3.0.0.sql — Crystallization Schema
+-- v3.0.0.sql - Badge Instances Refactor
+-- Badges are now instanced rather than just rows in the old `baddges` table
+CREATE TABLE badge_instances (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  badge_info_id INT NOT NULL,
+  owner_discord_id BIGINT NOT NULL,
+  locked BOOLEAN DEFAULT FALSE,
+  origin_user_id BIGINT,
+  acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  preferred_crystal_id INT DEFAULT NULL,
+  status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
+  UNIQUE KEY (owner_discord_id, badge_info_id),
+  FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
+  FOREIGN KEY (preferred_crystal_id) REFERENCES badge_crystals(id) ON DELETE SET NULL
+);
 
+-- We can now track trading history via specific instances
+CREATE TABLE badge_trade_history (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  badge_instance_id INT NOT NULL,
+  from_user_id BIGINT NOT NULL,
+  to_user_id BIGINT NOT NULL,
+  transferred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  trade_reason TEXT,
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
+);
+
+-- v3.0.0.sql - Crystallization Schema
 -- 1. Crystal Ranks
 CREATE TABLE crystal_ranks (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -18,13 +44,6 @@ INSERT INTO crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order) VA
   ("Mythic",    "💎", 5, 0.05, 4);
 
 -- 2. Crystal Types
---
--- Rarity Tier Design Philosophy:
--- Common    – Simple color tints
--- Uncommon  – Visual overlays (e.g. patterns)
--- Rare      – Background effects (may include subtle top overlays)
--- Legendary – Animated overlays or backdrops
--- Mythic    – Animated + prestige visual effects
 CREATE TABLE crystal_types (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) NOT NULL UNIQUE,
@@ -35,12 +54,13 @@ CREATE TABLE crystal_types (
 );
 
 INSERT INTO crystal_types (name, crystal_rank_rarity, icon, effect, description) VALUES
-
   -- Common Crystals
   ("Dilithium", 1, "dilithium.png", "pink_tint", "Good old Dilithium. Standard Starfleet issue!"),
   ("Deuterium", 1, "deuterium.png", "blue_tint", "Refined for warp cores. Imparts a subtle blue glow."),
   ("Tritanium", 1, "tritanium.png", "steel_tint", "Strong and dependable. Hull-grade enhancement."),
   ("Baryon", 1, "baryon.png", "orange_tint", "Sterile and slightly warm. Still glowing a bit."),
+  ("Cormaline", 1, "cormaline.png", "purple_tint", "Ferenginar gemstone. Often gifted during dubious business deals."),
+  ("Tellurium", 1, "tellurium.png", "greenmint_tint", "Essential for biosensor arrays. Slightly toxic when aerosolized."),
 
   -- Uncommon Crystals
   ("Isolinear", 2, "isolinear.png", "circuitry", "Shimoda's favorite plaything. Fully stackable!"),
@@ -69,32 +89,6 @@ CREATE TABLE badge_crystals (
   FOREIGN KEY (crystal_type_id) REFERENCES crystal_types(id)
 );
 
--- 4. Badge Instances
-CREATE TABLE badge_instances (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  badge_info_id INT NOT NULL,
-  owner_discord_id BIGINT NOT NULL,
-  locked BOOLEAN DEFAULT FALSE,
-  origin_user_id BIGINT,
-  acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  preferred_crystal_id INT DEFAULT NULL,
-  status ENUM('active', 'scrapped', 'archived') NOT NULL DEFAULT 'active',
-  UNIQUE KEY (owner_discord_id, badge_info_id),
-  FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
-  FOREIGN KEY (preferred_crystal_id) REFERENCES badge_crystals(id) ON DELETE SET NULL
-);
-
--- 5. Badge Trade History
-CREATE TABLE badge_trade_history (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  badge_instance_id INT NOT NULL,
-  from_user_id BIGINT NOT NULL,
-  to_user_id BIGINT NOT NULL,
-  transferred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  trade_reason TEXT,
-  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
-);
-
 -- 6. Crystal Trades
 CREATE TABLE crystal_trades (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -113,3 +107,6 @@ CREATE TABLE crystal_trades (
 ALTER TABLE badge_crystals
   ADD CONSTRAINT fk_badge_crystals_instance
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE;
+
+-- Add new autoslot setting
+ALTER TABLE users ADD COLUMN crystallize_autoslot ENUM('manual', 'auto_rarest', 'auto_newest') DEFAULT 'manual';
