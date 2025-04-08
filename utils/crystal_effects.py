@@ -99,12 +99,12 @@ def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: flo
 
 
 # --- Uncommon Tier Overlay Effects ---
-OVERLAYS_DIRECTORY = 'images/crystal_effects/overlays/'
+UNCOMMON_OVERLAYS_DIR = 'images/crystal_effects/overlays/'
 
 @register_effect("isolinear")
 def effect_isolinear(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
   overlay_filename = 'isolinear.png'
-  overlay_path = f"{OVERLAYS_DIRECTORY}{overlay_filename}"
+  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}{overlay_filename}"
   overlay = Image.open(overlay_path).convert('L').resize(badge_image.size)
   mask = badge_image.split()[3].point(lambda p: 255 if p > 0 else 0).convert('L')
 
@@ -141,7 +141,7 @@ def effect_isolinear(badge_image: Image.Image, badge: dict, crystal: dict) -> Im
 @register_effect("positronic")
 def effect_positronic(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
   overlay_filename = 'positronic.png'
-  overlay_path = f"{OVERLAYS_DIRECTORY}{overlay_filename}"
+  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}{overlay_filename}"
   overlay = Image.open(overlay_path).convert('L').resize(badge_image.size)
 
   # Radial gradient colors
@@ -185,7 +185,7 @@ def effect_positronic(badge_image: Image.Image, badge: dict, crystal: dict) -> I
 @register_effect("optical")
 def effect_optical(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
   overlay_filename = 'optical.png'
-  overlay_path = f"{OVERLAYS_DIRECTORY}{overlay_filename}"
+  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}{overlay_filename}"
   overlay = Image.open(overlay_path).convert('L').resize(badge_image.size)
 
   # Create vertical beam gradient (white center → dark edges)
@@ -262,7 +262,7 @@ def effect_latinum(badge_image: Image.Image, badge: dict, crystal: dict) -> Imag
 @register_effect("cryonetrium")
 def effect_cryonetrium(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
   overlay_filename = 'cryonetrium.png'
-  overlay_path = f"{OVERLAYS_DIRECTORY}{overlay_filename}"
+  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}{overlay_filename}"
   overlay = Image.open(overlay_path).convert('L').resize(badge_image.size)
 
   if badge_image.mode != 'RGBA':
@@ -306,3 +306,54 @@ def effect_cryonetrium(badge_image: Image.Image, badge: dict, crystal: dict) -> 
   final = Image.alpha_composite(base_with_glow, overlay_masked)
   return final
 
+
+# --- Rare Tier Background Effects ---
+RARE_BACKGROUNDS_DIR = 'images/crystal_effects/backgrounds/'
+
+def _apply_radial_fade(img: Image.Image, fade_start_ratio=0.6, fade_end_ratio=0.85, feather_power=0.5) -> Image.Image:
+  width, height = img.size
+  cx, cy = width // 2, height // 2
+  max_radius = (cx**2 + cy**2) ** 0.5
+  fade_start = max_radius * fade_start_ratio
+  fade_end = max_radius * fade_end_ratio
+  mask = Image.new("L", img.size, 255)
+  pixels = mask.load()
+  for y in range(height):
+    for x in range(width):
+      dx = x - cx
+      dy = y - cy
+      distance = (dx**2 + dy**2) ** 0.5
+      if distance <= fade_start:
+        alpha = 255
+      elif distance >= fade_end:
+        alpha = 0
+      else:
+        ratio = (distance - fade_start) / (fade_end - fade_start)
+        alpha = int(255 * (1 - ratio**feather_power))
+      pixels[x, y] = max(0, min(alpha, 255))
+  r, g, b, _ = img.split()
+  return Image.merge("RGBA", (r, g, b, mask))
+
+@register_effect("trilithium_banger")
+def effect_trilithium_banger(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+  bg_path = f"{RARE_BACKGROUNDS_DIR}trilithium_banger.png"
+  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
+  faded_background = _apply_radial_fade(background)
+  composite = Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
+  return composite
+
+@register_effect("tholian_web")
+def effect_tholian_web(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+  bg_path = f"{RARE_BACKGROUNDS_DIR}tholian_web.png"
+  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
+  faded_background = _apply_radial_fade(background)
+  composite = Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
+  return composite
+
+@register_effect("holo_grid")
+def effect_holo_grid(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+  bg_path = f"{RARE_BACKGROUNDS_DIR}holo_grid.png"
+  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
+  faded_background = _apply_radial_fade(background)
+  composite = Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
+  return composite
