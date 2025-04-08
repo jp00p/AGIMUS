@@ -135,16 +135,10 @@ class Tongo(commands.Cog):
   )
   @option(
     name="liability",
-    description="Choose whether to risk your unlocked badges or your FULL inventory (might get a Crystallization reward!).",
+    description="Risk 3 badges from your unlocked inventory or your FULL inventory!).",
     choices=[
-      discord.OptionChoice(
-        name="Unlocked",
-        value="unlocked"
-      ),
-      discord.OptionChoice(
-        name="All In",
-        value="all_in"
-      )
+      discord.OptionChoice(name="Unlocked", value="unlocked"),
+      discord.OptionChoice(name="All In", value="all_in")
     ],
     required=True
   )
@@ -272,7 +266,7 @@ class Tongo(commands.Cog):
   )
   @option(
     name="liability",
-    description="Choose whether to risk your unlocked badges or your FULL inventory (might get a Crystallization reward!).",
+    description="Risk 3 badges from your unlocked inventory or your FULL inventory.!).",
     choices=[
       discord.OptionChoice(name="Unlocked", value="unlocked"),
       discord.OptionChoice(name="All In", value="all_in")
@@ -1188,7 +1182,6 @@ def build_liquidation_removal_embed(badges: list[dict], image_id: str) -> discor
 #   else:
 #     return None
 
-<<<<<<< Updated upstream
 # async def db_get_tongo_pot_badges():
 #   async with AgimusDB(dictionary=True) as query:
 #     sql = '''
@@ -1200,42 +1193,6 @@ def build_liquidation_removal_embed(badges: list[dict], image_id: str) -> discor
 #     await query.execute(sql)
 #     badges = await query.fetchall()
 #   return badges
-=======
-async def get_tongo_pot_info_ids() -> list[int]:
-  query = """
-    SELECT badge_info_id
-    FROM tongo_pot
-  """
-  async with AgimusDB() as db:
-    await db.execute(query)
-    rows = await db.fetchall()
-  return [row['badge_info_id'] for row in rows]
-
-
-async def get_tongo_pot_instances_by_game(tongo_id: int) -> list[dict]:
-  query = """
-    SELECT t.badge_instance_id, b.badge_info_id
-    FROM tongo t
-    JOIN badge_instances b ON b.id = t.badge_instance_id
-    WHERE t.tongo_id = %s
-  """
-  async with AgimusDB() as db:
-    await db.execute(query, (tongo_id,))
-    return await db.fetchall()
-
-
-async def db_get_tongo_pot_badges():
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT * FROM badge_info AS b_i
-        JOIN tongo_pot AS t_p
-          ON t_p.badge_filename = b_i.badge_filename
-          ORDER BY b_i.badge_name ASC
-    '''
-    await query.execute(sql)
-    badges = await query.fetchall()
-  return badges
->>>>>>> Stashed changes
 
 # async def db_get_active_tongo_players(tongo_id):
 #   async with AgimusDB(dictionary=True) as query:
@@ -1305,39 +1262,6 @@ async def db_get_tongo_pot_badges():
 #     )
 #     await query.execute(sql, vals)
 
-
-
-async def db_liquidate_badge_instance(instance_id: int):
-  # Fetch old owner (if any)
-  query_owner = """
-    SELECT owner_discord_id
-    FROM badge_instances
-    WHERE id = %s
-  """
-  async with AgimusDB(dictionary=True) as db:
-    old = await db.fetchone(query_owner, (instance_id,))
-    old_owner = old['owner_discord_id'] if old else None
-
-  # Null ownership + set to 'liquidated'
-  query_update = """
-    UPDATE badge_instances
-    SET owner_discord_id = NULL,
-        status = 'liquidated'
-    WHERE id = %s
-  """
-  async with AgimusDB() as db:
-    await db.execute(query_update, (instance_id,))
-
-  # Record provenance
-  query_provenance = """
-    INSERT INTO badge_instance_provenance (badge_instance_id, from_user_id, to_user_id, acquisition_reason)
-    VALUES (%s, %s, NULL, 'liquidation')
-  """
-  async with AgimusDB() as db:
-    await db.execute(query_provenance, (instance_id, old_owner))
-
-
-
 async def db_get_related_tongo_badge_trades(user_discord_id, selected_user_badges):
   async with AgimusDB(dictionary=True) as query:
     sql = '''
@@ -1365,36 +1289,6 @@ async def db_get_related_tongo_badge_trades(user_discord_id, selected_user_badge
     await query.execute(sql, vals)
     trades = await query.fetchall()
   return trades
-
-# async def db_grant_player_badge(user_discord_id, badge_filename):
-#   async with AgimusDB() as query:
-#     sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
-#     vals = (user_discord_id, badge_filename)
-#     await query.execute(sql, vals)
-
-<<<<<<< Updated upstream
-# async def db_remove_badge_from_pot(badge_filename):
-#   async with AgimusDB() as query:
-#     sql = "DELETE FROM tongo_pot WHERE badge_filename = %s"
-#     vals = (badge_filename,)
-#     await query.execute(sql, vals)
-=======
-async def db_remove_badge_from_pot(badge_info_id: int):
-  query = """
-    DELETE FROM tongo_pot
-    WHERE badge_info_id = %s
-    LIMIT 1
-  """
-  async with AgimusDB() as db:
-    await db.execute(query, (badge_info_id,))
-
->>>>>>> Stashed changes
-
-# async def db_end_current_tongo(tongo_id):
-#   async with AgimusDB() as query:
-#     sql = "UPDATE tongo SET status = 'complete' WHERE id = %s"
-#     vals = (tongo_id,)
-#     await query.execute(sql, vals)
 
 
 # _________                __  .__                           .___

@@ -1,5 +1,6 @@
-from PIL import Image, ImageFilter
+from common import *
 
+from pathlib import Path
 
 # Rarity Tier Design Philosophy:
 #
@@ -64,7 +65,6 @@ def effect_purple_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Im
 def effect_greenmint_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
   return _apply_tint(img, (100, 220, 180))  # Minty green
 
-
 def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: float = 0.40, glow_radius: int = 6) -> Image.Image:
   if base_img.mode != 'RGBA':
     base_img = base_img.convert('RGBA')
@@ -96,3 +96,47 @@ def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: flo
   result_img = Image.alpha_composite(glow_layer, Image.merge('RGBA', (*result_rgb.split(), a)))
 
   return result_img
+
+
+# --- Uncommon Tier Overlay Effects ---
+OVERLAYS_DIRECTORY = 'images/crystal_effects/overlays/'
+
+@register_effect("circuitry")
+def effect_circuitry(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+  """
+  Applies a vibrant circuitry overlay using a luminosity mask.
+  """
+  overlay_filename = 'circuitry.png'
+  overlay_path = f"{OVERLAYS_DIRECTORY}{overlay_filename}"
+  overlay = Image.open(overlay_path).convert('L').resize(badge_image.size)
+  mask = badge_image.split()[3].point(lambda p: 255 if p > 0 else 0).convert('L')
+
+  # Hardcoded neon gradient (teal to magenta)
+  color_top = (0, 255, 180)
+  color_bottom = (255, 0, 180)
+
+  gradient = Image.new('RGBA', badge_image.size)
+  draw = ImageDraw.Draw(gradient)
+  for y in range(badge_image.height):
+    ratio = y / badge_image.height
+    r = int(color_top[0] * (1 - ratio) + color_bottom[0] * ratio)
+    g = int(color_top[1] * (1 - ratio) + color_bottom[1] * ratio)
+    b = int(color_top[2] * (1 - ratio) + color_bottom[2] * ratio)
+    draw.line([(0, y), (badge_image.width, y)], fill=(r, g, b, 255))
+
+  # Apply circuitry as alpha to gradient
+  gradient.putalpha(overlay)
+
+  # Mask overlay to badge shape only
+  overlay_masked = Image.composite(gradient, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), mask)
+
+  # Glow: blur the overlay and brighten it
+  glow = overlay_masked.filter(ImageFilter.GaussianBlur(radius=6))
+  glow = ImageEnhance.Brightness(glow).enhance(2.5)
+  glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), mask)
+
+  # Composite: glow → badge → overlay
+  base_with_glow = Image.alpha_composite(glow, badge_image)
+  final = Image.alpha_composite(base_with_glow, overlay_masked)
+
+  return final

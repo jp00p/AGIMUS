@@ -119,7 +119,7 @@ class Crystals(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
-    if instance.get('preferred_crystal_id') == selected['id']:
+    if instance.get('preferred_crystal_id') == selected['crystal_type_id']:
       embed = discord.Embed(
         title='Already Slotted!',
         description=f"**{crystal_name}** is already your active crystal for **{badge_name}**.",
@@ -144,7 +144,7 @@ class Crystals(commands.Cog):
 
     preview_embed = discord.Embed(
       title=f"Crystallization Preview",
-      description=f"{badge_name} with *{crystal['crystal_name']}* applied.",
+      description=f"Here's what **{badge_name}** would look like with *{crystal['crystal_name']}* applied.",
       color=discord.Color.blurple()
     )
     preview_embed.add_field(name=f"{crystal['crystal_name']}", value=f"{crystal_description}", inline=False)
