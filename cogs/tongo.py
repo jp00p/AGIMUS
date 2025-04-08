@@ -1188,6 +1188,7 @@ def build_liquidation_removal_embed(badges: list[dict], image_id: str) -> discor
 #   else:
 #     return None
 
+<<<<<<< Updated upstream
 # async def db_get_tongo_pot_badges():
 #   async with AgimusDB(dictionary=True) as query:
 #     sql = '''
@@ -1199,6 +1200,42 @@ def build_liquidation_removal_embed(badges: list[dict], image_id: str) -> discor
 #     await query.execute(sql)
 #     badges = await query.fetchall()
 #   return badges
+=======
+async def get_tongo_pot_info_ids() -> list[int]:
+  query = """
+    SELECT badge_info_id
+    FROM tongo_pot
+  """
+  async with AgimusDB() as db:
+    await db.execute(query)
+    rows = await db.fetchall()
+  return [row['badge_info_id'] for row in rows]
+
+
+async def get_tongo_pot_instances_by_game(tongo_id: int) -> list[dict]:
+  query = """
+    SELECT t.badge_instance_id, b.badge_info_id
+    FROM tongo t
+    JOIN badge_instances b ON b.id = t.badge_instance_id
+    WHERE t.tongo_id = %s
+  """
+  async with AgimusDB() as db:
+    await db.execute(query, (tongo_id,))
+    return await db.fetchall()
+
+
+async def db_get_tongo_pot_badges():
+  async with AgimusDB(dictionary=True) as query:
+    sql = '''
+      SELECT * FROM badge_info AS b_i
+        JOIN tongo_pot AS t_p
+          ON t_p.badge_filename = b_i.badge_filename
+          ORDER BY b_i.badge_name ASC
+    '''
+    await query.execute(sql)
+    badges = await query.fetchall()
+  return badges
+>>>>>>> Stashed changes
 
 # async def db_get_active_tongo_players(tongo_id):
 #   async with AgimusDB(dictionary=True) as query:
@@ -1335,11 +1372,23 @@ async def db_get_related_tongo_badge_trades(user_discord_id, selected_user_badge
 #     vals = (user_discord_id, badge_filename)
 #     await query.execute(sql, vals)
 
+<<<<<<< Updated upstream
 # async def db_remove_badge_from_pot(badge_filename):
 #   async with AgimusDB() as query:
 #     sql = "DELETE FROM tongo_pot WHERE badge_filename = %s"
 #     vals = (badge_filename,)
 #     await query.execute(sql, vals)
+=======
+async def db_remove_badge_from_pot(badge_info_id: int):
+  query = """
+    DELETE FROM tongo_pot
+    WHERE badge_info_id = %s
+    LIMIT 1
+  """
+  async with AgimusDB() as db:
+    await db.execute(query, (badge_info_id,))
+
+>>>>>>> Stashed changes
 
 # async def db_end_current_tongo(tongo_id):
 #   async with AgimusDB() as query:

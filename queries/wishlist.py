@@ -20,6 +20,17 @@ async def db_get_user_wishlist_badges(user_discord_id):
   return badges
 
 
+async def get_user_wishlist_info_ids(user_id: int) -> list[int]:
+  query = """
+    SELECT badge_info_id
+    FROM wishlist
+    WHERE user_discord_id = %s
+  """
+  async with AgimusDB() as db:
+    await db.execute(query, (user_id,))
+    rows = await db.fetchall()
+  return [row['badge_info_id'] for row in rows]
+
 #    _____       .___  .___     /\ __________
 #   /  _  \    __| _/__| _/    / / \______   \ ____   _____   _______  __ ____
 #  /  /_\  \  / __ |/ __ |    / /   |       _// __ \ /     \ /  _ \  \/ // __ \

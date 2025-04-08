@@ -34,6 +34,7 @@ from fuzzywuzzy import fuzz
 from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps
 from tabulate import tabulate
 from treys import Card, Deck, Evaluator, evaluator
+from typing import List, Dict
 
 #from utils.broadcast_logs import BroadcastHandler
 from utils.config_utils import get_config, deep_dict_update
