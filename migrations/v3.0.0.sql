@@ -1,39 +1,18 @@
 -- v3.0.0.sql - Badge Instances Refactor
--- Badges are now instanced rather than just rows in the old `baddges` table
-CREATE TABLE badge_instances (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  badge_info_id INT NOT NULL,
-  owner_discord_id BIGINT NOT NULL,
-  locked BOOLEAN DEFAULT FALSE,
-  origin_user_id BIGINT,
-  acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  preferred_crystal_id INT DEFAULT NULL,
-  status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
-  UNIQUE KEY (owner_discord_id, badge_info_id),
-  FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
-  FOREIGN KEY (preferred_crystal_id) REFERENCES badge_crystals(id) ON DELETE SET NULL
-);
 
--- We can now track trading history via specific instances
-CREATE TABLE badge_instance_provenance (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  badge_instance_id INT NOT NULL,
-  from_user_id BIGINT DEFAULT NULL,
-  to_user_id BIGINT NOT NULL,
-  transferred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  acquisition_reason ENUM(
-    'epoch',
-    'level_up',
-    'trade',
-    'tongo',
-    'liquidation'
-    'admin',
-    'unknown'
-  ) NOT NULL DEFAULT 'unknown',
-  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
-);
+-- We're gonna start using an id column on badge_info for the new tables going forward
+-- But eventually we'll go back and update all the tables and queries to use this id
+-- badge_info's primary key, but this refactor is massive enough as-is and
+-- I just don't want to deal with all of that shit right now... whee
+
+-- Add ID column for badge_info without breaking foreign key constraints
+ALTER TABLE badge_info
+  ADD COLUMN id INT AUTO_INCREMENT UNIQUE FIRST;
 
 -- v3.0.0.sql - Crystallization Schema
+
+-- CRYSTALS!
+
 -- 1. Crystal Ranks
 CREATE TABLE crystal_ranks (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -58,7 +37,7 @@ CREATE TABLE crystal_types (
   crystal_rank_rarity INT NOT NULL,
   icon VARCHAR(128),
   effect TEXT,
-  description TEXT,
+  description TEXT
 );
 
 INSERT INTO crystal_types (name, crystal_rank_rarity, icon, effect, description) VALUES
@@ -100,6 +79,40 @@ CREATE TABLE badge_crystals (
   FOREIGN KEY (crystal_type_id) REFERENCES crystal_types(id)
 );
 
+-- 4. Badge Instances (safe now!)
+CREATE TABLE badge_instances (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  badge_info_id INT NOT NULL,
+  owner_discord_id BIGINT NOT NULL,
+  locked BOOLEAN DEFAULT FALSE,
+  origin_user_id BIGINT,
+  acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  preferred_crystal_id INT DEFAULT NULL,
+  status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
+  UNIQUE KEY (owner_discord_id, badge_info_id),
+  FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
+  FOREIGN KEY (preferred_crystal_id) REFERENCES badge_crystals(id) ON DELETE SET NULL
+);
+
+-- 5. Instance Provenance
+CREATE TABLE badge_instance_provenance (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  badge_instance_id INT NOT NULL,
+  from_user_id BIGINT DEFAULT NULL,
+  to_user_id BIGINT NOT NULL,
+  transferred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  acquisition_reason ENUM(
+    'epoch',
+    'level_up',
+    'trade',
+    'tongo',
+    'liquidation',
+    'admin',
+    'unknown'
+  ) NOT NULL DEFAULT 'unknown',
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
+);
+
 -- 6. Crystal Trades
 CREATE TABLE crystal_trades (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -114,19 +127,15 @@ CREATE TABLE crystal_trades (
   FOREIGN KEY (to_badge_instance_id) REFERENCES badge_instances(id)
 );
 
--- Add FK to badge_instances after it exists
+-- 7. Add FK to badge_crystals after both tables exist
 ALTER TABLE badge_crystals
   ADD CONSTRAINT fk_badge_crystals_instance
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE;
 
--- Add new autoslot setting
+-- 8. New autoslot setting
 ALTER TABLE users ADD COLUMN crystallize_autoslot ENUM('manual', 'auto_rarest', 'auto_newest') DEFAULT 'manual';
 
---
--- TONGO v2
---
-
--- Core Tongo game record
+-- 9. TONGO v2
 CREATE TABLE tongo_games (
   id INT AUTO_INCREMENT PRIMARY KEY,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -134,7 +143,6 @@ CREATE TABLE tongo_games (
   status ENUM('open', 'in_progress', 'resolved', 'cancelled') DEFAULT 'open'
 );
 
--- Players participating in the game, including liability mode
 CREATE TABLE tongo_game_players (
   game_id INT,
   user_discord_id BIGINT,
@@ -143,7 +151,6 @@ CREATE TABLE tongo_game_players (
   FOREIGN KEY (game_id) REFERENCES tongo_games(id)
 );
 
--- Persistent shared badge pool (the Great Material Continuum)
 CREATE TABLE tongo_continuum (
   badge_info_id INT PRIMARY KEY,
   source_instance_id INT,
@@ -153,7 +160,6 @@ CREATE TABLE tongo_continuum (
   FOREIGN KEY (source_instance_id) REFERENCES badge_instances(id)
 );
 
--- Rewards distributed at the end of the game
 CREATE TABLE tongo_game_rewards (
   game_id INT,
   user_discord_id BIGINT,
