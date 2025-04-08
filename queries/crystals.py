@@ -84,6 +84,7 @@ async def db_get_attached_crystals(instance_id: int):
         JOIN crystal_types ct ON bc.crystal_type_id = ct.id
         JOIN crystal_ranks cr ON ct.crystal_rarity_rank = cr.rarity_rank
         WHERE bc.badge_instance_id = %s
+        ORDER BY ct.crystal_rarity_rank, ct.name ASC
       """,
       (instance_id,)
     )
@@ -112,6 +113,7 @@ async def db_get_crystals_by_rarity(rarity_rank: int):
         FROM crystal_types ct
         JOIN crystal_ranks cr ON ct.crystal_rarity_rank = cr.rarity_rank
         WHERE ct.crystal_rarity_rank = %s
+        ORDER BY c.name ASC
       """,
       (rarity_rank,)
     )
@@ -123,6 +125,7 @@ async def db_get_crystal_rarity_weights():
       """
         SELECT rarity_rank, drop_chance
         FROM crystal_ranks
+        ORDER BY crystal_rank ASC
       """
     )
     return await query.fetchall()
@@ -141,6 +144,7 @@ async def db_get_available_crystal_types():
         SELECT c.*, r.emoji, r.drop_chance
         FROM crystal_types c
         JOIN crystal_ranks r ON c.crystal_rarity_rank = r.rarity_rank
+        ORDER BY c.crystal_rarity_rank ASC, c.name ASC
       """
     )
     crystal_types = await query.fetchall()

@@ -9,7 +9,6 @@ class Admin(commands.Cog):
 
   async def autocomplete_badge_name(self, ctx: discord.AutocompleteContext):
     user_id = ctx.options.get("user")
-    logger.info(user_id)
     if not user_id:
       return []
 
@@ -22,7 +21,7 @@ class Admin(commands.Cog):
 
   async def autocomplete_crystal_name(self, ctx: discord.AutocompleteContext):
     crystals = await db_get_available_crystal_types()
-    return [c['name'] for c in crystals if ctx.value.lower() in c['name'].lower()][:25]
+    return [f"{c['emoji']} {c['name']}" for c in crystals if ctx.value.lower() in c['name'].lower()][:25]
 
   admin_group = discord.SlashCommandGroup("admin", "Admin Commands for Debugging.")
 
@@ -57,6 +56,7 @@ class Admin(commands.Cog):
     crystal_name: str
   ):
     await ctx.defer(ephemeral=True)
+    crystal_name = crystal_name[2:] # Strip emoji from param
 
     # Step 1: Get the badge info
     badge_info = await db_get_badge_info_by_name(badge_name)
