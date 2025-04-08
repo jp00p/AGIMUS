@@ -64,7 +64,6 @@ def effect_purple_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Im
 def effect_greenmint_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
   return _apply_tint(img, (100, 220, 180))  # Minty green
 
-
 def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: float = 0.40, glow_radius: int = 6) -> Image.Image:
   if base_img.mode != 'RGBA':
     base_img = base_img.convert('RGBA')
@@ -96,3 +95,28 @@ def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: flo
   result_img = Image.alpha_composite(glow_layer, Image.merge('RGBA', (*result_rgb.split(), a)))
 
   return result_img
+
+
+# --- Uncommon Tier Overlay Effects ---
+@register_effect("circuitry")
+def effect_circuitry(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+  return _apply_overlay(img, 'assets/crystal_effects/overlays/circuitry.png', alpha=0.6)
+
+
+def _apply_overlay(base_img: Image.Image, overlay_path: str, alpha: float = 1.0) -> Image.Image:
+  if base_img.mode != 'RGBA':
+    base_img = base_img.convert('RGBA')
+
+  overlay = Image.open(overlay_path).convert('RGBA').resize(base_img.size)
+
+  if alpha < 1.0:
+    # Reduce overlay opacity if needed
+    overlay = overlay.copy()
+    pixels = overlay.load()
+    for y in range(overlay.height):
+      for x in range(overlay.width):
+        r, g, b, a = pixels[x, y]
+        pixels[x, y] = (r, g, b, int(a * alpha))
+
+  return Image.alpha_composite(base_img, overlay)
+

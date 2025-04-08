@@ -121,10 +121,39 @@ async def db_update_instance_owner(instance_id: int, user_id: int):
     await db.execute(query, (user_id, instance_id))
 
 
+# -- Liquidation
+
+async def db_liquidate_badge_instance(instance_id: int):
+  # Fetch old owner (if any)
+  query_owner = """
+    SELECT owner_discord_id
+    FROM badge_instances
+    WHERE id = %s
+  """
+  async with AgimusDB(dictionary=True) as db:
+    old = await db.fetchone(query_owner, (instance_id,))
+    old_owner = old['owner_discord_id'] if old else None
+
+  # Null ownership + set to 'liquidated'
+  query_update = """
+    UPDATE badge_instances
+    SET owner_discord_id = NULL,
+        status = 'liquidated'
+    WHERE id = %s
+  """
+  async with AgimusDB() as db:
+    await db.execute(query_update, (instance_id,))
+
+  # Record provenance
+  query_provenance = """
+    INSERT INTO badge_instance_provenance (badge_instance_id, from_user_id, to_user_id, acquisition_reason)
+    VALUES (%s, %s, NULL, 'liquidation')
+  """
+  async with AgimusDB() as db:
+    await db.execute(query_provenance, (instance_id, old_owner))
+
+
 # --- Rewards ---
-
-
-
 async def db_add_game_reward(game_id: int, user_id: int, badge_instance_id: int, crystal_id: Optional[int] = None):
   query = """
     INSERT INTO tongo_game_rewards (game_id, user_discord_id, badge_instance_id, crystal_id)
