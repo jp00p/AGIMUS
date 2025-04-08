@@ -451,9 +451,9 @@ INSERT INTO crystal_types (name, crystal_rank_rarity, icon, effect, description)
   ("Cryonetrium", 2, "cryonetrium.png", "cryontrium", "Still gaseous at -200°C, that's some cold coolant!"),
 
   -- Rare Crystals
-  ("Trilithium", 3, "trilithium.png", "explosive_banger", "Volatile compound banned in three quadrants. Handle with care."),
+  ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in three quadrants. Handle with care."),
   ("Tholian Silk", 3, "tholian_silk.png", "tholian_web", "A crystallized thread of energy - elegant, fractical, and deadly."),
-  ("Photonic Shard", 3, "photonic_shard.png", "holo_grid", "Rendered with an uncanny simulated depth."),
+  ("Photonic Shard", 3, "photonic_shard.png", "holo_grid", "Hologrammatical. Rendered with an uncanny simulated depth."),
 
   -- Legendary Crystals
   ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "Collected from the EPS grid. Hums with that familiar pulse."),

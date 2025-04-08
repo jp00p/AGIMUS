@@ -62,30 +62,33 @@ CREATE TABLE crystal_types (
 );
 
 INSERT INTO crystal_types (name, crystal_rank_rarity, icon, effect, description) VALUES
+
   -- Common Crystals
   ("Dilithium", 1, "dilithium.png", "pink_tint", "Good old Dilithium. Standard Starfleet issue!"),
   ("Deuterium", 1, "deuterium.png", "blue_tint", "Refined for warp cores. Imparts a subtle blue glow."),
   ("Tritanium", 1, "tritanium.png", "steel_tint", "Strong and dependable. Hull-grade enhancement."),
   ("Baryon", 1, "baryon.png", "orange_tint", "Sterile and slightly warm. Still glowing a bit."),
   ("Cormaline", 1, "cormaline.png", "purple_tint", "Ferenginar gemstone. Often gifted during dubious business deals."),
-  ("Tellurium", 1, "tellurium.png", "greenmint_tint", "Essential for biosensor arrays. Slightly toxic when aerosolized."),
+  ("Tellurium", 1, "tellurium.png", "greenmint_tint", "Essential for biosensor arrays. Slightly toxic when aerosolized, don't breathe this!"),
 
   -- Uncommon Crystals
-  ("Isolinear", 2, "isolinear.png", "circuitry", "Shimoda's favorite plaything. Fully stackable!"),
-  ("Optical Mesh", 2, "optical_mesh.png", "optical_filaments", "Encoded info strands utilized by LCARS display terminals."),
-  ("Positron", 2, "positron.png", "positronic_pattern", "Fully functional. Operates at 60 trillion calculations a second."),
+  ("Isolinear", 2, "isolinear.png", "isolinear", "Shimoda's favorite plaything. Fully stackable!"),
+  ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
+  ("Positron", 2, "positron.png", "positronic", "Fully functional. Operates at 60 trillion calculations a second."),
+  ("Latinum", 2, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!."),
+  ("Cryonetrium", 2, "cryonetrium.png", "cryontrium", "Still gaseous at -200°C, that's some cold coolant!"),
 
   -- Rare Crystals
-  ("Trilithium", 3, "trilithium.png", "explosive_glow", "A volatile compound banned in three quadrants. Handle with care."),
-  ("Tholian Silk", 3, "tholian_silk.png", "interconnected_web", "A crystallized thread of energy - elegant, fractical, and deadly."),
-  ("Photonic Shard", 3, "photonic_shard.png", "holo_grid", "Rendered with an uncanny simulated depth."),
+  ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in three quadrants. Handle with care."),
+  ("Tholian Silk", 3, "tholian_silk.png", "tholian_web", "A crystallized thread of energy - elegant, fractical, and deadly."),
+  ("Photonic Shard", 3, "photonic_shard.png", "holo_grid", "Hologrammatical. Rendered with an uncanny simulated depth."),
 
   -- Legendary Crystals
-  ("Raw Warp Plasma", 4, "warp_plasma.png", "pulsing_surge", "Collected from the EPS grid. Hums with that familiar pulse."),
-  ("Subspace Ripple", 4, "subspace.png", "ripple_warp", "Always vibrating... but not quite here."),
+  ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "Collected from the EPS grid. Hums with that familiar pulse."),
+  ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Be careful of distortions and space buttholes when these are around..."),
 
   -- Mythic Crystals
-  ("Chroniton", 5, "chroniton.png", "phase_flicker", "Phased slightly out of time. Glitches in and out of this temporal frame."),
+  ("Chroniton", 5, "chroniton.png", "phase_flicker", "Time travel! Glitches in and out of this temporal frame."),
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable.");
 
 -- 3. Badge Crystals (must come before badge_instances)
