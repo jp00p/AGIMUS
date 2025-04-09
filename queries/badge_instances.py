@@ -40,7 +40,7 @@ async def db_get_user_badges(user_id: int, sortby: str = None):
     return await query.fetchall()
 
 
-async def db_get_badge_instance(user_id, badge_info_id):
+async def db_get_badge_instance_id_by_badge_info_id(user_id, badge_info_id):
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
       "SELECT id FROM badge_instances WHERE badge_info_id = %s AND owner_discord_id = %s",

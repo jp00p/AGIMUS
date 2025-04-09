@@ -1,7 +1,7 @@
 from common import *
 
 from queries.badge_info import db_get_badge_info_by_name
-from queries.badge_instances import db_get_badge_instance
+from queries.badge_instances import db_get_badge_instance_id_by_badge_info_id
 from queries.crystals import db_get_attached_crystals, db_set_slotted_crystal
 from utils.badge_utils import load_badge_image
 from utils.crystal_effects import apply_crystal_effect
@@ -31,7 +31,7 @@ class Crystals(commands.Cog):
     if not badge_info:
       return []
 
-    instance = await db_get_badge_instance(user_id, badge_info['id'])
+    instance = await db_get_badge_instance_id_by_badge_info_id(user_id, badge_info['id'])
     if not instance:
       return []
 
@@ -71,7 +71,7 @@ class Crystals(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
-    instance = await db_get_badge_instance(user_id, badge_info['id'])
+    instance = await db_get_badge_instance_id_by_badge_info_id(user_id, badge_info['id'])
     if not instance:
       embed = discord.Embed(
         title='Badge Not Owned!',

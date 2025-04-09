@@ -1,6 +1,6 @@
 from common import *
 from queries.badge_info import db_get_badge_info_by_name, db_get_all_badge_info
-from queries.badge_inventory import db_get_badge_instance, db_get_user_badges
+from queries.badge_instances import db_get_badge_instance_id_by_badge_info_id, db_get_user_badges
 from queries.crystals import db_attach_crystal_to_instance, db_get_available_crystal_types
 
 class Admin(commands.Cog):
@@ -66,7 +66,7 @@ class Admin(commands.Cog):
       return
 
     # Step 2: Find the instance
-    instance = await db_get_badge_instance(user.id, badge_info['id'])
+    instance = await db_get_badge_instance_id_by_badge_info_id(user.id, badge_info['id'])
     if not instance:
       embed = discord.Embed(title="Instance Missing", description=f"❌ {user.mention} does not have a badge instance for '{badge_name}'", color=discord.Color.red())
       await ctx.respond(embed=embed, ephemeral=True)
