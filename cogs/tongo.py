@@ -756,62 +756,67 @@ class Tongo(commands.Cog):
       images = await generate_paginated_continuum_images(updated)
       await self._send_continuum_images_to_channel(trade_channel, images)
 
-  async def _perform_confront_distribution(game_id: int) -> dict[int, set[int]]:
+  async def _perform_confront_distribution(self, game_id: int) -> dict[int, set[int]]:
     players = await db_get_players_for_game(game_id)
     player_ids = [int(p['user_discord_id']) for p in players]
 
-    badge_info_ids = await db_get_continuum_badge_ids()
-    if not badge_info_ids:
-      return {}, {}
+    continuum_records = await db_get_full_continuum_badges()
+    if not continuum_records:
+      return {}
 
-    # Grab full badge info + instance_id from continuum
-    continuum = []
-    for badge_info_id in badge_info_ids:
-      badge_info = await db_get_badge_info_by_id(badge_info_id)
-      continuum.append(badge_info)  # includes source_instance_id
+    player_distribution: dict[int, set[int]] = {pid: set() for pid in player_ids}
+    player_inventories: dict[int, set[int]] = {}
+    player_wishlists: dict[int, set[int]] = {}
 
-    player_distribution = {player_id: set() for player_id in player_ids}
-    player_inventories = {}
-    player_wishlists = {}
-
+    # Build wishlist and owned badge_info_id sets
     for player_id in player_ids:
-      badges = await db_get_owned_badges_by_user_id(player_id)  # returns badge_filenames
-      wishlist = await db_get_user_wishlist_badges(player_id)  # also badge_filenames
-      player_inventories[player_id] = set(b['badge_filename'] for b in badges)
-      player_wishlists[player_id] = set(b['badge_filename'] for b in wishlist)
+      inventory = await db_get_owned_badges_by_user_id(player_id)  # badge_filenames
+      inventory_info_ids = set()
+      for item in inventory:
+        info = await db_get_badge_info_by_filename(item['badge_filename'])
+        if info:
+          inventory_info_ids.add(info['id'])
 
+      wishlist = await db_get_user_wishlist_badges(player_id)
+      wishlist_info_ids = set(b['id'] for b in wishlist)
+
+      player_inventories[player_id] = inventory_info_ids
+      player_wishlists[player_id] = wishlist_info_ids
+
+    # Shuffle for fairness
     random.shuffle(player_ids)
-    random.shuffle(continuum)
+    random.shuffle(continuum_records)
 
     turn_index = 0
     players_with_max_badges = set()
     players_with_no_assignable_badges = set()
 
-    while continuum and (len(players_with_max_badges) + len(players_with_no_assignable_badges)) < len(player_ids):
+    while continuum_records and (len(players_with_max_badges) + len(players_with_no_assignable_badges)) < len(player_ids):
       current_player = player_ids[turn_index % len(player_ids)]
 
       if current_player in players_with_max_badges or current_player in players_with_no_assignable_badges:
         turn_index += 1
         continue
 
-      selected = None
-      for badge in continuum:
-        filename = badge['badge_filename']
-        if filename in player_wishlists[current_player] and filename not in player_inventories[current_player]:
-          selected = badge
+      selected_badge = None
+      for badge in continuum_records:
+        info_id = badge['id']
+
+        if info_id in player_wishlists[current_player] and info_id not in player_inventories[current_player]:
+          selected_badge = badge
           break
-        elif filename not in player_inventories[current_player]:
-          selected = badge
+        elif info_id not in player_inventories[current_player]:
+          selected_badge = badge
           break
 
-      if not selected:
+      if not selected_badge:
         players_with_no_assignable_badges.add(current_player)
         turn_index += 1
         continue
 
-      instance_id = selected['source_instance_id']
+      instance_id = selected_badge['source_instance_id']
       player_distribution[current_player].add(instance_id)
-      continuum.remove(selected)
+      continuum_records.remove(selected_badge)
 
       if len(player_distribution[current_player]) >= 3:
         players_with_max_badges.add(current_player)
@@ -819,6 +824,7 @@ class Tongo(commands.Cog):
       turn_index += 1
 
     return player_distribution
+
 
 
   async def _handle_liquidation(self, game_id: int, tongo_continuum: list[dict], player_ids: list[int]) -> Optional[dict]:
