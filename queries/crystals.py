@@ -29,7 +29,7 @@ async def db_attach_crystal_to_instance(instance_id: int, crystal_name: str = "D
 async def db_set_slotted_crystal(instance_id: int, crystal_id: int):
   async with AgimusDB() as query:
     await query.execute(
-      "UPDATE badge_instances SET preferred_crystal_id = %s WHERE id = %s",
+      "UPDATE badge_instances SET slotted_crystal_id = %s WHERE id = %s",
       (crystal_id, instance_id)
     )
 

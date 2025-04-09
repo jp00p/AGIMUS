@@ -11,7 +11,7 @@ async def get_badge_instance_with_info(instance_id: int) -> dict:
       b_inst.locked,
       b_inst.origin_user_id,
       b_inst.acquired_at,
-      b_inst.preferred_crystal_id,
+      b_inst.slotted_crystal_id,
       b_inst.status,
 
       b_i.id AS badge_info_id,

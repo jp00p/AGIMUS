@@ -1,7 +1,7 @@
 from common import *
 
 from queries.badge_info import db_get_badge_info_by_name
-from queries.badge_inventory import db_get_badge_instance
+from queries.badge_instances import db_get_badge_instance
 from queries.crystals import db_get_attached_crystals, db_set_slotted_crystal
 from utils.badge_utils import load_badge_image
 from utils.crystal_effects import apply_crystal_effect
@@ -11,7 +11,7 @@ class Crystals(commands.Cog):
     self.bot = bot
 
   async def autocomplete_user_badge_instances(ctx: discord.AutocompleteContext):
-    from queries.badge_inventory import db_get_user_badges
+    from queries.badge_instances import db_get_user_badges
 
     user_id = ctx.interaction.user.id
     badges = await db_get_user_badges(user_id)
@@ -84,7 +84,7 @@ class Crystals(commands.Cog):
     crystals = await db_get_attached_crystals(instance['id'])
 
     if crystal_name.lower() == '[none]':
-      if instance.get('preferred_crystal_id') is None:
+      if instance.get('slotted_crystal_id') is None:
         embed = discord.Embed(
           title='Already Unslotted!',
           description=f"No crystal is currently slotted for **{badge_name}**.",
@@ -94,7 +94,7 @@ class Crystals(commands.Cog):
         return
 
       # Look up which crystal was previously slotted
-      previous = next((c for c in crystals if c['id'] == instance['preferred_crystal_id']), None)
+      previous = next((c for c in crystals if c['id'] == instance['slotted_crystal_id']), None)
       prev_label = f"{previous['emoji']} {previous['crystal_name']}" if previous else "Unknown Crystal"
 
       await db_set_slotted_crystal(instance['id'], None)
@@ -119,7 +119,7 @@ class Crystals(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
-    if instance.get('preferred_crystal_id') == selected['crystal_type_id']:
+    if instance.get('slotted_crystal_id') == selected['crystal_type_id']:
       embed = discord.Embed(
         title='Already Slotted!',
         description=f"**{crystal_name}** is already your active crystal for **{badge_name}**.",

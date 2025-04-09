@@ -480,11 +480,11 @@ CREATE TABLE badge_instances (
   locked BOOLEAN DEFAULT FALSE,
   origin_user_id BIGINT,
   acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  preferred_crystal_id INT DEFAULT NULL,
+  slotted_crystal_id INT DEFAULT NULL,
   status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
   UNIQUE KEY (owner_discord_id, badge_info_id),
   FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
-  FOREIGN KEY (preferred_crystal_id) REFERENCES badge_crystals(id) ON DELETE SET NULL
+  FOREIGN KEY (slotted_crystal_id) REFERENCES badge_crystals(id) ON DELETE SET NULL
 );
 
 -- 5. Badge "Provenance" - Ability to track where a badge instance originated from and where its been
