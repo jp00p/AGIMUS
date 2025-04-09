@@ -488,7 +488,7 @@ CREATE TABLE badge_instances (
 );
 
 -- 5. Badge "Provenance" - Ability to track where a badge instance originated from and where its been
-CREATE TABLE badge_instance_provenance (
+CREATE TABLE badge_instance_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
   from_user_id BIGINT DEFAULT NULL,

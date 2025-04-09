@@ -7,7 +7,7 @@ from utils.check_channel_access import access_check
 
 from queries.tongo import *
 from queries.badge_info import *
-from queries.badge_inventory import *
+from queries.badge_instances import *
 from queries.wishlist import *
 
 f = open("./data/rules_of_acquisition.txt", "r")
@@ -20,34 +20,6 @@ MINIMUM_LIQUIDATION_CONTINUUM = 5
 MINIMUM_LIQUIDATION_PLAYERS = 3
 
 # -> cogs.tongo
-
-#    _____          __                                     .__          __
-#   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
-#  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \
-# /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
-# \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
-#         \/                        \/            \/|__|             \/          \/
-async def risk_autocomplete(ctx:discord.AutocompleteContext):
-  randomized = ctx.options['randomized']
-  if randomized:
-    return ["Error: This field cannot be selected if 'random' has been selected."]
-
-  first_badge = ctx.options["first_badge"]
-  second_badge = ctx.options["second_badge"]
-  third_badge = ctx.options["third_badge"]
-
-  user_badges = await db_get_user_unlocked_badges(ctx.interaction.user.id)
-  if not user_badges:
-    return ["Error: You don't have any Unlocked Badges!"]
-
-  tongo_pot = await db_get_tongo_pot_badges()
-
-  special_badges = await db_get_special_badges()
-  filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in tongo_pot] + [b['badge_name'] for b in special_badges]
-
-  filtered_badge_names = [badge['badge_name'] for badge in user_badges if badge['badge_name'] not in filtered_badges]
-
-  return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
 
 
 # ___________                          _________
@@ -411,71 +383,72 @@ class Tongo(commands.Cog):
       await bazaar.send(f"Hey {chair.mention}, your table is getting full!")
 
 
-  async def _cancel_tongo_related_trades(self, user_discord_id, selected_badges):
-    # These are all the active or pending trades that involved the user as either the
-    # requestee or requestor and include the badges that were added to the tongo pot
-    # are thus no longer valid and need to be canceled
-    trades_to_cancel = await db_get_related_tongo_badge_trades(user_discord_id, selected_badges)
-    if not trades_to_cancel:
-      return
+  # TODO: Re-implement this once we get the badge_instance trading stuff complete
+  # async def _cancel_tongo_related_trades(self, user_discord_id, selected_badges):
+  #   # These are all the active or pending trades that involved the user as either the
+  #   # requestee or requestor and include the badges that were added to the tongo pot
+  #   # are thus no longer valid and need to be canceled
+  #   trades_to_cancel = await db_get_related_tongo_badge_trades(user_discord_id, selected_badges)
+  #   if not trades_to_cancel:
+  #     return
 
-    # Iterate through to cancel, and then
-    for trade in trades_to_cancel:
-      await db_cancel_trade(trade)
-      requestee = await self.bot.current_guild.fetch_member(trade['requestee_id'])
-      requestor = await self.bot.current_guild.fetch_member(trade['requestor_id'])
+  #   # Iterate through to cancel, and then
+  #   for trade in trades_to_cancel:
+  #     await db_cancel_trade(trade)
+  #     requestee = await self.bot.current_guild.fetch_member(trade['requestee_id'])
+  #     requestor = await self.bot.current_guild.fetch_member(trade['requestor_id'])
 
-      offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(trade)
+  #     offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(trade)
 
-      # Give notice to Requestee
-      user = await get_user(requestee.id)
-      if user["receive_notifications"] and trade['status'] == 'active':
-        try:
-          requestee_embed = discord.Embed(
-            title="Trade Canceled",
-            description=f"Just a heads up! Your USS Hood Badge Trade initiated by **{requestor.display_name}** was canceled because one or more of the badges involved were added to the Tongo pot!",
-            color=discord.Color.purple()
-          )
-          requestee_embed.add_field(
-            name=f"Offered by {requestor.display_name}",
-            value=offered_badge_names
-          )
-          requestee_embed.add_field(
-            name=f"Requested from {requestee.display_name}",
-            value=requested_badge_names
-          )
-          requestee_embed.set_footer(
-            text="Note: You can use /settings to enable or disable these messages."
-          )
-          await requestee.send(embed=requestee_embed)
-        except discord.Forbidden as e:
-          logger.info(f"Unable to send trade cancelation message to {requestee.display_name}, they have their DMs closed.")
-          pass
+  #     # Give notice to Requestee
+  #     user = await get_user(requestee.id)
+  #     if user["receive_notifications"] and trade['status'] == 'active':
+  #       try:
+  #         requestee_embed = discord.Embed(
+  #           title="Trade Canceled",
+  #           description=f"Just a heads up! Your USS Hood Badge Trade initiated by **{requestor.display_name}** was canceled because one or more of the badges involved were added to the Tongo pot!",
+  #           color=discord.Color.purple()
+  #         )
+  #         requestee_embed.add_field(
+  #           name=f"Offered by {requestor.display_name}",
+  #           value=offered_badge_names
+  #         )
+  #         requestee_embed.add_field(
+  #           name=f"Requested from {requestee.display_name}",
+  #           value=requested_badge_names
+  #         )
+  #         requestee_embed.set_footer(
+  #           text="Note: You can use /settings to enable or disable these messages."
+  #         )
+  #         await requestee.send(embed=requestee_embed)
+  #       except discord.Forbidden as e:
+  #         logger.info(f"Unable to send trade cancelation message to {requestee.display_name}, they have their DMs closed.")
+  #         pass
 
-      # Give notice to Requestor
-      user = await get_user(requestor.id)
-      if user["receive_notifications"]:
-        try:
-          requestor_embed = discord.Embed(
-            title="Trade Canceled",
-            description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because one or more of the badges involved were added to the Tongo pot!",
-            color=discord.Color.purple()
-          )
-          requestor_embed.add_field(
-            name=f"Offered by {requestor.display_name}",
-            value=offered_badge_names
-          )
-          requestor_embed.add_field(
-            name=f"Requested from {requestee.display_name}",
-            value=requested_badge_names
-          )
-          requestor_embed.set_footer(
-            text="Note: You can use /settings to enable or disable these messages."
-          )
-          await requestor.send(embed=requestor_embed)
-        except discord.Forbidden as e:
-          logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
-          pass
+  #     # Give notice to Requestor
+  #     user = await get_user(requestor.id)
+  #     if user["receive_notifications"]:
+  #       try:
+  #         requestor_embed = discord.Embed(
+  #           title="Trade Canceled",
+  #           description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because one or more of the badges involved were added to the Tongo pot!",
+  #           color=discord.Color.purple()
+  #         )
+  #         requestor_embed.add_field(
+  #           name=f"Offered by {requestor.display_name}",
+  #           value=offered_badge_names
+  #         )
+  #         requestor_embed.add_field(
+  #           name=f"Requested from {requestee.display_name}",
+  #           value=requested_badge_names
+  #         )
+  #         requestor_embed.set_footer(
+  #           text="Note: You can use /settings to enable or disable these messages."
+  #         )
+  #         await requestor.send(embed=requestor_embed)
+  #       except discord.Forbidden as e:
+  #         logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+  #         pass
 
   #    ____        __
   #   /  _/__  ___/ /____ __
@@ -486,63 +459,62 @@ class Tongo(commands.Cog):
     description="Check the current status of the active game of Tongo!"
   )
   @commands.check(access_check)
-  async def index(self, ctx:discord.ApplicationContext):
+  async def index(self, ctx: discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
-    user_discord_id = ctx.interaction.user.id
+    user_discord_id = ctx.user.id
     user_member = await self.bot.current_guild.fetch_member(user_discord_id)
-    active_tongo = await db_get_active_tongo()
 
+    active_tongo = await db_get_open_game()
     if not active_tongo:
       await ctx.followup.send(embed=discord.Embed(
-          title="No Tongo Game In Progress",
-          description="No one is playing Tongo yet!\n\nUse `/tongo venture` to begin a game!",
-          color=discord.Color.red()
-        ),
-        ephemeral=True
-      )
+        title="No Tongo Game In Progress",
+        description="No one is playing Tongo yet!\n\nUse `/tongo venture` to begin a game!",
+        color=discord.Color.red()
+      ), ephemeral=True)
       return
 
-    # Respond to command required
     await ctx.followup.send(embed=discord.Embed(
-        title="Index Request Processed!",
-        color=discord.Color.dark_purple()
-      ), ephemeral=True
-    )
+      title="Index Request Processed!",
+      color=discord.Color.dark_purple()
+    ), ephemeral=True)
 
-    active_tongo_chair_id = int(active_tongo['chair_discord_id'])
+    active_tongo_chair_id = int(active_tongo['chair_user_id'])
     active_chair_member = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
 
-    tongo_players = await db_get_active_tongo_players(active_tongo['id'])
+    # Get current players
+    tongo_players = await db_get_players_for_game(active_tongo['id'])
     tongo_player_ids = [int(p['user_discord_id']) for p in tongo_players]
     tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
 
-    tongo_pot_badges = await db_get_tongo_pot_badges()
+    # Get current continuum (pot)
+    tongo_pot_badges = await db_get_full_continuum_badges()
     tongo_pot_chunks = [tongo_pot_badges[i:i + 30] for i in range(0, len(tongo_pot_badges), 30)]
 
-    description=f"Index requested by **{user_member.display_name}**!\n\nDisplaying the status of the current game of Tongo!\n\n"
+    description = f"Index requested by **{user_member.display_name}**!\n\nDisplaying the status of the current game of Tongo!\n\n"
     if self.auto_confront.next_iteration:
       current_time = datetime.now(timezone.utc)
-      remaining_time = current_time - self.auto_confront.next_iteration
-      description += f"This Tongo game has {humanize.naturaltime(remaining_time)} left before the game is automatically ended!"
+      remaining_time = self.auto_confront.next_iteration - current_time
+      description += f"This Tongo game will be automatically confronted {humanize.naturaltime(remaining_time)}."
 
+    # First embed
     confirmation_embed = discord.Embed(
       title="TONGO! Call For Index!",
       description=description,
       color=discord.Color.dark_purple()
     )
     confirmation_embed.add_field(
-      name=f"Tongo Chair",
+      name="Tongo Chair",
       value=f"* {active_chair_member.display_name}",
       inline=False
     )
     confirmation_embed.add_field(
-      name=f"Current Players",
+      name="Current Players",
       value="\n".join([f"* {m.display_name}" for m in tongo_player_members]),
       inline=False
     )
     confirmation_embed.add_field(
-      name=f"Total Badges In The Great Material Continuum!",
-      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_chunks[0]]),
+      name="Total Badges In The Great Material Continuum!",
+      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_chunks[0]]) if tongo_pot_chunks else "* (empty)",
       inline=False
     )
     confirmation_embed.set_image(url="https://i.imgur.com/aWLYGKQ.gif")
@@ -550,10 +522,11 @@ class Tongo(commands.Cog):
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
-    continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
+
     trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
     await trade_channel.send(embed=confirmation_embed)
 
+    # Continuation embeds if needed
     if len(tongo_pot_chunks) > 1:
       for t_chunk in tongo_pot_chunks[1:]:
         chunk_embed = discord.Embed(
@@ -561,7 +534,7 @@ class Tongo(commands.Cog):
           color=discord.Color.dark_purple()
         )
         chunk_embed.add_field(
-          name=f"Total Badges In The Great Material Continuum!",
+          name="Total Badges In The Great Material Continuum!",
           value="\n".join([f"* {b['badge_name']}" for b in t_chunk]),
           inline=False
         )
@@ -571,6 +544,8 @@ class Tongo(commands.Cog):
         )
         await trade_channel.send(embed=chunk_embed)
 
+    # Continuum image display
+    continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
     await send_continuum_images_to_channel(trade_channel, continuum_images)
 
   #   _____          ___              __
@@ -647,7 +622,7 @@ class Tongo(commands.Cog):
 
     tongo_players = await db_get_active_tongo_players(active_tongo['id'])
     active_tongo_chair_id = int(active_tongo['chair_discord_id'])
-    active_chair = await bot.current_guild.fetch_member(active_tongo_chair_id)
+    active_chair = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
 
     # If we never got enough players, end the game and notify the chair
     if len(tongo_players) < 2:
@@ -682,8 +657,8 @@ class Tongo(commands.Cog):
     self.auto_confront.cancel()
 
   async def _perform_confront(self, active_tongo, active_chair, auto_confront=False):
-    results = await self._perform_confront_distribution()
-    player_ids = list(results.keys())
+    player_distribution = await self._perform_confront_distribution()
+    player_ids = list(player_distribution.keys())
     remaining_badges = [await db_get_badge_info_by_id(bid) for bid in await db_get_continuum_badge_ids()]
 
     # Handle potential liquidation
@@ -697,13 +672,15 @@ class Tongo(commands.Cog):
     channel_message = await trade_channel.send(embed=results_embed)
 
     # Show per-player rewards
-    for user_id, badge_info_ids in results.items():
+    for user_id, badge_instance_ids in player_distribution.items():
       member = await self.bot.current_guild.fetch_member(user_id)
       wishlist = await db_get_user_wishlist_badges(user_id)
-      wishlist_filenames = [b['badge_filename'] for b in wishlist]
 
-      if badge_info_ids:
-        badges_received = [await db_get_badge_info_by_id(bid) for bid in badge_info_ids]
+      if badge_instance_ids:
+        badges_received = [
+          await db_get_badge_info_by_instance_id(instance_id)
+          for instance_id in badge_instance_ids
+        ]
         filenames = [b['badge_filename'] for b in badges_received]
 
         image_id = f"{active_tongo['id']}-won-{user_id}"
@@ -717,27 +694,23 @@ class Tongo(commands.Cog):
         wishlist_received = [b for b in wishlist if b['badge_filename'] in filenames]
         wishlist_filenames_received = [b['badge_filename'] for b in wishlist_received]
 
-        # XP fallback
         xp_awarded = 0
-        if len(badge_info_ids) < 3:
-          xp_awarded = 110 * (3 - len(badge_info_ids))
+        if len(badge_instance_ids) < 3:
+          xp_awarded = 110 * (3 - len(badge_instance_ids))
           if datetime.today().weekday() >= 4:
             xp_awarded *= 2
           await increment_user_xp(member, xp_awarded, 'tongo_loss', trade_channel, "Consolation Prize for Tongo Loss")
 
-        # Send embed to channel
         player_embed = await build_confront_player_embed(member, badges_received, wishlist_filenames_received, xp_awarded)
         player_embed.set_image(url=f"attachment://{image_id}.png")
         await trade_channel.send(embed=player_embed, file=showcase_image)
 
-        # Send DM
         dm_embed = build_confront_dm_embed(member, badges_received, wishlist_filenames_received, channel_message.jump_url, auto_confront, xp_awarded)
         try:
           await member.send(embed=dm_embed)
         except discord.Forbidden:
           logger.info(f"Unable to DM {member.display_name} — DMs closed.")
       else:
-        # No badges received, grant XP
         xp_awarded = 110 * 3
         if datetime.today().weekday() >= 4:
           xp_awarded *= 2
@@ -783,7 +756,7 @@ class Tongo(commands.Cog):
       images = await generate_paginated_continuum_images(updated)
       await self._send_continuum_images_to_channel(trade_channel, images)
 
-  async def _perform_confront_distribution(game_id: int) -> tuple[dict[int, set[int]], dict[int, int]]:
+  async def _perform_confront_distribution(game_id: int) -> dict[int, set[int]]:
     players = await db_get_players_for_game(game_id)
     player_ids = [int(p['user_discord_id']) for p in players]
 
@@ -793,14 +766,11 @@ class Tongo(commands.Cog):
 
     # Grab full badge info + instance_id from continuum
     continuum = []
-    badge_info_id_by_instance = {}
     for badge_info_id in badge_info_ids:
       badge_info = await db_get_badge_info_by_id(badge_info_id)
       continuum.append(badge_info)  # includes source_instance_id
-      badge_info_id_by_instance[badge_info['source_instance_id']] = badge_info_id
 
     player_distribution = {player_id: set() for player_id in player_ids}
-    distributed_instance_ids = set()
     player_inventories = {}
     player_wishlists = {}
 
@@ -841,7 +811,6 @@ class Tongo(commands.Cog):
 
       instance_id = selected['source_instance_id']
       player_distribution[current_player].add(instance_id)
-      distributed_instance_ids.add(instance_id)
       continuum.remove(selected)
 
       if len(player_distribution[current_player]) >= 3:
@@ -849,10 +818,7 @@ class Tongo(commands.Cog):
 
       turn_index += 1
 
-    # Convert distributed_instance_ids to a filtered dict of {instance_id: badge_info_id}
-    distributed = {dist_id: badge_info_id_by_instance[dist_id] for dist_id in distributed_instance_ids}
-
-    return player_distribution, distributed
+    return player_distribution
 
 
   async def _handle_liquidation(self, game_id: int, tongo_continuum: list[dict], player_ids: list[int]) -> Optional[dict]:
@@ -869,7 +835,7 @@ class Tongo(commands.Cog):
     # Liquidate the selected badges
     for badge in liquidation_result['tongo_badges_to_remove']:
       await db_remove_from_continuum(badge['badge_info_id'])
-      await db_liquidate_badge_instance(badge['source_instance_id'])
+      await liquidate_badge_instance(badge['source_instance_id'])
 
     reward_instance_id = liquidation_result['badge_to_grant']['source_instance_id']
     reward_badge_info = await db_get_badge_info_by_instance_id(reward_instance_id)

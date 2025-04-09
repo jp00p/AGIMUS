@@ -109,6 +109,19 @@ async def db_remove_from_continuum(badge_info_id: int):
   async with AgimusDB() as db:
     await db.execute(query, (badge_info_id,))
 
+async def db_get_full_continuum_badges():
+  query = """
+    SELECT
+      b_i.*,
+      t_c.source_instance_id,
+      t_c.thrown_by_user_id
+    FROM tongo_continuum AS t_c
+    JOIN badge_info AS b_i ON t_c.badge_info_id = b_i.id
+    ORDER BY b_i.badge_name ASC
+  """
+  async with AgimusDB(dictionary=True) as db:
+    return await db.fetchall(query)
+
 
 # --- Distribution ---
 async def db_update_instance_owner(instance_id: int, user_id: int):
