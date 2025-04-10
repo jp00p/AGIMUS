@@ -62,7 +62,7 @@ async def db_is_user_in_game(game_id: int, user_id: int) -> bool:
   query = """
     SELECT 1
     FROM tongo_game_players
-    WHERE tongo_game_id = %s AND user_discord_id = %s
+    WHERE game_id = %s AND user_discord_id = %s
     LIMIT 1
   """
   async with AgimusDB(dictionary=True) as db:
@@ -93,7 +93,7 @@ async def db_add_to_continuum(badge_info_id: int, source_instance_id: int, user_
     await db.execute(query, (badge_info_id, source_instance_id, user_id))
 
 
-async def db_get_continuum_badge_ids():
+async def db_get_continuum_badge_info_ids():
   query = """
     SELECT badge_info_id FROM tongo_continuum
   """
@@ -102,12 +102,12 @@ async def db_get_continuum_badge_ids():
     return [row['badge_info_id'] for row in rows]
 
 
-async def db_remove_from_continuum(badge_info_id: int):
+async def db_remove_from_continuum(instance_id: int):
   query = """
-    DELETE FROM tongo_continuum WHERE badge_info_id = %s
+    DELETE FROM tongo_continuum WHERE instance_id = %s
   """
   async with AgimusDB() as db:
-    await db.execute(query, (badge_info_id,))
+    await db.execute(query, (instance_id,))
 
 async def db_get_full_continuum_badges():
   query = """

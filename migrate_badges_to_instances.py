@@ -66,6 +66,19 @@ async def migrate_badges(dry_run=False):
         )
         badge_instance_id = cur.lastrowid
 
+        # Log the initial acquisition to badge_instance_history
+        await cur.execute(
+          """
+          INSERT INTO badge_instance_history (
+            badge_instance_id,
+            from_user_id,
+            to_user_id,
+            event_type
+          ) VALUES (%s, %s, %s, %s)
+          """,
+          (badge_instance_id, None, user_discord_id, 'epoch')
+        )
+
         # Give everyone a Dilithium crystal by default
         await cur.execute(
           """

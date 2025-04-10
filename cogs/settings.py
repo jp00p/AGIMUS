@@ -592,7 +592,7 @@ class Settings(commands.Cog):
       "heuristic-associative-pathways",
       "megalomaniacal-computer-storage",
       "bot-setup",
-      "dabo-table",
+      "the-royale",
       "poker-night",
       "morns-nonstop-quiz",
       "badgeys-badges"
@@ -627,7 +627,7 @@ class Settings(commands.Cog):
       "after-dinner-conversation",
       "badgeys-badges",
       "bahrats-bazaar",
-      "dabo-table",
+      "the-royale",
       "dr-crushers-hotbox",
       "megalomaniacal-computer-storage",
       "morns-nonstop-quiz",

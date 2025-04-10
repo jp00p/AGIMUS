@@ -53,7 +53,7 @@ async def create_new_badge_instance(badge_info_id: int, user_id: int, reason: st
   return await get_badge_instance_with_info(instance_id)
 
 
-async def transfer_badge_instance(instance_id: int, to_user_id: int, reason: str = 'trade'):
+async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type: str = 'trade'):
   """
   Transfers a badge instance to a new owner and logs the history record.
 
@@ -75,7 +75,7 @@ async def transfer_badge_instance(instance_id: int, to_user_id: int, reason: str
   """
 
   query_insert = """
-    INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, acquisition_reason)
+    INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, event_type)
     VALUES (%s, %s, %s, %s)
   """
 
@@ -84,7 +84,7 @@ async def transfer_badge_instance(instance_id: int, to_user_id: int, reason: str
     from_user_id = int(row['owner_discord_id']) if row and row['owner_discord_id'] is not None else None
 
     await db.execute(query_update, (to_user_id, instance_id))
-    await db.execute(query_insert, (instance_id, from_user_id, to_user_id, reason))
+    await db.execute(query_insert, (instance_id, from_user_id, to_user_id, event_type))
 
 
 async def liquidate_badge_instance(instance_id: int):
@@ -110,8 +110,43 @@ async def liquidate_badge_instance(instance_id: int):
 
   # Record provenance
   query_history = """
-    INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, acquisition_reason)
+    INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, event_type)
     VALUES (%s, %s, NULL, 'liquidation')
   """
   async with AgimusDB() as db:
     await db.execute(query_history, (instance_id, old_owner))
+
+
+async def log_badge_instance_history(
+  badge_instance_id: int,
+  event_type: str,
+  to_user_id: int | None = None,
+  from_user_id: int | None = None,
+  occurred_at: datetime | None = None
+):
+  """
+  Inserts a record into badge_instance_history to track ownership changes and system events.
+
+  Args:
+    badge_instance_id (int): The badge_instances.id being modified.
+    to_user_id (int): The user receiving the badge, or NULL if badge is being removed.
+    event_type (str): One of the valid enum values: 'tongo_venture', 'trade', etc.
+    from_user_id (int | None): Optional user the badge is being transferred from.
+    occurred_at (datetime | None): Optional manual timestamp. Defaults to NOW.
+  """
+  async with AgimusDB() as db:
+    query = """
+      INSERT INTO badge_instance_history (
+        badge_instance_id, event_type, from_user_id, to_user_id, occurred_at
+      ) VALUES (%s, %s, %s, %s, %s)
+    """
+    await db.execute(
+      query,
+      (
+        badge_instance_id,
+        event_type or 'unknown',
+        from_user_id,
+        to_user_id,
+        occurred_at or datetime.utcnow()
+      )
+    )

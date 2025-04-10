@@ -18,7 +18,8 @@
         "after-dinner-conversation",
         "badgeys-badges",
         "bahrats-bazaar",
-        "dabo-table",
+        "zeks-table",
+        "the-royalee",
         "dr-crushers-hotbox",
         "megalomaniacal-computer-storage",
         "morns-nonstop-quiz",
@@ -45,10 +46,9 @@
         "megalomaniacal-computer-storage",
         "bot-logs",
         "bot-setup",
-        "dabo-table",
+        "the-royalee",
         "poker-night",
-        "morns-nonstop-quiz",
-        "badgeys-badges"
+        "morns-nonstop-quiz"
       ]
     },
     "starboard": {
@@ -384,7 +384,8 @@
     "badges completion": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "zeks-table"
       ],
       "enabled": true,
       "parameters": []
@@ -392,7 +393,8 @@
     "badges sets": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "zeks-table"
       ],
       "enabled": true,
       "parameters": []
@@ -400,7 +402,8 @@
     "badges status": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "zeks-table"
       ],
       "enabled": true,
       "parameters": []
@@ -408,7 +411,8 @@
     "badges scrap": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "zeks-table"
       ],
       "enabled": true,
       "parameters": []
@@ -679,7 +683,7 @@
     },
     "setwager": {
       "channels": [
-        "dabo-table",
+        "the-royale",
         "poker-night"
       ],
       "enabled": true,
@@ -688,7 +692,7 @@
     },
     "scores": {
       "channels": [
-        "dabo-table",
+        "the-royale",
         "morns-nonstop-quiz",
         "poker-night",
         "after-dinner-conversation",
@@ -706,7 +710,7 @@
     },
     "slots spin": {
       "channels": [
-        "dabo-table"
+        "the-royale"
       ],
       "enabled": true,
       "data": "data/slots.json",
@@ -726,7 +730,7 @@
     },
     "slots jackpot": {
       "channels": [
-        "dabo-table"
+        "the-royale"
       ],
       "enabled": true,
       "data": null,
@@ -734,7 +738,7 @@
     },
     "slots jackpots": {
       "channels": [
-        "dabo-table"
+        "the-royale"
       ],
       "enabled": true,
       "data": null,
@@ -795,7 +799,8 @@
     "tags collection": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "zeks-table"
       ],
       "enabled": true,
       "parameters": []
@@ -803,14 +808,15 @@
     "tags tag": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "zeks-table"
       ],
       "enabled": true,
       "parameters": []
     },
     "testslots": {
       "channels": [
-        "dabo-table",
+        "the-royale",
         "robot-diagnostics"
       ],
       "enabled": true,
@@ -819,7 +825,7 @@
     },
     "tongo confront": {
       "channels": [
-        "bahrats-bazaar"
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -827,7 +833,7 @@
     },
     "tongo index": {
       "channels": [
-        "bahrats-bazaar"
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -835,7 +841,7 @@
     },
     "tongo": {
       "channels": [
-        "bahrats-bazaar"
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -843,7 +849,7 @@
     },
     "tongo risk": {
       "channels": [
-        "bahrats-bazaar"
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -851,7 +857,7 @@
     },
     "tongo venture": {
       "channels": [
-        "bahrats-bazaar"
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -989,7 +995,8 @@
     "wishlist dismissals": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -998,7 +1005,8 @@
     "wishlist matches": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -1007,7 +1015,8 @@
     "wishlist partial_matches": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,

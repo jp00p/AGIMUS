@@ -53,7 +53,7 @@ class Tongo(commands.Cog):
     if active_tongo:
       active_tongo_chair_id = int(active_tongo['chair_discord_id'])
       active_chair = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
-      trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
+      zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
 
       time_created = active_tongo['time_created']
       time_created = time_created.replace(tzinfo=timezone.utc)
@@ -80,7 +80,7 @@ class Tongo(commands.Cog):
           text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
           icon_url="https://i.imgur.com/GTN4gQG.jpg"
         )
-        await trade_channel.send(embed=reboot_embed)
+        await zeks_table.send(embed=reboot_embed)
       else:
         # If time has already passed, trigger auto-confront immediately
         downtime_embed = discord.Embed(
@@ -94,7 +94,7 @@ class Tongo(commands.Cog):
           text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
           icon_url="https://i.imgur.com/GTN4gQG.jpg"
         )
-        await trade_channel.send(embed=downtime_embed)
+        await zeks_table.send(embed=downtime_embed)
         await self._perform_confront(active_tongo, active_chair, auto_confront=True)
 
   #   _   __         __
@@ -141,7 +141,8 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
       return
 
-    continuum_badge_ids = await db_get_continuum_badge_ids()
+    continuum_badges = await db_get_full_continuum_badges()
+    continuum_badge_ids = [b['id'] for b in continuum_badges]
     special_badges = await db_get_special_badges()
     special_badge_ids = [b['badge_info_id'] for b in special_badges]
 
@@ -185,11 +186,7 @@ class Tongo(commands.Cog):
     await db_add_game_player(game_id, user_id, liability)
 
     for instance in selected:
-      await db_add_to_continuum(
-        badge_info_id=instance['badge_info_id'],
-        source_instance_id=instance['id'],
-        user_id=user_id
-      )
+      await throw_badge_into_continuum(instance, user_id)
 
     await ctx.followup.send(embed=discord.Embed(
       title="Venture Acknowledged!",
@@ -217,12 +214,12 @@ class Tongo(commands.Cog):
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
 
-    bazaar = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
-    await bazaar.send(embed=embed)
+    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+    await zeks_table.send(embed=embed)
 
-    continuum_badges = [await db_get_badge_info_by_id(id) for id in continuum_badge_ids]
-    images = await generate_paginated_continuum_images(continuum_badges)
-    await send_continuum_images_to_channel(bazaar, images)
+    updated_continuum_badges = await db_get_full_continuum_badges()
+    images = await generate_paginated_continuum_images(updated_continuum_badges)
+    await send_continuum_images_to_channel(zeks_table, images)
 
     self.auto_confront.change_interval(hours=8)
     self.first_auto_confront = True
@@ -283,10 +280,10 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
       return
 
-    continuum_badge_ids = await db_get_continuum_badge_ids()
+    continuum_badge_info_ids = await db_get_continuum_badge_info_ids()
     special_badge_ids = [b['badge_info_id'] for b in await db_get_special_badges()]
 
-    eligible = [b for b in badge_instances if b['badge_info_id'] not in continuum_badge_ids and b['badge_info_id'] not in special_badge_ids]
+    eligible = [b for b in badge_instances if b['badge_info_id'] not in continuum_badge_info_ids and b['badge_info_id'] not in special_badge_ids]
 
     if len(eligible) < 3:
       await ctx.followup.send(embed=discord.Embed(
@@ -300,11 +297,7 @@ class Tongo(commands.Cog):
     await db_add_game_player(game['id'], user_id, liability)
 
     for instance in selected:
-      await db_add_to_continuum(
-        badge_info_id=instance['badge_info_id'],
-        source_instance_id=instance['id'],
-        user_id=user_id
-      )
+      await throw_badge_into_continuum(instance, user_id)
 
     await ctx.followup.send(embed=discord.Embed(
       title="Risk Acknowledged!",
@@ -316,8 +309,7 @@ class Tongo(commands.Cog):
     # Get player and continuum state for embeds
     player_ids = await db_get_all_game_player_ids(game['id'])
     player_members = [await self.bot.current_guild.fetch_member(pid) for pid in player_ids]
-    all_badge_ids = await db_get_continuum_badge_ids()
-    all_badges = [await db_get_badge_info_by_id(bid) for bid in all_badge_ids]
+    all_badges = await db_get_full_continuum_badges()
 
     # Chunk the continuum into 30s
     continuum_chunks = [all_badges[i:i + 30] for i in range(0, len(all_badges), 30)]
@@ -356,8 +348,8 @@ class Tongo(commands.Cog):
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
 
-    bazaar = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
-    await bazaar.send(embed=embed)
+    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+    await zeks_table.send(embed=embed)
 
     for chunk in continuum_chunks[1:]:
       chunk_embed = discord.Embed(
@@ -373,14 +365,14 @@ class Tongo(commands.Cog):
         text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
         icon_url="https://i.imgur.com/GTN4gQG.jpg"
       )
-      await bazaar.send(embed=chunk_embed)
+      await zeks_table.send(embed=chunk_embed)
 
     continuum_images = await generate_paginated_continuum_images(all_badges)
-    await send_continuum_images_to_channel(bazaar, continuum_images)
+    await send_continuum_images_to_channel(zeks_table, continuum_images)
 
     if player_count == 9:
       chair = await self.bot.current_guild.fetch_member(game['chair_user_id'])
-      await bazaar.send(f"Hey {chair.mention}, your table is getting full!")
+      await zeks_table.send(f"Hey {chair.mention}, your table is getting full!")
 
 
   # TODO: Re-implement this once we get the badge_instance trading stuff complete
@@ -523,8 +515,8 @@ class Tongo(commands.Cog):
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
 
-    trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
-    await trade_channel.send(embed=confirmation_embed)
+    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+    await zeks_table.send(embed=confirmation_embed)
 
     # Continuation embeds if needed
     if len(tongo_pot_chunks) > 1:
@@ -542,11 +534,11 @@ class Tongo(commands.Cog):
           text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
           icon_url="https://i.imgur.com/GTN4gQG.jpg"
         )
-        await trade_channel.send(embed=chunk_embed)
+        await zeks_table.send(embed=chunk_embed)
 
     # Continuum image display
     continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
-    await send_continuum_images_to_channel(trade_channel, continuum_images)
+    await send_continuum_images_to_channel(zeks_table, continuum_images)
 
   #   _____          ___              __
   #  / ___/__  ___  / _/______  ___  / /_
@@ -628,8 +620,8 @@ class Tongo(commands.Cog):
     if len(tongo_players) < 2:
       await db_end_current_tongo(active_tongo['id'])
       # Alert the channel
-      trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
-      await trade_channel.send(embed=discord.Embed(
+      zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+      await zeks_table.send(embed=discord.Embed(
           title="TONGO! Auto-Canceled!",
           description=f"Whoops, the Tongo game started by {active_chair.display_name} didn't get any other takers and the "
                       "time has run out! Game has been automatically canceled.",
@@ -656,10 +648,12 @@ class Tongo(commands.Cog):
     await self._perform_confront(active_tongo, active_chair, True)
     self.auto_confront.cancel()
 
+
   async def _perform_confront(self, active_tongo, active_chair, auto_confront=False):
-    player_distribution = await self._perform_confront_distribution()
+    player_distribution = await self._execute_confront_distribution(active_tongo['id'])
     player_ids = list(player_distribution.keys())
-    remaining_badges = [await db_get_badge_info_by_id(bid) for bid in await db_get_continuum_badge_ids()]
+
+    remaining_badges = await db_get_full_continuum_badges()
 
     # Handle potential liquidation
     liquidation_result = None
@@ -668,8 +662,8 @@ class Tongo(commands.Cog):
 
     # Build and send results embed
     results_embed = await build_confront_results_embed(active_chair, auto_confront, remaining_badges)
-    trade_channel = await self.bot.fetch_channel(get_channel_id("bahrats-bazaar"))
-    channel_message = await trade_channel.send(embed=results_embed)
+    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+    channel_message = await zeks_table.send(embed=results_embed)
 
     # Show per-player rewards
     for user_id, badge_instance_ids in player_distribution.items():
@@ -699,11 +693,11 @@ class Tongo(commands.Cog):
           xp_awarded = 110 * (3 - len(badge_instance_ids))
           if datetime.today().weekday() >= 4:
             xp_awarded *= 2
-          await increment_user_xp(member, xp_awarded, 'tongo_loss', trade_channel, "Consolation Prize for Tongo Loss")
+          await increment_user_xp(member, xp_awarded, 'tongo_loss', zeks_table, "Consolation Prize for Tongo Loss")
 
         player_embed = await build_confront_player_embed(member, badges_received, wishlist_filenames_received, xp_awarded)
         player_embed.set_image(url=f"attachment://{image_id}.png")
-        await trade_channel.send(embed=player_embed, file=showcase_image)
+        await zeks_table.send(embed=player_embed, file=showcase_image)
 
         dm_embed = build_confront_dm_embed(member, badges_received, wishlist_filenames_received, channel_message.jump_url, auto_confront, xp_awarded)
         try:
@@ -717,7 +711,7 @@ class Tongo(commands.Cog):
         await increment_user_xp(member, xp_awarded, 'tongo_loss', trade_channel, "Consolation Prize for Tongo Loss")
 
         channel_embed = build_confront_no_rewards_embed(member, xp_awarded)
-        await trade_channel.send(embed=channel_embed)
+        await zeks_table.send(embed=channel_embed)
 
         dm_embed = build_confront_dm_embed(member, [], [], channel_message.jump_url, auto_confront, xp_awarded)
         try:
@@ -725,24 +719,24 @@ class Tongo(commands.Cog):
         except discord.Forbidden:
           logger.info(f"Unable to DM {member.display_name} — DMs closed.")
 
-    # If liquidation occurred, display the narrative
+    # If liquidation occurred, display the results
     if liquidation_result:
       member = await self.bot.current_guild.fetch_member(liquidation_result['player_id'])
       reward = liquidation_result['badge_to_grant']
       removed = liquidation_result['tongo_badges_to_remove']
 
       # Main embed
-      await trade_channel.send(embed=build_liquidation_embed(member, reward, removed))
+      await zeks_table.send(embed=build_liquidation_embed(member, reward, removed))
 
       # Endowment image
       image_id = f"{active_tongo['id']}-liquidation-{member.id}"
       image_file = await generate_badge_trade_showcase([reward['badge_filename']], image_id, f"Zek's Endowment For {member.display_name}", "Greed is Eternal!")
-      await trade_channel.send(embed=build_liquidation_endowment_embed(member, image_id), file=image_file)
+      await zeks_table.send(embed=build_liquidation_endowment_embed(member, image_id), file=image_file)
 
       # Liquidated image
       removal_id = f"{active_tongo['id']}-liquidation_badges"
       removal_file = await generate_badge_trade_showcase([b['badge_filename'] for b in removed], removal_id, "Badges Liquidated", f"{len(removed)} Badges Liquidated")
-      await trade_channel.send(embed=build_liquidation_removal_embed(removed, removal_id), file=removal_file)
+      await zeks_table.send(embed=build_liquidation_removal_embed(removed, removal_id), file=removal_file)
 
       # DM
       try:
@@ -751,12 +745,13 @@ class Tongo(commands.Cog):
         logger.info(f"Unable to DM {member.display_name} about liquidation — DMs closed.")
 
     # Refresh final continuum display
-    updated = [await db_get_badge_info_by_id(bid) for bid in await db_get_continuum_badge_ids()]
+    updated = await db_get_full_continuum_badges()
     if updated:
       images = await generate_paginated_continuum_images(updated)
-      await self._send_continuum_images_to_channel(trade_channel, images)
+      await self._send_continuum_images_to_channel(zeks_table, images)
 
-  async def _perform_confront_distribution(self, game_id: int) -> dict[int, set[int]]:
+
+  async def _execute_confront_distribution(self, game_id: int) -> dict[int, set[int]]:
     players = await db_get_players_for_game(game_id)
     player_ids = [int(p['user_discord_id']) for p in players]
 
@@ -764,6 +759,7 @@ class Tongo(commands.Cog):
     if not continuum_records:
       return {}
 
+    continuum_distribution: set[int] = set()
     player_distribution: dict[int, set[int]] = {pid: set() for pid in player_ids}
     player_inventories: dict[int, set[int]] = {}
     player_wishlists: dict[int, set[int]] = {}
@@ -816,6 +812,7 @@ class Tongo(commands.Cog):
 
       instance_id = selected_badge['source_instance_id']
       player_distribution[current_player].add(instance_id)
+      continuum_distribution.add(instance_id)
       continuum_records.remove(selected_badge)
 
       if len(player_distribution[current_player]) >= 3:
@@ -823,8 +820,16 @@ class Tongo(commands.Cog):
 
       turn_index += 1
 
-    return player_distribution
+    # Associate the badge_instances with the winners
+    for player_user_id, reward_badge_instances in player_distribution.keys():
+      for instance_id in reward_badge_instances:
+        await transfer_badge_instance(instance_id, player_user_id, reason='tongo_reward')
 
+    # Remove the badges from the Continuum
+    for continuum_instance_id in continuum_distribution:
+      await db_remove_from_continuum(continuum_instance_id)
+
+    return player_distribution
 
 
   async def _handle_liquidation(self, game_id: int, tongo_continuum: list[dict], player_ids: list[int]) -> Optional[dict]:
@@ -878,7 +883,7 @@ class Tongo(commands.Cog):
       badge_info_id = badge_to_grant['id']
 
       # Get instance from continuum
-      continuum = await db_get_continuum_badge_ids()
+      continuum = await db_get_full_continuum_badges()
       for badge_id in continuum:
         if badge_id == badge_info_id:
           badge_data = await db_get_badge_info_by_id(badge_info_id)
@@ -952,6 +957,15 @@ class Tongo(commands.Cog):
 #
 # UTILS
 #
+
+async def throw_badge_into_continuum(instance, user_id):
+  """
+  Utility to place a badge into the continuum and, importantly, revoke the current user's ownership
+  """
+  await db_add_to_continuum(instance['badge_info_id'], instance['id'], user_id)
+  await db_update_instance_owner(instance['id'], None)
+  await log_badge_instance_history(instance['id'], 'tongo_risk', user_id, None, None)
+
 
 async def send_continuum_images_to_channel(trade_channel, continuum_images):
   # We can only attach up to 10 files per message, so them in chunks if needed

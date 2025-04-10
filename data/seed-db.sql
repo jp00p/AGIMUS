@@ -493,17 +493,19 @@ CREATE TABLE badge_instance_history (
   badge_instance_id INT NOT NULL,
   from_user_id BIGINT DEFAULT NULL,
   to_user_id BIGINT NOT NULL,
-  transferred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  acquisition_reason ENUM(
+  occurred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  event_type ENUM(
     'epoch',
     'level_up',
     'trade',
-    'tongo',
-    'liquidation'
+    'tongo_risk',
+    'tongo_reward',
+    'liquidation',
     'admin',
     'unknown'
   ) NOT NULL DEFAULT 'unknown',
-  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id),
+  INDEX idx_history_instance_id (badge_instance_id)
 );
 
 -- 6. Crystal Trades
