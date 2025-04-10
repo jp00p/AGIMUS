@@ -76,7 +76,7 @@ async def db_get_badge_instances_count_for_user(user_id):
 # /_______  /   __/ \___  >\___  >__(____  /____/______  /(____  /\____ |\___  / \___  >____  >
 #         \/|__|        \/     \/        \/            \/      \/      \/_____/      \/     \/
 _SPECIAL_BADGES = None
-async def db_get_special_badges():
+async def db_get_all_special_badges():
   global _SPECIAL_BADGES
 
   if _SPECIAL_BADGES is not None:

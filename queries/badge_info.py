@@ -66,10 +66,11 @@ async def db_get_badge_info_by_instance_id(instance_id: int) -> dict:
     WHERE inst.id = %s
   """
   async with AgimusDB(dictionary=True) as db:
-    return await db.fetchone(query, (instance_id,))
+    await db.execute(query, (instance_id,))
+    return await db.fetchone()
 
 
-async def db_get_special_badges():
+async def db_get_all_special_badges():
   async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM badge_info WHERE special = TRUE"
     await query.execute(sql)
@@ -350,8 +351,8 @@ async def db_get_badge_count_by_filename(filename):
   :return: row dict
   """
   async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT count(*) FROM badges WHERE badge_filename = %s;"
+    sql = "SELECT COUNT(*) AS count FROM badges WHERE badge_filename = %s;"
     vals = (filename,)
     await query.execute(sql, vals)
     row = await query.fetchone()
-  return row["count(*)"]
+  return row["count"]

@@ -38,7 +38,7 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   else:
     badge_names = requestor_badges
 
-  special_badges = await db_get_special_badges()
+  special_badges = await db_get_all_special_badges()
   special_badge_names = [b['badge_name'] for b in special_badges]
   badge_names = [b for b in badge_names if b not in special_badge_names]
 
@@ -69,7 +69,7 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   else:
     badge_names = ["Use '/trade start' to start a trade and make sure you choose someone."]
 
-  special_badge_names = [b['badge_name'] for b in await db_get_special_badges()]
+  special_badge_names = [b['badge_name'] for b in await db_get_all_special_badges()]
   badge_names = [b for b in badge_names if b not in special_badge_names]
 
   if len(badge_names) == 0:
@@ -1557,7 +1557,7 @@ class Trade(commands.Cog):
       to_user = requestor
       from_user = requestee
 
-    if badge in [b['badge_name'] for b in await db_get_special_badges()]:
+    if badge in [b['badge_name'] for b in await db_get_all_special_badges()]:
       logger.info(f"{Fore.CYAN}{requestor.display_name} tried to {direction} `{badge}` {dir_preposition} "
                   f"{requestee.display_name} but it's untradeable!")
       await ctx.respond(embed=discord.Embed(

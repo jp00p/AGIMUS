@@ -83,9 +83,9 @@ CREATE TABLE badge_crystals (
 CREATE TABLE badge_instances (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_info_id INT NOT NULL,
-  owner_discord_id BIGINT NOT NULL,
+  owner_discord_id BIGINT NULL,
   locked BOOLEAN DEFAULT FALSE,
-  origin_user_id BIGINT,
+  origin_user_id BIGINT NOT NULL,
   acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   active_crystal_id INT DEFAULT NULL,
   status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
@@ -99,7 +99,7 @@ CREATE TABLE badge_instance_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
   from_user_id BIGINT DEFAULT NULL,
-  to_user_id BIGINT NOT NULL,
+  to_user_id BIGINT NULL,
   occurred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   event_type ENUM(
     'epoch',

@@ -167,7 +167,6 @@ class Crystals(commands.Cog):
 
       @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
       async def confirm(self, button, interaction):
-        logger.info(pprint(crystal))
         await db_set_active_crystal(badge_instance['badge_instance_id'], selected['badge_crystal_id'])
         embed = discord.Embed(
           title='Crystal Installed ✅',

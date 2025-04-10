@@ -32,7 +32,7 @@ async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
 
   user_badges = await db_get_user_badge_instances(ctx.interaction.user.id, locked=False)
 
-  filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in await db_get_special_badges()]
+  filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in await db_get_all_special_badges()]
   filtered_badge_names = [badge['badge_name'] for badge in user_badges if badge['badge_name'] not in filtered_badges]
 
   return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
@@ -676,7 +676,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     ), ephemeral=True)
     return
 
-  restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in await db_get_special_badges()]]
+  restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in await db_get_all_special_badges()]]
   if restricted_badges:
     await ctx.followup.send(embed=discord.Embed(
       title="Invalid Selection",
@@ -712,7 +712,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
 
   # If time check okay, select a new random badge
   all_possible_badges = [b['badge_name'] for b in await db_get_all_badge_info()]
-  special_badge_names = [b['badge_name'] for b in await db_get_special_badges()]
+  special_badge_names = [b['badge_name'] for b in await db_get_all_special_badges()]
   # Don't give them a badge they already have or a special badge
   all_user_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(user_id)]
   valid_choices = [b for b in all_possible_badges if b not in all_user_badge_names and b not in special_badge_names]
@@ -1181,7 +1181,7 @@ async def run_badge_stats_queries():
   results = {}
   async with AgimusDB(dictionary=True) as query:
     # Run most collected while filtering out special badges
-    special_badge_filenames = [b['badge_filename'] for b in await db_get_special_badges()]
+    special_badge_filenames = [b['badge_filename'] for b in await db_get_all_special_badges()]
     format_strings = ','.join(['%s'] * len(special_badge_filenames))
     sql = '''
       SELECT b_i.badge_name, COUNT(b.id) AS count

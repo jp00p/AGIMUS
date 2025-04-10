@@ -53,14 +53,14 @@ async def create_new_badge_instance(badge_info_id: int, user_id: int, reason: st
   return await get_badge_instance_with_info(instance_id)
 
 
-async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type: str = 'trade'):
+async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type: str = 'unknown'):
   """
   Transfers a badge instance to a new owner and logs the history record.
 
   Args:
     instance_id (int): ID of the badge_instances row.
     to_user_id (int): Discord user ID (int) of the new owner.
-    reason (str): One of the allowed acquisition reasons. Defaults to 'unknown'.
+    event_type (str): One of the allowed event_types. Defaults to 'unknown'.
   """
   query_fetch = """
     SELECT owner_discord_id
@@ -80,7 +80,8 @@ async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type:
   """
 
   async with AgimusDB(dictionary=True) as db:
-    row = await db.fetchone(query_fetch, (instance_id,))
+    await db.execute(query_fetch, (instance_id,))
+    row = await db.fetchone()
     from_user_id = int(row['owner_discord_id']) if row and row['owner_discord_id'] is not None else None
 
     await db.execute(query_update, (to_user_id, instance_id))

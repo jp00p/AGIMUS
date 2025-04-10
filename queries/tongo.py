@@ -6,12 +6,12 @@ from common import *
 
 async def db_create_tongo_game(chair_user_id: int) -> int:
   query = """
-    INSERT INTO tongo_games (chair_user_id)
-    VALUES (%s)
+    INSERT INTO tongo_games (chair_user_id, status)
+    VALUES (%s, 'open')
   """
-  async with AgimusDB(dictionary=True) as query:
-    await query.execute(query, (chair_user_id,))
-    return query.lastrowid
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(query, (chair_user_id,))
+    return db.lastrowid
 
 
 async def db_update_game_status(game_id: int, status: str):
@@ -23,19 +23,15 @@ async def db_update_game_status(game_id: int, status: str):
 
 
 async def db_get_open_game():
-  query = """
-    SELECT * FROM tongo_games WHERE status = 'open' ORDER BY created_at DESC LIMIT 1
-  """
-  async with AgimusDB() as db:
-    return await db.fetchone(query)
-
-
-async def db_get_latest_game():
-  query = """
-    SELECT * FROM tongo_games ORDER BY created_at DESC LIMIT 1
-  """
-  async with AgimusDB() as db:
-    return await db.fetchone(query)
+  query = '''
+    SELECT * FROM tongo_games
+    WHERE status = 'open'
+    ORDER BY created_at DESC
+    LIMIT 1
+  '''
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(query)
+    return await db.fetchone()
 
 
 # --- Game Players ---
@@ -54,8 +50,9 @@ async def db_get_players_for_game(game_id: int):
     SELECT user_discord_id, liability_mode FROM tongo_game_players
     WHERE game_id = %s
   """
-  async with AgimusDB() as db:
-    return await db.fetchall(query, (game_id,))
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(query, (game_id,))
+    return await db.fetchall()
 
 
 async def db_is_user_in_game(game_id: int, user_id: int) -> bool:
@@ -77,7 +74,8 @@ async def db_get_all_game_player_ids(game_id: int) -> list[int]:
     WHERE game_id = %s
   """
   async with AgimusDB(dictionary=True) as db:
-    rows = await db.fetchall(query, (game_id,))
+    await db.execute(query, (game_id,))
+    rows = await db.fetchall()
     return [int(row['user_discord_id']) for row in rows]
 
 
@@ -86,8 +84,10 @@ async def db_get_all_game_player_ids(game_id: int) -> list[int]:
 async def db_add_to_continuum(badge_info_id: int, source_instance_id: int, user_id: int):
   query = """
     INSERT INTO tongo_continuum (badge_info_id, source_instance_id, thrown_by_user_id)
-    VALUES (%s, %s, %s)
-    ON DUPLICATE KEY UPDATE source_instance_id = VALUES(source_instance_id), thrown_by_user_id = VALUES(thrown_by_user_id)
+    VALUES (%s, %s, %s) AS new
+    ON DUPLICATE KEY UPDATE
+      source_instance_id = new.source_instance_id,
+      thrown_by_user_id = new.thrown_by_user_id
   """
   async with AgimusDB() as db:
     await db.execute(query, (badge_info_id, source_instance_id, user_id))
@@ -97,22 +97,32 @@ async def db_get_continuum_badge_info_ids():
   query = """
     SELECT badge_info_id FROM tongo_continuum
   """
-  async with AgimusDB() as db:
-    rows = await db.fetchall(query)
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(query)
+    rows = await db.fetchall()
     return [row['badge_info_id'] for row in rows]
 
 
-async def db_remove_from_continuum(instance_id: int):
+async def db_remove_from_continuum(source_instance_id: int):
   query = """
-    DELETE FROM tongo_continuum WHERE instance_id = %s
+    DELETE FROM tongo_continuum WHERE source_instance_id = %s
   """
   async with AgimusDB() as db:
-    await db.execute(query, (instance_id,))
+    await db.execute(query, (source_instance_id,))
+
 
 async def db_get_full_continuum_badges():
   query = """
     SELECT
-      b_i.*,
+      b_i.id AS badge_info_id,
+      b_i.badge_filename,
+      b_i.badge_name,
+      b_i.badge_url,
+      b_i.quadrant,
+      b_i.time_period,
+      b_i.franchise,
+      b_i.reference,
+      b_i.special,
       t_c.source_instance_id,
       t_c.thrown_by_user_id
     FROM tongo_continuum AS t_c
@@ -120,18 +130,8 @@ async def db_get_full_continuum_badges():
     ORDER BY b_i.badge_name ASC
   """
   async with AgimusDB(dictionary=True) as db:
-    return await db.fetchall(query)
-
-
-# --- Distribution ---
-async def db_update_instance_owner(instance_id: int, user_id: int):
-  query = """
-    UPDATE badge_instances
-    SET user_discord_id = %s
-    WHERE id = %s
-  """
-  async with AgimusDB() as db:
-    await db.execute(query, (user_id, instance_id))
+    await db.execute(query)
+    return await db.fetchall()
 
 
 # -- Liquidation
@@ -144,7 +144,8 @@ async def db_liquidate_badge_instance(instance_id: int):
     WHERE id = %s
   """
   async with AgimusDB(dictionary=True) as db:
-    old = await db.fetchone(query_owner, (instance_id,))
+    await db.execute(query_owner, (instance_id,))
+    old = await db.fetchone()
     old_owner = old['owner_discord_id'] if old else None
 
   # Null ownership + set to 'liquidated'
@@ -157,13 +158,13 @@ async def db_liquidate_badge_instance(instance_id: int):
   async with AgimusDB() as db:
     await db.execute(query_update, (instance_id,))
 
-  # Record provenance
-  query_provenance = """
-    INSERT INTO badge_instance_provenance (badge_instance_id, from_user_id, to_user_id, acquisition_reason)
+  # Record history
+  query_history = """
+    INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, event_type)
     VALUES (%s, %s, NULL, 'liquidation')
   """
   async with AgimusDB() as db:
-    await db.execute(query_provenance, (instance_id, old_owner))
+    await db.execute(query_history, (instance_id, old_owner))
 
 
 # --- Rewards ---
@@ -182,5 +183,6 @@ async def db_get_rewards_for_game(game_id: int):
     FROM tongo_game_rewards
     WHERE game_id = %s
   """
-  async with AgimusDB() as db:
-    return await db.fetchall(query, (game_id,))
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(query, (game_id,))
+    return await db.fetchall()

@@ -21,7 +21,6 @@ MINIMUM_LIQUIDATION_PLAYERS = 3
 
 # -> cogs.tongo
 
-
 # ___________                          _________
 # \__    ___/___   ____    ____   ____ \_   ___ \  ____   ____
 #   |    | /  _ \ /    \  / ___\ /  _ \/    \  \/ /  _ \ / ___\
@@ -49,9 +48,9 @@ class Tongo(commands.Cog):
   @commands.Cog.listener()
   async def on_ready(self):
     # If bot restarts, resume the Tongoening
-    active_tongo = await db_get_active_tongo()
+    active_tongo = await db_get_open_game()
     if active_tongo:
-      active_tongo_chair_id = int(active_tongo['chair_discord_id'])
+      active_tongo_chair_id = int(active_tongo['chair_user_id'])
       active_chair = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
       zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
 
@@ -121,17 +120,28 @@ class Tongo(commands.Cog):
 
     existing_game = await db_get_open_game()
     if existing_game:
-      await ctx.followup.send(embed=discord.Embed(
-        title="Tongo Already In Progress",
-        description="There's already an ongoing Tongo game!\n\nUse `/tongo risk` to join!",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return
+      if await db_is_user_in_game(existing_game['id'], user_id):
+        description = "You've already joined this Tongo game!"
+        if user_id == existing_game['chair_user_id']:
+          description += f"\n\nPlus you're the one that started it! If you want to deal em out, use `/tongo confront`!"
+        await ctx.followup.send(embed=discord.Embed(
+          title="Already Participating",
+          description=description,
+          color=discord.Color.red()
+        ), ephemeral=True)
+        return
+      else:
+        await ctx.followup.send(embed=discord.Embed(
+          title="Tongo Already In Progress",
+          description="There's already an ongoing Tongo game!\n\nUse `/tongo risk` to join!",
+          color=discord.Color.red()
+        ), ephemeral=True)
+        return
 
     if liability == 'unlocked':
-      badge_instances = await db_get_locked_badge_instances_for_user(user_id)
+      badge_instances = await db_get_user_badge_instances(user_id, locked=False)
     else:
-      badge_instances = await db_get_all_badge_instances_for_user(user_id)
+      badge_instances = await db_get_user_badge_instances(user_id)
 
     if len(badge_instances) < 3:
       await ctx.followup.send(embed=discord.Embed(
@@ -142,9 +152,9 @@ class Tongo(commands.Cog):
       return
 
     continuum_badges = await db_get_full_continuum_badges()
-    continuum_badge_ids = [b['id'] for b in continuum_badges]
-    special_badges = await db_get_special_badges()
-    special_badge_ids = [b['badge_info_id'] for b in special_badges]
+    continuum_badge_ids = [b['badge_info_id'] for b in continuum_badges]
+    special_badges = await db_get_all_special_badges()
+    special_badge_ids = [b['id'] for b in special_badges]
 
     all_ids = [b['badge_info_id'] for b in badge_instances]
     if all(id in continuum_badge_ids for id in all_ids):
@@ -268,9 +278,9 @@ class Tongo(commands.Cog):
       return
 
     if liability == 'unlocked':
-      badge_instances = await db_get_locked_badge_instances_for_user(user_id)
+      badge_instances = await db_get_user_badge_instances(user_id, locked=False)
     else:
-      badge_instances = await db_get_all_badge_instances_for_user(user_id)
+      badge_instances = await db_get_user_badge_instances(user_id)
 
     if len(badge_instances) < 3:
       await ctx.followup.send(embed=discord.Embed(
@@ -281,7 +291,7 @@ class Tongo(commands.Cog):
       return
 
     continuum_badge_info_ids = await db_get_continuum_badge_info_ids()
-    special_badge_ids = [b['badge_info_id'] for b in await db_get_special_badges()]
+    special_badge_ids = [b['id'] for b in await db_get_all_special_badges()]
 
     eligible = [b for b in badge_instances if b['badge_info_id'] not in continuum_badge_info_ids and b['badge_info_id'] not in special_badge_ids]
 
@@ -318,9 +328,7 @@ class Tongo(commands.Cog):
     # Embed flavor
     description = f"### **{member.display_name}** has joined the table!\n\nA new challenger appears! Player {player_count} has entered the game with 3 badges {'from their unlocked inventory' if liability == 'unlocked' else 'from their entire collection'}!"
     if self.auto_confront.next_iteration:
-      current_time = datetime.now(timezone.utc)
-      remaining_time = self.auto_confront.next_iteration - current_time
-      description += f"\n\nThis Tongo game will be automatically confronted {humanize.naturaltime(remaining_time)}."
+      description += f"\n\nThis Tongo game will automatically confront {humanize.naturaltime(self.auto_confront.next_iteration)}."
 
     embed = discord.Embed(
       title="TONGO! Badges Risked!",
@@ -482,11 +490,9 @@ class Tongo(commands.Cog):
     tongo_pot_badges = await db_get_full_continuum_badges()
     tongo_pot_chunks = [tongo_pot_badges[i:i + 30] for i in range(0, len(tongo_pot_badges), 30)]
 
-    description = f"Index requested by **{user_member.display_name}**!\n\nDisplaying the status of the current game of Tongo!\n\n"
+    description = f"Index requested by **{user_member.display_name}**!\n\nDisplaying the status of the current game of Tongo!"
     if self.auto_confront.next_iteration:
-      current_time = datetime.now(timezone.utc)
-      remaining_time = self.auto_confront.next_iteration - current_time
-      description += f"This Tongo game will be automatically confronted {humanize.naturaltime(remaining_time)}."
+      description += f"\n\nThis Tongo game will automatically confront {humanize.naturaltime(self.auto_confront.next_iteration)}."
 
     # First embed
     confirmation_embed = discord.Embed(
@@ -553,7 +559,7 @@ class Tongo(commands.Cog):
     await ctx.defer(ephemeral=True)
     user_id = ctx.author.id
 
-    active_game = await db_get_active_tongo()
+    active_game = await db_get_open_game()
     if not active_game:
       await ctx.followup.send(embed=discord.Embed(
         title="No Tongo Game In Progress",
@@ -562,8 +568,8 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
       return
 
-    if int(active_game['chair_discord_id']) != user_id:
-      chair = await self.bot.current_guild.fetch_member(active_game['chair_discord_id'])
+    if int(active_game['chair_user_id']) != user_id:
+      chair = await self.bot.current_guild.fetch_member(active_game['chair_user_id'])
       await ctx.followup.send(embed=discord.Embed(
         title="You're Not The Chair!",
         description=f"Only The Chair is allowed to end the Tongo!\n\nThe current Chair is: **{chair.display_name}**",
@@ -571,23 +577,26 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
       return
 
-    players = await db_get_active_tongo_players(active_game['id'])
+    players = await db_get_players_for_game(active_game['id'])
     if len(players) < 2:
-      await ctx.followup.send(embed=discord.Embed(
+      embed = discord.Embed(
         title="You're The Only Player!",
         description="Can't do a Confront when you're the only player in the game! Invite some people!",
         color=discord.Color.red()
-      ), ephemeral=True)
+      )
+      embed.set_footer(text="It takes Two to Tongo...")
+      await ctx.followup.send(embed=embed, ephemeral=True)
       return
 
     await ctx.followup.send(embed=discord.Embed(
       title="Confront Acknowledged!",
-      description="Ending the Tongo and preparing rewards...",
+      description="Ending the game and preparing distribution...",
       color=discord.Color.dark_purple()
     ), ephemeral=True)
 
     chair = await self.bot.current_guild.fetch_member(user_id)
     await self._perform_confront(active_game, chair, auto_confront=False)
+    await db_update_game_status(active_game['id'], 'resolved')
 
     # Stop auto-confront loop if it exists
     try:
@@ -600,25 +609,26 @@ class Tongo(commands.Cog):
   #   / _ |__ __/ /____  ____/ ___/__  ___  / _/______  ___  / /_
   #  / __ / // / __/ _ \/___/ /__/ _ \/ _ \/ _/ __/ _ \/ _ \/ __/
   # /_/ |_\_,_/\__/\___/    \___/\___/_//_/_//_/  \___/_//_/\__/
+  # TODO - FIX DIS SHIT
   @tasks.loop(hours=8)
   async def auto_confront(self):
     if self.first_auto_confront:
       self.first_auto_confront = False
       return
 
-    active_tongo = await db_get_active_tongo()
+    active_tongo = await db_get_open_game()
 
     if not active_tongo:
       self.auto_confront.cancel()
       return
 
-    tongo_players = await db_get_active_tongo_players(active_tongo['id'])
-    active_tongo_chair_id = int(active_tongo['chair_discord_id'])
+    tongo_players = await db_get_players_for_game(active_tongo['id'])
+    active_tongo_chair_id = int(active_tongo['chair_user_id'])
     active_chair = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
 
     # If we never got enough players, end the game and notify the chair
     if len(tongo_players) < 2:
-      await db_end_current_tongo(active_tongo['id'])
+      await db_update_game_status(active_tongo['id'], 'cancelled')
       # Alert the channel
       zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
       await zeks_table.send(embed=discord.Embed(
@@ -646,6 +656,7 @@ class Tongo(commands.Cog):
       return
 
     await self._perform_confront(active_tongo, active_chair, True)
+    await db_update_game_status(active_tongo['id'], 'ended')
     self.auto_confront.cancel()
 
 
@@ -708,7 +719,7 @@ class Tongo(commands.Cog):
         xp_awarded = 110 * 3
         if datetime.today().weekday() >= 4:
           xp_awarded *= 2
-        await increment_user_xp(member, xp_awarded, 'tongo_loss', trade_channel, "Consolation Prize for Tongo Loss")
+        await increment_user_xp(member, xp_awarded, 'tongo_loss', zeks_table, "Consolation Prize for Tongo Loss")
 
         channel_embed = build_confront_no_rewards_embed(member, xp_awarded)
         await zeks_table.send(embed=channel_embed)
@@ -748,7 +759,7 @@ class Tongo(commands.Cog):
     updated = await db_get_full_continuum_badges()
     if updated:
       images = await generate_paginated_continuum_images(updated)
-      await self._send_continuum_images_to_channel(zeks_table, images)
+      await send_continuum_images_to_channel(zeks_table, images)
 
 
   async def _execute_confront_distribution(self, game_id: int) -> dict[int, set[int]]:
@@ -796,7 +807,7 @@ class Tongo(commands.Cog):
 
       selected_badge = None
       for badge in continuum_records:
-        info_id = badge['id']
+        info_id = badge['badge_info_id']
 
         if info_id in player_wishlists[current_player] and info_id not in player_inventories[current_player]:
           selected_badge = badge
@@ -821,9 +832,9 @@ class Tongo(commands.Cog):
       turn_index += 1
 
     # Associate the badge_instances with the winners
-    for player_user_id, reward_badge_instances in player_distribution.keys():
+    for player_user_id, reward_badge_instances in player_distribution.items():
       for instance_id in reward_badge_instances:
-        await transfer_badge_instance(instance_id, player_user_id, reason='tongo_reward')
+        await transfer_badge_instance(instance_id, player_user_id, event_type='tongo_reward')
 
     # Remove the badges from the Continuum
     for continuum_instance_id in continuum_distribution:
@@ -931,7 +942,7 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
       return False
 
-    special_badges = await db_get_special_badges()
+    special_badges = await db_get_all_special_badges()
     restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in special_badges]]
     if restricted_badges:
       await ctx.followup.send(embed=discord.Embed(
@@ -941,8 +952,8 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
       return False
 
-    tongo_pot_badges = await db_get_tongo_pot_badges()
-    existing_pot_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in tongo_pot_badges]]
+    continuum_badges = await db_get_full_continuum_badges()
+    existing_pot_badges = [b for b in selected_user_badges if b in [b['badge_info_id'] for b in continuum_badges]]
     if existing_pot_badges:
       await ctx.followup.send(embed=discord.Embed(
         title="Invalid Selection",
@@ -962,9 +973,8 @@ async def throw_badge_into_continuum(instance, user_id):
   """
   Utility to place a badge into the continuum and, importantly, revoke the current user's ownership
   """
-  await db_add_to_continuum(instance['badge_info_id'], instance['id'], user_id)
-  await db_update_instance_owner(instance['id'], None)
-  await log_badge_instance_history(instance['id'], 'tongo_risk', user_id, None, None)
+  await db_add_to_continuum(instance['badge_info_id'], instance['badge_instance_id'], user_id)
+  await transfer_badge_instance(instance['badge_instance_id'], None, 'tongo_risk')
 
 
 async def send_continuum_images_to_channel(trade_channel, continuum_images):
@@ -986,14 +996,14 @@ async def send_continuum_images_to_channel(trade_channel, continuum_images):
 async def build_confront_results_embed(active_chair: discord.Member, auto_confront: bool, remaining_badges: list[dict]) -> discord.Embed:
   if auto_confront:
     title = "TONGO! Game Automatically Ending!"
-    desc = f"The game started by **{active_chair.display_name}** has run out of time!\n\nEnding the game!"
+    description= f"The game started by **{active_chair.display_name}** has run out of time!\n\nEnding the game!"
   else:
     title = "TONGO! Complete!"
-    desc = "Distributing Badges from The Great Material Continuum!"
+    description= "Distributing Badges from The Great Material Continuum!"
 
   embed = discord.Embed(
     title=title,
-    description=desc,
+    description=description,
     color=discord.Color.dark_purple()
   )
 
@@ -1013,16 +1023,16 @@ async def build_confront_results_embed(active_chair: discord.Member, auto_confro
   return embed
 
 async def build_confront_player_embed(member: discord.Member, badge_infos: list[dict], wishlist_badge_filenames: list[str], xp_awarded: int = 0) -> discord.Embed:
-  description = "\n".join([
-    f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
-    for b in badge_infos
-  ])
-
   if xp_awarded:
-    description += f"\n\nOops, they got back less than they put in!\nThey've been awarded **{xp_awarded}xp** as a consolation prize!"
+    description = f"\n\nOops, sorry {member.mention}... they got back less than they put in!\nOn the bright side they've been awarded **{xp_awarded}xp** as a consolation prize!"
+  else:
+    description = "\n".join([
+      f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
+      for b in badge_infos
+    ])
 
   embed = discord.Embed(
-    title=f"{member.display_name} Received:",
+    title=f"{member.display_name}'s Results:",
     description=description,
     color=discord.Color.dark_purple()
   )
@@ -1035,17 +1045,19 @@ async def build_confront_player_embed(member: discord.Member, badge_infos: list[
 def build_confront_dm_embed(member: discord.Member, badge_infos: list[dict], wishlist_badge_filenames: list[str], jump_url: str, auto_confront: bool, xp_awarded: int = 0) -> discord.Embed:
   if auto_confront:
     title = "TONGO! Game Automatically Ending!"
-    desc = f"Heya {member.display_name}! Time ran out for your Tongo game and it has automatically ended! Your winnings are included below, and you can view the full results at: {jump_url}"
+    description= f"Heya {member.display_name}! Time ran out for your Tongo game and it has automatically ended!"
   else:
     title = "TONGO! Confront!"
-    desc = f"Heya {member.display_name}! Your Tongo game has ended! Your winnings are included below, and you can view the full results at: {jump_url}"
+    description= f"Heya {member.display_name}! Your Tongo game has ended!"
 
   if xp_awarded:
-    desc += f"\n\nOops, you received fewer than 3 badges — so you've been awarded **{xp_awarded}xp** as a consolation prize!"
+    description+= f"\n\nOops, you received fewer than 3 badges — so you've been awarded **{xp_awarded}xp** as a consolation prize, but can view the full game results at: {jump_url}"
+  else:
+    description+= f"\n\nYour winnings are included below, and you can view the full game results at: {jump_url}"
 
   embed = discord.Embed(
     title=title,
-    description=desc,
+    description=description,
     color=discord.Color.dark_purple()
   )
 
@@ -1070,7 +1082,8 @@ def build_confront_dm_embed(member: discord.Member, badge_infos: list[dict], wis
 
 def build_confront_no_rewards_embed(member: discord.Member, xp_awarded: int) -> discord.Embed:
   embed = discord.Embed(
-    title=f"{member.display_name} Did Not Receive Any Badges...\n\nbut they've been awarded **{xp_awarded}xp** as a consolation prize!",
+    title=f"{member.display_name} did not receive any badges...",
+    description=f"but they've been awarded **{xp_awarded}xp** as a consolation prize!",
     color=discord.Color.dark_purple()
   )
   embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")

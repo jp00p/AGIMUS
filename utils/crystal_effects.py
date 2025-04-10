@@ -418,49 +418,49 @@ def effect_holo_grid(badge_image: Image.Image, badge: dict, crystal: dict) -> Im
 # -- Legendary Animations
 
 @register_effect("warp_pulse")
-def effect_warp_pulse(base_img: Image.Image, fps: int = 12, duration: float = 2.0) -> list[Image.Image]:
-  """Applies a breathing blue glow pulse behind the badge."""
+def effect_warp_pulse(base_img: Image.Image, fps: int = 12, duration: float = 3.0) -> list[Image.Image]:
+  """Emits outward-pulsing vibrant blue rings from the center of the badge."""
   width, height = base_img.size
   num_frames = int(duration * fps)
-  alpha = base_img.split()[3]
-  bbox = alpha.getbbox()
-
-  badge_width = bbox[2] - bbox[0]
-  badge_height = bbox[3] - bbox[1]
-  x_margin = (width - badge_width) / 2
-  y_margin = (height - badge_height) / 2
-
-  # Determine scale that respects edge padding
-  margin = 6
-  scale_x = (width - 2 * x_margin) / badge_width
-  scale_y = (height - 2 * y_margin) / badge_height
-  scale = min(scale_x, scale_y, 1.1)
+  center = (width // 2, height // 2)
 
   frames = []
+  num_rings = 3
+  ring_interval = num_frames // num_rings
+  max_radius = width // 2
+  ring_thickness = 26
 
-  for i in range(num_frames):
-    t = i / num_frames
-    pulse = (np.sin(t * np.pi)) ** 2
+  for frame_index in range(num_frames):
+    # Transparent base for layering
+    frame = Image.new("RGBA", base_img.size, (0, 0, 0, 0))
+    glow_layer = Image.new("RGBA", base_img.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(glow_layer)
 
-    scaled_width = int(width * scale)
-    scaled_height = int(height * scale)
-    alpha_mask = alpha.resize((scaled_width, scaled_height), resample=Image.BICUBIC)
+    for ring_i in range(num_rings):
+      ring_age = (frame_index - ring_i * ring_interval) % num_frames
+      ring_progress = ring_age / num_frames
+      radius = int(max_radius * ring_progress)
 
-    glow_layer = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    offset_x = (width - scaled_width) // 2
-    offset_y = (height - scaled_height) // 2
+      if radius <= 0 or radius >= max_radius:
+        continue
 
-    glow_img = Image.new("RGBA", (scaled_width, scaled_height), (40, 180, 255, int(180 * pulse)))
-    glow_img.putalpha(alpha_mask.point(lambda a: a * pulse))
+      fade_factor = 1 - (radius / max_radius)
+      alpha_val = int(255 * fade_factor)
+      ring_color = (0, 200, 255, alpha_val)
 
-    blur_radius = 6 + pulse * 16
-    blurred_glow = glow_img.filter(ImageFilter.GaussianBlur(radius=blur_radius))
-    glow_layer.paste(blurred_glow, (offset_x, offset_y), blurred_glow)
+      bbox = [
+        center[0] - radius,
+        center[1] - radius,
+        center[0] + radius,
+        center[1] + radius,
+      ]
+      draw.ellipse(bbox, outline=ring_color, width=ring_thickness)
 
-    frame = Image.new("RGBA", base_img.size)
-    frame = Image.alpha_composite(frame, glow_layer)
+    blurred_glow = glow_layer.filter(ImageFilter.GaussianBlur(radius=12))
+    frame = Image.alpha_composite(frame, blurred_glow)
     frame = Image.alpha_composite(frame, base_img)
 
     frames.append(frame)
 
   return frames
+

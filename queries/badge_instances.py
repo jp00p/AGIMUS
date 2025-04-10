@@ -206,4 +206,6 @@ async def db_get_owned_badge_filenames_by_user_id(user_id: int):
     WHERE inst.owner_discord_id = %s AND inst.status = 'active'
   """
   async with AgimusDB(dictionary=True) as db:
-    return await db.fetchall(query, (user_id,))
+    await db.execute(query, (user_id,))
+    return await db.fetchall()
+
