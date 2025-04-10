@@ -3,12 +3,12 @@ import asyncio
 import random
 from datetime import datetime
 
-import discord
 from common import *
-from commands.badges import give_user_badge, send_badge_reward_message
-from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist, db_get_user_wishlist_badges
-# from utils.badge_granting import award_level_up_badge
-from utils.badge_utils import db_get_user_badges, db_purge_users_wishlist
+
+from commands.badges import *
+from queries.wishlist import *
+from utils.badge_rewards import *
+from utils.badge_utils import *
 
 # XP lock to prevent race conditions
 xp_lock = asyncio.Lock()
@@ -256,8 +256,9 @@ def _log_level_up_to_console(user, level):
   rainbow_r = f"{Back.RESET}{Back.MAGENTA} {Back.BLUE} {Back.CYAN} {Back.GREEN} {Back.YELLOW} {Back.RED} {Back.RESET}"
   logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} reached level {level}! {rainbow_r}")
 
+# TODO: We don't need this shit anymore, utils.badge_rewards is going to handle this stuff for us
 async def _award_level_up_badge(user_id):
-  badge = await give_user_badge(user_id)
+  badge = await award_random_badge(user_id)
 
   if badge:
     wishlist_badges = await db_get_user_wishlist_badges(user_id)
@@ -386,7 +387,7 @@ def is_message_channel_unblocked(message: discord.message.Message):
 
 # Utils
 async def give_welcome_badge(user_id):
-  user_badge_filenames = [b['badge_filename'] for b in await db_get_user_badges(user_id)]
+  user_badge_filenames = [b['badge_filename'] for b in await db_get_user_badge_instances(user_id)]
   if "Friends_Of_DeSoto.png" not in user_badge_filenames:
     async with AgimusDB() as query:
       sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, 'Friends_Of_DeSoto.png');"

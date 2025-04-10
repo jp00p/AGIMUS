@@ -1,9 +1,9 @@
 from common import *
 
-from queries.badge_info import db_get_badge_info_by_name
-from queries.badge_instances import db_get_badge_instance_id_by_badge_info_id
-from queries.crystals import db_get_attached_crystals, db_set_slotted_crystal
-from utils.badge_utils import load_badge_image
+from queries.badge_info import *
+from queries.badge_instances import *
+from queries.crystals import *
+from utils.badge_utils import *
 from utils.crystal_effects import apply_crystal_effect
 
 class Crystals(commands.Cog):
@@ -11,12 +11,10 @@ class Crystals(commands.Cog):
     self.bot = bot
 
   async def autocomplete_user_badge_instances(ctx: discord.AutocompleteContext):
-    from queries.badge_instances import db_get_user_badges
-
     user_id = ctx.interaction.user.id
-    badges = await db_get_user_badges(user_id)
+    badge_instances = await db_get_user_badge_instances(user_id)
     choices = [
-      b['badge_name'] for b in badges
+      b['badge_name'] for b in badge_instances
       if b.get('badge_name') and ctx.value.lower() in b['badge_name'].lower()
     ]
     return choices[:25]
@@ -31,11 +29,11 @@ class Crystals(commands.Cog):
     if not badge_info:
       return []
 
-    instance = await db_get_badge_instance_id_by_badge_info_id(user_id, badge_info['id'])
-    if not instance:
+    badge_instance = await db_get_badge_instance_by_badge_info_id(user_id, badge_info['id'])
+    if not badge_instance:
       return []
 
-    crystals = await db_get_attached_crystals(instance['id'])
+    crystals = await db_get_attached_crystals(badge_instance['badge_instance_id'])
     return ['[None]'] + [
       f"{c['emoji']} {c['crystal_name']}" if c.get('emoji') else c['crystal_name']
       for c in crystals if ctx.value.lower() in c['crystal_name'].lower()
@@ -43,7 +41,7 @@ class Crystals(commands.Cog):
 
   crystals_group = discord.SlashCommandGroup("crystals", "Badge Crystal Management.")
 
-  @crystals_group.command(name='slot_crystal', description='Select which crystal to display for one of your badges.')
+  @crystals_group.command(name='install', description='Select which crystal to display for one of your badges.')
   @option(
     'badge_name',
     str,
@@ -58,7 +56,7 @@ class Crystals(commands.Cog):
     autocomplete=autocomplete_user_badge_crystals,
     max_length=128
   )
-  async def slot_crystal(self, ctx: discord.ApplicationContext, badge_name: str, crystal_name: str):
+  async def install(self, ctx: discord.ApplicationContext, badge_name: str, crystal_name: str):
     user_id = ctx.user.id
 
     badge_info = await db_get_badge_info_by_name(badge_name)
@@ -71,8 +69,8 @@ class Crystals(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
-    instance = await db_get_badge_instance_id_by_badge_info_id(user_id, badge_info['id'])
-    if not instance:
+    badge_instance = await db_get_badge_instance_by_badge_info_id(user_id, badge_info['id'])
+    if not badge_instance:
       embed = discord.Embed(
         title='Badge Not Owned!',
         description=f"You don't own the **{badge_name}** badge.",
@@ -81,29 +79,34 @@ class Crystals(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
-    crystals = await db_get_attached_crystals(instance['id'])
+    crystals = await db_get_attached_crystals(badge_instance['badge_instance_id'])
 
     if crystal_name.lower() == '[none]':
-      if instance.get('slotted_crystal_id') is None:
+      if badge_instance.get('active_crystal_id') is None:
         embed = discord.Embed(
-          title='Already Unslotted!',
-          description=f"No crystal is currently slotted for **{badge_name}**.",
+          title='Already Unistalled!',
+          description=f"No crystal is currently installed in **{badge_name}**.",
           color=discord.Color.orange()
         )
         await ctx.respond(embed=embed, ephemeral=True)
         return
 
-      # Look up which crystal was previously slotted
-      previous = next((c for c in crystals if c['id'] == instance['slotted_crystal_id']), None)
+      # Look up which crystal was previously installed
+      previous = next(
+        (c for c in crystals if c['badge_crystal_id'] == badge_instance['active_crystal_id']),
+        None
+      )
       prev_label = f"{previous['emoji']} {previous['crystal_name']}" if previous else "Unknown Crystal"
 
-      await db_set_slotted_crystal(instance['id'], None)
+      await db_set_active_crystal(badge_instance['badge_instance_id'], None)
       embed = discord.Embed(
-        title='Crystal Removed 🧼',
-        description=f"Unslotted **{prev_label}** from **{badge_name}**.",
+        title='Crystal Removed',
+        description=f"Uninstalled **{prev_label}** from **{badge_name}**.",
         color=discord.Color.green()
       )
+      await ctx.respond(embed=embed, ephemeral=True)  # ← This was missing!
       return
+
 
     selected = next(
       (c for c in crystals if crystal_name.lower() in f"{c.get('emoji', '')} {c['crystal_name']}".lower()),
@@ -119,10 +122,10 @@ class Crystals(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
-    if instance.get('slotted_crystal_id') == selected['crystal_type_id']:
+    if badge_instance.get('active_crystal_id') == selected['crystal_type_id']:
       embed = discord.Embed(
-        title='Already Slotted!',
-        description=f"**{crystal_name}** is already your active crystal for **{badge_name}**.",
+        title='Already Installed!',
+        description=f"**{crystal_name}** is already your installed crystal in **{badge_name}**.",
         color=discord.Color.orange()
       )
       await ctx.respond(embed=embed, ephemeral=True)
@@ -130,9 +133,9 @@ class Crystals(commands.Cog):
 
     # Generate badge preview image with crystal effect (in-memory)
     base_image = load_badge_image(badge_info['badge_filename'])
-    badge = { **badge_info, 'badge_instance_id': instance['id'] }
+    badge = { **badge_info, 'badge_instance_id': badge_instance['badge_instance_id'] }
     crystal = selected
-    preview_img = apply_crystal_effect(base_image, badge, crystal)
+    preview_img = await apply_crystal_effect(base_image, badge, crystal=crystal)
 
     buffer = io.BytesIO()
     preview_img.save(buffer, format='PNG')
@@ -149,7 +152,7 @@ class Crystals(commands.Cog):
     )
     preview_embed.add_field(name=f"{crystal['crystal_name']}", value=f"{crystal_description}", inline=False)
     preview_embed.add_field(name=f"Rank", value=f"{crystal['emoji']} {crystal['rarity_name']}", inline=False)
-    preview_embed.set_footer(text="Click Confirm to slot this crystal, or Cancel.")
+    preview_embed.set_footer(text="Click Confirm to install this crystal, or Cancel.")
     preview_embed.set_image(url="attachment://preview.png")
 
     class ConfirmCancelView(discord.ui.View):
@@ -164,9 +167,10 @@ class Crystals(commands.Cog):
 
       @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
       async def confirm(self, button, interaction):
-        await db_set_slotted_crystal(instance['id'], selected['id'])
+        logger.info(pprint(crystal))
+        await db_set_active_crystal(badge_instance['badge_instance_id'], selected['badge_crystal_id'])
         embed = discord.Embed(
-          title='Crystal Slotted ✅',
+          title='Crystal Installed ✅',
           description=f"Set **{crystal_label}** as your preferred crystal for **{badge_name}**.",
           color=discord.Color.green()
         )

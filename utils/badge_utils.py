@@ -4,71 +4,11 @@ from pathlib import Path
 
 from common import *
 
+from queries.badge_info import *
+from queries.badge_instances import *
+
 from utils.crystal_effects import apply_crystal_effect
 from utils.thread_utils import to_thread
-
-from queries.badges import (
-  db_get_user_badges,
-  db_get_user_locked_badges,
-  db_get_user_unlocked_badges,
-  db_get_user_special_badges,
-  db_get_badge_count_for_user,
-  db_get_total_badge_count_by_filename
-)
-
-from queries.badge_info import (
-  db_get_all_badge_info,
-  db_get_badge_info_by_name,
-  db_get_badge_info_by_filename,
-  db_get_all_affiliations,
-  db_get_all_affiliation_badges,
-  db_get_badge_affiliations_by_badge_name,
-  db_get_badges_user_has_from_affiliation,
-  db_get_random_badges_from_user_by_affiliations,
-  db_get_all_franchises,
-  db_get_all_franchise_badges,
-  db_get_badges_user_has_from_franchise,
-  db_get_random_badges_from_user_by_franchises,
-  db_get_all_time_periods,
-  db_get_all_time_period_badges,
-  db_get_random_badges_from_user_by_time_periods,
-  db_get_all_types,
-  db_get_all_type_badges,
-  db_get_badge_types_by_badge_name,
-  db_get_badges_user_has_from_type,
-  db_get_random_badges_from_user_by_types
-)
-
-from queries.wishlist import (
-  db_get_user_wishlist_badges,
-  db_autolock_badges_by_filenames_if_in_wishlist,
-  db_add_badge_name_to_users_wishlist,
-  db_add_badge_filenames_to_users_wishlist,
-  db_remove_badge_name_from_users_wishlist,
-  db_remove_badge_filenames_from_users_wishlist,
-  db_clear_users_wishlist,
-  db_purge_users_wishlist,
-  db_autolock_badges_by_filenames_if_in_wishlist,
-  db_get_badge_locked_status_by_name,
-  db_lock_badge_by_filename,
-  db_lock_badges_by_filenames,
-  db_unlock_badge_by_filename,
-  db_unlock_badges_by_filenames,
-  db_get_wishlist_matches,
-  db_get_wishlist_badge_matches,
-  db_get_wishlist_inventory_matches,
-  db_get_wishlist_dismissal,
-  db_get_all_users_wishlist_dismissals,
-  db_delete_wishlist_dismissal,
-  db_add_wishlist_dismissal,
-)
-
-from queries.trade import (
-  db_get_trade_requested_badges,
-  db_get_trade_offered_badges,
-  db_cancel_trade,
-  db_get_related_badge_trades,
-)
 
 # -> utils.badge_utils
 
@@ -366,7 +306,7 @@ async def build_collection_canvas(user, badge_data, page_number, total_pages, co
     total_count = len(badge_data)
   else:
     collected_count = len(badge_data)
-    total_count = await db_get_badge_count_for_user(user.id)
+    total_count = await db_get_badge_instances_count_for_user(user.id)
 
   label = collection_label or None
 
@@ -416,7 +356,7 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
 
   # Load image and thumbnailicize
   badge_image = load_badge_image(badge['badge_filename'])
-  badge_image = apply_crystal_effect(badge_image, badge)
+  badge_image = await apply_crystal_effect(badge_image, badge)
   if add_alpha:
     # Create a mask layer to apply 1/4th opacity to for uncollected badges
     badge_alpha = badge_image.copy()
@@ -528,7 +468,7 @@ async def generate_badge_set_completion_images(user, badge_data, category):
   rows_per_page = 7
 
   max_badge_count = await db_get_max_badge_count()
-  collected_count = await db_get_badge_count_for_user(user.id)
+  collected_count = await db_get_badge_instances_count_for_user(user.id)
 
   filtered_rows = [r for r in badge_data if r.get("collected", 0) > 0]
 

@@ -12,7 +12,7 @@ from utils.check_channel_access import access_check
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
 async def user_badges_autocomplete(ctx:discord.AutocompleteContext):
-  user_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.interaction.user.id)]
+  user_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id)]
   if len(user_badges) == 0:
     user_badges = ["You don't have any badges yet!"]
 
@@ -133,7 +133,7 @@ class CarouselButton(discord.ui.Button):
       files=[summary_badge_image]
     )
 
-    user_badges = await db_get_user_badges(self.user_discord_id)
+    user_badges = await db_get_user_badge_instances(self.user_discord_id)
     user_badge_filenames = [b['badge_filename'] for b in user_badges]
     previous_badge_filename = await db_get_last_carousel_tagged_badge_filename(self.user_discord_id)
     if previous_badge_filename:
@@ -455,7 +455,7 @@ class BadgeTags(commands.Cog):
       )
       return
 
-    user_badges = await db_get_user_badges(ctx.author.id)
+    user_badges = await db_get_user_badge_instances(ctx.author.id)
     user_badge_names = [b['badge_name'] for b in user_badges]
     if badge not in user_badge_names:
       await ctx.followup.send(
@@ -641,7 +641,7 @@ class BadgeTags(commands.Cog):
       description = "**Starting:** Beginning Carousel from first badge of inventory."
       if start == 'resume':
         description += "\n\nYou had selected 'Resume' but had no previously stored resume location!"
-      user_badges = await db_get_user_badges(user_discord_id)
+      user_badges = await db_get_user_badge_instances(user_discord_id)
       initial_badge = user_badges[0]
 
     view = await generateTagCarouselView(user_discord_id, initial_badge)

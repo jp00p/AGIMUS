@@ -26,18 +26,48 @@ async def db_attach_crystal_to_instance(instance_id: int, crystal_name: str = "D
   return crystal
 
 
-async def db_set_slotted_crystal(instance_id: int, crystal_id: int):
+async def db_set_active_crystal(instance_id: int, crystal_id: int):
   async with AgimusDB() as query:
     await query.execute(
-      "UPDATE badge_instances SET slotted_crystal_id = %s WHERE id = %s",
+      "UPDATE badge_instances SET active_crystal_id = %s WHERE id = %s",
       (crystal_id, instance_id)
     )
+
+async def db_get_active_crystal(badge_instance_id: int):
+  query = """
+    SELECT
+      bc.id AS badge_crystal_id,
+      bc.badge_instance_id,
+      bc.crystal_type_id,
+
+      ct.id AS crystal_type_id,
+      ct.name AS crystal_name,
+      ct.effect,
+      ct.description,
+      ct.icon,
+      ct.rarity_rank,
+
+      cr.rarity_rank,
+      cr.name AS rarity_name,
+      cr.emoji,
+      cr.drop_chance,
+      cr.sort_order
+
+    FROM badge_instances bi
+    JOIN badge_crystals bc ON bi.active_crystal_id = bc.id
+    JOIN crystal_types ct ON bc.crystal_type_id = ct.id
+    JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
+    WHERE bi.id = %s
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(query, (badge_instance_id,))
+    return await db.fetchone()
 
 async def db_get_crystal_by_id(crystal_id: int) -> dict:
   async with AgimusDB(dictionary=True) as query:
     sql = """
       SELECT ct.*, cr.rarity_rank FROM crystal_types ct
-      JOIN crystal_ranks cr ON ct.crystal_rank_rarity = cr.rarity_rank
+      JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
       WHERE ct.id = %s
     """
     vals = (crystal_id,)
@@ -72,7 +102,7 @@ async def db_get_attached_crystals(instance_id: int):
           ct.effect,
           ct.description,
           ct.icon,
-          ct.crystal_rarity_rank,
+          ct.rarity_rank,
 
           cr.rarity_rank,
           cr.name AS rarity_name,
@@ -82,9 +112,9 @@ async def db_get_attached_crystals(instance_id: int):
 
         FROM badge_crystals bc
         JOIN crystal_types ct ON bc.crystal_type_id = ct.id
-        JOIN crystal_ranks cr ON ct.crystal_rarity_rank = cr.rarity_rank
+        JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
         WHERE bc.badge_instance_id = %s
-        ORDER BY ct.crystal_rarity_rank, ct.name ASC
+        ORDER BY ct.rarity_rank, ct.name ASC
       """,
       (instance_id,)
     )
@@ -111,8 +141,8 @@ async def db_get_crystals_by_rarity(rarity_rank: int):
       """
         SELECT ct.*, cr.emoji, cr.name AS rarity_name
         FROM crystal_types ct
-        JOIN crystal_ranks cr ON ct.crystal_rarity_rank = cr.rarity_rank
-        WHERE ct.crystal_rarity_rank = %s
+        JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
+        WHERE ct.rarity_rank = %s
         ORDER BY c.name ASC
       """,
       (rarity_rank,)
@@ -143,8 +173,8 @@ async def db_get_available_crystal_types():
       """
         SELECT c.*, r.emoji, r.drop_chance
         FROM crystal_types c
-        JOIN crystal_ranks r ON c.crystal_rarity_rank = r.rarity_rank
-        ORDER BY c.crystal_rarity_rank ASC, c.name ASC
+        JOIN crystal_ranks r ON c.rarity_rank = r.rarity_rank
+        ORDER BY c.rarity_rank ASC, c.name ASC
       """
     )
     crystal_types = await query.fetchall()

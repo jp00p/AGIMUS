@@ -427,13 +427,13 @@ INSERT INTO crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order) VA
 CREATE TABLE crystal_types (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) NOT NULL UNIQUE,
-  crystal_rank_rarity INT NOT NULL,
+  rarity_rank INT NOT NULL,
   icon VARCHAR(128),
   effect TEXT,
   description TEXT,
 );
 
-INSERT INTO crystal_types (name, crystal_rank_rarity, icon, effect, description) VALUES
+INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 
   -- Common Crystals
   ("Dilithium", 1, "dilithium.png", "pink_tint", "Good old Dilithium. Standard Starfleet issue!"),
@@ -448,7 +448,7 @@ INSERT INTO crystal_types (name, crystal_rank_rarity, icon, effect, description)
   ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
   ("Positron", 2, "positron.png", "positronic", "Fully functional. Operates at 60 trillion calculations a second."),
   ("Latinum", 2, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!."),
-  ("Cryonetrium", 2, "cryonetrium.png", "cryontrium", "Still gaseous at -200°C, that's some cold coolant!"),
+  ("Cryonetrium", 2, "cryonetrium.png", "cryonetrium", "Still gaseous at -200°C, that's some cold coolant!"),
 
   -- Rare Crystals
   ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in three quadrants. Handle with care."),
@@ -458,8 +458,10 @@ INSERT INTO crystal_types (name, crystal_rank_rarity, icon, effect, description)
   -- Legendary Crystals
   ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "Collected from the EPS grid. Hums with that familiar pulse."),
   ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Be careful of distortions and space buttholes when these are around..."),
+  ("Bajoran Orb", 4, "bajoran_orb.png", "prophet_glow", "An Orb of the Prophets. My Child!"),
 
   -- Mythic Crystals
+  ("Genesis Core", 5, "genesis_core.png", "terraform_shift", "A component of the ultimate matter converter... KHAAANNNN!"),
   ("Chroniton", 5, "chroniton.png", "phase_flicker", "Time travel! Glitches in and out of this temporal frame."),
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable.");
 
@@ -480,11 +482,11 @@ CREATE TABLE badge_instances (
   locked BOOLEAN DEFAULT FALSE,
   origin_user_id BIGINT,
   acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  slotted_crystal_id INT DEFAULT NULL,
+  active_crystal_id INT DEFAULT NULL,
   status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
   UNIQUE KEY (owner_discord_id, badge_info_id),
   FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
-  FOREIGN KEY (slotted_crystal_id) REFERENCES badge_crystals(id) ON DELETE SET NULL
+  FOREIGN KEY (active_crystal_id) REFERENCES badge_crystals(id) ON DELETE SET NULL
 );
 
 -- 5. Badge "Provenance" - Ability to track where a badge instance originated from and where its been

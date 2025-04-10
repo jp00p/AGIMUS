@@ -37,7 +37,7 @@ def get_sticker_filename_from_name(name):
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
 async def user_badges_autocomplete(ctx:discord.AutocompleteContext):
-  user_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.interaction.user.id)]
+  user_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id)]
   if len(user_badges) == 0:
     user_badges = ["You don't have any badges yet!"]
     return user_badges
@@ -161,7 +161,7 @@ class Profile(commands.Cog):
     spins = user["spins"]
     level = user["level"]
     xp = user["xp"]
-    badges = await db_get_user_badges(member.id)
+    badges = await db_get_user_badge_instances(member.id)
     badge_count = len(badges)
     next_level = calculate_xp_for_next_level(level)
     prev_level = 0
@@ -319,7 +319,7 @@ class Profile(commands.Cog):
     # put badge on
     if len(user["badges"]) > 0 and user['badges'][0]['badge_filename']:
       badge_filename = user['badges'][0]['badge_filename']
-      user_badges = await db_get_user_badges(user['discord_id'])
+      user_badges = await db_get_user_badge_instances(user['discord_id'])
       if badge_filename not in [b['badge_filename'] for b in user_badges]:
         # Catch if the user had a badge present that they no longer have, if so clear it from the table
         await db_remove_user_profile_badge(user['discord_id'])
@@ -490,7 +490,7 @@ class Profile(commands.Cog):
       return "Cleared Profile Badge"
 
     # Check to make sure they own the badge
-    user_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.author.id)]
+    user_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.author.id)]
     if badge not in user_badges:
       await ctx.respond(embed=discord.Embed(
         title="Unable To Set Featured Profile Badge",

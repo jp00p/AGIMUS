@@ -4,6 +4,7 @@ from common import *
 
 from utils.check_channel_access import access_check
 from utils.string_utils import *
+from utils.badge_rewards import *
 from utils.badge_utils import *
 
 import queries.badge_completion as queries_badge_completion
@@ -29,7 +30,7 @@ async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
   second_badge = ctx.options["second_badge"]
   third_badge = ctx.options["third_badge"]
 
-  user_badges = await db_get_user_unlocked_badges(ctx.interaction.user.id)
+  user_badges = await db_get_user_badge_instances(ctx.interaction.user.id, locked=False)
 
   filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in await db_get_special_badges()]
   filtered_badge_names = [badge['badge_name'] for badge in user_badges if badge['badge_name'] not in filtered_badges]
@@ -122,15 +123,15 @@ async def collection(ctx:discord.ApplicationContext, public:str, filter:str, sor
   collection_label = None
   if filter is not None:
     if filter == 'unlocked':
-      user_badges = await db_get_user_unlocked_badges(ctx.author.id)
+      user_badges = await db_get_user_badge_instances(ctx.author.id, locked=False, sortby=sortby)
     elif filter == 'locked':
-      user_badges = await db_get_user_locked_badges(ctx.author.id)
+      user_badges = await db_get_user_badge_instances(ctx.author.id, locked=True, sortby=sortby)
     elif filter == 'special':
-      user_badges = await db_get_user_special_badges(ctx.author.id)
-    max_collected = await db_get_user_badge_count()
+      user_badges = await db_get_user_badge_instances(ctx.author.id, special=True, sortby=sortby)
+    max_collected = await db_get_badge_instances_count_for_user(ctx.author.id)
     collection_label = filter.title()
   else:
-    user_badges = await db_get_user_badges(ctx.author.id, sortby)
+    user_badges = await db_get_user_badge_instances(ctx.author.id, sortby=sortby)
 
   if not user_badges:
     await ctx.followup.send(embed=discord.Embed(
@@ -511,7 +512,7 @@ class ScrapButton(discord.ui.Button):
   async def callback(self, interaction: discord.Interaction):
     # Re-check conditions to ensure this action is still valid
     # Ensure user still owns the badges
-    user_badges = await db_get_user_badges(self.user_id)
+    user_badges = await db_get_user_badge_instances(self.user_id)
     user_badge_filenames = [b['badge_filename'] for b in user_badges]
     owned_user_badges = [b for b in self.badges_to_scrap if b['badge_filename'] in user_badge_filenames]
     # Ensure they haven't performed another scrap within the time period
@@ -713,7 +714,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   all_possible_badges = [b['badge_name'] for b in await db_get_all_badge_info()]
   special_badge_names = [b['badge_name'] for b in await db_get_special_badges()]
   # Don't give them a badge they already have or a special badge
-  all_user_badge_names = [b['badge_name'] for b in await db_get_user_badges(user_id)]
+  all_user_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(user_id)]
   valid_choices = [b for b in all_possible_badges if b not in all_user_badge_names and b not in special_badge_names]
   if len(valid_choices) == 0:
     await ctx.respond(embed=discord.Embed(
@@ -927,7 +928,7 @@ async def badge_lookup(ctx:discord.ApplicationContext, public:str, name:str):
 
   if not public:
     user_discord_id = ctx.author.id
-    user_badges = await db_get_user_badges(user_discord_id)
+    user_badges = await db_get_user_badge_instances(user_discord_id)
     if name in [b['badge_name'] for b in user_badges]:
       locked_status = await db_get_badge_locked_status_by_name(user_discord_id, name)
       if locked_status['locked']:
@@ -1003,43 +1004,38 @@ async def badge_statistics(ctx:discord.ApplicationContext):
   description="The reason for the gift!",
   required=False
 )
-async def gift_badge(ctx:discord.ApplicationContext, user:discord.User, reason:str=""):
-  """
-  give a random badge to a user
-  """
+async def gift_badge(ctx: discord.ApplicationContext, user: discord.User, reason: str = ""):
   await ctx.defer(ephemeral=True)
 
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
-  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift a random badge{Style.RESET_ALL} to {user.display_name}")
+  logger.info(f"{ctx.author.display_name} is attempting to gift a random badge to {user.display_name}")
 
-  badge = await give_user_badge(user.id)
-  if badge is None:
+  badge_instance = await award_random_badge(user.id)
+
+  if badge_instance is None:
     await ctx.respond(embed=discord.Embed(
       title="This user already has *ALL BADGES!?!*",
-      description=f"Amazing! This user already has every badge we've got! Gifting unnecessary/impossible!",
+      description="Amazing! This user already has every badge we've got! Gifting unnecessary/impossible!",
       color=discord.Color.random()
     ), ephemeral=True)
     return
 
-  user_wishlist_badges = await db_get_user_wishlist_badges(user.id)
-  badge_was_on_wishlist = badge in [b['badge_filename'] for b in user_wishlist_badges]
+  badge_filename = badge_instance['badge_filename']
+  was_on_wishlist = badge_instance.get('locked', False)  # If it was auto-locked, it was on the wishlist
 
-  # Lock the badge if it was in their wishlist
-  await db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge])
-  # Remove any badges the user may have on their wishlist that they now possess
-  await db_purge_users_wishlist(user.id)
-
-  channel = bot.get_channel(notification_channel_id)
-  embed_title = "You got rewarded a free badge!"
+  embed_title = f"{user.display_name} received a free badge!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
   embed_description = f"{user.mention} has been gifted a badge by {ctx.author.mention}!"
-  if badge_was_on_wishlist:
-    embed_description += "\n\n" + f" Exciting! It was also one they had on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
-  if reason != "":
-    message = f"{user.mention} - {strip_emoji(reason)}"
-  else:
-    message = f"{user.mention} - Nice work, whatever you did!"
-  await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge, user)
+  if reason:
+    embed_description = f" It's because... {reason}"
+  if was_on_wishlist:
+    embed_description += f"\n\nExciting! It was also on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
+  message = f"Heads up {user.mention}!"
+
+  channel = bot.get_channel(notification_channel_id)
+  await send_badge_reward_message(
+    message, embed_description, embed_title, channel, thumbnail_image, badge_filename, user
+  )
   await ctx.respond("Your gift has been sent!", ephemeral=True)
 
 @gift_badge.error
@@ -1048,6 +1044,7 @@ async def gift_badge_error(ctx, error):
     await ctx.respond("Sorry, you do not have permission to do that!", ephemeral=True)
   else:
     await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
+    logger.error(traceback.format_exc())
 
 
 #   ________.__  _____  __      _________                    .__  _____.__
@@ -1073,39 +1070,59 @@ async def gift_badge_error(ctx, error):
   required=True,
   autocomplete=all_badges_autocomplete
 )
-async def gift_specific_badge(ctx:discord.ApplicationContext, user:discord.User, specific_badge:str):
+@option(
+  "reason",
+  str,
+  description="The reason for the gift!",
+  required=False
+)
+async def gift_specific_badge(
+  ctx: discord.ApplicationContext,
+  user: discord.User,
+  specific_badge: str,
+  reason: str = ""
+):
   """
-  give a random badge to a user
+  Give a specific badge to a user.
   """
+  await ctx.defer(ephemeral=True)
+
   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
-  logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}gift {specific_badge}{Style.RESET_ALL} to {user.display_name}")
+  logger.info(f"{ctx.author.display_name} is attempting to gift {specific_badge} to {user.display_name}")
 
   badge_info = await db_get_badge_info_by_name(specific_badge)
-  if badge_info == None:
-    await ctx.respond(f"Can't send {specific_badge}, it doesn't look like that badge exists!", ephemeral=True)
+  if badge_info is None:
+    await ctx.respond(
+      f"Can't send `{specific_badge}`, it doesn't look like that badge exists!",
+      ephemeral=True
+    )
     return
-  else:
-    user_badges = await db_get_user_badges(user.id)
-    badge_filename = badge_info['badge_filename']
-    if specific_badge not in [b['badge_name'] for b in user_badges]:
-      user_wishlist_badges = await db_get_user_wishlist_badges(user.id)
-      badge_was_on_wishlist = badge_filename in [b['badge_filename'] for b in user_wishlist_badges]
 
-      await give_user_specific_badge(user.id, badge_filename)
-      # Lock the badge if it was in their wishlist
-      await db_autolock_badges_by_filenames_if_in_wishlist(user.id, [badge_filename])
-      # Remove any badges the user may have on their wishlist that they now possess
-      await db_purge_users_wishlist(user.id)
+  badge_filename = badge_info['badge_filename']
+  badge_instance = await award_specific_badge(user.id, badge_filename)
 
-  channel = bot.get_channel(notification_channel_id)
-  embed_title = "You got rewarded a badge!"
+  if badge_instance is None:
+    await ctx.respond(
+      f"{user.mention} already owns the badge `{specific_badge}`, so it wasn't awarded again.",
+      ephemeral=True
+    )
+    return
+
+  was_on_wishlist = badge_instance.get('locked', False)  # Auto-locked means it was wishlisted
+
+  embed_title = f"{user.display_name} received a free badge!"
   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
-  embed_description = f"{user.mention} has been gifted a badge by {ctx.author.mention}!"
-  if badge_was_on_wishlist:
-    embed_description += "\n\n" + f"Exciting! It was also one they had on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
+  embed_description = f"{user.mention} has been gifted **{specific_badge}** by {ctx.author.mention}!"
+  if reason:
+    embed_description = f" It's because... {reason}"
+  if was_on_wishlist:
+    embed_description += f"\n\nExciting! It was also one they had on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
 
-  message = f"{user.mention} - Nice work, you got a free badge!"
-  await send_badge_reward_message(message, embed_description, embed_title, channel, thumbnail_image, badge_filename, user)
+  message = f"Heads up {user.mention}!"
+  channel = bot.get_channel(notification_channel_id)
+  await send_badge_reward_message(
+    message, embed_description, embed_title, channel, thumbnail_image, badge_filename, user
+  )
   await ctx.respond("Your gift has been sent!", ephemeral=True)
 
 
@@ -1115,6 +1132,7 @@ async def gift_specific_badge_error(ctx, error):
     await ctx.respond("Sorry, you do not have permission to do that!", ephemeral=True)
   else:
     await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
+    logger.error(traceback.format_exc())
 
 
 async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge_filename:str, user:discord.User, fields=[]):
@@ -1151,32 +1169,6 @@ async def send_badge_reward_message(message:str, embed_description:str, embed_ti
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
-
-async def give_user_badge(user_discord_id:int):
-  """ pick a badge, update badges DB, return badge name """
-  # list files in images/badges directory
-  badges = os.listdir("./images/badges/")
-  # get the users current badges
-  user_badges = [b['badge_filename'] for b in await db_get_user_badges(user_discord_id)]
-  special_badge_filenames = [b['badge_filename'] for b in await db_get_special_badges()]
-  valid_choices = [b for b in badges if b not in user_badges and b not in special_badge_filenames]
-  if len(valid_choices) == 0:
-    return None
-
-  badge_choice = random.choice(valid_choices)
-  async with AgimusDB() as query:
-    sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
-    vals = (user_discord_id, badge_choice)
-    await query.execute(sql, vals)
-  return badge_choice
-
-async def give_user_specific_badge(user_discord_id:int, badge_choice:str):
-  async with AgimusDB() as query:
-    sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
-    vals = (user_discord_id, badge_choice)
-    await query.execute(sql, vals)
-  return badge_choice
-
 async def run_badge_stats_queries():
   queries = {
     "total_badges" : "SELECT COUNT(id) as count FROM badges;",

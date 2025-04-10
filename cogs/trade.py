@@ -31,9 +31,9 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
     if active_trade:
       requestee_id = active_trade['requestee_id']
 
-  requestor_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.interaction.user.id)]
+  requestor_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id)]
   if requestee_id:
-    requestee_badges = [b['badge_name'] for b in await db_get_user_badges(requestee_id)]
+    requestee_badges = [b['badge_name'] for b in await db_get_user_badge_instances(requestee_id)]
     badge_names = [b for b in requestor_badges if b not in requestee_badges]
   else:
     badge_names = requestor_badges
@@ -63,8 +63,8 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
       requestee_id = active_trade['requestee_id']
 
   if requestee_id:
-    requestor_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.interaction.user.id)]
-    requestee_badges = [b['badge_name'] for b in await db_get_user_badges(requestee_id)]
+    requestor_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id)]
+    requestee_badges = [b['badge_name'] for b in await db_get_user_badge_instances(requestee_id)]
     badge_names = [b for b in requestee_badges if b not in requestor_badges]
   else:
     badge_names = ["Use '/trade start' to start a trade and make sure you choose someone."]
@@ -524,7 +524,7 @@ class Trade(commands.Cog):
 
 
   async def _requestor_already_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestor_badges = [b['badge_name'] for b in await db_get_user_badges(active_trade["requestor_id"])]
+    requestor_badges = [b['badge_name'] for b in await db_get_user_badge_instances(active_trade["requestor_id"])]
 
     trade_requested_badges = await db_get_trade_requested_badges(active_trade)
     trade_requested_badges = [b["badge_name"] for b in trade_requested_badges]
@@ -568,7 +568,7 @@ class Trade(commands.Cog):
 
 
   async def _requestee_already_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestee_badges = [b['badge_name'] for b in await db_get_user_badges(active_trade["requestee_id"])]
+    requestee_badges = [b['badge_name'] for b in await db_get_user_badge_instances(active_trade["requestee_id"])]
 
     trade_offered_badges = await db_get_trade_offered_badges(active_trade)
     trade_offered_badges = [b["badge_name"] for b in trade_offered_badges]
@@ -611,7 +611,7 @@ class Trade(commands.Cog):
     return False
 
   async def _requestor_still_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestor_badges = [b['badge_name'] for b in await db_get_user_badges(active_trade["requestor_id"])]
+    requestor_badges = [b['badge_name'] for b in await db_get_user_badge_instances(active_trade["requestor_id"])]
 
     trade_offered_badges = await db_get_trade_offered_badges(active_trade)
     trade_offered_badges = [b["badge_name"] for b in trade_offered_badges]
@@ -654,7 +654,7 @@ class Trade(commands.Cog):
     return True
 
   async def _requestee_still_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestee_badges = [b["badge_name"] for b in await db_get_user_badges(active_trade["requestee_id"])]
+    requestee_badges = [b["badge_name"] for b in await db_get_user_badge_instances(active_trade["requestee_id"])]
 
     trade_requested_badges = await db_get_trade_requested_badges(active_trade)
     trade_requested_badges = [b["badge_name"] for b in trade_requested_badges]
@@ -904,8 +904,8 @@ class Trade(commands.Cog):
 
     # Check if either user would go over the badge cap
     max_badge_count = await db_get_max_badge_count()
-    requestor_count = await db_get_user_badge_count(requestor_id)
-    requestee_count = await db_get_user_badge_count(requestee_id)
+    requestor_count = await db_get_badge_instances_count_for_user(requestor_id)
+    requestee_count = await db_get_badge_instances_count_for_user(requestee_id)
 
     if requestor_count + amount > max_badge_count:
       await ctx.followup.send(embed=discord.Embed(
@@ -923,11 +923,11 @@ class Trade(commands.Cog):
       ), ephemeral=True)
       return
 
-    requestor_total_badges = [b['badge_name'] for b in await db_get_user_badges(requestor_id)]
-    requestor_unlocked_badges = [b['badge_name'] for b in await db_get_user_unlocked_badges(requestor_id)]
+    requestor_total_badges = [b['badge_name'] for b in await db_get_user_badge_instances(requestor_id)]
+    requestor_unlocked_badges = [b['badge_name'] for b in await db_get_user_badge_instances(requestor_id, locked=False)]
 
-    requestee_total_badges = [b['badge_name'] for b in await db_get_user_badges(requestee_id)]
-    requestee_unlocked_badges = [b['badge_name'] for b in await db_get_user_unlocked_badges(requestee_id)]
+    requestee_total_badges = [b['badge_name'] for b in await db_get_user_badge_instances(requestee_id)]
+    requestee_unlocked_badges = [b['badge_name'] for b in await db_get_user_badge_instances(requestee_id, locked=False)]
 
     # Get only the badges to offer/request that are not already present in the other user's inventory yet
     valid_requestor_badges = list(np.setdiff1d(requestor_unlocked_badges, requestee_total_badges))
@@ -1567,7 +1567,7 @@ class Trade(commands.Cog):
       ), ephemeral=True)
       return True
 
-    user_badges = [b["badge_name"] for b in await db_get_user_badges(from_user.id)]
+    user_badges = [b["badge_name"] for b in await db_get_user_badge_instances(from_user.id)]
     if badge not in user_badges:
       logger.info(f"{Fore.CYAN}{from_user.display_name} doesn't possess `{badge}`, unable to add to {direction} "
                   f"{dir_preposition} {to_user.display_name}.")
@@ -1580,7 +1580,7 @@ class Trade(commands.Cog):
       ), ephemeral=True)
       return True
 
-    user_badges = [b["badge_name"] for b in await db_get_user_badges(to_user.id)]
+    user_badges = [b["badge_name"] for b in await db_get_user_badge_instances(to_user.id)]
     if badge in user_badges:
       logger.info(f"{Fore.CYAN}{requestor.display_name} was unable to add `{badge}` to their pending trade {direction} "
                   f"{dir_preposition} {requestee.display_name} because {to_user.display_name} already owns the badge! "
@@ -1620,7 +1620,7 @@ class Trade(commands.Cog):
 
     # Check to make sure the receiving user wouldn't go over the badge cap limit
     max_badge_count = await db_get_max_badge_count()
-    to_user_badge_count = await db_get_user_badge_count(to_user.id)
+    to_user_badge_count = await db_get_badge_instances_count_for_user(to_user.id)
     if direction == 'offer':
       incoming_badges = await db_get_trade_offered_badges(active_trade)
     else:

@@ -24,7 +24,7 @@ async def migrate_badges(dry_run=False):
     dilithium_id = row["id"]
 
     print("... Loading Badge Rows ...")
-    await cur.execute("SELECT user_discord_id, badge_filename, locked FROM badges ORDER BY user_discord_id")
+    await cur.execute("SELECT user_discord_id, badge_filename, locked FROM badges WHERE user_discord_id = 1196611546776879214")
     badge_rows = await cur.fetchall()
     print("... Badge Rows Loaded ...")
 
@@ -59,10 +59,10 @@ async def migrate_badges(dry_run=False):
       if not dry_run:
         await cur.execute(
           """
-          INSERT INTO badge_instances (badge_info_id, owner_discord_id, locked)
+          INSERT INTO badge_instances (badge_info_id, owner_discord_id, locked, origin_user_id)
           VALUES (%s, %s, %s)
           """,
-          (badge_info_id, user_discord_id, locked)
+          (badge_info_id, user_discord_id, locked, user_discord_id)
         )
         badge_instance_id = cur.lastrowid
 

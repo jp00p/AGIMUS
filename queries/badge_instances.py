@@ -1,7 +1,56 @@
 from common import *
 
 
-async def db_get_user_badges(user_id: int, sortby: str = None):
+# Big ol' fully enriched instances
+INSTANCE_COLUMNS = """
+  b_i.id AS badge_info_id,
+  b_i.badge_filename,
+  b_i.badge_name,
+  b_i.badge_url,
+  b_i.quadrant,
+  b_i.time_period,
+  b_i.franchise,
+  b_i.reference,
+  b_i.special,
+
+  b.id AS badge_instance_id,
+  b.badge_info_id,
+  b.owner_discord_id,
+  b.locked,
+  b.origin_user_id,
+  b.acquired_at,
+  b.active_crystal_id,
+  b.status,
+
+  c.id AS crystal_id,
+  c.crystal_type_id,
+  t.name AS crystal_name,
+  t.effect,
+  t.rarity_rank
+"""
+
+# GET
+
+async def db_get_user_badge_instances(
+  user_id: int,
+  *,
+  locked: bool | None = None,
+  special: bool | None = None,
+  sortby: str = None
+):
+  where_clauses = ["b.owner_discord_id = %s", "b.status = 'active'"]
+  params = [user_id]
+
+  if locked is not None:
+    where_clauses.append("b.locked = %s")
+    params.append(locked)
+
+  if special is not None:
+    where_clauses.append("b_i.special = %s")
+    params.append(special)
+
+  where_sql = " AND ".join(where_clauses)
+
   sort_sql = "ORDER BY b_i.badge_filename ASC"
   if sortby is not None:
     if sortby == 'date_ascending':
@@ -16,29 +65,34 @@ async def db_get_user_badges(user_id: int, sortby: str = None):
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
       f"""
-        SELECT
-          b_i.*,
-          b.locked,
-          b.id AS badge_instance_id,
-          b.slotted_crystal_id,
-
-          c.id AS crystal_id,
-          c.crystal_type_id,
-          t.name AS crystal_name,
-          t.effect,
-          t.crystal_rarity_rank
-
+        SELECT {INSTANCE_COLUMNS}
         FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-        LEFT JOIN badge_crystals AS c ON b.slotted_crystal_id = c.id
+        LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
         LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
-        WHERE b.owner_discord_id = %s
+        WHERE {where_sql}
         {sort_sql}
       """,
-      (user_id,)
+      params
     )
     return await query.fetchall()
 
+async def db_get_badge_instance_by_badge_info_id(user_id, badge_info_id):
+  async with AgimusDB(dictionary=True) as query:
+    await query.execute(
+      f"""
+        SELECT {INSTANCE_COLUMNS}
+        FROM badge_instances AS b
+        JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+        LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+        LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
+        WHERE b.badge_info_id = %s AND b.owner_discord_id = %s
+        LIMIT 1
+      """,
+      (badge_info_id, user_id)
+    )
+    instance = await query.fetchone()
+  return instance
 
 async def db_get_badge_instance_id_by_badge_info_id(user_id, badge_info_id):
   async with AgimusDB(dictionary=True) as query:
@@ -49,29 +103,102 @@ async def db_get_badge_instance_id_by_badge_info_id(user_id, badge_info_id):
     instance = await query.fetchone()
   return instance
 
-
-async def db_create_badge_instance_if_missing(user_id: int, badge_info_id: int):
+# COUNTS
+async def db_get_badge_instances_count_for_user(user_id: int) -> int:
   async with AgimusDB(dictionary=True) as query:
+    sql = '''
+      SELECT COUNT(*) AS count
+      FROM badge_instances
+      WHERE owner_discord_id = %s
+        AND status = 'active'
+    '''
+    vals = (user_id,)
+    await query.execute(sql, vals)
+    result = await query.fetchone()
+  return result['count']
+
+async def db_get_total_badge_instances_count_by_filename(filename: str) -> int:
+  """
+  Given the filename of a badge, returns how many active instances exist in all user collections.
+  """
+  async with AgimusDB(dictionary=True) as query:
+    sql = """
+      SELECT COUNT(*) AS count
+      FROM badge_instances AS bi
+      JOIN badge_info AS info ON bi.badge_info_id = info.id
+      WHERE info.badge_filename = %s
+        AND bi.status = 'active'
+    """
+    vals = (filename,)
+    await query.execute(sql, vals)
+    row = await query.fetchone()
+  return row["count"]
+
+# CREATE
+async def db_create_badge_instance_if_missing(user_id: int, badge_filename: str):
+  async with AgimusDB(dictionary=True) as query:
+    # Get the badge_info.id from the filename
     await query.execute(
-      "SELECT id FROM badge_instances WHERE badge_info_id = %s AND owner_discord_id = %s",
+      "SELECT id FROM badge_info WHERE badge_filename = %s",
+      (badge_filename,)
+    )
+    result = await query.fetchone()
+    if not result:
+      return None
+    badge_info_id = result['id']
+
+    # Check if user already owns an active instance of this badge
+    await query.execute(
+      """
+        SELECT id FROM badge_instances
+        WHERE badge_info_id = %s AND owner_discord_id = %s AND status = 'active'
+      """,
       (badge_info_id, user_id)
     )
     existing = await query.fetchone()
     if existing:
       return None
 
+    # Insert the new instance
     await query.execute(
-      "INSERT INTO badge_instances (badge_info_id, owner_discord_id, locked) VALUES (%s, %s, %s)",
-      (badge_info_id, user_id, False)
+      """
+        INSERT INTO badge_instances (badge_info_id, owner_discord_id, locked)
+        VALUES (%s, %s, FALSE)
+      """,
+      (badge_info_id, user_id)
     )
     instance_id = query.lastrowid
 
-    await query.execute("SELECT * FROM badge_instances WHERE id = %s", (instance_id,))
-    instance = query.fetchone()
-  return instance
+    # Return enriched instance
+    # (Crystal Info will be missing but just returning keys by expected 'instance format')
+    await query.execute(
+      f"""
+        SELECT {INSTANCE_COLUMNS}
+        FROM badge_instances AS b
+        JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+        LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+        LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
+        WHERE b.id = %s
+      """,
+      (instance_id,)
+    )
+    return await query.fetchone()
 
 
-async def db_get_owned_badges_by_user_id(user_id: int):
+async def db_create_badge_instance_if_missing_by_name(user_id: int, badge_name: str):
+  async with AgimusDB(dictionary=True) as query:
+    # Get the badge_info.id from the filename
+    await query.execute(
+      "SELECT badge_filename FROM badge_info WHERE badge_name = %s",
+      (badge_name,)
+    )
+    result = await query.fetchone()
+    if not result:
+      return None
+  return await db_create_badge_instance_if_missing(user_id, result['badge_filename'])
+
+
+async def db_get_owned_badge_filenames_by_user_id(user_id: int):
   query = """
     SELECT bi.badge_filename
     FROM badge_instances AS inst
@@ -80,29 +207,3 @@ async def db_get_owned_badges_by_user_id(user_id: int):
   """
   async with AgimusDB(dictionary=True) as db:
     return await db.fetchall(query, (user_id,))
-
-
-async def db_get_locked_badges_for_user(user_discord_id):
-  async with AgimusDB(dictionary=True) as query:
-    sql = """
-      SELECT bi.*, bi.id AS badge_info_id, bi.filename AS badge_filename, b.id
-      FROM badge_instances AS b
-      JOIN badge_info AS bi ON b.badge_info_id = bi.id
-      WHERE b.user_discord_id = %s AND b.locked = TRUE
-    """
-    await query.execute(sql, (user_discord_id,))
-    return await query.fetchall()
-
-
-async def db_get_all_badges_for_user(user_discord_id):
-  async with AgimusDB(dictionary=True) as query:
-    sql = """
-      SELECT bi.*, bi.id AS badge_info_id, bi.filename AS badge_filename, b.id
-      FROM badge_instances AS b
-      JOIN badge_info AS bi ON b.badge_info_id = bi.id
-      WHERE b.user_discord_id = %s
-    """
-    await query.execute(sql, (user_discord_id,))
-    return await query.fetchall()
-
-

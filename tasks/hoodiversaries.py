@@ -1,6 +1,6 @@
 from common import *
 
-from utils.badge_utils import db_get_user_badges
+from queries.badge_instances import *
 
 def hoodiversary_task(bot):
 
@@ -26,12 +26,9 @@ def hoodiversary_task(bot):
 
       # Award special Captain Picard Day badge!
       for m in hoodiversary_members:
-        existing_badges = await db_get_user_badges(m["member"].id)
+        existing_badges = await db_get_user_badge_instances(m["member"].id)
         if "Captain Picard Day" not in [b['badge_name'] for b in existing_badges]:
-          async with AgimusDB() as query:
-            sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
-            vals = (m["member"].id, 'Captain_Picard_Day.png')
-            await query.execute(sql, vals)
+          db_create_badge_instance_if_missing_by_name(m['member'].id, "Captain Picard Day")
 
       emoji_list = [
         get_emoji('picard_yes_happy_celebrate'),

@@ -1,7 +1,7 @@
 from common import *
-from queries.badge_info import db_get_badge_info_by_name, db_get_all_badge_info
-from queries.badge_instances import db_get_badge_instance_id_by_badge_info_id, db_get_user_badges
-from queries.crystals import db_attach_crystal_to_instance, db_get_available_crystal_types
+from queries.badge_info import *
+from queries.badge_instances import *
+from queries.crystals import *
 
 class Admin(commands.Cog):
   def __init__(self, bot):
@@ -13,11 +13,15 @@ class Admin(commands.Cog):
       return []
 
     all_badges = await db_get_all_badge_info()
-    owned_badges = await db_get_user_badges(user_id)
-    owned_badge_ids = {b['id'] for b in owned_badges}
+    owned_badges = await db_get_user_badge_instances(user_id)
+    owned_badge_info_ids = {b['badge_info_id'] for b in owned_badges}
 
-    filtered = [b['badge_name'] for b in all_badges if b['id'] in owned_badge_ids and ctx.value.lower() in b['badge_name'].lower()]
-    return filtered[:25]
+    filtered = [
+      b['badge_name']
+      for b in all_badges
+      if b['id'] in owned_badge_info_ids and ctx.value.lower() in b['badge_name'].lower()
+    ]
+    return filtered
 
   async def autocomplete_crystal_name(self, ctx: discord.AutocompleteContext):
     crystals = await db_get_available_crystal_types()
@@ -66,14 +70,14 @@ class Admin(commands.Cog):
       return
 
     # Step 2: Find the instance
-    instance = await db_get_badge_instance_id_by_badge_info_id(user.id, badge_info['id'])
+    instance = await db_get_badge_instance_by_badge_info_id(user.id, badge_info['id'])
     if not instance:
       embed = discord.Embed(title="Instance Missing", description=f"❌ {user.mention} does not have a badge instance for '{badge_name}'", color=discord.Color.red())
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
     # Step 3: Attach crystal
-    crystal = await db_attach_crystal_to_instance(instance['id'], crystal_name=crystal_name)
+    crystal = await db_attach_crystal_to_instance(instance['badge_instance_id'], crystal_name=crystal_name)
     if not crystal:
       embed = discord.Embed(title="Duplicate Crystal", description=f"⚠️ Crystal '{crystal_name}' already exists on this instance.", color=discord.Color.red())
       await ctx.respond(embed=embed, ephemeral=True)

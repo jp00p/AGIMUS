@@ -1,4 +1,6 @@
 from common import *
+
+from queries.badge_instances import *
 from queries.wishlist import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
@@ -22,7 +24,7 @@ paginator_buttons = [
 async def add_autocomplete(ctx:discord.AutocompleteContext):
   filtered_badges = [b['badge_name'] for b in await db_get_special_badges()]
 
-  current_user_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.interaction.user.id)]
+  current_user_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id)]
   current_wishlist_badges = [b['badge_name'] for b in await db_get_user_wishlist_badges(ctx.interaction.user.id)]
   filtered_badges = filtered_badges + current_user_badges + current_wishlist_badges
 
@@ -42,7 +44,7 @@ async def remove_autocomplete(ctx:discord.AutocompleteContext):
 async def lock_autocomplete(ctx:discord.AutocompleteContext):
   filtered_badges = [b['badge_name'] for b in await db_get_special_badges()]
 
-  current_unlocked_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.interaction.user.id) if not b['locked']]
+  current_unlocked_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id) if not b['locked']]
   filtered_badge_names = [b for b in current_unlocked_badges if b not in filtered_badges]
 
   list_badges = [b for b in filtered_badge_names]
@@ -54,7 +56,7 @@ async def lock_autocomplete(ctx:discord.AutocompleteContext):
 async def unlock_autocomplete(ctx:discord.AutocompleteContext):
   filtered_badges = [b['badge_name'] for b in await db_get_special_badges()]
 
-  current_locked_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.interaction.user.id) if b['locked']]
+  current_locked_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id) if b['locked']]
   filtered_badge_names = [b for b in current_locked_badges if b not in filtered_badges]
 
   list_badges = [b for b in filtered_badge_names]
@@ -198,7 +200,7 @@ class Wishlist(commands.Cog):
     field = embed.fields[0]
     badge_name = field.name.strip()
 
-    user_badge_names = [b['badge_name'] for b in await db_get_user_badges(payload.user_id)]
+    user_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id)]
     user_wishlist_badge_names = [b['badge_name'] for b in await db_get_user_wishlist_badges(payload.user_id)]
     user_locked_badge_names = [b['badge_name'] for b in await db_get_user_locked_badges(payload.user_id)]
     special_badge_names = [b['badge_name'] for b in await db_get_special_badges()]
@@ -756,7 +758,7 @@ class Wishlist(commands.Cog):
           inventory_aggregate[user_id].append(match)
 
     if len(inventory_aggregate.keys()):
-      authors_full_inventory = await db_get_user_badges(author_discord_id)
+      authors_full_inventory = await db_get_user_badge_instances(author_discord_id)
 
       for user_id in inventory_aggregate.keys():
         user = await bot.current_guild.fetch_member(user_id)
@@ -782,7 +784,7 @@ class Wishlist(commands.Cog):
 
 
         # Badges That Exist In User's Unlocked Inventory but NOT already present in Author's Full Inventory
-        users_unlocked_inventory = await db_get_user_unlocked_badges(user.id)
+        users_unlocked_inventory = await db_get_user_badge_instances(user.id, locked=False)
         intersection_badges = [b for b in users_unlocked_inventory if b['badge_filename'] not in [a_b['badge_filename'] for a_b in authors_full_inventory]]
         intersection_badges = sorted(intersection_badges, key=lambda b: b['badge_name'])
 
@@ -918,7 +920,7 @@ class Wishlist(commands.Cog):
       return
 
     # Check to make sure the badge is not already present in their inventory
-    existing_user_badges = [b['badge_name'] for b in await db_get_user_badges(user_discord_id)]
+    existing_user_badges = [b['badge_name'] for b in await db_get_user_badge_instances(user_discord_id)]
     if badge in existing_user_badges:
       await ctx.followup.send(
         embed=discord.Embed(
@@ -1017,7 +1019,7 @@ class Wishlist(commands.Cog):
       )
       return
 
-    existing_user_badges = [b['badge_filename'] for b in await db_get_user_badges(user_discord_id)]
+    existing_user_badges = [b['badge_filename'] for b in await db_get_user_badge_instances(user_discord_id)]
     existing_wishlist_badges = [b['badge_filename'] for b in await db_get_user_wishlist_badges(user_discord_id)]
     special_badges = [b['badge_filename'] for b in await db_get_special_badges()]
 
@@ -1254,7 +1256,7 @@ class Wishlist(commands.Cog):
     logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}lock{Style.RESET_ALL} the badge {Style.BRIGHT}{badge}{Style.RESET_ALL} from being listed in their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
     # Check to make sure badge is present in inventory
-    existing_badges = [b['badge_name'] for b in await db_get_user_badges(user_discord_id)]
+    existing_badges = [b['badge_name'] for b in await db_get_user_badge_instances(user_discord_id)]
     if badge not in existing_badges:
       await ctx.followup.send(
         embed=discord.Embed(
@@ -1397,7 +1399,7 @@ class Wishlist(commands.Cog):
     logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}unlock {Style.RESET_ALL} the badge {Style.BRIGHT}{badge}{Style.RESET_ALL} from being listed in their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
     # Check to make sure badge is present in inventory
-    existing_badges = [b['badge_name'] for b in await db_get_user_badges(user_discord_id)]
+    existing_badges = [b['badge_name'] for b in await db_get_user_badge_instances(user_discord_id)]
     if badge not in existing_badges:
       await ctx.followup.send(
         embed=discord.Embed(

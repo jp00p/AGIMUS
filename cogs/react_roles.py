@@ -187,7 +187,7 @@ class ReactRoles(commands.Cog):
   @q_update_role_messages.error
   async def q_update_role_messages_error(self, ctx, error):
     if isinstance(error, commands.MissingPermissions):
-      await ctx.send("You think you're clever!", ephemeral=True)
+      await ctx.author.send("You think you're clever! Access denied.")
     else:
       await ctx.send("Sensoars indicate some kind of ...*error* has occured!")
       logger.info(traceback.format_exc())

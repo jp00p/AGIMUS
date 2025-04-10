@@ -2,6 +2,8 @@ from common import *
 
 from pathlib import Path
 
+from queries.crystals import db_get_active_crystal
+
 # Rarity Tier Design Philosophy:
 #
 # Common    – Simple color tints
@@ -10,24 +12,39 @@ from pathlib import Path
 # Legendary – Animated overlays or backdrops
 # Mythic    – Animated + prestige visual effects
 #
-def apply_crystal_effect(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+async def apply_crystal_effect(badge_image: Image.Image, badge: dict, crystal: dict = None) -> Image.Image:
   """
   Applies a crystal's visual effect to a badge image.
   Args:
     badge_image: PIL Image of the badge
-    badge: dict (currently unused, but may be helpful for future context-aware effects)
-    crystal: dict with keys like:
-      - 'effect': str (e.g. "blue_tint")
-      - 'crystal_rarity_rank': int (1 = Common, ..., 5 = Mythic)
+    badge: dict containing crystal info inline OR badge_instance_id for fallback
   """
+  # Try to construct crystal from badge dict if not explicitly passed
+  if not crystal:
+    if badge.get('effect') and badge.get('crystal_name'):
+      crystal = {
+        'effect': badge.get('effect'),
+        'crystal_name': badge.get('crystal_name'),
+        'rarity_rank': badge.get('rarity_rank'),
+        'emoji': badge.get('emoji'),
+        'description': badge.get('description'),
+      }
+    else:
+      # fallback to DB if crystal info not embedded
+      crystal = await db_get_active_crystal(badge['badge_instance_id'])
+
+  if not crystal:
+    return badge_image  # no crystal to apply
+
   effect_key = crystal.get("effect")
   if not effect_key:
-    return badge_image  # No effect specified
+    return badge_image  # crystal has no visual effect
 
   fn = _EFFECT_ROUTER.get(effect_key)
   if fn:
     return fn(badge_image, badge, crystal)
   return badge_image
+
 
 
 # --- Internal Effect Registry ---
@@ -332,7 +349,46 @@ def _apply_radial_fade(img: Image.Image, fade_start_ratio=0.6, fade_end_ratio=0.
         alpha = int(255 * (1 - ratio**feather_power))
       pixels[x, y] = max(0, min(alpha, 255))
   r, g, b, _ = img.split()
-  return Image.merge("RGBA", (r, g, b, mask))
+  final_radial = Image.merge("RGBA", (r, g, b, mask))
+  vignette = apply_vignette_alpha(final_radial)
+  return vignette
+
+def apply_vignette_alpha(img: Image.Image, fade_start_ratio=0.025, fade_end_ratio=0.73) -> Image.Image:
+  """
+  Applies a strong circular alpha fade to the image corners, creating a vignette-like transparency.
+  fade_start_ratio: where full opacity ends (as a % of max radius)
+  fade_end_ratio: where full transparency begins (as a % of max radius)
+  """
+  if img.mode != "RGBA":
+    img = img.convert("RGBA")
+
+  width, height = img.size
+  cx, cy = width // 2, height // 2
+  max_radius = (cx**2 + cy**2) ** 0.5
+  fade_start = max_radius * fade_start_ratio
+  fade_end = max_radius * fade_end_ratio
+
+  vignette = Image.new("L", (width, height), 255)
+  pixels = vignette.load()
+
+  for y in range(height):
+    for x in range(width):
+      dx = x - cx
+      dy = y - cy
+      distance = (dx**2 + dy**2) ** 0.5
+      if distance <= fade_start:
+        alpha = 255
+      elif distance >= fade_end:
+        alpha = 0
+      else:
+        # Ease out: steeper fade toward the edge
+        ratio = (distance - fade_start) / (fade_end - fade_start)
+        alpha = int(255 * (1 - ratio ** 2.5))  # sharper drop-off
+      pixels[x, y] = alpha
+
+  r, g, b, a = img.split()
+  combined_alpha = ImageChops.multiply(a, vignette)
+  return Image.merge("RGBA", (r, g, b, combined_alpha))
 
 @register_effect("trilithium_banger")
 def effect_trilithium_banger(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
@@ -357,3 +413,54 @@ def effect_holo_grid(badge_image: Image.Image, badge: dict, crystal: dict) -> Im
   faded_background = _apply_radial_fade(background)
   composite = Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
   return composite
+
+
+# -- Legendary Animations
+
+@register_effect("warp_pulse")
+def effect_warp_pulse(base_img: Image.Image, fps: int = 12, duration: float = 2.0) -> list[Image.Image]:
+  """Applies a breathing blue glow pulse behind the badge."""
+  width, height = base_img.size
+  num_frames = int(duration * fps)
+  alpha = base_img.split()[3]
+  bbox = alpha.getbbox()
+
+  badge_width = bbox[2] - bbox[0]
+  badge_height = bbox[3] - bbox[1]
+  x_margin = (width - badge_width) / 2
+  y_margin = (height - badge_height) / 2
+
+  # Determine scale that respects edge padding
+  margin = 6
+  scale_x = (width - 2 * x_margin) / badge_width
+  scale_y = (height - 2 * y_margin) / badge_height
+  scale = min(scale_x, scale_y, 1.1)
+
+  frames = []
+
+  for i in range(num_frames):
+    t = i / num_frames
+    pulse = (np.sin(t * np.pi)) ** 2
+
+    scaled_width = int(width * scale)
+    scaled_height = int(height * scale)
+    alpha_mask = alpha.resize((scaled_width, scaled_height), resample=Image.BICUBIC)
+
+    glow_layer = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    offset_x = (width - scaled_width) // 2
+    offset_y = (height - scaled_height) // 2
+
+    glow_img = Image.new("RGBA", (scaled_width, scaled_height), (40, 180, 255, int(180 * pulse)))
+    glow_img.putalpha(alpha_mask.point(lambda a: a * pulse))
+
+    blur_radius = 6 + pulse * 16
+    blurred_glow = glow_img.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+    glow_layer.paste(blurred_glow, (offset_x, offset_y), blurred_glow)
+
+    frame = Image.new("RGBA", base_img.size)
+    frame = Image.alpha_composite(frame, glow_layer)
+    frame = Image.alpha_composite(frame, base_img)
+
+    frames.append(frame)
+
+  return frames

@@ -71,7 +71,7 @@ async def db_get_badge_info_by_instance_id(instance_id: int) -> dict:
 
 async def db_get_special_badges():
   async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM badge_info WHERE is_special = TRUE"
+    sql = "SELECT * FROM badge_info WHERE special = TRUE"
     await query.execute(sql)
     return await query.fetchall()
 

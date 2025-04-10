@@ -129,9 +129,9 @@ class Tongo(commands.Cog):
       return
 
     if liability == 'unlocked':
-      badge_instances = await db_get_locked_badges_for_user(user_id)
+      badge_instances = await db_get_locked_badge_instances_for_user(user_id)
     else:
-      badge_instances = await db_get_all_badges_for_user(user_id)
+      badge_instances = await db_get_all_badge_instances_for_user(user_id)
 
     if len(badge_instances) < 3:
       await ctx.followup.send(embed=discord.Embed(
@@ -268,9 +268,9 @@ class Tongo(commands.Cog):
       return
 
     if liability == 'unlocked':
-      badge_instances = await db_get_locked_badges_for_user(user_id)
+      badge_instances = await db_get_locked_badge_instances_for_user(user_id)
     else:
-      badge_instances = await db_get_all_badges_for_user(user_id)
+      badge_instances = await db_get_all_badge_instances_for_user(user_id)
 
     if len(badge_instances) < 3:
       await ctx.followup.send(embed=discord.Embed(
@@ -766,7 +766,7 @@ class Tongo(commands.Cog):
 
     # Build wishlist and owned badge_info_id sets
     for player_id in player_ids:
-      inventory = await db_get_owned_badges_by_user_id(player_id)  # badge_filenames
+      inventory = await db_get_owned_badge_filenames_by_user_id(player_id)  # badge_filenames
       inventory_info_ids = set()
       for item in inventory:
         info = await db_get_badge_info_by_filename(item['badge_filename'])
@@ -871,7 +871,7 @@ class Tongo(commands.Cog):
       if not wishlist_badges:
         continue
 
-      inventory_filenames = set(b['badge_filename'] for b in await db_get_owned_badges_by_user_id(player_id))
+      inventory_filenames = set(b['badge_filename'] for b in await db_get_owned_badge_filenames_by_user_id(player_id))
       wishlist_to_grant = [b for b in wishlist_badges if b['badge_filename'] not in inventory_filenames]
 
       if not wishlist_to_grant:
@@ -1158,95 +1158,6 @@ def build_liquidation_removal_embed(badges: list[dict], image_id: str) -> discor
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
-# async def db_get_active_tongo():
-#   async with AgimusDB(dictionary=True) as query:
-#     sql = "SELECT * FROM tongo WHERE status = 'active'"
-#     await query.execute(sql)
-#     trades = await query.fetchall()
-#   if trades:
-#     return trades[0]
-#   else:
-#     return None
-
-# async def db_get_tongo_pot_badges():
-#   async with AgimusDB(dictionary=True) as query:
-#     sql = '''
-#       SELECT * FROM badge_info AS b_i
-#         JOIN tongo_pot AS t_p
-#           ON t_p.badge_filename = b_i.badge_filename
-#           ORDER BY b_i.badge_name ASC
-#     '''
-#     await query.execute(sql)
-#     badges = await query.fetchall()
-#   return badges
-
-# async def db_get_active_tongo_players(tongo_id):
-#   async with AgimusDB(dictionary=True) as query:
-#     sql = '''
-#       SELECT * FROM tongo_players AS t_pl
-#         JOIN tongo AS t
-#           ON t_pl.tongo_id = t.id
-#           WHERE t.id = %s
-#           ORDER BY t_pl.time_created ASC
-#     '''
-#     vals = (tongo_id,)
-#     await query.execute(sql, vals)
-#     players = await query.fetchall()
-#   return players
-
-# async def db_create_new_tongo(user_discord_id):
-#   async with AgimusDB(dictionary=True) as query:
-#     sql = '''
-#       INSERT INTO tongo (chair_discord_id) VALUES (%s)
-#     '''
-#     vals = (user_discord_id,)
-#     await query.execute(sql, vals)
-#     result = query.lastrowid
-#   return result
-
-# async def db_add_player_to_tongo(user_discord_id, tongo_id):
-#   async with AgimusDB(dictionary=True) as query:
-#     sql = '''
-#       INSERT INTO tongo_players (user_discord_id, tongo_id) VALUES (%s, %s)
-#     '''
-#     vals = (user_discord_id, tongo_id)
-#     await query.execute(sql, vals)
-#     result = query.lastrowid
-#   return result
-
-# async def db_add_badges_to_pot(user_discord_id, badges_to_add):
-#   async with AgimusDB(dictionary=True) as query:
-#     # Transfer Badges to Pot
-#     sql = '''
-#       INSERT INTO tongo_pot (origin_user_discord_id, badge_filename)
-#         VALUES
-#           (%s, %s),
-#           (%s, %s),
-#           (%s, %s)
-#     '''
-#     vals = (
-#       user_discord_id, badges_to_add[0]['badge_filename'],
-#       user_discord_id, badges_to_add[1]['badge_filename'],
-#       user_discord_id, badges_to_add[2]['badge_filename']
-#     )
-#     await query.execute(sql, vals)
-
-#     # Remove Badges from User
-#     sql = '''
-#       DELETE FROM badges
-#         WHERE (user_discord_id, badge_filename)
-#         IN (
-#           (%s,%s),
-#           (%s,%s),
-#           (%s,%s)
-#         )
-#     '''
-#     vals = (
-#       user_discord_id, badges_to_add[0]['badge_filename'],
-#       user_discord_id, badges_to_add[1]['badge_filename'],
-#       user_discord_id, badges_to_add[2]['badge_filename']
-#     )
-#     await query.execute(sql, vals)
 
 async def db_get_related_tongo_badge_trades(user_discord_id, selected_user_badges):
   async with AgimusDB(dictionary=True) as query:

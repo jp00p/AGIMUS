@@ -1,7 +1,54 @@
 from common import *
+from queries.badge_rewards import *
 from queries.badge_info import *
-from queries.badge_inventory import *
+from queries.badge_instances import *
 from queries.crystals import *
+from queries.wishlist import *
+
+
+async def award_random_badge(user_id: int):
+  """
+  Awards a random badge the user doesn't already own and that isn't special.
+  Handles wishlist autolock + purge.
+  Returns the full badge instance dict, or None if no badge was awarded.
+  """
+  valid_badge_filenames = await db_get_valid_reward_filenames(user_id)
+  if not valid_badge_filenames:
+    return None
+
+  badge_filename = random.choice(valid_badge_filenames)
+  badge_instance = await db_create_badge_instance_if_missing(user_id, badge_filename)
+  if badge_instance is None:
+    return None
+
+  # Auto-Lock wishlist
+  user_wishlist = await db_get_user_wishlist_badges(user_id)
+  wishlisted_filenames = [b['badge_filename'] for b in user_wishlist]
+  if badge_filename in wishlisted_filenames:
+    await db_autolock_badges_by_filenames_if_in_wishlist(user_id, [badge_filename])
+
+  await db_purge_users_wishlist(user_id)
+  return badge_instance
+
+
+async def award_specific_badge(user_id: int, badge_filename: str):
+  """
+  Awards a specific badge by filename to the user.
+  Handles wishlist autolock + purge.
+  Returns the full badge instance dict, or None if the badge couldn't be awarded.
+  """
+  badge_instance = await db_create_badge_instance_if_missing(user_id, badge_filename)
+  if badge_instance is None:
+    return None
+
+  # Auto-lock if it was on the wishlist
+  user_wishlist = await db_get_user_wishlist_badges(user_id)
+  wishlisted_filenames = [b['badge_filename'] for b in user_wishlist]
+  if badge_filename in wishlisted_filenames:
+    await db_autolock_badges_by_filenames_if_in_wishlist(user_id, [badge_filename])
+
+  await db_purge_users_wishlist(user_id)
+  return badge_instance
 
 
 async def award_level_up_badge(user_id):
@@ -9,11 +56,11 @@ async def award_level_up_badge(user_id):
   Awards a new badge instance and default crystal to the user as part of level-up flow.
   Logic prefers new, unowned standard badges with a weighted chance.
 
-  Returns a badge object with filename and metadata to be used in the embed.
+  Returns the full badge instance dict
   """
 
   all_badges = await db_get_all_badge_info()
-  owned_badges = await db_get_user_badges(user_id)
+  owned_badges = await db_get_user_badge_instances(user_id)
 
   all_badge_filenames = [b['badge_filename'] for b in all_badges]
   filename_to_badge_info = {b["badge_filename"]: b for b in all_badges}
@@ -50,7 +97,7 @@ async def award_level_up_badge(user_id):
       await apply_autoslot_preference(user_id, instance['id'], crystal['id'])
 
   elif mode == "crystallize":
-    instance = await db_get_badge_instance(user_id, badge_info['id'])
+    instance = await db_get_badge_instance_id_by_badge_info_id(user_id, badge_info['id'])
     crystal = await crystallize_badge(user_id, instance['id'])
 
     if not crystal:
@@ -72,6 +119,7 @@ async def award_level_up_badge(user_id):
     "crystal": crystal,
     "mode": mode
   }
+
 
 async def crystallize_badge(user_id: int, badge_instance_id: int, rarity_rank: int | None = None) -> dict | None:
   """
@@ -129,7 +177,7 @@ async def crystallize_random_owned_badge(user_id: int) -> dict | None:
   Iterates through user's badge instances in random order and attempts to crystallize each.
   Returns the first successful crystal awarded, or None if all fail.
   """
-  badges = await db_get_user_badges(user_id)
+  badges = await db_get_user_badge_instances(user_id)
   if not badges:
     return None
 
@@ -162,14 +210,14 @@ async def apply_autoslot_preference(user_id: int, badge_instance_id: int, new_cr
     rarest_crystal = await get_rarest_crystal(all_crystals)
     new_crystal = await db_get_crystal_by_id(new_crystal_id)
     if new_crystal['rarity_rank'] >= rarest_crystal['rarity_rank']:
-      await db_set_slotted_crystal(badge_instance_id, new_crystal_id)
+      await db_set_active_crystal(badge_instance_id, new_crystal_id)
       return True
     else:
       return False
 
   if preference == 'auto_newest':
     # Automatically slot the newly obtained crystal
-    await db_set_slotted_crystal(badge_instance_id, new_crystal_id)
+    await db_set_active_crystal(badge_instance_id, new_crystal_id)
     return True
 
   # Default fallback: do nothing
