@@ -1035,7 +1035,7 @@ async def build_confront_results_embed(active_chair: discord.Member, auto_confro
 
 async def build_confront_player_embed(member: discord.Member, badge_infos: list[dict], wishlist_badge_filenames: list[str], xp_awarded: int = 0) -> discord.Embed:
   if xp_awarded:
-    description = f"\n\nOops, sorry {member.mention}... they got back less than they put in!\nOn the bright side they've been awarded **{xp_awarded}xp** as a consolation prize!"
+    description = f"\n\nOops, sorry {member.mention}... they got back less than they put in!\n\nOn the bright side they've been awarded **{xp_awarded}xp** as a consolation prize!"
   else:
     description = "\n".join([
       f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"

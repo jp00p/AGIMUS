@@ -1,9 +1,41 @@
+import asyncio
+import shutil
+
 from common import *
 
 from pathlib import Path
 from scipy.ndimage import map_coordinates
 
 from queries.crystals import db_get_active_crystal
+from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
+
+# --- Thread-safe loader wrappers ---
+@to_thread
+def load_cached_effect_image(cached_path):
+  """
+  Loads a cached crystal effect image (static or animated) from disk.
+
+  If animated, returns a list of RGBA frames.
+  If static, returns a single RGBA image.
+  """
+  img = Image.open(cached_path)
+  if getattr(img, "is_animated", False):
+    return [frame.copy().convert("RGBA") for frame in ImageSequence.Iterator(img)]
+  return img.convert("RGBA")
+
+@to_thread
+def load_overlay_image(path):
+  """
+  Loads an overlay image in greyscale (L mode).
+  """
+  return Image.open(path).convert('L')
+
+@to_thread
+def load_background_image_resized(path, size):
+  """
+  Loads and resizes a background image to the specified size in RGBA mode.
+  """
+  return Image.open(path).convert("RGBA").resize(size)
 
 # Rarity Tier Design Philosophy:
 #
@@ -13,40 +45,45 @@ from queries.crystals import db_get_active_crystal
 # Legendary – Animated overlays or backdrops
 # Mythic    – Animated + prestige visual effects
 #
-async def apply_crystal_effect(badge_image: Image.Image, badge: dict, crystal: dict = None) -> Image.Image:
+async def apply_crystal_effect(badge_image: Image.Image, badge: dict) -> Image.Image | list[Image.Image]:
   """
-  Applies a crystal's visual effect to a badge image.
+  Applies the visual crystal effect to a badge image based on the crystal attached to the badge.
+
+  - If the badge has no crystal (`crystal_id` is missing), returns the original image unchanged.
+  - If the badge has a recognized crystal effect, attempts to load the result from disk cache.
+  - If no cache is found, generates the effect using the appropriate registered handler function.
+    The result may be a static image or an animated sequence of frames.
+  - The final result is saved to disk for future retrieval.
+
   Args:
-    badge_image: PIL Image of the badge
-    badge: dict containing crystal info inline OR badge_instance_id for fallback
+    badge_image (PIL.Image): The base badge image in RGBA format.
+    badge (dict): Dictionary representing the badge instance. Must include:
+      - 'badge_info_id': used for cache filename
+      - 'crystal_id': present if a crystal is attached
+      - 'effect': the effect key used to route to a registered handler function
+
+  Returns:
+    Image.Image | list[Image.Image]: Either a static RGBA image or a list of RGBA frames for animation.
   """
-  # Try to construct crystal from badge dict if not explicitly passed
-  if not crystal:
-    if badge.get('effect') and badge.get('crystal_name'):
-      crystal = {
-        'effect': badge.get('effect'),
-        'crystal_name': badge.get('crystal_name'),
-        'rarity_rank': badge.get('rarity_rank'),
-        'emoji': badge.get('emoji'),
-        'description': badge.get('description'),
-      }
-    else:
-      # fallback to DB if crystal info not embedded
-      crystal = await db_get_active_crystal(badge['badge_instance_id'])
+  if not badge.get('crystal_id'):
+    return badge_image
 
-  if not crystal:
-    return badge_image  # no crystal to apply
-
-  effect_key = crystal.get("effect")
+  effect_key = badge.get("effect")
   if not effect_key:
-    return badge_image  # crystal has no visual effect
+    return badge_image
+
+  cached_path = get_cached_effect_image_path(effect_key, badge['badge_info_id'])
+  if cached_path:
+    result = await load_cached_effect_image(cached_path)
+    return result
 
   fn = _EFFECT_ROUTER.get(effect_key)
   if fn:
-    return fn(badge_image, badge, crystal)
+    result = await asyncio.to_thread(fn, badge_image, badge)
+    await save_cached_effect_image(result, effect_key, badge['badge_info_id'])
+    return result
+
   return badge_image
-
-
 
 # --- Internal Effect Registry ---
 _EFFECT_ROUTER = {}
@@ -56,6 +93,63 @@ def register_effect(name):
     _EFFECT_ROUTER[name] = fn
     return fn
   return decorator
+
+# --- Image Cache --
+# These effects, and specifically the animated effects, are expensive so
+# Let's save em to disk for retrieval on-demand
+CACHE_DIR = ".cache/crystal_effects"
+def get_cached_effect_path(effect: str, badge_info_id: int, extension: str = "webp") -> Path:
+  """
+  Constructs the full file path for a crystal effect cache entry.
+
+  Example: .cache/crystal_effects/shimmer_flux__123.webp
+  """
+  filename = f"{effect}__{badge_info_id}.{extension}"
+  return Path(CACHE_DIR) / filename
+
+def get_cached_effect_image_path(effect: str, badge_info_id: int, extension: str = "webp") -> Path | None:
+  """
+  Checks if a cached crystal effect image exists.
+
+  Returns the path if found, otherwise None.
+  """
+  path = get_cached_effect_path(effect, badge_info_id, extension)
+  return path if path.exists() else None
+
+@to_thread
+def save_cached_effect_image(image: Image.Image | list[Image.Image], effect: str, badge_info_id: int, extension: str = "webp", fps: int = 12):
+  """
+  Saves a crystal effect result (image or animation) to the cache.
+
+  If `image` is a list, saves as an animated webp.
+  Otherwise, saves as a single static image.
+  """
+  path = get_cached_effect_path(effect, badge_info_id, extension)
+  path.parent.mkdir(parents=True, exist_ok=True)
+
+  if isinstance(image, list):
+    durations = [frame.info.get("duration", 1000 // fps) for frame in image]
+    image[0].save(
+      path,
+      save_all=True,
+      append_images=image[1:],
+      duration=durations,
+      loop=0,
+      lossless=True,
+      format=extension.upper()
+    )
+  else:
+    image.save(path)
+
+  return path
+
+def delete_crystal_effects_cache():
+  """
+  Deletes all cached crystal effect images.
+  """
+  cache_directory = Path(CACHE_DIR)
+  if cache_directory.exists():
+    shutil.rmtree(cache_directory)
 
 
 #  .d8888b.
@@ -67,27 +161,27 @@ def register_effect(name):
 # Y88b  d88P Y88..88P 888  888  888 888  888  888 Y88..88P 888  888
 #  "Y8888P"   "Y88P"  888  888  888 888  888  888  "Y88P"  888  888
 @register_effect("pink_tint")
-def effect_pink_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+def effect_pink_tint(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_tint(img, (255, 105, 180))  # Hot pink
 
 @register_effect("blue_tint")
-def effect_blue_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+def effect_blue_tint(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_tint(img, (102, 204, 255))  # Soft blue
 
 @register_effect("steel_tint")
-def effect_steel_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+def effect_steel_tint(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_tint(img, (170, 170, 170), 0.75)  # Metallic gray
 
 @register_effect("orange_tint")
-def effect_orange_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+def effect_orange_tint(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_tint(img, (255, 165, 90))  # Warm orange
 
 @register_effect("purple_tint")
-def effect_purple_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+def effect_purple_tint(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_tint(img, (180, 110, 230))  # Soft violet
 
 @register_effect("greenmint_tint")
-def effect_greenmint_tint(img: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+def effect_greenmint_tint(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_tint(img, (100, 220, 180))  # Minty green
 
 def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: float = 0.40, glow_radius: int = 6) -> Image.Image:
@@ -134,16 +228,17 @@ def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: flo
 UNCOMMON_OVERLAYS_DIR = 'images/crystal_effects/overlays/'
 
 @register_effect("isolinear")
-def effect_isolinear(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
-  overlay_filename = 'isolinear.png'
-  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}{overlay_filename}"
-  overlay = Image.open(overlay_path).convert('L').resize(badge_image.size)
+def effect_isolinear(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Isolinear circuitry overlay with a vertical neon gradient.
+  Used for the Isolinear crystal (Uncommon tier).
+  """
+  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}isolinear.png"
+  overlay = load_overlay_image(overlay_path)
   mask = badge_image.split()[3].point(lambda p: 255 if p > 0 else 0).convert('L')
 
-  # Hardcoded neon gradient (teal to magenta)
   color_top = (0, 255, 180)
   color_bottom = (255, 0, 180)
-
   gradient = Image.new('RGBA', badge_image.size)
   draw = ImageDraw.Draw(gradient)
   for y in range(badge_image.height):
@@ -153,34 +248,23 @@ def effect_isolinear(badge_image: Image.Image, badge: dict, crystal: dict) -> Im
     b = int(color_top[2] * (1 - ratio) + color_bottom[2] * ratio)
     draw.line([(0, y), (badge_image.width, y)], fill=(r, g, b, 255))
 
-  # Apply circuitry as alpha to gradient
   gradient.putalpha(overlay)
-
-  # Mask overlay to badge shape only
   overlay_masked = Image.composite(gradient, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), mask)
-
-  # Glow: blur the overlay and brighten it
   glow = overlay_masked.filter(ImageFilter.GaussianBlur(radius=6))
   glow = ImageEnhance.Brightness(glow).enhance(2.5)
   glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), mask)
-
-  # Final composite
   base_with_glow = Image.alpha_composite(glow, badge_image)
-  final = Image.alpha_composite(base_with_glow, overlay_masked)
-
-  return final
+  return Image.alpha_composite(base_with_glow, overlay_masked)
 
 @register_effect("positronic")
-def effect_positronic(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
-  overlay_filename = 'positronic.png'
-  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}{overlay_filename}"
-  overlay = Image.open(overlay_path).convert('L').resize(badge_image.size)
+def effect_positronic(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Positronic neural overlay with a radial blue-to-cyan gradient.
+  Used for the Positronic crystal (Uncommon tier).
+  """
+  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}positronic.png"
+  overlay = load_overlay_image(overlay_path)
 
-  # Radial gradient colors
-  color_center = (0, 255, 255)   # bright cyan
-  color_edge = (0, 100, 255)     # warp blue
-
-  # Create radial gradient
   def create_radial_gradient(size, color_inner, color_outer):
     cx, cy = size[0] // 2, size[1] // 2
     max_radius = (cx**2 + cy**2) ** 0.5
@@ -197,30 +281,25 @@ def effect_positronic(badge_image: Image.Image, badge: dict, crystal: dict) -> I
         pixels[x, y] = (r, g, b, 255)
     return gradient
 
-  gradient_img = create_radial_gradient(badge_image.size, color_center, color_edge)
+  gradient_img = create_radial_gradient(badge_image.size, (0, 255, 255), (0, 100, 255))
   gradient_img.putalpha(overlay)
-
-  # Mask to badge shape
   badge_mask = badge_image.split()[3].point(lambda p: 255 if p > 0 else 0).convert('L')
   masked_overlay = Image.composite(gradient_img, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
-
-  # Glow boost
   glow = masked_overlay.filter(ImageFilter.GaussianBlur(radius=12))
   glow = ImageEnhance.Brightness(glow).enhance(3.5)
   glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
-
-  # Final composite
   combined = Image.alpha_composite(glow, badge_image)
-  final = Image.alpha_composite(combined, masked_overlay)
-  return final
+  return Image.alpha_composite(combined, masked_overlay)
 
 @register_effect("optical")
-def effect_optical(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
-  overlay_filename = 'optical.png'
-  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}{overlay_filename}"
-  overlay = Image.open(overlay_path).convert('L').resize(badge_image.size)
+def effect_optical(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Optical fibers overlay with a vertical white beam gradient.
+  Used for the Optical crystal (Uncommon tier).
+  """
+  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}optical.png"
+  overlay = load_overlay_image(overlay_path)
 
-  # Create vertical beam gradient (white center → dark edges)
   gradient_img = Image.new('RGBA', badge_image.size)
   draw = ImageDraw.Draw(gradient_img)
   for x in range(badge_image.width):
@@ -229,24 +308,57 @@ def effect_optical(badge_image: Image.Image, badge: dict, crystal: dict) -> Imag
     draw.line([(x, 0), (x, badge_image.height)], fill=(bright, bright, bright, 255))
 
   gradient_img.putalpha(overlay)
-
-  # Mask to badge shape
   badge_mask = badge_image.split()[3].point(lambda p: 255 if p > 0 else 0).convert('L')
   masked_overlay = Image.composite(gradient_img, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
-
-  # Glow boost
   glow = masked_overlay.filter(ImageFilter.GaussianBlur(radius=12))
   glow = ImageEnhance.Brightness(glow).enhance(4.0)
   glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
-
-  # Final composite
   base_with_glow = Image.alpha_composite(glow, badge_image)
-  final = Image.alpha_composite(base_with_glow, masked_overlay)
-  return final
+  return Image.alpha_composite(base_with_glow, masked_overlay)
+
+@register_effect("cryonetrium")
+def effect_cryonetrium(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Frozen smoke overlay with a diagonal purple-to-blue gradient.
+  Used for the Cryonetrium crystal (Uncommon tier).
+  """
+  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}cryonetrium.png"
+  overlay = load_overlay_image(overlay_path)
+
+  if badge_image.mode != 'RGBA':
+    badge_image = badge_image.convert('RGBA')
+
+  badge_mask = badge_image.getchannel('A').point(lambda p: 255 if p > 0 else 0).convert('L')
+
+  def cryonetrium_gradient(size, color_bl=(200, 100, 255), color_tr=(80, 180, 255)):
+    w, h = size
+    img = Image.new("RGBA", size)
+    pixels = img.load()
+    for y in range(h):
+      for x in range(w):
+        t = ((x / w) + (1 - y / h)) / 2
+        r = int(color_bl[0] * (1 - t) + color_tr[0] * t)
+        g = int(color_bl[1] * (1 - t) + color_tr[1] * t)
+        b = int(color_bl[2] * (1 - t) + color_tr[2] * t)
+        pixels[x, y] = (r, g, b, 255)
+    return img
+
+  gradient = cryonetrium_gradient(badge_image.size)
+  gradient.putalpha(overlay)
+  overlay_masked = Image.composite(gradient, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
+  r, g, b, a = overlay_masked.split()
+  a = a.point(lambda p: min(int(p * 2.0), 255))
+  overlay_masked = Image.merge('RGBA', (r, g, b, a))
+  glow = overlay_masked.filter(ImageFilter.GaussianBlur(radius=14))
+  glow = ImageEnhance.Brightness(glow).enhance(3.8)
+  glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
+  base_with_glow = Image.alpha_composite(glow, badge_image)
+  return Image.alpha_composite(base_with_glow, overlay_masked)
 
 @register_effect("latinum")
-def effect_latinum(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
+  Golden latinum overlay.
   Note that this effect actually uses no overlay image asset because one is unnecessary.
   """
   if badge_image.mode != 'RGBA':
@@ -289,53 +401,6 @@ def effect_latinum(badge_image: Image.Image, badge: dict, crystal: dict) -> Imag
   # Final composite
   base_with_glow = Image.alpha_composite(glow, badge_tinted)
   final = Image.alpha_composite(base_with_glow, shimmer_masked)
-  return final
-
-@register_effect("cryonetrium")
-def effect_cryonetrium(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
-  overlay_filename = 'cryonetrium.png'
-  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}{overlay_filename}"
-  overlay = Image.open(overlay_path).convert('L').resize(badge_image.size)
-
-  if badge_image.mode != 'RGBA':
-    badge_image = badge_image.convert('RGBA')
-
-  width, height = badge_image.size
-  badge_mask = badge_image.getchannel('A').point(lambda p: 255 if p > 0 else 0).convert('L')
-
-  # Create diagonal gradient from bottom-left (purple) to top-right (blue)
-  def cryonetrium_gradient(size, color_bl=(200, 100, 255), color_tr=(80, 180, 255)):
-    w, h = size
-    img = Image.new("RGBA", size)
-    pixels = img.load()
-    for y in range(h):
-      for x in range(w):
-        t = ((x / w) + (1 - y / h)) / 2
-        r = int(color_bl[0] * (1 - t) + color_tr[0] * t)
-        g = int(color_bl[1] * (1 - t) + color_tr[1] * t)
-        b = int(color_bl[2] * (1 - t) + color_tr[2] * t)
-        pixels[x, y] = (r, g, b, 255)
-    return img
-
-  gradient = cryonetrium_gradient(badge_image.size)
-  gradient.putalpha(overlay)
-
-  # Mask to badge shape
-  overlay_masked = Image.composite(gradient, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
-
-  # Boost overlay visibility
-  r, g, b, a = overlay_masked.split()
-  a = a.point(lambda p: min(int(p * 2.0), 255))
-  overlay_masked = Image.merge('RGBA', (r, g, b, a))
-
-  # Glow effect
-  glow = overlay_masked.filter(ImageFilter.GaussianBlur(radius=14))
-  glow = ImageEnhance.Brightness(glow).enhance(3.8)
-  glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
-
-  # Final composite
-  base_with_glow = Image.alpha_composite(glow, badge_image)
-  final = Image.alpha_composite(base_with_glow, overlay_masked)
   return final
 
 
@@ -413,40 +478,38 @@ def apply_vignette_alpha(img: Image.Image, fade_start_ratio=0.025, fade_end_rati
   return Image.merge("RGBA", (r, g, b, combined_alpha))
 
 @register_effect("trilithium_banger")
-def effect_trilithium_banger(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+def effect_trilithium_banger(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
-  Purple Space Explosion / Butthole.
-  Used for the Trilithium crystal.
+  Purple Space Explosion / Butthole background.
+  Used for the Trilithium crystal (Rare tier).
   """
   bg_path = f"{RARE_BACKGROUNDS_DIR}trilithium_banger.png"
-  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
+  background = load_background_image_resized(bg_path, badge_image.size)
   faded_background = _apply_radial_fade(background)
-  composite = Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
-  return composite
+  return Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
 
 @register_effect("tholian_web")
-def effect_tholian_web(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+def effect_tholian_web(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
-  The Tholian Web in space.
-  Used for the Tholian Silk crystal.
+  Web in space background effect.
+  Used for the Tholian Silk crystal (Rare tier).
   """
   bg_path = f"{RARE_BACKGROUNDS_DIR}tholian_web.png"
-  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
+  background = load_background_image_resized(bg_path, badge_image.size)
   faded_background = _apply_radial_fade(background)
-  composite = Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
-  return composite
+  return Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
 
 @register_effect("holo_grid")
-def effect_holo_grid(badge_image: Image.Image, badge: dict, crystal: dict) -> Image.Image:
+def effect_holo_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
-  Classic Holodeck Grid
-  Used for the Photonic Shard crystal.
+  Holodeck yellow grid background.
+  Used for the Photonic Shard crystal (Rare tier).
   """
   bg_path = f"{RARE_BACKGROUNDS_DIR}holo_grid.png"
-  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
+  background = load_background_image_resized(bg_path, badge_image.size)
   faded_background = _apply_radial_fade(background)
-  composite = Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
-  return composite
+  return Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
+
 
 
 #       ...                                                         ..
@@ -465,11 +528,18 @@ def effect_holo_grid(badge_image: Image.Image, badge: dict, crystal: dict) -> Im
 #                           4888~  J8%                                                                     ./"
 #                            ^"===*"`                                                                     ~`
 @register_effect("warp_pulse")
-def effect_warp_pulse(base_img: Image.Image, fps: int = 12, duration: float = 3.0) -> list[Image.Image]:
+def effect_warp_pulse(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   """
-  Emits outward-pulsing vibrant blue rings from the center of the badge.
-  Used for the Warp Plasma crystal.
+  Emits animated outward-pulsing glow rings from the badge center.
+  Creates a seamless loop by cycling ring positions across frames.
+
+  Used for the Warp Plasma crystal (Mythic Tier).
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
   """
+  fps = 12
+  duration = 3.0
   width, height = base_img.size
   num_frames = int(duration * fps)
   center = (width // 2, height // 2)
@@ -481,7 +551,6 @@ def effect_warp_pulse(base_img: Image.Image, fps: int = 12, duration: float = 3.
   ring_thickness = 26
 
   for frame_index in range(num_frames):
-    # Transparent base for layering
     frame = Image.new("RGBA", base_img.size, (0, 0, 0, 0))
     glow_layer = Image.new("RGBA", base_img.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(glow_layer)
@@ -516,18 +585,23 @@ def effect_warp_pulse(base_img: Image.Image, fps: int = 12, duration: float = 3.
 
 
 @register_effect("subspace_ripple")
-def effect_subspace_ripple(base_img: Image.Image, fps: int = 12, duration: float = 2.0) -> list[Image.Image]:
+def effect_subspace_ripple(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   """
-  Applies a diagonal subspace ripple distortion to the badge, simulating wave-like temporal displacement.
-  Used for the Tetryon crystal.
+  Applies an animated diagonal wave distortion across the badge.
+  Uses sinusoidal displacement on both axes to simulate subspace interference.
+
+  Used for the Tetryon crystal (Legendary tier).
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
   """
-  # Resize for performance consistency
+  fps = 12
+  duration = 2.0
   size = (512, 512)
   base_img = base_img.resize(size, Image.LANCZOS)
   badge_array = np.array(base_img)
   height, width = size
 
-  # Ripple parameters
   amplitude = 8
   wavelength = 96
   num_frames = int(duration * fps)
@@ -543,7 +617,6 @@ def effect_subspace_ripple(base_img: Image.Image, fps: int = 12, duration: float
     coords_x = X + offset
     coords = np.array([coords_y.flatten(), coords_x.flatten()])
 
-    # Apply the distortion to each RGBA channel
     channels = [
       map_coordinates(badge_array[..., c], coords, order=1, mode='reflect').reshape((height, width))
       for c in range(4)
@@ -570,10 +643,16 @@ def effect_subspace_ripple(base_img: Image.Image, fps: int = 12, duration: float
 #                                 ./"                     @%
 #                                ~`                     :"
 @register_effect("phase_flicker")
-def effect_phase_flicker(base_img: Image.Image, badge: dict, crystal: dict) -> list[Image.Image]:
+def effect_phase_flicker(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   """
-  Applies chromatic aberation, jitters, drift, size-popping, and scanline distortion.
-  Used for the Chroniton crystal.
+  Introduces animated glitches such as chromatic aberation, position jitter,
+  scanline shifts, scaling flickers, and frame blinks. Emulates unstable
+  temporal phasing of the badge.
+
+  Used for the Chroniton crystal (Mythic tier).
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
   """
   frame_size = (512, 512)
   fps = 12
@@ -654,18 +733,24 @@ def effect_phase_flicker(base_img: Image.Image, badge: dict, crystal: dict) -> l
 
 
 @register_effect("shimmer_flux")
-def effect_shimmer_flux(base_img: Image.Image, badge: dict, crystal: dict) -> list[Image.Image]:
+def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   """
-  Animated shimmering flux effect using a diagonal sweep beam, distortion ripple,
-  prism shell and bloom. Used for the Omega Molecule crystal.
+  Projects a shimmering beam diagonally across the badge while
+  generating bloom, ripple distortions, and chromatic shell overlays.
+  Highly animated and prism-like.
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+
+  Used for the Omega Molecule crystal (Mythic tier).
   """
   frame_size = (512, 512)
   fps = 12
   num_frames = 24
   band_width = int(128 * 0.8)
   max_displacement = 24
-  beam_alpha = 12
-  beam_color = (100, 180, 255, beam_alpha)
+  beam_alpha = int(80 * 0.7)  # reduced opacity
+  beam_color = (60, 120, 255, beam_alpha)
   blur_radius = 32
 
   base_img = base_img.resize(frame_size).convert("RGBA")
@@ -679,22 +764,22 @@ def effect_shimmer_flux(base_img: Image.Image, badge: dict, crystal: dict) -> li
     dilation = 4 + int(4 * pulse)
     blurred = mask.filter(ImageFilter.GaussianBlur(radius=dilation))
 
-    red = Image.new("RGBA", frame_size, (255, 90, 90, 40))
-    green = Image.new("RGBA", frame_size, (90, 255, 180, 40))
-    blue = Image.new("RGBA", frame_size, (100, 140, 255, 40))
+    cyan = Image.new("RGBA", frame_size, (40, 255, 255, 180))
+    teal = Image.new("RGBA", frame_size, (0, 200, 180, 180))
+    blue = Image.new("RGBA", frame_size, (80, 120, 255, 180))
 
-    red.putalpha(blurred)
-    green.putalpha(blurred)
+    cyan.putalpha(blurred)
+    teal.putalpha(blurred)
     blue.putalpha(blurred)
 
-    red = ImageChops.offset(red, -1, 0)
-    green = ImageChops.offset(green, 0, -1)
+    cyan = ImageChops.offset(cyan, -1, 0)
+    teal = ImageChops.offset(teal, 0, -1)
     blue = ImageChops.offset(blue, 1, 1)
 
-    shell = Image.alpha_composite(Image.alpha_composite(red, green), blue)
+    shell = Image.alpha_composite(Image.alpha_composite(cyan, teal), blue)
 
     edge = mask.filter(ImageFilter.FIND_EDGES).filter(ImageFilter.GaussianBlur(radius=2))
-    bloom = Image.new("RGBA", frame_size, (140, 120, 255, int(60 + 40 * pulse)))
+    bloom = Image.new("RGBA", frame_size, (160, 140, 255, int(100 + 80 * pulse)))
     bloom.putalpha(edge)
 
     glow = badge.filter(ImageFilter.GaussianBlur(radius=6 + 4 * pulse))
@@ -733,5 +818,4 @@ def effect_shimmer_flux(base_img: Image.Image, badge: dict, crystal: dict) -> li
     with_distortion = Image.alpha_composite(frame, ImageChops.darker(distorted_img, badge))
     return Image.alpha_composite(with_distortion, masked_beam)
 
-  frames = [shimmer_flux_frame(base_img, i) for i in range(num_frames)]
-  return frames
+  return [shimmer_flux_frame(base_img, i) for i in range(num_frames)]

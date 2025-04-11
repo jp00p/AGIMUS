@@ -31,7 +31,7 @@ from discord import option
 from discord.ext import commands, tasks, pages
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
-from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps, ImageEnhance, ImageFilter, ImageChops
+from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps, ImageEnhance, ImageFilter, ImageChops, ImageSequence
 from tabulate import tabulate
 from treys import Card, Deck, Evaluator, evaluator
 from typing import List, Dict

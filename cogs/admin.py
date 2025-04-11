@@ -3,6 +3,8 @@ from queries.badge_info import *
 from queries.badge_instances import *
 from queries.crystals import *
 
+from utils.crystal_effects import delete_crystal_effects_cache
+
 class Admin(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
@@ -87,5 +89,15 @@ class Admin(commands.Cog):
       title="Crystal Attached",
       description=f"✅ Attached **{crystal_name}** to {user.mention}'s **{badge_name}**.",
       color=discord.Color.green()
+    )
+    await ctx.respond(embed=embed, ephemeral=True)
+
+  @admin_group.command(name="clear_effects_cache", description="Clear the crystal effects cache")
+  async def clear_effects_cache(self, ctx):
+    delete_crystal_effects_cache()
+    embed = discord.Embed(
+      title="Crystal Effects Cache Cleared",
+      description="🧹 All cached crystal effect images have been deleted.",
+      color=discord.Color.orange()
     )
     await ctx.respond(embed=embed, ephemeral=True)

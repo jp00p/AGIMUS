@@ -5,6 +5,7 @@ from queries.badge_instances import *
 from queries.crystals import *
 from utils.badge_utils import *
 from utils.crystal_effects import apply_crystal_effect
+from utils.thread_utils import to_thread
 
 class Crystals(commands.Cog):
   def __init__(self, bot):
@@ -57,6 +58,7 @@ class Crystals(commands.Cog):
     max_length=128
   )
   async def install(self, ctx: discord.ApplicationContext, badge_name: str, crystal_name: str):
+    await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
 
     badge_info = await db_get_badge_info_by_name(badge_name)
@@ -132,7 +134,7 @@ class Crystals(commands.Cog):
       return
 
     # Generate badge preview image with crystal effect (in-memory)
-    base_image = load_and_prepare_badge_thumbnail(badge_info['badge_filename'])
+    base_image = await load_and_prepare_badge_thumbnail(badge_info['badge_filename'])
     badge = { **badge_info, 'badge_instance_id': badge_instance['badge_instance_id'] }
     crystal = selected
     discord_file, attachment_url = await generate_badge_preview_discord_file(base_image, badge, crystal=crystal)
@@ -191,20 +193,24 @@ async def generate_badge_preview_discord_file(base_image, badge, crystal=None):
 
   if isinstance(preview_result, list):
     # Animated crystal preview
-    buffer = io.BytesIO()
-    preview_result[0].save(
-      buffer,
-      format='WEBP',
-      save_all=True,
-      append_images=preview_result[1:],
-      duration=1000 // 12,
-      loop=0,
-      lossless=True,
-      method=6,
-      optimize=True
-    )
-    buffer.seek(0)
-    file = discord.File(buffer, filename='preview.webp')
+    tmp = tempfile.NamedTemporaryFile(suffix=".webp", delete=False)
+    await encode_webp(preview_result, tmp.name)
+    file = discord.File(tmp.name, filename=f"preview.webp")
+    tmp.flush()
+    # buffer = io.BytesIO()
+    # preview_result[0].save(
+    #   buffer,
+    #   format='WEBP',
+    #   save_all=True,
+    #   append_images=preview_result[1:],
+    #   duration=1000 // 12,
+    #   loop=0,
+    #   lossless=True,
+    #   method=6,
+    #   optimize=True
+    # )
+    # buffer.seek(0)
+    # file = discord.File(webp, filename='preview.webp')
     attachment_url = 'attachment://preview.webp'
   else:
     buffer = io.BytesIO()

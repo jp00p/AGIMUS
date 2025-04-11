@@ -10,13 +10,13 @@ from queries.badge_info import *
 from queries.badge_instances import *
 
 from utils.crystal_effects import apply_crystal_effect
-from utils.thread_utils import to_thread
+from utils.thread_utils import to_thread, threaded_image_open, threaded_image_open_no_convert
 
 # -> utils.badge_utils
 
 # Constants
 BADGE_PATH = "./images/badges/"
-BADGE_SIZE = (190, 190)
+BADGE_SIZE = (300, 300)
 
 #   _________                    .__       .__ __________             .___
 #  /   _____/_____   ____   ____ |__|____  |  |\______   \_____     __| _/ ____   ____   ______
@@ -60,14 +60,48 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
   return [result for result in selections if ctx.value.lower() in result.lower()]
 
 
-# Load and prep badge image
-def load_and_prepare_badge(filename, size=BADGE_SIZE):
-  badge_path = os.path.join(BADGE_PATH, filename)
-  b_raw = Image.open(badge_path).convert("RGBA")
-  b_raw.thumbnail(size)
-  badge_img = Image.new("RGBA", size, (255, 255, 255, 0))
-  badge_img.paste(b_raw, ((size[0]-b_raw.width)//2, (size[1]-b_raw.height)//2), b_raw)
-  return badge_img
+#  ____ ___   __  .__.__
+# |    |   \_/  |_|__|  |   ______
+# |    |   /\   __\  |  |  /  ___/
+# |    |  /  |  | |  |  |__\___ \
+# |______/   |__| |__|____/____  >
+#                              \/
+
+async def load_badge_image(filename):
+  path = os.path.join(BADGE_PATH, filename)
+  return await threaded_image_open(path)
+
+async def load_and_prepare_badge_thumbnail(filename, size=BADGE_SIZE):
+  badge_image = await load_badge_image(filename)
+
+  # Calculate 90% scale of the target size
+  scaled_size = (int(size[0] * 0.75), int(size[1] * 0.75))
+  badge_image = badge_image.resize(scaled_size, Image.LANCZOS)
+
+  # Center the scaled badge on a transparent canvas
+  thumbnail = Image.new("RGBA", size, (255, 255, 255, 0))
+  offset = ((size[0] - scaled_size[0]) // 2, (size[1] - scaled_size[1]) // 2)
+  thumbnail.paste(badge_image, offset, badge_image)
+
+  return thumbnail
+
+@to_thread
+def encode_webp(frames: list[Image.Image], filename: str):
+  frames[0].save(
+    filename,
+    save_all=True,
+    append_images=frames[1:],
+    format="WEBP",
+    duration=1000 // 12,
+    loop=0,
+    lossless=True,
+    method=6,
+    optimize=True
+  )
+
+def paginate(data_list, items_per_page):
+  for i in range(0, len(data_list), items_per_page):
+    yield data_list[i:i + items_per_page], (i // items_per_page) + 1
 
 
 # ___________.__                          .__
@@ -165,7 +199,7 @@ def load_fonts(title_size=110, footer_size=100, total_size=54, page_size=80, lab
 #    | | | |  _| / -_)
 #    |_| |_|\__|_\___|
 # (Handles dynamic resizing and emoji)
-def draw_title(
+async def draw_title(
   canvas: Image.Image,
   draw: ImageDraw.ImageDraw,
   position: tuple,
@@ -202,7 +236,7 @@ def draw_title(
     if is_emoji(cluster):
       emoji_file = EMOJI_IMAGE_PATH / emoji_to_filename(cluster)
       if emoji_file.exists():
-        emoji_img = Image.open(emoji_file).convert("RGBA").resize((emoji_size, emoji_size))
+        emoji_img = await threaded_image_open(emoji_file).resize((emoji_size, emoji_size))
         canvas.paste(emoji_img, (int(current_x), int(y)), emoji_img)
         current_x += emoji_size
       else:
@@ -223,47 +257,18 @@ def split_text_into_emoji_clusters(text: str):
   return regex.findall(r'\X', text)
 
 
-#  ____ ___   __  .__.__
-# |    |   \_/  |_|__|  |   ______
-# |    |   /\   __\  |  |  /  ___/
-# |    |  /  |  | |  |  |__\___ \
-# |______/   |__| |__|____/____  >
-#                              \/
-def load_badge_image(filename):
-  path = os.path.join(BADGE_PATH, filename)
-  return Image.open(path).convert("RGBA")
-
-def load_and_prepare_badge_thumbnail(filename, size=BADGE_SIZE):
-  badge_image = load_badge_image(filename).convert("RGBA")
-
-  # Calculate 90% scale of the target size
-  scaled_size = (int(size[0] * 0.9), int(size[1] * 0.9))
-  badge_image = badge_image.resize(scaled_size, Image.LANCZOS)
-
-  # Center the scaled badge on a transparent canvas
-  thumbnail = Image.new("RGBA", size, (255, 255, 255, 0))
-  offset = ((size[0] - scaled_size[0]) // 2, (size[1] - scaled_size[1]) // 2)
-  thumbnail.paste(badge_image, offset, badge_image)
-
-  return thumbnail
-
-
-def paginate(data_list, items_per_page):
-  for i in range(0, len(data_list), items_per_page):
-    yield data_list[i:i + items_per_page], (i // items_per_page) + 1
-
 # __________             .___                 _________ __         .__
 # \______   \_____     __| _/ ____   ____    /   _____//  |________|__|_____
 #  |    |  _/\__  \   / __ | / ___\_/ __ \   \_____  \\   __\_  __ \  \____ \
 #  |    |   \ / __ \_/ /_/ |/ /_/  >  ___/   /        \|  |  |  | \/  |  |_> >
 #  |______  /(____  /\____ |\___  / \___  > /_______  /|__|  |__|  |__|   __/
 #         \/      \/      \/_____/      \/          \/                |__|
-def generate_badge_strip(filenames, spacing=10, badge_size=BADGE_SIZE):
+async def generate_badge_strip(filenames, spacing=10, badge_size=BADGE_SIZE):
   """
   Generate a horizontal strip of badge images used in compact layouts.
   Used for simple displays like trade or grant confirmation.
   """
-  images = [load_and_prepare_badge_thumbnail(f, badge_size) for f in filenames]
+  images = [await load_and_prepare_badge_thumbnail(f, badge_size) for f in filenames]
   width = len(images) * badge_size[0] + (len(images) - 1) * spacing
   height = badge_size[1]
   strip = Image.new("RGBA", (width, height), (255, 255, 255, 0))
@@ -282,6 +287,7 @@ def generate_badge_strip(filenames, spacing=10, badge_size=BADGE_SIZE):
 #  \______  /\____/|____/____/\___  >\___  >__| |__|\____/|___|  /____  >
 #         \/                      \/     \/                    \/     \/
 async def generate_badge_collection_images(user, badge_data, collection_type, collection_label):
+  start = time.perf_counter()
   user_id = user.id
   theme = await get_theme_preference(user_id, collection_type)
   layout = _get_collection_grid_layout()
@@ -303,25 +309,20 @@ async def generate_badge_collection_images(user, badge_data, collection_type, co
 
     grid_result = await compose_badge_grid(canvas, page_badges, theme, collection_type)
 
-    if isinstance(grid_result, list):
-      # Animated badge page
-      tmp = tempfile.NamedTemporaryFile(suffix=".webp", delete=False)
-      grid_result[0].save(
-        tmp.name,
-        save_all=True,
-        append_images=grid_result[1:],
-        format="WEBP",
-        duration=1000 // 12,
-        loop=0,
-        lossless=True,
-        method=6,
-        optimize=True
-      )
-      tmp.flush()
-      images.append(discord.File(tmp.name, filename=f"collection_page{page_number}.webp"))
-    else:
-      image_file = buffer_image_to_discord_file(grid_result, f"collection_page{page_number}.png")
-      images.append(image_file)
+  if isinstance(grid_result, list):
+    # Encode this animated grid as a .webp baybee
+    tmp = tempfile.NamedTemporaryFile(suffix=".webp", delete=False)
+    await encode_webp(grid_result, tmp.name)
+    images.append(discord.File(tmp.name, filename=f"collection_page{page_number}.webp"))
+    tmp.flush()
+  else:
+    # Static page, can just be a .png
+    image_file = buffer_image_to_discord_file(grid_result, f"collection_page{page_number}.png")
+    images.append(image_file)
+
+  end = time.perf_counter()
+  duration = round(end - start, 2)
+  logger.info(f"[benchmark] generate_badge_collection_images() took {duration} seconds")
 
   return images
 
@@ -363,20 +364,29 @@ async def compose_badge_grid(canvas: Image.Image, badge_data: list, theme: str, 
   animated_slots = {}
   max_frames = 1
 
-  for idx, badge in enumerate(badge_data):
+  # Compute badge positions
+  positions = []
+  for idx in range(len(badge_data)):
     row = idx // layout.badges_per_row
     col = idx % layout.badges_per_row
     x = (dims.margin + col * (slot_dims.slot_width + dims.margin)) + layout.init_x
     y = (dims.header_height + row * dims.row_height) + layout.init_y
+    positions.append((x, y))
 
-    composed_slot = await compose_badge_slot(badge, collection_type, theme)
+  # Parallel render all badge slots
+  rendered_slots = await asyncio.gather(*[
+    compose_badge_slot(badge, collection_type, theme)
+    for badge in badge_data
+  ])
 
-    if isinstance(composed_slot, list):
+  for idx, slot_result in enumerate(rendered_slots):
+    pos = positions[idx]
+    if isinstance(slot_result, list):
       animated = True
-      animated_slots[idx] = (composed_slot, (x, y))
-      max_frames = max(max_frames, len(composed_slot))
+      animated_slots[idx] = (slot_result, pos)
+      max_frames = max(max_frames, len(slot_result))
     else:
-      static_slots[idx] = (composed_slot, (x, y))
+      static_slots[idx] = (slot_result, pos)
 
   if not animated:
     for slot_img, pos in static_slots.values():
@@ -408,12 +418,20 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
     text_color = "#888888"
     add_alpha = True
 
-  # Load image and shrink inside padded thumbnail
-  badge_image = load_and_prepare_badge_thumbnail(badge['badge_filename'])
+  # Load base badge image and shrink it first
+  badge_image = await load_and_prepare_badge_thumbnail(badge['badge_filename'])
 
-  # Apply crystal effects — may return animated frames
+  # Apply crystal effects (may return list of frames)
   crystal_result = await apply_crystal_effect(badge_image, badge)
   frames = crystal_result if isinstance(crystal_result, list) else [crystal_result]
+
+  # Normalize output frames to thumbnail size
+  resized_frames = []
+  for frame in frames:
+    resized = frame.resize((dims.thumbnail_width, dims.thumbnail_height), Image.LANCZOS)
+    resized_frames.append(resized)
+
+  frames = resized_frames
 
   slot_frames = []
   for frame in frames:
@@ -422,7 +440,7 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
       faded.putalpha(64)
       frame.paste(faded, frame)
 
-    # Create canvas for badge and slot
+    # Create badge canvas for this frame
     badge_canvas = Image.new('RGBA', (dims.thumbnail_width, dims.thumbnail_height), (255, 255, 255, 0))
     badge_canvas.paste(
       frame,
@@ -430,6 +448,7 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
       frame
     )
 
+    # Slot background
     slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(slot_canvas)
     draw.rounded_rectangle(
@@ -444,7 +463,7 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
     offset_y = 20
     slot_canvas.paste(badge_canvas, (dims.badge_padding + offset_x, offset_y), badge_canvas)
 
-    # Draw badge name
+    # Label text
     fonts = load_fonts()
     text = badge.get("badge_name", "")
     wrapped = textwrap.fill(text, width=30)
@@ -454,12 +473,12 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
     text_y = 222
     draw.multiline_text((text_x, text_y), wrapped, font=fonts.label, fill=text_color, align="center")
 
-    # Overlay icons
+    # Special/Locked overlay icons
     overlay = None
     if badge.get("special"):
-      overlay = Image.open("./images/templates/badges/special_icon.png").convert("RGBA")
+      overlay = await threaded_image_open("./images/templates/badges/special_icon.png")
     elif badge.get("locked"):
-      overlay = Image.open("./images/templates/badges/lock_icon.png").convert("RGBA")
+      overlay = await threaded_image_open("./images/templates/badges/lock_icon.png")
 
     if overlay:
       slot_canvas.paste(overlay, (dims.slot_width - 54, 16), overlay)
@@ -467,7 +486,6 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
     slot_frames.append(slot_canvas)
 
   return slot_frames if len(slot_frames) > 1 else slot_frames[0]
-
 
 #   _   _ _   _ _
 #  | | | | |_(_) |___
@@ -640,7 +658,7 @@ async def compose_completion_row(row_data, theme):
   if row_data.get("featured_badge"):
     try:
       badge_path = os.path.join(BADGE_PATH, row_data["featured_badge"])
-      badge_img = Image.open(badge_path).convert("RGBA")
+      badge_img = await threaded_image_open(badge_path)
       badge_img.thumbnail((200, 200))
       row_canvas.paste(badge_img, (25, 25), badge_img)
     except:
@@ -790,9 +808,9 @@ async def build_display_canvas(
   colors = get_theme_colors(theme)
 
   asset_prefix = "images/templates/badges/badge_page_"
-  header_img = Image.open(f"{asset_prefix}header_{theme}.png").convert("RGBA")
-  footer_img = Image.open(f"{asset_prefix}footer_{theme}.png").convert("RGBA")
-  row_img = Image.open(f"{asset_prefix}row_{theme}.png").convert("RGBA")
+  header_img = await threaded_image_open(f"{asset_prefix}header_{theme}.png")
+  footer_img = await threaded_image_open(f"{asset_prefix}footer_{theme}.png")
+  row_img = await threaded_image_open(f"{asset_prefix}row_{theme}.png")
 
   header_h = header_img.height
   footer_h = footer_img.height
@@ -812,7 +830,7 @@ async def build_display_canvas(
   fonts = load_fonts()
   draw = ImageDraw.Draw(canvas)
 
-  draw_canvas_labels(
+  await draw_canvas_labels(
     canvas=canvas,
     draw=draw,
     user=user,
@@ -830,12 +848,12 @@ async def build_display_canvas(
 
   return canvas
 
-def draw_canvas_labels(canvas, draw, user, mode, label, collected_count, total_count, page_number, total_pages, base_w, base_h, fonts, colors):
+async def draw_canvas_labels(canvas, draw, user, mode, label, collected_count, total_count, page_number, total_pages, base_w, base_h, fonts, colors):
   title_text = f"{user.display_name}'s Badge {mode.title()}"
   if label:
     title_text += f": {label}"
 
-  draw_title(
+  await draw_title(
     canvas=canvas,
     draw=draw,
     position=(100, 65),
@@ -893,7 +911,7 @@ async def generate_badge_trade_showcase(badge_list, id, title, footer):
 
   # create base image to paste all badges on to
   badge_base_image = Image.new("RGBA", (base_width+(image_padding*2), base_height+header_height+(image_padding*2)), (200, 200, 200))
-  badge_bg_image = Image.open("./images/trades/assets/trade_bg.jpg")
+  badge_bg_image = await threaded_image_open("./images/trades/assets/trade_bg.jpg")
 
   base_w, base_h = badge_base_image.size
   bg_w, bg_h = badge_bg_image.size
@@ -925,7 +943,7 @@ async def generate_badge_trade_showcase(badge_list, id, title, footer):
 
     # badge
     size = (190, 190)
-    b_raw = Image.open(f"./images/badges/{badge}").convert("RGBA")
+    b_raw = await threaded_image_open(f"./images/badges/{badge}")
     b_raw.thumbnail(size, Image.ANTIALIAS)
     b = Image.new('RGBA', size, (255, 255, 255, 0))
     b.paste(
@@ -974,15 +992,15 @@ async def generate_badge_trade_showcase(badge_list, id, title, footer):
 #  /        \  \___|  | \// __ \|  |_> >  |_> >  ___/|  | \/
 # /_______  /\___  >__|  (____  /   __/|   __/ \___  >__|
 #         \/     \/           \/|__|   |__|        \/
-def generate_badge_scrapper_confirmation_frames(badges_to_scrap):
-  replicator_image = Image.open(f"./images/templates/scrap/replicator.png")
+async def generate_badge_scrapper_confirmation_frames(badges_to_scrap):
+  replicator_image = await threaded_image_open_no_convert(f"./images/templates/scrap/replicator.png")
 
   base_image = Image.new("RGBA", (replicator_image.width, replicator_image.height), (0, 0, 0))
   base_image.paste(replicator_image, (0, 0))
 
-  b1 = Image.open(f"./images/badges/{badges_to_scrap[0]['badge_filename']}").convert("RGBA").resize((125, 125))
-  b2 = Image.open(f"./images/badges/{badges_to_scrap[1]['badge_filename']}").convert("RGBA").resize((125, 125))
-  b3 = Image.open(f"./images/badges/{badges_to_scrap[2]['badge_filename']}").convert("RGBA").resize((125, 125))
+  b1 = await threaded_image_open(f"./images/badges/{badges_to_scrap[0]['badge_filename']}").convert("RGBA").resize((125, 125))
+  b2 = await threaded_image_open(f"./images/badges/{badges_to_scrap[1]['badge_filename']}").convert("RGBA").resize((125, 125))
+  b3 = await threaded_image_open(f"./images/badges/{badges_to_scrap[2]['badge_filename']}").convert("RGBA").resize((125, 125))
 
   b_list = [b1, b2, b3]
 
@@ -1021,7 +1039,7 @@ def generate_badge_scrapper_confirmation_frames(badges_to_scrap):
       # Layer effect over badge image
       badge_with_effect = Image.new("RGBA", (125, 125), (255, 255, 255, 0))
       badge_with_effect.paste(f_b, (0, 0), f_b)
-      effect_frame = Image.open(f"./images/templates/scrap/effect/{'{:02d}'.format(n)}.png").convert('RGBA').resize((125, 125))
+      effect_frame = await threaded_image_open(f"./images/templates/scrap/effect/{'{:02d}'.format(n)}.png").resize((125, 125))
       badge_with_effect.paste(effect_frame, (0, 0), effect_frame)
 
       # Stick badge onto replicator background
@@ -1038,8 +1056,14 @@ def generate_badge_scrapper_confirmation_frames(badges_to_scrap):
 
   return frames
 
+
+
 @to_thread
 def generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
+  return _generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
+
+# --- Fix for invalid await inside @to_thread ---
+def _generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
   frames = generate_badge_scrapper_confirmation_frames(badges_to_scrap)
 
   gif_save_filepath = f"./images/scrap/{user_id}-confirm.gif"
@@ -1053,11 +1077,14 @@ def generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
     if os.path.isfile(gif_save_filepath):
       break
 
-  discord_image = discord.File(gif_save_filepath, filename=f"scrap_{user_id}-confirm.gif")
-  return discord_image
+  return discord.File(gif_save_filepath, filename=f"scrap_{user_id}-confirm.gif")
+
 
 @to_thread
 def generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap):
+  return _generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap)
+
+def _generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap):
   badge_created_filename = badge_to_add['badge_filename']
   replicator_image = Image.open(f"./images/templates/scrap/replicator.png")
 
@@ -1082,26 +1109,19 @@ def generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap):
     frame = base_image.copy()
     frame_badge = b.copy()
 
-    # Determine opacity of badge
-    # As the animation continues the opacity increases
-    # based on the percentage of the animation length to 255 (70 total frames)
     opacity_value = round((n / 70 * 100) * 2.55)
     badge_with_opacity = b.copy()
     badge_with_opacity.putalpha(opacity_value)
     frame_badge.paste(badge_with_opacity, frame_badge)
 
-    # Layer effect over badge image
     badge_with_effect = Image.new("RGBA", (190, 190), (255, 255, 255, 0))
     badge_with_effect.paste(frame_badge, (0, 0), frame_badge)
     effect_frame = Image.open(f"./images/templates/scrap/effect/{'{:02d}'.format(n)}.png").convert('RGBA')
     badge_with_effect.paste(effect_frame, (0, 0), effect_frame)
 
-    # Stick badge onto replicator background
     frame.paste(badge_with_effect, (badge_position_x, badge_position_y), badge_with_effect)
-
     frames.append(frame)
 
-  # Add 30 frames of the replicator with the final badge by itself
   for n in range(1, 31):
     frame = base_image.copy()
     frame.paste(b, (badge_position_x, badge_position_y), b)
@@ -1118,8 +1138,7 @@ def generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap):
     if os.path.isfile(gif_save_filepath):
       break
 
-  discord_image = discord.File(gif_save_filepath, filename=f"scrap_{user_id}.gif")
-  return discord_image
+  return discord.File(gif_save_filepath, filename=f"scrap_{user_id}.gif")
 
 
 # ________                      .__
