@@ -306,7 +306,7 @@ async def build_collection_canvas(user, badge_data, page_number, total_pages, co
     total_count = len(badge_data)
   else:
     collected_count = len(badge_data)
-    total_count = await db_get_badge_instances_count_for_user(user.id)
+    total_count = await db_get_max_badge_count()
 
   label = collection_label or None
 

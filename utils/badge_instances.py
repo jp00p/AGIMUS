@@ -28,10 +28,11 @@ async def get_badge_instance_with_info(instance_id: int) -> dict:
     WHERE b_inst.id = %s
   """
   async with AgimusDB(dictionary=True) as db:
-    return await db.fetchone(query, (instance_id,))
+    await db.execute(query, (instance_id,))
+    return await db.fetchone()
 
 
-async def create_new_badge_instance(badge_info_id: int, user_id: int, reason: str = 'level_up') -> dict:
+async def create_new_badge_instance(badge_info_id: int, user_id: int, event_type: str = 'level_up') -> dict:
   # Insert a new active, unlocked badge instance
   insert_instance = """
     INSERT INTO badge_instances (badge_info_id, owner_discord_id, status)
@@ -43,11 +44,11 @@ async def create_new_badge_instance(badge_info_id: int, user_id: int, reason: st
 
   # Log acquisition in history
   insert_history = """
-    INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, acquisition_reason)
+    INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, event_type)
     VALUES (%s, NULL, %s, %s)
   """
   async with AgimusDB() as db:
-    await db.execute(insert_history, (instance_id, user_id, reason))
+    await db.execute(insert_history, (instance_id, user_id, event_type))
 
   # Fetch full record with badge info
   return await get_badge_instance_with_info(instance_id)
@@ -96,7 +97,8 @@ async def liquidate_badge_instance(instance_id: int):
     WHERE id = %s
   """
   async with AgimusDB(dictionary=True) as db:
-    old = await db.fetchone(query_owner, (instance_id,))
+    await db.execute(query_owner, (instance_id,))
+    old = await db.fetchone()
     old_owner = old['owner_discord_id'] if old else None
 
   # Update badge instance to unowned + liquidated
@@ -109,7 +111,7 @@ async def liquidate_badge_instance(instance_id: int):
   async with AgimusDB() as db:
     await db.execute(query_update, (instance_id,))
 
-  # Record provenance
+  # Record history
   query_history = """
     INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, event_type)
     VALUES (%s, %s, NULL, 'liquidation')

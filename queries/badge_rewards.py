@@ -16,6 +16,7 @@ async def db_get_valid_reward_filenames(user_id: int):
       """,
       (user_id,)
     )
+    await query.execute(query, (user_id,))
     rows = await query.fetchall()
   return [row['badge_filename'] for row in rows]
 

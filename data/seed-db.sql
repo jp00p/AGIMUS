@@ -503,6 +503,7 @@ CREATE TABLE badge_instance_history (
     'tongo_risk',
     'tongo_reward',
     'liquidation',
+    'liquidation_endowment',
     'admin',
     'unknown'
   ) NOT NULL DEFAULT 'unknown',
@@ -566,6 +567,7 @@ CREATE TABLE tongo_game_rewards (
   user_discord_id BIGINT,
   badge_instance_id INT,
   crystal_id INT DEFAULT NULL,
+  rewarded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (game_id, user_discord_id, badge_instance_id),
   FOREIGN KEY (game_id) REFERENCES tongo_games(id),
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id),
