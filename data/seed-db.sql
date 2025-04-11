@@ -457,7 +457,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 
   -- Legendary Crystals
   ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "Collected from the EPS grid. Hums with that familiar pulse."),
-  ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Be careful of distortions and space buttholes when these are around..."),
+  ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Be careful of spacetime distortions when these are around..."),
   ("Bajoran Orb", 4, "bajoran_orb.png", "prophet_glow", "An Orb of the Prophets. My Child!"),
 
   -- Mythic Crystals
