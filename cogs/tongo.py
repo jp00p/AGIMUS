@@ -3,6 +3,7 @@ from handlers.xp import increment_user_xp
 from queries.wishlist import db_get_user_wishlist_badges, db_autolock_badges_by_filenames_if_in_wishlist
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
+from utils.check_user_access import user_check
 
 from random import sample
 
@@ -149,6 +150,7 @@ class Tongo(commands.Cog):
     autocomplete=risk_autocomplete
   )
   @commands.check(access_check)
+  @commands.check(user_check)
   async def venture(self, ctx:discord.ApplicationContext, randomized:bool, first_badge:str, second_badge:str, third_badge:str):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
@@ -319,6 +321,7 @@ class Tongo(commands.Cog):
     autocomplete=risk_autocomplete
   )
   @commands.check(access_check)
+  @commands.check(user_check)
   async def risk(self, ctx:discord.ApplicationContext, randomized:bool, first_badge, second_badge, third_badge):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
@@ -561,6 +564,7 @@ class Tongo(commands.Cog):
     description="Check the current status of the active game of Tongo!"
   )
   @commands.check(access_check)
+  @commands.check(user_check)
   async def index(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id
@@ -671,6 +675,7 @@ class Tongo(commands.Cog):
     description="If you're The Chair, end the current game of Tongo!"
   )
   @commands.check(access_check)
+  @commands.check(user_check)
   async def confront(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.interaction.user.id

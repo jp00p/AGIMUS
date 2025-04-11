@@ -821,6 +821,7 @@
       "channels": [
         "bahrats-bazaar"
       ],
+      "disallowed_user_ids": [599738481140301829],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -829,6 +830,7 @@
       "channels": [
         "bahrats-bazaar"
       ],
+      "disallowed_user_ids": [599738481140301829],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -837,6 +839,7 @@
       "channels": [
         "bahrats-bazaar"
       ],
+      "disallowed_user_ids": [599738481140301829],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -845,6 +848,7 @@
       "channels": [
         "bahrats-bazaar"
       ],
+      "disallowed_user_ids": [599738481140301829],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -853,6 +857,7 @@
       "channels": [
         "bahrats-bazaar"
       ],
+      "disallowed_user_ids": [599738481140301829],
       "enabled": true,
       "data": null,
       "parameters": []
