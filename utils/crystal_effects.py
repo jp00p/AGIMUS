@@ -9,6 +9,8 @@ from scipy.ndimage import map_coordinates
 from queries.crystals import db_get_active_crystal
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
 
+FRAME_SIZE = (190, 190)
+
 # --- Thread-safe loader wrappers ---
 @to_thread
 def load_cached_effect_image(cached_path):
@@ -484,7 +486,7 @@ def effect_trilithium_banger(badge_image: Image.Image, badge: dict) -> Image.Ima
   Used for the Trilithium crystal (Rare tier).
   """
   bg_path = f"{RARE_BACKGROUNDS_DIR}trilithium_banger.png"
-  background = load_background_image_resized(bg_path, badge_image.size)
+  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
   faded_background = _apply_radial_fade(background)
   return Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
 
@@ -495,7 +497,7 @@ def effect_tholian_web(badge_image: Image.Image, badge: dict) -> Image.Image:
   Used for the Tholian Silk crystal (Rare tier).
   """
   bg_path = f"{RARE_BACKGROUNDS_DIR}tholian_web.png"
-  background = load_background_image_resized(bg_path, badge_image.size)
+  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
   faded_background = _apply_radial_fade(background)
   return Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
 
@@ -506,7 +508,7 @@ def effect_holo_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
   Used for the Photonic Shard crystal (Rare tier).
   """
   bg_path = f"{RARE_BACKGROUNDS_DIR}holo_grid.png"
-  background = load_background_image_resized(bg_path, badge_image.size)
+  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
   faded_background = _apply_radial_fade(background)
   return Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
 
@@ -538,21 +540,19 @@ def effect_warp_pulse(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   Returns:
     List of RGBA frames as PIL.Image.Image.
   """
-  fps = 12
-  duration = 3.0
-  width, height = base_img.size
+  fps, duration = 12, 3.0
   num_frames = int(duration * fps)
+  width, height = FRAME_SIZE
   center = (width // 2, height // 2)
-
-  frames = []
   num_rings = 3
   ring_interval = num_frames // num_rings
   max_radius = width // 2
   ring_thickness = 26
+  frames = []
 
   for frame_index in range(num_frames):
-    frame = Image.new("RGBA", base_img.size, (0, 0, 0, 0))
-    glow_layer = Image.new("RGBA", base_img.size, (0, 0, 0, 0))
+    frame = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    glow_layer = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
     draw = ImageDraw.Draw(glow_layer)
 
     for ring_i in range(num_rings):
@@ -566,19 +566,15 @@ def effect_warp_pulse(base_img: Image.Image, badge: dict) -> list[Image.Image]:
       fade_factor = 1 - (radius / max_radius)
       alpha_val = int(255 * fade_factor)
       ring_color = (0, 200, 255, alpha_val)
-
       bbox = [
-        center[0] - radius,
-        center[1] - radius,
-        center[0] + radius,
-        center[1] + radius,
+        center[0] - radius, center[1] - radius,
+        center[0] + radius, center[1] + radius
       ]
       draw.ellipse(bbox, outline=ring_color, width=ring_thickness)
 
     blurred_glow = glow_layer.filter(ImageFilter.GaussianBlur(radius=12))
     frame = Image.alpha_composite(frame, blurred_glow)
     frame = Image.alpha_composite(frame, base_img)
-
     frames.append(frame)
 
   return frames
@@ -595,15 +591,11 @@ def effect_subspace_ripple(base_img: Image.Image, badge: dict) -> list[Image.Ima
   Returns:
     List of RGBA frames as PIL.Image.Image.
   """
-  fps = 12
-  duration = 2.0
-  size = (512, 512)
-  base_img = base_img.resize(size, Image.LANCZOS)
+  fps, duration = 12, 2.0
+  size = FRAME_SIZE
   badge_array = np.array(base_img)
   height, width = size
-
-  amplitude = 8
-  wavelength = 96
+  amplitude, wavelength = 8, 96
   num_frames = int(duration * fps)
   speed = 2 * np.pi / num_frames
 
@@ -616,7 +608,6 @@ def effect_subspace_ripple(base_img: Image.Image, badge: dict) -> list[Image.Ima
     coords_y = Y + offset
     coords_x = X + offset
     coords = np.array([coords_y.flatten(), coords_x.flatten()])
-
     channels = [
       map_coordinates(badge_array[..., c], coords, order=1, mode='reflect').reshape((height, width))
       for c in range(4)
@@ -654,67 +645,55 @@ def effect_phase_flicker(base_img: Image.Image, badge: dict) -> list[Image.Image
   Returns:
     List of RGBA frames as PIL.Image.Image.
   """
-  frame_size = (512, 512)
   fps = 12
-  hold_frames = 8
-  drift_frames = 8
-  glitch_frames = 8
+  hold_frames, drift_frames, glitch_frames = 8, 8, 8
   drift_amount = 0.5
   scanline_indices = [4, 5, 6, 7]
-  flicker_pattern = [1, 0, 1, 0, 1, 1, 1, 1]
   blink_scales = [1.0, 0.97, 1.08, 0.93, 1.12, 1.0, 0.95, 1.05]
+  center = ((FRAME_SIZE[0] - base_img.width) // 2, (FRAME_SIZE[1] - base_img.height) // 2)
+  frames = []
 
-  def apply_linear_drift(badge_img: Image.Image, frame_index: int, drift_per_frame: tuple[float, float]) -> Image.Image:
-    dx = int(drift_per_frame[0] * frame_index)
-    dy = int(drift_per_frame[1] * frame_index)
-    r, g, b, a = badge_img.split()
+  def apply_linear_drift(img, i, drift):
+    dx = int(drift[0] * i)
+    dy = int(drift[1] * i)
+    r, g, b, a = img.split()
     r = ImageChops.offset(r, 2, 0)
     b = ImageChops.offset(b, -1, 0)
     rgb = Image.merge("RGB", (r, g, b))
-    img = Image.merge("RGBA", (*rgb.split(), a))
-    canvas = Image.new("RGBA", frame_size, (0, 0, 0, 0))
-    offset = ((frame_size[0] - badge_img.width) // 2 + dx, (frame_size[1] - badge_img.height) // 2 + dy)
-    canvas.paste(img, offset, img)
+    merged = Image.merge("RGBA", (*rgb.split(), a))
+    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    canvas.paste(merged, (center[0] + dx, center[1] + dy), merged)
     return canvas
 
-  def apply_jitter(badge_img: Image.Image, frame_index: int) -> Image.Image:
-    np.random.seed(frame_index + 100)
+  def apply_jitter(img, i):
+    np.random.seed(i + 100)
     jitter_x, jitter_y = np.random.randint(-12, 13, size=2)
-    np.random.seed(frame_index)
+    np.random.seed(i)
     jitters = np.random.randint(-6, 7, (3, 2))
-    r, g, b, a = badge_img.split()
+    r, g, b, a = img.split()
     r = ImageChops.offset(r, *jitters[0])
     g = ImageChops.offset(g, *jitters[1])
     b = ImageChops.offset(b, *jitters[2])
     rgb = Image.merge("RGB", (r, g, b))
-    img = Image.merge("RGBA", (*rgb.split(), a))
-    canvas = Image.new("RGBA", frame_size, (0, 0, 0, 0))
-    offset = ((frame_size[0] - badge_img.width) // 2 + jitter_x, (frame_size[1] - badge_img.height) // 2 + jitter_y)
-    canvas.paste(img, offset, img)
+    merged = Image.merge("RGBA", (*rgb.split(), a))
+    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    canvas.paste(merged, (center[0] + jitter_x, center[1] + jitter_y), merged)
     return canvas
 
-  def apply_scanline_shift(img: Image.Image, frame_index: int) -> Image.Image:
+  def apply_scanline_shift(img, i):
     pixels = np.array(img)
     for y in range(0, pixels.shape[0], 2):
-      shift = int(8 * math.sin(2 * math.pi * (frame_index / 6) + y / 12))
+      shift = int(8 * math.sin(2 * math.pi * (i / 6) + y / 12))
       pixels[y] = np.roll(pixels[y], shift, axis=0)
     return Image.fromarray(pixels, "RGBA")
 
-  def flicker_frame(img: Image.Image, visible: bool) -> Image.Image:
-    return img if visible else Image.new("RGBA", img.size, (0, 0, 0, 0))
-
-  base_img = base_img.resize(frame_size, Image.LANCZOS)
-  center = ((frame_size[0] - base_img.width) // 2, (frame_size[1] - base_img.height) // 2)
-  frames = []
-
   for _ in range(hold_frames):
-    canvas = Image.new("RGBA", frame_size, (0, 0, 0, 0))
+    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
     canvas.paste(base_img, center, base_img)
     frames.append(canvas)
 
   for i in range(drift_frames):
-    frame = apply_linear_drift(base_img, i, (drift_amount, drift_amount))
-    frames.append(frame)
+    frames.append(apply_linear_drift(base_img, i, (drift_amount, drift_amount)))
 
   for i in range(glitch_frames):
     scale = blink_scales[i]
@@ -722,10 +701,9 @@ def effect_phase_flicker(base_img: Image.Image, badge: dict) -> list[Image.Image
     frame = apply_jitter(scaled, i)
     if i in scanline_indices:
       frame = apply_scanline_shift(frame, i)
-    frame = flicker_frame(frame, bool(flicker_pattern[i]))
     frames.append(frame)
 
-  snap = Image.new("RGBA", frame_size, (0, 0, 0, 0))
+  snap = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
   snap.paste(base_img, center, base_img)
   frames.append(snap)
 
@@ -744,21 +722,18 @@ def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]
 
   Used for the Omega Molecule crystal (Mythic tier).
   """
-  frame_size = (512, 512)
+  frame_size = FRAME_SIZE
   fps = 12
   num_frames = 24
   band_width = int(128 * 0.8)
   max_displacement = 24
-  beam_alpha = int(80 * 0.7)  # reduced opacity
+  beam_alpha = int(80 * 0.7)
   beam_color = (60, 120, 255, beam_alpha)
   blur_radius = 32
-
-  base_img = base_img.resize(frame_size).convert("RGBA")
   width, height = frame_size
 
   def shimmer_flux_base(badge_img: Image.Image, frame_index: int) -> Image.Image:
-    badge = badge_img.resize(frame_size)
-    mask = badge.getchannel('A').point(lambda p: 255 if p > 0 else 0)
+    mask = badge_img.getchannel('A').point(lambda p: 255 if p > 0 else 0)
 
     pulse = 0.5 + 0.5 * np.sin(2 * np.pi * frame_index / num_frames)
     dilation = 4 + int(4 * pulse)
@@ -782,9 +757,9 @@ def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]
     bloom = Image.new("RGBA", frame_size, (160, 140, 255, int(100 + 80 * pulse)))
     bloom.putalpha(edge)
 
-    glow = badge.filter(ImageFilter.GaussianBlur(radius=6 + 4 * pulse))
+    glow = badge_img.filter(ImageFilter.GaussianBlur(radius=6 + 4 * pulse))
     glow = ImageEnhance.Brightness(glow).enhance(1.6 + pulse * 0.8)
-    combined = Image.alpha_composite(glow, badge)
+    combined = Image.alpha_composite(glow, badge_img)
     with_bloom = Image.alpha_composite(combined, bloom)
     final = Image.alpha_composite(shell, with_bloom)
     return final

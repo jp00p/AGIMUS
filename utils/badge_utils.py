@@ -9,6 +9,7 @@ from common import *
 from queries.badge_info import *
 from queries.badge_instances import *
 
+from utils.badge_cache import get_cached_base_badge_canvas
 from utils.crystal_effects import apply_crystal_effect
 from utils.thread_utils import to_thread, threaded_image_open, threaded_image_open_no_convert
 
@@ -71,19 +72,8 @@ async def load_badge_image(filename):
   path = os.path.join(BADGE_PATH, filename)
   return await threaded_image_open(path)
 
-async def load_and_prepare_badge_thumbnail(filename, size=BADGE_SIZE):
-  badge_image = await load_badge_image(filename)
-
-  # Calculate 90% scale of the target size
-  scaled_size = (int(size[0] * 0.75), int(size[1] * 0.75))
-  badge_image = badge_image.resize(scaled_size, Image.LANCZOS)
-
-  # Center the scaled badge on a transparent canvas
-  thumbnail = Image.new("RGBA", size, (255, 255, 255, 0))
-  offset = ((size[0] - scaled_size[0]) // 2, (size[1] - scaled_size[1]) // 2)
-  thumbnail.paste(badge_image, offset, badge_image)
-
-  return thumbnail
+async def load_and_prepare_badge_thumbnail(filename):
+  return await get_cached_base_badge_canvas(filename)
 
 @to_thread
 def encode_webp(frames: list[Image.Image], filename: str):
@@ -236,7 +226,8 @@ async def draw_title(
     if is_emoji(cluster):
       emoji_file = EMOJI_IMAGE_PATH / emoji_to_filename(cluster)
       if emoji_file.exists():
-        emoji_img = await threaded_image_open(emoji_file).resize((emoji_size, emoji_size))
+        emoji_img = await threaded_image_open(emoji_file)
+        emoji_img = emoji_img.resize((emoji_size, emoji_size))
         canvas.paste(emoji_img, (int(current_x), int(y)), emoji_img)
         current_x += emoji_size
       else:
@@ -425,13 +416,13 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
   crystal_result = await apply_crystal_effect(badge_image, badge)
   frames = crystal_result if isinstance(crystal_result, list) else [crystal_result]
 
-  # Normalize output frames to thumbnail size
-  resized_frames = []
-  for frame in frames:
-    resized = frame.resize((dims.thumbnail_width, dims.thumbnail_height), Image.LANCZOS)
-    resized_frames.append(resized)
+  # # Normalize output frames to thumbnail size
+  # resized_frames = []
+  # for frame in frames:
+  #   resized = frame.resize((dims.thumbnail_width, dims.thumbnail_height), Image.LANCZOS)
+  #   resized_frames.append(resized)
 
-  frames = resized_frames
+  # frames = resized_frames
 
   slot_frames = []
   for frame in frames:
@@ -998,6 +989,8 @@ async def generate_badge_scrapper_confirmation_frames(badges_to_scrap):
   base_image = Image.new("RGBA", (replicator_image.width, replicator_image.height), (0, 0, 0))
   base_image.paste(replicator_image, (0, 0))
 
+  # TODO: use get_cached_base_badge_canvas for these...
+  # e.g. b1 = await get_cached_base_badge_canvas(badges_to_scrap[0]['badge_filename'])
   b1 = await threaded_image_open(f"./images/badges/{badges_to_scrap[0]['badge_filename']}").convert("RGBA").resize((125, 125))
   b2 = await threaded_image_open(f"./images/badges/{badges_to_scrap[1]['badge_filename']}").convert("RGBA").resize((125, 125))
   b3 = await threaded_image_open(f"./images/badges/{badges_to_scrap[2]['badge_filename']}").convert("RGBA").resize((125, 125))
