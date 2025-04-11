@@ -1,3 +1,5 @@
+import tempfile
+
 from collections import namedtuple
 from emoji import EMOJI_DATA
 from pathlib import Path
@@ -232,11 +234,19 @@ def load_badge_image(filename):
   return Image.open(path).convert("RGBA")
 
 def load_and_prepare_badge_thumbnail(filename, size=BADGE_SIZE):
-  badge_image = load_badge_image(filename)
-  badge_image.thumbnail(size)
+  badge_image = load_badge_image(filename).convert("RGBA")
+
+  # Calculate 90% scale of the target size
+  scaled_size = (int(size[0] * 0.9), int(size[1] * 0.9))
+  badge_image = badge_image.resize(scaled_size, Image.LANCZOS)
+
+  # Center the scaled badge on a transparent canvas
   thumbnail = Image.new("RGBA", size, (255, 255, 255, 0))
-  thumbnail.paste(badge_image, ((size[0]-badge_image.width)//2, (size[1]-badge_image.height)//2), badge_image)
+  offset = ((size[0] - scaled_size[0]) // 2, (size[1] - scaled_size[1]) // 2)
+  thumbnail.paste(badge_image, offset, badge_image)
+
   return thumbnail
+
 
 def paginate(data_list, items_per_page):
   for i in range(0, len(data_list), items_per_page):
@@ -291,9 +301,27 @@ async def generate_badge_collection_images(user, badge_data, collection_type, co
       theme=theme
     )
 
-    await compose_badge_grid(canvas, page_badges, theme, collection_label)
-    image_file = buffer_image_to_discord_file(canvas, f"collection_page{page_number}.png")
-    images.append(image_file)
+    grid_result = await compose_badge_grid(canvas, page_badges, theme, collection_type)
+
+    if isinstance(grid_result, list):
+      # Animated badge page
+      tmp = tempfile.NamedTemporaryFile(suffix=".webp", delete=False)
+      grid_result[0].save(
+        tmp.name,
+        save_all=True,
+        append_images=grid_result[1:],
+        format="WEBP",
+        duration=1000 // 12,
+        loop=0,
+        lossless=True,
+        method=6,
+        optimize=True
+      )
+      tmp.flush()
+      images.append(discord.File(tmp.name, filename=f"collection_page{page_number}.webp"))
+    else:
+      image_file = buffer_image_to_discord_file(grid_result, f"collection_page{page_number}.png")
+      images.append(image_file)
 
   return images
 
@@ -330,19 +358,45 @@ async def compose_badge_grid(canvas: Image.Image, badge_data: list, theme: str, 
   layout = _get_collection_grid_layout()
   slot_dims = _get_badge_slot_dimensions()
 
+  animated = False
+  static_slots = {}
+  animated_slots = {}
+  max_frames = 1
+
   for idx, badge in enumerate(badge_data):
     row = idx // layout.badges_per_row
     col = idx % layout.badges_per_row
     x = (dims.margin + col * (slot_dims.slot_width + dims.margin)) + layout.init_x
     y = (dims.header_height + row * dims.row_height) + layout.init_y
+
     composed_slot = await compose_badge_slot(badge, collection_type, theme)
-    canvas.paste(composed_slot, (x, y), composed_slot)
 
-  return canvas
+    if isinstance(composed_slot, list):
+      animated = True
+      animated_slots[idx] = (composed_slot, (x, y))
+      max_frames = max(max_frames, len(composed_slot))
+    else:
+      static_slots[idx] = (composed_slot, (x, y))
+
+  if not animated:
+    for slot_img, pos in static_slots.values():
+      canvas.paste(slot_img, pos, slot_img)
+    return canvas
+
+  frames = []
+  for frame_idx in range(max_frames):
+    frame = canvas.copy()
+    for slot_img, pos in static_slots.values():
+      frame.paste(slot_img, pos, slot_img)
+    for frames_list, pos in animated_slots.values():
+      current_frame = frames_list[frame_idx % len(frames_list)]
+      frame.paste(current_frame, pos, current_frame)
+    frames.append(frame)
+
+  return frames
 
 
-async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image:
-  """Composes and returns a badge image with overlays applied for locked/special badges."""
+async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image | list[Image.Image]:
   dims = _get_badge_slot_dimensions()
   colors = get_theme_colors(theme)
 
@@ -354,60 +408,65 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
     text_color = "#888888"
     add_alpha = True
 
-  # Load image and thumbnailicize
-  badge_image = load_badge_image(badge['badge_filename'])
-  badge_image = await apply_crystal_effect(badge_image, badge)
-  if add_alpha:
-    # Create a mask layer to apply 1/4th opacity to for uncollected badges
-    badge_alpha = badge_image.copy()
-    badge_alpha.putalpha(64)
-    badge_image.paste(badge_alpha, badge_image)
-  badge_image.thumbnail((dims.thumbnail_width, dims.thumbnail_height), Image.ANTIALIAS)
+  # Load image and shrink inside padded thumbnail
+  badge_image = load_and_prepare_badge_thumbnail(badge['badge_filename'])
 
-  # Create Badge Canvas
-  badge_canvas = Image.new('RGBA', (dims.thumbnail_width, dims.thumbnail_height), (255, 255, 255, 0))
-  badge_canvas.paste(
-   badge_image, (int((dims.thumbnail_width - badge_image.size[0]) // 2), int((dims.thumbnail_width - badge_image.size[1]) // 2))
-  )
-  badge_canvas = badge_canvas.resize((dims.thumbnail_width, dims.thumbnail_height))
+  # Apply crystal effects — may return animated frames
+  crystal_result = await apply_crystal_effect(badge_image, badge)
+  frames = crystal_result if isinstance(crystal_result, list) else [crystal_result]
 
-  # Create Slot Canvas
-  slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
-  draw = ImageDraw.Draw(slot_canvas)
-  draw.rounded_rectangle( (0, 0, dims.slot_width, dims.slot_height), fill="#000000", outline=border_color, width=4, radius=32 )
+  slot_frames = []
+  for frame in frames:
+    if add_alpha:
+      faded = frame.copy()
+      faded.putalpha(64)
+      frame.paste(faded, frame)
 
-  # Slot Canvas Dimensions
-  b_canvas_width, b_canvas_height = badge_canvas.size
-  offset_x = min(0, (dims.slot_width) - b_canvas_width) + 4 # align center, account for border
-  offset_y = 20
+    # Create canvas for badge and slot
+    badge_canvas = Image.new('RGBA', (dims.thumbnail_width, dims.thumbnail_height), (255, 255, 255, 0))
+    badge_canvas.paste(
+      frame,
+      (int((dims.thumbnail_width - frame.size[0]) // 2), int((dims.thumbnail_width - frame.size[1]) // 2)),
+      frame
+    )
 
-  # Stamp Badge Canvas on Slot Canvas
-  slot_canvas.paste(badge_canvas, (dims.badge_padding + offset_x, offset_y), badge_canvas)
+    slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(slot_canvas)
+    draw.rounded_rectangle(
+      (0, 0, dims.slot_width, dims.slot_height),
+      fill="#000000",
+      outline=border_color,
+      width=4,
+      radius=32
+    )
 
-  # Slot Text
-  fonts = load_fonts()
-  # Draw badge name label
-  text = badge.get("badge_name", "")
-  wrapped = textwrap.fill(text, width=30)
+    offset_x = min(0, dims.slot_width - badge_canvas.width) + 4
+    offset_y = 20
+    slot_canvas.paste(badge_canvas, (dims.badge_padding + offset_x, offset_y), badge_canvas)
 
-  # Calculate text block position
-  text_bbox = draw.multiline_textbbox((0, 0), wrapped, font=fonts.label)
-  text_block_width = text_bbox[2] - text_bbox[0]
-  text_x = (dims.slot_width - text_block_width) // 2
-  text_y = 222
+    # Draw badge name
+    fonts = load_fonts()
+    text = badge.get("badge_name", "")
+    wrapped = textwrap.fill(text, width=30)
+    text_bbox = draw.multiline_textbbox((0, 0), wrapped, font=fonts.label)
+    text_block_width = text_bbox[2] - text_bbox[0]
+    text_x = (dims.slot_width - text_block_width) // 2
+    text_y = 222
+    draw.multiline_text((text_x, text_y), wrapped, font=fonts.label, fill=text_color, align="center")
 
-  draw.multiline_text((text_x, text_y), wrapped, font=fonts.label, fill=text_color, align="center")
+    # Overlay icons
+    overlay = None
+    if badge.get("special"):
+      overlay = Image.open("./images/templates/badges/special_icon.png").convert("RGBA")
+    elif badge.get("locked"):
+      overlay = Image.open("./images/templates/badges/lock_icon.png").convert("RGBA")
 
-  overlay = None
-  if badge.get("special"):
-    overlay = Image.open(f"./images/templates/badges/special_icon.png").convert("RGBA")
-  elif badge.get("locked"):
-    overlay = Image.open(f"./images/templates/badges/lock_icon.png").convert("RGBA")
+    if overlay:
+      slot_canvas.paste(overlay, (dims.slot_width - 54, 16), overlay)
 
-  if overlay:
-    slot_canvas.paste(overlay, (dims.slot_width - 54, 16), overlay)
+    slot_frames.append(slot_canvas)
 
-  return slot_canvas
+  return slot_frames if len(slot_frames) > 1 else slot_frames[0]
 
 
 #   _   _ _   _ _

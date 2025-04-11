@@ -132,15 +132,10 @@ class Crystals(commands.Cog):
       return
 
     # Generate badge preview image with crystal effect (in-memory)
-    base_image = load_badge_image(badge_info['badge_filename'])
+    base_image = load_and_prepare_badge_thumbnail(badge_info['badge_filename'])
     badge = { **badge_info, 'badge_instance_id': badge_instance['badge_instance_id'] }
     crystal = selected
-    preview_img = await apply_crystal_effect(base_image, badge, crystal=crystal)
-
-    buffer = io.BytesIO()
-    preview_img.save(buffer, format='PNG')
-    buffer.seek(0)
-    file = discord.File(buffer, filename='preview.png')
+    discord_file, attachment_url = await generate_badge_preview_discord_file(base_image, badge, crystal=crystal)
 
     crystal_description = crystal.get('description', '')
     crystal_label = f"{crystal['emoji']} {crystal['crystal_name']}" if crystal.get('emoji') else crystal['crystal_name']
@@ -153,8 +148,9 @@ class Crystals(commands.Cog):
     preview_embed.add_field(name=f"{crystal['crystal_name']}", value=f"{crystal_description}", inline=False)
     preview_embed.add_field(name=f"Rank", value=f"{crystal['emoji']} {crystal['rarity_name']}", inline=False)
     preview_embed.set_footer(text="Click Confirm to install this crystal, or Cancel.")
-    preview_embed.set_image(url="attachment://preview.png")
+    preview_embed.set_image(url=attachment_url)
 
+    # View placed here to have access to outer scope
     class ConfirmCancelView(discord.ui.View):
       def __init__(self):
         super().__init__(timeout=60)
@@ -184,8 +180,37 @@ class Crystals(commands.Cog):
         )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
+    # Sending response here
     view = ConfirmCancelView()
-    await ctx.respond(embed=preview_embed, file=file, view=view, ephemeral=True)
+    await ctx.respond(embed=preview_embed, file=discord_file, view=view, ephemeral=True)
     view.message = await ctx.interaction.original_response()
 
 
+async def generate_badge_preview_discord_file(base_image, badge, crystal=None):
+  preview_result = await apply_crystal_effect(base_image, badge, crystal=crystal)
+
+  if isinstance(preview_result, list):
+    # Animated crystal preview
+    buffer = io.BytesIO()
+    preview_result[0].save(
+      buffer,
+      format='WEBP',
+      save_all=True,
+      append_images=preview_result[1:],
+      duration=1000 // 12,
+      loop=0,
+      lossless=True,
+      method=6,
+      optimize=True
+    )
+    buffer.seek(0)
+    file = discord.File(buffer, filename='preview.webp')
+    attachment_url = 'attachment://preview.webp'
+  else:
+    buffer = io.BytesIO()
+    preview_result.save(buffer, format='PNG')
+    buffer.seek(0)
+    file = discord.File(buffer, filename='preview.png')
+    attachment_url = 'attachment://preview.png'
+
+  return file, attachment_url
