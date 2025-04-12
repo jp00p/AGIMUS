@@ -579,9 +579,9 @@ CREATE TABLE tongo_game_rewards (
 --
 
 -- Note that we don't reference specific badge_instances here,
--- users are essentially wishlisting "badge_info"s, but we're naming it
+-- users are essentially wishlisting "badge_infos", but we're naming it
 -- `badge_instance_wishlists` because we're migrating from the old
--- `badge_wishlists` table and want to make this clear this is the new table
+-- `badge_wishlists` table and want to make this clear this is the system
 -- also the results of these wishlists will be badge instances so ¯\_(ツ)_/¯
 CREATE TABLE badge_instance_wishlists (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
