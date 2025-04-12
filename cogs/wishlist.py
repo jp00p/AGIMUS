@@ -1,7 +1,26 @@
 from common import *
 
-from queries.badge_instances import *
-from queries.wishlist import *
+from queries.badge_instances import db_get_user_badge_instances
+from queries.wishlist import (
+  db_get_user_wishlist_badges,
+  db_add_badge_name_to_users_wishlist,
+  db_remove_badge_name_from_users_wishlist,
+  db_add_badge_info_ids_to_users_wishlist,
+  db_remove_badge_info_ids_from_users_wishlist,
+  db_get_wishlist_matches,
+  db_get_wishlist_inventory_matches,
+  db_lock_badge_by_filename,
+  db_lock_badges_by_filenames,
+  db_unlock_badge_by_filename,
+  db_unlock_badges_by_filenames,
+  db_clear_users_wishlist,
+  db_purge_users_wishlist,
+  db_get_badge_locked_status_by_name,
+  db_get_wishlist_dismissal,
+  db_get_all_users_wishlist_dismissals,
+  db_add_wishlist_dismissal,
+  db_delete_wishlist_dismissal,
+)
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 
@@ -202,7 +221,7 @@ class Wishlist(commands.Cog):
 
     user_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id)]
     user_wishlist_badge_names = [b['badge_name'] for b in await db_get_user_wishlist_badges(payload.user_id)]
-    user_locked_badge_names = [b['badge_name'] for b in await db_get_user_locked_badges(payload.user_id)]
+    user_locked_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id, locked=True)]
     special_badge_names = [b['badge_name'] for b in await db_get_all_special_badges()]
 
     if payload.event_type == "REACTION_ADD" and badge_name not in user_badge_names and badge_name not in user_wishlist_badge_names and badge_name not in special_badge_names:
@@ -1019,15 +1038,15 @@ class Wishlist(commands.Cog):
       )
       return
 
-    existing_user_badges = [b['badge_filename'] for b in await db_get_user_badge_instances(user_discord_id)]
-    existing_wishlist_badges = [b['badge_filename'] for b in await db_get_user_wishlist_badges(user_discord_id)]
-    special_badges = [b['badge_filename'] for b in await db_get_all_special_badges()]
+    existing_user_badges = [b['badge_info_id'] for b in await db_get_user_badge_instances(user_discord_id)]
+    existing_wishlist_badges = [b['id'] for b in await db_get_user_wishlist_badges(user_discord_id)]
+    special_badges = [b['id'] for b in await db_get_all_special_badges()]
 
     # Filter out those badges that are already present in the Wishlist and user's Inventory
-    valid_badges = [b['badge_filename'] for b in all_set_badges if b['badge_filename'] not in existing_user_badges and b['badge_filename'] not in existing_wishlist_badges and b['badge_filename'] not in special_badges]
+    valid_badge_info_ids = [b['id'] for b in all_set_badges if b['id'] not in existing_user_badges and b['id'] not in existing_wishlist_badges and b['id'] not in special_badges]
 
     # If there are no badges to add, error to user
-    if not valid_badges:
+    if not valid_badge_info_ids:
       await ctx.followup.send(
         embed=discord.Embed(
           title="All Set Badges Already Present!",
@@ -1038,7 +1057,7 @@ class Wishlist(commands.Cog):
       return
 
     # Otherwise go ahead and add them
-    await db_add_badge_filenames_to_users_wishlist(user_discord_id, valid_badges)
+    await db_add_badge_info_ids_to_users_wishlist(user_discord_id, valid_badge_info_ids)
     # And lock them down!
     await db_lock_badges_by_filenames(user_discord_id, [b['badge_filename'] for b in all_set_badges])
 
@@ -1160,13 +1179,13 @@ class Wishlist(commands.Cog):
       )
       return
 
-    existing_wishlist_badges = [b['badge_filename'] for b in await db_get_user_wishlist_badges(user_discord_id)]
+    existing_wishlist_badge_info_ids = [b['id'] for b in await db_get_user_wishlist_badges(user_discord_id)]
 
     # Filter out those badges that are not already present in the Wishlist and user's Inventory
-    valid_badges = [b['badge_filename'] for b in all_set_badges if b['badge_filename'] in existing_wishlist_badges]
+    valid_badge_ids = [b['id'] for b in all_set_badges if b['id'] in existing_wishlist_badge_info_ids]
 
     # If there are no badges to add, error to user
-    if not valid_badges:
+    if not valid_badge_ids:
       await ctx.followup.send(
         embed=discord.Embed(
           title="No Set Badges Present in Wishlist!",
@@ -1177,7 +1196,7 @@ class Wishlist(commands.Cog):
       return
 
     # Otherwise go ahead and remove them
-    await db_remove_badge_filenames_from_users_wishlist(user_discord_id, valid_badges)
+    await db_remove_badge_info_ids_from_users_wishlist(user_discord_id, valid_badge_ids)
 
     embed = discord.Embed(
       title="Badge Set Removed Successfully",

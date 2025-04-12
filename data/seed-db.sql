@@ -585,22 +585,22 @@ CREATE TABLE tongo_game_rewards (
 -- also the results of these wishlists will be badge instances so ¯\_(ツ)_/¯
 CREATE TABLE badge_instance_wishlists (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  user_discord_id BIGINT NOT NULL,
+  user_discord_id VARCHAR(64) NOT NULL,
   badge_info_id INT NOT NULL,
   time_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY unique_user_badge (user_discord_id, badge_info_id),
-  FOREIGN KEY (user_discord_id) REFERENCES users(user_discord_id) ON DELETE CASCADE,
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
   FOREIGN KEY (badge_info_id) REFERENCES badge_info(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS badge_instance_wishlist_dismissals (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  user_discord_id BIGINT NOT NULL,
-  match_discord_id BIGINT NOT NULL,
+  user_discord_id VARCHAR(64) NOT NULL,
+  match_discord_id VARCHAR(64) NOT NULL,
   has JSON NOT NULL,
   wants JSON NOT NULL,
   time_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY unique_dismissal (user_discord_id, match_discord_id),
-  FOREIGN KEY (user_discord_id) REFERENCES users(user_discord_id) ON DELETE CASCADE,
-  FOREIGN KEY (match_discord_id) REFERENCES users(user_discord_id) ON DELETE CASCADE
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
+  FOREIGN KEY (match_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE
 );

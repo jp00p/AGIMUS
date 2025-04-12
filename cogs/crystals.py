@@ -189,7 +189,7 @@ class Crystals(commands.Cog):
 
 
 async def generate_badge_preview_discord_file(base_image, badge, crystal=None):
-  preview_result = await apply_crystal_effect(base_image, badge, crystal=crystal)
+  preview_result = await apply_crystal_effect(base_image, badge)
 
   if isinstance(preview_result, list):
     # Animated crystal preview

@@ -6,7 +6,7 @@ from common import *
 # \    \_\  \  ___/|  |
 #  \______  /\___  >__|
 #         \/     \/
-async def db_get_user_wishlist_badge_info_records(user_discord_id):
+async def db_get_user_wishlist_badges(user_discord_id):
   """
   Retrieve all badge_info records that a user has wishlisted.
   Joins badge_instance_wishlists with badge_info to return badge metadata.
@@ -43,12 +43,12 @@ async def db_add_badge_name_to_users_wishlist(user_discord_id, badge_name):
     vals = (user_discord_id, badge_name)
     await query.execute(sql, vals)
 
-async def db_add_badge_info_ids_to_users_wishlist(user_discord_id, badge_info_ids):
+async def db_add_badge_info_ids_to_users_wishlist(user_discord_id, badge_filenames):
   """
-  Add multiple badge_info_id entries to a user's wishlist.
+  Add multiple badge_info_filename entries to a user's wishlist.
   Uses INSERT IGNORE to avoid duplicate constraints.
   """
-  values = [(user_discord_id, badge_info_id) for badge_info_id in badge_info_ids]
+  values = [(user_discord_id, badge_filename) for badge_filename in badge_filenames]
   async with AgimusDB() as query:
     sql = '''
       INSERT IGNORE INTO badge_instance_wishlists (user_discord_id, badge_info_id)
@@ -102,10 +102,9 @@ async def db_purge_users_wishlist(user_discord_id):
       DELETE b_w FROM badge_instance_wishlists AS b_w
         JOIN badge_instances AS b_inst
           ON b_inst.badge_info_id = b_w.badge_info_id AND b_inst.owner_discord_id = b_w.user_discord_id
-        WHERE b_w.user_discord_id = %s
+        WHERE b_w.user_discord_id = %s AND b_inst.owner_discord_id IS NOT NULL
     '''
-    vals = (user_discord_id,)
-    await query.execute(sql, vals)
+    await query.execute(sql, (user_discord_id,))
 
 
 # .____                  __         /\  ____ ___      .__                 __
@@ -231,11 +230,14 @@ async def db_get_wishlist_matches(user_discord_id):
   """
   async with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT b_i.*, b.owner_discord_id AS user_discord_id FROM badge_info AS b_i
-        JOIN badge_instances AS b ON b.badge_info_id = b_i.id
-        WHERE b_i.id IN (
-          SELECT badge_info_id FROM badge_instance_wishlists WHERE user_discord_id = %s
-        ) AND NOT b.locked
+      SELECT b_i.*, b.owner_discord_id AS user_discord_id
+      FROM badge_info AS b_i
+      JOIN badge_instances AS b ON b.badge_info_id = b_i.id
+      WHERE b_i.id IN (
+        SELECT badge_info_id FROM badge_instance_wishlists WHERE user_discord_id = %s
+      )
+      AND NOT b.locked
+      AND b.owner_discord_id IS NOT NULL
     '''
     await query.execute(sql, (user_discord_id,))
     return await query.fetchall()
@@ -256,14 +258,14 @@ async def db_get_wishlist_badge_matches(badge_info_id):
 async def db_get_wishlist_inventory_matches(user_discord_id):
   """
   Return all badges that the user owns that are present in other users' wishlists.
-  Filters out locked badge instances.
+  Filters out locked and unowned badge instances.
   """
   async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT b_i.*, biw.user_discord_id FROM badge_info AS b_i
         JOIN badge_instance_wishlists AS biw ON biw.badge_info_id = b_i.id
         JOIN badge_instances AS b ON b.badge_info_id = b_i.id
-        WHERE b.owner_discord_id = %s AND NOT b.locked
+        WHERE b.owner_discord_id = %s AND NOT b.locked AND b.owner_discord_id IS NOT NULL
     '''
     await query.execute(sql, (user_discord_id,))
     return await query.fetchall()
@@ -300,17 +302,6 @@ async def db_get_all_users_wishlist_dismissals(user_discord_id):
     await query.execute(sql, vals)
     return await query.fetchall()
 
-async def db_delete_wishlist_dismissal(user_discord_id, match_discord_id):
-  """
-  Delete a specific wishlist dismissal record for a user and matched user.
-  """
-  async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      DELETE FROM badge_instance_wishlist_dismissals WHERE user_discord_id = %s AND match_discord_id = %s
-    '''
-    vals = (user_discord_id, match_discord_id)
-    await query.execute(sql, vals)
-
 async def db_add_wishlist_dismissal(user_discord_id, match_discord_id, has, wants):
   """
   Add a wishlist dismissal record.
@@ -322,5 +313,16 @@ async def db_add_wishlist_dismissal(user_discord_id, match_discord_id, has, want
       VALUES (%s, %s, %s, %s)
     '''
     vals = (user_discord_id, match_discord_id, has, wants)
+    await query.execute(sql, vals)
+
+async def db_delete_wishlist_dismissal(user_discord_id, match_discord_id):
+  """
+  Delete a specific wishlist dismissal record for a user and matched user.
+  """
+  async with AgimusDB(dictionary=True) as query:
+    sql = '''
+      DELETE FROM badge_instance_wishlist_dismissals WHERE user_discord_id = %s AND match_discord_id = %s
+    '''
+    vals = (user_discord_id, match_discord_id)
     await query.execute(sql, vals)
 
