@@ -10,6 +10,9 @@ from queries.crystals import db_get_active_crystal
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
 
 FRAME_SIZE = (190, 190)
+ANIMATION_FPS = 12
+ANIMATION_DURATION = 2.0
+
 
 # --- Thread-safe loader wrappers ---
 @to_thread
@@ -505,7 +508,7 @@ def effect_tholian_web(badge_image: Image.Image, badge: dict) -> Image.Image:
 def effect_holo_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
   Holodeck yellow grid background.
-  Used for the Photonic Shard crystal (Rare tier).
+  Used for the Holomatrix Fragment crystal (Rare tier).
   """
   bg_path = f"{RARE_BACKGROUNDS_DIR}holo_grid.png"
   background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
@@ -541,8 +544,8 @@ def effect_warp_pulse(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   Returns:
     List of RGBA frames as PIL.Image.Image.
   """
-  fps = 12
-  duration = 3.0
+  fps = ANIMATION_FPS
+  duration = ANIMATION_DURATION
   num_frames = int(duration * fps)
   num_rings = 3
   ring_interval = num_frames // num_rings
@@ -629,12 +632,15 @@ def effect_subspace_ripple(base_img: Image.Image, badge: dict) -> list[Image.Ima
   Returns:
     List of RGBA frames as PIL.Image.Image.
   """
-  fps, duration = 12, 2.0
-  size = FRAME_SIZE
-  badge_array = np.array(base_img)
-  height, width = size
-  amplitude, wavelength = 8, 96
+  fps = ANIMATION_FPS
+  duration = ANIMATION_DURATION
   num_frames = int(duration * fps)
+  size = FRAME_SIZE
+  height, width = size
+
+  badge_array = np.array(base_img)
+  amplitude, wavelength = 8, 96
+
   speed = 2 * np.pi / num_frames
 
   Y, X = np.meshgrid(np.arange(height), np.arange(width), indexing="ij")
@@ -683,7 +689,7 @@ def effect_phase_flicker(base_img: Image.Image, badge: dict) -> list[Image.Image
   Returns:
     List of RGBA frames as PIL.Image.Image.
   """
-  fps = 12
+  fps = ANIMATION_FPS
   hold_frames, drift_frames, glitch_frames = 8, 8, 8
   drift_amount = 0.5
   scanline_indices = [4, 5, 6, 7]
@@ -761,8 +767,9 @@ def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]
   Used for the Omega Molecule crystal (Mythic tier).
   """
   frame_size = FRAME_SIZE
-  fps = 12
-  num_frames = 24
+  fps = ANIMATION_FPS
+  duration = ANIMATION_DURATION
+  num_frames = int(duration * fps)
   band_width = int(128 * 0.8)
   max_displacement = 24
   beam_alpha = int(80 * 0.7)

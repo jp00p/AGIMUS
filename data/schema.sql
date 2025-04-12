@@ -453,7 +453,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   -- Rare Crystals
   ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in three quadrants. Handle with care."),
   ("Tholian Silk", 3, "tholian_silk.png", "tholian_web", "A crystallized thread of energy - elegant, fractical, and deadly."),
-  ("Photonic Shard", 3, "photonic_shard.png", "holo_grid", "Hologrammatical. Rendered with an uncanny simulated depth."),
+  ("Holomatrix Fragment", 3, "holomatrix_fragment.png", "holo_grid", "Hologrammatical. Rendered with an uncanny simulated depth."),
 
   -- Legendary Crystals
   ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "Collected from the EPS grid. Hums with that familiar pulse."),
