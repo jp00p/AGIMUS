@@ -345,18 +345,12 @@ async def build_collection_canvas(user, page_data, all_data, page_number, total_
 
   return canvas
 
-
 async def compose_badge_grid(canvas: Image.Image, badge_data: list, theme: str, collection_type: str):
   dims = _get_collection_grid_dimensions()
   layout = _get_collection_grid_layout()
   slot_dims = _get_badge_slot_dimensions()
 
-  animated = False
-  static_slots = {}
-  animated_slots = {}
-  max_frames = 1
-
-  # Compute badge positions
+  # Compute grid positions
   positions = []
   for idx in range(len(badge_data)):
     row = idx // layout.badges_per_row
@@ -365,40 +359,49 @@ async def compose_badge_grid(canvas: Image.Image, badge_data: list, theme: str, 
     y = (dims.header_height + row * dims.row_height) + layout.init_y
     positions.append((x, y))
 
-  # Parallel render all badge slots
-  rendered_slots = await asyncio.gather(*[
-    compose_badge_slot(badge, collection_type, theme)
+  # Precompute all badge slot frame stacks
+  slot_frame_stacks = await asyncio.gather(*[
+    async_compose_badge_slot_frames(badge, collection_type, theme)
     for badge in badge_data
   ])
 
-  for idx, slot_result in enumerate(rendered_slots):
-    pos = positions[idx]
-    if isinstance(slot_result, list):
-      animated = True
-      animated_slots[idx] = (slot_result, pos)
-      max_frames = max(max_frames, len(slot_result))
-    else:
-      static_slots[idx] = (slot_result, pos)
+  # Group frame stacks with their grid positions
+  slots_by_index = {}
+  animated = False
+  max_frames = 1
 
+  for idx, slot_frames in enumerate(slot_frame_stacks):
+    pos = positions[idx]
+    slots_by_index[idx] = (slot_frames, pos)
+    if len(slot_frames) > 1:
+      animated = True
+      max_frames = max(max_frames, len(slot_frames))
+
+  # If everything is static, render one frame
   if not animated:
-    for slot_img, pos in static_slots.values():
-      canvas.paste(slot_img, pos, slot_img)
+    for slot_frames, pos in slots_by_index.values():
+      canvas.paste(slot_frames[0], pos, slot_frames[0])
     return canvas
 
+  # Otherwise, render animated frames
   frames = []
   for frame_idx in range(max_frames):
     frame = canvas.copy()
-    for slot_img, pos in static_slots.values():
-      frame.paste(slot_img, pos, slot_img)
-    for frames_list, pos in animated_slots.values():
-      current_frame = frames_list[frame_idx % len(frames_list)]
+    for slot_frames, pos in slots_by_index.values():
+      current_frame = slot_frames[frame_idx % len(slot_frames)]
       frame.paste(current_frame, pos, current_frame)
     frames.append(frame)
 
   return frames
 
 
-async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image | list[Image.Image]:
+async def async_compose_badge_slot_frames(badge: dict, collection_type: str, theme: str) -> list[Image.Image]:
+  from asyncio import to_thread as a_to_thread
+  badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
+  crystal_result = await apply_crystal_effect(badge_image, badge)
+  return await a_to_thread(lambda: _compose_badge_slot_frames_inner(badge, collection_type, theme, crystal_result))
+
+def _compose_badge_slot_frames_inner(badge: dict, collection_type: str, theme: str, badge_image: Image.Image) -> list[Image.Image]:
   dims = _get_badge_slot_dimensions()
   colors = get_theme_colors(theme)
 
@@ -410,37 +413,22 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
     text_color = "#888888"
     add_alpha = True
 
-  # Load base badge image and shrink it first
-  badge_image = await load_and_prepare_badge_thumbnail(badge['badge_filename'])
-
-  # Apply crystal effects (may return list of frames)
-  crystal_result = await apply_crystal_effect(badge_image, badge)
-  frames = crystal_result if isinstance(crystal_result, list) else [crystal_result]
-
-  # # Normalize output frames to thumbnail size
-  # resized_frames = []
-  # for frame in frames:
-  #   resized = frame.resize((dims.thumbnail_width, dims.thumbnail_height), Image.LANCZOS)
-  #   resized_frames.append(resized)
-
-  # frames = resized_frames
-
   slot_frames = []
+  frames = badge_image if isinstance(badge_image, list) else [badge_image]
+
   for frame in frames:
     if add_alpha:
       faded = frame.copy()
       faded.putalpha(64)
       frame.paste(faded, frame)
 
-    # Create badge canvas for this frame
     badge_canvas = Image.new('RGBA', (dims.thumbnail_width, dims.thumbnail_height), (255, 255, 255, 0))
     badge_canvas.paste(
       frame,
-      (int((dims.thumbnail_width - frame.size[0]) // 2), int((dims.thumbnail_width - frame.size[1]) // 2)),
+      (int((dims.thumbnail_width - frame.size[0]) // 2), int((dims.thumbnail_height - frame.size[1]) // 2)),
       frame
     )
 
-    # Slot background
     slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(slot_canvas)
     draw.rounded_rectangle(
@@ -455,7 +443,6 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
     offset_y = 20
     slot_canvas.paste(badge_canvas, (dims.badge_padding + offset_x, offset_y), badge_canvas)
 
-    # Label text
     fonts = load_fonts()
     text = badge.get("badge_name", "")
     wrapped = textwrap.fill(text, width=30)
@@ -465,19 +452,18 @@ async def compose_badge_slot(badge: dict, collection_type, theme) -> Image.Image
     text_y = 222
     draw.multiline_text((text_x, text_y), wrapped, font=fonts.label, fill=text_color, align="center")
 
-    # Special/Locked overlay icons
     overlay = None
     if badge.get("special"):
-      overlay = await threaded_image_open("./images/templates/badges/special_icon.png")
+      overlay = Image.open("./images/templates/badges/special_icon.png").convert("RGBA")
     elif badge.get("locked"):
-      overlay = await threaded_image_open("./images/templates/badges/lock_icon.png")
+      overlay = Image.open("./images/templates/badges/lock_icon.png").convert("RGBA")
 
     if overlay:
       slot_canvas.paste(overlay, (dims.slot_width - 54, 16), overlay)
 
     slot_frames.append(slot_canvas)
 
-  return slot_frames if len(slot_frames) > 1 else slot_frames[0]
+  return slot_frames
 
 #   _   _ _   _ _
 #  | | | | |_(_) |___
