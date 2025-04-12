@@ -135,10 +135,14 @@ ALTER TABLE badge_crystals
   ADD CONSTRAINT fk_badge_crystals_instance
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE;
 
--- 8. New autoslot setting
+
+-- New autoslot setting
 ALTER TABLE users ADD COLUMN crystallize_autoslot ENUM('manual', 'auto_rarest', 'auto_newest') DEFAULT 'manual';
 
--- 9. TONGO v2
+--
+-- TONGO v2
+--
+
 CREATE TABLE tongo_games (
   id INT AUTO_INCREMENT PRIMARY KEY,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -173,4 +177,35 @@ CREATE TABLE tongo_game_rewards (
   FOREIGN KEY (game_id) REFERENCES tongo_games(id),
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id),
   FOREIGN KEY (crystal_id) REFERENCES crystal_types(id)
+);
+
+--
+-- Wishlists
+--
+
+-- Note that we don't reference specific badge_instances here,
+-- users are essentially wishlisting "badge_info"s, but we're naming it
+-- `badge_instance_wishlists` because we're migrating from the old
+-- `badge_wishlists` table and want to make this clear this is the new table
+-- also the results of these wishlists will be badge instances so ¯\_(ツ)_/¯
+CREATE TABLE badge_instance_wishlists (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_discord_id BIGINT NOT NULL,
+  badge_info_id INT NOT NULL,
+  time_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_user_badge (user_discord_id, badge_info_id),
+  FOREIGN KEY (user_discord_id) REFERENCES users(user_discord_id) ON DELETE CASCADE,
+  FOREIGN KEY (badge_info_id) REFERENCES badge_info(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS badge_instance_wishlist_dismissals (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_discord_id BIGINT NOT NULL,
+  match_discord_id BIGINT NOT NULL,
+  has JSON NOT NULL,
+  wants JSON NOT NULL,
+  time_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_dismissal (user_discord_id, match_discord_id),
+  FOREIGN KEY (user_discord_id) REFERENCES users(user_discord_id) ON DELETE CASCADE,
+  FOREIGN KEY (match_discord_id) REFERENCES users(user_discord_id) ON DELETE CASCADE
 );
