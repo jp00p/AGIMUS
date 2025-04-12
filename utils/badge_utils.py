@@ -290,7 +290,8 @@ async def generate_badge_collection_images(user, badge_data, collection_type, co
   for page_badges, page_number in pages:
     canvas = await build_collection_canvas(
       user=user,
-      badge_data=page_badges,
+      page_data=page_badges,
+      all_data=badge_data,
       page_number=page_number,
       total_pages=total_pages,
       collection_type=collection_type,
@@ -300,16 +301,16 @@ async def generate_badge_collection_images(user, badge_data, collection_type, co
 
     grid_result = await compose_badge_grid(canvas, page_badges, theme, collection_type)
 
-  if isinstance(grid_result, list):
-    # Encode this animated grid as a .webp baybee
-    tmp = tempfile.NamedTemporaryFile(suffix=".webp", delete=False)
-    await encode_webp(grid_result, tmp.name)
-    images.append(discord.File(tmp.name, filename=f"collection_page{page_number}.webp"))
-    tmp.flush()
-  else:
-    # Static page, can just be a .png
-    image_file = buffer_image_to_discord_file(grid_result, f"collection_page{page_number}.png")
-    images.append(image_file)
+    if isinstance(grid_result, list):
+      # Encode this animated grid as a .webp baybee
+      tmp = tempfile.NamedTemporaryFile(suffix=".webp", delete=False)
+      await encode_webp(grid_result, tmp.name)
+      images.append(discord.File(tmp.name, filename=f"collection_page{page_number}.webp"))
+      tmp.flush()
+    else:
+      # Static page, can just be a .png
+      image_file = buffer_image_to_discord_file(grid_result, f"collection_page{page_number}.png")
+      images.append(image_file)
 
   end = time.perf_counter()
   duration = round(end - start, 2)
@@ -318,14 +319,14 @@ async def generate_badge_collection_images(user, badge_data, collection_type, co
   return images
 
 
-async def build_collection_canvas(user, badge_data, page_number, total_pages, collection_label, collection_type, theme):
-  total_rows = max(math.ceil(len(badge_data) / 6) - 1, 0)
+async def build_collection_canvas(user, page_data, all_data, page_number, total_pages, collection_label, collection_type, theme):
+  total_rows = max(math.ceil(len(page_data) / 6) - 1, 0)
 
   if collection_type == "sets":
-    collected_count = len([b for b in badge_data if b.get('in_user_collection')])
-    total_count = len(badge_data)
+    collected_count = len([b for b in all_data if b.get('in_user_collection')])
+    total_count = len(all_data)
   else:
-    collected_count = len(badge_data)
+    collected_count = len(all_data)
     total_count = await db_get_max_badge_count()
 
   label = collection_label or None
