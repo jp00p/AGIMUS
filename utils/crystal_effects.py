@@ -4,7 +4,7 @@ import shutil
 from common import *
 
 from pathlib import Path
-from scipy.ndimage import map_coordinates
+from scipy.ndimage import map_coordinates, binary_dilation
 
 from queries.crystals import db_get_active_crystal
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
@@ -532,49 +532,87 @@ def effect_holo_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
 @register_effect("warp_pulse")
 def effect_warp_pulse(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   """
-  Emits animated outward-pulsing glow rings from the badge center.
-  Creates a seamless loop by cycling ring positions across frames.
+  Emits animated outward-pulsing glow rings from the badge edge.
+  Pulses originate from the perimeter and expand outward with a sigmoid fade.
+  Uses a fixed 0.95 hard fade cutoff to prevent reaching the frame edges.
 
-  Used for the Warp Plasma crystal (Mythic Tier).
+  Used for the Warp Plasma crystal (Legendary Tier).
 
   Returns:
     List of RGBA frames as PIL.Image.Image.
   """
-  fps, duration = 12, 3.0
+  fps = 12
+  duration = 3.0
   num_frames = int(duration * fps)
-  width, height = FRAME_SIZE
-  center = (width // 2, height // 2)
   num_rings = 3
   ring_interval = num_frames // num_rings
-  max_radius = width // 2
-  ring_thickness = 26
-  frames = []
 
+  FRAME_SIZE = (190, 190)
+  center = (FRAME_SIZE[0] // 2, FRAME_SIZE[1] // 2)
+  max_radius = FRAME_SIZE[0] / 2
+
+  midpoint = 0.65
+  fade_cutoff = 0.95
+  fade_steepness = 10
+  alpha_max = 255
+  ring_thickness = 10
+  blur_radius = 2
+
+  def clamped_sigmoid(dist_ratio: float) -> float:
+    if dist_ratio >= fade_cutoff:
+      return 0.0
+    return 1 / (1 + np.exp(fade_steepness * (dist_ratio - midpoint)))
+
+  # Prepare base badge image
+  badge_img = base_img.resize((180, 180), Image.Resampling.LANCZOS)
+  badge_canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+  offset = ((FRAME_SIZE[0] - 180) // 2, (FRAME_SIZE[1] - 180) // 2)
+  badge_canvas.paste(badge_img, offset, badge_img)
+
+  alpha = np.array(badge_canvas.split()[-1]) > 10
+  dilated = binary_dilation(alpha, iterations=1)
+  edge_mask = np.logical_xor(dilated, alpha)
+  edge_points = [(x, y) for y, x in np.argwhere(edge_mask)]
+
+  frames = []
   for frame_index in range(num_frames):
     frame = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
-    glow_layer = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(glow_layer)
+    glow = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(glow)
 
     for ring_i in range(num_rings):
       ring_age = (frame_index - ring_i * ring_interval) % num_frames
       ring_progress = ring_age / num_frames
-      radius = int(max_radius * ring_progress)
-
-      if radius <= 0 or radius >= max_radius:
+      offset_dist = int(max(FRAME_SIZE) * ring_progress)
+      if offset_dist <= 0:
         continue
 
-      fade_factor = 1 - (radius / max_radius)
-      alpha_val = int(255 * fade_factor)
-      ring_color = (0, 200, 255, alpha_val)
-      bbox = [
-        center[0] - radius, center[1] - radius,
-        center[0] + radius, center[1] + radius
-      ]
-      draw.ellipse(bbox, outline=ring_color, width=ring_thickness)
+      for x, y in edge_points:
+        dx, dy = x - center[0], y - center[1]
+        length = (dx**2 + dy**2) ** 0.5
+        if length == 0:
+          continue
+        nx, ny = dx / length, dy / length
+        tx = int(x + nx * offset_dist)
+        ty = int(y + ny * offset_dist)
 
-    blurred_glow = glow_layer.filter(ImageFilter.GaussianBlur(radius=12))
-    frame = Image.alpha_composite(frame, blurred_glow)
-    frame = Image.alpha_composite(frame, base_img)
+        if not (0 <= tx < FRAME_SIZE[0] and 0 <= ty < FRAME_SIZE[1]):
+          continue
+
+        dist_ratio = ((tx - center[0])**2 + (ty - center[1])**2) ** 0.5 / max_radius
+        fade = clamped_sigmoid(dist_ratio)
+        alpha_val = int(alpha_max * fade)
+        if alpha_val <= 0:
+          continue
+
+        draw.ellipse([
+          (tx - ring_thickness // 2, ty - ring_thickness // 2),
+          (tx + ring_thickness // 2, ty + ring_thickness // 2),
+        ], fill=(0, 200, 255, alpha_val))
+
+    blurred = glow.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+    frame = Image.alpha_composite(frame, blurred)
+    frame = Image.alpha_composite(frame, badge_canvas)
     frames.append(frame)
 
   return frames
