@@ -60,11 +60,13 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   -- Rare Crystals
   ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in three quadrants. Handle with care."),
   ("Tholian Silk", 3, "tholian_silk.png", "tholian_web", "A crystallized thread of energy - elegant, fractical, and deadly."),
-  ("Photonic Shard", 3, "photonic_shard.png", "holo_grid", "Hologrammatical. Rendered with an uncanny simulated depth."),
+  ("Holomatrix Fragment", 3, "holomatrix_fragment.png", "holo_grid", "Hologrammatical. Rendered with an uncanny simulated depth."),
+  ("Silicon Shard", 3, "silicon_shard.png", "crystalline_entity", "Sharp and pointy, a beautiful Entity. Crystalline as FUCK!"),
 
   -- Legendary Crystals
-  ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "Collected from the EPS grid. Hums with that familiar pulse."),
-  ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Be careful of distortions and space buttholes when these are around..."),
+  ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "EJECTED FROM A CORE!. Hums with that familiar pulse."),
+  ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Distortions abound when these are around!"),
+  ("Bajoran Orb", 4, "bajoran_orb.png", "prophet_glow", "An Orb of the Prophets. My Child!"),
 
   -- Mythic Crystals
   ("Chroniton", 5, "chroniton.png", "phase_flicker", "Time travel! Glitches in and out of this temporal frame."),

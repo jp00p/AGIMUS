@@ -496,7 +496,7 @@ def effect_trilithium_banger(badge_image: Image.Image, badge: dict) -> Image.Ima
 @register_effect("tholian_web")
 def effect_tholian_web(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
-  Web in space background effect.
+  Tholian Web in space background effect.
   Used for the Tholian Silk crystal (Rare tier).
   """
   bg_path = f"{RARE_BACKGROUNDS_DIR}tholian_web.png"
@@ -515,6 +515,16 @@ def effect_holo_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
   faded_background = _apply_radial_fade(background)
   return Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
 
+@register_effect("crystalline_entity")
+def effect_holo_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Crystalline Entity Spikes background.
+  Used for the Silicon Shard crystal (Rare tier).
+  """
+  bg_path = f"{RARE_BACKGROUNDS_DIR}cystalline_entity.png"
+  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
+  faded_background = _apply_radial_fade(background)
+  return Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
 
 
 #       ...                                                         ..
