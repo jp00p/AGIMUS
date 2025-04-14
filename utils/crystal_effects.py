@@ -419,27 +419,37 @@ def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
 # 888   T88b "Y888888 888     "Y8888
 RARE_BACKGROUNDS_DIR = 'images/crystal_effects/backgrounds/'
 
-def _apply_radial_fade(img: Image.Image, fade_start_ratio=0.6, fade_end_ratio=0.85, feather_power=0.5) -> Image.Image:
+def _apply_radial_fade(img: Image.Image, fade_start_ratio=0.35, fade_end_ratio=0.75) -> Image.Image:
+  """
+  Applies a radial alpha fade using an S-curve easing function to create smooth falloff.
+  The fade begins at `fade_start_ratio` and completes at `fade_end_ratio` of the image's max radius.
+  """
   width, height = img.size
   cx, cy = width // 2, height // 2
   max_radius = (cx**2 + cy**2) ** 0.5
   fade_start = max_radius * fade_start_ratio
   fade_end = max_radius * fade_end_ratio
+
   mask = Image.new("L", img.size, 255)
   pixels = mask.load()
+
   for y in range(height):
     for x in range(width):
       dx = x - cx
       dy = y - cy
       distance = (dx**2 + dy**2) ** 0.5
+
       if distance <= fade_start:
         alpha = 255
       elif distance >= fade_end:
         alpha = 0
       else:
-        ratio = (distance - fade_start) / (fade_end - fade_start)
-        alpha = int(255 * (1 - ratio**feather_power))
+        x_norm = (distance - fade_start) / (fade_end - fade_start)
+        smooth = 3 * x_norm**2 - 2 * x_norm**3  # S-curve: ease-in/out
+        alpha = int(255 * (1 - smooth))
+
       pixels[x, y] = max(0, min(alpha, 255))
+
   r, g, b, _ = img.split()
   final_radial = Image.merge("RGBA", (r, g, b, mask))
   vignette = apply_vignette_alpha(final_radial)
@@ -671,6 +681,91 @@ def effect_subspace_ripple(base_img: Image.Image, badge: dict) -> list[Image.Ima
 
   return frames
 
+@register_effect("shimmer_flux")
+def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Projects a shimmering beam diagonally across the badge while
+  generating bloom, ripple distortions, and chromatic shell overlays.
+  Highly animated and prism-like.
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+
+  Used for the Omega Molecule crystal (Legendary tier).
+  """
+  frame_size = FRAME_SIZE
+  fps = ANIMATION_FPS
+  duration = ANIMATION_DURATION
+  num_frames = int(duration * fps)
+  band_width = int(128 * 0.8)
+  max_displacement = 24
+  beam_alpha = int(80 * 0.7)
+  beam_color = (60, 120, 255, beam_alpha)
+  blur_radius = 32
+  width, height = frame_size
+
+  def shimmer_flux_base(badge_img: Image.Image, frame_index: int) -> Image.Image:
+    mask = badge_img.getchannel('A').point(lambda p: 255 if p > 0 else 0)
+
+    pulse = 0.5 + 0.5 * np.sin(2 * np.pi * frame_index / num_frames)
+    dilation = 4 + int(4 * pulse)
+    blurred = mask.filter(ImageFilter.GaussianBlur(radius=dilation))
+
+    cyan = Image.new("RGBA", frame_size, (40, 255, 255, 180))
+    teal = Image.new("RGBA", frame_size, (0, 200, 180, 180))
+    blue = Image.new("RGBA", frame_size, (80, 120, 255, 180))
+
+    cyan.putalpha(blurred)
+    teal.putalpha(blurred)
+    blue.putalpha(blurred)
+
+    cyan = ImageChops.offset(cyan, -1, 0)
+    teal = ImageChops.offset(teal, 0, -1)
+    blue = ImageChops.offset(blue, 1, 1)
+
+    shell = Image.alpha_composite(Image.alpha_composite(cyan, teal), blue)
+
+    edge = mask.filter(ImageFilter.FIND_EDGES).filter(ImageFilter.GaussianBlur(radius=2))
+    bloom = Image.new("RGBA", frame_size, (160, 140, 255, int(100 + 80 * pulse)))
+    bloom.putalpha(edge)
+
+    glow = badge_img.filter(ImageFilter.GaussianBlur(radius=6 + 4 * pulse))
+    glow = ImageEnhance.Brightness(glow).enhance(1.6 + pulse * 0.8)
+    combined = Image.alpha_composite(glow, badge_img)
+    with_bloom = Image.alpha_composite(combined, bloom)
+    final = Image.alpha_composite(shell, with_bloom)
+    return final
+
+  def shimmer_flux_frame(badge: Image.Image, frame_index: int) -> Image.Image:
+    frame = shimmer_flux_base(badge, frame_index)
+
+    center_pos = int((frame_index / num_frames) * (width + height))
+    beam = Image.new("RGBA", frame_size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(beam)
+    for y in range(-height, 2 * height, 2):
+      x = int(center_pos - y)
+      draw.rectangle([(x - band_width, y), (x + band_width, y + 2)], fill=beam_color)
+    beam = beam.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+
+    mask = badge.getchannel('A').point(lambda p: 255 if p > 0 else 0)
+    masked_beam = Image.composite(beam, Image.new("RGBA", frame_size, (0, 0, 0, 0)), mask)
+
+    badge_arr = np.array(badge)
+    distorted = np.copy(badge_arr)
+    for y in range(height):
+      for x in range(width):
+        dx = x + y - center_pos
+        if -band_width <= dx <= band_width:
+          strength = 1 - abs(dx) / band_width
+          offset = int(max_displacement * strength * np.sin(frame_index / num_frames * 2 * np.pi))
+          sx = min(max(x + offset, 0), width - 1)
+          distorted[y, x] = badge_arr[y, sx]
+
+    distorted_img = Image.fromarray(distorted, mode='RGBA')
+    with_distortion = Image.alpha_composite(frame, ImageChops.darker(distorted_img, badge))
+    return Image.alpha_composite(with_distortion, masked_beam)
+
+  return [shimmer_flux_frame(base_img, i) for i in range(num_frames)]
 
 #     ...     ..      ..                       s                   .
 #   x*8888x.:*8888: -"888:     ..             :8      .uef^"      @88>
@@ -763,89 +858,63 @@ def effect_phase_flicker(base_img: Image.Image, badge: dict) -> list[Image.Image
 
   return frames
 
-
-@register_effect("shimmer_flux")
-def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]:
+@register_effect("wormhole_opening")
+def effect_wormhole_opening(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
   """
-  Projects a shimmering beam diagonally across the badge while
-  generating bloom, ripple distortions, and chromatic shell overlays.
-  Highly animated and prism-like.
-
-  Returns:
-    List of RGBA frames as PIL.Image.Image.
-
-  Used for the Omega Molecule crystal (Mythic tier).
+  Cinematic wormhole entrance effect.
+  Badge swoops in from the wormhole with a subtle lens flare burst.
   """
-  frame_size = FRAME_SIZE
-  fps = ANIMATION_FPS
-  duration = ANIMATION_DURATION
-  num_frames = int(duration * fps)
-  band_width = int(128 * 0.8)
-  max_displacement = 24
-  beam_alpha = int(80 * 0.7)
-  beam_color = (60, 120, 255, beam_alpha)
-  blur_radius = 32
-  width, height = frame_size
+  from utils.assets import load_wormhole_frames
+  from utils.theme_utils import autoshrink_badge
+  from PIL import Image
 
-  def shimmer_flux_base(badge_img: Image.Image, frame_index: int) -> Image.Image:
-    mask = badge_img.getchannel('A').point(lambda p: 255 if p > 0 else 0)
+  canvas_size = (200, 200)
+  badge = autoshrink_badge(badge_image, canvas_size)
 
-    pulse = 0.5 + 0.5 * np.sin(2 * np.pi * frame_index / num_frames)
-    dilation = 4 + int(4 * pulse)
-    blurred = mask.filter(ImageFilter.GaussianBlur(radius=dilation))
+  faded_frames = load_wormhole_frames()  # 24-frame wormhole swirl (RGBA)
 
-    cyan = Image.new("RGBA", frame_size, (40, 255, 255, 180))
-    teal = Image.new("RGBA", frame_size, (0, 200, 180, 180))
-    blue = Image.new("RGBA", frame_size, (80, 120, 255, 180))
+  output_frames = []
 
-    cyan.putalpha(blurred)
-    teal.putalpha(blurred)
-    blue.putalpha(blurred)
+  # Intro (0–10): lens burst, flare, wormhole scale-up
+  for i in range(11):
+    base = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
+    frame = faded_frames[i].copy()
+    output_frames.append(Image.alpha_composite(base, frame))
 
-    cyan = ImageChops.offset(cyan, -1, 0)
-    teal = ImageChops.offset(teal, 0, -1)
-    blue = ImageChops.offset(blue, 1, 1)
+  # Badge appears (frame 11–16), scaling from 10% → 100% with ease-out cubic
+  def ease_out_cubic(t): return 1 - (1 - t) ** 3
+  x_offsets = [-10, -5, -2, 1, 0, 0]
 
-    shell = Image.alpha_composite(Image.alpha_composite(cyan, teal), blue)
+  for i in range(6):
+    progress = ease_out_cubic(i / 5)
+    scale = 0.10 + (1.0 - 0.10) * progress
+    size = int(badge.width * scale), int(badge.height * scale)
+    badge_frame = badge.resize(size, Image.LANCZOS)
 
-    edge = mask.filter(ImageFilter.FIND_EDGES).filter(ImageFilter.GaussianBlur(radius=2))
-    bloom = Image.new("RGBA", frame_size, (160, 140, 255, int(100 + 80 * pulse)))
-    bloom.putalpha(edge)
+    if i == 0:
+      badge_frame.putalpha(int(255 * 0.4))  # subtle fade-in on first frame
 
-    glow = badge_img.filter(ImageFilter.GaussianBlur(radius=6 + 4 * pulse))
-    glow = ImageEnhance.Brightness(glow).enhance(1.6 + pulse * 0.8)
-    combined = Image.alpha_composite(glow, badge_img)
-    with_bloom = Image.alpha_composite(combined, bloom)
-    final = Image.alpha_composite(shell, with_bloom)
-    return final
+    offset = (
+      (canvas_size[0] - size[0]) // 2 + x_offsets[i],
+      (canvas_size[1] - size[1]) // 2,
+    )
 
-  def shimmer_flux_frame(badge: Image.Image, frame_index: int) -> Image.Image:
-    frame = shimmer_flux_base(badge, frame_index)
+    layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+    layer.paste(badge_frame, offset, badge_frame)
+    frame = faded_frames[i + 4].copy()
+    output_frames.append(Image.alpha_composite(frame, layer))
 
-    center_pos = int((frame_index / num_frames) * (width + height))
-    beam = Image.new("RGBA", frame_size, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(beam)
-    for y in range(-height, 2 * height, 2):
-      x = int(center_pos - y)
-      draw.rectangle([(x - band_width, y), (x + band_width, y + 2)], fill=beam_color)
-    beam = beam.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+  # Final hold (frames 17–23)
+  for i in range(7):
+    frame = faded_frames[i + 10].copy()
+    layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+    offset = (
+      (canvas_size[0] - badge.width) // 2,
+      (canvas_size[1] - badge.height) // 2,
+    )
+    layer.paste(badge, offset, badge)
+    output_frames.append(Image.alpha_composite(frame, layer))
 
-    mask = badge.getchannel('A').point(lambda p: 255 if p > 0 else 0)
-    masked_beam = Image.composite(beam, Image.new("RGBA", frame_size, (0, 0, 0, 0)), mask)
+  return output_frames
 
-    badge_arr = np.array(badge)
-    distorted = np.copy(badge_arr)
-    for y in range(height):
-      for x in range(width):
-        dx = x + y - center_pos
-        if -band_width <= dx <= band_width:
-          strength = 1 - abs(dx) / band_width
-          offset = int(max_displacement * strength * np.sin(frame_index / num_frames * 2 * np.pi))
-          sx = min(max(x + offset, 0), width - 1)
-          distorted[y, x] = badge_arr[y, sx]
 
-    distorted_img = Image.fromarray(distorted, mode='RGBA')
-    with_distortion = Image.alpha_composite(frame, ImageChops.darker(distorted_img, badge))
-    return Image.alpha_composite(with_distortion, masked_beam)
-
-  return [shimmer_flux_frame(base_img, i) for i in range(num_frames)]
