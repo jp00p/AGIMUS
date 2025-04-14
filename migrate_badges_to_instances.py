@@ -114,6 +114,117 @@ async def migrate_badges(dry_run=False):
 
       print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {wishlist_migrated} wishlist entries")
 
+      # ---------------------------
+      # 3. MIGRATE WISHLIST DISMISSALS
+      # ---------------------------
+      print("... Migrating wishlist dismissals ...")
+      await cur.execute("SELECT user_discord_id, match_discord_id, has, wants, time_created FROM wishlist_dismissals")
+      dismissal_rows = await cur.fetchall()
+
+      dismissals_migrated = 0
+      for row in dismissal_rows:
+        if not dry_run:
+          await cur.execute(
+            """
+            INSERT IGNORE INTO badge_instance_wishlist_dismissals (
+              user_discord_id,
+              match_discord_id,
+              has,
+              wants,
+              time_created
+            ) VALUES (%s, %s, %s, %s, %s)
+            """,
+            (
+              row["user_discord_id"],
+              row["match_discord_id"],
+              row["has"],
+              row["wants"],
+              row["time_created"]
+            )
+          )
+        dismissals_migrated += 1
+
+      print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {dismissals_migrated} wishlist dismissal entries")
+
+      # ---------------------------
+      # 4. MIGRATE TAG ASSOCIATIONS
+      # ---------------------------
+      print("... Migrating badge tag associations ...")
+      await cur.execute(
+        """
+        SELECT t.badge_tags_id, b.user_discord_id, b.badge_filename
+        FROM badge_tags_associations t
+        JOIN badges b ON t.badges_id = b.id
+        """
+      )
+      tag_rows = await cur.fetchall()
+
+      tags_migrated = 0
+      for row in tag_rows:
+        badge_filename = row["badge_filename"]
+        user_id = row["user_discord_id"]
+        badge_tags_id = row["badge_tags_id"]
+
+        await cur.execute("""
+          SELECT inst.id FROM badge_instances inst
+          JOIN badge_info info ON inst.badge_info_id = info.id
+          WHERE info.badge_filename = %s AND inst.owner_discord_id = %s AND inst.status = 'active'
+        """, (badge_filename, user_id))
+        badge_instance = await cur.fetchone()
+
+        if not badge_instance:
+          print(f"[Tags] Skipping: No active instance found for {user_id} / {badge_filename}")
+          continue
+
+        if not dry_run:
+          await cur.execute(
+            """
+            INSERT IGNORE INTO badge_instances_tags_associations (badge_instance_id, badge_tags_id)
+            VALUES (%s, %s)
+            """,
+            (badge_instance["id"], badge_tags_id)
+          )
+        tags_migrated += 1
+
+      print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {tags_migrated} badge tag associations")
+
+      # ---------------------------
+      # 5. MIGRATE CAROUSEL POSITIONS
+      # ---------------------------
+      print("... Migrating carousel positions ...")
+      await cur.execute("SELECT user_discord_id, badge_filename, last_modified FROM tags_carousel_position")
+      carousel_rows = await cur.fetchall()
+
+      carousel_migrated = 0
+      for row in carousel_rows:
+        badge_filename = row["badge_filename"]
+        user_id = row["user_discord_id"]
+        last_modified = row["last_modified"]
+
+        await cur.execute("""
+          SELECT inst.id FROM badge_instances inst
+          JOIN badge_info info ON inst.badge_info_id = info.id
+          WHERE info.badge_filename = %s AND inst.owner_discord_id = %s AND inst.status = 'active'
+        """, (badge_filename, user_id))
+        badge_instance = await cur.fetchone()
+
+        if not badge_instance:
+          print(f"[Carousel] Skipping: No active instance found for {user_id} / {badge_filename}")
+          continue
+
+        if not dry_run:
+          await cur.execute(
+            """
+            INSERT IGNORE INTO badge_instances_tags_carousel_position (
+              user_discord_id, badge_instance_id, last_modified
+            ) VALUES (%s, %s, %s)
+            """,
+            (user_id, badge_instance["id"], last_modified)
+          )
+        carousel_migrated += 1
+
+      print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {carousel_migrated} carousel positions")
+
       if not dry_run:
         await conn.commit()
         print("✅ COMMIT COMPLETE")
