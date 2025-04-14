@@ -13,75 +13,82 @@ async def migrate_badges(dry_run=False):
     user=os.environ.get("DB_USER", "root"),
     password=os.environ.get("DB_PASS", ""),
     db=os.environ.get("DB_NAME", "agimus"),
-    autocommit=True
+    autocommit=False  # Disable autocommit to manually control transaction
   )
 
-  async with conn.cursor(aiomysql.DictCursor) as cur:
+  try:
+    async with conn.cursor(aiomysql.DictCursor) as cur:
+      print("BEGINNING MIGRATION TRANSACTION")
 
-    print("... Loading Badge Rows ...")
-    # await cur.execute("SELECT user_discord_id, badge_filename, locked FROM badges WHERE user_discord_id = 1196611546776879214")
-    await cur.execute("SELECT user_discord_id, badge_filename, locked FROM badges")
-    badge_rows = await cur.fetchall()
-    print("... Badge Rows Loaded ...")
+      print("... Loading Badge Rows ...")
+      await cur.execute("SELECT user_discord_id, badge_filename, locked FROM badges")
+      badge_rows = await cur.fetchall()
+      print("... Badge Rows Loaded ...")
 
-    skipped = 0
-    migrated = 0
+      skipped = 0
+      migrated = 0
 
-    for badge_row in badge_rows:
-      user_discord_id = badge_row["user_discord_id"]
-      badge_filename = badge_row["badge_filename"]
-      locked = badge_row["locked"]
+      for badge_row in badge_rows:
+        user_discord_id = badge_row["user_discord_id"]
+        badge_filename = badge_row["badge_filename"]
+        locked = badge_row["locked"]
 
-      await cur.execute("SELECT id FROM badge_info WHERE badge_filename = %s", (badge_filename,))
-      row = await cur.fetchone()
-      if not row:
-        print(f"Skipping unknown badge filename: {badge_filename}")
-        continue
-      badge_info_id = row["id"]
+        await cur.execute("SELECT id FROM badge_info WHERE badge_filename = %s", (badge_filename,))
+        row = await cur.fetchone()
+        if not row:
+          print(f"Skipping unknown badge filename: {badge_filename}")
+          continue
+        badge_info_id = row["id"]
 
-      # Re-check if this instance already exists to avoid duplicate key error
-      await cur.execute(
-        "SELECT id FROM badge_instances WHERE owner_discord_id = %s AND badge_info_id = %s",
-        (user_discord_id, badge_info_id)
-      )
-      existing = await cur.fetchone()
-      if existing:
-        print(f"[Skip] Badge instance already exists for {user_discord_id} / {badge_filename}")
-        skipped += 1
-        continue
+        await cur.execute(
+          "SELECT id FROM badge_instances WHERE owner_discord_id = %s AND badge_info_id = %s",
+          (user_discord_id, badge_info_id)
+        )
+        existing = await cur.fetchone()
+        if existing:
+          print(f"[Skip] Badge instance already exists for {user_discord_id} / {badge_filename}")
+          skipped += 1
+          continue
 
-      print(f"> Migrating User {user_discord_id}: {badge_filename}")
+        print(f"> Migrating User {user_discord_id}: {badge_filename}")
+
+        if not dry_run:
+          await cur.execute(
+            """
+            INSERT INTO badge_instances (badge_info_id, owner_discord_id, locked, origin_user_id)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (badge_info_id, user_discord_id, locked, user_discord_id)
+          )
+          badge_instance_id = cur.lastrowid
+
+          await cur.execute(
+            """
+            INSERT INTO badge_instance_history (
+              badge_instance_id,
+              from_user_id,
+              to_user_id,
+              event_type
+            ) VALUES (%s, %s, %s, %s)
+            """,
+            (badge_instance_id, None, user_discord_id, 'epoch')
+          )
+
+          migrated += 1
+        else:
+          print(f"[Dry Run] Would insert badge_instance for '{badge_filename}'")
 
       if not dry_run:
-        await cur.execute(
-          """
-          INSERT INTO badge_instances (badge_info_id, owner_discord_id, locked, origin_user_id)
-          VALUES (%s, %s, %s, %s)
-          """,
-          (badge_info_id, user_discord_id, locked, user_discord_id)
-        )
-        badge_instance_id = cur.lastrowid
-
-        # Log the initial acquisition to badge_instance_history
-        await cur.execute(
-          """
-          INSERT INTO badge_instance_history (
-            badge_instance_id,
-            from_user_id,
-            to_user_id,
-            event_type
-          ) VALUES (%s, %s, %s, %s)
-          """,
-          (badge_instance_id, None, user_discord_id, 'epoch')
-        )
-
-        migrated += 1
+        await conn.commit()
+        print(f"✅ Migrated {migrated} badge records ({skipped} skipped) — COMMIT COMPLETE")
       else:
-        print(f"[Dry Run] Would insert badge_instance for '{badge_filename}'")
+        print(f"✅ Dry Run: Would have migrated {migrated} badge records ({skipped} skipped) — NO CHANGES MADE")
 
-    print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {migrated} badge records ({skipped} skipped)")
-
-  conn.close()
+  except Exception as e:
+    await conn.rollback()
+    print(f"❌ Migration failed! ROLLED BACK.\nError: {e}")
+  finally:
+    conn.close()
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()

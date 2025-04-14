@@ -213,109 +213,51 @@ CREATE TABLE IF NOT EXISTS badge_instance_wishlist_dismissals (
   FOREIGN KEY (match_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE
 );
 
--- Migrate legacy wishlist entries to the new normalized format
-INSERT IGNORE INTO badge_instance_wishlists (user_discord_id, badge_info_id)
-SELECT
-  bw.user_discord_id,
-  bi.id AS badge_info_id
-FROM badge_wishlists AS bw
-JOIN badge_info AS bi ON bw.badge_filename = bi.badge_filename;
+-- -- Migrate legacy wishlist entries to the new normalized format
+-- INSERT IGNORE INTO badge_instance_wishlists (user_discord_id, badge_info_id)
+-- SELECT
+--   bw.user_discord_id,
+--   bi.id AS badge_info_id
+-- FROM badge_wishlists AS bw
+-- JOIN badge_info AS bi ON bw.badge_filename = bi.badge_filename;
 
--- Migrate legacy wishlist_dismissals to badge_instance_wishlist_dismissals
-INSERT IGNORE INTO badge_instance_wishlist_dismissals (
-  user_discord_id,
-  match_discord_id,
-  has,
-  wants,
-  time_created
-)
-SELECT
-  user_discord_id,
-  match_discord_id,
-  has,
-  wants,
-  time_created
-FROM wishlist_dismissals;
+-- -- Migrate legacy wishlist_dismissals to badge_instance_wishlist_dismissals
+-- INSERT IGNORE INTO badge_instance_wishlist_dismissals (
+--   user_discord_id,
+--   match_discord_id,
+--   has,
+--   wants,
+--   time_created
+-- )
+-- SELECT
+--   user_discord_id,
+--   match_discord_id,
+--   has,
+--   wants,
+--   time_created
+-- FROM wishlist_dismissals;
 
 --
 -- Badge Tags Migration
 --
 
--- === STEP 1: BACKUP EXISTING ASSOCIATIONS TO TEMP TABLE ===
-CREATE TABLE badge_tags_associations_backup AS
-SELECT
-  t_a.badge_tags_id,
-  b.user_discord_id,
-  b.badge_filename
-FROM badge_tags_associations t_a
-JOIN badges b ON t_a.badges_id = b.id;
+CREATE TABLE IF NOT EXISTS badge_instances_tags_associations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  badge_instance_id INT NOT NULL,
+  badge_tags_id INT NOT NULL,
+  time_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE,
+  FOREIGN KEY (badge_tags_id) REFERENCES badge_tags(id) ON DELETE CASCADE
+);
 
--- === STEP 2: DROP OLD FOREIGN KEY AND COLUMN ===
-ALTER TABLE badge_tags_associations
-  DROP FOREIGN KEY badge_tags_associations_ibfk_1;
-
-ALTER TABLE badge_tags_associations
-  DROP COLUMN badges_id;
-
--- === STEP 3: ADD NEW INSTANCE-BASED COLUMN ===
-ALTER TABLE badge_tags_associations
-  ADD COLUMN badge_instance_id INT NOT NULL;
-
--- === STEP 4: REPOPULATE badge_instance_id USING BACKUP DATA ===
-UPDATE badge_tags_associations t_a
-JOIN badge_tags_associations_backup bkp
-  ON t_a.badge_tags_id = bkp.badge_tags_id
-JOIN badge_info info
-  ON info.badge_filename = bkp.badge_filename
-JOIN badge_instances inst
-  ON inst.badge_info_id = info.id AND inst.owner_discord_id = bkp.user_discord_id
-SET t_a.badge_instance_id = inst.id;
-
--- === STEP 5: RE-ESTABLISH FOREIGN KEY ===
-ALTER TABLE badge_tags_associations
-  ADD CONSTRAINT fk_tags_instance
-    FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
-    ON DELETE CASCADE;
-
--- === STEP 6: CLEANUP TEMP TABLE ===
-DROP TABLE badge_tags_associations_backup;
-
--- Now for the carousel positions...
-
--- === STEP 1: Back up the current table ===
-CREATE TABLE tags_carousel_position_backup AS
-SELECT id, user_discord_id, badge_filename, last_modified
-FROM tags_carousel_position;
-
--- === STEP 2: Drop the old table ===
-DROP TABLE tags_carousel_position;
-
--- === STEP 3: Recreate with new structure based on badge_instance_id ===
-CREATE TABLE tags_carousel_position (
+CREATE TABLE IF NOT EXISTS badge_instances_tags_carousel_position (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,
   badge_instance_id INT NOT NULL,
-  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_user (user_discord_id),
   UNIQUE KEY uq_user_instance (user_discord_id, badge_instance_id),
-  KEY idx_instance (badge_instance_id),
-  CONSTRAINT fk_carousel_instance
-    FOREIGN KEY (badge_instance_id)
-    REFERENCES badge_instances(id)
-    ON DELETE CASCADE
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE
 );
 
--- === STEP 4: Restore data using badge_filename → badge_info.id → badge_instances.id ===
-INSERT INTO tags_carousel_position (user_discord_id, badge_instance_id, last_modified)
-SELECT
-  bkp.user_discord_id,
-  inst.id AS badge_instance_id,
-  bkp.last_modified
-FROM tags_carousel_position_backup bkp
-JOIN badge_info info ON info.badge_filename = bkp.badge_filename
-JOIN badge_instances inst ON inst.badge_info_id = info.id
-WHERE inst.owner_discord_id = bkp.user_discord_id
-  AND inst.status = 'active';
-
--- === STEP 5: Drop the backup table ===
-DROP TABLE tags_carousel_position_backup;

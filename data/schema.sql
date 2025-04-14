@@ -611,3 +611,27 @@ CREATE TABLE IF NOT EXISTS badge_instance_wishlist_dismissals (
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
   FOREIGN KEY (match_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE
 );
+
+--
+-- Badge Tags
+--
+
+CREATE TABLE IF NOT EXISTS badge_instances_tags_associations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  badge_instance_id INT NOT NULL,
+  badge_tags_id INT NOT NULL,
+  time_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE,
+  FOREIGN KEY (badge_tags_id) REFERENCES badge_tags(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS badge_instances_tags_carousel_position (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_discord_id VARCHAR(64) NOT NULL,
+  badge_instance_id INT NOT NULL,
+  last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_user (user_discord_id),
+  UNIQUE KEY uq_user_instance (user_discord_id, badge_instance_id),
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE
+);
