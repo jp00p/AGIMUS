@@ -6,6 +6,7 @@ import argparse
 import os
 import aiomysql
 
+
 async def migrate_badges(dry_run=False):
   conn = await aiomysql.connect(
     host=os.environ.get("DB_HOST", "localhost"),
@@ -13,13 +14,16 @@ async def migrate_badges(dry_run=False):
     user=os.environ.get("DB_USER", "root"),
     password=os.environ.get("DB_PASS", ""),
     db=os.environ.get("DB_NAME", "agimus"),
-    autocommit=False  # Disable autocommit to manually control transaction
+    autocommit=False
   )
 
   try:
     async with conn.cursor(aiomysql.DictCursor) as cur:
       print("BEGINNING MIGRATION TRANSACTION")
 
+      # ---------------------------
+      # 1. MIGRATE BADGES
+      # ---------------------------
       print("... Loading Badge Rows ...")
       await cur.execute("SELECT user_discord_id, badge_filename, locked FROM badges")
       badge_rows = await cur.fetchall()
@@ -78,17 +82,50 @@ async def migrate_badges(dry_run=False):
         else:
           print(f"[Dry Run] Would insert badge_instance for '{badge_filename}'")
 
+      print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {migrated} badge records ({skipped} skipped)")
+
+      # ---------------------------
+      # 2. MIGRATE WISHLISTS
+      # ---------------------------
+      print("... Migrating badge wishlists ...")
+      await cur.execute("SELECT user_discord_id, badge_filename FROM badge_wishlists")
+      wishlist_rows = await cur.fetchall()
+
+      wishlist_migrated = 0
+      for row in wishlist_rows:
+        user_id = row["user_discord_id"]
+        badge_filename = row["badge_filename"]
+
+        await cur.execute("SELECT id FROM badge_info WHERE badge_filename = %s", (badge_filename,))
+        badge_info = await cur.fetchone()
+        if not badge_info:
+          print(f"[Wishlist] Skipping unknown badge filename: {badge_filename}")
+          continue
+
+        if not dry_run:
+          await cur.execute(
+            """
+            INSERT IGNORE INTO badge_instance_wishlists (user_discord_id, badge_info_id)
+            VALUES (%s, %s)
+            """,
+            (user_id, badge_info["id"])
+          )
+        wishlist_migrated += 1
+
+      print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {wishlist_migrated} wishlist entries")
+
       if not dry_run:
         await conn.commit()
-        print(f"✅ Migrated {migrated} badge records ({skipped} skipped) — COMMIT COMPLETE")
+        print("✅ COMMIT COMPLETE")
       else:
-        print(f"✅ Dry Run: Would have migrated {migrated} badge records ({skipped} skipped) — NO CHANGES MADE")
+        print("✅ Dry Run: NO CHANGES MADE")
 
   except Exception as e:
     await conn.rollback()
     print(f"❌ Migration failed! ROLLED BACK.\nError: {e}")
   finally:
     conn.close()
+
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
