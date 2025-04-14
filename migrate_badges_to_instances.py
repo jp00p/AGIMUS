@@ -17,11 +17,6 @@ async def migrate_badges(dry_run=False):
   )
 
   async with conn.cursor(aiomysql.DictCursor) as cur:
-    await cur.execute("SELECT id FROM crystal_types WHERE name = 'Dilithium'")
-    row = await cur.fetchone()
-    if not row:
-      raise RuntimeError("Dilithium crystal_type not found")
-    dilithium_id = row["id"]
 
     print("... Loading Badge Rows ...")
     # await cur.execute("SELECT user_discord_id, badge_filename, locked FROM badges WHERE user_discord_id = 1196611546776879214")
@@ -80,18 +75,9 @@ async def migrate_badges(dry_run=False):
           (badge_instance_id, None, user_discord_id, 'epoch')
         )
 
-        # Give everyone a Dilithium crystal by default
-        await cur.execute(
-          """
-          INSERT INTO badge_crystals (badge_instance_id, crystal_type_id)
-          VALUES (%s, %s)
-          """,
-          (badge_instance_id, dilithium_id)
-        )
-
         migrated += 1
       else:
-        print(f"[Dry Run] Would insert badge_instance for '{badge_filename}' and attach Dilithium crystal")
+        print(f"[Dry Run] Would insert badge_instance for '{badge_filename}'")
 
     print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {migrated} badge records ({skipped} skipped)")
 

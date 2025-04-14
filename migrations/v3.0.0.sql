@@ -213,6 +213,30 @@ CREATE TABLE IF NOT EXISTS badge_instance_wishlist_dismissals (
   FOREIGN KEY (match_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE
 );
 
+-- Migrate legacy wishlist entries to the new normalized format
+INSERT IGNORE INTO badge_instance_wishlists (user_discord_id, badge_info_id)
+SELECT
+  bw.user_discord_id,
+  bi.id AS badge_info_id
+FROM badge_wishlists AS bw
+JOIN badge_info AS bi ON bw.badge_filename = bi.badge_filename;
+
+-- Migrate legacy wishlist_dismissals to badge_instance_wishlist_dismissals
+INSERT IGNORE INTO badge_instance_wishlist_dismissals (
+  user_discord_id,
+  match_discord_id,
+  has,
+  wants,
+  time_created
+)
+SELECT
+  user_discord_id,
+  match_discord_id,
+  has,
+  wants,
+  time_created
+FROM wishlist_dismissals;
+
 --
 -- Badge Tags Migration
 --

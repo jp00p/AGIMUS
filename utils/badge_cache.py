@@ -2,7 +2,6 @@ import numpy as np
 
 from PIL import Image
 from utils.thread_utils import threaded_image_open
-from utils.badge_utils import autoshrink_badge  # assuming it lives here
 from typing import Dict
 
 

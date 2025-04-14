@@ -82,7 +82,6 @@ async def load_badge_image(filename):
 async def load_and_prepare_badge_thumbnail(filename):
   return await get_cached_base_badge_canvas(filename)
 
-
 async def encode_webp(frames: list[Image.Image]):
   loop = asyncio.get_running_loop()
   return await loop.run_in_executor(THREAD_POOL, _encode_webp, frames)
