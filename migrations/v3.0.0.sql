@@ -82,16 +82,17 @@ CREATE TABLE badge_crystals (
 );
 
 -- 4. Badge Instances (safe now!)
-CREATE TABLE badge_instances (
+CREATE TABLE IF NOT EXISTS badge_instances (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_info_id INT NOT NULL,
   owner_discord_id BIGINT NULL,
   locked BOOLEAN DEFAULT FALSE,
+  active BOOLEAN GENERATED ALWAYS AS (status = 'active') STORED,
   origin_user_id BIGINT NOT NULL,
   acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   active_crystal_id INT DEFAULT NULL,
   status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
-  UNIQUE KEY (owner_discord_id, badge_info_id),
+  UNIQUE INDEX uq_user_badge_active ON badge_instances(owner_discord_id, badge_info_id, active),
   FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
   FOREIGN KEY (active_crystal_id) REFERENCES badge_crystals(id) ON DELETE SET NULL
 );

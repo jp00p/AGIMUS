@@ -168,7 +168,7 @@ async def migrate_badges(dry_run=False):
         await cur.execute("""
           SELECT inst.id FROM badge_instances inst
           JOIN badge_info info ON inst.badge_info_id = info.id
-          WHERE info.badge_filename = %s AND inst.owner_discord_id = %s AND inst.status = 'active'
+          WHERE info.badge_filename = %s AND inst.owner_discord_id = %s AND inst.active = TRUE
         """, (badge_filename, user_id))
         badge_instance = await cur.fetchone()
 
@@ -204,7 +204,7 @@ async def migrate_badges(dry_run=False):
         await cur.execute("""
           SELECT inst.id FROM badge_instances inst
           JOIN badge_info info ON inst.badge_info_id = info.id
-          WHERE info.badge_filename = %s AND inst.owner_discord_id = %s AND inst.status = 'active'
+          WHERE info.badge_filename = %s AND inst.owner_discord_id = %s AND inst.active = TRUE
         """, (badge_filename, user_id))
         badge_instance = await cur.fetchone()
 

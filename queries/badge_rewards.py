@@ -11,7 +11,7 @@ async def db_get_valid_reward_filenames(user_id: int):
           AND id NOT IN (
             SELECT badge_info_id
             FROM badge_instances
-            WHERE owner_discord_id = %s AND status = 'active'
+            WHERE owner_discord_id = %s AND active = TRUE
           )
       """,
       (user_id,)

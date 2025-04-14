@@ -38,7 +38,7 @@ async def db_get_user_badge_instances(
   special: bool | None = None,
   sortby: str = None
 ):
-  where_clauses = ["b.owner_discord_id = %s", "b.status = 'active'"]
+  where_clauses = ["b.owner_discord_id = %s", "b.active = TRUE"]
   params = [user_id]
 
   if locked is not None:
@@ -125,7 +125,7 @@ async def db_get_owned_badge_filenames_by_user_id(user_id: int):
     SELECT bi.badge_filename
     FROM badge_instances AS inst
     JOIN badge_info AS bi ON inst.badge_info_id = bi.id
-    WHERE inst.owner_discord_id = %s AND inst.status = 'active'
+    WHERE inst.owner_discord_id = %s AND inst.active = TRUE
   """
   async with AgimusDB(dictionary=True) as db:
     await db.execute(query, (user_id,))
@@ -139,7 +139,7 @@ async def db_get_badge_instances_count_for_user(user_id: int) -> int:
       SELECT COUNT(*) AS count
       FROM badge_instances
       WHERE owner_discord_id = %s
-        AND status = 'active'
+        AND active = TRUE
     '''
     vals = (user_id,)
     await query.execute(sql, vals)
@@ -156,7 +156,7 @@ async def db_get_total_badge_instances_count_by_filename(filename: str) -> int:
       FROM badge_instances AS bi
       JOIN badge_info AS info ON bi.badge_info_id = info.id
       WHERE info.badge_filename = %s
-        AND bi.status = 'active'
+        AND bi.active = TRUE
     """
     vals = (filename,)
     await query.execute(sql, vals)
@@ -183,7 +183,7 @@ async def _db_create_badge_instance_if_missing(user_id: int, badge_filename: str
     await query.execute(
       """
         SELECT id FROM badge_instances
-        WHERE badge_info_id = %s AND owner_discord_id = %s AND status = 'active'
+        WHERE badge_info_id = %s AND owner_discord_id = %s AND active = TRUE
       """,
       (badge_info_id, user_id)
     )
