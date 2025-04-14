@@ -143,28 +143,28 @@ CREATE TABLE IF NOT EXISTS badge_info (
   special BOOLEAN NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS badge_affiliation (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `badge_filename` varchar(128) NOT NULL,
-  `affiliation_name` varchar(128) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `badge_filename` (`badge_filename`),
-  CONSTRAINT `badge_affiliation_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  id int NOT NULL AUTO_INCREMENT,
+  badge_filename varchar(128) NOT NULL,
+  affiliation_name varchar(128) NOT NULL,
+  PRIMARY KEY (id),
+  KEY badge_filename (badge_filename),
+  CONSTRAINT badge_affiliation_fk_badge_filename FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename)
 );
 CREATE TABLE IF NOT EXISTS badge_type (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `badge_filename` varchar(128) NOT NULL,
-  `type_name` varchar(128) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `badge_filename` (`badge_filename`),
-  CONSTRAINT `badge_type_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  id int NOT NULL AUTO_INCREMENT,
+  badge_filename varchar(128) NOT NULL,
+  type_name varchar(128) NOT NULL,
+  PRIMARY KEY (id),
+  KEY badge_filename (badge_filename),
+  CONSTRAINT badge_type_fk_badge_filename FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename)
 );
 CREATE TABLE IF NOT EXISTS badge_universe (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `badge_filename` varchar(128) NOT NULL,
-  `universe_name` varchar(128) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `badge_filename` (`badge_filename`),
-  CONSTRAINT `badge_universe_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  id int NOT NULL AUTO_INCREMENT,
+  badge_filename varchar(128) NOT NULL,
+  universe_name varchar(128) NOT NULL,
+  PRIMARY KEY (id),
+  KEY badge_filename (badge_filename),
+  CONSTRAINT badge_universe_fk_badge_filename FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename)
 );
 CREATE TABLE IF NOT EXISTS trade_offered (
   id int(11) NOT NULL AUTO_INCREMENT,
@@ -189,23 +189,23 @@ CREATE TABLE IF NOT EXISTS trade_requested (
     REFERENCES trades(id)
 );
 CREATE TABLE IF NOT EXISTS badge_scraps (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `badge_filename` varchar(128) NOT NULL,
-  `user_discord_id` varchar(128) NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `badge_filename` (`badge_filename`),
-  CONSTRAINT `badge_scraps_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  id int NOT NULL AUTO_INCREMENT,
+  badge_filename varchar(128) NOT NULL,
+  user_discord_id varchar(128) NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  KEY badge_filename (badge_filename),
+  CONSTRAINT badge_scraps_fk_badge_filename FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename)
 );
 CREATE TABLE IF NOT EXISTS badge_scrapped (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `scrap_id` int(11) NOT NULL,
-  `badge_filename` varchar(128) NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `badge_filename` (`badge_filename`),
-  FOREIGN KEY (`scrap_id`) REFERENCES `badge_scraps` (`id`),
-  FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  id int NOT NULL AUTO_INCREMENT,
+  scrap_id int(11) NOT NULL,
+  badge_filename varchar(128) NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  KEY badge_filename (badge_filename),
+  FOREIGN KEY (scrap_id) REFERENCES badge_scraps (id),
+  FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename)
 );
 CREATE TABLE IF NOT EXISTS reactions (
   id int(11) NOT NULL AUTO_INCREMENT,
@@ -252,155 +252,161 @@ CREATE TABLE IF NOT EXISTS shouts (
   UNIQUE KEY (shout)
 );
 CREATE TABLE IF NOT EXISTS badge_wishlists (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `badge_filename` varchar(128) NOT NULL,
-  `user_discord_id` varchar(128) NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `badge_filename` (`badge_filename`),
-  CONSTRAINT `badge_wishlists_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  id int NOT NULL AUTO_INCREMENT,
+  badge_filename varchar(128) NOT NULL,
+  user_discord_id varchar(128) NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  KEY badge_filename (badge_filename),
+  CONSTRAINT badge_wishlists_fk_badge_filename FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename)
 );
 CREATE TABLE IF NOT EXISTS badge_tags (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_discord_id` varchar(128) NOT NULL,
-  `tag_name` varchar(24) NOT NULL,
-  PRIMARY KEY (`id`)
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id varchar(128) NOT NULL,
+  tag_name varchar(24) NOT NULL,
+  PRIMARY KEY (id)
 );
-CREATE TABLE IF NOT EXISTS badge_tags_associations (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `badges_id` int(11) NOT NULL,
-  `badge_tags_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `badges_id` (`badges_id`),
-  CONSTRAINT `badges_tags_associations_fk_badges_id` FOREIGN KEY (`badges_id`) REFERENCES `badges` (`id`) ON DELETE CASCADE,
-  KEY `badge_tags_id` (`badge_tags_id`),
-  CONSTRAINT `badge_tags_associations_fk_badge_tags_id` FOREIGN KEY (`badge_tags_id`) REFERENCES `badge_tags` (`id`) ON DELETE CASCADE
-);
-CREATE TABLE IF NOT EXISTS wishlist_dismissals (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_discord_id` varchar(64) NOT NULL,
-  `match_discord_id` varchar(64) NOT NULL,
-  `has` JSON NOT NULL,
-  `wants` JSON NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`)
-);
-CREATE TABLE IF NOT EXISTS randomep_selections (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_discord_id` varchar(64) NOT NULL,
-  `shows` JSON NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE (`user_discord_id`)
-);
-CREATE TABLE IF NOT EXISTS user_aliases (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_discord_id` varchar(64) NOT NULL,
-  `old_alias` varchar(64) NOT NULL,
-  `new_alias` varchar(64) NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`)
-);
-CREATE TABLE IF NOT EXISTS xp_cap_progress (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_discord_id` varchar(64) NOT NULL,
-  `progress` int(4) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE (`user_discord_id`)
-);
-CREATE TABLE IF NOT EXISTS down_to_dabo (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_discord_id` varchar(64) NOT NULL,
-  `weight` int(4) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE (`user_discord_id`)
-);
-CREATE TABLE IF NOT EXISTS tongo (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `chair_discord_id` varchar(64) NOT NULL,
-  `status` varchar(64) NOT NULL DEFAULT 'active',
-  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`)
-);
-CREATE TABLE IF NOT EXISTS tongo_players (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_discord_id` varchar(64) NOT NULL,
-  `tongo_id` int(11) DEFAULT 0 NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `tongo_id` (`tongo_id`),
-  CONSTRAINT `badge_tongo_players_fk_tongo_id` FOREIGN KEY (`tongo_id`) REFERENCES `tongo` (`id`),
-  CONSTRAINT `unique_user_tongo` UNIQUE (`user_discord_id`, `tongo_id`)
-);
-CREATE TABLE IF NOT EXISTS tongo_pot (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `origin_user_discord_id` varchar(64) NOT NULL,
-  `badge_filename` VARCHAR(128) DEFAULT '' NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `badge_filename` (`badge_filename`),
-  CONSTRAINT `badge_tongo_pot_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+CREATE TABLE badge_tags_associations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  badge_tags_id INT NOT NULL,
+  badge_instance_id INT NOT NULL,
+  CONSTRAINT fk_tags_to_tags
+    FOREIGN KEY (badge_tags_id)
+    REFERENCES badge_tags(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_tags_to_instances
+    FOREIGN KEY (badge_instance_id)
+    REFERENCES badge_instances(id)
+    ON DELETE CASCADE,
+  UNIQUE KEY unique_tag_per_instance (badge_tags_id, badge_instance_id)
 );
 CREATE TABLE IF NOT EXISTS tags_carousel_position (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_discord_id` varchar(64) NOT NULL,
-  `badge_filename` VARCHAR(128) DEFAULT '' NOT NULL,
-  `last_modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY (`user_discord_id`),
-  UNIQUE KEY `uID_bID` (`user_discord_id`, `badge_filename`),
-  KEY `badge_filename` (`badge_filename`),
-  CONSTRAINT `badge_tags_carousel_position_fk_badge_filename` FOREIGN KEY (`badge_filename`) REFERENCES `badge_info` (`badge_filename`)
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_discord_id VARCHAR(64) NOT NULL,
+  badge_instance_id INT NOT NULL,
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_user (user_discord_id),
+  UNIQUE KEY uq_user_instance (user_discord_id, badge_instance_id),
+  KEY idx_instance (badge_instance_id),
+  CONSTRAINT fk_carousel_instance
+    FOREIGN KEY (badge_instance_id)
+    REFERENCES badge_instances(id)
+    ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS wishlist_dismissals (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id varchar(64) NOT NULL,
+  match_discord_id varchar(64) NOT NULL,
+  has JSON NOT NULL,
+  wants JSON NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id)
+);
+CREATE TABLE IF NOT EXISTS randomep_selections (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id varchar(64) NOT NULL,
+  shows JSON NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  UNIQUE (user_discord_id)
+);
+CREATE TABLE IF NOT EXISTS user_aliases (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id varchar(64) NOT NULL,
+  old_alias varchar(64) NOT NULL,
+  new_alias varchar(64) NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id)
+);
+CREATE TABLE IF NOT EXISTS xp_cap_progress (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id varchar(64) NOT NULL,
+  progress int(4) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (user_discord_id)
+);
+CREATE TABLE IF NOT EXISTS down_to_dabo (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id varchar(64) NOT NULL,
+  weight int(4) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (user_discord_id)
+);
+CREATE TABLE IF NOT EXISTS tongo (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  chair_discord_id varchar(64) NOT NULL,
+  status varchar(64) NOT NULL DEFAULT 'active',
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id)
+);
+CREATE TABLE IF NOT EXISTS tongo_players (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id varchar(64) NOT NULL,
+  tongo_id int(11) DEFAULT 0 NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  KEY tongo_id (tongo_id),
+  CONSTRAINT badge_tongo_players_fk_tongo_id FOREIGN KEY (tongo_id) REFERENCES tongo (id),
+  CONSTRAINT unique_user_tongo UNIQUE (user_discord_id, tongo_id)
+);
+CREATE TABLE IF NOT EXISTS tongo_pot (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  origin_user_discord_id varchar(64) NOT NULL,
+  badge_filename VARCHAR(128) DEFAULT '' NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (id),
+  KEY badge_filename (badge_filename),
+  CONSTRAINT badge_tongo_pot_fk_badge_filename FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename)
 );
 CREATE TABLE IF NOT EXISTS user_tags (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `tagged_user_id` varchar(128) NOT NULL,
-  `tagger_user_id` varchar(128) NOT NULL,
-  `tag` varchar(128) NOT NULL,
-  `last_modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
-  PRIMARY KEY (`id`)
+  id int(11) NOT NULL AUTO_INCREMENT,
+  tagged_user_id varchar(128) NOT NULL,
+  tagger_user_id varchar(128) NOT NULL,
+  tag varchar(128) NOT NULL,
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+  PRIMARY KEY (id)
 );
 CREATE TABLE IF NOT EXISTS april_fools (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_discord_id` VARCHAR(64) NOT NULL,
-  `cornmander_status` VARCHAR(32) NOT NULL DEFAULT 'unpipped',
-  `last_modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id VARCHAR(64) NOT NULL,
+  cornmander_status VARCHAR(32) NOT NULL DEFAULT 'unpipped',
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
   PRIMARY KEY (id),
   FOREIGN KEY (user_discord_id)
     REFERENCES users(discord_id)
 );
 CREATE TABLE IF NOT EXISTS food_war (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_discord_id` VARCHAR(64) NOT NULL,
-  `reason` VARCHAR(64) NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id VARCHAR(64) NOT NULL,
+  reason VARCHAR(64) NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id),
   FOREIGN KEY (user_discord_id)
     REFERENCES users(discord_id)
 );
 CREATE TABLE IF NOT EXISTS sub_rosa (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_discord_id` VARCHAR(64) NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT current_timestamp(),
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_discord_id VARCHAR(64) NOT NULL,
+  time_created timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (id),
   FOREIGN KEY (user_discord_id)
     REFERENCES users(discord_id)
 );
 CREATE TABLE wrapped_queue (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `user_discord_id` VARCHAR(64) NOT NULL,
-  `status` ENUM('pending', 'processing', 'complete', 'error') DEFAULT 'pending',
-  `wrapped_year` INT NOT NULL,
-  `time_created` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `time_updated` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `video_path` VARCHAR(255),
-  `error` TEXT
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_discord_id VARCHAR(64) NOT NULL,
+  status ENUM('pending', 'processing', 'complete', 'error') DEFAULT 'pending',
+  wrapped_year INT NOT NULL,
+  time_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  time_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  video_path VARCHAR(255),
+  error TEXT
 );
 
 -- v3.0.0.sql — Crystallization Schema
 
 -- 1. Crystal Ranks
-CREATE TABLE crystal_ranks (
+CREATE TABLE IF NOT EXISTS crystal_ranks (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) NOT NULL UNIQUE,
   emoji VARCHAR(16),
@@ -409,7 +415,7 @@ CREATE TABLE crystal_ranks (
   sort_order INT DEFAULT 0
 );
 
-INSERT INTO crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order) VALUES
+CREATE TABLE IF NOT EXISTS crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order) VALUES
   ("Common",    "⚪", 1, 0.64, 0),
   ("Uncommon",  "🟢", 2, 0.20, 1),
   ("Rare",      "🟣", 3, 0.10, 2),
@@ -424,7 +430,7 @@ INSERT INTO crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order) VA
 -- Rare      – Background effects (may include subtle top overlays)
 -- Legendary – Animated overlays or backdrops
 -- Mythic    – Animated + prestige visual effects
-CREATE TABLE crystal_types (
+CREATE TABLE IF NOT EXISTS crystal_types (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) NOT NULL UNIQUE,
   rarity_rank INT NOT NULL,
@@ -433,7 +439,7 @@ CREATE TABLE crystal_types (
   description TEXT,
 );
 
-INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
+INSERT IGNORE INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 
   -- Common Crystals
   ("Dilithium", 1, "dilithium.png", "pink_tint", "Good old Dilithium. Standard Starfleet issue!"),
@@ -467,7 +473,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable.");
 
 -- 3. Badge Crystals (must come before badge_instances)
-CREATE TABLE badge_crystals (
+CREATE TABLE IF NOT EXISTS badge_crystals (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
   crystal_type_id INT NOT NULL,
@@ -476,7 +482,7 @@ CREATE TABLE badge_crystals (
 );
 
 -- 4. Badge Instances
-CREATE TABLE badge_instances (
+CREATE TABLE IF NOT EXISTS badge_instances (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_info_id INT NOT NULL,
   owner_discord_id BIGINT NULL,
@@ -491,7 +497,7 @@ CREATE TABLE badge_instances (
 );
 
 -- 5. Badge "Provenance" - Ability to track where a badge instance originated from and where its been
-CREATE TABLE badge_instance_history (
+CREATE TABLE IF NOT EXISTS badge_instance_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
   from_user_id BIGINT DEFAULT NULL,
@@ -513,7 +519,7 @@ CREATE TABLE badge_instance_history (
 );
 
 -- 6. Crystal Trades
-CREATE TABLE crystal_trades (
+CREATE TABLE IF NOT EXISTS crystal_trades (
   id INT AUTO_INCREMENT PRIMARY KEY,
   crystal_id INT NOT NULL,
   from_badge_instance_id INT NOT NULL,
@@ -536,7 +542,7 @@ ALTER TABLE badge_crystals
 --
 
 -- Core Tongo game record
-CREATE TABLE tongo_games (
+CREATE TABLE IF NOT EXISTS tongo_games (
   id INT AUTO_INCREMENT PRIMARY KEY,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   chair_user_id BIGINT NOT NULL,
@@ -553,7 +559,7 @@ CREATE TABLE tongo_game_players (
 );
 
 -- Persistent shared badge pool (the Great Material Continuum)
-CREATE TABLE tongo_continuum (
+CREATE TABLE IF NOT EXISTS tongo_continuum (
   badge_info_id INT PRIMARY KEY,
   source_instance_id INT,
   thrown_by_user_id BIGINT,
@@ -563,7 +569,7 @@ CREATE TABLE tongo_continuum (
 );
 
 -- Rewards distributed at the end of the game
-CREATE TABLE tongo_game_rewards (
+CREATE TABLE IF NOT EXISTS tongo_game_rewards (
   game_id INT,
   user_discord_id BIGINT,
   badge_instance_id INT,
@@ -581,10 +587,10 @@ CREATE TABLE tongo_game_rewards (
 
 -- Note that we don't reference specific badge_instances here,
 -- users are essentially wishlisting "badge_infos", but we're naming it
--- `badge_instance_wishlists` because we're migrating from the old
--- `badge_wishlists` table and want to make this clear this is the system
+-- badge_instance_wishlists because we're migrating from the old
+-- badge_wishlists table and want to make this clear this is the system
 -- also the results of these wishlists will be badge instances so ¯\_(ツ)_/¯
-CREATE TABLE badge_instance_wishlists (
+CREATE TABLE IF NOT EXISTS badge_instance_wishlists (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,
   badge_info_id INT NOT NULL,

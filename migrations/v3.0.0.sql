@@ -54,7 +54,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Isolinear", 2, "isolinear.png", "isolinear", "Shimoda's favorite plaything. Fully stackable!"),
   ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
   ("Positron", 2, "positron.png", "positronic", "Fully functional. Operates at 60 trillion calculations a second."),
-  ("Latinum", 2, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!."),
+  ("Latinum", 2, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
   ("Cryonetrium", 2, "cryonetrium.png", "cryonetrium", "Still gaseous at -200°C, that's some cold coolant!"),
 
   -- Rare Crystals
@@ -64,9 +64,9 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Silicon Shard", 3, "silicon_shard.png", "crystalline_entity", "Sharp and pointy, a beautiful Entity. Crystalline as FUCK!"),
 
   -- Legendary Crystals
-  ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "EJECTED FROM A CORE!. Hums with that familiar pulse."),
+  ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "EJECTED FROM A CORE! Hums with that familiar pulse."),
   ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Distortions abound when these are around!"),
-  ("Bajoran Orb", 4, "bajoran_orb.png", "prophet_glow", "An Orb of the Prophets. My Child!"),
+  ("Bajoran Orb", 4, "bajoran_orb.png", "prophet_glow", "An Tear of the Prophets. My Child!"),
 
   -- Mythic Crystals
   ("Chroniton", 5, "chroniton.png", "phase_flicker", "Time travel! Glitches in and out of this temporal frame."),
@@ -156,6 +156,7 @@ CREATE TABLE tongo_game_players (
   game_id INT,
   user_discord_id BIGINT,
   liability_mode ENUM('unlocked', 'all_in') NOT NULL,
+  joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (game_id, user_discord_id),
   FOREIGN KEY (game_id) REFERENCES tongo_games(id)
 );
@@ -211,3 +212,86 @@ CREATE TABLE IF NOT EXISTS badge_instance_wishlist_dismissals (
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
   FOREIGN KEY (match_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE
 );
+
+--
+-- Badge Tags Migration
+--
+
+-- === STEP 1: BACKUP EXISTING ASSOCIATIONS TO TEMP TABLE ===
+CREATE TABLE badge_tags_associations_backup AS
+SELECT
+  t_a.badge_tags_id,
+  b.user_discord_id,
+  b.badge_filename
+FROM badge_tags_associations t_a
+JOIN badges b ON t_a.badges_id = b.id;
+
+-- === STEP 2: DROP OLD FOREIGN KEY AND COLUMN ===
+ALTER TABLE badge_tags_associations
+  DROP FOREIGN KEY badge_tags_associations_ibfk_1;
+
+ALTER TABLE badge_tags_associations
+  DROP COLUMN badges_id;
+
+-- === STEP 3: ADD NEW INSTANCE-BASED COLUMN ===
+ALTER TABLE badge_tags_associations
+  ADD COLUMN badge_instance_id INT NOT NULL;
+
+-- === STEP 4: REPOPULATE badge_instance_id USING BACKUP DATA ===
+UPDATE badge_tags_associations t_a
+JOIN badge_tags_associations_backup bkp
+  ON t_a.badge_tags_id = bkp.badge_tags_id
+JOIN badge_info info
+  ON info.badge_filename = bkp.badge_filename
+JOIN badge_instances inst
+  ON inst.badge_info_id = info.id AND inst.owner_discord_id = bkp.user_discord_id
+SET t_a.badge_instance_id = inst.id;
+
+-- === STEP 5: RE-ESTABLISH FOREIGN KEY ===
+ALTER TABLE badge_tags_associations
+  ADD CONSTRAINT fk_tags_instance
+    FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
+    ON DELETE CASCADE;
+
+-- === STEP 6: CLEANUP TEMP TABLE ===
+DROP TABLE badge_tags_associations_backup;
+
+-- Now for the carousel positions...
+
+-- === STEP 1: Back up the current table ===
+CREATE TABLE tags_carousel_position_backup AS
+SELECT id, user_discord_id, badge_filename, last_modified
+FROM tags_carousel_position;
+
+-- === STEP 2: Drop the old table ===
+DROP TABLE tags_carousel_position;
+
+-- === STEP 3: Recreate with new structure based on badge_instance_id ===
+CREATE TABLE tags_carousel_position (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_discord_id VARCHAR(64) NOT NULL,
+  badge_instance_id INT NOT NULL,
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_user (user_discord_id),
+  UNIQUE KEY uq_user_instance (user_discord_id, badge_instance_id),
+  KEY idx_instance (badge_instance_id),
+  CONSTRAINT fk_carousel_instance
+    FOREIGN KEY (badge_instance_id)
+    REFERENCES badge_instances(id)
+    ON DELETE CASCADE
+);
+
+-- === STEP 4: Restore data using badge_filename → badge_info.id → badge_instances.id ===
+INSERT INTO tags_carousel_position (user_discord_id, badge_instance_id, last_modified)
+SELECT
+  bkp.user_discord_id,
+  inst.id AS badge_instance_id,
+  bkp.last_modified
+FROM tags_carousel_position_backup bkp
+JOIN badge_info info ON info.badge_filename = bkp.badge_filename
+JOIN badge_instances inst ON inst.badge_info_id = info.id
+WHERE inst.owner_discord_id = bkp.user_discord_id
+  AND inst.status = 'active';
+
+-- === STEP 5: Drop the backup table ===
+DROP TABLE tags_carousel_position_backup;

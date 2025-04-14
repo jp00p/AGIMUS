@@ -19,25 +19,25 @@ async def db_get_user_badge_tags(user_discord_id) -> list:
   return results
 
 
-async def db_create_user_tag(user_discord_id, tag) -> None:
+async def db_create_user_badge_tag(user_discord_id, tag) -> None:
   """
-  creates a new tag for the user in question
+  creates a new badge tag for the user in question
   """
   async with AgimusDB() as query:
     sql = "INSERT INTO badge_tags (user_discord_id, tag_name) VALUES (%s, %s)"
     vals = (user_discord_id, tag)
     await query.execute(sql, vals)
 
-async def db_delete_user_tag(user_discord_id, tag) -> None:
+async def db_delete_user_badge_tag(user_discord_id, tag) -> None:
   """
-  delete a tag for the user in question
+  delete a badge tag for the user in question
   """
   async with AgimusDB() as query:
     sql = "DELETE FROM badge_tags WHERE user_discord_id = %s AND tag_name = %s"
     vals = (user_discord_id, tag)
     await query.execute(sql, vals)
 
-async def db_rename_user_tag(user_discord_id, tag, new_name) -> None:
+async def db_rename_user_badge_tag(user_discord_id, tag, new_name) -> None:
   """
   renames a tag for the user in question
   """
@@ -46,125 +46,146 @@ async def db_rename_user_tag(user_discord_id, tag, new_name) -> None:
     vals = (new_name, user_discord_id, tag)
     await query.execute(sql, vals)
 
-async def db_get_associated_badge_tags(user_discord_id, badge_filename) -> list:
-  """
-  returns a list of the current tags the user has associated with a given badge
-  """
+async def db_get_associated_user_badge_tags_by_filename(user_discord_id, badge_filename) -> list:
   async with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT b_t.* FROM badge_tags AS b_t
-        JOIN badge_tags_associations AS t_a ON b_t.id = t_a.badge_tags_id
-        JOIN badges AS b ON t_a.badges_id = b.id
-        JOIN badge_info AS b_i ON b_i.badge_filename = b.badge_filename
-          WHERE b_i.badge_filename = %s AND b_t.user_discord_id = %s
+      SELECT b_t.*
+      FROM badge_tags AS b_t
+      JOIN badge_tags_associations AS t_a ON b_t.id = t_a.badge_tags_id
+      JOIN badge_instances AS inst ON t_a.badge_instance_id = inst.id
+      JOIN badge_info AS info ON inst.badge_info_id = info.id
+      WHERE b_t.user_discord_id = %s AND info.badge_filename = %s
+        AND inst.status = 'active'
     '''
-    vals = (badge_filename, user_discord_id)
+    vals = (user_discord_id, badge_filename)
     await query.execute(sql, vals)
-    results = await query.fetchall()
-  return results
+    return await query.fetchall()
 
-
-async def db_create_badge_tags_associations(user_discord_id, badge_filename, tag_ids):
-  """
-  associates a list of tags with a user's specific badge
-  """
-  tags_values_list = []
-  for id in tag_ids:
-    tuple = (id, badge_filename, user_discord_id)
-    tags_values_list.append(tuple)
+async def db_create_user_badge_tags_associations(user_discord_id, badge_filename, tag_ids):
+  values = []
 
   async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      INSERT INTO badge_tags_associations (badges_id, badge_tags_id)
-        SELECT b.id, %s
-          FROM badges AS b
-          JOIN badge_info AS b_i ON b_i.badge_filename = b.badge_filename
-            WHERE b_i.badge_filename = %s AND b.user_discord_id = %s
-    '''
-    await query.executemany(sql, tags_values_list)
+    # Get instance ID
+    await query.execute(
+      '''
+        SELECT inst.id
+        FROM badge_instances AS inst
+        JOIN badge_info AS info ON inst.badge_info_id = info.id
+        WHERE info.badge_filename = %s
+          AND inst.owner_discord_id = %s
+          AND inst.status = 'active'
+        LIMIT 1
+      ''',
+      (badge_filename, user_discord_id)
+    )
+    row = await query.fetchone()
+    if not row:
+      return  # No valid badge instance found
+
+    instance_id = row['id']
+    values = [(instance_id, tag_id) for tag_id in tag_ids]
+
+  async with AgimusDB() as query:
+    await query.executemany(
+      '''
+        INSERT IGNORE INTO badge_tags_associations (badge_instance_id, badge_tags_id)
+        VALUES (%s, %s)
+      ''',
+      values
+    )
 
 async def db_delete_badge_tags_associations(tag_ids, badge_filename):
-  """
-  deletes a list of tags from association with a user's specific badge
-  """
-  tags_values_list = []
-  for id in tag_ids:
-    tuple = (id, badge_filename)
-    tags_values_list.append(tuple)
-
   async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      DELETE t_a FROM badge_tags_associations AS t_a
-        JOIN badges AS b ON b.id = t_a.badges_id
-          WHERE t_a.badge_tags_id = %s AND b.badge_filename = %s
-    '''
-    await query.executemany(sql, tags_values_list)
+    await query.execute(
+      '''
+        SELECT inst.id
+        FROM badge_instances AS inst
+        JOIN badge_info AS info ON inst.badge_info_id = info.id
+        WHERE info.badge_filename = %s
+          AND inst.status = 'active'
+        LIMIT 1
+      ''',
+      (badge_filename,)
+    )
+    row = await query.fetchone()
+    if not row:
+      return
+
+    instance_id = row['id']
+    values = [(tag_id, instance_id) for tag_id in tag_ids]
+
+  async with AgimusDB() as query:
+    await query.executemany(
+      '''
+        DELETE FROM badge_tags_associations
+        WHERE badge_tags_id = %s AND badge_instance_id = %s
+      ''',
+      values
+    )
 
 async def db_get_user_tagged_badges(user_discord_id, tag):
-  '''
-    get_user_badges(user_discord_id)
-    user_discord_id[required]: int
-    returns a list of badges the user has
-  '''
   async with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT b_i.badge_name, b_i.badge_filename, b.locked, b_i.special FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-        JOIN badge_tags_associations AS t_a
-          ON t_a.badges_id = b.id
-        JOIN badge_tags AS b_t
-          ON b.user_discord_id = b_t.user_discord_id AND t_a.badge_tags_id = b_t.id
-        WHERE b.user_discord_id = %s AND b_t.tag_name = %s
-          ORDER BY b_i.badge_filename ASC
+      SELECT
+        info.badge_name,
+        info.badge_filename,
+        inst.locked,
+        info.special
+      FROM badge_tags AS tags
+      JOIN badge_tags_associations AS assoc ON tags.id = assoc.badge_tags_id
+      JOIN badge_instances AS inst ON assoc.badge_instance_id = inst.id
+      JOIN badge_info AS info ON inst.badge_info_id = info.id
+      WHERE tags.user_discord_id = %s
+        AND tags.tag_name = %s
+        AND inst.status = 'active'
+      ORDER BY info.badge_filename ASC
     '''
-    vals = (user_discord_id, tag)
-    await query.execute(sql, vals)
-    badges = await query.fetchall()
-  return badges
+    await query.execute(sql, (user_discord_id, tag))
+    return await query.fetchall()
 
-async def db_get_last_carousel_tagged_badge_filename(user_discord_id):
+
+async def db_get_last_carousel_tagged_badge_instance_id(user_discord_id):
   async with AgimusDB(dictionary=True) as query:
-    """
-      returns the badge_filename value from the tags_carousel_position
-      associated with the user_discord_id, otherwise if no row return One
-    """
     sql = '''
-      SELECT badge_filename FROM tags_carousel_position WHERE user_discord_id = %s LIMIT 1;
+      SELECT badge_instance_id
+      FROM tags_carousel_position
+      WHERE user_discord_id = %s
+      LIMIT 1
     '''
-    vals = (user_discord_id,)
-    await query.execute(sql, vals)
-    results = await query.fetchone()
-  if results:
-    return results['badge_filename']
-  else:
-    return None
+    await query.execute(sql, (user_discord_id,))
+    row = await query.fetchone()
+  return row['badge_instance_id'] if row else None
 
-async def db_upsert_last_carousel_tagged_badge_filename(user_discord_id, badge_filename):
-  """
-  either creates or modifies the user's tags_carousel_position row
-  with the given badge_filename to indicate the last badge they've tagged
-  """
+
+async def db_upsert_last_carousel_tagged_badge_instance_id(user_discord_id, badge_instance_id):
   async with AgimusDB() as query:
     sql = '''
-      INSERT INTO tags_carousel_position
-        (user_discord_id, badge_filename)
-      VALUES
-        (%s, %s)
+      INSERT INTO tags_carousel_position (user_discord_id, badge_instance_id)
+      VALUES (%s, %s)
       ON DUPLICATE KEY UPDATE
-        badge_filename = %s
+        badge_instance_id = VALUES(badge_instance_id),
+        last_modified = CURRENT_TIMESTAMP
     '''
-    vals = (user_discord_id, badge_filename, badge_filename)
-    await query.execute(sql, vals)
+    await query.execute(sql, (user_discord_id, badge_instance_id))
 
-async def db_clear_last_carousel_tagged_badge_filename(user_discord_id):
-  """
-  deletes the user's record from the tags_carousel_position table
-  so that the next time they load the interface they'll start at the front again
-  """
+
+async def db_clear_last_carousel_tagged_badge_instance(user_discord_id):
   async with AgimusDB() as query:
     sql = '''
-      DELETE FROM tags_carousel_position WHERE user_discord_id = %s
+      DELETE FROM tags_carousel_position
+      WHERE user_discord_id = %s
     '''
-    vals = (user_discord_id,)
-    await query.execute(sql, vals)
+    await query.execute(sql, (user_discord_id,))
+
+
+# async def db_get_last_carousel_badge_instance_with_info(user_discord_id):
+#   async with AgimusDB(dictionary=True) as query:
+#     sql = '''
+#       SELECT bi.*, inst.*
+#       FROM tags_carousel_position AS tcp
+#       JOIN badge_instances AS inst ON tcp.badge_instance_id = inst.id
+#       JOIN badge_info AS bi ON inst.badge_info_id = bi.id
+#       WHERE tcp.user_discord_id = %s
+#     '''
+#     await query.execute(sql, (user_discord_id,))
+#     return await query.fetchone()

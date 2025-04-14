@@ -122,7 +122,7 @@ async def db_get_attached_crystals(instance_id: int):
   return existing_crystals
 
 
-async def db_get_instance_by_crystal(crystal_id: int) -> dict | None:
+async def db_get_instance_by_attached_crystal_id(crystal_id: int) -> dict | None:
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
       """

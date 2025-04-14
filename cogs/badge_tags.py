@@ -1,4 +1,5 @@
 from common import *
+from queries.badge_instances import db_get_badge_instance_by_id
 from queries.badge_tags import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
@@ -69,19 +70,19 @@ class TagButton(discord.ui.Button):
     )
 
   async def callback(self, interaction:discord.Interaction):
-    associated_tags = await db_get_associated_badge_tags(self.user_discord_id, self.badge_info['badge_filename'])
+    associated_tags = await db_get_associated_user_badge_tags_by_filename(self.user_discord_id, self.badge_info['badge_filename'])
     tag_ids_to_delete = [t['id'] for t in associated_tags if t['id'] not in self.view.tag_ids]
     await db_delete_badge_tags_associations(tag_ids_to_delete, self.badge_info['badge_filename'])
     if len(self.view.tag_ids):
-      await db_create_badge_tags_associations(self.user_discord_id, self.badge_info['badge_filename'], self.view.tag_ids)
+      await db_create_user_badge_tags_associations(self.user_discord_id, self.badge_info['badge_filename'], self.view.tag_ids)
 
-    new_associated_tags = await db_get_associated_badge_tags(self.user_discord_id, self.badge_info['badge_filename'])
+    new_associated_tags = await db_get_associated_user_badge_tags_by_filename(self.user_discord_id, self.badge_info['badge_filename'])
     new_associated_tag_names = [t['tag_name'] for t in new_associated_tags]
 
     if len(new_associated_tag_names):
       description = f"**{self.badge_info['badge_name']}** is now tagged with:" + "\n\n- " + "\n- ".join(new_associated_tag_names) + "\n\n" + "Use `/tags showcase` to show off your tags!"
     else:
-      description = f"**{self.badge_info['badge_name']}** currently has no tags associated!"
+      description = f"**{self.badge_info['badge_name']}** now has no tags associated!"
 
     await interaction.response.edit_message(
       embed=discord.Embed(
@@ -106,19 +107,19 @@ class CarouselButton(discord.ui.Button):
 
   async def callback(self, interaction:discord.Interaction):
     await interaction.response.defer()
-    associated_tags = await db_get_associated_badge_tags(self.user_discord_id, self.badge_info['badge_filename'])
+    associated_tags = await db_get_associated_user_badge_tags_by_filename(self.user_discord_id, self.badge_info['badge_filename'])
     tag_ids_to_delete = [t['id'] for t in associated_tags if t['id'] not in self.view.tag_ids]
     await db_delete_badge_tags_associations(tag_ids_to_delete, self.badge_info['badge_filename'])
     if len(self.view.tag_ids):
-      await db_create_badge_tags_associations(self.user_discord_id, self.badge_info['badge_filename'], self.view.tag_ids)
+      await db_create_user_badge_tags_associations(self.user_discord_id, self.badge_info['badge_filename'], self.view.tag_ids)
 
-    new_associated_tags = await db_get_associated_badge_tags(self.user_discord_id, self.badge_info['badge_filename'])
+    new_associated_tags = await db_get_associated_user_badge_tags_by_filename(self.user_discord_id, self.badge_info['badge_filename'])
     new_associated_tag_names = [t['tag_name'] for t in new_associated_tags]
 
     if len(new_associated_tag_names):
       description = f"**{self.badge_info['badge_name']}** is now tagged with:" + "\n\n- " + "\n- ".join(new_associated_tag_names) + "\n\n" + "Use `/tags showcase` to show off your tags!"
     else:
-      description = f"**{self.badge_info['badge_name']}** currently has no tags associated!"
+      description = f"**{self.badge_info['badge_name']}** nwowas no tags associated!"
 
     summary_embed = discord.Embed(
         title="Tag Summary",
@@ -135,9 +136,9 @@ class CarouselButton(discord.ui.Button):
 
     user_badges = await db_get_user_badge_instances(self.user_discord_id)
     user_badge_filenames = [b['badge_filename'] for b in user_badges]
-    previous_badge_filename = await db_get_last_carousel_tagged_badge_filename(self.user_discord_id)
-    if previous_badge_filename:
-      next_position = user_badge_filenames.index(previous_badge_filename) + 1
+    previous_instance_id = await db_get_last_carousel_tagged_badge_instance_id(self.user_discord_id)
+    if previous_instance_id:
+      prev_instance = await db_get_badge_instance_by_id(previous_instance_id)
     else:
       next_position = 1
 
@@ -150,11 +151,11 @@ class CarouselButton(discord.ui.Button):
         ),
         ephemeral=True
       )
-      await db_clear_last_carousel_tagged_badge_filename(self.user_discord_id)
+      await db_clear_last_carousel_tagged_badge_instance(self.user_discord_id)
       return
 
     next_badge = user_badges[next_position]
-    await db_upsert_last_carousel_tagged_badge_filename(self.user_discord_id, next_badge['badge_filename'])
+    await db_upsert_last_carousel_tagged_badge_instance_id(self.user_discord_id, next_badge['badge_instance_id'])
 
     new_view = await generateTagCarouselView(self.user_discord_id, next_badge)
     embed = discord.Embed(
@@ -177,7 +178,7 @@ class TagBadgeView(discord.ui.View):
 
 async def generateTagBadgeView(user_discord_id, badge_info):
   user_badge_tags = await db_get_user_badge_tags(user_discord_id)
-  associated_tags = await db_get_associated_badge_tags(user_discord_id, badge_info['badge_filename'])
+  associated_tags = await db_get_associated_user_badge_tags_by_filename(user_discord_id, badge_info['badge_filename'])
 
   return TagBadgeView(user_discord_id, badge_info, user_badge_tags, associated_tags)
 
@@ -193,7 +194,7 @@ class TagCarouselView(discord.ui.View):
 
 async def generateTagCarouselView(user_discord_id, badge_info):
   user_badge_tags = await db_get_user_badge_tags(user_discord_id)
-  associated_tags = await db_get_associated_badge_tags(user_discord_id, badge_info['badge_filename'])
+  associated_tags = await db_get_associated_user_badge_tags_by_filename(user_discord_id, badge_info['badge_filename'])
 
   return TagCarouselView(user_discord_id, badge_info, user_badge_tags, associated_tags)
 
@@ -263,7 +264,7 @@ class BadgeTags(commands.Cog):
       return
 
     # If checks pass, go ahead and create the new tag for the user
-    await db_create_user_tag(ctx.author.id, tag)
+    await db_create_user_badge_tag(ctx.author.id, tag)
     await ctx.followup.send(
       embed=discord.Embed(
         title="Tag Created Successfully!",
@@ -326,7 +327,7 @@ class BadgeTags(commands.Cog):
       return
 
     # If checks pass, go ahead and delete the tag for the user
-    await db_delete_user_tag(ctx.author.id, tag)
+    await db_delete_user_badge_tag(ctx.author.id, tag)
     await ctx.followup.send(
       embed=discord.Embed(
         title="Tag Deleted Successfully!",
@@ -418,7 +419,7 @@ class BadgeTags(commands.Cog):
       return
 
     # If checks pass, go ahead and rename the tag for the user
-    await db_rename_user_tag(ctx.author.id, tag, new_name)
+    await db_rename_user_badge_tag(ctx.author.id, tag, new_name)
     await ctx.followup.send(
       embed=discord.Embed(
         title="Tag Renamed Successfully!",
@@ -633,7 +634,8 @@ class BadgeTags(commands.Cog):
       return
 
     description = None
-    initial_badge_filename = await db_get_last_carousel_tagged_badge_filename(user_discord_id)
+    initial_badge_instance = await db_get_last_carousel_tagged_badge_instance_id(user_discord_id)
+    initial_badge_filename = initial_badge_instance['filename']
     if initial_badge_filename and start == 'resume':
       initial_badge = await db_get_badge_info_by_filename(initial_badge_filename)
       description = "**Resuming:**\n\nThis is the last badge you tagged in your previous Carousel session. You can now re-tag or move and pick up where you left off!"
@@ -650,6 +652,7 @@ class BadgeTags(commands.Cog):
       description=description,
       color=discord.Color.dark_purple()
     )
+    # TODO: Get badge image with instance's current crystal effects if appropriate ("generate unnamed slot" essentially)
     badge_image = discord.File(fp=f"./images/badges/{initial_badge['badge_filename']}", filename=initial_badge['badge_filename'])
     embed.set_image(url=f"attachment://{initial_badge['badge_filename']}")
 

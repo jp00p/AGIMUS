@@ -77,6 +77,23 @@ async def db_get_user_badge_instances(
     )
     return await query.fetchall()
 
+async def db_get_badge_instance_by_id(badge_instance_id):
+  async with AgimusDB(dictionary=True) as query:
+    await query.execute(
+      f"""
+        SELECT {INSTANCE_COLUMNS}
+        FROM badge_instances AS b
+        JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+        LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+        LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
+        WHERE b.id = %s
+        LIMIT 1
+      """,
+      (badge_instance_id)
+    )
+    instance = await query.fetchone()
+  return instance
+
 async def db_get_badge_instance_by_badge_info_id(user_id, badge_info_id):
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
@@ -146,10 +163,11 @@ async def db_get_total_badge_instances_count_by_filename(filename: str) -> int:
     row = await query.fetchone()
   return row["count"]
 
+
 # Direct DB Helpers for Badge Instances *If Missing*
 # NOTE: These are primarily used for the v2.0 to v3.0 `badge` to `badge_instances` migration
 # Use utils.badge_instances -> `create_new_badge_instance()` for normal badge_instance creation
-async def db_create_badge_instance_if_missing(user_id: int, badge_filename: str):
+async def _db_create_badge_instance_if_missing(user_id: int, badge_filename: str):
   async with AgimusDB(dictionary=True) as query:
     # Get the badge_info.id from the filename
     await query.execute(
@@ -198,8 +216,7 @@ async def db_create_badge_instance_if_missing(user_id: int, badge_filename: str)
     )
     return await query.fetchone()
 
-
-async def db_create_badge_instance_if_missing_by_name(user_id: int, badge_name: str):
+async def _db_create_badge_instance_if_missing_by_name(user_id: int, badge_name: str):
   async with AgimusDB(dictionary=True) as query:
     # Get the badge_info.id from the filename
     await query.execute(
@@ -209,5 +226,5 @@ async def db_create_badge_instance_if_missing_by_name(user_id: int, badge_name: 
     result = await query.fetchone()
     if not result:
       return None
-  return await db_create_badge_instance_if_missing(user_id, result['badge_filename'])
+  return await _db_create_badge_instance_if_missing(user_id, result['badge_filename'])
 

@@ -97,7 +97,7 @@ async def award_level_up_badge(user_id):
       await apply_autoslot_preference(user_id, instance['id'], crystal['id'])
 
   elif mode == "crystallize":
-    instance = await db_get_badge_instance_id_by_badge_info_id(user_id, badge_info['id'])
+    instance = await db_get_badge_instance_by_badge_info_id(user_id, badge_info['id'])
     crystal = await crystallize_badge(user_id, instance['id'])
 
     if not crystal:
@@ -105,7 +105,7 @@ async def award_level_up_badge(user_id):
       crystal = await crystallize_random_owned_badge(user_id)
 
       if crystal:
-        instance_row = await db_get_instance_by_crystal(crystal['id'])
+        instance_row = await db_get_instance_by_attached_crystal_id(crystal['id'])
         if instance_row:
           instance = {'id': instance_row['badge_instance_id']}
 
