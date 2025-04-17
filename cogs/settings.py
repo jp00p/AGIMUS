@@ -1,5 +1,4 @@
 from common import *
-from cogs.trade import db_is_user_in_dtd_list
 
 # ____  _____________
 # \   \/  /\______   \
@@ -256,78 +255,6 @@ class LoudbotView(discord.ui.View):
     self.add_item(LoudbotDropdown(self.cog))
 
 
-# ________                        ___________      ________        ___.
-# \______ \   ______  _  ______   \__    ___/___   \______ \ _____ \_ |__   ____
-#  |    |  \ /  _ \ \/ \/ /    \    |    | /  _ \   |    |  \\__  \ | __ \ /  _ \
-#  |    `   (  <_> )     /   |  \   |    |(  <_> )  |    `   \/ __ \| \_\ (  <_> )
-# /_______  /\____/ \/\_/|___|  /   |____| \____/  /_______  (____  /___  /\____/
-#         \/                  \/                           \/     \/    \/
-class DTDDropdown(discord.ui.Select):
-  def __init__(self, cog):
-    self.cog = cog
-    options = [
-      discord.SelectOption(label="Enable DTD", description="Opt-in to the Down To Dabo List"),
-      discord.SelectOption(label="Disable DTD", description="Opt-out of the Down To Dabo List"),
-    ]
-
-    super().__init__(
-      placeholder="Choose your preference",
-      min_values=1,
-      max_values=1,
-      options=options,
-      row=1
-    )
-
-  async def callback(self, interaction:discord.Interaction):
-    selection = self.values[0]
-
-    is_user_in_dtd_already = await db_is_user_in_dtd_list(interaction.user.id)
-
-    if selection == "Enable DTD":
-      if is_user_in_dtd_already:
-        await interaction.response.send_message(
-          embed=discord.Embed(
-            title="You're already in the DTD List! No action taken.",
-            color=discord.Color.red()
-          ),
-          ephemeral=True
-        )
-      else:
-        await db_add_user_to_dtd(interaction.user.id)
-        await interaction.response.send_message(
-          embed=discord.Embed(
-            title="You have successfully chosen to participate in the Down To Dabo List.",
-            color=discord.Color.green()
-          ).set_footer(text="You can always come back to this interface to reconfigure in the future!"),
-          ephemeral=True
-        )
-    elif selection == "Disable DTD":
-      if not is_user_in_dtd_already:
-        await interaction.response.send_message(
-          embed=discord.Embed(
-            title="You weren't in the DTD list! No action taken.",
-            color=discord.Color.red()
-          ),
-          ephemeral=True
-        )
-      else:
-        await db_remove_user_from_dtd(interaction.user.id)
-        await interaction.response.send_message(
-          embed=discord.Embed(
-            title="You have successfully opted-out of the Down To Dabo List.",
-            color=discord.Color.blurple()
-          ).set_footer(text="You can always come back to this interface and re-enable in the future!"),
-          ephemeral=True
-        )
-
-class DTDView(discord.ui.View):
-  def __init__(self, cog):
-    self.cog = cog
-    super().__init__()
-
-    self.add_item(DTDDropdown(self.cog))
-
-
 class TaggingDropdown(discord.ui.Select):
   def __init__(self, cog):
     self.cog = cog
@@ -397,7 +324,6 @@ class Settings(commands.Cog):
     notifications_embed, notifications_thumbnail = await self._get_notifications_embed_and_thumbnail()
     wordcloud_embed, wordcloud_thumbnail = await self._get_wordcloud_embed_and_thumbnail()
     loudbot_embed, loudbot_thumbnail = await self._get_loudbot_embed_and_thumbnail()
-    dtd_embed, dtd_thumbnail = await self._get_dtd_embed_and_thumbnail()
     tagging_embed, tagging_thumbnail = await self._get_tagging_embed_and_thumbnail()
 
     page_groups = [
@@ -476,19 +402,6 @@ class Settings(commands.Cog):
         custom_buttons=[],
         use_default_buttons=False,
         custom_view=LoudbotView(self)
-      ),
-      pages.PageGroup(
-        pages=[
-          pages.Page(
-            embeds=[dtd_embed],
-            files=[dtd_thumbnail]
-          )
-        ],
-        label="Down To Dabo",
-        description="Opt-in or Opt-out of the Down To Dabo List",
-        custom_buttons=[],
-        use_default_buttons=False,
-        custom_view=DTDView(self)
       ),
       pages.PageGroup(
         pages=[
