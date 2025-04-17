@@ -3,6 +3,7 @@ from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist, db_
 from queries.trade import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
+from utils.check_user_access import user_check
 
 from random import sample
 
@@ -239,7 +240,8 @@ class Trade(commands.Cog):
     description="View and accept/decline incoming trades from other users"
   )
   @commands.check(access_check)
-  async def incoming(self, ctx: discord.ApplicationContext):
+  @commands.check(user_check)
+  async def incoming(self, ctx:discord.ApplicationContext):
     incoming_trades = await db_get_active_requestee_trades(ctx.user.id)
 
     if not incoming_trades:
@@ -581,6 +583,7 @@ class Trade(commands.Cog):
     autocomplete=autocomplete_requesting_badges
   )
   @commands.check(access_check)
+  @commands.check(user_check)
   async def start(self, ctx:discord.ApplicationContext, requestee:discord.User, offer: str, request: str):
     await ctx.defer(ephemeral=True)
     requestor_id = ctx.author.id
@@ -735,6 +738,7 @@ class Trade(commands.Cog):
     description="Check the current status and send your outgoing trade"
   )
   @commands.check(access_check)
+  @commands.check(user_check)
   async def send(self, ctx):
     active_trade = await self.check_for_active_trade(ctx)
     if not active_trade:
@@ -1033,7 +1037,8 @@ class Trade(commands.Cog):
     autocomplete=autocomplete_requesting_badges,
   )
   @commands.check(access_check)
-  async def propose(self, ctx, offer: str, request: str):
+  @commands.check(user_check)
+  async def propose(self, ctx, offer:str, request:str):
     active_trade = await self.check_for_active_trade(ctx)
     if not active_trade:
       return

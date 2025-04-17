@@ -4,6 +4,7 @@ from handlers.xp import increment_user_xp
 from utils.badge_utils import *
 from utils.badge_instances import *
 from utils.check_channel_access import access_check
+from utils.check_user_access import user_check
 
 from queries.tongo import *
 from queries.badge_info import *
@@ -480,7 +481,8 @@ class Tongo(commands.Cog):
     description="Check the current status of the active game of Tongo!"
   )
   @commands.check(access_check)
-  async def index(self, ctx: discord.ApplicationContext):
+  @commands.check(user_check)
+  async def index(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.user.id
     user_member = await self.bot.current_guild.fetch_member(user_discord_id)
@@ -576,7 +578,8 @@ class Tongo(commands.Cog):
   description="If you're The Chair, end the current game of Tongo!"
   )
   @commands.check(access_check)
-  async def confront(self, ctx: discord.ApplicationContext):
+  @commands.check(user_check)
+  async def confront(self, ctx:discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
     user_id = ctx.author.id
 
