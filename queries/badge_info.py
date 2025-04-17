@@ -1,11 +1,26 @@
 from common import *
 
-# ________                      .__
-# \_____  \  __ __   ___________|__| ____   ______
-#  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
-# /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
-# \_____\ \_/____/  \___  >__|  |__|\___  >____  >
-#        \__>           \/              \/     \/
+
+# _________                         __                 __
+# \_   ___ \  ____   ____   _______/  |______    _____/  |_  ______
+# /    \  \/ /  _ \ /    \ /  ___/\   __\__  \  /    \   __\/  ___/
+# \     \___(  <_> )   |  \\___ \  |  |  / __ \|   |  \  |  \___ \
+#  \______  /\____/|___|  /____  > |__| (____  /___|  /__| /____  >
+#         \/            \/     \/            \/     \/          \/
+_MAX_BADGE_COUNT = None
+async def db_get_max_badge_count():
+  global _MAX_BADGE_COUNT
+
+  if _MAX_BADGE_COUNT is not None:
+    return _MAX_BADGE_COUNT
+  """
+  Return the total number of possible badges we have in the system
+  :return:
+  """
+  _MAX_BADGE_COUNT = len(await db_get_all_badge_info())
+  return _MAX_BADGE_COUNT
+
+
 _ALL_BADGE_INFO = None
 async def db_get_all_badge_info():
   global _ALL_BADGE_INFO
@@ -24,6 +39,30 @@ async def db_get_all_badge_info():
   return _ALL_BADGE_INFO
 
 
+_SPECIAL_BADGE_INFO = None
+async def db_get_special_badge_info():
+  global _SPECIAL_BADGE_INFO
+  """
+  Returns all rows from badge_info table where special = 1
+  :return: list of row dicts
+  """
+  if _SPECIAL_BADGE_INFO is not None:
+    return _SPECIAL_BADGE_INFO
+
+  async with AgimusDB(dictionary=True) as query:
+    sql = "SELECT * FROM badge_info WHERE special = 1 ORDER BY badge_name ASC;"
+    await query.execute(sql)
+    rows = await query.fetchall()
+    _SPECIAL_BADGE_INFO = rows
+  return _SPECIAL_BADGE_INFO
+
+
+# ________                      .__
+# \_____  \  __ __   ___________|__| ____   ______
+#  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
+# /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
+# \_____\ \_/____/  \___  >__|  |__|\___  >____  >
+#        \__>           \/              \/     \/
 async def db_get_badge_info_by_id(badge_info_id):
   async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM badge_info WHERE id = %s"

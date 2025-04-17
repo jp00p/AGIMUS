@@ -5,6 +5,7 @@ from common import *
 from utils.check_channel_access import access_check
 from utils.string_utils import *
 from utils.badge_rewards import *
+from utils.image_utils import *
 from utils.badge_utils import *
 
 import queries.badge_completion as queries_badge_completion

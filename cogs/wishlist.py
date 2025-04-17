@@ -21,7 +21,7 @@ from queries.wishlist import (
   db_add_wishlist_dismissal,
   db_delete_wishlist_dismissal,
 )
-from utils.badge_utils import *
+from utils.badge_utils import autocomplete_selections
 from utils.check_channel_access import access_check
 
 paginator_buttons = [
