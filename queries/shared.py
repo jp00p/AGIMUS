@@ -1,0 +1,28 @@
+# queries/common.py
+
+BADGE_INSTANCE_COLUMNS = """
+  b_i.id AS badge_info_id,
+  b_i.badge_filename,
+  b_i.badge_name,
+  b_i.badge_url,
+  b_i.quadrant,
+  b_i.time_period,
+  b_i.franchise,
+  b_i.reference,
+  b_i.special,
+
+  b.id AS badge_instance_id,
+  b.badge_info_id,
+  b.owner_discord_id,
+  b.locked,
+  b.origin_user_id,
+  b.acquired_at,
+  b.active_crystal_id,
+  b.status,
+
+  c.id AS crystal_id,
+  c.crystal_type_id,
+  t.name AS crystal_name,
+  t.effect,
+  t.rarity_rank
+"""

@@ -1,33 +1,6 @@
 from common import *
 
-
-# Big ol' fully enriched instances
-INSTANCE_COLUMNS = """
-  b_i.id AS badge_info_id,
-  b_i.badge_filename,
-  b_i.badge_name,
-  b_i.badge_url,
-  b_i.quadrant,
-  b_i.time_period,
-  b_i.franchise,
-  b_i.reference,
-  b_i.special,
-
-  b.id AS badge_instance_id,
-  b.badge_info_id,
-  b.owner_discord_id,
-  b.locked,
-  b.origin_user_id,
-  b.acquired_at,
-  b.active_crystal_id,
-  b.status,
-
-  c.id AS crystal_id,
-  c.crystal_type_id,
-  t.name AS crystal_name,
-  t.effect,
-  t.rarity_rank
-"""
+from queries.common import BADGE_INSTANCE_COLUMNS
 
 # GET
 
@@ -65,7 +38,7 @@ async def db_get_user_badge_instances(
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
       f"""
-        SELECT {INSTANCE_COLUMNS}
+        SELECT {BADGE_INSTANCE_COLUMNS}
         FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
         LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
@@ -81,7 +54,7 @@ async def db_get_badge_instance_by_id(badge_instance_id):
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
       f"""
-        SELECT {INSTANCE_COLUMNS}
+        SELECT {BADGE_INSTANCE_COLUMNS}
         FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
         LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
@@ -98,7 +71,7 @@ async def db_get_badge_instance_by_badge_info_id(user_id, badge_info_id):
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
       f"""
-        SELECT {INSTANCE_COLUMNS}
+        SELECT {BADGE_INSTANCE_COLUMNS}
         FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
         LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
@@ -205,7 +178,7 @@ async def _db_create_badge_instance_if_missing(user_id: int, badge_filename: str
     # (Crystal Info will be missing but just returning keys by expected 'instance format')
     await query.execute(
       f"""
-        SELECT {INSTANCE_COLUMNS}
+        SELECT {BADGE_INSTANCE_COLUMNS}
         FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
         LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id

@@ -242,3 +242,22 @@ CREATE TABLE IF NOT EXISTS badge_instances_tags_carousel_position (
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE
 );
 
+--
+-- Trades
+--
+
+CREATE TABLE IF NOT EXISTS trade_offered_instances (
+  trade_id INT NOT NULL,
+  badge_instance_id INT NOT NULL,
+  PRIMARY KEY (trade_id, badge_instance_id),
+  FOREIGN KEY (trade_id) REFERENCES trades(id) ON DELETE CASCADE,
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS trade_requested_instances (
+  trade_id INT NOT NULL,
+  badge_instance_id INT NOT NULL,
+  PRIMARY KEY (trade_id, badge_instance_id),
+  FOREIGN KEY (trade_id) REFERENCES trades(id) ON DELETE CASCADE,
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE
+);
