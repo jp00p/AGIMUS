@@ -1,13 +1,65 @@
 -- v3.0.0.sql - Badge Instances Refactor
 
--- We're gonna start using an id column on badge_info for the new tables going forward
--- But eventually we'll go back and update all the tables and queries to use this id
--- badge_info's primary key, but this refactor is massive enough as-is and
--- I just don't want to deal with all of that shit right now... whee
+--
+-- Badge Info, transition to using id as primary everywhere
+--
 
--- Add ID column for badge_info without breaking foreign key constraints
-ALTER TABLE badge_info
-  ADD COLUMN id INT AUTO_INCREMENT UNIQUE FIRST;
+-- Drop foreign keys that depend on badge_filename
+ALTER TABLE badge_affiliation DROP FOREIGN KEY badge_affiliation_fk_badge_filename;
+ALTER TABLE badge_type DROP FOREIGN KEY badge_type_fk_badge_filename;
+ALTER TABLE badge_universe DROP FOREIGN KEY badge_universe_fk_badge_filename;
+ALTER TABLE badge_scraps DROP FOREIGN KEY badge_scraps_fk_badge_filename;
+ALTER TABLE trade_offered DROP FOREIGN KEY trade_offered_ibfk_1;
+ALTER TABLE trade_requested DROP FOREIGN KEY trade_requested_ibfk_1;
+ALTER TABLE badge_scrapped DROP FOREIGN KEY badge_scrapped_ibfk_2;
+ALTER TABLE badge_wishlists DROP FOREIGN KEY badge_wishlists_fk_badge_filename;
+ALTER TABLE tongo_pot DROP FOREIGN KEY badge_tongo_pot_fk_badge_filename;
+
+-- Drop primary key on badge_filename
+ALTER TABLE badge_info DROP PRIMARY KEY;
+
+-- Promote id to primary key
+ALTER TABLE badge_info ADD PRIMARY KEY (id);
+
+-- Make badge_filename a UNIQUE column instead
+ALTER TABLE badge_info ADD UNIQUE KEY uq_badge_filename (badge_filename);
+
+-- Re-add foreign keys (still using badge_filename)
+ALTER TABLE badge_affiliation
+  ADD CONSTRAINT badge_affiliation_fk_badge_filename
+  FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
+
+ALTER TABLE badge_type
+  ADD CONSTRAINT badge_type_fk_badge_filename
+  FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
+
+ALTER TABLE badge_universe
+  ADD CONSTRAINT badge_universe_fk_badge_filename
+  FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
+
+ALTER TABLE badge_scraps
+  ADD CONSTRAINT badge_scraps_fk_badge_filename
+  FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
+
+ALTER TABLE trade_offered
+  ADD CONSTRAINT trade_offered_ibfk_1
+  FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
+
+ALTER TABLE trade_requested
+  ADD CONSTRAINT trade_requested_ibfk_1
+  FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
+
+ALTER TABLE badge_scrapped
+  ADD CONSTRAINT badge_scrapped_ibfk_2
+  FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
+
+ALTER TABLE badge_wishlists
+  ADD CONSTRAINT badge_wishlists_fk_badge_filename
+  FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
+
+ALTER TABLE tongo_pot
+  ADD CONSTRAINT badge_tongo_pot_fk_badge_filename
+  FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
 
 -- v3.0.0.sql - Crystallization Schema
 
@@ -56,7 +108,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Auridium", 1, "auridium.png", "gold_gradient", "Trade-standard alloy with a golden gleam. Shiny!"),
   ("Duranium", 1, "duranium.png", "silver_gradient", "Forged in Federation shipyards. A silvery alloy used in starship hull plating."),
   ("Solanogen", 1, "solanogen.png", "cyan_gradient", "Exotic compound from subspace realms. Don't get SCHISMD!"),
-  ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days.");
+  ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days."),
 
   ("Latinum", 1, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
 

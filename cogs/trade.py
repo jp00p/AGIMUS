@@ -20,49 +20,64 @@ f.close()
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
 async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
-  user_id = ctx.interaction.user.id
-  active_trade = await db_get_active_requestor_trade(user_id)
-  if not active_trade:
-    return []
+  requestor_user_id = ctx.interaction.user.id
 
-  requestee_id = active_trade['requestee_id']
-  requestee_instances = await db_get_user_badge_instances(requestee_id)
+  requestee_user_id = None
+  if 'requestee' in ctx.options:
+    requestee_user_id = ctx.options['requestee']
+  else:
+    active_trade = await db_get_active_requestor_trade(ctx.interaction.user.id)
+    if active_trade:
+      requestee_user_id = active_trade['requestee_id']
+
+  # Lookup badges
+  requestor_instances = await db_get_user_badge_instances(requestor_user_id)
+  requestee_instances = await db_get_user_badge_instances(requestee_user_id)
+
   requestee_filenames = {b['badge_filename'] for b in requestee_instances}
 
-  user_instances = await db_get_user_badge_instances(user_id)
+  # Filter: Don't offer badges the requestee already owns
   results = [
     discord.OptionChoice(
-      name=f"{b['badge_name']}",
+      name=b['badge_name'],
       value=str(b['badge_instance_id'])
     )
-    for b in user_instances
-    if b['badge_filename'] not in requestee_filenames and not b['special']
+    for b in requestor_instances
+    if not b['special'] and (b['badge_filename'] not in requestee_filenames)
   ]
 
-  return [r for r in results if ctx.value.lower() in r.name.lower()][:25]
+  return [r for r in results if ctx.value.lower() in r.name.lower()]
 
 
 async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
-  user_id = ctx.interaction.user.id
-  active_trade = await db_get_active_requestor_trade(user_id)
-  if not active_trade:
-    return []
+  requestor_user_id = ctx.interaction.user.id
 
-  requestee_id = active_trade['requestee_id']
-  requestor_instances = await db_get_user_badge_instances(user_id)
+  requestee_user_id = None
+  if 'requestee' in ctx.options:
+    requestee_user_id = ctx.options['requestee']
+  else:
+    active_trade = await db_get_active_requestor_trade(ctx.interaction.user.id)
+    if active_trade:
+      requestee_user_id = active_trade['requestee_id']
+
+  # Lookup badges
+  requestor_instances = await db_get_user_badge_instances(requestor_user_id)
+  requestee_instances = await db_get_user_badge_instances(requestee_user_id)
+
   requestor_filenames = {b['badge_filename'] for b in requestor_instances}
 
-  requestee_instances = await db_get_user_badge_instances(requestee_id)
+  # Filter: Don't request badges the requestor already owns
   results = [
     discord.OptionChoice(
-      name=f"{b['badge_name']}",
+      name=b['badge_name'],
       value=str(b['badge_instance_id'])
     )
     for b in requestee_instances
-    if b['badge_filename'] not in requestor_filenames and not b['special']
+    if not b['special'] and (b['badge_filename'] not in requestor_filenames)
   ]
 
-  return [r for r in results if ctx.value.lower() in r.name.lower()][:25]
+  return [r for r in results if ctx.value.lower() in r.name.lower()]
+
 
 # ____   ____.__
 # \   \ /   /|__| ______  _  ________

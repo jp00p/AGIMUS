@@ -884,7 +884,7 @@ class Tongo(commands.Cog):
     beneficiary_id = liquidation_result['beneficiary_id']
 
     # Create a new instance using utility helper that tracks origin reason
-    reward_instance = await create_new_badge_instance(badge_info_id, beneficiary_id, event_type='liquidation_endowment')
+    reward_instance = await create_new_badge_instance(beneficiary_id, badge_info_id, event_type='liquidation_endowment')
     if not reward_instance:
       return None
 

@@ -432,7 +432,7 @@ CREATE TABLE IF NOT EXISTS crystal_types (
   description TEXT,
 );
 
-INSERT IGNORE INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
+INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 
   -- Common Crystals
   ("Dilithium", 1, "dilithium.png", "pink_tint", "Good old Dilithium. Standard Starfleet issue!"),
@@ -448,7 +448,7 @@ INSERT IGNORE INTO crystal_types (name, rarity_rank, icon, effect, description) 
   ("Auridium", 1, "auridium.png", "gold_gradient", "Trade-standard alloy with a golden gleam. Shiny!"),
   ("Duranium", 1, "duranium.png", "silver_gradient", "Forged in Federation shipyards. A silvery alloy used in starship hull plating."),
   ("Solanogen", 1, "solanogen.png", "cyan_gradient", "Exotic compound from subspace realms. Don't get SCHISMD!"),
-  ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days.");
+  ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days."),
 
   ("Latinum", 1, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
 
@@ -641,18 +641,27 @@ CREATE TABLE IF NOT EXISTS badge_instances_tags_carousel_position (
 -- Trades
 --
 
+CREATE TABLE IF NOT EXISTS instance_trades (
+  id              INT AUTO_INCREMENT PRIMARY KEY,
+  requestor_id    BIGINT NOT NULL,
+  requestee_id    BIGINT NOT NULL,
+  status          ENUM('pending', 'active', 'complete', 'declined', 'canceled') NOT NULL DEFAULT 'pending',
+  time_created    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS trade_offered_instances (
-  trade_id INT NOT NULL,
+  id                INT AUTO_INCREMENT PRIMARY KEY,
+  trade_id          INT NOT NULL,
   badge_instance_id INT NOT NULL,
-  PRIMARY KEY (trade_id, badge_instance_id),
-  FOREIGN KEY (trade_id) REFERENCES trades(id) ON DELETE CASCADE,
+  FOREIGN KEY (trade_id) REFERENCES instance_trades(id) ON DELETE CASCADE,
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS trade_requested_instances (
-  trade_id INT NOT NULL,
+  id                INT AUTO_INCREMENT PRIMARY KEY,
+  trade_id          INT NOT NULL,
   badge_instance_id INT NOT NULL,
-  PRIMARY KEY (trade_id, badge_instance_id),
-  FOREIGN KEY (trade_id) REFERENCES trades(id) ON DELETE CASCADE,
+  FOREIGN KEY (trade_id) REFERENCES instance_trades(id) ON DELETE CASCADE,
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE
 );
+

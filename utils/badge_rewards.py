@@ -4,6 +4,7 @@ from queries.badge_info import *
 from queries.badge_instances import *
 from queries.crystals import *
 from queries.wishlist import *
+from utils.badge_instances import create_new_badge_instance
 
 
 async def award_random_badge(user_id: int):
@@ -17,7 +18,13 @@ async def award_random_badge(user_id: int):
     return None
 
   badge_filename = random.choice(valid_badge_filenames)
-  badge_instance = await db_create_badge_instance_if_missing(user_id, badge_filename)
+
+  badge_info = await db_get_badge_info_by_filename(badge_filename)
+  if not badge_info:
+    logger.error(f"Could not find badge_info for filename: {badge_filename}")
+    return None
+
+  badge_instance = await create_new_badge_instance(user_id, badge_info['id'], 'admin')
   if badge_instance is None:
     return None
 
@@ -37,7 +44,12 @@ async def award_specific_badge(user_id: int, badge_filename: str):
   Handles wishlist autolock + purge.
   Returns the full badge instance dict, or None if the badge couldn't be awarded.
   """
-  badge_instance = await db_create_badge_instance_if_missing(user_id, badge_filename)
+  badge_info = await db_get_badge_info_by_filename(badge_filename)
+  if not badge_info:
+    logger.error(f"Could not find badge_info for filename: {badge_filename}")
+    return None
+
+  badge_instance = await create_new_badge_instance(user_id, badge_info['id'], 'admin')
   if badge_instance is None:
     return None
 
@@ -89,7 +101,7 @@ async def award_level_up_badge(user_id):
   crystal = None
 
   if mode == "grant":
-    instance = await db_create_badge_instance_if_missing(user_id, badge_info['id'])
+    instance = await create_new_badge_instance(user_id, badge_info['id'], 'level_up')
     if instance is None:
       raise(f"User {user_id} already owns badge {selected_badge_filename} (race condition?)")
     crystal = await db_attach_crystal_to_instance(instance['id'], crystal_name="Dilithium")

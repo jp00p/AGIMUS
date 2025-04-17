@@ -140,7 +140,7 @@ async def db_get_total_badge_instances_count_by_filename(filename: str) -> int:
 # Direct DB Helpers for Badge Instances *If Missing*
 # NOTE: These are primarily used for the v2.0 to v3.0 `badge` to `badge_instances` migration
 # Use utils.badge_instances -> `create_new_badge_instance()` for normal badge_instance creation
-async def _db_create_badge_instance_if_missing(user_id: int, badge_filename: str):
+async def db_create_badge_instance_if_missing(user_id: int, badge_filename: str):
   async with AgimusDB(dictionary=True) as query:
     # Get the badge_info.id from the filename
     await query.execute(
@@ -189,7 +189,7 @@ async def _db_create_badge_instance_if_missing(user_id: int, badge_filename: str
     )
     return await query.fetchone()
 
-async def _db_create_badge_instance_if_missing_by_name(user_id: int, badge_name: str):
+async def db_create_badge_instance_if_missing_by_name(user_id: int, badge_name: str):
   async with AgimusDB(dictionary=True) as query:
     # Get the badge_info.id from the filename
     await query.execute(

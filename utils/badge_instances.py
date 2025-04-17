@@ -2,44 +2,16 @@ from common import *
 
 # utils/badge_instances.py
 
-async def get_badge_instance_with_info(instance_id: int) -> dict:
-  query = """
-    SELECT
-      b_inst.id AS id,
-      b_inst.badge_info_id,
-      b_inst.owner_discord_id,
-      b_inst.locked,
-      b_inst.origin_user_id,
-      b_inst.acquired_at,
-      b_inst.active_crystal_id,
-      b_inst.status,
+from queries.badge_instances import *
 
-      b_i.id AS badge_info_id,
-      b_i.badge_filename,
-      b_i.badge_name,
-      b_i.badge_url,
-      b_i.quadrant,
-      b_i.time_period,
-      b_i.franchise,
-      b_i.reference,
-      b_i.special
-    FROM badge_instances AS b_inst
-    JOIN badge_info AS b_i ON b_inst.badge_info_id = b_i.id
-    WHERE b_inst.id = %s
-  """
-  async with AgimusDB(dictionary=True) as db:
-    await db.execute(query, (instance_id,))
-    return await db.fetchone()
-
-
-async def create_new_badge_instance(badge_info_id: int, user_id: int, event_type: str = 'level_up') -> dict:
+async def create_new_badge_instance(user_id: int, badge_info_id: int, event_type: str = 'level_up') -> dict:
   # Insert a new active, unlocked badge instance
   insert_instance = """
-    INSERT INTO badge_instances (badge_info_id, owner_discord_id, status)
-    VALUES (%s, %s, 'active')
+    INSERT INTO badge_instances (badge_info_id, owner_discord_id, origin_user_id, status)
+    VALUES (%s, %s, %s, 'active')
   """
   async with AgimusDB() as db:
-    await db.execute(insert_instance, (badge_info_id, user_id))
+    await db.execute(insert_instance, (badge_info_id, user_id, user_id))
     instance_id = db.lastrowid
 
   # Log acquisition in history
@@ -51,7 +23,8 @@ async def create_new_badge_instance(badge_info_id: int, user_id: int, event_type
     await db.execute(insert_history, (instance_id, user_id, event_type))
 
   # Fetch full record with badge info
-  return await get_badge_instance_with_info(instance_id)
+  instance = await db_get_badge_instance_by_id(instance_id)
+  return instance
 
 
 async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type: str = 'unknown'):
