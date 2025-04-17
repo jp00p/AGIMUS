@@ -423,13 +423,6 @@ CREATE TABLE IF NOT EXISTS crystal_ranks (name, emoji, rarity_rank, drop_chance,
   ("Mythic",    "💎", 5, 0.05, 4);
 
 -- 2. Crystal Types
---
--- Rarity Tier Design Philosophy:
--- Common    – Simple color tints
--- Uncommon  – Visual overlays (e.g. patterns)
--- Rare      – Background effects (may include subtle top overlays)
--- Legendary – Animated overlays or backdrops
--- Mythic    – Animated + prestige visual effects
 CREATE TABLE IF NOT EXISTS crystal_types (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) NOT NULL UNIQUE,
@@ -449,11 +442,20 @@ INSERT IGNORE INTO crystal_types (name, rarity_rank, icon, effect, description) 
   ("Cormaline", 1, "cormaline.png", "purple_tint", "Ferenginar gemstone. Often gifted during dubious business deals."),
   ("Tellurium", 1, "tellurium.png", "greenmint_tint", "Essential for biosensor arrays. Slightly toxic when aerosolized, don't breathe this!"),
 
+  ("Rubindium", 1, "rubindium.png", "crimson_gradient", "Sensor-reflective alloy with multiple applications. Chief among them, frikkin laser beams."),
+  ("Polytrinic", 1, "polytrinic.png", "lime_gradient", "Toxic and corrosive. Glows green, that means bad!"),
+  ("Benamite", 1, "benamite.png", "navy_gradient", "Essential for quantum slipstream drives. Sadly unstable, you lose yet again Voyager!");
+  ("Auridium", 1, "auridium.png", "gold_gradient", "Trade-standard alloy with a golden gleam. Shiny!"),
+  ("Duranium", 1, "duranium.png", "silver_gradient", "Forged in Federation shipyards. A silvery alloy used in starship hull plating."),
+  ("Solanogen", 1, "solanogen.png", "cyan_gradient", "Exotic compound from subspace realms. Don't get SCHISMD!"),
+  ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days.");
+
+  ("Latinum", 1, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
+
   -- Uncommon Crystals
   ("Isolinear", 2, "isolinear.png", "isolinear", "Shimoda's favorite plaything. Fully stackable!"),
   ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
   ("Positron", 2, "positron.png", "positronic", "Fully functional. Operates at 60 trillion calculations a second."),
-  ("Latinum", 2, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!."),
   ("Cryonetrium", 2, "cryonetrium.png", "cryonetrium", "Still gaseous at -200°C, that's some cold coolant!"),
 
   -- Rare Crystals
@@ -463,12 +465,11 @@ INSERT IGNORE INTO crystal_types (name, rarity_rank, icon, effect, description) 
   ("Silicon Shard", 3, "silicon_shard.png", "crystalline_entity", "Sharp and pointy, a beautiful Entity. Crystalline as FUCK!"),
 
   -- Legendary Crystals
-  ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "Collected from the EPS grid. Hums with that familiar pulse."),
+  ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "EJECTED FROM A CORE! Hums with that familiar pulse."),
   ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Distortions abound when these are around!"),
-  ("Bajoran Orb", 4, "bajoran_orb.png", "prophet_glow", "An Orb of the Prophets. My Child!"),
 
   -- Mythic Crystals
-  ("Genesis Core", 5, "genesis_core.png", "terraform_shift", "A component of the ultimate matter converter... KHAAANNNN!"),
+  ("Bajoran Orb", 5, "bajoran_orb.png", "wormhole_opening", "Tear of the Prophets. My Child!"),
   ("Chroniton", 5, "chroniton.png", "phase_flicker", "Time travel! Glitches in and out of this temporal frame."),
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable.");
 

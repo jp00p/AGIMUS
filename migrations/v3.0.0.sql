@@ -50,11 +50,20 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Cormaline", 1, "cormaline.png", "purple_tint", "Ferenginar gemstone. Often gifted during dubious business deals."),
   ("Tellurium", 1, "tellurium.png", "greenmint_tint", "Essential for biosensor arrays. Slightly toxic when aerosolized, don't breathe this!"),
 
+  ("Rubindium", 1, "rubindium.png", "crimson_gradient", "Sensor-reflective alloy with multiple applications. Chief among them, frikkin laser beams."),
+  ("Polytrinic", 1, "polytrinic.png", "lime_gradient", "Toxic and corrosive. Glows green, that means bad!"),
+  ("Benamite", 1, "benamite.png", "navy_gradient", "Essential for quantum slipstream drives. Sadly unstable, you lose yet again Voyager!");
+  ("Auridium", 1, "auridium.png", "gold_gradient", "Trade-standard alloy with a golden gleam. Shiny!"),
+  ("Duranium", 1, "duranium.png", "silver_gradient", "Forged in Federation shipyards. A silvery alloy used in starship hull plating."),
+  ("Solanogen", 1, "solanogen.png", "cyan_gradient", "Exotic compound from subspace realms. Don't get SCHISMD!"),
+  ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days.");
+
+  ("Latinum", 1, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
+
   -- Uncommon Crystals
   ("Isolinear", 2, "isolinear.png", "isolinear", "Shimoda's favorite plaything. Fully stackable!"),
   ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
   ("Positron", 2, "positron.png", "positronic", "Fully functional. Operates at 60 trillion calculations a second."),
-  ("Latinum", 2, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
   ("Cryonetrium", 2, "cryonetrium.png", "cryonetrium", "Still gaseous at -200°C, that's some cold coolant!"),
 
   -- Rare Crystals
@@ -66,9 +75,9 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   -- Legendary Crystals
   ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "EJECTED FROM A CORE! Hums with that familiar pulse."),
   ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Distortions abound when these are around!"),
-  ("Bajoran Orb", 4, "bajoran_orb.png", "prophet_glow", "An Tear of the Prophets. My Child!"),
 
   -- Mythic Crystals
+  ("Bajoran Orb", 5, "bajoran_orb.png", "wormhole_opening", "Tear of the Prophets. My Child!"),
   ("Chroniton", 5, "chroniton.png", "phase_flicker", "Time travel! Glitches in and out of this temporal frame."),
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable.");
 
@@ -187,11 +196,6 @@ CREATE TABLE tongo_game_rewards (
 -- Wishlists
 --
 
--- Note that we don't reference specific badge_instances here,
--- users are essentially wishlisting "badge_info"s, but we're naming it
--- `badge_instance_wishlists` because we're migrating from the old
--- `badge_wishlists` table and want to make this clear this is the new table
--- also the results of these wishlists will be badge instances so ¯\_(ツ)_/¯
 CREATE TABLE badge_instance_wishlists (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,
@@ -213,30 +217,6 @@ CREATE TABLE IF NOT EXISTS badge_instance_wishlist_dismissals (
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
   FOREIGN KEY (match_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE
 );
-
--- -- Migrate legacy wishlist entries to the new normalized format
--- INSERT IGNORE INTO badge_instance_wishlists (user_discord_id, badge_info_id)
--- SELECT
---   bw.user_discord_id,
---   bi.id AS badge_info_id
--- FROM badge_wishlists AS bw
--- JOIN badge_info AS bi ON bw.badge_filename = bi.badge_filename;
-
--- -- Migrate legacy wishlist_dismissals to badge_instance_wishlist_dismissals
--- INSERT IGNORE INTO badge_instance_wishlist_dismissals (
---   user_discord_id,
---   match_discord_id,
---   has,
---   wants,
---   time_created
--- )
--- SELECT
---   user_discord_id,
---   match_discord_id,
---   has,
---   wants,
---   time_created
--- FROM wishlist_dismissals;
 
 --
 -- Badge Tags Migration

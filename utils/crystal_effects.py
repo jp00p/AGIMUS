@@ -4,7 +4,7 @@ import shutil
 from common import *
 
 from pathlib import Path
-from scipy.ndimage import map_coordinates, binary_dilation
+from scipy.ndimage import map_coordinates, binary_dilation, gaussian_filter
 
 from queries.crystals import db_get_active_crystal
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
@@ -44,11 +44,11 @@ def load_background_image_resized(path, size):
 
 # Rarity Tier Design Philosophy:
 #
-# Common    – Simple color tints
-# Uncommon  – Visual overlays (e.g. patterns)
-# Rare      – Background effects (may include subtle top overlays)
-# Legendary – Animated overlays or backdrops
-# Mythic    – Animated + prestige visual effects
+# -- Common    – Simple color tints
+# -- Uncommon  – Badge borders
+# -- Rare      – Backgrounds
+# -- Legendary – Animated effects
+# -- Mythic    – Animated + prestige visual effects
 #
 async def apply_crystal_effect(badge_image: Image.Image, badge: dict) -> Image.Image | list[Image.Image]:
   """
@@ -165,6 +165,8 @@ def delete_crystal_effects_cache():
 # 888    888 888  888 888  888  888 888  888  888 888  888 888  888
 # Y88b  d88P Y88..88P 888  888  888 888  888  888 Y88..88P 888  888
 #  "Y8888P"   "Y88P"  888  888  888 888  888  888  "Y88P"  888  888
+
+# Tints
 @register_effect("pink_tint")
 def effect_pink_tint(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_tint(img, (255, 105, 180))  # Hot pink
@@ -188,6 +190,36 @@ def effect_purple_tint(img: Image.Image, badge: dict) -> Image.Image:
 @register_effect("greenmint_tint")
 def effect_greenmint_tint(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_tint(img, (100, 220, 180))  # Minty green
+
+# Gradients
+@register_effect("crimson_gradient")
+def effect_crimson_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_gradient(img, (255, 60, 60))  # Bold crimson
+
+@register_effect("lime_gradient")
+def effect_lime_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_gradient(img, (140, 255, 80))  # Vivid lime
+
+@register_effect("navy_gradient")
+def effect_navy_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_gradient(img, (80, 120, 255))  # Cool blue
+
+@register_effect("gold_gradient")
+def effect_yellow_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_gradient(img, (245, 215, 60))  # Golden yellow
+
+@register_effect("silver_gradient")
+def effect_silver_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_gradient(img, (200, 200, 200))  # Silvery
+
+@register_effect("cyan_gradient")
+def effect_cyan_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_gradient(img, (90, 230, 255))  # Cyan-turquoise
+
+@register_effect("amber_gradient")
+def effect_amber_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_gradient(img, (255, 140, 60))  # Amber-orange
+
 
 def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: float = 0.40, glow_radius: int = 6) -> Image.Image:
   if base_img.mode != 'RGBA':
@@ -222,144 +254,49 @@ def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: flo
   return result_img
 
 
-# 888     888
-# 888     888
-# 888     888
-# 888     888 88888b.   .d8888b .d88b.  88888b.d88b.  88888b.d88b.   .d88b.  88888b.
-# 888     888 888 "88b d88P"   d88""88b 888 "888 "88b 888 "888 "88b d88""88b 888 "88b
-# 888     888 888  888 888     888  888 888  888  888 888  888  888 888  888 888  888
-# Y88b. .d88P 888  888 Y88b.   Y88..88P 888  888  888 888  888  888 Y88..88P 888  888
-#  "Y88888P"  888  888  "Y8888P "Y88P"  888  888  888 888  888  888  "Y88P"  888  888
-UNCOMMON_OVERLAYS_DIR = 'images/crystal_effects/overlays/'
-
-@register_effect("isolinear")
-def effect_isolinear(badge_image: Image.Image, badge: dict) -> Image.Image:
+def _apply_gradient(img: Image.Image, color: tuple[int, int, int], hold_ratio: float = 0.60) -> Image.Image:
   """
-  Isolinear circuitry overlay with a vertical neon gradient.
-  Used for the Isolinear crystal (Uncommon tier).
-  """
-  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}isolinear.png"
-  overlay = load_overlay_image(overlay_path)
-  mask = badge_image.split()[3].point(lambda p: 255 if p > 0 else 0).convert('L')
+  Applies a vertical color gradient to the badge pixels with a softened fade.
 
-  color_top = (0, 255, 180)
-  color_bottom = (255, 0, 180)
-  gradient = Image.new('RGBA', badge_image.size)
+  Parameters:
+    img (Image): RGBA badge image
+    color (tuple): (R, G, B) tint color
+    hold_ratio (float): Ratio of visible height to hold full intensity before fade
+
+  Returns:
+    Image: Badge image with gradient overlay
+  """
+  img = img.convert("RGBA")
+  alpha = img.getchannel("A")
+  alpha_np = np.array(alpha)
+
+  rows = np.any(alpha_np > 10, axis=1)
+  top, bottom = np.argmax(rows), len(rows) - np.argmax(rows[::-1]) - 1
+  height = bottom - top + 1
+  hold_until = int(top + hold_ratio * height)
+
+  def ease_out_sine_soft(x):
+    return math.sin(x * math.pi / 2) ** 2  # smoother tail
+
+  gradient = Image.new("RGBA", img.size, (0, 0, 0, 0))
   draw = ImageDraw.Draw(gradient)
-  for y in range(badge_image.height):
-    ratio = y / badge_image.height
-    r = int(color_top[0] * (1 - ratio) + color_bottom[0] * ratio)
-    g = int(color_top[1] * (1 - ratio) + color_bottom[1] * ratio)
-    b = int(color_top[2] * (1 - ratio) + color_bottom[2] * ratio)
-    draw.line([(0, y), (badge_image.width, y)], fill=(r, g, b, 255))
 
-  gradient.putalpha(overlay)
-  overlay_masked = Image.composite(gradient, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), mask)
-  glow = overlay_masked.filter(ImageFilter.GaussianBlur(radius=6))
-  glow = ImageEnhance.Brightness(glow).enhance(2.5)
-  glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), mask)
-  base_with_glow = Image.alpha_composite(glow, badge_image)
-  return Image.alpha_composite(base_with_glow, overlay_masked)
+  for y in range(top, bottom + 1):
+    if y <= hold_until:
+      factor = 1.0
+    else:
+      fade_ratio = (y - hold_until) / max((bottom - hold_until), 1)
+      factor = 1.0 - ease_out_sine_soft(fade_ratio)
+    r, g, b = [int(c * factor) for c in color]
+    draw.line([(0, y), (img.width, y)], fill=(r, g, b, int(180 * factor)))
 
-@register_effect("positronic")
-def effect_positronic(badge_image: Image.Image, badge: dict) -> Image.Image:
-  """
-  Positronic neural overlay with a radial blue-to-cyan gradient.
-  Used for the Positronic crystal (Uncommon tier).
-  """
-  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}positronic.png"
-  overlay = load_overlay_image(overlay_path)
+  gradient_masked = Image.composite(gradient, Image.new("RGBA", img.size, (0, 0, 0, 0)), alpha)
+  result_image = Image.alpha_composite(img, gradient_masked)
 
-  def create_radial_gradient(size, color_inner, color_outer):
-    cx, cy = size[0] // 2, size[1] // 2
-    max_radius = (cx**2 + cy**2) ** 0.5
-    gradient = Image.new('RGBA', size)
-    pixels = gradient.load()
-    for y in range(size[1]):
-      for x in range(size[0]):
-        dx = x - cx
-        dy = y - cy
-        dist = (dx**2 + dy**2) ** 0.5 / max_radius
-        r = int(color_inner[0] * (1 - dist) + color_outer[0] * dist)
-        g = int(color_inner[1] * (1 - dist) + color_outer[1] * dist)
-        b = int(color_inner[2] * (1 - dist) + color_outer[2] * dist)
-        pixels[x, y] = (r, g, b, 255)
-    return gradient
+  return result_image
 
-  gradient_img = create_radial_gradient(badge_image.size, (0, 255, 255), (0, 100, 255))
-  gradient_img.putalpha(overlay)
-  badge_mask = badge_image.split()[3].point(lambda p: 255 if p > 0 else 0).convert('L')
-  masked_overlay = Image.composite(gradient_img, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
-  glow = masked_overlay.filter(ImageFilter.GaussianBlur(radius=12))
-  glow = ImageEnhance.Brightness(glow).enhance(3.5)
-  glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
-  combined = Image.alpha_composite(glow, badge_image)
-  return Image.alpha_composite(combined, masked_overlay)
 
-@register_effect("optical")
-def effect_optical(badge_image: Image.Image, badge: dict) -> Image.Image:
-  """
-  Optical fibers overlay with a vertical white beam gradient.
-  Used for the Optical crystal (Uncommon tier).
-  """
-  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}optical.png"
-  overlay = load_overlay_image(overlay_path)
-
-  gradient_img = Image.new('RGBA', badge_image.size)
-  draw = ImageDraw.Draw(gradient_img)
-  for x in range(badge_image.width):
-    dist = abs(x - badge_image.width // 2) / (badge_image.width / 2)
-    bright = int(255 * (1 - dist**1.8))
-    draw.line([(x, 0), (x, badge_image.height)], fill=(bright, bright, bright, 255))
-
-  gradient_img.putalpha(overlay)
-  badge_mask = badge_image.split()[3].point(lambda p: 255 if p > 0 else 0).convert('L')
-  masked_overlay = Image.composite(gradient_img, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
-  glow = masked_overlay.filter(ImageFilter.GaussianBlur(radius=12))
-  glow = ImageEnhance.Brightness(glow).enhance(4.0)
-  glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
-  base_with_glow = Image.alpha_composite(glow, badge_image)
-  return Image.alpha_composite(base_with_glow, masked_overlay)
-
-@register_effect("cryonetrium")
-def effect_cryonetrium(badge_image: Image.Image, badge: dict) -> Image.Image:
-  """
-  Frozen smoke overlay with a diagonal purple-to-blue gradient.
-  Used for the Cryonetrium crystal (Uncommon tier).
-  """
-  overlay_path = f"{UNCOMMON_OVERLAYS_DIR}cryonetrium.png"
-  overlay = load_overlay_image(overlay_path)
-
-  if badge_image.mode != 'RGBA':
-    badge_image = badge_image.convert('RGBA')
-
-  badge_mask = badge_image.getchannel('A').point(lambda p: 255 if p > 0 else 0).convert('L')
-
-  def cryonetrium_gradient(size, color_bl=(200, 100, 255), color_tr=(80, 180, 255)):
-    w, h = size
-    img = Image.new("RGBA", size)
-    pixels = img.load()
-    for y in range(h):
-      for x in range(w):
-        t = ((x / w) + (1 - y / h)) / 2
-        r = int(color_bl[0] * (1 - t) + color_tr[0] * t)
-        g = int(color_bl[1] * (1 - t) + color_tr[1] * t)
-        b = int(color_bl[2] * (1 - t) + color_tr[2] * t)
-        pixels[x, y] = (r, g, b, 255)
-    return img
-
-  gradient = cryonetrium_gradient(badge_image.size)
-  gradient.putalpha(overlay)
-  overlay_masked = Image.composite(gradient, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
-  r, g, b, a = overlay_masked.split()
-  a = a.point(lambda p: min(int(p * 2.0), 255))
-  overlay_masked = Image.merge('RGBA', (r, g, b, a))
-  glow = overlay_masked.filter(ImageFilter.GaussianBlur(radius=14))
-  glow = ImageEnhance.Brightness(glow).enhance(3.8)
-  glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
-  base_with_glow = Image.alpha_composite(glow, badge_image)
-  return Image.alpha_composite(base_with_glow, overlay_masked)
-
+# Special Tints
 @register_effect("latinum")
 def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
@@ -409,6 +346,192 @@ def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
   return final
 
 
+# 888     888
+# 888     888
+# 888     888
+# 888     888 88888b.   .d8888b .d88b.  88888b.d88b.  88888b.d88b.   .d88b.  88888b.
+# 888     888 888 "88b d88P"   d88""88b 888 "888 "88b 888 "888 "88b d88""88b 888 "88b
+# 888     888 888  888 888     888  888 888  888  888 888  888  888 888  888 888  888
+# Y88b. .d88P 888  888 Y88b.   Y88..88P 888  888  888 888  888  888 Y88..88P 888  888
+#  "Y88888P"  888  888  "Y8888P "Y88P"  888  888  888 888  888  888  "Y88P"  888  888
+@register_effect("teal_hardlight")
+def effect_cyan_disintegration(img, badge):
+  return _apply_hardlight_border(img, color=(0, 255, 255, 192))
+
+@register_effect("cyan_disintegration")
+def effect_cyan_disintegration(img, badge):
+  return _apply_disintegration_border(img, color=(0, 255, 255, 255))
+
+def _apply_hardlight_border(badge_img: Image.Image, color=(0, 255, 255, 192), dilation_iters=10, blur_radius=4) -> Image.Image:
+  """
+  Applies a thick glowing border effect around the alpha edge of a badge.
+
+  Parameters:
+    badge_img (Image.Image): Input RGBA badge image.
+    glow_color (tuple): RGBA color of the glow.
+    dilation_iters (int): Thickness of the border via dilation.
+    blur_radius (int): Radius of the blur for softness.
+
+  Returns:
+    Image.Image: Badge with hardlight border effect.
+  """
+  badge_img = badge_img.convert("RGBA")
+  alpha = badge_img.split()[-1]
+  alpha_np = np.array(alpha) > 0
+
+  # Dilate alpha mask to create the outer edge zone
+  dilated = binary_dilation(alpha_np, iterations=dilation_iters)
+  border_mask = np.logical_and(dilated, ~alpha_np)
+
+  # Create a transparent canvas and draw the border pixels
+  border_img = Image.new("RGBA", badge_img.size, (0, 0, 0, 0))
+  draw = ImageDraw.Draw(border_img)
+  for y, x in np.argwhere(border_mask):
+    draw.point((x, y), fill=color)
+
+  # Blur the border for glow effect
+  border_img = border_img.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+
+  # Composite over the original badge
+  result = Image.alpha_composite(badge_img, border_img)
+  return result
+
+def _apply_disintegration_border(base_img: Image.Image,
+                                  color=(0, 255, 255, 255),
+                                  canvas_size=(256, 256),
+                                  brightness_boost=1.15,
+                                  density=0.15,
+                                  spread=8,
+                                  pixel_size=4,
+                                  blur_radius=2,
+                                  heatmap_blur=8,
+                                  underlay_threshold=0.8) -> Image.Image:
+  """
+  Adds a blurred pixel disintegration border around the badge edges.
+  In low-density alpha regions, particles are drawn behind the badge.
+  In high-density areas, particles appear above it.
+
+  Parameters:
+    base_img (Image.Image): RGBA badge image
+    color (tuple): RGBA color for the effect
+    canvas_size (tuple): Output size (default 256x256)
+    brightness_boost (float): Boost factor for RGB values
+    density (float): Particle density based on edge pixels
+    spread (int): Random pixel offset distance from edge
+    pixel_size (int): Size of each square particle
+    blur_radius (int): Gaussian blur applied to particle layers
+    heatmap_blur (int): Sigma for smoothing the alpha density map
+    underlay_threshold (float): Density cutoff for placing behind vs. over
+
+  Returns:
+    Image.Image: Final RGBA image with layered disintegration
+  """
+  # Boost particle brightness
+  boosted_color = tuple(min(255, int(c * brightness_boost)) if i < 3 else c for i, c in enumerate(color))
+
+  # Center image on transparent canvas
+  canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+  offset = ((canvas_size[0] - base_img.width) // 2, (canvas_size[1] - base_img.height) // 2)
+  canvas.paste(base_img, offset, base_img)
+
+  alpha = canvas.getchannel("A")
+  alpha_np = np.array(alpha) > 0
+  dilated = binary_dilation(alpha_np, iterations=2)
+  edge = np.logical_and(dilated, ~alpha_np)
+  edge_coords = np.argwhere(edge)
+
+  density_map = gaussian_filter(alpha_np.astype(float), sigma=heatmap_blur)
+  if density_map.max() > 0:
+    density_map /= density_map.max()
+
+  count = int(len(edge_coords) * density)
+  sampled = edge_coords[np.random.choice(len(edge_coords), size=count, replace=False)]
+
+  over_layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+  under_layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+  draw_over = ImageDraw.Draw(over_layer)
+  draw_under = ImageDraw.Draw(under_layer)
+  occupied = np.zeros((canvas_size[1], canvas_size[0]), dtype=bool)
+
+  for y, x in sampled:
+    dx = np.random.randint(-spread, spread + 1)
+    dy = np.random.randint(-spread, spread + 1)
+    px, py = x + dx, y + dy
+
+    if not (0 <= px < canvas_size[0] - pixel_size and 0 <= py < canvas_size[1] - pixel_size):
+      continue
+    if occupied[py:py + pixel_size, px:px + pixel_size].any():
+      continue
+
+    occupied[py:py + pixel_size, px:px + pixel_size] = True
+    target = draw_under if density_map[py, px] < underlay_threshold else draw_over
+    target.rectangle([px, py, px + pixel_size, py + pixel_size], fill=boosted_color)
+
+  over_layer = over_layer.filter(ImageFilter.GaussianBlur(blur_radius))
+  under_layer = under_layer.filter(ImageFilter.GaussianBlur(blur_radius))
+  result = Image.alpha_composite(under_layer, canvas)
+  result = Image.alpha_composite(result, over_layer)
+  return result
+
+def _apply_smoke_border(base_img: Image.Image,
+                        color=(0, 255, 255, 120),
+                        canvas_size=(256, 256),
+                        trail_density=0.30,
+                        trail_length=8,
+                        spread=18,
+                        blur_radius=8) -> Image.Image:
+  """
+  Emits smoke-like trails from the edge of a badge image.
+  Trails are directional ellipses that are blurred to resemble haze.
+
+  Parameters:
+    base_img (Image.Image): RGBA badge image
+    color (tuple): RGBA color of smoke trails
+    canvas_size (tuple): Final image size
+    trail_density (float): Fraction of edge points to use
+    trail_length (int): Number of ellipses per trail
+    spread (int): Maximum offset distance
+    blur_radius (int): Final blur applied to trails
+
+  Returns:
+    Image.Image: Image with smoke trail border composited
+  """
+  canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+  offset = ((canvas_size[0] - base_img.width) // 2, (canvas_size[1] - base_img.height) // 2)
+  canvas.paste(base_img, offset, base_img)
+
+  alpha = canvas.getchannel("A")
+  alpha_np = np.array(alpha) > 0
+  dilated = binary_dilation(alpha_np, iterations=2)
+  edge = np.logical_and(dilated, ~alpha_np)
+  edge_coords = np.argwhere(edge)
+
+  trail_layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+  draw = ImageDraw.Draw(trail_layer)
+
+  count = int(len(edge_coords) * trail_density)
+  sampled = edge_coords[np.random.choice(len(edge_coords), size=count, replace=False)]
+
+  for y, x in sampled:
+    dx = random.uniform(-1, 1)
+    dy = random.uniform(-1, 1)
+    norm = (dx ** 2 + dy ** 2) ** 0.5
+    if norm == 0:
+      continue
+    dx /= norm
+    dy /= norm
+
+    for i in range(trail_length):
+      fx = int(x + dx * i * spread / trail_length)
+      fy = int(y + dy * i * spread / trail_length)
+      if not (0 <= fx < canvas_size[0] and 0 <= fy < canvas_size[1]):
+        continue
+      draw.ellipse([fx - 2, fy - 2, fx + 3, fy + 3], fill=color)
+
+  blurred = trail_layer.filter(ImageFilter.GaussianBlur(blur_radius))
+  return Image.alpha_composite(canvas, blurred)
+
+
 # 8888888b.
 # 888   Y88b
 # 888    888
@@ -452,10 +575,10 @@ def _apply_radial_fade(img: Image.Image, fade_start_ratio=0.35, fade_end_ratio=0
 
   r, g, b, _ = img.split()
   final_radial = Image.merge("RGBA", (r, g, b, mask))
-  vignette = apply_vignette_alpha(final_radial)
+  vignette = _apply_vignette_alpha(final_radial)
   return vignette
 
-def apply_vignette_alpha(img: Image.Image, fade_start_ratio=0.025, fade_end_ratio=0.73) -> Image.Image:
+def _apply_vignette_alpha(img: Image.Image, fade_start_ratio=0.025, fade_end_ratio=0.73) -> Image.Image:
   """
   Applies a strong circular alpha fade to the image corners, creating a vignette-like transparency.
   fade_start_ratio: where full opacity ends (as a % of max radius)
@@ -645,12 +768,9 @@ def effect_warp_pulse(base_img: Image.Image, badge: dict) -> list[Image.Image]:
 def effect_subspace_ripple(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   """
   Applies an animated diagonal wave distortion across the badge.
-  Uses sinusoidal displacement on both axes to simulate subspace interference.
+  Distortion slows down and fades out before restarting for a more rhythmic subspace ripple effect.
 
   Used for the Tetryon crystal (Legendary tier).
-
-  Returns:
-    List of RGBA frames as PIL.Image.Image.
   """
   fps = ANIMATION_FPS
   duration = ANIMATION_DURATION
@@ -658,20 +778,27 @@ def effect_subspace_ripple(base_img: Image.Image, badge: dict) -> list[Image.Ima
   size = FRAME_SIZE
   height, width = size
 
-  badge_array = np.array(base_img)
-  amplitude, wavelength = 8, 96
+  amplitude = 8
+  wavelength = 96
 
-  speed = 2 * np.pi / num_frames
+  badge_array = np.array(base_img)
 
   Y, X = np.meshgrid(np.arange(height), np.arange(width), indexing="ij")
-  frames = []
 
+  def ripple_amplitude_multiplier(frame_index: int, total: int) -> float:
+    t = frame_index / total
+    t_scaled = t * 2 * math.pi
+    return 0.5 + 0.5 * math.sin(t_scaled)  # ease to 0 and back
+
+  frames = []
   for i in range(num_frames):
-    phase = i * speed
-    offset = amplitude * np.sin((X + Y) / wavelength * 2 * np.pi + phase)
+    amp_mult = ripple_amplitude_multiplier(i, num_frames)
+    phase = (i / num_frames) * 2 * np.pi
+    offset = amplitude * amp_mult * np.sin((X + Y) / wavelength * 2 * np.pi + phase)
     coords_y = Y + offset
     coords_x = X + offset
     coords = np.array([coords_y.flatten(), coords_x.flatten()])
+
     channels = [
       map_coordinates(badge_array[..., c], coords, order=1, mode='reflect').reshape((height, width))
       for c in range(4)
@@ -858,18 +985,15 @@ def effect_phase_flicker(base_img: Image.Image, badge: dict) -> list[Image.Image
 
   return frames
 
-@register_effect("wormhole_opening")
-def effect_wormhole_opening(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+@register_effect("wormhole_pop")
+def effect_wormhole_pop(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
   """
   Cinematic wormhole entrance effect.
-  Badge swoops in from the wormhole with a subtle lens flare burst.
-  """
-  from utils.assets import load_wormhole_frames
-  from utils.theme_utils import autoshrink_badge
-  from PIL import Image
+  Wormhole bursts into existence with a lens_flare and the badge swoops to view.
 
+  Used for the Bajoran Orb crystal (Mythic tier).
+  """
   canvas_size = (200, 200)
-  badge = autoshrink_badge(badge_image, canvas_size)
 
   faded_frames = load_wormhole_frames()  # 24-frame wormhole swirl (RGBA)
 
