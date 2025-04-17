@@ -1,6 +1,6 @@
 from common import *
 
-from queries.shared import BADGE_INSTANCE_COLUMNS
+from queries.common import BADGE_INSTANCE_COLUMNS
 
 # queries.trade
 
