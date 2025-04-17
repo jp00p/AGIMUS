@@ -1184,32 +1184,43 @@ def build_liquidation_removal_embed(badges: list[dict], image_id: str) -> discor
 #        \__>           \/              \/     \/
 
 async def db_get_related_tongo_badge_trades(user_discord_id, selected_user_badges):
+  badge_filenames = [b['badge_filename'] for b in selected_user_badges]
+
+  placeholders = ', '.join(['%s'] * len(badge_filenames))
+
   async with AgimusDB(dictionary=True) as query:
-    sql = '''
+    sql = f'''
       SELECT t.*
 
-      FROM trades as t
-      LEFT JOIN trade_offered `to` ON t.id = to.trade_id
-      LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
+      FROM instance_trades AS t
+      LEFT JOIN trade_offered_instances AS to_i ON t.id = to_i.trade_id
+      LEFT JOIN trade_requested_instances AS tr_i ON t.id = tr_i.trade_id
 
-      -- pending or active
-      WHERE t.status IN ('pending','active')
+      JOIN badge_instances AS b1 ON to_i.badge_instance_id = b1.id
+      JOIN badge_instances AS b2 ON tr_i.badge_instance_id = b2.id
 
-      -- involves one or more of the users involved in the active trade
-      AND (t.requestor_id = %s OR t.requestee_id = %s)
+      JOIN badge_info AS bi1 ON b1.badge_info_id = bi1.id
+      JOIN badge_info AS bi2 ON b2.badge_info_id = bi2.id
 
-      -- involves one or more of the badges involved in the active trade
-      AND (to.badge_filename IN (%s, %s, %s) OR tr.badge_filename IN (%s, %s, %s))
+      WHERE t.status IN ('pending', 'active')
+        AND (t.requestor_id = %s OR t.requestee_id = %s)
+        AND (
+          bi1.badge_filename IN ({placeholders})
+          OR bi2.badge_filename IN ({placeholders})
+        )
       GROUP BY t.id
     '''
+
     vals = (
-      user_discord_id, user_discord_id,
-      selected_user_badges[0]['badge_filename'], selected_user_badges[1]['badge_filename'], selected_user_badges[2]['badge_filename'],
-      selected_user_badges[0]['badge_filename'], selected_user_badges[1]['badge_filename'], selected_user_badges[2]['badge_filename']
+      user_discord_id,
+      user_discord_id,
+      *badge_filenames,
+      *badge_filenames
     )
+
     await query.execute(sql, vals)
-    trades = await query.fetchall()
-  return trades
+    trades = query.fetchall()
+    return trades
 
 
 # _________                __  .__                           .___

@@ -73,7 +73,7 @@ async def db_remove_requested_instance(trade_id, badge_instance_id):
 async def db_get_active_requestor_trade(requestor_id):
   async with AgimusDB(dictionary=True) as query:
     sql = """
-      SELECT * FROM trades
+      SELECT * FROM instance_trades
       WHERE requestor_id = %s AND (status = 'active' OR status = 'pending')
       LIMIT 1
     """
@@ -84,7 +84,7 @@ async def db_get_active_requestor_trade(requestor_id):
 async def db_get_active_requestee_trades(requestee_id):
   async with AgimusDB(dictionary=True) as query:
     sql = """
-      SELECT * FROM trades
+      SELECT * FROM instance_trades
       WHERE requestee_id = %s AND status = 'active'
     """
     await query.execute(sql, (requestee_id,))
@@ -94,7 +94,7 @@ async def db_get_active_requestee_trades(requestee_id):
 async def db_get_active_trade_between_requestor_and_requestee(requestor_id, requestee_id):
   async with AgimusDB(dictionary=True) as query:
     sql = """
-      SELECT * FROM trades
+      SELECT * FROM instance_trades
       WHERE requestor_id = %s AND requestee_id = %s AND status = 'active'
       LIMIT 1
     """
@@ -104,7 +104,7 @@ async def db_get_active_trade_between_requestor_and_requestee(requestor_id, requ
 async def db_initiate_trade(requestor_id: int, requestee_id: int, type="standard") -> int:
   async with AgimusDB() as query:
     sql = """
-      INSERT INTO trades (requestor_id, requestee_id, status, type)
+      INSERT INTO instance_trades (requestor_id, requestee_id, status, type)
       VALUES (%s, %s, 'pending', %s)
     """
     await query.execute(sql, (requestor_id, requestee_id, type))
@@ -113,25 +113,25 @@ async def db_initiate_trade(requestor_id: int, requestee_id: int, type="standard
 
 async def db_activate_trade(active_trade):
   async with AgimusDB() as query:
-    sql = "UPDATE trades SET status = 'active' WHERE id = %s"
+    sql = "UPDATE instance_trades SET status = 'active' WHERE id = %s"
     await query.execute(sql, (active_trade['id'],))
 
 
 async def db_cancel_trade(trade):
   async with AgimusDB() as query:
-    sql = "UPDATE trades SET status = 'canceled' WHERE id = %s"
+    sql = "UPDATE instance_trades SET status = 'canceled' WHERE id = %s"
     await query.execute(sql, (trade['id'],))
 
 
 async def db_complete_trade(active_trade):
   async with AgimusDB() as query:
-    sql = "UPDATE trades SET status = 'complete' WHERE id = %s"
+    sql = "UPDATE instance_trades SET status = 'complete' WHERE id = %s"
     await query.execute(sql, (active_trade['id'],))
 
 
 async def db_decline_trade(active_trade):
   async with AgimusDB() as query:
-    sql = "UPDATE trades SET status = 'declined' WHERE id = %s"
+    sql = "UPDATE instance_trades SET status = 'declined' WHERE id = %s"
     await query.execute(sql, (active_trade['id'],))
 
 # Transfer
@@ -188,7 +188,7 @@ async def db_get_related_instance_trades(active_trade):
   async with AgimusDB(dictionary=True) as query:
     sql = """
       SELECT t.*
-      FROM trades AS t
+      FROM instance_trades AS t
 
       LEFT JOIN trade_offered_instances AS TOF ON t.id = TOF.trade_id
       LEFT JOIN trade_requested_instances AS TRQ ON t.id = TRQ.trade_id
