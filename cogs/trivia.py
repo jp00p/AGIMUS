@@ -176,7 +176,6 @@ class Trivia(commands.Cog):
             inline=False
           )
           await set_player_score(player, reward)
-          await increment_user_xp(player, xp_reward, "trivia_win", channel, "Winning Trivia")
       if len(incorrect_guessers) > 0:
         for trivia_answer in incorrect_guessers:
           player = trivia_answer['user']

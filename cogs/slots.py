@@ -166,7 +166,6 @@ class Slots(commands.Cog):
       embed.set_image(url=f"attachment://{player_id}.png")
       embed.set_footer(text=f"{player['name']}'s score: {player['score']+total_profit}")
       await set_player_score(ctx.author, total_profit)
-      await increment_user_xp(ctx.author, 1, "slot_win", ctx.channel, "Winning Slots")
       await ctx.send_followup(embed=embed, file=file, ephemeral=False)
       return
     else:
