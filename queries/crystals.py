@@ -1,6 +1,5 @@
 from common import *
 
-
 async def db_attach_crystal_to_instance(instance_id: int, crystal_name: str = "Dilithium"):
   async with AgimusDB(dictionary=True) as query:
     await query.execute("SELECT id FROM crystal_types WHERE name = %s", (crystal_name,))

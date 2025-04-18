@@ -19,7 +19,7 @@ from utils.thread_utils import threaded_image_open, threaded_image_open_no_conve
 
 THREAD_POOL = ThreadPoolExecutor(max_workers=12)
 
-# -> utils.badge_utils
+# -> utils.image_utils
 
 # Constants
 BADGE_PATH = "./images/badges/"
@@ -53,7 +53,7 @@ def _encode_webp_ffmpeg_pipe(frames: list[Image.Image], fps=12) -> io.BytesIO:
   if not frames:
     raise ValueError("No frames provided for WebP encoding.")
 
-  logger.debug(f"[timing] Starting Stage 4: webp encoding")
+  logger.info(f"[timing] Starting Stage 4: webp encoding")
   start = time.perf_counter()
 
   width, height = frames[0].size
@@ -103,7 +103,7 @@ def _encode_webp_ffmpeg_pipe(frames: list[Image.Image], fps=12) -> io.BytesIO:
       webp_data = f.read()
 
     end = time.perf_counter()
-    logger.debug(f"[timing] _encode_webp_ffmpeg_pipe took {end - start:.2f}s")
+    logger.info(f"[timing] _encode_webp_ffmpeg_pipe took {end - start:.2f}s")
 
     return io.BytesIO(webp_data)
 
@@ -241,7 +241,8 @@ async def draw_title(
   font_obj: ImageFont.FreeTypeFont,
   starting_size=110,
   min_size=30,
-  fill=(255, 255, 255)
+  fill=(255, 255, 255),
+  centered=False
 ):
   font_path = font_obj.path if hasattr(font_obj, "path") else "fonts/lcars3.ttf"
   size = starting_size
@@ -261,9 +262,10 @@ async def draw_title(
     size -= 1
 
   font, emoji_size = get_fonts(size)
+  total_width = sum(get_width(cluster, font, emoji_size) for cluster in clusters)
 
   x, y = position
-  current_x = x
+  current_x = x - total_width // 2 if centered else x
 
   for cluster in clusters:
     if is_emoji(cluster):
@@ -749,6 +751,55 @@ def _get_completion_row_dimensions() -> CompletionRowDimensions:
   )
 
 
+
+# __________             .___                 _________ __         .__
+# \______   \_____     __| _/ ____   ____    /   _____//  |________|__|_____
+#  |    |  _/\__  \   / __ | / ___\_/ __ \   \_____  \\   __\_  __ \  \____ \
+#  |    |   \ / __ \_/ /_/ |/ /_/  >  ___/   /        \|  |  |  | \/  |  |_> >
+#  |______  /(____  /\____ |\___  / \___  > /_______  /|__|  |__|  |__|   __/
+#         \/      \/      \/_____/      \/          \/                |__|
+async def generate_badge_strip(
+  badge_list: list[dict],
+  theme
+) -> list[Image.Image]:
+  """
+  Renders a horizontal badge strip (1 row) using compose_badge_slot for each badge.
+  Returns a list of frames (for animation).
+  """
+  slot_dims = _get_badge_slot_dimensions()
+
+  padding = 24
+  strip_width = len(badge_list) * slot_dims.slot_width + (len(badge_list) - 1) * padding
+  strip_height = slot_dims.slot_height
+  slot_y_offset = 0
+
+  # Apply crystal effects and prepare all badge image stacks
+  prepared = await prepare_badges_with_crystal_effects(badge_list)
+
+  loop = asyncio.get_running_loop()
+  all_badge_frames = await asyncio.gather(*[
+    loop.run_in_executor(THREAD_POOL, compose_badge_slot, badge, theme, image_frames)
+    for badge, image_frames in prepared
+  ])
+
+  max_frames = max(len(stack) for stack in all_badge_frames)
+
+  frames = []
+  for f in range(max_frames):
+    frame = Image.new("RGBA", (strip_width, strip_height), (0, 0, 0, 0))
+
+    # Paste badge slots
+    x = 0
+    for badge_frames in all_badge_frames:
+      badge_img = badge_frames[f % len(badge_frames)]
+      frame.paste(badge_img, (x, slot_y_offset), mask=badge_img)
+      x += slot_dims.slot_width + padding
+
+    frames.append(frame)
+
+  return frames
+
+
 #   _________.__                             .___
 #  /   _____/|  |__ _____ _______   ____   __| _/
 #  \_____  \ |  |  \\__  \\_  __ \_/ __ \ / __ |
@@ -766,6 +817,9 @@ def compose_badge_slot(badge: dict, theme, image_frames: list[Image.Image], over
     image_frames: List of PIL.Image frames with effects already applied.
     override_colors: Optional (border_color, text_color) tuple.
   """
+  if not isinstance(image_frames, list):
+    image_frames = [image_frames]
+
   dims = _get_badge_slot_dimensions()
   fonts = load_fonts()
 
@@ -916,77 +970,6 @@ async def draw_canvas_labels(canvas, draw, user, mode, label, collected_count, t
   )
 
 
-# __________             .___                 _________ __         .__
-# \______   \_____     __| _/ ____   ____    /   _____//  |________|__|_____
-#  |    |  _/\__  \   / __ | / ___\_/ __ \   \_____  \\   __\_  __ \  \____ \
-#  |    |   \ / __ \_/ /_/ |/ /_/  >  ___/   /        \|  |  |  | \/  |  |_> >
-#  |______  /(____  /\____ |\___  / \___  > /_______  /|__|  |__|  |__|   __/
-#         \/      \/      \/_____/      \/          \/                |__|
-async def generate_badge_strip(
-  badge_list: list[dict],
-  theme,
-  header_text: str = "",
-  footer_text: str = ""
-) -> list[Image.Image]:
-  """
-  Renders a horizontal badge strip (1 row) using compose_badge_slot for each badge.
-  Returns a list of frames (for animation).
-  """
-
-  badge_size = 220
-  padding = 24
-  strip_width = len(badge_list) * badge_size + (len(badge_list) - 1) * padding
-  strip_height = 330  # includes room for top and bottom text
-  slot_y_offset = 60
-
-  fonts = load_fonts(title_size=42, footer_size=32)
-
-  # Apply crystal effects and prepare all badge image stacks
-  prepared = await prepare_badges_with_crystal_effects(badge_list)
-
-  # Render slots concurrently
-  all_badge_frames = await asyncio.gather(*[
-    compose_badge_slot(badge, theme, image_frames)
-    for badge, image_frames in prepared
-  ])
-
-  max_frames = max(len(frames) for frames in all_badge_frames)
-
-  frames = []
-  for f in range(max_frames):
-    frame = Image.new("RGBA", (strip_width, strip_height), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(frame)
-
-    # Draw header
-    if header_text:
-      await draw_title(
-        canvas=frame,
-        draw=draw,
-        position=(strip_width // 2, 10),
-        text=header_text,
-        max_width=strip_width - 40,
-        font_obj=fonts.title,
-        starting_size=42,
-        min_size=24,
-        fill=(255, 255, 255)
-      )
-
-    # Paste badge slots
-    x = 0
-    for badge_frames in all_badge_frames:
-      badge_img = badge_frames[f]
-      frame.paste(badge_img, (x, slot_y_offset), mask=badge_img)
-      x += badge_size + padding
-
-    # Draw footer
-    if footer_text:
-      w, _ = draw.textsize(footer_text, font=fonts.footer)
-      draw.text(((strip_width - w) // 2, strip_height - 42), footer_text, font=fonts.footer, fill=(255, 255, 255))
-
-    frames.append(frame)
-
-  return frames
-
 
 # ___________                  .___.__
 # \__    ___/___________     __| _/|__| ____    ____
@@ -994,11 +977,10 @@ async def generate_badge_strip(
 #   |    |   |  | \// __ \_/ /_/ | |  |   |  \/ /_/  >
 #   |____|   |__|  (____  /\____ | |__|___|  /\___  /
 #                       \/      \/         \//_____/
-async def generate_badge_trade_image(
+async def generate_badge_trade_images(
   badges: list[dict],
-  user: discord.User,
-  header_text: str,
-  footer_text: str
+  header_text="",
+  footer_text=""
 ) -> discord.File:
   """
   Generates a trade image showcasing up to 6 badge slots in a horizontal strip format.
@@ -1016,27 +998,48 @@ async def generate_badge_trade_image(
 
   # Use hardcoded gold theme via get_theme_colors
   theme = get_theme_colors("gold")
+  fonts = load_fonts()
 
-  # Load trade background (1840x590)
+  # 1. Load and copy the trade background once
   bg_path = Path("./images/trades/assets/trade_bg.jpg")
   base_bg = Image.open(bg_path).convert("RGBA")
 
-  # Generate badge strip frames (each frame is a full strip of 6 badge slots)
-  strip_frames = await generate_badge_strip(
-    badge_list=badges,
-    theme=theme,
-    header_text=header_text,
-    footer_text=footer_text
+  # 2. Pre-render title + footer ONTO the base_bg once
+  trade_canvas = base_bg.copy()
+  draw = ImageDraw.Draw(trade_canvas)
+
+  # Title at the top
+  await draw_title(
+    canvas=trade_canvas,
+    draw=draw,
+    position=(base_bg.width // 2, 40),
+    text=header_text,
+    max_width=base_bg.width - 40,
+    font_obj=fonts.title,
+    starting_size=100,
+    min_size=38,
+    fill=(255, 255, 255),
+    centered=True
   )
 
-  # Overlay the strip into the center of the trade background
+  # Footer at the bottom
+  w, _ = draw.textsize(footer_text, font=fonts.footer)
+  draw.text(((base_bg.width - w) // 2, base_bg.height - 120), footer_text, font=fonts.footer, fill=(255, 255, 255))
+
+  # 3. Now paste each strip frame centered onto a copy of that base
+  # Generate badge strip frames (each frame is a full strip of up to 6 badge slots)
+  strip_frames = await generate_badge_strip(badge_list=badges, theme=theme)
+
   final_frames = []
   for strip in strip_frames:
-    frame = base_bg.copy()
-    x = int((frame.width - strip.width) / 2)
-    y = int((frame.height - strip.height) / 2)
-    frame.paste(strip, (x, y), mask=strip)
-    final_frames.append(frame)
+    frame = trade_canvas.copy()
+    x = (frame.width - strip.width) // 2
+    y = (frame.height - strip.height) // 2
+    frame.paste(strip, (x, y), strip)
+    w, h = frame.size
+    resized = frame.resize((int(w * 0.75), int(h * 0.75)), resample=Image.LANCZOS)
+    final_frames.append(resized)
+
 
   if len(final_frames) == 1:
     buf = io.BytesIO()
@@ -1046,101 +1049,6 @@ async def generate_badge_trade_image(
   else:
     buf = await encode_webp(final_frames)
     return discord.File(buf, filename="trade_showcase.webp")
-
-
-# async def generate_badge_trade_showcase(badge_list, id, title, footer):
-#   text_wrapper = textwrap.TextWrapper(width=22)
-#   title_font = ImageFont.truetype("fonts/tng_credits.ttf", 68)
-#   credits_font = ImageFont.truetype("fonts/tng_credits.ttf", 42)
-#   badge_font = ImageFont.truetype("fonts/context_bold.ttf", 28)
-
-#   badge_size = 200
-#   badge_padding = 40
-#   badge_margin = 10
-#   badge_slot_size = badge_size + (badge_padding * 2) # size of badge slot size (must be square!)
-#   badges_per_row = 6
-
-#   base_width = (badge_slot_size+badge_margin) * badges_per_row
-#   base_height = math.ceil((len(badge_list) / badges_per_row)) * (badge_slot_size + badge_margin)
-
-#   header_height = badge_size
-#   image_padding = 50
-
-#   # create base image to paste all badges on to
-#   badge_base_image = Image.new("RGBA", (base_width+(image_padding*2), base_height+header_height+(image_padding*2)), (200, 200, 200))
-#   badge_bg_image = await threaded_image_open("./images/trades/assets/trade_bg.jpg")
-
-#   base_w, base_h = badge_base_image.size
-#   bg_w, bg_h = badge_bg_image.size
-
-#   for i in range(0, base_w, bg_w):
-#     for j in range(0, base_h, bg_h):
-#       badge_base_image.paste(badge_bg_image, (i, j))
-
-#   draw = ImageDraw.Draw(badge_base_image)
-
-#   draw.text( (base_width/2 + image_padding, 100), title, fill="white", font=title_font, anchor="mm", align="center")
-#   draw.text( (base_width/2 + image_padding, base_h-50), footer, fill="white", font=credits_font, anchor="mm", align="center",stroke_width=2,stroke_fill="#000000")
-
-
-#   # Center positioning. Move start_x to center of image then - 1/2 of the width of each image * the length of images
-#   half_badge_slot_size = int(badge_slot_size / 2)
-#   start_x = int((base_width/2 + image_padding/2) - (half_badge_slot_size * len(badge_list)))
-
-#   current_x = start_x
-#   current_y = header_height
-#   counter = 0
-#   badge_border_color = random.choice(["#774466", "#6688CC", "#BB4411", "#0011EE"])
-
-#   for badge in badge_list:
-#     # slot
-#     s = Image.new("RGBA", (badge_slot_size, badge_slot_size), (0, 0, 0, 0))
-#     badge_draw = ImageDraw.Draw(s)
-#     badge_draw.rounded_rectangle( (0, 0, badge_slot_size, badge_slot_size), fill="#000000", outline=badge_border_color, width=4, radius=32 )
-
-#     # badge
-#     size = (190, 190)
-#     b_raw = await threaded_image_open(f"./images/badges/{badge}")
-#     b_raw.thumbnail(size, Image.ANTIALIAS)
-#     b = Image.new('RGBA', size, (255, 255, 255, 0))
-#     b.paste(
-#       b_raw, (int((size[0] - b_raw.size[0]) // 2), int((size[1] - b_raw.size[1]) // 2))
-#     )
-
-#     w, h = b.size # badge size
-#     offset_x = min(0, (badge_size+badge_padding)-w) # center badge x
-#     offset_y = 5
-#     badge_info = await db_get_badge_info_by_filename(badge)
-#     badge_name = text_wrapper.wrap(badge_info['badge_name'])
-#     wrapped_badge_name = ""
-#     for i in badge_name[:-1]:
-#       wrapped_badge_name = wrapped_badge_name + i + "\n"
-#     wrapped_badge_name += badge_name[-1]
-#     # add badge to slot
-#     s.paste(b, (badge_padding+offset_x, offset_y), b)
-#     badge_draw.text( (int(badge_slot_size/2), 222), f"{wrapped_badge_name}", fill="white", font=badge_font, anchor="mm", align="center")
-
-#     # add slot to base image
-#     badge_base_image.paste(s, (current_x, current_y), s)
-
-#     current_x += badge_slot_size + badge_margin
-#     counter += 1
-
-#     if counter % badges_per_row == 0:
-#       # typewriter sound effects:
-#       current_x = start_x # ding!
-#       current_y += badge_slot_size + badge_margin # ka-chunk
-#       counter = 0 #...
-
-#   badge_base_image.save(f"./images/trades/{id}.png")
-
-#   while True:
-#     time.sleep(0.05)
-#     if os.path.isfile(f"./images/trades/{id}.png"):
-#       break
-
-#   discord_image = discord.File(fp=f"./images/trades/{id}.png", filename=f"{id}.png")
-#   return discord_image
 
 
 #   _________

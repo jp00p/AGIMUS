@@ -14,15 +14,18 @@ ALTER TABLE trade_requested DROP FOREIGN KEY trade_requested_ibfk_1;
 ALTER TABLE badge_scrapped DROP FOREIGN KEY badge_scrapped_ibfk_2;
 ALTER TABLE badge_wishlists DROP FOREIGN KEY badge_wishlists_fk_badge_filename;
 ALTER TABLE tongo_pot DROP FOREIGN KEY badge_tongo_pot_fk_badge_filename;
+ALTER TABLE tags_carousel_position DROP FOREIGN KEY badge_tags_carousel_position_fk_badge_filename;
 
 -- Drop primary key on badge_filename
 ALTER TABLE badge_info DROP PRIMARY KEY;
 
--- Promote id to primary key
-ALTER TABLE badge_info ADD PRIMARY KEY (id);
+-- Add id column and promote it to primary key
+ALTER TABLE badge_info
+  ADD COLUMN id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
 
 -- Make badge_filename a UNIQUE column instead
-ALTER TABLE badge_info ADD UNIQUE KEY uq_badge_filename (badge_filename);
+ALTER TABLE badge_info
+  ADD UNIQUE KEY uq_badge_filename (badge_filename);
 
 -- Re-add foreign keys (still using badge_filename)
 ALTER TABLE badge_affiliation
@@ -61,12 +64,16 @@ ALTER TABLE tongo_pot
   ADD CONSTRAINT badge_tongo_pot_fk_badge_filename
   FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
 
+ALTER TABLE tags_carousel_position
+  ADD CONSTRAINT badge_tags_carousel_position_fk_badge_filename
+  FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
+
 -- v3.0.0.sql - Crystallization Schema
 
 -- CRYSTALS!
 
 -- 1. Crystal Ranks
-CREATE TABLE crystal_ranks (
+CREATE TABLE IF NOT EXISTS crystal_ranks (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) NOT NULL UNIQUE,
   emoji VARCHAR(16),
@@ -76,14 +83,14 @@ CREATE TABLE crystal_ranks (
 );
 
 INSERT INTO crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order) VALUES
-  ("Common",    "⚪", 1, 0.64, 0),
-  ("Uncommon",  "🟢", 2, 0.20, 1),
-  ("Rare",      "🟣", 3, 0.10, 2),
+  ("Common",    "⚪", 1, 0.50, 0),
+  ("Uncommon",  "🟢", 2, 0.30, 1),
+  ("Rare",      "🟣", 3, 0.125, 2),
   ("Legendary", "🔥", 4, 0.075, 3),
   ("Mythic",    "💎", 5, 0.05, 4);
 
 -- 2. Crystal Types
-CREATE TABLE crystal_types (
+CREATE TABLE IF NOT EXISTS crystal_types (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) NOT NULL UNIQUE,
   rarity_rank INT NOT NULL,
@@ -104,7 +111,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 
   ("Rubindium", 1, "rubindium.png", "crimson_gradient", "Sensor-reflective alloy with multiple applications. Chief among them, frikkin laser beams."),
   ("Polytrinic", 1, "polytrinic.png", "lime_gradient", "Toxic and corrosive. Glows green, that means bad!"),
-  ("Benamite", 1, "benamite.png", "navy_gradient", "Essential for quantum slipstream drives. Sadly unstable, you lose yet again Voyager!");
+  ("Benamite", 1, "benamite.png", "navy_gradient", "Essential for quantum slipstream drives. Sadly unstable, you lose yet again Voyager!"),
   ("Auridium", 1, "auridium.png", "gold_gradient", "Trade-standard alloy with a golden gleam. Shiny!"),
   ("Duranium", 1, "duranium.png", "silver_gradient", "Forged in Federation shipyards. A silvery alloy used in starship hull plating."),
   ("Solanogen", 1, "solanogen.png", "cyan_gradient", "Exotic compound from subspace realms. Don't get SCHISMD!"),
@@ -134,7 +141,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable.");
 
 -- 3. Badge Crystals (must come before badge_instances)
-CREATE TABLE badge_crystals (
+CREATE TABLE IF NOT EXISTS badge_crystals (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
   crystal_type_id INT NOT NULL,
@@ -145,7 +152,7 @@ CREATE TABLE badge_crystals (
 -- 4. Badge Instances (safe now!)
 CREATE TABLE IF NOT EXISTS badge_instances (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  badge_info_id INT NOT NULL,
+  badge_info_id INT UNSIGNED NOT NULL,
   owner_discord_id BIGINT NULL,
   locked BOOLEAN DEFAULT FALSE,
   active BOOLEAN GENERATED ALWAYS AS (status = 'active') STORED,
@@ -153,13 +160,15 @@ CREATE TABLE IF NOT EXISTS badge_instances (
   acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   active_crystal_id INT DEFAULT NULL,
   status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
-  UNIQUE INDEX uq_user_badge_active ON badge_instances(owner_discord_id, badge_info_id, active),
+
+  UNIQUE KEY uq_user_badge_active (owner_discord_id, badge_info_id, active),
   FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
   FOREIGN KEY (active_crystal_id) REFERENCES badge_crystals(id) ON DELETE SET NULL
 );
 
+
 -- 5. Instance Provenance
-CREATE TABLE badge_instance_history (
+CREATE TABLE IF NOT EXISTS badge_instance_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
   from_user_id BIGINT DEFAULT NULL,
@@ -181,7 +190,7 @@ CREATE TABLE badge_instance_history (
 );
 
 -- 6. Crystal Trades
-CREATE TABLE crystal_trades (
+CREATE TABLE IF NOT EXISTS crystal_trades (
   id INT AUTO_INCREMENT PRIMARY KEY,
   crystal_id INT NOT NULL,
   from_badge_instance_id INT NOT NULL,
@@ -207,14 +216,14 @@ ALTER TABLE users ADD COLUMN crystallize_autoslot ENUM('manual', 'auto_rarest', 
 -- TONGO v2
 --
 
-CREATE TABLE tongo_games (
+CREATE TABLE IF NOT EXISTS tongo_games (
   id INT AUTO_INCREMENT PRIMARY KEY,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   chair_user_id BIGINT NOT NULL,
   status ENUM('open', 'in_progress', 'resolved', 'cancelled') DEFAULT 'open'
 );
 
-CREATE TABLE tongo_game_players (
+CREATE TABLE IF NOT EXISTS tongo_game_players (
   game_id INT,
   user_discord_id BIGINT,
   liability_mode ENUM('unlocked', 'all_in') NOT NULL,
@@ -223,8 +232,8 @@ CREATE TABLE tongo_game_players (
   FOREIGN KEY (game_id) REFERENCES tongo_games(id)
 );
 
-CREATE TABLE tongo_continuum (
-  badge_info_id INT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS tongo_continuum (
+  badge_info_id INT UNSIGNED PRIMARY KEY,
   source_instance_id INT,
   thrown_by_user_id BIGINT,
   added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -232,7 +241,7 @@ CREATE TABLE tongo_continuum (
   FOREIGN KEY (source_instance_id) REFERENCES badge_instances(id)
 );
 
-CREATE TABLE tongo_game_rewards (
+CREATE TABLE IF NOT EXISTS tongo_game_rewards (
   game_id INT,
   user_discord_id BIGINT,
   badge_instance_id INT,
@@ -248,10 +257,10 @@ CREATE TABLE tongo_game_rewards (
 -- Wishlists
 --
 
-CREATE TABLE badge_instance_wishlists (
+CREATE TABLE IF NOT EXISTS badge_instance_wishlists (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,
-  badge_info_id INT NOT NULL,
+  badge_info_id INT UNSIGNED NOT NULL,
   time_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY unique_user_badge (user_discord_id, badge_info_id),
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
@@ -298,7 +307,7 @@ CREATE TABLE IF NOT EXISTS badge_instances_tags_carousel_position (
 -- Trades
 --
 
-CREATE TABLE instance_trades (
+CREATE TABLE IF NOT EXISTS instance_trades (
   id              INT AUTO_INCREMENT PRIMARY KEY,
   requestor_id    BIGINT NOT NULL,
   requestee_id    BIGINT NOT NULL,

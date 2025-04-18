@@ -3,7 +3,7 @@ from common import *
 from queries.badge_info import *
 from queries.badge_instances import *
 from queries.crystals import *
-from utils.badge_utils import *
+from utils.image_utils import *
 from utils.crystal_effects import apply_crystal_effect
 from utils.thread_utils import to_thread
 
@@ -86,7 +86,7 @@ class Crystals(commands.Cog):
     if crystal_name.lower() == '[none]':
       if badge_instance.get('active_crystal_id') is None:
         embed = discord.Embed(
-          title='Already Unistalled!',
+          title='Already Uninstalled!',
           description=f"No crystal is currently installed in **{badge_name}**.",
           color=discord.Color.orange()
         )
@@ -137,7 +137,7 @@ class Crystals(commands.Cog):
     base_image = await load_and_prepare_badge_thumbnail(badge_info['badge_filename'])
     badge = { **badge_info, 'badge_instance_id': badge_instance['badge_instance_id'] }
     crystal = selected
-    discord_file, attachment_url = await generate_badge_preview_discord_file(base_image, badge, crystal=crystal)
+    discord_file, attachment_url = await generate_badge_preview(badge, crystal=crystal)
 
     crystal_description = crystal.get('description', '')
     crystal_label = f"{crystal['emoji']} {crystal['crystal_name']}" if crystal.get('emoji') else crystal['crystal_name']
@@ -148,7 +148,7 @@ class Crystals(commands.Cog):
       color=discord.Color.blurple()
     )
     preview_embed.add_field(name=f"{crystal['crystal_name']}", value=f"{crystal_description}", inline=False)
-    preview_embed.add_field(name=f"Rank", value=f"{crystal['emoji']} {crystal['rarity_name']}", inline=False)
+    preview_embed.add_field(name=f"Rank", value=f"* {crystal['emoji']} {crystal['rarity_name']}", inline=False)
     preview_embed.set_footer(text="Click Confirm to install this crystal, or Cancel.")
     preview_embed.set_image(url=attachment_url)
 
@@ -188,33 +188,20 @@ class Crystals(commands.Cog):
     view.message = await ctx.interaction.original_response()
 
 
-async def generate_badge_preview_discord_file(base_image, badge, crystal=None):
-  preview_result = await apply_crystal_effect(base_image, badge)
+async def generate_badge_preview(base_image, badge, crystal=None):
+  badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
+  result = await apply_crystal_effect(badge_image, badge, crystal)
 
-  if isinstance(preview_result, list):
+  if isinstance(result, list):
     # Animated crystal preview
     tmp = tempfile.NamedTemporaryFile(suffix=".webp", delete=False)
-    await encode_webp(preview_result, tmp.name)
+    await encode_webp(result, tmp.name)
     file = discord.File(tmp.name, filename=f"preview.webp")
     tmp.flush()
-    # buffer = io.BytesIO()
-    # preview_result[0].save(
-    #   buffer,
-    #   format='WEBP',
-    #   save_all=True,
-    #   append_images=preview_result[1:],
-    #   duration=1000 // 12,
-    #   loop=0,
-    #   lossless=True,
-    #   method=6,
-    #   optimize=True
-    # )
-    # buffer.seek(0)
-    # file = discord.File(webp, filename='preview.webp')
     attachment_url = 'attachment://preview.webp'
   else:
     buffer = io.BytesIO()
-    preview_result.save(buffer, format='PNG')
+    result.save(buffer, format='PNG')
     buffer.seek(0)
     file = discord.File(buffer, filename='preview.png')
     attachment_url = 'attachment://preview.png'

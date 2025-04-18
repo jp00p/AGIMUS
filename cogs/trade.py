@@ -1,7 +1,7 @@
 from common import *
 from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist, db_get_user_wishlist_badges, db_purge_users_wishlist
 from queries.trade import *
-from utils.badge_utils import *
+from utils.image_utils import *
 from utils.check_channel_access import access_check
 from utils.check_user_access import user_check
 
@@ -24,12 +24,15 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   requestor_user_id = ctx.interaction.user.id
 
   requestee_user_id = None
+  offered_instance_ids = {}
   if 'requestee' in ctx.options:
     requestee_user_id = ctx.options['requestee']
   else:
-    active_trade = await db_get_active_requestor_trade(ctx.interaction.user.id)
+    active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
       requestee_user_id = active_trade['requestee_id']
+      offered_instances = await db_get_trade_offered_instances(active_trade)
+      offered_instance_ids = {b['badge_instance_id'] for b in offered_instances}
 
   # Lookup badges
   requestor_instances = await db_get_user_badge_instances(requestor_user_id)
@@ -37,29 +40,44 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
 
   requestee_filenames = {b['badge_filename'] for b in requestee_instances}
 
-  # Filter: Don't offer badges the requestee already owns
   results = [
     discord.OptionChoice(
       name=b['badge_name'],
       value=str(b['badge_instance_id'])
     )
     for b in requestor_instances
-    if not b['special'] and (b['badge_filename'] not in requestee_filenames)
+    if (
+      not b['special'] and
+      b['badge_filename'] not in requestee_filenames and
+      b['badge_instance_id'] not in offered_instance_ids
+    )
   ]
 
-  return [r for r in results if ctx.value.lower() in r.name.lower()]
+  filtered = [r for r in results if ctx.value.lower() in r.name.lower()]
+  if not filtered:
+    filtered = [
+      discord.OptionChoice(
+        name="[ No Valid Options ]",
+        value=None
+      )
+    ]
+
+  return filtered
 
 
 async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   requestor_user_id = ctx.interaction.user.id
 
   requestee_user_id = None
+  requested_instance_ids = {}
   if 'requestee' in ctx.options:
     requestee_user_id = ctx.options['requestee']
   else:
-    active_trade = await db_get_active_requestor_trade(ctx.interaction.user.id)
+    active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
       requestee_user_id = active_trade['requestee_id']
+      requested_instances = await db_get_trade_requested_instances(active_trade)
+      requested_instance_ids = {b['badge_instance_id'] for b in requested_instances}
 
   # Lookup badges
   requestor_instances = await db_get_user_badge_instances(requestor_user_id)
@@ -67,17 +85,30 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
 
   requestor_filenames = {b['badge_filename'] for b in requestor_instances}
 
-  # Filter: Don't request badges the requestor already owns
   results = [
     discord.OptionChoice(
       name=b['badge_name'],
       value=str(b['badge_instance_id'])
     )
     for b in requestee_instances
-    if not b['special'] and (b['badge_filename'] not in requestor_filenames)
+    if (
+      not b['special'] and
+      b['badge_filename'] not in requestor_filenames and
+      b['badge_instance_id'] not in requested_instance_ids
+    )
   ]
 
+  filtered = [r for r in results if ctx.value.lower() in r.name.lower()]
+  if not filtered:
+    filtered = [
+      discord.OptionChoice(
+        name="[ No Valid Options ]",
+        value=None
+      )
+    ]
+
   return [r for r in results if ctx.value.lower() in r.name.lower()]
+
 
 
 # ____   ____.__
@@ -921,9 +952,8 @@ class Trade(commands.Cog):
     offered_instances = await db_get_trade_offered_instances(active_trade)  # full enriched
     offered_image_id = f"{active_trade['id']}-offered"
 
-    offered_image = await generate_badge_trade_showcase(
+    offered_image = await generate_badge_trade_images(
       offered_instances,
-      offered_image_id,
       f"Badge(s) Offered by {requestor.display_name}",
       f"{len(offered_instances)} Badges"
     )
@@ -943,14 +973,12 @@ class Trade(commands.Cog):
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
 
     requested_instances = await db_get_trade_requested_instances(active_trade)
-    requested_filenames = [b["badge_filename"] for b in requested_instances]
 
     requested_image_id = f"{active_trade['id']}-requested"
-    requested_image = await generate_badge_trade_showcase(
-      requested_filenames,
-      requested_image_id,
+    requested_image = await generate_badge_trade_images(
+      requested_instances,
       f"Badge(s) Requested from {requestee.display_name}",
-      f"{len(requested_filenames)} Badges"
+      f"{len(requested_instances)} Badges"
     )
 
     requested_embed = discord.Embed(

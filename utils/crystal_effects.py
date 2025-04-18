@@ -50,7 +50,7 @@ def load_background_image_resized(path, size):
 # -- Legendary – Animated effects
 # -- Mythic    – Animated + prestige visual effects
 #
-async def apply_crystal_effect(badge_image: Image.Image, badge: dict) -> Image.Image | list[Image.Image]:
+async def apply_crystal_effect(badge_image: Image.Image, badge: dict, crystal=None) -> Image.Image | list[Image.Image]:
   """
   Applies the visual crystal effect to a badge image based on the crystal attached to the badge.
 
@@ -70,10 +70,15 @@ async def apply_crystal_effect(badge_image: Image.Image, badge: dict) -> Image.I
   Returns:
     Image.Image | list[Image.Image]: Either a static RGBA image or a list of RGBA frames for animation.
   """
-  if not badge.get('crystal_id'):
-    return badge_image
+  effect_key = None
+  if crystal:
+    effect_key = crystal.get("effect")
+  elif badge:
+    if not badge.get('crystal_id'):
+      return badge_image
+    else:
+      effect_key = badge.get("effect")
 
-  effect_key = badge.get("effect")
   if not effect_key:
     return badge_image
 
