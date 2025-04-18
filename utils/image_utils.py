@@ -57,11 +57,11 @@ def _encode_webp_ffmpeg_pipe(frames: list[Image.Image], fps=12) -> io.BytesIO:
   start = time.perf_counter()
 
   width, height = frames[0].size
-  pix_fmt = "rgb24"
+  pix_fmt = "rgba"
   frame_count = len(frames)
 
   # Convert all frames to raw RGB data
-  raw_rgb = b''.join(frame.convert("RGB").tobytes() for frame in frames)
+  raw_rgb = b''.join(frame.convert("RGBA").tobytes() for frame in frames)
 
   # Create a temporary file for FFmpeg output
   with tempfile.NamedTemporaryFile(suffix=".webp", delete=False) as temp_outfile:
@@ -806,6 +806,24 @@ async def generate_badge_strip(
 #  /        \|   Y  \/ __ \|  | \/\  ___// /_/ |
 # /_______  /|___|  (____  /__|    \___  >____ |
 #         \/      \/     \/            \/     \/
+async def generate_badge_preview(badge, crystal=None):
+  badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
+  result = await apply_crystal_effect(badge_image, badge, crystal)
+
+  if isinstance(result, list):
+    # Animated crystal preview
+    buf = await encode_webp(result)
+    file = discord.File(buf, filename=f"preview.webp")
+    attachment_url = 'attachment://preview.webp'
+  else:
+    buf = io.BytesIO()
+    result.save(buf, format='PNG')
+    buf.seek(0)
+    file = discord.File(buf, filename='preview.png')
+    attachment_url = 'attachment://preview.png'
+
+  return file, attachment_url
+
 def compose_badge_slot(badge: dict, theme, image_frames: list[Image.Image], override_colors: tuple = None) -> list[Image.Image]:
   """
   Renders a badge image (with crystal effects pre-applied) into a slot container with border and label.
@@ -1024,7 +1042,18 @@ async def generate_badge_trade_images(
 
   # Footer at the bottom
   w, _ = draw.textsize(footer_text, font=fonts.footer)
-  draw.text(((base_bg.width - w) // 2, base_bg.height - 120), footer_text, font=fonts.footer, fill=(255, 255, 255))
+  draw.text(((base_bg.width - w) // 2, base_bg.height - 110), footer_text, font=fonts.footer, fill=(255, 255, 255))
+
+  # Early return with empty image if no badges were passed in
+  if not badges:
+    # If no badges, just return the base background with header/footer text
+    frame = trade_canvas.copy()
+    w, h = frame.size
+    resized = frame.resize((int(w * 0.75), int(h * 0.75)), resample=Image.LANCZOS)
+    buf = io.BytesIO()
+    resized.save(buf, format="PNG")
+    buf.seek(0)
+    return discord.File(buf, filename="trade_showcase.png")
 
   # 3. Now paste each strip frame centered onto a copy of that base
   # Generate badge strip frames (each frame is a full strip of up to 6 badge slots)
@@ -1045,10 +1074,10 @@ async def generate_badge_trade_images(
     buf = io.BytesIO()
     final_frames[0].save(buf, format="PNG")
     buf.seek(0)
-    return discord.File(buf, filename="trade_showcase.png")
+    return discord.File(buf, filename="trade_showcase.png"), 'attachment://trade_showcase.png'
   else:
     buf = await encode_webp(final_frames)
-    return discord.File(buf, filename="trade_showcase.webp")
+    return discord.File(buf, filename="trade_showcase.webp"), 'attachment://trade_showcase.webp'
 
 
 #   _________

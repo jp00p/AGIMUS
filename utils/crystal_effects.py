@@ -306,7 +306,7 @@ def _apply_gradient(img: Image.Image, color: tuple[int, int, int], hold_ratio: f
 def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
   Golden latinum overlay.
-  Note that this effect actually uses no overlay image asset because one is unnecessary.
+  Applies tint, shimmer, and glow strictly to badge pixels.
   """
   if badge_image.mode != 'RGBA':
     badge_image = badge_image.convert('RGBA')
@@ -314,12 +314,11 @@ def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
   width, height = badge_image.size
   badge_mask = badge_image.split()[3].point(lambda p: 255 if p > 0 else 0).convert('L')
 
-  # Apply a light golden tint to the badge
   tint_color = (255, 230, 150)
   tint_layer = Image.new('RGBA', badge_image.size, tint_color + (int(255 * 0.35),))
-  badge_tinted = Image.alpha_composite(badge_image, tint_layer)
+  tint_layer_masked = Image.composite(tint_layer, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
+  badge_tinted = Image.alpha_composite(badge_image, tint_layer_masked)
 
-  # Create horizontal shimmer band gradient
   center_gold = (255, 230, 150)
   edge_gold = (140, 115, 70)
   band_width_ratio = 0.1875
@@ -334,21 +333,20 @@ def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
     b = int(center_gold[2] * (1 - dist) + edge_gold[2] * dist)
     draw.line([(0, y), (width, y)], fill=(r, g, b, 255))
 
-  # Fade shimmer band to 50% opacity and mask to badge shape
   r, g, b, a = gradient_img.split()
   a = a.point(lambda p: int(p * 0.5))
   shimmer_masked = Image.merge('RGBA', (r, g, b, a))
   shimmer_masked = Image.composite(shimmer_masked, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
 
-  # Add a subtle outer glow around the shimmer
   glow = shimmer_masked.filter(ImageFilter.GaussianBlur(radius=8))
   glow = ImageEnhance.Brightness(glow).enhance(2.4)
   glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
 
-  # Final composite
   base_with_glow = Image.alpha_composite(glow, badge_tinted)
   final = Image.alpha_composite(base_with_glow, shimmer_masked)
+
   return final
+
 
 
 # 888     888
@@ -774,27 +772,30 @@ def effect_warp_pulse(base_img: Image.Image, badge: dict) -> list[Image.Image]:
 def effect_subspace_ripple(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   """
   Applies an animated diagonal wave distortion across the badge.
-  Distortion slows down and fades out before restarting for a more rhythmic subspace ripple effect.
-
-  Used for the Tetryon crystal (Legendary tier).
+  Distortion slows down and fades out before restarting for a rhythmic subspace ripple.
+  Preserves transparency and avoids ghosting.
   """
   fps = ANIMATION_FPS
   duration = ANIMATION_DURATION
   num_frames = int(duration * fps)
-  size = FRAME_SIZE
-  height, width = size
+  width, height = FRAME_SIZE
 
   amplitude = 8
   wavelength = 96
 
-  badge_array = np.array(base_img)
+  badge_array = np.array(base_img).astype(np.float32)
+  alpha_channel = badge_array[..., 3] / 255.0
+
+  # Premultiply RGB by alpha to avoid black fringes
+  for c in range(3):
+    badge_array[..., c] *= alpha_channel
 
   Y, X = np.meshgrid(np.arange(height), np.arange(width), indexing="ij")
 
   def ripple_amplitude_multiplier(frame_index: int, total: int) -> float:
     t = frame_index / total
     t_scaled = t * 2 * math.pi
-    return 0.5 + 0.5 * math.sin(t_scaled)  # ease to 0 and back
+    return 0.5 + 0.5 * math.sin(t_scaled)
 
   frames = []
   for i in range(num_frames):
@@ -809,10 +810,24 @@ def effect_subspace_ripple(base_img: Image.Image, badge: dict) -> list[Image.Ima
       map_coordinates(badge_array[..., c], coords, order=1, mode='reflect').reshape((height, width))
       for c in range(4)
     ]
-    distorted = np.stack(channels, axis=-1).astype(np.uint8)
-    frames.append(Image.fromarray(distorted, mode="RGBA"))
+    result = np.stack(channels, axis=-1)
+
+    # Un-premultiply-ifly RGB
+    alpha = np.clip(result[..., 3], 1e-6, 255.0)
+    for c in range(3):
+      result[..., c] = np.clip(result[..., c] / (alpha / 255.0), 0, 255)
+    result[..., 3] = np.clip(result[..., 3], 0, 255)
+
+    final = result.astype(np.uint8)
+    distorted = Image.fromarray(final, mode="RGBA")
+
+    # Composite onto clean transparent canvas to prevent ghosting
+    frame = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    frame.paste(distorted, (0, 0), distorted)
+    frames.append(frame)
 
   return frames
+
 
 @register_effect("shimmer_flux")
 def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]:

@@ -368,10 +368,7 @@ class Trade(commands.Cog):
     await db_perform_badge_transfer(active_trade)
     await db_complete_trade(active_trade)
 
-    # Handle wishlist locking and purge
-    requestors_previous_wishlist_badges = await db_get_user_wishlist_badges(requestor.id)
-    requestees_previous_wishlist_badges = await db_get_user_wishlist_badges(requestee.id)
-
+    # Autolocking and Purge Wishlists
     await db_autolock_badges_by_filenames_if_in_wishlist(
       requestor.id,
       [b['badge_filename'] for b in requested_instances]
@@ -431,7 +428,6 @@ class Trade(commands.Cog):
         logger.info(f"DMs closed for {requestor.display_name}")
 
 
-
   async def _cancel_invalid_related_trades(self, active_trade):
     # Find all trades affected by badges in this confirmed trade
     related_trades = await db_get_related_instance_trades(active_trade)
@@ -476,6 +472,100 @@ class Trade(commands.Cog):
           await requestor.send(embed=embed)
         except discord.Forbidden:
           logger.info(f"Could not notify {requestor.display_name} — DMs closed.")
+
+
+  async def _requestor_already_has_badges(self, interaction, active_trade, requestor, requestee):
+    requestor_instances = await db_get_user_badge_instances(active_trade['requestor_id'])
+    requestor_filenames = {b['badge_filename'] for b in requestor_instances}
+
+    requested_instances = await db_get_trade_requested_instances(active_trade)
+    requested_filenames = {b['badge_filename'] for b in requested_instances}
+
+    overlap = requestor_filenames & requested_filenames
+
+    if overlap:
+      await db_cancel_trade(active_trade)
+      await interaction.followup.send(
+        embed=discord.Embed(
+          title="Invalid Trade",
+          description="Sorry! They've already received some of the badges you requested elsewhere while this trade was pending!\n\nTrade has been canceled.",
+          color=discord.Color.red()
+        )
+      )
+
+      try:
+        offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
+
+        embed = discord.Embed(
+          title="Trade Canceled",
+          description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because you already own some of the badges requested!",
+          color=discord.Color.purple()
+        )
+        embed.add_field(
+          name=f"Offered by {requestor.display_name}",
+          value=offered_badge_names
+        )
+        embed.add_field(
+          name=f"Requested from {requestee.display_name}",
+          value=requested_badge_names
+        )
+        embed.set_footer(
+          text="Note: You can use /settings to enable or disable these messages."
+        )
+        await requestor.send(embed=embed)
+      except discord.Forbidden:
+        logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+
+      return True
+
+    return False
+
+
+  async def _requestee_already_has_badges(self, interaction, active_trade, requestor, requestee):
+    requestee_instances = await db_get_user_badge_instances(active_trade['requestee_id'])
+    requestee_filenames = {b['badge_filename'] for b in requestee_instances}
+
+    offered_instances = await db_get_trade_offered_instances(active_trade)
+    offered_filenames = {b['badge_filename'] for b in offered_instances}
+
+    overlap = requestee_filenames & offered_filenames
+
+    if overlap:
+      await db_cancel_trade(active_trade)
+      await interaction.followup.send(
+        embed=discord.Embed(
+          title="Invalid Trade",
+          description="Sorry! You've already received some of the badges that were offered to you elsewhere while this trade was pending!\n\nTrade has been canceled.",
+          color=discord.Color.red()
+        )
+      )
+
+      try:
+        offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
+
+        embed = discord.Embed(
+          title="Trade Canceled",
+          description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because they already own some of the badges offered!",
+          color=discord.Color.purple()
+        )
+        embed.add_field(
+          name=f"Offered by {requestor.display_name}",
+          value=offered_badge_names
+        )
+        embed.add_field(
+          name=f"Requested from {requestee.display_name}",
+          value=requested_badge_names
+        )
+        embed.set_footer(
+          text="Note: You can use /settings to enable or disable these messages."
+        )
+        await requestor.send(embed=embed)
+      except discord.Forbidden:
+        logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
+
+      return True
+
+    return False
 
 
   async def _requestor_still_has_badges(self, interaction, active_trade, requestor, requestee):
@@ -638,7 +728,7 @@ class Trade(commands.Cog):
 
     if request:
       request_instance_id = int(request)
-      if not await self._is_untradeable(ctx, request_instance_id, requestee, ctx.author, active_trade, 'request'):
+      if not await self._is_untradeable(ctx, request_instance_id, ctx.author, requestee, active_trade, 'request'):
         await db_add_requested_instance(trade_id, request_instance_id)
 
     initiated_trade = await self.check_for_active_trade(ctx)
@@ -648,6 +738,8 @@ class Trade(commands.Cog):
     else:
       follow_up_message = "You can add more badges with `/trade propose`, or you can **Send** / **Cancel** the trade immediately via the buttons below."
 
+    offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(initiated_trade)
+
     # Paginator Pages
     initiated_embed = discord.Embed(
       title="Trade Started!",
@@ -655,15 +747,18 @@ class Trade(commands.Cog):
                   f"If you have additional badges you need to offer and request, use `/trade send` afterwards to finalize or cancel.\n\n"
                   f"Note: You may only have one open outgoing trade request at a time!",
       color=discord.Color.dark_purple()
-    ).add_field(
-      name="Badges offered by you",
-      value="(see below)"
-    ).add_field(
-      name=f"Badges requested from {requestee.display_name}",
-      value="(see below)"
     ).set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    )
+
+    initiated_embed.add_field(
+      name=f"Offered by you",
+      value=offered_badge_names
+    )
+    initiated_embed.add_field(
+      name=f"Requested from {requestee.display_name}",
+      value=requested_badge_names
     )
 
     initiated_image = discord.File(fp="./images/trades/assets/trade_pending.png", filename="trade_pending.png")
@@ -950,9 +1045,8 @@ class Trade(commands.Cog):
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
 
     offered_instances = await db_get_trade_offered_instances(active_trade)  # full enriched
-    offered_image_id = f"{active_trade['id']}-offered"
 
-    offered_image = await generate_badge_trade_images(
+    offered_image, offered_filename = await generate_badge_trade_images(
       offered_instances,
       f"Badge(s) Offered by {requestor.display_name}",
       f"{len(offered_instances)} Badges"
@@ -963,7 +1057,7 @@ class Trade(commands.Cog):
       description=f"Badges offered by **{requestor.display_name}** to **{requestee.display_name}**",
       color=discord.Color.dark_purple()
     )
-    offered_embed.set_image(url=f"attachment://{offered_image_id}.png")
+    offered_embed.set_image(url=offered_filename)
 
     return offered_embed, offered_image
 
@@ -974,8 +1068,7 @@ class Trade(commands.Cog):
 
     requested_instances = await db_get_trade_requested_instances(active_trade)
 
-    requested_image_id = f"{active_trade['id']}-requested"
-    requested_image = await generate_badge_trade_images(
+    requested_image, requested_filename = await generate_badge_trade_images(
       requested_instances,
       f"Badge(s) Requested from {requestee.display_name}",
       f"{len(requested_instances)} Badges"
@@ -986,7 +1079,7 @@ class Trade(commands.Cog):
       description=f"Badges requested from **{requestee.display_name}** by **{requestor.display_name}**",
       color=discord.Color.dark_purple()
     )
-    requested_embed.set_image(url=f"attachment://{requested_image_id}.png")
+    requested_embed.set_image(url=requested_filename)
 
     return requested_embed, requested_image
 
@@ -1071,18 +1164,6 @@ class Trade(commands.Cog):
     if not active_trade:
       return
 
-    if offer:
-      offer_id = int(offer)
-      if await self._is_untradeable(ctx, offer_id, ctx.author, await self.bot.fetch_user(active_trade['requestee_id']), active_trade, 'offer'):
-        return
-      await db_add_offered_instance(active_trade['id'], offer_id)
-
-    if request:
-      request_id = int(request)
-      if await self._is_untradeable(ctx, request_id, ctx.author, await self.bot.fetch_user(active_trade['requestee_id']), active_trade, 'request'):
-        return
-      await db_add_requested_instance(active_trade['id'], request_id)
-
     if not offer and not request:
       await ctx.respond(embed=discord.Embed(
         title="Please select a badge to offer or trade",
@@ -1091,11 +1172,18 @@ class Trade(commands.Cog):
       ), ephemeral=True)
       return
 
-    await ctx.respond(embed=discord.Embed(
-      title="Trade Updated!",
-      description="Your trade has been updated. You can add more badges or use `/trade send` when ready.",
-      color=discord.Color.dark_green()
-    ), ephemeral=True)
+    if offer:
+      offer_id = int(offer)
+      if await self._is_untradeable(ctx, offer_id, ctx.author, await self.bot.fetch_user(active_trade['requestee_id']), active_trade, 'offer'):
+        return
+      await self._add_offered_badge_to_trade(ctx, active_trade, offer_id)
+
+    if request:
+      request_id = int(request)
+      if await self._is_untradeable(ctx, request_id, ctx.author, await self.bot.fetch_user(active_trade['requestee_id']), active_trade, 'request'):
+        return
+      await self._add_requested_badge_to_trade(ctx, active_trade, request_id)
+
 
   async def _add_offered_badge_to_trade(self, ctx, active_trade, instance_id):
     trade_id = active_trade["id"]
@@ -1114,17 +1202,16 @@ class Trade(commands.Cog):
 
     await db_add_offered_instance(trade_id, instance_id)
 
-    badge_filename = instance['badge_filename']
     badge_name = instance['badge_name']
-    discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=badge_filename)
+    discord_file, attachment_url = await generate_badge_preview(instance)
 
     embed = discord.Embed(
-      title=f"{badge_name} added to offer.",
-      description=f"This badge has been added to your offer to **{requestee.display_name}**",
+      title=f"Badge added to offer.",
+      description=f"**{badge_name}** has been added to your offer to **{requestee.display_name}**",
       color=discord.Color.dark_green()
     )
-    embed.set_image(url=f"attachment://{badge_filename}")
-    await ctx.respond(embed=embed, file=discord_image, ephemeral=True)
+    embed.set_image(url=attachment_url)
+    await ctx.respond(embed=embed, file=discord_file, ephemeral=True)
 
   async def _add_requested_badge_to_trade(self, ctx, active_trade, instance_id):
     trade_id = active_trade["id"]
@@ -1143,17 +1230,17 @@ class Trade(commands.Cog):
 
     await db_add_requested_instance(trade_id, instance_id)
 
-    badge_filename = instance['badge_filename']
     badge_name = instance['badge_name']
-    discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=badge_filename)
+    discord_file, attachment_url = await generate_badge_preview(instance)
 
     embed = discord.Embed(
-      title=f"{badge_name} added to request.",
-      description=f"This badge has been added to your request from **{requestee.display_name}**",
+      title=f"Badge added to request.",
+      description=f"**{badge_name}** has been added to your request from **{requestee.display_name}**",
       color=discord.Color.dark_green()
     )
-    embed.set_image(url=f"attachment://{badge_filename}")
-    await ctx.respond(embed=embed, file=discord_image, ephemeral=True)
+    embed.set_image(url=attachment_url)
+    await ctx.respond(embed=embed, file=discord_file, ephemeral=True)
+
 
   async def _is_untradeable(self, ctx, badge_instance_id, requestor, requestee, active_trade, direction):
     if direction == 'offer':

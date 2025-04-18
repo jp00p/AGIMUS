@@ -133,11 +133,9 @@ class Crystals(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
-    # Generate badge preview image with crystal effect (in-memory)
-    base_image = await load_and_prepare_badge_thumbnail(badge_info['badge_filename'])
-    badge = { **badge_info, 'badge_instance_id': badge_instance['badge_instance_id'] }
+    # Generate badge preview image with crystal effect
     crystal = selected
-    discord_file, attachment_url = await generate_badge_preview(badge, crystal=crystal)
+    discord_file, attachment_url = await generate_badge_preview(badge_instance, crystal=crystal)
 
     crystal_description = crystal.get('description', '')
     crystal_label = f"{crystal['emoji']} {crystal['crystal_name']}" if crystal.get('emoji') else crystal['crystal_name']
@@ -186,24 +184,3 @@ class Crystals(commands.Cog):
     view = ConfirmCancelView()
     await ctx.respond(embed=preview_embed, file=discord_file, view=view, ephemeral=True)
     view.message = await ctx.interaction.original_response()
-
-
-async def generate_badge_preview(base_image, badge, crystal=None):
-  badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
-  result = await apply_crystal_effect(badge_image, badge, crystal)
-
-  if isinstance(result, list):
-    # Animated crystal preview
-    tmp = tempfile.NamedTemporaryFile(suffix=".webp", delete=False)
-    await encode_webp(result, tmp.name)
-    file = discord.File(tmp.name, filename=f"preview.webp")
-    tmp.flush()
-    attachment_url = 'attachment://preview.webp'
-  else:
-    buffer = io.BytesIO()
-    result.save(buffer, format='PNG')
-    buffer.seek(0)
-    file = discord.File(buffer, filename='preview.png')
-    attachment_url = 'attachment://preview.png'
-
-  return file, attachment_url
