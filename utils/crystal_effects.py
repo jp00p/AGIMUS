@@ -705,9 +705,10 @@ def effect_warp_pulse(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   midpoint = 0.65
   fade_cutoff = 0.95
   fade_steepness = 10
-  alpha_max = 255
+  alpha_max = 300  # intentionally >255 to allow brightening
   ring_thickness = 10
   blur_radius = 2
+  glow_color = (20, 160, 255)  # bright electric blue
 
   def clamped_sigmoid(dist_ratio: float) -> float:
     if dist_ratio >= fade_cutoff:
@@ -752,14 +753,14 @@ def effect_warp_pulse(base_img: Image.Image, badge: dict) -> list[Image.Image]:
 
         dist_ratio = ((tx - center[0])**2 + (ty - center[1])**2) ** 0.5 / max_radius
         fade = clamped_sigmoid(dist_ratio)
-        alpha_val = int(alpha_max * fade)
+        alpha_val = int(min(alpha_max * fade, 255))
         if alpha_val <= 0:
           continue
 
         draw.ellipse([
           (tx - ring_thickness // 2, ty - ring_thickness // 2),
           (tx + ring_thickness // 2, ty + ring_thickness // 2),
-        ], fill=(0, 200, 255, alpha_val))
+        ], fill=(*glow_color, alpha_val))
 
     blurred = glow.filter(ImageFilter.GaussianBlur(radius=blur_radius))
     frame = Image.alpha_composite(frame, blurred)
