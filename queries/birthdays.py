@@ -32,7 +32,7 @@ async def get_users_with_birthday(month: int, day: int) -> List[str]:
     sql = "SELECT user_discord_id FROM user_birthdays WHERE month = %s AND day = %s"
     vals = month, day
     await conn.execute(sql, vals)
-    result = conn.fetchall()
+    result = await conn.fetchall()
     for row in result:
       user_ids.append(row['user_discord_id'])
 
