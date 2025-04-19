@@ -1,5 +1,11 @@
 {
   "Jan": {
+    "04": [
+      "Tracy Tormé"
+    ],
+    "07": [
+      "Gene L. Coon"
+    ],
     "17": [
       "Isa Briones"
     ],
@@ -10,7 +16,8 @@
       "The Greatest Generation podcast"
     ],
     "27": [
-      "James Cromwell"
+      "James Cromwell",
+      "Marc Daniels"
     ],
     "28": [
       "Gillian Vigman"
@@ -23,11 +30,23 @@
     "08": [
       "Ethan Phillips"
     ],
+    "10": [
+      "Jerry Goldsmith"
+    ],
+    "13": [
+      "André Bormanis"
+    ],
     "14": [
       "Simon Pegg"
     ],
+    "15": [
+      "Michael Taylor"
+    ],
     "16": [
       "LeVar Burton"
+    ],
+    "19": [
+      "Joe Menosky"
     ],
     "22": [
       "Celia Rose Gooding",
@@ -44,6 +63,9 @@
     ]
   },
   "Mar": {
+    "01": [
+      "Maggie Schpak"
+    ],
     "02": [
       "Ethan Peck",
       "Gates McFadden"
@@ -72,6 +94,9 @@
     "24": [
       "Tig Notaro"
     ],
+    "25": [
+      "D.C. Fontana"
+    ],
     "26": [
       "Jess Bush",
       "Leonard Nimoy"
@@ -84,8 +109,26 @@
     ]
   },
   "Apr": {
+    "01": [
+      "Naren Shankar"
+    ],
+    "07": [
+      "Richard James"
+    ],
+    "10": [
+      "Allan Kroeker"
+    ],
+    "18": [
+      "Alexander Singer"
+    ],
+    "19": [
+      "Herman Zimmerman"
+    ],
     "20": [
       "George Takei"
+    ],
+    "21": [
+      "Kevin Hageman"
     ],
     "24": [
       "Jack Quaid"
@@ -98,6 +141,12 @@
     "05": [
       "Santiago Cabrera"
     ],
+    "09": [
+      "Durinda Rice Wood"
+    ],
+    "12": [
+      "Peter Allan Fields"
+    ],
     "20": [
       "John Billingsley"
     ],
@@ -105,10 +154,12 @@
       "David Ajala"
     ],
     "24": [
-      "Doug Jones"
+      "Doug Jones",
+      "Michael Chabon"
     ],
     "30": [
-      "Colm Meaney"
+      "Colm Meaney",
+      "Michael Piller"
     ]
   },
   "Jun": {
@@ -125,6 +176,12 @@
     "07": [
       "Karl Urban"
     ],
+    "10": [
+      "Manny Coto"
+    ],
+    "11": [
+      "Paul Lynch"
+    ],
     "13": [
       "Fred Tatasciore"
     ],
@@ -135,15 +192,34 @@
       "Zoë Saldana"
     ],
     "22": [
-      "Tim Russ"
+      "Tim Russ",
+      "Michael Sussman"
+    ],
+    "25": [
+      "Mike Vejar"
     ],
     "28": [
       "Alice Krige"
+    ],
+    "30": [
+      "Jeri Taylor"
     ]
   },
   "Jul": {
     "01": [
       "Dominic Keating"
+    ],
+    "03": [
+      "Dennis McCarthy"
+    ],
+    "05": [
+      "Ronald D. Moore"
+    ],
+    "06": [
+      "Rick Sternbach"
+    ],
+    "07": [
+      "Akiva Goldsman"
     ],
     "08": [
       "Shazad Latif"
@@ -151,14 +227,21 @@
     "09": [
       "Linda Park"
     ],
+    "10": [
+      "Hans Beimler"
+    ],
     "13": [
       "Patrick Stewart"
     ],
     "18": [
-      "Eugene Cordero"
+      "Eugene Cordero",
+      "David Weddle"
     ],
     "26": [
       "Nana Visitor"
+    ],
+    "27": [
+      "Bryan Fuller"
     ],
     "29": [
       "Wil Wheaton"
@@ -168,6 +251,9 @@
     ]
   },
   "Aug": {
+    "02": [
+      "Wah Chang"
+    ],
     "05": [
       "Bruce Horak"
     ],
@@ -175,17 +261,38 @@
       "Michelle Yeoh"
     ],
     "07": [
-      "Cirroc Lofton"
+      "Cirroc Lofton",
+      "Leonard Rosenman"
+    ],
+    "08": [
+      "Aaron Waltke"
     ],
     "10": [
       "Evan Evagora"
     ],
+    "12": [
+      "Matt Jefferies"
+    ],
     "13": [
       "Dawnn Lewis"
     ],
+    "14": [
+      "Brannon Braga",
+      "James Horner"
+    ],
+    "15": [
+      "Bjo Trimble"
+    ],
+    "16": [
+      "Maurice Hurley"
+    ],
     "19": [
       "Gene Roddenberry",
-      "Jonathan Frakes"
+      "Jonathan Frakes",
+      "Robert Blackman"
+    ],
+    "23": [
+      "Robert Fletcher"
     ],
     "24": [
       "Jennifer Lien",
@@ -193,9 +300,22 @@
     ],
     "26": [
       "Chris Pine"
+    ],
+    "31": [
+      "Jeff Russo"
     ]
   },
   "Sep": {
+    "02": [
+      "Bradley Thompson"
+    ],
+    "05": [
+      "Andrew Probert"
+    ],
+    "07": [
+      "Diane Warren",
+      "Alex Kurtzman"
+    ],
     "09": [
       "Jeffrey Combs"
     ],
@@ -206,14 +326,24 @@
       "Walter Koenig"
     ],
     "15": [
-      "Blu del Barrio"
+      "Blu del Barrio",
+      "René Echevarria",
+      "Joseph Pevney"
     ],
     "18": [
       "Christina Chong",
-      "Babs Olusanmokun"
+      "Babs Olusanmokun",
+      "Terry Windell"
     ],
     "22": [
-      "The Greatest Trek podcast"
+      "The Greatest Trek podcast",
+      "Hanelle M. Culpepper"
+    ],
+    "24": [
+      "Lisa Klink"
+    ],
+    "30": [
+      "Michael Wagner"
     ]
   },
   "Oct": {
@@ -223,11 +353,23 @@
     "09": [
       "Scott Bakula"
     ],
+    "10": [
+      "Michael Giacchino",
+      "Janos Prohaska"
+    ],
+    "23": [
+      "Ira Steven Behr",
+      "Olatunde Osunsanmi"
+    ],
     "26": [
       "Anthony Rapp"
     ],
     "27": [
-      "Robert Picardo"
+      "Robert Picardo",
+      "James L. Conway"
+    ],
+    "28": [
+      "Robert Hewitt Wolfe"
     ]
   },
   "Nov": {
@@ -238,17 +380,26 @@
       "Rebecca Romijn"
     ],
     "09": [
-      "Robert Duncan McNeill"
+      "Robert Duncan McNeill",
+      "Cliff Bole",
+      "Winrich Kolbe"
     ],
     "13": [
       "Whoopi Goldberg"
+    ],
+    "14": [
+      "Kim Friedman"
+    ],
+    "18": [
+      "Alan Dean Foster"
     ],
     "19": [
       "Terry Farrell",
       "Robert Beltran"
     ],
     "20": [
-      "Nicole de Boer"
+      "Nicole de Boer",
+      "William Ware Theiss"
     ],
     "21": [
       "Alexander Siddig"
@@ -257,27 +408,43 @@
       "Denise Crosby"
     ],
     "27": [
-      "Alison Pill"
+      "Alison Pill",
+      "Melinda M. Snodgrass"
     ]
   },
   "Dec": {
+    "05": [
+      "Cliff Eidelman"
+    ],
     "09": [
       "Michael Dorn"
+    ],
+    "10": [
+      "Alexander Courage"
     ],
     "15": [
       "Garrett Wang"
     ],
+    "17": [
+      "Dan Hageman"
+    ],
     "21": [
-      "Michelle Hurd"
+      "Michelle Hurd",
+      "Deborah Everton"
     ],
     "23": [
-      "Noël Wells"
+      "Noël Wells",
+      "Kenneth Biller"
+    ],
+    "24": [
+      "Nicholas Meyer"
     ],
     "27": [
       "Wilson Cruz"
     ],
     "28": [
-      "Nichelle Nichols"
+      "Nichelle Nichols",
+      "Robert Scheerer"
     ]
   }
 }

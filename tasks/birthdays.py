@@ -5,7 +5,7 @@ import random
 import discord
 from discord.ext.commands import Bot
 
-from common import config, get_channel_ids_list, logger
+from common import config, get_channel_ids_list, logger, make_memory_alpha_link
 from queries import birthdays as db
 
 
@@ -39,7 +39,9 @@ def birthdays_task(bot: Bot):
     ]
 
     celebrities = trek_birthdays[today.strftime('%b')].get(today.strftime('%d'), [])
-    description.extend(celebrities)
+    description.extend(
+      make_memory_alpha_link(name) for name in celebrities
+    )
 
     if today.month == 2 and today.day == 28 and today.year % 4 > 0:
       user_ids = await db.get_users_with_birthday(2, 29)
