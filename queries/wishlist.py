@@ -1,5 +1,7 @@
 from common import *
 
+from queries.common import BADGE_INSTANCE_COLUMNS
+
 #   ________        __
 #  /  _____/  _____/  |_
 # /   \  ____/ __ \   __\
@@ -8,19 +10,22 @@ from common import *
 #         \/     \/
 async def db_get_user_wishlist_badges(user_discord_id):
   """
-  Retrieve all badge_info records that a user has wishlisted.
-  Joins badge_instance_wishlists with badge_info to return badge metadata.
+  Retrieve enriched badge_instance records for all badges a user has wishlisted.
+  Joins badge_instance_wishlists with badge_info and uses enriched badge instance info.
   Results are ordered alphabetically by badge name.
   """
   async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT * FROM badge_info AS b_i
-        JOIN badge_instance_wishlists AS b_w
-        ON b_w.badge_info_id = b_i.id
-        WHERE b_w.user_discord_id = %s
-        ORDER BY b_i.badge_name ASC
+    sql = f'''
+      SELECT {BADGE_INSTANCE_COLUMNS}
+      FROM badge_instance_wishlists AS b_w
+      JOIN badge_info AS b_i ON b_w.badge_info_id = b_i.id
+      LEFT JOIN badge_instances AS b ON b.badge_info_id = b_i.id AND b.owner_discord_id = %s
+      LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+      LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
+      WHERE b_w.user_discord_id = %s
+      ORDER BY b_i.badge_name ASC
     '''
-    vals = (user_discord_id,)
+    vals = (user_discord_id, user_discord_id)
     await query.execute(sql, vals)
     return await query.fetchall()
 

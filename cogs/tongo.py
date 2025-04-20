@@ -6,6 +6,7 @@ from cogs.trade import get_offered_and_requested_badge_names
 from utils.badge_instances import *
 from utils.badge_trades import *
 from utils.badge_utils import *
+from utils.image_utils import generate_badge_trade_images
 from utils.check_channel_access import access_check
 from utils.check_user_access import user_check
 
@@ -692,17 +693,15 @@ class Tongo(commands.Cog):
           await db_get_badge_info_by_instance_id(instance_id)
           for instance_id in badge_instance_ids
         ]
-        filenames = [b['badge_filename'] for b in badges_received]
+        badges_received_filenames = [b['badge_filename'] for b in badges_received]
 
-        image_id = f"{active_tongo['id']}-won-{user_id}"
-        showcase_image = await generate_badge_trade_showcase(
-          filenames,
-          image_id,
+        received_image, received_image_url = await generate_badge_trade_images(
+          badges_received,
           f"Badges Won By {member.display_name}",
           f"{len(badges_received)} Badges"
         )
 
-        wishlist_received = [b for b in wishlist if b['badge_filename'] in filenames]
+        wishlist_received = [b for b in wishlist if b['badge_filename'] in badges_received_filenames]
         wishlist_filenames_received = [b['badge_filename'] for b in wishlist_received]
 
         xp_awarded = 0
@@ -713,8 +712,8 @@ class Tongo(commands.Cog):
           await increment_user_xp(member, xp_awarded, 'tongo_loss', zeks_table, "Consolation Prize for Tongo Loss")
 
         player_embed = await build_confront_player_embed(member, badges_received, wishlist_filenames_received, xp_awarded)
-        player_embed.set_image(url=f"attachment://{image_id}.png")
-        await zeks_table.send(embed=player_embed, file=showcase_image)
+        player_embed.set_image(url=received_image_url)
+        await zeks_table.send(embed=player_embed, file=received_image)
 
         dm_embed = build_confront_dm_embed(member, badges_received, wishlist_filenames_received, channel_message.jump_url, auto_confront, xp_awarded)
         try:
@@ -746,14 +745,12 @@ class Tongo(commands.Cog):
       await zeks_table.send(embed=build_liquidation_embed(member, reward, removed))
 
       # Endowment image
-      image_id = f"{active_tongo['id']}-liquidation-{member.id}"
-      image_file = await generate_badge_trade_showcase([reward['badge_filename']], image_id, f"Zek's Endowment For {member.display_name}", "Greed is Eternal!")
-      await zeks_table.send(embed=build_liquidation_endowment_embed(member, image_id), file=image_file)
+      reward_image, reward_image_url = await generate_badge_trade_images(reward, f"Zek's Endowment For {member.display_name}", "Greed is Eternal!")
+      await zeks_table.send(embed=build_liquidation_endowment_embed(member, reward_image_url), file=reward_image)
 
       # Liquidated image
-      removal_id = f"{active_tongo['id']}-liquidation_badges"
-      removal_file = await generate_badge_trade_showcase([b['badge_filename'] for b in removed], removal_id, "Badges Liquidated", f"{len(removed)} Badges Liquidated")
-      await zeks_table.send(embed=build_liquidation_removal_embed(removed, removal_id), file=removal_file)
+      removal_image, removal_image_url = await generate_badge_trade_images(removed, "Badges Liquidated", f"{len(removed)} Badges Liquidated")
+      await zeks_table.send(embed=build_liquidation_removal_embed(removed, removal_image_url), file=removal_image)
 
       # DM
       try:
@@ -883,7 +880,6 @@ class Tongo(commands.Cog):
 
 
   async def _determine_liquidation(self, continuum: list[dict], tongo_players: list[int]) -> Optional[dict]:
-    logger.info("hmmmm...")
     players = tongo_players.copy()
     random.shuffle(players)
 
@@ -1140,7 +1136,7 @@ def build_liquidation_dm_embed(member: discord.Member, reward_badge: dict) -> di
   return embed
 
 
-def build_liquidation_endowment_embed(member: discord.Member, image_id: str) -> discord.Embed:
+def build_liquidation_endowment_embed(member: discord.Member, reward_image_url) -> discord.Embed:
   embed = discord.Embed(
     title="Liquidation Endowment",
     description=(
@@ -1148,17 +1144,17 @@ def build_liquidation_endowment_embed(member: discord.Member, image_id: str) -> 
     ),
     color=discord.Color.gold()
   )
-  embed.set_image(url=f"attachment://{image_id}.png")
+  embed.set_image(url=reward_image_url)
   return embed
 
 
-def build_liquidation_removal_embed(badges: list[dict], image_id: str) -> discord.Embed:
+def build_liquidation_removal_embed(badges: list[dict], removal_image_url) -> discord.Embed:
   embed = discord.Embed(
     title="Badges Liquidated",
     description="The following badges have been removed from The Great Material Continuum...",
     color=discord.Color.gold()
   )
-  embed.set_image(url=f"attachment://{image_id}.png")
+  embed.set_image(url=removal_image_url)
   return embed
 
 
@@ -1215,6 +1211,9 @@ async def db_get_related_tongo_badge_trades(user_discord_id, selected_user_badge
 # \     \___(  <_> )   |  \  | |  |   |  \  |  /  |  /  Y Y  \   |  Y Y  \/ __ \_/ /_/  >  ___/ \___ \
 #  \______  /\____/|___|  /__| |__|___|  /____/|____/|__|_|  /___|__|_|  (____  /\___  / \___  >____  >
 #         \/            \/             \/                  \/          \/     \//_____/      \/     \/
+
+# TO DO: Need to refactor these into the pipeline functions in `utils.image_utils`
+
 async def generate_paginated_continuum_images(continuum_badges):
   total_badges = len(continuum_badges)
   max_per_image = 12

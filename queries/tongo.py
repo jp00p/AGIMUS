@@ -2,6 +2,8 @@ from typing import Optional
 
 from common import *
 
+from queries.common import BADGE_INSTANCE_COLUMNS
+
 # --- Game Lifecycle ---
 
 async def db_create_tongo_game(chair_user_id: int) -> int:
@@ -112,21 +114,22 @@ async def db_remove_from_continuum(source_instance_id: int):
 
 
 async def db_get_full_continuum_badges():
-  query = """
+  """
+  Retrieve enriched badge_instance records from the Tongo continuum.
+  Includes the badge_info, instance, and crystal data, plus Tongo-specific fields:
+    - source_instance_id: the original badge_instance_id thrown into the pot
+    - thrown_by_user_id: who threw it in
+  """
+  query = f"""
     SELECT
-      b_i.id AS badge_info_id,
-      b_i.badge_filename,
-      b_i.badge_name,
-      b_i.badge_url,
-      b_i.quadrant,
-      b_i.time_period,
-      b_i.franchise,
-      b_i.reference,
-      b_i.special,
+      {BADGE_INSTANCE_COLUMNS},
       t_c.source_instance_id,
       t_c.thrown_by_user_id
     FROM tongo_continuum AS t_c
-    JOIN badge_info AS b_i ON t_c.badge_info_id = b_i.id
+    JOIN badge_instances AS b ON t_c.source_instance_id = b.id
+    JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+    LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+    LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
     ORDER BY b_i.badge_name ASC
   """
   async with AgimusDB(dictionary=True) as db:
