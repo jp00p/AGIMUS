@@ -17,14 +17,32 @@ from utils.badge_cache import get_cached_base_badge_canvas
 from utils.crystal_effects import apply_crystal_effect
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
 
-THREAD_POOL = ThreadPoolExecutor(max_workers=12)
+THREAD_POOL = ThreadPoolExecutor(max_workers=24)
 
 # -> utils.image_utils
 
-# Constants
+# _________                         __                 __
+# \_   ___ \  ____   ____   _______/  |______    _____/  |_  ______
+# /    \  \/ /  _ \ /    \ /  ___/\   __\__  \  /    \   __\/  ___/
+# \     \___(  <_> )   |  \\___ \  |  |  / __ \|   |  \  |  \___ \
+#  \______  /\____/|___|  /____  > |__| (____  /___|  /__| /____  >
+#         \/            \/     \/            \/     \/          \/
 BADGE_PATH = "./images/badges/"
 BADGE_SIZE = (300, 300)
 
+# Icons
+SPECIAL_ICON = None
+LOCK_ICON = None
+
+async def preload_overlay_icons():
+  global SPECIAL_ICON, LOCK_ICON
+  if SPECIAL_ICON is None:
+    SPECIAL_ICON = await threaded_image_open("./images/templates/badges/special_icon.png").convert("RGBA")
+  if LOCK_ICON is None:
+    LOCK_ICON = await threaded_image_open("./images/templates/badges/lock_icon.png").convert("RGBA")
+
+# Preload when this module is imported
+asyncio.get_event_loop().create_task(preload_overlay_icons())
 
 #  ____ ___   __  .__.__
 # |    |   \_/  |_|__|  |   ______
@@ -42,7 +60,26 @@ async def load_and_prepare_badge_thumbnail(filename):
 
 async def encode_webp(frames: list[Image.Image]):
   loop = asyncio.get_running_loop()
-  return await loop.run_in_executor(THREAD_POOL, _encode_webp, frames)
+
+  logger.info(f"[timing] Starting Stage 4: frame resizing")
+  start = time.perf_counter()
+
+  # TODO: Make native canvas sizes smaller so we don't have to do this reize step...
+  # Resize final output frames concurrently while preserving order
+  def resize_frame(img: Image.Image) -> Image.Image:
+    w, h = img.size
+    return img.resize((int(w * 0.5), int(h * 0.5)), resample=Image.LANCZOS)
+
+  resize_tasks = [
+    loop.run_in_executor(THREAD_POOL, resize_frame, frame)
+    for frame in frames
+  ]
+  final_frames = await asyncio.gather(*resize_tasks)
+
+  end = time.perf_counter()
+  logger.info(f"[timing] frame resizing took {end - start:.2f}s")
+
+  return await loop.run_in_executor(THREAD_POOL, _encode_webp, final_frames)
 
 def _encode_webp(frames: list[Image.Image]):
   buf = _encode_webp_ffmpeg_pipe(frames)
@@ -53,7 +90,7 @@ def _encode_webp_ffmpeg_pipe(frames: list[Image.Image], fps=12) -> io.BytesIO:
   if not frames:
     raise ValueError("No frames provided for WebP encoding.")
 
-  logger.info(f"[timing] Starting Stage 4: webp encoding")
+  logger.info(f"[timing] Starting Stage 5: webp encoding")
   start = time.perf_counter()
 
   width, height = frames[0].size
@@ -301,7 +338,7 @@ def split_text_into_emoji_clusters(text: str):
 #         \/                      \/     \/                    \/     \/
 async def generate_badge_collection_images(user, badge_data, collection_type, collection_label):
   start = time.perf_counter()
-  logger.debug("[timing] Starting generate_badge_collection_images")
+  logger.info("[timing] Starting generate_badge_collection_images")
 
   user_id = user.id
   theme = await get_theme_preference(user_id, collection_type)
@@ -324,7 +361,7 @@ async def generate_badge_collection_images(user, badge_data, collection_type, co
       theme=theme
     )
     canvas_end = time.perf_counter()
-    logger.debug(f"[timing] build_collection_canvas took {canvas_end - canvas_start:.2f}s")
+    logger.info(f"[timing] build_collection_canvas took {canvas_end - canvas_start:.2f}s")
 
     final_result = await compose_badge_grid(canvas, page_badges, theme, collection_type)
 
@@ -337,7 +374,7 @@ async def generate_badge_collection_images(user, badge_data, collection_type, co
 
   end = time.perf_counter()
   duration = round(end - start, 2)
-  logger.debug(f"[benchmark] generate_badge_collection_images() took {duration} seconds")
+  logger.info(f"[benchmark] generate_badge_collection_images() took {duration} seconds")
 
   return images
 
@@ -369,7 +406,7 @@ async def build_collection_canvas(user, page_data, all_data, page_number, total_
   return canvas
 
 async def compose_badge_grid(canvas: Image.Image, badge_data: list, theme: str, collection_type: str):
-  logger.debug("[timing] compose_badge_grid() entry")
+  logger.info("[timing] compose_badge_grid() entry")
   start_total = time.perf_counter()
 
   dims = _get_collection_grid_dimensions()
@@ -384,15 +421,15 @@ async def compose_badge_grid(canvas: Image.Image, badge_data: list, theme: str, 
     y = (dims.header_height + row * dims.row_height) + layout.init_y
     positions.append((x, y))
 
-  logger.debug("[timing] Starting Stage 1: load + crystal effects")
+  logger.info("[timing] Starting Stage 1: load + crystal effects")
   t1 = time.perf_counter()
 
   prepared = await prepare_badges_with_crystal_effects(badge_data)
 
   t2 = time.perf_counter()
-  logger.debug(f"[timing] Stage 1 complete in {round(t2 - t1, 2)}s")
+  logger.info(f"[timing] Stage 1 complete in {round(t2 - t1, 2)}s")
 
-  logger.debug("[timing] Starting Stage 2: slot composition")
+  logger.info("[timing] Starting Stage 2: slot composition")
   loop = asyncio.get_running_loop()
   slot_frame_stacks = await asyncio.gather(*[
     loop.run_in_executor(THREAD_POOL, _compose_grid_slot, badge, collection_type, theme, image)
@@ -400,28 +437,23 @@ async def compose_badge_grid(canvas: Image.Image, badge_data: list, theme: str, 
   ])
 
   t3 = time.perf_counter()
-  logger.debug(f"[timing] Stage 2 complete in {round(t3 - t2, 2)}s")
+  logger.info(f"[timing] Stage 2 complete in {round(t3 - t2, 2)}s")
 
   animated = any(len(stack) > 1 for stack in slot_frame_stacks)
   max_frames = max(len(stack) for stack in slot_frame_stacks)
 
-  logger.debug("[timing] Starting Stage 3: frame stitching")
-  def resize_frame(img: Image.Image) -> Image.Image:
-    w, h = img.size
-    return img.resize((int(w * 0.75), int(h * 0.75)), resample=Image.LANCZOS)
-
+  logger.info("[timing] Starting Stage 3: frame stitching")
   grid_frame_stack = []
   for frame_idx in range(max_frames):
     frame = canvas.copy()
     for slot_frames, pos in zip(slot_frame_stacks, positions):
       slot_frame = slot_frames[frame_idx % len(slot_frames)]
       frame.paste(slot_frame, pos, slot_frame)
-    resized = resize_frame(frame)
-    grid_frame_stack.append(resized)
+    grid_frame_stack.append(frame)
 
   t4 = time.perf_counter()
-  logger.debug(f"[timing] Stage 3 complete in {round(t4 - t3, 2)}s")
-  logger.debug(f"[timing] compose_badge_grid total duration: {round(t4 - start_total, 2)}s")
+  logger.info(f"[timing] Stage 3 complete in {round(t4 - t3, 2)}s")
+  logger.info(f"[timing] compose_badge_grid total duration: {round(t4 - start_total, 2)}s")
 
   return grid_frame_stack if animated else grid_frame_stack[0]
 
@@ -449,7 +481,7 @@ def _compose_grid_slot(badge, collection_type, theme, badge_image):
   slot_frames = compose_badge_slot(badge, colors, badge_image, override_colors)
 
   duration = round(time.perf_counter() - start, 3)
-  logger.debug(f"[timing] compose_grid_slot took {duration}s for badge_id={badge.get('badge_info_id')}")
+  logger.info(f"[timing] compose_grid_slot took {duration}s for badge_id={badge.get('badge_info_id')}")
   return slot_frames
 
 
@@ -868,7 +900,7 @@ def compose_badge_slot(badge: dict, theme, image_frames: list[Image.Image], over
     slot_canvas.paste(badge_canvas, (dims.badge_padding + offset_x, offset_y), badge_canvas)
 
     text = badge.get("badge_name", "")
-    wrapped = textwrap.fill(text, width=30)
+    wrapped = textwrap.fill(text, width=24)
     text_bbox = draw.multiline_textbbox((0, 0), wrapped, font=fonts.label)
     text_block_width = text_bbox[2] - text_bbox[0]
     text_x = (dims.slot_width - text_block_width) // 2
@@ -877,9 +909,9 @@ def compose_badge_slot(badge: dict, theme, image_frames: list[Image.Image], over
 
     overlay = None
     if badge.get("special"):
-      overlay = Image.open("./images/templates/badges/special_icon.png").convert("RGBA")
+      overlay = SPECIAL_ICON
     elif badge.get("locked"):
-      overlay = Image.open("./images/templates/badges/lock_icon.png").convert("RGBA")
+      overlay = LOCK_ICON
 
     if overlay:
       slot_canvas.paste(overlay, (dims.slot_width - 54, 16), overlay)
@@ -947,7 +979,7 @@ async def build_display_canvas(
   )
 
   duration = round(time.perf_counter() - start, 3)
-  logger.debug(f"[timing] build_display_canvas took {duration}s")
+  logger.info(f"[timing] build_display_canvas took {duration}s")
 
   return canvas
 
