@@ -166,8 +166,13 @@ async def collection(ctx:discord.ApplicationContext, public:str, filter:str, sor
 
   badge_images = await generate_badge_collection_images(ctx.author, user_badges, 'collection', collection_label)
 
-  await pending_message.delete()
-
+  await pending_message.edit(
+    embed=discord.Embed(
+      title="Sets Display Request Complete!",
+      description="Phew, here you go!",
+      color=discord.Color.dark_green()
+    )
+  )
 
   # Generation complete, do the thing!
   embed = discord.Embed(
@@ -323,7 +328,7 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
   pending_message = await ctx.followup.send(
     embed=discord.Embed(
       title="Sets Display Request Received!",
-      description="If you have a large collection this miiiiiight take a while...\n\nDon't worry, AGIMUS is on it! 🫡",
+      description="If this is a large set this miiiiiight take a while...\n\nFear not, AGIMUS shall provide! 🫡",
       color=discord.Color.dark_green()
     )
   )
@@ -334,8 +339,13 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
   collection_label = f"{category_title} - {selection}"
   badge_images = await generate_badge_collection_images(ctx.author, set_badges, 'sets', collection_label)
 
-  await pending_message.delete()
-
+  await pending_message.edit(
+    embed=discord.Embed(
+      title="Sets Display Request Complete!",
+      description="Phew, here you go!",
+      color=discord.Color.dark_green()
+    )
+  )
 
   embed = discord.Embed(
     title=f"Badge Sets: **{category_title}** - **{selection}**",

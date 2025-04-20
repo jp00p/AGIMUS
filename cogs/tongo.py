@@ -1,14 +1,17 @@
 from common import *
 from handlers.xp import increment_user_xp
 
+from cogs.trade import get_offered_and_requested_badge_names
+
 from utils.badge_utils import *
 from utils.badge_instances import *
 from utils.check_channel_access import access_check
 from utils.check_user_access import user_check
 
-from queries.tongo import *
 from queries.badge_info import *
 from queries.badge_instances import *
+from queries.tongo import *
+from queries.trade import db_cancel_trade
 from queries.wishlist import *
 
 f = open("./data/rules_of_acquisition.txt", "r")
@@ -405,72 +408,51 @@ class Tongo(commands.Cog):
       await zeks_table.send(f"Hey {chair.mention}, your table is getting full!")
 
 
-  # TODO: Re-implement this once we get the badge_instance trading stuff complete
-  # async def _cancel_tongo_related_trades(self, user_discord_id, selected_badges):
-  #   # These are all the active or pending trades that involved the user as either the
-  #   # requestee or requestor and include the badges that were added to the tongo pot
-  #   # are thus no longer valid and need to be canceled
-  #   trades_to_cancel = await db_get_related_tongo_badge_trades(user_discord_id, selected_badges)
-  #   if not trades_to_cancel:
-  #     return
+  async def _cancel_tongo_related_trades(self, user_discord_id, selected_badges: list[dict]):
+    trades_to_cancel = await db_get_related_tongo_badge_trades(user_discord_id, selected_badges)
+    if not trades_to_cancel:
+      return
 
-  #   # Iterate through to cancel, and then
-  #   for trade in trades_to_cancel:
-  #     await db_cancel_trade(trade)
-  #     requestee = await self.bot.current_guild.fetch_member(trade['requestee_id'])
-  #     requestor = await self.bot.current_guild.fetch_member(trade['requestor_id'])
+    for trade in trades_to_cancel:
+      await db_cancel_trade(trade)
 
-  #     offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(trade)
+      requestor = await self.bot.current_guild.fetch_member(trade['requestor_id'])
+      requestee = await self.bot.current_guild.fetch_member(trade['requestee_id'])
 
-  #     # Give notice to Requestee
-  #     user = await get_user(requestee.id)
-  #     if user["receive_notifications"] and trade['status'] == 'active':
-  #       try:
-  #         requestee_embed = discord.Embed(
-  #           title="Trade Canceled",
-  #           description=f"Just a heads up! Your USS Hood Badge Trade initiated by **{requestor.display_name}** was canceled because one or more of the badges involved were added to the Tongo pot!",
-  #           color=discord.Color.purple()
-  #         )
-  #         requestee_embed.add_field(
-  #           name=f"Offered by {requestor.display_name}",
-  #           value=offered_badge_names
-  #         )
-  #         requestee_embed.add_field(
-  #           name=f"Requested from {requestee.display_name}",
-  #           value=requested_badge_names
-  #         )
-  #         requestee_embed.set_footer(
-  #           text="Note: You can use /settings to enable or disable these messages."
-  #         )
-  #         await requestee.send(embed=requestee_embed)
-  #       except discord.Forbidden as e:
-  #         logger.info(f"Unable to send trade cancelation message to {requestee.display_name}, they have their DMs closed.")
-  #         pass
+      offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(trade)
 
-  #     # Give notice to Requestor
-  #     user = await get_user(requestor.id)
-  #     if user["receive_notifications"]:
-  #       try:
-  #         requestor_embed = discord.Embed(
-  #           title="Trade Canceled",
-  #           description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because one or more of the badges involved were added to the Tongo pot!",
-  #           color=discord.Color.purple()
-  #         )
-  #         requestor_embed.add_field(
-  #           name=f"Offered by {requestor.display_name}",
-  #           value=offered_badge_names
-  #         )
-  #         requestor_embed.add_field(
-  #           name=f"Requested from {requestee.display_name}",
-  #           value=requested_badge_names
-  #         )
-  #         requestor_embed.set_footer(
-  #           text="Note: You can use /settings to enable or disable these messages."
-  #         )
-  #         await requestor.send(embed=requestor_embed)
-  #       except discord.Forbidden as e:
-  #         logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
-  #         pass
+      # Notify requestee
+      requestee_user = await get_user(requestee.id)
+      if trade['status'] == 'active' and requestee_user["receive_notifications"]:
+        try:
+          embed = discord.Embed(
+            title="Trade Canceled",
+            description=f"Just a heads up! Your USS Hood Badge Trade initiated by **{requestor.display_name}** was canceled because one or more of the badges involved were added to the Tongo pot!",
+            color=discord.Color.purple()
+          )
+          embed.add_field(name=f"Offered by {requestor.display_name}", value=offered_badge_names)
+          embed.add_field(name=f"Requested from {requestee.display_name}", value=requested_badge_names)
+          embed.set_footer(text="Note: You can use /settings to enable or disable these messages.")
+          await requestee.send(embed=embed)
+        except discord.Forbidden:
+          logger.info(f"Unable to send trade cancellation message to {requestee.display_name}, they have their DMs closed.")
+
+      # Notify requestor
+      requestor_user = await get_user(requestor.id)
+      if requestor_user["receive_notifications"]:
+        try:
+          embed = discord.Embed(
+            title="Trade Canceled",
+            description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because one or more of the badges involved were added to the Tongo pot!",
+            color=discord.Color.purple()
+          )
+          embed.add_field(name=f"Offered by {requestor.display_name}", value=offered_badge_names)
+          embed.add_field(name=f"Requested from {requestee.display_name}", value=requested_badge_names)
+          embed.set_footer(text="Note: You can use /settings to enable or disable these messages.")
+          await requestor.send(embed=embed)
+        except discord.Forbidden:
+          logger.info(f"Unable to send trade cancellation message to {requestor.display_name}, they have their DMs closed.")
+
 
   #    ____        __
   #   /  _/__  ___/ /____ __
