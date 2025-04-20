@@ -8,7 +8,7 @@ from utils.badge_rewards import *
 from utils.image_utils import *
 from utils.badge_utils import *
 
-import queries.badge_completion as queries_badge_completion
+from queries.badge_completion import *
 from queries.badges import *
 from queries.badge_info import *
 from queries.badge_scrap import *
@@ -156,7 +156,7 @@ async def collection(ctx:discord.ApplicationContext, public:str, filter:str, sor
   pending_message = await ctx.followup.send(
     embed=discord.Embed(
       title="Collection Display Request Received!",
-      description="If you have a large collection this miiiiiight take a while...\n\nDon't worry, AGIMUS is on it! 🫡",
+      description=f"If you have a large collection this miiiiiight take a while...\n\nDon't worry, AGIMUS is on it! {get_emoji('agimus_smile_happy')}",
       color=discord.Color.dark_green()
     )
   )
@@ -328,7 +328,7 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
   pending_message = await ctx.followup.send(
     embed=discord.Embed(
       title="Sets Display Request Received!",
-      description="If this is a large set this miiiiiight take a while...\n\nFear not, AGIMUS shall provide! 🫡",
+      description=f"If this is a large set this miiiiiight take a while...\n\nFear not, AGIMUS shall provide! {get_emoji('agimus_flail')}",
       color=discord.Color.dark_green()
     )
   )
@@ -342,7 +342,7 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
   await pending_message.edit(
     embed=discord.Embed(
       title="Sets Display Request Complete!",
-      description="Phew, here you go!",
+      description="I did it!",
       color=discord.Color.dark_green()
     )
   )
@@ -453,21 +453,39 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
   # Pull data using the queries.
   all_rows = []
   if category == 'affiliation':
-    all_rows = await queries_badge_completion.by_affiliation(ctx.author.id)
+    all_rows = await db_completion_by_affiliation(ctx.author.id)
   elif category == 'franchise':
-    all_rows = await queries_badge_completion.by_franchise(ctx.author.id)
+    all_rows = await db_completion_by_franchise(ctx.author.id)
   elif category == 'time_period':
-    all_rows = await queries_badge_completion.by_time_period(ctx.author.id)
+    all_rows = await db_completion_by_time_period(ctx.author.id)
   elif category == 'type':
-    all_rows = await queries_badge_completion.by_type(ctx.author.id)
+    all_rows = await db_completion_by_type(ctx.author.id)
   all_rows = await _append_featured_completion_badges(ctx.author.id, all_rows, category)
+
+  category_title = category.replace('_', ' ').title()
 
   if color:
     await db_set_user_badge_page_color_preference(ctx.author.id, 'sets', color)
 
+  pending_message = await ctx.followup.send(
+    embed=discord.Embed(
+      title=f"{category_title}s Display Request Received!",
+      description=f"This may take a second or two...\n\nACCESSING DATABANKS! {get_emoji('agimus')}",
+      color=discord.Color.dark_green()
+    )
+  )
+
   completion_images = await generate_badge_set_completion_images(ctx.author, all_rows, category)
 
-  category_title = category.replace('_', ' ').title()
+  await pending_message.edit(
+    embed=discord.Embed(
+      title=f"{category_title}s Display Request Complete!",
+      description="BEHOLD AND BE AMAZED!",
+      color=discord.Color.dark_green()
+    )
+  )
+
+
   embed = discord.Embed(
     title=f"Badge Set Completion: {category_title}",
     description=f"{ctx.author.mention}'s current {category_title} set completion progress",

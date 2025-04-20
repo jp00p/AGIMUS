@@ -338,18 +338,6 @@ async def generate_badge_collection_images(user, badge_data, collection_type, co
   start = time.perf_counter()
   logger.info("[timing] Starting generate_badge_collection_images")
 
-  # logger.debug('user')
-  # logger.debug(pprint(user))
-
-  # logger.debug('badge_data')
-  # logger.debug(pprint(badge_data))
-
-  # logger.debug('collection_type')
-  # logger.debug(pprint(collection_type))
-
-  # logger.debug('collection_label')
-  # logger.debug(pprint(collection_label))
-
   user_id = user.id
   theme = await get_theme_preference(user_id, collection_type)
   layout = _get_collection_grid_layout()
@@ -655,7 +643,7 @@ async def compose_completion_row(row_data, theme):
 
   draw.text(
     (dims.row_width - 20, 170),
-    f"{row_data['percentage']}% ({row_data['owned']} of {row_data['total']})",
+    f"{row_data['percentage']}% ({row_data['collected']} of {row_data['total']})",
     fill=colors.highlight,
     font=fonts.general,
     anchor="rb"
