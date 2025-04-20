@@ -135,7 +135,7 @@ class Crystals(commands.Cog):
 
     # Generate badge preview image with crystal effect
     crystal = selected
-    discord_file, attachment_url = await generate_badge_preview(badge_instance, crystal=crystal)
+    discord_file, attachment_url = await generate_badge_preview(user_id, badge_instance, crystal=crystal)
 
     crystal_description = crystal.get('description', '')
     crystal_label = f"{crystal['emoji']} {crystal['crystal_name']}" if crystal.get('emoji') else crystal['crystal_name']
@@ -146,7 +146,7 @@ class Crystals(commands.Cog):
       color=discord.Color.blurple()
     )
     preview_embed.add_field(name=f"{crystal['crystal_name']}", value=f"{crystal_description}", inline=False)
-    preview_embed.add_field(name=f"Rank", value=f"* {crystal['emoji']} {crystal['rarity_name']}", inline=False)
+    preview_embed.add_field(name=f"Rank", value=f"{crystal['emoji']}  {crystal['rarity_name']}", inline=False)
     preview_embed.set_footer(text="Click Confirm to install this crystal, or Cancel.")
     preview_embed.set_image(url=attachment_url)
 

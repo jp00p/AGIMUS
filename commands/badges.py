@@ -33,7 +33,7 @@ async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
 
   user_badges = await db_get_user_badge_instances(ctx.interaction.user.id, locked=False)
 
-  filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in await db_get_all_special_badges()]
+  filtered_badges = [first_badge, second_badge, third_badge] + [b['badge_name'] for b in await db_get_special_badge_info()]
   filtered_badge_names = [badge['badge_name'] for badge in user_badges if badge['badge_name'] not in filtered_badges]
 
   return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
@@ -152,11 +152,24 @@ async def collection(ctx:discord.ApplicationContext, public:str, filter:str, sor
       collection_label += f" - {sortby.replace('_', ' ').title()}"
     title += f" - {sortby.replace('_', ' ').title()}"
 
+
+  pending_message = await ctx.followup.send(
+    embed=discord.Embed(
+      title="Collection Display Request Received!",
+      description="If you have a large collection this miiiiiight take a while...\n\nDon't worry, AGIMUS is on it! 🫡",
+      color=discord.Color.dark_green()
+    )
+  )
+
   if color:
     await db_set_user_badge_page_color_preference(ctx.author.id, "collection", color)
 
   badge_images = await generate_badge_collection_images(ctx.author, user_badges, 'collection', collection_label)
 
+  await pending_message.delete()
+
+
+  # Generation complete, do the thing!
   embed = discord.Embed(
     title=title,
     description=f"{ctx.author.mention} has {len(user_badges)} of {max_collected}!",
@@ -167,11 +180,11 @@ async def collection(ctx:discord.ApplicationContext, public:str, filter:str, sor
   # Otherwise private displays can use the paginator
   if not public:
     buttons = [
-      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(len(user_badges) <= 30), row=1),
+      pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, disabled=bool(len(user_badges) <= 30), row=1),
       pages.PaginatorButton(
         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
       ),
-      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(len(user_badges) <= 30), row=1),
+      pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, disabled=bool(len(user_badges) <= 30), row=1),
     ]
 
     pages_list = [
@@ -306,11 +319,23 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
     }
     set_badges.append(record)
 
+
+  pending_message = await ctx.followup.send(
+    embed=discord.Embed(
+      title="Sets Display Request Received!",
+      description="If you have a large collection this miiiiiight take a while...\n\nDon't worry, AGIMUS is on it! 🫡",
+      color=discord.Color.dark_green()
+    )
+  )
+
   if color:
     await db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
 
   collection_label = f"{category_title} - {selection}"
   badge_images = await generate_badge_collection_images(ctx.author, set_badges, 'sets', collection_label)
+
+  await pending_message.delete()
+
 
   embed = discord.Embed(
     title=f"Badge Sets: **{category_title}** - **{selection}**",
@@ -322,11 +347,11 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
   # Otherwise private displays can use the paginator
   if not public:
     buttons = [
-      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(len(set_badges) <= 30), row=1),
+      pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, disabled=bool(len(set_badges) <= 30), row=1),
       pages.PaginatorButton(
         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
       ),
-      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(len(set_badges) <= 30), row=1),
+      pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, disabled=bool(len(set_badges) <= 30), row=1),
     ]
 
     set_pages = [
@@ -443,11 +468,11 @@ async def completion(ctx:discord.ApplicationContext, public:str, category:str, c
   # Otherwise private displays can use the paginator
   if not public:
     buttons = [
-      pages.PaginatorButton("prev", label="   ⬅   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_rows) <= 7), row=1),
+      pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, disabled=bool(len(all_rows) <= 7), row=1),
       pages.PaginatorButton(
         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
       ),
-      pages.PaginatorButton("next", label="   ➡   ", style=discord.ButtonStyle.primary, disabled=bool(len(all_rows) <= 7), row=1),
+      pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, disabled=bool(len(all_rows) <= 7), row=1),
     ]
 
     set_pages = [
@@ -505,7 +530,7 @@ class ScrapButton(discord.ui.Button):
     self.badge_to_add = badge_to_add
     self.badges_to_scrap = badges_to_scrap
     super().__init__(
-      label="     Scrap     ",
+      label="  Scrap  ",
       style=discord.ButtonStyle.primary,
       row=2
     )
@@ -597,7 +622,7 @@ class ScrapButton(discord.ui.Button):
 class CancelScrapButton(discord.ui.Button):
   def __init__(self):
     super().__init__(
-      label="     Cancel     ",
+      label="  Cancel  ",
       style=discord.ButtonStyle.red,
       row=2
     )
@@ -677,7 +702,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
     ), ephemeral=True)
     return
 
-  restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in await db_get_all_special_badges()]]
+  restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in await db_get_special_badge_info()]]
   if restricted_badges:
     await ctx.followup.send(embed=discord.Embed(
       title="Invalid Selection",
@@ -713,7 +738,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
 
   # If time check okay, select a new random badge
   all_possible_badges = [b['badge_name'] for b in await db_get_all_badge_info()]
-  special_badge_names = [b['badge_name'] for b in await db_get_all_special_badges()]
+  special_badge_names = [b['badge_name'] for b in await db_get_special_badge_info()]
   # Don't give them a badge they already have or a special badge
   all_user_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(user_id)]
   valid_choices = [b for b in all_possible_badges if b not in all_user_badge_names and b not in special_badge_names]
@@ -772,11 +797,11 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   paginator = pages.Paginator(
     pages=scrapper_pages,
     custom_buttons=[
-      pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton("prev", label=" ⬅  ", style=discord.ButtonStyle.primary, row=1),
       pages.PaginatorButton(
         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
       ),
-      pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton("next", label="  ➡ ", style=discord.ButtonStyle.primary, row=1),
     ],
     use_default_buttons=False,
     custom_view=view
@@ -1182,7 +1207,7 @@ async def run_badge_stats_queries():
   results = {}
   async with AgimusDB(dictionary=True) as query:
     # Run most collected while filtering out special badges
-    special_badge_filenames = [b['badge_filename'] for b in await db_get_all_special_badges()]
+    special_badge_filenames = [b['badge_filename'] for b in await db_get_special_badge_info()]
     format_strings = ','.join(['%s'] * len(special_badge_filenames))
     sql = '''
       SELECT b_i.badge_name, COUNT(b.id) AS count

@@ -1,26 +1,8 @@
 from common import *
 
+from queries.badge_info import *
 from queries.badge_instances import db_get_user_badge_instances
-from queries.wishlist import (
-  db_get_user_wishlist_badges,
-  db_add_badge_name_to_users_wishlist,
-  db_remove_badge_name_from_users_wishlist,
-  db_add_badge_info_ids_to_users_wishlist,
-  db_remove_badge_info_ids_from_users_wishlist,
-  db_get_wishlist_matches,
-  db_get_wishlist_inventory_matches,
-  db_lock_badge_by_filename,
-  db_lock_badges_by_filenames,
-  db_unlock_badge_by_filename,
-  db_unlock_badges_by_filenames,
-  db_clear_users_wishlist,
-  db_purge_users_wishlist,
-  db_get_badge_locked_status_by_name,
-  db_get_wishlist_dismissal,
-  db_get_all_users_wishlist_dismissals,
-  db_add_wishlist_dismissal,
-  db_delete_wishlist_dismissal,
-)
+from queries.wishlist import *
 from utils.badge_utils import autocomplete_selections
 from utils.check_channel_access import access_check
 
@@ -41,7 +23,7 @@ paginator_buttons = [
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
 async def add_autocomplete(ctx:discord.AutocompleteContext):
-  filtered_badges = [b['badge_name'] for b in await db_get_all_special_badges()]
+  filtered_badges = [b['badge_name'] for b in await db_get_special_badge_info()]
 
   current_user_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id)]
   current_wishlist_badges = [b['badge_name'] for b in await db_get_user_wishlist_badges(ctx.interaction.user.id)]
@@ -54,14 +36,14 @@ async def add_autocomplete(ctx:discord.AutocompleteContext):
   return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
 
 async def remove_autocomplete(ctx:discord.AutocompleteContext):
-  filtered_badges = [b['badge_name'] for b in await db_get_all_special_badges()]
+  filtered_badges = [b['badge_name'] for b in await db_get_special_badge_info()]
   current_list_badges = [b['badge_name'] for b in await db_get_user_wishlist_badges(ctx.interaction.user.id)]
   filtered_badge_names = [b for b in current_list_badges if b not in filtered_badges]
 
   return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
 
 async def lock_autocomplete(ctx:discord.AutocompleteContext):
-  filtered_badges = [b['badge_name'] for b in await db_get_all_special_badges()]
+  filtered_badges = [b['badge_name'] for b in await db_get_special_badge_info()]
 
   current_unlocked_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id) if not b['locked']]
   filtered_badge_names = [b for b in current_unlocked_badges if b not in filtered_badges]
@@ -73,7 +55,7 @@ async def lock_autocomplete(ctx:discord.AutocompleteContext):
     return [b for b in list_badges if ctx.value.lower() in b.lower()]
 
 async def unlock_autocomplete(ctx:discord.AutocompleteContext):
-  filtered_badges = [b['badge_name'] for b in await db_get_all_special_badges()]
+  filtered_badges = [b['badge_name'] for b in await db_get_special_badge_info()]
 
   current_locked_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id) if b['locked']]
   filtered_badge_names = [b for b in current_locked_badges if b not in filtered_badges]
@@ -222,7 +204,7 @@ class Wishlist(commands.Cog):
     user_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id)]
     user_wishlist_badge_names = [b['badge_name'] for b in await db_get_user_wishlist_badges(payload.user_id)]
     user_locked_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id, locked=True)]
-    special_badge_names = [b['badge_name'] for b in await db_get_all_special_badges()]
+    special_badge_names = [b['badge_name'] for b in await db_get_special_badge_info()]
 
     if payload.event_type == "REACTION_ADD" and badge_name not in user_badge_names and badge_name not in user_wishlist_badge_names and badge_name not in special_badge_names:
       logger.info(f"Adding {Style.BRIGHT}{badge_name}{Style.RESET_ALL} to {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
@@ -915,7 +897,7 @@ class Wishlist(commands.Cog):
       )
       return
 
-    special_badge_names = [b['badge_name'] for b in await db_get_all_special_badges()]
+    special_badge_names = [b['badge_name'] for b in await db_get_special_badge_info()]
     if badge in special_badge_names:
       await ctx.followup.send(
         embed=discord.Embed(
@@ -1040,7 +1022,7 @@ class Wishlist(commands.Cog):
 
     existing_user_badges = [b['badge_info_id'] for b in await db_get_user_badge_instances(user_discord_id)]
     existing_wishlist_badges = [b['id'] for b in await db_get_user_wishlist_badges(user_discord_id)]
-    special_badges = [b['id'] for b in await db_get_all_special_badges()]
+    special_badges = [b['id'] for b in await db_get_special_badge_info()]
 
     # Filter out those badges that are already present in the Wishlist and user's Inventory
     valid_badge_info_ids = [b['id'] for b in all_set_badges if b['id'] not in existing_user_badges and b['id'] not in existing_wishlist_badges and b['id'] not in special_badges]

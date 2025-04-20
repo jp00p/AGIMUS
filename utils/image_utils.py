@@ -6,6 +6,7 @@ from asyncio import to_thread
 from concurrent.futures import ThreadPoolExecutor
 from collections import namedtuple
 from emoji import EMOJI_DATA
+from functools import partial
 from pathlib import Path
 
 from common import *
@@ -34,15 +35,12 @@ BADGE_SIZE = (300, 300)
 SPECIAL_ICON = None
 LOCK_ICON = None
 
-async def preload_overlay_icons():
+async def preload_image_assets():
   global SPECIAL_ICON, LOCK_ICON
   if SPECIAL_ICON is None:
-    SPECIAL_ICON = await threaded_image_open("./images/templates/badges/special_icon.png").convert("RGBA")
+    SPECIAL_ICON = await threaded_image_open("./images/templates/badges/special_icon.png")
   if LOCK_ICON is None:
-    LOCK_ICON = await threaded_image_open("./images/templates/badges/lock_icon.png").convert("RGBA")
-
-# Preload when this module is imported
-asyncio.get_event_loop().create_task(preload_overlay_icons())
+    LOCK_ICON = await threaded_image_open("./images/templates/badges/lock_icon.png")
 
 #  ____ ___   __  .__.__
 # |    |   \_/  |_|__|  |   ______
@@ -339,6 +337,18 @@ def split_text_into_emoji_clusters(text: str):
 async def generate_badge_collection_images(user, badge_data, collection_type, collection_label):
   start = time.perf_counter()
   logger.info("[timing] Starting generate_badge_collection_images")
+
+  # logger.debug('user')
+  # logger.debug(pprint(user))
+
+  # logger.debug('badge_data')
+  # logger.debug(pprint(badge_data))
+
+  # logger.debug('collection_type')
+  # logger.debug(pprint(collection_type))
+
+  # logger.debug('collection_label')
+  # logger.debug(pprint(collection_label))
 
   user_id = user.id
   theme = await get_theme_preference(user_id, collection_type)
@@ -792,7 +802,8 @@ def _get_completion_row_dimensions() -> CompletionRowDimensions:
 #         \/      \/      \/_____/      \/          \/                |__|
 async def compose_badge_strip(
   badge_list: list[dict],
-  theme
+  theme = 'gold',
+  disable_overlays = False
 ) -> list[Image.Image]:
   """
   Renders a horizontal badge strip (1 row) using compose_badge_slot for each badge.
@@ -800,6 +811,8 @@ async def compose_badge_strip(
   """
   start = time.perf_counter()
   slot_dims = _get_badge_slot_dimensions()
+
+  colors = get_theme_colors(theme)
 
   padding = 24
   strip_width = len(badge_list) * slot_dims.slot_width + (len(badge_list) - 1) * padding
@@ -813,7 +826,9 @@ async def compose_badge_strip(
 
   loop = asyncio.get_running_loop()
   all_badge_frames = await asyncio.gather(*[
-    loop.run_in_executor(THREAD_POOL, compose_badge_slot, badge, theme, image_frames)
+    loop.run_in_executor(THREAD_POOL,
+      partial(compose_badge_slot, badge, colors, image_frames, disable_overlays=disable_overlays)
+    )
     for badge, image_frames in prepared
   ])
 
@@ -847,25 +862,32 @@ async def compose_badge_strip(
 #  /        \|   Y  \/ __ \|  | \/\  ___// /_/ |
 # /_______  /|___|  (____  /__|    \___  >____ |
 #         \/      \/     \/            \/     \/
-async def generate_badge_preview(badge, crystal=None):
+async def generate_badge_preview(user_id, badge, crystal=None, theme=None, disable_overlays=False):
+  if not theme:
+    theme = await get_theme_preference(user_id, 'collection')
+  colors = get_theme_colors(theme)
+
   badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
   result = await apply_crystal_effect(badge_image, badge, crystal)
 
-  if isinstance(result, list):
+  badge_slot = compose_badge_slot(badge, colors, result, disable_overlays=disable_overlays)
+
+  if isinstance(badge_slot, list):
     # Animated crystal preview
-    buf = await encode_webp(result)
+    buf = await encode_webp(badge_slot)
     file = discord.File(buf, filename=f"preview.webp")
     attachment_url = 'attachment://preview.webp'
   else:
     buf = io.BytesIO()
-    result.save(buf, format='PNG')
+    badge_slot.save(buf, format='PNG')
     buf.seek(0)
     file = discord.File(buf, filename='preview.png')
     attachment_url = 'attachment://preview.png'
 
   return file, attachment_url
 
-def compose_badge_slot(badge: dict, theme, image_frames: list[Image.Image], override_colors: tuple = None) -> list[Image.Image]:
+
+def compose_badge_slot(badge: dict, colors, image_frames: list[Image.Image], override_colors: tuple = None, disable_overlays: bool = False) -> list[Image.Image]:
   """
   Renders a badge image (with crystal effects pre-applied) into a slot container with border and label.
   Returns a list of slot frames (supporting animation).
@@ -882,7 +904,7 @@ def compose_badge_slot(badge: dict, theme, image_frames: list[Image.Image], over
   dims = _get_badge_slot_dimensions()
   fonts = load_fonts()
 
-  border_color, text_color = override_colors if override_colors else (theme.highlight, "#FFFFFF")
+  border_color, text_color = override_colors if override_colors else (colors.highlight, "#FFFFFF")
 
   slot_frames = []
 
@@ -916,14 +938,15 @@ def compose_badge_slot(badge: dict, theme, image_frames: list[Image.Image], over
     text_y = 222
     draw.multiline_text((text_x, text_y), wrapped, font=fonts.label, fill=text_color, align="center")
 
-    overlay = None
-    if badge.get("special"):
-      overlay = SPECIAL_ICON
-    elif badge.get("locked"):
-      overlay = LOCK_ICON
+    if not disable_overlays:
+      overlay = None
+      if badge.get("special"):
+        overlay = SPECIAL_ICON
+      elif badge.get("locked"):
+        overlay = LOCK_ICON
 
-    if overlay:
-      slot_canvas.paste(overlay, (dims.slot_width - 54, 16), overlay)
+      if overlay:
+        slot_canvas.paste(overlay, (dims.slot_width - 54, 16), overlay)
 
     slot_frames.append(slot_canvas)
 
@@ -1054,9 +1077,6 @@ async def generate_badge_trade_images(
   Returns:
     A discord.File containing the image or animation.
   """
-
-  # Use hardcoded gold theme via get_theme_colors
-  theme = get_theme_colors("gold")
   fonts = load_fonts()
 
   # 1. Load and copy the trade background once
@@ -1096,7 +1116,7 @@ async def generate_badge_trade_images(
 
   # 3. Now paste each strip frame centered onto a copy of that base
   # Generate badge strip frames (each frame is a full strip of up to 6 badge slots)
-  strip_frames = await compose_badge_strip(badge_list=badges, theme=theme)
+  strip_frames = await compose_badge_strip(badge_list=badges, theme='gold', disable_overlays=True)
 
   final_frames = []
   for strip in strip_frames:

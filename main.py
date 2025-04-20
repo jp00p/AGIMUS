@@ -121,6 +121,7 @@ from tasks.weyounsday import weyounsday_task
 
 # Utils
 from utils.check_channel_access import perform_channel_check
+from utils.image_utils import preload_image_assets
 
 background_tasks = set() # for non-blocking tasks
 logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}{Style.RESET_ALL}")
@@ -176,6 +177,9 @@ async def on_ready():
     number_of_starboard_posts = sum([len(ALL_STARBOARD_POSTS[p]) for p in ALL_STARBOARD_POSTS])
     for emoji in bot.emojis:
       config["all_emoji"][emoji.name] = emoji
+
+    # Preload commonly used image assets into memory (badge icons, etc)
+    await preload_image_assets()
 
     # Print AGIMUS ANSI Art
     print_agimus_ansi_art()

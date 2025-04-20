@@ -171,7 +171,7 @@ class Tongo(commands.Cog):
 
     continuum_badges = await db_get_full_continuum_badges()
     continuum_badge_ids = [b['badge_info_id'] for b in continuum_badges]
-    special_badges = await db_get_all_special_badges()
+    special_badges = await db_get_special_badge_info()
     special_badge_ids = [b['id'] for b in special_badges]
 
     all_ids = [b['badge_info_id'] for b in badge_instances]
@@ -313,7 +313,7 @@ class Tongo(commands.Cog):
       return
 
     continuum_badge_info_ids = await db_get_continuum_badge_info_ids()
-    special_badge_ids = [b['id'] for b in await db_get_all_special_badges()]
+    special_badge_ids = [b['id'] for b in await db_get_special_badge_info()]
 
     eligible = [b for b in badge_instances if b['badge_info_id'] not in continuum_badge_info_ids and b['badge_info_id'] not in special_badge_ids]
 
@@ -956,7 +956,7 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
       return False
 
-    special_badges = await db_get_all_special_badges()
+    special_badges = await db_get_special_badge_info()
     restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in special_badges]]
     if restricted_badges:
       await ctx.followup.send(embed=discord.Embed(

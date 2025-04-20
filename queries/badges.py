@@ -67,29 +67,3 @@ async def db_get_badge_instances_count_for_user(user_id):
     await query.execute(sql, vals)
     result = await query.fetchone()
   return result['count(*)']
-
-
-#   _________                    .__       .__ __________             .___
-#  /   _____/_____   ____   ____ |__|____  |  |\______   \_____     __| _/ ____   ____   ______
-#  \_____  \\____ \_/ __ \_/ ___\|  \__  \ |  | |    |  _/\__  \   / __ | / ___\_/ __ \ /  ___/
-#  /        \  |_> >  ___/\  \___|  |/ __ \|  |_|    |   \ / __ \_/ /_/ |/ /_/  >  ___/ \___ \
-# /_______  /   __/ \___  >\___  >__(____  /____/______  /(____  /\____ |\___  / \___  >____  >
-#         \/|__|        \/     \/        \/            \/      \/      \/_____/      \/     \/
-_SPECIAL_BADGES = None
-async def db_get_all_special_badges():
-  global _SPECIAL_BADGES
-
-  if _SPECIAL_BADGES is not None:
-    return _SPECIAL_BADGES
-  """
-  Return all badge_info rows where special = 1
-  :return:
-  """
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM badge_info WHERE special = 1;"
-    vals = ()
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  _SPECIAL_BADGES = rows
-  return _SPECIAL_BADGES
-

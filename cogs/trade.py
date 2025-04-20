@@ -278,7 +278,7 @@ class Trade(commands.Cog):
     if not incoming_trades:
       await ctx.respond(embed=discord.Embed(
         title="No Incoming Trade Requests",
-        description="No one has any active trades requested from you. Get out there, arrr, start hustlin' me heartie!",
+        description="No one has any active trades requested from you.\n\nGet out there, arrr, start hustlin' me heartie!",
         color=discord.Color.blurple()
       ), ephemeral=True)
       return
@@ -1048,7 +1048,7 @@ class Trade(commands.Cog):
 
     offered_image, offered_filename = await generate_badge_trade_images(
       offered_instances,
-      f"Badge(s) Offered by {requestor.display_name}",
+      f"Offered by {requestor.display_name}",
       f"{len(offered_instances)} Badges"
     )
 
@@ -1070,7 +1070,7 @@ class Trade(commands.Cog):
 
     requested_image, requested_filename = await generate_badge_trade_images(
       requested_instances,
-      f"Badge(s) Requested from {requestee.display_name}",
+      f"Requested from {requestee.display_name}",
       f"{len(requested_instances)} Badges"
     )
 
@@ -1203,12 +1203,12 @@ class Trade(commands.Cog):
     await db_add_offered_instance(trade_id, instance_id)
 
     badge_name = instance['badge_name']
-    discord_file, attachment_url = await generate_badge_preview(instance)
+    discord_file, attachment_url = await generate_badge_preview(ctx.author.id, instance, theme='gold', disable_overlays=True)
 
     embed = discord.Embed(
       title=f"Badge added to offer.",
       description=f"**{badge_name}** has been added to your offer to **{requestee.display_name}**",
-      color=discord.Color.dark_green()
+      color=discord.Color.dark_gold()
     )
     embed.set_image(url=attachment_url)
     await ctx.respond(embed=embed, file=discord_file, ephemeral=True)
@@ -1231,12 +1231,12 @@ class Trade(commands.Cog):
     await db_add_requested_instance(trade_id, instance_id)
 
     badge_name = instance['badge_name']
-    discord_file, attachment_url = await generate_badge_preview(instance)
+    discord_file, attachment_url = await generate_badge_preview(ctx.author.id, instance, theme='gold', disable_overlays=True)
 
     embed = discord.Embed(
       title=f"Badge added to request.",
       description=f"**{badge_name}** has been added to your request from **{requestee.display_name}**",
-      color=discord.Color.dark_green()
+      color=discord.Color.dark_gold()
     )
     embed.set_image(url=attachment_url)
     await ctx.respond(embed=embed, file=discord_file, ephemeral=True)

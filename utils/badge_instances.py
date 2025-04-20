@@ -44,7 +44,7 @@ async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type:
 
   query_update = """
     UPDATE badge_instances
-    SET owner_discord_id = %s
+    SET owner_discord_id = %s locked = FALSE
     WHERE id = %s
   """
 

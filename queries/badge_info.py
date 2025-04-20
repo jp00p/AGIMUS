@@ -1,5 +1,6 @@
 from common import *
 
+from queries.common import BADGE_INSTANCE_COLUMNS
 
 # _________                         __                 __
 # \_   ___ \  ____   ____   _______/  |______    _____/  |_  ______
@@ -69,7 +70,6 @@ async def db_get_badge_info_by_id(badge_info_id):
     await query.execute(sql, (badge_info_id,))
     return await query.fetchone()
 
-
 async def db_get_badge_info_by_name(name):
   """
   Given the name of a badge, retrieves its information from badge_info
@@ -108,12 +108,17 @@ async def db_get_badge_info_by_instance_id(instance_id: int) -> dict:
     await db.execute(query, (instance_id,))
     return await db.fetchone()
 
-
-async def db_get_all_special_badges():
+async def db_get_badge_count_by_filename(filename):
   async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT * FROM badge_info WHERE special = TRUE"
-    await query.execute(sql)
-    return await query.fetchall()
+    sql = '''
+      SELECT COUNT(*) AS count
+      FROM badge_instances bi
+      JOIN badge_info b ON bi.badge_info_id = b.id
+      WHERE b.badge_filename = %s;
+    '''
+    await query.execute(sql, (filename,))
+    row = await query.fetchone()
+  return row['count']
 
 
 # Affiliations
@@ -159,38 +164,37 @@ async def db_get_badge_affiliations_by_badge_name(name):
     rows = await query.fetchall()
   return rows
 
+# Affiliations - User Collection Queries
 async def db_get_badges_user_has_from_affiliation(user_id, affiliation):
   async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.* FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-        JOIN badge_affiliation AS b_a
-          ON b_i.badge_filename = b_a.badge_filename
-        WHERE b.user_discord_id = %s
+    sql = f'''
+      SELECT {BADGE_INSTANCE_COLUMNS} FROM badge_instances b
+        JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+        LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
+        LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+        JOIN badge_affiliation AS b_a ON b_i.badge_filename = b_a.badge_filename
+        WHERE b.owner_discord_id = %s
           AND b_a.affiliation_name = %s
         ORDER BY b_i.badge_name ASC;
     '''
-    vals = (user_id, affiliation)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
+    await query.execute(sql, (user_id, affiliation))
+    return await query.fetchall()
 
 async def db_get_random_badges_from_user_by_affiliations(user_id: int):
   async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*, b_a.affiliation_name
-      FROM badges b
-      INNER JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-      INNER JOIN badge_affiliation AS b_a
-          ON b_i.badge_filename = b_a.badge_filename
-      WHERE b.user_discord_id = %s
+    sql = f'''
+      SELECT {BADGE_INSTANCE_COLUMNS}, b_a.affiliation_name
+      FROM badge_instances b
+      INNER JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+      LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
+      LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+      INNER JOIN badge_affiliation AS b_a ON b_i.badge_filename = b_a.badge_filename
+      WHERE b.owner_discord_id = %s
       ORDER BY RAND()
     '''
     await query.execute(sql, (user_id,))
     rows = await query.fetchall()
-  return {r['affiliation_name']: r['badge_filename'] for r in rows}
+    return {r['affiliation_name']: r['badge_filename'] for r in rows}
 
 # Franchises
 async def db_get_all_franchises():
@@ -214,34 +218,36 @@ async def db_get_all_franchise_badges(franchise):
     rows = await query.fetchall()
   return rows
 
+
+# Franchises - User Collection Queries
 async def db_get_badges_user_has_from_franchise(user_id, franchise):
   async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.* FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-        WHERE b.user_discord_id = %s
+    sql = f'''
+      SELECT {BADGE_INSTANCE_COLUMNS} FROM badge_instances b
+        JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+        LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
+        LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+        WHERE b.owner_discord_id = %s
           AND b_i.franchise = %s
         ORDER BY b_i.badge_name ASC;
     '''
-    vals = (user_id, franchise)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
+    await query.execute(sql, (user_id, franchise))
+    return await query.fetchall()
 
 async def db_get_random_badges_from_user_by_franchises(user_id: int):
   async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*
-      FROM badges b
-      INNER JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-      WHERE b.user_discord_id = %s
+    sql = f'''
+      SELECT {BADGE_INSTANCE_COLUMNS}
+      FROM badge_instances b
+      INNER JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+      LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
+      LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+      WHERE b.owner_discord_id = %s
       ORDER BY RAND()
     '''
     await query.execute(sql, (user_id,))
     rows = await query.fetchall()
-  return {r['franchise']: r['badge_filename'] for r in rows}
+    return {r['franchise']: r['badge_filename'] for r in rows}
 
 
 # Time Periods
@@ -276,35 +282,35 @@ async def db_get_all_time_period_badges(time_period):
     rows = await query.fetchall()
   return rows
 
+# Time Periods - User Collection Queries
 async def db_get_badges_user_has_from_time_period(user_id, time_period):
   async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.* FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-        WHERE b.user_discord_id = %s
+    sql = f'''
+      SELECT {BADGE_INSTANCE_COLUMNS} FROM badge_instances b
+        JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+        LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
+        LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+        WHERE b.owner_discord_id = %s
           AND b_i.time_period = %s
         ORDER BY b_i.badge_name ASC
     '''
-    vals = (user_id, time_period)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
-
+    await query.execute(sql, (user_id, time_period))
+    return await query.fetchall()
 
 async def db_get_random_badges_from_user_by_time_periods(user_id: int):
   async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*, b_i.time_period
-      FROM badges b
-      INNER JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-      WHERE b.user_discord_id = %s
+    sql = f'''
+      SELECT {BADGE_INSTANCE_COLUMNS}, b_i.time_period
+      FROM badge_instances b
+      INNER JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+      LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
+      LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+      WHERE b.owner_discord_id = %s
       ORDER BY RAND()
     '''
     await query.execute(sql, (user_id,))
     rows = await query.fetchall()
-  return {r['time_period']: r['badge_filename'] for r in rows}
+    return {r['time_period']: r['badge_filename'] for r in rows}
 
 
 # Types
@@ -349,49 +355,34 @@ async def db_get_badge_types_by_badge_name(name):
     rows = await query.fetchall()
   return rows
 
-
+# Types - User Collection Queries
 async def db_get_badges_user_has_from_type(user_id, type):
   async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.* FROM badges b
-        JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-        JOIN badge_type AS b_t
-          ON b_i.badge_filename = b_t.badge_filename
-        WHERE b.user_discord_id = %s
+    sql = f'''
+      SELECT {BADGE_INSTANCE_COLUMNS} FROM badge_instances b
+        JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+        LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
+        LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+        JOIN badge_type AS b_t ON b_i.badge_filename = b_t.badge_filename
+        WHERE b.owner_discord_id = %s
           AND b_t.type_name = %s
         ORDER BY b_i.badge_name ASC
     '''
-    vals = (user_id, type)
-    await query.execute(sql, vals)
-    rows = await query.fetchall()
-  return rows
+    await query.execute(sql, (user_id, type))
+    return await query.fetchall()
 
 async def db_get_random_badges_from_user_by_types(user_id: int):
   async with AgimusDB(dictionary=True) as query:
-    sql = '''
-      SELECT b_i.*, b_t.type_name
-      FROM badges b
-      INNER JOIN badge_info AS b_i
-          ON b.badge_filename = b_i.badge_filename
-      INNER JOIN badge_type AS b_t
-          ON b_i.badge_filename = b_t.badge_filename
-      WHERE b.user_discord_id = %s
+    sql = f'''
+      SELECT {BADGE_INSTANCE_COLUMNS}, b_t.type_name
+      FROM badge_instances b
+      INNER JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+      LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
+      LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+      INNER JOIN badge_type AS b_t ON b_i.badge_filename = b_t.badge_filename
+      WHERE b.owner_discord_id = %s
       ORDER BY RAND()
     '''
     await query.execute(sql, (user_id,))
     rows = await query.fetchall()
-  return {r['type_name']: r['badge_filename'] for r in rows}
-
-async def db_get_badge_count_by_filename(filename):
-  """
-  Given the name of a badge, retrieves its information from badge_info
-  :param name: the name of the badge.
-  :return: row dict
-  """
-  async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT COUNT(*) AS count FROM badges WHERE badge_filename = %s;"
-    vals = (filename,)
-    await query.execute(sql, vals)
-    row = await query.fetchone()
-  return row["count"]
+    return {r['type_name']: r['badge_filename'] for r in rows}
