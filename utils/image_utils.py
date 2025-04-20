@@ -790,7 +790,7 @@ def _get_completion_row_dimensions() -> CompletionRowDimensions:
 #  |    |   \ / __ \_/ /_/ |/ /_/  >  ___/   /        \|  |  |  | \/  |  |_> >
 #  |______  /(____  /\____ |\___  / \___  > /_______  /|__|  |__|  |__|   __/
 #         \/      \/      \/_____/      \/          \/                |__|
-async def generate_badge_strip(
+async def compose_badge_strip(
   badge_list: list[dict],
   theme
 ) -> list[Image.Image]:
@@ -798,12 +798,15 @@ async def generate_badge_strip(
   Renders a horizontal badge strip (1 row) using compose_badge_slot for each badge.
   Returns a list of frames (for animation).
   """
+  start = time.perf_counter()
   slot_dims = _get_badge_slot_dimensions()
 
   padding = 24
   strip_width = len(badge_list) * slot_dims.slot_width + (len(badge_list) - 1) * padding
   strip_height = slot_dims.slot_height
   slot_y_offset = 0
+
+  logger.info(f"[timing] Starting badge strip generation for {len(badge_list)} badges")
 
   # Apply crystal effects and prepare all badge image stacks
   prepared = await prepare_badges_with_crystal_effects(badge_list)
@@ -816,19 +819,25 @@ async def generate_badge_strip(
 
   max_frames = max(len(stack) for stack in all_badge_frames)
 
-  frames = []
-  for f in range(max_frames):
-    frame = Image.new("RGBA", (strip_width, strip_height), (0, 0, 0, 0))
+  # Normalize frame stacks
+  for i in range(len(all_badge_frames)):
+    frames = all_badge_frames[i]
+    if len(frames) < max_frames:
+      looped = [frames[j % len(frames)] for j in range(max_frames)]
+      all_badge_frames[i] = looped
 
-    # Paste badge slots
+  # Compose output frames using zip
+  frames = []
+  for frame_group in zip(*all_badge_frames):
+    frame = Image.new("RGBA", (strip_width, strip_height), (0, 0, 0, 0))
     x = 0
-    for badge_frames in all_badge_frames:
-      badge_img = badge_frames[f % len(badge_frames)]
+    for badge_img in frame_group:
       frame.paste(badge_img, (x, slot_y_offset), mask=badge_img)
       x += slot_dims.slot_width + padding
-
     frames.append(frame)
 
+  elapsed = time.perf_counter() - start
+  logger.info(f"[timing] generate_badge_strip completed in {elapsed:.2f}s with {len(frames)} frames")
   return frames
 
 
@@ -1080,16 +1089,14 @@ async def generate_badge_trade_images(
   if not badges:
     # If no badges, just return the base background with header/footer text
     frame = trade_canvas.copy()
-    w, h = frame.size
-    resized = frame.resize((int(w * 0.75), int(h * 0.75)), resample=Image.LANCZOS)
     buf = io.BytesIO()
-    resized.save(buf, format="PNG")
+    frame.save(buf, format="PNG")
     buf.seek(0)
     return discord.File(buf, filename="trade_showcase.png")
 
   # 3. Now paste each strip frame centered onto a copy of that base
   # Generate badge strip frames (each frame is a full strip of up to 6 badge slots)
-  strip_frames = await generate_badge_strip(badge_list=badges, theme=theme)
+  strip_frames = await compose_badge_strip(badge_list=badges, theme=theme)
 
   final_frames = []
   for strip in strip_frames:
@@ -1097,10 +1104,7 @@ async def generate_badge_trade_images(
     x = (frame.width - strip.width) // 2
     y = (frame.height - strip.height) // 2
     frame.paste(strip, (x, y), strip)
-    w, h = frame.size
-    resized = frame.resize((int(w * 0.75), int(h * 0.75)), resample=Image.LANCZOS)
-    final_frames.append(resized)
-
+    final_frames.append(frame)
 
   if len(final_frames) == 1:
     buf = io.BytesIO()
