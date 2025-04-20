@@ -2,14 +2,14 @@ from dateutil import tz
 
 from common import *
 
-from utils.check_channel_access import access_check
-from utils.string_utils import *
 from utils.badge_rewards import *
-from utils.image_utils import *
+from utils.badge_trades import *
 from utils.badge_utils import *
+from utils.check_channel_access import access_check
+from utils.image_utils import *
+from utils.string_utils import *
 
 from queries.badge_completion import *
-from queries.badges import *
 from queries.badge_info import *
 from queries.badge_scrap import *
 from queries.wishlist import *
@@ -558,7 +558,7 @@ class ScrapButton(discord.ui.Button):
     self.badge_to_add = badge_to_add
     self.badges_to_scrap = badges_to_scrap
     super().__init__(
-      label="  Scrap  ",
+      label="Scrap",
       style=discord.ButtonStyle.primary,
       row=2
     )
@@ -650,7 +650,7 @@ class ScrapButton(discord.ui.Button):
 class CancelScrapButton(discord.ui.Button):
   def __init__(self):
     super().__init__(
-      label="  Cancel  ",
+      label="Cancel",
       style=discord.ButtonStyle.red,
       row=2
     )
@@ -709,7 +709,7 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   user_id = ctx.interaction.user.id
 
   selected_badges = [first_badge, second_badge, third_badge]
-  unlocked_user_badges = await db_get_user_unlocked_badges(user_id)
+  unlocked_user_badges = await db_get_user_badge_instances(user_id, locked=False)
   unlocked_user_badge_names = [b['badge_name'] for b in unlocked_user_badges]
 
   selected_user_badges = [b for b in selected_badges if b in unlocked_user_badge_names]
@@ -825,11 +825,11 @@ async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:st
   paginator = pages.Paginator(
     pages=scrapper_pages,
     custom_buttons=[
-      pages.PaginatorButton("prev", label=" ⬅  ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, row=1),
       pages.PaginatorButton(
         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
       ),
-      pages.PaginatorButton("next", label="  ➡ ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, row=1),
     ],
     use_default_buttons=False,
     custom_view=view

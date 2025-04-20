@@ -3,8 +3,9 @@ from handlers.xp import increment_user_xp
 
 from cogs.trade import get_offered_and_requested_badge_names
 
-from utils.badge_utils import *
 from utils.badge_instances import *
+from utils.badge_trades import *
+from utils.badge_utils import *
 from utils.check_channel_access import access_check
 from utils.check_user_access import user_check
 
@@ -13,6 +14,7 @@ from queries.badge_instances import *
 from queries.tongo import *
 from queries.trade import db_cancel_trade
 from queries.wishlist import *
+
 
 f = open("./data/rules_of_acquisition.txt", "r")
 data = f.read()
@@ -23,7 +25,6 @@ f.close()
 TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=8)
 MINIMUM_LIQUIDATION_CONTINUUM = 5
 MINIMUM_LIQUIDATION_PLAYERS = 3
-
 
 # -> cogs.tongo
 
