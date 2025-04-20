@@ -34,7 +34,7 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
       requestee_user_id = active_trade['requestee_id']
-      offered_instances = await db_get_trade_offered_instances(active_trade)
+      offered_instances = await db_get_trade_offered_badge_instances(active_trade)
       offered_instance_ids = {b['badge_instance_id'] for b in offered_instances}
 
   # Lookup badges
@@ -79,7 +79,7 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
       requestee_user_id = active_trade['requestee_id']
-      requested_instances = await db_get_trade_requested_instances(active_trade)
+      requested_instances = await db_get_trade_requested_badge_instances(active_trade)
       requested_instance_ids = {b['badge_instance_id'] for b in requested_instances}
 
   # Lookup badges
@@ -351,8 +351,8 @@ class Trade(commands.Cog):
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
 
-    offered_instances = await db_get_trade_offered_instances(active_trade)
-    requested_instances = await db_get_trade_requested_instances(active_trade)
+    offered_instances = await db_get_trade_offered_badge_instances(active_trade)
+    requested_instances = await db_get_trade_requested_badge_instances(active_trade)
 
     offered_names = "\n".join([f"* {b['badge_name']}" for b in offered_instances]) or "None"
     requested_names = "\n".join([f"* {b['badge_name']}" for b in requested_instances]) or "None"
@@ -433,7 +433,7 @@ class Trade(commands.Cog):
 
   async def _cancel_invalid_related_trades(self, active_trade):
     # Find all trades affected by badges in this confirmed trade
-    related_trades = await db_get_related_instance_trades(active_trade)
+    related_trades = await db_get_related_badge_instance_trades(active_trade)
     trades_to_cancel = [t for t in related_trades if t["id"] != active_trade["id"]]
 
     for trade in trades_to_cancel:
@@ -481,7 +481,7 @@ class Trade(commands.Cog):
     requestor_instances = await db_get_user_badge_instances(active_trade['requestor_id'])
     requestor_filenames = {b['badge_filename'] for b in requestor_instances}
 
-    requested_instances = await db_get_trade_requested_instances(active_trade)
+    requested_instances = await db_get_trade_requested_badge_instances(active_trade)
     requested_filenames = {b['badge_filename'] for b in requested_instances}
 
     overlap = requestor_filenames & requested_filenames
@@ -528,7 +528,7 @@ class Trade(commands.Cog):
     requestee_instances = await db_get_user_badge_instances(active_trade['requestee_id'])
     requestee_filenames = {b['badge_filename'] for b in requestee_instances}
 
-    offered_instances = await db_get_trade_offered_instances(active_trade)
+    offered_instances = await db_get_trade_offered_badge_instances(active_trade)
     offered_filenames = {b['badge_filename'] for b in offered_instances}
 
     overlap = requestee_filenames & offered_filenames
@@ -575,7 +575,7 @@ class Trade(commands.Cog):
     user_instances = await db_get_user_badge_instances(requestor.id)
     current_ids = {b['badge_instance_id'] for b in user_instances}
 
-    offered_instances = await db_get_trade_offered_instances(active_trade)
+    offered_instances = await db_get_trade_offered_badge_instances(active_trade)
     offered_ids = {b['badge_instance_id'] for b in offered_instances}
 
     if not offered_ids.issubset(current_ids):
@@ -611,7 +611,7 @@ class Trade(commands.Cog):
     user_instances = await db_get_user_badge_instances(requestee.id)
     current_ids = {b['badge_instance_id'] for b in user_instances}
 
-    requested_instances = await db_get_trade_requested_instances(active_trade)
+    requested_instances = await db_get_trade_requested_badge_instances(active_trade)
     requested_ids = {b['badge_instance_id'] for b in requested_instances}
 
     if not requested_ids.issubset(current_ids):
@@ -1047,7 +1047,7 @@ class Trade(commands.Cog):
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
 
-    offered_instances = await db_get_trade_offered_instances(active_trade)  # full enriched
+    offered_instances = await db_get_trade_offered_badge_instances(active_trade)  # full enriched
 
     offered_image, offered_filename = await generate_badge_trade_images(
       offered_instances,
@@ -1069,7 +1069,7 @@ class Trade(commands.Cog):
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
 
-    requested_instances = await db_get_trade_requested_instances(active_trade)
+    requested_instances = await db_get_trade_requested_badge_instances(active_trade)
 
     requested_image, requested_filename = await generate_badge_trade_images(
       requested_instances,
@@ -1250,12 +1250,12 @@ class Trade(commands.Cog):
       dir_preposition = 'to'
       from_user = requestor
       to_user = requestee
-      side_fetcher = db_get_trade_offered_instances
+      side_fetcher = db_get_trade_offered_badge_instances
     else:
       dir_preposition = 'from'
       from_user = requestee
       to_user = requestor
-      side_fetcher = db_get_trade_requested_instances
+      side_fetcher = db_get_trade_requested_badge_instances
 
     instance = await db_get_badge_instance_by_id(badge_instance_id)
     if not instance:
@@ -1319,9 +1319,9 @@ class Trade(commands.Cog):
     max_badge_count = await db_get_max_badge_count()
     to_user_count = await db_get_badge_instances_count_for_user(to_user.id)
     if direction == 'offer':
-      incoming = await db_get_trade_offered_instances(active_trade)
+      incoming = await db_get_trade_offered_badge_instances(active_trade)
     else:
-      incoming = await db_get_trade_requested_instances(active_trade)
+      incoming = await db_get_trade_requested_badge_instances(active_trade)
 
     if to_user_count + len(incoming) + 1 > max_badge_count:
       await ctx.respond(embed=discord.Embed(

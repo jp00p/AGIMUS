@@ -405,7 +405,7 @@ CREATE TABLE wrapped_queue (
 
 -- v3.0.0.sql — Crystallization Schema
 
--- 1. Crystal Ranks
+-- Crystal Ranks
 CREATE TABLE IF NOT EXISTS crystal_ranks (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) NOT NULL UNIQUE,
@@ -418,11 +418,11 @@ CREATE TABLE IF NOT EXISTS crystal_ranks (
 INSERT INTO crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order) VALUES
   ("Common",    "⚪", 1, 0.50, 0),
   ("Uncommon",  "🟢", 2, 0.30, 1),
-  ("Rare",      "🟣", 3, 0.10, 2),
+  ("Rare",      "🟣", 3, 0.125, 2),
   ("Legendary", "🔥", 4, 0.075, 3),
   ("Mythic",    "💎", 5, 0.05, 4);
 
--- 2. Crystal Types
+-- Crystal Types
 CREATE TABLE IF NOT EXISTS crystal_types (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) NOT NULL UNIQUE,
@@ -473,16 +473,54 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Chroniton", 5, "chroniton.png", "phase_flicker", "Time travel! Glitches in and out of this temporal frame."),
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable.");
 
--- 3. Badge Crystals (must come before badge_instances)
+-- Crystal Pattern Buffers (Credits to redeem for Crystals)
+CREATE TABLE IF NOT EXISTS crystal_pattern_buffers (
+  user_discord_id BIGINT PRIMARY KEY,
+  buffer_count INT NOT NULL DEFAULT 0 CHECK (buffer_count >= 0),
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
+);
+
+-- Crystal Instances (Initially tradeable but once 'attuned' cannot be reattached to another)
+CREATE TABLE IF NOT EXISTS crystal_instances (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  crystal_type_id INT NOT NULL,
+  owner_discord_id BIGINT DEFAULT NULL,
+  attached_to_instance_id INT DEFAULT NULL,
+  status ENUM('available', 'attached', 'installed') NOT NULL DEFAULT 'available',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (crystal_type_id) REFERENCES crystal_types(id),
+  FOREIGN KEY (owner_discord_id) REFERENCES users(discord_id),
+  FOREIGN KEY (attached_to_instance_id) REFERENCES badge_instances(id)
+);
+
+-- Crystal Instances History
+CREATE TABLE IF NOT EXISTS crystal_instance_history (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  crystal_instance_id INT NOT NULL,
+  event_type ENUM('replicated', 'trade', 'attached') NOT NULL,
+  from_user_id BIGINT DEFAULT NULL,
+  to_user_id BIGINT DEFAULT NULL,
+  occurred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (crystal_instance_id) REFERENCES crystal_instances(id),
+  FOREIGN KEY (from_user_id) REFERENCES users(discord_id),
+  FOREIGN KEY (to_user_id) REFERENCES users(discord_id)
+);
+
+-- Badge Crystals (Many to One)
 CREATE TABLE IF NOT EXISTS badge_crystals (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
-  crystal_type_id INT NOT NULL,
-  granted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (crystal_type_id) REFERENCES crystal_types(id)
+  crystal_instance_id INT NOT NULL,
+  attached_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE,
+  FOREIGN KEY (crystal_instance_id) REFERENCES crystal_instances(id),
+  UNIQUE (badge_instance_id, crystal_instance_id)
 );
 
--- 4. Badge Instances (safe now!)
+-- Badge Instances
 CREATE TABLE IF NOT EXISTS badge_instances (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_info_id INT UNSIGNED NOT NULL,
@@ -496,11 +534,10 @@ CREATE TABLE IF NOT EXISTS badge_instances (
 
   UNIQUE KEY uq_user_badge_active (owner_discord_id, badge_info_id, active),
   FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
-  FOREIGN KEY (active_crystal_id) REFERENCES badge_crystals(id) ON DELETE SET NULL
+  FOREIGN KEY (active_crystal_id) REFERENCES crystal_instances(id) ON DELETE SET NULL
 );
 
-
--- 5. Instance Provenance
+-- Badge Instance History, Track Lifecycle
 CREATE TABLE IF NOT EXISTS badge_instance_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
@@ -522,27 +559,8 @@ CREATE TABLE IF NOT EXISTS badge_instance_history (
   INDEX idx_history_instance_id (badge_instance_id)
 );
 
--- 6. Crystal Trades
-CREATE TABLE IF NOT EXISTS crystal_trades (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  crystal_id INT NOT NULL,
-  from_badge_instance_id INT NOT NULL,
-  to_badge_instance_id INT NOT NULL,
-  from_user_id BIGINT NOT NULL,
-  to_user_id BIGINT NOT NULL,
-  transferred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (crystal_id) REFERENCES badge_crystals(id),
-  FOREIGN KEY (from_badge_instance_id) REFERENCES badge_instances(id),
-  FOREIGN KEY (to_badge_instance_id) REFERENCES badge_instances(id)
-);
-
--- 7. Add FK to badge_crystals after both tables exist
-ALTER TABLE badge_crystals
-  ADD CONSTRAINT fk_badge_crystals_instance
-  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE;
-
 --
--- Tongo
+-- TONGO v2
 --
 
 CREATE TABLE IF NOT EXISTS tongo_games (
@@ -636,7 +654,8 @@ CREATE TABLE IF NOT EXISTS badge_instances_tags_carousel_position (
 -- Trades
 --
 
-CREATE TABLE IF NOT EXISTS instance_trades (
+-- Badge Trades
+CREATE TABLE IF NOT EXISTS badge_instance_trades (
   id              INT AUTO_INCREMENT PRIMARY KEY,
   requestor_id    BIGINT NOT NULL,
   requestee_id    BIGINT NOT NULL,
@@ -644,19 +663,44 @@ CREATE TABLE IF NOT EXISTS instance_trades (
   time_created    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS trade_offered_instances (
+CREATE TABLE IF NOT EXISTS trade_offered_badge_instances (
   id                INT AUTO_INCREMENT PRIMARY KEY,
   trade_id          INT NOT NULL,
   badge_instance_id INT NOT NULL,
-  FOREIGN KEY (trade_id) REFERENCES instance_trades(id) ON DELETE CASCADE,
+  FOREIGN KEY (trade_id) REFERENCES badge_instance_trades(id) ON DELETE CASCADE,
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS trade_requested_instances (
+CREATE TABLE IF NOT EXISTS trade_requested_badge_instances (
   id                INT AUTO_INCREMENT PRIMARY KEY,
   trade_id          INT NOT NULL,
   badge_instance_id INT NOT NULL,
-  FOREIGN KEY (trade_id) REFERENCES instance_trades(id) ON DELETE CASCADE,
+  FOREIGN KEY (trade_id) REFERENCES badge_instance_trades(id) ON DELETE CASCADE,
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE
 );
 
+
+-- Crystal Trades
+CREATE TABLE IF NOT EXISTS crystal_instance_trades (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  requestor_id BIGINT NOT NULL,
+  requestee_id BIGINT NOT NULL,
+  status ENUM('pending', 'active', 'complete', 'declined', 'canceled') NOT NULL DEFAULT 'pending',
+  time_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS trade_offered_crystal_instances (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  trade_id INT NOT NULL,
+  crystal_instance_id INT NOT NULL,
+  FOREIGN KEY (trade_id) REFERENCES crystal_instance_trades(id) ON DELETE CASCADE,
+  FOREIGN KEY (crystal_instance_id) REFERENCES crystal_instances(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS trade_requested_crystal_instances (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  trade_id INT NOT NULL,
+  crystal_instance_id INT NOT NULL,
+  FOREIGN KEY (trade_id) REFERENCES crystal_instance_trades(id) ON DELETE CASCADE,
+  FOREIGN KEY (crystal_instance_id) REFERENCES crystal_instances(id) ON DELETE CASCADE
+);

@@ -1174,9 +1174,9 @@ async def db_get_related_tongo_badge_trades(user_discord_id, selected_user_badge
     sql = f'''
       SELECT t.*
 
-      FROM instance_trades AS t
-      LEFT JOIN trade_offered_instances AS to_i ON t.id = to_i.trade_id
-      LEFT JOIN trade_requested_instances AS tr_i ON t.id = tr_i.trade_id
+      FROM badge_instance_trades AS t
+      LEFT JOIN trade_offered_badge_instances AS to_i ON t.id = to_i.trade_id
+      LEFT JOIN trade_requested_badge_instances AS tr_i ON t.id = tr_i.trade_id
 
       JOIN badge_instances AS b1 ON to_i.badge_instance_id = b1.id
       JOIN badge_instances AS b2 ON tr_i.badge_instance_id = b2.id
