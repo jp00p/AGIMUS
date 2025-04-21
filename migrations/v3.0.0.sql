@@ -69,7 +69,6 @@ ALTER TABLE tags_carousel_position
   FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
 
 -- v3.0.0.sql - Crystallization Schema
-
 -- CRYSTALS!
 
 -- Crystal Ranks
@@ -142,7 +141,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 
 -- Crystal Pattern Buffers (Credits to redeem for Crystals)
 CREATE TABLE IF NOT EXISTS crystal_pattern_buffers (
-  user_discord_id BIGINT PRIMARY KEY,
+  user_discord_id VARCHAR(64) PRIMARY KEY,
   buffer_count INT NOT NULL DEFAULT 0,
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
 );
@@ -151,14 +150,13 @@ CREATE TABLE IF NOT EXISTS crystal_pattern_buffers (
 CREATE TABLE IF NOT EXISTS crystal_instances (
   id INT AUTO_INCREMENT PRIMARY KEY,
   crystal_type_id INT NOT NULL,
-  owner_discord_id BIGINT DEFAULT NULL,
-  attached_to_instance_id INT DEFAULT NULL,
+  owner_discord_id VARCHAR(64) DEFAULT NULL,
+  attached_to_instance_id INT DEFAULT NULL, -- leave this FK for later
   status ENUM('available', 'attached', 'installed') NOT NULL DEFAULT 'available',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (crystal_type_id) REFERENCES crystal_types(id),
-  FOREIGN KEY (owner_discord_id) REFERENCES users(discord_id),
-  FOREIGN KEY (attached_to_instance_id) REFERENCES badge_instances(id)
+  FOREIGN KEY (owner_discord_id) REFERENCES users(discord_id)
 );
 
 -- Crystal Instances History
@@ -166,13 +164,30 @@ CREATE TABLE IF NOT EXISTS crystal_instance_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   crystal_instance_id INT NOT NULL,
   event_type ENUM('replicated', 'trade', 'attached') NOT NULL,
-  from_user_id BIGINT DEFAULT NULL,
-  to_user_id BIGINT DEFAULT NULL,
+  from_user_id varchar(64) DEFAULT NULL,
+  to_user_id varchar(64) DEFAULT NULL,
   occurred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (crystal_instance_id) REFERENCES crystal_instances(id),
   FOREIGN KEY (from_user_id) REFERENCES users(discord_id),
   FOREIGN KEY (to_user_id) REFERENCES users(discord_id)
+);
+
+-- Badge Instances
+CREATE TABLE IF NOT EXISTS badge_instances (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  badge_info_id INT UNSIGNED NOT NULL,
+  owner_discord_id varchar(64) NULL,
+  locked BOOLEAN DEFAULT FALSE,
+  active BOOLEAN GENERATED ALWAYS AS (status = 'active') STORED,
+  origin_user_id varchar(64) NOT NULL,
+  acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  active_crystal_id INT DEFAULT NULL,
+  status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
+
+  UNIQUE KEY uq_user_badge_active (owner_discord_id, badge_info_id, active),
+  FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
+  FOREIGN KEY (active_crystal_id) REFERENCES crystal_instances(id) ON DELETE SET NULL
 );
 
 -- Badge Crystals (Many to One)
@@ -187,29 +202,18 @@ CREATE TABLE IF NOT EXISTS badge_crystals (
   UNIQUE (badge_instance_id, crystal_instance_id)
 );
 
--- Badge Instances
-CREATE TABLE IF NOT EXISTS badge_instances (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  badge_info_id INT UNSIGNED NOT NULL,
-  owner_discord_id BIGINT NULL,
-  locked BOOLEAN DEFAULT FALSE,
-  active BOOLEAN GENERATED ALWAYS AS (status = 'active') STORED,
-  origin_user_id BIGINT NOT NULL,
-  acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  active_crystal_id INT DEFAULT NULL,
-  status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
 
-  UNIQUE KEY uq_user_badge_active (owner_discord_id, badge_info_id, active),
-  FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
-  FOREIGN KEY (active_crystal_id) REFERENCES crystal_instances(id) ON DELETE SET NULL
-);
+-- Alter crystal_instances now that badge_instances has been created so that we can fk constraint it
+ALTER TABLE crystal_instances
+  ADD CONSTRAINT fk_crystal_attached_to_badge
+  FOREIGN KEY (attached_to_instance_id) REFERENCES badge_instances(id);
 
 -- Badge Instance History, Track Lifecycle
 CREATE TABLE IF NOT EXISTS badge_instance_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_instance_id INT NOT NULL,
-  from_user_id BIGINT DEFAULT NULL,
-  to_user_id BIGINT NULL,
+  from_user_id varchar(64) DEFAULT NULL,
+  to_user_id varchar(64) NULL,
   occurred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   event_type ENUM(
     'epoch',
@@ -233,13 +237,13 @@ CREATE TABLE IF NOT EXISTS badge_instance_history (
 CREATE TABLE IF NOT EXISTS tongo_games (
   id INT AUTO_INCREMENT PRIMARY KEY,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  chair_user_id BIGINT NOT NULL,
+  chair_user_id varchar(64) NOT NULL,
   status ENUM('open', 'in_progress', 'resolved', 'cancelled') DEFAULT 'open'
 );
 
 CREATE TABLE IF NOT EXISTS tongo_game_players (
   game_id INT,
-  user_discord_id BIGINT,
+  user_discord_id varchar(64),
   liability_mode ENUM('unlocked', 'all_in') NOT NULL,
   joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (game_id, user_discord_id),
@@ -249,7 +253,7 @@ CREATE TABLE IF NOT EXISTS tongo_game_players (
 CREATE TABLE IF NOT EXISTS tongo_continuum (
   badge_info_id INT UNSIGNED PRIMARY KEY,
   source_instance_id INT,
-  thrown_by_user_id BIGINT,
+  thrown_by_user_id varchar(64),
   added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
   FOREIGN KEY (source_instance_id) REFERENCES badge_instances(id)
@@ -257,7 +261,7 @@ CREATE TABLE IF NOT EXISTS tongo_continuum (
 
 CREATE TABLE IF NOT EXISTS tongo_game_rewards (
   game_id INT,
-  user_discord_id BIGINT,
+  user_discord_id varchar(64),
   badge_instance_id INT,
   crystal_id INT DEFAULT NULL,
   rewarded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -324,8 +328,8 @@ CREATE TABLE IF NOT EXISTS badge_instances_tags_carousel_position (
 -- Badge Trades
 CREATE TABLE IF NOT EXISTS badge_instance_trades (
   id              INT AUTO_INCREMENT PRIMARY KEY,
-  requestor_id    BIGINT NOT NULL,
-  requestee_id    BIGINT NOT NULL,
+  requestor_id    varchar(64) NOT NULL,
+  requestee_id    varchar(64) NOT NULL,
   status          ENUM('pending', 'active', 'complete', 'declined', 'canceled') NOT NULL DEFAULT 'pending',
   time_created    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -350,8 +354,8 @@ CREATE TABLE IF NOT EXISTS trade_requested_badge_instances (
 -- Crystal Trades
 CREATE TABLE IF NOT EXISTS crystal_instance_trades (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  requestor_id BIGINT NOT NULL,
-  requestee_id BIGINT NOT NULL,
+  requestor_id varchar(64) NOT NULL,
+  requestee_id varchar(64) NOT NULL,
   status ENUM('pending', 'active', 'complete', 'declined', 'canceled') NOT NULL DEFAULT 'pending',
   time_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
