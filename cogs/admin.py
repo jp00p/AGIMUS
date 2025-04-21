@@ -1,7 +1,7 @@
 from common import *
 from queries.badge_info import *
 from queries.badge_instances import *
-from queries.crystals import *
+from queries.crystal_instances import *
 
 from utils.crystal_effects import delete_crystal_effects_cache
 

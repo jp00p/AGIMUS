@@ -2,7 +2,7 @@ from common import *
 from queries.badge_rewards import *
 from queries.badge_info import *
 from queries.badge_instances import *
-from queries.crystals import *
+from queries.crystal_instances import *
 from queries.wishlist import *
 from utils.badge_instances import create_new_badge_instance
 

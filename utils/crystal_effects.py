@@ -6,7 +6,6 @@ from common import *
 from pathlib import Path
 from scipy.ndimage import map_coordinates, binary_dilation, gaussian_filter
 
-from queries.crystals import db_get_active_crystal
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
 
 FRAME_SIZE = (190, 190)
@@ -1006,60 +1005,61 @@ def effect_phase_flicker(base_img: Image.Image, badge: dict) -> list[Image.Image
 
   return frames
 
-@register_effect("wormhole_pop")
-def effect_wormhole_pop(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
-  """
-  Cinematic wormhole entrance effect.
-  Wormhole bursts into existence with a lens_flare and the badge swoops to view.
+# XXX - WIP
+# @register_effect("wormhole_pop")
+# def effect_wormhole_pop(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+#   """
+#   Cinematic wormhole entrance effect.
+#   Wormhole bursts into existence with a lens_flare and the badge swoops to view.
 
-  Used for the Bajoran Orb crystal (Mythic tier).
-  """
-  canvas_size = (200, 200)
+#   Used for the Bajoran Orb crystal (Mythic tier).
+#   """
+#   canvas_size = (200, 200)
 
-  faded_frames = load_wormhole_frames()  # 24-frame wormhole swirl (RGBA)
+#   # faded_frames = load_wormhole_frames()  # 24-frame wormhole swirl (RGBA)
 
-  output_frames = []
+#   output_frames = []
 
-  # Intro (0–10): lens burst, flare, wormhole scale-up
-  for i in range(11):
-    base = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
-    frame = faded_frames[i].copy()
-    output_frames.append(Image.alpha_composite(base, frame))
+#   # Intro (0–10): lens burst, flare, wormhole scale-up
+#   for i in range(11):
+#     base = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
+#     frame = faded_frames[i].copy()
+#     output_frames.append(Image.alpha_composite(base, frame))
 
-  # Badge appears (frame 11–16), scaling from 10% → 100% with ease-out cubic
-  def ease_out_cubic(t): return 1 - (1 - t) ** 3
-  x_offsets = [-10, -5, -2, 1, 0, 0]
+#   # Badge appears (frame 11–16), scaling from 10% → 100% with ease-out cubic
+#   def ease_out_cubic(t): return 1 - (1 - t) ** 3
+#   x_offsets = [-10, -5, -2, 1, 0, 0]
 
-  for i in range(6):
-    progress = ease_out_cubic(i / 5)
-    scale = 0.10 + (1.0 - 0.10) * progress
-    size = int(badge.width * scale), int(badge.height * scale)
-    badge_frame = badge.resize(size, Image.LANCZOS)
+#   for i in range(6):
+#     progress = ease_out_cubic(i / 5)
+#     scale = 0.10 + (1.0 - 0.10) * progress
+#     size = int(badge.width * scale), int(badge.height * scale)
+#     badge_frame = badge.resize(size, Image.LANCZOS)
 
-    if i == 0:
-      badge_frame.putalpha(int(255 * 0.4))  # subtle fade-in on first frame
+#     if i == 0:
+#       badge_frame.putalpha(int(255 * 0.4))  # subtle fade-in on first frame
 
-    offset = (
-      (canvas_size[0] - size[0]) // 2 + x_offsets[i],
-      (canvas_size[1] - size[1]) // 2,
-    )
+#     offset = (
+#       (canvas_size[0] - size[0]) // 2 + x_offsets[i],
+#       (canvas_size[1] - size[1]) // 2,
+#     )
 
-    layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-    layer.paste(badge_frame, offset, badge_frame)
-    frame = faded_frames[i + 4].copy()
-    output_frames.append(Image.alpha_composite(frame, layer))
+#     layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+#     layer.paste(badge_frame, offset, badge_frame)
+#     frame = faded_frames[i + 4].copy()
+#     output_frames.append(Image.alpha_composite(frame, layer))
 
-  # Final hold (frames 17–23)
-  for i in range(7):
-    frame = faded_frames[i + 10].copy()
-    layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-    offset = (
-      (canvas_size[0] - badge.width) // 2,
-      (canvas_size[1] - badge.height) // 2,
-    )
-    layer.paste(badge, offset, badge)
-    output_frames.append(Image.alpha_composite(frame, layer))
+#   # Final hold (frames 17–23)
+#   for i in range(7):
+#     frame = faded_frames[i + 10].copy()
+#     layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+#     offset = (
+#       (canvas_size[0] - badge.width) // 2,
+#       (canvas_size[1] - badge.height) // 2,
+#     )
+#     layer.paste(badge, offset, badge)
+#     output_frames.append(Image.alpha_composite(frame, layer))
 
-  return output_frames
+#   return output_frames
 
 
