@@ -1,7 +1,10 @@
 import numpy as np
+from pathlib import Path
 
-from PIL import Image
-from utils.thread_utils import threaded_image_open
+from common import *
+
+from utils.thread_utils import threaded_image_open, to_thread
+from utils.image_utils import encode_webp
 from typing import Dict
 
 
@@ -63,3 +66,50 @@ def autoshrink_badge(badge_img: Image.Image, canvas_size=(200, 200), margin_rati
     return badge_img.resize((new_dim, new_dim), resample=Image.LANCZOS)
 
   return badge_img
+
+
+CRYSTAL_REPLICATOR_CACHE_DIR = ".cache/crystal_replicator_animations"
+
+@to_thread
+def load_cached_crystal_replicator_animation(cached_path):
+  """
+  Loads a cached crystal effect image (static or animated) from disk.
+
+  If animated, returns a list of RGBA frames.
+  If static, returns a single RGBA image.
+  """
+  img = Image.open(cached_path)
+  return [frame.copy().convert("RGBA") for frame in ImageSequence.Iterator(img)]
+
+@to_thread
+def save_cached_crystal_replicator_animation(buf: Image.Image | list[Image.Image], crystal_name):
+  """
+  Saves a Crystal Repliactor Animation to the cache.
+
+  Saves as an animated webp.
+  """
+  path = get_cached_crystal_replicator_animation_path(crystal_name)
+  path.parent.mkdir(parents=True, exist_ok=True)
+
+  with open(path, "wb") as f:
+    f.write(buf.getvalue())
+
+  return path
+
+def construct_cached_crystal_replicator_animation_path(crystal_name) -> Path:
+  """
+  Constructs the full file path for a crystal effect cache entry.
+
+  Example: .cache/crystal_effects/shimmer_flux__123.webp
+  """
+  filename = f"{crystal_name}__replicator_animation.webp"
+  return Path(CRYSTAL_REPLICATOR_CACHE_DIR) / filename
+
+def get_cached_crystal_replicator_animation_path(crystal_name) -> Path | None:
+  """
+  Checks if a cached replicator animation image exists.
+
+  Returns the path if found, otherwise None.
+  """
+  path = construct_cached_crystal_replicator_animation_path(crystal_name)
+  return path if path.exists() else None

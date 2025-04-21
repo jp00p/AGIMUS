@@ -14,7 +14,7 @@ from common import *
 from queries.badge_info import *
 from queries.badge_instances import *
 
-from utils.badge_cache import get_cached_base_badge_canvas
+from utils.image_cache import *
 from utils.crystal_effects import apply_crystal_effect
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
 
@@ -56,17 +56,20 @@ async def load_badge_image(filename):
 async def load_and_prepare_badge_thumbnail(filename):
   return await get_cached_base_badge_canvas(filename)
 
-async def encode_webp(frames: list[Image.Image]):
+async def encode_webp(frames: list[Image.Image], resize=True):
   loop = asyncio.get_running_loop()
-
-  logger.info(f"[timing] Starting Stage 4: frame resizing")
-  start = time.perf_counter()
 
   # TODO: Make native canvas sizes smaller so we don't have to do this reize step...
   # Resize final output frames concurrently while preserving order
+  start = time.perf_counter()
   def resize_frame(img: Image.Image) -> Image.Image:
-    w, h = img.size
-    return img.resize((int(w * 0.5), int(h * 0.5)), resample=Image.LANCZOS)
+    if resize:
+      logger.info(f"[timing] Starting Stage 4: frame resizing")
+
+      w, h = img.size
+      return img.resize((int(w * 0.5), int(h * 0.5)), resample=Image.LANCZOS)
+    else:
+      return img
 
   resize_tasks = [
     loop.run_in_executor(THREAD_POOL, resize_frame, frame)
@@ -74,8 +77,9 @@ async def encode_webp(frames: list[Image.Image]):
   ]
   final_frames = await asyncio.gather(*resize_tasks)
 
-  end = time.perf_counter()
-  logger.info(f"[timing] frame resizing took {end - start:.2f}s")
+  if resize:
+    end = time.perf_counter()
+    logger.info(f"[timing] frame resizing took {end - start:.2f}s")
 
   return await loop.run_in_executor(THREAD_POOL, _encode_webp, final_frames)
 
@@ -1123,6 +1127,93 @@ async def generate_badge_trade_images(
     buf = await encode_webp(final_frames)
     return discord.File(buf, filename="trade_showcase.webp"), 'attachment://trade_showcase.webp'
 
+
+async def generate_crystal_replicator_confirmation_frames(crystal):
+  cached_path = get_cached_crystal_replicator_animation_path(crystal['crystal_name'])
+  if cached_path:
+    result = await to_thread(load_cached_crystal_replicator_animation, cached_path)
+    return result
+
+  fps = 12
+  duration_seconds = 5
+  num_frames = fps * duration_seconds
+  start_fade_frame = int(0.5 * fps)
+  end_hold_duration = int(1.0 * fps)
+  fade_duration = num_frames - start_fade_frame - end_hold_duration
+  effect_start_frame = start_fade_frame + 6
+  fade_out_frames = 6
+
+  baseline_width, baseline_height = 256, 256
+  cropped_align_x = 40
+  cropped_align_y_bottom = 90 - 50 + 25 + 10 + baseline_height
+
+  # Files
+  templates_dir = "./images/templates/crystals"
+  base_bg = threaded_image_open_no_convert(f"{templates_dir}/replicator.png")
+  icon = threaded_image_open(f"{templates_dir}/icons/{crystal['icon']}")
+
+  bbox = icon.getbbox()
+  cropped = icon.crop(bbox)
+
+  x = base_bg.width // 2 - baseline_width // 2 + cropped_align_x + (baseline_width - cropped.width) // 2
+  y = cropped_align_y_bottom - cropped.height
+  crystal_pos = (x, y)
+
+  effect_dir = f"{templates_dir}/replicator_effect/"
+  effect_filenames = sorted(os.listdir(effect_dir))
+  shifted_effect_position = (base_bg.width // 2 - 300 // 2 + 40, 50)
+  effect_total_frames = len(effect_filenames)
+
+  frames = []
+  for i in range(num_frames):
+    frame = base_bg.copy()
+
+    # Crystal fade-in
+    if i >= start_fade_frame:
+      fade_progress = min(1.0, (i - start_fade_frame) / fade_duration)
+      crystal_temp = cropped.copy()
+      alpha_mask = crystal_temp.split()[3].point(lambda p: int(p * fade_progress))
+      crystal_temp.putalpha(alpha_mask)
+
+      overlay = Image.new("RGBA", frame.size)
+      overlay.paste(crystal_temp, crystal_pos, crystal_temp)
+      frame = Image.alpha_composite(frame, overlay)
+
+    # Materialization Effect
+    effect_index = i - effect_start_frame
+    if 0 <= effect_index < effect_total_frames:
+      effect_path = os.path.join(effect_dir, effect_filenames[effect_index])
+      effect = threaded_image_open(effect_path).convert("RGBA")
+
+      if effect_index >= effect_total_frames - fade_out_frames:
+        frame_pos = effect_index - (effect_total_frames - fade_out_frames)
+        linear_alpha = 1.0 - (frame_pos / (fade_out_frames - 1))
+        faded_effect = effect.copy()
+        alpha = faded_effect.split()[3].point(lambda p: int(p * linear_alpha))
+        faded_effect.putalpha(alpha)
+        effect = faded_effect
+
+      overlay = Image.new("RGBA", frame.size)
+      overlay.paste(effect, shifted_effect_position, effect)
+      frame = Image.alpha_composite(frame, overlay)
+
+    frames.append(frame)
+
+  # Final crystal-only hold
+  for _ in range(fps):
+    frame = base_bg.copy()
+    crystal_temp = cropped.copy()
+    crystal_temp.putalpha(crystal_temp.split()[3])
+    overlay = Image.new("RGBA", frame.size)
+    overlay.paste(crystal_temp, crystal_pos, crystal_temp)
+    frame = Image.alpha_composite(frame, overlay)
+    frames.append(frame)
+
+  # Encode and return animation
+  replicator_confirmation_filename = f"crystal_materialization_{crystal['crystal_name']}.webp"
+  webp_buf = encode_webp(frames, resize=False)
+  save_cached_crystal_replicator_animation(webp_buf, crystal['crystal_name'])
+  return discord.File(webp_buf, filename=f""), replicator_confirmation_filename
 
 #   _________
 #  /   _____/ ________________  ______ ______   ___________

@@ -114,6 +114,8 @@ class Crystals(commands.Cog):
         confirmation_embed.set_image(url="https://i.imgur.com/jQBRK9N.gif")
         await interaction.response.edit_message(embed=confirmation_embed, attachments=[], view=None)
 
+        discord_file, effect_filename = generate_crystal_replicator_confirmation_frames(crystal)
+
         success_message = random.choice(RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=user.mention)
         channel_embed = discord.Embed(
           title='CRYSTAL MATERIALIZATION RESULT...',
@@ -122,9 +124,10 @@ class Crystals(commands.Cog):
         )
         channel_embed.add_field(name=f"Rank:", value=f"{crystal['emoji']}  {crystal['rarity_name']}", inline=False)
         channel_embed.add_field(name=f"Description:", value=crystal['description'], inline=False)
+        channel_embed.set_image(url=f"attachment://{effect_filename}")
 
         gelrak_v = await cog_bot.fetch_channel(get_channel_id("gelrak-v"))
-        await gelrak_v.send(embed=channel_embed)
+        await gelrak_v.send(embed=channel_embed, file=discord_file)
 
       @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
       async def cancel(self, button, interaction):

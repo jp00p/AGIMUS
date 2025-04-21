@@ -7,6 +7,7 @@ from pathlib import Path
 from scipy.ndimage import map_coordinates, binary_dilation, gaussian_filter
 
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
+from utils.image_utils import encode_webp
 
 FRAME_SIZE = (190, 190)
 ANIMATION_FPS = 12
@@ -137,16 +138,9 @@ def save_cached_effect_image(image: Image.Image | list[Image.Image], effect: str
   path.parent.mkdir(parents=True, exist_ok=True)
 
   if isinstance(image, list):
-    durations = [frame.info.get("duration", 1000 // fps) for frame in image]
-    image[0].save(
-      path,
-      save_all=True,
-      append_images=image[1:],
-      duration=durations,
-      loop=0,
-      lossless=True,
-      format=extension.upper()
-    )
+    buf = encode_webp(image)
+    with open(path, "wb") as f:
+      f.write(buf.getvalue())
   else:
     image.save(path)
 
