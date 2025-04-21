@@ -7,7 +7,7 @@ from pathlib import Path
 from scipy.ndimage import map_coordinates, binary_dilation, gaussian_filter
 
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
-from utils.image_utils import encode_webp
+from utils.encode_utils import encode_webp
 
 FRAME_SIZE = (190, 190)
 ANIMATION_FPS = 12

@@ -108,23 +108,24 @@ class Crystals(commands.Cog):
 
         confirmation_embed = discord.Embed(
           title='Crystal Replication In Progress!',
-          description=f"Discharging the enerjons, results incoming momentarily!",
+          description=f"{random.choice(ENERGIZE_ENGAGE_FLAVORS)}, results incoming momentarily!",
           color=discord.Color.teal()
         )
         confirmation_embed.set_image(url="https://i.imgur.com/jQBRK9N.gif")
         await interaction.response.edit_message(embed=confirmation_embed, attachments=[], view=None)
 
-        discord_file, effect_filename = generate_crystal_replicator_confirmation_frames(crystal)
+        discord_file, effect_filename = await generate_crystal_replicator_confirmation_frames(crystal)
 
         success_message = random.choice(RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=user.mention)
         channel_embed = discord.Embed(
-          title='CRYSTAL MATERIALIZATION RESULT...',
-          description=f"A fresh Crystal Buffer Pattern shunts into the replicator, the familiar hum fills the air, and the result is...\n\n**{crystal['crystal_name']}**!\n\n{success_message}",
+          title='CRYSTAL MATERIALIZATION COMPLETE',
+          description=f"A fresh Crystal Buffer Pattern shunts into the replicator, the familiar hum fills the air, and the result is...\n### **{crystal['crystal_name']}**!\n\n{success_message}",
           color=discord.Color.teal()
         )
-        channel_embed.add_field(name=f"Rank:", value=f"{crystal['emoji']}  {crystal['rarity_name']}", inline=False)
-        channel_embed.add_field(name=f"Description:", value=crystal['description'], inline=False)
+        channel_embed.add_field(name=f"Rank {crystal['emoji']}", value=f"{crystal['rarity_name']}", inline=False)
+        channel_embed.add_field(name=f"Description", value=crystal['description'], inline=False)
         channel_embed.set_image(url=f"attachment://{effect_filename}")
+        channel_embed.set_footer(text="Use `/crystals attune` to attach it to one of your Badges!")
 
         gelrak_v = await cog_bot.fetch_channel(get_channel_id("gelrak-v"))
         await gelrak_v.send(embed=channel_embed, file=discord_file)
@@ -307,6 +308,17 @@ class Crystals(commands.Cog):
 # |    |  /  |  | |  |  |__\___ \
 # |______/   |__| |__|____/____  >
 #                              \/
+ENERGIZE_ENGAGE_FLAVORS = [
+  'Discharging the Enerjons',
+  'Charging up the EPS conduits',
+  'Transfering all power from the Life Support Systems',
+  'Ejecting the Warp Core',
+  'Placing something dangerous near the Warp Core',
+  'Diverting power from the Holodeck Safety Protocol Enforcer',
+  'Flooding the Jefferies Tubes',
+  'Erecting a Level 10 Force Field'
+]
+
 RARITY_SUCCESS_MESSAGES = {
   'common': [
     "Another day, another Crystal for {user}.",
@@ -314,7 +326,7 @@ RARITY_SUCCESS_MESSAGES = {
     "That's a decent one {user}.",
     "A decent *crystal* for {user}, but an incredible *member* of The Hood!",
     "A fresh steaming Crystal for {user}!",
-    "I'd rate that a 3.6... Not bad, not terrible {user}."
+    "I'd rate that a 3.6... Not great, not terrible {user}."
   ],
   'uncommon': [
     "Heyyy! Lookin pretty good {user}.",

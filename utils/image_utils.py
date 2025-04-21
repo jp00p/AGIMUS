@@ -14,8 +14,10 @@ from common import *
 from queries.badge_info import *
 from queries.badge_instances import *
 
-from utils.image_cache import *
+from utils.animation_cache import *
+from utils.badge_cache import *
 from utils.crystal_effects import apply_crystal_effect
+from utils.encode_utils import encode_webp
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
 
 THREAD_POOL = ThreadPoolExecutor(max_workers=24)
@@ -55,105 +57,6 @@ async def load_badge_image(filename):
 
 async def load_and_prepare_badge_thumbnail(filename):
   return await get_cached_base_badge_canvas(filename)
-
-async def encode_webp(frames: list[Image.Image], resize=True):
-  loop = asyncio.get_running_loop()
-
-  # TODO: Make native canvas sizes smaller so we don't have to do this reize step...
-  # Resize final output frames concurrently while preserving order
-  start = time.perf_counter()
-  def resize_frame(img: Image.Image) -> Image.Image:
-    if resize:
-      logger.info(f"[timing] Starting Stage 4: frame resizing")
-
-      w, h = img.size
-      return img.resize((int(w * 0.5), int(h * 0.5)), resample=Image.LANCZOS)
-    else:
-      return img
-
-  resize_tasks = [
-    loop.run_in_executor(THREAD_POOL, resize_frame, frame)
-    for frame in frames
-  ]
-  final_frames = await asyncio.gather(*resize_tasks)
-
-  if resize:
-    end = time.perf_counter()
-    logger.info(f"[timing] frame resizing took {end - start:.2f}s")
-
-  return await loop.run_in_executor(THREAD_POOL, _encode_webp, final_frames)
-
-def _encode_webp(frames: list[Image.Image]):
-  buf = _encode_webp_ffmpeg_pipe(frames)
-  buf.seek(0)
-  return buf
-
-def _encode_webp_ffmpeg_pipe(frames: list[Image.Image], fps=12) -> io.BytesIO:
-  if not frames:
-    raise ValueError("No frames provided for WebP encoding.")
-
-  logger.info(f"[timing] Starting Stage 5: webp encoding")
-  start = time.perf_counter()
-
-  width, height = frames[0].size
-  pix_fmt = "rgba"
-  frame_count = len(frames)
-
-  # Convert all frames to raw RGB data
-  raw_rgb = b''.join(frame.convert("RGBA").tobytes() for frame in frames)
-
-  # Create a temporary file for FFmpeg output
-  with tempfile.NamedTemporaryFile(suffix=".webp", delete=False) as temp_outfile:
-    output_path = temp_outfile.name
-
-  try:
-    # FFmpeg command to encode raw RGB to animated WebP
-    command = [
-      "ffmpeg",
-      "-y",  # Overwrite output
-      "-f", "rawvideo",
-      "-pix_fmt", pix_fmt,
-      "-s", f"{width}x{height}",
-      "-r", str(fps),
-      "-i", "pipe:0",  # Input from stdin
-      "-c:v", "libwebp",
-      "-lossless", "1",
-      "-preset", "picture",
-      "-loop", "0",
-      "-frames:v", str(frame_count),
-      "-an",
-      "-vsync", "0",
-      output_path  # Output to real file
-    ]
-
-    # Run ffmpeg and feed raw RGB bytes
-    process = subprocess.run(
-      command,
-      input=raw_rgb,
-      stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE
-    )
-
-    if process.returncode != 0:
-      raise RuntimeError(f"FFmpeg failed:\n{process.stderr.decode()}")
-
-    # Read the output .webp back into memory
-    with open(output_path, "rb") as f:
-      webp_data = f.read()
-
-    end = time.perf_counter()
-    logger.info(f"[timing] _encode_webp_ffmpeg_pipe took {end - start:.2f}s")
-
-    return io.BytesIO(webp_data)
-
-  finally:
-    if os.path.exists(output_path):
-      os.remove(output_path)
-
-def paginate(data_list, items_per_page):
-  for i in range(0, len(data_list), items_per_page):
-    yield data_list[i:i + items_per_page], (i // items_per_page) + 1
-
 
 async def prepare_badges_with_crystal_effects(badge_list: list[dict]) -> list[tuple[dict, list[Image.Image]]]:
   """
@@ -1128,11 +1031,18 @@ async def generate_badge_trade_images(
     return discord.File(buf, filename="trade_showcase.webp"), 'attachment://trade_showcase.webp'
 
 
+# __________              .__  .__               __
+# \______   \ ____ ______ |  | |__| ____ _____ _/  |_  ___________
+#  |       _// __ \\____ \|  | |  |/ ___\\__  \\   __\/  _ \_  __ \
+#  |    |   \  ___/|  |_> >  |_|  \  \___ / __ \|  | (  <_> )  | \/
+#  |____|_  /\___  >   __/|____/__|\___  >____  /__|  \____/|__|
+#         \/     \/|__|                \/     \/
 async def generate_crystal_replicator_confirmation_frames(crystal):
+  replicator_confirmation_filename = f"crystal_materialization_{crystal['crystal_name']}.webp"
+
   cached_path = get_cached_crystal_replicator_animation_path(crystal['crystal_name'])
   if cached_path:
-    result = await to_thread(load_cached_crystal_replicator_animation, cached_path)
-    return result
+    return discord.File(cached_path, filename=replicator_confirmation_filename), replicator_confirmation_filename
 
   fps = 12
   duration_seconds = 5
@@ -1149,8 +1059,8 @@ async def generate_crystal_replicator_confirmation_frames(crystal):
 
   # Files
   templates_dir = "./images/templates/crystals"
-  base_bg = threaded_image_open_no_convert(f"{templates_dir}/replicator.png")
-  icon = threaded_image_open(f"{templates_dir}/icons/{crystal['icon']}")
+  base_bg = await threaded_image_open(f"{templates_dir}/replicator.png")
+  icon = await threaded_image_open(f"{templates_dir}/icons/{crystal['icon']}")
 
   bbox = icon.getbbox()
   cropped = icon.crop(bbox)
@@ -1161,7 +1071,7 @@ async def generate_crystal_replicator_confirmation_frames(crystal):
 
   effect_dir = f"{templates_dir}/replicator_effect/"
   effect_filenames = sorted(os.listdir(effect_dir))
-  shifted_effect_position = (base_bg.width // 2 - 300 // 2 + 40, 50)
+  shifted_effect_position = (base_bg.width // 2 - 300 // 2 + 50, 100)
   effect_total_frames = len(effect_filenames)
 
   frames = []
@@ -1183,7 +1093,7 @@ async def generate_crystal_replicator_confirmation_frames(crystal):
     effect_index = i - effect_start_frame
     if 0 <= effect_index < effect_total_frames:
       effect_path = os.path.join(effect_dir, effect_filenames[effect_index])
-      effect = threaded_image_open(effect_path).convert("RGBA")
+      effect = await threaded_image_open(effect_path)
 
       if effect_index >= effect_total_frames - fade_out_frames:
         frame_pos = effect_index - (effect_total_frames - fade_out_frames)
@@ -1210,10 +1120,11 @@ async def generate_crystal_replicator_confirmation_frames(crystal):
     frames.append(frame)
 
   # Encode and return animation
-  replicator_confirmation_filename = f"crystal_materialization_{crystal['crystal_name']}.webp"
-  webp_buf = encode_webp(frames, resize=False)
-  save_cached_crystal_replicator_animation(webp_buf, crystal['crystal_name'])
-  return discord.File(webp_buf, filename=f""), replicator_confirmation_filename
+
+  webp_buf = await encode_webp(frames, resize=False)
+  await save_cached_crystal_replicator_animation(webp_buf, crystal['crystal_name'])
+  return discord.File(webp_buf, filename=replicator_confirmation_filename), replicator_confirmation_filename
+
 
 #   _________
 #  /   _____/ ________________  ______ ______   ___________
