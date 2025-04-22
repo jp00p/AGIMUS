@@ -470,7 +470,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Distortions abound when these are around!"),
 
   -- Mythic Crystals
-  ("Bajoran Orb", 5, "bajoran_orb.png", "wormhole_opening", "Tear of the Prophets. My Child!"),
+  ("Bajoran Orb", 5, "bajoran_orb.png", "celestial_temple", "A Tear of the Prophets. My Child!"),
   ("Chroniton", 5, "chroniton.png", "phase_flicker", "Time travel! Glitches in and out of this temporal frame."),
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable.");
 

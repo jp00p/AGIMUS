@@ -999,61 +999,84 @@ def effect_phase_flicker(base_img: Image.Image, badge: dict) -> list[Image.Image
 
   return frames
 
-# XXX - WIP
-# @register_effect("wormhole_pop")
-# def effect_wormhole_pop(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
-#   """
-#   Cinematic wormhole entrance effect.
-#   Wormhole bursts into existence with a lens_flare and the badge swoops to view.
+@register_effect("celestial_temple")
+def effect_celestial_temple(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Cinematic wormhole exit effect.
+  A lens flare builds, the wormhole bursts into existence from nothing, and the badge swoops into view.
 
-#   Used for the Bajoran Orb crystal (Mythic tier).
-#   """
-#   canvas_size = (200, 200)
+  Used for the Bajoran Orb crystal (Mythic tier).
+  """
+  canvas_size = (200, 200)
+  base_path = Path("./images/crystal_effects/animations/celestial_temple")
 
-#   # faded_frames = load_wormhole_frames()  # 24-frame wormhole swirl (RGBA)
+  # Load lens flare frames (01–07)
+  lens_flare_frames = []
+  for i in range(1, 8):
+    path = base_path / "lens_flare" / f"{i:02}.png"
+    lens_flare_frames.append(Image.open(path).convert("RGBA"))
 
-#   output_frames = []
+  # Load wormhole frames (01–17)
+  wormhole_frames = []
+  for i in range(1, 18):
+    path = base_path / "wormhole" / f"{i:02}.png"
+    wormhole_frames.append(Image.open(path).convert("RGBA"))
 
-#   # Intro (0–10): lens burst, flare, wormhole scale-up
-#   for i in range(11):
-#     base = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
-#     frame = faded_frames[i].copy()
-#     output_frames.append(Image.alpha_composite(base, frame))
+  output_frames = []
 
-#   # Badge appears (frame 11–16), scaling from 10% → 100% with ease-out cubic
-#   def ease_out_cubic(t): return 1 - (1 - t) ** 3
-#   x_offsets = [-10, -5, -2, 1, 0, 0]
+  # Frames 0–6: lens flare only
+  for i in range(7):
+    base = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
+    output_frames.append(Image.alpha_composite(base, lens_flare_frames[i]))
 
-#   for i in range(6):
-#     progress = ease_out_cubic(i / 5)
-#     scale = 0.10 + (1.0 - 0.10) * progress
-#     size = int(badge.width * scale), int(badge.height * scale)
-#     badge_frame = badge.resize(size, Image.LANCZOS)
+  # Frames 7–10: wormhole scales in from 0% → 100%
+  for i in range(4):
+    scale = i / 3  # 0.0, 0.33, 0.66, 1.0
+    wormhole = wormhole_frames[i].copy()
+    size = max(1, int(wormhole.width * scale)), max(1, int(wormhole.height * scale))
+    scaled = wormhole.resize(size, Image.LANCZOS)
 
-#     if i == 0:
-#       badge_frame.putalpha(int(255 * 0.4))  # subtle fade-in on first frame
+    base = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
+    offset = (
+      (canvas_size[0] - size[0]) // 2,
+      (canvas_size[1] - size[1]) // 2,
+    )
+    base.paste(scaled, offset, scaled)
+    output_frames.append(base)
 
-#     offset = (
-#       (canvas_size[0] - size[0]) // 2 + x_offsets[i],
-#       (canvas_size[1] - size[1]) // 2,
-#     )
+  # Frames 11–16: badge scale-in (ease-out cubic)
+  def ease_out_cubic(t): return 1 - (1 - t) ** 3
+  x_offsets = [-10, -5, -2, 1, 0, 0]
 
-#     layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-#     layer.paste(badge_frame, offset, badge_frame)
-#     frame = faded_frames[i + 4].copy()
-#     output_frames.append(Image.alpha_composite(frame, layer))
+  for i in range(6):
+    progress = ease_out_cubic(i / 5)
+    scale = 0.10 + (1.0 - 0.10) * progress
+    size = int(badge_image.width * scale), int(badge_image.height * scale)
+    badge_frame = badge_image.resize(size, Image.LANCZOS)
 
-#   # Final hold (frames 17–23)
-#   for i in range(7):
-#     frame = faded_frames[i + 10].copy()
-#     layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-#     offset = (
-#       (canvas_size[0] - badge.width) // 2,
-#       (canvas_size[1] - badge.height) // 2,
-#     )
-#     layer.paste(badge, offset, badge)
-#     output_frames.append(Image.alpha_composite(frame, layer))
+    if i == 0:
+      badge_frame.putalpha(int(255 * 0.4))  # subtle fade-in on first frame
 
-#   return output_frames
+    offset = (
+      (canvas_size[0] - size[0]) // 2 + x_offsets[i],
+      (canvas_size[1] - size[1]) // 2,
+    )
 
+    layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+    layer.paste(badge_frame, offset, badge_frame)
+    bg = wormhole_frames[i + 4].copy().resize(canvas_size, Image.LANCZOS)
+    output_frames.append(Image.alpha_composite(bg, layer))
+
+  # Frames 17–23: hold at full badge
+  for i in range(7):
+    bg = wormhole_frames[i + 10].copy().resize(canvas_size, Image.LANCZOS)
+    layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+    offset = (
+      (canvas_size[0] - badge_image.width) // 2,
+      (canvas_size[1] - badge_image.height) // 2,
+    )
+    layer.paste(badge_image, offset, badge_image)
+    output_frames.append(Image.alpha_composite(bg, layer))
+
+  return output_frames
 
