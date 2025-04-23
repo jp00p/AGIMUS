@@ -45,10 +45,10 @@ def load_background_image_resized(path, size):
 # Rarity Tier Design Philosophy:
 #
 # -- Common    – Simple color tints
-# -- Uncommon  – Badge borders
-# -- Rare      – Backgrounds
+# -- Uncommon  – Silhouette Effects
+# -- Rare      – Backgrounds with Border Gradient
 # -- Legendary – Animated effects
-# -- Mythic    – Animated + prestige visual effects
+# -- Mythic    – Animated + Prestige visual effects
 #
 async def apply_crystal_effect(badge_image: Image.Image, badge: dict, crystal=None) -> Image.Image | list[Image.Image]:
   """
@@ -350,182 +350,155 @@ def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
 # 888     888 888  888 888     888  888 888  888  888 888  888  888 888  888 888  888
 # Y88b. .d88P 888  888 Y88b.   Y88..88P 888  888  888 888  888  888 Y88..88P 888  888
 #  "Y88888P"  888  888  "Y8888P "Y88P"  888  888  888 888  888  888  "Y88P"  888  888
-@register_effect("teal_hardlight")
-def effect_cyan_disintegration(img, badge):
-  return _apply_hardlight_border(img, color=(0, 255, 255, 192))
+@register_effect("isolinear")
+def effect_isolinear(img, badge):
+  return _apply_gradient_silhouette_border(img, (0, 200, 255), (140, 255, 0))
 
-@register_effect("cyan_disintegration")
-def effect_cyan_disintegration(img, badge):
-  return _apply_disintegration_border(img, color=(0, 255, 255, 255))
+@register_effect('boridium')
+def effect_boridium(img, badge):
+  _apply_energy_rings_silhouette_wrap(img, primary_color=(200, 80, 255), secondary_color=(80, 255, 255))
 
-def _apply_hardlight_border(badge_img: Image.Image, color=(0, 255, 255, 192), dilation_iters=10, blur_radius=4) -> Image.Image:
+
+def _apply_gradient_silhouette_border(
+  badge_image: Image.Image,
+  gradient_start: tuple[int, int, int],
+  gradient_end: tuple[int, int, int],
+  pad: int = 10,
+  max_filter_size: int = 15,
+  blur_radius: int = 6
+) -> Image.Image:
   """
-  Applies a thick glowing border effect around the alpha edge of a badge.
+  Applies a glowing gradient-colored silhouette border around the badge shape.
 
-  Parameters:
-    badge_img (Image.Image): Input RGBA badge image.
-    glow_color (tuple): RGBA color of the glow.
-    dilation_iters (int): Thickness of the border via dilation.
-    blur_radius (int): Radius of the blur for softness.
+  Args:
+    badge_image: RGBA badge image.
+    gradient_start: RGB tuple for the starting color of the gradient.
+    gradient_end: RGB tuple for the ending color of the gradient.
+    pad: Padding around the badge.
+    max_filter_size: Dilation size for border thickness.
+    blur_radius: Gaussian blur radius for glow.
 
   Returns:
-    Image.Image: Badge with hardlight border effect.
+    RGBA image with border applied.
   """
-  badge_img = badge_img.convert("RGBA")
+  width, height = badge_image.size
+  alpha = badge_image.split()[-1]
+
+  # Prepare expanded canvas
+  expanded_size = (width + 2 * pad, height + 2 * pad)
+  expanded_image = Image.new('RGBA', expanded_size, (0, 0, 0, 0))
+  expanded_alpha = Image.new('L', expanded_size, 0)
+  expanded_image.paste(badge_image, (pad, pad))
+  expanded_alpha.paste(alpha, (pad, pad))
+
+  # Generate silhouette outline mask
+  outer = expanded_alpha.filter(ImageFilter.MaxFilter(max_filter_size))
+  outline_mask = ImageChops.subtract(outer, expanded_alpha)
+
+  # Create gradient border
+  gradient = Image.new('RGBA', expanded_size, (0, 0, 0, 0))
+  for y in range(expanded_size[1]):
+    for x in range(expanded_size[0]):
+      t = (x + y) / (expanded_size[0] + expanded_size[1])
+      r = int((1 - t) * gradient_start[0] + t * gradient_end[0])
+      g = int((1 - t) * gradient_start[1] + t * gradient_end[1])
+      b = int((1 - t) * gradient_start[2] + t * gradient_end[2])
+      gradient.putpixel((x, y), (r, g, b, 255))
+
+  border_colored = Image.new('RGBA', expanded_size, (0, 0, 0, 0))
+  border_colored.paste(gradient, mask=outline_mask)
+
+  # Composite with glow
+  glow = border_colored.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+  composed = Image.alpha_composite(Image.new('RGBA', expanded_size), glow)
+  composed = Image.alpha_composite(composed, border_colored)
+  composed = Image.alpha_composite(composed, expanded_image)
+
+  return composed
+
+
+def _apply_energy_rings_silhouette_wrap(badge_img: Image.Image, primary_color: tuple[int, int, int], secondary_color: tuple[int, int, int], padding: int = 4) -> Image.Image:
+  """
+  Wraps a badge image with two procedural elliptical energy rings, layered front/back.
+
+  Args:
+    badge_img: The RGBA badge image to wrap.
+    color1: RGB color tuple for the primary ring.
+    color2: RGB color tuple for the secondary ring.
+    padding: Padding around the badge to leave room for ring spacing.
+
+  Returns:
+    A new RGBA image with the wrapped badge.
+  """
   alpha = badge_img.split()[-1]
-  alpha_np = np.array(alpha) > 0
+  bounds = get_badge_bounds(alpha)
+  left, top, right, bottom = bounds
+  width = right - left + 2 * padding
+  height = bottom - top + 2 * padding
+  ring_size = (int(width * 2), int(height * 2))
+  badge_offset = ((ring_size[0] - badge_img.width) // 2, (ring_size[1] - badge_img.height) // 2)
 
-  # Dilate alpha mask to create the outer edge zone
-  dilated = binary_dilation(alpha_np, iterations=dilation_iters)
-  border_mask = np.logical_and(dilated, ~alpha_np)
+  # Generate both rings
+  primary_ring = _generate_energy_ring_wrap(ring_size, color=primary_color, rx_scale=0.35, ry_scale=0.15)
+  secondary_ring = _generate_energy_ring_wrap(ring_size, color=secondary_color, rx_scale=0.32, ry_scale=0.13)
+  combined_ring = Image.alpha_composite(primary_ring, secondary_ring)
 
-  # Create a transparent canvas and draw the border pixels
-  border_img = Image.new("RGBA", badge_img.size, (0, 0, 0, 0))
-  draw = ImageDraw.Draw(border_img)
-  for y, x in np.argwhere(border_mask):
-    draw.point((x, y), fill=color)
+  # Create 50% split mask
+  badge_w, badge_h = badge_img.size
+  front_mask = Image.new("L", ring_size, 0)
+  draw = ImageDraw.Draw(front_mask)
+  draw.rectangle(
+    [badge_offset[0], badge_offset[1] + badge_h // 2,
+     badge_offset[0] + badge_w, badge_offset[1] + badge_h],
+    fill=255
+  )
+  front_mask = front_mask.filter(ImageFilter.GaussianBlur(10))
+  back_mask = ImageChops.invert(front_mask)
 
-  # Blur the border for glow effect
-  border_img = border_img.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+  # Split ring into front/back halves
+  front_ring = Image.composite(combined_ring, Image.new("RGBA", ring_size, (0, 0, 0, 0)), front_mask)
+  back_ring = Image.composite(combined_ring, Image.new("RGBA", ring_size, (0, 0, 0, 0)), back_mask)
 
-  # Composite over the original badge
-  result = Image.alpha_composite(badge_img, border_img)
-  return result
+  # Composite result
+  canvas = Image.new("RGBA", ring_size, (0, 0, 0, 0))
+  canvas.paste(back_ring, (0, 0), back_ring)
+  canvas.paste(badge_img, badge_offset, badge_img)
+  canvas.paste(front_ring, (0, 0), front_ring)
 
-def _apply_disintegration_border(base_img: Image.Image,
-                                  color=(0, 255, 255, 255),
-                                  canvas_size=(256, 256),
-                                  brightness_boost=1.15,
-                                  density=0.15,
-                                  spread=8,
-                                  pixel_size=4,
-                                  blur_radius=2,
-                                  heatmap_blur=8,
-                                  underlay_threshold=0.8) -> Image.Image:
+  return canvas
+
+def _generate_energy_ring_wrap(
+  size=(512, 512),
+  color=(200, 80, 255),
+  stroke_width=2,
+  num_loops=18,
+  rx_scale=0.35,
+  ry_scale=0.15,
+  blur_radius=1.5
+) -> Image.Image:
   """
-  Adds a blurred pixel disintegration border around the badge edges.
-  In low-density alpha regions, particles are drawn behind the badge.
-  In high-density areas, particles appear above it.
-
-  Parameters:
-    base_img (Image.Image): RGBA badge image
-    color (tuple): RGBA color for the effect
-    canvas_size (tuple): Output size (default 256x256)
-    brightness_boost (float): Boost factor for RGB values
-    density (float): Particle density based on edge pixels
-    spread (int): Random pixel offset distance from edge
-    pixel_size (int): Size of each square particle
-    blur_radius (int): Gaussian blur applied to particle layers
-    heatmap_blur (int): Sigma for smoothing the alpha density map
-    underlay_threshold (float): Density cutoff for placing behind vs. over
-
-  Returns:
-    Image.Image: Final RGBA image with layered disintegration
+  Generates a dense elliptical energy ring with customizable dimensions and color.
   """
-  # Boost particle brightness
-  boosted_color = tuple(min(255, int(c * brightness_boost)) if i < 3 else c for i, c in enumerate(color))
+  width, height = size
+  ring = Image.new("RGBA", size, (0, 0, 0, 0))
+  draw = ImageDraw.Draw(ring)
+  cx, cy = width // 2, height // 2
+  rx, ry = int(width * rx_scale), int(height * ry_scale)
 
-  # Center image on transparent canvas
-  canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-  offset = ((canvas_size[0] - base_img.width) // 2, (canvas_size[1] - base_img.height) // 2)
-  canvas.paste(base_img, offset, base_img)
+  for _ in range(num_loops):
+    angle_offset = np.random.uniform(0, 2 * np.pi)
+    phase = np.random.uniform(0, 2 * np.pi)
+    for t in np.linspace(0, 2 * np.pi, 500):
+      angle = t + angle_offset
+      x = int(cx + rx * np.cos(angle + 0.5 * np.sin(phase + angle)))
+      y = int(cy + ry * np.sin(angle))
+      intensity = int(255 * (0.5 + 0.5 * np.sin(3 * angle + phase)))
+      draw.ellipse(
+        [(x - stroke_width, y - stroke_width), (x + stroke_width, y + stroke_width)],
+        fill=(color[0], color[1], color[2], intensity),
+      )
 
-  alpha = canvas.getchannel("A")
-  alpha_np = np.array(alpha) > 0
-  dilated = binary_dilation(alpha_np, iterations=2)
-  edge = np.logical_and(dilated, ~alpha_np)
-  edge_coords = np.argwhere(edge)
-
-  density_map = gaussian_filter(alpha_np.astype(float), sigma=heatmap_blur)
-  if density_map.max() > 0:
-    density_map /= density_map.max()
-
-  count = int(len(edge_coords) * density)
-  sampled = edge_coords[np.random.choice(len(edge_coords), size=count, replace=False)]
-
-  over_layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-  under_layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-  draw_over = ImageDraw.Draw(over_layer)
-  draw_under = ImageDraw.Draw(under_layer)
-  occupied = np.zeros((canvas_size[1], canvas_size[0]), dtype=bool)
-
-  for y, x in sampled:
-    dx = np.random.randint(-spread, spread + 1)
-    dy = np.random.randint(-spread, spread + 1)
-    px, py = x + dx, y + dy
-
-    if not (0 <= px < canvas_size[0] - pixel_size and 0 <= py < canvas_size[1] - pixel_size):
-      continue
-    if occupied[py:py + pixel_size, px:px + pixel_size].any():
-      continue
-
-    occupied[py:py + pixel_size, px:px + pixel_size] = True
-    target = draw_under if density_map[py, px] < underlay_threshold else draw_over
-    target.rectangle([px, py, px + pixel_size, py + pixel_size], fill=boosted_color)
-
-  over_layer = over_layer.filter(ImageFilter.GaussianBlur(blur_radius))
-  under_layer = under_layer.filter(ImageFilter.GaussianBlur(blur_radius))
-  result = Image.alpha_composite(under_layer, canvas)
-  result = Image.alpha_composite(result, over_layer)
-  return result
-
-def _apply_smoke_border(base_img: Image.Image,
-                        color=(0, 255, 255, 120),
-                        canvas_size=(256, 256),
-                        trail_density=0.30,
-                        trail_length=8,
-                        spread=18,
-                        blur_radius=8) -> Image.Image:
-  """
-  Emits smoke-like trails from the edge of a badge image.
-  Trails are directional ellipses that are blurred to resemble haze.
-
-  Parameters:
-    base_img (Image.Image): RGBA badge image
-    color (tuple): RGBA color of smoke trails
-    canvas_size (tuple): Final image size
-    trail_density (float): Fraction of edge points to use
-    trail_length (int): Number of ellipses per trail
-    spread (int): Maximum offset distance
-    blur_radius (int): Final blur applied to trails
-
-  Returns:
-    Image.Image: Image with smoke trail border composited
-  """
-  canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-  offset = ((canvas_size[0] - base_img.width) // 2, (canvas_size[1] - base_img.height) // 2)
-  canvas.paste(base_img, offset, base_img)
-
-  alpha = canvas.getchannel("A")
-  alpha_np = np.array(alpha) > 0
-  dilated = binary_dilation(alpha_np, iterations=2)
-  edge = np.logical_and(dilated, ~alpha_np)
-  edge_coords = np.argwhere(edge)
-
-  trail_layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-  draw = ImageDraw.Draw(trail_layer)
-
-  count = int(len(edge_coords) * trail_density)
-  sampled = edge_coords[np.random.choice(len(edge_coords), size=count, replace=False)]
-
-  for y, x in sampled:
-    dx = random.uniform(-1, 1)
-    dy = random.uniform(-1, 1)
-    norm = (dx ** 2 + dy ** 2) ** 0.5
-    if norm == 0:
-      continue
-    dx /= norm
-    dy /= norm
-
-    for i in range(trail_length):
-      fx = int(x + dx * i * spread / trail_length)
-      fy = int(y + dy * i * spread / trail_length)
-      if not (0 <= fx < canvas_size[0] and 0 <= fy < canvas_size[1]):
-        continue
-      draw.ellipse([fx - 2, fy - 2, fx + 3, fy + 3], fill=color)
-
-  blurred = trail_layer.filter(ImageFilter.GaussianBlur(blur_radius))
-  return Image.alpha_composite(canvas, blurred)
+  return ring.filter(ImageFilter.GaussianBlur(radius=blur_radius))
 
 
 # 8888888b.
@@ -536,80 +509,69 @@ def _apply_smoke_border(base_img: Image.Image,
 # 888 T88b   .d888888 888    88888888
 # 888  T88b  888  888 888    Y8b.
 # 888   T88b "Y888888 888     "Y8888
-RARE_BACKGROUNDS_DIR = 'images/crystal_effects/backgrounds/'
+RARE_BACKGROUNDS_DIR = 'images/crystal_effects/backgrounds'
 
-def _apply_radial_fade(img: Image.Image, fade_start_ratio=0.35, fade_end_ratio=0.75) -> Image.Image:
+def apply_rare_background_and_border(
+  badge_image: Image.Image,
+  background_path: str,
+  border_gradient_top_left: tuple[int, int, int] = (0, 0, 0),
+  border_gradient_bottom_right: tuple[int, int, int] = (0, 0, 0),
+  border_width: int = 2,
+  border_radius: int = 24,
+) -> Image.Image:
   """
-  Applies a radial alpha fade using an S-curve easing function to create smooth falloff.
-  The fade begins at `fade_start_ratio` and completes at `fade_end_ratio` of the image's max radius.
+  Applies a rare-tier crystal effect with a diagonal gradient border.
+
+  Args:
+    badge_image: The badge RGBA image.
+    background_path: Path to the background image file.
+    border_gradient_top_left: RGB tuple for the top-left corner color.
+    border_gradient_bottom_right: RGB tuple for the bottom-right color.
+    border_width: Thickness of the border.
+    border_radius: Corner rounding radius.
+
+  Returns:
+    Image.Image with the full visual effect applied.
   """
-  width, height = img.size
-  cx, cy = width // 2, height // 2
-  max_radius = (cx**2 + cy**2) ** 0.5
-  fade_start = max_radius * fade_start_ratio
-  fade_end = max_radius * fade_end_ratio
+  badge_size = badge_image.size
 
-  mask = Image.new("L", img.size, 255)
-  pixels = mask.load()
+  # Load and mask the background
+  background = Image.open(background_path).convert("RGBA").resize(badge_size)
+  outer_mask = Image.new("L", badge_size, 0)
+  draw_outer = ImageDraw.Draw(outer_mask)
+  draw_outer.rounded_rectangle(
+    [border_width // 2, border_width // 2, badge_size[0] - border_width // 2, badge_size[1] - border_width // 2],
+    radius=border_radius,
+    fill=255
+  )
+  background_cropped = Image.composite(background, Image.new("RGBA", badge_size), outer_mask)
 
-  for y in range(height):
-    for x in range(width):
-      dx = x - cx
-      dy = y - cy
-      distance = (dx**2 + dy**2) ** 0.5
+  # Composite badge onto background
+  composite = Image.alpha_composite(background_cropped, badge_image)
 
-      if distance <= fade_start:
-        alpha = 255
-      elif distance >= fade_end:
-        alpha = 0
-      else:
-        x_norm = (distance - fade_start) / (fade_end - fade_start)
-        smooth = 3 * x_norm**2 - 2 * x_norm**3  # S-curve: ease-in/out
-        alpha = int(255 * (1 - smooth))
+  # Create diagonal border gradient
+  border_gradient = Image.new("RGBA", badge_size)
+  for y in range(badge_size[1]):
+    for x in range(badge_size[0]):
+      t = (x + y) / (badge_size[0] + badge_size[1])
+      r = int(border_gradient_top_left[0] * (1 - t) + border_gradient_bottom_right[0] * t)
+      g = int(border_gradient_top_left[1] * (1 - t) + border_gradient_bottom_right[1] * t)
+      b = int(border_gradient_top_left[2] * (1 - t) + border_gradient_bottom_right[2] * t)
+      border_gradient.putpixel((x, y), (r, g, b, 255))
 
-      pixels[x, y] = max(0, min(alpha, 255))
+  # Create mask for just the border ring
+  inner_mask = Image.new("L", badge_size, 0)
+  draw_inner = ImageDraw.Draw(inner_mask)
+  draw_inner.rounded_rectangle(
+    [border_width + 2, border_width + 2, badge_size[0] - border_width - 2, badge_size[1] - border_width - 2],
+    radius=border_radius - 4,
+    fill=255
+  )
+  border_mask = ImageChops.subtract(outer_mask, inner_mask)
+  gradient_border = Image.composite(border_gradient, Image.new("RGBA", badge_size, (0, 0, 0, 0)), border_mask)
 
-  r, g, b, _ = img.split()
-  final_radial = Image.merge("RGBA", (r, g, b, mask))
-  vignette = _apply_vignette_alpha(final_radial)
-  return vignette
-
-def _apply_vignette_alpha(img: Image.Image, fade_start_ratio=0.025, fade_end_ratio=0.73) -> Image.Image:
-  """
-  Applies a strong circular alpha fade to the image corners, creating a vignette-like transparency.
-  fade_start_ratio: where full opacity ends (as a % of max radius)
-  fade_end_ratio: where full transparency begins (as a % of max radius)
-  """
-  if img.mode != "RGBA":
-    img = img.convert("RGBA")
-
-  width, height = img.size
-  cx, cy = width // 2, height // 2
-  max_radius = (cx**2 + cy**2) ** 0.5
-  fade_start = max_radius * fade_start_ratio
-  fade_end = max_radius * fade_end_ratio
-
-  vignette = Image.new("L", (width, height), 255)
-  pixels = vignette.load()
-
-  for y in range(height):
-    for x in range(width):
-      dx = x - cx
-      dy = y - cy
-      distance = (dx**2 + dy**2) ** 0.5
-      if distance <= fade_start:
-        alpha = 255
-      elif distance >= fade_end:
-        alpha = 0
-      else:
-        # Ease out: steeper fade toward the edge
-        ratio = (distance - fade_start) / (fade_end - fade_start)
-        alpha = int(255 * (1 - ratio ** 2.5))  # sharper drop-off
-      pixels[x, y] = alpha
-
-  r, g, b, a = img.split()
-  combined_alpha = ImageChops.multiply(a, vignette)
-  return Image.merge("RGBA", (r, g, b, combined_alpha))
+  # Final composite with gradient border
+  return Image.alpha_composite(composite, gradient_border)
 
 @register_effect("trilithium_banger")
 def effect_trilithium_banger(badge_image: Image.Image, badge: dict) -> Image.Image:
@@ -617,10 +579,14 @@ def effect_trilithium_banger(badge_image: Image.Image, badge: dict) -> Image.Ima
   Purple Space Explosion / Butthole background.
   Used for the Trilithium crystal (Rare tier).
   """
-  bg_path = f"{RARE_BACKGROUNDS_DIR}trilithium_banger.png"
-  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
-  faded_background = _apply_radial_fade(background)
-  return Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/trilithium_banger.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(196, 197, 247),
+    border_gradient_bottom_right=(50, 51, 101)
+  )
+  return result
 
 @register_effect("tholian_web")
 def effect_tholian_web(badge_image: Image.Image, badge: dict) -> Image.Image:
@@ -628,33 +594,74 @@ def effect_tholian_web(badge_image: Image.Image, badge: dict) -> Image.Image:
   Tholian Web in space background effect.
   Used for the Tholian Silk crystal (Rare tier).
   """
-  bg_path = f"{RARE_BACKGROUNDS_DIR}tholian_web.png"
-  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
-  faded_background = _apply_radial_fade(background)
-  return Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/tholian_web.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(253, 203, 99),
+    border_gradient_bottom_right=(107, 59, 17)
+  )
+  return result
 
 @register_effect("holo_grid")
 def effect_holo_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
-  Holodeck yellow grid background.
+  Holodeck yellow grid background and gold border.
   Used for the Holomatrix Fragment crystal (Rare tier).
   """
-  bg_path = f"{RARE_BACKGROUNDS_DIR}holo_grid.png"
-  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
-  faded_background = _apply_radial_fade(background)
-  return Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/holo_grid.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(255, 230, 130),
+    border_gradient_bottom_right=(180, 130, 20)
+  )
+  return result
 
 @register_effect("crystalline_entity")
-def effect_holo_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
+def effect_crystalline_entity(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
   Crystalline Entity Spikes background.
   Used for the Silicon Shard crystal (Rare tier).
   """
-  bg_path = f"{RARE_BACKGROUNDS_DIR}cystalline_entity.png"
-  background = Image.open(bg_path).convert("RGBA").resize(badge_image.size)
-  faded_background = _apply_radial_fade(background)
-  return Image.alpha_composite(faded_background, badge_image.resize(faded_background.size))
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/cystalline_entity.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(204, 205, 255),
+    border_gradient_bottom_right=(49, 49, 99)
+  )
+  return result
 
+@register_effect("q_grid")
+def effect_q_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Q Grid from Encounter at Farpoint background.
+  Used for the Continuum crystal (Rare tier).
+  """
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/q_grid.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(196, 197, 247),
+    border_gradient_bottom_right=(50, 51, 101)
+  )
+  return result
+
+@register_effect("coffee_nebula")
+def effect_trilithium_banger(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  The nebula from "There's Coffee In That Nebula" background.
+  Used for the Colombian Coffee Crystal (Rare tier).
+  """
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/q_grid.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(157, 122, 134),
+    border_gradient_bottom_right=(43, 33, 54)
+  )
+  return result
 
 #       ...                                                         ..
 #   .zf"` `"tu                                                    dF                                    ..
@@ -1080,3 +1087,13 @@ def effect_celestial_temple(badge_image: Image.Image, badge: dict) -> list[Image
 
   return output_frames
 
+
+# Helpers
+def get_badge_bounds(mask: Image.Image) -> tuple[int, int, int, int]:
+  """
+  Returns bounding box of non-transparent pixels in the alpha mask.
+  """
+  bbox = mask.getbbox()
+  if bbox:
+    return bbox
+  return 0, 0, mask.width, mask.height

@@ -100,42 +100,47 @@ CREATE TABLE IF NOT EXISTS crystal_types (
 
 INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 
-  -- Common Crystals
+  -- Common Crystals (Tints/Gradients)
   ("Dilithium", 1, "dilithium.png", "pink_tint", "Good old Dilithium. Standard Starfleet issue!"),
-  ("Deuterium", 1, "deuterium.png", "blue_tint", "Refined for warp cores. Imparts a subtle blue glow."),
+  ("Deuterium", 1, "deuterium.png", "blue_tint", "Refined for warp cores. It glows a bit blue."),
   ("Tritanium", 1, "tritanium.png", "steel_tint", "Strong and dependable. Hull-grade enhancement."),
   ("Baryon", 1, "baryon.png", "orange_tint", "Sterile and slightly warm. Still glowing a bit."),
-  ("Cormaline", 1, "cormaline.png", "purple_tint", "Ferenginar gemstone. Often gifted during dubious business deals."),
+  ("Cormaline", 1, "cormaline.png", "purple_tint", 'Ferenginar gemstone. Often "gifted" during dubious business deals.'),
   ("Tellurium", 1, "tellurium.png", "greenmint_tint", "Essential for biosensor arrays. Slightly toxic when aerosolized, don't breathe this!"),
 
   ("Rubindium", 1, "rubindium.png", "crimson_gradient", "Sensor-reflective alloy with multiple applications. Chief among them, frikkin laser beams."),
   ("Polytrinic", 1, "polytrinic.png", "lime_gradient", "Toxic and corrosive. Glows green, that means bad!"),
   ("Benamite", 1, "benamite.png", "navy_gradient", "Essential for quantum slipstream drives. Sadly unstable, you lose yet again Voyager!"),
-  ("Auridium", 1, "auridium.png", "gold_gradient", "Trade-standard alloy with a golden gleam. Shiny!"),
-  ("Duranium", 1, "duranium.png", "silver_gradient", "Forged in Federation shipyards. A silvery alloy used in starship hull plating."),
+  ("Auridium", 1, "auridium.png", "gold_gradient", "Trade-standard alloy with a golden gleam. All that glitters is not gold."),
+  ("Duranium", 1, "duranium.png", "silver_gradient", "A silvery alloy used in Starship hull plating. Makes a nice 'BWONG!' sound when you smack it."),
   ("Solanogen", 1, "solanogen.png", "cyan_gradient", "Exotic compound from subspace realms. Don't get SCHISMD!"),
   ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days."),
 
   ("Alabama River Rock", 1, "alabama_river_rock.png", "pink_gradient", "The Captain's Assistant's favorite rock! Low spark point, prevents jet fuel from asploding.")
   ("Latinum", 1, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
 
-  -- Uncommon Crystals
-  ("Isolinear", 2, "isolinear.png", "isolinear", "Shimoda's favorite plaything. Fully stackable!"),
+  -- Uncommon Crystals (Silhouette Effects)
+  ("Isolinear", 2, "isolinear.png", "isolinear", "Shimoda's favorite plaything material. Fully stackable!"),
   ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
-  ("Positron", 2, "positron.png", "positronic", "Fully functional. Operates at 60 trillion calculations a second."),
+  ("Positron", 2, "positron.png", "positronic", "Fully functional. Networks of these can operate at 60 trillion calculations a second."),
   ("Cryonetrium", 2, "cryonetrium.png", "cryonetrium", "Still gaseous at -200°C, that's some cold coolant!"),
+  ('Verterium Cortenide', 2, 'verterium_cortenide.png', 'verterium_cortenide', 'Essential alloy used in Starship Warp Nacelles. Emits faint subspace displacement harmonics.'), -- New, Needs effect
+  ('Transparent Aluminum', 2, 'transparent_aluminum.png', 'transparent_aluminum', 'Revolutionary compound. Transparent, resilient, and rumored to have been invented by a time traveler...'), -- New, Needs effect
+  ('Boridium', 2, 'boridium.png', 'boridium', 'Energetic material with multiple uses. Boridium is the powerhouse of the power cell.'); -- New, Needs effect
 
-  -- Rare Crystals
-  ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in three quadrants. Handle with care."),
+  -- Rare Crystals (Backgrounds)
+  ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in most systems. Handle with care."),
   ("Tholian Silk", 3, "tholian_silk.png", "tholian_web", "A crystallized thread of energy - elegant, fractical, and deadly."),
-  ("Holomatrix Fragment", 3, "holomatrix_fragment.png", "holo_grid", "Hologrammatical. Rendered with an uncanny simulated depth."),
-  ("Silicon Shard", 3, "silicon_shard.png", "crystalline_entity", "Sharp and pointy, a beautiful Entity. It is Crystalline as FUCK!"),
+  ("Holomatrix Fragment", 3, "holomatrix_fragment.png", "holo_grid", "Hologrammatical. Renders photonics with an uncanny simulated depth."),
+  ("Silicon Shard", 3, "silicon_shard.png", "crystalline_entity", "Sharp and pointy, a beautiful Entity. Crystalline with a lot of lore behind it."),
+  ("Continuum Filament", 3, "continuum_filament.png", "q_grid", "An itsy bitsy Q Continuum particle. Tends to wrap things in a Giant, Electric, Pendleton Blanket."), -- New
+  ("Colombian Coffee Crystal", 3, "columbian_coffee.png", "coffee_nebula", "Delicious, tastes just like rich-bodied regular coffee. Janeway's Favorite!") -- New
 
-  -- Legendary Crystals
+  -- Legendary Crystals (Animations)
   ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "EJECTED FROM A CORE! Hums with that familiar pulse."),
   ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Distortions abound when these are around!"),
 
-  -- Mythic Crystals
+  -- Mythic Crystals (Prestige Animations)
   ("Bajoran Orb", 5, "bajoran_orb.png", "celestial_temple", "A Tear of the Prophets. My Child!"),
   ("Chroniton", 5, "chroniton.png", "phase_flicker", "Time travel! Glitches in and out of this temporal frame."),
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable.");
