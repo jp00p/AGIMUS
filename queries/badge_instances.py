@@ -52,38 +52,34 @@ async def db_get_user_badge_instances(
     return await query.fetchall()
 
 async def db_get_badge_instance_by_id(badge_instance_id):
+  sql = f"""
+    SELECT {BADGE_INSTANCE_COLUMNS}
+    FROM badge_instances AS b
+    JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+    LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+    LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+    LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
+    WHERE b.id = %s
+    LIMIT 1
+  """
   async with AgimusDB(dictionary=True) as query:
-    await query.execute(
-      f"""
-        SELECT {BADGE_INSTANCE_COLUMNS}
-        FROM badge_instances AS b
-        JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-        LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-        LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
-        LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
-        WHERE b.id = %s
-        LIMIT 1
-      """,
-      (badge_instance_id)
-    )
+    await query.execute(sql, (badge_instance_id,))
     instance = await query.fetchone()
   return instance
 
 async def db_get_badge_instance_by_badge_info_id(user_id, badge_info_id):
+  sql = f"""
+    SELECT {BADGE_INSTANCE_COLUMNS}
+    FROM badge_instances AS b
+    JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+    LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+    LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+    LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
+    WHERE b.badge_info_id = %s AND b.owner_discord_id = %s
+    LIMIT 1
+  """
   async with AgimusDB(dictionary=True) as query:
-    await query.execute(
-      f"""
-        SELECT {BADGE_INSTANCE_COLUMNS}
-        FROM badge_instances AS b
-        JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-        LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-        LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
-        LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
-        WHERE b.badge_info_id = %s AND b.owner_discord_id = %s
-        LIMIT 1
-      """,
-      (badge_info_id, user_id)
-    )
+    await query.execute(sql, (badge_info_id, user_id))
     instance = await query.fetchone()
   return instance
 
@@ -94,6 +90,23 @@ async def db_get_badge_instance_id_by_badge_info_id(user_id, badge_info_id):
       (badge_info_id, user_id)
     )
     instance = await query.fetchone()
+  return instance
+
+async def db_get_badge_instance_by_badge_name(user_id: int, badge_name: str) -> dict | None:
+  sql = f"""
+    SELECT {BADGE_INSTANCE_COLUMNS}
+    FROM badge_instances AS b
+    JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+    LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+    LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+    LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
+    WHERE b_i.badge_name = %s
+      AND b.owner_discord_id = %s
+    LIMIT 1
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (badge_name, user_id))
+    instance = await db.fetchone()
   return instance
 
 async def db_get_owned_badge_filenames_by_user_id(user_id: int):

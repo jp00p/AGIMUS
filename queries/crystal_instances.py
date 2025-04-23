@@ -112,6 +112,19 @@ async def db_get_attuned_crystals(badge_instance_id: int):
     await db.execute(sql, (badge_instance_id,))
     return await db.fetchall()
 
+async def db_get_attuned_crystal_type_ids(badge_instance_id: int) -> list[int]:
+  sql = """
+    SELECT ct.id AS crystal_type_id
+    FROM badge_crystals bc
+    JOIN crystal_instances ci ON bc.crystal_instance_id = ci.id
+    JOIN crystal_types ct ON ci.crystal_type_id = ct.id
+    WHERE bc.badge_instance_id = %s
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (badge_instance_id,))
+    rows = await db.fetchall()
+    return [row['crystal_type_id'] for row in rows]
+
 
 async def db_get_instance_by_attuned_crystal_id(crystal_id: int) -> dict | None:
   sql = """
@@ -125,6 +138,7 @@ async def db_get_instance_by_attuned_crystal_id(crystal_id: int) -> dict | None:
     return await db.fetchone()
 
 
+# Rarities
 async def db_get_crystals_by_rarity(rarity_rank: int):
   sql = """
     SELECT ct.*, cr.emoji, cr.name AS rarity_name
@@ -149,7 +163,7 @@ async def db_get_crystal_rarity_weights():
     return await db.fetchall()
 
 
-async def db_select_random_crystal_type_by_rank(rarity_rank: str) -> dict | None:
+async def db_select_random_crystal_type_by_rarity_rank(rarity_rank: str) -> dict | None:
   sql = """
     SELECT id, name, effect
     FROM crystal_types
@@ -160,6 +174,56 @@ async def db_select_random_crystal_type_by_rank(rarity_rank: str) -> dict | None
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, (rarity_rank,))
     return await db.fetchone()
+
+async def db_get_user_unattuned_crystal_rarities(user_id: int) -> list[dict]:
+  sql = """
+    SELECT
+      cr.name,
+      cr.emoji,
+      cr.rarity_rank,
+      cr.sort_order,
+      COUNT(*) AS count
+    FROM crystal_instances ci
+    JOIN crystal_types ct ON ci.crystal_type_id = ct.id
+    JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
+    WHERE ci.owner_discord_id = %s
+      AND ci.status = 'available'
+    GROUP BY cr.rarity_rank
+    ORDER BY cr.sort_order ASC
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id,))
+    return await db.fetchall()
+
+async def db_get_unattuned_crystals_by_rarity_rank(user_id: int, rarity_name: str) -> list[dict]:
+  sql = """
+    SELECT
+      ci.id AS crystal_instance_id,
+      ci.owner_discord_id,
+      ci.status,
+
+      ct.id AS crystal_type_id,
+      ct.name AS crystal_name,
+      ct.effect,
+      ct.description,
+      ct.icon,
+      ct.rarity_rank,
+
+      cr.name AS rarity_name,
+      cr.emoji,
+      cr.drop_chance,
+      cr.sort_order
+    FROM crystal_instances ci
+    JOIN crystal_types ct ON ci.crystal_type_id = ct.id
+    JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
+    WHERE ci.owner_discord_id = %s
+      AND ci.status = 'available'
+      AND cr.name = %s
+    ORDER BY ct.name ASC
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id, rarity_name))
+    return await db.fetchall()
 
 
 async def db_get_available_crystal_types():
