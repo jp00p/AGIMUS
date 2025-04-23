@@ -21,7 +21,8 @@ async def db_get_user_wishlist_badges(user_discord_id):
       JOIN badge_info AS b_i ON b_w.badge_info_id = b_i.id
       LEFT JOIN badge_instances AS b ON b.badge_info_id = b_i.id AND b.owner_discord_id = %s
       LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-      LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
+      LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+      LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
       WHERE b_w.user_discord_id = %s
       ORDER BY b_i.badge_name ASC
     '''

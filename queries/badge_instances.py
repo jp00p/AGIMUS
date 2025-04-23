@@ -42,7 +42,8 @@ async def db_get_user_badge_instances(
         FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
         LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-        LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
+        LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+        LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
         WHERE {where_sql}
         {sort_sql}
       """,
@@ -58,7 +59,8 @@ async def db_get_badge_instance_by_id(badge_instance_id):
         FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
         LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-        LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
+        LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+        LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
         WHERE b.id = %s
         LIMIT 1
       """,
@@ -75,7 +77,8 @@ async def db_get_badge_instance_by_badge_info_id(user_id, badge_info_id):
         FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
         LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-        LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
+        LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+        LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
         WHERE b.badge_info_id = %s AND b.owner_discord_id = %s
         LIMIT 1
       """,
@@ -189,15 +192,15 @@ async def db_create_badge_instance_if_missing(user_id: int, badge_filename: str)
     )
     return await query.fetchone()
 
-async def db_create_badge_instance_if_missing_by_name(user_id: int, badge_name: str):
-  async with AgimusDB(dictionary=True) as query:
-    # Get the badge_info.id from the filename
-    await query.execute(
-      "SELECT badge_filename FROM badge_info WHERE badge_name = %s",
-      (badge_name,)
-    )
-    result = await query.fetchone()
-    if not result:
-      return None
-  return await _db_create_badge_instance_if_missing(user_id, result['badge_filename'])
+# async def db_create_badge_instance_if_missing_by_name(user_id: int, badge_name: str):
+#   async with AgimusDB(dictionary=True) as query:
+#     # Get the badge_info.id from the filename
+#     await query.execute(
+#       "SELECT badge_filename FROM badge_info WHERE badge_name = %s",
+#       (badge_name,)
+#     )
+#     result = await query.fetchone()
+#     if not result:
+#       return None
+#   return await _db_create_badge_instance_if_missing(user_id, result['badge_filename'])
 

@@ -20,9 +20,15 @@ BADGE_INSTANCE_COLUMNS = """
   b.active_crystal_id,
   b.status,
 
-  c.id AS crystal_id,
-  c.crystal_type_id,
+  c.id AS badge_crystal_id,
+  c.crystal_instance_id,
+
+  ci.id AS crystal_instance_id,
+  ci.status AS crystal_status,
+  ci.created_at AS crystal_created_at,
+
+  t.id AS crystal_type_id,
   t.name AS crystal_name,
-  t.effect,
-  t.rarity_rank
+  t.effect as crystal_effect,
+  t.rarity_rank as crystal_rarity_rank
 """

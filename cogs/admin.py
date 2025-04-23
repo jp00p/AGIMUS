@@ -4,6 +4,7 @@ from queries.badge_instances import *
 from queries.crystal_instances import *
 
 from utils.crystal_effects import delete_crystal_effects_cache
+from utils.crystal_instances import *
 
 class Admin(commands.Cog):
   def __init__(self, bot):
@@ -25,9 +26,13 @@ class Admin(commands.Cog):
     ]
     return filtered
 
-  async def autocomplete_crystal_name(self, ctx: discord.AutocompleteContext):
+  async def autocomplete_crystals(self, ctx: discord.AutocompleteContext):
     crystals = await db_get_available_crystal_types()
-    return [f"{c['emoji']} {c['name']}" for c in crystals if ctx.value.lower() in c['name'].lower()][:25]
+    results = []
+    for c in crystals:
+      label = f"{c['emoji']} {c['name']}"
+      results.append(discord.OptionChoice(name=label, value=str(c['id'])))
+    return results
 
   admin_group = discord.SlashCommandGroup("admin", "Admin Commands for Debugging.")
 
@@ -47,50 +52,80 @@ class Admin(commands.Cog):
     max_length=128
   )
   @option(
-    "crystal_name",
+    "crystal",
     str,
-    description="Crystal Name",
+    description="Crystal Type",
     required=True,
-    autocomplete=autocomplete_crystal_name,
+    autocomplete=autocomplete_crystals,
     max_length=128
   )
-  async def crystallize(
-    self,
-    ctx,
-    user: discord.User,
-    badge_name: str,
-    crystal_name: str
-  ):
+  async def crystallize(self, ctx, user: discord.User, badge_name: str, crystal: str):
     await ctx.defer(ephemeral=True)
-    crystal_name = crystal_name[2:] # Strip emoji from param
+    crystal_type_id = int(crystal)
 
     # Step 1: Get the badge info
     badge_info = await db_get_badge_info_by_name(badge_name)
     if not badge_info:
       embed = discord.Embed(title="Badge Not Found", description=f"❌ Could not find badge with name '{badge_name}'", color=discord.Color.red())
-      await ctx.respond(embed=embed, ephemeral=True)
-      return
+      return await ctx.respond(embed=embed, ephemeral=True)
 
-    # Step 2: Find the instance
+    # Step 2: Get the instance
     instance = await db_get_badge_instance_by_badge_info_id(user.id, badge_info['id'])
     if not instance:
       embed = discord.Embed(title="Instance Missing", description=f"❌ {user.mention} does not have a badge instance for '{badge_name}'", color=discord.Color.red())
-      await ctx.respond(embed=embed, ephemeral=True)
-      return
+      return await ctx.respond(embed=embed, ephemeral=True)
 
-    # Step 3: Attach crystal
-    crystal = await db_attach_crystal_to_instance(instance['badge_instance_id'], crystal_name=crystal_name)
+    # Step 3: Create and attach the crystal
+    crystal = await create_new_crystal_instance(user.id, crystal_type_id)
     if not crystal:
-      embed = discord.Embed(title="Duplicate Crystal", description=f"⚠️ Crystal '{crystal_name}' already exists on this instance.", color=discord.Color.red())
-      await ctx.respond(embed=embed, ephemeral=True)
-      return
+      embed = discord.Embed(title="Unable to Create Crystal Instance", description="⚠️ Something went wrong when trying to create the crystal instance.", color=discord.Color.red())
+      return await ctx.respond(embed=embed, ephemeral=True)
+
+    await attune_crystal_to_badge(crystal['crystal_instance_id'], instance['badge_instance_id'])
 
     embed = discord.Embed(
       title="Crystal Attached",
-      description=f"✅ Attached **{crystal_name}** to {user.mention}'s **{badge_name}**.",
+      description=f"✅ Attached **{crystal['crystal_name']}** to {user.mention}'s **{badge_name}**.",
       color=discord.Color.green()
     )
     await ctx.respond(embed=embed, ephemeral=True)
+
+
+  @admin_group.command(name="grant_pattern_buffer", description="Grant Crystal Pattern Buffers to a user.")
+  @option(
+    "user",
+    discord.User,
+    description="The user who should receive the buffer(s).",
+    required=True
+  )
+  @option(
+    "amount",
+    int,
+    description="Set a specific number (if omitted will just increment)",
+    required=False,
+    min_value=1,
+    max_value=100
+  )
+  async def grant_pattern_buffer(self, ctx, user: discord.User, amount: int = None):
+    await ctx.defer(ephemeral=True)
+
+    if amount:
+      await db_set_user_crystal_buffer(user.id, amount)
+    else:
+      await db_increment_user_crystal_buffer(user.id)
+
+    new_total = await db_get_user_crystal_buffer_count(user.id)
+
+    embed = discord.Embed(
+      title="Pattern Buffer(s) Granted",
+      description=(
+        f"✨ Granted Replicator Pattern Buffers to {user.mention}.\n\n"
+        f"They now have **{new_total}** total."
+      ),
+      color=discord.Color.blue()
+    )
+    await ctx.respond(embed=embed, ephemeral=True)
+
 
   @admin_group.command(name="clear_effects_cache", description="Clear the crystal effects cache")
   async def clear_effects_cache(self, ctx):

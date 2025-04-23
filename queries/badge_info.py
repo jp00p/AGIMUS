@@ -168,10 +168,12 @@ async def db_get_badge_affiliations_by_badge_name(name):
 async def db_get_badges_user_has_from_affiliation(user_id, affiliation):
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
-      SELECT {BADGE_INSTANCE_COLUMNS} FROM badge_instances b
+      SELECT {BADGE_INSTANCE_COLUMNS}
+        FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-        LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
-        LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+        LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+        LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+        LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
         JOIN badge_affiliation AS b_a ON b_i.badge_filename = b_a.badge_filename
         WHERE b.owner_discord_id = %s
           AND b_a.affiliation_name = %s
@@ -184,11 +186,11 @@ async def db_get_random_badges_from_user_by_affiliations(user_id: int):
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
       SELECT {BADGE_INSTANCE_COLUMNS}, b_a.affiliation_name
-      FROM badge_instances b
-      INNER JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-      LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
-      LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
-      INNER JOIN badge_affiliation AS b_a ON b_i.badge_filename = b_a.badge_filename
+      FROM badge_instances AS b
+      JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+      LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+      LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+      LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
       WHERE b.owner_discord_id = %s
       ORDER BY RAND()
     '''
@@ -223,10 +225,12 @@ async def db_get_all_franchise_badges(franchise):
 async def db_get_badges_user_has_from_franchise(user_id, franchise):
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
-      SELECT {BADGE_INSTANCE_COLUMNS} FROM badge_instances b
+      SELECT {BADGE_INSTANCE_COLUMNS}
+        FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-        LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
-        LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+        LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+        LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+        LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
         WHERE b.owner_discord_id = %s
           AND b_i.franchise = %s
         ORDER BY b_i.badge_name ASC;
@@ -238,10 +242,11 @@ async def db_get_random_badges_from_user_by_franchises(user_id: int):
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
       SELECT {BADGE_INSTANCE_COLUMNS}
-      FROM badge_instances b
-      INNER JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-      LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
-      LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+      FROM badge_instances AS b
+      JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+      LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+      LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+      LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
       WHERE b.owner_discord_id = %s
       ORDER BY RAND()
     '''
@@ -286,10 +291,12 @@ async def db_get_all_time_period_badges(time_period):
 async def db_get_badges_user_has_from_time_period(user_id, time_period):
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
-      SELECT {BADGE_INSTANCE_COLUMNS} FROM badge_instances b
+      SELECT {BADGE_INSTANCE_COLUMNS}
+        FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-        LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
-        LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+        LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+        LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+        LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
         WHERE b.owner_discord_id = %s
           AND b_i.time_period = %s
         ORDER BY b_i.badge_name ASC
@@ -301,10 +308,11 @@ async def db_get_random_badges_from_user_by_time_periods(user_id: int):
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
       SELECT {BADGE_INSTANCE_COLUMNS}, b_i.time_period
-      FROM badge_instances b
-      INNER JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-      LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
-      LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+      FROM badge_instances AS b
+      JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+      LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+      LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+      LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
       WHERE b.owner_discord_id = %s
       ORDER BY RAND()
     '''
@@ -359,11 +367,13 @@ async def db_get_badge_types_by_badge_name(name):
 async def db_get_badges_user_has_from_type(user_id, type):
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
-      SELECT {BADGE_INSTANCE_COLUMNS} FROM badge_instances b
+      SELECT {BADGE_INSTANCE_COLUMNS}
+        FROM badge_instances AS b
         JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-        LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
-        LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
-        JOIN badge_type AS b_t ON b_i.badge_filename = b_t.badge_filename
+        LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+        LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+        LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
+        INNER JOIN badge_type AS b_t ON b_i.badge_filename = b_t.badge_filename
         WHERE b.owner_discord_id = %s
           AND b_t.type_name = %s
         ORDER BY b_i.badge_name ASC
@@ -375,10 +385,11 @@ async def db_get_random_badges_from_user_by_types(user_id: int):
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
       SELECT {BADGE_INSTANCE_COLUMNS}, b_t.type_name
-      FROM badge_instances b
-      INNER JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-      LEFT JOIN badge_crystals c ON c.id = b.active_crystal_id
-      LEFT JOIN crystal_types t ON c.crystal_type_id = t.id
+      FROM badge_instances AS b
+      JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+      LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+      LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+      LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
       INNER JOIN badge_type AS b_t ON b_i.badge_filename = b_t.badge_filename
       WHERE b.owner_discord_id = %s
       ORDER BY RAND()

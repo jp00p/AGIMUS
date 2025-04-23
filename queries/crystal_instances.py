@@ -67,8 +67,10 @@ async def db_get_crystal_by_id(crystal_id: int) -> dict | None:
 
 async def db_check_crystal_attuned(badge_instance_id: int, crystal_type_id: int):
   sql = """
-    SELECT 1 FROM badge_crystals
-    WHERE badge_instance_id = %s AND crystal_type_id = %s
+    SELECT 1
+    FROM badge_crystals AS bc
+    JOIN crystal_instances AS ci ON bc.crystal_instance_id = ci.id
+    WHERE bc.badge_instance_id = %s AND ci.crystal_type_id = %s
     LIMIT 1
   """
   async with AgimusDB() as db:
@@ -232,6 +234,16 @@ async def db_decrement_user_crystal_buffer(user_id: int) -> bool:
   async with AgimusDB() as db:
     await db.execute(sql, (user_id,))
     return db.rowcount > 0
+
+
+async def db_set_user_crystal_buffer(user_id: int, amount: int):
+  sql = """
+    INSERT INTO crystal_pattern_buffers (user_discord_id, buffer_count)
+    VALUES (%s, %s)
+    ON DUPLICATE KEY UPDATE buffer_count = %s
+  """
+  async with AgimusDB() as db:
+    await db.execute(sql, (user_id, amount, amount))
 
 
 # Replicator Helpers

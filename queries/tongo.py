@@ -129,7 +129,8 @@ async def db_get_full_continuum_badges():
     JOIN badge_instances AS b ON t_c.source_instance_id = b.id
     JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
     LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-    LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
+    LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+    LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
     ORDER BY b_i.badge_name ASC
   """
   async with AgimusDB(dictionary=True) as db:

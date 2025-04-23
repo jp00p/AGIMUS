@@ -6,14 +6,15 @@ from queries.common import BADGE_INSTANCE_COLUMNS
 
 # Offered
 async def db_get_trade_offered_badge_instances(trade):
-  trade_id = trade["id"]
+  trade_id = trade['id']
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
       SELECT {BADGE_INSTANCE_COLUMNS}
       FROM badge_instances AS b
       JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
       LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-      LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
+      LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+      LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
       JOIN trade_offered_badge_instances AS t_o ON t_o.badge_instance_id = b.id
       WHERE t_o.trade_id = %s
     '''
@@ -38,14 +39,15 @@ async def db_remove_offered_instance(trade_id, badge_instance_id):
 
 # Requested
 async def db_get_trade_requested_badge_instances(trade):
-  trade_id = trade["id"]
+  trade_id = trade['id']
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
       SELECT {BADGE_INSTANCE_COLUMNS}
       FROM badge_instances AS b
       JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
       LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-      LEFT JOIN crystal_types AS t ON c.crystal_type_id = t.id
+      LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+      LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
       JOIN trade_requested_badge_instances AS t_r ON t_r.badge_instance_id = b.id
       WHERE t_r.trade_id = %s
     '''

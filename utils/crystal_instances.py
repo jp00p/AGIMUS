@@ -60,7 +60,7 @@ async def attune_crystal_to_badge(crystal_instance_id: int, badge_instance_id: i
     await db.execute(
       """
       UPDATE crystal_instances
-      SET status = 'attached',
+      SET status = 'attuned',
           attached_to_instance_id = %s
       WHERE id = %s
       """,
@@ -71,7 +71,7 @@ async def attune_crystal_to_badge(crystal_instance_id: int, badge_instance_id: i
     await db.execute(
       """
       INSERT INTO crystal_instance_history (crystal_instance_id, event_type, to_user_id)
-      VALUES (%s, 'attached', (SELECT owner_discord_id FROM badge_instances WHERE id = %s))
+      VALUES (%s, 'attuned', (SELECT owner_discord_id FROM badge_instances WHERE id = %s))
       """,
       (crystal_instance_id, badge_instance_id)
     )
