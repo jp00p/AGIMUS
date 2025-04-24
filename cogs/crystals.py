@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from common import *
 
 from queries.badge_info import *
@@ -264,7 +266,7 @@ class Crystals(commands.Cog):
           description=f"A fresh Crystal Buffer Pattern shunts into the replicator, the familiar hum fills the air, and the result is...\n### **{crystal['crystal_name']}**!\n\n{success_message}",
           color=discord.Color.teal()
         )
-        channel_embed.add_field(name=f"Rank {crystal['emoji']}", value=f"{crystal['rarity_name']}", inline=False)
+        channel_embed.add_field(name=f"Rank", value=f"{crystal['emoji']}  {crystal['rarity_name']}", inline=False)
         channel_embed.add_field(name=f"Description", value=crystal['description'], inline=False)
         channel_embed.set_image(url=f"attachment://{effect_filename}")
         channel_embed.set_footer(text="Use `/crystals attune` to attach it to one of your Badges!")
@@ -297,7 +299,7 @@ class Crystals(commands.Cog):
   #   \     /  / __ \|  |  /  |_|  |
   #    \___/  (____  /____/|____/__|
   #                \/
-  @crystals_group.slash_command(name="vault", description="Access your unattuned Crystal vault.")
+  @crystals_group.command(name="vault", description="Access your unattuned Crystal vault.")
   async def crystals_vault(self, ctx: discord.ApplicationContext):
     user_id = ctx.user.id
     crystals = await db_get_user_unattuned_crystals(user_id)
@@ -306,7 +308,7 @@ class Crystals(commands.Cog):
       embed = discord.Embed(
         title="Crystal Vault",
         description="You currently have no unattuned crystals in your vault.",
-        color=discord.Color.dark_purple()
+        color=discord.Color.dark_teal()
       )
       await ctx.respond(embed=embed, ephemeral=True)
       return
@@ -314,7 +316,7 @@ class Crystals(commands.Cog):
     # Group crystals by rarity
     crystals_by_rarity = {}
     for crystal in crystals:
-      rarity = crystal['rarity_rank']
+      rarity = str(crystal['rarity_rank'])
       if rarity not in crystals_by_rarity:
         crystals_by_rarity[rarity] = []
       crystals_by_rarity[rarity].append(crystal)
@@ -486,7 +488,7 @@ class Crystals(commands.Cog):
   # \    Y    // __ \|  | \/  Y Y  (  <_> )   |  \  |/    /\  ___/
   #  \___|_  /(____  /__|  |__|_|  /\____/|___|  /__/_____ \\___  >
   #        \/      \/            \/            \/         \/    \/
-  @crystals_group.command(name='harmonize', description='Select which Crystal to activate for one of your Badges.')
+  @crystals_group.command(name='harmonize', description='Select which Crystal to activate for display.')
   @option(
     'badge',
     str,
@@ -645,7 +647,7 @@ class RaritySelect(discord.ui.Select):
     paginator.add_item(RaritySelect(self.parent_view))
     await interaction.response.edit_message(
       embed=embeds[0],
-      attachments=[pages[0]],
+      # attachments=[pages[0]],
       view=paginator
     )
 
@@ -686,7 +688,7 @@ class CrystalsVaultPaginator(discord.ui.View):
       view=self
     )
 
-async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_crystals: list[dict]) -> tuple[list[discord.File], list[discord.Embed]]:
+async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_crystals):
   user = await bot.fetch_user(user_id)
   page_size = 5
   pages = []
@@ -695,28 +697,35 @@ async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_cry
   if not rarity_level_crystals:
     return pages, embeds
 
-  # We can simply get the name of the rarit and the emoji from the data embedded in the first crystal
   rarity_name = rarity_level_crystals[0]['rarity_name']
   rarity_emoji = rarity_level_crystals[0]['emoji']
 
-  for i in range(0, len(rarity_level_crystals), page_size):
-    chunk = rarity_level_crystals[i:i+page_size]
+  # Collapse crystal instances into a grouped list by type
+  crystals_by_type = defaultdict(list)
+  for crystal in rarity_level_crystals:
+    crystals_by_type[crystal['crystal_type_id']].append(crystal)
+
+  grouped_crystals = list(crystals_by_type.values())
+
+  for i in range(0, len(grouped_crystals), page_size):
+    chunk = grouped_crystals[i:i+page_size]
     embed = discord.Embed(
       title=f"{rarity_emoji} {rarity_name} Crystals",
-      description=f"Unattuned crystals in your Vault ()",
+      description=f"Unattuned crystals in your vault (Page {(i // page_size + 1):02})",
       color=discord.Color.teal()
     )
-    embed.set_footer(f"Page {(i // page_size + 1):02}")
 
-    for crystal in chunk:
+    for group in chunk:
+      first = group[0]
       embed.add_field(
-        name=f"{crystal['emoji']} {crystal['crystal_name']}",
-        value=crystal['description'],
+        name=f"{first['emoji']} {first['crystal_name']} (×{len(group)})",
+        value=first['description'],
         inline=False
       )
 
     embeds.append(embed)
-    pages.append(discord.File(fp=b"", filename="placeholder.png"))  # Empty file placeholder for now
+    # pages.append(discord.File(fp=b"", filename="placeholder.png"))  # Placeholder for future image preview
+    pages.append(None)
 
   return pages, embeds
 
