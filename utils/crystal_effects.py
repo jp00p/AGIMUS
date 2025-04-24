@@ -25,7 +25,14 @@ def load_cached_effect_image(cached_path):
   """
   img = Image.open(cached_path)
   if getattr(img, "is_animated", False):
-    return [frame.copy().convert("RGBA") for frame in ImageSequence.Iterator(img)]
+    # Clear between frames to prevent ghosting
+    base = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    frames = []
+    for frame in ImageSequence.Iterator(img):
+      tmp = base.copy()
+      tmp.paste(frame.convert("RGBA"), (0, 0), frame.convert("RGBA"))
+      frames.append(tmp)
+    return frames
   return img.convert("RGBA")
 
 @to_thread
