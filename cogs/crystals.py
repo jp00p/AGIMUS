@@ -9,6 +9,48 @@ from utils.image_utils import *
 from utils.check_channel_access import access_check
 
 
+HARMONIZE_ENGAGE_FLAVORS = [
+  'Discharging the Enerjons',
+  'Charging up the EPS conduits',
+  'Transfering all power from the Life Support Systems',
+  'Ejecting the Warp Core',
+  'Placing something dangerous near the Warp Core',
+  'Diverting power from the Holodeck Safety Protocol Enforcer',
+  'Flooding the Jefferies Tubes with Omicron Radiation',
+  'Erecting a Level 10 Force Field'
+]
+
+RARITY_SUCCESS_MESSAGES = {
+  'common': [
+    "Another day, another Crystal for {user}.",
+    "One more for {user}.",
+    "That's a decent one {user}.",
+    "A decent *crystal* for {user}, but an incredible *member* of The Hood!",
+    "A fresh steaming Crystal for {user}!",
+    "I'd rate that a 3.6... Not great, not terrible {user}."
+  ],
+  'uncommon': [
+    "Heyyy! Lookin pretty good {user}.",
+    "Oo, not bad {user}!",
+    "Sweet {user}! Purty.",
+  ],
+  'rare': [
+    "SHINY! Congrats {user}! Hold onto that one!",
+    "SPARKLY! {user}'s in rare Form!",
+    "SCINTILATING! Spectacular too, very nice {user}!"
+  ],
+  'legendary': [
+    "Whoa!!! Legen-dairy! Is this some kind of milk-based crystal {user}!?",
+    "Well GOTDAYUM!!! That's some shiny shiny shiny {user}!",
+    "FIYAH!!! Crystalline Goodness for {user}!"
+  ],
+  'mythic': [
+    "HOLY **FUCKING** SHIT!!!!! {user} got a ***MYTHIC*** Crystal!?! INCREDIBLE! " + get_emoji('drunk_shimoda_smile_happy'),
+    "SWEET JESUS!!!!! Are you kiddin me {user}, *MYTHIC*!? " + get_emoji('zephram_sweet_jesus_wow_whoa'),
+    "OH DEAR LORD!!!!!! One freshly minted **MYTHIC** Crystal for {user}!? " + get_emoji('barclay_omg_wow_shock')
+  ]
+}
+
 class Crystals(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
@@ -21,7 +63,7 @@ class Crystals(commands.Cog):
   # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/ \___ \
   # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >____  >
   #         \/                        \/            \/|__|             \/          \/     \/
-  async def autocomplete_energizable_user_badge_instances(ctx: discord.AutocompleteContext):
+  async def autocomplete_harmonizable_user_badge_instances(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
     badge_records = await db_get_user_badge_instances_with_attuned_crystals(user_id)
 
@@ -40,6 +82,9 @@ class Crystals(commands.Cog):
   async def autocomplete_user_badge_instances_without_crystal_type(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
     crystal_instance_id = ctx.options.get('crystal')
+    if not crystal_instance_id:
+      return []
+
     crystal_instance = await db_get_crystal_by_id(crystal_instance_id)
 
     badge_instances = await db_get_badges_without_crystal_type(user_id, crystal_instance['crystal_type_id'])
@@ -64,7 +109,7 @@ class Crystals(commands.Cog):
 
     crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
 
-    none_option = discord.OptionChoice(name="[None]", value="none")
+    none_option = discord.OptionChoice(name="[None]", value=None)
     choices = [
       discord.OptionChoice(
         name=f"{c['emoji']}  {c['crystal_name']}" ,
@@ -180,10 +225,15 @@ class Crystals(commands.Cog):
 
         confirmation_embed = discord.Embed(
           title='Crystal Replication In Progress!',
-          description=f"{random.choice(ENERGIZE_ENGAGE_FLAVORS)}, results incoming momentarily!",
+          description=f"{random.choice(HARMONIZE_ENGAGE_FLAVORS)}, results incoming momentarily!",
           color=discord.Color.teal()
         )
-        confirmation_embed.set_image(url="https://i.imgur.com/jQBRK9N.gif")
+        lcars_slider_gifs = [
+          "https://i.imgur.com/jQBRK9N.gif",
+          "https://i.imgur.com/sVaOYLs.gif",
+          "https://i.imgur.com/IaC8ovb.gif"
+        ]
+        confirmation_embed.set_image(url=random.choice(lcars_slider_gifs))
         await interaction.response.edit_message(embed=confirmation_embed, attachments=[], view=None)
 
         discord_file, effect_filename = await generate_crystal_replicator_confirmation_frames(crystal)
@@ -231,18 +281,21 @@ class Crystals(commands.Cog):
   @option(
     'rarity',
     str,
+    required=True,
     description="Rarity of the Crystal to attune",
     autocomplete=autocomplete_user_crystal_rarities
   )
   @option(
     'crystal',
     str,
+    required=True,
     description="Crystal to attune",
     autocomplete=autocomplete_user_crystals_by_rarity
   )
   @option(
     'badge',
     str,
+    required=True,
     description="Badge to attune your Crystal to",
     autocomplete=autocomplete_user_badge_instances_without_crystal_type
   )
@@ -285,7 +338,7 @@ class Crystals(commands.Cog):
       )
       return
 
-    # Step 2: Get already-attuned crystal types for this badge
+    # Get already-attuned crystal types for this badge
     already_attuned_type_ids = await db_get_attuned_crystal_type_ids(badge_instance['badge_instance_id'])
 
     if crystal_instance['crystal_type_id'] in already_attuned_type_ids:
@@ -298,7 +351,7 @@ class Crystals(commands.Cog):
       )
       return
 
-    # Generate a preview of what the badge would look like if they were to Energize it after attunement
+    # Generate a preview of what the badge would look like if they decide to Harmonize it after attunement
     discord_file, attachment_url = await generate_badge_preview(user_id, badge_instance, crystal=crystal_instance)
 
     landing_embed = discord.Embed(
@@ -311,8 +364,8 @@ class Crystals(commands.Cog):
     landing_embed.set_image(url="https://i.imgur.com/Pu6H9ep.gif")
 
     preview_embed = discord.Embed(
-      title=f"Energization Preview",
-      description=f"Here's what **{badge_instance['badge_name']}** would look like with *{crystal_instance['crystal_name']}* applied to it *once Energized.*",
+      title=f"Harmonization Preview",
+      description=f"Here's what **{badge_instance['badge_name']}** would look like with *{crystal_instance['crystal_name']}* applied to it *once Harmonized.*",
       color=discord.Color.teal()
     )
     preview_embed.set_footer(text="Click Confirm to Attune this Crystal, or Cancel.")
@@ -345,7 +398,7 @@ class Crystals(commands.Cog):
           color=discord.Color.teal()
         )
         embed.set_image(url="https://i.imgur.com/lP883bg.gif")
-        embed.set_footer(text="Now you can use `/crystals energize` to activate it!")
+        embed.set_footer(text="Now you can use `/crystals activate` to apply the effect!")
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
       @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
@@ -367,30 +420,29 @@ class Crystals(commands.Cog):
     view.message = await ctx.interaction.original_response()
 
 
-  # ___________                          .__
-  # \_   _____/ ____   ___________  ____ |__|_______ ____
-  #  |    __)_ /    \_/ __ \_  __ \/ ___\|  \___   // __ \
-  #  |        \   |  \  ___/|  | \/ /_/  >  |/    /\  ___/
-  # /_______  /___|  /\___  >__|  \___  /|__/_____ \\___  >
-  #         \/     \/     \/     /_____/          \/    \/
-  @crystals_group.command(name='energize', description='Select which Crystal to activate for one of your Badges.')
+  #   ___ ___                                    .__
+  #  /   |   \_____ _______  _____   ____   ____ |__|_______ ____
+  # /    ~    \__  \\_  __ \/     \ /  _ \ /    \|  \___   // __ \
+  # \    Y    // __ \|  | \/  Y Y  (  <_> )   |  \  |/    /\  ___/
+  #  \___|_  /(____  /__|  |__|_|  /\____/|___|  /__/_____ \\___  >
+  #        \/      \/            \/            \/         \/    \/
+  @crystals_group.command(name='harmonize', description='Select which Crystal to activate for one of your Badges.')
   @option(
-    # This will actually return have options listing the names, but return the `badge_instance_id` directly
     'badge',
     str,
     description='Choose a badge from your collection',
-    autocomplete=autocomplete_energizable_user_badge_instances,
+    autocomplete=autocomplete_harmonizable_user_badge_instances,
     required=True
   )
   @option(
     'crystal',
     str,
-    description="Select an attuned Crystal to Energize (activate)",
+    description="Select an attuned Crystal to harmonize (activate)",
     autocomplete=autocomplete_user_badge_crystals,
     required=True
   )
   @commands.check(access_check)
-  async def energize(self, ctx: discord.ApplicationContext, badge: str, crystal: str):
+  async def harmonize(self, ctx: discord.ApplicationContext, badge: str, crystal: str):
     await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
 
@@ -399,11 +451,11 @@ class Crystals(commands.Cog):
     crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
 
     # Deactivation if selected
-    if crystal == "none":
+    if crystal is None:
       if badge_instance.get('active_crystal_id') is None:
         embed = discord.Embed(
           title='Already Deactivated!',
-          description=f"No crystal is currently energized on **{badge_instance['badge_name']}**.",
+          description=f"No Crystal is currently harmonized to **{badge_instance['badge_name']}**.",
           color=discord.Color.orange()
         )
         await ctx.respond(embed=embed, ephemeral=True)
@@ -412,7 +464,7 @@ class Crystals(commands.Cog):
       previous = next((c for c in crystals if c['badge_crystal_id'] == badge_instance['active_crystal_id']), None)
       prev_label = f"{previous['emoji']} {previous['crystal_name']}" if previous else "Unknown Crystal"
 
-      await db_set_energized_crystal(badge_instance['badge_instance_id'], None)
+      await db_set_harmonized_crystal(badge_instance['badge_instance_id'], None)
       embed = discord.Embed(
         title='Crystal Removed',
         description=f"Deactivated **{prev_label}** on **{badge_instance['badge_name']}**.",
@@ -425,14 +477,14 @@ class Crystals(commands.Cog):
 
     if badge_instance.get('active_crystal_id') == crystal_instance.get('badge_crystal_id'):
       embed = discord.Embed(
-        title='Already Energized!',
-        description=f"**{crystal_instance['crystal_name']}** is already your energized Crystal on **{badge_instance['badge_name']}**.",
+        title='Already Harmonized!',
+        description=f"**{crystal_instance['crystal_name']}** is already the harmonized Crystal on **{badge_instance['badge_name']}**.",
         color=discord.Color.orange()
       )
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
-    # Everything looks good to go for actual Energization
+    # Everything looks good to go for actual Harmonization
     discord_file, attachment_url = await generate_badge_preview(user_id, badge_instance, crystal=crystal_instance)
 
     preview_embed = discord.Embed(
@@ -442,7 +494,7 @@ class Crystals(commands.Cog):
     )
     preview_embed.add_field(name=f"{crystal_instance['crystal_name']}", value=crystal_instance['description'], inline=False)
     preview_embed.add_field(name=f"Rank", value=f"{crystal_instance['emoji']}  {crystal_instance['rarity_name']}", inline=False)
-    preview_embed.set_footer(text="Click Confirm to Energize this Crystal, or Cancel.")
+    preview_embed.set_footer(text="Click Confirm to Harmonize this Crystal, or Cancel.")
     preview_embed.set_image(url=attachment_url)
 
     #  __   ___
@@ -465,10 +517,10 @@ class Crystals(commands.Cog):
 
       @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
       async def confirm(self, button, interaction):
-        await db_set_energized_crystal(badge_instance['badge_instance_id'], crystal_instance['badge_crystal_id'])
+        await db_set_harmonized_crystal(badge_instance['badge_instance_id'], crystal_instance['badge_crystal_id'])
         embed = discord.Embed(
-          title='Crystal Energized!',
-          description=f"Energized **{crystal_instance['crystal_name']}** as your active Crystal for **{badge_instance['badge_name']}**.",
+          title='Crystal Harmonized!',
+          description=f"Harmonized **{crystal_instance['crystal_name']}**! It is now the active Crystal for your **{badge_instance['badge_name']}** badge.",
           color=discord.Color.teal()
         )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
@@ -499,48 +551,6 @@ class Crystals(commands.Cog):
 # |    |  /  |  | |  |  |__\___ \
 # |______/   |__| |__|____/____  >
 #                              \/
-ENERGIZE_ENGAGE_FLAVORS = [
-  'Discharging the Enerjons',
-  'Charging up the EPS conduits',
-  'Transfering all power from the Life Support Systems',
-  'Ejecting the Warp Core',
-  'Placing something dangerous near the Warp Core',
-  'Diverting power from the Holodeck Safety Protocol Enforcer',
-  'Flooding the Jefferies Tubes with Omicron Radiation',
-  'Erecting a Level 10 Force Field'
-]
-
-RARITY_SUCCESS_MESSAGES = {
-  'common': [
-    "Another day, another Crystal for {user}.",
-    "One more for {user}.",
-    "That's a decent one {user}.",
-    "A decent *crystal* for {user}, but an incredible *member* of The Hood!",
-    "A fresh steaming Crystal for {user}!",
-    "I'd rate that a 3.6... Not great, not terrible {user}."
-  ],
-  'uncommon': [
-    "Heyyy! Lookin pretty good {user}.",
-    "Oo, not bad {user}!",
-    "Sweet {user}! Purty.",
-  ],
-  'rare': [
-    "SHINY! Congrats {user}! Hold onto that one!",
-    "SPARKLY! {user}'s in rare Form!",
-    "SCINTILATING! Spectacular too, very nice {user}!"
-  ],
-  'legendary': [
-    "Whoa!!! Legen-dairy! Is this some kind of milk-based crystal {user}!?",
-    "Well GOTDAYUM!!! That's some shiny shiny shiny {user}!",
-    "FIYAH!!! Crystalline Goodness for {user}!"
-  ],
-  'mythic': [
-    "HOLY **FUCKING** SHIT!!!!! {user} got a ***MYTHIC*** Crystal!?! INCREDIBLE! " + get_emoji('drunk_shimoda_smile_happy'),
-    "SWEET JESUS!!!!! Are you kiddin me {user}, *MYTHIC*!? " + get_emoji('zephram_sweet_jesus_wow_whoa'),
-    "OH DEAR LORD!!!!!! One freshly minted **MYTHIC** Crystal for {user}!? " + get_emoji('barclay_omg_wow_shock')
-  ]
-}
-
 def weighted_random_choice(weight_map: dict[str, float]) -> str:
     """
     Returns a single key from the dict based on its weight.

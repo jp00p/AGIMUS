@@ -491,7 +491,7 @@ CREATE TABLE IF NOT EXISTS crystal_instances (
   crystal_type_id INT NOT NULL,
   owner_discord_id VARCHAR(64) DEFAULT NULL,
   attached_to_instance_id INT DEFAULT NULL, -- leave this FK for later
-  status ENUM('available', 'attuned', 'energized') NOT NULL DEFAULT 'available',
+  status ENUM('available', 'attuned', 'harmonized') NOT NULL DEFAULT 'available',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (crystal_type_id) REFERENCES crystal_types(id),

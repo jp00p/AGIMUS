@@ -2,7 +2,7 @@ from common import *
 
 # queries.crystal_instances
 
-async def db_get_energized_crystal(badge_instance_id: int):
+async def db_get_harmonized_crystal(badge_instance_id: int):
   sql = """
     SELECT
       bc.id AS badge_crystal_id,
@@ -245,7 +245,7 @@ async def db_get_available_crystal_types():
     await db.execute(sql)
     return await db.fetchall()
 
-# Attunement / Energization Queries
+# Attunement / Harmonization Queries
 async def db_attune_crystal_to_badge_instance(instance_id: int, crystal_name: str = None):
   if not crystal_name:
     return None
@@ -271,7 +271,7 @@ async def db_attune_crystal_to_badge_instance(instance_id: int, crystal_name: st
     return await db.fetchone()
 
 
-async def db_set_energized_crystal(instance_id: int, crystal_id: int):
+async def db_set_harmonized_crystal(instance_id: int, crystal_id: int):
   sql = "UPDATE badge_instances SET active_crystal_id = %s WHERE id = %s"
   async with AgimusDB() as db:
     await db.execute(sql, (crystal_id, instance_id))
