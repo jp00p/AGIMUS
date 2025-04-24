@@ -182,21 +182,24 @@ async def db_get_badges_user_has_from_affiliation(user_id, affiliation):
     await query.execute(sql, (user_id, affiliation))
     return await query.fetchall()
 
-async def db_get_random_badges_from_user_by_affiliations(user_id: int):
-  async with AgimusDB(dictionary=True) as query:
-    sql = f'''
-      SELECT {BADGE_INSTANCE_COLUMNS}, b_a.affiliation_name
-      FROM badge_instances AS b
-      JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-      LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-      LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
-      LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
-      WHERE b.owner_discord_id = %s
-      ORDER BY RAND()
-    '''
-    await query.execute(sql, (user_id,))
-    rows = await query.fetchall()
-    return {r['affiliation_name']: r['badge_filename'] for r in rows}
+async def db_get_random_badges_from_user_by_affiliations(user_id: int) -> list[dict]:
+  sql = f"""
+    SELECT
+      {BADGE_INSTANCE_COLUMNS},
+      b_a.affiliation_name
+    FROM badge_instances AS b
+    JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+    LEFT JOIN badge_crystals AS c ON c.badge_instance_id = b.id AND c.crystal_instance_id = b.active_crystal_id
+    LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+    LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
+    JOIN badge_affiliation AS b_a ON b_i.badge_filename = b_a.badge_filename
+    WHERE b.owner_discord_id = %s
+    ORDER BY RAND()
+    LIMIT 12
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id,))
+    return await db.fetchall()
 
 # Franchises
 async def db_get_all_franchises():
