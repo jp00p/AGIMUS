@@ -99,7 +99,3 @@ def _encode_webp_ffmpeg_pipe(frames: list[Image.Image], fps=12) -> io.BytesIO:
   finally:
     if os.path.exists(output_path):
       os.remove(output_path)
-
-def paginate(data_list, items_per_page):
-  for i in range(0, len(data_list), items_per_page):
-    yield data_list[i:i + items_per_page], (i // items_per_page) + 1

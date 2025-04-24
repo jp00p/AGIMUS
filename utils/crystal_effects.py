@@ -126,8 +126,7 @@ def get_cached_effect_image_path(effect: str, badge_info_id: int, extension: str
   path = get_cached_effect_path(effect, badge_info_id, extension)
   return path if path.exists() else None
 
-@to_thread
-def save_cached_effect_image(image: Image.Image | list[Image.Image], effect: str, badge_info_id: int, extension: str = "webp", fps: int = 12):
+async def save_cached_effect_image(image: Image.Image | list[Image.Image], effect: str, badge_info_id: int, extension: str = "webp", fps: int = 12):
   """
   Saves a crystal effect result (image or animation) to the cache.
 
@@ -138,7 +137,7 @@ def save_cached_effect_image(image: Image.Image | list[Image.Image], effect: str
   path.parent.mkdir(parents=True, exist_ok=True)
 
   if isinstance(image, list):
-    buf = encode_webp(image)
+    buf = await encode_webp(image, resize=False)
     with open(path, "wb") as f:
       f.write(buf.getvalue())
   else:

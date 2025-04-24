@@ -73,6 +73,10 @@ async def prepare_badges_with_crystal_effects(badge_list: list[dict]) -> list[tu
 
   return await asyncio.gather(*(prepare(b) for b in badge_list))
 
+def paginate(data_list, items_per_page):
+  for i in range(0, len(data_list), items_per_page):
+    yield data_list[i:i + items_per_page], (i // items_per_page) + 1
+
 
 # ___________.__                          .__
 # \__    ___/|  |__   ____   _____   ____ |__| ____    ____
@@ -767,14 +771,16 @@ async def generate_badge_preview(user_id, badge, crystal=None, theme=None, disab
 
   badge_slot = compose_badge_slot(badge, colors, result, disable_overlays=disable_overlays)
 
-  if isinstance(badge_slot, list):
+  if len(badge_slot) > 1:
     # Animated crystal preview
-    buf = await encode_webp(badge_slot)
+    buf = await encode_webp(badge_slot, resize=False)
     file = discord.File(buf, filename=f"preview.webp")
     attachment_url = 'attachment://preview.webp'
   else:
+    # badge_slot_frame = badge_slot[0]
+    # badge_slot_frame.resize((190, 190))
     buf = io.BytesIO()
-    badge_slot.save(buf, format='PNG')
+    badge_slot[0].save(buf, format='PNG')
     buf.seek(0)
     file = discord.File(buf, filename='preview.png')
     attachment_url = 'attachment://preview.png'

@@ -3,6 +3,22 @@ from common import *
 from queries.common import BADGE_INSTANCE_COLUMNS
 
 # GET
+async def db_get_user_badge_instance_names_and_ids(user_id: int):
+  # Simpler DB that doesn't use a lot of joins against the crystal tables
+  async with AgimusDB(dictionary=True) as query:
+    await query.execute(
+      f"""
+        SELECT
+          b.id AS badge_instance_id,
+          b_i.badge_name
+        FROM badge_instances AS b
+        JOIN badge_info as b_i on b.badge_info_id = b_i.id
+        WHERE b.owner_discord_id = %s
+        ORDER BY b_i.badge_name ASC
+      """,
+      (user_id,)
+    )
+    return await query.fetchall()
 
 async def db_get_user_badge_instances(
   user_id: int,
@@ -119,6 +135,59 @@ async def db_get_owned_badge_filenames_by_user_id(user_id: int):
   async with AgimusDB(dictionary=True) as db:
     await db.execute(query, (user_id,))
     return await db.fetchall()
+
+
+# Crystal-based Badge Instance Queries
+async def db_get_badges_without_crystal_type(user_id: int, crystal_type_id: int) -> list[dict]:
+  sql = """
+    SELECT
+      b_i.id AS badge_info_id,
+      b_i.badge_name,
+      b_i.badge_filename,
+      b_i.badge_url,
+
+      b.id AS badge_instance_id,
+      b.owner_discord_id,
+      b.active_crystal_id
+
+    FROM badge_instances b
+    JOIN badge_info b_i ON b.badge_info_id = b_i.id
+
+    WHERE b.owner_discord_id = %s
+      AND b.id NOT IN (
+        SELECT bc.badge_instance_id
+        FROM badge_crystals bc
+        JOIN crystal_instances ci ON bc.crystal_instance_id = ci.id
+        WHERE ci.crystal_type_id = %s
+      )
+    ORDER BY b_i.badge_name ASC
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id, crystal_type_id))
+    return await db.fetchall()
+
+
+async def db_get_user_badge_instances_with_attuned_crystals(user_id: int):
+  # Simpler DB that doesn't use a lot of joins against the crystal tables
+  async with AgimusDB(dictionary=True) as query:
+    await query.execute(
+      f"""
+        SELECT
+          b.id AS badge_instance_id,
+          b_i.badge_name
+        FROM badge_instances AS b
+        JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+        WHERE b.owner_discord_id = %s
+          AND EXISTS (
+            SELECT 1
+            FROM badge_crystals bc
+            WHERE bc.badge_instance_id = b.id
+          )
+        ORDER BY b_i.badge_name ASC
+      """,
+      (user_id,)
+    )
+    return await query.fetchall()
 
 
 # COUNTS

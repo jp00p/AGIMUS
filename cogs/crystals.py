@@ -8,9 +8,12 @@ from utils.image_utils import *
 
 from utils.check_channel_access import access_check
 
+
 class Crystals(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
+
+  crystals_group = discord.SlashCommandGroup("crystals", "Crystals Management.")
 
   #    _____          __                                     .__          __
   #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____   ______
@@ -18,86 +21,99 @@ class Crystals(commands.Cog):
   # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/ \___ \
   # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >____  >
   #         \/                        \/            \/|__|             \/          \/     \/
-  async def autocomplete_user_badge_instance_names(ctx: discord.AutocompleteContext):
+  async def autocomplete_energizable_user_badge_instances(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
-    badge_instances = await db_get_user_badge_instances(user_id)
+    badge_records = await db_get_user_badge_instances_with_attuned_crystals(user_id)
+
+    if not badge_records:
+      return [discord.OptionChoice(name="🔒 You don't appear to have any Badges that have any Crystals currently attuned to them!", value=None)]
+
     choices = [
-      b['badge_name'] for b in badge_instances
-      if b.get('badge_name') and ctx.value.lower() in b['badge_name'].lower()
+      discord.OptionChoice(
+        name=b['badge_name'],
+        value=str(b['badge_instance_id'])
+      )
+      for b in badge_records if ctx.value.lower() in b['badge_name'].lower()
     ]
     return choices
 
-  async def autocomplete_user_badge_crystals(ctx: discord.AutocompleteContext):
-    badge_name = ctx.options.get('badge_name')
-    if not badge_name:
-      return []
-
+  async def autocomplete_user_badge_instances_without_crystal_type(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
-    badge_info = await db_get_badge_info_by_name(badge_name)
-    if not badge_info:
-      return []
+    crystal_instance_id = ctx.options.get('crystal')
+    crystal_instance = await db_get_crystal_by_id(crystal_instance_id)
 
-    badge_instance = await db_get_badge_instance_by_badge_info_id(user_id, badge_info['id'])
-    if not badge_instance:
-      return []
+    badge_instances = await db_get_badges_without_crystal_type(user_id, crystal_instance['crystal_type_id'])
 
-    crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
-    return ['[None]'] + [
-      f"{c['emoji']}  {c['crystal_name']}" if c.get('emoji') else c['crystal_name']
-      for c in crystals if ctx.value.lower() in c['crystal_name'].lower()
+    if not badge_instances:
+      return [discord.OptionChoice(name="🔒 You don't possess any valid Badges for this Crystal Type!", value=None)]
+
+    return [
+      discord.OptionChoice(
+        name=b['badge_name'],
+        value=str(b['badge_instance_id'])
+      )
+      for b in badge_instances if ctx.value.lower() in b['badge_name'].lower()
     ]
 
-  async def autocomplete_user_crystal_rarities(self, ctx: discord.AutocompleteContext):
+  async def autocomplete_user_badge_crystals(ctx: discord.AutocompleteContext):
+    badge_instance_id = ctx.options.get('badge')
+    if not badge_instance_id:
+      return []
+
+    badge_instance = await db_get_badge_instance_by_id(badge_instance_id)
+
+    crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
+
+    none_option = discord.OptionChoice(name="[None]", value="none")
+    choices = [
+      discord.OptionChoice(
+        name=f"{c['emoji']}  {c['crystal_name']}" ,
+        value=str(c['crystal_instance_id'])
+      )
+      for c in crystals if ctx.value.lower() in c['crystal_name'].lower()
+    ]
+    return [none_option] + choices
+
+  async def autocomplete_user_crystal_rarities(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
     rarities = await db_get_user_unattuned_crystal_rarities(user_id)
-    return [r['name'] for r in rarities]  # Assuming db returns name + rank info
 
-  async def autocomplete_user_crystals_by_rarity(self, ctx: discord.AutocompleteContext):
+    if not rarities:
+      return [discord.OptionChoice(name="🔒 You don't possess any unattuned Crystals", value=None)]
+
+    return [
+      discord.OptionChoice(
+        name=f"{r['emoji']}  {r['name']}" if r.get('emoji') else r['name'],
+        value=r['name']
+      )
+      for r in rarities
+    ]
+
+  async def autocomplete_user_crystals_by_rarity(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
     rarity = ctx.options.get('rarity')
     if not rarity:
-      return []
+      return [discord.OptionChoice(name="🔒 No valid Rarity selected", value="none")]
 
-    unattuned_crystals = await db_get_unattuned_crystals_by_rarity_rank(user_id, rarity)
-    if not unattuned_crystals:
-      return []
+    crystals = await db_get_unattuned_crystals_by_rarity(user_id, rarity)
+    if not crystals:
+      return [discord.OptionChoice(name="🔒 You don't possess any unattuned Crystals", value="none")]
 
-    badge_name = ctx.options.get('badge')
-    badge_instance = await db_get_badge_instance_by_badge_name(user_id, badge_name)
-    if not badge_instance:
-      return []
+    filtered_crystals = [c for c in crystals if ctx.value.lower() in c['crystal_name']]
 
-    existing_attuned_crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
-    if not existing_attuned_crystals:
-      return []
+    seen = set()
+    options = []
+    for c in filtered_crystals:
+      if c['crystal_type_id'] in seen:
+        continue
+      seen.add(c['crystal_type_id'])
 
-    existing_attuned_crystal_type_ids = [c['crystal_type_id'] for c in existing_attuned_crystals]
+      emoji = c.get('emoji', '')
+      label = f"{emoji}  {c['crystal_name']} (×{c['count']})"
+      options.append(discord.OptionChoice(name=label, value=str(c['crystal_instance_id'])))
 
-    filtered = [
-      c for c in unattuned_crystals if c['crystal_type_id'] not in existing_attuned_crystal_type_ids
-    ]
+    return options
 
-    grouped = {}
-    for c in filtered:
-      name = c['crystal_name']
-      if name in grouped:
-        grouped[name]['count'] += 1
-      else:
-        grouped[name] = {
-          'count': 1,
-          'crystal_instance_id': c['crystal_instance_id']
-        }
-
-    return [f"{name} ×{info['count']}" for name, info in grouped.items()]
-
-
-  # _________                                           .___
-  # \_   ___ \  ____   _____   _____ _____    ____    __| _/______
-  # /    \  \/ /  _ \ /     \ /     \\__  \  /    \  / __ |/  ___/
-  # \     \___(  <_> )  Y Y  \  Y Y  \/ __ \|   |  \/ /_/ |\___ \
-  #  \______  /\____/|__|_|  /__|_|  (____  /___|  /\____ /____  >
-  #         \/             \/      \/     \/     \/      \/    \/
-  crystals_group = discord.SlashCommandGroup("crystals", "Badge Crystal Management.")
 
   # __________              .__  .__               __
   # \______   \ ____ ______ |  | |__| ____ _____ _/  |_  ____
@@ -105,7 +121,7 @@ class Crystals(commands.Cog):
   #  |    |   \  ___/|  |_> >  |_|  \  \___ / __ \|  | \  ___/
   #  |____|_  /\___  >   __/|____/__|\___  >____  /__|  \___  >
   #         \/     \/|__|                \/     \/          \/
-  @crystals_group.command(name='replicate', description='Roll up to the Crystal Replicator, consume a Buffer Pattern, and get a new Crystal!')
+  @crystals_group.command(name='replicate', description='Roll up to the Crystal Replicator, consume a Buffer Pattern, get a new Crystal!')
   @commands.check(access_check)
   async def replicate(self, ctx: discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
@@ -189,7 +205,7 @@ class Crystals(commands.Cog):
       @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
       async def cancel(self, button, interaction):
         embed = discord.Embed(
-          title='Replication Cancelled',
+          title='Replication Canceled',
           description="No Pattern Buffers expended.",
           color=discord.Color.red()
         )
@@ -213,12 +229,6 @@ class Crystals(commands.Cog):
   #         \/                      \/     \/
   @crystals_group.command(name="attune", description="Attune a Crystal to one of your Badges.")
   @option(
-    'badge',
-    str,
-    description="Select a badge to attune a crystal to",
-    autocomplete=autocomplete_user_badge_instance_names
-  )
-  @option(
     'rarity',
     str,
     description="Rarity of the Crystal to attune",
@@ -230,45 +240,50 @@ class Crystals(commands.Cog):
     description="Crystal to attune",
     autocomplete=autocomplete_user_crystals_by_rarity
   )
-  async def attune(self, ctx: discord.ApplicationContext, badge_name: str, rarity: str, crystal_name: str):
+  @option(
+    'badge',
+    str,
+    description="Badge to attune your Crystal to",
+    autocomplete=autocomplete_user_badge_instances_without_crystal_type
+  )
+  async def attune(self, ctx: discord.ApplicationContext, rarity: str, crystal: str, badge: str):
     await ctx.defer()
     user_id = ctx.user.id
 
-    badge_info = await db_get_badge_info_by_name(badge_name)
-    if not badge_info:
-      embed = discord.Embed(
-        title='Badge Not Found!',
-        description=f"Badge **{badge_name}** doesn't appear to be avalid badge...",
-        color=discord.Color.red()
-      )
-      await ctx.respond(embed=embed, ephemeral=True)
-      return
-
-    badge_instance = await db_get_badge_instance_by_badge_info_id(user_id, badge_info['id'])
-    if not badge_instance:
-      embed = discord.Embed(
-        title='Badge Not Owned!',
-        description=f"You don't possess the **{badge_name}** badge.",
-        color=discord.Color.red()
-      )
-      await ctx.respond(embed=embed, ephemeral=True)
-      return
-
-    # Step 1: Fetch the list of crystal instances by rarity and filter by name
-    all_crystals = await db_get_unattuned_crystals_by_rarity_rank(user_id, rarity)
-    matching = [c for c in all_crystals if c['crystal_name'] in crystal_name]
-
-    if not matching:
+    if rarity is None or crystal is None or badge is None:
       await ctx.respond(
         embed=discord.Embed(
-          title="Crystal Not Owned!",
-          description=f"You don't appear to have a **{crystal_name}** in your unattuned inventory.",
+          title="Invalid Selection!",
+          description=f"You don't appear to be entering valid Command options. Someone call the Dustbuster Club!",
           color=discord.Color.red()
         )
       )
       return
 
-    crystal_instance = matching[0]  # Pick first match
+    # 'badge' - badge_instance_id passed back from the autocomplete
+    badge_instance = await db_get_badge_instance_by_id(badge)
+    if not badge_instance:
+      await ctx.respond(
+        embed=discord.Embed(
+          title="Badged Not Owned!",
+          description=f"You don't appear to have that Badge in your inventory!",
+          color=discord.Color.red()
+        )
+      )
+      return
+
+    # 'crystal' - crystal_instance_id passed back from the autocomplete
+    crystal_instance = await db_get_crystal_by_id(crystal)
+
+    if not crystal_instance:
+      await ctx.respond(
+        embed=discord.Embed(
+          title="Crystal Not Owned!",
+          description=f"You don't appear to have that Crystal in your unattuned inventory.",
+          color=discord.Color.red()
+        )
+      )
+      return
 
     # Step 2: Get already-attuned crystal types for this badge
     already_attuned_type_ids = await db_get_attuned_crystal_type_ids(badge_instance['badge_instance_id'])
@@ -276,23 +291,30 @@ class Crystals(commands.Cog):
     if crystal_instance['crystal_type_id'] in already_attuned_type_ids:
       await ctx.respond(
         embed=discord.Embed(
-          title="Error",
-          description=f"This Badge already has a {crystal_name} Crystal attuned to it!",
+          title="Whoops!",
+          description=f"This Badge already has a {crystal_instance['crystal_name']} Crystal attuned to it!",
           color=discord.Color.red()
         )
       )
       return
 
     # Generate a preview of what the badge would look like if they were to Energize it after attunement
-    discord_file, attachment_url = await generate_badge_preview(user_id, badge_instance, crystal_instance)
+    discord_file, attachment_url = await generate_badge_preview(user_id, badge_instance, crystal=crystal_instance)
 
-    preview_embed = discord.Embed(
-      title=f"Crystal Attunement",
-      description=f"Are you sure you want to Attune *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']}** badge?\n## ⚠️ THIS CANNOT BE UNDONE! ⚠️\nHowever, here's what it would look like with *{crystal_instance['crystal_name']}* once Energized.",
+    landing_embed = discord.Embed(
+      title="Crystal Attunement",
+      description=f"Are you sure you want to attune *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']}** badge?\n### ⚠️ THIS CANNOT BE UNDONE! ⚠️",
       color=discord.Color.teal()
     )
-    preview_embed.add_field(name=f"{crystal_instance['crystal_name']}", value=crystal_instance['description'], inline=False)
-    preview_embed.add_field(name=f"Rank", value=f"{crystal_instance['emoji']}  {crystal_instance['rarity_name']}", inline=False)
+    landing_embed.add_field(name=f"Rank", value=f"{crystal_instance['emoji']}  {crystal_instance['rarity_name']}", inline=False)
+    landing_embed.add_field(name=f"{crystal_instance['crystal_name']}", value=crystal_instance['description'], inline=False)
+    landing_embed.set_image(url="https://i.imgur.com/Pu6H9ep.gif")
+
+    preview_embed = discord.Embed(
+      title=f"Energization Preview",
+      description=f"Here's what **{badge_instance['badge_name']}** would look like with *{crystal_instance['crystal_name']}* applied to it *once Energized.*",
+      color=discord.Color.teal()
+    )
     preview_embed.set_footer(text="Click Confirm to Attune this Crystal, or Cancel.")
     preview_embed.set_image(url=attachment_url)
 
@@ -302,13 +324,17 @@ class Crystals(commands.Cog):
     #    \_/ |_\___|\_/\_/
     class ConfirmCancelView(discord.ui.View):
       def __init__(self):
-        super().__init__(timeout=60)
+        super().__init__(timeout=120)
 
       async def on_timeout(self):
-        for child in self.children:
-          child.disabled = True
-        if self.message:
-          await self.message.edit(view=self)
+        try:
+          for child in self.children:
+            child.disabled = True
+          if self.message:
+            await self.message.edit(view=self)
+        except discord.errors.NotFound as e:
+          # Workaround for current issue with timeout 404s
+          pass
 
       @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
       async def confirm(self, button, interaction):
@@ -318,13 +344,14 @@ class Crystals(commands.Cog):
           description=f"You have successfully attuned **{crystal_instance['crystal_name']}** to your **{badge_instance['badge_name']}** Badge!",
           color=discord.Color.teal()
         )
+        embed.set_image(url="https://i.imgur.com/lP883bg.gif")
         embed.set_footer(text="Now you can use `/crystals energize` to activate it!")
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
       @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
       async def cancel(self, button, interaction):
         embed = discord.Embed(
-          title='Cancelled',
+          title='Canceled',
           description="No changes made to your Badge.",
           color=discord.Color.red()
         )
@@ -336,7 +363,7 @@ class Crystals(commands.Cog):
     #  |_|_\___/__/ .__/\___/_||_\__,_|
     #             |_|
     view = ConfirmCancelView()
-    await ctx.respond(embed=preview_embed, file=discord_file, view=view, ephemeral=True)
+    await ctx.respond(embeds=[landing_embed, preview_embed], file=discord_file, view=view, ephemeral=True)
     view.message = await ctx.interaction.original_response()
 
 
@@ -348,53 +375,35 @@ class Crystals(commands.Cog):
   #         \/     \/     \/     /_____/          \/    \/
   @crystals_group.command(name='energize', description='Select which Crystal to activate for one of your Badges.')
   @option(
-    'badge_name',
+    # This will actually return have options listing the names, but return the `badge_instance_id` directly
+    'badge',
     str,
     description='Choose a badge from your collection',
-    autocomplete=autocomplete_user_badge_instance_names,
+    autocomplete=autocomplete_energizable_user_badge_instances,
     required=True
   )
   @option(
-    'crystal_name',
+    'crystal',
     str,
     description="Select an attuned Crystal to Energize (activate)",
     autocomplete=autocomplete_user_badge_crystals,
     required=True
   )
   @commands.check(access_check)
-  async def energize(self, ctx: discord.ApplicationContext, badge_name: str, crystal_name: str):
+  async def energize(self, ctx: discord.ApplicationContext, badge: str, crystal: str):
     await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
 
-    # Error Checks
-    badge_info = await db_get_badge_info_by_name(badge_name)
-    if not badge_info:
-      embed = discord.Embed(
-        title='Badge Not Found!',
-        description=f"Badge **{badge_name}** not found.",
-        color=discord.Color.red()
-      )
-      await ctx.respond(embed=embed, ephemeral=True)
-      return
-
-    badge_instance = await db_get_badge_instance_by_badge_info_id(user_id, badge_info['id'])
-    if not badge_instance:
-      embed = discord.Embed(
-        title='Badge Not Owned!',
-        description=f"You don't own the **{badge_name}** badge.",
-        color=discord.Color.red()
-      )
-      await ctx.respond(embed=embed, ephemeral=True)
-      return
+    badge_instance = await db_get_badge_instance_by_id(badge)
 
     crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
 
     # Deactivation if selected
-    if crystal_name.lower() == '[none]':
+    if crystal == "none":
       if badge_instance.get('active_crystal_id') is None:
         embed = discord.Embed(
           title='Already Deactivated!',
-          description=f"No crystal is currently energized on **{badge_name}**.",
+          description=f"No crystal is currently energized on **{badge_instance['badge_name']}**.",
           color=discord.Color.orange()
         )
         await ctx.respond(embed=embed, ephemeral=True)
@@ -406,39 +415,29 @@ class Crystals(commands.Cog):
       await db_set_energized_crystal(badge_instance['badge_instance_id'], None)
       embed = discord.Embed(
         title='Crystal Removed',
-        description=f"Deactivated **{prev_label}** on **{badge_name}**.",
+        description=f"Deactivated **{prev_label}** on **{badge_instance['badge_name']}**.",
         color=discord.Color.green()
       )
       await ctx.respond(embed=embed, ephemeral=True)  # ← This was missing!
       return
 
-    selected = next((c for c in crystals if crystal_name.lower() in f"{c.get('emoji', '')}  {c['crystal_name']}".lower()), None)
+    crystal_instance = await db_get_crystal_by_id(crystal)
 
-    if not selected:
-      embed = discord.Embed(
-        title='Crystal Not Found!',
-        description=f"No crystal named **{crystal_name}** found on **{badge_name}**.",
-        color=discord.Color.red()
-      )
-      await ctx.respond(embed=embed, ephemeral=True)
-      return
-
-    if badge_instance.get('active_crystal_id') == selected['crystal_type_id']:
+    if badge_instance.get('active_crystal_id') == crystal_instance.get('badge_crystal_id'):
       embed = discord.Embed(
         title='Already Energized!',
-        description=f"**{crystal_name}** is already your energized Crystal on **{badge_name}**.",
+        description=f"**{crystal_instance['crystal_name']}** is already your energized Crystal on **{badge_instance['badge_name']}**.",
         color=discord.Color.orange()
       )
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
     # Everything looks good to go for actual Energization
-    crystal_instance = selected
-    discord_file, attachment_url = await generate_badge_preview(user_id, badge_instance, crystal_instance=crystal_instance)
+    discord_file, attachment_url = await generate_badge_preview(user_id, badge_instance, crystal=crystal_instance)
 
     preview_embed = discord.Embed(
       title=f"Crystallization Preview",
-      description=f"Here's what **{badge_name}** would look like with *{crystal_instance['crystal_name']}* applied.",
+      description=f"Here's what **{badge_instance['badge_name']}** would look like with *{crystal_instance['crystal_name']}* applied.",
       color=discord.Color.teal()
     )
     preview_embed.add_field(name=f"{crystal_instance['crystal_name']}", value=crystal_instance['description'], inline=False)
@@ -452,20 +451,24 @@ class Crystals(commands.Cog):
     #    \_/ |_\___|\_/\_/
     class ConfirmCancelView(discord.ui.View):
       def __init__(self):
-        super().__init__(timeout=60)
+        super().__init__(timeout=120)
 
       async def on_timeout(self):
-        for child in self.children:
-          child.disabled = True
-        if self.message:
-          await self.message.edit(view=self)
+        try:
+          for child in self.children:
+            child.disabled = True
+          if self.message:
+            await self.message.edit(view=self)
+        except discord.errors.NotFound as e:
+          # Workaround for current issue with timeout 404s
+          pass
 
       @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
       async def confirm(self, button, interaction):
-        await db_set_energized_crystal(badge_instance['badge_instance_id'], selected['badge_crystal_id'])
+        await db_set_energized_crystal(badge_instance['badge_instance_id'], crystal_instance['badge_crystal_id'])
         embed = discord.Embed(
           title='Crystal Energized!',
-          description=f"Energized **{crystal_instance['crystal_name']}** as your active Crystal for **{badge_name}**.",
+          description=f"Energized **{crystal_instance['crystal_name']}** as your active Crystal for **{badge_instance['badge_name']}**.",
           color=discord.Color.teal()
         )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
@@ -473,7 +476,7 @@ class Crystals(commands.Cog):
       @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
       async def cancel(self, button, interaction):
         embed = discord.Embed(
-          title='Cancelled',
+          title='Canceled',
           description="No changes made to your Badge.",
           color=discord.Color.red()
         )

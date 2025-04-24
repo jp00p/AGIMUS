@@ -39,6 +39,10 @@ async def db_get_energized_crystal(badge_instance_id: int):
 async def db_get_crystal_by_id(crystal_id: int) -> dict | None:
   sql = """
     SELECT
+      bc.id AS badge_crystal_id,
+      bc.badge_instance_id,
+      bc.attached_at,
+
       ci.id AS crystal_instance_id,
       ci.status AS crystal_status,
       ci.created_at AS crystal_created_at,
@@ -58,6 +62,7 @@ async def db_get_crystal_by_id(crystal_id: int) -> dict | None:
     FROM crystal_instances ci
     JOIN crystal_types ct ON ci.crystal_type_id = ct.id
     JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
+    LEFT JOIN badge_crystals bc ON bc.crystal_instance_id = ci.id
     WHERE ci.id = %s
   """
   async with AgimusDB(dictionary=True) as db:
@@ -188,14 +193,14 @@ async def db_get_user_unattuned_crystal_rarities(user_id: int) -> list[dict]:
     JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
     WHERE ci.owner_discord_id = %s
       AND ci.status = 'available'
-    GROUP BY cr.rarity_rank
+    GROUP BY cr.name, cr.emoji, cr.rarity_rank, cr.sort_order
     ORDER BY cr.sort_order ASC
   """
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, (user_id,))
     return await db.fetchall()
 
-async def db_get_unattuned_crystals_by_rarity_rank(user_id: int, rarity_name: str) -> list[dict]:
+async def db_get_unattuned_crystals_by_rarity(user_id: int, rarity_name: str) -> list[dict]:
   sql = """
     SELECT
       ci.id AS crystal_instance_id,
@@ -212,7 +217,10 @@ async def db_get_unattuned_crystals_by_rarity_rank(user_id: int, rarity_name: st
       cr.name AS rarity_name,
       cr.emoji,
       cr.drop_chance,
-      cr.sort_order
+      cr.sort_order,
+
+      COUNT(*) OVER (PARTITION BY ct.id) AS count
+
     FROM crystal_instances ci
     JOIN crystal_types ct ON ci.crystal_type_id = ct.id
     JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
@@ -237,7 +245,7 @@ async def db_get_available_crystal_types():
     await db.execute(sql)
     return await db.fetchall()
 
-
+# Attunement / Energization Queries
 async def db_attune_crystal_to_badge_instance(instance_id: int, crystal_name: str = None):
   if not crystal_name:
     return None

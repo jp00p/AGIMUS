@@ -116,7 +116,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Solanogen", 1, "solanogen.png", "cyan_gradient", "Exotic compound from subspace realms. Don't get SCHISMD!"),
   ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days."),
 
-  ("Alabama River Rock", 1, "alabama_river_rock.png", "pink_gradient", "The Captain's Assistant's favorite rock! Low spark point, prevents jet fuel from asploding.")
+  ("Alabama River Rock", 1, "alabama_river_rock.png", "pink_gradient", "The Captain's Assistant's favorite rock! Low spark point, prevents jet fuel from asploding.") -- New
   ("Latinum", 1, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
 
   -- Uncommon Crystals (Silhouette Effects)

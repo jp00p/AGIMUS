@@ -52,7 +52,7 @@ Pillow==9.5.0
 plotly==5.18.0
 prettytable==3.9.0
 protobuf==4.21.12
-py-cord==2.5.0
+py-cord==2.6.1
 pyasn1==0.5.1
 pyasn1-modules==0.3.0
 pycares==4.4.0
