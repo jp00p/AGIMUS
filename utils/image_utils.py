@@ -173,12 +173,15 @@ def load_fonts(title_size=110, footer_size=100, total_size=54, page_size=80, lab
       return FontSet(default, default, default, default, default, default)
     raise
 
-#   _____ _ _   _
-#  |_   _(_) |_| |___
-#    | | | |  _| / -_)
-#    |_| |_|\__|_\___|
+
+# ________                              .__         ___________              __
+# \______ \ ___.__. ____ _____    _____ |__| ____   \__    ___/___ ___  ____/  |_
+#  |    |  <   |  |/    \\__  \  /     \|  |/ ___\    |    |_/ __ \\  \/  /\   __\
+#  |    `   \___  |   |  \/ __ \|  Y Y  \  \  \___    |    |\  ___/ >    <  |  |
+# /_______  / ____|___|  (____  /__|_|  /__|\___  >   |____| \___  >__/\_ \ |__|
+#         \/\/         \/     \/      \/        \/               \/      \/
 # (Handles dynamic resizing and emoji)
-async def draw_title(
+async def draw_dynamic_text(
   canvas: Image.Image,
   draw: ImageDraw.ImageDraw,
   position: tuple,
@@ -298,7 +301,9 @@ async def build_collection_canvas(user, page_data, all_data, page_number, total_
     collected_count = len(all_data)
     total_count = await db_get_max_badge_count()
 
-  label = collection_label or None
+  title_text = f"{user.display_name}'s Badge Collection"
+  if collection_label:
+    title_text += f": {collection_label}"
 
   canvas = await build_display_canvas(
     user=user,
@@ -307,9 +312,9 @@ async def build_collection_canvas(user, page_data, all_data, page_number, total_
     content_rows=total_rows,
     page_number=page_number,
     total_pages=total_pages,
-    collected_count=collected_count,
-    total_count=total_count,
-    label=label
+    title_text=title_text,
+    footer_left_text=f"{total_count}",
+    footer_center_text=f"{collected_count} ON THE USS HOOD"
   )
 
   return canvas
@@ -447,7 +452,7 @@ async def generate_badge_set_completion_images(user, badge_data, category):
   Renders paginated badge completion images using themed components and returns discord.File[]
   """
   theme = await get_theme_preference(user.id, 'collection_type')
-  dims = _get_completion_row_dimensions()
+  dims = _get_canvas_row_dimensions()
 
   rows_per_page = 7
 
@@ -505,7 +510,7 @@ async def generate_badge_set_completion_images(user, badge_data, category):
 
 
 async def build_completion_canvas(user, max_badge_count, collected_count, category, page_number, total_pages, row_count, theme):
-  label = category.replace("_", " ").title()
+  title_text = f"{user.display_name}'s Badge Collection: {category.replace('_', ' ').title()}"
 
   canvas = await build_display_canvas(
     user=user,
@@ -514,9 +519,9 @@ async def build_completion_canvas(user, max_badge_count, collected_count, catego
     content_rows=row_count,
     page_number=page_number,
     total_pages=total_pages,
-    collected_count=collected_count,
-    total_count=max_badge_count,
-    label=label
+    title_text=title_text,
+    footer_left_text=f"{max_badge_count}",
+    footer_right_text=f"{collected_count} ON THE USS HOOD",
   )
 
   return canvas
@@ -534,7 +539,7 @@ async def compose_completion_row(row_data, theme):
     'name', 'percentage', 'owned', 'total', 'featured_badge'
   """
   colors = get_theme_colors(theme)
-  dims = _get_completion_row_dimensions()
+  dims = _get_canvas_row_dimensions()
 
   row_canvas = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
   draw = ImageDraw.Draw(row_canvas)
@@ -586,7 +591,7 @@ async def draw_completion_row_progress_bar(row_canvas, row_data, theme):
   colors = get_theme_colors(theme)
   gradient_end_color = (24, 24, 24)
 
-  dims = _get_completion_row_dimensions()
+  dims = _get_canvas_row_dimensions()
 
   draw = ImageDraw.Draw(row_canvas)
   percentage_width = int((row_data["percentage"] / 100) * dims.bar_w)
@@ -632,7 +637,7 @@ async def compose_empty_completion_row(theme, message: str = "No Data Available"
   Returns a fallback row image with a centered message.
   """
   colors = get_theme_colors(theme)
-  dims = _get_completion_row_dimensions()
+  dims = _get_canvas_row_dimensions()
 
   row_canvas = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
   draw = ImageDraw.Draw(row_canvas)
@@ -657,8 +662,8 @@ async def compose_empty_completion_row(theme, message: str = "No Data Available"
 #  | | | | |_(_) |___
 #  | |_| |  _| | (_-<
 #   \___/ \__|_|_/__/
-CompletionRowDimensions = namedtuple("RowDimensions", ["row_width", "row_height", "row_margin", "offset", "bar_margin", "bar_x", "bar_w", "bar_h", "bar_y", "start_y"])
-def _get_completion_row_dimensions() -> CompletionRowDimensions:
+CanvasRowDimensions = namedtuple("CanvasRowDimensions", ["row_width", "row_height", "row_margin", "offset", "bar_margin", "bar_x", "bar_w", "bar_h", "bar_y", "start_y"])
+def _get_canvas_row_dimensions() -> CanvasRowDimensions:
   """
   Returns layout metrics for drawing a single badge row and its components.
 
@@ -685,12 +690,134 @@ def _get_completion_row_dimensions() -> CompletionRowDimensions:
   bar_y = 280 - bar_h - 30
   start_y = 245
 
-  return CompletionRowDimensions(
+  return CanvasRowDimensions(
     row_width, row_height, row_margin, offset,
     bar_margin, bar_x, bar_w, bar_h, bar_y,
     start_y
   )
 
+
+# _________                         __         .__       _____                .__  _____                __
+# \_   ___ \_______ ___.__. _______/  |______  |  |     /     \ _____    ____ |__|/ ____\____   _______/  |_
+# /    \  \/\_  __ <   |  |/  ___/\   __\__  \ |  |    /  \ /  \\__  \  /    \|  \   __\/ __ \ /  ___/\   __\
+# \     \____|  | \/\___  |\___ \  |  |  / __ \|  |__ /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |
+#  \______  /|__|   / ____/____  > |__| (____  /____/ \____|__  (____  /___|  /__||__|  \___  >____  > |__|
+#         \/        \/         \/            \/               \/     \/     \/              \/     \/
+async def generate_crystal_manifest_images(user: discord.User, crystal_data: list[dict], rarity: str, emoji: str) -> list[discord.File]:
+  """
+  Generates paginated inventory-style crystal manifest images for a user's unattuned crystals.
+
+  Args:
+    user: The Discord user.
+    crystal_data: A list of crystal instance dicts filtered by rarity.
+    rarity: The rarity name, for header labeling.
+    emoji: The rarity's emoji, for footer labeling.
+
+  Returns:
+    List of discord.File objects representing image pages.
+  """
+  theme = 'teal' #
+  dims = _get_canvas_row_dimensions()
+  rows_per_page = 7
+
+  pages = list(paginate(crystal_data, rows_per_page))
+  total_pages = len(pages)
+
+  images = []
+  for page_rows, page_number in pages:
+    canvas = await build_crystal_manifest_canvas(
+      user=user,
+      all_crystal_data=crystal_data,
+      page_number=page_number,
+      total_pages=total_pages,
+      row_count=len(page_rows) - 1,
+      rarity=rarity,
+      emoji=emoji,
+      theme=theme
+    )
+
+    current_y = dims.start_y
+    for crystal in page_rows:
+      row_img = await compose_crystal_manifest_row(crystal, theme)
+      canvas.paste(row_img, (110, current_y), row_img)
+      current_y += dims.row_height + dims.row_margin
+
+    image_file = buffer_image_to_discord_file(canvas, f"crystal_manifest_{rarity}_{page_number}.png")
+    images.append(image_file)
+
+  return images
+
+
+async def build_crystal_manifest_canvas(user: discord.User, all_crystal_data, page_number: int, total_pages: int, row_count: int, rarity: str, emoji:str, theme: str) -> Image.Image:
+  """
+  Constructs the base canvas for a crystal manifest page.
+  """
+  canvas = await build_display_canvas(
+    user=user,
+    theme=theme,
+    layout_type="manifest",
+    content_rows=row_count,
+    page_number=page_number,
+    total_pages=total_pages,
+    title_text=f"{user.display_name}'s {rarity.title()} Crystals",
+    footer_left_text=emoji,
+    footer_center_text=f"{len(all_crystal_data)} Available",
+  )
+  return canvas
+
+_dummy_badge_info_cache = None
+
+async def compose_crystal_manifest_row(crystal: dict, theme: str) -> Image.Image:
+  """
+  Composes a single crystal manifest row.
+  """
+  dims = _get_canvas_row_dimensions()
+  colors = get_theme_colors(theme)
+  row_canvas = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
+  draw = ImageDraw.Draw(row_canvas)
+  draw.rounded_rectangle((0, 0, dims.row_width, dims.row_height), fill="#181818", outline="#181818", width=4, radius=32)
+
+  fonts = load_fonts(title_size=160, general_size=100)
+
+  icon_path = f"./images/templates/crystals/icons/{crystal['icon']}"
+  try:
+    icon_img = await threaded_image_open(icon_path)
+    icon_img.thumbnail((200, 200))
+    row_canvas.paste(icon_img, (25, 40), icon_img)
+  except Exception as e:
+    logger.warning(f"[manifest] Could not load icon at {icon_path}: {e}")
+
+  name_x = dims.offset
+  draw.text((name_x, 40), crystal['crystal_name'], font=fonts.title, fill=colors.highlight)
+
+  rarity_text = f"{crystal['emoji']}  {crystal['rarity_name']}"
+  draw.text((dims.row_width - 20, 50), rarity_text, font=fonts.general, fill=colors.highlight, anchor="rt")
+
+  wrapped_desc = textwrap.fill(crystal['description'], width=80)
+  draw.text((name_x, 160), wrapped_desc, font=fonts.general, fill="#DDDDDD")
+
+  # Render preview of crystal effect on dummy badge
+  global _dummy_badge_info_cache
+  if _dummy_badge_info_cache is None:
+    _dummy_badge_info_cache = await db_get_badge_info_by_name("Starfleet Crew 2160s (Kelvin)")
+  dummy_badge_info = _dummy_badge_info_cache
+  dummy_badge = {
+    **dummy_badge_info,
+    'crystal_id': crystal['crystal_instance_id'],
+    'effect': crystal['effect']
+  }
+
+  try:
+    badge_img = await get_cached_base_badge_canvas(dummy_badge['badge_filename'])
+    preview = await apply_crystal_effect(badge_img, dummy_badge, crystal=crystal)
+    if isinstance(preview, list):
+      preview = preview[0]  # Take first frame if animated
+    preview.thumbnail((200, 200))
+    row_canvas.paste(preview, (dims.row_width - 240, 40), preview)
+  except Exception as e:
+    logger.warning(f"[manifest-preview] Failed to generate preview for {crystal['crystal_name']}: {e}")
+
+  return row_canvas
 
 
 # __________             .___                 _________ __         .__
@@ -861,9 +988,9 @@ async def build_display_canvas(
   content_rows: int,
   page_number: int,
   total_pages: int,
-  collected_count: int,
-  total_count: int,
-  label: str = None
+  title_text: str,
+  footer_left_text: str,
+  footer_center_text: str,
 ) -> Image.Image:
   """
   Builds a themed display canvas shared by both collection and completion layouts.
@@ -871,11 +998,17 @@ async def build_display_canvas(
   colors = get_theme_colors(theme)
 
   start = time.perf_counter()
-  asset_prefix = "images/templates/badges/badge_page_"
 
-  header_img = await threaded_image_open(f"{asset_prefix}header_{theme}.png")
-  footer_img = await threaded_image_open(f"{asset_prefix}footer_{theme}.png")
-  row_img = await threaded_image_open(f"{asset_prefix}row_{theme}.png")
+  # XXX - Make header and footer fully generic (write all text in image generation so we can simplify this)
+  if layout_type == 'collection' or layout_type == 'completion':
+    asset_prefix = "images/templates/badges/badge_page_"
+    header_img = await threaded_image_open(f"{asset_prefix}header_{theme}.png")
+    footer_img = await threaded_image_open(f"{asset_prefix}footer_{theme}.png")
+    row_img = await threaded_image_open(f"{asset_prefix}row_{theme}.png")
+  else:
+    header_img = await threaded_image_open(f"crystal_manifest_header.png")
+    footer_img = await threaded_image_open(f"crystal_manifest_footer.png")
+    row_img = await threaded_image_open(f"crystal_manifest_row.png")
 
   header_h = header_img.height
   footer_h = footer_img.height
@@ -898,11 +1031,9 @@ async def build_display_canvas(
   await draw_canvas_labels(
     canvas=canvas,
     draw=draw,
-    user=user,
-    mode=layout_type,
-    label=label,
-    collected_count=collected_count,
-    total_count=total_count,
+    title_text=title_text,
+    footer_center_text=footer_center_text,
+    footer_left_text=footer_left_text,
     page_number=page_number,
     total_pages=total_pages,
     base_w=base_w,
@@ -916,12 +1047,8 @@ async def build_display_canvas(
 
   return canvas
 
-async def draw_canvas_labels(canvas, draw, user, mode, label, collected_count, total_count, page_number, total_pages, base_w, base_h, fonts, colors):
-  title_text = f"{user.display_name}'s Badge {mode.title()}"
-  if label:
-    title_text += f": {label}"
-
-  await draw_title(
+async def draw_canvas_labels(canvas, draw, title_text, footer_left_text, footer_center_text, page_number, total_pages, base_w, base_h, fonts, colors):
+  await draw_dynamic_text(
     canvas=canvas,
     draw=draw,
     position=(100, 65),
@@ -933,15 +1060,26 @@ async def draw_canvas_labels(canvas, draw, user, mode, label, collected_count, t
 
   draw.text(
     (590, base_h - 125),
-    f"{collected_count} ON THE USS HOOD",
+    footer_center_text,
     font=fonts.footer,
     fill=colors.highlight
   )
 
   draw.text(
     (32, base_h - 90),
-    f"{total_count}",
+    footer_left_text,
     font=fonts.total,
+    fill=colors.highlight
+  )
+
+  await draw_dynamic_text(
+    canvas=canvas,
+    draw=draw,
+    position=(32, base_h - 90),
+    text=footer_left_text,
+    max_width=200,
+    font_obj=fonts.title,
+    starting_size=54,
     fill=colors.highlight
   )
 
@@ -989,7 +1127,7 @@ async def generate_badge_trade_images(
   draw = ImageDraw.Draw(trade_canvas)
 
   # Title at the top
-  await draw_title(
+  await draw_dynamic_text(
     canvas=trade_canvas,
     draw=draw,
     position=(base_bg.width // 2, 40),

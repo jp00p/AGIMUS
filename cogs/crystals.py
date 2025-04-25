@@ -299,15 +299,15 @@ class Crystals(commands.Cog):
   #   \     /  / __ \|  |  /  |_|  |
   #    \___/  (____  /____/|____/__|
   #                \/
-  @crystals_group.command(name="vault", description="Access your unattuned Crystal vault.")
-  async def crystals_vault(self, ctx: discord.ApplicationContext):
+  @crystals_group.command(name="manifest", description="Review your unattuned Crystal manifest.")
+  async def crystals_manifest(self, ctx: discord.ApplicationContext):
     user_id = ctx.user.id
     crystals = await db_get_user_unattuned_crystals(user_id)
 
     if not crystals:
       embed = discord.Embed(
-        title="Crystal Vault",
-        description="You currently have no unattuned crystals in your vault.",
+        title="Crystal Manifest",
+        description="You currently have no unattuned crystals in your manifest.",
         color=discord.Color.dark_teal()
       )
       await ctx.respond(embed=embed, ephemeral=True)
@@ -323,13 +323,13 @@ class Crystals(commands.Cog):
 
     # Build the initial landing embed
     embed = discord.Embed(
-      title="Crystal Vault",
-      description="Welcome to your Crystal Vault. Select a rarity below to view your unattuned Crystals.",
+      title="Crystal Manifest",
+      description="Welcome to your Crystal Manifest. Select a rarity below to view your unattuned Crystals.",
       color=discord.Color.blurple()
     )
-    embed.set_image(url="https://example.com/vault_landing_image.png")  # Replace with actual asset
+    embed.set_image(url="https://example.com/manifest_landing_image.png")  # Replace with actual asset
 
-    view = CrystalsVaultView(user_id, crystals_by_rarity)
+    view = CrystalsManifestView(user_id, crystals_by_rarity)
     await ctx.respond(embed=embed, view=view, ephemeral=True)
 
 
@@ -613,7 +613,7 @@ class Crystals(commands.Cog):
 #   \     /  / __ \|  |  /  |_|  |     \     /  |  \  ___/\     /
 #    \___/  (____  /____/|____/__|      \___/   |__|\___  >\/\_/
 #                \/                                     \/
-class CrystalsVaultView(discord.ui.View):
+class CrystalsManifestView(discord.ui.View):
   def __init__(self, user_id: int, crystals_by_rarity: dict):
     super().__init__(timeout=180)
     self.user_id = user_id
@@ -621,7 +621,7 @@ class CrystalsVaultView(discord.ui.View):
     self.add_item(RaritySelect(self))
 
 class RaritySelect(discord.ui.Select):
-  def __init__(self, parent_view: CrystalsVaultView):
+  def __init__(self, parent_view: CrystalsManifestView):
     self.parent_view = parent_view
     options = [
       discord.SelectOption(
@@ -638,7 +638,7 @@ class RaritySelect(discord.ui.Select):
     rarity_level_crystals = self.parent_view.crystals_by_rarity[rarity]
     pages, embeds = await generate_paginated_crystal_rarity_pages(self.parent_view.user_id, rarity_level_crystals)
 
-    paginator = CrystalsVaultPaginator(
+    paginator = CrystalsManifestPaginator(
       user_id=self.parent_view.user_id,
       rarity=rarity,
       pages=pages,
@@ -651,7 +651,7 @@ class RaritySelect(discord.ui.Select):
       view=paginator
     )
 
-class CrystalsVaultPaginator(discord.ui.View):
+class CrystalsManifestPaginator(discord.ui.View):
   def __init__(self, user_id: int, rarity: str, pages: list[discord.File], embeds: list[discord.Embed]):
     super().__init__(timeout=180)
     self.user_id = user_id
@@ -711,7 +711,7 @@ async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_cry
     chunk = grouped_crystals[i:i+page_size]
     embed = discord.Embed(
       title=f"{rarity_emoji} {rarity_name} Crystals",
-      description=f"Unattuned crystals in your vault (Page {(i // page_size + 1):02})",
+      description=f"Unattuned crystals in your manifest (Page {(i // page_size + 1):02})",
       color=discord.Color.teal()
     )
 
