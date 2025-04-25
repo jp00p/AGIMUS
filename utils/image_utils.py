@@ -835,7 +835,15 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
   if not isinstance(preview_frames, list):
     preview_frames = [preview_frames]
 
-  return preview_frames
+  row_frames = []
+  for frame in preview_frames:
+    composed = row_canvas.copy()
+    preview = frame.copy()
+    preview.thumbnail((200, 200))
+    composed.paste(preview, (dims.row_width - 240, 40), preview)
+    row_frames.append(composed)
+
+  return row_frames
 
 
 # __________             .___                 _________ __         .__
