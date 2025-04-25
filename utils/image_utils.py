@@ -826,6 +826,7 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
   dummy_badge_info = _dummy_badge_info_cache
   dummy_badge = {
     **dummy_badge_info,
+    'badge_info_id': dummy_badge_info['id'],
     'crystal_id': crystal['crystal_instance_id'],
     'effect': crystal['effect']
   }

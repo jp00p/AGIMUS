@@ -647,7 +647,7 @@ class RaritySelect(discord.ui.Select):
     paginator.add_item(RaritySelect(self.parent_view))
     await interaction.response.edit_message(
       embed=embeds[0],
-      # attachments=[pages[0]],
+      attachments=[pages[0]],
       view=paginator
     )
 
