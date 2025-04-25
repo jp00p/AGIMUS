@@ -1024,7 +1024,7 @@ async def build_display_canvas(
     footer_img = await threaded_image_open(f"{asset_prefix}footer_{theme}.png")
     row_img = await threaded_image_open(f"{asset_prefix}row_{theme}.png")
   else:
-    asset_prefix = "images/templates/crystals/manifest/"
+    asset_prefix = "images/templates/crystals/manifests/"
     header_img = await threaded_image_open(f"{asset_prefix}crystal_manifest_header.png")
     footer_img = await threaded_image_open(f"{asset_prefix}crystal_manifest_footer.png")
     row_img = await threaded_image_open(f"{asset_prefix}crystal_manifest_row.png")
