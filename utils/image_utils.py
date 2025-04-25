@@ -77,6 +77,14 @@ def paginate(data_list, items_per_page):
   for i in range(0, len(data_list), items_per_page):
     yield data_list[i:i + items_per_page], (i // items_per_page) + 1
 
+def normalize_frame_stacks(row_stacks):
+  max_len = max(len(stack) for stack in row_stacks)
+  return [
+    [frames[i % len(frames)] for i in range(max_len)]
+    for frames in row_stacks
+  ]
+
+
 
 # ___________.__                          .__
 # \__    ___/|  |__   ____   _____   ____ |__| ____    ____
@@ -716,7 +724,7 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
   Returns:
     List of discord.File objects representing image pages.
   """
-  theme = 'teal' #
+  theme = 'teal'
   dims = _get_canvas_row_dimensions()
   rows_per_page = 7
 
@@ -736,14 +744,29 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
       theme=theme
     )
 
-    current_y = dims.start_y
-    for crystal in page_rows:
-      row_img = await compose_crystal_manifest_row(crystal, theme)
-      canvas.paste(row_img, (110, current_y), row_img)
-      current_y += dims.row_height + dims.row_margin
+    prepared_rows = await asyncio.gather(*[
+      compose_crystal_manifest_row(crystal, theme) for crystal in page_rows
+    ])
 
-    image_file = buffer_image_to_discord_file(canvas, f"crystal_manifest_{rarity}_{page_number}.png")
-    images.append(image_file)
+    animated = any(isinstance(row, list) and len(row) > 1 for row in prepared_rows)
+    row_stacks = [r if isinstance(r, list) else [r] for r in prepared_rows]
+    aligned_stacks = normalize_frame_stacks(row_stacks)
+
+    frame_stack = []
+    for frame_index in range(len(aligned_stacks[0])):
+      frame = canvas.copy()
+      current_y = dims.start_y
+      for row_frames in aligned_stacks:
+        frame.paste(row_frames[frame_index], (110, current_y), row_frames[frame_index])
+        current_y += dims.row_height + dims.row_margin
+      frame_stack.append(frame)
+
+    if animated:
+      webp_buf = await encode_webp(frame_stack)
+      images.append(discord.File(webp_buf, filename=f"crystal_manifest_{rarity}_{page_number}.webp"))
+    else:
+      image_file = buffer_image_to_discord_file(frame_stack[0], f"crystal_manifest_{rarity}_{page_number}.png")
+      images.append(image_file)
 
   return images
 
@@ -767,7 +790,8 @@ async def build_crystal_manifest_canvas(user: discord.User, all_crystal_data, pa
 
 _dummy_badge_info_cache = None
 
-async def compose_crystal_manifest_row(crystal: dict, theme: str) -> Image.Image:
+
+async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.Image]:
   """
   Composes a single crystal manifest row.
   """
@@ -790,8 +814,7 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> Image.Image
   name_x = dims.offset
   draw.text((name_x, 40), crystal['crystal_name'], font=fonts.title, fill=colors.highlight)
 
-  rarity_text = f"{crystal['emoji']}  {crystal['rarity_name']}"
-  draw.text((dims.row_width - 20, 50), rarity_text, font=fonts.general, fill=colors.highlight, anchor="rt")
+  draw.text((dims.row_width - 20, 50), crystal['rarity_name'], font=fonts.general, fill=colors.highlight, anchor="rt")
 
   wrapped_desc = textwrap.fill(crystal['description'], width=80)
   draw.text((name_x, 160), wrapped_desc, font=fonts.general, fill="#DDDDDD")
@@ -807,17 +830,12 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> Image.Image
     'effect': crystal['effect']
   }
 
-  try:
-    badge_img = await get_cached_base_badge_canvas(dummy_badge['badge_filename'])
-    preview = await apply_crystal_effect(badge_img, dummy_badge, crystal=crystal)
-    if isinstance(preview, list):
-      preview = preview[0]  # Take first frame if animated
-    preview.thumbnail((200, 200))
-    row_canvas.paste(preview, (dims.row_width - 240, 40), preview)
-  except Exception as e:
-    logger.warning(f"[manifest-preview] Failed to generate preview for {crystal['crystal_name']}: {e}")
+  badge_img = await get_cached_base_badge_canvas(dummy_badge['badge_filename'])
+  preview_frames = await apply_crystal_effect(badge_img, dummy_badge, crystal=crystal)
+  if not isinstance(preview_frames, list):
+    preview_frames = [preview_frames]
 
-  return row_canvas
+  return preview_frames
 
 
 # __________             .___                 _________ __         .__
@@ -1006,9 +1024,10 @@ async def build_display_canvas(
     footer_img = await threaded_image_open(f"{asset_prefix}footer_{theme}.png")
     row_img = await threaded_image_open(f"{asset_prefix}row_{theme}.png")
   else:
-    header_img = await threaded_image_open(f"crystal_manifest_header.png")
-    footer_img = await threaded_image_open(f"crystal_manifest_footer.png")
-    row_img = await threaded_image_open(f"crystal_manifest_row.png")
+    asset_prefix = "images/templates/crystals/manifest/"
+    header_img = await threaded_image_open(f"{asset_prefix}crystal_manifest_header.png")
+    footer_img = await threaded_image_open(f"{asset_prefix}crystal_manifest_footer.png")
+    row_img = await threaded_image_open(f"{asset_prefix}crystal_manifest_row.png")
 
   header_h = header_img.height
   footer_h = footer_img.height

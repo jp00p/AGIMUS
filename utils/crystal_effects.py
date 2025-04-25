@@ -362,7 +362,7 @@ def effect_isolinear(img, badge):
 
 @register_effect('boridium')
 def effect_boridium(img, badge):
-  _apply_energy_rings_silhouette_wrap(img, primary_color=(200, 80, 255), secondary_color=(80, 255, 255))
+  return _apply_energy_rings_silhouette_wrap(img, primary_color=(200, 80, 255), secondary_color=(80, 255, 255))
 
 
 def _apply_gradient_silhouette_border(

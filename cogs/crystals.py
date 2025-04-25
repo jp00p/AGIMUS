@@ -661,14 +661,14 @@ class CrystalsManifestPaginator(discord.ui.View):
     self.current_page = 0
     self.total_pages = len(pages)
 
-    self.prev_button = discord.ui.Button(label="◀ Prev", style=discord.ButtonStyle.secondary, disabled=self.total_pages <= 1)
+    self.prev_button = discord.ui.Button(label="◀ Prev", style=discord.ButtonStyle.blurple, disabled=self.total_pages <= 1)
     self.prev_button.callback = self.prev_page
     self.add_item(self.prev_button)
 
-    self.page_indicator = discord.ui.Button(label=f"Page {self.current_page + 1}/{self.total_pages}", disabled=True)
+    self.page_indicator = discord.ui.Button(label=f"Page {self.current_page + 1}/{self.total_pages}", style=discord.ButtonStyle.blurple, disabled=True)
     self.add_item(self.page_indicator)
 
-    self.next_button = discord.ui.Button(label="Next ▶", style=discord.ButtonStyle.secondary, disabled=self.total_pages <= 1)
+    self.next_button = discord.ui.Button(label="Next ▶", style=discord.ButtonStyle.blurple, disabled=self.total_pages <= 1)
     self.next_button.callback = self.next_page
     self.add_item(self.next_button)
 
@@ -690,7 +690,7 @@ class CrystalsManifestPaginator(discord.ui.View):
 
 async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_crystals):
   user = await bot.fetch_user(user_id)
-  page_size = 5
+  page_size = 7
   pages = []
   embeds = []
 
@@ -700,7 +700,7 @@ async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_cry
   rarity_name = rarity_level_crystals[0]['rarity_name']
   rarity_emoji = rarity_level_crystals[0]['emoji']
 
-  # Collapse crystal instances into a grouped list by type
+  from collections import defaultdict
   crystals_by_type = defaultdict(list)
   for crystal in rarity_level_crystals:
     crystals_by_type[crystal['crystal_type_id']].append(crystal)
@@ -709,25 +709,24 @@ async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_cry
 
   for i in range(0, len(grouped_crystals), page_size):
     chunk = grouped_crystals[i:i+page_size]
-    embed = discord.Embed(
-      title=f"{rarity_emoji} {rarity_name} Crystals",
-      description=f"Unattuned crystals in your manifest (Page {(i // page_size + 1):02})",
-      color=discord.Color.teal()
-    )
+    flattened_crystals = [c for group in chunk for c in group]
 
-    for group in chunk:
-      first = group[0]
-      embed.add_field(
-        name=f"{first['emoji']} {first['crystal_name']} (×{len(group)})",
-        value=first['description'],
-        inline=False
+    # Generate the image(s) immediately
+    manifest_images = await generate_crystal_manifest_images(user, flattened_crystals, rarity_name, rarity_emoji)
+
+    for idx, manifest_image in enumerate(manifest_images):
+      embed = discord.Embed(
+        title=f"{user.display_name}'s Unattuned {rarity_name} Crystals",
+        color=discord.Color.teal()
       )
+      embed.set_footer(text=f"Page {(i // page_size + idx + 1):02}")
+      embed.set_image(url=f"attachment://{manifest_image.filename}")
 
-    embeds.append(embed)
-    # pages.append(discord.File(fp=b"", filename="placeholder.png"))  # Placeholder for future image preview
-    pages.append(None)
+      pages.append(manifest_image)
+      embeds.append(embed)
 
   return pages, embeds
+
 
 #  ____ ___   __  .__.__
 # |    |   \_/  |_|__|  |   ______
