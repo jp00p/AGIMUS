@@ -202,7 +202,7 @@ class Crystals(commands.Cog):
       embed = discord.Embed(
         title='No Buffer Patterns!',
         description=f"Sorry {user.mention}, you don't currently possess any Crystal Buffer Patterns to redeem!\n\nBetter get out of here before O'Brien calls security... {get_emoji('obrien_omg_jaysus')}",
-        color=discord.Color.red()
+        color=discord.Color.orange()
       )
       embed.set_footer(text="You can earn more buffer credits through leveling up!")
       await ctx.respond(embed=embed, ephemeral=True)
@@ -233,7 +233,10 @@ class Crystals(commands.Cog):
         for child in self.children:
           child.disabled = True
         if self.message:
-          await self.message.edit(view=self)
+          try:
+            await self.message.edit(view=self)
+          except discord.errors.NotFound:
+            pass
 
       @discord.ui.button(label="Engage", style=discord.ButtonStyle.blurple)
       async def engage(self, button, interaction):
@@ -268,7 +271,7 @@ class Crystals(commands.Cog):
         )
         channel_embed.add_field(name=f"Rank", value=f"{crystal['emoji']}  {crystal['rarity_name']}", inline=False)
         channel_embed.add_field(name=f"Description", value=crystal['description'], inline=False)
-        channel_embed.set_image(url=f"attachment://{effect_filename}")
+        channel_embed.set_image(url=f"attachment://{discord_file.filename}")
         channel_embed.set_footer(text="Use `/crystals attune` to attach it to one of your Badges!")
 
         gelrak_v = await cog.bot.fetch_channel(get_channel_id("gelrak-v"))
@@ -279,7 +282,7 @@ class Crystals(commands.Cog):
         embed = discord.Embed(
           title='Replication Canceled',
           description="No Pattern Buffers expended.",
-          color=discord.Color.red()
+          color=discord.Color.orange()
         )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
@@ -293,14 +296,17 @@ class Crystals(commands.Cog):
     view.message = await ctx.interaction.original_response()
 
 
-  # ____   ____            .__   __
-  # \   \ /   /____   __ __|  |_/  |_
-  #  \   Y   /\__  \ |  |  \  |\   __\
-  #   \     /  / __ \|  |  /  |_|  |
-  #    \___/  (____  /____/|____/__|
-  #                \/
+
+  #    _____                .__  _____                __
+  #   /     \ _____    ____ |__|/ ____\____   _______/  |_
+  #  /  \ /  \\__  \  /    \|  \   __\/ __ \ /  ___/\   __\
+  # /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |
+  # \____|__  (____  /___|  /__||__|  \___  >____  > |__|
+  #         \/     \/     \/              \/     \/
   @crystals_group.command(name="manifest", description="Review your unattuned Crystal manifest.")
-  async def crystals_manifest(self, ctx: discord.ApplicationContext):
+  async def manifest(self, ctx: discord.ApplicationContext):
+    # await ctx.defer(ephemeral=True)
+
     user_id = ctx.user.id
     crystals = await db_get_user_unattuned_crystals(user_id)
 
@@ -324,14 +330,16 @@ class Crystals(commands.Cog):
     # Build the initial landing embed
     embed = discord.Embed(
       title="Crystal Manifest",
-      description="Welcome to your Crystal Manifest. Select a rarity below to view your unattuned Crystals.",
-      color=discord.Color.blurple()
+      description="Welcome to your Crystal Manifest!\n\nYour manifest lists all currently *unattuned* Crystals you possess.",
+      color=discord.Color.teal()
     )
-    embed.set_image(url="https://example.com/manifest_landing_image.png")  # Replace with actual asset
+    # embed.set_footer(text="Select a rarity below to view your unattuned Crystals at each rarity level.")
+    # embed.set_image(url="https://example.com/manifest_landing_image.png")  # Replace with actual asset
 
     view = CrystalsManifestView(user_id, crystals_by_rarity)
-    await ctx.respond(embed=embed, view=view, ephemeral=True)
-
+    initial_message = await ctx.interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+    # view.message = await ctx.interaction.original_response()
+    view.initial_message = initial_message
 
   #    _____   __    __
   #   /  _  \_/  |__/  |_ __ __  ____   ____
@@ -442,14 +450,14 @@ class Crystals(commands.Cog):
         super().__init__(timeout=120)
 
       async def on_timeout(self):
-        try:
-          for child in self.children:
-            child.disabled = True
-          if self.message:
+        for child in self.children:
+          child.disabled = True
+        if self.message:
+          try:
             await self.message.edit(view=self)
-        except discord.errors.NotFound as e:
-          # Workaround for current issue with timeout 404s
-          pass
+          except discord.errors.NotFound as e:
+            # Workaround for current issue with timeout 404s
+            pass
 
       @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
       async def confirm(self, button, interaction):
@@ -468,7 +476,7 @@ class Crystals(commands.Cog):
         embed = discord.Embed(
           title='Canceled',
           description="No changes made to your Badge.",
-          color=discord.Color.red()
+          color=discord.Color.orange()
         )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
@@ -568,14 +576,14 @@ class Crystals(commands.Cog):
         super().__init__(timeout=120)
 
       async def on_timeout(self):
-        try:
-          for child in self.children:
-            child.disabled = True
-          if self.message:
+        for child in self.children:
+          child.disabled = True
+        if self.message:
+          try:
             await self.message.edit(view=self)
-        except discord.errors.NotFound as e:
-          # Workaround for current issue with timeout 404s
-          pass
+          except discord.errors.NotFound as e:
+            # Workaround for current issue with timeout 404s
+            pass
 
       @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
       async def confirm(self, button, interaction):
@@ -592,7 +600,7 @@ class Crystals(commands.Cog):
         embed = discord.Embed(
           title='Canceled',
           description="No changes made to your Badge.",
-          color=discord.Color.red()
+          color=discord.Color.orange()
         )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
@@ -606,19 +614,30 @@ class Crystals(commands.Cog):
     view.message = await ctx.interaction.original_response()
 
 
-
-# ____   ____            .__   __    ____   ____.__
-# \   \ /   /____   __ __|  |_/  |_  \   \ /   /|__| ______  _  __
-#  \   Y   /\__  \ |  |  \  |\   __\  \   Y   / |  |/ __ \ \/ \/ /
-#   \     /  / __ \|  |  /  |_|  |     \     /  |  \  ___/\     /
-#    \___/  (____  /____/|____/__|      \___/   |__|\___  >\/\_/
-#                \/                                     \/
+#    _____                .__  _____                __    ____   ____.__
+#   /     \ _____    ____ |__|/ ____\____   _______/  |_  \   \ /   /|__| ______  _  __
+#  /  \ /  \\__  \  /    \|  \   __\/ __ \ /  ___/\   __\  \   Y   / |  |/ __ \ \/ \/ /
+# /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |     \     /  |  \  ___/\     /
+# \____|__  (____  /___|  /__||__|  \___  >____  > |__|      \___/   |__|\___  >\/\_/
+#         \/     \/     \/              \/     \/                            \/
 class CrystalsManifestView(discord.ui.View):
   def __init__(self, user_id: int, crystals_by_rarity: dict):
     super().__init__(timeout=180)
     self.user_id = user_id
     self.crystals_by_rarity = crystals_by_rarity
     self.add_item(RaritySelect(self))
+    self.message = None
+    self.initial_message = None
+
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+      if self.message:
+        try:
+          await self.message.edit(view=self)
+        except discord.errors.NotFound as e:
+          # Workaround for current issue with timeout 404s
+          pass
 
 class RaritySelect(discord.ui.Select):
   def __init__(self, parent_view: CrystalsManifestView):
@@ -631,9 +650,23 @@ class RaritySelect(discord.ui.Select):
       )
       for rarity, crystals in parent_view.crystals_by_rarity.items()
     ]
-    super().__init__(placeholder="Choose Rarity", options=options)
+    super().__init__(placeholder="Select Rarity", options=options)
 
   async def callback(self, interaction: discord.Interaction):
+    await interaction.response.defer(ephemeral=True)
+
+    if self.parent_view.initial_message:
+      await self.parent_view.initial_message.edit(
+        embed=discord.Embed(
+          title="Initializing Manifest...",
+          color=discord.Color.teal()
+        ),
+        view=None
+      )
+      self.parent_view.initial_message = None
+
+    old_message = self.parent_view.message
+
     rarity = self.values[0]
     rarity_level_crystals = self.parent_view.crystals_by_rarity[rarity]
     pages, embeds = await generate_paginated_crystal_rarity_pages(self.parent_view.user_id, rarity_level_crystals)
@@ -645,11 +678,24 @@ class RaritySelect(discord.ui.Select):
       embeds=embeds
     )
     paginator.add_item(RaritySelect(self.parent_view))
-    await interaction.response.edit_message(
+
+    new_message = await interaction.followup.send(
       embed=embeds[0],
-      attachments=[pages[0]],
-      view=paginator
+      file=pages[0],
+      view=paginator,
+      ephemeral=True
     )
+
+    paginator.message = new_message
+    self.parent_view.message = new_message
+
+    try:
+      if old_message:
+        await old_message.delete()
+      # await interaction.delete_original_response()
+    except discord.errors.NotFound:
+      pass
+
 
 class CrystalsManifestPaginator(discord.ui.View):
   def __init__(self, user_id: int, rarity: str, pages: list[discord.File], embeds: list[discord.Embed]):
@@ -660,17 +706,27 @@ class CrystalsManifestPaginator(discord.ui.View):
     self.embeds = embeds
     self.current_page = 0
     self.total_pages = len(pages)
+    self.message = None  # Will hold the reference to the last sent message
 
-    self.prev_button = discord.ui.Button(label="◀ Prev", style=discord.ButtonStyle.blurple, disabled=self.total_pages <= 1)
+    self.prev_button = discord.ui.Button(label="◀ Prev", style=discord.ButtonStyle.secondary, disabled=self.total_pages <= 1)
     self.prev_button.callback = self.prev_page
     self.add_item(self.prev_button)
 
-    self.page_indicator = discord.ui.Button(label=f"Page {self.current_page + 1}/{self.total_pages}", style=discord.ButtonStyle.blurple, disabled=True)
+    self.page_indicator = discord.ui.Button(label=f"Page {self.current_page + 1}/{self.total_pages}", disabled=True)
     self.add_item(self.page_indicator)
 
-    self.next_button = discord.ui.Button(label="Next ▶", style=discord.ButtonStyle.blurple, disabled=self.total_pages <= 1)
+    self.next_button = discord.ui.Button(label="Next ▶", style=discord.ButtonStyle.secondary, disabled=self.total_pages <= 1)
     self.next_button.callback = self.next_page
     self.add_item(self.next_button)
+
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+      if self.message:
+        try:
+          await self.message.edit(view=self)
+        except discord.errors.NotFound:
+          pass  # Message already deleted, safe to ignore
 
   async def prev_page(self, interaction: discord.Interaction):
     self.current_page = (self.current_page - 1) % self.total_pages
@@ -681,12 +737,38 @@ class CrystalsManifestPaginator(discord.ui.View):
     await self.update_page(interaction)
 
   async def update_page(self, interaction: discord.Interaction):
-    self.page_indicator.label = f"Page {self.current_page + 1:02}/{self.total_pages:02}"
-    await interaction.response.edit_message(
+    await interaction.response.defer(ephemeral=True)
+
+    # Disable all buttons immediately to prevent race conditions
+    for child in self.children:
+      if isinstance(child, discord.ui.Button) and not child.disabled:
+        child.disabled = True
+
+    # Delete the old message if it still exists
+    try:
+      if self.message:
+        await self.message.delete()
+    except discord.errors.NotFound:
+      pass
+
+    # Update label for page indicator
+    self.page_indicator.label = f"Page {self.current_page + 1}/{self.total_pages}"
+
+    # Re-enable buttons after setting label
+    self.prev_button.disabled = self.total_pages <= 1
+    self.next_button.disabled = self.total_pages <= 1
+
+    # Send the new page using followup (ephemeral)
+    new_message = await interaction.followup.send(
       embed=self.embeds[self.current_page],
-      attachments=[self.pages[self.current_page]],
-      view=self
+      file=self.pages[self.current_page],
+      view=self,
+      ephemeral=True
     )
+
+    # Track the latest message reference
+    self.message = new_message
+
 
 async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_crystals):
   user = await bot.fetch_user(user_id)
@@ -716,10 +798,9 @@ async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_cry
 
     for idx, manifest_image in enumerate(manifest_images):
       embed = discord.Embed(
-        title=f"{user.display_name}'s Unattuned {rarity_name} Crystals",
+        title=f"Crystal Manifest - {rarity_name}",
         color=discord.Color.teal()
       )
-      embed.set_footer(text=f"Page {(i // page_size + idx + 1):02}")
       embed.set_image(url=f"attachment://{manifest_image.filename}")
 
       pages.append(manifest_image)

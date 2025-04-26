@@ -732,17 +732,26 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
   total_pages = len(pages)
 
   images = []
+
   for page_rows, page_number in pages:
     canvas = await build_crystal_manifest_canvas(
       user=user,
       all_crystal_data=crystal_data,
       page_number=page_number,
       total_pages=total_pages,
-      row_count=len(page_rows) - 1,
+      row_count=max(len(page_rows) - 1, 0),
       rarity=rarity,
       emoji=emoji,
       theme=theme
     )
+
+    if not page_rows:
+      # Handle empty row case here!
+      empty_row = await compose_empty_crystal_manifest_row(theme)
+      frame = canvas.copy()
+      frame.paste(empty_row, (110, dims.start_y), empty_row)
+      images.append(buffer_image_to_discord_file(frame, f"crystal_manifest_{rarity}_{page_number}.png"))
+      continue
 
     prepared_rows = await asyncio.gather(*[
       compose_crystal_manifest_row(crystal, theme) for crystal in page_rows
@@ -762,7 +771,7 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
       frame_stack.append(frame)
 
     if animated:
-      webp_buf = await encode_webp(frame_stack)
+      webp_buf = await encode_webp(frame_stack, resize=False)
       images.append(discord.File(webp_buf, filename=f"crystal_manifest_{rarity}_{page_number}.webp"))
     else:
       image_file = buffer_image_to_discord_file(frame_stack[0], f"crystal_manifest_{rarity}_{page_number}.png")
@@ -782,14 +791,20 @@ async def build_crystal_manifest_canvas(user: discord.User, all_crystal_data, pa
     content_rows=row_count,
     page_number=page_number,
     total_pages=total_pages,
-    title_text=f"{user.display_name}'s {rarity.title()} Crystals",
-    footer_left_text=emoji,
-    footer_center_text=f"{len(all_crystal_data)} Available",
+    title_text=f"{user.display_name}'s {rarity.title()} Crystal Manifest",
+    footer_center_text=f"{len(all_crystal_data)} Available"
   )
+
+  # Draw the rarity emoji in the bottom left corner
+  fonts = load_fonts()
+  w, h = canvas.size
+  draw = ImageDraw.Draw(canvas)
+  await draw_dynamic_text(canvas, draw, text=emoji, position=(85, h - 130), font_obj=fonts.general, max_width=150, starting_size=120)
+
   return canvas
 
-_dummy_badge_info_cache = None
 
+_dummy_badge_info_cache = None
 
 async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.Image]:
   """
@@ -801,7 +816,7 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
   draw = ImageDraw.Draw(row_canvas)
   draw.rounded_rectangle((0, 0, dims.row_width, dims.row_height), fill="#181818", outline="#181818", width=4, radius=32)
 
-  fonts = load_fonts(title_size=160, general_size=100)
+  fonts = load_fonts(title_size=140, general_size=80)
 
   icon_path = f"./images/templates/crystals/icons/{crystal['icon']}"
   try:
@@ -814,10 +829,7 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
   name_x = dims.offset
   draw.text((name_x, 40), crystal['crystal_name'], font=fonts.title, fill=colors.highlight)
 
-  draw.text((dims.row_width - 20, 50), crystal['rarity_name'], font=fonts.general, fill=colors.highlight, anchor="rt")
-
-  wrapped_desc = textwrap.fill(crystal['description'], width=80)
-  draw.text((name_x, 160), wrapped_desc, font=fonts.general, fill="#DDDDDD")
+  await draw_dynamic_text(row_canvas, draw, text=crystal['description'], font_obj=fonts.general, position=(name_x, 165), max_width=(dims.row_width - (dims.offset * 2)), starting_size=80, fill=(221, 221, 221))
 
   # Render preview of crystal effect on dummy badge
   global _dummy_badge_info_cache
@@ -845,6 +857,28 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
     row_frames.append(composed)
 
   return row_frames
+
+async def compose_empty_crystal_manifest_row(theme: str, message: str = "No Crystals Available") -> Image.Image:
+  dims = _get_canvas_row_dimensions()
+  colors = get_theme_colors(theme)
+
+  row_canvas = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
+  draw = ImageDraw.Draw(row_canvas)
+
+  draw.rounded_rectangle(
+    (0, 0, dims.row_width, dims.row_height),
+    fill="#181818",
+    outline="#181818",
+    width=4,
+    radius=32
+  )
+
+  fonts = load_fonts(title_size=160)
+
+  text_w = draw.textlength(message, font=fonts.title)
+  draw.text(((dims.row_width - text_w) // 2, (dims.row_height // 2) - 50), message, font=fonts.title, fill=colors.highlight)
+
+  return row_canvas
 
 
 # __________             .___                 _________ __         .__
@@ -1015,9 +1049,9 @@ async def build_display_canvas(
   content_rows: int,
   page_number: int,
   total_pages: int,
-  title_text: str,
-  footer_left_text: str,
-  footer_center_text: str,
+  title_text: str = "",
+  footer_left_text: str = "",
+  footer_center_text: str = "",
 ) -> Image.Image:
   """
   Builds a themed display canvas shared by both collection and completion layouts.
