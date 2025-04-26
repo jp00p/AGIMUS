@@ -313,9 +313,10 @@ class Crystals(commands.Cog):
     if not crystals:
       embed = discord.Embed(
         title="Crystal Manifest",
-        description="You currently have no unattuned crystals in your manifest.",
+        description="You currently have no unattuned crystals in your manifest!",
         color=discord.Color.dark_teal()
       )
+      embed.set_image(url="https://i.imgur.com/cr2m5It.gif")
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
@@ -330,11 +331,11 @@ class Crystals(commands.Cog):
     # Build the initial landing embed
     embed = discord.Embed(
       title="Crystal Manifest",
-      description="Welcome to your Crystal Manifest!\n\nYour manifest lists all currently *unattuned* Crystals you possess.",
+      description="Welcome to your Crystal Manifest!\n\nNavigate below to list all of your currently *unattuned* Crystals at each rarity level.",
       color=discord.Color.teal()
     )
     # embed.set_footer(text="Select a rarity below to view your unattuned Crystals at each rarity level.")
-    # embed.set_image(url="https://example.com/manifest_landing_image.png")  # Replace with actual asset
+    embed.set_image(url="https://i.imgur.com/cr2m5It.gif")
 
     view = CrystalsManifestView(user_id, crystals_by_rarity)
     initial_message = await ctx.interaction.response.send_message(embed=embed, view=view, ephemeral=True)
@@ -780,33 +781,42 @@ async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_cry
     return pages, embeds
 
   rarity_name = rarity_level_crystals[0]['rarity_name']
-  rarity_emoji = rarity_level_crystals[0]['emoji']
+  rarity_emoji = rarity_level_crystals[0]['emoji'
 
-  from collections import defaultdict
-  crystals_by_type = defaultdict(list)
+  # Collapse by crystal_type_id immediately
+  crystal_type_map = {}
   for crystal in rarity_level_crystals:
-    crystals_by_type[crystal['crystal_type_id']].append(crystal)
+    type_id = crystal['crystal_type_id']
+    if type_id not in crystal_type_map:
+      crystal_type_map[type_id] = dict(crystal)  # shallow copy
+      crystal_type_map[type_id]['instance_count'] = 1
+    else:
+      crystal_type_map[type_id]['instance_count'] += 1
 
-  grouped_crystals = list(crystals_by_type.values())
+  # Pre-sort collapsed crystals during insertion
+  sorted_crystals = sorted(
+    crystal_type_map.values(),
+    key=lambda c: c['crystal_name'].lower()
+  )
 
-  for i in range(0, len(grouped_crystals), page_size):
-    chunk = grouped_crystals[i:i+page_size]
-    flattened_crystals = [c for group in chunk for c in group]
+  # Paginate
+  for i in range(0, len(sorted_crystals), page_size):
+    page_crystals = sorted_crystals[i:i+page_size]
 
-    # Generate the image(s) immediately
-    manifest_images = await generate_crystal_manifest_images(user, flattened_crystals, rarity_name, rarity_emoji)
+    manifest_images = await generate_crystal_manifest_images(user, page_crystals, rarity_name, rarity_emoji)
+    manifest_image = manifest_images[0]
 
-    for idx, manifest_image in enumerate(manifest_images):
-      embed = discord.Embed(
-        title=f"Crystal Manifest - {rarity_name}",
-        color=discord.Color.teal()
-      )
-      embed.set_image(url=f"attachment://{manifest_image.filename}")
+    embed = discord.Embed(
+      title=f"Crystal Manifest - {rarity_name}",
+      color=discord.Color.teal()
+    )
+    embed.set_image(url=f"attachment://{manifest_image.filename}")
 
-      pages.append(manifest_image)
-      embeds.append(embed)
+    pages.append(manifest_image)
+    embeds.append(embed)
 
   return pages, embeds
+
 
 
 #  ____ ___   __  .__.__

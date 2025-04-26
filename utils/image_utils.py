@@ -804,8 +804,6 @@ async def build_crystal_manifest_canvas(user: discord.User, all_crystal_data, pa
   return canvas
 
 
-_dummy_badge_info_cache = None
-
 async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.Image]:
   """
   Composes a single crystal manifest row.
@@ -826,12 +824,15 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
   except Exception as e:
     logger.warning(f"[manifest] Could not load icon at {icon_path}: {e}")
 
-  name_x = dims.offset
-  draw.text((name_x, 40), crystal['crystal_name'], font=fonts.title, fill=colors.highlight)
+  title_x = dims.offset
+  title = crystal['crystal_name']
+  if crystal.get('instance_count', 1) > 1:
+    title += f" (×{crystal['instance_count']})"
+  draw.text((title_x, 40), title, font=fonts.title, fill=colors.highlight)
 
-  await draw_dynamic_text(row_canvas, draw, text=crystal['description'], font_obj=fonts.general, position=(name_x, 165), max_width=(dims.row_width - (dims.offset * 2)), starting_size=80, fill=(221, 221, 221))
+  await draw_dynamic_text(row_canvas, draw, text=crystal['description'], font_obj=fonts.general, position=(title_x, 165), max_width=(dims.row_width - (dims.offset * 2)), starting_size=80, fill=(221, 221, 221))
 
-  # Render preview of crystal effect on dummy badge
+  # Render preview of crystal effect on "dummy" badge
   global _dummy_badge_info_cache
   if _dummy_badge_info_cache is None:
     _dummy_badge_info_cache = await db_get_badge_info_by_name("Starfleet Crew 2160s (Kelvin)")
@@ -857,6 +858,8 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
     row_frames.append(composed)
 
   return row_frames
+_dummy_badge_info_cache = None
+
 
 async def compose_empty_crystal_manifest_row(theme: str, message: str = "No Crystals Available") -> Image.Image:
   dims = _get_canvas_row_dimensions()
