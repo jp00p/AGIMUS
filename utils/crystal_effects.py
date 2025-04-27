@@ -7,7 +7,7 @@ from pathlib import Path
 from scipy.ndimage import map_coordinates, binary_dilation, gaussian_filter
 
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
-from utils.encode_utils import encode_webp
+from utils.encode_utils import encode_badge_webp
 
 FRAME_SIZE = (190, 190)
 ANIMATION_FPS = 12
@@ -16,22 +16,17 @@ ANIMATION_DURATION = 2.0
 
 # --- Thread-safe loader wrappers ---
 @to_thread
+@to_thread
 def load_cached_effect_image(cached_path):
   """
   Loads a cached crystal effect image (static or animated) from disk.
 
-  If animated, returns a list of RGBA frames.
-  If static, returns a single RGBA image.
+  If animated (APNG), returns a list of RGBA frames.
+  If static (PNG), returns a single RGBA image.
   """
   img = Image.open(cached_path)
   if getattr(img, "is_animated", False):
-    # Clear between frames to prevent ghosting
-    base = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    frames = []
-    for frame in ImageSequence.Iterator(img):
-      tmp = base.copy()
-      tmp.paste(frame.convert("RGBA"), (0, 0), frame.convert("RGBA"))
-      frames.append(tmp)
+    frames = [frame.copy().convert("RGBA") for frame in ImageSequence.Iterator(img)]
     return frames
   return img.convert("RGBA")
 
@@ -115,42 +110,44 @@ def register_effect(name):
 # These effects, and specifically the animated effects, are expensive so
 # Let's save em to disk for retrieval on-demand
 CACHE_DIR = ".cache/crystal_effects"
-def get_cached_effect_path(effect: str, badge_info_id: int, extension: str = "webp") -> Path:
+
+def get_cached_effect_path(effect: str, badge_info_id: int, extension: str = "png") -> Path:
   """
   Constructs the full file path for a crystal effect cache entry.
 
-  Example: .cache/crystal_effects/shimmer_flux__123.webp
+  Example: .cache/crystal_effects/shimmer_flux__123.apng
   """
-  filename = f"{effect}__{badge_info_id}.{extension}"
-  return Path(CACHE_DIR) / filename
+  safe_effect = effect.replace("/", "_")
+  return Path(f".cache/crystal_effects/{safe_effect}_{badge_info_id}.{extension}")
 
-def get_cached_effect_image_path(effect: str, badge_info_id: int, extension: str = "webp") -> Path | None:
+@to_thread
+def save_cached_effect_image(image: Image.Image | list[Image.Image], effect: str, badge_info_id: int):
   """
-  Checks if a cached crystal effect image exists.
+  Saves a crystal effect result to the cache.
 
-  Returns the path if found, otherwise None.
+  If `image` is a list, saves as an APNG.
+  Otherwise, saves as a single static PNG.
   """
-  path = get_cached_effect_path(effect, badge_info_id, extension)
-  return path if path.exists() else None
-
-async def save_cached_effect_image(image: Image.Image | list[Image.Image], effect: str, badge_info_id: int, extension: str = "webp", fps: int = 12):
-  """
-  Saves a crystal effect result (image or animation) to the cache.
-
-  If `image` is a list, saves as an animated webp.
-  Otherwise, saves as a single static image.
-  """
-  path = get_cached_effect_path(effect, badge_info_id, extension)
+  path = get_cached_effect_path(effect, badge_info_id, extension="apng" if isinstance(image, list) else "png")
   path.parent.mkdir(parents=True, exist_ok=True)
 
   if isinstance(image, list):
-    buf = await encode_webp(image, resize=False)
-    with open(path, "wb") as f:
-      f.write(buf.getvalue())
+    # Save as animated PNG
+    first, *rest = image
+    first.save(
+      path,
+      format="PNG",
+      save_all=True,
+      append_images=rest,
+      duration=int(1000 / 12),  # Assuming 12 fps
+      loop=0,
+      optimize=False,
+      disposal=2  # Restore to background before next frame (important)
+    )
   else:
-    image.save(path)
+    # Save as static PNG
+    image.save(path, format="PNG")
 
-  return path
 
 def delete_crystal_effects_cache():
   """

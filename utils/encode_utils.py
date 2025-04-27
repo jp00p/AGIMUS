@@ -1,98 +1,98 @@
 import tempfile
-
-from common import *
+import subprocess
+import io
+import os
+import time
 
 from concurrent.futures import ThreadPoolExecutor
 
+from common import *
+
 THREAD_POOL = ThreadPoolExecutor(max_workers=24)
 
-async def encode_webp(frames: list[Image.Image], resize=True):
-  loop = asyncio.get_running_loop()
+async def encode_webp(frames: list[Image.Image], fps: int = 12, resize: bool = True) -> io.BytesIO:
+  """
+  Encodes a list of RGBA frames into an animated WebP.
 
-  # TODO: Make native canvas sizes smaller so we don't have to do this reize step...
-  # Resize final output frames concurrently while preserving order
-  start = time.perf_counter()
-  def resize_frame(img: Image.Image) -> Image.Image:
-    if resize:
-      logger.info(f"[timing] Starting Stage 4: frame resizing")
+  Args:
+    frames: List of PIL Image frames (RGBA).
+    fps: Frames per second for animation.
+    resize: Whether to resize frames to half size.
 
-      w, h = img.size
-      return img.resize((int(w * 0.5), int(h * 0.5)), resample=Image.LANCZOS)
-    else:
-      return img
-
-  resize_tasks = [
-    loop.run_in_executor(THREAD_POOL, resize_frame, frame)
-    for frame in frames
-  ]
-  final_frames = await asyncio.gather(*resize_tasks)
-
-  if resize:
-    end = time.perf_counter()
-    logger.info(f"[timing] frame resizing took {end - start:.2f}s")
-
-  return await loop.run_in_executor(THREAD_POOL, _encode_webp, final_frames)
-
-def _encode_webp(frames: list[Image.Image]):
-  buf = _encode_webp_ffmpeg_pipe(frames)
-  buf.seek(0)
-  return buf
-
-def _encode_webp_ffmpeg_pipe(frames: list[Image.Image], fps=12) -> io.BytesIO:
+  Returns:
+    io.BytesIO: In-memory WebP animation.
+  """
   if not frames:
     raise ValueError("No frames provided for WebP encoding.")
 
-  logger.info(f"[timing] Starting Stage 5: webp encoding")
-  start = time.perf_counter()
+  loop = asyncio.get_running_loop()
+
+  # ---- Resizing Stage ----
+  if resize:
+    start_resize = time.perf_counter()
+
+    def resize_frame(img: Image.Image) -> Image.Image:
+      w, h = img.size
+      return img.resize((int(w * 0.5), int(h * 0.5)), resample=Image.LANCZOS)
+
+    resize_tasks = [loop.run_in_executor(THREAD_POOL, resize_frame, frame) for frame in frames]
+    frames = await asyncio.gather(*resize_tasks)
+
+    end_resize = time.perf_counter()
+    logger.info(f"[timing] frame resizing took {end_resize - start_resize:.2f}s")
 
   width, height = frames[0].size
-  pix_fmt = "rgba"
   frame_count = len(frames)
 
-  # Convert all frames to raw RGB data
+  # ---- Encoding Stage ----
+  logger.info(f"[timing] Starting WebP encoding with {frame_count} frames at {fps}fps")
+  start_encode = time.perf_counter()
+
+  # Prepare raw RGBA frame data
   raw_rgb = b''.join(frame.convert("RGBA").tobytes() for frame in frames)
 
-  # Create a temporary file for FFmpeg output
   with tempfile.NamedTemporaryFile(suffix=".webp", delete=False) as temp_outfile:
     output_path = temp_outfile.name
 
   try:
-    # FFmpeg command to encode raw RGB to animated WebP
     command = [
       "ffmpeg",
       "-y",  # Overwrite output
       "-f", "rawvideo",
-      "-pix_fmt", pix_fmt,
+      "-pix_fmt", "rgba",
       "-s", f"{width}x{height}",
       "-r", str(fps),
-      "-i", "pipe:0",  # Input from stdin
+      "-i", "pipe:0",
       "-c:v", "libwebp",
       "-lossless", "1",
-      "-preset", "picture",
+      "-compression_level", "6",
+      "-quality", "90",  # Good balance: faster and smaller
       "-loop", "0",
+      "-preset", "picture",
       "-frames:v", str(frame_count),
       "-an",
       "-vsync", "0",
-      output_path  # Output to real file
+      output_path
     ]
 
-    # Run ffmpeg and feed raw RGB bytes
-    process = subprocess.run(
-      command,
-      input=raw_rgb,
-      stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE
+    proc = await asyncio.create_subprocess_exec(
+      *command,
+      stdin=asyncio.subprocess.PIPE,
+      stdout=asyncio.subprocess.PIPE,
+      stderr=asyncio.subprocess.PIPE,
     )
 
-    if process.returncode != 0:
-      raise RuntimeError(f"FFmpeg failed:\n{process.stderr.decode()}")
+    stdout, stderr = await proc.communicate(input=raw_rgb)
 
-    # Read the output .webp back into memory
+    if proc.returncode != 0:
+      logger.error(f"[encode_webp] ffmpeg error: {stderr.decode()}")
+      raise RuntimeError(f"FFmpeg WebP encoding failed:\n{stderr.decode()}")
+
     with open(output_path, "rb") as f:
       webp_data = f.read()
 
-    end = time.perf_counter()
-    logger.info(f"[timing] _encode_webp_ffmpeg_pipe took {end - start:.2f}s")
+    end_encode = time.perf_counter()
+    logger.info(f"[timing] webp encoding took {end_encode - start_encode:.2f}s")
 
     return io.BytesIO(webp_data)
 
