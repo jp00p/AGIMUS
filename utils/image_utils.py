@@ -238,6 +238,8 @@ async def draw_dynamic_text(
       draw.text((current_x, y), cluster, font=font, fill=fill)
       current_x += font.getlength(cluster)
 
+  return total_width
+
 EMOJI_IMAGE_PATH = Path("fonts/twemoji")
 
 def is_emoji(seq: str) -> bool:
@@ -711,7 +713,7 @@ def _get_canvas_row_dimensions() -> CanvasRowDimensions:
 # \     \____|  | \/\___  |\___ \  |  |  / __ \|  |__ /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |
 #  \______  /|__|   / ____/____  > |__| (____  /____/ \____|__  (____  /___|  /__||__|  \___  >____  > |__|
 #         \/        \/         \/            \/               \/     \/     \/              \/     \/
-async def generate_crystal_manifest_images(user: discord.User, crystal_data: list[dict], rarity: str, emoji: str) -> list[discord.File]:
+async def generate_crystal_manifest_images(user: discord.User, crystal_data: list[dict], rarity: str, emoji: str, return_buffers: bool = False) -> list[tuple[io.BytesIO, str]]:
   """
   Generates paginated inventory-style crystal manifest images for a user's unattuned crystals.
 
@@ -722,7 +724,7 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
     emoji: The rarity's emoji, for footer labeling.
 
   Returns:
-    List of discord.File objects representing image pages.
+    List of (BytesIO, filename) tuples.
   """
   theme = 'teal'
   dims = _get_canvas_row_dimensions()
@@ -731,7 +733,7 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
   pages = list(paginate(crystal_data, rows_per_page))
   total_pages = len(pages)
 
-  images = []
+  results = []
 
   for page_rows, page_number in pages:
     canvas = await build_crystal_manifest_canvas(
@@ -746,11 +748,14 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
     )
 
     if not page_rows:
-      # Handle empty row case here!
       empty_row = await compose_empty_crystal_manifest_row(theme)
       frame = canvas.copy()
       frame.paste(empty_row, (110, dims.start_y), empty_row)
-      images.append(buffer_image_to_discord_file(frame, f"crystal_manifest_{rarity}_{page_number}.png"))
+      buf = io.BytesIO()
+      frame.save(buf, format="PNG")
+      buf.seek(0)
+      filename = f"crystal_manifest_{rarity}_{page_number}.png"
+      results.append((buf, filename))
       continue
 
     prepared_rows = await asyncio.gather(*[
@@ -772,12 +777,16 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
 
     if animated:
       webp_buf = await encode_webp(frame_stack, resize=False)
-      images.append(discord.File(webp_buf, filename=f"crystal_manifest_{rarity}_{page_number}.webp"))
+      filename = f"crystal_manifest_{rarity}_{page_number}.webp"
+      results.append((webp_buf, filename))
     else:
-      image_file = buffer_image_to_discord_file(frame_stack[0], f"crystal_manifest_{rarity}_{page_number}.png")
-      images.append(image_file)
+      buf = io.BytesIO()
+      frame_stack[0].save(buf, format="PNG")
+      buf.seek(0)
+      filename = f"crystal_manifest_{rarity}_{page_number}.png"
+      results.append((buf, filename))
 
-  return images
+  return results
 
 
 async def build_crystal_manifest_canvas(user: discord.User, all_crystal_data, page_number: int, total_pages: int, row_count: int, rarity: str, emoji:str, theme: str) -> Image.Image:
@@ -826,9 +835,14 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
 
   title_x = dims.offset
   title = crystal['crystal_name']
-  if crystal.get('instance_count', 1) > 1:
-    title += f" (×{crystal['instance_count']})"
   draw.text((title_x, 40), title, font=fonts.title, fill=colors.highlight)
+  if 'instance_count' in crystal and crystal['instance_count'] > 1:
+    count_text = f"(x{crystal['instance_count']})"
+    # Calculate width of the name so we can offset the count right after it
+    title_width = draw.textlength(title, font=fonts.title)
+    count_x = title_x + title_width + 20  # small padding after name
+    count_y = 80  # align with name baseline
+    draw.text((count_x, count_y), count_text, font=fonts.general, fill=colors.darker_highlight)
 
   await draw_dynamic_text(row_canvas, draw, text=crystal['description'], font_obj=fonts.general, position=(title_x, 165), max_width=(dims.row_width - (dims.offset * 2)), starting_size=80, fill=(221, 221, 221))
 

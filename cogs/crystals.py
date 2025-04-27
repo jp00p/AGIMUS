@@ -1,4 +1,5 @@
 from collections import defaultdict
+from io import BytesIO
 
 from common import *
 
@@ -316,7 +317,7 @@ class Crystals(commands.Cog):
         description="You currently have no unattuned crystals in your manifest!",
         color=discord.Color.dark_teal()
       )
-      embed.set_image(url="https://i.imgur.com/cr2m5It.gif")
+      # embed.set_image(url="https://i.imgur.com/cr2m5It.gif")
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
@@ -335,7 +336,7 @@ class Crystals(commands.Cog):
       color=discord.Color.teal()
     )
     # embed.set_footer(text="Select a rarity below to view your unattuned Crystals at each rarity level.")
-    embed.set_image(url="https://i.imgur.com/cr2m5It.gif")
+    embed.set_image(url="https://i.imgur.com/Jq9tuZq.gif")
 
     view = CrystalsManifestView(user_id, crystals_by_rarity)
     initial_message = await ctx.interaction.response.send_message(embed=embed, view=view, ephemeral=True)
@@ -657,77 +658,85 @@ class RaritySelect(discord.ui.Select):
     await interaction.response.defer(ephemeral=True)
 
     if self.parent_view.initial_message:
+      intitialization_embed = discord.Embed(
+        title="Initializing Manifest...",
+        color=discord.Color.teal()
+      )
+      intitialization_embed.set_image(url="https://i.imgur.com/hZ6aubN.gif")
       await self.parent_view.initial_message.edit(
-        embed=discord.Embed(
-          title="Initializing Manifest...",
-          color=discord.Color.teal()
-        ),
+        embed=intitialization_embed,
         view=None
       )
-      self.parent_view.initial_message = None
-
-    old_message = self.parent_view.message
 
     rarity = self.values[0]
     rarity_level_crystals = self.parent_view.crystals_by_rarity[rarity]
-    pages, embeds = await generate_paginated_crystal_rarity_pages(self.parent_view.user_id, rarity_level_crystals)
 
+    # Clean up old message if it exists
+    old_message = self.parent_view.message
+    if old_message:
+      try:
+        await old_message.delete()
+      except discord.errors.NotFound:
+        pass
+
+    # Generate new manifest pages
+    page_buffers, embeds = await generate_paginated_crystal_rarity_pages(
+      self.parent_view.user_id, rarity_level_crystals
+    )
+
+    # Create the new paginator with updated buffers
     paginator = CrystalsManifestPaginator(
       user_id=self.parent_view.user_id,
       rarity=rarity,
-      pages=pages,
+      page_buffers=page_buffers,
       embeds=embeds
     )
     paginator.add_item(RaritySelect(self.parent_view))
 
+    # Send new ephemeral message
     new_message = await interaction.followup.send(
       embed=embeds[0],
-      file=pages[0],
+      file=discord.File(fp=page_buffers[0][0], filename=page_buffers[0][1]),
       view=paginator,
       ephemeral=True
     )
 
+    # Reassign current paginator and message
     paginator.message = new_message
     self.parent_view.message = new_message
 
-    try:
-      if old_message:
-        await old_message.delete()
-      # await interaction.delete_original_response()
-    except discord.errors.NotFound:
-      pass
+    # Clear initial loading message if it existed
+    if self.parent_view.initial_message:
+      try:
+        if isinstance(self.parent_view.initial_message, discord.Message):
+          await self.parent_view.initial_message.delete()
+      except discord.errors.NotFound:
+        pass
+      self.parent_view.initial_message = None
 
 
 class CrystalsManifestPaginator(discord.ui.View):
-  def __init__(self, user_id: int, rarity: str, pages: list[discord.File], embeds: list[discord.Embed]):
+  def __init__(self, user_id: int, rarity: str, page_buffers: list[io.BytesIO], embeds: list[discord.Embed]):
     super().__init__(timeout=180)
     self.user_id = user_id
     self.rarity = rarity
-    self.pages = pages
+    self.page_buffers = page_buffers  # List of BytesIO buffers
     self.embeds = embeds
     self.current_page = 0
-    self.total_pages = len(pages)
-    self.message = None  # Will hold the reference to the last sent message
+    self.total_pages = len(page_buffers)
+    self.message = None
 
-    self.prev_button = discord.ui.Button(label="◀ Prev", style=discord.ButtonStyle.secondary, disabled=self.total_pages <= 1)
-    self.prev_button.callback = self.prev_page
-    self.add_item(self.prev_button)
+    if self.total_pages > 1:
+      self.prev_button = discord.ui.Button(label="◀ Prev", style=discord.ButtonStyle.secondary)
+      self.prev_button.callback = self.prev_page
+      self.add_item(self.prev_button)
 
-    self.page_indicator = discord.ui.Button(label=f"Page {self.current_page + 1}/{self.total_pages}", disabled=True)
-    self.add_item(self.page_indicator)
+      self.page_indicator = discord.ui.Button(label=f"Page {self.current_page + 1}/{self.total_pages}", disabled=True)
+      self.add_item(self.page_indicator)
 
-    self.next_button = discord.ui.Button(label="Next ▶", style=discord.ButtonStyle.secondary, disabled=self.total_pages <= 1)
-    self.next_button.callback = self.next_page
-    self.add_item(self.next_button)
-
-  async def on_timeout(self):
-    for child in self.children:
-      child.disabled = True
-      if self.message:
-        try:
-          await self.message.edit(view=self)
-        except discord.errors.NotFound:
-          pass  # Message already deleted, safe to ignore
+      self.next_button = discord.ui.Button(label="Next ▶", style=discord.ButtonStyle.secondary)
+      self.next_button.callback = self.next_page
+      self.add_item(self.next_button)
 
   async def prev_page(self, interaction: discord.Interaction):
     self.current_page = (self.current_page - 1) % self.total_pages
@@ -738,37 +747,50 @@ class CrystalsManifestPaginator(discord.ui.View):
     await self.update_page(interaction)
 
   async def update_page(self, interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
+    if not interaction.response.is_done():
+      await interaction.response.defer(ephemeral=True)
 
-    # Disable all buttons immediately to prevent race conditions
-    for child in self.children:
-      if isinstance(child, discord.ui.Button) and not child.disabled:
-        child.disabled = True
-
-    # Delete the old message if it still exists
-    try:
-      if self.message:
-        await self.message.delete()
-    except discord.errors.NotFound:
-      pass
-
-    # Update label for page indicator
     self.page_indicator.label = f"Page {self.current_page + 1}/{self.total_pages}"
-
-    # Re-enable buttons after setting label
     self.prev_button.disabled = self.total_pages <= 1
     self.next_button.disabled = self.total_pages <= 1
 
-    # Send the new page using followup (ephemeral)
+    # Close the old ephemeral message
+    if self.message:
+      try:
+        await self.message.delete()
+      except discord.errors.NotFound:
+        pass
+
+    # Send a fresh followup
+    buffer, filename = self.page_buffers[self.current_page]
+    buffer.seek(0)
+
     new_message = await interaction.followup.send(
       embed=self.embeds[self.current_page],
-      file=self.pages[self.current_page],
+      file=discord.File(fp=buffer, filename=filename),
       view=self,
       ephemeral=True
     )
 
-    # Track the latest message reference
+    # Update the current reference
     self.message = new_message
+
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound:
+        pass
+
+    # Close all buffered images to ensure memory is flushed
+    for buffer, _ in self.page_buffers:
+      try:
+        buffer.close()
+      except Exception:
+        pass
 
 
 async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_crystals):
@@ -781,38 +803,35 @@ async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_cry
     return pages, embeds
 
   rarity_name = rarity_level_crystals[0]['rarity_name']
-  rarity_emoji = rarity_level_crystals[0]['emoji'
+  rarity_emoji = rarity_level_crystals[0]['emoji']
 
-  # Collapse by crystal_type_id immediately
   crystal_type_map = {}
   for crystal in rarity_level_crystals:
     type_id = crystal['crystal_type_id']
     if type_id not in crystal_type_map:
-      crystal_type_map[type_id] = dict(crystal)  # shallow copy
+      crystal_type_map[type_id] = dict(crystal)
       crystal_type_map[type_id]['instance_count'] = 1
     else:
       crystal_type_map[type_id]['instance_count'] += 1
 
-  # Pre-sort collapsed crystals during insertion
   sorted_crystals = sorted(
     crystal_type_map.values(),
     key=lambda c: c['crystal_name'].lower()
   )
 
-  # Paginate
   for i in range(0, len(sorted_crystals), page_size):
     page_crystals = sorted_crystals[i:i+page_size]
 
-    manifest_images = await generate_crystal_manifest_images(user, page_crystals, rarity_name, rarity_emoji)
-    manifest_image = manifest_images[0]
+    manifest_images = await generate_crystal_manifest_images(user, page_crystals, rarity_name, rarity_emoji, return_buffers=True)
+    manifest_buffer, manifest_filename = manifest_images[0]
 
     embed = discord.Embed(
       title=f"Crystal Manifest - {rarity_name}",
       color=discord.Color.teal()
     )
-    embed.set_image(url=f"attachment://{manifest_image.filename}")
+    embed.set_image(url=f"attachment://{manifest_filename}")
 
-    pages.append(manifest_image)
+    pages.append((manifest_buffer, manifest_filename))
     embeds.append(embed)
 
   return pages, embeds
