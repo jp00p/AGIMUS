@@ -311,19 +311,22 @@ async def sets(ctx:discord.ApplicationContext, public:str, category:str, selecti
     )
     return
 
+  user_badge_map = {badge['badge_name']: badge for badge in user_set_badges}
+
   set_badges = []
   for badge in all_set_badges:
-    result = await db_get_badge_locked_status_by_name(ctx.author.id, badge['badge_name'])
-    locked = result['locked'] if result else False
+    user_badge = user_badge_map.get(badge['badge_name'])
     record = {
+      'badge_info_id': badge['id'],
       'badge_name': badge['badge_name'],
       'badge_filename': badge['badge_filename'],
       'special': badge['special'],
-      'locked': locked,
-      'in_user_collection': badge['badge_name'] in [b['badge_name'] for b in user_set_badges]
+      'in_user_collection': bool(user_badge),
+      'locked': user_badge.get('crystal_id') if user_badge else None,
+      'crystal_id': user_badge.get('crystal_id') if user_badge else None,
+      'crystal_effect': user_badge.get('crystal_effect') if user_badge else None
     }
     set_badges.append(record)
-
 
   pending_message = await ctx.followup.send(
     embed=discord.Embed(

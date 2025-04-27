@@ -907,7 +907,6 @@ class Tongo(commands.Cog):
         'badge_to_grant': badge_to_grant,
         'tongo_badges_to_remove': badges_to_remove
       }
-      logger.info(pprint(liquidation_result))
 
       return liquidation_result
 

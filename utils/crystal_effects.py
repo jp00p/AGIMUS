@@ -7,7 +7,6 @@ from pathlib import Path
 from scipy.ndimage import map_coordinates, binary_dilation, gaussian_filter
 
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
-from utils.encode_utils import encode_badge_webp
 
 FRAME_SIZE = (190, 190)
 ANIMATION_FPS = 12
@@ -15,7 +14,6 @@ ANIMATION_DURATION = 2.0
 
 
 # --- Thread-safe loader wrappers ---
-@to_thread
 @to_thread
 def load_cached_effect_image(cached_path):
   """
@@ -54,48 +52,67 @@ def load_background_image_resized(path, size):
 #
 async def apply_crystal_effect(badge_image: Image.Image, badge: dict, crystal=None) -> Image.Image | list[Image.Image]:
   """
-  Applies the visual crystal effect to a badge image based on the crystal attached to the badge.
+  Applies the visual crystal effect to a badge image based on the attached crystal.
 
-  - If the badge has no crystal (`crystal_id` is missing), returns the original image unchanged.
-  - If the badge has a recognized crystal effect, attempts to load the result from disk cache.
-  - If no cache is found, generates the effect using the appropriate registered handler function.
-    The result may be a static image or an animated sequence of frames.
-  - The final result is saved to disk for future retrieval.
+  - If no crystal is attached (`crystal_id` missing), returns the original image unchanged.
+  - If a crystal effect is specified, attempts to load a cached result (PNG or APNG).
+  - If no cached result is found, dynamically generates the effect using the registered handler function.
+    The generated result is then cached for future use.
+  - Supports both static (single image) and animated (list of frames) effects.
 
   Args:
-    badge_image (PIL.Image): The base badge image in RGBA format.
-    badge (dict): Dictionary representing the badge instance. Must include:
-      - 'badge_info_id': used for cache filename
-      - 'crystal_id': present if a crystal is attached
-      - 'effect': the effect key used to route to a registered handler function
+    badge_image (PIL.Image.Image): The base badge image in RGBA format.
+    badge (dict): Dictionary containing at minimum:
+      - 'badge_info_id' (int): ID used for effect cache filenames.
+      - 'crystal_id' (int, optional): Present if a crystal is attached.
+      - 'effect' (str, optional): Key used to look up the registered effect handler.
 
   Returns:
-    Image.Image | list[Image.Image]: Either a static RGBA image or a list of RGBA frames for animation.
+    PIL.Image.Image or list[PIL.Image.Image]: Either a static RGBA image or a sequence of RGBA frames for animation.
   """
+
   effect_key = None
   if crystal:
     effect_key = crystal.get("effect")
   elif badge:
-    if not badge.get('crystal_id'):
-      return badge_image
-    else:
-      effect_key = badge.get("effect")
+    effect_key = badge.get("crystal_effect", None)
 
   if not effect_key:
     return badge_image
 
-  cached_path = get_cached_effect_image_path(effect_key, badge['badge_info_id'])
-  if cached_path:
-    result = await load_cached_effect_image(cached_path)
-    return result
+  cached_path_png = get_cached_effect_path(effect_key, badge['badge_info_id'], extension="png")
+  cached_path_apng = get_cached_effect_path(effect_key, badge['badge_info_id'], extension="apng")
+
+  if cached_path_png.exists():
+    logger.info(f"Loading cached static effect (.png) for {effect_key} (Badge ID {badge['badge_info_id']})")
+    return await load_cached_effect_image(cached_path_png)
+
+  if cached_path_apng.exists():
+    logger.info(f"Loading cached animated effect (.apng) for {effect_key} (Badge ID {badge['badge_info_id']})")
+    return await load_cached_effect_image(cached_path_apng)
+
+  # If neither cache exists, generate it
+  logger.info(f"Cached effect not found for {effect_key} (Badge ID {badge['badge_info_id']}) — generating...")
 
   fn = _EFFECT_ROUTER.get(effect_key)
-  if fn:
-    result = await asyncio.to_thread(fn, badge_image, badge)
-    await save_cached_effect_image(result, effect_key, badge['badge_info_id'])
-    return result
+  if not fn:
+    logger.warning(f"No effect registered for {effect_key}. Returning base badge image.")
+    return badge_image
 
-  return badge_image
+  # Generate effect (may be single image or list of frames)
+  result = await asyncio.to_thread(fn, badge_image, badge)
+
+  # Determine correct extension based on generated result
+  extension = "apng" if isinstance(result, list) else "png"
+  cached_path = get_cached_effect_path(effect_key, badge['badge_info_id'], extension=extension)
+
+  # Save to disk
+  await save_cached_effect_image(result, effect_key, badge['badge_info_id'])
+
+  # Load freshly saved result
+  return await load_cached_effect_image(cached_path)
+
+
 
 # --- Internal Effect Registry ---
 _EFFECT_ROUTER = {}

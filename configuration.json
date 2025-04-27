@@ -19,7 +19,8 @@
         "badgeys-badges",
         "bahrats-bazaar",
         "zeks-table",
-        "the-royalee",
+        "gelrak-v",
+        "the-royale",
         "dr-crushers-hotbox",
         "megalomaniacal-computer-storage",
         "morns-nonstop-quiz",
@@ -46,7 +47,7 @@
         "megalomaniacal-computer-storage",
         "bot-logs",
         "bot-setup",
-        "the-royalee",
+        "the-royale",
         "poker-night",
         "morns-nonstop-quiz"
       ]
@@ -385,6 +386,7 @@
       "channels": [
         "badgeys-badges",
         "bahrats-bazaar",
+        "gelrak-v",
         "zeks-table"
       ],
       "enabled": true,
@@ -394,6 +396,7 @@
       "channels": [
         "badgeys-badges",
         "bahrats-bazaar",
+        "gelrak-v",
         "zeks-table"
       ],
       "enabled": true,
@@ -403,6 +406,7 @@
       "channels": [
         "badgeys-badges",
         "bahrats-bazaar",
+        "gelrak-v",
         "zeks-table"
       ],
       "enabled": true,
@@ -412,6 +416,7 @@
       "channels": [
         "badgeys-badges",
         "bahrats-bazaar",
+        "gelrak-v",
         "zeks-table"
       ],
       "enabled": true,
@@ -454,9 +459,7 @@
       "parameters": []
     },
     "crystals harmonize": {
-      "channels": [
-        "gelrak-v"
-      ],
+      "channels": [],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -816,6 +819,7 @@
       "channels": [
         "badgeys-badges",
         "bahrats-bazaar",
+        "gelrak-v",
         "zeks-table"
       ],
       "enabled": true,
@@ -825,6 +829,7 @@
       "channels": [
         "badgeys-badges",
         "bahrats-bazaar",
+        "gelrak-v",
         "zeks-table"
       ],
       "enabled": true,
@@ -1012,6 +1017,7 @@
       "channels": [
         "badgeys-badges",
         "bahrats-bazaar",
+        "gelrak-v",
         "zeks-table"
       ],
       "enabled": true,
@@ -1022,6 +1028,7 @@
       "channels": [
         "badgeys-badges",
         "bahrats-bazaar",
+        "gelrak-v",
         "zeks-table"
       ],
       "enabled": true,
@@ -1032,6 +1039,7 @@
       "channels": [
         "badgeys-badges",
         "bahrats-bazaar",
+        "gelrak-v",
         "zeks-table"
       ],
       "enabled": true,

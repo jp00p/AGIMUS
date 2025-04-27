@@ -403,8 +403,38 @@ CREATE TABLE wrapped_queue (
   error TEXT
 );
 
--- v3.0.0.sql - Crystallization Schema
--- CRYSTALS!
+-- v3.0.0
+
+-- ==Eschelon (New Level System)==
+CREATE TABLE eschelon_progress (
+  user_discord_id VARCHAR(64) PRIMARY KEY,
+  current_xp BIGINT NOT NULL DEFAULT 0,
+  current_level INT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
+);
+
+CREATE TABLE eschelon_progress_history (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_discord_id VARCHAR(64) NOT NULL,
+  xp_gained INT NOT NULL,
+  user_level_at_gain INT NOT NULL,
+  reason VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
+);
+
+CREATE TABLE legacy_xp_records (
+  user_discord_id VARCHAR(64) PRIMARY KEY,
+  legacy_level INT NOT NULL DEFAULT 1,
+  legacy_xp BIGINT NOT NULL DEFAULT 0,
+  recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
+);
+
+
+-- ==CRYSTALS tables!==
 
 -- Crystal Ranks
 CREATE TABLE IF NOT EXISTS crystal_ranks (
@@ -512,11 +542,14 @@ CREATE TABLE IF NOT EXISTS crystal_instance_history (
   FOREIGN KEY (to_user_id) REFERENCES users(discord_id)
 );
 
+-- ==Badges Tables==
+
 -- Badge Instances
 CREATE TABLE IF NOT EXISTS badge_instances (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_info_id INT UNSIGNED NOT NULL,
   owner_discord_id varchar(64) NULL,
+  prestige_level INT DEFAULT 0,
   locked BOOLEAN DEFAULT FALSE,
   active BOOLEAN GENERATED ALWAYS AS (status = 'active') STORED,
   origin_user_id varchar(64) NOT NULL,

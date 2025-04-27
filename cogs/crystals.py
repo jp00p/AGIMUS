@@ -470,7 +470,7 @@ class Crystals(commands.Cog):
           color=discord.Color.teal()
         )
         embed.set_image(url="https://i.imgur.com/lP883bg.gif")
-        embed.set_footer(text="Now you can use `/crystals activate` to apply the effect!")
+        embed.set_footer(text="Now you can use `/crystals harmonize` to apply the effect!")
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
       @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)

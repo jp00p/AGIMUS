@@ -68,8 +68,37 @@ ALTER TABLE tags_carousel_position
   ADD CONSTRAINT badge_tags_carousel_position_fk_badge_filename
   FOREIGN KEY (badge_filename) REFERENCES badge_info (badge_filename);
 
--- v3.0.0.sql - Crystallization Schema
--- CRYSTALS!
+-- v3.0.0
+
+-- ==Eschelon (New Level System)==
+CREATE TABLE eschelon_progress (
+  user_discord_id VARCHAR(64) PRIMARY KEY,
+  current_xp BIGINT NOT NULL DEFAULT 0,
+  current_level INT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
+);
+
+CREATE TABLE eschelon_progress_history (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_discord_id VARCHAR(64) NOT NULL,
+  xp_gained INT NOT NULL,
+  user_level_at_gain INT NOT NULL,
+  reason VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
+);
+
+CREATE TABLE legacy_xp_records (
+  user_discord_id VARCHAR(64) PRIMARY KEY,
+  legacy_level INT NOT NULL DEFAULT 1,
+  legacy_xp BIGINT NOT NULL DEFAULT 0,
+  recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
+);
+
+-- ==CRYSTALS tables!==
 
 -- Crystal Ranks
 CREATE TABLE IF NOT EXISTS crystal_ranks (
@@ -116,25 +145,23 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Solanogen", 1, "solanogen.png", "cyan_gradient", "Exotic compound from subspace realms. Don't get SCHISMD!"),
   ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days."),
 
-  ("Alabama River Rock", 1, "alabama_river_rock.png", "pink_gradient", "The Captain's Assistant's favorite rock! Low spark point, prevents jet fuel from asploding.") -- New
   ("Latinum", 1, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
 
-  -- Uncommon Crystals (Silhouette Effects)
+  -- Uncommon Crystals (Border Effects)
   ("Isolinear", 2, "isolinear.png", "isolinear", "Shimoda's favorite plaything material. Fully stackable!"),
   ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
   ("Positron", 2, "positron.png", "positronic", "Fully functional. Networks of these can operate at 60 trillion calculations a second."),
   ("Cryonetrium", 2, "cryonetrium.png", "cryonetrium", "Still gaseous at -200°C, that's some cold coolant!"),
+
   ('Verterium Cortenide', 2, 'verterium_cortenide.png', 'verterium_cortenide', 'Essential alloy used in Starship Warp Nacelles. Emits faint subspace displacement harmonics.'), -- New, Needs effect
   ('Transparent Aluminum', 2, 'transparent_aluminum.png', 'transparent_aluminum', 'Revolutionary compound. Transparent, resilient, and rumored to have been invented by a time traveler...'), -- New, Needs effect
-  ('Boridium', 2, 'boridium.png', 'boridium', 'Energetic material with multiple uses. Boridium is the powerhouse of the power cell.'); -- New, Needs effect
+  ('Boridium', 2, 'boridium.png', 'boridium', 'Energetic material with many uses. Boridium is the powerhouse of the power cell.'); -- New, Needs effect
 
   -- Rare Crystals (Backgrounds)
   ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in most systems. Handle with care."),
   ("Tholian Silk", 3, "tholian_silk.png", "tholian_web", "A crystallized thread of energy - elegant, fractical, and deadly."),
-  ("Holomatrix Fragment", 3, "holomatrix_fragment.png", "holo_grid", "Hologrammatical. Renders photonics with an uncanny simulated depth."),
+  ("Holomatrix Fragment", 3, "holomatrix_fragment.png", "holo_grid", "Hologrammatical. Renders with an uncanny simulated depth."),
   ("Silicon Shard", 3, "silicon_shard.png", "crystalline_entity", "Sharp and pointy, a beautiful Entity. Crystalline with a lot of lore behind it."),
-  ("Continuum Filament", 3, "continuum_filament.png", "q_grid", "An itsy bitsy Q Continuum particle. Tends to wrap things in a Giant, Electric, Pendleton Blanket."), -- New
-  ("Colombian Coffee Crystal", 3, "columbian_coffee.png", "coffee_nebula", "Delicious, tastes just like rich-bodied regular coffee. Janeway's Favorite!") -- New
 
   -- Legendary Crystals (Animations)
   ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "EJECTED FROM A CORE! Hums with that familiar pulse."),
@@ -179,11 +206,14 @@ CREATE TABLE IF NOT EXISTS crystal_instance_history (
   FOREIGN KEY (to_user_id) REFERENCES users(discord_id)
 );
 
+-- ==Badges Tables==
+
 -- Badge Instances
 CREATE TABLE IF NOT EXISTS badge_instances (
   id INT AUTO_INCREMENT PRIMARY KEY,
   badge_info_id INT UNSIGNED NOT NULL,
   owner_discord_id varchar(64) NULL,
+  prestige_level INT DEFAULT 0,
   locked BOOLEAN DEFAULT FALSE,
   active BOOLEAN GENERATED ALWAYS AS (status = 'active') STORED,
   origin_user_id varchar(64) NOT NULL,
