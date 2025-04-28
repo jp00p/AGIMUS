@@ -1,5 +1,6 @@
 # utils/badge_rewards.py
 from common import *
+
 EMBARGO_DAYS = 30
 
 async def db_get_user_prestige_level(user_discord_id: str) -> int:

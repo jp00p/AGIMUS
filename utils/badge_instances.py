@@ -1,18 +1,17 @@
-from common import *
-
 # utils/badge_instances.py
+from common import *
 
 from queries.badge_info import db_get_badge_info_by_filename
 from queries.badge_instances import *
 
-async def create_new_badge_instance(user_id: int, badge_info_id: int, event_type: str = 'level_up') -> dict:
+async def create_new_badge_instance(user_id: int, badge_info_id: int, prestige_level: int = 0, event_type: str = 'level_up') -> dict:
   # Insert a new active, unlocked badge instance
   insert_instance = """
-    INSERT INTO badge_instances (badge_info_id, owner_discord_id, origin_user_id, status)
-    VALUES (%s, %s, %s, 'active')
+    INSERT INTO badge_instances (badge_info_id, owner_discord_id, origin_user_id, prestige_level, status)
+    VALUES (%s, %s, %s, %s, 'active')
   """
   async with AgimusDB() as db:
-    await db.execute(insert_instance, (badge_info_id, user_id, user_id))
+    await db.execute(insert_instance, (badge_info_id, user_id, user_id. prestige_level))
     instance_id = db.lastrowid
 
   # Log acquisition in history
@@ -28,7 +27,7 @@ async def create_new_badge_instance(user_id: int, badge_info_id: int, event_type
   return instance
 
 
-async def create_new_badge_instance_by_filename(user_id: int, badge_filename: str, event_type: str = 'level_up') -> dict:
+async def create_new_badge_instance_by_filename(user_id: int, badge_filename: str, prestige_level: int = 0, event_type: str = 'level_up') -> dict:
   """
   Create a new badge instance for a user by badge filename instead of badge_info_id.
   Looks up the badge_info_id automatically.
@@ -37,7 +36,7 @@ async def create_new_badge_instance_by_filename(user_id: int, badge_filename: st
   if not badge_info:
     raise ValueError(f"Badge filename not found: {badge_filename}")
 
-  return await create_new_badge_instance(user_id, badge_info['id'], event_type=event_type)
+  return await create_new_badge_instance(user_id, badge_info['id'], prestige_level, event_type=event_type)
 
 
 async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type: str = 'unknown'):
