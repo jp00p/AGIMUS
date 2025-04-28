@@ -1,6 +1,6 @@
 # handlers/auto_promotions.py
 from common import *
-from handlers.eschelon_xp import award_xp, get_user_eschelon_progress
+from handlers.eschelon_xp import get_user_eschelon_progress
 from queries.badge_instances import db_get_user_badge_instances
 from queries.crystal_instances import db_set_user_crystal_buffer
 from utils.badge_instances import create_new_badge_instance_by_filename
@@ -25,11 +25,10 @@ welcome_images = config["handlers"]["xp"]["welcome_images"]
 # \    Y    // __ \|   |  \/ /_/ | |  |_\  ___/|  | \/\___ \
 #  \___|_  /(____  /___|  /\____ | |____/\___  >__|  /____  >
 #        \/      \/     \/      \/           \/           \/
-async def handle_auto_promotions(message: discord.Message, xp_amt: int):
-  if message.guild is None or message.author.bot:
-    return
-
+async def handle_auto_promotions(message: discord.Message):
   member = message.author
+  if message.guild is None or member.bot:
+    return
 
   if await should_skip_promotions(member):
     return

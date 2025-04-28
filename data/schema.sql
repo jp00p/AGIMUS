@@ -392,7 +392,7 @@ CREATE TABLE IF NOT EXISTS sub_rosa (
   FOREIGN KEY (user_discord_id)
     REFERENCES users(discord_id)
 );
-CREATE TABLE wrapped_queue (
+CREATE TABLE IF NOT EXISTS wrapped_queue (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,
   status ENUM('pending', 'processing', 'complete', 'error') DEFAULT 'pending',
@@ -406,28 +406,28 @@ CREATE TABLE wrapped_queue (
 -- v3.0.0
 
 -- ==Eschelon (New Level System)==
-CREATE TABLE eschelon_progress_history (
+CREATE TABLE eschelon_progress (
+  user_discord_id VARCHAR(64) PRIMARY KEY,
+  current_xp BIGINT NOT NULL DEFAULT 0,
+  current_level INT NOT NULL DEFAULT 1,
+  buffer_failure_streak INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
+);
+
+CREATE TABLE IF NOT EXISTS eschelon_progress_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,
   xp_gained INT NOT NULL,
   user_level_at_gain INT NOT NULL,
-  channel_id INT NULL,
+  channel_id BIGINT NULL,
   reason VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
 );
 
-CREATE TABLE eschelon_progress_history (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_discord_id VARCHAR(64) NOT NULL,
-  xp_gained INT NOT NULL,
-  user_level_at_gain INT NOT NULL,
-  reason VARCHAR(255),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
-);
-
-CREATE TABLE legacy_xp_records (
+CREATE TABLE IF NOT EXISTS legacy_xp_records (
   user_discord_id VARCHAR(64) PRIMARY KEY,
   legacy_level INT NOT NULL DEFAULT 1,
   legacy_xp BIGINT NOT NULL DEFAULT 0,
@@ -437,10 +437,10 @@ CREATE TABLE legacy_xp_records (
 
 -- Badge "Embargoes"
 -- Decreases chance that users will receive badges via level up that they've recently traded away
-CREATE TABLE badge_embargoes (
+CREATE TABLE IF NOT EXISTS badge_embargoes (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,
-  badge_info_id INT NOT NULL,
+  badge_info_id INT UNSIGNED NOT NULL,
   prestige_level INT NOT NULL,
   traded_at DATETIME NOT NULL,
 
@@ -448,7 +448,6 @@ CREATE TABLE badge_embargoes (
   INDEX (user_discord_id),
   FOREIGN KEY (badge_info_id) REFERENCES badge_info(id)
 );
-
 
 -- ==CRYSTALS tables!==
 
@@ -507,7 +506,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 
   ('Verterium Cortenide', 2, 'verterium_cortenide.png', 'verterium_cortenide', 'Essential alloy used in Starship Warp Nacelles. Emits faint subspace displacement harmonics.'), -- New, Needs effect
   ('Transparent Aluminum', 2, 'transparent_aluminum.png', 'transparent_aluminum', 'Revolutionary compound. Transparent, resilient, and rumored to have been invented by a time traveler...'), -- New, Needs effect
-  ('Boridium', 2, 'boridium.png', 'boridium', 'Energetic material with many uses. Boridium is the powerhouse of the power cell.'); -- New, Needs effect
+  ('Boridium', 2, 'boridium.png', 'boridium', 'Energetic material with many uses. Boridium is the powerhouse of the power cell.'), -- New, Needs effect
 
   -- Rare Crystals (Backgrounds)
   ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in most systems. Handle with care."),

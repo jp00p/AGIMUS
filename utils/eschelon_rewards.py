@@ -55,10 +55,11 @@ async def award_level_up_badge(member) -> dict:
   Returns:
     dict: The complete badge instance data for the newly awarded badge, ready for display or follow-up processing.
   """
+  logger.info(f"[DEBUG] Attempting to award badge to {member.display_name}")
   badge_info_id, prestige_level = await select_badge_for_level_up(member.id)
 
   badge_instance = await create_new_badge_instance(
-    user_id=member.id,
+    user_id=member,
     badge_info_id=badge_info_id,
     prestige_level=prestige_level,
     event_type='level_up'
@@ -118,6 +119,9 @@ async def select_badge_for_level_up(user_discord_id: str) -> tuple[int, int]:
   # Current prestige level badges
   user_collection = await db_get_user_badges_at_prestige_level(user_discord_id, prestige_level)
   missing_badges = list(set(full_pool) - user_collection)
+
+  logger.info(f"[DEBUG] Missing badges: {missing_badges}")
+
   for badge_id in missing_badges:
     candidates.append((badge_id, prestige_level, 5))  # Standard weight
 
@@ -153,13 +157,15 @@ async def select_badge_for_level_up(user_discord_id: str) -> tuple[int, int]:
   if not candidates:
     raise Exception("No eligible badge candidates found. This should never happen (at least until the heat death of the universe and we've exhausted the Transcendence prestige level...")
 
+  logger.info(f"[DEBUG] Candidate badges: {candidates}")
+
   # Weighted random selection
   badge_choices = [item for item in candidates for _ in range(item[2])]
   selected_badge_id, selected_prestige_level, _ = random.choice(badge_choices)
 
   return selected_badge_id, selected_prestige_level
 
-async def award_possible_crystal_buffer_pattern(user_discord_id: str) -> bool:
+async def award_possible_crystal_buffer_pattern(user: discord.User) -> bool:
   """
   Attempt to grant a crystal buffer pattern to the user based on their buffer failure streak.
 
@@ -179,6 +185,7 @@ async def award_possible_crystal_buffer_pattern(user_discord_id: str) -> bool:
   Returns:
     bool: True if a buffer was granted, False otherwise.
   """
+  user_discord_id = user.id
   user_data = await db_get_eschelon_progress(user_discord_id)
   failure_streak = user_data.get('buffer_failure_streak', 0)
 

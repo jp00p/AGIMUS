@@ -5,13 +5,14 @@ from queries.badge_info import db_get_badge_info_by_filename
 from queries.badge_instances import *
 
 async def create_new_badge_instance(user_id: int, badge_info_id: int, prestige_level: int = 0, event_type: str = 'level_up') -> dict:
+  logger.info(f"[DEBUG] Creating new badge instance: user={user_id}, badge_info_id={badge_info_id}, prestige={prestige_level}")
   # Insert a new active, unlocked badge instance
   insert_instance = """
     INSERT INTO badge_instances (badge_info_id, owner_discord_id, origin_user_id, prestige_level, status)
     VALUES (%s, %s, %s, %s, 'active')
   """
   async with AgimusDB() as db:
-    await db.execute(insert_instance, (badge_info_id, user_id, user_id. prestige_level))
+    await db.execute(insert_instance, (badge_info_id, user_id, user_id, prestige_level))
     instance_id = db.lastrowid
 
   # Log acquisition in history

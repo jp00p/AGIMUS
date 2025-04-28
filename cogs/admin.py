@@ -168,7 +168,7 @@ class Admin(commands.Cog):
   async def eschelon_award_xp(self, ctx, user: discord.User, amount: int):
     await ctx.defer(ephemeral=True)
 
-    await award_xp(user.id, amount, reason="admin")
+    await award_xp(user, amount, "admin")
 
     embed = discord.Embed(
       title="XP Awarded",
@@ -231,7 +231,7 @@ class Admin(commands.Cog):
   async def eschelon_force_buffer_roll(self, ctx, user: discord.User):
     await ctx.defer(ephemeral=True)
 
-    success = await award_possible_crystal_buffer_pattern(user.id)
+    success = await award_possible_crystal_buffer_pattern(user)
     if success:
       message = f"✨ {user.mention} **successfully** received a Pattern Buffer!"
       color = discord.Color.green()

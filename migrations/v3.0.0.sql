@@ -81,18 +81,18 @@ CREATE TABLE eschelon_progress (
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
 );
 
-CREATE TABLE eschelon_progress_history (
+CREATE TABLE IF NOT EXISTS eschelon_progress_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,
   xp_gained INT NOT NULL,
   user_level_at_gain INT NOT NULL,
-  channel_id INT NULL,
+  channel_id BIGINT NULL,
   reason VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
 );
 
-CREATE TABLE legacy_xp_records (
+CREATE TABLE IF NOT EXISTS legacy_xp_records (
   user_discord_id VARCHAR(64) PRIMARY KEY,
   legacy_level INT NOT NULL DEFAULT 1,
   legacy_xp BIGINT NOT NULL DEFAULT 0,
@@ -102,10 +102,10 @@ CREATE TABLE legacy_xp_records (
 
 -- Badge "Embargoes"
 -- Decreases chance that users will receive badges via level up that they've recently traded away
-CREATE TABLE badge_embargoes (
+CREATE TABLE IF NOT EXISTS badge_embargoes (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,
-  badge_info_id INT NOT NULL,
+  badge_info_id INT UNSIGNED NOT NULL,
   prestige_level INT NOT NULL,
   traded_at DATETIME NOT NULL,
 
@@ -171,7 +171,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 
   ('Verterium Cortenide', 2, 'verterium_cortenide.png', 'verterium_cortenide', 'Essential alloy used in Starship Warp Nacelles. Emits faint subspace displacement harmonics.'), -- New, Needs effect
   ('Transparent Aluminum', 2, 'transparent_aluminum.png', 'transparent_aluminum', 'Revolutionary compound. Transparent, resilient, and rumored to have been invented by a time traveler...'), -- New, Needs effect
-  ('Boridium', 2, 'boridium.png', 'boridium', 'Energetic material with many uses. Boridium is the powerhouse of the power cell.'); -- New, Needs effect
+  ('Boridium', 2, 'boridium.png', 'boridium', 'Energetic material with many uses. Boridium is the powerhouse of the power cell.'), -- New, Needs effect
 
   -- Rare Crystals (Backgrounds)
   ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in most systems. Handle with care."),

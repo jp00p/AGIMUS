@@ -15,32 +15,9 @@ from utils.badge_utils import *
 # XP lock to prevent race conditions
 xp_lock = asyncio.Lock()
 
-# XP logging color rotation
-xp_colors = [
-  Fore.RED, Fore.LIGHTRED_EX, Fore.YELLOW, Fore.LIGHTYELLOW_EX,
-  Fore.GREEN, Fore.LIGHTGREEN_EX, Fore.LIGHTCYAN_EX, Fore.CYAN,
-  Fore.LIGHTBLUE_EX, Fore.BLUE, Fore.MAGENTA, Fore.LIGHTMAGENTA_EX
-]
-current_color = 0
-
 # Load level up messages
 with open("./data/level_up_messages.json") as f:
   random_level_up_messages = json.load(f)
-
-# XP reasons
-reason_descriptions = {
-  "posted_message": "posting a message",
-  "added_reaction": "adding a reaction",
-  "got_single_reaction": "getting a reaction",
-  "got_reactions": "getting lots of reactions",
-  "intro_message": "posting an introduction in #first-contact",
-  "starboard_post": "getting a post sent to the starboard",
-  "used_computer": "using the computer",
-  "used_wordcloud": "generating a wordcloud",
-  "played_zork": "playing zork",
-  "created_event": "creating an event",
-  "tongo_loss": "losing badges in tongo"
-}
 
 # Blocked source descriptions
 blocked_level_up_sources = [
@@ -56,15 +33,17 @@ blocked_level_up_sources = [
 # \____|__  /\/\_/  (____  /__|  \____ | |__|___|  /\___  /
 #         \/             \/           \/         \//_____/
 async def grant_xp(user: discord.User, amount: int, reason: str, channel = None, source = None):
-  user_discord_id = user.id
   """Award XP to a user through the Eschelon XP system."""
   async with xp_lock:
     if is_xp_doubled():
       amount *= 2
     # Award XP (This also handles Leveling Up if appropriate)
-    new_level = await award_xp(user_discord_id, amount, reason, channel)
+    new_level = await award_xp(user, amount, reason, channel)
+
     if new_level:
-      await handle_user_level_up(user_discord_id, new_level, source=source)
+      await handle_user_level_up(user, new_level, source=source)
+
+    return new_level
 
 def is_xp_doubled() -> bool:
   """Determine if XP doubling is active (currently based on weekends)."""
@@ -175,23 +154,3 @@ async def handle_event_creation_xp(event: discord.ScheduledEvent):
     # Users might create an event that isn't a VoiceChannel
     return
   await grant_xp(creator, 45, "created_event", source="Started their Event!")
-
-
-# _________                            .__            ____ ___   __  .__.__
-# \_   ___ \  ____   ____   __________ |  |   ____   |    |   \_/  |_|__|  |   ______
-# /    \  \/ /  _ \ /    \ /  ___/  _ \|  | _/ __ \  |    |   /\   __\  |  |  /  ___/
-# \     \___(  <_> )   |  \\___ (  <_> )  |_\  ___/  |    |  /  |  | |  |  |__\___ \
-#  \______  /\____/|___|  /____  >____/|____/\___  > |______/   |__| |__|____/____  >
-#         \/            \/     \/                \/                               \/
-def console_log_xp_history(user: discord.User, amt: int, reason: str):
-  global current_color
-  msg_color = xp_colors[current_color]
-  reason_text = reason_descriptions .get(reason, reason)
-  star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
-  logger.info(f"{star} {msg_color}{user.display_name}{Fore.RESET} earns {msg_color}{amt} XP{Fore.RESET} for {Style.BRIGHT}{reason_text}{Style.RESET_ALL}! {star}")
-  current_color = (current_color + 1) % len(xp_colors)
-
-def console_log_level_up(user: discord.User, new_level: int):
-  rainbow_l = f"{Back.RESET}{Back.RED} {Back.YELLOW} {Back.GREEN} {Back.CYAN} {Back.BLUE} {Back.MAGENTA}{Back.RESET}"
-  rainbow_r = f"{Back.RESET}{Back.MAGENTA} {Back.BLUE} {Back.CYAN} {Back.GREEN} {Back.YELLOW} {Back.RED}{Back.RESET}"
-  logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} reached Level {new_level}! {rainbow_r}")

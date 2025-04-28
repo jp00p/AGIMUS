@@ -22,11 +22,12 @@ blocked_level_up_sources = [
 # /___/\  \ |____|     \____|__  /\/\_/  (____  /__|  \____ | |__|___|  /\___  /
 #       \_/                    \/             \/           \/         \//_____/
 # NOTE: Use `grant_xp` from `handlers.xp` if you want to give user's xp publically! It handles double xp and level ups!
-async def award_xp(user_discord_id: str, amount: int, reason: str, channel = None):
+async def award_xp(user: discord.User, amount: int, reason: str, channel = None):
   """
   Award XP to a user, check if they level up, update their record, and log the award.
   Main entry point called by normal XP gain events.
   """
+  user_discord_id = user.id
   current = await db_get_eschelon_progress(user_discord_id)
 
   if current:
@@ -38,19 +39,13 @@ async def award_xp(user_discord_id: str, amount: int, reason: str, channel = Non
 
   await db_update_eschelon_progress(user_discord_id, new_total_xp, new_level)
   await db_insert_eschelon_history(user_discord_id, amount, new_level, channel.id if channel else None, reason)
+  console_log_xp_history(user, amount, reason)
 
   if current['current_level'] < new_level:
+    console_log_level_up(user, new_level)
     return new_level
   else:
     return False
-
-async def bulk_award_xp(user_discord_ids: list[str], amount: int, reason: str):
-  """
-  Award XP to multiple users at once.
-  Useful for mass event rewards or promotions(?.
-  """
-  for user_id in user_discord_ids:
-    await award_xp(user_id, amount, reason)
 
 async def deduct_xp(user_discord_id: str, amount: int, channel_id, reason: str):
   """
@@ -84,16 +79,14 @@ async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
 # |    |__\  ___/\   /\  ___/|  |__ |    |  / |  |_> >|
 # |_______ \___  >\_/  \___  >____/ |______/  |   __/__
 #         \/   \/          \/                 |__|   \/
-async def handle_user_level_up(user_discord_id: str, level: int, source = None):
-  member = await bot.current_guild.fetch_member(user_discord_id)
-
+async def handle_user_level_up(member: discord.User, level: int, source = None):
+  logger.info(f"[DEBUG] Handling user level up: {member.display_name} to level {level}")
   badge_data = await award_level_up_badge(member)
-  source_details = determine_level_up_source_details(source)
+  source_details = determine_level_up_source_details(member, source)
 
   await post_level_up_embed(member, level, badge_data, source_details)
-  log_level_up_to_console(member)
 
-  awarded_buffer_pattern = await award_possible_crystal_buffer_pattern(user_discord_id)
+  awarded_buffer_pattern = await award_possible_crystal_buffer_pattern(member)
   if awarded_buffer_pattern:
     await post_buffer_pattern_acquired_embed(member, level)
 
@@ -128,15 +121,6 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
   message = await notification_channel.send(content=f"## {level_up_msg}", file=discord_file, embed=embed)
   # Add + emoji so that users can add it as well to add the badge to their wishlist
   await message.add_reaction("✅")
-
-
-def log_level_up_to_console(user: discord.User, level: int):
-  """
-  Pretty rainbow console log when a user levels up.
-  """
-  rainbow_l = f"{Back.RESET}{Back.RED} {Back.YELLOW} {Back.GREEN} {Back.CYAN} {Back.BLUE} {Back.MAGENTA} {Back.RESET}"
-  rainbow_r = f"{Back.RESET}{Back.MAGENTA} {Back.BLUE} {Back.CYAN} {Back.GREEN} {Back.YELLOW} {Back.RED} {Back.RESET}"
-  logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} reached Eschelon {level}! {rainbow_r}")
 
 
 async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int):
@@ -310,3 +294,46 @@ def calculate_next_level_xp_gap(level: int) -> int:
   Shortcut function to return how much XP is needed to level up from a given level.
   """
   return xp_required_for_level(level)
+
+
+# _________                            .__            ____ ___   __  .__.__
+# \_   ___ \  ____   ____   __________ |  |   ____   |    |   \_/  |_|__|  |   ______
+# /    \  \/ /  _ \ /    \ /  ___/  _ \|  | _/ __ \  |    |   /\   __\  |  |  /  ___/
+# \     \___(  <_> )   |  \\___ (  <_> )  |_\  ___/  |    |  /  |  | |  |  |__\___ \
+#  \______  /\____/|___|  /____  >____/|____/\___  > |______/   |__| |__|____/____  >
+#         \/            \/     \/                \/                               \/
+
+# XP logging color rotation
+current_color = 0
+xp_colors = [
+  Fore.RED, Fore.LIGHTRED_EX, Fore.YELLOW, Fore.LIGHTYELLOW_EX,
+  Fore.GREEN, Fore.LIGHTGREEN_EX, Fore.LIGHTCYAN_EX, Fore.CYAN,
+  Fore.LIGHTBLUE_EX, Fore.BLUE, Fore.MAGENTA, Fore.LIGHTMAGENTA_EX
+]
+# XP logging reasons
+reason_descriptions = {
+  "posted_message": "posting a message",
+  "added_reaction": "adding a reaction",
+  "got_single_reaction": "getting a reaction",
+  "got_reactions": "getting lots of reactions",
+  "intro_message": "posting an introduction in #first-contact",
+  "starboard_post": "getting a post sent to the starboard",
+  "used_computer": "using the computer",
+  "used_wordcloud": "generating a wordcloud",
+  "played_zork": "playing zork",
+  "created_event": "creating an event",
+  "tongo_loss": "losing badges in tongo"
+}
+
+def console_log_xp_history(user: discord.User, amt: int, reason: str):
+  global current_color
+  msg_color = xp_colors[current_color]
+  reason_text = reason_descriptions.get(reason, reason)
+  star = f"{msg_color}{Style.BRIGHT}*{Style.NORMAL}{Fore.RESET}"
+  logger.info(f"{star} {msg_color}{user.display_name}{Fore.RESET} earns {msg_color}{amt} XP{Fore.RESET} for {Style.BRIGHT}{reason_text}{Style.RESET_ALL}! {star}")
+  current_color = (current_color + 1) % len(xp_colors)
+
+def console_log_level_up(user: discord.User, new_level: int):
+  rainbow_l = f"{Back.RESET}{Back.RED} {Back.YELLOW} {Back.GREEN} {Back.CYAN} {Back.BLUE} {Back.MAGENTA}{Back.RESET}"
+  rainbow_r = f"{Back.RESET}{Back.MAGENTA} {Back.BLUE} {Back.CYAN} {Back.GREEN} {Back.YELLOW} {Back.RED}{Back.RESET}"
+  logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} reached Level {new_level}! {rainbow_r}")
