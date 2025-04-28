@@ -151,7 +151,6 @@ async def show_nick_change_message(before, after, scope = ""):
 
 # show_channel_creation_message(channel)
 # sends a message when someone creates a new channel on the server
-# channel[required]: discord.Channel
 async def show_channel_creation_message(channel):
   server_logs_channel = bot.get_channel(get_channel_id(config["server_logs_channel"]))
   msg = f"✨ A new channel, **'#{channel.name}'**, was just created!"
@@ -160,7 +159,6 @@ async def show_channel_creation_message(channel):
 
 # show_channel_deletion_message(channel)
 # sends a message when someone deletes a channel on the server
-# channel[required]: discord.Channel
 async def show_channel_deletion_message(channel):
   server_logs_channel = bot.get_channel(get_channel_id(config["server_logs_channel"]))
   msg = f"💥 **'#{channel.name}'**, was just deleted!"
@@ -169,8 +167,8 @@ async def show_channel_deletion_message(channel):
 
 # show_channel_rename_message(channel)
 # sends a message when someone renames a channel on the server
-# before[required]: discord.Channel
-# after[required]: discord.Channel
+# before[required]: discord channel
+# after[required]: discord channel
 async def show_channel_rename_message(before, after):
   if before.name == after.name:
     return
@@ -182,8 +180,8 @@ async def show_channel_rename_message(before, after):
 
 # show_channel_topic_change_message(channel)
 # sends a message when someone changes the topic of a channel on the server
-# before[required]: discord.Channel
-# after[required]: discord.Channel
+# before[required]: discord channel
+# after[required]: discord channel
 async def show_channel_topic_change_message(before, after):
   if before.topic == after.topic:
     return

@@ -12,9 +12,9 @@ async def db_update_eschelon_progress(user_discord_id: str, new_xp: int, new_lev
       (user_discord_id, new_xp, new_level)
     )
 
-async def db_insert_eschelon_history(user_discord_id: str, xp_gained: int, user_level_at_gain: int, reason: str):
+async def db_insert_eschelon_history(user_discord_id: str, xp_gained: int, user_level_at_gain: int, channel_id: int, reason: str):
   async with AgimusDB() as db:
     await db.execute(
-      "INSERT INTO eschelon_progress_history (user_discord_id, xp_gained, user_level_at_gain, reason) VALUES (%s, %s, %s, %s)",
-      (user_discord_id, xp_gained, user_level_at_gain, reason)
+      "INSERT INTO eschelon_progress_history (user_discord_id, xp_gained, user_level_at_gain, channel_id, reason) VALUES (%s, %s, %s, %s, %s)",
+      (user_discord_id, xp_gained, user_level_at_gain, channel_id, reason)
     )

@@ -55,16 +55,16 @@ blocked_level_up_sources = [
 # /    |    \     /  / __ \|  | \/ /_/ | |  |   |  \/ /_/  >
 # \____|__  /\/\_/  (____  /__|  \____ | |__|___|  /\___  /
 #         \/             \/           \/         \//_____/
-async def grant_xp(user: discord.User, amount: int, reason: str, source = None):
+async def grant_xp(user: discord.User, amount: int, reason: str, channel = None, source = None):
   user_discord_id = user.id
   """Award XP to a user through the Eschelon XP system."""
   async with xp_lock:
     if is_xp_doubled():
       amount *= 2
     # Award XP (This also handles Leveling Up if appropriate)
-    new_level = await award_xp(user_discord_id, amount, reason, source)
+    new_level = await award_xp(user_discord_id, amount, reason, channel)
     if new_level:
-      await handle_user_level_up(user_discord_id, new_level, reason, source)
+      await handle_user_level_up(user_discord_id, new_level, source=source)
 
 def is_xp_doubled() -> bool:
   """Determine if XP doubling is active (currently based on weekends)."""
@@ -100,7 +100,7 @@ async def handle_message_xp(message: discord.Message):
     xp_amt += 1
 
   if xp_amt > 0:
-    await grant_xp(message.author, xp_amt, "posted_message")
+    await grant_xp(message.author, xp_amt, "posted_message", message.channel, source=message.channel)
     await handle_auto_promotions(message)
 
 
@@ -117,8 +117,8 @@ async def handle_react_xp(reaction: discord.Reaction, user: discord.User):
     return
 
   await _log_react_history(reaction, user)
-  await grant_xp(user, 1, "added_reaction")
-  await grant_xp(reaction.message.author, 1, "got_single_reaction")
+  await grant_xp(user, 1, "added_reaction", channel=reaction.message.channel, source=reaction)
+  await grant_xp(reaction.message.author, 1, "got_single_reaction", channel=reaction.message.channel, source=reaction)
   await grant_bonusworthy_reaction_xp(reaction)
 
 
@@ -163,7 +163,7 @@ async def grant_bonusworthy_reaction_xp(reaction: discord.Reaction):
           xp_amt = 5
 
         if xp_amt > 0:
-          await grant_xp(reaction.message.author, xp_amt, "got_reactions")
+          await grant_xp(reaction.message.author, xp_amt, "got_reactions", channel=reaction.message.channel, source=reaction)
 
         break
 
@@ -174,7 +174,7 @@ async def handle_event_creation_xp(event: discord.ScheduledEvent):
   if type(location) == str:
     # Users might create an event that isn't a VoiceChannel
     return
-  await grant_xp(creator, 45, "created_event")
+  await grant_xp(creator, 45, "created_event", source="Started their Event!")
 
 
 # _________                            .__            ____ ___   __  .__.__

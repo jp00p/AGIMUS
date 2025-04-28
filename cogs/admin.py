@@ -1,4 +1,5 @@
 from common import *
+from handlers.xp import grant_xp
 from handlers.eschelon_xp import *
 from queries.badge_info import *
 from queries.badge_instances import *
@@ -167,7 +168,7 @@ class Admin(commands.Cog):
   async def eschelon_award_xp(self, ctx, user: discord.User, amount: int):
     await ctx.defer(ephemeral=True)
 
-    await award_xp(user.id, amount, "admin")
+    await award_xp(user.id, amount, reason="admin")
 
     embed = discord.Embed(
       title="XP Awarded",
@@ -253,7 +254,7 @@ class Admin(commands.Cog):
     progress = await db_get_eschelon_progress(user.id)
     xp_needed = xp_required_for_level(progress['current_level']) if progress else 69
 
-    await award_xp(user.id, xp_needed, "admin")
+    await grant_xp(user.id, xp_needed, reason="admin")
 
     embed = discord.Embed(
       title="Level-Up Simulated",

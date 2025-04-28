@@ -86,6 +86,7 @@ CREATE TABLE eschelon_progress_history (
   user_discord_id VARCHAR(64) NOT NULL,
   xp_gained INT NOT NULL,
   user_level_at_gain INT NOT NULL,
+  channel_id INT NULL,
   reason VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)

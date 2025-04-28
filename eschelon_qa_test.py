@@ -40,7 +40,7 @@ async def run_eschelon_qa_test(user_id: int, num_levelups: int = 50):
         current_level = progress['current_level'] if progress else 1
         xp_needed = xp_required_for_level(current_level)
 
-        new_level = await award_xp(user_id, xp_needed, "admin")
+        new_level = await award_xp(user_id, xp_needed, reason="admin")
         if new_level:
           level_ups += 1
           badges = await db_get_user_badge_instances(user_id)

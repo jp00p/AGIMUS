@@ -1,8 +1,8 @@
 # handlers/auto_promotions.py
 from common import *
 from handlers.eschelon_xp import award_xp, get_user_eschelon_progress
-from utils.badge_utils import db_get_user_badge_instances
-from utils.eschelon_rewards import grant_crystal_buffer_pattern
+from queries.badge_instances import db_get_user_badge_instances
+from queries.crystal_instances import db_set_user_crystal_buffer
 from utils.badge_instances import create_new_badge_instance_by_filename
 
 
@@ -14,13 +14,6 @@ from utils.badge_instances import create_new_badge_instance_by_filename
 #         \/            \/     \/            \/     \/          \/
 promotion_roles = config["roles"]["promotion_roles"]["ranks"]
 required_rank_xp = config["roles"]["promotion_roles"]["required_rank_xp"]
-
-intro_channel_id = get_channel_id(config["intro_channel"])
-ten_forward_channel_id = get_channel_id(config["channels"]["ten-forward"])
-channel_guide_id = get_channel_id(config["channels"]["channel-guide"])
-roles_and_pronouns_id = get_channel_id(config["channels"]["roles-and-pronouns"])
-animal_holophotography_id = get_channel_id(config["channels"]["animal-holophotography"])
-welcome_channel_id = get_channel_id(config["welcome_channel"])
 
 usher_messages = config["handlers"]["xp"]["usher_messages"]
 welcome_images = config["handlers"]["xp"]["welcome_images"]
@@ -52,6 +45,7 @@ async def should_skip_promotions(member: discord.Member) -> bool:
 
 
 async def handle_intro_promotion(message: discord.Message):
+  intro_channel_id = get_channel_id(config["intro_channel"])
   if message.channel.id != intro_channel_id:
     return
 
@@ -75,7 +69,7 @@ async def handle_intro_promotion(message: discord.Message):
     if cadet_role:
       await member.add_roles(cadet_role)
       logger.info(f"{Style.BRIGHT}{member.display_name}{Style.RESET_ALL} promoted to {Fore.CYAN}Cadet{Fore.RESET} via intro message!")
-      await award_xp(member.id, 10, "intro_message")
+      await grant_xp(member.id, 10, "intro_message", channel=message.channel, source="Posted their intro message!")
       await grant_initial_welcome_rewards(member)
 
 
@@ -111,10 +105,12 @@ async def grant_initial_welcome_rewards(member: discord.Member):
   badges = await db_get_user_badge_instances(user_id)
   badge_filenames = [b["badge_filename"] for b in badges]
 
+  # Standard Friends of DeSoto Badge reward
   if "Friends_Of_DeSoto.png" not in badge_filenames:
     await create_new_badge_instance_by_filename(user_id, "Friends_Of_DeSoto.png", event_type="first_promotion")
 
-  await grant_crystal_buffer_pattern(user_id)
+  # Give em 3 crystal buffers to play with
+  await db_set_user_crystal_buffer(user_id, 3)
 
 
 # ___________      ___.              .___
@@ -125,6 +121,12 @@ async def grant_initial_welcome_rewards(member: discord.Member):
 #         \/      \/    \/     \/     \/    \/
 async def post_big_welcome_embed(member: discord.Member, first_message: discord.Message):
   """Send the full 'brand new crewmember' welcome embed."""
+  ten_forward_channel_id = get_channel_id(config["channels"]["ten-forward"])
+  channel_guide_id = get_channel_id(config["channels"]["channel-guide"])
+  roles_and_pronouns_id = get_channel_id(config["channels"]["roles-and-pronouns"])
+  animal_holophotography_id = get_channel_id(config["channels"]["animal-holophotography"])
+  welcome_channel_id = get_channel_id(config["welcome_channel"])
+
   embed = discord.Embed(
     title=f"Could someone {random.choice(usher_messages)}?",
     color=discord.Color.random(),
@@ -142,10 +144,12 @@ async def post_big_welcome_embed(member: discord.Member, first_message: discord.
 
   embed.set_footer(text="Thank you officers! 💖")
   welcome_channel = bot.get_channel(welcome_channel_id)
-  await welcome_channel.send(content=f"@here — {member.mention} just posted their introduction!", embed=embed)
+  await welcome_channel.send(content=f"## @here — {member.mention} just posted their introduction!", embed=embed)
 
 async def post_small_already_seen_embed(member: discord.Member, first_message: discord.Message):
   """Send a smaller notification if they've already been seen elsewhere."""
+  intro_channel_id = get_channel_id(config["intro_channel"])
+  welcome_channel_id = get_channel_id(config["welcome_channel"])
   embed = discord.Embed(
     title=f"{member.display_name} just posted in {member.guild.get_channel(intro_channel_id).mention}!",
     description=f"👀 They've already been seen elsewhere on the server though.\nFirst post: [Jump to Message]({first_message.jump_url})",
@@ -153,7 +157,7 @@ async def post_small_already_seen_embed(member: discord.Member, first_message: d
   )
   embed.set_footer(text=f"First post was on {first_message.created_at.strftime('%b %d, %Y at %H:%M UTC')}")
   welcome_channel = bot.get_channel(welcome_channel_id)
-  await welcome_channel.send(embed=embed)
+  await welcome_channel.send(content=f"## @here — {member.mention} just posted their introduction!", embed=embed)
 
 # --- Section 6: Utilities ---
 

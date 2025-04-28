@@ -1,5 +1,5 @@
 from common import *
-from handlers.xp import increment_user_xp
+from handlers.xp import grant_xp
 
 from cogs.trade import get_offered_and_requested_badge_names
 
@@ -709,7 +709,7 @@ class Tongo(commands.Cog):
           xp_awarded = 110 * (3 - len(badge_instance_ids))
           if datetime.today().weekday() >= 4:
             xp_awarded *= 2
-          await increment_user_xp(member, xp_awarded, 'tongo_loss', zeks_table, "Consolation Prize for Tongo Loss")
+          await grant_xp(member.id, xp_awarded, 'tongo_loss', zeks_table, "Consolation Prize for Tongo Loss")
 
         player_embed = await build_confront_player_embed(member, badges_received, wishlist_filenames_received, xp_awarded)
         player_embed.set_image(url=received_image_url)
@@ -724,7 +724,7 @@ class Tongo(commands.Cog):
         xp_awarded = 110 * 3
         if datetime.today().weekday() >= 4:
           xp_awarded *= 2
-        await increment_user_xp(member, xp_awarded, 'tongo_loss', zeks_table, "Consolation Prize for Tongo Loss")
+        await grant_xp(member.id, xp_awarded, 'tongo_loss', zeks_table, "Consolation Prize for Tongo Loss")
 
         channel_embed = build_confront_no_rewards_embed(member, xp_awarded)
         await zeks_table.send(embed=channel_embed)

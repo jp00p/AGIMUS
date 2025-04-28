@@ -2,7 +2,6 @@ import math
 from re import S
 
 from common import *
-from handlers.xp import increment_user_xp
 from utils.show_utils import get_show_embed
 from utils.check_channel_access import access_check
 

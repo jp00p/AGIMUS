@@ -1,5 +1,4 @@
 from common import *
-from handlers.xp import increment_user_xp
 from utils.check_channel_access import access_check
 
 class Poker(commands.Cog):

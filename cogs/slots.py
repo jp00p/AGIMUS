@@ -3,7 +3,6 @@ import time
 import pytz
 
 from common import *
-from handlers.xp import increment_user_xp
 from utils.check_channel_access import access_check
 
 command_config = config["commands"]["slots spin"]

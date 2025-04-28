@@ -21,7 +21,8 @@ blocked_level_up_sources = [
 #  /     \  |    |     /    |    \     /  / __ \|  | \/ /_/ | |  |   |  \/ /_/  >
 # /___/\  \ |____|     \____|__  /\/\_/  (____  /__|  \____ | |__|___|  /\___  /
 #       \_/                    \/             \/           \/         \//_____/
-async def award_xp(user_discord_id: str, amount: int, reason: str, source = None):
+# NOTE: Use `grant_xp` from `handlers.xp` if you want to give user's xp publically! It handles double xp and level ups!
+async def award_xp(user_discord_id: str, amount: int, reason: str, channel = None):
   """
   Award XP to a user, check if they level up, update their record, and log the award.
   Main entry point called by normal XP gain events.
@@ -36,7 +37,7 @@ async def award_xp(user_discord_id: str, amount: int, reason: str, source = None
   new_level = level_for_total_xp(new_total_xp)
 
   await db_update_eschelon_progress(user_discord_id, new_total_xp, new_level)
-  await db_insert_eschelon_history(user_discord_id, amount, new_level, reason)
+  await db_insert_eschelon_history(user_discord_id, amount, new_level, channel.id if channel else None, reason)
 
   if current['current_level'] < new_level:
     return new_level
@@ -51,7 +52,7 @@ async def bulk_award_xp(user_discord_ids: list[str], amount: int, reason: str):
   for user_id in user_discord_ids:
     await award_xp(user_id, amount, reason)
 
-async def deduct_xp(user_discord_id: str, amount: int, reason: str):
+async def deduct_xp(user_discord_id: str, amount: int, channel_id, reason: str):
   """
   Deduct XP from a user.
   Mainly for admin corrections or penalties.
@@ -64,7 +65,7 @@ async def deduct_xp(user_discord_id: str, amount: int, reason: str):
   new_level = level_for_total_xp(new_total_xp)
 
   await db_update_eschelon_progress(user_discord_id, new_total_xp, new_level)
-  await db_insert_eschelon_history(user_discord_id, -amount, new_level, reason)
+  await db_insert_eschelon_history(user_discord_id, -amount, new_level, channel_id, reason)
 
 async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
   """
@@ -83,7 +84,7 @@ async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
 # |    |__\  ___/\   /\  ___/|  |__ |    |  / |  |_> >|
 # |_______ \___  >\_/  \___  >____/ |______/  |   __/__
 #         \/   \/          \/                 |__|   \/
-async def handle_user_level_up(user_discord_id: str, level: int, reason: str, source = None):
+async def handle_user_level_up(user_discord_id: str, level: int, source = None):
   member = await bot.current_guild.fetch_member(user_discord_id)
 
   badge_data = await award_level_up_badge(member)

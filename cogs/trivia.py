@@ -1,7 +1,6 @@
 from trivia import trivia
 
 from common import *
-from handlers.xp import increment_user_xp
 from utils.check_channel_access import access_check
 
 f = open(config["commands"]["trivia"]["data"])
@@ -185,7 +184,6 @@ class Trivia(commands.Cog):
             inline=False
           )
           await set_player_score(player, 1)
-          await increment_user_xp(player, 1, "trivia_play", channel, "Participating in Trivia")
       if len(correct_guessers) == 0:
         embed.add_field(name="\nNo winners!", value="Nobody got it this time.", inline=False)
         embed.set_footer(text=f"Adding {reward} point(s) to the jackpot")
