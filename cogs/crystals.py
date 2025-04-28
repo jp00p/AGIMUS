@@ -1,3 +1,4 @@
+# cogs/crystals.py
 from collections import defaultdict
 from io import BytesIO
 

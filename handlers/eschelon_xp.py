@@ -114,7 +114,7 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
   embed=discord.Embed(
     title="Eschelon Level Up!",
     description=embed_description,
-    color=discord.Color.random()
+    color=discord.Color.teal()
   )
   embed.set_image(url=attachment_url)
   embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
