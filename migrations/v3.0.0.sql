@@ -98,6 +98,20 @@ CREATE TABLE legacy_xp_records (
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
 );
 
+-- Badge "Embargoes"
+-- Decreases chance that users will receive badges via level up that they've recently traded away
+CREATE TABLE badge_embargoes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_discord_id VARCHAR(64) NOT NULL,
+  badge_info_id INT NOT NULL,
+  prestige_level INT NOT NULL,
+  traded_at DATETIME NOT NULL,
+
+  UNIQUE KEY embargo_unique (user_discord_id, badge_info_id, prestige_level),
+  INDEX (user_discord_id),
+  FOREIGN KEY (badge_info_id) REFERENCES badge_info(id)
+);
+
 -- ==CRYSTALS tables!==
 
 -- Crystal Ranks
