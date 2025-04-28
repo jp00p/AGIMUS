@@ -394,3 +394,11 @@ The following images and information are used under the CC BY-NC license:
 - Images: All Images under [/images/badges](/images/badges) (source: [The Star Trek Design Project](https://www.startrekdesignproject.com))
 - Information: Initial Symbol Metadata within [/data/badges.json](/data/badges.json) (source: [The Star Trek Design Project](https://www.startrekdesignproject.com))
 - Information: Supplemental Symbol Metadata within relevant SQL files under [/migrations](/migrations) (source: [The Star Trek Design Project](https://www.startrekdesignproject.com))
+
+Star Trek, Star Trek: The Animated Series, Star Trek: The Next Generation, Star Trek: Deep Space Nine, Star Trek: Voyager, Star Trek: Enterprise, Star Trek: Discovery, Star Trek: Lower Decks, and Star Trek: Strange New Worlds
+are all registered trademarks of CBS Corporation.
+
+Star Trek: The Motion Picture, Star Trek II: The Wrath of Khan, Star Trek III: The Search for Spock, Star Trek IV: The Voyage Home, Star Trek V: The Final Frontier, Star Trek VI: The Undiscovered Country,
+Star Trek: First Contact, Star Trek: Generations, Star Trek: Nemesis, Star Trek, Star Trek Into Darkness and Star Trek Beyond are all registered trademarks of Paramount.
+
+The project is in no way affiliated with or endorsed by CBS or Paramount.
