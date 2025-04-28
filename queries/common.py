@@ -14,6 +14,7 @@ BADGE_INSTANCE_COLUMNS = """
   b.id AS badge_instance_id,
   b.badge_info_id,
   b.owner_discord_id,
+  b.prestige_level,
   b.locked,
   b.origin_user_id,
   b.acquired_at,

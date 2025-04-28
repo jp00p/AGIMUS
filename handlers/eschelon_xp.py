@@ -1,6 +1,8 @@
+# handlers/eschelon_xp.py
 from common import *
 
 from queries.eschelon_xp import *
+from utils.eschelon_rewards import award_level_up_badge, award_possible_crystal_buffer_pattern
 from utils.image_utils import generate_badge_preview
 
 # Load level up messages
@@ -37,12 +39,14 @@ async def award_xp(user_discord_id: str, amount: int, reason: str, source = None
   await db_insert_eschelon_history(user_discord_id, amount, new_level, reason)
 
   if current['current_level'] < new_level:
-    await handle_user_level_up(user_discord_id, new_level, reason, source)
+    return new_level
+  else:
+    return False
 
 async def bulk_award_xp(user_discord_ids: list[str], amount: int, reason: str):
   """
   Award XP to multiple users at once.
-  Useful for mass event rewards or promotions.
+  Useful for mass event rewards or promotions(?.
   """
   for user_id in user_discord_ids:
     await award_xp(user_id, amount, reason)
@@ -64,8 +68,8 @@ async def deduct_xp(user_discord_id: str, amount: int, reason: str):
 
 async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
   """
-  Forcefully set a user's XP to a specific value.
-  Only used by admins during emergency fixes or migrations.
+  Manually set a user's XP to a specific value.
+  Debugging tool.
   """
   new_level = level_for_total_xp(new_xp)
 
@@ -82,16 +86,15 @@ async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
 async def handle_user_level_up(user_discord_id: str, level: int, reason: str, source = None):
   member = await bot.current_guild.fetch_member(user_discord_id)
 
-  # TODO: Actually implement the badge award function here below
   badge_data = await award_level_up_badge(member)
-
-  # TODO: Attempt to grant a crystal buffer pattern here if appropriate
-  # await try_grant_crystal_buffer_pattern(user.id)
-
   source_details = determine_level_up_source_details(source)
 
   await post_level_up_embed(member, level, badge_data, source_details)
   log_level_up_to_console(member)
+
+  awarded_buffer_pattern = await award_possible_crystal_buffer_pattern(user_discord_id)
+  if awarded_buffer_pattern:
+    await post_buffer_pattern_acquired_embed(member, level)
 
 
 async def post_level_up_embed(member: discord.User, level: int, badge_data: dict, source_details = None):
@@ -133,6 +136,38 @@ def log_level_up_to_console(user: discord.User, level: int):
   rainbow_l = f"{Back.RESET}{Back.RED} {Back.YELLOW} {Back.GREEN} {Back.CYAN} {Back.BLUE} {Back.MAGENTA} {Back.RESET}"
   rainbow_r = f"{Back.RESET}{Back.MAGENTA} {Back.BLUE} {Back.CYAN} {Back.GREEN} {Back.YELLOW} {Back.RED} {Back.RESET}"
   logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} reached Eschelon {level}! {rainbow_r}")
+
+
+async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int):
+  """
+  Sends a special embed to the XP notification channel announcing that the user
+  has acquired a Crystal Buffer Pattern.
+  """
+  embed = discord.Embed(
+    title="✨ Crystal Buffer Pattern Acquired! ✨",
+    description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Buffer Pattern** when they reached Eschelon {level}!\n\nThey can now use it to replicate a new Crystal from scratch!",
+    color=discord.Color.teal()
+  )
+  embed.set_image(url="https://i.imgur.com/lgP2miO.gif")
+  embed.set_footer(text="Use  `/crystals replicate` to materialize a freshly minted Crystal!")
+
+  notification_channel = bot.get_channel(get_channel_id(config['handlers']['xp']['notification_channel']))
+  await notification_channel.send(embed=embed)
+
+BUFFER_PATTERN_AQUISITION_REASONS = [
+  "was exploring the Jefferies Tubes and stumbled across a",
+  "was browsing some weird Holodeck programs and found a",
+  "opened a dusty crate in Cargo Bay 4 and was surprised to see a",
+  "fucked around and found out, and also found a",
+  "made an important scientific discovery, a *fascinating*",
+  "was just pressing random LCARS buttons in the Transporter Room and discovered a",
+  "hacked the Gibson and downloaded a",
+  "was swimming in Cetecean Ops and uncovered a",
+  "was scanning for lifeforms and instead scanned a",
+  "ordered Steak, Hot, for their mouth but instead it spit out a",
+  "was eating some snacks in Ten Forward and under their table found a lost",
+  "was just digging up weird dirt but dug up a"
+]
 
 # .____                      .__             ____ ___           ____ ___   __  .__.__
 # |    |    _______  __ ____ |  |           |    |   \______   |    |   \_/  |_|__|  |   ______

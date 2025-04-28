@@ -2,7 +2,7 @@
 from common import *
 from handlers.eschelon_xp import award_xp, get_user_eschelon_progress
 from utils.badge_utils import db_get_user_badge_instances
-from utils.badge_rewards import grant_crystal_buffer_pattern
+from utils.eschelon_rewards import grant_crystal_buffer_pattern
 from utils.badge_instances import create_new_badge_instance_by_filename
 
 

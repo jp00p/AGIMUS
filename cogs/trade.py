@@ -4,8 +4,9 @@ from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist, db_
 from queries.trade import *
 
 from utils.badge_trades import *
-from utils.image_utils import *
 from utils.check_channel_access import access_check
+from utils.eschelon_rewards import handle_eschelon_embargo_for_user
+from utils.image_utils import *
 
 from random import sample
 
@@ -381,6 +382,12 @@ class Trade(commands.Cog):
 
     await db_purge_users_wishlist(requestor.id)
     await db_purge_users_wishlist(requestee.id)
+
+    # Apply 'eschelon embargo' for the requestor for any badges they've traded away (if appropriate)
+    await handle_eschelon_embargo_for_user(
+      active_trade['requestor_id'],
+      [instance.badge_instance_id for instance in active_trade.offered_instances],
+    )
 
     # Confirmation embed
     success_embed = discord.Embed(

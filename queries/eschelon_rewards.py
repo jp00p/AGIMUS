@@ -3,19 +3,6 @@ from common import *
 
 EMBARGO_DAYS = 30
 
-async def db_get_user_prestige_level(user_discord_id: str) -> int:
-  sql = """
-    SELECT prestige_level
-    FROM badge_instances
-    WHERE owner_discord_id = %s
-    ORDER BY prestige_level DESC
-    LIMIT 1
-  """
-  async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_discord_id,))
-    result = await db.fetchone()
-    return result['prestige_level'] if result else 0
-
 async def db_get_full_badge_info_pool() -> list[int]:
   sql = """
     SELECT id
@@ -48,6 +35,20 @@ async def db_get_user_embargoed_badges(user_discord_id: str, prestige_level: int
     results = await db.fetchall()
     return {row['badge_info_id']: row['traded_at'] for row in results}
 
+async def db_create_embargo_for_badge_instance(badge_instance_id: int):
+  """
+  Creates an embargo for a badge instance by looking up its badge_info_id and prestige_level,
+  and inserting it into badge_embargoes.
+  """
+  sql = """
+    INSERT INTO badge_embargoes (user_discord_id, badge_info_id, prestige_level, traded_at)
+    SELECT owner_discord_id, badge_info_id, prestige_level, NOW()
+    FROM badge_instances
+    WHERE id = %s
+  """
+  async with AgimusDB() as db:
+    await db.execute(sql, (badge_instance_id,))
+
 async def db_cleanup_expired_embargoes(user_discord_id: str):
   sql = """
     DELETE FROM badge_embargoes
@@ -55,3 +56,13 @@ async def db_cleanup_expired_embargoes(user_discord_id: str):
   """
   async with AgimusDB() as db:
     await db.execute(sql, (user_discord_id, EMBARGO_DAYS))
+
+
+async def db_update_buffer_failure_streak(user_discord_id: str, new_streak: int):
+  sql = """
+    UPDATE eschelon_progress
+    SET buffer_failure_streak = %s
+    WHERE user_discord_id = %s
+  """
+  async with AgimusDB() as db:
+    await db.execute(sql, (new_streak, user_discord_id))

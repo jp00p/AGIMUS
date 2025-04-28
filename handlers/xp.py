@@ -9,7 +9,7 @@ from commands.badges import *
 from handlers.eschelon_xp import *
 from handlers.auto_promotion import handle_auto_promotions
 from queries.wishlist import *
-from utils.badge_rewards import *
+from utils.eschelon_rewards import *
 from utils.badge_utils import *
 
 # XP lock to prevent race conditions
@@ -56,12 +56,15 @@ blocked_level_up_sources = [
 # \____|__  /\/\_/  (____  /__|  \____ | |__|___|  /\___  /
 #         \/             \/           \/         \//_____/
 async def grant_xp(user: discord.User, amount: int, reason: str, source = None):
+  user_discord_id = user.id
   """Award XP to a user through the Eschelon XP system."""
   async with xp_lock:
     if is_xp_doubled():
       amount *= 2
     # Award XP (This also handles Leveling Up if appropriate)
-    await award_xp(str(user.id), amount, reason, source)
+    new_level = await award_xp(user_discord_id, amount, reason, source)
+    if new_level:
+      await handle_user_level_up(user_discord_id, new_level, reason, source)
 
 def is_xp_doubled() -> bool:
   """Determine if XP doubling is active (currently based on weekends)."""
