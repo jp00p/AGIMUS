@@ -2,6 +2,7 @@ from common import *
 
 # utils/badge_instances.py
 
+from queries.badge_info import db_get_badge_info_by_filename
 from queries.badge_instances import *
 
 async def create_new_badge_instance(user_id: int, badge_info_id: int, event_type: str = 'level_up') -> dict:
@@ -25,6 +26,18 @@ async def create_new_badge_instance(user_id: int, badge_info_id: int, event_type
   # Fetch full record with badge info
   instance = await db_get_badge_instance_by_id(instance_id)
   return instance
+
+
+async def create_new_badge_instance_by_filename(user_id: int, badge_filename: str, event_type: str = 'level_up') -> dict:
+  """
+  Create a new badge instance for a user by badge filename instead of badge_info_id.
+  Looks up the badge_info_id automatically.
+  """
+  badge_info = await db_get_badge_info_by_filename(badge_filename)
+  if not badge_info:
+    raise ValueError(f"Badge filename not found: {badge_filename}")
+
+  return await create_new_badge_instance(user_id, badge_info['id'], event_type=event_type)
 
 
 async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type: str = 'unknown'):

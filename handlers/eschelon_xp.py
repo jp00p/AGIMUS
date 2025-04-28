@@ -1,7 +1,186 @@
-import math
 from common import *
 
 from queries.eschelon_xp import *
+from utils.image_utils import generate_badge_preview
+
+# Load level up messages
+with open("./data/level_up_messages.json") as f:
+  random_level_up_messages = json.load(f)
+
+blocked_level_up_sources = [
+  "Personal Log",
+  "Code 47",
+  "Classified by Section 31"
+]
+
+# ____  _____________     _____                           .___.__
+# \   \/  /\______   \   /  _  \__  _  _______ _______  __| _/|__| ____    ____
+#  \     /  |     ___/  /  /_\  \ \/ \/ /\__  \\_  __ \/ __ | |  |/    \  / ___\
+#  /     \  |    |     /    |    \     /  / __ \|  | \/ /_/ | |  |   |  \/ /_/  >
+# /___/\  \ |____|     \____|__  /\/\_/  (____  /__|  \____ | |__|___|  /\___  /
+#       \_/                    \/             \/           \/         \//_____/
+async def award_xp(user_discord_id: str, amount: int, reason: str, source = None):
+  """
+  Award XP to a user, check if they level up, update their record, and log the award.
+  Main entry point called by normal XP gain events.
+  """
+  current = await db_get_eschelon_progress(user_discord_id)
+
+  if current:
+    new_total_xp = current['current_xp'] + amount
+  else:
+    new_total_xp = amount
+
+  new_level = level_for_total_xp(new_total_xp)
+
+  await db_update_eschelon_progress(user_discord_id, new_total_xp, new_level)
+  await db_insert_eschelon_history(user_discord_id, amount, new_level, reason)
+
+  if current['current_level'] < new_level:
+    await handle_user_level_up(user_discord_id, new_level, reason, source)
+
+async def bulk_award_xp(user_discord_ids: list[str], amount: int, reason: str):
+  """
+  Award XP to multiple users at once.
+  Useful for mass event rewards or promotions.
+  """
+  for user_id in user_discord_ids:
+    await award_xp(user_id, amount, reason)
+
+async def deduct_xp(user_discord_id: str, amount: int, reason: str):
+  """
+  Deduct XP from a user.
+  Mainly for admin corrections or penalties.
+  """
+  current = await db_get_eschelon_progress(user_discord_id)
+  if not current:
+    return
+
+  new_total_xp = max(current['current_xp'] - amount, 0)
+  new_level = level_for_total_xp(new_total_xp)
+
+  await db_update_eschelon_progress(user_discord_id, new_total_xp, new_level)
+  await db_insert_eschelon_history(user_discord_id, -amount, new_level, reason)
+
+async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
+  """
+  Forcefully set a user's XP to a specific value.
+  Only used by admins during emergency fixes or migrations.
+  """
+  new_level = level_for_total_xp(new_xp)
+
+  await db_update_eschelon_progress(user_discord_id, new_xp, new_level)
+  await db_insert_eschelon_history(user_discord_id, 0, new_level, reason)  # 0 xp gained, just admin override
+
+
+# .____                      .__     ____ ___       ._.
+# |    |    _______  __ ____ |  |   |    |   \______| |
+# |    |  _/ __ \  \/ // __ \|  |   |    |   /\____ \ |
+# |    |__\  ___/\   /\  ___/|  |__ |    |  / |  |_> >|
+# |_______ \___  >\_/  \___  >____/ |______/  |   __/__
+#         \/   \/          \/                 |__|   \/
+async def handle_user_level_up(user_discord_id: str, level: int, reason: str, source = None):
+  member = await bot.current_guild.fetch_member(user_discord_id)
+
+  # TODO: Actually implement the badge award function here below
+  badge_data = await award_level_up_badge(member)
+
+  # TODO: Attempt to grant a crystal buffer pattern here if appropriate
+  # await try_grant_crystal_buffer_pattern(user.id)
+
+  source_details = determine_level_up_source_details(source)
+
+  await post_level_up_embed(member, level, badge_data, source_details)
+  log_level_up_to_console(member)
+
+
+async def post_level_up_embed(member: discord.User, level: int, badge_data: dict, source_details = None):
+  """
+  Build and send a level-up notification embed to the XP notification channel.
+  """
+  level_up_msg = f"**{random.choice(random_level_up_messages['messages']).format(user=member.mention, level=level, prev_level=(level-1))}**"
+
+  discord_file, attachment_url = await generate_badge_preview(member.id, badge_data)
+
+  embed_description = f"{member.mention} has reached **Eschelon {level}** and earned a new badge!"
+  if level == 2:
+    embed_description += "\n\nCheck out your full badge list with `/badges collection`."
+  if badge_data['was_on_wishlist']:
+    embed_description += f"\n\nIt was also on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
+
+  embed=discord.Embed(
+    title="Eschelon Level Up!",
+    description=embed_description,
+    color=discord.Color.random()
+  )
+  embed.set_image(url=attachment_url)
+  embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
+  embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
+  embed.add_field(name=badge_data['badge_name'], value=badge_data['badge_url'], inline=False)
+  if source_details:
+    embed.add_field(name="Eschelon Level Source", value=source_details)
+
+  notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
+  message = await notification_channel.send(content=f"## {level_up_msg}", file=discord_file, embed=embed)
+  # Add + emoji so that users can add it as well to add the badge to their wishlist
+  await message.add_reaction("✅")
+
+
+def log_level_up_to_console(user: discord.User, level: int):
+  """
+  Pretty rainbow console log when a user levels up.
+  """
+  rainbow_l = f"{Back.RESET}{Back.RED} {Back.YELLOW} {Back.GREEN} {Back.CYAN} {Back.BLUE} {Back.MAGENTA} {Back.RESET}"
+  rainbow_r = f"{Back.RESET}{Back.MAGENTA} {Back.BLUE} {Back.CYAN} {Back.GREEN} {Back.YELLOW} {Back.RED} {Back.RESET}"
+  logger.info(f"{rainbow_l} {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} reached Eschelon {level}! {rainbow_r}")
+
+# .____                      .__             ____ ___           ____ ___   __  .__.__
+# |    |    _______  __ ____ |  |           |    |   \______   |    |   \_/  |_|__|  |   ______
+# |    |  _/ __ \  \/ // __ \|  |    ______ |    |   /\____ \  |    |   /\   __\  |  |  /  ___/
+# |    |__\  ___/\   /\  ___/|  |__ /_____/ |    |  / |  |_> > |    |  /  |  | |  |  |__\___ \
+# |_______ \___  >\_/  \___  >____/         |______/  |   __/  |______/   |__| |__|____/____  >
+#         \/   \/          \/                         |__|                                  \/
+def is_message_channel_unblocked(message: discord.Message) -> bool:
+  """Checks whether a message was posted in a non-blocked channel."""
+  blocked_channels = get_channel_ids_list(config["handlers"]["starboard"]["blocked_channels"])
+
+  if isinstance(message.channel, discord.Thread):
+    return message.channel.parent.id not in blocked_channels
+  if isinstance(message.channel, (discord.TextChannel, discord.VoiceChannel, discord.StageChannel)):
+    return message.channel.id not in blocked_channels
+
+  return False
+
+def determine_level_up_source_details(user: discord.User, source):
+  """Returns a short description string about what caused the XP level-up event."""
+  if isinstance(source, discord.Message):
+    return _message_source_details(source)
+  elif isinstance(source, discord.Reaction):
+    return _reaction_source_details(user, source)
+  elif isinstance(source, discord.ScheduledEvent):
+    return _event_source_details(source)
+  elif isinstance(source, str):
+    return source
+  else:
+    return random.choice(blocked_level_up_sources)  # fallback
+
+def _message_source_details(message: discord.Message) -> str:
+  if is_message_channel_unblocked(message):
+    return f"Their message at: {message.jump_url}"
+  else:
+    return random.choice(blocked_level_up_sources)
+
+def _reaction_source_details(user: discord.User, reaction: discord.Reaction) -> str:
+  if is_message_channel_unblocked(reaction.message):
+    if user.id == reaction.message.author.id:
+      return f"Receiving a {reaction.emoji} reaction on their message: {reaction.message.jump_url}"
+    else:
+      return f"Reacting with {reaction.emoji} to a message: {reaction.message.jump_url}"
+  else:
+    return random.choice(blocked_level_up_sources)
+
+def _event_source_details(event: discord.ScheduledEvent) -> str:
+  return f"Creating the event: `{event.name}`"
 
 #   ______________________________
 #  /  _____/\_   _____/\__    ___/_____
@@ -95,61 +274,3 @@ def calculate_next_level_xp_gap(level: int) -> int:
   Shortcut function to return how much XP is needed to level up from a given level.
   """
   return xp_required_for_level(level)
-
-# ____  _____________     _____                           .___.__
-# \   \/  /\______   \   /  _  \__  _  _______ _______  __| _/|__| ____    ____
-#  \     /  |     ___/  /  /_\  \ \/ \/ /\__  \\_  __ \/ __ | |  |/    \  / ___\
-#  /     \  |    |     /    |    \     /  / __ \|  | \/ /_/ | |  |   |  \/ /_/  >
-# /___/\  \ |____|     \____|__  /\/\_/  (____  /__|  \____ | |__|___|  /\___  /
-#       \_/                    \/             \/           \/         \//_____/
-async def award_xp(user_discord_id: str, amount: int, reason: str):
-  """
-  Award XP to a user, check if they level up, update their record, and log the award.
-  Main entry point for normal XP gain events.
-  """
-  current = await db_get_eschelon_progress(user_discord_id)
-
-  if current:
-    new_total_xp = current['current_xp'] + amount
-  else:
-    new_total_xp = amount
-
-  new_level = level_for_total_xp(new_total_xp)
-
-  await db_update_eschelon_progress(user_discord_id, new_total_xp, new_level)
-  await db_insert_eschelon_history(user_discord_id, amount, new_level, reason)
-
-async def bulk_award_xp(user_discord_ids: list[str], amount: int, reason: str):
-  """
-  Award XP to multiple users at once.
-  Useful for mass event rewards or promotions.
-  """
-  for user_id in user_discord_ids:
-    await award_xp(user_id, amount, reason)
-
-async def deduct_xp(user_discord_id: str, amount: int, reason: str):
-  """
-  Deduct XP from a user.
-  Mainly for admin corrections or penalties.
-  """
-  current = await db_get_eschelon_progress(user_discord_id)
-  if not current:
-    return
-
-  new_total_xp = max(current['current_xp'] - amount, 0)
-  new_level = level_for_total_xp(new_total_xp)
-
-  await db_update_eschelon_progress(user_discord_id, new_total_xp, new_level)
-  await db_insert_eschelon_history(user_discord_id, -amount, new_level, reason)
-
-async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
-  """
-  Forcefully set a user's XP to a specific value.
-  Only used by admins during emergency fixes or migrations.
-  """
-  new_level = level_for_total_xp(new_xp)
-
-  await db_update_eschelon_progress(user_discord_id, new_xp, new_level)
-  await db_insert_eschelon_history(user_discord_id, 0, new_level, reason)  # 0 xp gained, just admin override
-
-

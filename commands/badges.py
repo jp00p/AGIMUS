@@ -168,7 +168,7 @@ async def collection(ctx:discord.ApplicationContext, public:str, filter:str, sor
 
   await pending_message.edit(
     embed=discord.Embed(
-      title="Sets Display Request Complete!",
+      title="Collection Display Request Complete!",
       description="Phew, here you go!",
       color=discord.Color.dark_green()
     )
