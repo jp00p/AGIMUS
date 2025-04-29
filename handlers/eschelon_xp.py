@@ -2,7 +2,8 @@
 from common import *
 
 from queries.eschelon_xp import *
-from utils.eschelon_rewards import award_level_up_badge, award_possible_crystal_buffer_pattern
+from queries.wishlist import db_is_badge_on_users_wishlist, db_autolock_badges_by_filenames_if_in_wishlist, db_purge_users_wishlist
+from utils.eschelon_rewards import award_level_up_badge, award_possible_crystal_buffer_pattern, award_initial_welcome_package
 from utils.image_utils import generate_badge_preview
 
 # Load level up messages
@@ -41,7 +42,7 @@ async def award_xp(user: discord.User, amount: int, reason: str, channel = None)
   await db_insert_eschelon_history(user_discord_id, amount, new_level, channel.id if channel else None, reason)
   console_log_xp_history(user, amount, reason)
 
-  if current['current_level'] < new_level:
+  if not current or current['current_level'] < new_level:
     console_log_level_up(user, new_level)
     return new_level
   else:
@@ -81,14 +82,27 @@ async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
 #         \/   \/          \/                 |__|   \/
 async def handle_user_level_up(member: discord.User, level: int, source = None):
   logger.info(f"[DEBUG] Handling user level up: {member.display_name} to level {level}")
-  badge_data = await award_level_up_badge(member)
-  source_details = determine_level_up_source_details(member, source)
+  badge_data = None
+  awarded_buffer_pattern = None
+  if level == 1:
+    badge_data, awarded_buffer_pattern = await award_initial_welcome_package(member)
+  else:
+    badge_data = await award_level_up_badge(member)
+    awarded_buffer_pattern = await award_possible_crystal_buffer_pattern(member)
 
+  # Auto-Lock/Clear Wishlist
+  if await db_is_badge_on_users_wishlist(member.id, badge_data['badge_filename']):
+    # Lock the badge if it was in their wishlist
+    await db_autolock_badges_by_filenames_if_in_wishlist(member.id, [badge_data['badge_filename']])
+    # Remove any badges the user may have on their wishlist that they now possess
+    await db_purge_users_wishlist(member.id)
+    badge_data['was_on_wishlist'] = True
+
+  source_details = determine_level_up_source_details(member, source)
   await post_level_up_embed(member, level, badge_data, source_details)
 
-  awarded_buffer_pattern = await award_possible_crystal_buffer_pattern(member)
   if awarded_buffer_pattern:
-    await post_buffer_pattern_acquired_embed(member, level)
+    await post_buffer_pattern_acquired_embed(member, level, awarded_buffer_pattern)
 
 
 async def post_level_up_embed(member: discord.User, level: int, badge_data: dict, source_details = None):
@@ -97,12 +111,13 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
   """
   level_up_msg = f"**{random.choice(random_level_up_messages['messages']).format(user=member.mention, level=level, prev_level=(level-1))}**"
 
-  discord_file, attachment_url = await generate_badge_preview(member.id, badge_data)
+  discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
-  embed_description = f"{member.mention} has reached **Eschelon {level}** and earned a new badge!"
-  if level == 2:
-    embed_description += "\n\nCheck out your full badge list with `/badges collection`."
-  if badge_data['was_on_wishlist']:
+  embed_description = f"{member.mention} has reached **Eschelon {level}** and earned a badge!"
+  if level == 1:
+    embed_description = f"Enter Friend! {get_emoji('tendi_smile_happy')}\n\n{embed_description}\n\nYou've been granted your starter FoD Badge! Welcome!"
+
+  if badge_data.get('was_on_wishlist', False):
     embed_description += f"\n\nIt was also on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
 
   embed=discord.Embed(
@@ -112,7 +127,7 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
   )
   embed.set_image(url=attachment_url)
   embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
-  embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
+  embed.set_footer(text="See all your badges by typing '/badges collection' - disable this by typing '/settings'")
   embed.add_field(name=badge_data['badge_name'], value=badge_data['badge_url'], inline=False)
   if source_details:
     embed.add_field(name="Eschelon Level Source", value=source_details)
@@ -123,19 +138,29 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
   await message.add_reaction("✅")
 
 
-async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int):
+async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int, number_of_patterns: int = 1):
   """
   Sends a special embed to the XP notification channel announcing that the user
   has acquired a Crystal Buffer Pattern.
+
+  If they received more than one (only currently occurs when they first hit Eschelon 1),
+  there's a little special messaging instead of the standard.
   """
-  embed = discord.Embed(
-    title="✨ Crystal Buffer Pattern Acquired! ✨",
-    description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Buffer Pattern** when they reached Eschelon {level}!\n\nThey can now use it to replicate a new Crystal from scratch!",
-    color=discord.Color.teal()
-  )
+  embed = None
+  if number_of_patterns == 1:
+    embed = discord.Embed(
+      title="✨ Crystal Buffer Pattern Acquired! ✨",
+      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Buffer Pattern** when they reached Eschelon {level}!\n\nThey can now use it to replicate a new Crystal from scratch!",
+      color=discord.Color.teal()
+    )
+  else:
+    embed = discord.Embed(
+      title="✨ Crystal Buffer PATTERNS Acquired! ✨",
+      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Buffer Patterns** in their hands when they reached Eschelon {level}!\n\nThey can now use them to replicate {number_of_patterns} new Crystals from scratch!",
+      color=discord.Color.teal()
+    )
   embed.set_image(url="https://i.imgur.com/lgP2miO.gif")
   embed.set_footer(text="Use  `/crystals replicate` to materialize a freshly minted Crystal!")
-
   notification_channel = bot.get_channel(get_channel_id(config['handlers']['xp']['notification_channel']))
   await notification_channel.send(embed=embed)
 
@@ -259,6 +284,13 @@ def xp_required_for_level(level: int) -> int:
   t = (level - 1) / (170 - 1)
   ease = 3 * (t**2) - 2 * (t**3)
   return int(69 + (420 - 69) * ease)
+
+_xp_to_level_170 = None
+def total_xp_to_level_170() -> int:
+  global _xp_to_level_170
+  if _xp_to_level_170 is None:
+    _xp_to_level_170 = sum(xp_required_for_level(level) for level in range(1, 170))
+  return _xp_to_level_170
 
 def level_for_total_xp(total_xp: int) -> int:
   """

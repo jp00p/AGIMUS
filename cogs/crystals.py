@@ -307,7 +307,7 @@ class Crystals(commands.Cog):
   #         \/     \/     \/              \/     \/
   @crystals_group.command(name="manifest", description="Review your unattuned Crystal manifest.")
   async def manifest(self, ctx: discord.ApplicationContext):
-    # await ctx.defer(ephemeral=True)
+    await ctx.defer(ephemeral=True)
 
     user_id = ctx.user.id
     crystals = await db_get_user_unattuned_crystals(user_id)
@@ -373,7 +373,7 @@ class Crystals(commands.Cog):
     autocomplete=autocomplete_user_badge_instances_without_crystal_type
   )
   async def attune(self, ctx: discord.ApplicationContext, rarity: str, crystal: str, badge: str):
-    await ctx.defer()
+    await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
 
     if rarity is None or crystal is None or badge is None:

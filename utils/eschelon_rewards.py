@@ -1,11 +1,11 @@
 # utils/eschelon_rewards.py
 from common import *
 
-from queries.badge_instances import db_get_badge_instance_by_id
-from queries.crystal_instances import db_increment_user_crystal_buffer
+from queries.badge_instances import db_get_badge_instance_by_id, db_get_user_badge_instances
+from queries.crystal_instances import db_increment_user_crystal_buffer, db_set_user_crystal_buffer, db_get_user_crystal_buffer_count
 from queries.eschelon_rewards import *
 from queries.eschelon_xp import *
-from utils.badge_instances import create_new_badge_instance
+from utils.badge_instances import create_new_badge_instance, create_new_badge_instance_by_filename
 
 # Constants
 PQIF_THRESHOLD = 0.10  # 10% remaining triggers PQIF
@@ -59,7 +59,7 @@ async def award_level_up_badge(member) -> dict:
   badge_info_id, prestige_level = await select_badge_for_level_up(member.id)
 
   badge_instance = await create_new_badge_instance(
-    user_id=member,
+    user_id=member.id,
     badge_info_id=badge_info_id,
     prestige_level=prestige_level,
     event_type='level_up'
@@ -120,8 +120,6 @@ async def select_badge_for_level_up(user_discord_id: str) -> tuple[int, int]:
   user_collection = await db_get_user_badges_at_prestige_level(user_discord_id, prestige_level)
   missing_badges = list(set(full_pool) - user_collection)
 
-  logger.info(f"[DEBUG] Missing badges: {missing_badges}")
-
   for badge_id in missing_badges:
     candidates.append((badge_id, prestige_level, 5))  # Standard weight
 
@@ -156,8 +154,6 @@ async def select_badge_for_level_up(user_discord_id: str) -> tuple[int, int]:
 
   if not candidates:
     raise Exception("No eligible badge candidates found. This should never happen (at least until the heat death of the universe and we've exhausted the Transcendence prestige level...")
-
-  logger.info(f"[DEBUG] Candidate badges: {candidates}")
 
   # Weighted random selection
   badge_choices = [item for item in candidates for _ in range(item[2])]
@@ -202,12 +198,30 @@ async def award_possible_crystal_buffer_pattern(user: discord.User) -> bool:
     await db_increment_user_crystal_buffer(user_discord_id)
     await db_update_buffer_failure_streak(user_discord_id, 0)
     logger.debug(f"[Crystal Buffer Reward] User {user_discord_id} granted buffer (roll: {roll:.2f} <= {chance:.2f})")
-    return True
+    # Currently they win a single buffer, maybe we'll change this in the future or maybe not
+    return 1
   else:
     # FAIL: Increment failure streak
     await db_update_buffer_failure_streak(user_discord_id, failure_streak + 1)
     logger.debug(f"[Crystal Buffer Reward] User {user_discord_id} failed buffer (roll: {roll:.2f} > {chance:.2f}), new streak: {failure_streak + 1}")
     return False
+
+# __________                                .___
+# \______   \ ______  _  _______ _______  __| _/______
+#  |       _// __ \ \/ \/ /\__  \\_  __ \/ __ |/  ___/
+#  |    |   \  ___/\     /  / __ \|  | \/ /_/ |\___ \
+#  |____|_  /\___  >\/\_/  (____  /__|  \____ /____  >
+#         \/     \/             \/           \/    \/
+async def award_initial_welcome_package(member: discord.Member):
+  user_id = member.id
+
+  # Standard Friends of DeSoto Badge reward for joining
+  fod_badge = await create_new_badge_instance_by_filename(user_id, "Friends_Of_DeSoto.png", event_type="first_promotion")
+  # Give em N crystal buffers to play with
+  number_of_buffers_awarded = 3
+  await db_set_user_crystal_buffer(user_id, number_of_buffers_awarded)
+
+  return fod_badge, number_of_buffers_awarded
 
 #   ___ ___         .__
 #  /   |   \   ____ |  | ______   ___________  ______

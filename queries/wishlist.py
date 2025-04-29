@@ -30,6 +30,19 @@ async def db_get_user_wishlist_badges(user_discord_id):
     await query.execute(sql, vals)
     return await query.fetchall()
 
+async def db_is_badge_on_users_wishlist(user_discord_id: str, badge_filename: str) -> bool:
+  sql = """
+    SELECT 1
+    FROM badge_instance_wishlists biw
+    JOIN badge_info bi ON bi.id = biw.badge_info_id
+    WHERE biw.user_discord_id = %s AND bi.badge_filename = %s
+    LIMIT 1
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_discord_id, badge_filename))
+    return await db.fetchone() is not None
+
+
 #    _____       .___  .___     /\ __________
 #   /  _  \    __| _/__| _/    / / \______   \ ____   _____   _______  __ ____
 #  /  /_\  \  / __ |/ __ |    / /   |       _// __ \ /     \ /  _ \  \/ // __ \

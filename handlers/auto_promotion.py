@@ -1,10 +1,7 @@
 # handlers/auto_promotions.py
 from common import *
 from handlers.eschelon_xp import get_user_eschelon_progress
-from queries.badge_instances import db_get_user_badge_instances
-from queries.crystal_instances import db_set_user_crystal_buffer
-from utils.badge_instances import create_new_badge_instance_by_filename
-
+from handlers.eschelon_xp import award_xp
 
 # _________                         __                 __
 # \_   ___ \  ____   ____   _______/  |______    _____/  |_  ______
@@ -68,8 +65,7 @@ async def handle_intro_promotion(message: discord.Message):
     if cadet_role:
       await member.add_roles(cadet_role)
       logger.info(f"{Style.BRIGHT}{member.display_name}{Style.RESET_ALL} promoted to {Fore.CYAN}Cadet{Fore.RESET} via intro message!")
-      await grant_xp(member.id, 10, "intro_message", channel=message.channel, source="Posted their intro message!")
-      await grant_initial_welcome_rewards(member)
+      await award_xp(member.id, 10, "intro_message", channel=message.channel)
 
 
 async def handle_xp_promotion(member: discord.Member):
@@ -84,32 +80,12 @@ async def handle_xp_promotion(member: discord.Member):
     if cadet_role:
       await member.add_roles(cadet_role)
       logger.info(f"{Style.BRIGHT}{member.display_name}{Style.RESET_ALL} promoted to {Fore.CYAN}Cadet{Fore.RESET} via XP!")
-      await grant_initial_welcome_rewards(member)
 
   elif promotion_roles["ensign"] not in member_role_names and user_level >= required_rank_xp["ensign"]:
     ensign_role = discord.utils.get(member.guild.roles, name=promotion_roles["ensign"])
     if ensign_role:
       await member.add_roles(ensign_role)
       logger.info(f"{Style.BRIGHT}{member.display_name}{Style.RESET_ALL} promoted to {Fore.GREEN}Ensign{Fore.RESET} via XP!")
-
-
-# __________                                .___
-# \______   \ ______  _  _______ _______  __| _/______
-#  |       _// __ \ \/ \/ /\__  \\_  __ \/ __ |/  ___/
-#  |    |   \  ___/\     /  / __ \|  | \/ /_/ |\___ \
-#  |____|_  /\___  >\/\_/  (____  /__|  \____ /____  >
-#         \/     \/             \/           \/    \/
-async def grant_initial_welcome_rewards(member: discord.Member):
-  user_id = str(member.id)
-  badges = await db_get_user_badge_instances(user_id)
-  badge_filenames = [b["badge_filename"] for b in badges]
-
-  # Standard Friends of DeSoto Badge reward
-  if "Friends_Of_DeSoto.png" not in badge_filenames:
-    await create_new_badge_instance_by_filename(user_id, "Friends_Of_DeSoto.png", event_type="first_promotion")
-
-  # Give em 3 crystal buffers to play with
-  await db_set_user_crystal_buffer(user_id, 3)
 
 
 # ___________      ___.              .___
