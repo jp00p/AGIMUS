@@ -3,7 +3,7 @@ from common import *
 
 from queries.eschelon_xp import *
 from queries.wishlist import db_is_badge_on_users_wishlist, db_autolock_badges_by_filenames_if_in_wishlist, db_purge_users_wishlist
-from utils.eschelon_rewards import award_level_up_badge, award_possible_crystal_buffer_pattern, award_initial_welcome_package
+from utils.eschelon_rewards import *
 from utils.image_utils import generate_badge_preview
 
 # Load level up messages
@@ -82,6 +82,9 @@ async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
 #         \/   \/          \/                 |__|   \/
 async def handle_user_level_up(member: discord.User, level: int, source = None):
   logger.info(f"[DEBUG] Handling user level up: {member.display_name} to level {level}")
+
+  prestige_before = await get_user_prestige_level(member)
+
   badge_data = None
   awarded_buffer_pattern = None
   if level == 1:
@@ -90,7 +93,10 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
     badge_data = await award_level_up_badge(member)
     awarded_buffer_pattern = await award_possible_crystal_buffer_pattern(member)
 
+  prestige_after = await get_user_prestige_level(member)
+
   # Auto-Lock/Clear Wishlist
+  # XXX - Needs to handle Prestige Level once we've overhauled wishlists to respect prestige levels
   if await db_is_badge_on_users_wishlist(member.id, badge_data['badge_filename']):
     # Lock the badge if it was in their wishlist
     await db_autolock_badges_by_filenames_if_in_wishlist(member.id, [badge_data['badge_filename']])
@@ -99,7 +105,13 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
     badge_data['was_on_wishlist'] = True
 
   source_details = determine_level_up_source_details(member, source)
-  await post_level_up_embed(member, level, badge_data, source_details)
+  # Handle Prestige Advancement
+  if prestige_after > prestige_before:
+    await award_special_badge_prestige_echoes(member, prestige_after)
+    await post_prestige_advancement_embed(member, level, prestige_after, badge_data, source_details)
+  # Handle Standard Level Ups
+  else:
+    await post_level_up_embed(member, level, badge_data, source_details)
 
   if awarded_buffer_pattern:
     await post_buffer_pattern_acquired_embed(member, level, awarded_buffer_pattern)
@@ -127,15 +139,55 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
   )
   embed.set_image(url=attachment_url)
   embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
-  embed.set_footer(text="See all your badges by typing '/badges collection' - disable this by typing '/settings'")
   embed.add_field(name=badge_data['badge_name'], value=badge_data['badge_url'], inline=False)
   if source_details:
     embed.add_field(name="Eschelon Level Source", value=source_details)
+  embed.set_footer(text="See all your badges by typing '/badges collection' - disable this by typing '/settings'")
 
   notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
   message = await notification_channel.send(content=f"## {level_up_msg}", file=discord_file, embed=embed)
   # Add + emoji so that users can add it as well to add the badge to their wishlist
   await message.add_reaction("✅")
+
+
+async def post_prestige_advancement_embed(member: discord.Member, level: int, new_prestige: int, badge_data: dict, source_details = None):
+  """
+  Builds and sends a celebratory embed to mark the user's advancement to a new prestige tier.
+  This replaces the regular level-up embed when a prestige tier is reached for the first time.
+
+  Args:
+    member (discord.Member): The user who advanced.
+    new_prestige (int): The prestige level the user just reached.
+  """
+  prestige_name = PRESTIGE_LEVELS.get(new_prestige, f"Prestige {new_prestige}")
+  old_prestige_name = PRESTIGE_LEVELS.get(new_prestige - 1, "Standard")
+
+  prestige_msg = f"## STRANGE ENERGIES AFOOT! {member.mention} is nearing boundary-space upon reaching Eschelon {level}!!!"
+
+  discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
+
+  title = f"Eschelon {level} and {prestige_name} Tier Unlocked!"
+  description = (
+    f"{member.mention} has ascended to the **{prestige_name}** Prestige Tier!"
+    f"\n\nThey have reached Eschelon {level} and have received their first badge at {prestige_name}"
+    f"\n\nThis also means they're within the Prestige Quantum Improbability Field... As they continue to advance into {prestige_name} the pull grows ever larger as the odds warp and skew!"
+    f"\nTheir chances of receiving {old_prestige_name} badges lessen while chances of receiving {prestige_name} badges strengthen!"
+  )
+
+  embed = discord.Embed(
+    title=title,
+    description=description,
+    color=discord.Color.gold()  # TODO: Making this prestige-tier color specific later
+  )
+  embed.set_image(url=attachment_url)
+  embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"])) # TODO: Randomized special image here
+  embed.add_field(name=badge_data['badge_name'], value=badge_data['badge_url'], inline=False)
+  if source_details:
+    embed.add_field(name="Eschelon Level Source", value=source_details)
+  embed.set_footer(text="Echoes of their past have carried forward — Any special badges they've acquired have ascended alongside them!")
+
+  notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
+  await notification_channel.send(content=prestige_msg, file=discord_file, embed=embed)
 
 
 async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int, number_of_patterns: int = 1):
@@ -150,13 +202,13 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   if number_of_patterns == 1:
     embed = discord.Embed(
       title="✨ Crystal Buffer Pattern Acquired! ✨",
-      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Buffer Pattern** when they reached Eschelon {level}!\n\nThey can now use it to replicate a new Crystal from scratch!",
+      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Buffer Pattern** when they reached Eschelon {level}!\n\nThey can now use it to replicate a Crystal from scratch!",
       color=discord.Color.teal()
     )
   else:
     embed = discord.Embed(
       title="✨ Crystal Buffer PATTERNS Acquired! ✨",
-      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Buffer Patterns** in their hands when they reached Eschelon {level}!\n\nThey can now use them to replicate {number_of_patterns} new Crystals from scratch!",
+      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Buffer Patterns** in their hands when they reached Eschelon {level}!\n\nThey can now use them to replicate {number_of_patterns} Crystals from scratch!",
       color=discord.Color.teal()
     )
   embed.set_image(url="https://i.imgur.com/lgP2miO.gif")

@@ -18,3 +18,12 @@ async def db_insert_eschelon_history(user_discord_id: str, xp_gained: int, user_
       "INSERT INTO eschelon_progress_history (user_discord_id, xp_gained, user_level_at_gain, channel_id, reason) VALUES (%s, %s, %s, %s, %s)",
       (user_discord_id, xp_gained, user_level_at_gain, channel_id, reason)
     )
+
+async def db_set_user_prestige_level(user_discord_id: str, prestige_level: int):
+  sql = """
+    UPDATE eschelon_progress
+    SET current_prestige_level = %s
+    WHERE user_discord_id = %s
+  """
+  async with AgimusDB() as db:
+    await db.execute(sql, (prestige_level, user_discord_id))

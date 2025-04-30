@@ -25,6 +25,7 @@ async def db_get_user_badge_instances(
   *,
   locked: bool | None = None,
   special: bool | None = None,
+  prestige: int | None = None,
   sortby: str = None
 ):
   where_clauses = ["b.owner_discord_id = %s", "b.active = TRUE"]
@@ -37,6 +38,10 @@ async def db_get_user_badge_instances(
   if special is not None:
     where_clauses.append("b_i.special = %s")
     params.append(special)
+
+  if prestige is not None:
+    where_clauses.append("b.prestige_level = %s")
+    params.append(prestige)
 
   where_sql = " AND ".join(where_clauses)
 
