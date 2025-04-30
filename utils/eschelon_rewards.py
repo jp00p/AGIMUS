@@ -6,6 +6,7 @@ from queries.crystal_instances import db_increment_user_crystal_buffer, db_set_u
 from queries.eschelon_rewards import *
 from queries.eschelon_xp import *
 from utils.badge_instances import create_new_badge_instance, create_new_badge_instance_by_filename
+from utils.prestige import PRESTIGE_LEVELS
 
 # Constants
 PQIF_THRESHOLD = 0.10  # 10% remaining triggers PQIF
@@ -13,17 +14,6 @@ PQIF_THRESHOLD = 0.10  # 10% remaining triggers PQIF
 BASE_BUFFER_CHANCE = 20.0
 BUFFER_GROWTH_FACTOR = 3.75
 MAX_BUFFER_FAILURE_STREAK = 5
-
-# TODO: Move this to `utils.prestige`
-PRESTIGE_LEVELS = {
-  0: 'Standard',
-  1: 'Nebula',
-  2: 'Galaxy',
-  3: 'Supernova',
-  4: 'Singularity',
-  5: 'Nexus',
-  6: 'Transcendence'
-}
 
 #    _____                           .___ __________             .___
 #   /  _  \__  _  _______ _______  __| _/ \______   \_____     __| _/ ____   ____

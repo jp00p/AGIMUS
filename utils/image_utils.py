@@ -18,6 +18,7 @@ from utils.animation_cache import *
 from utils.badge_cache import *
 from utils.crystal_effects import apply_crystal_effect
 from utils.encode_utils import encode_webp
+from utils.prestige import PRESTIGE_THEMES
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
 
 THREAD_POOL = ThreadPoolExecutor(max_workers=24)
@@ -1009,9 +1010,7 @@ def compose_badge_slot(badge: dict, colors, image_frames: list[Image.Image], ove
 
   dims = _get_badge_slot_dimensions()
   fonts = load_fonts()
-
   border_color, text_color = override_colors if override_colors else (colors.highlight, "#FFFFFF")
-
   slot_frames = []
 
   for frame in image_frames:
@@ -1022,20 +1021,35 @@ def compose_badge_slot(badge: dict, colors, image_frames: list[Image.Image], ove
       frame
     )
 
-    slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(slot_canvas)
-    draw.rounded_rectangle(
-      (0, 0, dims.slot_width, dims.slot_height),
-      fill="#000000",
-      outline=border_color,
-      width=4,
-      radius=32
-    )
+    prestige_level = badge.get("prestige_level", 0)
+    if badge.get("prestige_level", 0):
+      prestige_theme = PRESTIGE_THEMES.get(prestige_level)
+      gradient = _create_gradient_fill((dims.slot_width, dims.slot_height), prestige_theme["gradient_start"], prestige_theme["gradient_end"])
+      mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
+      ImageDraw.Draw(mask).rounded_rectangle((0, 0, dims.slot_width, dims.slot_height), radius=32, fill=255)
+      gradient.putalpha(mask)
+      prestige_border = _create_border_overlay((dims.slot_width, dims.slot_height), prestige_theme["border_gradient_colors"])
+
+      slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
+      slot_canvas.paste(gradient, (0, 0), gradient)
+      slot_canvas.paste(prestige_border, (0, 0), prestige_border)
+
+    else:
+      slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 255))
+      draw = ImageDraw.Draw(slot_canvas)
+      draw.rounded_rectangle(
+        (0, 0, dims.slot_width, dims.slot_height),
+        fill="#000000",
+        outline=border_color,
+        width=4,
+        radius=32
+      )
 
     offset_x = min(0, dims.slot_width - badge_canvas.width) + 4
     offset_y = 20
     slot_canvas.paste(badge_canvas, (dims.badge_padding + offset_x, offset_y), badge_canvas)
 
+    draw = ImageDraw.Draw(slot_canvas)
     text = badge.get("badge_name", "")
     wrapped = textwrap.fill(text, width=24)
     text_bbox = draw.multiline_textbbox((0, 0), wrapped, font=fonts.label)
@@ -1050,13 +1064,67 @@ def compose_badge_slot(badge: dict, colors, image_frames: list[Image.Image], ove
         overlay = SPECIAL_ICON
       elif badge.get("locked"):
         overlay = LOCK_ICON
-
       if overlay:
         slot_canvas.paste(overlay, (dims.slot_width - 54, 16), overlay)
+
+    # Final rounded mask to clip anything outside the border
+    final_mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
+    ImageDraw.Draw(final_mask).rounded_rectangle(
+      (0, 0, dims.slot_width, dims.slot_height),
+      radius=32,
+      fill=255
+    )
+    slot_canvas.putalpha(final_mask)
 
     slot_frames.append(slot_canvas)
 
   return slot_frames
+
+
+def _create_gradient_fill(size: tuple[int, int], start_color: tuple[int, int, int], end_color: tuple[int, int, int]) -> Image.Image:
+  width, height = size
+  gradient = Image.new("RGBA", size)
+  for y in range(height):
+    for x in range(width):
+      t_raw = (x + y) / (width + height)
+      t = _ease_out_start(t_raw)
+      r = int(start_color[0] * (1 - t) + end_color[0] * t)
+      g = int(start_color[1] * (1 - t) + end_color[1] * t)
+      b = int(start_color[2] * (1 - t) + end_color[2] * t)
+      gradient.putpixel((x, y), (r, g, b, 255))
+  return gradient
+
+def _create_border_overlay(size: tuple[int, int], colors: list[tuple[int, int, int]]) -> Image.Image:
+  assert len(colors) == 3, "Expected three-color gradient"
+  width, height = size
+  border = Image.new("RGBA", size)
+  for y in range(height):
+    for x in range(width):
+      t = (x + y) / (width + height)
+      if t < 0.5:
+        blend = t * 2
+        r = int(colors[0][0] * (1 - blend) + colors[1][0] * blend)
+        g = int(colors[0][1] * (1 - blend) + colors[1][1] * blend)
+        b = int(colors[0][2] * (1 - blend) + colors[1][2] * blend)
+      else:
+        blend = (t - 0.5) * 2
+        r = int(colors[1][0] * (1 - blend) + colors[2][0] * blend)
+        g = int(colors[1][1] * (1 - blend) + colors[2][1] * blend)
+        b = int(colors[1][2] * (1 - blend) + colors[2][2] * blend)
+      border.putpixel((x, y), (r, g, b, 255))
+
+  mask_outer = Image.new("L", size, 0)
+  mask_inner = Image.new("L", size, 0)
+  draw_outer = ImageDraw.Draw(mask_outer)
+  draw_inner = ImageDraw.Draw(mask_inner)
+  draw_outer.rounded_rectangle((0, 0, width - 1, height - 1), radius=32, fill=255)
+  draw_inner.rounded_rectangle((4, 4, width - 5, height - 5), radius=32 - 4, fill=255)
+  border_mask = ImageChops.subtract(mask_outer, mask_inner)
+  return Image.composite(border, Image.new("RGBA", size, (0, 0, 0, 0)), border_mask)
+
+def _ease_out_start(t: float) -> float:
+  return t ** 2
+
 
 
 async def build_display_canvas(
