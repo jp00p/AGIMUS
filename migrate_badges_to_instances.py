@@ -37,10 +37,6 @@ async def migrate_badges(dry_run=False):
         badge_filename = badge_row["badge_filename"]
         locked = badge_row["locked"]
 
-        if badge_filename == "Friends_Of_DeSoto.png":
-          # They're going to receive the standard FoD Badge when they get their first XP point, so no need to transfer
-          continue
-
         await cur.execute("SELECT id FROM badge_info WHERE badge_filename = %s", (badge_filename,))
         row = await cur.fetchone()
         if not row:

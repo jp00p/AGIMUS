@@ -5,7 +5,7 @@ from queries.badge_instances import db_get_user_badge_instances
 from queries.crystal_instances import db_increment_user_crystal_buffer, db_set_user_crystal_buffer
 from queries.echelon_rewards import *
 from queries.echelon_xp import *
-from utils.badge_instances import create_new_badge_instance, create_new_badge_instance_by_filename
+from utils.badge_instances import create_new_badge_instance, create_new_badge_instance_by_filename, db_get_badge_instance_by_filename
 from utils.prestige import PRESTIGE_TIERS
 
 # Constants
@@ -178,9 +178,14 @@ async def award_possible_crystal_buffer_pattern(member: discord.Member) -> bool:
 async def award_initial_welcome_package(member: discord.Member):
   user_id = member.id
 
-  # Standard Friends of DeSoto Badge reward for joining
-  fod_badge = await create_new_badge_instance_by_filename(user_id, "Friends_Of_DeSoto.png", event_type="first_promotion")
-  # Give em N crystal buffers to play with
+  # Check if user already owns the FoD badge
+  existing = await db_get_badge_instance_by_filename(user_id, "Friends_Of_DeSoto.png", prestige=1)
+  if existing:
+    fod_badge = None  # Already owned
+  else:
+    fod_badge = await create_new_badge_instance_by_filename(user_id, "Friends_Of_DeSoto.png", event_type="first_promotion")
+
+  # Grant initial crystal pattern buffers
   number_of_buffers_awarded = 3
   await db_set_user_crystal_buffer(user_id, number_of_buffers_awarded)
 

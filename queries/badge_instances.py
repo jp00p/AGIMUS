@@ -88,7 +88,28 @@ async def db_get_badge_instance_by_id(badge_instance_id):
     instance = await query.fetchone()
   return instance
 
-async def db_get_badge_instance_by_badge_info_id(user_id, badge_info_id):
+async def db_get_badge_instance_by_filename(user_id: int, badge_filename: str, prestige: int | None = None):
+  sql = f"""
+    SELECT {BADGE_INSTANCE_COLUMNS}
+    FROM badge_instances AS b
+    JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+    LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+    LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+    LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
+    WHERE b_i.badge_filename = %s
+      AND b.owner_discord_id = %s
+  """
+  params = [badge_filename, user_id]
+  if prestige is not None:
+    sql += " AND b.prestige_level = %s"
+    params.append(prestige)
+
+  sql += " LIMIT 1"
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, tuple(params))
+    return await db.fetchone()
+
+async def db_get_badge_instance_by_badge_info_id(user_id: int, badge_info_id: int, prestige: int | None = None):
   sql = f"""
     SELECT {BADGE_INSTANCE_COLUMNS}
     FROM badge_instances AS b
@@ -97,23 +118,32 @@ async def db_get_badge_instance_by_badge_info_id(user_id, badge_info_id):
     LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
     LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
     WHERE b.badge_info_id = %s AND b.owner_discord_id = %s
-    LIMIT 1
   """
-  async with AgimusDB(dictionary=True) as query:
-    await query.execute(sql, (badge_info_id, user_id))
-    instance = await query.fetchone()
-  return instance
+  params = [badge_info_id, user_id]
+  if prestige is not None:
+    sql += " AND b.prestige_level = %s"
+    params.append(prestige)
 
-async def db_get_badge_instance_id_by_badge_info_id(user_id, badge_info_id):
+  sql += " LIMIT 1"
   async with AgimusDB(dictionary=True) as query:
-    await query.execute(
-      "SELECT id FROM badge_instances WHERE badge_info_id = %s AND owner_discord_id = %s",
-      (badge_info_id, user_id)
-    )
-    instance = await query.fetchone()
-  return instance
+    await query.execute(sql, tuple(params))
+    return await query.fetchone()
 
-async def db_get_badge_instance_by_badge_name(user_id: int, badge_name: str) -> dict | None:
+async def db_get_badge_instance_id_by_badge_info_id(user_id: int, badge_info_id: int, prestige: int | None = None):
+  sql = """
+    SELECT id FROM badge_instances
+    WHERE badge_info_id = %s AND owner_discord_id = %s
+  """
+  params = [badge_info_id, user_id]
+  if prestige is not None:
+    sql += " AND prestige_level = %s"
+    params.append(prestige)
+
+  async with AgimusDB(dictionary=True) as query:
+    await query.execute(sql, tuple(params))
+    return await query.fetchone()
+
+async def db_get_badge_instance_by_badge_name(user_id: int, badge_name: str, prestige: int | None = None):
   sql = f"""
     SELECT {BADGE_INSTANCE_COLUMNS}
     FROM badge_instances AS b
@@ -123,22 +153,32 @@ async def db_get_badge_instance_by_badge_name(user_id: int, badge_name: str) -> 
     LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
     WHERE b_i.badge_name = %s
       AND b.owner_discord_id = %s
-    LIMIT 1
   """
-  async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (badge_name, user_id))
-    instance = await db.fetchone()
-  return instance
+  params = [badge_name, user_id]
+  if prestige is not None:
+    sql += " AND b.prestige_level = %s"
+    params.append(prestige)
 
-async def db_get_owned_badge_filenames_by_user_id(user_id: int):
-  query = """
+  sql += " LIMIT 1"
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, tuple(params))
+    return await db.fetchone()
+
+async def db_get_owned_badge_filenames_by_user_id(user_id: int, prestige: int | None = None):
+  sql = """
     SELECT bi.badge_filename
     FROM badge_instances AS inst
     JOIN badge_info AS bi ON inst.badge_info_id = bi.id
-    WHERE inst.owner_discord_id = %s AND inst.active = TRUE
+    WHERE inst.owner_discord_id = %s
+      AND inst.active = TRUE
   """
+  params = [user_id]
+  if prestige is not None:
+    sql += " AND inst.prestige_level = %s"
+    params.append(prestige)
+
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(query, (user_id,))
+    await db.execute(sql, tuple(params))
     return await db.fetchall()
 
 

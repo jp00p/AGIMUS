@@ -56,6 +56,16 @@ class Admin(commands.Cog):
     max_length=128
   )
   @option(
+    "prestige",
+    int,
+    description="Prestige Tier",
+    required=True,
+    choices=[
+      discord.OptionChoice(name=label, value=str(tier))
+      for tier, label in PRESTIGE_TIERS.items()
+    ]
+  )
+  @option(
     "crystal",
     str,
     description="Crystal Type",
@@ -63,8 +73,9 @@ class Admin(commands.Cog):
     autocomplete=autocomplete_crystals,
     max_length=128
   )
-  async def crystallize(self, ctx, user: discord.User, badge_name: str, crystal: str):
+  async def crystallize(self, ctx, user: discord.User, badge_name: str, prestige: str, crystal: str):
     await ctx.defer(ephemeral=True)
+    prestige = int(prestige)
     crystal_type_id = int(crystal)
 
     # Step 1: Get the badge info
@@ -74,7 +85,7 @@ class Admin(commands.Cog):
       return await ctx.respond(embed=embed, ephemeral=True)
 
     # Step 2: Get the instance
-    instance = await db_get_badge_instance_by_badge_info_id(user.id, badge_info['id'])
+    instance = await db_get_badge_instance_by_badge_info_id(user.id, badge_info['id'], prestige=prestige)
     if not instance:
       embed = discord.Embed(title="Instance Missing", description=f"❌ {user.mention} does not have a badge instance for '{badge_name}'", color=discord.Color.red())
       return await ctx.respond(embed=embed, ephemeral=True)

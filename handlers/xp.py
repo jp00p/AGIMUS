@@ -10,6 +10,7 @@ from handlers.auto_promotion import handle_auto_promotions
 from queries.wishlist import *
 from utils.echelon_rewards import *
 from utils.badge_utils import *
+from utils.settings_utils import db_get_current_xp_enabled_value
 
 # XP lock to prevent race conditions
 xp_lock = asyncio.Lock()
@@ -25,15 +26,21 @@ blocked_level_up_sources = [
   "Classified by Section 31"
 ]
 
-#    _____                           .___.__
-#   /  _  \__  _  _______ _______  __| _/|__| ____    ____
-#  /  /_\  \ \/ \/ /\__  \\_  __ \/ __ | |  |/    \  / ___\
-# /    |    \     /  / __ \|  | \/ /_/ | |  |   |  \/ /_/  >
-# \____|__  /\/\_/  (____  /__|  \____ | |__|___|  /\___  /
-#         \/             \/           \/         \//_____/
+
+# ____  _____________  .___                                                   __
+# \   \/  /\______   \ |   | ____   ___________   ____   _____   ____   _____/  |_
+#  \     /  |     ___/ |   |/    \_/ ___\_  __ \_/ __ \ /     \_/ __ \ /    \   __\
+#  /     \  |    |     |   |   |  \  \___|  | \/\  ___/|  Y Y  \  ___/|   |  \  |
+# /___/\  \ |____|     |___|___|  /\___  >__|    \___  >__|_|  /\___  >___|  /__|
+#       \_/                     \/     \/            \/      \/     \/     \/
 async def grant_xp(user: discord.User, amount: int, reason: str, channel = None, source = None):
   """Award XP to a user through the Echelon XP system."""
   async with xp_lock:
+    # Make sure that they actually want to participate in the XP system...
+    xp_enabled = bool(await db_get_current_xp_enabled_value(user.id))
+    if not xp_enabled:
+      return
+
     if is_xp_doubled():
       amount *= 2
     # Award XP (This also handles Leveling Up if appropriate)

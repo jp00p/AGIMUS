@@ -22,11 +22,10 @@ blocked_level_up_sources = [
 #  /     \  |    |     /    |    \     /  / __ \|  | \/ /_/ | |  |   |  \/ /_/  >
 # /___/\  \ |____|     \____|__  /\/\_/  (____  /__|  \____ | |__|___|  /\___  /
 #       \_/                    \/             \/           \/         \//_____/
-# NOTE: Use `grant_xp` from `handlers.xp` if you want to give user's xp publically! It handles double xp and level ups!
 async def award_xp(user: discord.User, amount: int, reason: str, channel = None):
   """
   Award XP to a user, check if they level up, update their record, and log the award.
-  Main entry point called by normal XP gain events.
+  NOTE: Use `grant_xp` from `handlers.xp` if you want to give user's xp publically! It handles double xp and level ups, etc!
   """
   user_discord_id = user.id
   current = await db_get_echelon_progress(user_discord_id)
@@ -51,7 +50,7 @@ async def award_xp(user: discord.User, amount: int, reason: str, channel = None)
 async def deduct_xp(user_discord_id: str, amount: int, channel_id, reason: str):
   """
   Deduct XP from a user.
-  Mainly for admin corrections or penalties.
+  Only for for admin corrections, etc (hopefully never needed...).
   """
   current = await db_get_echelon_progress(user_discord_id)
   if not current:
@@ -89,6 +88,10 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
   awarded_buffer_pattern = None
   if level == 1:
     badge_data, awarded_buffer_pattern = await award_initial_welcome_package(member)
+    source_details = determine_level_up_source_details(member, source)
+    await post_first_level_welcome_embed(member, badge_data, source_details)
+    await post_buffer_pattern_acquired_embed(member, level, awarded_buffer_pattern)
+    return
   else:
     badge_data = await award_level_up_badge(member)
     awarded_buffer_pattern = await award_possible_crystal_buffer_pattern(member)
@@ -189,6 +192,49 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
   notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
   await notification_channel.send(content=prestige_msg, file=discord_file, embed=embed)
 
+
+async def post_first_level_welcome_embed(member, badge_data, source_details = None):
+  """
+  Builds and sends a celebratory embed to mark the user's initialization to the Echelon System.
+
+  Args:
+    member (discord.Member): The user who advanced.
+    badge_data: The badge_data for the standard FOD Welcome badge, or None if they've migrated from the old Legacy system
+  """
+  notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
+  agimus_announcement_channel = bot.get_channel(get_channel_id(config["agimus_announcement_channel"]))
+
+  if badge_data:
+    prestige_msg = f"## TRANSPORTER SIGNAL INBOUND! {member.mention}, welcome to Echelon 1!!!"
+    discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
+    embed = discord.Embed(
+      title="Echelon 1!",
+      description="Welcome aboard {member.mention}! You've materialized onto The Hood's Transporter Pad and been inducted into Echelon 1!"
+                  "\nYour activity on The Hood earns you optional XP and Badges you can collect and trade to other crew members (for funzies)!"
+      color=discord.Color.green()
+    )
+    embed.set_image(url=attachment_url)
+    embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"])) # TODO: Randomized special image here
+    embed.add_field(name=badge_data['badge_name'], value=badge_data['badge_url'], inline=False)
+    if source_details:
+      embed.add_field(name="Echelon Level Source", value=source_details)
+    embed.set_footer(text="You can opt-out of the Echelon System by using `/settings` at any time if so desired.")
+    await notification_channel.send(content=prestige_msg, file=discord_file, embed=embed)
+  else:
+    prestige_msg = f"## TRANSPORTER SIGNAL CONVERSION COMPLETE! {member.mention}, welcome to Echelon 1!!!"
+    embed = discord.Embed(
+      title="Echelon 1!",
+      description="Re-sequencing {member.mention}'s pattern finalized! You've been converted from the Legacy XP System and initialized at Echelon 1!"
+                  "\nVery exciting. Your Legacy XP has been retained for bragging rights (viewable through `/profile`), and worry not, all of your existing badges are intact at the Standard Prestige Tier."
+                  f"\nBe sure to check out the details of the new system over at {agimus_announcement_channel.mention}",
+      color=discord.Color.green()
+    )
+    embed.set_image(url="https://i.imgur.com/3ALMc8V.png")
+    embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"])) # TODO: Randomized special image here
+    if source_details:
+      embed.add_field(name="Echelon Level Source", value=source_details)
+    embed.set_footer(text="You can opt-out of the Echelon System by using `/settings` at any time if so desired.")
+    await notification_channel.send(content=prestige_msg, embed=embed)
 
 async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int, number_of_patterns: int = 1):
   """
