@@ -1,6 +1,7 @@
 from common import *
 from handlers.xp import grant_xp
 from handlers.echelon_xp import *
+from queries.admin import *
 from queries.badge_info import *
 from queries.badge_instances import *
 from queries.crystal_instances import *
@@ -326,4 +327,54 @@ class Admin(commands.Cog):
     if granted:
       embed.add_field(name="Badges", value="\n".join(granted), inline=False)
 
+    await ctx.respond(embed=embed, ephemeral=True)
+
+  @admin_group.command(name="echelon_purge_prestige_badges", description="Remove all badge instances from a user at a specific prestige level.")
+  @option("user", discord.User, description="The user to purge badges from.", required=True)
+  @option(
+    "prestige",
+    int,
+    description="Prestige Tier",
+    required=True,
+    choices=[discord.OptionChoice(name=label, value=str(tier)) for tier, label in PRESTIGE_TIERS.items()]
+  )
+  async def echelon_purge_prestige_badges(self, ctx, user: discord.User, prestige: str):
+    await ctx.defer(ephemeral=True)
+    prestige = int(prestige)
+
+    deleted = await db_delete_badge_instances_by_prestige(user.id, prestige)
+
+    embed = discord.Embed(
+      title="Badges Purged",
+      description=f"🗑️ Removed **{deleted}** badge(s) from {user.mention} at **{PRESTIGE_TIERS[prestige]}**.",
+      color=discord.Color.red()
+    )
+    await ctx.respond(embed=embed, ephemeral=True)
+
+  @admin_group.command(name="echelon_pqif_status", description="Check PQIF status for a user across all prestige levels.")
+  @option("user", discord.User, description="User to inspect.", required=True)
+  async def echelon_pqif_status(self, ctx, user: discord.User):
+    await ctx.defer(ephemeral=True)
+
+    all_badges = await db_get_all_badge_info()
+    total_badge_count = len(all_badges)
+
+    lines = []
+    for prestige_level, label in PRESTIGE_TIERS.items():
+      user_badges = await db_get_user_badge_instances(user.id, prestige=prestige_level)
+      owned_count = len(user_badges)
+      percentage = owned_count / total_badge_count * 100 if total_badge_count > 0 else 0
+
+      in_field = await is_user_within_pqif(user.id, prestige_level)
+      field_status = "🟢 **IN FIELD**" if in_field else "⚪ Outside"
+
+      lines.append(
+        f"**{label}**: {owned_count}/{total_badge_count} badges ({percentage:.1f}%) → {field_status}"
+      )
+
+    embed = discord.Embed(
+      title=f"PQIF Scan for {user.display_name}",
+      description="\n".join(lines),
+      color=discord.Color.blurple()
+    )
     await ctx.respond(embed=embed, ephemeral=True)
