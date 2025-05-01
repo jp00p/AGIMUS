@@ -24,7 +24,7 @@ async def db_get_user_badges_at_prestige_level(user_discord_id: str, prestige_le
 
 async def db_update_buffer_failure_streak(user_discord_id: str, new_streak: int):
   sql = """
-    UPDATE eschelon_progress
+    UPDATE echelon_progress
     SET buffer_failure_streak = %s
     WHERE user_discord_id = %s
   """

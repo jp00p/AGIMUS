@@ -6,10 +6,10 @@ from datetime import datetime
 from common import *
 
 from commands.badges import *
-from handlers.eschelon_xp import *
+from handlers.echelon_xp import *
 from handlers.auto_promotion import handle_auto_promotions
 from queries.wishlist import *
-from utils.eschelon_rewards import *
+from utils.echelon_rewards import *
 from utils.badge_utils import *
 
 # XP lock to prevent race conditions
@@ -33,7 +33,7 @@ blocked_level_up_sources = [
 # \____|__  /\/\_/  (____  /__|  \____ | |__|___|  /\___  /
 #         \/             \/           \/         \//_____/
 async def grant_xp(user: discord.User, amount: int, reason: str, channel = None, source = None):
-  """Award XP to a user through the Eschelon XP system."""
+  """Award XP to a user through the Echelon XP system."""
   async with xp_lock:
     if is_xp_doubled():
       amount *= 2

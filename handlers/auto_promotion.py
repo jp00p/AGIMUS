@@ -1,7 +1,7 @@
 # handlers/auto_promotions.py
 from common import *
-from handlers.eschelon_xp import get_user_eschelon_progress
-from handlers.eschelon_xp import award_xp
+from handlers.echelon_xp import get_user_echelon_progress
+from handlers.echelon_xp import award_xp
 
 # _________                         __                 __
 # \_   ___ \  ____   ____   _______/  |______    _____/  |_  ______
@@ -70,7 +70,7 @@ async def handle_intro_promotion(message: discord.Message):
 
 async def handle_xp_promotion(member: discord.Member):
   user_id = member.id
-  xp_data = await get_user_eschelon_progress(user_id)
+  xp_data = await get_user_echelon_progress(user_id)
   user_level = xp_data["current_level"] if xp_data else 1
 
   member_role_names = [r.name for r in member.roles]

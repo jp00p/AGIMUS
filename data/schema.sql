@@ -405,8 +405,8 @@ CREATE TABLE IF NOT EXISTS wrapped_queue (
 
 -- v3.0.0
 
--- ==Eschelon (New Level System)==
-CREATE TABLE eschelon_progress (
+-- ==Echelon (New Level System)==
+CREATE TABLE echelon_progress (
   user_discord_id VARCHAR(64) PRIMARY KEY,
   current_xp BIGINT NOT NULL DEFAULT 0,
   current_level INT NOT NULL DEFAULT 1,
@@ -417,7 +417,7 @@ CREATE TABLE eschelon_progress (
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
 );
 
-CREATE TABLE IF NOT EXISTS eschelon_progress_history (
+CREATE TABLE IF NOT EXISTS echelon_progress_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,
   xp_gained INT NOT NULL,

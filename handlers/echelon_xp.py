@@ -1,9 +1,9 @@
-# handlers/eschelon_xp.py
+# handlers/echelon_xp.py
 from common import *
 
-from queries.eschelon_xp import *
+from queries.echelon_xp import *
 from queries.wishlist import db_is_badge_on_users_wishlist, db_autolock_badges_by_filenames_if_in_wishlist, db_purge_users_wishlist
-from utils.eschelon_rewards import *
+from utils.echelon_rewards import *
 from utils.image_utils import generate_badge_preview
 
 # Load level up messages
@@ -29,7 +29,7 @@ async def award_xp(user: discord.User, amount: int, reason: str, channel = None)
   Main entry point called by normal XP gain events.
   """
   user_discord_id = user.id
-  current = await db_get_eschelon_progress(user_discord_id)
+  current = await db_get_echelon_progress(user_discord_id)
 
   if current:
     new_total_xp = current['current_xp'] + amount
@@ -38,8 +38,8 @@ async def award_xp(user: discord.User, amount: int, reason: str, channel = None)
 
   new_level = level_for_total_xp(new_total_xp)
 
-  await db_update_eschelon_progress(user_discord_id, new_total_xp, new_level)
-  await db_insert_eschelon_history(user_discord_id, amount, new_level, channel.id if channel else None, reason)
+  await db_update_echelon_progress(user_discord_id, new_total_xp, new_level)
+  await db_insert_echelon_history(user_discord_id, amount, new_level, channel.id if channel else None, reason)
   console_log_xp_history(user, amount, reason)
 
   if not current or current['current_level'] < new_level:
@@ -53,15 +53,15 @@ async def deduct_xp(user_discord_id: str, amount: int, channel_id, reason: str):
   Deduct XP from a user.
   Mainly for admin corrections or penalties.
   """
-  current = await db_get_eschelon_progress(user_discord_id)
+  current = await db_get_echelon_progress(user_discord_id)
   if not current:
     return
 
   new_total_xp = max(current['current_xp'] - amount, 0)
   new_level = level_for_total_xp(new_total_xp)
 
-  await db_update_eschelon_progress(user_discord_id, new_total_xp, new_level)
-  await db_insert_eschelon_history(user_discord_id, -amount, new_level, channel_id, reason)
+  await db_update_echelon_progress(user_discord_id, new_total_xp, new_level)
+  await db_insert_echelon_history(user_discord_id, -amount, new_level, channel_id, reason)
 
 async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
   """
@@ -70,8 +70,8 @@ async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
   """
   new_level = level_for_total_xp(new_xp)
 
-  await db_update_eschelon_progress(user_discord_id, new_xp, new_level)
-  await db_insert_eschelon_history(user_discord_id, 0, new_level, reason)  # 0 xp gained, just admin override
+  await db_update_echelon_progress(user_discord_id, new_xp, new_level)
+  await db_insert_echelon_history(user_discord_id, 0, new_level, reason)  # 0 xp gained, just admin override
 
 
 # .____                      .__     ____ ___       ._.
@@ -125,7 +125,7 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
-  embed_description = f"{member.mention} has reached **Eschelon {level}** and earned a badge!"
+  embed_description = f"{member.mention} has reached **Echelon {level}** and earned a badge!"
   if level == 1:
     embed_description = f"Enter Friend! {get_emoji('tendi_smile_happy')}\n\n{embed_description}\n\nYou've been granted your starter FoD Badge! Welcome!"
 
@@ -133,7 +133,7 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
     embed_description += f"\n\nIt was also on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
 
   embed=discord.Embed(
-    title="Eschelon Level Up!",
+    title="Echelon Level Up!",
     description=embed_description,
     color=discord.Color.teal()
   )
@@ -141,7 +141,7 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
   embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
   embed.add_field(name=badge_data['badge_name'], value=badge_data['badge_url'], inline=False)
   if source_details:
-    embed.add_field(name="Eschelon Level Source", value=source_details)
+    embed.add_field(name="Echelon Level Source", value=source_details)
   embed.set_footer(text="See all your badges by typing '/badges collection' - disable this by typing '/settings'")
 
   notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
@@ -162,14 +162,14 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
   prestige_name = PRESTIGE_LEVELS.get(new_prestige, f"Prestige {new_prestige}")
   old_prestige_name = PRESTIGE_LEVELS.get(new_prestige - 1, "Standard")
 
-  prestige_msg = f"## STRANGE ENERGIES AFOOT! {member.mention} is nearing boundary-space upon reaching Eschelon {level}!!!"
+  prestige_msg = f"## STRANGE ENERGIES AFOOT! {member.mention} is nearing boundary-space upon reaching Echelon {level}!!!"
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
-  title = f"Eschelon {level} and {prestige_name} Tier Unlocked!"
+  title = f"Echelon {level} and {prestige_name} Tier Unlocked!"
   description = (
     f"{member.mention} has ascended to the **{prestige_name}** Prestige Tier!"
-    f"\n\nThey have reached Eschelon {level} and have received their first badge at {prestige_name}"
+    f"\n\nThey have reached Echelon {level} and have received their first badge at {prestige_name}"
     f"\n\nThis also means they're within the Prestige Quantum Improbability Field... As they continue to advance into {prestige_name} the pull grows ever larger as the odds warp and skew!"
     f"\nTheir chances of receiving {old_prestige_name} badges lessen while chances of receiving {prestige_name} badges strengthen!"
   )
@@ -183,7 +183,7 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
   embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"])) # TODO: Randomized special image here
   embed.add_field(name=badge_data['badge_name'], value=badge_data['badge_url'], inline=False)
   if source_details:
-    embed.add_field(name="Eschelon Level Source", value=source_details)
+    embed.add_field(name="Echelon Level Source", value=source_details)
   embed.set_footer(text="Echoes of their past have carried forward — Any special badges they've acquired have ascended alongside them!")
 
   notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
@@ -195,20 +195,20 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   Sends a special embed to the XP notification channel announcing that the user
   has acquired a Crystal Buffer Pattern.
 
-  If they received more than one (only currently occurs when they first hit Eschelon 1),
+  If they received more than one (only currently occurs when they first hit Echelon 1),
   there's a little special messaging instead of the standard.
   """
   embed = None
   if number_of_patterns == 1:
     embed = discord.Embed(
       title="✨ Crystal Buffer Pattern Acquired! ✨",
-      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Buffer Pattern** when they reached Eschelon {level}!\n\nThey can now use it to replicate a Crystal from scratch!",
+      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Buffer Pattern** when they reached Echelon {level}!\n\nThey can now use it to replicate a Crystal from scratch!",
       color=discord.Color.teal()
     )
   else:
     embed = discord.Embed(
       title="✨ Crystal Buffer PATTERNS Acquired! ✨",
-      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Buffer Patterns** in their hands when they reached Eschelon {level}!\n\nThey can now use them to replicate {number_of_patterns} Crystals from scratch!",
+      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Buffer Patterns** in their hands when they reached Echelon {level}!\n\nThey can now use them to replicate {number_of_patterns} Crystals from scratch!",
       color=discord.Color.teal()
     )
   embed.set_image(url="https://i.imgur.com/lgP2miO.gif")
@@ -285,19 +285,19 @@ def _event_source_details(event: discord.ScheduledEvent) -> str:
 # \    \_\  \|        \  |    | \___ \
 #  \______  /_______  /  |____|/____  >
 #         \/        \/              \/
-async def get_user_eschelon_progress(user_discord_id: str) -> dict:
+async def get_user_echelon_progress(user_discord_id: str) -> dict:
   """
-  Retrieve the user's full eschelon_progress record.
+  Retrieve the user's full echelon_progress record.
   Intended for internal lookups and validation.
   """
-  return await db_get_eschelon_progress(user_discord_id)
+  return await db_get_echelon_progress(user_discord_id)
 
 async def get_xp_summary(user_discord_id: str) -> dict:
   """
   Return a summary dictionary with user's level, XP into level, XP required to next level, and total XP.
   Useful for user-facing displays like profiles or progress bars.
   """
-  progress = await db_get_eschelon_progress(user_discord_id)
+  progress = await db_get_echelon_progress(user_discord_id)
 
   if not progress:
     return {

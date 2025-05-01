@@ -1,10 +1,10 @@
-# utils/eschelon_rewards.py
+# utils/echelon_rewards.py
 from common import *
 
 from queries.badge_instances import db_get_user_badge_instances
 from queries.crystal_instances import db_increment_user_crystal_buffer, db_set_user_crystal_buffer
-from queries.eschelon_rewards import *
-from queries.eschelon_xp import *
+from queries.echelon_rewards import *
+from queries.echelon_xp import *
 from utils.badge_instances import create_new_badge_instance, create_new_badge_instance_by_filename
 from utils.prestige import PRESTIGE_LEVELS
 
@@ -24,7 +24,7 @@ MAX_BUFFER_FAILURE_STREAK = 5
 async def award_level_up_badge(member) -> dict:
   """
   Awards a new badge instance to a user upon leveling up, based on their current prestige level
-  and the Eschelon badge reward logic.
+  and the Echelon badge reward logic.
 
   The function performs the following steps:
   - Determines which badge to award using `select_badge_for_level_up()`.
@@ -145,7 +145,7 @@ async def award_possible_crystal_buffer_pattern(member: discord.Member) -> bool:
     bool: True if a buffer was granted, False otherwise.
   """
   user_discord_id = member.id
-  user_data = await db_get_eschelon_progress(user_discord_id)
+  user_data = await db_get_echelon_progress(user_discord_id)
   failure_streak = user_data.get('buffer_failure_streak', 0)
 
   # Calculate chance
@@ -275,7 +275,7 @@ async def get_user_prestige_level(member: discord.Member) -> int:
     int: The user's highest prestige level achieved (default is 0).
   """
   user_discord_id = member.id
-  current = await db_get_eschelon_progress(user_discord_id)
+  current = await db_get_echelon_progress(user_discord_id)
   return current.get('current_prestige_level', 0) if current else 0
 
 
@@ -292,6 +292,6 @@ async def update_user_prestige_level(member: discord.Member, new_prestige: int):
     new_prestige (int): The prestige level to record if higher than current.
   """
   user_discord_id = member.id
-  current = await db_get_eschelon_progress(user_discord_id)
+  current = await db_get_echelon_progress(user_discord_id)
   if current and new_prestige > current.get('current_prestige_level', 0):
     await db_set_user_prestige_level(user_discord_id, new_prestige)

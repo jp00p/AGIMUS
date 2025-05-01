@@ -1,13 +1,13 @@
 from common import *
 from handlers.xp import grant_xp
-from handlers.eschelon_xp import *
+from handlers.echelon_xp import *
 from queries.badge_info import *
 from queries.badge_instances import *
 from queries.crystal_instances import *
 
 from utils.crystal_effects import delete_crystal_effects_cache
 from utils.crystal_instances import *
-from utils.eschelon_rewards import *
+from utils.echelon_rewards import *
 
 class Admin(commands.Cog):
   def __init__(self, bot):
@@ -139,18 +139,18 @@ class Admin(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
-  @admin_group.command(name="eschelon_view", description="View a user's Eschelon XP/level info.")
+  @admin_group.command(name="echelon_view", description="View a user's Echelon XP/level info.")
   @option("user", discord.User, description="The user to view.", required=True)
-  async def eschelon_view(self, ctx, user: discord.User):
+  async def echelon_view(self, ctx, user: discord.User):
     await ctx.defer(ephemeral=True)
 
-    progress = await db_get_eschelon_progress(user.id)
+    progress = await db_get_echelon_progress(user.id)
     if not progress:
-      embed = discord.Embed(title="User Not Found", description=f"❌ {user.mention} has no Eschelon data.", color=discord.Color.red())
+      embed = discord.Embed(title="User Not Found", description=f"❌ {user.mention} has no Echelon data.", color=discord.Color.red())
       return await ctx.respond(embed=embed, ephemeral=True)
 
     embed = discord.Embed(
-      title=f"Eschelon Progress for {user.display_name}",
+      title=f"Echelon Progress for {user.display_name}",
       description=(
         f"**Level:** {progress['current_level']}\n"
         f"**XP:** {progress['current_xp']}\n"
@@ -160,10 +160,10 @@ class Admin(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
-  @admin_group.command(name="eschelon_award_xp", description="Award XP to a user.")
+  @admin_group.command(name="echelon_award_xp", description="Award XP to a user.")
   @option("user", discord.User, description="The user to award XP.", required=True)
   @option("amount", int, description="XP amount.", required=True, min_value=1, max_value=10000)
-  async def eschelon_award_xp(self, ctx, user: discord.User, amount: int):
+  async def echelon_award_xp(self, ctx, user: discord.User, amount: int):
     await ctx.defer(ephemeral=True)
 
     await award_xp(user, amount, "admin")
@@ -175,10 +175,10 @@ class Admin(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
-  @admin_group.command(name="eschelon_set_level", description="Force a user's level.")
+  @admin_group.command(name="echelon_set_level", description="Force a user's level.")
   @option("user", discord.User, description="The user.", required=True)
   @option("level", int, description="Target level.", required=True, min_value=1, max_value=9999)
-  async def eschelon_set_level(self, ctx, user: discord.User, level: int):
+  async def echelon_set_level(self, ctx, user: discord.User, level: int):
     await ctx.defer(ephemeral=True)
 
     xp_required = sum(xp_required_for_level(lvl) for lvl in range(1, level))
@@ -191,9 +191,9 @@ class Admin(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
-  @admin_group.command(name="eschelon_reset_buffer_streak", description="Reset user's buffer streak.")
+  @admin_group.command(name="echelon_reset_buffer_streak", description="Reset user's buffer streak.")
   @option("user", discord.User, description="The user.", required=True)
-  async def eschelon_reset_buffer_streak(self, ctx, user: discord.User):
+  async def echelon_reset_buffer_streak(self, ctx, user: discord.User):
     await ctx.defer(ephemeral=True)
 
     await db_update_buffer_failure_streak(user.id, 0)
@@ -205,12 +205,12 @@ class Admin(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
-  @admin_group.command(name="eschelon_view_buffer_streak", description="View user's buffer streak.")
+  @admin_group.command(name="echelon_view_buffer_streak", description="View user's buffer streak.")
   @option("user", discord.User, description="The user.", required=True)
-  async def eschelon_view_buffer_streak(self, ctx, user: discord.User):
+  async def echelon_view_buffer_streak(self, ctx, user: discord.User):
     await ctx.defer(ephemeral=True)
 
-    progress = await db_get_eschelon_progress(user.id)
+    progress = await db_get_echelon_progress(user.id)
     streak = progress['buffer_failure_streak'] if progress else 0
     if streak >= 5:
       chance = 100.0
@@ -224,9 +224,9 @@ class Admin(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
-  @admin_group.command(name="eschelon_force_buffer_roll", description="Force a crystal buffer roll.")
+  @admin_group.command(name="echelon_force_buffer_roll", description="Force a crystal buffer roll.")
   @option("user", discord.User, description="The user.", required=True)
-  async def eschelon_force_buffer_roll(self, ctx, user: discord.User):
+  async def echelon_force_buffer_roll(self, ctx, user: discord.User):
     await ctx.defer(ephemeral=True)
 
     success = await award_possible_crystal_buffer_pattern(user)
@@ -244,19 +244,19 @@ class Admin(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
-  @admin_group.command(name="eschelon_simulate_near_level_up", description="Force a (near) level-up process.")
+  @admin_group.command(name="echelon_simulate_near_level_up", description="Force a (near) level-up process.")
   @option("user", discord.User, description="The user.", required=True)
-  async def eschelon_simulate_near_level_up(self, ctx, user: discord.User):
+  async def echelon_simulate_near_level_up(self, ctx, user: discord.User):
     await ctx.defer(ephemeral=True)
 
-    progress = await db_get_eschelon_progress(user.id)
+    progress = await db_get_echelon_progress(user.id)
     xp_needed = xp_required_for_level(progress['current_level']) if progress else 69
 
     await grant_xp(user, xp_needed - 1, reason="admin")
 
     embed = discord.Embed(
       title="Level-Up Near-Simulated",
-      description=f"🎖️ Near-Simulated a full Eschelon level-up for {user.mention}. They are 1xp away from leveling up now.",
+      description=f"🎖️ Near-Simulated a full Echelon level-up for {user.mention}. They are 1xp away from leveling up now.",
       color=discord.Color.gold()
     )
     await ctx.respond(embed=embed, ephemeral=True)

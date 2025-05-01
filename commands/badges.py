@@ -2,7 +2,7 @@ from dateutil import tz
 
 from common import *
 
-from utils.eschelon_rewards import *
+from utils.echelon_rewards import *
 from utils.badge_trades import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
