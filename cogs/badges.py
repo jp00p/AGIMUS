@@ -7,7 +7,7 @@ from utils.badge_trades import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 from utils.image_utils import *
-from utils.prestige import PRESTIGE_TIERS
+from utils.prestige import PRESTIGE_TIERS, autocomplete_prestige_tiers, is_prestige_valid
 from utils.string_utils import *
 
 from queries.badge_completion import *
@@ -30,23 +30,6 @@ class Badges(commands.Cog):
   #         \/                        \/            \/|__|             \/          \/
   async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
     return [badge['badge_name'] for badge in await db_get_all_badge_info() if ctx.value.lower() in badge['badge_name'].lower()]
-
-  async def autocomplete_prestige_tiers(ctx: discord.AutocompleteContext):
-    user_id = ctx.interaction.user.id
-    echelon_progress = await db_get_echelon_progress(user_id)
-    current_prestige = echelon_progress['current_prestige_level'] if echelon_progress else 0
-
-    # Show all tiers from Standard up through the user's unlocked level
-    options = [
-      discord.OptionChoice(name=PRESTIGE_TIERS[i], value=str(i))
-      for i in range(current_prestige + 1)
-    ]
-
-    # If there are more tiers beyond what they have, add the "???" teaser
-    if current_prestige < max(PRESTIGE_TIERS.keys()):
-      options.append(discord.OptionChoice(name="???", value="???"))
-
-    return options
 
   # async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
   #   first_badge = ctx.options["first_badge"]
@@ -149,28 +132,7 @@ class Badges(commands.Cog):
     public = (public == "yes")
     await ctx.defer(ephemeral=not public)
 
-    if prestige == "???":
-      await ctx.respond(
-        embed=discord.Embed(
-          title="Prestige Tier Yet Undiscovered",
-          description="Well, that's certainly mysterious...",
-          color=discord.Color.blurple()
-        ).set_footer(text="🐨"),
-        ephemeral=True
-      )
-      return
-
-    prestige = int(prestige)
-    user_prestige = (await db_get_echelon_progress(ctx.author.id))['current_prestige_level']
-    if prestige > user_prestige:
-      await ctx.respond(
-        embed=discord.Embed(
-          title="Nope",
-          description="Nice try, but you haven't discovered that Prestige Tier yet...",
-          color=discord.Color.red()
-        ),
-        ephemeral=True
-      )
+    if not await is_prestige_valid(ctx, prestige):
       return
 
     max_collected = await db_get_max_badge_count()
@@ -331,7 +293,7 @@ class Badges(commands.Cog):
   )
   @option(
     name="color",
-    description="Which colorscheme would you like? (Applies to Standard Tier)",
+    description="Which colorscheme would you like? (Only applies to Standard Tier)",
     required=False,
     choices = [
       discord.OptionChoice(name=color_choice, value=color_choice.lower())
@@ -343,28 +305,7 @@ class Badges(commands.Cog):
     public = bool(public == "yes")
     await ctx.defer(ephemeral=not public)
 
-    if prestige == "???":
-      await ctx.respond(
-        embed=discord.Embed(
-          title="Prestige Tier Yet Undiscovered",
-          description="Well, that's certainly mysterious...",
-          color=discord.Color.blurple()
-        ).set_footer(text="🐨"),
-        ephemeral=True
-      )
-      return
-
-    prestige = int(prestige)
-    user_prestige = (await db_get_echelon_progress(ctx.author.id))['current_prestige_level']
-    if prestige > user_prestige:
-      await ctx.respond(
-        embed=discord.Embed(
-          title="Nope",
-          description="Nice try, but you haven't discovered that Prestige Tier yet...",
-          color=discord.Color.red()
-        ),
-        ephemeral=True
-      )
+    if not await is_prestige_valid(ctx, prestige):
       return
 
     category_title = category.replace("_", " ").title()
@@ -542,28 +483,7 @@ class Badges(commands.Cog):
     public = bool(public == "yes")
     await ctx.defer(ephemeral=not public)
 
-    if prestige == "???":
-      await ctx.respond(
-        embed=discord.Embed(
-          title="Prestige Tier Yet Undiscovered",
-          description="Well, that's certainly mysterious...",
-          color=discord.Color.blurple()
-        ).set_footer(text="🐨"),
-        ephemeral=True
-      )
-      return
-
-    prestige = int(prestige)
-    user_prestige = (await db_get_echelon_progress(ctx.author.id))['current_prestige_level']
-    if prestige > user_prestige:
-      await ctx.respond(
-        embed=discord.Embed(
-          title="Nope",
-          description="Nice try, but you haven't discovered that Prestige Tier yet...",
-          color=discord.Color.red()
-        ),
-        ephemeral=True
-      )
+    if not await is_prestige_valid(ctx, prestige):
       return
 
     # Pull data using the queries.

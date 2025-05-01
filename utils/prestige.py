@@ -1,3 +1,7 @@
+from common import *
+
+from queries.echelon_xp import db_get_echelon_progress
+
 PRESTIGE_TIERS = {
   0: 'Standard',
   1: 'Nebula',
@@ -76,3 +80,60 @@ PRESTIGE_THEMES = {
     "highlight": (220, 240, 255)
   },
 }
+
+#    _____          __                                     .__          __
+#   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
+#  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \
+# /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
+# \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
+#         \/                        \/            \/|__|             \/          \/
+async def autocomplete_prestige_tiers(ctx: discord.AutocompleteContext):
+  user_id = ctx.interaction.user.id
+  echelon_progress = await db_get_echelon_progress(user_id)
+  current_prestige = echelon_progress['current_prestige_level'] if echelon_progress else 0
+
+  # Show all tiers from Standard up through the user's unlocked level
+  options = [
+    discord.OptionChoice(name=PRESTIGE_TIERS[i], value=str(i))
+    for i in range(current_prestige + 1)
+  ]
+
+  # If there are more tiers beyond what they have, add the "???" teaser
+  if current_prestige < max(PRESTIGE_TIERS.keys()):
+    options.append(discord.OptionChoice(name="???", value="???"))
+
+  return options
+
+
+# ____   ____      .__  .__    .___       __  .__
+# \   \ /   /____  |  | |__| __| _/____ _/  |_|__| ____   ____
+#  \   Y   /\__  \ |  | |  |/ __ |\__  \\   __\  |/  _ \ /    \
+#   \     /  / __ \|  |_|  / /_/ | / __ \|  | |  (  <_> )   |  \
+#    \___/  (____  /____/__\____ |(____  /__| |__|\____/|___|  /
+#                \/             \/     \/                    \/
+async def is_prestige_valid(ctx: discord.ApplicationContext, prestige:str):
+  if prestige == "???":
+    await ctx.respond(
+      embed=discord.Embed(
+        title="Prestige Tier Yet Undiscovered",
+        description="Well, that's certainly mysterious...",
+        color=discord.Color.blurple()
+      ).set_footer(text="🐨"),
+      ephemeral=True
+    )
+    return False
+
+  prestige = int(prestige)
+  user_prestige = (await db_get_echelon_progress(ctx.author.id))['current_prestige_level']
+  if prestige > user_prestige:
+    await ctx.respond(
+      embed=discord.Embed(
+        title="Nope",
+        description="Nice try, but you haven't discovered that Prestige Tier yet...",
+        color=discord.Color.red()
+      ),
+      ephemeral=True
+    )
+    return False
+
+  return True
