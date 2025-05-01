@@ -152,27 +152,27 @@ THEME_TO_RGBS = {
   # Prestige Themes
   "nebula": {
     "primary": PRESTIGE_THEMES[1]["primary"],
-    "highlight": PRESTIGE_THEMES[1]["secondary"]
+    "highlight": PRESTIGE_THEMES[1]["highlight"]
   },
   "galaxy": {
     "primary": PRESTIGE_THEMES[2]["primary"],
-    "highlight": PRESTIGE_THEMES[2]["secondary"]
+    "highlight": PRESTIGE_THEMES[2]["highlight"]
   },
   "supernova": {
     "primary": PRESTIGE_THEMES[3]["primary"],
-    "highlight": PRESTIGE_THEMES[3]["secondary"]
+    "highlight": PRESTIGE_THEMES[3]["highlight"]
   },
   "cascade": {
     "primary": PRESTIGE_THEMES[4]["primary"],
-    "highlight": PRESTIGE_THEMES[4]["secondary"]
+    "highlight": PRESTIGE_THEMES[4]["highlight"]
   },
   "nexus": {
     "primary": PRESTIGE_THEMES[5]["primary"],
-    "highlight": PRESTIGE_THEMES[5]["secondary"]
+    "highlight": PRESTIGE_THEMES[5]["highlight"]
   },
   "transcendence": {
     "primary": PRESTIGE_THEMES[6]["primary"],
-    "highlight": PRESTIGE_THEMES[6]["secondary"]
+    "highlight": PRESTIGE_THEMES[6]["highlight"]
   }
 }
 

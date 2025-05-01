@@ -44,7 +44,7 @@ PRESTIGE_THEMES = {
       (37, 9, 9)         # Deep Ember/Burnt Red
     ],
     "primary": (200, 60, 40),
-    "secondary": (240, 100, 80)
+    "highlight": (240, 100, 80)
   },
   4: {  # Cascade
     "gradient_start": (0, 0, 0),
