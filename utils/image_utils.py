@@ -18,7 +18,7 @@ from utils.animation_cache import *
 from utils.badge_cache import *
 from utils.crystal_effects import apply_crystal_effect
 from utils.encode_utils import encode_webp
-from utils.prestige import PRESTIGE_LEVELS, PRESTIGE_THEMES
+from utils.prestige import PRESTIGE_TIERS, PRESTIGE_THEMES
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
 
 THREAD_POOL = ThreadPoolExecutor(max_workers=24)
@@ -111,24 +111,9 @@ def get_theme_colors(theme: str):
   Returns (primary_color, highlight_color) based on the user's theme.
   Values are RGBA tuples.
   """
-  # Green by default
-  primary = (153, 185, 141)
-  highlight = (84, 177, 69)
-
-  if theme == "orange":
-    primary = (189, 151, 137)
-    highlight = (186, 111, 59)
-  elif theme == "purple":
-    primary = (100, 85, 161)
-    highlight = (87, 64, 183)
-  elif theme == "teal":
-    primary = (141, 185, 181)
-    highlight = (71, 170, 177)
-  elif theme == "gold":
-    # Note: used for trade images, not a user preference
-    primary = (213, 172, 91)
-    highlight = (255, 215, 0)
-
+  colors = THEME_TO_RGBS.get(theme, THEME_TO_RGBS['green'])
+  primary = colors['primary']
+  highlight = colors['highlight']
 
   darker_primary = tuple(
     int(channel * 0.65) if index < 3 else channel
@@ -142,6 +127,54 @@ def get_theme_colors(theme: str):
 
   return ThemeColors(primary, highlight, darker_primary, darker_highlight)
 
+THEME_TO_RGBS = {
+  'orange': {
+    'primary': (189, 151, 137),
+    'highlight': (186, 111, 59)
+  },
+  'purple': {
+    'primary': (100, 85, 161),
+    'highlight': (87, 64, 183)
+  },
+  'teal': {
+    'primary': (141, 185, 181),
+    'highlight': (71, 170, 177)
+  },
+  'gold': { # Used for Trade images
+    'primary': (213, 172, 91),
+    'highlight': (255, 215, 0)
+  },
+  'green': { # Default if not explicit
+    'primary': (153, 185, 141),
+    'highlight': (84, 177, 69)
+  },
+
+  # Prestige Themes
+  "nebula": {
+    "primary": PRESTIGE_THEMES[1]["primary"],
+    "highlight": PRESTIGE_THEMES[1]["secondary"]
+  },
+  "galaxy": {
+    "primary": PRESTIGE_THEMES[2]["primary"],
+    "highlight": PRESTIGE_THEMES[2]["secondary"]
+  },
+  "supernova": {
+    "primary": PRESTIGE_THEMES[3]["primary"],
+    "highlight": PRESTIGE_THEMES[3]["secondary"]
+  },
+  "cascade": {
+    "primary": PRESTIGE_THEMES[4]["primary"],
+    "highlight": PRESTIGE_THEMES[4]["secondary"]
+  },
+  "nexus": {
+    "primary": PRESTIGE_THEMES[5]["primary"],
+    "highlight": PRESTIGE_THEMES[5]["secondary"]
+  },
+  "transcendence": {
+    "primary": PRESTIGE_THEMES[6]["primary"],
+    "highlight": PRESTIGE_THEMES[6]["secondary"]
+  }
+}
 
 # ___________            __
 # \_   _____/___   _____/  |_  ______
@@ -259,13 +292,18 @@ def split_text_into_emoji_clusters(text: str):
 # \     \___(  <_> )  |_|  |_\  ___/\  \___|  | |  (  <_> )   |  \\___ \
 #  \______  /\____/|____/____/\___  >\___  >__| |__|\____/|___|  /____  >
 #         \/                      \/     \/                    \/     \/
-async def generate_badge_collection_images(user, badge_data, collection_type, collection_label):
+async def generate_badge_collection_images(user, prestige, badge_data, collection_type, collection_label):
   start = time.perf_counter()
   logger.info("[timing] Starting generate_badge_collection_images")
 
   user_id = user.id
-  theme = await get_theme_preference(user_id, collection_type)
   layout = _get_collection_grid_layout()
+
+  theme = 'teal'
+  if prestige == 0:
+    theme = await get_theme_preference(user_id, collection_type)
+  else:
+    theme = PRESTIGE_TIERS[prestige].lower()
 
   images = []
   pages = list(paginate(badge_data, layout.badges_per_page))
@@ -523,7 +561,7 @@ async def generate_badge_set_completion_images(user, prestige, badge_data, categ
 
 
 async def build_completion_canvas(user, prestige, max_badge_count, collected_count, category, page_number, total_pages, row_count, theme):
-  title_text = f"{user.display_name}'s Badge Completion ({PRESTIGE_LEVELS[prestige]}): {category.replace('_', ' ').title()}"
+  title_text = f"{user.display_name}'s Badge Completion ({PRESTIGE_TIERS[prestige]}): {category.replace('_', ' ').title()}"
 
   canvas = await build_display_canvas(
     user=user,

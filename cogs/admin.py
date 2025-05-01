@@ -244,6 +244,24 @@ class Admin(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
+  @admin_group.command(name="echelon_simulate_level_up", description="Force a (near) level-up process.")
+  @option("user", discord.User, description="The user.", required=True)
+  async def echelon_simulate_near_level_up(self, ctx, user: discord.User):
+    await ctx.defer(ephemeral=True)
+
+    progress = await db_get_echelon_progress(user.id)
+    xp_needed = xp_required_for_level(progress['current_level']) if progress else 69
+
+    await grant_xp(user, xp_needed, reason="admin")
+
+    embed = discord.Embed(
+      title="Level-Up Simulated",
+      description=f"🎖️ Simulated a full Echelon level-up for {user.mention}. They should have leveled up now(?)",
+      color=discord.Color.gold()
+    )
+    await ctx.respond(embed=embed, ephemeral=True)
+
+
   @admin_group.command(name="echelon_simulate_near_level_up", description="Force a (near) level-up process.")
   @option("user", discord.User, description="The user.", required=True)
   async def echelon_simulate_near_level_up(self, ctx, user: discord.User):
@@ -259,4 +277,53 @@ class Admin(commands.Cog):
       description=f"🎖️ Near-Simulated a full Echelon level-up for {user.mention}. They are 1xp away from leveling up now.",
       color=discord.Color.gold()
     )
+    await ctx.respond(embed=embed, ephemeral=True)
+
+  @admin_group.command(name="echelon_grant_prestige_badges", description="Grant random non-duplicate badges at a specific prestige level.")
+  @option("user", discord.User, description="The user to receive badges.", required=True)
+  @option(
+    "prestige",
+    int,
+    description="Prestige Tier",
+    required=True,
+    choices=[
+      discord.OptionChoice(name=label, value=str(tier))
+      for tier, label in PRESTIGE_TIERS.items()
+    ]
+  )
+  @option("amount", int, description="How many unique badges to grant.", required=True, min_value=1, max_value=100)
+  async def echelon_grant_prestige_badges(self, ctx, user: discord.User, prestige: str, amount: int):
+    await ctx.defer(ephemeral=True)
+
+    prestige = int(prestige)
+
+    all_badges = await db_get_all_badge_info()
+    owned_instances = await db_get_user_badge_instances(user.id)
+    owned_ids = {b['badge_info_id'] for b in owned_instances}
+
+    available = [b for b in all_badges if b['id'] not in owned_ids]
+    if not available:
+      await ctx.respond(embed=discord.Embed(
+        title="No Available Badges",
+        description=f"{user.mention} already owns every badge!",
+        color=discord.Color.red()
+      ))
+      return
+
+    selected = random.sample(available, min(amount, len(available)))
+    granted = []
+
+    for badge in selected:
+      instance = await create_new_badge_instance(user.id, badge['id'], prestige)
+      if instance:
+        granted.append(badge['badge_name'])
+
+    embed = discord.Embed(
+      title="Badges Granted",
+      description=f"✅ Gave {len(granted)} unique badge(s) to {user.mention} at **{PRESTIGE_TIERS[prestige]}**.",
+      color=discord.Color.green()
+    )
+    if granted:
+      embed.add_field(name="Badges", value="\n".join(granted), inline=False)
+
     await ctx.respond(embed=embed, ephemeral=True)

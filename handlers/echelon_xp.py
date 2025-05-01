@@ -159,8 +159,8 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
     member (discord.Member): The user who advanced.
     new_prestige (int): The prestige level the user just reached.
   """
-  prestige_name = PRESTIGE_LEVELS.get(new_prestige, f"Prestige {new_prestige}")
-  old_prestige_name = PRESTIGE_LEVELS.get(new_prestige - 1, "Standard")
+  prestige_name = PRESTIGE_TIERS.get(new_prestige, f"Prestige {new_prestige}")
+  old_prestige_name = PRESTIGE_TIERS.get(new_prestige - 1, "Standard")
 
   prestige_msg = f"## STRANGE ENERGIES AFOOT! {member.mention} is nearing boundary-space upon reaching Echelon {level}!!!"
 

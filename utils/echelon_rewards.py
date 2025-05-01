@@ -6,7 +6,7 @@ from queries.crystal_instances import db_increment_user_crystal_buffer, db_set_u
 from queries.echelon_rewards import *
 from queries.echelon_xp import *
 from utils.badge_instances import create_new_badge_instance, create_new_badge_instance_by_filename
-from utils.prestige import PRESTIGE_LEVELS
+from utils.prestige import PRESTIGE_TIERS
 
 # Constants
 PQIF_THRESHOLD = 0.10  # 10% remaining triggers PQIF

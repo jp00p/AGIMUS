@@ -7,7 +7,7 @@ from utils.badge_trades import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 from utils.image_utils import *
-from utils.prestige import PRESTIGE_LEVELS
+from utils.prestige import PRESTIGE_TIERS
 from utils.string_utils import *
 
 from queries.badge_completion import *
@@ -38,12 +38,12 @@ class Badges(commands.Cog):
 
     # Show all tiers from Standard up through the user's unlocked level
     options = [
-      discord.OptionChoice(name=PRESTIGE_LEVELS[i], value=str(i))
+      discord.OptionChoice(name=PRESTIGE_TIERS[i], value=str(i))
       for i in range(current_prestige + 1)
     ]
 
     # If there are more tiers beyond what they have, add the "???" teaser
-    if current_prestige < max(PRESTIGE_LEVELS.keys()):
+    if current_prestige < max(PRESTIGE_TIERS.keys()):
       options.append(discord.OptionChoice(name="???", value="???"))
 
     return options
@@ -155,7 +155,7 @@ class Badges(commands.Cog):
           title="Prestige Tier Yet Undiscovered",
           description="Well, that's certainly mysterious...",
           color=discord.Color.blurple()
-        ),
+        ).set_footer(text="🐨"),
         ephemeral=True
       )
       return
@@ -196,13 +196,13 @@ class Badges(commands.Cog):
       )
       return
 
-    title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection ({PRESTIGE_LEVELS[prestige]})"
+    title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection ({PRESTIGE_TIERS[prestige]})"
     if collection_label:
       title += f": {collection_label}"
 
     if sortby is not None:
       if collection_label:
-        collection_label += f" ({PRESTIGE_LEVELS[prestige]}) - {sortby.replace('_', ' ').title()}"
+        collection_label += f" ({PRESTIGE_TIERS[prestige]}) - {sortby.replace('_', ' ').title()}"
       title += f" - {sortby.replace('_', ' ').title()}"
 
 
@@ -217,7 +217,7 @@ class Badges(commands.Cog):
     if color:
       await db_set_user_badge_page_color_preference(ctx.author.id, "collection", color)
 
-    badge_images = await generate_badge_collection_images(ctx.author, user_badges, 'collection', collection_label)
+    badge_images = await generate_badge_collection_images(ctx.author, prestige, user_badges, 'collection', collection_label)
 
     await pending_message.edit(
       embed=discord.Embed(
@@ -349,7 +349,7 @@ class Badges(commands.Cog):
           title="Prestige Tier Yet Undiscovered",
           description="Well, that's certainly mysterious...",
           color=discord.Color.blurple()
-        ),
+        ).set_footer(text="🐨"),
         ephemeral=True
       )
       return
@@ -422,8 +422,8 @@ class Badges(commands.Cog):
     if color:
       await db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
 
-    collection_label = f"({PRESTIGE_LEVELS[prestige]}) {category_title} - {selection}"
-    badge_images = await generate_badge_collection_images(ctx.author, set_badges, 'sets', collection_label)
+    collection_label = f"({PRESTIGE_TIERS[prestige]}) {category_title} - {selection}"
+    badge_images = await generate_badge_collection_images(ctx.author, prestige, set_badges, 'sets', collection_label)
 
     await pending_message.edit(
       embed=discord.Embed(
@@ -548,7 +548,7 @@ class Badges(commands.Cog):
           title="Prestige Tier Yet Undiscovered",
           description="Well, that's certainly mysterious...",
           color=discord.Color.blurple()
-        ),
+        ).set_footer(text="🐨"),
         ephemeral=True
       )
       return
@@ -603,7 +603,7 @@ class Badges(commands.Cog):
 
 
     embed = discord.Embed(
-      title=f"Badge Set Completion ({PRESTIGE_LEVELS[prestige]}): {category_title}",
+      title=f"Badge Set Completion ({PRESTIGE_TIERS[prestige]}): {category_title}",
       description=f"{ctx.author.mention}'s current {category_title} set completion progress",
       color=discord.Color.blurple()
     )
