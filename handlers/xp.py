@@ -5,7 +5,6 @@ from datetime import datetime
 
 from common import *
 
-from commands.badges import *
 from handlers.echelon_xp import *
 from handlers.auto_promotion import handle_auto_promotions
 from queries.wishlist import *

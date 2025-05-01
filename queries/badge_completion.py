@@ -7,7 +7,7 @@ from common import *
 # \     \___(  <_> )  Y Y  \  |_> >  |_\  ___/|  | |  (  <_> )   |  \
 #  \______  /\____/|__|_|  /   __/|____/\___  >__| |__|\____/|___|  /
 #         \/             \/|__|             \/                    \/
-async def db_completion_by_affiliation(user_id):
+async def db_completion_by_affiliation(user_id, prestige: int | None = None):
   query = '''
     SELECT
       affiliation_name AS name,
@@ -20,15 +20,22 @@ async def db_completion_by_affiliation(user_id):
     LEFT JOIN badge_instances AS b
       ON b.badge_info_id = b_i.id
       AND b.owner_discord_id = %s
+  '''
+  params = [user_id]
+  if prestige is not None:
+    query += ' AND b.prestige_level = %s'
+    params.append(prestige)
+
+  query += '''
     GROUP BY b_a.affiliation_name
     ORDER BY percentage DESC, affiliation_name
   '''
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(query, (user_id,))
+    await db.execute(query, tuple(params))
     return await db.fetchall()
 
 
-async def db_completion_by_franchise(user_id):
+async def db_completion_by_franchise(user_id, prestige: int | None = None):
   query = '''
     SELECT
       b_i.franchise AS name,
@@ -39,15 +46,22 @@ async def db_completion_by_franchise(user_id):
     LEFT JOIN badge_instances AS b
       ON b.badge_info_id = b_i.id
       AND b.owner_discord_id = %s
+  '''
+  params = [user_id]
+  if prestige is not None:
+    query += ' AND b.prestige_level = %s'
+    params.append(prestige)
+
+  query += '''
     GROUP BY b_i.franchise
     ORDER BY percentage DESC, b_i.franchise
   '''
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(query, (user_id,))
+    await db.execute(query, tuple(params))
     return await db.fetchall()
 
 
-async def db_completion_by_time_period(user_id):
+async def db_completion_by_time_period(user_id, prestige: int | None = None):
   query = '''
     SELECT
       b_i.time_period AS name,
@@ -58,15 +72,22 @@ async def db_completion_by_time_period(user_id):
     LEFT JOIN badge_instances AS b
       ON b.badge_info_id = b_i.id
       AND b.owner_discord_id = %s
+  '''
+  params = [user_id]
+  if prestige is not None:
+    query += ' AND b.prestige_level = %s'
+    params.append(prestige)
+
+  query += '''
     GROUP BY b_i.time_period
     ORDER BY percentage DESC, b_i.time_period
   '''
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(query, (user_id,))
+    await db.execute(query, tuple(params))
     return await db.fetchall()
 
 
-async def db_completion_by_type(user_id):
+async def db_completion_by_type(user_id, prestige: int | None = None):
   query = '''
     SELECT
       type_name AS name,
@@ -79,9 +100,16 @@ async def db_completion_by_type(user_id):
     LEFT JOIN badge_instances AS b
       ON b.badge_info_id = b_i.id
       AND b.owner_discord_id = %s
+  '''
+  params = [user_id]
+  if prestige is not None:
+    query += ' AND b.prestige_level = %s'
+    params.append(prestige)
+
+  query += '''
     GROUP BY b_t.type_name
     ORDER BY percentage DESC, type_name
   '''
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(query, (user_id,))
+    await db.execute(query, tuple(params))
     return await db.fetchall()

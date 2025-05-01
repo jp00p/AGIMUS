@@ -165,7 +165,7 @@ async def db_get_badge_affiliations_by_badge_name(name):
   return rows
 
 # Affiliations - User Collection Queries
-async def db_get_badges_user_has_from_affiliation(user_id, affiliation):
+async def db_get_badges_user_has_from_affiliation(user_id, affiliation, prestige=None):
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
       SELECT {BADGE_INSTANCE_COLUMNS}
@@ -177,12 +177,17 @@ async def db_get_badges_user_has_from_affiliation(user_id, affiliation):
         JOIN badge_affiliation AS b_a ON b_i.badge_filename = b_a.badge_filename
         WHERE b.owner_discord_id = %s
           AND b_a.affiliation_name = %s
-        ORDER BY b_i.badge_name ASC;
     '''
-    await query.execute(sql, (user_id, affiliation))
+    params = [user_id, affiliation]
+    if prestige is not None:
+      sql += ' AND b.prestige_level = %s'
+      params.append(prestige)
+
+    sql += ' ORDER BY b_i.badge_name ASC;'
+    await query.execute(sql, tuple(params))
     return await query.fetchall()
 
-async def db_get_random_badges_from_user_by_affiliations(user_id: int) -> list[dict]:
+async def db_get_random_badges_from_user_by_affiliations(user_id: int, prestige: int = None) -> list[dict]:
   sql = f"""
     SELECT
       {BADGE_INSTANCE_COLUMNS},
@@ -194,11 +199,15 @@ async def db_get_random_badges_from_user_by_affiliations(user_id: int) -> list[d
     LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
     JOIN badge_affiliation AS b_a ON b_i.badge_filename = b_a.badge_filename
     WHERE b.owner_discord_id = %s
-    ORDER BY RAND()
-    LIMIT 12
   """
+  params = [user_id]
+  if prestige is not None:
+    sql += " AND b.prestige_level = %s"
+    params.append(prestige)
+
+  sql += " ORDER BY RAND() LIMIT 12"
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_id,))
+    await db.execute(sql, tuple(params))
     return await db.fetchall()
 
 # Franchises
@@ -225,7 +234,7 @@ async def db_get_all_franchise_badges(franchise):
 
 
 # Franchises - User Collection Queries
-async def db_get_badges_user_has_from_franchise(user_id, franchise):
+async def db_get_badges_user_has_from_franchise(user_id, franchise, prestige=None):
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
       SELECT {BADGE_INSTANCE_COLUMNS}
@@ -236,26 +245,37 @@ async def db_get_badges_user_has_from_franchise(user_id, franchise):
         LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
         WHERE b.owner_discord_id = %s
           AND b_i.franchise = %s
-        ORDER BY b_i.badge_name ASC;
     '''
-    await query.execute(sql, (user_id, franchise))
+    params = [user_id, franchise]
+    if prestige is not None:
+      sql += ' AND b.prestige_level = %s'
+      params.append(prestige)
+
+    sql += ' ORDER BY b_i.badge_name ASC;'
+    await query.execute(sql, tuple(params))
     return await query.fetchall()
 
-async def db_get_random_badges_from_user_by_franchises(user_id: int):
+async def db_get_random_badges_from_user_by_franchises(user_id: int, prestige: int = None):
+  sql = f'''
+    SELECT {BADGE_INSTANCE_COLUMNS}
+    FROM badge_instances AS b
+    JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+    LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+    LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+    LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
+    WHERE b.owner_discord_id = %s
+  '''
+  params = [user_id]
+  if prestige is not None:
+    sql += " AND b.prestige_level = %s"
+    params.append(prestige)
+
+  sql += " ORDER BY RAND()"
   async with AgimusDB(dictionary=True) as query:
-    sql = f'''
-      SELECT {BADGE_INSTANCE_COLUMNS}
-      FROM badge_instances AS b
-      JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-      LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-      LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
-      LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
-      WHERE b.owner_discord_id = %s
-      ORDER BY RAND()
-    '''
-    await query.execute(sql, (user_id,))
+    await query.execute(sql, tuple(params))
     rows = await query.fetchall()
     return {r['franchise']: r['badge_filename'] for r in rows}
+
 
 
 # Time Periods
@@ -291,7 +311,7 @@ async def db_get_all_time_period_badges(time_period):
   return rows
 
 # Time Periods - User Collection Queries
-async def db_get_badges_user_has_from_time_period(user_id, time_period):
+async def db_get_badges_user_has_from_time_period(user_id, time_period, prestige=None):
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
       SELECT {BADGE_INSTANCE_COLUMNS}
@@ -302,24 +322,34 @@ async def db_get_badges_user_has_from_time_period(user_id, time_period):
         LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
         WHERE b.owner_discord_id = %s
           AND b_i.time_period = %s
-        ORDER BY b_i.badge_name ASC
     '''
-    await query.execute(sql, (user_id, time_period))
+    params = [user_id, time_period]
+    if prestige is not None:
+      sql += ' AND b.prestige_level = %s'
+      params.append(prestige)
+
+    sql += ' ORDER BY b_i.badge_name ASC'
+    await query.execute(sql, tuple(params))
     return await query.fetchall()
 
-async def db_get_random_badges_from_user_by_time_periods(user_id: int):
+async def db_get_random_badges_from_user_by_time_periods(user_id: int, prestige: int = None):
+  sql = f'''
+    SELECT {BADGE_INSTANCE_COLUMNS}, b_i.time_period
+    FROM badge_instances AS b
+    JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+    LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+    LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+    LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
+    WHERE b.owner_discord_id = %s
+  '''
+  params = [user_id]
+  if prestige is not None:
+    sql += " AND b.prestige_level = %s"
+    params.append(prestige)
+
+  sql += " ORDER BY RAND()"
   async with AgimusDB(dictionary=True) as query:
-    sql = f'''
-      SELECT {BADGE_INSTANCE_COLUMNS}, b_i.time_period
-      FROM badge_instances AS b
-      JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-      LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-      LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
-      LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
-      WHERE b.owner_discord_id = %s
-      ORDER BY RAND()
-    '''
-    await query.execute(sql, (user_id,))
+    await query.execute(sql, tuple(params))
     rows = await query.fetchall()
     return {r['time_period']: r['badge_filename'] for r in rows}
 
@@ -367,7 +397,7 @@ async def db_get_badge_types_by_badge_name(name):
   return rows
 
 # Types - User Collection Queries
-async def db_get_badges_user_has_from_type(user_id, type):
+async def db_get_badges_user_has_from_type(user_id, type, prestige=None):
   async with AgimusDB(dictionary=True) as query:
     sql = f'''
       SELECT {BADGE_INSTANCE_COLUMNS}
@@ -379,24 +409,34 @@ async def db_get_badges_user_has_from_type(user_id, type):
         INNER JOIN badge_type AS b_t ON b_i.badge_filename = b_t.badge_filename
         WHERE b.owner_discord_id = %s
           AND b_t.type_name = %s
-        ORDER BY b_i.badge_name ASC
     '''
-    await query.execute(sql, (user_id, type))
+    params = [user_id, type]
+    if prestige is not None:
+      sql += ' AND b.prestige_level = %s'
+      params.append(prestige)
+
+    sql += ' ORDER BY b_i.badge_name ASC'
+    await query.execute(sql, tuple(params))
     return await query.fetchall()
 
-async def db_get_random_badges_from_user_by_types(user_id: int):
+async def db_get_random_badges_from_user_by_types(user_id: int, prestige: int = None):
+  sql = f'''
+    SELECT {BADGE_INSTANCE_COLUMNS}, b_t.type_name
+    FROM badge_instances AS b
+    JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+    LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
+    LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+    LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
+    INNER JOIN badge_type AS b_t ON b_i.badge_filename = b_t.badge_filename
+    WHERE b.owner_discord_id = %s
+  '''
+  params = [user_id]
+  if prestige is not None:
+    sql += " AND b.prestige_level = %s"
+    params.append(prestige)
+
+  sql += " ORDER BY RAND()"
   async with AgimusDB(dictionary=True) as query:
-    sql = f'''
-      SELECT {BADGE_INSTANCE_COLUMNS}, b_t.type_name
-      FROM badge_instances AS b
-      JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-      LEFT JOIN badge_crystals AS c ON b.active_crystal_id = c.id
-      LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
-      LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
-      INNER JOIN badge_type AS b_t ON b_i.badge_filename = b_t.badge_filename
-      WHERE b.owner_discord_id = %s
-      ORDER BY RAND()
-    '''
-    await query.execute(sql, (user_id,))
+    await query.execute(sql, tuple(params))
     rows = await query.fetchall()
     return {r['type_name']: r['badge_filename'] for r in rows}

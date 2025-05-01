@@ -23,13 +23,17 @@ async def db_get_user_badge_instance_names_and_ids(user_id: int):
 async def db_get_user_badge_instances(
   user_id: int,
   *,
+  prestige: int = 0,
   locked: bool | None = None,
   special: bool | None = None,
-  prestige: int | None = None,
   sortby: str = None
 ):
   where_clauses = ["b.owner_discord_id = %s", "b.active = TRUE"]
   params = [user_id]
+
+  if prestige is not None:
+    where_clauses.append("b.prestige_level = %s")
+    params.append(prestige)
 
   if locked is not None:
     where_clauses.append("b.locked = %s")
@@ -38,10 +42,6 @@ async def db_get_user_badge_instances(
   if special is not None:
     where_clauses.append("b_i.special = %s")
     params.append(special)
-
-  if prestige is not None:
-    where_clauses.append("b.prestige_level = %s")
-    params.append(prestige)
 
   where_sql = " AND ".join(where_clauses)
 
@@ -196,7 +196,7 @@ async def db_get_user_badge_instances_with_attuned_crystals(user_id: int):
 
 
 # COUNTS
-async def db_get_badge_instances_count_for_user(user_id: int) -> int:
+async def db_get_badge_instances_count_for_user(user_id: int, prestige: int | None = None) -> int:
   async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT COUNT(*) AS count
@@ -204,10 +204,17 @@ async def db_get_badge_instances_count_for_user(user_id: int) -> int:
       WHERE owner_discord_id = %s
         AND active = TRUE
     '''
-    vals = (user_id,)
-    await query.execute(sql, vals)
+    vals = [user_id]
+
+    if prestige is not None:
+      sql += ' AND prestige_level = %s'
+      vals.append(prestige)
+
+    await query.execute(sql, tuple(vals))
     result = await query.fetchone()
+
   return result['count']
+
 
 async def db_get_total_badge_instances_count_by_filename(filename: str) -> int:
   """

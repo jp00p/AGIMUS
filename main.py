@@ -8,7 +8,6 @@ import aiohttp
 
 # Slash Commands
 from commands.aliases import aliases
-from commands.badges import *
 from commands.bless import bless
 from commands.curse import curse
 from commands.dice import dice
@@ -56,6 +55,7 @@ if config["DEBUG"]:
   bot.add_cog(Admin(bot))
 
 from cogs.backups import Backups
+from cogs.badges import Badges
 from cogs.badge_tags import BadgeTags
 from cogs.chaoszork import ChaosZork, HitchHikers
 from cogs.crystals import Crystals
@@ -71,6 +71,7 @@ from cogs.randomep import RandomEp
 from cogs.wishlist import Wishlist
 from cogs.wordcloud import Wordcloud
 bot.add_cog(Backups(bot))
+bot.add_cog(Badges(bot))
 bot.add_cog(BadgeTags(bot))
 bot.add_cog(ChaosZork(bot))
 bot.add_cog(Crystals(bot))

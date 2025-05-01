@@ -18,7 +18,7 @@ from utils.animation_cache import *
 from utils.badge_cache import *
 from utils.crystal_effects import apply_crystal_effect
 from utils.encode_utils import encode_webp
-from utils.prestige import PRESTIGE_THEMES
+from utils.prestige import PRESTIGE_LEVELS, PRESTIGE_THEMES
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
 
 THREAD_POOL = ThreadPoolExecutor(max_workers=24)
@@ -458,7 +458,7 @@ def buffer_image_to_discord_file(image: Image.Image, filename: str) -> discord.F
 #  /        \  ___/|  |   \     \___(  <_> )  Y Y  \  |_> >  |_\  ___/|  | |  (  <_> )   |  \
 # /_______  /\___  >__|    \______  /\____/|__|_|  /   __/|____/\___  >__| |__|\____/|___|  /
 #         \/     \/               \/             \/|__|             \/                    \/
-async def generate_badge_set_completion_images(user, badge_data, category):
+async def generate_badge_set_completion_images(user, prestige, badge_data, category):
   """
   Renders paginated badge completion images using themed components and returns discord.File[]
   """
@@ -468,7 +468,7 @@ async def generate_badge_set_completion_images(user, badge_data, category):
   rows_per_page = 7
 
   max_badge_count = await db_get_max_badge_count()
-  collected_count = await db_get_badge_instances_count_for_user(user.id)
+  collected_count = await db_get_badge_instances_count_for_user(user.id, prestige=prestige)
 
   filtered_rows = [r for r in badge_data if r.get("collected", 0) > 0]
 
@@ -476,6 +476,7 @@ async def generate_badge_set_completion_images(user, badge_data, category):
   if not filtered_rows:
     canvas = await build_completion_canvas(
       user=user,
+      prestige=prestige,
       max_badge_count=max_badge_count,
       collected_count=collected_count,
       category=category,
@@ -499,6 +500,7 @@ async def generate_badge_set_completion_images(user, badge_data, category):
   for page_rows, page_number in pages:
     canvas = await build_completion_canvas(
       user=user,
+      prestige=prestige,
       max_badge_count=max_badge_count,
       collected_count=collected_count,
       category=category,
@@ -520,8 +522,8 @@ async def generate_badge_set_completion_images(user, badge_data, category):
   return images
 
 
-async def build_completion_canvas(user, max_badge_count, collected_count, category, page_number, total_pages, row_count, theme):
-  title_text = f"{user.display_name}'s Badge Collection: {category.replace('_', ' ').title()}"
+async def build_completion_canvas(user, prestige, max_badge_count, collected_count, category, page_number, total_pages, row_count, theme):
+  title_text = f"{user.display_name}'s Badge Completion ({PRESTIGE_LEVELS[prestige]}): {category.replace('_', ' ').title()}"
 
   canvas = await build_display_canvas(
     user=user,
