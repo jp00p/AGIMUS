@@ -103,13 +103,13 @@ async def db_get_active_trade_between_requestor_and_requestee(requestor_id, requ
     await query.execute(sql, (requestor_id, requestee_id))
     return await query.fetchone()
 
-async def db_initiate_trade(requestor_id: int, requestee_id: int) -> int:
+async def db_initiate_trade(requestor_id: int, requestee_id: int, prestige_level:int) -> int:
   async with AgimusDB() as query:
     sql = """
-      INSERT INTO badge_instance_trades (requestor_id, requestee_id, status)
-      VALUES (%s, %s, 'pending')
+      INSERT INTO badge_instance_trades (requestor_id, requestee_id, prestige_level, status)
+      VALUES (%s, %s, %s, 'pending')
     """
-    await query.execute(sql, (requestor_id, requestee_id))
+    await query.execute(sql, (requestor_id, requestee_id, prestige_level))
     return query.lastrowid
 
 

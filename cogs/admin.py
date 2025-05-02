@@ -141,12 +141,12 @@ class Admin(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
-  @admin_group.command(name="clear_effects_cache", description="Clear the crystal effects cache")
-  async def clear_effects_cache(self, ctx):
+  @admin_group.command(name="clear_crystal_images_cache", description="Clear the crystal images disk cache")
+  async def clear_crystal_images_cache(self, ctx):
     delete_crystal_effects_cache()
     embed = discord.Embed(
-      title="Crystal Effects Cache Cleared",
-      description="🧹 All cached crystal effect images have been deleted.",
+      title="Crystal Image Caches Cleared",
+      description="🧹 All cached crystal effect images, and replicator animations, have been deleted.",
       color=discord.Color.orange()
     )
     await ctx.respond(embed=embed, ephemeral=True)
@@ -358,11 +358,11 @@ class Admin(commands.Cog):
     await ctx.defer(ephemeral=True)
     prestige = int(prestige)
 
-    deleted = await db_delete_badge_instances_by_prestige(user.id, prestige)
+    deleted = await db_orphan_badge_instances_by_prestige(user.id, prestige)
 
     embed = discord.Embed(
-      title="Badges Purged",
-      description=f"🗑️ Removed **{deleted}** badge(s) from {user.mention} at **{PRESTIGE_TIERS[prestige]}**.",
+      title="Badges Orphaned",
+      description=f"🗑️ Orphaned **{deleted}** badge(s) from {user.mention} at **{PRESTIGE_TIERS[prestige]}**.",
       color=discord.Color.red()
     )
     await ctx.respond(embed=embed, ephemeral=True)

@@ -6,6 +6,7 @@ from queries.trade import *
 from utils.badge_trades import *
 from utils.check_channel_access import access_check
 from utils.image_utils import *
+from utils.prestige import PRESTIGE_TIERS, autocomplete_prestige_tiers, is_prestige_valid
 
 from random import sample
 
@@ -26,19 +27,29 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   requestor_user_id = ctx.interaction.user.id
 
   requestee_user_id = None
-  offered_instance_ids = {}
-  if 'requestee' in ctx.options:
+  prestige_level = None
+  offered_instance_ids = set()
+  if 'requestee' in ctx.options and 'prestige' in ctx.options:
     requestee_user_id = ctx.options['requestee']
+    prestige_level = int(ctx.options['prestige'])
   else:
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
       requestee_user_id = active_trade['requestee_id']
+      prestige_level = active_trade['prestige_level']
       offered_instances = await db_get_trade_offered_badge_instances(active_trade)
       offered_instance_ids = {b['badge_instance_id'] for b in offered_instances}
+    else:
+      return [
+        discord.OptionChoice(
+          name="[ No Valid Options ]",
+          value=None
+        )
+      ]
 
   # Lookup badges
-  requestor_instances = await db_get_user_badge_instances(requestor_user_id)
-  requestee_instances = await db_get_user_badge_instances(requestee_user_id)
+  requestor_instances = await db_get_user_badge_instances(requestor_user_id, prestige=prestige_level)
+  requestee_instances = await db_get_user_badge_instances(requestee_user_id, prestige=prestige_level)
 
   requestee_filenames = {b['badge_filename'] for b in requestee_instances}
 
@@ -63,7 +74,6 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
         value=None
       )
     ]
-
   return filtered
 
 
@@ -71,19 +81,29 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   requestor_user_id = ctx.interaction.user.id
 
   requestee_user_id = None
-  requested_instance_ids = {}
-  if 'requestee' in ctx.options:
+  prestige_level = None
+  requested_instance_ids = set()
+  if 'requestee' in ctx.options and 'prestige' in ctx.options:
     requestee_user_id = ctx.options['requestee']
+    prestige_level = int(ctx.options['prestige'])
   else:
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
       requestee_user_id = active_trade['requestee_id']
+      prestige_level = active_trade['prestige_level']
       requested_instances = await db_get_trade_requested_badge_instances(active_trade)
       requested_instance_ids = {b['badge_instance_id'] for b in requested_instances}
+    else:
+      return [
+        discord.OptionChoice(
+          name="[ No Valid Options ]",
+          value=None
+        )
+      ]
 
   # Lookup badges
-  requestor_instances = await db_get_user_badge_instances(requestor_user_id)
-  requestee_instances = await db_get_user_badge_instances(requestee_user_id)
+  requestor_instances = await db_get_user_badge_instances(requestor_user_id, prestige=prestige_level)
+  requestee_instances = await db_get_user_badge_instances(requestee_user_id, prestige=prestige_level)
 
   requestor_filenames = {b['badge_filename'] for b in requestor_instances}
 
@@ -108,8 +128,7 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
         value=None
       )
     ]
-
-  return [r for r in results if ctx.value.lower() in r.name.lower()]
+  return filtered
 
 
 
@@ -146,11 +165,11 @@ class CancelButton(discord.ui.Button):
     await self.cog._cancel_trade_callback(interaction, self.active_trade)
 
 class SendCancelView(discord.ui.View):
-  def __init__(self, cog, active_trade, trade_contains_badges):
+  def __init__(self, cog, active_trade):
     super().__init__()
 
     self.add_item(CancelButton(cog, active_trade))
-    if active_trade["status"] != 'active' and trade_contains_badges:
+    if active_trade["status"] != 'active':
       self.add_item(SendButton(cog, active_trade))
 
 
@@ -348,6 +367,7 @@ class Trade(commands.Cog):
 
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
+    prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
 
     offered_instances = await db_get_trade_offered_badge_instances(active_trade)
     requested_instances = await db_get_trade_requested_badge_instances(active_trade)
@@ -370,24 +390,25 @@ class Trade(commands.Cog):
     await db_complete_trade(active_trade)
 
     # Autolocking and Purge Wishlists
-    await db_autolock_badges_by_filenames_if_in_wishlist(
-      requestor.id,
-      [b['badge_filename'] for b in requested_instances]
-    )
-    await db_autolock_badges_by_filenames_if_in_wishlist(
-      requestee.id,
-      [b['badge_filename'] for b in offered_instances]
-    )
+    # NOTE: This needs to respect prestige tiers still...
+    # await db_autolock_badges_by_filenames_if_in_wishlist(
+    #   requestor.id,
+    #   [b['badge_filename'] for b in requested_instances]
+    # )
+    # await db_autolock_badges_by_filenames_if_in_wishlist(
+    #   requestee.id,
+    #   [b['badge_filename'] for b in offered_instances]
+    # )
 
-    await db_purge_users_wishlist(requestor.id)
-    await db_purge_users_wishlist(requestee.id)
+    # await db_purge_users_wishlist(requestor.id)
+    # await db_purge_users_wishlist(requestee.id)
 
     # Confirmation embed
     success_embed = discord.Embed(
       title="Successful Trade!",
       description=(
-        f"**{requestor.display_name}** and **{requestee.display_name}** came to an agreement!\n\n"
-        f"Badges transferred successfully!"
+        f"**{requestor.display_name}** and **{requestee.display_name}** came to an {prestige_tier} Trade agreement!\n\n"
+        f"{prestige_tier} Badges transferred successfully!"
       ),
       color=discord.Color.dark_purple()
     )
@@ -439,6 +460,7 @@ class Trade(commands.Cog):
 
       requestor = await self.bot.current_guild.fetch_member(trade['requestor_id'])
       requestee = await self.bot.current_guild.fetch_member(trade['requestee_id'])
+      prestige_tier = PRESTIGE_TIERS[trade['prestige_level']]
 
       offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(trade)
 
@@ -448,7 +470,7 @@ class Trade(commands.Cog):
         try:
           embed = discord.Embed(
             title="Trade Canceled",
-            description=f"Your USS Hood Badge Trade initiated by **{requestor.display_name}** was canceled because one or more badges were traded to someone else.",
+            description=f"Your USS Hood {prestige_tier} Badge Trade initiated by **{requestor.display_name}** was canceled because one or more badges were traded to someone else.",
             color=discord.Color.purple()
           )
           embed.add_field(name=f"Offered by {requestor.display_name}", value=offered_badge_names)
@@ -464,7 +486,7 @@ class Trade(commands.Cog):
         try:
           embed = discord.Embed(
             title="Trade Canceled",
-            description=f"Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because one or more badges were traded to someone else.",
+            description=f"Your USS Hood {prestige_tier} Badge Trade requested from **{requestee.display_name}** was canceled because one or more badges were traded to someone else.",
             color=discord.Color.purple()
           )
           embed.add_field(name=f"Offered by {requestor.display_name}", value=offered_badge_names)
@@ -485,10 +507,11 @@ class Trade(commands.Cog):
     overlap = requestor_filenames & requested_filenames
 
     if overlap:
+      prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
       await db_cancel_trade(active_trade)
       await interaction.followup.send(
         embed=discord.Embed(
-          title="Invalid Trade",
+          title=f"Invalid {prestige_tier} Trade",
           description="Sorry! They've already received some of the badges you requested elsewhere while this trade was pending!\n\nTrade has been canceled.",
           color=discord.Color.red()
         )
@@ -499,7 +522,7 @@ class Trade(commands.Cog):
 
         embed = discord.Embed(
           title="Trade Canceled",
-          description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because you already own some of the badges requested!",
+          description=f"Just a heads up! Your USS Hood {prestige_tier} Badge Trade requested from **{requestee.display_name}** was canceled because you already own some of the badges requested!",
           color=discord.Color.purple()
         )
         embed.add_field(
@@ -532,10 +555,11 @@ class Trade(commands.Cog):
     overlap = requestee_filenames & offered_filenames
 
     if overlap:
+      prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
       await db_cancel_trade(active_trade)
       await interaction.followup.send(
         embed=discord.Embed(
-          title="Invalid Trade",
+          title=f"Invalid {prestige_tier} Trade",
           description="Sorry! You've already received some of the badges that were offered to you elsewhere while this trade was pending!\n\nTrade has been canceled.",
           color=discord.Color.red()
         )
@@ -546,7 +570,7 @@ class Trade(commands.Cog):
 
         embed = discord.Embed(
           title="Trade Canceled",
-          description=f"Just a heads up! Your USS Hood Badge Trade requested from **{requestee.display_name}** was canceled because they already own some of the badges offered!",
+          description=f"Just a heads up! Your USS Hood {prestige_tier} Badge Trade requested from **{requestee.display_name}** was canceled because they already own some of the badges offered!",
           color=discord.Color.purple()
         )
         embed.add_field(
@@ -570,17 +594,18 @@ class Trade(commands.Cog):
 
 
   async def _requestor_still_has_badges(self, interaction, active_trade, requestor, requestee):
-    user_instances = await db_get_user_badge_instances(requestor.id)
+    user_instances = await db_get_user_badge_instances(requestor.id, prestige=active_trade['prestige_level'])
     current_ids = {b['badge_instance_id'] for b in user_instances}
 
     offered_instances = await db_get_trade_offered_badge_instances(active_trade)
     offered_ids = {b['badge_instance_id'] for b in offered_instances}
 
     if not offered_ids.issubset(current_ids):
+      prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
       await db_cancel_trade(active_trade)
       await interaction.followup.send(
         embed=discord.Embed(
-          title="Invalid Trade",
+          title=f"Invalid {prestige_tier} Trade",
           description="Sorry! They no longer have some of the badges they offered!\n\nTrade has been canceled.",
           color=discord.Color.red()
         )
@@ -590,7 +615,7 @@ class Trade(commands.Cog):
         offered_names, requested_names = await get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
-          description=f"Just a heads up! Your USS Hood Badge Trade you requested from **{requestee.display_name}** was canceled because you no longer have some of the badges you offered!",
+          description=f"Just a heads up! Your USS Hood {prestige_tier} Badge Trade you requested from **{requestee.display_name}** was canceled because you no longer have some of the badges you offered!",
           color=discord.Color.purple()
         )
         embed.add_field(name=f"Offered by {requestor.display_name}", value=offered_names)
@@ -606,17 +631,18 @@ class Trade(commands.Cog):
 
 
   async def _requestee_still_has_badges(self, interaction, active_trade, requestor, requestee):
-    user_instances = await db_get_user_badge_instances(requestee.id)
+    user_instances = await db_get_user_badge_instances(requestee.id, prestige=active_trade['prestige_level'])
     current_ids = {b['badge_instance_id'] for b in user_instances}
 
     requested_instances = await db_get_trade_requested_badge_instances(active_trade)
     requested_ids = {b['badge_instance_id'] for b in requested_instances}
 
     if not requested_ids.issubset(current_ids):
+      prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
       await db_cancel_trade(active_trade)
       await interaction.followup.send(
         embed=discord.Embed(
-          title="Invalid Trade",
+          title=f"Invalid {prestige_tier} Trade",
           description="Sorry! You no longer have some of the badges they requested!\n\nTrade has been canceled.",
           color=discord.Color.red()
         )
@@ -626,7 +652,7 @@ class Trade(commands.Cog):
         offered_names, requested_names = await get_offered_and_requested_badge_names(active_trade)
         embed = discord.Embed(
           title="Trade Canceled",
-          description=f"Just a heads up! Your USS Hood Badge Trade requested by **{requestor.display_name}** was canceled because you no longer have some of the badges they requested!",
+          description=f"Just a heads up! Your USS Hood {prestige_tier} Badge Trade requested by **{requestor.display_name}** was canceled because you no longer have some of the badges they requested!",
           color=discord.Color.purple()
         )
         embed.add_field(name=f"Offered by {requestor.display_name}", value=offered_names)
@@ -643,11 +669,12 @@ class Trade(commands.Cog):
   async def _decline_trade_callback(self, interaction, active_trade):
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
+    prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
 
     await interaction.response.edit_message(
       embed=discord.Embed(
         title="Trade Declined",
-        description=f"You've declined the proposed trade with **{requestor.display_name}**.\n\nIf their DMs are open, they've been sent a notification to let them know.",
+        description=f"You've declined the proposed {prestige_tier} Trade with **{requestor.display_name}**.\n\nIf their DMs are open, they've been sent a notification to let them know.",
         color=discord.Color.blurple()
       ),
       view=None,
@@ -663,7 +690,7 @@ class Trade(commands.Cog):
       try:
         embed = discord.Embed(
           title="Trade Declined",
-          description=f"Your USS Hood Badge Trade to **{requestee.display_name}** was declined.",
+          description=f"Your USS Hood {prestige_tier} Badge Trade to **{requestee.display_name}** was declined.",
           color=discord.Color.dark_purple()
         )
         embed.add_field(name=f"Offered by {requestor.display_name}", value=offered_badge_names)
@@ -691,59 +718,86 @@ class Trade(commands.Cog):
     required=True
   )
   @option(
+    name="prestige",
+    description="Which Prestige Tier to trade?",
+    required=True,
+    autocomplete=autocomplete_prestige_tiers
+  )
+  @option(
     "offer",
     str,
     description="A badge you are offering",
-    required=False,
+    required=True,
     autocomplete=autocomplete_offering_badges
   )
   @option(
     "request",
     str,
     description="A badge you are requesting",
-    required=False,
+    required=True,
     autocomplete=autocomplete_requesting_badges
   )
   @commands.check(access_check)
-  async def start(self, ctx:discord.ApplicationContext, requestee:discord.User, offer: str, request: str):
+  async def start(self, ctx:discord.ApplicationContext, requestee:discord.User, prestige:str, offer: str, request: str):
     await ctx.defer(ephemeral=True)
     requestor_id = ctx.author.id
     requestee_id = requestee.id
 
+    if not await is_prestige_valid(ctx, prestige):
+      return
+    prestige = int(prestige)
+
     if not await self._is_trade_initialization_valid(ctx, requestee):
       return
 
-    trade_id = await db_initiate_trade(requestor_id, requestee_id)
+    if not await self._do_participants_own_badges(ctx, requestor_id, requestee_id, prestige, offer, request):
+      return
+
+    trade_id = await db_initiate_trade(requestor_id, requestee_id, prestige)
     active_trade = {
       'id': trade_id,
       'requestor_id': requestor_id,
       'requestee_id': requestee_id,
+      'prestige_level': prestige
     }
 
-    # Attempt to add instance ID directly (ValueError allowed to bubble)
-    if offer:
+    try:
       offer_instance_id = int(offer)
-      if not await self._is_untradeable(ctx, offer_instance_id, ctx.author, requestee, active_trade, 'offer'):
-        await db_add_offered_instance(trade_id, offer_instance_id)
+    except ValueError:
+      await ctx.respond(embed=discord.Embed(
+        title="Invalid Badge Selection",
+        description="Please select a valid badge from the dropdown.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
 
-    if request:
+    # Checks for special badges/etc
+    if await self._is_untradeable(ctx, offer_instance_id, ctx.author, requestee, active_trade, 'offer'):
+      return
+    await db_add_offered_instance(trade_id, offer_instance_id)
+
+    try:
       request_instance_id = int(request)
-      if not await self._is_untradeable(ctx, request_instance_id, ctx.author, requestee, active_trade, 'request'):
-        await db_add_requested_instance(trade_id, request_instance_id)
+    except ValueError:
+      await ctx.respond(embed=discord.Embed(
+        title="Invalid Badge Selection",
+        description="Please select a valid badge from the dropdown.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+    # Checks for special badges/etc
+    if await self._is_untradeable(ctx, request_instance_id, ctx.author, requestee, active_trade, 'request'):
+      return
+    await db_add_requested_instance(trade_id, request_instance_id)
 
     initiated_trade = await self.check_for_active_trade(ctx)
-
-    if not offer and not request:
-      follow_up_message = "Follow up with `/trade propose` to fill out the trade details!"
-    else:
-      follow_up_message = "You can add more badges with `/trade propose`, or you can **Send** / **Cancel** the trade immediately via the buttons below."
-
     offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(initiated_trade)
 
     # Paginator Pages
     initiated_embed = discord.Embed(
       title="Trade Started!",
-      description=f"Your pending trade has been started!\n\n{follow_up_message}\n\n"
+      description=f"Your pending {PRESTIGE_TIERS[prestige]} Trade has been started!\n\n"
                   f"If you have additional badges you need to offer and request, use `/trade send` afterwards to finalize or cancel.\n\n"
                   f"Note: You may only have one open outgoing trade request at a time!",
       color=discord.Color.dark_purple()
@@ -776,8 +830,7 @@ class Trade(commands.Cog):
     requested_embed, requested_image = await self._generate_requested_embed_and_image(initiated_trade)
     initiated_pages.append(pages.Page(embeds=[requested_embed], files=[requested_image]))
 
-    trade_contains_badges = await does_trade_contain_badges(initiated_trade)
-    view = SendCancelView(self, initiated_trade, trade_contains_badges)
+    view = SendCancelView(self, initiated_trade)
     paginator = pages.Paginator(
       pages=initiated_pages,
       use_default_buttons=False,
@@ -853,6 +906,29 @@ class Trade(commands.Cog):
     return True
 
 
+  async def _do_participants_own_badges(self, ctx, requestor_id, requestee_id, prestige_level, offer_instance_id, request_instance_id):
+    offer_instance = await db_get_badge_instance_by_id(int(offer_instance_id))
+    request_instance = await db_get_badge_instance_by_id(int(request_instance_id))
+
+    if not offer_instance or offer_instance['owner_discord_id'] != str(requestor_id) or offer_instance['prestige_level'] != prestige_level:
+      await ctx.respond(embed=discord.Embed(
+        title="Invalid Offer",
+        description="You don't own that badge at the specified Prestige Tier.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return False
+
+    if not request_instance or request_instance['owner_discord_id'] != str(requestee_id) or request_instance['prestige_level'] != prestige_level:
+      requestee = await self.bot.current_guild.fetch_member(requestee_id)
+      await ctx.respond(embed=discord.Embed(
+        title="Invalid Request",
+        description=f"{requestee.display_name} does not own that badge at the specified Prestige Tier.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return False
+
+    return True
+
   #   _________                  .___
   #  /   _____/ ____   ____    __| _/
   #  \_____  \_/ __ \ /    \  / __ |
@@ -873,8 +949,7 @@ class Trade(commands.Cog):
     await ctx.defer(ephemeral=True)
 
     trade_pages = await self._generate_trade_pages(active_trade)
-    trade_contains_badges = await does_trade_contain_badges(active_trade)
-    view = SendCancelView(self, active_trade, trade_contains_badges)
+    view = SendCancelView(self, active_trade)
     paginator = pages.Paginator(
       pages=trade_pages,
       use_default_buttons=False,
@@ -891,10 +966,11 @@ class Trade(commands.Cog):
       await db_cancel_trade(active_trade)
       requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
       requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
+      prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
 
       embed = discord.Embed(
-        title="Trade Canceled!",
-        description=f"Your trade with **{requestee.display_name}** has been canceled!\n\nYou may now begin a new trade request with `/trade start`.",
+        title=f"{prestige_tier} Trade Canceled!",
+        description=f"Your {prestige_tier} Trade with **{requestee.display_name}** has been canceled!\n\nYou may now begin a new trade request with `/trade start`.",
         color=discord.Color.dark_red()
       )
 
@@ -908,16 +984,16 @@ class Trade(commands.Cog):
             offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
 
             notification = discord.Embed(
-              title="Trade Canceled!",
-              description=f"Heads up! **{requestor.display_name}** has canceled their pending trade request with you.",
+              title=f"{prestige_tier} Trade Canceled!",
+              description=f"Heads up! **{requestor.display_name}** has canceled their pending {prestige_tier} Trade request with you.",
               color=discord.Color.dark_purple()
             )
             notification.add_field(
-              name=f"Offered by {requestor.display_name}",
+              name=f"{prestige_tier} Badges offered by {requestor.display_name}",
               value=offered_badge_names
             )
             notification.add_field(
-              name=f"Requested from {requestee.display_name}",
+              name=f"{prestige_tier} Badges requested from {requestee.display_name}",
               value=requested_badge_names
             )
             notification.set_footer(text="Note: You can use /settings to enable or disable these messages.")
@@ -938,28 +1014,17 @@ class Trade(commands.Cog):
 
   async def _send_trade_callback(self, interaction, active_trade):
     try:
-      if not await does_trade_contain_badges(active_trade):
-        await interaction.response.edit_message(
-          embed=discord.Embed(
-            title="Invalid Trade",
-            description="You must use `/trade propose` to include at least one badge before sending a request.",
-            color=discord.Color.red()
-          ),
-          view=None,
-          attachments=[]
-        )
-        return
-
       # Activate the trade and send confirmation
       await db_activate_trade(active_trade)
       requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
       requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
+      prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
 
-      logger.info(f"{Fore.CYAN}{requestor.display_name} has activated a trade with {requestee.display_name}{Style.RESET_ALL}")
+      logger.info(f"{Fore.CYAN}{requestor.display_name} has activated a {prestige_tier} Trade with {requestee.display_name}{Style.RESET_ALL}")
 
       await interaction.response.edit_message(
         embed=discord.Embed(
-          title="Trade Sent!",
+          title=f"{prestige_tier} Trade Sent!",
           color=discord.Color.dark_purple()
         ),
         view=None,
@@ -986,7 +1051,7 @@ class Trade(commands.Cog):
           offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
 
           title = "Trade Offered"
-          description = f"Hey there, wanted to let you know that **{requestor.display_name}** has requested a trade from you on The USS Hood.\n\n"
+          description = f"Hey there, wanted to let you know that **{requestor.display_name}** has requested a {prestige_tier} Trade from you on The USS Hood.\n\n"
           description += f"Use `/trade incoming` in the channel to review and either accept or deny!\n\nYou can jump to their offer directly at at {home_message.jump_url}!"
 
           requestee_embed = discord.Embed(
@@ -995,11 +1060,11 @@ class Trade(commands.Cog):
             color=discord.Color.dark_purple()
           )
           requestee_embed.add_field(
-            name=f"Offered by {requestor.display_name}",
+            name=f"{prestige_tier} Badges offered by {requestor.display_name}",
             value=offered_badge_names
           )
           requestee_embed.add_field(
-            name=f"Requested from {requestee.display_name}",
+            name=f"{prestige_tier} Badges requested from {requestee.display_name}",
             value=requested_badge_names
           )
           requestee_embed.set_footer(
@@ -1042,18 +1107,19 @@ class Trade(commands.Cog):
   async def _generate_offered_embed_and_image(self, active_trade):
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
+    prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
 
     offered_instances = await db_get_trade_offered_badge_instances(active_trade)  # full enriched
 
     offered_image, offered_filename = await generate_badge_trade_images(
       offered_instances,
-      f"Offered by {requestor.display_name}",
+      f"{prestige_tier} Badges offered by {requestor.display_name}",
       f"{len(offered_instances)} Badges"
     )
 
     offered_embed = discord.Embed(
       title="Offered",
-      description=f"Badges offered by **{requestor.display_name}** to **{requestee.display_name}**",
+      description=f"{prestige_tier} Badges offered by **{requestor.display_name}** to **{requestee.display_name}**",
       color=discord.Color.dark_purple()
     )
     offered_embed.set_image(url=offered_filename)
@@ -1064,18 +1130,19 @@ class Trade(commands.Cog):
   async def _generate_requested_embed_and_image(self, active_trade):
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
+    prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
 
     requested_instances = await db_get_trade_requested_badge_instances(active_trade)
 
     requested_image, requested_filename = await generate_badge_trade_images(
       requested_instances,
-      f"Requested from {requestee.display_name}",
+      f"{prestige_tier} Badges requested from {requestee.display_name}",
       f"{len(requested_instances)} Badges"
     )
 
     requested_embed = discord.Embed(
       title="Requested",
-      description=f"Badges requested from **{requestee.display_name}** by **{requestor.display_name}**",
+      description=f"{prestige_tier} Badges requested from **{requestee.display_name}** by **{requestor.display_name}**",
       color=discord.Color.dark_purple()
     )
     requested_embed.set_image(url=requested_filename)
@@ -1085,6 +1152,7 @@ class Trade(commands.Cog):
   async def _generate_home_embed_and_image(self, active_trade):
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
+    prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
 
     offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(active_trade)
 
@@ -1092,7 +1160,7 @@ class Trade(commands.Cog):
       title = "Trade Offered!"
       description = (
         f"Get that, get that, gold pressed latinum!\n\n"
-        f"**{requestor.display_name}** has offered a trade to **{requestee.display_name}**!"
+        f"**{requestor.display_name}** has offered a {prestige_tier} Trade to **{requestee.display_name}**!"
       )
       image_filename = "trade_offer.png"
       color = discord.Color.dark_purple()
@@ -1100,12 +1168,9 @@ class Trade(commands.Cog):
     elif active_trade["status"] == 'pending':
       title = "Trade Pending..."
       description = (
-        f"Ready to send?\n\nThis is your pending trade with **{requestee.display_name}**.\n\n"
+        f"Ready to send?\n\nThis is your pending {prestige_tier} Trade with **{requestee.display_name}**.\n\n"
+        "Press the **Send** button below if it looks good to go!"
       )
-      if await does_trade_contain_badges(active_trade):
-        description += "Press the **Send** button below if it looks good to go!"
-      else:
-        description += "You'll need to include at least one badge as either offered or requested to proceed!"
       image_filename = "trade_pending.png"
       color = discord.Color(0x99aab5)
 
@@ -1115,11 +1180,11 @@ class Trade(commands.Cog):
       color=color
     )
     home_embed.add_field(
-      name=f"Offered by {requestor.display_name}",
+      name=f"{prestige_tier} Badges offered by {requestor.display_name}",
       value=offered_badge_names
     )
     home_embed.add_field(
-      name=f"Requested from {requestee.display_name}",
+      name=f"{prestige_tier} Badges requested from {requestee.display_name}",
       value=requested_badge_names
     )
     home_embed.set_footer(
@@ -1187,13 +1252,14 @@ class Trade(commands.Cog):
     trade_id = active_trade["id"]
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
+    prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
 
-    user_instances = await db_get_user_badge_instances(requestor.id)
+    user_instances = await db_get_user_badge_instances(requestor.id, prestige=active_trade['prestige_level'])
     instance = next((b for b in user_instances if b["badge_instance_id"] == instance_id), None)
     if not instance:
       await ctx.respond(embed=discord.Embed(
-        title="Badge not found",
-        description="You don't own this badge instance.",
+        title="Badge Not Found",
+        description=f"You don't own this {prestige_tier} Badge!",
         color=discord.Color.red()
       ), ephemeral=True)
       return
@@ -1201,7 +1267,7 @@ class Trade(commands.Cog):
     await db_add_offered_instance(trade_id, instance_id)
 
     badge_name = instance['badge_name']
-    discord_file, attachment_url = await generate_badge_preview(ctx.author.id, instance, theme='gold', disable_overlays=True)
+    discord_file, attachment_url = await generate_badge_preview(ctx.author.id, instance, disable_overlays=True)
 
     embed = discord.Embed(
       title=f"Badge added to offer.",
@@ -1214,14 +1280,14 @@ class Trade(commands.Cog):
   async def _add_requested_badge_to_trade(self, ctx, active_trade, instance_id):
     trade_id = active_trade["id"]
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
-    requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
+    prestige_tier = PRESTIGE_TIERS[active_trade['prestige_level']]
 
-    user_instances = await db_get_user_badge_instances(requestee.id)
+    user_instances = await db_get_user_badge_instances(requestee.id, prestige=active_trade['prestige_level'])
     instance = next((b for b in user_instances if b["badge_instance_id"] == instance_id), None)
     if not instance:
       await ctx.respond(embed=discord.Embed(
-        title="Badge not found",
-        description=f"**{requestee.display_name}** doesn't have that badge.",
+        title="Badge Not Found",
+        description=f"**{requestee.display_name}** doesn't own that {prestige_tier} Badge!",
         color=discord.Color.red()
       ), ephemeral=True)
       return
@@ -1229,7 +1295,7 @@ class Trade(commands.Cog):
     await db_add_requested_instance(trade_id, instance_id)
 
     badge_name = instance['badge_name']
-    discord_file, attachment_url = await generate_badge_preview(ctx.author.id, instance, theme='gold', disable_overlays=True)
+    discord_file, attachment_url = await generate_badge_preview(ctx.author.id, instance, disable_overlays=True)
 
     embed = discord.Embed(
       title=f"Badge added to request.",
@@ -1256,9 +1322,21 @@ class Trade(commands.Cog):
     if not instance:
       await ctx.respond(embed=discord.Embed(
         title="Badge not found",
-        description="This badge instance no longer exists or was already traded.",
+        description="This badge no longer exists or was already traded.",
         color=discord.Color.red()
       ), ephemeral=True)
+      return True
+
+    # They shouldn't able to select badges from other prestige levels but just in case.. ?
+    if instance['prestige_level'] != active_trade['prestige_level']:
+      await ctx.respond(
+        embed=discord.Embed(
+          title="Invalid Prestige!",
+          description=f"WTF? You've selected a badge at the incorrect Prestige Level... (Somehow?)",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
       return True
 
     # Must be owned by from_user
@@ -1280,11 +1358,11 @@ class Trade(commands.Cog):
       return True
 
     # The receiving user already owns this badge type
-    to_user_instances = await db_get_user_badge_instances(to_user.id)
+    to_user_instances = await db_get_user_badge_instances(to_user.id, prestige=active_trade['prestige_level'])
     to_user_badge_filenames = {b['badge_filename'] for b in to_user_instances}
     if instance['badge_filename'] in to_user_badge_filenames:
       await ctx.respond(embed=discord.Embed(
-        title=f"{to_user.display_name} already has {instance['badge_name']}!",
+        title=f"{to_user.display_name} already has {instance['badge_name']} at the specified Prestige Tier!",
         description=f"No need to {direction} this one!",
         color=discord.Color.red()
       ), ephemeral=True)
@@ -1312,7 +1390,7 @@ class Trade(commands.Cog):
 
     # Max badge cap protection
     max_badge_count = await db_get_max_badge_count()
-    to_user_count = await db_get_badge_instances_count_for_user(to_user.id)
+    to_user_count = await db_get_badge_instances_count_for_user(to_user.id, prestige=active_trade['prestige_level'])
     if direction == 'offer':
       incoming = await db_get_trade_offered_badge_instances(active_trade)
     else:
@@ -1321,7 +1399,7 @@ class Trade(commands.Cog):
     if to_user_count + len(incoming) + 1 > max_badge_count:
       await ctx.respond(embed=discord.Embed(
         title=f"{to_user.display_name}'s inventory is full!",
-        description=f"Adding **{instance['badge_name']}** would exceed the total number of badges possible at this prestige level ({max_badge_count}).",
+        description=f"Adding **{instance['badge_name']}** would exceed the total number of badges possible at this the specified Prestige Tier ({max_badge_count}).",
         color=discord.Color.red()
       ), ephemeral=True)
       return True

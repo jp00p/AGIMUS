@@ -127,6 +127,7 @@ def register_effect(name):
 # These effects, and specifically the animated effects, are expensive so
 # Let's save em to disk for retrieval on-demand
 CACHE_DIR = ".cache/crystal_effects"
+REPLICATOR_CACHE_DIR = ".cache/crystal_replicator_animations"
 
 def get_cached_effect_path(effect: str, badge_info_id: int, extension: str = "png") -> Path:
   """
@@ -171,6 +172,14 @@ def delete_crystal_effects_cache():
   Deletes all cached crystal effect images.
   """
   cache_directory = Path(CACHE_DIR)
+  if cache_directory.exists():
+    shutil.rmtree(cache_directory)
+
+def delete_replicator_animations_cache():
+  """
+  Deletes all cached replicator animations.
+  """
+  cache_directory = Path(REPLICATOR_CACHE_DIR)
   if cache_directory.exists():
     shutil.rmtree(cache_directory)
 

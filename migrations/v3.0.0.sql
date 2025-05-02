@@ -370,6 +370,7 @@ CREATE TABLE IF NOT EXISTS badge_instance_trades (
   id              INT AUTO_INCREMENT PRIMARY KEY,
   requestor_id    varchar(64) NOT NULL,
   requestee_id    varchar(64) NOT NULL,
+  prestige_level  INT NOT NULL DEFAULT 0,
   status          ENUM('pending', 'active', 'complete', 'declined', 'canceled') NOT NULL DEFAULT 'pending',
   time_created    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -391,7 +392,7 @@ CREATE TABLE IF NOT EXISTS trade_requested_badge_instances (
 );
 
 
--- Crystal Trades
+-- Crystal Trades -- NOTE: To be implemented later
 CREATE TABLE IF NOT EXISTS crystal_instance_trades (
   id INT AUTO_INCREMENT PRIMARY KEY,
   requestor_id varchar(64) NOT NULL,
