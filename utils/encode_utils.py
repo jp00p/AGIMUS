@@ -10,7 +10,7 @@ from common import *
 
 THREAD_POOL = ThreadPoolExecutor(max_workers=24)
 
-async def encode_webp(frames: list[Image.Image], fps: int = 12, resize: bool = True) -> io.BytesIO:
+async def encode_webp(frames: list[Image.Image], fps: int = 12) -> io.BytesIO:
   """
   Encodes a list of RGBA frames into an animated WebP.
 
@@ -26,20 +26,6 @@ async def encode_webp(frames: list[Image.Image], fps: int = 12, resize: bool = T
     raise ValueError("No frames provided for WebP encoding.")
 
   loop = asyncio.get_running_loop()
-
-  # ---- Resizing Stage ----
-  if resize:
-    start_resize = time.perf_counter()
-
-    def resize_frame(img: Image.Image) -> Image.Image:
-      w, h = img.size
-      return img.resize((int(w * 0.5), int(h * 0.5)), resample=Image.LANCZOS)
-
-    resize_tasks = [loop.run_in_executor(THREAD_POOL, resize_frame, frame) for frame in frames]
-    frames = await asyncio.gather(*resize_tasks)
-
-    end_resize = time.perf_counter()
-    logger.info(f"[timing] frame resizing took {end_resize - start_resize:.2f}s")
 
   width, height = frames[0].size
   frame_count = len(frames)

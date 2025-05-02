@@ -190,17 +190,19 @@ def get_lcars_font_by_length(name: str) -> ImageFont.FreeTypeFont:
   """
   try:
     if len(name) > 21:
-      return ImageFont.truetype("fonts/lcars3.ttf", 82)
+      return ImageFont.truetype("fonts/lcars3.ttf", 40)
     elif len(name) > 16:
-      return ImageFont.truetype("fonts/lcars3.ttf", 90)
+      return ImageFont.truetype("fonts/lcars3.ttf", 45)
     else:
-      return ImageFont.truetype("fonts/lcars3.ttf", 110)
+      return ImageFont.truetype("fonts/lcars3.ttf", 55)
   except:
     return ImageFont.load_default()
 
 
 FontSet = namedtuple("FontSet", ["title", "footer", "total", "pages", "label", "general"])
-def load_fonts(title_size=110, footer_size=100, total_size=54, page_size=80, label_size=22, general_size=70, fallback=True):
+def load_fonts(
+  title_size=55, footer_size=50, total_size=27, page_size=40, label_size=11, general_size=35, fallback=True
+):
   try:
     return FontSet(
       title=ImageFont.truetype("fonts/lcars3.ttf", title_size),
@@ -231,8 +233,8 @@ async def draw_dynamic_text(
   text: str,
   max_width: int,
   font_obj: ImageFont.FreeTypeFont,
-  starting_size=110,
-  min_size=30,
+  starting_size=55,
+  min_size=15,
   fill=(255, 255, 255),
   centered=False
 ):
@@ -449,7 +451,7 @@ def _compose_grid_slot(badge, collection_type, theme, badge_image):
   else:
     badge_image = badge_image if isinstance(badge_image, list) else [badge_image]
 
-  slot_frames = compose_badge_slot(badge, colors, badge_image, override_colors)
+  slot_frames = compose_badge_slot(badge, colors, badge_image, override_colors, resize=True)
 
   duration = round(time.perf_counter() - start, 3)
   logger.info(f"[timing] compose_grid_slot took {duration}s for badge_id={badge.get('badge_info_id')}")
@@ -463,11 +465,11 @@ def _compose_grid_slot(badge, collection_type, theme, badge_image):
 CollectionGridDimensions = namedtuple("CollectionGridDimensions", ["margin", "header_height", "footer_height", "row_height", "canvas_width"])
 def _get_collection_grid_dimensions() -> CollectionGridDimensions:
   return CollectionGridDimensions(
-    margin=10,
-    header_height=530,
-    footer_height=200,
-    row_height=290,
-    canvas_width=1890
+    margin=5,
+    header_height=265,
+    footer_height=100,
+    row_height=145,
+    canvas_width=945
   )
 
 CollectionGridLayout = namedtuple("CollectionGridLayout", ["badges_per_page", "badges_per_row", "init_x", "init_y"])
@@ -475,8 +477,8 @@ def _get_collection_grid_layout() -> CollectionGridLayout:
   return CollectionGridLayout(
     badges_per_page=30,
     badges_per_row=6,
-    init_x=90,
-    init_y=-280
+    init_x=45,
+    init_y=-140
   )
 
 BadgeSlotDimensions = namedtuple("BadgeSlotDimensions", ["slot_width", "slot_height", "badge_width", "badge_height", "badge_padding", "thumbnail_width", "thumbnail_height"])
@@ -615,7 +617,7 @@ async def compose_completion_row(row_data, theme):
     radius=32
   )
 
-  fonts = load_fonts(title_size=160, general_size=120)
+  fonts = load_fonts(title_size=80, general_size=60)
 
   title = row_data.get("name") or "Unassociated"
   draw.text((dims.offset, 40), title, font=fonts.title, fill=colors.highlight)
@@ -713,7 +715,7 @@ async def compose_empty_completion_row(theme, message: str = "No Data Available"
     radius=32
   )
 
-  fonts = load_fonts(title_size=160)
+  fonts = load_fonts(title_size=80)
 
   text_w = draw.textlength(message, font=fonts.title)
   draw.text(((dims.row_width - text_w) // 2, (dims.row_height // 2) - 50), message, font=fonts.title, fill=colors.highlight)
@@ -742,16 +744,16 @@ def _get_canvas_row_dimensions() -> CanvasRowDimensions:
       - bar_y (int): Y-coordinate of the progress bar.
       - start_y (int): Y-position of the first row on the page image.
   """
-  row_width = 1700
-  row_height = 280
-  row_margin = 10
-  offset = 250
-  bar_margin = 40
+  row_width = 850
+  row_height = 140
+  row_margin = 5
+  offset = 125
+  bar_margin = 20
   bar_x = offset
   bar_w = row_width - offset - bar_margin
-  bar_h = 32
-  bar_y = 280 - bar_h - 30
-  start_y = 245
+  bar_h = 16
+  bar_y = row_height - bar_h - 15
+  start_y = 122
 
   return CanvasRowDimensions(
     row_width, row_height, row_margin, offset,
@@ -829,7 +831,7 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
       frame_stack.append(frame)
 
     if animated:
-      webp_buf = await encode_webp(frame_stack, resize=False)
+      webp_buf = await encode_webp(frame_stack)
       filename = f"crystal_manifest_{rarity}_{page_number}.webp"
       results.append((webp_buf, filename))
     else:
@@ -879,7 +881,7 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
   draw = ImageDraw.Draw(row_canvas)
   draw.rounded_rectangle((0, 0, dims.row_width, dims.row_height), fill="#181818", outline="#181818", width=4, radius=32)
 
-  fonts = load_fonts(title_size=140, general_size=80)
+  fonts = load_fonts(title_size=70, general_size=40)
 
   icon_path = f"./images/templates/crystals/icons/{crystal['icon']}"
   try:
@@ -946,7 +948,7 @@ async def compose_empty_crystal_manifest_row(theme: str, message: str = "No Crys
     radius=32
   )
 
-  fonts = load_fonts(title_size=160)
+  fonts = load_fonts(title_size=80)
 
   text_w = draw.textlength(message, font=fonts.title)
   draw.text(((dims.row_width - text_w) // 2, (dims.row_height // 2) - 50), message, font=fonts.title, fill=colors.highlight)
@@ -1038,7 +1040,7 @@ async def generate_badge_preview(user_id, badge, crystal=None, theme=None, disab
 
   if len(badge_slot) > 1:
     # Animated crystal preview
-    buf = await encode_webp(badge_slot, resize=False)
+    buf = await encode_webp(badge_slot)
     file = discord.File(buf, filename=f"preview.webp")
     attachment_url = 'attachment://preview.webp'
   else:
@@ -1053,22 +1055,39 @@ async def generate_badge_preview(user_id, badge, crystal=None, theme=None, disab
   return file, attachment_url
 
 
-def compose_badge_slot(badge: dict, colors, image_frames: list[Image.Image], override_colors: tuple = None, disable_overlays: bool = False) -> list[Image.Image]:
+def compose_badge_slot(
+  badge: dict,
+  colors,
+  image_frames: list[Image.Image],
+  override_colors: tuple = None,
+  disable_overlays: bool = False,
+  resize: bool = False
+) -> list[Image.Image]:
   """
   Renders a badge image (with crystal effects pre-applied) into a slot container with border and label.
   Returns a list of slot frames (supporting animation).
 
   Args:
     badge: Badge dict containing badge metadata.
-    theme: ThemeColors namedtuple for current user/theme.
+    colors: ThemeColors namedtuple for current user/theme.
     image_frames: List of PIL.Image frames with effects already applied.
     override_colors: Optional (border_color, text_color) tuple.
+    disable_overlays: If True, skips drawing lock/special icons.
+    resize: If True, each frame will be resized to 50% after rendering.
   """
   if not isinstance(image_frames, list):
     image_frames = [image_frames]
 
   dims = _get_badge_slot_dimensions()
-  fonts = load_fonts()
+  # Use the OG font sizes explicitly
+  fonts = load_fonts(
+    title_size=110,
+    footer_size=100,
+    total_size=54,
+    page_size=80,
+    label_size=22,
+    general_size=70
+  )
   border_color, text_color = override_colors if override_colors else (colors.highlight, "#FFFFFF")
   slot_frames = []
 
@@ -1081,7 +1100,7 @@ def compose_badge_slot(badge: dict, colors, image_frames: list[Image.Image], ove
     )
 
     prestige_level = badge.get("prestige_level", 0)
-    if badge.get("prestige_level", 0):
+    if prestige_level:
       prestige_theme = PRESTIGE_THEMES.get(prestige_level)
       gradient = _create_gradient_fill((dims.slot_width, dims.slot_height), prestige_theme["gradient_start"], prestige_theme["gradient_end"])
       mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
@@ -1134,6 +1153,12 @@ def compose_badge_slot(badge: dict, colors, image_frames: list[Image.Image], ove
       fill=255
     )
     slot_canvas.putalpha(final_mask)
+
+    if resize:
+      slot_canvas = slot_canvas.resize(
+        (slot_canvas.width // 2, slot_canvas.height // 2),
+        resample=Image.Resampling.LANCZOS
+      )
 
     slot_frames.append(slot_canvas)
 
@@ -1471,7 +1496,7 @@ async def generate_crystal_replicator_confirmation_frames(crystal):
 
   # Encode and return animation
 
-  webp_buf = await encode_webp(frames, resize=False)
+  webp_buf = await encode_webp(frames)
   await save_cached_crystal_replicator_animation(webp_buf, crystal['crystal_name'])
   return discord.File(webp_buf, filename=replicator_confirmation_filename), replicator_confirmation_filename
 
