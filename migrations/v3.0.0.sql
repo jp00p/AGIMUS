@@ -224,7 +224,7 @@ CREATE TABLE IF NOT EXISTS badge_instances (
   active_crystal_id INT DEFAULT NULL,
   status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
 
-  UNIQUE KEY uq_user_badge_active (owner_discord_id, badge_info_id, active),
+  UNIQUE KEY uq_user_badge_active (owner_discord_id, badge_info_id, prestige_level, active),
   FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
   FOREIGN KEY (active_crystal_id) REFERENCES crystal_instances(id) ON DELETE SET NULL
 );
@@ -262,6 +262,7 @@ CREATE TABLE IF NOT EXISTS badge_instance_history (
     'tongo_reward',
     'liquidation',
     'liquidation_endowment',
+    'prestige_echo',
     'admin',
     'unknown'
   ) NOT NULL DEFAULT 'unknown',

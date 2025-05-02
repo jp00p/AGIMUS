@@ -597,6 +597,7 @@ CREATE TABLE IF NOT EXISTS badge_instance_history (
     'tongo_reward',
     'liquidation',
     'liquidation_endowment',
+    'prestige_echo',
     'admin',
     'unknown'
   ) NOT NULL DEFAULT 'unknown',

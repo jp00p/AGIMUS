@@ -6,11 +6,16 @@ async def db_get_echelon_progress(user_discord_id: str) -> dict:
     return await db.fetchone()
 
 async def db_update_echelon_progress(user_discord_id: str, new_xp: int, new_level: int):
+  sql = """
+    INSERT INTO echelon_progress (user_discord_id, current_xp, current_level)
+    VALUES (%s, %s, %s) AS new
+    ON DUPLICATE KEY UPDATE
+      current_xp = new.current_xp,
+      current_level = new.current_level,
+      updated_at = CURRENT_TIMESTAMP
+  """
   async with AgimusDB() as db:
-    await db.execute(
-      "REPLACE INTO echelon_progress (user_discord_id, current_xp, current_level) VALUES (%s, %s, %s)",
-      (user_discord_id, new_xp, new_level)
-    )
+    await db.execute(sql, (user_discord_id, new_xp, new_level))
 
 async def db_insert_echelon_history(user_discord_id: str, xp_gained: int, user_level_at_gain: int, channel_id: int, reason: str):
   async with AgimusDB() as db:

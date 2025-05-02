@@ -130,10 +130,19 @@ class Badges(commands.Cog):
   )
   async def collection(self, ctx:discord.ApplicationContext, prestige:str, public:str, filter:str, sortby:str, color:str):
     public = (public == "yes")
-    await ctx.defer(ephemeral=not public)
 
     if not await is_prestige_valid(ctx, prestige):
       return
+    prestige = int(prestige)
+
+    pending_message = await ctx.respond(
+      embed=discord.Embed(
+        title="Collection Display Request Received!",
+        description=f"If you have a large collection this miiiiiight take a while...\n\nDon't worry, AGIMUS is on it! {get_emoji('agimus_smile_happy')}",
+        color=discord.Color.dark_green()
+      ),
+      ephemeral=True
+    )
 
     max_collected = await db_get_max_badge_count()
     collection_label = None
@@ -166,15 +175,6 @@ class Badges(commands.Cog):
       if collection_label:
         collection_label += f" ({PRESTIGE_TIERS[prestige]}) - {sortby.replace('_', ' ').title()}"
       title += f" - {sortby.replace('_', ' ').title()}"
-
-
-    pending_message = await ctx.followup.send(
-      embed=discord.Embed(
-        title="Collection Display Request Received!",
-        description=f"If you have a large collection this miiiiiight take a while...\n\nDon't worry, AGIMUS is on it! {get_emoji('agimus_smile_happy')}",
-        color=discord.Color.dark_green()
-      )
-    )
 
     if color:
       await db_set_user_badge_page_color_preference(ctx.author.id, "collection", color)
@@ -307,6 +307,7 @@ class Badges(commands.Cog):
 
     if not await is_prestige_valid(ctx, prestige):
       return
+    prestige = int(prestige)
 
     category_title = category.replace("_", " ").title()
 
@@ -485,6 +486,7 @@ class Badges(commands.Cog):
 
     if not await is_prestige_valid(ctx, prestige):
       return
+    prestige = int(prestige)
 
     # Pull data using the queries.
     all_rows = []

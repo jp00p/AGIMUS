@@ -4,6 +4,7 @@ from common import *
 from queries.echelon_xp import *
 from queries.wishlist import db_is_badge_on_users_wishlist, db_autolock_badges_by_filenames_if_in_wishlist, db_purge_users_wishlist
 from utils.echelon_rewards import *
+from utils.prestige import PRESTIGE_TIERS, PRESTIGE_THEMES
 from utils.image_utils import generate_badge_preview
 
 # Load level up messages
@@ -83,6 +84,7 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
   logger.info(f"[DEBUG] Handling user level up: {member.display_name} to level {level}")
 
   prestige_before = await get_user_prestige_level(member)
+  logger.info(f"prestige_before: {prestige_before}")
 
   badge_data = None
   awarded_buffer_pattern = None
@@ -97,15 +99,16 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
     awarded_buffer_pattern = await award_possible_crystal_buffer_pattern(member)
 
   prestige_after = await get_user_prestige_level(member)
+  logger.info(f"prestige_after: {prestige_after}")
 
   # Auto-Lock/Clear Wishlist
   # XXX - Needs to handle Prestige Level once we've overhauled wishlists to respect prestige levels
-  if await db_is_badge_on_users_wishlist(member.id, badge_data['badge_filename']):
-    # Lock the badge if it was in their wishlist
-    await db_autolock_badges_by_filenames_if_in_wishlist(member.id, [badge_data['badge_filename']])
-    # Remove any badges the user may have on their wishlist that they now possess
-    await db_purge_users_wishlist(member.id)
-    badge_data['was_on_wishlist'] = True
+  # if await db_is_badge_on_users_wishlist(member.id, badge_data['badge_filename']):
+  #   # Lock the badge if it was in their wishlist
+  #   await db_autolock_badges_by_filenames_if_in_wishlist(member.id, [badge_data['badge_filename']])
+  #   # Remove any badges the user may have on their wishlist that they now possess
+  #   await db_purge_users_wishlist(member.id)
+  #   badge_data['was_on_wishlist'] = True
 
   source_details = determine_level_up_source_details(member, source)
   # Handle Prestige Advancement
@@ -114,13 +117,13 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
     await post_prestige_advancement_embed(member, level, prestige_after, badge_data, source_details)
   # Handle Standard Level Ups
   else:
-    await post_level_up_embed(member, level, badge_data, source_details)
+    await post_level_up_embed(member, level, prestige_after, badge_data, source_details)
 
   if awarded_buffer_pattern:
     await post_buffer_pattern_acquired_embed(member, level, awarded_buffer_pattern)
 
 
-async def post_level_up_embed(member: discord.User, level: int, badge_data: dict, source_details = None):
+async def post_level_up_embed(member: discord.User, level: int, prestige:int, badge_data: dict, source_details = None):
   """
   Build and send a level-up notification embed to the XP notification channel.
   """
@@ -128,17 +131,18 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
-  embed_description = f"{member.mention} has reached **Echelon {level}** and earned a badge!"
-  if level == 1:
-    embed_description = f"Enter Friend! {get_emoji('tendi_smile_happy')}\n\n{embed_description}\n\nYou've been granted your starter FoD Badge! Welcome!"
-
   if badge_data.get('was_on_wishlist', False):
     embed_description += f"\n\nIt was also on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
 
+  embed_color = discord.Color.teal()
+  if prestige > 0:
+    prestige_color = PRESTIGE_THEMES[prestige]['primary']
+    embed_color = discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
+
   embed=discord.Embed(
     title="Echelon Level Up!",
-    description=embed_description,
-    color=discord.Color.teal()
+    description=f"{member.mention} has reached **Echelon {level}** and earned a badge!",
+    color=embed_color
   )
   embed.set_image(url=attachment_url)
   embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
@@ -165,22 +169,24 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
   prestige_name = PRESTIGE_TIERS.get(new_prestige, f"Prestige {new_prestige}")
   old_prestige_name = PRESTIGE_TIERS.get(new_prestige - 1, "Standard")
 
-  prestige_msg = f"## STRANGE ENERGIES AFOOT! {member.mention} is nearing boundary-space upon reaching Echelon {level}!!!"
+  prestige_msg = f"## STRANGE ENERGIES AFOOT! {member.mention} is entering boundary-space upon reaching Echelon {level}!!!"
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
   title = f"Echelon {level} and {prestige_name} Tier Unlocked!"
   description = (
-    f"{member.mention} has ascended to the **{prestige_name}** Prestige Tier!"
-    f"\n\nThey have reached Echelon {level} and have received their first badge at {prestige_name}"
-    f"\n\nThis also means they're within the Prestige Quantum Improbability Field... As they continue to advance into {prestige_name} the pull grows ever larger as the odds warp and skew!"
-    f"\nTheir chances of receiving {old_prestige_name} badges lessen while chances of receiving {prestige_name} badges strengthen!"
+    f"{member.mention} has ascended to the **{prestige_name} Prestige Tier!**"
+    f"\n\nThey have reached **Echelon {level}** and have received their first **{prestige_name}** Badge!"
+    f"\n\nThis also means they're within the *Prestige Quantum Improbability Field*..."
+    f"\n\nAs they continue to advance into {prestige_name} the pull grows ever larger as the odds warp and skew!"
+    f"Their chances of receiving *{old_prestige_name}* badges lessen while chances of receiving *{prestige_name}* badges strengthen!"
   )
 
+  prestige_color = PRESTIGE_THEMES[new_prestige]['primary']
   embed = discord.Embed(
     title=title,
     description=description,
-    color=discord.Color.gold()  # TODO: Making this prestige-tier color specific later
+    color=discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
   )
   embed.set_image(url=attachment_url)
   embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"])) # TODO: Randomized special image here
@@ -209,8 +215,8 @@ async def post_first_level_welcome_embed(member, badge_data, source_details = No
     discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
     embed = discord.Embed(
       title="Echelon 1!",
-      description="Welcome aboard {member.mention}! You've materialized onto The Hood's Transporter Pad and been inducted into Echelon 1!"
-                  "\nYour activity on The Hood earns you optional XP and Badges you can collect and trade to other crew members (for funzies)!"
+      description="Enter, Friend! Welcome aboard {member.mention}! You've materialized onto The Hood's Transporter Pad and been inducted into Echelon 1!"
+                  "\nYour activity on The Hood earns you optional XP and Badges you can collect and trade to other crew members (for funzies)!",
       color=discord.Color.green()
     )
     embed.set_image(url=attachment_url)

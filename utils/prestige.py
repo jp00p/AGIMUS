@@ -21,19 +21,19 @@ PRESTIGE_THEMES = {
       (138, 43, 226),    # Violet
       (0, 191, 255)      # Bright Blue
     ],
-    "primary": (108, 24, 157),
-    "highlight": (148, 64, 197)
+    "primary": (75, 0, 130),
+    "highlight": (138, 43, 226)
   },
   2: {  # Galaxy
     "gradient_start": (0, 0, 0),
     "gradient_end": (20, 60, 70),
     "border_gradient_colors": [
-      (0, 20, 50),       # Deep Blue
-      (75, 180, 200),    # Teal
+      (138, 43, 226),       # Deep Blue
+      (138, 43, 226),    # Teal
       (150, 255, 255)    # White
     ],
-    "primary": (30, 100, 125),
-    "highlight": (70, 140, 165)
+    "primary": (138, 43, 226),
+    "highlight": (138, 43, 226)
   },
     3: {  # Supernova
     "gradient_start": (0, 0, 0),
@@ -43,8 +43,8 @@ PRESTIGE_THEMES = {
       (255, 140, 50),    # Bright Gold-Orange
       (37, 9, 9)         # Deep Ember/Burnt Red
     ],
-    "primary": (200, 60, 40),
-    "highlight": (240, 100, 80)
+    "primary": (255, 50, 50),
+    "highlight": (255, 140, 50)
   },
   4: {  # Cascade
     "gradient_start": (0, 0, 0),
@@ -54,8 +54,8 @@ PRESTIGE_THEMES = {
       (50, 200, 140),    # Teal
       (160, 255, 240)    # Jade
     ],
-    "primary": (40, 200, 120),
-    "highlight": (80, 240, 160)
+    "primary":  (0, 255, 100),
+    "highlight": (50, 200, 140)
   },
   5: {  # Nexus
     "gradient_start": (0, 0, 0),
@@ -65,8 +65,8 @@ PRESTIGE_THEMES = {
       (120, 0, 180),      # Indigo
       (0, 255, 255)       # Cyan
     ],
-    "primary": (200, 0, 200),
-    "highlight": (240, 40, 240)
+    "primary": (255, 0, 255),
+    "highlight": (120, 0, 180)
   },
   6: {  # Transcendence
     "gradient_start": (0, 0, 0),
@@ -76,8 +76,8 @@ PRESTIGE_THEMES = {
       (200, 160, 255),    # Lilac
       (120, 180, 255)     # Light Blue
     ],
-    "primary": (180, 200, 240),
-    "highlight": (220, 240, 255)
+    "primary": (255, 255, 255),
+    "highlight": (200, 160, 255)
   },
 }
 

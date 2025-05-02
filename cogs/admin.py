@@ -303,9 +303,16 @@ class Admin(commands.Cog):
       for tier, label in PRESTIGE_TIERS.items()
     ]
   )
-  @option("amount", int, description="How many unique badges to grant.", required=True, min_value=1, max_value=100)
+  @option("amount", int, description="How many unique badges to grant.", required=True, min_value=1, max_value=999)
   async def echelon_grant_prestige_badges(self, ctx, user: discord.User, prestige: str, amount: int):
     await ctx.defer(ephemeral=True)
+
+    working_embed = discord.Embed(
+      title="Granting Badges...",
+      description=f"Processing badge grants for {user.mention} at **{PRESTIGE_TIERS[prestige]}**...",
+      color=discord.Color.dark_gold()
+    )
+    message = await ctx.respond(embed=working_embed, ephemeral=True)
 
     prestige = int(prestige)
 
@@ -335,10 +342,8 @@ class Admin(commands.Cog):
       description=f"✅ Gave {len(granted)} unique badge(s) to {user.mention} at **{PRESTIGE_TIERS[prestige]}**.",
       color=discord.Color.green()
     )
-    if granted:
-      embed.add_field(name="Badges", value="\n".join(granted), inline=False)
 
-    await ctx.respond(embed=embed, ephemeral=True)
+    await message.edit(embed=embed)
 
   @admin_group.command(name="echelon_purge_prestige_badges", description="Remove all badge instances from a user at a specific prestige level.")
   @option("user", discord.User, description="The user to purge badges from.", required=True)
@@ -376,7 +381,7 @@ class Admin(commands.Cog):
       owned_count = len(user_badges)
       percentage = owned_count / total_badge_count * 100 if total_badge_count > 0 else 0
 
-      in_field = await is_user_within_pqif(user.id, prestige_level)
+      in_field = await is_user_within_pqif(user, prestige_level)
       field_status = "🟢 **IN FIELD**" if in_field else "⚪ Outside"
 
       lines.append(

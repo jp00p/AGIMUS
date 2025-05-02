@@ -1,4 +1,5 @@
 import functools
+import gc
 import tempfile
 import time
 
@@ -337,6 +338,9 @@ async def generate_badge_collection_images(user, prestige, badge_data, collectio
   duration = round(end - start, 2)
   logger.info(f"[benchmark] generate_badge_collection_images() took {duration} seconds")
 
+  del pages, badge_data
+  gc.collect()
+
   return images
 
 
@@ -398,6 +402,8 @@ async def compose_badge_grid(canvas: Image.Image, badge_data: list, theme: str, 
     loop.run_in_executor(THREAD_POOL, _compose_grid_slot, badge, collection_type, theme, image)
     for badge, image in prepared
   ])
+  del prepared
+  gc.collect()
 
   t3 = time.perf_counter()
   logger.info(f"[timing] Stage 2 complete in {round(t3 - t2, 2)}s")
@@ -413,6 +419,8 @@ async def compose_badge_grid(canvas: Image.Image, badge_data: list, theme: str, 
       slot_frame = slot_frames[frame_idx % len(slot_frames)]
       frame.paste(slot_frame, pos, slot_frame)
     grid_frame_stack.append(frame)
+  del slot_frame_stacks
+  gc.collect()
 
   t4 = time.perf_counter()
   logger.info(f"[timing] Stage 3 complete in {round(t4 - t3, 2)}s")
@@ -553,9 +561,13 @@ async def generate_badge_set_completion_images(user, prestige, badge_data, categ
       row_img = await compose_completion_row(row_data, theme)
       canvas.paste(row_img, (110, current_y), row_img)
       current_y += dims.row_height + dims.row_margin
+      del row_img
+      gc.collect()
 
     image_file = buffer_image_to_discord_file(canvas, f"completion_page_{page_number}.png")
     images.append(image_file)
+    del canvas
+    gc.collect()
 
   return images
 
@@ -827,6 +839,9 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
       filename = f"crystal_manifest_{rarity}_{page_number}.png"
       results.append((buf, filename))
 
+    del frame_stack, row_stacks, prepared_rows, aligned_stacks
+    gc.collect()
+
   return results
 
 
@@ -998,6 +1013,10 @@ async def compose_badge_strip(
 
   elapsed = time.perf_counter() - start
   logger.info(f"[timing] generate_badge_strip completed in {elapsed:.2f}s with {len(frames)} frames")
+
+  del all_badge_frames, prepared
+  gc.collect()
+
   return frames
 
 

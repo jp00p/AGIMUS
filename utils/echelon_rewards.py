@@ -2,6 +2,7 @@
 from common import *
 
 from queries.badge_instances import db_get_user_badge_instances
+from queries.badge_info import db_get_all_badge_info
 from queries.crystal_instances import db_increment_user_crystal_buffer, db_set_user_crystal_buffer
 from queries.echelon_rewards import *
 from queries.echelon_xp import *
@@ -49,7 +50,10 @@ async def award_level_up_badge(member) -> dict:
     event_type='level_up'
   )
 
-  await update_user_prestige_level(member, prestige_level)
+  # Promote to new Prestige Tier if selected badge prestige is higher (via PQIF)
+  current_prestige = await get_user_prestige_level(member)
+  if prestige_level > current_prestige:
+    await db_set_user_prestige_level(member.id, prestige_level)
 
   return badge_instance
 
@@ -61,68 +65,93 @@ async def award_level_up_badge(member) -> dict:
 #         \/     \/          \/     \/                    \/          \/     \//_____/         \/     \/
 async def select_badge_for_level_up(member: discord.Member) -> tuple[int, int]:
   """
-  Selects a badge to award during a level-up, factoring in prestige level, missing badges,
-  and PQIF (Prestige Quantum Improbability Field) mechanics.
+  Selects a badge to award during a level-up, factoring in prestige tier progression,
+  PQIF blending, and remaining badge pool sizes.
 
-  The badge selection logic prioritizes badge pools using a weighted system:
+  This function determines the user's active PQIF base tier—the most complete, unfinished
+  prestige tier—and calculates weighted selection probabilities between it and the next
+  prestige tier if the user is within the PQIF threshold (10% missing or less).
 
-  1. Badges from the user's current prestige level are given full weight by default.
-  2. If the user has ≤10% missing badges at their current prestige level, PQIF activates:
-     - PQIF introduces a probability curve that increasingly favors next-tier prestige badges
-       the closer the user gets to full completion.
-     - Badges from the next prestige level are awarded with rising probability.
-     - Badges from the current prestige level decrease in probability accordingly.
-  3. Badges from lower prestige tiers are always available as low-weighted backfill options.
+  Weighting is determined by a capped cubic ease-out blend:
+    - At 10% missing from Standard: ~90% Standard, ~10% Nebula
+    - At 0% missing from Standard: ~10% Standard, ~90% Nebula
+    - In between: weights interpolate smoothly using ease-out
+    - Actual weights are then scaled by the pool sizes to maintain selection fairness
 
-  The function ensures:
-  - A badge is always awarded.
-  - No duplicates are granted.
-  - Weighting smoothly transitions user upward via PQIF as they approach prestige boundaries.
-
-  Args:
-    user_discord_id (str): The Discord user ID of the leveler.
+  Backfill candidates from tiers below the user's permanent prestige level are also included,
+  at a static low weight (10).
 
   Returns:
-    tuple[int, int]: A tuple of (badge_info_id, prestige_level) to award.
+    tuple[int, int]: A tuple of (badge_info_id, prestige_level) representing the badge to award.
   """
   user_discord_id = member.id
-  prestige_level = await get_user_prestige_level(member)
-  full_pool = await db_get_full_badge_info_pool()
+  current_prestige = await get_user_prestige_level(member)
+  all_badges = await db_get_all_badge_info()
+  full_badge_ids = {b['id'] for b in all_badges}
+
+  async def get_owned_ids_at_prestige(level: int) -> set[int]:
+    instances = await db_get_user_badge_instances(user_discord_id, prestige=level)
+    return {b['badge_info_id'] for b in instances}
+
+  active_pqif_base = current_prestige
+  for tier in range(current_prestige + 1):
+    owned = await get_owned_ids_at_prestige(tier)
+    if len(owned) < len(full_badge_ids):
+      active_pqif_base = tier
+      break
+
   candidates = []
+  base_owned = await get_owned_ids_at_prestige(active_pqif_base)
+  base_missing = list(full_badge_ids - base_owned)
+  base_missing_pct = len(base_missing) / max(len(full_badge_ids), 1)
 
-  current_collection = await db_get_user_badges_at_prestige_level(user_discord_id, prestige_level)
-  current_missing_badges = list(set(full_pool) - current_collection)
+  logger.info(f"[echelon] PQIF Base Prestige {active_pqif_base} – missing {len(base_missing)} / {len(full_badge_ids)}")
 
-  if await is_user_within_pqif(user_discord_id, prestige_level):
-    current_missing_pct = len(current_missing_badges) / max(len(full_pool), 1)
-    next_prestige_level = prestige_level + 1
-    next_collection = await db_get_user_badges_at_prestige_level(user_discord_id, next_prestige_level)
-    next_missing_badges = list(set(full_pool) - next_collection)
+  next_prestige = active_pqif_base + 1
+  next_owned = await get_owned_ids_at_prestige(next_prestige)
+  next_missing = list(full_badge_ids - next_owned)
 
-    next_weight = int((1.0 - current_missing_pct / PQIF_THRESHOLD) * 100)
-    current_weight = 100 - next_weight
+  if base_missing_pct <= PQIF_THRESHOLD:
+    # Ease-out cubic interpolation
+    t = 1 - (base_missing_pct / PQIF_THRESHOLD)
+    ease = 1 - (1 - t) ** 3
 
-    for badge_id in current_missing_badges:
-      candidates.append((badge_id, prestige_level, current_weight))
-    for badge_id in next_missing_badges:
-      candidates.append((badge_id, next_prestige_level, next_weight))
+    base_pool_size = len(base_missing)
+    next_pool_size = len(next_missing)
+    total_pool = base_pool_size + next_pool_size or 1
+
+    # Base weight from curve, scaled by pool sizes and capped
+    base_weight = max(10, int((1 - ease) * (base_pool_size / total_pool) * 100))
+    next_weight = min(90, int(ease * (next_pool_size / total_pool) * 100))
+
+    logger.info(f"[pqif] Active – {base_weight}% prestige {active_pqif_base} / {next_weight}% prestige {next_prestige}")
+
+    candidates.extend((bid, active_pqif_base, base_weight) for bid in base_missing)
+    candidates.extend((bid, next_prestige, next_weight) for bid in next_missing)
+
   else:
-    for badge_id in current_missing_badges:
-      candidates.append((badge_id, prestige_level, 100))
+    logger.info(f"[pqif] Inactive – awarding from prestige {active_pqif_base} only")
+    candidates.extend((bid, active_pqif_base, 100) for bid in base_missing)
 
-  for lower_prestige_level in range(0, prestige_level):
-    lower_collection = await db_get_user_badges_at_prestige_level(user_discord_id, lower_prestige_level)
-    lower_missing_badges = list(set(full_pool) - lower_collection)
-    for badge_id in lower_missing_badges:
-      candidates.append((badge_id, lower_prestige_level, 10))
+  if current_prestige > 0:
+    for lower in range(0, current_prestige):
+      lower_owned = await get_owned_ids_at_prestige(lower)
+      lower_missing = list(full_badge_ids - lower_owned)
+      logger.debug(f"[backfill] Prestige {lower} – missing {len(lower_missing)}")
+      candidates.extend((bid, lower, 10) for bid in lower_missing)
+  else:
+    logger.info("[backfill] Skipped – user is at Standard prestige")
 
   if not candidates:
+    logger.warning(f"[echelon] No eligible badge candidates for user {user_discord_id} at prestige {current_prestige}")
     raise Exception("No eligible badge candidates found—unexpected scenario.")
 
-  badge_choices = [item for item in candidates for _ in range(item[2])]
-  selected_badge_id, selected_prestige_level, _ = random.choice(badge_choices)
+  weighted = [item for item in candidates for _ in range(item[2])]
+  selected_id, selected_prestige, _ = random.choice(weighted)
 
-  return selected_badge_id, selected_prestige_level
+  logger.info(f"[selection] Selected badge_id={selected_id} at prestige={selected_prestige}")
+  return selected_id, selected_prestige
+
 
 async def award_possible_crystal_buffer_pattern(member: discord.Member) -> bool:
   """
@@ -179,11 +208,11 @@ async def award_initial_welcome_package(member: discord.Member):
   user_id = member.id
 
   # Check if user already owns the FoD badge
-  existing = await db_get_badge_instance_by_filename(user_id, "Friends_Of_DeSoto.png", prestige=1)
+  existing = await db_get_badge_instance_by_filename(user_id, "Friends_Of_DeSoto.png", prestige=0)
   if existing:
     fod_badge = None  # Already owned
   else:
-    fod_badge = await create_new_badge_instance_by_filename(user_id, "Friends_Of_DeSoto.png", event_type="first_promotion")
+    fod_badge = await create_new_badge_instance_by_filename(user_id, "Friends_Of_DeSoto.png", prestige_level=0, event_type="epoch")
 
   # Grant initial crystal pattern buffers
   number_of_buffers_awarded = 3
@@ -238,32 +267,32 @@ async def award_special_badge_prestige_echoes(member: discord.Member, prestige_l
 #        \/       \/     |__|        \/           \/
 async def is_user_within_pqif(user: discord.User, prestige_level: int) -> bool:
   """
-  Determines whether the user is currently within the Prestige Quantum Improbability Field (PQIF)
-  for their current prestige boundary.
+  Returns True if the user is in the PQIF fuzzy transition zone between prestige tiers.
 
-  PQIF represents a transitional state where the user is nearing full completion of their current
-  prestige tier, causing badge rewards to probabilistically favor the next prestige level.
+  PQIF is defined as active when BOTH of the following are true:
+    - User has ≤ 10% missing from their current prestige level (i.e., >= 90% completion).
+    - User has received < 10% of the total pool at the next prestige level.
 
-  Specifically, PQIF activates when the user has ≤10% missing badges from their current prestige
-  pool. As they approach 100% completion, the chance of receiving next-tier badges increases
-  smoothly.
-
-  This function calculates the user's current missing badge percentage and returns True if PQIF
-  should be considered active.
+  This creates a "blurred" handoff between prestige tiers where selection favors upward drift.
 
   Args:
-    user (discord.User): The Discord User
-    prestige_level (int): The current prestige level of the user.
+    user (discord.User): The Discord user.
+    prestige_level (int): The user's current recorded prestige level.
 
   Returns:
-    bool: True if the user is within PQIF range, otherwise False.
+    bool: True if user is in the PQIF transition zone.
   """
-  user_discord_id = user.id
+  user_id = user.id
   full_pool = await db_get_full_badge_info_pool()
-  current_collection = await db_get_user_badges_at_prestige_level(user_discord_id, prestige_level)
-  current_missing = len(set(full_pool) - current_collection)
-  current_missing_pct = current_missing / max(len(full_pool), 1)
-  return current_missing_pct <= PQIF_THRESHOLD
+  total_count = len(full_pool)
+
+  current_owned = await db_get_user_badges_at_prestige_level(user_id, prestige_level)
+  next_owned = await db_get_user_badges_at_prestige_level(user_id, prestige_level + 1)
+
+  current_pct = len(current_owned) / total_count
+  next_pct = len(next_owned) / total_count
+
+  return (current_pct >= 0.90) and (next_pct <= 0.10)
 
 
 async def get_user_prestige_level(member: discord.Member) -> int:
@@ -282,21 +311,3 @@ async def get_user_prestige_level(member: discord.Member) -> int:
   user_discord_id = member.id
   current = await db_get_echelon_progress(user_discord_id)
   return current.get('current_prestige_level', 0) if current else 0
-
-
-async def update_user_prestige_level(member: discord.Member, new_prestige: int):
-  """
-  Permanently updates the user's prestige level in the database if the newly awarded prestige
-  is higher than their current recorded prestige.
-
-  Prestige level advancement is permanent and never decreases, even if lower-tier badges are
-  lost or traded later.
-
-  Args:
-    member (discord.Member): The Discord Member whose ID to query.
-    new_prestige (int): The prestige level to record if higher than current.
-  """
-  user_discord_id = member.id
-  current = await db_get_echelon_progress(user_discord_id)
-  if current and new_prestige > current.get('current_prestige_level', 0):
-    await db_set_user_prestige_level(user_discord_id, new_prestige)
