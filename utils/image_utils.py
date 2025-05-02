@@ -386,7 +386,7 @@ async def compose_badge_grid(canvas: Image.Image, badge_data: list, theme: str, 
   for idx in range(len(badge_data)):
     row = idx // layout.badges_per_row
     col = idx % layout.badges_per_row
-    x = (dims.margin + col * (slot_dims.slot_width + dims.margin)) + layout.init_x
+    x = (dims.margin + col * int((slot_dims.slot_width / 2) + (dims.margin / 2))) + layout.init_x
     y = (dims.header_height + row * dims.row_height) + layout.init_y
     positions.append((x, y))
 
@@ -465,7 +465,7 @@ def _compose_grid_slot(badge, collection_type, theme, badge_image):
 CollectionGridDimensions = namedtuple("CollectionGridDimensions", ["margin", "header_height", "footer_height", "row_height", "canvas_width"])
 def _get_collection_grid_dimensions() -> CollectionGridDimensions:
   return CollectionGridDimensions(
-    margin=5,
+    margin=6,
     header_height=265,
     footer_height=100,
     row_height=145,
@@ -586,7 +586,7 @@ async def build_completion_canvas(user, prestige, max_badge_count, collected_cou
     total_pages=total_pages,
     title_text=title_text,
     footer_left_text=f"{max_badge_count}",
-    footer_right_text=f"{collected_count} ON THE USS HOOD",
+    footer_center_text=f"{collected_count} ON THE USS HOOD",
   )
 
   return canvas
@@ -866,7 +866,7 @@ async def build_crystal_manifest_canvas(user: discord.User, all_crystal_data, pa
   fonts = load_fonts()
   w, h = canvas.size
   draw = ImageDraw.Draw(canvas)
-  await draw_dynamic_text(canvas, draw, text=emoji, position=(85, h - 130), font_obj=fonts.general, max_width=150, starting_size=120)
+  await draw_dynamic_text(canvas, draw, text=emoji, position=(42, h - 65), font_obj=fonts.general, max_width=150, starting_size=120)
 
   return canvas
 
@@ -977,7 +977,7 @@ async def compose_badge_strip(
   colors = get_theme_colors(theme)
 
   padding = 24
-  strip_width = len(badge_list) * (slot_dims.slot_width / 2) + (len(badge_list) - 1) * padding
+  strip_width = len(badge_list) * slot_dims.slot_width + (len(badge_list) - 1) * padding
   strip_height = slot_dims.slot_height
   slot_y_offset = 0
 
@@ -1296,26 +1296,19 @@ async def draw_canvas_labels(canvas, draw, title_text, footer_left_text, footer_
     fill=colors.highlight
   )
 
-  draw.text(
-    (15, base_h - 45),
-    footer_left_text,
-    font=fonts.total,
-    fill=colors.highlight
-  )
-
   await draw_dynamic_text(
     canvas=canvas,
     draw=draw,
-    position=(32, base_h - 90),
+    position=(15, base_h - 45),
     text=footer_left_text,
-    max_width=200,
+    max_width=100,
     font_obj=fonts.title,
-    starting_size=54,
+    starting_size=27,
     fill=colors.highlight
   )
 
   draw.text(
-    (base_w - 185, base_h - 185),
+    (base_w - 185, base_h - 60),
     f"PAGE {page_number:02} OF {total_pages:02}",
     font=fonts.pages,
     fill=colors.highlight

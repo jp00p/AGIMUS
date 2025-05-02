@@ -565,7 +565,7 @@ class Badges(commands.Cog):
           await ctx.followup.send(files=chunk, ephemeral=not public)
 
 
-  async def _append_featured_completion_badges(user_id, rows, category, prestige):
+  async def _append_featured_completion_badges(self, user_id, rows, category, prestige):
     if category == "affiliation":
       badges = await db_get_random_badges_from_user_by_affiliations(user_id, prestige=prestige)
     elif category == "franchise":
@@ -965,6 +965,7 @@ class Badges(commands.Cog):
     required=True,
     autocomplete=all_badges_autocomplete
   )
+  # TODO: Implement this for instances
   async def badge_lookup(self, ctx:discord.ApplicationContext, public:str, name:str):
     """
     This function executes the lookup for the /badge lookup command
@@ -1261,39 +1262,39 @@ class Badges(commands.Cog):
 # /   \_/.  \  |  /\  ___/|  | \/  \  ___/ \___ \
 # \_____\ \_/____/  \___  >__|  |__|\___  >____  >
 #        \__>           \/              \/     \/
-async def run_badge_stats_queries():
-  queries = {
-    "total_badges" : "SELECT COUNT(id) as count FROM badges;",
-    "badges_today" : "SELECT COUNT(id) as count FROM badges WHERE time_created > NOW() - INTERVAL 1 DAY;",
-    "top_collectors" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 5;",
-    "most_wishlisted" : "SELECT b_i.badge_name, COUNT(b_w.id) as count FROM badge_info AS b_i JOIN badge_wishlists AS b_w WHERE b_i.badge_filename = b_w.badge_filename GROUP BY b_w.badge_filename ORDER BY COUNT(b_w.badge_filename) DESC, b_i.badge_name ASC LIMIT 5;",
-    "most_locked" : "SELECT b_i.badge_name, COUNT(b.locked) as count FROM badge_info AS b_i JOIN badges AS b ON b_i.badge_filename = b.badge_filename WHERE b.locked = 1 GROUP BY b.badge_filename ORDER BY COUNT(b.locked) DESC, b_i.badge_name ASC LIMIT 5;",
-  }
+# async def run_badge_stats_queries():
+#   queries = {
+#     "total_badges" : "SELECT COUNT(id) as count FROM badges;",
+#     "badges_today" : "SELECT COUNT(id) as count FROM badges WHERE time_created > NOW() - INTERVAL 1 DAY;",
+#     "top_collectors" : "SELECT name, COUNT(badges.id) as count FROM users JOIN badges ON users.discord_id = badges.user_discord_id GROUP BY discord_id ORDER BY COUNT(badges.id) DESC LIMIT 5;",
+#     "most_wishlisted" : "SELECT b_i.badge_name, COUNT(b_w.id) as count FROM badge_info AS b_i JOIN badge_wishlists AS b_w WHERE b_i.badge_filename = b_w.badge_filename GROUP BY b_w.badge_filename ORDER BY COUNT(b_w.badge_filename) DESC, b_i.badge_name ASC LIMIT 5;",
+#     "most_locked" : "SELECT b_i.badge_name, COUNT(b.locked) as count FROM badge_info AS b_i JOIN badges AS b ON b_i.badge_filename = b.badge_filename WHERE b.locked = 1 GROUP BY b.badge_filename ORDER BY COUNT(b.locked) DESC, b_i.badge_name ASC LIMIT 5;",
+#   }
 
-  results = {}
-  async with AgimusDB(dictionary=True) as query:
-    # Run most collected while filtering out special badges
-    special_badge_filenames = [b['badge_filename'] for b in await db_get_special_badge_info()]
-    format_strings = ','.join(['%s'] * len(special_badge_filenames))
-    sql = '''
-      SELECT b_i.badge_name, COUNT(b.id) AS count
-        FROM badges as b
-          LEFT JOIN badge_info AS b_i
-            ON b.badge_filename = b_i.badge_filename
-          WHERE b.badge_filename NOT IN (%s)
-          GROUP BY b.badge_filename
-          ORDER BY count
-          DESC LIMIT 5;
-    '''
-    await query.execute(sql % format_strings, tuple(special_badge_filenames))
-    results["most_collected"] = await query.fetchall()
+#   results = {}
+#   async with AgimusDB(dictionary=True) as query:
+#     # Run most collected while filtering out special badges
+#     special_badge_filenames = [b['badge_filename'] for b in await db_get_special_badge_info()]
+#     format_strings = ','.join(['%s'] * len(special_badge_filenames))
+#     sql = '''
+#       SELECT b_i.badge_name, COUNT(b.id) AS count
+#         FROM badges as b
+#           LEFT JOIN badge_info AS b_i
+#             ON b.badge_filename = b_i.badge_filename
+#           WHERE b.badge_filename NOT IN (%s)
+#           GROUP BY b.badge_filename
+#           ORDER BY count
+#           DESC LIMIT 5;
+#     '''
+#     await query.execute(sql % format_strings, tuple(special_badge_filenames))
+#     results["most_collected"] = await query.fetchall()
 
-    # Run remaining queries
-    for name,sql in queries.items():
-      await query.execute(sql)
-      results[name] = await query.fetchall()
+#     # Run remaining queries
+#     for name,sql in queries.items():
+#       await query.execute(sql)
+#       results[name] = await query.fetchall()
 
-  return results
+#   return results
 
 
 # async def db_get_trades_to_cancel_from_scrapped_badges(user_id, badges_to_scrap):
