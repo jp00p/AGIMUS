@@ -623,7 +623,7 @@ async def compose_completion_row(row_data, theme):
   draw.text((dims.offset, 40), title, font=fonts.title, fill=colors.highlight)
 
   draw.text(
-    (dims.row_width - 20, 170),
+    (dims.row_width - 10, 85),
     f"{row_data['percentage']}% ({row_data['collected']} of {row_data['total']})",
     fill=colors.highlight,
     font=fonts.general,
@@ -636,8 +636,8 @@ async def compose_completion_row(row_data, theme):
     try:
       badge_path = os.path.join(BADGE_PATH, row_data["featured_badge"])
       badge_img = await threaded_image_open(badge_path)
-      badge_img.thumbnail((200, 200))
-      row_canvas.paste(badge_img, (25, 25), badge_img)
+      badge_img.thumbnail((100, 100))
+      row_canvas.paste(badge_img, (12, 12), badge_img)
     except:
       pass
 
@@ -718,7 +718,7 @@ async def compose_empty_completion_row(theme, message: str = "No Data Available"
   fonts = load_fonts(title_size=80)
 
   text_w = draw.textlength(message, font=fonts.title)
-  draw.text(((dims.row_width - text_w) // 2, (dims.row_height // 2) - 50), message, font=fonts.title, fill=colors.highlight)
+  draw.text(((dims.row_width - text_w) // 2, (dims.row_height // 2) - 25), message, font=fonts.title, fill=colors.highlight)
 
   return row_canvas
 
@@ -893,16 +893,16 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
 
   title_x = dims.offset
   title = crystal['crystal_name']
-  draw.text((title_x, 40), title, font=fonts.title, fill=colors.highlight)
+  draw.text((title_x, 20), title, font=fonts.title, fill=colors.highlight)
   if 'instance_count' in crystal and crystal['instance_count'] > 1:
     count_text = f"(x{crystal['instance_count']})"
     # Calculate width of the name so we can offset the count right after it
     title_width = draw.textlength(title, font=fonts.title)
     count_x = title_x + title_width + 20  # small padding after name
-    count_y = 80  # align with name baseline
+    count_y = 40  # align with name baseline
     draw.text((count_x, count_y), count_text, font=fonts.general, fill=colors.darker_highlight)
 
-  await draw_dynamic_text(row_canvas, draw, text=crystal['description'], font_obj=fonts.general, position=(title_x, 165), max_width=(dims.row_width - (dims.offset * 2)), starting_size=80, fill=(221, 221, 221))
+  await draw_dynamic_text(row_canvas, draw, text=crystal['description'], font_obj=fonts.general, position=(title_x, 82), max_width=(dims.row_width - (dims.offset * 2)), starting_size=80, fill=(221, 221, 221))
 
   # Render preview of crystal effect on "dummy" badge
   global _dummy_badge_info_cache
@@ -951,7 +951,7 @@ async def compose_empty_crystal_manifest_row(theme: str, message: str = "No Crys
   fonts = load_fonts(title_size=80)
 
   text_w = draw.textlength(message, font=fonts.title)
-  draw.text(((dims.row_width - text_w) // 2, (dims.row_height // 2) - 50), message, font=fonts.title, fill=colors.highlight)
+  draw.text(((dims.row_width - text_w) // 2, (dims.row_height // 2) - 25), message, font=fonts.title, fill=colors.highlight)
 
   return row_canvas
 
@@ -977,7 +977,7 @@ async def compose_badge_strip(
   colors = get_theme_colors(theme)
 
   padding = 24
-  strip_width = len(badge_list) * slot_dims.slot_width + (len(badge_list) - 1) * padding
+  strip_width = len(badge_list) * (slot_dims.slot_width / 2) + (len(badge_list) - 1) * padding
   strip_height = slot_dims.slot_height
   slot_y_offset = 0
 
@@ -1282,22 +1282,22 @@ async def draw_canvas_labels(canvas, draw, title_text, footer_left_text, footer_
   await draw_dynamic_text(
     canvas=canvas,
     draw=draw,
-    position=(100, 65),
+    position=(50, 32),
     text=title_text,
-    max_width=base_w - 200,
+    max_width=base_w - 100,
     font_obj=fonts.title,
     fill=colors.highlight
   )
 
   draw.text(
-    (590, base_h - 125),
+    (295, base_h - 62),
     footer_center_text,
     font=fonts.footer,
     fill=colors.highlight
   )
 
   draw.text(
-    (32, base_h - 90),
+    (15, base_h - 45),
     footer_left_text,
     font=fonts.total,
     fill=colors.highlight
@@ -1315,7 +1315,7 @@ async def draw_canvas_labels(canvas, draw, title_text, footer_left_text, footer_
   )
 
   draw.text(
-    (base_w - 370, base_h - 115),
+    (base_w - 185, base_h - 185),
     f"PAGE {page_number:02} OF {total_pages:02}",
     font=fonts.pages,
     fill=colors.highlight
