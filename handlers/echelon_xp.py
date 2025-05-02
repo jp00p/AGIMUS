@@ -96,7 +96,7 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
     return
   else:
     badge_data = await award_level_up_badge(member)
-    awarded_buffer_pattern = await award_possible_crystal_buffer_pattern(member)
+    awarded_buffer_pattern = await award_possible_crystal_pattern_buffer(member)
 
   prestige_after = await get_user_prestige_level(member)
   logger.info(f"prestige_after: {prestige_after}")
@@ -245,7 +245,7 @@ async def post_first_level_welcome_embed(member, badge_data, source_details = No
 async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int, number_of_patterns: int = 1):
   """
   Sends a special embed to the XP notification channel announcing that the user
-  has acquired a Crystal Buffer Pattern.
+  has acquired a Crystal Pattern Buffer.
 
   If they received more than one (only currently occurs when they first hit Echelon 1),
   there's a little special messaging instead of the standard.
@@ -253,14 +253,14 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   embed = None
   if number_of_patterns == 1:
     embed = discord.Embed(
-      title="✨ Crystal Buffer Pattern Acquired! ✨",
-      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Buffer Pattern** when they reached Echelon {level}!\n\nThey can now use it to replicate a Crystal from scratch!",
+      title="✨ Crystal Pattern Buffer Acquired! ✨",
+      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Pattern Buffer** when they reached Echelon {level}!\n\nThey can now use it to replicate a Crystal from scratch!",
       color=discord.Color.teal()
     )
   else:
     embed = discord.Embed(
-      title="✨ Crystal Buffer PATTERNS Acquired! ✨",
-      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Buffer Patterns** in their hands when they reached Echelon {level}!\n\nThey can now use them to replicate {number_of_patterns} Crystals from scratch!",
+      title="✨ Crystal Pattern BufferS Acquired! ✨",
+      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Pattern Buffers** in their hands when they reached Echelon {level}!\n\nThey can now use them to replicate {number_of_patterns} Crystals from scratch!",
       color=discord.Color.teal()
     )
   embed.set_image(url="https://i.imgur.com/lgP2miO.gif")

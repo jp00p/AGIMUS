@@ -241,7 +241,7 @@ class Admin(commands.Cog):
   async def echelon_force_buffer_roll(self, ctx, user: discord.User):
     await ctx.defer(ephemeral=True)
 
-    success = await award_possible_crystal_buffer_pattern(user)
+    success = await award_possible_crystal_pattern_buffer(user)
     if success:
       message = f"✨ {user.mention} **successfully** received a Pattern Buffer!"
       color = discord.Color.green()

@@ -203,7 +203,7 @@ class Crystals(commands.Cog):
       # TODO: Find an appopriate GIF for this...
       embed = discord.Embed(
         title='No Buffer Patterns!',
-        description=f"Sorry {user.mention}, you don't currently possess any Crystal Buffer Patterns to redeem!\n\nBetter get out of here before O'Brien calls security... {get_emoji('obrien_omg_jaysus')}",
+        description=f"Sorry {user.mention}, you don't currently possess any Crystal Pattern Buffers to redeem!\n\nBetter get out of here before O'Brien calls security... {get_emoji('obrien_omg_jaysus')}",
         color=discord.Color.orange()
       )
       embed.set_footer(text="You can earn more buffer credits through leveling up!")
@@ -215,7 +215,7 @@ class Crystals(commands.Cog):
 
     replicator_embed = discord.Embed(
       title=f"Crystallization Replication Station!",
-      description=f"You currently possess **{buffer_credits}** Crystal Buffer Pattern{'s' if buffer_credits > 1 else ''}. You may redeem **one** Buffer Pattern in exchange for **one** randomized Crystal.\n\nAre you ready to smack this thing and see what falls out?",
+      description=f"You currently possess **{buffer_credits}** Crystal Pattern Buffer{'s' if buffer_credits > 1 else ''}. You may redeem **one** Buffer Pattern in exchange for **one** randomized Crystal.\n\nAre you ready to smack this thing and see what falls out?",
       color=discord.Color.teal()
     )
     replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count}** Crystals which have not yet been attuned a Badge.", inline=False)
@@ -268,7 +268,7 @@ class Crystals(commands.Cog):
         success_message = random.choice(cog.RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=user.mention)
         channel_embed = discord.Embed(
           title='CRYSTAL MATERIALIZATION COMPLETE',
-          description=f"A fresh Crystal Buffer Pattern shunts into the replicator, the familiar hum fills the air, and the result is...\n### **{crystal['crystal_name']}**!\n\n{success_message}",
+          description=f"A fresh Crystal Pattern Buffer shunts into the replicator, the familiar hum fills the air, and the result is...\n### **{crystal['crystal_name']}**!\n\n{success_message}",
           color=discord.Color.teal()
         )
         channel_embed.add_field(name=f"Rank", value=f"{crystal['emoji']}  {crystal['rarity_name']}", inline=False)

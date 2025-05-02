@@ -153,9 +153,9 @@ async def select_badge_for_level_up(member: discord.Member) -> tuple[int, int]:
   return selected_id, selected_prestige
 
 
-async def award_possible_crystal_buffer_pattern(member: discord.Member) -> bool:
+async def award_possible_crystal_pattern_buffer(member: discord.Member) -> bool:
   """
-  Attempt to grant a crystal buffer pattern to the user based on their buffer failure streak.
+  Attempt to grant a crystal pattern buffer to the user based on their buffer failure streak.
 
   Curve behavior:
     - Starts at a 20% chance to grant a crystal buffer on first level-up.
@@ -186,7 +186,7 @@ async def award_possible_crystal_buffer_pattern(member: discord.Member) -> bool:
   roll = random.uniform(0, 100)
 
   if roll <= chance:
-    # SUCCESS: Grant the crystal buffer pattern
+    # SUCCESS: Grant the crystal pattern buffer
     await db_increment_user_crystal_buffer(user_discord_id)
     await db_update_buffer_failure_streak(user_discord_id, 0)
     logger.debug(f"[Crystal Buffer Reward] User {user_discord_id} granted buffer (roll: {roll:.2f} <= {chance:.2f})")
