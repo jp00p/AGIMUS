@@ -1296,26 +1296,26 @@ async def run_badge_stats_queries():
   return results
 
 
-async def db_get_trades_to_cancel_from_scrapped_badges(user_id, badges_to_scrap):
-  badge_filenames = [b['badge_filename'] for b in badges_to_scrap]
-  async with AgimusDB(dictionary=True) as query:
-    # All credit for this query to Danma! Praise be!!!
-    sql = '''
-      SELECT t.*
-      FROM trades as t
-      LEFT JOIN trade_offered `to` ON t.id = to.trade_id
-      LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
-      WHERE t.status IN ('pending','active')
-      AND (
-        (t.requestor_id = %s AND to.badge_filename IN (%s, %s, %s))
-        OR
-        (t.requestee_id = %s AND tr.badge_filename IN (%s, %s, %s))
-      )
-    '''
-    vals = (
-      user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2],
-      user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2]
-    )
-    await query.execute(sql, vals)
-    trades = await query.fetchall()
-  return trades
+# async def db_get_trades_to_cancel_from_scrapped_badges(user_id, badges_to_scrap):
+#   badge_filenames = [b['badge_filename'] for b in badges_to_scrap]
+#   async with AgimusDB(dictionary=True) as query:
+#     # All credit for this query to Danma! Praise be!!!
+#     sql = '''
+#       SELECT t.*
+#       FROM trades as t
+#       LEFT JOIN trade_offered `to` ON t.id = to.trade_id
+#       LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
+#       WHERE t.status IN ('pending','active')
+#       AND (
+#         (t.requestor_id = %s AND to.badge_filename IN (%s, %s, %s))
+#         OR
+#         (t.requestee_id = %s AND tr.badge_filename IN (%s, %s, %s))
+#       )
+#     '''
+#     vals = (
+#       user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2],
+#       user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2]
+#     )
+#     await query.execute(sql, vals)
+#     trades = await query.fetchall()
+#   return trades
