@@ -1128,17 +1128,31 @@ def compose_badge_slot(
       slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
       slot_canvas.paste(gradient, (0, 0), gradient)
       slot_canvas.paste(prestige_border, (0, 0), prestige_border)
-
     else:
-      slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 255))
-      draw = ImageDraw.Draw(slot_canvas)
-      draw.rounded_rectangle(
+      # Standard gradient is just a very slightly complete black to slightly less black
+      gradient = _create_gradient_fill(
+        (dims.slot_width, dims.slot_height),
+        (0, 0, 0),
+        (30, 30, 30)
+      )
+      mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
+      ImageDraw.Draw(mask).rounded_rectangle(
         (0, 0, dims.slot_width, dims.slot_height),
-        fill="#000000",
+        radius=32,
+        fill=255
+      )
+      gradient.putalpha(mask)
+      border_overlay = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
+      ImageDraw.Draw(border_overlay).rounded_rectangle(
+        (0, 0, dims.slot_width, dims.slot_height),
         outline=border_color,
         width=4,
         radius=32
       )
+      slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
+      slot_canvas.paste(gradient, (0, 0), gradient)
+      slot_canvas.paste(border_overlay, (0, 0), border_overlay)
+
 
     offset_x = min(0, dims.slot_width - badge_canvas.width) + 4
     offset_y = 20

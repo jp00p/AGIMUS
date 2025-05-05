@@ -483,12 +483,13 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days."),
 
   ("Latinum", 1, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
+  ('Transparent Aluminum', 1, 'transparent_aluminum.png', 'transparent_aluminum', 'Revolutionary compound. Transparent, resilient, and rumored to have been invented by a time traveler...'),
 
   -- Uncommon Crystals (Border Effects)
   ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
   ("Cryonetrium", 2, "cryonetrium.png", "cryonetrium", "Still gaseous at -200°C, that's some cold coolant!"),
   ('Verterium Cortenide', 2, 'verterium_cortenide.png', 'verterium_cortenide', 'Essential alloy used in Starship Warp Nacelles. Emits faint subspace displacement harmonics.'), -- New, Needs effect
-  ('Transparent Aluminum', 2, 'transparent_aluminum.png', 'transparent_aluminum', 'Revolutionary compound. Transparent, resilient, and rumored to have been invented by a time traveler...'), -- New, Needs effect
+
   ('Boridium', 2, 'boridium.png', 'boridium', 'Energetic material with many uses. Boridium is the powerhouse of the power cell.'), -- New, Needs effect
 
   -- Rare Crystals (Backgrounds)
