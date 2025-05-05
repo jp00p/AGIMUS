@@ -98,10 +98,6 @@ async def autocomplete_prestige_tiers(ctx: discord.AutocompleteContext):
     for i in range(current_prestige + 1)
   ]
 
-  # If there are more tiers beyond what they have, add the "???" teaser
-  if current_prestige < max(PRESTIGE_TIERS.keys()):
-    options.append(discord.OptionChoice(name="???", value="???"))
-
   return options
 
 
@@ -112,17 +108,6 @@ async def autocomplete_prestige_tiers(ctx: discord.AutocompleteContext):
 #    \___/  (____  /____/__\____ |(____  /__| |__|\____/|___|  /
 #                \/             \/     \/                    \/
 async def is_prestige_valid(ctx: discord.ApplicationContext, prestige:str):
-  if prestige == "???":
-    await ctx.respond(
-      embed=discord.Embed(
-        title="Prestige Tier Yet Undiscovered",
-        description="Well, that's certainly mysterious...",
-        color=discord.Color.blurple()
-      ).set_footer(text="🐨"),
-      ephemeral=True
-    )
-    return False
-
   prestige = int(prestige)
   user_prestige = (await db_get_echelon_progress(ctx.author.id))['current_prestige_level']
   if prestige > user_prestige:

@@ -315,27 +315,28 @@ CREATE TABLE IF NOT EXISTS tongo_game_rewards (
 -- Wishlists
 --
 
-CREATE TABLE IF NOT EXISTS badge_instance_wishlists (
-  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  user_discord_id VARCHAR(64) NOT NULL,
-  badge_info_id INT UNSIGNED NOT NULL,
-  time_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY unique_user_badge (user_discord_id, badge_info_id),
+CREATE TABLE IF NOT EXISTS badge_instances_wishlists (
+  user_discord_id VARCHAR(64)   NOT NULL,
+  badge_info_id   INT UNSIGNED  NOT NULL,
+  time_added      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_discord_id, badge_info_id),
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
+  FOREIGN KEY (badge_info_id)   REFERENCES badge_info(id)   ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS badge_instances_wishlists_dismissals (
+  user_discord_id   VARCHAR(64)         NOT NULL,
+  match_discord_id  VARCHAR(64)         NOT NULL,
+  badge_info_id     INT UNSIGNED        NOT NULL,
+  prestige_level    INT                 NOT NULL,
+  role              ENUM('has','wants') NOT NULL,
+  time_created      TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_discord_id, match_discord_id, badge_info_id, prestige_level, role),
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
+  FOREIGN KEY (match_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
   FOREIGN KEY (badge_info_id) REFERENCES badge_info(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS badge_instance_wishlist_dismissals (
-  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  user_discord_id VARCHAR(64) NOT NULL,
-  match_discord_id VARCHAR(64) NOT NULL,
-  has JSON NOT NULL,
-  wants JSON NOT NULL,
-  time_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY unique_dismissal (user_discord_id, match_discord_id),
-  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
-  FOREIGN KEY (match_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE
-);
 
 --
 -- Badge Tags Migration

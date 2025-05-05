@@ -1,10 +1,16 @@
+# cogs/wishlist.py
+
 from common import *
 
 from queries.badge_info import *
 from queries.badge_instances import db_get_user_badge_instances
-from queries.wishlist import *
+from queries.echelon_xp import db_get_echelon_progress
+from queries.wishlists import *
 from utils.badge_utils import autocomplete_selections
 from utils.check_channel_access import access_check
+from utils.image_utils import generate_unowned_badge_preview
+from utils.prestige import PRESTIGE_TIERS, autocomplete_prestige_tiers, is_prestige_valid
+
 
 paginator_buttons = [
   pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
@@ -14,8 +20,6 @@ paginator_buttons = [
   pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
 ]
 
-# -> cogs.wishlist
-
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
 #  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \
@@ -23,48 +27,70 @@ paginator_buttons = [
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
 async def add_autocomplete(ctx:discord.AutocompleteContext):
-  filtered_badges = [b['badge_name'] for b in await db_get_special_badge_info()]
+  user_id = ctx.interaction.user.id
+  special_badge_names = [b['badge_name'] for b in await db_get_special_badge_info()]
+  wishlisted_badge_names = [b['badge_name'] for b in await db_get_simple_prime_wishlist_badges(user_id)]
+  excluded_names = set(special_badge_names + wishlisted_badge_names)
 
-  current_user_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id)]
-  current_wishlist_badges = [b['badge_name'] for b in await db_get_user_wishlist_badges(ctx.interaction.user.id)]
-  filtered_badges = filtered_badges + current_user_badges + current_wishlist_badges
+  all_badges = await db_get_all_badge_info()
+  filtered_badges = [b for b in all_badges if b['badge_name'] not in excluded_names]
 
-  all_badge_names = [b['badge_name'] for b in await db_get_all_badge_info()]
-
-  filtered_badge_names = [b for b in all_badge_names if b not in filtered_badges]
-
-  return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
+  choices = [
+    discord.OptionChoice(
+      name=b['badge_name'],
+      value=str(b['id'])
+    )
+    for b in filtered_badges if ctx.value.lower() in b['badge_name'].lower()
+  ]
+  return choices
 
 async def remove_autocomplete(ctx:discord.AutocompleteContext):
-  filtered_badges = [b['badge_name'] for b in await db_get_special_badge_info()]
-  current_list_badges = [b['badge_name'] for b in await db_get_user_wishlist_badges(ctx.interaction.user.id)]
-  filtered_badge_names = [b for b in current_list_badges if b not in filtered_badges]
+  user_id = ctx.interaction.user.id
+  special_badge_names = [b['badge_name'] for b in await db_get_special_badge_info()]
+  wishlisted_badges = await db_get_simple_prime_wishlist_badges(user_id)
 
-  return [b for b in filtered_badge_names if ctx.value.lower() in b.lower()]
+  filtered_badges = [b for b in wishlisted_badges if b['badge_name'] not in special_badge_names]
 
-async def lock_autocomplete(ctx:discord.AutocompleteContext):
-  filtered_badges = [b['badge_name'] for b in await db_get_special_badge_info()]
+  choices = [
+    discord.OptionChoice(
+      name=b['badge_name'],
+      value=str(b['id'])
+    )
+    for b in filtered_badges if ctx.value.lower() in b['badge_name'].lower()
+  ]
+  return choices
 
-  current_unlocked_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id) if not b['locked']]
-  filtered_badge_names = [b for b in current_unlocked_badges if b not in filtered_badges]
+async def lock_autocomplete(ctx: discord.AutocompleteContext):
+  user_id = ctx.interaction.user.id
+  # fetch all of their active instances
+  instances = await db_get_user_badge_instances(user_id)
+  # dedupe by badge_info_id
+  badge_ids = {inst['badge_info_id'] for inst in instances}
+  choices: list[discord.OptionChoice] = []
+  for bid in badge_ids:
+    info = await db_get_badge_info_by_id(bid)
+    # only show badges whose names match the current input
+    if ctx.value.lower() in info['badge_name'].lower():
+      choices.append(discord.OptionChoice(
+        name=info['badge_name'],
+        value=str(bid),
+      ))
+  return choices
 
-  list_badges = [b for b in filtered_badge_names]
-  if not list_badges:
-    return ['All Badges are currently Locked!']
-  else:
-    return [b for b in list_badges if ctx.value.lower() in b.lower()]
-
-async def unlock_autocomplete(ctx:discord.AutocompleteContext):
-  filtered_badges = [b['badge_name'] for b in await db_get_special_badge_info()]
-
-  current_locked_badges = [b['badge_name'] for b in await db_get_user_badge_instances(ctx.interaction.user.id) if b['locked']]
-  filtered_badge_names = [b for b in current_locked_badges if b not in filtered_badges]
-
-  list_badges = [b for b in filtered_badge_names]
-  if not list_badges:
-    return ['All Badges are currently Unlocked!']
-  else:
-    return [b for b in list_badges if ctx.value.lower() in b.lower()]
+async def unlock_autocomplete(ctx: discord.AutocompleteContext):
+  user_id = ctx.interaction.user.id
+  # fetch only the instances they’ve locked
+  instances = await db_get_user_badge_instances(user_id, locked=True)
+  badge_ids = {inst['badge_info_id'] for inst in instances}
+  choices: list[discord.OptionChoice] = []
+  for bid in badge_ids:
+    info = await db_get_badge_info_by_id(bid)
+    if ctx.value.lower() in info['badge_name'].lower():
+      choices.append(discord.OptionChoice(
+        name=info['badge_name'],
+        value=str(bid),
+      ))
+  return choices
 
 
 # __________                .__               __
@@ -95,21 +121,43 @@ class WishlistPaginator(pages.Paginator):
 # /_______  /__/____  >__|_|  /__/____  >____  >|______  /____/ |__|  |__|  \____/|___|  /
 #         \/        \/      \/        \/     \/        \/                              \/
 class DismissButton(discord.ui.Button):
-  def __init__(self, cog, author_discord_id, match_discord_id, has, wants):
-    self.cog = cog
+  def __init__(
+    self,
+    cog,
+    author_discord_id: str,
+    match_discord_id: str,
+    prestige_level: int,
+    has_ids: list[int],
+    wants_ids: list[int],
+  ):
+    super().__init__(label="Dismiss Match", style=discord.ButtonStyle.primary, row=2)
+    self.cog               = cog
     self.author_discord_id = author_discord_id
-    self.match_discord_id = match_discord_id
-    self.has = json.dumps(has)
-    self.wants = json.dumps(wants)
-    super().__init__(
-      label="    Dismiss Match    ",
-      style=discord.ButtonStyle.primary,
-      row=2
-    )
+    self.match_discord_id  = match_discord_id
+    self.prestige_level    = prestige_level
+    self.has_ids           = has_ids
+    self.wants_ids         = wants_ids
 
-  async def callback(self, interaction:discord.Interaction):
+  async def callback(self, interaction: discord.Interaction):
     await interaction.response.defer()
-    await db_add_wishlist_dismissal(self.author_discord_id, self.match_discord_id, self.has, self.wants)
+    # insert dismissal records per badge and role at this prestige
+    for bid in self.has_ids:
+      await db_add_prime_wishlist_dismissal(
+        self.author_discord_id,
+        self.match_discord_id,
+        bid,
+        self.prestige_level,
+        'has',
+      )
+    for bid in self.wants_ids:
+      await db_add_prime_wishlist_dismissal(
+        self.author_discord_id,
+        self.match_discord_id,
+        bid,
+        self.prestige_level,
+        'wants',
+      )
+
     match_user = await bot.current_guild.fetch_member(self.match_discord_id)
     await interaction.edit(
       embed=discord.Embed(
@@ -128,19 +176,27 @@ class DismissButton(discord.ui.Button):
 #  |____|_  /\___  >\_/ \____/|__|_ \\___  >_______  /__/____  >__|_|  /__/____  >____  >(____  /____/______  /____/ |__|  |__|  \____/|___|  /
 #         \/     \/                \/    \/        \/        \/      \/        \/     \/      \/            \/                              \/
 class RevokeDismissalButton(discord.ui.Button):
-  def __init__(self, cog, author_discord_id, match_discord_id):
-    self.cog = cog
+  def __init__(
+    self,
+    cog,
+    author_discord_id: str,
+    match_discord_id: str,
+    prestige_level: int,
+  ):
+    super().__init__(label="Revoke Dismissal", style=discord.ButtonStyle.primary, row=2)
+    self.cog               = cog
     self.author_discord_id = author_discord_id
-    self.match_discord_id = match_discord_id
-    super().__init__(
-      label="    Revoke Dismissal    ",
-      style=discord.ButtonStyle.primary,
-      row=2
-    )
+    self.match_discord_id  = match_discord_id
+    self.prestige_level    = prestige_level
 
-  async def callback(self, interaction:discord.Interaction):
+  async def callback(self, interaction: discord.Interaction):
     await interaction.response.defer()
-    await db_delete_wishlist_dismissal(self.author_discord_id, self.match_discord_id)
+    # delete all dismissal rows for this user/match/prestige
+    await db_delete_prime_wishlist_dismissal(
+      self.author_discord_id,
+      self.match_discord_id,
+      self.prestige_level,
+    )
     match_user = await bot.current_guild.fetch_member(self.match_discord_id)
     await interaction.edit(
       embed=discord.Embed(
@@ -174,46 +230,42 @@ class Wishlist(commands.Cog):
   async def handle_wishlist_reaction_toggle(self, payload):
     if self.bot.user.id == payload.user_id:
       return
+    if payload.channel_id != get_channel_id("badgeys-badges") or payload.emoji.name != "✅":
+      return
+
+    member = self.bot.current_guild.get_member(payload.user_id)
+    if not member or member.bot:
+      return
 
     user = await get_user(payload.user_id)
-    member = self.bot.current_guild.get_member(payload.user_id)
-
-    if member and member.bot:
-      return
-    if payload.event_type != "REACTION_ADD" and payload.event_type != "REACTION_REMOVE":
-      return
-    if payload.channel_id != get_channel_id("badgeys-badges"):
-      return
-    if payload.emoji.name != "✅":
-      return
-
     channel = self.bot.get_channel(payload.channel_id)
+
     message = await channel.fetch_message(payload.message_id)
     if not message.embeds:
       return
 
     embed = message.embeds[0]
-
-    # Older badge reward messages don't have a field we can use, so no-op on these
-    if not len(embed.fields):
+    if not embed.fields:
       return
 
-    field = embed.fields[0]
-    badge_name = field.name.strip()
+    badge_name = embed.fields[0].name.strip()
+    special = [b['badge_name'] for b in await db_get_special_badge_info()]
+    if badge_name in special:
+      return
 
-    user_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id)]
-    user_wishlist_badge_names = [b['badge_name'] for b in await db_get_user_wishlist_badges(payload.user_id)]
-    user_locked_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id, locked=True)]
-    special_badge_names = [b['badge_name'] for b in await db_get_special_badge_info()]
+    owned = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id)]
+    wished = [b['badge_name'] for b in await db_get_simple_prime_wishlist_badges(payload.user_id)]
+    # user_locked_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id, locked=True)]
 
-    if payload.event_type == "REACTION_ADD" and badge_name not in user_badge_names and badge_name not in user_wishlist_badge_names and badge_name not in special_badge_names:
-      logger.info(f"Adding {Style.BRIGHT}{badge_name}{Style.RESET_ALL} to {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
-      await db_add_badge_name_to_users_wishlist(member.id, badge_name)
-      if user["receive_notifications"]:
+    if payload.event_type == "REACTION_ADD":
+      if badge_name not in owned and badge_name not in wished:
+        logger.info(f"Adding {Style.BRIGHT}{badge_name}{Style.RESET_ALL} to {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
+        info = await db_get_badge_info_by_name(badge_name)
+        await db_add_badge_info_id_to_prime_wishlist(member.id, info['id'])
         try:
           embed = discord.Embed(
             title="Badge Added to Wishlist",
-            description=f"**{badge_name}** has been added to your wishlist via your ✅ react!",
+            description=f"**{badge_name}** has been added to your Wishlist via your ✅ react!",
             color=discord.Color.green()
           )
           embed.set_footer(
@@ -224,30 +276,29 @@ class Wishlist(commands.Cog):
           logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
           pass
 
-    if payload.event_type == "REACTION_ADD" and badge_name in user_badge_names and badge_name not in user_locked_badge_names and badge_name not in special_badge_names:
-      logger.info(f"Locking {Style.BRIGHT}{badge_name}{Style.RESET_ALL} in {Style.BRIGHT}{member.display_name}'s inventory{Style.RESET_ALL} via react")
-      badge_info = await db_get_badge_info_by_name(badge_name)
-      badge_filename = badge_info['badge_filename']
-      await db_lock_badge_by_filename(member.id, badge_filename)
-      if user["receive_notifications"]:
-        try:
-          embed = discord.Embed(
-            title="Badge Locked",
-            description=f"**{badge_name}** has been locked via your ✅ react!\n\nYou can use `/wishlist unlock` if you did this by accident!",
-            color=discord.Color.green()
-          )
-          embed.set_footer(
-            text="Note: You can use /settings to enable or disable these messages."
-          )
-          await member.send(embed=embed)
-        except discord.Forbidden as e:
-          logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
-          pass
-
-    if payload.event_type == "REACTION_REMOVE" and badge_name in user_wishlist_badge_names:
-      logger.info(f"Removing {Style.BRIGHT}{badge_name}{Style.RESET_ALL} from {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
-      await db_remove_badge_name_from_users_wishlist(member.id, badge_name)
-      if user["receive_notifications"]:
+      elif badge_name in owned:
+        logger.info(f"Locking {Style.BRIGHT}{badge_name}{Style.RESET_ALL} in {Style.BRIGHT}{member.display_name}'s inventory{Style.RESET_ALL} via react")
+        info = await db_get_badge_info_by_name(badge_name)
+        await db_lock_badge_instances_by_badge_info_id(member.id, info['id'])
+        if user["receive_notifications"]:
+          try:
+            embed = discord.Embed(
+              title="Badge Locked 🔒",
+              description=f"**{badge_name}** has been Locked (across all Tiers) via your ✅ react!\n\nYou can use `/wishlist unlock` if you did this by accident!",
+              color=discord.Color.green()
+            )
+            embed.set_footer(
+              text="Note: You can use /settings to enable or disable these messages."
+            )
+            await member.send(embed=embed)
+          except discord.Forbidden as e:
+            logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
+            pass
+    else:
+      if badge_name in wished:
+        logger.info(f"Removing {Style.BRIGHT}{badge_name}{Style.RESET_ALL} from {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
+        info = await db_get_badge_info_by_name(badge_name)
+        await db_remove_badge_info_id_from_prime_wishlist(member.id, info['id'])
         try:
           embed = discord.Embed(
             title="Badge Removed from Wishlist",
@@ -262,7 +313,6 @@ class Wishlist(commands.Cog):
           logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
           pass
 
-
   # ________  .__               .__
   # \______ \ |__| ____________ |  | _____  ___.__.
   #  |    |  \|  |/  ___/\____ \|  | \__  \<   |  |
@@ -271,64 +321,67 @@ class Wishlist(commands.Cog):
   #         \/        \/ |__|             \/\/
   @wishlist_group.command(
     name="display",
-    description="List all of the badges on your current wishlist."
+    description="List all of the badges on your current wishlist for a given Prestige Tier."
   )
   @option(
-    name="public",
-    description="Show to public?",
+    name="prestige",
+    description="Which Prestige Tier Wishlist to Display",
     required=True,
-    choices=[
-      discord.OptionChoice(
-        name="No",
-        value="no"
-      ),
-      discord.OptionChoice(
-        name="Yes",
-        value="yes"
-      )
-    ]
+    autocomplete=autocomplete_prestige_tiers
   )
-  async def display(self, ctx:discord.ApplicationContext, public:str):
-    public = bool(public == "yes")
-    await ctx.defer(ephemeral=not public)
+  @commands.check(is_prestige_valid)
+  async def display(self, ctx: discord.ApplicationContext, prestige: str):
+    await ctx.defer(ephemeral=True)
+    user_id = ctx.author.id
 
-    user_discord_id = ctx.author.id
-    logger.info(f"{ctx.author.display_name} is {Style.BRIGHT}displaying{Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
+    # Validate the selected prestige tier
+    if not await is_prestige_valid(ctx, prestige):
+      return
+    prestige_level = int(prestige)
 
-    wishlist_badges = await db_get_user_wishlist_badges(user_discord_id)
+    logger.info(f"{ctx.author.display_name} is {Style.BRIGHT}displaying their wishlist{Style.RESET_ALL} for the {Style.BRIGHT}{PRESTIGE_TIERS[prestige_level]}{Style.RESET_ALL} Prestige Tier")
 
-    if len(wishlist_badges):
-      # Set up paginated results
-      max_badges_per_page = 30
-      all_pages = [wishlist_badges[i:i + max_badges_per_page] for i in range(0, len(wishlist_badges), max_badges_per_page)]
-      total_pages = len(all_pages)
+    # Fetch badges the user still needs at this prestige level
+    wishes = await db_get_active_wants(user_id, prestige_level)
 
-      wishlist_pages = []
-      for page_index, page in enumerate(all_pages):
-        embed = discord.Embed(
-          title=f"{ctx.author.display_name}'s Wishlist",
-          description="\n".join([f"[{b['badge_name']}]({b['badge_url']})" for b in page]),
-          color=discord.Color.blurple()
-        )
-        footer_text = f"Page {page_index + 1} of {total_pages}"
-        if public:
-          footer_text += " - Navigation All-Access"
-        embed.set_footer(text=footer_text)
-        wishlist_pages.append(embed)
-
-      paginator = pages.Paginator(
-        author_check=False,
-        pages=wishlist_pages,
-        loop_pages=True,
-        disable_on_timeout=True
+    # No active wants: user has them all
+    if not wishes:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="No Badges Needed",
+          description=f"You've already collected all your desired wishlist badges at the {PRESTIGE_TIERS[prestige_level]} tier!",
+          color=discord.Color.green()
+        ),
+        ephemeral=True
       )
+      return
 
-      await paginator.respond(ctx.interaction, ephemeral=True)
-    else:
-      await ctx.followup.send(embed=discord.Embed(
-        title="No Current Wishlist Badges Present",
-        color=discord.Color.red()
-      ))
+    # Paginate the active wants
+    max_per_page = 30
+    pages_data = [
+      wishes[i : i + max_per_page]
+      for i in range(0, len(wishes), max_per_page)
+    ]
+
+    pages_list = []
+    for idx, page in enumerate(pages_data, start=1):
+      embed = discord.Embed(
+        title=f"{PRESTIGE_TIERS[prestige_level]} Wishlist",
+        description="\n".join(
+          f"[{b['badge_name']}]({b['badge_url']})" for b in page
+        ),
+        color=discord.Color.blurple()
+      )
+      embed.set_footer(text=f"Page {idx} of {len(pages_data)}")
+      pages_list.append(embed)
+
+    paginator = pages.Paginator(
+      author_check=False,
+      pages=pages_list,
+      loop_pages=True,
+      disable_on_timeout=True
+    )
+    await paginator.respond(ctx.interaction, ephemeral=True)
 
 
   #    _____          __         .__
@@ -341,311 +394,153 @@ class Wishlist(commands.Cog):
     name="matches",
     description="Find matches from other users who have what you want, and want what you have!"
   )
-  @commands.check(access_check)
-  async def matches(self, ctx:discord.ApplicationContext):
+  @option(
+    name="prestige",
+    description="Which Prestige Tier to check",
+    required=True,
+    autocomplete=autocomplete_prestige_tiers
+  )
+  @commands.check(is_prestige_valid)
+  async def matches(self, ctx: discord.ApplicationContext, prestige: str):
     await ctx.defer(ephemeral=True)
-    author_discord_id = ctx.author.id
+    user_id = ctx.author.id
 
-    logger.info(f"{ctx.author.display_name} is checking for {Style.BRIGHT}matches{Style.RESET_ALL} to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
+    if not await is_prestige_valid(ctx, prestige):
+      return
+    prestige = int(prestige)
 
-    acknowledgement_followup = await ctx.followup.send(
-      embed=discord.Embed(
-        title="Wishlist Matches Request Acknowledged",
-        description="Uno tomatoes por favor...",
-        color=discord.Color.blurple()
-      ),
-      ephemeral=True
-    )
+    # Fetch active 'wants' at this tier
+    wants = await db_get_active_wants(user_id, prestige)
+    if not wants:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="Wishlist Complete",
+          description=f"You have no {PRESTIGE_TIERS[prestige]} Badges missing from your Wishlist!",
+          color=discord.Color.red()
+        ).set_footer(text="You can add more with `/wishlist add` or `/wishlist add_set`"),
+        ephemeral=True
+      )
+      return
 
-    # Housekeeping
-    # Clear any badges from the users wishlist that the user may already possess currently
-    await db_purge_users_wishlist(author_discord_id)
+    # Fetch matches via SQL CTE
+    matches = await db_get_wishlist_matches(user_id, prestige)
+    if not matches:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="No Matches Found",
+          description=f"No users currently have what you want *and* want what you have at the {PRESTIGE_TIERS[prestige]} Tier.",
+          color=discord.Color.blurple()
+        ),
+        ephemeral=True
+      )
+      return
 
-    # Get all the users and the badgenames that have the badges the user wants
-    wishlist_matches = await db_get_wishlist_matches(author_discord_id)
-    wishlist_aggregate = {}
-    if wishlist_matches:
-      for match in wishlist_matches:
-        user_id = int(match['user_discord_id'])
-        if user_id == author_discord_id:
-          continue
+    # Build paginated page groups for each match
+    for m in matches:
+      partner = await bot.current_guild.fetch_member(m['match_discord_id'])
+      has_badges = json.loads(m['badges_you_want_that_they_have'])
+      wants_badges = json.loads(m['badges_they_want_that_you_have'])
 
-        user_record = wishlist_aggregate.get(user_id)
-        if not user_record:
-          wishlist_aggregate[user_id] = [match]
-        else:
-          wishlist_aggregate[user_id].append(match)
+      # Paginate 'has' badges
+      max_per_page = 30
+      all_has = [has_badges[i:i+max_per_page] for i in range(0, len(has_badges), max_per_page)]
+      has_pages = []
+      total_has = len(all_has)
+      for idx, page_badges in enumerate(all_has):
+        embed = discord.Embed(
+          title="What You Want",
+          description="\n".join(page_badges),
+          color=discord.Color.blurple()
+        )
+        embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx+1} of {total_has}")
+        has_pages.append(embed)
 
-    # Get all the users and the badgenames that want badges that the user has
-    inventory_matches = await db_get_wishlist_inventory_matches(author_discord_id)
-    inventory_aggregate = {}
-    if inventory_matches:
-      for match in inventory_matches:
-        user_id = int(match['user_discord_id'])
-        if user_id == author_discord_id:
-          continue
+      # Paginate 'wants' badges
+      all_wants = [wants_badges[i:i+max_per_page] for i in range(0, len(wants_badges), max_per_page)]
+      wants_pages = []
+      total_wants = len(all_wants)
+      for idx, page_badges in enumerate(all_wants):
+        embed = discord.Embed(
+          title="What They Want",
+          description="\n".join(page_badges),
+          color=discord.Color.blurple()
+        )
+        embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx+1} of {total_wants}")
+        wants_pages.append(embed)
 
-        user_record = inventory_aggregate.get(user_id)
-        if not user_record:
-          inventory_aggregate[user_id] = [match]
-        else:
-          inventory_aggregate[user_id].append(match)
+      # Dismiss button
+      view = discord.ui.View()
+      view.add_item(DismissButton(
+        self,
+        user_id,
+        m['match_discord_id'],  # partner
+        prestige,
+        json.loads(m['badges_you_want_that_they_have']),
+        json.loads(m['badges_they_want_that_you_have']),
+      ))
 
-    # Now create an aggregate of the users that intersect
-    exact_matches_aggregate = {}
-    for key in wishlist_aggregate:
-      if key in inventory_aggregate:
-        exact_matches_aggregate[key] = {
-          'has': wishlist_aggregate[key],
-          'wants': inventory_aggregate[key]
-        }
-
-    # We might iterate through and not display any results because all of the potential matches were dismissed
-    # In this case, keep track and if so display a different result message at the bottom
-    all_dismissed = True
-
-    match_count = len(exact_matches_aggregate.keys())
-
-    if match_count:
-      dismissal_count = 0
-      for user_id in exact_matches_aggregate.keys():
-        user = await bot.current_guild.fetch_member(user_id)
-
-        has_badges = exact_matches_aggregate[user_id]['has']
-        has_badges = sorted(has_badges, key=lambda b: b['badge_name'])
-        has_badges_names = [b['badge_name'] for b in has_badges]
-
-        wants_badges = exact_matches_aggregate[user_id]['wants']
-        wants_badges = sorted(wants_badges, key=lambda b: b['badge_name'])
-        wants_badges_names = [b['badge_name'] for b in wants_badges]
-
-        # Check for Dismissals
-        dismissal = await db_get_wishlist_dismissal(author_discord_id, user_id)
-        if dismissal:
-          dismissal_has = json.loads(dismissal.get('has'))
-          dismissal_wants = json.loads(dismissal.get('wants'))
-          if has_badges_names == dismissal_has and wants_badges_names == dismissal_wants:
-            dismissal_count = dismissal_count + 1
-            continue
-          else:
-            await db_delete_wishlist_dismissal(author_discord_id, user_id)
-
-        max_badges_per_page = 30
-
-        # Pages for Badges Match Has
-        all_has_pages = [has_badges[i:i + max_badges_per_page] for i in range(0, len(has_badges), max_badges_per_page)]
-        total_has_pages = len(all_has_pages)
-
-        has_pages = []
-        for page_index, page_badges in enumerate(all_has_pages):
-          embed = discord.Embed(
-            title="Has From Your Wishlist:",
-            description="\n".join([f"[{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
-            color=discord.Color.blurple()
-          )
-          embed.set_footer(text=f"Match with {user.display_name}\nPage {page_index + 1} of {total_has_pages}")
-          has_pages.append(embed)
-
-        # Pages for Badges Match Wants
-        all_wants_pages = [wants_badges[i:i + max_badges_per_page] for i in range(0, len(wants_badges), max_badges_per_page)]
-        total_wants_pages = len(all_wants_pages)
-
-        wants_pages = []
-        for page_index, page_badges in enumerate(all_wants_pages):
-          embed = discord.Embed(
-            title="Wants From Your Inventory:",
-            description="\n".join([f"[{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
-            color=discord.Color.blurple()
-          )
-          embed.set_footer(text=f"Match with {user.display_name}\nPage {page_index + 1} of {total_wants_pages}")
-          wants_pages.append(embed)
-
-
-        view = discord.ui.View()
-        view.add_item(DismissButton(self, author_discord_id, user_id, has_badges_names, wants_badges_names))
-
-        page_groups = [
-          pages.PageGroup(
-            pages=[
-              discord.Embed(
-                title="Wishlist Match!",
-                description=f"{user.mention} ({user.display_name}) has a wishlist match with you!",
-                color=discord.Color.blurple()
-              )
-            ],
-            label=f"{user.display_name}'s Match!",
-            description="Details and Info",
-            custom_buttons=paginator_buttons,
-            use_default_buttons=False,
-            custom_view=view
-          ),
-          pages.PageGroup(
-            pages=has_pages,
-            label="What You Want",
-            description="Badges The Match Has From Your Wishlist",
-            custom_buttons=paginator_buttons,
-            use_default_buttons=False,
-            custom_view=view
-          ),
-          pages.PageGroup(
-            pages=wants_pages,
-            label="What They Want",
-            description="Badges The Match Is Looking For",
-            custom_buttons=paginator_buttons,
-            use_default_buttons=False,
-            custom_view=view
-          )
-        ]
-
-        paginator = WishlistPaginator(
-          pages=page_groups,
-          show_menu=True,
+      # Assemble page groups
+      page_groups = [
+        pages.PageGroup(
+          pages=[
+            discord.Embed(
+              title=f"Wishlist Match! ({PRESTIGE_TIERS[prestige]} Tier)",
+              description=f"{partner.mention} ({partner.display_name}) has a wishlist match with you!",
+              color=discord.Color.blurple()
+            )
+          ],
+          label=f"{partner.display_name}'s Match!",
+          description="Details and Info",
+          custom_buttons=paginator_buttons,
+          use_default_buttons=False,
+          custom_view=view
+        ),
+        pages.PageGroup(
+          pages=has_pages,
+          label="What You Want",
+          description="Badges They Have From Your Wishlist",
+          custom_buttons=paginator_buttons,
+          use_default_buttons=False,
+          custom_view=view
+        ),
+        pages.PageGroup(
+          pages=wants_pages,
+          label="What They Want",
+          description="Badges They Want From Your Inventory",
           custom_buttons=paginator_buttons,
           use_default_buttons=False,
           custom_view=view
         )
-        await paginator.respond(ctx.interaction, ephemeral=True)
+      ]
 
-      all_dismissed = match_count == dismissal_count
-    else:
-      await acknowledgement_followup.edit(
-        embed=discord.Embed(
-          title="No Wishlist Matches Found",
-          description="Please check back later!",
-          color=discord.Color.blurple()
-        )
+      # Send paginator
+      paginator = WishlistPaginator(
+        pages=page_groups,
+        show_menu=True,
+        custom_buttons=paginator_buttons,
+        use_default_buttons=False,
+        custom_view=view
       )
-      return
-
-    if not all_dismissed:
-      await acknowledgement_followup.edit(
-        embed=discord.Embed(
-          title="Wishlist Matches Listed!",
-          description="BEHOLD!",
-          color=discord.Color.blurple()
-        )
-      )
-    else:
-      await acknowledgement_followup.edit(
-        embed=discord.Embed(
-          title="All Wishlist Matches Dismissed",
-          description="You have one or more matches, but they've been dismissed.\n\nYou can use `/wishlist dismissals` to review them.",
-          color=discord.Color.blurple(),
-        )
-      )
+      await paginator.respond(ctx.interaction, ephemeral=True)
 
 
-  # ________  .__               .__                      .__
-  # \______ \ |__| ______ _____ |__| ______ ___________  |  |   ______
-  #  |    |  \|  |/  ___//     \|  |/  ___//  ___/\__  \ |  |  /  ___/
-  #  |    `   \  |\___ \|  Y Y  \  |\___ \ \___ \  / __ \|  |__\___ \
-  # /_______  /__/____  >__|_|  /__/____  >____  >(____  /____/____  >
-  #         \/        \/      \/        \/     \/      \/          \/
   @wishlist_group.command(
     name="dismissals",
     description="Review any wishlist matches which have been dismissed"
   )
   @commands.check(access_check)
-  async def dismissals(self, ctx:discord.ApplicationContext):
+  async def dismissals(self, ctx: discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
-    author_discord_id = ctx.author.id
+    user_id = ctx.author.id
 
     logger.info(f"{ctx.author.display_name} is reviewing their {Style.BRIGHT}dismissals{Style.RESET_ALL} on their {Style.BRIGHT}wishlist matches{Style.RESET_ALL}")
 
-    # Housekeeping
-    # Clear any badges from the users wishlist that the user may already possess currently
-    await db_purge_users_wishlist(author_discord_id)
-    await self._purge_invalid_wishlist_dismissals(author_discord_id)
+    # Clear out invalid dismissals
+    await self._purge_invalid_wishlist_dismissals(user_id)
 
-    dismissals = await db_get_all_users_wishlist_dismissals(author_discord_id)
-
-    if dismissals:
-      for dismissal in dismissals:
-        match_discord_id = dismissal['match_discord_id']
-        user = await bot.current_guild.fetch_member(match_discord_id)
-        dismissal_has = json.loads(dismissal.get('has'))
-        dismissal_wants = json.loads(dismissal.get('wants'))
-
-        has_badges = [await db_get_badge_info_by_name(b) for b in dismissal_has]
-        wants_badges = [await db_get_badge_info_by_name(b) for b in dismissal_wants]
-
-        max_badges_per_page = 30
-
-        # Pages for Badges Match Has
-        all_has_pages = [has_badges[i:i + max_badges_per_page] for i in range(0, len(has_badges), max_badges_per_page)]
-        total_has_pages = len(all_has_pages)
-
-        has_pages = []
-        for page_index, page_badges in enumerate(all_has_pages):
-          embed = discord.Embed(
-            title="Has From Your Wishlist:",
-            description="\n".join([f"[{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
-            color=discord.Color.blurple()
-          )
-          embed.set_footer(text=f"Match with {user.display_name}\nPage {page_index + 1} of {total_has_pages}")
-          has_pages.append(embed)
-
-        # Pages for Badges Match Wants
-        all_wants_pages = [wants_badges[i:i + max_badges_per_page] for i in range(0, len(wants_badges), max_badges_per_page)]
-        total_wants_pages = len(all_wants_pages)
-
-        wants_pages = []
-        for page_index, page_badges in enumerate(all_wants_pages):
-          embed = discord.Embed(
-            title="Wants From Your Inventory:",
-            description="\n".join([f"[{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
-            color=discord.Color.blurple()
-          )
-          embed.set_footer(text=f"Match with {user.display_name}\nPage {page_index + 1} of {total_wants_pages}")
-          wants_pages.append(embed)
-
-
-        view = discord.ui.View()
-        view.add_item(RevokeDismissalButton(self, author_discord_id, match_discord_id))
-
-        page_groups = [
-          pages.PageGroup(
-            pages=[
-              discord.Embed(
-                title="Wishlist Match!",
-                description=f"{user.mention} ({user.display_name}) has a wishlist match with you!",
-                color=discord.Color.blurple()
-              )
-            ],
-            label=f"{user.display_name}'s Match!",
-            description="Details and Info",
-            custom_buttons=paginator_buttons,
-            use_default_buttons=False,
-            custom_view=view
-          ),
-          pages.PageGroup(
-            pages=has_pages,
-            label="What You Want",
-            description="Badges The Match Has From Your Wishlist",
-            custom_buttons=paginator_buttons,
-            use_default_buttons=False,
-            custom_view=view
-          ),
-          pages.PageGroup(
-            pages=wants_pages,
-            label="What They Want",
-            description="Badges The Match Is Looking For",
-            custom_buttons=paginator_buttons,
-            use_default_buttons=False,
-            custom_view=view
-          )
-        ]
-
-        paginator = WishlistPaginator(
-          pages=page_groups,
-          show_menu=True,
-          custom_buttons=paginator_buttons,
-          use_default_buttons=False,
-          custom_view=view
-        )
-        await paginator.respond(ctx.interaction, ephemeral=True)
-
-    else:
+    # Fetch all dismissal records for this user
+    dismissals = await db_get_all_prime_wishlist_dismissals(user_id)
+    if not dismissals:
       await ctx.followup.send(
         embed=discord.Embed(
           title="No Wishlist Dismissals Found",
@@ -653,215 +548,115 @@ class Wishlist(commands.Cog):
           color=discord.Color.blurple()
         )
       )
+      return
 
-  async def _purge_invalid_wishlist_dismissals(self, author_discord_id):
-    # Get all the users and the badgenames that have the badges the user wants
-    wishlist_matches = await db_get_wishlist_matches(author_discord_id)
-    wishlist_aggregate = {}
-    if wishlist_matches:
-      for match in wishlist_matches:
-        user_id = int(match['user_discord_id'])
-        if user_id == author_discord_id:
-          continue
+    # Iterate through each dismissal and present it in a paginated view
+    for record in dismissals:
+      partner_id = record['match_discord_id']
+      partner = await bot.current_guild.fetch_member(partner_id)
+      dismissed_has = json.loads(record['has'])
+      dismissed_wants = json.loads(record['wants'])
+      prestige = record['prestige_level']
 
-        user_record = wishlist_aggregate.get(user_id)
-        if not user_record:
-          wishlist_aggregate[user_id] = [match]
-        else:
-          wishlist_aggregate[user_id].append(match)
+      # Resolve badge info for display
+      has_badges = [await db_get_badge_info_by_id(bid) for bid in dismissed_has]
+      wants_badges = [await db_get_badge_info_by_id(bid) for bid in dismissed_wants]
 
-    # Get all the users and the badgenames that want badges that the user has
-    inventory_matches = await db_get_wishlist_inventory_matches(author_discord_id)
-    inventory_aggregate = {}
-    if inventory_matches:
-      for match in inventory_matches:
-        user_id = int(match['user_discord_id'])
-        if user_id == author_discord_id:
-          continue
+      # Build pages for "Has From Your Wishlist"
+      max_per_page = 30
+      all_has_pages = [has_badges[i:i + max_per_page] for i in range(0, len(has_badges), max_per_page)]
+      has_pages = []
+      for idx, chunk in enumerate(all_has_pages, start=1):
+        embed = discord.Embed(
+          title="Has From Your Wishlist:",
+          description="\n".join(f"[{b['badge_name']}]({b['badge_url']})" for b in chunk),
+          color=discord.Color.blurple()
+        )
+        embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx} of {len(all_has_pages)}")
+        has_pages.append(embed)
 
-        user_record = inventory_aggregate.get(user_id)
-        if not user_record:
-          inventory_aggregate[user_id] = [match]
-        else:
-          inventory_aggregate[user_id].append(match)
+      # Build pages for "Wants From Your Inventory"
+      all_wants_pages = [wants_badges[i:i + max_per_page] for i in range(0, len(wants_badges), max_per_page)]
+      wants_pages = []
+      for idx, chunk in enumerate(all_wants_pages, start=1):
+        embed = discord.Embed(
+          title="Wants From Your Inventory:",
+          description="\n".join(f"[{b['badge_name']}]({b['badge_url']})" for b in chunk),
+          color=discord.Color.blurple()
+        )
+        embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx} of {len(all_wants_pages)}")
+        wants_pages.append(embed)
 
-    # Now create an aggregate of the users that intersect
-    exact_matches_aggregate = {}
-    for key in wishlist_aggregate:
-      if key in inventory_aggregate:
-        exact_matches_aggregate[key] = {
-          'has': wishlist_aggregate[key],
-          'wants': inventory_aggregate[key]
-        }
+      # Set up dismiss/revoke button
+      view = discord.ui.View()
+      view.add_item(RevokeDismissalButton(
+        self,
+        user_id,
+        partner_id,
+        prestige
+      ))
 
-    if len(exact_matches_aggregate.keys()):
-      for user_id in exact_matches_aggregate.keys():
-        has_badges = exact_matches_aggregate[user_id]['has']
-        has_badges = sorted(has_badges, key=lambda b: b['badge_name'])
-        has_badges_names = [b['badge_name'] for b in has_badges]
-
-        wants_badges = exact_matches_aggregate[user_id]['wants']
-        wants_badges = sorted(wants_badges, key=lambda b: b['badge_name'])
-        wants_badges_names = [b['badge_name'] for b in wants_badges]
-
-        # Check for Dismissals
-        dismissal = await db_get_wishlist_dismissal(author_discord_id, user_id)
-        if dismissal:
-          dismissal_has = json.loads(dismissal.get('has'))
-          dismissal_wants = json.loads(dismissal.get('wants'))
-          if has_badges_names != dismissal_has and wants_badges_names != dismissal_wants:
-            await db_delete_wishlist_dismissal(author_discord_id, user_id)
-
-
-  # ___________.__            .___ ___________                  .___
-  # \_   _____/|__| ____    __| _/ \__    ___/___________     __| _/___________  ______
-  #  |    __)  |  |/    \  / __ |    |    |  \_  __ \__  \   / __ |/ __ \_  __ \/  ___/
-  #  |     \   |  |   |  \/ /_/ |    |    |   |  | \// __ \_/ /_/ \  ___/|  | \/\___ \
-  #  \___  /   |__|___|  /\____ |    |____|   |__|  (____  /\____ |\___  >__|  /____  >
-  #      \/            \/      \/                        \/      \/    \/           \/
-  @wishlist_group.command(
-    name="partial_matches",
-    description="Find Partial Wishlist Matches"
-  )
-  @commands.check(access_check)
-  async def partial_matches(self, ctx:discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
-    author_discord_id = ctx.author.id
-
-    logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}find traders{Style.RESET_ALL} for items in their {Style.BRIGHT}unlocked inventory{Style.RESET_ALL}")
-
-    initial_followup = await ctx.followup.send(
-      embed=discord.Embed(
-        title="Finding Traders...",
-        description="Uno tomatoes por favor...",
-        color=discord.Color.blurple()
-      ),
-      ephemeral=True
-    )
-
-    # Get list of badge trader userids, we'll filter out any matches that don't have the role
-    badge_trader_role = discord.utils.get(bot.current_guild.roles, name=config['roles']['badge_traders'])
-    badge_trader_ids = [m.id for m in badge_trader_role.members]
-
-    # Get all the users and the badgenames that want badges that the user has
-    inventory_matches = await db_get_wishlist_inventory_matches(author_discord_id)
-    inventory_aggregate = {}
-    if inventory_matches:
-      for match in inventory_matches:
-        user_id = int(match['user_discord_id'])
-        if user_id == author_discord_id or user_id not in badge_trader_ids:
-          continue
-
-        user_record = inventory_aggregate.get(user_id)
-        if not user_record:
-          inventory_aggregate[user_id] = [match]
-        else:
-          inventory_aggregate[user_id].append(match)
-
-    if len(inventory_aggregate.keys()):
-      authors_full_inventory = await db_get_user_badge_instances(author_discord_id)
-
-      for user_id in inventory_aggregate.keys():
-        user = await bot.current_guild.fetch_member(user_id)
-
-        wants_badges = inventory_aggregate[user_id]
-        wants_badges = sorted(wants_badges, key=lambda b: b['badge_name'])
-
-        max_badges_per_page = 30
-
-        # Pages for Badges Match Wants
-        all_wants_pages = [wants_badges[i:i + max_badges_per_page] for i in range(0, len(wants_badges), max_badges_per_page)]
-        total_wants_pages = len(all_wants_pages)
-
-        wants_pages = []
-        for page_index, page_badges in enumerate(all_wants_pages):
-          embed = discord.Embed(
-            title=f"Potentially Interested: {user.display_name}",
-            description=f"You possess Unlocked Badges that are on {user.mention}'s wishlist.\n\nTHEY may be interested in obtaining the following:\n"  + "\n".join([f"* [{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
-            color=discord.Color.blurple()
-          )
-          embed.set_footer(text=f"Page {page_index + 1} of {total_wants_pages}")
-          wants_pages.append(embed)
-
-
-        # Badges That Exist In User's Unlocked Inventory but NOT already present in Author's Full Inventory
-        users_unlocked_inventory = await db_get_user_badge_instances(user.id, locked=False)
-        intersection_badges = [b for b in users_unlocked_inventory if b['badge_filename'] not in [a_b['badge_filename'] for a_b in authors_full_inventory]]
-        intersection_badges = sorted(intersection_badges, key=lambda b: b['badge_name'])
-
-        if not intersection_badges:
-          # Simple Paginator without PageGroups
-          paginator = pages.Paginator(
-            author_check=False,
-            pages=wants_pages,
-            loop_pages=True,
-            custom_buttons=paginator_buttons,
-            use_default_buttons=False,
-            disable_on_timeout=True
-          )
-          await paginator.respond(ctx.interaction, ephemeral=True)
-        else:
-          all_intersection_pages = [intersection_badges[i:i + max_badges_per_page] for i in range(0, len(intersection_badges), max_badges_per_page)]
-          total_intersection_pages = len(all_intersection_pages)
-
-          intersection_pages = []
-          for page_index, page_badges in enumerate(all_intersection_pages):
-            embed = discord.Embed(
-              title=f"Potentially Available: {user.display_name}",
-              description=f"{user.mention} has the following total Unlocked Inventory which you do not already possess.\n\nYOU might be interested in obtaining the following:\n"  + "\n".join([f"* [{b['badge_name']}]({b['badge_url']})" for b in page_badges]),
+      # Group into a multi-page paginator
+      page_groups = [
+        pages.PageGroup(
+          pages=[
+            discord.Embed(
+              title=f"Wishlist Match! ({PRESTIGE_TIERS[prestige]} Tier)",
+              description=f"{partner.mention} ({partner.display_name}) had this match with you which was dismissed.",
               color=discord.Color.blurple()
             )
-            embed.set_footer(text=f"Page {page_index + 1} of {total_intersection_pages}")
-            intersection_pages.append(embed)
+          ],
+          label=f"{partner.display_name}'s Match!",
+          description="Details and Info",
+          custom_buttons=paginator_buttons,
+          use_default_buttons=False,
+          custom_view=view
+        ),
+        pages.PageGroup(
+          pages=has_pages,
+          label="What You Wanted",
+          description="Badges You Wanted That They Have",
+          custom_buttons=paginator_buttons,
+          use_default_buttons=False,
+          custom_view=view
+        ),
+        pages.PageGroup(
+          pages=wants_pages,
+          label="What They Wanted",
+          description="Badges They Wanted That You Have",
+          custom_buttons=paginator_buttons,
+          use_default_buttons=False,
+          custom_view=view
+        )
+      ]
 
-          page_groups = [
-            pages.PageGroup(
-              pages=[
-                discord.Embed(
-                  title=f"Trader Found: {user.display_name}",
-                  description=f"{user.mention} may have a partial match!",
-                  color=discord.Color.blurple()
-                )
-              ],
-              label=f"Partial With Match {user.display_name}!",
-              description="Details and Info",
-              custom_buttons=paginator_buttons,
-              use_default_buttons=False
-            ),
-            pages.PageGroup(
-              pages=wants_pages,
-              label="What They Want",
-              description="Badges The Trader Wants From Your Unlocked Inventory",
-              custom_buttons=paginator_buttons,
-              use_default_buttons=False
-            ),
-            pages.PageGroup(
-              pages=intersection_pages,
-              label="What You May Want",
-              description="Badges The Trader Has Unlocked That You Don't Possess",
-              custom_buttons=paginator_buttons,
-              use_default_buttons=False
-            )
-          ]
-
-          paginator = WishlistPaginator(
-            pages=page_groups,
-            show_menu=True,
-            custom_buttons=paginator_buttons,
-            use_default_buttons=False
-          )
-          await paginator.respond(ctx.interaction, ephemeral=True)
-          await initial_followup.delete()
-
-    else:
-      # XXX if /matches works, this should work
-      await initial_followup.edit(
-        embed=discord.Embed(
-          title="No Traders Found",
-          description="Unable to find any Traders who are interested in items from your Unlocked Inventory.\n\nPlease try again later!",
-          color=discord.Color.blurple()
-        ), ephemeral=True
+      paginator = WishlistPaginator(
+        pages=page_groups,
+        show_menu=True,
+        custom_buttons=paginator_buttons,
+        use_default_buttons=False,
+        custom_view=view
       )
+      await paginator.respond(ctx.interaction, ephemeral=True)
+
+  async def _purge_invalid_wishlist_dismissals(self, user_id: str):
+    # Recompute real matches and remove any dismissal records that no longer apply
+    current = await db_get_wishlist_matches(user_id)
+    inventory = await db_get_wishlist_inventory_matches(user_id)
+    # Build dict of valid matches
+    valid = {uid: (h, w) for uid, (h, w) in {
+      **{m['match_discord_id']:(m['badges_you_want_that_they_have'], m['badges_they_want_that_you_have']) for m in current},
+      **{m['match_discord_id']:([], []) for m in inventory}
+    }.items()}
+    # Fetch all stored dismissals
+    stored = await db_get_all_prime_wishlist_dismissals(user_id)
+    for rec in stored:
+      uid = rec['match_discord_id']
+      saved_has = json.loads(rec['has'])
+      saved_wants = json.loads(rec['wants'])
+      prestige_level = rec['prestige_level']
+      if uid not in valid or valid[uid] != (saved_has, saved_wants):
+        await db_delete_prime_wishlist_dismissal(user_id, uid, prestige_level)
 
 
   #    _____       .___  .___
@@ -876,74 +671,106 @@ class Wishlist(commands.Cog):
   )
   @option(
     name="badge",
-    description="Badge to add",
+    description="Badge to add to your Wishlist",
     required=True,
     autocomplete=add_autocomplete
   )
   async def add(self, ctx:discord.ApplicationContext, badge:str):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
+    try:
+      badge_info_id = int(badge)
+    except ValueError:
+      await ctx.respond(embed=discord.Embed(
+        title="Invalid Badge Selection",
+        description="Please select a valid badge from the dropdown.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
 
     logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}add{Style.RESET_ALL} the badge {Style.BRIGHT}{badge}{Style.RESET_ALL} to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
-    if badge not in [b['badge_name'] for b in await db_get_all_badge_info()]:
+    badge_info = await db_get_badge_info_by_id(badge_info_id)
+    if not badge_info:
       channel = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
       await ctx.followup.send(
         embed=discord.Embed(
           title="That Badge Doesn't Exist (Yet?)",
-          description=f"We don't have `{badge}` in our databanks, if you think this is an error please let us know in {channel.mention}!",
+          description=f"We don't have that one in our databanks! If you think this is an error please let us know in {channel.mention}!",
           color=discord.Color.red()
         )
       )
       return
 
-    special_badge_names = [b['badge_name'] for b in await db_get_special_badge_info()]
-    if badge in special_badge_names:
+    # Badge exists, so we can retrieve the info now
+    badge_name = badge_info['badge_name']
+
+    special_badge_ids = [b['id'] for b in await db_get_special_badge_info()]
+    if badge_info_id in special_badge_ids:
       await ctx.followup.send(
         embed=discord.Embed(
           title="Invalid Badge Selection!",
-          description=f"Unable to complete your request, **{badge}** is a ✨ *special badge* ✨ and cannot be acquired via trading!",
+          description=f"Unable to complete your request, **{badge_name}** is a ✨ *special badge* ✨ and cannot be acquired via trading!",
           color=discord.Color.red()
         )
       )
       return
+
+    # We're good to actually retrieve the user's wishlist now
+    wishlist_badges = await db_get_simple_prime_wishlist_badges(user_discord_id)
 
     # Check to make sure the badge is not already present in their wishlist
-    existing_wishlist_badges = [b['badge_name'] for b in await db_get_user_wishlist_badges(user_discord_id)]
-    if badge in existing_wishlist_badges:
+    if badge_info_id in [b['badge_info_id'] for b in wishlist_badges]:
       await ctx.followup.send(
         embed=discord.Embed(
-          title="Badge Already Present in Wishlist!",
-          description=f"Unable to complete your request, **{badge}** is already present in your Wishlist.",
+          title="Badge Already Added!",
+          description=f"Unable to complete your request, **{badge_name}** is already present in your Wishlist!",
           color=discord.Color.red()
-        )
-      )
-      return
-
-    # Check to make sure the badge is not already present in their inventory
-    existing_user_badges = [b['badge_name'] for b in await db_get_user_badge_instances(user_discord_id)]
-    if badge in existing_user_badges:
-      await ctx.followup.send(
-        embed=discord.Embed(
-          title="Badge Already Present in Inventory!",
-          description=f"Unable to complete your request, **{badge}** is already present in your Inventory. No need to wish for it!",
-          color=discord.Color.red()
-        )
+        ).set_footer(text="Maybe you meant to use `/wishlist remove`?")
       )
       return
 
     # Otherwise, good to go and add the badge
-    await db_add_badge_name_to_users_wishlist(user_discord_id, badge)
+    await db_add_badge_info_id_to_prime_wishlist(user_discord_id, badge_info_id)
+    # Then lock it down across all tiers the user may currently possess it at
+    await db_lock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
+    discord_file, attachment_url = generate_unowned_badge_preview(user_discord_id, badge_info)
 
-    badge_info = await db_get_badge_info_by_name(badge)
-    discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
+    # Determine existing ownership per prestige tier
+    instances = await db_get_user_badge_instances(user_discord_id)
+    owned_tiers = sorted({
+      inst['prestige_level'] for inst in instances
+      if inst['badge_info_id'] == badge_info_id
+    })
+
+    embed_description = f"You've successfully added **{badge_name}** to your Wishlist."
+    if not owned_tiers:
+      embed_description += "\n\nYou do not yet own this badge at any of your current unlocked Prestige Tiers."
+      embed_description += " It will be used for matching at your current Tier, as well as future Tiers as you continue to progress!"
+    else:
+      embed_description += "\n\nGood news! You own this badge at Standard and/or some of your unlocked Prestige Tiers! They have been auto-locked now that you have added them to your wishlist."
+      embed_description += "\n\nYour new wishlist entry will continue to be used for matching at existing Tiers you may not have collected it at yet, and will also match at future Tiers as you unlock them!"
+
     embed = discord.Embed(
       title="Badge Added Successfully",
-      description=f"You've successfully added {badge} to your wishlist.",
+      description=embed_description,
       color=discord.Color.green()
     )
-    embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
-    await ctx.followup.send(embed=embed, file=discord_image)
+    embed.set_footer(text="Check `/wishlist matches` periodically to see if you can find some traders!")
+    if owned_tiers:
+      echelon_progress = await db_get_echelon_progress(user_discord_id)
+      current_prestige_level = echelon_progress['current_prestige_level']
+      for tier in range(current_prestige_level + 1):
+        owned = tier in owned_tiers
+        symbol = "✅" if owned else "❌"
+        embed.add_field(
+          name=PRESTIGE_TIERS[tier],
+          value=f"Owned: {symbol}",
+          inline=False
+        )
+
+    embed.set_image(url=attachment_url)
+    await ctx.followup.send(embed=embed, file=discord_file)
 
 
   #    _____       .___  .____________       __
@@ -1020,32 +847,22 @@ class Wishlist(commands.Cog):
       )
       return
 
-    existing_user_badges = [b['badge_info_id'] for b in await db_get_user_badge_instances(user_discord_id)]
-    existing_wishlist_badges = [b['id'] for b in await db_get_user_wishlist_badges(user_discord_id)]
-    special_badges = [b['id'] for b in await db_get_special_badge_info()]
-
-    # Filter out those badges that are already present in the Wishlist and user's Inventory
-    valid_badge_info_ids = [b['id'] for b in all_set_badges if b['id'] not in existing_user_badges and b['id'] not in existing_wishlist_badges and b['id'] not in special_badges]
-
-    # If there are no badges to add, error to user
-    if not valid_badge_info_ids:
-      await ctx.followup.send(
-        embed=discord.Embed(
-          title="All Set Badges Already Present!",
-          description=f"Unable to complete your request, all of the `{selection}` badges are already present in your Wishlist or in your Inventory.",
-          color=discord.Color.red()
-        )
-      )
-      return
+    wishlist_badges = await db_get_simple_prime_wishlist_badges(user_discord_id)
+    wishlist_badge_ids = {b['badge_info_id'] for b in wishlist_badges}
+    all_set_badge_ids = {b['id'] for b in all_set_badges}
+    valid_badge_info_ids = [id for id in all_set_badge_ids if id not in wishlist_badge_ids]
+    existing_badge_info_ids = [id for id in all_set_badge_ids if id in wishlist_badge_ids]
 
     # Otherwise go ahead and add them
-    await db_add_badge_info_ids_to_users_wishlist(user_discord_id, valid_badge_info_ids)
-    # And lock them down!
-    await db_lock_badges_by_filenames(user_discord_id, [b['badge_filename'] for b in all_set_badges])
+    await db_add_badge_info_ids_to_prime_wishlist(user_discord_id, valid_badge_info_ids)
+    # Then auto-lock them
+    await db_lock_badge_instances_by_badge_info_ids(user_discord_id, existing_badge_info_ids)
 
     embed = discord.Embed(
       title="Badge Set Added Successfully",
-      description=f"You've successfully added all of the `{selection}` badges to your Wishlist that you do not currently possess.",
+      description=f"You've successfully added all of the `{selection}` Badges to your Wishlist that you do not currently possess.\n\n"
+                   "They will be used for matching at your current Tier, as well as future Tiers as you continue to progress! "
+                   "Any Badges you may already possess from this set have been Locked across all Prestige Tiers.",
       color=discord.Color.green()
     )
     await ctx.followup.send(embed=embed)
@@ -1070,25 +887,36 @@ class Wishlist(commands.Cog):
   async def remove(self, ctx:discord.ApplicationContext, badge:str):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
+    try:
+      badge_info_id = int(badge)
+    except ValueError:
+      await ctx.respond(embed=discord.Embed(
+        title="Invalid Badge Selection",
+        description="Please select a valid badge from the dropdown.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
 
-    logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}remove {Style.RESET_ALL} the badge {Style.BRIGHT}{badge} {Style.RESET_ALL} from their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
+    badge_info = await db_get_badge_info_by_id(badge_info_id)
+    badge_name = badge_info['badge_name']
+
+    logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}remove {Style.RESET_ALL} the badge {Style.BRIGHT}{badge_name} {Style.RESET_ALL} from their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
     # Check to make sure the badges are present in their wishlist
-    user_wishlist_badge_names =  [b['badge_name'] for b in await db_get_user_wishlist_badges(user_discord_id)]
-    if badge not in user_wishlist_badge_names:
+    if not await db_is_badge_on_users_prime_wishlist(user_discord_id, badge_info_id):
       await ctx.followup.send(embed=discord.Embed(
         title="Badge Not Present in Wishlist!",
-        description=f"Unable to complete your request, {badge} is not present in your Wishlist",
+        description=f"Unable to complete your request, `{badge_name}` is not present in your Wishlist",
         color=discord.Color.red()
       ))
       return
 
     # If they are go ahead and remove the badges
-    await db_remove_badge_name_from_users_wishlist(user_discord_id, badge)
+    await db_remove_badge_info_id_from_prime_wishlist(user_discord_id, badge_info_id)
 
     await ctx.followup.send(embed=discord.Embed(
       title="Badge Removed Successfully",
-      description=f"You've successfully removed {badge} from your wishlist",
+      description=f"You've successfully removed `{badge_name}` from your wishlist",
       color=discord.Color.green()
     ))
 
@@ -1147,7 +975,13 @@ class Wishlist(commands.Cog):
     elif category == 'type':
       all_set_badges = await db_get_all_type_badges(selection)
     else:
-      await ctx.followup.send("Select a category")
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="Invalid Category",
+          description=f"The category `{category}` does not match our databanks, please select a valid category from the list!",
+          color=discord.Color.red()
+        )
+      )
       return
 
     category_title = category.replace("_", " ").title()
@@ -1161,28 +995,18 @@ class Wishlist(commands.Cog):
       )
       return
 
-    existing_wishlist_badge_info_ids = [b['id'] for b in await db_get_user_wishlist_badges(user_discord_id)]
+    wishlist_badges = await db_get_simple_prime_wishlist_badges(user_discord_id)
+    wishlist_badge_ids = {b['badge_info_id'] for b in wishlist_badges}
+    all_set_badge_ids = {b['id'] for b in all_set_badges}
+    valid_badge_info_ids = [id for id in all_set_badge_ids if id in wishlist_badge_ids]
 
-    # Filter out those badges that are not already present in the Wishlist and user's Inventory
-    valid_badge_ids = [b['id'] for b in all_set_badges if b['id'] in existing_wishlist_badge_info_ids]
-
-    # If there are no badges to add, error to user
-    if not valid_badge_ids:
-      await ctx.followup.send(
-        embed=discord.Embed(
-          title="No Set Badges Present in Wishlist!",
-          description=f"Unable to complete your request, none of the `{selection}` badges are currently present in your Wishlist.",
-          color=discord.Color.red()
-        )
-      )
-      return
-
-    # Otherwise go ahead and remove them
-    await db_remove_badge_info_ids_from_users_wishlist(user_discord_id, valid_badge_ids)
+    # Go ahead and add them
+    await db_remove_badge_info_ids_from_prime_wishlist(user_discord_id, valid_badge_info_ids)
 
     embed = discord.Embed(
       title="Badge Set Removed Successfully",
-      description=f"You've successfully removed all `{selection}` badges from your Wishlist.",
+      description=f"You've successfully removed all of the `{selection}` Badges from your Wishlist.\n\n"
+                   "They will no longer used for matching at your current Prestige Tier, as well as future Tiers as you continue to progress.",
       color=discord.Color.green()
     )
     await ctx.followup.send(embed=embed)
@@ -1216,7 +1040,7 @@ class Wishlist(commands.Cog):
     logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}clear{Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
     if confirmed:
-      await db_clear_users_wishlist(user_discord_id)
+      await db_clear_prime_wishlist(user_discord_id)
       logger.info(f"{ctx.author.display_name} has {Style.BRIGHT}cleared {Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
       embed = discord.Embed(
@@ -1246,50 +1070,76 @@ class Wishlist(commands.Cog):
   )
   @option(
     name="badge",
-    description="Badge to lock",
+    description="Badge to Lock",
     required=True,
     autocomplete=lock_autocomplete
   )
   async def lock(self, ctx:discord.ApplicationContext, badge:str):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
+    try:
+      badge_info_id = int(badge)
+    except ValueError:
+      await ctx.respond(embed=discord.Embed(
+        title="Invalid Badge Selection",
+        description="Please select a valid badge from the dropdown.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
 
     logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}lock{Style.RESET_ALL} the badge {Style.BRIGHT}{badge}{Style.RESET_ALL} from being listed in their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
-    # Check to make sure badge is present in inventory
-    existing_badges = [b['badge_name'] for b in await db_get_user_badge_instances(user_discord_id)]
-    if badge not in existing_badges:
+    badge_info = await db_get_badge_info_by_id(badge_info_id)
+    if not badge_info:
+      channel = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
       await ctx.followup.send(
         embed=discord.Embed(
-          title="Badge Not Present in Inventory!",
-          description=f"Unable to complete your request, `{badge}` is not present in your inventory.",
+          title="That Badge Doesn't Exist (Yet?)",
+          description=f"We don't have that one in our databanks! If you think this is an error please let us know in {channel.mention}!",
           color=discord.Color.red()
         )
       )
       return
 
-    badge_info = await db_get_badge_locked_status_by_name(user_discord_id, badge)
-    if badge_info['locked']:
+    badge_name = badge_info['badge_name']
+    # Determine existing ownership per prestige tier
+    instances = await db_get_user_badge_instances(user_discord_id)
+    owned_tiers = sorted({
+      inst['prestige_level'] for inst in instances
+      if inst['badge_info_id'] == badge_info_id
+    })
+    if not owned_tiers:
       await ctx.followup.send(
         embed=discord.Embed(
-          title="Badge Already Locked!",
-          description=f"Unable to complete your request, `{badge}` has already been locked in your inventory.",
+          title="You don't own that Badge!",
+          description=f"It doesn't appear that {badge_name} exists at any Prestige Tier in your inventory?",
           color=discord.Color.red()
         )
       )
       return
 
-    # Otherwise, good to go and add the badge
-    await db_lock_badge_by_filename(user_discord_id, badge_info['badge_filename'])
+    await db_lock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
+    discord_file, attachment_url = generate_unowned_badge_preview(user_discord_id, badge_info)
 
-    discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
     embed = discord.Embed(
       title="Badge Locked Successfully",
-      description=f"You've successfully locked `{badge}` from being listed in Wishlist matches.",
+      description=f"You've successfully locked `{badge_name}` from being listed in Wishlist matches (in the Prestige Tiers at which you possess it)!",
       color=discord.Color.green()
     )
-    embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
-    await ctx.followup.send(embed=embed, file=discord_image)
+    embed.set_image(url=attachment_url)
+    if owned_tiers:
+      echelon_progress = await db_get_echelon_progress(user_discord_id)
+      current_prestige_level = echelon_progress['current_prestige_level']
+      for tier in range(current_prestige_level + 1):
+        owned = tier in owned_tiers
+        symbol = "✅" if owned else "❌"
+        embed.add_field(
+          name=PRESTIGE_TIERS[tier],
+          value=f"Owned: {symbol}",
+          inline=False
+        )
+
+    await ctx.followup.send(embed=embed, file=discord_file)
 
 
   # .____                  __      _________       __
@@ -1366,13 +1216,12 @@ class Wishlist(commands.Cog):
       )
       return
 
-    # Otherwise, good to go and lock the badges
-    valid_badges = [b['badge_filename'] for b in all_set_badges]
-    await db_lock_badges_by_filenames(user_discord_id, valid_badges)
+    all_set_badge_ids = [b['id'] for b in all_set_badges]
+    await db_lock_badge_instances_by_badge_info_ids(user_discord_id, all_set_badge_ids)
 
     embed = discord.Embed(
       title="Badge Set Locked Successfully",
-      description=f"You've successfully locked all of the `{selection}` badges in your inventory from being listed in Wishlist matches.",
+      description=f"You've successfully locked all of the `{selection}` badges in your inventory from being listed in Wishlist matches (in the Prestige Tiers at which you possess it)!",
       color=discord.Color.green()
     )
     await ctx.followup.send(embed=embed)
@@ -1396,43 +1245,69 @@ class Wishlist(commands.Cog):
   async def unlock(self, ctx:discord.ApplicationContext, badge:str):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
+    try:
+      badge_info_id = int(badge)
+    except ValueError:
+      await ctx.respond(embed=discord.Embed(
+        title="Invalid Badge Selection",
+        description="Please select a valid badge from the dropdown.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
 
     logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}unlock {Style.RESET_ALL} the badge {Style.BRIGHT}{badge}{Style.RESET_ALL} from being listed in their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
-    # Check to make sure badge is present in inventory
-    existing_badges = [b['badge_name'] for b in await db_get_user_badge_instances(user_discord_id)]
-    if badge not in existing_badges:
+    badge_info = await db_get_badge_info_by_id(badge_info_id)
+    if not badge_info:
+      channel = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
       await ctx.followup.send(
         embed=discord.Embed(
-          title="Badge Not Present in Inventory!",
-          description=f"Unable to complete your request, `{badge}` is not present in your inventory.",
+          title="That Badge Doesn't Exist (Yet?)",
+          description=f"We don't have that one in our databanks! If you think this is an error please let us know in {channel.mention}!",
           color=discord.Color.red()
         )
       )
       return
 
-    badge_info = await db_get_badge_locked_status_by_name(user_discord_id, badge)
-    if not badge_info['locked']:
+    badge_name = badge_info['badge_name']
+    # Determine existing ownership per prestige tier
+    instances = await db_get_user_badge_instances(user_discord_id)
+    owned_tiers = sorted({
+      inst['prestige_level'] for inst in instances
+      if inst['badge_info_id'] == badge_info_id
+    })
+    if not owned_tiers:
       await ctx.followup.send(
         embed=discord.Embed(
-          title="Badge Unlocked!",
-          description=f"Unable to complete your request, `{badge}` has already been unlocked in your inventory.",
+          title="You don't own that Badge!",
+          description=f"It doesn't appear that {badge_name} exists at any Prestige Tier in your inventory?",
           color=discord.Color.red()
         )
       )
       return
 
-    # Otherwise, good to go and unlock the badge
-    await db_unlock_badge_by_filename(user_discord_id, badge_info['badge_filename'])
+    await db_unlock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
+    discord_file, attachment_url = generate_unowned_badge_preview(user_discord_id, badge_info)
 
-    discord_image = discord.File(fp=f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
     embed = discord.Embed(
       title="Badge Unlocked Successfully",
-      description=f"You've successfully unlocked `{badge}` and it will now be available for listing in Wishlist matches.",
+      description=f"You've successfully unlocked `{badge_name}` from being listed in Wishlist matches (in the Prestige Tiers at which you possess it)!",
       color=discord.Color.green()
     )
-    embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
-    await ctx.followup.send(embed=embed, file=discord_image)
+    embed.set_image(url=attachment_url)
+    if owned_tiers:
+      echelon_progress = await db_get_echelon_progress(user_discord_id)
+      current_prestige_level = echelon_progress['current_prestige_level']
+      for tier in range(current_prestige_level + 1):
+        owned = tier in owned_tiers
+        symbol = "✅" if owned else "❌"
+        embed.add_field(
+          name=PRESTIGE_TIERS[tier],
+          value=f"Owned: {symbol}",
+          inline=False
+        )
+
+    await ctx.followup.send(embed=embed, file=discord_file)
 
 
   #  ____ ___                     __      _________       __
@@ -1478,7 +1353,7 @@ class Wishlist(commands.Cog):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
 
-    logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}lock a set{Style.RESET_ALL}, {Style.BRIGHT}{category} - {selection}{Style.RESET_ALL}, from being listed in their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
+    logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}unlock a set{Style.RESET_ALL}, {Style.BRIGHT}{category} - {selection}{Style.RESET_ALL}, from being listed in their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
     if category == 'affiliation':
       all_set_badges = await db_get_all_affiliation_badges(selection)
@@ -1489,7 +1364,13 @@ class Wishlist(commands.Cog):
     elif category == 'type':
       all_set_badges = await db_get_all_type_badges(selection)
     else:
-      await ctx.followup.send("Select a category")
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="Invalid Category",
+          description=f"The category `{category}` does not match our databanks, please select a valid category from the list!",
+          color=discord.Color.red()
+        )
+      )
       return
 
     category_title = category.replace("_", " ").title()
@@ -1503,13 +1384,12 @@ class Wishlist(commands.Cog):
       )
       return
 
-    # Otherwise, good to go and lock the badges
-    valid_badges = [b['badge_filename'] for b in all_set_badges]
-    await db_unlock_badges_by_filenames(user_discord_id, valid_badges)
+    all_set_badge_ids = [b['id'] for b in all_set_badges]
+    await db_unlock_badge_instances_by_badge_info_ids(user_discord_id, all_set_badge_ids)
 
     embed = discord.Embed(
-      title="Badge Set Locked Successfully",
-      description=f"You've successfully unlocked all of the `{selection}` badges in your inventory and they will now be listed in Wishlist matches.",
+      title="Badge Set Unlocked Successfully",
+      description=f"You've successfully unlocked all of the `{selection}` badges in your inventory from being listed in Wishlist matches (in the Prestige Tiers at which you possess it)!",
       color=discord.Color.green()
     )
     await ctx.followup.send(embed=embed)

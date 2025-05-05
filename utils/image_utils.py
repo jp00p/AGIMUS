@@ -1054,6 +1054,23 @@ async def generate_badge_preview(user_id, badge, crystal=None, theme=None, disab
 
   return file, attachment_url
 
+async def generate_unowned_badge_preview(user_id, badge):
+  theme = await get_theme_preference(user_id, 'collection')
+  colors = get_theme_colors(theme)
+
+  badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
+
+  badge_slot = compose_badge_slot(badge, colors, badge_image, disable_overlays=True)
+  # compose_badge_slot always returns a list but we're never going to have an animated unowned badge so just grab the "first frame"
+  badge_image = badge_slot[0]
+
+  buf = io.BytesIO()
+  badge_image.save(buf, format='PNG')
+  buf.seek(0)
+  file = discord.File(buf, filename='preview.png')
+  attachment_url = 'attachment://preview.png'
+
+  return file, attachment_url
 
 def compose_badge_slot(
   badge: dict,

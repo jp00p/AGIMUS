@@ -85,66 +85,43 @@ async def migrate_badges(dry_run=False):
       print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {migrated} badge records ({skipped} skipped)")
 
       # ---------------------------
-      # 2. MIGRATE WISHLISTS
+      # 2. MIGRATE PRIME WISHLISTS
       # ---------------------------
-      print("... Migrating badge wishlists ...")
-      await cur.execute("SELECT user_discord_id, badge_filename FROM badge_wishlists")
-      wishlist_rows = await cur.fetchall()
+      print("... Migrating badge_wishlists -> badge_instances_wishlists ...")
+      await cur.execute("SELECT user_discord_id, badge_filename, time_created FROM badge_wishlists")
+      rows = await cur.fetchall()
 
-      wishlist_migrated = 0
-      for row in wishlist_rows:
-        user_id = row["user_discord_id"]
-        badge_filename = row["badge_filename"]
+      migrated = 0
+      for row in rows:
+        user_id       = row["user_discord_id"]
+        filename      = row["badge_filename"]
+        original_time = row["time_created"]
 
-        await cur.execute("SELECT id FROM badge_info WHERE badge_filename = %s", (badge_filename,))
-        badge_info = await cur.fetchone()
-        if not badge_info:
-          print(f"[Wishlist] Skipping unknown badge filename: {badge_filename}")
+        # resolve badge_info_id
+        await cur.execute(
+          "SELECT id FROM badge_info WHERE badge_filename = %s",
+          (filename,),
+        )
+        info = await cur.fetchone()
+        if not info:
+          print(f"[Wishlist] Skipping unknown badge_filename: {filename}")
           continue
 
         if not dry_run:
           await cur.execute(
             """
-            INSERT IGNORE INTO badge_instance_wishlists (user_discord_id, badge_info_id)
-            VALUES (%s, %s)
+            INSERT INTO badge_instances_wishlists
+              (user_discord_id, badge_info_id, time_added)
+            VALUES (%s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+              time_added = LEAST(time_added, VALUES(time_added))
             """,
-            (user_id, badge_info["id"])
+            (user_id, info["id"], original_time),
           )
-        wishlist_migrated += 1
 
-      print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {wishlist_migrated} wishlist entries")
+        migrated += 1
 
-      # ---------------------------
-      # 3. MIGRATE WISHLIST DISMISSALS
-      # ---------------------------
-      print("... Migrating wishlist dismissals ...")
-      await cur.execute("SELECT user_discord_id, match_discord_id, has, wants, time_created FROM wishlist_dismissals")
-      dismissal_rows = await cur.fetchall()
-
-      dismissals_migrated = 0
-      for row in dismissal_rows:
-        if not dry_run:
-          await cur.execute(
-            """
-            INSERT IGNORE INTO badge_instance_wishlist_dismissals (
-              user_discord_id,
-              match_discord_id,
-              has,
-              wants,
-              time_created
-            ) VALUES (%s, %s, %s, %s, %s)
-            """,
-            (
-              row["user_discord_id"],
-              row["match_discord_id"],
-              row["has"],
-              row["wants"],
-              row["time_created"]
-            )
-          )
-        dismissals_migrated += 1
-
-      print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {dismissals_migrated} wishlist dismissal entries")
+      print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {migrated} prime‑wishlist entries")
 
       # ---------------------------
       # 4. MIGRATE TAG ASSOCIATIONS
