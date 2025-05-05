@@ -7,7 +7,7 @@ from common import *
 
 from handlers.echelon_xp import *
 from handlers.auto_promotion import handle_auto_promotions
-from queries.wishlist import *
+from queries.wishlists import *
 from utils.echelon_rewards import *
 from utils.badge_utils import *
 from utils.settings_utils import db_get_current_xp_enabled_value

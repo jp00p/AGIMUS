@@ -14,7 +14,7 @@ from queries.badge_info import *
 from queries.badge_instances import *
 from queries.tongo import *
 from queries.trade import db_cancel_trade
-from queries.wishlist import *
+from queries.wishlists import *
 
 
 f = open("./data/rules_of_acquisition.txt", "r")

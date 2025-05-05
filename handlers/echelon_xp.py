@@ -2,7 +2,7 @@
 from common import *
 
 from queries.echelon_xp import *
-from queries.wishlist import db_is_badge_on_users_wishlist, db_autolock_badges_by_filenames_if_in_wishlist, db_purge_users_wishlist
+from queries.wishlists import db_is_badge_on_users_wishlist
 from utils.echelon_rewards import *
 from utils.prestige import PRESTIGE_TIERS, PRESTIGE_THEMES
 from utils.image_utils import generate_badge_preview

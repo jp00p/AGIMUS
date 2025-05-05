@@ -13,7 +13,7 @@ from utils.string_utils import *
 from queries.badge_completion import *
 from queries.badge_info import *
 from queries.badge_scrap import *
-from queries.wishlist import *
+from queries.wishlists import *
 from queries.trade import *
 
 # -> cogs.badges

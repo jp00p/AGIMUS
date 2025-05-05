@@ -29,7 +29,7 @@ paginator_buttons = [
 async def add_autocomplete(ctx:discord.AutocompleteContext):
   user_id = ctx.interaction.user.id
   special_badge_names = [b['badge_name'] for b in await db_get_special_badge_info()]
-  wishlisted_badge_names = [b['badge_name'] for b in await db_get_simple_prime_wishlist_badges(user_id)]
+  wishlisted_badge_names = [b['badge_name'] for b in await db_get_simple_wishlist_badges(user_id)]
   excluded_names = set(special_badge_names + wishlisted_badge_names)
 
   all_badges = await db_get_all_badge_info()
@@ -47,7 +47,7 @@ async def add_autocomplete(ctx:discord.AutocompleteContext):
 async def remove_autocomplete(ctx:discord.AutocompleteContext):
   user_id = ctx.interaction.user.id
   special_badge_names = [b['badge_name'] for b in await db_get_special_badge_info()]
-  wishlisted_badges = await db_get_simple_prime_wishlist_badges(user_id)
+  wishlisted_badges = await db_get_simple_wishlist_badges(user_id)
 
   filtered_badges = [b for b in wishlisted_badges if b['badge_name'] not in special_badge_names]
 
@@ -142,7 +142,7 @@ class DismissButton(discord.ui.Button):
     await interaction.response.defer()
     # insert dismissal records per badge and role at this prestige
     for bid in self.has_ids:
-      await db_add_prime_wishlist_dismissal(
+      await db_add_wishlist_dismissal(
         self.author_discord_id,
         self.match_discord_id,
         bid,
@@ -150,7 +150,7 @@ class DismissButton(discord.ui.Button):
         'has',
       )
     for bid in self.wants_ids:
-      await db_add_prime_wishlist_dismissal(
+      await db_add_wishlist_dismissal(
         self.author_discord_id,
         self.match_discord_id,
         bid,
@@ -192,7 +192,7 @@ class RevokeDismissalButton(discord.ui.Button):
   async def callback(self, interaction: discord.Interaction):
     await interaction.response.defer()
     # delete all dismissal rows for this user/match/prestige
-    await db_delete_prime_wishlist_dismissal(
+    await db_delete_wishlist_dismissal(
       self.author_discord_id,
       self.match_discord_id,
       self.prestige_level,
@@ -254,14 +254,14 @@ class Wishlist(commands.Cog):
       return
 
     owned = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id)]
-    wished = [b['badge_name'] for b in await db_get_simple_prime_wishlist_badges(payload.user_id)]
+    wished = [b['badge_name'] for b in await db_get_simple_wishlist_badges(payload.user_id)]
     # user_locked_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id, locked=True)]
 
     if payload.event_type == "REACTION_ADD":
       if badge_name not in owned and badge_name not in wished:
         logger.info(f"Adding {Style.BRIGHT}{badge_name}{Style.RESET_ALL} to {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
         info = await db_get_badge_info_by_name(badge_name)
-        await db_add_badge_info_id_to_prime_wishlist(member.id, info['id'])
+        await db_add_badge_info_id_to_wishlist(member.id, info['id'])
         try:
           embed = discord.Embed(
             title="Badge Added to Wishlist",
@@ -298,7 +298,7 @@ class Wishlist(commands.Cog):
       if badge_name in wished:
         logger.info(f"Removing {Style.BRIGHT}{badge_name}{Style.RESET_ALL} from {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
         info = await db_get_badge_info_by_name(badge_name)
-        await db_remove_badge_info_id_from_prime_wishlist(member.id, info['id'])
+        await db_remove_badge_info_id_from_wishlist(member.id, info['id'])
         try:
           embed = discord.Embed(
             title="Badge Removed from Wishlist",
@@ -539,7 +539,7 @@ class Wishlist(commands.Cog):
     await self._purge_invalid_wishlist_dismissals(user_id)
 
     # Fetch all dismissal records for this user
-    dismissals = await db_get_all_prime_wishlist_dismissals(user_id)
+    dismissals = await db_get_all_wishlist_dismissals(user_id)
     if not dismissals:
       await ctx.followup.send(
         embed=discord.Embed(
@@ -649,14 +649,14 @@ class Wishlist(commands.Cog):
       **{m['match_discord_id']:([], []) for m in inventory}
     }.items()}
     # Fetch all stored dismissals
-    stored = await db_get_all_prime_wishlist_dismissals(user_id)
+    stored = await db_get_all_wishlist_dismissals(user_id)
     for rec in stored:
       uid = rec['match_discord_id']
       saved_has = json.loads(rec['has'])
       saved_wants = json.loads(rec['wants'])
       prestige_level = rec['prestige_level']
       if uid not in valid or valid[uid] != (saved_has, saved_wants):
-        await db_delete_prime_wishlist_dismissal(user_id, uid, prestige_level)
+        await db_delete_wishlist_dismissal(user_id, uid, prestige_level)
 
 
   #    _____       .___  .___
@@ -717,7 +717,7 @@ class Wishlist(commands.Cog):
       return
 
     # We're good to actually retrieve the user's wishlist now
-    wishlist_badges = await db_get_simple_prime_wishlist_badges(user_discord_id)
+    wishlist_badges = await db_get_simple_wishlist_badges(user_discord_id)
 
     # Check to make sure the badge is not already present in their wishlist
     if badge_info_id in [b['badge_info_id'] for b in wishlist_badges]:
@@ -731,7 +731,7 @@ class Wishlist(commands.Cog):
       return
 
     # Otherwise, good to go and add the badge
-    await db_add_badge_info_id_to_prime_wishlist(user_discord_id, badge_info_id)
+    await db_add_badge_info_id_to_wishlist(user_discord_id, badge_info_id)
     # Then lock it down across all tiers the user may currently possess it at
     await db_lock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
     discord_file, attachment_url = generate_unowned_badge_preview(user_discord_id, badge_info)
@@ -847,14 +847,14 @@ class Wishlist(commands.Cog):
       )
       return
 
-    wishlist_badges = await db_get_simple_prime_wishlist_badges(user_discord_id)
+    wishlist_badges = await db_get_simple_wishlist_badges(user_discord_id)
     wishlist_badge_ids = {b['badge_info_id'] for b in wishlist_badges}
     all_set_badge_ids = {b['id'] for b in all_set_badges}
     valid_badge_info_ids = [id for id in all_set_badge_ids if id not in wishlist_badge_ids]
     existing_badge_info_ids = [id for id in all_set_badge_ids if id in wishlist_badge_ids]
 
     # Otherwise go ahead and add them
-    await db_add_badge_info_ids_to_prime_wishlist(user_discord_id, valid_badge_info_ids)
+    await db_add_badge_info_ids_to_wishlist(user_discord_id, valid_badge_info_ids)
     # Then auto-lock them
     await db_lock_badge_instances_by_badge_info_ids(user_discord_id, existing_badge_info_ids)
 
@@ -903,7 +903,7 @@ class Wishlist(commands.Cog):
     logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}remove {Style.RESET_ALL} the badge {Style.BRIGHT}{badge_name} {Style.RESET_ALL} from their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
     # Check to make sure the badges are present in their wishlist
-    if not await db_is_badge_on_users_prime_wishlist(user_discord_id, badge_info_id):
+    if not await db_is_badge_on_users_wishlist(user_discord_id, badge_info_id):
       await ctx.followup.send(embed=discord.Embed(
         title="Badge Not Present in Wishlist!",
         description=f"Unable to complete your request, `{badge_name}` is not present in your Wishlist",
@@ -912,7 +912,7 @@ class Wishlist(commands.Cog):
       return
 
     # If they are go ahead and remove the badges
-    await db_remove_badge_info_id_from_prime_wishlist(user_discord_id, badge_info_id)
+    await db_remove_badge_info_id_from_wishlist(user_discord_id, badge_info_id)
 
     await ctx.followup.send(embed=discord.Embed(
       title="Badge Removed Successfully",
@@ -995,13 +995,13 @@ class Wishlist(commands.Cog):
       )
       return
 
-    wishlist_badges = await db_get_simple_prime_wishlist_badges(user_discord_id)
+    wishlist_badges = await db_get_simple_wishlist_badges(user_discord_id)
     wishlist_badge_ids = {b['badge_info_id'] for b in wishlist_badges}
     all_set_badge_ids = {b['id'] for b in all_set_badges}
     valid_badge_info_ids = [id for id in all_set_badge_ids if id in wishlist_badge_ids]
 
     # Go ahead and add them
-    await db_remove_badge_info_ids_from_prime_wishlist(user_discord_id, valid_badge_info_ids)
+    await db_remove_badge_info_ids_from_wishlist(user_discord_id, valid_badge_info_ids)
 
     embed = discord.Embed(
       title="Badge Set Removed Successfully",
@@ -1040,7 +1040,7 @@ class Wishlist(commands.Cog):
     logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}clear{Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
     if confirmed:
-      await db_clear_prime_wishlist(user_discord_id)
+      await db_clear_wishlist(user_discord_id)
       logger.info(f"{ctx.author.display_name} has {Style.BRIGHT}cleared {Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
       embed = discord.Embed(

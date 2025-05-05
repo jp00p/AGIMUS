@@ -1,6 +1,6 @@
 from common import *
 
-from queries.wishlist import db_autolock_badges_by_filenames_if_in_wishlist, db_get_user_wishlist_badges, db_purge_users_wishlist
+# from queries.wishlists import db_autolock_badges_by_filenames_if_in_wishlist, db_get_user_wishlist_badges, db_purge_users_wishlist
 from queries.trade import *
 
 from utils.badge_trades import *

@@ -5,7 +5,7 @@ from queries.common import BADGE_INSTANCE_COLUMNS
 import json
 
 # Add
-async def db_add_badge_info_id_to_prime_wishlist(user_discord_id: str, badge_info_id: int):
+async def db_add_badge_info_id_to_wishlist(user_discord_id: str, badge_info_id: int):
   sql = '''
     INSERT INTO badge_instances_wishlists (user_discord_id, badge_info_id)
     VALUES (%s, %s)
@@ -14,7 +14,7 @@ async def db_add_badge_info_id_to_prime_wishlist(user_discord_id: str, badge_inf
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, (user_discord_id, badge_info_id))
 
-async def db_add_badge_info_ids_to_prime_wishlist(user_discord_id: str, badge_info_ids: list[int]):
+async def db_add_badge_info_ids_to_wishlist(user_discord_id: str, badge_info_ids: list[int]):
     """
     Bulk add multiple badge_info entries to a user's prime wishlist.
     Uses INSERT IGNORE to avoid duplicate constraint errors.
@@ -30,7 +30,7 @@ async def db_add_badge_info_ids_to_prime_wishlist(user_discord_id: str, badge_in
         await db.executemany(sql, values)
 
 # Remove
-async def db_remove_badge_info_id_from_prime_wishlist(user_discord_id: str, badge_info_id: int):
+async def db_remove_badge_info_id_from_wishlist(user_discord_id: str, badge_info_id: int):
   sql = '''
     DELETE FROM badge_instances_wishlists
     WHERE user_discord_id = %s
@@ -39,7 +39,7 @@ async def db_remove_badge_info_id_from_prime_wishlist(user_discord_id: str, badg
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, (user_discord_id, badge_info_id))
 
-async def db_remove_badge_info_ids_from_prime_wishlist(user_discord_id: str, badge_info_ids: list[int]):
+async def db_remove_badge_info_ids_from_wishlist(user_discord_id: str, badge_info_ids: list[int]):
   values = [(user_discord_id, bid) for bid in badge_info_ids]
   sql = '''
     DELETE FROM badge_instances_wishlists
@@ -49,7 +49,7 @@ async def db_remove_badge_info_ids_from_prime_wishlist(user_discord_id: str, bad
   async with AgimusDB(dictionary=True) as db:
     await db.executemany(sql, values)
 
-async def db_clear_prime_wishlist(user_discord_id: str):
+async def db_clear_wishlist(user_discord_id: str):
   sql = '''
     DELETE FROM badge_instances_wishlists
     WHERE user_discord_id = %s;
@@ -58,7 +58,7 @@ async def db_clear_prime_wishlist(user_discord_id: str):
     await db.execute(sql, (user_discord_id,))
 
 # CHECK
-async def db_is_badge_on_users_prime_wishlist(user_discord_id: str, badge_info_id: str):
+async def db_is_badge_on_users_wishlist(user_discord_id: str, badge_info_id: str):
   sql = '''
     SELECT 1
     FROM badge_instances_wishlists w
@@ -131,7 +131,7 @@ async def db_unlock_badge_instances_by_badge_info_ids(user_discord_id: str, badg
     await db.executemany(sql, values)
 
 # GET
-async def db_get_full_prime_wishlist_badges(
+async def db_get_full_wishlist_badges(
     user_discord_id: str,
     *,
     prestige: int | None = None
@@ -189,7 +189,7 @@ async def db_get_full_prime_wishlist_badges(
         return await db.fetchall()
 
 
-async def db_get_simple_prime_wishlist_badges(user_discord_id: str) -> list[dict]:
+async def db_get_simple_wishlist_badges(user_discord_id: str) -> list[dict]:
   """
   Returns just the basic badge information from the user's prime wishlist:
     - badge_info_id
@@ -291,7 +291,7 @@ async def db_get_wishlist_inventory_matches(user_discord_id: str) -> list[dict]:
     return await db.fetch_all(sql, (user_discord_id,))
 
 # Dismissals
-async def db_add_prime_wishlist_dismissal(
+async def db_add_wishlist_dismissal(
   user_discord_id: str,
   match_discord_id: str,
   badge_info_id: int,
@@ -308,7 +308,7 @@ async def db_add_prime_wishlist_dismissal(
       (user_discord_id, match_discord_id, badge_info_id, prestige_level, role)
     )
 
-async def db_delete_prime_wishlist_dismissal(
+async def db_delete_wishlist_dismissal(
   user_discord_id: str,
   match_discord_id: str,
   prestige_level: int,
@@ -323,7 +323,7 @@ async def db_delete_prime_wishlist_dismissal(
     await db.execute(sql, (user_discord_id, match_discord_id, prestige_level))
 
 
-async def db_get_all_prime_wishlist_dismissals(user_discord_id: str) -> list[dict]:
+async def db_get_all_wishlist_dismissals(user_discord_id: str) -> list[dict]:
   """
   Fetch all dismissal records for a user's prime wishlist matches.
   Returns rows with fields: user_discord_id, match_discord_id, badge_info_id, prestige_level, role, time_created
