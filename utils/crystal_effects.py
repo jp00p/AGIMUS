@@ -379,7 +379,7 @@ def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
 # 888     888 888  888 888     888  888 888  888  888 888  888  888 888  888 888  888
 # Y88b. .d88P 888  888 Y88b.   Y88..88P 888  888  888 888  888  888 Y88..88P 888  888
 #  "Y88888P"  888  888  "Y8888P "Y88P"  888  888  888 888  888  888  "Y88P"  888  888
-@register_effect("isolinear")
+@register_effect("optical")
 def effect_isolinear(img, badge):
   return _apply_gradient_silhouette_border(img, (0, 200, 255), (140, 255, 0))
 
@@ -547,9 +547,12 @@ def apply_rare_background_and_border(
   border_gradient_bottom_right: tuple[int, int, int] = (0, 0, 0),
   border_width: int = 2,
   border_radius: int = 24,
+  shadow_offset: tuple[int, int] = (4, 4),
+  shadow_blur: int = 3,
+  shadow_color: tuple[int, int, int, int] = (0, 0, 0, 180)
 ) -> Image.Image:
   """
-  Applies a rare-tier crystal effect with a diagonal gradient border.
+  Applies a rare-tier crystal effect over the background with a drop-shadow, and adds a diagonal gradient border.
 
   Args:
     badge_image: The badge RGBA image.
@@ -558,13 +561,16 @@ def apply_rare_background_and_border(
     border_gradient_bottom_right: RGB tuple for the bottom-right color.
     border_width: Thickness of the border.
     border_radius: Corner rounding radius.
+    shadow_offset: How far away from the badge to apply the shadow
+    shadow_blur: How strong to blur the shadow
+    shadow_color: Different shadow color if desired
 
   Returns:
     Image.Image with the full visual effect applied.
   """
   badge_size = badge_image.size
 
-  # Load and mask the background
+  # Load and mask background
   background = Image.open(background_path).convert("RGBA").resize(badge_size)
   outer_mask = Image.new("L", badge_size, 0)
   draw_outer = ImageDraw.Draw(outer_mask)
@@ -575,10 +581,17 @@ def apply_rare_background_and_border(
   )
   background_cropped = Image.composite(background, Image.new("RGBA", badge_size), outer_mask)
 
-  # Composite badge onto background
-  composite = Image.alpha_composite(background_cropped, badge_image)
+  # Drop Shadow
+  shadow = Image.new("RGBA", badge_size, (0, 0, 0, 0))
+  alpha_mask = badge_image.split()[-1]
+  shadow.paste(shadow_color, shadow_offset, mask=alpha_mask)
+  shadow_blurred = shadow.filter(ImageFilter.GaussianBlur(radius=shadow_blur))
 
-  # Create diagonal border gradient
+  # Composite background + shadow + badge
+  base = Image.alpha_composite(background_cropped, shadow_blurred)
+  composite = Image.alpha_composite(base, badge_image)
+
+  # Border Gradient
   border_gradient = Image.new("RGBA", badge_size)
   for y in range(badge_size[1]):
     for x in range(badge_size[0]):
@@ -588,7 +601,6 @@ def apply_rare_background_and_border(
       b = int(border_gradient_top_left[2] * (1 - t) + border_gradient_bottom_right[2] * t)
       border_gradient.putpixel((x, y), (r, g, b, 255))
 
-  # Create mask for just the border ring
   inner_mask = Image.new("L", badge_size, 0)
   draw_inner = ImageDraw.Draw(inner_mask)
   draw_inner.rounded_rectangle(
@@ -599,7 +611,6 @@ def apply_rare_background_and_border(
   border_mask = ImageChops.subtract(outer_mask, inner_mask)
   gradient_border = Image.composite(border_gradient, Image.new("RGBA", badge_size, (0, 0, 0, 0)), border_mask)
 
-  # Final composite with gradient border
   return Image.alpha_composite(composite, gradient_border)
 
 @register_effect("trilithium_banger")
@@ -662,11 +673,57 @@ def effect_crystalline_entity(badge_image: Image.Image, badge: dict) -> Image.Im
   )
   return result
 
+@register_effect("coffee_nebula")
+def effect_coffee_nebula(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  The nebula from "There's Coffee In That Nebula" background.
+  Used for the Colombian Coffee Crystal (Rare tier).
+  """
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/coffee_nebula.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(157, 122, 134),
+    border_gradient_bottom_right=(43, 33, 54)
+  )
+  return result
+
+@register_effect("positronic_net")
+def effect_coffee_nebula(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Positronic Brain display from Star Trek: Picard background.
+  Used for the Positron Crystal (Rare tier).
+  """
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/positronic_net.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(157, 122, 134),
+    border_gradient_bottom_right=(43, 33, 54)
+  )
+  return result
+
+@register_effect("isolinear_circuit")
+def effect_isolinear_circuit(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Basic black-green Isolinear Circuitry background.
+  Used for the Isolinear Circuit crystal (Rare tier).
+  """
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/isolinear_circuit.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(140, 255, 0),
+    border_gradient_bottom_right=(10, 50, 10)
+  )
+  return result
+
+
 @register_effect("q_grid")
 def effect_q_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
   Q Grid from Encounter at Farpoint background.
-  Used for the Continuum crystal (Rare tier).
+  Used for the Farpoint Fragment crystal (Rare tier).
   """
   bg_path = f"{RARE_BACKGROUNDS_DIR}/q_grid.png"
   result = apply_rare_background_and_border(
@@ -674,21 +731,6 @@ def effect_q_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
     bg_path,
     border_gradient_top_left=(196, 197, 247),
     border_gradient_bottom_right=(50, 51, 101)
-  )
-  return result
-
-@register_effect("coffee_nebula")
-def effect_trilithium_banger(badge_image: Image.Image, badge: dict) -> Image.Image:
-  """
-  The nebula from "There's Coffee In That Nebula" background.
-  Used for the Colombian Coffee Crystal (Rare tier).
-  """
-  bg_path = f"{RARE_BACKGROUNDS_DIR}/q_grid.png"
-  result = apply_rare_background_and_border(
-    badge_image,
-    bg_path,
-    border_gradient_top_left=(157, 122, 134),
-    border_gradient_bottom_right=(43, 33, 54)
   )
   return result
 
@@ -1044,54 +1086,58 @@ def effect_celestial_temple(badge_image: Image.Image, badge: dict) -> list[Image
   Used for the Bajoran Orb crystal (Mythic tier).
   """
   canvas_size = (200, 200)
-  base_path = Path("./images/crystal_effects/animations/celestial_temple")
+  base_path = Path("images/crystal_effects/animations/celestial_temple")
 
-  # Load lens flare frames (01–07)
-  lens_flare_frames = []
-  for i in range(1, 8):
-    path = base_path / "lens_flare" / f"{i:02}.png"
-    lens_flare_frames.append(Image.open(path).convert("RGBA"))
+  # Load lens flare frames (00–03)
+  lens_flare_frames = [
+    Image.open(base_path / "lens_flare_frames" / f"{i:02}.png").convert("RGBA").resize(canvas_size)
+    for i in range(4)
+  ]
 
-  # Load wormhole frames (01–17)
-  wormhole_frames = []
-  for i in range(1, 18):
-    path = base_path / "wormhole" / f"{i:02}.png"
-    wormhole_frames.append(Image.open(path).convert("RGBA"))
+  # Load wormhole frames (00–16)
+  wormhole_frames = [
+    Image.open(base_path / "wormhole_frames" / f"{i:02}.png").convert("RGBA").resize(canvas_size)
+    for i in range(17)
+  ]
 
   output_frames = []
 
-  # Frames 0–6: lens flare only
-  for i in range(7):
-    base = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
-    output_frames.append(Image.alpha_composite(base, lens_flare_frames[i]))
+  # Frame 0: blank
+  blank = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
+  output_frames.append(blank.copy())
 
-  # Frames 7–10: wormhole scales in from 0% → 100%
+  # Frames 1–4: lens flare
+  for frame in lens_flare_frames:
+    base = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
+    output_frames.append(Image.alpha_composite(base, frame))
+
+  # Frame 5: blank
+  output_frames.append(blank.copy())
+
+  # Frames 6–9: wormhole scale in
   for i in range(4):
-    scale = i / 3  # 0.0, 0.33, 0.66, 1.0
+    scale = i / 3
     wormhole = wormhole_frames[i].copy()
     size = max(1, int(wormhole.width * scale)), max(1, int(wormhole.height * scale))
-    scaled = wormhole.resize(size, Image.LANCZOS)
-
+    scaled = wormhole.resize(size, Image.Resampling.LANCZOS)
     base = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
-    offset = (
-      (canvas_size[0] - size[0]) // 2,
-      (canvas_size[1] - size[1]) // 2,
-    )
+    offset = ((canvas_size[0] - size[0]) // 2, (canvas_size[1] - size[1]) // 2)
     base.paste(scaled, offset, scaled)
     output_frames.append(base)
 
-  # Frames 11–16: badge scale-in (ease-out cubic)
+  # Frames 10–15: badge scale-in
   def ease_out_cubic(t): return 1 - (1 - t) ** 3
   x_offsets = [-10, -5, -2, 1, 0, 0]
+  final_scaled_badge = None
 
   for i in range(6):
     progress = ease_out_cubic(i / 5)
     scale = 0.10 + (1.0 - 0.10) * progress
     size = int(badge_image.width * scale), int(badge_image.height * scale)
-    badge_frame = badge_image.resize(size, Image.LANCZOS)
+    badge_frame = badge_image.resize(size, Image.Resampling.LANCZOS)
 
     if i == 0:
-      badge_frame.putalpha(int(255 * 0.4))  # subtle fade-in on first frame
+      badge_frame.putalpha(int(255 * 0.4))
 
     offset = (
       (canvas_size[0] - size[0]) // 2 + x_offsets[i],
@@ -1100,18 +1146,17 @@ def effect_celestial_temple(badge_image: Image.Image, badge: dict) -> list[Image
 
     layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
     layer.paste(badge_frame, offset, badge_frame)
-    bg = wormhole_frames[i + 4].copy().resize(canvas_size, Image.LANCZOS)
+    bg = wormhole_frames[i + 4]
     output_frames.append(Image.alpha_composite(bg, layer))
 
-  # Frames 17–23: hold at full badge
+    if i == 5:
+      final_scaled_badge = (badge_frame, offset)
+
+  # Frames 16–22: hold final badge
   for i in range(7):
-    bg = wormhole_frames[i + 10].copy().resize(canvas_size, Image.LANCZOS)
+    bg = wormhole_frames[i + 10]
     layer = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-    offset = (
-      (canvas_size[0] - badge_image.width) // 2,
-      (canvas_size[1] - badge_image.height) // 2,
-    )
-    layer.paste(badge_image, offset, badge_image)
+    layer.paste(final_scaled_badge[0], final_scaled_badge[1], final_scaled_badge[0])
     output_frames.append(Image.alpha_composite(bg, layer))
 
   return output_frames
