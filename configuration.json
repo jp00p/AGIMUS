@@ -1014,6 +1014,17 @@
       "data": null,
       "parameters": []
     },
+    "wishlist display": {
+      "channels": [
+        "badgeys-badges",
+        "bahrats-bazaar",
+        "gelrak-v",
+        "zeks-table"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "wishlist dismissals": {
       "channels": [
         "badgeys-badges",

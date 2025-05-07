@@ -68,7 +68,7 @@ from cogs.slots import Slots
 from cogs.tongo import Tongo
 from cogs.trade import Trade
 from cogs.randomep import RandomEp
-from cogs.wishlist import Wishlist
+from cogs.wishlists import Wishlist
 from cogs.wordcloud import Wordcloud
 bot.add_cog(Backups(bot))
 bot.add_cog(Badges(bot))

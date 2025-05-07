@@ -215,8 +215,8 @@ async def post_first_level_welcome_embed(member, badge_data, source_details = No
     discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
     embed = discord.Embed(
       title="Echelon 1!",
-      description="Enter, Friend! Welcome aboard {member.mention}! You've materialized onto The Hood's Transporter Pad and been inducted into Echelon 1!"
-                  "\nYour activity on The Hood earns you optional XP and Badges you can collect and trade to other crew members (for funzies)!",
+      description=f"Enter, Friend! Welcome aboard {member.mention}! You've materialized onto The Hood's Transporter Pad and been inducted into Echelon 1!"
+                  "\n\nYour activity on The Hood earns you optional XP and Badges you can collect and trade to other crew members (for funzies)!",
       color=discord.Color.green()
     )
     embed.set_image(url=attachment_url)
@@ -230,9 +230,9 @@ async def post_first_level_welcome_embed(member, badge_data, source_details = No
     prestige_msg = f"## TRANSPORTER SIGNAL CONVERSION COMPLETE! {member.mention}, welcome to Echelon 1!!!"
     embed = discord.Embed(
       title="Echelon 1!",
-      description="Re-sequencing {member.mention}'s pattern finalized! You've been converted from the Legacy XP System and initialized at Echelon 1!"
-                  "\nVery exciting. Your Legacy XP has been retained for bragging rights (viewable through `/profile`), and worry not, all of your existing badges are intact at the Standard Prestige Tier."
-                  f"\nBe sure to check out the details of the new system over at {agimus_announcement_channel.mention}",
+      description=f"Re-sequencing {member.mention}'s pattern finalized! You've been converted from the Legacy XP System and initialized at Echelon 1!"
+                  "\n\nVery exciting. Your Legacy XP has been retained for bragging rights (viewable through `/profile`), and worry not, all of your existing badges are intact at the Standard Prestige Tier."
+                  f"\n\nBe sure to check out the details of the new system over at {agimus_announcement_channel.mention}",
       color=discord.Color.green()
     )
     embed.set_image(url="https://i.imgur.com/3ALMc8V.png")
@@ -259,7 +259,7 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
     )
   else:
     embed = discord.Embed(
-      title="✨ Crystal Pattern BufferS Acquired! ✨",
+      title="✨ Crystal Pattern Buffers Acquired! ✨",
       description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Pattern Buffers** in their hands when they reached Echelon {level}!\n\nThey can now use them to replicate {number_of_patterns} Crystals from scratch!",
       color=discord.Color.teal()
     )
@@ -301,6 +301,8 @@ def is_message_channel_unblocked(message: discord.Message) -> bool:
   return False
 
 def determine_level_up_source_details(user: discord.User, source):
+  logger.info("Level Up Source:")
+  logger.info(pprint(source))
   """Returns a short description string about what caused the XP level-up event."""
   if isinstance(source, discord.Message):
     return _message_source_details(source)

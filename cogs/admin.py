@@ -33,9 +33,11 @@ class Admin(commands.Cog):
   async def autocomplete_crystals(self, ctx: discord.AutocompleteContext):
     crystals = await db_get_available_crystal_types()
     results = []
+    results = []
     for c in crystals:
       label = f"{c['emoji']} {c['name']}"
-      results.append(discord.OptionChoice(name=label, value=str(c['id'])))
+      if ctx.value.lower() in c['name'].lower():
+        results.append(discord.OptionChoice(name=label, value=str(c['id'])))
     return results
 
   admin_group = discord.SlashCommandGroup("admin", "Admin Commands for Debugging.")
@@ -282,7 +284,7 @@ class Admin(commands.Cog):
     progress = await db_get_echelon_progress(user.id)
     xp_needed = xp_required_for_level(progress['current_level']) if progress else 69
 
-    await grant_xp(user, xp_needed - 1, reason="admin")
+    await grant_xp(user, xp_needed - 5, reason="admin")
 
     embed = discord.Embed(
       title="Level-Up Near-Simulated",

@@ -85,7 +85,7 @@ async def handle_message_xp(message: discord.Message):
     xp_amt += 1
 
   if xp_amt > 0:
-    await grant_xp(message.author, xp_amt, "posted_message", message.channel, source=message.channel)
+    await grant_xp(message.author, xp_amt, "posted_message", message.channel, source=message)
     await handle_auto_promotions(message)
 
 

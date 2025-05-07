@@ -1129,10 +1129,10 @@ def compose_badge_slot(
       slot_canvas.paste(gradient, (0, 0), gradient)
       slot_canvas.paste(prestige_border, (0, 0), prestige_border)
     else:
-      # Standard gradient is just a very slightly complete black to slightly less black
+      # Subtle dark gradient for Standard Tier badges
       gradient = _create_gradient_fill(
         (dims.slot_width, dims.slot_height),
-        (0, 0, 0),
+        (5, 5, 5),
         (30, 30, 30)
       )
       mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)

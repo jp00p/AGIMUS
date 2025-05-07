@@ -141,19 +141,21 @@ class DismissButton(discord.ui.Button):
   async def callback(self, interaction: discord.Interaction):
     await interaction.response.defer()
     # insert dismissal records per badge and role at this prestige
-    for bid in self.has_ids:
+    for badge_name in self.has_ids:
+      info = await db_get_badge_info_by_name(badge_name)
       await db_add_wishlist_dismissal(
         self.author_discord_id,
         self.match_discord_id,
-        bid,
+        info[id],
         self.prestige_level,
         'has',
       )
-    for bid in self.wants_ids:
+    for badge_name in self.wants_ids:
+      info = await db_get_badge_info_by_name(badge_name)
       await db_add_wishlist_dismissal(
         self.author_discord_id,
         self.match_discord_id,
-        bid,
+        info[id],
         self.prestige_level,
         'wants',
       )
@@ -329,7 +331,7 @@ class Wishlist(commands.Cog):
     required=True,
     autocomplete=autocomplete_prestige_tiers
   )
-  @commands.check(is_prestige_valid)
+  @commands.check(access_check)
   async def display(self, ctx: discord.ApplicationContext, prestige: str):
     await ctx.defer(ephemeral=True)
     user_id = ctx.author.id
@@ -366,7 +368,7 @@ class Wishlist(commands.Cog):
     pages_list = []
     for idx, page in enumerate(pages_data, start=1):
       embed = discord.Embed(
-        title=f"{PRESTIGE_TIERS[prestige_level]} Wishlist",
+        title=f"{ctx.author.display_name}'s Wishlist ({PRESTIGE_TIERS[prestige_level]} Tier)",
         description="\n".join(
           f"[{b['badge_name']}]({b['badge_url']})" for b in page
         ),
@@ -400,7 +402,7 @@ class Wishlist(commands.Cog):
     required=True,
     autocomplete=autocomplete_prestige_tiers
   )
-  @commands.check(is_prestige_valid)
+  @commands.check(access_check)
   async def matches(self, ctx: discord.ApplicationContext, prestige: str):
     await ctx.defer(ephemeral=True)
     user_id = ctx.author.id
@@ -435,93 +437,112 @@ class Wishlist(commands.Cog):
       )
       return
 
+    minimum_match_found = False
     # Build paginated page groups for each match
     for m in matches:
-      partner = await bot.current_guild.fetch_member(m['match_discord_id'])
-      has_badges = json.loads(m['badges_you_want_that_they_have'])
-      wants_badges = json.loads(m['badges_they_want_that_you_have'])
+      try:
+        partner = await bot.current_guild.fetch_member(m['match_discord_id'])
+        has_badges = json.loads(m['badges_you_want_that_they_have'])
+        wants_badges = json.loads(m['badges_they_want_that_you_have'])
 
-      # Paginate 'has' badges
-      max_per_page = 30
-      all_has = [has_badges[i:i+max_per_page] for i in range(0, len(has_badges), max_per_page)]
-      has_pages = []
-      total_has = len(all_has)
-      for idx, page_badges in enumerate(all_has):
-        embed = discord.Embed(
-          title="What You Want",
-          description="\n".join(page_badges),
+        # Paginate 'has' badges
+        max_per_page = 30
+        all_has = [has_badges[i:i+max_per_page] for i in range(0, len(has_badges), max_per_page)]
+        has_pages = []
+        total_has = len(all_has)
+        for idx, page_badges in enumerate(all_has):
+          embed = discord.Embed(
+            title="What You Want",
+            description="\n".join(page_badges),
+            color=discord.Color.blurple()
+          )
+          embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx+1} of {total_has}")
+          has_pages.append(embed)
+
+        # Paginate 'wants' badges
+        all_wants = [wants_badges[i:i+max_per_page] for i in range(0, len(wants_badges), max_per_page)]
+        wants_pages = []
+        total_wants = len(all_wants)
+        for idx, page_badges in enumerate(all_wants):
+          embed = discord.Embed(
+            title="What They Want",
+            description="\n".join(page_badges),
+            color=discord.Color.blurple()
+          )
+          embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx+1} of {total_wants}")
+          wants_pages.append(embed)
+
+        # Dismiss button
+        view = discord.ui.View()
+        view.add_item(DismissButton(
+          self,
+          user_id,
+          m['match_discord_id'],  # partner
+          prestige,
+          json.loads(m['badges_you_want_that_they_have']),
+          json.loads(m['badges_they_want_that_you_have']),
+        ))
+
+        # Assemble page groups
+        page_groups = [
+          pages.PageGroup(
+            pages=[
+              discord.Embed(
+                title=f"Wishlist Match! ({PRESTIGE_TIERS[prestige]} Tier)",
+                description=f"{partner.mention} ({partner.display_name}) has a wishlist match with you!",
+                color=discord.Color.blurple()
+              )
+            ],
+            label=f"{partner.display_name}'s Match!",
+            description="Details and Info",
+            custom_buttons=paginator_buttons,
+            use_default_buttons=False,
+            custom_view=view
+          ),
+          pages.PageGroup(
+            pages=has_pages,
+            label="What You Want",
+            description="Badges They Have From Your Wishlist",
+            custom_buttons=paginator_buttons,
+            use_default_buttons=False,
+            custom_view=view
+          ),
+          pages.PageGroup(
+            pages=wants_pages,
+            label="What They Want",
+            description="Badges They Want From Your Inventory",
+            custom_buttons=paginator_buttons,
+            use_default_buttons=False,
+            custom_view=view
+          )
+        ]
+
+        # Send paginator
+        paginator = WishlistPaginator(
+          pages=page_groups,
+          show_menu=True,
+          custom_buttons=paginator_buttons,
+          use_default_buttons=False,
+          custom_view=view
+        )
+        await paginator.respond(ctx.interaction, ephemeral=True)
+        minimum_match_found = True
+      except discord.errors.NotFound as e:
+        # Member is no longer on server, clear and ignore
+        defunct_member_id = m['match_discord_id']
+        await db_clear_wishlist(defunct_member_id)
+        pass
+
+    if not minimum_match_found:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="No Active Members!",
+          description=f"You had one or more matches but the relevant Member(s) are no longer active on the server!\n\nTheir wishlist(s) have been cleared.",
           color=discord.Color.blurple()
-        )
-        embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx+1} of {total_has}")
-        has_pages.append(embed)
-
-      # Paginate 'wants' badges
-      all_wants = [wants_badges[i:i+max_per_page] for i in range(0, len(wants_badges), max_per_page)]
-      wants_pages = []
-      total_wants = len(all_wants)
-      for idx, page_badges in enumerate(all_wants):
-        embed = discord.Embed(
-          title="What They Want",
-          description="\n".join(page_badges),
-          color=discord.Color.blurple()
-        )
-        embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx+1} of {total_wants}")
-        wants_pages.append(embed)
-
-      # Dismiss button
-      view = discord.ui.View()
-      view.add_item(DismissButton(
-        self,
-        user_id,
-        m['match_discord_id'],  # partner
-        prestige,
-        json.loads(m['badges_you_want_that_they_have']),
-        json.loads(m['badges_they_want_that_you_have']),
-      ))
-
-      # Assemble page groups
-      page_groups = [
-        pages.PageGroup(
-          pages=[
-            discord.Embed(
-              title=f"Wishlist Match! ({PRESTIGE_TIERS[prestige]} Tier)",
-              description=f"{partner.mention} ({partner.display_name}) has a wishlist match with you!",
-              color=discord.Color.blurple()
-            )
-          ],
-          label=f"{partner.display_name}'s Match!",
-          description="Details and Info",
-          custom_buttons=paginator_buttons,
-          use_default_buttons=False,
-          custom_view=view
         ),
-        pages.PageGroup(
-          pages=has_pages,
-          label="What You Want",
-          description="Badges They Have From Your Wishlist",
-          custom_buttons=paginator_buttons,
-          use_default_buttons=False,
-          custom_view=view
-        ),
-        pages.PageGroup(
-          pages=wants_pages,
-          label="What They Want",
-          description="Badges They Want From Your Inventory",
-          custom_buttons=paginator_buttons,
-          use_default_buttons=False,
-          custom_view=view
-        )
-      ]
-
-      # Send paginator
-      paginator = WishlistPaginator(
-        pages=page_groups,
-        show_menu=True,
-        custom_buttons=paginator_buttons,
-        use_default_buttons=False,
-        custom_view=view
+        ephemeral=True
       )
-      await paginator.respond(ctx.interaction, ephemeral=True)
+      return
 
 
   @wishlist_group.command(
@@ -551,93 +572,113 @@ class Wishlist(commands.Cog):
       return
 
     # Iterate through each dismissal and present it in a paginated view
+    minimum_dismissal_found = False
     for record in dismissals:
-      partner_id = record['match_discord_id']
-      partner = await bot.current_guild.fetch_member(partner_id)
-      dismissed_has = json.loads(record['has'])
-      dismissed_wants = json.loads(record['wants'])
-      prestige = record['prestige_level']
+      try:
+        partner_id = record['match_discord_id']
+        partner = await bot.current_guild.fetch_member(partner_id)
+        dismissed_has = json.loads(record['has'])
+        dismissed_wants = json.loads(record['wants'])
+        prestige = record['prestige_level']
 
-      # Resolve badge info for display
-      has_badges = [await db_get_badge_info_by_id(bid) for bid in dismissed_has]
-      wants_badges = [await db_get_badge_info_by_id(bid) for bid in dismissed_wants]
+        # Resolve badge info for display
+        has_badges = [await db_get_badge_info_by_id(bid) for bid in dismissed_has]
+        wants_badges = [await db_get_badge_info_by_id(bid) for bid in dismissed_wants]
 
-      # Build pages for "Has From Your Wishlist"
-      max_per_page = 30
-      all_has_pages = [has_badges[i:i + max_per_page] for i in range(0, len(has_badges), max_per_page)]
-      has_pages = []
-      for idx, chunk in enumerate(all_has_pages, start=1):
-        embed = discord.Embed(
-          title="Has From Your Wishlist:",
-          description="\n".join(f"[{b['badge_name']}]({b['badge_url']})" for b in chunk),
+        # Build pages for "Has From Your Wishlist"
+        max_per_page = 30
+        all_has_pages = [has_badges[i:i + max_per_page] for i in range(0, len(has_badges), max_per_page)]
+        has_pages = []
+        for idx, chunk in enumerate(all_has_pages, start=1):
+          embed = discord.Embed(
+            title="Has From Your Wishlist:",
+            description="\n".join(f"[{b['badge_name']}]({b['badge_url']})" for b in chunk),
+            color=discord.Color.blurple()
+          )
+          embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx} of {len(all_has_pages)}")
+          has_pages.append(embed)
+
+        # Build pages for "Wants From Your Inventory"
+        all_wants_pages = [wants_badges[i:i + max_per_page] for i in range(0, len(wants_badges), max_per_page)]
+        wants_pages = []
+        for idx, chunk in enumerate(all_wants_pages, start=1):
+          embed = discord.Embed(
+            title="Wants From Your Inventory:",
+            description="\n".join(f"[{b['badge_name']}]({b['badge_url']})" for b in chunk),
+            color=discord.Color.blurple()
+          )
+          embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx} of {len(all_wants_pages)}")
+          wants_pages.append(embed)
+
+        # Set up dismiss/revoke button
+        view = discord.ui.View()
+        view.add_item(RevokeDismissalButton(
+          self,
+          user_id,
+          partner_id,
+          prestige
+        ))
+
+        # Group into a multi-page paginator
+        page_groups = [
+          pages.PageGroup(
+            pages=[
+              discord.Embed(
+                title=f"Wishlist Match! ({PRESTIGE_TIERS[prestige]} Tier)",
+                description=f"{partner.mention} ({partner.display_name}) had this match with you which was dismissed.",
+                color=discord.Color.blurple()
+              )
+            ],
+            label=f"{partner.display_name}'s Match!",
+            description="Details and Info",
+            custom_buttons=paginator_buttons,
+            use_default_buttons=False,
+            custom_view=view
+          ),
+          pages.PageGroup(
+            pages=has_pages,
+            label="What You Wanted",
+            description="Badges You Wanted That They Have",
+            custom_buttons=paginator_buttons,
+            use_default_buttons=False,
+            custom_view=view
+          ),
+          pages.PageGroup(
+            pages=wants_pages,
+            label="What They Wanted",
+            description="Badges They Wanted That You Have",
+            custom_buttons=paginator_buttons,
+            use_default_buttons=False,
+            custom_view=view
+          )
+        ]
+
+        paginator = WishlistPaginator(
+          pages=page_groups,
+          show_menu=True,
+          custom_buttons=paginator_buttons,
+          use_default_buttons=False,
+          custom_view=view
+        )
+        await paginator.respond(ctx.interaction, ephemeral=True)
+        minimum_dismissal_found = True
+      except discord.errors.NotFound:
+        # Member is no longer on server, clear and ignore
+        defunct_member_id = m['match_discord_id']
+        await db_clear_wishlist(defunct_member_id)
+        pass
+
+    if not minimum_dismissal_found:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="No Active Members!",
+          description=f"You had one or more dismissals but the relevant Member(s) are no longer active on the server!\n\nTheir wishlist(s) have been cleared.",
           color=discord.Color.blurple()
-        )
-        embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx} of {len(all_has_pages)}")
-        has_pages.append(embed)
-
-      # Build pages for "Wants From Your Inventory"
-      all_wants_pages = [wants_badges[i:i + max_per_page] for i in range(0, len(wants_badges), max_per_page)]
-      wants_pages = []
-      for idx, chunk in enumerate(all_wants_pages, start=1):
-        embed = discord.Embed(
-          title="Wants From Your Inventory:",
-          description="\n".join(f"[{b['badge_name']}]({b['badge_url']})" for b in chunk),
-          color=discord.Color.blurple()
-        )
-        embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx} of {len(all_wants_pages)}")
-        wants_pages.append(embed)
-
-      # Set up dismiss/revoke button
-      view = discord.ui.View()
-      view.add_item(RevokeDismissalButton(
-        self,
-        user_id,
-        partner_id,
-        prestige
-      ))
-
-      # Group into a multi-page paginator
-      page_groups = [
-        pages.PageGroup(
-          pages=[
-            discord.Embed(
-              title=f"Wishlist Match! ({PRESTIGE_TIERS[prestige]} Tier)",
-              description=f"{partner.mention} ({partner.display_name}) had this match with you which was dismissed.",
-              color=discord.Color.blurple()
-            )
-          ],
-          label=f"{partner.display_name}'s Match!",
-          description="Details and Info",
-          custom_buttons=paginator_buttons,
-          use_default_buttons=False,
-          custom_view=view
         ),
-        pages.PageGroup(
-          pages=has_pages,
-          label="What You Wanted",
-          description="Badges You Wanted That They Have",
-          custom_buttons=paginator_buttons,
-          use_default_buttons=False,
-          custom_view=view
-        ),
-        pages.PageGroup(
-          pages=wants_pages,
-          label="What They Wanted",
-          description="Badges They Wanted That You Have",
-          custom_buttons=paginator_buttons,
-          use_default_buttons=False,
-          custom_view=view
-        )
-      ]
-
-      paginator = WishlistPaginator(
-        pages=page_groups,
-        show_menu=True,
-        custom_buttons=paginator_buttons,
-        use_default_buttons=False,
-        custom_view=view
+        ephemeral=True
       )
-      await paginator.respond(ctx.interaction, ephemeral=True)
+      return
+
 
   async def _purge_invalid_wishlist_dismissals(self, user_id: str):
     # Recompute real matches and remove any dismissal records that no longer apply
@@ -734,7 +775,7 @@ class Wishlist(commands.Cog):
     await db_add_badge_info_id_to_wishlist(user_discord_id, badge_info_id)
     # Then lock it down across all tiers the user may currently possess it at
     await db_lock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
-    discord_file, attachment_url = generate_unowned_badge_preview(user_discord_id, badge_info)
+    discord_file, attachment_url = await generate_unowned_badge_preview(user_discord_id, badge_info)
 
     # Determine existing ownership per prestige tier
     instances = await db_get_user_badge_instances(user_discord_id)
@@ -748,8 +789,8 @@ class Wishlist(commands.Cog):
       embed_description += "\n\nYou do not yet own this badge at any of your current unlocked Prestige Tiers."
       embed_description += " It will be used for matching at your current Tier, as well as future Tiers as you continue to progress!"
     else:
-      embed_description += "\n\nGood news! You own this badge at Standard and/or some of your unlocked Prestige Tiers! They have been auto-locked now that you have added them to your wishlist."
-      embed_description += "\n\nYour new wishlist entry will continue to be used for matching at existing Tiers you may not have collected it at yet, and will also match at future Tiers as you unlock them!"
+      embed_description += "\n\nGood news! You own this badge at some of your unlocked Prestige Tiers! They have been auto-locked now that you have added them to your wishlist."
+      embed_description += "\n\nYour new wishlist entry will continue to be used for matching at any existing Tiers you may not have collected it at yet, and will also match at future Tiers as you unlock them!"
 
     embed = discord.Embed(
       title="Badge Added Successfully",
@@ -1119,7 +1160,7 @@ class Wishlist(commands.Cog):
       return
 
     await db_lock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
-    discord_file, attachment_url = generate_unowned_badge_preview(user_discord_id, badge_info)
+    discord_file, attachment_url = await generate_unowned_badge_preview(user_discord_id, badge_info)
 
     embed = discord.Embed(
       title="Badge Locked Successfully",
@@ -1287,7 +1328,7 @@ class Wishlist(commands.Cog):
       return
 
     await db_unlock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
-    discord_file, attachment_url = generate_unowned_badge_preview(user_discord_id, badge_info)
+    discord_file, attachment_url = await generate_unowned_badge_preview(user_discord_id, badge_info)
 
     embed = discord.Embed(
       title="Badge Unlocked Successfully",
