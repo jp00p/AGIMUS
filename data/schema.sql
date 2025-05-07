@@ -489,8 +489,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
   ("Cryonetrium", 2, "cryonetrium.png", "cryonetrium", "Still gaseous at -200°C, that's some cold coolant!"),
   ('Verterium Cortenide', 2, 'verterium_cortenide.png', 'verterium_cortenide', 'Essential alloy used in Starship Warp Nacelles. Emits faint subspace displacement harmonics.'), -- New, Needs effect
-
-  ('Boridium', 2, 'boridium.png', 'boridium', 'Energetic material with many uses. Boridium is the powerhouse of the power cell.'), -- New, Needs effect
+  ('Boridium', 2, 'boridium.png', 'boridium', 'Energetic material with many uses. Boridium is the powerhouse of the power cell.'),
 
   -- Rare Crystals (Backgrounds)
   ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in most systems. Handle with care."),
@@ -500,11 +499,12 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Colombian Coffee Crystal", 3, "coffee_crystal.png", "coffee_nebula", "Delicious, tastes like rich-bodied regular coffee! A nebulous and tasty flavor.") -- Needs Icon
   ("Positron", 3, "positron.png", "positronic_net", "Fully functional. Networks of these can operate at 60 trillion calculations a second."),
   ("Isolinear", 3, "isolinear.png", "isolinear_circuit", "Shimoda's favorite circuitry plaything. Fully stackable!"),
-  ("Farpoint Fragment", 3, "farpoint_fragment.png", "q_grid", "Has a warm feeling, like being wrapped in a big Pendleton blanket. How Q-rious..."), -- Needs icon
+  ("Farpoint Sphere", 3, "farpoint_sphere.png", "q_grid", "Has a warm feeling, like being wrapped in a big Pendleton blanket. How Q-rious..."), -- Needs icon
 
   -- Legendary Crystals (Animations)
   ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "EJECTED FROM A CORE! Hums with that familiar pulse."),
   ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Distortions abound when these are around!"),
+  ("Triaxilation Node", 4, "triaxilation_node.png", "static_cascade", "Essential to subspace communications. Emits a pulsing cascade that resonates across signal channels.") -- Needs icon
 
   -- Mythic Crystals (Prestige Animations)
   ("Bajoran Orb", 5, "bajoran_orb.png", "celestial_temple", "A Tear of the Prophets. My Child!"),

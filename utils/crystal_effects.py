@@ -419,6 +419,14 @@ def effect_transparent_aluminum(badge_image: Image.Image, badge: dict) -> Image.
 def effect_isolinear(img, badge):
   return _apply_gradient_silhouette_border(img, (0, 200, 255), (140, 255, 0))
 
+@register_effect("cryonetrium")
+def effect_cryonetrium(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_gradient_silhouette_border(img, (180, 240, 255), (10, 60, 140))
+
+@register_effect("verterium_cortenide")
+def effect_verterium_cortenide(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_gradient_silhouette_border(img, (80, 200, 255), (90, 60, 180))
+
 @register_effect('boridium')
 def effect_boridium(img, badge):
   return _apply_energy_rings_silhouette_wrap(img, primary_color=(200, 80, 255), secondary_color=(80, 255, 255))
@@ -1021,6 +1029,63 @@ def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]
     return Image.alpha_composite(with_distortion, masked_beam)
 
   return [shimmer_flux_frame(base_img, i) for i in range(num_frames)]
+
+
+@register_effect("static_cascade")
+def effect_static_cascade(base_img: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Applies a downward-traveling distortion wave and scanlines across the badge.
+
+  Returns:
+  List of RGBA frames as PIL.Image.Image.
+
+  Used for the Static Cascade crystal (Legendary tier).
+  """
+  fps = ANIMATION_FPS
+  duration = ANIMATION_DURATION
+  num_frames = int(duration * fps)
+  width, height = FRAME_SIZE
+
+  amplitude = 8
+  band_height = 40
+  scanline_alpha = 10
+
+  badge_array = np.array(base_img.resize((width, height), Image.Resampling.LANCZOS)).astype(np.uint8)
+  alpha_mask = badge_array[..., 3] > 10
+
+  Y, X = np.meshgrid(np.arange(height), np.arange(width), indexing="ij")
+
+  frames = []
+  for i in range(num_frames):
+    wave_y = int((i / num_frames) * height)
+    band_top = wave_y - band_height // 2
+    band_bottom = wave_y + band_height // 2
+
+    displacement = np.zeros_like(X, dtype=np.float32)
+    band_mask = (Y >= band_top) & (Y <= band_bottom)
+    displacement[band_mask] = amplitude * np.sin(2 * np.pi * (Y[band_mask] - band_top) / band_height)
+
+    coords_y = Y
+    coords_x = X + displacement
+    coords = np.array([coords_y.flatten(), coords_x.flatten()])
+
+    channels = [
+      map_coordinates(badge_array[..., c], coords, order=1, mode='reflect').reshape((height, width))
+      for c in range(4)
+    ]
+    result = np.stack(channels, axis=-1)
+
+    # Apply subtle scanlines only to badge pixels
+    scanline_mask = np.ones((height, width), dtype=np.uint8) * 255
+    scanline_mask[::2] = scanline_alpha
+    result[..., 3] = np.where(alpha_mask, np.minimum(result[..., 3], scanline_mask), result[..., 3])
+
+    final = result.astype(np.uint8)
+    frame = Image.fromarray(final, mode="RGBA")
+    frames.append(frame)
+
+  return frames
+
 
 #     ...     ..      ..                       s                   .
 #   x*8888x.:*8888: -"888:     ..             :8      .uef^"      @88>
