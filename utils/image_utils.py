@@ -1036,41 +1036,50 @@ async def generate_badge_preview(user_id, badge, crystal=None, theme=None, disab
   badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
   result = await apply_crystal_effect(badge_image, badge, crystal)
 
-  badge_slot = compose_badge_slot(badge, colors, result, disable_overlays=disable_overlays)
+  slot_frames = await to_thread(partial(
+    compose_badge_slot, badge, colors, result, disable_overlays=disable_overlays
+  ))
 
-  if len(badge_slot) > 1:
-    # Animated crystal preview
-    buf = await encode_webp(badge_slot)
-    file = discord.File(buf, filename=f"preview.webp")
-    attachment_url = 'attachment://preview.webp'
+  if len(slot_frames) > 1:
+    buf = await encode_webp(slot_frames)
+    file = discord.File(buf, filename='preview.webp')
+    url = 'attachment://preview.webp'
   else:
-    # badge_slot_frame = badge_slot[0]
-    # badge_slot_frame.resize((190, 190))
-    buf = io.BytesIO()
-    badge_slot[0].save(buf, format='PNG')
-    buf.seek(0)
+    png_fn = partial(_encode_png, slot_frames[0])
+    buf = await to_thread(png_fn)
     file = discord.File(buf, filename='preview.png')
-    attachment_url = 'attachment://preview.png'
+    url = 'attachment://preview.png'
 
-  return file, attachment_url
+  return file, url
 
 async def generate_unowned_badge_preview(user_id, badge):
+  """
+  Unowned badges are never animated or have crystal effects applied to them,
+  so this is just a streamlined version of generate_badge_preview above
+  """
   theme = await get_theme_preference(user_id, 'collection')
   colors = get_theme_colors(theme)
 
   badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
 
-  badge_slot = compose_badge_slot(badge, colors, badge_image, disable_overlays=True)
-  # compose_badge_slot always returns a list but we're never going to have an animated unowned badge so just grab the "first frame"
-  badge_image = badge_slot[0]
+  slot_frames = await to_thread(partial(
+    compose_badge_slot, badge, colors, badge_image, disable_overlays=True
+  ))
+  frame = slot_frames[0]
 
-  buf = io.BytesIO()
-  badge_image.save(buf, format='PNG')
-  buf.seek(0)
+  png_fn = partial(_encode_png, frame)
+  buf = await to_thread(png_fn)
   file = discord.File(buf, filename='preview.png')
-  attachment_url = 'attachment://preview.png'
+  url = 'attachment://preview.png'
 
-  return file, attachment_url
+  return file, url
+
+def _encode_png(frame):
+  buf = io.BytesIO()
+  frame.save(buf, format='PNG')
+  buf.seek(0)
+  return buf
+
 
 def compose_badge_slot(
   badge: dict,

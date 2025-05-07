@@ -38,7 +38,7 @@ async def add_autocomplete(ctx:discord.AutocompleteContext):
   choices = [
     discord.OptionChoice(
       name=b['badge_name'],
-      value=str(b['id'])
+      value=str(b['badge_info_id'])
     )
     for b in filtered_badges if ctx.value.lower() in b['badge_name'].lower()
   ]
@@ -54,7 +54,7 @@ async def remove_autocomplete(ctx:discord.AutocompleteContext):
   choices = [
     discord.OptionChoice(
       name=b['badge_name'],
-      value=str(b['id'])
+      value=str(b['badge_info_id'])
     )
     for b in filtered_badges if ctx.value.lower() in b['badge_name'].lower()
   ]
@@ -141,21 +141,19 @@ class DismissButton(discord.ui.Button):
   async def callback(self, interaction: discord.Interaction):
     await interaction.response.defer()
     # insert dismissal records per badge and role at this prestige
-    for badge_name in self.has_ids:
-      info = await db_get_badge_info_by_name(badge_name)
+    for badge_id in self.has_ids:
       await db_add_wishlist_dismissal(
         self.author_discord_id,
         self.match_discord_id,
-        info[id],
+        badge_id,
         self.prestige_level,
         'has',
       )
-    for badge_name in self.wants_ids:
-      info = await db_get_badge_info_by_name(badge_name)
+    for badge_id in self.wants_ids:
       await db_add_wishlist_dismissal(
         self.author_discord_id,
         self.match_discord_id,
-        info[id],
+        badge_id,
         self.prestige_level,
         'wants',
       )
@@ -203,7 +201,7 @@ class RevokeDismissalButton(discord.ui.Button):
     await interaction.edit(
       embed=discord.Embed(
         title=f"Your dismissal of your wishlist match with {match_user.display_name} has been revoked.",
-        description="You may use `/wishlist matches` in the future to review the match.",
+        description="You may use `/wishlist matches` to review the match now as well.",
         color=discord.Color.green()
       ),
       view=None
@@ -411,6 +409,9 @@ class Wishlist(commands.Cog):
       return
     prestige = int(prestige)
 
+    # Purge any stale dismissals for this tier before fetching matches
+    await self._purge_invalid_wishlist_dismissals(user_id, prestige)
+
     # Fetch active 'wants' at this tier
     wants = await db_get_active_wants(user_id, prestige)
     if not wants:
@@ -424,13 +425,31 @@ class Wishlist(commands.Cog):
       )
       return
 
-    # Fetch matches via SQL CTE
-    matches = await db_get_wishlist_matches(user_id, prestige)
+    # Fetch raw matches via SQL CTE
+    raw_matches = await db_get_wishlist_matches(user_id, prestige)
+
+    # Pull out any dismissed partners at this prestige
+    all_dismissals = await db_get_all_wishlist_dismissals(user_id)
+    dismissed_partners = {
+      d['match_discord_id']
+      for d in all_dismissals
+      if d['prestige_level'] == prestige
+    }
+
+    # Filter them out
+    matches = [
+      m for m in raw_matches
+      if m['match_discord_id'] not in dismissed_partners
+    ]
+
     if not matches:
       await ctx.followup.send(
         embed=discord.Embed(
           title="No Matches Found",
-          description=f"No users currently have what you want *and* want what you have at the {PRESTIGE_TIERS[prestige]} Tier.",
+          description=(
+            f"No users currently have what you want *and* want what you have "
+            f"at the {PRESTIGE_TIERS[prestige]} Tier."
+          ),
           color=discord.Color.blurple()
         ),
         ephemeral=True
@@ -442,7 +461,11 @@ class Wishlist(commands.Cog):
     for m in matches:
       try:
         partner = await bot.current_guild.fetch_member(m['match_discord_id'])
-        has_badges = json.loads(m['badges_you_want_that_they_have'])
+        # parse the new ID arrays
+        has_ids   = json.loads(m['badge_ids_you_want_that_they_have'])
+        wants_ids = json.loads(m['badge_ids_they_want_that_you_have'])
+        # and still parse the display‐names
+        has_badges   = json.loads(m['badges_you_want_that_they_have'])
         wants_badges = json.loads(m['badges_they_want_that_you_have'])
 
         # Paginate 'has' badges
@@ -479,8 +502,8 @@ class Wishlist(commands.Cog):
           user_id,
           m['match_discord_id'],  # partner
           prestige,
-          json.loads(m['badges_you_want_that_they_have']),
-          json.loads(m['badges_they_want_that_you_have']),
+          has_ids,
+          wants_ids,
         ))
 
         # Assemble page groups
@@ -544,92 +567,129 @@ class Wishlist(commands.Cog):
       )
       return
 
-
   @wishlist_group.command(
     name="dismissals",
     description="Review any wishlist matches which have been dismissed"
   )
+  @option(
+    name="prestige",
+    description="Which Prestige Tier to check",
+    required=True,
+    autocomplete=autocomplete_prestige_tiers
+  )
   @commands.check(access_check)
-  async def dismissals(self, ctx: discord.ApplicationContext):
+  async def dismissals(self, ctx: discord.ApplicationContext, prestige: str):
     await ctx.defer(ephemeral=True)
     user_id = ctx.author.id
 
-    logger.info(f"{ctx.author.display_name} is reviewing their {Style.BRIGHT}dismissals{Style.RESET_ALL} on their {Style.BRIGHT}wishlist matches{Style.RESET_ALL}")
+    if not await is_prestige_valid(ctx, prestige):
+      return
+    prestige_level = int(prestige)
 
-    # Clear out invalid dismissals
-    await self._purge_invalid_wishlist_dismissals(user_id)
+    logger.info(
+      f"{ctx.author.display_name} is reviewing their dismissals at the "
+      f"{PRESTIGE_TIERS[prestige_level]} tier"
+    )
 
-    # Fetch all dismissal records for this user
-    dismissals = await db_get_all_wishlist_dismissals(user_id)
-    if not dismissals:
+    # purge any stale dismissal records for this tier
+    await self._purge_invalid_wishlist_dismissals(user_id, prestige_level)
+
+    # fetch all dismissals, then filter to this prestige
+    records = await db_get_all_wishlist_dismissals(user_id)
+    recs = [r for r in records if r['prestige_level'] == prestige_level]
+    if not recs:
       await ctx.followup.send(
         embed=discord.Embed(
           title="No Wishlist Dismissals Found",
-          description="You do not have any currently dismissed wishlist matches!",
+          description=(
+            f"You have no dismissed matches at the "
+            f"{PRESTIGE_TIERS[prestige_level]} Tier."
+          ),
           color=discord.Color.blurple()
-        )
+        ),
+        ephemeral=True
       )
       return
 
-    # Iterate through each dismissal and present it in a paginated view
-    minimum_dismissal_found = False
-    for record in dismissals:
+    # group by partner
+    groups: dict[int, list[dict]] = {}
+    for r in recs:
+      pid = r['match_discord_id']
+      groups.setdefault(pid, []).append(r)
+
+    any_shown = False
+    for partner_id, rows in groups.items():
       try:
-        partner_id = record['match_discord_id']
         partner = await bot.current_guild.fetch_member(partner_id)
-        dismissed_has = json.loads(record['has'])
-        dismissed_wants = json.loads(record['wants'])
-        prestige = record['prestige_level']
 
-        # Resolve badge info for display
-        has_badges = [await db_get_badge_info_by_id(bid) for bid in dismissed_has]
-        wants_badges = [await db_get_badge_info_by_id(bid) for bid in dismissed_wants]
+        # split out has vs wants
+        has_ids = [r['badge_info_id'] for r in rows if r['role'] == 'has']
+        wants_ids = [r['badge_info_id'] for r in rows if r['role'] == 'wants']
 
-        # Build pages for "Has From Your Wishlist"
+        # fetch badge info for display
+        has_infos = [await db_get_badge_info_by_id(b) for b in has_ids]
+        wants_infos = [await db_get_badge_info_by_id(b) for b in wants_ids]
+
+        has_lines = [f"[{b['badge_name']}]({b['badge_url']})" for b in has_infos]
+        wants_lines = [f"[{b['badge_name']}]({b['badge_url']})" for b in wants_infos]
+
+        # paginate each list
         max_per_page = 30
-        all_has_pages = [has_badges[i:i + max_per_page] for i in range(0, len(has_badges), max_per_page)]
+
+        all_has_pages = [
+          has_lines[i:i+max_per_page]
+          for i in range(0, len(has_lines), max_per_page)
+        ]
         has_pages = []
         for idx, chunk in enumerate(all_has_pages, start=1):
-          embed = discord.Embed(
+          e = discord.Embed(
             title="Has From Your Wishlist:",
-            description="\n".join(f"[{b['badge_name']}]({b['badge_url']})" for b in chunk),
+            description="\n".join(chunk),
             color=discord.Color.blurple()
           )
-          embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx} of {len(all_has_pages)}")
-          has_pages.append(embed)
+          e.set_footer(
+            text=f"Match with {partner.display_name}\nPage {idx} of {len(all_has_pages)}"
+          )
+          has_pages.append(e)
 
-        # Build pages for "Wants From Your Inventory"
-        all_wants_pages = [wants_badges[i:i + max_per_page] for i in range(0, len(wants_badges), max_per_page)]
+        all_wants_pages = [
+          wants_lines[i:i+max_per_page]
+          for i in range(0, len(wants_lines), max_per_page)
+        ]
         wants_pages = []
         for idx, chunk in enumerate(all_wants_pages, start=1):
-          embed = discord.Embed(
+          e = discord.Embed(
             title="Wants From Your Inventory:",
-            description="\n".join(f"[{b['badge_name']}]({b['badge_url']})" for b in chunk),
+            description="\n".join(chunk),
             color=discord.Color.blurple()
           )
-          embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx} of {len(all_wants_pages)}")
-          wants_pages.append(embed)
+          e.set_footer(
+            text=f"Match with {partner.display_name}\nPage {idx} of {len(all_wants_pages)}"
+          )
+          wants_pages.append(e)
 
-        # Set up dismiss/revoke button
+        # build revoke button
         view = discord.ui.View()
         view.add_item(RevokeDismissalButton(
           self,
           user_id,
           partner_id,
-          prestige
+          prestige_level
         ))
 
-        # Group into a multi-page paginator
+        # assemble paginator
         page_groups = [
           pages.PageGroup(
             pages=[
               discord.Embed(
-                title=f"Wishlist Match! ({PRESTIGE_TIERS[prestige]} Tier)",
-                description=f"{partner.mention} ({partner.display_name}) had this match with you which was dismissed.",
+                title=f"Dismissed Match ({PRESTIGE_TIERS[prestige_level]} Tier)",
+                description=(
+                  f"{partner.mention} ({partner.display_name}) had a wishlist match with you that has been dismissed."
+                ),
                 color=discord.Color.blurple()
               )
             ],
-            label=f"{partner.display_name}'s Match!",
+            label=f"{partner.display_name}'s Dismissed Match!",
             description="Details and Info",
             custom_buttons=paginator_buttons,
             use_default_buttons=False,
@@ -638,7 +698,7 @@ class Wishlist(commands.Cog):
           pages.PageGroup(
             pages=has_pages,
             label="What You Wanted",
-            description="Badges You Wanted That They Have",
+            description="Badges They Have From Your Wishlist",
             custom_buttons=paginator_buttons,
             use_default_buttons=False,
             custom_view=view
@@ -646,7 +706,7 @@ class Wishlist(commands.Cog):
           pages.PageGroup(
             pages=wants_pages,
             label="What They Wanted",
-            description="Badges They Wanted That You Have",
+            description="Badges They Want From Your Inventory",
             custom_buttons=paginator_buttons,
             use_default_buttons=False,
             custom_view=view
@@ -661,43 +721,53 @@ class Wishlist(commands.Cog):
           custom_view=view
         )
         await paginator.respond(ctx.interaction, ephemeral=True)
-        minimum_dismissal_found = True
-      except discord.errors.NotFound:
-        # Member is no longer on server, clear and ignore
-        defunct_member_id = m['match_discord_id']
-        await db_clear_wishlist(defunct_member_id)
-        pass
+        any_shown = True
 
-    if not minimum_dismissal_found:
+      except discord.errors.NotFound:
+        # partner left: clear their wishlist entirely
+        await db_clear_wishlist(partner_id)
+        continue
+
+    if not any_shown:
       await ctx.followup.send(
         embed=discord.Embed(
           title="No Active Members!",
-          description=f"You had one or more dismissals but the relevant Member(s) are no longer active on the server!\n\nTheir wishlist(s) have been cleared.",
+          description=(
+            "You had one or more dismissals but the relevant Member(s) are no longer active on the server!\n\nTheir wishlist(s) have been cleared."
+          ),
           color=discord.Color.blurple()
         ),
         ephemeral=True
       )
-      return
 
 
-  async def _purge_invalid_wishlist_dismissals(self, user_id: str):
-    # Recompute real matches and remove any dismissal records that no longer apply
-    current = await db_get_wishlist_matches(user_id)
+  async def _purge_invalid_wishlist_dismissals(self, user_id: str, prestige: int):
+    current = await db_get_wishlist_matches(user_id, prestige)
+    valid = {}
+    for m in current:
+      pid = m['match_discord_id']
+      has_ids = json.loads(m['badge_ids_you_want_that_they_have'])
+      wants_ids = json.loads(m['badge_ids_they_want_that_you_have'])
+      valid[pid] = (has_ids, wants_ids)
+
     inventory = await db_get_wishlist_inventory_matches(user_id)
-    # Build dict of valid matches
-    valid = {uid: (h, w) for uid, (h, w) in {
-      **{m['match_discord_id']:(m['badges_you_want_that_they_have'], m['badges_they_want_that_you_have']) for m in current},
-      **{m['match_discord_id']:([], []) for m in inventory}
-    }.items()}
-    # Fetch all stored dismissals
+    partner_ids = {row['user_discord_id'] for row in inventory}
+    for pid in partner_ids:
+      valid.setdefault(pid, ([], []))
+
     stored = await db_get_all_wishlist_dismissals(user_id)
     for rec in stored:
-      uid = rec['match_discord_id']
-      saved_has = json.loads(rec['has'])
-      saved_wants = json.loads(rec['wants'])
-      prestige_level = rec['prestige_level']
-      if uid not in valid or valid[uid] != (saved_has, saved_wants):
-        await db_delete_wishlist_dismissal(user_id, uid, prestige_level)
+      pid = rec['match_discord_id']
+      # collect all rows for this partner+prestige
+      rows = [
+        r for r in stored
+        if r['match_discord_id'] == pid and r['prestige_level'] == prestige
+      ]
+      saved_has = [r['badge_info_id'] for r in rows if r['role'] == 'has']
+      saved_wants = [r['badge_info_id'] for r in rows if r['role'] == 'wants']
+
+      if pid not in valid or valid[pid] != (saved_has, saved_wants):
+        await db_delete_wishlist_dismissal(user_id, pid, prestige)
 
 
   #    _____       .___  .___

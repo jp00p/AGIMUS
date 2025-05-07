@@ -234,60 +234,94 @@ async def db_get_active_wants(user_discord_id: str, prestige_level: int) -> list
 
 # Generate wishlist matches via SQL CTE
 async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> list[dict]:
-    sql = '''
+  sql = '''
     WITH
       my_wants AS (
         SELECT badge_info_id
-        FROM badge_instances_wishlists
+          FROM badge_instances_wishlists
         WHERE user_discord_id = %s
       ),
       my_owns AS (
         SELECT DISTINCT badge_info_id
-        FROM badge_instances
+          FROM badge_instances
         WHERE owner_discord_id = %s
-          AND prestige_level = %s
-          AND locked = FALSE
-          AND active = TRUE
+          AND prestige_level   = %s
+          AND locked           = FALSE
+          AND active           = TRUE
       ),
       partner_owns AS (
-        -- DISTINCT here to collapse multiple instances of the same badge
         SELECT DISTINCT owner_discord_id AS partner_id,
-               badge_info_id
-        FROM badge_instances
+                        badge_info_id
+          FROM badge_instances
         WHERE prestige_level = %s
-          AND locked = FALSE
-          AND active = TRUE
-          AND badge_info_id IN (SELECT badge_info_id FROM my_wants)
+          AND locked         = FALSE
+          AND active         = TRUE
+          AND badge_info_id  IN (SELECT badge_info_id FROM my_wants)
       ),
       partner_wants AS (
         SELECT DISTINCT user_discord_id AS partner_id,
                         badge_info_id
-        FROM badge_instances_wishlists
+          FROM badge_instances_wishlists
         WHERE badge_info_id IN (SELECT badge_info_id FROM my_owns)
+      ),
+      matched_partners AS (
+        SELECT DISTINCT po.partner_id
+          FROM partner_owns po
+          JOIN partner_wants pw
+            ON pw.partner_id = po.partner_id
       )
     SELECT
-      po.partner_id               AS match_discord_id,
-      JSON_ARRAYAGG(bi1.badge_name) AS badges_you_want_that_they_have,
-      JSON_ARRAYAGG(bi2.badge_name) AS badges_they_want_that_you_have
-    FROM partner_owns po
-    JOIN partner_wants pw
-      ON pw.partner_id = po.partner_id
-    JOIN badge_info bi1
-      ON bi1.id = po.badge_info_id
-    JOIN badge_info bi2
-      ON bi2.id = pw.badge_info_id
-    GROUP BY po.partner_id;
-    '''
-    # note the order of parameters:
-    params = [
-      user_discord_id,   # for my_wants
-      user_discord_id,   # for my_owns
-      prestige_level,    # for my_owns
-      prestige_level     # for partner_owns
-    ]
-    async with AgimusDB(dictionary=True) as db:
-        await db.execute(sql, params)
-        return await db.fetchall()
+      mp.partner_id AS match_discord_id,
+
+      /* badge names they have from your wishlist */
+      ( SELECT JSON_ARRAYAGG(bi.badge_name)
+        FROM (
+          SELECT DISTINCT badge_info_id
+            FROM partner_owns
+          WHERE partner_id = mp.partner_id
+        ) AS sub
+        JOIN badge_info bi ON bi.id = sub.badge_info_id
+      ) AS badges_you_want_that_they_have,
+
+      /* badge IDs they have from your wishlist */
+      ( SELECT JSON_ARRAYAGG(sub.badge_info_id)
+        FROM (
+          SELECT DISTINCT badge_info_id
+            FROM partner_owns
+          WHERE partner_id = mp.partner_id
+        ) AS sub
+      ) AS badge_ids_you_want_that_they_have,
+
+      /* badge names they want from your inventory */
+      ( SELECT JSON_ARRAYAGG(bi.badge_name)
+        FROM (
+          SELECT DISTINCT badge_info_id
+            FROM partner_wants
+          WHERE partner_id = mp.partner_id
+        ) AS sub
+        JOIN badge_info bi ON bi.id = sub.badge_info_id
+      ) AS badges_they_want_that_you_have,
+
+      /* badge IDs they want from your inventory */
+      ( SELECT JSON_ARRAYAGG(sub.badge_info_id)
+        FROM (
+          SELECT DISTINCT badge_info_id
+            FROM partner_wants
+          WHERE partner_id = mp.partner_id
+        ) AS sub
+      ) AS badge_ids_they_want_that_you_have
+
+    FROM matched_partners mp;
+  '''
+  params = [
+    user_discord_id,   # for my_wants
+    user_discord_id,   # for my_owns
+    prestige_level,    # for my_owns
+    prestige_level     # for partner_owns
+  ]
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, params)
+    return await db.fetchall()
 
 # Inventory matches: badges user owns that are in others' prime wishlists
 async def db_get_wishlist_inventory_matches(user_discord_id: str) -> list[dict]:
