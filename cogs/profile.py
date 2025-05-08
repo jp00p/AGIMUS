@@ -387,6 +387,7 @@ class Profile(commands.Cog):
 
     base_w, base_h = base_bg.size
     base_canvas = base_bg.resize((int(base_w*2), int(base_h*2))) # makes it more legible maybe
+    base_canvas = base_canvas.convert("RGB") # discard alpha to prevent flickering if badge frames are applied
 
     # Generate Final Frames with Profile Badge if present
     profile_frames = []
