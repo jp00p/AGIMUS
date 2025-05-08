@@ -340,27 +340,27 @@ CREATE TABLE IF NOT EXISTS badge_instances_wishlists_dismissals (
 
 
 --
--- Badge Tags Migration
+-- Badge Tags
 --
 
-CREATE TABLE IF NOT EXISTS badge_instances_tags_associations (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  badge_instance_id INT NOT NULL,
-  badge_tags_id INT NOT NULL,
-  time_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE,
-  FOREIGN KEY (badge_tags_id) REFERENCES badge_tags(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS badge_instances_tags_carousel_position (
+CREATE TABLE IF NOT EXISTS badge_info_tags_associations (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,
-  badge_instance_id INT NOT NULL,
+  badge_info_id INT NOT NULL,
+  badge_tags_id INT NOT NULL,
+  time_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
+  FOREIGN KEY (badge_info_id) REFERENCES badge_info(id) ON DELETE CASCADE,
+  FOREIGN KEY (badge_tags_id) REFERENCES badge_tags(id) ON DELETE CASCADE,
+  UNIQUE KEY uq_user_info_tag (user_discord_id, badge_info_id, badge_tags_id)
+);
+
+CREATE TABLE IF NOT EXISTS badge_info_tags_carousel_state (
+  user_discord_id VARCHAR(64) PRIMARY KEY,
+  last_viewed_badge_info_id INT,
   last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_user (user_discord_id),
-  UNIQUE KEY uq_user_instance (user_discord_id, badge_instance_id),
-  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE,
-  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
+  FOREIGN KEY (last_viewed_badge_info_id) REFERENCES badge_info(id) ON DELETE CASCADE
 );
 
 --
