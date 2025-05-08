@@ -180,6 +180,37 @@ async def db_select_random_crystal_type_by_rarity_rank(rarity_rank: str) -> dict
     await db.execute(sql, (rarity_rank,))
     return await db.fetchone()
 
+async def db_get_user_attuned_and_harmonized_crystals(discord_id: int) -> list[dict]:
+  sql = """
+    SELECT
+      ci.id AS crystal_instance_id,
+      ci.owner_discord_id,
+      ci.status AS crystal_status,
+      ci.created_at AS crystal_created_at,
+
+      ct.id AS crystal_type_id,
+      ct.name AS crystal_name,
+      ct.icon,
+      ct.description,
+      ct.effect,
+      ct.rarity_rank,
+
+      cr.name AS rarity_name,
+      cr.emoji,
+      cr.drop_chance,
+      cr.sort_order
+
+    FROM crystal_instances ci
+    JOIN crystal_types ct ON ci.crystal_type_id = ct.id
+    JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
+    WHERE ci.owner_discord_id = %s AND NOT ci.status = 'available'
+    ORDER BY cr.sort_order ASC, ct.name ASC
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (discord_id,))
+    return await db.fetchall()
+
+
 async def db_get_user_unattuned_crystals(discord_id: int) -> list[dict]:
   sql = """
     SELECT

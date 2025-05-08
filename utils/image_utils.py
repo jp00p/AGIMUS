@@ -1034,10 +1034,10 @@ async def generate_badge_preview(user_id, badge, crystal=None, theme=None, disab
   colors = get_theme_colors(theme)
 
   badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
-  result = await apply_crystal_effect(badge_image, badge, crystal)
+  effect_result = await apply_crystal_effect(badge_image, badge, crystal)
 
   slot_frames = await to_thread(partial(
-    compose_badge_slot, badge, colors, result, disable_overlays=disable_overlays
+    compose_badge_slot, badge, colors, effect_result, disable_overlays=disable_overlays
   ))
 
   if len(slot_frames) > 1:
@@ -1055,7 +1055,7 @@ async def generate_badge_preview(user_id, badge, crystal=None, theme=None, disab
 async def generate_unowned_badge_preview(user_id, badge):
   """
   Unowned badges are never animated or have crystal effects applied to them,
-  so this is just a streamlined version of generate_badge_preview above
+  so this is just a static streamlined version of generate_badge_preview above
   """
   theme = await get_theme_preference(user_id, 'collection')
   colors = get_theme_colors(theme)
@@ -1073,6 +1073,44 @@ async def generate_unowned_badge_preview(user_id, badge):
   url = 'attachment://preview.png'
 
   return file, url
+
+async def generate_singular_slot_frames(user_id, badge, crystal=None):
+  """
+  Used by `/profile` to display/show off selected badge
+  Just the badge + crystal effects image(s) placed on a simple slot
+  (e.g the standard or prestige border/gradient, no badge name/etc)
+  """
+  dims = _get_badge_slot_dimensions()
+  theme = await get_theme_preference(user_id, 'collection')
+  colors = get_theme_colors(theme)
+
+  badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
+  effect_result = await apply_crystal_effect(badge_image, badge, crystal)
+
+  if not isinstance(effect_result, list):
+    effect_result = [effect_result]
+
+  slot_frames = []
+  base_slot_canvas = get_slot_canvas(badge, colors)
+
+  for frame in effect_result:
+    slot_canvas = base_slot_canvas.copy()
+
+    frame.resize(
+      (dims.slot_width - dims.badge_padding, dims.slot_width - dims.badge_padding),
+      resample=Image.Resampling.LANCZOS
+    )
+
+    slot_canvas.paste(
+      frame,
+      ((dims.slot_width // 2, dims.slot_height // 2)),
+      frame
+    )
+
+    slot_frames.append(frame)
+
+  return slot_frames
+
 
 def _encode_png(frame):
   buf = io.BytesIO()
@@ -1117,51 +1155,17 @@ def compose_badge_slot(
   border_color, text_color = override_colors if override_colors else (colors.highlight, "#FFFFFF")
   slot_frames = []
 
+  base_slot_canvas = get_slot_canvas(badge, colors, override_colors=override_colors)
+
   for frame in image_frames:
+    slot_canvas = base_slot_canvas.copy()
+
     badge_canvas = Image.new('RGBA', (dims.thumbnail_width, dims.thumbnail_height), (255, 255, 255, 0))
     badge_canvas.paste(
       frame,
       ((dims.thumbnail_width - frame.size[0]) // 2, (dims.thumbnail_height - frame.size[1]) // 2),
       frame
     )
-
-    prestige_level = badge.get("prestige_level", 0)
-    if prestige_level:
-      prestige_theme = PRESTIGE_THEMES.get(prestige_level)
-      gradient = _create_gradient_fill((dims.slot_width, dims.slot_height), prestige_theme["gradient_start"], prestige_theme["gradient_end"])
-      mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
-      ImageDraw.Draw(mask).rounded_rectangle((0, 0, dims.slot_width, dims.slot_height), radius=32, fill=255)
-      gradient.putalpha(mask)
-      prestige_border = _create_border_overlay((dims.slot_width, dims.slot_height), prestige_theme["border_gradient_colors"])
-
-      slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
-      slot_canvas.paste(gradient, (0, 0), gradient)
-      slot_canvas.paste(prestige_border, (0, 0), prestige_border)
-    else:
-      # Subtle dark gradient for Standard Tier badges
-      gradient = _create_gradient_fill(
-        (dims.slot_width, dims.slot_height),
-        (5, 5, 5),
-        (30, 30, 30)
-      )
-      mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
-      ImageDraw.Draw(mask).rounded_rectangle(
-        (0, 0, dims.slot_width, dims.slot_height),
-        radius=32,
-        fill=255
-      )
-      gradient.putalpha(mask)
-      border_overlay = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
-      ImageDraw.Draw(border_overlay).rounded_rectangle(
-        (0, 0, dims.slot_width, dims.slot_height),
-        outline=border_color,
-        width=4,
-        radius=32
-      )
-      slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
-      slot_canvas.paste(gradient, (0, 0), gradient)
-      slot_canvas.paste(border_overlay, (0, 0), border_overlay)
-
 
     offset_x = min(0, dims.slot_width - badge_canvas.width) + 4
     offset_y = 20
@@ -1203,6 +1207,52 @@ def compose_badge_slot(
     slot_frames.append(slot_canvas)
 
   return slot_frames
+
+
+def get_slot_canvas(badge, colors, override_colors: tuple = None,):
+  dims = _get_badge_slot_dimensions()
+  border_color, text_color = override_colors if override_colors else (colors.highlight, "#FFFFFF")
+
+  slot_canvas = None
+
+  prestige_level = badge.get("prestige_level", 0)
+  if prestige_level:
+    prestige_theme = PRESTIGE_THEMES.get(prestige_level)
+    gradient = _create_gradient_fill((dims.slot_width, dims.slot_height), prestige_theme["gradient_start"], prestige_theme["gradient_end"])
+    mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, dims.slot_width, dims.slot_height), radius=32, fill=255)
+    gradient.putalpha(mask)
+    prestige_border = _create_border_overlay((dims.slot_width, dims.slot_height), prestige_theme["border_gradient_colors"])
+
+    slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
+    slot_canvas.paste(gradient, (0, 0), gradient)
+    slot_canvas.paste(prestige_border, (0, 0), prestige_border)
+  else:
+    # Subtle dark gradient for Standard Tier badges
+    gradient = _create_gradient_fill(
+      (dims.slot_width, dims.slot_height),
+      (5, 5, 5),
+      (30, 30, 30)
+    )
+    mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+      (0, 0, dims.slot_width, dims.slot_height),
+      radius=32,
+      fill=255
+    )
+    gradient.putalpha(mask)
+    border_overlay = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
+    ImageDraw.Draw(border_overlay).rounded_rectangle(
+      (0, 0, dims.slot_width, dims.slot_height),
+      outline=border_color,
+      width=4,
+      radius=32
+    )
+    slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
+    slot_canvas.paste(gradient, (0, 0), gradient)
+    slot_canvas.paste(border_overlay, (0, 0), border_overlay)
+
+  return slot_canvas
 
 
 def _create_gradient_fill(size: tuple[int, int], start_color: tuple[int, int, int], end_color: tuple[int, int, int]) -> Image.Image:

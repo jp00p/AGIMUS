@@ -606,6 +606,13 @@ CREATE TABLE IF NOT EXISTS badge_instance_history (
   INDEX idx_history_instance_id (badge_instance_id)
 );
 
+
+CREATE TABLE profile_badge_instances (
+  user_discord_id VARCHAR(64) PRIMARY KEY,
+  badge_instance_id INT NULL,
+  FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
+);
+
 --
 -- TONGO v2
 --

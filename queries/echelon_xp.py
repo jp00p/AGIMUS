@@ -32,3 +32,8 @@ async def db_set_user_prestige_level(user_discord_id: str, prestige_level: int):
   """
   async with AgimusDB() as db:
     await db.execute(sql, (prestige_level, user_discord_id))
+
+async def db_get_legacy_xp_data(user_discord_id: str) -> dict:
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute("SELECT * FROM legacy_xp_records WHERE user_discord_id = %s", (user_discord_id,))
+    return await db.fetchone()
