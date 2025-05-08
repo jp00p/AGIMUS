@@ -38,7 +38,7 @@ async def add_autocomplete(ctx:discord.AutocompleteContext):
   choices = [
     discord.OptionChoice(
       name=b['badge_name'],
-      value=str(b['badge_info_id'])
+      value=str(b['id'])
     )
     for b in filtered_badges if ctx.value.lower() in b['badge_name'].lower()
   ]
@@ -445,13 +445,12 @@ class Wishlist(commands.Cog):
     if not matches:
       await ctx.followup.send(
         embed=discord.Embed(
-          title="No Matches Found",
+          title=f"No {PRESTIGE_TIERS[prestige]} Matches Found",
           description=(
-            f"No users currently have what you want *and* want what you have "
-            f"at the {PRESTIGE_TIERS[prestige]} Tier."
+            f"No users currently have what you want *and* want what you have!"
           ),
           color=discord.Color.blurple()
-        ),
+        ).set_footer(text="Use `/wishlist add` to add more Badges to your overall Wishlist and try to find more matches!"),
         ephemeral=True
       )
       return

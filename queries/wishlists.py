@@ -269,6 +269,7 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
           FROM partner_owns po
           JOIN partner_wants pw
             ON pw.partner_id = po.partner_id
+        WHERE po.partner_id != %s
       )
     SELECT
       mp.partner_id AS match_discord_id,
@@ -317,7 +318,8 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
     user_discord_id,   # for my_wants
     user_discord_id,   # for my_owns
     prestige_level,    # for my_owns
-    prestige_level     # for partner_owns
+    prestige_level,    # for partner_owns
+    user_discord_id    # filter out self
   ]
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, params)

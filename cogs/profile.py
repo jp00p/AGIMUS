@@ -159,7 +159,6 @@ class Profile(commands.Cog):
           top_role = string.capwords(rank)
           break
 
-
     # find their assignment (vanity role)
     assignments = [846843197836623972, 765301878309257227, 846844057892421704, 846844534217769000, 847986805571059722, 846847075911991326, 846844634579730463, 846845685357871124, 902717922475126854]
     assignment_names = []
@@ -198,10 +197,10 @@ class Profile(commands.Cog):
     name_font = ImageFont.truetype("fonts/lcars3.ttf", 61)
     agimus_font = ImageFont.truetype("fonts/lcars3.ttf", 22) # also legacy level/xp font
     level_font = ImageFont.truetype("fonts/lcars3.ttf", 50) # also main header font
-    small_button_font = ImageFont.truetype("fonts/lcars3.ttf", 30)
+    small_button_font = ImageFont.truetype("fonts/lcars3.ttf", 25)
     big_button_font = ImageFont.truetype("fonts/lcars3.ttf", 28)
     title_font = ImageFont.truetype("fonts/lcars3.ttf", 34) # also subtitle font and score font
-    xp_font = ImageFont.truetype("fonts/lcars3.ttf", 32)
+    xp_font = ImageFont.truetype("fonts/lcars3.ttf", 30)
     entry_font = ImageFont.truetype("fonts/lcars3.ttf", 40)
 
     # build the base bg
@@ -251,7 +250,6 @@ class Profile(commands.Cog):
         (216, 216, 216),
         (81, 81, 81),
         (123, 123, 123)
-
       ]
 
     draw = ImageDraw.Draw(base_bg) # pencil time
@@ -283,21 +281,22 @@ class Profile(commands.Cog):
     await draw_dynamic_text(
       canvas=base_bg,
       draw=draw,
-      position=(470, 182),
+      position=(470, 150),
       text=member.display_name,
       max_width=940,
       font_obj=name_font,
-      starting_size=61,
+      starting_size=54,
       min_size=20,
       fill=(255, 255, 255),
       centered=True
     )
     if user['profile_tagline']:
+      tagline = user['profile_tagline']
       await draw_dynamic_text(
         canvas=base_bg,
         draw=draw,
-        position=(470, 233),
-        text=f'"{user['profile_tagline']}"',
+        position=(470, 215),
+        text=f'"{tagline}"',
         max_width=940,
         font_obj=entry_font,
         starting_size=40,
@@ -306,13 +305,13 @@ class Profile(commands.Cog):
         centered=True
       )
 
-    draw.text( (578, 381), f"ECHELON: {level:04d}", fill="white", font=level_font, align="right")
+    draw.text( (514 , 382), f"ECHELON: {level:04d}", fill="white", font=level_font, align="right")
     title_color = random.choice(lcars_colors[1:3])
     if legacy_xp_data:
-      draw.text( (510, 410), f"LEGACY LEVEL:", fill=title_color, font=title_font, align="left")
-      draw.text( (550, 410), f"{legacy_level:04d}", fill="white", font=agimus_font, align="left")
-      draw.text( (510, 440), f"LEGACY XP:", fill=title_color, font=title_font, align="left")
-      draw.text( (550, 440), f"{legacy_xp:07d}", fill="white", font=agimus_font, align="left")
+      draw.text( (515, 430), f"LEGACY LEVEL:", fill=title_color, font=agimus_font, align="left")
+      draw.text( (600, 430), f"{legacy_level}", fill="white", font=agimus_font, align="left")
+      draw.text( (515, 455), f"LEGACY XP:", fill=title_color, font=agimus_font, align="left")
+      draw.text( (584, 455), f"{legacy_xp}", fill="white", font=agimus_font, align="left")
 
     draw.text( (250, 385), f"CURRENT RANK:", fill=title_color, font=title_font, align="left")
     draw.text( (250, 418), f"{top_role}", fill="white", font=entry_font, align="left")
@@ -320,17 +319,17 @@ class Profile(commands.Cog):
     draw.text( (250, 508), f"{second_role} / USS Hood NCC-42296", fill="white", font=entry_font, align="left")
     draw.text( (250, 568), f"DUTY STARTED:", fill=title_color, font=title_font, align="left")
     draw.text( (250, 598), f"{user_join}", fill="white", font=entry_font, align="left")
-    draw.text( (350, 740), f"BADGES: {badge_count:04d}", fill="black", font=small_button_font, align="center")
-    draw.text( (350, 791), f"CRYSTALS: {crystals_count:04d}", fill="black", font=small_button_font, align="center")
-    draw.text( (507, 751), f"PRESTIGE TIER:", fill="black", font=big_button_font, align="center")
-    draw.text( (554, 781), f"{PRESTIGE_TIERS[prestige_tier]}", fill="black", font=title_font, align="center")
-    draw.text( (388, 850), f"ECHELON XP: {xp:05d}", fill="black", font=xp_font, align="right", anchor="rm")
+    draw.text( (400, 750), f"BADGES: {badge_count:04d}", fill="black", font=small_button_font, align="center", anchor="mm")
+    draw.text( (400, 800), f"CRYSTALS: {crystals_count:04d}", fill="black", font=small_button_font, align="center", anchor="mm")
+    draw.text( (595, 758), f"PRESTIGE TIER:", fill="black", font=big_button_font, align="center", anchor="mm")
+    draw.text( (595, 788), f"{PRESTIGE_TIERS[prestige_tier]}", fill="black", font=title_font, align="center", anchor="mm")
+    draw.text( (388, 851), f"ECHELON XP: {xp:07d}", fill="black", font=xp_font, align="right", anchor="rm")
 
     # add users avatar to card
     avatar = member.display_avatar.with_size(128)
-    # avatar_image = Image.open("./images/profiles/"+member_id+"_a.png")
-    # await avatar.save("./images/profiles/"+member_id+"_a.png")
-    avatar_image = avatar.convert("RGBA")
+    await avatar.save("./images/profiles/"+member_id+"_a.png")
+    avatar_image = Image.open("./images/profiles/"+member_id+"_a.png")
+    avatar_image = avatar_image.convert("RGBA")
     base_bg.paste(avatar_image, (79, 583))
 
     # add screen glare to screen
@@ -391,17 +390,17 @@ class Profile(commands.Cog):
 
     # Generate Final Frames with Profile Badge if present
     profile_frames = []
-    profile_badge_instance_id = db_get_user_profile_badge_instance_id(member.id)
+    profile_badge_instance_id = await db_get_user_profile_badge_instance_id(member.id)
     if profile_badge_instance_id:
       badge_instance = await db_get_badge_instance_by_id(profile_badge_instance_id)
-      badge_is_valid = badge_instance['owner_discord_id'] == str(member.id) and badge_instance['active']
+      badge_is_valid = badge_instance['owner_discord_id'] == str(member.id) and badge_instance['status'] == 'active'
 
       if badge_is_valid:
-        badge_frames = await generate_singular_slot_frames(member.id, badge_instance)
+        badge_frames = await generate_singular_slot_frames(member.id, badge_instance, border_color=random.choice(lcars_colors))
         for frame in badge_frames:
           frame = frame.resize((340, 340), resample=Image.Resampling.LANCZOS)
           final_canvas = base_canvas.copy()
-          final_canvas.paste(frame, (540, 550), frame)
+          final_canvas.paste(frame, (1080, 1100), frame)
           profile_frames.append(final_canvas)
       else:
         # Catch that the user had a badge present that they no longer have, so clear it from the DB and alert them
@@ -420,7 +419,7 @@ class Profile(commands.Cog):
             logger.info(f"Unable to send notification to {ctx.author.display_name} regarding their cleared profile badge, they have their DMs closed.")
 
     else:
-      # No badge set, just set a single frame of the badgeless PADD
+      # No badge selected, just set a single frame of the badgeless PADD
       profile_frames = [base_canvas]
 
     if len(profile_frames) > 1:
@@ -467,7 +466,7 @@ class Profile(commands.Cog):
     autocomplete=photo_filters_autocomplete
   )
   async def set(self, ctx:discord.ApplicationContext,
-                tagline: str, badge: str, photo: str, sticker: str, style: str, photo_filter: str):
+                tagline: str, photo: str, sticker: str, style: str, photo_filter: str):
     """
     Set all profile PADD at once.  At least make it less redundant.
     """
@@ -548,10 +547,11 @@ class Profile(commands.Cog):
 
     # If it looks good, go ahead and set the badge
     await db_add_user_profile_badge(ctx.author.id, badge_instance_id)
-    logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile badge{Style.RESET_ALL} to: {Style.BRIGHT}\"{badge}\"{Style.RESET_ALL}")
+    badge_name = badge_instance['badge_name']
+    logger.info(f'{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile badge{Style.RESET_ALL} to: {Style.BRIGHT}"{badge_name}"{Style.RESET_ALL}')
     await ctx.respond(embed=discord.Embed(
       title="Successfully Set Featured Profile Badge",
-      description=f'You have successfully set "{badge_instance['badge_name']}" as your profile badge.',
+      description=f'You have successfully set "{badge_name}" as your profile badge.',
       color=discord.Color.green()
     ), ephemeral=True)
     return

@@ -60,7 +60,7 @@ from cogs.badge_tags import BadgeTags
 from cogs.chaoszork import ChaosZork, HitchHikers
 from cogs.crystals import Crystals
 from cogs.poker import Poker
-# from cogs.profile import Profile
+from cogs.profile import Profile
 from cogs.quiz import Quiz
 from cogs.settings import Settings
 # from cogs.shop import Shop
@@ -77,7 +77,7 @@ bot.add_cog(ChaosZork(bot))
 bot.add_cog(Crystals(bot))
 bot.add_cog(HitchHikers(bot))
 bot.add_cog(Poker(bot))
-# bot.add_cog(Profile(bot))
+bot.add_cog(Profile(bot))
 bot.add_cog(Quiz(bot))
 bot.add_cog(RandomEp(bot))
 bot.add_cog(Settings(bot))

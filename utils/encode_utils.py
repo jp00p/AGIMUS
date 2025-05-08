@@ -25,8 +25,6 @@ async def encode_webp(frames: list[Image.Image], fps: int = 12) -> io.BytesIO:
   if not frames:
     raise ValueError("No frames provided for WebP encoding.")
 
-  loop = asyncio.get_running_loop()
-
   width, height = frames[0].size
   frame_count = len(frames)
 

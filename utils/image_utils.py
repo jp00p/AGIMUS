@@ -1036,9 +1036,7 @@ async def generate_badge_preview(user_id, badge, crystal=None, theme=None, disab
   badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
   effect_result = await apply_crystal_effect(badge_image, badge, crystal)
 
-  slot_frames = await to_thread(partial(
-    compose_badge_slot, badge, colors, effect_result, disable_overlays=disable_overlays
-  ))
+  slot_frames = compose_badge_slot(badge, colors, effect_result, disable_overlays=disable_overlays)
 
   if len(slot_frames) > 1:
     buf = await encode_webp(slot_frames)
@@ -1046,7 +1044,7 @@ async def generate_badge_preview(user_id, badge, crystal=None, theme=None, disab
     url = 'attachment://preview.webp'
   else:
     png_fn = partial(_encode_png, slot_frames[0])
-    buf = await to_thread(png_fn)
+    buf = await to_thread(png_fn())
     file = discord.File(buf, filename='preview.png')
     url = 'attachment://preview.png'
 
@@ -1062,19 +1060,16 @@ async def generate_unowned_badge_preview(user_id, badge):
 
   badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
 
-  slot_frames = await to_thread(partial(
-    compose_badge_slot, badge, colors, badge_image, disable_overlays=True
-  ))
+  slot_frames = compose_badge_slot(badge, colors, badge_image, disable_overlays=None)
   frame = slot_frames[0]
 
-  png_fn = partial(_encode_png, frame)
-  buf = await to_thread(png_fn)
+  buf = _encode_png(frame)
   file = discord.File(buf, filename='preview.png')
   url = 'attachment://preview.png'
 
   return file, url
 
-async def generate_singular_slot_frames(user_id, badge, crystal=None):
+async def generate_singular_slot_frames(user_id, badge, border_color=None, crystal=None):
   """
   Used by `/profile` to display/show off selected badge
   Just the badge + crystal effects image(s) placed on a simple slot
@@ -1083,6 +1078,9 @@ async def generate_singular_slot_frames(user_id, badge, crystal=None):
   dims = _get_badge_slot_dimensions()
   theme = await get_theme_preference(user_id, 'collection')
   colors = get_theme_colors(theme)
+  override_colors = None
+  if border_color:
+    override_colors = (border_color, (0, 0, 0))
 
   badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
   effect_result = await apply_crystal_effect(badge_image, badge, crystal)
@@ -1091,23 +1089,43 @@ async def generate_singular_slot_frames(user_id, badge, crystal=None):
     effect_result = [effect_result]
 
   slot_frames = []
-  base_slot_canvas = get_slot_canvas(badge, colors)
+  base_slot_canvas = get_slot_canvas(badge, colors, override_colors=override_colors)
 
   for frame in effect_result:
     slot_canvas = base_slot_canvas.copy()
 
-    frame.resize(
-      (dims.slot_width - dims.badge_padding, dims.slot_width - dims.badge_padding),
-      resample=Image.Resampling.LANCZOS
-    )
+    # Target size based on slot
+    padding = 8
+    target_w = dims.slot_width - padding * 2
+    target_h = dims.slot_height - padding * 2
 
-    slot_canvas.paste(
-      frame,
-      ((dims.slot_width // 2, dims.slot_height // 2)),
-      frame
-    )
+    orig_w, orig_h = frame.size
+    aspect = orig_w / orig_h
 
-    slot_frames.append(frame)
+    if target_w / target_h > aspect:
+      new_h = target_h
+      new_w = int(new_h * aspect)
+    else:
+      new_w = target_w
+      new_h = int(new_w / aspect)
+
+    scaled_frame = frame.resize((new_w, new_h), resample=Image.Resampling.LANCZOS)
+
+    # Center the scaled frame inside the slot_canvas
+    frame_x = (dims.slot_width - scaled_frame.width) // 2
+    frame_y = (dims.slot_height - scaled_frame.height) // 2
+
+    slot_canvas.paste(scaled_frame, (frame_x, frame_y), scaled_frame)
+
+    # Final rounded mask to clip anything outside the border
+    final_mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
+    ImageDraw.Draw(final_mask).rounded_rectangle(
+      (0, 0, dims.slot_width, dims.slot_height),
+      radius=32,
+      fill=255
+    )
+    slot_canvas.putalpha(final_mask)
+    slot_frames.append(slot_canvas)
 
   return slot_frames
 
@@ -1209,7 +1227,7 @@ def compose_badge_slot(
   return slot_frames
 
 
-def get_slot_canvas(badge, colors, override_colors: tuple = None,):
+def get_slot_canvas(badge, colors, override_colors: tuple = None):
   dims = _get_badge_slot_dimensions()
   border_color, text_color = override_colors if override_colors else (colors.highlight, "#FFFFFF")
 
