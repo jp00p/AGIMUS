@@ -169,6 +169,64 @@ async def migrate_badges(dry_run=False):
       else:
         print("✅ Dry Run: NO CHANGES MADE")
 
+      # ---------------------------
+      # 5. MIGRATE PROFILE FEATURED BADGES
+      # ---------------------------
+      print("... Migrating profile_badges → profile_badge_instances ...")
+      await cur.execute("SELECT user_discord_id, badge_filename FROM profile_badges")
+      rows = await cur.fetchall()
+
+      migrated = 0
+      skipped = 0
+
+      for row in rows:
+        user_id = row["user_discord_id"]
+        filename = row["badge_filename"]
+
+        if not filename:
+          continue
+
+        # Resolve badge_info_id
+        await cur.execute("SELECT id FROM badge_info WHERE badge_filename = %s", (filename,))
+        info = await cur.fetchone()
+        if not info:
+          print(f"[Profile Badge] Skipping: Unknown badge filename '{filename}'")
+          skipped += 1
+          continue
+        badge_info_id = info["id"]
+
+        # Try to locate Standard prestige badge_instance for this user
+        await cur.execute(
+          """
+          SELECT badge_instance_id FROM badge_instances
+          WHERE badge_info_id = %s AND owner_discord_id = %s AND prestige_level = 0
+          """,
+          (badge_info_id, user_id)
+        )
+        instance = await cur.fetchone()
+        if not instance:
+          print(f"[Profile Badge] Skipping: No Standard badge_instance found for {filename} and user {user_id}")
+          skipped += 1
+          continue
+
+        badge_instance_id = instance["badge_instance_id"]
+
+        if not dry_run:
+          await cur.execute(
+            """
+            REPLACE INTO profile_badge_instances (user_discord_id, badge_instance_id)
+            VALUES (%s, %s)
+            """,
+            (user_id, badge_instance_id)
+          )
+        else:
+          print(f"[Dry Run] Would migrate profile badge: {filename} → instance {badge_instance_id}")
+
+        migrated += 1
+
+      print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {migrated} profile badge entries ({skipped} skipped)")
+
+
   except Exception as e:
     await conn.rollback()
     print(f"❌ Migration failed! ROLLED BACK.\nError: {e}")

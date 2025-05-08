@@ -338,7 +338,6 @@ CREATE TABLE IF NOT EXISTS badge_instances_wishlists_dismissals (
   FOREIGN KEY (badge_info_id) REFERENCES badge_info(id) ON DELETE CASCADE
 );
 
-
 --
 -- Badge Tags
 --
