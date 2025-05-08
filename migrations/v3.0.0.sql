@@ -75,7 +75,7 @@ CREATE TABLE echelon_progress (
   user_discord_id VARCHAR(64) PRIMARY KEY,
   current_xp BIGINT NOT NULL DEFAULT 0,
   current_level INT NOT NULL DEFAULT 1,
-  current_prestige_level INT NOT NULL DEFAULT 0,
+  current_prestige_tier INT NOT NULL DEFAULT 0,
   buffer_failure_streak INT NOT NULL DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -869,8 +869,8 @@ class Wishlist(commands.Cog):
     embed.set_footer(text="Check `/wishlist matches` periodically to see if you can find some traders!")
     if owned_tiers:
       echelon_progress = await db_get_echelon_progress(user_discord_id)
-      current_prestige_level = echelon_progress['current_prestige_level']
-      for tier in range(current_prestige_level + 1):
+      current_prestige_tier = echelon_progress['current_prestige_tier']
+      for tier in range(current_prestige_tier + 1):
         owned = tier in owned_tiers
         symbol = "✅" if owned else "❌"
         embed.add_field(
@@ -1239,8 +1239,8 @@ class Wishlist(commands.Cog):
     embed.set_image(url=attachment_url)
     if owned_tiers:
       echelon_progress = await db_get_echelon_progress(user_discord_id)
-      current_prestige_level = echelon_progress['current_prestige_level']
-      for tier in range(current_prestige_level + 1):
+      current_prestige_tier = echelon_progress['current_prestige_tier']
+      for tier in range(current_prestige_tier + 1):
         owned = tier in owned_tiers
         symbol = "✅" if owned else "❌"
         embed.add_field(
@@ -1407,8 +1407,8 @@ class Wishlist(commands.Cog):
     embed.set_image(url=attachment_url)
     if owned_tiers:
       echelon_progress = await db_get_echelon_progress(user_discord_id)
-      current_prestige_level = echelon_progress['current_prestige_level']
-      for tier in range(current_prestige_level + 1):
+      current_prestige_tier = echelon_progress['current_prestige_tier']
+      for tier in range(current_prestige_tier + 1):
         owned = tier in owned_tiers
         symbol = "✅" if owned else "❌"
         embed.add_field(

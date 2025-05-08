@@ -178,7 +178,7 @@ class Profile(commands.Cog):
     echelon_progress = await db_get_echelon_progress(member_id)
     xp = echelon_progress.get('current_xp', 0)
     level = echelon_progress.get('current_level', 0)
-    prestige_tier = echelon_progress.get('current_prestige_level', 0)
+    prestige_tier = echelon_progress.get('current_prestige_tier', 0)
     badges = await db_get_user_badge_instances(member_id)
     badge_count = len(badges)
     crystals = await db_get_user_attuned_and_harmonized_crystals(member_id)

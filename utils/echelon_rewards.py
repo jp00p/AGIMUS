@@ -310,4 +310,4 @@ async def get_user_prestige_level(member: discord.Member) -> int:
   """
   user_discord_id = member.id
   current = await db_get_echelon_progress(user_discord_id)
-  return current.get('current_prestige_level', 0) if current else 0
+  return current.get('current_prestige_tier', 0) if current else 0

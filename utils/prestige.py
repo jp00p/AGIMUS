@@ -90,7 +90,7 @@ PRESTIGE_THEMES = {
 async def autocomplete_prestige_tiers(ctx: discord.AutocompleteContext):
   user_id = ctx.interaction.user.id
   echelon_progress = await db_get_echelon_progress(user_id)
-  current_prestige = echelon_progress['current_prestige_level'] if echelon_progress else 0
+  current_prestige = echelon_progress['current_prestige_tier'] if echelon_progress else 0
 
   # Show all tiers from Standard up through the user's unlocked level
   options = [
@@ -109,7 +109,7 @@ async def autocomplete_prestige_tiers(ctx: discord.AutocompleteContext):
 #                \/             \/     \/                    \/
 async def is_prestige_valid(ctx: discord.ApplicationContext, prestige:str):
   prestige = int(prestige)
-  user_prestige = (await db_get_echelon_progress(ctx.author.id))['current_prestige_level']
+  user_prestige = (await db_get_echelon_progress(ctx.author.id))['current_prestige_tier']
   if prestige > user_prestige:
     await ctx.respond(
       embed=discord.Embed(

@@ -1,5 +1,5 @@
 from common import *
-from queries.badge_instances import db_get_badge_instance_by_id
+from queries.badge_instances import *
 from queries.badge_tags import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
