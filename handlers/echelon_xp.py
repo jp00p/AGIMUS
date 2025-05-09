@@ -101,7 +101,7 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
   prestige_after = await get_user_prestige_level(member)
   logger.info(f"prestige_after: {prestige_after}")
 
-  if await db_is_badge_on_users_wishlist(member.id, badge_data['badge_filename']):
+  if await db_is_badge_on_users_wishlist(member.id, badge_data['badge_info_id']):
     badge_data['was_on_wishlist'] = True
 
   source_details = determine_level_up_source_details(member, source)
