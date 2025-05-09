@@ -38,18 +38,18 @@ async def db_get_open_game():
 
 # --- Game Players ---
 
-async def db_add_game_player(game_id: int, user_id: int, liability_mode: str):
+async def db_add_game_player(game_id: int, user_id: int):
   query = """
-    INSERT INTO tongo_game_players (game_id, user_discord_id, liability_mode)
+    INSERT INTO tongo_game_players (game_id, user_discord_id)
     VALUES (%s, %s, %s)
   """
   async with AgimusDB() as db:
-    await db.execute(query, (game_id, user_id, liability_mode))
+    await db.execute(query, (game_id, user_id))
 
 
 async def db_get_players_for_game(game_id: int):
   query = """
-    SELECT user_discord_id, liability_mode FROM tongo_game_players
+    SELECT user_discord_id FROM tongo_game_players
     WHERE game_id = %s
   """
   async with AgimusDB(dictionary=True) as db:

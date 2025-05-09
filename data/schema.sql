@@ -626,7 +626,6 @@ CREATE TABLE IF NOT EXISTS tongo_games (
 CREATE TABLE IF NOT EXISTS tongo_game_players (
   game_id INT,
   user_discord_id varchar(64),
-  liability_mode ENUM('unlocked', 'all_in') NOT NULL,
   joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (game_id, user_discord_id),
   FOREIGN KEY (game_id) REFERENCES tongo_games(id)

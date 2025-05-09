@@ -164,14 +164,16 @@ async def db_get_badge_instance_by_badge_name(user_id: int, badge_name: str, pre
     await db.execute(sql, tuple(params))
     return await db.fetchone()
 
-async def db_get_owned_badge_filenames_by_user_id(user_id: int, prestige: int | None = None):
-  sql = """
-    SELECT bi.badge_filename
-    FROM badge_instances AS inst
-    JOIN badge_info AS bi ON inst.badge_info_id = bi.id
-    WHERE inst.owner_discord_id = %s
-      AND inst.active = TRUE
-  """
+async def db_get_owned_badge_filenames(user_id: int, prestige: int | None = None):
+  sql = '''
+    SELECT b_i.badge_filename
+    FROM badge_instances b
+    JOIN badge_info b_i ON b.badge_info_id = b_i.id
+    WHERE b.owner_discord_id = %s
+      AND b.prestige_level = %s
+      AND b.active = TRUE
+      AND b.locked = FALSE
+  '''
   params = [user_id]
   if prestige is not None:
     sql += " AND inst.prestige_level = %s"
@@ -180,7 +182,6 @@ async def db_get_owned_badge_filenames_by_user_id(user_id: int, prestige: int | 
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, tuple(params))
     return await db.fetchall()
-
 
 # Crystal-based Badge Instance Queries
 async def db_get_badges_without_crystal_type(user_id: int, crystal_type_id: int) -> list[dict]:
@@ -233,6 +234,36 @@ async def db_get_user_badge_instances_with_attuned_crystals(user_id: int):
       (user_id,)
     )
     return await query.fetchall()
+
+
+async def db_get_unlocked_and_unattuned_badge_instances(user_id: int, prestige: int) -> list[dict]:
+  """
+  Returns all active, unlocked badge instances owned by the user at the given prestige level
+  that have no crystals attached (attuned or harmonized).
+
+  Used by Tongo for selection pools
+  """
+  sql = f"""
+    SELECT {BADGE_INSTANCE_COLUMNS}
+    FROM badge_instances AS b
+    JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+    LEFT JOIN badge_crystals AS c ON b.id = c.badge_instance_id
+    LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
+    LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
+    WHERE b.owner_discord_id = %s
+      AND b.active = TRUE
+      AND b.locked = FALSE
+      AND b.prestige_level = %s
+      AND b.id NOT IN (
+        SELECT badge_instance_id
+        FROM badge_crystals
+      )
+    ORDER BY b_i.badge_filename ASC
+  """
+
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id, prestige))
+    return await db.fetchall()
 
 
 # COUNTS
