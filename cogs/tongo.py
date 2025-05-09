@@ -3,19 +3,23 @@ from handlers.xp import grant_xp
 
 from cogs.trade import get_offered_and_requested_badge_names
 
-from utils.badge_instances import *
-from utils.badge_trades import *
-from utils.badge_utils import *
-from utils.check_channel_access import access_check
-from utils.image_utils import generate_badge_trade_images
-from utils.prestige import *
-
 from queries.badge_info import *
 from queries.badge_instances import *
+from queries.crystal_instances import *
 from queries.tongo import *
 from queries.trade import db_cancel_trade
 from queries.wishlists import *
 
+from utils.badge_instances import *
+from utils.badge_trades import *
+from utils.badge_utils import *
+from utils.crystal_instances import *
+from utils.check_channel_access import access_check
+from utils.image_utils import *
+from utils.prestige import *
+
+
+# cogs.tongo
 
 f = open("./data/rules_of_acquisition.txt", "r")
 data = f.read()
@@ -26,8 +30,224 @@ f.close()
 TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=6)
 MINIMUM_LIQUIDATION_CONTINUUM = 10
 MINIMUM_LIQUIDATION_PLAYERS = 3
+DIVIDEND_REWARDS = {
+  "buffer": {"cost": 3, "label": "Crystal Pattern Buffer"},
+  "wishlist": {"cost": 7, "label": "Guaranteed Wishlist Badge"},
+  "replication": {"cost": 13, "label": "Ferengi Crystal Replicator Override"},
+}
 
-# -> cogs.tongo
+class TongoDividendsView(discord.View):
+  def __init__(self, cog, balance: int):
+    super().__init__(timeout=120)
+    self.cog = cog
+    self.redeem_buffer.disabled = balance < DIVIDEND_REWARDS['buffer']['cost']
+    self.redeem_wishlist.disabled = balance < DIVIDEND_REWARDS['wishlist']['cost']
+    self.redeem_replication.disabled = balance < DIVIDEND_REWARDS['replication']['cost']
+
+  async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    self.interaction_user = interaction.user
+    return True
+
+  @discord.ui.button(label=f"{DIVIDEND_REWARDS['buffer']['label']}", custom_id="redeem_buffer", style=discord.ButtonStyle.blurple)
+  async def redeem_buffer(self, button, interaction: discord.Interaction):
+    await self.handle_redeem(interaction, reward_id="buffer")
+
+  @discord.ui.button(label=f"{DIVIDEND_REWARDS['wishlist']['label']}", custom_id="redeem_wishlist", style=discord.ButtonStyle.blurple)
+  async def redeem_wishlist(self, button, interaction: discord.Interaction):
+    await self.handle_redeem(interaction, reward_id="wishlist")
+
+  @discord.ui.button(label=f"{DIVIDEND_REWARDS['replication']['label']}", custom_id="redeem_replication", style=discord.ButtonStyle.blurple)
+  async def redeem_replication(self, button, interaction: discord.Interaction):
+    await self.handle_redeem(interaction, reward_id="replication")
+
+  async def handle_redeem(self, interaction: discord.Interaction, reward_id: str):
+    user_id = interaction.user.id
+    reward = DIVIDEND_REWARDS.get(reward_id)
+    if not reward:
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title="Invalid Reward!",
+          color=discord.Color.red()
+        ), ephemeral=True
+      )
+      return
+
+    record = await db_get_tongo_dividends(user_id)
+    balance = record['current_balance'] if record else 0
+    if balance < reward['cost']:
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title="Insufficient Dividend Balance!",
+          description="You don't have enough Dividends to redeem that Reward!\n\n"
+                     f"You currently possess **{balance}** Dividends and this reward requires **{reward['cost']}**!",
+          color=discord.Color.red()
+        ),
+        view=None,
+        ephemeral=True
+      )
+      return
+
+    # Reward fulfillment logic
+    result_successful = False
+    if reward_id == "buffer":
+      result_successful = await self._reward_crystal_buffer(interaction, user_id)
+    elif reward_id == "wishlist":
+      result_successful = await self._reward_wishlist(interaction, user_id)
+    elif reward_id == "replication":
+      result_successful = await self._reward_replication(interaction, user_id)
+
+    if not result_successful:
+      await interaction.delete_original_response()
+      return
+
+    await db_decrement_user_tongo_dividends(user_id, reward['cost'])
+
+    confirmation_embed = discord.Embed(
+      title="Reward Redeemed!",
+      description=f"You have redeemed **{reward['label']}** and your Dividends balance has been deducted by **{reward['cost']}**.",
+      color=discord.Color.gold()
+    )
+    confirmation_embed.set_footer(
+      text=f"Greed is Eternal!",
+      icon_url="https://i.imgur.com/scVHPNm.png"
+    )
+    confirmation_embed.set_image(url="https://i.imgur.com/s10kcx3.gif")
+    # Edit the original message to show confirmation and remove this buttons view entirely
+    await interaction.response.edit_message(embed=confirmation_embed, view=None)
+
+
+  async def _reward_crystal_buffer(self, interaction, user_id):
+    member = await self.cog.bot.current_guild.fetch_member(user_id)
+
+    await db_increment_user_crystal_buffer(user_id)
+
+    embed = discord.Embed(
+      title="Dividend Redeemed!",
+      description=(
+        f"An advantageous transaction has arranged with Grand Nagus Zek!\n\n"
+        f"**{member.display_name}** has redeemed **{DIVIDEND_REWARDS['buffer']['cost']}** Dividends and received a **{DIVIDEND_REWARDS['buffer']['label']}!**\n\n"
+        "They can now use  `/crystals replicate` to materialize a freshly minted Crystal!"
+      ),
+      color=discord.Color.gold()
+    )
+    embed.set_image(url="https://i.imgur.com/V5jk2LJ.gif")
+    embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/scVHPNm.png"
+    )
+
+    zeks_table = await self.cog.bot.fetch_channel(get_channel_id("zeks-table"))
+    await zeks_table.send(embed=embed)
+    return True
+
+  async def _reward_wishlist(self, interaction, user_id):
+    echelon_progress = await db_get_echelon_progress(user_id)
+    prestige = echelon_progress['current_prestige_tier'] if echelon_progress else 0
+    active_wants = await db_get_active_wants(user_id, prestige)
+
+    inventory_filenames = set(b['badge_filename'] for b in await db_get_owned_badge_filenames(user_id, prestige=prestige))
+    wishlist_to_grant = [b for b in active_wants if b['badge_filename'] not in inventory_filenames]
+
+    if not wishlist_to_grant:
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title="No Wishlist (or Wishlist Already Fulfilled)!",
+          description="You need to set up your wishlist with `/wishlist add` before you can redeem this Dividend Reward!",
+          color=discord.Color.red()
+        ).set_footer(text="(No Dividends have been deducted)"),
+        view=None
+      )
+      return False
+
+    random.shuffle(wishlist_to_grant)
+    badge_to_grant = wishlist_to_grant[0]
+    badge_info_id = badge_to_grant['badge_info_id']
+    reward_instance = await create_new_badge_instance(user_id, badge_info_id, prestige_level=prestige, event_type='dividend_reward')
+
+    discord_file, attachment_url = await generate_badge_preview(user_id, reward_instance)
+
+    member = await self.cog.bot.current_guild.fetch_member(user_id)
+    embed = discord.Embed(
+      title="Dividend Redeemed!",
+      description=(
+        f"A profitable transaction has arranged with Grand Nagus Zek!\n\n"
+        f"**{member.display_name}** has redeemed **{DIVIDEND_REWARDS['wishlist']['cost']}** Dividends and received a **{DIVIDEND_REWARDS['wishlist']['label']}!**"
+      ),
+      color=discord.Color.gold()
+    )
+    embed.set_image(url=attachment_url)
+    embed.add_field(
+      name=f"{member.display_name} receives a random badge they've been coveting...",
+      value=f"* ✨ {reward_instance['badge_name']} ({PRESTIGE_TIERS[prestige]}) ✨",
+      inline=False
+    )
+    embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/scVHPNm.png"
+    )
+
+    zeks_table = await self.cog.bot.fetch_channel(get_channel_id("zeks-table"))
+    await zeks_table.send(
+      embed=embed,
+      file=discord_file
+    )
+    return True
+
+  async def _reward_replication(self, user_id):
+    member = await self.cog.bot.current_guild.fetch_member(user_id)
+
+    # Override regular rank choices for Rare+ Chances
+    rolled_rank = weighted_random_choice({
+      3: 70,   # Rare
+      4: 22.5, # Legendary
+      5: 7.5   # Mythic
+    })
+    crystal_type = await db_select_random_crystal_type_by_rarity_rank(rolled_rank)
+    crystal = await create_new_crystal_instance(user_id, crystal_type['id'])
+
+    discord_file, replicator_confirmation_filename = await generate_crystal_replicator_confirmation_frames(crystal, replicator_type='ferengi')
+
+    FERENGI_RARITY_SUCCESS_MESSAGES = {
+      'rare': [
+        "The Great Material Continuum smiles upon you, {user}!",
+        "A *profitable* acquisition, {user}!",
+        "According to Rule of Acquisition No. 9: Opportunity plus instinct equals profit - and you, {user}, just proved it!"
+      ],
+      'legendary': [
+        "Now *that's* a high-value return {user}!",
+        "Market volatility in your favor! A ***Legendary*** score, {user}!",
+        "Rule No. 45: 'Expand or die.' You've just expanded your holdings *dramatically*, {user}!"
+      ],
+      'mythic': [
+        "*My lobes are tingling!* A ***MYTHIC*** crystal for {user}!? Unthinkable... " + get_emoji('quark_ooh_excited'),
+        "**MYTHIC!?!** Even Brunt, FCA, is impressed by (and suspicious of...) {user}'s new acquisition! " + get_emoji('quark_cool'),
+        "Mythic? **MYTHIC!?** By the ears of Zek, {user}, you've just tipped the economic axis of the quadrant! " + get_emoji('quark_profit_zoom')
+      ]
+    }
+
+    success_message = random.choice(FERENGI_RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=member.mention)
+    channel_embed = discord.Embed(
+      title='Dividend Redeemed!',
+      description=f"**{member.display_name}** has redeemed **{DIVIDEND_REWARDS['replication']['cost']}** Dividends and the use of a **{DIVIDEND_REWARDS['replication']['label']}!**\n\n"
+                  f"Grand Nagus Zek pulls a Honeystick out from withn his robes, wanders over to the Replicator behind the bar, the familiar hum fills the air, and the result is...\n### **{crystal['crystal_name']}**!"
+                  f"\n{success_message}",
+      color=discord.Color.gold()
+    )
+    channel_embed.add_field(name=f"Rank", value=f"{crystal['emoji']}  {crystal['rarity_name']}", inline=False)
+    channel_embed.add_field(name=f"Description", value=crystal['description'], inline=False)
+    channel_embed.set_image(url=f"attachment://{replicator_confirmation_filename}")
+    channel_embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/scVHPNm.png"
+    )
+
+    zeks_table = await self.cog.bot.fetch_channel(get_channel_id("zeks-table"))
+    await zeks_table.send(
+      embed=channel_embed,
+      file=discord_file
+    )
+
+    return True
 
 # ___________                          _________
 # \__    ___/___   ____    ____   ____ \_   ___ \  ____   ____
@@ -211,8 +431,12 @@ class Tongo(commands.Cog):
     game_id = await db_create_tongo_game(user_id)
     await db_add_game_player(game_id, user_id)
 
+    # Toss the badges in!
     for instance in selected:
       await throw_badge_into_continuum(instance, user_id)
+    # Grant the user a dividend for playing
+    await self._cancel_tongo_related_trades(user_id, selected)
+    await db_increment_tongo_dividends(user_id)
 
     await ctx.followup.send(embed=discord.Embed(
       title="Venture Acknowledged!",
@@ -325,8 +549,12 @@ class Tongo(commands.Cog):
     selected = random.sample(eligible, 3)
     await db_add_game_player(game['id'], user_id)
 
+    # Toss the badges in!
     for instance in selected:
       await throw_badge_into_continuum(instance, user_id)
+    await self._cancel_tongo_related_trades(user_id, selected)
+    # Grant the user a dividend for playing
+    await db_increment_tongo_dividends(user_id)
 
     await ctx.followup.send(embed=discord.Embed(
       title="Risk Acknowledged!",
@@ -544,6 +772,57 @@ class Tongo(commands.Cog):
     continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
     await send_continuum_images_to_channel(zeks_table, continuum_images)
 
+
+  @tongo.command(
+    name="dividends",
+    description="View and Redeem your Tongo Dividends!"
+  )
+  @commands.check(access_check)
+  async def dividends(self, ctx):
+    await ctx.defer(ephemeral=True)
+    user_id = ctx.author.id
+
+    record = await db_get_tongo_dividends(user_id)
+    balance = record['current_balance'] if record else 0
+    lifetime = record['lifetime_earned'] if record else 0
+
+    if balance == 0 and lifetime == 0:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="You Haven't Earned Any Dividends Yet!",
+          description="Your avarice is insufficient! Get out there and play some Tongo to earn and redeem Dividends!",
+          color=discord.Color.red()
+        )
+      )
+      return
+
+    embed = discord.Embed(
+      title="Tongo Dividends",
+      description=f"Your devotion to Ferengi Principles and the 285 Rules of Acquisition have earned you favor from Grand Nagus Zek.\n\n"
+                  "There are three possible Dividend Rewards...\n\n"
+                  f"* {DIVIDEND_REWARDS['buffer']['label']} - A Pattern Buffer you may use in the Starfleet-Standard Crystal Replicator.\n"
+                  f"* {DIVIDEND_REWARDS['wishlist']['label']} - A Wishlist Endowment courtesy of Grand Nagus Zek.\n"
+                  f"* {DIVIDEND_REWARDS['replication']['label']} - The Materialization of a Guaranteed Rare(*?*) Crystal via a delicious Ferengi Honeystick.\n\n"
+                  "Each Tongo game you participate in earns you *one* Dividend! Stack em up!",
+      color=discord.Color.dark_purple()
+    )
+    embed.add_field(
+      name="Dividend Exchange Rate",
+      value="\n".join([
+        f"* {reward['label']} — **{reward['cost']}** Dividends" for reward in DIVIDEND_REWARDS.values()
+      ]),
+      inline=False
+    )
+    embed.add_field(name="Current Balance", value=f"**{balance}** Dividends", inline=True)
+    embed.add_field(name="Lifetime Earned", value=f"**{lifetime}** Total", inline=True)
+    embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    )
+
+    await ctx.followup.send(embed=embed, view=TongoDividendsView(self, balance), ephemeral=True)
+
+
   #    ___       __           _____          ___              __
   #   / _ |__ __/ /____  ____/ ___/__  ___  / _/______  ___  / /_
   #  / __ / // / __/ _ \/___/ /__/ _ \/ _ \/ _/ __/ _ \/ _ \/ __/
@@ -637,6 +916,7 @@ class Tongo(commands.Cog):
 
         xp_awarded = 0
         if len(badge_instance_ids) < 3:
+          # XXX Replace this with dividend rewards?
           xp_awarded = 110 * (3 - len(badge_instance_ids))
           if datetime.today().weekday() >= 4:
             xp_awarded *= 2
@@ -1032,7 +1312,7 @@ def build_liquidation_embed(member: discord.Member, reward_badge: dict, removed_
 
   embed.add_field(
     name=f"{member.display_name} receives a random badge they've been coveting...",
-    value=f"* {reward_badge['badge_name']} ✨",
+    value=f"* ✨ {reward_badge['badge_name']} ✨",
     inline=False
   )
 
@@ -1044,7 +1324,7 @@ def build_liquidation_embed(member: discord.Member, reward_badge: dict, removed_
 
   embed.set_footer(
     text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
-    icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    icon_url="https://i.imgur.com/scVHPNm.png"
   )
 
   return embed
@@ -1055,14 +1335,14 @@ def build_liquidation_dm_embed(member: discord.Member, reward_badge: dict) -> di
     description=(
       f"Heya {member.display_name}, Grand Nagus Zek has decreed a Liquidation of The Great Material Continuum, "
       f"and as the ✨ *Lucky Liquidation Beneficiary* ✨ you have received a randomized badge from your wishlist!\n\n"
-      "**Congratulations!** Greed is Eternal!"
-    ),
+      "**Congratulations!**"
+    ).set_footer(text="Greed is Eternal!"),
     color=discord.Color.gold()
   )
 
   embed.add_field(
     name="You received...",
-    value=f"* {reward_badge['badge_name']} ✨"
+    value=f"* ✨ {reward_badge['badge_name']} ✨"
   )
 
   return embed

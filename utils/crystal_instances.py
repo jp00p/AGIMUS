@@ -137,3 +137,13 @@ async def log_crystal_instance_history(
         occurred_at or datetime.utcnow()
       )
     )
+
+# Used by cogs.crystals and cogs.tongo to reward Crystals based on Rarity Drop Chances
+def weighted_random_choice(weight_map: dict[str, float]) -> str:
+    """
+    Returns a single key from the dict based on its weight.
+    Keys are possible values, values are weights (drop chances).
+    """
+    choices = list(weight_map.keys())
+    weights = list(weight_map.values())
+    return random.choices(choices, weights=weights, k=1)[0]

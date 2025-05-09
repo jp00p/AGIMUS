@@ -1513,8 +1513,11 @@ async def generate_badge_trade_images(
 #  |    |   \  ___/|  |_> >  |_|  \  \___ / __ \|  | (  <_> )  | \/
 #  |____|_  /\___  >   __/|____/__|\___  >____  /__|  \____/|__|
 #         \/     \/|__|                \/     \/
-async def generate_crystal_replicator_confirmation_frames(crystal):
-  replicator_confirmation_filename = f"crystal_materialization_{crystal['crystal_name']}.webp"
+async def generate_crystal_replicator_confirmation_frames(crystal, replicator_type='standard'):
+  # Purposeful 3 second delay to build suspense (cached replciator gifs return very quickly once generated)...
+  await asyncio.sleep(3)
+
+  replicator_confirmation_filename = f"{replicator_type}-crystal_materialization_{crystal['crystal_name']}.webp"
 
   cached_path = get_cached_crystal_replicator_animation_path(crystal['crystal_name'])
   if cached_path:
@@ -1534,9 +1537,9 @@ async def generate_crystal_replicator_confirmation_frames(crystal):
   cropped_align_y_bottom = 90 - 50 + 25 + 10 + baseline_height
 
   # Files
-  templates_dir = "./images/templates/crystals"
-  base_bg = await threaded_image_open(f"{templates_dir}/replicator.png")
-  icon = await threaded_image_open(f"{templates_dir}/icons/{crystal['icon']}")
+  crystal_templates_dir = "./images/templates/crystals"
+  base_bg = await threaded_image_open(f"{crystal_templates_dir}/{replicator_type}-replicator.png")
+  icon = await threaded_image_open(f"{crystal_templates_dir}/icons/{crystal['icon']}")
 
   bbox = icon.getbbox()
   cropped = icon.crop(bbox)
@@ -1545,7 +1548,7 @@ async def generate_crystal_replicator_confirmation_frames(crystal):
   y = cropped_align_y_bottom - cropped.height
   crystal_pos = (x, y)
 
-  effect_dir = f"{templates_dir}/replicator_effect/"
+  effect_dir = f"{crystal_templates_dir}/replicator_effect/"
   effect_filenames = sorted(os.listdir(effect_dir))
   shifted_effect_position = (base_bg.width // 2 - 300 // 2 + 50, 100)
   effect_total_frames = len(effect_filenames)
@@ -1600,7 +1603,6 @@ async def generate_crystal_replicator_confirmation_frames(crystal):
   webp_buf = await encode_webp(frames)
   await save_cached_crystal_replicator_animation(webp_buf, crystal['crystal_name'])
   return discord.File(webp_buf, filename=replicator_confirmation_filename), replicator_confirmation_filename
-
 
 #   _________
 #  /   _____/ ________________  ______ ______   ___________

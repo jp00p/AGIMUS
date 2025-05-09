@@ -449,11 +449,11 @@ CREATE TABLE IF NOT EXISTS crystal_ranks (
 );
 
 INSERT INTO crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order) VALUES
-  ("Common",    "⚪", 1, 0.50, 0),
-  ("Uncommon",  "🟢", 2, 0.30, 1),
-  ("Rare",      "🟣", 3, 0.125, 2),
-  ("Legendary", "🔥", 4, 0.075, 3),
-  ("Mythic",    "💎", 5, 0.05, 4);
+  ("Common",    "⚪", 1, 50, 0),
+  ("Uncommon",  "🟢", 2, 33, 1),
+  ("Rare",      "🟣", 3, 10, 2),
+  ("Legendary", "🔥", 4, 6, 3),
+  ("Mythic",    "💎", 5, 1, 4);
 
 -- Crystal Types
 CREATE TABLE IF NOT EXISTS crystal_types (
@@ -598,6 +598,7 @@ CREATE TABLE IF NOT EXISTS badge_instance_history (
     'tongo_reward',
     'liquidation',
     'liquidation_endowment',
+    'dividend_reward',
     'prestige_echo',
     'admin',
     'unknown'
@@ -650,6 +651,15 @@ CREATE TABLE IF NOT EXISTS tongo_game_rewards (
   FOREIGN KEY (game_id) REFERENCES tongo_games(id),
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id),
   FOREIGN KEY (crystal_id) REFERENCES crystal_types(id)
+);
+
+CREATE TABLE tongo_dividends (
+  user_discord_id VARCHAR(64) PRIMARY KEY,
+  current_balance INT NOT NULL DEFAULT 0,
+  lifetime_earned INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
 );
 
 --

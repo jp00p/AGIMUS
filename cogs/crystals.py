@@ -263,7 +263,7 @@ class Crystals(commands.Cog):
         confirmation_embed.set_image(url=random.choice(lcars_slider_gifs))
         await interaction.response.edit_message(embed=confirmation_embed, attachments=[], view=None)
 
-        discord_file, effect_filename = await generate_crystal_replicator_confirmation_frames(crystal)
+        discord_file, replicator_confirmation_filename = await generate_crystal_replicator_confirmation_frames(crystal)
 
         success_message = random.choice(cog.RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=user.mention)
         channel_embed = discord.Embed(
@@ -273,7 +273,7 @@ class Crystals(commands.Cog):
         )
         channel_embed.add_field(name=f"Rank", value=f"{crystal['emoji']}  {crystal['rarity_name']}", inline=False)
         channel_embed.add_field(name=f"Description", value=crystal['description'], inline=False)
-        channel_embed.set_image(url=f"attachment://{discord_file.filename}")
+        channel_embed.set_image(url=f"attachment://{replicator_confirmation_filename}")
         channel_embed.set_footer(text="Use `/crystals attune` to attach it to one of your Badges!")
 
         gelrak_v = await cog.bot.fetch_channel(get_channel_id("gelrak-v"))
@@ -836,20 +836,3 @@ async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_cry
     embeds.append(embed)
 
   return pages, embeds
-
-
-
-#  ____ ___   __  .__.__
-# |    |   \_/  |_|__|  |   ______
-# |    |   /\   __\  |  |  /  ___/
-# |    |  /  |  | |  |  |__\___ \
-# |______/   |__| |__|____/____  >
-#                              \/
-def weighted_random_choice(weight_map: dict[str, float]) -> str:
-    """
-    Returns a single key from the dict based on its weight.
-    Keys are possible values, values are weights (drop chances).
-    """
-    choices = list(weight_map.keys())
-    weights = list(weight_map.values())
-    return random.choices(choices, weights=weights, k=1)[0]

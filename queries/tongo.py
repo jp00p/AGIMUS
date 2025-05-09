@@ -190,3 +190,32 @@ async def db_get_rewards_for_game(game_id: int):
   async with AgimusDB(dictionary=True) as db:
     await db.execute(query, (game_id,))
     return await db.fetchall()
+
+
+# --- Dividends ---
+async def db_get_tongo_dividends(user_id: int) -> dict | None:
+  sql = "SELECT * FROM tongo_dividends WHERE user_discord_id = %s"
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id,))
+    return await db.fetchone()
+
+async def db_increment_tongo_dividends(user_id: int, amount: int = 1):
+  sql = """
+    INSERT INTO tongo_dividends (user_discord_id, current_balance, lifetime_earned)
+    VALUES (%s, %s, %s)
+    AS new
+    ON DUPLICATE KEY UPDATE
+      current_balance = current_balance + new.current_balance,
+      lifetime_earned = lifetime_earned + new.lifetime_earned
+  """
+  async with AgimusDB() as db:
+    await db.execute(sql, (user_id, amount, amount))
+
+async def db_decrement_user_tongo_dividends(user_id: int, amount: int):
+  sql = """
+    UPDATE tongo_dividends
+    SET current_balance = GREATEST(current_balance - %s, 0)
+    WHERE user_discord_id = %s
+  """
+  async with AgimusDB() as db:
+    await db.execute(sql, (amount, user_id))

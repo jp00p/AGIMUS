@@ -247,13 +247,13 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   embed = None
   if number_of_patterns == 1:
     embed = discord.Embed(
-      title="✨ Crystal Pattern Buffer Acquired! ✨",
+      title="Crystal Pattern Buffer Acquired!",
       description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Pattern Buffer** when they reached Echelon {level}!\n\nThey can now use it to replicate a Crystal from scratch!",
       color=discord.Color.teal()
     )
   else:
     embed = discord.Embed(
-      title="✨ Crystal Pattern Buffers Acquired! ✨",
+      title="Crystal Pattern Buffers Acquired!",
       description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Pattern Buffers** in their hands when they reached Echelon {level}!\n\nThey can now use them to replicate {number_of_patterns} Crystals from scratch!",
       color=discord.Color.teal()
     )
