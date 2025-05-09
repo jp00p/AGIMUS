@@ -36,7 +36,7 @@ DIVIDEND_REWARDS = {
   "replication": {"cost": 13, "label": "Ferengi Crystal Replicator Override"},
 }
 
-class TongoDividendsView(discord.View):
+class TongoDividendsView(discord.ui.View):
   def __init__(self, cog, balance: int):
     super().__init__(timeout=120)
     self.cog = cog
@@ -1423,157 +1423,67 @@ async def db_get_related_tongo_badge_trades(user_discord_id, selected_user_badge
 # \     \___(  <_> )   |  \  | |  |   |  \  |  /  |  /  Y Y  \   |  Y Y  \/ __ \_/ /_/  >  ___/ \___ \
 #  \______  /\____/|___|  /__| |__|___|  /____/|____/|__|_|  /___|__|_|  (____  /\___  / \___  >____  >
 #         \/            \/             \/                  \/          \/     \//_____/      \/     \/
-
-# TO DO: Need to refactor these into the pipeline functions in `utils.image_utils`
-
 async def generate_paginated_continuum_images(continuum_badges):
+  from utils.image_utils import compose_badge_slot, buffer_image_to_discord_file, _get_badge_slot_dimensions
+
+  dims = _get_badge_slot_dimensions()
+  margin = 20
+  items_per_page = 12
+  pages = [continuum_badges[i:i + items_per_page] for i in range(0, len(continuum_badges), items_per_page)]
+  total_pages = len(pages)
   total_badges = len(continuum_badges)
-  max_per_image = 12
-  all_pages = [continuum_badges[i:i + max_per_image] for i in range(0, len(continuum_badges), max_per_image)]
-  total_pages = len(all_pages)
-  badge_images = [
-    await generate_continuum_images(
-      page,
-      page_number + 1,
-      total_pages,
-      total_badges
-    )
-    for page_number, page in enumerate(all_pages)
-  ]
-  return badge_images
+  results = []
 
+  fonts = load_fonts()
+  text_font = fonts.general
 
-@to_thread
-def generate_continuum_images(page_badges, page_number, total_pages, total_badges):
-  text_wrapper = textwrap.TextWrapper(width=20)
-  badge_font = ImageFont.truetype("fonts/context_bold.ttf", 16)
-  footer_font = ImageFont.truetype("fonts/luxury.ttf", 42)
+  for page_index, page_badges in enumerate(pages):
+    canvas_w = 800
+    canvas_h = 110 + 200 * len(page_badges) // 3 + 115
+    base_image = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0))
 
-  badge_size = 120
-  badge_padding = 20
-  badge_margin = 40
-  badge_vertical_margin = 40
-  badge_slot_size = badge_size + (badge_padding * 2) # size of badge slot size (must be square!)
-  badges_per_row = 3
+    # Load header/footer/bg
+    header = await threaded_image_open("./images/templates/tongo/continuum_header.png")
+    row_bg = await threaded_image_open("./images/templates/tongo/continuum_bg.png")
+    footer = await threaded_image_open("./images/templates/tongo/continuum_footer.png")
 
-  total_rows = math.ceil((len(page_badges) / badges_per_row))
+    base_image.paste(header, (0, 0))
 
-  header_height = 110
-  row_height = 200
-  footer_height = 115
+    row_y = 110
+    row_h = 200
+    rows = math.ceil(len(page_badges) / 3)
+    for i in range(rows):
+      base_image.paste(row_bg, (0, row_y + i * row_h))
 
-  base_width = 800
-  base_height = (200 * total_rows) + header_height + footer_height
+    base_image.paste(footer, (0, row_y + rows * row_h))
 
-  # Create base image to paste all badges on to
-  continuum_base_image = Image.new("RGBA", (base_width, base_height), (0, 0, 0))
-  continuum_header_image = Image.open("./images/templates/tongo/continuum_header.png")
-  continuum_bg_image = Image.open("./images/templates/tongo/continuum_bg.png")
-  continuum_footer_image = Image.open("./images/templates/tongo/continuum_footer.png")
+    # Build slots
+    badge_slots = []
+    for badge in page_badges:
+      badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
+      slot_frames = compose_badge_slot(badge, get_theme_colors('gold'), badge_image, disable_overlays=True)
+      badge_slots.append(slot_frames[0])
 
-  # Start image with header
-  continuum_base_image.paste(continuum_header_image, (0, 0))
+    current_y = 130
+    index = 0
+    for row in range(rows):
+      row_badges = badge_slots[index:index+3]
+      total_row_w = len(row_badges) * dims.slot_width + (len(row_badges) - 1) * margin
+      x = (canvas_w - total_row_w) // 2
+      for slot in row_badges:
+        base_image.paste(slot, (x, current_y), slot)
+        x += dims.slot_width + margin
+      current_y += row_h
+      index += 3
 
-  # Stamp BG Rows
-  bg_y = header_height
-  for i in range(total_rows):
-    continuum_base_image.paste(continuum_bg_image, (0, bg_y))
-    bg_y += row_height
+    # Footer text
+    footer_text = f"{total_badges} TOTAL"
+    if total_pages > 1:
+      footer_text += f" -- PAGE {page_index + 1:02} OF {total_pages:02}"
 
-  # Stamp Footer
-  continuum_base_image.paste(continuum_footer_image, (0, bg_y))
+    draw = ImageDraw.Draw(base_image)
+    draw.text((canvas_w // 2, canvas_h - 50), footer_text, font=text_font, fill="#FCCE67", anchor="mm")
 
-  total_text = f"{total_badges} TOTAL"
-  page_number_text = ""
-  if total_pages > 1:
-    page_number_text = f" -- PAGE {'{:02d}'.format(page_number)} OF {'{:02d}'.format(total_pages)}"
-  footer_text =f"{total_text}{page_number_text}"
+    results.append(buffer_image_to_discord_file(base_image, f"continuum_page_{page_index + 1}.png"))
 
-  draw = ImageDraw.Draw(continuum_base_image)
-  base_w, base_h = continuum_base_image.size
-  # draw.text( (150, base_h-50), total_text, fill="white", font=footer_font, anchor="mm", align="right", stroke_width=2, stroke_fill="#DFBD5C")
-  # draw.text( (base_w-200, base_h-50), page_number_text, fill="white", font=footer_font, anchor="mm", align="right", stroke_width=2, stroke_fill="#DFBD5C")
-  draw.text( (base_width/2, base_h-50), footer_text, fill="#FCCE67", font=footer_font, anchor="mm", align="center", stroke_width=2, stroke_fill="#B49847")
-
-
-  # Calcuate centering the row
-  half_base_width = int(base_w / 2)
-
-  total_remaining_badges = len(page_badges)
-  start_row_badges_length = total_remaining_badges
-  if start_row_badges_length >= badges_per_row:
-    start_row_badges_length = badges_per_row
-
-  # Get total width of all badges and any margins
-  start_row_width = int((badge_slot_size * start_row_badges_length) + (badge_margin * (start_row_badges_length - 1)))
-  # Subtract that from the midpoint of the base image
-  current_x = int(half_base_width - (start_row_width / 2))
-  # Start point for vertical row
-  current_y = header_height + int(badge_margin / 2)
-  counter = 0
-
-  for badge in page_badges:
-    # slot
-    s = Image.new("RGBA", (badge_slot_size, badge_slot_size), (0, 0, 0, 0))
-    badge_draw = ImageDraw.Draw(s)
-    badge_draw.rounded_rectangle( (0, 0, badge_slot_size, badge_slot_size), fill="#000000", outline="#DFBD5C", width=4, radius=32 )
-
-    # badge
-    size = (100, 100)
-    b_raw = Image.open(f"./images/badges/{badge['badge_filename']}").convert("RGBA")
-    b_raw.thumbnail(size, Image.ANTIALIAS)
-    b = Image.new('RGBA', size, (255, 255, 255, 0))
-    b.paste(
-      b_raw, (int((size[0] - b_raw.size[0]) // 2), int((size[1] - b_raw.size[1]) // 2))
-    )
-
-    w, h = b.size # badge size
-    offset_x = int(badge_slot_size / 2) - (int((w) / 2) + badge_padding) # center badge x
-    offset_y = 5
-
-    current_text_wrapper = text_wrapper
-    current_badge_font = badge_font
-    if len(badge['badge_name']) > 20:
-      current_text_wrapper = textwrap.TextWrapper(width=16)
-      current_badge_font = ImageFont.truetype("fonts/context_bold.ttf", 14)
-    badge_name = current_text_wrapper.wrap(badge['badge_name'])
-    wrapped_badge_name = ""
-    for i in badge_name[:-1]:
-      wrapped_badge_name = wrapped_badge_name + i + "\n"
-    wrapped_badge_name += badge_name[-1]
-    # add badge to slot
-    s.paste(b, (badge_padding+offset_x, offset_y), b)
-    badge_draw.text( (int(badge_slot_size/2), 100 + offset_y + 20), f"{wrapped_badge_name}", fill="white", font=current_badge_font, anchor="mm", align="center")
-
-    # add slot to base image
-    continuum_base_image.paste(s, (current_x, current_y), s)
-
-    current_x += badge_slot_size + badge_margin
-    counter += 1
-
-    if counter % badges_per_row == 0:
-      # typewriter sound effects:
-      total_remaining_badges = total_remaining_badges - badges_per_row
-      current_row_length = total_remaining_badges
-      if current_row_length >= badges_per_row:
-        current_row_length = badges_per_row
-
-      # Get total width of all row badge slots and any margins
-      full_row_width = int((badge_slot_size * current_row_length) + (badge_margin * (current_row_length - 1)))
-      # Subtract half the full row width from the midpoint of the base image
-      current_x = int(half_base_width - (full_row_width / 2))
-      # Drop down a row vertically
-      current_y += badge_slot_size + badge_vertical_margin # ka-chunk
-      counter = 0 #...
-
-  continuum_image_filename = f"continuum-page-{page_number}-{int(time.time())}.png"
-
-  continuum_base_image.save(f"./images/tongo/{continuum_image_filename}")
-
-  while True:
-    time.sleep(0.05)
-    if os.path.isfile(f"./images/tongo/{continuum_image_filename}"):
-      break
-
-  discord_image = discord.File(fp=f"./images/tongo/{continuum_image_filename}", filename=f"{continuum_image_filename}")
-  return discord_image
+  return results
