@@ -3,7 +3,16 @@ from common import *
 async def db_get_echelon_progress(user_discord_id: str) -> dict:
   async with AgimusDB(dictionary=True) as db:
     await db.execute("SELECT * FROM echelon_progress WHERE user_discord_id = %s", (user_discord_id,))
-    return await db.fetchone()
+    result = await db.fetchone()
+    if not result:
+      result = {
+        'user_discord_id': user_discord_id,
+        'current_xp': 0,
+        'current_level': 0,
+        'current_prestige_tier': 0,
+        'buffer_failure_streak': 0
+      }
+    return result
 
 async def db_update_echelon_progress(user_discord_id: str, new_xp: int, new_level: int):
   sql = """

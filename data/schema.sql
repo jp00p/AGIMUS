@@ -496,7 +496,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Tholian Silk", 3, "tholian_silk.png", "tholian_web", "A crystallized thread of energy - elegant, fractical, and deadly."),
   ("Holomatrix Fragment", 3, "holomatrix_fragment.png", "holo_grid", "Hologrammatical. Renders with an uncanny simulated depth."),
   ("Silicon Shard", 3, "silicon_shard.png", "crystalline_entity", "Sharp and pointy, a beautiful Entity. Crystalline with a lot of lore behind it."),
-  ("Colombian Coffee Crystal", 3, "coffee_crystal.png", "coffee_nebula", "Delicious, tastes like rich-bodied regular coffee! A nebulous and tasty flavor.")
+  ("Colombian Coffee Crystal", 3, "coffee_crystal.png", "coffee_nebula", "Delicious, tastes like rich-bodied regular coffee! A nebulous and tasty flavor."),
   ("Positron", 3, "positron.png", "positronic_net", "Fully functional. Networks of these can operate at 60 trillion calculations a second."),
   ("Isolinear", 3, "isolinear.png", "isolinear_circuit", "Shimoda's favorite circuitry plaything. Fully stackable!"),
   ("Farpoint Sphere", 3, "farpoint_sphere.png", "q_grid", "Has a warm feeling, like being wrapped in a big Pendleton blanket. How Q-rious..."),
@@ -504,7 +504,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   -- Legendary Crystals (Animations)
   ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "EJECTED FROM A CORE! Hums with that familiar pulse."),
   ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Distortions abound when these are around!"),
-  ("Triaxilation Node", 4, "triaxilation_node.png", "static_cascade", "Essential to subspace communications. Emits a pulsing cascade that resonates across signal channels.")
+  ("Triaxilation Node", 4, "triaxilation_node.png", "static_cascade", "Essential to subspace communications. Emits a pulsing cascade that resonates across signal channels."),
 
   -- Mythic Crystals (Prestige Animations)
   ("Bajoran Orb", 5, "bajoran_orb.png", "celestial_temple", "A Tear of the Prophets. My Child!"),
@@ -606,10 +606,9 @@ CREATE TABLE IF NOT EXISTS badge_instance_history (
   INDEX idx_history_instance_id (badge_instance_id)
 );
 
-
-CREATE TABLE profile_badge_instances (
+CREATE TABLE IF NOT EXISTS profile_badge_instances (
   user_discord_id VARCHAR(64) PRIMARY KEY,
-  badge_instance_id INT NULL,
+  badge_instance_id INT,
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id)
 );
 
@@ -687,7 +686,7 @@ CREATE TABLE IF NOT EXISTS badge_instances_wishlists_dismissals (
 CREATE TABLE IF NOT EXISTS badge_info_tags_associations (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,
-  badge_info_id INT NOT NULL,
+  badge_info_id INT UNSIGNED NOT NULL,
   badge_tags_id INT NOT NULL,
   time_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
@@ -698,7 +697,7 @@ CREATE TABLE IF NOT EXISTS badge_info_tags_associations (
 
 CREATE TABLE IF NOT EXISTS badge_info_tags_carousel_state (
   user_discord_id VARCHAR(64) PRIMARY KEY,
-  last_viewed_badge_info_id INT,
+  last_viewed_badge_info_id INT UNSIGNED,
   last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id) ON DELETE CASCADE,
   FOREIGN KEY (last_viewed_badge_info_id) REFERENCES badge_info(id) ON DELETE CASCADE

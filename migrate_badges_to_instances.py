@@ -112,9 +112,9 @@ async def migrate_badges(dry_run=False):
             """
             INSERT INTO badge_instances_wishlists
               (user_discord_id, badge_info_id, time_added)
-            VALUES (%s, %s, %s)
+            VALUES (%s, %s, %s) AS new
             ON DUPLICATE KEY UPDATE
-              time_added = LEAST(time_added, VALUES(time_added))
+              time_added = LEAST(badge_instances_wishlists.time_added, new.time_added)
             """,
             (user_id, info["id"], original_time),
           )
@@ -198,7 +198,7 @@ async def migrate_badges(dry_run=False):
         # Try to locate Standard prestige badge_instance for this user
         await cur.execute(
           """
-          SELECT badge_instance_id FROM badge_instances
+          SELECT id FROM badge_instances
           WHERE badge_info_id = %s AND owner_discord_id = %s AND prestige_level = 0
           """,
           (badge_info_id, user_id)
@@ -209,7 +209,7 @@ async def migrate_badges(dry_run=False):
           skipped += 1
           continue
 
-        badge_instance_id = instance["badge_instance_id"]
+        badge_instance_id = instance["id"]
 
         if not dry_run:
           await cur.execute(
