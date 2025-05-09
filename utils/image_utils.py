@@ -1112,8 +1112,8 @@ async def generate_singular_slot_frames(user_id, badge, border_color=None, cryst
     scaled_frame = frame.resize((new_w, new_h), resample=Image.Resampling.LANCZOS)
 
     # Center the scaled frame inside the slot_canvas
-    frame_x = (dims.slot_width - scaled_frame.width) // 2
-    frame_y = (dims.slot_height - scaled_frame.height) // 2
+    frame_x = round((dims.slot_width - scaled_frame.width) / 2)
+    frame_y = round((dims.slot_height - scaled_frame.height) / 2)
 
     slot_canvas.paste(scaled_frame, (frame_x, frame_y), scaled_frame)
 
