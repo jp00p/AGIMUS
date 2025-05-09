@@ -101,7 +101,7 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
   prestige_after = await get_user_prestige_level(member)
   logger.info(f"prestige_after: {prestige_after}")
 
-  if await db_is_badge_on_users_wishlist(member.id, badge_data['badge_filename']):
+  if await db_is_badge_on_users_wishlist(member.id, badge_data['badge_info_id']):
     badge_data['was_on_wishlist'] = True
 
   source_details = determine_level_up_source_details(member, source)
@@ -125,8 +125,9 @@ async def post_level_up_embed(member: discord.User, level: int, prestige:int, ba
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
+  embed_description = f"{member.mention} has reached **Echelon {level}** and earned a badge!"
   if badge_data.get('was_on_wishlist', False):
-    embed_description += f"\n\nIt was also on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
+    embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
 
   embed_color = discord.Color.teal()
   if prestige > 0:
@@ -135,7 +136,7 @@ async def post_level_up_embed(member: discord.User, level: int, prestige:int, ba
 
   embed=discord.Embed(
     title="Echelon Level Up!",
-    description=f"{member.mention} has reached **Echelon {level}** and earned a badge!",
+    description=embed_description,
     color=embed_color
   )
   embed.set_image(url=attachment_url)
@@ -254,7 +255,8 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   else:
     embed = discord.Embed(
       title="Crystal Pattern Buffers Acquired!",
-      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Pattern Buffers** in their hands when they reached Echelon {level}!\n\nThey can now use them to replicate {number_of_patterns} Crystals from scratch!",
+      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Pattern Buffers** in their hands when they reached Echelon {level}!\n\n"
+                  f"They can now use them to replicate **{number_of_patterns}** Crystals from scratch!",
       color=discord.Color.teal()
     )
   embed.set_image(url="https://i.imgur.com/lgP2miO.gif")

@@ -1043,8 +1043,7 @@ async def generate_badge_preview(user_id, badge, crystal=None, theme=None, disab
     file = discord.File(buf, filename='preview.webp')
     url = 'attachment://preview.webp'
   else:
-    png_fn = partial(_encode_png, slot_frames[0])
-    buf = await to_thread(png_fn())
+    buf = encode_png(slot_frames[0])
     file = discord.File(buf, filename='preview.png')
     url = 'attachment://preview.png'
 
@@ -1063,7 +1062,7 @@ async def generate_unowned_badge_preview(user_id, badge):
   slot_frames = compose_badge_slot(badge, colors, badge_image, disable_overlays=None)
   frame = slot_frames[0]
 
-  buf = _encode_png(frame)
+  buf = encode_png(frame)
   file = discord.File(buf, filename='preview.png')
   url = 'attachment://preview.png'
 
@@ -1112,8 +1111,8 @@ async def generate_singular_slot_frames(user_id, badge, border_color=None, cryst
     scaled_frame = frame.resize((new_w, new_h), resample=Image.Resampling.LANCZOS)
 
     # Center the scaled frame inside the slot_canvas
-    frame_x = (dims.slot_width - scaled_frame.width) // 2
-    frame_y = (dims.slot_height - scaled_frame.height) // 2
+    frame_x = round((dims.slot_width - scaled_frame.width) / 2)
+    frame_y = round((dims.slot_height - scaled_frame.height) / 2)
 
     slot_canvas.paste(scaled_frame, (frame_x, frame_y), scaled_frame)
 
@@ -1130,7 +1129,7 @@ async def generate_singular_slot_frames(user_id, badge, border_color=None, cryst
   return slot_frames
 
 
-def _encode_png(frame):
+def encode_png(frame):
   buf = io.BytesIO()
   frame.save(buf, format='PNG')
   buf.seek(0)
