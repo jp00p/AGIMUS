@@ -163,12 +163,6 @@ async def migrate_badges(dry_run=False):
 
       print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {tags_migrated} badge tag associations")
 
-      if not dry_run:
-        await conn.commit()
-        print("✅ COMMIT COMPLETE")
-      else:
-        print("✅ Dry Run: NO CHANGES MADE")
-
       # ---------------------------
       # 5. MIGRATE PROFILE FEATURED BADGES
       # ---------------------------
@@ -226,6 +220,11 @@ async def migrate_badges(dry_run=False):
 
       print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {migrated} profile badge entries ({skipped} skipped)")
 
+      if not dry_run:
+        await conn.commit()
+        print("✅ COMMIT COMPLETE")
+      else:
+        print("✅ Dry Run: NO CHANGES MADE")
 
   except Exception as e:
     await conn.rollback()
