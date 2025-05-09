@@ -1,6 +1,7 @@
 from common import *
 
 from queries.common import BADGE_INSTANCE_COLUMNS
+from utils.badge_instances import transfer_badge_instance
 
 # queries.trade
 
@@ -142,44 +143,29 @@ async def db_perform_badge_transfer(active_trade):
   requestor_id = active_trade['requestor_id']
   requestee_id = active_trade['requestee_id']
 
-  async with AgimusDB() as query:
-    # → Requestee ➝ Requestor (requested badges)
-    sql = '''
-      UPDATE badge_instances
-      SET owner_discord_id = %s
-      WHERE id IN (
-        SELECT badge_instance_id FROM trade_requested_badge_instances
-        WHERE trade_id = %s
-      )
-    '''
-    await query.execute(sql, (requestor_id, trade_id))
-
-    sql = '''
-      INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, event_type)
-      SELECT badge_instance_id, %s, %s, 'trade'
+  # Get instance IDs from both sides of the trade
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute("""
+      SELECT badge_instance_id
       FROM trade_requested_badge_instances
       WHERE trade_id = %s
-    '''
-    await query.execute(sql, (requestee_id, requestor_id, trade_id))
+    """, (trade_id,))
+    requested_ids = [row['badge_instance_id'] for row in await db.fetchall()]
 
-    # → Requestor ➝ Requestee (offered badges)
-    sql = '''
-      UPDATE badge_instances
-      SET owner_discord_id = %s
-      WHERE id IN (
-        SELECT badge_instance_id FROM trade_offered_badge_instances
-        WHERE trade_id = %s
-      )
-    '''
-    await query.execute(sql, (requestee_id, trade_id))
-
-    sql = '''
-      INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, event_type)
-      SELECT badge_instance_id, %s, %s, 'trade'
+    await db.execute("""
+      SELECT badge_instance_id
       FROM trade_offered_badge_instances
       WHERE trade_id = %s
-    '''
-    await query.execute(sql, (requestor_id, requestee_id, trade_id))
+    """, (trade_id,))
+    offered_ids = [row['badge_instance_id'] for row in await db.fetchall()]
+
+  # Requestee to Requestor
+  for instance_id in requested_ids:
+    await transfer_badge_instance(instance_id, requestor_id, event_type='trade')
+
+  # Requestor to Requestee
+  for instance_id in offered_ids:
+    await transfer_badge_instance(instance_id, requestee_id, event_type='trade')
 
 # Related
 async def db_get_related_badge_instance_trades(active_trade):

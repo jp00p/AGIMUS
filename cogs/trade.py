@@ -1,6 +1,5 @@
 from common import *
 
-# from queries.wishlists import db_autolock_badges_by_filenames_if_in_wishlist, db_get_user_wishlist_badges, db_purge_users_wishlist
 from queries.trade import *
 
 from utils.badge_trades import *
@@ -388,20 +387,6 @@ class Trade(commands.Cog):
     # Perform the trade
     await db_perform_badge_transfer(active_trade)
     await db_complete_trade(active_trade)
-
-    # Autolocking and Purge Wishlists
-    # NOTE: This needs to respect prestige tiers still...
-    # await db_autolock_badges_by_filenames_if_in_wishlist(
-    #   requestor.id,
-    #   [b['badge_filename'] for b in requested_instances]
-    # )
-    # await db_autolock_badges_by_filenames_if_in_wishlist(
-    #   requestee.id,
-    #   [b['badge_filename'] for b in offered_instances]
-    # )
-
-    # await db_purge_users_wishlist(requestor.id)
-    # await db_purge_users_wishlist(requestee.id)
 
     # Confirmation embed
     success_embed = discord.Embed(

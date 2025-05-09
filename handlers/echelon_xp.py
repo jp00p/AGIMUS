@@ -101,14 +101,8 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
   prestige_after = await get_user_prestige_level(member)
   logger.info(f"prestige_after: {prestige_after}")
 
-  # Auto-Lock/Clear Wishlist
-  # XXX - Needs to handle Prestige Level once we've overhauled wishlists to respect prestige levels
-  # if await db_is_badge_on_users_wishlist(member.id, badge_data['badge_filename']):
-  #   # Lock the badge if it was in their wishlist
-  #   await db_autolock_badges_by_filenames_if_in_wishlist(member.id, [badge_data['badge_filename']])
-  #   # Remove any badges the user may have on their wishlist that they now possess
-  #   await db_purge_users_wishlist(member.id)
-  #   badge_data['was_on_wishlist'] = True
+  if await db_is_badge_on_users_wishlist(member.id, badge_data['badge_filename']):
+    badge_data['was_on_wishlist'] = True
 
   source_details = determine_level_up_source_details(member, source)
   # Handle Prestige Advancement

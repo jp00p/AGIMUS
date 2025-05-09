@@ -3,9 +3,11 @@ from common import *
 
 from queries.badge_info import db_get_badge_info_by_filename
 from queries.badge_instances import *
+from queries.wishlists import db_get_active_wants
 
 async def create_new_badge_instance(user_id: int, badge_info_id: int, prestige_level: int = 0, event_type: str = 'level_up') -> dict:
   logger.info(f"[DEBUG] Creating new badge instance: user={user_id}, badge_info_id={badge_info_id}, prestige={prestige_level}")
+
   # Insert a new active, unlocked badge instance
   insert_instance = """
     INSERT INTO badge_instances (badge_info_id, owner_discord_id, origin_user_id, prestige_level, status)
@@ -22,6 +24,11 @@ async def create_new_badge_instance(user_id: int, badge_info_id: int, prestige_l
   """
   async with AgimusDB() as db:
     await db.execute(insert_history, (instance_id, user_id, event_type))
+
+  # Autolock if this badge was on their wishlist at this prestige tier
+  active_wants = await db_get_active_wants(user_id, prestige_level)
+  if any(w['badge_info_id'] == badge_info_id for w in active_wants):
+    await db_lock_badge_instance(instance_id)
 
   # Fetch full record with badge info
   instance = await db_get_badge_instance_by_id(instance_id)
@@ -43,21 +50,23 @@ async def create_new_badge_instance_by_filename(user_id: int, badge_filename: st
 async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type: str = 'unknown'):
   """
   Transfers a badge instance to a new owner and logs the history record.
+  If the recipient has this badge on their wishlist at the appropriate prestige tier, it will be autolocked.
 
   Args:
     instance_id (int): ID of the badge_instances row.
     to_user_id (int): Discord user ID (int) of the new owner.
     event_type (str): One of the allowed event_types. Defaults to 'unknown'.
   """
+
   query_fetch = """
-    SELECT owner_discord_id
+    SELECT owner_discord_id, badge_info_id, prestige_level
     FROM badge_instances
     WHERE id = %s
   """
 
   query_update = """
     UPDATE badge_instances
-    SET owner_discord_id = %s locked = FALSE
+    SET owner_discord_id = %s, locked = FALSE
     WHERE id = %s
   """
 
@@ -69,10 +78,23 @@ async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type:
   async with AgimusDB(dictionary=True) as db:
     await db.execute(query_fetch, (instance_id,))
     row = await db.fetchone()
-    from_user_id = int(row['owner_discord_id']) if row and row['owner_discord_id'] is not None else None
+    if not row:
+      return
 
+    from_user_id = int(row['owner_discord_id']) if row['owner_discord_id'] is not None else None
+    badge_info_id = row['badge_info_id']
+    prestige_level = row['prestige_level']
+
+    # Transfer ownership
     await db.execute(query_update, (to_user_id, instance_id))
+
+    # Log history
     await db.execute(query_insert, (instance_id, from_user_id, to_user_id, event_type))
+
+  # Check recipient's wishlist and lock if desired
+  active_wants = await db_get_active_wants(to_user_id, prestige_level)
+  if any(w['badge_info_id'] == badge_info_id for w in active_wants):
+    await db_lock_badge_instance(instance_id)
 
 
 async def liquidate_badge_instance(instance_id: int):

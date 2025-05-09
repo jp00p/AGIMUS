@@ -815,9 +815,6 @@ class Tongo(commands.Cog):
       return None
 
     await db_add_game_reward(game_id, beneficiary_id, reward_instance['id'])
-    # XXX - Handle autolocking in transfer helper?
-    # await db_autolock_badges_by_filenames_if_in_wishlist(beneficiary_id, [reward_instance['badge_filename']])
-    # await db_purge_users_wishlist(beneficiary_id)
 
     liquidation_result['reward_instance_id'] = reward_instance['badge_instance_id']
     return liquidation_result

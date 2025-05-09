@@ -304,6 +304,15 @@ async def db_get_total_badge_instances_count_by_filename(filename: str) -> int:
     row = await query.fetchone()
   return row["count"]
 
+# Lock/Unlock Helpers
+async def db_lock_badge_instance(instance_id: int):
+  async with AgimusDB() as db:
+    await db.execute("UPDATE badge_instances SET locked = TRUE WHERE id = %s", (instance_id,))
+
+async def db_unlock_badge_instance(instance_id: int):
+  async with AgimusDB() as db:
+    await db.execute("UPDATE badge_instances SET locked = FALSE WHERE id = %s", (instance_id,))
+
 
 # Direct DB Helpers for Badge Instances *If Missing*
 # NOTE: These are primarily used for the v2.0 to v3.0 `badge` to `badge_instances` migration
