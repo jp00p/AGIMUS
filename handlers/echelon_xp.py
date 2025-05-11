@@ -125,7 +125,7 @@ async def post_level_up_embed(member: discord.User, level: int, prestige:int, ba
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
-  embed_description = f"{member.mention} has reached **Echelon {level}** and earned a badge!"
+  embed_description = f"{member.mention} has reached **Echelon {level}** and earned a Badge ({PRESTIGE_TIERS[prestige]} Tier)!"
   if badge_data.get('was_on_wishlist', False):
     embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
 
@@ -159,7 +159,7 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
 
   Args:
     member (discord.Member): The user who advanced.
-    new_prestige (int): The prestige level the user just reached.
+    new_prestige (int): The prestige tier the user just reached.
   """
   prestige_name = PRESTIGE_TIERS.get(new_prestige, f"Prestige {new_prestige}")
   old_prestige_name = PRESTIGE_TIERS.get(new_prestige - 1, "Standard")

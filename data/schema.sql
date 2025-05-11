@@ -481,15 +481,20 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Duranium", 1, "duranium.png", "silver_gradient", "A silvery alloy used in Starship hull plating. Makes a nice 'BWONG!' sound when you smack it."),
   ("Solanogen", 1, "solanogen.png", "cyan_gradient", "Exotic compound from subspace realms. Don't get SCHISMD!"),
   ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days."),
-
   ("Latinum", 1, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
   ('Transparent Aluminum', 1, 'transparent_aluminum.png', 'transparent_aluminum', 'Revolutionary compound. Transparent, resilient, and rumored to have been invented by a time traveler...'),
 
-  -- Uncommon Crystals (Border Effects)
+  -- Uncommon Crystals (Border/Misc Effects)
   ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
   ("Cryonetrium", 2, "cryonetrium.png", "cryonetrium", "Still gaseous at -200°C, that's some cold coolant!"),
   ('Verterium Cortenide', 2, 'verterium_cortenide.png', 'verterium_cortenide', 'Essential alloy used in Starship Warp Nacelles. Emits faint subspace displacement harmonics.'),
   ('Boridium', 2, 'boridium.png', 'boridium', 'Energetic material with many uses. Boridium is the powerhouse of the power cell.'),
+  ('Invidium', 2, 'invidium.png', 'invidium', 'Known to reverse polarity fields. If made "visible," causes light to bend the wrong way around it.'),
+  ('Remalite', 2, 'remalite.png', 'remalite', 'Holds crystalline harmonic properties used by the Cymari. Resonantes stability.'),
+  ('Vokaya', 2, 'vokaya.png', 'vokaya', 'Turquoise mineral unique to Vulcan. Emits a harmless but distinctive radiation.'),
+  ('Kironide', 2, 'kironide.png', 'kironide', 'A strange mineral that grants psionic abilities to those who ingest it. Mind-meldting!'),
+  ('Jevonite', 2, 'jevonite.png', 'jevonite', 'A rare mineral stone said to be "breathtaking" in appearance. Used by early Cardassians to make beautiful artifacts.'),
+  ('Archerite', 2, 'archerite.png', 'archerite', 'A fictitious mineral invented as a ruse by Shran. The role of Archerite was played by Jeffrey Combs in its few appearances.'),
 
   -- Rare Crystals (Backgrounds)
   ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in most systems. Handle with care."),

@@ -431,6 +431,30 @@ def effect_verterium_cortenide(img: Image.Image, badge: dict) -> Image.Image:
 def effect_boridium(img, badge):
   return _apply_energy_rings_silhouette_wrap(img, primary_color=(200, 80, 255), secondary_color=(80, 255, 255))
 
+@register_effect("invidium")
+def effect_invidium(img: Image.Image, badge: dict) -> Image.Image:
+    return ImageOps.invert(img)
+
+@register_effect("remalite")
+def effect_remalite(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_gradient_silhouette_border(img, (160, 200, 255), (140, 120, 210))
+
+@register_effect("vokaya")
+def effect_vokaya(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_energy_rings_silhouette_wrap(img, primary_color=(100, 240, 200), secondary_color=(200, 255, 200))
+
+@register_effect("kironide")
+def effect_kironide(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_energy_rings_silhouette_wrap(img, primary_color=(255, 230, 120), secondary_color=(140, 100, 255))
+
+@register_effect("jevonite")
+def effect_jevonite(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_gradient_silhouette_border(img, (200, 40, 40), (255, 190, 80))
+
+@register_effect("archerite")
+def effect_archerite(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_gradient_silhouette_border(img, (180, 255, 140), (60, 60, 60))
+
 
 def _apply_gradient_silhouette_border(
   badge_image: Image.Image,
@@ -733,7 +757,7 @@ def effect_coffee_nebula(badge_image: Image.Image, badge: dict) -> Image.Image:
   return result
 
 @register_effect("positronic_net")
-def effect_coffee_nebula(badge_image: Image.Image, badge: dict) -> Image.Image:
+def effect_positronic_net(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
   Positronic Brain display from Star Trek: Picard background.
   Used for the Positron Crystal (Rare tier).
