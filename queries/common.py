@@ -30,6 +30,7 @@ BADGE_INSTANCE_COLUMNS = """
 
   t.id AS crystal_type_id,
   t.name AS crystal_name,
+  t.icon AS crystal_icon,
   t.effect as crystal_effect,
   t.rarity_rank as crystal_rarity_rank
 """

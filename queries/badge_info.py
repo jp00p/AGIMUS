@@ -121,6 +121,27 @@ async def db_get_badge_count_by_filename(filename):
   return row['count']
 
 
+async def db_get_full_badge_metadata_by_filename(filename: str) -> dict:
+  """
+  Retrieves a badge_info row along with its affiliations, types, and other metadata.
+  :param filename: badge_filename of the badge
+  :return: dict with badge_info fields + ['affiliations'], ['types']
+  """
+  badge_info = await db_get_badge_info_by_filename(filename)
+  if not badge_info:
+    return None
+
+  badge_name = badge_info['badge_name']
+
+  affiliations = await db_get_badge_affiliations_by_badge_name(badge_name)
+  types = await db_get_badge_types_by_badge_name(badge_name)
+
+  badge_info['affiliations'] = [a['affiliation_name'] for a in affiliations]
+  badge_info['types'] = [t['type_name'] for t in types]
+
+  return badge_info
+
+
 # Affiliations
 async def db_get_all_affiliations():
   async with AgimusDB(dictionary=True) as query:

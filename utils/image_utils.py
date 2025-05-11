@@ -1290,6 +1290,16 @@ def compose_badge_slot(
       if overlay:
         slot_canvas.paste(overlay, (dims.slot_width - 54, 16), overlay)
 
+    crystal_icon = badge.get("crystal_icon", None)
+    if crystal_icon:
+      icon_path = f"./images/templates/crystals/icons/{crystal_icon}"
+      try:
+        icon_img = Image.open(icon_path).convert("RGBA")
+        icon_img.thumbnail((48, 48))
+        slot_canvas.paste(icon_img, (24, 16), icon_img)
+      except Exception as e:
+        logger.warning(f"[compose_badge_slot] Could not load icon at {icon_path}: {e}")
+
     # Final rounded mask to clip anything outside the border
     final_mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
     ImageDraw.Draw(final_mask).rounded_rectangle(

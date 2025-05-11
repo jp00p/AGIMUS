@@ -1,4 +1,5 @@
 from dateutil import tz
+from io import BytesIO
 
 from common import *
 
@@ -6,12 +7,14 @@ from utils.echelon_rewards import *
 from utils.badge_trades import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
+from utils.encode_utils import encode_webp
 from utils.image_utils import *
 from utils.prestige import PRESTIGE_TIERS, autocomplete_prestige_tiers, is_prestige_valid
 from utils.string_utils import *
 
 from queries.badge_completion import *
 from queries.badge_info import *
+from queries.badge_instances import *
 from queries.badge_scrap import *
 from queries.wishlists import *
 from queries.trade import *
@@ -30,6 +33,30 @@ class Badges(commands.Cog):
   #         \/                        \/            \/|__|             \/          \/
   async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
     return [badge['badge_name'] for badge in await db_get_all_badge_info() if ctx.value.lower() in badge['badge_name'].lower()]
+
+  async def autocomplete_users_badges(ctx: discord.AutocompleteContext):
+    user_id = ctx.interaction.user.id
+    prestige_level = int(ctx.options['prestige'])
+
+    user_badge_instances = await db_get_user_badge_instances(user_id, prestige=prestige_level)
+
+    results = [
+      discord.OptionChoice(
+        name=b['badge_name'],
+        value=str(b['badge_instance_id'])
+      )
+      for b in user_badge_instances
+    ]
+
+    filtered = [r for r in results if ctx.value.lower() in r.name.lower()]
+    if not filtered:
+      filtered = [
+        discord.OptionChoice(
+          name="[ No Valid Options ]",
+          value=None
+        )
+      ]
+    return filtered
 
   # async def scrapper_autocomplete(ctx:discord.AutocompleteContext):
   #   first_badge = ctx.options["first_badge"]
@@ -934,6 +961,120 @@ class Badges(commands.Cog):
   #         logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
   #         pass
 
+  @badge_group.command(
+    name="spotlight",
+    description="Show off one of your badges."
+  )
+  @option(
+    name="prestige",
+    description="Which Prestige Tier?",
+    required=True,
+    autocomplete=autocomplete_prestige_tiers
+  )
+  @option(
+    name="badge",
+    description="Which Badge?",
+    required=True,
+    autocomplete=autocomplete_users_badges
+  )
+  @option(
+    name="public",
+    description="Should others see this?",
+    required=True,
+    choices=[
+      discord.OptionChoice(name="No", value="no"),
+      discord.OptionChoice(name="Yes", value="yes")
+    ]
+  )
+  async def spotlight(self, ctx: discord.ApplicationContext, prestige: str, badge: str, public: str):
+    await ctx.defer(ephemeral=(public == "no"))
+    user_id = str(ctx.author.id)
+
+    if not await is_prestige_valid(ctx, prestige):
+      return
+    prestige = int(prestige)
+
+    try:
+      badge_instance_id = int(badge)
+    except ValueError:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="Invalid Badge",
+          description="That badge doesn't seem to be valid.",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    badge_instance = await db_get_badge_instance_by_id(user_id, badge_instance_id)
+    if not badge_instance or badge_instance['owner_discord_id'] != user_id or badge_instance['prestige_level'] != prestige:
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="Badge Not Found",
+          description="It doesn't appear that you own that one?",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    badge_frames = await generate_singular_slot_frames(user_id, badge_instance)
+    animated = len(badge_frames) > 1
+    image_bytes = BytesIO()
+
+    if animated:
+      await encode_webp(badge_frames, image_bytes, duration=90)
+      image_bytes.seek(0)
+      filename = 'spotlight.webp'
+    else:
+      badge_frames[0].save(image_bytes, format='PNG')
+      image_bytes.seek(0)
+      filename = 'spotlight.png'
+
+    # Metadata
+    from queries.badge_info import db_get_full_badge_metadata_by_filename
+    badge_info = await db_get_full_badge_metadata_by_filename(badge_instance['badge_filename'])
+    if not badge_info:
+      await ctx.followup.send(embed=discord.Embed(
+        title="Badge Metadata Error",
+        description="We couldn’t fetch data for this badge.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+    embed_color = discord.Color.blurple()
+    if prestige > 0:
+      prestige_color = PRESTIGE_THEMES[prestige]['primary']
+      embed_color = discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
+
+    embed = discord.Embed(
+      title=f"{badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
+      description=f"{ctx.author.display_name}'s Badge Spotlight",
+      color=embed_color
+    )
+    embed.set_image(url=f"attachment://{filename}")
+
+    embed.add_field(name="Prestige Tier", value=PRESTIGE_TIERS[prestige], inline=False)
+    if badge_instance['crystal_name']:
+      embed.add_field(name="Crystal", value=badge_instance['crystal_name'], inline=False)
+    embed.add_field(name="Franchise", value=badge_info['franchise'] or "Unknown", inline=False)
+    embed.add_field(name="Time Period", value=badge_info['time_period'] or "Unknown", inline=False)
+
+    if badge_info['affiliations']:
+      embed.add_field(name="Affiliations", value=", ".join(badge_info['affiliations']), inline=False)
+    if badge_info['types']:
+      embed.add_field(name="Types", value=", ".join(badge_info['types']), inline=False)
+
+    embed.add_field(name="Quadrant", value=badge_info['quadrant'] or "Unknown", inline=False)
+    embed.add_field(name="Reference", value=badge_info['reference'] or "Unknown", inline=False)
+
+    await ctx.followup.send(
+      embed=embed,
+      file=discord.File(fp=image_bytes, filename=filename),
+      ephemeral=(public == "no")
+    )
+
   # .____                  __
   # |    |    ____   ____ |  | ____ ________
   # |    |   /  _ \ /  _ \|  |/ /  |  \____ \
@@ -965,7 +1106,6 @@ class Badges(commands.Cog):
     required=True,
     autocomplete=all_badges_autocomplete
   )
-  # TODO: Implement this for instances
   async def badge_lookup(self, ctx:discord.ApplicationContext, public:str, name:str):
     """
     This function executes the lookup for the /badge lookup command
@@ -1018,24 +1158,6 @@ class Badges(commands.Cog):
     )
     discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'].replace(',','_'))
     embed.set_image(url=f"attachment://{badge['badge_filename'].replace(',','_')}")
-
-    if not public:
-      user_discord_id = ctx.author.id
-      user_badges = await db_get_user_badge_instances(user_discord_id)
-      if name in [b['badge_name'] for b in user_badges]:
-        locked_status = await db_get_badge_locked_status_by_name(user_discord_id, name)
-        if locked_status['locked']:
-          badge_status = "LOCKED"
-        else:
-          badge_status = "UNLOCKED"
-      else:
-        wishlist_badges = await db_get_user_wishlist_badges(user_discord_id)
-        if name in [b['badge_name'] for b in wishlist_badges]:
-          badge_status = "WISHLISTED"
-        else:
-          badge_status = "NOT OWNED"
-
-      embed.set_footer(text=f"\n\nBadge Status for {ctx.author.display_name}: {badge_status}")
 
     await ctx.followup.send(embed=embed, file=discord_image, ephemeral=not public)
 
