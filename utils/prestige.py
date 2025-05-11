@@ -28,12 +28,12 @@ PRESTIGE_THEMES = {
     "gradient_start": (0, 0, 0),
     "gradient_end": (20, 60, 70),
     "border_gradient_colors": [
-      (138, 43, 226),       # Deep Blue
-      (138, 43, 226),    # Teal
-      (150, 255, 255)    # White
+      (25, 25, 112),     # Midnight Blue
+      (64, 224, 208),    # Pale Teal
+      (255, 255, 255)    # White
     ],
-    "primary": (138, 43, 226),
-    "highlight": (138, 43, 226)
+    "primary": (25, 25, 112),
+    "highlight": (64, 224, 208)
   },
     3: {  # Supernova
     "gradient_start": (0, 0, 0),
