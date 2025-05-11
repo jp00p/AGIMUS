@@ -1267,9 +1267,10 @@ def compose_badge_slot(
       frame
     )
 
-    offset_x = min(0, dims.slot_width - badge_canvas.width) + 4
+    # offset_x = min(0, dims.slot_width - badge_canvas.width) + 4
     offset_y = 20
-    slot_canvas.paste(badge_canvas, (dims.badge_padding + offset_x, offset_y), badge_canvas)
+    paste_x = (dims.slot_width - badge_canvas.width) // 2
+    slot_canvas.paste(badge_canvas, (paste_x, offset_y), badge_canvas)
 
     draw = ImageDraw.Draw(slot_canvas)
     text = badge.get("badge_name", "")
@@ -1420,7 +1421,7 @@ async def build_display_canvas(
 
   start = time.perf_counter()
 
-  # XXX - Make header and footer fully generic (write all text in image generation so we can simplify this)
+  # TO-DO - Make header and footer fully generic (write all text in image generation so we can simplify this)
   if layout_type == 'collection' or layout_type == 'completion':
     asset_prefix = "images/templates/badges/badge_page_"
     header_img = await threaded_image_open(f"{asset_prefix}header_{theme}.png")

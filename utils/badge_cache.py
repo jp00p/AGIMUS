@@ -22,9 +22,10 @@ async def get_cached_base_badge_canvas(badge_filename: str) -> Image.Image:
   badge_img = autoshrink_badge(badge_img, canvas_size=(BADGE_THUMBNAIL_SIZE, BADGE_THUMBNAIL_SIZE))
 
   # Paste onto 190x190 canvas (centered)
-  canvas = Image.new('RGBA', (BADGE_THUMBNAIL_SIZE, BADGE_THUMBNAIL_SIZE), (0, 0, 0, 0))
-  offset = ((BADGE_THUMBNAIL_SIZE - badge_img.width) // 2, (BADGE_THUMBNAIL_SIZE - badge_img.height) // 2)
-  canvas.paste(badge_img, offset, badge_img)
+  # canvas = Image.new('RGBA', (BADGE_THUMBNAIL_SIZE, BADGE_THUMBNAIL_SIZE), (0, 0, 0, 0))
+  # offset = ((BADGE_THUMBNAIL_SIZE - badge_img.width) // 2, (BADGE_THUMBNAIL_SIZE - badge_img.height) // 2)
+  # canvas.paste(badge_img, offset, badge_img)
+  canvas = ImageOps.fit(badge_img, (BADGE_THUMBNAIL_SIZE, BADGE_THUMBNAIL_SIZE), method=Image.LANCZOS, centering=(0.5, 0.5))
 
   _base_badge_cache[badge_filename] = canvas
   return canvas
