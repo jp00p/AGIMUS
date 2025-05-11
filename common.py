@@ -41,6 +41,12 @@ from utils.config_utils import get_config, deep_dict_update
 from utils.thread_utils import to_thread
 #from utils.disco_lights import LightHandler
 
+# ThreadPool for image generation tasks
+from concurrent.futures import ThreadPoolExecutor
+cpu_workers = max(1, os.cpu_count() - 1)
+# cpu_workers = 24
+THREAD_POOL = ThreadPoolExecutor(max_workers=cpu_workers)
+
 
 #   _________       __
 #  /   _____/ _____/  |_ __ ________

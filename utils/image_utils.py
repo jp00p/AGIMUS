@@ -22,7 +22,22 @@ from utils.encode_utils import encode_webp
 from utils.prestige import PRESTIGE_TIERS, PRESTIGE_THEMES
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
 
-THREAD_POOL = ThreadPoolExecutor(max_workers=24)
+BEEP_BOOPS = [
+  "... beep boop beep ...",
+  ". boop boop .",
+  ".. boop boop ba boop ..",
+  "... beep BOOP boop BEEP ...",
+  ". BEEP BEEP BEEP .",
+  ".. BOOP beep BOOP BOOP ..",
+  ".. beep ba beep boop ba boop ..",
+  "...  ..... BEEP .....  ...",
+  ".. BOOP beep BOOP ..",
+  "... BooOOOOoooOOoOoOooooooP ...",
+  ".. beep BEEEEP beep (boop) ..",
+  ".... beep-beep ba-boop-boop ....",
+  ". BOOP .",
+  ".. beep ba-da boop ..",
+]
 
 # -> utils.image_utils
 
@@ -295,56 +310,73 @@ def split_text_into_emoji_clusters(text: str):
 # \     \___(  <_> )  |_|  |_\  ___/\  \___|  | |  (  <_> )   |  \\___ \
 #  \______  /\____/|____/____/\___  >\___  >__| |__|\____/|___|  /____  >
 #         \/                      \/     \/                    \/     \/
-async def generate_badge_collection_images(user, prestige, badge_data, collection_type, collection_label):
+async def generate_badge_collection_images(user, prestige, badge_data, collection_type, collection_label, discord_message=None):
   start = time.perf_counter()
   logger.info("[timing] Starting generate_badge_collection_images")
 
-  user_id = user.id
-  layout = _get_collection_grid_layout()
+  # XXX
+  badge_data = badge_data[:45]
 
-  theme = 'teal'
-  if prestige == 0:
-    theme = await get_theme_preference(user_id, collection_type)
-  else:
-    theme = PRESTIGE_TIERS[prestige].lower()
+  layout = _get_collection_grid_layout()
+  theme = (
+    await get_theme_preference(user.id, collection_type)
+    if prestige == 0
+    else PRESTIGE_TIERS[prestige].lower()
+  )
 
   images = []
   pages = list(paginate(badge_data, layout.badges_per_page))
   total_pages = len(pages)
 
   for page_badges, page_number in pages:
+    if discord_message:
+      try:
+        await discord_message.edit(
+          embed=discord.Embed(
+            title="Processing Request",
+            description=f"Working on Page {page_number} of {total_pages}...",
+            color=discord.Color.blurple()
+          ).set_footer(text=random.choice(BEEP_BOOPS))
+        )
+      except discord.errors.NotFound:
+        # The user may have dismissed the original message so just catch and pass
+        pass
+
     canvas_start = time.perf_counter()
     canvas = await build_collection_canvas(
-      user=user,
-      page_data=page_badges,
-      all_data=badge_data,
-      page_number=page_number,
-      total_pages=total_pages,
-      collection_type=collection_type,
-      collection_label=collection_label,
-      theme=theme
+      user,
+      page_badges,
+      badge_data,
+      page_number,
+      total_pages,
+      collection_label,
+      collection_type,
+      theme
     )
     canvas_end = time.perf_counter()
-    logger.info(f"[timing] build_collection_canvas took {canvas_end - canvas_start:.2f}s")
+    logger.info(f"[timing] build_collection_canvas took {round(canvas_end - canvas_start, 2)}s")
 
-    final_result = await compose_badge_grid(canvas, page_badges, theme, collection_type)
+    final = await compose_badge_grid(
+      canvas,
+      page_badges,
+      theme,
+      collection_type
+    )
 
-    if isinstance(final_result, list):
-      webp_buf = await encode_webp(final_result)
+    if isinstance(final, list):
+      webp_buf = await encode_webp(final)
       images.append(discord.File(webp_buf, filename=f"collection_page{page_number}.webp"))
     else:
-      image_file = buffer_image_to_discord_file(final_result, f"collection_page{page_number}.png")
-      images.append(image_file)
+      buf = io.BytesIO()
+      final.save(buf, format="PNG")
+      buf.seek(0)
+      images.append(discord.File(buf, filename=f"collection_page{page_number}.png"))
 
   end = time.perf_counter()
-  duration = round(end - start, 2)
-  logger.info(f"[benchmark] generate_badge_collection_images() took {duration} seconds")
+  logger.info(f"[benchmark] generate_badge_collection_images() took {round(end - start, 2)} seconds")
 
-  del pages, badge_data
   gc.collect()
-
   return images
-
 
 async def build_collection_canvas(user, page_data, all_data, page_number, total_pages, collection_label, collection_type, theme):
   total_rows = max(math.ceil(len(page_data) / 6) - 1, 0)
@@ -374,62 +406,100 @@ async def build_collection_canvas(user, page_data, all_data, page_number, total_
 
   return canvas
 
-async def compose_badge_grid(canvas: Image.Image, badge_data: list, theme: str, collection_type: str):
+async def compose_badge_grid(canvas, badge_data, theme, collection_type):
   logger.info("[timing] compose_badge_grid() entry")
   start_total = time.perf_counter()
 
-  dims = _get_collection_grid_dimensions()
-  layout = _get_collection_grid_layout()
-  slot_dims = _get_badge_slot_dimensions()
-
-  positions = []
-  for idx in range(len(badge_data)):
-    row = idx // layout.badges_per_row
-    col = idx % layout.badges_per_row
-    x = (dims.margin + col * int((slot_dims.slot_width / 2) + (dims.margin / 2))) + layout.init_x
-    y = (dims.header_height + row * dims.row_height) + layout.init_y
-    positions.append((x, y))
-
+  # Stage 1: load + crystal effects (async)
   logger.info("[timing] Starting Stage 1: load + crystal effects")
   t1 = time.perf_counter()
-
   prepared = await prepare_badges_with_crystal_effects(badge_data)
-
   t2 = time.perf_counter()
   logger.info(f"[timing] Stage 1 complete in {round(t2 - t1, 2)}s")
 
+  # Stage 2: slot composition (threaded)
   logger.info("[timing] Starting Stage 2: slot composition")
   loop = asyncio.get_running_loop()
-  slot_frame_stacks = await asyncio.gather(*[
-    loop.run_in_executor(THREAD_POOL, _compose_grid_slot, badge, collection_type, theme, image)
-    for badge, image in prepared
-  ])
+  t2b = time.perf_counter()
+  # slot_frame_stacks = await asyncio.gather(*[
+  #   loop.run_in_executor(
+  #     THREAD_POOL,
+  #     _compose_grid_slot,
+  #     badge,
+  #     collection_type,
+  #     theme,
+  #     image
+  #   )
+  #   for badge, image in prepared
+  # ])
+  slot_frame_stacks = await loop.run_in_executor(
+    THREAD_POOL,
+    lambda: [
+      _compose_grid_slot(badge, collection_type, theme, image)
+      for badge, image in prepared
+    ]
+  )
+  t3 = time.perf_counter()
+  logger.info(f"[timing] Stage 2 complete in {round(t3 - t2b, 2)}s")
   del prepared
   gc.collect()
 
-  t3 = time.perf_counter()
-  logger.info(f"[timing] Stage 2 complete in {round(t3 - t2, 2)}s")
+  # Compute slot positions
+  dims = _get_collection_grid_dimensions()
+  layout = _get_collection_grid_layout()
+  slot_dims = _get_badge_slot_dimensions()
+  positions = []
+  for idx in range(len(badge_data)):
+    row, col = divmod(idx, layout.badges_per_row)
+    x = dims.margin + col * (slot_dims.slot_width + dims.margin) + layout.init_x
+    y = dims.header_height + row * dims.row_height + layout.init_y
+    positions.append((x, y))
 
-  animated = any(len(stack) > 1 for stack in slot_frame_stacks)
-  max_frames = max(len(stack) for stack in slot_frame_stacks)
-
+  # Stage 3: frame stitching (threaded)
   logger.info("[timing] Starting Stage 3: frame stitching")
-  grid_frame_stack = []
-  for frame_idx in range(max_frames):
-    frame = canvas.copy()
-    for slot_frames, pos in zip(slot_frame_stacks, positions):
-      slot_frame = slot_frames[frame_idx % len(slot_frames)]
-      frame.paste(slot_frame, pos, slot_frame)
-    grid_frame_stack.append(frame)
-  del slot_frame_stacks
-  gc.collect()
+  def _sync_stitch():
+    # Build a grid-only blank canvas (grid_width × grid_height)
+    badges_per_row = layout.badges_per_row
+    total_rows = (len(badge_data) + badges_per_row - 1) // badges_per_row
+    # Full-size slot and margin dims
+    slot_w = slot_dims.slot_width
+    slot_h = slot_dims.slot_height
+    margin = dims.margin
+    # Compute grid extents
+    grid_w = badges_per_row * slot_w + (badges_per_row - 1) * margin
+    grid_h = total_rows * (slot_h + margin)
+    blank = Image.new("RGBA", (grid_w, grid_h), (0, 0, 0, 0))
+
+    stitched = []
+    for frame_idx in range(max(len(stack) for stack in slot_frame_stacks)):
+      # blank grid region only
+      empty_grid = blank.copy()
+      # paste each slot onto blank grid
+      for idx, stack in enumerate(slot_frame_stacks):
+        row, col = divmod(idx, badges_per_row)
+        x = col * (slot_w + margin)
+        y = row * (slot_h + margin)
+        slot_frame = stack[frame_idx % len(stack)]
+        empty_grid.paste(slot_frame, (x, y), slot_frame)
+      # downscale the entire grid
+      half_grid = empty_grid.reduce(2)
+      # overlay onto full-size canvas
+      full_frame = canvas.copy()
+      full_frame.paste(
+        half_grid,
+        (layout.init_x + dims.margin, layout.init_y + dims.header_height),
+        half_grid
+      )
+      stitched.append(full_frame)
+    return stitched
+
+  stitched = await loop.run_in_executor(THREAD_POOL, _sync_stitch)
 
   t4 = time.perf_counter()
   logger.info(f"[timing] Stage 3 complete in {round(t4 - t3, 2)}s")
   logger.info(f"[timing] compose_badge_grid total duration: {round(t4 - start_total, 2)}s")
 
-  return grid_frame_stack if animated else grid_frame_stack[0]
-
+  return stitched if any(len(s) > 1 for s in slot_frame_stacks) else stitched[0]
 
 def _compose_grid_slot(badge, collection_type, theme, badge_image):
   start = time.perf_counter()
@@ -451,7 +521,7 @@ def _compose_grid_slot(badge, collection_type, theme, badge_image):
   else:
     badge_image = badge_image if isinstance(badge_image, list) else [badge_image]
 
-  slot_frames = compose_badge_slot(badge, colors, badge_image, override_colors, resize=True)
+  slot_frames = compose_badge_slot(badge, colors, badge_image, override_colors)
 
   duration = round(time.perf_counter() - start, 3)
   logger.info(f"[timing] compose_grid_slot took {duration}s for badge_id={badge.get('badge_info_id')}")
@@ -506,7 +576,7 @@ def buffer_image_to_discord_file(image: Image.Image, filename: str) -> discord.F
 #  /        \  ___/|  |   \     \___(  <_> )  Y Y  \  |_> >  |_\  ___/|  | |  (  <_> )   |  \
 # /_______  /\___  >__|    \______  /\____/|__|_|  /   __/|____/\___  >__| |__|\____/|___|  /
 #         \/     \/               \/             \/|__|             \/                    \/
-async def generate_badge_set_completion_images(user, prestige, badge_data, category):
+async def generate_badge_set_completion_images(user, prestige, badge_data, category, discord_message=None):
   """
   Renders paginated badge completion images using themed components and returns discord.File[]
   """
@@ -546,6 +616,19 @@ async def generate_badge_set_completion_images(user, prestige, badge_data, categ
 
   images = []
   for page_rows, page_number in pages:
+    if discord_message:
+      try:
+        await discord_message.edit(
+          embed=discord.Embed(
+            title="Processing Request",
+            description=f"Working on Page {page_number} of {total_pages}...",
+            color=discord.Color.blurple()
+          ).set_footer(text=random.choice(BEEP_BOOPS))
+        )
+      except discord.errors.NotFound:
+        # The user may have dismissed the original message so just catch and pass
+        pass
+
     canvas = await build_completion_canvas(
       user=user,
       prestige=prestige,
@@ -886,8 +969,8 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
   icon_path = f"./images/templates/crystals/icons/{crystal['icon']}"
   try:
     icon_img = await threaded_image_open(icon_path)
-    icon_img.thumbnail((200, 200))
-    row_canvas.paste(icon_img, (25, 40), icon_img)
+    icon_img.thumbnail((100, 100))
+    row_canvas.paste(icon_img, (25, 20), icon_img)
   except Exception as e:
     logger.warning(f"[manifest] Could not load icon at {icon_path}: {e}")
 
@@ -925,8 +1008,8 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
   for frame in preview_frames:
     composed = row_canvas.copy()
     preview = frame.copy()
-    preview.thumbnail((200, 200))
-    composed.paste(preview, (dims.row_width - 240, 40), preview)
+    preview.thumbnail((100, 100))
+    composed.paste(preview, (dims.row_width - 120, 20), preview)
     row_frames.append(composed)
 
   return row_frames
@@ -1216,10 +1299,11 @@ def compose_badge_slot(
     slot_canvas.putalpha(final_mask)
 
     if resize:
-      slot_canvas = slot_canvas.resize(
-        (slot_canvas.width // 2, slot_canvas.height // 2),
-        resample=Image.Resampling.LANCZOS
-      )
+      # slot_canvas = slot_canvas.resize(
+      #   (slot_canvas.width // 2, slot_canvas.height // 2),
+      #   resample=Image.Resampling.LANCZOS
+      # )
+      slot_canvas = slot_canvas.reduce(2)
 
     slot_frames.append(slot_canvas)
 
@@ -1513,7 +1597,7 @@ async def generate_badge_trade_images(
 #  |____|_  /\___  >   __/|____/__|\___  >____  /__|  \____/|__|
 #         \/     \/|__|                \/     \/
 async def generate_crystal_replicator_confirmation_frames(crystal, replicator_type='standard'):
-  # Purposeful 3 second delay to build suspense (cached replciator gifs return very quickly once generated)...
+  # Purposeful 3 second delay to build suspense (cached replicator gifs return very quickly once generated)...
   await asyncio.sleep(3)
 
   replicator_confirmation_filename = f"{replicator_type}-crystal_materialization_{crystal['crystal_name']}.webp"
@@ -1522,85 +1606,91 @@ async def generate_crystal_replicator_confirmation_frames(crystal, replicator_ty
   if cached_path:
     return discord.File(cached_path, filename=replicator_confirmation_filename), replicator_confirmation_filename
 
-  fps = 12
-  duration_seconds = 5
-  num_frames = fps * duration_seconds
-  start_fade_frame = int(0.5 * fps)
-  end_hold_duration = int(1.0 * fps)
-  fade_duration = num_frames - start_fade_frame - end_hold_duration
-  effect_start_frame = start_fade_frame + 6
-  fade_out_frames = 6
+  def _sync_build_replicator():
+    fps = 12
+    duration_seconds = 5
+    num_frames = fps * duration_seconds
+    start_fade_frame = int(0.5 * fps)
+    end_hold_duration = int(1.0 * fps)
+    fade_duration = num_frames - start_fade_frame - end_hold_duration
+    effect_start_frame = start_fade_frame + 6
+    fade_out_frames = 6
 
-  baseline_width, baseline_height = 256, 256
-  cropped_align_x = 40
-  cropped_align_y_bottom = 90 - 50 + 25 + 10 + baseline_height
+    baseline_width, baseline_height = 256, 256
+    cropped_align_x = 40
+    cropped_align_y_bottom = 90 - 50 + 25 + 10 + baseline_height
 
-  # Files
-  crystal_templates_dir = "./images/templates/crystals"
-  base_bg = await threaded_image_open(f"{crystal_templates_dir}/{replicator_type}-replicator.png")
-  icon = await threaded_image_open(f"{crystal_templates_dir}/icons/{crystal['icon']}")
+    crystal_templates_dir = "./images/templates/crystals"
+    base_bg = Image.open(f"{crystal_templates_dir}/{replicator_type}-replicator.png").convert("RGBA")
+    icon = Image.open(f"{crystal_templates_dir}/icons/{crystal['icon']}").convert("RGBA")
 
-  bbox = icon.getbbox()
-  cropped = icon.crop(bbox)
+    bbox = icon.getbbox()
+    cropped = icon.crop(bbox)
 
-  x = base_bg.width // 2 - baseline_width // 2 + cropped_align_x + (baseline_width - cropped.width) // 2
-  y = cropped_align_y_bottom - cropped.height
-  crystal_pos = (x, y)
+    x = base_bg.width // 2 - baseline_width // 2 + cropped_align_x + (baseline_width - cropped.width) // 2
+    y = cropped_align_y_bottom - cropped.height
+    crystal_pos = (x, y)
 
-  effect_dir = f"{crystal_templates_dir}/replicator_effect/"
-  effect_filenames = sorted(os.listdir(effect_dir))
-  shifted_effect_position = (base_bg.width // 2 - 300 // 2 + 50, 100)
-  effect_total_frames = len(effect_filenames)
+    effect_dir = f"{crystal_templates_dir}/replicator_effect/"
+    effect_filenames = sorted(os.listdir(effect_dir))
+    shifted_effect_position = (base_bg.width // 2 - 300 // 2 + 50, 100)
+    effect_total_frames = len(effect_filenames)
 
-  frames = []
-  for i in range(num_frames):
-    frame = base_bg.copy()
+    frames = []
+    for i in range(num_frames):
+      frame = base_bg.copy()
 
-    # Crystal fade-in
-    if i >= start_fade_frame:
-      fade_progress = min(1.0, (i - start_fade_frame) / fade_duration)
+      # Crystal fade-in
+      if i >= start_fade_frame:
+        fade_progress = min(1.0, (i - start_fade_frame) / fade_duration)
+        crystal_temp = cropped.copy()
+        alpha_mask = crystal_temp.split()[3].point(lambda p: int(p * fade_progress))
+        crystal_temp.putalpha(alpha_mask)
+
+        overlay = Image.new("RGBA", frame.size)
+        overlay.paste(crystal_temp, crystal_pos, crystal_temp)
+        frame = Image.alpha_composite(frame, overlay)
+
+      # Materialization Effect
+      effect_index = i - effect_start_frame
+      if 0 <= effect_index < effect_total_frames:
+        effect_path = os.path.join(effect_dir, effect_filenames[effect_index])
+        effect = Image.open(effect_path).convert("RGBA")
+
+        if effect_index >= effect_total_frames - fade_out_frames:
+          frame_pos = effect_index - (effect_total_frames - fade_out_frames)
+          linear_alpha = 1.0 - (frame_pos / (fade_out_frames - 1))
+          faded_effect = effect.copy()
+          alpha = faded_effect.split()[3].point(lambda p: int(p * linear_alpha))
+          faded_effect.putalpha(alpha)
+          effect = faded_effect
+
+        overlay = Image.new("RGBA", frame.size)
+        overlay.paste(effect, shifted_effect_position, effect)
+        frame = Image.alpha_composite(frame, overlay)
+
+      frames.append(frame)
+
+    # Final crystal-only hold
+    for _ in range(fps):
+      frame = base_bg.copy()
       crystal_temp = cropped.copy()
-      alpha_mask = crystal_temp.split()[3].point(lambda p: int(p * fade_progress))
-      crystal_temp.putalpha(alpha_mask)
-
+      crystal_temp.putalpha(crystal_temp.split()[3])
       overlay = Image.new("RGBA", frame.size)
       overlay.paste(crystal_temp, crystal_pos, crystal_temp)
       frame = Image.alpha_composite(frame, overlay)
+      frames.append(frame)
 
-    # Materialization Effect
-    effect_index = i - effect_start_frame
-    if 0 <= effect_index < effect_total_frames:
-      effect_path = os.path.join(effect_dir, effect_filenames[effect_index])
-      effect = await threaded_image_open(effect_path)
+    return frames
 
-      if effect_index >= effect_total_frames - fade_out_frames:
-        frame_pos = effect_index - (effect_total_frames - fade_out_frames)
-        linear_alpha = 1.0 - (frame_pos / (fade_out_frames - 1))
-        faded_effect = effect.copy()
-        alpha = faded_effect.split()[3].point(lambda p: int(p * linear_alpha))
-        faded_effect.putalpha(alpha)
-        effect = faded_effect
-
-      overlay = Image.new("RGBA", frame.size)
-      overlay.paste(effect, shifted_effect_position, effect)
-      frame = Image.alpha_composite(frame, overlay)
-
-    frames.append(frame)
-
-  # Final crystal-only hold
-  for _ in range(fps):
-    frame = base_bg.copy()
-    crystal_temp = cropped.copy()
-    crystal_temp.putalpha(crystal_temp.split()[3])
-    overlay = Image.new("RGBA", frame.size)
-    overlay.paste(crystal_temp, crystal_pos, crystal_temp)
-    frame = Image.alpha_composite(frame, overlay)
-    frames.append(frame)
-
-  # Encode and return animation
-
+  # Off-load CPU-heavy build
+  loop = asyncio.get_running_loop()
+  frames = await loop.run_in_executor(None, _sync_build_replicator)
+  # Encode with async helper
   webp_buf = await encode_webp(frames)
+  # Cache the result
   await save_cached_crystal_replicator_animation(webp_buf, crystal['crystal_name'])
+  # Return Discord file and filename
   return discord.File(webp_buf, filename=replicator_confirmation_filename), replicator_confirmation_filename
 
 #   _________

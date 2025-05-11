@@ -184,7 +184,7 @@ async def db_get_owned_badge_filenames(user_id: int, prestige: int | None = None
     return await db.fetchall()
 
 # Crystal-based Badge Instance Queries
-async def db_get_badges_without_crystal_type(user_id: int, crystal_type_id: int) -> list[dict]:
+async def db_get_badge_instances_without_crystal_type(user_id: int, crystal_type_id: int, prestige: int | None = None) -> list[dict]:
   sql = """
     SELECT
       b_i.id AS badge_info_id,
@@ -198,7 +198,6 @@ async def db_get_badges_without_crystal_type(user_id: int, crystal_type_id: int)
 
     FROM badge_instances b
     JOIN badge_info b_i ON b.badge_info_id = b_i.id
-
     WHERE b.owner_discord_id = %s
       AND b.id NOT IN (
         SELECT bc.badge_instance_id
@@ -206,33 +205,46 @@ async def db_get_badges_without_crystal_type(user_id: int, crystal_type_id: int)
         JOIN crystal_instances ci ON bc.crystal_instance_id = ci.id
         WHERE ci.crystal_type_id = %s
       )
-    ORDER BY b_i.badge_name ASC
   """
+
+  params = [user_id, crystal_type_id]
+
+  if prestige is not None:
+    sql += " AND b.prestige_level = %s"
+    params.append(prestige)
+
+  sql += " ORDER BY b_i.badge_name ASC"
+
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_id, crystal_type_id))
+    await db.execute(sql, params)
     return await db.fetchall()
 
 
-async def db_get_user_badge_instances_with_attuned_crystals(user_id: int):
-  # Simpler DB that doesn't use a lot of joins against the crystal tables
+async def db_get_badge_instances_with_attuned_crystals(user_id: int, prestige: int | None = None):
+  sql = """
+    SELECT
+      b.id AS badge_instance_id,
+      b_i.badge_name
+    FROM badge_instances AS b
+    JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+    WHERE b.owner_discord_id = %s
+      AND EXISTS (
+        SELECT 1
+        FROM badge_crystals bc
+        WHERE bc.badge_instance_id = b.id
+      )
+  """
+
+  params = [user_id]
+
+  if prestige is not None:
+    sql += " AND b.prestige_level = %s"
+    params.append(prestige)
+
+  sql += " ORDER BY b_i.badge_name ASC"
+
   async with AgimusDB(dictionary=True) as query:
-    await query.execute(
-      f"""
-        SELECT
-          b.id AS badge_instance_id,
-          b_i.badge_name
-        FROM badge_instances AS b
-        JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-        WHERE b.owner_discord_id = %s
-          AND EXISTS (
-            SELECT 1
-            FROM badge_crystals bc
-            WHERE bc.badge_instance_id = b.id
-          )
-        ORDER BY b_i.badge_name ASC
-      """,
-      (user_id,)
-    )
+    await query.execute(sql, params)
     return await query.fetchall()
 
 

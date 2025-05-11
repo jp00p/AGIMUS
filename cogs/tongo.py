@@ -229,12 +229,12 @@ class TongoDividendsView(discord.ui.View):
     channel_embed = discord.Embed(
       title='Dividend Redeemed!',
       description=f"**{member.display_name}** has redeemed **{DIVIDEND_REWARDS['replication']['cost']}** Dividends and the use of a **{DIVIDEND_REWARDS['replication']['label']}!**\n\n"
-                  f"Grand Nagus Zek pulls a Honeystick out from withn his robes, wanders over to the Replicator behind the bar, the familiar hum fills the air, and the result is...\n### **{crystal['crystal_name']}**!"
+                  f"Grand Nagus Zek pulls a Honeystick out from withn his robes, wanders over to the Replicator behind the bar, the familiar hum fills the air, and the result is...\n\n> **{crystal['crystal_name']}**!"
                   f"\n{success_message}",
       color=discord.Color.gold()
     )
-    channel_embed.add_field(name=f"Rank", value=f"{crystal['emoji']}  {crystal['rarity_name']}", inline=False)
-    channel_embed.add_field(name=f"Description", value=crystal['description'], inline=False)
+    channel_embed.add_field(name=f"Rank", value=f"> {crystal['emoji']}  {crystal['rarity_name']}", inline=False)
+    channel_embed.add_field(name=f"Description", value=f"> {crystal['description']}", inline=False)
     channel_embed.set_image(url=f"attachment://{replicator_confirmation_filename}")
     channel_embed.set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",

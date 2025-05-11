@@ -4,11 +4,7 @@ import io
 import os
 import time
 
-from concurrent.futures import ThreadPoolExecutor
-
 from common import *
-
-THREAD_POOL = ThreadPoolExecutor(max_workers=24)
 
 async def encode_webp(frames: list[Image.Image], fps: int = 12) -> io.BytesIO:
   """
@@ -28,12 +24,15 @@ async def encode_webp(frames: list[Image.Image], fps: int = 12) -> io.BytesIO:
   width, height = frames[0].size
   frame_count = len(frames)
 
-  # ---- Encoding Stage ----
   logger.info(f"[timing] Starting WebP encoding with {frame_count} frames at {fps}fps")
   start_encode = time.perf_counter()
 
   # Prepare raw RGBA frame data
-  raw_rgb = b''.join(frame.convert("RGBA").tobytes() for frame in frames)
+  # Off-load raw RGBA concatenation to thread to avoid blocking
+  loop = asyncio.get_running_loop()
+  def _build_raw_rgb():
+    return b''.join(f.convert("RGBA").tobytes() for f in frames)
+  raw_rgb = await loop.run_in_executor(THREAD_POOL, _build_raw_rgb)
 
   with tempfile.NamedTemporaryFile(suffix=".webp", delete=False) as temp_outfile:
     output_path = temp_outfile.name

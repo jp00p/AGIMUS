@@ -179,7 +179,7 @@ class Badges(commands.Cog):
     if color:
       await db_set_user_badge_page_color_preference(ctx.author.id, "collection", color)
 
-    badge_images = await generate_badge_collection_images(ctx.author, prestige, user_badges, 'collection', collection_label)
+    badge_images = await generate_badge_collection_images(ctx.author, prestige, user_badges, 'collection', collection_label, discord_message=pending_message)
 
     await pending_message.edit(
       embed=discord.Embed(
@@ -365,7 +365,7 @@ class Badges(commands.Cog):
       await db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
 
     collection_label = f"({PRESTIGE_TIERS[prestige]}) {category_title} - {selection}"
-    badge_images = await generate_badge_collection_images(ctx.author, prestige, set_badges, 'sets', collection_label)
+    badge_images = await generate_badge_collection_images(ctx.author, prestige, set_badges, 'sets', collection_label, discord_message=pending_message)
 
     await pending_message.edit(
       embed=discord.Embed(
@@ -513,7 +513,7 @@ class Badges(commands.Cog):
       )
     )
 
-    completion_images = await generate_badge_set_completion_images(ctx.author, prestige, all_rows, category)
+    completion_images = await generate_badge_set_completion_images(ctx.author, prestige, all_rows, category, discord_message=pending_message)
 
     await pending_message.edit(
       embed=discord.Embed(

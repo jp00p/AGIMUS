@@ -264,7 +264,11 @@ class Admin(commands.Cog):
     await ctx.defer(ephemeral=True)
 
     progress = await db_get_echelon_progress(user.id)
-    xp_needed = xp_required_for_level(progress['current_level']) if progress else 69
+    xp_needed = 69 # default just in case
+
+    if progress:
+      level, xp_into_level, xp_required = xp_progress_within_level(progress['current_xp'])
+      xp_needed = xp_required - xp_into_level
 
     await grant_xp(user, xp_needed, reason="admin")
 

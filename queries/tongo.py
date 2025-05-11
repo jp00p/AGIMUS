@@ -41,7 +41,7 @@ async def db_get_open_game():
 async def db_add_game_player(game_id: int, user_id: int):
   query = """
     INSERT INTO tongo_game_players (game_id, user_discord_id)
-    VALUES (%s, %s, %s)
+    VALUES (%s, %s)
   """
   async with AgimusDB() as db:
     await db.execute(query, (game_id, user_id))
