@@ -124,6 +124,57 @@ async def migrate_badges(dry_run=False):
       print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {migrated} prime‑wishlist entries")
 
       # ---------------------------
+      # 3. MIGRATE TONGO POT TO CONTINUUM
+      # ---------------------------
+      print("... Migrating tongo_pot -> tongo_continuum ...")
+      await cur.execute("SELECT origin_user_discord_id, badge_filename FROM tongo_pot")
+      pot_rows = await cur.fetchall()
+
+      migrated = 0
+      skipped = 0
+
+      for row in pot_rows:
+        user_id = row["origin_user_discord_id"]
+        filename = row["badge_filename"]
+
+        # Resolve badge_info_id
+        await cur.execute("SELECT id FROM badge_info WHERE badge_filename = %s", (filename,))
+        info = await cur.fetchone()
+        if not info:
+          print(f"[Tongo Pot] Skipping unknown badge filename: {filename}")
+          skipped += 1
+          continue
+
+        badge_info_id = info["id"]
+
+        if not dry_run:
+          # Insert a new badge_instance with locked=True and no owner
+          await cur.execute(
+            """
+            INSERT INTO badge_instances (badge_info_id, locked, origin_user_id)
+            VALUES (%s, TRUE, %s)
+            """,
+            (badge_info_id, user_id)
+          )
+          instance_id = cur.lastrowid
+
+          # Add to continuum table
+          await cur.execute(
+            """
+            INSERT INTO tongo_continuum (badge_info_id, source_instance_id, thrown_by_user_id)
+            VALUES (%s, %s, %s)
+            """,
+            (badge_info_id, instance_id, user_id)
+          )
+
+        else:
+          print(f"[Dry Run] Would migrate {filename} from user {user_id} to continuum")
+
+        migrated += 1
+
+      print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {migrated} tongo continuum entries ({skipped} skipped)")
+
+      # ---------------------------
       # 4. MIGRATE TAG ASSOCIATIONS
       # ---------------------------
       print("... Migrating badge tag associations ...")
@@ -166,7 +217,7 @@ async def migrate_badges(dry_run=False):
       # ---------------------------
       # 5. MIGRATE PROFILE FEATURED BADGES
       # ---------------------------
-      print("... Migrating profile_badges → profile_badge_instances ...")
+      print("... Migrating profile_badges -> profile_badge_instances ...")
       await cur.execute("SELECT user_discord_id, badge_filename FROM profile_badges")
       rows = await cur.fetchall()
 
