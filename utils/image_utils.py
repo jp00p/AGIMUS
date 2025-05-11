@@ -888,7 +888,7 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
     if not page_rows:
       empty_row = await compose_empty_crystal_manifest_row(theme)
       frame = canvas.copy()
-      frame.paste(empty_row, (110, dims.start_y), empty_row)
+      frame.paste(empty_row, (55, dims.start_y), empty_row)
       buf = io.BytesIO()
       frame.save(buf, format="PNG")
       buf.seek(0)
@@ -909,7 +909,7 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
       frame = canvas.copy()
       current_y = dims.start_y
       for row_frames in aligned_stacks:
-        frame.paste(row_frames[frame_index], (110, current_y), row_frames[frame_index])
+        frame.paste(row_frames[frame_index], (55, current_y), row_frames[frame_index])
         current_y += dims.row_height + dims.row_margin
       frame_stack.append(frame)
 
@@ -949,7 +949,7 @@ async def build_crystal_manifest_canvas(user: discord.User, all_crystal_data, pa
   fonts = load_fonts()
   w, h = canvas.size
   draw = ImageDraw.Draw(canvas)
-  await draw_dynamic_text(canvas, draw, text=emoji, position=(42, h - 65), font_obj=fonts.general, max_width=150, starting_size=120)
+  await draw_dynamic_text(canvas, draw, text=emoji, position=(42, h - 65), font_obj=fonts.general, max_width=75, starting_size=60)
 
   return canvas
 
@@ -970,7 +970,7 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
   try:
     icon_img = await threaded_image_open(icon_path)
     icon_img.thumbnail((100, 100))
-    row_canvas.paste(icon_img, (25, 20), icon_img)
+    row_canvas.paste(icon_img, (15, 20), icon_img)
   except Exception as e:
     logger.warning(f"[manifest] Could not load icon at {icon_path}: {e}")
 
@@ -981,7 +981,7 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
     count_text = f"(x{crystal['instance_count']})"
     # Calculate width of the name so we can offset the count right after it
     title_width = draw.textlength(title, font=fonts.title)
-    count_x = title_x + title_width + 20  # small padding after name
+    count_x = title_x + title_width + 10  # small padding after name
     count_y = 40  # align with name baseline
     draw.text((count_x, count_y), count_text, font=fonts.general, fill=colors.darker_highlight)
 
@@ -1597,12 +1597,12 @@ async def generate_badge_trade_images(
 #  |____|_  /\___  >   __/|____/__|\___  >____  /__|  \____/|__|
 #         \/     \/|__|                \/     \/
 async def generate_crystal_replicator_confirmation_frames(crystal, replicator_type='standard'):
-  # Purposeful 3 second delay to build suspense (cached replicator gifs return very quickly once generated)...
+  # Purposeful 3 second delay to build suspense (cached replicator webps return very quickly once generated)...
   await asyncio.sleep(3)
 
   replicator_confirmation_filename = f"{replicator_type}-crystal_materialization_{crystal['crystal_name']}.webp"
 
-  cached_path = get_cached_crystal_replicator_animation_path(crystal['crystal_name'])
+  cached_path = get_cached_crystal_replicator_animation_path(crystal['crystal_name'], replicator_type)
   if cached_path:
     return discord.File(cached_path, filename=replicator_confirmation_filename), replicator_confirmation_filename
 
@@ -1689,7 +1689,7 @@ async def generate_crystal_replicator_confirmation_frames(crystal, replicator_ty
   # Encode with async helper
   webp_buf = await encode_webp(frames)
   # Cache the result
-  await save_cached_crystal_replicator_animation(webp_buf, crystal['crystal_name'])
+  await save_cached_crystal_replicator_animation(webp_buf, crystal['crystal_name'], replicator_type)
   # Return Discord file and filename
   return discord.File(webp_buf, filename=replicator_confirmation_filename), replicator_confirmation_filename
 

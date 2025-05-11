@@ -851,6 +851,14 @@
       "data": null,
       "parameters": []
     },
+    "tongo dividends": {
+      "channels": [
+        "zeks-table"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "tongo index": {
       "channels": [
         "zeks-table"

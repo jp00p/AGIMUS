@@ -269,11 +269,11 @@ class Trade(commands.Cog):
     self.max_trades = 10
     self.max_badges_per_trade = 6
     self.trade_buttons = [
-      pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, row=1),
       pages.PaginatorButton(
         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
       ),
-      pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, row=1),
     ]
 
   trade = discord.SlashCommandGroup("trade", "Commands for trading badges")

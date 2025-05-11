@@ -213,9 +213,10 @@ async def db_get_simple_wishlist_badges(user_discord_id: str) -> list[dict]:
 # Compute "active wants": badges user still needs at a given prestige level
 async def db_get_active_wants(user_discord_id: str, prestige_level: int) -> list[dict]:
   sql = '''
-    SELECT bi.id   AS badge_info_id,
+    SELECT bi.id AS badge_info_id,
            bi.badge_name,
-           bi.badge_url
+           bi.badge_url,
+           bi.badge_filename
     FROM badge_instances_wishlists w
     JOIN badge_info bi ON bi.id = w.badge_info_id
     LEFT JOIN badge_instances inst

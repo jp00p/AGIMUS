@@ -201,15 +201,17 @@ async def db_get_tongo_dividends(user_id: int) -> dict | None:
 
 async def db_increment_tongo_dividends(user_id: int, amount: int = 1):
   sql = """
-    INSERT INTO tongo_dividends (user_discord_id, current_balance, lifetime_earned)
-    VALUES (%s, %s, %s)
-    AS new
+    INSERT INTO tongo_dividends
+    SET user_discord_id = %s,
+        current_balance = %s,
+        lifetime_earned = %s
     ON DUPLICATE KEY UPDATE
-      current_balance = current_balance + new.current_balance,
-      lifetime_earned = lifetime_earned + new.lifetime_earned
+      current_balance = current_balance + %s,
+      lifetime_earned = lifetime_earned + %s
   """
   async with AgimusDB() as db:
-    await db.execute(sql, (user_id, amount, amount))
+    await db.execute(sql, (user_id, amount, amount, amount, amount))
+
 
 async def db_decrement_user_tongo_dividends(user_id: int, amount: int):
   sql = """

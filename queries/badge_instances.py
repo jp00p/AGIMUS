@@ -170,13 +170,12 @@ async def db_get_owned_badge_filenames(user_id: int, prestige: int | None = None
     FROM badge_instances b
     JOIN badge_info b_i ON b.badge_info_id = b_i.id
     WHERE b.owner_discord_id = %s
-      AND b.prestige_level = %s
       AND b.active = TRUE
       AND b.locked = FALSE
   '''
   params = [user_id]
   if prestige is not None:
-    sql += " AND inst.prestige_level = %s"
+    sql += " AND b.prestige_level = %s"
     params.append(prestige)
 
   async with AgimusDB(dictionary=True) as db:

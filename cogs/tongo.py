@@ -61,10 +61,21 @@ class TongoDividendsView(discord.ui.View):
     await self.handle_redeem(interaction, reward_id="replication")
 
   async def handle_redeem(self, interaction: discord.Interaction, reward_id: str):
+    await interaction.response.defer()
+    await interaction.followup.edit_message(
+      message_id=interaction.message.id,
+      embed=discord.Embed(
+        title="Dividends Deducting...",
+        color=discord.Color.gold()
+      ),
+      view=None
+    )
+
     user_id = interaction.user.id
     reward = DIVIDEND_REWARDS.get(reward_id)
     if not reward:
-      await interaction.response.edit_message(
+      await interaction.followup.edit_message(
+        message_id=interaction.message.id,
         embed=discord.Embed(
           title="Invalid Reward!",
           color=discord.Color.red()
@@ -75,7 +86,8 @@ class TongoDividendsView(discord.ui.View):
     record = await db_get_tongo_dividends(user_id)
     balance = record['current_balance'] if record else 0
     if balance < reward['cost']:
-      await interaction.response.edit_message(
+      await interaction.followup.edit_message(
+        message_id=interaction.message.id,
         embed=discord.Embed(
           title="Insufficient Dividend Balance!",
           description="You don't have enough Dividends to redeem that Reward!\n\n"
@@ -103,8 +115,8 @@ class TongoDividendsView(discord.ui.View):
     await db_decrement_user_tongo_dividends(user_id, reward['cost'])
 
     confirmation_embed = discord.Embed(
-      title="Reward Redeemed!",
-      description=f"You have redeemed **{reward['label']}** and your Dividends balance has been deducted by **{reward['cost']}**.",
+      title="Transaction Complete",
+      description=f"A **{reward['label']}** has been granted and your Dividends balance has been deducted by **{reward['cost']}**.",
       color=discord.Color.gold()
     )
     confirmation_embed.set_footer(
@@ -113,7 +125,11 @@ class TongoDividendsView(discord.ui.View):
     )
     confirmation_embed.set_image(url="https://i.imgur.com/s10kcx3.gif")
     # Edit the original message to show confirmation and remove this buttons view entirely
-    await interaction.response.edit_message(embed=confirmation_embed, view=None)
+    await interaction.followup.edit_message(
+      message_id=interaction.message.id,
+      embed=confirmation_embed,
+      view=None
+    )
 
 
   async def _reward_crystal_buffer(self, interaction, user_id):
@@ -122,9 +138,9 @@ class TongoDividendsView(discord.ui.View):
     await db_increment_user_crystal_buffer(user_id)
 
     embed = discord.Embed(
-      title="Dividend Redeemed!",
+      title="Dividends Redeemed!",
       description=(
-        f"An advantageous transaction has arranged with Grand Nagus Zek!\n\n"
+        f"An advantageous transaction has been arranged with Grand Nagus Zek!\n\n"
         f"**{member.display_name}** has redeemed **{DIVIDEND_REWARDS['buffer']['cost']}** Dividends and received a **{DIVIDEND_REWARDS['buffer']['label']}!**\n\n"
         "They can now use  `/crystals replicate` to materialize a freshly minted Crystal!"
       ),
@@ -168,16 +184,16 @@ class TongoDividendsView(discord.ui.View):
 
     member = await self.cog.bot.current_guild.fetch_member(user_id)
     embed = discord.Embed(
-      title="Dividend Redeemed!",
+      title="Dividends Redeemed!",
       description=(
-        f"A profitable transaction has arranged with Grand Nagus Zek!\n\n"
+        f"A profitable transaction has been arranged with Grand Nagus Zek!\n\n"
         f"**{member.display_name}** has redeemed **{DIVIDEND_REWARDS['wishlist']['cost']}** Dividends and received a **{DIVIDEND_REWARDS['wishlist']['label']}!**"
       ),
       color=discord.Color.gold()
     )
     embed.set_image(url=attachment_url)
     embed.add_field(
-      name=f"{member.display_name} receives a random badge they've been coveting...",
+      name=f"Zek's Favor Grants...",
       value=f"* ✨ {reward_instance['badge_name']} ({PRESTIGE_TIERS[prestige]}) ✨",
       inline=False
     )
@@ -193,7 +209,7 @@ class TongoDividendsView(discord.ui.View):
     )
     return True
 
-  async def _reward_replication(self, user_id):
+  async def _reward_replication(self, interaction, user_id):
     member = await self.cog.bot.current_guild.fetch_member(user_id)
 
     # Override regular rank choices for Rare+ Chances
@@ -227,10 +243,10 @@ class TongoDividendsView(discord.ui.View):
 
     success_message = random.choice(FERENGI_RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=member.mention)
     channel_embed = discord.Embed(
-      title='Dividend Redeemed!',
+      title='Dividends Redeemed!',
       description=f"**{member.display_name}** has redeemed **{DIVIDEND_REWARDS['replication']['cost']}** Dividends and the use of a **{DIVIDEND_REWARDS['replication']['label']}!**\n\n"
-                  f"Grand Nagus Zek pulls a Honeystick out from withn his robes, wanders over to the Replicator behind the bar, the familiar hum fills the air, and the result is...\n\n> **{crystal['crystal_name']}**!"
-                  f"\n{success_message}",
+                  f"Grand Nagus Zek pulls a Honeystick out from within his robes, wanders over to the Replicator behind the bar, the familiar hum fills the air, and the result is...\n\n> **{crystal['crystal_name']}**!"
+                  f"\n\n{success_message}",
       color=discord.Color.gold()
     )
     channel_embed.add_field(name=f"Rank", value=f"> {crystal['emoji']}  {crystal['rarity_name']}", inline=False)
@@ -449,8 +465,8 @@ class Tongo(commands.Cog):
     embed = discord.Embed(
       title="TONGO! Badges Ventured!",
       description=f"**{member.display_name}** has begun a new game of Tongo!\n\n"
-                  f"They threw in 3 {prestige_tier} badges from their unlocked inventory into the Great Material Continuum.\n\n"
-                  "The wheel is spinning, the game will end in 6 hours, and the badges will be distributed!",
+                  f"They threw in 3 {prestige_tier} badges from their unlocked inventory into the Great Material Continuum, and they have been granted **1** Tongo Dividend.\n\n"
+                  "The wheel is spinning, the game will end in 6 hours, and then the badges will be distributed!",
       color=discord.Color.dark_purple()
     )
     embed.add_field(
@@ -573,9 +589,9 @@ class Tongo(commands.Cog):
     player_count = len(player_members)
 
     # Embed flavor
-    description = f"### **{member.display_name}** has joined the table!\n\nA new challenger appears! Player {player_count} has entered the game with 3 {prestige_tier} badges from their unlocked inventory!"
+    description = f"### **{member.display_name}** has joined the table!\n\nA new challenger appears! Player {player_count} has entered the game with 3 {prestige_tier} badges from their unlocked inventory, and they have been granted **1** Tongo Dividend!"
     if self.auto_confront.next_iteration:
-      description += f"\n\nThis Tongo game will Confront {humanize.naturaltime(self.auto_confront.next_iteration)}."
+      description += f"\n\nThis Tongo game will confront {humanize.naturaltime(self.auto_confront.next_iteration)}."
 
     embed = discord.Embed(
       title=f"TONGO! {prestige_tier} Badges Risked!",
@@ -718,7 +734,7 @@ class Tongo(commands.Cog):
 
     description = f"Index requested by **{user_member.display_name}**!\n\nDisplaying the status of the current game of Tongo!"
     if self.auto_confront.next_iteration:
-      description += f"\n\nThis Tongo game will Confront {humanize.naturaltime(self.auto_confront.next_iteration)}."
+      description += f"\n\nThis Tongo game will confront {humanize.naturaltime(self.auto_confront.next_iteration)}."
 
     # First embed
     confirmation_embed = discord.Embed(
@@ -799,13 +815,13 @@ class Tongo(commands.Cog):
     embed = discord.Embed(
       title="Tongo Dividends",
       description=f"Your devotion to Ferengi Principles and the 285 Rules of Acquisition have earned you favor from Grand Nagus Zek.\n\n"
-                  "There are three possible Dividend Rewards...\n\n"
-                  f"* {DIVIDEND_REWARDS['buffer']['label']} - A Pattern Buffer you may use in the Starfleet-Standard Crystal Replicator.\n"
-                  f"* {DIVIDEND_REWARDS['wishlist']['label']} - A Wishlist Endowment courtesy of Grand Nagus Zek.\n"
-                  f"* {DIVIDEND_REWARDS['replication']['label']} - The Materialization of a Guaranteed Rare(*?*) Crystal via a delicious Ferengi Honeystick.\n\n"
-                  "Each Tongo game you participate in earns you *one* Dividend! Stack em up!",
-      color=discord.Color.dark_purple()
+                  "Each Tongo game you participate in earns you *one* Dividend and there are three possible Dividend Rewards...\n"
+                  f"### {DIVIDEND_REWARDS['buffer']['label']}\nA Pattern Buffer you may use in the regular Starfleet Crystal Replicator.\n"
+                  f"### {DIVIDEND_REWARDS['wishlist']['label']}\nA Wishlist Endowment courtesy of Grand Nagus Zek.\n"
+                  f"### {DIVIDEND_REWARDS['replication']['label']}\nThe Materialization of a Guaranteed Rare(*?*) Crystal via a delicious Ferengi Honeystick.",
+      color=discord.Color.gold()
     )
+    embed.set_image(url="https://i.imgur.com/UjZkGLf.gif")
     embed.add_field(
       name="Dividend Exchange Rate",
       value="\n".join([
@@ -1434,7 +1450,7 @@ async def generate_paginated_continuum_images(continuum_badges):
   total_badges = len(continuum_badges)
   results = []
 
-  fonts = load_fonts()
+  fonts = load_fonts(general_size=50)
   text_font = fonts.general
 
   for page_index, page_badges in enumerate(pages):
@@ -1461,18 +1477,18 @@ async def generate_paginated_continuum_images(continuum_badges):
     badge_slots = []
     for badge in page_badges:
       badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
-      slot_frames = compose_badge_slot(badge, get_theme_colors('gold'), badge_image, disable_overlays=True)
+      slot_frames = compose_badge_slot(badge, get_theme_colors('gold'), badge_image, disable_overlays=True, resize=True)
       badge_slots.append(slot_frames[0])
 
-    current_y = 130
+    current_y = 140
     index = 0
     for row in range(rows):
       row_badges = badge_slots[index:index+3]
-      total_row_w = len(row_badges) * dims.slot_width + (len(row_badges) - 1) * margin
+      total_row_w = len(row_badges) * (dims.slot_width // 2) + (len(row_badges) - 1) * margin
       x = (canvas_w - total_row_w) // 2
       for slot in row_badges:
         base_image.paste(slot, (x, current_y), slot)
-        x += dims.slot_width + margin
+        x += (dims.slot_width // 2) + margin
       current_y += row_h
       index += 3
 

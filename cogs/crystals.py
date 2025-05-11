@@ -332,8 +332,7 @@ class Crystals(commands.Cog):
 
     pending_message = await ctx.respond(
       embed=discord.Embed(
-        title="Pulling up your Crystal Manifest!",
-        description=f"Uno momento!",
+        title="Pulling up your Crystal Manifest...",
         color=discord.Color.teal()
       ),
       ephemeral=True
@@ -395,8 +394,7 @@ class Crystals(commands.Cog):
         pages.PageGroup(
           pages=crystal_rank_pages,
           label=rarity_name,
-          description=f"{len(sorted_crystals)} Available",
-          # custom_buttons=[],
+          description=f"{len(sorted_crystals)} Crystals",
         )
       )
 

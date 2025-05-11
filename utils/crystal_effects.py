@@ -708,7 +708,7 @@ def effect_crystalline_entity(badge_image: Image.Image, badge: dict) -> Image.Im
   Crystalline Entity Spikes background.
   Used for the Silicon Shard crystal (Rare tier).
   """
-  bg_path = f"{RARE_BACKGROUNDS_DIR}/cystalline_entity.png"
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/crystalline_entity.png"
   result = apply_rare_background_and_border(
     badge_image,
     bg_path,
