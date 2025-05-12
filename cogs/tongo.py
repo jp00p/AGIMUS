@@ -888,8 +888,7 @@ class Tongo(commands.Cog):
         pass
       return
 
-    await self._perform_confront(active_tongo, active_chair, True)
-    await db_update_game_status(active_tongo['id'], 'ended')
+    await self._perform_confront(active_tongo, active_chair)
     self.auto_confront.cancel()
 
 
@@ -931,12 +930,12 @@ class Tongo(commands.Cog):
         )
 
         xp_awarded = 0
-        if len(badge_instance_ids) < 3:
+        # if len(badge_instance_ids) < 3:
           # XXX Replace this with dividend rewards?
-          xp_awarded = 110 * (3 - len(badge_instance_ids))
-          if datetime.today().weekday() >= 4:
-            xp_awarded *= 2
-          await grant_xp(member.id, xp_awarded, 'tongo_loss', zeks_table, "Consolation Prize for Tongo Loss")
+          # xp_awarded = 110 * (3 - len(badge_instance_ids))
+          # if datetime.today().weekday() >= 4:
+          #   xp_awarded *= 2
+          # await grant_xp(member.id, xp_awarded, 'tongo_loss', zeks_table, "Consolation Prize for Tongo Loss")
 
         player_embed = await build_confront_player_embed(member, badges_received, wishlist_filenames_received, xp_awarded)
         player_embed.set_image(url=received_image_url)
@@ -990,7 +989,7 @@ class Tongo(commands.Cog):
     if updated:
       images = await generate_paginated_continuum_images(updated)
       await send_continuum_images_to_channel(zeks_table, images)
-
+    await db_update_game_status(active_tongo['id'], 'resolved')
 
   async def _execute_confront_distribution(self, game_id: int) -> dict[int, set[int]]:
     players = await db_get_players_for_game(game_id)
@@ -1008,6 +1007,11 @@ class Tongo(commands.Cog):
 
     # Build inventory, active wants (wishlist), and prestige data
     for player_id in player_ids:
+      # Prestige, needed for both filtering and wishlist query
+      echelon_progress = await db_get_echelon_progress(player_id)
+      prestige = echelon_progress['current_prestige_tier'] if echelon_progress else 0
+      player_prestige[player_id] = prestige
+
       # Inventory info_ids
       inventory = await db_get_owned_badge_filenames(player_id, prestige=prestige)
       owned_info_ids = set()
@@ -1016,11 +1020,6 @@ class Tongo(commands.Cog):
         if info:
           owned_info_ids.add(info['id'])
       player_inventories[player_id] = owned_info_ids
-
-      # Prestige, needed for both filtering and wishlist query
-      echelon_progress = await db_get_echelon_progress(player_id)
-      prestige = echelon_progress['current_prestige_tier'] if echelon_progress else 0
-      player_prestige[player_id] = prestige
 
       # Wishlist 'active wants' only (not owned at current prestige)
       active_wants = await db_get_active_wants(player_id, prestige)
@@ -1466,7 +1465,7 @@ async def generate_paginated_continuum_images(continuum_badges):
     base_image.paste(header, (0, 0))
 
     row_y = 110
-    row_h = 200
+    row_h = 180
     rows = math.ceil(len(page_badges) / 3)
     for i in range(rows):
       base_image.paste(row_bg, (0, row_y + i * row_h))

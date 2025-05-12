@@ -315,7 +315,7 @@ async def generate_badge_collection_images(user, prestige, badge_data, collectio
   logger.info("[timing] Starting generate_badge_collection_images")
 
   # XXX
-  badge_data = badge_data[:45]
+  # badge_data = badge_data[:45]
 
   layout = _get_collection_grid_layout()
   theme = (
@@ -1177,9 +1177,12 @@ async def generate_singular_slot_frames(user_id, badge, border_color=None, cryst
     slot_canvas = base_slot_canvas.copy()
 
     # Target size based on slot
-    padding = 8
-    target_w = dims.slot_width - padding * 2
-    target_h = dims.slot_height - padding * 2
+    # padding = 8
+    # target_w = dims.slot_width - padding * 2
+    # target_h = dims.slot_height - padding * 2
+
+    target_w = dims.slot_width
+    target_h = dims.slot_height
 
     orig_w, orig_h = frame.size
     aspect = orig_w / orig_h
@@ -1198,6 +1201,16 @@ async def generate_singular_slot_frames(user_id, badge, border_color=None, cryst
     frame_y = round((dims.slot_height - scaled_frame.height) / 2)
 
     slot_canvas.paste(scaled_frame, (frame_x, frame_y), scaled_frame)
+    crystal_icon = badge.get("crystal_icon", None)
+    if crystal_icon:
+      icon_path = f"./images/templates/crystals/icons/{crystal_icon}"
+      try:
+        icon_img = Image.open(icon_path).convert("RGBA")
+        icon_img.thumbnail((64, 64))
+        slot_canvas.paste(icon_img, (dims.slot_width - 64, 12), icon_img)
+      except Exception as e:
+        logger.warning(f"[compose_badge_slot] Could not load icon at {icon_path}: {e}")
+
 
     # Final rounded mask to clip anything outside the border
     final_mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
@@ -1281,22 +1294,25 @@ def compose_badge_slot(
     text_y = 222
     draw.multiline_text((text_x, text_y), wrapped, font=fonts.label, fill=text_color, align="center")
 
+    overlay = None
     if not disable_overlays:
-      overlay = None
       if badge.get("special"):
         overlay = SPECIAL_ICON
       elif badge.get("locked"):
         overlay = LOCK_ICON
       if overlay:
-        slot_canvas.paste(overlay, (dims.slot_width - 54, 16), overlay)
+        slot_canvas.paste(overlay, (dims.slot_width - 44, 16), overlay)
 
     crystal_icon = badge.get("crystal_icon", None)
     if crystal_icon:
+      y_offset = 16
+      if overlay:
+        y_offset += 38
       icon_path = f"./images/templates/crystals/icons/{crystal_icon}"
       try:
         icon_img = Image.open(icon_path).convert("RGBA")
         icon_img.thumbnail((48, 48))
-        slot_canvas.paste(icon_img, (24, 16), icon_img)
+        slot_canvas.paste(icon_img, (dims.slot_width - 48, y_offset), icon_img)
       except Exception as e:
         logger.warning(f"[compose_badge_slot] Could not load icon at {icon_path}: {e}")
 
@@ -1567,7 +1583,7 @@ async def generate_badge_trade_images(
   )
 
   # Footer at the bottom
-  w, _ = draw.textsize(footer_text, font=fonts.footer)
+  w = fonts.footer.getlength(footer_text)
   draw.text(((base_bg.width - w) // 2, base_bg.height - 110), footer_text, font=fonts.footer, fill=(255, 255, 255))
 
   # Early return with empty image if no badges were passed in

@@ -432,8 +432,20 @@ def effect_boridium(img, badge):
   return _apply_energy_rings_silhouette_wrap(img, primary_color=(200, 80, 255), secondary_color=(80, 255, 255))
 
 @register_effect("invidium")
-def effect_invidium(img: Image.Image, badge: dict) -> Image.Image:
-    return ImageOps.invert(img)
+def effect_invidium(badge_image: Image.Image, badge: dict) -> Image.Image:
+  if badge_image.mode != 'RGBA':
+    badge_image = badge_image.convert('RGBA')
+
+  # Split channels
+  r, g, b, a = badge_image.split()
+
+  # Invert RGB only
+  r_inv = ImageOps.invert(r)
+  g_inv = ImageOps.invert(g)
+  b_inv = ImageOps.invert(b)
+
+  # Merge with original alpha
+  return Image.merge('RGBA', (r_inv, g_inv, b_inv, a))
 
 @register_effect("remalite")
 def effect_remalite(img: Image.Image, badge: dict) -> Image.Image:

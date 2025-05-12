@@ -375,7 +375,7 @@ class Profile(commands.Cog):
           photo_filter = getattr(pilgram, random.choice(Profile.filters))
         photo_content = photo_filter(photo_content).convert("RGBA")
 
-      photo_content.thumbnail((263, 200), Image.ANTIALIAS)
+      photo_content.thumbnail((263, 200), Image.Resampling.LANCZOS)
       photo_content = photo_content.crop((0,0,200,200))
       # photo_glare = Image.open("./images/profiles/template_pieces/lcars/photo-glare.png").convert("RGBA")
       # photo_content.paste(photo_glare, (0, 0), photo_glare)

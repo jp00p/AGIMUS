@@ -30,7 +30,7 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   offered_instance_ids = set()
   if 'requestee' in ctx.options and 'prestige' in ctx.options:
     requestee_user_id = ctx.options['requestee']
-    prestige_level = int(ctx.options['prestige'])
+    prestige_level = int(ctx.options.get('prestige', 0))
   else:
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
@@ -84,7 +84,7 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   requested_instance_ids = set()
   if 'requestee' in ctx.options and 'prestige' in ctx.options:
     requestee_user_id = ctx.options['requestee']
-    prestige_level = int(ctx.options['prestige'])
+    prestige_level = int(ctx.options.get('prestige', 0))
   else:
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:

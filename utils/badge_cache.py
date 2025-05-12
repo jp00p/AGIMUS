@@ -22,15 +22,15 @@ async def get_cached_base_badge_canvas(badge_filename: str) -> Image.Image:
   badge_img = autoshrink_badge(badge_img, canvas_size=(BADGE_THUMBNAIL_SIZE, BADGE_THUMBNAIL_SIZE))
 
   # Paste onto 190x190 canvas (centered)
-  # canvas = Image.new('RGBA', (BADGE_THUMBNAIL_SIZE, BADGE_THUMBNAIL_SIZE), (0, 0, 0, 0))
-  # offset = ((BADGE_THUMBNAIL_SIZE - badge_img.width) // 2, (BADGE_THUMBNAIL_SIZE - badge_img.height) // 2)
-  # canvas.paste(badge_img, offset, badge_img)
-  canvas = ImageOps.fit(badge_img, (BADGE_THUMBNAIL_SIZE, BADGE_THUMBNAIL_SIZE), method=Image.LANCZOS, centering=(0.5, 0.5))
+  canvas = Image.new('RGBA', (BADGE_THUMBNAIL_SIZE, BADGE_THUMBNAIL_SIZE), (0, 0, 0, 0))
+  offset = ((BADGE_THUMBNAIL_SIZE - badge_img.width) // 2, (BADGE_THUMBNAIL_SIZE - badge_img.height) // 2)
+  canvas.paste(badge_img, offset, badge_img)
+  # canvas = ImageOps.fit(badge_img, (BADGE_THUMBNAIL_SIZE, BADGE_THUMBNAIL_SIZE), method=Image.LANCZOS, centering=(0.5, 0.5))
 
   _base_badge_cache[badge_filename] = canvas
   return canvas
 
-def autoshrink_badge(badge_img: Image.Image, canvas_size=(200, 200), margin_ratio=0.15) -> Image.Image:
+def autoshrink_badge(badge_img: Image.Image, canvas_size=(200, 200), margin_ratio=0.1) -> Image.Image:
   """
   Proportionally resizes a badge to fit within 190x190, then shrinks it further if
   opaque pixels are too close to the edge. Ensures safe visual margins in a 200x200 frame.
@@ -63,7 +63,8 @@ def autoshrink_badge(badge_img: Image.Image, canvas_size=(200, 200), margin_rati
     shrink_factor = 1.0 - ((margin - inset) / margin) * 0.4
     shrink_factor = min(max(shrink_factor, 0.75), 1.0)
     new_dim = int(min(width, height) * shrink_factor)
-    return badge_img.resize((new_dim, new_dim), resample=Image.LANCZOS)
+    return ImageOps.fit(badge_img, (new_dim, new_dim), method=Image.LANCZOS, centering=(0.5, 0.5))
+    # return badge_img.resize((new_dim, new_dim), resample=Image.LANCZOS)
 
   return badge_img
 

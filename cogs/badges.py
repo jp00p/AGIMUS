@@ -1007,7 +1007,7 @@ class Badges(commands.Cog):
       )
       return
 
-    badge_instance = await db_get_badge_instance_by_id(user_id, badge_instance_id)
+    badge_instance = await db_get_badge_instance_by_id(badge_instance_id)
     if not badge_instance or badge_instance['owner_discord_id'] != user_id or badge_instance['prestige_level'] != prestige:
       await ctx.followup.send(
         embed=discord.Embed(
@@ -1024,8 +1024,8 @@ class Badges(commands.Cog):
     image_bytes = BytesIO()
 
     if animated:
-      await encode_webp(badge_frames, image_bytes, duration=90)
-      image_bytes.seek(0)
+      image_bytes = await encode_webp(badge_frames)
+      # image_bytes.seek(0)
       filename = 'spotlight.webp'
     else:
       badge_frames[0].save(image_bytes, format='PNG')
@@ -1049,12 +1049,13 @@ class Badges(commands.Cog):
       embed_color = discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
 
     embed = discord.Embed(
-      title=f"{badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
-      description=f"{ctx.author.display_name}'s Badge Spotlight",
+      title=f"Badge Spotlight",
+      description=f"## {badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
       color=embed_color
     )
     embed.set_image(url=f"attachment://{filename}")
 
+    embed.add_field(name="Owned By", value=f"{ctx.author.mention}",)
     embed.add_field(name="Prestige Tier", value=PRESTIGE_TIERS[prestige], inline=False)
     if badge_instance['crystal_name']:
       embed.add_field(name="Crystal", value=badge_instance['crystal_name'], inline=False)
@@ -1068,6 +1069,8 @@ class Badges(commands.Cog):
 
     embed.add_field(name="Quadrant", value=badge_info['quadrant'] or "Unknown", inline=False)
     embed.add_field(name="Reference", value=badge_info['reference'] or "Unknown", inline=False)
+
+    embed.add_field(name="Star Trek Design Project", value=f"{badge_info['badge_url']}", inline=False)
 
     await ctx.followup.send(
       embed=embed,

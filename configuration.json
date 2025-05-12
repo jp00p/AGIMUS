@@ -401,6 +401,11 @@
       "enabled": true,
       "parameters": []
     },
+    "badges spotlight": {
+      "channels": [],
+      "enabled": true,
+      "parameters": []
+    },
     "badges status": {
       "channels": [
         "badgeys-badges",

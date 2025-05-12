@@ -173,7 +173,7 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
     f"{member.mention} has ascended to the **{prestige_name} Prestige Tier!**"
     f"\n\nThey have reached **Echelon {level}** and have received their first **{prestige_name}** Badge!"
     f"\n\nThis also means they're within the *Prestige Quantum Improbability Field*..."
-    f"\n\nAs they continue to advance into {prestige_name} the pull grows ever larger as the odds warp and skew!"
+    f"\n\nAs they continue to advance into {prestige_name} the pull grows ever larger as the odds warp and skew! "
     f"Their chances of receiving *{old_prestige_name}* badges lessen while chances of receiving *{prestige_name}* badges strengthen!"
   )
 
