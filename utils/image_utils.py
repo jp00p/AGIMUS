@@ -1109,6 +1109,8 @@ async def generate_badge_preview(user_id, badge, crystal=None, theme=None, disab
   badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
   effect_result = await apply_crystal_effect(badge_image, badge, crystal)
 
+  if crystal:
+    badge['crystal_icon'] = crystal.get('icon')
   slot_frames = compose_badge_slot(badge, colors, effect_result, disable_overlays=disable_overlays)
 
   if len(slot_frames) > 1:

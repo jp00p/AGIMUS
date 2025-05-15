@@ -164,7 +164,7 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
   prestige_name = PRESTIGE_TIERS.get(new_prestige, f"Prestige {new_prestige}")
   old_prestige_name = PRESTIGE_TIERS.get(new_prestige - 1, "Standard")
 
-  prestige_msg = f"## STRANGE ENERGIES AFOOT! {member.mention} is entering boundary-space upon reaching Echelon {level}!!!"
+  prestige_msg = f"## STRANGE ENERGIES AFOOT! {member.mention} is entering boundary-space upon reaching **Echelon {level}**!!!"
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
@@ -210,7 +210,7 @@ async def post_first_level_welcome_embed(member, badge_data, source_details = No
     discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
     embed = discord.Embed(
       title="Echelon 1!",
-      description=f"Enter, Friend! Welcome aboard {member.mention}! You've materialized onto The Hood's Transporter Pad and been inducted into Echelon 1!"
+      description=f"Enter, Friend! Welcome aboard {member.mention}! You've materialized onto The Hood's Transporter Pad and been inducted into **Echelon 1**!"
                   "\n\nYour activity on The Hood earns you optional XP and Badges you can collect and trade to other crew members (for funzies)!",
       color=discord.Color.green()
     )
@@ -225,7 +225,7 @@ async def post_first_level_welcome_embed(member, badge_data, source_details = No
     prestige_msg = f"## TRANSPORTER SIGNAL CONVERSION COMPLETE! {member.mention}, welcome to Echelon 1!!!"
     embed = discord.Embed(
       title="Echelon 1!",
-      description=f"Re-sequencing {member.mention}'s pattern finalized! You've been converted from the Legacy XP System and initialized at Echelon 1!"
+      description=f"Re-sequencing {member.mention}'s pattern finalized! You've been converted from the Legacy XP System and initialized at **Echelon 1**!"
                   "\n\nVery exciting. Your Legacy XP has been retained for bragging rights (viewable through `/profile`), and worry not, all of your existing badges are intact at the Standard Prestige Tier."
                   f"\n\nBe sure to check out the details of the new system over at {agimus_announcement_channel.mention}",
       color=discord.Color.green()
@@ -274,9 +274,17 @@ BUFFER_PATTERN_AQUISITION_REASONS = [
   "hacked the Gibson and downloaded a",
   "was swimming in Cetecean Ops and uncovered a",
   "was scanning for lifeforms and instead scanned a",
-  "ordered Steak, Hot, for their mouth but instead it spit out a",
+  "ordered `Steak, Hot, for their mouth` but instead it spit out a",
   "was eating some snacks in Ten Forward and bit into a lost",
-  "was digging up weird dirt but dug up a"
+  "was digging up weird dirt but dug up a",
+  "overloaded the Deflector Dish and it spat out a",
+  "found a mislabeled isolinear chip that contained a fully encoded",
+  "asked the replicator for a `BANANA, HOT` and got a glowing",
+  "was trying to synthesize raktajino and got a warm",
+  "ran a Level-Five Diagnostic and the results came back with one unexpected",
+  "was reconfiguring the warp core's resonance frequency and discovered a",
+  "asked for a sonic shower and out sprayed a",
+  "activated a forgotten TOS-era control panel and found a vintage-looking",
 ]
 
 BUFFER_PATTERN_AQUISITION_GIFS = [

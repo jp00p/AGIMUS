@@ -126,7 +126,7 @@ class TongoDividendsView(discord.ui.View):
       text=f"Greed is Eternal!",
       icon_url="https://i.imgur.com/scVHPNm.png"
     )
-    confirmation_embed.set_image(url="https://i.imgur.com/s10kcx3.gif")
+    confirmation_embed.set_image(url=random.choice["https://i.imgur.com/s10kcx3.gif", "https://i.imgur.com/FTPiLy0.gif"])
     # Edit the original message to show confirmation and remove this buttons view entirely
     await interaction.followup.edit_message(
       message_id=interaction.message.id,

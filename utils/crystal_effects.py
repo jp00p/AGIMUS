@@ -539,42 +539,43 @@ def _apply_energy_rings_silhouette_wrap(badge_img: Image.Image, primary_color: t
   Returns:
     A new RGBA image with the wrapped badge.
   """
-  alpha = badge_img.split()[-1]
-  bounds = get_badge_bounds(alpha)
-  left, top, right, bottom = bounds
-  width = right - left + 2 * padding
-  height = bottom - top + 2 * padding
-  ring_size = (int(width * 2), int(height * 2))
-  badge_offset = ((ring_size[0] - badge_img.width) // 2, (ring_size[1] - badge_img.height) // 2)
+  base_w, base_h = badge_img.size
+  ring_canvas = Image.new("RGBA", (base_w, base_h), (0, 0, 0, 0))
 
-  # Generate both rings
+  # Slightly smaller ring bounds to stay within frame
+  ring_box = (
+    padding, padding,
+    base_w - padding,
+    base_h - padding
+  )
+  ring_size = (ring_box[2] - ring_box[0], ring_box[3] - ring_box[1])
+
   primary_ring = _generate_energy_ring_wrap(ring_size, color=primary_color, rx_scale=0.35, ry_scale=0.15)
   secondary_ring = _generate_energy_ring_wrap(ring_size, color=secondary_color, rx_scale=0.32, ry_scale=0.13)
   combined_ring = Image.alpha_composite(primary_ring, secondary_ring)
 
-  # Create 50% split mask
-  badge_w, badge_h = badge_img.size
-  front_mask = Image.new("L", ring_size, 0)
-  draw = ImageDraw.Draw(front_mask)
-  draw.rectangle(
-    [badge_offset[0], badge_offset[1] + badge_h // 2,
-     badge_offset[0] + badge_w, badge_offset[1] + badge_h],
+  # Composite rings into full-size frame
+  ring_canvas.paste(combined_ring, ring_box[:2], combined_ring)
+
+  # Split rings into front and back halves
+  front_mask = Image.new("L", (base_w, base_h), 0)
+  ImageDraw.Draw(front_mask).rectangle(
+    [0, base_h // 2, base_w, base_h],
     fill=255
   )
-  front_mask = front_mask.filter(ImageFilter.GaussianBlur(10))
+  front_mask = front_mask.filter(ImageFilter.GaussianBlur(8))
   back_mask = ImageChops.invert(front_mask)
 
-  # Split ring into front/back halves
-  front_ring = Image.composite(combined_ring, Image.new("RGBA", ring_size, (0, 0, 0, 0)), front_mask)
-  back_ring = Image.composite(combined_ring, Image.new("RGBA", ring_size, (0, 0, 0, 0)), back_mask)
+  front = Image.composite(ring_canvas, Image.new("RGBA", (base_w, base_h), (0, 0, 0, 0)), front_mask)
+  back = Image.composite(ring_canvas, Image.new("RGBA", (base_w, base_h), (0, 0, 0, 0)), back_mask)
 
-  # Composite result
-  canvas = Image.new("RGBA", ring_size, (0, 0, 0, 0))
-  canvas.paste(back_ring, (0, 0), back_ring)
-  canvas.paste(badge_img, badge_offset, badge_img)
-  canvas.paste(front_ring, (0, 0), front_ring)
+  # Final composite
+  out = Image.new("RGBA", (base_w, base_h), (0, 0, 0, 0))
+  out = Image.alpha_composite(out, back)
+  out = Image.alpha_composite(out, badge_img)
+  out = Image.alpha_composite(out, front)
 
-  return canvas
+  return out
 
 def _generate_energy_ring_wrap(
   size=(512, 512),

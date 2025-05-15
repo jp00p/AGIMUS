@@ -25,13 +25,19 @@ class Crystals(commands.Cog):
     self.bot = bot
     self.REPLICATION_ENGAGE_VERBIAGES = [
       'Discharging the Enerjons',
-      'Charging up the EPS conduits',
+      'Overloading the EPS conduits',
       'Transfering all power from the Life Support Systems',
       'Ejecting the Warp Core',
-      'Placing something dangerous near the Warp Core',
+      'Placing something dangerous in the middle of Main Engineering',
       'Diverting power from the Holodeck Safety Protocol Enforcer',
       'Flooding the Jefferies Tubes with Omicron Radiation',
-      'Erecting a Level 10 Force Field'
+      'Disabling that uh, Level 10 Force Field',
+      'Destabilizing a localized pocket of subspace',
+      'Injecting way too much Trilithium resin into the Reaction Chamber',
+      'Overriding all Safety Containment Recommendations',
+      'Deactivating the Heisenberg Compensators',
+      'Shunting main power through the Deflector Dish... again',
+      'Venting plasma through the Bussard Collectors',
     ]
 
   # .____    .__          __
@@ -282,6 +288,14 @@ class Crystals(commands.Cog):
 
         gelrak_v = await cog.bot.fetch_channel(get_channel_id("gelrak-v"))
         await gelrak_v.send(embed=channel_embed, file=discord_file)
+
+        await interaction.response.edit_message(
+          embed=discord.Embed(
+            title="Replication Complete!",
+            description="Check out the details below!",
+            color=discord.Color.teal()
+          )
+        )
 
       @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
       async def cancel(self, button, interaction):

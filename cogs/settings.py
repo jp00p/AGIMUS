@@ -370,7 +370,7 @@ class Settings(commands.Cog):
           )
         ],
         label="Crystallization",
-        description="Configure automatic Crystal slotting behavior",
+        description="Configure Crystal Auto-Harmonization Behavior",
         custom_buttons=[],
         use_default_buttons=False,
         custom_view=CrystallizeAutoHarmonizeView(self)
