@@ -482,7 +482,6 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Solanogen", 1, "solanogen.png", "cyan_gradient", "Exotic compound from subspace realms. Don't get SCHISMD!"),
   ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days."),
   ("Latinum", 1, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
-  ('Transparent Aluminum', 1, 'transparent_aluminum.png', 'transparent_aluminum', 'Revolutionary compound. Transparent, resilient, and rumored to have been invented by a time traveler...'),
 
   -- Uncommon Crystals (Border/Misc Effects)
   ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
@@ -505,6 +504,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Positron", 3, "positron.png", "positronic_net", "Fully functional. Networks of these can operate at 60 trillion calculations a second."),
   ("Isolinear", 3, "isolinear.png", "isolinear_circuit", "Shimoda's favorite circuitry plaything. Fully stackable!"),
   ("Farpoint Sphere", 3, "farpoint_sphere.png", "q_grid", "Has a warm feeling, like being wrapped in a big Pendleton blanket. How Q-rious..."),
+  ('Transparent Aluminum', 3, 'transparent_aluminum.png', 'transparency_starfield', 'Revolutionary compound. Transparent, resilient, and rumored to have been invented by a time traveler...'),
 
   -- Legendary Crystals (Animations)
   ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "EJECTED FROM A CORE! Hums with that familiar pulse."),

@@ -369,43 +369,6 @@ def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
 
   return final
 
-@register_effect("transparent_aluminum")
-def effect_transparent_aluminum(badge_image: Image.Image, badge: dict) -> Image.Image:
-  """
-  Transparent Aluminum effect with a diagonal shine on transparent background.
-  Reduces badge opacity to 70% and overlays a soft diagonal highlight across the badge shape.
-  """
-  badge_image = badge_image.convert("RGBA")
-
-  # Duplicate badge to preserve base transparency
-  clean = badge_image.copy()
-
-  # Create diagonal shine gradient
-  width, height = badge_image.size
-  shine_overlay = Image.new("RGBA", (width, height), (255, 255, 255, 0))
-  pixels = shine_overlay.load()
-  for y in range(height):
-    for x in range(width):
-      t = (x + y) / (width + height)
-      alpha = int(255 * 0.75 * max(0, 1 - abs(t - 0.5) * 7))  # 75% strength, soft falloff
-      pixels[x, y] = (255, 255, 255, min(alpha, 255))
-
-  # Mask the shine to badge alpha only
-  alpha_mask = badge_image.split()[-1]
-  masked_shine = Image.new("RGBA", (width, height))
-  masked_shine.paste(shine_overlay, (0, 0), mask=alpha_mask)
-
-  # Apply shine over badge
-  shiny = Image.alpha_composite(clean, masked_shine)
-
-  # Apply 70% opacity
-  r, g, b, a = shiny.split()
-  a = a.point(lambda px: int(px * 0.7))
-  final = Image.merge("RGBA", (r, g, b, a))
-
-  return final
-
-
 
 # 888     888
 # 888     888
@@ -812,6 +775,50 @@ def effect_q_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
     bg_path,
     border_gradient_top_left=(196, 197, 247),
     border_gradient_bottom_right=(50, 51, 101)
+  )
+  return result
+
+@register_effect("transparency_starfield")
+def effect_transparent_aluminum(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Transparent Aluminum effect with a diagonal shine on transparent background.
+  Reduces badge opacity to 70% and overlays a soft diagonal highlight across the badge shape.
+  Then just throw it through apply_rare_background_and_border() with a starfield image so you can see the stars through it?
+  """
+  badge_image = badge_image.convert("RGBA")
+
+  # Duplicate badge to preserve base transparency
+  clean = badge_image.copy()
+
+  # Create diagonal shine gradient
+  width, height = badge_image.size
+  shine_overlay = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+  pixels = shine_overlay.load()
+  for y in range(height):
+    for x in range(width):
+      t = (x + y) / (width + height)
+      alpha = int(255 * 0.75 * max(0, 1 - abs(t - 0.5) * 7))  # 75% strength, soft falloff
+      pixels[x, y] = (255, 255, 255, min(alpha, 255))
+
+  # Mask the shine to badge alpha only
+  alpha_mask = badge_image.split()[-1]
+  masked_shine = Image.new("RGBA", (width, height))
+  masked_shine.paste(shine_overlay, (0, 0), mask=alpha_mask)
+
+  # Apply shine over badge
+  shiny = Image.alpha_composite(clean, masked_shine)
+
+  # Apply 70% opacity
+  r, g, b, a = shiny.split()
+  a = a.point(lambda px: int(px * 0.7))
+  badge_image = Image.merge("RGBA", (r, g, b, a))
+
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/transparency_starfield.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(192, 192, 255),
+    border_gradient_bottom_right=(96, 160, 255)
   )
   return result
 
