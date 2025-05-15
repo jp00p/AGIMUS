@@ -120,8 +120,8 @@ INSERT INTO crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order) VA
   ("Common",    "⚪", 1, 50, 0),
   ("Uncommon",  "🟢", 2, 33, 1),
   ("Rare",      "🟣", 3, 10, 2),
-  ("Legendary", "🔥", 4, 6, 3),
-  ("Mythic",    "💎", 5, 1, 4);
+  ("Legendary", "🔥", 4, 5, 3),
+  ("Mythic",    "💎", 5, 2, 4);
 
 -- Crystal Types
 CREATE TABLE IF NOT EXISTS crystal_types (

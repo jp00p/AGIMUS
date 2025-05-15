@@ -14,7 +14,7 @@ PQIF_THRESHOLD = 0.10  # 10% remaining triggers PQIF
 
 BASE_BUFFER_CHANCE = 20.0
 BUFFER_GROWTH_FACTOR = 3.75
-MAX_BUFFER_FAILURE_STREAK = 5
+MAX_BUFFER_FAILURE_STREAK = 4
 
 #    _____                           .___ __________             .___
 #   /  _  \__  _  _______ _______  __| _/ \______   \_____     __| _/ ____   ____
@@ -162,7 +162,7 @@ async def award_possible_crystal_pattern_buffer(member: discord.Member) -> bool:
     - Each failure increases the buffer grant chance using a quadratic curve:
         `chance = 20% + (failure_streak^2 * 3.75)`
     - Failure streak increments by 1 after each unsuccessful attempt.
-    - After 5 failures, the next attempt is a guaranteed 100% grant!
+    - After N failures, the next attempt is a guaranteed 100% grant!
 
   If a buffer is granted, the failure streak resets to 0.
   If a buffer is not granted, the failure streak is incremented.
