@@ -259,7 +259,7 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
                   f"They can now use them to replicate **{number_of_patterns}** Crystals from scratch!",
       color=discord.Color.teal()
     )
-  embed.set_image(url="https://i.imgur.com/lgP2miO.gif")
+  embed.set_image(url=random.choice(BUFFER_PATTERN_AQUISITION_GIFS))
   embed.set_footer(text="Use  `/crystals replicate` to materialize a freshly minted Crystal!")
   notification_channel = bot.get_channel(get_channel_id(config['handlers']['xp']['notification_channel']))
   await notification_channel.send(embed=embed)
@@ -275,8 +275,15 @@ BUFFER_PATTERN_AQUISITION_REASONS = [
   "was swimming in Cetecean Ops and uncovered a",
   "was scanning for lifeforms and instead scanned a",
   "ordered Steak, Hot, for their mouth but instead it spit out a",
-  "was eating some snacks in Ten Forward and under their table found a lost",
-  "was just digging up weird dirt but dug up a"
+  "was eating some snacks in Ten Forward and bit into a lost",
+  "was digging up weird dirt but dug up a"
+]
+
+BUFFER_PATTERN_AQUISITION_GIFS = [
+  "https://i.imgur.com/lgP2miO.gif",
+  "https://i.imgur.com/ziLTH4f.gif",
+  "https://i.imgur.com/RVEncra.gif",
+  "https://i.imgur.com/O8FIb0I.gif"
 ]
 
 # .____                      .__             ____ ___           ____ ___   __  .__.__

@@ -1240,12 +1240,12 @@ def effect_celestial_temple(badge_image: Image.Image, badge: dict) -> list[Image
   output_frames = []
 
   # Frame 0: blank
-  blank = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
+  blank = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
   output_frames.append(blank.copy())
 
   # Frames 1–4: lens flare
   for frame in lens_flare_frames:
-    base = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
+    base = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
     output_frames.append(Image.alpha_composite(base, frame))
 
   # Frame 5: blank
@@ -1257,7 +1257,7 @@ def effect_celestial_temple(badge_image: Image.Image, badge: dict) -> list[Image
     wormhole = wormhole_frames[i].copy()
     size = max(1, int(wormhole.width * scale)), max(1, int(wormhole.height * scale))
     scaled = wormhole.resize(size, Image.Resampling.LANCZOS)
-    base = Image.new("RGBA", canvas_size, (0, 0, 0, 255))
+    base = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
     offset = ((canvas_size[0] - size[0]) // 2, (canvas_size[1] - size[1]) // 2)
     base.paste(scaled, offset, scaled)
     output_frames.append(base)
