@@ -1480,6 +1480,9 @@ async def generate_paginated_continuum_images(continuum_badges):
   fonts = load_fonts(general_size=50)
   text_font = fonts.general
 
+  slot_height = int(dims.slot_height // 2)
+  slot_width = int(dims.slot_height // 2)
+
   for page_index, page_badges in enumerate(pages):
     canvas_w = 800
     canvas_h = 110 + 200 * len(page_badges) // 3 + 115
@@ -1493,7 +1496,7 @@ async def generate_paginated_continuum_images(continuum_badges):
     base_image.paste(header, (0, 0))
 
     row_y = 110
-    row_h = dims.slot_height + 20
+    row_h = slot_height + 20
     rows = math.ceil(len(page_badges) / 3)
     for i in range(rows):
       base_image.paste(row_bg, (0, row_y + i * row_h))
@@ -1511,11 +1514,11 @@ async def generate_paginated_continuum_images(continuum_badges):
     index = 0
     for row in range(rows):
       row_badges = badge_slots[index:index+3]
-      total_row_w = len(row_badges) * (dims.slot_width // 2) + (len(row_badges) - 1) * margin
+      total_row_w = len(row_badges) * (slot_width // 2) + (len(row_badges) - 1) * margin
       x = (canvas_w - total_row_w) // 2
       for slot in row_badges:
         base_image.paste(slot, (x, current_y), slot)
-        x += (dims.slot_width // 2) + margin
+        x += (slot_width // 2) + margin
       current_y += row_h
       index += 3
 
