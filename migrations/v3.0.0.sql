@@ -101,7 +101,10 @@ CREATE TABLE IF NOT EXISTS legacy_xp_records (
   FOREIGN KEY (user_discord_id) REFERENCES users(discord_id)
 );
 
--- ==CRYSTALS tables!==
+-- ==CRYSTALS!==
+
+-- Auto-Harmonize User Preference
+ALTER TABLE users ADD COLUMN crystal_autoharmonize BOOLEAN NOT NULL DEFAULT 0 AFTER tagging_enabled;
 
 -- Crystal Ranks
 CREATE TABLE IF NOT EXISTS crystal_ranks (

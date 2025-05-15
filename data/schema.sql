@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
   receive_notifications BOOLEAN NOT NULL DEFAULT 1,
   loudbot_enabled BOOLEAN NOT NULL DEFAULT 0,
   tagging_enabled BOOLEAN NOT NULL DEFAULT 0,
-  crystallize_autoslot ENUM('manual', 'auto_rarest', 'auto_newest') DEFAULT 'manual',
+  crystal_autoharmonize BOOLEAN NOT NULL DEFAULT 0,
   level int(11) DEFAULT 1,
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)

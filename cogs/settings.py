@@ -110,13 +110,12 @@ class NotificationsView(discord.ui.View):
 # \     \____|  | \/\___  |\___ \  |  |  / __ \|  |_|  |_|  |/    /  / __ \|  | |  (  <_> )   |  \
 #  \______  /|__|   / ____/____  > |__| (____  /____/____/__/_____ \(____  /__| |__|\____/|___|  /
 #         \/        \/         \/            \/                   \/     \/                    \/
-class CrystallizeAutoSlotDropdown(discord.ui.Select):
+class CrystallizeAutoHarmonizeDropdown(discord.ui.Select):
   def __init__(self, cog):
     self.cog = cog
     options = [
-      discord.SelectOption(label="Manual", description="Manually select Crystals to slot (No Auto-slot)."),
-      discord.SelectOption(label="Auto-slot Rarest", description="Automatically slot rarer Crystals."),
-      discord.SelectOption(label="Auto-slot Newest", description="Automatically slot newest Crystals."),
+      discord.SelectOption(label="Auto-Harmonize", description="Automatically Harmonize upon Attunement."),
+      discord.SelectOption(label="Manual", description="Manually Harmonize after Attunement."),
     ]
 
     super().__init__(
@@ -129,26 +128,25 @@ class CrystallizeAutoSlotDropdown(discord.ui.Select):
 
   async def callback(self, interaction: discord.Interaction):
     selection_map = {
-      "Manual": "manual",
-      "Auto-slot Rarest": "auto_rarest",
-      "Auto-slot Newest": "auto_newest"
+      "Auto-Harmonize": True,
+      "Manual": False
     }
     selected_value = selection_map[self.values[0]]
 
-    await db_set_crystallize_autoslot(interaction.user.id, selected_value)
+    await db_set_crystal_autoharmonize(interaction.user.id, selected_value)
     await interaction.response.send_message(
       embed=discord.Embed(
-        title=f"Crystallization Auto-slot behavior set to '{self.values[0]}'.",
+        title=f"Crystallization Auto-Harmonize behavior set to '{self.values[0]}'.",
         color=discord.Color.green()
       ).set_footer(text="You can always come back to this interface and change this in the future!"),
       ephemeral=True
     )
 
-class CrystallizeAutoSlotView(discord.ui.View):
+class CrystallizeAutoHarmonizeView(discord.ui.View):
   def __init__(self, cog):
     self.cog = cog
     super().__init__()
-    self.add_item(CrystallizeAutoSlotDropdown(self.cog))
+    self.add_item(CrystallizeAutoHarmonizeDropdown(self.cog))
 
 
 #  __      __                .___     .__                   .___
@@ -375,7 +373,7 @@ class Settings(commands.Cog):
         description="Configure automatic Crystal slotting behavior",
         custom_buttons=[],
         use_default_buttons=False,
-        custom_view=CrystallizeAutoSlotView(self)
+        custom_view=CrystallizeAutoHarmonizeView(self)
       ),
       pages.PageGroup(
         pages=[
@@ -466,12 +464,12 @@ class Settings(commands.Cog):
   async def _get_crystallize_embed_and_thumbnail(self):
     thumbnail = discord.File(fp="./images/templates/settings/crystallization.png", filename="crystallization.png")
     embed = discord.Embed(
-      title="Crystallization Auto-Slot Preferences",
+      title="Crystallization Auto-Harmonize Preference",
       description=(
-        "Set how you prefer AGIMUS to handle automatic attachment of Crystals to your badges.\n\n"
-        "**Manual** - You'll manually select Crystals afterwards via `/crystals slot_crystal`. No auto-slotting will take place.\n\n"
-        "**Auto-slot Rarest** - Automatically slot a Crystal if it is *rarer* (or as rare) than what is *currently slotted*.\n\n"
-        "**Auto-slot Newest** - Automatically slot the most recently acquired Crystal first."
+        "Set how you'd prefer AGIMUS to handle Harmonization (activation) of Crystals after you have Attuned (attached) them to a Badge via `/crystals attune`.\n\n"
+        "* **Auto-Harmonize** - As soon as you attune a Crystal to a Badge, it will become Harmonized immediately!\n"
+        "* **Manual** - Don't immediately Harmonize the latest attuned Crystal, use `/crystals harmonize` to select as per usual *(Default)*.\n\n"
+        "Note that if you have multiple Crystals attuned to a Badge you can always change which is Harmonized at any time per-usual via `/crystals harmonize`!"
       ),
       color=discord.Color(0xFF0000)
     )
@@ -652,26 +650,8 @@ async def db_toggle_loudbot(user_id, toggle):
       deleted_row_count = query.rowcount
   return deleted_row_count
 
-async def db_add_user_to_dtd(user_id):
+async def db_set_crystal_autoharmonize(user_id, autoharmonize: bool):
   async with AgimusDB() as query:
-    sql = "SELECT user_discord_id FROM down_to_dabo WHERE user_discord_id = %s"
-    vals = (user_id,)
-    await query.execute(sql, vals)
-    user_already_added = await query.fetchone()
-    if user_already_added is not None:
-      sql = "UPDATE down_to_dabo SET wei"
-    sql = "INSERT INTO down_to_dabo (user_discord_id, weight) VALUES (%s, %s)"
-    vals = (user_id, 1)
-    await query.execute(sql, vals)
-
-async def db_remove_user_from_dtd(user_id):
-  async with AgimusDB() as query:
-    sql = "DELETE FROM down_to_dabo WHERE user_discord_id = %s"
-    vals = (user_id,)
-    await query.execute(sql, vals)
-
-async def db_set_crystallize_autoslot(user_id, autoslot_behavior: str):
-  async with AgimusDB() as query:
-    sql = "UPDATE users SET crystallize_autoslot = %s WHERE discord_id = %s"
-    vals = (autoslot_behavior, user_id)
+    sql = "UPDATE users SET crystal_autoharmonize = %s WHERE discord_id = %s"
+    vals = (autoharmonize, user_id)
     await query.execute(sql, vals)

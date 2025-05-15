@@ -542,13 +542,22 @@ class Crystals(commands.Cog):
       @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
       async def confirm(self, button, interaction):
         await attune_crystal_to_badge(crystal_instance['crystal_instance_id'], badge_instance['badge_instance_id'])
+
+        embed_description = f"You have successfully attuned **{crystal_instance['crystal_name']}** to your **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]} Badge!"
+
+        user_data = await get_user(user_id)
+        auto_harmonize_enabled = user_data.get('crystal_autoharmonize', False)
+        if auto_harmonize_enabled:
+          await db_set_harmonized_crystal(badge_instance['badge_instance_id'], crystal_instance['badge_crystal_id'])
+          embed_description += "\n\nYou've enabled `Crystallization Auto-Harmonize` so it has now been activated as well!"
+
         embed = discord.Embed(
           title='Crystal Attuned!',
-          description=f"You have successfully attuned **{crystal_instance['crystal_name']}** to your **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]} Badge!",
+          description=embed_description,
           color=discord.Color.teal()
         )
         embed.set_image(url="https://i.imgur.com/lP883bg.gif")
-        embed.set_footer(text="Now you can use `/crystals harmonize` to apply the effect!")
+        embed.set_footer(text="Now you can `/crystals harmonize` to select your activated Crystal at any time!")
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
       @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
