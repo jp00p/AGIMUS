@@ -15,13 +15,13 @@ PRESTIGE_TIERS = {
 PRESTIGE_THEMES = {
   1: {  # Nebula
     "gradient_start": (0, 0, 0),
-    "gradient_end": (20, 30, 25),
+    "gradient_end": (24, 16, 48),
     "border_gradient_colors": [
-      (50, 200, 140),    # Deep Teal-Green
+      (75, 0, 130),      # Deep Purple
       (138, 43, 226),    # Violet
-      (0, 191, 255)      # Bright Cyan
+      (0, 191, 255)      # Bright Blue
     ],
-    "primary": (50, 200, 140),
+    "primary": (75, 0, 130),
     "highlight": (138, 43, 226)
   },
   2: {  # Galaxy
@@ -57,15 +57,15 @@ PRESTIGE_THEMES = {
     "primary":  (0, 255, 100),
     "highlight": (50, 200, 140)
   },
-  5: {  # Nexus
+  5: {  # Nebula
     "gradient_start": (0, 0, 0),
-    "gradient_end": (24, 16, 48),
+    "gradient_end": (20, 30, 25),
     "border_gradient_colors": [
-      (75, 0, 130),      # Deep Purple
+      (50, 200, 140),    # Deep Teal-Green
       (138, 43, 226),    # Violet
-      (0, 191, 255)      # Bright Blue
+      (0, 191, 255)      # Bright Cyan
     ],
-    "primary": (75, 0, 130),
+    "primary": (50, 200, 140),
     "highlight": (138, 43, 226)
   },
   6: {  # Transcendence

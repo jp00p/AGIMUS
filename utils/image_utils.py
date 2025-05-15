@@ -306,9 +306,6 @@ async def generate_badge_collection_images(user, prestige, badge_data, collectio
   start = time.perf_counter()
   logger.info("[timing] Starting generate_badge_collection_images")
 
-  # XXX
-  # badge_data = badge_data[:45]
-
   layout = _get_collection_grid_layout()
   theme = (
     await get_theme_preference(user.id, collection_type)
@@ -337,6 +334,7 @@ async def generate_badge_collection_images(user, prestige, badge_data, collectio
     canvas_start = time.perf_counter()
     canvas = await build_collection_canvas(
       user,
+      prestige,
       page_badges,
       badge_data,
       page_number,
@@ -370,7 +368,7 @@ async def generate_badge_collection_images(user, prestige, badge_data, collectio
   gc.collect()
   return images
 
-async def build_collection_canvas(user, page_data, all_data, page_number, total_pages, collection_label, collection_type, theme):
+async def build_collection_canvas(user, prestige, page_data, all_data, page_number, total_pages, collection_label, collection_type, theme):
   total_rows = max(math.ceil(len(page_data) / 6) - 1, 0)
 
   if collection_type == "sets":
@@ -380,7 +378,7 @@ async def build_collection_canvas(user, page_data, all_data, page_number, total_
     collected_count = len(all_data)
     total_count = await db_get_max_badge_count()
 
-  title_text = f"{user.display_name}'s Badge Collection"
+  title_text = f"{user.display_name}'s Badge Collection ({PRESTIGE_TIERS[prestige]})"
   if collection_label:
     title_text += f": {collection_label}"
 

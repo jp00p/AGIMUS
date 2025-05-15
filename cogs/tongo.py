@@ -274,12 +274,12 @@ class TongoDividendsView(discord.ui.View):
 class Tongo(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
-    self.trade_buttons = [
-      pages.PaginatorButton("prev", label="    ⬅     ", style=discord.ButtonStyle.primary, row=1),
+    self.tongo_buttons = [
+      pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, row=1),
       pages.PaginatorButton(
         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
       ),
-      pages.PaginatorButton("next", label="     ➡    ", style=discord.ButtonStyle.primary, row=1),
+      pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, row=1),
     ]
     self.first_auto_confront = True
 
@@ -752,11 +752,11 @@ class Tongo(commands.Cog):
       value="\n".join([f"* {m.display_name}" for m in tongo_player_members]),
       inline=False
     )
-    confirmation_embed.add_field(
-      name="Total Badges In The Great Material Continuum!",
-      value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_chunks[0]]) if tongo_pot_chunks else "* (empty)",
-      inline=False
-    )
+    # confirmation_embed.add_field(
+    #   name="Total Badges In The Great Material Continuum!",
+    #   value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_chunks[0]]) if tongo_pot_chunks else "* (empty)",
+    #   inline=False
+    # )
     confirmation_embed.set_image(url="https://i.imgur.com/aWLYGKQ.gif")
     confirmation_embed.set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
@@ -766,23 +766,51 @@ class Tongo(commands.Cog):
     zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
     await zeks_table.send(embed=confirmation_embed)
 
-    # Continuation embeds if needed
-    if len(tongo_pot_chunks) > 1:
-      for t_chunk in tongo_pot_chunks[1:]:
-        chunk_embed = discord.Embed(
-          title=f"Index requested by **{user_member.display_name}** (Continued)",
-          color=discord.Color.dark_purple()
-        )
-        chunk_embed.add_field(
-          name="Total Badges In The Great Material Continuum!",
-          value="\n".join([f"* {b['badge_name']}" for b in t_chunk]),
-          inline=False
-        )
-        chunk_embed.set_footer(
-          text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
-          icon_url="https://i.imgur.com/GTN4gQG.jpg"
-        )
-        await zeks_table.send(embed=chunk_embed)
+    continuum_embeds = []
+    for page_idx, t_chunk in enumerate(tongo_pot_chunks):
+      embed = discord.Embed(
+        title=f"The Great Material Continuum",
+        description=f"(Page {page_idx + 1} of {len(tongo_pot_chunks)})",
+        color=discord.Color.dark_purple()
+      )
+      embed.add_field(
+        name="Total Badges in the Continuum!",
+        value="\n".join([f"* {b['badge_name']}" for b in t_chunk]),
+        inline=False
+      )
+      embed.set_footer(
+        text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+        icon_url="https://i.imgur.com/GTN4gQG.jpg"
+      )
+      continuum_embeds.append(embed)
+
+    # Send Continuum Badges as Paginator
+    continuum_paginator = pages.Paginator(
+      pages=continuum_embeds,
+      show_indicator=True,
+      custom_buttons=self.tongo_buttons,
+      use_default_buttons=False,
+      timeout=180
+    )
+    await continuum_paginator.send(ctx.interaction or ctx, target=zeks_table)
+
+    # # Continuation embeds if needed
+    # if len(tongo_pot_chunks) > 1:
+    #   for t_chunk in tongo_pot_chunks[1:]:
+    #     chunk_embed = discord.Embed(
+    #       title=f"Index requested by **{user_member.display_name}** (Continued)",
+    #       color=discord.Color.dark_purple()
+    #     )
+    #     chunk_embed.add_field(
+    #       name="Total Badges In The Great Material Continuum!",
+    #       value="\n".join([f"* {b['badge_name']}" for b in t_chunk]),
+    #       inline=False
+    #     )
+    #     chunk_embed.set_footer(
+    #       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+    #       icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    #     )
+    #     await zeks_table.send(embed=chunk_embed)
 
     # Continuum image display
     continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
@@ -1465,7 +1493,7 @@ async def generate_paginated_continuum_images(continuum_badges):
     base_image.paste(header, (0, 0))
 
     row_y = 110
-    row_h = 180
+    row_h = dims.slot_height + 20
     rows = math.ceil(len(page_badges) / 3)
     for i in range(rows):
       base_image.paste(row_bg, (0, row_y + i * row_h))
@@ -1479,7 +1507,7 @@ async def generate_paginated_continuum_images(continuum_badges):
       slot_frames = compose_badge_slot(badge, get_theme_colors('gold'), badge_image, disable_overlays=True, resize=True)
       badge_slots.append(slot_frames[0])
 
-    current_y = 140
+    current_y = row_y + 20
     index = 0
     for row in range(rows):
       row_badges = badge_slots[index:index+3]
