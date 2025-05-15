@@ -1143,7 +1143,7 @@ async def generate_unowned_badge_preview(user_id, badge):
 
   return file, url
 
-async def generate_singular_slot_frames(user_id, badge, border_color=None, crystal=None):
+async def generate_singular_badge_slot(badge, border_color=None, crystal=None):
   """
   Used by `/profile` to display/show off selected badge
   Just the badge + crystal effects image(s) placed on a simple slot

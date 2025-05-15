@@ -987,7 +987,6 @@ class Badges(commands.Cog):
     ]
   )
   async def spotlight(self, ctx: discord.ApplicationContext, prestige: str, badge: str, public: str):
-    await ctx.defer(ephemeral=(public == "no"))
     user_id = str(ctx.author.id)
 
     if not await is_prestige_valid(ctx, prestige):
@@ -997,7 +996,7 @@ class Badges(commands.Cog):
     try:
       badge_instance_id = int(badge)
     except ValueError:
-      await ctx.followup.send(
+      await ctx.respond(
         embed=discord.Embed(
           title="Invalid Badge",
           description="That badge doesn't seem to be valid.",
@@ -1009,7 +1008,7 @@ class Badges(commands.Cog):
 
     badge_instance = await db_get_badge_instance_by_id(badge_instance_id)
     if not badge_instance or badge_instance['owner_discord_id'] != user_id or badge_instance['prestige_level'] != prestige:
-      await ctx.followup.send(
+      await ctx.respond(
         embed=discord.Embed(
           title="Badge Not Found",
           description="It doesn't appear that you own that one?",
@@ -1019,18 +1018,16 @@ class Badges(commands.Cog):
       )
       return
 
-    badge_frames = await generate_singular_slot_frames(user_id, badge_instance)
-    animated = len(badge_frames) > 1
-    image_bytes = BytesIO()
+    await ctx.defer(ephemeral=(public == "no"))
+    # badge_frames = await generate_singular_badge_slot(badge_instance, border_color=discord.Color.teal())
+    badge_frames = await asyncio.to_thread(generate_singular_badge_slot, badge_instance, border_color=discord.Color.teal())
 
-    if animated:
-      image_bytes = await encode_webp(badge_frames)
-      # image_bytes.seek(0)
-      filename = 'spotlight.webp'
+    discord_file = None
+    if len(badge_frames) > 1:
+      buf = await encode_webp(badge_frames)
+      discord_file = discord.File(buf, filename='spotlight.webp')
     else:
-      badge_frames[0].save(image_bytes, format='PNG')
-      image_bytes.seek(0)
-      filename = 'spotlight.png'
+      discord_file = buffer_image_to_discord_file(badge_frames[0], 'spotlight.png')
 
     # Metadata
     from queries.badge_info import db_get_full_badge_metadata_by_filename
@@ -1038,7 +1035,7 @@ class Badges(commands.Cog):
     if not badge_info:
       await ctx.followup.send(embed=discord.Embed(
         title="Badge Metadata Error",
-        description="We couldn’t fetch data for this badge.",
+        description="We couldn't fetch data for this badge.",
         color=discord.Color.red()
       ), ephemeral=True)
       return
@@ -1050,10 +1047,10 @@ class Badges(commands.Cog):
 
     embed = discord.Embed(
       title=f"Badge Spotlight",
-      description=f"## {badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
+      description=f"## {ctx.author.mention}'s\n## {badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
       color=embed_color
     )
-    embed.set_image(url=f"attachment://{filename}")
+    embed.set_image(url=f"attachment://{discord_file.filename}")
 
     embed.add_field(name="Owned By", value=f"{ctx.author.mention}",)
     embed.add_field(name="Prestige Tier", value=PRESTIGE_TIERS[prestige], inline=False)
@@ -1074,7 +1071,7 @@ class Badges(commands.Cog):
 
     await ctx.followup.send(
       embed=embed,
-      file=discord.File(fp=image_bytes, filename=filename),
+      file=discord_file,
       ephemeral=(public == "no")
     )
 

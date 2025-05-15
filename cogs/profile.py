@@ -8,7 +8,7 @@ from queries.badge_instances import *
 from queries.crystal_instances import db_get_user_attuned_and_harmonized_crystals
 from queries.echelon_xp import db_get_echelon_progress, db_get_legacy_xp_data
 from utils.badge_utils import *
-from utils.image_utils import draw_dynamic_text, generate_singular_slot_frames, buffer_image_to_discord_file, encode_webp
+from utils.image_utils import draw_dynamic_text, generate_singular_badge_slot, buffer_image_to_discord_file, encode_webp
 from utils.prestige import *
 
 f = open(config["commands"]["shop"]["data"])
@@ -397,7 +397,7 @@ class Profile(commands.Cog):
       badge_is_valid = badge_instance['owner_discord_id'] == str(member.id) and badge_instance['status'] == 'active'
 
       if badge_is_valid:
-        badge_frames = await generate_singular_slot_frames(member.id, badge_instance, border_color=random.choice(lcars_colors))
+        badge_frames = await generate_singular_badge_slot(badge_instance, border_color=random.choice(lcars_colors))
         for frame in badge_frames:
           frame = frame.resize((340, 340), resample=Image.Resampling.LANCZOS)
           final_canvas = base_canvas.copy()
