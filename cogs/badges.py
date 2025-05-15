@@ -1019,8 +1019,7 @@ class Badges(commands.Cog):
       return
 
     await ctx.defer(ephemeral=(public == "no"))
-    # badge_frames = await generate_singular_badge_slot(badge_instance, border_color=discord.Color.teal())
-    badge_frames = await asyncio.to_thread(generate_singular_badge_slot, badge_instance, border_color=discord.Color.teal())
+    badge_frames = await generate_singular_badge_slot(badge_instance, border_color=discord.Color.blurple().to_rgb())
 
     discord_file = None
     if len(badge_frames) > 1:
@@ -1047,15 +1046,16 @@ class Badges(commands.Cog):
 
     embed = discord.Embed(
       title=f"Badge Spotlight",
-      description=f"## {ctx.author.mention}'s\n## {badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
+      description=f"## {ctx.author.mention}'s {badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
       color=embed_color
     )
     embed.set_image(url=f"attachment://{discord_file.filename}")
 
-    embed.add_field(name="Owned By", value=f"{ctx.author.mention}",)
+    embed.add_field(name="Badge Name", value=badge_instance['badge_name'], inline=False)
+    embed.add_field(name="Owned By", value=f"{ctx.author.mention}", inline=False)
     embed.add_field(name="Prestige Tier", value=PRESTIGE_TIERS[prestige], inline=False)
     if badge_instance['crystal_name']:
-      embed.add_field(name="Crystal", value=badge_instance['crystal_name'], inline=False)
+      embed.add_field(name="Crystal", value=f"{badge_instance['crystal_emoji']} {badge_instance['crystal_name']}", inline=False)
     embed.add_field(name="Franchise", value=badge_info['franchise'] or "Unknown", inline=False)
     embed.add_field(name="Time Period", value=badge_info['time_period'] or "Unknown", inline=False)
 
