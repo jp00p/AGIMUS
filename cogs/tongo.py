@@ -30,6 +30,7 @@ f.close()
 
 
 TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=6)
+# TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(minutes=3)
 MINIMUM_LIQUIDATION_CONTINUUM = 10
 MINIMUM_LIQUIDATION_PLAYERS = 3
 DIVIDEND_REWARDS = {
@@ -456,11 +457,14 @@ class Tongo(commands.Cog):
     await self._cancel_tongo_related_trades(user_id, selected)
     await db_increment_tongo_dividends(user_id)
 
-    await ctx.followup.send(embed=discord.Embed(
-      title="Venture Acknowledged!",
-      description="You've started a new game of Tongo.",
-      color=discord.Color.dark_purple()
-    ), ephemeral=True)
+    await ctx.followup.send(
+      embed=discord.Embed(
+        title="Venture Acknowledged!",
+        description="You've started a new game of Tongo.",
+        color=discord.Color.dark_purple()
+      ),
+      ephemeral=True
+    )
 
     venture_badges = [await db_get_badge_info_by_id(b['badge_info_id']) for b in selected]
 
@@ -765,14 +769,10 @@ class Tongo(commands.Cog):
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
 
-    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
-    await zeks_table.send(embed=confirmation_embed)
-
-    continuum_embeds = []
+    tongo_pages = [confirmation_embed]
     for page_idx, t_chunk in enumerate(tongo_pot_chunks):
       embed = discord.Embed(
-        title=f"The Great Material Continuum",
-        description=f"(Page {page_idx + 1} of {len(tongo_pot_chunks)})",
+        title=f"The Great Material Continuum (Page {page_idx + 1} of {len(tongo_pot_chunks)})",
         color=discord.Color.dark_purple()
       )
       embed.add_field(
@@ -784,17 +784,17 @@ class Tongo(commands.Cog):
         text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
         icon_url="https://i.imgur.com/GTN4gQG.jpg"
       )
-      continuum_embeds.append(embed)
+      tongo_pages.append(embed)
 
     # Send Continuum Badges as Paginator
     continuum_paginator = pages.Paginator(
-      pages=continuum_embeds,
+      pages=tongo_pages,
       show_indicator=True,
       custom_buttons=self.tongo_buttons,
       use_default_buttons=False,
       timeout=180
     )
-    await continuum_paginator.send(ctx.interaction or ctx, target=zeks_table)
+    await continuum_paginator.respond(ctx.interaction, ephemeral=False)
 
     # # Continuation embeds if needed
     # if len(tongo_pot_chunks) > 1:
@@ -816,6 +816,7 @@ class Tongo(commands.Cog):
 
     # Continuum image display
     continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
+    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
     await send_continuum_images_to_channel(zeks_table, continuum_images)
 
 
@@ -874,6 +875,7 @@ class Tongo(commands.Cog):
   #  / __ / // / __/ _ \/___/ /__/ _ \/ _ \/ _/ __/ _ \/ _ \/ __/
   # /_/ |_\_,_/\__/\___/    \___/\___/_//_/_//_/  \___/_//_/\__/
   @tasks.loop(hours=6)
+  # @tasks.loop(minutes=3)
   async def auto_confront(self):
     if self.first_auto_confront:
       self.first_auto_confront = False
@@ -923,6 +925,7 @@ class Tongo(commands.Cog):
 
 
   async def _perform_confront(self, active_tongo, active_chair):
+    await db_update_game_status(active_tongo['id'], 'resolved')
     player_distribution = await self._execute_confront_distribution(active_tongo['id'])
     player_ids = list(player_distribution.keys())
 
@@ -1019,7 +1022,6 @@ class Tongo(commands.Cog):
     if updated:
       images = await generate_paginated_continuum_images(updated)
       await send_continuum_images_to_channel(zeks_table, images)
-    await db_update_game_status(active_tongo['id'], 'resolved')
 
   async def _execute_confront_distribution(self, game_id: int) -> dict[int, set[int]]:
     players = await db_get_players_for_game(game_id)
@@ -1482,11 +1484,11 @@ async def generate_paginated_continuum_images(continuum_badges):
   text_font = fonts.general
 
   slot_height = int(dims.slot_height // 2)
-  slot_width = int(dims.slot_height // 2)
+  slot_width = dims.slot_height
 
   for page_index, page_badges in enumerate(pages):
     canvas_w = 800
-    canvas_h = 110 + 200 * len(page_badges) // 3 + 115
+    canvas_h = 100 + ((slot_height + 10) * math.ceil(len(page_badges) / 4)) + 115
     base_image = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0))
 
     # Load header/footer/bg
@@ -1496,9 +1498,9 @@ async def generate_paginated_continuum_images(continuum_badges):
 
     base_image.paste(header, (0, 0))
 
-    row_y = 110
-    row_h = slot_height + 20
-    rows = math.ceil(len(page_badges) / 3)
+    row_y = 100
+    row_h = slot_height + 10
+    rows = math.ceil(len(page_badges) / 4)
     for i in range(rows):
       base_image.paste(row_bg, (0, row_y + i * row_h))
 
@@ -1511,17 +1513,17 @@ async def generate_paginated_continuum_images(continuum_badges):
       slot_frames = compose_badge_slot(badge, get_theme_colors('gold'), badge_image, disable_overlays=True, resize=True)
       badge_slots.append(slot_frames[0])
 
-    current_y = row_y + 20
+    current_y = row_y + 5
     index = 0
     for row in range(rows):
-      row_badges = badge_slots[index:index+3]
+      row_badges = badge_slots[index:index+4]
       total_row_w = len(row_badges) * (slot_width // 2) + (len(row_badges) - 1) * margin
       x = (canvas_w - total_row_w) // 2
       for slot in row_badges:
         base_image.paste(slot, (x, current_y), slot)
         x += (slot_width // 2) + margin
       current_y += row_h
-      index += 3
+      index += 4
 
     # Footer text
     footer_text = f"{total_badges} TOTAL"

@@ -1161,11 +1161,6 @@ async def generate_singular_badge_slot(badge, border_color=None, crystal=None):
   for frame in effect_result:
     slot_canvas = base_slot_canvas.copy()
 
-    # Target size based on slot
-    # padding = 8
-    # target_w = dims.slot_width - padding * 2
-    # target_h = dims.slot_height - padding * 2
-
     target_w = dims.slot_width
     target_h = dims.slot_height
 
@@ -1179,23 +1174,13 @@ async def generate_singular_badge_slot(badge, border_color=None, crystal=None):
       new_w = target_w
       new_h = int(new_w / aspect)
 
-    scaled_frame = frame.resize((new_w, new_h), resample=Image.Resampling.LANCZOS)
+    scaled_frame = frame.resize((int(new_w * 0.9), int(new_h * 0.9)), resample=Image.Resampling.LANCZOS)
 
     # Center the scaled frame inside the slot_canvas
     frame_x = round((dims.slot_width - scaled_frame.width) / 2)
     frame_y = round((dims.slot_height - scaled_frame.height) / 2)
 
     slot_canvas.paste(scaled_frame, (frame_x, frame_y), scaled_frame)
-    crystal_icon = badge.get("crystal_icon", None)
-    if crystal_icon:
-      icon_path = f"./images/templates/crystals/icons/{crystal_icon}"
-      try:
-        icon_img = Image.open(icon_path).convert("RGBA")
-        icon_img.thumbnail((64, 64))
-        slot_canvas.paste(icon_img, (dims.slot_width - 64, 12), icon_img)
-      except Exception as e:
-        logger.warning(f"[compose_badge_slot] Could not load icon at {icon_path}: {e}")
-
 
     # Final rounded mask to clip anything outside the border
     final_mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)

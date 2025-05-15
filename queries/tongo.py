@@ -174,7 +174,7 @@ async def db_liquidate_badge_instance(instance_id: int):
 # --- Rewards ---
 async def db_add_game_reward(game_id: int, user_id: int, badge_instance_id: int, crystal_id: Optional[int] = None):
   query = """
-    INSERT INTO tongo_game_rewards (game_id, user_discord_id, badge_instance_id, crystal_id)
+    INSERT IGNORE INTO tongo_game_rewards (game_id, user_discord_id, badge_instance_id, crystal_id)
     VALUES (%s, %s, %s, %s)
   """
   async with AgimusDB() as db:
