@@ -198,34 +198,26 @@ THEME_TO_RGBS = {
 #  |     \(  <_> )   |  \  |  \___ \
 #  \___  / \____/|___|  /__| /____  >
 #      \/             \/          \/
-def get_lcars_font_by_length(name: str) -> ImageFont.FreeTypeFont:
-  """
-  Dynamically selects a LCARS-style font size based on the length of the user's display name.
-  Falls back to default font if LCARS is unavailable.
-  """
-  try:
-    if len(name) > 21:
-      return ImageFont.truetype("fonts/lcars3.ttf", 40)
-    elif len(name) > 16:
-      return ImageFont.truetype("fonts/lcars3.ttf", 45)
-    else:
-      return ImageFont.truetype("fonts/lcars3.ttf", 55)
-  except:
-    return ImageFont.load_default()
+_FONT_CACHE = {}
+def get_cached_font(font_path, size):
+  cache_key = f"{font_path}__{size}"
+  if _FONT_CACHE.get(cache_key):
+    return _FONT_CACHE[cache_key]
 
+  font = ImageFont.truetype(font_path, size)
+  _FONT_CACHE[cache_key] = font
+  return font
 
 FontSet = namedtuple("FontSet", ["title", "footer", "total", "pages", "label", "general"])
-def load_fonts(
-  title_size=55, footer_size=50, total_size=27, page_size=40, label_size=11, general_size=35, fallback=True
-):
+def load_fonts(title_size=55, footer_size=50, total_size=27, page_size=40, label_size=11, general_size=35, fallback=True):
   try:
     return FontSet(
-      title=ImageFont.truetype("fonts/lcars3.ttf", title_size),
-      footer=ImageFont.truetype("fonts/lcars3.ttf", footer_size),
-      total=ImageFont.truetype("fonts/lcars3.ttf", total_size),
-      pages=ImageFont.truetype("fonts/lcars3.ttf", page_size),
-      label=ImageFont.truetype("fonts/context_bold.ttf", label_size),
-      general=ImageFont.truetype("fonts/lcars3.ttf", general_size)
+      title=get_cached_font("fonts/lcars3.ttf", title_size),
+      footer=get_cached_font("fonts/lcars3.ttf", footer_size),
+      total=get_cached_font("fonts/lcars3.ttf", total_size),
+      pages=get_cached_font("fonts/lcars3.ttf", page_size),
+      label=get_cached_font("fonts/context_bold.ttf", label_size),
+      general=get_cached_font("fonts/lcars3.ttf", general_size)
     )
   except:
     if fallback:
@@ -1158,11 +1150,6 @@ async def generate_singular_slot_frames(user_id, badge, border_color=None, cryst
   (e.g the standard or prestige border/gradient, no badge name/etc)
   """
   dims = _get_badge_slot_dimensions()
-  theme = await get_theme_preference(user_id, 'collection')
-  colors = get_theme_colors(theme)
-  override_colors = None
-  if border_color:
-    override_colors = (border_color, (0, 0, 0))
 
   badge_image = await get_cached_base_badge_canvas(badge['badge_filename'])
   effect_result = await apply_crystal_effect(badge_image, badge, crystal)
@@ -1170,9 +1157,9 @@ async def generate_singular_slot_frames(user_id, badge, border_color=None, cryst
   if not isinstance(effect_result, list):
     effect_result = [effect_result]
 
-  slot_frames = []
-  base_slot_canvas = get_slot_canvas(badge, colors, override_colors=override_colors)
+  base_slot_canvas = get_slot_canvas(badge.get('prestige_level', 0), border_color)
 
+  slot_frames = []
   for frame in effect_result:
     slot_canvas = base_slot_canvas.copy()
 
@@ -1265,11 +1252,11 @@ def compose_badge_slot(
     label_size=22,
     general_size=70
   )
+
   border_color, text_color = override_colors if override_colors else (colors.highlight, "#FFFFFF")
+  base_slot_canvas = get_slot_canvas(badge.get('prestige_level', 0), border_color)
+
   slot_frames = []
-
-  base_slot_canvas = get_slot_canvas(badge, colors, override_colors=override_colors)
-
   for frame in image_frames:
     slot_canvas = base_slot_canvas.copy()
 
@@ -1336,16 +1323,21 @@ def compose_badge_slot(
 
   return slot_frames
 
+# def get_slot_canvas(prestige, standard_border_color):
+#   pass
 
-def get_slot_canvas(badge, colors, override_colors: tuple = None):
+_SLOT_CANVAS_CACHE = {}
+def get_slot_canvas(prestige, border_color):
+
+  cache_key = prestige if prestige else border_color
+  if _SLOT_CANVAS_CACHE.get(cache_key):
+    return _SLOT_CANVAS_CACHE[cache_key]
+
   dims = _get_badge_slot_dimensions()
-  border_color, text_color = override_colors if override_colors else (colors.highlight, "#FFFFFF")
+  slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
 
-  slot_canvas = None
-
-  prestige_level = badge.get("prestige_level", 0)
-  if prestige_level:
-    prestige_theme = PRESTIGE_THEMES.get(prestige_level)
+  if prestige:
+    prestige_theme = PRESTIGE_THEMES.get(prestige)
     gradient = _create_gradient_fill((dims.slot_width, dims.slot_height), prestige_theme["gradient_start"], prestige_theme["gradient_end"])
     mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, dims.slot_width, dims.slot_height), radius=32, fill=255)
@@ -1380,6 +1372,7 @@ def get_slot_canvas(badge, colors, override_colors: tuple = None):
     slot_canvas.paste(gradient, (0, 0), gradient)
     slot_canvas.paste(border_overlay, (0, 0), border_overlay)
 
+  _SLOT_CANVAS_CACHE[cache_key] = slot_canvas
   return slot_canvas
 
 
