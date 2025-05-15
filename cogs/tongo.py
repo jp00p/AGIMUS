@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from common import *
 from handlers.xp import grant_xp
 
@@ -1029,27 +1031,25 @@ class Tongo(commands.Cog):
 
     continuum_distribution: set[int] = set()
     player_distribution: dict[int, set[int]] = {pid: set() for pid in player_ids}
-    player_inventories: dict[int, set[int]] = {}
+    player_inventories: dict[int, dict[int, set[int]]] = {}  # {player_id: {prestige_level: set(info_ids)}}
     player_wishlists: dict[int, set[int]] = {}
     player_prestige: dict[int, int] = {}
 
     # Build inventory, active wants (wishlist), and prestige data
     for player_id in player_ids:
-      # Prestige, needed for both filtering and wishlist query
+      # Prestige
       echelon_progress = await db_get_echelon_progress(player_id)
       prestige = echelon_progress['current_prestige_tier'] if echelon_progress else 0
       player_prestige[player_id] = prestige
 
-      # Inventory info_ids
-      inventory = await db_get_owned_badge_filenames(player_id, prestige=prestige)
-      owned_info_ids = set()
+      # Full inventory across all prestiges
+      inventory = await db_get_user_badge_instances(player_id)
+      prestige_inventory: dict[int, set[int]] = defaultdict(set)
       for item in inventory:
-        info = await db_get_badge_info_by_filename(item['badge_filename'])
-        if info:
-          owned_info_ids.add(info['id'])
-      player_inventories[player_id] = owned_info_ids
+        prestige_inventory[item['prestige_level']].add(item['badge_info_id'])
+      player_inventories[player_id] = prestige_inventory
 
-      # Wishlist 'active wants' only (not owned at current prestige)
+      # Wishlist for *current* prestige only
       active_wants = await db_get_active_wants(player_id, prestige)
       wishlist_info_ids = set(b['badge_info_id'] for b in active_wants)
       player_wishlists[player_id] = wishlist_info_ids
@@ -1072,17 +1072,18 @@ class Tongo(commands.Cog):
 
       selected_badge = None
       for badge in continuum_records:
-        if badge['prestige_level'] > prestige_limit:
-          continue  # Skip if above player's tier
+        badge_prestige = badge['prestige_level']
+        if badge_prestige > prestige_limit:
+          continue
 
         info_id = badge['badge_info_id']
-        inventory = player_inventories[current_player]
+        owned_at_this_prestige = info_id in player_inventories[current_player].get(badge_prestige, set())
         wishlist = player_wishlists[current_player]
 
-        if info_id in wishlist and info_id not in inventory:
+        if info_id in wishlist and not owned_at_this_prestige:
           selected_badge = badge
           break
-        elif info_id not in inventory:
+        elif not owned_at_this_prestige:
           selected_badge = badge
           break
 
