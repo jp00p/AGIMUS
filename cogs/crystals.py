@@ -36,7 +36,7 @@ class Crystals(commands.Cog):
       'Injecting way too much Trilithium resin into the Reaction Chamber',
       'Overriding all Safety Containment Recommendations',
       'Deactivating the Heisenberg Compensators',
-      'Shunting main power through the Deflector Dish... again',
+      'Shunting main power through the Deflector Dish... again...',
       'Venting plasma through the Bussard Collectors',
     ]
 
@@ -288,14 +288,7 @@ class Crystals(commands.Cog):
 
         gelrak_v = await cog.bot.fetch_channel(get_channel_id("gelrak-v"))
         await gelrak_v.send(embed=channel_embed, file=discord_file)
-
-        await interaction.response.edit_message(
-          embed=discord.Embed(
-            title="Replication Complete!",
-            description="Check out the details below!",
-            color=discord.Color.teal()
-          )
-        )
+        await interaction.delete_original_response()
 
       @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
       async def cancel(self, button, interaction):
@@ -341,6 +334,7 @@ class Crystals(commands.Cog):
     pending_message = await ctx.respond(
       embed=discord.Embed(
         title="Pulling up your Crystal Manifest...",
+        description="::Hold Music::",
         color=discord.Color.teal()
       ),
       ephemeral=True
@@ -573,6 +567,7 @@ class Crystals(commands.Cog):
         embed.set_image(url="https://i.imgur.com/lP883bg.gif")
         embed.set_footer(text="Now you can `/crystals harmonize` to select your activated Crystal at any time!")
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
+        await interaction.delete_original_response()
 
       @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
       async def cancel(self, button, interaction):

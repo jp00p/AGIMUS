@@ -943,16 +943,15 @@ async def build_crystal_manifest_canvas(user: discord.User, all_crystal_data, pa
 
   return canvas
 
-
+_DUMMY_BADGE_INFO_CACHE = None
 async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.Image]:
   """
   Composes a single crystal manifest row.
   """
   dims = _get_canvas_row_dimensions()
   colors = get_theme_colors(theme)
-  row_canvas = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
+  row_canvas = get_crystal_manifest_row_canvas()
   draw = ImageDraw.Draw(row_canvas)
-  draw.rounded_rectangle((0, 0, dims.row_width, dims.row_height), fill="#181818", outline="#181818", width=4, radius=32)
 
   fonts = load_fonts(title_size=70, general_size=40)
 
@@ -978,10 +977,10 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
   await draw_dynamic_text(row_canvas, draw, text=crystal['description'], font_obj=fonts.general, position=(title_x, 82), max_width=(dims.row_width - (dims.offset * 2)), starting_size=80, fill=(221, 221, 221))
 
   # Render preview of crystal effect on "dummy" badge
-  global _dummy_badge_info_cache
-  if _dummy_badge_info_cache is None:
-    _dummy_badge_info_cache = await db_get_badge_info_by_name("Starfleet Crew 2160s (Kelvin)")
-  dummy_badge_info = _dummy_badge_info_cache
+  global _DUMMY_BADGE_INFO_CACHE
+  if _DUMMY_BADGE_INFO_CACHE is None:
+    _DUMMY_BADGE_INFO_CACHE = await db_get_badge_info_by_name("Starfleet Crew 2160s (Kelvin)")
+  dummy_badge_info = _DUMMY_BADGE_INFO_CACHE
   dummy_badge = {
     **dummy_badge_info,
     'badge_info_id': dummy_badge_info['id'],
@@ -1003,14 +1002,13 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
     row_frames.append(composed)
 
   return row_frames
-_dummy_badge_info_cache = None
 
 
 async def compose_empty_crystal_manifest_row(theme: str, message: str = "No Crystals Available") -> Image.Image:
   dims = _get_canvas_row_dimensions()
   colors = get_theme_colors(theme)
 
-  row_canvas = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
+  row_canvas = get_crystal_manifest_row_canvas()
   draw = ImageDraw.Draw(row_canvas)
 
   draw.rounded_rectangle(
@@ -1028,6 +1026,56 @@ async def compose_empty_crystal_manifest_row(theme: str, message: str = "No Crys
 
   return row_canvas
 
+def get_crystal_manifest_row_canvas():
+  dims = _get_canvas_row_dimensions()
+  start_color = (24, 24, 24, 255)
+  end_color = (64, 64, 64, 255)
+
+  row_canvas = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
+  gradient = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
+  grad_pixels = gradient.load()
+
+  total_diagonal = dims.row_width + dims.row_height
+  gradient_start = int(total_diagonal * 0.75)
+  gradient_range = total_diagonal - gradient_start
+
+  for y in range(dims.row_height):
+    for x in range(dims.row_width):
+      distance = x + y
+      if distance < gradient_start:
+        t = 0.0
+      else:
+        t = (distance - gradient_start) / gradient_range
+        t = min(t, 1.0)  # Clamp to [0, 1]
+
+      r = int(start_color[0] * (1 - t) + end_color[0] * t)
+      g = int(start_color[1] * (1 - t) + end_color[1] * t)
+      b = int(start_color[2] * (1 - t) + end_color[2] * t)
+      a = int(start_color[3] * (1 - t) + end_color[3] * t)
+      grad_pixels[x, y] = (r, g, b, a)
+
+  # Rounded corner mask
+  mask = Image.new("L", (dims.row_width, dims.row_height), 0)
+  mask_draw = ImageDraw.Draw(mask)
+  mask_draw.rounded_rectangle(
+    (0, 0, dims.row_width, dims.row_height),
+    fill=255,
+    radius=32
+  )
+
+  # Paste the masked gradient into row canvas
+  row_canvas.paste(gradient, (0, 0), mask)
+
+  # Optional border
+  draw = ImageDraw.Draw(row_canvas)
+  draw.rounded_rectangle(
+    (0, 0, dims.row_width, dims.row_height),
+    outline="#181818",
+    width=4,
+    radius=32
+  )
+
+  return row_canvas
 
 # __________             .___                 _________ __         .__
 # \______   \_____     __| _/ ____   ____    /   _____//  |________|__|_____
@@ -1273,7 +1321,7 @@ def compose_badge_slot(
       elif badge.get("locked"):
         overlay = LOCK_ICON
       if overlay:
-        slot_canvas.paste(overlay, (dims.slot_width - 44, 16), overlay)
+        slot_canvas.paste(overlay, (dims.slot_width - 42, 16), overlay)
 
     crystal_icon = badge.get("crystal_icon", None)
     if crystal_icon:
@@ -1602,8 +1650,8 @@ async def generate_badge_trade_images(
 #  |____|_  /\___  >   __/|____/__|\___  >____  /__|  \____/|__|
 #         \/     \/|__|                \/     \/
 async def generate_crystal_replicator_confirmation_frames(crystal, replicator_type='standard'):
-  # Purposeful 3 second delay to build suspense (cached replicator webps return very quickly once generated)...
-  await asyncio.sleep(3)
+  # Purposeful 5 second delay to build suspense (cached replicator webps return very quickly once generated)...
+  await asyncio.sleep(5)
 
   replicator_confirmation_filename = f"{replicator_type}-crystal_materialization_{crystal['crystal_name']}.webp"
 
