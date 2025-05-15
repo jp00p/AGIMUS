@@ -57,7 +57,7 @@ PRESTIGE_THEMES = {
     "primary":  (0, 255, 100),
     "highlight": (50, 200, 140)
   },
-  5: {  # Nebula
+  5: {  # Nexus
     "gradient_start": (0, 0, 0),
     "gradient_end": (20, 30, 25),
     "border_gradient_colors": [

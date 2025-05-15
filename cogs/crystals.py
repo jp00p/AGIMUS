@@ -417,7 +417,7 @@ class Crystals(commands.Cog):
   # /    |    \  |  |  | |  |  /   |  \  ___/
   # \____|__  /__|  |__| |____/|___|  /\___  >
   #         \/                      \/     \/
-  @crystals_group.command(name="attune", description="Attune a Crystal to one of your Badges.")
+  @crystals_group.command(name="attune", description="Attune (attach) a Crystal to one of your Badges.")
   @option(
     'rarity',
     str,
@@ -585,7 +585,7 @@ class Crystals(commands.Cog):
   # \    Y    // __ \|  | \/  Y Y  (  <_> )   |  \  |/    /\  ___/
   #  \___|_  /(____  /__|  |__|_|  /\____/|___|  /__/_____ \\___  >
   #        \/      \/            \/            \/         \/    \/
-  @crystals_group.command(name='harmonize', description='Select which Crystal to Activate for display.')
+  @crystals_group.command(name='harmonize', description='Select which Crystal to Harmonize (activate) for display on a Badge.')
   @option(
     name="prestige",
     description="Which Prestige Tier of Badge?",

@@ -1,3 +1,6 @@
+from collections import defaultdict
+from pymysql.err import IntegrityError
+
 from common import *
 from handlers.xp import grant_xp
 from handlers.echelon_xp import *
@@ -321,18 +324,13 @@ class Admin(commands.Cog):
     )
     message = await ctx.respond(embed=working_embed, ephemeral=True)
 
-    # Get full badge metadata
     all_badges = await db_get_all_badge_info()
-
-    # Get user's badge instances (all prestige levels)
     owned_instances = await db_get_user_badge_instances(user.id)
     owned_by_prestige: dict[int, set[int]] = defaultdict(set)
     for b in owned_instances:
       owned_by_prestige[b['prestige_level']].add(b['badge_info_id'])
 
-    # Filter out only those not yet owned at the specified prestige level
     available = [b for b in all_badges if b['id'] not in owned_by_prestige.get(prestige, set())]
-
     if not available:
       await ctx.respond(embed=discord.Embed(
         title="No Available Badges",
@@ -341,13 +339,28 @@ class Admin(commands.Cog):
       ))
       return
 
-    selected = random.sample(available, min(amount, len(available)))
+    random.shuffle(available)
     granted = []
+    attempted_ids = set()
 
-    for badge in selected:
-      instance = await create_new_badge_instance(user.id, badge['id'], prestige)
+    while available and len(granted) < amount:
+      badge = available.pop()
+      badge_id = badge['id']
+
+      if badge_id in attempted_ids:
+        continue
+      attempted_ids.add(badge_id)
+
+      try:
+        instance = await create_new_badge_instance(user.id, badge_id, prestige)
+      except IntegrityError as e:
+        if "Duplicate entry" in str(e):
+          continue  # Already granted somehow, skip silently
+        raise  # Bubble up anything else
+
       if instance:
         granted.append(badge['badge_name'])
+        owned_by_prestige[prestige].add(badge_id)
 
     embed = discord.Embed(
       title="Badges Granted",

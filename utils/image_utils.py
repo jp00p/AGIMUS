@@ -1232,7 +1232,7 @@ def compose_badge_slot(
     footer_size=100,
     total_size=54,
     page_size=80,
-    label_size=22,
+    label_size=20,
     general_size=70
   )
 
@@ -1261,7 +1261,7 @@ def compose_badge_slot(
     text_bbox = draw.multiline_textbbox((0, 0), wrapped, font=fonts.label)
     text_block_width = text_bbox[2] - text_bbox[0]
     text_x = (dims.slot_width - text_block_width) // 2
-    text_y = 222
+    text_y = 218
     draw.multiline_text((text_x, text_y), wrapped, font=fonts.label, fill=text_color, align="center")
 
     overlay = None

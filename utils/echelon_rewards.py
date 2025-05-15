@@ -68,83 +68,97 @@ async def select_badge_for_level_up(member: discord.Member) -> tuple[int, int]:
   Selects a badge to award during a level-up, factoring in prestige tier progression,
   PQIF blending, and remaining badge pool sizes.
 
-  This function determines the user's active PQIF base tier—the most complete, unfinished
-  prestige tier—and calculates weighted selection probabilities between it and the next
-  prestige tier if the user is within the PQIF threshold (10% missing or less).
+  This function determines the PQIF base tier by identifying the **highest incomplete prestige tier**
+  that is less than or equal to the user's current prestige level. PQIF then calculates weighted
+  selection probabilities between that base tier and the **next** prestige tier.
 
-  Weighting is determined by a capped cubic ease-out blend:
-    - At 10% missing from Standard: ~90% Standard, ~10% Nebula
-    - At 0% missing from Standard: ~10% Standard, ~90% Nebula
-    - In between: weights interpolate smoothly using ease-out
-    - Actual weights are then scaled by the pool sizes to maintain selection fairness
+  Weighting is governed by a capped cubic ease-out blend:
+    - If the user is missing 10% of badges in the base tier: ~90% base, ~10% next
+    - If the user is missing 0% of the base tier: ~10% base, ~90% next
+    - Intermediate values are smoothly interpolated using the cubic curve
+    - These weights are scaled by actual pool sizes to ensure fair selection
 
-  Backfill candidates from tiers below the user's permanent prestige level are also included,
-  at a static low weight (10).
+  Backfill candidates from tiers **below the PQIF base** are also included, using a static
+  low weight (10), ensuring eventual completion of earlier tiers regardless of prestige drift.
+
+  PQIF is explicitly capped at the user's current prestige level. Even if a user has
+  received a badge at a higher tier, the system will not initiate PQIF transitions
+  from tiers they have not yet fully entered.
 
   Returns:
     tuple[int, int]: A tuple of (badge_info_id, prestige_level) representing the badge to award.
   """
   user_discord_id = member.id
-  current_prestige = await get_user_prestige_level(member)
-  all_badges = await db_get_all_badge_info()
-  full_badge_ids = {b['id'] for b in all_badges}
+  full_badge_ids = {b['id'] for b in await db_get_all_badge_info()}
+  total_count = len(full_badge_ids)
 
   async def get_owned_ids_at_prestige(level: int) -> set[int]:
     instances = await db_get_user_badge_instances(user_discord_id, prestige=level)
     return {b['badge_info_id'] for b in instances}
 
-  active_pqif_base = current_prestige
-  for tier in range(current_prestige + 1):
+  current_prestige = await get_user_prestige_level(member)
+  max_pqif_base = min(current_prestige, len(PRESTIGE_TIERS) - 2)
+
+  # Step 1: Find the highest incomplete tier ≤ current_prestige
+  pqif_base = None
+  for tier in reversed(range(0, max_pqif_base + 1)):
     owned = await get_owned_ids_at_prestige(tier)
-    if len(owned) < len(full_badge_ids):
-      active_pqif_base = tier
+    if len(owned) < total_count:
+      pqif_base = tier
       break
 
-  candidates = []
-  base_owned = await get_owned_ids_at_prestige(active_pqif_base)
-  base_missing = list(full_badge_ids - base_owned)
-  base_missing_pct = len(base_missing) / max(len(full_badge_ids), 1)
+  if pqif_base is None:
+    # Everything up to current prestige is complete
+    pqif_base = current_prestige
 
-  logger.info(f"[echelon] PQIF Base Prestige {active_pqif_base} – missing {len(base_missing)} / {len(full_badge_ids)}")
+  next_prestige = pqif_base + 1
 
-  next_prestige = active_pqif_base + 1
+  base_owned = await get_owned_ids_at_prestige(pqif_base)
   next_owned = await get_owned_ids_at_prestige(next_prestige)
+
+  base_missing = list(full_badge_ids - base_owned)
   next_missing = list(full_badge_ids - next_owned)
 
+  base_missing_pct = len(base_missing) / total_count if total_count else 1
+
+  logger.info(
+    f"[echelon] PQIF Base Tier {pqif_base} -> {next_prestige} — base missing {len(base_missing)} / {total_count}, next missing {len(next_missing)}"
+  )
+
+  candidates = []
+
+  # Step 2: Apply PQIF drift blending if within threshold
   if base_missing_pct <= PQIF_THRESHOLD:
-    # Ease-out cubic interpolation
     t = 1 - (base_missing_pct / PQIF_THRESHOLD)
-    ease = 1 - (1 - t) ** 3
+    ease = 1 - (1 - t) ** 3  # cubic ease-out
 
     base_pool_size = len(base_missing)
     next_pool_size = len(next_missing)
     total_pool = base_pool_size + next_pool_size or 1
 
-    # Base weight from curve, scaled by pool sizes and capped
     base_weight = max(10, int((1 - ease) * (base_pool_size / total_pool) * 100))
     next_weight = min(90, int(ease * (next_pool_size / total_pool) * 100))
 
-    logger.info(f"[pqif] Active – {base_weight}% prestige {active_pqif_base} / {next_weight}% prestige {next_prestige}")
+    logger.info(f"[pqif] Active — {base_weight}% prestige {pqif_base} / {next_weight}% prestige {next_prestige}")
 
-    candidates.extend((bid, active_pqif_base, base_weight) for bid in base_missing)
+    candidates.extend((bid, pqif_base, base_weight) for bid in base_missing)
     candidates.extend((bid, next_prestige, next_weight) for bid in next_missing)
 
   else:
-    logger.info(f"[pqif] Inactive – awarding from prestige {active_pqif_base} only")
-    candidates.extend((bid, active_pqif_base, 100) for bid in base_missing)
+    logger.info(f"[pqif] Inactive — awarding from prestige {pqif_base} only")
+    candidates.extend((bid, pqif_base, 100) for bid in base_missing)
 
-  if current_prestige > 0:
-    for lower in range(0, current_prestige):
-      lower_owned = await get_owned_ids_at_prestige(lower)
-      lower_missing = list(full_badge_ids - lower_owned)
-      logger.debug(f"[backfill] Prestige {lower} – missing {len(lower_missing)}")
-      candidates.extend((bid, lower, 10) for bid in lower_missing)
-  else:
-    logger.info("[backfill] Skipped – user is at Standard prestige")
+  # Step 3: Backfill earlier tiers
+  for lower in range(0, pqif_base):
+    lower_owned = await get_owned_ids_at_prestige(lower)
+    lower_missing = list(full_badge_ids - lower_owned)
+    logger.debug(f"[backfill] Prestige {lower} — missing {len(lower_missing)}")
+    candidates.extend((bid, lower, 10) for bid in lower_missing)
 
+  # Step 4: Random weighted selection
   if not candidates:
-    logger.warning(f"[echelon] No eligible badge candidates for user {user_discord_id} at prestige {current_prestige}")
-    raise Exception("No eligible badge candidates found—unexpected scenario.")
+    logger.warning(f"[echelon] No eligible badge candidates for user {user_discord_id}")
+    raise Exception("No eligible badge candidates found — unexpected scenario.")
 
   weighted = [item for item in candidates for _ in range(item[2])]
   selected_id, selected_prestige, _ = random.choice(weighted)
@@ -189,13 +203,13 @@ async def award_possible_crystal_pattern_buffer(member: discord.Member) -> bool:
     # SUCCESS: Grant the crystal pattern buffer
     await db_increment_user_crystal_buffer(user_discord_id)
     await db_update_buffer_failure_streak(user_discord_id, 0)
-    logger.debug(f"[Crystal Buffer Reward] User {user_discord_id} granted buffer (roll: {roll:.2f} <= {chance:.2f})")
+    logger.info(f"[Crystal Buffer Reward] User {user_discord_id} granted buffer (roll: {roll:.2f} <= {chance:.2f})")
     # Currently they win a single buffer, maybe we'll change this in the future or maybe not
     return 1
   else:
     # FAIL: Increment failure streak
     await db_update_buffer_failure_streak(user_discord_id, failure_streak + 1)
-    logger.debug(f"[Crystal Buffer Reward] User {user_discord_id} failed buffer (roll: {roll:.2f} > {chance:.2f}), new streak: {failure_streak + 1}")
+    logger.info(f"[Crystal Buffer Reward] User {user_discord_id} failed buffer (roll: {roll:.2f} > {chance:.2f}), new streak: {failure_streak + 1}")
     return False
 
 # __________                                .___
