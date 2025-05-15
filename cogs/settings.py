@@ -51,6 +51,15 @@ class XPView(discord.ui.View):
 
     self.add_item(XPDropdown(self.cog))
 
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
 
 #  _______          __  .__  _____.__               __  .__
 #  \      \   _____/  |_|__|/ ____\__| ____ _____ _/  |_|__| ____   ____   ______
@@ -103,6 +112,15 @@ class NotificationsView(discord.ui.View):
 
     self.add_item(NotificationsDropdown(self.cog))
 
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
 
 # _________                         __         .__  .__  .__                __  .__
 # \_   ___ \_______ ___.__. _______/  |______  |  | |  | |__|____________ _/  |_|__| ____   ____
@@ -148,6 +166,15 @@ class CrystallizeAutoHarmonizeView(discord.ui.View):
     super().__init__()
     self.add_item(CrystallizeAutoHarmonizeDropdown(self.cog))
 
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
 
 #  __      __                .___     .__                   .___
 # /  \    /  \___________  __| _/____ |  |   ____  __ __  __| _/
@@ -200,6 +227,15 @@ class WordcloudView(discord.ui.View):
 
     self.add_item(WordcloudDropdown(self.cog))
 
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
 
 # .____                    .______.           __
 # |    |    ____  __ __  __| _/\_ |__   _____/  |_
@@ -252,6 +288,15 @@ class LoudbotView(discord.ui.View):
 
     self.add_item(LoudbotDropdown(self.cog))
 
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
 
 class TaggingDropdown(discord.ui.Select):
   def __init__(self, cog):
@@ -298,6 +343,15 @@ class TaggingView(discord.ui.View):
 
     self.add_item(TaggingDropdown(self.cog))
 
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
 
 # _________
 # \_   ___ \  ____   ____
