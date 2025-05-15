@@ -313,6 +313,7 @@ class Admin(commands.Cog):
   async def echelon_grant_prestige_badges(self, ctx, user: discord.User, prestige: str, amount: int):
     await ctx.defer(ephemeral=True)
 
+    prestige = int(prestige)
     working_embed = discord.Embed(
       title="Granting Badges...",
       description=f"Processing badge grants for {user.mention} at **{PRESTIGE_TIERS[prestige]}**...",
@@ -320,17 +321,22 @@ class Admin(commands.Cog):
     )
     message = await ctx.respond(embed=working_embed, ephemeral=True)
 
-    prestige = int(prestige)
-
+    # Get full badge metadata
     all_badges = await db_get_all_badge_info()
-    owned_instances = await db_get_user_badge_instances(user.id)
-    owned_ids = {b['badge_info_id'] for b in owned_instances}
 
-    available = [b for b in all_badges if b['id'] not in owned_ids]
+    # Get user's badge instances (all prestige levels)
+    owned_instances = await db_get_user_badge_instances(user.id)
+    owned_by_prestige: dict[int, set[int]] = defaultdict(set)
+    for b in owned_instances:
+      owned_by_prestige[b['prestige_level']].add(b['badge_info_id'])
+
+    # Filter out only those not yet owned at the specified prestige level
+    available = [b for b in all_badges if b['id'] not in owned_by_prestige.get(prestige, set())]
+
     if not available:
       await ctx.respond(embed=discord.Embed(
         title="No Available Badges",
-        description=f"{user.mention} already owns every badge!",
+        description=f"{user.mention} already owns every badge at **{PRESTIGE_TIERS[prestige]}**!",
         color=discord.Color.red()
       ))
       return
@@ -348,7 +354,6 @@ class Admin(commands.Cog):
       description=f"✅ Gave {len(granted)} unique badge(s) to {user.mention} at **{PRESTIGE_TIERS[prestige]}**.",
       color=discord.Color.green()
     )
-
     await message.edit(embed=embed)
 
   @admin_group.command(name="echelon_purge_prestige_badges", description="Remove all badge instances from a user at a specific prestige level.")
