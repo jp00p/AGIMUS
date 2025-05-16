@@ -786,40 +786,44 @@ def effect_transparent_aluminum(badge_image: Image.Image, badge: dict) -> Image.
   Then just throw it through apply_rare_background_and_border() with a starfield image so you can see the stars through it?
   """
   badge_image = badge_image.convert("RGBA")
-
-  # Duplicate badge to preserve base transparency
-  clean = badge_image.copy()
-
-  # Create diagonal shine gradient
   width, height = badge_image.size
+
+  # Convert original image to grayscale to determine transparency mask
+  gray = ImageOps.grayscale(badge_image)
+  # Dark areas become more transparent, light areas more opaque
+  transparency_mask = gray.point(lambda px: int(px * 0.4))  # 0.0–102 alpha
+
+  # Build new image with adjusted alpha based on brightness
+  r, g, b = badge_image.split()[:3]
+  transparent_badge = Image.merge("RGBA", (r, g, b, transparency_mask))
+
+  # Create a narrow diagonal white shine
   shine_overlay = Image.new("RGBA", (width, height), (255, 255, 255, 0))
   pixels = shine_overlay.load()
   for y in range(height):
     for x in range(width):
       t = (x + y) / (width + height)
-      alpha = int(255 * 0.75 * max(0, 1 - abs(t - 0.5) * 7))  # 75% strength, soft falloff
-      pixels[x, y] = (255, 255, 255, min(alpha, 255))
+      band = max(0.0, 1.0 - abs(t - 0.5) * 12.0)  # Narrow band around the diagonal
+      alpha = int(10 * band)  # Max alpha = 10
+      pixels[x, y] = (255, 255, 255, alpha)
 
-  # Mask the shine to badge alpha only
-  alpha_mask = badge_image.split()[-1]
+  # Mask the shine to the badge's original alpha mask (for clean edges)
+  alpha_mask = transparency_mask
   masked_shine = Image.new("RGBA", (width, height))
   masked_shine.paste(shine_overlay, (0, 0), mask=alpha_mask)
 
-  # Apply shine over badge
-  shiny = Image.alpha_composite(clean, masked_shine)
+  # Apply shine over transparent badge
+  shiny_translucent_badge = Image.alpha_composite(transparent_badge, masked_shine)
 
-  # Apply 70% opacity
-  r, g, b, a = shiny.split()
-  a = a.point(lambda px: int(px * 0.7))
-  badge_image = Image.merge("RGBA", (r, g, b, a))
-
+  # Composite over starfield background with border
   bg_path = f"{RARE_BACKGROUNDS_DIR}/transparency_starfield.png"
   result = apply_rare_background_and_border(
-    badge_image,
+    shiny_translucent_badge,
     bg_path,
     border_gradient_top_left=(192, 192, 255),
     border_gradient_bottom_right=(96, 160, 255)
   )
+
   return result
 
 #       ...                                                         ..
@@ -1075,60 +1079,58 @@ def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]
   return [shimmer_flux_frame(base_img, i) for i in range(num_frames)]
 
 
-@register_effect("static_cascade")
-def effect_static_cascade(base_img: Image.Image, badge: dict) -> list[Image.Image]:
-  """
-  Applies a downward-traveling distortion wave and scanlines across the badge.
+# @register_effect("static_cascade")
+# def effect_static_cascade(base_img: Image.Image, badge: dict) -> list[Image.Image]:
+#     """
+#     Simple non-destructive static cascade: a semi-transparent shifted band
+#     that glides downward, letting the original badge sit fully visible underneath.
+#     """
+#     fps        = ANIMATION_FPS
+#     duration   = ANIMATION_DURATION
+#     num_frames = int(fps * duration)
+#     width, height = FRAME_SIZE
 
-  Returns:
-  List of RGBA frames as PIL.Image.Image.
+#     amplitude   = 12       # max horizontal shift (pixels)
+#     band_h      = 40       # height of the glitch band
+#     opacity_pct = 0.3      # 30% opacity for the shifted overlay
 
-  Used for the Static Cascade crystal (Legendary tier).
-  """
-  fps = ANIMATION_FPS
-  duration = ANIMATION_DURATION
-  num_frames = int(duration * fps)
-  width, height = FRAME_SIZE
+#     # Pre-resize once
+#     orig = base_img.resize((width, height), Image.Resampling.LANCZOS).convert("RGBA")
+#     frames = []
 
-  amplitude = 8
-  band_height = 40
-  scanline_alpha = 10
+#     for i in range(num_frames):
+#         frame = orig.copy()
 
-  badge_array = np.array(base_img.resize((width, height), Image.Resampling.LANCZOS)).astype(np.uint8)
-  alpha_mask = badge_array[..., 3] > 10
+#         # vertical position of the band (so it starts off-screen and ends off-screen)
+#         prog   = i / num_frames
+#         center = int((prog * (height + band_h)) - (band_h // 2))
+#         top    = max(0, center)
+#         bot    = min(height, center + band_h)
 
-  Y, X = np.meshgrid(np.arange(height), np.arange(width), indexing="ij")
+#         if bot > top:
+#             # 1) Extract the band
+#             band = orig.crop((0, top, width, bot))
 
-  frames = []
-  for i in range(num_frames):
-    wave_y = int((i / num_frames) * height)
-    band_top = wave_y - band_height // 2
-    band_bottom = wave_y + band_height // 2
+#             # 2) Shift it horizontally by a sine motion
+#             dx = int(amplitude * math.sin(2 * math.pi * prog))
+#             shifted = band.transform(
+#                 band.size,
+#                 Image.AFFINE,
+#                 (1, 0, dx, 0, 1, 0),
+#                 resample=Image.BILINEAR
+#             )
 
-    displacement = np.zeros_like(X, dtype=np.float32)
-    band_mask = (Y >= band_top) & (Y <= band_bottom)
-    displacement[band_mask] = amplitude * np.sin(2 * np.pi * (Y[band_mask] - band_top) / band_height)
+#             # 3) Make an alpha mask at 30% of the band’s opacity
+#             alpha = band.split()[3].point(lambda a: int(a * opacity_pct))
 
-    coords_y = Y
-    coords_x = X + displacement
-    coords = np.array([coords_y.flatten(), coords_x.flatten()])
+#             # 4) Paste as a semi-transparent overlay back onto the frame
+#             overlay = Image.new("RGBA", frame.size, (0,0,0,0))
+#             overlay.paste(shifted, (0, top), mask=alpha)
+#             frame = Image.alpha_composite(frame, overlay)
 
-    channels = [
-      map_coordinates(badge_array[..., c], coords, order=1, mode='reflect').reshape((height, width))
-      for c in range(4)
-    ]
-    result = np.stack(channels, axis=-1)
+#         frames.append(frame)
 
-    # Apply subtle scanlines only to badge pixels
-    scanline_mask = np.ones((height, width), dtype=np.uint8) * 255
-    scanline_mask[::2] = scanline_alpha
-    result[..., 3] = np.where(alpha_mask, np.minimum(result[..., 3], scanline_mask), result[..., 3])
-
-    final = result.astype(np.uint8)
-    frame = Image.fromarray(final, mode="RGBA")
-    frames.append(frame)
-
-  return frames
+#     return frames
 
 
 #     ...     ..      ..                       s                   .
