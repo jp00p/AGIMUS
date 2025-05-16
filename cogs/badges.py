@@ -397,8 +397,8 @@ class Badges(commands.Cog):
         'badge_name': badge['badge_name'],
         'badge_filename': badge['badge_filename'],
         'special': badge['special'],
-        'locked': badge['locked'],
         'in_user_collection': bool(user_badge),
+        'locked': user_badge.get('locked', False) if user_badge else False,
         'crystal_id': user_badge.get('crystal_id') if user_badge else None,
         'crystal_effect': user_badge.get('crystal_effect') if user_badge else None
       }
@@ -415,7 +415,7 @@ class Badges(commands.Cog):
     if color:
       await db_set_user_badge_page_color_preference(ctx.author.id, "sets", color)
 
-    collection_label = f"({PRESTIGE_TIERS[prestige]}) {category_title} - {selection}"
+    collection_label = f"{category_title} - {selection}"
     badge_images = await generate_badge_collection_images(ctx.author, prestige, set_badges, 'sets', collection_label, discord_message=pending_message)
 
     await pending_message.edit(
