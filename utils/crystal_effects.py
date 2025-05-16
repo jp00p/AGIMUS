@@ -778,6 +778,23 @@ def effect_q_grid(badge_image: Image.Image, badge: dict) -> Image.Image:
   )
   return result
 
+
+@register_effect("alabama_rocks")
+def effect_alabama_rocks(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Q Grid from Encounter at Farpoint background.
+  Used for the Farpoint Fragment crystal (Rare tier).
+  """
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/alabama_rocks.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(169, 165, 160),
+    border_gradient_bottom_right=(227, 193, 163)
+  )
+  return result
+
+
 @register_effect("transparency_starfield")
 def effect_transparent_aluminum(badge_image: Image.Image, badge: dict) -> Image.Image:
   """

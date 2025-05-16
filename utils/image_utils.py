@@ -570,7 +570,7 @@ async def generate_badge_set_completion_images(user, prestige, badge_data, categ
   """
   Renders paginated badge completion images using themed components and returns discord.File[]
   """
-  theme = await get_theme_preference(user.id, 'collection_type')
+  theme = await get_theme_preference(user.id, 'sets')
   dims = _get_canvas_row_dimensions()
 
   rows_per_page = 7
@@ -1918,7 +1918,7 @@ async def db_set_user_badge_page_color_preference(user_id, type, color):
     vals = (color, user_id)
     await query.execute(sql, vals)
 
-async def db_get_user_badge_page_color_preference(user_id, type):
+async def db_get_user_badge_page_color_preference(user_id, type="collection"):
   async with AgimusDB(dictionary=True) as query:
     sql = "SELECT * FROM user_preferences WHERE user_discord_id = %s"
     vals = (user_id,)

@@ -757,7 +757,7 @@ async def db_get_user_profile_photo(user_id):
     await query.execute(sql, vals)
     result = await query.fetchone()
   if result:
-    return result['style']
+    return result['photo']
   else:
     return 'Default'
 

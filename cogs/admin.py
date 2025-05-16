@@ -263,7 +263,7 @@ class Admin(commands.Cog):
 
   @admin_group.command(name="echelon_simulate_level_up", description="Force a (near) level-up process.")
   @option("user", discord.User, description="The user.", required=True)
-  async def echelon_simulate_near_level_up(self, ctx, user: discord.User):
+  async def echelon_simulate_level_up(self, ctx, user: discord.User):
     await ctx.defer(ephemeral=True)
 
     progress = await db_get_echelon_progress(user.id)

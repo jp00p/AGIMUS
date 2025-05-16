@@ -396,11 +396,11 @@ def xp_required_for_level(level: int) -> int:
   if level <= 0:
     return 0
   if level > 170:
-    return 420
+    return 369
 
   t = (level - 1) / (170 - 1)
   ease = 3 * (t**2) - 2 * (t**3)
-  return int(69 + (420 - 69) * ease)
+  return int(69 + (369 - 69) * ease)
 
 _xp_to_level_170 = None
 def total_xp_to_level_170() -> int:

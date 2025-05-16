@@ -271,6 +271,46 @@ async def migrate_badges(dry_run=False):
 
       print(f"✅ {'Would have migrated' if dry_run else 'Migrated'} {migrated} profile badge entries ({skipped} skipped)")
 
+      # ---------------------------
+      # 6. GRANT DILITHIUM CRYSTAL INSTANCES TO ALL USERS
+      # ---------------------------
+      print("... Granting 1 Dilithium crystal instance to each user ...")
+
+      # Resolve crystal_type_id for 'Dilithium'
+      await cur.execute("SELECT id FROM crystal_types WHERE name = 'Dilithium'")
+      row = await cur.fetchone()
+      if not row:
+        raise Exception("Could not find 'Dilithium' crystal in crystal_types")
+      dilithium_type_id = row['id']
+
+      # Fetch all user IDs
+      await cur.execute("SELECT discord_id FROM users")
+      all_users = [r['discord_id'] for r in await cur.fetchall()]
+
+      from utils.crystal_instances import create_new_crystal_instance
+
+      granted = 0
+      for user_id in all_users:
+        await create_new_crystal_instance(user_id, dilithium_type_id, event_type='replicated')
+        granted += 1
+
+      print(f"✅ {'Would have granted' if dry_run else 'Granted'} 1 Dilithium crystal instance to {granted} users")
+
+
+      print("... Granting 1 special crystal instance to a specific user ...")
+
+      # Resolve crystal_type_id for 'Alabama River Rock'
+      await cur.execute("SELECT id FROM crystal_types WHERE name = 'Alabama River Rock'")
+      row = await cur.fetchone()
+      if not row:
+        raise Exception("Could not find 'Alabama River Rock' crystal in crystal_types")
+      alabama_river_rock_type_id = row['id']
+      if not dry_run:
+        await create_new_crystal_instance('681142740679000082', alabama_river_rock_type_id, event_type='replicated')
+
+      # ---------------------------
+      # 7. COMMIT
+      # ---------------------------
       if not dry_run:
         await conn.commit()
         print("✅ COMMIT COMPLETE")

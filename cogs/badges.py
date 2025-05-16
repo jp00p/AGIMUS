@@ -228,25 +228,41 @@ class Badges(commands.Cog):
     if not public:
       buttons = [
         pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, disabled=bool(len(user_badges) <= 30), row=1),
-        pages.PaginatorButton(
-          "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
-        ),
+        pages.PaginatorButton("page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1),
         pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, disabled=bool(len(user_badges) <= 30), row=1),
       ]
+
+      class CollectionPaginator(pages.Paginator):
+        def __init__(self, *args, badge_files: list[discord.File], **kwargs):
+          self.badge_files = badge_files
+          super().__init__(*args, **kwargs)
+
+        async def on_timeout(self):
+          # Close all buffers after timeout
+          for f in self.badge_files:
+            try:
+              f.fp.close()
+            except Exception:
+              pass
+          self.badge_files.clear()
+          gc.collect()
 
       pages_list = [
         pages.Page(files=[image], embeds=[embed])
         for image in badge_images
       ]
-      paginator = pages.Paginator(
-          pages=pages_list,
-          show_disabled=True,
-          show_indicator=True,
-          use_default_buttons=False,
-          custom_buttons=buttons,
-          loop_pages=True
+
+      paginator = CollectionPaginator(
+        pages=pages_list,
+        badge_files=badge_images,
+        show_disabled=True,
+        show_indicator=True,
+        use_default_buttons=False,
+        custom_buttons=buttons,
+        loop_pages=True
       )
       await paginator.respond(ctx.interaction, ephemeral=True)
+
     else:
       # We can only attach up to 10 files per message, so if it's public send them in chunks
       file_chunks = [badge_images[i:i + 10] for i in range(0, len(badge_images), 10)]
@@ -256,6 +272,14 @@ class Badges(commands.Cog):
           await ctx.followup.send(embed=embed, files=chunk)
         else:
           await ctx.followup.send(files=chunk)
+        # Immediately close files after sending
+        for f in chunk:
+          try:
+            f.fp.close()
+          except Exception:
+            pass
+    badge_images.clear()
+    gc.collect()
 
 
   #   _________       __
@@ -1019,7 +1043,17 @@ class Badges(commands.Cog):
       return
 
     await ctx.defer(ephemeral=(public == "no"))
-    badge_frames = await generate_singular_badge_slot(badge_instance, border_color=discord.Color.blurple().to_rgb())
+
+    main_color_tuple = discord.Color.blurple().to_rgb()
+    if prestige > 0:
+      prestige_color = PRESTIGE_THEMES[prestige]['primary']
+      main_color_tuple = prestige_color
+    else:
+      pref = db_get_user_badge_page_color_preference(user_id) or "green"
+      colors = get_theme_colors(pref)
+      main_color_tuple = colors.primary
+
+    badge_frames = await generate_singular_badge_slot(badge_instance, border_color=main_color_tuple)
 
     discord_file = None
     if len(badge_frames) > 1:
@@ -1029,7 +1063,6 @@ class Badges(commands.Cog):
       discord_file = buffer_image_to_discord_file(badge_frames[0], 'spotlight.png')
 
     # Metadata
-    from queries.badge_info import db_get_full_badge_metadata_by_filename
     badge_info = await db_get_full_badge_metadata_by_filename(badge_instance['badge_filename'])
     if not badge_info:
       await ctx.followup.send(embed=discord.Embed(
@@ -1039,15 +1072,10 @@ class Badges(commands.Cog):
       ), ephemeral=True)
       return
 
-    embed_color = discord.Color.blurple()
-    if prestige > 0:
-      prestige_color = PRESTIGE_THEMES[prestige]['primary']
-      embed_color = discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
-
     embed = discord.Embed(
       title=f"Badge Spotlight",
       description=f"## {ctx.author.mention}'s {badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
-      color=embed_color
+      color=discord.Color.from_rgb(main_color_tuple)
     )
     embed.set_image(url=f"attachment://{discord_file.filename}")
 

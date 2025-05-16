@@ -230,7 +230,10 @@ class Crystals(commands.Cog):
     )
     replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count}** Crystals which have not yet been attuned a Badge.", inline=False)
     replicator_embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count}** Badges with Crystals attuned to them.", inline=False)
-    replicator_embed.set_footer(text="Use `/crystals inventory` to view your currently unattuned Crystals\nUse `/crystals attune` attach them to your Badges!")
+    replicator_embed.set_footer(
+      text="Use `/crystals inventory` to view your currently unattuned Crystals\nUse `/crystals attune` attach them to your Badges!",
+      icon_url="https://i.imgur.com/C0hmhbj.png"
+    )
     replicator_embed.set_image(url="https://i.imgur.com/bbdDUfo.gif")
 
     #  __   ___
@@ -284,7 +287,10 @@ class Crystals(commands.Cog):
         channel_embed.add_field(name=f"Rank", value=f"> {crystal['emoji']}  {crystal['rarity_name']}", inline=False)
         channel_embed.add_field(name=f"Description", value=f"> {crystal['description']}", inline=False)
         channel_embed.set_image(url=f"attachment://{replicator_confirmation_filename}")
-        channel_embed.set_footer(text="Use `/crystals attune` to attach it to one of your Badges!")
+        channel_embed.set_footer(
+          text="Use `/crystals attune` to attach it to one of your Badges!",
+          icon_url="https://i.imgur.com/C0hmhbj.png"
+        )
 
         gelrak_v = await cog.bot.fetch_channel(get_channel_id("gelrak-v"))
         await gelrak_v.send(embed=channel_embed, file=discord_file)
@@ -526,7 +532,10 @@ class Crystals(commands.Cog):
       description=f"Here's what **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]} would look like with *{crystal_instance['crystal_name']}* applied to it *once Harmonized.*",
       color=discord.Color.teal()
     )
-    preview_embed.set_footer(text="Click Confirm to Attune this Crystal, or Cancel.")
+    preview_embed.set_footer(
+      text="Click Confirm to Attune this Crystal, or Cancel.",
+      icon_url="https://i.imgur.com/C0hmhbj.png",
+    )
     preview_embed.set_image(url=attachment_url)
 
     #  __   ___
@@ -565,7 +574,10 @@ class Crystals(commands.Cog):
           color=discord.Color.teal()
         )
         embed.set_image(url="https://i.imgur.com/lP883bg.gif")
-        embed.set_footer(text="Now you can `/crystals harmonize` to select your activated Crystal at any time!")
+        embed.set_footer(
+          text="Now you can `/crystals harmonize` to select your activated Crystal at any time!",
+          icon_url="https://i.imgur.com/C0hmhbj.png"
+        )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
         await interaction.delete_original_response()
 
@@ -672,7 +684,10 @@ class Crystals(commands.Cog):
     )
     preview_embed.add_field(name=f"{crystal_instance['crystal_name']}", value=crystal_instance['description'], inline=False)
     preview_embed.add_field(name=f"Rank", value=f"{crystal_instance['emoji']}  {crystal_instance['rarity_name']}", inline=False)
-    preview_embed.set_footer(text="Click Confirm to Harmonize this Crystal, or Cancel.")
+    preview_embed.set_footer(
+      text="Click Confirm to Harmonize this Crystal, or Cancel.",
+      icon_url="https://i.imgur.com/C0hmhbj.png",
+    )
     preview_embed.set_image(url=attachment_url)
 
     #  __   ___
@@ -700,6 +715,11 @@ class Crystals(commands.Cog):
           title='Crystal Harmonized!',
           description=f"Harmonized **{crystal_instance['crystal_name']}**! It is now the active Crystal for your **{badge_instance['badge_name']}** badge.",
           color=discord.Color.teal()
+        )
+        embed.set_image(url="https://i.imgur.com/cr2m5It.gif")
+        embed.set_footer(
+          text="CRYSTALS!",
+          icon_url="https://i.imgur.com/C0hmhbj.png",
         )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
