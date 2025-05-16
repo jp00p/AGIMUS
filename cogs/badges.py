@@ -1212,8 +1212,8 @@ class Badges(commands.Cog):
     prestige_badge_counts = await db_get_badge_instances_prestige_count_by_filename(badge['badge_filename'])
 
     # Build prestige tier breakdown
-    prestige_lines = [
-      f"- {PRESTIGE_TIERS[row['prestige_level']]}: {row['count']}"
+    prestige_count_lines = [
+      f"* **{PRESTIGE_TIERS[row['prestige_level']]}: {row['count']}**"
       for row in prestige_badge_counts
     ]
 
@@ -1233,10 +1233,9 @@ class Badges(commands.Cog):
     if types:
       description += f"Types: **{', '.join(types)}**\n"
     description += f"Franchise: **{badge['franchise']}**\n"
-    description += f"Reference: **{badge['reference']}**\n\n"
-    description += f"Total number collected on The USS Hood: **{badge_count}**\n\n"
-    description += f"Total collected on The USS Hood:\n"
-    description += "\n".join(prestige_lines) + "\n\n"
+    description += f"Reference: **{badge['reference']}**\n"
+    description += f"Total Collected on The USS Hood:\n"
+    description += "\n".join(prestige_count_lines) + "\n\n"
     description += f"{badge['badge_url']}"
 
     embed = discord.Embed(
