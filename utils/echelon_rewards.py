@@ -68,17 +68,18 @@ async def select_badge_for_level_up(member: discord.Member) -> tuple[int, int]:
   Selects a badge to award during a level-up, factoring in prestige tier progression,
   PQIF blending, and remaining badge pool sizes.
 
-  This function determines the PQIF base tier by identifying the **highest incomplete prestige tier**
-  that is less than or equal to the user's current prestige level. PQIF then calculates weighted
-  selection probabilities between that base tier and the **next** prestige tier.
+  This function determines the PQIF base tier by identifying the **highest prestige tier**
+  at or below the user's current prestige level that is within 10% missing from completion.
+  If no such tier exists, it falls back to the **first incomplete prestige tier**.
 
-  Weighting is governed by a capped cubic ease-out blend:
+  PQIF then calculates weighted selection probabilities between that base tier and the **next**
+  prestige tier. Weighting is governed by a capped cubic ease-out blend:
     - If the user is missing 10% of badges in the base tier: ~90% base, ~10% next
     - If the user is missing 0% of the base tier: ~10% base, ~90% next
     - Intermediate values are smoothly interpolated using the cubic curve
     - These weights are scaled by actual pool sizes to ensure fair selection
 
-  Backfill candidates from tiers **below the PQIF base** are also included, using a static
+  Backfill candidates from tiers **below the PQIF base** are always included using a static
   low weight (10), ensuring eventual completion of earlier tiers regardless of prestige drift.
 
   PQIF is explicitly capped at the user's current prestige level. Even if a user has
@@ -99,17 +100,24 @@ async def select_badge_for_level_up(member: discord.Member) -> tuple[int, int]:
   current_prestige = await get_user_prestige_level(member)
   max_pqif_base = min(current_prestige, len(PRESTIGE_TIERS) - 2)
 
-  # Step 1: Find the highest incomplete tier ≤ current_prestige
-  pqif_base = None
-  for tier in reversed(range(0, max_pqif_base + 1)):
-    owned = await get_owned_ids_at_prestige(tier)
-    if len(owned) < total_count:
-      pqif_base = tier
-      break
+  # Step 1: Find the highest eligible PQIF base tier ≤ current_prestige
+  eligible_pqif_bases = []
+  first_incomplete = None
 
-  if pqif_base is None:
-    # Everything up to current prestige is complete
-    pqif_base = current_prestige
+  for tier in range(current_prestige + 1):
+    owned = await get_owned_ids_at_prestige(tier)
+    missing_pct = (total_count - len(owned)) / total_count
+
+    if missing_pct <= PQIF_THRESHOLD:
+      eligible_pqif_bases.append(tier)
+    elif first_incomplete is None and len(owned) < total_count:
+      first_incomplete = tier
+
+  if eligible_pqif_bases:
+    pqif_base = max(eligible_pqif_bases)
+  else:
+    pqif_base = first_incomplete if first_incomplete is not None else current_prestige
+
 
   next_prestige = pqif_base + 1
 
