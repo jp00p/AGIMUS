@@ -334,7 +334,7 @@ class Crystals(commands.Cog):
     pending_message = await ctx.respond(
       embed=discord.Embed(
         title="Pulling up your Crystal Manifest...",
-        description="::Hold Music::",
+        description="🎶 Jazzy Hold Music 🎶",
         color=discord.Color.teal()
       ),
       ephemeral=True
