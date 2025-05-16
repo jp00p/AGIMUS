@@ -291,6 +291,7 @@ async def migrate_badges(dry_run=False):
 
       granted = 0
       for user_id in all_users:
+        print(f"> Granting Dilithium Crystal to User {user_id}")
         await create_new_crystal_instance(user_id, dilithium_type_id, event_type='replicated')
         granted += 1
 

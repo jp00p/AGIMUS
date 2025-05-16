@@ -6,7 +6,7 @@ from queries.badge_instances import *
 from queries.wishlists import db_get_active_wants
 
 async def create_new_badge_instance(user_id: int, badge_info_id: int, prestige_level: int = 0, event_type: str = 'level_up') -> dict:
-  logger.info(f"[DEBUG] Creating new badge instance: user={user_id}, badge_info_id={badge_info_id}, prestige={prestige_level}")
+  # logger.info(f"[DEBUG] Creating new badge instance: user={user_id}, badge_info_id={badge_info_id}, prestige={prestige_level}")
 
   # Mark if this badge was on their wishlist at this prestige tier
   was_on_wishlist = False

@@ -146,13 +146,13 @@ async def select_badge_for_level_up(member: discord.Member) -> tuple[int, int]:
     base_weight = max(10, int((1 - ease) * (base_pool_size / total_pool) * 100))
     next_weight = min(90, int(ease * (next_pool_size / total_pool) * 100))
 
-    logger.info(f"[pqif] Active — {base_weight}% prestige {pqif_base} / {next_weight}% prestige {next_prestige}")
+    # logger.info(f"[pqif] Active — {base_weight}% prestige {pqif_base} / {next_weight}% prestige {next_prestige}")
 
     candidates.extend((bid, pqif_base, base_weight) for bid in base_missing)
     candidates.extend((bid, next_prestige, next_weight) for bid in next_missing)
 
   else:
-    logger.info(f"[pqif] Inactive — awarding from prestige {pqif_base} only")
+    # logger.info(f"[pqif] Inactive — awarding from prestige {pqif_base} only")
     candidates.extend((bid, pqif_base, 100) for bid in base_missing)
 
   # Step 3: Backfill earlier tiers
@@ -170,7 +170,7 @@ async def select_badge_for_level_up(member: discord.Member) -> tuple[int, int]:
   weighted = [item for item in candidates for _ in range(item[2])]
   selected_id, selected_prestige, _ = random.choice(weighted)
 
-  logger.info(f"[selection] Selected badge_id={selected_id} at prestige={selected_prestige}")
+  # logger.info(f"[selection] Selected badge_id={selected_id} at prestige={selected_prestige}")
   return selected_id, selected_prestige
 
 
@@ -210,13 +210,13 @@ async def award_possible_crystal_pattern_buffer(member: discord.Member) -> bool:
     # SUCCESS: Grant the crystal pattern buffer
     await db_increment_user_crystal_buffer(user_discord_id)
     await db_update_buffer_failure_streak(user_discord_id, 0)
-    logger.info(f"[Crystal Buffer Reward] User {user_discord_id} granted buffer (roll: {roll:.2f} <= {chance:.2f})")
+    #  logger.info(f"[Crystal Buffer Reward] User {user_discord_id} granted buffer (roll: {roll:.2f} <= {chance:.2f})")
     # Currently they win a single buffer, maybe we'll change this in the future or maybe not
     return 1
   else:
     # FAIL: Increment failure streak
     await db_update_buffer_failure_streak(user_discord_id, failure_streak + 1)
-    logger.info(f"[Crystal Buffer Reward] User {user_discord_id} failed buffer (roll: {roll:.2f} > {chance:.2f}), new streak: {failure_streak + 1}")
+    # logger.info(f"[Crystal Buffer Reward] User {user_discord_id} failed buffer (roll: {roll:.2f} > {chance:.2f}), new streak: {failure_streak + 1}")
     return False
 
 # __________                                .___

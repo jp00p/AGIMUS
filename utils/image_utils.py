@@ -303,7 +303,7 @@ def split_text_into_emoji_clusters(text: str):
 #  \______  /\____/|____/____/\___  >\___  >__| |__|\____/|___|  /____  >
 #         \/                      \/     \/                    \/     \/
 async def generate_badge_collection_images(user, prestige, badge_data, collection_type, collection_label, discord_message=None):
-  start = time.perf_counter()
+  # start = time.perf_counter()
   logger.info("[timing] Starting generate_badge_collection_images")
 
   layout = _get_collection_grid_layout()
@@ -331,7 +331,7 @@ async def generate_badge_collection_images(user, prestige, badge_data, collectio
         # The user may have dismissed the original message so just catch and pass
         pass
 
-    canvas_start = time.perf_counter()
+    # canvas_start = time.perf_counter()
     canvas = await build_collection_canvas(
       user,
       prestige,
@@ -343,8 +343,8 @@ async def generate_badge_collection_images(user, prestige, badge_data, collectio
       collection_type,
       theme
     )
-    canvas_end = time.perf_counter()
-    logger.info(f"[timing] build_collection_canvas took {round(canvas_end - canvas_start, 2)}s")
+    # canvas_end = time.perf_counter()
+    # logger.info(f"[timing] build_collection_canvas took {round(canvas_end - canvas_start, 2)}s")
 
     final = await compose_badge_grid(
       canvas,
@@ -362,8 +362,8 @@ async def generate_badge_collection_images(user, prestige, badge_data, collectio
       buf.seek(0)
       images.append(discord.File(buf, filename=f"collection_page{page_number}.png"))
 
-  end = time.perf_counter()
-  logger.info(f"[benchmark] generate_badge_collection_images() took {round(end - start, 2)} seconds")
+  # end = time.perf_counter()
+  # logger.info(f"[benchmark] generate_badge_collection_images() took {round(end - start, 2)} seconds")
 
   gc.collect()
   return images
@@ -398,31 +398,20 @@ async def build_collection_canvas(user, prestige, page_data, all_data, page_numb
   return canvas
 
 async def compose_badge_grid(canvas, badge_data, theme, collection_type):
-  logger.info("[timing] compose_badge_grid() entry")
-  start_total = time.perf_counter()
+  # logger.info("[timing] compose_badge_grid() entry")
+  # start_total = time.perf_counter()
 
   # Stage 1: load + crystal effects (async)
-  logger.info("[timing] Starting Stage 1: load + crystal effects")
-  t1 = time.perf_counter()
+  # logger.info("[timing] Starting Stage 1: load + crystal effects")
+  # t1 = time.perf_counter()
   prepared = await prepare_badges_with_crystal_effects(badge_data)
-  t2 = time.perf_counter()
-  logger.info(f"[timing] Stage 1 complete in {round(t2 - t1, 2)}s")
+  # t2 = time.perf_counter()
+  # logger.info(f"[timing] Stage 1 complete in {round(t2 - t1, 2)}s")
 
   # Stage 2: slot composition (threaded)
-  logger.info("[timing] Starting Stage 2: slot composition")
+  # logger.info("[timing] Starting Stage 2: slot composition")
   loop = asyncio.get_running_loop()
-  t2b = time.perf_counter()
-  # slot_frame_stacks = await asyncio.gather(*[
-  #   loop.run_in_executor(
-  #     THREAD_POOL,
-  #     _compose_grid_slot,
-  #     badge,
-  #     collection_type,
-  #     theme,
-  #     image
-  #   )
-  #   for badge, image in prepared
-  # ])
+  # t2b = time.perf_counter()
   slot_frame_stacks = await loop.run_in_executor(
     THREAD_POOL,
     lambda: [
@@ -430,8 +419,8 @@ async def compose_badge_grid(canvas, badge_data, theme, collection_type):
       for badge, image in prepared
     ]
   )
-  t3 = time.perf_counter()
-  logger.info(f"[timing] Stage 2 complete in {round(t3 - t2b, 2)}s")
+  # t3 = time.perf_counter()
+  # logger.info(f"[timing] Stage 2 complete in {round(t3 - t2b, 2)}s")
   del prepared
   gc.collect()
 
@@ -447,7 +436,7 @@ async def compose_badge_grid(canvas, badge_data, theme, collection_type):
     positions.append((x, y))
 
   # Stage 3: frame stitching (threaded)
-  logger.info("[timing] Starting Stage 3: frame stitching")
+  # logger.info("[timing] Starting Stage 3: frame stitching")
   def _sync_stitch():
     # Build a grid-only blank canvas (grid_width × grid_height)
     badges_per_row = layout.badges_per_row
@@ -486,14 +475,14 @@ async def compose_badge_grid(canvas, badge_data, theme, collection_type):
 
   stitched = await loop.run_in_executor(THREAD_POOL, _sync_stitch)
 
-  t4 = time.perf_counter()
-  logger.info(f"[timing] Stage 3 complete in {round(t4 - t3, 2)}s")
-  logger.info(f"[timing] compose_badge_grid total duration: {round(t4 - start_total, 2)}s")
+  # t4 = time.perf_counter()
+  # logger.info(f"[timing] Stage 3 complete in {round(t4 - t3, 2)}s")
+  # logger.info(f"[timing] compose_badge_grid total duration: {round(t4 - start_total, 2)}s")
 
   return stitched if any(len(s) > 1 for s in slot_frame_stacks) else stitched[0]
 
 def _compose_grid_slot(badge, collection_type, theme, badge_image):
-  start = time.perf_counter()
+  # start = time.perf_counter()
 
   colors = get_theme_colors(theme)
 
@@ -514,8 +503,8 @@ def _compose_grid_slot(badge, collection_type, theme, badge_image):
 
   slot_frames = compose_badge_slot(badge, colors, badge_image, override_colors)
 
-  duration = round(time.perf_counter() - start, 3)
-  logger.info(f"[timing] compose_grid_slot took {duration}s for badge_id={badge.get('badge_info_id')}")
+  # duration = round(time.perf_counter() - start, 3)
+  # logger.info(f"[timing] compose_grid_slot took {duration}s for badge_id={badge.get('badge_info_id')}")
   return slot_frames
 
 
@@ -1107,7 +1096,7 @@ async def compose_badge_strip(
   strip_height = slot_dims.slot_height
   slot_y_offset = 0
 
-  logger.info(f"[timing] Starting badge strip generation for {len(badge_list)} badges")
+  # logger.info(f"[timing] Starting badge strip generation for {len(badge_list)} badges")
 
   # Apply crystal effects and prepare all badge image stacks
   prepared = await prepare_badges_with_crystal_effects(badge_list)
@@ -1140,7 +1129,7 @@ async def compose_badge_strip(
     frames.append(frame)
 
   elapsed = time.perf_counter() - start
-  logger.info(f"[timing] generate_badge_strip completed in {elapsed:.2f}s with {len(frames)} frames")
+  # logger.info(f"[timing] generate_badge_strip completed in {elapsed:.2f}s with {len(frames)} frames")
 
   del all_badge_frames, prepared
   gc.collect()
@@ -1487,7 +1476,7 @@ async def build_display_canvas(
   """
   colors = get_theme_colors(theme)
 
-  start = time.perf_counter()
+  # start = time.perf_counter()
 
   # TO-DO - Make header and footer fully generic (write all text in image generation so we can simplify this)
   if layout_type == 'collection' or layout_type == 'completion':
@@ -1533,8 +1522,8 @@ async def build_display_canvas(
     colors=colors
   )
 
-  duration = round(time.perf_counter() - start, 3)
-  logger.info(f"[timing] build_display_canvas took {duration}s")
+  # duration = round(time.perf_counter() - start, 3)
+  # logger.info(f"[timing] build_display_canvas took {duration}s")
 
   return canvas
 

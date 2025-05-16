@@ -24,7 +24,7 @@ async def encode_webp(frames: list[Image.Image], fps: int = 12) -> io.BytesIO:
   width, height = frames[0].size
   frame_count = len(frames)
 
-  logger.info(f"[timing] Starting WebP encoding with {frame_count} frames at {fps}fps")
+  # logger.info(f"[timing] Starting WebP encoding with {frame_count} frames at {fps}fps")
   start_encode = time.perf_counter()
 
   # Prepare raw RGBA frame data
@@ -75,7 +75,7 @@ async def encode_webp(frames: list[Image.Image], fps: int = 12) -> io.BytesIO:
       webp_data = f.read()
 
     end_encode = time.perf_counter()
-    logger.info(f"[timing] webp encoding took {end_encode - start_encode:.2f}s")
+    # logger.info(f"[timing] webp encoding took {end_encode - start_encode:.2f}s")
 
     return io.BytesIO(webp_data)
 

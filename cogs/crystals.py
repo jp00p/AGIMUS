@@ -348,23 +348,27 @@ class Crystals(commands.Cog):
     for c in crystals:
       grouped[c['rarity_rank']].append(c)
 
-    manifest_pages = []
-    rarity_map = {
-      1: "common",
-      2: "uncommon",
-      3: "rare",
-      4: "legendary",
-      5: "mythic"
-    }
+    class ManifestPaginator(pages.Paginator):
+      def __init__(self, *args, buffers: list[BytesIO], **kwargs):
+        self.buffers = buffers
+        super().__init__(*args, **kwargs)
 
+      async def on_timeout(self):
+        for buf in self.buffers:
+          try:
+            buf.close()
+          except Exception:
+            pass
+        self.buffers.clear()
+        await super().on_timeout()
+
+    all_buffers = []
     page_groups = []
 
     for crystal_rank in sorted(grouped):
-      # Easiest way to grab the rarity name and emoji is just from the first crystal in the rank
       rarity_name = grouped[crystal_rank][0]['rarity_name']
       rarity_emoji = grouped[crystal_rank][0]['emoji']
 
-      # Collapse duplicate crystal types
       collapsed = {}
       for c in grouped[crystal_rank]:
         type_id = c['crystal_type_id']
@@ -375,13 +379,11 @@ class Crystals(commands.Cog):
           collapsed[type_id]['instance_count'] += 1
 
       sorted_crystals = sorted(collapsed.values(), key=lambda c: c['crystal_name'].lower())
-
-      crystal_rank_manifest_images =  await generate_crystal_manifest_images(ctx.user, sorted_crystals, rarity_name, rarity_emoji)
+      crystal_rank_manifest_images = await generate_crystal_manifest_images(ctx.user, sorted_crystals, rarity_name, rarity_emoji)
 
       crystal_rank_pages = []
-      for manifest_image in crystal_rank_manifest_images:
-        buffer, filename = manifest_image
-
+      for buffer, filename in crystal_rank_manifest_images:
+        all_buffers.append(buffer)  # collect buffer for cleanup
         crystal_rank_pages.append(
           pages.Page(
             embeds=[
@@ -404,8 +406,9 @@ class Crystals(commands.Cog):
         )
       )
 
-    paginator = pages.Paginator(
+    paginator = ManifestPaginator(
       pages=page_groups,
+      buffers=all_buffers,
       show_menu=True,
       menu_placeholder="Select a Crystal Rarity Tier",
       show_disabled=False,
@@ -413,9 +416,7 @@ class Crystals(commands.Cog):
       use_default_buttons=False,
       custom_buttons=[
         pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, row=1),
-        pages.PaginatorButton(
-          "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
-        ),
+        pages.PaginatorButton("page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1),
         pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, row=1),
       ],
     )
@@ -777,47 +778,3 @@ class CrystalManifestView(discord.ui.View):
   def __init__(self, paginator: pages.Paginator, rarity_order: list[str]):
     super().__init__(timeout=180)
     self.add_item(RaritySelect(paginator, rarity_order))
-
-
-async def generate_paginated_crystal_rarity_pages(user_id: int, rarity_level_crystals):
-  user = await bot.fetch_user(user_id)
-  page_size = 7
-  pages = []
-  embeds = []
-
-  if not rarity_level_crystals:
-    return pages, embeds
-
-  rarity_name = rarity_level_crystals[0]['rarity_name']
-  rarity_emoji = rarity_level_crystals[0]['emoji']
-
-  crystal_type_map = {}
-  for crystal in rarity_level_crystals:
-    type_id = crystal['crystal_type_id']
-    if type_id not in crystal_type_map:
-      crystal_type_map[type_id] = dict(crystal)
-      crystal_type_map[type_id]['instance_count'] = 1
-    else:
-      crystal_type_map[type_id]['instance_count'] += 1
-
-  sorted_crystals = sorted(
-    crystal_type_map.values(),
-    key=lambda c: c['crystal_name'].lower()
-  )
-
-  for i in range(0, len(sorted_crystals), page_size):
-    page_crystals = sorted_crystals[i:i+page_size]
-
-    manifest_images = await generate_crystal_manifest_images(user, page_crystals, rarity_name, rarity_emoji, return_buffers=True)
-    manifest_buffer, manifest_filename = manifest_images[0]
-
-    embed = discord.Embed(
-      title=f"Crystal Manifest - {rarity_name}",
-      color=discord.Color.teal()
-    )
-    embed.set_image(url=f"attachment://{manifest_filename}")
-
-    pages.append((manifest_buffer, manifest_filename))
-    embeds.append(embed)
-
-  return pages, embeds

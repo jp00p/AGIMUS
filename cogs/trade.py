@@ -1264,7 +1264,6 @@ class Trade(commands.Cog):
       await ctx.followup.send(embed=embed, file=discord_file, ephemeral=True)
     else:
       await ctx.respond(embed=embed, file=discord_file, ephemeral=True)
-    # await ctx.respond(embed=embed, file=discord_file, ephemeral=True)
 
   async def _add_requested_badge_to_trade(self, ctx, active_trade, instance_id):
     trade_id = active_trade["id"]
@@ -1296,7 +1295,6 @@ class Trade(commands.Cog):
       await ctx.followup.send(embed=embed, file=discord_file, ephemeral=True)
     else:
       await ctx.respond(embed=embed, file=discord_file, ephemeral=True)
-    # await ctx.respond(embed=embed, file=discord_file, ephemeral=True)
 
 
   async def _is_untradeable(self, ctx, badge_instance_id, requestor, requestee, active_trade, direction):

@@ -81,10 +81,10 @@ async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
 # |_______ \___  >\_/  \___  >____/ |______/  |   __/__
 #         \/   \/          \/                 |__|   \/
 async def handle_user_level_up(member: discord.User, level: int, source = None):
-  logger.info(f"[DEBUG] Handling user level up: {member.display_name} to level {level}")
+  # logger.info(f"[DEBUG] Handling user level up: {member.display_name} to level {level}")
 
   prestige_before = await get_user_prestige_level(member)
-  logger.info(f"prestige_before: {prestige_before}")
+  # logger.info(f"prestige_before: {prestige_before}")
 
   badge_data = None
   awarded_buffer_pattern = None
@@ -99,7 +99,7 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
     awarded_buffer_pattern = await award_possible_crystal_pattern_buffer(member)
 
   prestige_after = await get_user_prestige_level(member)
-  logger.info(f"prestige_after: {prestige_after}")
+  # logger.info(f"prestige_after: {prestige_after}")
 
   source_details = determine_level_up_source_details(member, source)
   # Handle Prestige Advancement
@@ -310,8 +310,7 @@ def is_message_channel_unblocked(message: discord.Message) -> bool:
   return False
 
 def determine_level_up_source_details(user: discord.User, source):
-  logger.info("Level Up Source:")
-  logger.info(pprint(source))
+  # logger.info("Level Up Source:")
   """Returns a short description string about what caused the XP level-up event."""
   if isinstance(source, discord.Message):
     return _message_source_details(source)
