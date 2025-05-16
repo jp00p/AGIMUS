@@ -441,3 +441,18 @@ CREATE TABLE IF NOT EXISTS trade_requested_crystal_instances (
   FOREIGN KEY (trade_id) REFERENCES crystal_instance_trades(id) ON DELETE CASCADE,
   FOREIGN KEY (crystal_instance_id) REFERENCES crystal_instances(id) ON DELETE CASCADE
 );
+
+
+-- New Badges
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Vulcan Space Command (2)", "Vulcan-Space-Command-(2).png", "https://www.startrekdesignproject.com/symbols/vulcan-space-command-2", "Alpha", "1900s", "Enterprise", "S02E02 Carbon Creek");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Vulcan-Space-Command-(2).png", "Vulcan");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Vulcan-Space-Command-(2).png", "Insignia");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Vulcan-Space-Command-(2).png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Starbase Docking Directional", "Starbase-Docking-Directional.png", "https://www.startrekdesignproject.com/symbols/starbase-docking-directional", "Alpha", "2300s", "The Next Generation", "S01E15 11001001");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Starbase-Docking-Directional.png", "Starfleet");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Starbase-Docking-Directional.png", "Advisory");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Starbase-Docking-Directional.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Welcome to Starbase 74", "Welcome-to-Starbase-74.png", "https://www.startrekdesignproject.com/symbols/welcome-to-starbase-74", "Alpha", "2300s", "The Next Generation", "S01E15 11001001");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Welcome-to-Starbase-74.png", "Starfleet");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Welcome-to-Starbase-74.png", "Advisory");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Welcome-to-Starbase-74.png", "Prime");
