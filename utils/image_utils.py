@@ -1192,7 +1192,7 @@ async def generate_unowned_badge_preview(user_id, badge):
 
   return file, url
 
-async def generate_singular_badge_slot(badge, border_color=None, crystal=None):
+async def generate_singular_badge_slot(badge, border_color=None, crystal=None, show_crystal_icon=False):
   """
   Used by `/profile` to display/show off selected badge
   Just the badge + crystal effects image(s) placed on a simple slot
@@ -1232,6 +1232,17 @@ async def generate_singular_badge_slot(badge, border_color=None, crystal=None):
     frame_y = round((dims.slot_height - scaled_frame.height) / 2)
 
     slot_canvas.paste(scaled_frame, (frame_x, frame_y), scaled_frame)
+
+    crystal_icon = badge.get("crystal_icon", None)
+    if crystal_icon and show_crystal_icon:
+      y_offset = 16
+      icon_path = f"./images/templates/crystals/icons/{crystal_icon}"
+      try:
+        icon_img = Image.open(icon_path).convert("RGBA")
+        icon_img.thumbnail((48, 48))
+        slot_canvas.paste(icon_img, (dims.slot_width - 46, y_offset), icon_img)
+      except Exception as e:
+        logger.warning(f"[generate_singular_badge_slot] Could not load icon at {icon_path}: {e}")
 
     # Final rounded mask to clip anything outside the border
     final_mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)

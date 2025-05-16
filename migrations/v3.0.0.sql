@@ -156,7 +156,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Cryonetrium", 2, "cryonetrium.png", "cryonetrium", "Still gaseous at -200°C, that's some cold coolant!"),
   ('Verterium Cortenide', 2, 'verterium_cortenide.png', 'verterium_cortenide', 'Essential alloy used in Starship Warp Nacelles. Emits faint subspace displacement harmonics.'),
   ('Boridium', 2, 'boridium.png', 'boridium', 'Energetic material with many uses. Boridium is the powerhouse of the power cell.'),
-  ('Invidium', 2, 'invidium.png', 'invidium', 'Known to reverse polarity fields. If made "visible," causes light to bend the wrong way around it.'),
+  ('Invidium', 2, 'invidium.png', 'invidium', 'Known to reverse polarity fields. If made "visible" it causes light to bend the wrong way around it.'),
   ('Remalite', 2, 'remalite.png', 'remalite', 'Holds crystalline harmonic properties used by the Cymari. Resonantes stability.'),
   ('Vokaya', 2, 'vokaya.png', 'vokaya', 'Turquoise mineral unique to Vulcan. Emits a harmless but distinctive radiation.'),
   ('Kironide', 2, 'kironide.png', 'kironide', 'A strange mineral that grants psionic abilities to those who ingest it. Mind-meldting!'),

@@ -208,16 +208,13 @@ async def db_get_badges_user_has_from_affiliation(user_id, affiliation, prestige
     await query.execute(sql, tuple(params))
     return await query.fetchall()
 
-async def db_get_random_badges_from_user_by_affiliations(user_id: int, prestige: int = None) -> list[dict]:
+async def db_get_random_badges_from_user_by_affiliations(user_id: int, prestige: int = None) -> dict[str, str]:
   sql = f"""
     SELECT
-      {BADGE_INSTANCE_COLUMNS},
+      b_i.badge_filename,
       b_a.affiliation_name
     FROM badge_instances AS b
     JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
-    LEFT JOIN badge_crystals AS c ON c.badge_instance_id = b.id AND c.crystal_instance_id = b.active_crystal_id
-    LEFT JOIN crystal_instances AS ci ON c.crystal_instance_id = ci.id
-    LEFT JOIN crystal_types AS t ON ci.crystal_type_id = t.id
     JOIN badge_affiliation AS b_a ON b_i.badge_filename = b_a.badge_filename
     WHERE b.owner_discord_id = %s
   """
@@ -226,10 +223,11 @@ async def db_get_random_badges_from_user_by_affiliations(user_id: int, prestige:
     sql += " AND b.prestige_level = %s"
     params.append(prestige)
 
-  sql += " ORDER BY RAND() LIMIT 12"
+  sql += " ORDER BY RAND()"
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, tuple(params))
-    return await db.fetchall()
+    rows = await db.fetchall()
+    return {r['affiliation_name']: r['badge_filename'] for r in rows}
 
 # Franchises
 async def db_get_all_franchises():

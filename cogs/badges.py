@@ -16,6 +16,7 @@ from queries.badge_completion import *
 from queries.badge_info import *
 from queries.badge_instances import *
 from queries.badge_scrap import *
+from queries.crystal_instances import *
 from queries.wishlists import *
 from queries.trade import *
 
@@ -443,28 +444,54 @@ class Badges(commands.Cog):
         pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, disabled=bool(len(set_badges) <= 30), row=1),
       ]
 
-      set_pages = [
+      class SetsPaginator(pages.Paginator):
+        def __init__(self, *args, badge_files: list[discord.File], **kwargs):
+          self.badge_files = badge_files
+          super().__init__(*args, **kwargs)
+
+        async def on_timeout(self):
+          # Close all buffers after timeout
+          for f in self.badge_files:
+            try:
+              f.fp.close()
+            except Exception:
+              pass
+          self.badge_files.clear()
+          gc.collect()
+
+      pages_list = [
         pages.Page(files=[image], embeds=[embed])
         for image in badge_images
       ]
-      paginator = pages.Paginator(
-          pages=set_pages,
-          show_disabled=True,
-          show_indicator=True,
-          use_default_buttons=False,
-          custom_buttons=buttons,
-          loop_pages=True
+
+      paginator = SetsPaginator(
+        pages=pages_list,
+        badge_files=badge_images,
+        show_disabled=True,
+        show_indicator=True,
+        use_default_buttons=False,
+        custom_buttons=buttons,
+        loop_pages=True
       )
       await paginator.respond(ctx.interaction, ephemeral=True)
+
     else:
       # We can only attach up to 10 files per message, so if it's public send them in chunks
       file_chunks = [badge_images[i:i + 10] for i in range(0, len(badge_images), 10)]
       for chunk_index, chunk in enumerate(file_chunks):
         # Only post the embed on the last chunk
         if chunk_index + 1 == len(file_chunks):
-          await ctx.followup.send(embed=embed, files=chunk, ephemeral=False)
+          await ctx.followup.send(embed=embed, files=chunk)
         else:
-          await ctx.followup.send(files=chunk, ephemeral=False)
+          await ctx.followup.send(files=chunk)
+        # Immediately close files after sending
+        for f in chunk:
+          try:
+            f.fp.close()
+          except Exception:
+            pass
+    badge_images.clear()
+    gc.collect()
 
 
   # _________                       .__          __  .__
@@ -585,35 +612,61 @@ class Badges(commands.Cog):
     # Otherwise private displays can use the paginator
     if not public:
       buttons = [
-        pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, disabled=bool(len(all_rows) <= 7), row=1),
+        pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, disabled=bool(len(set_badges) <= 30), row=1),
         pages.PaginatorButton(
           "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
         ),
-        pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, disabled=bool(len(all_rows) <= 7), row=1),
+        pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, disabled=bool(len(set_badges) <= 30), row=1),
       ]
 
-      set_pages = [
+      class CompletionPaginator(pages.Paginator):
+        def __init__(self, *args, badge_files: list[discord.File], **kwargs):
+          self.badge_files = badge_files
+          super().__init__(*args, **kwargs)
+
+        async def on_timeout(self):
+          # Close all buffers after timeout
+          for f in self.badge_files:
+            try:
+              f.fp.close()
+            except Exception:
+              pass
+          self.badge_files.clear()
+          gc.collect()
+
+      pages_list = [
         pages.Page(files=[image], embeds=[embed])
         for image in completion_images
       ]
-      paginator = pages.Paginator(
-          pages=set_pages,
-          show_disabled=True,
-          show_indicator=True,
-          use_default_buttons=False,
-          custom_buttons=buttons,
-          loop_pages=True
+
+      paginator = CompletionPaginator(
+        pages=pages_list,
+        badge_files=completion_images,
+        show_disabled=True,
+        show_indicator=True,
+        use_default_buttons=False,
+        custom_buttons=buttons,
+        loop_pages=True
       )
       await paginator.respond(ctx.interaction, ephemeral=True)
+
     else:
       # We can only attach up to 10 files per message, so if it's public send them in chunks
       file_chunks = [completion_images[i:i + 10] for i in range(0, len(completion_images), 10)]
       for chunk_index, chunk in enumerate(file_chunks):
         # Only post the embed on the last chunk
         if chunk_index + 1 == len(file_chunks):
-          await ctx.followup.send(embed=embed, files=chunk, ephemeral=not public)
+          await ctx.followup.send(embed=embed, files=chunk)
         else:
-          await ctx.followup.send(files=chunk, ephemeral=not public)
+          await ctx.followup.send(files=chunk)
+        # Immediately close files after sending
+        for f in chunk:
+          try:
+            f.fp.close()
+          except Exception:
+            pass
+    completion_images.clear()
+    gc.collect()
 
 
   async def _append_featured_completion_badges(self, user_id, rows, category, prestige):
@@ -1053,7 +1106,7 @@ class Badges(commands.Cog):
       colors = get_theme_colors(pref)
       main_color_tuple = colors.highlight
 
-    badge_frames = await generate_singular_badge_slot(badge_instance, border_color=main_color_tuple)
+    badge_frames = await generate_singular_badge_slot(badge_instance, border_color=main_color_tuple, show_crystal_icon=True)
 
     discord_file = None
     if len(badge_frames) > 1:
@@ -1082,8 +1135,9 @@ class Badges(commands.Cog):
     embed.add_field(name="Badge Name", value=badge_instance['badge_name'], inline=False)
     embed.add_field(name="Owned By", value=f"{ctx.author.mention}", inline=False)
     embed.add_field(name="Prestige Tier", value=PRESTIGE_TIERS[prestige], inline=False)
-    if badge_instance['crystal_name']:
-      embed.add_field(name="Crystal", value=f"{badge_instance['crystal_name']}", inline=False)
+    if badge_instance.get('crystal_instance_id'):
+      crystal_instance = await db_get_crystal_by_id(badge_instance['crystal_instance_id'])
+      embed.add_field(name="Crystal", value=f"{crystal_instance['emoji']}  {crystal_instance['crystal_name']} ({crystal_instance['rarity_name']})", inline=False)
     embed.add_field(name="Franchise", value=badge_info['franchise'] or "Unknown", inline=False)
     embed.add_field(name="Time Period", value=badge_info['time_period'] or "Unknown", inline=False)
 
