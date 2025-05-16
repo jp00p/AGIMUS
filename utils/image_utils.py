@@ -1361,13 +1361,11 @@ def compose_badge_slot(
 
   return slot_frames
 
-# def get_slot_canvas(prestige, standard_border_color):
-#   pass
 
 _SLOT_CANVAS_CACHE = {}
 def get_slot_canvas(prestige, border_color):
 
-  cache_key = prestige if prestige else border_color
+  cache_key = (prestige, border_color)
   if _SLOT_CANVAS_CACHE.get(cache_key):
     return _SLOT_CANVAS_CACHE[cache_key]
 

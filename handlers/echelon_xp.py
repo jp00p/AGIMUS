@@ -71,7 +71,7 @@ async def force_set_xp(user_discord_id: str, new_xp: int, reason: str):
   new_level = level_for_total_xp(new_xp)
 
   await db_update_echelon_progress(user_discord_id, new_xp, new_level)
-  await db_insert_echelon_history(user_discord_id, 0, new_level, reason)  # 0 xp gained, just admin override
+  await db_insert_echelon_history(user_discord_id, 0, new_level, None, reason)  # 0 xp gained, just admin override
 
 
 # .____                      .__     ____ ___       ._.

@@ -1,10 +1,11 @@
 import numpy as np
+from functools import lru_cache
 from pathlib import Path
+from typing import Dict
 
 from common import *
 
 from utils.thread_utils import threaded_image_open, to_thread
-from typing import Dict
 
 
 BADGE_THUMBNAIL_SIZE = 190
