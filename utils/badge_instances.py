@@ -8,6 +8,12 @@ from queries.wishlists import db_get_active_wants
 async def create_new_badge_instance(user_id: int, badge_info_id: int, prestige_level: int = 0, event_type: str = 'level_up') -> dict:
   logger.info(f"[DEBUG] Creating new badge instance: user={user_id}, badge_info_id={badge_info_id}, prestige={prestige_level}")
 
+  # Mark if this badge was on their wishlist at this prestige tier
+  was_on_wishlist = False
+  active_wants = await db_get_active_wants(user_id, prestige_level)
+  if any(w['badge_info_id'] == badge_info_id for w in active_wants):
+    was_on_wishlist = True
+
   # Insert a new active, unlocked badge instance
   insert_instance = """
     INSERT INTO badge_instances (badge_info_id, owner_discord_id, origin_user_id, prestige_level, status)
@@ -27,9 +33,9 @@ async def create_new_badge_instance(user_id: int, badge_info_id: int, prestige_l
 
   # Fetch full record with badge info
   instance = await db_get_badge_instance_by_id(instance_id)
-  # Autolock if this badge was on their wishlist at this prestige tier
-  active_wants = await db_get_active_wants(user_id, prestige_level)
-  if any(w['badge_info_id'] == badge_info_id for w in active_wants):
+
+  # Autolock and tag it if it was wishlisted for use in messaging
+  if was_on_wishlist:
     await db_lock_badge_instance(instance_id)
     instance['was_on_wishlist'] = True
 
@@ -76,6 +82,12 @@ async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type:
     VALUES (%s, %s, %s, %s)
   """
 
+  # Check recipient has it on their wishlist first, *before* the transfer
+  was_on_wishlist = False
+  active_wants = await db_get_active_wants(to_user_id, prestige_level)
+  if any(w['badge_info_id'] == badge_info_id for w in active_wants):
+    was_on_wishlist = True
+
   async with AgimusDB(dictionary=True) as db:
     await db.execute(query_fetch, (instance_id,))
     row = await db.fetchone()
@@ -92,9 +104,7 @@ async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type:
     # Log history
     await db.execute(query_insert, (instance_id, from_user_id, to_user_id, event_type))
 
-  # Check recipient's wishlist and lock if desired
-  active_wants = await db_get_active_wants(to_user_id, prestige_level)
-  if any(w['badge_info_id'] == badge_info_id for w in active_wants):
+  if was_on_wishlist:
     await db_lock_badge_instance(instance_id)
 
 
