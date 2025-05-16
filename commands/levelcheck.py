@@ -16,7 +16,7 @@ async def levelcheck(ctx: discord.ApplicationContext):
   total_xp = xp_data['total_xp']
 
   embed = discord.Embed(
-    title="🧮 Echelon XP Progress",
+    title="📈 Echelon XP Progress",
     color=discord.Color.teal()
   )
   embed.add_field(

@@ -315,6 +315,20 @@ async def db_get_total_badge_instances_count_by_filename(filename: str) -> int:
     row = await query.fetchone()
   return row["count"]
 
+
+async def db_get_badge_instances_prestige_count_by_filename(badge_filename: str) -> list[dict]:
+  sql = """
+    SELECT prestige_level, COUNT(*) as count
+    FROM badge_instances bi
+    JOIN badge_info binfo ON bi.badge_info_id = binfo.id
+    WHERE binfo.badge_filename = %s
+      AND bi.active = TRUE
+    GROUP BY prestige_level
+    ORDER BY prestige_level
+  """
+  async with AgimusDB(dictionary=True) as db:
+    return await db.query(sql, [badge_filename])
+
 # Lock/Unlock Helpers
 async def db_lock_badge_instance(instance_id: int):
   async with AgimusDB() as db:

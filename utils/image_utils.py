@@ -503,7 +503,7 @@ def _compose_grid_slot(badge, collection_type, theme, badge_image):
     frames = badge_image if isinstance(badge_image, list) else [badge_image]
     for frame in frames:
       faded = frame.copy()
-      faded.putalpha(64)
+      faded.putalpha(32)
       base = frame.copy()
       base.paste(faded, faded)
       faded_frames.append(base)
