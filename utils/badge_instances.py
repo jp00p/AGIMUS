@@ -84,15 +84,17 @@ async def transfer_badge_instance(instance_id: int, to_user_id: int, event_type:
 
   # Check recipient has it on their wishlist first, *before* the transfer
   was_on_wishlist = False
-  active_wants = await db_get_active_wants(to_user_id, prestige_level)
-  if any(w['badge_info_id'] == badge_info_id for w in active_wants):
-    was_on_wishlist = True
 
   async with AgimusDB(dictionary=True) as db:
     await db.execute(query_fetch, (instance_id,))
     row = await db.fetchone()
     if not row:
       return
+
+    prestige_level = row['prestige_level']
+    active_wants = await db_get_active_wants(to_user_id, prestige_level)
+    if any(w['badge_info_id'] == badge_info_id for w in active_wants):
+      was_on_wishlist = True
 
     from_user_id = int(row['owner_discord_id']) if row['owner_discord_id'] is not None else None
     badge_info_id = row['badge_info_id']
