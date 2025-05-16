@@ -208,6 +208,8 @@ class Crystals(commands.Cog):
     user = ctx.user
     user_id = user.id
 
+    logger.info(f"{ctx.user.display_name} is using the {Style.BRIGHT}Crystal Pattern Buffer Replicator{Style.RESET_ALL} with {Style.BRIGHT}`/crystals replicate`{Style.RESET_ALL}!")
+
     buffer_credits = await db_get_user_crystal_buffer_count(user_id)
     if not buffer_credits:
       # TODO: Find an appopriate GIF for this...
@@ -261,6 +263,8 @@ class Crystals(commands.Cog):
 
         crystal = await create_new_crystal_instance(user_id, crystal_type['id'])
         await db_decrement_user_crystal_buffer(user_id)
+
+        logger.info(f"{ctx.user.display_name} received the {Style.BRIGHT}{crystal['crystal_name']}{Style.RESET_ALL} Crystal from the {Style.BRIGHT}Crystal Replicator{Style.RESET_ALL}!")
 
         confirmation_embed = discord.Embed(
           title='Crystal Replication In Progress!',
@@ -324,6 +328,9 @@ class Crystals(commands.Cog):
   async def manifest(self, ctx: discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
+
+    logger.info(f"{ctx.user.display_name} is pulling up their {Style.BRIGHT}Crystal Manifest{Style.RESET_ALL} with {Style.BRIGHT}`/crystals manifest`{Style.RESET_ALL}!")
+
     crystals = await db_get_user_unattuned_crystals(user_id)
 
     if not crystals:
@@ -501,6 +508,8 @@ class Crystals(commands.Cog):
       )
       return
 
+    logger.info(f"{ctx.user.display_name} is {Style.BRIGHT}Attuning{Style.RESET_ALL} the Crystal {Style.BRIGHT}{crystal_instance['crystal_name']}{Style.RESET_ALL} to {Style.BRIGHT}{[badge_instance['badge_name']]}{Style.RESET_ALL} with {Style.BRIGHT}`/crystals attune`{Style.RESET_ALL}!")
+
     # Get already-attuned crystal types for this badge
     already_attuned_type_ids = await db_get_attuned_crystal_type_ids(badge_instance['badge_instance_id'])
 
@@ -664,6 +673,8 @@ class Crystals(commands.Cog):
       return
 
     crystal_instance = await db_get_crystal_by_id(crystal)
+
+    logger.info(f"{ctx.user.display_name} is {Style.BRIGHT}Harmonizing{Style.RESET_ALL} the Crystal {Style.BRIGHT}{crystal_instance['crystal_name']}{Style.RESET_ALL} to {Style.BRIGHT}{[badge_instance['badge_name']]}{Style.RESET_ALL} with {Style.BRIGHT}`/crystals harmonize`{Style.RESET_ALL}!")
 
     if badge_instance.get('active_crystal_id') == crystal_instance.get('badge_crystal_id'):
       embed = discord.Embed(

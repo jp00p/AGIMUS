@@ -158,6 +158,7 @@ class Badges(commands.Cog):
   )
   async def collection(self, ctx:discord.ApplicationContext, prestige:str, public:str, filter:str, sortby:str, color:str):
     public = (public == "yes")
+    logger.info(f"{ctx.author.display_name} is pulling up their {Style.BRIGHT}`/badges collection`{Style.RESET_ALL}!")
 
     if not await is_prestige_valid(ctx, prestige):
       return
@@ -356,6 +357,8 @@ class Badges(commands.Cog):
   async def sets(self, ctx:discord.ApplicationContext, public:str, prestige:str, category:str, selection:str, color:str):
     public = bool(public == "yes")
     await ctx.defer(ephemeral=not public)
+
+    logger.info(f"{ctx.author.display_name} is pulling up a {Style.BRIGHT}`/badges sets`{Style.RESET_ALL}!")
 
     if not await is_prestige_valid(ctx, prestige):
       return
