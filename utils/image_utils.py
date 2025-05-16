@@ -1326,7 +1326,7 @@ def compose_badge_slot(
       elif badge.get("locked"):
         overlay = LOCK_ICON
       if overlay:
-        slot_canvas.paste(overlay, (dims.slot_width - 42, 16), overlay)
+        slot_canvas.paste(overlay, (dims.slot_width - 40, 16), overlay)
 
     crystal_icon = badge.get("crystal_icon", None)
     if crystal_icon:
@@ -1337,7 +1337,7 @@ def compose_badge_slot(
       try:
         icon_img = Image.open(icon_path).convert("RGBA")
         icon_img.thumbnail((48, 48))
-        slot_canvas.paste(icon_img, (dims.slot_width - 44, y_offset), icon_img)
+        slot_canvas.paste(icon_img, (dims.slot_width - 40, y_offset), icon_img)
       except Exception as e:
         logger.warning(f"[compose_badge_slot] Could not load icon at {icon_path}: {e}")
 
