@@ -505,15 +505,17 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Isolinear", 3, "isolinear.png", "isolinear_circuit", "Shimoda's favorite circuitry plaything. Fully stackable!"),
   ("Farpoint Sphere", 3, "farpoint_sphere.png", "q_grid", "Has a warm feeling, like being wrapped in a big Pendleton blanket. How Q-rious..."),
   ('Transparent Aluminum', 3, 'transparent_aluminum.png', 'transparency_starfield', 'Revolutionary compound. Transparent, resilient, and rumored to have been invented by a time traveler...'),
+  ('Alabama River Rock', 3, 'alabama_river_rock.png', 'alabama_rocks', "The Captain's Assistant's favorite Crystal. Helps prevent jet fuel from 'sploding."),
 
   -- Legendary Crystals (Animations)
   ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "EJECTED FROM A CORE! Hums with that familiar pulse."),
   ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Distortions abound when these are around!"),
   ("Triaxilation Node", 4, "triaxilation_node.png", "static_cascade", "Essential to subspace communications. Emits a pulsing cascade that resonates across signal channels."),
+  ("Chroniton", 4, "chroniton.png", "temporal_flicker", "Time travel! Glitches in and out of this temporal frame."),
 
   -- Mythic Crystals (Prestige Animations)
+  ("Borg Nanocluster", 5, "borg_nanocluster.png", "borg_reconstruction", "A Collective collectable. Reconstructs whatever it touches (whether it wants to or not)."),
   ("Bajoran Orb", 5, "bajoran_orb.png", "celestial_temple", "A Tear of the Prophets. My Child!"),
-  ("Chroniton", 5, "chroniton.png", "phase_flicker", "Time travel! Glitches in and out of this temporal frame."),
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable.");
 
 -- Crystal Pattern Buffers (Credits to redeem for Crystals)

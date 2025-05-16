@@ -11,9 +11,20 @@ from scipy.ndimage import map_coordinates, binary_dilation, gaussian_filter
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
 
 FRAME_SIZE = (190, 190)
+TOTAL_FRAMES = 24
 ANIMATION_FPS = 12
 ANIMATION_DURATION = 2.0
 
+
+# Helpers
+def get_badge_bounds(mask: Image.Image) -> tuple[int, int, int, int]:
+  """
+  Returns bounding box of non-transparent pixels in the alpha mask.
+  """
+  bbox = mask.getbbox()
+  if bbox:
+    return bbox
+  return 0, 0, mask.width, mask.height
 
 # --- Thread-safe loader wrappers ---
 @to_thread
@@ -1014,91 +1025,81 @@ def effect_subspace_ripple(base_img: Image.Image, badge: dict) -> list[Image.Ima
   return frames
 
 
-@register_effect("shimmer_flux")
-def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]:
+@register_effect("temporal_flicker")
+def effect_temporal_flicker(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   """
-  Projects a shimmering beam diagonally across the badge while
-  generating bloom, ripple distortions, and chromatic shell overlays.
-  Highly animated and prism-like.
+  Introduces animated glitches such as chromatic aberation, position jitter,
+  scanline shifts, scaling flickers, and frame blinks. Emulates unstable
+  temporal phasing of the badge.
+
+  Used for the Chroniton crystal (Legendary tier).
 
   Returns:
     List of RGBA frames as PIL.Image.Image.
-
-  Used for the Omega Molecule crystal (Legendary tier).
   """
-  frame_size = FRAME_SIZE
   fps = ANIMATION_FPS
-  duration = ANIMATION_DURATION
-  num_frames = int(duration * fps)
-  band_width = int(128 * 0.8)
-  max_displacement = 24
-  beam_alpha = int(80 * 0.7)
-  beam_color = (60, 120, 255, beam_alpha)
-  blur_radius = 32
-  width, height = frame_size
+  hold_frames, drift_frames, glitch_frames = 8, 8, 8
+  drift_amount = 0.5
+  scanline_indices = [4, 5, 6, 7]
+  blink_scales = [1.0, 0.97, 1.08, 0.93, 1.12, 1.0, 0.95, 1.05]
+  center = ((FRAME_SIZE[0] - base_img.width) // 2, (FRAME_SIZE[1] - base_img.height) // 2)
+  frames = []
 
-  def shimmer_flux_base(badge_img: Image.Image, frame_index: int) -> Image.Image:
-    mask = badge_img.getchannel('A').point(lambda p: 255 if p > 0 else 0)
+  def apply_linear_drift(img, i, drift):
+    dx = int(drift[0] * i)
+    dy = int(drift[1] * i)
+    r, g, b, a = img.split()
+    r = ImageChops.offset(r, 2, 0)
+    b = ImageChops.offset(b, -1, 0)
+    rgb = Image.merge("RGB", (r, g, b))
+    merged = Image.merge("RGBA", (*rgb.split(), a))
+    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    canvas.paste(merged, (center[0] + dx, center[1] + dy), merged)
+    return canvas
 
-    pulse = 0.5 + 0.5 * np.sin(2 * np.pi * frame_index / num_frames)
-    dilation = 4 + int(4 * pulse)
-    blurred = mask.filter(ImageFilter.GaussianBlur(radius=dilation))
+  def apply_jitter(img, i):
+    np.random.seed(i + 100)
+    jitter_x, jitter_y = np.random.randint(-12, 13, size=2)
+    np.random.seed(i)
+    jitters = np.random.randint(-6, 7, (3, 2))
+    r, g, b, a = img.split()
+    r = ImageChops.offset(r, *jitters[0])
+    g = ImageChops.offset(g, *jitters[1])
+    b = ImageChops.offset(b, *jitters[2])
+    rgb = Image.merge("RGB", (r, g, b))
+    merged = Image.merge("RGBA", (*rgb.split(), a))
+    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    canvas.paste(merged, (center[0] + jitter_x, center[1] + jitter_y), merged)
+    return canvas
 
-    cyan = Image.new("RGBA", frame_size, (40, 255, 255, 180))
-    teal = Image.new("RGBA", frame_size, (0, 200, 180, 180))
-    blue = Image.new("RGBA", frame_size, (80, 120, 255, 180))
+  def apply_scanline_shift(img, i):
+    pixels = np.array(img)
+    for y in range(0, pixels.shape[0], 2):
+      shift = int(8 * math.sin(2 * math.pi * (i / 6) + y / 12))
+      pixels[y] = np.roll(pixels[y], shift, axis=0)
+    return Image.fromarray(pixels, "RGBA")
 
-    cyan.putalpha(blurred)
-    teal.putalpha(blurred)
-    blue.putalpha(blurred)
+  for _ in range(hold_frames):
+    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    canvas.paste(base_img, center, base_img)
+    frames.append(canvas)
 
-    cyan = ImageChops.offset(cyan, -1, 0)
-    teal = ImageChops.offset(teal, 0, -1)
-    blue = ImageChops.offset(blue, 1, 1)
+  for i in range(drift_frames):
+    frames.append(apply_linear_drift(base_img, i, (drift_amount, drift_amount)))
 
-    shell = Image.alpha_composite(Image.alpha_composite(cyan, teal), blue)
+  for i in range(glitch_frames):
+    scale = blink_scales[i]
+    scaled = base_img.resize((int(base_img.width * scale), int(base_img.height * scale)), Image.LANCZOS)
+    frame = apply_jitter(scaled, i)
+    if i in scanline_indices:
+      frame = apply_scanline_shift(frame, i)
+    frames.append(frame)
 
-    edge = mask.filter(ImageFilter.FIND_EDGES).filter(ImageFilter.GaussianBlur(radius=2))
-    bloom = Image.new("RGBA", frame_size, (160, 140, 255, int(100 + 80 * pulse)))
-    bloom.putalpha(edge)
+  snap = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+  snap.paste(base_img, center, base_img)
+  frames.append(snap)
 
-    glow = badge_img.filter(ImageFilter.GaussianBlur(radius=6 + 4 * pulse))
-    glow = ImageEnhance.Brightness(glow).enhance(1.6 + pulse * 0.8)
-    combined = Image.alpha_composite(glow, badge_img)
-    with_bloom = Image.alpha_composite(combined, bloom)
-    final = Image.alpha_composite(shell, with_bloom)
-    return final
-
-  def shimmer_flux_frame(badge: Image.Image, frame_index: int) -> Image.Image:
-    frame = shimmer_flux_base(badge, frame_index)
-
-    center_pos = int((frame_index / num_frames) * (width + height))
-    beam = Image.new("RGBA", frame_size, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(beam)
-    for y in range(-height, 2 * height, 2):
-      x = int(center_pos - y)
-      draw.rectangle([(x - band_width, y), (x + band_width, y + 2)], fill=beam_color)
-    beam = beam.filter(ImageFilter.GaussianBlur(radius=blur_radius))
-
-    mask = badge.getchannel('A').point(lambda p: 255 if p > 0 else 0)
-    masked_beam = Image.composite(beam, Image.new("RGBA", frame_size, (0, 0, 0, 0)), mask)
-
-    badge_arr = np.array(badge)
-    distorted = np.copy(badge_arr)
-    for y in range(height):
-      for x in range(width):
-        dx = x + y - center_pos
-        if -band_width <= dx <= band_width:
-          strength = 1 - abs(dx) / band_width
-          offset = int(max_displacement * strength * np.sin(frame_index / num_frames * 2 * np.pi))
-          sx = min(max(x + offset, 0), width - 1)
-          distorted[y, x] = badge_arr[y, sx]
-
-    distorted_img = Image.fromarray(distorted, mode='RGBA')
-    with_distortion = Image.alpha_composite(frame, ImageChops.darker(distorted_img, badge))
-    return Image.alpha_composite(with_distortion, masked_beam)
-
-  return [shimmer_flux_frame(base_img, i) for i in range(num_frames)]
+  return frames
 
 
 @register_effect("static_cascade")
@@ -1107,11 +1108,13 @@ def effect_static_cascade(base_img: Image.Image, badge) -> list[Image.Image]:
   Applies a thick horizontal distortion wave that travels vertically
   across the badge, with baked-in scanlines and alpha-safe frames.
 
-  Returns a list of 24 RGBA animation frames (12fps).
+  Used for the Triaxilation Node crystal (Legendary tier).
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
   """
   pad = 16
-  total_frames = 24
-  duration = int(1000 / 12)
+  total_frames = TOTAL_FRAMES
   amplitude = 14
   band_height = 31
 
@@ -1187,81 +1190,112 @@ def effect_static_cascade(base_img: Image.Image, badge) -> list[Image.Image]:
 #                                   98"                   J88"
 #                                 ./"                     @%
 #                                ~`                     :"
-@register_effect("phase_flicker")
-def effect_phase_flicker(base_img: Image.Image, badge: dict) -> list[Image.Image]:
+@register_effect("borg_reconstruction")
+def effect_borg_reconstruction(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   """
-  Introduces animated glitches such as chromatic aberation, position jitter,
-  scanline shifts, scaling flickers, and frame blinks. Emulates unstable
-  temporal phasing of the badge.
+  Animated tile-by-tile badge construction with growing green nanotiles.
 
-  Used for the Chroniton crystal (Mythic tier).
+  - Tiles ease in at randomized speeds but finish in sync.
+  - Grayscale base, dark green overlay glow.
+  - 20-frame construction + 4-frame fade-out (24fps loop).
 
   Returns:
-    List of RGBA frames as PIL.Image.Image.
+    List of RGBA frames (24 total) for animated display.
   """
-  fps = ANIMATION_FPS
-  hold_frames, drift_frames, glitch_frames = 8, 8, 8
-  drift_amount = 0.5
-  scanline_indices = [4, 5, 6, 7]
-  blink_scales = [1.0, 0.97, 1.08, 0.93, 1.12, 1.0, 0.95, 1.05]
-  center = ((FRAME_SIZE[0] - base_img.width) // 2, (FRAME_SIZE[1] - base_img.height) // 2)
+  total_frames = TOTAL_FRAMES
+  construct_frames = 20
+  fade_frames = 4
+  cols, rows = 8, 8
+  tile_w = base_img.width // cols
+  tile_h = base_img.height // rows
+  alpha = base_img.getchannel("A")
+  target_green = (40, 150, 70)
+
+  def ease_out(t):
+    return 1 - (1 - t) ** 3
+
+  def interpolate(c1, c2, t):
+    return tuple(int(c1[i] + (c2[i] - c1[i]) * t) for i in range(3))
+
+  def normalized_eased_progress(t_global, scale):
+    t_scaled = min(t_global * scale, 1.0)
+    eased = ease_out(t_scaled)
+    max_eased = ease_out(min(1.0 * scale, 1.0))
+    return eased / max_eased if max_eased > 0 else 1.0
+
+  # Generate animated tiles
+  tiles = []
+  for row in range(rows):
+    for col in range(cols):
+      x = col * tile_w
+      y = row * tile_h
+      tile = base_img.crop((x, y, x + tile_w, y + tile_h))
+      alpha_tile = alpha.crop((x, y, x + tile_w, y + tile_h))
+      gray_tile = ImageOps.grayscale(tile.convert("RGB")).convert("RGBA")
+      gray_tile.putalpha(alpha_tile)
+
+      cx = x + tile_w // 2
+      cy = y + tile_h // 2
+      dx = cx - base_img.width // 2
+      dy = cy - base_img.height // 2
+      norm = math.hypot(dx, dy) or 1
+      offset_scale = random.uniform(1.5, 2.5)
+      offset = (int((dx / norm) * offset_scale * tile_w),
+                int((dy / norm) * offset_scale * tile_h))
+
+      tiles.append({
+        "tile": gray_tile,
+        "start": (x + offset[0], y + offset[1]),
+        "end": (x, y),
+        "easing_scale": random.uniform(0.6, 1.4),
+        "fade_scale": random.uniform(0.85, 1.0),
+        "start_green": (
+          random.randint(15, 40),
+          random.randint(90, 130),
+          random.randint(25, 50)
+        )
+      })
+
+  # Build frame sequence
   frames = []
+  for i in range(total_frames):
+    frame = Image.new("RGBA", base_img.size, (0, 0, 0, 0))
 
-  def apply_linear_drift(img, i, drift):
-    dx = int(drift[0] * i)
-    dy = int(drift[1] * i)
-    r, g, b, a = img.split()
-    r = ImageChops.offset(r, 2, 0)
-    b = ImageChops.offset(b, -1, 0)
-    rgb = Image.merge("RGB", (r, g, b))
-    merged = Image.merge("RGBA", (*rgb.split(), a))
-    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
-    canvas.paste(merged, (center[0] + dx, center[1] + dy), merged)
-    return canvas
+    if i < construct_frames:
+      t_global = i / (construct_frames - 1)
+      glow_intensity = t_global
+      opacity_mult = 1.0
+    else:
+      t_global = 1.0
+      fade_progress = (i - construct_frames) / (fade_frames - 1)
+      glow_intensity = 1.0 - ease_out(fade_progress)
+      opacity_mult = glow_intensity
 
-  def apply_jitter(img, i):
-    np.random.seed(i + 100)
-    jitter_x, jitter_y = np.random.randint(-12, 13, size=2)
-    np.random.seed(i)
-    jitters = np.random.randint(-6, 7, (3, 2))
-    r, g, b, a = img.split()
-    r = ImageChops.offset(r, *jitters[0])
-    g = ImageChops.offset(g, *jitters[1])
-    b = ImageChops.offset(b, *jitters[2])
-    rgb = Image.merge("RGB", (r, g, b))
-    merged = Image.merge("RGBA", (*rgb.split(), a))
-    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
-    canvas.paste(merged, (center[0] + jitter_x, center[1] + jitter_y), merged)
-    return canvas
+    for t in tiles:
+      eased = normalized_eased_progress(t_global, t["easing_scale"])
+      sx, sy = t["start"]
+      ex, ey = t["end"]
+      cx = int(sx + (ex - sx) * eased)
+      cy = int(sy + (ey - sy) * eased)
 
-  def apply_scanline_shift(img, i):
-    pixels = np.array(img)
-    for y in range(0, pixels.shape[0], 2):
-      shift = int(8 * math.sin(2 * math.pi * (i / 6) + y / 12))
-      pixels[y] = np.roll(pixels[y], shift, axis=0)
-    return Image.fromarray(pixels, "RGBA")
+      tile = t["tile"].copy()
+      alpha_layer = tile.getchannel("A").point(
+        lambda a: int(a * eased * opacity_mult * t["fade_scale"])
+      )
+      tile.putalpha(alpha_layer)
 
-  for _ in range(hold_frames):
-    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
-    canvas.paste(base_img, center, base_img)
-    frames.append(canvas)
+      glow_color = interpolate(t["start_green"], target_green, glow_intensity)
+      overlay = Image.new("RGBA", tile.size, glow_color + (0,))
+      glow_mask = alpha_layer.point(lambda a: int(a * glow_intensity * 0.7))
+      overlay.putalpha(glow_mask)
+      glowing_tile = Image.alpha_composite(tile, overlay)
 
-  for i in range(drift_frames):
-    frames.append(apply_linear_drift(base_img, i, (drift_amount, drift_amount)))
+      frame.paste(glowing_tile, (cx, cy), glowing_tile)
 
-  for i in range(glitch_frames):
-    scale = blink_scales[i]
-    scaled = base_img.resize((int(base_img.width * scale), int(base_img.height * scale)), Image.LANCZOS)
-    frame = apply_jitter(scaled, i)
-    if i in scanline_indices:
-      frame = apply_scanline_shift(frame, i)
     frames.append(frame)
 
-  snap = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
-  snap.paste(base_img, center, base_img)
-  frames.append(snap)
-
   return frames
+
 
 @register_effect("celestial_temple")
 def effect_celestial_temple(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
@@ -1348,12 +1382,88 @@ def effect_celestial_temple(badge_image: Image.Image, badge: dict) -> list[Image
   return output_frames
 
 
-# Helpers
-def get_badge_bounds(mask: Image.Image) -> tuple[int, int, int, int]:
+@register_effect("shimmer_flux")
+def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]:
   """
-  Returns bounding box of non-transparent pixels in the alpha mask.
+  Projects a shimmering beam diagonally across the badge while
+  generating bloom, ripple distortions, and chromatic shell overlays.
+  Highly animated and prism-like.
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+
+  Used for the Omega Molecule crystal (Mythic tier).
   """
-  bbox = mask.getbbox()
-  if bbox:
-    return bbox
-  return 0, 0, mask.width, mask.height
+  frame_size = FRAME_SIZE
+  fps = ANIMATION_FPS
+  duration = ANIMATION_DURATION
+  num_frames = int(duration * fps)
+  band_width = int(128 * 0.8)
+  max_displacement = 24
+  beam_alpha = int(80 * 0.7)
+  beam_color = (60, 120, 255, beam_alpha)
+  blur_radius = 32
+  width, height = frame_size
+
+  def shimmer_flux_base(badge_img: Image.Image, frame_index: int) -> Image.Image:
+    mask = badge_img.getchannel('A').point(lambda p: 255 if p > 0 else 0)
+
+    pulse = 0.5 + 0.5 * np.sin(2 * np.pi * frame_index / num_frames)
+    dilation = 4 + int(4 * pulse)
+    blurred = mask.filter(ImageFilter.GaussianBlur(radius=dilation))
+
+    cyan = Image.new("RGBA", frame_size, (40, 255, 255, 180))
+    teal = Image.new("RGBA", frame_size, (0, 200, 180, 180))
+    blue = Image.new("RGBA", frame_size, (80, 120, 255, 180))
+
+    cyan.putalpha(blurred)
+    teal.putalpha(blurred)
+    blue.putalpha(blurred)
+
+    cyan = ImageChops.offset(cyan, -1, 0)
+    teal = ImageChops.offset(teal, 0, -1)
+    blue = ImageChops.offset(blue, 1, 1)
+
+    shell = Image.alpha_composite(Image.alpha_composite(cyan, teal), blue)
+
+    edge = mask.filter(ImageFilter.FIND_EDGES).filter(ImageFilter.GaussianBlur(radius=2))
+    bloom = Image.new("RGBA", frame_size, (160, 140, 255, int(100 + 80 * pulse)))
+    bloom.putalpha(edge)
+
+    glow = badge_img.filter(ImageFilter.GaussianBlur(radius=6 + 4 * pulse))
+    glow = ImageEnhance.Brightness(glow).enhance(1.6 + pulse * 0.8)
+    combined = Image.alpha_composite(glow, badge_img)
+    with_bloom = Image.alpha_composite(combined, bloom)
+    final = Image.alpha_composite(shell, with_bloom)
+    return final
+
+  def shimmer_flux_frame(badge: Image.Image, frame_index: int) -> Image.Image:
+    frame = shimmer_flux_base(badge, frame_index)
+
+    center_pos = int((frame_index / num_frames) * (width + height))
+    beam = Image.new("RGBA", frame_size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(beam)
+    for y in range(-height, 2 * height, 2):
+      x = int(center_pos - y)
+      draw.rectangle([(x - band_width, y), (x + band_width, y + 2)], fill=beam_color)
+    beam = beam.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+
+    mask = badge.getchannel('A').point(lambda p: 255 if p > 0 else 0)
+    masked_beam = Image.composite(beam, Image.new("RGBA", frame_size, (0, 0, 0, 0)), mask)
+
+    badge_arr = np.array(badge)
+    distorted = np.copy(badge_arr)
+    for y in range(height):
+      for x in range(width):
+        dx = x + y - center_pos
+        if -band_width <= dx <= band_width:
+          strength = 1 - abs(dx) / band_width
+          offset = int(max_displacement * strength * np.sin(frame_index / num_frames * 2 * np.pi))
+          sx = min(max(x + offset, 0), width - 1)
+          distorted[y, x] = badge_arr[y, sx]
+
+    distorted_img = Image.fromarray(distorted, mode='RGBA')
+    with_distortion = Image.alpha_composite(frame, ImageChops.darker(distorted_img, badge))
+    return Image.alpha_composite(with_distortion, masked_beam)
+
+  return [shimmer_flux_frame(base_img, i) for i in range(num_frames)]
