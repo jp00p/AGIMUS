@@ -111,27 +111,28 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
     await post_prestige_advancement_embed(member, level, prestige_after, badge_data, source_details)
   # Handle Standard Level Ups
   else:
-    await post_level_up_embed(member, level, prestige_after, badge_data, source_details)
+    await post_level_up_embed(member, level, badge_data, source_details)
 
   if awarded_buffer_pattern:
     await post_buffer_pattern_acquired_embed(member, level, awarded_buffer_pattern)
 
 
-async def post_level_up_embed(member: discord.User, level: int, prestige:int, badge_data: dict, source_details = None):
+async def post_level_up_embed(member: discord.User, level: int, badge_data: dict, source_details = None):
   """
   Build and send a level-up notification embed to the XP notification channel.
   """
+  badge_prestige = badge_data['prestige_level']
   level_up_msg = f"**{random.choice(random_level_up_messages['messages']).format(user=member.mention, level=level, prev_level=(level-1))}**"
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
-  embed_description = f"{member.mention} has reached **Echelon {level}** and earned a Badge ({PRESTIGE_TIERS[prestige]} Tier)!"
+  embed_description = f"{member.mention} has reached **Echelon {level}** and earned a Badge ({PRESTIGE_TIERS[badge_prestige]} Tier)!"
   if badge_data.get('was_on_wishlist', False):
     embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
 
   embed_color = discord.Color.teal()
-  if prestige > 0:
-    prestige_color = PRESTIGE_THEMES[prestige]['primary']
+  if badge_prestige > 0:
+    prestige_color = PRESTIGE_THEMES[badge_prestige]['primary']
     embed_color = discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
 
   embed=discord.Embed(

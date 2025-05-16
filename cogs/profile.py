@@ -141,7 +141,15 @@ class Profile(commands.Cog):
     and will return a user's profile card
     """
     public = bool(public == "yes")
-    await ctx.defer(ephemeral=not public)
+    confirmation_message = await ctx.respond(
+      embed=discord.Embed(
+        title="Pulling up your Profile PADD!",
+        description="Hold pleeeeease. 👉👈",
+        color=discord.Color.blurple()
+      ),
+      ephemeral=True
+    )
+    # await ctx.defer(ephemeral=not public)
 
     member = ctx.author # discord obj
     member_id = str(member.id)
@@ -309,9 +317,9 @@ class Profile(commands.Cog):
     title_color = random.choice(lcars_colors[1:3])
     if legacy_xp_data:
       draw.text( (515, 430), f"LEGACY LEVEL:", fill=title_color, font=agimus_font, align="left")
-      draw.text( (600, 430), f"{legacy_level}", fill="white", font=agimus_font, align="left")
+      draw.text( (600, 430), f"{legacy_level:,}", fill="white", font=agimus_font, align="left")
       draw.text( (515, 455), f"LEGACY XP:", fill=title_color, font=agimus_font, align="left")
-      draw.text( (584, 455), f"{legacy_xp}", fill="white", font=agimus_font, align="left")
+      draw.text( (584, 455), f"{legacy_xp:,}", fill="white", font=agimus_font, align="left")
 
     draw.text( (250, 385), f"CURRENT RANK:", fill=title_color, font=title_font, align="left")
     draw.text( (250, 418), f"{top_role}", fill="white", font=entry_font, align="left")
@@ -430,7 +438,13 @@ class Profile(commands.Cog):
       file = buffer_image_to_discord_file(profile_frames[0], 'profile_card.png')
       await ctx.followup.send(file=file, ephemeral=not public)
 
-    return
+    await confirmation_message.edit(
+      embed=discord.Embed(
+        title="All Done!",
+        description="Yayyyy.",
+        color=discord.Color.blurple()
+      )
+    )
 
 
   @profile.command(

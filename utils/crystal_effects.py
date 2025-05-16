@@ -1171,59 +1171,6 @@ def effect_static_cascade(base_img: Image.Image, badge) -> list[Image.Image]:
 
   return cleaned_frames
 
-# @register_effect("static_cascade")
-# def effect_static_cascade(base_img: Image.Image, badge: dict) -> list[Image.Image]:
-#     """
-#     Simple non-destructive static cascade: a semi-transparent shifted band
-#     that glides downward, letting the original badge sit fully visible underneath.
-#     """
-#     fps        = ANIMATION_FPS
-#     duration   = ANIMATION_DURATION
-#     num_frames = int(fps * duration)
-#     width, height = FRAME_SIZE
-
-#     amplitude   = 12       # max horizontal shift (pixels)
-#     band_h      = 40       # height of the glitch band
-#     opacity_pct = 0.3      # 30% opacity for the shifted overlay
-
-#     # Pre-resize once
-#     orig = base_img.resize((width, height), Image.Resampling.LANCZOS).convert("RGBA")
-#     frames = []
-
-#     for i in range(num_frames):
-#         frame = orig.copy()
-
-#         # vertical position of the band (so it starts off-screen and ends off-screen)
-#         prog   = i / num_frames
-#         center = int((prog * (height + band_h)) - (band_h // 2))
-#         top    = max(0, center)
-#         bot    = min(height, center + band_h)
-
-#         if bot > top:
-#             # 1) Extract the band
-#             band = orig.crop((0, top, width, bot))
-
-#             # 2) Shift it horizontally by a sine motion
-#             dx = int(amplitude * math.sin(2 * math.pi * prog))
-#             shifted = band.transform(
-#                 band.size,
-#                 Image.AFFINE,
-#                 (1, 0, dx, 0, 1, 0),
-#                 resample=Image.BILINEAR
-#             )
-
-#             # 3) Make an alpha mask at 30% of the band’s opacity
-#             alpha = band.split()[3].point(lambda a: int(a * opacity_pct))
-
-#             # 4) Paste as a semi-transparent overlay back onto the frame
-#             overlay = Image.new("RGBA", frame.size, (0,0,0,0))
-#             overlay.paste(shifted, (0, top), mask=alpha)
-#             frame = Image.alpha_composite(frame, overlay)
-
-#         frames.append(frame)
-
-#     return frames
-
 
 #     ...     ..      ..                       s                   .
 #   x*8888x.:*8888: -"888:     ..             :8      .uef^"      @88>

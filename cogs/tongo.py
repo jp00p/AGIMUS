@@ -29,8 +29,8 @@ rules_of_acquisition = data.split("\n")
 f.close()
 
 
-TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=6)
-# TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(minutes=3)
+# TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=6)
+TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(minutes=6)
 MINIMUM_LIQUIDATION_CONTINUUM = 10
 MINIMUM_LIQUIDATION_PLAYERS = 3
 DIVIDEND_REWARDS = {
@@ -69,6 +69,7 @@ class TongoDividendsView(discord.ui.View):
       message_id=interaction.message.id,
       embed=discord.Embed(
         title="Dividends Deducting...",
+        description="I love the sound of Latinum clinking.",
         color=discord.Color.gold()
       ),
       view=None
@@ -126,7 +127,7 @@ class TongoDividendsView(discord.ui.View):
       text=f"Greed is Eternal!",
       icon_url="https://i.imgur.com/scVHPNm.png"
     )
-    confirmation_embed.set_image(url=random.choice["https://i.imgur.com/s10kcx3.gif", "https://i.imgur.com/FTPiLy0.gif"])
+    confirmation_embed.set_image(url=random.choice(["https://i.imgur.com/s10kcx3.gif", "https://i.imgur.com/FTPiLy0.gif"]))
     # Edit the original message to show confirmation and remove this buttons view entirely
     await interaction.followup.edit_message(
       message_id=interaction.message.id,
@@ -263,7 +264,7 @@ class TongoDividendsView(discord.ui.View):
     zeks_table = await self.cog.bot.fetch_channel(get_channel_id("zeks-table"))
     await zeks_table.send(
       embed=channel_embed,
-      file=discord_file
+      files=[discord_file]
     )
 
     return True
@@ -471,7 +472,7 @@ class Tongo(commands.Cog):
     embed = discord.Embed(
       title="TONGO! Badges Ventured!",
       description=f"**{member.display_name}** has begun a new game of Tongo!\n\n"
-                  f"They threw in 3 {prestige_tier} badges from their unlocked inventory into the Great Material Continuum, and they have been granted **1** Tongo Dividend.\n\n"
+                  f"They threw in **3 {prestige_tier} Badges** from their unlocked/uncrystallized inventory into the Great Material Continuum, and they have been granted **1** Tongo Dividend.\n\n"
                   "The wheel is spinning, the game will end in 6 hours, and then the badges will be distributed!",
       color=discord.Color.dark_purple()
     )
@@ -595,7 +596,7 @@ class Tongo(commands.Cog):
     player_count = len(player_members)
 
     # Embed flavor
-    description = f"### **{member.display_name}** has joined the table!\n\nA new challenger appears! Player {player_count} has entered the game with 3 {prestige_tier} badges from their unlocked inventory, and they have been granted **1** Tongo Dividend!"
+    description = f"### **{member.display_name}** has joined the table!\n\nA new challenger appears! Player {player_count} has entered the game with **3 {prestige_tier} Badges** from their unlocked/uncrystallized inventory, and they have been granted **1** Tongo Dividend!"
     if self.auto_confront.next_iteration:
       description += f"\n\nThis Tongo game will confront {humanize.naturaltime(self.auto_confront.next_iteration)}."
 
@@ -852,8 +853,8 @@ class Tongo(commands.Cog):
   #   / _ |__ __/ /____  ____/ ___/__  ___  / _/______  ___  / /_
   #  / __ / // / __/ _ \/___/ /__/ _ \/ _ \/ _/ __/ _ \/ _ \/ __/
   # /_/ |_\_,_/\__/\___/    \___/\___/_//_/_//_/  \___/_//_/\__/
-  @tasks.loop(hours=6)
-  # @tasks.loop(minutes=3)
+  # @tasks.loop(hours=6)
+  @tasks.loop(minutes=6)
   async def auto_confront(self):
     if self.first_auto_confront:
       self.first_auto_confront = False
@@ -929,7 +930,7 @@ class Tongo(commands.Cog):
 
       if badge_instance_ids:
         badges_received = [
-          await db_get_badge_info_by_instance_id(instance_id)
+          await db_get_badge_instance_by_id(instance_id)
           for instance_id in badge_instance_ids
         ]
         wishlist_filenames_received = [b['badge_filename'] for b in badges_received if b['badge_filename'] in wanted_filenames]
@@ -941,8 +942,8 @@ class Tongo(commands.Cog):
         )
 
         dividends_rewarded = 0
-        if len(dividends_rewarded) < 3:
-          dividends_rewarded = len(badge_instance_ids)
+        if len(badge_instance_ids) < 3:
+          dividends_rewarded = 3 - len(badge_instance_ids)
           await db_increment_tongo_dividends(user_id, amount=dividends_rewarded)
 
         player_embed = await build_confront_player_embed(member, badges_received, wishlist_filenames_received, dividends_rewarded)

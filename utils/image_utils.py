@@ -635,7 +635,7 @@ async def generate_badge_set_completion_images(user, prestige, badge_data, categ
     current_y = dims.start_y
     for row_data in page_rows:
       row_img = await compose_completion_row(row_data, theme)
-      canvas.paste(row_img, (110, current_y), row_img)
+      canvas.paste(row_img, (55, current_y), row_img)
       current_y += dims.row_height + dims.row_margin
       del row_img
       gc.collect()
@@ -1333,7 +1333,7 @@ def compose_badge_slot(
       try:
         icon_img = Image.open(icon_path).convert("RGBA")
         icon_img.thumbnail((48, 48))
-        slot_canvas.paste(icon_img, (dims.slot_width - 48, y_offset), icon_img)
+        slot_canvas.paste(icon_img, (dims.slot_width - 46, y_offset), icon_img)
       except Exception as e:
         logger.warning(f"[compose_badge_slot] Could not load icon at {icon_path}: {e}")
 

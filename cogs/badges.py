@@ -1049,9 +1049,9 @@ class Badges(commands.Cog):
       prestige_color = PRESTIGE_THEMES[prestige]['primary']
       main_color_tuple = prestige_color
     else:
-      pref = db_get_user_badge_page_color_preference(user_id) or "green"
+      pref = await db_get_user_badge_page_color_preference(user_id) or "green"
       colors = get_theme_colors(pref)
-      main_color_tuple = colors.primary
+      main_color_tuple = colors.highlight
 
     badge_frames = await generate_singular_badge_slot(badge_instance, border_color=main_color_tuple)
 
@@ -1075,7 +1075,7 @@ class Badges(commands.Cog):
     embed = discord.Embed(
       title=f"Badge Spotlight",
       description=f"## {ctx.author.mention}'s {badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
-      color=discord.Color.from_rgb(main_color_tuple)
+      color=discord.Color.from_rgb(*main_color_tuple)
     )
     embed.set_image(url=f"attachment://{discord_file.filename}")
 
@@ -1083,7 +1083,7 @@ class Badges(commands.Cog):
     embed.add_field(name="Owned By", value=f"{ctx.author.mention}", inline=False)
     embed.add_field(name="Prestige Tier", value=PRESTIGE_TIERS[prestige], inline=False)
     if badge_instance['crystal_name']:
-      embed.add_field(name="Crystal", value=f"{badge_instance['crystal_emoji']} {badge_instance['crystal_name']}", inline=False)
+      embed.add_field(name="Crystal", value=f"{badge_instance['crystal_name']}", inline=False)
     embed.add_field(name="Franchise", value=badge_info['franchise'] or "Unknown", inline=False)
     embed.add_field(name="Time Period", value=badge_info['time_period'] or "Unknown", inline=False)
 

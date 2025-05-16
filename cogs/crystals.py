@@ -200,7 +200,7 @@ class Crystals(commands.Cog):
   #  |    |   \  ___/|  |_> >  |_|  \  \___ / __ \|  | \  ___/
   #  |____|_  /\___  >   __/|____/__|\___  >____  /__|  \___  >
   #         \/     \/|__|                \/     \/          \/
-  @crystals_group.command(name='replicate', description='Roll up to the Crystal Replicator, consume a Buffer Pattern, get a new Crystal!')
+  @crystals_group.command(name='replicate', description='Roll up to the Crystal Replicator, consume a Pattern Buffer, get a new Crystal!')
   @commands.check(access_check)
   async def replicate(self, ctx: discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
@@ -212,7 +212,7 @@ class Crystals(commands.Cog):
     if not buffer_credits:
       # TODO: Find an appopriate GIF for this...
       embed = discord.Embed(
-        title='No Buffer Patterns!',
+        title='No Pattern Buffers!',
         description=f"Sorry {user.mention}, you don't currently possess any Crystal Pattern Buffers to redeem!\n\nBetter get out of here before O'Brien calls security... {get_emoji('obrien_omg_jaysus')}",
         color=discord.Color.orange()
       )
@@ -225,14 +225,13 @@ class Crystals(commands.Cog):
 
     replicator_embed = discord.Embed(
       title=f"Crystallization Replication Station!",
-      description=f"You currently possess **{buffer_credits}** Crystal Pattern Buffer{'s' if buffer_credits > 1 else ''}. You may redeem **one** Buffer Pattern in exchange for **one** randomized Crystal.\n\nAre you ready to smack this thing and see what falls out?",
+      description=f"You currently possess **{buffer_credits}** Crystal Pattern Buffer{'s' if buffer_credits > 1 else ''}. You may redeem **one** Pattern Buffer in exchange for **one** randomized Crystal.\n\nAre you ready to smack this thing and see what falls out?",
       color=discord.Color.teal()
     )
     replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count}** Crystals which have not yet been attuned a Badge.", inline=False)
     replicator_embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count}** Badges with Crystals attuned to them.", inline=False)
     replicator_embed.set_footer(
-      text="Use `/crystals inventory` to view your currently unattuned Crystals\nUse `/crystals attune` attach them to your Badges!",
-      icon_url="https://i.imgur.com/C0hmhbj.png"
+      text="Use `/crystals inventory` to view your currently unattuned Crystals\nUse `/crystals attune` attach them to your Badges!"
     )
     replicator_embed.set_image(url="https://i.imgur.com/bbdDUfo.gif")
 
@@ -288,12 +287,11 @@ class Crystals(commands.Cog):
         channel_embed.add_field(name=f"Description", value=f"> {crystal['description']}", inline=False)
         channel_embed.set_image(url=f"attachment://{replicator_confirmation_filename}")
         channel_embed.set_footer(
-          text="Use `/crystals attune` to attach it to one of your Badges!",
-          icon_url="https://i.imgur.com/C0hmhbj.png"
+          text="Use `/crystals attune` to attach it to one of your Badges!"
         )
 
         gelrak_v = await cog.bot.fetch_channel(get_channel_id("gelrak-v"))
-        await gelrak_v.send(embed=channel_embed, file=discord_file)
+        await gelrak_v.send(embed=channel_embed, files=[discord_file])
         await interaction.delete_original_response()
 
       @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
@@ -533,8 +531,7 @@ class Crystals(commands.Cog):
       color=discord.Color.teal()
     )
     preview_embed.set_footer(
-      text="Click Confirm to Attune this Crystal, or Cancel.",
-      icon_url="https://i.imgur.com/C0hmhbj.png",
+      text="Click Confirm to Attune this Crystal, or Cancel."
     )
     preview_embed.set_image(url=attachment_url)
 
@@ -564,9 +561,13 @@ class Crystals(commands.Cog):
 
         user_data = await get_user(user_id)
         auto_harmonize_enabled = user_data.get('crystal_autoharmonize', False)
+
         if auto_harmonize_enabled:
-          await db_set_harmonized_crystal(badge_instance['badge_instance_id'], crystal_instance['badge_crystal_id'])
-          embed_description += "\n\nYou've enabled `Crystallization Auto-Harmonize` so it has now been activated as well!"
+          badge_crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
+          matching = next((c for c in badge_crystals if c['crystal_instance_id'] == crystal_instance['crystal_instance_id']), None)
+          if matching:
+            await db_set_harmonized_crystal(badge_instance['badge_instance_id'], matching['badge_crystal_id'])
+            embed_description += "\n\nYou've enabled `Crystallization Auto-Harmonize` so it has now been activated as well!"
 
         embed = discord.Embed(
           title='Crystal Attuned!',
@@ -575,11 +576,9 @@ class Crystals(commands.Cog):
         )
         embed.set_image(url="https://i.imgur.com/lP883bg.gif")
         embed.set_footer(
-          text="Now you can `/crystals harmonize` to select your activated Crystal at any time!",
-          icon_url="https://i.imgur.com/C0hmhbj.png"
+          text="Now you can `/crystals harmonize` to select your activated Crystal at any time!"
         )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
-        await interaction.delete_original_response()
 
       @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
       async def cancel(self, button, interaction):
@@ -685,8 +684,7 @@ class Crystals(commands.Cog):
     preview_embed.add_field(name=f"{crystal_instance['crystal_name']}", value=crystal_instance['description'], inline=False)
     preview_embed.add_field(name=f"Rank", value=f"{crystal_instance['emoji']}  {crystal_instance['rarity_name']}", inline=False)
     preview_embed.set_footer(
-      text="Click Confirm to Harmonize this Crystal, or Cancel.",
-      icon_url="https://i.imgur.com/C0hmhbj.png",
+      text="Click Confirm to Harmonize this Crystal, or Cancel."
     )
     preview_embed.set_image(url=attachment_url)
 
@@ -718,8 +716,7 @@ class Crystals(commands.Cog):
         )
         embed.set_image(url="https://i.imgur.com/cr2m5It.gif")
         embed.set_footer(
-          text="CRYSTALS!",
-          icon_url="https://i.imgur.com/C0hmhbj.png",
+          text="CRYSTALS!"
         )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 

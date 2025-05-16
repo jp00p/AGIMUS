@@ -22,7 +22,6 @@ BADGE_INSTANCE_COLUMNS = """
   b.status,
 
   c.id AS badge_crystal_id,
-  c.crystal_instance_id,
 
   ci.id AS crystal_instance_id,
   ci.status AS crystal_status,

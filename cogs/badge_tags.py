@@ -22,6 +22,20 @@ async def user_badges_autocomplete(ctx:discord.AutocompleteContext):
   return [result for result in user_badges if ctx.value.lower() in result.lower()]
 
 
+async def badges_autocomplete(ctx:discord.AutocompleteContext):
+  special_badge_ids = [b['id'] for b in await db_get_special_badge_info()]
+  all_badges = await db_get_all_badge_info()
+  filtered_badges = [b for b in all_badges if b['id'] not in special_badge_ids]
+
+  choices = [
+    discord.OptionChoice(
+      name=b['badge_name'],
+      value=str(b['id'])
+    )
+    for b in filtered_badges if ctx.value.lower() in b['badge_name'].lower()
+  ]
+  return choices
+
 async def tags_autocomplete(ctx:discord.AutocompleteContext):
   user_tags = [t['tag_name'] for t in await db_get_user_badge_tags(ctx.interaction.user.id)]
   user_tags.sort()
@@ -447,13 +461,14 @@ class BadgeTags(commands.Cog):
   @option(
     name="badge",
     description="Name of the Badge to tag",
-    required=True
+    required=True,
+    autocomplete=badges_autocomplete
   )
   async def tag(self, ctx: discord.ApplicationContext, badge: str):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
 
-    badge_info = await db_get_badge_info_by_name(badge)
+    badge_info = await db_get_badge_info_by_id(badge)
     if not badge_info:
       await ctx.followup.send(
         embed=discord.Embed(
@@ -613,8 +628,8 @@ class BadgeTags(commands.Cog):
     if not tagged_instances:
       await ctx.respond(
         embed=discord.Embed(
-          title="No Badges Tagged",
-          description=f"You haven't tagged any badges with {tag} yet!\n\nUse `/badge_tags tag` to tag some badges first!",
+          title="No Tagged Badges Found",
+          description=f"No {PRESTIGE_TIERS[prestige]} Badges tagged with {tag} found!\n\nYou may not have collected any at this Tier yet?",
           color=discord.Color.red()
         ),
         ephemeral=True
@@ -623,9 +638,9 @@ class BadgeTags(commands.Cog):
 
     # Set up text values for paginated images
     tagged_badges_cnt = len(tagged_instances)
-    collection_label = f"Tagged ({PRESTIGE_TIERS[prestige]}) - {tag}"
+    collection_label = f"Tagged - {tag}"
 
-    badge_images = await generate_badge_collection_images(ctx.author, tagged_instances, 'collection', collection_label)
+    badge_images = await generate_badge_collection_images(ctx.author, prestige, tagged_instances, 'collection', collection_label)
 
     embed = discord.Embed(
       title=f"Tagged {PRESTIGE_TIERS[prestige]} Badges",

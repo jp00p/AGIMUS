@@ -17,7 +17,7 @@ from commands.food_war import food_war
 #from commands.gifbomb import gifbomb
 from commands.help import help
 from commands.episode_info import episode_info
-# from commands.levelcheck import levelcheck
+from commands.levelcheck import levelcheck
 from commands.nasa import nasa
 from commands.nextep import nextep, nexttrek
 from commands.peptalk import peptalk
@@ -33,7 +33,7 @@ from commands.trektalk import trektalk
 from commands.tuvix import tuvix
 from commands.user_tags import tag_user, untag_user, display_tags
 # from commands.wrapped import wrapped
-from commands.xpinfo import xpinfo_channels, xpinfo_activity
+# from commands.xpinfo import xpinfo_channels, xpinfo_activity
 
 # Slash Command Groups
 import commands.birthday
