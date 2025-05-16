@@ -612,11 +612,11 @@ class Badges(commands.Cog):
     # Otherwise private displays can use the paginator
     if not public:
       buttons = [
-        pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, disabled=bool(len(set_badges) <= 30), row=1),
+        pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, disabled=bool(len(completion_images) <= 1), row=1),
         pages.PaginatorButton(
           "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
         ),
-        pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, disabled=bool(len(set_badges) <= 30), row=1),
+        pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, disabled=bool(len(completion_images) <= 1), row=1),
       ]
 
       class CompletionPaginator(pages.Paginator):
@@ -1138,15 +1138,13 @@ class Badges(commands.Cog):
     if badge_instance.get('crystal_instance_id'):
       crystal_instance = await db_get_crystal_by_id(badge_instance['crystal_instance_id'])
       embed.add_field(name="Crystal", value=f"{crystal_instance['emoji']}  {crystal_instance['crystal_name']} ({crystal_instance['rarity_name']})", inline=False)
-    embed.add_field(name="Franchise", value=badge_info['franchise'] or "Unknown", inline=False)
-    embed.add_field(name="Time Period", value=badge_info['time_period'] or "Unknown", inline=False)
-
     if badge_info['affiliations']:
       embed.add_field(name="Affiliations", value=", ".join(badge_info['affiliations']), inline=False)
     if badge_info['types']:
       embed.add_field(name="Types", value=", ".join(badge_info['types']), inline=False)
-
+    embed.add_field(name="Time Period", value=badge_info['time_period'] or "Unknown", inline=False)
     embed.add_field(name="Quadrant", value=badge_info['quadrant'] or "Unknown", inline=False)
+    embed.add_field(name="Franchise", value=badge_info['franchise'] or "Unknown", inline=False)
     embed.add_field(name="Reference", value=badge_info['reference'] or "Unknown", inline=False)
 
     embed.add_field(name="Star Trek Design Project", value=f"{badge_info['badge_url']}", inline=False)
