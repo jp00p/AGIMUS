@@ -29,8 +29,7 @@ rules_of_acquisition = data.split("\n")
 f.close()
 
 
-# TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=6)
-TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(minutes=6)
+TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=6)
 MINIMUM_LIQUIDATION_CONTINUUM = 10
 MINIMUM_LIQUIDATION_PLAYERS = 3
 DIVIDEND_REWARDS = {
@@ -853,8 +852,7 @@ class Tongo(commands.Cog):
   #   / _ |__ __/ /____  ____/ ___/__  ___  / _/______  ___  / /_
   #  / __ / // / __/ _ \/___/ /__/ _ \/ _ \/ _/ __/ _ \/ _ \/ __/
   # /_/ |_\_,_/\__/\___/    \___/\___/_//_/_//_/  \___/_//_/\__/
-  # @tasks.loop(hours=6)
-  @tasks.loop(minutes=6)
+  @tasks.loop(hours=6)
   async def auto_confront(self):
     if self.first_auto_confront:
       self.first_auto_confront = False
