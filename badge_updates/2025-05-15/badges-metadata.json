@@ -1,0 +1,707 @@
+[
+  {
+    "_createdAt": "2024-07-10T18:58:17Z",
+    "_id": "656b6d9d-e912-4c80-a2c5-82e24315936a",
+    "_rev": "0aofwwU9evr3LWPvKps7Zx",
+    "_type": "post",
+    "_updatedAt": "2024-08-03T21:02:02Z",
+    "affiliations": [
+      "Vulcan"
+    ],
+    "body": [
+      {
+        "_key": "8fa2025687fe",
+        "_type": "block",
+        "children": [
+          {
+            "_key": "6fec3039aee6",
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Images"
+          }
+        ],
+        "markDefs": [],
+        "style": "h2"
+      },
+      {
+        "_key": "5c946955762e",
+        "_type": "image",
+        "alt": "vulcan-space-command",
+        "asset": {
+          "_ref": "image-b63a56044947187e11b36d1eb300f61ff9ee9aa5-1600x893-jpg",
+          "_type": "reference"
+        }
+      },
+      {
+        "_key": "a19f4336fa92",
+        "_type": "image",
+        "alt": "vulcan-space-command",
+        "asset": {
+          "_ref": "image-46016a36c63982f334f2255f62ad4eeddaa2b141-1600x944-jpg",
+          "_type": "reference"
+        }
+      },
+      {
+        "_key": "515032f3870d",
+        "_type": "block",
+        "children": [
+          {
+            "_key": "6558d0d53cc0",
+            "_type": "span",
+            "marks": [],
+            "text": "Thanks Gary!"
+          }
+        ],
+        "markDefs": [],
+        "style": "normal"
+      }
+    ],
+    "date": "2024-07-10T18:52:53.671Z",
+    "designers": [],
+    "excerpt": null,
+    "featuredImage": {
+      "_type": "image",
+      "alt": "vulcan-space-command",
+      "asset": {
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "aspectRatio": 0.9951865222623345,
+            "height": 831,
+            "width": 827
+          }
+        },
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/a70058f3e6d42b02b1472856f9c19d122d4a7014-827x831.png"
+      }
+    },
+    "franchise": "Enterprise",
+    "quadrant": "Alpha",
+    "references": [
+      {
+        "_key": "4425dab8450f",
+        "_type": "block",
+        "children": [
+          {
+            "_key": "d922eca27481",
+            "_type": "span",
+            "marks": [],
+            "text": "S02E02 "
+          },
+          {
+            "_key": "240a90aff152",
+            "_type": "span",
+            "marks": [
+              "a40cd820e90d"
+            ],
+            "text": "Carbon Creek"
+          }
+        ],
+        "markDefs": [
+          {
+            "_key": "a40cd820e90d",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/Carbon_Creek_(episode)"
+          }
+        ],
+        "style": "normal"
+      }
+    ],
+    "slug": "vulcan-space-command-2",
+    "timePeriod": "1900s",
+    "title": "Vulcan Space Command (2)",
+    "types": [
+      "Insignia"
+    ],
+    "universes": [
+      "Prime"
+    ],
+    "link": "/symbols/undefined",
+    "objectID": "656b6d9d-e912-4c80-a2c5-82e24315936a",
+    "_highlightResult": {
+      "affiliations": [
+        {
+          "value": "Vulcan",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "body": [
+        {
+          "_key": {
+            "value": "8fa2025687fe",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_key": {
+                "value": "6fec3039aee6",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Images",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "5c946955762e",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "vulcan-space-command",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-b63a56044947187e11b36d1eb300f61ff9ee9aa5-1600x893-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        },
+        {
+          "_key": {
+            "value": "a19f4336fa92",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "vulcan-space-command",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-46016a36c63982f334f2255f62ad4eeddaa2b141-1600x944-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        },
+        {
+          "_key": {
+            "value": "515032f3870d",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_key": {
+                "value": "6558d0d53cc0",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Thanks Gary!",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "normal",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        }
+      ],
+      "franchise": {
+        "value": "Enterprise",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "1900s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Vulcan Space Command",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Insignia",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  },
+  {
+    "_createdAt": "2024-07-10T18:51:54Z",
+    "_id": "14a6ce10-3655-41dd-a00f-299e0f4ec986",
+    "_rev": "F7SamYu4K1mT7Wx2bK8M54",
+    "_type": "post",
+    "_updatedAt": "2025-05-09T21:09:59Z",
+    "affiliations": [
+      "Starfleet"
+    ],
+    "body": [
+      {
+        "_key": "e0d80411bc47",
+        "_type": "block",
+        "children": [
+          {
+            "_key": "d1506c1c4ebf",
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Image"
+          }
+        ],
+        "markDefs": [],
+        "style": "h2"
+      },
+      {
+        "_key": "da184b03e495",
+        "_type": "image",
+        "alt": "starbase-docking-directional",
+        "asset": {
+          "_ref": "image-da87873c465de38b0f0f4d4bf737914210ce3863-1500x944-jpg",
+          "_type": "reference"
+        }
+      }
+    ],
+    "date": "2024-07-10T18:48:44.006Z",
+    "designers": null,
+    "excerpt": null,
+    "featuredImage": {
+      "_type": "image",
+      "alt": "starbase-docking-directional",
+      "asset": {
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "aspectRatio": 1,
+            "height": 1200,
+            "width": 1200
+          }
+        },
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/f5f7e744a9814fdbd26c5ceaa1c4bba26e080b8a-1200x1200.png"
+      }
+    },
+    "franchise": "The Next Generation",
+    "quadrant": "Alpha",
+    "references": [
+      {
+        "_key": "3e351d368e3c",
+        "_type": "block",
+        "children": [
+          {
+            "_key": "421d24929585",
+            "_type": "span",
+            "marks": [],
+            "text": "S01E15 "
+          },
+          {
+            "_key": "412ca596fb08",
+            "_type": "span",
+            "marks": [
+              "0571905bfda4"
+            ],
+            "text": "11001001"
+          }
+        ],
+        "markDefs": [
+          {
+            "_key": "0571905bfda4",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/11001001_(episode)"
+          }
+        ],
+        "style": "normal"
+      }
+    ],
+    "slug": "starbase-docking-directional",
+    "timePeriod": "2300s",
+    "title": "Starbase Docking Directional",
+    "types": [
+      "Advisory"
+    ],
+    "universes": [
+      "Prime"
+    ],
+    "objectID": "14a6ce10-3655-41dd-a00f-299e0f4ec986",
+    "_highlightResult": {
+      "affiliations": [
+        {
+          "value": "Starfleet",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "body": [
+        {
+          "_key": {
+            "value": "e0d80411bc47",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_key": {
+                "value": "d1506c1c4ebf",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "da184b03e495",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "starbase-docking-directional",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-da87873c465de38b0f0f4d4bf737914210ce3863-1500x944-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        }
+      ],
+      "franchise": {
+        "value": "The Next Generation",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Starbase Docking Directional",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Advisory",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  },
+  {
+    "_createdAt": "2024-07-04T01:52:22Z",
+    "_id": "d03d7cb9-edbc-4713-b119-45f3f8eafbba",
+    "_rev": "YqAAtwSbK1BFt3lyLjCpfQ",
+    "_type": "post",
+    "_updatedAt": "2025-05-08T23:06:25Z",
+    "affiliations": [
+      "Starfleet"
+    ],
+    "body": [
+      {
+        "_key": "405deeb870ef",
+        "_type": "block",
+        "children": [
+          {
+            "_key": "7ac0bc8b8a74",
+            "_type": "span",
+            "marks": [],
+            "text": "Canon Image"
+          }
+        ],
+        "markDefs": [],
+        "style": "h2"
+      },
+      {
+        "_key": "683a1b0dbb5d",
+        "_type": "image",
+        "alt": "welcome-to-starbase-74",
+        "asset": {
+          "_ref": "image-e4aaf06789d0d6499045c88f7a714b9c95785841-1600x1127-jpg",
+          "_type": "reference"
+        }
+      }
+    ],
+    "date": "2024-07-04T01:48:14.839Z",
+    "designers": null,
+    "excerpt": null,
+    "featuredImage": {
+      "_type": "image",
+      "alt": "welcome-to-starbase-74",
+      "asset": {
+        "metadata": {
+          "dimensions": {
+            "_type": "sanity.imageDimensions",
+            "aspectRatio": 1,
+            "height": 1300,
+            "width": 1300
+          }
+        },
+        "url": "https://cdn.sanity.io/images/tdiy7fer/production/7ddc50777f2d7d867f17ded1d2bf8b4a8e180f72-1300x1300.png"
+      }
+    },
+    "franchise": "The Next Generation",
+    "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Starbase_74?so=search",
+    "quadrant": "Alpha",
+    "references": [
+      {
+        "_key": "30fb52599ad2",
+        "_type": "block",
+        "children": [
+          {
+            "_key": "7d44f41c2d2c",
+            "_type": "span",
+            "marks": [],
+            "text": "S01E15 "
+          },
+          {
+            "_key": "5e36d21dedee",
+            "_type": "span",
+            "marks": [
+              "4f9bf55c40db"
+            ],
+            "text": "11001001"
+          }
+        ],
+        "markDefs": [
+          {
+            "_key": "4f9bf55c40db",
+            "_type": "link",
+            "href": "https://memory-alpha.fandom.com/wiki/11001001_(episode)"
+          }
+        ],
+        "style": "normal"
+      }
+    ],
+    "slug": "welcome-to-starbase-74",
+    "timePeriod": "2300s",
+    "title": "Welcome to Starbase 74",
+    "types": [
+      "Advisory"
+    ],
+    "universes": [
+      "Prime"
+    ],
+    "objectID": "d03d7cb9-edbc-4713-b119-45f3f8eafbba",
+    "_highlightResult": {
+      "affiliations": [
+        {
+          "value": "Starfleet",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "body": [
+        {
+          "_key": {
+            "value": "405deeb870ef",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "block",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "children": [
+            {
+              "_key": {
+                "value": "7ac0bc8b8a74",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "_type": {
+                "value": "span",
+                "matchLevel": "none",
+                "matchedWords": []
+              },
+              "text": {
+                "value": "Canon Image",
+                "matchLevel": "none",
+                "matchedWords": []
+              }
+            }
+          ],
+          "style": {
+            "value": "h2",
+            "matchLevel": "none",
+            "matchedWords": []
+          }
+        },
+        {
+          "_key": {
+            "value": "683a1b0dbb5d",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "_type": {
+            "value": "image",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "alt": {
+            "value": "welcome-to-starbase-74",
+            "matchLevel": "none",
+            "matchedWords": []
+          },
+          "asset": {
+            "_ref": {
+              "value": "image-e4aaf06789d0d6499045c88f7a714b9c95785841-1600x1127-jpg",
+              "matchLevel": "none",
+              "matchedWords": []
+            },
+            "_type": {
+              "value": "reference",
+              "matchLevel": "none",
+              "matchedWords": []
+            }
+          }
+        }
+      ],
+      "franchise": {
+        "value": "The Next Generation",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "quadrant": {
+        "value": "Alpha",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "timePeriod": {
+        "value": "2300s",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "title": {
+        "value": "Welcome to Starbase 74",
+        "matchLevel": "none",
+        "matchedWords": []
+      },
+      "types": [
+        {
+          "value": "Advisory",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ],
+      "universes": [
+        {
+          "value": "Prime",
+          "matchLevel": "none",
+          "matchedWords": []
+        }
+      ]
+    }
+  }
+]

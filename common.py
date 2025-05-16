@@ -1,12 +1,17 @@
 import asyncio
 import json
+import io
 import logging
+import math
 import os
 import random
 import re
+import regex
+import textwrap
 import string
 import subprocess
 import sys
+import time
 import traceback
 import warnings
 from datetime import datetime, timezone, timedelta
@@ -26,14 +31,21 @@ from discord import option
 from discord.ext import commands, tasks, pages
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
-from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps, ImageEnhance, ImageFilter, ImageChops, ImageSequence
 from tabulate import tabulate
 from treys import Card, Deck, Evaluator, evaluator
+from typing import List, Dict
 
 #from utils.broadcast_logs import BroadcastHandler
 from utils.config_utils import get_config, deep_dict_update
 from utils.thread_utils import to_thread
 #from utils.disco_lights import LightHandler
+
+# ThreadPool for image generation tasks
+from concurrent.futures import ThreadPoolExecutor
+cpu_workers = max(1, os.cpu_count() - 1)
+# cpu_workers = 24
+THREAD_POOL = ThreadPoolExecutor(max_workers=cpu_workers)
 
 
 #   _________       __
@@ -435,7 +447,7 @@ def make_memory_alpha_link(name: str) -> str:
   if IRREGULAR_MEM_ALPHA_LINKS is None:
     with open("data/characters_mem_alpha_links.json") as f:
       IRREGULAR_MEM_ALPHA_LINKS = json.load(f)
-  
+
   if name.startswith("A "):
     return name
   if name in IRREGULAR_MEM_ALPHA_LINKS:

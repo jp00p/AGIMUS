@@ -82,39 +82,26 @@ async def clip_post(ctx:discord.ApplicationContext, public:str, query:str):
   logger.info(f"{Fore.RED}Firing `/clip post` command, requested by {ctx.author.name}!{Fore.RESET}")
   # Private drops are not on the timer
   public = bool(public == "yes")
-  allowed = True
-  if public:
-    allowed = await check_timekeeper(ctx)
 
-  if allowed:
-    q = query.lower().strip()
-    clip_metadata = get_media_metadata(clip_data, q)
+  q = query.lower().strip()
+  clip_metadata = get_media_metadata(clip_data, q)
 
-    if clip_metadata:
-      try:
-        filename = get_media_file(clip_metadata)
-        await ctx.respond(file=discord.File(filename), ephemeral=not public)
-        if public:
-          set_timekeeper(ctx)
-      except Exception as err:
-        logger.info(f"{Fore.RED}ERROR LOADING CLIP: {err}{Fore.RESET}")
-        await ctx.respond(embed=discord.Embed(
-            title="Error Retrieving Clip!",
-            description="Whoops, something went wrong...",
-            color=discord.Color.red()
-          ), ephemeral=True
-        )
-    else:
+  if clip_metadata:
+    try:
+      filename = get_media_file(clip_metadata)
+      await ctx.respond(file=discord.File(filename), ephemeral=not public)
+    except Exception as err:
+      logger.info(f"{Fore.RED}ERROR LOADING CLIP: {err}{Fore.RESET}")
       await ctx.respond(embed=discord.Embed(
-          title="Clip Not Found!",
-          description="To get a list of clips run: `/clip list`",
+          title="Error Retrieving Clip!",
+          description="Whoops, something went wrong...",
           color=discord.Color.red()
         ), ephemeral=True
       )
   else:
     await ctx.respond(embed=discord.Embed(
-        title="Denied!",
-        description="Someone in the channel has already clipped too recently! Please wait a minute before another clip!",
+        title="Clip Not Found!",
+        description="To get a list of clips run: `/clip list`",
         color=discord.Color.red()
       ), ephemeral=True
     )

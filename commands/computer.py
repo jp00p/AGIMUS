@@ -1,5 +1,5 @@
 import wolframalpha
-from handlers.xp import increment_user_xp
+from handlers.xp import grant_xp
 
 from common import *
 
@@ -26,7 +26,7 @@ async def computer(message:discord.Message):
       res = wa_client.query(question)
       if res.success:
         result = next(res.results)
-        await increment_user_xp(message.author, 1, "used_computer", message.channel, "Prompting the Computer")
+        await grant_xp(message.author.id, 1, "used_computer", channel=message.channel, source="Prompting the Computer")
         # Handle Primary Result
         if result.text:
           response_sent = await handle_text_result(res, message)

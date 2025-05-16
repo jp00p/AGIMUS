@@ -16,19 +16,19 @@ from prettytable.colortable import ColorTable, Themes
   required=True,
   choices=[
     discord.OptionChoice(
-      name="XP overall",
+      name="Echelon XP overall",
       value="xp"
     ),
     discord.OptionChoice(
       name="Total scores",
       value="scores"
     ),
+    # discord.OptionChoice(
+    #   name="Channel Activity",
+    #   value="activity"
+    # ),
     discord.OptionChoice(
-      name="Channel Activity",
-      value="activity"
-    ),
-    discord.OptionChoice(
-      name="XP gains in the last hour",
+      name="Echelon XP gains in the last hour",
       value="gains"
     ),
     discord.OptionChoice(
@@ -68,8 +68,8 @@ async def reports(ctx:discord.ApplicationContext, report:str, report_style:str):
       response = await generate_gainers_report_card(report_style)
     elif report == "diagnostic":
       response = await generate_diagnostic_card(report_style)
-    elif report == "activity":
-      response = await generate_channel_activity_report_card(report_style)
+    # elif report == "activity":
+    #   response = await generate_channel_activity_report_card(report_style)
     if response:
       # send an image-based report
       if report_style == "fancy":
@@ -87,13 +87,19 @@ async def reports(ctx:discord.ApplicationContext, report:str, report_style:str):
 
 async def db_get_xp_report():
   """
-  returns a dictionary of overall top xp users
+  Returns a dictionary of overall top XP users using Eschelon XP data.
   """
   async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT name,level,xp FROM users ORDER BY xp DESC LIMIT 25"
+    sql = """
+      SELECT u.name, e.current_level AS level, e.current_xp AS xp
+      FROM echelon_progress e
+      JOIN users u ON e.user_discord_id = u.discord_id
+      ORDER BY e.current_xp DESC
+      LIMIT 25
+    """
     await query.execute(sql)
-    results = await query.fetchall()
-  return results
+    return await query.fetchall()
+
 
 async def db_get_scores_report():
   """
@@ -114,28 +120,35 @@ async def db_get_channel_activity_report():
 
 async def db_get_gainers_report():
   """
-  returns a dictionary of users who gained the most xp in the last hour
+  Returns a dictionary of users who gained the most XP in the last hour from Eschelon XP history.
   """
   async with AgimusDB(dictionary=True) as query:
-    sql = "SELECT xp_history.user_discord_id, SUM(xp_history.amount) as amt, users.name FROM xp_history LEFT JOIN users ON xp_history.user_discord_id = users.discord_id WHERE xp_history.time_created > now() - interval 1 hour GROUP BY users.name, xp_history.user_discord_id ORDER BY amt DESC LIMIT 25;"
+    sql = """
+      SELECT h.user_discord_id, SUM(h.xp_amount) as amt, u.name
+      FROM echelon_progress_history h
+      LEFT JOIN users u ON h.user_discord_id = u.discord_id
+      WHERE h.timestamp > NOW() - INTERVAL 1 HOUR
+      GROUP BY u.name, h.user_discord_id
+      ORDER BY amt DESC
+      LIMIT 25
+    """
     await query.execute(sql)
-    results = await query.fetchall()
-  return results
+    return await query.fetchall()
 
 
-async def generate_channel_activity_report_card(type:str):
-  channel_names = {v:k for k,v in config["channels"].items()}
-  activity_data = await db_get_channel_activity_report()
-  title = "AGIMUS REPORT"
-  description = "Most active channels in the last day"
-  rank = 1
-  table = PrettyTable()
-  table.field_names = ["Rank", "Channel", "XP gains"]
-  for row in activity_data:
-    channel_name = channel_names[int(row["channel_id"])]
-    table.add_row([rank, channel_name, row["xp_amount"]])
-    rank += 1
-  return generate_report_card(title, description, table, type)
+# async def generate_channel_activity_report_card(type:str):
+#   channel_names = {v:k for k,v in config["channels"].items()}
+#   activity_data = await db_get_channel_activity_report()
+#   title = "AGIMUS REPORT"
+#   description = "Most active channels in the last day"
+#   rank = 1
+#   table = PrettyTable()
+#   table.field_names = ["Rank", "Channel", "XP gains"]
+#   for row in activity_data:
+#     channel_name = channel_names[int(row["channel_id"])]
+#     table.add_row([rank, channel_name, row["xp_amount"]])
+#     rank += 1
+#   return generate_report_card(title, description, table, type)
 
 async def generate_xp_report_card(type:str):
   """

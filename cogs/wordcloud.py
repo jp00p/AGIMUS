@@ -1,7 +1,7 @@
 from numpy import full
 from common import *
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
-from handlers.xp import increment_user_xp
+from handlers.xp import grant_xp
 from utils import string_utils
 
 class Wordcloud(commands.Cog):
@@ -78,7 +78,7 @@ class Wordcloud(commands.Cog):
       await ctx.respond(content="No user data is available for you yet. Post some messages around the server!", ephemeral=True)
       return
     else:
-      await increment_user_xp(ctx.author, 1, "used_wordcloud", ctx.channel, "Using Wordcloud")
+      await grant_xp(ctx.author, 1, "used_wordcloud", ctx.channel, source="Using Wordcloud")
 
     # performing these modifications to the user's data again (in case they have old, uncleaned up data)
     full_wordlist = user_details['full_message_text'].lower().split(' ')

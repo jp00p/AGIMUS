@@ -176,7 +176,7 @@ def generate_top_channels_image(ctx, user_member, labels, values):
 
   size = ((300, 300))
   f_raw = Image.open(fig_filepath).convert("RGBA")
-  f_raw.thumbnail(size, Image.ANTIALIAS)
+  f_raw.thumbnail(size, Image.Resampling.LANCZOS)
   fig_image = Image.new('RGBA', size, (27, 27, 27, 0))
   fig_image.paste(
     f_raw, (int((size[0] - f_raw.size[0]) // 2), int((size[1] - f_raw.size[1]) // 2)), f_raw

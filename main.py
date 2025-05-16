@@ -8,7 +8,6 @@ import aiohttp
 
 # Slash Commands
 from commands.aliases import aliases
-from commands.badges import *
 from commands.bless import bless
 from commands.curse import curse
 from commands.dice import dice
@@ -33,8 +32,8 @@ from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
 from commands.user_tags import tag_user, untag_user, display_tags
-from commands.wrapped import wrapped
-from commands.xpinfo import xpinfo_channels, xpinfo_activity
+# from commands.wrapped import wrapped
+# from commands.xpinfo import xpinfo_channels, xpinfo_activity
 
 # Slash Command Groups
 import commands.birthday
@@ -51,41 +50,46 @@ from commands.update_status import update_status
 from commands.computer import computer
 
 # Cogs
+if config["DEBUG"]:
+  from cogs.admin import Admin
+  bot.add_cog(Admin(bot))
+
 from cogs.backups import Backups
+from cogs.badges import Badges
 from cogs.badge_tags import BadgeTags
 from cogs.chaoszork import ChaosZork, HitchHikers
+from cogs.crystals import Crystals
 from cogs.poker import Poker
 from cogs.profile import Profile
 from cogs.quiz import Quiz
 from cogs.settings import Settings
-from cogs.shop import Shop
+# from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.tongo import Tongo
 from cogs.trade import Trade
-from cogs.update_badges import UpdateBadges
 from cogs.randomep import RandomEp
-from cogs.react_roles import ReactRoles
-from cogs.wishlist import Wishlist
+from cogs.wishlists import Wishlist
 from cogs.wordcloud import Wordcloud
 bot.add_cog(Backups(bot))
+bot.add_cog(Badges(bot))
 bot.add_cog(BadgeTags(bot))
 bot.add_cog(ChaosZork(bot))
+bot.add_cog(Crystals(bot))
 bot.add_cog(HitchHikers(bot))
 bot.add_cog(Poker(bot))
 bot.add_cog(Profile(bot))
 bot.add_cog(Quiz(bot))
 bot.add_cog(RandomEp(bot))
 bot.add_cog(Settings(bot))
-bot.add_cog(Shop(bot))
+# bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Tongo(bot))
 bot.add_cog(Trade(bot))
-bot.add_cog(UpdateBadges(bot))
 bot.add_cog(Wishlist(bot))
 bot.add_cog(Wordcloud(bot))
 if config["roles"]["reaction_roles_enabled"]:
+  from cogs.react_roles import ReactRoles
   bot.add_cog(ReactRoles(bot))
-
 
 ## Trivia relies on an external JSON request which might fail, in that case log the error but continue
 try:
@@ -103,7 +107,7 @@ from handlers.reply_restricted import handle_reply_restricted
 from handlers.save_message import save_message_to_db
 from handlers.server_logs import *
 from handlers.starboard import db_get_all_starboard_posts, handle_starboard_reactions
-from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_react_xp, increment_user_xp
+from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_react_xp
 
 # Tasks
 from tasks.backups import backups_task
@@ -113,11 +117,12 @@ from tasks.birthdays import birthdays_task
 from tasks.hoodiversaries import hoodiversary_task
 from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
-from tasks.wrapped_generation import wrapped_generation_task
+# from tasks.wrapped_generation import wrapped_generation_task
 
 
 # Utils
 from utils.check_channel_access import perform_channel_check
+from utils.image_utils import preload_image_assets
 
 background_tasks = set() # for non-blocking tasks
 logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}{Style.RESET_ALL}")
@@ -173,6 +178,9 @@ async def on_ready():
     number_of_starboard_posts = sum([len(ALL_STARBOARD_POSTS[p]) for p in ALL_STARBOARD_POSTS])
     for emoji in bot.emojis:
       config["all_emoji"][emoji.name] = emoji
+
+    # Preload commonly used image assets into memory (badge icons, etc)
+    await preload_image_assets()
 
     # Print AGIMUS ANSI Art
     print_agimus_ansi_art()
@@ -395,7 +403,7 @@ scheduled_tasks = [
   birthdays_task(bot),
   hoodiversary_task(bot),
   weyounsday_task(bot),
-  wrapped_generation_task(bot)
+  # wrapped_generation_task(bot)
 ]
 scheduler = Scheduler()
 for task in scheduled_tasks:

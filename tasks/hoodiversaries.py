@@ -1,6 +1,9 @@
 from common import *
 
-from utils.badge_utils import db_get_user_badges
+from queries.badge_info import db_get_badge_info_by_name
+from queries.badge_instances import *
+from queries.echelon_xp import db_get_echelon_progress
+from utils.badge_instances import create_new_badge_instance_by_filename
 
 def hoodiversary_task(bot):
 
@@ -24,14 +27,19 @@ def hoodiversary_task(bot):
       if not hoodiversary_members:
         return
 
-      # Award special Captain Picard Day badge!
+      # Award special Captain Picard Day badge (at all prestige tiers the user does not currently possess it at)!
+      picard_day_badge_info = await db_get_badge_info_by_name("Captain Picard Day")
       for m in hoodiversary_members:
-        existing_badges = await db_get_user_badges(m["member"].id)
-        if "Captain Picard Day" not in [b['badge_name'] for b in existing_badges]:
-          async with AgimusDB() as query:
-            sql = "INSERT INTO badges (user_discord_id, badge_filename) VALUES (%s, %s)"
-            vals = (m["member"].id, 'Captain_Picard_Day.png')
-            await query.execute(sql, vals)
+        user_id = m["member"].id
+        existing_badges = await db_get_user_badge_instances(user_id)
+        existing_pairs = {(b['badge_name'], b['prestige_level']) for b in existing_badges}
+
+        echelon_progress = await db_get_echelon_progress(user_id)
+        current_prestige = echelon_progress.get('current_prestige_tier', 0)
+        for prestige in range(current_prestige + 1):
+          key = (picard_day_badge_info['badge_name'], prestige)
+          if key not in existing_pairs:
+            await create_new_badge_instance_by_filename(user_id, picard_day_badge_info['badge_filename'], prestige_level=prestige, event_type="prestige_echo")
 
       emoji_list = [
         get_emoji('picard_yes_happy_celebrate'),
@@ -59,7 +67,7 @@ def hoodiversary_task(bot):
         color=discord.Color.random()
       )
       embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
-      embed.set_footer(text="If not already present, you've also been awarded a Captain Picard Day badge!\nUse '/badges showcase' to check it out!")
+      embed.set_footer(text="If not already present, you've also been awarded a Captain Picard Day badge (at all Prestige Tiers you have currently unlocked)!\nUse '/badges showcase' to check it out!")
       channel_ids = get_channel_ids_list(config["tasks"]["hoodiversary"]["channels"])
       for channel_id in channel_ids:
         channel = bot.get_channel(channel_id)

@@ -1,7 +1,6 @@
 from common import *
 from utils.check_channel_access import access_check
 from utils.media_utils import *
-from utils.timekeeper import *
 
 command_config = config["commands"]["drop post"]
 
@@ -113,39 +112,26 @@ async def drop_post(ctx: discord.ApplicationContext, public: str, query: str):
     f"{Fore.RED}Firing `/drop post` command, requested by {ctx.author.name}!{Fore.RESET}")
   # Private drops are not on the timer
   public = bool(public == "yes")
-  allowed = True
-  if public:
-    allowed = await check_timekeeper(ctx)
 
-  if (allowed):
-    q = query.lower().strip()
-    drop_metadata = get_media_metadata(drop_data, q)
+  q = query.lower().strip()
+  drop_metadata = get_media_metadata(drop_data, q)
 
-    if drop_metadata:
-      try:
-        filename = get_media_file(drop_metadata)
-        await ctx.respond(file=discord.File(filename), ephemeral=not public)
-        if public:
-          set_timekeeper(ctx)
-      except Exception as err:
-        logger.info(f"{Fore.RED}ERROR LOADING DROP: {err}{Fore.RESET}")
-        await ctx.respond(embed=discord.Embed(
-            title="Error Retrieving Clip!",
-            description="Whoops, something went wrong...",
-            color=discord.Color.red()
-          ), ephemeral=True
-        )
-    else:
+  if drop_metadata:
+    try:
+      filename = get_media_file(drop_metadata)
+      await ctx.respond(file=discord.File(filename), ephemeral=not public)
+    except Exception as err:
+      logger.info(f"{Fore.RED}ERROR LOADING DROP: {err}{Fore.RESET}")
       await ctx.respond(embed=discord.Embed(
-          title="Drop Not Found!",
-          description="To get a list of drops run: `/drops list`",
+          title="Error Retrieving Clip!",
+          description="Whoops, something went wrong...",
           color=discord.Color.red()
         ), ephemeral=True
       )
   else:
     await ctx.respond(embed=discord.Embed(
-        title="Denied!",
-        description="Someone in the channel has already dropped too recently! Please wait a minute before another drop!",
+        title="Drop Not Found!",
+        description="To get a list of drops run: `/drops list`",
         color=discord.Color.red()
       ), ephemeral=True
-    )
+  )

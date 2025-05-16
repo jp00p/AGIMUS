@@ -36,15 +36,15 @@ class AgimusDB:
       if self.cursor:
         await self.cursor.close()
     except Exception as e:
-      logger.error(f"Error closing cursor: {e}")
-      logger.info(traceback.format_exc())
+      logger.error(f"Error closing cursor: {e}", exc_info=True)
 
     try:
       if self.conn:
-        if self._pool:
+        # swallow double‑release assertions
+        try:
           self._pool.release(self.conn)
-        else:
-          logger.error("Connection pool is None")
-    except Exception as e:
-      logger.error(f"Error releasing connection: {e}")
-      logger.info(traceback.format_exc())
+        except AssertionError:
+          # connection wasn’t checked out or already returned—ignore
+          pass
+    except Exception:
+      logger.error("Error releasing connection", exc_info=True)

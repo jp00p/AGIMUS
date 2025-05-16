@@ -15,6 +15,9 @@ class ReactRoles(commands.Cog):
 
   @commands.Cog.listener()
   async def on_ready(self):
+    if not config['roles']['reaction_roles_enabled']:
+      return
+
     self.roles_channel = self.bot.get_channel(config["channels"]["roles-and-pronouns"])
     self.reaction_roles = await self.load_role_reactions() # gather all our data for reactions
     await self.rebuild_embeds.start()
@@ -187,7 +190,7 @@ class ReactRoles(commands.Cog):
   @q_update_role_messages.error
   async def q_update_role_messages_error(self, ctx, error):
     if isinstance(error, commands.MissingPermissions):
-      await ctx.send("You think you're clever!", ephemeral=True)
+      await ctx.author.send("You think you're clever! Access denied.")
     else:
       await ctx.send("Sensoars indicate some kind of ...*error* has occured!")
       logger.info(traceback.format_exc())
@@ -231,6 +234,9 @@ class ReactRoles(commands.Cog):
   # rebuild embeds (so role counts update)
   @tasks.loop(seconds=60)
   async def rebuild_embeds(self):
+    if not config['roles']['reaction_roles_enabled']:
+      return
+
     rr = self.reaction_roles
     for message_id in rr:
       message_name = rr[message_id]["message_name"]

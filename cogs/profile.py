@@ -3,8 +3,13 @@ import pilgram
 import string
 
 from common import *
-from handlers.xp import calculate_xp_for_next_level, get_xp_cap_progress
+from handlers.echelon_xp import xp_progress_within_level
+from queries.badge_instances import *
+from queries.crystal_instances import db_get_user_attuned_and_harmonized_crystals
+from queries.echelon_xp import db_get_echelon_progress, db_get_legacy_xp_data
 from utils.badge_utils import *
+from utils.image_utils import draw_dynamic_text, generate_singular_badge_slot, buffer_image_to_discord_file, encode_webp
+from utils.prestige import *
 
 f = open(config["commands"]["shop"]["data"])
 shop_data = json.load(f)
@@ -36,16 +41,29 @@ def get_sticker_filename_from_name(name):
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
-async def user_badges_autocomplete(ctx:discord.AutocompleteContext):
-  user_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.interaction.user.id)]
-  if len(user_badges) == 0:
-    user_badges = ["You don't have any badges yet!"]
-    return user_badges
+async def autocomplete_profile_badges(ctx: discord.AutocompleteContext):
+  user_id = ctx.interaction.user.id
+  prestige_level = int(ctx.options['prestige'])
 
-  user_badges.sort()
-  user_badges.insert(0, '[CLEAR BADGE]')
+  user_badge_instances = await db_get_user_badge_instances(user_id, prestige=prestige_level)
 
-  return [result for result in user_badges if ctx.value.lower() in result.lower()]
+  results = [
+    discord.OptionChoice(
+      name=b['badge_name'],
+      value=str(b['badge_instance_id'])
+    )
+    for b in user_badge_instances
+  ]
+
+  filtered = [r for r in results if ctx.value.lower() in r.name.lower()]
+  if not filtered:
+    filtered = [
+      discord.OptionChoice(
+        name="[ No Valid Options ]",
+        value=None
+      )
+    ]
+  return filtered
 
 async def user_photos_autocomplete(ctx:discord.AutocompleteContext):
   user_photos = [s['item_name'] for s in await db_get_user_profile_photos_from_inventory(ctx.interaction.user.id)]
@@ -123,14 +141,21 @@ class Profile(commands.Cog):
     and will return a user's profile card
     """
     public = bool(public == "yes")
-    await ctx.defer(ephemeral=not public)
+    confirmation_message = await ctx.respond(
+      embed=discord.Embed(
+        title="Pulling up your Profile PADD!",
+        description="Hold pleeeeease. 👉👈",
+        color=discord.Color.blurple()
+      ),
+      ephemeral=True
+    )
+    # await ctx.defer(ephemeral=not public)
 
     member = ctx.author # discord obj
-    user = await get_user(member.id) # our DB
-    logger.info(f"{Fore.CYAN}{member.display_name} is looking at their own {Back.WHITE}{Fore.BLACK}profile card!{Back.RESET}{Fore.RESET}")
+    member_id = str(member.id)
+    user = await get_user(member_id) # our DB
 
-    # clean up username
-    user_name = remove_emoji(member.display_name)
+    logger.info(f"{Fore.CYAN}{member.display_name} is looking at their own {Back.WHITE}{Fore.BLACK}profile card!{Back.RESET}{Fore.RESET}")
 
     # get rank
     ranks = ["admiral", "captain", "commander", "lt. commander", "lieutenant", "ensign", "cadet"]
@@ -141,7 +166,6 @@ class Profile(commands.Cog):
         if rolename == rank:
           top_role = string.capwords(rank)
           break
-
 
     # find their assignment (vanity role)
     assignments = [846843197836623972, 765301878309257227, 846844057892421704, 846844534217769000, 847986805571059722, 846847075911991326, 846844634579730463, 846845685357871124, 902717922475126854]
@@ -157,33 +181,34 @@ class Profile(commands.Cog):
 
     user_join = member.joined_at.strftime("%d %B %Y")
     user_join_stardate = calculate_stardate(member.joined_at)
-    score = user["score"]
-    spins = user["spins"]
-    level = user["level"]
-    xp = user["xp"]
-    badges = await db_get_user_badges(member.id)
+
+    # User Stats
+    echelon_progress = await db_get_echelon_progress(member_id)
+    xp = echelon_progress.get('current_xp', 0)
+    level = echelon_progress.get('current_level', 0)
+    prestige_tier = echelon_progress.get('current_prestige_tier', 0)
+    badges = await db_get_user_badge_instances(member_id)
     badge_count = len(badges)
-    next_level = calculate_xp_for_next_level(level)
-    prev_level = 0
-    if level > 1:
-      prev_level = calculate_xp_for_next_level(level-1)
+    crystals = await db_get_user_attuned_and_harmonized_crystals(member_id)
+    crystals_count = len(crystals)
 
-    percent_completed = abs((xp - prev_level) / (next_level - prev_level))  # for calculating width of xp bar
+    # Figure out their XP percentage towards their next Echelon Level:
+    _, xp_into_level, xp_required = xp_progress_within_level(xp)
+    percent_completed = xp_into_level / xp_required if xp_required else 0
 
-    if level >= 176:
-      # High Levelers - Static Level Up Progression per Every 420 XP
-      cap_progress = await get_xp_cap_progress(ctx.author.id)
-      if cap_progress is not None:
-        percent_completed = cap_progress / 420
+    # Legacy XP Data
+    legacy_xp_data = await db_get_legacy_xp_data(member_id)
+    legacy_xp = legacy_xp_data.get('legacy_xp', 0)
+    legacy_level = legacy_xp_data.get('legacy_level', 0)
 
     # fonts (same font, different sizes) used for building image
     name_font = ImageFont.truetype("fonts/lcars3.ttf", 61)
-    agimus_font = ImageFont.truetype("fonts/lcars3.ttf", 22)
+    agimus_font = ImageFont.truetype("fonts/lcars3.ttf", 22) # also legacy level/xp font
     level_font = ImageFont.truetype("fonts/lcars3.ttf", 50) # also main header font
-    small_button_font = ImageFont.truetype("fonts/lcars3.ttf", 30)
+    small_button_font = ImageFont.truetype("fonts/lcars3.ttf", 25)
     big_button_font = ImageFont.truetype("fonts/lcars3.ttf", 28)
     title_font = ImageFont.truetype("fonts/lcars3.ttf", 34) # also subtitle font and score font
-    xp_font = ImageFont.truetype("fonts/lcars3.ttf", 32)
+    xp_font = ImageFont.truetype("fonts/lcars3.ttf", 30)
     entry_font = ImageFont.truetype("fonts/lcars3.ttf", 40)
 
     # build the base bg
@@ -233,7 +258,6 @@ class Profile(commands.Cog):
         (216, 216, 216),
         (81, 81, 81),
         (123, 123, 123)
-
       ]
 
     draw = ImageDraw.Draw(base_bg) # pencil time
@@ -258,33 +282,62 @@ class Profile(commands.Cog):
       base_bg.paste(image, (0, 0), image)
 
     # draw all the texty bits
-    draw.text( (283, 80), f"USS HOOD PERSONNEL FILE #{str(member.id)[-4:]}", fill=random.choice(lcars_colors), font=level_font, align="right")
+    draw.text( (283, 80), f"USS HOOD PERSONNEL FILE #{member_id[-4:]}", fill=random.choice(lcars_colors), font=level_font, align="right")
     draw.text( (79, 95), f"AGIMUS MAIN TERMINAL", fill="#dd4444", font=agimus_font, align="center",)
-    draw.text( (470, 182), f"{user_name[0:32]}", fill="white", font=name_font, align="center", anchor="ms")
+
+    # Draw User's Display Name and Tagline if present (Dynamic Sizes, Supports Emoji)
+    await draw_dynamic_text(
+      canvas=base_bg,
+      draw=draw,
+      position=(470, 150),
+      text=member.display_name,
+      max_width=940,
+      font_obj=name_font,
+      starting_size=54,
+      min_size=20,
+      fill=(255, 255, 255),
+      centered=True
+    )
     if user['profile_tagline']:
-      draw.text( (470, 233), f"\"{user['profile_tagline']}\"", fill="white", font=entry_font, align="center", anchor="ms")
-    draw.text( (578, 381), f"LEVEL: {user['level']:03d}", fill="white", font=level_font, align="right" )
+      tagline = user['profile_tagline']
+      await draw_dynamic_text(
+        canvas=base_bg,
+        draw=draw,
+        position=(470, 215),
+        text=f'"{tagline}"',
+        max_width=940,
+        font_obj=entry_font,
+        starting_size=40,
+        min_size=15,
+        fill=(255, 255, 255),
+        centered=True
+      )
+
+    draw.text( (514 , 382), f"ECHELON: {level:04d}", fill="white", font=level_font, align="right")
     title_color = random.choice(lcars_colors[1:3])
+    if legacy_xp_data:
+      draw.text( (515, 430), f"LEGACY LEVEL:", fill=title_color, font=agimus_font, align="left")
+      draw.text( (600, 430), f"{legacy_level:,}", fill="white", font=agimus_font, align="left")
+      draw.text( (515, 455), f"LEGACY XP:", fill=title_color, font=agimus_font, align="left")
+      draw.text( (584, 455), f"{legacy_xp:,}", fill="white", font=agimus_font, align="left")
+
     draw.text( (250, 385), f"CURRENT RANK:", fill=title_color, font=title_font, align="left")
     draw.text( (250, 418), f"{top_role}", fill="white", font=entry_font, align="left")
     draw.text( (250, 478), f"CURRENT ASSIGNMENT:", fill=title_color, font=title_font, align="left")
     draw.text( (250, 508), f"{second_role} / USS Hood NCC-42296", fill="white", font=entry_font, align="left")
     draw.text( (250, 568), f"DUTY STARTED:", fill=title_color, font=title_font, align="left")
-    # TODO: come back to this
-    #draw.text( (250, 598), f"STARDATE: {user_join_stardate}", fill="white", font=entry_font, align="left")
     draw.text( (250, 598), f"{user_join}", fill="white", font=entry_font, align="left")
-    draw.text( (350, 740), f"BADGES: {badge_count:03d}", fill="black", font=small_button_font, align="center")
-    draw.text( (350, 791), f"SPINS: {spins:04d}", fill="black", font=small_button_font, align="center")
-    draw.text( (507, 751), f"RECREATIONAL CREDITS:", fill="black", font=big_button_font, align="center")
-    draw.text( (554, 781), f"{score:08d}", fill="black", font=title_font, align="center")
-    draw.text( (388, 850), f"XP: {xp:05d}", fill="black", font=xp_font, align="right", anchor="rm")
+    draw.text( (400, 750), f"BADGES: {badge_count:04d}", fill="black", font=small_button_font, align="center", anchor="mm")
+    draw.text( (400, 800), f"CRYSTALS: {crystals_count:04d}", fill="black", font=small_button_font, align="center", anchor="mm")
+    draw.text( (595, 758), f"PRESTIGE TIER:", fill="black", font=big_button_font, align="center", anchor="mm")
+    draw.text( (595, 788), f"{PRESTIGE_TIERS[prestige_tier]}", fill="black", font=title_font, align="center", anchor="mm")
+    draw.text( (388, 851), f"ECHELON XP: {xp:07d}", fill="black", font=xp_font, align="right", anchor="rm")
 
     # add users avatar to card
     avatar = member.display_avatar.with_size(128)
-    await avatar.save("./images/profiles/"+str(member.id)+"_a.png")
-    avatar_image = Image.open("./images/profiles/"+str(member.id)+"_a.png")
+    await avatar.save("./images/profiles/"+member_id+"_a.png")
+    avatar_image = Image.open("./images/profiles/"+member_id+"_a.png")
     avatar_image = avatar_image.convert("RGBA")
-    avatar_image.resize((128,128))
     base_bg.paste(avatar_image, (79, 583))
 
     # add screen glare to screen
@@ -316,31 +369,6 @@ class Profile(commands.Cog):
         sticker_offset = 466
       base_bg.paste(sticker_bg, (sticker_offset+random.randint(-10,5), 886+random.randint(-3,3)), sticker_bg)
 
-    # put badge on
-    if len(user["badges"]) > 0 and user['badges'][0]['badge_filename']:
-      badge_filename = user['badges'][0]['badge_filename']
-      user_badges = await db_get_user_badges(user['discord_id'])
-      if badge_filename not in [b['badge_filename'] for b in user_badges]:
-        # Catch if the user had a badge present that they no longer have, if so clear it from the table
-        await db_remove_user_profile_badge(user['discord_id'])
-        badge_info = await db_get_badge_info_by_filename(badge_filename)
-        if user["receive_notifications"]:
-          try:
-            await ctx.author.send(
-              embed=discord.Embed(
-                title="Profile Badge No Longer Present",
-                description=f"Just a heads up, you had a badge on your profile previously, \"{badge_info['badge_name']}\", which is no longer in your inventory.\n\nYou can set a new featured badge with `/profile set badge:`!",
-                color=discord.Color.red()
-              )
-            )
-          except discord.Forbidden as e:
-            logger.info(f"Unable to send notification to {ctx.author.display_name} regarding their cleared profile badge, they have their DMs closed.")
-      else:
-        # Otherwise go ahead and stamp the badge on their profile PADD
-        badge_image = Image.open(f"./images/badges/{badge_filename}").convert("RGBA").resize((170, 170))
-        base_bg.paste(badge_image, (540, 550), badge_image)
-
-
     # put polaroid on
     if user["profile_photo"] and user["profile_photo"] != "none":
       profile_photo = user['profile_photo'].replace(" ", "_")
@@ -355,7 +383,7 @@ class Profile(commands.Cog):
           photo_filter = getattr(pilgram, random.choice(Profile.filters))
         photo_content = photo_filter(photo_content).convert("RGBA")
 
-      photo_content.thumbnail((263, 200), Image.ANTIALIAS)
+      photo_content.thumbnail((263, 200), Image.Resampling.LANCZOS)
       photo_content = photo_content.crop((0,0,200,200))
       # photo_glare = Image.open("./images/profiles/template_pieces/lcars/photo-glare.png").convert("RGBA")
       # photo_content.paste(photo_glare, (0, 0), photo_glare)
@@ -366,12 +394,57 @@ class Profile(commands.Cog):
       base_bg.paste(photo_image, (6+random.randint(-1,1), 164+random.randint(-5,5)), photo_image)
 
     base_w, base_h = base_bg.size
-    base_bg = base_bg.resize((int(base_w*2), int(base_h*2))) # makes it more legible maybe
+    base_canvas = base_bg.resize((int(base_w*2), int(base_h*2))) # makes it more legible maybe
+    base_canvas = base_canvas.convert("RGB") # discard alpha to prevent flickering if badge frames are applied
 
-    # finalize image
-    base_bg.save("./images/profiles/drunkshimodanumber"+str(member.id)+".png")
-    discord_image = discord.File("./images/profiles/drunkshimodanumber"+str(member.id)+".png")
-    await ctx.followup.send(file=discord_image, ephemeral=not public)
+    # Generate Final Frames with Profile Badge if present
+    profile_frames = []
+    profile_badge_instance_id = await db_get_user_profile_badge_instance_id(member.id)
+    if profile_badge_instance_id:
+      badge_instance = await db_get_badge_instance_by_id(profile_badge_instance_id)
+      badge_is_valid = badge_instance['owner_discord_id'] == str(member.id) and badge_instance['status'] == 'active'
+
+      if badge_is_valid:
+        badge_frames = await generate_singular_badge_slot(badge_instance, border_color=random.choice(lcars_colors))
+        for frame in badge_frames:
+          frame = frame.resize((340, 340), resample=Image.Resampling.LANCZOS)
+          final_canvas = base_canvas.copy()
+          final_canvas.paste(frame, (1080, 1100), frame)
+          profile_frames.append(final_canvas)
+      else:
+        # Catch that the user had a badge present that they no longer have, so clear it from the DB and alert them
+        profile_frames = [base_canvas]
+        await db_remove_user_profile_badge(member.id)
+        if user["receive_notifications"]:
+          try:
+            await ctx.author.send(
+              embed=discord.Embed(
+                title="Profile Badge No Longer Present",
+                description=f"Just a heads up, you had a badge on your profile previously, \"{badge_instance['badge_name']}\", which is no longer in your inventory.\n\nYou can set a new featured badge with `/profile set_badge`!",
+                color=discord.Color.red()
+              )
+            )
+          except discord.Forbidden as e:
+            logger.info(f"Unable to send notification to {ctx.author.display_name} regarding their cleared profile badge, they have their DMs closed.")
+
+    else:
+      # No badge selected, just set a single frame of the badgeless PADD
+      profile_frames = [base_canvas]
+
+    if len(profile_frames) > 1:
+      buf = await encode_webp(profile_frames)
+      await ctx.followup.send(file=discord.File(buf, filename='profile_card.webp'), ephemeral=not public)
+    else:
+      file = buffer_image_to_discord_file(profile_frames[0], 'profile_card.png')
+      await ctx.followup.send(file=file, ephemeral=not public)
+
+    await confirmation_message.edit(
+      embed=discord.Embed(
+        title="All Done!",
+        description="Yayyyy.",
+        color=discord.Color.blurple()
+      )
+    )
 
 
   @profile.command(
@@ -382,12 +455,6 @@ class Profile(commands.Cog):
     name="tagline",
     description="Your tagline or \"none\" to make blank (follow the server rules please!)",
     required=False
-  )
-  @option(
-    name="badge",
-    description="Your badge name, or use [CLEAR BADGE] to remove",
-    required=False,
-    autocomplete=user_badges_autocomplete
   )
   @option(
     name="photo",
@@ -414,16 +481,13 @@ class Profile(commands.Cog):
     autocomplete=photo_filters_autocomplete
   )
   async def set(self, ctx:discord.ApplicationContext,
-                tagline: str, badge: str, photo: str, sticker: str, style: str, photo_filter: str):
+                tagline: str, photo: str, sticker: str, style: str, photo_filter: str):
     """
     Set all profile PADD at once.  At least make it less redundant.
     """
     messages = []
     if tagline is not None:
       messages.append(await self.set_tagline(ctx, tagline))
-
-    if badge is not None:
-      messages.append(await self.set_badge(ctx, badge))
 
     if photo is not None:
       messages.append(await self.set_photo(ctx, photo))
@@ -455,6 +519,79 @@ class Profile(commands.Cog):
       color=discord.Color.green(),
     ), ephemeral=True)
 
+
+  @profile.command(
+    name="set_badge",
+    description="Set your featured Badge"
+  )
+  @option(
+    name="prestige",
+    description="Which Prestige Tier?",
+    required=True,
+    autocomplete=autocomplete_prestige_tiers
+  )
+  @option(
+    "badge",
+    str,
+    description="The Badge to feature",
+    required=True,
+    autocomplete=autocomplete_profile_badges
+  )
+  async def set_badge(self, ctx:discord.ApplicationContext, prestige:str, badge:str):
+    """
+    Set a user's badge for their profile card
+    """
+    await ctx.defer(ephemeral=True)
+    user_id = str(ctx.author.id)
+
+    if not await is_prestige_valid(ctx, prestige):
+      return
+    prestige = int(prestige)
+    badge_instance_id = int(badge)
+
+    # Check to make sure they own the badge
+    badge_instance = await db_get_badge_instance_by_id(badge_instance_id)
+
+    if not badge_instance or badge_instance['owner_discord_id'] != user_id:
+      await ctx.respond(embed=discord.Embed(
+        title="Unable To Set Featured Profile Badge",
+        description="You don't appear to own that Badge at the specified Prestige Tier.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+    # If it looks good, go ahead and set the badge
+    await db_add_user_profile_badge(ctx.author.id, badge_instance_id)
+    badge_name = badge_instance['badge_name']
+    logger.info(f'{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile badge{Style.RESET_ALL} to: {Style.BRIGHT}"{badge_name}"{Style.RESET_ALL}')
+    await ctx.respond(embed=discord.Embed(
+      title="Successfully Set Featured Profile Badge",
+      description=f'You have successfully set "{badge_name}" as your profile badge.',
+      color=discord.Color.green()
+    ), ephemeral=True)
+    return
+
+  @profile.command(
+    name="remove_badge",
+    description="Remove your featured Badge"
+  )
+  async def remove_badge(self, ctx:discord.ApplicationContext):
+    """
+    Remove a user's featured profile badge (if present)
+    """
+    await ctx.defer(ephemeral=True)
+    user_id = str(ctx.author.id)
+
+    await db_remove_user_profile_badge(user_id)
+
+    await ctx.respond(embed=discord.Embed(
+      title="Successfully Removed Featured Profile Badge",
+      description=f'You have cleared your profile badge.',
+      color=discord.Color.green()
+    ), ephemeral=True)
+    return
+
+
   async def set_tagline(self, ctx:discord.ApplicationContext, tagline:str) -> str:
     """
     Set a user's tagline for their profile card
@@ -472,40 +609,6 @@ class Profile(commands.Cog):
         msg += f'\nIt looks like you are using Unicode characters, and those might not show up.'
       logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their tagline{Style.RESET_ALL} to: {Style.BRIGHT}\"{tagline}\"{Style.RESET_ALL}")
     return msg
-
-  async def set_badge(self, ctx:discord.ApplicationContext, badge:str) -> str:
-    """
-    Set a user's badge for their profile card
-    Users can also unset it by selecting the "[CLEAR BADGE]" option from the autocomplete
-    """
-    # User selected the warning message, return as no-op
-    if badge == "You don't have any badges yet!":
-      return None
-
-    # Remove badge if desired by user
-    remove = bool(badge == '[CLEAR BADGE]')
-    if remove:
-      await db_remove_user_profile_badge(ctx.author.id)
-      logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}removed their profile badge!{Style.RESET_ALL}")
-      return "Cleared Profile Badge"
-
-    # Check to make sure they own the badge
-    user_badges = [b['badge_name'] for b in await db_get_user_badges(ctx.author.id)]
-    if badge not in user_badges:
-      await ctx.respond(embed=discord.Embed(
-        title="Unable To Set Featured Profile Badge",
-        description="You don't appear to have that badge yet!",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return None
-
-    # If it looks good, go ahead and add the badge to their profile
-    badge_info = await db_get_badge_info_by_name(badge)
-    badge_filename = badge_info['badge_filename']
-
-    await db_add_user_profile_badge(ctx.author.id, badge_filename)
-    logger.info(f"{Fore.CYAN}{ctx.author.display_name}{Fore.RESET} has {Style.BRIGHT}changed their profile badge{Style.RESET_ALL} to: {Style.BRIGHT}\"{badge}\"{Style.RESET_ALL}")
-    return f"You've successfully set \"{badge}\" as your profile badge."
 
   async def set_photo(self, ctx:discord.ApplicationContext, photo:str) -> str:
     """
@@ -629,16 +732,27 @@ async def db_add_user_profile_tagline(user_id, tagline):
     await query.execute(sql, vals)
 
 # Badges
+async def db_get_user_profile_badge_instance_id(user_id):
+  async with AgimusDB(dictionary=True) as query:
+    sql = "SELECT badge_instance_id FROM profile_badge_instances WHERE user_discord_id = %s"
+    vals = (user_id,)
+    await query.execute(sql, vals)
+    result = await query.fetchone()
+  if result:
+    return result['badge_instance_id']
+  else:
+    return None
+
 async def db_remove_user_profile_badge(user_id):
   async with AgimusDB() as query:
-    sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
-    vals = {"badge_filename" : "", "user_discord_id" : user_id}
+    sql = "REPLACE INTO profile_badge_instances (badge_instance_id, user_discord_id) VALUES (%(badge_instance_id)s, %(user_discord_id)s)"
+    vals = {"badge_instance_id" : None, "user_discord_id" : user_id}
     await query.execute(sql, vals)
 
-async def db_add_user_profile_badge(user_id, badge_filename):
+async def db_add_user_profile_badge(user_id, badge_instance_id):
   async with AgimusDB() as query:
-    sql = "REPLACE INTO profile_badges (badge_filename, user_discord_id) VALUES (%(badge_filename)s, %(user_discord_id)s)"
-    vals = {"badge_filename" : badge_filename, "user_discord_id" : user_id}
+    sql = "REPLACE INTO profile_badge_instances (badge_instance_id, user_discord_id) VALUES (%(badge_instance_id)s, %(user_discord_id)s)"
+    vals = {"badge_instance_id" : badge_instance_id, "user_discord_id" : user_id}
     await query.execute(sql, vals)
 
 # Photos
@@ -657,7 +771,7 @@ async def db_get_user_profile_photo(user_id):
     await query.execute(sql, vals)
     result = await query.fetchone()
   if result:
-    return result['style']
+    return result['photo']
   else:
     return 'Default'
 
