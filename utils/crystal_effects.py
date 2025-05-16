@@ -1,5 +1,7 @@
 import asyncio
 import shutil
+import numpy as np
+import imageio.v3 as iio
 
 from common import *
 
@@ -143,27 +145,30 @@ def save_cached_effect_image(image: Image.Image | list[Image.Image], effect: str
   """
   Saves a crystal effect result to the cache.
 
-  If `image` is a list, saves as an APNG.
-  Otherwise, saves as a single static PNG.
+  If `image` is a list, saves as an APNG using imageio.
+  Otherwise, saves as a static PNG using Pillow.
   """
-  path = get_cached_effect_path(effect, badge_info_id, extension="apng" if isinstance(image, list) else "png")
-  path.parent.mkdir(parents=True, exist_ok=True)
-
   if isinstance(image, list):
-    # Save as animated PNG
-    first, *rest = image
-    first.save(
+    path = get_cached_effect_path(effect, badge_info_id, extension="apng")
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Ensure uniform RGBA frames
+    converted = [np.array(f.convert("RGBA")) for f in image]
+
+    # Save with correct format string
+    iio.imwrite(
       path,
-      format="PNG",
-      save_all=True,
-      append_images=rest,
-      duration=int(1000 / 12),  # Assuming 12 fps
-      loop=0,
-      optimize=False,
-      disposal=2  # Restore to background before next frame (important)
+      converted,
+      plugin="pillow",
+      format="PNG",  # <== This is correct
+      duration=int(1000 / 12),
+      loop=0
     )
+
   else:
-    # Save as static PNG
+    # Static PNG fallback
+    path = get_cached_effect_path(effect, badge_info_id, extension="png")
+    path.parent.mkdir(parents=True, exist_ok=True)
     image.save(path, format="PNG")
 
 
@@ -1095,6 +1100,76 @@ def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]
 
   return [shimmer_flux_frame(base_img, i) for i in range(num_frames)]
 
+
+@register_effect("static_cascade")
+def effect_static_cascade(base_img: Image.Image, badge) -> list[Image.Image]:
+  """
+  Applies a thick horizontal distortion wave that travels vertically
+  across the badge, with baked-in scanlines and alpha-safe frames.
+
+  Returns a list of 24 RGBA animation frames (12fps).
+  """
+  pad = 16
+  total_frames = 24
+  duration = int(1000 / 12)
+  amplitude = 14
+  band_height = 31
+
+  # Extract badge mask
+  badge_alpha = base_img.split()[-1]
+  badge_mask = Image.new("L", base_img.size, 0)
+  badge_mask.paste(badge_alpha, mask=badge_alpha)
+
+  # Apply scanlines only to badge pixels
+  striped_badge = base_img.copy()
+  pixels = striped_badge.load()
+  alpha = badge_alpha.load()
+  for y in range(base_img.height):
+    if y % 3 in (0, 1):
+      for x in range(base_img.width):
+        if alpha[x, y] > 0:
+          r, g, b, a = pixels[x, y]
+          pixels[x, y] = (max(r - 30, 0), max(g - 30, 0), max(b - 30, 0), a)
+
+  # Paste into padded canvas
+  padded_size = (base_img.width + pad * 2, base_img.height + pad * 2)
+  padded = Image.new("RGBA", padded_size, (0, 0, 0, 0))
+  padded.paste(striped_badge, (pad, pad))
+
+  # Generate distorted frames
+  frames = []
+  for i in range(total_frames):
+    wave_center = ((i / total_frames) * (padded.height + band_height)) - (band_height // 2)
+    src = padded.load()
+    frame = Image.new("RGBA", padded.size)
+    dst = frame.load()
+
+    for y in range(padded.height):
+      distance = abs(y - wave_center)
+      if distance < band_height:
+        t = 1 - (distance / band_height)
+        eased = math.sin(t * math.pi / 2)
+        offset = int(amplitude * eased)
+      else:
+        offset = 0
+
+      for x in range(padded.width):
+        new_x = x + offset
+        if 0 <= new_x < padded.width:
+          dst[x, y] = src[new_x, y]
+        else:
+          dst[x, y] = (0, 0, 0, 0)
+
+    frames.append(frame)
+
+  # Ensure all frames are alpha-safe for APNG disposal
+  cleaned_frames = []
+  for f in frames:
+    canvas = Image.new("RGBA", f.size, (0, 0, 0, 0))
+    canvas.paste(f, (0, 0), f)
+    cleaned_frames.append(canvas)
+
+  return cleaned_frames
 
 # @register_effect("static_cascade")
 # def effect_static_cascade(base_img: Image.Image, badge: dict) -> list[Image.Image]:

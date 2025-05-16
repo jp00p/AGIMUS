@@ -32,6 +32,7 @@ huesdk==1.7
 humanize==4.9.0
 idna==3.6
 ifaddr==0.2.0
+imageio==2.37.0
 jaraco.context==4.3.0
 kaleido==0.2.1
 kiwisolver==1.4.5

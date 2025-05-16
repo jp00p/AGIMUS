@@ -372,13 +372,14 @@ async def build_collection_canvas(user, prestige, page_data, all_data, page_numb
   total_rows = max(math.ceil(len(page_data) / 6) - 1, 0)
 
   if collection_type == "sets":
+    title_text = f"{user.display_name}'s Badge Set ({PRESTIGE_TIERS[prestige]})"
     collected_count = len([b for b in all_data if b.get('in_user_collection')])
     total_count = len(all_data)
   else:
+    title_text = f"{user.display_name}'s Badge Collection ({PRESTIGE_TIERS[prestige]})"
     collected_count = len(all_data)
     total_count = await db_get_max_badge_count()
 
-  title_text = f"{user.display_name}'s Badge Collection ({PRESTIGE_TIERS[prestige]})"
   if collection_label:
     title_text += f": {collection_label}"
 
@@ -974,7 +975,7 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
     count_y = 40  # align with name baseline
     draw.text((count_x, count_y), count_text, font=fonts.general, fill=colors.darker_highlight)
 
-  await draw_dynamic_text(row_canvas, draw, text=crystal['description'], font_obj=fonts.general, position=(title_x, 82), max_width=(dims.row_width - (dims.offset * 2)), starting_size=80, fill=(221, 221, 221))
+  await draw_dynamic_text(row_canvas, draw, text=crystal['description'], font_obj=fonts.general, position=(title_x, 82), max_width=(dims.row_width - (dims.offset * 2)), starting_size=40, fill=(221, 221, 221))
 
   # Render preview of crystal effect on "dummy" badge
   global _DUMMY_BADGE_INFO_CACHE
