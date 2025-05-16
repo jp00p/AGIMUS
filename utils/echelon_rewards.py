@@ -98,7 +98,6 @@ async def select_badge_for_level_up(member: discord.Member) -> tuple[int, int]:
     return {b['badge_info_id'] for b in instances}
 
   current_prestige = await get_user_prestige_level(member)
-  max_pqif_base = min(current_prestige, len(PRESTIGE_TIERS) - 2)
 
   # Step 1: Find the highest eligible PQIF base tier ≤ current_prestige
   eligible_pqif_bases = []

@@ -25,13 +25,14 @@ async def create_new_badge_instance(user_id: int, badge_info_id: int, prestige_l
   async with AgimusDB() as db:
     await db.execute(insert_history, (instance_id, user_id, event_type))
 
+  # Fetch full record with badge info
+  instance = await db_get_badge_instance_by_id(instance_id)
   # Autolock if this badge was on their wishlist at this prestige tier
   active_wants = await db_get_active_wants(user_id, prestige_level)
   if any(w['badge_info_id'] == badge_info_id for w in active_wants):
     await db_lock_badge_instance(instance_id)
+    instance['was_on_wishlist'] = True
 
-  # Fetch full record with badge info
-  instance = await db_get_badge_instance_by_id(instance_id)
   return instance
 
 
