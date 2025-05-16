@@ -758,11 +758,7 @@ class Tongo(commands.Cog):
       value="\n".join([f"* {m.display_name}" for m in tongo_player_members]),
       inline=False
     )
-    # confirmation_embed.add_field(
-    #   name="Total Badges In The Great Material Continuum!",
-    #   value="\n".join([f"* {b['badge_name']}" for b in tongo_pot_chunks[0]]) if tongo_pot_chunks else "* (empty)",
-    #   inline=False
-    # )
+
     confirmation_embed.set_image(url="https://i.imgur.com/aWLYGKQ.gif")
     confirmation_embed.set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
@@ -795,24 +791,6 @@ class Tongo(commands.Cog):
       timeout=180
     )
     await continuum_paginator.respond(ctx.interaction, ephemeral=False)
-
-    # # Continuation embeds if needed
-    # if len(tongo_pot_chunks) > 1:
-    #   for t_chunk in tongo_pot_chunks[1:]:
-    #     chunk_embed = discord.Embed(
-    #       title=f"Index requested by **{user_member.display_name}** (Continued)",
-    #       color=discord.Color.dark_purple()
-    #     )
-    #     chunk_embed.add_field(
-    #       name="Total Badges In The Great Material Continuum!",
-    #       value="\n".join([f"* {b['badge_name']}" for b in t_chunk]),
-    #       inline=False
-    #     )
-    #     chunk_embed.set_footer(
-    #       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
-    #       icon_url="https://i.imgur.com/GTN4gQG.jpg"
-    #     )
-    #     await zeks_table.send(embed=chunk_embed)
 
     # Continuum image display
     continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
@@ -962,33 +940,28 @@ class Tongo(commands.Cog):
           f"{len(badges_received)} Badges"
         )
 
-        xp_awarded = 0
-        # if len(badge_instance_ids) < 3:
-          # XXX Replace this with dividend rewards?
-          # xp_awarded = 110 * (3 - len(badge_instance_ids))
-          # if datetime.today().weekday() >= 4:
-          #   xp_awarded *= 2
-          # await grant_xp(member.id, xp_awarded, 'tongo_loss', zeks_table, "Consolation Prize for Tongo Loss")
+        dividends_rewarded = 0
+        if len(dividends_rewarded) < 3:
+          dividends_rewarded = len(badge_instance_ids)
+          await db_increment_tongo_dividends(user_id, amount=dividends_rewarded)
 
-        player_embed = await build_confront_player_embed(member, badges_received, wishlist_filenames_received, xp_awarded)
+        player_embed = await build_confront_player_embed(member, badges_received, wishlist_filenames_received, dividends_rewarded)
         player_embed.set_image(url=received_image_url)
         await zeks_table.send(embed=player_embed, file=received_image)
 
-        dm_embed = build_confront_dm_embed(member, badges_received, wishlist_filenames_received, channel_message.jump_url, xp_awarded)
+        dm_embed = build_confront_dm_embed(member, badges_received, wishlist_filenames_received, channel_message.jump_url, dividends_rewarded)
         try:
           await member.send(embed=dm_embed)
         except discord.Forbidden:
           logger.info(f"Unable to DM {member.display_name} — DMs closed.")
       else:
-        xp_awarded = 110 * 3
-        if datetime.today().weekday() >= 4:
-          xp_awarded *= 2
-        await grant_xp(member.id, xp_awarded, 'tongo_loss', zeks_table, "Consolation Prize for Tongo Loss")
+        dividends_rewarded = 3
+        await db_increment_tongo_dividends(user_id, amount=dividends_rewarded)
 
-        channel_embed = build_confront_no_rewards_embed(member, xp_awarded)
+        channel_embed = build_confront_no_rewards_embed(member, dividends_rewarded)
         await zeks_table.send(embed=channel_embed)
 
-        dm_embed = build_confront_dm_embed(member, [], [], channel_message.jump_url, xp_awarded)
+        dm_embed = build_confront_dm_embed(member, [], [], channel_message.jump_url, dividends_rewarded)
         try:
           await member.send(embed=dm_embed)
         except discord.Forbidden:
@@ -1277,14 +1250,15 @@ async def build_confront_results_embed(active_chair: discord.Member, remaining_b
 
   return embed
 
-async def build_confront_player_embed(member: discord.Member, badge_infos: list[dict], wishlist_badge_filenames: list[str], xp_awarded: int = 0) -> discord.Embed:
-  if xp_awarded:
-    description = f"\n\nOops, sorry {member.mention}... they got back less than they put in!\n\nOn the bright side they've been awarded **{xp_awarded}xp** as a consolation prize!"
-  else:
-    description = "\n".join([
-      f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
-      for b in badge_infos
-    ])
+async def build_confront_player_embed(member: discord.Member, badge_infos: list[dict], wishlist_badge_filenames: list[str], dividends_rewarded: int = 0) -> discord.Embed:
+  description = ""
+  if dividends_rewarded:
+    description = f"\n\nOops, sorry {member.mention}... they got back less than they put in!\n\nOn the bright side they've been awarded **{dividends_rewarded} Tongo Dividends** as a consolation prize!\n"
+
+  description += "\n".join([
+    f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
+    for b in badge_infos
+  ])
 
   embed = discord.Embed(
     title=f"{member.display_name}'s Results:",
@@ -1297,12 +1271,12 @@ async def build_confront_player_embed(member: discord.Member, badge_infos: list[
   return embed
 
 
-def build_confront_dm_embed(member: discord.Member, badge_infos: list[dict], wishlist_badge_filenames: list[str], jump_url: str, xp_awarded: int = 0) -> discord.Embed:
+def build_confront_dm_embed(member: discord.Member, badge_infos: list[dict], wishlist_badge_filenames: list[str], jump_url: str, dividends_rewarded: int = 0) -> discord.Embed:
   title = "TONGO! Confront!"
   description= f"Heya {member.display_name}! Your Tongo game has ended!"
 
-  if xp_awarded:
-    description+= f"\n\nOops, you received fewer than 3 badges — so you've been awarded **{xp_awarded}xp** as a consolation prize, but can view the full game results at: {jump_url}"
+  if dividends_rewarded:
+    description+= f"\n\nOops, you received fewer than 3 badges — so you've been awarded **{dividends_rewarded} Dividends** as a consolation prize, and can view the full game results at: {jump_url}"
   else:
     description+= f"\n\nYour winnings are included below, and you can view the full game results at: {jump_url}"
 
@@ -1331,10 +1305,10 @@ def build_confront_dm_embed(member: discord.Member, badge_infos: list[dict], wis
   return embed
 
 
-def build_confront_no_rewards_embed(member: discord.Member, xp_awarded: int) -> discord.Embed:
+def build_confront_no_rewards_embed(member: discord.Member, dividends_rewarded: int) -> discord.Embed:
   embed = discord.Embed(
     title=f"{member.display_name} did not receive any badges...",
-    description=f"but they've been awarded **{xp_awarded}xp** as a consolation prize!",
+    description=f"but they've been awarded **{dividends_rewarded} Tongo Dividends** as a consolation prize!",
     color=discord.Color.dark_purple()
   )
   embed.set_image(url="https://i.imgur.com/qZNBAvE.gif")

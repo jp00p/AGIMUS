@@ -348,14 +348,14 @@ async def db_get_user_crystal_buffer_count(user_id: int) -> int:
     return row['buffer_count'] if row else 0
 
 
-async def db_increment_user_crystal_buffer(user_id: int):
+async def db_increment_user_crystal_buffer(user_id: int, amount=1):
   sql = """
     INSERT INTO crystal_pattern_buffers (user_discord_id, buffer_count)
-    VALUES (%s, 1)
-    ON DUPLICATE KEY UPDATE buffer_count = buffer_count + 1
+    VALUES (%s, %s)
+    ON DUPLICATE KEY UPDATE buffer_count = buffer_count + %s
   """
   async with AgimusDB() as db:
-    await db.execute(sql, (user_id,))
+    await db.execute(sql, (user_id, amount, amount))
 
 
 async def db_decrement_user_crystal_buffer(user_id: int) -> bool:
