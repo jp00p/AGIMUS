@@ -3,7 +3,7 @@ from common import *
 from queries.common import BADGE_INSTANCE_COLUMNS
 
 # GET
-async def db_get_user_badge_instance_names_and_ids(user_id: int):
+async def db_get_user_badge_instance_names_and_ids(user_id: int, prestige: int = 0):
   # Simpler DB that doesn't use a lot of joins against the crystal tables
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
@@ -14,9 +14,10 @@ async def db_get_user_badge_instance_names_and_ids(user_id: int):
         FROM badge_instances AS b
         JOIN badge_info as b_i on b.badge_info_id = b_i.id
         WHERE b.owner_discord_id = %s
+        AND b.prestige_level = %s
         ORDER BY b_i.badge_name ASC
       """,
-      (user_id,)
+      (user_id, prestige)
     )
     return await query.fetchall()
 

@@ -40,46 +40,6 @@ class Crystals(commands.Cog):
       'Venting plasma through the Bussard Collectors',
     ]
 
-  # .____    .__          __
-  # |    |   |__| _______/  |_  ____   ____   ___________  ______
-  # |    |   |  |/  ___/\   __\/ __ \ /    \_/ __ \_  __ \/  ___/
-  # |    |___|  |\___ \  |  | \  ___/|   |  \  ___/|  | \/\___ \
-  # |_______ \__/____  > |__|  \___  >___|  /\___  >__|  /____  >
-  #         \/       \/            \/     \/     \/           \/
-  @commands.Cog.listener()
-  async def on_ready(self):
-    # Some of these load emoji so need to wait for on_ready() for make sure they're in the config
-    self.RARITY_SUCCESS_MESSAGES = {
-      'common': [
-        "Another day, another Crystal for {user}.",
-        "One more for {user}.",
-        "That's a decent one {user}.",
-        "A decent *crystal* for {user}, but an incredible *member* of The Hood!",
-        "A fresh steaming Crystal for {user}!",
-        "I'd rate that a 3.6... Not great, not terrible {user}."
-      ],
-      'uncommon': [
-        "Heyyy! Lookin pretty good {user}.",
-        "Oo, not bad {user}!",
-        "Sweet {user}! Purty.",
-      ],
-      'rare': [
-        "SHINY! Congrats {user}! Hold onto that one!",
-        "SPARKLY! {user}'s in rare Form!",
-        "SCINTILATING! Spectacular too, very nice {user}!"
-      ],
-      'legendary': [
-        "Whoa!!! Legen-dairy! Is this some kind of milk-based crystal {user}!?",
-        "Well GOTDAYUM!!! That's some shiny shiny shiny {user}!",
-        "FIYAH!!! Crystalline Goodness for {user}!"
-      ],
-      'mythic': [
-        "HOLY **FUCKING** SHIT!!!!! {user} got a ***MYTHIC*** Crystal!?! INCREDIBLE! " + get_emoji('drunk_shimoda_smile_happy'),
-        "SWEET JESUS!!!!! Are you kiddin me {user}, *MYTHIC*!? " + get_emoji('zephram_sweet_jesus_wow_whoa'),
-        "OH DEAR LORD!!!!!! One freshly minted **MYTHIC** Crystal for {user}!? " + get_emoji('barclay_omg_wow_shock')
-      ]
-    }
-
   #    _____          __                                     .__          __
   #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____   ______
   #  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \ /  ___/
@@ -227,13 +187,14 @@ class Crystals(commands.Cog):
 
     replicator_embed = discord.Embed(
       title=f"Crystallization Replication Station!",
-      description=f"You currently possess **{buffer_credits}** Crystal Pattern Buffer{'s' if buffer_credits > 1 else ''}. You may redeem **one** Pattern Buffer in exchange for **one** randomized Crystal.\n\nAre you ready to smack this thing and see what falls out?",
+      description=f"You may redeem **one** Pattern Buffer in exchange for **one** randomized Crystal.\n\nAre you ready to smack this thing and see what falls out?",
       color=discord.Color.teal()
     )
-    replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count}** Crystals which have not yet been attuned a Badge.", inline=False)
-    replicator_embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count}** Badges with Crystals attuned to them.", inline=False)
+    replicator_embed.add_field(name="Crystal Pattern Buffers", value=f"You possess **{buffer_credits} Crystal Pattern Buffers** to redeem!", inline=False)
+    replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count} Crystals** which have not yet been attached to a Badge.", inline=False)
+    replicator_embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count} Badges** with Crystals attached to them.", inline=False)
     replicator_embed.set_footer(
-      text="Use `/crystals inventory` to view your currently unattuned Crystals\nUse `/crystals attune` attach them to your Badges!"
+      text="Use `/crystals manifest` to view your currently unattuned Crystals\nUse `/crystals attach` attach them to your Badges!"
     )
     replicator_embed.set_image(url="https://i.imgur.com/bbdDUfo.gif")
 
@@ -244,6 +205,67 @@ class Crystals(commands.Cog):
     class ConfirmCancelView(discord.ui.View):
       def __init__(self):
         super().__init__(timeout=60)
+        self.RARITY_SUCCESS_MESSAGES = {
+          'common': [
+            "Another day, another Crystal for {user}.",
+            "One more for {user}.",
+            "That's a decent one {user}.",
+            "A decent *crystal* for {user}, but an incredible *member* of The Hood!",
+            "A fresh steaming Crystal for {user}!",
+            "I'd rate that a 3.6... Not great, not terrible {user}.",
+            "Routine extraction complete. Crystal secured, {user}.",
+            "That's a Crystal alright, {user}.",
+            "Wouldn't write home about it, but it *is* shiny, {user}.",
+            "Keep stackin' 'em, {user}!",
+            "{user}, it's not much, but it is *yours*.",
+            "A humble addition to your manifest, {user}.",
+            "Could be worse {user}!",
+            "Catalogued and stored. Good hustle, {user}."
+          ],
+          'uncommon': [
+            "Heyyy! Lookin pretty good {user}.",
+            "Oo, not bad {user}!",
+            "Sweet {user}! Purty.",
+            "Not too shabby, {user}!",
+            "That's a little something special, {user}!",
+            "Ooooh, now *that's* got some shimmer {user}!",
+            "Subtle. Sleek. Stylish. Just like {user}.",
+            "This one's got a vibe. Good grab, {user}.",
+            "Not gonna lie, that one's hella cute. Well done, {user}.",
+            "{user}, you pulled a classy one!",
+            "Respectable find, {user}!",
+            "Almost Rare, definitely Rad. Nice {user}!",
+            "Good things *do* happen to decent people, {user}. This proves it."
+          ],
+          'rare': [
+            "SHINY! Congrats {user}! Hold onto that one!",
+            "SPARKLY! {user}'s in rare Form!",
+            "GLITTERY! Spectacular too, very nice {user}!",
+            "FLASHY! And it's a beaut, {user}.",
+            "GLIMMERY! You see that sparkle? That's *taste*, {user}.",
+            "GLEAMY! You've got the touch, {user}!",
+            "GLOWY! Rare, refined, and ready to radiate {user}!",
+            "FLASHY! That one's got that BDE. Lookin' good, {user}."
+          ],
+          'legendary': [
+            "Whoa!!! Legen-dairy! Is this some kind of milk-based crystal {user}!?",
+            "Well GOTDAYUM!!! That's some shiny shiny shiny {user}!",
+            "FIYAH!!! Crystalline Goodness for {user}!",
+            "LORD HAVE MERCY!!! That’s a LEGENDARY for {user}!!!",
+            "BEJESUS!!! This one's burnin' with glory {user}!"
+            "Hooo MAMA! The replicator paused, it knew this was a big one, {user}!",
+            "Heyyyyo! Everyone stand back! {user}'s got a hot one!!",
+            "WHA WHA WHA!?! Legendary stuff, {user}."
+          ],
+          'mythic': [
+            "HOLY **FUCKING** SHIT!!!!! {user} got a ***MYTHIC*** Crystal!?! INCREDIBLE! " + f"{get_emoji('drunk_shimoda_smile_happy')}",
+            "SWEET JESUS!!!!! Are you kiddin me {user}, *MYTHIC*!? " + f"{get_emoji('zephram_sweet_jesus_wow_whoa')}",
+            "OH DEAR LORD!!!!!! One freshly minted **MYTHIC** Crystal for {user}!? " + f"{get_emoji('barclay_omg_wow_shock')}"
+            "PELDOR JOI!!! {user} got a MYTHIC!?!?! " + f"{get_emoji('kira_smile_lol_happy')}",
+            "OMFG!!!!! A **MYTHIC** just materialized and it's in {user}'s inventory. " + f"{get_emoji('kira_omg_headexplode')}",
+            "CHRIKEY ON A CRACKER!!! The latest **MYTHIC** on the server is here, and it belongs to {user}! " + f"{get_emoji('jadzia_happy_smile')}"
+          ]
+        }
 
       async def on_timeout(self):
         for child in self.children:
@@ -281,7 +303,7 @@ class Crystals(commands.Cog):
 
         discord_file, replicator_confirmation_filename = await generate_crystal_replicator_confirmation_frames(crystal)
 
-        success_message = random.choice(cog.RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=user.mention)
+        success_message = random.choice(self.RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=user.mention)
         channel_embed = discord.Embed(
           title='CRYSTAL MATERIALIZATION COMPLETE',
           description=f"A fresh Crystal Pattern Buffer shunts into the replicator, the familiar hum fills the air, and the result is...\n\n> **{crystal['crystal_name']}**!\n\n{success_message}",
@@ -291,7 +313,7 @@ class Crystals(commands.Cog):
         channel_embed.add_field(name=f"Description", value=f"> {crystal['description']}", inline=False)
         channel_embed.set_image(url=f"attachment://{replicator_confirmation_filename}")
         channel_embed.set_footer(
-          text="Use `/crystals attune` to attach it to one of your Badges!"
+          text="Use `/crystals attach` to attune it to one of your Badges, then `/crystals activate` to harmonize it!"
         )
 
         gelrak_v = await cog.bot.fetch_channel(get_channel_id("gelrak-v"))
@@ -465,7 +487,7 @@ class Crystals(commands.Cog):
     description="Badge to Attune to",
     autocomplete=autocomplete_badges_without_crystal_type
   )
-  async def attune(self, ctx: discord.ApplicationContext, rarity: str, crystal: str, prestige: str, badge: str):
+  async def attach(self, ctx: discord.ApplicationContext, rarity: str, crystal: str, prestige: str, badge: str):
     await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
 
@@ -508,7 +530,7 @@ class Crystals(commands.Cog):
       )
       return
 
-    logger.info(f"{ctx.user.display_name} is {Style.BRIGHT}Attuning{Style.RESET_ALL} the Crystal {Style.BRIGHT}{crystal_instance['crystal_name']}{Style.RESET_ALL} to {Style.BRIGHT}{[badge_instance['badge_name']]}{Style.RESET_ALL} with {Style.BRIGHT}`/crystals attune`{Style.RESET_ALL}!")
+    logger.info(f"{ctx.user.display_name} is {Style.BRIGHT}Attuning{Style.RESET_ALL} the Crystal {Style.BRIGHT}{crystal_instance['crystal_name']}{Style.RESET_ALL} to {Style.BRIGHT}{[badge_instance['badge_name']]}{Style.RESET_ALL} with {Style.BRIGHT}`/crystals attach`{Style.RESET_ALL}!")
 
     # Get already-attuned crystal types for this badge
     already_attuned_type_ids = await db_get_attuned_crystal_type_ids(badge_instance['badge_instance_id'])
@@ -586,7 +608,7 @@ class Crystals(commands.Cog):
         )
         embed.set_image(url="https://i.imgur.com/lP883bg.gif")
         embed.set_footer(
-          text="Now you can `/crystals harmonize` to select your activated Crystal at any time!"
+          text="Now you can use `/crystals activate` to select your harmonized Crystal at any time!"
         )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
@@ -615,7 +637,7 @@ class Crystals(commands.Cog):
   # \    Y    // __ \|  | \/  Y Y  (  <_> )   |  \  |/    /\  ___/
   #  \___|_  /(____  /__|  |__|_|  /\____/|___|  /__/_____ \\___  >
   #        \/      \/            \/            \/         \/    \/
-  @crystals_group.command(name='harmonize', description='Select which Crystal to Harmonize (activate) for display on a Badge.')
+  @crystals_group.command(name='activate', description='Select which Crystal to Harmonize (activate) for display on a Badge.')
   @option(
     name="prestige",
     description="Which Prestige Tier of Badge?",
@@ -637,7 +659,7 @@ class Crystals(commands.Cog):
     required=True
   )
   @commands.check(access_check)
-  async def harmonize(self, ctx: discord.ApplicationContext, prestige: str, badge: str, crystal: str):
+  async def activate(self, ctx: discord.ApplicationContext, prestige: str, badge: str, crystal: str):
     await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
 

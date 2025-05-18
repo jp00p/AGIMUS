@@ -520,10 +520,10 @@ class Settings(commands.Cog):
     embed = discord.Embed(
       title="Crystallization Auto-Harmonize Preference",
       description=(
-        "Set how you'd prefer AGIMUS to handle Harmonization (activation) of Crystals after you have Attuned (attached) them to a Badge via `/crystals attune`.\n\n"
+        "Set how you'd prefer AGIMUS to handle Harmonization (activation) of Crystals after you have Attuned (attached) them to a Badge via `/crystals attach`.\n\n"
         "* **Auto-Harmonize** - As soon as you attune a Crystal to a Badge, it will become Harmonized immediately!\n"
-        "* **Manual** - Don't immediately Harmonize the latest attuned Crystal, use `/crystals harmonize` to select as per usual *(Default)*.\n\n"
-        "Note that if you have multiple Crystals attuned to a Badge you can always change which is Harmonized at any time per-usual via `/crystals harmonize`!"
+        "* **Manual** - Don't immediately Harmonize the latest attuned Crystal, use `/crystals activate` to select as per usual *(Default)*.\n\n"
+        "Note: If you have multiple Crystals attached to a Badge you can always change which is Harmonized at any time per-usual via `/crystals activate`!"
       ),
       color=discord.Color(0xFF0000)
     )

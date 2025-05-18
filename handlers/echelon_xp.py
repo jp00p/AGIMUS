@@ -243,18 +243,20 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   If they received more than one (only currently occurs when they first hit Echelon 1),
   there's a little special messaging instead of the standard.
   """
+  gelrak_v = await bot.fetch_channel(get_channel_id("gelrak-v"))
+
   embed = None
   if number_of_patterns == 1:
     embed = discord.Embed(
       title="Crystal Pattern Buffer Acquired!",
-      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Pattern Buffer** when they reached Echelon {level}!\n\nThey can now use it to replicate a Crystal from scratch!",
+      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Pattern Buffer** when they reached Echelon {level}!\n\nThey can now use it to replicate a Crystal from scratch over in {gelrak_v.mention}!",
       color=discord.Color.teal()
     )
   else:
     embed = discord.Embed(
       title="Crystal Pattern Buffers Acquired!",
       description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Pattern Buffers** in their hands when they reached Echelon {level}!\n\n"
-                  f"They can now use them to replicate **{number_of_patterns}** Crystals from scratch!",
+                  f"They can now use them to replicate **{number_of_patterns}** Crystals from scratch over in {gelrak_v.mention}!",
       color=discord.Color.teal()
     )
   embed.set_image(url=random.choice(BUFFER_PATTERN_AQUISITION_GIFS))
