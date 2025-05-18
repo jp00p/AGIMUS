@@ -488,7 +488,13 @@
       "data": null,
       "parameters": []
     },
-    "crystals harmonize": {
+    "crystals activate": {
+      "channels": [],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "crystals attach": {
       "channels": [],
       "enabled": true,
       "data": null,

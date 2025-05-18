@@ -190,10 +190,11 @@ class Crystals(commands.Cog):
       description=f"You currently possess **{buffer_credits}** Crystal Pattern Buffer{'s' if buffer_credits > 1 else ''}. You may redeem **one** Pattern Buffer in exchange for **one** randomized Crystal.\n\nAre you ready to smack this thing and see what falls out?",
       color=discord.Color.teal()
     )
-    replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count}** Crystals which have not yet been attuned a Badge.", inline=False)
-    replicator_embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count}** Badges with Crystals attuned to them.", inline=False)
+    replicator_embed.add_field(name="Crystal Pattern Buffers", value=f"You possess **{unattuned_crystal_count}** Crystal Pattern Buffers to redeem!", inline=False)
+    replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count}** Crystals which have not yet been attached to a Badge.", inline=False)
+    replicator_embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count}** Badges with Crystals attached to them.", inline=False)
     replicator_embed.set_footer(
-      text="Use `/crystals inventory` to view your currently unattuned Crystals\nUse `/crystals attune` attach them to your Badges!"
+      text="Use `/crystals manifest` to view your currently unattuned Crystals\nUse `/crystals attach` attach them to your Badges!"
     )
     replicator_embed.set_image(url="https://i.imgur.com/bbdDUfo.gif")
 
@@ -302,7 +303,7 @@ class Crystals(commands.Cog):
 
         discord_file, replicator_confirmation_filename = await generate_crystal_replicator_confirmation_frames(crystal)
 
-        success_message = random.choice(self.view.RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=user.mention)
+        success_message = random.choice(self.RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=user.mention)
         channel_embed = discord.Embed(
           title='CRYSTAL MATERIALIZATION COMPLETE',
           description=f"A fresh Crystal Pattern Buffer shunts into the replicator, the familiar hum fills the air, and the result is...\n\n> **{crystal['crystal_name']}**!\n\n{success_message}",
@@ -312,7 +313,7 @@ class Crystals(commands.Cog):
         channel_embed.add_field(name=f"Description", value=f"> {crystal['description']}", inline=False)
         channel_embed.set_image(url=f"attachment://{replicator_confirmation_filename}")
         channel_embed.set_footer(
-          text="Use `/crystals attune` to attach it to one of your Badges!"
+          text="Use `/crystals attach` to attune it to one of your Badges, then `/crystals activate` to harmonize it!"
         )
 
         gelrak_v = await cog.bot.fetch_channel(get_channel_id("gelrak-v"))
@@ -486,7 +487,7 @@ class Crystals(commands.Cog):
     description="Badge to Attune to",
     autocomplete=autocomplete_badges_without_crystal_type
   )
-  async def attune(self, ctx: discord.ApplicationContext, rarity: str, crystal: str, prestige: str, badge: str):
+  async def attach(self, ctx: discord.ApplicationContext, rarity: str, crystal: str, prestige: str, badge: str):
     await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
 
@@ -529,7 +530,7 @@ class Crystals(commands.Cog):
       )
       return
 
-    logger.info(f"{ctx.user.display_name} is {Style.BRIGHT}Attuning{Style.RESET_ALL} the Crystal {Style.BRIGHT}{crystal_instance['crystal_name']}{Style.RESET_ALL} to {Style.BRIGHT}{[badge_instance['badge_name']]}{Style.RESET_ALL} with {Style.BRIGHT}`/crystals attune`{Style.RESET_ALL}!")
+    logger.info(f"{ctx.user.display_name} is {Style.BRIGHT}Attuning{Style.RESET_ALL} the Crystal {Style.BRIGHT}{crystal_instance['crystal_name']}{Style.RESET_ALL} to {Style.BRIGHT}{[badge_instance['badge_name']]}{Style.RESET_ALL} with {Style.BRIGHT}`/crystals attach`{Style.RESET_ALL}!")
 
     # Get already-attuned crystal types for this badge
     already_attuned_type_ids = await db_get_attuned_crystal_type_ids(badge_instance['badge_instance_id'])
@@ -607,7 +608,7 @@ class Crystals(commands.Cog):
         )
         embed.set_image(url="https://i.imgur.com/lP883bg.gif")
         embed.set_footer(
-          text="Now you can `/crystals harmonize` to select your activated Crystal at any time!"
+          text="Now you can use `/crystals activate` to select your harmonized Crystal at any time!"
         )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
@@ -636,7 +637,7 @@ class Crystals(commands.Cog):
   # \    Y    // __ \|  | \/  Y Y  (  <_> )   |  \  |/    /\  ___/
   #  \___|_  /(____  /__|  |__|_|  /\____/|___|  /__/_____ \\___  >
   #        \/      \/            \/            \/         \/    \/
-  @crystals_group.command(name='harmonize', description='Select which Crystal to Harmonize (activate) for display on a Badge.')
+  @crystals_group.command(name='activate', description='Select which Crystal to Harmonize (activate) for display on a Badge.')
   @option(
     name="prestige",
     description="Which Prestige Tier of Badge?",
@@ -658,7 +659,7 @@ class Crystals(commands.Cog):
     required=True
   )
   @commands.check(access_check)
-  async def harmonize(self, ctx: discord.ApplicationContext, prestige: str, badge: str, crystal: str):
+  async def activate(self, ctx: discord.ApplicationContext, prestige: str, badge: str, crystal: str):
     await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
 
