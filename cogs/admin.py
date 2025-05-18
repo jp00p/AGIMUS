@@ -134,7 +134,7 @@ class Admin(commands.Cog):
       rewards = await db_get_rewards_for_game(game_id)
 
       embed = discord.Embed(
-        title=f"Tongo Game #{game_id}",
+        title=f"Tongo Game ID: {game_id}",
         description=(
           f"**Status:** {game['status'].capitalize()} \n"
           f"**Chair:** <@{game['chair_user_id']}> \n"

@@ -1290,6 +1290,7 @@ async def build_confront_player_embed(member: discord.Member, badge_infos: list[
   if dividends_rewarded:
     description = f"\n\nOops, sorry {member.mention}... they got back less than they put in!\n\nOn the bright side they've been awarded **{dividends_rewarded} Tongo Dividends** as a consolation prize!\n"
 
+  description += "### Distributed\n"
   description += "\n".join([
     f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
     for b in badge_infos
