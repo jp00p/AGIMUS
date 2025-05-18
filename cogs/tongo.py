@@ -1,7 +1,6 @@
 from collections import defaultdict
 
 from common import *
-from handlers.xp import grant_xp
 
 from cogs.trade import get_offered_and_requested_badge_names
 
@@ -17,6 +16,7 @@ from utils.badge_trades import *
 from utils.badge_utils import *
 from utils.crystal_instances import *
 from utils.check_channel_access import access_check
+from utils.check_user_access import user_check
 from utils.image_utils import *
 from utils.prestige import *
 
@@ -1155,6 +1155,38 @@ class Tongo(commands.Cog):
 
     return None
 
+  tongo_referee_group = discord.SlashCommandGroup("referee", "Referee commands for Tongo.")
+
+  @tongo_referee_group.command(name="confront_tongo_game", description="Force confrontation on the current Tongo game.")
+  @commands.check(user_check)
+  async def confront_current_game(self, ctx):
+    await ctx.defer(ephemeral=True)
+
+    active_game = await db_get_open_game()
+    if not active_game:
+      return await ctx.respond(embed=discord.Embed(
+        title="No Active Tongo Game",
+        description="There is currently no open Tongo game to confront.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+
+    try:
+      chair = await self.bot.current_guild.fetch_member(int(active_game['chair_user_id']))
+    except Exception as e:
+      logger.warning(f"Could not fetch Tongo chair user: {e}")
+      return await ctx.respond(embed=discord.Embed(
+        title="Failed to Confront",
+        description="Could not fetch the chair for the current game. Check user ID validity.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+
+    await self._perform_confront(active_game, chair)
+
+    await ctx.respond(embed=discord.Embed(
+      title="Tongo Game Confronted!",
+      description=f"The current game chaired by {chair.display_name} has been forcefully ended and resolved.",
+      color=discord.Color.gold()
+    ), ephemeral=True)
 
   #   __  ____  _ ___ __  _
   #  / / / / /_(_) (_) /_(_)__ ___

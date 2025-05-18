@@ -192,6 +192,43 @@ async def db_get_rewards_for_game(game_id: int):
     return await db.fetchall()
 
 
+# --- "History" ---
+async def db_get_throws_for_game(game_id: int, created_at: datetime) -> list[dict]:
+  """
+  Returns all badges thrown into the Tongo continuum during a specific game,
+  reconstructed by matching `tongo_risk` events from badge_instance_history.
+
+  Args:
+    game_id (int): The ID of the Tongo game.
+    created_at (datetime): The timestamp when the game was created.
+
+  Returns:
+    list[dict]: A list of dicts, each containing:
+      - badge_instance_id
+      - from_user_id
+      - occurred_at
+      - badge_name
+  """
+  query = """
+    SELECT
+      h.badge_instance_id,
+      h.from_user_id,
+      h.occurred_at,
+      bi.badge_name
+    FROM badge_instance_history AS h
+    JOIN badge_instances AS b ON h.badge_instance_id = b.id
+    JOIN badge_info AS bi ON b.badge_info_id = bi.id
+    WHERE h.event_type = 'tongo_risk'
+      AND h.occurred_at >= %s
+      AND h.from_user_id IN (
+        SELECT user_discord_id FROM tongo_game_players WHERE game_id = %s
+      )
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(query, (created_at, game_id))
+    return await db.fetchall()
+
+
 # --- Dividends ---
 async def db_get_tongo_dividends(user_id: int) -> dict | None:
   sql = "SELECT * FROM tongo_dividends WHERE user_discord_id = %s"

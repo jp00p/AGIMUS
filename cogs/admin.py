@@ -6,7 +6,7 @@ from queries.badge_info import db_get_all_badge_info, db_get_badge_info_by_id
 from queries.badge_instances import db_get_user_badge_instances, db_get_badge_instance_by_badge_info_id
 from queries.crystal_instances import db_increment_user_crystal_buffer
 from queries.echelon_xp import db_get_echelon_progress
-from queries.tongo import db_get_open_game, db_get_all_game_player_ids, db_get_full_continuum_badges, db_update_game_status, db_get_rewards_for_game
+from queries.tongo import db_get_open_game, db_get_all_game_player_ids, db_get_full_continuum_badges, db_update_game_status, db_get_rewards_for_game, db_get_throws_for_game
 from utils.badge_instances import create_new_badge_instance
 from utils.prestige import PRESTIGE_TIERS
 from utils.check_user_access import user_check
@@ -30,7 +30,7 @@ class Admin(commands.Cog):
     choices = [
       discord.OptionChoice(
         name=b['badge_name'],
-        value=str(b['badge_info_id'])
+        value=str(b['id'])
       )
       for b in badge_records if ctx.value.lower() in b['badge_name'].lower()
     ]
@@ -104,6 +104,7 @@ class Admin(commands.Cog):
 
     await ctx.respond(f"✨ Granted {amount} Replicator Pattern Buffer(s) to {user.mention}.", ephemeral=True)
 
+
   @admin_group.command(name="check_tongo_games", description="Check recent and open Tongo games with full detail.")
   @commands.check(user_check)
   async def check_tongo_games(self, ctx):
@@ -116,12 +117,16 @@ class Admin(commands.Cog):
     if not games:
       return await ctx.respond("No Tongo games found.", ephemeral=True)
 
-    # Load badge throws once for efficiency
-    continuum = await db_get_full_continuum_badges()
-    throws_by_game = defaultdict(lambda: defaultdict(list))  # game_id -> user_id -> [badge names]
-    for row in continuum:
-      throws_by_game[row['game_id']][row['thrown_by_user_id']].append(row['badge_name'])
+    # Preload all throw data per game
+    throws_by_game = defaultdict(lambda: defaultdict(list))  # game_id -> user_id -> list of badge names
+    for game in games:
+      game_id = game['id']
+      created_at = game['created_at']
+      throw_rows = await db_get_throws_for_game(game_id, created_at)
+      for row in throw_rows:
+        throws_by_game[game_id][row['from_user_id']].append(row['badge_name'])
 
+    # Build embeds
     embeds = []
     for game in games:
       game_id = game['id']
@@ -130,19 +135,25 @@ class Admin(commands.Cog):
 
       embed = discord.Embed(
         title=f"Tongo Game #{game_id}",
-        description=f"**Status:** {game['status']} \n"
+        description=(
+          f"**Status:** {game['status'].capitalize()} \n"
           f"**Chair:** <@{game['chair_user_id']}> \n"
           f"**Created:** {discord.utils.format_dt(game['created_at'], 'R')} \n"
           f"**Players:** {len(players)} \n"
-          f"**Rewards:** {len(rewards)}",
+          f"**Rewards:** {len(rewards)}"
+        ),
         color=discord.Color.teal()
       )
 
+      # Badge throws
       user_throws = throws_by_game.get(game_id, {})
-      for uid, badge_names in user_throws.items():
-        preview = ''.join(f"- {name}" for name in badge_names)
-        embed.add_field(name=f"<@{uid}> threw:", value=preview, inline=False)
+      if user_throws:
+        for uid, badge_names in user_throws.items():
+          member = await bot.current_guild.fetch_member(uid)
+          value = "\n".join(f"- {name}" for name in badge_names)
+          embed.add_field(name=f"{member.display_name} (@{uid}) threw:", value=value, inline=False)
 
+      # Reward summary
       if rewards:
         reward_lines = []
         for reward in rewards:
@@ -153,12 +164,13 @@ class Admin(commands.Cog):
           if crystal_id:
             desc += f" + Crystal {crystal_id}"
           reward_lines.append(f"<@{uid}>: {desc}")
-        embed.add_field(name="Game Rewards", value=''.join(reward_lines), inline=False)
+        embed.add_field(name="Game Rewards", value="\n".join(reward_lines), inline=False)
 
       embeds.append(embed)
 
     paginator = pages.Paginator(pages=embeds, show_indicator=True, loop_pages=True)
     await paginator.respond(ctx.interaction, ephemeral=True)
+
 
   @admin_group.command(name="set_tongo_game_status", description="Manually set the status of a Tongo game.")
   @option("game_id", int, description="The ID of the Tongo game.", required=True)
@@ -174,8 +186,3 @@ class Admin(commands.Cog):
     await db_update_game_status(game_id, status)
     await ctx.respond(f"✅ Tongo game **#{game_id}** status set to **{status}**.", ephemeral=True)
 
-  @admin_group.command(name="confront_current_game", description="Force confrontation on the current Tongo game.")
-  @commands.check(user_check)
-  async def confront_current_game(self, ctx):
-    await ctx.defer(ephemeral=True)
-    await ctx.respond("[stub] Triggering confrontation logic for current Tongo game.", ephemeral=True)

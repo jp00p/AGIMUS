@@ -402,19 +402,8 @@
       "enabled": true,
       "parameters": []
     },
-    "admin confront_current_game": {
+    "referee confront_tongo_game": {
       "allowed_user_ids": [735658100958298154],
-      "enabled": true,
-      "parameters": []
-    },
-    "reports": {
-      "channels": [
-        "lieutenants-lounge",
-        "mclaughlin-group",
-        "mo-pips-mo-problemz",
-        "code-47",
-        "robot-diagnostics"
-      ],
       "enabled": true,
       "parameters": []
     },
@@ -739,6 +728,17 @@
       "channels": [],
       "enabled": true,
       "data": null,
+      "parameters": []
+    },
+    "reports": {
+      "channels": [
+        "lieutenants-lounge",
+        "mclaughlin-group",
+        "mo-pips-mo-problemz",
+        "code-47",
+        "robot-diagnostics"
+      ],
+      "enabled": true,
       "parameters": []
     },
     "setwager": {

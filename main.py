@@ -51,9 +51,10 @@ from commands.computer import computer
 
 # Cogs
 if config["DEBUG"]:
-  from cogs.debug import Admin
-  bot.add_cog(Admin(bot))
+  from cogs.debug import Debug
+  bot.add_cog(Debug(bot))
 
+from cogs.admin import Admin
 from cogs.backups import Backups
 from cogs.badges import Badges
 from cogs.badge_tags import BadgeTags
@@ -63,13 +64,14 @@ from cogs.poker import Poker
 from cogs.profile import Profile
 from cogs.quiz import Quiz
 from cogs.settings import Settings
-# from cogs.shop import Shop
+from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.tongo import Tongo
 from cogs.trade import Trade
 from cogs.randomep import RandomEp
 from cogs.wishlists import Wishlist
 from cogs.wordcloud import Wordcloud
+bot.add_cog(Admin(bot))
 bot.add_cog(Backups(bot))
 bot.add_cog(Badges(bot))
 bot.add_cog(BadgeTags(bot))
@@ -81,7 +83,7 @@ bot.add_cog(Profile(bot))
 bot.add_cog(Quiz(bot))
 bot.add_cog(RandomEp(bot))
 bot.add_cog(Settings(bot))
-# bot.add_cog(Shop(bot))
+bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Tongo(bot))
 bot.add_cog(Trade(bot))
@@ -112,7 +114,7 @@ from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_reac
 # Utils
 from utils.check_channel_access import perform_channel_check
 from utils.image_utils import preload_image_assets
-from utils.exception_logger import setup_exception_logging, exception_report_task
+from utils.exception_logger import setup_exception_logging, exception_report_task, exception_log_lines
 
 # Tasks
 from tasks.backups import backups_task
@@ -378,6 +380,13 @@ async def on_application_command_error(ctx, error):
     # it means the check is succeeding in blocking access
     pass
   else:
+    tb_str = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
+    exception_log_lines.append(tb_str)
+
+    # Also print to terminal
+    # sys.__stderr__.write(tb_str)
+    # sys.__stderr__.flush()
+
     logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
     logger.info(traceback.print_exception(type(error), error, error.__traceback__))
 

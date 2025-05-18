@@ -1,9 +1,3 @@
-import sys
-import traceback
-import asyncio
-import io
-import discord
-
 from common import *
 
 
@@ -61,7 +55,7 @@ async def send_exception_log(bot: discord.Bot, channel_id: int):
   log_file.name = 'agimus_exceptions.txt'  # Required for Discord to treat it as a file
 
   await channel.send(
-    content='\U0001F6A8 AGIMUS Exception Report (in-memory buffer)',
+    content="## AGIMUS Exception Report ⚠️",
     file=discord.File(log_file)
   )
 
