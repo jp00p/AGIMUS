@@ -40,46 +40,6 @@ class Crystals(commands.Cog):
       'Venting plasma through the Bussard Collectors',
     ]
 
-  # .____    .__          __
-  # |    |   |__| _______/  |_  ____   ____   ___________  ______
-  # |    |   |  |/  ___/\   __\/ __ \ /    \_/ __ \_  __ \/  ___/
-  # |    |___|  |\___ \  |  | \  ___/|   |  \  ___/|  | \/\___ \
-  # |_______ \__/____  > |__|  \___  >___|  /\___  >__|  /____  >
-  #         \/       \/            \/     \/     \/           \/
-  @commands.Cog.listener()
-  async def on_ready(self):
-    # Some of these load emoji so need to wait for on_ready() for make sure they're in the config
-    self.RARITY_SUCCESS_MESSAGES = {
-      'common': [
-        "Another day, another Crystal for {user}.",
-        "One more for {user}.",
-        "That's a decent one {user}.",
-        "A decent *crystal* for {user}, but an incredible *member* of The Hood!",
-        "A fresh steaming Crystal for {user}!",
-        "I'd rate that a 3.6... Not great, not terrible {user}."
-      ],
-      'uncommon': [
-        "Heyyy! Lookin pretty good {user}.",
-        "Oo, not bad {user}!",
-        "Sweet {user}! Purty.",
-      ],
-      'rare': [
-        "SHINY! Congrats {user}! Hold onto that one!",
-        "SPARKLY! {user}'s in rare Form!",
-        "SCINTILATING! Spectacular too, very nice {user}!"
-      ],
-      'legendary': [
-        "Whoa!!! Legen-dairy! Is this some kind of milk-based crystal {user}!?",
-        "Well GOTDAYUM!!! That's some shiny shiny shiny {user}!",
-        "FIYAH!!! Crystalline Goodness for {user}!"
-      ],
-      'mythic': [
-        "HOLY **FUCKING** SHIT!!!!! {user} got a ***MYTHIC*** Crystal!?! INCREDIBLE! " + get_emoji('drunk_shimoda_smile_happy'),
-        "SWEET JESUS!!!!! Are you kiddin me {user}, *MYTHIC*!? " + get_emoji('zephram_sweet_jesus_wow_whoa'),
-        "OH DEAR LORD!!!!!! One freshly minted **MYTHIC** Crystal for {user}!? " + get_emoji('barclay_omg_wow_shock')
-      ]
-    }
-
   #    _____          __                                     .__          __
   #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____   ______
   #  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \ /  ___/
@@ -244,6 +204,67 @@ class Crystals(commands.Cog):
     class ConfirmCancelView(discord.ui.View):
       def __init__(self):
         super().__init__(timeout=60)
+        self.RARITY_SUCCESS_MESSAGES = {
+          'common': [
+            "Another day, another Crystal for {user}.",
+            "One more for {user}.",
+            "That's a decent one {user}.",
+            "A decent *crystal* for {user}, but an incredible *member* of The Hood!",
+            "A fresh steaming Crystal for {user}!",
+            "I'd rate that a 3.6... Not great, not terrible {user}.",
+            "Routine extraction complete. Crystal secured, {user}.",
+            "That's a Crystal alright, {user}.",
+            "Wouldn't write home about it, but it *is* shiny, {user}.",
+            "Keep stackin' 'em, {user}!",
+            "{user}, it's not much, but it is *yours*.",
+            "A humble addition to your manifest, {user}.",
+            "Could be worse {user}!",
+            "Catalogued and stored. Good hustle, {user}."
+          ],
+          'uncommon': [
+            "Heyyy! Lookin pretty good {user}.",
+            "Oo, not bad {user}!",
+            "Sweet {user}! Purty.",
+            "Not too shabby, {user}!",
+            "That's a little something special, {user}!",
+            "Ooooh, now *that's* got some shimmer {user}!",
+            "Subtle. Sleek. Stylish. Just like {user}.",
+            "This one's got a vibe. Good grab, {user}.",
+            "Not gonna lie, that one's hella cute. Well done, {user}.",
+            "{user}, you pulled a classy one!",
+            "Respectable find, {user}!",
+            "Almost Rare, definitely Rad. Nice {user}!",
+            "Good things *do* happen to decent people, {user}. This proves it."
+          ],
+          'rare': [
+            "SHINY! Congrats {user}! Hold onto that one!",
+            "SPARKLY! {user}'s in rare Form!",
+            "GLITTERY! Spectacular too, very nice {user}!"
+            "FLASHY! And it's a beaut, {user}.",
+            "GLIMMERY! You see that sparkle? That's *taste*, {user}.",
+            "GLEAMY! You've got the touch, {user}!",
+            "GLOWY! Rare, refined, and ready to radiate {user}!",
+            "FLASHY! That one's got that BDE. Lookin' good, {user}."
+          ],
+          'legendary': [
+            "Whoa!!! Legen-dairy! Is this some kind of milk-based crystal {user}!?",
+            "Well GOTDAYUM!!! That's some shiny shiny shiny {user}!",
+            "FIYAH!!! Crystalline Goodness for {user}!"
+            "LORD HAVE MERCY!!! That’s a LEGENDARY for {user}!!!",
+            "BEJESUS!!! This one's burnin' with glory {user}!"
+            "Hooo MAMA! The replicator paused, it knew this was a big one, {user}!",
+            "Heyyyyo! Everyone stand back! {user}'s got a hot one!!",
+            "WHA WHA WHA!?! Legendary stuff, {user}.",
+          ],
+          'mythic': [
+            "HOLY **FUCKING** SHIT!!!!! {user} got a ***MYTHIC*** Crystal!?! INCREDIBLE! " + f"{get_emoji('drunk_shimoda_smile_happy')}",
+            "SWEET JESUS!!!!! Are you kiddin me {user}, *MYTHIC*!? " + f"{get_emoji('zephram_sweet_jesus_wow_whoa')}",
+            "OH DEAR LORD!!!!!! One freshly minted **MYTHIC** Crystal for {user}!? " + f"{get_emoji('barclay_omg_wow_shock')}"
+            "PELDOR JOI!!! {user} got a MYTHIC!?!?! " + f"{get_emoji('kira_smile_lol_happy')}",
+            "OMFG!!!!! A **MYTHIC** just materialized and it's in {user}'s inventory. " + f"{get_emoji('kira_omg_headexplode')}",
+            "CHRIKEY ON A CRACKER!!! The latest **MYTHIC** on the server is here, and it belongs to {user}! " + f"{get_emoji('jadzia_happy_smile')}"
+          ]
+        }
 
       async def on_timeout(self):
         for child in self.children:
@@ -281,7 +302,7 @@ class Crystals(commands.Cog):
 
         discord_file, replicator_confirmation_filename = await generate_crystal_replicator_confirmation_frames(crystal)
 
-        success_message = random.choice(cog.RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=user.mention)
+        success_message = random.choice(self.view.RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=user.mention)
         channel_embed = discord.Embed(
           title='CRYSTAL MATERIALIZATION COMPLETE',
           description=f"A fresh Crystal Pattern Buffer shunts into the replicator, the familiar hum fills the air, and the result is...\n\n> **{crystal['crystal_name']}**!\n\n{success_message}",

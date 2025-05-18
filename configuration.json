@@ -315,13 +315,6 @@
     }
   },
   "tasks": {
-    "weyounsday": {
-      "channels": [
-        "general-trek"
-      ],
-      "crontab": "15 8 * * WED",
-      "enabled": true
-    },
     "backups": {
       "crontab": "0 */6 * * *",
       "enabled": false
@@ -345,11 +338,25 @@
       "enabled": true,
       "data": "data/birthdays.json"
     },
+    "exception_report": {
+      "channels": [
+        "bot-logs"
+      ],
+      "crontab": "*/5 * * * *",
+      "enabled": true
+    },
     "hoodiversary": {
       "channels": [
         "captain-picard-day"
       ],
       "crontab": "15 8 * * *",
+      "enabled": true
+    },
+    "weyounsday": {
+      "channels": [
+        "general-trek"
+      ],
+      "crontab": "15 8 * * WED",
       "enabled": true
     },
     "wrapped_generation": {
@@ -367,6 +374,36 @@
         "code-47",
         "robot-diagnostics"
       ],
+      "enabled": true,
+      "parameters": []
+    },
+    "admin grant_random_badge": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "admin grant_specific_badge": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "admin grant_crystal_buffer_patterns": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "admin check_tongo_games": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "admin set_tongo_game_status": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "admin confront_current_game": {
+      "allowed_user_ids": [735658100958298154],
       "enabled": true,
       "parameters": []
     },

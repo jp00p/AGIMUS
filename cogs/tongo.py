@@ -238,9 +238,9 @@ class TongoDividendsView(discord.ui.View):
         "Rule No. 45: 'Expand or die.' You've just expanded your holdings *dramatically*, {user}!"
       ],
       'mythic': [
-        "*My lobes are tingling!* A ***MYTHIC*** crystal for {user}!? Unthinkable... " + get_emoji('quark_ooh_excited'),
-        "**MYTHIC!?!** Even Brunt, FCA, is impressed by (and suspicious of...) {user}'s new acquisition! " + get_emoji('quark_cool'),
-        "Mythic? **MYTHIC!?** By the ears of Zek, {user}, you've just tipped the economic axis of the quadrant! " + get_emoji('quark_profit_zoom')
+        "*My lobes are tingling!* A ***MYTHIC*** crystal for {user}!? Unthinkable... " + f"{get_emoji('quark_ooh_excited')}",
+        "**MYTHIC!?!** Even Brunt, FCA, is impressed by (and suspicious of...) {user}'s new acquisition! " + f"{get_emoji('quark_cool')}",
+        "Mythic? **MYTHIC!?** By the ears of Zek, {user}, you've just tipped the economic axis of the quadrant! " + f"{get_emoji('quark_profit_zoom')}"
       ]
     }
 
@@ -285,6 +285,7 @@ class Tongo(commands.Cog):
       pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, row=1),
     ]
     self.first_auto_confront = True
+    self.auto_confront = self.auto_confront
 
   tongo = discord.SlashCommandGroup("tongo", "Commands for Tongo Badge Game")
 
@@ -341,7 +342,10 @@ class Tongo(commands.Cog):
         self.auto_confront.cancel()
       self.auto_confront.change_interval(seconds=remaining.total_seconds())
       self.first_auto_confront = True
-      self.auto_confront.start()
+      try:
+        self.auto_confront.start()
+      except RuntimeError:
+        logger.warning("Tongo auto_confront loop was already running.")
 
       time_left = current_time + remaining
       reboot_embed = discord.Embed(

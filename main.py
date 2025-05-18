@@ -51,7 +51,7 @@ from commands.computer import computer
 
 # Cogs
 if config["DEBUG"]:
-  from cogs.admin import Admin
+  from cogs.debug import Admin
   bot.add_cog(Admin(bot))
 
 from cogs.backups import Backups
@@ -109,6 +109,11 @@ from handlers.server_logs import *
 from handlers.starboard import db_get_all_starboard_posts, handle_starboard_reactions
 from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_react_xp
 
+# Utils
+from utils.check_channel_access import perform_channel_check
+from utils.image_utils import preload_image_assets
+from utils.exception_logger import setup_exception_logging, exception_report_task
+
 # Tasks
 from tasks.backups import backups_task
 from tasks.badger import badger_task
@@ -119,10 +124,6 @@ from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
 # from tasks.wrapped_generation import wrapped_generation_task
 
-
-# Utils
-from utils.check_channel_access import perform_channel_check
-from utils.image_utils import preload_image_assets
 
 background_tasks = set() # for non-blocking tasks
 logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}{Style.RESET_ALL}")
@@ -297,16 +298,21 @@ async def on_typing(channel, user, when):
     ALL_USERS[await register_user(user)] = True
 
 # listen to reactions
-# TODO: change to on_raw_reaction_add so old messages are counted too!
-@bot.event
-async def on_reaction_add(reaction, user):
-  await handle_react_xp(reaction, user)
-
-# listen to raw reactions
 @bot.event
 async def on_raw_reaction_add(payload):
   if payload.event_type == "REACTION_ADD":
     await handle_starboard_reactions(payload)
+    try:
+      channel = bot.get_channel(payload.channel_id)
+      if not channel:
+        channel = await bot.fetch_channel(payload.channel_id)
+      message = await channel.fetch_message(payload.message_id)
+      user = payload.member or await bot.fetch_user(payload.user_id)
+      reaction = discord.utils.get(message.reactions, emoji=payload.emoji)
+      if reaction and user:
+        await handle_react_xp(reaction, user)
+    except Exception as e:
+      pass
 
 # listen to sceheduled event updates (streams, pub trivia, etc)
 @bot.event
@@ -401,6 +407,7 @@ scheduled_tasks = [
   badger_task(bot),
   bingbong_task(bot),
   birthdays_task(bot),
+  exception_report_task(bot),
   hoodiversary_task(bot),
   weyounsday_task(bot),
   # wrapped_generation_task(bot)
@@ -411,4 +418,5 @@ for task in scheduled_tasks:
 scheduler.start()
 
 # Engage!
+setup_exception_logging()
 bot.run(DISCORD_TOKEN)
