@@ -291,6 +291,7 @@ class Tongo(commands.Cog):
       pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, row=1),
     ]
     self.first_auto_confront = True
+    self.zek_consortium_activated = False
 
   tongo = discord.SlashCommandGroup("tongo", "Commands for Tongo Badge Game")
 
@@ -460,6 +461,7 @@ class Tongo(commands.Cog):
     selected = random.sample(eligible, 3)
 
     game_id = await db_create_tongo_game(user_id)
+    self.zek_consortium_activated = False
     await db_add_game_player(game_id, user_id)
 
     # Toss the badges in!
@@ -584,6 +586,15 @@ class Tongo(commands.Cog):
     selected = random.sample(eligible, 3)
     await db_add_game_player(game['id'], user_id)
 
+    if not self.zek_consortium_activated:
+      all_players = await db_get_players_for_game(game['id'])
+      if len(all_players) >= 5 and random.random() < 0.5:
+        consortium_result = await self._find_consortium_badge_to_add(all_players)
+        if consortium_result:
+          badge_info_id, prestige_level = consortium_result
+          await self._invoke_zek_consortium(badge_info_id, prestige_level)
+          self.zek_consortium_activated = True
+
     # Toss the badges in!
     for instance in selected:
       await throw_badge_into_continuum(instance, user_id)
@@ -705,6 +716,69 @@ class Tongo(commands.Cog):
           await requestor.send(embed=embed)
         except discord.Forbidden:
           logger.info(f"Unable to send trade cancellation message to {requestor.display_name}, they have their DMs closed.")
+
+  async def _find_consortium_badge_to_add(self, players: list[dict]) -> Optional[tuple[int, int]]:
+    from collections import defaultdict
+
+    prestige_to_wishlists = defaultdict(list)
+
+    for p in players:
+      user_id = p['user_discord_id']
+      echelon = await db_get_echelon_progress(user_id)
+      prestige = echelon['current_prestige_tier'] if echelon else 0
+      wants = await db_get_active_wants(user_id, prestige)
+      badge_ids = set(w['badge_info_id'] for w in wants)
+      prestige_to_wishlists[prestige].append(badge_ids)
+
+    for prestige, sets in prestige_to_wishlists.items():
+      badge_counts = defaultdict(int)
+      for s in sets:
+        for badge_id in s:
+          badge_counts[badge_id] += 1
+      valid_choices = [bid for bid, count in badge_counts.items() if count >= 3]
+      if valid_choices:
+        return random.choice(valid_choices), prestige
+
+    return None
+
+  async def _invoke_zek_consortium(self, badge_info_id: int, prestige_level: int):
+    # Create a Consortium Reward with specified prestige level
+    instance = await create_new_badge_instance(None, badge_info_id, prestige_level=prestige_level, event_type="tongo_reward")
+    await db_add_to_continuum(badge_info_id, instance['badge_instance_id'], None)
+
+    consortium_embed = discord.Embed(
+      title="A *Consortium* has been formed!",
+      description=(
+        "Behind closed doors and beneath banners of profit, Grand Nagus Zek has arranged a **Consortium Investment Opportunity**.\n\n"
+        f"An exceedingly coveted **{instance['badge_name']} ({PRESTIGE_TIERS[prestige_level]})** has been quietly slipped into the Great Material Continuum. "
+        "Rumors suggest... at least *three players* had their lobes set on this prize.\n\n"
+        "Natually, Brunt is outraged."
+      ),
+      color=discord.Color.gold()
+    )
+    consortium_embed.set_footer(text="Greed is Eternal", icon_url="https://i.imgur.com/scVHPNm.png")
+    consortium_embed.set_image(url="https://i.imgur.com/hkVUsvQ.gif")
+
+    main_color_tuple = discord.Color.gold().to_rgb()
+    badge_frames = await generate_singular_badge_slot(instance, border_color=main_color_tuple)
+
+    discord_file = None
+    if len(badge_frames) > 1:
+      # We might throw a crystallized one in here at some point?
+      buf = await encode_webp(badge_frames)
+      discord_file = discord.File(buf, filename='consortium_badge.webp')
+    else:
+      discord_file = buffer_image_to_discord_file(badge_frames[0], 'consortium_badge.png')
+
+    investment_embed = discord.Embed(
+      title=f"{instance['badge_name']} ({PRESTIGE_TIERS[prestige_level]})",
+      color=discord.Color.gold()
+    )
+    investment_embed.set_footer(text="Greed is Eternal", icon_url="https://i.imgur.com/scVHPNm.png")
+    investment_embed.set_image(url=f"attachment://{discord_file.filename}")
+
+    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+    await zeks_table.send(embeds=[consortium_embed, investment_embed], files=[discord_file])
 
 
   #    ____        __
@@ -1162,7 +1236,7 @@ class Tongo(commands.Cog):
 
   tongo_referee_group = discord.SlashCommandGroup("referee", "Referee commands for Tongo.")
 
-  @tongo_referee_group.command(name="confront_tongo_game", description="Force confrontation on the current Tongo game.")
+  @tongo_referee_group.command(name="confront_tongo_game", description="(ADMIN) Force confrontation on the current Tongo game.")
   @commands.check(user_check)
   async def confront_current_game(self, ctx):
     await ctx.defer(ephemeral=True)
@@ -1195,6 +1269,49 @@ class Tongo(commands.Cog):
       description=f"The current game chaired by {chair.display_name} has been forcefully ended and resolved.",
       color=discord.Color.gold()
     ), ephemeral=True)
+
+  @tongo_referee_group.command(
+    name="zek_investment",
+    description="(ADMIN) Have Zek make things extra spicy."
+  )
+  @commands.check(user_check)
+  async def consortium_toss(self, ctx: discord.ApplicationContext):
+    await ctx.defer(ephemeral=True)
+
+    game = await db_get_open_game()
+    if not game:
+      return await ctx.respond(embed=discord.Embed(
+        title="No Active Tongo Game",
+        description="There is no ongoing Tongo game to add a Consortium badge to!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+
+    if self.zek_consortium_activated:
+      return await ctx.respond(embed=discord.Embed(
+        title="Consortium Already Formed",
+        description="Zek has already formed a Consortium this game.",
+        color=discord.Color.gold()
+      ), ephemeral=True)
+
+    players = await db_get_players_for_game(game['id'])
+    result = await self._find_consortium_badge_to_add(players)
+    if not result:
+      return await ctx.respond(embed=discord.Embed(
+        title="No Eligible Consortium Badge",
+        description="There is no badge that 3 or more players want at a shared prestige level badge.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+
+    badge_info_id, prestige = result
+    await self._invoke_zek_consortium(badge_info_id, prestige)
+    self.zek_consortium_activated = True
+
+    await ctx.respond(embed=discord.Embed(
+      title="Consortium Toss Complete",
+      description="A badge has been thrown into the Continuum by Grand Nagus Zek.",
+      color=discord.Color.gold()
+    ), ephemeral=True)
+
 
   #   __  ____  _ ___ __  _
   #  / / / / /_(_) (_) /_(_)__ ___
