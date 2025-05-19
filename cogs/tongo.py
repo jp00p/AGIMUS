@@ -848,12 +848,11 @@ class Tongo(commands.Cog):
   #   / _ |__ __/ /____  ____/ ___/__  ___  / _/______  ___  / /_
   #  / __ / // / __/ _ \/___/ /__/ _ \/ _ \/ _/ __/ _ \/ _ \/ __/
   # /_/ |_\_,_/\__/\___/    \___/\___/_//_/_//_/  \___/_//_/\__/
-  @tasks.loop(hours=6)
+  @tasks.loop(count=1)
   async def auto_confront(self):
     active_tongo = await db_get_open_game()
 
     if not active_tongo:
-      self.auto_confront.cancel()
       return
 
     tongo_players = await db_get_players_for_game(active_tongo['id'])
@@ -890,7 +889,7 @@ class Tongo(commands.Cog):
       return
 
     await self._perform_confront(active_tongo, active_chair)
-    self.auto_confront.cancel()
+    # self.auto_confront.cancel()
 
 
   async def _perform_confront(self, active_tongo, active_chair):
