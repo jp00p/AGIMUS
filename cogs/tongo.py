@@ -30,12 +30,12 @@ f.close()
 
 
 TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=6)
-MINIMUM_LIQUIDATION_CONTINUUM = 10
+MINIMUM_LIQUIDATION_CONTINUUM = 12
 MINIMUM_LIQUIDATION_PLAYERS = 3
 DIVIDEND_REWARDS = {
   "buffer": {"cost": 3, "label": "Crystal Pattern Buffer"},
   "wishlist": {"cost": 7, "label": "Guaranteed Wishlist Badge"},
-  "replication": {"cost": 13, "label": "Ferengi Crystal Replicator Override"},
+  "replication": {"cost": 11, "label": "Ferengi Crystal Replicator Override"},
 }
 
 class TongoDividendsView(discord.ui.View):
@@ -217,9 +217,10 @@ class TongoDividendsView(discord.ui.View):
 
     # Override regular rank choices for Rare+ Chances
     rolled_rank = weighted_random_choice({
-      3: 70,   # Rare
-      4: 22.5, # Legendary
-      5: 7.5   # Mythic
+      3: 60,  # Rare
+      4: 25,  # Legendary
+      5: 12,  # Mythic
+      6: 3    # Unobtanium
     })
     crystal_type = await db_select_random_crystal_type_by_rarity_rank(rolled_rank)
     crystal = await create_new_crystal_instance(user_id, crystal_type['id'])
@@ -241,6 +242,11 @@ class TongoDividendsView(discord.ui.View):
         "*My lobes are tingling!* A ***MYTHIC*** crystal for {user}!? Unthinkable... " + f"{get_emoji('quark_ooh_excited')}",
         "**MYTHIC!?!** Even Brunt, FCA, is impressed by (and suspicious of...) {user}'s new acquisition! " + f"{get_emoji('quark_cool')}",
         "Mythic? **MYTHIC!?** By the ears of Zek, {user}, you've just tipped the economic axis of the quadrant! " + f"{get_emoji('quark_profit_zoom')}"
+      ],
+      'unobtanium': [
+        "{user} who did you *bribe* or *blackmail* to grant access to *THIS* one?",
+        "::FIRMWARE CORRUPTION:: Overrides look overclocked, {user} must have installed hax...",
+        "The FCA will be conducting a *thorough* audit after this result, better book it {user}"
       ]
     }
 
@@ -284,6 +290,7 @@ class Tongo(commands.Cog):
       ),
       pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, row=1),
     ]
+    self.first_auto_confront = True
 
   tongo = discord.SlashCommandGroup("tongo", "Commands for Tongo Badge Game")
 
@@ -335,14 +342,18 @@ class Tongo(commands.Cog):
       )
       await zeks_table.send(embed=downtime_embed)
       await self._perform_confront(active_tongo, chair)
+      self.first_auto_confront = True
     else:
-      if self.auto_confront.is_running():
-        self.auto_confront.cancel()
+      # if self.auto_confront.is_running():
+      #   self.auto_confront.cancel()
+      self.first_auto_confront = True
       self.auto_confront.change_interval(seconds=remaining.total_seconds())
       try:
         self.auto_confront.start()
       except RuntimeError:
         logger.warning("Tongo auto_confront loop was already running.")
+        raise
+      # self.first_auto_confront = False
 
       time_left = current_time + remaining
       reboot_embed = discord.Embed(
@@ -498,8 +509,10 @@ class Tongo(commands.Cog):
     if self.auto_confront.is_running():
       self.auto_confront.cancel()
 
+    self.first_auto_confront = True
     self.auto_confront.change_interval(seconds=TONGO_AUTO_CONFRONT_TIMEOUT.total_seconds())
     self.auto_confront.start()
+    # self.first_auto_confront = False
 
   #    ___  _     __
   #   / _ \(_)__ / /__
@@ -848,8 +861,12 @@ class Tongo(commands.Cog):
   #   / _ |__ __/ /____  ____/ ___/__  ___  / _/______  ___  / /_
   #  / __ / // / __/ _ \/___/ /__/ _ \/ _ \/ _/ __/ _ \/ _ \/ __/
   # /_/ |_\_,_/\__/\___/    \___/\___/_//_/_//_/  \___/_//_/\__/
-  @tasks.loop(count=1)
+  @tasks.loop(count=6)
   async def auto_confront(self):
+    if self.first_auto_confront:
+      self.first_auto_confront = False
+      return
+
     active_tongo = await db_get_open_game()
 
     if not active_tongo:
@@ -889,7 +906,8 @@ class Tongo(commands.Cog):
       return
 
     await self._perform_confront(active_tongo, active_chair)
-    # self.auto_confront.cancel()
+    if self.auto_confront.is_running():
+        self.auto_confront.cancel()
 
 
   async def _perform_confront(self, active_tongo, active_chair):
@@ -1168,6 +1186,9 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
 
     await self._perform_confront(active_game, chair)
+    if self.auto_confront.is_running():
+      self.auto_confront.cancel()
+    self.first_auto_confront = True
 
     await ctx.respond(embed=discord.Embed(
       title="Tongo Game Confronted!",
