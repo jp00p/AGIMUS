@@ -49,8 +49,11 @@ class Crystals(commands.Cog):
   async def autocomplete_harmonizable_user_badges(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
 
-    prestige_level = int(ctx.options['prestige'])
-    badge_records = await db_get_badge_instances_with_attuned_crystals(user_id, prestige=prestige_level)
+    prestige = ctx.options['prestige']
+    if not prestige or not prestige.isdigit():
+      return [discord.OptionChoice(name="🔒 Invalid prestige tier input.", value='none')]
+
+    badge_records = await db_get_badge_instances_with_attuned_crystals(user_id, prestige=prestige)
 
     if not badge_records:
       return [discord.OptionChoice(name="🔒 You don't appear to have any Badges that have any Crystals currently attuned to them!", value='none')]
@@ -66,15 +69,17 @@ class Crystals(commands.Cog):
 
   async def autocomplete_badges_without_crystal_type(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
+
     crystal_instance_id = ctx.options.get('crystal')
-    if not crystal_instance_id:
+    if not crystal_instance_id or not crystal_instance_id.isdigit():
       return [discord.OptionChoice(name="🔒 You must select a Crystal!", value='none')]
-
     crystal_instance = await db_get_crystal_by_id(crystal_instance_id)
-    prestige_level = int(ctx.options['prestige'])
 
-    badge_instances = await db_get_badge_instances_without_crystal_type(user_id, crystal_instance['crystal_type_id'], prestige=prestige_level)
+    prestige = ctx.options.get('prestige')
+    if not prestige or not prestige.isdigit():
+      return [discord.OptionChoice(name="🔒 Invalid prestige tier input.", value='none')]
 
+    badge_instances = await db_get_badge_instances_without_crystal_type(user_id, crystal_instance['crystal_type_id'], prestige=prestige)
     if not badge_instances:
       return [discord.OptionChoice(name="🔒 You don't possess any valid Badges for this Crystal Type!", value='none')]
 
@@ -88,10 +93,12 @@ class Crystals(commands.Cog):
 
   async def autocomplete_user_badge_crystals(ctx: discord.AutocompleteContext):
     badge_instance_id = ctx.options.get('badge')
-    if not badge_instance_id:
-      return []
+    if not badge_instance_id or not badge_instance_id.isdigit():
+      return [discord.OptionChoice(name="🔒 Invalid badge input.", value='none')]
 
     badge_instance = await db_get_badge_instance_by_id(badge_instance_id)
+    if not badge_instance:
+      return [discord.OptionChoice(name="🔒 That Badge does not exist or is not in your collection.", value='none')]
 
     crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
 
