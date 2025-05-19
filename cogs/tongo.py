@@ -19,7 +19,7 @@ from utils.check_channel_access import access_check
 from utils.check_user_access import user_check
 from utils.image_utils import *
 from utils.prestige import *
-
+from utils.scheduling import delayed_task_loop
 
 # cogs.tongo
 
@@ -285,8 +285,56 @@ class Tongo(commands.Cog):
       pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, row=1),
     ]
     self.zek_consortium_activated = False
+    self.auto_confront_timer = None
 
   tongo = discord.SlashCommandGroup("tongo", "Commands for Tongo Badge Game")
+
+  #    ___       __           _____          ___              __
+  #   / _ |__ __/ /____  ____/ ___/__  ___  / _/______  ___  / /_
+  #  / __ / // / __/ _ \/___/ /__/ _ \/ _ \/ _/ __/ _ \/ _ \/ __/
+  # /_/ |_\_,_/\__/\___/    \___/\___/_//_/_//_/  \___/_//_/\__/
+  @delayed_task_loop(count=1)
+  def auto_confront_loop(self):
+    async def run():
+      active_tongo = await db_get_open_game()
+
+      if not active_tongo:
+        return
+
+      tongo_players = await db_get_players_for_game(active_tongo['id'])
+      active_tongo_chair_id = int(active_tongo['chair_user_id'])
+      active_chair = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
+
+      # If we never got enough players, end the game and notify the chair
+      if len(tongo_players) < 2:
+        await db_update_game_status(active_tongo['id'], 'cancelled')
+        # Alert the channel
+        zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+        await zeks_table.send(embed=discord.Embed(
+            title="TONGO! Auto-Canceled!",
+            description=f"Whoops, the Tongo game started by {active_chair.display_name} didn't get any other takers and the "
+                        "time has run out! Game has been automatically canceled.",
+            color=discord.Color.red()
+          )
+        )
+        # Alert the chair
+        try:
+          canceled_embed = discord.Embed(
+            title="TONGO! Auto-Canceled!",
+            description=f"Hey there {active_chair.display_name}, looks like time ran out on your Tongo game and there were not "
+                  "enough players. Your game has been automatically canceled.",
+            color=discord.Color.red()
+          )
+          canceled_embed.set_footer(
+            text="Note: You can use /settings to enable or disable these messages."
+          )
+          await active_chair.send(embed=canceled_embed)
+        except discord.Forbidden as e:
+          logger.info(f"Unable to Tongo auto-cancel message to {active_chair.display_name}, they have their DMs closed.")
+          pass
+      await self._perform_confront(active_tongo, active_chair)
+
+    return run
 
   #   _    _    _
   #  | |  (_)__| |_ ___ _ _  ___ _ _ ___
@@ -337,13 +385,13 @@ class Tongo(commands.Cog):
       await zeks_table.send(embed=downtime_embed)
       await self._perform_confront(active_tongo, chair)
     else:
-      if self.auto_confront.is_running():
-        self.auto_confront.cancel()
-      self.auto_confront.change_interval(seconds=remaining.total_seconds())
-      try:
-        self.auto_confront.start()
-      except RuntimeError:
-        logger.warning("Tongo auto_confront loop was already running.")
+      # Set up resumed auto_confront timer
+      if self.auto_confront_timer and self.auto_confront_timer.is_running():
+        self.auto_confront_timer.cancel()
+
+      self.auto_confront_timer = self.auto_confront_loop()
+      self.auto_confront_timer.change_interval(seconds=remaining.total_seconds())
+      self.auto_confront_timer.start()
 
       time_left = current_time + remaining
       reboot_embed = discord.Embed(
@@ -496,12 +544,12 @@ class Tongo(commands.Cog):
     images = await generate_paginated_continuum_images(updated_continuum_badges)
     await send_continuum_images_to_channel(zeks_table, images)
 
-    # Autoconfront
-    if self.auto_confront.is_running():
-      self.auto_confront.cancel()
+    if self.auto_confront_timer and self.auto_confront_timer.is_running():
+      self.auto_confront_timer.cancel()
 
-    self.auto_confront.change_interval(seconds=TONGO_AUTO_CONFRONT_TIMEOUT.total_seconds())
-    self.auto_confront.start()
+    self.auto_confront_timer = self.auto_confront_loop()
+    self.auto_confront_timer.change_interval(seconds=TONGO_AUTO_CONFRONT_TIMEOUT.total_seconds())
+    self.auto_confront_timer.start()
 
   #    ___  _     __
   #   / _ \(_)__ / /__
@@ -916,54 +964,6 @@ class Tongo(commands.Cog):
     )
 
     await ctx.followup.send(embed=embed, view=TongoDividendsView(self, balance), ephemeral=True)
-
-
-  #    ___       __           _____          ___              __
-  #   / _ |__ __/ /____  ____/ ___/__  ___  / _/______  ___  / /_
-  #  / __ / // / __/ _ \/___/ /__/ _ \/ _ \/ _/ __/ _ \/ _ \/ __/
-  # /_/ |_\_,_/\__/\___/    \___/\___/_//_/_//_/  \___/_//_/\__/
-  @tasks.loop(count=1)
-  async def auto_confront(self):
-    active_tongo = await db_get_open_game()
-
-    if not active_tongo:
-      return
-
-    tongo_players = await db_get_players_for_game(active_tongo['id'])
-    active_tongo_chair_id = int(active_tongo['chair_user_id'])
-    active_chair = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
-
-    # If we never got enough players, end the game and notify the chair
-    if len(tongo_players) < 2:
-      await db_update_game_status(active_tongo['id'], 'cancelled')
-      # Alert the channel
-      zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
-      await zeks_table.send(embed=discord.Embed(
-          title="TONGO! Auto-Canceled!",
-          description=f"Whoops, the Tongo game started by {active_chair.display_name} didn't get any other takers and the "
-                      "time has run out! Game has been automatically canceled.",
-          color=discord.Color.red()
-        )
-      )
-      # Alert the chair
-      try:
-        canceled_embed = discord.Embed(
-          title="TONGO! Auto-Canceled!",
-          description=f"Hey there {active_chair.display_name}, looks like time ran out on your Tongo game and there were not "
-                "enough players. Your game has been automatically canceled.",
-          color=discord.Color.red()
-        )
-        canceled_embed.set_footer(
-          text="Note: You can use /settings to enable or disable these messages."
-        )
-        await active_chair.send(embed=canceled_embed)
-      except discord.Forbidden as e:
-        logger.info(f"Unable to Tongo auto-cancel message to {active_chair.display_name}, they have their DMs closed.")
-        pass
-      return
-
-    await self._perform_confront(active_tongo, active_chair)
-    # self.auto_confront.cancel()
 
 
   async def _perform_confront(self, active_tongo, active_chair):
