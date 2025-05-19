@@ -8,6 +8,7 @@ from queries.crystal_instances import db_increment_user_crystal_buffer
 from queries.echelon_xp import db_get_echelon_progress
 from queries.tongo import db_get_open_game, db_get_all_game_player_ids, db_get_full_continuum_badges, db_update_game_status, db_get_rewards_for_game, db_get_throws_for_game
 from utils.badge_instances import create_new_badge_instance
+from utils.crystal_effects import delete_crystal_effects_cache
 from utils.prestige import PRESTIGE_TIERS
 from utils.check_user_access import user_check
 
@@ -186,3 +187,13 @@ class Admin(commands.Cog):
     await db_update_game_status(game_id, status)
     await ctx.respond(f"✅ Tongo game **#{game_id}** status set to **{status}**.", ephemeral=True)
 
+  @admin_group.command(name="clear_crystal_effects_cache", description="Clear the crystal effects disk cache")
+  @commands.check(user_check)
+  async def clear_crystal_images_cache(self, ctx):
+    delete_crystal_effects_cache()
+    embed = discord.Embed(
+      title="Crystal Image Caches Cleared",
+      description="🧹 All cached crystal effect images, and replicator animations, have been deleted.",
+      color=discord.Color.orange()
+    )
+    await ctx.respond(embed=embed, ephemeral=True)

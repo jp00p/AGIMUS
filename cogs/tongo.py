@@ -284,8 +284,6 @@ class Tongo(commands.Cog):
       ),
       pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, row=1),
     ]
-    self.first_auto_confront = True
-    self.auto_confront = self.auto_confront
 
   tongo = discord.SlashCommandGroup("tongo", "Commands for Tongo Badge Game")
 
@@ -341,7 +339,6 @@ class Tongo(commands.Cog):
       if self.auto_confront.is_running():
         self.auto_confront.cancel()
       self.auto_confront.change_interval(seconds=remaining.total_seconds())
-      self.first_auto_confront = True
       try:
         self.auto_confront.start()
       except RuntimeError:
@@ -351,7 +348,7 @@ class Tongo(commands.Cog):
       reboot_embed = discord.Embed(
         title="REBOOT DETECTED! Resuming Tongo...",
         description="We had a game in progress! ***Rude!***\n\n"
-                    f"The current game chaired by **{chair.display_name}** has been resumed.\n\n"
+                    f"The current game started by **{chair.display_name}** has been resumed.\n\n"
                     f"This Tongo game has {humanize.naturaltime(time_left)} left before the game is ended!",
         color=discord.Color.red()
       )
@@ -502,7 +499,6 @@ class Tongo(commands.Cog):
       self.auto_confront.cancel()
 
     self.auto_confront.change_interval(seconds=TONGO_AUTO_CONFRONT_TIMEOUT.total_seconds())
-    self.first_auto_confront = True
     self.auto_confront.start()
 
   #    ___  _     __
@@ -650,10 +646,6 @@ class Tongo(commands.Cog):
 
     continuum_images = await generate_paginated_continuum_images(all_badges)
     await send_continuum_images_to_channel(zeks_table, continuum_images)
-
-    if player_count == 9:
-      chair = await self.bot.current_guild.fetch_member(game['chair_user_id'])
-      await zeks_table.send(f"Hey {chair.mention}, your table is getting full!")
 
 
   async def _cancel_tongo_related_trades(self, user_discord_id, selected_badges: list[dict]):
@@ -858,10 +850,6 @@ class Tongo(commands.Cog):
   # /_/ |_\_,_/\__/\___/    \___/\___/_//_/_//_/  \___/_//_/\__/
   @tasks.loop(hours=6)
   async def auto_confront(self):
-    if self.first_auto_confront:
-      self.first_auto_confront = False
-      return
-
     active_tongo = await db_get_open_game()
 
     if not active_tongo:

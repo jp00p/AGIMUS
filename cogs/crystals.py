@@ -190,9 +190,9 @@ class Crystals(commands.Cog):
       description=f"You may redeem **one** Pattern Buffer in exchange for **one** randomized Crystal.\n\nAre you ready to smack this thing and see what falls out?",
       color=discord.Color.teal()
     )
-    replicator_embed.add_field(name="Crystal Pattern Buffers", value=f"You possess **{buffer_credits} Crystal Pattern Buffers** to redeem!", inline=False)
-    replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count} Crystals** which have not yet been attached to a Badge.", inline=False)
-    replicator_embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count} Badges** with Crystals attached to them.", inline=False)
+    replicator_embed.add_field(name="Crystal Pattern Buffers", value=f"You possess **{buffer_credits} Crystal Pattern Buffer{'s' if buffer_credits > 1 else ''}** to redeem!", inline=False)
+    replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count} Crystal{'s' if unattuned_crystal_count > 1 else ''}** which have not yet been attached to a Badge.", inline=False)
+    replicator_embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count} Badge{'s' if attuned_badges_count > 1 else ''}** with Crystals attached to them.", inline=False)
     replicator_embed.set_footer(
       text="Use `/crystals manifest` to view your currently unattuned Crystals\nUse `/crystals attach` attach them to your Badges!"
     )
@@ -459,7 +459,7 @@ class Crystals(commands.Cog):
   # /    |    \  |  |  | |  |  /   |  \  ___/
   # \____|__  /__|  |__| |____/|___|  /\___  >
   #         \/                      \/     \/
-  @crystals_group.command(name="attune", description="Attune (attach) a Crystal to one of your Badges.")
+  @crystals_group.command(name="attach", description="Attune (attach) a Crystal to one of your Badges.")
   @option(
     'rarity',
     str,

@@ -965,7 +965,9 @@ class Wishlist(commands.Cog):
 
     # Otherwise go ahead and add them
     await db_add_badge_info_ids_to_wishlist(user_discord_id, valid_badge_info_ids)
-    # Then auto-lock them
+    # Auto-lock the new ones
+    await db_lock_badge_instances_by_badge_info_ids(user_discord_id, valid_badge_info_ids)
+    # Auto-lock existing ones
     await db_lock_badge_instances_by_badge_info_ids(user_discord_id, existing_badge_info_ids)
 
     embed = discord.Embed(
@@ -1184,7 +1186,7 @@ class Wishlist(commands.Cog):
     required=True,
     autocomplete=lock_autocomplete
   )
-  async def lock(self, ctx:discord.ApplicationContext, badge:str):
+  async def lock(self, ctx: discord.ApplicationContext, badge: str):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
     try:
@@ -1202,30 +1204,27 @@ class Wishlist(commands.Cog):
     badge_info = await db_get_badge_info_by_id(badge_info_id)
     if not badge_info:
       channel = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
-      await ctx.followup.send(
-        embed=discord.Embed(
-          title="That Badge Doesn't Exist (Yet?)",
-          description=f"We don't have that one in our databanks! If you think this is an error please let us know in {channel.mention}!",
-          color=discord.Color.red()
-        )
-      )
+      await ctx.followup.send(embed=discord.Embed(
+        title="That Badge Doesn't Exist (Yet?)",
+        description=f"We don't have that one in our databanks! If you think this is an error please let us know in {channel.mention}!",
+        color=discord.Color.red()
+      ))
       return
 
     badge_name = badge_info['badge_name']
-    # Determine existing ownership per prestige tier
-    instances = await db_get_user_badge_instances(user_discord_id)
-    owned_tiers = sorted({
-      inst['prestige_level'] for inst in instances
-      if inst['badge_info_id'] == badge_info_id
-    })
+
+    # Fetch all instances of this badge (locked and unlocked)
+    all_instances = await db_get_user_badge_instances(user_discord_id)
+    owned_unlocked_tiers = {i['prestige_level'] for i in all_instances if i['badge_info_id'] == badge_info_id and not i['locked']}
+    owned_locked_tiers = {i['prestige_level'] for i in all_instances if i['badge_info_id'] == badge_info_id and i['locked']}
+    owned_tiers = sorted(owned_unlocked_tiers | owned_locked_tiers)
+
     if not owned_tiers:
-      await ctx.followup.send(
-        embed=discord.Embed(
-          title="You don't own that Badge!",
-          description=f"It doesn't appear that {badge_name} exists at any Prestige Tier in your inventory?",
-          color=discord.Color.red()
-        )
-      )
+      await ctx.followup.send(embed=discord.Embed(
+        title="You don't own that Badge!",
+        description=f"It doesn't appear that {badge_name} exists at any Prestige Tier in your inventory?",
+        color=discord.Color.red()
+      ))
       return
 
     await db_lock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
@@ -1237,17 +1236,24 @@ class Wishlist(commands.Cog):
       color=discord.Color.green()
     )
     embed.set_image(url=attachment_url)
-    if owned_tiers:
-      echelon_progress = await db_get_echelon_progress(user_discord_id)
-      current_prestige_tier = echelon_progress['current_prestige_tier']
-      for tier in range(current_prestige_tier + 1):
-        owned = tier in owned_tiers
-        symbol = "✅" if owned else "❌"
-        embed.add_field(
-          name=PRESTIGE_TIERS[tier],
-          value=f"Owned: {symbol}",
-          inline=False
-        )
+
+    echelon_progress = await db_get_echelon_progress(user_discord_id)
+    current_prestige_tier = echelon_progress['current_prestige_tier']
+    for tier in range(current_prestige_tier + 1):
+      if tier in owned_unlocked_tiers:
+        symbol = "✅"
+        note = " (Unlocked)"
+      elif tier in owned_locked_tiers:
+        symbol = "🔒"
+        note = " (Locked)"
+      else:
+        symbol = "❌"
+        note = ""
+      embed.add_field(
+        name=PRESTIGE_TIERS[tier],
+        value=f"Owned: {symbol}{note}",
+        inline=False
+      )
 
     await ctx.followup.send(embed=embed, file=discord_file)
 
@@ -1380,12 +1386,13 @@ class Wishlist(commands.Cog):
       return
 
     badge_name = badge_info['badge_name']
-    # Determine existing ownership per prestige tier
-    instances = await db_get_user_badge_instances(user_discord_id)
-    owned_tiers = sorted({
-      inst['prestige_level'] for inst in instances
-      if inst['badge_info_id'] == badge_info_id
-    })
+
+    # Fetch all instances regardless of lock status
+    all_instances = await db_get_user_badge_instances(user_discord_id)
+    owned_unlocked_tiers = {i['prestige_level'] for i in all_instances if i['badge_info_id'] == badge_info_id and not i['locked']}
+    owned_locked_tiers   = {i['prestige_level'] for i in all_instances if i['badge_info_id'] == badge_info_id and i['locked']}
+    owned_tiers = sorted(owned_unlocked_tiers | owned_locked_tiers)
+
     if not owned_tiers:
       await ctx.followup.send(
         embed=discord.Embed(
@@ -1405,17 +1412,24 @@ class Wishlist(commands.Cog):
       color=discord.Color.green()
     )
     embed.set_image(url=attachment_url)
-    if owned_tiers:
-      echelon_progress = await db_get_echelon_progress(user_discord_id)
-      current_prestige_tier = echelon_progress['current_prestige_tier']
-      for tier in range(current_prestige_tier + 1):
-        owned = tier in owned_tiers
-        symbol = "✅" if owned else "❌"
-        embed.add_field(
-          name=PRESTIGE_TIERS[tier],
-          value=f"Owned: {symbol}",
-          inline=False
-        )
+
+    echelon_progress = await db_get_echelon_progress(user_discord_id)
+    current_prestige_tier = echelon_progress['current_prestige_tier']
+    for tier in range(current_prestige_tier + 1):
+      if tier in owned_unlocked_tiers:
+        symbol = "✅"
+        note = " (Unlocked)"
+      elif tier in owned_locked_tiers:
+        symbol = "🔒"
+        note = " (Locked)"
+      else:
+        symbol = "❌"
+        note = ""
+      embed.add_field(
+        name=PRESTIGE_TIERS[tier],
+        value=f"Owned: {symbol}{note}",
+        inline=False
+      )
 
     await ctx.followup.send(embed=embed, file=discord_file)
 

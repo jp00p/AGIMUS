@@ -1233,7 +1233,7 @@ async def generate_singular_badge_slot(badge, border_color=None, crystal=None, s
       try:
         icon_img = Image.open(icon_path).convert("RGBA")
         icon_img.thumbnail((48, 48))
-        slot_canvas.paste(icon_img, (dims.slot_width - 46, y_offset), icon_img)
+        slot_canvas.paste(icon_img, (dims.slot_width - 48, y_offset), icon_img)
       except Exception as e:
         logger.warning(f"[generate_singular_badge_slot] Could not load icon at {icon_path}: {e}")
 
