@@ -259,7 +259,7 @@ class Crystals(commands.Cog):
             "Well GOTDAYUM!!! That's some shiny shiny shiny {user}!",
             "FIYAH!!! Crystalline Goodness for {user}!",
             "LORD HAVE MERCY!!! That’s a LEGENDARY for {user}!!!",
-            "BEJESUS!!! This one's burnin' with glory {user}!"
+            "BEJESUS!!! This one's burnin' with glory {user}!",
             "Hooo MAMA! The replicator paused, it knew this was a big one, {user}!",
             "Heyyyyo! Everyone stand back! {user}'s got a hot one!!",
             "WHA WHA WHA!?! Legendary stuff, {user}."
@@ -267,7 +267,7 @@ class Crystals(commands.Cog):
           'mythic': [
             "HOLY **FUCKING** SHIT!!!!! {user} got a ***MYTHIC*** Crystal!?! INCREDIBLE! " + f"{get_emoji('drunk_shimoda_smile_happy')}",
             "SWEET JESUS!!!!! Are you kiddin me {user}, *MYTHIC*!? " + f"{get_emoji('zephram_sweet_jesus_wow_whoa')}",
-            "OH DEAR LORD!!!!!! One freshly minted **MYTHIC** Crystal for {user}!? " + f"{get_emoji('barclay_omg_wow_shock')}"
+            "OH DEAR LORD!!!!!! One freshly minted **MYTHIC** Crystal for {user}!? " + f"{get_emoji('barclay_omg_wow_shock')}",
             "PELDOR JOI!!! {user} got a MYTHIC!?!?! " + f"{get_emoji('kira_smile_lol_happy')}",
             "OMFG!!!!! A **MYTHIC** just materialized and it's in {user}'s inventory. " + f"{get_emoji('kira_omg_headexplode')}",
             "CHRIKEY ON A CRACKER!!! The latest **MYTHIC** on the server is here, and it belongs to {user}! " + f"{get_emoji('jadzia_happy_smile')}"

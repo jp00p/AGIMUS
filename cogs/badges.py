@@ -1109,7 +1109,7 @@ class Badges(commands.Cog):
       colors = get_theme_colors(pref)
       main_color_tuple = colors.highlight
 
-    badge_frames = await generate_singular_badge_slot(badge_instance, border_color=main_color_tuple, show_crystal_icon=True)
+    badge_frames = await generate_singular_badge_slot(badge_instance, border_color=main_color_tuple, show_crystal_icon=False)
 
     discord_file = None
     if len(badge_frames) > 1:

@@ -8,7 +8,7 @@ UPDATE crystal_ranks SET drop_chance = 2.5 WHERE name = 'Mythic';
 
 -- Insert Unobtanium
 INSERT INTO crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order)
-VALUES ('Unobtanium', '🌌', 6, 0.5, 5);
+VALUES ('Unobtanium', '💥', 6, 0.5, 5);
 
 -- Insert Bone Fragment Crystal (MOOPSY!)
 INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
