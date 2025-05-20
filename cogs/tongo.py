@@ -579,7 +579,7 @@ class Tongo(commands.Cog):
     if not self.zek_consortium_activated:
       all_players = await db_get_players_for_game(game['id'])
       if len(all_players) >= 5 and random.random() < 0.5:
-        consortium_result = self._find_consortium_badge_to_add(game['id'])
+        consortium_result = await self._find_consortium_badge_to_add(game['id'])
         if consortium_result:
           badge_info_id, prestige_level = consortium_result
           await self._invoke_zek_consortium(badge_info_id, prestige_level)
@@ -1277,7 +1277,7 @@ class Tongo(commands.Cog):
     description="(ADMIN RESTRICTED) Have Zek make things extra spicy."
   )
   @commands.check(user_check)
-  async def consortium_toss(self, ctx: discord.ApplicationContext):
+  async def zek_investment(self, ctx: discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
 
     game = await db_get_open_game()
@@ -1288,12 +1288,7 @@ class Tongo(commands.Cog):
         color=discord.Color.red()
       ), ephemeral=True)
 
-    if self.zek_consortium_activated:
-      return await ctx.respond(embed=discord.Embed(
-        title="Consortium Already Formed",
-        description="Zek has already formed a Consortium this game.",
-        color=discord.Color.gold()
-      ), ephemeral=True)
+    self.zek_consortium_activated = False
 
     result = await self._find_consortium_badge_to_add(game['id'])
     if not result:

@@ -56,6 +56,13 @@ async def db_get_players_for_game(game_id: int):
     await db.execute(query, (game_id,))
     return await db.fetchall()
 
+async def db_remove_player_from_game(game_id: int, user_id: int):
+  async with AgimusDB() as db:
+    sql = '''
+      DELETE FROM tongo_game_players
+      WHERE game_id = %s AND user_discord_id = %s
+    '''
+    await db.execute(sql, (game_id, user_id))
 
 async def db_is_user_in_game(game_id: int, user_id: int) -> bool:
   query = """
