@@ -152,7 +152,7 @@ class Admin(commands.Cog):
         for uid, badge_names in user_throws.items():
           member = await bot.current_guild.fetch_member(uid)
           value = "\n".join(f"- {name}" for name in badge_names)
-          embed.add_field(name=f"{member.display_name} ({member.display_mention}) threw:", value=value, inline=False)
+          embed.add_field(name=f"{member.display_name} ({member.mention}) threw:", value=value, inline=False)
 
       # Reward summary
       if rewards:
@@ -264,13 +264,13 @@ class Admin(commands.Cog):
 
       @discord.ui.button(label="Toggle New Game Creation", style=discord.ButtonStyle.gray, row=1)
       async def toggle_new_games(self, button, interaction):
-        self.cog.block_new_ventures = not self.cog.block_new_ventures
-        new_status = "ENABLED ✅" if not self.cog.block_new_ventures else "BLOCKED ❌"
+        self.cog.block_new_games = not self.cog.block_new_games
+        new_status = "ENABLED ✅" if not self.cog.block_new_games else "BLOCKED ❌"
         await interaction.response.send_message(
           embed=discord.Embed(
             title="Tongo Game Creation Toggled",
             description=f"New `/tongo venture` games are now **{new_status}**.",
-            color=discord.Color.green() if not self.cog.block_new_ventures else discord.Color.red()
+            color=discord.Color.green() if not self.cog.block_new_games else discord.Color.red()
           ),
           ephemeral=True
         )

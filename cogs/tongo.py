@@ -394,8 +394,8 @@ class Tongo(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="Tongo Temporarily Disabled",
-          description=f"New Tongo games are currently on haitus for a minute. Please stay tuned to {megalomaniacal.mention} for updates.",
-          color=discord.Color.red()
+          description=f"New Tongo games are currently on haitus for a minute.\n\nPlease stay tuned to {megalomaniacal.mention} for updates.",
+          color=discord.Color.orange()
         ),
         ephemeral=True
       )

@@ -265,15 +265,15 @@ async def db_get_throws_for_game(game_id: int, created_at: datetime) -> list[dic
     await db.execute(query, (created_at, game_id))
     return await db.fetchall()
 
-async def db_get_thrown_badge_instance_ids_by_user_id(game_id: int, user_id: int) -> list[int]:
+async def db_get_thrown_badge_instance_ids_by_user_id(user_id: int) -> list[int]:
   sql = """
     SELECT tc.source_instance_id
     FROM tongo_continuum tc
     JOIN badge_instances bi ON tc.source_instance_id = bi.id
-    WHERE tc.game_id = %s AND bi.previous_owner_id = %s
+    WHERE tc.thrown_by_user_id = %s
   """
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (game_id, user_id))
+    await db.execute(sql, (user_id,))
     rows = await db.fetchall()
     return [row['source_instance_id'] for row in rows]
 
