@@ -3,6 +3,7 @@ from typing import Optional
 from common import *
 
 from queries.common import BADGE_INSTANCE_COLUMNS
+from utils.badge_instances import transfer_badge_instance
 
 # --- Game Lifecycle ---
 
@@ -264,6 +265,22 @@ async def db_get_throws_for_game(game_id: int, created_at: datetime) -> list[dic
     await db.execute(query, (created_at, game_id))
     return await db.fetchall()
 
+async def db_get_thrown_badge_instance_ids_by_user_id(game_id: int, user_id: int) -> list[int]:
+  sql = """
+    SELECT tc.source_instance_id
+    FROM tongo_continuum tc
+    JOIN badge_instances bi ON tc.source_instance_id = bi.id
+    WHERE tc.game_id = %s AND bi.previous_owner_id = %s
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (game_id, user_id))
+    rows = await db.fetchall()
+    return [row['source_instance_id'] for row in rows]
+
+async def restore_thrown_badges_to_user(user_id: int, badge_instance_ids: list[int]):
+  for instance_id in badge_instance_ids:
+    await db_remove_from_continuum(instance_id)
+    await transfer_badge_instance(instance_id, user_id, event_type='admin')
 
 # --- Dividends ---
 async def db_get_tongo_dividends(user_id: int) -> dict | None:

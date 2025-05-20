@@ -6,7 +6,7 @@ from queries.badge_info import db_get_all_badge_info, db_get_badge_info_by_id
 from queries.badge_instances import db_get_user_badge_instances, db_get_badge_instance_by_badge_info_id, db_get_badge_instance_by_id
 from queries.crystal_instances import db_increment_user_crystal_buffer
 from queries.echelon_xp import db_get_echelon_progress
-from queries.tongo import db_get_open_game, db_get_all_game_player_ids, db_get_full_continuum_badges, db_update_game_status, db_get_rewards_for_game, db_get_throws_for_game, db_get_players_for_game, db_remove_player_from_game
+from queries.tongo import *
 from utils.badge_instances import create_new_badge_instance
 from utils.crystal_effects import delete_crystal_effects_cache
 from utils.prestige import PRESTIGE_TIERS
@@ -152,7 +152,7 @@ class Admin(commands.Cog):
         for uid, badge_names in user_throws.items():
           member = await bot.current_guild.fetch_member(uid)
           value = "\n".join(f"- {name}" for name in badge_names)
-          embed.add_field(name=f"{member.display_name} (@{uid}) threw:", value=value, inline=False)
+          embed.add_field(name=f"{member.display_name} ({member.display_mention}) threw:", value=value, inline=False)
 
       # Reward summary
       if rewards:
@@ -174,7 +174,7 @@ class Admin(commands.Cog):
     await paginator.respond(ctx.interaction, ephemeral=True)
 
   @admin_group.command(name="manage_tongo_game", description="(ADMIN RESTRICTED) Manage a given Tongo Game.")
-  @option("game_id", int, description="Game ID.", required=True)
+  @option("game_id", int, description="Game.", required=True)
   @commands.check(user_check)
   async def manage_tongo_game(self, ctx: discord.ApplicationContext, game_id: int):
     await ctx.defer(ephemeral=True)
@@ -233,18 +233,33 @@ class Admin(commands.Cog):
           return await interaction.response.send_message("⚠️ No players selected.", ephemeral=True)
 
         removed_mentions = []
+        refunded_badges = []
+
         for uid in self.selected_ids:
-          await db_remove_player_from_game(self.game_id, int(uid))
+          uid_int = int(uid)
+          await db_remove_player_from_game(self.game_id, uid_int)
           removed_mentions.append(f"<@{uid}>")
+
+          # Check if this player threw in any badges and refund them
+          badge_ids = await db_get_thrown_badge_instance_ids_by_user_id(self.game_id, uid_int)
+          if badge_ids:
+            await restore_thrown_badges_to_user(uid_int, badge_ids)
+            member = await self.cog.bot.current_guild.fetch_member(uid_int)
+            refunded_badges.append(f"{member.display_name} – {len(badge_ids)} badge(s) refunded")
+
+        desc = "The following players were removed:\n" + "\n".join(removed_mentions)
+        if refunded_badges:
+          desc += "\n\nThe following badge throws were refunded:\n" + "\n".join(refunded_badges)
 
         await interaction.response.send_message(
           embed=discord.Embed(
             title=f"Tongo Game #{self.game_id} Updated",
-            description="Removed the following players:\n" + "\n".join(removed_mentions),
+            description=desc,
             color=discord.Color.orange()
           ),
           ephemeral=True
         )
+
         self.stop()
 
       @discord.ui.button(label="Toggle New Game Creation", style=discord.ButtonStyle.gray, row=1)
