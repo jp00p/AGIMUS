@@ -27,10 +27,8 @@ paginator_buttons = [
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
 async def add_autocomplete(ctx:discord.AutocompleteContext):
-  user_id = ctx.interaction.user.id
   special_badge_names = [b['badge_name'] for b in await db_get_special_badge_info()]
-  wishlisted_badge_names = [b['badge_name'] for b in await db_get_simple_wishlist_badges(user_id)]
-  excluded_names = set(special_badge_names + wishlisted_badge_names)
+  excluded_names = set(special_badge_names)
 
   all_badges = await db_get_all_badge_info()
   filtered_badges = [b for b in all_badges if b['badge_name'] not in excluded_names]
