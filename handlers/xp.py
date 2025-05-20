@@ -1,6 +1,7 @@
 import math
 import asyncio
 import random
+import unicodedata
 from collections import defaultdict
 from datetime import datetime
 
@@ -112,15 +113,29 @@ async def handle_react_xp(reaction: discord.Reaction, user: discord.User):
 async def _log_react_history(reaction: discord.Reaction, user: discord.User) -> bool:
   async with AgimusDB() as db:
     try:
+      emoji_str = normalize_reaction_string(reaction)
       await db.execute(
-        "INSERT IGNORE INTO reactions (user_id, user_name, reaction, reaction_message_id) VALUES (%s, %s, %s, %s)",
-        (user.id, user.display_name, f"{reaction}", reaction.message.id)
+        "INSERT INTO reactions (user_id, user_name, reaction, reaction_message_id) VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE user_id = user_id",
+        (user.id, user.display_name, emoji_str, reaction.message.id)
       )
-      return db._lastrowid is not None
+      return db.rowcount > 0
     except Exception as e:
-      logger.warning(f"[XP] Reaction logging failed: {e}")
-      raise
+      logger.debug(f"[XP] Reaction logging failed: {e}")
+      return False
 
+def normalize_reaction_string(reaction: discord.Reaction) -> str:
+  """
+  Returns a stable string representation for both custom and unicode emoji.
+  Custom: "<:name:id>"
+  Unicode: Normalized unicode string
+  """
+  emoji = reaction.emoji
+  if isinstance(emoji, str):
+    # Normalize unicode emoji to NFKC (Compatibility Decomposition, then Composition)
+    return unicodedata.normalize("NFKC", emoji)
+  else:
+    # It's a custom emoji (discord.PartialEmoji or Emoji)
+    return str(emoji)
 
 BONUSWORTHY_EMOJI_MATCHES = None
 async def grant_bonusworthy_reaction_xp(reaction: discord.Reaction):
