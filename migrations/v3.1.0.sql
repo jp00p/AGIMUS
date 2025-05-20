@@ -17,7 +17,6 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 
 -- Allow unowned badge instances to be created (for zek consortium investments...)
 ALTER TABLE badge_instances
-MODIFY COLUMN owner_discord_id VARCHAR(64) NULL,
 MODIFY COLUMN origin_user_id VARCHAR(64) NULL;
 
 -- New 'tongo_consortium_investment' history event_type
