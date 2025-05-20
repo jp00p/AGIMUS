@@ -13,3 +13,26 @@ VALUES ('Unobtanium', '🌌', 6, 0.5, 5);
 -- Insert Bone Fragment Crystal (MOOPSY!)
 INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Bone Fragment", 6, "bone_fragment.png", "moopsy_swarm", "That's bone. Looks oddly drinkable.");
+
+
+-- Allow unowned badge instances to be created (for zek consortium investments...)
+ALTER TABLE badge_instances
+MODIFY COLUMN owner_discord_id VARCHAR(64) NULL,
+MODIFY COLUMN origin_user_id VARCHAR(64) NULL;
+
+-- New 'tongo_consortium_investment' history event_type
+ALTER TABLE badge_instance_history
+MODIFY COLUMN event_type ENUM(
+  'epoch',
+  'level_up',
+  'trade',
+  'tongo_risk',
+  'tongo_reward',
+  'tongo_consortium_investment',
+  'liquidation',
+  'liquidation_endowment',
+  'dividend_reward',
+  'prestige_echo',
+  'admin',
+  'unknown'
+) NOT NULL DEFAULT 'unknown';

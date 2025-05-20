@@ -41,7 +41,7 @@ class Admin(commands.Cog):
 
   admin_group = discord.SlashCommandGroup("admin", "Admin-only commands for badge and Tongo testing.")
 
-  @admin_group.command(name="grant_random_badge", description="Grant a random badge to a user.")
+  @admin_group.command(name="grant_random_badge", description="(ADMIN RESTRICTED) Grant a random badge to a user.")
   @option("prestige", int, description="Prestige Tier", required=True, autocomplete=autocomplete_prestige_for_user)
   @option("user", discord.User, description="The user to receive a random badge.", required=True)
   @commands.check(user_check)
@@ -68,7 +68,7 @@ class Admin(commands.Cog):
     await ctx.respond(embed=embed, ephemeral=True)
 
 
-  @admin_group.command(name="grant_specific_badge", description="Grant a specific badge to a user.")
+  @admin_group.command(name="grant_specific_badge", description="(ADMIN RESTRICTED) Grant a specific badge to a user.")
   @option("user", discord.User, description="The user to receive the badge.", required=True)
   @option("prestige", int, description="Prestige Tier", required=True, autocomplete=autocomplete_prestige_for_user)
   @option("badge", int, description="Badge", required=True, autocomplete=autocomplete_all_badges)
@@ -85,7 +85,7 @@ class Admin(commands.Cog):
     if existing:
       return await ctx.respond(f"⚠️ {user.mention} already owns **{badge_info['badge_name']}** at **{PRESTIGE_TIERS[prestige]}**.", ephemeral=True)
 
-    await create_new_badge_instance(user.id, badge_info, prestige, event_type='admin')
+    await create_new_badge_instance(user.id, badge_info['id'], prestige, event_type='admin')
 
     embed = discord.Embed(
       title="Badge Granted",
@@ -95,7 +95,7 @@ class Admin(commands.Cog):
     await ctx.respond(embed=embed, ephemeral=True)
 
 
-  @admin_group.command(name="grant_crystal_buffer_patterns", description="Grant crystal pattern buffers to a user.")
+  @admin_group.command(name="grant_crystal_buffer_patterns", description="(ADMIN RESTRICTED) Grant crystal pattern buffers to a user.")
   @option("user", discord.User, description="The user to receive buffers.", required=True)
   @option("amount", int, description="How many to grant.", required=True, min_value=1, max_value=50)
   @commands.check(user_check)
@@ -106,7 +106,7 @@ class Admin(commands.Cog):
     await ctx.respond(f"✨ Granted {amount} Replicator Pattern Buffer(s) to {user.mention}.", ephemeral=True)
 
 
-  @admin_group.command(name="check_tongo_games", description="Check recent and open Tongo games with full detail.")
+  @admin_group.command(name="check_tongo_games", description="(ADMIN RESTRICTED) Check recent Tongo games with details.")
   @commands.check(user_check)
   async def check_tongo_games(self, ctx):
     await ctx.defer(ephemeral=True)
@@ -173,7 +173,7 @@ class Admin(commands.Cog):
     await paginator.respond(ctx.interaction, ephemeral=True)
 
 
-  @admin_group.command(name="set_tongo_game_status", description="Manually set the status of a Tongo game.")
+  @admin_group.command(name="set_tongo_game_status", description="(ADMIN RESTRICTED) Manually set the status of a Tongo game.")
   @option("game_id", int, description="The ID of the Tongo game.", required=True)
   @option("status", str, description="The new status.", required=True, choices=[
     discord.OptionChoice(name="Open", value="open"),
@@ -187,7 +187,7 @@ class Admin(commands.Cog):
     await db_update_game_status(game_id, status)
     await ctx.respond(f"✅ Tongo game **#{game_id}** status set to **{status}**.", ephemeral=True)
 
-  @admin_group.command(name="clear_crystal_effects_cache", description="Clear the crystal effects disk cache")
+  @admin_group.command(name="clear_crystal_effects_cache", description="(ADMIN RESTRICTED) Clear the crystal effects disk cache")
   @commands.check(user_check)
   async def clear_crystal_images_cache(self, ctx):
     delete_crystal_effects_cache()

@@ -345,8 +345,6 @@ class Tongo(commands.Cog):
       await self._perform_confront(active_tongo, chair)
       self.first_auto_confront = True
     else:
-      # if self.auto_confront.is_running():
-      #   self.auto_confront.cancel()
       self.first_auto_confront = True
       self.auto_confront.change_interval(seconds=remaining.total_seconds())
       try:
@@ -354,7 +352,9 @@ class Tongo(commands.Cog):
       except RuntimeError:
         logger.warning("Tongo auto_confront loop was already running.")
         raise
-      # self.first_auto_confront = False
+
+      # Disallow any consortium investments cause we don't know what the previous state was.. :\
+      self.zek_consortium_activated = True
 
       time_left = current_time + remaining
       reboot_embed = discord.Embed(
@@ -743,15 +743,15 @@ class Tongo(commands.Cog):
 
   async def _invoke_zek_consortium(self, badge_info_id: int, prestige_level: int):
     # Create a Consortium Reward with specified prestige level
-    instance = await create_new_badge_instance(None, badge_info_id, prestige_level=prestige_level, event_type="tongo_reward")
+    instance = await create_new_badge_instance(None, badge_info_id, prestige_level=prestige_level, event_type="tongo_consortium_investment")
     await db_add_to_continuum(badge_info_id, instance['badge_instance_id'], None)
 
     consortium_embed = discord.Embed(
       title="A *Consortium* has been formed!",
       description=(
         "Behind closed doors and beneath banners of profit, Grand Nagus Zek has arranged a **Consortium Investment Opportunity**.\n\n"
-        f"An exceedingly coveted **{instance['badge_name']} ({PRESTIGE_TIERS[prestige_level]})** has been quietly slipped into the Great Material Continuum. "
-        "Rumors suggest... at least *three players* had their lobes set on this prize.\n\n"
+        f"An exceedingly coveted **{instance['badge_name']} ({PRESTIGE_TIERS[prestige_level]})** has been quietly slipped into the Great Material Continuum.\n\n"
+        "Rumors suggest... at least *three players* had their lobes set on this prize. "
         "Natually, Brunt is outraged."
       ),
       color=discord.Color.gold()
@@ -774,7 +774,6 @@ class Tongo(commands.Cog):
       title=f"{instance['badge_name']} ({PRESTIGE_TIERS[prestige_level]})",
       color=discord.Color.gold()
     )
-    investment_embed.set_footer(text="Greed is Eternal", icon_url="https://i.imgur.com/scVHPNm.png")
     investment_embed.set_image(url=f"attachment://{discord_file.filename}")
 
     zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
@@ -1236,7 +1235,7 @@ class Tongo(commands.Cog):
 
   tongo_referee_group = discord.SlashCommandGroup("referee", "Referee commands for Tongo.")
 
-  @tongo_referee_group.command(name="confront_tongo_game", description="(ADMIN) Force confrontation on the current Tongo game.")
+  @tongo_referee_group.command(name="confront_tongo_game", description="(ADMIN RESTRICTED) Force confrontation on the current Tongo game.")
   @commands.check(user_check)
   async def confront_current_game(self, ctx):
     await ctx.defer(ephemeral=True)
@@ -1272,7 +1271,7 @@ class Tongo(commands.Cog):
 
   @tongo_referee_group.command(
     name="zek_investment",
-    description="(ADMIN) Have Zek make things extra spicy."
+    description="(ADMIN RESTRICTED) Have Zek make things extra spicy."
   )
   @commands.check(user_check)
   async def consortium_toss(self, ctx: discord.ApplicationContext):
@@ -1298,7 +1297,7 @@ class Tongo(commands.Cog):
     if not result:
       return await ctx.respond(embed=discord.Embed(
         title="No Eligible Consortium Badge",
-        description="There is no badge that 3 or more players want at a shared prestige level badge.",
+        description="There is no badge that 3 or more players want at a shared prestige level.",
         color=discord.Color.red()
       ), ephemeral=True)
 

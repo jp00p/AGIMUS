@@ -798,8 +798,6 @@ class Wishlist(commands.Cog):
       ), ephemeral=True)
       return
 
-    logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}add{Style.RESET_ALL} the badge {Style.BRIGHT}{badge}{Style.RESET_ALL} to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
-
     badge_info = await db_get_badge_info_by_id(badge_info_id)
     if not badge_info:
       channel = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
@@ -811,6 +809,8 @@ class Wishlist(commands.Cog):
         )
       )
       return
+
+    logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}add{Style.RESET_ALL} the badge {Style.BRIGHT}{badge_info['badge_name']}{Style.RESET_ALL} to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
     # Badge exists, so we can retrieve the info now
     badge_name = badge_info['badge_name']

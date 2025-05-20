@@ -444,7 +444,7 @@ CREATE TABLE IF NOT EXISTS crystal_ranks (
   name VARCHAR(64) NOT NULL UNIQUE,
   emoji VARCHAR(16),
   rarity_rank INT NOT NULL,
-  drop_chance FLOAT NOT NULL,
+  drop_chance DECIMAL(5,2) NOT NULL,
   sort_order INT DEFAULT 0
 );
 
@@ -562,7 +562,7 @@ CREATE TABLE IF NOT EXISTS badge_instances (
   prestige_level INT DEFAULT 0,
   locked BOOLEAN DEFAULT FALSE,
   active BOOLEAN GENERATED ALWAYS AS (status = 'active') STORED,
-  origin_user_id varchar(64) NOT NULL,
+  origin_user_id varchar(64) NULL,
   acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   active_crystal_id INT DEFAULT NULL,
   status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
@@ -603,6 +603,7 @@ CREATE TABLE IF NOT EXISTS badge_instance_history (
     'trade',
     'tongo_risk',
     'tongo_reward',
+    'tongo_consortium_investment',
     'liquidation',
     'liquidation_endowment',
     'dividend_reward',
