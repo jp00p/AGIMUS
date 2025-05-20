@@ -721,12 +721,12 @@ class Tongo(commands.Cog):
         except discord.Forbidden:
           logger.info(f"Unable to send trade cancellation message to {requestor.display_name}, they have their DMs closed.")
 
-
   async def _find_consortium_badge_to_add(self, game_id: int) -> Optional[tuple[int, int]]:
     """
     Attempts to find a badge_info_id and prestige_level pair that:
       - Appears on the wishlists of 3 or more players at the same prestige level
       - Does not already exist in the tongo_continuum at that badge_info_id + prestige_level
+      - Is not a Special badge
     Returns:
       (badge_info_id, prestige_level) or None
     """
@@ -735,6 +735,9 @@ class Tongo(commands.Cog):
 
     # Get all players in the game
     players = await db_get_players_for_game(game_id)
+
+    # Get Special badge IDs to exclude
+    special_badge_ids = {b['id'] for b in await db_get_special_badge_info()}
 
     # Track wishlist counts by (badge_info_id, prestige_level)
     combo_counts = defaultdict(int)
@@ -748,10 +751,13 @@ class Tongo(commands.Cog):
       wants = await db_get_active_wants(user_id, prestige)
       for w in wants:
         key = (w['badge_info_id'], prestige)
-        if key not in existing_by_prestige:
+        if (
+          key not in existing_by_prestige and
+          w['badge_info_id'] not in special_badge_ids
+        ):
           combo_counts[key] += 1
 
-    # Filter to only (badge_info_id, prestige) pairs wishlisted by more than players
+    # Filter to only (badge_info_id, prestige) pairs wishlisted by ≥ 3 players
     eligible = [combo for combo, count in combo_counts.items() if count >= 3]
     if not eligible:
       return None

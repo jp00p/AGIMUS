@@ -808,6 +808,15 @@ class Wishlist(commands.Cog):
       )
       return
 
+    special_badge_ids = {b['id'] for b in await db_get_special_badge_info()}
+    if badge_info_id in special_badge_ids:
+      await ctx.respond(embed=discord.Embed(
+        title="That's a Special Badge",
+        description="Special Badges cannot be added to your wishlist!",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
     logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}add{Style.RESET_ALL} the badge {Style.BRIGHT}{badge_info['badge_name']}{Style.RESET_ALL} to their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
     # Badge exists, so we can retrieve the info now
@@ -958,6 +967,11 @@ class Wishlist(commands.Cog):
     wishlist_badges = await db_get_simple_wishlist_badges(user_discord_id)
     wishlist_badge_ids = {b['badge_info_id'] for b in wishlist_badges}
     all_set_badge_ids = {b['id'] for b in all_set_badges}
+
+    # Exclude special badges from being added at all
+    special_badge_ids = {b['id'] for b in await db_get_special_badge_info()}
+    all_set_badge_ids -= special_badge_ids
+
     valid_badge_info_ids = [id for id in all_set_badge_ids if id not in wishlist_badge_ids]
     existing_badge_info_ids = [id for id in all_set_badge_ids if id in wishlist_badge_ids]
 
@@ -1046,22 +1060,10 @@ class Wishlist(commands.Cog):
     description="Which category of set?",
     required=True,
     choices=[
-      discord.OptionChoice(
-        name="Affiliation",
-        value="affiliation"
-      ),
-      discord.OptionChoice(
-        name="Franchise",
-        value="franchise"
-      ),
-      discord.OptionChoice(
-        name="Time Period",
-        value="time_period"
-      ),
-      discord.OptionChoice(
-        name="Type",
-        value="type"
-      )
+      discord.OptionChoice(name="Affiliation", value="affiliation"),
+      discord.OptionChoice(name="Franchise", value="franchise"),
+      discord.OptionChoice(name="Time Period", value="time_period"),
+      discord.OptionChoice(name="Type", value="type")
     ]
   )
   @option(
@@ -1110,8 +1112,16 @@ class Wishlist(commands.Cog):
     all_set_badge_ids = {b['id'] for b in all_set_badges}
     valid_badge_info_ids = [id for id in all_set_badge_ids if id in wishlist_badge_ids]
 
-    # Go ahead and add them
-    await db_remove_badge_info_ids_from_wishlist(user_discord_id, valid_badge_info_ids)
+    # Filter out special badges before unlocking
+    special_badge_ids = {b['id'] for b in await db_get_special_badge_info()}
+    safe_to_unlock_ids = [id for id in valid_badge_info_ids if id not in special_badge_ids]
+
+    # Go ahead and remove from wishlist
+    await db_remove_badge_info_ids_from_wishlist(user_discord_id, [id for id in valid_badge_info_ids if id not in special_badge_ids])
+
+    # Only unlock non-specials
+    if safe_to_unlock_ids:
+      await db_unlock_badge_instances_by_badge_info_ids(user_discord_id, safe_to_unlock_ids)
 
     embed = discord.Embed(
       title="Badge Set Removed Successfully",
@@ -1150,6 +1160,14 @@ class Wishlist(commands.Cog):
     logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}clear{Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
     if confirmed:
+      wishlist_badges = await db_get_simple_wishlist_badges(user_discord_id)
+      all_ids = [b['badge_info_id'] for b in wishlist_badges]
+      special_ids = {b['id'] for b in await db_get_special_badge_info()}
+      unlockable = [bid for bid in all_ids if bid not in special_ids]
+
+      if unlockable:
+        await db_unlock_badge_instances_by_badge_info_ids(user_discord_id, unlockable)
+
       await db_clear_wishlist(user_discord_id)
       logger.info(f"{ctx.author.display_name} has {Style.BRIGHT}cleared {Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
