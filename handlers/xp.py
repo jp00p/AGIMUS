@@ -120,7 +120,7 @@ async def _log_react_history(reaction: discord.Reaction, user: discord.User) -> 
       )
       return db.rowcount > 0
     except Exception as e:
-      logger.debug(f"[XP] Reaction logging failed: {e}")
+      logger.warning(f"[XP] Reaction logging failed: {e}")
       return False
 
 def normalize_reaction_string(reaction: discord.Reaction) -> str:
