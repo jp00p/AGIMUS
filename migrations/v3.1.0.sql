@@ -12,4 +12,4 @@ VALUES ('Unobtanium', '🌌', 6, 0.5, 5);
 
 -- Insert Bone Fragment Crystal (MOOPSY!)
 INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
-  ("Bone Fragment", 6, "bone_fragment.png", "moopsy_swarm", "That's bone. Looks oddly drinkable."),
+  ("Bone Fragment", 6, "bone_fragment.png", "moopsy_swarm", "That's bone. Looks oddly drinkable.");
