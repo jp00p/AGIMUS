@@ -640,12 +640,10 @@ CREATE TABLE IF NOT EXISTS tongo_game_players (
   FOREIGN KEY (game_id) REFERENCES tongo_games(id)
 );
 
-CREATE TABLE IF NOT EXISTS tongo_continuum (
-  badge_info_id INT UNSIGNED PRIMARY KEY,
-  source_instance_id INT,
-  thrown_by_user_id varchar(64),
+CREATE TABLE tongo_continuum (
+  source_instance_id INT PRIMARY KEY,
+  thrown_by_user_id VARCHAR(64),
   added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (badge_info_id) REFERENCES badge_info(id),
   FOREIGN KEY (source_instance_id) REFERENCES badge_instances(id)
 );
 

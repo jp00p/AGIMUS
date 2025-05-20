@@ -425,28 +425,15 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
       return
 
-    continuum_badges = await db_get_full_continuum_badges()
-    continuum_badge_ids = [b['badge_info_id'] for b in continuum_badges]
     special_badges = await db_get_special_badge_info()
     special_badge_ids = [b['id'] for b in special_badges]
 
-    all_ids = [b['badge_info_id'] for b in badge_instances]
-    if all(id in continuum_badge_ids for id in all_ids):
-      if len(all_ids) == 0:
-        description = f"You don't possess any (unlocked and unattuned) {prestige_tier} Badges!"
-      else:
-        description = f"All of the Badges in your {prestige_tier} collection are already in the Continuum!"
-
-      embed = discord.Embed(
-        title="No Badges Viable For Random Selection!",
-        description=description,
-        color=discord.Color.red()
-      )
-      embed.set_footer(text="Try unlocking some others!")
-      await ctx.followup.send(embed=embed, ephemeral=True)
-      return
-
-    eligible = [b for b in badge_instances if b['badge_info_id'] not in continuum_badge_ids and b['badge_info_id'] not in special_badge_ids]
+    existing_pairs = await db_get_continuum_badge_info_prestige_pairs()
+    eligible = [
+      b for b in badge_instances
+      if (b['badge_info_id'], b['prestige_level']) not in existing_pairs and
+        b['badge_info_id'] not in special_badge_ids
+    ]
 
     if len(eligible) < 3:
       embed = discord.Embed(
@@ -570,10 +557,13 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
       return
 
-    continuum_badge_info_ids = await db_get_continuum_badge_info_ids()
     special_badge_ids = [b['id'] for b in await db_get_special_badge_info()]
-
-    eligible = [b for b in badge_instances if b['badge_info_id'] not in continuum_badge_info_ids and b['badge_info_id'] not in special_badge_ids]
+    existing_pairs = await db_get_continuum_badge_info_prestige_pairs()
+    eligible = [
+      b for b in badge_instances
+      if (b['badge_info_id'], b['prestige_level']) not in existing_pairs and
+        b['badge_info_id'] not in special_badge_ids
+    ]
 
     if len(eligible) < 3:
       await ctx.followup.send(embed=discord.Embed(
@@ -589,7 +579,7 @@ class Tongo(commands.Cog):
     if not self.zek_consortium_activated:
       all_players = await db_get_players_for_game(game['id'])
       if len(all_players) >= 5 and random.random() < 0.5:
-        consortium_result = await self._find_consortium_badge_to_add(all_players)
+        consortium_result = self._find_consortium_badge_to_add(game['id'])
         if consortium_result:
           badge_info_id, prestige_level = consortium_result
           await self._invoke_zek_consortium(badge_info_id, prestige_level)
@@ -717,34 +707,47 @@ class Tongo(commands.Cog):
         except discord.Forbidden:
           logger.info(f"Unable to send trade cancellation message to {requestor.display_name}, they have their DMs closed.")
 
-  async def _find_consortium_badge_to_add(self, players: list[dict]) -> Optional[tuple[int, int]]:
-    from collections import defaultdict
 
-    prestige_to_wishlists = defaultdict(list)
+  async def _find_consortium_badge_to_add(self, game_id: int) -> Optional[tuple[int, int]]:
+    """
+    Attempts to find a badge_info_id and prestige_level pair that:
+      - Appears on the wishlists of 3 or more players at the same prestige level
+      - Does not already exist in the tongo_continuum at that badge_info_id + prestige_level
+    Returns:
+      (badge_info_id, prestige_level) or None
+    """
+    # Get all continuum entries currently in play
+    existing_by_prestige = await db_get_grouped_continuum_badge_info_ids_by_prestige()
+
+    # Get all players in the game
+    players = await db_get_players_for_game(game_id)
+
+    # Track wishlist counts by (badge_info_id, prestige_level)
+    combo_counts = defaultdict(int)
 
     for p in players:
       user_id = p['user_discord_id']
       echelon = await db_get_echelon_progress(user_id)
       prestige = echelon['current_prestige_tier'] if echelon else 0
+
+      # Get wishlist at user's prestige level
       wants = await db_get_active_wants(user_id, prestige)
-      badge_ids = set(w['badge_info_id'] for w in wants)
-      prestige_to_wishlists[prestige].append(badge_ids)
+      for w in wants:
+        key = (w['badge_info_id'], prestige)
+        if key not in existing_by_prestige:
+          combo_counts[key] += 1
 
-    for prestige, sets in prestige_to_wishlists.items():
-      badge_counts = defaultdict(int)
-      for s in sets:
-        for badge_id in s:
-          badge_counts[badge_id] += 1
-      valid_choices = [bid for bid, count in badge_counts.items() if count >= 3]
-      if valid_choices:
-        return random.choice(valid_choices), prestige
+    # Filter to only (badge_info_id, prestige) pairs wishlisted by more than players
+    eligible = [combo for combo, count in combo_counts.items() if count >= 3]
+    if not eligible:
+      return None
 
-    return None
+    return random.choice(eligible)
 
   async def _invoke_zek_consortium(self, badge_info_id: int, prestige_level: int):
     # Create a Consortium Reward with specified prestige level
     instance = await create_new_badge_instance(None, badge_info_id, prestige_level=prestige_level, event_type="tongo_consortium_investment")
-    await db_add_to_continuum(badge_info_id, instance['badge_instance_id'], None)
+    await db_add_to_continuum(instance['badge_instance_id'], None)
 
     consortium_embed = discord.Embed(
       title="A *Consortium* has been formed!",
@@ -1292,8 +1295,7 @@ class Tongo(commands.Cog):
         color=discord.Color.gold()
       ), ephemeral=True)
 
-    players = await db_get_players_for_game(game['id'])
-    result = await self._find_consortium_badge_to_add(players)
+    result = await self._find_consortium_badge_to_add(game['id'])
     if not result:
       return await ctx.respond(embed=discord.Embed(
         title="No Eligible Consortium Badge",
@@ -1312,59 +1314,14 @@ class Tongo(commands.Cog):
     ), ephemeral=True)
 
 
-  #   __  ____  _ ___ __  _
-  #  / / / / /_(_) (_) /_(_)__ ___
-  # / /_/ / __/ / / / __/ / -_|_-<
-  # \____/\__/_/_/_/\__/_/\__/___/
-  async def _validate_selected_user_badges(self, ctx:discord.ApplicationContext, selected_user_badges):
-    if len(selected_user_badges) != 3:
-      await ctx.followup.send(embed=discord.Embed(
-        title="Invalid Selection",
-        description=f"You must own all of the badges you've selected to Risk and they must be Unlocked!",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return False
-
-    if len(selected_user_badges) > len(set(selected_user_badges)):
-      await ctx.followup.send(embed=discord.Embed(
-        title="Invalid Selection",
-        description=f"All badges selected must be unique!",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return False
-
-    special_badges = await db_get_special_badge_info()
-    restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in special_badges]]
-    if restricted_badges:
-      await ctx.followup.send(embed=discord.Embed(
-        title="Invalid Selection",
-        description=f"You cannot risk with the following: {','.join(restricted_badges)}!",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return False
-
-    continuum_badges = await db_get_full_continuum_badges()
-    existing_pot_badges = [b for b in selected_user_badges if b in [b['badge_info_id'] for b in continuum_badges]]
-    if existing_pot_badges:
-      await ctx.followup.send(embed=discord.Embed(
-        title="Invalid Selection",
-        description=f"The following badges are already in The Great Material Continuum: {','.join(existing_pot_badges)}!",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return False
-
-    return True
-
-
 #
 # UTILS
 #
-
 async def throw_badge_into_continuum(instance, user_id):
   """
   Utility to place a badge into the continuum and, importantly, revoke the current user's ownership
   """
-  await db_add_to_continuum(instance['badge_info_id'], instance['badge_instance_id'], user_id)
+  await db_add_to_continuum(instance['badge_instance_id'], user_id)
   await transfer_badge_instance(instance['badge_instance_id'], None, 'tongo_risk')
 
 

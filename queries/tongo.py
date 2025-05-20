@@ -82,27 +82,56 @@ async def db_get_all_game_player_ids(game_id: int) -> list[int]:
 
 
 # --- Continuum ---
-
-async def db_add_to_continuum(badge_info_id: int, source_instance_id: int, user_id: int):
+async def db_add_to_continuum(source_instance_id: int, user_id: Optional[int]):
   query = """
-    INSERT INTO tongo_continuum (badge_info_id, source_instance_id, thrown_by_user_id)
-    VALUES (%s, %s, %s) AS new
-    ON DUPLICATE KEY UPDATE
-      source_instance_id = new.source_instance_id,
-      thrown_by_user_id = new.thrown_by_user_id
+    INSERT IGNORE INTO tongo_continuum (source_instance_id, thrown_by_user_id)
+    VALUES (%s, %s)
   """
   async with AgimusDB() as db:
-    await db.execute(query, (badge_info_id, source_instance_id, user_id))
+    await db.execute(query, (source_instance_id, user_id))
 
-
-async def db_get_continuum_badge_info_ids():
+async def db_get_continuum_badge_info_prestige_pairs() -> set[tuple[int, int]]:
+  """
+  Returns all (badge_info_id, prestige_level) pairs currently in the continuum.
+  """
   query = """
-    SELECT badge_info_id FROM tongo_continuum
+    SELECT b.badge_info_id, b.prestige_level
+    FROM tongo_continuum t
+    JOIN badge_instances b ON t.source_instance_id = b.id
   """
   async with AgimusDB(dictionary=True) as db:
     await db.execute(query)
     rows = await db.fetchall()
-    return [row['badge_info_id'] for row in rows]
+    return {(r['badge_info_id'], r['prestige_level']) for r in rows}
+
+
+async def db_get_continuum_badge_info_ids_at_prestige(prestige: int | None = None) -> set[int]:
+  sql = """
+    SELECT DISTINCT b.badge_info_id
+    FROM tongo_continuum t
+    JOIN badge_instances b ON t.source_instance_id = b.id
+  """
+  params = []
+  if prestige is not None:
+    sql += " WHERE b.prestige_level = %s"
+    params.append(prestige)
+
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, params)
+    rows = await db.fetchall()
+    return {row['badge_info_id'] for row in rows}
+
+
+async def db_get_grouped_continuum_badge_info_ids_by_prestige() -> set[tuple[int, int]]:
+  query = """
+    SELECT b.badge_info_id, b.prestige_level
+    FROM tongo_continuum t
+    JOIN badge_instances b ON t.source_instance_id = b.id
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(query)
+    rows = await db.fetchall()
+    return {(row['badge_info_id'], row['prestige_level']) for row in rows}
 
 
 async def db_remove_from_continuum(source_instance_id: int):
