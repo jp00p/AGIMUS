@@ -6,7 +6,7 @@ from queries.badge_info import db_get_all_badge_info, db_get_badge_info_by_id
 from queries.badge_instances import db_get_user_badge_instances, db_get_badge_instance_by_badge_info_id, db_get_badge_instance_by_id
 from queries.crystal_instances import db_increment_user_crystal_buffer
 from queries.echelon_xp import db_get_echelon_progress
-from queries.tongo import db_get_open_game, db_get_all_game_player_ids, db_get_full_continuum_badges, db_update_game_status, db_get_rewards_for_game, db_get_throws_for_game, db_get_players_for_game, remove_player_from_game
+from queries.tongo import db_get_open_game, db_get_all_game_player_ids, db_get_full_continuum_badges, db_update_game_status, db_get_rewards_for_game, db_get_throws_for_game, db_get_players_for_game, db_remove_player_from_game
 from utils.badge_instances import create_new_badge_instance
 from utils.crystal_effects import delete_crystal_effects_cache
 from utils.prestige import PRESTIGE_TIERS
@@ -39,7 +39,7 @@ class Admin(commands.Cog):
 
 
 
-  admin_group = discord.SlashCommandGroup("admin", "Admin-only commands for badge and Tongo testing.")
+  admin_group = discord.SlashCommandGroup("zed_ops", "Admin-only commands for Badge and Tongo Management.")
 
   @admin_group.command(name="grant_random_badge", description="(ADMIN RESTRICTED) Grant a random badge to a user.")
   @option("prestige", int, description="Prestige Tier", required=True, autocomplete=autocomplete_prestige_for_user)
@@ -176,8 +176,12 @@ class Admin(commands.Cog):
   @admin_group.command(name="manage_tongo_game", description="(ADMIN RESTRICTED) Manage a given Tongo Game.")
   @option("game_id", int, description="Game ID.", required=True)
   @commands.check(user_check)
-  async def adjust_tongo_roster(self, ctx: discord.ApplicationContext, game_id: int):
+  async def manage_tongo_game(self, ctx: discord.ApplicationContext, game_id: int):
     await ctx.defer(ephemeral=True)
+
+    tongo_cog = ctx.bot.get_cog("Tongo")
+    if not tongo_cog:
+      return await ctx.respond("❌ Tongo cog not loaded.", ephemeral=True)
 
     players = await db_get_players_for_game(game_id)
     if not players:
@@ -194,31 +198,39 @@ class Admin(commands.Cog):
     if not members:
       return await ctx.respond("❌ No valid Discord members found for the given game.", ephemeral=True)
 
-    class TongoRosterView(discord.ui.View):
+    class ManageTongoGamesView(discord.ui.View):
       def __init__(self, cog, game_id: int, members: list[discord.Member]):
-        super().__init__(timeout=60)
+        super().__init__(timeout=120)
         self.cog = cog
         self.game_id = game_id
         self.members = members
         self.selected_ids = []
+        self.add_item(self.PlayerSelect(self))
 
-      @discord.ui.select(
-        placeholder="Select players to remove...",
-        min_values=1,
-        max_values=25,
-        options=[]
-      )
-      async def select_players(self, select: discord.ui.Select, interaction: discord.Interaction):
-        self.selected_ids = select.values
-        await interaction.response.send_message(
-          f"✅ Selected {len(self.selected_ids)} player(s) to remove. Click 'Confirm' to proceed.",
-          ephemeral=True
-        )
+      class PlayerSelect(discord.ui.Select):
+        def __init__(self, view):
+          options = [
+            discord.SelectOption(label=m.display_name, value=str(m.id))
+            for m in view.members
+          ]
+          super().__init__(
+            placeholder="Select players to remove...",
+            min_values=1, max_values=len(options),
+            options=options
+          )
+          self.view_ref = view
 
-      @discord.ui.button(label="Confirm", style=discord.ButtonStyle.red)
-      async def confirm_removal(self, button: discord.ui.Button, interaction: discord.Interaction):
+        async def callback(self, interaction):
+          self.view_ref.selected_ids = self.values
+          await interaction.response.send_message(
+            f"✅ Selected {len(self.values)} player(s) for removal. Click confirm to proceed.",
+            ephemeral=True
+          )
+
+      @discord.ui.button(label="Confirm Removal", style=discord.ButtonStyle.red, row=1)
+      async def confirm_removal(self, button, interaction):
         if not self.selected_ids:
-          return await interaction.response.send_message("⚠️ You need to select players first.", ephemeral=True)
+          return await interaction.response.send_message("⚠️ No players selected.", ephemeral=True)
 
         removed_mentions = []
         for uid in self.selected_ids:
@@ -228,28 +240,34 @@ class Admin(commands.Cog):
         await interaction.response.send_message(
           embed=discord.Embed(
             title=f"Tongo Game #{self.game_id} Updated",
-            description="The following players were removed:\n\n" + "\n".join(removed_mentions),
+            description="Removed the following players:\n" + "\n".join(removed_mentions),
             color=discord.Color.orange()
           ),
           ephemeral=True
         )
         self.stop()
 
-    options = [
-      discord.SelectOption(label=member.display_name, value=str(member.id), description=f"@{member.display_name}")
-      for member in members
-    ]
-
-    view = TongoRosterView(self, game_id, members)
-    view.select_players.options = options
+      @discord.ui.button(label="Toggle New Game Creation", style=discord.ButtonStyle.gray, row=1)
+      async def toggle_new_games(self, button, interaction):
+        self.cog.block_new_ventures = not self.cog.block_new_ventures
+        new_status = "ENABLED ✅" if not self.cog.block_new_ventures else "BLOCKED ❌"
+        await interaction.response.send_message(
+          embed=discord.Embed(
+            title="Tongo Game Creation Toggled",
+            description=f"New `/tongo venture` games are now **{new_status}**.",
+            color=discord.Color.green() if not self.cog.block_new_ventures else discord.Color.red()
+          ),
+          ephemeral=True
+        )
+        self.stop()
 
     await ctx.respond(
       embed=discord.Embed(
-        title=f"Adjust Roster for Tongo Game #{game_id}",
-        description="Select one or more players from the list below to remove them from this game.",
+        title=f"Manage Tongo Game #{game_id}",
+        description="Remove players or toggle new game creation.",
         color=discord.Color.teal()
       ),
-      view=view,
+      view=ManageTongoGamesView(tongo_cog, game_id, members),
       ephemeral=True
     )
 

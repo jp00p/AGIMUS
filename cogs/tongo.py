@@ -292,6 +292,7 @@ class Tongo(commands.Cog):
     ]
     self.first_auto_confront = True
     self.zek_consortium_activated = False
+    self.block_new_games = False
 
   tongo = discord.SlashCommandGroup("tongo", "Commands for Tongo Badge Game")
 
@@ -387,6 +388,19 @@ class Tongo(commands.Cog):
   )
   async def venture(self, ctx: discord.ApplicationContext, prestige: str):
     await ctx.defer(ephemeral=True)
+
+    if self.block_new_games:
+      megalomaniacal = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="Tongo Temporarily Disabled",
+          description=f"New Tongo games are currently on haitus for a minute. Please stay tuned to {megalomaniacal.mention} for updates.",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
     user_id = ctx.author.id
     member = await self.bot.current_guild.fetch_member(user_id)
 
