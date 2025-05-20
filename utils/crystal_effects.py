@@ -57,11 +57,12 @@ def load_background_image_resized(path, size):
 
 # Rarity Tier Design Philosophy:
 #
-# -- Common    – Simple color tints
-# -- Uncommon  – Silhouette Effects
-# -- Rare      – Backgrounds with Border Gradient
-# -- Legendary – Animated effects
-# -- Mythic    – Animated + Prestige visual effects
+# -- Common     – Simple color tints
+# -- Uncommon   – Silhouette Effects
+# -- Rare       – Backgrounds with Border Gradient
+# -- Legendary  – Animated effects (Warping, Pulsing, Etc)
+# -- Mythic     – Animated + Prestige visual effects
+# -- Unobtanium - Animated + Highly Coverted Designs
 #
 async def apply_crystal_effect(badge_image: Image.Image, badge: dict, crystal=None) -> Image.Image | list[Image.Image]:
   """
@@ -1467,3 +1468,160 @@ def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]
     return Image.alpha_composite(with_distortion, masked_beam)
 
   return [shimmer_flux_frame(base_img, i) for i in range(num_frames)]
+
+
+# 8888      88 b.             8     ,o888888o.     8 888888888o 8888888 8888888888   .8.          b.             8  8 8888 8 8888      88        ,8.       ,8.
+# 8888      88 888o.          8  . 8888     `88.   8 8888    `88.     8 8888        .888.         888o.          8  8 8888 8 8888      88       ,888.     ,888.
+# 8888      88 Y88888o.       8 ,8 8888       `8b  8 8888     `88     8 8888       :88888.        Y88888o.       8  8 8888 8 8888      88      .`8888.   .`8888.
+# 8888      88 .`Y888888o.    8 88 8888        `8b 8 8888     ,88     8 8888      . `88888.       .`Y888888o.    8  8 8888 8 8888      88     ,8.`8888. ,8.`8888.
+# 8888      88 8o. `Y888888o. 8 88 8888         88 8 8888.   ,88'     8 8888     .8. `88888.      8o. `Y888888o. 8  8 8888 8 8888      88    ,8'8.`8888,8^8.`8888.
+# 8888      88 8`Y8o. `Y88888o8 88 8888         88 8 8888888888       8 8888    .8`8. `88888.     8`Y8o. `Y88888o8  8 8888 8 8888      88   ,8' `8.`8888' `8.`8888.
+# 8888      88 8   `Y8o. `Y8888 88 8888        ,8P 8 8888    `88.     8 8888   .8' `8. `88888.    8   `Y8o. `Y8888  8 8888 8 8888      88  ,8'   `8.`88'   `8.`8888.
+# 8888     ,8P 8      `Y8o. `Y8 `8 8888       ,8P  8 8888      88     8 8888  .8'   `8. `88888.   8      `Y8o. `Y8  8 8888 ` 8888     ,8P ,8'     `8.`'     `8.`8888.
+#  8888   ,d8P 8         `Y8o.`  ` 8888     ,88'   8 8888    ,88'     8 8888 .888888888. `88888.  8         `Y8o.`  8 8888   8888   ,d8P ,8'       `8        `8.`8888.
+#  `Y88888P'   8            `Yo     `8888888P'     8 888888888P       8 8888.8'       `8. `88888. 8            `Yo  8 8888    `Y88888P' ,8'         `         `8.`8888.
+@register_effect("moopsy_swarm")
+def effect_moopsy_swarm(base_img: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Creates a swarm of Moopsies that travel across the top left to bottom right
+  within a windowed background + bright teal border gradient.
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+
+  Used for the Bone Fragment crystal (Unobtanium tier).
+  """
+  badge_size = (190, 190)
+  total_frames = 24
+  fade_frames = 3
+  hold_frame = 3
+  move_frames = total_frames - fade_frames - 1
+
+  background_path = "images/crystal_effects/backgrounds/moopsy_background.png"
+  moopsy_path = "images/crystal_effects/overlays/moopsy.png"
+
+  # Load resources
+  badge_img = base_img.resize((180, 180), Image.Resampling.LANCZOS)
+  moopsy_img = Image.open(moopsy_path).convert("RGBA").resize((112, 112), Image.Resampling.LANCZOS)
+  background = Image.open(background_path).convert("RGBA").resize(badge_size)
+
+  # Precompute badge base
+  base_frame = Image.new("RGBA", badge_size, (0, 0, 0, 0))
+  offset = ((badge_size[0] - 180) // 2, (badge_size[1] - 180) // 2)
+  base_frame.paste(badge_img, offset, badge_img)
+
+  # Define border masks
+  border_width = 2
+  border_radius = 24
+  outer_mask = Image.new("L", badge_size, 0)
+  draw_outer = ImageDraw.Draw(outer_mask)
+  draw_outer.rounded_rectangle(
+    [border_width // 2, border_width // 2, badge_size[0] - border_width // 2, badge_size[1] - border_width // 2],
+    radius=border_radius,
+    fill=255
+  )
+  inner_mask = Image.new("L", badge_size, 0)
+  draw_inner = ImageDraw.Draw(inner_mask)
+  draw_inner.rounded_rectangle(
+    [border_width + 2, border_width + 2, badge_size[0] - border_width - 2, badge_size[1] - border_width - 2],
+    radius=border_radius - 4,
+    fill=255
+  )
+  border_mask = ImageChops.subtract(outer_mask, inner_mask)
+  background_cropped = Image.composite(background, Image.new("RGBA", badge_size), outer_mask)
+
+  # Precompute gradient border
+  top_left = (16, 115, 121)
+  bottom_right = (61, 230, 239)
+  border_gradient = Image.new("RGBA", badge_size)
+  for y in range(badge_size[1]):
+    for x in range(badge_size[0]):
+      t = (x + y) / (badge_size[0] + badge_size[1])
+      r = int(top_left[0] * (1 - t) + bottom_right[0] * t)
+      g = int(top_left[1] * (1 - t) + bottom_right[1] * t)
+      b = int(top_left[2] * (1 - t) + bottom_right[2] * t)
+      border_gradient.putpixel((x, y), (r, g, b, 255))
+  gradient_border = Image.composite(border_gradient, Image.new("RGBA", badge_size, (0, 0, 0, 0)), border_mask)
+
+  # Setup moopsy swarm
+  moopsy_count = 13
+  swarm = []
+  dx = (badge_size[0] + 96 + 60) / move_frames
+  dy = (badge_size[1] + 96 + 60) / move_frames
+  for row_index, count in enumerate([5, 5, 3]):
+    for i in range(count):
+      row_offset = row_index * 42
+      delay = 0 if row_index == 0 else (-4 if row_index == 1 else -6)
+      shift = 140
+      spacing = 38
+      start_x = -112 - (i * spacing) + shift + random.randint(-3, 3)
+      start_y = -112 + (i * spacing) + row_offset + random.randint(-3, 3)
+      jitter = [random.randint(-9, 9) for _ in range(total_frames)]
+      swarm.append({
+        "start_x": start_x,
+        "start_y": start_y,
+        "dx": dx,
+        "dy": dy,
+        "delay": delay,
+        "jitter": jitter
+      })
+  random.shuffle(swarm)
+
+  # Generate frames
+  frames = []
+  sweep_offset = 32
+  for frame_idx in range(total_frames):
+    if frame_idx < fade_frames:
+      fade = int(255 * (frame_idx + 1) / fade_frames)
+      r, g, b, a = base_frame.split()
+      faded = Image.merge("RGBA", (r, g, b, a.point(lambda p: p * fade // 255)))
+      shadow = Image.new("RGBA", badge_size, (0, 0, 0, 0))
+      shadow.paste((0, 0, 0, 180), (4, 4), faded.split()[-1])
+      shadow = shadow.filter(ImageFilter.GaussianBlur(radius=3))
+      base = Image.alpha_composite(background_cropped, shadow)
+      badge = Image.alpha_composite(base, faded)
+      frame = Image.alpha_composite(badge, gradient_border)
+      frames.append(frame)
+      continue
+    elif frame_idx == hold_frame:
+      shadow = Image.new("RGBA", badge_size, (0, 0, 0, 0))
+      shadow.paste((0, 0, 0, 180), (4, 4), base_frame.split()[-1])
+      shadow = shadow.filter(ImageFilter.GaussianBlur(radius=3))
+      base = Image.alpha_composite(background_cropped, shadow)
+      badge = Image.alpha_composite(base, base_frame)
+      frame = Image.alpha_composite(badge, gradient_border)
+      frames.append(frame)
+      continue
+
+    t = (frame_idx - fade_frames - 1) / (move_frames - 1)
+    diag_thresh = int((badge_size[0] + badge_size[1]) * t) + sweep_offset
+    sweep_mask = Image.new("L", badge_size, 0)
+    draw = ImageDraw.Draw(sweep_mask)
+    for y in range(badge_size[1]):
+      for x in range(badge_size[0]):
+        if x + y < diag_thresh:
+          sweep_mask.putpixel((x, y), 255)
+    r, g, b, a = base_frame.split()
+    masked = Image.merge("RGBA", (r, g, b, ImageChops.subtract(a, sweep_mask)))
+    shadow = Image.new("RGBA", badge_size, (0, 0, 0, 0))
+    shadow.paste((0, 0, 0, 180), (4, 4), masked.split()[-1])
+    shadow = shadow.filter(ImageFilter.GaussianBlur(radius=3))
+    base = Image.alpha_composite(background_cropped, shadow)
+    badge = Image.alpha_composite(base, masked)
+
+    moopsy_layer = Image.new("RGBA", badge_size, (0, 0, 0, 0))
+    moopsy_frame = frame_idx - (fade_frames + 1)
+    for m in swarm:
+      eff = moopsy_frame + m["delay"]
+      if not (0 <= eff < move_frames):
+        continue
+      x = int(m["start_x"] + m["dx"] * eff * (move_frames / total_frames))
+      y = int(m["start_y"] + m["dy"] * eff * (move_frames / total_frames) + m["jitter"][eff % len(m["jitter"])])
+      moopsy_layer.paste(moopsy_img, (x, y), moopsy_img)
+
+    moopsies_masked = Image.composite(moopsy_layer, Image.new("RGBA", badge_size, (0, 0, 0, 0)), outer_mask)
+    full = Image.alpha_composite(badge, moopsies_masked)
+    frame = Image.alpha_composite(full, gradient_border)
+    frames.append(frame)
+
+  return frames

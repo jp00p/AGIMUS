@@ -1109,7 +1109,7 @@ class Badges(commands.Cog):
       colors = get_theme_colors(pref)
       main_color_tuple = colors.highlight
 
-    badge_frames = await generate_singular_badge_slot(badge_instance, border_color=main_color_tuple, show_crystal_icon=True)
+    badge_frames = await generate_singular_badge_slot(badge_instance, border_color=main_color_tuple, show_crystal_icon=False)
 
     discord_file = None
     if len(badge_frames) > 1:
@@ -1141,6 +1141,7 @@ class Badges(commands.Cog):
     if badge_instance.get('crystal_instance_id'):
       crystal_instance = await db_get_crystal_by_id(badge_instance['crystal_instance_id'])
       embed.add_field(name="Crystal", value=f"{crystal_instance['emoji']}  {crystal_instance['crystal_name']} ({crystal_instance['rarity_name']})", inline=False)
+      embed.add_field(name="Crystal Description", value=crystal_instance['description'], inline=False)
     if badge_info['affiliations']:
       embed.add_field(name="Affiliations", value=", ".join(badge_info['affiliations']), inline=False)
     if badge_info['types']:

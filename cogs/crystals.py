@@ -49,8 +49,11 @@ class Crystals(commands.Cog):
   async def autocomplete_harmonizable_user_badges(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
 
-    prestige_level = int(ctx.options['prestige'])
-    badge_records = await db_get_badge_instances_with_attuned_crystals(user_id, prestige=prestige_level)
+    prestige = ctx.options['prestige']
+    if not prestige or not prestige.isdigit():
+      return [discord.OptionChoice(name="🔒 Invalid prestige tier input.", value='none')]
+
+    badge_records = await db_get_badge_instances_with_attuned_crystals(user_id, prestige=prestige)
 
     if not badge_records:
       return [discord.OptionChoice(name="🔒 You don't appear to have any Badges that have any Crystals currently attuned to them!", value='none')]
@@ -66,15 +69,17 @@ class Crystals(commands.Cog):
 
   async def autocomplete_badges_without_crystal_type(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
+
     crystal_instance_id = ctx.options.get('crystal')
-    if not crystal_instance_id:
+    if not crystal_instance_id or not crystal_instance_id.isdigit():
       return [discord.OptionChoice(name="🔒 You must select a Crystal!", value='none')]
-
     crystal_instance = await db_get_crystal_by_id(crystal_instance_id)
-    prestige_level = int(ctx.options['prestige'])
 
-    badge_instances = await db_get_badge_instances_without_crystal_type(user_id, crystal_instance['crystal_type_id'], prestige=prestige_level)
+    prestige = ctx.options.get('prestige')
+    if not prestige or not prestige.isdigit():
+      return [discord.OptionChoice(name="🔒 Invalid prestige tier input.", value='none')]
 
+    badge_instances = await db_get_badge_instances_without_crystal_type(user_id, crystal_instance['crystal_type_id'], prestige=prestige)
     if not badge_instances:
       return [discord.OptionChoice(name="🔒 You don't possess any valid Badges for this Crystal Type!", value='none')]
 
@@ -88,10 +93,12 @@ class Crystals(commands.Cog):
 
   async def autocomplete_user_badge_crystals(ctx: discord.AutocompleteContext):
     badge_instance_id = ctx.options.get('badge')
-    if not badge_instance_id:
-      return []
+    if not badge_instance_id or not badge_instance_id.isdigit():
+      return [discord.OptionChoice(name="🔒 Invalid badge input.", value='none')]
 
     badge_instance = await db_get_badge_instance_by_id(badge_instance_id)
+    if not badge_instance:
+      return [discord.OptionChoice(name="🔒 That Badge does not exist or is not in your collection.", value='none')]
 
     crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
 
@@ -190,9 +197,9 @@ class Crystals(commands.Cog):
       description=f"You may redeem **one** Pattern Buffer in exchange for **one** randomized Crystal.\n\nAre you ready to smack this thing and see what falls out?",
       color=discord.Color.teal()
     )
-    replicator_embed.add_field(name="Crystal Pattern Buffers", value=f"You possess **{buffer_credits} Crystal Pattern Buffers** to redeem!", inline=False)
-    replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count} Crystals** which have not yet been attached to a Badge.", inline=False)
-    replicator_embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count} Badges** with Crystals attached to them.", inline=False)
+    replicator_embed.add_field(name="Crystal Pattern Buffers", value=f"You possess **{buffer_credits} Crystal Pattern Buffer{'s' if buffer_credits > 1 else ''}** to redeem!", inline=False)
+    replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count} Crystal{'s' if unattuned_crystal_count > 1 else ''}** which have not yet been attached to a Badge.", inline=False)
+    replicator_embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count} Badge{'s' if attuned_badges_count > 1 else ''}** with Crystals attached to them.", inline=False)
     replicator_embed.set_footer(
       text="Use `/crystals manifest` to view your currently unattuned Crystals\nUse `/crystals attach` attach them to your Badges!"
     )
@@ -252,7 +259,7 @@ class Crystals(commands.Cog):
             "Well GOTDAYUM!!! That's some shiny shiny shiny {user}!",
             "FIYAH!!! Crystalline Goodness for {user}!",
             "LORD HAVE MERCY!!! That’s a LEGENDARY for {user}!!!",
-            "BEJESUS!!! This one's burnin' with glory {user}!"
+            "BEJESUS!!! This one's burnin' with glory {user}!",
             "Hooo MAMA! The replicator paused, it knew this was a big one, {user}!",
             "Heyyyyo! Everyone stand back! {user}'s got a hot one!!",
             "WHA WHA WHA!?! Legendary stuff, {user}."
@@ -260,10 +267,15 @@ class Crystals(commands.Cog):
           'mythic': [
             "HOLY **FUCKING** SHIT!!!!! {user} got a ***MYTHIC*** Crystal!?! INCREDIBLE! " + f"{get_emoji('drunk_shimoda_smile_happy')}",
             "SWEET JESUS!!!!! Are you kiddin me {user}, *MYTHIC*!? " + f"{get_emoji('zephram_sweet_jesus_wow_whoa')}",
-            "OH DEAR LORD!!!!!! One freshly minted **MYTHIC** Crystal for {user}!? " + f"{get_emoji('barclay_omg_wow_shock')}"
+            "OH DEAR LORD!!!!!! One freshly minted **MYTHIC** Crystal for {user}!? " + f"{get_emoji('barclay_omg_wow_shock')}",
             "PELDOR JOI!!! {user} got a MYTHIC!?!?! " + f"{get_emoji('kira_smile_lol_happy')}",
             "OMFG!!!!! A **MYTHIC** just materialized and it's in {user}'s inventory. " + f"{get_emoji('kira_omg_headexplode')}",
             "CHRIKEY ON A CRACKER!!! The latest **MYTHIC** on the server is here, and it belongs to {user}! " + f"{get_emoji('jadzia_happy_smile')}"
+          ],
+          'unobtanium': [
+            "∴ [anomaly detected] ∷→∷ {user} receives pattern buffer overflow ∴",
+            "∷⧗∷ [symmetry broken] ∷⧗∷ receipt:{user} ∷⧗∷",
+            "↯↯↯ [core leak] ↯↯↯ placement target: {user} ↯↯↯"
           ]
         }
 
@@ -459,7 +471,7 @@ class Crystals(commands.Cog):
   # /    |    \  |  |  | |  |  /   |  \  ___/
   # \____|__  /__|  |__| |____/|___|  /\___  >
   #         \/                      \/     \/
-  @crystals_group.command(name="attune", description="Attune (attach) a Crystal to one of your Badges.")
+  @crystals_group.command(name="attach", description="Attune (attach) a Crystal to one of your Badges.")
   @option(
     'rarity',
     str,

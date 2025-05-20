@@ -310,11 +310,16 @@ async def on_raw_reaction_add(payload):
         channel = await bot.fetch_channel(payload.channel_id)
       message = await channel.fetch_message(payload.message_id)
       user = payload.member or await bot.fetch_user(payload.user_id)
-      reaction = discord.utils.get(message.reactions, emoji=payload.emoji)
+      # Use string comparison to match emoji properly
+      reaction = next(
+        (r for r in message.reactions if str(r.emoji) == str(payload.emoji)),
+        None
+      )
       if reaction and user:
         await handle_react_xp(reaction, user)
     except Exception as e:
-      pass
+      logger.warning(f"on_raw_reaction_add error: {e}")
+
 
 # listen to sceheduled event updates (streams, pub trivia, etc)
 @bot.event

@@ -1,6 +1,8 @@
 import math
 import asyncio
 import random
+import unicodedata
+from collections import defaultdict
 from datetime import datetime
 
 from common import *
@@ -12,8 +14,9 @@ from utils.echelon_rewards import *
 from utils.badge_utils import *
 from utils.settings_utils import db_get_current_xp_enabled_value
 
-# XP lock to prevent race conditions
-xp_lock = asyncio.Lock()
+
+# Separate lock for each user to prevent XP race conditions without global blocking
+user_xp_locks = defaultdict(asyncio.Lock)
 
 # Load level up messages
 with open("./data/level_up_messages.json") as f:
@@ -34,8 +37,8 @@ blocked_level_up_sources = [
 # /___/\  \ |____|     |___|___|  /\___  >__|    \___  >__|_|  /\___  >___|  /__|
 #       \_/                     \/     \/            \/      \/     \/     \/
 async def grant_xp(user: discord.User, amount: int, reason: str, channel = None, source = None):
-  """Award XP to a user through the Echelon XP system."""
-  async with xp_lock:
+  async with user_xp_locks[user.id]:
+    """Award XP to a user through the Echelon XP system."""
     # Make sure that they actually want to participate in the XP system...
     xp_enabled = bool(await db_get_current_xp_enabled_value(user.id))
     if not xp_enabled:
@@ -97,33 +100,42 @@ async def handle_react_xp(reaction: discord.Reaction, user: discord.User):
   if reaction.message.channel.id in blocked_channels:
     return
 
-  reaction_already_counted = await _check_react_history(reaction, user)
-  if reaction_already_counted:
-    return
+  if not await _log_react_history(reaction, user):
+    return  # Duplicate reaction
 
-  await _log_react_history(reaction, user)
+  # Grant XP to reactor and author
   await grant_xp(user, 1, "added_reaction", channel=reaction.message.channel, source=reaction)
   await grant_xp(reaction.message.author, 1, "got_single_reaction", channel=reaction.message.channel, source=reaction)
   await grant_bonusworthy_reaction_xp(reaction)
 
 
 # Reaction Helpers
-async def _check_react_history(reaction: discord.Reaction, user: discord.User):
+async def _log_react_history(reaction: discord.Reaction, user: discord.User) -> bool:
   async with AgimusDB() as db:
-    await db.execute(
-      "SELECT id FROM reactions WHERE user_id = %s AND reaction = %s AND reaction_message_id = %s",
-      (user.id, f"{reaction}", reaction.message.id)
-    )
-    return await db.fetchone()
+    try:
+      emoji_str = normalize_reaction_string(reaction)
+      await db.execute(
+        "INSERT INTO reactions (user_id, user_name, reaction, reaction_message_id) VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE user_id = user_id",
+        (user.id, user.display_name, emoji_str, reaction.message.id)
+      )
+      return db.rowcount > 0
+    except Exception as e:
+      logger.warning(f"[XP] Reaction logging failed: {e}")
+      return False
 
-
-async def _log_react_history(reaction: discord.Reaction, user: discord.User):
-  async with AgimusDB() as db:
-    await db.execute(
-      "INSERT INTO reactions (user_id, user_name, reaction, reaction_message_id) VALUES (%s, %s, %s, %s)",
-      (user.id, user.display_name, f"{reaction}", reaction.message.id)
-    )
-
+def normalize_reaction_string(reaction: discord.Reaction) -> str:
+  """
+  Returns a stable string representation for both custom and unicode emoji.
+  Custom: "<:name:id>"
+  Unicode: Normalized unicode string
+  """
+  emoji = reaction.emoji
+  if isinstance(emoji, str):
+    # Normalize unicode emoji to NFKC (Compatibility Decomposition, then Composition)
+    return unicodedata.normalize("NFKC", emoji)
+  else:
+    # It's a custom emoji (discord.PartialEmoji or Emoji)
+    return str(emoji)
 
 BONUSWORTHY_EMOJI_MATCHES = None
 async def grant_bonusworthy_reaction_xp(reaction: discord.Reaction):
