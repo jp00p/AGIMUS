@@ -220,6 +220,7 @@ async def db_get_active_wants(user_discord_id: str, prestige_level: int) -> list
     FROM badge_instances_wishlists w
     JOIN badge_info bi ON bi.id = w.badge_info_id
     WHERE w.user_discord_id = %s
+      :AND bi.special = FALSE
       AND NOT EXISTS (
         SELECT 1
         FROM badge_instances i

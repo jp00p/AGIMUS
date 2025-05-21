@@ -1119,10 +1119,6 @@ class Wishlist(commands.Cog):
     # Go ahead and remove from wishlist
     await db_remove_badge_info_ids_from_wishlist(user_discord_id, [id for id in valid_badge_info_ids if id not in special_badge_ids])
 
-    # Only unlock non-specials
-    if safe_to_unlock_ids:
-      await db_unlock_badge_instances_by_badge_info_ids(user_discord_id, safe_to_unlock_ids)
-
     embed = discord.Embed(
       title="Badge Set Removed Successfully",
       description=f"You've successfully removed all of the `{selection}` Badges from your Wishlist.\n\n"
@@ -1160,14 +1156,6 @@ class Wishlist(commands.Cog):
     logger.info(f"{ctx.author.display_name} is attempting to {Style.BRIGHT}clear{Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
     if confirmed:
-      wishlist_badges = await db_get_simple_wishlist_badges(user_discord_id)
-      all_ids = [b['badge_info_id'] for b in wishlist_badges]
-      special_ids = {b['id'] for b in await db_get_special_badge_info()}
-      unlockable = [bid for bid in all_ids if bid not in special_ids]
-
-      if unlockable:
-        await db_unlock_badge_instances_by_badge_info_ids(user_discord_id, unlockable)
-
       await db_clear_wishlist(user_discord_id)
       logger.info(f"{ctx.author.display_name} has {Style.BRIGHT}cleared {Style.RESET_ALL} their {Style.BRIGHT}wishlist{Style.RESET_ALL}")
 
@@ -1205,6 +1193,7 @@ class Wishlist(commands.Cog):
   async def lock(self, ctx: discord.ApplicationContext, badge: str):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
+
     try:
       badge_info_id = int(badge)
     except ValueError:
@@ -1229,21 +1218,23 @@ class Wishlist(commands.Cog):
 
     badge_name = badge_info['badge_name']
 
-    # Fetch all instances of this badge (locked and unlocked)
-    all_instances = await db_get_user_badge_instances(user_discord_id)
-    owned_unlocked_tiers = {i['prestige_level'] for i in all_instances if i['badge_info_id'] == badge_info_id and not i['locked']}
-    owned_locked_tiers = {i['prestige_level'] for i in all_instances if i['badge_info_id'] == badge_info_id and i['locked']}
-    owned_tiers = sorted(owned_unlocked_tiers | owned_locked_tiers)
-
-    if not owned_tiers:
-      await ctx.followup.send(embed=discord.Embed(
-        title="You don't own that Badge!",
-        description=f"It doesn't appear that {badge_name} exists at any Prestige Tier in your inventory?",
-        color=discord.Color.red()
-      ))
-      return
-
+    # Perform the lock
     await db_lock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
+
+    # Re-fetch instance state
+    all_instances = await db_get_user_badge_instances(user_discord_id)
+
+    owned_tiers = {
+      i['prestige_level']
+      for i in all_instances
+      if i['badge_info_id'] == badge_info_id and i['active']
+    }
+    locked_tiers = {
+      i['prestige_level']
+      for i in all_instances
+      if i['badge_info_id'] == badge_info_id and i['active'] and i['locked']
+    }
+
     discord_file, attachment_url = await generate_unowned_badge_preview(user_discord_id, badge_info)
 
     embed = discord.Embed(
@@ -1255,13 +1246,15 @@ class Wishlist(commands.Cog):
 
     echelon_progress = await db_get_echelon_progress(user_discord_id)
     current_prestige_tier = echelon_progress['current_prestige_tier']
+
     for tier in range(current_prestige_tier + 1):
-      if tier in owned_unlocked_tiers:
-        symbol = "✅"
-        note = " (Unlocked)"
-      elif tier in owned_locked_tiers:
-        symbol = "🔒"
-        note = " (Locked)"
+      if tier in owned_tiers:
+        if tier in locked_tiers:
+          symbol = "🔒"
+          note = " (Locked)"
+        else:
+          symbol = "✅"
+          note = " (Unlocked)"
       else:
         symbol = "❌"
         note = ""
@@ -1272,6 +1265,7 @@ class Wishlist(commands.Cog):
       )
 
     await ctx.followup.send(embed=embed, file=discord_file)
+
 
 
   # .____                  __      _________       __
@@ -1374,9 +1368,10 @@ class Wishlist(commands.Cog):
     required=True,
     autocomplete=unlock_autocomplete
   )
-  async def unlock(self, ctx:discord.ApplicationContext, badge:str):
+  async def unlock(self, ctx: discord.ApplicationContext, badge: str):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
+
     try:
       badge_info_id = int(badge)
     except ValueError:
@@ -1392,52 +1387,52 @@ class Wishlist(commands.Cog):
     badge_info = await db_get_badge_info_by_id(badge_info_id)
     if not badge_info:
       channel = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
-      await ctx.followup.send(
-        embed=discord.Embed(
-          title="That Badge Doesn't Exist (Yet?)",
-          description=f"We don't have that one in our databanks! If you think this is an error please let us know in {channel.mention}!",
-          color=discord.Color.red()
-        )
-      )
+      await ctx.followup.send(embed=discord.Embed(
+        title="That Badge Doesn't Exist (Yet?)",
+        description=f"We don't have that one in our databanks! If you think this is an error please let us know in {channel.mention}!",
+        color=discord.Color.red()
+      ))
       return
 
     badge_name = badge_info['badge_name']
 
-    # Fetch all instances regardless of lock status
-    all_instances = await db_get_user_badge_instances(user_discord_id)
-    owned_unlocked_tiers = {i['prestige_level'] for i in all_instances if i['badge_info_id'] == badge_info_id and not i['locked']}
-    owned_locked_tiers   = {i['prestige_level'] for i in all_instances if i['badge_info_id'] == badge_info_id and i['locked']}
-    owned_tiers = sorted(owned_unlocked_tiers | owned_locked_tiers)
-
-    if not owned_tiers:
-      await ctx.followup.send(
-        embed=discord.Embed(
-          title="You don't own that Badge!",
-          description=f"It doesn't appear that {badge_name} exists at any Prestige Tier in your inventory?",
-          color=discord.Color.red()
-        )
-      )
-      return
-
+    # Perform the unlock
     await db_unlock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
+
+    # Re-fetch instance state
+    all_instances = await db_get_user_badge_instances(user_discord_id)
+
+    owned_tiers = {
+      i['prestige_level']
+      for i in all_instances
+      if i['badge_info_id'] == badge_info_id and i['active']
+    }
+    locked_tiers = {
+      i['prestige_level']
+      for i in all_instances
+      if i['badge_info_id'] == badge_info_id and i['active'] and i['locked']
+    }
+
     discord_file, attachment_url = await generate_unowned_badge_preview(user_discord_id, badge_info)
 
     embed = discord.Embed(
       title="Badge Unlocked Successfully",
-      description=f"You've successfully unlocked `{badge_name}` from being listed in Wishlist matches (in the Prestige Tiers at which you possess it)!",
+      description=f"You've successfully unlocked `{badge_name}` for Wishlist matching (in the Prestige Tiers at which you possess it)!",
       color=discord.Color.green()
     )
     embed.set_image(url=attachment_url)
 
     echelon_progress = await db_get_echelon_progress(user_discord_id)
     current_prestige_tier = echelon_progress['current_prestige_tier']
+
     for tier in range(current_prestige_tier + 1):
-      if tier in owned_unlocked_tiers:
-        symbol = "✅"
-        note = " (Unlocked)"
-      elif tier in owned_locked_tiers:
-        symbol = "🔒"
-        note = " (Locked)"
+      if tier in owned_tiers:
+        if tier in locked_tiers:
+          symbol = "🔒"
+          note = " (Locked)"
+        else:
+          symbol = "✅"
+          note = " (Unlocked)"
       else:
         symbol = "❌"
         note = ""
