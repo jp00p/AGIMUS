@@ -1617,12 +1617,17 @@ async def generate_badge_trade_images(
 
   # Early return with empty image if no badges were passed in
   if not badges:
-    # If no badges, just return the base background with header/footer text
-    frame = trade_canvas.copy()
+    # Centered message: "No Badges Present"
+    center_text = "No Badges Present"
+    text_width = fonts.footer.getlength(center_text)
+    text_x = (base_bg.width - text_width) // 2
+    text_y = base_bg.height // 2 - fonts.footer.size // 2
+    draw.text((text_x, text_y), center_text, font=fonts.footer, fill=(255, 255, 255))
+
     buf = io.BytesIO()
-    frame.save(buf, format="PNG")
+    trade_canvas.save(buf, format="PNG")
     buf.seek(0)
-    return discord.File(buf, filename="trade_showcase.png")
+    return discord.File(buf, filename="trade_showcase.png"), 'attachment://trade_showcase.png'
 
   # 3. Now paste each strip frame centered onto a copy of that base
   # Generate badge strip frames (each frame is a full strip of up to 6 badge slots)
