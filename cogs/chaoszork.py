@@ -9,7 +9,6 @@ import discord
 from discord.ext import commands
 from discord import option
 
-from handlers.xp import grant_xp
 from utils.check_channel_access import access_check
 
 
@@ -187,8 +186,6 @@ class DfrotzRunner(commands.Cog):
       return await self.load(ctx)
     if cmd.lower() == 'quit':
       return await self.quit(ctx)
-
-    await grant_xp(ctx.author.id, 1, "played_zork", source="Playing Zork")
 
     output = self.run_command(cmd)
     if len(output) > 2000:
