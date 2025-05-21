@@ -1587,7 +1587,7 @@ async def generate_badge_trade_images(
   Returns:
     A discord.File containing the image or animation.
   """
-  fonts = load_fonts()
+  fonts = load_fonts(label_size=100)
 
   # 1. Load and copy the trade background once
   bg_path = Path("./images/trades/assets/trade_bg.jpg")
@@ -1617,12 +1617,11 @@ async def generate_badge_trade_images(
 
   # Early return with empty image if no badges were passed in
   if not badges:
-    # Centered message: "No Badges Present"
-    center_text = "No Badges Present"
-    text_width = fonts.footer.getlength(center_text)
+    center_text = "None, Zilch, Zero"
+    text_width = fonts.label.getlength(center_text)
     text_x = (base_bg.width - text_width) // 2
-    text_y = base_bg.height // 2 - fonts.footer.size // 2
-    draw.text((text_x, text_y), center_text, font=fonts.footer, fill=(255, 255, 255))
+    text_y = base_bg.height // 2 - fonts.label.size // 2
+    draw.text((text_x, text_y), center_text, font=fonts.label, fill=(255, 255, 255))
 
     buf = io.BytesIO()
     trade_canvas.save(buf, format="PNG")
