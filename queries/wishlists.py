@@ -231,7 +231,7 @@ async def db_get_active_wants(user_discord_id: str, prestige_level: int) -> list
     ORDER BY bi.badge_name ASC;
   '''
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (prestige_level, user_discord_id))
+    await db.execute(sql, (user_discord_id, prestige_level))
     return await db.fetchall()
 
 # Generate wishlist matches via SQL CTE
