@@ -223,7 +223,6 @@ async def db_get_active_wants(user_discord_id: str, prestige_level: int) -> list
       ON inst.owner_discord_id = w.user_discord_id
      AND inst.badge_info_id   = w.badge_info_id
      AND inst.prestige_level  = %s
-     AND inst.locked = FALSE
      AND inst.active = TRUE
     WHERE w.user_discord_id = %s
       AND inst.id IS NULL

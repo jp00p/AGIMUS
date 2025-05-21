@@ -240,8 +240,11 @@ class Admin(commands.Cog):
           await db_remove_player_from_game(self.game_id, uid_int)
           removed_mentions.append(f"<@{uid}>")
 
-          # Check if this player threw in any badges and refund them
-          badge_ids = await db_get_thrown_badge_instance_ids_by_user_id(self.game_id, uid_int)
+          game = await db_get_game_by_id(self.game_id)
+          if not game:
+            continue
+
+          badge_ids = await db_get_thrown_badge_instance_ids_by_user_for_game(self.game_id, game['created_at'], uid_int)
           if badge_ids:
             await restore_thrown_badges_to_user(uid_int, badge_ids)
             member = await self.cog.bot.current_guild.fetch_member(uid_int)
