@@ -761,16 +761,6 @@ class Trade(commands.Cog):
       return
     await db_add_offered_instance(trade_id, offer_instance_id)
 
-    try:
-      request_instance_id = int(request)
-    except ValueError:
-      await ctx.respond(embed=discord.Embed(
-        title="Invalid Badge Selection",
-        description="Please select a valid badge from the dropdown.",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return
-
     if request:
       try:
         request_instance_id = int(request)
@@ -785,6 +775,7 @@ class Trade(commands.Cog):
       if await self._is_untradeable(ctx, request_instance_id, ctx.author, requestee, active_trade, 'request'):
         return
       await db_add_requested_instance(trade_id, request_instance_id)
+
 
     initiated_trade = await self.check_for_active_trade(ctx)
     offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(initiated_trade)
@@ -1231,13 +1222,29 @@ class Trade(commands.Cog):
       return
 
     if offer:
-      offer_id = int(offer)
+      try:
+        offer_id = int(request)
+      except ValueError:
+        await ctx.respond(embed=discord.Embed(
+          title="Invalid Badge Selection",
+          description="Please select a valid badge from the dropdown.",
+          color=discord.Color.red()
+        ), ephemeral=True)
+        return
       if await self._is_untradeable(ctx, offer_id, ctx.author, await self.bot.fetch_user(active_trade['requestee_id']), active_trade, 'offer'):
         return
       await self._add_offered_badge_to_trade(ctx, active_trade, offer_id)
 
     if request:
-      request_id = int(request)
+      try:
+        request_id = int(request)
+      except ValueError:
+        await ctx.respond(embed=discord.Embed(
+          title="Invalid Badge Selection",
+          description="Please select a valid badge from the dropdown.",
+          color=discord.Color.red()
+        ), ephemeral=True)
+        return
       if await self._is_untradeable(ctx, request_id, ctx.author, await self.bot.fetch_user(active_trade['requestee_id']), active_trade, 'request'):
         return
       await self._add_requested_badge_to_trade(ctx, active_trade, request_id)

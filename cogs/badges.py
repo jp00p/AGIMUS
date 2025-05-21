@@ -413,7 +413,7 @@ class Badges(commands.Cog):
         title="Sets Display Request Received!",
         description=f"If this is a large set this miiiiiight take a while...\n\nFear not, AGIMUS shall provide! {get_emoji('agimus_flail')}",
         color=discord.Color.dark_green()
-      )
+      ), ephemeral=True
     )
 
     if color:
@@ -591,7 +591,7 @@ class Badges(commands.Cog):
         title=f"{category_title}s Display Request Received!",
         description=f"This may take a second or two...\n\nACCESSING DATABANKS! {get_emoji('agimus')}",
         color=discord.Color.dark_green()
-      )
+      ), ephemeral=True
     )
 
     completion_images = await generate_badge_set_completion_images(ctx.author, prestige, all_rows, category, discord_message=pending_message)

@@ -304,7 +304,7 @@ def split_text_into_emoji_clusters(text: str):
 #         \/                      \/     \/                    \/     \/
 async def generate_badge_collection_images(user, prestige, badge_data, collection_type, collection_label, discord_message=None):
   # start = time.perf_counter()
-  logger.info("[timing] Starting generate_badge_collection_images")
+  # logger.info("[timing] Starting generate_badge_collection_images")
 
   layout = _get_collection_grid_layout()
   theme = (
