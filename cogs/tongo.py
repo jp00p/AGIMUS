@@ -243,10 +243,10 @@ class TongoDividendsView(discord.ui.View):
         "**MYTHIC!?!** Even Brunt, FCA, is impressed by (and suspicious of...) {user}'s new acquisition! " + f"{get_emoji('quark_cool')}",
         "Mythic? **MYTHIC!?** By the ears of Zek, {user}, you've just tipped the economic axis of the quadrant! " + f"{get_emoji('quark_profit_zoom')}"
       ],
-      'unobtanium': [
+      'unobtainium': [
         "{user} who did you *bribe* or *blackmail* to grant access to *THIS* one?",
-        "::FIRMWARE CORRUPTION:: Overrides look overclocked, {user} must have installed hax...",
-        "The FCA will be conducting a *thorough* audit after this result, better book it {user}"
+        "::FIRMWARE CORRUPTION:: Overrides look overclocked, {user} must have installed an illegal rootkit...",
+        "The FCA will be conducting a *thorough* audit after this result, better take the money and run {user}!"
       ]
     }
 

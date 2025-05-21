@@ -272,7 +272,7 @@ class Crystals(commands.Cog):
             "OMFG!!!!! A **MYTHIC** just materialized and it's in {user}'s inventory. " + f"{get_emoji('kira_omg_headexplode')}",
             "CHRIKEY ON A CRACKER!!! The latest **MYTHIC** on the server is here, and it belongs to {user}! " + f"{get_emoji('jadzia_happy_smile')}"
           ],
-          'unobtanium': [
+          'unobtainium': [
             "∴ [anomaly detected] ∷→∷ {user} receives pattern buffer overflow ∴",
             "∷⧗∷ [symmetry broken] ∷⧗∷ receipt:{user} ∷⧗∷",
             "↯↯↯ [core leak] ↯↯↯ placement target: {user} ↯↯↯"

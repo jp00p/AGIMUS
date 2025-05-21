@@ -214,18 +214,20 @@ async def db_get_simple_wishlist_badges(user_discord_id: str) -> list[dict]:
 async def db_get_active_wants(user_discord_id: str, prestige_level: int) -> list[dict]:
   sql = '''
     SELECT bi.id AS badge_info_id,
-           bi.badge_name,
-           bi.badge_url,
-           bi.badge_filename
+          bi.badge_name,
+          bi.badge_url,
+          bi.badge_filename
     FROM badge_instances_wishlists w
     JOIN badge_info bi ON bi.id = w.badge_info_id
-    LEFT JOIN badge_instances inst
-      ON inst.owner_discord_id = w.user_discord_id
-     AND inst.badge_info_id   = w.badge_info_id
-     AND inst.prestige_level  = %s
-     AND inst.active = TRUE
     WHERE w.user_discord_id = %s
-      AND inst.id IS NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM badge_instances i
+        WHERE i.owner_discord_id = w.user_discord_id
+          AND i.badge_info_id = w.badge_info_id
+          AND i.prestige_level = %s
+          AND i.active = TRUE
+      )
     ORDER BY bi.badge_name ASC;
   '''
   async with AgimusDB(dictionary=True) as db:
