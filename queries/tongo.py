@@ -36,6 +36,11 @@ async def db_get_open_game():
     await db.execute(query)
     return await db.fetchone()
 
+async def db_get_game_by_id(game_id: int) -> dict | None:
+  query = "SELECT * FROM tongo_games WHERE id = %s"
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(query, (game_id,))
+    return await db.fetchone()
 
 # --- Game Players ---
 
@@ -265,17 +270,36 @@ async def db_get_throws_for_game(game_id: int, created_at: datetime) -> list[dic
     await db.execute(query, (created_at, game_id))
     return await db.fetchall()
 
-async def db_get_thrown_badge_instance_ids_by_user_id(user_id: int) -> list[int]:
+async def db_get_thrown_badge_instance_ids_by_user_for_game(game_id: int, game_created_at: datetime, user_id: int) -> list[int]:
+  """
+  Returns badge_instance_ids that were:
+    - Thrown by the given user during the specified game (based on `tongo_risk` history entries)
+    - Still present in the tongo_continuum (not liquidated or claimed)
+
+  Args:
+    game_id (int): The ID of the game
+    game_created_at (datetime): Timestamp when the game started
+    user_id (int): The user who threw badges
+
+  Returns:
+    list[int]: List of active badge_instance_ids to refund
+  """
   sql = """
-    SELECT tc.source_instance_id
-    FROM tongo_continuum tc
-    JOIN badge_instances bi ON tc.source_instance_id = bi.id
-    WHERE tc.thrown_by_user_id = %s
+    SELECT h.badge_instance_id
+    FROM badge_instance_history h
+    JOIN tongo_continuum tc ON h.badge_instance_id = tc.source_instance_id
+    WHERE h.event_type = 'tongo_risk'
+      AND h.occurred_at >= %s
+      AND h.from_user_id = %s
+      AND h.from_user_id IN (
+        SELECT user_discord_id FROM tongo_game_players WHERE game_id = %s
+      )
   """
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_id,))
+    await db.execute(sql, (game_created_at, user_id, game_id))
     rows = await db.fetchall()
-    return [row['source_instance_id'] for row in rows]
+    return [row['badge_instance_id'] for row in rows]
+
 
 async def restore_thrown_badges_to_user(user_id: int, badge_instance_ids: list[int]):
   for instance_id in badge_instance_ids:
