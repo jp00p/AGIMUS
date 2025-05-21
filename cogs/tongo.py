@@ -592,7 +592,7 @@ class Tongo(commands.Cog):
 
     if not self.zek_consortium_activated:
       all_players = await db_get_players_for_game(game['id'])
-      if len(all_players) >= 5 and random.random() < 0.5:
+      if len(all_players) >= 5 and random.random() < 0.33:
         consortium_result = await self._find_consortium_badge_to_add(game['id'])
         if consortium_result:
           badge_info_id, prestige_level = consortium_result
@@ -1209,7 +1209,7 @@ class Tongo(commands.Cog):
       await db_remove_from_continuum(badge['source_instance_id'])
       await liquidate_badge_instance(badge['source_instance_id'])
 
-    badge_info_id = liquidation_result['badge_to_grant']['id']
+    badge_info_id = liquidation_result['badge_to_grant']['badge_info_id']
     beneficiary_id = liquidation_result['beneficiary_id']
 
     # Create a new instance using utility helper that tracks origin reason
