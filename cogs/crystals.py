@@ -291,7 +291,7 @@ class Crystals(commands.Cog):
       @discord.ui.button(label="Engage", style=discord.ButtonStyle.blurple)
       async def engage(self, button, interaction):
         ranks = await db_get_crystal_rarity_weights()
-        rolled_rank = weighted_random_choice({r['rarity_rank']: r['drop_chance'] for r in ranks})
+        rolled_rank = weighted_random_choice({r['rarity_rank']: float(r['drop_chance']) for r in ranks})
 
         crystal_type = await db_select_random_crystal_type_by_rarity_rank(rolled_rank)
 

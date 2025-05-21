@@ -3,10 +3,10 @@ import random
 from collections import defaultdict
 
 from queries.badge_info import db_get_all_badge_info, db_get_badge_info_by_id
-from queries.badge_instances import db_get_user_badge_instances, db_get_badge_instance_by_badge_info_id
+from queries.badge_instances import db_get_user_badge_instances, db_get_badge_instance_by_badge_info_id, db_get_badge_instance_by_id
 from queries.crystal_instances import db_increment_user_crystal_buffer
 from queries.echelon_xp import db_get_echelon_progress
-from queries.tongo import db_get_open_game, db_get_all_game_player_ids, db_get_full_continuum_badges, db_update_game_status, db_get_rewards_for_game, db_get_throws_for_game
+from queries.tongo import *
 from utils.badge_instances import create_new_badge_instance
 from utils.crystal_effects import delete_crystal_effects_cache
 from utils.prestige import PRESTIGE_TIERS
@@ -39,7 +39,7 @@ class Admin(commands.Cog):
 
 
 
-  admin_group = discord.SlashCommandGroup("admin", "Admin-only commands for badge and Tongo testing.")
+  admin_group = discord.SlashCommandGroup("zed_ops", "Admin-only commands for Badge and Tongo Management.")
 
   @admin_group.command(name="grant_random_badge", description="(ADMIN RESTRICTED) Grant a random badge to a user.")
   @option("prestige", int, description="Prestige Tier", required=True, autocomplete=autocomplete_prestige_for_user)
@@ -152,7 +152,7 @@ class Admin(commands.Cog):
         for uid, badge_names in user_throws.items():
           member = await bot.current_guild.fetch_member(uid)
           value = "\n".join(f"- {name}" for name in badge_names)
-          embed.add_field(name=f"{member.display_name} (@{uid}) threw:", value=value, inline=False)
+          embed.add_field(name=f"{member.display_name} ({member.mention}) threw:", value=value, inline=False)
 
       # Reward summary
       if rewards:
@@ -161,7 +161,8 @@ class Admin(commands.Cog):
           uid = reward['user_discord_id']
           badge_id = reward.get('badge_instance_id')
           crystal_id = reward.get('crystal_id')
-          desc = f"Badge {badge_id}" if badge_id else "Unknown Badge"
+          badge_instance = await db_get_badge_instance_by_id(badge_id)
+          desc = f"Badge {badge_id} - {badge_instance['badge_name']} ({badge_instance['prestige_level']})" if badge_id else "Unknown Badge"
           if crystal_id:
             desc += f" + Crystal {crystal_id}"
           reward_lines.append(f"<@{uid}>: {desc}")
@@ -171,6 +172,119 @@ class Admin(commands.Cog):
 
     paginator = pages.Paginator(pages=embeds, show_indicator=True, loop_pages=True)
     await paginator.respond(ctx.interaction, ephemeral=True)
+
+  @admin_group.command(name="manage_tongo_game", description="(ADMIN RESTRICTED) Manage a given Tongo Game.")
+  @option("game_id", int, description="Game.", required=True)
+  @commands.check(user_check)
+  async def manage_tongo_game(self, ctx: discord.ApplicationContext, game_id: int):
+    await ctx.defer(ephemeral=True)
+
+    tongo_cog = ctx.bot.get_cog("Tongo")
+    if not tongo_cog:
+      return await ctx.respond("❌ Tongo cog not loaded.", ephemeral=True)
+
+    players = await db_get_players_for_game(game_id)
+    if not players:
+      return await ctx.respond("⚠️ No players found for that game ID.", ephemeral=True)
+
+    members = []
+    for p in players:
+      try:
+        member = await self.bot.current_guild.fetch_member(int(p['user_discord_id']))
+        members.append(member)
+      except Exception as e:
+        logger.warning(f"Could not fetch member {p['user_discord_id']} for game #{game_id}: {e}")
+
+    if not members:
+      return await ctx.respond("❌ No valid Discord members found for the given game.", ephemeral=True)
+
+    class ManageTongoGamesView(discord.ui.View):
+      def __init__(self, cog, game_id: int, members: list[discord.Member]):
+        super().__init__(timeout=120)
+        self.cog = cog
+        self.game_id = game_id
+        self.members = members
+        self.selected_ids = []
+        self.add_item(self.PlayerSelect(self))
+
+      class PlayerSelect(discord.ui.Select):
+        def __init__(self, view):
+          options = [
+            discord.SelectOption(label=m.display_name, value=str(m.id))
+            for m in view.members
+          ]
+          super().__init__(
+            placeholder="Select players to remove...",
+            min_values=1, max_values=len(options),
+            options=options
+          )
+          self.view_ref = view
+
+        async def callback(self, interaction):
+          self.view_ref.selected_ids = self.values
+          await interaction.response.send_message(
+            f"✅ Selected {len(self.values)} player(s) for removal. Click confirm to proceed.",
+            ephemeral=True
+          )
+
+      @discord.ui.button(label="Confirm Removal", style=discord.ButtonStyle.red, row=1)
+      async def confirm_removal(self, button, interaction):
+        if not self.selected_ids:
+          return await interaction.response.send_message("⚠️ No players selected.", ephemeral=True)
+
+        removed_mentions = []
+        refunded_badges = []
+
+        for uid in self.selected_ids:
+          uid_int = int(uid)
+          await db_remove_player_from_game(self.game_id, uid_int)
+          removed_mentions.append(f"<@{uid}>")
+
+          # Check if this player threw in any badges and refund them
+          badge_ids = await db_get_thrown_badge_instance_ids_by_user_id(self.game_id, uid_int)
+          if badge_ids:
+            await restore_thrown_badges_to_user(uid_int, badge_ids)
+            member = await self.cog.bot.current_guild.fetch_member(uid_int)
+            refunded_badges.append(f"{member.display_name} – {len(badge_ids)} badge(s) refunded")
+
+        desc = "The following players were removed:\n" + "\n".join(removed_mentions)
+        if refunded_badges:
+          desc += "\n\nThe following badge throws were refunded:\n" + "\n".join(refunded_badges)
+
+        await interaction.response.send_message(
+          embed=discord.Embed(
+            title=f"Tongo Game #{self.game_id} Updated",
+            description=desc,
+            color=discord.Color.orange()
+          ),
+          ephemeral=True
+        )
+
+        self.stop()
+
+      @discord.ui.button(label="Toggle New Game Creation", style=discord.ButtonStyle.gray, row=1)
+      async def toggle_new_games(self, button, interaction):
+        self.cog.block_new_games = not self.cog.block_new_games
+        new_status = "ENABLED ✅" if not self.cog.block_new_games else "BLOCKED ❌"
+        await interaction.response.send_message(
+          embed=discord.Embed(
+            title="Tongo Game Creation Toggled",
+            description=f"New `/tongo venture` games are now **{new_status}**.",
+            color=discord.Color.green() if not self.cog.block_new_games else discord.Color.red()
+          ),
+          ephemeral=True
+        )
+        self.stop()
+
+    await ctx.respond(
+      embed=discord.Embed(
+        title=f"Manage Tongo Game #{game_id}",
+        description="Remove players or toggle new game creation.",
+        color=discord.Color.teal()
+      ),
+      view=ManageTongoGamesView(tongo_cog, game_id, members),
+      ephemeral=True
+    )
 
 
   @admin_group.command(name="set_tongo_game_status", description="(ADMIN RESTRICTED) Manually set the status of a Tongo game.")

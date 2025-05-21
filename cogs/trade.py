@@ -719,7 +719,7 @@ class Trade(commands.Cog):
     "request",
     str,
     description="A badge you are requesting",
-    required=True,
+    required=False,
     autocomplete=autocomplete_requesting_badges
   )
   @commands.check(access_check)
@@ -761,20 +761,21 @@ class Trade(commands.Cog):
       return
     await db_add_offered_instance(trade_id, offer_instance_id)
 
-    try:
-      request_instance_id = int(request)
-    except ValueError:
-      await ctx.respond(embed=discord.Embed(
-        title="Invalid Badge Selection",
-        description="Please select a valid badge from the dropdown.",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return
+    if request:
+      try:
+        request_instance_id = int(request)
+      except ValueError:
+        await ctx.respond(embed=discord.Embed(
+          title="Invalid Badge Selection",
+          description="Please select a valid badge from the dropdown.",
+          color=discord.Color.red()
+        ), ephemeral=True)
+        return
 
-    # Checks for special badges/etc
-    if await self._is_untradeable(ctx, request_instance_id, ctx.author, requestee, active_trade, 'request'):
-      return
-    await db_add_requested_instance(trade_id, request_instance_id)
+      if await self._is_untradeable(ctx, request_instance_id, ctx.author, requestee, active_trade, 'request'):
+        return
+      await db_add_requested_instance(trade_id, request_instance_id)
+
 
     initiated_trade = await self.check_for_active_trade(ctx)
     offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(initiated_trade)
@@ -891,10 +892,8 @@ class Trade(commands.Cog):
     return True
 
 
-  async def _do_participants_own_badges(self, ctx, requestor_id, requestee_id, prestige_level, offer_instance_id, request_instance_id):
+  async def _do_participants_own_badges(self, ctx, requestor_id, requestee_id, prestige_level, offer_instance_id, request_instance_id=None):
     offer_instance = await db_get_badge_instance_by_id(int(offer_instance_id))
-    request_instance = await db_get_badge_instance_by_id(int(request_instance_id))
-
     if not offer_instance or offer_instance['owner_discord_id'] != str(requestor_id) or offer_instance['prestige_level'] != prestige_level:
       await ctx.respond(embed=discord.Embed(
         title="Invalid Offer",
@@ -903,14 +902,16 @@ class Trade(commands.Cog):
       ), ephemeral=True)
       return False
 
-    if not request_instance or request_instance['owner_discord_id'] != str(requestee_id) or request_instance['prestige_level'] != prestige_level:
-      requestee = await self.bot.current_guild.fetch_member(requestee_id)
-      await ctx.respond(embed=discord.Embed(
-        title="Invalid Request",
-        description=f"{requestee.display_name} does not own that badge at the specified Prestige Tier.",
-        color=discord.Color.red()
-      ), ephemeral=True)
-      return False
+    if request_instance_id:
+      request_instance = await db_get_badge_instance_by_id(int(request_instance_id))
+      if not request_instance or request_instance['owner_discord_id'] != str(requestee_id) or request_instance['prestige_level'] != prestige_level:
+        requestee = await self.bot.current_guild.fetch_member(requestee_id)
+        await ctx.respond(embed=discord.Embed(
+          title="Invalid Request",
+          description=f"{requestee.display_name} does not own that badge at the specified Prestige Tier.",
+          color=discord.Color.red()
+        ), ephemeral=True)
+        return False
 
     return True
 
@@ -1221,13 +1222,29 @@ class Trade(commands.Cog):
       return
 
     if offer:
-      offer_id = int(offer)
+      try:
+        offer_id = int(request)
+      except ValueError:
+        await ctx.respond(embed=discord.Embed(
+          title="Invalid Badge Selection",
+          description="Please select a valid badge from the dropdown.",
+          color=discord.Color.red()
+        ), ephemeral=True)
+        return
       if await self._is_untradeable(ctx, offer_id, ctx.author, await self.bot.fetch_user(active_trade['requestee_id']), active_trade, 'offer'):
         return
       await self._add_offered_badge_to_trade(ctx, active_trade, offer_id)
 
     if request:
-      request_id = int(request)
+      try:
+        request_id = int(request)
+      except ValueError:
+        await ctx.respond(embed=discord.Embed(
+          title="Invalid Badge Selection",
+          description="Please select a valid badge from the dropdown.",
+          color=discord.Color.red()
+        ), ephemeral=True)
+        return
       if await self._is_untradeable(ctx, request_id, ctx.author, await self.bot.fetch_user(active_trade['requestee_id']), active_trade, 'request'):
         return
       await self._add_requested_badge_to_trade(ctx, active_trade, request_id)

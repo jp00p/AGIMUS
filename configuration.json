@@ -377,46 +377,6 @@
       "enabled": true,
       "parameters": []
     },
-    "admin clear_crystal_effects_cache": {
-      "allowed_user_ids": [735658100958298154],
-      "enabled": true,
-      "parameters": []
-    },
-    "admin grant_random_badge": {
-      "allowed_user_ids": [735658100958298154],
-      "enabled": true,
-      "parameters": []
-    },
-    "admin grant_specific_badge": {
-      "allowed_user_ids": [735658100958298154],
-      "enabled": true,
-      "parameters": []
-    },
-    "admin grant_crystal_buffer_patterns": {
-      "allowed_user_ids": [735658100958298154],
-      "enabled": true,
-      "parameters": []
-    },
-    "admin check_tongo_games": {
-      "allowed_user_ids": [735658100958298154],
-      "enabled": true,
-      "parameters": []
-    },
-    "admin set_tongo_game_status": {
-      "allowed_user_ids": [735658100958298154],
-      "enabled": true,
-      "parameters": []
-    },
-    "referee confront_tongo_game": {
-      "allowed_user_ids": [735658100958298154],
-      "enabled": true,
-      "parameters": []
-    },
-    "referee zek_investment": {
-      "allowed_user_ids": [735658100958298154],
-      "enabled": true,
-      "parameters": []
-    },
     "badges completion": {
       "channels": [
         "badgeys-badges",
@@ -1165,6 +1125,51 @@
       ],
       "enabled": true,
       "data": null,
+      "parameters": []
+    },
+    "zed_ops clear_crystal_effects_cache": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops grant_random_badge": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops grant_specific_badge": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops grant_crystal_buffer_patterns": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops check_tongo_games": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops set_tongo_game_status": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops manage_tongo_game": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "referee confront_tongo_game": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "referee zek_investment": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
       "parameters": []
     }
   },

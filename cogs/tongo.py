@@ -292,6 +292,7 @@ class Tongo(commands.Cog):
     ]
     self.first_auto_confront = True
     self.zek_consortium_activated = False
+    self.block_new_games = False
 
   tongo = discord.SlashCommandGroup("tongo", "Commands for Tongo Badge Game")
 
@@ -387,6 +388,19 @@ class Tongo(commands.Cog):
   )
   async def venture(self, ctx: discord.ApplicationContext, prestige: str):
     await ctx.defer(ephemeral=True)
+
+    if self.block_new_games:
+      megalomaniacal = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="Tongo Temporarily Disabled",
+          description=f"New Tongo games are currently on haitus for a minute.\n\nPlease stay tuned to {megalomaniacal.mention} for updates.",
+          color=discord.Color.orange()
+        ),
+        ephemeral=True
+      )
+      return
+
     user_id = ctx.author.id
     member = await self.bot.current_guild.fetch_member(user_id)
 
@@ -578,8 +592,8 @@ class Tongo(commands.Cog):
 
     if not self.zek_consortium_activated:
       all_players = await db_get_players_for_game(game['id'])
-      if len(all_players) >= 5 and random.random() < 0.5:
-        consortium_result = self._find_consortium_badge_to_add(game['id'])
+      if len(all_players) >= 5 and random.random() < 0.33:
+        consortium_result = await self._find_consortium_badge_to_add(game['id'])
         if consortium_result:
           badge_info_id, prestige_level = consortium_result
           await self._invoke_zek_consortium(badge_info_id, prestige_level)
@@ -707,12 +721,12 @@ class Tongo(commands.Cog):
         except discord.Forbidden:
           logger.info(f"Unable to send trade cancellation message to {requestor.display_name}, they have their DMs closed.")
 
-
   async def _find_consortium_badge_to_add(self, game_id: int) -> Optional[tuple[int, int]]:
     """
     Attempts to find a badge_info_id and prestige_level pair that:
       - Appears on the wishlists of 3 or more players at the same prestige level
       - Does not already exist in the tongo_continuum at that badge_info_id + prestige_level
+      - Is not a Special badge
     Returns:
       (badge_info_id, prestige_level) or None
     """
@@ -721,6 +735,9 @@ class Tongo(commands.Cog):
 
     # Get all players in the game
     players = await db_get_players_for_game(game_id)
+
+    # Get Special badge IDs to exclude
+    special_badge_ids = {b['id'] for b in await db_get_special_badge_info()}
 
     # Track wishlist counts by (badge_info_id, prestige_level)
     combo_counts = defaultdict(int)
@@ -734,10 +751,13 @@ class Tongo(commands.Cog):
       wants = await db_get_active_wants(user_id, prestige)
       for w in wants:
         key = (w['badge_info_id'], prestige)
-        if key not in existing_by_prestige:
+        if (
+          key not in existing_by_prestige and
+          w['badge_info_id'] not in special_badge_ids
+        ):
           combo_counts[key] += 1
 
-    # Filter to only (badge_info_id, prestige) pairs wishlisted by more than players
+    # Filter to only (badge_info_id, prestige) pairs wishlisted by ≥ 3 players
     eligible = [combo for combo, count in combo_counts.items() if count >= 3]
     if not eligible:
       return None
@@ -1189,7 +1209,7 @@ class Tongo(commands.Cog):
       await db_remove_from_continuum(badge['source_instance_id'])
       await liquidate_badge_instance(badge['source_instance_id'])
 
-    badge_info_id = liquidation_result['badge_to_grant']['id']
+    badge_info_id = liquidation_result['badge_to_grant']['badge_info_id']
     beneficiary_id = liquidation_result['beneficiary_id']
 
     # Create a new instance using utility helper that tracks origin reason
@@ -1277,7 +1297,7 @@ class Tongo(commands.Cog):
     description="(ADMIN RESTRICTED) Have Zek make things extra spicy."
   )
   @commands.check(user_check)
-  async def consortium_toss(self, ctx: discord.ApplicationContext):
+  async def zek_investment(self, ctx: discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
 
     game = await db_get_open_game()
@@ -1288,12 +1308,7 @@ class Tongo(commands.Cog):
         color=discord.Color.red()
       ), ephemeral=True)
 
-    if self.zek_consortium_activated:
-      return await ctx.respond(embed=discord.Embed(
-        title="Consortium Already Formed",
-        description="Zek has already formed a Consortium this game.",
-        color=discord.Color.gold()
-      ), ephemeral=True)
+    self.zek_consortium_activated = False
 
     result = await self._find_consortium_badge_to_add(game['id'])
     if not result:
