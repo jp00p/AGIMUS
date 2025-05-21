@@ -26,7 +26,6 @@ async def computer(message:discord.Message):
       res = wa_client.query(question)
       if res.success:
         result = next(res.results)
-        await grant_xp(message.author.id, 1, "used_computer", channel=message.channel, source="Prompting the Computer")
         # Handle Primary Result
         if result.text:
           response_sent = await handle_text_result(res, message)
