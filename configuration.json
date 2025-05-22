@@ -1162,6 +1162,11 @@
       "enabled": true,
       "parameters": []
     },
+    "zed_ops repair_levels" {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
     "referee confront_tongo_game": {
       "allowed_user_ids": [735658100958298154],
       "enabled": true,
