@@ -2,6 +2,7 @@ from common import *
 import random
 from collections import defaultdict
 
+from handlers.echelon_xp import level_for_total_xp, handle_user_level_up
 from queries.badge_info import db_get_all_badge_info, db_get_badge_info_by_id
 from queries.badge_instances import db_get_user_badge_instances, db_get_badge_instance_by_badge_info_id, db_get_badge_instance_by_id
 from queries.crystal_instances import db_increment_user_crystal_buffer
@@ -11,6 +12,8 @@ from utils.badge_instances import create_new_badge_instance
 from utils.crystal_effects import delete_crystal_effects_cache
 from utils.prestige import PRESTIGE_TIERS
 from utils.check_user_access import user_check
+
+    # import asyncio
 
 
 class Admin(commands.Cog):
@@ -314,3 +317,54 @@ class Admin(commands.Cog):
       color=discord.Color.orange()
     )
     await ctx.respond(embed=embed, ephemeral=True)
+
+  @admin_group.command(name="repair_levels", description="(ADMIN RESTRICTED) Correct Missing Levels.")
+  @commands.check(user_check)
+  async def repair_levels(self, ctx):
+    await ctx.defer(ephemeral=True)
+
+    sql = "SELECT user_discord_id, current_xp, current_level FROM echelon_progress"
+
+    async with AgimusDB(dictionary=True) as db:
+      await db.execute(sql)
+      users = await db.fetchall()
+
+    total_users = 0
+    total_levels_awarded = 0
+    failed_users = []
+
+    for row in users:
+      user_id = row['user_discord_id']
+      xp = row['current_xp']
+      stored_level = row['current_level']
+      correct_level = level_for_total_xp(xp)
+
+      if correct_level > stored_level:
+        try:
+          user_obj = await self.bot.fetch_user(int(user_id))
+          for lvl in range(stored_level + 1, correct_level + 1):
+            await handle_user_level_up(user_obj, lvl, source="Level Repair (XP Exceeds Stored Level)")
+            await asyncio.sleep(0.9)
+            total_levels_awarded += 1
+          total_users += 1
+        except Exception as e:
+          failed_users.append(user_id)
+
+    summary = discord.Embed(
+      title="🛠 Level-Up Repair Complete",
+      description=(
+        f"* Checked `{len(users)}` users.\n"
+        f"* `{total_users}` users had missed level-ups.\n"
+        f"* {total_levels_awarded}` total levels granted.\n"
+      ),
+      color=discord.Color.teal()
+    )
+
+    if failed_users:
+      summary.add_field(
+        name="⚠️ Users Not Processed",
+        value=", ".join(failed_users),
+        inline=False
+      )
+
+    await ctx.respond(embed=summary, ephemeral=True)
