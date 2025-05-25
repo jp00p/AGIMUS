@@ -253,7 +253,7 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
 
     embed = discord.Embed(
       title="Crystal Pattern Buffer Acquired!",
-      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Pattern Buffer**{level_text}!\n\nThey can now use it to replicate a Crystal from scratch over in {gelrak_v.mention}!",
+      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Pattern Buffer** when they reached Echelon {level}!\n\nThey can now use it to replicate a Crystal from scratch over in {gelrak_v.mention}!",
       color=discord.Color.teal()
     )
   else:
@@ -267,6 +267,7 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   embed.set_footer(text="Use  `/crystals replicate` to materialize a freshly minted Crystal!")
   notification_channel = bot.get_channel(get_channel_id(config['handlers']['xp']['notification_channel']))
   await notification_channel.send(embed=embed)
+
 
 BUFFER_PATTERN_AQUISITION_REASONS = [
   "was exploring the Jefferies Tubes and stumbled across a",

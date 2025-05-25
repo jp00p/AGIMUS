@@ -860,6 +860,22 @@ def effect_transparent_aluminum(badge_image: Image.Image, badge: dict) -> Image.
 
   return result
 
+
+@register_effect("guardian_of_forever")
+def effect_guardian_of_forever(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Guardian of the Edge of Forever Background.
+  Used for the Aeon Shard crystal (Rare tier).
+  """
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/guardian_of_forever.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(118, 222, 191),
+    border_gradient_bottom_right=(176, 112, 220)
+  )
+  return result
+
 #       ...                                                         ..
 #   .zf"` `"tu                                                    dF                                    ..
 #  x88      '8N.                                      u.    u.   '88bu.                     .u    .    @L
