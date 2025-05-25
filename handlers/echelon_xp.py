@@ -246,7 +246,7 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   gelrak_v = await bot.fetch_channel(get_channel_id("gelrak-v"))
 
   embed = None
-  if number_of_patterns == 1:
+  if number_of_patterns == 1 and level > 1:
     level_text = ""
     if level > 0:
       level_text = f" when they reached Echelon {level}"
@@ -259,7 +259,7 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   else:
     embed = discord.Embed(
       title="Crystal Pattern Buffers Acquired!",
-      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Pattern Buffers** in their hands{level_text}!\n\n"
+      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Pattern Buffers** in their hands when they reached Echelon {level}!\n\n"
                   f"They can now use them to replicate **{number_of_patterns}** Crystals from scratch over in {gelrak_v.mention}!",
       color=discord.Color.teal()
     )
@@ -309,7 +309,7 @@ async def post_badge_repair_embed(member: discord.User, badge_data: dict):
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
-  embed_description = f"{member.mention}'s inventory has been corrected with a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Correction**, which they were previously owned but had not yet been granted."
+  embed_description = f"{member.mention}'s inventory has been corrected with a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Correction**, which they had previously earned during `AGIMUS Downtime` but had not yet been granted."
   if badge_data.get('was_on_wishlist', False):
     embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
 

@@ -419,6 +419,7 @@ class Admin(commands.Cog):
           total_badges_granted += 1
         total_users_fixed += 1
       except Exception as e:
+        logger.info(f"Error: Problem with `repair_missing_levelup_badges` for {user_id}", exc_info=True)
         failed.append(user_id)
 
     summary = discord.Embed(
