@@ -471,7 +471,7 @@ class Crystals(commands.Cog):
   # /    |    \  |  |  | |  |  /   |  \  ___/
   # \____|__  /__|  |__| |____/|___|  /\___  >
   #         \/                      \/     \/
-  @crystals_group.command(name="attach", description="Attune (attach) a Crystal to one of your Badges.")
+  @crystals_group.command(name="attach", description="Attune (attach) a Crystal to a Badges. (Will ask for confirmation!)")
   @option(
     'rarity',
     str,
@@ -570,7 +570,7 @@ class Crystals(commands.Cog):
     landing_embed.set_image(url="https://i.imgur.com/Pu6H9ep.gif")
 
     preview_embed = discord.Embed(
-      title=f"Harmonization Preview",
+      title=f"Attachment Preview",
       description=f"Here's what **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]} would look like with *{crystal_instance['crystal_name']}* applied to it *once Harmonized.*",
       color=discord.Color.teal()
     )
@@ -723,7 +723,7 @@ class Crystals(commands.Cog):
     discord_file, attachment_url = await generate_badge_preview(user_id, badge_instance, crystal=crystal_instance)
 
     preview_embed = discord.Embed(
-      title=f"Crystallization Preview",
+      title=f"Activation Preview",
       description=f"Here's what **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]} would look like with *{crystal_instance['crystal_name']}* applied.",
       color=discord.Color.teal()
     )

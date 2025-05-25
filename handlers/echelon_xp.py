@@ -246,11 +246,7 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   gelrak_v = await bot.fetch_channel(get_channel_id("gelrak-v"))
 
   embed = None
-  if number_of_patterns == 1 and level > 1:
-    level_text = ""
-    if level > 0:
-      level_text = f" when they reached Echelon {level}"
-
+  if level > 1:
     embed = discord.Embed(
       title="Crystal Pattern Buffer Acquired!",
       description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Pattern Buffer** when they reached Echelon {level}!\n\nThey can now use it to replicate a Crystal from scratch over in {gelrak_v.mention}!",

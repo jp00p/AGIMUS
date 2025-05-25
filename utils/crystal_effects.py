@@ -1213,10 +1213,10 @@ def effect_singularity_warp(base_img: Image.Image, badge: dict) -> list[Image.Im
   for frame_idx in range(total_frames):
     t_raw = frame_idx / (total_frames - 1)
     t = ease_in_out(t_raw)
-    collapse_strength = t * 7.0
+    collapse_strength = t * 6.0
 
-    # Start swirl on frame 2
-    delay_threshold = 1 / total_frames
+    # Start swirl on frame 4
+    delay_threshold = 3 / total_frames
     if t_raw < delay_threshold:
       swirl_strength = 0.0
     else:
@@ -1255,7 +1255,8 @@ def effect_singularity_warp(base_img: Image.Image, badge: dict) -> list[Image.Im
     # Fade out near end
     if t > 0.7:
       fade_mask = norm_r
-      alpha_fade = np.clip((fade_mask / (1.0 - t))**2, 0, 1)
+      fade_denom = max(1.0 - t, 1e-6)
+      alpha_fade = np.clip((fade_mask / fade_denom)**2, 0, 1)
       warped[..., 3] = (warped[..., 3] * (1 - alpha_fade)).astype(np.uint8)
 
     frames.append(Image.fromarray(warped, "RGBA"))
