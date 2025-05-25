@@ -396,15 +396,24 @@ class Admin(commands.Cog):
       if missing <= 0:
         continue
 
+      logger.info(f">  [{user_id}]: User Found With Missing Badges")
+      logger.info(f">> [{user_id}]: Expected: {expected}; Actual: {actual}")
+      logger.info(f">> [{user_id}]: Missing: {missing}")
+
       try:
         user_obj = await self.bot.fetch_user(int(user_id))
         for _ in range(missing):
           badge_data = await award_level_up_badge(user_obj)
-          await post_badge_repair_embed(user_obj, badge_data)
 
-          awarded_buffer_pattern = await award_possible_crystal_pattern_buffer(user_obj)
-          if awarded_buffer_pattern:
-            await post_buffer_pattern_acquired_embed(user_obj, 0, awarded_buffer_pattern)
+          if row['current_level'] == 1:
+            await post_first_level_welcome_embed(user_obj, badge_data, source_details=None)
+            await db_increment_user_crystal_buffer(user_id, amount=3)
+            await post_buffer_pattern_acquired_embed(user_obj, 1, 3)
+          else:
+            await post_badge_repair_embed(user_obj, badge_data)
+            awarded_buffer_pattern = await award_possible_crystal_pattern_buffer(user_obj)
+            if awarded_buffer_pattern:
+              await post_buffer_pattern_acquired_embed(user_obj, 0, awarded_buffer_pattern)
 
           await asyncio.sleep(0.75)
           total_badges_granted += 1
@@ -422,6 +431,6 @@ class Admin(commands.Cog):
       color=discord.Color.teal()
     )
     if failed:
-      summary.add_field(name="⚠️ Failed Users", value=", ".join(failed), inline=False)
+      summary.add_field(name="⚠️ Failed Users", value=f"{len(failed)}", inline=False)
 
     await ctx.respond(embed=summary, ephemeral=True)

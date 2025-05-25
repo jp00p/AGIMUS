@@ -259,7 +259,7 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   else:
     embed = discord.Embed(
       title="Crystal Pattern Buffers Acquired!",
-      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Pattern Buffers** in their hands when they reached Echelon {level}!\n\n"
+      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Pattern Buffers** in their hands{level_text}!\n\n"
                   f"They can now use them to replicate **{number_of_patterns}** Crystals from scratch over in {gelrak_v.mention}!",
       color=discord.Color.teal()
     )
