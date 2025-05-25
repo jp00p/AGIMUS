@@ -2,18 +2,18 @@ from common import *
 import random
 from collections import defaultdict
 
-from handlers.echelon_xp import level_for_total_xp, handle_user_level_up
-from queries.badge_info import db_get_all_badge_info, db_get_badge_info_by_id
-from queries.badge_instances import db_get_user_badge_instances, db_get_badge_instance_by_badge_info_id, db_get_badge_instance_by_id
-from queries.crystal_instances import db_increment_user_crystal_buffer
-from queries.echelon_xp import db_get_echelon_progress
+from handlers.echelon_xp import *
+from queries.badge_info import *
+from queries.badge_instances import *
+from queries.crystal_instances import *
+from queries.echelon_xp import *
 from queries.tongo import *
-from utils.badge_instances import create_new_badge_instance
-from utils.crystal_effects import delete_crystal_effects_cache
+from utils.badge_instances import *
+from utils.crystal_effects import *
+from utils.echelon_rewards import *
 from utils.prestige import PRESTIGE_TIERS
-from utils.check_user_access import user_check
 
-    # import asyncio
+from utils.check_user_access import user_check
 
 
 class Admin(commands.Cog):
@@ -41,8 +41,8 @@ class Admin(commands.Cog):
     return choices
 
 
-
   admin_group = discord.SlashCommandGroup("zed_ops", "Admin-only commands for Badge and Tongo Management.")
+
 
   @admin_group.command(name="grant_random_badge", description="(ADMIN RESTRICTED) Grant a random badge to a user.")
   @option("prestige", int, description="Prestige Tier", required=True, autocomplete=autocomplete_prestige_for_user)
@@ -176,6 +176,7 @@ class Admin(commands.Cog):
     paginator = pages.Paginator(pages=embeds, show_indicator=True, loop_pages=True)
     await paginator.respond(ctx.interaction, ephemeral=True)
 
+
   @admin_group.command(name="manage_tongo_game", description="(ADMIN RESTRICTED) Manage a given Tongo Game.")
   @option("game_id", int, description="Game.", required=True)
   @commands.check(user_check)
@@ -307,6 +308,7 @@ class Admin(commands.Cog):
     await db_update_game_status(game_id, status)
     await ctx.respond(f"✅ Tongo game **#{game_id}** status set to **{status}**.", ephemeral=True)
 
+
   @admin_group.command(name="clear_crystal_effects_cache", description="(ADMIN RESTRICTED) Clear the crystal effects disk cache")
   @commands.check(user_check)
   async def clear_crystal_images_cache(self, ctx):
@@ -317,6 +319,7 @@ class Admin(commands.Cog):
       color=discord.Color.orange()
     )
     await ctx.respond(embed=embed, ephemeral=True)
+
 
   @admin_group.command(name="repair_levels", description="(ADMIN RESTRICTED) Correct Missing Levels.")
   @commands.check(user_check)
@@ -366,5 +369,59 @@ class Admin(commands.Cog):
         value=", ".join(failed_users),
         inline=False
       )
+
+    await ctx.respond(embed=summary, ephemeral=True)
+
+
+  @admin_group.command(name="repair_levelup_badges", description="(ADMIN RESTRICTED) Correct Missing Badges.")
+  @commands.check(user_check)
+  async def repair_missing_levelup_badges(self, ctx):
+    await ctx.defer(ephemeral=True)
+
+    async with AgimusDB(dictionary=True) as db:
+      await db.execute("SELECT user_discord_id, current_level FROM echelon_progress")
+      users = await db.fetchall()
+
+    total_users_fixed = 0
+    total_badges_granted = 0
+    failed = []
+
+    for row in users:
+      user_id = row['user_discord_id']
+      expected = row['current_level']
+
+      actual = await db_get_levelup_badge_count(user_id)
+      missing = expected - actual
+
+      if missing <= 0:
+        continue
+
+      try:
+        user_obj = await self.bot.fetch_user(int(user_id))
+        for _ in range(missing):
+          badge_data = await award_level_up_badge(user_obj)
+          await post_badge_repair_embed(user_obj, badge_data)
+
+          awarded_buffer_pattern = await award_possible_crystal_pattern_buffer(user_obj)
+          if awarded_buffer_pattern:
+            await post_buffer_pattern_acquired_embed(user_obj, 0, awarded_buffer_pattern)
+
+          await asyncio.sleep(0.75)
+          total_badges_granted += 1
+        total_users_fixed += 1
+      except Exception as e:
+        failed.append(user_id)
+
+    summary = discord.Embed(
+      title="🛠 Missing Level-Up Badges Repaired",
+      description=(
+        f"🔍 Scanned `{len(users)}` users.\n"
+        f"✅ `{total_users_fixed}` users had missing badges.\n"
+        f"🎖 `{total_badges_granted}` badges granted via repair.\n"
+      ),
+      color=discord.Color.teal()
+    )
+    if failed:
+      summary.add_field(name="⚠️ Failed Users", value=", ".join(failed), inline=False)
 
     await ctx.respond(embed=summary, ephemeral=True)
