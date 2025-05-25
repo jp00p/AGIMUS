@@ -1176,6 +1176,77 @@ def effect_static_cascade(base_img: Image.Image, badge) -> list[Image.Image]:
   return cleaned_frames
 
 
+@register_effect("singularity_warp")
+def effect_singularity_warp(base_img: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Creates a gravitational vortex effect, pulls the badge into a swirling collapse.
+
+  Used for the Raw Singularity crystal (Legendary tier).
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+  """
+  width, height = FRAME_SIZE
+  cx, cy = width / 2, height / 2
+  total_frames = TOTAL_FRAMES
+
+  def ease_in_out(t):
+    return 3 * t**2 - 2 * t**3
+
+  frames = []
+  for frame_idx in range(total_frames):
+    t_raw = frame_idx / (total_frames - 1)
+    t = ease_in_out(t_raw)
+    collapse_strength = t * 7.0
+
+    # Start swirl on frame 2
+    delay_threshold = 1 / total_frames
+    if t_raw < delay_threshold:
+      swirl_strength = 0.0
+    else:
+      swirl_progress = (t_raw - delay_threshold) / (1 - delay_threshold)
+      swirl_curve = ease_in_out(swirl_progress)
+      swirl_strength = swirl_curve * 3.45
+
+    swirl_base = 4.83
+
+    # Get image array and coordinates
+    img_array = np.array(base_img)
+    y, x = np.meshgrid(np.arange(height), np.arange(width), indexing='ij')
+    dx = x - cx
+    dy = y - cy
+    r = np.sqrt(dx**2 + dy**2) + 1e-6
+    norm_r = r / r.max()
+    theta = np.arctan2(dy, dx)
+
+    r_collapsed = r * (1 + collapse_strength)
+
+    swirl_weight = (1 - norm_r)**2
+    swirl_angle = swirl_base * swirl_strength * swirl_weight
+    theta += swirl_angle
+
+    x_src = cx + r_collapsed * np.cos(theta)
+    y_src = cy + r_collapsed * np.sin(theta)
+    x_src = np.clip(x_src, 0, width - 1)
+    y_src = np.clip(y_src, 0, height - 1)
+    coords = np.array([y_src.flatten(), x_src.flatten()])
+
+    warped = np.stack([
+      map_coordinates(img_array[..., c], coords, order=1, mode='reflect').reshape((height, width))
+      for c in range(4)
+    ], axis=-1).astype(np.uint8)
+
+    # Fade out near end
+    if t > 0.7:
+      fade_mask = norm_r
+      alpha_fade = np.clip((fade_mask / (1.0 - t))**2, 0, 1)
+      warped[..., 3] = (warped[..., 3] * (1 - alpha_fade)).astype(np.uint8)
+
+    frames.append(Image.fromarray(warped, "RGBA"))
+
+  return frames
+
+
 #     ...     ..      ..                       s                   .
 #   x*8888x.:*8888: -"888:     ..             :8      .uef^"      @88>
 #  X   48888X `8888H  8888    @L             .88    :d88E         %8P

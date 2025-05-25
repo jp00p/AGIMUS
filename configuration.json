@@ -1162,7 +1162,12 @@
       "enabled": true,
       "parameters": []
     },
-    "zed_ops repair_levels" {
+    "zed_ops repair_levels": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops repair_levelup_badges": {
       "allowed_user_ids": [735658100958298154],
       "enabled": true,
       "parameters": []

@@ -1,0 +1,2 @@
+INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
+("Artificial Singularity", 4, "artificial_singularity.png", "singularity_warp", "Used by Romulans to power their Warbirds. This thing sucks!");

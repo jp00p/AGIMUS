@@ -333,6 +333,19 @@ async def db_get_badge_instances_prestige_count_by_filename(badge_filename: str)
     result = await query.fetchall()
   return result
 
+
+async def db_get_levelup_badge_count(user_id: str) -> int:
+  sql = """
+    SELECT COUNT(*) AS count
+    FROM badge_instance_history
+    WHERE to_user_id = %s AND event_type = 'level_up'
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id,))
+    row = await db.fetchone()
+    return row['count']
+
+
 # Lock/Unlock Helpers
 async def db_lock_badge_instance(instance_id: int):
   async with AgimusDB() as db:

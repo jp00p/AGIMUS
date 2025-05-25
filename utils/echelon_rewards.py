@@ -128,9 +128,9 @@ async def select_badge_for_level_up(member: discord.Member) -> tuple[int, int]:
 
   base_missing_pct = len(base_missing) / total_count if total_count else 1
 
-  logger.info(
-    f"[echelon] PQIF Base Tier {pqif_base} -> {next_prestige} — base missing {len(base_missing)} / {total_count}, next missing {len(next_missing)}"
-  )
+  # logger.info(
+  #   f"[echelon] PQIF Base Tier {pqif_base} -> {next_prestige} — base missing {len(base_missing)} / {total_count}, next missing {len(next_missing)}"
+  # )
 
   candidates = []
 

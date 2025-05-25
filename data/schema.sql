@@ -444,16 +444,17 @@ CREATE TABLE IF NOT EXISTS crystal_ranks (
   name VARCHAR(64) NOT NULL UNIQUE,
   emoji VARCHAR(16),
   rarity_rank INT NOT NULL,
-  drop_chance DECIMAL(5,2) NOT NULL,
+  drop_chance FLOAT NOT NULL,
   sort_order INT DEFAULT 0
 );
 
 INSERT INTO crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order) VALUES
-  ("Common",    "⚪", 1, 50, 0),
-  ("Uncommon",  "🟢", 2, 33, 1),
-  ("Rare",      "🟣", 3, 10, 2),
-  ("Legendary", "🔥", 4, 5, 3),
-  ("Mythic",    "💎", 5, 2, 4);
+  ("Common",      "⚪", 1, 50,   0),
+  ("Uncommon",    "🟢", 2, 33,   1),
+  ("Rare",        "🟣", 3, 10,   2),
+  ("Legendary",   "🔥", 4, 5,    3),
+  ("Mythic",      "💎", 5, 1.75, 4),
+  ("Unobtainium", "💥", 6, 0.25,  5);
 
 -- Crystal Types
 CREATE TABLE IF NOT EXISTS crystal_types (
@@ -516,7 +517,10 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   -- Mythic Crystals (Prestige Animations)
   ("Borg Nanocluster", 5, "borg_nanocluster.png", "borg_reconstruction", "A Collective collectable. Reconstructs whatever it touches (whether it wants to or not)."),
   ("Bajoran Orb", 5, "bajoran_orb.png", "celestial_temple", "A Tear of the Prophets. My Child!"),
-  ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable.");
+  ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable."),
+
+  -- Unobtanium Crystals (Complex Animations + Coveted Designs)
+  ("Bone Fragment", 6, "bone_fragment.png", "moopsy_swarm", "That's bone. Looks oddly drinkable.");
 
 -- Crystal Pattern Buffers (Credits to redeem for Crystals)
 CREATE TABLE IF NOT EXISTS crystal_pattern_buffers (

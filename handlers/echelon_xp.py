@@ -246,10 +246,14 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   gelrak_v = await bot.fetch_channel(get_channel_id("gelrak-v"))
 
   embed = None
-  if number_of_patterns == 1:
+  if number_of_patterns == 1 and level > 1:
+    level_text = ""
+    if level > 0:
+      level_text = f" when they reached Echelon {level}"
+
     embed = discord.Embed(
       title="Crystal Pattern Buffer Acquired!",
-      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Pattern Buffer** when they reached Echelon {level}!\n\nThey can now use it to replicate a Crystal from scratch over in {gelrak_v.mention}!",
+      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Pattern Buffer**{level_text}!\n\nThey can now use it to replicate a Crystal from scratch over in {gelrak_v.mention}!",
       color=discord.Color.teal()
     )
   else:
@@ -293,6 +297,41 @@ BUFFER_PATTERN_AQUISITION_GIFS = [
   "https://i.imgur.com/RVEncra.gif",
   "https://i.imgur.com/O8FIb0I.gif"
 ]
+
+
+
+async def post_badge_repair_embed(member: discord.User, badge_data: dict):
+  """
+  Build and send a level-up notification embed to the XP notification channel.
+  """
+  badge_prestige = badge_data['prestige_level']
+  # level_up_msg = f"**{random.choice(random_level_up_messages['messages']).format(user=member.mention, level=level, prev_level=(level-1))}**"
+
+  discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
+
+  embed_description = f"{member.mention}'s inventory has been corrected with a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Correction**, which they had previously earned during `AGIMUS Downtime` but had not yet been granted."
+  if badge_data.get('was_on_wishlist', False):
+    embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
+
+  embed_color = discord.Color.teal()
+  if badge_prestige > 0:
+    prestige_color = PRESTIGE_THEMES[badge_prestige]['primary']
+    embed_color = discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
+
+  embed=discord.Embed(
+    title="Badge Correction!",
+    description=embed_description,
+    color=embed_color
+  )
+  embed.set_image(url=attachment_url)
+  embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
+  embed.add_field(name=badge_data['badge_name'], value=badge_data['badge_url'], inline=False)
+  embed.set_footer(text="See all your badges by typing '/badges collection' - disable this by typing '/settings'")
+
+  notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
+  message = await notification_channel.send(content=f"## {member.mention}: You've Received A Badge Correction", file=discord_file, embed=embed)
+  # Add + emoji so that users can add it as well to add the badge to their wishlist
+  await message.add_reaction("✅")
 
 # .____                      .__             ____ ___           ____ ___   __  .__.__
 # |    |    _______  __ ____ |  |           |    |   \______   |    |   \_/  |_|__|  |   ______
