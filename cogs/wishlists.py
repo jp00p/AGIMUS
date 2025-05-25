@@ -747,7 +747,7 @@ class Wishlist(commands.Cog):
       wants_ids = json.loads(m['badge_ids_they_want_that_you_have'])
       valid[pid] = (has_ids, wants_ids)
 
-    inventory = await db_get_wishlist_inventory_matches(user_id)
+    inventory = await db_get_wishlist_inventory_matches(user_id, prestige)
     partner_ids = {row['user_discord_id'] for row in inventory}
     for pid in partner_ids:
       valid.setdefault(pid, ([], []))

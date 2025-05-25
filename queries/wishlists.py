@@ -31,31 +31,54 @@ async def db_add_badge_info_ids_to_wishlist(user_discord_id: str, badge_info_ids
 
 # Remove
 async def db_remove_badge_info_id_from_wishlist(user_discord_id: str, badge_info_id: int):
-  sql = '''
-    DELETE FROM badge_instances_wishlists
-    WHERE user_discord_id = %s
-      AND badge_info_id = %s;
-  '''
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_discord_id, badge_info_id))
+    # Remove from wishlist
+    await db.execute('''
+      DELETE FROM badge_instances_wishlists
+      WHERE user_discord_id = %s
+        AND badge_info_id = %s;
+    ''', (user_discord_id, badge_info_id))
+
+    # Also remove any dismissal rows tied to this badge
+    await db.execute('''
+      DELETE FROM badge_instances_wishlists_dismissals
+      WHERE user_discord_id = %s
+        AND badge_info_id = %s;
+    ''', (user_discord_id, badge_info_id))
 
 async def db_remove_badge_info_ids_from_wishlist(user_discord_id: str, badge_info_ids: list[int]):
   values = [(user_discord_id, bid) for bid in badge_info_ids]
-  sql = '''
-    DELETE FROM badge_instances_wishlists
-    WHERE user_discord_id = %s
-      AND badge_info_id = %s;
-  '''
+
   async with AgimusDB(dictionary=True) as db:
+    # Remove from wishlist
+    sql = '''
+      DELETE FROM badge_instances_wishlists
+      WHERE user_discord_id = %s
+        AND badge_info_id = %s;
+    '''
     await db.executemany(sql, values)
 
+    # Remove dismissals for these badge_info_ids
+    sql_dismissals = '''
+      DELETE FROM badge_instances_wishlists_dismissals
+      WHERE user_discord_id = %s
+        AND badge_info_id = %s;
+    '''
+    await db.executemany(sql_dismissals, values)
+
 async def db_clear_wishlist(user_discord_id: str):
-  sql = '''
-    DELETE FROM badge_instances_wishlists
-    WHERE user_discord_id = %s;
-  '''
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_discord_id,))
+    # Remove all wishlist entries
+    await db.execute('''
+      DELETE FROM badge_instances_wishlists
+      WHERE user_discord_id = %s;
+    ''', (user_discord_id,))
+
+    # Also clear all dismissals authored by this user
+    await db.execute('''
+      DELETE FROM badge_instances_wishlists_dismissals
+      WHERE user_discord_id = %s;
+    ''', (user_discord_id,))
 
 # CHECK
 async def db_is_badge_on_users_wishlist(user_discord_id: str, badge_info_id: str):
@@ -243,6 +266,14 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
         SELECT badge_info_id
           FROM badge_instances_wishlists
         WHERE user_discord_id = %s
+          AND NOT EXISTS (
+            SELECT 1
+              FROM badge_instances
+            WHERE owner_discord_id = %s
+              AND badge_info_id = badge_instances_wishlists.badge_info_id
+              AND prestige_level = %s
+              AND active = TRUE
+          )
       ),
       my_owns AS (
         SELECT DISTINCT badge_info_id
@@ -253,19 +284,35 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
           AND active           = TRUE
       ),
       partner_owns AS (
-        SELECT DISTINCT owner_discord_id AS partner_id,
-                        badge_info_id
-          FROM badge_instances
-        WHERE prestige_level = %s
-          AND locked         = FALSE
-          AND active         = TRUE
-          AND badge_info_id  IN (SELECT badge_info_id FROM my_wants)
+        SELECT DISTINCT b.owner_discord_id AS partner_id,
+                        b.badge_info_id
+          FROM badge_instances b
+        WHERE b.prestige_level = %s
+          AND b.locked         = FALSE
+          AND b.active         = TRUE
+          AND b.badge_info_id  IN (SELECT badge_info_id FROM my_wants)
+          AND NOT EXISTS (
+            SELECT 1
+              FROM badge_instances mine
+            WHERE mine.owner_discord_id = %s
+              AND mine.badge_info_id = b.badge_info_id
+              AND mine.prestige_level = b.prestige_level
+              AND mine.active = TRUE
+          )
       ),
       partner_wants AS (
-        SELECT DISTINCT user_discord_id AS partner_id,
-                        badge_info_id
-          FROM badge_instances_wishlists
-        WHERE badge_info_id IN (SELECT badge_info_id FROM my_owns)
+        SELECT DISTINCT w.user_discord_id AS partner_id,
+                        w.badge_info_id
+          FROM badge_instances_wishlists w
+        WHERE w.badge_info_id IN (SELECT badge_info_id FROM my_owns)
+          AND NOT EXISTS (
+            SELECT 1
+              FROM badge_instances i
+            WHERE i.owner_discord_id = w.user_discord_id
+              AND i.badge_info_id = w.badge_info_id
+              AND i.prestige_level = %s
+              AND i.active = TRUE
+          )
       ),
       matched_partners AS (
         SELECT DISTINCT po.partner_id
@@ -318,29 +365,35 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
     FROM matched_partners mp;
   '''
   params = [
-    user_discord_id,   # for my_wants
-    user_discord_id,   # for my_owns
-    prestige_level,    # for my_owns
-    prestige_level,    # for partner_owns
-    user_discord_id    # filter out self
+    user_discord_id,   # my_wants
+    user_discord_id,   # my_wants NOT EXISTS
+    prestige_level,    # my_wants NOT EXISTS
+    user_discord_id,   # my_owns
+    prestige_level,    # my_owns
+    prestige_level,    # partner_owns
+    user_discord_id,   # partner_owns NOT EXISTS
+    prestige_level,    # partner_wants NOT EXISTS
+    user_discord_id    # exclude self
   ]
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, params)
     return await db.fetchall()
 
+
 # Inventory matches: badges user owns that are in others' prime wishlists
-async def db_get_wishlist_inventory_matches(user_discord_id: str) -> list[dict]:
+async def db_get_wishlist_inventory_matches(user_discord_id: str, prestige_level: int) -> list[dict]:
   sql = '''
     SELECT bi.*, w.user_discord_id
     FROM badge_instances b
     JOIN badge_info bi ON b.badge_info_id = bi.id
     JOIN badge_instances_wishlists w ON w.badge_info_id = bi.id
     WHERE b.owner_discord_id = %s
+      AND b.prestige_level = %s
       AND b.locked = FALSE
       AND b.active = TRUE;
   '''
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_discord_id,))
+    await db.execute(sql, (user_discord_id, prestige_level))
     return await db.fetchall()
 
 # Dismissals

@@ -380,7 +380,7 @@ class Admin(commands.Cog):
     await ctx.defer(ephemeral=True)
 
     async with AgimusDB(dictionary=True) as db:
-      await db.execute("SELECT user_discord_id, current_level FROM echelon_progress")
+      await db.execute("SELECT user_discord_id, current_xp, current_level FROM echelon_progress")
       users = await db.fetchall()
 
     total_users_fixed = 0
@@ -390,9 +390,13 @@ class Admin(commands.Cog):
     for row in users:
       user_id = row['user_discord_id']
       expected = row['current_level']
+      xp = row['current_xp']
 
       xp_enabled = bool(await db_get_current_xp_enabled_value(user_id))
       if not xp_enabled:
+        continue
+
+      if xp == 0:
         continue
 
       actual = await db_get_levelup_badge_count(user_id)
@@ -416,11 +420,9 @@ class Admin(commands.Cog):
             await post_buffer_pattern_acquired_embed(user_obj, 1, 3)
           else:
             await post_badge_repair_embed(user_obj, badge_data)
-            awarded_buffer_pattern = await award_possible_crystal_pattern_buffer(user_obj)
-            if awarded_buffer_pattern:
-              await post_buffer_pattern_acquired_embed(user_obj, 0, awarded_buffer_pattern)
+            await award_possible_crystal_pattern_buffer(user_obj)
 
-          await asyncio.sleep(0.75)
+          await asyncio.sleep(0.5)
           total_badges_granted += 1
         total_users_fixed += 1
       except Exception as e:

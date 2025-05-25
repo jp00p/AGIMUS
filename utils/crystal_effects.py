@@ -860,6 +860,22 @@ def effect_transparent_aluminum(badge_image: Image.Image, badge: dict) -> Image.
 
   return result
 
+
+@register_effect("guardian_of_forever")
+def effect_guardian_of_forever(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Guardian of the Edge of Forever Background.
+  Used for the Aeon Shard crystal (Rare tier).
+  """
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/guardian_of_forever.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(118, 222, 191),
+    border_gradient_bottom_right=(176, 112, 220)
+  )
+  return result
+
 #       ...                                                         ..
 #   .zf"` `"tu                                                    dF                                    ..
 #  x88      '8N.                                      u.    u.   '88bu.                     .u    .    @L
@@ -1197,10 +1213,10 @@ def effect_singularity_warp(base_img: Image.Image, badge: dict) -> list[Image.Im
   for frame_idx in range(total_frames):
     t_raw = frame_idx / (total_frames - 1)
     t = ease_in_out(t_raw)
-    collapse_strength = t * 7.0
+    collapse_strength = t * 6.0
 
-    # Start swirl on frame 2
-    delay_threshold = 1 / total_frames
+    # Start swirl on frame 4
+    delay_threshold = 3 / total_frames
     if t_raw < delay_threshold:
       swirl_strength = 0.0
     else:
@@ -1239,7 +1255,8 @@ def effect_singularity_warp(base_img: Image.Image, badge: dict) -> list[Image.Im
     # Fade out near end
     if t > 0.7:
       fade_mask = norm_r
-      alpha_fade = np.clip((fade_mask / (1.0 - t))**2, 0, 1)
+      fade_denom = max(1.0 - t, 1e-6)
+      alpha_fade = np.clip((fade_mask / fade_denom)**2, 0, 1)
       warped[..., 3] = (warped[..., 3] * (1 - alpha_fade)).astype(np.uint8)
 
     frames.append(Image.fromarray(warped, "RGBA"))

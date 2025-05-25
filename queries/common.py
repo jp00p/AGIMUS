@@ -20,6 +20,7 @@ BADGE_INSTANCE_COLUMNS = """
   b.acquired_at,
   b.active_crystal_id,
   b.status,
+  b.active,
 
   c.id AS badge_crystal_id,
 
