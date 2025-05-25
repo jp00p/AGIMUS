@@ -12,6 +12,7 @@ from utils.badge_instances import *
 from utils.crystal_effects import *
 from utils.echelon_rewards import *
 from utils.prestige import PRESTIGE_TIERS
+from utils.settings_utils import db_get_current_xp_enabled_value
 
 from utils.check_user_access import user_check
 
@@ -389,6 +390,10 @@ class Admin(commands.Cog):
     for row in users:
       user_id = row['user_discord_id']
       expected = row['current_level']
+
+      xp_enabled = bool(await db_get_current_xp_enabled_value(user_id))
+      if not xp_enabled:
+        continue
 
       actual = await db_get_levelup_badge_count(user_id)
       missing = expected - actual
