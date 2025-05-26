@@ -319,6 +319,7 @@ async def on_raw_reaction_add(payload):
         await handle_react_xp(reaction, user)
     except Exception as e:
       logger.warning(f"on_raw_reaction_add error: {e}")
+      raise
 
 
 # listen to sceheduled event updates (streams, pub trivia, etc)
