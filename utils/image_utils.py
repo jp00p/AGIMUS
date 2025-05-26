@@ -835,7 +835,7 @@ def _get_canvas_row_dimensions() -> CanvasRowDimensions:
 # \     \____|  | \/\___  |\___ \  |  |  / __ \|  |__ /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |
 #  \______  /|__|   / ____/____  > |__| (____  /____/ \____|__  (____  /___|  /__||__|  \___  >____  > |__|
 #         \/        \/         \/            \/               \/     \/     \/              \/     \/
-async def generate_crystal_manifest_images(user: discord.User, crystal_data: list[dict], rarity: str, emoji: str, return_buffers: bool = False) -> list[tuple[io.BytesIO, str]]:
+async def generate_crystal_manifest_images(user: discord.User, crystal_data: list[dict], rarity: str, emoji: str, return_buffers: bool = False, preview_badge: dict = None) -> list[tuple[io.BytesIO, str]]:
   """
   Generates paginated inventory-style crystal manifest images for a user's unattuned crystals.
 
@@ -881,7 +881,7 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
       continue
 
     prepared_rows = await asyncio.gather(*[
-      compose_crystal_manifest_row(crystal, theme) for crystal in page_rows
+      compose_crystal_manifest_row(crystal, theme, preview_badge) for crystal in page_rows
     ])
 
     animated = any(isinstance(row, list) and len(row) > 1 for row in prepared_rows)
@@ -938,7 +938,7 @@ async def build_crystal_manifest_canvas(user: discord.User, all_crystal_data, pa
   return canvas
 
 _DUMMY_BADGE_INFO_CACHE = None
-async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.Image]:
+async def compose_crystal_manifest_row(crystal: dict, theme: str, preview_badge: dict = None) -> list[Image.Image]:
   """
   Composes a single crystal manifest row.
   """
@@ -971,16 +971,24 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
   await draw_dynamic_text(row_canvas, draw, text=crystal['description'], font_obj=fonts.general, position=(title_x, 82), max_width=(dims.row_width - (dims.offset * 2)), starting_size=40, fill=(221, 221, 221))
 
   # Render preview of crystal effect on "dummy" badge
-  global _DUMMY_BADGE_INFO_CACHE
-  if _DUMMY_BADGE_INFO_CACHE is None:
-    _DUMMY_BADGE_INFO_CACHE = await db_get_badge_info_by_name("Starfleet Crew 2160s (Kelvin)")
-  dummy_badge_info = _DUMMY_BADGE_INFO_CACHE
-  dummy_badge = {
-    **dummy_badge_info,
-    'badge_info_id': dummy_badge_info['id'],
-    'crystal_id': crystal['crystal_instance_id'],
-    'effect': crystal['effect']
-  }
+  dummy_badge = None
+  if preview_badge:
+    dummy_badge = {
+      **preview_badge,
+      'crystal_id': crystal['crystal_instance_id'],
+      'effect': crystal['effect']
+    }
+  else:
+    global _DUMMY_BADGE_INFO_CACHE
+    if _DUMMY_BADGE_INFO_CACHE is None:
+      _DUMMY_BADGE_INFO_CACHE = await db_get_badge_info_by_name("Starfleet Crew 2160s (Kelvin)")
+    dummy_badge_info = _DUMMY_BADGE_INFO_CACHE
+    dummy_badge = {
+      **dummy_badge_info,
+      'badge_info_id': dummy_badge_info['id'],
+      'crystal_id': crystal['crystal_instance_id'],
+      'effect': crystal['effect']
+    }
 
   badge_img = await get_cached_base_badge_canvas(dummy_badge['badge_filename'])
   preview_frames = await apply_crystal_effect(badge_img, dummy_badge, crystal=crystal)
