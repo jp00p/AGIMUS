@@ -359,7 +359,20 @@ class Crystals(commands.Cog):
   # \____|__  (____  /___|  /__||__|  \___  >____  > |__|
   #         \/     \/     \/              \/     \/
   @crystals_group.command(name="manifest", description="Review your unattuned Crystal Manifest.")
-  async def manifest(self, ctx: discord.ApplicationContext):
+  @option(
+    name="preview_prestige",
+    description="Which Prestige Tier of preview Badge?",
+    required=False,
+    autocomplete=autocomplete_prestige_tiers
+  )
+  @option(
+    'preview_badge',
+    str,
+    required=False,
+    description="Badge to preview Crystal effects on",
+    autocomplete=autocomplete_badges_without_crystal_type
+  )
+  async def manifest(self, ctx: discord.ApplicationContext, preview_prestige: str, preview_badge: str):
     await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
 
@@ -375,6 +388,23 @@ class Crystals(commands.Cog):
       )
       await ctx.respond(embed=embed, ephemeral=True)
       return
+
+    preview_badge_instance = None
+    if preview_prestige:
+      if not await is_prestige_valid(ctx, preview_prestige):
+        return
+      preview_prestige = int(preview_prestige)
+
+      preview_badge_instance = await db_get_badge_instance_by_id(preview_badge)
+      if not preview_badge_instance:
+        await ctx.respond(
+          embed=discord.Embed(
+            title="Invalid Preview Badge!",
+            description=f"You don't appear to have that Badge in your {PRESTIGE_TIERS[preview_prestige]} inventory!",
+            color=discord.Color.red()
+          )
+        )
+        return
 
     pending_message = await ctx.respond(
       embed=discord.Embed(
@@ -420,7 +450,7 @@ class Crystals(commands.Cog):
           collapsed[type_id]['instance_count'] += 1
 
       sorted_crystals = sorted(collapsed.values(), key=lambda c: c['crystal_name'].lower())
-      crystal_rank_manifest_images = await generate_crystal_manifest_images(ctx.user, sorted_crystals, rarity_name, rarity_emoji)
+      crystal_rank_manifest_images = await generate_crystal_manifest_images(ctx.user, sorted_crystals, rarity_name, rarity_emoji, preview_badge=preview_badge_instance)
 
       crystal_rank_pages = []
       for buffer, filename in crystal_rank_manifest_images:
