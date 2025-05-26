@@ -51,7 +51,7 @@ class Crystals(commands.Cog):
 
     prestige = ctx.options['prestige']
     if not prestige or not prestige.isdigit():
-      return [discord.OptionChoice(name="🔒 Invalid prestige tier input.", value='none')]
+      return [discord.OptionChoice(name="🔒 Invalid prestige tier", value='none')]
 
     badge_records = await db_get_badge_instances_with_attuned_crystals(user_id, prestige=prestige)
 
@@ -77,7 +77,7 @@ class Crystals(commands.Cog):
 
     prestige = ctx.options.get('prestige')
     if not prestige or not prestige.isdigit():
-      return [discord.OptionChoice(name="🔒 Invalid prestige tier input.", value='none')]
+      return [discord.OptionChoice(name="🔒 Invalid prestige tier", value='none')]
 
     badge_instances = await db_get_badge_instances_without_crystal_type(user_id, crystal_instance['crystal_type_id'], prestige=prestige)
     if not badge_instances:
@@ -151,6 +151,33 @@ class Crystals(commands.Cog):
       options.append(discord.OptionChoice(name=label, value=str(c['crystal_instance_id'])))
 
     return options
+
+  async def autocomplete_previewable_badges(ctx: discord.AutocompleteContext):
+    user_id = ctx.interaction.user.id
+
+    prestige = ctx.options.get('prestige')
+    if not prestige or not prestige.isdigit():
+      return [discord.OptionChoice(name="🔒 Invalid prestige tier.", value='none')]
+
+    user_badge_instances = await db_get_user_badge_instances(user_id, prestige=prestige_level)
+
+    results = [
+      discord.OptionChoice(
+        name=b['badge_name'],
+        value=str(b['badge_instance_id'])
+      )
+      for b in user_badge_instances
+    ]
+
+    filtered = [r for r in results if ctx.value.lower() in r.name.lower()]
+    if not filtered:
+      filtered = [
+        discord.OptionChoice(
+          name="🔒 No Valid Badges Found",
+          value='none'
+        )
+      ]
+    return filtered
 
 
   # _________                                           .___
@@ -361,7 +388,7 @@ class Crystals(commands.Cog):
   @crystals_group.command(name="manifest", description="Review your unattuned Crystal Manifest.")
   @option(
     name="preview_prestige",
-    description="Which Prestige Tier of preview Badge?",
+    description="Which Prestige Tier  of preview Badge?",
     required=False,
     autocomplete=autocomplete_prestige_tiers
   )
@@ -370,7 +397,7 @@ class Crystals(commands.Cog):
     str,
     required=False,
     description="Badge to preview Crystal effects on",
-    autocomplete=autocomplete_badges_without_crystal_type
+    autocomplete=autocomplete_previewable_badges
   )
   async def manifest(self, ctx: discord.ApplicationContext, preview_prestige: str, preview_badge: str):
     await ctx.defer(ephemeral=True)
