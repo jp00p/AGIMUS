@@ -155,11 +155,11 @@ class Crystals(commands.Cog):
   async def autocomplete_previewable_badges(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
 
-    prestige = ctx.options.get('prestige')
+    prestige = ctx.options.get('preview_prestige')
     if not prestige or not prestige.isdigit():
       return [discord.OptionChoice(name="🔒 Invalid prestige tier.", value='none')]
 
-    user_badge_instances = await db_get_user_badge_instances(user_id, prestige=prestige_level)
+    user_badge_instances = await db_get_user_badge_instances(user_id, prestige=prestige)
 
     results = [
       discord.OptionChoice(
