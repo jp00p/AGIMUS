@@ -944,7 +944,7 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str, preview_badge:
   """
   dims = _get_canvas_row_dimensions()
   colors = get_theme_colors(theme)
-  row_canvas = get_crystal_manifest_row_canvas()
+  row_canvas = get_crystal_manifest_row_canvas(prestige=preview_badge.get('prestige_level', 0) if preview_badge else 0)
   draw = ImageDraw.Draw(row_canvas)
 
   fonts = load_fonts(title_size=70, general_size=40)
@@ -1028,12 +1028,24 @@ async def compose_empty_crystal_manifest_row(theme: str, message: str = "No Crys
 
   return row_canvas
 
-def get_crystal_manifest_row_canvas():
+def get_crystal_manifest_row_canvas(prestige: int = 0) -> Image.Image:
   dims = _get_canvas_row_dimensions()
-  start_color = (24, 24, 24, 255)
-  end_color = (64, 64, 64, 255)
-
   row_canvas = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
+
+  # Determine colors
+  if prestige:
+    prestige_theme = PRESTIGE_THEMES.get(prestige)
+    g_s = prestige_theme['gradient_start']
+    g_e = prestige_theme['gradient_end']
+    start_color = (g_s[0], g_s[1], g_s[2], 255)
+    end_color = (g_e[0], g_e[1], g_e[2], 255)
+    border_colors = prestige_theme['border_gradient_colors']
+  else:
+    start_color = (24, 24, 24, 255)
+    end_color = (64, 64, 64, 255)
+    border_colors = None
+
+  # Build diagonal gradient
   gradient = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
   grad_pixels = gradient.load()
 
@@ -1044,38 +1056,35 @@ def get_crystal_manifest_row_canvas():
   for y in range(dims.row_height):
     for x in range(dims.row_width):
       distance = x + y
-      if distance < gradient_start:
-        t = 0.0
-      else:
-        t = (distance - gradient_start) / gradient_range
-        t = min(t, 1.0)  # Clamp to [0, 1]
-
+      t = 0.0 if distance < gradient_start else min((distance - gradient_start) / gradient_range, 1.0)
       r = int(start_color[0] * (1 - t) + end_color[0] * t)
       g = int(start_color[1] * (1 - t) + end_color[1] * t)
       b = int(start_color[2] * (1 - t) + end_color[2] * t)
-      a = int(start_color[3] * (1 - t) + end_color[3] * t)
+      a = 255
       grad_pixels[x, y] = (r, g, b, a)
 
-  # Rounded corner mask
+  # Apply rounded corner mask
   mask = Image.new("L", (dims.row_width, dims.row_height), 0)
-  mask_draw = ImageDraw.Draw(mask)
-  mask_draw.rounded_rectangle(
+  ImageDraw.Draw(mask).rounded_rectangle(
     (0, 0, dims.row_width, dims.row_height),
     fill=255,
     radius=32
   )
-
-  # Paste the masked gradient into row canvas
   row_canvas.paste(gradient, (0, 0), mask)
 
-  # Optional border
-  draw = ImageDraw.Draw(row_canvas)
-  draw.rounded_rectangle(
-    (0, 0, dims.row_width, dims.row_height),
-    outline="#181818",
-    width=4,
-    radius=32
-  )
+  # Add prestige gradient border if applicable
+  if border_colors:
+    border = _create_border_overlay((dims.row_width, dims.row_height), border_colors)
+    row_canvas.paste(border, (0, 0), border)
+  else:
+    # Default outline
+    draw = ImageDraw.Draw(row_canvas)
+    draw.rounded_rectangle(
+      (0, 0, dims.row_width, dims.row_height),
+      outline="#181818",
+      width=4,
+      radius=32
+    )
 
   return row_canvas
 
@@ -1436,7 +1445,9 @@ def _create_gradient_fill(size: tuple[int, int], start_color: tuple[int, int, in
 def _create_border_overlay(size: tuple[int, int], colors: list[tuple[int, int, int]]) -> Image.Image:
   assert len(colors) == 3, "Expected three-color gradient"
   width, height = size
-  border = Image.new("RGBA", size)
+
+  # Step 1: Create full-size gradient image
+  gradient = Image.new("RGBA", size)
   for y in range(height):
     for x in range(width):
       t = (x + y) / (width + height)
@@ -1450,16 +1461,23 @@ def _create_border_overlay(size: tuple[int, int], colors: list[tuple[int, int, i
         r = int(colors[1][0] * (1 - blend) + colors[2][0] * blend)
         g = int(colors[1][1] * (1 - blend) + colors[2][1] * blend)
         b = int(colors[1][2] * (1 - blend) + colors[2][2] * blend)
-      border.putpixel((x, y), (r, g, b, 255))
+      gradient.putpixel((x, y), (r, g, b, 255))
 
-  mask_outer = Image.new("L", size, 0)
-  mask_inner = Image.new("L", size, 0)
-  draw_outer = ImageDraw.Draw(mask_outer)
-  draw_inner = ImageDraw.Draw(mask_inner)
-  draw_outer.rounded_rectangle((0, 0, width - 1, height - 1), radius=32, fill=255)
-  draw_inner.rounded_rectangle((4, 4, width - 5, height - 5), radius=32 - 4, fill=255)
-  border_mask = ImageChops.subtract(mask_outer, mask_inner)
-  return Image.composite(border, Image.new("RGBA", size, (0, 0, 0, 0)), border_mask)
+  # Step 2: Create outer mask with filled border
+  mask = Image.new("L", size, 0)
+  draw = ImageDraw.Draw(mask)
+
+  # Outer full radius
+  outer_radius = 32
+  inner_radius = 32 - 4  # 4px border width
+
+  draw.rounded_rectangle((0, 0, width - 1, height - 1), radius=outer_radius, fill=255)
+  draw.rounded_rectangle((4, 4, width - 5, height - 5), radius=inner_radius, fill=0)
+
+  # Step 3: Apply mask to gradient
+  output = Image.new("RGBA", size, (0, 0, 0, 0))
+  output.paste(gradient, (0, 0), mask)
+  return output
 
 def _ease_out_start(t: float) -> float:
   return t ** 2
