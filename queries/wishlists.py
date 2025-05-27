@@ -264,11 +264,11 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
     WITH
       my_wants AS (
         SELECT badge_info_id
-          FROM badge_instances_wishlists
+        FROM badge_instances_wishlists
         WHERE user_discord_id = %s
           AND NOT EXISTS (
             SELECT 1
-              FROM badge_instances
+            FROM badge_instances
             WHERE owner_discord_id = %s
               AND badge_info_id = badge_instances_wishlists.badge_info_id
               AND prestige_level = %s
@@ -277,23 +277,23 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
       ),
       my_owns AS (
         SELECT DISTINCT badge_info_id
-          FROM badge_instances
+        FROM badge_instances
         WHERE owner_discord_id = %s
-          AND prestige_level   = %s
-          AND locked           = FALSE
-          AND active           = TRUE
+          AND prestige_level = %s
+          AND locked = FALSE
+          AND active = TRUE
       ),
       partner_owns AS (
         SELECT DISTINCT b.owner_discord_id AS partner_id,
                         b.badge_info_id
-          FROM badge_instances b
+        FROM badge_instances b
         WHERE b.prestige_level = %s
-          AND b.locked         = FALSE
-          AND b.active         = TRUE
-          AND b.badge_info_id  IN (SELECT badge_info_id FROM my_wants)
+          AND b.locked = FALSE
+          AND b.active = TRUE
+          AND b.badge_info_id IN (SELECT badge_info_id FROM my_wants)
           AND NOT EXISTS (
             SELECT 1
-              FROM badge_instances mine
+            FROM badge_instances mine
             WHERE mine.owner_discord_id = %s
               AND mine.badge_info_id = b.badge_info_id
               AND mine.prestige_level = b.prestige_level
@@ -303,11 +303,11 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
       partner_wants AS (
         SELECT DISTINCT w.user_discord_id AS partner_id,
                         w.badge_info_id
-          FROM badge_instances_wishlists w
+        FROM badge_instances_wishlists w
         WHERE w.badge_info_id IN (SELECT badge_info_id FROM my_owns)
           AND NOT EXISTS (
             SELECT 1
-              FROM badge_instances i
+            FROM badge_instances i
             WHERE i.owner_discord_id = w.user_discord_id
               AND i.badge_info_id = w.badge_info_id
               AND i.prestige_level = %s
@@ -316,49 +316,59 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
       ),
       matched_partners AS (
         SELECT DISTINCT po.partner_id
-          FROM partner_owns po
-          JOIN partner_wants pw
-            ON pw.partner_id = po.partner_id
+        FROM partner_owns po
+        JOIN partner_wants pw
+          ON pw.partner_id = po.partner_id
         WHERE po.partner_id != %s
       )
     SELECT
       mp.partner_id AS match_discord_id,
 
       /* badge names they have from your wishlist */
-      ( SELECT JSON_ARRAYAGG(bi.badge_name)
+      (
+        SELECT JSON_ARRAYAGG(bi.badge_name)
         FROM (
           SELECT DISTINCT badge_info_id
-            FROM partner_owns
+          FROM partner_owns
           WHERE partner_id = mp.partner_id
         ) AS sub
         JOIN badge_info bi ON bi.id = sub.badge_info_id
+        ORDER BY bi.badge_name
       ) AS badges_you_want_that_they_have,
 
       /* badge IDs they have from your wishlist */
-      ( SELECT JSON_ARRAYAGG(sub.badge_info_id)
+      (
+        SELECT JSON_ARRAYAGG(sub.badge_info_id)
         FROM (
-          SELECT DISTINCT badge_info_id
-            FROM partner_owns
-          WHERE partner_id = mp.partner_id
+          SELECT DISTINCT sub.badge_info_id
+          FROM partner_owns
+          JOIN badge_info bi ON bi.id = partner_owns.badge_info_id
+          WHERE partner_owns.partner_id = mp.partner_id
+          ORDER BY bi.badge_name
         ) AS sub
       ) AS badge_ids_you_want_that_they_have,
 
       /* badge names they want from your inventory */
-      ( SELECT JSON_ARRAYAGG(bi.badge_name)
+      (
+        SELECT JSON_ARRAYAGG(bi.badge_name)
         FROM (
           SELECT DISTINCT badge_info_id
-            FROM partner_wants
+          FROM partner_wants
           WHERE partner_id = mp.partner_id
         ) AS sub
         JOIN badge_info bi ON bi.id = sub.badge_info_id
+        ORDER BY bi.badge_name
       ) AS badges_they_want_that_you_have,
 
       /* badge IDs they want from your inventory */
-      ( SELECT JSON_ARRAYAGG(sub.badge_info_id)
+      (
+        SELECT JSON_ARRAYAGG(sub.badge_info_id)
         FROM (
-          SELECT DISTINCT badge_info_id
-            FROM partner_wants
-          WHERE partner_id = mp.partner_id
+          SELECT DISTINCT sub.badge_info_id
+          FROM partner_wants
+          JOIN badge_info bi ON bi.id = partner_wants.badge_info_id
+          WHERE partner_wants.partner_id = mp.partner_id
+          ORDER BY bi.badge_name
         ) AS sub
       ) AS badge_ids_they_want_that_you_have
 

@@ -321,7 +321,7 @@ class Wishlist(commands.Cog):
   #         \/        \/ |__|             \/\/
   @wishlist_group.command(
     name="display",
-    description="List all of the badges on your current wishlist for a given Prestige Tier."
+    description="List all of the badges on your current unfulilled wishlist for a given Prestige Tier."
   )
   @option(
     name="prestige",
