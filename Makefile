@@ -35,27 +35,27 @@ start: setup ## Start the bot via python
 
 .PHONY: docker-build
 docker-build: ## Build the docker containers for the bot and the database
-	@docker-compose build
+	@docker compose build
 
 .PHONY: docker-pull
 docker-pull: ## Pull the defined upstream containers for BOT_CONTAINER_NAME and BOT_CONTAINER_VERSION
-	@docker-compose pull
+	@docker compose pull
 
 .PHONY: docker-start
 docker-start: ## Start the docker containers for the bot and the database
-	@docker-compose up
+	@docker compose up
 
 .PHONY: docker-stop
 docker-stop: ## Stop the docker containers for the bot and the database
-	@docker-compose down
+	@docker compose down
 
 .PHONY: docker-restart
 docker-restart: ## Restart the docker containers running mysql and AGIMUS
-	@docker-compose down && docker-compose up
+	@docker compose down && docker compose up
 
 .PHONY: docker-logs
 docker-logs: ## Tail the logs of running containers
-	@docker-compose logs -f
+	@docker compose logs -f
 
 .PHONY: docker-cleanup
 docker-cleanup: ## Remove all AGIMUS containers from this system
@@ -64,7 +64,7 @@ docker-cleanup: ## Remove all AGIMUS containers from this system
 
 .PHONY: docker-exec
 docker-exec: ## Get a shell in a running AGIMUS container
-	@docker-compose exec app bash
+	@docker compose exec app bash
 
 .PHONY: docker-lint
 docker-lint: ## Lint the container with dockle
@@ -75,29 +75,29 @@ docker-lint: ## Lint the container with dockle
 
 .PHONY: db-mysql
 db-mysql: ## MySQL session in running db container
-	@docker-compose exec db mysql -u$(DB_USER) -p$(DB_PASS) $(DB_NAME)
+	@docker compose exec db mysql -u$(DB_USER) -p$(DB_PASS) $(DB_NAME)
 
 .PHONY: db-bash
 db-bash: ## Bash session in running db container
-	@docker-compose exec db bash
+	@docker compose exec db bash
 
 .PHONY: db-dump
 db-dump: ## Dump the database to a file at $DB_DUMP_FILENAME
-	@docker-compose exec app mysqldump -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) -B $(DB_NAME) 2>/dev/null > $(DB_DUMP_FILENAME)
+	@docker compose exec app mysqldump -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) -B $(DB_NAME) 2>/dev/null > $(DB_DUMP_FILENAME)
 
 .PHONY: db-load
 db-load: ## Load the database from a file at $DB_DUMP_FILENAME
-	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_DUMP_FILENAME)
+	@docker compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_DUMP_FILENAME)
 
 .PHONY: db-migrate
 db-migrate: ## Apply a migration/sql file to the database from a file at the filepath saved in $(MIGRATION_FILE)
-	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(MIGRATION_FILE)
+	@docker compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(MIGRATION_FILE)
 
 .PHONY: db-seed
 db-seed: ## Reload the database from a file at $DB_SEED_FILEPATH
-	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "DROP DATABASE IF EXISTS FoD;"
-	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "create database FoD;"
-	@docker-compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_SEED_FILEPATH)
+	@docker compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "DROP DATABASE IF EXISTS FoD;"
+	@docker compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) <<< "create database FoD;"
+	@docker compose exec -T app mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME) < $(DB_SEED_FILEPATH)
 
 DB_DUMP_S3_PREFIX=$(shell date +%Y-%m-%d)
 DB_DUMP_FILENAME_WITH_TIMESTAMP=$(DB_DUMP_FILENAME)-$(shell date +%s).sql
