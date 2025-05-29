@@ -1,0 +1,63 @@
+-- Create "Echelon Veteran" badge metadata
+INSERT INTO badge_info (
+  badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference, special
+)
+VALUES (
+  "Echelon Veteran",
+  "Echelon_Veteran.png",
+  "https://drunkshimoda.com/",
+  "Alpha",
+  "2100s",
+  "The USS Hood",
+  "Commemorating Legacy Levels Before The Echelon System!",
+  1
+)
+AS new
+ON DUPLICATE KEY UPDATE badge_name = new.badge_name;
+
+-- Grant 'Echelon Veteran' badge instance to users who had legacy_level >= 2
+INSERT INTO badge_instances (
+  badge_info_id,
+  owner_discord_id,
+  origin_user_id,
+  status
+)
+SELECT
+  b.id AS badge_info_id,
+  r.user_discord_id,
+  r.user_discord_id,
+  'active'
+FROM legacy_xp_records r
+JOIN badge_info b ON b.badge_filename = 'Echelon_Veteran.png'
+WHERE r.legacy_level >= 2
+  AND NOT EXISTS (
+    SELECT 1 FROM badge_instances i
+    WHERE i.owner_discord_id = r.user_discord_id
+      AND i.badge_info_id = b.id
+  );
+
+
+-- Log these badge grants in badge_instance_history
+INSERT INTO badge_instance_history (
+  badge_instance_id,
+  from_user_id,
+  to_user_id,
+  event_type
+)
+SELECT
+  i.id,
+  NULL,
+  i.owner_discord_id,
+  'epoch'
+FROM badge_instances i
+JOIN badge_info b ON i.badge_info_id = b.id
+WHERE b.badge_filename = 'Echelon_Veteran.png'
+  AND NOT EXISTS (
+    SELECT 1 FROM badge_instance_history h
+    WHERE h.badge_instance_id = i.id
+      AND h.event_type = 'epoch'
+  );
+
+-- Tweak Crystal Rarity Ranks a bit (again)
+UPDATE crystal_ranks SET drop_chance = 1.5 WHERE name = 'Mythic';
+UPDATE crystal_ranks SET drop_chance = 0.5 WHERE name = 'Unobtainium';

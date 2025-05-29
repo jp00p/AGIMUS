@@ -14,7 +14,7 @@ PQIF_THRESHOLD = 0.10  # 10% remaining triggers PQIF
 
 BASE_BUFFER_CHANCE = 20.0
 BUFFER_GROWTH_FACTOR = 3.75
-MAX_BUFFER_FAILURE_STREAK = 4
+MAX_BUFFER_FAILURE_STREAK = 3
 
 #    _____                           .___ __________             .___
 #   /  _  \__  _  _______ _______  __| _/ \______   \_____     __| _/ ____   ____
@@ -181,9 +181,10 @@ async def award_possible_crystal_pattern_buffer(member: discord.Member) -> bool:
   Curve behavior:
     - Starts at a 20% chance to grant a crystal buffer on first level-up.
     - Each failure increases the buffer grant chance using a quadratic curve:
-        `chance = 20% + (failure_streak^2 * 3.75)`
+        `chance = BASE + (failure_streak^2 * G)`
+      where G is dynamically calculated to reach 100% on the final allowed failure.
+    - The system guarantees a 100% chance on the Nth failure, where N = MAX_BUFFER_FAILURE_STREAK.
     - Failure streak increments by 1 after each unsuccessful attempt.
-    - After N failures, the next attempt is a guaranteed 100% grant!
 
   If a buffer is granted, the failure streak resets to 0.
   If a buffer is not granted, the failure streak is incremented.
@@ -198,11 +199,13 @@ async def award_possible_crystal_pattern_buffer(member: discord.Member) -> bool:
   user_data = await db_get_echelon_progress(user_discord_id)
   failure_streak = user_data.get('buffer_failure_streak', 0)
 
+  dynamic_growth_curve = (100.0 - BASE_BUFFER_CHANCE) / (MAX_BUFFER_FAILURE_STREAK ** 2)
+
   # Calculate chance
   if failure_streak >= MAX_BUFFER_FAILURE_STREAK:
     chance = 100.0
   else:
-    chance = min(100.0, BASE_BUFFER_CHANCE + (failure_streak ** 2) * BUFFER_GROWTH_FACTOR)
+    chance = min(100.0, BASE_BUFFER_CHANCE + (failure_streak ** 2) * dynamic_growth_curve)
 
   roll = random.uniform(0, 100)
 
