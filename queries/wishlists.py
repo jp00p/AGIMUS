@@ -324,9 +324,11 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
     SELECT
       mp.partner_id AS match_discord_id,
 
-      /* badge names they have from your wishlist */
+      /* linked badge names they have from your wishlist */
       (
-        SELECT JSON_ARRAYAGG(bi.badge_name)
+        SELECT JSON_ARRAYAGG(
+          JSON_OBJECT('name', bi.badge_name, 'url', bi.badge_url)
+        )
         FROM (
           SELECT DISTINCT badge_info_id
           FROM partner_owns
@@ -340,7 +342,7 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
       (
         SELECT JSON_ARRAYAGG(sub.badge_info_id)
         FROM (
-          SELECT DISTINCT sub.badge_info_id
+          SELECT DISTINCT partner_owns.badge_info_id, bi.badge_name
           FROM partner_owns
           JOIN badge_info bi ON bi.id = partner_owns.badge_info_id
           WHERE partner_owns.partner_id = mp.partner_id
@@ -348,9 +350,11 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
         ) AS sub
       ) AS badge_ids_you_want_that_they_have,
 
-      /* badge names they want from your inventory */
+      /* linked badge names they want from your inventory */
       (
-        SELECT JSON_ARRAYAGG(bi.badge_name)
+        SELECT JSON_ARRAYAGG(
+          JSON_OBJECT('name', bi.badge_name, 'url', bi.badge_url)
+        )
         FROM (
           SELECT DISTINCT badge_info_id
           FROM partner_wants
@@ -364,7 +368,7 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
       (
         SELECT JSON_ARRAYAGG(sub.badge_info_id)
         FROM (
-          SELECT DISTINCT sub.badge_info_id
+          SELECT DISTINCT partner_wants.badge_info_id, bi.badge_name
           FROM partner_wants
           JOIN badge_info bi ON bi.id = partner_wants.badge_info_id
           WHERE partner_wants.partner_id = mp.partner_id

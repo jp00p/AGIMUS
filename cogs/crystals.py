@@ -238,7 +238,7 @@ class Crystals(commands.Cog):
     #    \_/ |_\___|\_/\_/
     class ConfirmCancelView(discord.ui.View):
       def __init__(self):
-        super().__init__(timeout=60)
+        super().__init__(timeout=120)
         self.RARITY_SUCCESS_MESSAGES = {
           'common': [
             "Another day, another Crystal for {user}.",
@@ -653,7 +653,7 @@ class Crystals(commands.Cog):
     #    \_/ |_\___|\_/\_/
     class ConfirmCancelView(discord.ui.View):
       def __init__(self):
-        super().__init__(timeout=120)
+        super().__init__(timeout=240)
 
       async def on_timeout(self):
         for child in self.children:
@@ -808,7 +808,7 @@ class Crystals(commands.Cog):
     #    \_/ |_\___|\_/\_/
     class ConfirmCancelView(discord.ui.View):
       def __init__(self):
-        super().__init__(timeout=120)
+        super().__init__(timeout=240)
 
       async def on_timeout(self):
         for child in self.children:
@@ -889,5 +889,5 @@ class RaritySelect(discord.ui.Select):
 
 class CrystalManifestView(discord.ui.View):
   def __init__(self, paginator: pages.Paginator, rarity_order: list[str]):
-    super().__init__(timeout=180)
+    super().__init__(timeout=360)
     self.add_item(RaritySelect(paginator, rarity_order))

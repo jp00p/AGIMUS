@@ -463,32 +463,33 @@ class Wishlist(commands.Cog):
         # parse the new ID arrays
         has_ids   = json.loads(m['badge_ids_you_want_that_they_have'])
         wants_ids = json.loads(m['badge_ids_they_want_that_you_have'])
-        # and still parse the display‐names
-        has_badges   = json.loads(m['badges_you_want_that_they_have'])
-        wants_badges = json.loads(m['badges_they_want_that_you_have'])
 
-        # Paginate 'has' badges
         max_per_page = 30
-        all_has = [has_badges[i:i+max_per_page] for i in range(0, len(has_badges), max_per_page)]
+        # Paginator for "What You Want"
         has_pages = []
-        total_has = len(all_has)
-        for idx, page_badges in enumerate(all_has):
+        has_badges_sorted = sorted(json.loads(m['badges_you_want_that_they_have']), key=lambda b: b['name'].casefold())
+        has_chunks = [has_badges_sorted[i:i+max_per_page] for i in range(0, len(has_badges_sorted), max_per_page)]
+        total_has = len(has_chunks)
+        for idx, page_badges in enumerate(has_chunks):
+          lines = [f"[{b['name']}]({b['url']})" for b in page_badges]
           embed = discord.Embed(
             title="What You Want",
-            description="\n".join(page_badges),
+            description="\n".join(lines) or "No matching badges.",
             color=discord.Color.blurple()
           )
           embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx+1} of {total_has}")
           has_pages.append(embed)
 
-        # Paginate 'wants' badges
-        all_wants = [wants_badges[i:i+max_per_page] for i in range(0, len(wants_badges), max_per_page)]
+        # Paginator for "What They Want"
         wants_pages = []
-        total_wants = len(all_wants)
-        for idx, page_badges in enumerate(all_wants):
+        wants_badges_sorted = sorted(json.loads(m['badges_they_want_that_you_have']), key=lambda b: b['name'].casefold())
+        wants_chunks = [wants_badges_sorted[i:i+max_per_page] for i in range(0, len(wants_badges_sorted), max_per_page)]
+        total_wants = len(wants_chunks)
+        for idx, page_badges in enumerate(wants_chunks):
+          lines = [f"[{b['name']}]({b['url']})" for b in page_badges]
           embed = discord.Embed(
             title="What They Want",
-            description="\n".join(page_badges),
+            description="\n".join(lines) or "No matching badges.",
             color=discord.Color.blurple()
           )
           embed.set_footer(text=f"Match with {partner.display_name}\nPage {idx+1} of {total_wants}")
