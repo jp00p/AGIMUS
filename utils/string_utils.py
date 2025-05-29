@@ -1,4 +1,5 @@
 # String Utils
+import random
 import re
 import string
 from io import StringIO
@@ -64,3 +65,20 @@ def is_loud(message: str) -> bool:
     return False
   # If the message forced to uppercase matches the string itself, it is LOUD
   return message.upper() == message and message.lower() != message
+
+def is_crystals(message: str) -> bool:
+  """After stripping out allowed characters, return if the remaining string contains 'crystals' or not"""
+  # Strip out emojis because these are ok to be lowercase (and will not work as uppercase)
+  message = strip_emoji(message).strip()
+  # If stripping out a tag changes the message, then it had a tag and we shouldn't trigger
+  if re.search(tag_regex, message):
+    return False
+  # Strip out any punctuation (this doesn't really matter but whatever)
+  message = re.sub(punct_regex, '', message)
+  # Only trigger on messages that have some length to them
+  word_count = len(message.split())
+  required_min = random.randint(3, 6)
+  if word_count < required_min:
+    return False
+  # If the message lowercased contains "crystals" return true
+  return 'crystal' in message.lower()

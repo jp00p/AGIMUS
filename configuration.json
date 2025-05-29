@@ -12,6 +12,9 @@
         735658100958298154
       ]
     },
+    "crystalsbot": {
+      "enabled": true
+    },
     "loudbot": {
       "enabled": true,
       "allowed_channels": [
