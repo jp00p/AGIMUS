@@ -45,7 +45,7 @@ async def xpinfo_channels(ctx:discord.ApplicationContext, public:str):
       embed=discord.Embed(
         title="XP Disabled!",
         description="You have opted out of the XP system so we cannot generate stats for you.\n\n"
-                    "To re-enable please us `/settings`! Note that it may take some time for enough data to populate for these reports.",
+                    "To re-enable please use `/settings`! Note that it may take some time for enough data to populate for these reports.",
         color=discord.Color.red()
       ).set_footer(text="You can always opt-in or opt-out again later on at any time!")
     )
@@ -176,7 +176,7 @@ def generate_top_channels_image(ctx, user_member, labels, values):
 
   size = ((300, 300))
   f_raw = Image.open(fig_filepath).convert("RGBA")
-  f_raw.thumbnail(size, Image.ANTIALIAS)
+  f_raw.thumbnail(size, Image.Resampling.LANCZOS)
   fig_image = Image.new('RGBA', size, (27, 27, 27, 0))
   fig_image.paste(
     f_raw, (int((size[0] - f_raw.size[0]) // 2), int((size[1] - f_raw.size[1]) // 2)), f_raw

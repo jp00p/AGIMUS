@@ -7,7 +7,7 @@ import discord
 from colorama import Fore, Style
 
 from common import config, logger, get_channel_id, get_channel_ids_list, get_emoji, bot, ALL_STARBOARD_POSTS
-from handlers.xp import increment_user_xp
+from handlers.xp import grant_xp
 from utils.database import AgimusDB
 
 react_threshold = 3 # how many reactions required
@@ -112,7 +112,7 @@ async def add_starboard_post(message, board) -> None:
   if len(message.attachments) <= 0 and message.content.lower().startswith("https://tenor.com/"):
     return
 
-  await increment_user_xp(message.author, 2, "starboard_post", message.channel, "Getting a Clip Show Device post") # give em that sweet sweet xp first
+  await grant_xp(message.author, 2, "starboard_post", message.channel, source="Getting a Clip Show Device post") # give em that sweet sweet xp first
   if ALL_STARBOARD_POSTS.get(board) is None:
     ALL_STARBOARD_POSTS[board] = []
   ALL_STARBOARD_POSTS[board].append(int(message.id))

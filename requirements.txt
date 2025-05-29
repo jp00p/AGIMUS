@@ -16,6 +16,7 @@ contourpy==1.2.0
 cryptography==42.0.7
 cycler==0.12.1
 docopt==0.6.2
+emoji==2.14.1
 et-xmlfile==1.1.0
 feedparser==6.0.11
 fonttools==4.47.0
@@ -31,12 +32,14 @@ huesdk==1.7
 humanize==4.9.0
 idna==3.6
 ifaddr==0.2.0
+imageio==2.37.0
 jaraco.context==4.3.0
 kaleido==0.2.1
 kiwisolver==1.4.5
 Levenshtein==0.23.0
 matplotlib==3.8.2
 more-itertools==8.14.0
+moviepy==2.1.1
 multidict==5.2.0
 mysql-connector-python==8.2.0
 num2words==0.5.13
@@ -46,11 +49,11 @@ packaging==21.3
 pandas==2.0.3
 pandas-stubs==2.0.1.230501
 pilgram==1.2.1
-Pillow==9.5.0
+pillow-simd==9.5.0.post2
 plotly==5.18.0
 prettytable==3.9.0
 protobuf==4.21.12
-py-cord==2.5.0
+py-cord==2.6.1
 pyasn1==0.5.1
 pyasn1-modules==0.3.0
 pycares==4.4.0
@@ -61,8 +64,10 @@ python-dotenv==1.0.0
 pytz==2023.3.post1
 pytz-deprecation-shim==0.1.0.post0
 rapidfuzz==3.6.1
+regex==2024.11.6
 requests==2.31.0
 rsa==4.9
+scipy==1.15.2
 sgmllib3k==1.0.0
 six==1.16.0
 soupsieve==2.3.2.post1

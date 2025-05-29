@@ -1,12 +1,17 @@
 import asyncio
 import json
+import io
 import logging
+import math
 import os
 import random
 import re
+import regex
+import textwrap
 import string
 import subprocess
 import sys
+import time
 import traceback
 import warnings
 from datetime import datetime, timezone, timedelta
@@ -26,14 +31,21 @@ from discord import option
 from discord.ext import commands, tasks, pages
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
-from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps, ImageEnhance, ImageFilter, ImageChops, ImageSequence
 from tabulate import tabulate
 from treys import Card, Deck, Evaluator, evaluator
+from typing import List, Dict
 
 #from utils.broadcast_logs import BroadcastHandler
 from utils.config_utils import get_config, deep_dict_update
 from utils.thread_utils import to_thread
 #from utils.disco_lights import LightHandler
+
+# ThreadPool for image generation tasks
+from concurrent.futures import ThreadPoolExecutor
+cpu_workers = max(1, os.cpu_count() - 1)
+# cpu_workers = 24
+THREAD_POOL = ThreadPoolExecutor(max_workers=cpu_workers)
 
 
 #   _________       __
@@ -177,7 +189,7 @@ async def get_user(discord_id:int):
     # get user basic info
     sql = """
       SELECT
-        users.*,`x
+        users.*,
         profile_photos.photo AS profile_photo,
         profile_taglines.tagline AS profile_tagline
       FROM users
@@ -354,14 +366,18 @@ def get_emoji(emoji_name:str):
 # run_make_backup()
 # util function that runs our `make db-backup` command
 # returns the new hash from git
-def run_make_backup():
-  hashes = { "old":"", "new":"" }
-  raw_new_hash = []
-  os.system("make db-backup")
-  with os.popen("cd database && git rev-parse HEAD") as line:
-    raw_new_hash = line.readlines()
-  hashes["new"] = raw_new_hash[-1].replace("\n", "")
-  return hashes
+async def run_make_backup():
+  backup_info = {"url": "", "backup_name":""}
+  os.system("make db-backup --no-print-directory")
+  raw_new_backup = []
+  with os.popen("make db-get-latest-backup --no-print-directory") as line:
+    raw_new_backup = line.readlines()
+    backup_info["backup_name"] = raw_new_backup[-1].replace("\n", "")
+    raw_presigned_url = []
+  with os.popen("make db-get-latest-backup-download-url --no-print-directory") as line:
+    raw_presigned_url = line.readlines()
+    backup_info["url"] = raw_presigned_url[-1].replace("\n", "")
+  return backup_info
 
 # run_make_badger()
 # util function that runs our `make update-badges` command
@@ -418,3 +434,27 @@ def remove_emoji(s: str) -> str:
   Cleans out values unprintable in our font.  cp1252 because there are a handful of chars in the font not in latin_1
   """
   return s.replace("€", '').encode("cp1252", errors="ignore").decode("cp1252").strip()
+
+
+IRREGULAR_MEM_ALPHA_LINKS = None
+
+def make_memory_alpha_link(name: str) -> str:
+  """
+  Convert the name of this person/ship/tech into a link to https://memory-alpha.fandom.com.  There are exceptions, and
+  they are stored in characters_mem_alpha_links.json.  But it’s still better
+  """
+  global IRREGULAR_MEM_ALPHA_LINKS
+  if IRREGULAR_MEM_ALPHA_LINKS is None:
+    with open("data/characters_mem_alpha_links.json") as f:
+      IRREGULAR_MEM_ALPHA_LINKS = json.load(f)
+
+  if name.startswith("A "):
+    return name
+  if name in IRREGULAR_MEM_ALPHA_LINKS:
+    link = IRREGULAR_MEM_ALPHA_LINKS[name]
+    if link:  # can be null if no link exists
+      return f"[{name}]({link})"
+    else:
+      return name
+  link_name = re.sub(r'".*" ', '', name) if '"' in name else name  # "nicknames" are not included in the links
+  return f"[{name}](https://memory-alpha.fandom.com/wiki/{link_name.replace(' ', '_')})"

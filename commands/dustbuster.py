@@ -14,7 +14,7 @@ async def dustbuster(ctx:discord.ApplicationContext):
   crew_list = "\n\n"
   crew = random.sample(characters, k=5)
   for c in crew:
-    crew_list += f"> {c} \n"
+    crew_list += f"> {make_memory_alpha_link(c)}\n"
   embed = discord.Embed(
     title="Dustbuster Club",
     description="What kind of mission would this Dustbuster Club be suited for?",

@@ -129,6 +129,14 @@ all_shows = {
     "animated": False,
     "pod": "tgt"
   },
+  "bsg": {
+    "tmdb": 1972,
+    "title": "Battlestar Galactica",
+    "trek": False,
+    "animated": False,
+    "pod": "tgt",
+    # "pod_name": "Battlestar Galactica"
+  },
 }
 
 podcasts = {
@@ -161,7 +169,7 @@ class ShowGenerator:
     
     self.run_tmdb = update_details
     self.run_pod = update_podcast
-    self.run_memory_alpha = update_memory_alpha
+    self.run_memory_alpha = update_memory_alpha and self.show_settings['trek']
     
     if self.run_tmdb:
       self.get_tmdb_api()

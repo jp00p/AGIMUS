@@ -2,7 +2,6 @@ import math
 from re import S
 
 from common import *
-from handlers.xp import increment_user_xp
 from utils.show_utils import get_show_embed
 from utils.check_channel_access import access_check
 
@@ -148,7 +147,6 @@ class Quiz(commands.Cog):
             award = math.ceil(award / 2)
 
           await set_player_score(ctx.author, award)
-          await increment_user_xp(ctx.author, 1, "quiz_win", ctx.channel, "Winning a round of Quiz")
 
           if id not in self.fuzz:
             score_str = "`Correctitude: " + str(normalness) +"`"

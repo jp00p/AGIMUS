@@ -1,0 +1,2 @@
+INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
+('Guardian Stone', 3, 'guardian_stone.png', 'guardian_of_forever', "Seems nearly sentient. You could look at these Edges nearly Forever.");

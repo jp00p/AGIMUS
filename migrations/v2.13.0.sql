@@ -1,0 +1,2 @@
+ALTER TABLE food_war DROP COLUMN days;
+ALTER TABLE sub_rosa DROP COLUMN days;

@@ -1,41 +1,39 @@
 from common import *
-from handlers.xp import get_user_xp, get_xp_cap_progress, calculate_xp_for_next_level
+from handlers.echelon_xp import get_xp_summary
 
 @bot.slash_command(
   name="levelcheck",
-  description="Display how close to your next level you are"
+  description="Display how close you are to your next Echelon Level"
 )
-async def levelcheck(ctx:discord.ApplicationContext):
-  user_xp_data = await get_user_xp(ctx.author.id)
-  current_xp = user_xp_data["xp"]
-  current_level = user_xp_data["level"]
+async def levelcheck(ctx: discord.ApplicationContext):
+  await ctx.defer(ephemeral=True)
 
-  previous_level_xp = calculate_xp_for_next_level(current_level - 1)
-  base_xp = current_xp - previous_level_xp
-  goal_xp = calculate_xp_for_next_level(current_level) - previous_level_xp
+  xp_data = await get_xp_summary(ctx.author.id)
 
-  if current_level >= 176:
-    # High Levelers - Static Level Up Progression per Every 420 XP
-    cap_progress = await get_xp_cap_progress(ctx.author.id)
-    if cap_progress is not None:
-      base_xp = cap_progress
-      goal_xp = 420
+  level = xp_data['level']
+  xp_into_level = xp_data['xp_into_level']
+  xp_required = xp_data['xp_required']
+  total_xp = xp_data['total_xp']
 
   embed = discord.Embed(
-    title="Level Up Progress:",
-    description=f"**Current Level:** {current_level}\n\n",
-    color=discord.Color.random()
+    title="📈 Echelon XP Progress",
+    color=discord.Color.teal()
   )
   embed.add_field(
-    name="Progress",
-    value=f"{base_xp}xp / {goal_xp}xp"
+    name="Current Echelon",
+    value=f"Level **{level}**",
+    inline=False
   )
   embed.add_field(
-    name=f"Total XP",
-    value=f"{current_xp}xp"
+    name="Progress to Next Level",
+    value=f"{xp_into_level:,} / {xp_required:,} XP",
+    inline=False
   )
+  embed.add_field(
+    name="Total XP Earned",
+    value=f"{total_xp:,} XP",
+    inline=False
+  )
+  embed.set_footer(text="Type '/profile' for all your deets.")
 
-  await ctx.respond(
-    embed=embed,
-    ephemeral=True
-  )
+  await ctx.respond(embed=embed)

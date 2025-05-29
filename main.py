@@ -8,7 +8,8 @@ import aiohttp
 
 # Slash Commands
 from commands.aliases import aliases
-from commands.badges import *
+from commands.bless import bless
+from commands.curse import curse
 from commands.dice import dice
 from commands.dustbuster import dustbuster
 from commands.fmk import fmk
@@ -25,12 +26,14 @@ from commands.scores import scores
 from commands.setwager import setwager
 from commands.shimoda import shimoda
 from commands.speak import speak, speak_embed
+from commands.spongebob import spongebob
 from commands.sub_rosa import sub_rosa
 from commands.trekduel import trekduel
 from commands.trektalk import trektalk
 from commands.tuvix import tuvix
 from commands.user_tags import tag_user, untag_user, display_tags
-from commands.xpinfo import xpinfo_channels, xpinfo_activity
+# from commands.wrapped import wrapped
+# from commands.xpinfo import xpinfo_channels, xpinfo_activity
 
 # Slash Command Groups
 import commands.birthday
@@ -39,7 +42,6 @@ import commands.drop
 
 # Bang
 from commands.clear_media import clear_media
-from commands.nuke_maquis import nuke_maquis
 from commands.ping import ping
 from commands.q import qget, qset
 from commands.update_status import update_status
@@ -48,9 +50,16 @@ from commands.update_status import update_status
 from commands.computer import computer
 
 # Cogs
+if config["DEBUG"]:
+  from cogs.debug import Debug
+  bot.add_cog(Debug(bot))
+
+from cogs.admin import Admin
 from cogs.backups import Backups
+from cogs.badges import Badges
 from cogs.badge_tags import BadgeTags
 from cogs.chaoszork import ChaosZork, HitchHikers
+from cogs.crystals import Crystals
 from cogs.poker import Poker
 from cogs.profile import Profile
 from cogs.quiz import Quiz
@@ -59,14 +68,15 @@ from cogs.shop import Shop
 from cogs.slots import Slots
 from cogs.tongo import Tongo
 from cogs.trade import Trade
-from cogs.update_badges import UpdateBadges
 from cogs.randomep import RandomEp
-from cogs.react_roles import ReactRoles
-from cogs.wishlist import Wishlist
+from cogs.wishlists import Wishlist
 from cogs.wordcloud import Wordcloud
+bot.add_cog(Admin(bot))
 bot.add_cog(Backups(bot))
+bot.add_cog(Badges(bot))
 bot.add_cog(BadgeTags(bot))
 bot.add_cog(ChaosZork(bot))
+bot.add_cog(Crystals(bot))
 bot.add_cog(HitchHikers(bot))
 bot.add_cog(Poker(bot))
 bot.add_cog(Profile(bot))
@@ -77,12 +87,11 @@ bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))
 bot.add_cog(Tongo(bot))
 bot.add_cog(Trade(bot))
-bot.add_cog(UpdateBadges(bot))
 bot.add_cog(Wishlist(bot))
 bot.add_cog(Wordcloud(bot))
 if config["roles"]["reaction_roles_enabled"]:
+  from cogs.react_roles import ReactRoles
   bot.add_cog(ReactRoles(bot))
-
 
 ## Trivia relies on an external JSON request which might fail, in that case log the error but continue
 try:
@@ -100,21 +109,23 @@ from handlers.reply_restricted import handle_reply_restricted
 from handlers.save_message import save_message_to_db
 from handlers.server_logs import *
 from handlers.starboard import db_get_all_starboard_posts, handle_starboard_reactions
-from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_react_xp, increment_user_xp
+from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_react_xp
+
+# Utils
+from utils.check_channel_access import perform_channel_check
+from utils.image_utils import preload_image_assets
+from utils.exception_logger import setup_exception_logging, exception_report_task, exception_log_lines
 
 # Tasks
 from tasks.backups import backups_task
 from tasks.badger import badger_task
 from tasks.bingbong import bingbong_task
-from tasks.channel_cleanup import channel_cleanup_task
+from tasks.birthdays import birthdays_task
 from tasks.hoodiversaries import hoodiversary_task
 from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
-from tasks.birthdays import birthdays_task
+# from tasks.wrapped_generation import wrapped_generation_task
 
-
-# Utils
-from utils.check_channel_access import perform_channel_check
 
 background_tasks = set() # for non-blocking tasks
 logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}{Style.RESET_ALL}")
@@ -170,6 +181,9 @@ async def on_ready():
     number_of_starboard_posts = sum([len(ALL_STARBOARD_POSTS[p]) for p in ALL_STARBOARD_POSTS])
     for emoji in bot.emojis:
       config["all_emoji"][emoji.name] = emoji
+
+    # Preload commonly used image assets into memory (badge icons, etc)
+    await preload_image_assets()
 
     # Print AGIMUS ANSI Art
     print_agimus_ansi_art()
@@ -286,21 +300,34 @@ async def on_typing(channel, user, when):
     ALL_USERS[await register_user(user)] = True
 
 # listen to reactions
-# TODO: change to on_raw_reaction_add so old messages are counted too!
-@bot.event
-async def on_reaction_add(reaction, user):
-  await handle_react_xp(reaction, user)
-
-# listen to raw reactions
 @bot.event
 async def on_raw_reaction_add(payload):
   if payload.event_type == "REACTION_ADD":
     await handle_starboard_reactions(payload)
+    try:
+      channel = bot.get_channel(payload.channel_id)
+      if not channel:
+        channel = await bot.fetch_channel(payload.channel_id)
+      message = await channel.fetch_message(payload.message_id)
+      user = payload.member or await bot.fetch_user(payload.user_id)
+      # Use string comparison to match emoji properly
+      reaction = next(
+        (r for r in message.reactions if str(r.emoji) == str(payload.emoji)),
+        None
+      )
+      if reaction and user:
+        await handle_react_xp(reaction, user)
+    except Exception as e:
+      logger.warning(f"on_raw_reaction_add error: {e}")
+      raise
 
-# listen to event creations (streams, pub trivia, etc)
+
+# listen to sceheduled event updates (streams, pub trivia, etc)
 @bot.event
-async def on_scheduled_event_create(event):
-  await handle_event_creation_xp(event)
+async def on_scheduled_event_update(before: discord.ScheduledEvent, after: discord.ScheduledEvent):
+  # Only award XP when the event starts
+  if before.status != after.status and after.status == discord.ScheduledEventStatus.active:
+    await handle_event_creation_xp(after)
 
 # listen to server join/leave events
 @bot.event
@@ -359,6 +386,13 @@ async def on_application_command_error(ctx, error):
     # it means the check is succeeding in blocking access
     pass
   else:
+    tb_str = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
+    exception_log_lines.append(tb_str)
+
+    # Also print to terminal
+    # sys.__stderr__.write(tb_str)
+    # sys.__stderr__.flush()
+
     logger.error(f"{Fore.RED}Error encountered in slash command: /{ctx.command}")
     logger.info(traceback.print_exception(type(error), error, error.__traceback__))
 
@@ -387,10 +421,11 @@ scheduled_tasks = [
   backups_task(bot),
   badger_task(bot),
   bingbong_task(bot),
-  channel_cleanup_task(bot),
+  birthdays_task(bot),
+  exception_report_task(bot),
   hoodiversary_task(bot),
   weyounsday_task(bot),
-  birthdays_task(bot),
+  # wrapped_generation_task(bot)
 ]
 scheduler = Scheduler()
 for task in scheduled_tasks:
@@ -398,4 +433,5 @@ for task in scheduled_tasks:
 scheduler.start()
 
 # Engage!
+setup_exception_logging()
 bot.run(DISCORD_TOKEN)

@@ -1,4 +1,5 @@
 {
+  "DEBUG": false,
   "handlers": {
     "alerts": {
       "alertworthy_users": [
@@ -17,7 +18,9 @@
         "after-dinner-conversation",
         "badgeys-badges",
         "bahrats-bazaar",
-        "dabo-table",
+        "zeks-table",
+        "gelrak-v",
+        "the-royale",
         "dr-crushers-hotbox",
         "megalomaniacal-computer-storage",
         "morns-nonstop-quiz",
@@ -39,16 +42,15 @@
         "lieutenants-lounge",
         "mclaughlin-group",
         "mo-pips-mo-problemz",
+        "shimoda-corner",
         "code-47",
-        "maquis-officers-club",
         "robot-diagnostics",
         "megalomaniacal-computer-storage",
         "bot-logs",
         "bot-setup",
-        "dabo-table",
+        "the-royale",
         "poker-night",
-        "morns-nonstop-quiz",
-        "badgeys-badges"
+        "morns-nonstop-quiz"
       ]
     },
     "starboard": {
@@ -68,9 +70,9 @@
         "rikers-quarters",
         "code-47",
         "mo-pips-mo-problemz",
+        "shimoda-corner",
         "mclaughlin-group",
         "lieutenants-lounge",
-        "maquis-officers-club",
         "captains-log",
         "bot-setup",
         "bosuns-whistle",
@@ -147,13 +149,7 @@
       "blocked_channels": [
         "neelixs-morale-office",
         "plasma-vent",
-        "counselor-trois-waiting-room",
-        "heuristic-associative-pathways",
-        "mo-pips-mo-problemz",
-        "code-47",
-        "maquis-officers-club",
         "badgeys-badges",
-        "megalomaniacal-computer-storage",
         "crackling-speaker-grille"
       ],
       "notification_channel": "badgeys-badges",
@@ -172,7 +168,6 @@
         "https://c.tenor.com/rk677505xlQAAAAC/star-trek-the-next-generation.gif",
         "https://c.tenor.com/EfZmLCDdT7kAAAAC/star-trek-the-next-generation.gif",
         "https://c.tenor.com/sthnfRFym8kAAAAC/star-trek-the-next-generation.gif",
-        "https://c.tenor.com/tI7k7AyaUfsAAAAC/star-trek-the-next-generation.gif",
         "https://c.tenor.com/Z_xQE0eD-9YAAAAd/picard-welcome.gif",
         "https://c.tenor.com/l6adrmPYjmIAAAAd/drunk-pingpong.gif",
         "https://c.tenor.com/tD4HUxKqh9EAAAAC/star-trek-the-next-generation.gif",
@@ -196,7 +191,8 @@
         "https://c.tenor.com/VYcQGFnzWy8AAAAd/ben-harrison-adam-pranica.gif",
         "https://c.tenor.com/_gnSj8sS_tcAAAAd/star-trek-the-next-generation.gif",
         "https://c.tenor.com/foHAwhrbPdUAAAAd/lower-decks-star-trek.gif",
-        "https://c.tenor.com/lFsCnO6JxgcAAAAC/tgg-the-greatest-generation.gif"
+        "https://c.tenor.com/lFsCnO6JxgcAAAAC/tgg-the-greatest-generation.gif",
+        "https://i.imgur.com/Z28FxRP.gif"
       ],
       "celebration_images": [
         "https://i.imgur.com/615nqFZ.jpg",
@@ -280,7 +276,6 @@
         "https://i.imgur.com/ezl3Kax.gif",
         "https://i.imgur.com/Ga2IUGX.gif",
         "https://i.imgur.com/hqvegwR.gif",
-        "https://i.imgur.com/Gvgq4kj.gif",
         "https://i.imgur.com/mLLslV6.gif",
         "https://i.imgur.com/xQ9GxlD.gif",
         "https://i.imgur.com/rILT7JI.gif"
@@ -307,19 +302,16 @@
     },
     "reply_restricted": {
       "blocked_channels": [
-        "plasma-vent",
-        "neelixs-morale-office"
+        "plasma-vent"
+      ]
+    },
+    "server_logs": {
+      "nick_change_ignore_list": [
+        634585800172109826
       ]
     }
   },
   "tasks": {
-    "weyounsday": {
-      "channels": [
-        "general-trek"
-      ],
-      "crontab": "15 8 * * WED",
-      "enabled": true
-    },
     "backups": {
       "crontab": "0 */6 * * *",
       "enabled": false
@@ -335,11 +327,19 @@
       "crontab": "0 * * * *",
       "enabled": false
     },
-    "channel_cleanup": {
+    "birthdays": {
       "channels": [
-        "maquis-officers-club"
+        "captain-picard-day"
       ],
-      "crontab": "10 */6 * * *",
+      "crontab": "30 8 * * *",
+      "enabled": true,
+      "data": "data/birthdays.json"
+    },
+    "exception_report": {
+      "channels": [
+        "bot-logs"
+      ],
+      "crontab": "*/5 * * * *",
       "enabled": true
     },
     "hoodiversary": {
@@ -349,13 +349,18 @@
       "crontab": "15 8 * * *",
       "enabled": true
     },
-    "birthdays": {
+    "weyounsday": {
       "channels": [
-        "captain-picard-day"
+        "general-trek"
       ],
-      "crontab": "30 8 * * *",
-      "enabled": true,
-      "data": "data/birthdays.json"
+      "crontab": "15 8 * * WED",
+      "enabled": true
+    },
+    "wrapped_generation": {
+      "channels": [],
+      "crontab": "*/3 * * * *",
+      "enabled": false,
+      "maintainer_user_id": 735658100958298154
     }
   },
   "commands": {
@@ -369,21 +374,12 @@
       "enabled": true,
       "parameters": []
     },
-    "reports": {
-      "channels": [
-        "lieutenants-lounge",
-        "mclaughlin-group",
-        "mo-pips-mo-problems",
-        "code-47",
-        "robot-diagnostics"
-      ],
-      "enabled": true,
-      "parameters": []
-    },
     "badges completion": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "gelrak-v",
+        "zeks-table"
       ],
       "enabled": true,
       "parameters": []
@@ -391,15 +387,24 @@
     "badges sets": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "gelrak-v",
+        "zeks-table"
       ],
+      "enabled": true,
+      "parameters": []
+    },
+    "badges spotlight": {
+      "channels": [],
       "enabled": true,
       "parameters": []
     },
     "badges status": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "gelrak-v",
+        "zeks-table"
       ],
       "enabled": true,
       "parameters": []
@@ -407,9 +412,17 @@
     "badges scrap": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "gelrak-v",
+        "zeks-table"
       ],
       "enabled": true,
+      "parameters": []
+    },
+    "bless": {
+      "channels": [],
+      "enabled": true,
+      "data": "data/blessings.json",
       "parameters": []
     },
     "clear_media": {
@@ -440,6 +453,32 @@
       "channels": [],
       "enabled": true,
       "data": null,
+      "parameters": []
+    },
+    "crystals activate": {
+      "channels": [],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "crystals attach": {
+      "channels": [],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "crystals replicate": {
+      "channels": [
+        "gelrak-v"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "curse": {
+      "channels": [],
+      "enabled": true,
+      "data": "data/curses.json",
       "parameters": []
     },
     "dustbuster": {
@@ -483,6 +522,21 @@
       "parameters": []
     },
     "food_war check": {
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-waiting-room",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "the-next-next-generation",
+        "sicks-bay"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "food_war record": {
       "blocked_channels": [
         "neelixs-morale-office",
         "plasma-vent",
@@ -569,16 +623,6 @@
       "data": null,
       "parameters": []
     },
-    "nuke_maquis": {
-      "allowed_roles": [
-        "Admiral",
-        "Captain"
-      ],
-      "channels": [],
-      "enabled": true,
-      "data": null,
-      "parameters": []
-    },
     "ping": {
       "channels": [
         "robot-diagnostics"
@@ -659,9 +703,20 @@
       "data": null,
       "parameters": []
     },
+    "reports": {
+      "channels": [
+        "lieutenants-lounge",
+        "mclaughlin-group",
+        "mo-pips-mo-problemz",
+        "code-47",
+        "robot-diagnostics"
+      ],
+      "enabled": true,
+      "parameters": []
+    },
     "setwager": {
       "channels": [
-        "dabo-table",
+        "the-royale",
         "poker-night"
       ],
       "enabled": true,
@@ -670,7 +725,7 @@
     },
     "scores": {
       "channels": [
-        "dabo-table",
+        "the-royale",
         "morns-nonstop-quiz",
         "poker-night",
         "after-dinner-conversation",
@@ -688,7 +743,7 @@
     },
     "slots spin": {
       "channels": [
-        "dabo-table"
+        "the-royale"
       ],
       "enabled": true,
       "data": "data/slots.json",
@@ -708,7 +763,7 @@
     },
     "slots jackpot": {
       "channels": [
-        "dabo-table"
+        "the-royale"
       ],
       "enabled": true,
       "data": null,
@@ -716,7 +771,31 @@
     },
     "slots jackpots": {
       "channels": [
-        "dabo-table"
+        "the-royale"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "speak": {
+      "allowed_roles": [
+        "Admiral",
+        "Captain"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "spongebob": {
+      "blocked_channels": [
+        "neelixs-morale-office",
+        "plasma-vent",
+        "counselor-trois-waiting-room",
+        "peoples-resistance-front-of-bajor",
+        "heuristic-associative-pathways",
+        "behind-the-visor",
+        "the-next-next-generation",
+        "sicks-bay"
       ],
       "enabled": true,
       "data": null,
@@ -740,31 +819,39 @@
     "sub_rosa reset": {
       "allowed_roles": [
         "Admiral",
-        "Captain"
+        "Captain",
+        "Commander",
+        "Lt. Commander",
+        "Lieutenant",
+        "Ensign"
       ],
       "enabled": true,
       "data": null,
       "parameters": []
     },
-    "tags tag": {
+    "badge_tags collection": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "gelrak-v",
+        "zeks-table"
       ],
       "enabled": true,
       "parameters": []
     },
-    "tags showcase": {
+    "badge_tags tag": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "gelrak-v",
+        "zeks-table"
       ],
       "enabled": true,
       "parameters": []
     },
     "testslots": {
       "channels": [
-        "dabo-table",
+        "the-royale",
         "robot-diagnostics"
       ],
       "enabled": true,
@@ -773,7 +860,15 @@
     },
     "tongo confront": {
       "channels": [
-        "bahrats-bazaar"
+        "zeks-table"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "tongo dividends": {
+      "channels": [
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -781,7 +876,7 @@
     },
     "tongo index": {
       "channels": [
-        "bahrats-bazaar"
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -789,7 +884,7 @@
     },
     "tongo": {
       "channels": [
-        "bahrats-bazaar"
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -797,7 +892,7 @@
     },
     "tongo risk": {
       "channels": [
-        "bahrats-bazaar"
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -805,7 +900,7 @@
     },
     "tongo venture": {
       "channels": [
-        "bahrats-bazaar"
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -918,7 +1013,7 @@
         "lieutenants-lounge",
         "mclaughlin-group",
         "mo-pips-mo-problemz",
-        "maquis-officers-club",
+        "shimoda-corner",
         "code-47",
         "robot-diagnostics",
         "megalomaniacal-computer-storage",
@@ -941,10 +1036,23 @@
       "data": null,
       "parameters": []
     },
+    "wishlist display": {
+      "channels": [
+        "badgeys-badges",
+        "bahrats-bazaar",
+        "gelrak-v",
+        "zeks-table"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "wishlist dismissals": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "gelrak-v",
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -953,7 +1061,9 @@
     "wishlist matches": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "gelrak-v",
+        "zeks-table"
       ],
       "enabled": true,
       "data": null,
@@ -962,8 +1072,16 @@
     "wishlist partial_matches": {
       "channels": [
         "badgeys-badges",
-        "bahrats-bazaar"
+        "bahrats-bazaar",
+        "gelrak-v",
+        "zeks-table"
       ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "wrapped": {
+      "channels": [],
       "enabled": true,
       "data": null,
       "parameters": []
@@ -1004,6 +1122,61 @@
       ],
       "enabled": true,
       "data": null,
+      "parameters": []
+    },
+    "zed_ops clear_crystal_effects_cache": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops grant_random_badge": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops grant_specific_badge": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops grant_crystal_buffer_patterns": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops check_tongo_games": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops set_tongo_game_status": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops manage_tongo_game": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops repair_levels": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops repair_levelup_badges": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "referee confront_tongo_game": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "referee zek_investment": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
       "parameters": []
     }
   },

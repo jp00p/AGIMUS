@@ -18,7 +18,10 @@ async def fmk(ctx:discord.ApplicationContext):
   choices = random.sample(fmk_characters, k=3)
   embed = discord.Embed(
     title="Fuck, Marry, Kill (or Kiss)",
-    description=f"Who will it be?\n\nAggy selects:\n- {choices[0]}\n- {choices[1]}\n- {choices[2]}\n\nAggy thinks they'd:",
+    description=(f"Who will it be?\n\nAggy selects:\n"
+                 f"- {make_memory_alpha_link(choices[0])}\n"
+                 f"- {make_memory_alpha_link(choices[1])}\n"
+                 f"- {make_memory_alpha_link(choices[2])}\n\nAggy thinks they'd:"),
     color=discord.Color.dark_gold()
   )
   embed.add_field(

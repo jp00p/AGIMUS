@@ -6,7 +6,7 @@
   },
   "Alien Trash Of The Galaxy": {
     "file": "data/drops/alientrashofthegalaxy.mp4",
-    "description": "Admiral Cartwright: The alien trash of the galaxy.",
+    "description": "Admiral Cartwright: The alien trash of the galaxy. Dr Z Made",
     "url": "https://i.imgur.com/9ZaFArE.mp4"
   },
   "All I Do Is Bits, Bits, Bits (Bad Bit Moment)": {
@@ -18,6 +18,11 @@
     "file": "data/drops/goodbitmoment.mp4",
     "description": "All I do is Bits, Bits, Bits! No matter what! Good Bit Moment",
     "url": "https://i.imgur.com/F8Y1PWG.mp4"
+  },
+  "Am I A Bet? AM I A FUCKING BET?": {
+    "file": "data/drops/amiabet.mp4",
+    "description": "She's All That: Am I A Bet?",
+    "url": "https://i.imgur.com/mwNrDQn.mp4"
   },
   "Ankylosaur": {
     "file": "data/drops/ankylosaur.mp4",
@@ -31,7 +36,7 @@
   },
   "Bajoran Tablet: I'm A Running Character!": {
     "file": "data/drops/imarunningcharacter.mp4",
-    "description": "Mr. Bajoran Tablet: I'm a running character!",
+    "description": "Mr. Bajoran Tablet: I'm a running character! Dr Z Made",
     "url": "https://i.imgur.com/hzFS7TG.mp4"
   },
   "Ball Kicking Machine": {
@@ -59,6 +64,11 @@
     "description": "Ben is Ben's Going To Gonna Talk About Africa song",
     "url": "https://i.imgur.com/UyqYbwe.mp4"
   },
+  "Ben's Hypercompliance": {
+    "file": "data/drops/benshypercompliance.mp4",
+    "description": "Ben's Hypercomplaince",
+    "url": "https://i.imgur.com/4HXNkLk.mp4"
+  },
   "Bible Study": {
     "file": "data/drops/biblestudy.mp4",
     "description": "Bible Study. The way god wants it.",
@@ -76,7 +86,7 @@
   },
   "Bring Them To Their Knees": {
     "file": "data/drops/bringthemtotheirknees.mp4",
-    "description": "Admiral Cartwright: The opportunity here is to bring them to their knees.",
+    "description": "Admiral Cartwright: The opportunity here is to bring them to their knees. Dr Z Made",
     "url": "https://i.imgur.com/8slokk5.mp4"
   },
   "Buddy Husnock": {
@@ -166,7 +176,7 @@
   },
   "Drugs... Can Make You Feel Good": {
     "file": "data/drops/drugscanmakeyoufeelgood.mp4",
-    "description": "Tasha Yar: Drugs can make you feel good",
+    "description": "Tasha Yar: Drugs can make you feel good. Dr Z Made",
     "url": "https://i.imgur.com/uv0IR8z.mp4"
   },
   "Drunk Shimoda": {
@@ -206,7 +216,7 @@
   },
   "First Contact": {
     "file": "data/drops/firstcontact.mp4",
-    "description": "First Contact",
+    "description": "First Contact. Dr Z Mix",
     "url": "https://i.imgur.com/2v5GLsT.mp4"
   },
   "For Some Reason Jake": {
@@ -258,6 +268,11 @@
     "file": "data/drops/getalife.mp4",
     "description": "William Shatner: Get a life!",
     "url": "https://i.imgur.com/hxSpm9H.mp4"
+  },
+  "Get Out Of My Chair (Chair... Chair... Chair...)": {
+    "file": "data/drops/getoutofmychair.mp4",
+    "description": "Picard: Get Out Of My Chair",
+    "url": "https://i.imgur.com/BwSIQ1m.mp4"
   },
   "Get That-Get That Gold Pressed Latinum!": {
     "file": "data/drops/goldpressedlatinum.mp4",
@@ -364,10 +379,20 @@
     "description": "It means Omerta. It means Rewenge.",
     "url": "https://i.imgur.com/kWj4YiA.mp4"
   },
+  "Jazz Horse": {
+    "file": "data/drops/jazzhorse.mp4",
+    "description": "Jazz Horse. Red Dead Redemption. Video Games.",
+    "url": "https://i.imgur.com/RyrQ6yw.mp4"
+  },
   "KETCHUP!": {
     "file": "data/drops/ketchup.mp4",
     "description": "Space Precinct. Pilot Season.",
     "url": "https://i.imgur.com/YgKG1bc.mp4"
+  },
+  "Kitty Cat Tambourine": {
+    "file": "data/drops/kittycattambourine.mp4",
+    "description": "Cat I'm A Kitty Cat and I meow meow meow and I meow meow meow and I dance dance dance, and I dance dance dance.",
+    "url": "https://i.imgur.com/Wo5PJZ0.mp4"
   },
   "Klingon Sting (Kurn Trumpets)": {
     "file": "data/drops/klingonsting.mp4",
@@ -384,6 +409,11 @@
     "description": "LeVar Burton: BULLSHIT man it's just bullshit.",
     "url": "https://i.imgur.com/U0WQO9g.mp4"
   },
+  "Machine Learning (With My Nose!?)": {
+    "file": "data/drops/machinelearning.mp4",
+    "description": "Machine Learning. How do you expect me to type? Not with your fingers. With my nose? Stop. Stop it.",
+    "url": "https://i.imgur.com/TdksyAS.mp4"
+  },
   "Madlibs": {
     "file": "data/drops/madlibs.mp4",
     "description": "Madlibs",
@@ -398,6 +428,11 @@
     "file": "data/drops/extended/mappableassplace.mp4",
     "description": "WAP Wet Ass Pussy Mappable Ass Place Song",
     "url": ""
+  },
+  "Meraviglioso": {
+    "file": "data/drops/meraviglioso.mp4",
+    "description": "Marvelous. Marlivioso. Marlevioso. Meraviglioso. Leonardo Da Vinci. Esatto.",
+    "url": "https://i.imgur.com/C8Khwnq.mp4"
   },
   "Mayqueese": {
     "file": "data/drops/mayqueese.mp4",
@@ -439,6 +474,11 @@
     "description": "Mr Mister Bucket",
     "url": "https://i.imgur.com/PBONtSF.mp4"
   },
+  "Mr. Worf... FIRE": {
+    "file": "data/drops/mrworffire.mp4",
+    "description": "Best of Both Worlds. To Be Continued. Riker. Mr Worf Fire.",
+    "url": "https://i.imgur.com/INCNght.mp4"
+  },
   "Neelix Foot Orgasm": {
     "file": "data/drops/neelixfootorgasm.mp4",
     "description": "Neelix Foot Massage Orgasm Ooo Gooning",
@@ -446,8 +486,13 @@
   },
   "Neutrogena T/Gel: It Works": {
     "file": "data/drops/neutrogenatgelitworks.mp4",
-    "description": "Michael Dorn: Neutrogena T Gel, it works!",
+    "description": "Michael Dorn: Neutrogena T Gel, it works! Made by Dr. Z",
     "url": "https://i.imgur.com/sWToO17.mp4"
+  },
+  "Never Gonna Let That Go, Are Ya?": {
+    "file": "data/drops/nevergonnaletthatgo.mp4",
+    "description": "Trip Tucker: You're Never Gonna Let That Go, Are Ya? Arm Nipples",
+    "url": "https://i.imgur.com/vpGblYH.mp4"
   },
   "NIGHT CREW!!! ... Beer Me!": {
     "file": "data/drops/nightcrewbeerme.mp4",
@@ -456,7 +501,7 @@
   },
   "Not Everybody Keeps Their Genitals In The Same Place": {
     "file": "data/drops/genitalsinthesameplace.mp4",
-    "description": "Not everybody keeps their genitals in the same place, Captain",
+    "description": "Not everybody keeps their genitals in the same place, Captain. Dr Z Made",
     "url": "https://i.imgur.com/VSQGV8j.mp4"
   },
   "One Of The Greatest Creative Minds": {
@@ -524,6 +569,16 @@
     "description": "Raincheck Segment",
     "url": "https://i.imgur.com/UAXeJQ8.mp4"
   },
+  "Rura Penthe (No Guard Tower...)": {
+    "file": "data/drops/rurapenthe.mp4",
+    "description": "There is no stockade; no guard tower; no electronic frontier.",
+    "url": "https://i.imgur.com/S5AtaR4.mp4"
+  },
+  "Russians Don't Take A Dump Without A Plan": {
+    "file": "data/drops/dumpwithoutaplan.mp4",
+    "description": "The Hunt for Red October. Russians don't take a dump without a plan.",
+    "url": "https://i.imgur.com/MifrSy8.mp4"
+  },
   "Replicator: Make It Yourself": {
     "file": "data/drops/replicatormakeityourself.mp4",
     "description": "Coffee Black Replicator Make It Yourself",
@@ -551,8 +606,18 @@
   },
   "Shipwide Announcement": {
     "file": "data/drops/shipwideannouncement.mp4",
-    "description": "Shipwide Announcement",
-    "url": "https://i.imgur.com/wJVjSWw.mp4"
+    "description": "Shipwide Announcement. Dr Z Mix",
+    "url": "https://i.imgur.com/Bq4ffXX.mp4"
+  },
+  "Size 54 Waist. 10 Inch Legs. Fuckin' Junk": {
+    "file": "data/drops/fuckinjunk.mp4",
+    "description": "I Think You Should Leave. Chode Jeans. Fifty Four Inch Waist. Ten Inch Legs. Fucking Junk.",
+    "url": "https://i.imgur.com/FJDQfU5.mp4"
+  },
+  "Sober Shimoda": {
+    "file": "data/drops/sobershimoda.mp4",
+    "description": "Sober Shimoda. Bowser. Sobriety. Recovery.",
+    "url": "https://i.imgur.com/mfHENFY.mp4"
   },
   "Star Trek Fight Music": {
     "file": "data/drops/startrekfightmusic.mp4",
@@ -581,8 +646,13 @@
   },
   "The 359truther Drop": {
     "file": "data/drops/the359trutherdrop.mp4",
-    "description": "The 359truther Drop. User drop.",
+    "description": "The 359truther Drop. User drop. Dr Z Mix.",
     "url": "https://i.imgur.com/P5e7cQ3.mp4"
+  },
+  "The Admiral Nechayev Drop": {
+    "file": "data/drops/theadmiralnechayevdrop.mp4",
+    "description": "Admiral Nechayven. Are those Bularian canapes? Canapes my ass!",
+    "url": "https://i.imgur.com/Q10bLMm.mp4"
   },
   "The AGIMUS Drop": {
     "file": "data/drops/theagimusdrop.mp4",
@@ -599,6 +669,11 @@
     "description": "The apers Drop. User drop.",
     "url": "https://i.imgur.com/KN0g9PM.mp4"
   },
+  "The Artemis_Hunting Drop": {
+    "file": "data/drops/theartemis_huntingdrop.mp4",
+    "description": "The Artemis_Hunting Drop. User drop.",
+    "url": "  https://i.imgur.com/aJ79PHD.mp4"
+  },
   "The Ass Lab": {
     "file": "data/drops/theasslab.mp4",
     "description": "AssLab. Voyager. Great Ass.",
@@ -606,7 +681,7 @@
   },
   "The astuary Drop!": {
     "file": "data/drops/theastuarydrop.mp4",
-    "description": "The astuary Drop. User drop.",
+    "description": "The astuary Drop. User drop. Dr Z Mix",
     "url": "https://i.imgur.com/TveAysC.mp4"
   },
   "The ayluge Drop": {
@@ -616,7 +691,7 @@
   },
   "The Boothby Drop": {
     "file": "data/drops/theboothbydrop.mp4",
-    "description": "The Boothby Drop",
+    "description": "The Boothby Drop. Dr Z Made",
     "url": "https://i.imgur.com/dQWu8bK.mp4"
   },
   "The Boy!": {
@@ -679,11 +754,6 @@
     "description": "The DrZ Dr Z Drop. User drop.",
     "url": "https://i.imgur.com/MXqbvdQ.mp4"
   },
-  "The Dr Z (v2.0) Drop": {
-    "file": "data/drops/thedrzv2drop.mp4",
-    "description": "The Dr Z (v2.0) Drop. User drop.",
-    "url": "https://i.imgur.com/uyOBghv.mp4"
-  },
   "The DrWeird Drop": {
     "file": "data/drops/thedrweirddrop.mp4",
     "description": "The DrWeird Drop. User drop.",
@@ -704,9 +774,19 @@
     "description": "The Fajita Jane Drop. User drop.",
     "url": "https://i.imgur.com/yMiiXl7.mp4"
   },
+  "The Fight Does Not Go Well Enterprise": {
+    "file": "data/drops/thefightdoesnotgowellenterprise.mp4",
+    "description": "Admiral Hanson. Fail.",
+    "url": "https://i.imgur.com/SEPOcsb.mp4"
+  },
+  "The GayNerd53 Drop": {
+    "file": "data/drops/thegaynerd53drop.mp4",
+    "description": "The GayNerd53 Drop. User drop.",
+    "url": "https://i.imgur.com/9BFG46w.mp4"
+  },
   "The Harry Kim Drop": {
     "file": "data/drops/theharrykimdrop.mp4",
-    "description": "Harry Kim. (Lil Kim - Magic stick)",
+    "description": "Harry Kim. Very Proud. (Lil Kim - Magic Stick)",
     "url": "https://i.imgur.com/4pqnOsa.mp4"
   },
   "The Hawkstar Drop": {
@@ -746,13 +826,23 @@
   },
   "The Kahless Whisper Drop": {
     "file": "data/drops/thekahlesswhisperdrop.mp4",
-    "description": "The Kahless Whisper Drop. User drop.",
+    "description": "The Kahless Whisper Drop. User drop. Dr Z Mix",
     "url": "https://i.imgur.com/WEHSh2O.mp4"
   },
   "The Leprechaun Gangster Drop": {
     "file": "data/drops/theleprechaungangsterdrop.mp4",
     "description": "The Leprechaun Gangster Drop. User drop.",
     "url": "https://i.imgur.com/SXKLuSs.mp4"
+  },
+  "The Maggie O'Halloran Drop": {
+    "file": "data/drops/themaggieohallorandrop.mp4",
+    "description": "Maggie O Halloran. Moo. Cow. Bitch I'm A Cow. Doja Cat.",
+    "url": "https://i.imgur.com/PhchyXv.mp4"
+  },
+  "The Mayweather Drop": {
+    "file": "data/drops/themayweatherdrop.mp4",
+    "description": "Travis Mayweather. Harry Kim. Very Proud. (Lil Kim - Magic Stick)",
+    "url": "https://i.imgur.com/jgWmOIk.mp4"
   },
   "The Miss Tea Haze Drop": {
     "file": "data/drops/themissteahazedrop.mp4",
@@ -776,7 +866,7 @@
   },
   "The Mumu Drop": {
     "file": "data/drops/themumudrop.mp4",
-    "description": "The Mumu Drop. User drop.",
+    "description": "The Mumu Drop. User drop. Dr Z Mix",
     "url": "https://i.imgur.com/ojMWeHd.mp4"
   },
   "The Nubbin Bug Drop": {
@@ -806,7 +896,7 @@
   },
   "The Parrises Squares Championship Drop": {
     "file": "data/drops/theparrisessquareschampionshipdrop.mp4",
-    "description": "The Parrises Squares Championship Drop",
+    "description": "The Parrises Squares Championship Drop. Dr Z Mix",
     "url": "https://i.imgur.com/1lYzqCG.mp4"
   },
   "The Penny Drop": {
@@ -826,7 +916,7 @@
   },
   "The Pittbaster Drop": {
     "file": "data/drops/thepittbasterdrop.mp4",
-    "description": "The Pittbaster Drop. User drop.",
+    "description": "The Pittbaster Drop. User drop. Dr Z Mix",
     "url": "https://i.imgur.com/Xhh9UT7.mp4"
   },
   "The Ro Laren Drop": {
@@ -838,6 +928,11 @@
     "file": "data/drops/roncanada.mp4",
     "description": "Ron Canada",
     "url": "https://i.imgur.com/4UDe6NL.mp4"
+  },
+  "The Rhythm Robber Drop": {
+    "file": "data/drops/therhythmrobberdrop.mp4",
+    "description": "The Rhythm Robber Drop. User drop.",
+    "url": "https://i.imgur.com/9E9wdge.mp4"
   },
   "The Safi Drop": {
     "file": "data/drops/thesafidrop.mp4",
@@ -866,7 +961,7 @@
   },
   "The Shouperman Drop": {
     "file": "data/drops/theshoupermandrop.mp4",
-    "description": "The Shoup Shouperman Drop. User drop.",
+    "description": "The Shoup Shouperman Drop. User drop. Dr Z Mix",
     "url": "https://i.imgur.com/9j3Cy4a.mp4"
   },
   "The Sinistra Dax Drop": {
@@ -891,7 +986,7 @@
   },
   "The Ten Forward Drop": {
     "file": "data/drops/thetenforwarddrop.mp4",
-    "description": "The Ten Forward Drop",
+    "description": "The Ten Forward Drop. Dr Z Made",
     "url": "https://i.imgur.com/7yHF2EF.mp4"
   },
   "The thousand Drop": {
@@ -921,7 +1016,7 @@
   },
   "The Vulpesia Drop": {
     "file": "data/drops/thevulpesiadrop.mp4",
-    "description": "The Vulpesia Drop. User drop.",
+    "description": "The Vulpesia Drop. User drop. Dr Z Mix",
     "url": "https://i.imgur.com/sNZaGdb.mp4"
   },
   "The Worf Drop": {
@@ -931,13 +1026,18 @@
   },
   "The Worf's Calisthenics Drop": {
     "file": "data/drops/theworfscalisthenicsdrop.mp4",
-    "description": "The Worf's Calisthenics Drop",
+    "description": "The Worf's Calisthenics Drop. Dr Z Mix",
     "url": "https://i.imgur.com/0F9xBtW.mp4"
   },
   "The Wynde Drop": {
     "file": "data/drops/thewyndedrop.mp4",
-    "description": "The Wynde Drop. User drop.",
+    "description": "The Wynde Drop. User drop. Dr Z Mix",
     "url": "https://i.imgur.com/qjDTN7j.mp4"
+  },
+  "The X_Minus_T Drop": {
+    "file": "data/drops/thexminustdrop.mp4",
+    "description": "The X_Minus_T Drop. User drop.",
+    "url": "https://i.imgur.com/ByFvXsC.mp4"
   },
   "This Is Fucking Spectacular!": {
     "file": "data/drops/thisisfuckingspectacular.mp4",
@@ -1051,7 +1151,7 @@
   },
   "Where The (USS) Hood At": {
     "file": "data/drops/wheretheusshoodat.mp4",
-    "description": "Where The USS Hood At",
+    "description": "Where The USS Hood At. Dr Z Mix",
     "url": "https://i.imgur.com/azbj9FC.mp4"
   },
   "Why Is The Carpet All Wet Todd?": {

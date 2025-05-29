@@ -1,5 +1,4 @@
 from common import *
-from cogs.trade import db_is_user_in_dtd_list
 
 # ____  _____________
 # \   \/  /\______   \
@@ -52,6 +51,15 @@ class XPView(discord.ui.View):
 
     self.add_item(XPDropdown(self.cog))
 
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
 
 #  _______          __  .__  _____.__               __  .__
 #  \      \   _____/  |_|__|/ ____\__| ____ _____ _/  |_|__| ____   ____   ______
@@ -104,6 +112,69 @@ class NotificationsView(discord.ui.View):
 
     self.add_item(NotificationsDropdown(self.cog))
 
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
+
+# _________                         __         .__  .__  .__                __  .__
+# \_   ___ \_______ ___.__. _______/  |______  |  | |  | |__|____________ _/  |_|__| ____   ____
+# /    \  \/\_  __ <   |  |/  ___/\   __\__  \ |  | |  | |  \___   /\__  \\   __\  |/  _ \ /    \
+# \     \____|  | \/\___  |\___ \  |  |  / __ \|  |_|  |_|  |/    /  / __ \|  | |  (  <_> )   |  \
+#  \______  /|__|   / ____/____  > |__| (____  /____/____/__/_____ \(____  /__| |__|\____/|___|  /
+#         \/        \/         \/            \/                   \/     \/                    \/
+class CrystallizeAutoHarmonizeDropdown(discord.ui.Select):
+  def __init__(self, cog):
+    self.cog = cog
+    options = [
+      discord.SelectOption(label="Auto-Harmonize", description="Automatically Harmonize upon Attunement."),
+      discord.SelectOption(label="Manual", description="Manually Harmonize after Attunement."),
+    ]
+
+    super().__init__(
+      placeholder="Choose your Crystallization behavior",
+      min_values=1,
+      max_values=1,
+      options=options,
+      row=1
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    selection_map = {
+      "Auto-Harmonize": True,
+      "Manual": False
+    }
+    selected_value = selection_map[self.values[0]]
+
+    await db_set_crystal_autoharmonize(interaction.user.id, selected_value)
+    await interaction.response.send_message(
+      embed=discord.Embed(
+        title=f"Crystallization Auto-Harmonize behavior set to '{self.values[0]}'.",
+        color=discord.Color.green()
+      ).set_footer(text="You can always come back to this interface and change this in the future!"),
+      ephemeral=True
+    )
+
+class CrystallizeAutoHarmonizeView(discord.ui.View):
+  def __init__(self, cog):
+    self.cog = cog
+    super().__init__()
+    self.add_item(CrystallizeAutoHarmonizeDropdown(self.cog))
+
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
 
 #  __      __                .___     .__                   .___
 # /  \    /  \___________  __| _/____ |  |   ____  __ __  __| _/
@@ -156,6 +227,15 @@ class WordcloudView(discord.ui.View):
 
     self.add_item(WordcloudDropdown(self.cog))
 
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
 
 # .____                    .______.           __
 # |    |    ____  __ __  __| _/\_ |__   _____/  |_
@@ -208,78 +288,15 @@ class LoudbotView(discord.ui.View):
 
     self.add_item(LoudbotDropdown(self.cog))
 
-
-# ________                        ___________      ________        ___.
-# \______ \   ______  _  ______   \__    ___/___   \______ \ _____ \_ |__   ____
-#  |    |  \ /  _ \ \/ \/ /    \    |    | /  _ \   |    |  \\__  \ | __ \ /  _ \
-#  |    `   (  <_> )     /   |  \   |    |(  <_> )  |    `   \/ __ \| \_\ (  <_> )
-# /_______  /\____/ \/\_/|___|  /   |____| \____/  /_______  (____  /___  /\____/
-#         \/                  \/                           \/     \/    \/
-class DTDDropdown(discord.ui.Select):
-  def __init__(self, cog):
-    self.cog = cog
-    options = [
-      discord.SelectOption(label="Enable DTD", description="Opt-in to the Down To Dabo List"),
-      discord.SelectOption(label="Disable DTD", description="Opt-out of the Down To Dabo List"),
-    ]
-
-    super().__init__(
-      placeholder="Choose your preference",
-      min_values=1,
-      max_values=1,
-      options=options,
-      row=1
-    )
-
-  async def callback(self, interaction:discord.Interaction):
-    selection = self.values[0]
-
-    is_user_in_dtd_already = await db_is_user_in_dtd_list(interaction.user.id)
-
-    if selection == "Enable DTD":
-      if is_user_in_dtd_already:
-        await interaction.response.send_message(
-          embed=discord.Embed(
-            title="You're already in the DTD List! No action taken.",
-            color=discord.Color.red()
-          ),
-          ephemeral=True
-        )
-      else:
-        await db_add_user_to_dtd(interaction.user.id)
-        await interaction.response.send_message(
-          embed=discord.Embed(
-            title="You have successfully chosen to participate in the Down To Dabo List.",
-            color=discord.Color.green()
-          ).set_footer(text="You can always come back to this interface to reconfigure in the future!"),
-          ephemeral=True
-        )
-    elif selection == "Disable DTD":
-      if not is_user_in_dtd_already:
-        await interaction.response.send_message(
-          embed=discord.Embed(
-            title="You weren't in the DTD list! No action taken.",
-            color=discord.Color.red()
-          ),
-          ephemeral=True
-        )
-      else:
-        await db_remove_user_from_dtd(interaction.user.id)
-        await interaction.response.send_message(
-          embed=discord.Embed(
-            title="You have successfully opted-out of the Down To Dabo List.",
-            color=discord.Color.blurple()
-          ).set_footer(text="You can always come back to this interface and re-enable in the future!"),
-          ephemeral=True
-        )
-
-class DTDView(discord.ui.View):
-  def __init__(self, cog):
-    self.cog = cog
-    super().__init__()
-
-    self.add_item(DTDDropdown(self.cog))
-
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
 
 class TaggingDropdown(discord.ui.Select):
   def __init__(self, cog):
@@ -326,6 +343,15 @@ class TaggingView(discord.ui.View):
 
     self.add_item(TaggingDropdown(self.cog))
 
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
 
 # _________
 # \_   ___ \  ____   ____
@@ -346,10 +372,10 @@ class Settings(commands.Cog):
     home_embed, home_thumbnail = await self._get_home_embed_and_thumbnail()
 
     xp_embed, xp_thumbnail = await self._get_xp_embed_and_thumbnail()
+    crystallize_embed, crystallize_thumbnail = await self._get_crystallize_embed_and_thumbnail()
     notifications_embed, notifications_thumbnail = await self._get_notifications_embed_and_thumbnail()
     wordcloud_embed, wordcloud_thumbnail = await self._get_wordcloud_embed_and_thumbnail()
     loudbot_embed, loudbot_thumbnail = await self._get_loudbot_embed_and_thumbnail()
-    dtd_embed, dtd_thumbnail = await self._get_dtd_embed_and_thumbnail()
     tagging_embed, tagging_thumbnail = await self._get_tagging_embed_and_thumbnail()
 
     page_groups = [
@@ -393,6 +419,19 @@ class Settings(commands.Cog):
       pages.PageGroup(
         pages=[
           pages.Page(
+            embeds=[crystallize_embed],
+            files=[crystallize_thumbnail]
+          )
+        ],
+        label="Crystallization",
+        description="Configure Crystal Auto-Harmonization Behavior",
+        custom_buttons=[],
+        use_default_buttons=False,
+        custom_view=CrystallizeAutoHarmonizeView(self)
+      ),
+      pages.PageGroup(
+        pages=[
+          pages.Page(
             embeds=[wordcloud_embed],
             files=[wordcloud_thumbnail]
           )
@@ -415,19 +454,6 @@ class Settings(commands.Cog):
         custom_buttons=[],
         use_default_buttons=False,
         custom_view=LoudbotView(self)
-      ),
-      pages.PageGroup(
-        pages=[
-          pages.Page(
-            embeds=[dtd_embed],
-            files=[dtd_thumbnail]
-          )
-        ],
-        label="Down To Dabo",
-        description="Opt-in or Opt-out of the Down To Dabo List",
-        custom_buttons=[],
-        use_default_buttons=False,
-        custom_view=DTDView(self)
       ),
       pages.PageGroup(
         pages=[
@@ -489,6 +515,24 @@ class Settings(commands.Cog):
 
     return embed, thumbnail
 
+  async def _get_crystallize_embed_and_thumbnail(self):
+    thumbnail = discord.File(fp="./images/templates/settings/crystallization.png", filename="crystallization.png")
+    embed = discord.Embed(
+      title="Crystallization Auto-Harmonize Preference",
+      description=(
+        "Set how you'd prefer AGIMUS to handle Harmonization (activation) of Crystals after you have Attuned (attached) them to a Badge via `/crystals attach`.\n\n"
+        "* **Auto-Harmonize** - As soon as you attune a Crystal to a Badge, it will become Harmonized immediately!\n"
+        "* **Manual** - Don't immediately Harmonize the latest attuned Crystal, use `/crystals activate` to select as per usual *(Default)*.\n\n"
+        "Note: If you have multiple Crystals attached to a Badge you can always change which is Harmonized at any time per-usual via `/crystals activate`!"
+      ),
+      color=discord.Color(0xFF0000)
+    )
+    embed.set_footer(text="Please select your choice from the dropdown below.")
+    embed.set_image(url="https://i.imgur.com/Kkwa9ub.png")
+    embed.set_thumbnail(url=f"attachment://crystallization.png")
+
+    return embed, thumbnail
+
   async def _get_notifications_embed_and_thumbnail(self):
     thumbnail = discord.File(fp="./images/templates/settings/notifications.png", filename="notifications.png")
     embed = discord.Embed(
@@ -513,7 +557,7 @@ class Settings(commands.Cog):
       "heuristic-associative-pathways",
       "megalomaniacal-computer-storage",
       "bot-setup",
-      "dabo-table",
+      "the-royale",
       "poker-night",
       "morns-nonstop-quiz",
       "badgeys-badges"
@@ -548,7 +592,7 @@ class Settings(commands.Cog):
       "after-dinner-conversation",
       "badgeys-badges",
       "bahrats-bazaar",
-      "dabo-table",
+      "the-royale",
       "dr-crushers-hotbox",
       "megalomaniacal-computer-storage",
       "morns-nonstop-quiz",
@@ -660,20 +704,8 @@ async def db_toggle_loudbot(user_id, toggle):
       deleted_row_count = query.rowcount
   return deleted_row_count
 
-async def db_add_user_to_dtd(user_id):
+async def db_set_crystal_autoharmonize(user_id, autoharmonize: bool):
   async with AgimusDB() as query:
-    sql = "SELECT user_discord_id FROM down_to_dabo WHERE user_discord_id = %s"
-    vals = (user_id,)
-    await query.execute(sql, vals)
-    user_already_added = await query.fetchone()
-    if user_already_added is not None:
-      sql = "UPDATE down_to_dabo SET wei"
-    sql = "INSERT INTO down_to_dabo (user_discord_id, weight) VALUES (%s, %s)"
-    vals = (user_id, 1)
-    await query.execute(sql, vals)
-
-async def db_remove_user_from_dtd(user_id):
-  async with AgimusDB() as query:
-    sql = "DELETE FROM down_to_dabo WHERE user_discord_id = %s"
-    vals = (user_id,)
+    sql = "UPDATE users SET crystal_autoharmonize = %s WHERE discord_id = %s"
+    vals = (autoharmonize, user_id)
     await query.execute(sql, vals)
