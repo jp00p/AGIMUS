@@ -388,7 +388,7 @@ class Crystals(commands.Cog):
   @crystals_group.command(name="manifest", description="Review your unattuned Crystal Manifest.")
   @option(
     name="preview_prestige",
-    description="Which Prestige Tier  of preview Badge?",
+    description="Which Prestige Tier of preview Badge?",
     required=False,
     autocomplete=autocomplete_prestige_tiers
   )
@@ -433,10 +433,21 @@ class Crystals(commands.Cog):
         )
         return
 
+    music_types = [
+      'Jazzy',
+      'Smooth',
+      'Bossanova',
+      'Easy Listening',
+      'Lo-Fi Hip Hop',
+      'Chillwave',
+      'Ska',
+      'Saxxy',
+      'Soft Rock'
+    ]
     pending_message = await ctx.respond(
       embed=discord.Embed(
         title="Pulling up your Crystal Manifest...",
-        description="🎶 Jazzy Hold Music 🎶",
+        description=f"🎶 {random.choice(music_types)} Hold Music 🎶",
         color=discord.Color.teal()
       ),
       ephemeral=True

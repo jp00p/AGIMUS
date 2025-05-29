@@ -28,9 +28,9 @@ paginator_buttons = [
 #         \/                        \/            \/|__|             \/          \/
 async def add_autocomplete(ctx:discord.AutocompleteContext):
   user_id = ctx.interaction.user.id
-  wishlist_badges = [b['badge_name'] for b in await db_get_simple_wishlist_badges(user_id)]
+  wishlist_badge_names = [b['badge_name'] for b in await db_get_simple_wishlist_badges(user_id)]
   special_badge_names = [b['badge_name'] for b in await db_get_special_badge_info()]
-  excluded_names = set(special_badge_names + wishlist_badges)
+  excluded_names = set(special_badge_names + wishlist_badge_names)
 
   all_badges = await db_get_all_badge_info()
   filtered_badges = [b for b in all_badges if b['badge_name'] not in excluded_names]
@@ -321,7 +321,7 @@ class Wishlist(commands.Cog):
   #         \/        \/ |__|             \/\/
   @wishlist_group.command(
     name="display",
-    description="List all of the badges on your current unfulilled wishlist for a given Prestige Tier."
+    description="List all of the badges on your current unfulfilled wishlist for a given Prestige Tier."
   )
   @option(
     name="prestige",

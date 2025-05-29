@@ -456,7 +456,7 @@ class BadgeTags(commands.Cog):
       await ctx.respond(
         embed=discord.Embed(
           title="No Tagged Badges Found",
-          description=f"No {PRESTIGE_TIERS[prestige]} Badges tagged with {tag} found!\n\nYou may not have collected any at this Tier yet?",
+          description=f"No {PRESTIGE_TIERS[prestige]} Badges tagged with `{tag}` found!\n\nYou may not have collected any at this Tier yet?",
           color=discord.Color.red()
         ),
         ephemeral=True

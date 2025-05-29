@@ -145,15 +145,15 @@ def get_theme_colors(theme: str):
 
 THEME_TO_RGBS = {
   'orange': {
-    'primary': (189, 151, 137),
+    'primary': (152, 85, 39),
     'highlight': (186, 111, 59)
   },
   'purple': {
-    'primary': (100, 85, 161),
+    'primary': (59, 17, 96),
     'highlight': (87, 64, 183)
   },
   'teal': {
-    'primary': (141, 185, 181),
+    'primary': (22, 96, 109),
     'highlight': (71, 170, 177)
   },
   'gold': { # Used for Trade images
@@ -161,7 +161,7 @@ THEME_TO_RGBS = {
     'highlight': (255, 215, 0)
   },
   'green': { # Default if not explicit
-    'primary': (153, 185, 141),
+    'primary': (6, 102, 25),
     'highlight': (84, 177, 69)
   },
 
@@ -386,7 +386,7 @@ async def build_collection_canvas(user, prestige, page_data, all_data, page_numb
   canvas = await build_display_canvas(
     user=user,
     theme=theme,
-    layout_type="collection",
+    layout_type="sets",
     content_rows=total_rows,
     page_number=page_number,
     total_pages=total_pages,
@@ -848,9 +848,17 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
   Returns:
     List of (BytesIO, filename) tuples.
   """
-  theme = 'teal'
   dims = _get_canvas_row_dimensions()
   rows_per_page = 7
+
+  prestige = 0
+  if preview_badge:
+    prestige = preview_badge['prestige_level']
+  theme = (
+    await get_theme_preference(user.id, 'collection')
+    if prestige == 0
+    else PRESTIGE_TIERS[prestige].lower()
+  )
 
   pages = list(paginate(crystal_data, rows_per_page))
   total_pages = len(pages)
@@ -1512,6 +1520,9 @@ async def build_display_canvas(
   footer_left_label = "TOTAL BADGES"
   if layout_type == 'collection':
     footer_center_label = "COLLECTED"
+  if layout_type == 'sets':
+    footer_center_label = "COMPLETED"
+    footer_left_label = "TOTAL IN SET"
   if layout_type == 'completion':
     footer_center_label = "COMPLETED"
   if layout_type == 'crystals':
@@ -1533,7 +1544,7 @@ async def build_display_canvas(
 
   canvas.paste(footer_img, (0, header_h + content_rows * row_h), footer_img)
 
-  fonts = load_fonts(general_size=11)
+  fonts = load_fonts(general_size=24)
   draw = ImageDraw.Draw(canvas)
 
   await draw_canvas_labels(
@@ -1571,7 +1582,7 @@ async def draw_canvas_labels(canvas, draw, title_text, footer_left_label, footer
   await draw_dynamic_text(
     canvas=canvas,
     draw=draw,
-    position=(185, base_h - 62),
+    position=(168, base_h - 58),
     text=footer_center_label,
     max_width=116,
     font_obj=fonts.title,
@@ -1586,10 +1597,10 @@ async def draw_canvas_labels(canvas, draw, title_text, footer_left_label, footer
   )
 
   draw.text(
-    (15, base_h - 70),
+    (15, base_h - 68),
     footer_left_label,
     font=fonts.general,
-    fill=colors.highlight
+    fill=colors.primary
   )
 
   await draw_dynamic_text(
