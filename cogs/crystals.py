@@ -269,7 +269,7 @@ class Crystals(commands.Cog):
             "{user}, you pulled a classy one!",
             "Respectable find, {user}!",
             "Almost Rare, definitely Rad. Nice {user}!",
-            "Good things *do* happen to decent people, {user}. This proves it."
+            "Decent, decent, {user}."
           ],
           'rare': [
             "SHINY! Congrats {user}! Hold onto that one!",
@@ -279,16 +279,16 @@ class Crystals(commands.Cog):
             "GLIMMERY! You see that sparkle? That's *taste*, {user}.",
             "GLEAMY! You've got the touch, {user}!",
             "GLOWY! Rare, refined, and ready to radiate {user}!",
-            "FLASHY! That one's got that BDE. Lookin' good, {user}."
+            "FLASHY! That one's sharp. Lookin' good, {user}."
           ],
           'legendary': [
             "Whoa!!! Legen-dairy! Is this some kind of milk-based crystal {user}!?",
             "Well GOTDAYUM!!! That's some shiny shiny shiny {user}!",
             "FIYAH!!! Crystalline Goodness for {user}!",
-            "LORD HAVE MERCY!!! That’s a LEGENDARY for {user}!!!",
+            "LORD HAVE MERCY!!! That's a LEGENDARY for {user}!!!",
             "BEJESUS!!! This one's burnin' with glory {user}!",
-            "Hooo MAMA! The replicator paused, it knew this was a big one, {user}!",
-            "Heyyyyo! Everyone stand back! {user}'s got a hot one!!",
+            "Hooo MAMA! The replicator paused for a sec, it knew this was a big one, {user}!",
+            "Heyyyyo! Everyone stand back! {user}'s got a hot one!!!",
             "WHA WHA WHA!?! Legendary stuff, {user}."
           ],
           'mythic': [
@@ -297,7 +297,7 @@ class Crystals(commands.Cog):
             "OH DEAR LORD!!!!!! One freshly minted **MYTHIC** Crystal for {user}!? " + f"{get_emoji('barclay_omg_wow_shock')}",
             "PELDOR JOI!!! {user} got a MYTHIC!?!?! " + f"{get_emoji('kira_smile_lol_happy')}",
             "OMFG!!!!! A **MYTHIC** just materialized and it's in {user}'s inventory. " + f"{get_emoji('kira_omg_headexplode')}",
-            "CHRIKEY ON A CRACKER!!! The latest **MYTHIC** on the server is here, and it belongs to {user}! " + f"{get_emoji('jadzia_happy_smile')}"
+            "CHRIKEY ON A CRACKER!!! The latest **MYTHIC** on the server is here, {user}'s got a sick Crystal! " + f"{get_emoji('jadzia_happy_smile')}"
           ],
           'unobtainium': [
             "∴ [anomaly detected] ∷→∷ {user} receives pattern buffer overflow ∴",
