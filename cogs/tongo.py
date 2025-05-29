@@ -64,15 +64,6 @@ class TongoDividendsView(discord.ui.View):
 
   async def handle_redeem(self, interaction: discord.Interaction, reward_id: str):
     await interaction.response.defer()
-    await interaction.followup.edit_message(
-      message_id=interaction.message.id,
-      embed=discord.Embed(
-        title="Dividends Deducting...",
-        description="I love the sound of Latinum clinking.",
-        color=discord.Color.gold()
-      ),
-      view=None
-    )
 
     user_id = interaction.user.id
     reward = DIVIDEND_REWARDS.get(reward_id)
@@ -101,6 +92,16 @@ class TongoDividendsView(discord.ui.View):
         ephemeral=True
       )
       return
+
+    await interaction.followup.edit_message(
+      message_id=interaction.message.id,
+      embed=discord.Embed(
+        title="Dividends Deducting...",
+        description="I love the sound of Latinum clinking.",
+        color=discord.Color.gold()
+      ),
+      view=None
+    )
 
     # Reward fulfillment logic
     result_successful = False
@@ -172,6 +173,17 @@ class TongoDividendsView(discord.ui.View):
         embed=discord.Embed(
           title="No Wishlist (or Wishlist Already Fulfilled)!",
           description="You need to set up your wishlist with `/wishlist add` before you can redeem this Dividend Reward!",
+          color=discord.Color.red()
+        ).set_footer(text="(No Dividends have been deducted)"),
+        view=None
+      )
+      return False
+
+    if len(wishlist_to_grant) < 21:
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title="You're not greedy ENOUGH!",
+          description="Zek requires a Minimum Avarice Quotient to grant a wishlist badge!\n\nYou'll need to expand your wishlist at your current tier (if possible), in order to redeem this Dividend Reward!",
           color=discord.Color.red()
         ).set_footer(text="(No Dividends have been deducted)"),
         view=None
