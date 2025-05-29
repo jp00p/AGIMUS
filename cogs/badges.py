@@ -261,7 +261,8 @@ class Badges(commands.Cog):
         show_indicator=True,
         use_default_buttons=False,
         custom_buttons=buttons,
-        loop_pages=True
+        loop_pages=True,
+        timeout=360
       )
       await paginator.respond(ctx.interaction, ephemeral=True)
 
@@ -474,7 +475,8 @@ class Badges(commands.Cog):
         show_indicator=True,
         use_default_buttons=False,
         custom_buttons=buttons,
-        loop_pages=True
+        loop_pages=True,
+        timeout=360
       )
       await paginator.respond(ctx.interaction, ephemeral=True)
 
@@ -649,7 +651,8 @@ class Badges(commands.Cog):
         show_indicator=True,
         use_default_buttons=False,
         custom_buttons=buttons,
-        loop_pages=True
+        loop_pages=True,
+        timeout=360
       )
       await paginator.respond(ctx.interaction, ephemeral=True)
 

@@ -141,6 +141,17 @@ class Profile(commands.Cog):
     and will return a user's profile card
     """
     public = bool(public == "yes")
+    if not isinstance(ctx.author, discord.Member):
+      await ctx.respond(
+        embed=discord.Embed(
+          title="This command is only available on The Hood!",
+          description="We need information about your server roles for this!\n\nYou can just use `public:No` so that only you can see it though!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
     confirmation_message = await ctx.respond(
       embed=discord.Embed(
         title="Pulling up your Profile PADD!",

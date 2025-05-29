@@ -921,7 +921,7 @@ async def build_crystal_manifest_canvas(user: discord.User, all_crystal_data, pa
   canvas = await build_display_canvas(
     user=user,
     theme=theme,
-    layout_type="manifest",
+    layout_type="crystals",
     content_rows=row_count,
     page_number=page_number,
     total_pages=total_pages,
@@ -1503,16 +1503,20 @@ async def build_display_canvas(
   # start = time.perf_counter()
 
   # TO-DO - Make header and footer fully generic (write all text in image generation so we can simplify this)
-  if layout_type == 'collection' or layout_type == 'completion':
-    asset_prefix = "images/templates/badges/badge_page_"
-    header_img = await threaded_image_open(f"{asset_prefix}header_{theme}.png")
-    footer_img = await threaded_image_open(f"{asset_prefix}footer_{theme}.png")
-    row_img = await threaded_image_open(f"{asset_prefix}row_{theme}.png")
-  else:
-    asset_prefix = "images/templates/crystals/manifests/"
-    header_img = await threaded_image_open(f"{asset_prefix}crystal_manifest_header.png")
-    footer_img = await threaded_image_open(f"{asset_prefix}crystal_manifest_footer.png")
-    row_img = await threaded_image_open(f"{asset_prefix}crystal_manifest_row.png")
+  asset_prefix = "images/templates/lcars_canvases/"
+  header_img = await threaded_image_open(f"{asset_prefix}lcars_canvas_{theme}_header.png")
+  footer_img = await threaded_image_open(f"{asset_prefix}lcars_canvas_{theme}_footer.png")
+  row_img = await threaded_image_open(f"{asset_prefix}lcars_canvas_{theme}_row.png")
+
+  footer_center_label = ""
+  footer_left_label = "TOTAL BADGES"
+  if layout_type == 'collection':
+    footer_center_label = "COLLECTED"
+  if layout_type == 'completion':
+    footer_center_label = "COMPLETED"
+  if layout_type == 'crystals':
+    footer_center_label = "CRYSTALS"
+    footer_left_label = ""
 
   header_h = header_img.height
   footer_h = footer_img.height
@@ -1529,15 +1533,17 @@ async def build_display_canvas(
 
   canvas.paste(footer_img, (0, header_h + content_rows * row_h), footer_img)
 
-  fonts = load_fonts()
+  fonts = load_fonts(general_size=11)
   draw = ImageDraw.Draw(canvas)
 
   await draw_canvas_labels(
     canvas=canvas,
     draw=draw,
     title_text=title_text,
-    footer_center_text=footer_center_text,
+    footer_left_label=footer_left_label,
     footer_left_text=footer_left_text,
+    footer_center_label=footer_center_label,
+    footer_center_text=footer_center_text,
     page_number=page_number,
     total_pages=total_pages,
     base_w=base_w,
@@ -1551,7 +1557,7 @@ async def build_display_canvas(
 
   return canvas
 
-async def draw_canvas_labels(canvas, draw, title_text, footer_left_text, footer_center_text, page_number, total_pages, base_w, base_h, fonts, colors):
+async def draw_canvas_labels(canvas, draw, title_text, footer_left_label, footer_left_text, footer_center_label, footer_center_text, page_number, total_pages, base_w, base_h, fonts, colors):
   await draw_dynamic_text(
     canvas=canvas,
     draw=draw,
@@ -1562,10 +1568,27 @@ async def draw_canvas_labels(canvas, draw, title_text, footer_left_text, footer_
     fill=colors.highlight
   )
 
+  await draw_dynamic_text(
+    canvas=canvas,
+    draw=draw,
+    position=(185, base_h - 62),
+    text=footer_center_label,
+    max_width=116,
+    font_obj=fonts.title,
+    fill=(0, 0, 0)
+  )
+
   draw.text(
     (295, base_h - 62),
     footer_center_text,
     font=fonts.footer,
+    fill=colors.highlight
+  )
+
+  draw.text(
+    (15, base_h - 70),
+    footer_left_label,
+    font=fonts.general,
     fill=colors.highlight
   )
 
