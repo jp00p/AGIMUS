@@ -1,0 +1,68 @@
+# Name:        bump-helm-chart-on-pr-open.yaml
+# Author:      Chris Jones <chris@christopherjones.us>
+# Description: This action will bump the patch version of the helm chart
+#              and push the changes to the PR branch when a PR is opened.
+#
+
+name: Bump Helm Chart on PR Open
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, reopened]
+
+jobs:
+    bump_helm_chart_version:
+        name: Bump Helm Chart Version
+        runs-on: ubuntu-latest
+        permissions:
+          contents: write
+          pull-requests: write
+        steps:
+          - uses: actions/checkout@v4
+            with:
+              fetch-depth: 0
+              ref: ${{ github.head_ref }}
+          - uses: mikefarah/yq@master
+            id: get_current_version
+            with:
+              cmd: echo "current_version=$(yq e '.version' './charts/agimus/Chart.yaml')" >> $GITHUB_OUTPUT
+          - uses: vitorfhc/use-semver-tool@v1
+            id: get_new_version
+            with:
+              cmd: bump patch ${{ steps.get_current_version.outputs.current_version }}
+          - uses: mikefarah/yq@master
+            with:
+              cmd: yq -i '.version = "v${{ steps.get_new_version.outputs.output }}"' ./charts/agimus/Chart.yaml
+
+          - uses: mikefarah/yq@master
+            id: get_current_app_version
+            with:
+              cmd: echo "current_app_version=$(yq e '.appVersion' './charts/agimus/Chart.yaml')" >> $GITHUB_OUTPUT
+          - uses: vitorfhc/use-semver-tool@v1
+            id: get_new_app_version
+            with:
+              cmd: bump patch ${{ steps.get_current_app_version.outputs.current_app_version }}
+          - uses: mikefarah/yq@master
+            with:
+              cmd: yq -i '.appVersion = "v${{ steps.get_new_app_version.outputs.output }}"' ./charts/agimus/Chart.yaml
+
+          - name: Commit and push the changes
+            run: |
+              # Note: the following account information will not work on GHES
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add .
+              git commit -m "Bump helm chart version to ${{ steps.get_new_version.outputs.output }}"
+              git push
+
+          - uses: actions/github-script@v7
+            with:
+              github-token: ${{ secrets.GITHUB_TOKEN }}
+              script: |
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: '@${{ github.event.pull_request.user.login }} The helm chart version has been bumped.  You will need to pull down the new changes to your local copy with `git pull`.'
+                })
