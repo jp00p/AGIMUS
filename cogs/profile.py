@@ -141,6 +141,17 @@ class Profile(commands.Cog):
     and will return a user's profile card
     """
     public = bool(public == "yes")
+    if not isinstance(ctx.author, discord.Member):
+      await ctx.respond(
+        embed=discord.Embed(
+          title="This command is only available on The Hood!",
+          description="We need information about your server roles for this!\n\nYou can just use `public:No` so that only you can see it though!",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
     confirmation_message = await ctx.respond(
       embed=discord.Embed(
         title="Pulling up your Profile PADD!",
@@ -187,7 +198,7 @@ class Profile(commands.Cog):
     xp = echelon_progress.get('current_xp', 0)
     level = echelon_progress.get('current_level', 0)
     prestige_tier = echelon_progress.get('current_prestige_tier', 0)
-    badges = await db_get_user_badge_instances(member_id)
+    badges = await db_get_user_badge_instances(member_id, prestige=None)
     badge_count = len(badges)
     crystals = await db_get_user_attuned_and_harmonized_crystals(member_id)
     crystals_count = len(crystals)
