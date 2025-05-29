@@ -814,7 +814,15 @@
             "episode": "10",
             "imdb": "tt0572265",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.01.13",
+                    "episode": "The Rick Berman Hat Trick",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-557-the-rick-berman-hat-trick-ent-s2e10/",
+                    "order": 557,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/qtnlXZVWyvkMjWD6BaYqtRT3v9M.jpg"
@@ -828,7 +836,15 @@
             "episode": "11",
             "imdb": "tt0572227",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.01.20",
+                    "episode": "The Paul Reubens Screening Room Theater",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-558-the-paul-reubens-screening-room-theater-ent-s2e11/",
+                    "order": 558,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/oCquIS1qE9aenJ1B7B95paHNhJj.jpg",
@@ -843,7 +859,15 @@
             "episode": "12",
             "imdb": "tt0572250",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.01.27",
+                    "episode": "Music Festival Math",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-559-music-festival-math-ent-s2e12/",
+                    "order": 559,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/z9UAg7UqS7FNYwTpjVyNCr9SdER.jpg",
@@ -858,7 +882,15 @@
             "episode": "13",
             "imdb": "tt0572197",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.02.03",
+                    "episode": "Shuttlepod Haram",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-560-shuttlepod-haram-ent-s2e13/",
+                    "order": 560,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/hmbbmGeZqAcxXD2z8R3njDsHQDO.jpg",
@@ -873,7 +905,15 @@
             "episode": "14",
             "imdb": "tt0572239",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.02.10",
+                    "episode": "Twatcasted",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-561-twatcasted-ent-s2e14/",
+                    "order": 561,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/3yXCqJOHnKvOo6XqHLOJVORPyhA.jpg",
@@ -888,7 +928,15 @@
             "episode": "15",
             "imdb": "tt0572188",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.02.17",
+                    "episode": "Eight Years\u2019 Worth of RumChata",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-562-eight-years-worth-of-rumchata-ent-s2e15/",
+                    "order": 562,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/ejuY5GZrDD5mXUVKZGAorwJV2i1.jpg",
@@ -903,7 +951,15 @@
             "episode": "16",
             "imdb": "tt0572213",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.02.24",
+                    "episode": "Don\u2019t Lindelof Me, Bro",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-563-dont-lindelof-me-bro-ent-s2e16/",
+                    "order": 563,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/2YRyWKQfDI8zpgIBJwOxVpJUQ2T.jpg",
@@ -918,7 +974,15 @@
             "episode": "17",
             "imdb": "tt0572185",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.03.03",
+                    "episode": "It\u2019s Always a Rainy Day at the Dog Shit Factory",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-564-its-always-a-rainy-day-at-the-dog-shit-factory-ent-s2e17/",
+                    "order": 564,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/uxzJz2S4GthKhKApusmLqICTgFR.jpg",
@@ -933,7 +997,15 @@
             "episode": "18",
             "imdb": "tt0572253",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.03.10",
+                    "episode": "Ice Desk",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-565-ice-desk-ent-s2e18/",
+                    "order": 565,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/xjY9o8ddMqXnFu2b1aw4K7v9fYx.jpg",
@@ -948,7 +1020,15 @@
             "episode": "19",
             "imdb": "tt0572221",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.03.17",
+                    "episode": "K\u2019Arnold K\u2019Palmer",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-566-karnold-kpalmer-ent-s2e19/",
+                    "order": 566,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/wHAS5FWzySfPfCFHz2uhZQZLiqc.jpg",
@@ -963,7 +1043,15 @@
             "episode": "20",
             "imdb": "tt0572217",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.03.24",
+                    "episode": "Thick Forrest",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-567-thick-forrest-ent-s2e20/",
+                    "order": 567,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/HeFLJR6xHOreX4mkoCWdpPO3v1.jpg",
@@ -978,7 +1066,15 @@
             "episode": "21",
             "imdb": "tt0572249",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.03.31",
+                    "episode": "Sub-Grappler Technology",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-567-thick-forrest-ent-s2e20-2/",
+                    "order": 568,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/c8eQtdxeB7XZLwagyoWqB2a5qJo.jpg",
@@ -993,7 +1089,15 @@
             "episode": "22",
             "imdb": "tt0572191",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.04.07",
+                    "episode": "The Third Meat",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-569-the-third-meat-ent-s2e22/",
+                    "order": 569,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/5Kl7snmPukxM4YHgVXJdgZsbNyl.jpg",
@@ -1008,7 +1112,15 @@
             "episode": "23",
             "imdb": "tt0572230",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.04.14",
+                    "episode": "Mental Overalls",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-570-mental-overalls-ent-s2e23/",
+                    "order": 570,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/r5jwW0gczIzlrTkywHVHvvvDRcr.jpg",
@@ -1023,7 +1135,15 @@
             "episode": "24",
             "imdb": "tt0572210",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.04.21",
+                    "episode": "It Puts the Antimatter Into the Injector or It Gets the Hose Again",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-571-it-puts-the-antimatter-into-the-injector-or-it-gets-the-hose-again-ent-s2e24/",
+                    "order": 571,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/wCWnO08j7vEFEBByd52ne6Oi8ps.jpg",
@@ -1038,7 +1158,15 @@
             "episode": "25",
             "imdb": "tt0572181",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.04.28",
+                    "episode": "Qo\u2019noS Roadshow",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-572-qonos-roadshow-ent-s2e25/",
+                    "order": 572,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/tZlFIIkqSkyQr1aHKb3SD87ZNW9.jpg",
@@ -1053,7 +1181,15 @@
             "episode": "26",
             "imdb": "tt0572254",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.05.05",
+                    "episode": "The House of Duras Sucks",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-573-the-house-of-duras-sucks-ent-s2e26/",
+                    "order": 573,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/y39rLJcZfqLlqWreV8NkutYGear.jpg",
@@ -1068,7 +1204,15 @@
             "episode": "01",
             "imdb": "tt0572259",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.05.12",
+                    "episode": "Pan Pain",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-574-pan-pain-ent-s3e1/",
+                    "order": 574,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/4SMC3iSAFhSUtsHbSMqBnbNtMn0.jpg",
@@ -1084,7 +1228,15 @@
             "episode": "02",
             "imdb": "tt0572175",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.05.19",
+                    "episode": "Thus Shat Zarathustra",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-575-thus-shat-zarathustra-ent-s3e2/",
+                    "order": 575,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/yhObxMgDy00CCwYoeBkkA8uj1Fc.jpg",
@@ -1099,7 +1251,15 @@
             "episode": "03",
             "imdb": "tt0572207",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.05.26",
+                    "episode": "They Paved Over Urquat With a Parking Lurquat",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-576-they-paved-over-urquat-with-a-parking-lurquat-ent-s3e3/",
+                    "order": 576,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/fLP5xbkAFGE0IxBnT09dl6tHRr1.jpg",
