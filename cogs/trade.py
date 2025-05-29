@@ -30,7 +30,8 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   offered_instance_ids = set()
   if 'requestee' in ctx.options and 'prestige' in ctx.options:
     requestee_user_id = ctx.options['requestee']
-    prestige_level = int(ctx.options.get('prestige', 0))
+    prestige = ctx.options.get('prestige')
+    prestige_level = int(prestige) if prestige is not None else 0
   else:
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
@@ -84,7 +85,8 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   requested_instance_ids = set()
   if 'requestee' in ctx.options and 'prestige' in ctx.options:
     requestee_user_id = ctx.options['requestee']
-    prestige_level = int(ctx.options.get('prestige', 0))
+    prestige = ctx.options.get('prestige')
+    prestige_level = int(prestige) if prestige is not None else 0
   else:
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
@@ -483,7 +485,7 @@ class Trade(commands.Cog):
 
 
   async def _requestor_already_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestor_instances = await db_get_user_badge_instances(active_trade['requestor_id'])
+    requestor_instances = await db_get_user_badge_instances(active_trade['requestor_id'], prestige=active_trade['prestige_level'])
     requestor_filenames = {b['badge_filename'] for b in requestor_instances}
 
     requested_instances = await db_get_trade_requested_badge_instances(active_trade)
@@ -499,7 +501,8 @@ class Trade(commands.Cog):
           title=f"Invalid {prestige_tier} Trade",
           description="Sorry! They've already received some of the badges you requested elsewhere while this trade was pending!\n\nTrade has been canceled.",
           color=discord.Color.red()
-        )
+        ),
+        ephemeral=True
       )
 
       try:
@@ -531,7 +534,7 @@ class Trade(commands.Cog):
 
 
   async def _requestee_already_has_badges(self, interaction, active_trade, requestor, requestee):
-    requestee_instances = await db_get_user_badge_instances(active_trade['requestee_id'])
+    requestee_instances = await db_get_user_badge_instances(active_trade['requestee_id'], prestige=active_trade['prestige_level'])
     requestee_filenames = {b['badge_filename'] for b in requestee_instances}
 
     offered_instances = await db_get_trade_offered_badge_instances(active_trade)
@@ -547,7 +550,8 @@ class Trade(commands.Cog):
           title=f"Invalid {prestige_tier} Trade",
           description="Sorry! You've already received some of the badges that were offered to you elsewhere while this trade was pending!\n\nTrade has been canceled.",
           color=discord.Color.red()
-        )
+        ),
+        ephemeral=True
       )
 
       try:
@@ -593,7 +597,8 @@ class Trade(commands.Cog):
           title=f"Invalid {prestige_tier} Trade",
           description="Sorry! They no longer have some of the badges they offered!\n\nTrade has been canceled.",
           color=discord.Color.red()
-        )
+        ),
+        ephemeral=True
       )
 
       try:
@@ -630,7 +635,8 @@ class Trade(commands.Cog):
           title=f"Invalid {prestige_tier} Trade",
           description="Sorry! You no longer have some of the badges they requested!\n\nTrade has been canceled.",
           color=discord.Color.red()
-        )
+        ),
+        ephemeral=True
       )
 
       try:

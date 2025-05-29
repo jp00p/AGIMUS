@@ -145,15 +145,15 @@ def get_theme_colors(theme: str):
 
 THEME_TO_RGBS = {
   'orange': {
-    'primary': (189, 151, 137),
+    'primary': (152, 85, 39),
     'highlight': (186, 111, 59)
   },
   'purple': {
-    'primary': (100, 85, 161),
+    'primary': (59, 17, 96),
     'highlight': (87, 64, 183)
   },
   'teal': {
-    'primary': (141, 185, 181),
+    'primary': (22, 96, 109),
     'highlight': (71, 170, 177)
   },
   'gold': { # Used for Trade images
@@ -161,7 +161,7 @@ THEME_TO_RGBS = {
     'highlight': (255, 215, 0)
   },
   'green': { # Default if not explicit
-    'primary': (153, 185, 141),
+    'primary': (6, 102, 25),
     'highlight': (84, 177, 69)
   },
 
@@ -386,7 +386,7 @@ async def build_collection_canvas(user, prestige, page_data, all_data, page_numb
   canvas = await build_display_canvas(
     user=user,
     theme=theme,
-    layout_type="collection",
+    layout_type="sets",
     content_rows=total_rows,
     page_number=page_number,
     total_pages=total_pages,
@@ -835,7 +835,7 @@ def _get_canvas_row_dimensions() -> CanvasRowDimensions:
 # \     \____|  | \/\___  |\___ \  |  |  / __ \|  |__ /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |
 #  \______  /|__|   / ____/____  > |__| (____  /____/ \____|__  (____  /___|  /__||__|  \___  >____  > |__|
 #         \/        \/         \/            \/               \/     \/     \/              \/     \/
-async def generate_crystal_manifest_images(user: discord.User, crystal_data: list[dict], rarity: str, emoji: str, return_buffers: bool = False) -> list[tuple[io.BytesIO, str]]:
+async def generate_crystal_manifest_images(user: discord.User, crystal_data: list[dict], rarity: str, emoji: str, return_buffers: bool = False, preview_badge: dict = None) -> list[tuple[io.BytesIO, str]]:
   """
   Generates paginated inventory-style crystal manifest images for a user's unattuned crystals.
 
@@ -848,9 +848,17 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
   Returns:
     List of (BytesIO, filename) tuples.
   """
-  theme = 'teal'
   dims = _get_canvas_row_dimensions()
   rows_per_page = 7
+
+  prestige = 0
+  if preview_badge:
+    prestige = preview_badge['prestige_level']
+  theme = (
+    await get_theme_preference(user.id, 'collection')
+    if prestige == 0
+    else PRESTIGE_TIERS[prestige].lower()
+  )
 
   pages = list(paginate(crystal_data, rows_per_page))
   total_pages = len(pages)
@@ -881,7 +889,7 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
       continue
 
     prepared_rows = await asyncio.gather(*[
-      compose_crystal_manifest_row(crystal, theme) for crystal in page_rows
+      compose_crystal_manifest_row(crystal, theme, preview_badge) for crystal in page_rows
     ])
 
     animated = any(isinstance(row, list) and len(row) > 1 for row in prepared_rows)
@@ -921,7 +929,7 @@ async def build_crystal_manifest_canvas(user: discord.User, all_crystal_data, pa
   canvas = await build_display_canvas(
     user=user,
     theme=theme,
-    layout_type="manifest",
+    layout_type="crystals",
     content_rows=row_count,
     page_number=page_number,
     total_pages=total_pages,
@@ -938,13 +946,13 @@ async def build_crystal_manifest_canvas(user: discord.User, all_crystal_data, pa
   return canvas
 
 _DUMMY_BADGE_INFO_CACHE = None
-async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.Image]:
+async def compose_crystal_manifest_row(crystal: dict, theme: str, preview_badge: dict = None) -> list[Image.Image]:
   """
   Composes a single crystal manifest row.
   """
   dims = _get_canvas_row_dimensions()
   colors = get_theme_colors(theme)
-  row_canvas = get_crystal_manifest_row_canvas()
+  row_canvas = get_crystal_manifest_row_canvas(prestige=preview_badge.get('prestige_level', 0) if preview_badge else 0)
   draw = ImageDraw.Draw(row_canvas)
 
   fonts = load_fonts(title_size=70, general_size=40)
@@ -971,16 +979,24 @@ async def compose_crystal_manifest_row(crystal: dict, theme: str) -> list[Image.
   await draw_dynamic_text(row_canvas, draw, text=crystal['description'], font_obj=fonts.general, position=(title_x, 82), max_width=(dims.row_width - (dims.offset * 2)), starting_size=40, fill=(221, 221, 221))
 
   # Render preview of crystal effect on "dummy" badge
-  global _DUMMY_BADGE_INFO_CACHE
-  if _DUMMY_BADGE_INFO_CACHE is None:
-    _DUMMY_BADGE_INFO_CACHE = await db_get_badge_info_by_name("Starfleet Crew 2160s (Kelvin)")
-  dummy_badge_info = _DUMMY_BADGE_INFO_CACHE
-  dummy_badge = {
-    **dummy_badge_info,
-    'badge_info_id': dummy_badge_info['id'],
-    'crystal_id': crystal['crystal_instance_id'],
-    'effect': crystal['effect']
-  }
+  dummy_badge = None
+  if preview_badge:
+    dummy_badge = {
+      **preview_badge,
+      'crystal_id': crystal['crystal_instance_id'],
+      'effect': crystal['effect']
+    }
+  else:
+    global _DUMMY_BADGE_INFO_CACHE
+    if _DUMMY_BADGE_INFO_CACHE is None:
+      _DUMMY_BADGE_INFO_CACHE = await db_get_badge_info_by_name("Starfleet Crew 2160s (Kelvin)")
+    dummy_badge_info = _DUMMY_BADGE_INFO_CACHE
+    dummy_badge = {
+      **dummy_badge_info,
+      'badge_info_id': dummy_badge_info['id'],
+      'crystal_id': crystal['crystal_instance_id'],
+      'effect': crystal['effect']
+    }
 
   badge_img = await get_cached_base_badge_canvas(dummy_badge['badge_filename'])
   preview_frames = await apply_crystal_effect(badge_img, dummy_badge, crystal=crystal)
@@ -1020,12 +1036,24 @@ async def compose_empty_crystal_manifest_row(theme: str, message: str = "No Crys
 
   return row_canvas
 
-def get_crystal_manifest_row_canvas():
+def get_crystal_manifest_row_canvas(prestige: int = 0) -> Image.Image:
   dims = _get_canvas_row_dimensions()
-  start_color = (24, 24, 24, 255)
-  end_color = (64, 64, 64, 255)
-
   row_canvas = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
+
+  # Determine colors
+  if prestige:
+    prestige_theme = PRESTIGE_THEMES.get(prestige)
+    g_s = prestige_theme['gradient_start']
+    g_e = prestige_theme['gradient_end']
+    start_color = (g_s[0], g_s[1], g_s[2], 255)
+    end_color = (g_e[0], g_e[1], g_e[2], 255)
+    border_colors = prestige_theme['border_gradient_colors']
+  else:
+    start_color = (24, 24, 24, 255)
+    end_color = (64, 64, 64, 255)
+    border_colors = None
+
+  # Build diagonal gradient
   gradient = Image.new("RGBA", (dims.row_width, dims.row_height), (0, 0, 0, 0))
   grad_pixels = gradient.load()
 
@@ -1036,38 +1064,35 @@ def get_crystal_manifest_row_canvas():
   for y in range(dims.row_height):
     for x in range(dims.row_width):
       distance = x + y
-      if distance < gradient_start:
-        t = 0.0
-      else:
-        t = (distance - gradient_start) / gradient_range
-        t = min(t, 1.0)  # Clamp to [0, 1]
-
+      t = 0.0 if distance < gradient_start else min((distance - gradient_start) / gradient_range, 1.0)
       r = int(start_color[0] * (1 - t) + end_color[0] * t)
       g = int(start_color[1] * (1 - t) + end_color[1] * t)
       b = int(start_color[2] * (1 - t) + end_color[2] * t)
-      a = int(start_color[3] * (1 - t) + end_color[3] * t)
+      a = 255
       grad_pixels[x, y] = (r, g, b, a)
 
-  # Rounded corner mask
+  # Apply rounded corner mask
   mask = Image.new("L", (dims.row_width, dims.row_height), 0)
-  mask_draw = ImageDraw.Draw(mask)
-  mask_draw.rounded_rectangle(
+  ImageDraw.Draw(mask).rounded_rectangle(
     (0, 0, dims.row_width, dims.row_height),
     fill=255,
     radius=32
   )
-
-  # Paste the masked gradient into row canvas
   row_canvas.paste(gradient, (0, 0), mask)
 
-  # Optional border
-  draw = ImageDraw.Draw(row_canvas)
-  draw.rounded_rectangle(
-    (0, 0, dims.row_width, dims.row_height),
-    outline="#181818",
-    width=4,
-    radius=32
-  )
+  # Add prestige gradient border if applicable
+  if border_colors:
+    border = _create_border_overlay((dims.row_width, dims.row_height), border_colors)
+    row_canvas.paste(border, (0, 0), border)
+  else:
+    # Default outline
+    draw = ImageDraw.Draw(row_canvas)
+    draw.rounded_rectangle(
+      (0, 0, dims.row_width, dims.row_height),
+      outline="#181818",
+      width=4,
+      radius=32
+    )
 
   return row_canvas
 
@@ -1428,7 +1453,9 @@ def _create_gradient_fill(size: tuple[int, int], start_color: tuple[int, int, in
 def _create_border_overlay(size: tuple[int, int], colors: list[tuple[int, int, int]]) -> Image.Image:
   assert len(colors) == 3, "Expected three-color gradient"
   width, height = size
-  border = Image.new("RGBA", size)
+
+  # Step 1: Create full-size gradient image
+  gradient = Image.new("RGBA", size)
   for y in range(height):
     for x in range(width):
       t = (x + y) / (width + height)
@@ -1442,16 +1469,23 @@ def _create_border_overlay(size: tuple[int, int], colors: list[tuple[int, int, i
         r = int(colors[1][0] * (1 - blend) + colors[2][0] * blend)
         g = int(colors[1][1] * (1 - blend) + colors[2][1] * blend)
         b = int(colors[1][2] * (1 - blend) + colors[2][2] * blend)
-      border.putpixel((x, y), (r, g, b, 255))
+      gradient.putpixel((x, y), (r, g, b, 255))
 
-  mask_outer = Image.new("L", size, 0)
-  mask_inner = Image.new("L", size, 0)
-  draw_outer = ImageDraw.Draw(mask_outer)
-  draw_inner = ImageDraw.Draw(mask_inner)
-  draw_outer.rounded_rectangle((0, 0, width - 1, height - 1), radius=32, fill=255)
-  draw_inner.rounded_rectangle((4, 4, width - 5, height - 5), radius=32 - 4, fill=255)
-  border_mask = ImageChops.subtract(mask_outer, mask_inner)
-  return Image.composite(border, Image.new("RGBA", size, (0, 0, 0, 0)), border_mask)
+  # Step 2: Create outer mask with filled border
+  mask = Image.new("L", size, 0)
+  draw = ImageDraw.Draw(mask)
+
+  # Outer full radius
+  outer_radius = 32
+  inner_radius = 32 - 4  # 4px border width
+
+  draw.rounded_rectangle((0, 0, width - 1, height - 1), radius=outer_radius, fill=255)
+  draw.rounded_rectangle((4, 4, width - 5, height - 5), radius=inner_radius, fill=0)
+
+  # Step 3: Apply mask to gradient
+  output = Image.new("RGBA", size, (0, 0, 0, 0))
+  output.paste(gradient, (0, 0), mask)
+  return output
 
 def _ease_out_start(t: float) -> float:
   return t ** 2
@@ -1477,16 +1511,23 @@ async def build_display_canvas(
   # start = time.perf_counter()
 
   # TO-DO - Make header and footer fully generic (write all text in image generation so we can simplify this)
-  if layout_type == 'collection' or layout_type == 'completion':
-    asset_prefix = "images/templates/badges/badge_page_"
-    header_img = await threaded_image_open(f"{asset_prefix}header_{theme}.png")
-    footer_img = await threaded_image_open(f"{asset_prefix}footer_{theme}.png")
-    row_img = await threaded_image_open(f"{asset_prefix}row_{theme}.png")
-  else:
-    asset_prefix = "images/templates/crystals/manifests/"
-    header_img = await threaded_image_open(f"{asset_prefix}crystal_manifest_header.png")
-    footer_img = await threaded_image_open(f"{asset_prefix}crystal_manifest_footer.png")
-    row_img = await threaded_image_open(f"{asset_prefix}crystal_manifest_row.png")
+  asset_prefix = "images/templates/lcars_canvases/"
+  header_img = await threaded_image_open(f"{asset_prefix}lcars_canvas_{theme}_header.png")
+  footer_img = await threaded_image_open(f"{asset_prefix}lcars_canvas_{theme}_footer.png")
+  row_img = await threaded_image_open(f"{asset_prefix}lcars_canvas_{theme}_row.png")
+
+  footer_center_label = ""
+  footer_left_label = "TOTAL BADGES"
+  if layout_type == 'collection':
+    footer_center_label = "COLLECTED"
+  if layout_type == 'sets':
+    footer_center_label = "COMPLETED"
+    footer_left_label = "TOTAL IN SET"
+  if layout_type == 'completion':
+    footer_center_label = "COMPLETED"
+  if layout_type == 'crystals':
+    footer_center_label = "CRYSTALS"
+    footer_left_label = ""
 
   header_h = header_img.height
   footer_h = footer_img.height
@@ -1503,15 +1544,17 @@ async def build_display_canvas(
 
   canvas.paste(footer_img, (0, header_h + content_rows * row_h), footer_img)
 
-  fonts = load_fonts()
+  fonts = load_fonts(general_size=24)
   draw = ImageDraw.Draw(canvas)
 
   await draw_canvas_labels(
     canvas=canvas,
     draw=draw,
     title_text=title_text,
-    footer_center_text=footer_center_text,
+    footer_left_label=footer_left_label,
     footer_left_text=footer_left_text,
+    footer_center_label=footer_center_label,
+    footer_center_text=footer_center_text,
     page_number=page_number,
     total_pages=total_pages,
     base_w=base_w,
@@ -1525,7 +1568,7 @@ async def build_display_canvas(
 
   return canvas
 
-async def draw_canvas_labels(canvas, draw, title_text, footer_left_text, footer_center_text, page_number, total_pages, base_w, base_h, fonts, colors):
+async def draw_canvas_labels(canvas, draw, title_text, footer_left_label, footer_left_text, footer_center_label, footer_center_text, page_number, total_pages, base_w, base_h, fonts, colors):
   await draw_dynamic_text(
     canvas=canvas,
     draw=draw,
@@ -1536,11 +1579,28 @@ async def draw_canvas_labels(canvas, draw, title_text, footer_left_text, footer_
     fill=colors.highlight
   )
 
+  await draw_dynamic_text(
+    canvas=canvas,
+    draw=draw,
+    position=(168, base_h - 58),
+    text=footer_center_label,
+    max_width=116,
+    font_obj=fonts.title,
+    fill=(0, 0, 0)
+  )
+
   draw.text(
     (295, base_h - 62),
     footer_center_text,
     font=fonts.footer,
     fill=colors.highlight
+  )
+
+  draw.text(
+    (15, base_h - 68),
+    footer_left_label,
+    font=fonts.general,
+    fill=colors.primary
   )
 
   await draw_dynamic_text(

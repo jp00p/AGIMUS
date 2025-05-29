@@ -104,6 +104,7 @@ except (aiohttp.client_exceptions.ContentTypeError, aiohttp.client_exceptions.Cl
 # Handlers
 from handlers.alerts import handle_alerts
 from handlers.bot_autoresponse import handle_bot_affirmations
+from handlers.crystalsbot import handle_crystalsbot
 from handlers.loudbot import handle_loudbot
 from handlers.reply_restricted import handle_reply_restricted
 from handlers.save_message import save_message_to_db
@@ -235,6 +236,7 @@ async def on_message(message:discord.Message):
   # Special message Handlers
   try:
     await handle_bot_affirmations(message)
+    await handle_crystalsbot(message)
     await handle_loudbot(message)
     await handle_alerts(message)
     await handle_reply_restricted(message)

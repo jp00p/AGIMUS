@@ -51,7 +51,7 @@ class Crystals(commands.Cog):
 
     prestige = ctx.options['prestige']
     if not prestige or not prestige.isdigit():
-      return [discord.OptionChoice(name="🔒 Invalid prestige tier input.", value='none')]
+      return [discord.OptionChoice(name="🔒 Invalid prestige tier", value='none')]
 
     badge_records = await db_get_badge_instances_with_attuned_crystals(user_id, prestige=prestige)
 
@@ -77,7 +77,7 @@ class Crystals(commands.Cog):
 
     prestige = ctx.options.get('prestige')
     if not prestige or not prestige.isdigit():
-      return [discord.OptionChoice(name="🔒 Invalid prestige tier input.", value='none')]
+      return [discord.OptionChoice(name="🔒 Invalid prestige tier", value='none')]
 
     badge_instances = await db_get_badge_instances_without_crystal_type(user_id, crystal_instance['crystal_type_id'], prestige=prestige)
     if not badge_instances:
@@ -152,6 +152,33 @@ class Crystals(commands.Cog):
 
     return options
 
+  async def autocomplete_previewable_badges(ctx: discord.AutocompleteContext):
+    user_id = ctx.interaction.user.id
+
+    prestige = ctx.options.get('preview_prestige')
+    if not prestige or not prestige.isdigit():
+      return [discord.OptionChoice(name="🔒 Invalid prestige tier.", value='none')]
+
+    user_badge_instances = await db_get_user_badge_instances(user_id, prestige=prestige)
+
+    results = [
+      discord.OptionChoice(
+        name=b['badge_name'],
+        value=str(b['badge_instance_id'])
+      )
+      for b in user_badge_instances
+    ]
+
+    filtered = [r for r in results if ctx.value.lower() in r.name.lower()]
+    if not filtered:
+      filtered = [
+        discord.OptionChoice(
+          name="🔒 No Valid Badges Found",
+          value='none'
+        )
+      ]
+    return filtered
+
 
   # _________                                           .___
   # \_   ___ \  ____   _____   _____ _____    ____    __| _/______
@@ -211,7 +238,7 @@ class Crystals(commands.Cog):
     #    \_/ |_\___|\_/\_/
     class ConfirmCancelView(discord.ui.View):
       def __init__(self):
-        super().__init__(timeout=60)
+        super().__init__(timeout=120)
         self.RARITY_SUCCESS_MESSAGES = {
           'common': [
             "Another day, another Crystal for {user}.",
@@ -242,7 +269,7 @@ class Crystals(commands.Cog):
             "{user}, you pulled a classy one!",
             "Respectable find, {user}!",
             "Almost Rare, definitely Rad. Nice {user}!",
-            "Good things *do* happen to decent people, {user}. This proves it."
+            "Decent, decent, {user}."
           ],
           'rare': [
             "SHINY! Congrats {user}! Hold onto that one!",
@@ -252,16 +279,16 @@ class Crystals(commands.Cog):
             "GLIMMERY! You see that sparkle? That's *taste*, {user}.",
             "GLEAMY! You've got the touch, {user}!",
             "GLOWY! Rare, refined, and ready to radiate {user}!",
-            "FLASHY! That one's got that BDE. Lookin' good, {user}."
+            "FLASHY! That one's sharp. Lookin' good, {user}."
           ],
           'legendary': [
             "Whoa!!! Legen-dairy! Is this some kind of milk-based crystal {user}!?",
             "Well GOTDAYUM!!! That's some shiny shiny shiny {user}!",
             "FIYAH!!! Crystalline Goodness for {user}!",
-            "LORD HAVE MERCY!!! That’s a LEGENDARY for {user}!!!",
+            "LORD HAVE MERCY!!! That's a LEGENDARY for {user}!!!",
             "BEJESUS!!! This one's burnin' with glory {user}!",
-            "Hooo MAMA! The replicator paused, it knew this was a big one, {user}!",
-            "Heyyyyo! Everyone stand back! {user}'s got a hot one!!",
+            "Hooo MAMA! The replicator paused for a sec, it knew this was a big one, {user}!",
+            "Heyyyyo! Everyone stand back! {user}'s got a hot one!!!",
             "WHA WHA WHA!?! Legendary stuff, {user}."
           ],
           'mythic': [
@@ -270,7 +297,7 @@ class Crystals(commands.Cog):
             "OH DEAR LORD!!!!!! One freshly minted **MYTHIC** Crystal for {user}!? " + f"{get_emoji('barclay_omg_wow_shock')}",
             "PELDOR JOI!!! {user} got a MYTHIC!?!?! " + f"{get_emoji('kira_smile_lol_happy')}",
             "OMFG!!!!! A **MYTHIC** just materialized and it's in {user}'s inventory. " + f"{get_emoji('kira_omg_headexplode')}",
-            "CHRIKEY ON A CRACKER!!! The latest **MYTHIC** on the server is here, and it belongs to {user}! " + f"{get_emoji('jadzia_happy_smile')}"
+            "CHRIKEY ON A CRACKER!!! The latest **MYTHIC** on the server is here, {user}'s got a sick Crystal! " + f"{get_emoji('jadzia_happy_smile')}"
           ],
           'unobtainium': [
             "∴ [anomaly detected] ∷→∷ {user} receives pattern buffer overflow ∴",
@@ -359,7 +386,20 @@ class Crystals(commands.Cog):
   # \____|__  (____  /___|  /__||__|  \___  >____  > |__|
   #         \/     \/     \/              \/     \/
   @crystals_group.command(name="manifest", description="Review your unattuned Crystal Manifest.")
-  async def manifest(self, ctx: discord.ApplicationContext):
+  @option(
+    name="preview_prestige",
+    description="Which Prestige Tier of preview Badge?",
+    required=False,
+    autocomplete=autocomplete_prestige_tiers
+  )
+  @option(
+    'preview_badge',
+    str,
+    required=False,
+    description="Badge to preview Crystal effects on",
+    autocomplete=autocomplete_previewable_badges
+  )
+  async def manifest(self, ctx: discord.ApplicationContext, preview_prestige: str, preview_badge: str):
     await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
 
@@ -376,10 +416,38 @@ class Crystals(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
+    preview_badge_instance = None
+    if preview_prestige:
+      if not await is_prestige_valid(ctx, preview_prestige):
+        return
+      preview_prestige = int(preview_prestige)
+
+      preview_badge_instance = await db_get_badge_instance_by_id(preview_badge)
+      if not preview_badge_instance:
+        await ctx.respond(
+          embed=discord.Embed(
+            title="Invalid Preview Badge!",
+            description=f"You don't appear to have that Badge in your {PRESTIGE_TIERS[preview_prestige]} inventory!",
+            color=discord.Color.red()
+          )
+        )
+        return
+
+    music_types = [
+      'Jazzy',
+      'Smooth',
+      'Bossanova',
+      'Easy Listening',
+      'Lo-Fi Hip Hop',
+      'Chillwave',
+      'Ska',
+      'Saxxy',
+      'Soft Rock'
+    ]
     pending_message = await ctx.respond(
       embed=discord.Embed(
         title="Pulling up your Crystal Manifest...",
-        description="🎶 Jazzy Hold Music 🎶",
+        description=f"🎶 {random.choice(music_types)} Hold Music 🎶",
         color=discord.Color.teal()
       ),
       ephemeral=True
@@ -420,7 +488,7 @@ class Crystals(commands.Cog):
           collapsed[type_id]['instance_count'] += 1
 
       sorted_crystals = sorted(collapsed.values(), key=lambda c: c['crystal_name'].lower())
-      crystal_rank_manifest_images = await generate_crystal_manifest_images(ctx.user, sorted_crystals, rarity_name, rarity_emoji)
+      crystal_rank_manifest_images = await generate_crystal_manifest_images(ctx.user, sorted_crystals, rarity_name, rarity_emoji, preview_badge=preview_badge_instance)
 
       crystal_rank_pages = []
       for buffer, filename in crystal_rank_manifest_images:
@@ -585,7 +653,7 @@ class Crystals(commands.Cog):
     #    \_/ |_\___|\_/\_/
     class ConfirmCancelView(discord.ui.View):
       def __init__(self):
-        super().__init__(timeout=120)
+        super().__init__(timeout=240)
 
       async def on_timeout(self):
         for child in self.children:
@@ -740,7 +808,7 @@ class Crystals(commands.Cog):
     #    \_/ |_\___|\_/\_/
     class ConfirmCancelView(discord.ui.View):
       def __init__(self):
-        super().__init__(timeout=120)
+        super().__init__(timeout=240)
 
       async def on_timeout(self):
         for child in self.children:
@@ -821,5 +889,5 @@ class RaritySelect(discord.ui.Select):
 
 class CrystalManifestView(discord.ui.View):
   def __init__(self, paginator: pages.Paginator, rarity_order: list[str]):
-    super().__init__(timeout=180)
+    super().__init__(timeout=360)
     self.add_item(RaritySelect(paginator, rarity_order))

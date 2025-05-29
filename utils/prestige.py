@@ -14,8 +14,8 @@ PRESTIGE_TIERS = {
 
 PRESTIGE_THEMES = {
   1: {  # Nebula
-    "gradient_start": (0, 0, 0),
-    "gradient_end": (24, 16, 48),
+    "gradient_start": (5, 5, 5),
+    "gradient_end": (26, 17, 52),
     "border_gradient_colors": [
       (75, 0, 130),      # Deep Purple
       (138, 43, 226),    # Violet
@@ -25,8 +25,8 @@ PRESTIGE_THEMES = {
     "highlight": (138, 43, 226)
   },
   2: {  # Galaxy
-    "gradient_start": (0, 0, 0),
-    "gradient_end": (20, 60, 70),
+    "gradient_start": (5, 5, 5),
+    "gradient_end": (22, 66, 77),
     "border_gradient_colors": [
       (25, 25, 112),     # Midnight Blue
       (64, 224, 208),    # Pale Teal
@@ -35,9 +35,9 @@ PRESTIGE_THEMES = {
     "primary": (25, 25, 112),
     "highlight": (64, 224, 208)
   },
-    3: {  # Supernova
-    "gradient_start": (0, 0, 0),
-    "gradient_end": (30, 10, 10),
+  3: {  # Supernova
+    "gradient_start": (5, 5, 5),
+    "gradient_end": (33, 11, 11),
     "border_gradient_colors": [
       (255, 50, 50),     # Warm Red
       (255, 140, 50),    # Bright Gold-Orange
@@ -47,8 +47,8 @@ PRESTIGE_THEMES = {
     "highlight": (255, 140, 50)
   },
   4: {  # Cascade
-    "gradient_start": (0, 0, 0),
-    "gradient_end": (16, 32, 16),
+    "gradient_start": (5, 5, 5),
+    "gradient_end": (17, 35, 17),
     "border_gradient_colors": [
       (0, 255, 100),     # Bright green
       (50, 200, 140),    # Teal
@@ -58,8 +58,8 @@ PRESTIGE_THEMES = {
     "highlight": (50, 200, 140)
   },
   5: {  # Nexus
-    "gradient_start": (0, 0, 0),
-    "gradient_end": (20, 30, 25),
+    "gradient_start": (5, 5, 5),
+    "gradient_end": (22, 33, 27),
     "border_gradient_colors": [
       (50, 200, 140),    # Deep Teal-Green
       (138, 43, 226),    # Violet
@@ -69,8 +69,8 @@ PRESTIGE_THEMES = {
     "highlight": (138, 43, 226)
   },
   6: {  # Transcendence
-    "gradient_start": (0, 0, 0),
-    "gradient_end": (30, 30, 60),
+    "gradient_start": (5, 5, 5),
+    "gradient_end": (33, 33, 66),
     "border_gradient_colors": [
       (255, 255, 255),    # White
       (200, 160, 255),    # Lilac

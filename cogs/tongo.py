@@ -32,6 +32,7 @@ f.close()
 TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=6)
 MINIMUM_LIQUIDATION_CONTINUUM = 12
 MINIMUM_LIQUIDATION_PLAYERS = 3
+MINIMUM_AVARICE_QUOTIENT = 13
 DIVIDEND_REWARDS = {
   "buffer": {"cost": 3, "label": "Crystal Pattern Buffer"},
   "wishlist": {"cost": 7, "label": "Guaranteed Wishlist Badge"},
@@ -179,11 +180,11 @@ class TongoDividendsView(discord.ui.View):
       )
       return False
 
-    if len(wishlist_to_grant) < 21:
+    if len(wishlist_to_grant) < MINIMUM_AVARICE_QUOTIENT:
       await interaction.response.edit_message(
         embed=discord.Embed(
           title="You're not greedy ENOUGH!",
-          description="Zek requires a Minimum Avarice Quotient to grant a wishlist badge!\n\nYou'll need to expand your wishlist at your current tier (if possible), in order to redeem this Dividend Reward!",
+          description=f"Zek requires a Minimum Avarice Quotient to grant a wishlist badge!\n\nYou'll need to expand your wishlist at your current tier (if possible), to {MINIMUM_AVARICE_QUOTIENT} in order to redeem this Dividend Reward!",
           color=discord.Color.red()
         ).set_footer(text="(No Dividends have been deducted)"),
         view=None
@@ -406,7 +407,7 @@ class Tongo(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="Tongo Temporarily Disabled",
-          description=f"New Tongo games are currently on haitus for a minute.\n\nPlease stay tuned to {megalomaniacal.mention} for updates.",
+          description=f"New Tongo games are currently on hiatus for a minute.\n\nPlease stay tuned to {megalomaniacal.mention} for updates.",
           color=discord.Color.orange()
         ),
         ephemeral=True
@@ -1216,6 +1217,11 @@ class Tongo(commands.Cog):
     if not liquidation_result:
       return None
 
+    # Create a new instance using utility helper that tracks origin reason
+    reward_instance = await create_new_badge_instance(beneficiary_id, badge_info_id, event_type='liquidation_endowment')
+    if not reward_instance:
+      return None
+
     # Liquidate the selected badges
     for badge in liquidation_result['tongo_badges_to_remove']:
       await db_remove_from_continuum(badge['source_instance_id'])
@@ -1223,11 +1229,6 @@ class Tongo(commands.Cog):
 
     badge_info_id = liquidation_result['badge_to_grant']['badge_info_id']
     beneficiary_id = liquidation_result['beneficiary_id']
-
-    # Create a new instance using utility helper that tracks origin reason
-    reward_instance = await create_new_badge_instance(beneficiary_id, badge_info_id, event_type='liquidation_endowment')
-    if not reward_instance:
-      return None
 
     await db_add_game_reward(game_id, beneficiary_id, reward_instance['id'])
 
