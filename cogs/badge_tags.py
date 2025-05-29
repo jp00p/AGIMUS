@@ -607,18 +607,26 @@ class BadgeTags(commands.Cog):
 
       async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
+
+        # Sync tag state to DB
         associated_tags = await db_get_associated_user_badge_tags_by_info_id(self.user_discord_id, self.current_info['id'])
         tag_ids_to_delete = [t['id'] for t in associated_tags if t['id'] not in self.view.tag_ids]
         await db_delete_user_badge_info_tags_associations(self.user_discord_id, tag_ids_to_delete, self.current_info['id'])
 
         if self.view.tag_ids:
-          await db_create_user_badge_info_tags_associations(self.user_discord_id, self.current_info['id'], self.view.tag_ids)
+          existing = await db_get_associated_user_badge_tags_by_info_id(user_discord_id, self.current_info['id'])
+          existing_ids = {t['id'] for t in existing}
+          new_tag_ids = [tid for tid in self.view.tag_ids if tid not in existing_ids]
+          await db_create_user_badge_info_tags_associations(self.user_discord_id, self.current_info['id'], new_tag_ids)
 
+        # Build the summary embed
         final_tags = await db_get_associated_user_badge_tags_by_info_id(self.user_discord_id, self.current_info['id'])
         tag_names = [t['tag_name'] for t in final_tags]
 
         if tag_names:
-          description = f"**{self.current_info['badge_name']}** is now tagged with:\n\n- " + "\n- ".join(sorted(tag_names, key=str.lower)) + "\n\nUse `/badge_tags collection` to show off your tags!"
+          description = f"**{self.current_info['badge_name']}** is now tagged with:\n\n- " + "\n- ".join(
+            sorted(tag_names, key=str.lower)
+          ) + "\n\nUse `/badge_tags collection` to show off your tags!"
         else:
           description = f"**{self.current_info['badge_name']}** has no tags associated!"
 
@@ -628,10 +636,27 @@ class BadgeTags(commands.Cog):
           color=discord.Color.green()
         )
         summary_embed.set_image(url=f"attachment://{self.current_info['badge_filename']}")
-        badge_file = discord.File(fp=f"./images/badges/{self.current_info['badge_filename']}", filename=self.current_info['badge_filename'])
-        await interaction.edit_original_response(embed=summary_embed, attachments=[badge_file], view=None)
+        badge_file = discord.File(
+          fp=f"./images/badges/{self.current_info['badge_filename']}",
+          filename=self.current_info['badge_filename']
+        )
 
-        current_index = next((i for i, b in enumerate(self.info_list) if b['id'] == self.current_info['id']), None)
+        try:
+          await interaction.delete_original_response()
+        except discord.NotFound:
+          pass
+
+        await interaction.followup.send(
+          embed=summary_embed,
+          file=badge_file,
+          ephemeral=True
+        )
+
+        # Move to next badge
+        current_index = next(
+          (i for i, b in enumerate(self.info_list) if b['id'] == self.current_info['id']),
+          None
+        )
         if current_index is None or current_index + 1 >= len(self.info_list):
           await interaction.followup.send(
             embed=discord.Embed(
@@ -644,24 +669,50 @@ class BadgeTags(commands.Cog):
           await db_clear_last_carousel_badge_info(self.user_discord_id)
           return
 
+        # Prep the next badge in the carousel
         next_info = self.info_list[current_index + 1]
         await db_upsert_last_carousel_badge_info(self.user_discord_id, next_info['id'])
 
-        new_view = CarouselView(self.user_discord_id, next_info, user_tags, self.info_list)
-        embed = discord.Embed(title=next_info['badge_name'], color=discord.Color.dark_purple())
-        embed.set_image(url=f"attachment://{next_info['badge_filename']}")
-        badge_file = discord.File(fp=f"./images/badges/{next_info['badge_filename']}", filename=next_info['badge_filename'])
-        await interaction.followup.send(embed=embed, view=new_view, file=badge_file, ephemeral=True)
+        # Preload the tag state outside the view constructor
+        tag_data = await db_get_associated_user_badge_tags_by_info_id(
+          self.user_discord_id, next_info['id']
+        )
+
+        new_view = CarouselView(
+          self.user_discord_id,
+          next_info,
+          user_tags,
+          self.info_list,
+          tag_data
+        )
+
+        next_embed = discord.Embed(
+          title=next_info['badge_name'],
+          color=discord.Color.dark_purple()
+        )
+        next_embed.set_image(url=f"attachment://{next_info['badge_filename']}")
+        next_badge_file = discord.File(
+          fp=f"./images/badges/{next_info['badge_filename']}",
+          filename=next_info['badge_filename']
+        )
+
+        await interaction.followup.send(
+          embed=next_embed,
+          file=next_badge_file,
+          view=new_view,
+          ephemeral=True
+        )
 
     class CarouselView(discord.ui.View):
-      def __init__(self, user_discord_id, badge_info, tags, info_list):
-        super().__init__()
-        self.tag_ids = [t['id'] for t in asyncio.run(db_get_associated_user_badge_tags_by_info_id(user_discord_id, badge_info['id']))]
-        self.add_item(CarouselSelector(tags, self.tag_ids))
-        self.add_item(CarouselButton(user_discord_id, badge_info, info_list))
+      def __init__(self, user_discord_id, badge_info, user_tags, all_badge_info, tag_data):
+        super().__init__(timeout=180)
+        self.tag_ids = [t['id'] for t in tag_data]
+        self.add_item(CarouselSelector(user_tags, self.tag_ids))
+        self.add_item(CarouselButton(user_discord_id, badge_info, all_badge_info))
 
     # Actually use the View above
-    view = CarouselView(user_discord_id, selected, user_tags, all_badge_info)
+    tag_data = await db_get_associated_user_badge_tags_by_info_id(user_discord_id, selected['id'])
+    view = CarouselView(user_discord_id, selected, user_tags, all_badge_info, tag_data)
     embed = discord.Embed(
       title=selected['badge_name'],
       description="Tag this Badge below.",

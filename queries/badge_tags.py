@@ -106,7 +106,7 @@ async def db_get_user_tagged_badge_instances_by_prestige(user_discord_id, tag_na
 async def db_get_last_carousel_badge_info(user_discord_id):
   async with AgimusDB(dictionary=True) as query:
     sql = '''
-      SELECT b.id AS badge_info_id, b.badge_name, b.badge_filename, b.special
+      SELECT b.id, b.badge_name, b.badge_filename, b.special
       FROM badge_info_tags_carousel_state AS s
       JOIN badge_info AS b ON s.last_viewed_badge_info_id = b.id
       WHERE s.user_discord_id = %s
