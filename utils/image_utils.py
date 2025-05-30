@@ -211,7 +211,7 @@ def get_cached_font(font_path, size):
   return font
 
 FontSet = namedtuple("FontSet", ["title", "footer", "total", "pages", "label", "general"])
-def load_fonts(title_size=55, footer_size=50, total_size=27, page_size=40, label_size=11, general_size=35, fallback=True):
+def load_fonts(title_size=55, footer_size=50, total_size=27, page_size=42, label_size=11, general_size=35, fallback=True):
   try:
     return FontSet(
       title=get_cached_font("fonts/lcars3.ttf", title_size),
@@ -1628,7 +1628,7 @@ async def draw_canvas_labels(canvas, draw, title_text, footer_left_label, footer
   )
 
   draw.text(
-    (base_w - 185, base_h - 60),
+    (base_w - 182, base_h - 56),
     f"PAGE {page_number:02} OF {total_pages:02}",
     font=fonts.pages,
     fill=colors.highlight

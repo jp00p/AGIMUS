@@ -631,7 +631,9 @@ class Crystals(commands.Cog):
 
     landing_embed = discord.Embed(
       title="Crystal Attunement",
-      description=f"Are you sure you want to attune *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]} badge?\n### ⚠️ THIS CANNOT BE UNDONE! ⚠️",
+      description=f"Are you sure you want to **attach** *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}) badge?\n"
+                  "### ⚠️ THIS CANNOT BE UNDONE! ⚠️\n\n"
+                  "-# You can have multiple crystals attached to a badge, but once an individual crystal is attuned to a badge it cannot be attached to a *different* badge!",
       color=discord.Color.teal()
     )
     landing_embed.add_field(name=f"Rank", value=f"{crystal_instance['emoji']}  {crystal_instance['rarity_name']}", inline=False)
@@ -670,7 +672,7 @@ class Crystals(commands.Cog):
       async def confirm(self, button, interaction):
         await attune_crystal_to_badge(crystal_instance['crystal_instance_id'], badge_instance['badge_instance_id'])
 
-        embed_description = f"You have successfully attuned **{crystal_instance['crystal_name']}** to your **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]} Badge!"
+        embed_description = f"You have successfully attuned **{crystal_instance['crystal_name']}** to your **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}) Badge!"
 
         user_data = await get_user(user_id)
         auto_harmonize_enabled = user_data.get('crystal_autoharmonize', False)
@@ -769,7 +771,7 @@ class Crystals(commands.Cog):
       await db_set_harmonized_crystal(badge_instance['badge_instance_id'], None)
       embed = discord.Embed(
         title='Crystal Removed',
-        description=f"Deactivated **{prev_label}** on **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}.",
+        description=f"Deactivated **{prev_label}** on **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}).",
         color=discord.Color.green()
       )
       await ctx.respond(embed=embed, ephemeral=True)  # ← This was missing!
@@ -782,7 +784,7 @@ class Crystals(commands.Cog):
     if badge_instance.get('active_crystal_id') == crystal_instance.get('badge_crystal_id'):
       embed = discord.Embed(
         title='Already Harmonized!',
-        description=f"**{crystal_instance['crystal_name']}** is already the harmonized Crystal on **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}.",
+        description=f"**{crystal_instance['crystal_name']}** is already the harmonized Crystal on **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}).",
         color=discord.Color.orange()
       )
       await ctx.respond(embed=embed, ephemeral=True)
