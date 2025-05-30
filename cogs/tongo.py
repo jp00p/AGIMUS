@@ -602,15 +602,6 @@ class Tongo(commands.Cog):
     selected = random.sample(eligible, 3)
     await db_add_game_player(game['id'], user_id)
 
-    if not self.zek_consortium_activated:
-      all_players = await db_get_players_for_game(game['id'])
-      if len(all_players) >= 5 and random.random() < 0.33:
-        consortium_result = await self._find_consortium_badge_to_add(game['id'])
-        if consortium_result:
-          badge_info_id, prestige_level = consortium_result
-          await self._invoke_zek_consortium(badge_info_id, prestige_level)
-          self.zek_consortium_activated = True
-
     # Toss the badges in!
     for instance in selected:
       await throw_badge_into_continuum(instance, user_id)
@@ -686,6 +677,16 @@ class Tongo(commands.Cog):
 
     continuum_images = await generate_paginated_continuum_images(all_badges)
     await send_continuum_images_to_channel(zeks_table, continuum_images)
+
+    # Potentially trigger a Consortium post-join
+    if not self.zek_consortium_activated:
+      all_players = await db_get_players_for_game(game['id'])
+      if len(all_players) >= 5 and random.random() < 0.25:
+        consortium_result = await self._find_consortium_badge_to_add(game['id'])
+        if consortium_result:
+          badge_info_id, prestige_level = consortium_result
+          await self._invoke_zek_consortium(badge_info_id, prestige_level)
+          self.zek_consortium_activated = True
 
 
   async def _cancel_tongo_related_trades(self, user_discord_id, selected_badges: list[dict]):
@@ -1053,18 +1054,15 @@ class Tongo(commands.Cog):
     for user_id, badge_instance_ids in player_distribution.items():
       member = await self.bot.current_guild.fetch_member(user_id)
 
-      # Wishlist Determination
-      echelon_progress = await db_get_echelon_progress(user_id)
-      prestige = echelon_progress['current_prestige_tier'] if echelon_progress else 0
-      active_wants = await db_get_active_wants(user_id, prestige)
-      wanted_filenames = set(b['badge_filename'] for b in active_wants)
-
       if badge_instance_ids:
         badges_received = [
           await db_get_badge_instance_by_id(instance_id)
           for instance_id in badge_instance_ids
         ]
-        wishlist_filenames_received = [b['badge_filename'] for b in badges_received if b['badge_filename'] in wanted_filenames]
+        wishlist_filenames = wishlist_snapshots.get(user_id, set())
+        wishlist_filenames_received = [
+          b['badge_filename'] for b in badges_received if b['badge_filename'] in wishlist_filenames
+        ]
 
         received_image, received_image_url = await generate_badge_trade_images(
           badges_received,
