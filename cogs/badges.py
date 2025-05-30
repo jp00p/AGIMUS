@@ -409,7 +409,7 @@ class Badges(commands.Cog):
       }
       set_badges.append(record)
 
-    pending_message = await ctx.followup.send(
+    pending_message = await ctx.respond(
       embed=discord.Embed(
         title="Sets Display Request Received!",
         description=f"If this is a large set this miiiiiight take a while...\n\nFear not, AGIMUS shall provide! {get_emoji('agimus_flail')}",
@@ -588,7 +588,7 @@ class Badges(commands.Cog):
     if color:
       await db_set_user_badge_page_color_preference(ctx.author.id, 'sets', color)
 
-    pending_message = await ctx.followup.send(
+    pending_message = await ctx.respond(
       embed=discord.Embed(
         title=f"{category_title}s Display Request Received!",
         description=f"This may take a second or two...\n\nACCESSING DATABANKS! {get_emoji('agimus')}",
@@ -605,7 +605,6 @@ class Badges(commands.Cog):
         color=discord.Color.dark_green()
       )
     )
-
 
     embed = discord.Embed(
       title=f"Badge Set Completion ({PRESTIGE_TIERS[prestige]}): {category_title}",
