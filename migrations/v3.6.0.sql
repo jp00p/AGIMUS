@@ -61,3 +61,23 @@ WHERE b.badge_filename = 'Echelon_Veteran.png'
 -- Tweak Crystal Rarity Ranks a bit (again)
 UPDATE crystal_ranks SET drop_chance = 1.5 WHERE name = 'Mythic';
 UPDATE crystal_ranks SET drop_chance = 0.5 WHERE name = 'Unobtainium';
+
+-- Add auto-update date column for badge_instances for filtering
+ALTER TABLE badge_instances
+ADD COLUMN last_modified DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+-- Add date column to track when instance transfers occur
+ALTER TABLE badge_instances
+ADD COLUMN last_transferred DATETIME DEFAULT CURRENT_TIMESTAMP;
+
+-- Add trigger to modify last_transferred when owner changes
+DELIMITER $$
+CREATE TRIGGER trg_update_last_transferred_on_owner_change
+BEFORE UPDATE ON badge_instances
+FOR EACH ROW
+BEGIN
+  IF NEW.owner_discord_id != OLD.owner_discord_id THEN
+    SET NEW.last_transferred = CURRENT_TIMESTAMP;
+  END IF;
+END$$
+DELIMITER;

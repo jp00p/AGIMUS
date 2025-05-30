@@ -31,7 +31,11 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   if 'requestee' in ctx.options and 'prestige' in ctx.options:
     requestee_user_id = ctx.options['requestee']
     prestige = ctx.options.get('prestige')
-    prestige_level = int(prestige) if prestige is not None else 0
+    try:
+      prestige_level = int(prestige)
+    except ValueError:
+      logger.warning(f"Non-numeric prestige level received: {prestige}")
+      return [discord.OptionChoice(name="[ 🔒 Invalid Prestige ]", value="none")]
   else:
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
@@ -86,7 +90,11 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   if 'requestee' in ctx.options and 'prestige' in ctx.options:
     requestee_user_id = ctx.options['requestee']
     prestige = ctx.options.get('prestige')
-    prestige_level = int(prestige) if prestige is not None else 0
+    try:
+      prestige_level = int(prestige)
+    except ValueError:
+      logger.warning(f"Non-numeric prestige level received: {prestige}")
+      return [discord.OptionChoice(name="[ 🔒 Invalid Prestige ]", value="none")]
   else:
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
@@ -1229,7 +1237,7 @@ class Trade(commands.Cog):
 
     if offer:
       try:
-        offer_id = int(request)
+        offer_id = int(offer)
       except ValueError:
         await ctx.respond(embed=discord.Embed(
           title="Invalid Badge Selection",

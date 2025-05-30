@@ -2,7 +2,7 @@ from common import *
 from utils.media_utils import get_media_file
 from utils.string_utils import *
 
-PERCENTAGE_THRESHOLD = 15
+PERCENTAGE_THRESHOLD = 5
 
 # handle_loudbot(message) - responds to uppercase messages
 # message[required]: discord.Message

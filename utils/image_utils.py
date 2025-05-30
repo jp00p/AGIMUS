@@ -1400,9 +1400,17 @@ def get_slot_canvas(prestige, border_color, unowned=False):
   dims = _get_badge_slot_dimensions()
   slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
 
+  if unowned:
+    gradient = _create_gradient_fill(
+      (dims.slot_width, dims.slot_height),
+      (24, 24, 24),
+      (54, 54, 54)
+    )
+
   if prestige:
     prestige_theme = PRESTIGE_THEMES.get(prestige)
-    gradient = _create_gradient_fill((dims.slot_width, dims.slot_height), prestige_theme["gradient_start"], prestige_theme["gradient_end"])
+    if not unowned:
+      gradient = _create_gradient_fill((dims.slot_width, dims.slot_height), prestige_theme["gradient_start"], prestige_theme["gradient_end"])
     mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, dims.slot_width, dims.slot_height), radius=32, fill=255)
     gradient.putalpha(mask)
@@ -1413,13 +1421,7 @@ def get_slot_canvas(prestige, border_color, unowned=False):
     slot_canvas.paste(prestige_border, (0, 0), prestige_border)
   else:
     # Subtle dark gradient for Standard Tier badges
-    if unowned:
-      gradient = _create_gradient_fill(
-        (dims.slot_width, dims.slot_height),
-        (24, 24, 24),
-        (54, 54, 54)
-      )
-    else:
+    if not unowned:
       gradient = _create_gradient_fill(
         (dims.slot_width, dims.slot_height),
         (5, 5, 5),

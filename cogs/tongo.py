@@ -32,7 +32,7 @@ f.close()
 TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=6)
 MINIMUM_LIQUIDATION_CONTINUUM = 12
 MINIMUM_LIQUIDATION_PLAYERS = 3
-MINIMUM_AVARICE_QUOTIENT = 13
+MINIMUM_AVARICE_QUOTIENT = 9
 DIVIDEND_REWARDS = {
   "buffer": {"cost": 3, "label": "Crystal Pattern Buffer"},
   "wishlist": {"cost": 7, "label": "Guaranteed Wishlist Badge"},
@@ -114,7 +114,6 @@ class TongoDividendsView(discord.ui.View):
       result_successful = await self._reward_replication(interaction, user_id)
 
     if not result_successful:
-      await interaction.delete_original_response()
       return
 
     await db_decrement_user_tongo_dividends(user_id, reward['cost'])
@@ -375,7 +374,7 @@ class Tongo(commands.Cog):
         title="REBOOT DETECTED! Resuming Tongo...",
         description="We had a game in progress! ***Rude!***\n\n"
                     f"The current game started by **{chair.display_name}** has been resumed.\n\n"
-                    f"This Tongo game has {humanize.naturaltime(time_left)} left before the game is ended!",
+                    f"This Tongo game has {humanize.naturaltime(time_left)} left before it ends and distributions are dealt out!",
         color=discord.Color.red()
       )
       reboot_embed.set_image(url="https://i.imgur.com/K4hUjh6.gif")

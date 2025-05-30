@@ -435,12 +435,13 @@ class Crystals(commands.Cog):
 
     music_types = [
       'Jazzy',
-      'Smooth',
+      'Defiant Jazz',
+      'Smooth and Sultry',
       'Bossanova',
       'Easy Listening',
       'Lo-Fi Hip Hop',
       'Chillwave',
-      'Ska',
+      'Third-Wave Ska',
       'Saxxy',
       'Soft Rock'
     ]

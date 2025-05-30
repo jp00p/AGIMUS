@@ -569,6 +569,8 @@ CREATE TABLE IF NOT EXISTS badge_instances (
   active BOOLEAN GENERATED ALWAYS AS (status = 'active') STORED,
   origin_user_id varchar(64) NULL,
   acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  last_modified DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  last_transferred DATETIME DEFAULT CURRENT_TIMESTAMP,
   active_crystal_id INT DEFAULT NULL,
   status ENUM('active', 'scrapped', 'liquidated', 'archived') NOT NULL DEFAULT 'active',
 
@@ -778,3 +780,15 @@ CREATE TABLE IF NOT EXISTS trade_requested_crystal_instances (
   FOREIGN KEY (trade_id) REFERENCES crystal_instance_trades(id) ON DELETE CASCADE,
   FOREIGN KEY (crystal_instance_id) REFERENCES crystal_instances(id) ON DELETE CASCADE
 );
+
+-- Triggers
+DELIMITER $$
+CREATE TRIGGER trg_update_last_transferred_on_owner_change
+BEFORE UPDATE ON badge_instances
+FOR EACH ROW
+BEGIN
+  IF NEW.owner_discord_id != OLD.owner_discord_id THEN
+    SET NEW.last_transferred = CURRENT_TIMESTAMP;
+  END IF;
+END$$
+DELIMITER;

@@ -49,9 +49,9 @@ async def db_get_user_badge_instances(
   sort_sql = "ORDER BY b_i.badge_filename ASC"
   if sortby is not None:
     if sortby == 'date_ascending':
-      sort_sql = "ORDER BY b.time_awarded ASC, b_i.badge_filename ASC"
+      sort_sql = "ORDER BY b.last_updated ASC, b_i.badge_filename ASC"
     elif sortby == 'date_descending':
-      sort_sql = "ORDER BY b.time_awarded DESC, b_i.badge_filename ASC"
+      sort_sql = "ORDER BY b.last_updated DESC, b_i.badge_filename ASC"
     elif sortby == 'locked_first':
       sort_sql = "ORDER BY b.locked ASC, b_i.badge_filename ASC"
     elif sortby == 'special_first':
