@@ -1019,21 +1019,37 @@ class Tongo(commands.Cog):
 
 
   async def _perform_confront(self, active_tongo, active_chair):
-    await db_update_game_status(active_tongo['id'], 'resolved')
-    player_distribution = await self._execute_confront_distribution(active_tongo['id'])
-    player_ids = list(player_distribution.keys())
+    players = await db_get_players_for_game(active_tongo['id'])
+    player_ids = [int(p['user_discord_id']) for p in players]
 
+    # Build wishlist snapshots before any transfer take place
+    wishlist_snapshots = {}
+    player_prestiges = {}
+
+    for p in players:
+      user_id = int(p['user_discord_id'])
+      echelon = await db_get_echelon_progress(user_id)
+      prestige = echelon['current_prestige_tier'] if echelon else 0
+      player_prestiges[user_id] = prestige
+
+      raw_wishlist = await db_get_simple_wishlist_badges(user_id)
+      wishlist_filenames = {b['badge_filename'] for b in raw_wishlist}
+      wishlist_snapshots[user_id] = wishlist_filenames
+
+    # Execute the transfers
+    player_distribution = await self._execute_confront_distribution(active_tongo['id'], player_ids)
     remaining_badges = await db_get_full_continuum_badges()
-
-    # Handle potential liquidation
+    # Execute potential liquidation
     liquidation_result = await self._handle_liquidation(active_tongo['id'], remaining_badges, player_ids)
+    # Executions complete, mark game as resolved
+    await db_update_game_status(active_tongo['id'], 'resolved')
 
-    # Build and send results embed
+    # Send main channel results embed
     results_embed = await build_confront_results_embed(active_chair, remaining_badges)
     zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
     channel_message = await zeks_table.send(embed=results_embed)
 
-    # Show per-player rewards
+    # Send per-player results embeds
     for user_id, badge_instance_ids in player_distribution.items():
       member = await self.bot.current_guild.fetch_member(user_id)
 
@@ -1083,7 +1099,7 @@ class Tongo(commands.Cog):
         except discord.Forbidden:
           logger.info(f"Unable to DM {member.display_name} — DMs closed.")
 
-    # If liquidation occurred, display the results
+    # Send liquidation results embeds (if a liquidation did in fact occur)
     if liquidation_result:
       member = await self.bot.current_guild.fetch_member(liquidation_result['player_id'])
       reward = liquidation_result['badge_to_grant']
@@ -1106,16 +1122,14 @@ class Tongo(commands.Cog):
       except discord.Forbidden:
         logger.info(f"Unable to DM {member.display_name} about liquidation — DMs closed.")
 
-    # Refresh final continuum display
+    # Refresh final continuum and send images to channel
     updated = await db_get_full_continuum_badges()
     if updated:
       images = await generate_paginated_continuum_images(updated)
       await send_continuum_images_to_channel(zeks_table, images)
 
-  async def _execute_confront_distribution(self, game_id: int) -> dict[int, set[int]]:
-    players = await db_get_players_for_game(game_id)
-    player_ids = [int(p['user_discord_id']) for p in players]
 
+  async def _execute_confront_distribution(self, game_id: int, player_ids: list[dict]) -> dict[int, set[int]]:
     continuum_records = await db_get_full_continuum_badges()
     if not continuum_records:
       return {}
@@ -1145,7 +1159,7 @@ class Tongo(commands.Cog):
       wishlist_info_ids = set(b['badge_info_id'] for b in active_wants)
       player_wishlists[player_id] = wishlist_info_ids
 
-    # Shuffle for fairness
+    # Shuffle the deck
     random.shuffle(player_ids)
     random.shuffle(continuum_records)
 
