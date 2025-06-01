@@ -1068,7 +1068,16 @@ class Badges(commands.Cog):
       discord.OptionChoice(name="Yes", value="yes")
     ]
   )
-  async def spotlight(self, ctx: discord.ApplicationContext, prestige: str, badge: str, public: str):
+  @option(
+    name="full_metadata",
+    description="Include all metadata ()?",
+    required=False,
+    choices=[
+      discord.OptionChoice(name="No", value="no"),
+      discord.OptionChoice(name="Yes", value="yes")
+    ]
+  )
+  async def spotlight(self, ctx: discord.ApplicationContext, prestige: str, badge: str, public: str, full_metadata: str):
     user_id = str(ctx.author.id)
 
     if not await is_prestige_valid(ctx, prestige):
@@ -1101,6 +1110,7 @@ class Badges(commands.Cog):
       return
 
     await ctx.defer(ephemeral=(public == "no"))
+    full_metadata = full_metadata == "yes"
 
     main_color_tuple = discord.Color.blurple().to_rgb()
     if prestige > 0:
@@ -1144,16 +1154,16 @@ class Badges(commands.Cog):
       crystal_instance = await db_get_crystal_by_id(badge_instance['crystal_instance_id'])
       embed.add_field(name="Crystal", value=f"{crystal_instance['emoji']}  {crystal_instance['crystal_name']} ({crystal_instance['rarity_name']})", inline=False)
       embed.add_field(name="Crystal Description", value=crystal_instance['description'], inline=False)
-    if badge_info['affiliations']:
-      embed.add_field(name="Affiliations", value=", ".join(badge_info['affiliations']), inline=False)
-    if badge_info['types']:
-      embed.add_field(name="Types", value=", ".join(badge_info['types']), inline=False)
-    embed.add_field(name="Time Period", value=badge_info['time_period'] or "Unknown", inline=False)
-    embed.add_field(name="Quadrant", value=badge_info['quadrant'] or "Unknown", inline=False)
-    embed.add_field(name="Franchise", value=badge_info['franchise'] or "Unknown", inline=False)
-    embed.add_field(name="Reference", value=badge_info['reference'] or "Unknown", inline=False)
-
-    embed.add_field(name="Star Trek Design Project", value=f"{badge_info['badge_url']}", inline=False)
+    if full_metadata:
+      if badge_info['affiliations']:
+        embed.add_field(name="Affiliations", value=", ".join(badge_info['affiliations']), inline=False)
+      if badge_info['types']:
+        embed.add_field(name="Types", value=", ".join(badge_info['types']), inline=False)
+      embed.add_field(name="Time Period", value=badge_info['time_period'] or "Unknown", inline=False)
+      embed.add_field(name="Quadrant", value=badge_info['quadrant'] or "Unknown", inline=False)
+      embed.add_field(name="Franchise", value=badge_info['franchise'] or "Unknown", inline=False)
+      embed.add_field(name="Reference", value=badge_info['reference'] or "Unknown", inline=False)
+      embed.add_field(name="Star Trek Design Project", value=f"{badge_info['badge_url']}", inline=False)
 
     await ctx.followup.send(
       embed=embed,
