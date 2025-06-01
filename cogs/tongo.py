@@ -17,6 +17,7 @@ from utils.badge_utils import *
 from utils.crystal_instances import *
 from utils.check_channel_access import access_check
 from utils.check_user_access import user_check
+from utils.exception_logger import log_manual_exception
 from utils.image_utils import *
 from utils.prestige import *
 
@@ -1128,6 +1129,7 @@ class Tongo(commands.Cog):
         await send_continuum_images_to_channel(zeks_table, images)
     except Exception as e:
       logger.exception("Unhandled exception in Tongo _perform_confront")
+      log_manual_exception(e, "Unhandled exception in Tongo _perform_confront")
 
   async def _execute_confront_distribution(self, game_id: int, player_ids: list[dict]) -> dict[int, set[int]]:
     continuum_records = await db_get_full_continuum_badges()
