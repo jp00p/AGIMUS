@@ -1186,14 +1186,8 @@ class Badges(commands.Cog):
     description="Show to public?",
     required=True,
     choices=[
-      discord.OptionChoice(
-        name="No",
-        value="no"
-      ),
-      discord.OptionChoice(
-        name="Yes",
-        value="yes"
-      )
+      discord.OptionChoice(name="No", value="no"),
+      discord.OptionChoice(name="Yes", value="yes")
     ]
   )
   @option(
@@ -1202,9 +1196,9 @@ class Badges(commands.Cog):
     required=True,
     autocomplete=all_badges_autocomplete
   )
-  async def badge_lookup(self, ctx:discord.ApplicationContext, public:str, name:str):
+  async def badge_lookup(self, ctx: discord.ApplicationContext, public: str, name: str):
     """
-    This function executes the lookup for the /badge lookup command
+    This function executes the lookup for the /badge lookup command.
     :param ctx:
     :param name: The name of the badge to be looked up.
     :return:
@@ -1220,7 +1214,8 @@ class Badges(commands.Cog):
           title="Could Not Find This Badge",
           description=f"**{name}** does not appear to exist!",
           color=discord.Color.red()
-        ), ephemeral=True
+        ),
+        ephemeral=True
       )
       return
 
@@ -1257,6 +1252,14 @@ class Badges(commands.Cog):
       description += "* **None Collected Yet!**\n"
     description += "Star Trek Design Project:\n"
     description += f"{badge['badge_url']}"
+
+    embed = discord.Embed(
+      title=f"{badge['badge_name']}",
+      description=description,
+      color=discord.Color.random()  # jp00p made me do it
+    )
+    discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'].replace(',', '_'))
+    embed.set_image(url=f"attachment://{badge['badge_filename'].replace(',', '_')}")
 
     if not public:
       user_discord_id = ctx.author.id
@@ -1302,15 +1305,7 @@ class Badges(commands.Cog):
             note = "Not Owned"
         status_lines.append(f"{PRESTIGE_TIERS[tier]}: {symbol} {note}")
 
-      embed.set_footer(text=f"Badge Status for {ctx.author.display_name}:\n" + "\n".join(status_lines))
-
-    embed = discord.Embed(
-      title=f"{badge['badge_name']}",
-      description=description,
-      color=discord.Color.random() # jp00p made me do it
-    )
-    discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'].replace(',','_'))
-    embed.set_image(url=f"attachment://{badge['badge_filename'].replace(',','_')}")
+      embed.set_footer(text=f"Badge Status for {ctx.author.display_name}\n" + "\n".join(status_lines))
 
     await ctx.followup.send(embed=embed, file=discord_image, ephemeral=not public)
 

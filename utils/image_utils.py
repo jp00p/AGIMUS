@@ -1628,7 +1628,7 @@ async def draw_canvas_labels(canvas, draw, title_text, footer_left_label, footer
   )
 
   draw.text(
-    (base_w - 182, base_h - 56),
+    (base_w - 180, base_h - 56),
     f"PAGE {page_number:02} OF {total_pages:02}",
     font=fonts.pages,
     fill=colors.highlight

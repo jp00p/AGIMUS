@@ -383,74 +383,74 @@ class Admin(commands.Cog):
     await ctx.respond(embed=summary, ephemeral=True)
 
 
-  @admin_group.command(name="repair_levelup_badges", description="(ADMIN RESTRICTED) Correct Missing Badges.")
-  @commands.check(user_check)
-  async def repair_missing_levelup_badges(self, ctx):
-    await ctx.defer(ephemeral=True)
+  # @admin_group.command(name="repair_levelup_badges", description="(ADMIN RESTRICTED) Correct Missing Badges.")
+  # @commands.check(user_check)
+  # async def repair_missing_levelup_badges(self, ctx):
+  #   await ctx.defer(ephemeral=True)
 
-    async with AgimusDB(dictionary=True) as db:
-      await db.execute("SELECT user_discord_id, current_xp, current_level FROM echelon_progress")
-      users = await db.fetchall()
+  #   async with AgimusDB(dictionary=True) as db:
+  #     await db.execute("SELECT user_discord_id, current_xp, current_level FROM echelon_progress")
+  #     users = await db.fetchall()
 
-    total_users_fixed = 0
-    total_badges_granted = 0
-    failed = []
+  #   total_users_fixed = 0
+  #   total_badges_granted = 0
+  #   failed = []
 
-    for row in users:
-      user_id = row['user_discord_id']
-      expected = row['current_level']
-      xp = row['current_xp']
+  #   for row in users:
+  #     user_id = row['user_discord_id']
+  #     expected = row['current_level']
+  #     xp = row['current_xp']
 
-      xp_enabled = bool(await db_get_current_xp_enabled_value(user_id))
-      if not xp_enabled:
-        continue
+  #     xp_enabled = bool(await db_get_current_xp_enabled_value(user_id))
+  #     if not xp_enabled:
+  #       continue
 
-      if xp == 0:
-        continue
+  #     if xp == 0:
+  #       continue
 
-      actual = await db_get_levelup_badge_count(user_id)
-      missing = expected - actual
+  #     actual = await db_get_levelup_badge_count(user_id)
+  #     missing = expected - actual
 
-      if missing <= 0:
-        continue
+  #     if missing <= 0:
+  #       continue
 
-      logger.info(f">  [{user_id}]: User Found With Missing Badges")
-      logger.info(f">> [{user_id}]: Expected: {expected}; Actual: {actual}")
-      logger.info(f">> [{user_id}]: Missing: {missing}")
+  #     logger.info(f">  [{user_id}]: User Found With Missing Badges")
+  #     logger.info(f">> [{user_id}]: Expected: {expected}; Actual: {actual}")
+  #     logger.info(f">> [{user_id}]: Missing: {missing}")
 
-      try:
-        user_obj = await self.bot.fetch_user(int(user_id))
-        for _ in range(missing):
-          badge_data = await award_level_up_badge(user_obj)
+  #     try:
+  #       user_obj = await self.bot.fetch_user(int(user_id))
+  #       for _ in range(missing):
+  #         badge_data = await award_level_up_badge(user_obj)
 
-          if row['current_level'] == 1:
-            await post_first_level_welcome_embed(user_obj, badge_data, source_details=None)
-            await db_increment_user_crystal_buffer(user_id, amount=3)
-            await post_buffer_pattern_acquired_embed(user_obj, 1, 3)
-          else:
-            await post_badge_repair_embed(user_obj, badge_data)
-            await award_possible_crystal_pattern_buffer(user_obj)
+  #         if row['current_level'] == 1:
+  #           await post_first_level_welcome_embed(user_obj, badge_data, source_details=None)
+  #           await db_increment_user_crystal_buffer(user_id, amount=3)
+  #           await post_buffer_pattern_acquired_embed(user_obj, 1, 3)
+  #         else:
+  #           await post_badge_repair_embed(user_obj, badge_data)
+  #           await award_possible_crystal_pattern_buffer(user_obj)
 
-          await asyncio.sleep(0.5)
-          total_badges_granted += 1
-        total_users_fixed += 1
-      except Exception as e:
-        logger.info(f"Error: Problem with `repair_missing_levelup_badges` for {user_id}", exc_info=True)
-        failed.append(user_id)
+  #         await asyncio.sleep(0.5)
+  #         total_badges_granted += 1
+  #       total_users_fixed += 1
+  #     except Exception as e:
+  #       logger.info(f"Error: Problem with `repair_missing_levelup_badges` for {user_id}", exc_info=True)
+  #       failed.append(user_id)
 
-    summary = discord.Embed(
-      title="🛠 Missing Level-Up Badges Repaired",
-      description=(
-        f"🔍 Scanned `{len(users)}` users.\n"
-        f"✅ `{total_users_fixed}` users had missing badges.\n"
-        f"🎖 `{total_badges_granted}` badges granted via repair.\n"
-      ),
-      color=discord.Color.teal()
-    )
-    if failed:
-      summary.add_field(name="⚠️ Failed Users", value=f"{len(failed)}", inline=False)
+  #   summary = discord.Embed(
+  #     title="🛠 Missing Level-Up Badges Repaired",
+  #     description=(
+  #       f"🔍 Scanned `{len(users)}` users.\n"
+  #       f"✅ `{total_users_fixed}` users had missing badges.\n"
+  #       f"🎖 `{total_badges_granted}` badges granted via repair.\n"
+  #     ),
+  #     color=discord.Color.teal()
+  #   )
+  #   if failed:
+  #     summary.add_field(name="⚠️ Failed Users", value=f"{len(failed)}", inline=False)
 
-    await ctx.respond(embed=summary, ephemeral=True)
+  #   await ctx.respond(embed=summary, ephemeral=True)
 
 
   @admin_group.command(name="repair_badges_special_grant", description="(ADMIN RESTRICTED) Address Erroneous Special Badge Grants.")
@@ -463,13 +463,17 @@ class Admin(commands.Cog):
       SELECT bi.id AS instance_id, bi.owner_discord_id, bi.badge_info_id, binfo.badge_name
       FROM badge_instances bi
       JOIN badge_info binfo ON bi.badge_info_id = binfo.id
-      JOIN badge_instance_history h ON h.badge_instance_id = bi.id
       WHERE binfo.special = 1
-        AND h.event_type = 'level_up'
         AND bi.status = 'active'
+        AND EXISTS (
+          SELECT 1 FROM badge_instance_history h
+          WHERE h.badge_instance_id = bi.id
+            AND h.event_type = 'level_up'
+        )
         AND NOT EXISTS (
           SELECT 1 FROM badge_instance_history h2
-          WHERE h2.badge_instance_id = bi.id AND h2.event_type = 'prestige_echo'
+          WHERE h2.badge_instance_id = bi.id
+            AND h2.event_type = 'prestige_echo'
         )
     """
 
