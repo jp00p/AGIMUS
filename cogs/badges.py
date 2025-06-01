@@ -1163,7 +1163,7 @@ class Badges(commands.Cog):
       embed.add_field(name="Quadrant", value=badge_info['quadrant'] or "Unknown", inline=False)
       embed.add_field(name="Franchise", value=badge_info['franchise'] or "Unknown", inline=False)
       embed.add_field(name="Reference", value=badge_info['reference'] or "Unknown", inline=False)
-      embed.add_field(name="Star Trek Design Project", value=f"{badge_info['badge_url']}", inline=False)
+      embed.add_field(name="URL", value=f"{badge_info['badge_url']}", inline=False)
 
     await ctx.followup.send(
       embed=embed,
