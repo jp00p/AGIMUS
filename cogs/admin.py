@@ -480,10 +480,6 @@ class Admin(commands.Cog):
     if not rows:
       return await ctx.respond("✅ No invalid special badges found to archive.", ephemeral=True)
 
-    from utils.badge_instances import archive_badge_instance
-    from utils.echelon_rewards import award_level_up_badge
-    from handlers.echelon_xp import post_badge_repair_embed
-
     summary = defaultdict(lambda: {'display_name': None, 'archived': [], 'granted': []})
     total_archived = 0
     total_granted = 0

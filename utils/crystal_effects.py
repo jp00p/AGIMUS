@@ -1265,7 +1265,7 @@ def effect_singularity_warp(base_img: Image.Image, badge: dict) -> list[Image.Im
 
 
 @register_effect("rainbow_sheen")
-def effect_pride_sheen_2025(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+def effect_rainbow_sheen(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
   """
   Applies a sweeping diagonal rainbow sheen from top-left to bottom-right.
   Animated loop with blurred, wide-spectrum gradient.

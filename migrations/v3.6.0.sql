@@ -180,6 +180,10 @@ ADD COLUMN last_modified DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TI
 ALTER TABLE badge_instances
 ADD COLUMN last_transferred DATETIME DEFAULT CURRENT_TIMESTAMP;
 
+UPDATE badge_instances
+SET last_transferred = acquired_at
+WHERE last_transferred IS NOT NULL;
+
 -- Add trigger to modify last_transferred when owner changes
 DELIMITER $$
 CREATE TRIGGER trg_update_last_transferred_on_owner_change

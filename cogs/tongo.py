@@ -33,7 +33,7 @@ f.close()
 TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=6)
 MINIMUM_LIQUIDATION_CONTINUUM = 12
 MINIMUM_LIQUIDATION_PLAYERS = 3
-MINIMUM_AVARICE_QUOTIENT = 9
+MINIMUM_AVARICE_QUOTIENT = 21
 DIVIDEND_REWARDS = {
   "buffer": {"cost": 3, "label": "Crystal Pattern Buffer"},
   "wishlist": {"cost": 7, "label": "Guaranteed Wishlist Badge"},
@@ -184,7 +184,7 @@ class TongoDividendsView(discord.ui.View):
       await interaction.response.edit_message(
         embed=discord.Embed(
           title="You're not greedy ENOUGH!",
-          description=f"Zek requires a Minimum Avarice Quotient to grant a wishlist badge!\n\nYou'll need to expand your wishlist at your current tier (if possible), to {MINIMUM_AVARICE_QUOTIENT} in order to redeem this Dividend Reward!",
+          description=f"Zek requires a Minimum Avarice Quotient to grant a wishlist badge!\n\nYou'll need to expand your wishlist in order to redeem this Dividend Reward!",
           color=discord.Color.red()
         ).set_footer(text="(No Dividends have been deducted)"),
         view=None
