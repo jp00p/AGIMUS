@@ -409,7 +409,7 @@ class Badges(commands.Cog):
       }
       set_badges.append(record)
 
-    pending_message = await ctx.followup.send(
+    pending_message = await ctx.respond(
       embed=discord.Embed(
         title="Sets Display Request Received!",
         description=f"If this is a large set this miiiiiight take a while...\n\nFear not, AGIMUS shall provide! {get_emoji('agimus_flail')}",
@@ -588,7 +588,7 @@ class Badges(commands.Cog):
     if color:
       await db_set_user_badge_page_color_preference(ctx.author.id, 'sets', color)
 
-    pending_message = await ctx.followup.send(
+    pending_message = await ctx.respond(
       embed=discord.Embed(
         title=f"{category_title}s Display Request Received!",
         description=f"This may take a second or two...\n\nACCESSING DATABANKS! {get_emoji('agimus')}",
@@ -605,7 +605,6 @@ class Badges(commands.Cog):
         color=discord.Color.dark_green()
       )
     )
-
 
     embed = discord.Embed(
       title=f"Badge Set Completion ({PRESTIGE_TIERS[prestige]}): {category_title}",
@@ -1069,7 +1068,16 @@ class Badges(commands.Cog):
       discord.OptionChoice(name="Yes", value="yes")
     ]
   )
-  async def spotlight(self, ctx: discord.ApplicationContext, prestige: str, badge: str, public: str):
+  @option(
+    name="full_metadata",
+    description="Include all metadata ()?",
+    required=False,
+    choices=[
+      discord.OptionChoice(name="No", value="no"),
+      discord.OptionChoice(name="Yes", value="yes")
+    ]
+  )
+  async def spotlight(self, ctx: discord.ApplicationContext, prestige: str, badge: str, public: str, full_metadata: str):
     user_id = str(ctx.author.id)
 
     if not await is_prestige_valid(ctx, prestige):
@@ -1102,6 +1110,7 @@ class Badges(commands.Cog):
       return
 
     await ctx.defer(ephemeral=(public == "no"))
+    full_metadata = full_metadata == "yes"
 
     main_color_tuple = discord.Color.blurple().to_rgb()
     if prestige > 0:
@@ -1133,7 +1142,7 @@ class Badges(commands.Cog):
 
     embed = discord.Embed(
       title=f"Badge Spotlight",
-      description=f"## {ctx.author.mention}'s {badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
+      description=f"## {badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
       color=discord.Color.from_rgb(*main_color_tuple)
     )
     embed.set_image(url=f"attachment://{discord_file.filename}")
@@ -1145,16 +1154,16 @@ class Badges(commands.Cog):
       crystal_instance = await db_get_crystal_by_id(badge_instance['crystal_instance_id'])
       embed.add_field(name="Crystal", value=f"{crystal_instance['emoji']}  {crystal_instance['crystal_name']} ({crystal_instance['rarity_name']})", inline=False)
       embed.add_field(name="Crystal Description", value=crystal_instance['description'], inline=False)
-    if badge_info['affiliations']:
-      embed.add_field(name="Affiliations", value=", ".join(badge_info['affiliations']), inline=False)
-    if badge_info['types']:
-      embed.add_field(name="Types", value=", ".join(badge_info['types']), inline=False)
-    embed.add_field(name="Time Period", value=badge_info['time_period'] or "Unknown", inline=False)
-    embed.add_field(name="Quadrant", value=badge_info['quadrant'] or "Unknown", inline=False)
-    embed.add_field(name="Franchise", value=badge_info['franchise'] or "Unknown", inline=False)
-    embed.add_field(name="Reference", value=badge_info['reference'] or "Unknown", inline=False)
-
-    embed.add_field(name="Star Trek Design Project", value=f"{badge_info['badge_url']}", inline=False)
+    if full_metadata:
+      if badge_info['affiliations']:
+        embed.add_field(name="Affiliations", value=", ".join(badge_info['affiliations']), inline=False)
+      if badge_info['types']:
+        embed.add_field(name="Types", value=", ".join(badge_info['types']), inline=False)
+      embed.add_field(name="Time Period", value=badge_info['time_period'] or "Unknown", inline=False)
+      embed.add_field(name="Quadrant", value=badge_info['quadrant'] or "Unknown", inline=False)
+      embed.add_field(name="Franchise", value=badge_info['franchise'] or "Unknown", inline=False)
+      embed.add_field(name="Reference", value=badge_info['reference'] or "Unknown", inline=False)
+      embed.add_field(name="Star Trek Design Project", value=f"{badge_info['badge_url']}", inline=False)
 
     await ctx.followup.send(
       embed=embed,
@@ -1177,14 +1186,8 @@ class Badges(commands.Cog):
     description="Show to public?",
     required=True,
     choices=[
-      discord.OptionChoice(
-        name="No",
-        value="no"
-      ),
-      discord.OptionChoice(
-        name="Yes",
-        value="yes"
-      )
+      discord.OptionChoice(name="No", value="no"),
+      discord.OptionChoice(name="Yes", value="yes")
     ]
   )
   @option(
@@ -1193,9 +1196,9 @@ class Badges(commands.Cog):
     required=True,
     autocomplete=all_badges_autocomplete
   )
-  async def badge_lookup(self, ctx:discord.ApplicationContext, public:str, name:str):
+  async def badge_lookup(self, ctx: discord.ApplicationContext, public: str, name: str):
     """
-    This function executes the lookup for the /badge lookup command
+    This function executes the lookup for the /badge lookup command.
     :param ctx:
     :param name: The name of the badge to be looked up.
     :return:
@@ -1211,7 +1214,8 @@ class Badges(commands.Cog):
           title="Could Not Find This Badge",
           description=f"**{name}** does not appear to exist!",
           color=discord.Color.red()
-        ), ephemeral=True
+        ),
+        ephemeral=True
       )
       return
 
@@ -1252,10 +1256,56 @@ class Badges(commands.Cog):
     embed = discord.Embed(
       title=f"{badge['badge_name']}",
       description=description,
-      color=discord.Color.random() # jp00p made me do it
+      color=discord.Color.random()  # jp00p made me do it
     )
-    discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'].replace(',','_'))
-    embed.set_image(url=f"attachment://{badge['badge_filename'].replace(',','_')}")
+    discord_image = discord.File(fp=f"./images/badges/{badge['badge_filename']}", filename=badge['badge_filename'].replace(',', '_'))
+    embed.set_image(url=f"attachment://{badge['badge_filename'].replace(',', '_')}")
+
+    if not public:
+      user_discord_id = ctx.author.id
+      badge_info_id = badge['id']
+
+      # Fetch all active instances the user owns
+      user_instances = await db_get_user_badge_instances(user_discord_id)
+
+      # Filter to this badge's instances
+      matching_instances = [
+        i for i in user_instances
+        if i['badge_info_id'] == badge_info_id and i['active']
+      ]
+
+      # Track per-tier ownership and lock status
+      owned_tiers = {i['prestige_level'] for i in matching_instances}
+      locked_tiers = {i['prestige_level'] for i in matching_instances if i['locked']}
+
+      # Get wishlist
+      wishlist_badges = await db_get_simple_wishlist_badges(user_discord_id)
+      wishlisted = badge_info_id in {w['badge_info_id'] for w in wishlist_badges}
+
+      # Determine user prestige cap
+      echelon_progress = await db_get_echelon_progress(user_discord_id)
+      max_tier = echelon_progress['current_prestige_tier']
+
+      # Build footer showing per-tier status
+      status_lines = []
+      for tier in range(max_tier + 1):
+        if tier in owned_tiers:
+          if tier in locked_tiers:
+            symbol = "🔒"
+            note = "Locked"
+          else:
+            symbol = "✅"
+            note = "Unlocked"
+        else:
+          if wishlisted:
+            symbol = "📜"
+            note = "Wishlisted"
+          else:
+            symbol = "❌"
+            note = "Not Owned"
+        status_lines.append(f"{PRESTIGE_TIERS[tier]}: {symbol} {note}")
+
+      embed.set_footer(text=f"Badge Status for {ctx.author.display_name}\n" + "\n".join(status_lines))
 
     await ctx.followup.send(embed=embed, file=discord_image, ephemeral=not public)
 

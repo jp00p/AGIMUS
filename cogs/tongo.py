@@ -17,6 +17,7 @@ from utils.badge_utils import *
 from utils.crystal_instances import *
 from utils.check_channel_access import access_check
 from utils.check_user_access import user_check
+from utils.exception_logger import log_manual_exception
 from utils.image_utils import *
 from utils.prestige import *
 
@@ -32,7 +33,7 @@ f.close()
 TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=6)
 MINIMUM_LIQUIDATION_CONTINUUM = 12
 MINIMUM_LIQUIDATION_PLAYERS = 3
-MINIMUM_AVARICE_QUOTIENT = 13
+MINIMUM_AVARICE_QUOTIENT = 21
 DIVIDEND_REWARDS = {
   "buffer": {"cost": 3, "label": "Crystal Pattern Buffer"},
   "wishlist": {"cost": 7, "label": "Guaranteed Wishlist Badge"},
@@ -114,7 +115,6 @@ class TongoDividendsView(discord.ui.View):
       result_successful = await self._reward_replication(interaction, user_id)
 
     if not result_successful:
-      await interaction.delete_original_response()
       return
 
     await db_decrement_user_tongo_dividends(user_id, reward['cost'])
@@ -186,7 +186,7 @@ class TongoDividendsView(discord.ui.View):
         message_id=interaction.message.id,
         embed=discord.Embed(
           title="You're not greedy ENOUGH!",
-          description=f"Zek requires a Minimum Avarice Quotient to grant a wishlist badge!\n\nYou'll need to expand your wishlist at your current tier (if possible), to {MINIMUM_AVARICE_QUOTIENT} in order to redeem this Dividend Reward!",
+          description=f"Zek requires a Minimum Avarice Quotient to grant a wishlist badge!\n\nYou'll need to expand your wishlist in order to redeem this Dividend Reward!",
           color=discord.Color.red()
         ).set_footer(text="(No Dividends have been deducted)"),
         view=None
@@ -377,7 +377,7 @@ class Tongo(commands.Cog):
         title="REBOOT DETECTED! Resuming Tongo...",
         description="We had a game in progress! ***Rude!***\n\n"
                     f"The current game started by **{chair.display_name}** has been resumed.\n\n"
-                    f"This Tongo game has {humanize.naturaltime(time_left)} left before the game is ended!",
+                    f"This Tongo game has {humanize.naturaltime(time_left)} left before it ends and distributions are dealt out!",
         color=discord.Color.red()
       )
       reboot_embed.set_image(url="https://i.imgur.com/K4hUjh6.gif")
@@ -605,15 +605,6 @@ class Tongo(commands.Cog):
     selected = random.sample(eligible, 3)
     await db_add_game_player(game['id'], user_id)
 
-    if not self.zek_consortium_activated:
-      all_players = await db_get_players_for_game(game['id'])
-      if len(all_players) >= 5 and random.random() < 0.33:
-        consortium_result = await self._find_consortium_badge_to_add(game['id'])
-        if consortium_result:
-          badge_info_id, prestige_level = consortium_result
-          await self._invoke_zek_consortium(badge_info_id, prestige_level)
-          self.zek_consortium_activated = True
-
     # Toss the badges in!
     for instance in selected:
       await throw_badge_into_continuum(instance, user_id)
@@ -689,6 +680,16 @@ class Tongo(commands.Cog):
 
     continuum_images = await generate_paginated_continuum_images(all_badges)
     await send_continuum_images_to_channel(zeks_table, continuum_images)
+
+    # Potentially trigger a Consortium post-join
+    if not self.zek_consortium_activated:
+      all_players = await db_get_players_for_game(game['id'])
+      if len(all_players) >= 5 and random.random() < 0.25:
+        consortium_result = await self._find_consortium_badge_to_add(game['id'])
+        if consortium_result:
+          badge_info_id, prestige_level = consortium_result
+          await self._invoke_zek_consortium(badge_info_id, prestige_level)
+          self.zek_consortium_activated = True
 
 
   async def _cancel_tongo_related_trades(self, user_discord_id, selected_badges: list[dict]):
@@ -1022,103 +1023,117 @@ class Tongo(commands.Cog):
 
 
   async def _perform_confront(self, active_tongo, active_chair):
-    await db_update_game_status(active_tongo['id'], 'resolved')
-    player_distribution = await self._execute_confront_distribution(active_tongo['id'])
-    player_ids = list(player_distribution.keys())
+    try:
+      players = await db_get_players_for_game(active_tongo['id'])
+      player_ids = [int(p['user_discord_id']) for p in players]
 
-    remaining_badges = await db_get_full_continuum_badges()
+      # Build wishlist snapshots before any transfer take place
+      wishlist_snapshots = {}
+      player_prestiges = {}
 
-    # Handle potential liquidation
-    liquidation_result = await self._handle_liquidation(active_tongo['id'], remaining_badges, player_ids)
+      for p in players:
+        user_id = int(p['user_discord_id'])
+        echelon = await db_get_echelon_progress(user_id)
+        prestige = echelon['current_prestige_tier'] if echelon else 0
+        player_prestiges[user_id] = prestige
 
-    # Build and send results embed
-    results_embed = await build_confront_results_embed(active_chair, remaining_badges)
-    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
-    channel_message = await zeks_table.send(embed=results_embed)
+        raw_wishlist = await db_get_simple_wishlist_badges(user_id)
+        wishlist_filenames = {b['badge_filename'] for b in raw_wishlist}
+        wishlist_snapshots[user_id] = wishlist_filenames
 
-    # Show per-player rewards
-    for user_id, badge_instance_ids in player_distribution.items():
-      member = await self.bot.current_guild.fetch_member(user_id)
+      # Execute the transfers
+      player_distribution = await self._execute_confront_distribution(active_tongo['id'], player_ids)
+      remaining_badges = await db_get_full_continuum_badges()
+      # Execute potential liquidation
+      liquidation_result = await self._handle_liquidation(active_tongo['id'], remaining_badges, player_ids)
+      # Executions complete, mark game as resolved
+      await db_update_game_status(active_tongo['id'], 'resolved')
 
-      # Wishlist Determination
-      echelon_progress = await db_get_echelon_progress(user_id)
-      prestige = echelon_progress['current_prestige_tier'] if echelon_progress else 0
-      active_wants = await db_get_active_wants(user_id, prestige)
-      wanted_filenames = set(b['badge_filename'] for b in active_wants)
+      # Send main channel results embed
+      results_embed = await build_confront_results_embed(active_chair, remaining_badges)
+      zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+      channel_message = await zeks_table.send(embed=results_embed)
 
-      if badge_instance_ids:
-        badges_received = [
-          await db_get_badge_instance_by_id(instance_id)
-          for instance_id in badge_instance_ids
-        ]
-        wishlist_filenames_received = [b['badge_filename'] for b in badges_received if b['badge_filename'] in wanted_filenames]
+      # Send per-player results embeds
+      for user_id, badge_instance_ids in player_distribution.items():
+        member = await self.bot.current_guild.fetch_member(user_id)
 
-        received_image, received_image_url = await generate_badge_trade_images(
-          badges_received,
-          f"Badges Won By {member.display_name}",
-          f"{len(badges_received)} Badges"
-        )
+        if badge_instance_ids:
+          badges_received = [
+            await db_get_badge_instance_by_id(instance_id)
+            for instance_id in badge_instance_ids
+          ]
+          wishlist_filenames = wishlist_snapshots.get(user_id, set())
+          wishlist_filenames_received = [
+            b['badge_filename'] for b in badges_received if b['badge_filename'] in wishlist_filenames
+          ]
 
-        dividends_rewarded = 0
-        if len(badge_instance_ids) < 3:
-          dividends_rewarded = 3 - len(badge_instance_ids)
+          received_image, received_image_url = await generate_badge_trade_images(
+            badges_received,
+            f"Badges Won By {member.display_name}",
+            f"{len(badges_received)} Badges"
+          )
+
+          dividends_rewarded = 0
+          if len(badge_instance_ids) < 3:
+            dividends_rewarded = 3 - len(badge_instance_ids)
+            await db_increment_tongo_dividends(user_id, amount=dividends_rewarded)
+
+          player_embed = await build_confront_player_embed(member, badges_received, wishlist_filenames_received, dividends_rewarded)
+          player_embed.set_image(url=received_image_url)
+          await zeks_table.send(embed=player_embed, file=received_image)
+
+          dm_embed = build_confront_dm_embed(member, badges_received, wishlist_filenames_received, channel_message.jump_url, dividends_rewarded)
+          try:
+            await member.send(embed=dm_embed)
+          except discord.Forbidden:
+            logger.info(f"Unable to DM {member.display_name} — DMs closed.")
+        else:
+          dividends_rewarded = 3
           await db_increment_tongo_dividends(user_id, amount=dividends_rewarded)
 
-        player_embed = await build_confront_player_embed(member, badges_received, wishlist_filenames_received, dividends_rewarded)
-        player_embed.set_image(url=received_image_url)
-        await zeks_table.send(embed=player_embed, file=received_image)
+          channel_embed = build_confront_no_rewards_embed(member, dividends_rewarded)
+          await zeks_table.send(embed=channel_embed)
 
-        dm_embed = build_confront_dm_embed(member, badges_received, wishlist_filenames_received, channel_message.jump_url, dividends_rewarded)
+          dm_embed = build_confront_dm_embed(member, [], [], channel_message.jump_url, dividends_rewarded)
+          try:
+            await member.send(embed=dm_embed)
+          except discord.Forbidden:
+            logger.info(f"Unable to DM {member.display_name} — DMs closed.")
+
+      # Send liquidation results embeds (if a liquidation did in fact occur)
+      if liquidation_result:
+        member = await self.bot.current_guild.fetch_member(liquidation_result['player_id'])
+        reward = liquidation_result['badge_to_grant']
+        removed = liquidation_result['tongo_badges_to_remove']
+
+        # Main embed
+        await zeks_table.send(embed=build_liquidation_embed(member, reward, removed))
+
+        # Endowment image
+        reward_image, reward_image_url = await generate_badge_trade_images(reward, f"Zek's Endowment For {member.display_name}", "Greed is Eternal!")
+        await zeks_table.send(embed=build_liquidation_endowment_embed(member, reward_image_url), file=reward_image)
+
+        # Liquidated image
+        removal_image, removal_image_url = await generate_badge_trade_images(removed, "Badges Liquidated", f"{len(removed)} Badges Liquidated")
+        await zeks_table.send(embed=build_liquidation_removal_embed(removed, removal_image_url), file=removal_image)
+
+        # DM
         try:
-          await member.send(embed=dm_embed)
+          await member.send(embed=build_liquidation_dm_embed(member, reward))
         except discord.Forbidden:
-          logger.info(f"Unable to DM {member.display_name} — DMs closed.")
-      else:
-        dividends_rewarded = 3
-        await db_increment_tongo_dividends(user_id, amount=dividends_rewarded)
+          logger.info(f"Unable to DM {member.display_name} about liquidation — DMs closed.")
 
-        channel_embed = build_confront_no_rewards_embed(member, dividends_rewarded)
-        await zeks_table.send(embed=channel_embed)
+      # Refresh final continuum and send images to channel
+      updated = await db_get_full_continuum_badges()
+      if updated:
+        images = await generate_paginated_continuum_images(updated)
+        await send_continuum_images_to_channel(zeks_table, images)
+    except Exception as e:
+      logger.exception("Unhandled exception in Tongo _perform_confront")
+      log_manual_exception(e, "Unhandled exception in Tongo _perform_confront")
 
-        dm_embed = build_confront_dm_embed(member, [], [], channel_message.jump_url, dividends_rewarded)
-        try:
-          await member.send(embed=dm_embed)
-        except discord.Forbidden:
-          logger.info(f"Unable to DM {member.display_name} — DMs closed.")
-
-    # If liquidation occurred, display the results
-    if liquidation_result:
-      member = await self.bot.current_guild.fetch_member(liquidation_result['player_id'])
-      reward = liquidation_result['badge_to_grant']
-      removed = liquidation_result['tongo_badges_to_remove']
-
-      # Main embed
-      await zeks_table.send(embed=build_liquidation_embed(member, reward, removed))
-
-      # Endowment image
-      reward_image, reward_image_url = await generate_badge_trade_images(reward, f"Zek's Endowment For {member.display_name}", "Greed is Eternal!")
-      await zeks_table.send(embed=build_liquidation_endowment_embed(member, reward_image_url), file=reward_image)
-
-      # Liquidated image
-      removal_image, removal_image_url = await generate_badge_trade_images(removed, "Badges Liquidated", f"{len(removed)} Badges Liquidated")
-      await zeks_table.send(embed=build_liquidation_removal_embed(removed, removal_image_url), file=removal_image)
-
-      # DM
-      try:
-        await member.send(embed=build_liquidation_dm_embed(member, reward))
-      except discord.Forbidden:
-        logger.info(f"Unable to DM {member.display_name} about liquidation — DMs closed.")
-
-    # Refresh final continuum display
-    updated = await db_get_full_continuum_badges()
-    if updated:
-      images = await generate_paginated_continuum_images(updated)
-      await send_continuum_images_to_channel(zeks_table, images)
-
-  async def _execute_confront_distribution(self, game_id: int) -> dict[int, set[int]]:
-    players = await db_get_players_for_game(game_id)
-    player_ids = [int(p['user_discord_id']) for p in players]
-
+  async def _execute_confront_distribution(self, game_id: int, player_ids: list[dict]) -> dict[int, set[int]]:
     continuum_records = await db_get_full_continuum_badges()
     if not continuum_records:
       return {}
@@ -1148,7 +1163,7 @@ class Tongo(commands.Cog):
       wishlist_info_ids = set(b['badge_info_id'] for b in active_wants)
       player_wishlists[player_id] = wishlist_info_ids
 
-    # Shuffle for fairness
+    # Shuffle the deck
     random.shuffle(player_ids)
     random.shuffle(continuum_records)
 

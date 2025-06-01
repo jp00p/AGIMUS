@@ -156,13 +156,15 @@ THEME_TO_RGBS = {
     'primary': (22, 96, 109),
     'highlight': (71, 170, 177)
   },
-  'gold': { # Used for Trade images
-    'primary': (213, 172, 91),
-    'highlight': (255, 215, 0)
-  },
   'green': { # Default if not explicit
     'primary': (6, 102, 25),
     'highlight': (84, 177, 69)
+  },
+
+  # Special Themes
+  'gold': { # Used for Trade images
+    'primary': (213, 172, 91),
+    'highlight': (255, 215, 0)
   },
 
   # Prestige Themes
@@ -209,7 +211,7 @@ def get_cached_font(font_path, size):
   return font
 
 FontSet = namedtuple("FontSet", ["title", "footer", "total", "pages", "label", "general"])
-def load_fonts(title_size=55, footer_size=50, total_size=27, page_size=40, label_size=11, general_size=35, fallback=True):
+def load_fonts(title_size=55, footer_size=50, total_size=27, page_size=42, label_size=11, general_size=35, fallback=True):
   try:
     return FontSet(
       title=get_cached_font("fonts/lcars3.ttf", title_size),
@@ -486,8 +488,8 @@ def _compose_grid_slot(badge, collection_type, theme, badge_image):
 
   colors = get_theme_colors(theme)
 
-  override_colors = None
-  if collection_type == 'sets' and not badge.get('in_user_collection'):
+  unowned = collection_type == 'sets' and not badge.get('in_user_collection')
+  if unowned:
     faded_frames = []
     frames = badge_image if isinstance(badge_image, list) else [badge_image]
     for frame in frames:
@@ -497,11 +499,10 @@ def _compose_grid_slot(badge, collection_type, theme, badge_image):
       base.paste(faded, faded)
       faded_frames.append(base)
     badge_image = faded_frames
-    override_colors = ("#909090", "#888888")
   else:
     badge_image = badge_image if isinstance(badge_image, list) else [badge_image]
 
-  slot_frames = compose_badge_slot(badge, colors, badge_image, override_colors)
+  slot_frames = compose_badge_slot(badge, colors, badge_image, unowned=unowned)
 
   # duration = round(time.perf_counter() - start, 3)
   # logger.info(f"[timing] compose_grid_slot took {duration}s for badge_id={badge.get('badge_info_id')}")
@@ -1286,7 +1287,7 @@ def compose_badge_slot(
   badge: dict,
   colors,
   image_frames: list[Image.Image],
-  override_colors: tuple = None,
+  unowned: bool = False,
   disable_overlays: bool = False,
   resize: bool = False
 ) -> list[Image.Image]:
@@ -1298,9 +1299,9 @@ def compose_badge_slot(
     badge: Badge dict containing badge metadata.
     colors: ThemeColors namedtuple for current user/theme.
     image_frames: List of PIL.Image frames with effects already applied.
-    override_colors: Optional (border_color, text_color) tuple.
-    disable_overlays: If True, skips drawing lock/special icons.
-    resize: If True, each frame will be resized to 50% after rendering.
+    unowned: Optional, if True then border/text and background gradient will be "greyed out"
+    disable_overlays: Optional, if True skips drawing lock/special icons.
+    resize: Optional, if True each frame will be resized to 50% after rendering.
   """
   if not isinstance(image_frames, list):
     image_frames = [image_frames]
@@ -1316,8 +1317,10 @@ def compose_badge_slot(
     general_size=70
   )
 
-  border_color, text_color = override_colors if override_colors else (colors.highlight, "#FFFFFF")
-  base_slot_canvas = get_slot_canvas(badge.get('prestige_level', 0), border_color)
+  border_color, text_color = (colors.highlight, "#FFFFFF")
+  if unowned:
+    border_color, text_color = ("#909090", "#888888")
+  base_slot_canvas = get_slot_canvas(badge.get('prestige_level', 0), border_color, unowned=unowned)
 
   slot_frames = []
   for frame in image_frames:
@@ -1388,18 +1391,26 @@ def compose_badge_slot(
 
 
 _SLOT_CANVAS_CACHE = {}
-def get_slot_canvas(prestige, border_color):
+def get_slot_canvas(prestige, border_color, unowned=False):
 
-  cache_key = (prestige, border_color)
+  cache_key = (prestige, border_color, unowned)
   if _SLOT_CANVAS_CACHE.get(cache_key):
     return _SLOT_CANVAS_CACHE[cache_key]
 
   dims = _get_badge_slot_dimensions()
   slot_canvas = Image.new("RGBA", (dims.slot_width, dims.slot_height), (0, 0, 0, 0))
 
+  if unowned:
+    gradient = _create_gradient_fill(
+      (dims.slot_width, dims.slot_height),
+      (14, 14, 14),
+      (42, 42, 42)
+    )
+
   if prestige:
     prestige_theme = PRESTIGE_THEMES.get(prestige)
-    gradient = _create_gradient_fill((dims.slot_width, dims.slot_height), prestige_theme["gradient_start"], prestige_theme["gradient_end"])
+    if not unowned:
+      gradient = _create_gradient_fill((dims.slot_width, dims.slot_height), prestige_theme["gradient_start"], prestige_theme["gradient_end"])
     mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, dims.slot_width, dims.slot_height), radius=32, fill=255)
     gradient.putalpha(mask)
@@ -1410,11 +1421,13 @@ def get_slot_canvas(prestige, border_color):
     slot_canvas.paste(prestige_border, (0, 0), prestige_border)
   else:
     # Subtle dark gradient for Standard Tier badges
-    gradient = _create_gradient_fill(
-      (dims.slot_width, dims.slot_height),
-      (5, 5, 5),
-      (30, 30, 30)
-    )
+    if not unowned:
+      gradient = _create_gradient_fill(
+        (dims.slot_width, dims.slot_height),
+        (5, 5, 5),
+        (30, 30, 30)
+      )
+
     mask = Image.new("L", (dims.slot_width, dims.slot_height), 0)
     ImageDraw.Draw(mask).rounded_rectangle(
       (0, 0, dims.slot_width, dims.slot_height),
@@ -1615,7 +1628,7 @@ async def draw_canvas_labels(canvas, draw, title_text, footer_left_label, footer
   )
 
   draw.text(
-    (base_w - 185, base_h - 60),
+    (base_w - 180, base_h - 56),
     f"PAGE {page_number:02} OF {total_pages:02}",
     font=fonts.pages,
     fill=colors.highlight

@@ -136,6 +136,31 @@ async def liquidate_badge_instance(instance_id: int):
   async with AgimusDB() as db:
     await db.execute(query_history, (instance_id, old_owner))
 
+async def archive_badge_instance(instance_id: int):
+  """
+  Archives a badge instance, marking it as removed without deletion.
+  Used for admin cleanup or invalid grants.
+  """
+  query_owner = "SELECT owner_discord_id FROM badge_instances WHERE id = %s"
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(query_owner, (instance_id,))
+    result = await db.fetchone()
+    old_owner = result['owner_discord_id'] if result else None
+
+  update_query = """
+    UPDATE badge_instances
+    SET owner_discord_id = NULL,
+        status = 'archived'
+    WHERE id = %s
+  """
+  log_query = """
+    INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, event_type)
+    VALUES (%s, %s, NULL, 'archived')
+  """
+  async with AgimusDB() as db:
+    await db.execute(update_query, (instance_id,))
+    await db.execute(log_query, (instance_id, old_owner))
+
 
 async def log_badge_instance_history(
   badge_instance_id: int,

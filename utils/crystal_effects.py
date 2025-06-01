@@ -353,11 +353,13 @@ def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
   width, height = badge_image.size
   badge_mask = badge_image.split()[3].point(lambda p: 255 if p > 0 else 0).convert('L')
 
+  # Base tint layer
   tint_color = (255, 230, 150)
   tint_layer = Image.new('RGBA', badge_image.size, tint_color + (int(255 * 0.35),))
   tint_layer_masked = Image.composite(tint_layer, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
   badge_tinted = Image.alpha_composite(badge_image, tint_layer_masked)
 
+  # Shimmer gradient
   center_gold = (255, 230, 150)
   edge_gold = (140, 115, 70)
   band_width_ratio = 0.1875
@@ -373,12 +375,13 @@ def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
     draw.line([(0, y), (width, y)], fill=(r, g, b, 255))
 
   r, g, b, a = gradient_img.split()
-  a = a.point(lambda p: int(p * 0.5))
+  a = a.point(lambda p: int(p * 0.4))
   shimmer_masked = Image.merge('RGBA', (r, g, b, a))
   shimmer_masked = Image.composite(shimmer_masked, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
 
+  # Glow layer
   glow = shimmer_masked.filter(ImageFilter.GaussianBlur(radius=8))
-  glow = ImageEnhance.Brightness(glow).enhance(2.4)
+  glow = ImageEnhance.Brightness(glow).enhance(1.92)  # brightness reduced ~20%
   glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
 
   base_with_glow = Image.alpha_composite(glow, badge_tinted)
@@ -1197,7 +1200,7 @@ def effect_singularity_warp(base_img: Image.Image, badge: dict) -> list[Image.Im
   """
   Creates a gravitational vortex effect, pulls the badge into a swirling collapse.
 
-  Used for the Raw Singularity crystal (Legendary tier).
+  Used for the Artificial Singularity crystal (Legendary tier).
 
   Returns:
     List of RGBA frames as PIL.Image.Image.
@@ -1260,6 +1263,50 @@ def effect_singularity_warp(base_img: Image.Image, badge: dict) -> list[Image.Im
       warped[..., 3] = (warped[..., 3] * (1 - alpha_fade)).astype(np.uint8)
 
     frames.append(Image.fromarray(warped, "RGBA"))
+
+  return frames
+
+
+@register_effect("rainbow_sheen")
+def effect_rainbow_sheen(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Applies a sweeping diagonal rainbow sheen from top-left to bottom-right.
+  Animated loop with blurred, wide-spectrum gradient.
+
+  Used for the Unity Prism crystal (Legendary tier).
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+  """
+  width, height = badge_image.size
+  num_frames = 24
+  sheen_width = 420
+  blur_radius = 36
+  max_alpha = 255
+  frames = []
+
+  for i in range(num_frames):
+    frame = badge_image.copy()
+    sheen = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(sheen)
+    offset = int((width + height + sheen_width) * i / num_frames) - sheen_width
+
+    for y in range(height):
+      for x in range(width):
+        pos = x + y
+        if offset <= pos < offset + sheen_width:
+          t = (pos - offset) / sheen_width
+          r = int(127.5 * (1 + np.sin(2 * np.pi * t)))
+          g = int(127.5 * (1 + np.sin(2 * np.pi * t - 2 * np.pi / 3)))
+          b = int(127.5 * (1 + np.sin(2 * np.pi * t - 4 * np.pi / 3)))
+          alpha = int(max_alpha * (1 - abs(t - 0.5) * 2))
+          draw.point((x, y), fill=(r, g, b, alpha))
+
+    sheen = sheen.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+    mask = badge_image.split()[3]
+    masked_sheen = Image.composite(sheen, Image.new("RGBA", (width, height), (0, 0, 0, 0)), mask)
+    final_frame = Image.alpha_composite(frame, masked_sheen)
+    frames.append(final_frame)
 
   return frames
 

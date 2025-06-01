@@ -61,6 +61,21 @@ async def send_exception_log(bot: discord.Bot, channel_id: int):
 
   exception_log_lines.clear()
 
+def log_manual_exception(e: Exception, context: str = "Unhandled Exception"):
+  """
+  Manually capture an exception to the exception_log buffer.
+
+  Args:
+    e (Exception): The exception object.
+    context (str): Optional context message for logging.
+  """
+  tb_str = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+  header = f"[{context}]\n" if context else ""
+  exception_log_lines.append(header + tb_str)
+
+  # Also print to stderr
+  sys.__stderr__.write(header + tb_str + '\n')
+  sys.__stderr__.flush()
 
 def exception_report_task(bot):
   async def send_report():

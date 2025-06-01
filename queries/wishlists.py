@@ -273,6 +273,7 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
               AND badge_info_id = badge_instances_wishlists.badge_info_id
               AND prestige_level = %s
               AND active = TRUE
+              AND locked = FALSE
           )
       ),
       my_owns AS (
@@ -298,6 +299,7 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
               AND mine.badge_info_id = b.badge_info_id
               AND mine.prestige_level = b.prestige_level
               AND mine.active = TRUE
+              AND mine.locked = FALSE
           )
       ),
       partner_wants AS (
@@ -312,6 +314,7 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
               AND i.badge_info_id = w.badge_info_id
               AND i.prestige_level = %s
               AND i.active = TRUE
+              AND i.locked = FALSE
           )
       ),
       matched_partners AS (
@@ -379,15 +382,18 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
     FROM matched_partners mp;
   '''
   params = [
-    user_discord_id,   # my_wants
-    user_discord_id,   # my_wants NOT EXISTS
-    prestige_level,    # my_wants NOT EXISTS
-    user_discord_id,   # my_owns
-    prestige_level,    # my_owns
-    prestige_level,    # partner_owns
-    user_discord_id,   # partner_owns NOT EXISTS
-    prestige_level,    # partner_wants NOT EXISTS
-    user_discord_id    # exclude self
+    user_discord_id,  # my_wants
+    user_discord_id,  # my_wants NOT EXISTS
+    prestige_level,   # my_wants NOT EXISTS
+
+    user_discord_id,  # my_owns
+    prestige_level,   # my_owns
+
+    prestige_level,   # partner_owns
+    user_discord_id,  # partner_owns NOT EXISTS
+
+    prestige_level,   # partner_wants NOT EXISTS
+    user_discord_id   # exclude self
   ]
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, params)
