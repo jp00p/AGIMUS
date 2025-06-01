@@ -172,6 +172,14 @@ WHERE c.crystal_type_id = @crystal_type_id
       AND h.event_type = 'admin'
   );
 
+-- Update the default value for crystal_autoharmonize to TRUE
+ALTER TABLE users
+MODIFY COLUMN crystal_autoharmonize BOOLEAN NOT NULL DEFAULT 1;
+
+-- Set crystal_autoharmonize to TRUE for all existing users
+UPDATE users
+SET crystal_autoharmonize = 1;
+
 -- Add auto-update date column for badge_instances for filtering
 ALTER TABLE badge_instances
 ADD COLUMN last_modified DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;

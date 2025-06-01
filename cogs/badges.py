@@ -1142,7 +1142,7 @@ class Badges(commands.Cog):
 
     embed = discord.Embed(
       title=f"Badge Spotlight",
-      description=f"## {ctx.author.mention}'s {badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
+      description=f"## {badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
       color=discord.Color.from_rgb(*main_color_tuple)
     )
     embed.set_image(url=f"attachment://{discord_file.filename}")

@@ -48,8 +48,9 @@ class Admin(commands.Cog):
   @admin_group.command(name="grant_random_badge", description="(ADMIN RESTRICTED) Grant a random badge to a user.")
   @option("prestige", int, description="Prestige Tier", required=True, autocomplete=autocomplete_prestige_for_user)
   @option("user", discord.User, description="The user to receive a random badge.", required=True)
+  @option("reason", str, description="Reason for Grant", required=False)
   @commands.check(user_check)
-  async def grant_random_badge(self, ctx, user: discord.User, prestige: str):
+  async def grant_random_badge(self, ctx, user: discord.User, prestige: str, reason: str):
     await ctx.defer(ephemeral=True)
     prestige = int(prestige)
 
@@ -62,7 +63,8 @@ class Admin(commands.Cog):
       return await ctx.respond("❌ User already owns every badge at this Prestige level.", ephemeral=True)
 
     chosen = random.choice(candidates)
-    await create_new_badge_instance(user.id, chosen['id'], prestige, event_type='admin')
+    new_badge = await create_new_badge_instance(user.id, chosen['id'], prestige, event_type='admin')
+    await post_badge_grant_embed(user, new_badge, reason=reason)
 
     embed = discord.Embed(
       title="Random Badge Granted",
@@ -76,8 +78,9 @@ class Admin(commands.Cog):
   @option("user", discord.User, description="The user to receive the badge.", required=True)
   @option("prestige", int, description="Prestige Tier", required=True, autocomplete=autocomplete_prestige_for_user)
   @option("badge", int, description="Badge", required=True, autocomplete=autocomplete_all_badges)
+  @option("reason", str, description="Reason for Grant", required=False)
   @commands.check(user_check)
-  async def grant_specific_badge(self, ctx, user: discord.User, badge: str, prestige: str):
+  async def grant_specific_badge(self, ctx, user: discord.User, badge: str, prestige: str, reason:str):
     await ctx.defer(ephemeral=True)
     prestige = int(prestige)
     badge_info = await db_get_badge_info_by_id(badge)
@@ -89,7 +92,8 @@ class Admin(commands.Cog):
     if existing:
       return await ctx.respond(f"⚠️ {user.mention} already owns **{badge_info['badge_name']}** at **{PRESTIGE_TIERS[prestige]}**.", ephemeral=True)
 
-    await create_new_badge_instance(user.id, badge_info['id'], prestige, event_type='admin')
+    new_badge = await create_new_badge_instance(user.id, badge_info['id'], prestige, event_type='admin')
+    await post_badge_grant_embed(user, new_badge, reason=reason)
 
     embed = discord.Embed(
       title="Badge Granted",

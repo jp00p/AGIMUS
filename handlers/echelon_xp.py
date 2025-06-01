@@ -299,10 +299,9 @@ BUFFER_PATTERN_AQUISITION_GIFS = [
 
 async def post_badge_repair_embed(member: discord.User, badge_data: dict, reason: str = None):
   """
-  Build and send a level-up notification embed to the XP notification channel.
+  Build and send a badge notification embed to the XP notification channel.
   """
   badge_prestige = badge_data['prestige_level']
-  # level_up_msg = f"**{random.choice(random_level_up_messages['messages']).format(user=member.mention, level=level, prev_level=(level-1))}**"
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
@@ -312,7 +311,7 @@ async def post_badge_repair_embed(member: discord.User, badge_data: dict, reason
   if badge_data.get('was_on_wishlist', False):
     embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
 
-  embed_color = discord.Color.teal()
+  embed_color = discord.Color.blurple()
   if badge_prestige > 0:
     prestige_color = PRESTIGE_THEMES[badge_prestige]['primary']
     embed_color = discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
@@ -329,6 +328,40 @@ async def post_badge_repair_embed(member: discord.User, badge_data: dict, reason
 
   notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
   message = await notification_channel.send(content=f"## {member.mention}: You've Received A Badge Correction", file=discord_file, embed=embed)
+  # Add + emoji so that users can add it as well to add the badge to their wishlist
+  await message.add_reaction("✅")
+
+async def post_badge_grant_embed(member: discord.User, badge_data: dict, reason: str = None):
+  """
+  Build and send a badge notification embed to the XP notification channel.
+  """
+  badge_prestige = badge_data['prestige_level']
+
+  discord_file, attachment_url = await generate_badge_preview(member.id, badge_data)
+
+  embed_description = f"{member.mention} has received a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Grant!**."
+  if reason:
+    embed_description = f"\n\nReason: `{reason}`"
+  if badge_data.get('was_on_wishlist', False):
+    embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
+
+  embed_color = discord.Color.blurple()
+  if badge_prestige > 0:
+    prestige_color = PRESTIGE_THEMES[badge_prestige]['primary']
+    embed_color = discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
+
+  embed=discord.Embed(
+    title="Badge Grant!",
+    description=embed_description,
+    color=embed_color
+  )
+  embed.set_image(url=attachment_url)
+  embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
+  embed.add_field(name=badge_data['badge_name'], value=badge_data['badge_url'], inline=False)
+  embed.set_footer(text="See all your badges by typing '/badges collection' - disable this by typing '/settings'")
+
+  notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
+  message = await notification_channel.send(content=f"## {member.mention}: You've Received A Badge Grant!", file=discord_file, embed=embed)
   # Add + emoji so that users can add it as well to add the badge to their wishlist
   await message.add_reaction("✅")
 

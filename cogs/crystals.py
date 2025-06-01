@@ -682,7 +682,7 @@ class Crystals(commands.Cog):
           matching = next((c for c in badge_crystals if c['crystal_instance_id'] == crystal_instance['crystal_instance_id']), None)
           if matching:
             await db_set_harmonized_crystal(badge_instance['badge_instance_id'], matching['badge_crystal_id'])
-            embed_description += "\n\nYou've enabled `Crystallization Auto-Harmonize` so it has now been activated as well!"
+            embed_description += "\n\n`Crystallization Auto-Harmonize` is enabled so it has now been activated as well! (Note that you can change this behavior with `/settings` if so desired)"
 
         embed = discord.Embed(
           title='Crystal Attuned!',
