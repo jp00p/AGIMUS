@@ -353,11 +353,13 @@ def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
   width, height = badge_image.size
   badge_mask = badge_image.split()[3].point(lambda p: 255 if p > 0 else 0).convert('L')
 
+  # Base tint layer
   tint_color = (255, 230, 150)
   tint_layer = Image.new('RGBA', badge_image.size, tint_color + (int(255 * 0.35),))
   tint_layer_masked = Image.composite(tint_layer, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
   badge_tinted = Image.alpha_composite(badge_image, tint_layer_masked)
 
+  # Shimmer gradient
   center_gold = (255, 230, 150)
   edge_gold = (140, 115, 70)
   band_width_ratio = 0.1875
@@ -373,12 +375,13 @@ def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
     draw.line([(0, y), (width, y)], fill=(r, g, b, 255))
 
   r, g, b, a = gradient_img.split()
-  a = a.point(lambda p: int(p * 0.5))
+  a = a.point(lambda p: int(p * 0.4))
   shimmer_masked = Image.merge('RGBA', (r, g, b, a))
   shimmer_masked = Image.composite(shimmer_masked, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
 
+  # Glow layer
   glow = shimmer_masked.filter(ImageFilter.GaussianBlur(radius=8))
-  glow = ImageEnhance.Brightness(glow).enhance(2.4)
+  glow = ImageEnhance.Brightness(glow).enhance(1.92)  # brightness reduced ~20%
   glow = Image.composite(glow, Image.new('RGBA', badge_image.size, (0, 0, 0, 0)), badge_mask)
 
   base_with_glow = Image.alpha_composite(glow, badge_tinted)
