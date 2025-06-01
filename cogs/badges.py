@@ -1258,6 +1258,52 @@ class Badges(commands.Cog):
     description += "Star Trek Design Project:\n"
     description += f"{badge['badge_url']}"
 
+    if not public:
+      user_discord_id = ctx.author.id
+      badge_info_id = badge['id']
+
+      # Fetch all active instances the user owns
+      user_instances = await db_get_user_badge_instances(user_discord_id)
+
+      # Filter to this badge's instances
+      matching_instances = [
+        i for i in user_instances
+        if i['badge_info_id'] == badge_info_id and i['active']
+      ]
+
+      # Track per-tier ownership and lock status
+      owned_tiers = {i['prestige_level'] for i in matching_instances}
+      locked_tiers = {i['prestige_level'] for i in matching_instances if i['locked']}
+
+      # Get wishlist
+      wishlist_badges = await db_get_simple_wishlist_badges(user_discord_id)
+      wishlisted = badge_info_id in {w['badge_info_id'] for w in wishlist_badges}
+
+      # Determine user prestige cap
+      echelon_progress = await db_get_echelon_progress(user_discord_id)
+      max_tier = echelon_progress['current_prestige_tier']
+
+      # Build footer showing per-tier status
+      status_lines = []
+      for tier in range(max_tier + 1):
+        if tier in owned_tiers:
+          if tier in locked_tiers:
+            symbol = "🔒"
+            note = "Locked"
+          else:
+            symbol = "✅"
+            note = "Unlocked"
+        else:
+          if wishlisted:
+            symbol = "📜"
+            note = "Wishlisted"
+          else:
+            symbol = "❌"
+            note = "Not Owned"
+        status_lines.append(f"{PRESTIGE_TIERS[tier]}: {symbol} {note}")
+
+      embed.set_footer(text=f"Badge Status for {ctx.author.display_name}:\n" + "\n".join(status_lines))
+
     embed = discord.Embed(
       title=f"{badge['badge_name']}",
       description=description,
