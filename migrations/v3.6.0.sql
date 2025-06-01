@@ -85,7 +85,7 @@ SELECT
   b.id AS badge_info_id,
   p.user_discord_id,
   p.user_discord_id,
-  'unlocked'
+  'active'
 FROM echelon_progress p
 JOIN badge_info b ON b.badge_filename = 'FOD_Pride_2025.png'
 WHERE p.current_level >= 1
@@ -185,13 +185,11 @@ SET last_transferred = acquired_at
 WHERE last_transferred IS NOT NULL;
 
 -- Add trigger to modify last_transferred when owner changes
-DELIMITER $$
 CREATE TRIGGER trg_update_last_transferred_on_owner_change
 BEFORE UPDATE ON badge_instances
 FOR EACH ROW
-BEGIN
-  IF NEW.owner_discord_id != OLD.owner_discord_id THEN
-    SET NEW.last_transferred = CURRENT_TIMESTAMP;
-  END IF;
-END$$
-DELIMITER;
+  SET NEW.last_transferred = IF(
+    NEW.owner_discord_id != OLD.owner_discord_id,
+    CURRENT_TIMESTAMP,
+    OLD.last_transferred
+  );

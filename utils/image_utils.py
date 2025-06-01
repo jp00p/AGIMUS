@@ -1403,8 +1403,8 @@ def get_slot_canvas(prestige, border_color, unowned=False):
   if unowned:
     gradient = _create_gradient_fill(
       (dims.slot_width, dims.slot_height),
-      (24, 24, 24),
-      (54, 54, 54)
+      (14, 14, 14),
+      (42, 42, 42)
     )
 
   if prestige:
