@@ -170,7 +170,8 @@ class TongoDividendsView(discord.ui.View):
     wishlist_to_grant = [b for b in active_wants if b['badge_filename'] not in inventory_filenames]
 
     if not wishlist_to_grant:
-      await interaction.response.edit_message(
+      await interaction.followup.edit_message(
+        message_id=interaction.message.id,
         embed=discord.Embed(
           title="No Wishlist (or Wishlist Already Fulfilled)!",
           description="You need to set up your wishlist with `/wishlist add` before you can redeem this Dividend Reward!",
@@ -181,7 +182,8 @@ class TongoDividendsView(discord.ui.View):
       return False
 
     if len(wishlist_to_grant) < MINIMUM_AVARICE_QUOTIENT:
-      await interaction.response.edit_message(
+      await interaction.followup.edit_message(
+        message_id=interaction.message.id,
         embed=discord.Embed(
           title="You're not greedy ENOUGH!",
           description=f"Zek requires a Minimum Avarice Quotient to grant a wishlist badge!\n\nYou'll need to expand your wishlist in order to redeem this Dividend Reward!",
