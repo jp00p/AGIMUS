@@ -90,7 +90,7 @@ async def select_badge_for_level_up(member: discord.Member) -> tuple[int, int]:
     tuple[int, int]: A tuple of (badge_info_id, prestige_level) representing the badge to award.
   """
   user_discord_id = member.id
-  full_badge_ids = {b['id'] for b in await db_get_all_badge_info()}
+  full_badge_ids = {b['id'] for b in await db_get_all_badge_info() if not b.get('special')}
   total_count = len(full_badge_ids)
 
   async def get_owned_ids_at_prestige(level: int) -> set[int]:

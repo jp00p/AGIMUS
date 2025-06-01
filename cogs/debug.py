@@ -139,10 +139,10 @@ class Debug(commands.Cog):
     embed = discord.Embed(
       title="Pattern Buffer(s) Granted",
       description=(
-        f"✨ Granted Replicator Pattern Buffers to {user.mention}.\n\n"
+        f"✨ Granted Crystal Pattern Buffers to {user.mention}.\n\n"
         f"They now have **{new_total}** total."
       ),
-      color=discord.Color.blue()
+      color=discord.Color.green()
     )
     await ctx.respond(embed=embed, ephemeral=True)
 

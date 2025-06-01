@@ -297,7 +297,7 @@ BUFFER_PATTERN_AQUISITION_GIFS = [
 
 
 
-async def post_badge_repair_embed(member: discord.User, badge_data: dict):
+async def post_badge_repair_embed(member: discord.User, badge_data: dict, reason: str = None):
   """
   Build and send a level-up notification embed to the XP notification channel.
   """
@@ -306,7 +306,9 @@ async def post_badge_repair_embed(member: discord.User, badge_data: dict):
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
-  embed_description = f"{member.mention}'s inventory has been corrected with a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Correction**, which they had previously earned during `AGIMUS Downtime` but had not yet been granted."
+  embed_description = f"{member.mention}'s inventory has been corrected with a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Correction**."
+  if reason:
+    embed_description = f"\n\nReason: `{reason}`"
   if badge_data.get('was_on_wishlist', False):
     embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
 

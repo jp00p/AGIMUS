@@ -107,8 +107,17 @@ class Admin(commands.Cog):
     await ctx.defer(ephemeral=True)
     await db_increment_user_crystal_buffer(user.id, amount)
 
-    await ctx.respond(f"✨ Granted {amount} Replicator Pattern Buffer(s) to {user.mention}.", ephemeral=True)
+    new_total = await db_get_user_crystal_buffer_count(user.id)
 
+    embed = discord.Embed(
+      title="Pattern Buffer(s) Granted",
+      description=(
+        "✨ Granted {amount} Crystal Pattern Buffer(s) to {user.mention}.\n\n"
+        f"They now have **{new_total}** total."
+      ),
+      color=discord.Color.blue()
+    )
+    await ctx.respond(embed=embed, ephemeral=True)
 
   @admin_group.command(name="check_tongo_games", description="(ADMIN RESTRICTED) Check recent Tongo games with details.")
   @commands.check(user_check)
@@ -442,3 +451,95 @@ class Admin(commands.Cog):
       summary.add_field(name="⚠️ Failed Users", value=f"{len(failed)}", inline=False)
 
     await ctx.respond(embed=summary, ephemeral=True)
+
+
+  @admin_group.command(name="repair_badges_special_grant", description="(ADMIN RESTRICTED) Address Erroneous Special Badge Grants.")
+  @commands.check(user_check)
+  async def repair_special_badge_levelup_bug(self, ctx):
+    await ctx.defer(ephemeral=True)
+
+    # Step 1: Query affected badge_instance IDs
+    query = """
+      SELECT bi.id AS instance_id, bi.owner_discord_id, bi.badge_info_id, binfo.badge_name
+      FROM badge_instances bi
+      JOIN badge_info binfo ON bi.badge_info_id = binfo.id
+      JOIN badge_instance_history h ON h.badge_instance_id = bi.id
+      WHERE binfo.special = 1
+        AND h.event_type = 'level_up'
+        AND bi.status = 'active'
+        AND NOT EXISTS (
+          SELECT 1 FROM badge_instance_history h2
+          WHERE h2.badge_instance_id = bi.id AND h2.event_type = 'prestige_echo'
+        )
+    """
+
+    async with AgimusDB(dictionary=True) as db:
+      await db.execute(query)
+      rows = await db.fetchall()
+
+    if not rows:
+      return await ctx.respond("✅ No invalid special badges found to archive.", ephemeral=True)
+
+    from utils.badge_instances import archive_badge_instance
+    from utils.echelon_rewards import award_level_up_badge
+    from handlers.echelon_xp import post_badge_repair_embed
+
+    summary = defaultdict(lambda: {'display_name': None, 'archived': [], 'granted': []})
+    total_archived = 0
+    total_granted = 0
+
+    # Step 2: Archive bugged badges
+    for row in rows:
+      user_id = row['owner_discord_id']
+      badge_name = row['badge_name']
+      try:
+        await archive_badge_instance(row['instance_id'])
+        summary[user_id]['archived'].append(badge_name)
+        total_archived += 1
+      except Exception as e:
+        logger.warning(f"Error archiving badge_instance_id {row['instance_id']}: {e}")
+
+    # Step 3: Fetch display names + grant replacements
+    for user_id, data in summary.items():
+      try:
+        user_obj = await self.bot.fetch_user(int(user_id))
+        summary[user_id]['display_name'] = user_obj.display_name
+        for _ in data['archived']:
+          new_badge = await award_level_up_badge(user_obj)
+          await post_badge_repair_embed(user_obj, new_badge, reason="Had been erroneously granted a 'Special' restricted badge due to an award system bug!")
+          summary[user_id]['granted'].append(new_badge['badge_name'])
+          await asyncio.sleep(0.4)
+          total_granted += 1
+      except Exception as e:
+        logger.warning(f"Error compensating user {user_id}: {e}")
+
+    # Step 4: Build .txt report
+    lines = ["AGIMUS Special Badge Level-Up Bug Repair Log\n"]
+    for user_id, info in summary.items():
+      lines.append(f"{info['display_name']} ({user_id})")
+      lines.append("  Archived Badges:")
+      for badge in info['archived']:
+        lines.append(f"    - {badge}")
+      lines.append("  Replacement Badges Granted:")
+      for badge in info['granted']:
+        lines.append(f"    + {badge}")
+      lines.append("")
+    report_text = "\n".join(lines)
+    buffer = io.BytesIO()
+    buffer.write(report_text.encode('utf-8'))
+    buffer.seek(0)
+    buffer.name = "special_badge_bug_repair_report.txt"
+
+    # Step 5: Respond with summary + file
+    embed = discord.Embed(
+      title="🧹 Special Badge Repair Complete",
+      description=(
+        f"Archived `{total_archived}` improperly granted **special** badge(s).\n"
+        f"Affected users: `{len(summary)}`\n"
+        f"Replacement badges granted: `{total_granted}`\n\n"
+        "See attached file for full user breakdown."
+      ),
+      color=discord.Color.red()
+    )
+
+    await ctx.respond(embed=embed, file=discord.File(fp=buffer), ephemeral=True)
