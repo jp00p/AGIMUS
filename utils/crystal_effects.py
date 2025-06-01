@@ -1197,7 +1197,7 @@ def effect_singularity_warp(base_img: Image.Image, badge: dict) -> list[Image.Im
   """
   Creates a gravitational vortex effect, pulls the badge into a swirling collapse.
 
-  Used for the Raw Singularity crystal (Legendary tier).
+  Used for the Artificial Singularity crystal (Legendary tier).
 
   Returns:
     List of RGBA frames as PIL.Image.Image.
@@ -1260,6 +1260,50 @@ def effect_singularity_warp(base_img: Image.Image, badge: dict) -> list[Image.Im
       warped[..., 3] = (warped[..., 3] * (1 - alpha_fade)).astype(np.uint8)
 
     frames.append(Image.fromarray(warped, "RGBA"))
+
+  return frames
+
+
+@register_effect("rainbow_sheen")
+def effect_pride_sheen_2025(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Applies a sweeping diagonal rainbow sheen from top-left to bottom-right.
+  Animated loop with blurred, wide-spectrum gradient.
+
+  Used for the Unity Prism crystal (Legendary tier).
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+  """
+  width, height = badge_image.size
+  num_frames = 24
+  sheen_width = 420
+  blur_radius = 36
+  max_alpha = 255
+  frames = []
+
+  for i in range(num_frames):
+    frame = badge_image.copy()
+    sheen = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(sheen)
+    offset = int((width + height + sheen_width) * i / num_frames) - sheen_width
+
+    for y in range(height):
+      for x in range(width):
+        pos = x + y
+        if offset <= pos < offset + sheen_width:
+          t = (pos - offset) / sheen_width
+          r = int(127.5 * (1 + np.sin(2 * np.pi * t)))
+          g = int(127.5 * (1 + np.sin(2 * np.pi * t - 2 * np.pi / 3)))
+          b = int(127.5 * (1 + np.sin(2 * np.pi * t - 4 * np.pi / 3)))
+          alpha = int(max_alpha * (1 - abs(t - 0.5) * 2))
+          draw.point((x, y), fill=(r, g, b, alpha))
+
+    sheen = sheen.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+    mask = badge_image.split()[3]
+    masked_sheen = Image.composite(sheen, Image.new("RGBA", (width, height), (0, 0, 0, 0)), mask)
+    final_frame = Image.alpha_composite(frame, masked_sheen)
+    frames.append(final_frame)
 
   return frames
 

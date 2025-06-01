@@ -116,6 +116,62 @@ WHERE b.badge_filename = 'FOD_Pride_2025.png'
       AND h.event_type = 'epoch'
   );
 
+-- Create 'Unity Prism' crystal
+INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
+('Unity Prism', 4, 'unity_prism.png', 'rainbow_sheen', "A point of Pride! Emits gaydiation particles.");
+
+-- Add 'admin' to the event_type enum in crystal_instance_history
+ALTER TABLE crystal_instance_history
+MODIFY COLUMN event_type ENUM(
+  'replicated',
+  'trade',
+  'attuned',
+  'admin'
+) NOT NULL;
+
+-- Grant 'Unity Prism' to all active users
+-- First, resolve the crystal_type_id
+SET @crystal_type_id = (
+  SELECT id FROM crystal_types WHERE name = 'Unity Prism'
+);
+
+-- Insert into crystal_instances
+INSERT INTO crystal_instances (
+  crystal_type_id,
+  owner_discord_id,
+  status
+)
+SELECT
+  @crystal_type_id,
+  p.user_discord_id,
+  'available'
+FROM echelon_progress p
+WHERE p.current_level >= 1
+  AND NOT EXISTS (
+    SELECT 1 FROM crystal_instances c
+    WHERE c.owner_discord_id = p.user_discord_id
+      AND c.crystal_type_id = @crystal_type_id
+  );
+
+-- Log the history for each inserted crystal
+INSERT INTO crystal_instance_history (
+  crystal_instance_id,
+  event_type,
+  to_user_id
+)
+SELECT
+  c.id,
+  'admin',
+  c.owner_discord_id
+FROM crystal_instances c
+WHERE c.crystal_type_id = @crystal_type_id
+  AND c.status = 'available'
+  AND NOT EXISTS (
+    SELECT 1 FROM crystal_instance_history h
+    WHERE h.crystal_instance_id = c.id
+      AND h.event_type = 'admin'
+  );
+
 -- Add auto-update date column for badge_instances for filtering
 ALTER TABLE badge_instances
 ADD COLUMN last_modified DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;

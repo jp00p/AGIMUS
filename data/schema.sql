@@ -514,6 +514,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Tetryon", 4, "tetryon.png", "subspace_ripple", "A particle intrinsic to subspace. Distortions abound when these are around!"),
   ("Triaxilation Node", 4, "triaxilation_node.png", "static_cascade", "Essential to subspace communications. Emits a pulsing cascade that resonates across signal channels."),
   ("Chroniton", 4, "chroniton.png", "temporal_flicker", "Time travel! Glitches in and out of this temporal frame."),
+  ('Unity Prism', 4, 'unity_prism.png', 'rainbow_sheen', "A point of Pride! Emits gaydiation particles."),
 
   -- Mythic Crystals (Prestige Animations)
   ("Borg Nanocluster", 5, "borg_nanocluster.png", "borg_reconstruction", "A Collective collectable. Reconstructs whatever it touches (whether it wants to or not)."),
@@ -547,7 +548,7 @@ CREATE TABLE IF NOT EXISTS crystal_instances (
 CREATE TABLE IF NOT EXISTS crystal_instance_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   crystal_instance_id INT NOT NULL,
-  event_type ENUM('replicated', 'trade', 'attuned') NOT NULL,
+  event_type ENUM('replicated', 'trade', 'attuned', 'admin') NOT NULL,
   from_user_id varchar(64) DEFAULT NULL,
   to_user_id varchar(64) DEFAULT NULL,
   occurred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
