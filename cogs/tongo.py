@@ -1416,7 +1416,7 @@ async def build_confront_results_embed(active_chair: discord.Member, remaining_b
   if remaining_badges:
     embed.add_field(
       name="Remaining Badges In The Great Material Continuum!",
-      value="\n".join([f"* {b['badge_name']}" for b in remaining_badges]),
+      value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in remaining_badges]),
       inline=False
     )
 
@@ -1435,7 +1435,7 @@ async def build_confront_player_embed(member: discord.Member, badge_infos: list[
 
   description += "### Distributed\n"
   description += "\n".join([
-    f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
+    f"* **{b['badge_name']}** {PRESTIGE_TIERS[b['prestige_level']]} {' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
     for b in badge_infos
   ])
 

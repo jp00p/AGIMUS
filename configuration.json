@@ -316,7 +316,7 @@
   },
   "tasks": {
     "backups": {
-      "crontab": "0 */6 * * *",
+      "crontab": "1 */6 * * *",
       "enabled": false
     },
     "badger": {
