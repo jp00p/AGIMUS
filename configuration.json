@@ -316,7 +316,7 @@
   },
   "tasks": {
     "backups": {
-      "crontab": "0 */6 * * *",
+      "crontab": "1 */6 * * *",
       "enabled": false
     },
     "badger": {
@@ -1157,7 +1157,7 @@
       "enabled": true,
       "parameters": []
     },
-    "zed_ops manage_tongo_game": {
+    "zed_ops manage_tongo_game_players": {
       "allowed_user_ids": [735658100958298154],
       "enabled": true,
       "parameters": []
@@ -1178,6 +1178,11 @@
       "parameters": []
     },
     "referee confront_tongo_game": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "referee toggle_block_tongo": {
       "allowed_user_ids": [735658100958298154],
       "enabled": true,
       "parameters": []

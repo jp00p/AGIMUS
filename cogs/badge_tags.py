@@ -358,12 +358,16 @@ class BadgeTags(commands.Cog):
           if tag_names else f"**{badge_info['badge_name']}** now has no tags associated."
         )
 
+        tag_updated_embed = discord.Embed(
+          title="Tags Updated",
+          description=description,
+          color=discord.Color.green()
+        )
+
+        tag_updated_embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
+
         await interaction.edit_original_response(
-          embed=discord.Embed(
-            title="Tags Updated",
-            description=description,
-            color=discord.Color.green()
-          ),
+          embed=tag_updated_embed,
           view=None
         )
 
