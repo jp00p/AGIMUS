@@ -1,0 +1,1 @@
+UPDATE badge_info SET badge_url = 'https://www.startrekdesignproject.com/symbols/risian-beach-resort' WHERE badge_url = 'https://www.startrekdesignproject.com/symbols/risan-beach-resort';

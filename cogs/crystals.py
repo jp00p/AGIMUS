@@ -137,7 +137,7 @@ class Crystals(commands.Cog):
     if not crystals:
       return [discord.OptionChoice(name="🔒 You don't possess any unattuned Crystals", value='none')]
 
-    filtered_crystals = [c for c in crystals if ctx.value.lower() in c['crystal_name']]
+    filtered_crystals = [c for c in crystals if ctx.value.lower() in c['crystal_name'].lower()]
 
     seen = set()
     options = []

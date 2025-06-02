@@ -197,6 +197,7 @@ async def on_ready():
       { 'name': "PRAISE THE FOUNDERS", 'type': discord.ActivityType.listening },
       { 'name': "The Greatest Generation", 'type': discord.ActivityType.listening },
       { 'name': "The Greatest Discovery", 'type': discord.ActivityType.listening },
+      { 'name': "The Greatest Trek", 'type': discord.ActivityType.listening },
       { 'name': "A Nice Game of Chess", 'type': discord.ActivityType.playing },
       { 'name': "Thermonuclear War", 'type': discord.ActivityType.playing },
       { 'name': "Gauges", 'type': discord.ActivityType.playing },
