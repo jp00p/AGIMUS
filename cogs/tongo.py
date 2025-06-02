@@ -317,7 +317,10 @@ class Tongo(commands.Cog):
   #  |____|_/__/\__\___|_||_\___|_| /__/
   @commands.Cog.listener()
   async def on_ready(self):
-    await self._resume_tongo_if_needed()
+    settings = await db_get_tongo_settings()
+    self.block_new_games = settings['block_new_games']
+    if not self.block_new_games:
+      await self._resume_tongo_if_needed()
 
   async def _resume_tongo_if_needed(self):
     """
@@ -1288,9 +1291,23 @@ class Tongo(commands.Cog):
 
   tongo_referee_group = discord.SlashCommandGroup("referee", "Referee commands for Tongo.")
 
+  @tongo_referee_group.command(name="toggle_block_tongo", description="(ADMIN) Enable or disable Tongo game blocking.")
+  @commands.check(user_check)
+  async def toggle_block_tongo(self, ctx: discord.ApplicationContext, block: bool):
+    self.block_new_games = block
+    await db_set_tongo_block_new_games(block)
+    await ctx.respond(
+      embed=discord.Embed(
+        title="Tongo Game Blocking Updated",
+        description=f"New games are now {'blocked' if block else 'allowed'}.",
+        color=discord.Color.gold()
+      ),
+      ephemeral=True
+    )
+
   @tongo_referee_group.command(name="confront_tongo_game", description="(ADMIN RESTRICTED) Force confrontation on the current Tongo game.")
   @commands.check(user_check)
-  async def confront_current_game(self, ctx):
+  async def confront_tongo_game(self, ctx):
     await ctx.defer(ephemeral=True)
 
     active_game = await db_get_open_game()

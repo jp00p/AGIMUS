@@ -335,3 +335,16 @@ async def db_decrement_user_tongo_dividends(user_id: int, amount: int):
   """
   async with AgimusDB() as db:
     await db.execute(sql, (amount, user_id))
+
+# Tongo Admin Settings
+async def db_get_tongo_settings():
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute("SELECT * FROM tongo_settings WHERE id = 1")
+    return db.fetchone()
+
+async def db_set_tongo_block_new_games(value: bool):
+  async with AgimusDB() as db:
+    await db.execute(
+      "UPDATE tongo_settings SET block_new_games = %s WHERE id = 1",
+      (value,)
+    )

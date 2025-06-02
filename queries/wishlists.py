@@ -262,7 +262,7 @@ async def db_get_active_wants(user_discord_id: str, prestige_level: int) -> list
 async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> list[dict]:
   sql = '''
     WITH
-      my_wants AS (
+      my_unfulfilled_wishlist AS (
         SELECT badge_info_id
         FROM badge_instances_wishlists
         WHERE user_discord_id = %s
@@ -273,10 +273,9 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
               AND badge_info_id = badge_instances_wishlists.badge_info_id
               AND prestige_level = %s
               AND active = TRUE
-              AND locked = FALSE
           )
       ),
-      my_owns AS (
+      my_offerable_badges AS (
         SELECT DISTINCT badge_info_id
         FROM badge_instances
         WHERE owner_discord_id = %s
@@ -284,14 +283,14 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
           AND locked = FALSE
           AND active = TRUE
       ),
-      partner_owns AS (
+      partner_offerable_badges AS (
         SELECT DISTINCT b.owner_discord_id AS partner_id,
                         b.badge_info_id
         FROM badge_instances b
         WHERE b.prestige_level = %s
           AND b.locked = FALSE
           AND b.active = TRUE
-          AND b.badge_info_id IN (SELECT badge_info_id FROM my_wants)
+          AND b.badge_info_id IN (SELECT badge_info_id FROM my_unfulfilled_wishlist)
           AND NOT EXISTS (
             SELECT 1
             FROM badge_instances mine
@@ -299,14 +298,13 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
               AND mine.badge_info_id = b.badge_info_id
               AND mine.prestige_level = b.prestige_level
               AND mine.active = TRUE
-              AND mine.locked = FALSE
           )
       ),
-      partner_wants AS (
+      partner_unfulfilled_wishlist AS (
         SELECT DISTINCT w.user_discord_id AS partner_id,
                         w.badge_info_id
         FROM badge_instances_wishlists w
-        WHERE w.badge_info_id IN (SELECT badge_info_id FROM my_owns)
+        WHERE w.badge_info_id IN (SELECT badge_info_id FROM my_offerable_badges)
           AND NOT EXISTS (
             SELECT 1
             FROM badge_instances i
@@ -314,87 +312,84 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
               AND i.badge_info_id = w.badge_info_id
               AND i.prestige_level = %s
               AND i.active = TRUE
-              AND i.locked = FALSE
           )
       ),
       matched_partners AS (
-        SELECT DISTINCT po.partner_id
-        FROM partner_owns po
-        JOIN partner_wants pw
-          ON pw.partner_id = po.partner_id
-        WHERE po.partner_id != %s
+        SELECT DISTINCT pob.partner_id
+        FROM partner_offerable_badges pob
+        JOIN partner_unfulfilled_wishlist puw
+          ON puw.partner_id = pob.partner_id
+        WHERE pob.partner_id != %s
       )
     SELECT
       mp.partner_id AS match_discord_id,
 
-      /* linked badge names they have from your wishlist */
       (
         SELECT JSON_ARRAYAGG(
           JSON_OBJECT('name', bi.badge_name, 'url', bi.badge_url)
         )
         FROM (
           SELECT DISTINCT badge_info_id
-          FROM partner_owns
+          FROM partner_offerable_badges
           WHERE partner_id = mp.partner_id
         ) AS sub
         JOIN badge_info bi ON bi.id = sub.badge_info_id
         ORDER BY bi.badge_name
       ) AS badges_you_want_that_they_have,
 
-      /* badge IDs they have from your wishlist */
       (
         SELECT JSON_ARRAYAGG(sub.badge_info_id)
         FROM (
-          SELECT DISTINCT partner_owns.badge_info_id, bi.badge_name
-          FROM partner_owns
-          JOIN badge_info bi ON bi.id = partner_owns.badge_info_id
-          WHERE partner_owns.partner_id = mp.partner_id
+          SELECT DISTINCT pob.badge_info_id, bi.badge_name
+          FROM partner_offerable_badges pob
+          JOIN badge_info bi ON bi.id = pob.badge_info_id
+          WHERE pob.partner_id = mp.partner_id
           ORDER BY bi.badge_name
         ) AS sub
       ) AS badge_ids_you_want_that_they_have,
 
-      /* linked badge names they want from your inventory */
       (
         SELECT JSON_ARRAYAGG(
           JSON_OBJECT('name', bi.badge_name, 'url', bi.badge_url)
         )
         FROM (
           SELECT DISTINCT badge_info_id
-          FROM partner_wants
+          FROM partner_unfulfilled_wishlist
           WHERE partner_id = mp.partner_id
         ) AS sub
         JOIN badge_info bi ON bi.id = sub.badge_info_id
         ORDER BY bi.badge_name
       ) AS badges_they_want_that_you_have,
 
-      /* badge IDs they want from your inventory */
       (
         SELECT JSON_ARRAYAGG(sub.badge_info_id)
         FROM (
-          SELECT DISTINCT partner_wants.badge_info_id, bi.badge_name
-          FROM partner_wants
-          JOIN badge_info bi ON bi.id = partner_wants.badge_info_id
-          WHERE partner_wants.partner_id = mp.partner_id
+          SELECT DISTINCT puw.badge_info_id, bi.badge_name
+          FROM partner_unfulfilled_wishlist puw
+          JOIN badge_info bi ON bi.id = puw.badge_info_id
+          WHERE puw.partner_id = mp.partner_id
           ORDER BY bi.badge_name
         ) AS sub
       ) AS badge_ids_they_want_that_you_have
 
     FROM matched_partners mp;
   '''
-  params = [
-    user_discord_id,  # my_wants
-    user_discord_id,  # my_wants NOT EXISTS
-    prestige_level,   # my_wants NOT EXISTS
 
-    user_discord_id,  # my_owns
-    prestige_level,   # my_owns
+  params = (
+    user_discord_id,  # my_unfulfilled_wishlist
+    user_discord_id,  # my_unfulfilled_wishlist NOT EXISTS
+    prestige_level,
 
-    prestige_level,   # partner_owns
-    user_discord_id,  # partner_owns NOT EXISTS
+    user_discord_id,  # my_offerable_badges
+    prestige_level,
 
-    prestige_level,   # partner_wants NOT EXISTS
+    prestige_level,   # partner_offerable_badges
+    user_discord_id,  # partner_offerable_badges NOT EXISTS
+
+    prestige_level,   # partner_unfulfilled_wishlist NOT EXISTS
     user_discord_id   # exclude self
-  ]
+  )
+
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, params)
     return await db.fetchall()

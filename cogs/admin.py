@@ -191,10 +191,10 @@ class Admin(commands.Cog):
     await paginator.respond(ctx.interaction, ephemeral=True)
 
 
-  @admin_group.command(name="manage_tongo_game", description="(ADMIN RESTRICTED) Manage a given Tongo Game.")
+  @admin_group.command(name="manage_tongo_game_players", description="(ADMIN RESTRICTED) Manage a given Tongo Game's players.")
   @option("game_id", int, description="Game.", required=True)
   @commands.check(user_check)
-  async def manage_tongo_game(self, ctx: discord.ApplicationContext, game_id: int):
+  async def manage_tongo_game_players(self, ctx: discord.ApplicationContext, game_id: int):
     await ctx.defer(ephemeral=True)
 
     tongo_cog = ctx.bot.get_cog("Tongo")
@@ -283,24 +283,10 @@ class Admin(commands.Cog):
 
         self.stop()
 
-      @discord.ui.button(label="Toggle New Game Creation", style=discord.ButtonStyle.gray, row=1)
-      async def toggle_new_games(self, button, interaction):
-        self.cog.block_new_games = not self.cog.block_new_games
-        new_status = "ENABLED ✅" if not self.cog.block_new_games else "BLOCKED ❌"
-        await interaction.response.send_message(
-          embed=discord.Embed(
-            title="Tongo Game Creation Toggled",
-            description=f"New `/tongo venture` games are now **{new_status}**.",
-            color=discord.Color.green() if not self.cog.block_new_games else discord.Color.red()
-          ),
-          ephemeral=True
-        )
-        self.stop()
-
     await ctx.respond(
       embed=discord.Embed(
-        title=f"Manage Tongo Game #{game_id}",
-        description="Remove players or toggle new game creation.",
+        title=f"Manage Tongo Game Players #{game_id}",
+        description="Remove players.",
         color=discord.Color.teal()
       ),
       view=ManageTongoGamesView(tongo_cog, game_id, members),
