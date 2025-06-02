@@ -1300,7 +1300,7 @@ class Tongo(commands.Cog):
       embed=discord.Embed(
         title="Tongo Game Blocking Updated",
         description=f"New games are now {'blocked' if block else 'allowed'}.",
-        color=discord.Color.gold()
+        color=discord.Color.blurple()
       ),
       ephemeral=True
     )
