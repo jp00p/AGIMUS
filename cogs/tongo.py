@@ -510,7 +510,7 @@ class Tongo(commands.Cog):
     )
     embed.add_field(
       name=f"{prestige_tier} Badges Ventured By {member.display_name}",
-      value="\n".join([f"* {b['badge_name']}" for b in venture_badges]),
+      value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in venture_badges]),
       inline=False
     )
     embed.set_image(url="https://i.imgur.com/tRi1vYq.gif")
@@ -643,7 +643,7 @@ class Tongo(commands.Cog):
     )
     embed.add_field(
       name=f"{prestige_tier} Badges Risked By {member.display_name}",
-      value="\n".join([f"* {b['badge_name']}" for b in risked_badges]),
+      value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in risked_badges]),
       inline=False
     )
     embed.add_field(
@@ -653,7 +653,7 @@ class Tongo(commands.Cog):
     )
     embed.add_field(
       name=f"Total Badges In The Great Material Continuum!",
-      value="\n".join([f"* {b['badge_name']}" for b in continuum_chunks[0]]),
+      value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in continuum_chunks[0]]),
       inline=False
     )
     embed.set_image(url="https://i.imgur.com/zEvF7uO.gif")
@@ -672,7 +672,7 @@ class Tongo(commands.Cog):
       )
       chunk_embed.add_field(
         name="Total Badges In The Great Material Continuum!",
-        value="\n".join([f"* {b['badge_name']}" for b in chunk]),
+        value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in chunk]),
         inline=False
       )
       chunk_embed.set_footer(
@@ -897,7 +897,7 @@ class Tongo(commands.Cog):
       )
       embed.add_field(
         name="Total Badges in the Continuum!",
-        value="\n".join([f"* {b['badge_name']}" for b in t_chunk]),
+        value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in t_chunk]),
         inline=False
       )
       embed.set_footer(
@@ -1469,7 +1469,7 @@ def build_confront_dm_embed(member: discord.Member, badge_infos: list[dict], wis
     embed.add_field(
       name="Badges Acquired",
       value="\n".join([
-        f"* {b['badge_name']}{' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
+        f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]}){' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
         for b in badge_infos
       ])
     )
@@ -1517,7 +1517,7 @@ def build_liquidation_embed(member: discord.Member, reward_badge: dict, removed_
 
   embed.add_field(
     name="Badges Liquidated from The Great Material Continuum",
-    value="\n".join([f"* {b['badge_name']}" for b in removed_badges]),
+    value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in removed_badges]),
     inline=False
   )
 
