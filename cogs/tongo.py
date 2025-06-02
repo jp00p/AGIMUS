@@ -1435,7 +1435,7 @@ async def build_confront_player_embed(member: discord.Member, badge_infos: list[
 
   description += "### Distributed\n"
   description += "\n".join([
-    f"* **{b['badge_name']}** {PRESTIGE_TIERS[b['prestige_level']]} {' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
+    f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]}) {' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
     for b in badge_infos
   ])
 

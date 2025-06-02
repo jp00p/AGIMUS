@@ -36,7 +36,7 @@ JOIN (
 ) p
 JOIN echelon_progress ep ON ep.user_discord_id = r.user_discord_id
 WHERE r.legacy_level >= 2
-  AND p.prestige_level <= ep.current_prestige_level
+  AND p.prestige_level <= ep.current_prestige_tier
   AND NOT EXISTS (
     SELECT 1 FROM badge_instances i
     WHERE i.owner_discord_id = r.user_discord_id
@@ -91,7 +91,7 @@ JOIN (
   SELECT 6
 ) p
 WHERE ep.current_level >= 1
-  AND p.prestige_level <= ep.current_prestige_level
+  AND p.prestige_level <= ep.current_prestige_tier
   AND NOT EXISTS (
     SELECT 1 FROM badge_instances i
     WHERE i.owner_discord_id = ep.user_discord_id
