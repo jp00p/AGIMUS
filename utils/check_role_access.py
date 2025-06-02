@@ -17,7 +17,12 @@ async def role_check(ctx):
     allowed = any(user_rid in allowed_role_ids for user_rid in user_role_ids)
     if not allowed:
       if ctx_type == 'ApplicationContext':
-        await ctx.respond(f"{get_emoji('guinan_beanflick_stance_threat')} Sorry! You don't have the proper security clearance to use this command.", ephemeral=True)
+        embed = discord.Embed(
+          title="Aw hell nah dawg.",
+          description=f"{get_emoji('guinan_beanflick_stance_threat')} You don't have the proper security clearance to use this command.",
+          color=discord.Color.red()
+        )
+        await ctx.respond(embed=embed, ephemeral=True)
     else:
       return True
   except Exception as e:

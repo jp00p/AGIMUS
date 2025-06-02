@@ -321,56 +321,56 @@ class Admin(commands.Cog):
     await ctx.respond(embed=embed, ephemeral=True)
 
 
-  @admin_group.command(name="repair_levels", description="(ADMIN RESTRICTED) Correct Missing Levels.")
-  @commands.check(user_check)
-  async def repair_levels(self, ctx):
-    await ctx.defer(ephemeral=True)
+  # @admin_group.command(name="repair_levels", description="(ADMIN RESTRICTED) Correct Missing Levels.")
+  # @commands.check(user_check)
+  # async def repair_levels(self, ctx):
+  #   await ctx.defer(ephemeral=True)
 
-    sql = "SELECT user_discord_id, current_xp, current_level FROM echelon_progress"
+  #   sql = "SELECT user_discord_id, current_xp, current_level FROM echelon_progress"
 
-    async with AgimusDB(dictionary=True) as db:
-      await db.execute(sql)
-      users = await db.fetchall()
+  #   async with AgimusDB(dictionary=True) as db:
+  #     await db.execute(sql)
+  #     users = await db.fetchall()
 
-    total_users = 0
-    total_levels_awarded = 0
-    failed_users = []
+  #   total_users = 0
+  #   total_levels_awarded = 0
+  #   failed_users = []
 
-    for row in users:
-      user_id = row['user_discord_id']
-      xp = row['current_xp']
-      stored_level = row['current_level']
-      correct_level = level_for_total_xp(xp)
+  #   for row in users:
+  #     user_id = row['user_discord_id']
+  #     xp = row['current_xp']
+  #     stored_level = row['current_level']
+  #     correct_level = level_for_total_xp(xp)
 
-      if correct_level > stored_level:
-        try:
-          user_obj = await self.bot.fetch_user(int(user_id))
-          for lvl in range(stored_level + 1, correct_level + 1):
-            await handle_user_level_up(user_obj, lvl, source="Level Repair (XP Exceeds Stored Level)")
-            await asyncio.sleep(0.9)
-            total_levels_awarded += 1
-          total_users += 1
-        except Exception as e:
-          failed_users.append(user_id)
+  #     if correct_level > stored_level:
+  #       try:
+  #         user_obj = await self.bot.fetch_user(int(user_id))
+  #         for lvl in range(stored_level + 1, correct_level + 1):
+  #           await handle_user_level_up(user_obj, lvl, source="Level Repair (XP Exceeds Stored Level)")
+  #           await asyncio.sleep(0.9)
+  #           total_levels_awarded += 1
+  #         total_users += 1
+  #       except Exception as e:
+  #         failed_users.append(user_id)
 
-    summary = discord.Embed(
-      title="🛠 Level-Up Repair Complete",
-      description=(
-        f"* Checked `{len(users)}` users.\n"
-        f"* `{total_users}` users had missed level-ups.\n"
-        f"* {total_levels_awarded}` total levels granted.\n"
-      ),
-      color=discord.Color.teal()
-    )
+  #   summary = discord.Embed(
+  #     title="🛠 Level-Up Repair Complete",
+  #     description=(
+  #       f"* Checked `{len(users)}` users.\n"
+  #       f"* `{total_users}` users had missed level-ups.\n"
+  #       f"* {total_levels_awarded}` total levels granted.\n"
+  #     ),
+  #     color=discord.Color.teal()
+  #   )
 
-    if failed_users:
-      summary.add_field(
-        name="⚠️ Users Not Processed",
-        value=", ".join(failed_users),
-        inline=False
-      )
+  #   if failed_users:
+  #     summary.add_field(
+  #       name="⚠️ Users Not Processed",
+  #       value=", ".join(failed_users),
+  #       inline=False
+  #     )
 
-    await ctx.respond(embed=summary, ephemeral=True)
+  #   await ctx.respond(embed=summary, ephemeral=True)
 
 
   # @admin_group.command(name="repair_levelup_badges", description="(ADMIN RESTRICTED) Correct Missing Badges.")
@@ -443,93 +443,93 @@ class Admin(commands.Cog):
   #   await ctx.respond(embed=summary, ephemeral=True)
 
 
-  @admin_group.command(name="repair_badges_special_grant", description="(ADMIN RESTRICTED) Address Erroneous Special Badge Grants.")
-  @commands.check(user_check)
-  async def repair_special_badge_levelup_bug(self, ctx):
-    await ctx.defer(ephemeral=True)
+  # @admin_group.command(name="repair_badges_special_grant", description="(ADMIN RESTRICTED) Address Erroneous Special Badge Grants.")
+  # @commands.check(user_check)
+  # async def repair_special_badge_levelup_bug(self, ctx):
+  #   await ctx.defer(ephemeral=True)
 
-    # Step 1: Query affected badge_instance IDs
-    query = """
-      SELECT bi.id AS instance_id, bi.owner_discord_id, bi.badge_info_id, binfo.badge_name
-      FROM badge_instances bi
-      JOIN badge_info binfo ON bi.badge_info_id = binfo.id
-      WHERE binfo.special = 1
-        AND bi.status = 'active'
-        AND EXISTS (
-          SELECT 1 FROM badge_instance_history h
-          WHERE h.badge_instance_id = bi.id
-            AND h.event_type = 'level_up'
-        )
-        AND NOT EXISTS (
-          SELECT 1 FROM badge_instance_history h2
-          WHERE h2.badge_instance_id = bi.id
-            AND h2.event_type = 'prestige_echo'
-        )
-    """
+  #   # Step 1: Query affected badge_instance IDs
+  #   query = """
+  #     SELECT bi.id AS instance_id, bi.owner_discord_id, bi.badge_info_id, binfo.badge_name
+  #     FROM badge_instances bi
+  #     JOIN badge_info binfo ON bi.badge_info_id = binfo.id
+  #     WHERE binfo.special = 1
+  #       AND bi.status = 'active'
+  #       AND EXISTS (
+  #         SELECT 1 FROM badge_instance_history h
+  #         WHERE h.badge_instance_id = bi.id
+  #           AND h.event_type = 'level_up'
+  #       )
+  #       AND NOT EXISTS (
+  #         SELECT 1 FROM badge_instance_history h2
+  #         WHERE h2.badge_instance_id = bi.id
+  #           AND h2.event_type = 'prestige_echo'
+  #       )
+  #   """
 
-    async with AgimusDB(dictionary=True) as db:
-      await db.execute(query)
-      rows = await db.fetchall()
+  #   async with AgimusDB(dictionary=True) as db:
+  #     await db.execute(query)
+  #     rows = await db.fetchall()
 
-    if not rows:
-      return await ctx.respond("✅ No invalid special badges found to archive.", ephemeral=True)
+  #   if not rows:
+  #     return await ctx.respond("✅ No invalid special badges found to archive.", ephemeral=True)
 
-    summary = defaultdict(lambda: {'display_name': None, 'archived': [], 'granted': []})
-    total_archived = 0
-    total_granted = 0
+  #   summary = defaultdict(lambda: {'display_name': None, 'archived': [], 'granted': []})
+  #   total_archived = 0
+  #   total_granted = 0
 
-    # Step 2: Archive bugged badges
-    for row in rows:
-      user_id = row['owner_discord_id']
-      badge_name = row['badge_name']
-      try:
-        await archive_badge_instance(row['instance_id'])
-        summary[user_id]['archived'].append(badge_name)
-        total_archived += 1
-      except Exception as e:
-        logger.warning(f"Error archiving badge_instance_id {row['instance_id']}: {e}")
+  #   # Step 2: Archive bugged badges
+  #   for row in rows:
+  #     user_id = row['owner_discord_id']
+  #     badge_name = row['badge_name']
+  #     try:
+  #       await archive_badge_instance(row['instance_id'])
+  #       summary[user_id]['archived'].append(badge_name)
+  #       total_archived += 1
+  #     except Exception as e:
+  #       logger.warning(f"Error archiving badge_instance_id {row['instance_id']}: {e}")
 
-    # Step 3: Fetch display names + grant replacements
-    for user_id, data in summary.items():
-      try:
-        user_obj = await self.bot.fetch_user(int(user_id))
-        summary[user_id]['display_name'] = user_obj.display_name
-        for _ in data['archived']:
-          new_badge = await award_level_up_badge(user_obj)
-          await post_badge_repair_embed(user_obj, new_badge, reason="Had been erroneously granted a 'Special' restricted badge due to an award system bug!")
-          summary[user_id]['granted'].append(new_badge['badge_name'])
-          await asyncio.sleep(0.4)
-          total_granted += 1
-      except Exception as e:
-        logger.warning(f"Error compensating user {user_id}: {e}")
+  #   # Step 3: Fetch display names + grant replacements
+  #   for user_id, data in summary.items():
+  #     try:
+  #       user_obj = await self.bot.fetch_user(int(user_id))
+  #       summary[user_id]['display_name'] = user_obj.display_name
+  #       for _ in data['archived']:
+  #         new_badge = await award_level_up_badge(user_obj)
+  #         await post_badge_repair_embed(user_obj, new_badge, reason="Had been erroneously granted a 'Special' restricted badge due to an award system bug!")
+  #         summary[user_id]['granted'].append(new_badge['badge_name'])
+  #         await asyncio.sleep(0.4)
+  #         total_granted += 1
+  #     except Exception as e:
+  #       logger.warning(f"Error compensating user {user_id}: {e}")
 
-    # Step 4: Build .txt report
-    lines = ["AGIMUS Special Badge Level-Up Bug Repair Log\n"]
-    for user_id, info in summary.items():
-      lines.append(f"{info['display_name']} ({user_id})")
-      lines.append("  Archived Badges:")
-      for badge in info['archived']:
-        lines.append(f"    - {badge}")
-      lines.append("  Replacement Badges Granted:")
-      for badge in info['granted']:
-        lines.append(f"    + {badge}")
-      lines.append("")
-    report_text = "\n".join(lines)
-    buffer = io.BytesIO()
-    buffer.write(report_text.encode('utf-8'))
-    buffer.seek(0)
-    buffer.name = "special_badge_bug_repair_report.txt"
+  #   # Step 4: Build .txt report
+  #   lines = ["AGIMUS Special Badge Level-Up Bug Repair Log\n"]
+  #   for user_id, info in summary.items():
+  #     lines.append(f"{info['display_name']} ({user_id})")
+  #     lines.append("  Archived Badges:")
+  #     for badge in info['archived']:
+  #       lines.append(f"    - {badge}")
+  #     lines.append("  Replacement Badges Granted:")
+  #     for badge in info['granted']:
+  #       lines.append(f"    + {badge}")
+  #     lines.append("")
+  #   report_text = "\n".join(lines)
+  #   buffer = io.BytesIO()
+  #   buffer.write(report_text.encode('utf-8'))
+  #   buffer.seek(0)
+  #   buffer.name = "special_badge_bug_repair_report.txt"
 
-    # Step 5: Respond with summary + file
-    embed = discord.Embed(
-      title="🧹 Special Badge Repair Complete",
-      description=(
-        f"Archived `{total_archived}` improperly granted **special** badge(s).\n"
-        f"Affected users: `{len(summary)}`\n"
-        f"Replacement badges granted: `{total_granted}`\n\n"
-        "See attached file for full user breakdown."
-      ),
-      color=discord.Color.red()
-    )
+  #   # Step 5: Respond with summary + file
+  #   embed = discord.Embed(
+  #     title="🧹 Special Badge Repair Complete",
+  #     description=(
+  #       f"Archived `{total_archived}` improperly granted **special** badge(s).\n"
+  #       f"Affected users: `{len(summary)}`\n"
+  #       f"Replacement badges granted: `{total_granted}`\n\n"
+  #       "See attached file for full user breakdown."
+  #     ),
+  #     color=discord.Color.red()
+  #   )
 
-    await ctx.respond(embed=embed, file=discord.File(fp=buffer), ephemeral=True)
+  #   await ctx.respond(embed=embed, file=discord.File(fp=buffer), ephemeral=True)
