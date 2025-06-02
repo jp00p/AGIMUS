@@ -629,7 +629,7 @@ class Tongo(commands.Cog):
     all_badges = await db_get_full_continuum_badges()
 
     # Chunk the continuum into 30s
-    continuum_chunks = [all_badges[i:i + 30] for i in range(0, len(all_badges), 30)]
+    continuum_chunks = [all_badges[i:i + 20] for i in range(0, len(all_badges), 20)]
     player_count = len(player_members)
 
     # Embed flavor
@@ -860,8 +860,8 @@ class Tongo(commands.Cog):
     tongo_player_members = [await self.bot.current_guild.fetch_member(id) for id in tongo_player_ids]
 
     # Get current continuum (pot)
-    tongo_pot_badges = await db_get_full_continuum_badges()
-    tongo_pot_chunks = [tongo_pot_badges[i:i + 30] for i in range(0, len(tongo_pot_badges), 30)]
+    tongo_continuum_badges = await db_get_full_continuum_badges()
+    tongo_continuum_chunks = [tongo_continuum_badges[i:i + 20] for i in range(0, len(tongo_continuum_badges), 20)]
 
     description = f"Index requested by **{user_member.display_name}**!\n\nDisplaying the status of the current game of Tongo!"
     if self.auto_confront.next_iteration:
@@ -891,9 +891,9 @@ class Tongo(commands.Cog):
     )
 
     tongo_pages = [confirmation_embed]
-    for page_idx, t_chunk in enumerate(tongo_pot_chunks):
+    for page_idx, t_chunk in enumerate(tongo_continuum_chunks):
       embed = discord.Embed(
-        title=f"The Great Material Continuum (Page {page_idx + 1} of {len(tongo_pot_chunks)})",
+        title=f"The Great Material Continuum (Page {page_idx + 1} of {len(tongo_continuum_chunks)})",
         color=discord.Color.dark_purple()
       )
       embed.add_field(
@@ -918,7 +918,7 @@ class Tongo(commands.Cog):
     await continuum_paginator.respond(ctx.interaction, ephemeral=False)
 
     # Continuum image display
-    continuum_images = await generate_paginated_continuum_images(tongo_pot_badges)
+    continuum_images = await generate_paginated_continuum_images(tongo_continuum_badges)
     zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
     await send_continuum_images_to_channel(zeks_table, continuum_images)
 

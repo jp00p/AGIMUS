@@ -137,7 +137,7 @@ class Crystals(commands.Cog):
     if not crystals:
       return [discord.OptionChoice(name="🔒 You don't possess any unattuned Crystals", value='none')]
 
-    filtered_crystals = [c for c in crystals if ctx.value.lower() in c['crystal_name']]
+    filtered_crystals = [c for c in crystals if ctx.value.lower() in c['crystal_name'].lower()]
 
     seen = set()
     options = []
@@ -777,7 +777,32 @@ class Crystals(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)  # ← This was missing!
       return
 
-    crystal_instance = await db_get_crystal_by_id(crystal)
+    try:
+      crystal_id = int(crystal)
+    except ValueError:
+      await ctx.respond(
+        embed=discord.Embed(
+          title='Invalid Crystal',
+          description='That does not appear to be a valid Crystal selection.',
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    # Validate the crystal is attuned to this badge
+    crystal_instance = next((c for c in crystals if c['badge_crystal_id'] == crystal_id), None)
+
+    if crystal_instance is None:
+      await ctx.respond(
+        embed=discord.Embed(
+          title='Crystal Not Found',
+          description='That Crystal is not attuned to the selected Badge.',
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
 
     logger.info(f"{ctx.user.display_name} is {Style.BRIGHT}Harmonizing{Style.RESET_ALL} the Crystal {Style.BRIGHT}{crystal_instance['crystal_name']}{Style.RESET_ALL} to {Style.BRIGHT}{[badge_instance['badge_name']]}{Style.RESET_ALL} with {Style.BRIGHT}`/crystals harmonize`{Style.RESET_ALL}!")
 

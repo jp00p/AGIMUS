@@ -121,7 +121,11 @@ class Badges(commands.Cog):
       discord.OptionChoice(
         name="Special",
         value="special"
-      )
+      ),
+      discord.OptionChoice(
+        name="Crystallized",
+        value="crystallized"
+      ),
     ]
   )
   @option(
@@ -182,6 +186,8 @@ class Badges(commands.Cog):
         user_badges = await db_get_user_badge_instances(ctx.author.id, prestige=prestige, locked=True, sortby=sortby)
       elif filter == 'special':
         user_badges = await db_get_user_badge_instances(ctx.author.id, prestige=prestige, special=True, sortby=sortby)
+      elif filter == 'crystallized':
+        user_badges = await db_get_user_badge_instances(ctx.author.id, prestige=prestige, crystallized=True, sortby=sortby)
       max_collected = await db_get_badge_instances_count_for_user(ctx.author.id, prestige=prestige)
       collection_label = filter.title()
     else:
