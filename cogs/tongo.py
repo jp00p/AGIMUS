@@ -484,6 +484,8 @@ class Tongo(commands.Cog):
     self.zek_consortium_activated = False
     await db_add_game_player(game_id, user_id)
 
+    ventured_badges = [await db_get_badge_instance_by_badge_info_id(user_id, b['badge_info_id'], prestige=prestige) for b in selected]
+
     # Toss the badges in!
     for instance in selected:
       await throw_badge_into_continuum(instance, user_id)
@@ -500,8 +502,6 @@ class Tongo(commands.Cog):
       ephemeral=True
     )
 
-    venture_badges = [await db_get_badge_info_by_id(b['badge_info_id']) for b in selected]
-
     embed = discord.Embed(
       title="TONGO! Badges Ventured!",
       description=f"**{member.display_name}** has begun a new game of Tongo!\n\n"
@@ -511,7 +511,7 @@ class Tongo(commands.Cog):
     )
     embed.add_field(
       name=f"{prestige_tier} Badges Ventured By {member.display_name}",
-      value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in venture_badges]),
+      value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in ventured_badges]),
       inline=False
     )
     embed.set_image(url="https://i.imgur.com/tRi1vYq.gif")
@@ -609,6 +609,8 @@ class Tongo(commands.Cog):
     selected = random.sample(eligible, 3)
     await db_add_game_player(game['id'], user_id)
 
+    risked_badges = [await db_get_badge_instance_by_badge_info_id(user_id, b['badge_info_id'], prestige=prestige) for b in selected]
+
     # Toss the badges in!
     for instance in selected:
       await throw_badge_into_continuum(instance, user_id)
@@ -620,8 +622,6 @@ class Tongo(commands.Cog):
       title="Risk Acknowledged!",
       color=discord.Color.dark_purple()
     ), ephemeral=True)
-
-    risked_badges = [await db_get_badge_info_by_id(b['badge_info_id']) for b in selected]
 
     # Get player and continuum state for embeds
     player_ids = await db_get_all_game_player_ids(game['id'])
@@ -1370,7 +1370,7 @@ class Tongo(commands.Cog):
   #         \/     \/          \/            \/     \/
   tongo_referee_group = discord.SlashCommandGroup("referee", "Referee commands for Tongo.")
 
-  @tongo_referee_group.command(name="toggle_block_tongo", description="(ADMIN) Enable or disable Tongo game blocking.")
+  @tongo_referee_group.command(name="toggle_block_tongo", description="(ADMIN RESTRICTED) Enable or disable Tongo games.")
   @commands.check(user_check)
   async def toggle_block_tongo(self, ctx: discord.ApplicationContext, block: bool):
     self.block_new_games = block
@@ -1384,7 +1384,7 @@ class Tongo(commands.Cog):
       ephemeral=True
     )
 
-  @tongo_referee_group.command(name="confront_tongo_game", description="(ADMIN RESTRICTED) Force confrontation on the current Tongo game.")
+  @tongo_referee_group.command(name="confront_tongo_game", description="(ADMIN RESTRICTED) Force Confrontation of the current Tongo game.")
   @commands.check(user_check)
   async def confront_tongo_game(self, ctx):
     await ctx.defer(ephemeral=True)
@@ -1418,41 +1418,41 @@ class Tongo(commands.Cog):
       color=discord.Color.gold()
     ), ephemeral=True)
 
-  @tongo_referee_group.command(
-    name="zek_investment",
-    description="(ADMIN RESTRICTED) Have Zek make things extra spicy."
-  )
-  @commands.check(user_check)
-  async def zek_investment(self, ctx: discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
+  # @tongo_referee_group.command(
+  #   name="zek_investment",
+  #   description="(ADMIN RESTRICTED) Have Zek make things extra spicy."
+  # )
+  # @commands.check(user_check)
+  # async def zek_investment(self, ctx: discord.ApplicationContext):
+  #   await ctx.defer(ephemeral=True)
 
-    game = await db_get_open_game()
-    if not game:
-      return await ctx.respond(embed=discord.Embed(
-        title="No Active Tongo Game",
-        description="There is no ongoing Tongo game to add a Consortium badge to!",
-        color=discord.Color.red()
-      ), ephemeral=True)
+  #   game = await db_get_open_game()
+  #   if not game:
+  #     return await ctx.respond(embed=discord.Embed(
+  #       title="No Active Tongo Game",
+  #       description="There is no ongoing Tongo game to add a Consortium badge to!",
+  #       color=discord.Color.red()
+  #     ), ephemeral=True)
 
-    self.zek_consortium_activated = False
+  #   self.zek_consortium_activated = False
 
-    result = await self._find_consortium_badge_to_add(game['id'])
-    if not result:
-      return await ctx.respond(embed=discord.Embed(
-        title="No Eligible Consortium Badge",
-        description="There is no badge that 3 or more players want at a shared prestige level.",
-        color=discord.Color.red()
-      ), ephemeral=True)
+  #   result = await self._find_consortium_badge_to_add(game['id'])
+  #   if not result:
+  #     return await ctx.respond(embed=discord.Embed(
+  #       title="No Eligible Consortium Badge",
+  #       description="There is no badge that 3 or more players want at a shared prestige level.",
+  #       color=discord.Color.red()
+  #     ), ephemeral=True)
 
-    badge_info_id, prestige = result
-    await self._invoke_zek_consortium(badge_info_id, prestige)
-    self.zek_consortium_activated = True
+  #   badge_info_id, prestige = result
+  #   await self._invoke_zek_consortium(badge_info_id, prestige)
+  #   self.zek_consortium_activated = True
 
-    await ctx.respond(embed=discord.Embed(
-      title="Consortium Toss Complete",
-      description="A badge has been thrown into the Continuum by Grand Nagus Zek.",
-      color=discord.Color.gold()
-    ), ephemeral=True)
+  #   await ctx.respond(embed=discord.Embed(
+  #     title="Consortium Toss Complete",
+  #     description="A badge has been thrown into the Continuum by Grand Nagus Zek.",
+  #     color=discord.Color.gold()
+  #   ), ephemeral=True)
 
 
 #

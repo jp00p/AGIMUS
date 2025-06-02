@@ -13,7 +13,12 @@ async def user_check(ctx):
 
     if ctx.author.id not in allowed_user_ids:
       if ctx_type == 'ApplicationContext':
-        await ctx.respond(f"{get_emoji('guinan_beanflick_stance_threat')} Nope, that command is restricted.", ephemeral=True)
+        embed = discord.Embed(
+          title="Nope.",
+          description=f"{get_emoji('guinan_beanflick_stance_threat')} That command is restricted.",
+          color=discord.Color.red()
+        )
+        await ctx.respond(embed=embed, ephemeral=True)
       return False
     else:
       return True
