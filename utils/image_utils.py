@@ -493,11 +493,14 @@ def _compose_grid_slot(badge, collection_type, theme, badge_image):
     faded_frames = []
     frames = badge_image if isinstance(badge_image, list) else [badge_image]
     for frame in frames:
-      faded = frame.copy()
-      faded.putalpha(32)
-      base = frame.copy()
-      base.paste(faded, faded)
-      faded_frames.append(base)
+      frame = frame.convert('RGBA')
+      # Extract the alpha channel as a mask
+      alpha = frame.getchannel('A')
+      # Create a transparent image
+      transparent_layer = Image.new('RGBA', frame.size, (0, 0, 0, 0))
+      # Blend the original frame with transparent using the alpha as the mask
+      faded = Image.composite(transparent_layer, frame, alpha.point(lambda a: int(a * 0.2)))
+      faded_frames.append(faded)
     badge_image = faded_frames
   else:
     badge_image = badge_image if isinstance(badge_image, list) else [badge_image]

@@ -637,7 +637,7 @@ CREATE TABLE IF NOT EXISTS tongo_games (
   id INT AUTO_INCREMENT PRIMARY KEY,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   chair_user_id varchar(64) NOT NULL,
-  status ENUM('open', 'in_progress', 'resolved', 'cancelled') DEFAULT 'open'
+  status ENUM('open', 'in_progress', 'resolved', 'cancelled', 'error') DEFAULT 'open'
 );
 
 CREATE TABLE IF NOT EXISTS tongo_game_players (
