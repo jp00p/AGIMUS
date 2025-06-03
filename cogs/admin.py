@@ -320,6 +320,49 @@ class Admin(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
+  @admin_group.command(name="examine_tongo_continuum", description="(ADMIN RESTRICTED) View the full details of the Tongo Continuum.")
+  @commands.check(user_check)
+  async def debug_tongo_pot(self, ctx: discord.ApplicationContext):
+    await ctx.defer(ephemeral=True)
+
+    # Get all badges currently in the continuum
+    continuum = await db_get_full_continuum_badges()
+    if not continuum:
+      return await ctx.respond("ℹ️ The Tongo continuum is currently empty.", ephemeral=True)
+
+    # Chunk the data for pagination
+    chunks = [continuum[i:i + 10] for i in range(0, len(continuum), 10)]
+    continuum_pages = []
+
+    for idx, chunk in enumerate(chunks, start=1):
+      embed = discord.Embed(
+        title=f"Tongo Continuum Snapshot (Page {idx} of {len(chunks)})",
+        description="Current badge instances in the continuum:",
+        color=discord.Color.dark_gold()
+      )
+
+      for badge in chunk:
+        badge_name = badge['badge_name']
+        prestige = PRESTIGE_TIERS[badge['prestige_level']]
+        player = await self.bot.current_guild.fetch_member(badge['thrown_by_user_id'])
+
+        embed.add_field(
+          name=f"{badge_name} ({prestige})",
+          value=f"Instance: `{badge['badge_instance_id']}`\nRisked by: {player.mention}",
+          inline=False
+        )
+
+      continuum_pages.append(embed)
+
+    paginator = pages.Paginator(
+      pages=continuum_pages,
+      show_indicator=True,
+      loop_pages=True,
+      use_default_buttons=True
+    )
+
+    await paginator.respond(ctx.interaction, ephemeral=True)
+
 
   # @admin_group.command(name="repair_levels", description="(ADMIN RESTRICTED) Correct Missing Levels.")
   # @commands.check(user_check)
