@@ -1215,11 +1215,13 @@ class Tongo(commands.Cog):
     # Assign badges atomically and record rewards
     success = await self.transfer_all_tongo_rewards(game_id, player_distribution)
     if not success:
+      # Sad Trombone Noises
+      await db_update_game_status(game_id, 'error')
       maintainer = await self.bot.current_guild.fetch_member(config["maintainer_user_id"])
       await maintainer.send(embed=discord.Embed(title="Tongo Blew Up...", description="Check the logs.", color=discord.Color.red()))
       failure_embed = discord.Embed(
         title="Please Stand By",
-        description="Tongo is suffering Technical Difficulties.\n\nThe proper authorities have been notified...",
+        description="Tongo is suffering Technical Difficulties.\n\nNew game creation has been temporarily disabled and the proper authorities have been notified...",
         color=discord.Color.red()
       )
       failure_embed.set_image(url="https://i.imgur.com/jkm7cnA.gif")
@@ -1299,6 +1301,14 @@ class Tongo(commands.Cog):
               """,
               (game_id, player_user_id, instance_id)
             )
+
+            # Check if badge is on the player's wishlist and lock it if so
+            await db.execute("""
+              SELECT 1 FROM badge_instances_wishlists
+              WHERE user_discord_id = %s AND badge_info_id = %s
+            """, (player_user_id, badge_info_id))
+            if await db.fetchone():
+              await db.execute("UPDATE badge_instances SET locked = TRUE WHERE id = %s", (instance_id,))
 
         await db.commit()
         return True
