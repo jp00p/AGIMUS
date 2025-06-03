@@ -1033,14 +1033,8 @@ class Tongo(commands.Cog):
 
       # Build wishlist snapshots before any transfer take place
       wishlist_snapshots = {}
-      player_prestiges = {}
-
       for p in players:
         user_id = int(p['user_discord_id'])
-        echelon = await db_get_echelon_progress(user_id)
-        prestige = echelon['current_prestige_tier'] if echelon else 0
-        player_prestiges[user_id] = prestige
-
         raw_wishlist = await db_get_simple_wishlist_badges(user_id)
         wishlist_filenames = {b['badge_filename'] for b in raw_wishlist}
         wishlist_snapshots[user_id] = wishlist_filenames
@@ -1155,8 +1149,8 @@ class Tongo(commands.Cog):
       prestige = echelon_progress['current_prestige_tier'] if echelon_progress else 0
       player_prestige[player_id] = prestige
 
-      # Full inventory across all prestiges
-      inventory = await db_get_user_badge_instances(player_id)
+      # Full inventory across all prestiges (*explictly* pass `prestige=None` here to get all badges at ALL prestiges)
+      inventory = await db_get_user_badge_instances(player_id, prestige=None)
       prestige_inventory: dict[int, set[int]] = defaultdict(set)
       for item in inventory:
         prestige_inventory[item['prestige_level']].add(item['badge_info_id'])
@@ -1219,85 +1213,102 @@ class Tongo(commands.Cog):
       turn_index += 1
 
     # Assign badges atomically and record rewards
-    for player_user_id, reward_badge_instances in player_distribution.items():
-      for instance_id in reward_badge_instances:
-        success = await self.transfer_tongo_reward(game_id, instance_id, player_user_id)
-        if not success:
-          member = await self.cog.bot.current_guild.fetch_member(player_user_id)
-          instance = await db_get_badge_instance_by_id(instance_id)
-          logger.warning(f"[TONGO] Reward transfer failed for {instance['badge_name']} ({PRESTIGE_TIERS[instance['prestige_level']]}) instance [{instance_id}] -> {member.display_name} [{player_user_id}]")
+    success = await self.transfer_all_tongo_rewards(game_id, player_distribution)
+    if not success:
+      maintainer = await self.bot.current_guild.fetch_member(config["maintainer_user_id"])
+      await maintainer.send(embed=discord.Embed(title="Tongo Blew Up...", description="Check the logs.", color=discord.Color.red()))
+      failure_embed = discord.Embed(
+        title="Please Stand By",
+        description="Tongo is suffering Technical Difficulties.\n\nThe proper authorities have been notified...",
+        color=discord.Color.red()
+      )
+      failure_embed.set_image(url="https://i.imgur.com/jkm7cnA.gif")
+      zeks_table = await self.cog.bot.fetch_channel(get_channel_id("zeks-table"))
+      await zeks_table.send(embed=failure_embed)
+      raise RuntimeError("Tongo reward transfer failed, transaction rolled back")
 
     return player_distribution
 
 
-  async def transfer_tongo_reward(self, game_id: int, instance_id: int, to_user_id: int) -> bool:
+  async def transfer_all_tongo_rewards(self, game_id: int, player_distribution: dict[int, set[int]]) -> bool:
     """
-    Atomically transfers a badge from the Tongo continuum to a user as a reward.
-    Ensures ownership transfer, continuum removal, history logging, and game reward logging.
-    Rolls back and fails with a RuntimeError if not explicitly committed.
+    Transfers all Tongo rewards to players in a single transaction.
+    Rolls back everything if any one transfer fails.
+
+    Args:
+      game_id (int): ID of the Tongo game
+      player_distribution (dict): Mapping of user_id -> set of badge_instance_ids
+
+    Returns:
+      bool: True if successful, False if any failure occurred
     """
-
-    badge_info_id = None
-    prestige_level = None
-
     async with AgimusTransactionDB(dictionary=True) as db:
-      await db.begin()
+      try:
+        await db.begin()
 
-      # Fetch badge instance
-      await db.execute(
-        "SELECT owner_discord_id FROM badge_instances WHERE id = %s",
-        (instance_id,)
-      )
-      row = await db.fetchone()
-      if not row:
-        logger.error(f"[TONGO] Failed to fetch badge instance {instance_id}")
+        for player_user_id, instance_ids in player_distribution.items():
+          for instance_id in instance_ids:
+            # Fetch instance and validate
+            await db.execute("SELECT owner_discord_id, badge_info_id, prestige_level FROM badge_instances WHERE id = %s", (instance_id,))
+            row = await db.fetchone()
+
+            if not row:
+              logger.error(f"[TONGO] Failed to fetch badge instance {instance_id}")
+              raise RuntimeError("Badge instance missing")
+
+            from_user_id = row['owner_discord_id']
+            badge_info_id = row['badge_info_id']
+            prestige_level = row['prestige_level']
+
+            if from_user_id == player_user_id:
+              logger.warning(f"[TONGO] Instance {instance_id} already owned by {player_user_id}.")
+              raise RuntimeError("Instance already owned by user")
+
+            # Ensure user doesn't already own this badge_info_id at this prestige
+            await db.execute("""
+              SELECT 1 FROM badge_instances
+              WHERE owner_discord_id = %s AND badge_info_id = %s AND prestige_level = %s AND active = TRUE
+            """, (player_user_id, badge_info_id, prestige_level))
+            if await db.fetchone():
+              logger.warning(f"[TONGO] User {player_user_id} already owns badge_info_id {badge_info_id} at prestige {prestige_level}.")
+              raise RuntimeError("Duplicate badge assignment")
+
+            # Perform transfer
+            await db.execute(
+              "UPDATE badge_instances SET owner_discord_id = %s, locked = FALSE WHERE id = %s",
+              (player_user_id, instance_id)
+            )
+
+            await db.execute(
+              """
+              INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, event_type)
+              VALUES (%s, %s, %s, 'tongo_reward')
+              """,
+              (instance_id, from_user_id, player_user_id)
+            )
+
+            await db.execute(
+              "DELETE FROM tongo_continuum WHERE source_instance_id = %s",
+              (instance_id,)
+            )
+
+            await db.execute(
+              """
+              INSERT IGNORE INTO tongo_game_rewards (game_id, user_discord_id, badge_instance_id)
+              VALUES (%s, %s, %s)
+              """,
+              (game_id, player_user_id, instance_id)
+            )
+
+        await db.commit()
+        return True
+
+      except Exception as e:
         await db.rollback()
+        logger.exception("[TONGO] Transaction rollback during multi-reward transfer")
+        log_manual_exception(e, "TONGO multi-reward failure")
         return False
 
-      from_user_id = row['owner_discord_id']
-      if from_user_id == to_user_id:
-        logger.warning(f"[TONGO] Instance {instance_id} already owned by {to_user_id}; skipping.")
-        await db.rollback()
-        return False
-
-      # Transfer ownership
-      await db.execute(
-        "UPDATE badge_instances SET owner_discord_id = %s, locked = FALSE WHERE id = %s",
-        (to_user_id, instance_id)
-      )
-
-      # Log history
-      await db.execute(
-        """
-        INSERT INTO badge_instance_history (badge_instance_id, from_user_id, to_user_id, event_type)
-        VALUES (%s, %s, %s, 'tongo_reward')
-        """,
-        (instance_id, from_user_id, to_user_id)
-      )
-
-      # Remove from continuum
-      await db.execute(
-        "DELETE FROM tongo_continuum WHERE source_instance_id = %s",
-        (instance_id,)
-      )
-
-      # Log game reward
-      await db.execute(
-        """
-        INSERT IGNORE INTO tongo_game_rewards (game_id, user_discord_id, badge_instance_id)
-        VALUES (%s, %s, %s)
-        """,
-        (game_id, to_user_id, instance_id)
-      )
-
-      await db.commit()
-
-    # Outside transaction: check for wishlist and lock if needed
-    active_wants = await db_get_active_wants(to_user_id, prestige_level)
-    if any(w['badge_info_id'] == badge_info_id for w in active_wants):
-      await db_lock_badge_instance(instance_id)
-
-    return True
 
   async def _handle_liquidation(self, game_id: int, tongo_continuum: list[dict], player_ids: list[int]) -> Optional[dict]:
     if len(tongo_continuum) < MINIMUM_LIQUIDATION_CONTINUUM or len(player_ids) < MINIMUM_LIQUIDATION_PLAYERS:
