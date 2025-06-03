@@ -344,11 +344,19 @@ class Admin(commands.Cog):
       for badge in chunk:
         badge_name = badge['badge_name']
         prestige = PRESTIGE_TIERS[badge['prestige_level']]
-        player = await self.bot.current_guild.fetch_member(badge['thrown_by_user_id'])
+        player_mention = "**Unknown Member**"
+        if badge['thrown_by_user_id'] is None:
+          player_mention = "**Grand Nagus Zek**"
+        else:
+          try:
+            player = await self.bot.current_guild.fetch_member(badge['thrown_by_user_id'])
+            player_mention = player.mention
+          except discord.NotFound:
+            pass
 
         embed.add_field(
           name=f"{badge_name} ({prestige})",
-          value=f"Instance: `{badge['badge_instance_id']}`\nRisked by: {player.mention}",
+          value=f"Instance: `{badge['badge_instance_id']}`\nRisked by: {player_mention}",
           inline=False
         )
 
