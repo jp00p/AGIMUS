@@ -82,3 +82,9 @@ def is_crystals(message: str) -> bool:
     return False
   # If the message lowercased contains "crystals" return true
   return 'crystal' in message.lower()
+
+def escape_discord_formatting(text: str) -> str:
+  """
+  Escapes characters in a string that Discord uses for Markdown formatting.
+  """
+  return re.sub(r'([\\*_~`|])', r'\\\1', text)
