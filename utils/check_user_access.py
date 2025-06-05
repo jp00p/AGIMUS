@@ -18,6 +18,7 @@ async def user_check(ctx):
           description=f"{get_emoji('guinan_beanflick_stance_threat')} That command is restricted.",
           color=discord.Color.red()
         )
+        embed.set_image(url="https://i.imgur.com/QeUW4fV.gif")
         await ctx.respond(embed=embed, ephemeral=True)
       return False
     else:

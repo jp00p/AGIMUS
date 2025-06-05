@@ -24,13 +24,11 @@ async def access_check(ctx):
               allowed_channels.append(guild_channel.mention)
 
           allowed_embed = discord.Embed(
-            title="Allowed Channels:",
-            description="\n".join(allowed_channels)
+            title="Not Allowed!",
+            description=f"Sorry! This command is not allowed in this channel.\n\n**Allowed Channels:**\n" + "\n".join(allowed_channels),
+            color=discord.Color.red()
           )
-          allowed_embed.set_footer(
-            text=f"Sorry! This command is not allowed in this channel.",
-          )
-
+          allowed_embed.set_image(url="https://i.imgur.com/QeUW4fV.gif")
           await ctx.respond(embed=allowed_embed, ephemeral=True)
       else:
         if ctx_type == 'ApplicationContext':
@@ -39,6 +37,7 @@ async def access_check(ctx):
             description=f"Sorry! This command is not allowed in this channel.",
             color=discord.Color.red()
           )
+          allowed_embed.set_image(url="https://i.imgur.com/QeUW4fV.gif")
           await ctx.respond(embed=allowed_embed, ephemeral=True)
 
     return has_channel_access
