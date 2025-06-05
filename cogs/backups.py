@@ -13,7 +13,7 @@ class Backups(commands.Cog):
   async def backup_database(self, ctx:discord.ApplicationContext):
     await ctx.message.delete(delay=1.0)
     await ctx.send(f"Backups running, hold your horses.")
-    backup_hashes = run_make_backup()
+    backup_hashes = await run_make_backup()
     if not backup_hashes:
       await ctx.send(f"Something went wrong with the backup! No databases have been wiped out, I don't think.")
     else:

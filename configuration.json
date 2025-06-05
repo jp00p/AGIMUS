@@ -319,10 +319,6 @@
       "crontab": "1 */6 * * *",
       "enabled": false
     },
-    "badger": {
-      "crontab": "0 12 * * 0",
-      "enabled": false
-    },
     "bingbong": {
       "channels": [
         "bot-logs"

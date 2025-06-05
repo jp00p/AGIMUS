@@ -363,7 +363,6 @@ class Badges(commands.Cog):
   @commands.check(access_check)
   async def sets(self, ctx:discord.ApplicationContext, public:str, prestige:str, category:str, selection:str, color:str):
     public = bool(public == "yes")
-    await ctx.defer(ephemeral=not public)
 
     logger.info(f"{ctx.author.display_name} is pulling up a {Style.BRIGHT}`/badges sets`{Style.RESET_ALL}!")
 
@@ -390,7 +389,7 @@ class Badges(commands.Cog):
       return
 
     if not all_set_badges:
-      await ctx.followup.send(
+      await ctx.respond(
         embed=discord.Embed(
           title=f"Your entry was not in the list of {category_title}s!",
           color=discord.Color.red()
@@ -571,7 +570,6 @@ class Badges(commands.Cog):
   @commands.check(access_check)
   async def completion(self, ctx:discord.ApplicationContext, prestige:str, public:str, category:str, color:str):
     public = bool(public == "yes")
-    await ctx.defer(ephemeral=not public)
 
     if not await is_prestige_valid(ctx, prestige):
       return
