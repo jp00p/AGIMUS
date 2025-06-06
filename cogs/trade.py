@@ -1,6 +1,7 @@
 from common import *
 
 from queries.trade import *
+from queries.echelon_xp import db_get_echelon_progress
 
 from utils.badge_trades import *
 from utils.check_channel_access import access_check
@@ -385,6 +386,30 @@ class Trade(commands.Cog):
     offered_names = "\n".join([f"* {b['badge_name']}" for b in offered_instances]) or "None"
     requested_names = "\n".join([f"* {b['badge_name']}" for b in requested_instances]) or "None"
 
+    # Prevent prestige-leak trades
+    requestor_echelon_progress = await db_get_echelon_progress(active_trade["requestor_id"])
+    requestee_echelon_progress = await db_get_echelon_progress(active_trade["requestee_id"])
+
+    active_trade_prestige = active_trade['prestige_level']
+
+    if requestor_echelon_progress['current_prestige_tier'] < active_trade_prestige:
+      await db_cancel_trade(active_trade)
+      await interaction.followup.send(embed=discord.Embed(
+        title="Invalid Trade",
+        description=f"{requestor.display_name} is not eligible to send {PRESTIGE_TIERS[active_trade_prestige]} badges.\n\nTrade Canceled.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+    if requestee_echelon_progress['current_prestige_tier'] < active_trade['prestige_level']:
+      await db_cancel_trade(active_trade)
+      await interaction.followup.send(embed=discord.Embed(
+        title="Invalid Trade",
+        description=f"{requestee.display_name} is not eligible to receive {PRESTIGE_TIERS[active_trade_prestige]} badges.\n\nTrade Canceled.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
     # Trade validity failsafes
     if await self._requestor_already_has_badges(interaction, active_trade, requestor, requestee):
       return
@@ -746,6 +771,26 @@ class Trade(commands.Cog):
     if not await is_prestige_valid(ctx, prestige):
       return
     prestige = int(prestige)
+
+    # Ensure both users are eligible for this prestige tier
+    requestor_echelon_progress = await db_get_echelon_progress(requestor_id)
+    requestee_echelon_progress = await db_get_echelon_progress(requestee_id)
+
+    if requestor_echelon_progress['current_prestige_tier'] < prestige:
+      await ctx.respond(embed=discord.Embed(
+        title="Invalid Trade",
+        description=f"You are not eligible to trade {PRESTIGE_TIERS[prestige]} badges.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
+    if requestee_echelon_progress['current_prestige_tier'] < prestige:
+      await ctx.respond(embed=discord.Embed(
+        title="Invalid Trade",
+        description=f"{requestee.display_name} is not eligible to trade {PRESTIGE_TIERS[prestige]} badges.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
 
     if not await self._is_trade_initialization_valid(ctx, requestee):
       return
@@ -1226,6 +1271,18 @@ class Trade(commands.Cog):
   async def propose(self, ctx, offer:str, request:str):
     active_trade = await self.check_for_active_trade(ctx)
     if not active_trade:
+      return
+
+    requestor_echelon_progress = await db_get_echelon_progress(active_trade["requestor_id"])
+    requestee_echelon_progress = await db_get_echelon_progress(active_trade["requestee_id"])
+
+    if requestor_echelon_progress['current_prestige_tier'] < active_trade['prestige_level'] or requestee_echelon_progress['current_prestige_tier'] < active_trade['prestige_level']:
+      await db_cancel_trade(active_trade)
+      await ctx.respond(embed=discord.Embed(
+        title="Trade Invalid",
+        description=f"One or both participants are not eligible for {PRESTIGE_TIERS[active_trade['prestige_level']]} badge trading.",
+        color=discord.Color.red()
+      ), ephemeral=True)
       return
 
     if not offer and not request:
