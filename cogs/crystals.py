@@ -100,16 +100,20 @@ class Crystals(commands.Cog):
     if not badge_instance:
       return [discord.OptionChoice(name="🔒 That Badge does not exist or is not in your collection.", value='none')]
 
+    active_crystal_id = badge_instance.get('active_crystal_id')
     crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
 
-    none_option = discord.OptionChoice(name="[None]", value=None)
+    none_option = discord.OptionChoice(name="[None]", value='none')
     choices = [
       discord.OptionChoice(
-        name=f"{c['emoji']}  {c['crystal_name']}" ,
+        name=f"{c['emoji']}  {c['crystal_name']}",
         value=str(c['crystal_instance_id'])
       )
-      for c in crystals if ctx.value.lower() in c['crystal_name'].lower()
+      for c in crystals
+      if c['crystal_instance_id'] != active_crystal_id
+      and ctx.value.lower() in c['crystal_name'].lower()
     ]
+
     return [none_option] + choices
 
   async def autocomplete_user_crystal_rarities(ctx: discord.AutocompleteContext):
