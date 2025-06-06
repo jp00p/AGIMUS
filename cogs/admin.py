@@ -152,6 +152,19 @@ class Admin(commands.Cog):
         color=discord.Color.red()
       ), ephemeral=True)
 
+    # Check if recipient already owns the same badge at the same prestige
+    existing = await db_get_badge_instance_by_badge_info_id(
+      to_user.id,
+      instance['badge_info_id'],
+      instance['prestige_level']
+    )
+    if existing:
+      return await ctx.respond(embed=discord.Embed(
+        title="❌ Transfer Blocked",
+        description=f"{to_user.mention} already owns **{instance['badge_name']}** at the {PRESTIGE_TIERS[instance['prestige_level']]} Prestige Tier.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+
     try:
       # Transfer badge to new user (logs history, wishlist logic included)
       await transfer_badge_instance(badge_instance_id, to_user.id, event_type="admin")
@@ -163,7 +176,7 @@ class Admin(commands.Cog):
       embed = discord.Embed(
         title="✅ Badge Transferred",
         description=(
-          f"Badge `{instance['badge_name']}` (ID `{badge_instance_id}`) has been transferred to {to_user.mention}.\n"
+          f"Badge `{instance['badge_name']} {PRESTIGE_TIERS[instance['prestige_level']]}` (ID `{badge_instance_id}`) has been transferred to {to_user.mention}.\n"
           f"Status set to `active`. Removed from Continuum if present."
         ),
         color=discord.Color.green()
@@ -205,7 +218,7 @@ class Admin(commands.Cog):
     await ctx.defer(ephemeral=True)
 
     async with AgimusDB(dictionary=True) as db:
-      await db.execute("SELECT * FROM tongo_games ORDER BY created_at DESC LIMIT 10")
+      await db.execute("SELECT * FROM tongo_games ORDER BY created_at DESC LIMIT 3")
       games = await db.fetchall()
 
     if not games:
@@ -258,7 +271,7 @@ class Admin(commands.Cog):
             member = await bot.current_guild.fetch_member(uid)
             name = f"{member.display_name} ({member.mention})"
           except:
-            name = f"<@{uid}>"
+            name = uid
 
           value = "\n".join(f"- {b}" for b in badge_names)
           embed.add_field(name=name, value=value or "*No badges*", inline=False)
@@ -276,6 +289,13 @@ class Admin(commands.Cog):
           embed = discord.Embed(title="Game Rewards", color=discord.Color.teal())
 
           for uid in reward_user_ids[i:i + 5]:
+            try:
+              player = await self.bot.current_guild.fetch_member(uid)
+              player_name = f"{player.display_name} ({uid})"
+            except discord.NotFound:
+              player_name = f"User ID: {uid}"
+              pass
+
             entries = []
             for reward in rewards_by_user[uid]:
               badge_id = reward.get('badge_instance_id')
@@ -294,7 +314,7 @@ class Admin(commands.Cog):
               entries.append(desc or "Unknown Reward")
 
             embed.add_field(
-              name=f"<@{uid}>",
+              name=player_name,
               value="\n".join(f"- {entry}" for entry in entries),
               inline=False
             )
