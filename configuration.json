@@ -1138,12 +1138,22 @@
       "enabled": true,
       "parameters": []
     },
+    "zed_ops transfer_badge_instance": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
     "zed_ops grant_crystal_buffer_patterns": {
       "allowed_user_ids": [735658100958298154],
       "enabled": true,
       "parameters": []
     },
     "zed_ops check_tongo_games": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops examine_tongo_continuum": {
       "allowed_user_ids": [735658100958298154],
       "enabled": true,
       "parameters": []
@@ -1169,11 +1179,6 @@
       "parameters": []
     },
     "zed_ops repair_badges_special_grant": {
-      "allowed_user_ids": [735658100958298154],
-      "enabled": true,
-      "parameters": []
-    },
-    "zed_ops examine_tongo_continuum": {
       "allowed_user_ids": [735658100958298154],
       "enabled": true,
       "parameters": []

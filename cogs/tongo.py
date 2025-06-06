@@ -414,7 +414,7 @@ class Tongo(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="Tongo Temporarily Disabled",
-          description=f"New Tongo games are currently on hiatus for a minute.\n\nPlease stay tuned to {megalomaniacal.mention} for updates.",
+          description=f"Tongo games are currently on hiatus for a minute.\n\nStay tuned to messages here is {zeks_table.mention} and/or {megalomaniacal.mention} for updates.",
           color=discord.Color.orange()
         ),
         ephemeral=True
@@ -553,6 +553,20 @@ class Tongo(commands.Cog):
   )
   async def risk(self, ctx: discord.ApplicationContext, prestige: str):
     await ctx.defer(ephemeral=True)
+
+    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+    if self.block_new_games:
+      megalomaniacal = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="Tongo Temporarily Disabled",
+          description=f"Tongo games are currently on hiatus for a minute.\n\nStay tuned to messages here is {zeks_table.mention} and/or {megalomaniacal.mention} for updates.",
+          color=discord.Color.orange()
+        ),
+        ephemeral=True
+      )
+      return
+
     user_id = ctx.author.id
     member = await self.bot.current_guild.fetch_member(user_id)
 
@@ -664,7 +678,6 @@ class Tongo(commands.Cog):
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
 
-    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
     await zeks_table.send(embed=embed)
 
     for chunk in continuum_chunks[1:]:
@@ -1332,6 +1345,9 @@ class Tongo(commands.Cog):
     if not liquidation_result:
       return None
 
+    badge_info_id = liquidation_result['badge_to_grant']['badge_info_id']
+    beneficiary_id = liquidation_result['beneficiary_id']
+
     # Create a new instance using utility helper that tracks origin reason
     reward_instance = await create_new_badge_instance(beneficiary_id, badge_info_id, event_type='liquidation_endowment')
     if not reward_instance:
@@ -1341,9 +1357,6 @@ class Tongo(commands.Cog):
     for badge in liquidation_result['tongo_badges_to_remove']:
       await db_remove_from_continuum(badge['source_instance_id'])
       await liquidate_badge_instance(badge['source_instance_id'])
-
-    badge_info_id = liquidation_result['badge_to_grant']['badge_info_id']
-    beneficiary_id = liquidation_result['beneficiary_id']
 
     await db_add_game_reward(game_id, beneficiary_id, reward_instance['id'])
 
