@@ -37,9 +37,9 @@ async def handle_crystalsbot(message:discord.Message):
       else:
         crystals_replies = [
           "CRYSTALS!",
-          "# CRYSTALS!"
-          "## CRYSTALS!"
-          "### CRYSTALS!"
-          "-# CRYSTALS!"
+          "# CRYSTALS!",
+          "## CRYSTALS!",
+          "### CRYSTALS!",
+          "-# CRYSTALS!",
         ]
         await message.reply(random.choice(crystals_replies))
