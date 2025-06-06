@@ -101,7 +101,7 @@ class Crystals(commands.Cog):
     if not badge_instance:
       return [discord.OptionChoice(name="🔒 That Badge does not exist or is not in your collection.", value='none')]
 
-    active_crystal_id = badge_instance.get('active_crystal_id')
+    active_crystal_type_id = badge_instance.get('crystal_type_id')
     crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
 
     none_option = discord.OptionChoice(name="[None]", value='none')
@@ -111,7 +111,7 @@ class Crystals(commands.Cog):
         value=str(c['crystal_instance_id'])
       )
       for c in crystals
-      if c['crystal_instance_id'] != active_crystal_id
+      if c['crystal_type_id'] != active_crystal_type_id
       and strip_bullshit(ctx.value.lower()) in strip_bullshit(c['crystal_name'].lower())
     ]
 
@@ -209,6 +209,9 @@ class Crystals(commands.Cog):
 
     logger.info(f"{ctx.user.display_name} is using the {Style.BRIGHT}Crystal Pattern Buffer Replicator{Style.RESET_ALL} with {Style.BRIGHT}`/crystals replicate`{Style.RESET_ALL}!")
 
+    unattuned_crystal_count = await db_get_user_unattuned_crystal_count(user_id)
+    attuned_badges_count = await db_get_user_attuned_badge_count(user_id)
+
     buffer_credits = await db_get_user_crystal_buffer_count(user_id)
     if not buffer_credits:
       embed = discord.Embed(
@@ -223,9 +226,6 @@ class Crystals(commands.Cog):
       embed.set_image(url="https://i.imgur.com/q6Wls8n.gif")
       await ctx.respond(embed=embed, ephemeral=True)
       return
-
-    unattuned_crystal_count = await db_get_user_unattuned_crystal_count(user_id)
-    attuned_badges_count = await db_get_user_attuned_badge_count(user_id)
 
     replicator_embed = discord.Embed(
       title=f"Crystallization Replication Station!",
@@ -799,7 +799,7 @@ class Crystals(commands.Cog):
       return
 
     # Validate the crystal is attuned to this badge
-    crystal_instance = next((c for c in crystals if c['badge_crystal_id'] == crystal_id), None)
+    crystal_instance = next((c for c in crystals if c['crystal_instance_id'] == crystal_id), None)
 
     if crystal_instance is None:
       await ctx.respond(
@@ -814,7 +814,7 @@ class Crystals(commands.Cog):
 
     logger.info(f"{ctx.user.display_name} is {Style.BRIGHT}Harmonizing{Style.RESET_ALL} the Crystal {Style.BRIGHT}{crystal_instance['crystal_name']}{Style.RESET_ALL} to {Style.BRIGHT}{[badge_instance['badge_name']]}{Style.RESET_ALL} with {Style.BRIGHT}`/crystals harmonize`{Style.RESET_ALL}!")
 
-    if badge_instance.get('active_crystal_id') == crystal_instance.get('badge_crystal_id'):
+    if badge_instance.get('active_crystal_id') == crystal_instance.get('crystal_instance_id'):
       embed = discord.Embed(
         title='Already Harmonized!',
         description=f"**{crystal_instance['crystal_name']}** is already the harmonized Crystal on **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}).",
