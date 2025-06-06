@@ -258,7 +258,7 @@ class Admin(commands.Cog):
       created_at = game['created_at']
       throw_rows = await db_get_throws_for_game(game_id, created_at)
       for row in throw_rows:
-        throws_by_game[game_id][row['from_user_id']].append(row['badge_name'])
+        throws_by_game[game_id][row['from_user_id']].append((row['badge_name'], row['badge_instance_id']))
 
     game_groups = []
 
@@ -294,14 +294,14 @@ class Admin(commands.Cog):
       for i in range(0, len(throw_user_ids), 5):
         embed = discord.Embed(title="Badge Throws", color=discord.Color.teal())
         for uid in throw_user_ids[i:i + 5]:
-          badge_names = user_throws[uid]
+          data = user_throws[uid]
           try:
             member = await bot.current_guild.fetch_member(uid)
             name = f"{member.display_name} ({member.mention})"
           except:
             name = uid
 
-          value = "\n".join(f"- {b}" for b in badge_names)
+          value = "\n".join(f"- {name} [{instance_id}]" for name, instance_id in data)
           embed.add_field(name=name, value=value or "*No badges*", inline=False)
 
         pages_for_game.append(pages.Page(embeds=[embed]))
