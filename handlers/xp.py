@@ -9,6 +9,7 @@ from common import *
 
 from handlers.echelon_xp import *
 from handlers.auto_promotion import handle_auto_promotions
+from queries.server_settings import *
 from queries.wishlists import *
 from utils.echelon_rewards import *
 from utils.badge_utils import *
@@ -44,8 +45,9 @@ async def grant_xp(user: discord.User, amount: int, reason: str, channel = None,
     if not xp_enabled:
       return
 
-    if is_xp_doubled():
-      amount *= 2
+    xp_bonus = await get_xp_bonus()
+    if xp_bonus and xp_bonus['enabled']:
+      amount *= xp_bonus['amount']
     # Award XP (This also handles Leveling Up if appropriate)
     new_level = await award_xp(user, amount, reason, channel)
 
@@ -54,9 +56,18 @@ async def grant_xp(user: discord.User, amount: int, reason: str, channel = None,
 
     return new_level
 
-def is_xp_doubled() -> bool:
-  """Determine if XP doubling is active (currently based on weekends)."""
-  return datetime.today().weekday() >= 4  # Friday-Sunday
+async def get_xp_bonus() -> bool:
+  """Determine if XP is bonused right now (based on weekend or server setting)."""
+  enabled = False
+  server_settings = await db_get_server_settings()
+  if server_settings['xp_bonus_enabled']:
+    enabled = True
+    amount = server_settings['xp_bonus_amount']
+  elif datetime.today().weekday() >= 4: # Friday-Sunday
+    enabled = True
+    amount = 2
+
+  return {'enabled': enabled, 'amount': amount }
 
 
 # ___________                    __      ___ ___                    .___.__  .__

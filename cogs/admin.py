@@ -7,6 +7,7 @@ from queries.badge_info import *
 from queries.badge_instances import *
 from queries.crystal_instances import *
 from queries.echelon_xp import *
+from queries.server_settings import *
 from queries.tongo import *
 from utils.badge_instances import *
 from utils.crystal_effects import *
@@ -45,6 +46,33 @@ class Admin(commands.Cog):
 
 
   admin_group = discord.SlashCommandGroup("zed_ops", "Admin-only commands for Badge and Tongo Management.")
+
+  @admin_group.command(name="set_bonus_xp", description="(ADMIN RESTRICTED)")
+  @option("enabled", bool, description="Enabled", required=True)
+  @option("bonus", int, description="Bonus", required=False)
+  @commands.check(user_check)
+  async def set_bonus_xp(self, ctx: discord.ApplicationContext, enabled: bool, bonus: int):
+    await db_toggle_bonus_xp(enabled)
+    bonus_set = None
+    if bonus is not None:
+      await db_set_bonus_xp(bonus)
+      bonus_set = bonus
+    else:
+      bonus_set = 2
+      await db_set_bonus_xp(2)
+
+    embed = discord.Embed(
+      title="Bonus XP Has Been Set/Reset",
+      description=f"Custom Bonus Updated",
+      color=discord.Color.blurple()
+    )
+    embed.add_field(name="Enabled", value=f"{'On' if enabled else 'Off'}")
+    embed.add_field(name="Bonus Amount", value=f"{bonus_set}")
+
+    await ctx.respond(
+      embed=embed,
+      ephemeral=True
+    )
 
 
   @admin_group.command(name="grant_random_badge", description="(ADMIN RESTRICTED) Grant a random badge to a user.")
