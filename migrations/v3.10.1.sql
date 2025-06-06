@@ -38,7 +38,3 @@ INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_pe
 INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("The-Risa-Bar.png", "Risa");
 INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("The-Risa-Bar.png", "Commerce");
 INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("The-Risa-Bar.png", "Prime");
-INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("N'ob's", "N'ob's.png", "https://www.startrekdesignproject.com/symbols/n-ob-s", "Beta", "2300s", "Lower Decks", "S05E05 Starbase 80?!");
-INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("N'ob's.png", "Starbase 80");
-INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("N'ob's.png", "Commerce");
-INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("N'ob's.png", "Prime");
