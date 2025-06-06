@@ -60,9 +60,9 @@ async def get_xp_bonus() -> bool:
   """Determine if XP is bonused right now (based on weekend or server setting)."""
   enabled = False
   server_settings = await db_get_server_settings()
-  if server_settings['xp_bonus_enabled']:
+  if server_settings['bonus_xp_enabled']:
     enabled = True
-    amount = server_settings['xp_bonus_amount']
+    amount = server_settings['bonus_xp_amount']
   elif datetime.today().weekday() >= 4: # Friday-Sunday
     enabled = True
     amount = 2
