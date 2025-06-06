@@ -10,6 +10,7 @@ from queries.echelon_xp import db_get_echelon_progress, db_get_legacy_xp_data
 from utils.badge_utils import *
 from utils.image_utils import draw_dynamic_text, generate_singular_badge_slot, buffer_image_to_discord_file, encode_webp
 from utils.prestige import *
+from utils.string_utils import strip_bullshit
 
 f = open(config["commands"]["shop"]["data"])
 shop_data = json.load(f)
@@ -55,7 +56,7 @@ async def autocomplete_profile_badges(ctx: discord.AutocompleteContext):
     for b in user_badge_instances
   ]
 
-  filtered = [r for r in results if ctx.value.lower() in r.name.lower()]
+  filtered = [r for r in results if strip_bullshit(ctx.value.lower()) in strip_bullshit(r.name.lower())]
   if not filtered:
     filtered = [
       discord.OptionChoice(
@@ -74,7 +75,7 @@ async def user_photos_autocomplete(ctx:discord.AutocompleteContext):
   user_photos.sort()
   user_photos.insert(0, '[CLEAR PHOTO]')
 
-  return [result for result in user_photos if ctx.value.lower() in result.lower()]
+  return [result for result in user_photos if strip_bullshit(ctx.value.lower()) in strip_bullshit(result.lower())]
 
 async def user_stickers_autocomplete(ctx:discord.AutocompleteContext):
   user_stickers = [s['item_name'] for s in await db_get_user_profile_stickers_from_inventory(ctx.interaction.user.id)]
@@ -85,7 +86,7 @@ async def user_stickers_autocomplete(ctx:discord.AutocompleteContext):
   user_stickers.sort()
   user_stickers.insert(0, '[CLEAR STICKER]')
 
-  return [result for result in user_stickers if ctx.value.lower() in result.lower()]
+  return [result for result in user_stickers if strip_bullshit(ctx.value.lower()) in strip_bullshit(result.lower())]
 
 async def user_styles_autocomplete(ctx:discord.AutocompleteContext):
   user_styles = [s['item_name'] for s in await db_get_user_profile_styles_from_inventory(ctx.interaction.user.id)]
@@ -96,7 +97,7 @@ async def user_styles_autocomplete(ctx:discord.AutocompleteContext):
   user_styles.sort()
   user_styles.insert(0, 'Default')
 
-  return [result for result in user_styles if ctx.value.lower() in result.lower()]
+  return [result for result in user_styles if strip_bullshit(ctx.value.lower()) in strip_bullshit(result.lower())]
 
 async def photo_filters_autocomplete(ctx:discord.AutocompleteContext):
   filters = Profile.filters

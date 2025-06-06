@@ -10,6 +10,7 @@ from queries.crystal_instances import *
 from utils.crystal_instances import *
 from utils.image_utils import *
 from utils.prestige import *
+from utils.string_utils import strip_bullshit
 
 
 from utils.check_channel_access import access_check
@@ -63,7 +64,7 @@ class Crystals(commands.Cog):
         name=b['badge_name'],
         value=str(b['badge_instance_id'])
       )
-      for b in badge_records if ctx.value.lower() in b['badge_name'].lower()
+      for b in badge_records if strip_bullshit(ctx.value.lower()) in strip_bullshit(b['badge_name'].lower())
     ]
     return choices
 
@@ -88,7 +89,7 @@ class Crystals(commands.Cog):
         name=b['badge_name'],
         value=str(b['badge_instance_id'])
       )
-      for b in badge_instances if ctx.value.lower() in b['badge_name'].lower()
+      for b in badge_instances if strip_bullshit(ctx.value.lower()) in strip_bullshit(b['badge_name'].lower())
     ]
 
   async def autocomplete_user_badge_crystals(ctx: discord.AutocompleteContext):
@@ -111,7 +112,7 @@ class Crystals(commands.Cog):
       )
       for c in crystals
       if c['crystal_instance_id'] != active_crystal_id
-      and ctx.value.lower() in c['crystal_name'].lower()
+      and strip_bullshit(ctx.value.lower()) in strip_bullshit(c['crystal_name'].lower())
     ]
 
     return [none_option] + choices
@@ -141,7 +142,7 @@ class Crystals(commands.Cog):
     if not crystals:
       return [discord.OptionChoice(name="🔒 You don't possess any unattuned Crystals", value='none')]
 
-    filtered_crystals = [c for c in crystals if ctx.value.lower() in c['crystal_name'].lower()]
+    filtered_crystals = [c for c in crystals if strip_bullshit(ctx.value.lower()) in strip_bullshit(c['crystal_name'].lower())]
 
     seen = set()
     options = []
@@ -173,7 +174,7 @@ class Crystals(commands.Cog):
       for b in user_badge_instances
     ]
 
-    filtered = [r for r in results if ctx.value.lower() in r.name.lower()]
+    filtered = [r for r in results if strip_bullshit(ctx.value.lower()) in strip_bullshit(r.name.lower())]
     if not filtered:
       filtered = [
         discord.OptionChoice(

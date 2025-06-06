@@ -4,6 +4,7 @@ from os.path import exists
 from common import *
 from utils.check_channel_access import access_check
 from utils.show_utils import get_show_embed
+from utils.string_utils import strip_bullshit
 
 command_config = config["commands"]["episode_info"]
 
@@ -34,7 +35,7 @@ async def title_autocomplete(ctx: discord.AutocompleteContext):
 
     results = []
     for t in episode_titles:
-      if ctx.value.lower() in t.lower():
+      if strip_bullshit(ctx.value.lower()) in strip_bullshit(t.lower()):
         results.append(t)
     return results
   else:

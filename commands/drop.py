@@ -15,7 +15,7 @@ async def drop_autocomplete(ctx: discord.AutocompleteContext):
     drop_info = drop_data[drop_key]
     drop_description = drop_info["description"]
 
-    if ctx.value.lower() in drop_key.lower() or ctx.value.lower() in drop_description.lower():
+    if strip_bullshit(ctx.value.lower()) in strip_bullshit(drop_key.lower()) or strip_bullshit(ctx.value.lower()) in strip_bullshit(drop_description.lower()):
       results.append(drop_key)
 
   return results

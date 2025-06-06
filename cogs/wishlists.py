@@ -10,6 +10,7 @@ from utils.badge_utils import autocomplete_selections
 from utils.check_channel_access import access_check
 from utils.image_utils import generate_unowned_badge_preview
 from utils.prestige import PRESTIGE_TIERS, autocomplete_prestige_tiers, is_prestige_valid
+from utils.string_utils import strip_bullshit
 
 
 paginator_buttons = [
@@ -40,7 +41,7 @@ async def add_autocomplete(ctx:discord.AutocompleteContext):
       name=b['badge_name'],
       value=str(b['id'])
     )
-    for b in filtered_badges if ctx.value.lower() in b['badge_name'].lower()
+    for b in filtered_badges if strip_bullshit(ctx.value.lower()) in strip_bullshit(b['badge_name'].lower())
   ]
   return choices
 
@@ -56,7 +57,7 @@ async def remove_autocomplete(ctx:discord.AutocompleteContext):
       name=b['badge_name'],
       value=str(b['badge_info_id'])
     )
-    for b in filtered_badges if ctx.value.lower() in b['badge_name'].lower()
+    for b in filtered_badges if strip_bullshit(ctx.value.lower()) in strip_bullshit(b['badge_name'].lower())
   ]
   return choices
 
@@ -70,7 +71,7 @@ async def lock_autocomplete(ctx: discord.AutocompleteContext):
   for bid in badge_ids:
     info = await db_get_badge_info_by_id(bid)
     # only show badges whose names match the current input
-    if ctx.value.lower() in info['badge_name'].lower():
+    if strip_bullshit(ctx.value.lower()) in strip_bullshit(info['badge_name'].lower()):
       choices.append(discord.OptionChoice(
         name=info['badge_name'],
         value=str(bid),
@@ -85,7 +86,7 @@ async def unlock_autocomplete(ctx: discord.AutocompleteContext):
   choices: list[discord.OptionChoice] = []
   for bid in badge_ids:
     info = await db_get_badge_info_by_id(bid)
-    if ctx.value.lower() in info['badge_name'].lower():
+    if strip_bullshit(ctx.value.lower()) in strip_bullshit(info['badge_name'].lower()):
       choices.append(discord.OptionChoice(
         name=info['badge_name'],
         value=str(bid),

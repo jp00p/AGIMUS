@@ -13,6 +13,7 @@ from utils.crystal_effects import *
 from utils.echelon_rewards import *
 from utils.prestige import PRESTIGE_TIERS
 from utils.settings_utils import db_get_current_xp_enabled_value
+from utils.string_utils import strip_bullshit
 
 from utils.check_user_access import user_check
 
@@ -37,7 +38,7 @@ class Admin(commands.Cog):
         name=b['badge_name'],
         value=str(b['id'])
       )
-      for b in badge_records if ctx.value.lower() in b['badge_name'].lower()
+      for b in badge_records if strip_bullshit(ctx.value.lower()) in strip_bullshit(b['badge_name'].lower())
     ]
     return choices
 

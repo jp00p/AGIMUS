@@ -17,21 +17,21 @@ more_stopwords = ["profile", "help", "wordcloud", "quiz", "trivia", "slots", "po
 
 # https://stackoverflow.com/a/925630/11767474
 class MLStripper(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.reset()
-        self.strict = False
-        self.convert_charrefs= True
-        self.text = StringIO()
-    def handle_data(self, d):
-        self.text.write(d)
-    def get_data(self):
-        return self.text.getvalue()
+  def __init__(self):
+    super().__init__()
+    self.reset()
+    self.strict = False
+    self.convert_charrefs= True
+    self.text = StringIO()
+  def handle_data(self, d):
+    self.text.write(d)
+  def get_data(self):
+    return self.text.getvalue()
 
 def strip_tags(html):
-    s = MLStripper()
-    s.feed(html)
-    return s.get_data()
+  s = MLStripper()
+  s.feed(html)
+  return s.get_data()
 
 def strip_punctuation(string):
   return re.sub(punct_regex, '', string).lower().strip()
@@ -88,3 +88,25 @@ def escape_discord_formatting(text: str) -> str:
   Escapes characters in a string that Discord uses for Markdown formatting.
   """
   return re.sub(r'([\\*_~`|])', r'\\\1', text)
+
+BULLSHIT_CHARACTERS = {
+  '‘': "'",       # left single quote
+  '’': "'",       # right single quote
+  '“': '"',       # left double quote
+  '”': '"',       # right double quote
+  '–': '-',       # en dash
+  '—': '-',       # em dash
+  '−': '-',       # minus sign
+  '…': '...',     # ellipsis
+  '\u00A0': ' ',  # non-breaking space
+  '\u200B': '',   # zero-width space
+  '\u200C': '',   # zero-width non-joiner
+  '\u200D': '',   # zero-width joiner
+}
+
+def strip_bullshit(text: str) -> str:
+  """
+  Normalize smart quotes, dashes, ellipses, and exotic spaces to ASCII equivalents.
+  Remove this fukin garbage from Discord inputs.
+  """
+  return ''.join(BULLSHIT_CHARACTERS.get(c, c) for c in text)

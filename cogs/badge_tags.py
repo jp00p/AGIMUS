@@ -5,6 +5,7 @@ from utils.badge_utils import *
 from utils.check_channel_access import access_check
 from utils.image_utils import generate_badge_collection_images
 from utils.prestige import *
+from utils.string_utils import strip_bullshit
 
 # -> cogs.badge_tags
 
@@ -19,7 +20,7 @@ async def user_badges_autocomplete(ctx:discord.AutocompleteContext):
   if len(user_badges) == 0:
     user_badges = ["You don't have any badges yet!"]
 
-  return [result for result in user_badges if ctx.value.lower() in result.lower()]
+  return [result for result in user_badges if strip_bullshit(ctx.value.lower()) in strip_bullshit(result.lower())]
 
 
 async def badges_autocomplete(ctx:discord.AutocompleteContext):
@@ -32,7 +33,7 @@ async def badges_autocomplete(ctx:discord.AutocompleteContext):
       name=b['badge_name'],
       value=str(b['id'])
     )
-    for b in filtered_badges if ctx.value.lower() in b['badge_name'].lower()
+    for b in filtered_badges if strip_bullshit(ctx.value.lower()) in strip_bullshit(b['badge_name'].lower())
   ]
   return choices
 
@@ -42,7 +43,7 @@ async def tags_autocomplete(ctx:discord.AutocompleteContext):
   if len(user_tags) == 0:
     user_tags = ["You don't have any tags yet!"]
 
-  return [t for t in user_tags if ctx.value.lower() in t.lower()]
+  return [t for t in user_tags if strip_bullshit(ctx.value.lower()) in strip_bullshit(t.lower())]
 
 # __________             .___           ___________                    _________
 # \______   \_____     __| _/ ____   ___\__    ___/____     ____  _____\_   ___ \  ____   ____
