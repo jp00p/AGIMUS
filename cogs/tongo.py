@@ -1057,7 +1057,11 @@ class Tongo(commands.Cog):
       player_distribution = await self._execute_confront_distribution(active_tongo['id'], player_ids)
       remaining_badges = await db_get_full_continuum_badges()
       # Execute potential liquidation
-      liquidation_result = await self._handle_liquidation(active_tongo['id'], remaining_badges, player_ids)
+      try:
+        liquidation_result = await self._handle_liquidation(active_tongo['id'], remaining_badges, player_ids)
+      except Exception as e:
+        log_manual_exception('Liquidation Error', e)
+        pass
       # Executions complete, mark game as resolved
       await db_update_game_status(active_tongo['id'], 'resolved')
 
