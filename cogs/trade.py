@@ -6,6 +6,7 @@ from utils.badge_trades import *
 from utils.check_channel_access import access_check
 from utils.image_utils import *
 from utils.prestige import PRESTIGE_TIERS, autocomplete_prestige_tiers, is_prestige_valid
+from utils.string_utils import strip_bullshit
 
 from random import sample
 
@@ -70,7 +71,7 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
     )
   ]
 
-  filtered = [r for r in results if ctx.value.lower() in r.name.lower()]
+  filtered = [r for r in results if strip_bullshit(ctx.value.lower()) in strip_bullshit(r.name.lower())]
   if not filtered:
     filtered = [
       discord.OptionChoice(
@@ -129,7 +130,7 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
     )
   ]
 
-  filtered = [r for r in results if ctx.value.lower() in r.name.lower()]
+  filtered = [r for r in results if strip_bullshit(ctx.value.lower()) in strip_bullshit(r.name.lower())]
   if not filtered:
     filtered = [
       discord.OptionChoice(

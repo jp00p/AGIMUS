@@ -782,6 +782,18 @@ CREATE TABLE IF NOT EXISTS trade_requested_crystal_instances (
   FOREIGN KEY (crystal_instance_id) REFERENCES crystal_instances(id) ON DELETE CASCADE
 );
 
+-- Server Settings Table
+CREATE TABLE IF NOT EXISTS server_settings (
+  id INT PRIMARY KEY CHECK (id = 1),
+  bonus_xp_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  bonus_xp_amount TINYINT NULL DEFAULT 2
+);
+
+-- Ensure a row exists
+INSERT INTO server_settings (id, double_xp)
+VALUES (1, FALSE)
+ON DUPLICATE KEY UPDATE id = id;
+
 -- Triggers
 DELIMITER $$
 CREATE TRIGGER trg_update_last_transferred_on_owner_change

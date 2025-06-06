@@ -7,12 +7,15 @@ from queries.badge_info import *
 from queries.badge_instances import *
 from queries.crystal_instances import *
 from queries.echelon_xp import *
+from queries.server_settings import *
 from queries.tongo import *
 from utils.badge_instances import *
 from utils.crystal_effects import *
 from utils.echelon_rewards import *
+from utils.exception_logger import log_manual_exception
 from utils.prestige import PRESTIGE_TIERS
 from utils.settings_utils import db_get_current_xp_enabled_value
+from utils.string_utils import strip_bullshit
 
 from utils.check_user_access import user_check
 
@@ -37,20 +40,62 @@ class Admin(commands.Cog):
         name=b['badge_name'],
         value=str(b['id'])
       )
-      for b in badge_records if ctx.value.lower() in b['badge_name'].lower()
+      for b in badge_records if strip_bullshit(ctx.value.lower()) in strip_bullshit(b['badge_name'].lower())
     ]
     return choices
 
 
   admin_group = discord.SlashCommandGroup("zed_ops", "Admin-only commands for Badge and Tongo Management.")
 
+  @admin_group.command(name="set_bonus_xp", description="(ADMIN RESTRICTED)")
+  @option("enabled", bool, description="Enabled", required=True)
+  @option("bonus", int, description="Bonus", required=False)
+  @commands.check(user_check)
+  async def set_bonus_xp(self, ctx: discord.ApplicationContext, enabled: bool, bonus: int):
+    await db_toggle_bonus_xp(enabled)
+    bonus_set = None
+    if bonus is not None:
+      await db_set_bonus_xp(bonus)
+      bonus_set = bonus
+    else:
+      bonus_set = 2
+      await db_set_bonus_xp(2)
+
+    embed = discord.Embed(
+      title="Bonus XP Has Been Set/Reset",
+      description=f"Custom Bonus Updated",
+      color=discord.Color.blurple()
+    )
+    embed.add_field(name="Enabled", value=f"{'On' if enabled else 'Off'}")
+    embed.add_field(name="Bonus Amount", value=f"{bonus_set}")
+
+    await ctx.respond(
+      embed=embed,
+      ephemeral=True
+    )
+
 
   @admin_group.command(name="grant_random_badge", description="(ADMIN RESTRICTED) Grant a random badge to a user.")
   @option("prestige", int, description="Prestige Tier", required=True, autocomplete=autocomplete_prestige_for_user)
   @option("user", discord.User, description="The user to receive a random badge.", required=True)
+  @option(
+    name="public",
+    description="Show to public?",
+    required=True,
+    choices=[
+      discord.OptionChoice(
+        name="No",
+        value=False
+      ),
+      discord.OptionChoice(
+        name="Yes",
+        value=True
+      )
+    ]
+  )
   @option("reason", str, description="Reason for Grant", required=False)
   @commands.check(user_check)
-  async def grant_random_badge(self, ctx, user: discord.User, prestige: str, reason: str):
+  async def grant_random_badge(self, ctx, user: discord.User, prestige: str, public: bool, reason: str):
     await ctx.defer(ephemeral=True)
     prestige = int(prestige)
 
@@ -64,11 +109,12 @@ class Admin(commands.Cog):
 
     chosen = random.choice(candidates)
     new_badge = await create_new_badge_instance(user.id, chosen['id'], prestige, event_type='admin')
-    await post_badge_grant_embed(user, new_badge, reason=reason)
+    if public:
+      await post_badge_grant_embed(user, new_badge, reason=reason)
 
     embed = discord.Embed(
       title="Random Badge Granted",
-      description=f"✅ Granted **{chosen['badge_name']}** to {user.mention} at **{PRESTIGE_TIERS[prestige]}**.",
+      description=f"✅ Granted **{chosen['badge_name']}** to {user.mention} at **{PRESTIGE_TIERS[prestige]}** [{new_badge['badge_instance_id']}].",
       color=discord.Color.green()
     )
     await ctx.respond(embed=embed, ephemeral=True)
@@ -78,9 +124,24 @@ class Admin(commands.Cog):
   @option("user", discord.User, description="The user to receive the badge.", required=True)
   @option("prestige", int, description="Prestige Tier", required=True, autocomplete=autocomplete_prestige_for_user)
   @option("badge", int, description="Badge", required=True, autocomplete=autocomplete_all_badges)
+  @option(
+    name="public",
+    description="Show to public?",
+    required=True,
+    choices=[
+      discord.OptionChoice(
+        name="No",
+        value=False
+      ),
+      discord.OptionChoice(
+        name="Yes",
+        value=True
+      )
+    ]
+  )
   @option("reason", str, description="Reason for Grant", required=False)
   @commands.check(user_check)
-  async def grant_specific_badge(self, ctx, user: discord.User, badge: str, prestige: str, reason:str):
+  async def grant_specific_badge(self, ctx, user: discord.User, prestige: str, badge: str, public: bool, reason:str):
     await ctx.defer(ephemeral=True)
     prestige = int(prestige)
     badge_info = await db_get_badge_info_by_id(badge)
@@ -93,15 +154,70 @@ class Admin(commands.Cog):
       return await ctx.respond(f"⚠️ {user.mention} already owns **{badge_info['badge_name']}** at **{PRESTIGE_TIERS[prestige]}**.", ephemeral=True)
 
     new_badge = await create_new_badge_instance(user.id, badge_info['id'], prestige, event_type='admin')
-    await post_badge_grant_embed(user, new_badge, reason=reason)
+    if public:
+      await post_badge_grant_embed(user, new_badge, reason=reason)
 
     embed = discord.Embed(
       title="Badge Granted",
-      description=f"✅ Granted **{badge_info['badge_name']}** to {user.mention} at **{PRESTIGE_TIERS[prestige]}**.",
+      description=f"✅ Granted **{badge_info['badge_name']}** to {user.mention} at **{PRESTIGE_TIERS[prestige]}** [{new_badge['badge_instance_id']}].",
       color=discord.Color.green()
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
+
+  @admin_group.command(name="transfer_badge_instance", description="(ADMIN RESTRICTED) Transfer a specific badge instance to a user.")
+  @option("badge_instance_id", int, description="The ID of the badge instance to transfer")
+  @option("to_user", discord.Member, description="User who should receive the badge")
+  @commands.check(user_check)
+  async def admin_transfer_badge_instance(self, ctx, badge_instance_id: int, to_user: discord.Member):
+    await ctx.defer(ephemeral=True)
+
+    instance = await db_get_badge_instance_by_id(badge_instance_id)
+    if not instance:
+      return await ctx.respond(embed=discord.Embed(
+        title="❌ Badge Not Found",
+        description=f"Badge instance ID `{badge_instance_id}` does not exist.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+
+    # Check if recipient already owns the same badge at the same prestige
+    existing = await db_get_badge_instance_by_badge_info_id(
+      to_user.id,
+      instance['badge_info_id'],
+      instance['prestige_level']
+    )
+    if existing:
+      return await ctx.respond(embed=discord.Embed(
+        title="❌ Transfer Blocked",
+        description=f"{to_user.mention} already owns **{instance['badge_name']}** at the {PRESTIGE_TIERS[instance['prestige_level']]} Prestige Tier.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+
+    try:
+      # Transfer badge to new user (logs history, wishlist logic included)
+      await transfer_badge_instance(badge_instance_id, to_user.id, event_type="admin")
+
+      # Remove from continuum if present (safe to run even if not there)
+      await db_remove_from_continuum(badge_instance_id)
+
+      # Final confirmation
+      embed = discord.Embed(
+        title="✅ Badge Transferred",
+        description=(
+          f"Badge `{instance['badge_name']} {PRESTIGE_TIERS[instance['prestige_level']]}` (ID `{badge_instance_id}`) has been transferred to {to_user.mention}.\n"
+          f"Status set to `active`. Removed from Continuum if present."
+        ),
+        color=discord.Color.green()
+      )
+      await ctx.respond(embed=embed, ephemeral=True)
+
+    except Exception as e:
+      await log_manual_exception("ADMIN_TRANSFER_BADGE", e)
+      return await ctx.respond(embed=discord.Embed(
+        title="⚠️ Error",
+        description="An unexpected error occurred while transferring the badge.",
+        color=discord.Color.orange()
+      ), ephemeral=True)
 
   @admin_group.command(name="grant_crystal_buffer_patterns", description="(ADMIN RESTRICTED) Grant crystal pattern buffers to a user.")
   @option("user", discord.User, description="The user to receive buffers.", required=True)
@@ -123,20 +239,20 @@ class Admin(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
+
   @admin_group.command(name="check_tongo_games", description="(ADMIN RESTRICTED) Check recent Tongo games with details.")
   @commands.check(user_check)
   async def check_tongo_games(self, ctx):
     await ctx.defer(ephemeral=True)
 
     async with AgimusDB(dictionary=True) as db:
-      await db.execute("SELECT * FROM tongo_games ORDER BY created_at DESC LIMIT 10")
+      await db.execute("SELECT * FROM tongo_games ORDER BY created_at DESC LIMIT 3")
       games = await db.fetchall()
 
     if not games:
       return await ctx.respond("No Tongo games found.", ephemeral=True)
 
-    # Preload all throw data per game
-    throws_by_game = defaultdict(lambda: defaultdict(list))  # game_id -> user_id -> list of badge names
+    throws_by_game = defaultdict(lambda: defaultdict(list))
     for game in games:
       game_id = game['id']
       created_at = game['created_at']
@@ -144,50 +260,151 @@ class Admin(commands.Cog):
       for row in throw_rows:
         throws_by_game[game_id][row['from_user_id']].append(row['badge_name'])
 
-    # Build embeds
-    embeds = []
+    game_groups = []
+
     for game in games:
       game_id = game['id']
       players = await db_get_all_game_player_ids(game_id)
       rewards = await db_get_rewards_for_game(game_id)
 
+      try:
+        chair_member = await bot.current_guild.fetch_member(game['chair_user_id'])
+        chair_name = f"{chair_member.display_name} ({chair_member.mention})"
+      except:
+        chair_name = f"<@{game['chair_user_id']}>"
+
       embed = discord.Embed(
         title=f"Tongo Game ID: {game_id}",
         description=(
-          f"**Status:** {game['status'].capitalize()} \n"
-          f"**Chair:** <@{game['chair_user_id']}> \n"
-          f"**Created:** {discord.utils.format_dt(game['created_at'], 'R')} \n"
-          f"**Players:** {len(players)} \n"
+          f"**Status:** {game['status'].capitalize()}\n"
+          f"**Chair:** {chair_name}\n"
+          f"**Created:** {discord.utils.format_dt(game['created_at'], 'R')}\n"
+          f"**Players:** {len(players)}\n"
           f"**Rewards:** {len(rewards)}"
         ),
         color=discord.Color.teal()
       )
 
-      # Badge throws
+      pages_for_game = [pages.Page(embeds=[embed])]
+
+      # Badge Throws — 1 field per user, 5 users per embed
       user_throws = throws_by_game.get(game_id, {})
-      if user_throws:
-        for uid, badge_names in user_throws.items():
-          member = await bot.current_guild.fetch_member(uid)
-          value = "\n".join(f"- {name}" for name in badge_names)
-          embed.add_field(name=f"{member.display_name} ({member.mention}) threw:", value=value, inline=False)
+      throw_user_ids = list(user_throws.keys())
 
-      # Reward summary
+      for i in range(0, len(throw_user_ids), 5):
+        embed = discord.Embed(title="Badge Throws", color=discord.Color.teal())
+        for uid in throw_user_ids[i:i + 5]:
+          badge_names = user_throws[uid]
+          try:
+            member = await bot.current_guild.fetch_member(uid)
+            name = f"{member.display_name} ({member.mention})"
+          except:
+            name = uid
+
+          value = "\n".join(f"- {b}" for b in badge_names)
+          embed.add_field(name=name, value=value or "*No badges*", inline=False)
+
+        pages_for_game.append(pages.Page(embeds=[embed]))
+
+      # Rewards — 1 field per user, 5 users per embed
       if rewards:
-        reward_lines = []
+        rewards_by_user = defaultdict(list)
         for reward in rewards:
-          uid = reward['user_discord_id']
-          badge_id = reward.get('badge_instance_id')
-          crystal_id = reward.get('crystal_id')
-          badge_instance = await db_get_badge_instance_by_id(badge_id)
-          desc = f"Badge {badge_id} - {badge_instance['badge_name']} ({badge_instance['prestige_level']})" if badge_id else "Unknown Badge"
-          if crystal_id:
-            desc += f" + Crystal {crystal_id}"
-          reward_lines.append(f"<@{uid}>: {desc}")
-        embed.add_field(name="Game Rewards", value="\n".join(reward_lines), inline=False)
+          rewards_by_user[reward['user_discord_id']].append(reward)
 
-      embeds.append(embed)
+        reward_user_ids = list(rewards_by_user.keys())
+        for i in range(0, len(reward_user_ids), 5):
+          embed = discord.Embed(title="Game Rewards", color=discord.Color.teal())
 
-    paginator = pages.Paginator(pages=embeds, show_indicator=True, loop_pages=True)
+          for uid in reward_user_ids[i:i + 5]:
+            try:
+              player = await self.bot.current_guild.fetch_member(uid)
+              player_name = f"{player.display_name} ({uid})"
+            except discord.NotFound:
+              player_name = f"User ID: {uid}"
+              pass
+
+            entries = []
+            for reward in rewards_by_user[uid]:
+              badge_id = reward.get('badge_instance_id')
+              crystal_id = reward.get('crystal_id')
+
+              desc = ""
+              if badge_id:
+                badge_instance = await db_get_badge_instance_by_id(badge_id)
+                if badge_instance:
+                  desc += f"Badge {badge_id} - {badge_instance['badge_name']} (Prestige {badge_instance['prestige_level']})"
+                else:
+                  desc += f"Badge {badge_id} (Unknown)"
+              if crystal_id:
+                desc += f" + Crystal {crystal_id}"
+
+              entries.append(desc or "Unknown Reward")
+
+            embed.add_field(
+              name=player_name,
+              value="\n".join(f"- {entry}" for entry in entries),
+              inline=False
+            )
+
+          pages_for_game.append(pages.Page(embeds=[embed]))
+
+      group = pages.PageGroup(pages=pages_for_game, label=f"Game {game_id}")
+      game_groups.append(group)
+
+    paginator = pages.Paginator(pages=game_groups, show_menu=True, show_indicator=True, loop_pages=True)
+    await paginator.respond(ctx.interaction, ephemeral=True)
+
+
+  @admin_group.command(name="examine_tongo_continuum", description="(ADMIN RESTRICTED) View the full details of the Tongo Continuum.")
+  @commands.check(user_check)
+  async def debug_tongo_pot(self, ctx: discord.ApplicationContext):
+    await ctx.defer(ephemeral=True)
+
+    # Get all badges currently in the continuum
+    continuum = await db_get_full_continuum_badges()
+    if not continuum:
+      return await ctx.respond("ℹ️ The Tongo continuum is currently empty.", ephemeral=True)
+
+    # Chunk the data for pagination
+    chunks = [continuum[i:i + 10] for i in range(0, len(continuum), 10)]
+    continuum_pages = []
+
+    for idx, chunk in enumerate(chunks, start=1):
+      embed = discord.Embed(
+        title=f"Tongo Continuum Snapshot (Page {idx} of {len(chunks)})",
+        description="Current badge instances in the continuum:",
+        color=discord.Color.dark_gold()
+      )
+
+      for badge in chunk:
+        badge_name = badge['badge_name']
+        prestige = PRESTIGE_TIERS[badge['prestige_level']]
+        player_mention = "**Unknown Member**"
+        if badge['thrown_by_user_id'] is None:
+          player_mention = "**Grand Nagus Zek**"
+        else:
+          try:
+            player = await self.bot.current_guild.fetch_member(badge['thrown_by_user_id'])
+            player_mention = player.mention
+          except discord.NotFound:
+            pass
+
+        embed.add_field(
+          name=f"{badge_name} ({prestige})",
+          value=f"Instance: `{badge['badge_instance_id']}`\nRisked by: {player_mention}",
+          inline=False
+        )
+
+      continuum_pages.append(embed)
+
+    paginator = pages.Paginator(
+      pages=continuum_pages,
+      show_indicator=True,
+      loop_pages=True,
+      use_default_buttons=True
+    )
+
     await paginator.respond(ctx.interaction, ephemeral=True)
 
 
@@ -319,57 +536,6 @@ class Admin(commands.Cog):
       color=discord.Color.orange()
     )
     await ctx.respond(embed=embed, ephemeral=True)
-
-  @admin_group.command(name="examine_tongo_continuum", description="(ADMIN RESTRICTED) View the full details of the Tongo Continuum.")
-  @commands.check(user_check)
-  async def debug_tongo_pot(self, ctx: discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
-
-    # Get all badges currently in the continuum
-    continuum = await db_get_full_continuum_badges()
-    if not continuum:
-      return await ctx.respond("ℹ️ The Tongo continuum is currently empty.", ephemeral=True)
-
-    # Chunk the data for pagination
-    chunks = [continuum[i:i + 10] for i in range(0, len(continuum), 10)]
-    continuum_pages = []
-
-    for idx, chunk in enumerate(chunks, start=1):
-      embed = discord.Embed(
-        title=f"Tongo Continuum Snapshot (Page {idx} of {len(chunks)})",
-        description="Current badge instances in the continuum:",
-        color=discord.Color.dark_gold()
-      )
-
-      for badge in chunk:
-        badge_name = badge['badge_name']
-        prestige = PRESTIGE_TIERS[badge['prestige_level']]
-        player_mention = "**Unknown Member**"
-        if badge['thrown_by_user_id'] is None:
-          player_mention = "**Grand Nagus Zek**"
-        else:
-          try:
-            player = await self.bot.current_guild.fetch_member(badge['thrown_by_user_id'])
-            player_mention = player.mention
-          except discord.NotFound:
-            pass
-
-        embed.add_field(
-          name=f"{badge_name} ({prestige})",
-          value=f"Instance: `{badge['badge_instance_id']}`\nRisked by: {player_mention}",
-          inline=False
-        )
-
-      continuum_pages.append(embed)
-
-    paginator = pages.Paginator(
-      pages=continuum_pages,
-      show_indicator=True,
-      loop_pages=True,
-      use_default_buttons=True
-    )
-
-    await paginator.respond(ctx.interaction, ephemeral=True)
 
 
   # @admin_group.command(name="repair_levels", description="(ADMIN RESTRICTED) Correct Missing Levels.")

@@ -7,7 +7,7 @@ def backups_task(client):
       return
     log_channel = client.get_channel(config["channels"]["bot-logs"])
     logger.info("Running automated backup!")
-    hashes = run_make_backup()
+    hashes = await run_make_backup()
     logger.info(f"Backup complete, new hash: {hashes['backup_name']}")
     embed = discord.Embed(
       title=f"AUTOMATED BACKUP {hashes['backup_name']} COMPLETE",

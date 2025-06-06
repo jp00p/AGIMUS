@@ -12,6 +12,7 @@ from queries.crystal_instances import *
 from utils.crystal_effects import delete_crystal_effects_cache
 from utils.crystal_instances import *
 from utils.echelon_rewards import *
+from utils.string_utils import strip_bullshit
 
 class Debug(commands.Cog):
   def __init__(self, bot):
@@ -29,7 +30,7 @@ class Debug(commands.Cog):
     filtered = [
       b['badge_name']
       for b in all_badges
-      if b['id'] in owned_badge_info_ids and ctx.value.lower() in b['badge_name'].lower()
+      if b['id'] in owned_badge_info_ids and strip_bullshit(ctx.value.lower()) in strip_bullshit(b['badge_name'].lower())
     ]
     return filtered
 
@@ -39,7 +40,7 @@ class Debug(commands.Cog):
     results = []
     for c in crystals:
       label = f"{c['emoji']} {c['name']}"
-      if ctx.value.lower() in c['name'].lower():
+      if strip_bullshit(ctx.value.lower()) in strip_bullshit(c['name'].lower()):
         results.append(discord.OptionChoice(name=label, value=str(c['id'])))
     return results
 

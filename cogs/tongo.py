@@ -21,6 +21,7 @@ from utils.database import AgimusTransactionDB
 from utils.exception_logger import log_manual_exception
 from utils.image_utils import *
 from utils.prestige import *
+from utils.string_utils import escape_discord_formatting as edf
 
 
 # cogs.tongo
@@ -147,7 +148,7 @@ class TongoDividendsView(discord.ui.View):
       title="Dividends Redeemed!",
       description=(
         f"An advantageous transaction has been arranged with Grand Nagus Zek!\n\n"
-        f"**{member.display_name}** has redeemed **{DIVIDEND_REWARDS['buffer']['cost']}** Dividends and received a **{DIVIDEND_REWARDS['buffer']['label']}!**\n\n"
+        f"**{edf(member.display_name)}** has redeemed **{DIVIDEND_REWARDS['buffer']['cost']}** Dividends and received a **{DIVIDEND_REWARDS['buffer']['label']}!**\n\n"
         "They can now use  `/crystals replicate` to materialize a freshly minted Crystal!"
       ),
       color=discord.Color.gold()
@@ -206,7 +207,7 @@ class TongoDividendsView(discord.ui.View):
       title="Dividends Redeemed!",
       description=(
         f"A profitable transaction has been arranged with Grand Nagus Zek!\n\n"
-        f"**{member.display_name}** has redeemed **{DIVIDEND_REWARDS['wishlist']['cost']}** Dividends and received a **{DIVIDEND_REWARDS['wishlist']['label']}!**"
+        f"**{edf(member.display_name)}** has redeemed **{DIVIDEND_REWARDS['wishlist']['cost']}** Dividends and received a **{DIVIDEND_REWARDS['wishlist']['label']}!**"
       ),
       color=discord.Color.gold()
     )
@@ -269,7 +270,7 @@ class TongoDividendsView(discord.ui.View):
     success_message = random.choice(FERENGI_RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=member.mention)
     channel_embed = discord.Embed(
       title='Dividends Redeemed!',
-      description=f"**{member.display_name}** has redeemed **{DIVIDEND_REWARDS['replication']['cost']}** Dividends and the use of a **{DIVIDEND_REWARDS['replication']['label']}!**\n\n"
+      description=f"**{edf(member.display_name)}** has redeemed **{DIVIDEND_REWARDS['replication']['cost']}** Dividends and the use of a **{DIVIDEND_REWARDS['replication']['label']}!**\n\n"
                   f"Grand Nagus Zek pulls a Honeystick out from within his robes, wanders over to the Replicator behind the bar, the familiar hum fills the air, and the result is...\n\n> **{crystal['crystal_name']}**!"
                   f"\n\n{success_message}",
       color=discord.Color.gold()
@@ -413,7 +414,7 @@ class Tongo(commands.Cog):
       await ctx.followup.send(
         embed=discord.Embed(
           title="Tongo Temporarily Disabled",
-          description=f"New Tongo games are currently on hiatus for a minute.\n\nPlease stay tuned to {megalomaniacal.mention} for updates.",
+          description=f"Tongo games are currently on hiatus for a minute.\n\nStay tuned to messages here is {zeks_table.mention} and/or {megalomaniacal.mention} for updates.",
           color=discord.Color.orange()
         ),
         ephemeral=True
@@ -504,14 +505,14 @@ class Tongo(commands.Cog):
 
     embed = discord.Embed(
       title="TONGO! Badges Ventured!",
-      description=f"**{member.display_name}** has begun a new game of Tongo!\n\n"
+      description=f"**{edf(member.display_name)}** has begun a new game of Tongo!\n\n"
                   f"They threw in **3 {prestige_tier} Badges** from their unlocked/uncrystallized inventory into the Great Material Continuum, and they have been granted **1** Tongo Dividend.\n\n"
                   "The wheel is spinning, the game will end in 6 hours, and then the badges will be distributed!",
       color=discord.Color.dark_purple()
     )
     embed.add_field(
-      name=f"{prestige_tier} Badges Ventured By {member.display_name}",
-      value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in ventured_badges]),
+      name=f"{prestige_tier} Badges Ventured By {edf(member.display_name)}",
+      value="\n".join([f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}]" for b in ventured_badges]),
       inline=False
     )
     embed.set_image(url="https://i.imgur.com/tRi1vYq.gif")
@@ -552,6 +553,20 @@ class Tongo(commands.Cog):
   )
   async def risk(self, ctx: discord.ApplicationContext, prestige: str):
     await ctx.defer(ephemeral=True)
+
+    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+    if self.block_new_games:
+      megalomaniacal = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
+      await ctx.followup.send(
+        embed=discord.Embed(
+          title="Tongo Temporarily Disabled",
+          description=f"Tongo games are currently on hiatus for a minute.\n\nStay tuned to messages here is {zeks_table.mention} and/or {megalomaniacal.mention} for updates.",
+          color=discord.Color.orange()
+        ),
+        ephemeral=True
+      )
+      return
+
     user_id = ctx.author.id
     member = await self.bot.current_guild.fetch_member(user_id)
 
@@ -633,7 +648,7 @@ class Tongo(commands.Cog):
     player_count = len(player_members)
 
     # Embed flavor
-    description = f"### **{member.display_name}** has joined the table!\n\nA new challenger appears! Player {player_count} has entered the game with **3 {prestige_tier} Badges** from their unlocked/uncrystallized inventory, and they have been granted **1** Tongo Dividend!"
+    description = f"### **{edf(member.display_name)}** has joined the table!\n\nA new challenger appears! Player {player_count} has entered the game with **3 {prestige_tier} Badges** from their unlocked/uncrystallized inventory, and they have been granted **1** Tongo Dividend!"
     if self.auto_confront.next_iteration:
       description += f"\n\nThis Tongo game will confront {humanize.naturaltime(self.auto_confront.next_iteration)}."
 
@@ -643,8 +658,8 @@ class Tongo(commands.Cog):
       color=discord.Color.dark_purple()
     )
     embed.add_field(
-      name=f"{prestige_tier} Badges Risked By {member.display_name}",
-      value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in risked_badges]),
+      name=f"{prestige_tier} Badges Risked By {edf(member.display_name)}",
+      value="\n".join([f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}]" for b in risked_badges]),
       inline=False
     )
     embed.add_field(
@@ -654,7 +669,7 @@ class Tongo(commands.Cog):
     )
     embed.add_field(
       name=f"Total Badges In The Great Material Continuum!",
-      value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in continuum_chunks[0]]),
+      value="\n".join([f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}]" for b in continuum_chunks[0]]),
       inline=False
     )
     embed.set_image(url="https://i.imgur.com/zEvF7uO.gif")
@@ -663,17 +678,16 @@ class Tongo(commands.Cog):
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
 
-    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
     await zeks_table.send(embed=embed)
 
     for chunk in continuum_chunks[1:]:
       chunk_embed = discord.Embed(
-        title=f"TONGO! Badges risked by **{member.display_name}** (Continued)!",
+        title=f"TONGO! Badges risked by **{edf(member.display_name)}** (Continued)!",
         color=discord.Color.dark_purple()
       )
       chunk_embed.add_field(
         name="Total Badges In The Great Material Continuum!",
-        value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in chunk]),
+        value="\n".join([f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}]" for b in chunk]),
         inline=False
       )
       chunk_embed.set_footer(
@@ -863,7 +877,7 @@ class Tongo(commands.Cog):
     tongo_continuum_badges = await db_get_full_continuum_badges()
     tongo_continuum_chunks = [tongo_continuum_badges[i:i + 20] for i in range(0, len(tongo_continuum_badges), 20)]
 
-    description = f"Index requested by **{user_member.display_name}**!\n\nDisplaying the status of the current game of Tongo!"
+    description = f"Index requested by **{edf(user_member.display_name)}**!\n\nDisplaying the status of the current game of Tongo!"
     if self.auto_confront.next_iteration:
       description += f"\n\nThis Tongo game will confront {humanize.naturaltime(self.auto_confront.next_iteration)}."
 
@@ -875,7 +889,7 @@ class Tongo(commands.Cog):
     )
     confirmation_embed.add_field(
       name="Tongo Chair",
-      value=f"* {active_chair_member.display_name}",
+      value=f"* {edf(active_chair_member.display_name)}",
       inline=False
     )
     confirmation_embed.add_field(
@@ -898,7 +912,7 @@ class Tongo(commands.Cog):
       )
       embed.add_field(
         name="Total Badges in the Continuum!",
-        value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in t_chunk]),
+        value="\n".join([f"* {b['badge_name']} ({PRESTIGE_TIERS[b['prestige_level']]})" for b in t_chunk]),
         inline=False
       )
       embed.set_footer(
@@ -949,10 +963,9 @@ class Tongo(commands.Cog):
     embed = discord.Embed(
       title="Tongo Dividends",
       description=f"Your devotion to Ferengi Principles and the 285 Rules of Acquisition have earned you favor from Grand Nagus Zek.\n\n"
-                  "Each Tongo game you participate in earns you *one* Dividend and there are three possible Dividend Rewards...\n"
-                  f"### {DIVIDEND_REWARDS['buffer']['label']}\nA Pattern Buffer you may use in the regular Starfleet Crystal Replicator.\n"
-                  f"### {DIVIDEND_REWARDS['wishlist']['label']}\nA Wishlist Endowment courtesy of Grand Nagus Zek.\n"
-                  f"### {DIVIDEND_REWARDS['replication']['label']}\nThe Materialization of a Guaranteed Rare(*?*) Crystal via a delicious Ferengi Honeystick.",
+                  f"### Current Balance\n**{balance}** Dividends\n"
+                  f"### Lifetime Earned\n**{lifetime}** Dividends\n\n"
+                  "Each Tongo game you participate in earns you *one* Dividend and there are three possible Dividend Rewards...",
       color=discord.Color.gold()
     )
     embed.set_image(url="https://i.imgur.com/UjZkGLf.gif")
@@ -963,8 +976,9 @@ class Tongo(commands.Cog):
       ]),
       inline=False
     )
-    embed.add_field(name="Current Balance", value=f"**{balance}** Dividends", inline=True)
-    embed.add_field(name="Lifetime Earned", value=f"**{lifetime}** Total", inline=True)
+    embed.add_field(name=f"{DIVIDEND_REWARDS['buffer']['label']}", value="A Pattern Buffer you may use in the regular Starfleet Crystal Replicator.", inline=False)
+    embed.add_field(name=f"{DIVIDEND_REWARDS['wishlist']['label']}", value="An immediate Wishlist Endowment courtesy of Grand Nagus Zek.", inline=False)
+    embed.add_field(name=f"{DIVIDEND_REWARDS['replication']['label']}", value="The Materialization of a Guaranteed Rare(*+?*) Crystal via a delicious Ferengi Honeystick.", inline=False)
     embed.set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
@@ -1043,7 +1057,11 @@ class Tongo(commands.Cog):
       player_distribution = await self._execute_confront_distribution(active_tongo['id'], player_ids)
       remaining_badges = await db_get_full_continuum_badges()
       # Execute potential liquidation
-      liquidation_result = await self._handle_liquidation(active_tongo['id'], remaining_badges, player_ids)
+      try:
+        liquidation_result = await self._handle_liquidation(active_tongo['id'], remaining_badges, player_ids)
+      except Exception as e:
+        log_manual_exception('Liquidation Error', e)
+        pass
       # Executions complete, mark game as resolved
       await db_update_game_status(active_tongo['id'], 'resolved')
 
@@ -1068,7 +1086,7 @@ class Tongo(commands.Cog):
 
           received_image, received_image_url = await generate_badge_trade_images(
             badges_received,
-            f"Badges Won By {member.display_name}",
+            f"Badges Won By {edf(member.display_name)}",
             f"{len(badges_received)} Badges"
           )
 
@@ -1109,7 +1127,7 @@ class Tongo(commands.Cog):
         await zeks_table.send(embed=build_liquidation_embed(member, reward, removed))
 
         # Endowment image
-        reward_image, reward_image_url = await generate_badge_trade_images(reward, f"Zek's Endowment For {member.display_name}", "Greed is Eternal!")
+        reward_image, reward_image_url = await generate_badge_trade_images(reward, f"Zek's Endowment For {edf(member.display_name)}", "Greed is Eternal!")
         await zeks_table.send(embed=build_liquidation_endowment_embed(member, reward_image_url), file=reward_image)
 
         # Liquidated image
@@ -1331,6 +1349,9 @@ class Tongo(commands.Cog):
     if not liquidation_result:
       return None
 
+    badge_info_id = liquidation_result['badge_to_grant']['badge_info_id']
+    beneficiary_id = liquidation_result['beneficiary_id']
+
     # Create a new instance using utility helper that tracks origin reason
     reward_instance = await create_new_badge_instance(beneficiary_id, badge_info_id, event_type='liquidation_endowment')
     if not reward_instance:
@@ -1340,9 +1361,6 @@ class Tongo(commands.Cog):
     for badge in liquidation_result['tongo_badges_to_remove']:
       await db_remove_from_continuum(badge['source_instance_id'])
       await liquidate_badge_instance(badge['source_instance_id'])
-
-    badge_info_id = liquidation_result['badge_to_grant']['badge_info_id']
-    beneficiary_id = liquidation_result['beneficiary_id']
 
     await db_add_game_reward(game_id, beneficiary_id, reward_instance['id'])
 
@@ -1488,7 +1506,7 @@ async def throw_badge_into_continuum(instance, user_id):
 
 
 async def send_continuum_images_to_channel(trade_channel, continuum_images):
-  # We can only attach up to 10 files per message, so them in chunks if needed
+  # We can only attach up to 10 files per message, so send them in chunks if needed
   file_chunks = [continuum_images[i:i + 10] for i in range(0, len(continuum_images), 10)]
   for chunk in file_chunks:
     file_number = 1
@@ -1516,7 +1534,7 @@ async def build_confront_results_embed(active_chair: discord.Member, remaining_b
   if remaining_badges:
     embed.add_field(
       name="Remaining Badges In The Great Material Continuum!",
-      value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in remaining_badges]),
+      value="\n".join([f"* {b['badge_name']} ({PRESTIGE_TIERS[b['prestige_level']]})" for b in remaining_badges]),
       inline=False
     )
 
@@ -1531,16 +1549,16 @@ async def build_confront_results_embed(active_chair: discord.Member, remaining_b
 async def build_confront_player_embed(member: discord.Member, badge_infos: list[dict], wishlist_badge_filenames: list[str], dividends_rewarded: int = 0) -> discord.Embed:
   description = ""
   if dividends_rewarded:
-    description = f"\n\nOops, sorry {member.mention}... they got back less than they put in!\n\nOn the bright side they've been awarded **{dividends_rewarded} Tongo Dividends** as a consolation prize!\n"
+    description = f"\n\nOops, sorry {member.mention}... they got back less than they put in!\n\nOn the bright side they've been awarded **{dividends_rewarded} Tongo Dividend{'s' if dividends_rewarded > 1 else ''}** as a consolation prize!\n"
 
   description += "### Distributed\n"
   description += "\n".join([
-    f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]}) {' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
+    f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}] {' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
     for b in badge_infos
   ])
 
   embed = discord.Embed(
-    title=f"{member.display_name}'s Results:",
+    title=f"{edf(member.display_name)}'s Results:",
     description=description,
     color=discord.Color.dark_purple()
   )
@@ -1552,10 +1570,10 @@ async def build_confront_player_embed(member: discord.Member, badge_infos: list[
 
 def build_confront_dm_embed(member: discord.Member, badge_infos: list[dict], wishlist_badge_filenames: list[str], jump_url: str, dividends_rewarded: int = 0) -> discord.Embed:
   title = "TONGO! Confront!"
-  description= f"Heya {member.display_name}! Your Tongo game has ended!"
+  description= f"Heya {edf(member.display_name)}! Your Tongo game has ended!"
 
   if dividends_rewarded:
-    description+= f"\n\nOops, you received fewer than 3 badges — so you've been awarded **{dividends_rewarded} Dividends** as a consolation prize, and can view the full game results at: {jump_url}"
+    description+= f"\n\nOops, you received fewer than 3 badges — so you've been awarded **{dividends_rewarded} Dividend{'s' if dividends_rewarded > 1 else ''}** as a consolation prize, and can view the full game results at: {jump_url}"
   else:
     description+= f"\n\nYour winnings are included below, and you can view the full game results at: {jump_url}"
 
@@ -1569,7 +1587,7 @@ def build_confront_dm_embed(member: discord.Member, badge_infos: list[dict], wis
     embed.add_field(
       name="Badges Acquired",
       value="\n".join([
-        f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]}){' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
+        f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}]{' ✨' if b['badge_filename'] in wishlist_badge_filenames else ''}"
         for b in badge_infos
       ])
     )
@@ -1586,7 +1604,7 @@ def build_confront_dm_embed(member: discord.Member, badge_infos: list[dict], wis
 
 def build_confront_no_rewards_embed(member: discord.Member, dividends_rewarded: int) -> discord.Embed:
   embed = discord.Embed(
-    title=f"{member.display_name} did not receive any badges...",
+    title=f"{edf(member.display_name)} did not receive any badges...",
     description=f"but they've been awarded **{dividends_rewarded} Tongo Dividends** as a consolation prize!",
     color=discord.Color.dark_purple()
   )
@@ -1601,7 +1619,7 @@ def build_liquidation_embed(member: discord.Member, reward_badge: dict, removed_
       f"Grand Nagus Zek has stepped in for a Liquidation!\n\n"
       "The number of badges in The Great Material Continuum was **TOO DAMN HIGH!**\n\n"
       "By Decree of the Grand Nagus of the Ferengi Alliance, **THREE** Badges from the Continuum have been **LIQUIDATED!**\n\n"
-      f"✨ **{member.display_name}** is the *Lucky Liquidation Beneficiary*!!! ✨\n\n"
+      f"✨ **{edf(member.display_name)}** is the *Lucky Liquidation Beneficiary*!!! ✨\n\n"
       "A deal is a deal... until a better one comes along!"
     ),
     color=discord.Color.gold()
@@ -1610,14 +1628,14 @@ def build_liquidation_embed(member: discord.Member, reward_badge: dict, removed_
   embed.set_image(url="https://i.imgur.com/U9U0doQ.gif")
 
   embed.add_field(
-    name=f"{member.display_name} receives a random badge they've been coveting...",
+    name=f"{edf(member.display_name)} receives a random badge they've been coveting...",
     value=f"* ✨ {reward_badge['badge_name']} ✨",
     inline=False
   )
 
   embed.add_field(
     name="Badges Liquidated from The Great Material Continuum",
-    value="\n".join([f"* **{b['badge_name']}** ({PRESTIGE_TIERS[b['prestige_level']]})" for b in removed_badges]),
+    value="\n".join([f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}]" for b in removed_badges]),
     inline=False
   )
 
@@ -1632,7 +1650,7 @@ def build_liquidation_dm_embed(member: discord.Member, reward_badge: dict) -> di
   embed = discord.Embed(
     title="LIQUIDATION!",
     description=(
-      f"Heya {member.display_name}, Grand Nagus Zek has decreed a Liquidation of The Great Material Continuum, "
+      f"Heya {edf(member.display_name)}, Grand Nagus Zek has decreed a Liquidation of The Great Material Continuum, "
       f"and as the ✨ *Lucky Liquidation Beneficiary* ✨ you have received a randomized badge from your wishlist!\n\n"
       "**Congratulations!**"
     ).set_footer(text="Greed is Eternal!"),
@@ -1651,7 +1669,7 @@ def build_liquidation_endowment_embed(member: discord.Member, reward_image_url) 
   embed = discord.Embed(
     title="Liquidation Endowment",
     description=(
-      f"As the ✨ *Lucky Liquidation Beneficiary* ✨ **{member.display_name}** has been granted a freshly-minted, randomized badge from their wishlist!"
+      f"As the ✨ *Lucky Liquidation Beneficiary* ✨ **{edf(member.display_name)}** has been granted a freshly-minted, randomized badge from their wishlist!"
     ),
     color=discord.Color.gold()
   )

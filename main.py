@@ -119,7 +119,6 @@ from utils.exception_logger import setup_exception_logging, exception_report_tas
 
 # Tasks
 from tasks.backups import backups_task
-from tasks.badger import badger_task
 from tasks.bingbong import bingbong_task
 from tasks.birthdays import birthdays_task
 from tasks.hoodiversaries import hoodiversary_task
@@ -422,7 +421,6 @@ async def on_command_error(ctx, error):
 # Schedule Tasks
 scheduled_tasks = [
   backups_task(bot),
-  badger_task(bot),
   bingbong_task(bot),
   birthdays_task(bot),
   exception_report_task(bot),

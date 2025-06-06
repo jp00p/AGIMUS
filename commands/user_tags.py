@@ -6,6 +6,7 @@ from discord import option
 from common import logger, bot, get_user, commands, Style
 from utils.check_channel_access import access_check
 from utils.database import AgimusDB
+from utils.string_utils import strip_bullshit
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
@@ -20,7 +21,7 @@ async def autocomplete_user_tags(ctx: discord.AutocompleteContext):
   if not user_tags:
     return ['No Tags Present']
 
-  return [t['tag'] for t in user_tags if ctx.value.lower() in t['tag'].lower()]
+  return [t['tag'] for t in user_tags if strip_bullshit(ctx.value.lower()) in strip_bullshit(t['tag'].lower())]
 
 
 # __________        __    __

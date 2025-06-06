@@ -10,6 +10,7 @@ from queries.crystal_instances import *
 from utils.crystal_instances import *
 from utils.image_utils import *
 from utils.prestige import *
+from utils.string_utils import strip_bullshit
 
 
 from utils.check_channel_access import access_check
@@ -63,7 +64,7 @@ class Crystals(commands.Cog):
         name=b['badge_name'],
         value=str(b['badge_instance_id'])
       )
-      for b in badge_records if ctx.value.lower() in b['badge_name'].lower()
+      for b in badge_records if strip_bullshit(ctx.value.lower()) in strip_bullshit(b['badge_name'].lower())
     ]
     return choices
 
@@ -88,7 +89,7 @@ class Crystals(commands.Cog):
         name=b['badge_name'],
         value=str(b['badge_instance_id'])
       )
-      for b in badge_instances if ctx.value.lower() in b['badge_name'].lower()
+      for b in badge_instances if strip_bullshit(ctx.value.lower()) in strip_bullshit(b['badge_name'].lower())
     ]
 
   async def autocomplete_user_badge_crystals(ctx: discord.AutocompleteContext):
@@ -100,16 +101,20 @@ class Crystals(commands.Cog):
     if not badge_instance:
       return [discord.OptionChoice(name="🔒 That Badge does not exist or is not in your collection.", value='none')]
 
+    active_crystal_type_id = badge_instance.get('crystal_type_id')
     crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
 
-    none_option = discord.OptionChoice(name="[None]", value=None)
+    none_option = discord.OptionChoice(name="[None]", value='none')
     choices = [
       discord.OptionChoice(
-        name=f"{c['emoji']}  {c['crystal_name']}" ,
+        name=f"{c['emoji']}  {c['crystal_name']}",
         value=str(c['crystal_instance_id'])
       )
-      for c in crystals if ctx.value.lower() in c['crystal_name'].lower()
+      for c in crystals
+      if c['crystal_type_id'] != active_crystal_type_id
+      and strip_bullshit(ctx.value.lower()) in strip_bullshit(c['crystal_name'].lower())
     ]
+
     return [none_option] + choices
 
   async def autocomplete_user_crystal_rarities(ctx: discord.AutocompleteContext):
@@ -137,7 +142,7 @@ class Crystals(commands.Cog):
     if not crystals:
       return [discord.OptionChoice(name="🔒 You don't possess any unattuned Crystals", value='none')]
 
-    filtered_crystals = [c for c in crystals if ctx.value.lower() in c['crystal_name'].lower()]
+    filtered_crystals = [c for c in crystals if strip_bullshit(ctx.value.lower()) in strip_bullshit(c['crystal_name'].lower())]
 
     seen = set()
     options = []
@@ -169,7 +174,7 @@ class Crystals(commands.Cog):
       for b in user_badge_instances
     ]
 
-    filtered = [r for r in results if ctx.value.lower() in r.name.lower()]
+    filtered = [r for r in results if strip_bullshit(ctx.value.lower()) in strip_bullshit(r.name.lower())]
     if not filtered:
       filtered = [
         discord.OptionChoice(
@@ -204,29 +209,32 @@ class Crystals(commands.Cog):
 
     logger.info(f"{ctx.user.display_name} is using the {Style.BRIGHT}Crystal Pattern Buffer Replicator{Style.RESET_ALL} with {Style.BRIGHT}`/crystals replicate`{Style.RESET_ALL}!")
 
+    unattuned_crystal_count = await db_get_user_unattuned_crystal_count(user_id)
+    attuned_badges_count = await db_get_user_attuned_badge_count(user_id)
+
     buffer_credits = await db_get_user_crystal_buffer_count(user_id)
     if not buffer_credits:
-      # TODO: Find an appopriate GIF for this...
       embed = discord.Embed(
         title='No Pattern Buffers!',
         description=f"Sorry {user.mention}, you don't currently possess any Crystal Pattern Buffers to redeem!\n\nBetter get out of here before O'Brien calls security... {get_emoji('obrien_omg_jaysus')}",
         color=discord.Color.orange()
       )
+      embed.add_field(name="Crystal Pattern Buffers", value=f"You possess **ZERO** *Crystal Pattern Buffers*!", inline=False)
+      embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count}** *Crystal{'s' if unattuned_crystal_count > 1 else ''}* which have not yet been attached to a Badge.", inline=False)
+      embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count}** *Badge{'s' if attuned_badges_count > 1 else ''}* with Crystals attached to them.", inline=False)
       embed.set_footer(text="You can earn more buffer credits through leveling up!")
+      embed.set_image(url="https://i.imgur.com/q6Wls8n.gif")
       await ctx.respond(embed=embed, ephemeral=True)
       return
-
-    unattuned_crystal_count = await db_get_user_unattuned_crystal_count(user_id)
-    attuned_badges_count = await db_get_user_attuned_badge_count(user_id)
 
     replicator_embed = discord.Embed(
       title=f"Crystallization Replication Station!",
       description=f"You may redeem **one** Pattern Buffer in exchange for **one** randomized Crystal.\n\nAre you ready to smack this thing and see what falls out?",
       color=discord.Color.teal()
     )
-    replicator_embed.add_field(name="Crystal Pattern Buffers", value=f"You possess **{buffer_credits} Crystal Pattern Buffer{'s' if buffer_credits > 1 else ''}** to redeem!", inline=False)
-    replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count} Crystal{'s' if unattuned_crystal_count > 1 else ''}** which have not yet been attached to a Badge.", inline=False)
-    replicator_embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count} Badge{'s' if attuned_badges_count > 1 else ''}** with Crystals attached to them.", inline=False)
+    replicator_embed.add_field(name="Crystal Pattern Buffers", value=f"You possess **{buffer_credits}** *Crystal Pattern Buffer{'s' if buffer_credits > 1 else ''}* to redeem!", inline=False)
+    replicator_embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count}** *Crystal{'s' if unattuned_crystal_count > 1 else ''}* which have not yet been attached to a Badge.", inline=False)
+    replicator_embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count}** *Badge{'s' if attuned_badges_count > 1 else ''}* with Crystals attached to them.", inline=False)
     replicator_embed.set_footer(
       text="Use `/crystals manifest` to view your currently unattuned Crystals\nUse `/crystals attach` attach them to your Badges!"
     )
@@ -379,6 +387,12 @@ class Crystals(commands.Cog):
 
 
 
+  #    _____                .__  _____                __
+  #   /     \ _____    ____ |__|/ ____\____   _______/  |_
+  #  /  \ /  \\__  \  /    \|  \   __\/ __ \ /  ___/\   __\
+  # /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |
+  # \____|__  (____  /___|  /__||__|  \___  >____  > |__|
+  #         \/     \/     \/              \/     \/
   #    _____                .__  _____                __
   #   /     \ _____    ____ |__|/ ____\____   _______/  |_
   #  /  \ /  \\__  \  /    \|  \   __\/ __ \ /  ___/\   __\
@@ -591,7 +605,7 @@ class Crystals(commands.Cog):
     if not badge_instance:
       await ctx.respond(
         embed=discord.Embed(
-          title="Badged Not Owned!",
+          title="Badge Not Owned!",
           description=f"You don't appear to have that Badge in your {PRESTIGE_TIERS[prestige]} inventory!",
           color=discord.Color.red()
         )
@@ -791,7 +805,7 @@ class Crystals(commands.Cog):
       return
 
     # Validate the crystal is attuned to this badge
-    crystal_instance = next((c for c in crystals if c['badge_crystal_id'] == crystal_id), None)
+    crystal_instance = next((c for c in crystals if c['crystal_instance_id'] == crystal_id), None)
 
     if crystal_instance is None:
       await ctx.respond(
@@ -806,7 +820,7 @@ class Crystals(commands.Cog):
 
     logger.info(f"{ctx.user.display_name} is {Style.BRIGHT}Harmonizing{Style.RESET_ALL} the Crystal {Style.BRIGHT}{crystal_instance['crystal_name']}{Style.RESET_ALL} to {Style.BRIGHT}{[badge_instance['badge_name']]}{Style.RESET_ALL} with {Style.BRIGHT}`/crystals harmonize`{Style.RESET_ALL}!")
 
-    if badge_instance.get('active_crystal_id') == crystal_instance.get('badge_crystal_id'):
+    if badge_instance.get('active_crystal_id') == crystal_instance.get('crystal_instance_id'):
       embed = discord.Embed(
         title='Already Harmonized!',
         description=f"**{crystal_instance['crystal_name']}** is already the harmonized Crystal on **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}).",
@@ -887,35 +901,3 @@ class Crystals(commands.Cog):
 # /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |     \     /  |  \  ___/\     /
 # \____|__  (____  /___|  /__||__|  \___  >____  > |__|      \___/   |__|\___  >\/\_/
 #         \/     \/     \/              \/     \/                            \/
-class CrystalManifestPage(pages.Page):
-  def __init__(self, embed: discord.Embed, buffer: BytesIO, filename: str, rarity: str):
-    super().__init__(embeds=[embed])
-    self.buffer = buffer
-    self.filename = filename
-    self.rarity = rarity
-
-  def update_files(self):
-    self.buffer.seek(0)
-    return [discord.File(fp=self.buffer, filename=self.filename)]
-
-class RaritySelect(discord.ui.Select):
-  def __init__(self, paginator: pages.Paginator, rarity_order: list[str]):
-    self.paginator = paginator
-    options = [
-      discord.SelectOption(label=rarity.title(), value=rarity)
-      for rarity in rarity_order
-    ]
-    super().__init__(placeholder="Select Rarity", options=options)
-
-  async def callback(self, interaction: discord.Interaction):
-    selected_rarity = self.values[0]
-    for i, page in enumerate(self.paginator.pages):
-      if getattr(page, 'rarity', None) == selected_rarity:
-        self.paginator.current_page = i
-        await self.paginator.update_page(interaction)
-        break
-
-class CrystalManifestView(discord.ui.View):
-  def __init__(self, paginator: pages.Paginator, rarity_order: list[str]):
-    super().__init__(timeout=360)
-    self.add_item(RaritySelect(paginator, rarity_order))

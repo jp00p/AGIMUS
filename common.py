@@ -379,39 +379,6 @@ async def run_make_backup():
     backup_info["url"] = raw_presigned_url[-1].replace("\n", "")
   return backup_info
 
-# run_make_badger()
-# util function that runs our `make update-badges` command
-# returns a hash containing success details
-def run_make_badger():
-  result = {
-    "completed": False,
-    "error": False,
-    "version": "",
-    "log": ""
-  }
-  try:
-    process = subprocess.Popen(['make', 'update-badges'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
-    stdout, stderr = process.communicate()
-    log = stdout.decode('utf-8')
-    if 'Badge Update Success' in log:
-      result['completed'] = True
-      version_match = re.search(r'New version: (v\d+\.\d+.\d+)', log)
-      result['version'] = version_match.group(1)
-    elif 'fatal' in log:
-      result['completed'] = False
-      fatal_match = re.search(r'fatal: (.*)\n', log)
-      result['error'] = fatal_match.group(1)
-    else:
-      result['completed'] = False
-    result['log'] = log
-    return result
-  except Exception as e:
-    logger.info(e)
-    result['completed'] = False
-    result['error'] = stderr.decode('utf-8')
-    result['log'] = stdout.decode('utf-8')
-    return result
-
 # returns a pretend stardate based on the given datetime
 def calculate_stardate(date:datetime.date):
   # calculate the stardate

@@ -1,6 +1,7 @@
 from common import *
 
 from queries.badge_info import *
+from utils.string_utils import strip_bullshit
 
 #    _____          __                                     .__          __
 #   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____
@@ -22,5 +23,5 @@ async def autocomplete_selections(ctx:discord.AutocompleteContext):
   elif category == 'type':
     selections = await db_get_all_types()
 
-  return [result for result in selections if ctx.value.lower() in result.lower()]
+  return [result for result in selections if strip_bullshit(ctx.value.lower()) in strip_bullshit(result.lower())]
 

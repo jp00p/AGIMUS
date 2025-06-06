@@ -33,7 +33,7 @@ class Badges(commands.Cog):
   # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
   #         \/                        \/            \/|__|             \/          \/
   async def all_badges_autocomplete(ctx:discord.AutocompleteContext):
-    return [badge['badge_name'] for badge in await db_get_all_badge_info() if ctx.value.lower() in badge['badge_name'].lower()]
+    return [badge['badge_name'] for badge in await db_get_all_badge_info() if strip_bullshit(ctx.value.lower()) in strip_bullshit(badge['badge_name'].lower())]
 
   async def autocomplete_users_badges(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
@@ -49,7 +49,7 @@ class Badges(commands.Cog):
       for b in user_badge_instances
     ]
 
-    filtered = [r for r in results if ctx.value.lower() in r.name.lower()]
+    filtered = [r for r in results if strip_bullshit(ctx.value.lower()) in strip_bullshit(r.name.lower())]
     if not filtered:
       filtered = [
         discord.OptionChoice(
@@ -363,7 +363,6 @@ class Badges(commands.Cog):
   @commands.check(access_check)
   async def sets(self, ctx:discord.ApplicationContext, public:str, prestige:str, category:str, selection:str, color:str):
     public = bool(public == "yes")
-    await ctx.defer(ephemeral=not public)
 
     logger.info(f"{ctx.author.display_name} is pulling up a {Style.BRIGHT}`/badges sets`{Style.RESET_ALL}!")
 
@@ -390,7 +389,7 @@ class Badges(commands.Cog):
       return
 
     if not all_set_badges:
-      await ctx.followup.send(
+      await ctx.respond(
         embed=discord.Embed(
           title=f"Your entry was not in the list of {category_title}s!",
           color=discord.Color.red()
@@ -571,7 +570,6 @@ class Badges(commands.Cog):
   @commands.check(access_check)
   async def completion(self, ctx:discord.ApplicationContext, prestige:str, public:str, category:str, color:str):
     public = bool(public == "yes")
-    await ctx.defer(ephemeral=not public)
 
     if not await is_prestige_valid(ctx, prestige):
       return

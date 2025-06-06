@@ -22,6 +22,7 @@ async def role_check(ctx):
           description=f"{get_emoji('guinan_beanflick_stance_threat')} You don't have the proper security clearance to use this command.",
           color=discord.Color.red()
         )
+        embed.set_image(url="https://i.imgur.com/QeUW4fV.gif")
         await ctx.respond(embed=embed, ephemeral=True)
     else:
       return True
