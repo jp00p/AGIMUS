@@ -1274,7 +1274,15 @@
             "episode": "04",
             "imdb": "tt0572229",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.06.02",
+                    "episode": "The NX-01 Is Not a T-Top",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-577-the-nx-01-is-not-a-t-top-ent-s3e4/",
+                    "order": 577,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/e9G2YAsoIhId9dJfpR18lH1TP0q.jpg",
