@@ -901,35 +901,3 @@ class Crystals(commands.Cog):
 # /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |     \     /  |  \  ___/\     /
 # \____|__  (____  /___|  /__||__|  \___  >____  > |__|      \___/   |__|\___  >\/\_/
 #         \/     \/     \/              \/     \/                            \/
-class CrystalManifestPage(pages.Page):
-  def __init__(self, embed: discord.Embed, buffer: BytesIO, filename: str, rarity: str):
-    super().__init__(embeds=[embed])
-    self.buffer = buffer
-    self.filename = filename
-    self.rarity = rarity
-
-  def update_files(self):
-    self.buffer.seek(0)
-    return [discord.File(fp=self.buffer, filename=self.filename)]
-
-class RaritySelect(discord.ui.Select):
-  def __init__(self, paginator: pages.Paginator, rarity_order: list[str]):
-    self.paginator = paginator
-    options = [
-      discord.SelectOption(label=rarity.title(), value=rarity)
-      for rarity in rarity_order
-    ]
-    super().__init__(placeholder="Select Rarity", options=options)
-
-  async def callback(self, interaction: discord.Interaction):
-    selected_rarity = self.values[0]
-    for i, page in enumerate(self.paginator.pages):
-      if getattr(page, 'rarity', None) == selected_rarity:
-        self.paginator.current_page = i
-        await self.paginator.update_page(interaction)
-        break
-
-class CrystalManifestView(discord.ui.View):
-  def __init__(self, paginator: pages.Paginator, rarity_order: list[str]):
-    super().__init__(timeout=360)
-    self.add_item(RaritySelect(paginator, rarity_order))
