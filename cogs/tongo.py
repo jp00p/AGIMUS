@@ -1060,7 +1060,7 @@ class Tongo(commands.Cog):
       try:
         liquidation_result = await self._handle_liquidation(active_tongo['id'], remaining_badges, player_ids)
       except Exception as e:
-        log_manual_exception('Liquidation Error', e)
+        log_manual_exception(e, 'Liquidation Error')
         pass
       # Executions complete, mark game as resolved
       await db_update_game_status(active_tongo['id'], 'resolved')
@@ -1362,7 +1362,7 @@ class Tongo(commands.Cog):
       await db_remove_from_continuum(badge['source_instance_id'])
       await liquidate_badge_instance(badge['source_instance_id'])
 
-    await db_add_game_reward(game_id, beneficiary_id, reward_instance['id'])
+    await db_add_game_reward(game_id, beneficiary_id, reward_instance['badge_instance_id'])
 
     liquidation_result['reward_instance_id'] = reward_instance['badge_instance_id']
     return liquidation_result
