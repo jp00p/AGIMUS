@@ -212,7 +212,7 @@ class Admin(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)
 
     except Exception as e:
-      await log_manual_exception("ADMIN_TRANSFER_BADGE", e)
+      await log_manual_exception(e, "Error transfering badge via admin command")
       return await ctx.respond(embed=discord.Embed(
         title="⚠️ Error",
         description="An unexpected error occurred while transferring the badge.",

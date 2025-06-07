@@ -1,0 +1,2488 @@
+[
+	{
+		"_createdAt": "2025-06-04T01:32:11Z",
+		"_id": "0587dfe0-1a49-49f6-bcd3-0b626d081192",
+		"_rev": "ifETHRs7Uwrj5YN4Du7JUk",
+		"_type": "post",
+		"_updatedAt": "2025-06-04T01:33:09Z",
+		"affiliations": [
+			"892-IV"
+		],
+		"body": [
+			{
+				"_key": "6e4cc3208ada",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "b5a5aadaf979",
+						"_type": "span",
+						"marks": [],
+						"text": "Canon Images"
+					}
+				],
+				"markDefs": [],
+				"style": "h2"
+			},
+			{
+				"_key": "cb01299220eb",
+				"_type": "image",
+				"alt": "claudius-marcus",
+				"asset": {
+					"_ref": "image-57c59345841b23e03730026d1e05abc9679cdf7a-1200x896-jpg",
+					"_type": "reference"
+				}
+			},
+			{
+				"_key": "59619a851462",
+				"_type": "image",
+				"alt": "claudius-marcus",
+				"asset": {
+					"_ref": "image-990ffa00ff1ac99bc14ceae8dc9e7c09d818da32-1200x896-jpg",
+					"_type": "reference"
+				}
+			},
+			{
+				"_key": "ffdc85505dcc",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "505102732011",
+						"_type": "span",
+						"marks": [],
+						"text": "William Shakespeare's Coat of Arms"
+					}
+				],
+				"markDefs": [],
+				"style": "normal"
+			}
+		],
+		"date": "2025-06-04T01:24:31.852Z",
+		"designers": null,
+		"excerpt": null,
+		"featuredImage": {
+			"_type": "image",
+			"alt": "claudius-marcus",
+			"asset": {
+				"metadata": {
+					"dimensions": {
+						"_type": "sanity.imageDimensions",
+						"aspectRatio": 1,
+						"height": 900,
+						"width": 900
+					}
+				},
+				"url": "https://cdn.sanity.io/images/tdiy7fer/production/a5b27708e4efaf8b2a155b4303277d5185a704f4-900x900.png"
+			}
+		},
+		"franchise": "TOS",
+		"quadrant": "Alpha",
+		"references": [
+			{
+				"_key": "08a7a4f8f439",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "3c4ebf0015ea",
+						"_type": "span",
+						"marks": [],
+						"text": "S02E14 "
+					},
+					{
+						"_key": "ad727faf47ef",
+						"_type": "span",
+						"marks": [
+							"6448d4a4648b"
+						],
+						"text": "Bread and Circuses"
+					}
+				],
+				"markDefs": [
+					{
+						"_key": "6448d4a4648b",
+						"_type": "link",
+						"href": "https://memory-alpha.fandom.com/wiki/Bread_and_Circuses_(episode)"
+					}
+				],
+				"style": "normal"
+			}
+		],
+		"slug": "claudius-marcus",
+		"timePeriod": "2200s",
+		"title": "Claudius Marcus",
+		"types": [
+			"Seal/Shield"
+		],
+		"universes": [
+			"Prime"
+		],
+		"objectID": "0587dfe0-1a49-49f6-bcd3-0b626d081192",
+		"_highlightResult": {
+			"affiliations": [
+				{
+					"value": "892-IV",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"body": [
+				{
+					"_key": {
+						"value": "6e4cc3208ada",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "b5a5aadaf979",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "Canon Images",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "h2",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				},
+				{
+					"_key": {
+						"value": "cb01299220eb",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "claudius-marcus",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-57c59345841b23e03730026d1e05abc9679cdf7a-1200x896-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				},
+				{
+					"_key": {
+						"value": "59619a851462",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "claudius-marcus",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-990ffa00ff1ac99bc14ceae8dc9e7c09d818da32-1200x896-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				},
+				{
+					"_key": {
+						"value": "ffdc85505dcc",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "505102732011",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "William Shakespeare's Coat of Arms",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "normal",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				}
+			],
+			"franchise": {
+				"value": "TOS",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"quadrant": {
+				"value": "Alpha",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"timePeriod": {
+				"value": "2200s",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"title": {
+				"value": "Claudius Marcus",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"types": [
+				{
+					"value": "Seal/Shield",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"universes": [
+				{
+					"value": "Prime",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			]
+		}
+	},
+	{
+		"_createdAt": "2025-06-04T00:06:23Z",
+		"_id": "dba51b5a-1559-4a8a-9bd1-4ee82e420078",
+		"_rev": "ifETHRs7Uwrj5YN4Dt9iX6",
+		"_type": "post",
+		"_updatedAt": "2025-06-04T00:06:23Z",
+		"affiliations": [
+			"AGIMUS"
+		],
+		"body": [
+			{
+				"_key": "901f17b8da96",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "0d5e77e3fee4",
+						"_type": "span",
+						"marks": [],
+						"text": "Canon Images"
+					}
+				],
+				"markDefs": [],
+				"style": "h2"
+			},
+			{
+				"_key": "15bb1cbf560f",
+				"_type": "image",
+				"alt": "amigus-banner-e",
+				"asset": {
+					"_ref": "image-de05287c509b9077132b46731c67f34c4153cd0e-1400x866-jpg",
+					"_type": "reference"
+				}
+			},
+			{
+				"_key": "bef40f5c251b",
+				"_type": "image",
+				"alt": "amigus-banner-e",
+				"asset": {
+					"_ref": "image-3ff88789a35bb3bfc834a692be1197474827034f-1400x865-jpg",
+					"_type": "reference"
+				}
+			}
+		],
+		"date": "2025-06-04T00:04:12.598Z",
+		"designers": null,
+		"excerpt": null,
+		"featuredImage": {
+			"_type": "image",
+			"alt": "amigus-banner-e",
+			"asset": {
+				"metadata": {
+					"dimensions": {
+						"_type": "sanity.imageDimensions",
+						"aspectRatio": 1,
+						"height": 940,
+						"width": 940
+					}
+				},
+				"url": "https://cdn.sanity.io/images/tdiy7fer/production/fe03e6f501f377bb658395e54545afe76e864985-940x940.png"
+			}
+		},
+		"franchise": "Lower Decks",
+		"quadrant": "Alpha",
+		"references": [
+			{
+				"_key": "0cac236de11f",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "9ec24f6761e3",
+						"_type": "span",
+						"marks": [],
+						"text": "S04E07 "
+					},
+					{
+						"_key": "b8e394fc5c19",
+						"_type": "span",
+						"marks": [
+							"123ce5f9f312"
+						],
+						"text": "A Few Badgeys More"
+					}
+				],
+				"markDefs": [
+					{
+						"_key": "123ce5f9f312",
+						"_type": "link",
+						"href": "https://memory-alpha.fandom.com/wiki/A_Few_Badgeys_More_(episode)"
+					}
+				],
+				"style": "normal"
+			}
+		],
+		"slug": "amigus-banner-e",
+		"timePeriod": "2300s",
+		"title": "AMIGUS Banner E",
+		"types": [
+			"Flag/Banner"
+		],
+		"universes": [
+			"Prime"
+		],
+		"objectID": "dba51b5a-1559-4a8a-9bd1-4ee82e420078",
+		"_highlightResult": {
+			"affiliations": [
+				{
+					"value": "AGIMUS",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"body": [
+				{
+					"_key": {
+						"value": "901f17b8da96",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "0d5e77e3fee4",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "Canon Images",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "h2",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				},
+				{
+					"_key": {
+						"value": "15bb1cbf560f",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "amigus-banner-e",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-de05287c509b9077132b46731c67f34c4153cd0e-1400x866-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				},
+				{
+					"_key": {
+						"value": "bef40f5c251b",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "amigus-banner-e",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-3ff88789a35bb3bfc834a692be1197474827034f-1400x865-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				}
+			],
+			"franchise": {
+				"value": "Lower Decks",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"quadrant": {
+				"value": "Alpha",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"timePeriod": {
+				"value": "2300s",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"title": {
+				"value": "AMIGUS Banner E",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"types": [
+				{
+					"value": "Flag/Banner",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"universes": [
+				{
+					"value": "Prime",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			]
+		}
+	},
+	{
+		"_createdAt": "2025-06-04T00:03:44Z",
+		"_id": "678eeb49-9760-4a3b-8f35-e998e39b7307",
+		"_rev": "CjvZxw0CkNALFXkrmDafPC",
+		"_type": "post",
+		"_updatedAt": "2025-06-04T00:03:44Z",
+		"affiliations": [
+			"AGIMUS"
+		],
+		"body": [
+			{
+				"_key": "67dacbea65b6",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "ee3bbf6cafaa",
+						"_type": "span",
+						"marks": [],
+						"text": "Canon Images"
+					}
+				],
+				"markDefs": [],
+				"style": "h2"
+			},
+			{
+				"_key": "a4ee24b7ec02",
+				"_type": "image",
+				"alt": "amigus-banner-d",
+				"asset": {
+					"_ref": "image-de05287c509b9077132b46731c67f34c4153cd0e-1400x866-jpg",
+					"_type": "reference"
+				}
+			},
+			{
+				"_key": "4d366b128e39",
+				"_type": "image",
+				"alt": "amigus-banner-d",
+				"asset": {
+					"_ref": "image-3ff88789a35bb3bfc834a692be1197474827034f-1400x865-jpg",
+					"_type": "reference"
+				}
+			}
+		],
+		"date": "2025-06-04T00:01:30.436Z",
+		"designers": null,
+		"excerpt": null,
+		"featuredImage": {
+			"_type": "image",
+			"alt": "amigus-banner-d",
+			"asset": {
+				"metadata": {
+					"dimensions": {
+						"_type": "sanity.imageDimensions",
+						"aspectRatio": 1,
+						"height": 940,
+						"width": 940
+					}
+				},
+				"url": "https://cdn.sanity.io/images/tdiy7fer/production/9692105ff3627422527604e39f16c63132c565fa-940x940.png"
+			}
+		},
+		"franchise": "Lower Decks",
+		"quadrant": "Alpha",
+		"references": null,
+		"slug": "amigus-banner-d",
+		"timePeriod": "2300s",
+		"title": "AMIGUS Banner D",
+		"types": [
+			"Flag/Banner"
+		],
+		"universes": [
+			"Prime"
+		],
+		"objectID": "678eeb49-9760-4a3b-8f35-e998e39b7307",
+		"_highlightResult": {
+			"affiliations": [
+				{
+					"value": "AGIMUS",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"body": [
+				{
+					"_key": {
+						"value": "67dacbea65b6",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "ee3bbf6cafaa",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "Canon Images",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "h2",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				},
+				{
+					"_key": {
+						"value": "a4ee24b7ec02",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "amigus-banner-d",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-de05287c509b9077132b46731c67f34c4153cd0e-1400x866-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				},
+				{
+					"_key": {
+						"value": "4d366b128e39",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "amigus-banner-d",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-3ff88789a35bb3bfc834a692be1197474827034f-1400x865-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				}
+			],
+			"franchise": {
+				"value": "Lower Decks",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"quadrant": {
+				"value": "Alpha",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"timePeriod": {
+				"value": "2300s",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"title": {
+				"value": "AMIGUS Banner D",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"types": [
+				{
+					"value": "Flag/Banner",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"universes": [
+				{
+					"value": "Prime",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			]
+		}
+	},
+	{
+		"_createdAt": "2025-06-03T23:59:51Z",
+		"_id": "cd99c454-be9a-462f-80f3-f1bccdc7a255",
+		"_rev": "xX8bYSpv3eQL41OOtQotOM",
+		"_type": "post",
+		"_updatedAt": "2025-06-03T23:59:51Z",
+		"affiliations": [
+			"Klingon Empire"
+		],
+		"body": [
+			{
+				"_key": "afd125de0fe5",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "273f1ffca00b",
+						"_type": "span",
+						"marks": [],
+						"text": "Canon Image"
+					}
+				],
+				"markDefs": [],
+				"style": "h2"
+			},
+			{
+				"_key": "1ee153d75b9c",
+				"_type": "image",
+				"alt": "Klingon-Oversight-Council-Banner",
+				"asset": {
+					"_ref": "image-356c59c1bdb9c241a216a20238ec14b82b35d734-1400x783-jpg",
+					"_type": "reference"
+				}
+			}
+		],
+		"date": "2025-06-03T23:57:37.438Z",
+		"designers": null,
+		"excerpt": null,
+		"featuredImage": {
+			"_type": "image",
+			"alt": "Klingon-Oversight-Council-Banner",
+			"asset": {
+				"metadata": {
+					"dimensions": {
+						"_type": "sanity.imageDimensions",
+						"aspectRatio": 1,
+						"height": 1000,
+						"width": 1000
+					}
+				},
+				"url": "https://cdn.sanity.io/images/tdiy7fer/production/4f9b204b28e322009286a09700603705d8ac935e-1000x1000.png"
+			}
+		},
+		"franchise": "Lower Decks",
+		"quadrant": "Beta",
+		"references": [
+			{
+				"_key": "e3abf7a8c001",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "9c000c4792dd",
+						"_type": "span",
+						"marks": [],
+						"text": "E05E04 "
+					},
+					{
+						"_key": "274a9ac47567",
+						"_type": "span",
+						"marks": [
+							"e472b22c9a94"
+						],
+						"text": "A Farewell To Farms"
+					}
+				],
+				"markDefs": [
+					{
+						"_key": "e472b22c9a94",
+						"_type": "link",
+						"href": "https://memory-alpha.fandom.com/wiki/A_Farewell_To_Farms_(episode)"
+					}
+				],
+				"style": "normal"
+			}
+		],
+		"slug": "klingon-oversight-council-banner",
+		"timePeriod": "2300s",
+		"title": "Klingon Oversight Council Banner",
+		"types": [
+			"Flag/Banner"
+		],
+		"universes": [
+			"Prime"
+		],
+		"objectID": "cd99c454-be9a-462f-80f3-f1bccdc7a255",
+		"_highlightResult": {
+			"affiliations": [
+				{
+					"value": "Klingon Empire",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"body": [
+				{
+					"_key": {
+						"value": "afd125de0fe5",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "273f1ffca00b",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "Canon Image",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "h2",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				},
+				{
+					"_key": {
+						"value": "1ee153d75b9c",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "Klingon-Oversight-Council-Banner",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-356c59c1bdb9c241a216a20238ec14b82b35d734-1400x783-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				}
+			],
+			"franchise": {
+				"value": "Lower Decks",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"quadrant": {
+				"value": "Beta",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"timePeriod": {
+				"value": "2300s",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"title": {
+				"value": "Klingon Oversight Council Banner",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"types": [
+				{
+					"value": "Flag/Banner",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"universes": [
+				{
+					"value": "Prime",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			]
+		}
+	},
+	{
+		"_createdAt": "2025-06-03T23:56:41Z",
+		"_id": "710cfe40-ece5-411c-b9d4-d5642107fa24",
+		"_rev": "CjvZxw0CkNALFXkrmDTk1k",
+		"_type": "post",
+		"_updatedAt": "2025-06-03T23:56:41Z",
+		"affiliations": [
+			"Risa"
+		],
+		"body": [
+			{
+				"_key": "85a58f86cd7a",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "9c300afe357d",
+						"_type": "span",
+						"marks": [],
+						"text": "Canon Image"
+					}
+				],
+				"markDefs": [],
+				"style": "h2"
+			},
+			{
+				"_key": "7d531084852b",
+				"_type": "image",
+				"alt": "temple-of-dread",
+				"asset": {
+					"_ref": "image-b0f4cb1a340596953d20bd88f776571a46fac4de-1400x815-jpg",
+					"_type": "reference"
+				}
+			}
+		],
+		"date": "2025-06-03T23:53:37.536Z",
+		"designers": null,
+		"excerpt": null,
+		"featuredImage": {
+			"_type": "image",
+			"alt": "temple-of-dread",
+			"asset": {
+				"metadata": {
+					"dimensions": {
+						"_type": "sanity.imageDimensions",
+						"aspectRatio": 1,
+						"height": 900,
+						"width": 900
+					}
+				},
+				"url": "https://cdn.sanity.io/images/tdiy7fer/production/3793af06055e24c04c8da590cd70ead6acaae1dc-900x900.png"
+			}
+		},
+		"franchise": "Lower Decks",
+		"quadrant": "Alpha",
+		"references": [
+			{
+				"_key": "ae8ff80bf950",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "eb991dea1f96",
+						"_type": "span",
+						"marks": [],
+						"text": "S05E03 "
+					},
+					{
+						"_key": "b4bd05a122b7",
+						"_type": "span",
+						"marks": [
+							"6025fbc3581c"
+						],
+						"text": "The Best Exotic Nanite Hotel"
+					}
+				],
+				"markDefs": [
+					{
+						"_key": "6025fbc3581c",
+						"_type": "link",
+						"href": "https://memory-alpha.fandom.com/wiki/The_Best_Exotic_Nanite_Hotel_(episode)"
+					}
+				],
+				"style": "normal"
+			}
+		],
+		"slug": "temple-of-dread",
+		"timePeriod": "2300s",
+		"title": "Temple of Dread",
+		"types": [
+			"Religious"
+		],
+		"universes": [
+			"Prime"
+		],
+		"objectID": "710cfe40-ece5-411c-b9d4-d5642107fa24",
+		"_highlightResult": {
+			"affiliations": [
+				{
+					"value": "Risa",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"body": [
+				{
+					"_key": {
+						"value": "85a58f86cd7a",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "9c300afe357d",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "Canon Image",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "h2",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				},
+				{
+					"_key": {
+						"value": "7d531084852b",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "temple-of-dread",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-b0f4cb1a340596953d20bd88f776571a46fac4de-1400x815-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				}
+			],
+			"franchise": {
+				"value": "Lower Decks",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"quadrant": {
+				"value": "Alpha",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"timePeriod": {
+				"value": "2300s",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"title": {
+				"value": "Temple of Dread",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"types": [
+				{
+					"value": "Religious",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"universes": [
+				{
+					"value": "Prime",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			]
+		}
+	},
+	{
+		"_createdAt": "2025-06-02T18:50:43Z",
+		"_id": "98f8eafb-9b19-4121-9ae5-00db1ac08e0e",
+		"_rev": "FzVyO06LLRxtMsyzuXeuXk",
+		"_type": "post",
+		"_updatedAt": "2025-06-02T18:50:43Z",
+		"affiliations": [
+			"Orion"
+		],
+		"body": [
+			{
+				"_key": "45bad0d46f06",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "f7ca970d2892",
+						"_type": "span",
+						"marks": [],
+						"text": "Canon Image"
+					}
+				],
+				"markDefs": [],
+				"style": "h2"
+			},
+			{
+				"_key": "f1d7dc35ba96",
+				"_type": "image",
+				"alt": "blue-orions",
+				"asset": {
+					"_ref": "image-3415cf715001a7e3818a5bce24dd3d6f6d5b2748-1400x791-jpg",
+					"_type": "reference"
+				}
+			}
+		],
+		"date": "2025-06-02T18:47:34.748Z",
+		"designers": null,
+		"excerpt": null,
+		"featuredImage": {
+			"_type": "image",
+			"alt": "blue-orions",
+			"asset": {
+				"metadata": {
+					"dimensions": {
+						"_type": "sanity.imageDimensions",
+						"aspectRatio": 1,
+						"height": 1200,
+						"width": 1200
+					}
+				},
+				"url": "https://cdn.sanity.io/images/tdiy7fer/production/688ad0c7de973cb5347029f2882ac595417e6d1d-1200x1200.png"
+			}
+		},
+		"franchise": "Lower Decks",
+		"quadrant": "Alpha",
+		"references": [
+			{
+				"_key": "347fcc9a7a31",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "be5f7dd1ba75",
+						"_type": "span",
+						"marks": [],
+						"text": "S05E01 "
+					},
+					{
+						"_key": "8cd6f5530433",
+						"_type": "span",
+						"marks": [
+							"dca1c7e423d1"
+						],
+						"text": "Dos Cerritos"
+					}
+				],
+				"markDefs": [
+					{
+						"_key": "dca1c7e423d1",
+						"_type": "link",
+						"href": "https://memory-alpha.fandom.com/wiki/Dos_Cerritos_(episode)"
+					}
+				],
+				"style": "normal"
+			}
+		],
+		"slug": "blue-orions",
+		"timePeriod": "2300s",
+		"title": "Blue Orions",
+		"types": [
+			"Species/Civilization"
+		],
+		"universes": [
+			"Prime"
+		],
+		"objectID": "98f8eafb-9b19-4121-9ae5-00db1ac08e0e",
+		"_highlightResult": {
+			"affiliations": [
+				{
+					"value": "Orion",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"body": [
+				{
+					"_key": {
+						"value": "45bad0d46f06",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "f7ca970d2892",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "Canon Image",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "h2",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				},
+				{
+					"_key": {
+						"value": "f1d7dc35ba96",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "blue-orions",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-3415cf715001a7e3818a5bce24dd3d6f6d5b2748-1400x791-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				}
+			],
+			"franchise": {
+				"value": "Lower Decks",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"quadrant": {
+				"value": "Alpha",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"timePeriod": {
+				"value": "2300s",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"title": {
+				"value": "Blue Orions",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"types": [
+				{
+					"value": "Species/Civilization",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"universes": [
+				{
+					"value": "Prime",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			]
+		}
+	},
+	{
+		"_createdAt": "2025-05-30T02:54:44Z",
+		"_id": "e4967886-3aec-4da3-a537-ad6c564d9b0b",
+		"_rev": "l9Q1SnAW76dvgwVQMxC1Jl",
+		"_type": "post",
+		"_updatedAt": "2025-05-30T02:54:44Z",
+		"affiliations": [
+			"892-IV"
+		],
+		"body": [
+			{
+				"_key": "a234cdf1b0c5",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "2caad6a98273",
+						"_type": "span",
+						"marks": [],
+						"text": "Canon Image"
+					}
+				],
+				"markDefs": [],
+				"style": "h2"
+			},
+			{
+				"_key": "47b383656220",
+				"_type": "image",
+				"alt": "empire-tv-b",
+				"asset": {
+					"_ref": "image-c606ef6626cd9d7f91ce5f31ad7b28c947df1cbb-1300x1002-jpg",
+					"_type": "reference"
+				}
+			}
+		],
+		"date": "2025-05-30T02:51:57.110Z",
+		"designers": null,
+		"excerpt": null,
+		"featuredImage": {
+			"_type": "image",
+			"alt": "empire-tv-b",
+			"asset": {
+				"metadata": {
+					"dimensions": {
+						"_type": "sanity.imageDimensions",
+						"aspectRatio": 1,
+						"height": 1300,
+						"width": 1300
+					}
+				},
+				"url": "https://cdn.sanity.io/images/tdiy7fer/production/60d7409beb8190f0d3b07c84c2c233c933db87c0-1300x1300.png"
+			}
+		},
+		"franchise": "TOS",
+		"memoryAlpha": "https://memory-alpha.fandom.com/wiki/Empire_TV",
+		"quadrant": "Beta",
+		"references": [
+			{
+				"_key": "d0c810dc1a56",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "0525d58c77df",
+						"_type": "span",
+						"marks": [],
+						"text": "S02E14 "
+					},
+					{
+						"_key": "bb29efb87388",
+						"_type": "span",
+						"marks": [
+							"d2a0d8602023"
+						],
+						"text": "Bread and Circuses"
+					}
+				],
+				"markDefs": [
+					{
+						"_key": "d2a0d8602023",
+						"_type": "link",
+						"href": "https://memory-alpha.fandom.com/wiki/Bread_and_Circuses_(episode)"
+					}
+				],
+				"style": "normal"
+			}
+		],
+		"slug": "empire-tv-b",
+		"timePeriod": "2200s",
+		"title": "Empire TV B",
+		"types": [
+			"Media"
+		],
+		"universes": [
+			"Prime"
+		],
+		"objectID": "e4967886-3aec-4da3-a537-ad6c564d9b0b",
+		"_highlightResult": {
+			"affiliations": [
+				{
+					"value": "892-IV",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"body": [
+				{
+					"_key": {
+						"value": "a234cdf1b0c5",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "2caad6a98273",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "Canon Image",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "h2",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				},
+				{
+					"_key": {
+						"value": "47b383656220",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "empire-tv-b",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-c606ef6626cd9d7f91ce5f31ad7b28c947df1cbb-1300x1002-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				}
+			],
+			"franchise": {
+				"value": "TOS",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"quadrant": {
+				"value": "Beta",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"timePeriod": {
+				"value": "2200s",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"title": {
+				"value": "Empire TV B",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"types": [
+				{
+					"value": "Media",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"universes": [
+				{
+					"value": "Prime",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			]
+		}
+	},
+	{
+		"_createdAt": "2025-05-30T02:51:17Z",
+		"_id": "556b3e0d-2ee1-4585-b226-c2ffe04569bf",
+		"_rev": "l9Q1SnAW76dvgwVQMxBKiS",
+		"_type": "post",
+		"_updatedAt": "2025-05-30T02:51:17Z",
+		"affiliations": [
+			"892-IV"
+		],
+		"body": [
+			{
+				"_key": "9a24c1f3fdbd",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "335b6a95c240",
+						"_type": "span",
+						"marks": [],
+						"text": "Canon Image"
+					}
+				],
+				"markDefs": [],
+				"style": "h2"
+			},
+			{
+				"_key": "a49d3ebc9874",
+				"_type": "image",
+				"alt": "empire-tv-a",
+				"asset": {
+					"_ref": "image-f0da32190911e565773b8e2b77a46c1f53d40235-1200x922-jpg",
+					"_type": "reference"
+				}
+			}
+		],
+		"date": "2025-05-30T00:49:43.547Z",
+		"designers": null,
+		"excerpt": null,
+		"featuredImage": {
+			"_type": "image",
+			"alt": "empire-tv-a",
+			"asset": {
+				"metadata": {
+					"dimensions": {
+						"_type": "sanity.imageDimensions",
+						"aspectRatio": 1,
+						"height": 860,
+						"width": 860
+					}
+				},
+				"url": "https://cdn.sanity.io/images/tdiy7fer/production/75dfeadb35bfd261898a32e5773b64576f7344dc-860x860.png"
+			}
+		},
+		"franchise": "TOS",
+		"memoryAlpha": "https://memory-alpha.fandom.com/wiki/Empire_TV",
+		"quadrant": "Alpha",
+		"references": [
+			{
+				"_key": "59cfeb89b67a",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "5248ad311a59",
+						"_type": "span",
+						"marks": [],
+						"text": "S02E14 "
+					},
+					{
+						"_key": "9528a8d2fae0",
+						"_type": "span",
+						"marks": [
+							"1d56f66bb602"
+						],
+						"text": "Bread and Circuses"
+					}
+				],
+				"markDefs": [
+					{
+						"_key": "1d56f66bb602",
+						"_type": "link",
+						"href": "https://memory-alpha.fandom.com/wiki/Bread_and_Circuses_(episode)"
+					}
+				],
+				"style": "normal"
+			}
+		],
+		"slug": "empire-tv-a",
+		"timePeriod": "2200s",
+		"title": "Empire TV A",
+		"types": [
+			"Media"
+		],
+		"universes": [
+			"Prime"
+		],
+		"objectID": "556b3e0d-2ee1-4585-b226-c2ffe04569bf",
+		"_highlightResult": {
+			"affiliations": [
+				{
+					"value": "892-IV",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"body": [
+				{
+					"_key": {
+						"value": "9a24c1f3fdbd",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "335b6a95c240",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "Canon Image",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "h2",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				},
+				{
+					"_key": {
+						"value": "a49d3ebc9874",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "empire-tv-a",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-f0da32190911e565773b8e2b77a46c1f53d40235-1200x922-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				}
+			],
+			"franchise": {
+				"value": "TOS",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"quadrant": {
+				"value": "Alpha",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"timePeriod": {
+				"value": "2200s",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"title": {
+				"value": "Empire TV A",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"types": [
+				{
+					"value": "Media",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"universes": [
+				{
+					"value": "Prime",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			]
+		}
+	},
+	{
+		"_createdAt": "2025-05-29T19:58:34Z",
+		"_id": "00044d9e-baaf-40e4-812e-cc1c0258253f",
+		"_rev": "l9Q1SnAW76dvgwVQMv7xaW",
+		"_type": "post",
+		"_updatedAt": "2025-05-29T19:58:34Z",
+		"affiliations": [
+			"Starfleet"
+		],
+		"body": [
+			{
+				"_key": "bd5c699002a6",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "1a3ea6f82c85",
+						"_type": "span",
+						"marks": [],
+						"text": "Canon Image"
+					}
+				],
+				"markDefs": [],
+				"style": "h2"
+			},
+			{
+				"_key": "085a86284a51",
+				"_type": "image",
+				"alt": "lornak-s",
+				"asset": {
+					"_ref": "image-dfa6e2b52b0898e217c6e0cdf41878032c25a7c3-1400x720-jpg",
+					"_type": "reference"
+				}
+			}
+		],
+		"date": "2025-05-29T19:54:51.799Z",
+		"designers": null,
+		"excerpt": null,
+		"featuredImage": {
+			"_type": "image",
+			"alt": "lornak-s",
+			"asset": {
+				"metadata": {
+					"dimensions": {
+						"_type": "sanity.imageDimensions",
+						"aspectRatio": 1,
+						"height": 1200,
+						"width": 1200
+					}
+				},
+				"url": "https://cdn.sanity.io/images/tdiy7fer/production/9253765f4227f0d42c92a94bcf92bc8a7f6503bf-1200x1200.png"
+			}
+		},
+		"franchise": "Lower Decks",
+		"memoryAlpha": "https://memory-alpha.fandom.com/wiki/Starbase_80",
+		"quadrant": "Beta",
+		"references": [
+			{
+				"_key": "54b5fe3cf78c",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "60d9ff9a0380",
+						"_type": "span",
+						"marks": [],
+						"text": "S05E01 "
+					},
+					{
+						"_key": "07731e509832",
+						"_type": "span",
+						"marks": [
+							"e1399eeebeea"
+						],
+						"text": "Dos Cerritos"
+					}
+				],
+				"markDefs": [
+					{
+						"_key": "e1399eeebeea",
+						"_type": "link",
+						"href": "https://memory-alpha.fandom.com/wiki/Dos_Cerritos_(episode)"
+					}
+				],
+				"style": "normal"
+			}
+		],
+		"slug": "lornak-s",
+		"timePeriod": "2300s",
+		"title": "Lornak'S",
+		"types": [
+			"Mission Patch"
+		],
+		"universes": [
+			"Prime"
+		],
+		"objectID": "00044d9e-baaf-40e4-812e-cc1c0258253f",
+		"_highlightResult": {
+			"affiliations": [
+				{
+					"value": "Starfleet",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"body": [
+				{
+					"_key": {
+						"value": "bd5c699002a6",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "1a3ea6f82c85",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "Canon Image",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "h2",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				},
+				{
+					"_key": {
+						"value": "085a86284a51",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "lornak-s",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-dfa6e2b52b0898e217c6e0cdf41878032c25a7c3-1400x720-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				}
+			],
+			"franchise": {
+				"value": "Lower Decks",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"quadrant": {
+				"value": "Beta",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"timePeriod": {
+				"value": "2300s",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"title": {
+				"value": "Lornak'S",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"types": [
+				{
+					"value": "Mission Patch",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"universes": [
+				{
+					"value": "Prime",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			]
+		}
+	},
+	{
+		"_createdAt": "2025-05-29T19:52:26Z",
+		"_id": "1066d6d9-e988-428d-b6e8-b0ddbca5471b",
+		"_rev": "l9Q1SnAW76dvgwVQMv5DzC",
+		"_type": "post",
+		"_updatedAt": "2025-05-29T19:52:26Z",
+		"affiliations": [
+			"Risa"
+		],
+		"body": [
+			{
+				"_key": "07969da1932a",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "418240094668",
+						"_type": "span",
+						"marks": [],
+						"text": "Canon Images"
+					}
+				],
+				"markDefs": [],
+				"style": "h2"
+			},
+			{
+				"_key": "6e00ec2ceb6b",
+				"_type": "image",
+				"alt": "the-risa-bar",
+				"asset": {
+					"_ref": "image-4726ac7984a2117418529c5be02be7cdcf841664-1200x698-jpg",
+					"_type": "reference"
+				}
+			},
+			{
+				"_key": "c32a73bdf874",
+				"_type": "image",
+				"alt": "the-risa-bar",
+				"asset": {
+					"_ref": "image-e971a413c45fa44a99aeaf4a31cc32b5a284821c-1200x699-jpg",
+					"_type": "reference"
+				}
+			}
+		],
+		"date": "2025-05-29T19:47:36.308Z",
+		"designers": null,
+		"excerpt": null,
+		"featuredImage": {
+			"_type": "image",
+			"alt": "the-risa-bar",
+			"asset": {
+				"metadata": {
+					"dimensions": {
+						"_type": "sanity.imageDimensions",
+						"aspectRatio": {
+							"source": "1.100110011001100",
+							"parsedValue": 1.1001100110011
+						},
+						"height": 909,
+						"width": 1000
+					}
+				},
+				"url": "https://cdn.sanity.io/images/tdiy7fer/production/56f9040bbd09d16016ccf47a7de9be51f3fb53ef-1000x909.png"
+			}
+		},
+		"franchise": "Lower Decks",
+		"quadrant": "Alpha",
+		"references": [
+			{
+				"_key": "545fa3c7fac4",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "5762edccf698",
+						"_type": "span",
+						"marks": [],
+						"text": "S05E03 "
+					},
+					{
+						"_key": "ea7402efe6fc",
+						"_type": "span",
+						"marks": [
+							"9214a3b838a0"
+						],
+						"text": "The Best Exotic Nanite Hotel"
+					}
+				],
+				"markDefs": [
+					{
+						"_key": "9214a3b838a0",
+						"_type": "link",
+						"href": "https://memory-alpha.fandom.com/wiki/The_Best_Exotic_Nanite_Hotel_(episode)"
+					}
+				],
+				"style": "normal"
+			}
+		],
+		"slug": "the-risa-bar",
+		"timePeriod": "2300s",
+		"title": "The Risa Bar",
+		"types": [
+			"Commerce"
+		],
+		"universes": [
+			"Prime"
+		],
+		"objectID": "1066d6d9-e988-428d-b6e8-b0ddbca5471b",
+		"_highlightResult": {
+			"affiliations": [
+				{
+					"value": "Risa",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"body": [
+				{
+					"_key": {
+						"value": "07969da1932a",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "418240094668",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "Canon Images",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "h2",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				},
+				{
+					"_key": {
+						"value": "6e00ec2ceb6b",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "the-risa-bar",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-4726ac7984a2117418529c5be02be7cdcf841664-1200x698-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				},
+				{
+					"_key": {
+						"value": "c32a73bdf874",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "the-risa-bar",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-e971a413c45fa44a99aeaf4a31cc32b5a284821c-1200x699-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				}
+			],
+			"franchise": {
+				"value": "Lower Decks",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"quadrant": {
+				"value": "Alpha",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"timePeriod": {
+				"value": "2300s",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"title": {
+				"value": "The Risa Bar",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"types": [
+				{
+					"value": "Commerce",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"universes": [
+				{
+					"value": "Prime",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			]
+		}
+	},
+	{
+		"_createdAt": "2025-03-25T04:16:23Z",
+		"_id": "d46731d0-d155-4bfd-b016-9258aee0cc92",
+		"_rev": "0rodJK18KtxwxKKHWk4yVO",
+		"_type": "post",
+		"_updatedAt": "2025-03-25T04:16:23Z",
+		"affiliations": [
+			"Starbase 80"
+		],
+		"body": [
+			{
+				"_key": "7169fbdde572",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "c95f7baa8bc1",
+						"_type": "span",
+						"marks": [],
+						"text": "Canon Image"
+					}
+				],
+				"markDefs": [],
+				"style": "h2"
+			},
+			{
+				"_key": "fdfd7c0a8ccd",
+				"_type": "image",
+				"alt": "n-ob-s",
+				"asset": {
+					"_ref": "image-dfa6e2b52b0898e217c6e0cdf41878032c25a7c3-1400x720-jpg",
+					"_type": "reference"
+				}
+			},
+			{
+				"_key": "e7ef345c38fa",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "9ad5f34f8b90",
+						"_type": "span",
+						"marks": [],
+						"text": "Vinyl records tore"
+					}
+				],
+				"markDefs": [],
+				"style": "normal"
+			}
+		],
+		"date": "2025-03-25T04:11:36.881Z",
+		"designers": [],
+		"excerpt": null,
+		"featuredImage": {
+			"_type": "image",
+			"alt": "n-ob-s",
+			"asset": {
+				"metadata": {
+					"dimensions": {
+						"_type": "sanity.imageDimensions",
+						"aspectRatio": 1,
+						"height": 1100,
+						"width": 1100
+					}
+				},
+				"url": "https://cdn.sanity.io/images/tdiy7fer/production/997d6271e6e24a05f5444bb1b307d85b82d3eb1a-1100x1100.png"
+			}
+		},
+		"franchise": "Lower Decks",
+		"memoryAlpha": "https://memory-alpha.fandom.com/wiki/N'ob's",
+		"quadrant": "Beta",
+		"references": [
+			{
+				"_key": "455e2cf1de42",
+				"_type": "block",
+				"children": [
+					{
+						"_key": "cbd51fc74cac",
+						"_type": "span",
+						"marks": [],
+						"text": "S05E05 "
+					},
+					{
+						"_key": "bb4d4cb965fd",
+						"_type": "span",
+						"marks": [
+							"ae9241d657d7"
+						],
+						"text": "Starbase 80?!"
+					}
+				],
+				"markDefs": [
+					{
+						"_key": "ae9241d657d7",
+						"_type": "link",
+						"href": "https://memory-alpha.fandom.com/wiki/Starbase_80%3F!_(episode)"
+					}
+				],
+				"style": "normal"
+			}
+		],
+		"slug": "n-ob-s",
+		"timePeriod": "2300s",
+		"title": "N'ob's",
+		"types": [
+			"Commerce"
+		],
+		"universes": [
+			"Prime"
+		],
+		"link": "/symbols/undefined",
+		"objectID": "d46731d0-d155-4bfd-b016-9258aee0cc92",
+		"_highlightResult": {
+			"affiliations": [
+				{
+					"value": "Starbase 80",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"body": [
+				{
+					"_key": {
+						"value": "7169fbdde572",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "c95f7baa8bc1",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "Canon Image",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "h2",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				},
+				{
+					"_key": {
+						"value": "fdfd7c0a8ccd",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "image",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"alt": {
+						"value": "n-ob-s",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"asset": {
+						"_ref": {
+							"value": "image-dfa6e2b52b0898e217c6e0cdf41878032c25a7c3-1400x720-jpg",
+							"matchLevel": "none",
+							"matchedWords": []
+						},
+						"_type": {
+							"value": "reference",
+							"matchLevel": "none",
+							"matchedWords": []
+						}
+					}
+				},
+				{
+					"_key": {
+						"value": "e7ef345c38fa",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"_type": {
+						"value": "block",
+						"matchLevel": "none",
+						"matchedWords": []
+					},
+					"children": [
+						{
+							"_key": {
+								"value": "9ad5f34f8b90",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"_type": {
+								"value": "span",
+								"matchLevel": "none",
+								"matchedWords": []
+							},
+							"text": {
+								"value": "Vinyl records tore",
+								"matchLevel": "none",
+								"matchedWords": []
+							}
+						}
+					],
+					"style": {
+						"value": "normal",
+						"matchLevel": "none",
+						"matchedWords": []
+					}
+				}
+			],
+			"franchise": {
+				"value": "Lower Decks",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"quadrant": {
+				"value": "Beta",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"timePeriod": {
+				"value": "2300s",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"title": {
+				"value": "N'ob's",
+				"matchLevel": "none",
+				"matchedWords": []
+			},
+			"types": [
+				{
+					"value": "Commerce",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			],
+			"universes": [
+				{
+					"value": "Prime",
+					"matchLevel": "none",
+					"matchedWords": []
+				}
+			]
+		}
+	}
+]
