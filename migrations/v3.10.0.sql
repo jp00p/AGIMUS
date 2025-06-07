@@ -39,7 +39,7 @@ INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES (
 INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("The-Risa-Bar.png", "Commerce");
 INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("The-Risa-Bar.png", "Prime");
 INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference, special) VALUES ("Echelon Integrity Sentinel", "Echelon_Integrity_Sentinel.png", "https://www.drunkshimoda.com", "Alpha", "2000s", "The USS Hood", "Awarded as Bug Bounty for White Hat Operations", 1);
-INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference, special) VALUES ("Remembrance Day Pin (USS San Fernando)", "Rememberance-Day-Pin_San_Fernando.png", "https://pennyante-art.carrd.co/", "Alpha", "2000s", "The USS Hood", "Honoring the intrepid crew of the USS San Fernando.", 1);
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference, special) VALUES ("Remembrance Day Pin (USS San Fernando)", "Rememberance-Day-Pin_San_Fernando.png", "https://pennyante-art.carrd.co/", "Alpha", "2000s", "The USS Hood", "Honoring the exxxploits of the crew of the USS San Fernando (Artwork by Penny Ante!).", 1);
 INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Rememberance-Day-Pin_San_Fernando.png", "Starfleet");
 INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Rememberance-Day-Pin_San_Fernando.png", "Insignia");
 INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Rememberance-Day-Pin_San_Fernando.png", "Prime");
