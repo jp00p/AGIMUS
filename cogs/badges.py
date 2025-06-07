@@ -1251,10 +1251,10 @@ class Badges(commands.Cog):
     description += f"Reference: **{badge['reference']}**\n"
     description += f"Total Collected on The USS Hood:\n"
     if prestige_count_lines:
-      description += "\n".join(prestige_count_lines) + "\n\n"
+      description += "\n".join(prestige_count_lines) + "\n"
     else:
       description += "* **None Collected Yet!**\n"
-    description += "Star Trek Design Project:\n"
+    description += "URL:\n"
     description += f"{badge['badge_url']}"
 
     embed = discord.Embed(
