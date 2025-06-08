@@ -1119,7 +1119,7 @@ class Tongo(commands.Cog):
 
       # Send liquidation results embeds (if a liquidation did in fact occur)
       if liquidation_result:
-        member = await self.bot.current_guild.fetch_member(liquidation_result['player_id'])
+        member = await self.bot.current_guild.fetch_member(liquidation_result['beneficiary_id'])
         reward = liquidation_result['badge_to_grant']
         removed = liquidation_result['tongo_badges_to_remove']
 
