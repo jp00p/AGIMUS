@@ -1605,6 +1605,133 @@ def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]
   return [shimmer_flux_frame(base_img, i) for i in range(num_frames)]
 
 
+@register_effect("big_banger")
+def effect_big_banger(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Mythic-tier crystal effect: Animated background with badge shake, falling girders,
+  flame-themed ambient glow, and a gradient border window.
+  """
+  FRAME_SIZE = (190, 190)
+  TOTAL_FRAMES = 24
+  ANIMATION_FPS = 12
+  badge_image = badge_image.resize((180, 180), Image.Resampling.LANCZOS)
+
+  # Load resources
+  base_path = Path("images/crystal_effects/animations/big_banger")
+  bg_frames = [
+    Image.open(base_path / f"frames/frame_{i:02}.png").convert("RGBA").resize(FRAME_SIZE)
+    for i in range(TOTAL_FRAMES)
+  ]
+  girder_1 = Image.open(base_path / "girder_01.png").convert("RGBA")
+  girder_2 = Image.open(base_path / "girder_02.png").convert("RGBA")
+
+  girder_1 = girder_1.resize((int(girder_1.width * 1.20), int(girder_1.height * 1.20)), Image.Resampling.LANCZOS)
+  girder_2 = girder_2.resize((int(girder_2.width * 1.15), int(girder_2.height * 1.15)), Image.Resampling.LANCZOS)
+
+  # Layout positions
+  badge_pos = ((FRAME_SIZE[0] - 180) // 2, (FRAME_SIZE[1] - 180) // 2)
+  g1_final_x, g2_final_x = 4 - 15, FRAME_SIZE[0] - girder_2.width - 6 + 15
+  g1_landing_y, g2_landing_y = 42, 52
+  offscreen_y = -190
+
+  # Gradient border
+  border_radius = 24
+  border_width = 2
+  outer_mask = Image.new("L", FRAME_SIZE, 0)
+  draw_outer = ImageDraw.Draw(outer_mask)
+  draw_outer.rounded_rectangle(
+    [border_width // 2, border_width // 2, FRAME_SIZE[0] - border_width // 2, FRAME_SIZE[1] - border_width // 2],
+    radius=border_radius,
+    fill=255
+  )
+  inner_mask = Image.new("L", FRAME_SIZE, 0)
+  draw_inner = ImageDraw.Draw(inner_mask)
+  draw_inner.rounded_rectangle(
+    [border_width + 2, border_width + 2, FRAME_SIZE[0] - border_width - 2, FRAME_SIZE[1] - border_width - 2],
+    radius=border_radius - 4,
+    fill=255
+  )
+  border_mask = ImageChops.subtract(outer_mask, inner_mask)
+  gradient_border = Image.new("RGBA", FRAME_SIZE)
+  top_left, bottom_right = (140, 60, 40), (255, 100, 20)
+  for y in range(FRAME_SIZE[1]):
+    for x in range(FRAME_SIZE[0]):
+      t = (x + y) / (FRAME_SIZE[0] + FRAME_SIZE[1])
+      r = int(top_left[0] * (1 - t) + bottom_right[0] * t)
+      g = int(top_left[1] * (1 - t) + bottom_right[1] * t)
+      b = int(top_left[2] * (1 - t) + bottom_right[2] * t)
+      gradient_border.putpixel((x, y), (r, g, b, 255))
+  gradient_border_masked = Image.composite(gradient_border, Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), border_mask)
+
+  # Shake patterns
+  np.random.seed(42)
+  badge_offsets = [(np.random.randint(-6, 7), np.random.randint(-6, 7)) if i < 8 else
+                   (np.random.randint(-4, 5), np.random.randint(-4, 5)) if i < 16 else
+                   (np.random.randint(-2, 3), np.random.randint(-2, 3)) for i in range(TOTAL_FRAMES)]
+
+  def compute_girder_shake(frame, land_frame):
+    if frame < land_frame:
+      return (0, 0)
+    decay = (frame - land_frame) / (TOTAL_FRAMES - land_frame)
+    amp = max(1, int(3 * (1 - decay)))
+    return (np.random.randint(-amp, amp + 1), np.random.randint(-amp, amp + 1))
+
+  def create_ebb_overlay(img: Image.Image, frame_idx: int) -> Image.Image:
+    alpha = img.getchannel("A")
+    width, height = img.size
+    t = (frame_idx / TOTAL_FRAMES) * 2 * np.pi
+    factor = 0.6 + 0.4 * np.sin(t)
+    max_a = int(80 * factor)
+    glow_mask = Image.new("L", (width, height), 0)
+    for y in range(height):
+      vf = max(0, 1 - y / height)
+      a = int(max_a * (vf ** 2.2))
+      for x in range(width):
+        if alpha.getpixel((x, y)) > 0:
+          glow_mask.putpixel((x, y), a)
+    glow = Image.new("RGBA", (width, height), (255, 120, 40, 0))
+    glow.putalpha(glow_mask)
+    return Image.alpha_composite(img, glow)
+
+  def girder_fall_y(frame, start, end, land_y):
+    if frame < start:
+      return offscreen_y
+    elif frame < end:
+      t = (frame - start) / (end - start)
+      eased = 1 - (1 - t) ** 3
+      return int(offscreen_y + (land_y - offscreen_y) * eased)
+    else:
+      bounce_phase = frame - end
+      bounce = 8 * math.exp(-bounce_phase / 1.2) * np.sin(bounce_phase * 2.0)
+      return int(land_y + bounce)
+
+  frames = []
+  for i in range(TOTAL_FRAMES):
+    base = bg_frames[i].copy()
+
+    badge_with_glow = create_ebb_overlay(badge_image, i)
+    badge_offset = (badge_pos[0] + badge_offsets[i][0], badge_pos[1] + badge_offsets[i][1])
+    badge_layer = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    badge_layer.paste(badge_with_glow, badge_offset, badge_with_glow)
+    base = Image.alpha_composite(base, badge_layer)
+
+    g1_y = girder_fall_y(i, 8, 14, g1_landing_y)
+    g2_y = girder_fall_y(i, 10, 16, g2_landing_y)
+    g1_dx, g1_dy = compute_girder_shake(i, 14)
+    g2_dx, g2_dy = compute_girder_shake(i, 16)
+
+    g1_img = create_ebb_overlay(girder_1, i)
+    g2_img = create_ebb_overlay(girder_2, i)
+
+    base.paste(g1_img, (g1_final_x + g1_dx, g1_y + g1_dy), g1_img)
+    base.paste(g2_img, (g2_final_x + g2_dx, g2_y + g2_dy), g2_img)
+
+    masked_bg = Image.composite(base, Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), outer_mask)
+    frame = Image.alpha_composite(masked_bg, gradient_border_masked)
+    frames.append(frame)
+
+  return frames
+
 # 8888      88 b.             8     ,o888888o.     8 888888888o 8888888 8888888888   .8.          b.             8  8 8888 8 8888      88        ,8.       ,8.
 # 8888      88 888o.          8  . 8888     `88.   8 8888    `88.     8 8888        .888.         888o.          8  8 8888 8 8888      88       ,888.     ,888.
 # 8888      88 Y88888o.       8 ,8 8888       `8b  8 8888     `88     8 8888       :88888.        Y88888o.       8  8 8888 8 8888      88      .`8888.   .`8888.
