@@ -721,7 +721,7 @@ class Crystals(commands.Cog):
           matching = next((c for c in badge_crystals if c['crystal_instance_id'] == crystal_instance['crystal_instance_id']), None)
           if matching:
             await db_set_harmonized_crystal(badge_instance['badge_instance_id'], matching['badge_crystal_id'])
-            embed_description += "\n-# `Crystallization Auto-Harmonize` is enabled so it has now been activated as well! (Note that you can change this behavior with `/settings` if so desired)"
+            embed_description += "\n\n-# `Crystallization Auto-Harmonize` is enabled so it has now been activated as well! (Note that you can change this behavior with `/settings` if so desired)"
 
         embed = discord.Embed(
           title='Crystal Attuned!',
@@ -984,15 +984,15 @@ class AttachFromManifestView(discord.ui.View):
     paginator_response = self.get_paginator_response()
     try:
       await paginator_response.edit(
-        embeds=discord.Embed(
+        embeds=[discord.Embed(
           title=f"Attuning *{crystal_instance['crystal_name']}*!",
           description="See below to Attach or Cancel.",
           color=discord.Color.dark_green()
-        ),
+        )],
+        attachments=[],
         view=None
       )
     except discord.errors.NotFound:
-      # Workaround for current issue with timeout 404s
       pass
 
   async def on_timeout(self):
@@ -1073,7 +1073,7 @@ async def launch_attach_confirmation(interaction, badge_instance: dict, crystal_
         match = next((c for c in crystals if c['crystal_instance_id'] == crystal_instance['crystal_instance_id']), None)
         if match:
           await db_set_harmonized_crystal(badge_instance['badge_instance_id'], match['badge_crystal_id'])
-          embed.description += "\n-# `Crystallization Auto-Harmonize` is enabled so it has now been activated as well! (Note that you can change this behavior with `/settings` if so desired)"
+          embed.description += "\n\n-# `Crystallization Auto-Harmonize` is enabled so it has now been activated as well! (Note that you can change this behavior with `/settings` if so desired)"
 
       await inner.response.edit_message(embed=embed, attachments=[], view=None)
 
