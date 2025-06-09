@@ -1,5 +1,6 @@
 from common import *
 
+from queries.crystal_instances import db_get_attuned_crystals
 from queries.trade import *
 from queries.echelon_xp import db_get_echelon_progress
 
@@ -1220,6 +1221,10 @@ class Trade(commands.Cog):
       image_filename = "trade_pending.png"
       color = discord.Color(0x99aab5)
 
+    # Warn if any badge in the trade has crystals attached
+    if await trade_has_attuned_crystals(active_trade):
+      description += "\n\n**⚠️ NOTE:** Be aware that one or more badges in this trade have Crystals attached to them!"
+
     home_embed = discord.Embed(
       title=title,
       description=description,
@@ -1503,3 +1508,16 @@ class Trade(commands.Cog):
       await ctx.respond(embed=inactive_embed, ephemeral=True)
 
     return active_trade
+
+async def trade_has_attuned_crystals(active_trade: dict) -> bool:
+  """
+  Returns True if any offered or requested badge in the trade has any crystals attached.
+  """
+  offered_instances = await db_get_trade_offered_badge_instances(active_trade)
+  requested_instances = await db_get_trade_requested_badge_instances(active_trade)
+
+  for badge in offered_instances + requested_instances:
+    crystals = await db_get_attuned_crystals(badge['badge_instance_id'])
+    if crystals:
+      return True
+  return False

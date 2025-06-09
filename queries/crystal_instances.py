@@ -294,6 +294,34 @@ async def db_get_unattuned_crystals_by_rarity(user_id: int, rarity_name: str) ->
     await db.execute(sql, (user_id, rarity_name))
     return await db.fetchall()
 
+async def db_get_unattuned_crystals_by_type(user_id: int, crystal_type_id: int):
+  sql = """
+    SELECT
+      ci.id AS crystal_instance_id,
+      ci.owner_discord_id,
+      ci.status,
+
+      ct.id AS crystal_type_id,
+      ct.name AS crystal_name,
+      ct.description,
+      ct.effect,
+      ct.rarity_rank,
+
+      cr.name AS rarity_name,
+      cr.emoji
+
+    FROM crystal_instances ci
+    JOIN crystal_types ct ON ci.crystal_type_id = ct.id
+    JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
+    WHERE ci.owner_discord_id = %s
+      AND ci.status = 'available'
+      AND ct.id = %s
+    ORDER BY ci.created_at ASC
+    LIMIT 1
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id, crystal_type_id))
+    return await db.fetchall()
 
 async def db_get_available_crystal_types():
   sql = """
