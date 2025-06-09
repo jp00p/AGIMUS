@@ -1223,7 +1223,7 @@ class Trade(commands.Cog):
 
     # Warn if any badge in the trade has crystals attached
     if await trade_has_attuned_crystals(active_trade):
-      description += "\n\n**⚠️ NOTE:** Be aware that one or more badges in this trade have Crystals attached to them!"
+      description += "\n\n**⚠️ NOTE: One or more badges in this trade have Crystals attached to them! ⚠️**"
 
     home_embed = discord.Embed(
       title=title,
