@@ -56,14 +56,21 @@ async def grant_xp(user: discord.User, amount: int, reason: str, channel = None,
 
     return new_level
 
-async def get_xp_bonus() -> bool:
-  """Determine if XP is bonused right now (based on weekend or server setting)."""
+async def get_xp_bonus() -> dict:
+  """Determine if XP is bonused right now (based on weekend, special date, or server setting)."""
   enabled = False
+  amount = 1
+
   server_settings = await db_get_server_settings()
+
+  today = datetime.today()
   if server_settings['bonus_xp_enabled']:
     enabled = True
     amount = server_settings['bonus_xp_amount']
-  elif datetime.today().weekday() >= 4: # Friday-Sunday
+  elif today.month == 6 and today.day == 15: # Triple XP for VZ's birthday
+    enabled = True
+    amount = 3
+  elif today.weekday() >= 4:  # Friday-Sunday
     enabled = True
     amount = 2
 
