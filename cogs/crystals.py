@@ -160,7 +160,7 @@ class Crystals(commands.Cog):
   async def autocomplete_previewable_badges(ctx: discord.AutocompleteContext):
     user_id = ctx.interaction.user.id
 
-    prestige = ctx.options.get('preview_prestige')
+    prestige = ctx.options.get('prestige')
     if not prestige or not prestige.isdigit():
       return [discord.OptionChoice(name="🔒 Invalid prestige tier.", value='none')]
 
@@ -393,27 +393,21 @@ class Crystals(commands.Cog):
   # /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |
   # \____|__  (____  /___|  /__||__|  \___  >____  > |__|
   #         \/     \/     \/              \/     \/
-  #    _____                .__  _____                __
-  #   /     \ _____    ____ |__|/ ____\____   _______/  |_
-  #  /  \ /  \\__  \  /    \|  \   __\/ __ \ /  ___/\   __\
-  # /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |
-  # \____|__  (____  /___|  /__||__|  \___  >____  > |__|
-  #         \/     \/     \/              \/     \/
   @crystals_group.command(name="manifest", description="Review your unattuned Crystal Manifest.")
   @option(
-    name="preview_prestige",
+    name="prestige",
     description="Which Prestige Tier of preview Badge?",
     required=False,
     autocomplete=autocomplete_prestige_tiers
   )
   @option(
-    'preview_badge',
+    'badge',
     str,
     required=False,
     description="Badge to preview Crystal effects on",
     autocomplete=autocomplete_previewable_badges
   )
-  async def manifest(self, ctx: discord.ApplicationContext, preview_prestige: str, preview_badge: str):
+  async def manifest(self, ctx: discord.ApplicationContext, prestige: str, badge: str):
     await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
 
@@ -430,20 +424,21 @@ class Crystals(commands.Cog):
       await ctx.respond(embed=embed, ephemeral=True)
       return
 
-    preview_badge_instance = None
-    if preview_prestige:
-      if not await is_prestige_valid(ctx, preview_prestige):
+    badge_instance = None
+    if prestige:
+      if not await is_prestige_valid(ctx, prestige):
         return
-      preview_prestige = int(preview_prestige)
+      prestige = int(prestige)
 
-      preview_badge_instance = await db_get_badge_instance_by_id(preview_badge)
-      if not preview_badge_instance:
+      badge_instance = await db_get_badge_instance_by_id(badge)
+      if not badge_instance:
         await ctx.respond(
           embed=discord.Embed(
             title="Invalid Preview Badge!",
-            description=f"You don't appear to have that Badge in your {PRESTIGE_TIERS[preview_prestige]} inventory!",
+            description=f"You don't appear to have that Badge in your {PRESTIGE_TIERS[prestige]} inventory!",
             color=discord.Color.red()
-          )
+          ),
+          ephemeral=True
         )
         return
 
@@ -451,7 +446,7 @@ class Crystals(commands.Cog):
       'Jazzy',
       'Defiant Jazz',
       'Smooth and Sultry',
-      'Bossanova',
+      'Bossa Nova',
       'Easy Listening',
       'Lo-Fi Hip Hop',
       'Chillwave',
@@ -484,10 +479,18 @@ class Crystals(commands.Cog):
           except Exception:
             pass
         self.buffers.clear()
-        await super().on_timeout()
+        try:
+          await super().on_timeout()
+        except discord.errors.NotFound as e:
+          # Workaround for current issue with timeout 404s
+          pass
 
     all_buffers = []
     page_groups = []
+
+    paginator_response = None
+    def get_paginator_response():
+      return paginator_response
 
     for crystal_rank in sorted(grouped):
       rarity_name = grouped[crystal_rank][0]['rarity_name']
@@ -503,11 +506,22 @@ class Crystals(commands.Cog):
           collapsed[type_id]['instance_count'] += 1
 
       sorted_crystals = sorted(collapsed.values(), key=lambda c: c['crystal_name'].lower())
-      crystal_rank_manifest_images = await generate_crystal_manifest_images(ctx.user, sorted_crystals, rarity_name, rarity_emoji, preview_badge=preview_badge_instance)
+      crystal_rank_manifest_images = await generate_crystal_manifest_images(
+        ctx.user, sorted_crystals, rarity_name, rarity_emoji,
+        preview_badge=badge_instance
+      )
 
       crystal_rank_pages = []
-      for buffer, filename in crystal_rank_manifest_images:
-        all_buffers.append(buffer)  # collect buffer for cleanup
+      for i, (buffer, filename) in enumerate(crystal_rank_manifest_images):
+        all_buffers.append(buffer)
+
+        # Select the 7 crystals for this specific page
+        page_crystals = sorted_crystals[i * 7:(i + 1) * 7]
+
+        view = None
+        if badge_instance:
+          view = AttachFromManifestView(page_crystals, badge_instance, user_id, get_paginator_response)
+
         crystal_rank_pages.append(
           pages.Page(
             embeds=[
@@ -518,7 +532,8 @@ class Crystals(commands.Cog):
             ],
             files=[
               discord.File(fp=buffer, filename=filename)
-            ]
+            ],
+            custom_view=view
           )
         )
 
@@ -539,13 +554,19 @@ class Crystals(commands.Cog):
       loop_pages=True,
       use_default_buttons=False,
       custom_buttons=[
-        pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, row=1),
-        pages.PaginatorButton("page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1),
-        pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, row=1),
+        pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, row=4),
+        pages.PaginatorButton("page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=4),
+        pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, row=4),
       ],
     )
-    await paginator.respond(ctx.interaction, ephemeral=True)
-    await pending_message.delete()
+    paginator_response = await paginator.respond(ctx.interaction, ephemeral=True)
+    await pending_message.edit(
+      embed=discord.Embed(
+        title="Manifest Displayed!",
+        description="Enjoi! 🚀",
+        color=discord.Color.dark_green()
+      )
+    )
 
 
   #    _____   __    __
@@ -596,7 +617,8 @@ class Crystals(commands.Cog):
           title="Invalid Selection!",
           description=f"You don't appear to be entering authorized Command options. Someone call the Dustbuster Club!",
           color=discord.Color.red()
-        )
+        ),
+        ephemeral=True
       )
       return
 
@@ -608,7 +630,8 @@ class Crystals(commands.Cog):
           title="Badge Not Owned!",
           description=f"You don't appear to have that Badge in your {PRESTIGE_TIERS[prestige]} inventory!",
           color=discord.Color.red()
-        )
+        ),
+        ephemeral=True
       )
       return
 
@@ -621,7 +644,8 @@ class Crystals(commands.Cog):
           title="Crystal Not Owned!",
           description=f"You don't appear to have that Crystal in your unattuned inventory.",
           color=discord.Color.red()
-        )
+        ),
+        ephemeral=True
       )
       return
 
@@ -636,7 +660,8 @@ class Crystals(commands.Cog):
           title="Whoops!",
           description=f"This Badge already has a {crystal_instance['crystal_name']} Crystal attuned to it!",
           color=discord.Color.red()
-        )
+        ),
+        ephemeral=True
       )
       return
 
@@ -696,7 +721,7 @@ class Crystals(commands.Cog):
           matching = next((c for c in badge_crystals if c['crystal_instance_id'] == crystal_instance['crystal_instance_id']), None)
           if matching:
             await db_set_harmonized_crystal(badge_instance['badge_instance_id'], matching['badge_crystal_id'])
-            embed_description += "\n\n`Crystallization Auto-Harmonize` is enabled so it has now been activated as well! (Note that you can change this behavior with `/settings` if so desired)"
+            embed_description += "\n\n-# `Crystallization Auto-Harmonize` is enabled so it has now been activated as well! (Note that you can change this behavior with `/settings` if so desired)"
 
         embed = discord.Embed(
           title='Crystal Attuned!',
@@ -788,7 +813,7 @@ class Crystals(commands.Cog):
         description=f"Deactivated **{prev_label}** on **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}).",
         color=discord.Color.green()
       )
-      await ctx.respond(embed=embed, ephemeral=True)  # ← This was missing!
+      await ctx.respond(embed=embed, ephemeral=True)
       return
 
     try:
@@ -901,3 +926,174 @@ class Crystals(commands.Cog):
 # /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |     \     /  |  \  ___/\     /
 # \____|__  (____  /___|  /__||__|  \___  >____  > |__|      \___/   |__|\___  >\/\_/
 #         \/     \/     \/              \/     \/                            \/
+class AttachFromManifestView(discord.ui.View):
+  def __init__(self, crystal_choices: list[dict], badge: dict, user_id: int, get_paginator_response):
+    super().__init__(timeout=300)
+    self.crystal_choices = crystal_choices  # List of 7 crystal TYPES on the page
+    self.badge = badge
+    self.user_id = user_id
+    self.get_paginator_response = get_paginator_response
+    self.selected_crystal_type_id = None
+
+    self.dropdown = discord.ui.Select(
+      placeholder="Select a Crystal to Attach",
+      options=[
+        discord.SelectOption(
+          label=f"{c['crystal_name']} (×{c['instance_count']})",
+          value=str(c['crystal_type_id']),
+          emoji=c.get('emoji')
+        )
+        for c in self.crystal_choices
+      ]
+    )
+    self.dropdown.callback = self.select_callback
+    self.add_item(self.dropdown)
+
+  async def select_callback(self, interaction: discord.Interaction):
+    self.selected_crystal_type_id = int(self.dropdown.values[0])
+    await interaction.response.defer()  # Avoid double interaction errors
+
+  @discord.ui.button(label="Attach", style=discord.ButtonStyle.green, row=2)
+  async def attach(self, button, interaction: discord.Interaction):
+    if not self.selected_crystal_type_id:
+      await interaction.response.send_message(
+        embed=discord.Embed(
+          title="Please select a crystal before clicking Attach.",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    # Validate ownership of an available instance
+    crystals = await db_get_unattuned_crystals_by_type(self.user_id, self.selected_crystal_type_id)
+    if not crystals:
+      await interaction.response.send_message(
+        embed=discord.Embed(
+          title="You no longer have any unattuned Crystals of that type available.",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
+
+    crystal_instance = crystals[0]  # Use the first available
+
+    # Launch confirmation dialog
+    await launch_attach_confirmation(interaction, self.badge, crystal_instance)
+    paginator_response = self.get_paginator_response()
+    try:
+      await paginator_response.edit(
+        embeds=[discord.Embed(
+          title=f"Attuning *{crystal_instance['crystal_name']}*!",
+          description="See below to Attach or Cancel.",
+          color=discord.Color.dark_green()
+        )],
+        attachments=[],
+        view=None
+      )
+    except discord.errors.NotFound:
+      pass
+
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    try:
+      if hasattr(self, "message"):
+        await self.message.edit(view=self)
+    except discord.errors.NotFound:
+      pass
+
+
+async def launch_attach_confirmation(interaction, badge_instance: dict, crystal_instance: dict):
+  user_id = interaction.user.id
+  prestige = badge_instance['prestige_level']
+
+  # Check again if the badge already has this type
+  already_attuned_type_ids = await db_get_attuned_crystal_type_ids(badge_instance['badge_instance_id'])
+  if crystal_instance['crystal_type_id'] in already_attuned_type_ids:
+    await interaction.response.send_message(
+      embed=discord.Embed(
+        title=f"This badge already has a {crystal_instance['crystal_name']} crystal attuned.",
+        color=discord.Color.red()
+      ),
+      ephemeral=True
+    )
+    return
+
+  logger.info(f"{interaction.user.display_name} is Attaching {crystal_instance['crystal_name']} from manifest to {badge_instance['badge_name']} [{PRESTIGE_TIERS[badge_instance['prestige_level']]}]")
+
+  discord_file, attachment_url = await generate_badge_preview(user_id, badge_instance, crystal=crystal_instance)
+
+  landing_embed = discord.Embed(
+    title="Crystal Attunement",
+    description=f"Are you sure you want to **attach** *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}) badge?\n"
+                "### ⚠️ THIS CANNOT BE UNDONE! ⚠️\n\n"
+                "-# You can have multiple crystals attached to a badge, but once an individual crystal is attuned to a badge it cannot be attached to a *different* badge!",
+    color=discord.Color.teal()
+  )
+  landing_embed.add_field(name="Rank", value=f"{crystal_instance['emoji']} {crystal_instance['rarity_name']}", inline=False)
+  landing_embed.add_field(name=crystal_instance['crystal_name'], value=crystal_instance['description'], inline=False)
+  landing_embed.set_image(url="https://i.imgur.com/Pu6H9ep.gif")
+
+  preview_embed = discord.Embed(
+    title="Attachment Preview",
+    description=f"Here's what **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}) would look like with *{crystal_instance['crystal_name']}* applied.",
+    color=discord.Color.teal()
+  )
+  preview_embed.set_image(url=attachment_url)
+  preview_embed.set_footer(text="Click Confirm to Attune this Crystal, or Cancel.")
+
+  class ConfirmCancelView(discord.ui.View):
+    def __init__(self):
+      super().__init__(timeout=240)
+
+    async def on_timeout(self):
+      for child in self.children:
+        child.disabled = True
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound:
+        pass
+
+    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
+    async def confirm(self, button, inner):
+      await attune_crystal_to_badge(crystal_instance['crystal_instance_id'], badge_instance['badge_instance_id'])
+
+      embed = discord.Embed(
+        title="Crystal Attuned!",
+        description=f"You have successfully attuned **{crystal_instance['crystal_name']}** to your **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}) Badge!",
+        color=discord.Color.green()
+      )
+      embed.set_image(url="https://i.imgur.com/lP883bg.gif")
+
+      user_data = await get_user(user_id)
+      if user_data.get('crystal_autoharmonize'):
+        crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
+        match = next((c for c in crystals if c['crystal_instance_id'] == crystal_instance['crystal_instance_id']), None)
+        if match:
+          await db_set_harmonized_crystal(badge_instance['badge_instance_id'], match['badge_crystal_id'])
+          embed.description += "\n\n-# `Crystallization Auto-Harmonize` is enabled so it has now been activated as well! (Note that you can change this behavior with `/settings` if so desired)"
+
+      await inner.response.edit_message(embed=embed, attachments=[], view=None)
+
+    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
+    async def cancel(self, button, inner):
+      await inner.response.edit_message(
+        embed=discord.Embed(
+          title="Canceled",
+          description="No changes made to your badge.",
+          color=discord.Color.orange()
+        ),
+        attachments=[],
+        view=None
+      )
+
+  view = ConfirmCancelView()
+  await interaction.response.send_message(
+    embeds=[landing_embed, preview_embed],
+    file=discord_file,
+    view=view,
+    ephemeral=True
+  )
+  view.message = await interaction.original_response()

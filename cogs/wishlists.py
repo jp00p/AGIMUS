@@ -1226,7 +1226,7 @@ class Wishlist(commands.Cog):
     await db_lock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
 
     # Re-fetch instance state
-    all_instances = await db_get_user_badge_instances(user_discord_id)
+    all_instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
 
     owned_tiers = {
       i['prestige_level']
@@ -1404,7 +1404,7 @@ class Wishlist(commands.Cog):
     await db_unlock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
 
     # Re-fetch instance state
-    all_instances = await db_get_user_badge_instances(user_discord_id)
+    all_instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
 
     owned_tiers = {
       i['prestige_level']

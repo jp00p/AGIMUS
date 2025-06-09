@@ -1270,7 +1270,7 @@ class Badges(commands.Cog):
       badge_info_id = badge['id']
 
       # Fetch all active instances the user owns
-      user_instances = await db_get_user_badge_instances(user_discord_id)
+      user_instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
 
       # Filter to this badge's instances
       matching_instances = [

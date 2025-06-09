@@ -783,6 +783,9 @@ class Tongo(commands.Cog):
 
       # Get wishlist at user's prestige level
       wants = await db_get_active_wants(user_id, prestige)
+      if len(wants) < MINIMUM_AVARICE_QUOTIENT:
+        continue
+
       for w in wants:
         key = (w['badge_info_id'], prestige)
         if (
