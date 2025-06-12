@@ -483,6 +483,11 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Solanogen", 1, "solanogen.png", "cyan_gradient", "Exotic compound from subspace realms. Don't get SCHISMD!"),
   ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days."),
   ("Latinum", 1, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
+  ("Boronite", 1, "boronite.png", "cerulean_tint", "Rare ore use in molecule synthesis. High-energy potential."),
+  ("Ryetalyn", 1, "ryetalyn.png", "crimson_purple_gradient", "The only known cure for Rigelian fever. Got a fever.. and the only cure is, Ryetalyn."),
+  ("Gallicite", 1, "gallicite.png", "teal_yellow_gradient", "Electrically reactive mineral, might be useful for shielding."),
+  ("Topaline", 1, "topaline.png", "blue_gold_gradient", "Found in abundance on Capella IV. Can be used to disrupt sens-oars."),
+  ("Zenite", 1, "zenite.png", "purple_silver_gradient", "Extracted from Ardana. Careful around the gas, might cause brain rot."),
 
   -- Uncommon Crystals (Border/Misc Effects)
   ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
@@ -520,6 +525,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Borg Nanocluster", 5, "borg_nanocluster.png", "borg_reconstruction", "A Collective collectable. Reconstructs whatever it touches (whether it wants to or not)."),
   ("Bajoran Orb", 5, "bajoran_orb.png", "celestial_temple", "A Tear of the Prophets. My Child!"),
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable."),
+  ('Photon Torpedo Core', 5, 'photon_torpedo_core.png', 'big_banger', "Matter/Anti-Matter in a magno-photon field. Wall to wall bangers!"),
 
   -- Unobtanium Crystals (Complex Animations + Coveted Designs)
   ("Bone Fragment", 6, "bone_fragment.png", "moopsy_swarm", "That's bone. Looks oddly drinkable.");

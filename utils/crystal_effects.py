@@ -1,4 +1,5 @@
 import asyncio
+import cv2
 import shutil
 import numpy as np
 import imageio.v3 as iio
@@ -235,6 +236,15 @@ def effect_purple_tint(img: Image.Image, badge: dict) -> Image.Image:
 def effect_greenmint_tint(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_tint(img, (100, 220, 180))  # Minty green
 
+@register_effect("white_tint")
+def effect_white_tint(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_tint(img, (255, 255, 255), opacity=0.40, glow_radius=6)  # Soft white
+
+@register_effect("cerulean_tint")
+def effect_cerulean_tint(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_tint(img, (60, 170, 255))  # Cerulean blue
+
+
 # Gradients
 @register_effect("crimson_gradient")
 def effect_crimson_gradient(img: Image.Image, badge: dict) -> Image.Image:
@@ -264,7 +274,23 @@ def effect_cyan_gradient(img: Image.Image, badge: dict) -> Image.Image:
 def effect_amber_gradient(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_gradient(img, (255, 140, 60))  # Amber-orange
 
+@register_effect("crimson_purple_gradient")
+def effect_crimson_pulse(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_two_tone_gradient(img, (255, 80, 60), (140, 60, 180))   # Red -> Purple
 
+@register_effect("teal_yellow_gradient")
+def effect_teal_yellow_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_two_tone_gradient(img, (60, 240, 200), (255, 240, 100)) # Teal -> Yellow
+
+@register_effect("blue_gold_gradient")
+def effect_blue_gold_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_two_tone_gradient(img, (20, 80, 240), (240, 200, 80))  # Blue -> Gold
+
+@register_effect("purple_silver_gradient")
+def effect_purple_silver_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_two_tone_gradient(img, (120, 70, 200), (200, 200, 200)) # Royal Purple -> Silver
+
+# Common Re-usuable Helpers
 def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: float = 0.40, glow_radius: int = 6) -> Image.Image:
   if base_img.mode != 'RGBA':
     base_img = base_img.convert('RGBA')
@@ -336,6 +362,41 @@ def _apply_gradient(img: Image.Image, color: tuple[int, int, int], hold_ratio: f
 
   gradient_masked = Image.composite(gradient, Image.new("RGBA", img.size, (0, 0, 0, 0)), alpha)
   result_image = Image.alpha_composite(img, gradient_masked)
+
+  return result_image
+
+def _apply_two_tone_gradient(
+  img: Image.Image,
+  top_color: tuple[int, int, int],
+  bottom_color: tuple[int, int, int]
+) -> Image.Image:
+  """
+  Applies a vertical two-color gradient across the entire badge shape.
+
+  Args:
+    img: RGBA badge image.
+    top_color: RGB tuple for the gradient start at the top.
+    bottom_color: RGB tuple for the gradient end at the bottom.
+
+  Returns:
+    Image with a red-to-purple (or any two-color) vertical gradient overlayed on visible pixels.
+  """
+  img = img.convert("RGBA")
+  width, height = img.size
+  alpha = img.getchannel("A")
+
+  gradient = Image.new("RGBA", img.size)
+  draw = ImageDraw.Draw(gradient)
+
+  for y in range(height):
+    t = y / (height - 1)
+    r = int(top_color[0] * (1 - t) + bottom_color[0] * t)
+    g = int(top_color[1] * (1 - t) + bottom_color[1] * t)
+    b = int(top_color[2] * (1 - t) + bottom_color[2] * t)
+    draw.line([(0, y), (width, y)], fill=(r, g, b, 180))  # Fixed semi-opacity
+
+  masked_gradient = Image.composite(gradient, Image.new("RGBA", img.size), alpha)
+  result_image = Image.alpha_composite(img, masked_gradient)
 
   return result_image
 
@@ -449,6 +510,22 @@ def effect_jevonite(img: Image.Image, badge: dict) -> Image.Image:
 @register_effect("archerite")
 def effect_archerite(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_gradient_silhouette_border(img, (180, 255, 140), (60, 60, 60))
+
+@register_effect("mirror_mirror")
+def effect_mirror_shimmer(img: Image.Image, badge: dict) -> Image.Image:
+  """
+  Uncommon-tier crystal effect.
+  Displays the badge as if it is mirrored on a reflective plane.
+  Left: rotated -60°, Right: horizontally flipped copy of same.
+  """
+  canvas_size = FRAME_SIZE
+  left = _apply_y_axis_rotation_perspective(img, angle_degrees=-60, canvas_size=canvas_size)
+  right = left.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+
+  canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+  canvas.paste(left, (-30, 0), left)
+  canvas.paste(right, (30, 0), right)
+  return canvas
 
 
 def _apply_gradient_silhouette_border(
@@ -592,6 +669,57 @@ def _generate_energy_ring_wrap(
       )
 
   return ring.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+
+
+def _apply_y_axis_rotation_perspective(
+  image: Image.Image,
+  angle_degrees: float,
+  scale: float = 0.8,
+  canvas_size: tuple[int, int] = (190, 190),
+  distance: int = 500
+) -> Image.Image:
+  """
+  Applies a simulated 3D Y-axis rotation to the image using OpenCV.
+  This mimics perspective foreshortening and preserves the image center.
+
+  Args:
+    image (PIL.Image): Input RGBA image.
+    angle_degrees (float): Y-axis rotation angle (positive = CCW from camera).
+    scale (float): Rescaling factor before applying rotation.
+    canvas_size (tuple): Final output canvas size.
+    distance (int): Virtual camera distance; affects perspective strength.
+
+  Returns:
+    PIL.Image: The rotated and composited image.
+  """
+  image = image.convert("RGBA")
+  original_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGBA2BGRA)
+  scaled_cv = cv2.resize(original_cv, (0, 0), fx=scale, fy=scale, interpolation=cv2.INTER_LANCZOS4)
+
+  canvas_w, canvas_h = canvas_size
+  canvas = np.zeros((canvas_h, canvas_w, 4), dtype=np.uint8)
+  x_offset = (canvas_w - scaled_cv.shape[1]) // 2
+  y_offset = (canvas_h - scaled_cv.shape[0]) // 2
+  canvas[y_offset:y_offset+scaled_cv.shape[0], x_offset:x_offset+scaled_cv.shape[1]] = scaled_cv
+
+  h, w = canvas.shape[:2]
+  cx, cy = w // 2, h // 2
+  src_pts = np.float32([[0, 0], [w, 0], [w, h], [0, h]])
+
+  theta = np.radians(angle_degrees)
+  half_w, half_h = w / 2, h / 2
+  cos_t, sin_t = np.cos(theta), np.sin(theta)
+  dst_pts = []
+  for x, y, z in [[-half_w, -half_h, 0], [half_w, -half_h, 0], [half_w, half_h, 0], [-half_w, half_h, 0]]:
+    x_r = x * cos_t + z * sin_t
+    z_r = -x * sin_t + z * cos_t + distance
+    x_proj = (x_r * distance / z_r) + cx
+    y_proj = (y * distance / z_r) + cy
+    dst_pts.append([x_proj, y_proj])
+
+  matrix = cv2.getPerspectiveTransform(src_pts, np.float32(dst_pts))
+  warped = cv2.warpPerspective(canvas, matrix, (w, h), borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
+  return Image.fromarray(cv2.cvtColor(warped, cv2.COLOR_BGRA2RGBA))
 
 
 # 8888888b.
