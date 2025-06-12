@@ -264,7 +264,7 @@ class Admin(commands.Cog):
 
     for game in games:
       game_id = game['id']
-      players = await db_get_all_game_player_ids(game_id)
+      players = await db_get_players_for_game(game_id)
       rewards = await db_get_rewards_for_game(game_id)
 
       try:

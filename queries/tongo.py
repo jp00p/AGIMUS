@@ -57,6 +57,7 @@ async def db_get_players_for_game(game_id: int):
   query = """
     SELECT user_discord_id FROM tongo_game_players
     WHERE game_id = %s
+    ORDER BY joined_at ASC
   """
   async with AgimusDB(dictionary=True) as db:
     await db.execute(query, (game_id,))
@@ -80,19 +81,6 @@ async def db_is_user_in_game(game_id: int, user_id: int) -> bool:
   async with AgimusDB(dictionary=True) as db:
     await db.execute(query, (game_id, user_id))
     return await db.fetchone() is not None
-
-
-async def db_get_all_game_player_ids(game_id: int) -> list[int]:
-  query = """
-    SELECT user_discord_id
-    FROM tongo_game_players
-    WHERE game_id = %s
-  """
-  async with AgimusDB(dictionary=True) as db:
-    await db.execute(query, (game_id,))
-    rows = await db.fetchall()
-    return [int(row['user_discord_id']) for row in rows]
-
 
 # --- Continuum ---
 async def db_add_to_continuum(source_instance_id: int, user_id: Optional[int]):

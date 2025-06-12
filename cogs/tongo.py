@@ -639,7 +639,8 @@ class Tongo(commands.Cog):
     ), ephemeral=True)
 
     # Get player and continuum state for embeds
-    player_ids = await db_get_all_game_player_ids(game['id'])
+    players = await db_get_players_for_game(game['id'])
+    player_ids = [p['user_discord_id'] for p in players]
     player_members = [await self.bot.current_guild.fetch_member(pid) for pid in player_ids]
     all_badges = await db_get_full_continuum_badges()
 
@@ -702,7 +703,7 @@ class Tongo(commands.Cog):
     # Potentially trigger a Consortium post-join
     if not self.zek_consortium_activated:
       all_players = await db_get_players_for_game(game['id'])
-      if len(all_players) >= 5 and random.random() < 0.25:
+      if len(all_players) >= 5 and random.random() < 0.2:
         consortium_result = await self._find_consortium_badge_to_add(game['id'])
         if consortium_result:
           badge_info_id, prestige_level = consortium_result
@@ -1387,7 +1388,7 @@ class Tongo(commands.Cog):
         if (b['badge_info_id'], b['prestige_level']) not in owned_pairs
       ]
 
-      if not wishlist_to_grant:
+      if not wishlist_to_grant or len(wishlist_to_grant) < MINIMUM_AVARICE_QUOTIENT / 3:
         continue
 
       random.shuffle(wishlist_to_grant)
