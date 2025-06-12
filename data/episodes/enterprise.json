@@ -1297,7 +1297,15 @@
             "episode": "05",
             "imdb": "tt0572218",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.06.09",
+                    "episode": "Velcro Check!",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-578-velcro-check-ent-s3e5/",
+                    "order": 578,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/8Dc6ta7GZT1IykFvm0uHEgC5lBf.jpg",
