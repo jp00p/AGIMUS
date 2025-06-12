@@ -33,8 +33,8 @@ f.close()
 
 
 TONGO_AUTO_CONFRONT_TIMEOUT = timedelta(hours=6)
-MINIMUM_LIQUIDATION_CONTINUUM = 12
-MINIMUM_LIQUIDATION_PLAYERS = 3
+MINIMUM_LIQUIDATION_CONTINUUM = 17
+MINIMUM_LIQUIDATION_PLAYERS = 5
 MINIMUM_AVARICE_QUOTIENT = 21
 DIVIDEND_REWARDS = {
   "buffer": {"cost": 3, "label": "Crystal Pattern Buffer"},
@@ -214,7 +214,7 @@ class TongoDividendsView(discord.ui.View):
     embed.set_image(url=attachment_url)
     embed.add_field(
       name=f"Zek's Favor Grants...",
-      value=f"* ✨ {reward_instance['badge_name']} ({PRESTIGE_TIERS[prestige]}) ✨",
+      value=f"* ✨ {reward_instance['badge_name']} [{PRESTIGE_TIERS[prestige]}] ✨",
       inline=False
     )
     embed.set_footer(
@@ -639,7 +639,8 @@ class Tongo(commands.Cog):
     ), ephemeral=True)
 
     # Get player and continuum state for embeds
-    player_ids = await db_get_all_game_player_ids(game['id'])
+    players = await db_get_players_for_game(game['id'])
+    player_ids = [p['user_discord_id'] for p in players]
     player_members = [await self.bot.current_guild.fetch_member(pid) for pid in player_ids]
     all_badges = await db_get_full_continuum_badges()
 
@@ -702,7 +703,7 @@ class Tongo(commands.Cog):
     # Potentially trigger a Consortium post-join
     if not self.zek_consortium_activated:
       all_players = await db_get_players_for_game(game['id'])
-      if len(all_players) >= 5 and random.random() < 0.25:
+      if len(all_players) >= 5 and random.random() < 0.2:
         consortium_result = await self._find_consortium_badge_to_add(game['id'])
         if consortium_result:
           badge_info_id, prestige_level = consortium_result
@@ -1047,6 +1048,7 @@ class Tongo(commands.Cog):
     try:
       players = await db_get_players_for_game(active_tongo['id'])
       player_ids = [int(p['user_discord_id']) for p in players]
+      liquidation_result = None
 
       # Build wishlist snapshots before any transfer take place
       wishlist_snapshots = {}
@@ -1123,7 +1125,7 @@ class Tongo(commands.Cog):
       # Send liquidation results embeds (if a liquidation did in fact occur)
       if liquidation_result:
         member = await self.bot.current_guild.fetch_member(liquidation_result['beneficiary_id'])
-        reward = liquidation_result['badge_to_grant']
+        reward = liquidation_result['beneficiary_reward']
         removed = liquidation_result['tongo_badges_to_remove']
 
         # Main embed
@@ -1359,15 +1361,14 @@ class Tongo(commands.Cog):
     reward_instance = await create_new_badge_instance(beneficiary_id, badge_info_id, event_type='liquidation_endowment')
     if not reward_instance:
       return None
+    liquidation_result['beneficiary_reward'] = reward_instance
+    await db_add_game_reward(game_id, beneficiary_id, reward_instance['badge_instance_id'])
 
     # Liquidate the selected badges
     for badge in liquidation_result['tongo_badges_to_remove']:
       await db_remove_from_continuum(badge['source_instance_id'])
       await liquidate_badge_instance(badge['source_instance_id'])
 
-    await db_add_game_reward(game_id, beneficiary_id, reward_instance['badge_instance_id'])
-
-    liquidation_result['reward_instance_id'] = reward_instance['badge_instance_id']
     return liquidation_result
 
 
@@ -1380,10 +1381,14 @@ class Tongo(commands.Cog):
       prestige = echelon_progress['current_prestige_tier'] if echelon_progress else 0
       active_wants = await db_get_active_wants(player_id, prestige)
 
-      inventory_filenames = set(b['badge_filename'] for b in await db_get_owned_badge_filenames(player_id, prestige=prestige))
-      wishlist_to_grant = [b for b in active_wants if b['badge_filename'] not in inventory_filenames]
+      inventory = await db_get_user_badge_instances(player_id, prestige=None)
+      owned_pairs = {(b['badge_info_id'], b['prestige_level']) for b in inventory}
+      wishlist_to_grant = [
+        b for b in active_wants
+        if (b['badge_info_id'], b['prestige_level']) not in owned_pairs
+      ]
 
-      if not wishlist_to_grant:
+      if not wishlist_to_grant or len(wishlist_to_grant) < MINIMUM_AVARICE_QUOTIENT / 3:
         continue
 
       random.shuffle(wishlist_to_grant)
