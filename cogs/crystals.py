@@ -670,7 +670,7 @@ class Crystals(commands.Cog):
 
     landing_embed = discord.Embed(
       title="Crystal Attunement",
-      description=f"Are you sure you want to **attach** *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}) badge?\n"
+      description=f"Are you sure you want to **attach** *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']}** [{PRESTIGE_TIERS[prestige]}] badge?\n"
                   "### ⚠️ THIS CANNOT BE UNDONE! ⚠️\n\n"
                   "-# You can have multiple crystals attached to a badge, but once an individual crystal is attuned to a badge it cannot be attached to a *different* badge!",
       color=discord.Color.teal()
@@ -681,7 +681,7 @@ class Crystals(commands.Cog):
 
     preview_embed = discord.Embed(
       title=f"Attachment Preview",
-      description=f"Here's what **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}) would look like with *{crystal_instance['crystal_name']}* applied to it *once Harmonized.*",
+      description=f"Here's what **{badge_instance['badge_name']}** [{PRESTIGE_TIERS[prestige]}] would look like with *{crystal_instance['crystal_name']}* applied to it *once Harmonized.*",
       color=discord.Color.teal()
     )
     preview_embed.set_footer(
@@ -711,7 +711,7 @@ class Crystals(commands.Cog):
       async def confirm(self, button, interaction):
         await attune_crystal_to_badge(crystal_instance['crystal_instance_id'], badge_instance['badge_instance_id'])
 
-        embed_description = f"You have successfully attuned **{crystal_instance['crystal_name']}** to your **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}) Badge!"
+        embed_description = f"You have successfully attuned **{crystal_instance['crystal_name']}** to your **{badge_instance['badge_name']}** [{PRESTIGE_TIERS[prestige]}] Badge!"
 
         user_data = await get_user(user_id)
         auto_harmonize_enabled = user_data.get('crystal_autoharmonize', False)
@@ -798,7 +798,7 @@ class Crystals(commands.Cog):
       if badge_instance.get('active_crystal_id') is None:
         embed = discord.Embed(
           title='Already Deactivated!',
-          description=f"No Crystal is currently harmonized to **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}).",
+          description=f"No Crystal is currently harmonized to **{badge_instance['badge_name']}** [{PRESTIGE_TIERS[prestige]}].",
           color=discord.Color.orange()
         )
         await ctx.respond(embed=embed, ephemeral=True)
@@ -810,7 +810,7 @@ class Crystals(commands.Cog):
       await db_set_harmonized_crystal(badge_instance['badge_instance_id'], None)
       embed = discord.Embed(
         title='Crystal Removed',
-        description=f"Deactivated **{prev_label}** on **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}).",
+        description=f"Deactivated **{prev_label}** on **{badge_instance['badge_name']}** [{PRESTIGE_TIERS[prestige]}].",
         color=discord.Color.green()
       )
       await ctx.respond(embed=embed, ephemeral=True)
@@ -848,7 +848,7 @@ class Crystals(commands.Cog):
     if badge_instance.get('active_crystal_id') == crystal_instance.get('crystal_instance_id'):
       embed = discord.Embed(
         title='Already Harmonized!',
-        description=f"**{crystal_instance['crystal_name']}** is already the harmonized Crystal on **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}).",
+        description=f"**{crystal_instance['crystal_name']}** is already the harmonized Crystal on **{badge_instance['badge_name']}** [{PRESTIGE_TIERS[prestige]}].",
         color=discord.Color.orange()
       )
       await ctx.respond(embed=embed, ephemeral=True)
@@ -859,7 +859,7 @@ class Crystals(commands.Cog):
 
     preview_embed = discord.Embed(
       title=f"Activation Preview",
-      description=f"Here's what **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}) would look like with *{crystal_instance['crystal_name']}* applied.",
+      description=f"Here's what **{badge_instance['badge_name']}** [{PRESTIGE_TIERS[prestige]}] would look like with *{crystal_instance['crystal_name']}* applied.",
       color=discord.Color.teal()
     )
     preview_embed.add_field(name=f"{crystal_instance['crystal_name']}", value=crystal_instance['description'], inline=False)
@@ -1027,7 +1027,7 @@ async def launch_attach_confirmation(interaction, badge_instance: dict, crystal_
 
   landing_embed = discord.Embed(
     title="Crystal Attunement",
-    description=f"Are you sure you want to **attach** *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}) badge?\n"
+    description=f"Are you sure you want to **attach** *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']}** [{PRESTIGE_TIERS[prestige]}] badge?\n"
                 "### ⚠️ THIS CANNOT BE UNDONE! ⚠️\n\n"
                 "-# You can have multiple crystals attached to a badge, but once an individual crystal is attuned to a badge it cannot be attached to a *different* badge!",
     color=discord.Color.teal()
@@ -1038,7 +1038,7 @@ async def launch_attach_confirmation(interaction, badge_instance: dict, crystal_
 
   preview_embed = discord.Embed(
     title="Attachment Preview",
-    description=f"Here's what **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}) would look like with *{crystal_instance['crystal_name']}* applied.",
+    description=f"Here's what **{badge_instance['badge_name']}** [{PRESTIGE_TIERS[prestige]}] would look like with *{crystal_instance['crystal_name']}* applied.",
     color=discord.Color.teal()
   )
   preview_embed.set_image(url=attachment_url)
@@ -1062,7 +1062,7 @@ async def launch_attach_confirmation(interaction, badge_instance: dict, crystal_
 
       embed = discord.Embed(
         title="Crystal Attuned!",
-        description=f"You have successfully attuned **{crystal_instance['crystal_name']}** to your **{badge_instance['badge_name']}** ({PRESTIGE_TIERS[prestige]}) Badge!",
+        description=f"You have successfully attuned **{crystal_instance['crystal_name']}** to your **{badge_instance['badge_name']}** [{PRESTIGE_TIERS[prestige]}] Badge!",
         color=discord.Color.green()
       )
       embed.set_image(url="https://i.imgur.com/lP883bg.gif")

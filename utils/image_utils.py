@@ -374,11 +374,11 @@ async def build_collection_canvas(user, prestige, page_data, all_data, page_numb
   total_rows = max(math.ceil(len(page_data) / 6) - 1, 0)
 
   if collection_type == "sets":
-    title_text = f"{user.display_name}'s Badge Set ({PRESTIGE_TIERS[prestige]})"
+    title_text = f"{user.display_name}'s Badge Set [{PRESTIGE_TIERS[prestige]}]"
     collected_count = len([b for b in all_data if b.get('in_user_collection')])
     total_count = len(all_data)
   else:
-    title_text = f"{user.display_name}'s Badge Collection ({PRESTIGE_TIERS[prestige]})"
+    title_text = f"{user.display_name}'s Badge Collection [{PRESTIGE_TIERS[prestige]}]"
     collected_count = len(all_data)
     total_count = await db_get_max_badge_count()
 
@@ -646,7 +646,7 @@ async def generate_badge_set_completion_images(user, prestige, badge_data, categ
 
 
 async def build_completion_canvas(user, prestige, max_badge_count, collected_count, category, page_number, total_pages, row_count, theme):
-  title_text = f"{user.display_name}'s Badge Completion ({PRESTIGE_TIERS[prestige]}): {category.replace('_', ' ').title()}"
+  title_text = f"{user.display_name}'s Badge Completion [{PRESTIGE_TIERS[prestige]}]: {category.replace('_', ' ').title()}"
 
   canvas = await build_display_canvas(
     user=user,

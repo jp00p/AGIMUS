@@ -202,13 +202,13 @@ class Badges(commands.Cog):
       )
       return
 
-    title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection ({PRESTIGE_TIERS[prestige]})"
+    title = f"{remove_emoji(ctx.author.display_name)}'s Badge Collection [{PRESTIGE_TIERS[prestige]}]"
     if collection_label:
       title += f": {collection_label}"
 
     if sortby is not None:
       if collection_label:
-        collection_label += f" ({PRESTIGE_TIERS[prestige]}) - {sortby.replace('_', ' ').title()}"
+        collection_label += f" [{PRESTIGE_TIERS[prestige]}] - {sortby.replace('_', ' ').title()}"
       title += f" - {sortby.replace('_', ' ').title()}"
 
     if color:
@@ -611,7 +611,7 @@ class Badges(commands.Cog):
     )
 
     embed = discord.Embed(
-      title=f"Badge Set Completion ({PRESTIGE_TIERS[prestige]}): {category_title}",
+      title=f"Badge Set Completion [{PRESTIGE_TIERS[prestige]}]: {category_title}",
       description=f"{ctx.author.mention}'s current {category_title} set completion progress",
       color=discord.Color.blurple()
     )
@@ -1146,7 +1146,7 @@ class Badges(commands.Cog):
 
     embed = discord.Embed(
       title=f"Badge Spotlight",
-      description=f"## {badge_instance['badge_name']} ({PRESTIGE_TIERS[prestige]})",
+      description=f"## {badge_instance['badge_name']} [{PRESTIGE_TIERS[prestige]}]",
       color=discord.Color.from_rgb(*main_color_tuple)
     )
     embed.set_image(url=f"attachment://{discord_file.filename}")
