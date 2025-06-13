@@ -512,11 +512,12 @@ def effect_archerite(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_gradient_silhouette_border(img, (180, 255, 140), (60, 60, 60))
 
 @register_effect("mirror_mirror")
-def effect_mirror_shimmer(img: Image.Image, badge: dict) -> Image.Image:
+def effect_mirror_mirror(img: Image.Image, badge: dict) -> Image.Image:
   """
   Uncommon-tier crystal effect.
   Displays the badge as if it is mirrored on a reflective plane.
-  Left: rotated -60°, Right: horizontally flipped copy of same.
+  Uses opencv to warp badge plane to perspective, then duplicates to face each other.
+  Left: rotated on z axis -60°, Right: horizontally flipped copy of same.
   """
   canvas_size = FRAME_SIZE
   left = _apply_y_axis_rotation_perspective(img, angle_degrees=-60, canvas_size=canvas_size)
@@ -1438,6 +1439,145 @@ def effect_rainbow_sheen(badge_image: Image.Image, badge: dict) -> list[Image.Im
 
   return frames
 
+
+@register_effect("fluidic_ripple")
+def effect_fluidic_ripple(base_img: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  "Water" Ripple effect: gentle, expanding concentric waves with subtle
+  chromatic aberration. Begins and ends static for looping.
+
+  Used for the Fluidic Droplet crystal (Legendary tier).
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+  """
+  center_x, center_y = FRAME_SIZE[0] // 2, FRAME_SIZE[1] // 2
+
+  # Resize and paste badge into canvas
+  badge = base_img.resize((180, 180), Image.Resampling.LANCZOS)
+  canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+  canvas.paste(badge, ((FRAME_SIZE[0] - 180) // 2, (FRAME_SIZE[1] - 180) // 2), badge)
+  badge_array = np.array(canvas)
+
+  # Precompute radial grid
+  Y, X = np.meshgrid(np.arange(FRAME_SIZE[1]), np.arange(FRAME_SIZE[0]), indexing="ij")
+  dx = X - center_x
+  dy = Y - center_y
+  r = np.sqrt(dx**2 + dy**2)
+
+  ripple_start_frames = [3, 10]
+  ripple_spacing = 6.0
+  ripple_wavelength = 20
+  ripple_amplitude = 1.1  # gentle but visible
+  num_frames = TOTAL_FRAMES
+
+  frames = []
+
+  for frame in range(num_frames):
+    displacement = np.zeros_like(r, dtype=np.float32)
+
+    for start in ripple_start_frames:
+      age = frame - start
+      if age < 0:
+        continue
+
+      ring_r = age * ripple_spacing
+      ring_band = r - ring_r
+
+      wave = np.sin((ring_band / ripple_wavelength) * 2 * np.pi)
+      envelope = np.exp(-(np.abs(ring_band) / (ripple_wavelength * 1.5))**2)
+      ripple = ripple_amplitude * wave * envelope
+      displacement += ripple
+
+    # Chromatic aberration offsets
+    norm_dx = dx / (r + 1e-6)
+    norm_dy = dy / (r + 1e-6)
+    shift_mag = displacement * 1.1
+
+    coords_base_y = Y + displacement
+    coords_base_x = X + displacement
+
+    coords_r_y = coords_base_y + shift_mag * norm_dy
+    coords_r_x = coords_base_x + shift_mag * norm_dx
+    coords_g_y = coords_base_y
+    coords_g_x = coords_base_x
+    coords_b_y = coords_base_y - shift_mag * norm_dy
+    coords_b_x = coords_base_x - shift_mag * norm_dx
+
+    coords_r = np.array([coords_r_y.flatten(), coords_r_x.flatten()])
+    coords_g = np.array([coords_g_y.flatten(), coords_g_x.flatten()])
+    coords_b = np.array([coords_b_y.flatten(), coords_b_x.flatten()])
+
+    r_channel = map_coordinates(badge_array[..., 0], coords_r, order=1, mode='reflect').reshape(FRAME_SIZE[::-1])
+    g_channel = map_coordinates(badge_array[..., 1], coords_g, order=1, mode='reflect').reshape(FRAME_SIZE[::-1])
+    b_channel = map_coordinates(badge_array[..., 2], coords_b, order=1, mode='reflect').reshape(FRAME_SIZE[::-1])
+    a_channel = map_coordinates(badge_array[..., 3], coords_g, order=1, mode='reflect').reshape(FRAME_SIZE[::-1])
+
+    final = np.stack([r_channel, g_channel, b_channel, a_channel], axis=-1).astype(np.uint8)
+    frames.append(Image.fromarray(final, "RGBA"))
+
+  return frames
+
+
+@register_effect("spin_tumble")
+def effect_spin_tumble(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  A full 3D spin with alternating diagonal tilt and clamped easing.
+  Tumbles gracefully without ever collapsing into an edge-on line.
+  """
+
+  def get_rotated_corners(angle_x_deg, angle_y_deg, w, h, d=400, depth=40):
+    angle_x = math.radians(angle_x_deg)
+    angle_y = math.radians(angle_y_deg)
+    corners_3d = [[-w / 2, -h / 2, 0], [w / 2, -h / 2, 0], [w / 2, h / 2, 0], [-w / 2, h / 2, 0]]
+    rotated = []
+    for x, y, z in corners_3d:
+      xz = x * math.cos(angle_y) + z * math.sin(angle_y)
+      zz = -x * math.sin(angle_y) + z * math.cos(angle_y)
+      yz = y * math.cos(angle_x) - zz * math.sin(angle_x)
+      zz = y * math.sin(angle_x) + zz * math.cos(angle_x)
+      rotated.append((xz, yz, zz))
+    cx, cy = w // 2, h // 2
+    return np.float32([
+      [cx + x * d / (d + z), cy + y * d / (d + z)]
+      for x, y, z in rotated
+    ])
+
+  def eased_clamped_t(i, total, margin=0.06):
+    raw_t = i / total
+    clamped_t = margin + (1 - 2 * margin) * raw_t
+    return -(math.cos(math.pi * clamped_t) - 1) / 2
+
+  frames = []
+  for i in range(TOTAL_FRAMES):
+    t = eased_clamped_t(i, TOTAL_FRAMES)
+
+    if t < 0.5:
+      spin = 360 * (t * 2)
+      tilt = 45 * math.sin(math.pi * t * 2)
+      scale = 1.0 - 0.18 * abs(math.sin(math.pi * t * 2))
+    else:
+      spin = 360 + 360 * ((t - 0.5) * 2)
+      tilt = -45 * math.sin(math.pi * (t - 0.5) * 2)
+      scale = 1.0 - 0.18 * abs(math.sin(math.pi * (t - 0.5) * 2))
+
+    scaled_size = int(FRAME_SIZE[0] * scale), int(FRAME_SIZE[1] * scale)
+    badge_scaled = badge_image.resize(scaled_size, Image.Resampling.LANCZOS)
+    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    offset = ((FRAME_SIZE[0] - scaled_size[0]) // 2, (FRAME_SIZE[1] - scaled_size[1]) // 2)
+    canvas.paste(badge_scaled, offset, badge_scaled)
+
+    src_quad = np.float32([[0, 0], [FRAME_SIZE[0], 0], [FRAME_SIZE[0], FRAME_SIZE[1]], [0, FRAME_SIZE[1]]])
+    dst_quad = get_rotated_corners(tilt, spin, FRAME_SIZE[0], FRAME_SIZE[1])
+    matrix = cv2.getPerspectiveTransform(src_quad, dst_quad)
+
+    badge_array = np.array(canvas)
+    warped = cv2.warpPerspective(cv2.cvtColor(badge_array, cv2.COLOR_RGBA2BGRA), matrix, FRAME_SIZE,
+                                 borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
+    frame = Image.fromarray(cv2.cvtColor(warped, cv2.COLOR_BGRA2RGBA))
+    frames.append(frame)
+
+  return frames
 
 #     ...     ..      ..                       s                   .
 #   x*8888x.:*8888: -"888:     ..             :8      .uef^"      @88>

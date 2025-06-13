@@ -500,6 +500,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ('Kironide', 2, 'kironide.png', 'kironide', 'A strange mineral that grants psionic abilities to those who ingest it. Mind-meldting!'),
   ('Jevonite', 2, 'jevonite.png', 'jevonite', 'A rare mineral stone said to be "breathtaking" in appearance. Used by early Cardassians to make beautiful artifacts.'),
   ('Archerite', 2, 'archerite.png', 'archerite', 'A fictitious mineral invented as a ruse by Shran. The role of Archerite was played by Jeffrey Combs in its few appearances.'),
+  ("M.T.D.", 2, "mtd.png", "mirror_mirror", "Multi-dimensional Transporter Device. Something to reflect upon..."),
 
   -- Rare Crystals (Backgrounds)
   ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in most systems. Handle with care."),
@@ -520,6 +521,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Triaxilation Node", 4, "triaxilation_node.png", "static_cascade", "Essential to subspace communications. Emits a pulsing cascade that resonates across signal channels."),
   ("Chroniton", 4, "chroniton.png", "temporal_flicker", "Time travel! Glitches in and out of this temporal frame."),
   ('Unity Prism', 4, 'unity_prism.png', 'rainbow_sheen', "A point of Pride! Emits gaydiation particles."),
+  ('Fluidic Droplet', 4, 'fluidic_droplet.png', 'fluidic_ripple', "An itty bit of Fluidic Space. Ripples through local reality."),
 
   -- Mythic Crystals (Prestige Animations)
   ("Borg Nanocluster", 5, "borg_nanocluster.png", "borg_reconstruction", "A Collective collectable. Reconstructs whatever it touches (whether it wants to or not)."),

@@ -50,16 +50,16 @@ async def db_get_user_badge_instances(
 
   where_sql = " AND ".join(where_clauses)
 
-  sort_sql = "ORDER BY b_i.badge_filename ASC"
+  sort_sql = "ORDER BY b_i.badge_name ASC"
   if sortby is not None:
     if sortby == 'date_ascending':
-      sort_sql = "ORDER BY b.last_transferred ASC, b_i.badge_filename ASC"
+      sort_sql = "ORDER BY b.last_transferred ASC, b_i.badge_name ASC"
     elif sortby == 'date_descending':
-      sort_sql = "ORDER BY b.last_transferred DESC, b_i.badge_filename ASC"
+      sort_sql = "ORDER BY b.last_transferred DESC, b_i.badge_name ASC"
     elif sortby == 'locked_first':
-      sort_sql = "ORDER BY b.locked ASC, b_i.badge_filename ASC"
+      sort_sql = "ORDER BY b.locked ASC, b_i.badge_name ASC"
     elif sortby == 'special_first':
-      sort_sql = "ORDER BY b_i.special ASC, b_i.badge_filename ASC"
+      sort_sql = "ORDER BY b_i.special ASC, b_i.badge_name ASC"
 
   async with AgimusDB(dictionary=True) as query:
     await query.execute(
@@ -183,6 +183,8 @@ async def db_get_owned_badge_filenames(user_id: int, prestige: int | None = None
     sql += " AND b.prestige_level = %s"
     params.append(prestige)
 
+  sql += " ORDER BY b_i.badge_name ASC"
+
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, tuple(params))
     return await db.fetchall()
@@ -274,7 +276,7 @@ async def db_get_unlocked_and_unattuned_badge_instances(user_id: int, prestige: 
         SELECT badge_instance_id
         FROM badge_crystals
       )
-    ORDER BY b_i.badge_filename ASC
+    ORDER BY b_i.badge_name ASC
   """
 
   async with AgimusDB(dictionary=True) as db:

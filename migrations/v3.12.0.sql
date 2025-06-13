@@ -6,5 +6,10 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 ("Gallicite", 1, "gallicite.png", "teal_yellow_gradient", "Electrically reactive mineral, might be useful for shielding."),
 ("Topaline", 1, "topaline.png", "blue_gold_gradient", "Found in abundance on Capella IV. Can be used to disrupt sens-oars."),
 ("Zenite", 1, "zenite.png", "purple_silver_gradient", "Extracted from Ardana. Careful around the gas, might cause brain rot."),
+-- Uncommon
+("M.T.D.", 2, "mtd.png", "mirror_mirror", "Multi-dimensional Transporter Device. Something to reflect upon..."),
+-- Legendary
+('Fluidic Droplet', 4, 'fluidic_droplet.png', 'fluidic_ripple', "An itty bit of Fluidic Space. Ripples through local reality."),
+('Inertial Compensator', 4, 'inertial_compensator.png', 'spin_tumble', "Provides stabilization at high warp. Looks a bit damaged though..."),
 -- Mythic
 ('Photon Torpedo Core', 5, 'photon_torpedo_core.png', 'big_banger', "Matter/Anti-Matter in a magno-photon field. Wall to wall bangers!");
