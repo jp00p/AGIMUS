@@ -266,33 +266,6 @@ CREATE TABLE IF NOT EXISTS badge_tags (
   tag_name varchar(24) NOT NULL,
   PRIMARY KEY (id)
 );
-CREATE TABLE badge_tags_associations (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  badge_tags_id INT NOT NULL,
-  badge_instance_id INT NOT NULL,
-  CONSTRAINT fk_tags_to_tags
-    FOREIGN KEY (badge_tags_id)
-    REFERENCES badge_tags(id)
-    ON DELETE CASCADE,
-  CONSTRAINT fk_tags_to_instances
-    FOREIGN KEY (badge_instance_id)
-    REFERENCES badge_instances(id)
-    ON DELETE CASCADE,
-  UNIQUE KEY unique_tag_per_instance (badge_tags_id, badge_instance_id)
-);
-CREATE TABLE IF NOT EXISTS tags_carousel_position (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_discord_id VARCHAR(64) NOT NULL,
-  badge_instance_id INT NOT NULL,
-  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_user (user_discord_id),
-  UNIQUE KEY uq_user_instance (user_discord_id, badge_instance_id),
-  KEY idx_instance (badge_instance_id),
-  CONSTRAINT fk_carousel_instance
-    FOREIGN KEY (badge_instance_id)
-    REFERENCES badge_instances(id)
-    ON DELETE CASCADE
-);
 CREATE TABLE IF NOT EXISTS wishlist_dismissals (
   id int(11) NOT NULL AUTO_INCREMENT,
   user_discord_id varchar(64) NOT NULL,
@@ -580,6 +553,34 @@ CREATE TABLE IF NOT EXISTS badge_instances (
   FOREIGN KEY (active_crystal_id) REFERENCES crystal_instances(id) ON DELETE SET NULL
 );
 
+CREATE TABLE badge_tags_associations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  badge_tags_id INT NOT NULL,
+  badge_instance_id INT NOT NULL,
+  CONSTRAINT fk_tags_to_tags
+    FOREIGN KEY (badge_tags_id)
+    REFERENCES badge_tags(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_tags_to_instances
+    FOREIGN KEY (badge_instance_id)
+    REFERENCES badge_instances(id)
+    ON DELETE CASCADE,
+  UNIQUE KEY unique_tag_per_instance (badge_tags_id, badge_instance_id)
+);
+CREATE TABLE IF NOT EXISTS tags_carousel_position (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_discord_id VARCHAR(64) NOT NULL,
+  badge_instance_id INT NOT NULL,
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_user (user_discord_id),
+  UNIQUE KEY uq_user_instance (user_discord_id, badge_instance_id),
+  KEY idx_instance (badge_instance_id),
+  CONSTRAINT fk_carousel_instance
+    FOREIGN KEY (badge_instance_id)
+    REFERENCES badge_instances(id)
+    ON DELETE CASCADE
+);
+
 -- Badge Crystals (Many to One)
 CREATE TABLE IF NOT EXISTS badge_crystals (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -790,9 +791,8 @@ CREATE TABLE IF NOT EXISTS server_settings (
 );
 
 -- Ensure a row exists
-INSERT INTO server_settings (id, double_xp)
-VALUES (1, FALSE)
-ON DUPLICATE KEY UPDATE id = id;
+INSERT IGNORE INTO server_settings (id, bonus_xp_enabled)
+VALUES (1, FALSE);
 
 -- Triggers
 DELIMITER $$
@@ -804,4 +804,4 @@ BEGIN
     SET NEW.last_transferred = CURRENT_TIMESTAMP;
   END IF;
 END$$
-DELIMITER;
+DELIMITER ;
