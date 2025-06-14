@@ -9,6 +9,7 @@ from collections import namedtuple
 from emoji import EMOJI_DATA
 from functools import partial
 from pathlib import Path
+import regex
 
 from common import *
 
