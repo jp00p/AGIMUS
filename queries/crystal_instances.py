@@ -334,6 +334,17 @@ async def db_get_available_crystal_types():
     await db.execute(sql)
     return await db.fetchall()
 
+async def db_get_crystal_by_type_id(crystal_type_id: int) -> dict | None:
+  sql = """
+    SELECT ct.*, cr.name AS rarity_name, cr.emoji
+    FROM crystal_types ct
+    JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
+    WHERE ct.id = %s
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (crystal_type_id,))
+    return await db.fetchone()
+
 # Attunement / Harmonization Queries
 async def db_attune_crystal_to_badge_instance(instance_id: int, crystal_name: str = None):
   if not crystal_name:

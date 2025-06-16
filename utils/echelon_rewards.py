@@ -94,7 +94,7 @@ async def select_badge_for_level_up(member: discord.Member) -> tuple[int, int]:
   total_count = len(full_badge_ids)
 
   async def get_owned_ids_at_prestige(level: int) -> set[int]:
-    instances = await db_get_user_badge_instances(user_discord_id, prestige=level)
+    instances = await db_get_user_badge_instances(user_discord_id, prestige=level, special=False)
     return {b['badge_info_id'] for b in instances}
 
   current_prestige = await get_user_prestige_level(member)

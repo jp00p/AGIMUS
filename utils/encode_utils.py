@@ -36,6 +36,7 @@ async def encode_webp(frames: list[Image.Image], fps: int = 12) -> io.BytesIO:
   loop = asyncio.get_running_loop()
   def _build_raw_rgb():
     return b''.join(f.convert("RGBA").tobytes() for f in frames)
+
   raw_rgb = await loop.run_in_executor(THREAD_POOL, _build_raw_rgb)
 
   with tempfile.NamedTemporaryFile(suffix=".webp", delete=False) as temp_outfile:

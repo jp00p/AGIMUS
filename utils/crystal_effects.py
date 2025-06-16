@@ -1,4 +1,5 @@
 import asyncio
+import cv2
 import shutil
 import numpy as np
 import imageio.v3 as iio
@@ -7,6 +8,7 @@ from common import *
 
 from pathlib import Path
 from scipy.ndimage import map_coordinates, binary_dilation, gaussian_filter
+from scipy.interpolate import interp1d
 
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
 
@@ -166,13 +168,16 @@ def save_cached_effect_image(image: Image.Image | list[Image.Image], effect: str
 
     # Ensure uniform RGBA frames
     converted = [np.array(f.convert("RGBA")) for f in image]
+    # Add tiny invisible variations to prevent frame de-duplication... FFS.
+    for i in range(len(converted)):
+      converted[i][0, 0, 0] ^= (i % 2)
 
     # Save with correct format string
     iio.imwrite(
       path,
       converted,
       plugin="pillow",
-      format="PNG",  # <== This is correct
+      format="PNG",
       duration=int(1000 / 12),
       loop=0
     )
@@ -200,6 +205,26 @@ def delete_replicator_animations_cache():
   if cache_directory.exists():
     shutil.rmtree(cache_directory)
 
+
+# Effect Utils
+def add_badge_shadow(base: Image.Image, badge_img: Image.Image, offset: tuple[int, int]) -> Image.Image:
+  """
+  Applies a soft drop-shadow behind the badge image before compositing.
+
+  Args:
+    base: The RGBA background image to draw the shadow on.
+    badge_img: The RGBA badge image (with transparency).
+    offset: Tuple (x, y) position where the badge will be placed.
+
+  Returns:
+    An RGBA image with the shadow composited underneath the badge.
+  """
+  shadow = Image.new("RGBA", base.size, (0, 0, 0, 0))
+  badge_alpha = badge_img.getchannel("A")
+  shadow_layer = Image.new("RGBA", badge_img.size, (0, 0, 0, 180))  # shadow color
+  shadow.paste(shadow_layer, (offset[0] + 4, offset[1] + 4), mask=badge_alpha)
+  shadow_blurred = shadow.filter(ImageFilter.GaussianBlur(radius=3))
+  return Image.alpha_composite(base, shadow_blurred)
 
 #  .d8888b.
 # d88P  Y88b
@@ -235,6 +260,15 @@ def effect_purple_tint(img: Image.Image, badge: dict) -> Image.Image:
 def effect_greenmint_tint(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_tint(img, (100, 220, 180))  # Minty green
 
+@register_effect("white_tint")
+def effect_white_tint(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_tint(img, (255, 255, 255), opacity=0.40, glow_radius=6)  # Soft white
+
+@register_effect("cerulean_tint")
+def effect_cerulean_tint(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_tint(img, (60, 170, 255))  # Cerulean blue
+
+
 # Gradients
 @register_effect("crimson_gradient")
 def effect_crimson_gradient(img: Image.Image, badge: dict) -> Image.Image:
@@ -264,7 +298,23 @@ def effect_cyan_gradient(img: Image.Image, badge: dict) -> Image.Image:
 def effect_amber_gradient(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_gradient(img, (255, 140, 60))  # Amber-orange
 
+@register_effect("crimson_purple_gradient")
+def effect_crimson_pulse(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_two_tone_gradient(img, (255, 80, 60), (140, 60, 180))   # Red -> Purple
 
+@register_effect("teal_yellow_gradient")
+def effect_teal_yellow_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_two_tone_gradient(img, (60, 240, 200), (255, 240, 100)) # Teal -> Yellow
+
+@register_effect("blue_gold_gradient")
+def effect_blue_gold_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_two_tone_gradient(img, (20, 80, 240), (240, 200, 80))  # Blue -> Gold
+
+@register_effect("purple_silver_gradient")
+def effect_purple_silver_gradient(img: Image.Image, badge: dict) -> Image.Image:
+  return _apply_two_tone_gradient(img, (120, 70, 200), (200, 200, 200)) # Royal Purple -> Silver
+
+# Common Re-usuable Helpers
 def _apply_tint(base_img: Image.Image, color: tuple[int, int, int], opacity: float = 0.40, glow_radius: int = 6) -> Image.Image:
   if base_img.mode != 'RGBA':
     base_img = base_img.convert('RGBA')
@@ -339,6 +389,41 @@ def _apply_gradient(img: Image.Image, color: tuple[int, int, int], hold_ratio: f
 
   return result_image
 
+def _apply_two_tone_gradient(
+  img: Image.Image,
+  top_color: tuple[int, int, int],
+  bottom_color: tuple[int, int, int]
+) -> Image.Image:
+  """
+  Applies a vertical two-color gradient across the entire badge shape.
+
+  Args:
+    img: RGBA badge image.
+    top_color: RGB tuple for the gradient start at the top.
+    bottom_color: RGB tuple for the gradient end at the bottom.
+
+  Returns:
+    Image with a red-to-purple (or any two-color) vertical gradient overlayed on visible pixels.
+  """
+  img = img.convert("RGBA")
+  width, height = img.size
+  alpha = img.getchannel("A")
+
+  gradient = Image.new("RGBA", img.size)
+  draw = ImageDraw.Draw(gradient)
+
+  for y in range(height):
+    t = y / (height - 1)
+    r = int(top_color[0] * (1 - t) + bottom_color[0] * t)
+    g = int(top_color[1] * (1 - t) + bottom_color[1] * t)
+    b = int(top_color[2] * (1 - t) + bottom_color[2] * t)
+    draw.line([(0, y), (width, y)], fill=(r, g, b, 180))  # Fixed semi-opacity
+
+  masked_gradient = Image.composite(gradient, Image.new("RGBA", img.size), alpha)
+  result_image = Image.alpha_composite(img, masked_gradient)
+
+  return result_image
+
 
 # Special Tints
 @register_effect("latinum")
@@ -388,6 +473,64 @@ def effect_latinum(badge_image: Image.Image, badge: dict) -> Image.Image:
   final = Image.alpha_composite(base_with_glow, shimmer_masked)
 
   return final
+
+@register_effect("hq_copper")
+def effect_hq_copper(img: Image.Image, badge: dict) -> Image.Image:
+  """
+  Applies a copper shimmer tint with a randomized splotchy mask that creates
+  gaps in the metallic effect, revealing parts of the original badge.
+
+  Used for the High Quality Copper crystal (Common Tier).
+  """
+  import numpy as np
+  from PIL import ImageDraw, ImageFilter, ImageChops, ImageEnhance
+  rng = np.random.default_rng()
+
+  img = img.convert("RGBA")
+  alpha = img.split()[-1]
+  width, height = img.size
+
+  # Copper shimmer base (same structure as latinum)
+  tint_color = (210, 120, 60)
+  center = (210, 120, 60)
+  edge = (100, 60, 30)
+
+  tint = Image.new("RGBA", img.size, tint_color + (int(255 * 0.35),))
+  tint_masked = Image.composite(tint, Image.new("RGBA", img.size, (0, 0, 0, 0)), alpha)
+  img_tinted = Image.alpha_composite(img, tint_masked)
+
+  gradient = Image.new("RGBA", img.size)
+  draw = ImageDraw.Draw(gradient)
+  band_ratio = 0.1875
+  for y in range(height):
+    dist = abs((y - height // 2) / (height / 2)) / band_ratio
+    dist = min(dist, 1.0)
+    r = int(center[0] * (1 - dist) + edge[0] * dist)
+    g = int(center[1] * (1 - dist) + edge[1] * dist)
+    b = int(center[2] * (1 - dist) + edge[2] * dist)
+    draw.line([(0, y), (width, y)], fill=(r, g, b, 255))
+  r, g, b, a = gradient.split()
+  a = a.point(lambda p: int(p * 0.4))
+  shimmer = Image.merge("RGBA", (r, g, b, a))
+  shimmer = Image.composite(shimmer, Image.new("RGBA", img.size, (0, 0, 0, 0)), alpha)
+
+  glow = shimmer.filter(ImageFilter.GaussianBlur(radius=8))
+  glow = ImageEnhance.Brightness(glow).enhance(1.92)
+  glow = Image.composite(glow, Image.new("RGBA", img.size, (0, 0, 0, 0)), alpha)
+
+  base_with_glow = Image.alpha_composite(glow, img_tinted)
+  copper_layer = Image.alpha_composite(base_with_glow, shimmer)
+
+  # Random splotchy mask
+  noise = rng.random((height, width))
+  noise /= noise.max()
+  noise_img = Image.fromarray((noise * 255).astype(np.uint8))
+  blurred = noise_img.filter(ImageFilter.GaussianBlur(radius=2))
+  mask = blurred.point(lambda p: 255 if p < 135 else 0)
+  mask = ImageChops.invert(mask)
+
+  # Composite with splotchy holes
+  return Image.composite(img, copper_layer, mask)
 
 
 # 888     888
@@ -449,6 +592,83 @@ def effect_jevonite(img: Image.Image, badge: dict) -> Image.Image:
 @register_effect("archerite")
 def effect_archerite(img: Image.Image, badge: dict) -> Image.Image:
   return _apply_gradient_silhouette_border(img, (180, 255, 140), (60, 60, 60))
+
+@register_effect("mirror_mirror")
+def effect_mirror_mirror(img: Image.Image, badge: dict) -> Image.Image:
+  """
+  Displays the badge as if it is mirrored on a reflective plane.
+  Uses opencv to warp badge plane to perspective, then duplicates to face each other.
+  Left: rotated on z axis -60°, Right: horizontally flipped copy of same.
+
+  Used for the M.T.D. Crystal (Uncommon Tier)
+  """
+  canvas_size = FRAME_SIZE
+  left = _apply_y_axis_rotation_perspective(img, angle_degrees=-60, canvas_size=canvas_size)
+  right = left.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+
+  canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+  canvas.paste(left, (-30, 0), left)
+  canvas.paste(right, (30, 0), right)
+  return canvas
+
+@register_effect("neutral_glow")
+def effect_neutral_glow(img: Image.Image, badge: dict) -> Image.Image:
+  """
+  Drastically darkens the badge and adds a subtle, deep blue ethereal glow from behind.
+
+  Used for the Neutronium Soup Crystal (Uncommon Tier).
+  """
+  img = img.convert("RGBA")
+
+  # Darken the badge
+  darkened = ImageEnhance.Brightness(img).enhance(0.25)
+
+  # Generate the glow from the alpha mask
+  alpha = darkened.split()[-1]
+  glow_mask = alpha.filter(ImageFilter.GaussianBlur(radius=12))
+  enhanced_glow = glow_mask.point(lambda a: min(255, int(a * 1.35)))
+
+  # Create glow layer in deep blue
+  glow_color = (80, 120, 255)
+  glow_layer = Image.new("RGBA", img.size, glow_color + (0,))
+  glow_layer.putalpha(enhanced_glow)
+
+  # Composite glow behind dark badge
+  background = Image.new("RGBA", img.size, (0, 0, 0, 0))
+  background = Image.alpha_composite(background, glow_layer)
+  final = Image.alpha_composite(background, darkened)
+
+  return final
+
+@register_effect("cyan_hex_glow")
+def effect_cyan_hex_glow(img: Image.Image, badge: dict) -> Image.Image:
+  """
+  Applies a cyan hex-grid overlay image and wraps it with an intense outer glow,
+  giving the appearance of a badge under a sci-fi force field.
+
+  Used for the Hexaferrite Crystal (Uncommon Tier).
+  """
+
+  # Load hex grid overlay
+  overlay_path = "images/crystal_effects/overlays/cyan_hex.png"
+  overlay = Image.open(overlay_path).convert("RGBA").resize(img.size, Image.Resampling.LANCZOS)
+
+  # Mask to badge shape
+  alpha = img.split()[-1]
+  overlay_masked = Image.composite(overlay, Image.new("RGBA", img.size, (0, 0, 0, 0)), alpha)
+
+  # Glow layer
+  glow_color = (0, 200, 220)
+  glow_mask = overlay_masked.split()[-1].filter(ImageFilter.GaussianBlur(radius=10))
+  enhanced_glow = glow_mask.point(lambda a: min(255, int(a * 1.7)))
+  glow_layer = Image.new("RGBA", img.size, glow_color + (0,))
+  glow_layer.putalpha(enhanced_glow)
+
+  # Composite: badge + glow + overlay
+  base_with_glow = Image.alpha_composite(img, glow_layer)
+  final = Image.alpha_composite(base_with_glow, overlay_masked)
+
+  return final
 
 
 def _apply_gradient_silhouette_border(
@@ -592,6 +812,57 @@ def _generate_energy_ring_wrap(
       )
 
   return ring.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+
+
+def _apply_y_axis_rotation_perspective(
+  image: Image.Image,
+  angle_degrees: float,
+  scale: float = 0.8,
+  canvas_size: tuple[int, int] = (190, 190),
+  distance: int = 500
+) -> Image.Image:
+  """
+  Applies a simulated 3D Y-axis rotation to the image using OpenCV.
+  This mimics perspective foreshortening and preserves the image center.
+
+  Args:
+    image (PIL.Image): Input RGBA image.
+    angle_degrees (float): Y-axis rotation angle (positive = CCW from camera).
+    scale (float): Rescaling factor before applying rotation.
+    canvas_size (tuple): Final output canvas size.
+    distance (int): Virtual camera distance; affects perspective strength.
+
+  Returns:
+    PIL.Image: The rotated and composited image.
+  """
+  image = image.convert("RGBA")
+  original_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGBA2BGRA)
+  scaled_cv = cv2.resize(original_cv, (0, 0), fx=scale, fy=scale, interpolation=cv2.INTER_LANCZOS4)
+
+  canvas_w, canvas_h = canvas_size
+  canvas = np.zeros((canvas_h, canvas_w, 4), dtype=np.uint8)
+  x_offset = (canvas_w - scaled_cv.shape[1]) // 2
+  y_offset = (canvas_h - scaled_cv.shape[0]) // 2
+  canvas[y_offset:y_offset+scaled_cv.shape[0], x_offset:x_offset+scaled_cv.shape[1]] = scaled_cv
+
+  h, w = canvas.shape[:2]
+  cx, cy = w // 2, h // 2
+  src_pts = np.float32([[0, 0], [w, 0], [w, h], [0, h]])
+
+  theta = np.radians(angle_degrees)
+  half_w, half_h = w / 2, h / 2
+  cos_t, sin_t = np.cos(theta), np.sin(theta)
+  dst_pts = []
+  for x, y, z in [[-half_w, -half_h, 0], [half_w, -half_h, 0], [half_w, half_h, 0], [-half_w, half_h, 0]]:
+    x_r = x * cos_t + z * sin_t
+    z_r = -x * sin_t + z * cos_t + distance
+    x_proj = (x_r * distance / z_r) + cx
+    y_proj = (y * distance / z_r) + cy
+    dst_pts.append([x_proj, y_proj])
+
+  matrix = cv2.getPerspectiveTransform(src_pts, np.float32(dst_pts))
+  warped = cv2.warpPerspective(canvas, matrix, (w, h), borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
+  return Image.fromarray(cv2.cvtColor(warped, cv2.COLOR_BGRA2RGBA))
 
 
 # 8888888b.
@@ -816,11 +1087,12 @@ def effect_alabama_rocks(badge_image: Image.Image, badge: dict) -> Image.Image:
 
 
 @register_effect("transparency_starfield")
-def effect_transparent_aluminum(badge_image: Image.Image, badge: dict) -> Image.Image:
+def effect_transparency_starfield(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
-  Transparent Aluminum effect with a diagonal shine on transparent background.
   Reduces badge opacity to 70% and overlays a soft diagonal highlight across the badge shape.
-  Then just throw it through apply_rare_background_and_border() with a starfield image so you can see the stars through it?
+  Then just throw it through apply_rare_background_and_border() with a starfield image so you can see the stars through it.
+
+  Used for the Transparent Aluminum crystal (Rare Tier)
   """
   badge_image = badge_image.convert("RGBA")
   width, height = badge_image.size
@@ -853,7 +1125,7 @@ def effect_transparent_aluminum(badge_image: Image.Image, badge: dict) -> Image.
   shiny_translucent_badge = Image.alpha_composite(transparent_badge, masked_shine)
 
   # Composite over starfield background with border
-  bg_path = f"{RARE_BACKGROUNDS_DIR}/transparency_starfield.png"
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/starfield.png"
   result = apply_rare_background_and_border(
     shiny_translucent_badge,
     bg_path,
@@ -868,7 +1140,7 @@ def effect_transparent_aluminum(badge_image: Image.Image, badge: dict) -> Image.
 def effect_guardian_of_forever(badge_image: Image.Image, badge: dict) -> Image.Image:
   """
   Guardian of the Edge of Forever Background.
-  Used for the Aeon Shard crystal (Rare tier).
+  Used for the Guardian Stone crystal (Rare tier).
   """
   bg_path = f"{RARE_BACKGROUNDS_DIR}/guardian_of_forever.png"
   result = apply_rare_background_and_border(
@@ -876,6 +1148,54 @@ def effect_guardian_of_forever(badge_image: Image.Image, badge: dict) -> Image.I
     bg_path,
     border_gradient_top_left=(118, 222, 191),
     border_gradient_bottom_right=(176, 112, 220)
+  )
+  return result
+
+
+@register_effect("earth_orbit")
+def effect_earth_orbit(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Earth with Enterprise in Orbit Background.
+  Used for the Sector 001 Beacon crystal (Rare tier).
+  """
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/earth_orbit.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(80, 160, 255),
+    border_gradient_bottom_right=(160, 255, 160)
+  )
+  return result
+
+
+@register_effect("wormhole_interior")
+def effect_wormhole_interior(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  The weird crap inside the Bajoran Wormhole Background.
+  Used for the Denorios Plasma crystal (Rare tier).
+  """
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/wormhole_interior.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(160, 130, 255),
+    border_gradient_bottom_right=(255, 80, 150)
+  )
+  return result
+
+
+@register_effect("transwarp_streaks")
+def effect_transwarp_streaks(badge_image: Image.Image, badge: dict) -> Image.Image:
+  """
+  Green "Hyperspace" Streaks Background.
+  Used for the Transwarp Circuitry crystal (Rare tier).
+  """
+  bg_path = f"{RARE_BACKGROUNDS_DIR}/transwarp_streaks.png"
+  result = apply_rare_background_and_border(
+    badge_image,
+    bg_path,
+    border_gradient_top_left=(51, 255, 153),
+    border_gradient_bottom_right=(0, 51, 34)
   )
   return result
 
@@ -1311,6 +1631,243 @@ def effect_rainbow_sheen(badge_image: Image.Image, badge: dict) -> list[Image.Im
   return frames
 
 
+@register_effect("fluidic_ripple")
+def effect_fluidic_ripple(base_img: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  "Water" Ripple effect: gentle, expanding concentric waves with subtle
+  chromatic aberration. Begins and ends static for looping.
+
+  Used for the Fluidic Droplet crystal (Legendary tier).
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+  """
+  center_x, center_y = FRAME_SIZE[0] // 2, FRAME_SIZE[1] // 2
+
+  # Resize and paste badge into canvas
+  badge = base_img.resize((180, 180), Image.Resampling.LANCZOS)
+  canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+  canvas.paste(badge, ((FRAME_SIZE[0] - 180) // 2, (FRAME_SIZE[1] - 180) // 2), badge)
+  badge_array = np.array(canvas)
+
+  # Precompute radial grid
+  Y, X = np.meshgrid(np.arange(FRAME_SIZE[1]), np.arange(FRAME_SIZE[0]), indexing="ij")
+  dx = X - center_x
+  dy = Y - center_y
+  r = np.sqrt(dx**2 + dy**2)
+
+  ripple_start_frames = [3, 10]
+  ripple_spacing = 6.0
+  ripple_wavelength = 20
+  ripple_amplitude = 1.1  # gentle but visible
+  num_frames = TOTAL_FRAMES
+
+  frames = []
+
+  for frame in range(num_frames):
+    displacement = np.zeros_like(r, dtype=np.float32)
+
+    for start in ripple_start_frames:
+      age = frame - start
+      if age < 0:
+        continue
+
+      ring_r = age * ripple_spacing
+      ring_band = r - ring_r
+
+      wave = np.sin((ring_band / ripple_wavelength) * 2 * np.pi)
+      envelope = np.exp(-(np.abs(ring_band) / (ripple_wavelength * 1.5))**2)
+      ripple = ripple_amplitude * wave * envelope
+      displacement += ripple
+
+    # Chromatic aberration offsets
+    norm_dx = dx / (r + 1e-6)
+    norm_dy = dy / (r + 1e-6)
+    shift_mag = displacement * 1.1
+
+    coords_base_y = Y + displacement
+    coords_base_x = X + displacement
+
+    coords_r_y = coords_base_y + shift_mag * norm_dy
+    coords_r_x = coords_base_x + shift_mag * norm_dx
+    coords_g_y = coords_base_y
+    coords_g_x = coords_base_x
+    coords_b_y = coords_base_y - shift_mag * norm_dy
+    coords_b_x = coords_base_x - shift_mag * norm_dx
+
+    coords_r = np.array([coords_r_y.flatten(), coords_r_x.flatten()])
+    coords_g = np.array([coords_g_y.flatten(), coords_g_x.flatten()])
+    coords_b = np.array([coords_b_y.flatten(), coords_b_x.flatten()])
+
+    r_channel = map_coordinates(badge_array[..., 0], coords_r, order=1, mode='reflect').reshape(FRAME_SIZE[::-1])
+    g_channel = map_coordinates(badge_array[..., 1], coords_g, order=1, mode='reflect').reshape(FRAME_SIZE[::-1])
+    b_channel = map_coordinates(badge_array[..., 2], coords_b, order=1, mode='reflect').reshape(FRAME_SIZE[::-1])
+    a_channel = map_coordinates(badge_array[..., 3], coords_g, order=1, mode='reflect').reshape(FRAME_SIZE[::-1])
+
+    final = np.stack([r_channel, g_channel, b_channel, a_channel], axis=-1).astype(np.uint8)
+    frames.append(Image.fromarray(final, "RGBA"))
+
+  return frames
+
+
+@register_effect("spin_tumble")
+def effect_spin_tumble(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  A full 3D spin with alternating diagonal tilt and clamped easing.
+  Tumbles gracefully without ever collapsing into an edge-on line.
+
+  Used for the Intertia Compensator crystal (Legendary tier).
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+  """
+
+  def get_rotated_corners(angle_x_deg, angle_y_deg, w, h, d=400, depth=40):
+    angle_x = math.radians(angle_x_deg)
+    angle_y = math.radians(angle_y_deg)
+    corners_3d = [[-w / 2, -h / 2, 0], [w / 2, -h / 2, 0], [w / 2, h / 2, 0], [-w / 2, h / 2, 0]]
+    rotated = []
+    for x, y, z in corners_3d:
+      xz = x * math.cos(angle_y) + z * math.sin(angle_y)
+      zz = -x * math.sin(angle_y) + z * math.cos(angle_y)
+      yz = y * math.cos(angle_x) - zz * math.sin(angle_x)
+      zz = y * math.sin(angle_x) + zz * math.cos(angle_x)
+      rotated.append((xz, yz, zz))
+    cx, cy = w // 2, h // 2
+    return np.float32([
+      [cx + x * d / (d + z), cy + y * d / (d + z)]
+      for x, y, z in rotated
+    ])
+
+  def eased_clamped_t(i, total, margin=0.06):
+    raw_t = i / total
+    clamped_t = margin + (1 - 2 * margin) * raw_t
+    return -(math.cos(math.pi * clamped_t) - 1) / 2
+
+  frames = []
+  for i in range(TOTAL_FRAMES):
+    t = eased_clamped_t(i, TOTAL_FRAMES)
+
+    if t < 0.5:
+      spin = 360 * (t * 2)
+      tilt = 45 * math.sin(math.pi * t * 2)
+      scale = 1.0 - 0.18 * abs(math.sin(math.pi * t * 2))
+    else:
+      spin = 360 + 360 * ((t - 0.5) * 2)
+      tilt = -45 * math.sin(math.pi * (t - 0.5) * 2)
+      scale = 1.0 - 0.18 * abs(math.sin(math.pi * (t - 0.5) * 2))
+
+    scaled_size = int(FRAME_SIZE[0] * scale), int(FRAME_SIZE[1] * scale)
+    badge_scaled = badge_image.resize(scaled_size, Image.Resampling.LANCZOS)
+    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    offset = ((FRAME_SIZE[0] - scaled_size[0]) // 2, (FRAME_SIZE[1] - scaled_size[1]) // 2)
+    canvas.paste(badge_scaled, offset, badge_scaled)
+
+    src_quad = np.float32([[0, 0], [FRAME_SIZE[0], 0], [FRAME_SIZE[0], FRAME_SIZE[1]], [0, FRAME_SIZE[1]]])
+    dst_quad = get_rotated_corners(tilt, spin, FRAME_SIZE[0], FRAME_SIZE[1])
+    matrix = cv2.getPerspectiveTransform(src_quad, dst_quad)
+
+    badge_array = np.array(canvas)
+    warped = cv2.warpPerspective(cv2.cvtColor(badge_array, cv2.COLOR_RGBA2BGRA), matrix, FRAME_SIZE,
+                                 borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
+    frame = Image.fromarray(cv2.cvtColor(warped, cv2.COLOR_BGRA2RGBA))
+    frames.append(frame)
+
+  return frames
+
+@register_effect("disruptor_burn")
+def effect_disruptor_burn(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Simulates a disruptor blast striking the badge center and burning
+  outward with a bright wave of erasure. A fiery glowing border expands outward
+  from the epicenter as the badge dissolves.
+
+  Used for the Disruptor Coil crystal (Legendary tier).
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+  """
+
+  canvas_size = FRAME_SIZE
+  frames_total = TOTAL_FRAMES
+  hold_frames = 3
+  burn_frames = frames_total - hold_frames
+
+  badge_image = badge_image.resize((180, 180), Image.Resampling.LANCZOS)
+  badge_canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+  badge_canvas.paste(badge_image, ((canvas_size[0] - 180) // 2, (canvas_size[1] - 180) // 2), badge_image)
+  badge_array = np.array(badge_canvas)
+  visible_mask = badge_array[..., 3] > 0
+
+  # Random origin within 30px of center
+  center_x, center_y = canvas_size[0] // 2, canvas_size[1] // 2
+  seed_x = np.clip(center_x + np.random.randint(-30, 31), 0, canvas_size[0] - 1)
+  seed_y = np.clip(center_y + np.random.randint(-30, 31), 0, canvas_size[1] - 1)
+
+  # Disruption field (distance + noise)
+  Y, X = np.meshgrid(np.arange(canvas_size[1]), np.arange(canvas_size[0]), indexing="ij")
+  distance = np.sqrt((X - seed_x)**2 + (Y - seed_y)**2)
+  noise = gaussian_filter(np.random.rand(*canvas_size), sigma=3)
+  disruption_field = distance + (noise - 0.5) * 0.6
+  disruption_field -= disruption_field.min()
+  disruption_field /= disruption_field.max()
+
+  # Easing ramp curve
+  base_curve = np.array([
+    0.02, 0.03, 0.05, 0.08, 0.15, 0.25, 0.42, 0.58, 0.72, 0.83, 0.91,
+    0.96, 0.98, 1.00, 1.00, 1.00
+  ])
+  interp = interp1d(np.linspace(0, 1, len(base_curve)), base_curve, kind='quadratic')
+  ramp = interp(np.linspace(0, 1, burn_frames))
+  ramp[-1] = 1.0
+  timing_curve = np.concatenate([np.zeros(hold_frames), ramp])
+
+  romulan_green = (128, 255, 100)
+  off_white = (240, 255, 240)
+
+  def lerp_rgb(c1, c2, f):
+    return tuple(int(c1[j] + (c2[j] - c1[j]) * f) for j in range(3))
+
+  frames = []
+  for t in timing_curve:
+    if t == 0:
+      frames.append(Image.fromarray(badge_array.copy(), "RGBA"))
+      continue
+
+    burn_area = (disruption_field <= t) & visible_mask
+    edge_mask = binary_dilation(burn_area, iterations=6) & ~burn_area & visible_mask
+    outer_glow_mask = binary_dilation(edge_mask, iterations=4) & ~burn_area & visible_mask
+
+    frame_array = badge_array.copy()
+    frame_array[..., 3][burn_area] = 0
+
+    core_color = lerp_rgb((255, 255, 255), romulan_green, min(1.0, t * 1.75))
+    halo_color = lerp_rgb(off_white, romulan_green, min(1.0, t * 1.5))
+
+    core_glow = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+    draw_core = ImageDraw.Draw(core_glow)
+    for y in range(canvas_size[1]):
+      for x in range(canvas_size[0]):
+        if edge_mask[y, x]:
+          draw_core.point((x, y), fill=core_color + (255,))
+
+    halo_img = Image.new("L", canvas_size, 0)
+    draw_halo = ImageDraw.Draw(halo_img)
+    for y in range(canvas_size[1]):
+      for x in range(canvas_size[0]):
+        if outer_glow_mask[y, x]:
+          draw_halo.point((x, y), fill=180)
+    halo_img = halo_img.filter(ImageFilter.GaussianBlur(radius=6))
+    halo_colored = Image.new("RGBA", canvas_size, halo_color + (0,))
+    halo_colored.putalpha(halo_img)
+
+    base = Image.fromarray(frame_array, "RGBA")
+    composed = Image.alpha_composite(base, halo_colored)
+    composed = Image.alpha_composite(composed, core_glow)
+    frames.append(composed)
+
+  return frames
+
 #     ...     ..      ..                       s                   .
 #   x*8888x.:*8888: -"888:     ..             :8      .uef^"      @88>
 #  X   48888X `8888H  8888    @L             .88    :d88E         %8P
@@ -1523,12 +2080,11 @@ def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]
   """
   Projects a shimmering beam diagonally across the badge while
   generating bloom, ripple distortions, and chromatic shell overlays.
-  Highly animated and prism-like.
+
+  Used for the Omega Molecule crystal (Mythic tier).
 
   Returns:
     List of RGBA frames as PIL.Image.Image.
-
-  Used for the Omega Molecule crystal (Mythic tier).
   """
   frame_size = FRAME_SIZE
   fps = ANIMATION_FPS
@@ -1603,6 +2159,287 @@ def effect_shimmer_flux(base_img: Image.Image, badge: dict) -> list[Image.Image]
     return Image.alpha_composite(with_distortion, masked_beam)
 
   return [shimmer_flux_frame(base_img, i) for i in range(num_frames)]
+
+
+@register_effect("big_banger")
+def effect_big_banger(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Animated bridge fire background with badge shake, falling girders,
+  flame-themed ambient glow, and a gradient border window.
+
+  Used for the Photon Torpedo Core crystal (Mythic tier)
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+  """
+  FRAME_SIZE = (190, 190)
+  TOTAL_FRAMES = 24
+  ANIMATION_FPS = 12
+  badge_image = badge_image.resize((180, 180), Image.Resampling.LANCZOS)
+
+  # Load resources
+  base_path = Path("images/crystal_effects/animations/big_banger")
+  bg_frames = [
+    Image.open(base_path / f"frames/frame_{i:02}.png").convert("RGBA").resize(FRAME_SIZE)
+    for i in range(TOTAL_FRAMES)
+  ]
+  girder_1 = Image.open(base_path / "girder_01.png").convert("RGBA")
+  girder_2 = Image.open(base_path / "girder_02.png").convert("RGBA")
+
+  girder_1 = girder_1.resize((int(girder_1.width * 1.20), int(girder_1.height * 1.20)), Image.Resampling.LANCZOS)
+  girder_2 = girder_2.resize((int(girder_2.width * 1.15), int(girder_2.height * 1.15)), Image.Resampling.LANCZOS)
+
+  # Layout positions
+  badge_pos = ((FRAME_SIZE[0] - 180) // 2, (FRAME_SIZE[1] - 180) // 2)
+  g1_final_x, g2_final_x = 4 - 15, FRAME_SIZE[0] - girder_2.width - 6 + 15
+  g1_landing_y, g2_landing_y = 42, 92
+  offscreen_y = -190
+
+  # Gradient border
+  border_radius = 24
+  border_width = 2
+  outer_mask = Image.new("L", FRAME_SIZE, 0)
+  draw_outer = ImageDraw.Draw(outer_mask)
+  draw_outer.rounded_rectangle(
+    [border_width // 2, border_width // 2, FRAME_SIZE[0] - border_width // 2, FRAME_SIZE[1] - border_width // 2],
+    radius=border_radius,
+    fill=255
+  )
+  inner_mask = Image.new("L", FRAME_SIZE, 0)
+  draw_inner = ImageDraw.Draw(inner_mask)
+  draw_inner.rounded_rectangle(
+    [border_width + 2, border_width + 2, FRAME_SIZE[0] - border_width - 2, FRAME_SIZE[1] - border_width - 2],
+    radius=border_radius - 4,
+    fill=255
+  )
+  border_mask = ImageChops.subtract(outer_mask, inner_mask)
+  gradient_border = Image.new("RGBA", FRAME_SIZE)
+  top_left, bottom_right = (140, 60, 40), (255, 100, 20)
+  for y in range(FRAME_SIZE[1]):
+    for x in range(FRAME_SIZE[0]):
+      t = (x + y) / (FRAME_SIZE[0] + FRAME_SIZE[1])
+      r = int(top_left[0] * (1 - t) + bottom_right[0] * t)
+      g = int(top_left[1] * (1 - t) + bottom_right[1] * t)
+      b = int(top_left[2] * (1 - t) + bottom_right[2] * t)
+      gradient_border.putpixel((x, y), (r, g, b, 255))
+  gradient_border_masked = Image.composite(gradient_border, Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), border_mask)
+
+  # Shake patterns
+  np.random.seed(42)
+  badge_offsets = [(np.random.randint(-6, 7), np.random.randint(-6, 7)) if i < 8 else
+                   (np.random.randint(-4, 5), np.random.randint(-4, 5)) if i < 16 else
+                   (np.random.randint(-2, 3), np.random.randint(-2, 3)) for i in range(TOTAL_FRAMES)]
+
+  def compute_girder_shake(frame, land_frame):
+    if frame < land_frame:
+      return (0, 0)
+    decay = (frame - land_frame) / (TOTAL_FRAMES - land_frame)
+    amp = max(1, int(3 * (1 - decay)))
+    return (np.random.randint(-amp, amp + 1), np.random.randint(-amp, amp + 1))
+
+  def create_ebb_overlay(img: Image.Image, frame_idx: int) -> Image.Image:
+    alpha = img.getchannel("A")
+    width, height = img.size
+    t = (frame_idx / TOTAL_FRAMES) * 2 * np.pi
+    factor = 0.6 + 0.4 * np.sin(t)
+    max_a = int(80 * factor)
+    glow_mask = Image.new("L", (width, height), 0)
+    for y in range(height):
+      vf = max(0, 1 - y / height)
+      a = int(max_a * (vf ** 2.2))
+      for x in range(width):
+        if alpha.getpixel((x, y)) > 0:
+          glow_mask.putpixel((x, y), a)
+    glow = Image.new("RGBA", (width, height), (255, 120, 40, 0))
+    glow.putalpha(glow_mask)
+    return Image.alpha_composite(img, glow)
+
+  def girder_fall_y(frame, start, end, land_y):
+    if frame < start:
+      return offscreen_y
+    elif frame < end:
+      t = (frame - start) / (end - start)
+      eased = 1 - (1 - t) ** 3
+      return int(offscreen_y + (land_y - offscreen_y) * eased)
+    else:
+      bounce_phase = frame - end
+      bounce = 8 * math.exp(-bounce_phase / 1.2) * np.sin(bounce_phase * 2.0)
+      return int(land_y + bounce)
+
+  frames = []
+  for i in range(TOTAL_FRAMES):
+    base = bg_frames[i].copy()
+
+    badge_with_glow = create_ebb_overlay(badge_image, i)
+    badge_offset = (badge_pos[0] + badge_offsets[i][0], badge_pos[1] + badge_offsets[i][1])
+
+    # Add drop shadow behind badge
+    base = add_badge_shadow(base, badge_with_glow, badge_offset)
+
+    # Then paste badge on top
+    badge_layer = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    badge_layer.paste(badge_with_glow, badge_offset, badge_with_glow)
+    base = Image.alpha_composite(base, badge_layer)
+
+    g1_y = girder_fall_y(i, 8, 14, g1_landing_y)
+    g2_y = girder_fall_y(i, 10, 16, g2_landing_y)
+    g1_dx, g1_dy = compute_girder_shake(i, 14)
+    g2_dx, g2_dy = compute_girder_shake(i, 16)
+
+    g1_img = create_ebb_overlay(girder_1, i)
+    g2_img = create_ebb_overlay(girder_2, i)
+
+    base.paste(g1_img, (g1_final_x + g1_dx, g1_y + g1_dy), g1_img)
+    base.paste(g2_img, (g2_final_x + g2_dx, g2_y + g2_dy), g2_img)
+
+    masked_bg = Image.composite(base, Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), outer_mask)
+    frame = Image.alpha_composite(masked_bg, gradient_border_masked)
+    frames.append(frame)
+
+  return frames
+
+
+@register_effect("q_snap")
+def effect_q_snap(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Badge placed on a starfield background with border gradient.
+  Q's animated hand enters the frame with a drop-shadow, there's a continuum flash, and the badge disappears.
+
+  Used for the Continuum Essence crystal (Mythic tier)
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+  """
+  BADGE_ONLY_FRAMES = 3
+  HAND_FRAMES = 13
+  FLASH_FRAMES = 5
+  HOLD_FRAMES = 3
+
+  # Load assets
+  starfield = Image.open("images/crystal_effects/backgrounds/starfield.png").convert("RGBA").resize(FRAME_SIZE)
+  flash = Image.open("images/crystal_effects/animations/q_snap/q_flash.png").convert("RGBA")
+  hand_frames = [
+    Image.open(f"images/crystal_effects/animations/q_snap/q_snap_{i:02}.png").convert("RGBA").resize(
+      (int(FRAME_SIZE[0] * 0.94), int(FRAME_SIZE[1] * 0.94)), Image.Resampling.LANCZOS
+    )
+    for i in range(HAND_FRAMES)
+  ]
+  badge_image = badge_image.resize((180, 180), Image.Resampling.LANCZOS)
+
+  def add_badge_shadow(base_img: Image.Image, badge_img: Image.Image, offset=(4, 4), shadow_blur=3) -> Image.Image:
+    shadow = Image.new("RGBA", base_img.size, (0, 0, 0, 0))
+    mask = badge_img.split()[-1]
+    badge_offset = ((FRAME_SIZE[0] - badge_img.width) // 2, (FRAME_SIZE[1] - badge_img.height) // 2)
+    shadow.paste((0, 0, 0, 180), (badge_offset[0] + offset[0], badge_offset[1] + offset[1]), mask)
+    shadow = shadow.filter(ImageFilter.GaussianBlur(radius=shadow_blur))
+    base_img = Image.alpha_composite(base_img, shadow)
+    base_img.paste(badge_img, badge_offset, badge_img)
+    return base_img
+
+  def apply_starfield_gradient_border(badge_frame: Image.Image, border_width=2, border_radius=24) -> Image.Image:
+    width, height = badge_frame.size
+    outer_mask = Image.new("L", (width, height), 0)
+    draw_outer = ImageDraw.Draw(outer_mask)
+    draw_outer.rounded_rectangle(
+      [border_width // 2, border_width // 2, width - border_width // 2, height - border_width // 2],
+      radius=border_radius,
+      fill=255
+    )
+    inner_mask = Image.new("L", (width, height), 0)
+    draw_inner = ImageDraw.Draw(inner_mask)
+    draw_inner.rounded_rectangle(
+      [border_width + 2, border_width + 2, width - border_width - 2, height - border_width - 2],
+      radius=border_radius - 4,
+      fill=255
+    )
+    border_mask = ImageChops.subtract(outer_mask, inner_mask)
+
+    top_left = (192, 192, 255)
+    bottom_right = (96, 160, 255)
+    gradient = Image.new("RGBA", (width, height))
+    for y in range(height):
+      for x in range(width):
+        t = (x + y) / (width + height)
+        r = int(top_left[0] * (1 - t) + bottom_right[0] * t)
+        g = int(top_left[1] * (1 - t) + bottom_right[1] * t)
+        b = int(top_left[2] * (1 - t) + bottom_right[2] * t)
+        gradient.putpixel((x, y), (r, g, b, 255))
+
+    gradient_border = Image.composite(gradient, Image.new("RGBA", (width, height), (0, 0, 0, 0)), border_mask)
+    result = Image.alpha_composite(badge_frame, gradient_border)
+    return Image.composite(result, Image.new("RGBA", (width, height), (0, 0, 0, 0)), outer_mask)
+
+  def get_transformed_hand_frame(img: Image.Image, frame_index: int) -> Image.Image:
+    angle = 45
+    rotated = img.rotate(angle, resample=Image.Resampling.BICUBIC, expand=True)
+    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    if frame_index < 8:
+      t = frame_index / 7
+      eased = 1 - (1 - t) ** 3
+      start_offset = (30, 50)
+      final_offset = ((FRAME_SIZE[0] - rotated.width) // 2 + 8, (FRAME_SIZE[1] - rotated.height) // 2 + 33)
+      dx = int(start_offset[0] * (1 - eased))
+      dy = int(start_offset[1] * (1 - eased))
+      offset = (final_offset[0] + dx, final_offset[1] + dy)
+    else:
+      offset = ((FRAME_SIZE[0] - rotated.width) // 2 + 8, (FRAME_SIZE[1] - rotated.height) // 2 + 33)
+    canvas.paste(rotated, offset, rotated)
+    return canvas
+
+  def add_soft_shadow(img: Image.Image, offset=(-4, 6), radius=3, color=(0, 0, 0, 140)) -> Image.Image:
+    shadow = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    alpha = img.split()[-1]
+    shadow_layer = Image.new("RGBA", img.size, color)
+    shadow.paste(shadow_layer, offset, mask=alpha)
+    shadow = shadow.filter(ImageFilter.GaussianBlur(radius=radius))
+    return Image.alpha_composite(shadow, img)
+
+  frames = []
+
+  # Badge-only intro
+  for _ in range(BADGE_ONLY_FRAMES):
+    base = starfield.copy()
+    framed = apply_starfield_gradient_border(add_badge_shadow(base, badge_image))
+    frames.append(framed)
+
+  # Q hand entrance with shadow
+  for i in range(HAND_FRAMES):
+    base = starfield.copy()
+    with_shadow = add_badge_shadow(base, badge_image)
+    rotated_hand = get_transformed_hand_frame(hand_frames[i], i)
+    hand_only = Image.alpha_composite(Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), rotated_hand)
+    with_hand_shadow = add_soft_shadow(hand_only)
+    composed = Image.alpha_composite(with_shadow, with_hand_shadow)
+    bordered = apply_starfield_gradient_border(composed)
+    frames.append(bordered)
+
+  # Flash with dynamic center correction
+  cx, cy = FRAME_SIZE[0] // 2, FRAME_SIZE[1] // 2
+  for i in range(FLASH_FRAMES):
+    t = i / (FLASH_FRAMES - 1)
+    if t < 0.5:
+      curve = np.sin(t * np.pi)
+    else:
+      collapse_t = (t - 0.5) * 2
+      curve = 1.0 - (collapse_t ** 1.5)
+
+    scale = 0.2 + 2.5 * curve
+    dx = int((scale - 0.2) * 4.0)
+    dy = int((scale - 0.2) * 6.0)
+    size = int(FRAME_SIZE[0] * scale), int(FRAME_SIZE[1] * scale)
+    flash_scaled = flash.resize(size, Image.Resampling.LANCZOS)
+    offset = (cx - size[0] // 2 + dx, cy - size[1] // 2 + dy)
+
+    base = starfield.copy()
+    base.paste(flash_scaled, offset, flash_scaled)
+    bordered = apply_starfield_gradient_border(base)
+    frames.append(bordered)
+
+  # Final starfield hold
+  for _ in range(HOLD_FRAMES):
+    frames.append(apply_starfield_gradient_border(starfield.copy()))
+
+  return frames
 
 
 # 8888      88 b.             8     ,o888888o.     8 888888888o 8888888 8888888888   .8.          b.             8  8 8888 8 8888      88        ,8.       ,8.
@@ -1758,5 +2595,146 @@ def effect_moopsy_swarm(base_img: Image.Image, badge: dict) -> list[Image.Image]
     full = Image.alpha_composite(badge, moopsies_masked)
     frame = Image.alpha_composite(full, gradient_border)
     frames.append(frame)
+
+  return frames
+
+@register_effect("horny_smoke")
+def effect_horny_smoke(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Badge glows before fading into some Ronin-Smoke and expanding to fill the bordered frame.
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+
+  Used for the Anaphasic Flame crystal (Unobtanium tier).
+  """
+  CENTER = ((FRAME_SIZE[0] - badge_image.width) // 2, (FRAME_SIZE[1] - badge_image.height) // 2)
+
+  # Load assets
+  background_img = Image.open("images/crystal_effects/backgrounds/howard_house.png").convert("RGBA").resize(FRAME_SIZE, Image.Resampling.LANCZOS)
+  base_path = Path("images/crystal_effects/animations/horny_smoke")
+  smoke_sequence = [
+    Image.open(base_path / f"horny_smoke_{i:02}.png").convert("RGBA").resize(FRAME_SIZE)
+    for i in range(TOTAL_FRAMES)
+  ]
+
+  def reblend_smoke(smoke: Image.Image, fade: float = 1.0) -> Image.Image:
+    r, g, b, a = smoke.split()
+    r_np, g_np, b_np, a_np = map(np.array, (r, g, b, a))
+    # Compute brightness from RGB, ignore fully transparent pixels
+    brightness = np.maximum(r_np, np.maximum(g_np, b_np)).astype(np.float32)
+    brightness[a_np == 0] = 0
+    # Apply nonlinear contrast boost
+    nonlinear = np.power(np.clip(brightness / 255.0, 0, 1), 0.65) * 255
+    # Apply vertical falloff from bottom to top
+    vertical_boost = np.exp(np.linspace(np.log(1.5), np.log(1.0), smoke.height)).reshape(smoke.height, 1)
+    boosted = np.clip(nonlinear * vertical_boost, 0, 255)
+    # Generate boosted alpha base
+    alpha_boost = boosted / 255.0 * fade
+    alpha_base = (alpha_boost * a_np + a_np * 0.25)
+    # Suppress alpha slightly in dark areas
+    suppression_mask = np.clip((brightness / 255.0) ** 1.2, 0.6, 1.0)
+    adjusted_alpha = (alpha_base * suppression_mask).clip(0, 255).astype(np.uint8)
+
+    return Image.merge("RGBA", (r, g, b, Image.fromarray(adjusted_alpha)))
+
+  # Build badge mask and expansion
+  badge_mask_raw = badge_image.split()[-1].point(lambda p: 255 if p > 0 else 0)
+  badge_mask = Image.new("L", FRAME_SIZE, 0)
+  badge_mask.paste(badge_mask_raw, CENTER)
+  badge_mask_np = np.array(badge_mask) > 0
+
+  expansion_frames = 22
+  max_iterations = 148
+  dilated_masks = []
+  for i in range(expansion_frames):
+    factor = (i + 1) / expansion_frames
+    iterations = int(max_iterations * (factor ** 1.02))
+    mask = binary_dilation(badge_mask_np, iterations=iterations)
+    feathered = Image.fromarray((mask * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(radius=5))
+    dilated_masks.append(feathered)
+
+  badge_fade_curve = [1.0 - (1.0 - (i / 7.0)) ** 2 for i in range(8)]
+
+  # Border and gradient
+  top_left, bottom_right = (150, 60, 40), (200, 80, 40)
+  gradient = Image.new("RGBA", FRAME_SIZE)
+  for y in range(FRAME_SIZE[1]):
+    for x in range(FRAME_SIZE[0]):
+      t = (x + y) / (FRAME_SIZE[0] + FRAME_SIZE[1])
+      r = int(top_left[0] * (1 - t) + bottom_right[0] * t)
+      g = int(top_left[1] * (1 - t) + bottom_right[1] * t)
+      b = int(top_left[2] * (1 - t) + bottom_right[2] * t)
+      gradient.putpixel((x, y), (r, g, b, 255))
+
+  border_width = 2
+  radius_outer = 24
+  outer_mask = Image.new("L", FRAME_SIZE, 0)
+  draw_outer = ImageDraw.Draw(outer_mask)
+  draw_outer.rounded_rectangle(
+    [border_width // 2, border_width // 2, FRAME_SIZE[0] - border_width // 2, FRAME_SIZE[1] - border_width // 2],
+    radius=radius_outer, fill=255
+  )
+  inner_mask = Image.new("L", FRAME_SIZE, 0)
+  draw_inner = ImageDraw.Draw(inner_mask)
+  draw_inner.rounded_rectangle(
+    [border_width + 2, border_width + 2, FRAME_SIZE[0] - border_width - 2, FRAME_SIZE[1] - border_width - 2],
+    radius=radius_outer - 4, fill=255
+  )
+  border_mask = ImageChops.subtract(outer_mask, inner_mask)
+  border_overlay = Image.composite(gradient, Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), border_mask)
+
+  clip_mask = Image.new("L", FRAME_SIZE, 0)
+  draw_clip = ImageDraw.Draw(clip_mask)
+  draw_clip.rounded_rectangle([0, 0, FRAME_SIZE[0], FRAME_SIZE[1]], radius=radius_outer, fill=255)
+
+  # Frame generation
+  frames = []
+  for i in range(TOTAL_FRAMES):
+    base = background_img.copy()
+    layer = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+
+    if i < 2:
+      layer.paste(badge_image, CENTER, badge_image)
+
+    elif 2 <= i < 4:
+      glow_intensity = (i - 1) / 2
+      glow_color = (120, 255, 120)
+      glow = Image.new("RGBA", badge_image.size, glow_color + (0,))
+      alpha = badge_mask_raw.filter(ImageFilter.GaussianBlur(radius=6))
+      glow.putalpha(alpha.point(lambda p: int(p * glow_intensity)))
+      glow_layer = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+      glow_layer.paste(glow, CENTER, glow)
+      layer = Image.alpha_composite(glow_layer, layer)
+      layer.paste(badge_image, CENTER, badge_image)
+
+    elif 4 <= i < 11:
+      fade_t = badge_fade_curve[i - 4]
+      badge_alpha = badge_mask_raw.point(lambda p: int(p * (1 - fade_t)))
+      faded_badge = badge_image.copy()
+      faded_badge.putalpha(badge_alpha)
+      layer.paste(faded_badge, CENTER, faded_badge)
+
+      smoke_idx = min(i - 4, len(smoke_sequence) - 1)
+      dilation_idx = max(0, min(i - 8, len(dilated_masks) - 1))
+      mask = dilated_masks[dilation_idx]
+      masked_smoke = Image.composite(smoke_sequence[smoke_idx], Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), mask)
+      cleaned = reblend_smoke(masked_smoke)
+      layer = Image.alpha_composite(layer, cleaned)
+
+    elif i >= 11:
+      dilation_idx = min(i - 8, len(dilated_masks) - 1)
+      smoke_idx = min(i - 4, len(smoke_sequence) - 1)
+      mask = dilated_masks[dilation_idx]
+      raw_smoke = smoke_sequence[smoke_idx]
+      masked_smoke = Image.composite(raw_smoke, Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), mask)
+      fade = 1.0 if i < TOTAL_FRAMES - 6 else (TOTAL_FRAMES - i) / 5.0
+      cleaned = reblend_smoke(masked_smoke, fade=fade)
+      layer = Image.alpha_composite(layer, cleaned)
+
+    composite = Image.alpha_composite(base, layer)
+    with_border = Image.alpha_composite(composite, border_overlay)
+    clipped = Image.composite(with_border, Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), clip_mask)
+    frames.append(clipped)
 
   return frames

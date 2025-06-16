@@ -96,7 +96,7 @@ async def db_get_user_tagged_badge_instances_by_prestige(user_discord_id, tag_na
         AND assoc.user_discord_id = %s
         AND tag.tag_name = %s
         AND b.active = TRUE
-      ORDER BY b.badge_info_id
+      ORDER BY b_i.badge_name ASC
     """
     await query.execute(sql, (user_discord_id, prestige_level, user_discord_id, tag_name))
     return await query.fetchall()

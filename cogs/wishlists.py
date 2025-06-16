@@ -148,7 +148,14 @@ class DismissButton(discord.ui.Button):
         self.match_discord_id,
         badge_id,
         self.prestige_level,
-        'has',
+        'has'
+      )
+      await db_add_wishlist_dismissal(
+        self.match_discord_id,
+        self.author_discord_id,
+        badge_id,
+        self.prestige_level,
+        'wants'
       )
     for badge_id in self.wants_ids:
       await db_add_wishlist_dismissal(
@@ -196,6 +203,11 @@ class RevokeDismissalButton(discord.ui.Button):
     await db_delete_wishlist_dismissal(
       self.author_discord_id,
       self.match_discord_id,
+      self.prestige_level,
+    )
+    await db_delete_wishlist_dismissal(
+      self.match_discord_id,
+      self.author_discord_id,
       self.prestige_level,
     )
     match_user = await bot.current_guild.fetch_member(self.match_discord_id)
@@ -367,7 +379,7 @@ class Wishlist(commands.Cog):
     pages_list = []
     for idx, page in enumerate(pages_data, start=1):
       embed = discord.Embed(
-        title=f"{ctx.author.display_name}'s Wishlist ({PRESTIGE_TIERS[prestige_level]} Tier)",
+        title=f"{ctx.author.display_name}'s Wishlist [{PRESTIGE_TIERS[prestige_level]}] Tier",
         description="\n".join(
           f"[{b['badge_name']}]({b['badge_url']})" for b in page
         ),
@@ -426,8 +438,24 @@ class Wishlist(commands.Cog):
       )
       return
 
+    if await db_has_user_opted_out_of_prestige_matches(user_id, prestige):
+      await ctx.followup.send(embed=discord.Embed(
+        title="Matchmaking Disabled!",
+        description=f"You have opted out of Wishlist matchmaking at the **{PRESTIGE_TIERS[prestige]}** tier.\n\n"
+                    "You may re-enable it via `/wishlist opt_out` to see matches again.",
+        color=discord.Color.red()
+      ), ephemeral=True)
+      return
+
     # Fetch raw matches via SQL CTE
     raw_matches = await db_get_wishlist_matches(user_id, prestige)
+
+    # Remove any partners who have opted out of matchmaking at this tier
+    opted_out_partners = set(await db_get_all_prestige_match_opted_out_user_ids(prestige))
+    raw_matches = [
+      m for m in raw_matches
+      if m['match_discord_id'] not in opted_out_partners
+    ]
 
     # Pull out any dismissed partners at this prestige
     all_dismissals = await db_get_all_wishlist_dismissals(user_id)
@@ -512,7 +540,7 @@ class Wishlist(commands.Cog):
           pages.PageGroup(
             pages=[
               discord.Embed(
-                title=f"Wishlist Match! ({PRESTIGE_TIERS[prestige]} Tier)",
+                title=f"Wishlist Match! [{PRESTIGE_TIERS[prestige]}] Tier",
                 description=f"{partner.mention} ({partner.display_name}) has a wishlist match with you!",
                 color=discord.Color.blurple()
               )
@@ -683,7 +711,7 @@ class Wishlist(commands.Cog):
           pages.PageGroup(
             pages=[
               discord.Embed(
-                title=f"Dismissed Match ({PRESTIGE_TIERS[prestige_level]} Tier)",
+                title=f"Dismissed Match [{PRESTIGE_TIERS[prestige_level]}] Tier",
                 description=(
                   f"{partner.mention} ({partner.display_name}) had a wishlist match with you that has been dismissed."
                 ),
@@ -767,7 +795,10 @@ class Wishlist(commands.Cog):
       saved_has = [r['badge_info_id'] for r in rows if r['role'] == 'has']
       saved_wants = [r['badge_info_id'] for r in rows if r['role'] == 'wants']
 
-      if pid not in valid or valid[pid] != (saved_has, saved_wants):
+      valid_has_ids, valid_wants_ids = set(valid.get(pid, ([], []))[0]), set(valid.get(pid, ([], []))[1])
+      dismissed_has_ids, dismissed_wants_ids = set(saved_has), set(saved_wants)
+
+      if not dismissed_has_ids.issubset(valid_has_ids) or not dismissed_wants_ids.issubset(valid_wants_ids):
         await db_delete_wishlist_dismissal(user_id, pid, prestige)
 
 
@@ -1531,4 +1562,81 @@ class Wishlist(commands.Cog):
       description=f"You've successfully unlocked all of the `{selection}` badges in your inventory from being listed in Wishlist matches (in the Prestige Tiers at which you possess it)!",
       color=discord.Color.green()
     )
+    await ctx.followup.send(embed=embed)
+
+  @wishlist_group.command(
+    name="opt_out",
+    description="Opt in or out of Wishlist matching at a specific Prestige Tier"
+  )
+  @option(
+    name="prestige",
+    description="Which Prestige Tier?",
+    required=True,
+    autocomplete=autocomplete_prestige_tiers
+  )
+  @option(
+    name="opt_out",
+    description="Do you want to opt out of matching at this tier?",
+    required=True,
+    choices=[
+      discord.OptionChoice(name="Yes, opt me out", value="yes"),
+      discord.OptionChoice(name="No, opt me back in", value="no")
+    ]
+  )
+  @commands.check(access_check)
+  async def opt_out(self, ctx: discord.ApplicationContext, prestige: str, opt_out: str):
+    await ctx.defer(ephemeral=True)
+    user_id = ctx.author.id
+
+    if not await is_prestige_valid(ctx, prestige):
+      return
+    prestige_level = int(prestige)
+    tier_name = PRESTIGE_TIERS[prestige_level]
+    is_opt_out = opt_out.lower() == "yes"
+    already_opted_out = await db_has_user_opted_out_of_prestige_matches(user_id, prestige_level)
+
+    # Prevent redundant toggle
+    if is_opt_out and already_opted_out:
+      await ctx.followup.send(embed=discord.Embed(
+        title=f"Already Opted-Out at **{tier_name}**",
+        description=f"You're already opted *out* of Wishlist matchmaking at **{tier_name}**.",
+        color=discord.Color.orange()
+      ), ephemeral=True)
+      return
+    elif not is_opt_out and not already_opted_out:
+      await ctx.followup.send(embed=discord.Embed(
+        title=f"Already Opted-In at **{tier_name}**",
+        description=f"You're already opted *in* to Wishlist matchmaking at **{tier_name}**.",
+        color=discord.Color.orange()
+      ), ephemeral=True)
+      return
+
+    # Perform toggle
+    if is_opt_out:
+      await db_add_prestige_opt_out(user_id, prestige_level)
+      logger.info(f"{ctx.author.display_name} opted OUT of wishlist matching at {tier_name}")
+      embed = discord.Embed(
+        title=f"You have disabled Matchmaking at **{tier_name}**",
+        description=f"You've opted *out* of Wishlist matchmaking at **{tier_name}**.\n\n"
+                    "You will no longer appear in matches at this tier, and won't see others who could match with you.",
+        color=discord.Color.red()
+      )
+    else:
+      await db_remove_prestige_opt_out(user_id, prestige_level)
+      logger.info(f"{ctx.author.display_name} opted IN to wishlist matching at {tier_name}")
+      embed = discord.Embed(
+        title=f"You have opted *into* Matchmaking at **{tier_name}**",
+        description=f"You've opted back **in** to Wishlist matchmaking at the {tier_name} tier.\n\n"
+                    "You may now appear in matches and see others at this tier.",
+        color=discord.Color.green()
+      )
+
+    # Footer: current opt-outs
+    opted_out = await db_get_opted_out_prestiges(user_id)
+    if opted_out:
+      names = [PRESTIGE_TIERS[t] for t in sorted(opted_out)]
+      embed.set_footer(text=f"Currently opted out of: {', '.join(names)}")
+    else:
+      embed.set_footer(text="You are currently opted-in to all Prestige Tiers.")
+
     await ctx.followup.send(embed=embed)

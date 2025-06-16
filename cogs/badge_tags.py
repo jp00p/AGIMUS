@@ -67,7 +67,7 @@ class BadgeTags(commands.Cog):
     description="Name of the tag to create",
     required=True,
     min_length=1,
-    max_length=24
+    max_length=47
   )
   async def create(self, ctx:discord.ApplicationContext, tag:str):
     await ctx.defer(ephemeral=True)

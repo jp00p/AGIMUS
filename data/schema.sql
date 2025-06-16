@@ -263,7 +263,7 @@ CREATE TABLE IF NOT EXISTS badge_wishlists (
 CREATE TABLE IF NOT EXISTS badge_tags (
   id int(11) NOT NULL AUTO_INCREMENT,
   user_discord_id varchar(128) NOT NULL,
-  tag_name varchar(24) NOT NULL,
+  tag_name varchar(47) NOT NULL,
   PRIMARY KEY (id)
 );
 CREATE TABLE IF NOT EXISTS wishlist_dismissals (
@@ -456,6 +456,12 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Solanogen", 1, "solanogen.png", "cyan_gradient", "Exotic compound from subspace realms. Don't get SCHISMD!"),
   ("Pergium", 1, "pergium.png", "amber_gradient", "Highly prized radiothermal ore. Still glows warm from its mining days."),
   ("Latinum", 1, "latinum.png", "latinum", "Get that, get that, Gold Pressed Latinum!"),
+  ("Boronite", 1, "boronite.png", "cerulean_tint", "Rare ore use in molecule synthesis. High-energy potential."),
+  ("Ryetalyn", 1, "ryetalyn.png", "crimson_purple_gradient", "The only known cure for Rigelian fever. Got a fever.. and the only cure is, Ryetalyn."),
+  ("Gallicite", 1, "gallicite.png", "teal_yellow_gradient", "Electrically reactive mineral, might be useful for shielding."),
+  ("Topaline", 1, "topaline.png", "blue_gold_gradient", "Found in abundance on Capella IV. Can be used to disrupt sens-oars."),
+  ("Zenite", 1, "zenite.png", "purple_silver_gradient", "Extracted from Ardana. Careful around the gas, might cause brain rot."),
+  ("High Quality Copper", 1, "high_quality_copper.png", "hq_copper", "Only the finest copper from Ur. No complaints here!"),
 
   -- Uncommon Crystals (Border/Misc Effects)
   ("Optical", 2, "optical.png", "optical", "Optical data strands. Utilized by LCARS display terminals."),
@@ -468,6 +474,9 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ('Kironide', 2, 'kironide.png', 'kironide', 'A strange mineral that grants psionic abilities to those who ingest it. Mind-meldting!'),
   ('Jevonite', 2, 'jevonite.png', 'jevonite', 'A rare mineral stone said to be "breathtaking" in appearance. Used by early Cardassians to make beautiful artifacts.'),
   ('Archerite', 2, 'archerite.png', 'archerite', 'A fictitious mineral invented as a ruse by Shran. The role of Archerite was played by Jeffrey Combs in its few appearances.'),
+  ("M.T.D.", 2, "mtd.png", "mirror_mirror", "Multi-dimensional Transporter Device. Something to reflect upon..."),
+  ("Neutronium Soup", 2, "neutronium_soup.png", "neutral_glow", "This is heavy Doc! So dense that even light hesitates to leave it."),
+  ("Hexaferrite", 2, "hexaferrite.png", "cyan_hex_glow", "Crystalline iron with strong magnetic resonance. Hex marks the spot."),
 
   -- Rare Crystals (Backgrounds)
   ("Trilithium", 3, "trilithium.png", "trilithium_banger", "Volatile compound banned in most systems. Handle with care."),
@@ -481,6 +490,9 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ('Transparent Aluminum', 3, 'transparent_aluminum.png', 'transparency_starfield', 'Revolutionary compound. Transparent, resilient, and rumored to have been invented by a time traveler...'),
   ('Alabama River Rock', 3, 'alabama_river_rock.png', 'alabama_rocks', "The Captain's Assistant's favorite Crystal. Helps prevent jet fuel from 'sploding."),
   ('Guardian Stone', 3, 'guardian_stone.png', 'guardian_of_forever', "Seems nearly sentient. You could look at these Edges nearly Forever."),
+  ("Sector 001 Beacon", 3, "sector_001_beacon.png", "earth_orbit", "Emits homing signal for Sol-bound ships. Launch a buoy when ready."),
+  ("Transwarp Circuit", 3, "transwarp_circuit.png", "transwarp_streaks", "Borg-Tech for Transwarp Conduits. I'm sure nothing will go wrong."),
+  ("Denorios Plasma", 3, "denorios_plasma.png", "wormhole_interior", "Raw plasma from near Bajor. Might cause visions."),
 
   -- Legendary Crystals (Animations)
   ("Warp Plasma Cell", 4, "warp_plasma.png", "warp_pulse", "EJECTED FROM A CORE! Hums with that familiar pulse."),
@@ -488,14 +500,20 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Triaxilation Node", 4, "triaxilation_node.png", "static_cascade", "Essential to subspace communications. Emits a pulsing cascade that resonates across signal channels."),
   ("Chroniton", 4, "chroniton.png", "temporal_flicker", "Time travel! Glitches in and out of this temporal frame."),
   ('Unity Prism', 4, 'unity_prism.png', 'rainbow_sheen', "A point of Pride! Emits gaydiation particles."),
+  ('Fluidic Droplet', 4, 'fluidic_droplet.png', 'fluidic_ripple', "An itty bit of Fluidic Space. Ripples through local reality."),
+  ('Inertial Compensator', 4, 'inertial_compensator.png', 'spin_tumble', "Provides stabilization at high warp. Looks a bit damaged though..."),
+  ('Disruptor Coil', 4, 'disruptor_coil.png', 'disruptor_burn', "Rapidly burns and destabilizes molecular cohesion. Looks painful!"),
 
   -- Mythic Crystals (Prestige Animations)
   ("Borg Nanocluster", 5, "borg_nanocluster.png", "borg_reconstruction", "A Collective collectable. Reconstructs whatever it touches (whether it wants to or not)."),
   ("Bajoran Orb", 5, "bajoran_orb.png", "celestial_temple", "A Tear of the Prophets. My Child!"),
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable."),
+  ('Photon Torpedo Core', 5, 'photon_torpedo_core.png', 'big_banger', "Matter/Anti-Matter in a magno-photon field. Wall to wall bangers!"),
+  ('Continuum Essence', 5, 'continuum_essence.png', 'q_snap', "Transcends human comprehension. Oh snap!"),
 
   -- Unobtanium Crystals (Complex Animations + Coveted Designs)
-  ("Bone Fragment", 6, "bone_fragment.png", "moopsy_swarm", "That's bone. Looks oddly drinkable.");
+  ("Bone Fragment", 6, "bone_fragment.png", "moopsy_swarm", "That's bone. Looks oddly drinkable."),
+  ('Anaphasic Flame', 6, 'anaphasic_flame.png', 'horny_smoke', "Housed in a curious-looking candle holder. It's beeaaauuutiful!");
 
 -- Crystal Pattern Buffers (Credits to redeem for Crystals)
 CREATE TABLE IF NOT EXISTS crystal_pattern_buffers (
@@ -781,6 +799,15 @@ CREATE TABLE IF NOT EXISTS trade_requested_crystal_instances (
   crystal_instance_id INT NOT NULL,
   FOREIGN KEY (trade_id) REFERENCES crystal_instance_trades(id) ON DELETE CASCADE,
   FOREIGN KEY (crystal_instance_id) REFERENCES crystal_instances(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS wishlist_match_opt_outs (
+  user_discord_id VARCHAR(64) NOT NULL,
+  prestige_level   INT NOT NULL,
+  PRIMARY KEY (user_discord_id, prestige_level),
+  FOREIGN KEY (user_discord_id)
+    REFERENCES users(discord_id)
+    ON DELETE CASCADE
 );
 
 -- Server Settings Table
