@@ -148,7 +148,14 @@ class DismissButton(discord.ui.Button):
         self.match_discord_id,
         badge_id,
         self.prestige_level,
-        'has',
+        'has'
+      )
+      await db_add_wishlist_dismissal(
+        self.match_discord_id,
+        self.author_discord_id,
+        badge_id,
+        self.prestige_level,
+        'wants'
       )
     for badge_id in self.wants_ids:
       await db_add_wishlist_dismissal(
@@ -196,6 +203,11 @@ class RevokeDismissalButton(discord.ui.Button):
     await db_delete_wishlist_dismissal(
       self.author_discord_id,
       self.match_discord_id,
+      self.prestige_level,
+    )
+    await db_delete_wishlist_dismissal(
+      self.match_discord_id,
+      self.author_discord_id,
       self.prestige_level,
     )
     match_user = await bot.current_guild.fetch_member(self.match_discord_id)
