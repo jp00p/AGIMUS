@@ -59,6 +59,7 @@ async def encode_webp(frames: list[Image.Image], fps: int = 12) -> io.BytesIO:
       "-frames:v", str(frame_count),
       "-an",
       "-vsync", "0",
+      "-force_key_frames", "expr:gte(t,n_forced*0.0833)",  # For 12 FPS
       output_path
     ]
 

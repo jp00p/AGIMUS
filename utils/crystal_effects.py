@@ -2307,17 +2307,17 @@ def effect_q_snap(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
   Returns:
     List of RGBA frames as PIL.Image.Image.
   """
-  BADGE_ONLY_FRAMES = 5
+  BADGE_ONLY_FRAMES = 3
   HAND_FRAMES = 13
   FLASH_FRAMES = 5
-  HOLD_FRAMES = 4
+  HOLD_FRAMES = 3
 
   # Load assets
   starfield = Image.open("images/crystal_effects/backgrounds/starfield.png").convert("RGBA").resize(FRAME_SIZE)
   flash = Image.open("images/crystal_effects/animations/q_snap/q_flash.png").convert("RGBA")
   hand_frames = [
     Image.open(f"images/crystal_effects/animations/q_snap/q_snap_{i:02}.png").convert("RGBA").resize(
-      (int(FRAME_SIZE[0] * 0.9), int(FRAME_SIZE[1] * 0.9)), Image.Resampling.LANCZOS
+      (int(FRAME_SIZE[0] * 0.94), int(FRAME_SIZE[1] * 0.94)), Image.Resampling.LANCZOS
     )
     for i in range(HAND_FRAMES)
   ]
