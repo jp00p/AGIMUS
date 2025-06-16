@@ -1347,7 +1347,7 @@ class Tongo(commands.Cog):
     if len(tongo_continuum) < MINIMUM_LIQUIDATION_CONTINUUM or len(player_ids) < MINIMUM_LIQUIDATION_PLAYERS:
       return None
 
-    if random.randint(0, 1) != 1:
+    if random.random() < 0.33:
       return None
 
     liquidation_result = await self._determine_liquidation(tongo_continuum, player_ids)

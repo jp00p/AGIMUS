@@ -203,6 +203,26 @@ def delete_replicator_animations_cache():
     shutil.rmtree(cache_directory)
 
 
+# Effect Utils
+def add_badge_shadow(base: Image.Image, badge_img: Image.Image, offset: tuple[int, int]) -> Image.Image:
+  """
+  Applies a soft drop-shadow behind the badge image before compositing.
+
+  Args:
+    base: The RGBA background image to draw the shadow on.
+    badge_img: The RGBA badge image (with transparency).
+    offset: Tuple (x, y) position where the badge will be placed.
+
+  Returns:
+    An RGBA image with the shadow composited underneath the badge.
+  """
+  shadow = Image.new("RGBA", base.size, (0, 0, 0, 0))
+  badge_alpha = badge_img.getchannel("A")
+  shadow_layer = Image.new("RGBA", badge_img.size, (0, 0, 0, 180))  # shadow color
+  shadow.paste(shadow_layer, (offset[0] + 4, offset[1] + 4), mask=badge_alpha)
+  shadow_blurred = shadow.filter(ImageFilter.GaussianBlur(radius=3))
+  return Image.alpha_composite(base, shadow_blurred)
+
 #  .d8888b.
 # d88P  Y88b
 # 888    888
@@ -2169,7 +2189,7 @@ def effect_big_banger(badge_image: Image.Image, badge: dict) -> list[Image.Image
   # Layout positions
   badge_pos = ((FRAME_SIZE[0] - 180) // 2, (FRAME_SIZE[1] - 180) // 2)
   g1_final_x, g2_final_x = 4 - 15, FRAME_SIZE[0] - girder_2.width - 6 + 15
-  g1_landing_y, g2_landing_y = 42, 52
+  g1_landing_y, g2_landing_y = 42, 92
   offscreen_y = -190
 
   # Gradient border
@@ -2249,6 +2269,11 @@ def effect_big_banger(badge_image: Image.Image, badge: dict) -> list[Image.Image
 
     badge_with_glow = create_ebb_overlay(badge_image, i)
     badge_offset = (badge_pos[0] + badge_offsets[i][0], badge_pos[1] + badge_offsets[i][1])
+
+    # Add drop shadow behind badge
+    base = add_badge_shadow(base, badge_with_glow, badge_offset)
+
+    # Then paste badge on top
     badge_layer = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
     badge_layer.paste(badge_with_glow, badge_offset, badge_with_glow)
     base = Image.alpha_composite(base, badge_layer)

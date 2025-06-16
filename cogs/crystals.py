@@ -892,7 +892,7 @@ class Crystals(commands.Cog):
         await db_set_harmonized_crystal(badge_instance['badge_instance_id'], crystal_instance['badge_crystal_id'])
         embed = discord.Embed(
           title='Crystal Harmonized!',
-          description=f"Harmonized **{crystal_instance['crystal_name']}**! It is now the active Crystal for your **{badge_instance['badge_name']}** badge.",
+          description=f"Harmonized **{crystal_instance['crystal_name']}**! It is now the active Crystal for your **{badge_instance['badge_name']} [{PRESTIGE_TIERS[badge_instance['prestige_level']]}]** badge.",
           color=discord.Color.teal()
         )
         embed.set_image(url="https://i.imgur.com/cr2m5It.gif")
