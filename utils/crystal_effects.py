@@ -2600,6 +2600,14 @@ def effect_moopsy_swarm(base_img: Image.Image, badge: dict) -> list[Image.Image]
 
 @register_effect("horny_smoke")
 def effect_horny_smoke(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Badge glows before fading into some Ronin-Smoke and expanding to fill the bordered frame.
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image.
+
+  Used for the Anaphasic Flame crystal (Unobtanium tier).
+  """
   CENTER = ((FRAME_SIZE[0] - badge_image.width) // 2, (FRAME_SIZE[1] - badge_image.height) // 2)
 
   # Load assets
