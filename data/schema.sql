@@ -518,7 +518,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ('Alabama River Rock', 3, 'alabama_river_rock.png', 'alabama_rocks', "The Captain's Assistant's favorite Crystal. Helps prevent jet fuel from 'sploding."),
   ('Guardian Stone', 3, 'guardian_stone.png', 'guardian_of_forever', "Seems nearly sentient. You could look at these Edges nearly Forever."),
   ("Sector 001 Beacon", 3, "sector_001_beacon.png", "earth_orbit", "Emits homing signal for Sol-bound ships. Launch a buoy when ready."),
-  ("Transwarp Circuit", 3, "transwarp_circuit.png", "transwarp_steaks", "Borg-Tech for Transwarp Conduits. I'm sure nothing will go wrong."),
+  ("Transwarp Circuit", 3, "transwarp_circuit.png", "transwarp_streaks", "Borg-Tech for Transwarp Conduits. I'm sure nothing will go wrong."),
   ("Denorios Plasma", 3, "denorios_plasma.png", "wormhole_interior", "Raw plasma from near Bajor. Might cause visions."),
 
   -- Legendary Crystals (Animations)
