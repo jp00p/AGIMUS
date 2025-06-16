@@ -2602,18 +2602,29 @@ def effect_horny_smoke(badge_image: Image.Image, badge: dict) -> list[Image.Imag
   background_img = Image.open("images/crystal_effects/backgrounds/howard_house.png").convert("RGBA").resize(FRAME_SIZE, Image.Resampling.LANCZOS)
   base_path = Path("images/crystal_effects/animations/horny_smoke")
   smoke_sequence = [
-    Image.open(f).convert("RGBA").resize(FRAME_SIZE, Image.Resampling.LANCZOS)
-    for f in sorted((base_path / "horny_smoke").glob("*.png"))
+    Image.open(base_path / f"horny_smoke_{i:02}.png").convert("RGBA").resize(FRAME_SIZE)
+    for i in range(TOTAL_FRAMES)
   ]
 
-  def reblend_smoke_richer(smoke: Image.Image, fade: float = 1.0) -> Image.Image:
+  def reblend_smoke(smoke: Image.Image, fade: float = 1.0) -> Image.Image:
     r, g, b, a = smoke.split()
-    brightness = np.maximum(np.array(r), np.maximum(np.array(g), np.array(b)))
-    nonlinear = np.power(brightness / 255.0, 0.65) * 255
-    vertical_boost = np.exp(np.linspace(np.log(1.6), np.log(1.0), smoke.height)).reshape(smoke.height, 1)
+    r_np, g_np, b_np, a_np = map(np.array, (r, g, b, a))
+    # Compute brightness from RGB, ignore fully transparent pixels
+    brightness = np.maximum(r_np, np.maximum(g_np, b_np)).astype(np.float32)
+    brightness[a_np == 0] = 0
+    # Apply nonlinear contrast boost
+    nonlinear = np.power(np.clip(brightness / 255.0, 0, 1), 0.65) * 255
+    # Apply vertical falloff from bottom to top
+    vertical_boost = np.exp(np.linspace(np.log(1.5), np.log(1.0), smoke.height)).reshape(smoke.height, 1)
     boosted = np.clip(nonlinear * vertical_boost, 0, 255)
-    adjusted = (boosted / 255.0 * np.array(a) * fade).astype(np.uint8)
-    return Image.merge("RGBA", (r, g, b, Image.fromarray(adjusted)))
+    # Generate boosted alpha base
+    alpha_boost = boosted / 255.0 * fade
+    alpha_base = (alpha_boost * a_np + a_np * 0.25)
+    # Suppress alpha slightly in dark areas
+    suppression_mask = np.clip((brightness / 255.0) ** 1.2, 0.6, 1.0)
+    adjusted_alpha = (alpha_base * suppression_mask).clip(0, 255).astype(np.uint8)
+
+    return Image.merge("RGBA", (r, g, b, Image.fromarray(adjusted_alpha)))
 
   # Build badge mask and expansion
   badge_mask_raw = badge_image.split()[-1].point(lambda p: 255 if p > 0 else 0)
@@ -2696,7 +2707,7 @@ def effect_horny_smoke(badge_image: Image.Image, badge: dict) -> list[Image.Imag
       dilation_idx = max(0, min(i - 8, len(dilated_masks) - 1))
       mask = dilated_masks[dilation_idx]
       masked_smoke = Image.composite(smoke_sequence[smoke_idx], Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), mask)
-      cleaned = reblend_smoke_richer(masked_smoke)
+      cleaned = reblend_smoke(masked_smoke)
       layer = Image.alpha_composite(layer, cleaned)
 
     elif i >= 11:
@@ -2706,7 +2717,7 @@ def effect_horny_smoke(badge_image: Image.Image, badge: dict) -> list[Image.Imag
       raw_smoke = smoke_sequence[smoke_idx]
       masked_smoke = Image.composite(raw_smoke, Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), mask)
       fade = 1.0 if i < TOTAL_FRAMES - 6 else (TOTAL_FRAMES - i) / 5.0
-      cleaned = reblend_smoke_richer(masked_smoke, fade=fade)
+      cleaned = reblend_smoke(masked_smoke, fade=fade)
       layer = Image.alpha_composite(layer, cleaned)
 
     composite = Image.alpha_composite(base, layer)
