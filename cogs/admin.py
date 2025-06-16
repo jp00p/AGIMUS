@@ -44,7 +44,6 @@ class Admin(commands.Cog):
     ]
     return choices
 
-
   admin_group = discord.SlashCommandGroup("zed_ops", "Admin-only commands for Badge and Tongo Management.")
 
   @admin_group.command(name="set_bonus_xp", description="(ADMIN RESTRICTED)")
@@ -232,7 +231,7 @@ class Admin(commands.Cog):
     embed = discord.Embed(
       title="Pattern Buffer(s) Granted",
       description=(
-        "✨ Granted {amount} Crystal Pattern Buffer(s) to {user.mention}.\n\n"
+        f"✨ Granted {amount} Crystal Pattern Buffer(s) to {user.mention}.\n\n"
         f"They now have **{new_total}** total."
       ),
       color=discord.Color.blue()

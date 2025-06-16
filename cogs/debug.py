@@ -44,6 +44,29 @@ class Debug(commands.Cog):
         results.append(discord.OptionChoice(name=label, value=str(c['id'])))
     return results
 
+
+  async def autocomplete_crystal_rarities(ctx: discord.AutocompleteContext):
+    rarities = await db_get_crystal_rarity_weights()
+    return [
+      discord.OptionChoice(name=r['rarity_rank'].capitalize(), value=str(r['rarity_rank']))
+      for r in sorted(rarities, key=lambda r: r['rarity_rank'])
+    ]
+
+  async def autocomplete_crystals_by_rarity(ctx: discord.AutocompleteContext):
+    rarity_rank = ctx.options.get("rarity")
+    if not rarity_rank or not rarity_rank.isdigit():
+      return [discord.OptionChoice(name="🔒 Select a Rarity First", value="none")]
+
+    crystals = await db_get_crystals_by_rarity(int(rarity_rank))
+    filtered = [
+      c for c in crystals
+      if strip_bullshit(ctx.value.lower()) in strip_bullshit(c['name'].lower())
+    ]
+    return [
+      discord.OptionChoice(name=f"{c.get('emoji', '')} {c['name']}", value=str(c['id']))
+      for c in filtered[:25]
+    ]
+
   debug_group = discord.SlashCommandGroup("debug", "Admin Commands for Debugging.")
 
   @debug_group.command(name="crystallize", description="Attach a crystal to a user's badge")
@@ -147,13 +170,35 @@ class Debug(commands.Cog):
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
-  @debug_group.command(name="clear_crystal_images_cache", description="Clear the crystal images disk cache")
-  async def clear_crystal_images_cache(self, ctx):
-    delete_crystal_effects_cache()
+  @debug_group.command(name="grant_unattached_crystals", description="(DEBUG) Grant unattuned Crystal(s) to a user.")
+  @option("user", discord.User, description="User to receive crystal(s)", required=True)
+  @option("rarity", str, description="Rarity of the Crystal", required=True, autocomplete=autocomplete_crystal_rarities)
+  @option("crystal", int, description="Crystal Type to grant", required=True, autocomplete=autocomplete_crystals_by_rarity)
+  @option("amount", int, description="Number of crystals to grant", required=True, min_value=1, max_value=50)
+  async def grant_unattached_crystals(self, ctx, user: discord.User, rarity: str, crystal: int, amount: int):
+    await ctx.defer(ephemeral=True)
+
+    crystal_type = await db_get_crystal_by_type_id(crystal)
+    if not crystal_type:
+      return await ctx.respond(
+        embed=discord.Embed(
+          title="❌ Invalid Crystal Type",
+          description="Could not locate that crystal type.",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+
+    for _ in range(amount):
+      await create_new_crystal_instance(user.id, crystal_type['id'])
+
     embed = discord.Embed(
-      title="Crystal Image Caches Cleared",
-      description="🧹 All cached crystal effect images, and replicator animations, have been deleted.",
-      color=discord.Color.orange()
+      title="✅ Crystals Granted",
+      description=(
+        f"Granted **{amount}**x unattuned {crystal_type['emoji']} **{crystal_type['name']}** crystal(s)\n"
+        f"to {user.mention} (Rarity: *{crystal_type['rarity_name']}*)"
+      ),
+      color=discord.Color.green()
     )
     await ctx.respond(embed=embed, ephemeral=True)
 
