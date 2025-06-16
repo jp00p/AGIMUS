@@ -464,3 +464,49 @@ async def db_get_all_wishlist_dismissals(user_discord_id: str) -> list[dict]:
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, (user_discord_id,))
     return await db.fetchall()
+
+async def db_has_user_opted_out_of_prestige_matches(user_id: str, prestige: int) -> bool:
+  sql = '''
+    SELECT 1 FROM wishlist_match_opt_outs
+    WHERE user_discord_id = %s AND prestige_level = %s
+    LIMIT 1
+  '''
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id, prestige))
+    return await db.fetchone() is not None
+
+async def db_get_all_prestige_match_opted_out_user_ids(prestige: int) -> list[str]:
+  sql = '''
+    SELECT user_discord_id
+    FROM wishlist_match_opt_outs
+    WHERE prestige_level = %s
+  '''
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (prestige,))
+    return [row['user_discord_id'] for row in await db.fetchall()]
+
+async def db_add_prestige_opt_out(user_id: str, prestige: int):
+  sql = '''
+    INSERT IGNORE INTO wishlist_match_opt_outs (user_discord_id, prestige_level)
+    VALUES (%s, %s)
+  '''
+  async with AgimusDB() as db:
+    await db.execute(sql, (user_id, prestige))
+
+async def db_remove_prestige_opt_out(user_id: str, prestige: int):
+  sql = '''
+    DELETE FROM wishlist_match_opt_outs
+    WHERE user_discord_id = %s AND prestige_level = %s
+  '''
+  async with AgimusDB() as db:
+    await db.execute(sql, (user_id, prestige))
+
+async def db_get_opted_out_prestiges(user_id: str) -> list[int]:
+  sql = '''
+    SELECT prestige_level
+    FROM wishlist_match_opt_outs
+    WHERE user_discord_id = %s
+  '''
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id,))
+    return [row['prestige_level'] for row in await db.fetchall()]

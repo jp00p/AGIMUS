@@ -800,6 +800,15 @@ CREATE TABLE IF NOT EXISTS trade_requested_crystal_instances (
   FOREIGN KEY (crystal_instance_id) REFERENCES crystal_instances(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS wishlist_match_opt_outs (
+  user_discord_id VARCHAR(64) NOT NULL,
+  prestige_level   INT NOT NULL,
+  PRIMARY KEY (user_discord_id, prestige_level),
+  FOREIGN KEY (user_discord_id)
+    REFERENCES users(discord_id)
+    ON DELETE CASCADE
+);
+
 -- Server Settings Table
 CREATE TABLE IF NOT EXISTS server_settings (
   id INT PRIMARY KEY CHECK (id = 1),

@@ -26,3 +26,12 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 ('Anaphasic Flame', 6, 'anaphasic_flame.png', 'horny_smoke', "Housed in a curious-looking candle holder. It's beeaaauuutiful!");
 
 ALTER TABLE badge_tags MODIFY COLUMN tag_name VARCHAR(47) NOT NULL;
+
+CREATE TABLE IF NOT EXISTS wishlist_match_opt_outs (
+  user_discord_id VARCHAR(64) NOT NULL,
+  prestige_level   INT NOT NULL,
+  PRIMARY KEY (user_discord_id, prestige_level),
+  FOREIGN KEY (user_discord_id)
+    REFERENCES users(discord_id)
+    ON DELETE CASCADE
+);
