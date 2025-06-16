@@ -13,7 +13,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 ("Hexaferrite", 2, "hexaferrite.png", "cyan_hex_glow", "Crystalline iron with strong magnetic resonance. Hex marks the spot."),
 -- Rare
 ("Sector 001 Beacon", 3, "sector_001_beacon.png", "earth_orbit", "Emits homing signal for Sol-bound ships. Launch a buoy when ready."),
-("Transwarp Circuit", 3, "transwarp_circuit.png", "transwarp_steaks", "Borg-Tech for Transwarp Conduits. I'm sure nothing will go wrong."),
+("Transwarp Circuit", 3, "transwarp_circuit.png", "transwarp_streaks", "Borg-Tech for Transwarp Conduits. I'm sure nothing will go wrong."),
 ("Denorios Plasma", 3, "denorios_plasma.png", "wormhole_interior", "Raw plasma from near Bajor. Might cause visions."),
 -- Legendary
 ('Fluidic Droplet', 4, 'fluidic_droplet.png', 'fluidic_ripple', "An itty bit of Fluidic Space. Ripples through local reality."),
@@ -24,3 +24,5 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 ('Continuum Essence', 5, 'continuum_essence.png', 'q_snap', "Transcends human comprehension. Oh snap!"),
 -- Unobtanium
 ('Anaphasic Flame', 6, 'anaphasic_flame.png', 'horny_smoke', "Housed in a curious-looking candle holder. It's beeaaauuutiful!");
+
+ALTER TABLE badge_tags MODIFY COLUMN tag_name VARCHAR(47) NOT NULL;

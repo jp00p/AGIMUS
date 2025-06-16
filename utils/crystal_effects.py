@@ -1191,8 +1191,8 @@ def effect_transwarp_streaks(badge_image: Image.Image, badge: dict) -> Image.Ima
   result = apply_rare_background_and_border(
     badge_image,
     bg_path,
-    border_gradient_top_left=(160, 130, 255),
-    border_gradient_bottom_right=(255, 80, 150)
+    border_gradient_top_left=(51, 255, 153),
+    border_gradient_bottom_right=(0, 51, 34)
   )
   return result
 
@@ -2402,7 +2402,7 @@ def effect_q_snap(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
   for i in range(HAND_FRAMES):
     base = starfield.copy()
     with_shadow = add_badge_shadow(base, badge_image)
-    rotated_hand = get_transformed_hand_frame(hand_frames[i])
+    rotated_hand = get_transformed_hand_frame(hand_frames[i], i)
     hand_only = Image.alpha_composite(Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), rotated_hand)
     with_hand_shadow = add_soft_shadow(hand_only)
     composed = Image.alpha_composite(with_shadow, with_hand_shadow)
@@ -2603,7 +2603,7 @@ def effect_horny_smoke(badge_image: Image.Image, badge: dict) -> list[Image.Imag
   base_path = Path("images/crystal_effects/animations/horny_smoke")
   smoke_sequence = [
     Image.open(f).convert("RGBA").resize(FRAME_SIZE, Image.Resampling.LANCZOS)
-    for f in sorted((base_path / "smoke").glob("*.png"))
+    for f in sorted((base_path / "horny_smoke").glob("*.png"))
   ]
 
   def reblend_smoke_richer(smoke: Image.Image, fade: float = 1.0) -> Image.Image:

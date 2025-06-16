@@ -263,7 +263,7 @@ CREATE TABLE IF NOT EXISTS badge_wishlists (
 CREATE TABLE IF NOT EXISTS badge_tags (
   id int(11) NOT NULL AUTO_INCREMENT,
   user_discord_id varchar(128) NOT NULL,
-  tag_name varchar(24) NOT NULL,
+  tag_name varchar(47) NOT NULL,
   PRIMARY KEY (id)
 );
 CREATE TABLE badge_tags_associations (
