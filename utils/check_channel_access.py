@@ -42,7 +42,7 @@ async def access_check(ctx):
 
     return has_channel_access
   except BaseException as e:
-    logger.info(e)
+    logger.info(f"Error in acess_check (probably forgot to add the command to configuration.json): {e}")
 
 async def perform_channel_check(ctx, command_config):
   # Verify that we're allowed to execute the command in this channel
