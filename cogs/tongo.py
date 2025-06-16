@@ -811,7 +811,7 @@ class Tongo(commands.Cog):
       title="A *Consortium* has been formed!",
       description=(
         "Behind closed doors and beneath banners of profit, Grand Nagus Zek has arranged a **Consortium Investment Opportunity**.\n\n"
-        f"An exceedingly coveted **{instance['badge_name']} ({PRESTIGE_TIERS[prestige_level]})** has been quietly slipped into the Great Material Continuum.\n\n"
+        f"An exceedingly coveted **{instance['badge_name']} [{PRESTIGE_TIERS[prestige_level]}]** has been quietly slipped into the Great Material Continuum.\n\n"
         "Rumors suggest... at least *three players* had their lobes set on this prize. "
         "Natually, Brunt is outraged."
       ),
@@ -832,7 +832,7 @@ class Tongo(commands.Cog):
       discord_file = buffer_image_to_discord_file(badge_frames[0], 'consortium_badge.png')
 
     investment_embed = discord.Embed(
-      title=f"{instance['badge_name']} ({PRESTIGE_TIERS[prestige_level]})",
+      title=f"{instance['badge_name']} [{PRESTIGE_TIERS[prestige_level]}]",
       color=discord.Color.gold()
     )
     investment_embed.set_image(url=f"attachment://{discord_file.filename}")
@@ -916,7 +916,7 @@ class Tongo(commands.Cog):
       )
       embed.add_field(
         name="Total Badges in the Continuum!",
-        value="\n".join([f"* {b['badge_name']} ({PRESTIGE_TIERS[b['prestige_level']]})" for b in t_chunk]),
+        value="\n".join([f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}]" for b in t_chunk]),
         inline=False
       )
       embed.set_footer(
@@ -1542,7 +1542,7 @@ async def build_confront_results_embed(active_chair: discord.Member, remaining_b
   if remaining_badges:
     embed.add_field(
       name="Remaining Badges In The Great Material Continuum!",
-      value="\n".join([f"* {b['badge_name']} ({PRESTIGE_TIERS[b['prestige_level']]})" for b in remaining_badges]),
+      value="\n".join([f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}]" for b in remaining_badges]),
       inline=False
     )
 

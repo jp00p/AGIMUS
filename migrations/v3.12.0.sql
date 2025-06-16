@@ -6,10 +6,21 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
 ("Gallicite", 1, "gallicite.png", "teal_yellow_gradient", "Electrically reactive mineral, might be useful for shielding."),
 ("Topaline", 1, "topaline.png", "blue_gold_gradient", "Found in abundance on Capella IV. Can be used to disrupt sens-oars."),
 ("Zenite", 1, "zenite.png", "purple_silver_gradient", "Extracted from Ardana. Careful around the gas, might cause brain rot."),
+("High Quality Copper", 1, "high_quality_copper.png", "hq_copper", "Only the finest copper from Ur. No complaints here!"),
 -- Uncommon
 ("M.T.D.", 2, "mtd.png", "mirror_mirror", "Multi-dimensional Transporter Device. Something to reflect upon..."),
+("Neutronium Soup", 2, "neutronium_soup.png", "neutral_glow", "This is heavy Doc! So dense that even light hesitates to leave it."),
+("Hexaferrite", 2, "hexaferrite.png", "cyan_hex_glow", "Crystalline iron with strong magnetic resonance. Hex marks the spot."),
+-- Rare
+("Sector 001 Beacon", 3, "sector_001_beacon.png", "earth_orbit", "Emits homing signal for Sol-bound ships. Launch a buoy when ready."),
+("Transwarp Circuit", 3, "transwarp_circuit.png", "transwarp_steaks", "Borg-Tech for Transwarp Conduits. I'm sure nothing will go wrong."),
+("Denorios Plasma", 3, "denorios_plasma.png", "wormhole_interior", "Raw plasma from near Bajor. Might cause visions."),
 -- Legendary
 ('Fluidic Droplet', 4, 'fluidic_droplet.png', 'fluidic_ripple', "An itty bit of Fluidic Space. Ripples through local reality."),
 ('Inertial Compensator', 4, 'inertial_compensator.png', 'spin_tumble', "Provides stabilization at high warp. Looks a bit damaged though..."),
+('Disruptor Coil', 4, 'disruptor_coil.png', 'disruptor_burn', "Rapidly burns and destabilizes molecular cohesion. Looks painful!"),
 -- Mythic
-('Photon Torpedo Core', 5, 'photon_torpedo_core.png', 'big_banger', "Matter/Anti-Matter in a magno-photon field. Wall to wall bangers!");
+('Photon Torpedo Core', 5, 'photon_torpedo_core.png', 'big_banger', "Matter/Anti-Matter in a Magno-Photon Field. Wall to wall bangers!"),
+('Continuum Essence', 5, 'continuum_essence.png', 'q_snap', "Transcends human comprehension. Oh snap!"),
+-- Unobtanium
+('Anaphasic Flame', 6, 'anaphasic_flame.png', 'horny_smoke', "Housed in a curious-looking candle holder. It's beeaaauuutiful!");

@@ -123,7 +123,7 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
-  embed_description = f"{member.mention} has reached **Echelon {level}** and earned a Badge ({PRESTIGE_TIERS[badge_prestige]} Tier)!"
+  embed_description = f"{member.mention} has reached **Echelon {level}** and earned a Badge [{PRESTIGE_TIERS[badge_prestige]} Tier])!"
   if badge_data.get('was_on_wishlist', False):
     embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
 

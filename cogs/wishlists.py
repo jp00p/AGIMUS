@@ -367,7 +367,7 @@ class Wishlist(commands.Cog):
     pages_list = []
     for idx, page in enumerate(pages_data, start=1):
       embed = discord.Embed(
-        title=f"{ctx.author.display_name}'s Wishlist ({PRESTIGE_TIERS[prestige_level]} Tier)",
+        title=f"{ctx.author.display_name}'s Wishlist [{PRESTIGE_TIERS[prestige_level]}] Tier)",
         description="\n".join(
           f"[{b['badge_name']}]({b['badge_url']})" for b in page
         ),
@@ -512,7 +512,7 @@ class Wishlist(commands.Cog):
           pages.PageGroup(
             pages=[
               discord.Embed(
-                title=f"Wishlist Match! ({PRESTIGE_TIERS[prestige]} Tier)",
+                title=f"Wishlist Match! [{PRESTIGE_TIERS[prestige]}] Tier)",
                 description=f"{partner.mention} ({partner.display_name}) has a wishlist match with you!",
                 color=discord.Color.blurple()
               )
@@ -683,7 +683,7 @@ class Wishlist(commands.Cog):
           pages.PageGroup(
             pages=[
               discord.Embed(
-                title=f"Dismissed Match ({PRESTIGE_TIERS[prestige_level]} Tier)",
+                title=f"Dismissed Match [{PRESTIGE_TIERS[prestige_level]}] Tier)",
                 description=(
                   f"{partner.mention} ({partner.display_name}) had a wishlist match with you that has been dismissed."
                 ),
