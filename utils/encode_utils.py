@@ -34,16 +34,8 @@ async def encode_webp(frames: list[Image.Image], fps: int = 12) -> io.BytesIO:
   # Prepare raw RGBA frame data
   # Off-load raw RGBA concatenation to thread to avoid blocking
   loop = asyncio.get_running_loop()
-  def _perturb_frame(frame: Image.Image) -> Image.Image:
-    frame = frame.copy()
-    px = frame.load()
-    x, y = frame.size[0] - 1, frame.size[1] - 1
-    r, g, b, a = px[x, y]
-    px[x, y] = (r, g, b, (a + 1) % 256)  # add invisible variation
-    return frame
-
   def _build_raw_rgb():
-    return b''.join(_perturb_frame(f).convert("RGBA").tobytes() for f in frames)
+    return b''.join(f.convert("RGBA").tobytes() for f in frames)
 
   raw_rgb = await loop.run_in_executor(THREAD_POOL, _build_raw_rgb)
 

@@ -168,13 +168,16 @@ def save_cached_effect_image(image: Image.Image | list[Image.Image], effect: str
 
     # Ensure uniform RGBA frames
     converted = [np.array(f.convert("RGBA")) for f in image]
+    # Add tiny invisible variations to prevent frame de-duplication... FFS.
+    for i in range(len(converted)):
+      converted[i][0, 0, 0] ^= (i % 2)
 
     # Save with correct format string
     iio.imwrite(
       path,
       converted,
       plugin="pillow",
-      format="PNG",  # <== This is correct
+      format="PNG",
       duration=int(1000 / 12),
       loop=0
     )
@@ -2363,7 +2366,8 @@ def effect_q_snap(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
         gradient.putpixel((x, y), (r, g, b, 255))
 
     gradient_border = Image.composite(gradient, Image.new("RGBA", (width, height), (0, 0, 0, 0)), border_mask)
-    return Image.alpha_composite(badge_frame, gradient_border)
+    result = Image.alpha_composite(badge_frame, gradient_border)
+    return Image.composite(result, Image.new("RGBA", (width, height), (0, 0, 0, 0)), outer_mask)
 
   def get_transformed_hand_frame(img: Image.Image, frame_index: int) -> Image.Image:
     angle = 45
