@@ -1385,7 +1385,7 @@ class Tongo(commands.Cog):
       owned_pairs = {(b['badge_info_id'], b['prestige_level']) for b in inventory}
       wishlist_to_grant = [
         b for b in active_wants
-        if (b['badge_info_id'], b['prestige_level']) not in owned_pairs
+        if (b['badge_info_id'], prestige) not in owned_pairs
       ]
 
       if not wishlist_to_grant or len(wishlist_to_grant) < MINIMUM_AVARICE_QUOTIENT / 3:
