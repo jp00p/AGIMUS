@@ -767,7 +767,10 @@ class Wishlist(commands.Cog):
       saved_has = [r['badge_info_id'] for r in rows if r['role'] == 'has']
       saved_wants = [r['badge_info_id'] for r in rows if r['role'] == 'wants']
 
-      if pid not in valid or valid[pid] != (saved_has, saved_wants):
+      valid_has_ids, valid_wants_ids = set(valid.get(pid, ([], []))[0]), set(valid.get(pid, ([], []))[1])
+      dismissed_has_ids, dismissed_wants_ids = set(saved_has), set(saved_wants)
+
+      if not dismissed_has_ids.issubset(valid_has_ids) or not dismissed_wants_ids.issubset(valid_wants_ids):
         await db_delete_wishlist_dismissal(user_id, pid, prestige)
 
 
