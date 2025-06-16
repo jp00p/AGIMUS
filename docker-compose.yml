@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   app:
     image: ${BOT_CONTAINER_NAME:-agimus}:${BOT_CONTAINER_VERSION:-latest}
