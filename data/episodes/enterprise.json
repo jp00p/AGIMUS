@@ -1320,7 +1320,15 @@
             "episode": "06",
             "imdb": "tt0572206",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.06.16",
+                    "episode": "The 400-Year-Old Virgin",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-579-the-400-year-old-virgin-ent-s3e6/",
+                    "order": 579,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/makeUEKU3N55DimsSgW1eCVcsNA.jpg",
