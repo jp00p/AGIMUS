@@ -670,7 +670,7 @@ class Crystals(commands.Cog):
 
     landing_embed = discord.Embed(
       title="Crystal Attunement",
-      description=f"Are you sure you want to **attach** *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']}** [{PRESTIGE_TIERS[prestige]}] badge?\n"
+      description=f"Are you sure you want to **attach** *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']} [{PRESTIGE_TIERS[prestige]}]** badge?\n"
                   "### ⚠️ THIS CANNOT BE UNDONE! ⚠️\n\n"
                   "-# You can have multiple crystals attached to a badge, but once an individual crystal is attuned to a badge it cannot be attached to a *different* badge!",
       color=discord.Color.teal()
@@ -1027,7 +1027,7 @@ async def launch_attach_confirmation(interaction, badge_instance: dict, crystal_
 
   landing_embed = discord.Embed(
     title="Crystal Attunement",
-    description=f"Are you sure you want to **attach** *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']}** [{PRESTIGE_TIERS[prestige]}] badge?\n"
+    description=f"Are you sure you want to **attach** *{crystal_instance['crystal_name']}* to your **{badge_instance['badge_name']} [{PRESTIGE_TIERS[prestige]}]** badge?\n"
                 "### ⚠️ THIS CANNOT BE UNDONE! ⚠️\n\n"
                 "-# You can have multiple crystals attached to a badge, but once an individual crystal is attuned to a badge it cannot be attached to a *different* badge!",
     color=discord.Color.teal()
