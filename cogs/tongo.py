@@ -1065,6 +1065,7 @@ class Tongo(commands.Cog):
       try:
         liquidation_result = await self._handle_liquidation(active_tongo['id'], remaining_badges, player_ids)
       except Exception as e:
+        liquidation_result = None
         log_manual_exception(e, 'Liquidation Error')
         pass
       # Executions complete, mark game as resolved
@@ -1091,7 +1092,7 @@ class Tongo(commands.Cog):
 
           received_image, received_image_url = await generate_badge_trade_images(
             badges_received,
-            f"Badges Won By {edf(member.display_name)}",
+            f"Badges Won By {member.display_name}",
             f"{len(badges_received)} Badges"
           )
 
@@ -1131,13 +1132,29 @@ class Tongo(commands.Cog):
         # Main embed
         await zeks_table.send(embed=build_liquidation_embed(member, reward, removed))
 
-        # Endowment image
-        reward_image, reward_image_url = await generate_badge_trade_images(reward, f"Zek's Endowment For {edf(member.display_name)}", "Greed is Eternal!")
-        await zeks_table.send(embed=build_liquidation_endowment_embed(member, reward_image_url), file=reward_image)
-
         # Liquidated image
         removal_image, removal_image_url = await generate_badge_trade_images(removed, "Badges Liquidated", f"{len(removed)} Badges Liquidated")
         await zeks_table.send(embed=build_liquidation_removal_embed(removed, removal_image_url), file=removal_image)
+
+        # Endowment image
+        main_color_tuple = discord.Color.gold().to_rgb()
+        badge_frames = await generate_singular_badge_slot(reward, border_color=main_color_tuple)
+
+        endowment_file = None
+        if len(badge_frames) > 1:
+          # We might throw a crystallized one in here at some point?
+          buf = await encode_webp(badge_frames)
+          endowment_file = discord.File(buf, filename='liquidation_reward.webp')
+        else:
+          endowment_file = buffer_image_to_discord_file(badge_frames[0], 'liquidation_reward.png')
+
+        endowment_embed = discord.Embed(
+          title=f"{member.display_name}'s Liquidation Endowment",
+          description=f"## {reward['badge_name']} [{PRESTIGE_TIERS[reward['prestige_level']]}]",
+          color=discord.Color.gold()
+        )
+        endowment_embed.set_image(url=f"attachment://{endowment_file.filename}")
+        await zeks_table.send(embed=endowment_embed, file=endowment_file)
 
         # DM
         try:
@@ -1347,18 +1364,20 @@ class Tongo(commands.Cog):
     if len(tongo_continuum) < MINIMUM_LIQUIDATION_CONTINUUM or len(player_ids) < MINIMUM_LIQUIDATION_PLAYERS:
       return None
 
-    if random.random() < 0.33:
+    if random.random() > 0.33:
       return None
 
     liquidation_result = await self._determine_liquidation(tongo_continuum, player_ids)
     if not liquidation_result:
       return None
 
-    badge_info_id = liquidation_result['badge_to_grant']['badge_info_id']
+    badge_to_grant = liquidation_result['badge_to_grant']
+    badge_info_id = badge_to_grant['badge_info_id']
+    prestige_level = badge_to_grant['prestige_level']
     beneficiary_id = liquidation_result['beneficiary_id']
 
     # Create a new instance using utility helper that tracks origin reason
-    reward_instance = await create_new_badge_instance(beneficiary_id, badge_info_id, event_type='liquidation_endowment')
+    reward_instance = await create_new_badge_instance(beneficiary_id, badge_info_id, prestige_level=prestige_level, event_type='liquidation_endowment')
     if not reward_instance:
       return None
     liquidation_result['beneficiary_reward'] = reward_instance
@@ -1393,6 +1412,7 @@ class Tongo(commands.Cog):
 
       random.shuffle(wishlist_to_grant)
       badge_to_grant = wishlist_to_grant[0]
+      badge_to_grant['prestige_level'] = prestige
 
       # Just pick 3 random continuum badges to liquidate
       available_badges = continuum.copy()
@@ -1637,7 +1657,7 @@ def build_liquidation_embed(member: discord.Member, reward_badge: dict, removed_
 
   embed.add_field(
     name=f"{edf(member.display_name)} receives a random badge they've been coveting...",
-    value=f"* ✨ {reward_badge['badge_name']} ✨",
+    value=f"* ✨ {reward_badge['badge_name']} [{PRESTIGE_TIERS[reward_badge['prestige_level']]}] ✨",
     inline=False
   )
 
@@ -1667,7 +1687,7 @@ def build_liquidation_dm_embed(member: discord.Member, reward_badge: dict) -> di
 
   embed.add_field(
     name="You received...",
-    value=f"* ✨ {reward_badge['badge_name']} ✨"
+    value=f"* ✨ {reward_badge['badge_name']} [{PRESTIGE_TIERS[reward_badge['prestige_level']]}] ✨"
   )
 
   return embed
