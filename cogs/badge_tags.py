@@ -201,7 +201,9 @@ class BadgeTags(commands.Cog):
   @option(
     name="new_name",
     description="New name for the tag",
-    required=True
+    required=True,
+    min_length=1,
+    max_length=47
   )
   async def rename(self, ctx:discord.ApplicationContext, tag:str, new_name:str):
     await ctx.defer(ephemeral=True)
@@ -222,11 +224,11 @@ class BadgeTags(commands.Cog):
       )
       return
 
-    if len(new_name) > 24:
+    if len(new_name) > 47:
       await ctx.followup.send(
         embed=discord.Embed(
           title="Tag Is Too Long!",
-          description=f"Tag name cannot exceed 24 characters!",
+          description=f"Tag name cannot exceed 47 characters!",
           color=discord.Color.red()
         ),
         ephemeral=True
