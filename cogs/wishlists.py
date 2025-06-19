@@ -385,7 +385,7 @@ class Wishlist(commands.Cog):
         ),
         color=discord.Color.blurple()
       )
-      embed.set_footer(text=f"Page {idx} of {len(pages_data)}")
+      embed.set_footer(text=f"Page {idx} of {len(pages_data)} ({len(wishes)} Badges Total)")
       pages_list.append(embed)
 
     paginator = pages.Paginator(
