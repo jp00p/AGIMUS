@@ -118,6 +118,11 @@ async def handle_react_xp(reaction: discord.Reaction, user: discord.User):
   if reaction.message.channel.id in blocked_channels:
     return
 
+  # Ignore reactions to messages older than 7 days
+  now = datetime.now(timezone.utc)
+  if (now - reaction.message.created_at) > timedelta(days=7):
+    return
+
   if not await _log_react_history(reaction, user):
     return  # Duplicate reaction
 
