@@ -1681,9 +1681,9 @@ def build_liquidation_dm_embed(member: discord.Member, reward_badge: dict) -> di
       f"Heya {edf(member.display_name)}, Grand Nagus Zek has decreed a Liquidation of The Great Material Continuum, "
       f"and as the ✨ *Lucky Liquidation Beneficiary* ✨ you have received a randomized badge from your wishlist!\n\n"
       "**Congratulations!**"
-    ).set_footer(text="Greed is Eternal!"),
+    ),
     color=discord.Color.gold()
-  )
+  ).set_footer(text="Greed is Eternal!")
 
   embed.add_field(
     name="You received...",
