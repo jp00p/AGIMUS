@@ -293,9 +293,8 @@ class TongoDividendsView(discord.ui.View):
 
 class TongoPaginator(pages.Paginator):
   async def on_timeout(self):
-    # Reset to page
-    self.current_page = 0
-    await self.update()
+    # Reset to first page
+    await self.update(current_page=0)
     # Then disable view
     if self.disable_on_timeout:
       await self.disable()
@@ -415,6 +414,7 @@ class Tongo(commands.Cog):
     required=True,
     autocomplete=autocomplete_prestige_tiers
   )
+  @commands.check(access_check)
   async def venture(self, ctx: discord.ApplicationContext, prestige: str):
     await ctx.defer(ephemeral=True)
 
@@ -606,6 +606,7 @@ class Tongo(commands.Cog):
     required=True,
     autocomplete=autocomplete_prestige_tiers
   )
+  @commands.check(access_check)
   async def risk(self, ctx: discord.ApplicationContext, prestige: str):
     await ctx.defer(ephemeral=True)
 
