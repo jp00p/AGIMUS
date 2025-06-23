@@ -8,7 +8,7 @@ from queries.badge_info import *
 from queries.badge_instances import *
 from queries.crystal_instances import *
 from queries.tongo import *
-from queries.trade import db_cancel_trade, db_get_global_pending_trade_instance_ids
+from queries.trade import db_cancel_trade, db_get_global_in_progress_trade_instance_ids
 from queries.wishlists import *
 
 from utils.badge_instances import *
@@ -291,6 +291,15 @@ class TongoDividendsView(discord.ui.View):
 
     return True
 
+class TongoPaginator(pages.Paginator):
+  async def on_timeout(self):
+    # Reset to page
+    self.current_page = 0
+    await self.update()
+    # Then disable view
+    if self.disable_on_timeout:
+      await self.disable()
+
 # ___________                          _________
 # \__    ___/___   ____    ____   ____ \_   ___ \  ____   ____
 #   |    | /  _ \ /    \  / ___\ /  _ \/    \  \/ /  _ \ / ___\
@@ -451,7 +460,7 @@ class Tongo(commands.Cog):
 
     badge_instances = await db_get_unlocked_and_unattuned_badge_instances(user_id, prestige=prestige)
     special_badge_ids = [b['id'] for b in await db_get_special_badge_info()]
-    pending_trade_instance_ids = await db_get_global_pending_trade_instance_ids()
+    in_progress_trade_instance_ids = await db_get_global_in_progress_trade_instance_ids()
     existing_pairs = await db_get_continuum_badge_info_prestige_pairs()
     potential = [
       b for b in badge_instances
@@ -460,7 +469,7 @@ class Tongo(commands.Cog):
     ]
     eligible = [
       b for b in potential
-      if b['badge_instance_id'] not in pending_trade_instance_ids
+      if b['badge_instance_id'] not in in_progress_trade_instance_ids
     ]
 
     if len(eligible) < 3:
@@ -530,7 +539,7 @@ class Tongo(commands.Cog):
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
-    tongo_pages = [embed]
+    tongo_pages = [pages.Page(embeds=[embed])]
 
     # Chunk the continuum into 20-badge chunks
     continuum_chunks = [continuum_badges[i:i + 20] for i in range(0, len(continuum_badges), 20)]
@@ -548,7 +557,7 @@ class Tongo(commands.Cog):
         text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
         icon_url="https://i.imgur.com/GTN4gQG.jpg"
       )
-      tongo_pages.append(embed)
+      tongo_pages.append(pages.Page(embeds=[embed]))
 
     # Include Continuum Images within Embed Pages
     continuum_images = await generate_paginated_continuum_images(continuum_badges)
@@ -566,7 +575,7 @@ class Tongo(commands.Cog):
         tongo_pages.append(continuum_page)
 
     # Send Risk Details as Paginator
-    continuum_paginator = pages.Paginator(
+    continuum_paginator = TongoPaginator(
       pages=tongo_pages,
       show_indicator=True,
       custom_buttons=self.tongo_buttons,
@@ -643,7 +652,7 @@ class Tongo(commands.Cog):
 
     badge_instances = await db_get_unlocked_and_unattuned_badge_instances(user_id, prestige=prestige)
     special_badge_ids = [b['id'] for b in await db_get_special_badge_info()]
-    pending_trade_instance_ids = await db_get_global_pending_trade_instance_ids()
+    in_progress_trade_instance_ids = await db_get_global_in_progress_trade_instance_ids()
     existing_pairs = await db_get_continuum_badge_info_prestige_pairs()
     potential = [
       b for b in badge_instances
@@ -652,7 +661,7 @@ class Tongo(commands.Cog):
     ]
     eligible = [
       b for b in potential
-      if b['badge_instance_id'] not in pending_trade_instance_ids
+      if b['badge_instance_id'] not in in_progress_trade_instance_ids
     ]
 
     if len(eligible) < 3:
@@ -731,7 +740,7 @@ class Tongo(commands.Cog):
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
 
-    tongo_pages = [embed]
+    tongo_pages = [pages.Page(embeds=[embed])]
     for page_idx, t_chunk in enumerate(continuum_chunks):
       embed = discord.Embed(
         title=f"The Great Material Continuum (Page {page_idx + 1} of {len(continuum_chunks)})",
@@ -746,7 +755,7 @@ class Tongo(commands.Cog):
         text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
         icon_url="https://i.imgur.com/GTN4gQG.jpg"
       )
-      tongo_pages.append(embed)
+      tongo_pages.append(pages.Page(embeds=[embed]))
 
     # Include Continuum Images within Embed Pages
     continuum_images = await generate_paginated_continuum_images(continuum_badges)
@@ -764,7 +773,7 @@ class Tongo(commands.Cog):
         tongo_pages.append(continuum_page)
 
     # Send Risk Details as Paginator
-    continuum_paginator = pages.Paginator(
+    continuum_paginator = TongoPaginator(
       pages=tongo_pages,
       show_indicator=True,
       custom_buttons=self.tongo_buttons,
@@ -985,7 +994,7 @@ class Tongo(commands.Cog):
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
 
-    tongo_pages = [confirmation_embed]
+    tongo_pages = [pages.Page(embeds=[confirmation_embed])]
     for page_idx, t_chunk in enumerate(tongo_continuum_chunks):
       embed = discord.Embed(
         title=f"The Great Material Continuum (Page {page_idx + 1} of {len(tongo_continuum_chunks)})",
@@ -1000,7 +1009,7 @@ class Tongo(commands.Cog):
         text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
         icon_url="https://i.imgur.com/GTN4gQG.jpg"
       )
-      tongo_pages.append(embed)
+      tongo_pages.append(pages.Page(embeds=[embed]))
 
     # Send Continuum Badges as Paginator
     continuum_paginator = pages.Paginator(
@@ -1149,9 +1158,23 @@ class Tongo(commands.Cog):
       await db_update_game_status(active_tongo['id'], 'resolved')
 
       # Send main channel results embed
-      results_embed = await build_confront_results_embed(active_chair, remaining_badges)
+      results_embeds = await build_confront_results_embeds(active_chair, remaining_badges)
       zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
-      channel_message = await zeks_table.send(embed=results_embed)
+
+      channel_message = None
+      if len(results_embeds) > 0:
+        continuum_paginator = TongoPaginator(
+          pages=results_embeds,
+          show_indicator=True,
+          custom_buttons=self.tongo_buttons,
+          use_default_buttons=False,
+          timeout=300
+        )
+        channel_message = await zeks_table.send(embed=continuum_paginator.pages[0], view=continuum_paginator)
+        continuum_paginator.message = channel_message
+        await continuum_paginator.update()
+      else:
+        channel_message = await zeks_table.send(embed=results_embeds[0])
 
       # Send per-player results embeds
       for user_id, badge_instance_ids in player_distribution.items():
@@ -1626,30 +1649,53 @@ async def send_continuum_images_to_channel(trade_channel, continuum_images):
 
 
 # Messaging Utils
-async def build_confront_results_embed(active_chair: discord.Member, remaining_badges: list[dict]) -> discord.Embed:
+async def build_confront_results_embeds(active_chair: discord.Member, remaining_badges: list[dict]) -> discord.Embed:
   title = "TONGO! Complete!"
   description= "Distributing Badges from The Great Material Continuum!"
 
-  embed = discord.Embed(
+  embeds = []
+
+  first_embed = discord.Embed(
     title=title,
     description=description,
     color=discord.Color.dark_purple()
   )
-
-  if remaining_badges:
-    embed.add_field(
-      name="Remaining Badges In The Great Material Continuum!",
-      value="\n".join([f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}]" for b in remaining_badges]),
-      inline=False
-    )
-
-  embed.set_image(url="https://i.imgur.com/gdpvba5.gif")
-  embed.set_footer(
+  first_embed.set_image(url="https://i.imgur.com/gdpvba5.gif")
+  first_embed.set_footer(
     text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
     icon_url="https://i.imgur.com/GTN4gQG.jpg"
   )
 
-  return embed
+  if remaining_badges:
+    if len(remaining_badges) < 20:
+      if remaining_badges:
+        first_embed.add_field(
+          name="Remaining Badges In The Great Material Continuum!",
+          value="\n".join([f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}]" for b in remaining_badges]),
+          inline=False
+        )
+      embeds.append(first_embed)
+    else:
+      embeds.append(first_embed)
+      # Chunk the continuum into 20-badge chunks
+      continuum_chunks = [remaining_badges[i:i + 20] for i in range(0, len(remaining_badges), 20)]
+      for page_idx, t_chunk in enumerate(continuum_chunks):
+        embed = discord.Embed(
+          title=f"The Great Material Continuum (Page {page_idx + 1} of {len(continuum_chunks)})",
+          color=discord.Color.dark_purple()
+        )
+        embed.add_field(
+          name="Remaining Badges in the Continuum!",
+          value="\n".join([f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}]" for b in t_chunk]),
+          inline=False
+        )
+        embed.set_footer(
+          text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+          icon_url="https://i.imgur.com/GTN4gQG.jpg"
+        )
+        embeds.append(embed)
+
+  return embeds
 
 async def build_confront_player_embed(member: discord.Member, badge_infos: list[dict], wishlist_badge_filenames: list[str], dividends_rewarded: int = 0) -> discord.Embed:
   description = ""

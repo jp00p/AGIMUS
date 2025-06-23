@@ -1305,7 +1305,7 @@ class Wishlist(commands.Cog):
           symbol = "🔒"
           note = " (Locked)"
         else:
-          symbol = "✅"
+          symbol = "🔓"
           note = " (Unlocked)"
       else:
         symbol = "❌"
@@ -1483,7 +1483,7 @@ class Wishlist(commands.Cog):
           symbol = "🔒"
           note = " (Locked)"
         else:
-          symbol = "✅"
+          symbol = "🔓"
           note = " (Unlocked)"
       else:
         symbol = "❌"
