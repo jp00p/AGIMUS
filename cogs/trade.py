@@ -1516,7 +1516,7 @@ async def trade_has_attuned_crystals(active_trade: dict) -> bool:
   offered_instances = await db_get_trade_offered_badge_instances(active_trade)
   requested_instances = await db_get_trade_requested_badge_instances(active_trade)
 
-  for badge in offered_instances + requested_instances:
+  for badge in list(offered_instances) + list(requested_instances):
     crystals = await db_get_attuned_crystals(badge['badge_instance_id'])
     if crystals:
       return True

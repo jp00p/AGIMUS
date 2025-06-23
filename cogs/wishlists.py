@@ -63,34 +63,51 @@ async def remove_autocomplete(ctx:discord.AutocompleteContext):
 
 async def lock_autocomplete(ctx: discord.AutocompleteContext):
   user_id = ctx.interaction.user.id
-  # fetch all of their active instances
-  instances = await db_get_user_badge_instances(user_id)
-  # dedupe by badge_info_id
-  badge_ids = {inst['badge_info_id'] for inst in instances}
-  choices: list[discord.OptionChoice] = []
-  for bid in badge_ids:
-    info = await db_get_badge_info_by_id(bid)
-    # only show badges whose names match the current input
-    if strip_bullshit(ctx.value.lower()) in strip_bullshit(info['badge_name'].lower()):
-      choices.append(discord.OptionChoice(
-        name=info['badge_name'],
-        value=str(bid),
-      ))
+  instances = await db_get_user_badge_instances(user_id, prestige=None)
+
+  # Use badge_filename to dedupe multiple prestige instances
+  seen_filenames = set()
+  badge_ids = []
+  for inst in instances:
+    if inst['badge_filename'] not in seen_filenames:
+      seen_filenames.add(inst['badge_filename'])
+      badge_ids.append(inst['badge_info_id'])
+
+  all_info = await db_get_all_badge_info()
+  info_map = {b['id']: b for b in all_info}
+
+  choices = [
+    discord.OptionChoice(
+      name=info_map[bid]['badge_name'],
+      value=str(bid)
+    )
+    for bid in badge_ids
+    if bid in info_map and strip_bullshit(ctx.value.lower()) in strip_bullshit(info_map[bid]['badge_name'].lower())
+  ]
   return choices
 
 async def unlock_autocomplete(ctx: discord.AutocompleteContext):
   user_id = ctx.interaction.user.id
-  # fetch only the instances they’ve locked
-  instances = await db_get_user_badge_instances(user_id, locked=True)
-  badge_ids = {inst['badge_info_id'] for inst in instances}
-  choices: list[discord.OptionChoice] = []
-  for bid in badge_ids:
-    info = await db_get_badge_info_by_id(bid)
-    if strip_bullshit(ctx.value.lower()) in strip_bullshit(info['badge_name'].lower()):
-      choices.append(discord.OptionChoice(
-        name=info['badge_name'],
-        value=str(bid),
-      ))
+  instances = await db_get_user_badge_instances(user_id, locked=True, prestige=None)
+
+  seen_filenames = set()
+  badge_ids = []
+  for inst in instances:
+    if inst['badge_filename'] not in seen_filenames:
+      seen_filenames.add(inst['badge_filename'])
+      badge_ids.append(inst['badge_info_id'])
+
+  all_info = await db_get_all_badge_info()
+  info_map = {b['id']: b for b in all_info}
+
+  choices = [
+    discord.OptionChoice(
+      name=info_map[bid]['badge_name'],
+      value=str(bid)
+    )
+    for bid in badge_ids
+    if bid in info_map and strip_bullshit(ctx.value.lower()) in strip_bullshit(info_map[bid]['badge_name'].lower())
+  ]
   return choices
 
 

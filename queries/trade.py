@@ -209,3 +209,20 @@ async def db_get_related_badge_instance_trades(active_trade):
       requestor_id, requestee_id
     ))
     return await query.fetchall()
+
+async def db_get_global_pending_trade_instance_ids() -> set[int]:
+  sql = """
+    SELECT badge_instance_id
+    FROM trade_offered_badge_instances
+    JOIN badge_instance_trades ON trade_offered_badge_instances.trade_id = badge_instance_trades.id
+    WHERE badge_instance_trades.status = 'pending'
+    UNION
+    SELECT badge_instance_id
+    FROM trade_requested_badge_instances
+    JOIN badge_instance_trades ON trade_requested_badge_instances.trade_id = badge_instance_trades.id
+    WHERE badge_instance_trades.status = 'pending'
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql)
+    rows = await db.fetchall()
+    return {row['badge_instance_id'] for row in rows}
