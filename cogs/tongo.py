@@ -522,7 +522,7 @@ class Tongo(commands.Cog):
     )
     embed.add_field(
       name="The Great Material Continuum",
-      value=f"{len(continuum_badges)} Badges\n-# See following pages for details!",
+      value=f"{len(continuum_badges)} Total Badges\n-# See following pages for details!",
       inline=False
     )
     embed.set_image(url="https://i.imgur.com/tRi1vYq.gif")
@@ -954,7 +954,7 @@ class Tongo(commands.Cog):
     tongo_continuum_badges = await db_get_full_continuum_badges()
     tongo_continuum_chunks = [tongo_continuum_badges[i:i + 20] for i in range(0, len(tongo_continuum_badges), 20)]
 
-    description = f"Index requested by **{edf(user_member.display_name)}**!\n\nDisplaying the status of the current game of Tongo!"
+    description = f"Index requested by **{edf(user_member.display_name)}**! Displaying the status of the current game of Tongo!"
     if self.auto_confront.next_iteration:
       description += f"\n\nThis Tongo game will confront {humanize.naturaltime(self.auto_confront.next_iteration)}."
 
@@ -974,9 +974,9 @@ class Tongo(commands.Cog):
       value="\n".join([f"* {m.display_name}" for m in tongo_player_members]),
       inline=False
     )
-    embed.add_field(
+    confirmation_embed.add_field(
       name="The Great Material Continuum",
-      value=f"{len(tongo_continuum_badges)} Badges\n-# See following pages for details!",
+      value=f"{len(tongo_continuum_badges)} Total Badges\n-# See following pages for details!",
       inline=False
     )
     confirmation_embed.set_image(url="https://i.imgur.com/aWLYGKQ.gif")
@@ -1008,7 +1008,7 @@ class Tongo(commands.Cog):
       show_indicator=True,
       custom_buttons=self.tongo_buttons,
       use_default_buttons=False,
-      timeout=180
+      timeout=300
     )
     await continuum_paginator.respond(ctx.interaction, ephemeral=False)
 
