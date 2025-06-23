@@ -1298,7 +1298,7 @@ class Badges(commands.Cog):
             symbol = "🔒"
             note = "Locked"
           else:
-            symbol = "✅"
+            symbol = "🔓"
             note = "Unlocked"
         else:
           if wishlisted:
