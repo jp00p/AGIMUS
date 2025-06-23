@@ -433,7 +433,15 @@
             "description": "Dal and his friends board Janeway's starship to investigate the wormhole created by the Protostar. Tired of his training, Dal longs for some action.",
             "season": "02",
             "episode": "01",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.02.07",
+                    "episode": "In Every Engineer There Is a Geordi, a Scotty, and a Wolf",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-309-in-every-engineer-there-is-a-geordi-a-scotty-and-a-wolf-prodigy-s2e1/",
+                    "order": 309,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Into_the_Breach,_Part_I_(episode)",
             "tvdb": 5230734,
             "imdb": "tt15906800",
@@ -447,7 +455,15 @@
             "description": "Gwyn runs into a familiar foe on the planet Solum. Janeway reveals the true stakes of their mission to Dal and his friends.",
             "season": "02",
             "episode": "02",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.02.14",
+                    "episode": "Lethal Sideburns",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-310-lethal-sideburns-prodigy-s2e2/",
+                    "order": 310,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Into_the_Breach,_Part_II_(episode)",
             "tvdb": 5230735,
             "imdb": "tt28813869",
@@ -461,7 +477,15 @@
             "description": "Traveling through the time rift, Dal and the crew search for Chakotay on Solum. With the support of her father, Gwyn challenges Asencia.",
             "season": "02",
             "episode": "03",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.02.21",
+                    "episode": "The Cloaca Will Be an Issue",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-311-the-cloaca-will-be-an-issue-prodigy-s2e3/",
+                    "order": 311,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Who_Saves_the_Saviors_(episode)",
             "tvdb": 5230736,
             "imdb": "tt28813877",
@@ -475,7 +499,15 @@
             "description": "Although separated by decades, the Infinity and the Voyager crews band together to save Gwyn's life. A mysterious messenger reaches out to Gwyn.",
             "season": "02",
             "episode": "04",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.02.28",
+                    "episode": "Dirty Little Chaos Murf",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-312-dirty-little-chaos-murph-prodigy-s2e4/",
+                    "order": 312,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Temporal_Mechanics_101_(episode)",
             "tvdb": 5230737,
             "imdb": "tt28813889",
@@ -489,7 +521,15 @@
             "description": "Reunited on the Voyager and under strict supervision, the gang must decode a secret message their mysterious benefactor left with Murf.",
             "season": "02",
             "episode": "05",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.03.07",
+                    "episode": "Shelf of Hair",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-313-shelf-of-hair-prodigy-s2e5/",
+                    "order": 313,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Observer's_Paradox_(episode)",
             "tvdb": 5230738,
             "imdb": "tt28813894",
@@ -503,7 +543,15 @@
             "description": "Hoping to hijack the Infinity before its scheduled destruction, Dal and the crew create hologram doubles to cover for their absence.",
             "season": "02",
             "episode": "06",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.03.14",
+                    "episode": "My Balls Are Not Chakotay's Costume",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-314-my-balls-are-not-chakotays-costume-prodigy-s2e6/",
+                    "order": 314,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Imposter_Syndrome_(episode)",
             "tvdb": 5230739,
             "imdb": "tt28813900",
@@ -517,7 +565,15 @@
             "description": "After using a Borg conduit to travel through time faster, Dal and his friends find themselves at the mercy of a demanding Kazon.",
             "season": "02",
             "episode": "07",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.03.21",
+                    "episode": "Chaos Murf Was Never a Toilet",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-315-chaos-murf-was-never-a-toilet-prodigy-s2e7/",
+                    "order": 315,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "The_Fast_and_the_Curious_(episode)",
             "tvdb": 5230741,
             "imdb": "tt28813904",
@@ -531,7 +587,15 @@
             "description": "The crew detours to a colony of non-corporeal entities, who offer Zero an opportunity to obtain a physical body. Janeway discovers Dal's real intentions.",
             "season": "02",
             "episode": "08",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.03.28",
+                    "episode": "Is There in iPhone No Screws?",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-316-is-there-in-iphone-no-screws-prodigy-s2e8/",
+                    "order": 316,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Is_There_in_Beauty_No_Truth?_(episode)",
             "tvdb": 5230742,
             "imdb": "tt28813909",
@@ -545,7 +609,15 @@
             "description": "Finally arriving at the coordinates, the Infinity crew discovers a hidden planet \u2013 and the long-awaited identity of their mysterious messenger.",
             "season": "02",
             "episode": "09",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.04.04",
+                    "episode": "The Bit Outlasted the Bell (with Wil Wheaton)",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-317-the-bit-outlasted-the-bell-prodigy-s2e9-with-wil-wheaton/",
+                    "order": 317,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "The_Devourer_of_All_Things,_Part_I_(episode)",
             "tvdb": 5230743,
             "imdb": "tt28813914",
@@ -559,7 +631,15 @@
             "description": "On the run from their time-erasing pursuers, the Infinity crew and their new ally search for an escape. The Voyager embarks on a rescue mission.",
             "season": "02",
             "episode": "10",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.04.11",
+                    "episode": "You\u2019re Scaring Our Children!",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-318-youre-scaring-our-children-prodigy-s2e10/",
+                    "order": 318,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "The_Devourer_of_All_Things,_Part_II_(episode)",
             "tvdb": 5230744,
             "imdb": "tt28814013",
@@ -573,7 +653,15 @@
             "description": "Thanks to Wesley Crusher's timely intervention, the cadets find the Protostar \u2014 but the ship's marooned guardian isn't eager for their assistance.",
             "season": "02",
             "episode": "11",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.04.18",
+                    "episode": "Cherchez la Holo Femme",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-319-cherchez-la-holo-femme-prodigy-s2e11/",
+                    "order": 319,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Last_Flight_of_the_Protostar,_Part_I_(episode)",
             "tvdb": 5230745,
             "imdb": "tt28814017",
@@ -587,7 +675,15 @@
             "description": "Chakotay and the cadets devise a bold but perilous plan to relaunch the Protostar. Before the ship can fly, however, it will first have to sail.",
             "season": "02",
             "episode": "12",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.04.25",
+                    "episode": "Generation Next: Mayquees",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-320-generation-next-mayquees-prodigy-s2e12/",
+                    "order": 320,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Last_Flight_of_the_Protostar,_Part_II_(episode)",
             "tvdb": 5230746,
             "imdb": "tt28814026",
@@ -601,7 +697,15 @@
             "description": "While harvesting bosonite on a barren world, the crew encounters aggressive, genetically-modified tribbles \u2014 and the Klingon scientist who created them.",
             "season": "02",
             "episode": "13",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.05.02",
+                    "episode": "Rok Paper Tribble",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-321-rok-paper-tribble-prodigy-s2e13/",
+                    "order": 321,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "A_Tribble_Called_Quest_(episode)",
             "tvdb": 5230747,
             "imdb": "tt28814041",
@@ -615,7 +719,15 @@
             "description": "The Protostar's reunion with Voyager has unexpected side effects, bouncing the crew between alternate realities \u2014 including the Mirror Universe.",
             "season": "02",
             "episode": "14",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.05.09",
+                    "episode": "Gary Seven\u2019s Complicated Bong",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-322-gary-sevens-complicated-bong-prodigy-s2e14/",
+                    "order": 322,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Cracked_Mirror_(episode)",
             "tvdb": 5230748,
             "imdb": "tt28814044",
@@ -629,7 +741,15 @@
             "description": "Just as the Protostar and Voyager crews bring their mission to a close, a former enemy suddenly resurfaces with surprising new powers.",
             "season": "02",
             "episode": "15",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.05.16",
+                    "episode": "Geordi Walked So Chakotay Could Walk a Free Man",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-323-geordi-walked-so-chakotay-could-walk-a-free-man-prodigy-s2e15/",
+                    "order": 323,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Ascension,_Part_I_(episode)",
             "tvdb": 5230749,
             "imdb": "tt28814045",
@@ -643,7 +763,15 @@
             "description": "Overwhelmed by Asencia's mysteriously advanced weaponry, the Protostar and Voyager crews take a series of calculated risks that endanger the cadets.",
             "season": "02",
             "episode": "16",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.05.23",
+                    "episode": "I Like My Metal Vine-Ripened",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-324-i-like-my-metal-vine-ripened-prodigy-s2e16/",
+                    "order": 324,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Ascension,_Part_II_(episode)",
             "tvdb": 5230750,
             "imdb": "tt28814051",
@@ -657,7 +785,15 @@
             "description": "As war looms between the Federation and Solum, Gwyn proposes to lead the cadets on an undercover mission to gather intelligence and rescue Ilthuran.",
             "season": "02",
             "episode": "17",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.05.30",
+                    "episode": "TV Deathnok Heard It Mostly",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-325-tv-deathnok-heard-it-mostly-prodigy-s2e17/",
+                    "order": 325,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Brink_(episode)",
             "tvdb": 5230751,
             "imdb": "tt28814058",
@@ -671,7 +807,15 @@
             "description": "Admiral Janeway devises a clever plan to liberate her crew from Asencia's prison, where they're trapped with an angry captive from the Loom.",
             "season": "02",
             "episode": "18",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.06.06",
+                    "episode": "Blue Worf",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-326-blue-worf-prodigy-s2e18/",
+                    "order": 326,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Touch_of_Grey_(episode)",
             "tvdb": 5230752,
             "imdb": "tt28814062",
@@ -685,7 +829,15 @@
             "description": "A desperate Asencia launches an all-out attack on the Federation that will destroy subspace, while Wesley and the cadets try to correct the timeline.",
             "season": "02",
             "episode": "19",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.06.13",
+                    "episode": "I Thought It Was A Kids' Show",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-327-i-thought-it-was-a-kids-show-prodigy-s2e19/",
+                    "order": 327,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Ouroboros,_Part_I_(episode)",
             "tvdb": 5230753,
             "imdb": "tt28814072",
@@ -699,7 +851,15 @@
             "description": "The cadets fight Asencia in a battle for control of Solum and the future \u2014 but a sudden invasion by a destructive species complicates their end-game.",
             "season": "02",
             "episode": "20",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.06.20",
+                    "episode": "Vascular Pencil",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-328-vascular-pencil-prodigy-s2e20/",
+                    "order": 328,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Ouroboros,_Part_II_(episode)",
             "tvdb": 5230755,
             "imdb": "tt28814073",
