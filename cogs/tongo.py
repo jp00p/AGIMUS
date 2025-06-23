@@ -505,6 +505,8 @@ class Tongo(commands.Cog):
       ephemeral=True
     )
 
+    continuum_badges = await db_get_full_continuum_badges()
+
     # Create initial Venture embed and toss it into the pagination pages
     embed = discord.Embed(
       title="TONGO! Badges Ventured!",
@@ -518,6 +520,11 @@ class Tongo(commands.Cog):
       value="\n".join([f"* {b['badge_name']} [{PRESTIGE_TIERS[b['prestige_level']]}]" for b in ventured_badges]),
       inline=False
     )
+    embed.add_field(
+      name="The Great Material Continuum",
+      value=f"{len(continuum_badges)} Badges\n-# See following pages for details!",
+      inline=False
+    )
     embed.set_image(url="https://i.imgur.com/tRi1vYq.gif")
     embed.set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
@@ -526,7 +533,6 @@ class Tongo(commands.Cog):
     tongo_pages = [embed]
 
     # Chunk the continuum into 20-badge chunks
-    continuum_badges = await db_get_full_continuum_badges()
     continuum_chunks = [continuum_badges[i:i + 20] for i in range(0, len(continuum_badges), 20)]
     for page_idx, t_chunk in enumerate(continuum_chunks):
       embed = discord.Embed(
@@ -712,6 +718,11 @@ class Tongo(commands.Cog):
     embed.add_field(
       name=f"Current Players ({player_count})",
       value="\n".join([f"* {m.display_name}" for m in player_members]),
+      inline=False
+    )
+    embed.add_field(
+      name="The Great Material Continuum",
+      value=f"{len(continuum_badges)} Badges\n-# See following pages for details!",
       inline=False
     )
     embed.set_image(url=random.choice(["https://i.imgur.com/zEvF7uO.gif", "https://i.imgur.com/iX9ZCpH.gif"]))
@@ -963,7 +974,11 @@ class Tongo(commands.Cog):
       value="\n".join([f"* {m.display_name}" for m in tongo_player_members]),
       inline=False
     )
-
+    embed.add_field(
+      name="The Great Material Continuum",
+      value=f"{len(tongo_continuum_badges)} Badges\n-# See following pages for details!",
+      inline=False
+    )
     confirmation_embed.set_image(url="https://i.imgur.com/aWLYGKQ.gif")
     confirmation_embed.set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
