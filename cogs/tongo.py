@@ -539,7 +539,7 @@ class Tongo(commands.Cog):
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
-    tongo_pages = [embed]
+    tongo_pages = [pages.Page(embeds=[embed])]
 
     # Chunk the continuum into 20-badge chunks
     continuum_chunks = [continuum_badges[i:i + 20] for i in range(0, len(continuum_badges), 20)]
@@ -557,7 +557,7 @@ class Tongo(commands.Cog):
         text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
         icon_url="https://i.imgur.com/GTN4gQG.jpg"
       )
-      tongo_pages.append(embed)
+      tongo_pages.append(pages.Page(embeds=[embed]))
 
     # Include Continuum Images within Embed Pages
     continuum_images = await generate_paginated_continuum_images(continuum_badges)
@@ -740,7 +740,7 @@ class Tongo(commands.Cog):
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
 
-    tongo_pages = [embed]
+    tongo_pages = [pages.Page(embeds=[embed])]
     for page_idx, t_chunk in enumerate(continuum_chunks):
       embed = discord.Embed(
         title=f"The Great Material Continuum (Page {page_idx + 1} of {len(continuum_chunks)})",
@@ -755,7 +755,7 @@ class Tongo(commands.Cog):
         text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
         icon_url="https://i.imgur.com/GTN4gQG.jpg"
       )
-      tongo_pages.append(embed)
+      tongo_pages.append(pages.Page(embeds=[embed]))
 
     # Include Continuum Images within Embed Pages
     continuum_images = await generate_paginated_continuum_images(continuum_badges)
@@ -994,7 +994,7 @@ class Tongo(commands.Cog):
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
     )
 
-    tongo_pages = [confirmation_embed]
+    tongo_pages = [pages.Page(embeds=[confirmation_embed])]
     for page_idx, t_chunk in enumerate(tongo_continuum_chunks):
       embed = discord.Embed(
         title=f"The Great Material Continuum (Page {page_idx + 1} of {len(tongo_continuum_chunks)})",
@@ -1009,7 +1009,7 @@ class Tongo(commands.Cog):
         text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
         icon_url="https://i.imgur.com/GTN4gQG.jpg"
       )
-      tongo_pages.append(embed)
+      tongo_pages.append(pages.Page(embeds=[embed]))
 
     # Send Continuum Badges as Paginator
     continuum_paginator = pages.Paginator(
