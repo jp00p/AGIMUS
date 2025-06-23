@@ -1161,6 +1161,7 @@ class Tongo(commands.Cog):
       results_embeds = await build_confront_results_embeds(active_chair, remaining_badges)
       zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
 
+      channel_message = None
       if len(results_embeds) > 0:
         continuum_paginator = TongoPaginator(
           pages=results_embeds,
@@ -1169,9 +1170,11 @@ class Tongo(commands.Cog):
           use_default_buttons=False,
           timeout=300
         )
-        await continuum_paginator.send(channel=zeks_table)
+        channel_message = await zeks_table.send(embed=continuum_paginator.pages[0], view=continuum_paginator)
+        continuum_paginator.message = channel_message
+        await continuum_paginator.update()
       else:
-        await zeks_table.send(embed=results_embeds[0])
+        channel_message = await zeks_table.send(embed=results_embeds[0])
 
       # Send per-player results embeds
       for user_id, badge_instance_ids in player_distribution.items():
