@@ -466,7 +466,7 @@ class Tongo(commands.Cog):
     if len(eligible) < 3:
       description = f"You only have {len(eligible)} {prestige_tier} badges eligible to throw in — you need at least 3!"
       num_removed_due_to_trade = len(potential) - len(eligible)
-      if num_removed_due_to_trade > 1:
+      if num_removed_due_to_trade >= 1:
         description += (
           f"\n\n-# Note that {num_removed_due_to_trade} badges were deemed ineligible because they are involved in pending trades. "
           "You may want to review your outgoing or incoming trades with `/trade send` and `/trade incoming` before attempting again!"
@@ -652,7 +652,7 @@ class Tongo(commands.Cog):
     if len(eligible) < 3:
       description = f"You only have {len(eligible)} {prestige_tier} badges eligible to throw in — you need at least 3!"
       num_removed_due_to_trade = len(potential) - len(eligible)
-      if num_removed_due_to_trade > 1:
+      if num_removed_due_to_trade >= 1:
         description += (
           f"\n\n-# Note that {num_removed_due_to_trade} badges were deemed ineligible because they are involved in pending trades. "
           "You may want to review your outgoing or incoming trades with `/trade send` and `/trade incoming` before attempting again!"
@@ -714,7 +714,7 @@ class Tongo(commands.Cog):
       value="\n".join([f"* {m.display_name}" for m in player_members]),
       inline=False
     )
-    embed.set_image(url=random.choice("https://i.imgur.com/zEvF7uO.gif", "https://i.imgur.com/iX9ZCpH.gif"))
+    embed.set_image(url=random.choice(["https://i.imgur.com/zEvF7uO.gif", "https://i.imgur.com/iX9ZCpH.gif"]))
     embed.set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
