@@ -714,7 +714,7 @@ class Tongo(commands.Cog):
       value="\n".join([f"* {m.display_name}" for m in player_members]),
       inline=False
     )
-    embed.set_image(url="https://i.imgur.com/zEvF7uO.gif")
+    embed.set_image(url=random.choice("https://i.imgur.com/zEvF7uO.gif", "https://i.imgur.com/iX9ZCpH.gif"))
     embed.set_footer(
       text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
       icon_url="https://i.imgur.com/GTN4gQG.jpg"
