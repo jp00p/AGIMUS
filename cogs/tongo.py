@@ -372,15 +372,16 @@ class Tongo(commands.Cog):
       )
       await zeks_table.send(embed=downtime_embed)
       await self._perform_confront(active_tongo, chair)
+      if self.auto_confront.is_running():
+        self.auto_confront.cancel()
       self.first_auto_confront = True
     else:
+      if self.auto_confront.is_running():
+        self.auto_confront.cancel()
       self.first_auto_confront = True
+
       self.auto_confront.change_interval(seconds=remaining.total_seconds())
-      try:
-        self.auto_confront.start()
-      except RuntimeError:
-        logger.warning("Tongo auto_confront loop was already running.")
-        raise
+      self.auto_confront.start()
 
       # Disallow any consortium investments cause we don't know what the previous state was.. :\
       self.zek_consortium_activated = True
