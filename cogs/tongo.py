@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dateutil import tz
 
 from common import *
 
@@ -23,7 +24,7 @@ from utils.image_utils import *
 from utils.prestige import *
 from utils.string_utils import escape_discord_formatting as edf
 
-PACIFIC = timezone("America/Los_Angeles")
+PACIFIC = tz.gettz("America/Los_Angeles")
 
 f = open("./data/rules_of_acquisition.txt", "r")
 data = f.read()
