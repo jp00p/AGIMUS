@@ -1343,7 +1343,15 @@
             "episode": "07",
             "imdb": "tt0572258",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.06.23",
+                    "episode": "Yellow Cake Bakery",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-580-yellow-cake-bakery-ent-s3e7/",
+                    "order": 580,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/1TxsenMIPd5yMZ29YYcaa91aUs7.jpg",
