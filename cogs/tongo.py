@@ -352,7 +352,7 @@ class Tongo(commands.Cog):
 
     time_created = active_tongo['created_at']
     if time_created.tzinfo is None:
-      time_created = PACIFIC.localize(time_created).astimezone(timezone.utc)
+      time_created = time_created.replace(tzinfo=PACIFIC).astimezone(timezone.utc)
 
     current_time = datetime.now(timezone.utc)
     elapsed = current_time - time_created
