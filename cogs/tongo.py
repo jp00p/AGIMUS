@@ -23,8 +23,7 @@ from utils.image_utils import *
 from utils.prestige import *
 from utils.string_utils import escape_discord_formatting as edf
 
-
-# cogs.tongo
+PACIFIC = timezone("America/Los_Angeles")
 
 f = open("./data/rules_of_acquisition.txt", "r")
 data = f.read()
@@ -293,9 +292,8 @@ class TongoDividendsView(discord.ui.View):
 
 class TongoPaginator(pages.Paginator):
   async def on_timeout(self):
-    # Reset to page
-    self.current_page = 0
-    await self.update()
+    # Reset to first page
+    await self.update(current_page=0)
     # Then disable view
     if self.disable_on_timeout:
       await self.disable()
@@ -353,7 +351,7 @@ class Tongo(commands.Cog):
 
     time_created = active_tongo['created_at']
     if time_created.tzinfo is None:
-      time_created = time_created.replace(tzinfo=timezone.utc)
+      time_created = PACIFIC.localize(time_created).astimezone(timezone.utc)
 
     current_time = datetime.now(timezone.utc)
     elapsed = current_time - time_created
@@ -373,15 +371,16 @@ class Tongo(commands.Cog):
       )
       await zeks_table.send(embed=downtime_embed)
       await self._perform_confront(active_tongo, chair)
+      if self.auto_confront.is_running():
+        self.auto_confront.cancel()
       self.first_auto_confront = True
     else:
+      if self.auto_confront.is_running():
+        self.auto_confront.cancel()
       self.first_auto_confront = True
+
       self.auto_confront.change_interval(seconds=remaining.total_seconds())
-      try:
-        self.auto_confront.start()
-      except RuntimeError:
-        logger.warning("Tongo auto_confront loop was already running.")
-        raise
+      self.auto_confront.start()
 
       # Disallow any consortium investments cause we don't know what the previous state was.. :\
       self.zek_consortium_activated = True
@@ -415,6 +414,7 @@ class Tongo(commands.Cog):
     required=True,
     autocomplete=autocomplete_prestige_tiers
   )
+  @commands.check(access_check)
   async def venture(self, ctx: discord.ApplicationContext, prestige: str):
     await ctx.defer(ephemeral=True)
 
@@ -606,6 +606,7 @@ class Tongo(commands.Cog):
     required=True,
     autocomplete=autocomplete_prestige_tiers
   )
+  @commands.check(access_check)
   async def risk(self, ctx: discord.ApplicationContext, prestige: str):
     await ctx.defer(ephemeral=True)
 

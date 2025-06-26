@@ -418,6 +418,16 @@
       "enabled": true,
       "parameters": []
     },
+    "badges unowned": {
+      "channels": [
+        "badgeys-badges",
+        "bahrats-bazaar",
+        "gelrak-v",
+        "zeks-table"
+      ],
+      "enabled": true,
+      "parameters": []
+    },
     "bless": {
       "channels": [],
       "enabled": true,

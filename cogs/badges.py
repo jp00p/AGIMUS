@@ -180,15 +180,17 @@ class Badges(commands.Cog):
     max_collected = await db_get_max_badge_count()
     collection_label = None
     if filter is not None:
+      max_collected = await db_get_badge_instances_count_for_user(ctx.author.id, prestige=prestige)
       if filter == 'unlocked':
         user_badges = await db_get_user_badge_instances(ctx.author.id, prestige=prestige, locked=False, sortby=sortby)
+        max_collected = await db_get_badge_instances_count_for_user(ctx.author.id, prestige=prestige, special=False)
       elif filter == 'locked':
         user_badges = await db_get_user_badge_instances(ctx.author.id, prestige=prestige, locked=True, sortby=sortby)
+        max_collected = await db_get_badge_instances_count_for_user(ctx.author.id, prestige=prestige, special=False)
       elif filter == 'special':
         user_badges = await db_get_user_badge_instances(ctx.author.id, prestige=prestige, special=True, sortby=sortby)
       elif filter == 'crystallized':
         user_badges = await db_get_user_badge_instances(ctx.author.id, prestige=prestige, crystallized=True, sortby=sortby)
-      max_collected = await db_get_badge_instances_count_for_user(ctx.author.id, prestige=prestige)
       collection_label = filter.title()
     else:
       user_badges = await db_get_user_badge_instances(ctx.author.id, prestige=prestige, sortby=sortby)
@@ -287,6 +289,150 @@ class Badges(commands.Cog):
             f.fp.close()
           except Exception:
             pass
+    badge_images.clear()
+    gc.collect()
+
+
+  # ____ ___                                     .___
+  # |    |   \____   ______  _  ______   ____   __| _/
+  # |    |   /    \ /  _ \ \/ \/ /    \_/ __ \ / __ |
+  # |    |  /   |  (  <_> )     /   |  \  ___// /_/ |
+  # |______/|___|  /\____/ \/\_/|___|  /\___  >____ |
+  #             \/                  \/     \/     \/
+  @badge_group.command(
+    name="unowned",
+    description="See which badges you're still missing at a given Prestige Tier."
+  )
+  @option(
+    name="public",
+    description="Show to public?",
+    required=True,
+    choices=[
+      discord.OptionChoice(name="No", value="no"),
+      discord.OptionChoice(name="Yes", value="yes")
+    ]
+  )
+  @option(
+    name="prestige",
+    description="Which Prestige Tier to check?",
+    required=True,
+    autocomplete=autocomplete_prestige_tiers
+  )
+  @option(
+    name="color",
+    description="Which colorscheme would you like? (Only applies to Standard Tier)",
+    required=False,
+    choices = [
+      discord.OptionChoice(name=color_choice, value=color_choice.lower())
+      for color_choice in ["Green", "Orange", "Purple", "Teal"]
+    ]
+  )
+  @commands.check(access_check)
+  async def unowned(self, ctx: discord.ApplicationContext, public: str, prestige: str, color: str = None):
+    if not await is_prestige_valid(ctx, prestige):
+      return
+    prestige = int(prestige)
+    public = (public == "yes")
+
+    logger.info(f"{ctx.author.display_name} is pulling up their {Style.BRIGHT}`/badges unowned`{Style.RESET_ALL} badges for their {Style.BRIGHT}{PRESTIGE_TIERS[prestige]}{Style.RESET_ALL} Tier!")
+
+    unowned_badges = await db_get_unowned_user_badge_instances(ctx.author.id, prestige)
+
+    if not unowned_badges:
+      await ctx.respond(
+        embed=discord.Embed(
+          title="You've Collected Them All!",
+          description="You already own every badge available at this Prestige Tier! Wowzers.",
+          color=discord.Color.green()
+        ),
+        ephemeral=True
+      )
+      return
+
+    pending_message = await ctx.respond(
+      embed=discord.Embed(
+        title="Unowned Badge List Request Received!",
+        description=f"Compiling your uncollected badge records...\nStand by! {get_emoji('badgey_smile_happy')}",
+        color=discord.Color.dark_teal()
+      ),
+      ephemeral=not public
+    )
+
+    if color:
+      await db_set_user_badge_page_color_preference(ctx.author.id, "collection", color)
+
+    collection_label = "Unowned"
+    badge_images = await generate_badge_collection_images(
+      user=ctx.author,
+      prestige=prestige,
+      badge_data=unowned_badges,
+      collection_type="collection",
+      collection_label=collection_label,
+      discord_message=pending_message
+    )
+
+    await pending_message.edit(embed=discord.Embed(
+      title="Unowned Badges Displayed!",
+      description="Here's your current missing badges list!",
+      color=discord.Color.dark_teal()
+    ))
+
+    max_badge_count = await db_get_max_badge_count()
+    special_badge_count = len(await db_get_special_badge_info())
+    collection_count = max_badge_count - special_badge_count
+    embed = discord.Embed(
+      title=f"{ctx.author.display_name}'s Unowned Badges [{PRESTIGE_TIERS[prestige]}]",
+      description=f"Missing {len(unowned_badges)} of {collection_count}",
+      color=discord.Color.blurple()
+    )
+
+    if not public:
+      buttons = [
+        pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, disabled=(len(unowned_badges) <= 30), row=1),
+        pages.PaginatorButton("page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1),
+        pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, disabled=(len(unowned_badges) <= 30), row=1),
+      ]
+
+      class UnownedPaginator(pages.Paginator):
+        def __init__(self, *args, badge_files: list[discord.File], **kwargs):
+          self.badge_files = badge_files
+          super().__init__(*args, **kwargs)
+
+        async def on_timeout(self):
+          for f in self.badge_files:
+            try: f.fp.close()
+            except: pass
+          self.badge_files.clear()
+          gc.collect()
+
+      pages_list = [
+        pages.Page(files=[image], embeds=[embed])
+        for image in badge_images
+      ]
+
+      paginator = UnownedPaginator(
+        pages=pages_list,
+        badge_files=badge_images,
+        show_disabled=True,
+        show_indicator=True,
+        use_default_buttons=False,
+        custom_buttons=buttons,
+        loop_pages=True,
+        timeout=600
+      )
+      await paginator.respond(ctx.interaction, ephemeral=True)
+
+    else:
+      file_chunks = [badge_images[i:i + 10] for i in range(0, len(badge_images), 10)]
+      for i, chunk in enumerate(file_chunks):
+        if i == len(file_chunks) - 1:
+          await ctx.followup.send(embed=embed, files=chunk)
+        else:
+          await ctx.followup.send(files=chunk)
+        for f in chunk:
+          try: f.fp.close()
+          except: pass
+
     badge_images.clear()
     gc.collect()
 
