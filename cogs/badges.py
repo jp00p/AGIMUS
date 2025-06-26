@@ -327,13 +327,14 @@ class Badges(commands.Cog):
       for color_choice in ["Green", "Orange", "Purple", "Teal"]
     ]
   )
+  @commands.check(access_check)
   async def unowned(self, ctx: discord.ApplicationContext, public: str, prestige: str, color: str = None):
-    logger.info(f"{ctx.author.display_name} is pulling up their {Style.BRIGHT}`/badges unowned`{Style.RESET_ALL} badges for their {Style.BRIGHT}{PRESTIGE_TIERS[prestige]}{Style.RESET_ALL} Tier!")
-
     if not await is_prestige_valid(ctx, prestige):
       return
     prestige = int(prestige)
     public = (public == "yes")
+
+    logger.info(f"{ctx.author.display_name} is pulling up their {Style.BRIGHT}`/badges unowned`{Style.RESET_ALL} badges for their {Style.BRIGHT}{PRESTIGE_TIERS[prestige]}{Style.RESET_ALL} Tier!")
 
     unowned_badges = await db_get_unowned_user_badge_instances(ctx.author.id, prestige)
 
@@ -360,7 +361,7 @@ class Badges(commands.Cog):
     if color:
       await db_set_user_badge_page_color_preference(ctx.author.id, "collection", color)
 
-    collection_label = f"{remove_emoji(ctx.author.display_name)}'s Unowned Badges [{PRESTIGE_TIERS[prestige]}]"
+    collection_label = "Unowned"
     badge_images = await generate_badge_collection_images(
       user=ctx.author,
       prestige=prestige,
@@ -380,7 +381,7 @@ class Badges(commands.Cog):
     special_badge_count = len(await db_get_special_badge_info())
     collection_count = max_badge_count - special_badge_count
     embed = discord.Embed(
-      title=f"{ctx.author.display_name}'s Missing Badges [{PRESTIGE_TIERS[prestige]}]",
+      title=f"{ctx.author.display_name}'s Unowned Badges [{PRESTIGE_TIERS[prestige]}]",
       description=f"Missing {len(unowned_badges)} of {collection_count}",
       color=discord.Color.blurple()
     )
