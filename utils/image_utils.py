@@ -489,7 +489,6 @@ def _compose_grid_slot(badge, collection_type, theme, badge_image):
 
   colors = get_theme_colors(theme)
 
-  # unowned = collection_type == 'sets' and not badge.get('in_user_collection')
   unowned = badge.get('in_user_collection') is not None and badge.get('in_user_collection') is False
   if unowned:
     faded_frames = []

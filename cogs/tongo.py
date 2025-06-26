@@ -23,8 +23,7 @@ from utils.image_utils import *
 from utils.prestige import *
 from utils.string_utils import escape_discord_formatting as edf
 
-
-# cogs.tongo
+PACIFIC = timezone("America/Los_Angeles")
 
 f = open("./data/rules_of_acquisition.txt", "r")
 data = f.read()
@@ -352,7 +351,7 @@ class Tongo(commands.Cog):
 
     time_created = active_tongo['created_at']
     if time_created.tzinfo is None:
-      time_created = time_created.replace(tzinfo=timezone.utc)
+      time_created = PACIFIC.localize(time_created).astimezone(timezone.utc)
 
     current_time = datetime.now(timezone.utc)
     elapsed = current_time - time_created
