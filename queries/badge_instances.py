@@ -39,6 +39,7 @@ async def db_get_user_badge_instances(
 
   if locked is not None:
     where_clauses.append("b.locked = %s")
+    where_clauses.append("b_i.special = FALSE")
     params.append(locked)
 
   if special is not None:
@@ -57,7 +58,7 @@ async def db_get_user_badge_instances(
     elif sortby == 'date_descending':
       sort_sql = "ORDER BY b.last_transferred DESC, b_i.badge_name ASC"
     elif sortby == 'locked_first':
-      sort_sql = "ORDER BY b.locked ASC, b_i.badge_name ASC"
+      sort_sql = "ORDER BY b.locked DESC, b_i.badge_name ASC"
     elif sortby == 'special_first':
       sort_sql = "ORDER BY b_i.special ASC, b_i.badge_name ASC"
 
@@ -76,6 +77,64 @@ async def db_get_user_badge_instances(
       params
     )
     return await query.fetchall()
+
+async def db_get_unowned_user_badge_instances(user_id: str, prestige: int) -> list[dict]:
+  """
+  Returns all badge_info entries at a given prestige tier that the user does NOT own,
+  excluding special badges. These are returned with None values for all badge_instance
+  and crystal-related fields, and include 'in_user_collection': False.
+  """
+  sql = f"""
+    SELECT
+      b_i.id AS badge_info_id,
+      b_i.badge_filename,
+      b_i.badge_name,
+      b_i.badge_url,
+      b_i.quadrant,
+      b_i.time_period,
+      b_i.franchise,
+      b_i.reference,
+      b_i.special,
+
+      NULL AS badge_instance_id,
+      NULL AS badge_info_id,
+      NULL AS owner_discord_id,
+      NULL AS prestige_level,
+      NULL AS locked,
+      NULL AS origin_user_id,
+      NULL AS acquired_at,
+      NULL AS active_crystal_id,
+      NULL AS status,
+      NULL AS active,
+
+      NULL AS badge_crystal_id,
+      NULL AS crystal_instance_id,
+      NULL AS crystal_status,
+      NULL AS crystal_created_at,
+      NULL AS crystal_type_id,
+      NULL AS crystal_name,
+      NULL AS crystal_icon,
+      NULL AS crystal_effect,
+      NULL AS crystal_rarity_rank
+
+    FROM badge_info AS b_i
+    LEFT JOIN badge_instances AS b
+      ON b_i.id = b.badge_info_id
+      AND b.owner_discord_id = %s
+      AND b.prestige_level = %s
+      AND b.active = TRUE
+    WHERE b.id IS NULL
+      AND b_i.special = FALSE
+    ORDER BY b_i.badge_name ASC
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id, prestige))
+    results = await db.fetchall()
+
+    for row in results:
+      row['in_user_collection'] = False
+
+    return results
 
 async def db_get_badge_instance_by_id(badge_instance_id):
   sql = f"""
@@ -285,19 +344,28 @@ async def db_get_unlocked_and_unattuned_badge_instances(user_id: int, prestige: 
 
 
 # COUNTS
-async def db_get_badge_instances_count_for_user(user_id: int, prestige: int | None = None) -> int:
+async def db_get_badge_instances_count_for_user(
+  user_id: int,
+  prestige: int | None = None,
+  special: bool | None = None
+) -> int:
   async with AgimusDB(dictionary=True) as query:
     sql = '''
       SELECT COUNT(*) AS count
-      FROM badge_instances
-      WHERE owner_discord_id = %s
-        AND active = TRUE
+      FROM badge_instances AS b
+      JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+      WHERE b.owner_discord_id = %s
+        AND b.active = TRUE
     '''
     vals = [user_id]
 
     if prestige is not None:
-      sql += ' AND prestige_level = %s'
+      sql += ' AND b.prestige_level = %s'
       vals.append(prestige)
+
+    if special is not None:
+      sql += ' AND b_i.special = %s'
+      vals.append(special)
 
     await query.execute(sql, tuple(vals))
     result = await query.fetchone()
