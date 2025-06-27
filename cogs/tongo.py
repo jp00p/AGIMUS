@@ -1,5 +1,4 @@
 from collections import defaultdict
-from dateutil import tz
 
 from common import *
 
@@ -23,8 +22,6 @@ from utils.exception_logger import log_manual_exception
 from utils.image_utils import *
 from utils.prestige import *
 from utils.string_utils import escape_discord_formatting as edf
-
-PACIFIC = tz.gettz("America/Los_Angeles")
 
 f = open("./data/rules_of_acquisition.txt", "r")
 data = f.read()
@@ -294,10 +291,12 @@ class TongoDividendsView(discord.ui.View):
 class TongoPaginator(pages.Paginator):
   async def on_timeout(self):
     # Reset to first page
-    await self.update(current_page=0)
+    await self.goto_page(page_number=0)
+    await self.update()
     # Then disable view
-    if self.disable_on_timeout:
-      await self.disable()
+    await super().on_timeout()
+    # if self.disable_on_timeout:
+    #   await self.disable()
 
 # ___________                          _________
 # \__    ___/___   ____    ____   ____ \_   ___ \  ____   ____
@@ -352,7 +351,7 @@ class Tongo(commands.Cog):
 
     time_created = active_tongo['created_at']
     if time_created.tzinfo is None:
-      time_created = time_created.replace(tzinfo=PACIFIC).astimezone(timezone.utc)
+      time_created = time_created.replace(tzinfo=timezone.utc)
 
     current_time = datetime.now(timezone.utc)
     elapsed = current_time - time_created
@@ -378,8 +377,8 @@ class Tongo(commands.Cog):
     else:
       if self.auto_confront.is_running():
         self.auto_confront.cancel()
-      self.first_auto_confront = True
 
+      self.first_auto_confront = True
       self.auto_confront.change_interval(seconds=remaining.total_seconds())
       self.auto_confront.start()
 
@@ -1014,7 +1013,7 @@ class Tongo(commands.Cog):
       tongo_pages.append(pages.Page(embeds=[embed]))
 
     # Send Continuum Badges as Paginator
-    continuum_paginator = pages.Paginator(
+    continuum_paginator = TongoPaginator(
       pages=tongo_pages,
       show_indicator=True,
       custom_buttons=self.tongo_buttons,
@@ -1085,52 +1084,57 @@ class Tongo(commands.Cog):
   # /_/ |_\_,_/\__/\___/    \___/\___/_//_/_//_/  \___/_//_/\__/
   @tasks.loop(hours=6)
   async def auto_confront(self):
-    if self.first_auto_confront:
-      self.first_auto_confront = False
-      return
+    try:
+      if self.first_auto_confront:
+        self.first_auto_confront = False
+        return
 
-    active_tongo = await db_get_open_game()
-
-    if not active_tongo:
-      return
-
-    tongo_players = await db_get_players_for_game(active_tongo['id'])
-    active_tongo_chair_id = int(active_tongo['chair_user_id'])
-    active_chair = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
-
-    # If we never got enough players, end the game and notify the chair
-    if len(tongo_players) < 2:
-      await db_update_game_status(active_tongo['id'], 'cancelled')
-      # Alert the channel
-      zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
-      await zeks_table.send(embed=discord.Embed(
-          title="TONGO! Auto-Canceled!",
-          description=f"Whoops, the Tongo game started by {active_chair.display_name} didn't get any other takers and the "
-                      "time has run out! Game has been automatically canceled.",
-          color=discord.Color.red()
-        )
-      )
-      # Alert the chair
-      try:
-        canceled_embed = discord.Embed(
-          title="TONGO! Auto-Canceled!",
-          description=f"Hey there {active_chair.display_name}, looks like time ran out on your Tongo game and there were not "
-                "enough players. Your game has been automatically canceled.",
-          color=discord.Color.red()
-        )
-        canceled_embed.set_footer(
-          text="Note: You can use /settings to enable or disable these messages."
-        )
-        await active_chair.send(embed=canceled_embed)
-      except discord.Forbidden as e:
-        logger.info(f"Unable to Tongo auto-cancel message to {active_chair.display_name}, they have their DMs closed.")
-        pass
-      return
-
-    await self._perform_confront(active_tongo, active_chair)
-    if self.auto_confront.is_running():
+      active_tongo = await db_get_open_game()
+      if not active_tongo:
         self.auto_confront.cancel()
+        return
 
+      tongo_players = await db_get_players_for_game(active_tongo['id'])
+      active_tongo_chair_id = int(active_tongo['chair_user_id'])
+      active_chair = await self.bot.current_guild.fetch_member(active_tongo_chair_id)
+
+      # If we never got enough players, end the game and notify the chair
+      if len(tongo_players) < 2:
+        await db_update_game_status(active_tongo['id'], 'cancelled')
+        # Alert the channel
+        zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+        await zeks_table.send(embed=discord.Embed(
+            title="TONGO! Auto-Canceled!",
+            description=f"Whoops, the Tongo game started by {active_chair.display_name} didn't get any other takers and the "
+                        "time has run out! Game has been automatically canceled.",
+            color=discord.Color.red()
+          )
+        )
+        # Alert the chair
+        try:
+          canceled_embed = discord.Embed(
+            title="TONGO! Auto-Canceled!",
+            description=f"Hey there {active_chair.display_name}, looks like time ran out on your Tongo game and there were not "
+                  "enough players. Your game has been automatically canceled.",
+            color=discord.Color.red()
+          )
+          canceled_embed.set_footer(
+            text="Note: You can use /settings to enable or disable these messages."
+          )
+          await active_chair.send(embed=canceled_embed)
+        except discord.Forbidden as e:
+          logger.info(f"Unable to Tongo auto-cancel message to {active_chair.display_name}, they have their DMs closed.")
+          pass
+        if self.auto_confront.is_running():
+            self.auto_confront.cancel()
+        return
+
+      await self._perform_confront(active_tongo, active_chair)
+      if self.auto_confront.is_running():
+          self.auto_confront.cancel()
+    except Exception as e:
+      log_manual_exception(e, 'auto_confront error')
+      raise e
 
   async def _perform_confront(self, active_tongo, active_chair):
     try:
