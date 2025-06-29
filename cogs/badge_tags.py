@@ -25,16 +25,14 @@ async def user_badges_autocomplete(ctx:discord.AutocompleteContext):
 
 
 async def badges_autocomplete(ctx:discord.AutocompleteContext):
-  special_badge_ids = [b['id'] for b in await db_get_special_badge_info()]
   all_badges = await db_get_all_badge_info()
-  filtered_badges = [b for b in all_badges if b['id'] not in special_badge_ids]
 
   choices = [
     discord.OptionChoice(
       name=b['badge_name'],
       value=str(b['id'])
     )
-    for b in filtered_badges if strip_bullshit(ctx.value.lower()) in strip_bullshit(b['badge_name'].lower())
+    for b in all_badges if strip_bullshit(ctx.value.lower()) in strip_bullshit(b['badge_name'].lower())
   ]
   return choices
 
