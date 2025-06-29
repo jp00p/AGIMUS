@@ -1,6 +1,7 @@
 from common import *
 from queries.badge_instances import *
 from queries.badge_tags import *
+from queries.wishlists import *
 from utils.badge_utils import *
 from utils.check_channel_access import access_check
 from utils.image_utils import generate_badge_collection_images
@@ -294,7 +295,13 @@ class BadgeTags(commands.Cog):
     required=True,
     autocomplete=badges_autocomplete
   )
-  async def tag(self, ctx: discord.ApplicationContext, badge: str):
+  @option(
+    name="auto_lock",
+    description="Also lock this badge across tiers?",
+    required=False,
+    default=True
+  )
+  async def tag(self, ctx: discord.ApplicationContext, badge: str, auto_lock: bool = True):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
 
@@ -352,6 +359,9 @@ class BadgeTags(commands.Cog):
 
         if selected_tag_ids:
           await db_create_user_badge_info_tags_associations(user_discord_id, badge_info['id'], selected_tag_ids)
+          if auto_lock:
+            await db_lock_badge_instances_by_badge_info_id(ctx.author.id, badge_info['id'])
+            await db_add_badge_info_id_to_wishlist(ctx.author.id, badge_info['id'])
 
         final_tags = await db_get_associated_user_badge_tags_by_info_id(user_discord_id, badge_info['id'])
         tag_names = [t['tag_name'] for t in final_tags]
@@ -366,8 +376,25 @@ class BadgeTags(commands.Cog):
           description=description,
           color=discord.Color.green()
         )
-
         tag_updated_embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
+
+        instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
+        owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info['id'] and i['active']}
+        locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info['id'] and i['active'] and i['locked']}
+        echelon = await db_get_echelon_progress(user_discord_id)
+        current_max_tier = echelon['current_prestige_tier']
+        for tier in range(current_max_tier + 1):
+          if tier in owned_tiers:
+            symbol = "🔒" if tier in locked_tiers else "🔓"
+            note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+          else:
+            symbol = "❌"
+            note = ""
+          embed.add_field(
+            name=PRESTIGE_TIERS[tier],
+            value=f"Owned: {symbol}{note}",
+            inline=False
+          )
 
         await interaction.edit_original_response(
           embed=tag_updated_embed,
@@ -530,7 +557,13 @@ class BadgeTags(commands.Cog):
       discord.OptionChoice(name="Beginning", value="beginning")
     ]
   )
-  async def carousel(self, ctx: discord.ApplicationContext, start: str):
+  @option(
+    name="auto_lock",
+    description="Automatically lock and wishlist tagged badges?",
+    required=False,
+    default=True
+  )
+  async def carousel(self, ctx: discord.ApplicationContext, start: str, auto_lock: bool = True):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
 
@@ -602,10 +635,11 @@ class BadgeTags(commands.Cog):
         self.view.tag_ids = [int(v) for v in self.values]
 
     class CarouselButton(discord.ui.Button):
-      def __init__(self, user_discord_id, current_info, info_list):
+      def __init__(self, user_discord_id, current_info, info_list, auto_lock):
         self.user_discord_id = user_discord_id
         self.current_info = current_info
         self.info_list = info_list
+        self.auto_lock = auto_lock
         super().__init__(
           label="Tag Badge / Move On",
           style=discord.ButtonStyle.primary,
@@ -625,6 +659,9 @@ class BadgeTags(commands.Cog):
           existing_ids = {t['id'] for t in existing}
           new_tag_ids = [tid for tid in self.view.tag_ids if tid not in existing_ids]
           await db_create_user_badge_info_tags_associations(self.user_discord_id, self.current_info['id'], new_tag_ids)
+          if auto_lock:
+            await db_lock_badge_instances_by_badge_info_id(ctx.author.id, self.current_info['id'])
+            await db_add_badge_info_id_to_wishlist(ctx.author.id, self.current_info['id'])
 
         # Build the summary embed
         final_tags = await db_get_associated_user_badge_tags_by_info_id(self.user_discord_id, self.current_info['id'])
@@ -647,6 +684,25 @@ class BadgeTags(commands.Cog):
           fp=f"./images/badges/{self.current_info['badge_filename']}",
           filename=self.current_info['badge_filename']
         )
+
+        instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
+        owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == self.current_info['id'] and i['active']}
+        locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == self.current_info['id'] and i['active'] and i['locked']}
+
+        echelon_progress = await db_get_echelon_progress(user_discord_id)
+        current_max_tier = echelon_progress['current_prestige_tier']
+        for tier in range(current_max_tier + 1):
+          if tier in owned_tiers:
+            symbol = "🔒" if tier in locked_tiers else "🔓"
+            note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+          else:
+            symbol = "❌"
+            note = ""
+          summary_embed.add_field(
+            name=PRESTIGE_TIERS[tier],
+            value=f"Owned: {symbol}{note}",
+            inline=False
+          )
 
         try:
           await interaction.delete_original_response()
@@ -690,7 +746,8 @@ class BadgeTags(commands.Cog):
           next_info,
           user_tags,
           self.info_list,
-          tag_data
+          tag_data,
+          self.auto_lock
         )
 
         next_embed = discord.Embed(
@@ -711,15 +768,16 @@ class BadgeTags(commands.Cog):
         )
 
     class CarouselView(discord.ui.View):
-      def __init__(self, user_discord_id, badge_info, user_tags, all_badge_info, tag_data):
+      def __init__(self, user_discord_id, badge_info, user_tags, all_badge_info, tag_data, auto_lock):
         super().__init__(timeout=180)
         self.tag_ids = [t['id'] for t in tag_data]
+        self.auto_lock = auto_lock
         self.add_item(CarouselSelector(user_tags, self.tag_ids))
-        self.add_item(CarouselButton(user_discord_id, badge_info, all_badge_info))
+        self.add_item(CarouselButton(user_discord_id, badge_info, all_badge_info, auto_lock))
 
     # Actually use the View above
     tag_data = await db_get_associated_user_badge_tags_by_info_id(user_discord_id, selected['id'])
-    view = CarouselView(user_discord_id, selected, user_tags, all_badge_info, tag_data)
+    view = CarouselView(user_discord_id, selected, user_tags, all_badge_info, tag_data, auto_lock)
     embed = discord.Embed(
       title=selected['badge_name'],
       description="Tag this Badge below.",

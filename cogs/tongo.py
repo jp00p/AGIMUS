@@ -1053,7 +1053,7 @@ class Tongo(commands.Cog):
 
     embed = discord.Embed(
       title="Tongo Dividends",
-      description=f"Your devotion to Ferengi Principles and the 285 Rules of Acquisition have earned you favor from Grand Nagus Zek.\n\n"
+      description=f"Your devotion to Ferengi Principles and the 285 Rules of Acquisition have earned you favor from Grand Nagus Zek.\n"
                   f"### Current Balance\n**{balance}** Dividends\n"
                   f"### Lifetime Earned\n**{lifetime}** Dividends\n\n"
                   "Each Tongo game you participate in earns you *one* Dividend and there are three possible Dividend Rewards...",
