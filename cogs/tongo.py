@@ -583,7 +583,7 @@ class Tongo(commands.Cog):
       timeout=300
     )
     zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
-    await continuum_paginator.send(ctx.interaction, target=zeks_table)
+    await continuum_paginator.send(interaction=ctx, target=zeks_table)
 
     # Autoconfront
     if self.auto_confront.is_running():
@@ -783,7 +783,7 @@ class Tongo(commands.Cog):
       timeout=300
     )
     zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
-    await continuum_paginator.send(ctx.interaction, target=zeks_table)
+    await continuum_paginator.send(interaction=ctx, target=zeks_table)
 
     # Potentially trigger a Consortium post-join
     if not self.zek_consortium_activated:
@@ -1023,7 +1023,7 @@ class Tongo(commands.Cog):
       timeout=300
     )
     zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
-    await continuum_paginator.send(ctx.interaction, target=zeks_table)
+    await continuum_paginator.send(interaction=ctx, target=zeks_table)
 
     # Continuum image display
     continuum_images = await generate_paginated_continuum_images(tongo_continuum_badges)

@@ -296,8 +296,8 @@ class BadgeTags(commands.Cog):
   @option(
     name="auto_lock",
     description="Also lock this badge across tiers?",
-    required=False,
-    default=True
+    required=True,
+    # default=True
   )
   async def tag(self, ctx: discord.ApplicationContext, badge: str, auto_lock: bool = True):
     await ctx.defer(ephemeral=True)
@@ -365,7 +365,7 @@ class BadgeTags(commands.Cog):
         tag_names = [t['tag_name'] for t in final_tags]
 
         description = (
-          f"**{badge_info['badge_name']}** is now tagged with:\n\n- " + "\n- ".join(sorted(tag_names, key=str.lower))
+          f"**{badge_info['badge_name']}** is now tagged with:\n- " + "\n- ".join(sorted(tag_names, key=str.lower))
           if tag_names else f"**{badge_info['badge_name']}** now has no tags associated."
         )
 
@@ -411,6 +411,24 @@ class BadgeTags(commands.Cog):
     )
     badge_file = discord.File(f"./images/badges/{badge_info['badge_filename']}", filename=badge_info['badge_filename'])
     embed.set_image(url=f"attachment://{badge_info['badge_filename']}")
+
+    instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
+    owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info['id'] and i['active']}
+    locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info['id'] and i['active'] and i['locked']}
+    echelon = await db_get_echelon_progress(user_discord_id)
+    current_max_tier = echelon['current_prestige_tier']
+    for tier in range(current_max_tier + 1):
+      if tier in owned_tiers:
+        symbol = "🔒" if tier in locked_tiers else "🔓"
+        note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+      else:
+        symbol = "❌"
+        note = ""
+      embed.add_field(
+        name=PRESTIGE_TIERS[tier],
+        value=f"Owned: {symbol}{note}",
+        inline=False
+      )
 
     await ctx.followup.send(embed=embed, file=badge_file, view=TagView(), ephemeral=True)
 
@@ -558,8 +576,8 @@ class BadgeTags(commands.Cog):
   @option(
     name="auto_lock",
     description="Automatically lock and wishlist tagged badges?",
-    required=False,
-    default=True
+    required=True,
+    # default=True
   )
   async def carousel(self, ctx: discord.ApplicationContext, start: str, auto_lock: bool = True):
     await ctx.defer(ephemeral=True)
@@ -666,9 +684,9 @@ class BadgeTags(commands.Cog):
         tag_names = [t['tag_name'] for t in final_tags]
 
         if tag_names:
-          description = f"**{self.current_info['badge_name']}** is now tagged with:\n\n- " + "\n- ".join(
+          description = f"**{self.current_info['badge_name']}** is now tagged with:\n- " + "\n- ".join(
             sorted(tag_names, key=str.lower)
-          ) + "\n\nUse `/badge_tags collection` to show off your tags!"
+          )
         else:
           description = f"**{self.current_info['badge_name']}** has no tags associated!"
 
@@ -758,6 +776,24 @@ class BadgeTags(commands.Cog):
           filename=next_info['badge_filename']
         )
 
+        instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
+        owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == next_info['id'] and i['active']}
+        locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == next_info['id'] and i['active'] and i['locked']}
+        echelon_progress = await db_get_echelon_progress(user_discord_id)
+        current_max_tier = echelon_progress['current_prestige_tier']
+        for tier in range(current_max_tier + 1):
+          if tier in owned_tiers:
+            symbol = "🔒" if tier in locked_tiers else "🔓"
+            note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+          else:
+            symbol = "❌"
+            note = ""
+          next_embed.add_field(
+            name=PRESTIGE_TIERS[tier],
+            value=f"Owned: {symbol}{note}",
+            inline=False
+          )
+
         await interaction.followup.send(
           embed=next_embed,
           file=next_badge_file,
@@ -783,4 +819,24 @@ class BadgeTags(commands.Cog):
     )
     badge_file = discord.File(fp=f"./images/badges/{selected['badge_filename']}", filename=selected['badge_filename'])
     embed.set_image(url=f"attachment://{selected['badge_filename']}")
+
+    instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
+    owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == selected['id'] and i['active']}
+    locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == selected['id'] and i['active'] and i['locked']}
+
+    echelon_progress = await db_get_echelon_progress(user_discord_id)
+    current_max_tier = echelon_progress['current_prestige_tier']
+    for tier in range(current_max_tier + 1):
+      if tier in owned_tiers:
+        symbol = "🔒" if tier in locked_tiers else "🔓"
+        note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+      else:
+        symbol = "❌"
+        note = ""
+      embed.add_field(
+        name=PRESTIGE_TIERS[tier],
+        value=f"Owned: {symbol}{note}",
+        inline=False
+      )
+
     await ctx.followup.send(embed=embed, file=badge_file, view=view, ephemeral=True)
