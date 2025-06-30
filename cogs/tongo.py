@@ -1176,9 +1176,11 @@ class Tongo(commands.Cog):
           show_indicator=True,
           custom_buttons=self.tongo_buttons,
           use_default_buttons=False,
-          timeout=300
+          timeout=300,
+          author_check=False
         )
         channel_message = await zeks_table.send(embed=continuum_paginator.pages[0], view=continuum_paginator)
+        continuum_paginator.message = channel_message
         await continuum_paginator.edit(channel_message) # Replace contents of the message with the actual Paginator
       else:
         channel_message = await zeks_table.send(embed=results_embeds[0])
