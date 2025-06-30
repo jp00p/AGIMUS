@@ -292,7 +292,7 @@ class TongoPaginator(pages.Paginator):
   async def on_timeout(self):
     # Reset to first page
     await self.goto_page(page_number=0)
-    await self.update()
+    # await self.update()
     # Then disable view
     await super().on_timeout()
     # if self.disable_on_timeout:
@@ -582,7 +582,8 @@ class Tongo(commands.Cog):
       use_default_buttons=False,
       timeout=300
     )
-    await continuum_paginator.respond(ctx.interaction, ephemeral=False)
+    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+    await continuum_paginator.send(ctx.interaction, target=zeks_table)
 
     # Autoconfront
     if self.auto_confront.is_running():
@@ -781,7 +782,8 @@ class Tongo(commands.Cog):
       use_default_buttons=False,
       timeout=300
     )
-    await continuum_paginator.respond(ctx.interaction, ephemeral=False)
+    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+    await continuum_paginator.send(ctx.interaction, target=zeks_table)
 
     # Potentially trigger a Consortium post-join
     if not self.zek_consortium_activated:
@@ -1020,7 +1022,8 @@ class Tongo(commands.Cog):
       use_default_buttons=False,
       timeout=300
     )
-    await continuum_paginator.respond(ctx.interaction, ephemeral=False)
+    zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+    await continuum_paginator.send(ctx.interaction, target=zeks_table)
 
     # Continuum image display
     continuum_images = await generate_paginated_continuum_images(tongo_continuum_badges)
@@ -1126,12 +1129,14 @@ class Tongo(commands.Cog):
           logger.info(f"Unable to Tongo auto-cancel message to {active_chair.display_name}, they have their DMs closed.")
           pass
         if self.auto_confront.is_running():
-            self.auto_confront.cancel()
+          self.auto_confront.cancel()
+          self.first_auto_confront = True
         return
 
       await self._perform_confront(active_tongo, active_chair)
       if self.auto_confront.is_running():
           self.auto_confront.cancel()
+      self.first_auto_confront = True
     except Exception as e:
       log_manual_exception(e, 'auto_confront error')
       raise e
@@ -1177,8 +1182,7 @@ class Tongo(commands.Cog):
           timeout=300
         )
         channel_message = await zeks_table.send(embed=continuum_paginator.pages[0], view=continuum_paginator)
-        continuum_paginator.message = channel_message
-        await continuum_paginator.update()
+        await continuum_paginator.edit(channel_message) # Replace contents of the message with the actual Paginator
       else:
         channel_message = await zeks_table.send(embed=results_embeds[0])
 
