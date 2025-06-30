@@ -299,7 +299,7 @@ class BadgeTags(commands.Cog):
     required=True,
     # default=True
   )
-  async def tag(self, ctx: discord.ApplicationContext, badge: str, auto_lock: bool = True):
+  async def tag(self, ctx: discord.ApplicationContext, badge: str, auto_lock: bool):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
 
@@ -579,7 +579,7 @@ class BadgeTags(commands.Cog):
     required=True,
     # default=True
   )
-  async def carousel(self, ctx: discord.ApplicationContext, start: str, auto_lock: bool = True):
+  async def carousel(self, ctx: discord.ApplicationContext, start: str, auto_lock: bool):
     await ctx.defer(ephemeral=True)
     user_discord_id = ctx.author.id
 
@@ -675,9 +675,6 @@ class BadgeTags(commands.Cog):
           existing_ids = {t['id'] for t in existing}
           new_tag_ids = [tid for tid in self.view.tag_ids if tid not in existing_ids]
           await db_create_user_badge_info_tags_associations(self.user_discord_id, self.current_info['id'], new_tag_ids)
-          if auto_lock:
-            await db_lock_badge_instances_by_badge_info_id(ctx.author.id, self.current_info['id'])
-            await db_add_badge_info_id_to_wishlist(ctx.author.id, self.current_info['id'])
 
         # Build the summary embed
         final_tags = await db_get_associated_user_badge_tags_by_info_id(self.user_discord_id, self.current_info['id'])
@@ -687,6 +684,9 @@ class BadgeTags(commands.Cog):
           description = f"**{self.current_info['badge_name']}** is now tagged with:\n- " + "\n- ".join(
             sorted(tag_names, key=str.lower)
           )
+          if auto_lock:
+            await db_lock_badge_instances_by_badge_info_id(ctx.author.id, self.current_info['id'])
+            await db_add_badge_info_id_to_wishlist(ctx.author.id, self.current_info['id'])
         else:
           description = f"**{self.current_info['badge_name']}** has no tags associated!"
 
