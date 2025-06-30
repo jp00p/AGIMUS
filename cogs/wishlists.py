@@ -283,14 +283,20 @@ class Wishlist(commands.Cog):
     if badge_name in special:
       return
 
-    owned = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id)]
+    info = await db_get_badge_info_by_name(badge_name)
+    instances = await db_get_user_badge_instances(payload.user_id, prestige=None)
+    owned = [b['badge_name'] for b in instances]
     wished = [b['badge_name'] for b in await db_get_simple_wishlist_badges(payload.user_id)]
     # user_locked_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id, locked=True)]
+
+    owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active']}
+    locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active'] and i['locked']}
+    echelon_progress = await db_get_echelon_progress(payload.user_id)
+    current_max_tier = echelon_progress['current_prestige_tier']
 
     if payload.event_type == "REACTION_ADD":
       if badge_name not in owned and badge_name not in wished:
         logger.info(f"Adding {Style.BRIGHT}{badge_name}{Style.RESET_ALL} to {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
-        info = await db_get_badge_info_by_name(badge_name)
         await db_add_badge_info_id_to_wishlist(member.id, info['id'])
         try:
           embed = discord.Embed(
@@ -301,6 +307,18 @@ class Wishlist(commands.Cog):
           embed.set_footer(
             text="Note: You can use /settings to enable or disable these messages."
           )
+          for tier in range(current_max_tier + 1):
+            if tier in owned_tiers:
+              symbol = "🔒" if tier in locked_tiers else "🔓"
+              note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+            else:
+              symbol = "❌"
+              note = ""
+            embed.add_field(
+              name=PRESTIGE_TIERS[tier],
+              value=f"Owned: {symbol}{note}",
+              inline=False
+            )
           await member.send(embed=embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
@@ -308,7 +326,6 @@ class Wishlist(commands.Cog):
 
       elif badge_name in owned:
         logger.info(f"Locking {Style.BRIGHT}{badge_name}{Style.RESET_ALL} in {Style.BRIGHT}{member.display_name}'s inventory{Style.RESET_ALL} via react")
-        info = await db_get_badge_info_by_name(badge_name)
         await db_lock_badge_instances_by_badge_info_id(member.id, info['id'])
         if user["receive_notifications"]:
           try:
@@ -320,6 +337,18 @@ class Wishlist(commands.Cog):
             embed.set_footer(
               text="Note: You can use /settings to enable or disable these messages."
             )
+            for tier in range(current_max_tier + 1):
+              if tier in owned_tiers:
+                symbol = "🔒" if tier in locked_tiers else "🔓"
+                note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+              else:
+                symbol = "❌"
+                note = ""
+              embed.add_field(
+                name=PRESTIGE_TIERS[tier],
+                value=f"Owned: {symbol}{note}",
+                inline=False
+              )
             await member.send(embed=embed)
           except discord.Forbidden as e:
             logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
@@ -327,7 +356,6 @@ class Wishlist(commands.Cog):
     else:
       if badge_name in wished:
         logger.info(f"Removing {Style.BRIGHT}{badge_name}{Style.RESET_ALL} from {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
-        info = await db_get_badge_info_by_name(badge_name)
         await db_remove_badge_info_id_from_wishlist(member.id, info['id'])
         try:
           embed = discord.Embed(
@@ -338,6 +366,18 @@ class Wishlist(commands.Cog):
           embed.set_footer(
             text="Note: You can use /settings to enable or disable these messages."
           )
+          for tier in range(current_max_tier + 1):
+            if tier in owned_tiers:
+              symbol = "🔒" if tier in locked_tiers else "🔓"
+              note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+            else:
+              symbol = "❌"
+              note = ""
+            embed.add_field(
+              name=PRESTIGE_TIERS[tier],
+              value=f"Owned: {symbol}{note}",
+              inline=False
+            )
           await member.send(embed=embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
@@ -905,13 +945,6 @@ class Wishlist(commands.Cog):
     await db_lock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
     discord_file, attachment_url = await generate_unowned_badge_preview(user_discord_id, badge_info)
 
-    # Determine existing ownership per prestige tier
-    instances = await db_get_user_badge_instances(user_discord_id)
-    owned_tiers = sorted({
-      inst['prestige_level'] for inst in instances
-      if inst['badge_info_id'] == badge_info_id
-    })
-
     embed_description = f"You've successfully added **{badge_name}** to your Wishlist."
     if not owned_tiers:
       embed_description += "\n\nYou do not yet own this badge at any of your current unlocked Prestige Tiers."
@@ -926,17 +959,25 @@ class Wishlist(commands.Cog):
       color=discord.Color.green()
     )
     embed.set_footer(text="Check `/wishlist matches` periodically to see if you can find some traders!")
-    if owned_tiers:
-      echelon_progress = await db_get_echelon_progress(user_discord_id)
-      current_prestige_tier = echelon_progress['current_prestige_tier']
-      for tier in range(current_prestige_tier + 1):
-        owned = tier in owned_tiers
-        symbol = "✅" if owned else "❌"
-        embed.add_field(
-          name=PRESTIGE_TIERS[tier],
-          value=f"Owned: {symbol}",
-          inline=False
-        )
+
+    instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
+    owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info_id and i['active']}
+    locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info_id and i['active'] and i['locked']}
+
+    echelon_progress = await db_get_echelon_progress(user_discord_id)
+    current_max_tier = echelon_progress['current_prestige_tier']
+    for tier in range(current_max_tier + 1):
+      if tier in owned_tiers:
+        symbol = "🔒" if tier in locked_tiers else "🔓"
+        note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+      else:
+        symbol = "❌"
+        note = ""
+      embed.add_field(
+        name=PRESTIGE_TIERS[tier],
+        value=f"Owned: {symbol}{note}",
+        inline=False
+      )
 
     embed.set_image(url=attachment_url)
     await ctx.followup.send(embed=embed, file=discord_file)
@@ -1090,11 +1131,32 @@ class Wishlist(commands.Cog):
     # If they are go ahead and remove the badges
     await db_remove_badge_info_id_from_wishlist(user_discord_id, badge_info_id)
 
-    await ctx.followup.send(embed=discord.Embed(
+    embed = discord.Embed(
       title="Badge Removed Successfully",
       description=f"You've successfully removed `{badge_name}` from your wishlist",
       color=discord.Color.green()
-    ))
+    )
+
+    instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
+    owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info_id and i['active']}
+    locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info_id and i['active'] and i['locked']}
+
+    echelon_progress = await db_get_echelon_progress(user_discord_id)
+    current_max_tier = echelon_progress['current_prestige_tier']
+    for tier in range(current_max_tier + 1):
+      if tier in owned_tiers:
+        symbol = "🔒" if tier in locked_tiers else "🔓"
+        note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+      else:
+        symbol = "❌"
+        note = ""
+      embed.add_field(
+        name=PRESTIGE_TIERS[tier],
+        value=f"Owned: {symbol}{note}",
+        inline=False
+      )
+
+    await ctx.followup.send(embed=embed)
 
 
   # __________                                    _________       __
@@ -1272,21 +1334,6 @@ class Wishlist(commands.Cog):
 
     # Perform the lock
     await db_lock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
-
-    # Re-fetch instance state
-    all_instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
-
-    owned_tiers = {
-      i['prestige_level']
-      for i in all_instances
-      if i['badge_info_id'] == badge_info_id and i['active']
-    }
-    locked_tiers = {
-      i['prestige_level']
-      for i in all_instances
-      if i['badge_info_id'] == badge_info_id and i['active'] and i['locked']
-    }
-
     discord_file, attachment_url = await generate_unowned_badge_preview(user_discord_id, badge_info)
 
     embed = discord.Embed(
@@ -1296,17 +1343,16 @@ class Wishlist(commands.Cog):
     )
     embed.set_image(url=attachment_url)
 
-    echelon_progress = await db_get_echelon_progress(user_discord_id)
-    current_prestige_tier = echelon_progress['current_prestige_tier']
+    instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
+    owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info_id and i['active']}
+    locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info_id and i['active'] and i['locked']}
 
-    for tier in range(current_prestige_tier + 1):
+    echelon_progress = await db_get_echelon_progress(user_discord_id)
+    current_max_tier = echelon_progress['current_prestige_tier']
+    for tier in range(current_max_tier + 1):
       if tier in owned_tiers:
-        if tier in locked_tiers:
-          symbol = "🔒"
-          note = " (Locked)"
-        else:
-          symbol = "🔓"
-          note = " (Unlocked)"
+        symbol = "🔒" if tier in locked_tiers else "🔓"
+        note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
       else:
         symbol = "❌"
         note = ""
@@ -1450,21 +1496,6 @@ class Wishlist(commands.Cog):
 
     # Perform the unlock
     await db_unlock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
-
-    # Re-fetch instance state
-    all_instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
-
-    owned_tiers = {
-      i['prestige_level']
-      for i in all_instances
-      if i['badge_info_id'] == badge_info_id and i['active']
-    }
-    locked_tiers = {
-      i['prestige_level']
-      for i in all_instances
-      if i['badge_info_id'] == badge_info_id and i['active'] and i['locked']
-    }
-
     discord_file, attachment_url = await generate_unowned_badge_preview(user_discord_id, badge_info)
 
     embed = discord.Embed(
@@ -1474,17 +1505,16 @@ class Wishlist(commands.Cog):
     )
     embed.set_image(url=attachment_url)
 
-    echelon_progress = await db_get_echelon_progress(user_discord_id)
-    current_prestige_tier = echelon_progress['current_prestige_tier']
+    instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
+    owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info_id and i['active']}
+    locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info_id and i['active'] and i['locked']}
 
-    for tier in range(current_prestige_tier + 1):
+    echelon_progress = await db_get_echelon_progress(user_discord_id)
+    current_max_tier = echelon_progress['current_prestige_tier']
+    for tier in range(current_max_tier + 1):
       if tier in owned_tiers:
-        if tier in locked_tiers:
-          symbol = "🔒"
-          note = " (Locked)"
-        else:
-          symbol = "🔓"
-          note = " (Unlocked)"
+        symbol = "🔒" if tier in locked_tiers else "🔓"
+        note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
       else:
         symbol = "❌"
         note = ""
