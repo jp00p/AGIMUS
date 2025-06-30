@@ -582,7 +582,7 @@ class Tongo(commands.Cog):
       use_default_buttons=False,
       timeout=300
     )
-    await continuum_paginator.respond(ctx.interaction, target=ctx.channel, ephemeral=False)
+    await continuum_paginator.respond(ctx.interaction, ephemeral=False)
 
     # Autoconfront
     if self.auto_confront.is_running():
@@ -781,7 +781,7 @@ class Tongo(commands.Cog):
       use_default_buttons=False,
       timeout=300
     )
-    await continuum_paginator.respond(ctx.interaction, target=ctx.channel, ephemeral=False)
+    await continuum_paginator.respond(ctx.interaction, ephemeral=False)
 
     # Potentially trigger a Consortium post-join
     if not self.zek_consortium_activated:
@@ -1020,7 +1020,7 @@ class Tongo(commands.Cog):
       use_default_buttons=False,
       timeout=300
     )
-    await continuum_paginator.respond(ctx.interaction, target=ctx.channel, ephemeral=False)
+    await continuum_paginator.respond(ctx.interaction, ephemeral=False)
 
     # Continuum image display
     continuum_images = await generate_paginated_continuum_images(tongo_continuum_badges)
