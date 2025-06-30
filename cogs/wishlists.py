@@ -283,19 +283,20 @@ class Wishlist(commands.Cog):
     if badge_name in special:
       return
 
-    owned = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id, prestige=None)]
+    info = await db_get_badge_info_by_name(badge_name)
+    instances = await db_get_user_badge_instances(payload.user_id, prestige=None)
+    owned = [b['badge_name'] for b in instances]
     wished = [b['badge_name'] for b in await db_get_simple_wishlist_badges(payload.user_id)]
     # user_locked_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id, locked=True)]
 
-    owned_tiers = {i['prestige_level'] for i in owned if i['badge_info_id'] == info['id'] and i['active']}
-    locked_tiers = {i['prestige_level'] for i in owned if i['badge_info_id'] == info['id'] and i['active'] and i['locked']}
+    owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active']}
+    locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active'] and i['locked']}
     echelon_progress = await db_get_echelon_progress(payload.user_id)
     current_max_tier = echelon_progress['current_prestige_tier']
 
     if payload.event_type == "REACTION_ADD":
       if badge_name not in owned and badge_name not in wished:
         logger.info(f"Adding {Style.BRIGHT}{badge_name}{Style.RESET_ALL} to {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
-        info = await db_get_badge_info_by_name(badge_name)
         await db_add_badge_info_id_to_wishlist(member.id, info['id'])
         try:
           embed = discord.Embed(
@@ -325,7 +326,6 @@ class Wishlist(commands.Cog):
 
       elif badge_name in owned:
         logger.info(f"Locking {Style.BRIGHT}{badge_name}{Style.RESET_ALL} in {Style.BRIGHT}{member.display_name}'s inventory{Style.RESET_ALL} via react")
-        info = await db_get_badge_info_by_name(badge_name)
         await db_lock_badge_instances_by_badge_info_id(member.id, info['id'])
         if user["receive_notifications"]:
           try:
@@ -356,7 +356,6 @@ class Wishlist(commands.Cog):
     else:
       if badge_name in wished:
         logger.info(f"Removing {Style.BRIGHT}{badge_name}{Style.RESET_ALL} from {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
-        info = await db_get_badge_info_by_name(badge_name)
         await db_remove_badge_info_id_from_wishlist(member.id, info['id'])
         try:
           embed = discord.Embed(
