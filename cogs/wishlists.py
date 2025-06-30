@@ -287,7 +287,6 @@ class Wishlist(commands.Cog):
     instances = await db_get_user_badge_instances(payload.user_id, prestige=None)
     owned = [b['badge_name'] for b in instances]
     wished = [b['badge_name'] for b in await db_get_simple_wishlist_badges(payload.user_id)]
-    # user_locked_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id, locked=True)]
 
     owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active']}
     locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active'] and i['locked']}
@@ -329,6 +328,10 @@ class Wishlist(commands.Cog):
         await db_lock_badge_instances_by_badge_info_id(member.id, info['id'])
         if user["receive_notifications"]:
           try:
+            # Re-retrieve this post-lock
+            instances = await db_get_user_badge_instances(payload.user_id, prestige=None)
+            locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active'] and i['locked']}
+
             embed = discord.Embed(
               title="Badge Locked 🔒",
               description=f"**{badge_name}** has been Locked (across all Tiers) via your ✅ react!\n\nYou can use `/wishlist unlock` if you did this by accident!",

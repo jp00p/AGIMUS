@@ -296,8 +296,7 @@ class BadgeTags(commands.Cog):
   @option(
     name="auto_lock",
     description="Also lock this badge across tiers?",
-    required=True,
-    # default=True
+    required=True
   )
   async def tag(self, ctx: discord.ApplicationContext, badge: str, auto_lock: bool):
     await ctx.defer(ephemeral=True)
@@ -576,8 +575,7 @@ class BadgeTags(commands.Cog):
   @option(
     name="auto_lock",
     description="Automatically lock and wishlist tagged badges?",
-    required=True,
-    # default=True
+    required=True
   )
   async def carousel(self, ctx: discord.ApplicationContext, start: str, auto_lock: bool):
     await ctx.defer(ephemeral=True)

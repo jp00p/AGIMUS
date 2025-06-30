@@ -292,11 +292,8 @@ class TongoPaginator(pages.Paginator):
   async def on_timeout(self):
     # Reset to first page
     await self.goto_page(page_number=0)
-    # await self.update()
     # Then disable view
     await super().on_timeout()
-    # if self.disable_on_timeout:
-    #   await self.disable()
 
 # ___________                          _________
 # \__    ___/___   ____    ____   ____ \_   ___ \  ____   ____
