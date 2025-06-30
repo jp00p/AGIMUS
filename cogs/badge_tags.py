@@ -388,7 +388,7 @@ class BadgeTags(commands.Cog):
           else:
             symbol = "❌"
             note = ""
-          embed.add_field(
+          tag_updated_embed.add_field(
             name=PRESTIGE_TIERS[tier],
             value=f"Owned: {symbol}{note}",
             inline=False
