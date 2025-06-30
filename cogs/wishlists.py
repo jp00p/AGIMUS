@@ -283,9 +283,14 @@ class Wishlist(commands.Cog):
     if badge_name in special:
       return
 
-    owned = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id)]
+    owned = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id, prestige=None)]
     wished = [b['badge_name'] for b in await db_get_simple_wishlist_badges(payload.user_id)]
     # user_locked_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(payload.user_id, locked=True)]
+
+    owned_tiers = {i['prestige_level'] for i in owned if i['badge_info_id'] == info['id'] and i['active']}
+    locked_tiers = {i['prestige_level'] for i in owned if i['badge_info_id'] == info['id'] and i['active'] and i['locked']}
+    echelon_progress = await db_get_echelon_progress(payload.user_id)
+    current_max_tier = echelon_progress['current_prestige_tier']
 
     if payload.event_type == "REACTION_ADD":
       if badge_name not in owned and badge_name not in wished:
@@ -301,6 +306,18 @@ class Wishlist(commands.Cog):
           embed.set_footer(
             text="Note: You can use /settings to enable or disable these messages."
           )
+          for tier in range(current_max_tier + 1):
+            if tier in owned_tiers:
+              symbol = "🔒" if tier in locked_tiers else "🔓"
+              note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+            else:
+              symbol = "❌"
+              note = ""
+            embed.add_field(
+              name=PRESTIGE_TIERS[tier],
+              value=f"Owned: {symbol}{note}",
+              inline=False
+            )
           await member.send(embed=embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
@@ -320,6 +337,18 @@ class Wishlist(commands.Cog):
             embed.set_footer(
               text="Note: You can use /settings to enable or disable these messages."
             )
+            for tier in range(current_max_tier + 1):
+              if tier in owned_tiers:
+                symbol = "🔒" if tier in locked_tiers else "🔓"
+                note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+              else:
+                symbol = "❌"
+                note = ""
+              embed.add_field(
+                name=PRESTIGE_TIERS[tier],
+                value=f"Owned: {symbol}{note}",
+                inline=False
+              )
             await member.send(embed=embed)
           except discord.Forbidden as e:
             logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
@@ -338,6 +367,18 @@ class Wishlist(commands.Cog):
           embed.set_footer(
             text="Note: You can use /settings to enable or disable these messages."
           )
+          for tier in range(current_max_tier + 1):
+            if tier in owned_tiers:
+              symbol = "🔒" if tier in locked_tiers else "🔓"
+              note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+            else:
+              symbol = "❌"
+              note = ""
+            embed.add_field(
+              name=PRESTIGE_TIERS[tier],
+              value=f"Owned: {symbol}{note}",
+              inline=False
+            )
           await member.send(embed=embed)
         except discord.Forbidden as e:
           logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
