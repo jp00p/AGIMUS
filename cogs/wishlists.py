@@ -948,6 +948,13 @@ class Wishlist(commands.Cog):
     await db_lock_badge_instances_by_badge_info_id(user_discord_id, badge_info_id)
     discord_file, attachment_url = await generate_unowned_badge_preview(user_discord_id, badge_info)
 
+    instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
+    owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info_id and i['active']}
+    locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info_id and i['active'] and i['locked']}
+
+    echelon_progress = await db_get_echelon_progress(user_discord_id)
+    current_max_tier = echelon_progress['current_prestige_tier']
+
     embed_description = f"You've successfully added **{badge_name}** to your Wishlist."
     if not owned_tiers:
       embed_description += "\n\nYou do not yet own this badge at any of your current unlocked Prestige Tiers."
@@ -963,12 +970,6 @@ class Wishlist(commands.Cog):
     )
     embed.set_footer(text="Check `/wishlist matches` periodically to see if you can find some traders!")
 
-    instances = await db_get_user_badge_instances(user_discord_id, prestige=None)
-    owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info_id and i['active']}
-    locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == badge_info_id and i['active'] and i['locked']}
-
-    echelon_progress = await db_get_echelon_progress(user_discord_id)
-    current_max_tier = echelon_progress['current_prestige_tier']
     for tier in range(current_max_tier + 1):
       if tier in owned_tiers:
         symbol = "🔒" if tier in locked_tiers else "🔓"
