@@ -5,14 +5,15 @@ from queries.badge_info import db_get_badge_info_by_filename
 from queries.badge_instances import *
 from queries.wishlists import db_get_active_wants
 
-async def create_new_badge_instance(user_id: int, badge_info_id: int, prestige_level: int = 0, event_type: str = 'level_up') -> dict:
+async def create_new_badge_instance(user_id: int|None, badge_info_id: int, prestige_level: int = 0, event_type: str = 'level_up') -> dict:
   # logger.info(f"[DEBUG] Creating new badge instance: user={user_id}, badge_info_id={badge_info_id}, prestige={prestige_level}")
 
   # Mark if this badge was on their wishlist at this prestige tier
   was_on_wishlist = False
-  active_wants = await db_get_active_wants(user_id, prestige_level)
-  if any(w['badge_info_id'] == badge_info_id for w in active_wants):
-    was_on_wishlist = True
+  if user_id:
+    active_wants = await db_get_active_wants(user_id, prestige_level)
+    if any(w['badge_info_id'] == badge_info_id for w in active_wants):
+      was_on_wishlist = True
 
   # Insert a new active, unlocked badge instance
   insert_instance = """
