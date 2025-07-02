@@ -2461,15 +2461,15 @@ def effect_cetacean_institute(badge_image: Image.Image, badge: dict) -> list[Ima
   badge_image = badge_image.resize((180, 180), Image.Resampling.LANCZOS)
 
   whale_a_frames = [
-    Image.open(f"images/crystal_effects/animations/cetacean/whale_a/{i:02}.png").convert("RGBA").resize(FRAME_SIZE)
+    Image.open(f"images/crystal_effects/animations/cetacean_institute/whale_a/{i:02}.png").convert("RGBA").resize(FRAME_SIZE)
     for i in range(FRAME_COUNT)
   ]
   whale_b_frames = [
-    Image.open(f"images/crystal_effects/animations/cetacean/whale_b/{i:02}.png").convert("RGBA").resize(FRAME_SIZE)
+    Image.open(f"images/crystal_effects/animations/cetacean_institute/whale_b/{i:02}.png").convert("RGBA").resize(FRAME_SIZE)
     for i in range(FRAME_COUNT)
   ]
   spock_raw = [
-    Image.open(f"images/crystal_effects/animations/cetacean/spock/{i:02}.png").convert("RGBA")
+    Image.open(f"images/crystal_effects/animations/cetacean_institute/spock/{i:02}.png").convert("RGBA")
     for i in range(FRAME_COUNT)
   ]
 
@@ -2541,7 +2541,7 @@ def effect_cetacean_institute(badge_image: Image.Image, badge: dict) -> list[Ima
       fill=255
     )
     border_mask = ImageChops.subtract(outer_mask, inner_mask)
-    top_left = (64, 160, 176)
+    top_left = (60, 130, 170)
     bottom_right = (128, 220, 255)
     gradient = Image.new("RGBA", (width, height))
     for y in range(height):
