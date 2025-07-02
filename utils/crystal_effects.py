@@ -2442,6 +2442,139 @@ def effect_q_snap(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
   return frames
 
 
+@register_effect("cetacean_institute")
+def effect_cetacean_institute(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
+  """
+  Badge placed in an underwater window with soft distortion, sea-colored border, Whale B behind badge,
+  Whale A in front, and Spock drifting through with gentle tilt motion.
+
+  Used for the Apex Ambergris crystal (Mythic Tier)
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image
+  """
+  FRAME_SIZE = (190, 190)
+  FRAME_COUNT = 24
+
+  # Load and resize assets
+  background = Image.open("images/crystal_effects/backgrounds/cetacean_institute.png").convert("RGBA").resize(FRAME_SIZE)
+  badge_image = badge_image.resize((180, 180), Image.Resampling.LANCZOS)
+
+  whale_a_frames = [
+    Image.open(f"images/crystal_effects/animations/cetacean/whale_a/{i:02}.png").convert("RGBA").resize(FRAME_SIZE)
+    for i in range(FRAME_COUNT)
+  ]
+  whale_b_frames = [
+    Image.open(f"images/crystal_effects/animations/cetacean/whale_b/{i:02}.png").convert("RGBA").resize(FRAME_SIZE)
+    for i in range(FRAME_COUNT)
+  ]
+  spock_raw = [
+    Image.open(f"images/crystal_effects/animations/cetacean/spock/{i:02}.png").convert("RGBA")
+    for i in range(FRAME_COUNT)
+  ]
+
+  # Pre-scale Spock and animate tilt
+  scale_factor = 0.18
+  rotated_spock_frames = []
+  for i, frame in enumerate(spock_raw):
+    scaled = frame.resize(
+      (int(frame.width * scale_factor), int(frame.height * scale_factor)),
+      Image.Resampling.LANCZOS
+    )
+    angle = -30 + (55 * (i / (FRAME_COUNT - 1)))  # -30 to +25 degrees
+    rotated = scaled.rotate(angle, resample=Image.Resampling.BICUBIC, expand=True)
+    rotated_spock_frames.append(rotated)
+
+  # Motion path for Spock (left to bottom-right)
+  t_vals = np.linspace(0, 1, FRAME_COUNT)
+  x_positions = -40 + (30 - -40) * t_vals
+  y_positions = 20 + (FRAME_SIZE[1] + 10 - 20) * t_vals
+
+  # Helper functions
+  def apply_wavy_distortion(image: Image.Image, frame_index: int, total_frames: int) -> Image.Image:
+    amplitude = 1.6
+    wavelength = 80.0
+    width, height = image.size
+    result = Image.new("RGBA", image.size)
+    pixels = image.load()
+    res_pixels = result.load()
+    phase = (frame_index / total_frames) * 2 * np.pi
+    for y in range(height):
+      dx = amplitude * np.sin((2 * np.pi * y / wavelength) + phase)
+      for x in range(width):
+        sx = x + dx
+        x0, x1 = int(sx), min(int(sx) + 1, width - 1)
+        alpha = sx - x0
+        if 0 <= x0 < width and 0 <= x1 < width:
+          p0 = np.array(pixels[x0, y], dtype=float)
+          p1 = np.array(pixels[x1, y], dtype=float)
+          blended = (1 - alpha) * p0 + alpha * p1
+          res_pixels[x, y] = tuple(int(c) for c in blended)
+        else:
+          res_pixels[x, y] = (0, 0, 0, 0)
+    return result
+
+  def add_badge_shadow(base_img: Image.Image, badge_img: Image.Image, offset=(4, 4), shadow_blur=3) -> Image.Image:
+    shadow = Image.new("RGBA", base_img.size, (0, 0, 0, 0))
+    mask = badge_img.split()[-1]
+    badge_offset = ((FRAME_SIZE[0] - badge_img.width) // 2, (FRAME_SIZE[1] - badge_img.height) // 2)
+    shadow.paste((0, 0, 0, 120), (badge_offset[0] + offset[0], badge_offset[1] + offset[1]), mask)
+    shadow = shadow.filter(ImageFilter.GaussianBlur(radius=shadow_blur))
+    base_img = Image.alpha_composite(base_img, shadow)
+    base_img.paste(badge_img, badge_offset, badge_img)
+    return base_img
+
+  def apply_sea_gradient_border(badge_frame: Image.Image, border_width=2, border_radius=24) -> Image.Image:
+    width, height = badge_frame.size
+    outer_mask = Image.new("L", (width, height), 0)
+    draw_outer = ImageDraw.Draw(outer_mask)
+    draw_outer.rounded_rectangle(
+      [border_width // 2, border_width // 2, width - border_width // 2, height - border_width // 2],
+      radius=border_radius,
+      fill=255
+    )
+    inner_mask = Image.new("L", (width, height), 0)
+    draw_inner = ImageDraw.Draw(inner_mask)
+    draw_inner.rounded_rectangle(
+      [border_width + 2, border_width + 2, width - border_width - 2, height - border_width - 2],
+      radius=border_radius - 4,
+      fill=255
+    )
+    border_mask = ImageChops.subtract(outer_mask, inner_mask)
+    top_left = (64, 160, 176)
+    bottom_right = (128, 220, 255)
+    gradient = Image.new("RGBA", (width, height))
+    for y in range(height):
+      for x in range(width):
+        t = (x + y) / (width + height)
+        r = int(top_left[0] * (1 - t) + bottom_right[0] * t)
+        g = int(top_left[1] * (1 - t) + bottom_right[1] * t)
+        b = int(top_left[2] * (1 - t) + bottom_right[2] * t)
+        gradient.putpixel((x, y), (r, g, b, 255))
+    gradient_border = Image.composite(gradient, Image.new("RGBA", (width, height), (0, 0, 0, 0)), border_mask)
+    result = Image.alpha_composite(badge_frame, gradient_border)
+    return Image.composite(result, Image.new("RGBA", (width, height), (0, 0, 0, 0)), outer_mask)
+
+  # Final frame generation
+  frames = []
+  for i in range(FRAME_COUNT):
+    base = background.copy()
+    base = Image.alpha_composite(base, whale_b_frames[i])
+    distorted = apply_wavy_distortion(badge_image, i, FRAME_COUNT)
+    with_shadow = add_badge_shadow(base, distorted)
+    with_whales = Image.alpha_composite(with_shadow, whale_a_frames[i])
+
+    spock_layer = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    spock_offset = (int(x_positions[i]), int(y_positions[i]))
+    spock_layer.paste(rotated_spock_frames[i], spock_offset, rotated_spock_frames[i])
+    with_spock = Image.alpha_composite(with_whales, spock_layer)
+
+    final = apply_sea_gradient_border(with_spock)
+    frames.append(final)
+
+  return frames
+
+
 # 8888      88 b.             8     ,o888888o.     8 888888888o 8888888 8888888888   .8.          b.             8  8 8888 8 8888      88        ,8.       ,8.
 # 8888      88 888o.          8  . 8888     `88.   8 8888    `88.     8 8888        .888.         888o.          8  8 8888 8 8888      88       ,888.     ,888.
 # 8888      88 Y88888o.       8 ,8 8888       `8b  8 8888     `88     8 8888       :88888.        Y88888o.       8  8 8888 8 8888      88      .`8888.   .`8888.
