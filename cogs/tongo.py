@@ -303,7 +303,7 @@ class TongoPaginator(pages.Paginator):
 #                     \//_____/                \/      /_____/
 class Tongo(commands.Cog):
   def __init__(self, bot):
-    self.bot = bot
+    self.bot: commands.Bot = bot
     self.tongo_buttons = [
       pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, row=1),
       pages.PaginatorButton(
@@ -416,6 +416,7 @@ class Tongo(commands.Cog):
     await ctx.defer(ephemeral=True)
 
     if self.block_new_games:
+      zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
       megalomaniacal = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
       await ctx.followup.send(
         embed=discord.Embed(
@@ -1179,8 +1180,6 @@ class Tongo(commands.Cog):
         channel_message = await zeks_table.send(embed=continuum_paginator.pages[0], view=continuum_paginator)
         continuum_paginator.message = channel_message
         await continuum_paginator.edit(channel_message) # Replace contents of the message with the actual Paginator
-      else:
-        channel_message = await zeks_table.send(embed=results_embeds[0])
 
       # Send per-player results embeds
       for user_id, badge_instance_ids in player_distribution.items():
@@ -1209,9 +1208,10 @@ class Tongo(commands.Cog):
 
           player_embed = await build_confront_player_embed(member, badges_received, wishlist_filenames_received, dividends_rewarded)
           player_embed.set_image(url=received_image_url)
-          await zeks_table.send(embed=player_embed, file=received_image)
+          player_message = await zeks_table.send(embed=player_embed, file=received_image)
 
-          dm_embed = build_confront_dm_embed(member, badges_received, wishlist_filenames_received, channel_message.jump_url, dividends_rewarded)
+          jump_url = channel_message.jump_url if channel_message else player_message.jump_url
+          dm_embed = build_confront_dm_embed(member, badges_received, wishlist_filenames_received, jump_url, dividends_rewarded)
           try:
             await member.send(embed=dm_embed)
           except discord.Forbidden:
@@ -1655,7 +1655,7 @@ async def send_continuum_images_to_channel(trade_channel, continuum_images):
 
 
 # Messaging Utils
-async def build_confront_results_embeds(active_chair: discord.Member, remaining_badges: list[dict]) -> discord.Embed:
+async def build_confront_results_embeds(active_chair: discord.Member, remaining_badges: list[dict]) -> list[discord.Embed]:
   title = "TONGO! Complete!"
   description= "Distributing Badges from The Great Material Continuum!"
 
