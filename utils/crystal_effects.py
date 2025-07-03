@@ -2528,19 +2528,17 @@ def effect_the_game(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
     List of RGBA frames as PIL.Image.Image
   """
 
-  bg = Image.open("images/crystal_effects/animations/the_game/bg.png").convert("RGBA")
-  corner = [Image.open(f"images/crystal_effects/animations/the_game/corner_{i:02}.png").convert("RGBA") for i in range(3)]
-  middle = [Image.open(f"images/crystal_effects/animations/the_game/middle_{i:02}.png").convert("RGBA") for i in range(3)]
-  out_frames = [Image.open(f"images/crystal_effects/animations/the_game/out_{i:02}.png").convert("RGBA") for i in range(9)]
-  in_frames = [Image.open(f"images/crystal_effects/animations/the_game/in_{i:02}.png").convert("RGBA") for i in range(6)]
-
-  funnel_size = (135, 135)
-  out_scaled = [f.resize(funnel_size, Image.Resampling.LANCZOS) for f in out_frames]
-  in_scaled = [f.resize(funnel_size, Image.Resampling.LANCZOS) for f in in_frames]
-  funnel_offset_y = 10
+  # === Load assets ===
+  base = "images/crystal_effects/animations/the_game"
+  bg = Image.open(f"{base}/bg.png").convert("RGBA").resize(FRAME_SIZE, Image.Resampling.LANCZOS)
+  corner = [Image.open(f"{base}/corner_{i:02}.png").convert("RGBA") for i in range(3)]
+  middle = [Image.open(f"{base}/middle_{i:02}.png").convert("RGBA") for i in range(3)]
+  out_frames = [Image.open(f"{base}/out_{i:02}.png").convert("RGBA").resize((135, 135)) for i in range(9)]
+  in_frames = [Image.open(f"{base}/in_{i:02}.png").convert("RGBA").resize((135, 135)) for i in range(6)]
 
   corner_sequence = corner + corner[::-1]
   middle_sequence = middle + middle[::-1]
+  funnel_offset_y = 10
 
   arc_total = 9
   suction_total = 15
@@ -2550,9 +2548,6 @@ def effect_the_game(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
   end_scale = 0.88
 
   def transform_game_badge(badge_img: Image.Image, scale: float, x_angle: float, cx: int, cy: int, y_rot: float = 0) -> Image.Image:
-    """
-    Applies OpenCV 3D tilt/rotate to badge, returns an RGBA canvas with badge composited at (cx, cy).
-    """
     size = int(190 * scale)
     badge = badge_img.resize((size, size), Image.Resampling.LANCZOS)
     badge_cv = cv2.cvtColor(np.array(badge), cv2.COLOR_RGBA2BGRA)
@@ -2578,69 +2573,59 @@ def effect_the_game(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
     canvas.paste(result, (cx - result.width // 2, cy - result.height // 2), result)
     return canvas
 
-  arc_frames = []
+  arc_frames, suction_frames = [], []
+
   for i in range(arc_total):
     t = i / (arc_total - 1)
-    eased = 3 * t**2 - 2 * t**3
+    ease = 3 * t**2 - 2 * t**3
     x = int(start_x + (end_x - start_x) * t)
-    y = int(start_y + (end_y - start_y) * eased)
-    scale = start_scale + (end_scale - start_scale) * eased
-    angle = 75 - 60 * eased
-    frame = transform_game_badge(badge_image, scale, angle, x, y)
-    arc_frames.append(frame)
+    y = int(start_y + (end_y - start_y) * ease)
+    scale = start_scale + (end_scale - start_scale) * ease
+    tilt = 75 - 60 * ease
+    arc_frames.append(transform_game_badge(badge_image, scale, tilt, x, y))
 
-  suction_frames = []
   for i in range(suction_total):
     t = i / (suction_total - 1)
-    eased = 3 * t**2 - 2 * t**3
-    x = int(end_x - 35 * eased)
-    y = int(end_y - 20 * eased)
-    scale = end_scale * (1 - 0.85 * eased)
-    x_angle = 15 + 50 * eased
-    y_angle = -15 + 30 * eased
-    frame = transform_game_badge(badge_image, scale, x_angle, x, y, y_rot=y_angle)
-    suction_frames.append(frame)
+    ease = 3 * t**2 - 2 * t**3
+    x = int(end_x - 35 * ease)
+    y = int(end_y - 20 * ease)
+    scale = end_scale * (1 - 0.85 * ease)
+    x_angle = 15 + 50 * ease
+    y_angle = -15 + 30 * ease
+    suction_frames.append(transform_game_badge(badge_image, scale, x_angle, x, y, y_rot=y_angle))
 
   frames = []
-  total_frames = arc_total + suction_total
+  total = arc_total + suction_total
 
-  for i in range(total_frames):
-    base = bg.copy()
+  for i in range(total):
+    frame = bg.copy()
 
     if i < len(corner_sequence):
-      base.paste(corner_sequence[i], (0, 0), corner_sequence[i])
+      frame.paste(corner_sequence[i], (0, 0), corner_sequence[i])
     if 6 <= i < 6 + len(middle_sequence):
-      base.paste(middle_sequence[i - 6], (0, 0), middle_sequence[i - 6])
+      frame.paste(middle_sequence[i - 6], (0, 0), middle_sequence[i - 6])
 
     f = None
-    if 6 <= i < 6 + len(out_scaled):
-      f = out_scaled[i - 6]
-    elif 6 + len(out_scaled) <= i < 6 + len(out_scaled) + len(in_scaled):
-      f = in_scaled[i - (6 + len(out_scaled))]
+    if 6 <= i < 6 + len(out_frames):
+      f = out_frames[i - 6]
+    elif 6 + len(out_frames) <= i < 6 + len(out_frames) + len(in_frames):
+      f = in_frames[i - (6 + len(out_frames))]
     if f:
-      fx = (FRAME_SIZE[0] - f.width) // 2
-      fy = (FRAME_SIZE[1] - f.height) // 2 + funnel_offset_y
-      base.paste(f, (fx, fy), f)
+      fx = (190 - f.width) // 2
+      fy = (190 - f.height) // 2 + funnel_offset_y
+      frame.paste(f, (fx, fy), f)
 
-    badge_layer = None
-    if i < arc_total:
-      badge_layer = arc_frames[i]
-    elif i - arc_total < suction_total:
-      badge_layer = suction_frames[i - arc_total]
+    badge_layer = arc_frames[i] if i < arc_total else suction_frames[i - arc_total]
 
-    if badge_layer:
-      if i < 4:
-        # Create a red glow overlay
-        glow_strength = int(255 * (1.0 - i / 3))  # Frame 0: 255 → Frame 3: ~0
-        glow = Image.new("RGBA", FRAME_SIZE, (255, 0, 0, glow_strength))
-        badge_with_glow = Image.alpha_composite(badge_layer, glow)
-        base.paste(badge_with_glow, (0, 0), badge_with_glow)
-      else:
-        base.paste(badge_layer, (0, 0), badge_layer)
+    if i < 4:
+      glow_strength = int(255 * (1.0 - i / 3))
+      red_overlay = Image.new("RGBA", FRAME_SIZE, (255, 0, 0, glow_strength))
+      alpha_mask = badge_layer.getchannel("A")
+      masked_glow = Image.composite(red_overlay, Image.new("RGBA", FRAME_SIZE), alpha_mask)
+      badge_layer = Image.alpha_composite(badge_layer, masked_glow)
 
-    top_left = (92, 23, 23)
-    bottom_right = (180, 28, 28)
-    final = apply_mythic_gradient_border(base, top_left, bottom_right)
+    frame.paste(badge_layer, (0, 0), badge_layer)
+    final = apply_mythic_gradient_border(frame, (92, 23, 23), (180, 28, 28))
     frames.append(final)
 
   return frames
