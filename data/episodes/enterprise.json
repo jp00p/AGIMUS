@@ -1366,7 +1366,15 @@
             "episode": "08",
             "imdb": "tt0572261",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.06.30",
+                    "episode": "Reverse Groundhog",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-581-reverse-groundhog-ent-s3e8/",
+                    "order": 581,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/f1gMjA8QariEOt4iHQwAhDPMrOo.jpg",
