@@ -2336,39 +2336,6 @@ def effect_q_snap(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
     base_img.paste(badge_img, badge_offset, badge_img)
     return base_img
 
-  def apply_starfield_gradient_border(badge_frame: Image.Image, border_width=2, border_radius=24) -> Image.Image:
-    width, height = badge_frame.size
-    outer_mask = Image.new("L", (width, height), 0)
-    draw_outer = ImageDraw.Draw(outer_mask)
-    draw_outer.rounded_rectangle(
-      [border_width // 2, border_width // 2, width - border_width // 2, height - border_width // 2],
-      radius=border_radius,
-      fill=255
-    )
-    inner_mask = Image.new("L", (width, height), 0)
-    draw_inner = ImageDraw.Draw(inner_mask)
-    draw_inner.rounded_rectangle(
-      [border_width + 2, border_width + 2, width - border_width - 2, height - border_width - 2],
-      radius=border_radius - 4,
-      fill=255
-    )
-    border_mask = ImageChops.subtract(outer_mask, inner_mask)
-
-    top_left = (192, 192, 255)
-    bottom_right = (96, 160, 255)
-    gradient = Image.new("RGBA", (width, height))
-    for y in range(height):
-      for x in range(width):
-        t = (x + y) / (width + height)
-        r = int(top_left[0] * (1 - t) + bottom_right[0] * t)
-        g = int(top_left[1] * (1 - t) + bottom_right[1] * t)
-        b = int(top_left[2] * (1 - t) + bottom_right[2] * t)
-        gradient.putpixel((x, y), (r, g, b, 255))
-
-    gradient_border = Image.composite(gradient, Image.new("RGBA", (width, height), (0, 0, 0, 0)), border_mask)
-    result = Image.alpha_composite(badge_frame, gradient_border)
-    return Image.composite(result, Image.new("RGBA", (width, height), (0, 0, 0, 0)), outer_mask)
-
   def get_transformed_hand_frame(img: Image.Image, frame_index: int) -> Image.Image:
     angle = 45
     rotated = img.rotate(angle, resample=Image.Resampling.BICUBIC, expand=True)
@@ -2396,10 +2363,13 @@ def effect_q_snap(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
 
   frames = []
 
+  top_left = (192, 192, 255)
+  bottom_right = (96, 160, 255)
+
   # Badge-only intro
   for _ in range(BADGE_ONLY_FRAMES):
     base = starfield.copy()
-    framed = apply_starfield_gradient_border(add_badge_shadow(base, badge_image))
+    framed = apply_mythic_gradient_border(add_badge_shadow(base, badge_image), top_left, bottom_right)
     frames.append(framed)
 
   # Q hand entrance with shadow
@@ -2410,7 +2380,7 @@ def effect_q_snap(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
     hand_only = Image.alpha_composite(Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0)), rotated_hand)
     with_hand_shadow = add_soft_shadow(hand_only)
     composed = Image.alpha_composite(with_shadow, with_hand_shadow)
-    bordered = apply_starfield_gradient_border(composed)
+    bordered = apply_mythic_gradient_border(composed, top_left, bottom_right)
     frames.append(bordered)
 
   # Flash with dynamic center correction
@@ -2432,12 +2402,12 @@ def effect_q_snap(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
 
     base = starfield.copy()
     base.paste(flash_scaled, offset, flash_scaled)
-    bordered = apply_starfield_gradient_border(base)
+    bordered = apply_mythic_gradient_border(base, top_left, bottom_right)
     frames.append(bordered)
 
   # Final starfield hold
   for _ in range(HOLD_FRAMES):
-    frames.append(apply_starfield_gradient_border(starfield.copy()))
+    frames.append(apply_mythic_gradient_border(starfield.copy()), top_left, bottom_right)
 
   return frames
 
@@ -2524,37 +2494,6 @@ def effect_cetacean_institute(badge_image: Image.Image, badge: dict) -> list[Ima
     base_img.paste(badge_img, badge_offset, badge_img)
     return base_img
 
-  def apply_sea_gradient_border(badge_frame: Image.Image, border_width=2, border_radius=24) -> Image.Image:
-    width, height = badge_frame.size
-    outer_mask = Image.new("L", (width, height), 0)
-    draw_outer = ImageDraw.Draw(outer_mask)
-    draw_outer.rounded_rectangle(
-      [border_width // 2, border_width // 2, width - border_width // 2, height - border_width // 2],
-      radius=border_radius,
-      fill=255
-    )
-    inner_mask = Image.new("L", (width, height), 0)
-    draw_inner = ImageDraw.Draw(inner_mask)
-    draw_inner.rounded_rectangle(
-      [border_width + 2, border_width + 2, width - border_width - 2, height - border_width - 2],
-      radius=border_radius - 4,
-      fill=255
-    )
-    border_mask = ImageChops.subtract(outer_mask, inner_mask)
-    top_left = (60, 130, 170)
-    bottom_right = (128, 220, 255)
-    gradient = Image.new("RGBA", (width, height))
-    for y in range(height):
-      for x in range(width):
-        t = (x + y) / (width + height)
-        r = int(top_left[0] * (1 - t) + bottom_right[0] * t)
-        g = int(top_left[1] * (1 - t) + bottom_right[1] * t)
-        b = int(top_left[2] * (1 - t) + bottom_right[2] * t)
-        gradient.putpixel((x, y), (r, g, b, 255))
-    gradient_border = Image.composite(gradient, Image.new("RGBA", (width, height), (0, 0, 0, 0)), border_mask)
-    result = Image.alpha_composite(badge_frame, gradient_border)
-    return Image.composite(result, Image.new("RGBA", (width, height), (0, 0, 0, 0)), outer_mask)
-
   # Final frame generation
   frames = []
   for i in range(FRAME_COUNT):
@@ -2569,10 +2508,176 @@ def effect_cetacean_institute(badge_image: Image.Image, badge: dict) -> list[Ima
     spock_layer.paste(rotated_spock_frames[i], spock_offset, rotated_spock_frames[i])
     with_spock = Image.alpha_composite(with_whales, spock_layer)
 
-    final = apply_sea_gradient_border(with_spock)
+    top_left = (60, 130, 170)
+    bottom_right = (128, 220, 255)
+    final = apply_mythic_gradient_border(with_spock, top_left, bottom_right)
     frames.append(final)
 
   return frames
+
+
+@register_effect("the_game")
+def effect_the_game(badge_img: Image.Image) -> list[Image.Image]:
+  """
+  Emulates "The Game" (aka Suck Disk) from the TNG episode of the same name.
+  Animates a badge rising from the game board and pulled into a purple funnel.
+
+  Used for the Ktarian KTX 5090 crystal (Mythic Tier)
+
+  Returns:
+    List of RGBA frames as PIL.Image.Image
+  """
+
+  base_dir = os.path.dirname(__file__)
+  asset = lambda name: os.path.join(base_dir, "images/crystal_effects/animations/the_game/", name)
+
+  bg = Image.open(asset("bg.png")).convert("RGBA")
+
+  corner = [Image.open(asset(f"corner_{i:02}.png")).convert("RGBA") for i in range(3)]
+  middle = [Image.open(asset(f"middle_{i:02}.png")).convert("RGBA") for i in range(3)]
+  out = [Image.open(asset(f"out_{i:02}.png")).convert("RGBA") for i in range(9)]
+  in_ = [Image.open(asset(f"in_{i:02}.png")).convert("RGBA") for i in range(6)]
+
+  funnel_size = (135, 135)
+  out_scaled = [f.resize(funnel_size, Image.Resampling.LANCZOS) for f in out]
+  in_scaled = [f.resize(funnel_size, Image.Resampling.LANCZOS) for f in in_]
+  funnel_offset_y = 10
+
+  corner_sequence = corner + corner[::-1]
+  middle_sequence = middle + middle[::-1]
+
+  arc_total = 9
+  suction_total = 15
+  start_x, start_y = 161, 194
+  end_x, end_y = 95, 95
+  start_scale = 0.42
+  end_scale = 0.88
+
+  def transform_game_badge(badge_img: Image.Image, scale: float, x_angle: float, cx: int, cy: int, y_rot: float = 0) -> Image.Image:
+    """
+    Applies OpenCV 3D tilt/rotate to badge, returns an RGBA canvas with badge composited at (cx, cy).
+    """
+    size = int(190 * scale)
+    badge = badge_img.resize((size, size), Image.Resampling.LANCZOS)
+    badge_cv = cv2.cvtColor(np.array(badge), cv2.COLOR_RGBA2BGRA)
+
+    rad = math.radians(x_angle)
+    h, w = badge_cv.shape[:2]
+    pcx, pcy = w // 2, h // 2
+
+    pts1 = np.float32([[0, 0], [w, 0], [w, h], [0, h]])
+    def ry(y): return int(pcy + (y - pcy) * math.cos(rad))
+    pts2 = np.float32([
+      [0, ry(0)],
+      [w, ry(0)],
+      [w, ry(h)],
+      [0, ry(h)]
+    ])
+
+    matrix = cv2.getPerspectiveTransform(pts1, pts2)
+    warped = cv2.warpPerspective(badge_cv, matrix, (w, h), borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
+    result = Image.fromarray(cv2.cvtColor(warped, cv2.COLOR_BGRA2RGBA))
+
+    canvas = Image.new("RGBA", FRAME_SIZE, (0, 0, 0, 0))
+    canvas.paste(result, (cx - result.width // 2, cy - result.height // 2), result)
+    return canvas
+
+  arc_frames = []
+  for i in range(arc_total):
+    t = i / (arc_total - 1)
+    eased = 3 * t**2 - 2 * t**3
+    x = int(start_x + (end_x - start_x) * t)
+    y = int(start_y + (end_y - start_y) * eased)
+    scale = start_scale + (end_scale - start_scale) * eased
+    angle = 75 - 60 * eased
+    frame = transform_game_badge(badge_img, scale, angle, x, y)
+    arc_frames.append(frame)
+
+  suction_frames = []
+  for i in range(suction_total):
+    t = i / (suction_total - 1)
+    eased = 3 * t**2 - 2 * t**3
+    x = int(end_x - 35 * eased)
+    y = int(end_y - 20 * eased)
+    scale = end_scale * (1 - 0.85 * eased)
+    x_angle = 15 + 50 * eased
+    y_angle = -15 + 30 * eased
+    frame = transform_game_badge(badge_img, scale, x_angle, x, y, y_rot=y_angle)
+    suction_frames.append(frame)
+
+  frames = []
+  total_frames = arc_total + suction_total
+
+  for i in range(total_frames):
+    base = bg.copy()
+
+    if i < len(corner_sequence):
+      base.paste(corner_sequence[i], (0, 0), corner_sequence[i])
+    if 6 <= i < 6 + len(middle_sequence):
+      base.paste(middle_sequence[i - 6], (0, 0), middle_sequence[i - 6])
+
+    f = None
+    if 6 <= i < 6 + len(out_scaled):
+      f = out_scaled[i - 6]
+    elif 6 + len(out_scaled) <= i < 6 + len(out_scaled) + len(in_scaled):
+      f = in_scaled[i - (6 + len(out_scaled))]
+    if f:
+      fx = (FRAME_SIZE[0] - f.width) // 2
+      fy = (FRAME_SIZE[1] - f.height) // 2 + funnel_offset_y
+      base.paste(f, (fx, fy), f)
+
+    badge_layer = None
+    if i < arc_total:
+      badge_layer = arc_frames[i]
+    elif i - arc_total < suction_total:
+      badge_layer = suction_frames[i - arc_total]
+
+    if badge_layer:
+      if i < 4:
+        # Create a red glow overlay
+        glow_strength = int(255 * (1.0 - i / 3))  # Frame 0: 255 → Frame 3: ~0
+        glow = Image.new("RGBA", FRAME_SIZE, (255, 0, 0, glow_strength))
+        badge_with_glow = Image.alpha_composite(badge_layer, glow)
+        base.paste(badge_with_glow, (0, 0), badge_with_glow)
+      else:
+        base.paste(badge_layer, (0, 0), badge_layer)
+
+    top_left = (92, 23, 23)
+    bottom_right = (180, 28, 28)
+    final = apply_mythic_gradient_border(base, top_left, bottom_right)
+    frames.append(final)
+
+  return frames
+
+# UTIL
+def apply_mythic_gradient_border(badge_frame: Image.Image, top_left: tuple, bottom_right: tuple, border_width=2, border_radius=24) -> Image.Image:
+  width, height = badge_frame.size
+  outer_mask = Image.new("L", (width, height), 0)
+  draw_outer = ImageDraw.Draw(outer_mask)
+  draw_outer.rounded_rectangle(
+    [border_width // 2, border_width // 2, width - border_width // 2, height - border_width // 2],
+    radius=border_radius,
+    fill=255
+  )
+  inner_mask = Image.new("L", (width, height), 0)
+  draw_inner = ImageDraw.Draw(inner_mask)
+  draw_inner.rounded_rectangle(
+    [border_width + 2, border_width + 2, width - border_width - 2, height - border_width - 2],
+    radius=border_radius - 4,
+    fill=255
+  )
+  border_mask = ImageChops.subtract(outer_mask, inner_mask)
+  gradient = Image.new("RGBA", (width, height))
+  for y in range(height):
+    for x in range(width):
+      t = (x + y) / (width + height)
+      r = int(top_left[0] * (1 - t) + bottom_right[0] * t)
+      g = int(top_left[1] * (1 - t) + bottom_right[1] * t)
+      b = int(top_left[2] * (1 - t) + bottom_right[2] * t)
+      gradient.putpixel((x, y), (r, g, b, 255))
+  gradient_border = Image.composite(gradient, Image.new("RGBA", (width, height), (0, 0, 0, 0)), border_mask)
+  result = Image.alpha_composite(badge_frame, gradient_border)
+  return Image.composite(result, Image.new("RGBA", (width, height), (0, 0, 0, 0)), outer_mask)
 
 
 # 8888      88 b.             8     ,o888888o.     8 888888888o 8888888 8888888888   .8.          b.             8  8 8888 8 8888      88        ,8.       ,8.
