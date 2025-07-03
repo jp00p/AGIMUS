@@ -368,13 +368,10 @@ class Tongo(commands.Cog):
       )
       await zeks_table.send(embed=downtime_embed)
       await self._perform_confront(active_tongo, chair)
-      if self.auto_confront.is_running():
-        self.auto_confront.cancel()
+      self.auto_confront.cancel()
       self.first_auto_confront = True
     else:
-      if self.auto_confront.is_running():
-        self.auto_confront.cancel()
-
+      self.auto_confront.cancel()
       self.first_auto_confront = True
       self.auto_confront.change_interval(seconds=remaining.total_seconds())
       self.auto_confront.start()
@@ -583,9 +580,7 @@ class Tongo(commands.Cog):
     await continuum_paginator.respond(ctx.interaction, ephemeral=False)
 
     # Autoconfront
-    if self.auto_confront.is_running():
-      self.auto_confront.cancel()
-
+    self.auto_confront.cancel()
     self.first_auto_confront = True
     self.auto_confront.change_interval(seconds=TONGO_AUTO_CONFRONT_TIMEOUT.total_seconds())
     self.auto_confront.start()
@@ -1123,18 +1118,15 @@ class Tongo(commands.Cog):
         except discord.Forbidden as e:
           logger.info(f"Unable to Tongo auto-cancel message to {active_chair.display_name}, they have their DMs closed.")
           pass
-        if self.auto_confront.is_running():
-          self.auto_confront.cancel()
-          self.first_auto_confront = True
+        self.auto_confront.cancel()
+        self.first_auto_confront = True
         return
 
       await self._perform_confront(active_tongo, active_chair)
-      if self.auto_confront.is_running():
-          self.auto_confront.cancel()
+      self.auto_confront.cancel()
       self.first_auto_confront = True
     except Exception as e:
       log_manual_exception(e, 'auto_confront error')
-      raise e
 
   async def _perform_confront(self, active_tongo, active_chair):
     try:
@@ -1581,8 +1573,7 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
 
     await self._perform_confront(active_game, chair)
-    if self.auto_confront.is_running():
-      self.auto_confront.cancel()
+    self.auto_confront.cancel()
     self.first_auto_confront = True
 
     await ctx.respond(embed=discord.Embed(

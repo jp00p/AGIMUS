@@ -520,6 +520,7 @@ INSERT INTO crystal_types (name, rarity_rank, icon, effect, description) VALUES
   ("Omega Molecule", 5, "omega.png", "shimmer_flux", "The perfect form of matter. Dangerous, beautiful, and rarely stable."),
   ('Photon Torpedo Core', 5, 'photon_torpedo_core.png', 'big_banger', "Matter/Anti-Matter in a magno-photon field. Wall to wall bangers!"),
   ('Continuum Essence', 5, 'continuum_essence.png', 'q_snap', "Transcends human comprehension. Oh snap!"),
+  ('Apex Ambergris', 5, 'apex_ambergris.png', 'cetacean_institute', "Chunky digestive byproduct, but by George, it's Graceful too!"),
 
   -- Unobtanium Crystals (Complex Animations + Coveted Designs)
   ("Bone Fragment", 6, "bone_fragment.png", "moopsy_swarm", "That's bone. Looks oddly drinkable."),
