@@ -2517,7 +2517,7 @@ def effect_cetacean_institute(badge_image: Image.Image, badge: dict) -> list[Ima
 
 
 @register_effect("the_game")
-def effect_the_game(badge_img: Image.Image) -> list[Image.Image]:
+def effect_the_game(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
   """
   Emulates "The Game" (aka Suck Disk) from the TNG episode of the same name.
   Animates a badge rising from the game board and pulled into a purple funnel.
@@ -2528,19 +2528,15 @@ def effect_the_game(badge_img: Image.Image) -> list[Image.Image]:
     List of RGBA frames as PIL.Image.Image
   """
 
-  base_dir = os.path.dirname(__file__)
-  asset = lambda name: os.path.join(base_dir, "images/crystal_effects/animations/the_game/", name)
-
-  bg = Image.open(asset("bg.png")).convert("RGBA")
-
-  corner = [Image.open(asset(f"corner_{i:02}.png")).convert("RGBA") for i in range(3)]
-  middle = [Image.open(asset(f"middle_{i:02}.png")).convert("RGBA") for i in range(3)]
-  out = [Image.open(asset(f"out_{i:02}.png")).convert("RGBA") for i in range(9)]
-  in_ = [Image.open(asset(f"in_{i:02}.png")).convert("RGBA") for i in range(6)]
+  bg = Image.open("images/crystal_effects/animations/the_game/bg.png").convert("RGBA")
+  corner = [Image.open(f"images/crystal_effects/animations/the_game/corner_{i:02}.png").convert("RGBA") for i in range(3)]
+  middle = [Image.open(f"images/crystal_effects/animations/the_game/middle_{i:02}.png").convert("RGBA") for i in range(3)]
+  out_frames = [Image.open(f"images/crystal_effects/animations/the_game/out_{i:02}.png").convert("RGBA") for i in range(9)]
+  in_frames = [Image.open(f"images/crystal_effects/animations/the_game/in_{i:02}.png").convert("RGBA") for i in range(6)]
 
   funnel_size = (135, 135)
-  out_scaled = [f.resize(funnel_size, Image.Resampling.LANCZOS) for f in out]
-  in_scaled = [f.resize(funnel_size, Image.Resampling.LANCZOS) for f in in_]
+  out_scaled = [f.resize(funnel_size, Image.Resampling.LANCZOS) for f in out_frames]
+  in_scaled = [f.resize(funnel_size, Image.Resampling.LANCZOS) for f in in_frames]
   funnel_offset_y = 10
 
   corner_sequence = corner + corner[::-1]
@@ -2590,7 +2586,7 @@ def effect_the_game(badge_img: Image.Image) -> list[Image.Image]:
     y = int(start_y + (end_y - start_y) * eased)
     scale = start_scale + (end_scale - start_scale) * eased
     angle = 75 - 60 * eased
-    frame = transform_game_badge(badge_img, scale, angle, x, y)
+    frame = transform_game_badge(badge_image, scale, angle, x, y)
     arc_frames.append(frame)
 
   suction_frames = []
@@ -2602,7 +2598,7 @@ def effect_the_game(badge_img: Image.Image) -> list[Image.Image]:
     scale = end_scale * (1 - 0.85 * eased)
     x_angle = 15 + 50 * eased
     y_angle = -15 + 30 * eased
-    frame = transform_game_badge(badge_img, scale, x_angle, x, y, y_rot=y_angle)
+    frame = transform_game_badge(badge_image, scale, x_angle, x, y, y_rot=y_angle)
     suction_frames.append(frame)
 
   frames = []
