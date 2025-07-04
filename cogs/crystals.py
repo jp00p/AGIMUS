@@ -450,7 +450,6 @@ class Crystals(commands.Cog):
       'Easy Listening',
       'Lo-Fi Hip Hop',
       'Chillwave',
-      'Third-Wave Ska',
       'Saxxy',
       'Soft Rock'
     ]
@@ -508,7 +507,8 @@ class Crystals(commands.Cog):
       sorted_crystals = sorted(collapsed.values(), key=lambda c: c['crystal_name'].lower())
       crystal_rank_manifest_images = await generate_crystal_manifest_images(
         ctx.user, sorted_crystals, rarity_name, rarity_emoji,
-        preview_badge=badge_instance
+        preview_badge=badge_instance,
+        discord_message=pending_message
       )
 
       crystal_rank_pages = []
