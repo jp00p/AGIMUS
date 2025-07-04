@@ -284,28 +284,36 @@ class Wishlist(commands.Cog):
       return
 
     info = await db_get_badge_info_by_name(badge_name)
-    instances = await db_get_user_badge_instances(payload.user_id, prestige=None)
-    owned = [b['badge_name'] for b in instances]
     wished = [b['badge_name'] for b in await db_get_simple_wishlist_badges(payload.user_id)]
 
-    owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active']}
-    locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active'] and i['locked']}
-    echelon_progress = await db_get_echelon_progress(payload.user_id)
-    current_max_tier = echelon_progress['current_prestige_tier']
-
     if payload.event_type == "REACTION_ADD":
-      if badge_name not in owned and badge_name not in wished:
-        logger.info(f"Adding {Style.BRIGHT}{badge_name}{Style.RESET_ALL} to {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
+      logger.info(f"{Style.BRIGHT}{member.display_name}{Style.RESET_ALL} reacted with ✅ to {Style.BRIGHT}{badge_name}{Style.RESET_ALL}")
+
+      # Add to wishlist if not already there
+      if badge_name not in wished:
+        logger.info(f"Adding {Style.BRIGHT}{badge_name}{Style.RESET_ALL} to wishlist via react")
         await db_add_badge_info_id_to_wishlist(member.id, info['id'])
+
+      # Always lock the badge (all owned tiers)
+      logger.info(f"Locking {Style.BRIGHT}{badge_name}{Style.RESET_ALL} via react")
+      await db_lock_badge_instances_by_badge_info_id(member.id, info['id'])
+
+      if user['receive_notifications']:
         try:
+          # Fresh status
+          instances = await db_get_user_badge_instances(payload.user_id, prestige=None)
+          owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active']}
+          locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active'] and i['locked']}
+          echelon_progress = await db_get_echelon_progress(payload.user_id)
+          current_max_tier = echelon_progress['current_prestige_tier']
+
           embed = discord.Embed(
-            title="Badge Added to Wishlist",
-            description=f"**{badge_name}** has been added to your Wishlist via your ✅ react!",
+            title="Wishlist + Lock Applied",
+            description=f"**{badge_name}** has been Added to your Wishlist and Locked (at owned Tiers) via your ✅ react!",
             color=discord.Color.green()
           )
-          embed.set_footer(
-            text="Note: You can use /settings to enable or disable these messages."
-          )
+          embed.set_footer(text="Note: You can use /settings to enable or disable these messages.")
+
           for tier in range(current_max_tier + 1):
             if tier in owned_tiers:
               symbol = "🔒" if tier in locked_tiers else "🔓"
@@ -318,52 +326,25 @@ class Wishlist(commands.Cog):
               value=f"Owned: {symbol}{note}",
               inline=False
             )
+
           await member.send(embed=embed)
-        except discord.Forbidden as e:
-          logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
-          pass
-
-      elif badge_name in owned:
-        logger.info(f"Locking {Style.BRIGHT}{badge_name}{Style.RESET_ALL} in {Style.BRIGHT}{member.display_name}'s inventory{Style.RESET_ALL} via react")
-        await db_lock_badge_instances_by_badge_info_id(member.id, info['id'])
-        if user["receive_notifications"]:
-          try:
-            # Re-retrieve this post-lock
-            instances = await db_get_user_badge_instances(payload.user_id, prestige=None)
-            locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active'] and i['locked']}
-
-            embed = discord.Embed(
-              title="Badge Locked 🔒",
-              description=f"**{badge_name}** has been Locked (across all Tiers) via your ✅ react!\n\nYou can use `/wishlist unlock` if you did this by accident!",
-              color=discord.Color.green()
-            )
-            embed.set_footer(
-              text="Note: You can use /settings to enable or disable these messages."
-            )
-            for tier in range(current_max_tier + 1):
-              if tier in owned_tiers:
-                symbol = "🔒" if tier in locked_tiers else "🔓"
-                note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
-              else:
-                symbol = "❌"
-                note = ""
-              embed.add_field(
-                name=PRESTIGE_TIERS[tier],
-                value=f"Owned: {symbol}{note}",
-                inline=False
-              )
-            await member.send(embed=embed)
-          except discord.Forbidden as e:
-            logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
-            pass
+        except discord.Forbidden:
+          logger.info(f"Unable to DM {member.display_name} about wishlist react update.")
     else:
+      logger.info(f"{Style.BRIGHT}{member.display_name}{Style.RESET_ALL} removed a ✅ react from {Style.BRIGHT}{badge_name}{Style.RESET_ALL}")
       if badge_name in wished:
-        logger.info(f"Removing {Style.BRIGHT}{badge_name}{Style.RESET_ALL} from {Style.BRIGHT}{member.display_name}'s wishlist{Style.RESET_ALL} via react")
+        logger.info(f"Removing {Style.BRIGHT}{badge_name}{Style.RESET_ALL} from wishlist via react")
         await db_remove_badge_info_id_from_wishlist(member.id, info['id'])
         try:
+          # Fresh status
+          instances = await db_get_user_badge_instances(payload.user_id, prestige=None)
+          owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active']}
+          locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active'] and i['locked']}
+          echelon_progress = await db_get_echelon_progress(payload.user_id)
+          current_max_tier = echelon_progress['current_prestige_tier']
           embed = discord.Embed(
             title="Badge Removed from Wishlist",
-            description=f"**{badge_name}** has been removed from your wishlist via your removal of the ✅ react!",
+            description=f"**{badge_name}** has been removed from your Wishlist via your removal of the ✅ react!",
             color=discord.Color.green()
           )
           embed.set_footer(
@@ -383,7 +364,7 @@ class Wishlist(commands.Cog):
             )
           await member.send(embed=embed)
         except discord.Forbidden as e:
-          logger.info(f"Unable to send wishlist add react confirmation message to {member.display_name}, they have their DMs closed.")
+          logger.info(f"Unable to send wishlist remove react confirmation message to {member.display_name}, they have their DMs closed.")
           pass
 
   # ________  .__               .__

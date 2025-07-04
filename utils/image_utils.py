@@ -840,7 +840,7 @@ def _get_canvas_row_dimensions() -> CanvasRowDimensions:
 # \     \____|  | \/\___  |\___ \  |  |  / __ \|  |__ /    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |
 #  \______  /|__|   / ____/____  > |__| (____  /____/ \____|__  (____  /___|  /__||__|  \___  >____  > |__|
 #         \/        \/         \/            \/               \/     \/     \/              \/     \/
-async def generate_crystal_manifest_images(user: discord.User, crystal_data: list[dict], rarity: str, emoji: str, return_buffers: bool = False, preview_badge: dict = None) -> list[tuple[io.BytesIO, str]]:
+async def generate_crystal_manifest_images(user: discord.User, crystal_data: list[dict], rarity: str, emoji: str, return_buffers: bool = False, preview_badge: dict = None, discord_message=None) -> list[tuple[io.BytesIO, str]]:
   """
   Generates paginated inventory-style crystal manifest images for a user's unattuned crystals.
 
@@ -853,6 +853,9 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
   Returns:
     List of (BytesIO, filename) tuples.
   """
+  # Smole delay for "hold music" message :3
+  await asyncio.sleep(1)
+
   dims = _get_canvas_row_dimensions()
   rows_per_page = 7
 
@@ -871,6 +874,19 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
   results = []
 
   for page_rows, page_number in pages:
+    if discord_message:
+      try:
+        await discord_message.edit(
+          embed=discord.Embed(
+            title="Processing Manifest",
+            description=f"Generating **{emoji} {rarity.title()}** Pages...",
+            color=discord.Color.blurple()
+          ).set_footer(text=random.choice(BEEP_BOOPS))
+        )
+      except discord.errors.NotFound:
+        # The user may have dismissed the original message so just catch and pass
+        pass
+
     canvas = await build_crystal_manifest_canvas(
       user=user,
       all_crystal_data=crystal_data,
