@@ -309,7 +309,7 @@ class Wishlist(commands.Cog):
 
           embed = discord.Embed(
             title="Wishlist + Lock Applied",
-            description=f"**{badge_name}** has been added to your Wishlist and locked (at owned tiers) via your ✅ react!",
+            description=f"**{badge_name}** has been Added to your Wishlist and Locked (at owned Tiers) via your ✅ react!",
             color=discord.Color.green()
           )
           embed.set_footer(text="Note: You can use /settings to enable or disable these messages.")
@@ -344,7 +344,7 @@ class Wishlist(commands.Cog):
           current_max_tier = echelon_progress['current_prestige_tier']
           embed = discord.Embed(
             title="Badge Removed from Wishlist",
-            description=f"**{badge_name}** has been removed from your wishlist via your removal of the ✅ react!",
+            description=f"**{badge_name}** has been removed from your Wishlist via your removal of the ✅ react!",
             color=discord.Color.green()
           )
           embed.set_footer(

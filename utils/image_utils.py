@@ -879,7 +879,7 @@ async def generate_crystal_manifest_images(user: discord.User, crystal_data: lis
         await discord_message.edit(
           embed=discord.Embed(
             title="Processing Manifest",
-            description=f"Generating {rarity.title()} Page...",
+            description=f"Generating **{emoji} {rarity.title()}** Pages...",
             color=discord.Color.blurple()
           ).set_footer(text=random.choice(BEEP_BOOPS))
         )
