@@ -326,73 +326,9 @@ class Tongo(commands.Cog):
     settings = await db_get_tongo_settings()
     self.block_new_games = settings['block_new_games']
     if not self.block_new_games:
-      await self._resume_tongo_if_needed()
-
-  async def _resume_tongo_if_needed(self):
-    """
-    Called during bot startup to detect if an active Tongo game exists and either:
-    - resumes the auto_confront timer with proper timing, or
-    - triggers an immediate confront if the timeout has passed.
-    """
-    active_tongo = await db_get_open_game()
-    if not active_tongo:
-      return
-
-    try:
-      chair_id = int(active_tongo['chair_user_id'])
-      chair = await self.bot.current_guild.fetch_member(chair_id)
-      zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
-    except Exception as e:
-      logger.warning(f"Failed to resume Tongo game: {e}")
-      return
-
-    time_created = active_tongo['created_at']
-    if time_created.tzinfo is None:
-      time_created = time_created.replace(tzinfo=timezone.utc)
-
-    current_time = datetime.now(timezone.utc)
-    elapsed = current_time - time_created
-    remaining = TONGO_AUTO_CONFRONT_TIMEOUT - elapsed
-
-    if remaining.total_seconds() <= 0:
-      downtime_embed = discord.Embed(
-        title="DOWNTIME DETECTED! Confronting Tongo...",
-        description=f"**Heywaitaminute!!!** Just woke up and noticed that the previous game chaired by **{chair.display_name}** never ended on time!\n\n"
-                    "Since the time has elapsed, confronting now! 👉👈",
-        color=discord.Color.red()
-      )
-      downtime_embed.set_image(url="https://i.imgur.com/t5dZu6O.gif")
-      downtime_embed.set_footer(
-        text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
-        icon_url="https://i.imgur.com/GTN4gQG.jpg"
-      )
-      await zeks_table.send(embed=downtime_embed)
-      await self._perform_confront(active_tongo, chair)
-      self.auto_confront.cancel()
-      self.first_auto_confront = True
-    else:
-      self.auto_confront.cancel()
-      self.first_auto_confront = True
-      self.auto_confront.change_interval(seconds=remaining.total_seconds())
-      self.auto_confront.start()
-
-      # Disallow any consortium investments cause we don't know what the previous state was.. :\
-      self.zek_consortium_activated = True
-
-      time_left = current_time + remaining
-      reboot_embed = discord.Embed(
-        title="REBOOT DETECTED! Resuming Tongo...",
-        description="We had a game in progress! ***Rude!***\n\n"
-                    f"The current game started by **{chair.display_name}** has been resumed.\n\n"
-                    f"This Tongo game has {humanize.naturaltime(time_left)} left before it ends and distributions are dealt out!",
-        color=discord.Color.red()
-      )
-      reboot_embed.set_image(url="https://i.imgur.com/K4hUjh6.gif")
-      reboot_embed.set_footer(
-        text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
-        icon_url="https://i.imgur.com/GTN4gQG.jpg"
-      )
-      await zeks_table.send(embed=reboot_embed)
+      confront_needed = await self._ensure_auto_confront_active_or_confront_needed("reboot")
+      if confront_needed:
+        await self._trigger_necessary_autoconfront("reboot")
 
   #   _   __         __
   #  | | / /__ ___  / /___ _________
@@ -616,6 +552,9 @@ class Tongo(commands.Cog):
       )
       return
 
+    # Ensure that the FUCKING TIMER is working
+    confront_needed = await self._ensure_auto_confront_active_or_confront_needed("risk")
+
     user_id = ctx.author.id
     member = await self.bot.current_guild.fetch_member(user_id)
 
@@ -786,6 +725,9 @@ class Tongo(commands.Cog):
           await self._invoke_zek_consortium(badge_info_id, prestige_level)
           self.zek_consortium_activated = True
 
+    if confront_needed:
+      await self._trigger_necessary_autoconfront("risk")
+
 
   async def _cancel_tongo_related_trades(self, user_discord_id, selected_badges: list[dict]):
     trades_to_cancel = await db_get_related_tongo_badge_trades(user_discord_id, selected_badges)
@@ -940,6 +882,9 @@ class Tongo(commands.Cog):
       ), ephemeral=True)
       return
 
+    # Ensure that the piece-of-shit timer is running or if we need to confront the damn game if it's expired somehow
+    confront_needed = await self._ensure_auto_confront_active_or_confront_needed("index")
+
     await ctx.followup.send(embed=discord.Embed(
       title="Index Request Processed!",
       color=discord.Color.dark_purple()
@@ -1020,6 +965,8 @@ class Tongo(commands.Cog):
     zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
     await send_continuum_images_to_channel(zeks_table, continuum_images)
 
+    if confront_needed:
+      await self._trigger_necessary_autoconfront("index")
 
   @tongo.command(
     name="dividends",
@@ -1526,6 +1473,120 @@ class Tongo(commands.Cog):
       return liquidation_result
 
     return None
+
+
+  # ___________      .__.__                  _____
+  # \_   _____/____  |__|  |   ___________ _/ ____\____
+  #  |    __) \__  \ |  |  |  /  ___/\__  \\   __\/ __ \
+  #  |     \   / __ \|  |  |__\___ \  / __ \|  | \  ___/
+  #  \___  /  (____  /__|____/____  >(____  /__|  \___  >
+  #      \/        \/             \/      \/          \/
+  async def _ensure_auto_confront_active_or_confront_needed(self, source: str):
+    """
+    Going full nuclear on this goddamn thing.
+
+    Ensures that the auto_confront timer is running if a game is active.
+    If time has already elapsed, it triggers confrontation immediately.
+    Used to prevent the timer from being lost due to reboots, or runtime errors,
+    or whatever mysterious bullshit keeps happening that has thus-far been untraceable.
+
+    Args:
+      source: "reboot", "index", or "risk" — for messaging context
+      silent: suppresses output if True (e.g. from /tongo risk)
+    """
+    active_tongo = await db_get_open_game()
+    if not active_tongo:
+      return False
+
+    if self.auto_confront.next_iteration is not None:
+      # Timer is already running — no need to do anything
+      return False
+
+    try:
+      chair_id = int(active_tongo['chair_user_id'])
+      chair = await self.bot.current_guild.fetch_member(chair_id)
+      zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+    except Exception as e:
+      logger.warning(f"Failed to recover Tongo game state: {e}")
+      return False
+
+    # Ensure UTC timezone
+    time_created = active_tongo['created_at']
+    if time_created.tzinfo is None:
+      time_created = time_created.replace(tzinfo=timezone.utc)
+
+    now = datetime.now(timezone.utc)
+    elapsed = now - time_created
+    remaining = TONGO_AUTO_CONFRONT_TIMEOUT - elapsed
+
+    if remaining.total_seconds() <= 0:
+      # True because we need to actually confront the fucking thing
+      return True
+    else:
+      # Still time left, just restart the timer
+      if self.auto_confront.is_running():
+        self.auto_confront.cancel()
+      self.first_auto_confront = True
+      self.auto_confront.change_interval(seconds=remaining.total_seconds())
+      self.auto_confront.start()
+
+      if source == "reboot":
+        # Only give an indication that we recovered,
+        # and lock out further consortium activations (since we don't know prior state),
+        # if the source is a true reboot where we've lost the in-memory flag...
+        self.zek_consortium_activated = True
+        embed = discord.Embed(
+          title="REBOOT DETECTED! Resuming Tongo...",
+          description="We had a game in progress! ***Rude!***\n\n"
+                      f"The current game started by **{chair.display_name}** has been resumed.\n\n"
+                      f"This Tongo game has {humanize.naturaltime(now + remaining)} left before it ends!",
+          color=discord.Color.red()
+        )
+        embed.set_image(url="https://i.imgur.com/K4hUjh6.gif")
+        embed.set_footer(
+          text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+          icon_url="https://i.imgur.com/GTN4gQG.jpg"
+        )
+        await zeks_table.send(embed=embed)
+      elif source in ("index", "risk"):
+        # Otherwise just log the recovery and play non-chalant while whistling with hands in pockets...
+        logger.info(f"Tongo timer recovered from {source}: {remaining.total_seconds()}s remaining.")
+
+      # No auto-confront triggered, we're safe to return False
+      return False
+
+  async def _trigger_necessary_autoconfront(self, source: str):
+    # Apparently the timer expired, trigger the goddamn confrontation ourselves...
+    active_tongo = await db_get_open_game()
+    if not active_tongo:
+      logger.error("We somehow got into a _trigger_necessary_autoconfront() without an active game... ???")
+      return
+
+    try:
+      chair_id = int(active_tongo['chair_user_id'])
+      chair = await self.bot.current_guild.fetch_member(chair_id)
+      zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
+    except Exception as e:
+      logger.warning(f"Failed to recover Tongo game state: {e}")
+      return False
+
+    title = "DOWNTIME DETECTED! Confronting Tongo..." if source == "reboot" else "Timer Expired! Confronting..."
+    embed = discord.Embed(
+      title=title,
+      description=f"**Heywaitaminute!!!** The game started by **{chair.display_name}** never confronted in time. Confronting now!",
+      color=discord.Color.red()
+    )
+    embed.set_image(url="https://i.imgur.com/t5dZu6O.gif")
+    embed.set_footer(
+      text=f"Ferengi Rule of Acquisition {random.choice(rules_of_acquisition)}",
+      icon_url="https://i.imgur.com/GTN4gQG.jpg"
+    )
+    await zeks_table.send(embed=embed)
+
+    await self._perform_confront(active_tongo, chair)
+    if self.auto_confront.is_running():
+      self.auto_confront.cancel()
+    self.first_auto_confront = True
 
   # __________        _____
   # \______   \ _____/ ____\___________   ____   ____
