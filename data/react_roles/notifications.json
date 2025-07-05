@@ -44,5 +44,10 @@
       "role": "Audience Member",
       "description": "Get notified when **Presentation-related** events are happening (FOD Talks!)"
     }
+    {
+      "emoji": "🚐",
+      "role": "Away Team",
+      "description": "Get notified when **Con-related** events are happening (Comic-Con, STLV, etc!)"
+    }
   ]
 }
