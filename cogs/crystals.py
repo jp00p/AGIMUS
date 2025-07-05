@@ -608,7 +608,8 @@ class Crystals(commands.Cog):
       page_groups.append(
         pages.PageGroup(
           pages=crystal_rank_pages,
-          label=f"{rarity_emoji} {rarity_name}",
+          label=rarity_name,
+          emoji=rarity_emoji,
           description=f"{len(sorted_crystals)} Crystals",
         )
       )

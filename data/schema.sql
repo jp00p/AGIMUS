@@ -540,7 +540,7 @@ CREATE TABLE IF NOT EXISTS crystal_instances (
   crystal_type_id INT NOT NULL,
   owner_discord_id VARCHAR(64) DEFAULT NULL,
   attached_to_instance_id INT DEFAULT NULL, -- leave this FK for later
-  status ENUM('available', 'attuned', 'harmonized') NOT NULL DEFAULT 'available',
+  status ENUM('available', 'attuned', 'harmonized', 'rematerialized') NOT NULL DEFAULT 'available',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (crystal_type_id) REFERENCES crystal_types(id),
@@ -790,6 +790,33 @@ CREATE TABLE IF NOT EXISTS trade_requested_badge_instances (
   FOREIGN KEY (badge_instance_id) REFERENCES badge_instances(id) ON DELETE CASCADE
 );
 
+
+-- Crystal Rematerializations (Scrapper)
+CREATE TABLE IF NOT EXISTS crystal_rematerializations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_discord_id VARCHAR(64) NOT NULL,
+  source_rank_id INT NOT NULL,
+  target_rank_id INT NOT NULL,
+  status ENUM('active', 'completed', 'cancelled') DEFAULT 'active',
+  active BOOLEAN GENERATED ALWAYS AS (status = 'active') STORED,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  completed_at TIMESTAMP NULL DEFAULT NULL,
+
+  FOREIGN KEY (user_discord_id) REFERENCES users(discord_id),
+  FOREIGN KEY (source_rank_id) REFERENCES crystal_ranks(id),
+  FOREIGN KEY (target_rank_id) REFERENCES crystal_ranks(id),
+  UNIQUE KEY uq_user_active_rematerialization (user_discord_id, active)
+);
+
+CREATE TABLE crystal_rematerialization_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  rematerialization_id INT NOT NULL,
+  crystal_instance_id INT NOT NULL,
+  added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (rematerialization_id) REFERENCES crystal_rematerializations(id) ON DELETE CASCADE,
+  FOREIGN KEY (crystal_instance_id) REFERENCES crystal_instances(id)
+);
 
 -- Crystal Trades -- NOTE: To be implemented later
 CREATE TABLE IF NOT EXISTS crystal_instance_trades (
