@@ -37,12 +37,17 @@
     {
       "emoji": "🦡",
       "role": "Badge Trader",
-      "description": "Get notified when **Badge Trading-related** features or feedback are released/requested"
+      "description": "Get notified about **Badge Trading-related** features ard and info"
     },
     {
       "emoji": "👥",
       "role": "Audience Member",
       "description": "Get notified when **Presentation-related** events are happening (FOD Talks!)"
+    }
+    {
+      "emoji": "🚐",
+      "role": "Away Team",
+      "description": "Get notified about **Con-related** events and info (Comic-Con, STLV, etc!)"
     }
   ]
 }

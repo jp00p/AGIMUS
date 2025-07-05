@@ -2407,7 +2407,7 @@ def effect_q_snap(badge_image: Image.Image, badge: dict) -> list[Image.Image]:
 
   # Final starfield hold
   for _ in range(HOLD_FRAMES):
-    frames.append(apply_mythic_gradient_border(starfield.copy()), top_left, bottom_right)
+    frames.append(apply_mythic_gradient_border(starfield.copy(), top_left, bottom_right))
 
   return frames
 
