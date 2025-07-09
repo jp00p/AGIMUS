@@ -32,7 +32,7 @@ class Rematerialization(commands.Cog):
 
         class ConfirmResumeRematerialize(discord.ui.View):
           def __init__(self):
-            super().__init__(timeout=90)
+            super().__init__(timeout=300)
 
           @discord.ui.button(label="Rematerialize", style=discord.ButtonStyle.success)
           async def confirm(self, button, interaction):
@@ -73,38 +73,19 @@ class Rematerialization(commands.Cog):
     )
 
     class RarityDropdown(discord.ui.View):
-      def __init__(self):
+      def __init__(self, options):
         super().__init__(timeout=60)
         self.dropdown = discord.ui.Select(
           placeholder="Select a Crystal Rarity...",
           min_values=1,
           max_values=1,
-          options=[]
+          options=options
         )
         self.dropdown.callback = self.on_select
         self.add_item(self.dropdown)
         self.message = None
 
       async def on_select(self, interaction):
-        rarities = await db_get_user_unattuned_crystal_rarities(ctx.user.id)
-        if not rarities:
-          await interaction.response.edit_message(
-            embed=discord.Embed(
-              title="No Crystals Available",
-              description="You don't have any unattuned Crystals to begin a Rematerialization.",
-              color=discord.Color.orange()
-            ),
-            view=None
-          )
-          return
-
-        rarity_options = [
-          discord.SelectOption(
-            label=f"{r['name']} ({r['count']} owned)",
-            value=r['name'],
-            emoji=r.get('emoji')
-          ) for r in rarities
-        ]
 
         self.dropdown.options = rarity_options
         selected_rarity = self.dropdown.values[0]
@@ -145,7 +126,8 @@ class Rematerialization(commands.Cog):
           ),
           view=None
         )
-                # Show CrystalTypeDropdown for selected_rarity
+
+        # Show CrystalTypeDropdown for selected_rarity
         seen = set()
         crystal_options = []
         for c in crystals:
@@ -273,7 +255,7 @@ class Rematerialization(commands.Cog):
                   await q_interaction.response.send_message(
                     embed=discord.Embed(
                       title="Crystals Added",
-                      description=f"Added {selected_count} Crystal{'s' if selected_count > 1 else ''} to your Rematerialization record. ({current_total}/10 total)",
+                      description=f"Added {selected_count} Crystal{'s' if selected_count > 1 else ''} to your Rematerialization Queue. ({current_total}/10 total)",
                       color=discord.Color.green()
                     ),
                     ephemeral=True
@@ -323,7 +305,7 @@ class Rematerialization(commands.Cog):
 
         type_embed = discord.Embed(
           title=f"{selected_rarity} Crystal Types",
-          description=f"Select a type of Crystal from the **{selected_rarity}** Rarity to contribute toward Rematerialization.",
+          description=f"Select a type of Crystal from the **{selected_rarity}** Rarity to queue for Rematerialization.",
           color=discord.Color.teal()
         )
         type_view = CrystalTypeDropdown(crystal_options)
@@ -338,5 +320,15 @@ class Rematerialization(commands.Cog):
           except discord.errors.NotFound:
             pass
 
-    view = RarityDropdown()
+    rarities = await db_get_user_unattuned_crystal_rarities(ctx.user.id)
+    all_ranks = await db_get_all_crystal_rarity_ranks()
+    max_rank = max(r['rank'] for r in all_ranks)
+    rarity_options = [
+      discord.SelectOption(
+        label=f"{r['name']} ({r['count']} owned)",
+        value=r['name'],
+        emoji=r.get('emoji')
+      ) for r in rarities if r['rarity_rank'] < max_rank
+    ]
+    view = RarityDropdown(rarity_options)
     view.message = await ctx.respond(embed=embed, view=view, ephemeral=True)
