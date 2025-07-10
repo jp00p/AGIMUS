@@ -1389,7 +1389,15 @@
             "episode": "09",
             "imdb": "tt0572225",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.07.07",
+                    "episode": "Signed, Dr. Jackowitz",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-582-signed-dr-jackowitz-ent-s3e9/",
+                    "order": 582,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/5KyzH9sNz0Ifx5UeJrvmMXjeQWR.jpg",
