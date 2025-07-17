@@ -1412,7 +1412,15 @@
             "episode": "10",
             "imdb": "tt0572236",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.07.14",
+                    "episode": "Sacrificial Pop-A-Shot Ball",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-583-sacrificial-pop-a-shot-ball-ent-s3e10/",
+                    "order": 583,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/2XguymQOR8BBUq4AY2gTRZzIHPH.jpg",
