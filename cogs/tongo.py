@@ -423,7 +423,6 @@ class Tongo(commands.Cog):
     selected = random.sample(eligible, 3)
 
     game_id = await db_create_tongo_game(user_id)
-    self.zek_consortium_activated = False
     await db_add_game_player(game_id, user_id)
 
     ventured_badges = [await db_get_badge_instance_by_badge_info_id(user_id, b['badge_info_id'], prestige=prestige) for b in selected]
@@ -811,12 +810,13 @@ class Tongo(commands.Cog):
         if key not in existing_by_prestige and w['badge_info_id'] not in special_badge_ids:
           combo_counts[key] += 1
 
-    # Sort keys by tier priority to ensure deterministic grant order
-    for (badge_info_id, prestige_level), count in combo_counts.items():
-      if count >= 3:
-        return (badge_info_id, prestige_level)
+    # Randomly choose one eligible (badge_info_id, prestige_level) pair among those wishlisted by at least users
+    eligible = [(bid, prestige) for (bid, prestige), count in combo_counts.items() if count >= 3]
+    if not eligible:
+      return None
 
-    return None
+    return random.choice(eligible)
+
 
   async def _invoke_zek_consortium(self, badge_info_id: int, prestige_level: int, game_id: int):
     # Create a Consortium Reward with specified prestige level
@@ -1534,7 +1534,6 @@ class Tongo(commands.Cog):
         # Only give an indication that we recovered,
         # and lock out further consortium activations (since we don't know prior state),
         # if the source is a true reboot where we've lost the in-memory flag...
-        self.zek_consortium_activated = True
         embed = discord.Embed(
           title="REBOOT DETECTED! Resuming Tongo...",
           description="We had a game in progress! ***Rude!***\n\n"
