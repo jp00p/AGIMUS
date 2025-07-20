@@ -1,0 +1,4 @@
+ALTER TABLE tongo_continuum
+  ADD COLUMN game_id INT DEFAULT NULL,
+  ADD COLUMN added_via_consortium BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD FOREIGN KEY (game_id) REFERENCES tongo_games(id) ON DELETE SET NULL;
