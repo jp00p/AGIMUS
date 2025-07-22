@@ -680,9 +680,12 @@ CREATE TABLE IF NOT EXISTS tongo_game_players (
 
 CREATE TABLE tongo_continuum (
   source_instance_id INT PRIMARY KEY,
+  game_id INT DEFAULT NULL,
   thrown_by_user_id VARCHAR(64),
+  added_via_consortium BOOLEAN NOT NULL DEFAULT FALSE,
   added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (source_instance_id) REFERENCES badge_instances(id)
+  FOREIGN KEY (source_instance_id) REFERENCES badge_instances(id),
+  FOREIGN KEY (game_id) REFERENCES tongo_games(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS tongo_game_rewards (

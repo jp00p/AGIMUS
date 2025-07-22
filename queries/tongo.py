@@ -83,13 +83,13 @@ async def db_is_user_in_game(game_id: int, user_id: int) -> bool:
     return await db.fetchone() is not None
 
 # --- Continuum ---
-async def db_add_to_continuum(source_instance_id: int, user_id: Optional[int]):
+async def db_add_to_continuum(source_instance_id: int, user_id: Optional[int], *, game_id: Optional[int] = None, via_consortium: bool = False):
   query = """
-    INSERT IGNORE INTO tongo_continuum (source_instance_id, thrown_by_user_id)
-    VALUES (%s, %s)
+    INSERT IGNORE INTO tongo_continuum (source_instance_id, thrown_by_user_id, game_id, added_via_consortium)
+    VALUES (%s, %s, %s, %s)
   """
   async with AgimusDB() as db:
-    await db.execute(query, (source_instance_id, user_id))
+    await db.execute(query, (source_instance_id, user_id, game_id, via_consortium))
 
 async def db_get_continuum_badge_info_prestige_pairs() -> set[tuple[int, int]]:
   """
@@ -154,7 +154,9 @@ async def db_get_full_continuum_badges():
     SELECT
       {BADGE_INSTANCE_COLUMNS},
       t_c.source_instance_id,
-      t_c.thrown_by_user_id
+      t_c.thrown_by_user_id,
+      t_c.game_id,
+      t_c.added_via_consortium
     FROM tongo_continuum AS t_c
     JOIN badge_instances AS b ON t_c.source_instance_id = b.id
     JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
@@ -167,6 +169,35 @@ async def db_get_full_continuum_badges():
     await db.execute(query)
     return await db.fetchall()
 
+
+async def db_get_consortium_tiers_for_game(game_id: int) -> set[int]:
+  """
+  Returns the set of prestige levels that have already received a Consortium badge
+  during the given game.
+  """
+  query = """
+    SELECT DISTINCT b.prestige_level
+    FROM tongo_continuum t
+    JOIN badge_instances b ON t.source_instance_id = b.id
+    WHERE t.game_id = %s AND t.added_via_consortium = TRUE
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(query, (game_id,))
+    rows = await db.fetchall()
+    return {row['prestige_level'] for row in rows}
+
+
+async def db_get_last_n_game_ids(n: int = 3) -> list[int]:
+  query = """
+    SELECT id
+    FROM tongo_games
+    ORDER BY created_at DESC
+    LIMIT %s
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(query, (n,))
+    rows = await db.fetchall()
+    return [r['id'] for r in rows]
 
 # -- Liquidation
 
