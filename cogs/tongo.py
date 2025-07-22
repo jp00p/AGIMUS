@@ -429,7 +429,7 @@ class Tongo(commands.Cog):
 
     # Toss the badges in!
     for instance in selected:
-      await throw_badge_into_continuum(instance, user_id, current_game_id=existing_game['id'])
+      await throw_badge_into_continuum(instance, user_id, current_game_id=game_id)
     # Grant the user a dividend for playing
     await self._cancel_tongo_related_trades(user_id, selected)
     await db_increment_tongo_dividends(user_id)
