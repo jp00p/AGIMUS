@@ -177,8 +177,6 @@ class Badges(commands.Cog):
       ephemeral=True
     )
 
-    max_collected = await db_get_max_badge_count()
-    collection_label = None
     if filter is not None:
       max_collected = await db_get_badge_instances_count_for_user(ctx.author.id, prestige=prestige)
       if filter == 'unlocked':
@@ -194,6 +192,8 @@ class Badges(commands.Cog):
       collection_label = filter.title()
     else:
       user_badges = await db_get_user_badge_instances(ctx.author.id, prestige=prestige, sortby=sortby)
+      max_collected = await db_get_max_badge_count()
+      collection_label = None
 
     if not user_badges:
       await ctx.followup.send(embed=discord.Embed(
@@ -555,7 +555,7 @@ class Badges(commands.Cog):
         'special': badge['special'],
         'in_user_collection': bool(user_badge),
         'locked': user_badge.get('locked', False) if user_badge else False,
-        'crystal_id': user_badge.get('crystal_id') if user_badge else None,
+        'crystal_id': user_badge.get('active_crystal_id') if user_badge else None,
         'crystal_effect': user_badge.get('crystal_effect') if user_badge else None
       }
       set_badges.append(record)
@@ -1357,8 +1357,9 @@ class Badges(commands.Cog):
     await ctx.defer(ephemeral=not public)
 
     logger.info(f"{Fore.CYAN}Firing /badge lookup command for '{name}'!{Fore.RESET}")
-
-    if name not in [b['badge_name'] for b in await db_get_all_badge_info()]:
+    
+    badge = await db_get_badge_info_by_name(name)
+    if not badge:
       await ctx.followup.send(
         embed=discord.Embed(
           title="Could Not Find This Badge",
@@ -1369,7 +1370,6 @@ class Badges(commands.Cog):
       )
       return
 
-    badge = await db_get_badge_info_by_name(name)
     prestige_badge_counts = await db_get_badge_instances_prestige_count_by_filename(badge['badge_filename'])
 
     # Build prestige tier breakdown

@@ -14,10 +14,7 @@ async def tuvix(ctx:discord.ApplicationContext):
   f = open(config["commands"]["tuvix"]["data"])
   tuvixes = f.read().splitlines()
   f.close()
-  pick_1 = random.choice(tuvixes)
-  pick_2 = random.choice(tuvixes)
-  while pick_1 == pick_2:
-    pick_2 = random.choice(tuvixes)
+  pick_1, pick_2 = random.choices(tuvixes, k=2)
   name1 = [pick_1[:len(pick_1)//2], pick_1[len(pick_1)//2:]]
   name2 = [pick_2[:len(pick_2)//2], pick_2[len(pick_2)//2:]]
   tuvix1 = str(name1[0]+name2[1]).replace(" ", "").title().strip()
@@ -27,7 +24,9 @@ async def tuvix(ctx:discord.ApplicationContext):
 
   embed = discord.Embed(
     title=f"A terrible transporter accident occurred! 💥",
-    description=f"{make_memory_alpha_link(pick_1)} and {make_memory_alpha_link(pick_2)} have been combined into a Tuvix-like Creature!\n\nDo you sacrifice the two separate characters for this new one?\nDo you give this abomination the Janeway treatment?\nCan you come up with a line of dialog for this character?\n\n*Most importantly*, do you name it:\n",
+    description=f"{make_memory_alpha_link(pick_1)} and {make_memory_alpha_link(pick_2)} have been combined into a Tuvix-like Creature!\n\n"
+                f"Do you sacrifice the two separate characters for this new one?\nDo you give this abomination the Janeway treatment?\nCan you come up with a line of dialog for this character?\n\n"
+                f"*Most importantly*, do you name it:\n",
     color=discord.Color.dark_gold()
   )
   embed.add_field(name="Choice A", value=tuvix1)

@@ -1216,7 +1216,7 @@ class Tongo(commands.Cog):
       logger.exception("Unhandled exception in Tongo _perform_confront")
       log_manual_exception(e, "Unhandled exception in Tongo _perform_confront")
 
-  async def _execute_confront_distribution(self, game_id: int, player_ids: list[dict]) -> dict[int, set[int]]:
+  async def _execute_confront_distribution(self, game_id: int, player_ids: list[int]) -> dict[int, set[int]]:
     continuum_records = await db_get_full_continuum_badges()
     if not continuum_records:
       return {}
@@ -1270,14 +1270,14 @@ class Tongo(commands.Cog):
 
         info_id = badge['badge_info_id']
         owned_at_this_prestige = info_id in player_inventories[current_player].get(badge_prestige, set())
-        wishlist = player_wishlists[current_player]
+        # wishlist = player_wishlists[current_player]
 
         if owned_at_this_prestige:
           continue
 
-        if info_id in wishlist:
-          selected_badge = badge
-          break
+        # if info_id in wishlist:
+        #   selected_badge = badge
+        #   break
 
         selected_badge = badge
         break
