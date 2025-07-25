@@ -14,41 +14,45 @@ import pytz
 )
 @commands.check(access_check)
 async def aliases(ctx:discord.ApplicationContext, user:discord.User):
-  aliases = await db_get_user_aliases(user.id)
+  all_aliases = await db_get_user_aliases(user.id)
 
-  if not aliases:
+  if not all_aliases:
     await ctx.respond(embed=discord.Embed(
       title=f"{user.display_name} has no logged aliases!",
       color=discord.Color.red()
     ), ephemeral=True)
     return
 
-  old_aliases = "\n".join([a['old_alias'] for a in aliases])
-  new_aliases = "\n".join([a['new_alias'] for a in aliases])
+  segment_size = 30
+  for seg in range(0, len(all_aliases), segment_size):
+    aliases = all_aliases[seg:seg+segment_size]
+    
+    old_aliases = "\n".join([a['old_alias'] for a in aliases])
+    new_aliases = "\n".join([a['new_alias'] for a in aliases])
 
-  pst_tz = pytz.timezone('America/Los_Angeles')
+    pst_tz = pytz.timezone('America/Los_Angeles')
 
-  raw_timestamps = [pytz.utc.localize(a['time_created']) for a in aliases]
-  aware_timestamps = [pst_tz.normalize(t.astimezone(pst_tz)) for t in raw_timestamps]
-  dates_changed = "\n".join([t.strftime("%B %d, %Y - %I:%M %p") for t in aware_timestamps])
+    raw_timestamps = [pytz.utc.localize(a['time_created']) for a in aliases]
+    aware_timestamps = [pst_tz.normalize(t.astimezone(pst_tz)) for t in raw_timestamps]
+    dates_changed = "\n".join([t.strftime("%b %d, %Y - %I:%M %p") for t in aware_timestamps])
 
-  embed = discord.Embed(
-    title=f"{user.display_name}'s Known Aliases",
-    color=discord.Color.purple()
-  )
-  embed.add_field(
-    name=f"Previous Alias",
-    value=old_aliases
-  )
-  embed.add_field(
-    name=f"New Alias",
-    value=new_aliases
-  )
-  embed.add_field(
-    name=f"Date Changed",
-    value=dates_changed
-  )
-  await ctx.respond(embed=embed, ephemeral=True)
+    embed = discord.Embed(
+      title=f"{user.display_name}'s Known Aliases",
+      color=discord.Color.purple()
+    )
+    embed.add_field(
+      name=f"Previous Alias",
+      value=old_aliases
+    )
+    embed.add_field(
+      name=f"New Alias",
+      value=new_aliases
+    )
+    embed.add_field(
+      name=f"Date Changed",
+      value=dates_changed
+    )
+    await ctx.respond(embed=embed, ephemeral=True)
 
 
 async def db_get_user_aliases(user_discord_id):
