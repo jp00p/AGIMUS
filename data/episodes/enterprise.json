@@ -1435,7 +1435,15 @@
             "episode": "11",
             "imdb": "tt0572187",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.07.21",
+                    "episode": "His Job Is Suitcases",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-584-his-job-is-suitcases-ent-s3e11/",
+                    "order": 584,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/u68vQ35sXH2G8S0B86VEOJkOmor.jpg",
