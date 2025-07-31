@@ -1460,7 +1460,15 @@
             "episode": "12",
             "imdb": "tt0572189",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.07.28",
+                    "episode": "Captain Airlock",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-585-captain-airlock-ent-s3e12/",
+                    "order": 585,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/tNXEVVah2oePPfu6Hr7prmAYeaS.jpg",
