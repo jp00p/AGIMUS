@@ -1483,7 +1483,15 @@
             "episode": "13",
             "imdb": "tt0572228",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.08.04",
+                    "episode": "Six-Night Rule",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-586-six-night-rule-ent-s3e13/",
+                    "order": 586,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/8JYhgmLw259AYCPAtWw4FbHdH1R.jpg",
