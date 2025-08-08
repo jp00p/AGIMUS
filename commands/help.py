@@ -26,12 +26,12 @@ basic_commands = [
     "description" : "See the badges you've collected"
   },
   {
-    "name" : "/trade",
-    "description" : "Trade badges with other users"
-  },
-  {
     "name" : "/wordcloud",
     "description" : "Generate a wordcloud of your most used words"
+  },
+  {
+    "name" : "/settings",
+    "description" : "Enable or disable some features for your account"
   }
 ]
 

@@ -1,0 +1,12 @@
+## Crystals!
+Everybody loves crystals!
+
+Crystals add effects to badges.  Depending on the rarity, the changes can be subtle or dramatic.  Make your favorite badges even better with the power of crystals!
+
+Follow these simple steps for a crystal enriched life:
+1. When you earn a Pattern Buffer from leveling up or Tongo dividends, you can make a new, random crystal with `/crystal replicate`.
+2. See your crystals (and how they look on your favorite badge) with `/crystals manifest`.
+3. Then add them to a badge with `/crystals attach`.
+4. Turn on the effect with `/crystals activate`.
+
+Now it’s time to show off your improved badge with `/badges spotlight` or `/profile set_badge`!

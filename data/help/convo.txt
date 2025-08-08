@@ -2,8 +2,6 @@
 
 > A place to generate random text, conversation prompts, and other miscelleaneous bot stuff!
 
-> Feel free to talk to AGIMUS in here by starting a message with "agimus:" -- who knows what you'll get!
-
 **Channel commands**
 
 `/tuvix` - create your own Tuvix
@@ -13,3 +11,5 @@
 `/trekduel` - who will win?
 `/fmk` - you know the deal
 `/info` - Get information about a specific episode!
+`/zork` - Play a game of Zork with everyone else on the Hood
+`/hhgttg` - Play a game of The Hitchhiker's Guide to the Galaxy

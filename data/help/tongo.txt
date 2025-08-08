@@ -1,0 +1,12 @@
+Tongo your way to earning your next favorite badge!
+
+**How to Tongo**
+Start a new game with `/tongo venture` or join a game with `/tongo risk`.  Agimus will take three unlocked, uncrystallized badges and put them in the pool.  When time runs out, you will get three random badges back.  If you’re lucky, they might be on your wishlist or something you can use for trade.
+
+**Dividends**
+Each time you play Tongo, you’ll get one dividend.  These can then be spent in `/tongo dividends` on badges or crystals.
+
+**Consortiums and Liquidations**
+Sometimes Grand Nagus Zek will decide to grant a wishlisted badge.  Time to rejoice!
+
+> May the winds of prosperity guide you as you sail the Great Material Continuum!
