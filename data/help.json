@@ -39,5 +39,21 @@
     "channels": [
       "morns-nonstop-quiz"
     ]
+  },
+  {
+    "name": "tongo",
+    "enabled": true,
+    "file": "data/help/tongo.txt",
+    "channels": [
+      "zeks-table"
+    ]
+  },
+  {
+    "name": "crystals",
+    "enabled": true,
+    "file": "data/help/crystals.txt",
+    "channels": [
+      "gelrak-v"
+    ]
   }
 ]
