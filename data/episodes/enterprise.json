@@ -1506,7 +1506,15 @@
             "episode": "14",
             "imdb": "tt0572243",
             "memoryalpha": "",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.08.11",
+                    "episode": "Butt Micro Pony",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-587-butt-micro-pony-ent-s3e14/",
+                    "order": 587,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/fIBEtoypqVCUyUkQUOc7gePdvFV.jpg",
