@@ -60,7 +60,7 @@ async def title_autocomplete(ctx: discord.AutocompleteContext):
 )
 @discord.option(
   name="episode_title",
-  description="Episode Title (Search) or Number",
+  description="Episode Title (Search) or Number (S##E##)",
   required=True,
   autocomplete=title_autocomplete
 )
