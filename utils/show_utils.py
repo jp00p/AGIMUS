@@ -1,6 +1,13 @@
-from common import *
+import random
 
-def get_show_embed(show_data, episode_index, show):
+import discord
+
+
+def get_show_embed(show_data: dict, episode_index: int, show: str) -> discord.Embed:
+  """
+  Create a standardized embed for an episode.  `show_data` must match the format of one of the data/episodes/*.json
+  files.
+  """
   ep = show_data["episodes"][episode_index]
 
   # Gather info about MemoryAlpha and IMDB Results

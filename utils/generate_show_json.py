@@ -23,6 +23,10 @@ Options:
     
                           If -p, -d, and -m are not specified, then all of them will be updated.
                           
+    --slow                If you are only doing one service, and a large number of requests, you might get choked. If
+                          that happens, add a half second delay between requests just to slow things down enough. While
+                          it will take longer, it will finish.
+                          
 Examples:
     The pod has just covered Spock's Brain, and the episode is already in the file
     generate_show_json.py tos -s 3 -e 6 -p
@@ -36,6 +40,7 @@ Examples:
 import json
 import os.path
 import re
+import time
 from typing import List, Optional
 
 import docopt
@@ -157,7 +162,7 @@ class ShowGenerator:
   """
   def __init__(self, show: str, filename: str = None,
                only_next_episode: bool = False, seasons: Optional[List[int]] = None, episodes: Optional[List[int]] = None,
-               update_details=True, update_podcast=True, update_memory_alpha=True):
+               update_details=True, update_podcast=True, update_memory_alpha=True, slow_down=False):
     self.show = show
     self.show_settings = all_shows[self.show]
     
@@ -170,6 +175,8 @@ class ShowGenerator:
     self.run_tmdb = update_details
     self.run_pod = update_podcast
     self.run_memory_alpha = update_memory_alpha and self.show_settings['trek']
+    
+    self.run_slow = slow_down
     
     if self.run_tmdb:
       self.get_tmdb_api()
@@ -194,6 +201,7 @@ class ShowGenerator:
     args = {
       'show': cli_args['<show>'],
       'filename': cli_args['<filename>'],
+      'slow_down': cli_args['--slow'],
     }
     
     valid = True
@@ -267,6 +275,9 @@ class ShowGenerator:
         
         if self.run_pod:
           self.set_podcast(details, season, episode)
+        
+        if self.run_slow:
+          time.sleep(0.4)
     
     self.save_current_file()
   
