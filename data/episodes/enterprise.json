@@ -1529,7 +1529,15 @@
             "episode": "15",
             "imdb": "tt0572214",
             "memoryalpha": "Harbinger_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.08.18",
+                    "episode": "Deeply Fundito",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-588-deeply-fundito-ent-s3e15/",
+                    "order": 588,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/6a6y9ofHuBjvMwcdGg2vFLEKBW0.jpg",
