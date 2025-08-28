@@ -1552,7 +1552,15 @@
             "episode": "16",
             "imdb": "tt0572204",
             "memoryalpha": "Doctor's_Orders_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.08.25",
+                    "episode": "We Are The Borgy Borg",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-589-we-are-the-borgy-borg-ent-s3e16/",
+                    "order": 589,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/688HZqivGVXFpsOQLHZMdM93imk.jpg",
