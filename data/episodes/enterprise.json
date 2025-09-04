@@ -1575,7 +1575,15 @@
             "episode": "17",
             "imdb": "tt0572215",
             "memoryalpha": "Hatchery_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.09.01",
+                    "episode": "The TV Taint",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-590-the-tv-taint-ent-s3e17/",
+                    "order": 590,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/9bXLpUrhEUK3vU1Clqom1bMYQI.jpg",
