@@ -1598,7 +1598,15 @@
             "episode": "18",
             "imdb": "tt0572177",
             "memoryalpha": "Azati_Prime_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.09.08",
+                    "episode": "Eye Dumps",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-591-eye-dumps-ent-s3e18/",
+                    "order": 591,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/cgkp0WVw6zv29IMcUdgU6o3GKSU.jpg",
