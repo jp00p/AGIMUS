@@ -23,7 +23,6 @@ import humanize
 import mysql.connector
 import numpy as np
 import requests
-import tmdbsimple as tmdb
 import treys
 from colorama import Back, Fore, Style
 from discord import option
@@ -31,7 +30,6 @@ from discord.ext import commands, tasks, pages
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
 from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps, ImageEnhance, ImageFilter, ImageChops, ImageSequence
-from tabulate import tabulate
 from treys import Card, Deck, Evaluator, evaluator
 from typing import List, Dict
 
@@ -57,9 +55,7 @@ THREAD_POOL = ThreadPoolExecutor(max_workers=cpu_workers)
 # Load variables from .env file
 load_dotenv()
 
-LOG_LEVEL = os.getenv('LOG_LEVEL')
-if not LOG_LEVEL:
-  LOG_LEVEL = "INFO"
+LOG_LEVEL = os.getenv('LOG_LEVEL') or "INFO"
 logger = logging.getLogger()
 logger.setLevel(LOG_LEVEL)
 handler = logging.StreamHandler(sys.stdout)
@@ -72,12 +68,10 @@ LOG = []
 
 # Set Config and Globals
 config = get_config()
-tmdb.API_KEY = os.getenv('TMDB_KEY')
 
 ALL_STARBOARD_POSTS = {}
 BOT_NAME = f"{Fore.LIGHTRED_EX}AGIMUS{Fore.RESET}"
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
-TMDB_IMG_PATH = "https://image.tmdb.org/t/p/original"
 DB_PASS = os.getenv('DB_PASS')
 DB_HOST = os.getenv('DB_HOST')
 DB_NAME = os.getenv('DB_NAME')

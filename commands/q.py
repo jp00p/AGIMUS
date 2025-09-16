@@ -1,3 +1,5 @@
+import discord.ext.commands
+
 from common import *
 from utils.check_channel_access import access_check
 
@@ -17,7 +19,7 @@ async def qget(ctx, user:str):
 
 @bot.command()
 @commands.check(access_check)
-async def qset(ctx, user:str, key:str, value:str):
+async def qset(ctx: discord.ext.commands.Context, user:str, key:str, value:str):
   """
   This function is the main entrypoint of the !qset command
   and will set a user's DB details
@@ -34,7 +36,8 @@ async def qset(ctx, user:str, key:str, value:str):
   logger.info(f"{Fore.LIGHTBLUE_EX}{ctx.author.display_name}{Fore.RESET} is using mysterious Q powers on {Fore.GREEN}{this_user['name']}{Fore.RESET}")
 
   if change_column not in modifiable_ints and change_column not in modifiable_strings:
-    await ctx.send("Can only modify these values:```"+tabulate(modifiable_ints, headers="firstrow")+"``````"+tabulate(modifiable_strings, headers="firstrow")+"```")
+    modifiable = "\n".join(modifiable_ints + modifiable_strings)
+    await ctx.send(f"Can only modify these values:```\n{modifiable}\n```")
   else:
     if change_column in modifiable_ints:
       if not is_integer(change_value):

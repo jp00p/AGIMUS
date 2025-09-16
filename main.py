@@ -200,6 +200,7 @@ async def on_ready():
       { 'name': "A Nice Game of Chess", 'type': discord.ActivityType.playing },
       { 'name': "Thermonuclear War", 'type': discord.ActivityType.playing },
       { 'name': "Gauges", 'type': discord.ActivityType.playing },
+      { 'name': "Jazz Horse", 'type': discord.ActivityType.playing },
       { 'name': "The Stream At Home", 'type': discord.ActivityType.watching },
       { 'name': "and waiting...", 'type': discord.ActivityType.watching },
       { 'name': "Terminator 2: Judgement Day", 'type': discord.ActivityType.watching }
@@ -265,6 +266,7 @@ async def on_message(message:discord.Message):
       )
       logging_channel = bot.get_channel(LOGGING_CHANNEL)
       await logging_channel.send(embed=exception_embed)
+
 
 async def process_command(message:discord.Message):
   if message.content.lower().startswith("agimus:"):
