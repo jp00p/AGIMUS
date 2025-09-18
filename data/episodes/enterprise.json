@@ -1621,7 +1621,15 @@
             "episode": "19",
             "imdb": "tt0572196",
             "memoryalpha": "Damage_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.09.15",
+                    "episode": "Happy Bronson",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-592-happy-bronson-ent-s3e19/",
+                    "order": 592,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/of6gAMgIK85u2x2yILCELJq5KJE.jpg",
