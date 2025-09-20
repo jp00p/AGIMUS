@@ -429,7 +429,7 @@ class ShowGenerator:
         "airdate": parser.parse(podcast['published']).strftime('%Y.%m.%d'),
         "episode": re.sub(r' \([^()]+\)$', '', podcast['title']),
         "link": page_link,
-        "order": int(podcast['itunes_episode']),
+        "order": int(podcast['itunes_episode']) if 'itunes_episode' in podcast else None,
         "title": self.podcast_name,
       }
     ]

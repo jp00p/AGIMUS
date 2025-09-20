@@ -2,6 +2,36 @@
     "animated": false,
     "episodes": [
         {
+            "airdate": "1988.10.15",
+            "description": "When the Enterprise answers a distress call, Capt. Pike (Jeffrey Hunter) encounters manipulative aliens. Original series pilot.",
+            "episode": "00",
+            "imdb": "tt0059753",
+            "memoryalpha": "Where_No_Man_Has_Gone_Before_(episode)",
+            "podcasts": [
+                {
+                    "airdate": "2019.07.01",
+                    "episode": "Hot Bunkin\u2019 It",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/greatest-discovery-ep-54-hot-bunkin-it-tos-001/",
+                    "order": 54,
+                    "title": "Greatest Trek"
+                },
+                {
+                    "airdate": "2025.09.19",
+                    "episode": "Hot Bunkin\u2019 It",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-341-hot-bunkin-it-tos-s1e1/",
+                    "order": 341,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "season": "01",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/5dmBcYWEC3XVdvrlecegiupEop4.jpg",
+                "https://image.tmdb.org/t/p/original/o1Sw1pwOF4lel5GVuddU4tk7Q7Z.jpg"
+            ],
+            "title": "The Cage",
+            "tvdb": 248303
+        },
+        {
             "airdate": "1966.09.08",
             "description": "Kirk and his crew are at deadly risk from an alien creature that feeds on the salt in a human body and can take on any form.",
             "episode": "01",
@@ -37,15 +67,7 @@
             "episode": "03",
             "imdb": "tt0061027",
             "memoryalpha": "Where_No_Man_Has_Gone_Before_(episode)",
-            "podcasts": [
-                {
-                    "airdate": "2018.07.31",
-                    "episode": "Legendarily Horny",
-                    "link": null,
-                    "order": 24,
-                    "title": "Greatest Trek"
-                }
-            ],
+            "podcasts": [],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/h24Wo5hwqETbpLpuhD1zefB63Xh.jpg",
@@ -90,7 +112,15 @@
             "episode": "06",
             "imdb": "tt0708439",
             "memoryalpha": "Mudd's_Women_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2018.07.31",
+                    "episode": "Legendarily Horny",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/greatest-discovery-ep-24-legendarily-horny/",
+                    "order": 24,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/zUj64Ecu98C5rdep86LTIVEiQ9V.jpg",
@@ -154,7 +184,7 @@
                 {
                     "airdate": "2020.05.12",
                     "episode": "Issue 217",
-                    "link": null,
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-82-issue-217-tos-s1e10/",
                     "order": 82,
                     "title": "Greatest Trek"
                 }
@@ -177,7 +207,7 @@
                 {
                     "airdate": "2019.07.16",
                     "episode": "Streisand-Effecting the Planet",
-                    "link": null,
+                    "link": "https://maximumfun.org/episodes/greatest-trek/greatest-discovery-ep-55-streisand-effecting-planet-tos-s1e12/",
                     "order": 55,
                     "title": "Greatest Trek"
                 }
@@ -200,7 +230,7 @@
                 {
                     "airdate": "2019.07.23",
                     "episode": "Deus Ex Mendez",
-                    "link": null,
+                    "link": "https://maximumfun.org/episodes/greatest-trek/greatest-discovery-ep-56-deus-ex-mendez-tos-s1e13/",
                     "order": 56,
                     "title": "Greatest Trek"
                 }
@@ -238,7 +268,7 @@
                 {
                     "airdate": "2020.05.26",
                     "episode": "The Skin of Kermit the Frog",
-                    "link": null,
+                    "link": "https://maximumfun.org/episodes/greatest-trek/tgd-83-the-skin-of-kermit-the-frog-tos-s1e14/",
                     "order": 83,
                     "title": "Greatest Trek"
                 }
@@ -302,7 +332,15 @@
             "episode": "18",
             "imdb": "tt0708418",
             "memoryalpha": "Arena_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.03.26",
+                    "episode": "Drugstore Godzilla Suit",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/bonus-episode-drugstore-godzilla-suit-tos-s1e19/",
+                    "order": null,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/aYUWqtl3O7pFLDQE7KxDBJbk4Xs.jpg",
@@ -426,7 +464,7 @@
                 {
                     "airdate": "2020.06.09",
                     "episode": "Pre-Bow Mall Santa Display",
-                    "link": null,
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-84-pre-bow-mall-santa-display-tos-s1e26/",
                     "order": 84,
                     "title": "Greatest Trek"
                 }
@@ -464,7 +502,7 @@
                 {
                     "airdate": "2021.02.09",
                     "episode": "Carl's Hole",
-                    "link": null,
+                    "link": "https://maximumfun.org/episodes/greatest-trek/carls-hole-tos-s1e28/",
                     "order": 115,
                     "title": "Greatest Trek"
                 }
@@ -612,7 +650,15 @@
             "episode": "08",
             "imdb": "tt0708432",
             "memoryalpha": "I,_Mudd_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2019.09.03",
+                    "episode": "One Chop Chump",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/episode-59-one-chop-chump-tos-s2e12/",
+                    "order": 59,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/r9Xfl9aQ7yx0vWnNrIFpRcYhdSp.jpg",
@@ -672,15 +718,7 @@
             "episode": "12",
             "imdb": "tt0708459",
             "memoryalpha": "The_Deadly_Years_(episode)",
-            "podcasts": [
-                {
-                    "airdate": "2019.09.03",
-                    "episode": "One Chop Chump",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/episode-59-one-chop-chump-tos-s2e12/",
-                    "order": 59,
-                    "title": "Greatest Trek"
-                }
-            ],
+            "podcasts": [],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/wL9bG3kCXGF2xK0iasSbpPL1hr3.jpg",
@@ -695,15 +733,7 @@
             "episode": "13",
             "imdb": "tt0708440",
             "memoryalpha": "Obsession_(episode)",
-            "podcasts": [
-                {
-                    "airdate": "2019.10.01",
-                    "episode": "Stepping on a Ketchup Packet",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/episode-61-stepping-on-a-ketchup-packet-tos-s2e13/",
-                    "order": 61,
-                    "title": "Greatest Trek"
-                }
-            ],
+            "podcasts": [],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/5h2tq7M2tDWVRc3uZ136WFURGWk.jpg",
@@ -733,7 +763,15 @@
             "episode": "15",
             "imdb": "tt0708480",
             "memoryalpha": "The_Trouble_with_Tribbles_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2019.10.01",
+                    "episode": "Stepping on a Ketchup Packet",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/episode-61-stepping-on-a-ketchup-packet-tos-s2e13/",
+                    "order": 61,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/n9ZEWP3aX6c77pSLIOs3wuERp15.jpg",
@@ -902,7 +940,7 @@
                 {
                     "airdate": "2021.06.01",
                     "episode": "Seven of Gary",
-                    "link": null,
+                    "link": "https://maximumfun.org/episodes/greatest-trek/seven-of-gary-tos-s2e26/",
                     "order": 124,
                     "title": "Greatest Trek"
                 }
@@ -981,7 +1019,15 @@
             "episode": "05",
             "imdb": "tt0708433",
             "memoryalpha": "Is_There_in_Truth_No_Beauty?_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2024.03.28",
+                    "episode": "My Medusans Are Up Here, Gentlemen",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/bonus-episode-my-medusans-are-up-here-gentlemen-tos-s3e5/",
+                    "order": null,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/oZSUr8TSn1uZSv1yTolPL6RrtJz.jpg",
@@ -1203,7 +1249,7 @@
         },
         {
             "airdate": "1969.02.21",
-            "description": "The Enterprise picks up a group of space \"\"hippies\"\" looking for Eden.",
+            "description": "The Enterprise picks up a group of space \"hippies\" looking for Eden.",
             "episode": "20",
             "imdb": "tt0708482",
             "memoryalpha": "The_Way_to_Eden_(episode)",
