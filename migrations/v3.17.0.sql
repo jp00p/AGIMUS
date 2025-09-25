@@ -1,0 +1,3 @@
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference, special) VALUES ("Better Dad Than Worf", "Better_Dad_Than_Worf.png", "https://pennyante-art.carrd.co/", "Alpha", "2000s", "The USS Hood", "Both a better Father, and more masterful in the art of opening doors.", 1);
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Better_Dad_Than_Worf.png", "Insignia");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Better_Dad_Than_Worf.png", "Prime");
