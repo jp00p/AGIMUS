@@ -1644,7 +1644,15 @@
             "episode": "20",
             "imdb": "tt0572256",
             "memoryalpha": "The_Forgotten_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.09.22",
+                    "episode": "There Are Four Pipes!",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-593-there-are-four-pipes-ent-s3e20/",
+                    "order": 593,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/msxGLlo5zltcbqdeUeET4gfA5fL.jpg",
