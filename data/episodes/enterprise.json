@@ -1667,7 +1667,15 @@
             "episode": "21",
             "imdb": "tt0572205",
             "memoryalpha": "E\u00b2_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.09.29",
+                    "episode": "Nebulesis",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-594-nebulesis-ent-s3e21/",
+                    "order": 594,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/qadsC7I3Dswsf2cDkrG05Ehxjmm.jpg",
