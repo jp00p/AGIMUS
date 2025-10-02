@@ -116,7 +116,7 @@ local.json
 /local-*.json
 /local_*.json
 *dump.sql
-*sql.gz
+*sql.gz*
 agimus.sql-*
 
 # Pyre type checker
