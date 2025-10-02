@@ -533,8 +533,8 @@ class Settings(commands.Cog):
             files=[pattern_buffer_thumbnail]
           )
         ],
-        label="Pattern Buffer DMs",
-        description="Opt-in or Opt-out of Pattern Buffer DMs",
+        label="Crystal Pattern Buffer DMs",
+        description="Opt-in or Opt-out of Crystal Pattern Buffer DMs",
         custom_buttons=[],
         use_default_buttons=False,
         custom_view=PatternBufferView(self)
@@ -732,18 +732,18 @@ class Settings(commands.Cog):
     return embed, thumbnail
 
   async def _get_pattern_buffer_embed_and_thumbnail(self):
-    thumbnail = discord.File(fp="./images/templates/settings/pattern_buffer.png", filename="pattern_buffer.png")
+    thumbnail = discord.File(fp="./images/templates/settings/buffer_dm.png", filename="buffer_dm.png")
     embed = discord.Embed(
-      title="Pattern Buffer Notifications",
-      description="Pattern Buffers are rewards given by the XP System. This setting will only apply if you have opted-in "
-                  "to the XP System. Opt in if you would like to receive a notification when you receive a Pattern Buffer.\n\n"
-                  "Note that this setting only applies to notifications about Pattern Buffers. If you would like to receive other "
-                  "notifications, please opt in using the \"Notifications\" setting.",
+      title="Crystal Pattern Buffer Notifications",
+      description="Crystal Pattern Buffers are rewards given by the XP System. This setting will only apply if you have enabled "
+                  "the XP System. Opt in if you would like to receive a notification when you receive a Crystal Pattern Buffer.\n\n"
+                  "Note that this setting only applies to notifications about Crystal Pattern Buffers. If you would like to receive other "
+                  "notifications, please use the \"Notifications\" setting.",
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text="Please select your choice from the preference dropdown below.")
     embed.set_image(url="https://i.imgur.com/XMnho37.png")
-    embed.set_thumbnail(url=f"attachment://pattern_buffer.png")
+    embed.set_thumbnail(url=f"attachment://buffer_dm.png")
 
     return embed, thumbnail
 

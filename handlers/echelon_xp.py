@@ -112,9 +112,6 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
 
   if awarded_buffer_pattern:
     await post_buffer_pattern_acquired_embed(member, level, awarded_buffer_pattern)
-    buffer_awardee = await get_user(str(member.id))
-
-
 
 async def post_level_up_embed(member: discord.User, level: int, badge_data: dict, source_details = None):
   """
