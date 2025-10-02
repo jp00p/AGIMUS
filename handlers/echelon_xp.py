@@ -112,6 +112,8 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
 
   if awarded_buffer_pattern:
     await post_buffer_pattern_acquired_embed(member, level, awarded_buffer_pattern)
+    buffer_awardee = await get_user(str(member.id))
+
 
 
 async def post_level_up_embed(member: discord.User, level: int, badge_data: dict, source_details = None):
@@ -263,7 +265,18 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   embed.set_footer(text="Use  `/crystals replicate` to materialize a freshly minted Crystal!")
   notification_channel = bot.get_channel(get_channel_id(config['handlers']['xp']['notification_channel']))
   await notification_channel.send(embed=embed)
-
+  buffer_awardee = await get_user(member.id)
+  if (buffer_awardee['pattern_buffer']):
+    try:
+      dm_embed = discord.Embed(
+        title = "Crystal Pattern Buffer Acquired!",
+        description = f"You have acquired a Crystal Pattern Buffer! Go to {gelrak_v.mention} and use `/crystals replicate` to materialize it.",
+        color = discord.Color.teal()
+      )
+      dm_embed.set_image(url=random.choice(BUFFER_PATTERN_AQUISITION_GIFS))
+      await member.send(embed=dm_embed)
+    except discord.Forbidden:
+      logger.info(f"Error sending {member.display_name} a message when they received a Crystal Pattern Buffer.")
 
 BUFFER_PATTERN_AQUISITION_REASONS = [
   "was exploring the Jefferies Tubes and stumbled across a",
