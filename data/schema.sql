@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS users (
   loudbot_enabled BOOLEAN NOT NULL DEFAULT 0,
   tagging_enabled BOOLEAN NOT NULL DEFAULT 0,
   crystal_autoharmonize BOOLEAN NOT NULL DEFAULT 1,
+  pattern_buffer BOOLEAN NOT NULL DEFAULT 0,
   level int(11) DEFAULT 1,
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)

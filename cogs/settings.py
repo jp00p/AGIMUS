@@ -298,6 +298,7 @@ class LoudbotView(discord.ui.View):
         # Workaround for current issue with timeout 404s
         pass
 
+# Tagging
 class TaggingDropdown(discord.ui.Select):
   def __init__(self, cog):
     self.cog = cog
@@ -353,6 +354,62 @@ class TaggingView(discord.ui.View):
         # Workaround for current issue with timeout 404s
         pass
 
+# Pattern Buffer DM
+class PatternBufferDropdown(discord.ui.Select):
+  def __init__(self, cog):
+    self.cog = cog
+    options = [
+      discord.SelectOption(label="Enable Pattern Buffer DM", description="Opt-in to the Pattern Buffer DM"),
+      discord.SelectOption(label="Disable Pattern Buffer DM", description="Opt-out of the Pattern Buffer DM"),
+    ]
+
+    super().__init__(
+      placeholder="Choose your preference",
+      min_values=1,
+      max_values=1,
+      options=options,
+      row=1
+    )
+
+  async def callback(self, interaction:discord.Interaction):
+    selection = self.values[0]
+
+    if selection == "Enable Pattern Buffer DM":
+      await db_toggle_pattern_buffer(interaction.user.id, True)
+      await interaction.response.send_message(
+        embed=discord.Embed(
+          title="You have successfully opted-in to pattern buffer DMs!",
+          color=discord.Color.green()
+        ).set_footer(text="You can always come back to this interface to reconfigure in the future!"),
+        ephemeral=True
+      )
+    elif selection == "Disable Pattern Buffer DM":
+      await db_toggle_tagging(interaction.user.id, False)
+      await interaction.response.send_message(
+        embed=discord.Embed(
+          title="You have successfully opted-out of pattern buffer DMs.",
+          color=discord.Color.blurple()
+        ).set_footer(text="You can always come back to this interface and re-enable in the future!"),
+        ephemeral=True
+      )
+
+class PatternBufferView(discord.ui.View):
+  def __init__(self, cog):
+    self.cog = cog
+    super().__init__()
+
+    self.add_item(PatternBufferDropdown(self.cog))
+
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
+
 # _________
 # \_   ___ \  ____   ____
 # /    \  \/ /  _ \ / ___\
@@ -377,6 +434,7 @@ class Settings(commands.Cog):
     wordcloud_embed, wordcloud_thumbnail = await self._get_wordcloud_embed_and_thumbnail()
     loudbot_embed, loudbot_thumbnail = await self._get_loudbot_embed_and_thumbnail()
     tagging_embed, tagging_thumbnail = await self._get_tagging_embed_and_thumbnail()
+    pattern_buffer_embed, pattern_buffer_thumbnail = await self._get_pattern_buffer_embed_and_thumbnail()
 
     page_groups = [
       pages.PageGroup(
@@ -467,6 +525,19 @@ class Settings(commands.Cog):
         custom_buttons=[],
         use_default_buttons=False,
         custom_view=TaggingView(self)
+      ),
+      pages.PageGroup(
+        pages=[
+          pages.Page(
+            embeds=[pattern_buffer_embed],
+            files=[pattern_buffer_thumbnail]
+          )
+        ],
+        label="Pattern Buffer DMs",
+        description="Opt-in or Opt-out of Pattern Buffer DMs",
+        custom_buttons=[],
+        use_default_buttons=False,
+        custom_view=PatternBufferView(self)
       )
     ]
     paginator = pages.Paginator(
@@ -660,6 +731,22 @@ class Settings(commands.Cog):
 
     return embed, thumbnail
 
+  async def _get_pattern_buffer_embed_and_thumbnail(self):
+    thumbnail = discord.File(fp="./images/templates/settings/pattern_buffer.png", filename="pattern_buffer.png")
+    embed = discord.Embed(
+      title="Pattern Buffer Notifications",
+      description="Pattern Buffers are rewards given by the XP System. This setting will only apply if you have opted-in "
+                  "to the XP System. Opt in if you would like to receive a notification when you receive a Pattern Buffer.\n\n"
+                  "Note that this setting only applies to notifications about Pattern Buffers. If you would like to receive other "
+                  "notifications, please opt in using the \"Notifications\" setting.",
+      color=discord.Color(0xFF0000)
+    )
+    embed.set_footer(text="Please select your choice from the preference dropdown below.")
+    embed.set_image(url="https://i.imgur.com/XMnho37.png")
+    embed.set_thumbnail(url=f"attachment://pattern_buffer.png")
+
+    return embed, thumbnail
+
 async def db_toggle_xp(user_id, value:bool):
   async with AgimusDB() as query:
     sql = "UPDATE users SET xp_enabled = %s WHERE discord_id = %s"
@@ -708,4 +795,10 @@ async def db_set_crystal_autoharmonize(user_id, autoharmonize: bool):
   async with AgimusDB() as query:
     sql = "UPDATE users SET crystal_autoharmonize = %s WHERE discord_id = %s"
     vals = (autoharmonize, user_id)
+    await query.execute(sql, vals)
+
+async def db_toggle_pattern_buffer(user_id, toggle):
+  async with AgimusDB() as query:
+    sql = "UPDATE users SET pattern_buffer = %s WHERE discord_id = %s"
+    vals = (toggle, user_id)
     await query.execute(sql, vals)
