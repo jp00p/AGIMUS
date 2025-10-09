@@ -1690,7 +1690,15 @@
             "episode": "22",
             "imdb": "tt0572252",
             "memoryalpha": "The_Council_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.10.06",
+                    "episode": "Banana Margarita That Fucked a Brunch Station at a Resort",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-595-banana-margarita-that-fucked-a-brunch-station-at-a-resort-ent-s3e22/",
+                    "order": 591,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/bb2897eAJbZoSfxHDQNr08crsBw.jpg",
