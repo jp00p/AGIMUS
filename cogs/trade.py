@@ -5,6 +5,7 @@ from common import *
 from queries.crystal_instances import db_get_attuned_crystals
 from queries.trade import *
 from queries.echelon_xp import db_get_echelon_progress
+from queries.wishlists import db_get_wishlist_matches
 
 from utils.badge_trades import *
 from utils.check_channel_access import access_check
@@ -58,7 +59,7 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
 
   # Exclude badges the requestee already owns
   requestee_filenames = {b['badge_filename'] for b in requestee_instances}
-  
+
   # Wishlist match filtering (if viable)
   use_matches = str(ctx.options.get('use_matches', 'no')).lower() == 'yes'
   matched_badge_info_ids = None
@@ -124,7 +125,7 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
 
   # Exclude badges the requestor already owns
   requestor_filenames = {b['badge_filename'] for b in requestor_instances}
-  
+
   # Wishlist match filtering (if viable)
   matched_badge_info_ids = None
   use_matches = str(ctx.options.get('use_matches', 'no')).lower() == 'yes'
@@ -768,7 +769,7 @@ class Trade(commands.Cog):
   @option(
     name='use_matches',
     description='Limit to Wishlist Match? (if viable)',
-    required=False,
+    required=True,
     choices=[
       discord.OptionChoice(name='Yes', value='yes'),
       discord.OptionChoice(name='No',  value='no'),
@@ -789,7 +790,7 @@ class Trade(commands.Cog):
     autocomplete=autocomplete_requesting_badges
   )
   @commands.check(access_check)
-  async def start(self, ctx:discord.ApplicationContext, requestee:discord.User, prestige:str, offer: str, request: str):
+  async def start(self, ctx:discord.ApplicationContext, requestee:discord.User, prestige:str, use_matches: str, offer: str, request: str):
     await ctx.defer(ephemeral=True)
     requestor_id = ctx.author.id
     requestee_id = requestee.id
@@ -1286,7 +1287,7 @@ class Trade(commands.Cog):
   @option(
     name='use_matches',
     description='Limit to Wishlist Match? (if viable)',
-    required=False,
+    required=True,
     choices=[
       discord.OptionChoice(name='Yes', value='yes'),
       discord.OptionChoice(name='No',  value='no'),
@@ -1307,7 +1308,7 @@ class Trade(commands.Cog):
     autocomplete=autocomplete_requesting_badges,
   )
   @commands.check(access_check)
-  async def propose(self, ctx, offer:str, request:str):
+  async def propose(self, ctx, use_matches: str, offer:str, request:str):
     active_trade = await self.check_for_active_trade(ctx)
     if not active_trade:
       return
