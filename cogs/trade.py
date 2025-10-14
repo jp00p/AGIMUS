@@ -32,8 +32,10 @@ async def autocomplete_use_matches(ctx: discord.AutocompleteContext):
   """
   Autocomplete for the 'use_matches' option.
 
-  - If a valid wishlist match exists for the selected partner at the chosen prestige:
+  - If a valid wishlist match with addable badges exists for the selected partner at the chosen prestige:
       return Yes/No
+  - If partner is selected but prestige is not:
+      return [ Select Prestige First ]
   - Otherwise:
       return N/A (treated as no-op / standard badge lists)
   Works for both /trade start (uses 'user' + 'prestige') and /trade propose (uses active trade).
@@ -42,40 +44,49 @@ async def autocomplete_use_matches(ctx: discord.AutocompleteContext):
 
   requestor_id = ctx.interaction.user.id
 
-  # Try to resolve partner + prestige from the command's current options
+  # Resolve partner + prestige from current UI state
   partner_id = None
   prestige_level = None
 
-  if 'user' in ctx.options and 'prestige' in ctx.options:
-    # /trade start path
+  # Prefer explicit options present in /trade start
+  if 'user' in ctx.options:
+    partner = ctx.options.get('user')
     try:
-      partner = ctx.options.get('user')
-      partner_id = int(getattr(partner, 'id', partner))  # supports User object or id
+      partner_id = int(getattr(partner, 'id', partner))
     except Exception:
       partner_id = None
+
+  if 'prestige' in ctx.options:
     try:
       prestige_level = int(ctx.options.get('prestige'))
     except Exception:
       prestige_level = None
-  else:
-    # /trade propose path (or fallback)
+
+  # Fall back to active trade (propose)
+  if partner_id is None or prestige_level is None:
     active_trade = await db_get_active_requestor_trade(requestor_id)
     if active_trade:
-      partner_id = int(active_trade['requestee_id'])
-      prestige_level = int(active_trade['prestige_level'])
+      partner_id = partner_id or int(active_trade.get('requestee_id'))
+      try:
+        prestige_level = prestige_level if prestige_level is not None else int(active_trade.get('prestige_level'))
+      except Exception:
+        prestige_level = None
 
-  # If we can't determine both, just show N/A so users aren't blocked
+  # If we have a partner but not prestige yet, tell the user what to do next
+  if partner_id is not None and prestige_level is None:
+    return [discord.OptionChoice(name='[ Select Prestige First ]', value='na')]
+
+  # If we can't determine both, keep the UI unblocked
   if partner_id is None or prestige_level is None:
     return [discord.OptionChoice(name='N/A', value='na')]
 
-  # Look up a wishlist match with this specific partner at this prestige
+  # Query wishlist match at this prestige for this specific partner
   matches = await db_get_wishlist_matches(str(requestor_id), int(prestige_level))
-  match_row = next((m for m in matches if m['match_discord_id'] == str(partner_id)), None)
-
+  match_row = next((m for m in matches if str(m.get('match_discord_id')) == str(partner_id)), None)
   if not match_row:
     return [discord.OptionChoice(name='N/A', value='na')]
 
-  # Consider it "valid" if either side has addable badge_info_ids
+  # Consider it "valid" only if either side has addable badge_info_ids
   try:
     you_want = set(json.loads(match_row.get('badge_ids_you_want_that_they_have') or '[]'))
     they_want = set(json.loads(match_row.get('badge_ids_they_want_that_you_have') or '[]'))
@@ -97,19 +108,24 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   prestige_level = None
   offered_instance_ids = set()
 
-  if 'requestee' in ctx.options and 'prestige' in ctx.options:
-    requestee_user_id = ctx.options['requestee']
+  # Accept either 'user' (start) or active trade (propose)
+  if 'user' in ctx.options and 'prestige' in ctx.options:
+    partner = ctx.options.get('user')
+    try:
+      requestee_user_id = int(getattr(partner, 'id', partner))
+    except Exception:
+      requestee_user_id = None
     prestige = ctx.options.get('prestige')
     try:
       prestige_level = int(prestige)
-    except ValueError:
+    except Exception:
       logger.warning(f"Non-numeric prestige level received: {prestige}")
       return [discord.OptionChoice(name='[ 🔒 Invalid Prestige ]', value='none')]
   else:
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
-      requestee_user_id = active_trade['requestee_id']
-      prestige_level = active_trade['prestige_level']
+      requestee_user_id = int(active_trade['requestee_id'])
+      prestige_level = int(active_trade['prestige_level'])
       offered_instances = await db_get_trade_offered_badge_instances(active_trade)
       offered_instance_ids = {b['badge_instance_id'] for b in offered_instances}
     else:
@@ -163,19 +179,24 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   prestige_level = None
   requested_instance_ids = set()
 
-  if 'requestee' in ctx.options and 'prestige' in ctx.options:
-    requestee_user_id = ctx.options['requestee']
+  # Accept either 'user' (start) or active trade (propose)
+  if 'user' in ctx.options and 'prestige' in ctx.options:
+    partner = ctx.options.get('user')
+    try:
+      requestee_user_id = int(getattr(partner, 'id', partner))
+    except Exception:
+      requestee_user_id = None
     prestige = ctx.options.get('prestige')
     try:
       prestige_level = int(prestige)
-    except ValueError:
+    except Exception:
       logger.warning(f"Non-numeric prestige level received: {prestige}")
       return [discord.OptionChoice(name='[ 🔒 Invalid Prestige ]', value='none')]
   else:
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
-      requestee_user_id = active_trade['requestee_id']
-      prestige_level = active_trade['prestige_level']
+      requestee_user_id = int(active_trade['requestee_id'])
+      prestige_level = int(active_trade['prestige_level'])
       requested_instances = await db_get_trade_requested_badge_instances(active_trade)
       requested_instance_ids = {b['badge_instance_id'] for b in requested_instances}
     else:
@@ -849,7 +870,7 @@ class Trade(commands.Cog):
     autocomplete=autocomplete_requesting_badges
   )
   @commands.check(access_check)
-  async def start(self, ctx:discord.ApplicationContext, requestee:discord.User, prestige:str, use_matches: str, offer: str, request: str):
+  async def start(self, ctx:discord.ApplicationContext, user:discord.User, prestige:str, use_matches: str, offer: str, request: str):
     await ctx.defer(ephemeral=True)
     requestor_id = ctx.author.id
     requestee_id = requestee.id
