@@ -1,4 +1,4 @@
-BEGIN;
+START TRANSACTION;
 INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Welcome-Sign.png", "Holodeck");
 INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Welcome-Sign.png", "Fair Haven");
 INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Welcome-Sign.png", "Sign/Poster");
@@ -480,6 +480,8 @@ INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Fleet
 INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Minosian High Council", "Minosian-High-Council.png", "https://www.startrekdesignproject.com/symbols/minosia-high-council", "Alpha", "2300s", "Movies", "Star Trek: Section 31)");
 INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Minosian-High-Council.png", "Species/Civilization");
 INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Minosian-High-Council.png", "Prime");
+
+UPDATE badge_info SET badge_name = "Klingon Oversight Council Banner A", badge_url = "https://www.startrekdesignproject.com/symbols/klingon-oversight-council-banner-a" WHERE badge_name = "Klingon Oversight Council Banner";
 
 UPDATE badge_type SET type_name = "Sign/Poster" WHERE type_name = "Sign-Poster";
 COMMIT;

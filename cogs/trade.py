@@ -28,6 +28,68 @@ f.close()
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
+async def autocomplete_use_matches(ctx: discord.AutocompleteContext):
+  """
+  Autocomplete for the 'use_matches' option.
+
+  - If a valid wishlist match exists for the selected partner at the chosen prestige:
+      return Yes/No
+  - Otherwise:
+      return N/A (treated as no-op / standard badge lists)
+  Works for both /trade start (uses 'user' + 'prestige') and /trade propose (uses active trade).
+  """
+  import json
+
+  requestor_id = ctx.interaction.user.id
+
+  # Try to resolve partner + prestige from the command's current options
+  partner_id = None
+  prestige_level = None
+
+  if 'user' in ctx.options and 'prestige' in ctx.options:
+    # /trade start path
+    try:
+      partner = ctx.options.get('user')
+      partner_id = int(getattr(partner, 'id', partner))  # supports User object or id
+    except Exception:
+      partner_id = None
+    try:
+      prestige_level = int(ctx.options.get('prestige'))
+    except Exception:
+      prestige_level = None
+  else:
+    # /trade propose path (or fallback)
+    active_trade = await db_get_active_requestor_trade(requestor_id)
+    if active_trade:
+      partner_id = int(active_trade['requestee_id'])
+      prestige_level = int(active_trade['prestige_level'])
+
+  # If we can't determine both, just show N/A so users aren't blocked
+  if partner_id is None or prestige_level is None:
+    return [discord.OptionChoice(name='N/A', value='na')]
+
+  # Look up a wishlist match with this specific partner at this prestige
+  matches = await db_get_wishlist_matches(str(requestor_id), int(prestige_level))
+  match_row = next((m for m in matches if m['match_discord_id'] == str(partner_id)), None)
+
+  if not match_row:
+    return [discord.OptionChoice(name='N/A', value='na')]
+
+  # Consider it "valid" if either side has addable badge_info_ids
+  try:
+    you_want = set(json.loads(match_row.get('badge_ids_you_want_that_they_have') or '[]'))
+    they_want = set(json.loads(match_row.get('badge_ids_they_want_that_you_have') or '[]'))
+  except Exception:
+    you_want, they_want = set(), set()
+
+  if you_want or they_want:
+    return [
+      discord.OptionChoice(name='Yes', value='yes'),
+      discord.OptionChoice(name='No',  value='no'),
+    ]
+
+  return [discord.OptionChoice(name='N/A', value='na')]
+
 async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   requestor_user_id = ctx.interaction.user.id
 
@@ -768,12 +830,9 @@ class Trade(commands.Cog):
   )
   @option(
     name='use_matches',
-    description='Limit to Wishlist Match? (if viable)',
+    description='Limit to Wishlist Match Badges? (if available)',
     required=True,
-    choices=[
-      discord.OptionChoice(name='Yes', value='yes'),
-      discord.OptionChoice(name='No',  value='no'),
-    ]
+    autocomplete=autocomplete_use_matches
   )
   @option(
     "offer",
@@ -1286,12 +1345,9 @@ class Trade(commands.Cog):
   )
   @option(
     name='use_matches',
-    description='Limit to Wishlist Match? (if viable)',
+    description='Limit to Wishlist Match Badges? (if available)',
     required=True,
-    choices=[
-      discord.OptionChoice(name='Yes', value='yes'),
-      discord.OptionChoice(name='No',  value='no'),
-    ]
+    autocomplete=autocomplete_use_matches
   )
   @option(
     'offer',
