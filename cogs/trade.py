@@ -49,8 +49,8 @@ async def autocomplete_use_matches(ctx: discord.AutocompleteContext):
   prestige_level = None
 
   # Prefer explicit options present in /trade start
-  if 'user' in ctx.options:
-    partner = ctx.options.get('user')
+  if 'requestee' in ctx.options:
+    partner = ctx.options.get('requestee')
     try:
       partner_id = int(getattr(partner, 'id', partner))
     except Exception:
@@ -108,9 +108,9 @@ async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   prestige_level = None
   offered_instance_ids = set()
 
-  # Accept either 'user' (start) or active trade (propose)
-  if 'user' in ctx.options and 'prestige' in ctx.options:
-    partner = ctx.options.get('user')
+  # Accept either 'requestee' (start) or active trade (propose)
+  if 'requestee' in ctx.options and 'prestige' in ctx.options:
+    partner = ctx.options.get('requestee')
     try:
       requestee_user_id = int(getattr(partner, 'id', partner))
     except Exception:
@@ -179,9 +179,9 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   prestige_level = None
   requested_instance_ids = set()
 
-  # Accept either 'user' (start) or active trade (propose)
-  if 'user' in ctx.options and 'prestige' in ctx.options:
-    partner = ctx.options.get('user')
+  # Accept either 'requestee' (start) or active trade (propose)
+  if 'requestee' in ctx.options and 'prestige' in ctx.options:
+    partner = ctx.options.get('requestee')
     try:
       requestee_user_id = int(getattr(partner, 'id', partner))
     except Exception:
@@ -838,7 +838,7 @@ class Trade(commands.Cog):
     description="Start a trade with a specified user (only one outgoing trade active at a time)"
   )
   @option(
-    "user",
+    "requestee",
     discord.User,
     description="The user you wish to start a trade with",
     required=True
@@ -870,7 +870,7 @@ class Trade(commands.Cog):
     autocomplete=autocomplete_requesting_badges
   )
   @commands.check(access_check)
-  async def start(self, ctx:discord.ApplicationContext, user:discord.User, prestige:str, use_matches: str, offer: str, request: str):
+  async def start(self, ctx:discord.ApplicationContext, requestee:discord.User, prestige:str, use_matches: str, offer: str, request: str):
     await ctx.defer(ephemeral=True)
     requestor_id = ctx.author.id
     requestee_id = requestee.id
