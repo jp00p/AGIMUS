@@ -1,8 +1,11 @@
+import json
+
 from common import *
 
 from queries.crystal_instances import db_get_attuned_crystals
 from queries.trade import *
 from queries.echelon_xp import db_get_echelon_progress
+from queries.wishlists import db_get_wishlist_matches
 
 from utils.badge_trades import *
 from utils.check_channel_access import access_check
@@ -25,62 +28,147 @@ f.close()
 # /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/
 # \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
 #         \/                        \/            \/|__|             \/          \/
+async def autocomplete_use_matches(ctx: discord.AutocompleteContext):
+  """
+  Autocomplete for the 'use_matches' option.
+
+  - If a valid wishlist match with addable badges exists for the selected partner at the chosen prestige:
+      return Yes/No
+  - If partner is selected but prestige is not:
+      return [ Select Prestige First ]
+  - Otherwise:
+      return N/A (treated as no-op / standard badge lists)
+  Works for both /trade start (uses 'user' + 'prestige') and /trade propose (uses active trade).
+  """
+  import json
+
+  requestor_id = ctx.interaction.user.id
+
+  # Resolve partner + prestige from current UI state
+  partner_id = None
+  prestige_level = None
+
+  # Prefer explicit options present in /trade start
+  if 'requestee' in ctx.options:
+    partner = ctx.options.get('requestee')
+    try:
+      partner_id = int(getattr(partner, 'id', partner))
+    except Exception:
+      partner_id = None
+
+  if 'prestige' in ctx.options:
+    try:
+      prestige_level = int(ctx.options.get('prestige'))
+    except Exception:
+      prestige_level = None
+
+  # Fall back to active trade (propose)
+  if partner_id is None or prestige_level is None:
+    active_trade = await db_get_active_requestor_trade(requestor_id)
+    if active_trade:
+      partner_id = partner_id or int(active_trade.get('requestee_id'))
+      try:
+        prestige_level = prestige_level if prestige_level is not None else int(active_trade.get('prestige_level'))
+      except Exception:
+        prestige_level = None
+
+  # If we have a partner but not prestige yet, tell the user what to do next
+  if partner_id is not None and prestige_level is None:
+    return [discord.OptionChoice(name='[ Select Prestige First ]', value='na')]
+
+  # If we can't determine both, keep the UI unblocked
+  if partner_id is None or prestige_level is None:
+    return [discord.OptionChoice(name='N/A', value='na')]
+
+  # Query wishlist match at this prestige for this specific partner
+  matches = await db_get_wishlist_matches(str(requestor_id), int(prestige_level))
+  match_row = next((m for m in matches if str(m.get('match_discord_id')) == str(partner_id)), None)
+  if not match_row:
+    return [discord.OptionChoice(name='N/A', value='na')]
+
+  # Consider it "valid" only if either side has addable badge_info_ids
+  try:
+    you_want = set(json.loads(match_row.get('badge_ids_you_want_that_they_have') or '[]'))
+    they_want = set(json.loads(match_row.get('badge_ids_they_want_that_you_have') or '[]'))
+  except Exception:
+    you_want, they_want = set(), set()
+
+  if you_want or they_want:
+    return [
+      discord.OptionChoice(name='Yes', value='yes'),
+      discord.OptionChoice(name='No',  value='no'),
+    ]
+
+  return [discord.OptionChoice(name='N/A', value='na')]
+
 async def autocomplete_offering_badges(ctx: discord.AutocompleteContext):
   requestor_user_id = ctx.interaction.user.id
 
   requestee_user_id = None
   prestige_level = None
   offered_instance_ids = set()
+
+  # Accept either 'requestee' (start) or active trade (propose)
   if 'requestee' in ctx.options and 'prestige' in ctx.options:
-    requestee_user_id = ctx.options['requestee']
+    partner = ctx.options.get('requestee')
+    try:
+      requestee_user_id = int(getattr(partner, 'id', partner))
+    except Exception:
+      requestee_user_id = None
     prestige = ctx.options.get('prestige')
     try:
       prestige_level = int(prestige)
-    except ValueError:
+    except Exception:
       logger.warning(f"Non-numeric prestige level received: {prestige}")
-      return [discord.OptionChoice(name="[ 🔒 Invalid Prestige ]", value="none")]
+      return [discord.OptionChoice(name='[ 🔒 Invalid Prestige ]', value='none')]
   else:
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
-      requestee_user_id = active_trade['requestee_id']
-      prestige_level = active_trade['prestige_level']
+      requestee_user_id = int(active_trade['requestee_id'])
+      prestige_level = int(active_trade['prestige_level'])
       offered_instances = await db_get_trade_offered_badge_instances(active_trade)
       offered_instance_ids = {b['badge_instance_id'] for b in offered_instances}
     else:
-      return [
-        discord.OptionChoice(
-          name="[ No Valid Options ]",
-          value=None
-        )
-      ]
+      return [discord.OptionChoice(name='[ No Valid Options ]', value=None)]
 
-  # Lookup badges
+  # Lookup inventories at this prestige
   requestor_instances = await db_get_user_badge_instances(requestor_user_id, prestige=prestige_level)
   requestee_instances = await db_get_user_badge_instances(requestee_user_id, prestige=prestige_level)
 
+  # Exclude badges the requestee already owns
   requestee_filenames = {b['badge_filename'] for b in requestee_instances}
 
-  results = [
-    discord.OptionChoice(
-      name=b['badge_name'],
-      value=str(b['badge_instance_id'])
-    )
-    for b in requestor_instances
-    if (
-      not b['special'] and
-      b['badge_filename'] not in requestee_filenames and
-      b['badge_instance_id'] not in offered_instance_ids
-    )
-  ]
+  # Wishlist match filtering (if viable)
+  use_matches = str(ctx.options.get('use_matches', 'no')).lower() == 'yes'
+  matched_badge_info_ids = None
+  if use_matches:
+    matches = await db_get_wishlist_matches(str(requestor_user_id), int(prestige_level))
+    # Find the row for this specific partner
+    match_row = next((m for m in matches if m['match_discord_id'] == str(requestee_user_id)), None)
+    if not match_row:
+      return [discord.OptionChoice(name='[ No Valid Options ]', value=None)]
+    # Offered = Badges THEY want that YOU have
+    matched_badge_info_ids = set(json.loads(match_row['badge_ids_they_want_that_you_have'] or '[]'))
+    if not matched_badge_info_ids:
+      return [discord.OptionChoice(name='[ No Valid Options ]', value=None)]
 
+  # Build results
+  results = []
+  for b in requestor_instances:
+    if b['special']:
+      continue
+    if b['badge_filename'] in requestee_filenames:
+      continue
+    if b['badge_instance_id'] in offered_instance_ids:
+      continue
+    if matched_badge_info_ids is not None and b.get('badge_info_id') not in matched_badge_info_ids:
+      continue
+    results.append(discord.OptionChoice(name=b['badge_name'], value=str(b['badge_instance_id'])))
+
+  # Text filter
   filtered = [r for r in results if strip_bullshit(ctx.value.lower()) in strip_bullshit(r.name.lower())]
   if not filtered:
-    filtered = [
-      discord.OptionChoice(
-        name="[ No Valid Options ]",
-        value=None
-      )
-    ]
+    filtered = [discord.OptionChoice(name='[ No Valid Options ]', value=None)]
   return filtered
 
 
@@ -90,56 +178,68 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   requestee_user_id = None
   prestige_level = None
   requested_instance_ids = set()
+
+  # Accept either 'requestee' (start) or active trade (propose)
   if 'requestee' in ctx.options and 'prestige' in ctx.options:
-    requestee_user_id = ctx.options['requestee']
+    partner = ctx.options.get('requestee')
+    try:
+      requestee_user_id = int(getattr(partner, 'id', partner))
+    except Exception:
+      requestee_user_id = None
     prestige = ctx.options.get('prestige')
     try:
       prestige_level = int(prestige)
-    except ValueError:
+    except Exception:
       logger.warning(f"Non-numeric prestige level received: {prestige}")
-      return [discord.OptionChoice(name="[ 🔒 Invalid Prestige ]", value="none")]
+      return [discord.OptionChoice(name='[ 🔒 Invalid Prestige ]', value='none')]
   else:
     active_trade = await db_get_active_requestor_trade(requestor_user_id)
     if active_trade:
-      requestee_user_id = active_trade['requestee_id']
-      prestige_level = active_trade['prestige_level']
+      requestee_user_id = int(active_trade['requestee_id'])
+      prestige_level = int(active_trade['prestige_level'])
       requested_instances = await db_get_trade_requested_badge_instances(active_trade)
       requested_instance_ids = {b['badge_instance_id'] for b in requested_instances}
     else:
-      return [
-        discord.OptionChoice(
-          name="[ No Valid Options ]",
-          value=None
-        )
-      ]
+      return [discord.OptionChoice(name='[ No Valid Options ]', value=None)]
 
-  # Lookup badges
+  # Lookup inventories at this prestige
   requestor_instances = await db_get_user_badge_instances(requestor_user_id, prestige=prestige_level)
   requestee_instances = await db_get_user_badge_instances(requestee_user_id, prestige=prestige_level)
 
+  # Exclude badges the requestor already owns
   requestor_filenames = {b['badge_filename'] for b in requestor_instances}
 
-  results = [
-    discord.OptionChoice(
-      name=b['badge_name'],
-      value=str(b['badge_instance_id'])
-    )
-    for b in requestee_instances
-    if (
-      not b['special'] and
-      b['badge_filename'] not in requestor_filenames and
-      b['badge_instance_id'] not in requested_instance_ids
-    )
-  ]
+  # Wishlist match filtering (if viable)
+  matched_badge_info_ids = None
+  use_matches = str(ctx.options.get('use_matches', 'no')).lower() == 'yes'
+  if use_matches:
+    matches = await db_get_wishlist_matches(str(requestor_user_id), int(prestige_level))
+    # Find the row for this specific partner
+    match_row = next((m for m in matches if m['match_discord_id'] == str(requestee_user_id)), None)
+    if not match_row:
+      return [discord.OptionChoice(name='[ No Valid Options ]', value=None)]
+    # Requested = Badges YOU want that THEY have
+    matched_badge_info_ids = set(json.loads(match_row['badge_ids_you_want_that_they_have'] or '[]'))
+    if not matched_badge_info_ids:
+      return [discord.OptionChoice(name='[ No Valid Options ]', value=None)]
 
+  # Build results
+  results = []
+  for b in requestee_instances:
+    if b['special']:
+      continue
+    if b['badge_filename'] in requestor_filenames:
+      continue
+    if b['badge_instance_id'] in requested_instance_ids:
+      continue
+    if matched_badge_info_ids is not None and b.get('badge_info_id') not in matched_badge_info_ids:
+      continue
+    results.append(discord.OptionChoice(name=b['badge_name'], value=str(b['badge_instance_id'])))
+
+  # Text filter
   filtered = [r for r in results if strip_bullshit(ctx.value.lower()) in strip_bullshit(r.name.lower())]
   if not filtered:
-    filtered = [
-      discord.OptionChoice(
-        name="[ No Valid Options ]",
-        value=None
-      )
-    ]
+    filtered = [discord.OptionChoice(name='[ No Valid Options ]', value=None)]
   return filtered
 
 
@@ -738,7 +838,7 @@ class Trade(commands.Cog):
     description="Start a trade with a specified user (only one outgoing trade active at a time)"
   )
   @option(
-    "user",
+    "requestee",
     discord.User,
     description="The user you wish to start a trade with",
     required=True
@@ -748,6 +848,12 @@ class Trade(commands.Cog):
     description="Which Prestige Tier to trade?",
     required=True,
     autocomplete=autocomplete_prestige_tiers
+  )
+  @option(
+    name='use_matches',
+    description='Limit to Wishlist Match Badges? (if available)',
+    required=True,
+    autocomplete=autocomplete_use_matches
   )
   @option(
     "offer",
@@ -764,7 +870,7 @@ class Trade(commands.Cog):
     autocomplete=autocomplete_requesting_badges
   )
   @commands.check(access_check)
-  async def start(self, ctx:discord.ApplicationContext, requestee:discord.User, prestige:str, offer: str, request: str):
+  async def start(self, ctx:discord.ApplicationContext, requestee:discord.User, prestige:str, use_matches: str, offer: str, request: str):
     await ctx.defer(ephemeral=True)
     requestor_id = ctx.author.id
     requestee_id = requestee.id
@@ -1259,6 +1365,12 @@ class Trade(commands.Cog):
     description="Offer or Request badges for your current pending trade"
   )
   @option(
+    name='use_matches',
+    description='Limit to Wishlist Match Badges? (if available)',
+    required=True,
+    autocomplete=autocomplete_use_matches
+  )
+  @option(
     'offer',
     str,
     description="A badge you are offering",
@@ -1273,7 +1385,7 @@ class Trade(commands.Cog):
     autocomplete=autocomplete_requesting_badges,
   )
   @commands.check(access_check)
-  async def propose(self, ctx, offer:str, request:str):
+  async def propose(self, ctx, use_matches: str, offer:str, request:str):
     active_trade = await self.check_for_active_trade(ctx)
     if not active_trade:
       return
