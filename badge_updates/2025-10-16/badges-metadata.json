@@ -1,0 +1,427 @@
+[
+    {
+        "_createdAt": "2025-10-13T00:57:40Z",
+        "_id": "c7b8745f-91ef-4137-afb4-1abc8ae20c64",
+        "_rev": "hRYiibY4oqsFOZpByLh1o4",
+        "_type": "post",
+        "_updatedAt": "2025-10-13T01:00:20Z",
+        "affiliations": [
+            "Matalas Prime"
+        ],
+        "body": [
+            {
+                "_key": "a7cfe6e0a586",
+                "_type": "block",
+                "children": [
+                    {
+                        "_key": "7f8707b4e696",
+                        "_type": "span",
+                        "marks": [],
+                        "text": "Canon Image"
+                    }
+                ],
+                "markDefs": [],
+                "style": "h2"
+            },
+            {
+                "_key": "cba92c36c6cf",
+                "_type": "image",
+                "alt": "matalas-prime-sign-a",
+                "asset": {
+                    "_ref": "image-c22ce309e5b57375cefb4d5563f8b65ad22c5353-1500x720-jpg",
+                    "_type": "reference"
+                }
+            }
+        ],
+        "createdDate": "2025-10-10T19:45:14.164Z",
+        "date": null,
+        "designers": null,
+        "excerpt": null,
+        "featuredImage": {
+            "_type": "image",
+            "alt": "matalas-prime-sign-a",
+            "asset": {
+                "metadata": {
+                    "dimensions": {
+                        "_type": "sanity.imageDimensions",
+                        "aspectRatio": 1,
+                        "height": 900,
+                        "width": 900
+                    }
+                },
+                "url": "https://cdn.sanity.io/images/ieg3gllg/production/ed93b5ff16cebfb738e0aba544e182c434e64133-900x900.png"
+            }
+        },
+        "franchise": "Picard",
+        "quadrant": "Alpha",
+        "references": [
+            {
+                "_key": "b0d433c458b3",
+                "_type": "block",
+                "children": [
+                    {
+                        "_key": "47422c591715",
+                        "_type": "span",
+                        "marks": [],
+                        "text": "S03E01 "
+                    },
+                    {
+                        "_key": "f3bf9abc2841",
+                        "_type": "span",
+                        "marks": [
+                            "e0c9b4cd6a3e"
+                        ],
+                        "text": "The Next Generation"
+                    }
+                ],
+                "markDefs": [
+                    {
+                        "_key": "e0c9b4cd6a3e",
+                        "_type": "link",
+                        "href": "https://memory-alpha.fandom.com/wiki/The_Next_Generation_(episode)"
+                    }
+                ],
+                "style": "normal"
+            }
+        ],
+        "slug": "matalas-prime-sign-a",
+        "timePeriod": "2400s",
+        "title": "Matalas Prime Sign A",
+        "types": [
+            "Sign/Poster"
+        ],
+        "universes": [
+            "Prime"
+        ],
+        "objectID": "c7b8745f-91ef-4137-afb4-1abc8ae20c64",
+        "_highlightResult": {
+            "affiliations": [
+                {
+                    "value": "Matalas Prime",
+                    "matchLevel": "none",
+                    "matchedWords": []
+                }
+            ],
+            "body": [
+                {
+                    "_key": {
+                        "value": "a7cfe6e0a586",
+                        "matchLevel": "none",
+                        "matchedWords": []
+                    },
+                    "_type": {
+                        "value": "block",
+                        "matchLevel": "none",
+                        "matchedWords": []
+                    },
+                    "children": [
+                        {
+                            "_key": {
+                                "value": "7f8707b4e696",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            "_type": {
+                                "value": "span",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            "text": {
+                                "value": "Canon Image",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        }
+                    ],
+                    "style": {
+                        "value": "h2",
+                        "matchLevel": "none",
+                        "matchedWords": []
+                    }
+                },
+                {
+                    "_key": {
+                        "value": "cba92c36c6cf",
+                        "matchLevel": "none",
+                        "matchedWords": []
+                    },
+                    "_type": {
+                        "value": "image",
+                        "matchLevel": "none",
+                        "matchedWords": []
+                    },
+                    "alt": {
+                        "value": "matalas-prime-sign-a",
+                        "matchLevel": "none",
+                        "matchedWords": []
+                    },
+                    "asset": {
+                        "_ref": {
+                            "value": "image-c22ce309e5b57375cefb4d5563f8b65ad22c5353-1500x720-jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "_type": {
+                            "value": "reference",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        }
+                    }
+                }
+            ],
+            "franchise": {
+                "value": "Picard",
+                "matchLevel": "none",
+                "matchedWords": []
+            },
+            "quadrant": {
+                "value": "Alpha",
+                "matchLevel": "none",
+                "matchedWords": []
+            },
+            "timePeriod": {
+                "value": "2400s",
+                "matchLevel": "none",
+                "matchedWords": []
+            },
+            "title": {
+                "value": "Matalas Prime Sign A",
+                "matchLevel": "none",
+                "matchedWords": []
+            },
+            "types": [
+                {
+                    "value": "Sign/Poster",
+                    "matchLevel": "none",
+                    "matchedWords": []
+                }
+            ],
+            "universes": [
+                {
+                    "value": "Prime",
+                    "matchLevel": "none",
+                    "matchedWords": []
+                }
+            ]
+        }
+    },
+    {
+        "_createdAt": "2025-10-12T06:48:11Z",
+        "_id": "8b683daa-bc75-489d-bf1f-343b51f59791",
+        "_rev": "hRYiibY4oqsFOZpByKrw5M",
+        "_system": {
+            "base": {
+                "id": "8b683daa-bc75-489d-bf1f-343b51f59791",
+                "rev": "hRYiibY4oqsFOZpByKrtzQ"
+            }
+        },
+        "_type": "post",
+        "_updatedAt": "2025-10-12T06:53:28Z",
+        "affiliations": [
+            "Holodeck",
+            "Fair Haven"
+        ],
+        "body": [
+            {
+                "_key": "71c2bd2d6396",
+                "_type": "block",
+                "children": [
+                    {
+                        "_key": "9481f1527bcf",
+                        "_type": "span",
+                        "marks": [],
+                        "text": "Canon Image"
+                    }
+                ],
+                "markDefs": [],
+                "style": "h2"
+            },
+            {
+                "_key": "4cf73f3b5c7e",
+                "_type": "image",
+                "alt": "welcome-sign",
+                "asset": {
+                    "_ref": "image-4f08cf00ddd293f3746623a1c82228fce2f3b55f-1500x975-jpg",
+                    "_type": "reference"
+                }
+            }
+        ],
+        "createdDate": "2025-10-10T19:45:14.164Z",
+        "date": null,
+        "designers": null,
+        "excerpt": null,
+        "featuredImage": {
+            "_type": "image",
+            "alt": "welcome-sign",
+            "asset": {
+                "metadata": {
+                    "dimensions": {
+                        "_type": "sanity.imageDimensions",
+                        "aspectRatio": 1,
+                        "height": 900,
+                        "width": 900
+                    }
+                },
+                "url": "https://cdn.sanity.io/images/ieg3gllg/production/d816d898b7b8862a708e7d6413706d13ac525b42-900x900.png"
+            }
+        },
+        "franchise": "Voyager",
+        "memoryAlpha": "https://memory-alpha.fandom.com/wiki/Fair_Haven",
+        "quadrant": "Alpha",
+        "references": [
+            {
+                "_key": "0045cb7dd66a",
+                "_type": "block",
+                "children": [
+                    {
+                        "_key": "c46d65e0d221",
+                        "_type": "span",
+                        "marks": [],
+                        "text": "S06E11  "
+                    },
+                    {
+                        "_key": "73eedd704326",
+                        "_type": "span",
+                        "marks": [
+                            "440f8843b32a"
+                        ],
+                        "text": "Fair Haven"
+                    }
+                ],
+                "markDefs": [
+                    {
+                        "_key": "440f8843b32a",
+                        "_type": "link",
+                        "href": "https://memory-alpha.fandom.com/wiki/Fair_Haven_(episode)"
+                    }
+                ],
+                "style": "normal"
+            }
+        ],
+        "slug": "welcome-sign",
+        "timePeriod": "2300s",
+        "title": "Welcome Sign",
+        "types": [
+            "Sign/Poster"
+        ],
+        "universes": [
+            "Prime"
+        ],
+        "objectID": "8b683daa-bc75-489d-bf1f-343b51f59791",
+        "_highlightResult": {
+            "affiliations": [
+                {
+                    "value": "Holodeck",
+                    "matchLevel": "none",
+                    "matchedWords": []
+                },
+                {
+                    "value": "Fair Haven",
+                    "matchLevel": "none",
+                    "matchedWords": []
+                }
+            ],
+            "body": [
+                {
+                    "_key": {
+                        "value": "71c2bd2d6396",
+                        "matchLevel": "none",
+                        "matchedWords": []
+                    },
+                    "_type": {
+                        "value": "block",
+                        "matchLevel": "none",
+                        "matchedWords": []
+                    },
+                    "children": [
+                        {
+                            "_key": {
+                                "value": "9481f1527bcf",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            "_type": {
+                                "value": "span",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            "text": {
+                                "value": "Canon Image",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        }
+                    ],
+                    "style": {
+                        "value": "h2",
+                        "matchLevel": "none",
+                        "matchedWords": []
+                    }
+                },
+                {
+                    "_key": {
+                        "value": "4cf73f3b5c7e",
+                        "matchLevel": "none",
+                        "matchedWords": []
+                    },
+                    "_type": {
+                        "value": "image",
+                        "matchLevel": "none",
+                        "matchedWords": []
+                    },
+                    "alt": {
+                        "value": "welcome-sign",
+                        "matchLevel": "none",
+                        "matchedWords": []
+                    },
+                    "asset": {
+                        "_ref": {
+                            "value": "image-4f08cf00ddd293f3746623a1c82228fce2f3b55f-1500x975-jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "_type": {
+                            "value": "reference",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        }
+                    }
+                }
+            ],
+            "franchise": {
+                "value": "Voyager",
+                "matchLevel": "none",
+                "matchedWords": []
+            },
+            "quadrant": {
+                "value": "Alpha",
+                "matchLevel": "none",
+                "matchedWords": []
+            },
+            "timePeriod": {
+                "value": "2300s",
+                "matchLevel": "none",
+                "matchedWords": []
+            },
+            "title": {
+                "value": "Welcome Sign",
+                "matchLevel": "none",
+                "matchedWords": []
+            },
+            "types": [
+                {
+                    "value": "Sign/Poster",
+                    "matchLevel": "none",
+                    "matchedWords": []
+                }
+            ],
+            "universes": [
+                {
+                    "value": "Prime",
+                    "matchLevel": "none",
+                    "matchedWords": []
+                }
+            ]
+        }
+    }
+]
