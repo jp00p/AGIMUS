@@ -1713,7 +1713,15 @@
             "episode": "23",
             "imdb": "tt0572194",
             "memoryalpha": "Countdown_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.10.13",
+                    "episode": "It\u2019s All Sphere in Here",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-596-its-all-sphere-in-here-ent-s3e23/",
+                    "order": 596,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/ssyZZmS0MQf6bWGzHAIJeKIbKiw.jpg",
