@@ -1,0 +1,11 @@
+START TRANSACTION;
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Matalas Prime Sign A", "Matalas-Prime-Sign-A.png", "https://www.startrekdesignproject.com/symbols/matalas-prime-sign-a", "Alpha", "2400s", "Picard", "S03E01 The Next Generation");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Matalas-Prime-Sign-A.png", "Matalas Prime");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Matalas-Prime-Sign-A.png", "Sign/Poster");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Matalas-Prime-Sign-A.png", "Prime");
+INSERT INTO badge_info (badge_name, badge_filename, badge_url, quadrant, time_period, franchise, reference) VALUES ("Welcome Sign", "Welcome-Sign.png", "https://www.startrekdesignproject.com/symbols/welcome-sign", "Alpha", "2300s", "Voyager", "S06E11  Fair Haven");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Welcome-Sign.png", "Holodeck");
+INSERT IGNORE INTO badge_affiliation (badge_filename, affiliation_name) VALUES ("Welcome-Sign.png", "Fair Haven");
+INSERT IGNORE INTO badge_type (badge_filename, type_name) VALUES ("Welcome-Sign.png", "Sign/Poster");
+INSERT IGNORE INTO badge_universe (badge_filename, universe_name) VALUES ("Welcome-Sign.png", "Prime");
+COMMIT;
