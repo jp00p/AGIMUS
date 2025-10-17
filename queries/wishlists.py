@@ -263,25 +263,28 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
   sql = '''
     WITH
       my_unfulfilled_wishlist AS (
-        SELECT badge_info_id
-        FROM badge_instances_wishlists
-        WHERE user_discord_id = %s
+        SELECT w.badge_info_id
+        FROM badge_instances_wishlists w
+        JOIN badge_info bi
+          ON bi.id = w.badge_info_id
+         AND bi.special = FALSE
+        WHERE w.user_discord_id = %s
           AND NOT EXISTS (
             SELECT 1
-            FROM badge_instances
-            WHERE owner_discord_id = %s
-              AND badge_info_id = badge_instances_wishlists.badge_info_id
-              AND prestige_level = %s
-              AND active = TRUE
+            FROM badge_instances i
+            WHERE i.owner_discord_id = %s
+              AND i.badge_info_id = w.badge_info_id
+              AND i.prestige_level = %s
+              AND i.active = TRUE
           )
       ),
       my_offerable_badges AS (
-        SELECT DISTINCT badge_info_id
-        FROM badge_instances
-        WHERE owner_discord_id = %s
-          AND prestige_level = %s
-          AND locked = FALSE
-          AND active = TRUE
+        SELECT DISTINCT b.badge_info_id
+        FROM badge_instances b
+        WHERE b.owner_discord_id = %s
+          AND b.prestige_level = %s
+          AND b.locked = FALSE
+          AND b.active = TRUE
       ),
       partner_offerable_badges AS (
         SELECT DISTINCT b.owner_discord_id AS partner_id,
@@ -304,6 +307,9 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
         SELECT DISTINCT w.user_discord_id AS partner_id,
                         w.badge_info_id
         FROM badge_instances_wishlists w
+        JOIN badge_info bi
+          ON bi.id = w.badge_info_id
+         AND bi.special = FALSE
         WHERE w.badge_info_id IN (SELECT badge_info_id FROM my_offerable_badges)
           AND NOT EXISTS (
             SELECT 1

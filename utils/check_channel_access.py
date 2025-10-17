@@ -1,31 +1,49 @@
 from common import *
+import discord
 
-# @commands.check decorator function
-# Can be injected in between @commands.check and your slash function to
-# restrict access to the "channels" from the command config by matching it with the function name
+def _channel_ids_to_check(channel: discord.abc.GuildChannel) -> set[int]:
+  # Return {channel_id, parent_id_if_thread}
+  ids = {channel.id}
+  parent_id = getattr(channel, 'parent_id', None)
+  if parent_id:
+    ids.add(parent_id)
+  return ids
+
 async def access_check(ctx):
   ctx_type = type(ctx).__name__
   try:
-    # logger.info(f"ctx.command is {ctx.command}")
     command_config = config["commands"][f"{ctx.command}"]
     has_channel_access = await perform_channel_check(ctx, command_config)
     if not has_channel_access:
       allowed_channels_list = command_config["channels"]
       if len(allowed_channels_list):
         if ctx_type == 'ApplicationContext':
-          # We only want the ! commands to be admin-available
-          # So only send the response message with the
-          # channel allowed list for `/` commands
           allowed_channel_ids = get_channel_ids_list(allowed_channels_list)
-          guild_channels = await ctx.guild.fetch_channels()
+
+          # Resolve mentions for both channels and threads if present
           allowed_channels = []
-          for guild_channel in guild_channels:
-            if guild_channel.id in allowed_channel_ids:
-              allowed_channels.append(guild_channel.mention)
+          for cid in allowed_channel_ids:
+            # Try fast local getters first
+            ch = ctx.guild.get_channel(cid) or ctx.bot.get_channel(cid)
+            if ch is None:
+              # Fallback to API (best effort)
+              try:
+                ch = await ctx.bot.fetch_channel(cid)
+              except Exception:
+                ch = None
+            if ch is not None:
+              allowed_channels.append(ch.mention)
+
+          # Fallback: if nothing resolved, just show raw IDs
+          if not allowed_channels:
+            allowed_channels = [f"<#{cid}>" for cid in allowed_channel_ids]
 
           allowed_embed = discord.Embed(
             title="Not Allowed!",
-            description=f"Sorry! This command is not allowed in this channel.\n\n**Allowed Channels:**\n" + "\n".join(allowed_channels),
+            description=(
+              "Sorry! This command is not allowed in this channel.\n\n"
+              "**Allowed Channels (and their threads):**\n" + "\n".join(allowed_channels)
+            ),
             color=discord.Color.red()
           )
           allowed_embed.set_image(url="https://i.imgur.com/QeUW4fV.gif")
@@ -34,7 +52,7 @@ async def access_check(ctx):
         if ctx_type == 'ApplicationContext':
           allowed_embed = discord.Embed(
             title="Not Allowed!",
-            description=f"Sorry! This command is not allowed in this channel.",
+            description="Sorry! This command is not allowed in this channel.",
             color=discord.Color.red()
           )
           allowed_embed.set_image(url="https://i.imgur.com/QeUW4fV.gif")
@@ -45,28 +63,28 @@ async def access_check(ctx):
     logger.info(f"Error in acess_check (probably forgot to add the command to configuration.json): {e}")
 
 async def perform_channel_check(ctx, command_config):
-  # Verify that we're allowed to execute the command in this channel
   allowed_channels = command_config.get("channels")
   blocked_channels = command_config.get("blocked_channels")
 
-  # If we're in the development channel everything goes
+  # Dev channel bypass
   if ctx.channel.id == DEV_CHANNEL:
     logger.info(f"{Fore.LIGHTGREEN_EX}* DEV CHANNEL COMMAND *{Fore.RESET}")
     return True
 
-  # logger.info(f"allowed channels: {allowed_channels}")
+  current_ids = _channel_ids_to_check(ctx.channel)
 
-  # Otherwise check allowed/blocked channel lists
   if allowed_channels:
-    allowed_channel_ids = get_channel_ids_list(allowed_channels)
-    is_allowed = ctx.channel.id in allowed_channel_ids
-    #logger.info(f"Allowed in this channel? {Fore.CYAN}{is_allowed}{Fore.RESET}")
-    return ctx.channel.id in allowed_channel_ids
+    allowed_ids = set(get_channel_ids_list(allowed_channels))
+    # Allowed if either the channel itself OR its parent (if thread) is listed
+    is_allowed = bool(current_ids & allowed_ids)
+    return is_allowed
+
   elif blocked_channels:
-    blocked_channel_ids = get_channel_ids_list(blocked_channels)
-    is_not_blocked = ctx.channel.id not in blocked_channel_ids
-    #logger.info(f"Not blocked in this channel? {Fore.CYAN}{is_not_blocked}{Fore.RESET}")
-    return ctx.channel.id not in blocked_channel_ids
+    blocked_ids = set(get_channel_ids_list(blocked_channels))
+    # Blocked if either the channel or its parent is in the blocked list
+    is_blocked = bool(current_ids & blocked_ids)
+    return not is_blocked
+
   else:
     logger.info(f"{Fore.GREEN}Command authorized{Fore.RESET}")
     return True
