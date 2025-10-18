@@ -1750,8 +1750,8 @@ async def generate_badge_trade_images(
 #  |____|_  /\___  >   __/|____/__|\___  >____  /__|  \____/|__|
 #         \/     \/|__|                \/     \/
 async def generate_crystal_replicator_confirmation_frames(crystal, replicator_type='standard'):
-  # Purposeful 5 second delay to build suspense (cached replicator webps return very quickly once generated)...
-  await asyncio.sleep(5)
+  # Purposeful 3 second delay to build suspense (cached replicator webps return very quickly once generated)...
+  await asyncio.sleep(3)
 
   replicator_confirmation_filename = f"{replicator_type}-crystal_materialization_{crystal['crystal_name']}.webp"
 

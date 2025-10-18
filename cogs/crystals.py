@@ -221,7 +221,7 @@ class Crystals(commands.Cog):
       )
       embed.add_field(name="Crystal Pattern Buffers", value=f"You possess **ZERO** *Crystal Pattern Buffers*!", inline=False)
       embed.add_field(name="Unattuned Crystals", value=f"You possess **{unattuned_crystal_count}** *Crystal{'s' if unattuned_crystal_count > 1 else ''}* which have not yet been attached to a Badge.", inline=False)
-      embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count}** *Badge{'s' if attuned_badges_count > 1 else ''}* with Crystals attached to them.", inline=False)
+      embed.add_field(name=f"Attuned Badges", value=f"You possess **{attuned_badges_count}** *Badges* with Crystals attached to them.", inline=False)
       embed.set_footer(text="You can earn more buffer credits through leveling up!")
       embed.set_image(url="https://i.imgur.com/q6Wls8n.gif")
       await ctx.respond(embed=embed, ephemeral=True)
@@ -419,16 +419,16 @@ class Crystals(commands.Cog):
           followup_msg = await interaction.followup.send(embed=replicator_embed, view=new_view, ephemeral=True)
           new_view.message = followup_msg
         else:
-          # No buffers left - show the standard "No Pattern Buffers!" panel
+          # No buffers left - show a final "No Pattern Buffers Left!" panel
           no_buffer_embed = discord.Embed(
-            title='No Pattern Buffers!',
+            title='No Pattern Buffers Left!',
             description=(
-              f"Sorry {user.mention}, you don't currently possess any Crystal Pattern Buffers to redeem!\n\n"
-              f"Better get out of here before O'Brien calls security... {get_emoji('obrien_omg_jaysus')}"
+              f"Welp {user.mention}, you've run out of Crystal Pattern Buffers to redeem... {get_emoji('beverly_frustrated')}\n\n"
+              "Better go get some more!"
             ),
-            color=discord.Color.orange()
+            color=discord.Color.from_rgb(0, 77, 77)
           )
-          no_buffer_embed.add_field(name='Crystal Pattern Buffers', value='You possess **ZERO** *Crystal Pattern Buffers*!', inline=False)
+          no_buffer_embed.add_field(name='\nCrystal Pattern Buffers', value='You now possess **ZERO** *Crystal Pattern Buffers*!', inline=False)
           no_buffer_embed.add_field(
             name='Unattuned Crystals',
             value=f"You possess **{unattuned_crystal_count}** *Crystal{'s' if unattuned_crystal_count > 1 else ''}* which have not yet been attached to a Badge.",
@@ -436,11 +436,11 @@ class Crystals(commands.Cog):
           )
           no_buffer_embed.add_field(
             name='Attuned Badges',
-            value=f"You possess **{attuned_badges_count}** *Badge{'s' if attuned_badges_count > 1 else ''}* with Crystals attached to them.",
+            value=f"You possess **{attuned_badges_count}** *Badges* with Crystals attached to them.",
             inline=False
           )
           no_buffer_embed.set_footer(text='You can earn more buffer credits through leveling up!')
-          no_buffer_embed.set_image(url='https://i.imgur.com/q6Wls8n.gif')
+          no_buffer_embed.set_image(url='https://i.imgur.com/rtlG2aV.gif')
 
           await interaction.followup.send(embed=no_buffer_embed, ephemeral=True)
 
