@@ -323,20 +323,27 @@ class Crystals(commands.Cog):
           except discord.errors.NotFound:
             pass
 
-      @discord.ui.button(label="Engage", style=discord.ButtonStyle.blurple)
+      @discord.ui.button(label='Cancel', style=discord.ButtonStyle.gray)
+      async def cancel(self, button, interaction):
+        embed = discord.Embed(
+          title='Replication Canceled',
+          description='No Pattern Buffers expended.',
+          color=discord.Color.orange()
+        )
+        await interaction.response.edit_message(embed=embed, attachments=[], view=None)
+
+      @discord.ui.button(label='Engage', style=discord.ButtonStyle.blurple)
       async def engage(self, button, interaction):
         # Roll rarity and mint crystal
         ranks = await db_get_crystal_rarity_weights()
         rolled_rank = weighted_random_choice({r['rarity_rank']: float(r['drop_chance']) for r in ranks})
-
         crystal_type = await db_select_random_crystal_type_by_rarity_rank(rolled_rank)
-
         crystal = await create_new_crystal_instance(user_id, crystal_type['id'])
         await db_decrement_user_crystal_buffer(user_id)
 
         logger.info(f"{ctx.user.display_name} received the {Style.BRIGHT}{crystal['crystal_name']}{Style.RESET_ALL} Crystal from the {Style.BRIGHT}Crystal Replicator{Style.RESET_ALL}!")
 
-        # Show in-progress animation on the ephemeral message
+        # Show in-progress animation on the ephemeral message and clear controls
         confirmation_embed = discord.Embed(
           title='Crystal Replication In Progress!',
           description=f"{random.choice(cog.REPLICATION_ENGAGE_VERBIAGES)}, results incoming momentarily!",
