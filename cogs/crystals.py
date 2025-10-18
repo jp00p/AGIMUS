@@ -325,6 +325,7 @@ class Crystals(commands.Cog):
 
       @discord.ui.button(label="Engage", style=discord.ButtonStyle.blurple)
       async def engage(self, button, interaction):
+        # Roll rarity and mint crystal
         ranks = await db_get_crystal_rarity_weights()
         rolled_rank = weighted_random_choice({r['rarity_rank']: float(r['drop_chance']) for r in ranks})
 
@@ -335,6 +336,7 @@ class Crystals(commands.Cog):
 
         logger.info(f"{ctx.user.display_name} received the {Style.BRIGHT}{crystal['crystal_name']}{Style.RESET_ALL} Crystal from the {Style.BRIGHT}Crystal Replicator{Style.RESET_ALL}!")
 
+        # Show in-progress animation on the ephemeral message
         confirmation_embed = discord.Embed(
           title='Crystal Replication In Progress!',
           description=f"{random.choice(cog.REPLICATION_ENGAGE_VERBIAGES)}, results incoming momentarily!",
@@ -348,33 +350,92 @@ class Crystals(commands.Cog):
         confirmation_embed.set_image(url=random.choice(lcars_slider_gifs))
         await interaction.response.edit_message(embed=confirmation_embed, attachments=[], view=None)
 
+        # Build and post the public completion message in #gelrak-v
         discord_file, replicator_confirmation_filename = await generate_crystal_replicator_confirmation_frames(crystal)
-
         success_message = random.choice(self.RARITY_SUCCESS_MESSAGES[crystal['rarity_name'].lower()]).format(user=user.mention)
+
         channel_embed = discord.Embed(
           title='CRYSTAL MATERIALIZATION COMPLETE',
-          description=f"A fresh Crystal Pattern Buffer shunts into the replicator, the familiar hum fills the air, and the result is...\n\n> **{crystal['crystal_name']}**!\n\n{success_message}",
+          description=(
+            "A fresh Crystal Pattern Buffer shunts into the replicator, the familiar hum fills the air, and the result is...\n\n"
+            f"> **{crystal['crystal_name']}**!\n\n{success_message}"
+          ),
           color=discord.Color.teal()
         )
-        channel_embed.add_field(name=f"Rank", value=f"> {crystal['emoji']}  {crystal['rarity_name']}", inline=False)
-        channel_embed.add_field(name=f"Description", value=f"> {crystal['description']}", inline=False)
+        channel_embed.add_field(name='Rank', value=f"> {crystal['emoji']}  {crystal['rarity_name']}", inline=False)
+        channel_embed.add_field(name='Description', value=f"> {crystal['description']}", inline=False)
         channel_embed.set_image(url=f"attachment://{replicator_confirmation_filename}")
-        channel_embed.set_footer(
-          text="Use `/crystals attach` to attune it to one of your Badges, then `/crystals activate` to harmonize it!"
-        )
+        channel_embed.set_footer(text="Use `/crystals attach` to attune it to one of your Badges, then `/crystals activate` to harmonize it!")
 
-        gelrak_v = await cog.bot.fetch_channel(get_channel_id("gelrak-v"))
+        gelrak_v = await cog.bot.fetch_channel(get_channel_id('gelrak-v'))
         await gelrak_v.send(embed=channel_embed, files=[discord_file])
-        await interaction.delete_original_response()
 
-      @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
-      async def cancel(self, button, interaction):
-        embed = discord.Embed(
-          title='Replication Canceled',
-          description="No Pattern Buffers expended.",
-          color=discord.Color.orange()
-        )
-        await interaction.response.edit_message(embed=embed, attachments=[], view=None)
+        # Remove the ephemeral "in progress" message to keep the flow clean
+        try:
+          await interaction.delete_original_response()
+        except discord.errors.NotFound:
+          pass
+
+        # Recompute counts and either re-open Replicator or show No Buffers
+        remaining_buffers = await db_get_user_crystal_buffer_count(user_id)
+        unattuned_crystal_count = await db_get_user_unattuned_crystal_count(user_id)
+        attuned_badges_count = await db_get_user_attuned_badge_count(user_id)
+
+        if remaining_buffers:
+          # Fresh Replicator panel so the user can immediately roll again
+          replicator_embed = discord.Embed(
+            title='Crystallization Replication Station!',
+            description='You may redeem **one** Pattern Buffer in exchange for **one** randomized Crystal.\n\nAre you ready to smack this thing and see what falls out?',
+            color=discord.Color.teal()
+          )
+          replicator_embed.add_field(
+            name='Crystal Pattern Buffers',
+            value=f"You possess **{remaining_buffers}** *Crystal Pattern Buffer{'s' if remaining_buffers > 1 else ''}* to redeem!",
+            inline=False
+          )
+          replicator_embed.add_field(
+            name='Unattuned Crystals',
+            value=f"You possess **{unattuned_crystal_count}** *Crystal{'s' if unattuned_crystal_count > 1 else ''}* which have not yet been attached to a Badge.",
+            inline=False
+          )
+          replicator_embed.add_field(
+            name='Attuned Badges',
+            value=f"You possess **{attuned_badges_count}** *Badge{'s' if attuned_badges_count > 1 else ''}* with Crystals attached to them.",
+            inline=False
+          )
+          replicator_embed.set_footer(
+            text="Use `/crystals manifest` to view your currently unattuned Crystals\nUse `/crystals attach` attach them to your Badges!"
+          )
+          replicator_embed.set_image(url='https://i.imgur.com/bbdDUfo.gif')
+
+          new_view = ConfirmCancelView()
+          followup_msg = await interaction.followup.send(embed=replicator_embed, view=new_view, ephemeral=True)
+          new_view.message = followup_msg
+        else:
+          # No buffers left - show the standard "No Pattern Buffers!" panel
+          no_buffer_embed = discord.Embed(
+            title='No Pattern Buffers!',
+            description=(
+              f"Sorry {user.mention}, you don't currently possess any Crystal Pattern Buffers to redeem!\n\n"
+              f"Better get out of here before O'Brien calls security... {get_emoji('obrien_omg_jaysus')}"
+            ),
+            color=discord.Color.orange()
+          )
+          no_buffer_embed.add_field(name='Crystal Pattern Buffers', value='You possess **ZERO** *Crystal Pattern Buffers*!', inline=False)
+          no_buffer_embed.add_field(
+            name='Unattuned Crystals',
+            value=f"You possess **{unattuned_crystal_count}** *Crystal{'s' if unattuned_crystal_count > 1 else ''}* which have not yet been attached to a Badge.",
+            inline=False
+          )
+          no_buffer_embed.add_field(
+            name='Attuned Badges',
+            value=f"You possess **{attuned_badges_count}** *Badge{'s' if attuned_badges_count > 1 else ''}* with Crystals attached to them.",
+            inline=False
+          )
+          no_buffer_embed.set_footer(text='You can earn more buffer credits through leveling up!')
+          no_buffer_embed.set_image(url='https://i.imgur.com/q6Wls8n.gif')
+
+          await interaction.followup.send(embed=no_buffer_embed, ephemeral=True)
 
     #   ___                          _
     #  | _ \___ ____ __  ___ _ _  __| |
