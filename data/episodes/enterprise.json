@@ -1736,7 +1736,15 @@
             "episode": "24",
             "imdb": "tt0572267",
             "memoryalpha": "Zero_Hour_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.10.20",
+                    "episode": "Queso Vision",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-597-queso-vision-ent-s3e24/",
+                    "order": 597,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "03",
             "stills": [
                 "https://image.tmdb.org/t/p/original/pXbXeI4xxK8CIuBSupafcKOFlSc.jpg",
