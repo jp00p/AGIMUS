@@ -35,7 +35,8 @@ def birthdays_task(bot: Bot):
     today = datetime.date.today()
     user_ids = await db.get_users_with_birthday(today.month, today.day)
     description = [
-      f"<@{uid}>" for uid in user_ids
+      # This assumes that the first guild is the only one, but that is a common assumption all around AGIMUS
+      (f"<@{uid}>" if bot.guilds[0].get_member(uid) else db.clear_birthday(uid)) for uid in user_ids
     ]
 
     celebrities = trek_birthdays[today.strftime('%b')].get(today.strftime('%d'), [])
@@ -46,7 +47,7 @@ def birthdays_task(bot: Bot):
     if today.month == 2 and today.day == 28 and today.year % 4 > 0:
       user_ids = await db.get_users_with_birthday(2, 29)
       description.extend(
-        f"<@{uid}>" for uid in user_ids
+        (f"<@{uid}>" if bot.guilds[0].get_member(uid) else db.clear_birthday(uid)) for uid in user_ids
       )
 
     if len(description) == 0:
@@ -57,7 +58,7 @@ def birthdays_task(bot: Bot):
 
     embed = discord.Embed(
       title="Today's important Star Trek birthdays",
-      description="\n\n".join(description),
+      description="\n\n".join(s for s in description if s),
       color=discord.Color.fuchsia()
     )
     embed.set_footer(text=random.choice(birthday_messages))
