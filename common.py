@@ -64,7 +64,6 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 # logger.addHandler(BroadcastHandler())
 # logger.addHandler(LightHandler())
-LOG = []
 
 # Set Config and Globals
 config = get_config()
