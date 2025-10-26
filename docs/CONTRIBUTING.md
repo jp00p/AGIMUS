@@ -25,9 +25,15 @@ A "PR" means a **Pull Request** and is terminology used in programming and Githu
 
 Don't worry though, if you'd like to contribute documentation or general ideas you won't have to touch a single line of code!
 
-### Forking
+## Contributing Code
 
-In order to create a new PR with your changes (code or otherwise), you'll need to "Fork" the repository. This means that you will create a new version of the repository within your own Github account that tracks the main repo. Changes you make to your Fork can then be submitted for inclusion in the main project.
+All code contributions and ideas are welcome! If you're of the nerdy programming type (for a Star Trek Podcast Fan Discord Server!?) please contact @VitaZed on the server and we can get you set up with access.
+
+We don't recommend forking for code changes, instead you can contribute to the project directly so that if branch collaboration is useful we can pull it down together to work on it!
+
+### Forking - Encouraged for *Documentation.*
+
+If you're interested in contributing non-code contributions (e.g. Documentation or other stuff you might see) you'll need to "Fork" the repository and you can create a PR. This means that you will create a new version of the repository within your own Github account that tracks the main repo. Changes you make to your Fork can then be submitted for inclusion in the main project.
 
 Forking the repo can be done at the top right of the [main project page](https://github.com/jp00p/AGIMUS) by selecting the big ol' Fork button. We'd recommend you keep the default settings the same as what is presented when you do so.
 
@@ -72,10 +78,5 @@ To do so, navigate to your Fork and then locate the documentation file (typicall
 Once you're happy with your changes navigate to the bottom of the page to the **"Commit changes"** section. Before going further, be sure to select the **"Create a new branch for this commit and start a pull request."** button. Use a descriptive branch name (no spaces) as well as a descriptive commit title and a good summary outlining your changes.
 
 Once you're satisfied, go ahead and click on the **"Propose changes"** button to review your changes. If everything looks good, hit **"Create Pull Request"** and a new PR from your Fork to the main repo will be created! Someone should see it soon, but you can also gives a heads up in the Discord in the [**"#megalomaniacal-computer-storage"**](https://discord.com/channels/689512841887481875/994412232052052089) channel.
-
-
-## Contributing Code
-
-All code contributions and ideas are welcome! If you're of the nerdy programming type (for a Star Trek Podcast Fan Discord Server!?) please feel free to fork the repo and pull it down experiment with it on your own system.
 
 The [README.md](README.md) should be relatively thorough on what steps need to be taken to get the project up and running, and you're welcome to ping us on the Discord in [**"#megalomaniacal-computer-storage"**](https://discord.com/channels/689512841887481875/994412232052052089) if you run into trouble!
