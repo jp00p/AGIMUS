@@ -1759,7 +1759,15 @@
             "episode": "01",
             "imdb": "tt0572240",
             "memoryalpha": "Storm_Front_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.10.27",
+                    "episode": "The P-51 of Theseus",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-598-the-p-51-of-theseus-ent-s4e1/",
+                    "order": 598,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/jg2uE3OkURrjKywB0Bys5h9r5Nu.jpg",
