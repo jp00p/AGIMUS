@@ -1,0 +1,63 @@
+{
+  "Denaxi Depot Cargo Label": {
+    "badge_url": "https://startrekdesignproject.com/symbols/denaxi-depot-cargo-label/",
+    "filename": "Denaxi-Depot-Cargo-Label.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1681174981/Denaxi-Depot-Cargo-Label.png",
+    "quadrant": "Beta",
+    "reference": "S01E14 Crossroads",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1681174981/Denaxi-Depot-Cargo-Label_PRO-1x14-2.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Commerce",
+    "universes": "Prime"
+  },
+  "Free Spirit": {
+    "badge_url": "https://startrekdesignproject.com/symbols/free-spirit/",
+    "filename": "Starship-Free-Spirit.png",
+    "franchise": "Lower Decks",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1681174981/Starship-Free-Spirit.png",
+    "quadrant": "Alpha",
+    "reference": "S03E10 The Stars At Night",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1681174981/Starship-Free-Spirit_LDS-3x10-1.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1681174981/Starship-Free-Spirit_LDS-3x10-2.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Starship",
+    "universes": "Prime"
+  },
+  "Klingon Advisory (Sample)": {
+    "affiliations": "Klingon Empire",
+    "badge_url": "https://startrekdesignproject.com/symbols/klingon-advisory-sample/",
+    "filename": "Klingon-Advisory.png",
+    "franchise": "The Next Generation",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1679275349/Klingon-Advisory.png",
+    "quadrant": "Beta",
+    "reference": "S03E17 Sins of The Father",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1679275349/45163828_5-sins-of-the-father.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1679275349/45163828_5_sins_of_the_father_2.jpg",
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1679275349/Klingon_Advisory.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Advisory",
+    "universes": "Prime"
+  },
+  "Prodigy Ship Directional (Sample)": {
+    "affiliations": "Starfleet",
+    "badge_url": "https://startrekdesignproject.com/symbols/prodigy-ship-directional-sample/",
+    "filename": "Prodigy-Ship-Directional.png",
+    "franchise": "Prodigy",
+    "image_url": "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_1200,f_auto/v1681174981/Prodigy-Ship-Directional.png",
+    "quadrant": "Alpha",
+    "reference": "S01E10 A Moral Star, Part 2",
+    "reference_images": [
+      "https://res.cloudinary.com/startrekdesignproject-com/image/upload/c_fill,w_300,f_auto/v1681174981/Ship-Directional-_Numeric__PRO-1x10-1.jpg"
+    ],
+    "time period": "2300s",
+    "types": "Pictogram",
+    "universes": "Prime"
+  }
+}
