@@ -1807,7 +1807,15 @@
             "episode": "03",
             "imdb": "tt0572216",
             "memoryalpha": "Home_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.11.10",
+                    "episode": "Leech Wish",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-600-leech-wish-ent-s4e3/",
+                    "order": 600,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/sFpWwimrV9XAC26MGcIJnrV8C1V.jpg",
