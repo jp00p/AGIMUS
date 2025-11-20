@@ -1831,7 +1831,15 @@
             "episode": "04",
             "imdb": "tt0572179",
             "memoryalpha": "Borderland_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.11.17",
+                    "episode": "Shopping Cart Is Cloaked",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-601-shopping-cart-is-cloaked-ent-s4e4/",
+                    "order": 601,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/yVBmKVY1GWxHA9XAShsJ0HqY4FG.jpg",
