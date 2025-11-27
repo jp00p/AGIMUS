@@ -1855,7 +1855,15 @@
             "episode": "05",
             "imdb": "tt0572193",
             "memoryalpha": "Cold_Station_12_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.11.24",
+                    "episode": "Slow-Motion Hulk",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-60slow-motion-hulk-ent-s4e5/",
+                    "order": 602,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/57qogJBeT1gxlPqz9vz8QMcKIBy.jpg",
