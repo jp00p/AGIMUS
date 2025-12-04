@@ -1879,7 +1879,15 @@
             "episode": "06",
             "imdb": "tt0572248",
             "memoryalpha": "The_Augments_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.12.01",
+                    "episode": "Late-Model Augment",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-603-late-model-augment-ent-s4e6/",
+                    "order": 603,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/ziTaFZZP4tp4t4XLsrGXaztj8X0.jpg",
