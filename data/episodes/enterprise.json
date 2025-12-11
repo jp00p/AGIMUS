@@ -1903,7 +1903,15 @@
             "episode": "07",
             "imdb": "tt0572255",
             "memoryalpha": "The_Forge_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.12.08",
+                    "episode": "Ass-Riding Centipede",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-604-ass-riding-centipede-ent-s4e7/",
+                    "order": 604,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/m95gZcT4uul06UEeeIVn2RELV1N.jpg",
