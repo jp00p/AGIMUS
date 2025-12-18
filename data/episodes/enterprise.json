@@ -1927,7 +1927,15 @@
             "episode": "08",
             "imdb": "tt0572176",
             "memoryalpha": "Awakening_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.12.15",
+                    "episode": "Wine Dad Drunk",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-605-wine-dad-drunk-ent-s4e8/",
+                    "order": 605,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/zjqNkNGi2briCWPImaAjajLO6MA.jpg",
