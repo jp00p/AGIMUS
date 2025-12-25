@@ -1951,7 +1951,15 @@
             "episode": "09",
             "imdb": "tt0572222",
             "memoryalpha": "Kir'Shara_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.12.22",
+                    "episode": "Boot Tire",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-606-boot-tire-ent-s4e9/",
+                    "order": 606,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/6S9xhP664GriwjzV3gJYws0RgJD.jpg",
