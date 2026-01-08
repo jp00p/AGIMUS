@@ -1999,7 +1999,15 @@
             "episode": "11",
             "imdb": "tt0765592",
             "memoryalpha": "Observer_Effect_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.01.05",
+                    "episode": "Creamsman of the Night",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-608-creamsman-of-the-night-ent-s4e11/",
+                    "order": 608,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/1wlvbseo5oZwgjAk8zdt6MOw5ee.jpg",
