@@ -2023,7 +2023,15 @@
             "episode": "12",
             "imdb": "tt0572178",
             "memoryalpha": "Babel_One_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.01.12",
+                    "episode": "Our Time of Uncool Death",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-609-our-time-of-uncool-death-ent-s4e12/",
+                    "order": 609,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/4dlLCN48GZ8vGnZBfpPNCISbsIk.jpg",
