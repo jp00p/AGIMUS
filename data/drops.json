@@ -54,6 +54,11 @@
     "description": "Barnus Franks Barniss Frex Song",
     "url": ""
   },
+  "Because They're Made of Metal and Robots are Strong": {
+    "file": "data/drops/robotsarestrong.mp4",
+    "description": "Saturday Night Live. SNL. Old Glory Robot Insurance",
+    "url": "https://i.imgur.com/qZPyi8a.mp4"
+  },
   "Ben Gon Give It To Ya": {
     "file": "data/drops/bengongiveittoya.mp4",
     "description": "Angry Ben. Ben freakout. Ben gon give it to ya. Ben is going to give it to you.",
@@ -78,6 +83,11 @@
     "file": "data/drops/billbillbillcarddaddy.mp4",
     "description": "Bill Tilly The Card Daddy",
     "url": "https://i.imgur.com/sn9RhBd.mp4"
+  },
+  "Boimler Scream": {
+    "file": "data/drops/boimlerscream.mp4",
+    "description": "Lower Decks. Brad Boimler. Yelling.",
+    "url": "https://i.imgur.com/tckL443.mp4"
   },
   "Bosun's Whistle": {
     "file": "data/drops/bosunswhistle.mp4",
@@ -104,6 +114,16 @@
     "description": "dongshop dot biz dongshop.biz",
     "url": "https://i.imgur.com/mA6hSKh.mp4"
   },
+  "Cadet Ralph: RED ALERT!": {
+    "file": "data/drops/cadetralphredalert.mp4",
+    "description": "SFA. Starfleet Academy. Pickford.",
+    "url": "https://i.imgur.com/i34b8KJ.mp4"
+  },
+  "CAPITAL!": {
+    "file": "data/drops/capital.mp4",
+    "description": "Where In The World Is Carmen Sandiego.",
+    "url": "https://i.imgur.com/V2cQZEn.mp4"
+  },
   "Card Game Segment (Time To Pluck A Pigeon)": {
     "file": "data/drops/cardgamesegment.mp4",
     "description": "Card Game Segment (Time To Pluck A Pigeon)",
@@ -128,6 +148,11 @@
     "file": "data/drops/code47.mp4",
     "description": "I'm receiving a Code 47. Verify. It is Code 47 sir, starfleet emergency frequency. Captain's Eyes Only.",
     "url": "https://i.imgur.com/0wGwaF2.mp4"
+  },
+  "Colonel Grat": {
+    "file": "data/drops/colonelgrat.mp4",
+    "description": "ENT. Enterprise.",
+    "url": "https://i.imgur.com/SMYrNCz.mp4"
   },
   "Commander Riker's Quarters": {
     "file": "data/drops/commanderrikersquarters.mp4",
@@ -294,6 +319,11 @@
     "description": "Greatest Gen Con Khan Airhorns",
     "url": "https://i.imgur.com/tumDvrK.mp4"
   },
+  "Green Onions": {
+    "file": "data/drops/greenonions.mp4",
+    "description": "Booker T. & The MG's. Bassline.",
+    "url": "https://i.imgur.com/FuOz9DZ.mp4"
+  },
   "GTA5 - Wasted (RSVP)": {
     "file": "data/drops/gta5wasted.mp4",
     "description": "GTA5 'wasted' sound effect, RSVP",
@@ -354,6 +384,11 @@
     "description": "Wrath of Khan: I CAN'T I CANT",
     "url": "https://i.imgur.com/99pH9v3.mp4"
   },
+  "I Don't Even Know Why The Scientists Make Them": {
+    "file": "data/drops/dontevenknowwhythescientistsmakethem.mp4",
+    "description": "SNL. Saturday Night Live. Robots. Old Glory Robot Insurance.",
+    "url": "https://i.imgur.com/SAMFm4P.mp4"
+  },
   "I Don't Use The Bucket Anymore": {
     "file": "data/drops/idontusethebucketanymore.mp4",
     "description": "Odo. Mr. Bucket. I don't use the bucket anymore.",
@@ -363,6 +398,16 @@
     "file": "data/drops/notpicard.mp4",
     "description": "Sisko: I'm not Picard.",
     "url": "https://i.imgur.com/MeiSFkj.mp4"
+  },
+  "I Planted Radishes In This Special Dirt...": {
+    "file": "data/drops/radishes.mp4",
+    "description": "I planted radishes in this special dirt and they came up all weird. Weird dirt.",
+    "url": "https://i.imgur.com/eNhEEw4.mp4"
+  },
+  "It's An Ugly Planet, A Bug Planet!": {
+    "file": "data/drops/abugplanet.mp4",
+    "description": "Starship Troopers",
+    "url": "https://i.imgur.com/AHsSIF6.mp4"
   },
   "It's A Fake!": {
     "file": "data/drops/itsafake.mp4",
@@ -378,6 +423,16 @@
     "file": "data/drops/itmeansomerta.mp4",
     "description": "It means Omerta. It means Rewenge.",
     "url": "https://i.imgur.com/kWj4YiA.mp4"
+  },
+  "Janeway: Delete The Wife": {
+    "file": "data/drops/deletethewife.mp4",
+    "description": "VOY. Voyager. Fair Haven.",
+    "url": "https://i.imgur.com/AJN2Lt8.mp4"
+  },
+  "Janeway: I Love A Bath!": {
+    "file": "data/drops/loveabath.mp4",
+    "description": "VOY. Voyager. It's my favorite way of relaxing.",
+    "url": "https://i.imgur.com/utY3BG9.mp4"
   },
   "Jazz Horse": {
     "file": "data/drops/jazzhorse.mp4",
@@ -459,6 +514,11 @@
     "description": "Mclaughlin Group: Issue four! Issue 4.",
     "url": "https://i.imgur.com/RqWI4yY.mp4"
   },
+  "Measure of a Man (Game of Buttholes)": {
+    "file": "data/drops/measureofaman.mp4",
+    "description": "Segment. Square hit.",
+    "url": "https://i.imgur.com/bDIXEzC.mp4"
+  },
   "Mic Feedback": {
     "file": "data/drops/micfeedback.mp4",
     "description": "Microphone Mic Feedback Get A Life",
@@ -504,6 +564,16 @@
     "description": "Not everybody keeps their genitals in the same place, Captain. Dr Z Made",
     "url": "https://i.imgur.com/VSQGV8j.mp4"
   },
+  "Oawh Godd!": {
+    "file": "data/drops/oawhgodd.mp4",
+    "description": "Oh god. Ah god. Alien.",
+    "url": "https://i.imgur.com/3Obqgp4.mp4"
+  },
+  "O'Brien: You Hardly Ever See Your Son!": {
+    "file": "data/drops/hardlyeverseeyourson.mp4",
+    "description": "DS9. Deep Space Nine. Miles O'Brien. Chief O'Brien. Obrien. Worf. Bad Dad.",
+    "url": "https://i.imgur.com/9VXYvZt.mp4"
+  },
   "One Of The Greatest Creative Minds": {
     "file": "data/drops/oneofthegreatestcreativeminds.mp4",
     "description": "He's one of the greatest creative minds in Earth's history",
@@ -513,6 +583,11 @@
     "file": "data/drops/onepingonly.mp4",
     "description": "The Hunt For Red October Sean Connery",
     "url": "https://i.imgur.com/zGBAy0R.mp4"
+  },
+  "Ooby Dooby": {
+    "file": "data/drops/oobydooby.mp4",
+    "description": "First Contact. Zefram Cochrane.",
+    "url": "https://i.imgur.com/xfBg1mj.mp4"
   },
   "Paradise City": {
     "file": "data/drops/paradisecity.mp4",
@@ -604,6 +679,16 @@
     "description": "Schismd Schismed",
     "url": "https://i.imgur.com/73kfmOi.mp4"
   },
+  "Scotty: Admiral, There Be Whales Here!": {
+    "file": "data/drops/therebewhaleshere.mp4",
+    "description": "Star Trek IV: The Voyage Home.",
+    "url": "https://i.imgur.com/mZcgJ9m.mp4"
+  },
+  "She Got A... Great Ass!": {
+    "file": "data/drops/greatass.mp4",
+    "description": "Al Pacino. Heat.",
+    "url": "https://i.imgur.com/yvR6aK8.mp4"
+  },
   "Shipwide Announcement": {
     "file": "data/drops/shipwideannouncement.mp4",
     "description": "Shipwide Announcement. Dr Z Mix",
@@ -638,6 +723,11 @@
     "file": "data/drops/lottayamoksauce.mp4",
     "description": "That's a lotta yamok sauce!",
     "url": "https://i.imgur.com/8Oiub6q.mp4"
+  },
+  "That's Bone!": {
+    "file": "data/drops/thatsbone.mp4",
+    "description": "American Psycho.",
+    "url": "https://i.imgur.com/7S3rFlJ.mp4"
   },
   "There's Coffee In That...": {
     "file": "data/drops/coffee.mp4",
@@ -1154,10 +1244,15 @@
     "description": "Where The USS Hood At. Dr Z Mix",
     "url": "https://i.imgur.com/azbj9FC.mp4"
   },
-  "Why Is The Carpet All Wet Todd?": {
+  "Why Is The Carpet All Wet, Todd?": {
     "file": "data/drops/carpetallwet.mp4",
     "description": "And why is the carpet all wet Todd? I don't know Margo!",
     "url": "https://i.imgur.com/Q6npSpw.mp4"
+  },
+  "Wilhelm Scream": {
+    "file": "data/drops/wilhelmscream.mp4",
+    "description": "Wilhelm Scream. Wilhelm Yell.",
+    "url": "https://i.imgur.com/aEAv9uS.mp4"
   },
   "Worf! Is This Your Idea Of Sex?": {
     "file": "data/drops/worfisthisyourideaofsex.mp4",
@@ -1178,6 +1273,16 @@
     "file": "data/drops/youblewit.mp4",
     "description": "You blew it! Robert de Niro. Cop Land",
     "url": "https://i.imgur.com/JhQC6YG.mp4"
+  },
+  "You Can Speak To Us Normally": {
+    "file": "data/drops/youcanspeaktousnormally.mp4",
+    "description": "Succession.",
+    "url": "https://i.imgur.com/ByH6uR5.mp4"
+  },
+  "You Just Can't Guys...": {
+    "file": "data/drops/youjustcantguys.mp4",
+    "description": "I Think You Should Leave. Lunch Meeting. Tim Robinson.",
+    "url": "https://i.imgur.com/ByH6uR5.mp4"
   },
   "You Really Want To Do This?": {
     "file": "data/drops/youreallywanttodothis.mp4",
