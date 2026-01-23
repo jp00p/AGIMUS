@@ -6,329 +6,471 @@ from utils.crystal_instances import *
 
 from utils.check_channel_access import access_check
 
-class Rematerialization(commands.Cog):
-  def __init__(self, bot:commands.Bot):
-    self.bot = bot
+class RematerializationView(discord.ui.View):
+  def __init__(self, cog, user: discord.User):
+    super().__init__(timeout=180)
+    self.cog = cog
+    self.user = user
 
-  rematerialize = discord.SlashCommandGroup("rematerialize", "Crystal Rematerialization Commands.")
+    self.state = 'RARITY'
 
-  @rematerialize.command(name="start", description="Rematerialize 10 Crystals into a Crystal of a higher rank.")
-  @commands.check(access_check)
-  async def start(self, ctx: discord.ApplicationContext):
-    await ctx.defer(ephemeral=True)
-    user_id = ctx.user.id
+    self.source_rarity_rank = None
+    self.target_rarity_rank = None
 
-    existing = await db_get_active_rematerialization(user_id)
-    if existing:
-      all_items = await db_get_rematerialization_items(existing['id'])
-      current_total = len(all_items)
+    self.rarity_rows = []
+    self.type_rows = []
+    self.type_page = 0
+    self.type_per_page = 25
 
-      if current_total >= 10:
-        embed = discord.Embed(
-          title="Rematerialization Ready!",
-          description="You already have 10 Crystals contributed. Click below to finalize the Rematerialization!",
-          color=discord.Color.gold()
+    self.selected_crystal_type_id = None
+    self.selected_crystal_type_name = None
+    self.selected_crystal_type_count = 0
+
+    self.quantity = 1
+
+    self.message = None
+
+  async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    return interaction.user.id == self.user.id
+
+  async def on_timeout(self):
+    for item in self.children:
+      item.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(
+          embed=discord.Embed(
+            title='Crystal Rematerialization',
+            description='Session expired.',
+            color=discord.Color.dark_grey()
+          ),
+          view=self
         )
+      except Exception:
+        pass
 
-        class ConfirmResumeRematerialize(discord.ui.View):
-          def __init__(self):
-            super().__init__(timeout=300)
+  def _clear_components(self):
+    self.clear_items()
 
-          @discord.ui.button(label="Rematerialize", style=discord.ButtonStyle.success)
-          async def confirm(self, button, interaction):
-            crystals_used = [item['crystal_instance_id'] for item in all_items]
-            await db_mark_crystals_rematerialized(crystals_used)
+  def _type_total_pages(self) -> int:
+    if not self.type_rows:
+      return 1
+    return max(1, (len(self.type_rows) - 1) // self.type_per_page + 1)
 
-            new_crystal = await db_select_random_crystal_type_by_rarity_rank(existing['target_rank_id'])
-            granted = await create_new_crystal_instance(user_id, new_crystal['id'])
+  def _type_page_slice(self) -> list[dict]:
+    start = self.type_page * self.type_per_page
+    end = start + self.type_per_page
+    return self.type_rows[start:end]
 
-            await db_finalize_rematerialization(existing['id'], granted['id'])
+  def _clamp_quantity(self):
+    if self.quantity < 1:
+      self.quantity = 1
+    if self.selected_crystal_type_count and self.quantity > self.selected_crystal_type_count:
+      self.quantity = self.selected_crystal_type_count
 
-            confirm_embed = discord.Embed(
-              title="Rematerialization Complete!",
-              description=f"You have received a new **{granted['name']}** Crystal!",
-              color=discord.Color.green()
-            )
-            confirm_embed.set_footer(text=f"Rank: {new_crystal['id']} | ID: {granted['id']}")
-            await interaction.response.edit_message(embed=confirm_embed, view=None)
+  def _embed(self) -> discord.Embed:
+    if self.state == 'RARITY':
+      desc = 'Select a rarity to rematerialize into the next tier.'
+      if not self.rarity_rows:
+        desc = 'You have no unattuned crystals available for rematerialization.'
+      return discord.Embed(
+        title='Crystal Rematerialization',
+        description=desc,
+        color=discord.Color.teal()
+      )
 
-          @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
-          async def cancel(self, button, interaction):
-            await interaction.response.edit_message(
-              embed=discord.Embed(
-                title="Canceled",
-                description="No changes were made.",
-                color=discord.Color.orange()
-              ),
-              view=None
-            )
+    if self.state == 'TYPE':
+      pages = self._type_total_pages()
+      desc = 'Select a crystal type to consume.'
+      if pages > 1:
+        desc += f'\nPage {self.type_page + 1}/{pages}'
+      if not self.type_rows:
+        desc = 'No crystal types available for that rarity.'
+      return discord.Embed(
+        title='Choose Crystal Type',
+        description=desc,
+        color=discord.Color.teal()
+      )
 
-        await ctx.respond(embed=embed, view=ConfirmResumeRematerialize(), ephemeral=True)
-        return
+    if self.state == 'QUANTITY':
+      return discord.Embed(
+        title='Choose Quantity',
+        description=(
+          f'Crystal Type: **{self.selected_crystal_type_name}**\n'
+          f'Available: **{self.selected_crystal_type_count}**\n'
+          f'Quantity to consume: **{self.quantity}**'
+        ),
+        color=discord.Color.teal()
+      )
 
-    embed = discord.Embed(
-      title="Begin Rematerialization!",
-      description="Choose a Rarity to select the relevant Crystals to Rematerialize below.",
-      color=discord.Color.teal()
+    if self.state == 'CONFIRM':
+      return discord.Embed(
+        title='Confirm Rematerialization',
+        description=(
+          f'Rarity: **{self.cog.rarity_name(self.source_rarity_rank)}** -> **{self.cog.rarity_name(self.target_rarity_rank)}**\n'
+          f'Type: **{self.selected_crystal_type_name}**\n'
+          f'Consume: **{self.quantity}** crystal(s)\n\n'
+          'Confirm to proceed.'
+        ),
+        color=discord.Color.orange()
+      )
+
+    return discord.Embed(title='Crystal Rematerialization', color=discord.Color.teal())
+
+  def _add_cancel_button(self):
+    btn = discord.ui.Button(label='Cancel', style=discord.ButtonStyle.secondary, row=2)
+    btn.callback = self._on_cancel
+    self.add_item(btn)
+
+  def _add_back_button(self):
+    btn = discord.ui.Button(label='Back', style=discord.ButtonStyle.secondary, row=2)
+    btn.callback = self._on_back
+    self.add_item(btn)
+
+  def _build_rarity_select_options(self) -> list[discord.SelectOption]:
+    opts = []
+    for row in self.rarity_rows:
+      source_rank = row['rarity_rank']
+      label = row['name']
+      emoji = row.get('emoji')
+      desc = f"Unattuned: {row['count']}"
+      opts.append(discord.SelectOption(label=label, value=str(source_rank), description=desc, emoji=emoji))
+    return opts[:25]
+
+  def _add_rarity_select(self):
+    options = self._build_rarity_select_options()
+    if not options:
+      return
+    select = discord.ui.Select(
+      placeholder='Choose a rarity to rematerialize',
+      min_values=1,
+      max_values=1,
+      options=options
+    )
+    select.callback = self._on_select_rarity
+    self.add_item(select)
+
+  def _build_type_select_options(self) -> list[discord.SelectOption]:
+    opts = []
+    for row in self._type_page_slice():
+      label = row['crystal_name']
+      value = str(row['crystal_type_id'])
+      count = row['count']
+      emoji = row.get('emoji')
+      desc = f'Unattuned: {count}'
+      opts.append(discord.SelectOption(label=label, value=value, description=desc, emoji=emoji))
+    if not opts:
+      opts.append(discord.SelectOption(
+        label='No crystal types found',
+        value='none',
+        description='You have none to rematerialize.'
+      ))
+    return opts[:25]
+
+  def _add_type_select(self):
+    total_pages = self._type_total_pages()
+    placeholder = 'Choose a crystal type'
+    if total_pages > 1:
+      placeholder = f'Choose a crystal type (Page {self.type_page + 1}/{total_pages})'
+
+    select = discord.ui.Select(
+      placeholder=placeholder,
+      min_values=1,
+      max_values=1,
+      options=self._build_type_select_options()
+    )
+    select.callback = self._on_select_type
+    self.add_item(select)
+
+  def _add_type_pagination_buttons(self):
+    if self._type_total_pages() <= 1:
+      return
+
+    prev_btn = discord.ui.Button(label='Prev', style=discord.ButtonStyle.primary, row=1)
+    next_btn = discord.ui.Button(label='Next', style=discord.ButtonStyle.primary, row=1)
+
+    prev_btn.disabled = (self.type_page <= 0)
+    next_btn.disabled = (self.type_page >= self._type_total_pages() - 1)
+
+    prev_btn.callback = self._on_prev_type_page
+    next_btn.callback = self._on_next_type_page
+
+    self.add_item(prev_btn)
+    self.add_item(next_btn)
+
+  def _add_quantity_buttons(self):
+    minus = discord.ui.Button(label='-1', style=discord.ButtonStyle.secondary, row=0)
+    plus = discord.ui.Button(label='+1', style=discord.ButtonStyle.secondary, row=0)
+    minus10 = discord.ui.Button(label='-10', style=discord.ButtonStyle.secondary, row=1)
+    plus10 = discord.ui.Button(label='+10', style=discord.ButtonStyle.secondary, row=1)
+    max_btn = discord.ui.Button(label='Max', style=discord.ButtonStyle.primary, row=1)
+
+    minus.callback = self._on_qty_minus
+    plus.callback = self._on_qty_plus
+    minus10.callback = self._on_qty_minus10
+    plus10.callback = self._on_qty_plus10
+    max_btn.callback = self._on_qty_max
+
+    self.add_item(minus)
+    self.add_item(plus)
+    self.add_item(minus10)
+    self.add_item(plus10)
+    self.add_item(max_btn)
+
+  def _add_continue_button(self):
+    btn = discord.ui.Button(label='Continue', style=discord.ButtonStyle.success, row=2)
+    btn.callback = self._on_continue_to_confirm
+    self.add_item(btn)
+
+  def _add_confirm_button(self):
+    btn = discord.ui.Button(label='Confirm Rematerialization', style=discord.ButtonStyle.danger, row=2)
+    btn.callback = self._on_confirm
+    self.add_item(btn)
+
+  def _rebuild(self):
+    self._clear_components()
+
+    if self.state == 'RARITY':
+      self._add_rarity_select()
+      self._add_cancel_button()
+      return
+
+    if self.state == 'TYPE':
+      self._add_type_select()
+      self._add_type_pagination_buttons()
+      self._add_back_button()
+      self._add_cancel_button()
+      return
+
+    if self.state == 'QUANTITY':
+      self._add_quantity_buttons()
+      self._add_back_button()
+      self._add_cancel_button()
+      self._add_continue_button()
+      return
+
+    if self.state == 'CONFIRM':
+      self._add_confirm_button()
+      self._add_back_button()
+      self._add_cancel_button()
+      return
+
+  async def _render(self, interaction: discord.Interaction):
+    self._rebuild()
+    await interaction.response.edit_message(embed=self._embed(), view=self)
+
+  async def start(self, ctx: discord.ApplicationContext):
+    await ctx.respond(embed=self._embed(), view=self, ephemeral=True)
+    self.message = await ctx.interaction.original_response()
+
+  async def _load_rarity_rows(self) -> list[dict]:
+    rows = await db_get_user_unattuned_crystal_rarities(self.user.id)
+
+    # Only allow rarities that have a next tier.
+    filtered = []
+    for row in rows:
+      source_rank = row['rarity_rank']
+      target_rank = source_rank + 1
+      target = await db_get_crystal_rank_by_rarity_rank(target_rank)
+      if target:
+        filtered.append(row)
+    return filtered
+
+  async def _on_select_rarity(self, interaction: discord.Interaction):
+    source_rank = int(interaction.data['values'][0])
+    self.source_rarity_rank = source_rank
+    self.target_rarity_rank = source_rank + 1
+
+    self.type_rows = await db_get_user_unattuned_crystal_type_counts_by_rarity_rank(
+      self.user.id,
+      self.source_rarity_rank
+    )
+    self.type_page = 0
+    self.state = 'TYPE'
+    await self._render(interaction)
+
+  async def _on_prev_type_page(self, interaction: discord.Interaction):
+    if self.type_page > 0:
+      self.type_page -= 1
+    await self._render(interaction)
+
+  async def _on_next_type_page(self, interaction: discord.Interaction):
+    if self.type_page < self._type_total_pages() - 1:
+      self.type_page += 1
+    await self._render(interaction)
+
+  async def _on_select_type(self, interaction: discord.Interaction):
+    val = interaction.data['values'][0]
+    if val == 'none':
+      await self._render(interaction)
+      return
+
+    crystal_type_id = int(val)
+    row = next((r for r in self.type_rows if r['crystal_type_id'] == crystal_type_id), None)
+    if not row:
+      await self._render(interaction)
+      return
+
+    self.selected_crystal_type_id = crystal_type_id
+    self.selected_crystal_type_name = row['crystal_name']
+    self.selected_crystal_type_count = row['count']
+
+    self.quantity = 1
+    self.state = 'QUANTITY'
+    await self._render(interaction)
+
+  async def _on_qty_minus(self, interaction: discord.Interaction):
+    self.quantity -= 1
+    self._clamp_quantity()
+    await self._render(interaction)
+
+  async def _on_qty_plus(self, interaction: discord.Interaction):
+    self.quantity += 1
+    self._clamp_quantity()
+    await self._render(interaction)
+
+  async def _on_qty_minus10(self, interaction: discord.Interaction):
+    self.quantity -= 10
+    self._clamp_quantity()
+    await self._render(interaction)
+
+  async def _on_qty_plus10(self, interaction: discord.Interaction):
+    self.quantity += 10
+    self._clamp_quantity()
+    await self._render(interaction)
+
+  async def _on_qty_max(self, interaction: discord.Interaction):
+    self.quantity = self.selected_crystal_type_count or 1
+    self._clamp_quantity()
+    await self._render(interaction)
+
+  async def _on_continue_to_confirm(self, interaction: discord.Interaction):
+    self.state = 'CONFIRM'
+    await self._render(interaction)
+
+  async def _on_back(self, interaction: discord.Interaction):
+    if self.state == 'TYPE':
+      self.state = 'RARITY'
+      await self._render(interaction)
+      return
+
+    if self.state == 'QUANTITY':
+      self.state = 'TYPE'
+      await self._render(interaction)
+      return
+
+    if self.state == 'CONFIRM':
+      self.state = 'QUANTITY'
+      await self._render(interaction)
+      return
+
+    await self._render(interaction)
+
+  async def _on_cancel(self, interaction: discord.Interaction):
+    for item in self.children:
+      item.disabled = True
+
+    await interaction.response.edit_message(
+      embed=discord.Embed(
+        title='Rematerialization Cancelled',
+        description='No changes were made.',
+        color=discord.Color.dark_grey()
+      ),
+      view=self
     )
 
-    class RarityDropdown(discord.ui.View):
-      def __init__(self, options):
-        super().__init__(timeout=60)
-        self.dropdown = discord.ui.Select(
-          placeholder="Select a Crystal Rarity...",
-          min_values=1,
-          max_values=1,
-          options=options
-        )
-        self.dropdown.callback = self.on_select
-        self.add_item(self.dropdown)
-        self.message = None
+  async def _on_confirm(self, interaction: discord.Interaction):
+    active = await db_get_active_rematerialization(str(self.user.id))
+    if active:
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title='Rematerialization Already Active',
+          description='You already have an active rematerialization session.',
+          color=discord.Color.orange()
+        ),
+        view=self
+      )
+      return
 
-      async def on_select(self, interaction):
+    crystal_ids = await db_get_unattuned_crystal_instance_ids_by_type(
+      self.user.id,
+      self.selected_crystal_type_id,
+      self.quantity
+    )
 
-        self.dropdown.options = rarity_options
-        selected_rarity = self.dropdown.values[0]
-        rarity_info = next((r for r in rarities if r['name'] == selected_rarity), None)
-        if not rarity_info:
-          await interaction.response.edit_message(
-            embed=discord.Embed(
-              title="Invalid Selection",
-              description="That Rarity selection could not be found. Please try again.",
-              color=discord.Color.red()
-            ),
-            view=None
-          )
-          return
+    if len(crystal_ids) < self.quantity:
+      self.selected_crystal_type_count = len(crystal_ids)
+      self.quantity = min(self.quantity, self.selected_crystal_type_count or 1)
+      self.state = 'QUANTITY'
+      self._rebuild()
+      await interaction.response.edit_message(
+        embed=discord.Embed(
+          title='Inventory Changed',
+          description='You no longer have enough unattuned crystals of that type. Please pick a new quantity.',
+          color=discord.Color.orange()
+        ),
+        view=self
+      )
+      return
 
-        source_rank = rarity_info['rarity_rank']
-        target_rank = source_rank + 1
-        rematerialization_id = await db_create_rematerialization(ctx.user.id, source_rank, target_rank)
+    rematerialization_id = await db_create_rematerialization(
+      str(self.user.id),
+      self.source_rarity_rank,
+      self.target_rarity_rank
+    )
 
-        crystals = await db_get_unattuned_crystals_by_rarity(ctx.user.id, selected_rarity)
-        if not crystals:
-          await db_cancel_rematerialization(rematerialization_id)
-          await interaction.response.edit_message(
-            embed=discord.Embed(
-              title="No Crystals Found",
-              description=f"You no longer have any unattuned Crystals of Rarity **{selected_rarity}**.",
-              color=discord.Color.orange()
-            ),
-            view=None
-          )
-          return
+    for cid in crystal_ids:
+      await db_add_crystal_to_rematerialization(rematerialization_id, cid)
 
-        await interaction.response.edit_message(
-          embed=discord.Embed(
-            title=f"{selected_rarity} Crystal Types",
-            description=f"You may now select a type of Crystal from the **{selected_rarity}** Rarity to add toward Rematerialization.",
-            color=discord.Color.teal()
-          ),
-          view=None
-        )
+    await db_mark_crystals_rematerialized(crystal_ids)
 
-        # Show CrystalTypeDropdown for selected_rarity
-        seen = set()
-        crystal_options = []
-        for c in crystals:
-          if c['crystal_type_id'] in seen:
-            continue
-          seen.add(c['crystal_type_id'])
-          label = f"{c['crystal_name']} (×{c['count']})"
-          crystal_options.append(discord.SelectOption(
-            label=label,
-            value=str(c['crystal_type_id']),
-            emoji=c.get('emoji')
-          ))
+    new_crystal_instance_id = await self.cog.create_output_crystal_instance(
+      user_id=self.user.id,
+      target_rarity_rank=self.target_rarity_rank,
+      source_crystal_type_id=self.selected_crystal_type_id
+    )
 
-        class CrystalTypeDropdown(discord.ui.View):
-          def __init__(self, options):
-            super().__init__(timeout=60)
-            self.page = 0
-            self.per_page = 25
-            self.options = options
-            self.total_pages = (len(options) - 1) // self.per_page + 1
-            self.dropdown = discord.ui.Select(
-              placeholder="Choose a Crystal Type",
-              min_values=1,
-              max_values=1,
-              options=self.options[:self.per_page]
-            )
-            self.dropdown.callback = self.on_select
-            self.add_item(self.dropdown)
+    await db_finalize_rematerialization(rematerialization_id, new_crystal_instance_id)
 
-            if self.total_pages > 1:
-              self.prev_button = discord.ui.Button(label="⬅ Prev", style=discord.ButtonStyle.primary, row=1)
-              self.next_button = discord.ui.Button(label="Next ➡", style=discord.ButtonStyle.primary, row=1)
-              self.prev_button.callback = self.prev_page
-              self.next_button.callback = self.next_page
-              self.add_item(self.prev_button)
-              self.add_item(self.next_button)
+    for item in self.children:
+      item.disabled = True
 
-            self.message = None
+    await interaction.response.edit_message(
+      embed=discord.Embed(
+        title='Rematerialization Complete',
+        description=(
+          f'Consumed **{self.quantity}** crystal(s) of **{self.selected_crystal_type_name}**.\n'
+          f'Created a new **{self.cog.rarity_name(self.target_rarity_rank)}** crystal.'
+        ),
+        color=discord.Color.green()
+      ),
+      view=self
+    )
 
-          async def on_select(self, interaction):
-            crystal_type_id = int(self.dropdown.values[0])
-            crystal_instances = await db_get_unattuned_crystals_by_type(ctx.user.id, crystal_type_id)
-            if not crystal_instances:
-              await interaction.response.send_message(
-                embed=discord.Embed(
-                  title="No Crystals Found",
-                  description="You no longer have any unattuned Crystals of this type.",
-                  color=discord.Color.orange()
-                ),
-                ephemeral=True
-              )
-              return
 
-            max_select = min(10, len(crystal_instances))
-            quantity_options = [
-              discord.SelectOption(label=f"{i} Crystal{'s' if i > 1 else ''}", value=str(i))
-              for i in range(1, max_select + 1)
-            ]
+class Rematerialize(commands.Cog):
+  def __init__(self, bot):
+    self.bot = bot
 
-            class QuantityDropdown(discord.ui.View):
-              def __init__(self):
-                super().__init__(timeout=60)
-                self.dropdown = discord.ui.Select(
-                  placeholder="Select how many Crystals to add",
-                  min_values=1,
-                  max_values=1,
-                  options=quantity_options
-                )
-                self.dropdown.callback = self.on_select
-                self.add_item(self.dropdown)
-                self.message = None
+  rematerialize = discord.SlashCommandGroup('rematerialize', 'Crystal Rematerialization Commands.')
 
-              async def on_select(self, q_interaction):
-                selected_count = int(self.dropdown.values[0])
-                selected_crystals = crystal_instances[:selected_count]
+  def rarity_name(self, rarity_rank: int) -> str:
+    name = {
+      1: 'Common',
+      2: 'Uncommon',
+      3: 'Rare',
+      4: 'Legendary',
+      5: 'Mythic'
+    }.get(rarity_rank)
+    return name or f'Rank {rarity_rank}'
 
-                for crystal in selected_crystals:
-                  await db_add_crystal_to_rematerialization(rematerialization_id, crystal['crystal_instance_id'])
+  async def create_output_crystal_instance(self, user_id: int, target_rarity_rank: int, source_crystal_type_id: int) -> int:
+    return await db_create_random_crystal_instance_by_rarity_rank(user_id, target_rarity_rank)
 
-                all_items = await db_get_rematerialization_items(rematerialization_id)
-                current_total = len(all_items)
+  @rematerialize.command(name='start', description='Begin crystal rematerialization.')
+  @access_check()
+  async def start(self, ctx: discord.ApplicationContext):
+    view = RematerializationView(self, ctx.user)
+    view.rarity_rows = await view._load_rarity_rows()
+    await view.start(ctx)
 
-                if current_total >= 10:
-                  finalize_embed = discord.Embed(
-                    title="Rematerialization Ready!",
-                    description="You have contributed 10 Crystals. Click below to finalize the Rematerialization and receive a new Crystal of the next Rank!",
-                    color=discord.Color.gold()
-                  )
-
-                  class ConfirmRematerialize(discord.ui.View):
-                    def __init__(self):
-                      super().__init__(timeout=90)
-
-                    @discord.ui.button(label="Rematerialize", style=discord.ButtonStyle.success)
-                    async def confirm(self, button, interaction):
-                      crystals_used = [item['crystal_instance_id'] for item in all_items]
-                      await db_mark_crystals_rematerialized(crystals_used)
-
-                      new_crystal = await db_select_random_crystal_type_by_rarity_rank(target_rank)
-                      granted = await create_new_crystal_instance(ctx.user.id, new_crystal['id'])
-
-                      await db_finalize_rematerialization(rematerialization_id, granted['id'])
-
-                      confirm_embed = discord.Embed(
-                        title="Rematerialization Complete!",
-                        description=f"You have received a new **{granted['name']}** Crystal!",
-                        color=discord.Color.green()
-                      )
-                      confirm_embed.set_footer(text=f"Rank: {new_crystal['id']} | ID: {granted['id']}")
-                      await interaction.response.edit_message(embed=confirm_embed, view=None)
-
-                    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
-                    async def cancel(self, button, interaction):
-                      await interaction.response.edit_message(
-                        embed=discord.Embed(
-                          title="Canceled",
-                          description="No changes were made.",
-                          color=discord.Color.orange()
-                        ),
-                        view=None
-                      )
-
-                  await q_interaction.followup.send(embed=finalize_embed, view=ConfirmRematerialize(), ephemeral=True)
-                else:
-                  await q_interaction.response.send_message(
-                    embed=discord.Embed(
-                      title="Crystals Added",
-                      description=f"Added {selected_count} Crystal{'s' if selected_count > 1 else ''} to your Rematerialization Queue. ({current_total}/10 total)",
-                      color=discord.Color.green()
-                    ),
-                    ephemeral=True
-                  )
-
-              async def on_timeout(self):
-                for item in self.children:
-                  item.disabled = True
-                if self.message:
-                  try:
-                    await self.message.edit(view=self)
-                  except discord.errors.NotFound:
-                    pass
-
-            quantity_embed = discord.Embed(
-              title="Select Quantity to Add",
-              description="How many Crystals of this type would you like to contribute?",
-              color=discord.Color.teal()
-            )
-            quantity_view = QuantityDropdown()
-            quantity_view.message = await interaction.followup.send(embed=quantity_embed, view=quantity_view, ephemeral=True)
-
-          async def prev_page(self, interaction):
-            if self.page > 0:
-              self.page -= 1
-              await self.update_dropdown(interaction)
-
-          async def next_page(self, interaction):
-            if self.page < self.total_pages - 1:
-              self.page += 1
-              await self.update_dropdown(interaction)
-
-          async def update_dropdown(self, interaction):
-            start = self.page * self.per_page
-            end = start + self.per_page
-            self.dropdown.options = self.options[start:end]
-            await interaction.response.edit_message(view=self)
-
-          async def on_timeout(self):
-            for item in self.children:
-              item.disabled = True
-            if self.message:
-              try:
-                await self.message.edit(view=self)
-              except discord.errors.NotFound:
-                pass
-
-        type_embed = discord.Embed(
-          title=f"{selected_rarity} Crystal Types",
-          description=f"Select a type of Crystal from the **{selected_rarity}** Rarity to queue for Rematerialization.",
-          color=discord.Color.teal()
-        )
-        type_view = CrystalTypeDropdown(crystal_options)
-        type_view.message = await interaction.followup.send(embed=type_embed, view=type_view, ephemeral=True)
-
-      async def on_timeout(self):
-        for item in self.children:
-          item.disabled = True
-        if self.message:
-          try:
-            await self.message.edit(view=self)
-          except discord.errors.NotFound:
-            pass
-
-    rarities = await db_get_user_unattuned_crystal_rarities(ctx.user.id)
-    all_ranks = await db_get_all_crystal_rarity_ranks()
-    max_rank = max(r['rarity_rank'] for r in all_ranks)
-    rarity_options = [
-      discord.SelectOption(
-        label=f"{r['name']} ({r['count']} owned)",
-        value=r['name'],
-        emoji=r.get('emoji')
-      ) for r in rarities if r['rarity_rank'] < max_rank
-    ]
-    view = RarityDropdown(rarity_options)
-    view.message = await ctx.respond(embed=embed, view=view, ephemeral=True)

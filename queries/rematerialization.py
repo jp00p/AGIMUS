@@ -1,6 +1,6 @@
 from common import *
 
-async def db_get_active_rematerialization(user_discord_id: int) -> dict | None:
+async def db_get_active_rematerialization(user_discord_id: str) -> dict | None:
   sql = """
     SELECT *
     FROM crystal_rematerializations
@@ -50,7 +50,7 @@ async def db_get_rematerialization_items(rematerialization_id: int) -> list[dict
     await db.execute(sql, (rematerialization_id,))
     return await db.fetchall()
 
-async def db_finalize_rematerialization(rematerialization_id: int, new_crystal_id: int):
+async def db_finalize_rematerialization(rematerialization_id: int):
   sql = """
     UPDATE crystal_rematerializations
     SET status = 'completed', completed_at = CURRENT_TIMESTAMP
@@ -62,7 +62,7 @@ async def db_finalize_rematerialization(rematerialization_id: int, new_crystal_i
 async def db_mark_crystals_rematerialized(crystal_ids: list[int]):
   if not crystal_ids:
     return
-  sql = f"""
+  sql = """
     UPDATE crystal_instances
     SET status = 'rematerialized'
     WHERE id IN ({', '.join(['%s'] * len(crystal_ids))})

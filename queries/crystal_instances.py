@@ -332,6 +332,43 @@ async def db_get_unattuned_crystals_by_type(user_id: int, crystal_type_id: int):
     await db.execute(sql, (user_id, crystal_type_id))
     return await db.fetchall()
 
+async def db_get_user_unattuned_crystal_type_counts_by_rarity_rank(user_id: int, rarity_rank: int) -> list[dict]:
+  sql = """
+    SELECT
+      ct.id AS crystal_type_id,
+      ct.name AS crystal_name,
+      ct.rarity_rank,
+      cr.name AS rarity_name,
+      cr.emoji,
+      COUNT(*) AS count
+    FROM crystal_instances ci
+    JOIN crystal_types ct ON ci.crystal_type_id = ct.id
+    JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
+    WHERE ci.owner_discord_id = %s
+      AND ci.status = 'available'
+      AND ct.rarity_rank = %s
+    GROUP BY ct.id, ct.name, ct.rarity_rank, cr.name, cr.emoji
+    ORDER BY ct.name ASC
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id, rarity_rank))
+    return await db.fetchall()
+
+async def db_get_unattuned_crystal_instance_ids_by_type(user_id: int, crystal_type_id: int, limit: int) -> list[int]:
+  sql = """
+    SELECT ci.id AS crystal_instance_id
+    FROM crystal_instances ci
+    WHERE ci.owner_discord_id = %s
+      AND ci.status = 'available'
+      AND ci.crystal_type_id = %s
+    ORDER BY ci.created_at ASC, ci.id ASC
+    LIMIT %s
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_id, crystal_type_id, limit))
+    rows = await db.fetchall()
+    return [row['crystal_instance_id'] for row in rows]    
+
 async def db_get_available_crystal_types():
   sql = """
     SELECT c.*, r.emoji, r.drop_chance
