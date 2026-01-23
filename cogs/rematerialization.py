@@ -29,8 +29,6 @@ class RematerializationView(discord.ui.View):
     self.quantity = 1
     self.message = None
 
-    self._rebuild()
-
   async def interaction_check(self, interaction: discord.Interaction) -> bool:
     return interaction.user.id == self.user.id
 
@@ -431,7 +429,7 @@ class RematerializationView(discord.ui.View):
       source_crystal_type_id=self.selected_crystal_type_id
     )
 
-    await db_finalize_rematerialization(rematerialization_id, new_crystal_instance_id)
+    await db_finalize_rematerialization(rematerialization_id)
 
     for item in self.children:
       item.disabled = True
@@ -473,7 +471,7 @@ class Rematerialization(commands.Cog):
   @rematerialize.command(name='start', description='Begin crystal rematerialization.')
   @commands.check(access_check)
   async def start(self, ctx: discord.ApplicationContext):
-    view = RematerializationView(self, ctx.user)
-    view.rarity_rows = await view._load_rarity_rows()
-    await view.start(ctx)
+    self._rebuild()
+    await ctx.respond(embed=self._embed(), view=self, ephemeral=True)
+    self.message = await ctx.interaction.original_response()
 
