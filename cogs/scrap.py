@@ -9,7 +9,7 @@ from utils.check_channel_access import access_check
 scrap_group = discord.SlashCommandGroup("scrap", "Badge Scrapping and Crystal Rematerialization Commands.")
 
 class Rematerialization(commands.Cog):
-  def __init__(self, bot):
+  def __init__(self, bot:commands.Bot):
     self.bot = bot
 
   @scrap_group.command(name="rematerialize", description="Rematerialize 10 Crystals into a Crystal of a higher rank.")
