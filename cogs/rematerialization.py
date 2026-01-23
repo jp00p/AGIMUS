@@ -448,7 +448,7 @@ class RematerializationView(discord.ui.View):
     )
 
 
-class Rematerialize(commands.Cog):
+class Rematerialization(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
 
@@ -470,7 +470,7 @@ class Rematerialize(commands.Cog):
     return crystal['crystal_instance_id']
 
   @rematerialize.command(name='start', description='Begin crystal rematerialization.')
-  @access_check()
+  @commands.check(access_check)
   async def start(self, ctx: discord.ApplicationContext):
     view = RematerializationView(self, ctx.user)
     view.rarity_rows = await view._load_rarity_rows()
