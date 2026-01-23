@@ -27,8 +27,9 @@ class RematerializationView(discord.ui.View):
     self.selected_crystal_type_count = 0
 
     self.quantity = 1
-
     self.message = None
+
+    self._rebuild()
 
   async def interaction_check(self, interaction: discord.Interaction) -> bool:
     return interaction.user.id == self.user.id

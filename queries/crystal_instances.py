@@ -177,6 +177,22 @@ async def db_get_crystal_rarity_weights():
     return await db.fetchall()
 
 
+async def db_get_crystal_rank_by_rarity_rank(rarity_rank: int) -> dict | None:
+  sql = """
+    SELECT
+      rarity_rank,
+      name,
+      emoji,
+      drop_chance,
+      sort_order
+    FROM crystal_ranks
+    WHERE rarity_rank = %s
+    LIMIT 1
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (rarity_rank,))
+    return await db.fetchone()
+
 async def db_select_random_crystal_type_by_rarity_rank(rarity_rank: str) -> dict | None:
   sql = """
     SELECT id, name, effect
