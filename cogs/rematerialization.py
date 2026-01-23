@@ -6,15 +6,15 @@ from utils.crystal_instances import *
 
 from utils.check_channel_access import access_check
 
-scrap_group = discord.SlashCommandGroup("scrap", "Badge Scrapping and Crystal Rematerialization Commands.")
-
 class Rematerialization(commands.Cog):
   def __init__(self, bot:commands.Bot):
     self.bot = bot
 
-  @scrap_group.command(name="rematerialize", description="Rematerialize 10 Crystals into a Crystal of a higher rank.")
+  rematerialize = discord.SlashCommandGroup("rematerialize", "Crystal Rematerialization Commands.")
+
+  @rematerialize.command(name="start", description="Rematerialize 10 Crystals into a Crystal of a higher rank.")
   @commands.check(access_check)
-  async def rematerialize(self, ctx: discord.ApplicationContext):
+  async def start(self, ctx: discord.ApplicationContext):
     await ctx.defer(ephemeral=True)
     user_id = ctx.user.id
 
@@ -322,7 +322,7 @@ class Rematerialization(commands.Cog):
 
     rarities = await db_get_user_unattuned_crystal_rarities(ctx.user.id)
     all_ranks = await db_get_all_crystal_rarity_ranks()
-    max_rank = max(r['rank'] for r in all_ranks)
+    max_rank = max(r['rarity_rank'] for r in all_ranks)
     rarity_options = [
       discord.SelectOption(
         label=f"{r['name']} ({r['count']} owned)",

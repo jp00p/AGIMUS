@@ -146,11 +146,12 @@ async def db_get_instance_by_attuned_crystal_id(crystal_id: int) -> dict | None:
 # Rarities
 async def db_get_all_crystal_rarity_ranks():
   sql = """
-    SELECT id, name, rank
+    SELECT id, name, rarity_rank
     FROM crystal_ranks
   """
   async with AgimusDB(dictionary=True) as db:
-    return await db.query(sql)
+    await db.execute(sql)
+    return await db.fetchall()
 
 async def db_get_crystals_by_rarity(rarity_rank: int):
   sql = """
