@@ -537,7 +537,27 @@ class Crystals(commands.Cog):
     class ManifestPaginator(pages.Paginator):
       def __init__(self, *args, buffers: list[BytesIO], **kwargs):
         self.buffers = buffers
+
+        # Capture the PageGroup list before py-cord mutates internal state.
+        original_page_groups = kwargs.get('pages')
+        if original_page_groups is None and len(args) > 0:
+          original_page_groups = args[0]
+
+        # We want a menu, but py-cord 2.7 crashes when show_menu=True with PageGroups.
+        want_menu = bool(kwargs.get('show_menu', False))
+        menu_placeholder = kwargs.get('menu_placeholder', 'Select Page Group')
+
+        # Force safe init.
+        kwargs['show_menu'] = False
+
         super().__init__(*args, **kwargs)
+
+        # Re-add the menu correctly, using the real PageGroup list.
+        if want_menu and original_page_groups and all(isinstance(pg, pages.PageGroup) for pg in original_page_groups):
+          self.page_groups = original_page_groups
+          self.show_menu = True
+          self.menu_placeholder = menu_placeholder
+          self.add_menu()
 
       async def on_timeout(self):
         for buf in self.buffers:
@@ -548,8 +568,7 @@ class Crystals(commands.Cog):
         self.buffers.clear()
         try:
           await super().on_timeout()
-        except discord.errors.NotFound as e:
-          # Workaround for current issue with timeout 404s
+        except discord.errors.NotFound:
           pass
 
     all_buffers = []
@@ -617,7 +636,7 @@ class Crystals(commands.Cog):
     paginator = ManifestPaginator(
       pages=page_groups,
       buffers=all_buffers,
-      show_menu=True,
+      show_menu=len(page_groups) > 1,
       menu_placeholder="Select a Crystal Rarity Tier",
       show_disabled=False,
       loop_pages=True,
