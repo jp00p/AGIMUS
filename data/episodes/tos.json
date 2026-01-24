@@ -37,7 +37,16 @@
             "episode": "01",
             "imdb": "tt0708469",
             "memoryalpha": "The_Man_Trap_(episode)",
-            "podcasts": [],
+            "podcasts": [
+
+                {
+                    "airdate": "2025.09.26",
+                    "episode": "Space Grindr",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-342-space-grindr-tos-s1e2/",
+                    "order": 342,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/Asrl6u2tugWf9EJN24uhQ9zvyo6.jpg",
@@ -52,7 +61,15 @@
             "episode": "02",
             "imdb": "tt0708424",
             "memoryalpha": "Charlie_X_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.10.03",
+                    "episode": "Non-Corporeal Belt",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-343-non-corporeal-belt-tos-s1e3/",
+                    "order": 343,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/w0h16RvrPpymRcAlEO5j3WlzQiH.jpg",
@@ -67,7 +84,15 @@
             "episode": "03",
             "imdb": "tt0061027",
             "memoryalpha": "Where_No_Man_Has_Gone_Before_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.10.10",
+                    "episode": "Fibonacci Jack-Off Plant Sequence",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-344-fibonacci-jack-off-plant-sequence-tos-s1e4/",
+                    "order": 344,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/h24Wo5hwqETbpLpuhD1zefB63Xh.jpg",
@@ -82,7 +107,15 @@
             "episode": "04",
             "imdb": "tt0708473",
             "memoryalpha": "The_Naked_Time_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.10.17",
+                    "episode": "Batman Blood",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-345-batman-blood-tos-s1e5/",
+                    "order": 345,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/tiA6RZkXKElNBxT2MbHVfRRlhQc.jpg",
@@ -97,7 +130,15 @@
             "episode": "05",
             "imdb": "tt0708463",
             "memoryalpha": "The_Enemy_Within_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.10.24",
+                    "episode": "Horny Laika Is Dead",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-346-horny-laika-is-dead-tos-s1e6/",
+                    "order": 346,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/9usSwy1IFzsc43XT9MBhGwM7fs5.jpg",
@@ -119,6 +160,13 @@
                     "link": "https://maximumfun.org/episodes/greatest-trek/greatest-discovery-ep-24-legendarily-horny/",
                     "order": 24,
                     "title": "Greatest Trek"
+                },
+                {
+                    "airdate": "2025.10.31",
+                    "episode": "Legendarily Horny",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-347-legendarily-horny-tos-s1e7/",
+                    "order": 347,
+                    "title": "Greatest Trek"
                 }
             ],
             "season": "01",
@@ -135,7 +183,15 @@
             "episode": "07",
             "imdb": "tt0708486",
             "memoryalpha": "What_Are_Little_Girls_Made_Of?_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.11.07",
+                    "episode": "Pounding Those Robo Buns",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-348-pounding-those-robo-buns-tos-s1e8/",
+                    "order": 348,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/6TmAMWtT9bsrEM5Y5z5uWViyE4A.jpg",
@@ -150,7 +206,15 @@
             "episode": "08",
             "imdb": "tt0394905",
             "memoryalpha": "Miri_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.11.14",
+                    "episode": "Septic Tank Centipede",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-349-septic-tank-centipede-tos-s1e9/",
+                    "order": 349,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/dYpwq4WTSnh9X1qBRdlsE2ZrcD1.jpg",
@@ -165,7 +229,15 @@
             "episode": "09",
             "imdb": "tt0708426",
             "memoryalpha": "Dagger_of_the_Mind_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.11.21",
+                    "episode": "Workplace Retreat Hypnosis Device",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-350-workplace-retreat-hypnosis-device-tos-s1e10/",
+                    "order": 350,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/tuSlKUb9MPW24Agl5r8IMFm0szu.jpg",
@@ -186,6 +258,13 @@
                     "episode": "Issue 217",
                     "link": "https://maximumfun.org/episodes/greatest-trek/ep-82-issue-217-tos-s1e10/",
                     "order": 82,
+                    "title": "Greatest Trek"
+                },
+                {
+                    "airdate": "2025.11.28",
+                    "episode": "Issue 217",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-351-issue-217-tos-s1e11/",
+                    "order": 351,
                     "title": "Greatest Trek"
                 }
             ],
@@ -210,6 +289,13 @@
                     "link": "https://maximumfun.org/episodes/greatest-trek/greatest-discovery-ep-55-streisand-effecting-planet-tos-s1e12/",
                     "order": 55,
                     "title": "Greatest Trek"
+                },
+                {
+                    "airdate": "2025.12.05",
+                    "episode": "Streisand-Effecting the Planet",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-352-streisand-effecting-the-planet-tos-s1e12/",
+                    "order": 352,
+                    "title": "Greatest Trek"
                 }
             ],
             "season": "01",
@@ -233,6 +319,13 @@
                     "link": "https://maximumfun.org/episodes/greatest-trek/greatest-discovery-ep-56-deus-ex-mendez-tos-s1e13/",
                     "order": 56,
                     "title": "Greatest Trek"
+                },
+                {
+                    "airdate": "2025.12.12",
+                    "episode": "Deus Ex Mendez",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-353-deus-ex-mendez-tos-s1e13/",
+                    "order": 353,
+                    "title": "Greatest Trek"
                 }
             ],
             "season": "01",
@@ -249,7 +342,15 @@
             "episode": "13",
             "imdb": "tt0394903",
             "memoryalpha": "The_Conscience_of_the_King_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2025.12.19",
+                    "episode": "Death Bracket",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-354-death-bracket-tos-s1e14/",
+                    "order": 354,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/hhQRsDwrnt7KmKpPVaEzaP9zANM.jpg",
@@ -271,6 +372,13 @@
                     "link": "https://maximumfun.org/episodes/greatest-trek/tgd-83-the-skin-of-kermit-the-frog-tos-s1e14/",
                     "order": 83,
                     "title": "Greatest Trek"
+                },
+                {
+                    "airdate": "2025.12.26",
+                    "episode": "The Skin of Kermit the Frog",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-355-the-skin-of-kermit-the-frog-tos-s1e15/",
+                    "order": 355,
+                    "title": "Greatest Trek"
                 }
             ],
             "season": "01",
@@ -287,7 +395,15 @@
             "episode": "15",
             "imdb": "tt0708446",
             "memoryalpha": "Shore_Leave_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.01.02",
+                    "episode": "Conspicuous Butt",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-356-conspicuous-butt-tos-s1e16/",
+                    "order": 356,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/vqaSfJ2KWrPjfGT3vojbstBuKEk.jpg",
@@ -302,7 +418,15 @@
             "episode": "16",
             "imdb": "tt0708465",
             "memoryalpha": "The_Galileo_Seven_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.01.09",
+                    "episode": "That\u2019s a Big IDIC",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-357-thats-a-big-idic-tos-s1e17/",
+                    "order": 357,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/iIQZOeGdXriDJ5LxTKxnDVMvcIP.jpg",
