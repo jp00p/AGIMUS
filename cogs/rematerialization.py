@@ -641,10 +641,18 @@ class Rematerialize(commands.Cog):
     }.get(rarity_rank)
     return name or f'Rank {rarity_rank}'
 
-  @rematerialize.command(name='start', description='Begin crystal rematerialization.')
+  async def create_output_crystal_instance(self, user_id: int, target_rarity_rank: int, source_crystal_type_id: int) -> int:
+    crystal_type = await db_select_random_crystal_type_by_rarity_rank(target_rarity_rank)
+    crystal = await create_new_crystal_instance(user_id, crystal_type['id'], event_type='rematerialization')
+    return crystal['crystal_instance_id']
+
+  @rematerialize.command(name='engage', description='Begin crystal rematerialization.')
   @commands.check(access_check)
-  async def start(self, ctx: discord.ApplicationContext):
-    active = await db_get_active_rematerialization(str(ctx.user.id))
+  async def engage(self, ctx: discord.ApplicationContext):
+    view = RematerializationView(self, ctx.user)
+    view.rarity_rows = await view._load_rarity_rows()
+    await view.start(ctx)
+
 
     view = RematerializationView(self, ctx.user)
 
