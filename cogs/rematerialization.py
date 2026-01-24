@@ -645,7 +645,7 @@ class RematerializationView(discord.ui.View):
     )
 
 
-class Rematerialize(commands.Cog):
+class Rematerialization(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
 
