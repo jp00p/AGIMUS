@@ -97,7 +97,7 @@ async def db_mark_crystals_dematerialized(crystal_ids: list[int]):
 
   sql = f"""
     UPDATE crystal_instances
-    SET status = 'rematerialized'
+    SET status = 'dematerialized'
     WHERE id IN ({placeholders})
   """
   async with AgimusDB() as db:

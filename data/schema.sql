@@ -551,7 +551,14 @@ CREATE TABLE IF NOT EXISTS crystal_instances (
 CREATE TABLE IF NOT EXISTS crystal_instance_history (
   id INT AUTO_INCREMENT PRIMARY KEY,
   crystal_instance_id INT NOT NULL,
-  event_type ENUM('replicated', 'trade', 'attuned', 'admin') NOT NULL,
+  event_type ENUM(
+      'replicated',
+      'trade',
+      'attuned',
+      'admin',
+      'dematerialized',
+      'rematerialization'
+    ) NOT NULL,
   from_user_id varchar(64) DEFAULT NULL,
   to_user_id varchar(64) DEFAULT NULL,
   occurred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
