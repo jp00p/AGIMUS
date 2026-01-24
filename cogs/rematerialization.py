@@ -203,12 +203,12 @@ class RematerializationView(discord.ui.View):
     self.add_item(btn)
 
   def _add_back_button(self):
-    btn = discord.ui.Button(label='Back', style=discord.ButtonStyle.secondary, row=3)
+    btn = discord.ui.Button(label='⬅️ Back', style=discord.ButtonStyle.secondary, row=3)
     btn.callback = self._on_back
     self.add_item(btn)
 
   def _add_confirm_button(self):
-    btn = discord.ui.Button(label='Confirm', style=discord.ButtonStyle.danger, row=3)
+    btn = discord.ui.Button(label='Confirm', style=discord.ButtonStyle.primary, row=3)
     btn.disabled = (self._contents_total() != self.contents_target)
     btn.callback = self._on_confirm
     self.add_item(btn)
@@ -635,7 +635,7 @@ class RematerializationView(discord.ui.View):
       )
       return
 
-    await create_new_crystal_instance(
+    created_crystal = await create_new_crystal_instance(
       self.user_discord_id,
       crystal_type['id'],
       event_type='rematerialization'
@@ -643,23 +643,16 @@ class RematerializationView(discord.ui.View):
 
     await db_finalize_rematerialization(self.rematerialization_id)
 
-    for item in self.children:
-      item.disabled = True
-
     await interaction.response.edit_message(
       embed=discord.Embed(
-        title='Rematerialization Complete',
-        description=(
-          'Dematerialized **{count}** crystal(s) from **{src}**.\n'
-          'Created 1 **{dst}** crystal.'
-        ).format(
-          count=self.contents_target,
-          src=self.cog.rarity_name(self.source_rarity_rank),
-          dst=self.cog.rarity_name(self.target_rarity_rank)
+        title='REMATERIALIZATION COMPLETE!',
+        description = (
+          f"Dematerialized **{self.contents_target}** **{self.cog.rarity_name(self.source_rarity_rank)}** crystals.\n"
+          f"Materialized a new **{created_crystal['crystal_name']}** at {created_crystal['rarity_name']}!"
         ),
         color=discord.Color.green()
       ),
-      view=self
+      view=None
     )
 
 

@@ -431,11 +431,11 @@ CREATE TABLE IF NOT EXISTS crystal_ranks (
 );
 
 INSERT INTO crystal_ranks (name, emoji, rarity_rank, drop_chance, sort_order) VALUES
-  ("Common",      "⚪", 1, 50,   0),
-  ("Uncommon",    "🟢", 2, 33,   1),
-  ("Rare",        "🟣", 3, 10,   2),
-  ("Legendary",   "🔥", 4, 5,    3),
-  ("Mythic",      "💎", 5, 1.75, 4),
+  ("Common",      "⚪", 1, 50,    0),
+  ("Uncommon",    "🟢", 2, 33,    1),
+  ("Rare",        "🟣", 3, 10,    2),
+  ("Legendary",   "🔥", 4, 5,     3),
+  ("Mythic",      "💎", 5, 1.75,  4),
   ("Unobtainium", "💥", 6, 0.25,  5);
 
 -- Crystal Types
