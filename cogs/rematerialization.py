@@ -422,7 +422,7 @@ class RematerializationView(discord.ui.View):
     for cid in crystal_ids:
       await db_add_crystal_to_rematerialization(rematerialization_id, cid)
 
-    await db_mark_crystals_rematerialized(crystal_ids)
+    await db_mark_crystals_dematerialized(crystal_ids)
 
     new_crystal_instance_id = await self.cog.create_output_crystal_instance(
       user_id=self.user.id,
@@ -465,7 +465,9 @@ class Rematerialize(commands.Cog):
     return name or f'Rank {rarity_rank}'
 
   async def create_output_crystal_instance(self, user_id: int, target_rarity_rank: int, source_crystal_type_id: int) -> int:
-    return await db_create_random_crystal_instance_by_rarity_rank(user_id, target_rarity_rank)
+    crystal_type = await db_select_random_crystal_type_by_rarity_rank(target_rarity_rank)
+    crystal = await create_new_crystal_instance(user_id, crystal_type['id'], event_type='rematerialization')
+    return crystal['crystal_instance_id']
 
   @rematerialize.command(name='start', description='Begin crystal rematerialization.')
   @access_check()

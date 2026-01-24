@@ -59,13 +59,32 @@ async def db_finalize_rematerialization(rematerialization_id: int):
   async with AgimusDB() as db:
     await db.execute(sql, (rematerialization_id,))
 
-async def db_mark_crystals_rematerialized(crystal_ids: list[int]):
+async def db_mark_crystals_dematerialized(crystal_ids: list[int]):
   if not crystal_ids:
     return
-  sql = """
+
+  placeholders = ', '.join(['%s'] * len(crystal_ids))
+
+  sql_update = f"""
     UPDATE crystal_instances
     SET status = 'rematerialized'
-    WHERE id IN ({', '.join(['%s'] * len(crystal_ids))})
+    WHERE id IN ({placeholders})
   """
+
+  sql_history = f"""
+    INSERT INTO crystal_instance_history (
+      crystal_instance_id,
+      event_type,
+      to_user_id
+    )
+    SELECT
+      id,
+      'dematerialized',
+      owner_discord_id
+    FROM crystal_instances
+    WHERE id IN ({placeholders})
+  """
+
   async with AgimusDB() as db:
-    await db.execute(sql, crystal_ids)
+    await db.execute(sql_update, crystal_ids)
+    await db.execute(sql_history, crystal_ids)
