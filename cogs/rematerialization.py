@@ -12,6 +12,7 @@ class RematerializationView(discord.ui.View):
     super().__init__(timeout=180)
     self.cog = cog
     self.user = user
+    self.user_discord_id = str(user.id)
 
     self.state = 'RARITY'
 
@@ -97,14 +98,14 @@ class RematerializationView(discord.ui.View):
     parts = []
     for type_id, qty in sorted(self.contents.items(), key=lambda kv: kv[0]):
       row = next((r for r in self.type_rows if r['crystal_type_id'] == type_id), None)
-      name = row['crystal_name'] if row else f'Type {type_id}'
-      parts.append(f'{name} x{qty}')
+      name = row['crystal_name'] if row else 'Type {type_id}'.format(type_id=type_id)
+      parts.append('{name} x{qty}'.format(name=name, qty=qty))
     return ', '.join(parts)
 
   def _embed(self) -> discord.Embed:
     notice = ''
     if self.notice:
-      notice = f'**Note:** {self.notice}\n\n'
+      notice = '**Note:** {msg}\n\n'.format(msg=self.notice)
 
     if self.state == 'RARITY':
       desc = (
@@ -126,13 +127,19 @@ class RematerializationView(discord.ui.View):
 
       desc = (
         notice +
-        f'Contents: **{total}/{self.contents_target}**\n'
-        f'Remaining: **{remaining}**\n'
-        f'Selected: **{self._format_contents_summary()}**\n\n'
+        'Contents: **{total}/{target}**\n'
+        'Remaining: **{remaining}**\n'
+        'Selected: **{selected}**\n\n'
         'Select a crystal type to add.'
+      ).format(
+        total=total,
+        target=self.contents_target,
+        remaining=remaining,
+        selected=self._format_contents_summary()
       )
+
       if pages > 1:
-        desc += f'\nPage {self.type_page + 1}/{pages}'
+        desc += '\nPage {cur}/{pages}'.format(cur=self.type_page + 1, pages=pages)
 
       if not self.type_rows:
         desc = notice + 'No crystal types available for that rarity.'
@@ -148,12 +155,19 @@ class RematerializationView(discord.ui.View):
       remaining = self._contents_remaining()
       desc = (
         notice +
-        f'Contents: **{total}/{self.contents_target}**\n'
-        f'Remaining: **{remaining}**\n'
-        f'Selected: **{self._format_contents_summary()}**\n\n'
-        f'Type: **{self.selected_crystal_type_name}**\n'
-        f'Available: **{self.selected_type_effective_available}**\n'
+        'Contents: **{total}/{target}**\n'
+        'Remaining: **{remaining}**\n'
+        'Selected: **{selected}**\n\n'
+        'Type: **{type_name}**\n'
+        'Available: **{avail}**\n'
         'Select how many to add.'
+      ).format(
+        total=total,
+        target=self.contents_target,
+        remaining=remaining,
+        selected=self._format_contents_summary(),
+        type_name=self.selected_crystal_type_name,
+        avail=self.selected_type_effective_available
       )
       return discord.Embed(
         title='Select Quantity',
@@ -164,10 +178,16 @@ class RematerializationView(discord.ui.View):
     if self.state == 'CONFIRM':
       desc = (
         notice +
-        f'Rarity: **{self.cog.rarity_name(self.source_rarity_rank)}** -> **{self.cog.rarity_name(self.target_rarity_rank)}**\n'
-        f'Contents: **{self._contents_total()}/{self.contents_target}**\n'
-        f'Selected: **{self._format_contents_summary()}**\n\n'
+        'Rarity: **{src}** -> **{dst}**\n'
+        'Contents: **{total}/{target}**\n'
+        'Selected: **{selected}**\n\n'
         'Confirm to dematerialize these crystals and create 1 new crystal.'
+      ).format(
+        src=self.cog.rarity_name(self.source_rarity_rank),
+        dst=self.cog.rarity_name(self.target_rarity_rank),
+        total=self._contents_total(),
+        target=self.contents_target,
+        selected=self._format_contents_summary()
       )
       return discord.Embed(
         title='Confirm Rematerialization',
@@ -340,7 +360,7 @@ class RematerializationView(discord.ui.View):
     self.message = await ctx.interaction.original_response()
 
   async def _load_rarity_rows(self) -> list[dict]:
-    rows = await db_get_user_unattuned_crystal_rarities(self.user.id)
+    rows = await db_get_user_unattuned_crystal_rarities(self.user_discord_id)
 
     filtered = []
     for row in rows:
@@ -362,11 +382,11 @@ class RematerializationView(discord.ui.View):
       return []
 
     limit = max(25, qty * 3)
-    ids = await db_get_unattuned_crystal_instance_ids_by_type(self.user.id, crystal_type_id, limit)
+    ids = await db_get_unattuned_crystal_instance_ids_by_type(self.user_discord_id, crystal_type_id, limit)
     ids = [cid for cid in ids if cid not in self.selected_instance_ids]
 
     if len(ids) < qty:
-      ids = await db_get_unattuned_crystal_instance_ids_by_type(self.user.id, crystal_type_id, 200)
+      ids = await db_get_unattuned_crystal_instance_ids_by_type(self.user_discord_id, crystal_type_id, 200)
       ids = [cid for cid in ids if cid not in self.selected_instance_ids]
 
     return ids[:qty]
@@ -392,13 +412,13 @@ class RematerializationView(discord.ui.View):
     self.type_page = 0
 
     self.rematerialization_id = await db_create_rematerialization(
-      str(self.user.id),
+      self.user_discord_id,
       self.source_rarity_rank,
       self.target_rarity_rank
     )
 
     self.type_rows = await db_get_user_unattuned_crystal_type_counts_by_rarity_rank(
-      self.user.id,
+      self.user_discord_id,
       self.source_rarity_rank
     )
 
@@ -557,9 +577,8 @@ class RematerializationView(discord.ui.View):
 
     items = await db_get_rematerialization_items(self.rematerialization_id)
 
-    # Validate contents; cancel only for true invalidation (owner/status/rarity).
     for it in items:
-      if it['owner_discord_id'] != self.user.id:
+      if str(it['owner_discord_id']) != self.user_discord_id:
         await db_cancel_rematerialization(self.rematerialization_id)
         await self._hard_stop(
           interaction,
@@ -587,11 +606,10 @@ class RematerializationView(discord.ui.View):
         )
         return
 
-    # If the DB selection drifted from the UI count, rehydrate instead of cancelling.
     if len(items) != self.contents_target:
       self._rehydrate_from_items(items)
       self.type_rows = await db_get_user_unattuned_crystal_type_counts_by_rarity_rank(
-        self.user.id,
+        self.user_discord_id,
         self.source_rarity_rank
       )
       if self._contents_total() >= self.contents_target:
@@ -618,7 +636,7 @@ class RematerializationView(discord.ui.View):
       return
 
     await create_new_crystal_instance(
-      self.user.id,
+      self.user_discord_id,
       crystal_type['id'],
       event_type='rematerialization'
     )
@@ -668,21 +686,17 @@ class Rematerialization(commands.Cog):
 
   @rematerialize.command(name='engage', description='Begin crystal rematerialization.')
   @commands.check(access_check)
-  async def engage(self, ctx: discord.ApplicationContext):
-    view = RematerializationView(self, ctx.user)
-    view.rarity_rows = await view._load_rarity_rows()
-    await view.start(ctx)
-
+  async def start(self, ctx: discord.ApplicationContext):
+    user_discord_id = str(ctx.user.id)
+    active = await db_get_active_rematerialization(user_discord_id)
 
     view = RematerializationView(self, ctx.user)
 
-    # No active session: start fresh at rarity selection.
     if not active:
       view.rarity_rows = await view._load_rarity_rows()
       await view.start(ctx)
       return
 
-    # Active session: rejoin it.
     view.rematerialization_id = active['id']
     view.source_rarity_rank = active['source_rank_id']
     view.target_rarity_rank = active['target_rank_id']
@@ -691,7 +705,7 @@ class Rematerialization(commands.Cog):
 
     invalid = False
     for it in items:
-      if it['owner_discord_id'] != ctx.user.id:
+      if str(it['owner_discord_id']) != user_discord_id:
         invalid = True
         break
       if it['crystal_status'] != 'available':
@@ -716,7 +730,7 @@ class Rematerialization(commands.Cog):
     view._rehydrate_from_items(items)
 
     view.type_rows = await db_get_user_unattuned_crystal_type_counts_by_rarity_rank(
-      ctx.user.id,
+      user_discord_id,
       view.source_rarity_rank
     )
 
