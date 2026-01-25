@@ -163,6 +163,18 @@ class RematerializationView(discord.ui.DesignerView):
 
     selected = self._selected_rows_sorted()
     if not selected:
+      # Show a gif when the queue is empty (Selected (0/10))
+      try:
+        container.add_item(discord.ui.Separator())
+        container.add_gallery(
+          discord.MediaGalleryItem(
+            'https://i.imgur.com/rtlG2aV.gif',
+            description='No crystals queued yet'
+          )
+        )
+      except Exception as e:
+        logger.error('Error adding empty-selected media gallery: %s', e, exc_info=True)
+
       return files
 
     for r in selected:
@@ -195,7 +207,8 @@ class RematerializationView(discord.ui.DesignerView):
         except Exception as e:
           logger.error('Error in section/thumbnail: %s', e, exc_info=True)
 
-      container.add_item(discord.ui.TextDisplay(f'- {text}'))
+      # Fallback: still no bullets, just show the text
+      container.add_item(discord.ui.TextDisplay(text))
 
     return files
 
