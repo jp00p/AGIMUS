@@ -122,8 +122,8 @@ class RematerializationView(discord.ui.DesignerView):
 
     if self.state == 'CONFIRM':
       return (
-        f'Confirm to Dematerialize these {self.cog.rarity_emoji(self.source_rarity_rank)} Crystals and '
-        f'Materialize 1 new {self.cog.rarity_emoji(self.target_rarity_rank)} Crystal.'
+        f'Confirm to Dematerialize these Crystals and '
+        f'Materialize 1 new `{self.cog.rarity_emoji(self.target_rarity_rank)} {self.cog.rarity_name(self.target_rarity_rank)}` Crystal.'
       )
 
     return None
@@ -251,6 +251,7 @@ class RematerializationView(discord.ui.DesignerView):
 
     # Media gallery ONLY on initial rarity screen
     if self.state == 'RARITY':
+      container.add_item(discord.ui.Separator())
       container.add_gallery(
         discord.MediaGalleryItem(
           'https://i.imgur.com/YSwvM4T.gif',
@@ -260,11 +261,13 @@ class RematerializationView(discord.ui.DesignerView):
 
     status = self._build_status_block()
     if status:
+      container.add_item(discord.ui.Separator())
       container.add_item(discord.ui.TextDisplay(status))
 
-    if self.state in ('TYPE', 'QUANTITY', 'CONFIRM'):
-      sel_files = self._build_selected_sections(container)
-      files.extend(sel_files)
+    if self.state in ('TYPE', 'CONFIRM'):
+      files.extend(self._build_selected_sections(container))
+    elif self.state == 'QUANTITY':
+      files.extend(self._build_selected_type_section(container))
 
     body = self._ui_body()
     if body:
