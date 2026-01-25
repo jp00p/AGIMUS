@@ -149,3 +149,48 @@ async def db_remove_last_rematerialization_item(rematerialization_id: int) -> di
     await db.execute(sql, (row['rematerialization_item_id'],))
 
   return row
+
+async def db_remove_last_rematerialization_type_batch(rematerialization_id: int) -> list[dict]:
+  # Removes the contiguous tail of items that share the same crystal_type_id as the most recent item.
+  # Returns the removed rows (crystal_instance_id, crystal_type_id) in the order they were removed.
+  sql = """
+    SELECT
+      ri.id AS rematerialization_item_id,
+      ci.id AS crystal_instance_id,
+      ct.id AS crystal_type_id
+    FROM crystal_rematerialization_items ri
+    JOIN crystal_instances ci ON ri.crystal_instance_id = ci.id
+    JOIN crystal_types ct ON ci.crystal_type_id = ct.id
+    WHERE ri.rematerialization_id = %s
+    ORDER BY ri.id DESC
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (rematerialization_id,))
+    rows = await db.fetchall()
+
+  if not rows:
+    return []
+
+  last_type_id = rows[0]['crystal_type_id']
+
+  # Only remove the contiguous tail matching last_type_id
+  to_remove = []
+  for row in rows:
+    if row['crystal_type_id'] != last_type_id:
+      break
+    to_remove.append(row)
+
+  if not to_remove:
+    return []
+
+  placeholders = ', '.join(['%s'] * len(to_remove))
+  ids = [r['rematerialization_item_id'] for r in to_remove]
+
+  sql = f"""
+    DELETE FROM crystal_rematerialization_items
+    WHERE id IN ({placeholders})
+  """
+  async with AgimusDB() as db:
+    await db.execute(sql, ids)
+
+  return to_remove
