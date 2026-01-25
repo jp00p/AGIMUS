@@ -480,7 +480,7 @@ async def db_set_user_crystal_buffer(user_id: int, amount: int):
     ON DUPLICATE KEY UPDATE buffer_count = %s
   """
   async with AgimusDB() as db:
-    await db.execute(sql, (user_id, amount, amount))
+    await db.execute(sql, (user_id, amount))
 
 
 # Replicator Helpers

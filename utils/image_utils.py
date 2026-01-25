@@ -1846,161 +1846,378 @@ async def generate_crystal_replicator_confirmation_frames(crystal, replicator_ty
   # Return Discord file and filename
   return discord.File(webp_buf, filename=replicator_confirmation_filename), replicator_confirmation_filename
 
-#   _________
-#  /   _____/ ________________  ______ ______   ___________
-#  \_____  \_/ ___\_  __ \__  \ \____ \\____ \_/ __ \_  __ \
-#  /        \  \___|  | \// __ \|  |_> >  |_> >  ___/|  | \/
-# /_______  /\___  >__|  (____  /   __/|   __/ \___  >__|
-#         \/     \/           \/|__|   |__|        \/
-# async def generate_badge_scrapper_confirmation_frames(badges_to_scrap):
-#   replicator_image = await threaded_image_open_no_convert(f"./images/templates/scrap/replicator.png")
 
-#   base_image = Image.new("RGBA", (replicator_image.width, replicator_image.height), (0, 0, 0))
-#   base_image.paste(replicator_image, (0, 0))
+# _____________________   _____      _____________________________________.___   _____  .____    ._____________  ________________.___________    _______   
+# \______   \_   _____/  /     \    /  _  \__    ___/\_   _____/\______   \   | /  _  \ |    |   |   \____    / /  _  \__    ___/|   \_____  \   \      \  
+#  |       _/|    __)_  /  \ /  \  /  /_\  \|    |    |    __)_  |       _/   |/  /_\  \|    |   |   | /     / /  /_\  \|    |   |   |/   |   \  /   |   \ 
+#  |    |   \|        \/    Y    \/    |    \    |    |        \ |    |   \   /    |    \    |___|   |/     /_/    |    \    |   |   /    |    \/    |    \
+#  |____|_  /_______  /\____|__  /\____|__  /____|   /_______  / |____|_  /___\____|__  /_______ \___/_______ \____|__  /____|   |___\_______  /\____|__  /
+#         \/        \/         \/         \/                 \/         \/            \/        \/           \/       \/                     \/         \/ 
+_REMATERIALIZATION_CACHE = {
+  'bg': None,
+  'mask': None,
+  'effect_frames': None,
+  'effect_key': None
+}
 
-#   # TODO: use get_cached_base_badge_canvas for these...
-#   # e.g. b1 = await get_cached_base_badge_canvas(badges_to_scrap[0]['badge_filename'])
-#   b1 = await threaded_image_open(f"./images/badges/{badges_to_scrap[0]['badge_filename']}").convert("RGBA").resize((125, 125))
-#   b2 = await threaded_image_open(f"./images/badges/{badges_to_scrap[1]['badge_filename']}").convert("RGBA").resize((125, 125))
-#   b3 = await threaded_image_open(f"./images/badges/{badges_to_scrap[2]['badge_filename']}").convert("RGBA").resize((125, 125))
+REMATERIALIZATION_CACHE = {
+  'bg': None,
+  'mask': None,
+  'effect_frames': None,
+  'effect_key': None
+}
 
-#   b_list = [b1, b2, b3]
+def build_rematerialization_pile_bytes(
+  *,
+  items: list[dict],
+  canvas_size: tuple[int, int],
+  icons_dir: str = './images/templates/crystals/icons',
+  seed: int | None = None
+) -> io.BytesIO:
+  """
+  Builds an in-memory pile image (full-frame RGBA PNG) from the selected rematerialization items.
 
-#   frames = []
-#   badge_position_x = 75
-#   badge_position_y = 130
+  items: rows from db_get_rematerialization_items(), must include ct.icon as 'icon'
+  canvas_size: (w, h) of the rematerializer background
+  seed: optional, for deterministic piles per rematerialization_id
 
-#   # Add 30 frames of just the replicator and the badges by themselves
-#   for n in range(1, 31):
-#     frame = base_image.copy()
-#     frame_badges = [b.copy() for b in b_list]
+  Returns:
+    io.BytesIO containing a PNG with alpha.
+  """
+  def _load_rgba(path: str) -> Image.Image:
+    # Ensure file handle is closed and pixels are loaded
+    with Image.open(path) as im:
+      if im.mode != 'RGBA':
+        im = im.convert('RGBA')
+      return im.copy()
 
-#     current_x = badge_position_x
-#     for f_b in frame_badges:
-#       frame.paste(f_b, (current_x, badge_position_y), f_b)
-#       current_x = current_x + 130
+  def _trim_alpha(im: Image.Image, pad: int = 0) -> Image.Image:
+    if im.mode != 'RGBA':
+      im = im.convert('RGBA')
+    bbox = im.getchannel('A').getbbox()
+    if not bbox:
+      return im
+    x0, y0, x1, y1 = bbox
+    x0 = max(0, x0 - pad)
+    y0 = max(0, y0 - pad)
+    x1 = min(im.width, x1 + pad)
+    y1 = min(im.height, y1 + pad)
+    return im.crop((x0, y0, x1, y1))
 
-#     frames.append(frame)
+  def _safe_open_icon(icon_name: str) -> Image.Image | None:
+    if not icon_name:
+      return None
+    path = f'{icons_dir}/{icon_name}'
+    if not os.path.exists(path):
+      return None
+    try:
+      return _load_rgba(path)
+    except Exception:
+      return None
 
-#   # Create the badge transporter effect animation
-#   for n in range(1, 71):
-#     frame = base_image.copy()
+  rng = random.Random(seed)
 
-#     frame_badges = [b.copy() for b in b_list]
+  w, h = canvas_size
+  canvas = Image.new('RGBA', (w, h), (0, 0, 0, 0))
 
-#     current_x = badge_position_x
-#     for f_b in frame_badges:
-#       # Determine opacity of badge
-#       # As the animation continues the opacity decreases
-#       # based on the percentage of the animation length to 255 (70 total frames)
-#       opacity_value = round((100 - (n / 70 * 100)) * 2.55)
-#       badge_with_opacity = f_b.copy()
-#       badge_with_opacity.putalpha(opacity_value)
-#       f_b.paste(badge_with_opacity, f_b)
+  center_x = int(w * 0.50)
+  center_y = int(h * 0.58)
 
-#       # Layer effect over badge image
-#       badge_with_effect = Image.new("RGBA", (125, 125), (255, 255, 255, 0))
-#       badge_with_effect.paste(f_b, (0, 0), f_b)
-#       effect_frame = await threaded_image_open(f"./images/templates/scrap/effect/{'{:02d}'.format(n)}.png").resize((125, 125))
-#       badge_with_effect.paste(effect_frame, (0, 0), effect_frame)
+  base_tilt_deg = -12.0
 
-#       # Stick badge onto replicator background
-#       frame.paste(badge_with_effect, (current_x, badge_position_y), badge_with_effect)
+  spread_x = 95
+  spread_y = 55
 
-#       current_x = current_x + 130
+  scale_min = 0.72
+  scale_max = 0.90
 
-#     frames.append(frame)
+  left_base_rot = -65.0
+  right_base_rot = 65.0
+  rot_jitter = 18.0
 
-#   # Add 10 frames of the replicator by itself
-#   for n in range(1, 11):
-#     frame = base_image.copy()
-#     frames.append(frame)
+  in_front_bias = 0.25
 
-#   return frames
+  icons = []
+  for it in items:
+    im = _safe_open_icon(it.get('icon'))
+    if im:
+      icons.append(im)
+
+  if not icons:
+    out = io.BytesIO()
+    canvas.save(out, format='PNG')
+    out.seek(0)
+    return out
+
+  order = list(range(len(icons)))
+  rng.shuffle(order)
+
+  if len(order) > 2:
+    for _ in range(max(1, int(len(order) * in_front_bias))):
+      i = rng.randrange(0, len(order))
+      j = rng.randrange(0, len(order))
+      if i < j:
+        order[i], order[j] = order[j], order[i]
+
+  for icon_idx in order:
+    im = _trim_alpha(icons[icon_idx], pad=1)
+
+    ox = rng.uniform(-spread_x, spread_x) * 0.85
+    oy = rng.uniform(-spread_y, spread_y) * 0.85
+
+    s = rng.uniform(scale_min, scale_max)
+    new_w = max(2, int(im.width * s))
+    new_h = max(2, int(im.height * s))
+    im2 = im.resize((new_w, new_h), resample=Image.Resampling.LANCZOS)
+
+    if ox < 0:
+      rot = left_base_rot + rng.uniform(-rot_jitter, rot_jitter)
+    else:
+      rot = right_base_rot + rng.uniform(-rot_jitter, rot_jitter)
+
+    if rng.random() < 0.20:
+      rot += rng.choice([-90, 90])
+
+    im2 = im2.rotate(rot, resample=Image.Resampling.BICUBIC, expand=True)
+
+    px = int(center_x + ox - (im2.width / 2))
+    py = int(center_y + oy - (im2.height / 2))
+
+    canvas.alpha_composite(im2, (px, py))
+
+  canvas = canvas.rotate(base_tilt_deg, resample=Image.Resampling.BICUBIC, expand=False)
+
+  out = io.BytesIO()
+  canvas.save(out, format='PNG')
+  out.seek(0)
+  return out
 
 
+def build_rematerialization_success_animation(
+  *,
+  pile_bytes: io.BytesIO | bytes,
+  result_crystal_path: str,
+  fps: int = 75,
+  hold_start_frames: int = 10,
+  hold_mid_frames: int = 8,
+  hold_end_frames: int = 10,
+  fade_in_start_frame: int = 5,
+  fade_in_done_frames_from_end: int = 10,
+  fade_out_start_frame: int = 5,
+  fade_out_done_frames_from_end: int = 10,
+  output_format: str = 'WEBP',
+  loop: int = 0,
+  return_bytes: bool = True
+) -> io.BytesIO | None:
+  """
+  - Hold pile (start)
+  - Dematerialize: effect forward while pile fades out
+  - Hold empty pad (mid)
+  - Materialize: effect forward while result fades in underneath
+  - Hold result (end)
+  """
+  def _load_rgba(path: str) -> Image.Image:
+    im = Image.open(path)
+    if im.mode != 'RGBA':
+      im = im.convert('RGBA')
+    return im
 
-# @to_thread
-# def generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
-#   return _generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
+  def _load_rgba_from_bytes(buf: io.BytesIO | bytes) -> Image.Image:
+    if isinstance(buf, (bytes, bytearray)):
+      buf = io.BytesIO(buf)
+    buf.seek(0)
+    im = Image.open(buf)
+    if im.mode != 'RGBA':
+      im = im.convert('RGBA')
+    return im
 
-# # --- Fix for invalid await inside @to_thread ---
-# def _generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
-#   frames = generate_badge_scrapper_confirmation_frames(badges_to_scrap)
+  def _list_frame_paths(frames_dir: str) -> list[str]:
+    files = []
+    for name in os.listdir(frames_dir):
+      lower = name.lower()
+      if lower.endswith('.png') or lower.endswith('.webp'):
+        files.append(os.path.join(frames_dir, name))
 
-#   gif_save_filepath = f"./images/scrap/{user_id}-confirm.gif"
-#   frames[0].save(
-#     gif_save_filepath,
-#     save_all=True, append_images=frames[1:], optimize=False, duration=40, loop=0
-#   )
+    def _key(p: str):
+      base = os.path.basename(p)
+      digits = ''.join([c if c.isdigit() else ' ' for c in base]).split()
+      return (int(digits[-1]) if digits else 0, base)
 
-#   while True:
-#     time.sleep(0.05)
-#     if os.path.isfile(gif_save_filepath):
-#       break
+    return sorted(files, key=_key)
 
-#   return discord.File(gif_save_filepath, filename=f"scrap_{user_id}-confirm.gif")
+  def _alpha_mul(im: Image.Image, a: float) -> Image.Image:
+    if a >= 0.999:
+      return im
+    if a <= 0.001:
+      out = im.copy()
+      out.putalpha(0)
+      return out
 
+    r, g, b, alpha = im.split()
+    alpha = alpha.point(lambda v: int(v * a))
+    return Image.merge('RGBA', (r, g, b, alpha))
 
-# @to_thread
-# def generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap):
-#   return _generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap)
+  def _apply_mask_alpha(layer: Image.Image, mask: Image.Image) -> Image.Image:
+    lr, lg, lb, la = layer.split()
+    _, _, _, ma = mask.split()
 
-# def _generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap):
-#   badge_created_filename = badge_to_add['badge_filename']
-#   replicator_image = Image.open(f"./images/templates/scrap/replicator.png")
+    la_bytes = la.tobytes()
+    ma_bytes = ma.tobytes()
 
-#   base_image = Image.new("RGBA", (replicator_image.width, replicator_image.height), (0, 0, 0))
-#   base_image.paste(replicator_image, (0, 0))
+    out = bytearray(len(la_bytes))
+    for i in range(len(out)):
+      out[i] = (la_bytes[i] * ma_bytes[i]) // 255
 
-#   frames = generate_badge_scrapper_confirmation_frames(badges_to_scrap)
+    new_la = Image.frombytes('L', layer.size, bytes(out))
+    return Image.merge('RGBA', (lr, lg, lb, new_la))
 
-#   b = Image.open(f"./images/badges/{badge_created_filename}").convert("RGBA")
-#   b = b.resize((190, 190))
+  def _composite(bg: Image.Image, layer: Image.Image) -> Image.Image:
+    out = bg.copy()
+    out.alpha_composite(layer)
+    return out
 
-#   badge_position_x = 180
-#   badge_position_y = 75
+  def _get_rematerialization_assets(
+    *,
+    bg_path: str,
+    effect_frames_dir: str,
+    mask_path: str
+  ) -> tuple[Image.Image, Image.Image, list[Image.Image]]:
+    key = f'{bg_path}|{effect_frames_dir}|{mask_path}'
+    if _REMATERIALIZATION_CACHE['effect_key'] != key:
+      _REMATERIALIZATION_CACHE['bg'] = None
+      _REMATERIALIZATION_CACHE['mask'] = None
+      _REMATERIALIZATION_CACHE['effect_frames'] = None
+      _REMATERIALIZATION_CACHE['effect_key'] = key
 
-#   # Add 10 frames of just the replicator by itself
-#   for n in range(1, 11):
-#     frame = base_image.copy()
-#     frames.append(frame)
+    if _REMATERIALIZATION_CACHE['bg'] is None:
+      _REMATERIALIZATION_CACHE['bg'] = _load_rgba(bg_path)
 
-#   # Create the badge transporter effect animation
-#   for n in range(1, 71):
-#     frame = base_image.copy()
-#     frame_badge = b.copy()
+    if _REMATERIALIZATION_CACHE['mask'] is None:
+      _REMATERIALIZATION_CACHE['mask'] = _load_rgba(mask_path)
 
-#     opacity_value = round((n / 70 * 100) * 2.55)
-#     badge_with_opacity = b.copy()
-#     badge_with_opacity.putalpha(opacity_value)
-#     frame_badge.paste(badge_with_opacity, frame_badge)
+    if _REMATERIALIZATION_CACHE['effect_frames'] is None:
+      frame_paths = _list_frame_paths(effect_frames_dir)
+      if not frame_paths:
+        raise ValueError(f'No effect frames found in: {effect_frames_dir}')
+      _REMATERIALIZATION_CACHE['effect_frames'] = [_load_rgba(p) for p in frame_paths]
 
-#     badge_with_effect = Image.new("RGBA", (190, 190), (255, 255, 255, 0))
-#     badge_with_effect.paste(frame_badge, (0, 0), frame_badge)
-#     effect_frame = Image.open(f"./images/templates/scrap/effect/{'{:02d}'.format(n)}.png").convert('RGBA')
-#     badge_with_effect.paste(effect_frame, (0, 0), effect_frame)
+    return (
+      _REMATERIALIZATION_CACHE['bg'],
+      _REMATERIALIZATION_CACHE['mask'],
+      _REMATERIALIZATION_CACHE['effect_frames']
+    )
 
-#     frame.paste(badge_with_effect, (badge_position_x, badge_position_y), badge_with_effect)
-#     frames.append(frame)
+  bg_path = './images/templates/rematerialization/rematerializer.png'
+  effect_frames_dir = './images/templates/rematerialization/effect'
+  mask_path = './images/templates/rematerialization/mask_topbottom.png'
 
-#   for n in range(1, 31):
-#     frame = base_image.copy()
-#     frame.paste(b, (badge_position_x, badge_position_y), b)
-#     frames.append(frame)
+  bg, mask, effect_frames = _get_rematerialization_assets(
+    bg_path=bg_path,
+    effect_frames_dir=effect_frames_dir,
+    mask_path=mask_path
+  )
 
-#   gif_save_filepath = f"./images/scrap/{user_id}.gif"
-#   frames[0].save(
-#     gif_save_filepath,
-#     save_all=True, append_images=frames[1:], optimize=False, duration=40, loop=0
-#   )
+  pile = _load_rgba_from_bytes(pile_bytes)
+  result_crystal = _load_rgba(result_crystal_path)
 
-#   while True:
-#     time.sleep(0.10)
-#     if os.path.isfile(gif_save_filepath):
-#       break
+  w, h = bg.size
 
-#   return discord.File(gif_save_filepath, filename=f"scrap_{user_id}.gif")
+  if pile.size != (w, h):
+    pile = pile.resize((w, h), resample=Image.Resampling.LANCZOS)
+  if result_crystal.size != (w, h):
+    result_crystal = result_crystal.resize((w, h), resample=Image.Resampling.LANCZOS)
+  if mask.size != (w, h):
+    mask = mask.resize((w, h), resample=Image.Resampling.LANCZOS)
+
+  fixed_fx = []
+  for fx in effect_frames:
+    if fx.size != (w, h):
+      fx = fx.resize((w, h), resample=Image.Resampling.LANCZOS)
+    fixed_fx.append(fx)
+  effect_frames = fixed_fx
+
+  n = len(effect_frames)
+  if n < 2:
+    raise ValueError('Need at least 2 effect frames.')
+
+  def _fade_out_alpha(i: int) -> float:
+    start = max(0, fade_out_start_frame)
+    done = max(0, n - fade_out_done_frames_from_end)
+
+    if i < start:
+      return 1.0
+    if i >= done:
+      return 0.0
+
+    t = (i - start) / max(1, (done - start))
+    return max(0.0, min(1.0, 1.0 - t))
+
+  def _fade_in_alpha(i: int) -> float:
+    start = max(0, fade_in_start_frame)
+    done = max(0, n - fade_in_done_frames_from_end)
+
+    if i < start:
+      return 0.0
+    if i >= done:
+      return 1.0
+
+    t = (i - start) / max(1, (done - start))
+    return max(0.0, min(1.0, t))
+
+  frames: list[Image.Image] = []
+
+  start_frame = _composite(bg, pile)
+  for _ in range(max(0, hold_start_frames)):
+    frames.append(start_frame)
+
+  for i in range(n):
+    pile_a = _fade_out_alpha(i)
+    pile_layer = _alpha_mul(pile, pile_a)
+
+    layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    layer.alpha_composite(pile_layer)
+    layer.alpha_composite(effect_frames[i])
+    layer = _apply_mask_alpha(layer, mask)
+
+    frames.append(_composite(bg, layer))
+
+  for _ in range(max(0, hold_mid_frames)):
+    frames.append(bg)
+
+  for i in range(n):
+    crystal_a = _fade_in_alpha(i)
+    crystal_layer = _alpha_mul(result_crystal, crystal_a)
+
+    layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    layer.alpha_composite(crystal_layer)
+    layer.alpha_composite(effect_frames[i])
+    layer = _apply_mask_alpha(layer, mask)
+
+    frames.append(_composite(bg, layer))
+
+  end_frame = _composite(bg, result_crystal)
+  for _ in range(max(0, hold_end_frames)):
+    frames.append(end_frame)
+
+  duration_ms = int(round(1000 / max(1, fps)))
+
+  out = io.BytesIO()
+  frames[0].save(
+    out,
+    format=output_format,
+    save_all=True,
+    append_images=frames[1:],
+    duration=duration_ms,
+    loop=loop,
+    disposal=2,
+    lossless=True,
+    method=6
+  )
+  out.seek(0)
+
+  if return_bytes:
+    return out
+  return None
 
 
 # ________                      .__
