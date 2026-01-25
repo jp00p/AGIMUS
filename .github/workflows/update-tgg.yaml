@@ -37,6 +37,7 @@ jobs:
           pip install docopt~=0.6.2 feedparser~=6.0.11 requests~=2.31.0 tmdbsimple~=2.9.1 python-dotenv~=1.0.0
           echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
             && python ./utils/generate_show_json.py enterprise -p --next-episode \
+            && python ./utils/generate_show_json.py sfa --next-episode \
             && rm -rf .env
           rm -rf .env || true
           git config user.name github-actions

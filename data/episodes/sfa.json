@@ -1,0 +1,75 @@
+{
+    "animated": false,
+    "episodes": [
+        {
+            "airdate": "2026.01.15",
+            "title": "Kids These Days",
+            "description": "Caleb Mir, a brilliant street kid, is offered admission to the new Starfleet Academy class.",
+            "season": "01",
+            "episode": "01",
+            "podcasts": [
+                {
+                    "airdate": "2026.01.16",
+                    "episode": "Half Dunk",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-358-half-dunk-sfa-s1e1/",
+                    "order": 358,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Kids_These_Days_(episode)",
+            "tvdb": 4331860,
+            "imdb": "tt27385510",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/1U61OOu2BCLeqqjdIdSeXCCwDWc.jpg"
+            ]
+        },
+        {
+            "airdate": "2026.01.15",
+            "title": "Beta Test",
+            "description": "Caleb questions whether he belongs at Starfleet Academy as the new academic year begins.",
+            "season": "01",
+            "episode": "02",
+            "podcasts": [
+                {
+                    "airdate": "2026.01.20",
+                    "episode": "To The Catering, Whence The Catered",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-359-to-the-catering-whence-the-catered-sfa-s1e2/",
+                    "order": 359,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Beta_Test_(episode)",
+            "tvdb": 6594793,
+            "imdb": "tt32800965",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/vVrNWCRZqegqRkVa7VEcdAp9WEi.jpg"
+            ]
+        },
+        {
+            "airdate": "2026.01.22",
+            "title": "Vitus Reflux",
+            "description": "While our cadets compete to join an elite team at the Academy, a battle of escalating pranks breaks out between Starfleet Academy and a rival school. Tensions rise fast, threatening their newly-emerging bonds and a blossoming romance.",
+            "season": "01",
+            "episode": "03",
+            "podcasts": [
+                {
+                    "airdate": "2026.01.23",
+                    "episode": "Baddie Academy",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-360-baddie-academy-sfa-s1e3/",
+                    "order": 360,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Vitus_Reflux_(episode)",
+            "tvdb": 6594794,
+            "imdb": "tt34127729",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/zxGxsjWs4UfQMsReYWHNGhuItne.jpg"
+            ]
+        }
+    ],
+    "imdb": "",
+    "title": "Star Trek: Starfleet Academy",
+    "trek": true,
+    "tvdb": 223530
+}
