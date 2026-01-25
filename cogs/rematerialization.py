@@ -6,6 +6,7 @@ from utils.crystal_instances import *
 
 from utils.check_channel_access import access_check
 
+
 class RematerializationView(discord.ui.DesignerView):
   def __init__(self, cog, user: discord.User):
     super().__init__(timeout=180)
@@ -85,17 +86,9 @@ class RematerializationView(discord.ui.DesignerView):
     end = start + self.type_per_page
     return self.type_rows[start:end]
 
-  def _selected_bullets(self) -> str:
-    if not self.contents:
-      return '- None'
-
-    lines = []
-    for type_id, qty in sorted(self.contents.items(), key=lambda kv: kv[0]):
-      row = next((r for r in self.type_rows if r['crystal_type_id'] == type_id), None)
-      name = row['crystal_name'] if row else 'Type {type_id}'.format(type_id=type_id)
-      lines.append('- {name} x{qty}'.format(name=name, qty=qty))
-
-    return '\n'.join(lines)
+  def _effective_available_for_row(self, row: dict) -> int:
+    chosen = self.contents.get(row['crystal_type_id'], 0)
+    return max(0, row['count'] - chosen)
 
   def _ui_title(self) -> str:
     if self.state == 'RARITY':
@@ -112,18 +105,18 @@ class RematerializationView(discord.ui.DesignerView):
     if self.state == 'RARITY':
       if not self.rarity_rows:
         return 'You do not have enough unattuned Crystals in any tier to Rematerialize (requires 10).'
-      return 'Select a rarity tier. You will dematerialize 10 Crystals from that tier to Materialize 1 Crystal of the next tier.'
+      return 'Select a rarity tier. You will Dematerialize 10 Crystals from that tier to Materialize 1 Crystal of the next tier.'
 
     if self.state == 'TYPE':
       if not self.type_rows:
-        return 'No Crystal types available for that rarity.'
-      return 'Select a Crystal type to add.'
+        return 'No Crystal Types available for that rarity.'
+      return None
 
     if self.state == 'QUANTITY':
       return 'Select how many Crystals to add.'
 
     if self.state == 'CONFIRM':
-      return 'Confirm to dematerialize these Crystals and Materialize 1 new Crystal.'
+      return 'Confirm to Dematerialize these Crystals and Materialize 1 new Crystal.'
 
     return '...'
 
@@ -132,45 +125,121 @@ class RematerializationView(discord.ui.DesignerView):
       return ''
 
     parts = []
-    parts.append('### Contents\n{cur}/{target}'.format(cur=self._contents_total(), target=self.contents_target))
-    parts.append('### Remaining\n{rem}'.format(rem=self._contents_remaining()))
-
-    selected = self._selected_bullets()
-    parts.append('### Selected\n{sel}'.format(sel=selected))
+    parts.append(
+      '## Contents\n{cur}/{target}'.format(
+        cur=self._contents_total(),
+        target=self.contents_target
+      )
+    )
 
     if self.state == 'CONFIRM':
       parts.append(
-        '### Rarity\n{src} -> {dst}'.format(
+        '## Rarity\n{src} -> {dst}'.format(
           src=self.cog.rarity_name(self.source_rarity_rank),
           dst=self.cog.rarity_name(self.target_rarity_rank)
         )
       )
 
-    return '\n\n'.join(parts)
+    return '\n'.join(parts)
 
-  def _build_container(self) -> discord.ui.Container:
+  def _selected_rows_sorted(self) -> list[dict]:
+    rows = []
+    for type_id, qty in self.contents.items():
+      row = next((r for r in self.type_rows if r['crystal_type_id'] == type_id), None)
+      name = row['crystal_name'] if row else 'Type {type_id}'.format(type_id=type_id)
+      icon = row.get('icon') if row else None
+      description = row.get('description') if row else ''
+      rows.append({
+        'crystal_type_id': type_id,
+        'qty': qty,
+        'crystal_name': name,
+        'icon': icon,
+        'description': description
+      })
+    return sorted(rows, key=lambda r: r['crystal_name'].lower())
+
+  def _selected_needs_attachments(self) -> bool:
+    if not self.contents:
+      return False
+    for r in self._selected_rows_sorted():
+      if r.get('icon'):
+        return True
+    return False
+
+  def _build_selected_sections(self, container: discord.ui.Container) -> list[discord.File]:
+    files = []
+
+    container.add_item(discord.ui.Separator())
+    container.add_item(discord.ui.TextDisplay('## Selected'))
+
+    selected = self._selected_rows_sorted()
+    if not selected:
+      container.add_item(discord.ui.TextDisplay('- None'))
+      return files
+
+    for r in selected:
+      name = r['crystal_name']
+      qty = r['qty']
+      icon = r.get('icon')
+      description = r.get('description')
+
+      text = f"### {name} (*x{qty}*)\n{description}"
+
+      if icon:
+        icon_path = './images/templates/crystals/icons/{icon}'.format(icon=icon)
+        filename = 'crystal_type_{tid}.png'.format(tid=r['crystal_type_id'])
+
+        try:
+          files.append(discord.File(icon_path, filename=filename))
+
+          thumb = discord.ui.Thumbnail(
+            url='attachment://{fn}'.format(fn=filename),
+            description=name
+          )
+
+          section = discord.ui.Section(
+            discord.ui.TextDisplay(text),
+            accessory=thumb
+          )
+
+          container.add_item(section)
+          continue
+        except Exception as e:
+          logger.error('Error in section/thumbnail: %s', e, exc_info=True)
+
+      # Fallback (no icon, missing file, or any exception)
+      container.add_item(discord.ui.TextDisplay('- {text}'.format(text=text)))
+
+    return files
+
+
+  def _build_container(self) -> tuple[discord.ui.Container, list[discord.File]]:
     container = discord.ui.Container(color=discord.Color.teal().value)
+    files = []
 
-    # Title as H1
     header_lines = ['# {title}'.format(title=self._ui_title())]
     if self.notice:
       header_lines.append('Note: {msg}'.format(msg=self.notice))
+
     container.add_item(discord.ui.TextDisplay('\n'.join(header_lines)))
     container.add_item(discord.ui.Separator())
 
     status = self._build_status_block()
     if status:
       container.add_item(discord.ui.TextDisplay(status))
-      container.add_item(discord.ui.Separator())
 
+    # Selected sections (with thumbnails)
+    if self.state in ('TYPE', 'QUANTITY', 'CONFIRM'):
+      files = self._build_selected_sections(container)
+
+    container.add_item(discord.ui.Separator())
     container.add_item(discord.ui.TextDisplay(self._ui_body()))
 
-    # Page text (smaller / less prominent)
     if self.state == 'TYPE' and self._type_total_pages() > 1:
       page_line = 'Page {cur}/{total}'.format(cur=self.type_page + 1, total=self._type_total_pages())
       container.add_item(discord.ui.TextDisplay(page_line))
 
-    return container
+    return container, files
 
   def _build_end_container(self, title: str, body: str, color: discord.Color) -> discord.ui.Container:
     container = discord.ui.Container(color=color.value)
@@ -212,7 +281,7 @@ class RematerializationView(discord.ui.DesignerView):
 
     if not opts:
       opts.append(discord.SelectOption(
-        label='No Crystal types available',
+        label='No Crystal Types available',
         value='none',
         description='You have nothing left to add.'
       ))
@@ -236,15 +305,15 @@ class RematerializationView(discord.ui.DesignerView):
       back_btn.callback = self._on_back
       row.add_item(back_btn)
 
-    can_remove = bool(self.rematerialization_id) and self._contents_total() > 0 and self.state in ('TYPE', 'QUANTITY', 'CONFIRM')
+    cancel_btn = discord.ui.Button(label='Cancel', style=discord.ButtonStyle.secondary)
+    cancel_btn.callback = self._on_cancel
+    row.add_item(cancel_btn)
+
+    can_remove = bool(self.rematerialization_id) and self._contents_total() > 0 and self.state == 'TYPE'
     if can_remove:
       rm_btn = discord.ui.Button(label='Remove Last Added', style=discord.ButtonStyle.secondary)
       rm_btn.callback = self._on_remove_last
       row.add_item(rm_btn)
-
-    cancel_btn = discord.ui.Button(label='Cancel', style=discord.ButtonStyle.secondary)
-    cancel_btn.callback = self._on_cancel
-    row.add_item(cancel_btn)
 
     if self.state == 'CONFIRM':
       confirm_btn = discord.ui.Button(label='Confirm', style=discord.ButtonStyle.primary)
@@ -255,9 +324,9 @@ class RematerializationView(discord.ui.DesignerView):
     container.add_item(discord.ui.Separator())
     container.add_item(row)
 
-  def _rebuild(self):
+  def _rebuild(self) -> list[discord.File]:
     self._clear_components()
-    container = self._build_container()
+    container, files = self._build_container()
 
     if self.state == 'RARITY':
       options = self._build_rarity_select_options()
@@ -275,11 +344,11 @@ class RematerializationView(discord.ui.DesignerView):
 
       self._add_footer_row(container)
       self.add_item(container)
-      return
+      return files
 
     if self.state == 'TYPE':
       select = discord.ui.Select(
-        placeholder='Choose a Crystal type',
+        placeholder='Choose a Crystal Type to Add',
         min_values=1,
         max_values=1,
         options=self._build_type_select_options()
@@ -307,7 +376,7 @@ class RematerializationView(discord.ui.DesignerView):
 
       self._add_footer_row(container)
       self.add_item(container)
-      return
+      return files
 
     if self.state == 'QUANTITY':
       options = self._build_quantity_select_options()
@@ -327,23 +396,63 @@ class RematerializationView(discord.ui.DesignerView):
 
       self._add_footer_row(container)
       self.add_item(container)
-      return
+      return files
 
     if self.state == 'CONFIRM':
       self._add_footer_row(container)
       self.add_item(container)
-      return
+      return files
 
     self._add_footer_row(container)
     self.add_item(container)
+    return files
+
+  async def _swap_message_with_files(self, interaction: discord.Interaction, files: list[discord.File]):
+    # We cannot reliably edit attachments. Create a new ephemeral message and delete the old one.
+    try:
+      await interaction.response.defer()
+    except Exception:
+      pass
+
+    try:
+      new_msg = await interaction.followup.send(view=self, files=files, ephemeral=True)
+    except TypeError:
+      # Some py-cord builds expect file= for single, not files=. Try fallback.
+      if len(files) == 1:
+        new_msg = await interaction.followup.send(view=self, file=files[0], ephemeral=True)
+      else:
+        new_msg = await interaction.followup.send(view=self, ephemeral=True)
+
+    try:
+      await interaction.message.delete()
+    except Exception:
+      pass
+
+    self.message = new_msg
 
   async def _render(self, interaction: discord.Interaction):
-    self._rebuild()
+    files = self._rebuild()
+
+    if files:
+      await self._swap_message_with_files(interaction, files)
+      return
+
     await interaction.response.edit_message(view=self)
 
   async def start(self, ctx: discord.ApplicationContext):
-    self._rebuild()
-    await ctx.respond(view=self, ephemeral=True)
+    files = self._rebuild()
+
+    if files:
+      try:
+        await ctx.respond(view=self, files=files, ephemeral=True)
+      except TypeError:
+        if len(files) == 1:
+          await ctx.respond(view=self, file=files[0], ephemeral=True)
+        else:
+          await ctx.respond(view=self, ephemeral=True)
+    else:
+      await ctx.respond(view=self, ephemeral=True)
+
     self.message = await ctx.interaction.original_response()
 
   async def _load_rarity_rows(self) -> list[dict]:
@@ -363,6 +472,17 @@ class RematerializationView(discord.ui.DesignerView):
       filtered.append(row)
 
     return filtered
+
+  async def _refresh_type_rows(self):
+    if not self.source_rarity_rank:
+      return
+
+    self.type_rows = await db_get_user_unattuned_crystal_type_counts_by_rarity_rank(
+      self.user_discord_id,
+      self.source_rarity_rank
+    )
+
+    self.type_page = min(self.type_page, max(0, self._type_total_pages() - 1))
 
   async def _select_instance_ids(self, crystal_type_id: int, qty: int) -> list[int]:
     if qty <= 0:
@@ -387,6 +507,28 @@ class RematerializationView(discord.ui.DesignerView):
       self.contents[tid] = self.contents.get(tid, 0) + 1
       self.selected_instance_ids.add(it['crystal_instance_id'])
 
+  async def _add_instances_to_session(self, interaction: discord.Interaction, crystal_type_id: int, add_qty: int):
+    ids = await self._select_instance_ids(crystal_type_id, add_qty)
+    if len(ids) < add_qty:
+      await db_cancel_rematerialization(self.rematerialization_id)
+      self.rematerialization_id = None
+      await self._hard_stop(
+        interaction,
+        'Inventory Changed',
+        'Your Crystal inventory changed. The session was cancelled. Please run `/rematerialize engage` again.',
+        discord.Color.orange()
+      )
+      return False
+
+    for cid in ids:
+      await db_add_crystal_to_rematerialization(self.rematerialization_id, cid)
+      self.selected_instance_ids.add(cid)
+
+    self.contents[crystal_type_id] = self.contents.get(crystal_type_id, 0) + len(ids)
+
+    await self._refresh_type_rows()
+    return True
+
   async def _on_select_rarity(self, interaction: discord.Interaction):
     self.notice = None
 
@@ -404,10 +546,7 @@ class RematerializationView(discord.ui.DesignerView):
       self.target_rarity_rank
     )
 
-    self.type_rows = await db_get_user_unattuned_crystal_type_counts_by_rarity_rank(
-      self.user_discord_id,
-      self.source_rarity_rank
-    )
+    await self._refresh_type_rows()
 
     self.state = 'TYPE'
     await self._render(interaction)
@@ -442,6 +581,29 @@ class RematerializationView(discord.ui.DesignerView):
     remaining = self._contents_remaining()
     max_pick = min(effective, remaining)
     if max_pick <= 0:
+      await self._render(interaction)
+      return
+
+    if not self.rematerialization_id:
+      await self._hard_stop(
+        interaction,
+        'Rematerialization Error',
+        'No active Rematerialization session was found. Please run `/rematerialize engage` again.',
+        discord.Color.red()
+      )
+      return
+
+    # If only 1 is available for this Crystal Type, auto-add it and stay on Select Crystal Type.
+    if effective == 1 and remaining > 0:
+      ok = await self._add_instances_to_session(interaction, crystal_type_id, 1)
+      if not ok:
+        return
+
+      if self._contents_total() >= self.contents_target:
+        self.state = 'CONFIRM'
+      else:
+        self.state = 'TYPE'
+
       await self._render(interaction)
       return
 
@@ -488,23 +650,9 @@ class RematerializationView(discord.ui.DesignerView):
       await self._render(interaction)
       return
 
-    ids = await self._select_instance_ids(self.selected_crystal_type_id, add_qty)
-    if len(ids) < add_qty:
-      await db_cancel_rematerialization(self.rematerialization_id)
-      self.rematerialization_id = None
-      await self._hard_stop(
-        interaction,
-        'Inventory Changed',
-        'Your Crystal inventory changed. The session was cancelled. Please run `/rematerialize engage` again.',
-        discord.Color.orange()
-      )
+    ok = await self._add_instances_to_session(interaction, self.selected_crystal_type_id, add_qty)
+    if not ok:
       return
-
-    for cid in ids:
-      await db_add_crystal_to_rematerialization(self.rematerialization_id, cid)
-      self.selected_instance_ids.add(cid)
-
-    self.contents[self.selected_crystal_type_id] = self.contents.get(self.selected_crystal_type_id, 0) + len(ids)
 
     self.selected_crystal_type_id = None
     self.selected_crystal_type_name = None
@@ -544,6 +692,8 @@ class RematerializationView(discord.ui.DesignerView):
 
     if self.state == 'CONFIRM' and self._contents_total() < self.contents_target:
       self.state = 'TYPE'
+
+    await self._refresh_type_rows()
 
     self.notice = 'Removed the last added Crystal.'
     await self._render(interaction)
@@ -627,14 +777,13 @@ class RematerializationView(discord.ui.DesignerView):
 
     if len(items) != self.contents_target:
       self._rehydrate_from_items(items)
-      self.type_rows = await db_get_user_unattuned_crystal_type_counts_by_rarity_rank(
-        self.user_discord_id,
-        self.source_rarity_rank
-      )
+      await self._refresh_type_rows()
+
       if self._contents_total() >= self.contents_target:
         self.state = 'CONFIRM'
       else:
         self.state = 'TYPE'
+
       self.notice = 'Your selection was refreshed. Please confirm again.'
       await self._render(interaction)
       return
@@ -650,7 +799,7 @@ class RematerializationView(discord.ui.DesignerView):
       await self._hard_stop(
         interaction,
         'Rematerialization Failed',
-        'No Crystal types exist for the target rarity. The session was cancelled.',
+        'No Crystal Types exist for the target rarity. The session was cancelled.',
         discord.Color.red()
       )
       return
@@ -663,12 +812,12 @@ class RematerializationView(discord.ui.DesignerView):
 
     await db_finalize_rematerialization(self.rematerialization_id)
 
-    # End state after success
     self.rematerialization_id = None
     self.contents = {}
     self.selected_instance_ids = set()
 
     self._clear_components()
+
     success = discord.ui.Container(color=discord.Color.green().value)
     success.add_item(discord.ui.TextDisplay(
       '# REMATERIALIZATION COMPLETE!\n'
@@ -680,9 +829,11 @@ class RematerializationView(discord.ui.DesignerView):
         rarity=created_crystal['rarity_name']
       )
     ))
+
     self.add_item(success)
     self.disable_all_items()
 
+    # Success view has no attachments, safe to edit in place.
     await interaction.response.edit_message(view=self)
 
 
@@ -751,11 +902,7 @@ class Rematerialization(commands.Cog):
       return
 
     view._rehydrate_from_items(items)
-
-    view.type_rows = await db_get_user_unattuned_crystal_type_counts_by_rarity_rank(
-      user_discord_id,
-      view.source_rarity_rank
-    )
+    await view._refresh_type_rows()
 
     if view._contents_total() >= view.contents_target:
       view.state = 'CONFIRM'
