@@ -1,11 +1,14 @@
 from common import *
 
+# queries.rematerialization
+
 async def db_get_active_rematerialization(user_discord_id: str) -> dict | None:
   sql = """
     SELECT *
     FROM crystal_rematerializations
     WHERE user_discord_id = %s
       AND status = 'active'
+    ORDER BY id DESC
     LIMIT 1
   """
   async with AgimusDB(dictionary=True) as db:
@@ -118,7 +121,6 @@ async def db_mark_crystals_dematerialized(crystal_ids: list[int]):
   """
   async with AgimusDB() as db:
     await db.execute(sql, crystal_ids)
-
 
 async def db_remove_last_rematerialization_item(rematerialization_id: int) -> dict | None:
   sql = """
