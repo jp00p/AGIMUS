@@ -249,19 +249,25 @@ class RematerializationView(discord.ui.DesignerView):
     header_lines = [f'# {self._ui_title()}']
     if self.notice:
       header_lines.append(f'Note: {self.notice}')
-
     container.add_item(discord.ui.TextDisplay('\n'.join(header_lines)))
-    container.add_item(discord.ui.Separator())
+
+    # Media gallery ONLY on initial rarity screen
+    if self.state == 'RARITY':
+      container.add_gallery(
+        discord.MediaGalleryItem(
+          'https://i.imgur.com/YSwvM4T.gif',
+          description='Crystal Rematerialization'
+        )
+      )
+      container.add_item(discord.ui.Separator())
 
     status = self._build_status_block()
     if status:
       container.add_item(discord.ui.TextDisplay(status))
 
-    if self.state in ('TYPE', 'CONFIRM'):
-      files = self._build_selected_sections(container)
-
-    if self.state == 'QUANTITY':
-      files = self._build_selected_type_section(container)
+    if self.state in ('TYPE', 'QUANTITY', 'CONFIRM'):
+      sel_files = self._build_selected_sections(container)
+      files.extend(sel_files)
 
     body = self._ui_body()
     if body:
@@ -269,7 +275,11 @@ class RematerializationView(discord.ui.DesignerView):
       container.add_item(discord.ui.TextDisplay(body))
 
     if self.state == 'TYPE' and self._type_total_pages() > 1:
-      container.add_item(discord.ui.TextDisplay(f'Page {self.type_page + 1}/{self._type_total_pages()}'))
+      container.add_item(
+        discord.ui.TextDisplay(
+          f'Page {self.type_page + 1}/{self._type_total_pages()}'
+        )
+      )
 
     return container, files
 
