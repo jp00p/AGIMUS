@@ -118,3 +118,34 @@ async def db_mark_crystals_dematerialized(crystal_ids: list[int]):
   """
   async with AgimusDB() as db:
     await db.execute(sql, crystal_ids)
+
+
+async def db_remove_last_rematerialization_item(rematerialization_id: int) -> dict | None:
+  sql = """
+    SELECT
+      ri.id AS rematerialization_item_id,
+      ci.id AS crystal_instance_id,
+      ct.id AS crystal_type_id
+    FROM crystal_rematerialization_items ri
+    JOIN crystal_instances ci ON ri.crystal_instance_id = ci.id
+    JOIN crystal_types ct ON ci.crystal_type_id = ct.id
+    WHERE ri.rematerialization_id = %s
+    ORDER BY ri.id DESC
+    LIMIT 1
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (rematerialization_id,))
+    row = await db.fetchone()
+
+  if not row:
+    return None
+
+  sql = """
+    DELETE FROM crystal_rematerialization_items
+    WHERE id = %s
+    LIMIT 1
+  """
+  async with AgimusDB() as db:
+    await db.execute(sql, (row['rematerialization_item_id'],))
+
+  return row
