@@ -116,7 +116,10 @@ class RematerializationView(discord.ui.DesignerView):
       return 'Select how many Crystals to add.'
 
     if self.state == 'CONFIRM':
-      return 'Confirm to Dematerialize these Crystals and Materialize 1 new Crystal.'
+      return (
+        f'Confirm to Dematerialize these {self.cog.rarity_emoji(self.source_rarity_rank)} Crystals and '
+        f'Materialize 1 new {self.cog.rarity_emoji(self.target_rarity_rank)} Crystal.'
+      )
 
     return None
 
@@ -124,9 +127,15 @@ class RematerializationView(discord.ui.DesignerView):
     if self.state != 'CONFIRM':
       return ''
 
+<<<<<<< HEAD
     src = self.cog.rarity_name(self.source_rarity_rank)
     dst = self.cog.rarity_name(self.target_rarity_rank)
     return f'## Rarity\n{src} -> {dst}'
+=======
+    src = f"{self.cog.rarity_emoji(self.source_rarity_rank)} {self.cog.rarity_name(self.source_rarity_rank)}"
+    dst = f"{self.cog.rarity_emoji(self.target_rarity_rank)} {self.cog.rarity_name(self.target_rarity_rank)}"
+    return f'## Rarity\n`{src}` to `{dst}`'
+>>>>>>> 7b8fb9b823bc862c86b817817dc51438d40eb549
 
   def _selected_rows_sorted(self) -> list[dict]:
     rows = []
@@ -202,8 +211,15 @@ class RematerializationView(discord.ui.DesignerView):
 
     container.add_item(discord.ui.TextDisplay('\n'.join(header_lines)))
     # Sort out which gif to use
-    if self.state is 'RARITY':
-      container.add_item(discord.ui.Image(url='https://i.imgur.com/YSwvM4T.gif')))
+    # Add the GIF only on the initial rarity screen
+    if self.state == "RARITY":
+      gallery = discord.ui.MediaGallery()
+      gallery.add_item(
+        "https://i.imgur.com/YSwvM4T.gif",
+        description="Crystal Rematerialization"
+      )
+      container.add_item(gallery)
+      container.add_item(discord.ui.Separator())
 
     container.add_item(discord.ui.Separator())
 
@@ -812,6 +828,18 @@ class Rematerialization(commands.Cog):
       4: 'Legendary',
       5: 'Mythic'
     }.get(rarity_rank) or f'Rank {rarity_rank}'
+<<<<<<< HEAD
+=======
+
+  def rarity_emoji(self, rarity_rank: int) -> str:
+    return {
+      1: '⚪',
+      2: '🟢',
+      3: '🟣',
+      4: '🔥',
+      5: '💎'
+    }.get(rarity_rank) or f'Rank {rarity_rank}'
+>>>>>>> 7b8fb9b823bc862c86b817817dc51438d40eb549
 
   async def create_output_crystal_instance(self, user_id: int, target_rarity_rank: int, source_crystal_type_id: int) -> int:
     crystal_type = await db_select_random_crystal_type_by_rarity_rank(target_rarity_rank)
