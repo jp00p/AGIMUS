@@ -110,7 +110,7 @@ class RematerializationView(discord.ui.DesignerView):
     if self.state == 'RARITY':
       if not self.rarity_rows:
         return 'You do not have enough unattuned Crystals in any tier to Rematerialize (requires 10).'
-      return 'Select a rarity tier. You will Dematerialize 10 Crystals from that tier to Materialize 1 Crystal of the next tier.'
+      return 'This will Dematerialize 10 Crystals from the selected tier to Materialize 1 Crystal of the next tier.'
 
     if self.state == 'TYPE':
       if not self.type_rows:
@@ -163,7 +163,6 @@ class RematerializationView(discord.ui.DesignerView):
 
     selected = self._selected_rows_sorted()
     if not selected:
-      container.add_item(discord.ui.TextDisplay('- None'))
       return files
 
     for r in selected:
@@ -208,7 +207,6 @@ class RematerializationView(discord.ui.DesignerView):
 
     row = self._get_type_row(self.selected_crystal_type_id)
     if not row:
-      container.add_item(discord.ui.TextDisplay('- None'))
       return files
 
     name = row.get('crystal_name') or 'Unknown Crystal Type'
@@ -259,7 +257,6 @@ class RematerializationView(discord.ui.DesignerView):
           description='Crystal Rematerialization'
         )
       )
-      container.add_item(discord.ui.Separator())
 
     status = self._build_status_block()
     if status:
@@ -343,19 +340,19 @@ class RematerializationView(discord.ui.DesignerView):
     row = discord.ui.ActionRow()
 
     if self.state in ('QUANTITY', 'CONFIRM'):
-      back_btn = discord.ui.Button(label='<- Back', style=discord.ButtonStyle.secondary)
+      back_btn = discord.ui.Button(label='❮ Back', style=discord.ButtonStyle.secondary)
       back_btn.callback = self._on_back
       row.add_item(back_btn)
-
-    cancel_btn = discord.ui.Button(label='Cancel', style=discord.ButtonStyle.secondary)
-    cancel_btn.callback = self._on_cancel
-    row.add_item(cancel_btn)
 
     can_remove = bool(self.rematerialization_id) and self._contents_total() > 0 and self.state == 'TYPE'
     if can_remove:
       rm_btn = discord.ui.Button(label='Remove Last Type Added', style=discord.ButtonStyle.secondary)
       rm_btn.callback = self._on_remove_last
       row.add_item(rm_btn)
+
+    cancel_btn = discord.ui.Button(label='Cancel', style=discord.ButtonStyle.danger)
+    cancel_btn.callback = self._on_cancel
+    row.add_item(cancel_btn)
 
     if self.state == 'CONFIRM':
       confirm_btn = discord.ui.Button(label='Confirm', style=discord.ButtonStyle.primary)
