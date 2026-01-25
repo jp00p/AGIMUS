@@ -116,7 +116,10 @@ class RematerializationView(discord.ui.DesignerView):
       return 'Select how many Crystals to add.'
 
     if self.state == 'CONFIRM':
-      return 'Confirm to Dematerialize these Crystals and Materialize 1 new Crystal.'
+      return (
+        f'Confirm to Dematerialize these {self.cog.rarity_emoji(self.source_rarity_rank)} Crystals and '
+        f'Materialize 1 new {self.cog.rarity_emoji(self.target_rarity_rank)} Crystal.'
+      )
 
     return None
 
@@ -124,9 +127,9 @@ class RematerializationView(discord.ui.DesignerView):
     if self.state != 'CONFIRM':
       return ''
 
-    src = self.cog.rarity_name(self.source_rarity_rank)
-    dst = self.cog.rarity_name(self.target_rarity_rank)
-    return f'## Rarity\n{src} -> {dst}'
+    src = f"{self.cog.rarity_emoji(self.source_rarity_rank)} {self.cog.rarity_name(self.source_rarity_rank)}"
+    dst = f"{self.cog.rarity_emoji(self.target_rarity_rank)} {self.cog.rarity_name(self.target_rarity_rank)}"
+    return f'## Rarity\n`{src}` to `{dst}`'
 
   def _selected_rows_sorted(self) -> list[dict]:
     rows = []
@@ -811,6 +814,15 @@ class Rematerialization(commands.Cog):
       3: 'Rare',
       4: 'Legendary',
       5: 'Mythic'
+    }.get(rarity_rank) or f'Rank {rarity_rank}'
+
+  def rarity_emoji(self, rarity_rank: int) -> str:
+    return {
+      1: '⚪',
+      2: '🟢',
+      3: '🟣',
+      4: '🔥',
+      5: '💎'
     }.get(rarity_rank) or f'Rank {rarity_rank}'
 
   async def create_output_crystal_instance(self, user_id: int, target_rarity_rank: int, source_crystal_type_id: int) -> int:
