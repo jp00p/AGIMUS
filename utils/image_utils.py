@@ -1867,20 +1867,20 @@ def build_rematerialization_pile_bytes(
   items: list[dict],
   canvas_size: tuple[int, int],
   icons_dir: str = './images/templates/crystals/icons',
-  seed: int | None = None
+  seed: int | None = None,
+  mask_path: str = './images/templates/rematerialize/mask.png',
+  safe_pad: int = 18,
+  max_place_attempts: int = 28
 ) -> io.BytesIO:
   """
   Builds an in-memory pile image (full-frame RGBA PNG) from the selected rematerialization items.
 
-  items: rows from db_get_rematerialization_items(), must include ct.icon as 'icon'
-  canvas_size: (w, h) of the rematerializer background
-  seed: optional, for deterministic piles per rematerialization_id
-
-  Returns:
-    io.BytesIO containing a PNG with alpha.
+  Confinement strategy:
+    - Derive a "safe" placement rect from mask alpha bbox (shrunk by safe_pad)
+    - Place each pre-rotated icon so its bbox stays inside that safe rect
   """
+
   def _load_rgba(path: str) -> Image.Image:
-    # Ensure file handle is closed and pixels are loaded
     with Image.open(path) as im:
       if im.mode != 'RGBA':
         im = im.convert('RGBA')
@@ -1910,18 +1910,54 @@ def build_rematerialization_pile_bytes(
     except Exception:
       return None
 
+  def _mask_safe_rect(mask_im: Image.Image, pad: int) -> tuple[int, int, int, int]:
+    # Use alpha bbox as the legal region.
+    if mask_im.mode != 'RGBA':
+      mask_im = mask_im.convert('RGBA')
+    bbox = mask_im.getchannel('A').getbbox()
+    if not bbox:
+      # If mask is busted, allow the whole canvas.
+      return (0, 0, mask_im.width, mask_im.height)
+
+    x0, y0, x1, y1 = bbox
+    x0 = min(max(0, x0 + pad), mask_im.width - 2)
+    y0 = min(max(0, y0 + pad), mask_im.height - 2)
+    x1 = max(min(mask_im.width, x1 - pad), x0 + 2)
+    y1 = max(min(mask_im.height, y1 - pad), y0 + 2)
+    return (x0, y0, x1, y1)
+
+  def _clamp(n: int, lo: int, hi: int) -> int:
+    return lo if n < lo else hi if n > hi else n
+
   rng = random.Random(seed)
 
   w, h = canvas_size
   canvas = Image.new('RGBA', (w, h), (0, 0, 0, 0))
 
-  center_x = int(w * 0.50)
-  center_y = int(h * 0.58)
+  # Load mask and compute safe placement rect.
+  safe_rect = (0, 0, w, h)
+  try:
+    mask_im = _load_rgba(mask_path)
+    if mask_im.size != (w, h):
+      mask_im = mask_im.resize((w, h), resample=Image.Resampling.LANCZOS)
+    safe_rect = _mask_safe_rect(mask_im, safe_pad)
+  except Exception:
+    # If we can't load mask, just proceed unconstrained.
+    safe_rect = (0, 0, w, h)
+
+  sx0, sy0, sx1, sy1 = safe_rect
+  safe_w = sx1 - sx0
+  safe_h = sy1 - sy0
+
+  # These become relative to the safe rect instead of the full canvas.
+  center_x = sx0 + int(safe_w * 0.50)
+  center_y = sy0 + int(safe_h * 0.58)
 
   base_tilt_deg = -12.0
 
-  spread_x = 95
-  spread_y = 55
+  # Spread constrained to the safe window
+  spread_x = max(10, int(safe_w * 0.22))
+  spread_y = max(10, int(safe_h * 0.16))
 
   scale_min = 0.72
   scale_max = 0.90
@@ -1957,6 +1993,7 @@ def build_rematerialization_pile_bytes(
   for icon_idx in order:
     im = _trim_alpha(icons[icon_idx], pad=1)
 
+    # Pick a side, then rotation.
     ox = rng.uniform(-spread_x, spread_x) * 0.85
     oy = rng.uniform(-spread_y, spread_y) * 0.85
 
@@ -1973,13 +2010,32 @@ def build_rematerialization_pile_bytes(
     if rng.random() < 0.20:
       rot += rng.choice([-90, 90])
 
+    # Rotate first so we can place using the true bbox size.
     im2 = im2.rotate(rot, resample=Image.Resampling.BICUBIC, expand=True)
 
-    px = int(center_x + ox - (im2.width / 2))
-    py = int(center_y + oy - (im2.height / 2))
+    # Confined placement: try a few times to keep fully inside safe_rect.
+    placed = False
+    for _ in range(max_place_attempts):
+      jx = rng.uniform(-spread_x, spread_x) * 0.85
+      jy = rng.uniform(-spread_y, spread_y) * 0.85
 
-    canvas.alpha_composite(im2, (px, py))
+      px = int(center_x + jx - (im2.width / 2))
+      py = int(center_y + jy - (im2.height / 2))
 
+      if px >= sx0 and py >= sy0 and (px + im2.width) <= sx1 and (py + im2.height) <= sy1:
+        canvas.alpha_composite(im2, (px, py))
+        placed = True
+        break
+
+    if not placed:
+      # Clamp fallback: keep it inside the safe rect at all costs.
+      px = int(center_x + ox - (im2.width / 2))
+      py = int(center_y + oy - (im2.height / 2))
+      px = _clamp(px, sx0, sx1 - im2.width)
+      py = _clamp(py, sy0, sy1 - im2.height)
+      canvas.alpha_composite(im2, (px, py))
+
+  # Apply the overall pile tilt
   canvas = canvas.rotate(base_tilt_deg, resample=Image.Resampling.BICUBIC, expand=False)
 
   out = io.BytesIO()
@@ -1999,8 +2055,13 @@ async def build_rematerialization_success_animation(
   fade_out_start_frame: int = 5,
   fade_out_done_frames_from_end: int = 10,
 ) -> io.BytesIO:
+  """
+  Builds the rematerialization success animation as an animated .webp BytesIO.
+  """
 
-  def _build_rematerialization_success_frames() -> tuple[list[Image.Image], int]:
+  def _build_rematerialization_success_frames() -> list[Image.Image]:
+    from PIL import ImageChops
+
     def _load_rgba(path: str) -> Image.Image:
       with Image.open(path) as im:
         if im.mode != 'RGBA':
@@ -2041,27 +2102,17 @@ async def build_rematerialization_success_animation(
         out.putalpha(0)
         return out
 
-      r, g, b, alpha = im.split()
-      alpha = alpha.point(lambda v: int(v * a))
-      return Image.merge('RGBA', (r, g, b, alpha))
+      out = im.copy()
+      la = out.getchannel('A')
+      la = la.point(lambda v: int(v * a))
+      out.putalpha(la)
+      return out
 
-    def _apply_mask_alpha(layer: Image.Image, mask: Image.Image) -> Image.Image:
-      lr, lg, lb, la = layer.split()
-      _, _, _, ma = mask.split()
-
-      la_bytes = la.tobytes()
-      ma_bytes = ma.tobytes()
-
-      out = bytearray(len(la_bytes))
-      for i in range(len(out)):
-        out[i] = (la_bytes[i] * ma_bytes[i]) // 255
-
-      new_la = Image.frombytes('L', layer.size, bytes(out))
-      return Image.merge('RGBA', (lr, lg, lb, new_la))
-
-    def _composite(bg: Image.Image, layer: Image.Image) -> Image.Image:
-      out = bg.copy()
-      out.alpha_composite(layer)
+    def _apply_mask_alpha(layer: Image.Image, mask_alpha: Image.Image) -> Image.Image:
+      # Multiply layer alpha by mask alpha using C-backed ops.
+      out = layer.copy()
+      la = out.getchannel('A')
+      out.putalpha(ImageChops.multiply(la, mask_alpha))
       return out
 
     def _get_rematerialization_assets(*, bg_path: str, effect_frames_dir: str, mask_path: str):
@@ -2101,18 +2152,58 @@ async def build_rematerialization_success_animation(
       mask_path=mask_path
     )
 
-    pile = _load_rgba_from_bytes(pile_bytes)
-    result_crystal = _load_rgba(result_crystal_path)
-
     w, h = bg.size
 
-    if pile.size != (w, h):
-      pile = pile.resize((w, h), resample=Image.Resampling.LANCZOS)
-    if result_crystal.size != (w, h):
-      result_crystal = result_crystal.resize((w, h), resample=Image.Resampling.LANCZOS)
+    # Ensure mask matches bg and precompute alpha
     if mask.size != (w, h):
       mask = mask.resize((w, h), resample=Image.Resampling.LANCZOS)
+    mask_alpha = mask.getchannel('A')
 
+    # Load pile full-frame RGBA
+    pile = _load_rgba_from_bytes(pile_bytes)
+    if pile.size != (w, h):
+      pile = pile.resize((w, h), resample=Image.Resampling.LANCZOS)
+
+    # Load result icon (NOT full-frame) and place within mask window
+    result_icon = _load_rgba(result_crystal_path)
+
+    # Determine the active window from mask bbox
+    bbox = mask_alpha.getbbox()
+    if bbox:
+      x0, y0, x1, y1 = bbox
+      win_w = max(1, x1 - x0)
+      win_h = max(1, y1 - y0)
+    else:
+      # Fallback: center 60% of frame
+      win_w = int(w * 0.60)
+      win_h = int(h * 0.60)
+      x0 = (w - win_w) // 2
+      y0 = (h - win_h) // 2
+      x1 = x0 + win_w
+      y1 = y0 + win_h
+
+    # Fit icon into the window with padding
+    pad = int(min(win_w, win_h) * 0.10)
+    target_w = max(1, win_w - pad * 2)
+    target_h = max(1, win_h - pad * 2)
+
+    # Trim icon alpha bbox to avoid huge transparent margins
+    icon_bbox = result_icon.getchannel('A').getbbox()
+    if icon_bbox:
+      result_icon = result_icon.crop(icon_bbox)
+
+    # Scale preserving aspect
+    scale = min(target_w / max(1, result_icon.width), target_h / max(1, result_icon.height))
+    new_w = max(1, int(result_icon.width * scale))
+    new_h = max(1, int(result_icon.height * scale))
+    result_icon = result_icon.resize((new_w, new_h), resample=Image.Resampling.LANCZOS)
+
+    result_frame = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    cx = x0 + (win_w // 2) - (new_w // 2)
+    cy = y0 + (win_h // 2) - (new_h // 2)
+    result_frame.alpha_composite(result_icon, (cx, cy))
+
+    # Normalize effect frames to bg size
     fixed_fx = []
     for fx in effect_frames:
       if fx.size != (w, h):
@@ -2146,36 +2237,45 @@ async def build_rematerialization_success_animation(
 
     frames: list[Image.Image] = []
 
-    start_frame = _composite(bg, pile)
+    # Hold: pile on background
+    start_frame = bg.copy()
+    start_frame.alpha_composite(pile)
     for _ in range(max(0, hold_start_frames)):
       frames.append(start_frame)
 
+    # Phase 1: pile fades out + effect plays (masked)
     for i in range(n):
-      pile_a = _fade_out_alpha(i)
-      pile_layer = _alpha_mul(pile, pile_a)
+      pile_layer = _alpha_mul(pile, _fade_out_alpha(i))
 
       layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
       layer.alpha_composite(pile_layer)
       layer.alpha_composite(effect_frames[i])
-      layer = _apply_mask_alpha(layer, mask)
+      layer = _apply_mask_alpha(layer, mask_alpha)
 
-      frames.append(_composite(bg, layer))
+      out = bg.copy()
+      out.alpha_composite(layer)
+      frames.append(out)
 
+    # Mid hold: empty background
     for _ in range(max(0, hold_mid_frames)):
       frames.append(bg.copy())
 
+    # Phase 2: result icon fades in + effect plays (masked)
     for i in range(n):
-      crystal_a = _fade_in_alpha(i)
-      crystal_layer = _alpha_mul(result_crystal, crystal_a)
+      crystal_layer = _alpha_mul(result_frame, _fade_in_alpha(i))
 
       layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
       layer.alpha_composite(crystal_layer)
       layer.alpha_composite(effect_frames[i])
-      layer = _apply_mask_alpha(layer, mask)
+      layer = _apply_mask_alpha(layer, mask_alpha)
 
-      frames.append(_composite(bg, layer))
+      out = bg.copy()
+      out.alpha_composite(layer)
+      frames.append(out)
 
-    end_frame = _composite(bg, result_crystal)
+    # End hold: result icon on background
+    end_frame = bg.copy()
+    end_frame.alpha_composite(result_frame)
     for _ in range(max(0, hold_end_frames)):
       frames.append(end_frame)
 
@@ -2187,31 +2287,18 @@ async def build_rematerialization_success_animation(
   if not frames:
     raise ValueError('No frames returned for rematerialization success animation.')
 
-  # Ensure frames are RGBA
   fixed = []
   for im in frames:
-    if im.mode != 'RGBA':
-      fixed.append(im.convert('RGBA'))
-    else:
-      fixed.append(im)
+    fixed.append(im.convert('RGBA') if im.mode != 'RGBA' else im)
 
-  buf = io.BytesIO()
+  webp_buf = await encode_webp(fixed, fps=30)
 
-  data = await encode_webp(
-    fixed
-  )
-  if isinstance(data, (bytes, bytearray)):
-    buf.write(data)
-    buf.seek(0)
-    return buf
-  if hasattr(data, 'read'):
-    try:
-      data.seek(0)
-    except Exception:
-      pass
-    buf.write(data.read())
-    buf.seek(0)
-    return buf
+  try:
+    webp_buf.seek(0)
+  except Exception:
+    pass
+
+  return webp_buf
 
 
 # ________                      .__

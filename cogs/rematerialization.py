@@ -486,6 +486,8 @@ class RematerializationView(discord.ui.DesignerView):
     except Exception:
       pass
 
+    old_msg = self.message
+
     try:
       new_msg = await interaction.followup.send(view=self, files=files, ephemeral=True)
     except TypeError:
@@ -494,12 +496,15 @@ class RematerializationView(discord.ui.DesignerView):
       else:
         new_msg = await interaction.followup.send(view=self, ephemeral=True)
 
-    try:
-      await interaction.message.delete()
-    except Exception:
-      pass
-
+    # Store the new message first so we always have a valid handle even if deletion fails.
     self.message = new_msg
+
+    # Now delete the old one if it exists.
+    if old_msg:
+      try:
+        await old_msg.delete()
+      except Exception:
+        pass
 
   async def _render(self, interaction: discord.Interaction):
     files = self._rebuild()
@@ -875,8 +880,15 @@ class RematerializationView(discord.ui.DesignerView):
         result_path = f'./images/templates/crystals/icons/{icon_name}'
         if os.path.exists(result_path):
           try:
+            try:
+              pile_buf.seek(0)
+            except Exception:
+              pass
+
+            pile_bytes = pile_buf.read()
+
             anim_buf = await build_rematerialization_success_animation(
-              pile_bytes=pile_buf,
+              pile_bytes=pile_bytes,
               result_crystal_path=result_path
             )
             try:
