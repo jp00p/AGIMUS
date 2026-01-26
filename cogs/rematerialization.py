@@ -60,18 +60,22 @@ class RematerializationView(discord.ui.DesignerView):
         pass
 
   async def _hard_stop(self, interaction: discord.Interaction, title: str, description: str, color: discord.Color):
-    await interaction.response.send_message(
-      embed=discord.Embed(
-        title=title,
-        description=description,
-        color=color
-      ),
-      ephemeral=True
-    )
+    embed = discord.Embed(title=title, description=description, color=color)
+
     try:
-      await interaction.message.delete()
+      await interaction.response.send_message(embed=embed, ephemeral=True)
+    except Exception:
+      try:
+        await interaction.followup.send(embed=embed, ephemeral=True)
+      except Exception:
+        pass
+
+    try:
+      if interaction.message:
+        await interaction.message.delete()
     except Exception:
       pass
+
 
   def _clear_components(self):
     self.clear_items()
@@ -164,8 +168,9 @@ class RematerializationView(discord.ui.DesignerView):
   def _build_selected_sections(self, container: discord.ui.Container) -> list[discord.File]:
     files: list[discord.File] = []
 
-    container.add_item(discord.ui.Separator())
-    container.add_item(discord.ui.TextDisplay(self._build_selected_header()))
+    if self._contents_total() > 0:
+      container.add_item(discord.ui.Separator())
+      container.add_item(discord.ui.TextDisplay(self._build_selected_header()))
 
     selected = self._selected_rows_sorted()
     if not selected:
@@ -173,7 +178,7 @@ class RematerializationView(discord.ui.DesignerView):
       try:
         container.add_gallery(
           discord.MediaGalleryItem(
-            'https://i.imgur.com/rtlG2aV.gif',
+            url='https://i.imgur.com/rtlG2aV.gif',
             description='No crystals queued yet'
           )
         )
@@ -271,7 +276,7 @@ class RematerializationView(discord.ui.DesignerView):
       container.add_item(discord.ui.Separator())
       container.add_gallery(
         discord.MediaGalleryItem(
-          'https://i.imgur.com/YSwvM4T.gif',
+          url='https://i.imgur.com/YSwvM4T.gif',
           description='Crystal Rematerialization'
         )
       )
@@ -477,7 +482,7 @@ class RematerializationView(discord.ui.DesignerView):
 
   async def _swap_message_with_files(self, interaction: discord.Interaction, files: list[discord.File]):
     try:
-      await interaction.response.defer()
+      await interaction.response.defer(ephemeral=True)
     except Exception:
       pass
 
@@ -503,23 +508,56 @@ class RematerializationView(discord.ui.DesignerView):
       await self._swap_message_with_files(interaction, files)
       return
 
-    await interaction.response.edit_message(view=self)
+    # If we have a stored message, edit it and return.
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+        return
+      except discord.NotFound:
+        self.message = None
+      except Exception:
+        logger.error(traceback.format_exc())
+        return
+
+    # No stored message: if interaction response not done, edit it.
+    if not interaction.response.is_done():
+      try:
+        await interaction.response.edit_message(view=self)
+        return
+      except Exception:
+        pass
+
+    # Last resort: followup and store it.
+    try:
+      self.message = await interaction.followup.send(view=self, ephemeral=True)
+    except Exception:
+      pass
+
 
   async def start(self, ctx: discord.ApplicationContext):
     files = self._rebuild()
 
-    if files:
-      try:
-        await ctx.respond(view=self, files=files, ephemeral=True)
-      except TypeError:
-        if len(files) == 1:
-          await ctx.respond(view=self, file=files[0], ephemeral=True)
-        else:
-          await ctx.respond(view=self, ephemeral=True)
-    else:
-      await ctx.respond(view=self, ephemeral=True)
+    try:
+      if files:
+        await ctx.interaction.edit_original_response(view=self, attachments=files)
+      else:
+        await ctx.interaction.edit_original_response(view=self)
+      self.message = await ctx.interaction.original_response()
+      return
+    except Exception:
+      pass
 
-    self.message = await ctx.interaction.original_response()
+    # Fallback: followup
+    try:
+      if files:
+        self.message = await ctx.followup.send(view=self, files=files, ephemeral=True)
+      else:
+        self.message = await ctx.followup.send(view=self, ephemeral=True)
+    except TypeError:
+      if files and len(files) == 1:
+        self.message = await ctx.followup.send(view=self, file=files[0], ephemeral=True)
+      else:
+        self.message = await ctx.followup.send(view=self, ephemeral=True)
 
   async def _load_rarity_rows(self) -> list[dict]:
     rows = await db_get_user_unattuned_crystal_rarities(self.user_discord_id)
@@ -790,8 +828,159 @@ class RematerializationView(discord.ui.DesignerView):
     self._render_end_state_ui('Rematerialization Cancelled', 'Session ended. No changes were made.')
     await interaction.response.edit_message(view=self)
 
+  async def _post_public_animation(
+    self,
+    *,
+    session_id: int,
+    items: list[dict],
+    created_crystal: dict,
+    icon_bytes: bytes | None,
+    source_rarity_text: str,
+    target_rarity_text: str,
+    display_name: str,
+    user_mention: str
+  ):
+    try:
+      channel_id = get_channel_id('gelrak-v')
+      gelrak_v = self.cog.bot.get_channel(channel_id)
+      if not gelrak_v:
+        gelrak_v = await self.cog.bot.fetch_channel(channel_id)
+
+      pile_buf = None
+      try:
+        bg_path = './images/templates/rematerialize/rematerializer.png'
+        with Image.open(bg_path) as bg:
+          canvas_size = bg.size
+
+        seed = abs(hash(str(session_id))) % (2**31)
+
+        pile_buf = await asyncio.to_thread(
+          build_rematerialization_pile_bytes,
+          items=items,
+          canvas_size=canvas_size,
+          seed=seed
+        )
+
+        try:
+          pile_buf.seek(0)
+        except Exception:
+          pass
+      except Exception:
+        logger.error(traceback.format_exc())
+        pile_buf = None
+
+      anim_buf = None
+      icon_name = created_crystal.get('icon')
+      if pile_buf and icon_name:
+        result_path = f'./images/templates/crystals/icons/{icon_name}'
+        if os.path.exists(result_path):
+          try:
+            anim_buf = await build_rematerialization_success_animation(
+              pile_bytes=pile_buf,
+              result_crystal_path=result_path
+            )
+            try:
+              anim_buf.seek(0)
+            except Exception:
+              pass
+          except Exception:
+            logger.error(traceback.format_exc())
+            anim_buf = None
+
+      if not anim_buf:
+        return
+
+      result_id = created_crystal['crystal_type_id']
+      result_name = created_crystal['crystal_name']
+      result_icon = created_crystal['icon']
+      result_description = created_crystal.get('description') or ''
+      result_text = f'### {result_name}\n{result_description}'.strip()
+
+      result_filename = f'crystal_type_{result_id}.png'
+      animation_filename = f'rematerialization_{session_id}.webp'
+
+      try:
+        anim_buf.seek(0)
+      except Exception:
+        pass
+      animation_file = discord.File(anim_buf, filename=animation_filename)
+
+      public_view = discord.ui.DesignerView(timeout=None, store=False)
+
+      container = discord.ui.Container(color=discord.Color.green().value)
+      container.add_item(discord.ui.TextDisplay(
+        f'# {display_name} CRYSTAL REMATERIALIZATION\n'
+        f'{user_mention} has converted **{self.contents_target}** {source_rarity_text} Crystals '
+        f'into a new {target_rarity_text} Crystal!'
+      ))
+
+      public_thumb = discord.ui.Thumbnail(
+        url=f'attachment://{result_filename}',
+        description=result_name
+      )
+      public_section = discord.ui.Section(
+        discord.ui.TextDisplay(result_text),
+        accessory=public_thumb
+      )
+      container.add_item(discord.ui.Separator())
+      container.add_item(public_section)
+
+      container.add_item(discord.ui.Separator())
+      container.add_gallery(
+        discord.MediaGalleryItem(
+          url=f'attachment://{animation_filename}',
+          description='Rematerialization Sequence'
+        )
+      )
+
+      public_view.add_item(container)
+
+      public_files = [animation_file]
+
+      if icon_bytes:
+        buf2 = io.BytesIO(icon_bytes)
+        try:
+          buf2.seek(0)
+        except Exception:
+          pass
+        public_files.append(discord.File(buf2, filename=result_filename))
+      else:
+        # If we failed to read icon_bytes earlier, try a last-resort disk read
+        try:
+          result_filepath = f'./images/templates/crystals/icons/{result_icon}'
+          with open(result_filepath, 'rb') as f:
+            b = f.read()
+          buf2 = io.BytesIO(b)
+          buf2.seek(0)
+          public_files.append(discord.File(buf2, filename=result_filename))
+        except Exception:
+          pass
+
+      await gelrak_v.send(
+        view=public_view,
+        files=public_files
+      )
+    except Exception:
+      logger.info(traceback.format_exc())
+      return
+
   async def _on_confirm(self, interaction: discord.Interaction):
     self.notice = None
+
+    try:
+      await interaction.response.defer(ephemeral=True)
+    except Exception as e:
+      logger.info(traceback.format_exc())
+      pass
+
+    self.disable_all_items()
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.NotFound:
+        self.message = None
+      except Exception:
+        logger.error(traceback.format_exc())
 
     if self._contents_total() != self.contents_target:
       await self._render(interaction)
@@ -874,33 +1063,6 @@ class RematerializationView(discord.ui.DesignerView):
 
     await db_finalize_rematerialization(session_id)
 
-    # Build pile bytes from the 10 selected items
-    pile_buf = None
-    try:
-      bg_path = './images/templates/rematerialization/rematerializer.png'
-      with Image.open(bg_path) as bg:
-        pile_buf = build_rematerialization_pile_bytes(
-          items=items,
-          canvas_size=bg.size,
-          seed=int(session_id)
-        )
-    except Exception:
-      pile_buf = None
-
-    # Build final animation
-    anim_buf = None
-    icon_name = created_crystal.get('icon')
-    if pile_buf and icon_name:
-      result_path = f'./images/templates/crystals/icons/{icon_name}'
-      if os.path.exists(result_path):
-        try:
-          anim_buf = build_rematerialization_success_animation(
-            pile_bytes=pile_buf,
-            result_crystal_path=result_path
-          )
-        except Exception:
-          anim_buf = None
-
     result_id = created_crystal['crystal_type_id']
     result_name = created_crystal['crystal_name']
     result_icon = created_crystal['icon']
@@ -910,7 +1072,6 @@ class RematerializationView(discord.ui.DesignerView):
     result_filepath = f'./images/templates/crystals/icons/{result_icon}'
     result_filename = f'crystal_type_{result_id}.png'
 
-    # Build icon bytes once so we can attach to both ephemeral + public posts without reusing File objects.
     icon_bytes = None
     try:
       with open(result_filepath, 'rb') as f:
@@ -921,7 +1082,7 @@ class RematerializationView(discord.ui.DesignerView):
     source_rarity_text = f"`{self.cog.rarity_emoji(self.source_rarity_rank)} {self.cog.rarity_name(self.source_rarity_rank)}`"
     target_rarity_text = f"`{self.cog.rarity_emoji(self.target_rarity_rank)} {self.cog.rarity_name(self.target_rarity_rank)}`"
 
-    # Ephemeral: simple success end state
+    # Build success UI immediately and swap message right now.
     self.rematerialization_id = None
     self.contents = {}
     self.selected_instance_ids = set()
@@ -930,8 +1091,8 @@ class RematerializationView(discord.ui.DesignerView):
     success = discord.ui.Container(color=discord.Color.green().value)
     success.add_item(discord.ui.TextDisplay(
       '# REMATERIALIZATION COMPLETE!\n'
-      f'Dematerialized {self.contents_target} {self.cog.rarity_name(self.source_rarity_rank)} Crystals.\n'
-      f"Materialized a new {created_crystal['crystal_name']} at {created_crystal['rarity_name']}!"
+      f'Dematerialized {self.contents_target} {source_rarity_text} Crystals and '
+      f'Materialized a new **{created_crystal["crystal_name"]}** Crystal at {target_rarity_text}!'
     ))
 
     result_thumb = discord.ui.Thumbnail(
@@ -942,73 +1103,39 @@ class RematerializationView(discord.ui.DesignerView):
       discord.ui.TextDisplay(result_text),
       accessory=result_thumb
     )
+    success.add_item(result_section)
 
     self.add_item(success)
-    self.add_item(result_section)
     self.disable_all_items()
 
-    # Use the same swap pattern as the rest of the UI to avoid attachment-edit limitations.
     ephemeral_files = []
     if icon_bytes:
       buf = io.BytesIO(icon_bytes)
-      buf.seek(0)
+      try:
+        buf.seek(0)
+      except Exception:
+        pass
       ephemeral_files = [discord.File(buf, filename=result_filename)]
 
     await self._swap_message_with_files(interaction, ephemeral_files)
 
-    # Public: Animation post
-    if anim_buf and interaction.channel:
-      try:
-        animation_filename = f'rematerialization_{session_id}.webp'
-        animation_file = discord.File(anim_buf, filename=animation_filename)
+    # Kick off public animation work without blocking the user.
+    # Do NOT reference the interaction object inside the task.
+    display_name = interaction.user.display_name
+    user_mention = self.user.mention
 
-        public_view = discord.ui.DesignerView(timeout=None, store=False)
-
-        container = discord.ui.Container(color=discord.Color.green().value)
-        container.add_item(discord.ui.TextDisplay(
-          f'# {interaction.user.display_name} CRYSTAL REMATERIALIZATION\n'
-          f'{self.user.mention} has converted **{self.contents_target}** {source_rarity_text} Crystals '
-          f'into a new {target_rarity_text} Crystal!'
-        ))
-
-        public_thumb = discord.ui.Thumbnail(
-          url=f'attachment://{result_filename}',
-          description=result_name
-        )
-        public_section = discord.ui.Section(
-          discord.ui.TextDisplay(result_text),
-          accessory=public_thumb
-        )
-        container.add_item(discord.ui.Separator())
-        container.add_item(public_section)
-
-        container.add_item(discord.ui.Separator())
-        container.add_gallery(
-          discord.MediaGalleryItem(
-            url=f'attachment://{animation_filename}',
-            description='Rematerialization Sequence'
-          )
-        )
-
-        public_view.add_item(container)
-
-        channel_id = get_channel_id('gelrak-v')
-        gelrak_v = self.cog.bot.get_channel(channel_id)
-        if not gelrak_v:
-          gelrak_v = await self.cog.bot.fetch_channel(channel_id)
-
-        public_files = [animation_file]
-        if icon_bytes:
-          buf2 = io.BytesIO(icon_bytes)
-          buf2.seek(0)
-          public_files.append(discord.File(buf2, filename=result_filename))
-
-        await gelrak_v.send(
-          view=public_view,
-          files=public_files
-        )
-      except Exception:
-        pass
+    self.cog.bot.loop.create_task(
+      self._post_public_animation(
+        session_id=session_id,
+        items=items,
+        created_crystal=created_crystal,
+        icon_bytes=icon_bytes,
+        source_rarity_text=source_rarity_text,
+        target_rarity_text=target_rarity_text,
+        display_name=display_name,
+        user_mention=user_mention
+      )
+    )
 
 
 class Rematerialization(commands.Cog):
@@ -1035,9 +1162,10 @@ class Rematerialization(commands.Cog):
       5: '💎'
     }.get(rarity_rank) or ''
 
-  @rematerialize.command(name='engage', description='Begin Crystal Rematerialization.')
+  @rematerialize.command(name='select', description='Exchange 10 Crystals for 1 of the next Rarity!')
   @commands.check(access_check)
-  async def start(self, ctx: discord.ApplicationContext):
+  async def select(self, ctx: discord.ApplicationContext):
+    await ctx.defer(ephemeral=True)
     user_discord_id = str(ctx.user.id)
     active = await db_get_active_rematerialization(user_discord_id)
 

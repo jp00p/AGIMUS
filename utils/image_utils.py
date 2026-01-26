@@ -10,6 +10,7 @@ from emoji import EMOJI_DATA
 from functools import partial
 from pathlib import Path
 import regex
+import threading
 
 from common import *
 
@@ -21,7 +22,7 @@ from utils.badge_cache import *
 from utils.crystal_effects import apply_crystal_effect
 from utils.encode_utils import encode_webp
 from utils.prestige import PRESTIGE_TIERS, PRESTIGE_THEMES
-from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
+from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert, to_thread_image
 
 BEEP_BOOPS = [
   "... beep boop beep ...",
@@ -1847,20 +1848,14 @@ async def generate_crystal_replicator_confirmation_frames(crystal, replicator_ty
   return discord.File(webp_buf, filename=replicator_confirmation_filename), replicator_confirmation_filename
 
 
-# _____________________   _____      _____________________________________.___   _____  .____    ._____________  ________________.___________    _______   
-# \______   \_   _____/  /     \    /  _  \__    ___/\_   _____/\______   \   | /  _  \ |    |   |   \____    / /  _  \__    ___/|   \_____  \   \      \  
-#  |       _/|    __)_  /  \ /  \  /  /_\  \|    |    |    __)_  |       _/   |/  /_\  \|    |   |   | /     / /  /_\  \|    |   |   |/   |   \  /   |   \ 
+# _____________________   _____      _____________________________________.___   _____  .____    ._____________  ________________.___________    _______
+# \______   \_   _____/  /     \    /  _  \__    ___/\_   _____/\______   \   | /  _  \ |    |   |   \____    / /  _  \__    ___/|   \_____  \   \      \
+#  |       _/|    __)_  /  \ /  \  /  /_\  \|    |    |    __)_  |       _/   |/  /_\  \|    |   |   | /     / /  /_\  \|    |   |   |/   |   \  /   |   \
 #  |    |   \|        \/    Y    \/    |    \    |    |        \ |    |   \   /    |    \    |___|   |/     /_/    |    \    |   |   /    |    \/    |    \
 #  |____|_  /_______  /\____|__  /\____|__  /____|   /_______  / |____|_  /___\____|__  /_______ \___/_______ \____|__  /____|   |___\_______  /\____|__  /
-#         \/        \/         \/         \/                 \/         \/            \/        \/           \/       \/                     \/         \/ 
+#         \/        \/         \/         \/                 \/         \/            \/        \/           \/       \/                     \/         \/
+_REMATERIALIZATION_LOCK = threading.Lock()
 _REMATERIALIZATION_CACHE = {
-  'bg': None,
-  'mask': None,
-  'effect_frames': None,
-  'effect_key': None
-}
-
-REMATERIALIZATION_CACHE = {
   'bg': None,
   'mask': None,
   'effect_frames': None,
@@ -1992,12 +1987,10 @@ def build_rematerialization_pile_bytes(
   out.seek(0)
   return out
 
-
-def build_rematerialization_success_animation(
+async def build_rematerialization_success_animation(
   *,
   pile_bytes: io.BytesIO | bytes,
   result_crystal_path: str,
-  fps: int = 75,
   hold_start_frames: int = 10,
   hold_mid_frames: int = 8,
   hold_end_frames: int = 10,
@@ -2005,219 +1998,220 @@ def build_rematerialization_success_animation(
   fade_in_done_frames_from_end: int = 10,
   fade_out_start_frame: int = 5,
   fade_out_done_frames_from_end: int = 10,
-  output_format: str = 'WEBP',
-  loop: int = 0,
-  return_bytes: bool = True
-) -> io.BytesIO | None:
-  """
-  - Hold pile (start)
-  - Dematerialize: effect forward while pile fades out
-  - Hold empty pad (mid)
-  - Materialize: effect forward while result fades in underneath
-  - Hold result (end)
-  """
-  def _load_rgba(path: str) -> Image.Image:
-    im = Image.open(path)
-    if im.mode != 'RGBA':
-      im = im.convert('RGBA')
-    return im
+) -> io.BytesIO:
 
-  def _load_rgba_from_bytes(buf: io.BytesIO | bytes) -> Image.Image:
-    if isinstance(buf, (bytes, bytearray)):
-      buf = io.BytesIO(buf)
-    buf.seek(0)
-    im = Image.open(buf)
-    if im.mode != 'RGBA':
-      im = im.convert('RGBA')
-    return im
+  def _build_rematerialization_success_frames() -> tuple[list[Image.Image], int]:
+    def _load_rgba(path: str) -> Image.Image:
+      with Image.open(path) as im:
+        if im.mode != 'RGBA':
+          im = im.convert('RGBA')
+        return im.copy()
 
-  def _list_frame_paths(frames_dir: str) -> list[str]:
-    files = []
-    for name in os.listdir(frames_dir):
-      lower = name.lower()
-      if lower.endswith('.png') or lower.endswith('.webp'):
-        files.append(os.path.join(frames_dir, name))
+    def _load_rgba_from_bytes(buf: io.BytesIO | bytes) -> Image.Image:
+      if isinstance(buf, (bytes, bytearray)):
+        buf = io.BytesIO(buf)
+      try:
+        buf.seek(0)
+      except Exception:
+        pass
+      with Image.open(buf) as im:
+        if im.mode != 'RGBA':
+          im = im.convert('RGBA')
+        return im.copy()
 
-    def _key(p: str):
-      base = os.path.basename(p)
-      digits = ''.join([c if c.isdigit() else ' ' for c in base]).split()
-      return (int(digits[-1]) if digits else 0, base)
+    def _list_frame_paths(frames_dir: str) -> list[str]:
+      files = []
+      for name in os.listdir(frames_dir):
+        lower = name.lower()
+        if lower.endswith('.png') or lower.endswith('.webp'):
+          files.append(os.path.join(frames_dir, name))
 
-    return sorted(files, key=_key)
+      def _key(p: str):
+        base = os.path.basename(p)
+        digits = ''.join([c if c.isdigit() else ' ' for c in base]).split()
+        return (int(digits[-1]) if digits else 0, base)
 
-  def _alpha_mul(im: Image.Image, a: float) -> Image.Image:
-    if a >= 0.999:
-      return im
-    if a <= 0.001:
-      out = im.copy()
-      out.putalpha(0)
+      return sorted(files, key=_key)
+
+    def _alpha_mul(im: Image.Image, a: float) -> Image.Image:
+      if a >= 0.999:
+        return im
+      if a <= 0.001:
+        out = im.copy()
+        out.putalpha(0)
+        return out
+
+      r, g, b, alpha = im.split()
+      alpha = alpha.point(lambda v: int(v * a))
+      return Image.merge('RGBA', (r, g, b, alpha))
+
+    def _apply_mask_alpha(layer: Image.Image, mask: Image.Image) -> Image.Image:
+      lr, lg, lb, la = layer.split()
+      _, _, _, ma = mask.split()
+
+      la_bytes = la.tobytes()
+      ma_bytes = ma.tobytes()
+
+      out = bytearray(len(la_bytes))
+      for i in range(len(out)):
+        out[i] = (la_bytes[i] * ma_bytes[i]) // 255
+
+      new_la = Image.frombytes('L', layer.size, bytes(out))
+      return Image.merge('RGBA', (lr, lg, lb, new_la))
+
+    def _composite(bg: Image.Image, layer: Image.Image) -> Image.Image:
+      out = bg.copy()
+      out.alpha_composite(layer)
       return out
 
-    r, g, b, alpha = im.split()
-    alpha = alpha.point(lambda v: int(v * a))
-    return Image.merge('RGBA', (r, g, b, alpha))
+    def _get_rematerialization_assets(*, bg_path: str, effect_frames_dir: str, mask_path: str):
+      key = f'{bg_path}|{effect_frames_dir}|{mask_path}'
+      with _REMATERIALIZATION_LOCK:
+        if _REMATERIALIZATION_CACHE['effect_key'] != key:
+          _REMATERIALIZATION_CACHE['bg'] = None
+          _REMATERIALIZATION_CACHE['mask'] = None
+          _REMATERIALIZATION_CACHE['effect_frames'] = None
+          _REMATERIALIZATION_CACHE['effect_key'] = key
 
-  def _apply_mask_alpha(layer: Image.Image, mask: Image.Image) -> Image.Image:
-    lr, lg, lb, la = layer.split()
-    _, _, _, ma = mask.split()
+        if _REMATERIALIZATION_CACHE['bg'] is None:
+          _REMATERIALIZATION_CACHE['bg'] = _load_rgba(bg_path)
 
-    la_bytes = la.tobytes()
-    ma_bytes = ma.tobytes()
+        if _REMATERIALIZATION_CACHE['mask'] is None:
+          _REMATERIALIZATION_CACHE['mask'] = _load_rgba(mask_path)
 
-    out = bytearray(len(la_bytes))
-    for i in range(len(out)):
-      out[i] = (la_bytes[i] * ma_bytes[i]) // 255
+        if _REMATERIALIZATION_CACHE['effect_frames'] is None:
+          frame_paths = _list_frame_paths(effect_frames_dir)
+          if not frame_paths:
+            raise ValueError(f'No effect frames found in: {effect_frames_dir}')
+          _REMATERIALIZATION_CACHE['effect_frames'] = [_load_rgba(p) for p in frame_paths]
 
-    new_la = Image.frombytes('L', layer.size, bytes(out))
-    return Image.merge('RGBA', (lr, lg, lb, new_la))
+      return (
+        _REMATERIALIZATION_CACHE['bg'],
+        _REMATERIALIZATION_CACHE['mask'],
+        _REMATERIALIZATION_CACHE['effect_frames']
+      )
 
-  def _composite(bg: Image.Image, layer: Image.Image) -> Image.Image:
-    out = bg.copy()
-    out.alpha_composite(layer)
-    return out
+    bg_path = './images/templates/rematerialize/rematerializer.png'
+    effect_frames_dir = './images/templates/rematerialize/effect'
+    mask_path = './images/templates/rematerialize/mask.png'
 
-  def _get_rematerialization_assets(
-    *,
-    bg_path: str,
-    effect_frames_dir: str,
-    mask_path: str
-  ) -> tuple[Image.Image, Image.Image, list[Image.Image]]:
-    key = f'{bg_path}|{effect_frames_dir}|{mask_path}'
-    if _REMATERIALIZATION_CACHE['effect_key'] != key:
-      _REMATERIALIZATION_CACHE['bg'] = None
-      _REMATERIALIZATION_CACHE['mask'] = None
-      _REMATERIALIZATION_CACHE['effect_frames'] = None
-      _REMATERIALIZATION_CACHE['effect_key'] = key
-
-    if _REMATERIALIZATION_CACHE['bg'] is None:
-      _REMATERIALIZATION_CACHE['bg'] = _load_rgba(bg_path)
-
-    if _REMATERIALIZATION_CACHE['mask'] is None:
-      _REMATERIALIZATION_CACHE['mask'] = _load_rgba(mask_path)
-
-    if _REMATERIALIZATION_CACHE['effect_frames'] is None:
-      frame_paths = _list_frame_paths(effect_frames_dir)
-      if not frame_paths:
-        raise ValueError(f'No effect frames found in: {effect_frames_dir}')
-      _REMATERIALIZATION_CACHE['effect_frames'] = [_load_rgba(p) for p in frame_paths]
-
-    return (
-      _REMATERIALIZATION_CACHE['bg'],
-      _REMATERIALIZATION_CACHE['mask'],
-      _REMATERIALIZATION_CACHE['effect_frames']
+    bg, mask, effect_frames = _get_rematerialization_assets(
+      bg_path=bg_path,
+      effect_frames_dir=effect_frames_dir,
+      mask_path=mask_path
     )
 
-  bg_path = './images/templates/rematerialization/rematerializer.png'
-  effect_frames_dir = './images/templates/rematerialization/effect'
-  mask_path = './images/templates/rematerialization/mask_topbottom.png'
+    pile = _load_rgba_from_bytes(pile_bytes)
+    result_crystal = _load_rgba(result_crystal_path)
 
-  bg, mask, effect_frames = _get_rematerialization_assets(
-    bg_path=bg_path,
-    effect_frames_dir=effect_frames_dir,
-    mask_path=mask_path
+    w, h = bg.size
+
+    if pile.size != (w, h):
+      pile = pile.resize((w, h), resample=Image.Resampling.LANCZOS)
+    if result_crystal.size != (w, h):
+      result_crystal = result_crystal.resize((w, h), resample=Image.Resampling.LANCZOS)
+    if mask.size != (w, h):
+      mask = mask.resize((w, h), resample=Image.Resampling.LANCZOS)
+
+    fixed_fx = []
+    for fx in effect_frames:
+      if fx.size != (w, h):
+        fx = fx.resize((w, h), resample=Image.Resampling.LANCZOS)
+      fixed_fx.append(fx)
+    effect_frames = fixed_fx
+
+    n = len(effect_frames)
+    if n < 2:
+      raise ValueError('Need at least 2 effect frames.')
+
+    def _fade_out_alpha(i: int) -> float:
+      start = max(0, fade_out_start_frame)
+      done = max(0, n - fade_out_done_frames_from_end)
+      if i < start:
+        return 1.0
+      if i >= done:
+        return 0.0
+      t = (i - start) / max(1, (done - start))
+      return max(0.0, min(1.0, 1.0 - t))
+
+    def _fade_in_alpha(i: int) -> float:
+      start = max(0, fade_in_start_frame)
+      done = max(0, n - fade_in_done_frames_from_end)
+      if i < start:
+        return 0.0
+      if i >= done:
+        return 1.0
+      t = (i - start) / max(1, (done - start))
+      return max(0.0, min(1.0, t))
+
+    frames: list[Image.Image] = []
+
+    start_frame = _composite(bg, pile)
+    for _ in range(max(0, hold_start_frames)):
+      frames.append(start_frame)
+
+    for i in range(n):
+      pile_a = _fade_out_alpha(i)
+      pile_layer = _alpha_mul(pile, pile_a)
+
+      layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+      layer.alpha_composite(pile_layer)
+      layer.alpha_composite(effect_frames[i])
+      layer = _apply_mask_alpha(layer, mask)
+
+      frames.append(_composite(bg, layer))
+
+    for _ in range(max(0, hold_mid_frames)):
+      frames.append(bg.copy())
+
+    for i in range(n):
+      crystal_a = _fade_in_alpha(i)
+      crystal_layer = _alpha_mul(result_crystal, crystal_a)
+
+      layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+      layer.alpha_composite(crystal_layer)
+      layer.alpha_composite(effect_frames[i])
+      layer = _apply_mask_alpha(layer, mask)
+
+      frames.append(_composite(bg, layer))
+
+    end_frame = _composite(bg, result_crystal)
+    for _ in range(max(0, hold_end_frames)):
+      frames.append(end_frame)
+
+    return frames
+
+  loop = asyncio.get_running_loop()
+  frames = await loop.run_in_executor(None, _build_rematerialization_success_frames)
+
+  if not frames:
+    raise ValueError('No frames returned for rematerialization success animation.')
+
+  # Ensure frames are RGBA
+  fixed = []
+  for im in frames:
+    if im.mode != 'RGBA':
+      fixed.append(im.convert('RGBA'))
+    else:
+      fixed.append(im)
+
+  buf = io.BytesIO()
+
+  data = await encode_webp(
+    fixed
   )
-
-  pile = _load_rgba_from_bytes(pile_bytes)
-  result_crystal = _load_rgba(result_crystal_path)
-
-  w, h = bg.size
-
-  if pile.size != (w, h):
-    pile = pile.resize((w, h), resample=Image.Resampling.LANCZOS)
-  if result_crystal.size != (w, h):
-    result_crystal = result_crystal.resize((w, h), resample=Image.Resampling.LANCZOS)
-  if mask.size != (w, h):
-    mask = mask.resize((w, h), resample=Image.Resampling.LANCZOS)
-
-  fixed_fx = []
-  for fx in effect_frames:
-    if fx.size != (w, h):
-      fx = fx.resize((w, h), resample=Image.Resampling.LANCZOS)
-    fixed_fx.append(fx)
-  effect_frames = fixed_fx
-
-  n = len(effect_frames)
-  if n < 2:
-    raise ValueError('Need at least 2 effect frames.')
-
-  def _fade_out_alpha(i: int) -> float:
-    start = max(0, fade_out_start_frame)
-    done = max(0, n - fade_out_done_frames_from_end)
-
-    if i < start:
-      return 1.0
-    if i >= done:
-      return 0.0
-
-    t = (i - start) / max(1, (done - start))
-    return max(0.0, min(1.0, 1.0 - t))
-
-  def _fade_in_alpha(i: int) -> float:
-    start = max(0, fade_in_start_frame)
-    done = max(0, n - fade_in_done_frames_from_end)
-
-    if i < start:
-      return 0.0
-    if i >= done:
-      return 1.0
-
-    t = (i - start) / max(1, (done - start))
-    return max(0.0, min(1.0, t))
-
-  frames: list[Image.Image] = []
-
-  start_frame = _composite(bg, pile)
-  for _ in range(max(0, hold_start_frames)):
-    frames.append(start_frame)
-
-  for i in range(n):
-    pile_a = _fade_out_alpha(i)
-    pile_layer = _alpha_mul(pile, pile_a)
-
-    layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    layer.alpha_composite(pile_layer)
-    layer.alpha_composite(effect_frames[i])
-    layer = _apply_mask_alpha(layer, mask)
-
-    frames.append(_composite(bg, layer))
-
-  for _ in range(max(0, hold_mid_frames)):
-    frames.append(bg)
-
-  for i in range(n):
-    crystal_a = _fade_in_alpha(i)
-    crystal_layer = _alpha_mul(result_crystal, crystal_a)
-
-    layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    layer.alpha_composite(crystal_layer)
-    layer.alpha_composite(effect_frames[i])
-    layer = _apply_mask_alpha(layer, mask)
-
-    frames.append(_composite(bg, layer))
-
-  end_frame = _composite(bg, result_crystal)
-  for _ in range(max(0, hold_end_frames)):
-    frames.append(end_frame)
-
-  duration_ms = int(round(1000 / max(1, fps)))
-
-  out = io.BytesIO()
-  frames[0].save(
-    out,
-    format=output_format,
-    save_all=True,
-    append_images=frames[1:],
-    duration=duration_ms,
-    loop=loop,
-    disposal=2,
-    lossless=True,
-    method=6
-  )
-  out.seek(0)
-
-  if return_bytes:
-    return out
-  return None
+  if isinstance(data, (bytes, bytearray)):
+    buf.write(data)
+    buf.seek(0)
+    return buf
+  if hasattr(data, 'read'):
+    try:
+      data.seek(0)
+    except Exception:
+      pass
+    buf.write(data.read())
+    buf.seek(0)
+    return buf
 
 
 # ________                      .__
