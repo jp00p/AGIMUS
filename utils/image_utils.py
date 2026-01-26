@@ -1857,191 +1857,277 @@ async def generate_crystal_replicator_confirmation_frames(crystal, replicator_ty
 _REMATERIALIZATION_LOCK = threading.Lock()
 _REMATERIALIZATION_CACHE = {
   'bg': None,
-  'mask': None,
+  'mask_matte': None,
   'effect_frames': None,
   'effect_key': None
 }
 
-def build_rematerialization_pile_bytes(
+# These are "baked" values for the rematerializer template assets.
+_REMATERIALIZATION_BG_PATH = './images/templates/rematerialize/rematerializer.png'
+_REMATERIALIZATION_MASK_PATH = './images/templates/rematerialize/mask.png'
+_REMATERIALIZATION_EFFECT_DIR = './images/templates/rematerialize/effect'
+
+_REMATERIALIZATION_PAD_CX = 315
+_REMATERIALIZATION_PAD_CY = 365
+
+_REMATERIALIZATION_PILE_CANVAS = (420, 280)
+_REMATERIALIZATION_ICON_PX = 92
+_REMATERIALIZATION_PILE_TILT_DEG = -12.0
+
+
+def _pil_trim_alpha(img: Image.Image) -> Image.Image:
+  if img.mode != 'RGBA':
+    img = img.convert('RGBA')
+
+  a = img.getchannel('A')
+  bbox = a.getbbox()
+  if not bbox:
+    return img
+  return img.crop(bbox)
+
+
+def _pil_rotate_rgba(img: Image.Image, degrees: float, *, expand: bool = True) -> Image.Image:
+  if img.mode != 'RGBA':
+    img = img.convert('RGBA')
+  return img.rotate(degrees, resample=Image.Resampling.BICUBIC, expand=expand)
+
+
+def _pil_scale_xy(img: Image.Image, sx: float, sy: float) -> Image.Image:
+  w, h = img.size
+  nw = max(1, int(round(w * sx)))
+  nh = max(1, int(round(h * sy)))
+  return img.resize((nw, nh), resample=Image.Resampling.LANCZOS)
+
+
+def _pil_composite_center(dst: Image.Image, src: Image.Image, cx: int, cy: int) -> None:
+  x = int(round(cx - (src.size[0] / 2)))
+  y = int(round(cy - (src.size[1] / 2)))
+  dst.alpha_composite(src, (x, y))
+
+
+def _alpha_mul(im: Image.Image, a: float) -> Image.Image:
+  if a >= 0.999:
+    return im
+  if a <= 0.001:
+    out = im.copy()
+    out.putalpha(0)
+    return out
+
+  out = im.copy()
+  la = out.getchannel('A')
+  la = la.point(lambda v: int(v * a))
+  out.putalpha(la)
+  return out
+
+
+def _apply_matte_to_alpha(layer: Image.Image, matte_l: Image.Image) -> Image.Image:
+  out = layer.copy()
+  la = out.getchannel('A')
+  out.putalpha(ImageChops.multiply(la, matte_l))
+  return out
+
+
+def _get_rematerialization_assets(
   *,
-  items: list[dict],
-  canvas_size: tuple[int, int],
-  icons_dir: str = './images/templates/crystals/icons',
-  seed: int | None = None,
-  mask_path: str = './images/templates/rematerialize/mask.png',
-  safe_pad: int = 18,
-  max_place_attempts: int = 28
-) -> io.BytesIO:
-  """
-  Builds an in-memory pile image (full-frame RGBA PNG) from the selected rematerialization items.
-
-  Confinement strategy:
-    - Derive a "safe" placement rect from mask alpha bbox (shrunk by safe_pad)
-    - Place each pre-rotated icon so its bbox stays inside that safe rect
-  """
-
+  bg_path: str = _REMATERIALIZATION_BG_PATH,
+  effect_frames_dir: str = _REMATERIALIZATION_EFFECT_DIR,
+  mask_path: str = _REMATERIALIZATION_MASK_PATH
+):
   def _load_rgba(path: str) -> Image.Image:
     with Image.open(path) as im:
       if im.mode != 'RGBA':
         im = im.convert('RGBA')
       return im.copy()
 
-  def _trim_alpha(im: Image.Image, pad: int = 0) -> Image.Image:
-    if im.mode != 'RGBA':
-      im = im.convert('RGBA')
-    bbox = im.getchannel('A').getbbox()
-    if not bbox:
-      return im
-    x0, y0, x1, y1 = bbox
-    x0 = max(0, x0 - pad)
-    y0 = max(0, y0 - pad)
-    x1 = min(im.width, x1 + pad)
-    y1 = min(im.height, y1 + pad)
-    return im.crop((x0, y0, x1, y1))
+  def _list_frame_paths(frames_dir: str) -> list[str]:
+    files = []
+    for name in os.listdir(frames_dir):
+      lower = name.lower()
+      if lower.endswith('.png') or lower.endswith('.webp'):
+        files.append(os.path.join(frames_dir, name))
 
-  def _safe_open_icon(icon_name: str) -> Image.Image | None:
+    def _key(p: str):
+      base = os.path.basename(p)
+      digits = ''.join([c if c.isdigit() else ' ' for c in base]).split()
+      return (int(digits[-1]) if digits else 0, base)
+
+    return sorted(files, key=_key)
+
+  key = f'{bg_path}|{effect_frames_dir}|{mask_path}'
+  with _REMATERIALIZATION_LOCK:
+    if _REMATERIALIZATION_CACHE['effect_key'] != key:
+      _REMATERIALIZATION_CACHE['bg'] = None
+      _REMATERIALIZATION_CACHE['mask_matte'] = None
+      _REMATERIALIZATION_CACHE['effect_frames'] = None
+      _REMATERIALIZATION_CACHE['effect_key'] = key
+
+    if _REMATERIALIZATION_CACHE['bg'] is None:
+      _REMATERIALIZATION_CACHE['bg'] = _load_rgba(bg_path)
+
+    if _REMATERIALIZATION_CACHE['mask_matte'] is None:
+      mask_rgba = _load_rgba(mask_path)
+      bg = _REMATERIALIZATION_CACHE['bg']
+      if mask_rgba.size != bg.size:
+        mask_rgba = mask_rgba.resize(bg.size, resample=Image.Resampling.LANCZOS)
+
+      # IMPORTANT: this mask asset is not an alpha mask. It is a luminance matte.
+      # White means "keep", black means "cut".
+      matte_l = mask_rgba.convert('L')
+      _REMATERIALIZATION_CACHE['mask_matte'] = matte_l
+
+    if _REMATERIALIZATION_CACHE['effect_frames'] is None:
+      frame_paths = _list_frame_paths(effect_frames_dir)
+      if not frame_paths:
+        raise ValueError(f'No effect frames found in: {effect_frames_dir}')
+      frames = [_load_rgba(p) for p in frame_paths]
+
+      bg = _REMATERIALIZATION_CACHE['bg']
+      fixed = []
+      for fx in frames:
+        if fx.size != bg.size:
+          fx = fx.resize(bg.size, resample=Image.Resampling.LANCZOS)
+        fixed.append(fx)
+      _REMATERIALIZATION_CACHE['effect_frames'] = fixed
+
+  return (
+    _REMATERIALIZATION_CACHE['bg'],
+    _REMATERIALIZATION_CACHE['mask_matte'],
+    _REMATERIALIZATION_CACHE['effect_frames']
+  )
+
+
+def _build_crystal_pile(
+  icon_paths: list[str],
+  rng: random.Random,
+  canvas_size: tuple[int, int],
+  target_icon_px: int,
+  front_bias: float,
+  pile_tilt_deg: float,
+) -> Image.Image:
+  cw, ch = canvas_size
+  pile = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
+
+  cx = cw // 2
+  cy = ch // 2
+
+  icons = list(icon_paths)
+  rng.shuffle(icons)
+
+  layers = []
+
+  for i, path in enumerate(icons):
+    try:
+      icon = Image.open(path).convert('RGBA')
+    except Exception:
+      continue
+
+    icon = _pil_trim_alpha(icon)
+
+    w, h = icon.size
+    m = max(w, h)
+    if m <= 0:
+      continue
+
+    s = target_icon_px / float(m)
+    icon = _pil_scale_xy(icon, s, s)
+
+    side = -1 if (i % 2 == 0) else 1
+    base_rot = (-65.0 if side < 0 else 65.0)
+
+    rot = base_rot + rng.uniform(-8.0, 8.0)
+    if rng.random() < 0.20:
+      rot += (-35.0 if side < 0 else 35.0)
+
+    if rng.random() < 0.35:
+      rot *= 0.35
+
+    icon = _pil_rotate_rgba(icon, rot, expand=True)
+
+    radial = rng.uniform(0.0, 18.0)
+    ox = int(round((side * rng.uniform(6.0, 18.0)) + rng.uniform(-6.0, 6.0)))
+    oy = int(round(rng.uniform(-10.0, 10.0)))
+
+    px = cx + ox + int(round(rng.uniform(-radial, radial)))
+    py = cy + oy + int(round(rng.uniform(-radial, radial)))
+
+    pull = 0.55
+    px = int(round((px * (1.0 - pull)) + (cx * pull)))
+    py = int(round((py * (1.0 - pull)) + (cy * pull)))
+
+    if layers and rng.random() > front_bias:
+      insert_at = rng.randint(0, max(0, len(layers) - 1))
+      layers.insert(insert_at, (icon, px, py))
+    else:
+      layers.append((icon, px, py))
+
+  for icon, px, py in layers:
+    _pil_composite_center(pile, icon, px, py)
+
+  pile = _pil_rotate_rgba(pile, pile_tilt_deg, expand=True)
+  pile = _pil_trim_alpha(pile)
+
+  return pile
+
+
+def build_rematerialization_pile_bytes(
+  *,
+  items: list[dict],
+  icons_dir: str = './images/templates/crystals/icons',
+  seed: int | None = None,
+  pile_front_bias: float = 0.25,
+) -> io.BytesIO:
+  """
+  Builds an in-memory pile image as a full-frame RGBA PNG that is already scaled,
+  positioned, tilted, and matted for the rematerializer template.
+
+  This intentionally uses baked placement values instead of trying to derive a safe rect
+  from the mask geometry, because the mask is a diagonal matte, not a rectangular alpha region.
+  """
+  def _safe_icon_path(icon_name: str) -> str | None:
     if not icon_name:
       return None
     path = f'{icons_dir}/{icon_name}'
     if not os.path.exists(path):
       return None
-    try:
-      return _load_rgba(path)
-    except Exception:
-      return None
-
-  def _mask_safe_rect(mask_im: Image.Image, pad: int) -> tuple[int, int, int, int]:
-    # Use alpha bbox as the legal region.
-    if mask_im.mode != 'RGBA':
-      mask_im = mask_im.convert('RGBA')
-    bbox = mask_im.getchannel('A').getbbox()
-    if not bbox:
-      # If mask is busted, allow the whole canvas.
-      return (0, 0, mask_im.width, mask_im.height)
-
-    x0, y0, x1, y1 = bbox
-    x0 = min(max(0, x0 + pad), mask_im.width - 2)
-    y0 = min(max(0, y0 + pad), mask_im.height - 2)
-    x1 = max(min(mask_im.width, x1 - pad), x0 + 2)
-    y1 = max(min(mask_im.height, y1 - pad), y0 + 2)
-    return (x0, y0, x1, y1)
-
-  def _clamp(n: int, lo: int, hi: int) -> int:
-    return lo if n < lo else hi if n > hi else n
+    return path
 
   rng = random.Random(seed)
 
-  w, h = canvas_size
-  canvas = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+  bg, mask_matte, _ = _get_rematerialization_assets()
+  w, h = bg.size
 
-  # Load mask and compute safe placement rect.
-  safe_rect = (0, 0, w, h)
-  try:
-    mask_im = _load_rgba(mask_path)
-    if mask_im.size != (w, h):
-      mask_im = mask_im.resize((w, h), resample=Image.Resampling.LANCZOS)
-    safe_rect = _mask_safe_rect(mask_im, safe_pad)
-  except Exception:
-    # If we can't load mask, just proceed unconstrained.
-    safe_rect = (0, 0, w, h)
-
-  sx0, sy0, sx1, sy1 = safe_rect
-  safe_w = sx1 - sx0
-  safe_h = sy1 - sy0
-
-  # These become relative to the safe rect instead of the full canvas.
-  center_x = sx0 + int(safe_w * 0.50)
-  center_y = sy0 + int(safe_h * 0.58)
-
-  base_tilt_deg = -12.0
-
-  # Spread constrained to the safe window
-  spread_x = max(10, int(safe_w * 0.22))
-  spread_y = max(10, int(safe_h * 0.16))
-
-  scale_min = 0.72
-  scale_max = 0.90
-
-  left_base_rot = -65.0
-  right_base_rot = 65.0
-  rot_jitter = 18.0
-
-  in_front_bias = 0.25
-
-  icons = []
+  icon_paths = []
   for it in items:
-    im = _safe_open_icon(it.get('icon'))
-    if im:
-      icons.append(im)
+    p = _safe_icon_path(it.get('icon'))
+    if p:
+      icon_paths.append(p)
 
-  if not icons:
-    out = io.BytesIO()
-    canvas.save(out, format='PNG')
+  out = io.BytesIO()
+
+  if not icon_paths:
+    empty = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    empty.save(out, format='PNG')
     out.seek(0)
     return out
 
-  order = list(range(len(icons)))
-  rng.shuffle(order)
+  pile = _build_crystal_pile(
+    icon_paths,
+    rng,
+    canvas_size=_REMATERIALIZATION_PILE_CANVAS,
+    target_icon_px=_REMATERIALIZATION_ICON_PX,
+    front_bias=pile_front_bias,
+    pile_tilt_deg=_REMATERIALIZATION_PILE_TILT_DEG
+  )
 
-  if len(order) > 2:
-    for _ in range(max(1, int(len(order) * in_front_bias))):
-      i = rng.randrange(0, len(order))
-      j = rng.randrange(0, len(order))
-      if i < j:
-        order[i], order[j] = order[j], order[i]
+  frame = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+  _pil_composite_center(frame, pile, _REMATERIALIZATION_PAD_CX, _REMATERIALIZATION_PAD_CY)
 
-  for icon_idx in order:
-    im = _trim_alpha(icons[icon_idx], pad=1)
+  frame = _apply_matte_to_alpha(frame, mask_matte)
 
-    # Pick a side, then rotation.
-    ox = rng.uniform(-spread_x, spread_x) * 0.85
-    oy = rng.uniform(-spread_y, spread_y) * 0.85
-
-    s = rng.uniform(scale_min, scale_max)
-    new_w = max(2, int(im.width * s))
-    new_h = max(2, int(im.height * s))
-    im2 = im.resize((new_w, new_h), resample=Image.Resampling.LANCZOS)
-
-    if ox < 0:
-      rot = left_base_rot + rng.uniform(-rot_jitter, rot_jitter)
-    else:
-      rot = right_base_rot + rng.uniform(-rot_jitter, rot_jitter)
-
-    if rng.random() < 0.20:
-      rot += rng.choice([-90, 90])
-
-    # Rotate first so we can place using the true bbox size.
-    im2 = im2.rotate(rot, resample=Image.Resampling.BICUBIC, expand=True)
-
-    # Confined placement: try a few times to keep fully inside safe_rect.
-    placed = False
-    for _ in range(max_place_attempts):
-      jx = rng.uniform(-spread_x, spread_x) * 0.85
-      jy = rng.uniform(-spread_y, spread_y) * 0.85
-
-      px = int(center_x + jx - (im2.width / 2))
-      py = int(center_y + jy - (im2.height / 2))
-
-      if px >= sx0 and py >= sy0 and (px + im2.width) <= sx1 and (py + im2.height) <= sy1:
-        canvas.alpha_composite(im2, (px, py))
-        placed = True
-        break
-
-    if not placed:
-      # Clamp fallback: keep it inside the safe rect at all costs.
-      px = int(center_x + ox - (im2.width / 2))
-      py = int(center_y + oy - (im2.height / 2))
-      px = _clamp(px, sx0, sx1 - im2.width)
-      py = _clamp(py, sy0, sy1 - im2.height)
-      canvas.alpha_composite(im2, (px, py))
-
-  # Apply the overall pile tilt
-  canvas = canvas.rotate(base_tilt_deg, resample=Image.Resampling.BICUBIC, expand=False)
-
-  out = io.BytesIO()
-  canvas.save(out, format='PNG')
+  frame.save(out, format='PNG')
   out.seek(0)
   return out
+
 
 async def build_rematerialization_success_animation(
   *,
@@ -2057,17 +2143,13 @@ async def build_rematerialization_success_animation(
 ) -> io.BytesIO:
   """
   Builds the rematerialization success animation as an animated .webp BytesIO.
+
+  Placement is baked. The pile and final crystal are normalized to the same icon size,
+  tilted to match the pad, centered on the same pad coordinate, and the effect is matted
+  by the luminance mask.
   """
 
-  def _build_rematerialization_success_frames() -> list[Image.Image]:
-    from PIL import ImageChops
-
-    def _load_rgba(path: str) -> Image.Image:
-      with Image.open(path) as im:
-        if im.mode != 'RGBA':
-          im = im.convert('RGBA')
-        return im.copy()
-
+  def _build_frames() -> list[Image.Image]:
     def _load_rgba_from_bytes(buf: io.BytesIO | bytes) -> Image.Image:
       if isinstance(buf, (bytes, bytearray)):
         buf = io.BytesIO(buf)
@@ -2080,136 +2162,32 @@ async def build_rematerialization_success_animation(
           im = im.convert('RGBA')
         return im.copy()
 
-    def _list_frame_paths(frames_dir: str) -> list[str]:
-      files = []
-      for name in os.listdir(frames_dir):
-        lower = name.lower()
-        if lower.endswith('.png') or lower.endswith('.webp'):
-          files.append(os.path.join(frames_dir, name))
+    def _load_rgba(path: str) -> Image.Image:
+      with Image.open(path) as im:
+        if im.mode != 'RGBA':
+          im = im.convert('RGBA')
+        return im.copy()
 
-      def _key(p: str):
-        base = os.path.basename(p)
-        digits = ''.join([c if c.isdigit() else ' ' for c in base]).split()
-        return (int(digits[-1]) if digits else 0, base)
-
-      return sorted(files, key=_key)
-
-    def _alpha_mul(im: Image.Image, a: float) -> Image.Image:
-      if a >= 0.999:
-        return im
-      if a <= 0.001:
-        out = im.copy()
-        out.putalpha(0)
-        return out
-
-      out = im.copy()
-      la = out.getchannel('A')
-      la = la.point(lambda v: int(v * a))
-      out.putalpha(la)
-      return out
-
-    def _apply_mask_alpha(layer: Image.Image, mask_alpha: Image.Image) -> Image.Image:
-      # Multiply layer alpha by mask alpha using C-backed ops.
-      out = layer.copy()
-      la = out.getchannel('A')
-      out.putalpha(ImageChops.multiply(la, mask_alpha))
-      return out
-
-    def _get_rematerialization_assets(*, bg_path: str, effect_frames_dir: str, mask_path: str):
-      key = f'{bg_path}|{effect_frames_dir}|{mask_path}'
-      with _REMATERIALIZATION_LOCK:
-        if _REMATERIALIZATION_CACHE['effect_key'] != key:
-          _REMATERIALIZATION_CACHE['bg'] = None
-          _REMATERIALIZATION_CACHE['mask'] = None
-          _REMATERIALIZATION_CACHE['effect_frames'] = None
-          _REMATERIALIZATION_CACHE['effect_key'] = key
-
-        if _REMATERIALIZATION_CACHE['bg'] is None:
-          _REMATERIALIZATION_CACHE['bg'] = _load_rgba(bg_path)
-
-        if _REMATERIALIZATION_CACHE['mask'] is None:
-          _REMATERIALIZATION_CACHE['mask'] = _load_rgba(mask_path)
-
-        if _REMATERIALIZATION_CACHE['effect_frames'] is None:
-          frame_paths = _list_frame_paths(effect_frames_dir)
-          if not frame_paths:
-            raise ValueError(f'No effect frames found in: {effect_frames_dir}')
-          _REMATERIALIZATION_CACHE['effect_frames'] = [_load_rgba(p) for p in frame_paths]
-
-      return (
-        _REMATERIALIZATION_CACHE['bg'],
-        _REMATERIALIZATION_CACHE['mask'],
-        _REMATERIALIZATION_CACHE['effect_frames']
-      )
-
-    bg_path = './images/templates/rematerialize/rematerializer.png'
-    effect_frames_dir = './images/templates/rematerialize/effect'
-    mask_path = './images/templates/rematerialize/mask.png'
-
-    bg, mask, effect_frames = _get_rematerialization_assets(
-      bg_path=bg_path,
-      effect_frames_dir=effect_frames_dir,
-      mask_path=mask_path
-    )
-
+    bg, mask_matte, effect_frames = _get_rematerialization_assets()
     w, h = bg.size
 
-    # Ensure mask matches bg and precompute alpha
-    if mask.size != (w, h):
-      mask = mask.resize((w, h), resample=Image.Resampling.LANCZOS)
-    mask_alpha = mask.getchannel('A')
-
-    # Load pile full-frame RGBA
     pile = _load_rgba_from_bytes(pile_bytes)
     if pile.size != (w, h):
       pile = pile.resize((w, h), resample=Image.Resampling.LANCZOS)
 
-    # Load result icon (NOT full-frame) and place within mask window
     result_icon = _load_rgba(result_crystal_path)
+    result_icon = _pil_trim_alpha(result_icon)
 
-    # Determine the active window from mask bbox
-    bbox = mask_alpha.getbbox()
-    if bbox:
-      x0, y0, x1, y1 = bbox
-      win_w = max(1, x1 - x0)
-      win_h = max(1, y1 - y0)
-    else:
-      # Fallback: center 60% of frame
-      win_w = int(w * 0.60)
-      win_h = int(h * 0.60)
-      x0 = (w - win_w) // 2
-      y0 = (h - win_h) // 2
-      x1 = x0 + win_w
-      y1 = y0 + win_h
+    rm = max(result_icon.size)
+    if rm > 0:
+      s = (_REMATERIALIZATION_ICON_PX / float(rm)) * 1.15
+      result_icon = _pil_scale_xy(result_icon, s, s)
 
-    # Fit icon into the window with padding
-    pad = int(min(win_w, win_h) * 0.10)
-    target_w = max(1, win_w - pad * 2)
-    target_h = max(1, win_h - pad * 2)
-
-    # Trim icon alpha bbox to avoid huge transparent margins
-    icon_bbox = result_icon.getchannel('A').getbbox()
-    if icon_bbox:
-      result_icon = result_icon.crop(icon_bbox)
-
-    # Scale preserving aspect
-    scale = min(target_w / max(1, result_icon.width), target_h / max(1, result_icon.height))
-    new_w = max(1, int(result_icon.width * scale))
-    new_h = max(1, int(result_icon.height * scale))
-    result_icon = result_icon.resize((new_w, new_h), resample=Image.Resampling.LANCZOS)
+    result_icon = _pil_rotate_rgba(result_icon, _REMATERIALIZATION_PILE_TILT_DEG, expand=True)
 
     result_frame = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    cx = x0 + (win_w // 2) - (new_w // 2)
-    cy = y0 + (win_h // 2) - (new_h // 2)
-    result_frame.alpha_composite(result_icon, (cx, cy))
-
-    # Normalize effect frames to bg size
-    fixed_fx = []
-    for fx in effect_frames:
-      if fx.size != (w, h):
-        fx = fx.resize((w, h), resample=Image.Resampling.LANCZOS)
-      fixed_fx.append(fx)
-    effect_frames = fixed_fx
+    _pil_composite_center(result_frame, result_icon, _REMATERIALIZATION_PAD_CX, _REMATERIALIZATION_PAD_CY)
+    result_frame = _apply_matte_to_alpha(result_frame, mask_matte)
 
     n = len(effect_frames)
     if n < 2:
@@ -2237,43 +2215,38 @@ async def build_rematerialization_success_animation(
 
     frames: list[Image.Image] = []
 
-    # Hold: pile on background
     start_frame = bg.copy()
     start_frame.alpha_composite(pile)
     for _ in range(max(0, hold_start_frames)):
       frames.append(start_frame)
 
-    # Phase 1: pile fades out + effect plays (masked)
     for i in range(n):
       pile_layer = _alpha_mul(pile, _fade_out_alpha(i))
 
       layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
       layer.alpha_composite(pile_layer)
       layer.alpha_composite(effect_frames[i])
-      layer = _apply_mask_alpha(layer, mask_alpha)
+      layer = _apply_matte_to_alpha(layer, mask_matte)
 
       out = bg.copy()
       out.alpha_composite(layer)
       frames.append(out)
 
-    # Mid hold: empty background
     for _ in range(max(0, hold_mid_frames)):
       frames.append(bg.copy())
 
-    # Phase 2: result icon fades in + effect plays (masked)
     for i in range(n):
       crystal_layer = _alpha_mul(result_frame, _fade_in_alpha(i))
 
       layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
       layer.alpha_composite(crystal_layer)
       layer.alpha_composite(effect_frames[i])
-      layer = _apply_mask_alpha(layer, mask_alpha)
+      layer = _apply_matte_to_alpha(layer, mask_matte)
 
       out = bg.copy()
       out.alpha_composite(layer)
       frames.append(out)
 
-    # End hold: result icon on background
     end_frame = bg.copy()
     end_frame.alpha_composite(result_frame)
     for _ in range(max(0, hold_end_frames)):
@@ -2282,7 +2255,7 @@ async def build_rematerialization_success_animation(
     return frames
 
   loop = asyncio.get_running_loop()
-  frames = await loop.run_in_executor(None, _build_rematerialization_success_frames)
+  frames = await loop.run_in_executor(None, _build_frames)
 
   if not frames:
     raise ValueError('No frames returned for rematerialization success animation.')

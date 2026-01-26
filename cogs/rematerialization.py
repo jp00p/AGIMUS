@@ -853,16 +853,11 @@ class RematerializationView(discord.ui.DesignerView):
 
       pile_buf = None
       try:
-        bg_path = './images/templates/rematerialize/rematerializer.png'
-        with Image.open(bg_path) as bg:
-          canvas_size = bg.size
-
         seed = abs(hash(str(session_id))) % (2**31)
 
         pile_buf = await asyncio.to_thread(
           build_rematerialization_pile_bytes,
           items=items,
-          canvas_size=canvas_size,
           seed=seed
         )
 
