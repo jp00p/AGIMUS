@@ -1857,42 +1857,32 @@ async def generate_crystal_replicator_confirmation_frames(crystal, replicator_ty
 _REMATERIALIZATION_LOCK = threading.Lock()
 _REMATERIALIZATION_CACHE = {
   'bg': None,
-  'mask_matte': None,
+  'mask_l': None,
   'effect_frames': None,
   'effect_key': None
 }
-
-# These are "baked" values for the rematerializer template assets.
-_REMATERIALIZATION_BG_PATH = './images/templates/rematerialize/rematerializer.png'
-_REMATERIALIZATION_MASK_PATH = './images/templates/rematerialize/mask.png'
-_REMATERIALIZATION_EFFECT_DIR = './images/templates/rematerialize/effect'
-
-_REMATERIALIZATION_PAD_CX = 315
-_REMATERIALIZATION_PAD_CY = 365
-
-_REMATERIALIZATION_PILE_CANVAS = (420, 280)
-_REMATERIALIZATION_ICON_PX = 92
-_REMATERIALIZATION_PILE_TILT_DEG = -12.0
 
 
 def _pil_trim_alpha(img: Image.Image) -> Image.Image:
   if img.mode != 'RGBA':
     img = img.convert('RGBA')
 
-  a = img.getchannel('A')
-  bbox = a.getbbox()
+  bbox = img.getchannel('A').getbbox()
   if not bbox:
     return img
   return img.crop(bbox)
 
 
-def _pil_rotate_rgba(img: Image.Image, degrees: float, *, expand: bool = True) -> Image.Image:
+def _pil_rotate_rgba(img: Image.Image, degrees: float) -> Image.Image:
   if img.mode != 'RGBA':
     img = img.convert('RGBA')
-  return img.rotate(degrees, resample=Image.Resampling.BICUBIC, expand=expand)
+  return img.rotate(degrees, resample=Image.Resampling.BICUBIC, expand=True)
 
 
 def _pil_scale_xy(img: Image.Image, sx: float, sy: float) -> Image.Image:
+  if img.mode != 'RGBA':
+    img = img.convert('RGBA')
+
   w, h = img.size
   nw = max(1, int(round(w * sx)))
   nh = max(1, int(round(h * sy)))
@@ -1920,80 +1910,13 @@ def _alpha_mul(im: Image.Image, a: float) -> Image.Image:
   return out
 
 
-def _apply_matte_to_alpha(layer: Image.Image, matte_l: Image.Image) -> Image.Image:
+def _apply_mask_luma(layer: Image.Image, mask_l: Image.Image) -> Image.Image:
+  # mask_l is L-mode, 0..255 (white = keep).
+  # Multiply layer alpha by mask luma using C-backed ops.
   out = layer.copy()
   la = out.getchannel('A')
-  out.putalpha(ImageChops.multiply(la, matte_l))
+  out.putalpha(ImageChops.multiply(la, mask_l))
   return out
-
-
-def _get_rematerialization_assets(
-  *,
-  bg_path: str = _REMATERIALIZATION_BG_PATH,
-  effect_frames_dir: str = _REMATERIALIZATION_EFFECT_DIR,
-  mask_path: str = _REMATERIALIZATION_MASK_PATH
-):
-  def _load_rgba(path: str) -> Image.Image:
-    with Image.open(path) as im:
-      if im.mode != 'RGBA':
-        im = im.convert('RGBA')
-      return im.copy()
-
-  def _list_frame_paths(frames_dir: str) -> list[str]:
-    files = []
-    for name in os.listdir(frames_dir):
-      lower = name.lower()
-      if lower.endswith('.png') or lower.endswith('.webp'):
-        files.append(os.path.join(frames_dir, name))
-
-    def _key(p: str):
-      base = os.path.basename(p)
-      digits = ''.join([c if c.isdigit() else ' ' for c in base]).split()
-      return (int(digits[-1]) if digits else 0, base)
-
-    return sorted(files, key=_key)
-
-  key = f'{bg_path}|{effect_frames_dir}|{mask_path}'
-  with _REMATERIALIZATION_LOCK:
-    if _REMATERIALIZATION_CACHE['effect_key'] != key:
-      _REMATERIALIZATION_CACHE['bg'] = None
-      _REMATERIALIZATION_CACHE['mask_matte'] = None
-      _REMATERIALIZATION_CACHE['effect_frames'] = None
-      _REMATERIALIZATION_CACHE['effect_key'] = key
-
-    if _REMATERIALIZATION_CACHE['bg'] is None:
-      _REMATERIALIZATION_CACHE['bg'] = _load_rgba(bg_path)
-
-    if _REMATERIALIZATION_CACHE['mask_matte'] is None:
-      mask_rgba = _load_rgba(mask_path)
-      bg = _REMATERIALIZATION_CACHE['bg']
-      if mask_rgba.size != bg.size:
-        mask_rgba = mask_rgba.resize(bg.size, resample=Image.Resampling.LANCZOS)
-
-      # IMPORTANT: this mask asset is not an alpha mask. It is a luminance matte.
-      # White means "keep", black means "cut".
-      matte_l = mask_rgba.convert('L')
-      _REMATERIALIZATION_CACHE['mask_matte'] = matte_l
-
-    if _REMATERIALIZATION_CACHE['effect_frames'] is None:
-      frame_paths = _list_frame_paths(effect_frames_dir)
-      if not frame_paths:
-        raise ValueError(f'No effect frames found in: {effect_frames_dir}')
-      frames = [_load_rgba(p) for p in frame_paths]
-
-      bg = _REMATERIALIZATION_CACHE['bg']
-      fixed = []
-      for fx in frames:
-        if fx.size != bg.size:
-          fx = fx.resize(bg.size, resample=Image.Resampling.LANCZOS)
-        fixed.append(fx)
-      _REMATERIALIZATION_CACHE['effect_frames'] = fixed
-
-  return (
-    _REMATERIALIZATION_CACHE['bg'],
-    _REMATERIALIZATION_CACHE['mask_matte'],
-    _REMATERIALIZATION_CACHE['effect_frames']
-  )
 
 
 def _build_crystal_pile(
@@ -2002,7 +1925,7 @@ def _build_crystal_pile(
   canvas_size: tuple[int, int],
   target_icon_px: int,
   front_bias: float,
-  pile_tilt_deg: float,
+  pile_tilt_deg: float
 ) -> Image.Image:
   cw, ch = canvas_size
   pile = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
@@ -2013,7 +1936,7 @@ def _build_crystal_pile(
   icons = list(icon_paths)
   rng.shuffle(icons)
 
-  layers = []
+  layers: list[tuple[Image.Image, int, int]] = []
 
   for i, path in enumerate(icons):
     try:
@@ -2041,11 +1964,11 @@ def _build_crystal_pile(
     if rng.random() < 0.35:
       rot *= 0.35
 
-    icon = _pil_rotate_rgba(icon, rot, expand=True)
+    icon = _pil_rotate_rgba(icon, rot)
 
     radial = rng.uniform(0.0, 18.0)
-    ox = int(round((side * rng.uniform(6.0, 18.0)) + rng.uniform(-6.0, 6.0)))
-    oy = int(round(rng.uniform(-10.0, 10.0)))
+    ox = int(round((side * rng.uniform(10.0, 28.0)) + rng.uniform(-6.0, 6.0)))
+    oy = int(round(rng.uniform(-12.0, 12.0)))
 
     px = cx + ox + int(round(rng.uniform(-radial, radial)))
     py = cy + oy + int(round(rng.uniform(-radial, radial)))
@@ -2063,7 +1986,7 @@ def _build_crystal_pile(
   for icon, px, py in layers:
     _pil_composite_center(pile, icon, px, py)
 
-  pile = _pil_rotate_rgba(pile, pile_tilt_deg, expand=True)
+  pile = _pil_rotate_rgba(pile, pile_tilt_deg)
   pile = _pil_trim_alpha(pile)
 
   return pile
@@ -2072,59 +1995,55 @@ def _build_crystal_pile(
 def build_rematerialization_pile_bytes(
   *,
   items: list[dict],
+  canvas_size: tuple[int, int],
   icons_dir: str = './images/templates/crystals/icons',
-  seed: int | None = None,
-  pile_front_bias: float = 0.25,
+  seed: int | None = None
 ) -> io.BytesIO:
   """
-  Builds an in-memory pile image as a full-frame RGBA PNG that is already scaled,
-  positioned, tilted, and matted for the rematerializer template.
-
-  This intentionally uses baked placement values instead of trying to derive a safe rect
-  from the mask geometry, because the mask is a diagonal matte, not a rectangular alpha region.
+  Returns a full-frame RGBA PNG (BytesIO) with the pile composited at a baked location.
   """
-  def _safe_icon_path(icon_name: str) -> str | None:
-    if not icon_name:
-      return None
-    path = f'{icons_dir}/{icon_name}'
-    if not os.path.exists(path):
-      return None
-    return path
-
   rng = random.Random(seed)
 
-  bg, mask_matte, _ = _get_rematerialization_assets()
-  w, h = bg.size
+  w, h = canvas_size
+  canvas = Image.new('RGBA', (w, h), (0, 0, 0, 0))
 
-  icon_paths = []
+  # Baked placement on this fixed background.
+  pile_cx = 356
+  pile_cy = 286
+
+  pile_canvas = (520, 360)
+  icon_px = 120
+  pile_tilt = -12.0
+  pile_front_bias = 0.25
+
+  icon_paths: list[str] = []
   for it in items:
-    p = _safe_icon_path(it.get('icon'))
-    if p:
-      icon_paths.append(p)
-
-  out = io.BytesIO()
+    name = it.get('icon')
+    if not name:
+      continue
+    path = f'{icons_dir}/{name}'
+    if os.path.exists(path):
+      icon_paths.append(path)
 
   if not icon_paths:
-    empty = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    empty.save(out, format='PNG')
+    out = io.BytesIO()
+    canvas.save(out, format='PNG')
     out.seek(0)
     return out
 
   pile = _build_crystal_pile(
     icon_paths,
     rng,
-    canvas_size=_REMATERIALIZATION_PILE_CANVAS,
-    target_icon_px=_REMATERIALIZATION_ICON_PX,
+    canvas_size=pile_canvas,
+    target_icon_px=icon_px,
     front_bias=pile_front_bias,
-    pile_tilt_deg=_REMATERIALIZATION_PILE_TILT_DEG
+    pile_tilt_deg=pile_tilt
   )
 
-  frame = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-  _pil_composite_center(frame, pile, _REMATERIALIZATION_PAD_CX, _REMATERIALIZATION_PAD_CY)
+  _pil_composite_center(canvas, pile, pile_cx, pile_cy)
 
-  frame = _apply_matte_to_alpha(frame, mask_matte)
-
-  frame.save(out, format='PNG')
+  out = io.BytesIO()
+  canvas.save(out, format='PNG')
   out.seek(0)
   return out
 
@@ -2140,16 +2059,23 @@ async def build_rematerialization_success_animation(
   fade_in_done_frames_from_end: int = 10,
   fade_out_start_frame: int = 5,
   fade_out_done_frames_from_end: int = 10,
+  result_cy_offset: int = 26
 ) -> io.BytesIO:
   """
   Builds the rematerialization success animation as an animated .webp BytesIO.
 
-  Placement is baked. The pile and final crystal are normalized to the same icon size,
-  tilted to match the pad, centered on the same pad coordinate, and the effect is matted
-  by the luminance mask.
+  Placement is fully baked against the fixed background (no mask-bbox placement).
+  Mask is treated as luma: white keeps, black cuts.
+  Effect frames (190x190) are scaled per-phase to fit the unmasked window and payload size.
   """
 
-  def _build_frames() -> list[Image.Image]:
+  def _build_rematerialization_success_frames() -> list[Image.Image]:
+    def _load_rgba(path: str) -> Image.Image:
+      with Image.open(path) as im:
+        if im.mode != 'RGBA':
+          im = im.convert('RGBA')
+        return im.copy()
+
     def _load_rgba_from_bytes(buf: io.BytesIO | bytes) -> Image.Image:
       if isinstance(buf, (bytes, bytearray)):
         buf = io.BytesIO(buf)
@@ -2162,32 +2088,135 @@ async def build_rematerialization_success_animation(
           im = im.convert('RGBA')
         return im.copy()
 
-    def _load_rgba(path: str) -> Image.Image:
-      with Image.open(path) as im:
-        if im.mode != 'RGBA':
-          im = im.convert('RGBA')
-        return im.copy()
+    def _list_frame_paths(frames_dir: str) -> list[str]:
+      files = []
+      for name in os.listdir(frames_dir):
+        lower = name.lower()
+        if lower.endswith('.png') or lower.endswith('.webp'):
+          files.append(os.path.join(frames_dir, name))
 
-    bg, mask_matte, effect_frames = _get_rematerialization_assets()
+      def _key(p: str):
+        base = os.path.basename(p)
+        digits = ''.join([c if c.isdigit() else ' ' for c in base]).split()
+        return (int(digits[-1]) if digits else 0, base)
+
+      return sorted(files, key=_key)
+
+    def _get_rematerialization_assets(*, bg_path: str, effect_frames_dir: str, mask_path: str):
+      key = f'{bg_path}|{effect_frames_dir}|{mask_path}'
+      with _REMATERIALIZATION_LOCK:
+        if _REMATERIALIZATION_CACHE['effect_key'] != key:
+          _REMATERIALIZATION_CACHE['bg'] = None
+          _REMATERIALIZATION_CACHE['mask_l'] = None
+          _REMATERIALIZATION_CACHE['effect_frames'] = None
+          _REMATERIALIZATION_CACHE['effect_key'] = key
+
+        if _REMATERIALIZATION_CACHE['bg'] is None:
+          _REMATERIALIZATION_CACHE['bg'] = _load_rgba(bg_path)
+
+        if _REMATERIALIZATION_CACHE['mask_l'] is None:
+          # Mask is luma-based (white keep, black cut).
+          with Image.open(mask_path) as im:
+            mask_l = im.convert('L')
+          _REMATERIALIZATION_CACHE['mask_l'] = mask_l
+
+        if _REMATERIALIZATION_CACHE['effect_frames'] is None:
+          frame_paths = _list_frame_paths(effect_frames_dir)
+          if not frame_paths:
+            raise ValueError(f'No effect frames found in: {effect_frames_dir}')
+          _REMATERIALIZATION_CACHE['effect_frames'] = [_load_rgba(p) for p in frame_paths]
+
+      return (
+        _REMATERIALIZATION_CACHE['bg'],
+        _REMATERIALIZATION_CACHE['mask_l'],
+        _REMATERIALIZATION_CACHE['effect_frames']
+      )
+
+    bg_path = './images/templates/rematerialize/rematerializer.png'
+    effect_frames_dir = './images/templates/rematerialize/effect'
+    mask_path = './images/templates/rematerialize/mask.png'
+
+    bg, mask_l, effect_frames = _get_rematerialization_assets(
+      bg_path=bg_path,
+      effect_frames_dir=effect_frames_dir,
+      mask_path=mask_path
+    )
+
     w, h = bg.size
 
-    pile = _load_rgba_from_bytes(pile_bytes)
-    if pile.size != (w, h):
-      pile = pile.resize((w, h), resample=Image.Resampling.LANCZOS)
+    if mask_l.size != (w, h):
+      mask_l = mask_l.resize((w, h), resample=Image.Resampling.LANCZOS)
+
+    # Build a binary keep mask (still L-mode) so the bbox reflects the trapezoid region.
+    keep_l = mask_l.point(lambda v: 255 if v > 128 else 0)
+    keep_bbox = keep_l.getbbox()
+    if keep_bbox:
+      mx0, my0, mx1, my1 = keep_bbox
+    else:
+      mx0, my0, mx1, my1 = (0, 0, w, h)
+
+    win_w = max(1, mx1 - mx0)
+    win_h = max(1, my1 - my0)
+    win_pad = int(min(win_w, win_h) * 0.06)
+
+    # Baked placement.
+    pile_cx = 356
+    pile_cy = 286
+    result_cx = pile_cx
+    result_cy = pile_cy + int(result_cy_offset)
+
+    pile_full = _load_rgba_from_bytes(pile_bytes)
+    if pile_full.size != (w, h):
+      pile_full = pile_full.resize((w, h), resample=Image.Resampling.LANCZOS)
+
+    # Trim pile so we can compute effect scaling against its real size.
+    pile_trim = _pil_trim_alpha(pile_full)
+
+    # Load + normalize result to match pile icon sizing.
+    # Keep it the same "icon_px" used in pile build.
+    icon_px = 120
+    pile_tilt = -12.0
 
     result_icon = _load_rgba(result_crystal_path)
     result_icon = _pil_trim_alpha(result_icon)
 
     rm = max(result_icon.size)
     if rm > 0:
-      s = (_REMATERIALIZATION_ICON_PX / float(rm)) * 1.15
+      s = icon_px / float(rm)
       result_icon = _pil_scale_xy(result_icon, s, s)
-
-    result_icon = _pil_rotate_rgba(result_icon, _REMATERIALIZATION_PILE_TILT_DEG, expand=True)
+    result_icon = _pil_rotate_rgba(result_icon, pile_tilt)
 
     result_frame = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    _pil_composite_center(result_frame, result_icon, _REMATERIALIZATION_PAD_CX, _REMATERIALIZATION_PAD_CY)
-    result_frame = _apply_matte_to_alpha(result_frame, mask_matte)
+    _pil_composite_center(result_frame, result_icon, result_cx, result_cy)
+    result_trim = _pil_trim_alpha(result_frame)
+
+    # Effect scaling.
+    # Frames on disk are 190x190 and should be centered on payload.
+    fx_src_w = 190
+    fx_src_h = 190
+
+    max_fx_w = max(1, win_w - (win_pad * 2))
+    max_fx_h = max(1, win_h - (win_pad * 2))
+
+    # Demat: wider to cover pile.
+    demat_target_w = int(min(max_fx_w, max(220, pile_trim.width * 1.35)))
+    demat_target_h = int(min(max_fx_h, max(160, pile_trim.height * 1.05)))
+
+    # Mat: narrower for single crystal, height similar.
+    mat_target_w = int(min(max_fx_w, max(200, result_trim.width * 1.20)))
+    mat_target_h = int(min(max_fx_h, max(160, demat_target_h)))
+
+    def _scale_fx_frames(frames: list[Image.Image], tw: int, th: int) -> list[Image.Image]:
+      out: list[Image.Image] = []
+      for fx in frames:
+        if fx.size != (fx_src_w, fx_src_h):
+          fx = fx.resize((fx_src_w, fx_src_h), resample=Image.Resampling.LANCZOS)
+        fx2 = fx.resize((tw, th), resample=Image.Resampling.LANCZOS)
+        out.append(fx2)
+      return out
+
+    demat_fx = _scale_fx_frames(effect_frames, demat_target_w, demat_target_h)
+    mat_fx = _scale_fx_frames(effect_frames, mat_target_w, mat_target_h)
 
     n = len(effect_frames)
     if n < 2:
@@ -2213,40 +2242,60 @@ async def build_rematerialization_success_animation(
       t = (i - start) / max(1, (done - start))
       return max(0.0, min(1.0, t))
 
+    def _compose_payload_fx(
+      *,
+      payload_layer: Image.Image | None,
+      fx_frame: Image.Image | None,
+      fx_cx: int,
+      fx_cy: int
+    ) -> Image.Image:
+      layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+
+      if payload_layer is not None:
+        layer.alpha_composite(payload_layer)
+
+      if fx_frame is not None:
+        _pil_composite_center(layer, fx_frame, fx_cx, fx_cy)
+
+      layer = _apply_mask_luma(layer, keep_l)
+
+      out = bg.copy()
+      out.alpha_composite(layer)
+      return out
+
     frames: list[Image.Image] = []
 
+    # Hold start
     start_frame = bg.copy()
-    start_frame.alpha_composite(pile)
+    start_frame.alpha_composite(pile_full)
     for _ in range(max(0, hold_start_frames)):
       frames.append(start_frame)
 
+    # Demat: pile fades out + fx (centered on pile)
     for i in range(n):
-      pile_layer = _alpha_mul(pile, _fade_out_alpha(i))
+      pile_layer = _alpha_mul(pile_full, _fade_out_alpha(i))
+      frames.append(_compose_payload_fx(
+        payload_layer=pile_layer,
+        fx_frame=demat_fx[i],
+        fx_cx=pile_cx,
+        fx_cy=pile_cy
+      ))
 
-      layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-      layer.alpha_composite(pile_layer)
-      layer.alpha_composite(effect_frames[i])
-      layer = _apply_matte_to_alpha(layer, mask_matte)
-
-      out = bg.copy()
-      out.alpha_composite(layer)
-      frames.append(out)
-
+    # Mid hold
     for _ in range(max(0, hold_mid_frames)):
       frames.append(bg.copy())
 
+    # Mat: result fades in + fx (centered near result, slightly lower)
     for i in range(n):
       crystal_layer = _alpha_mul(result_frame, _fade_in_alpha(i))
+      frames.append(_compose_payload_fx(
+        payload_layer=crystal_layer,
+        fx_frame=mat_fx[i],
+        fx_cx=result_cx,
+        fx_cy=result_cy
+      ))
 
-      layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-      layer.alpha_composite(crystal_layer)
-      layer.alpha_composite(effect_frames[i])
-      layer = _apply_matte_to_alpha(layer, mask_matte)
-
-      out = bg.copy()
-      out.alpha_composite(layer)
-      frames.append(out)
-
+    # Hold end
     end_frame = bg.copy()
     end_frame.alpha_composite(result_frame)
     for _ in range(max(0, hold_end_frames)):
@@ -2255,7 +2304,7 @@ async def build_rematerialization_success_animation(
     return frames
 
   loop = asyncio.get_running_loop()
-  frames = await loop.run_in_executor(None, _build_frames)
+  frames = await loop.run_in_executor(None, _build_rematerialization_success_frames)
 
   if not frames:
     raise ValueError('No frames returned for rematerialization success animation.')
