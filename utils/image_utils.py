@@ -1886,13 +1886,77 @@ def _pil_scale_xy(img: Image.Image, sx: float, sy: float) -> Image.Image:
   w, h = img.size
   nw = max(1, int(round(w * sx)))
   nh = max(1, int(round(h * sy)))
+  if (nw, nh) == (w, h):
+    return img
   return img.resize((nw, nh), resample=Image.Resampling.LANCZOS)
 
 
 def _pil_composite_center(dst: Image.Image, src: Image.Image, cx: int, cy: int) -> None:
+  if src.mode != 'RGBA':
+    src = src.convert('RGBA')
   x = int(round(cx - (src.size[0] / 2)))
   y = int(round(cy - (src.size[1] / 2)))
   dst.alpha_composite(src, (x, y))
+
+
+def _fit_xy(im: Image.Image, target_w: int, target_h: int) -> Image.Image:
+  if im.mode != 'RGBA':
+    im = im.convert('RGBA')
+  target_w = max(1, int(target_w))
+  target_h = max(1, int(target_h))
+  if im.size == (target_w, target_h):
+    return im
+  return im.resize((target_w, target_h), resample=Image.Resampling.LANCZOS)
+
+
+def _composite_center_with_anchor(
+  dst: Image.Image,
+  src: Image.Image,
+  *,
+  cx: int,
+  cy: int,
+  anchor_y: float = 1.0,
+  ox: int = 0,
+  oy: int = 0
+) -> None:
+  if src.mode != 'RGBA':
+    src = src.convert('RGBA')
+
+  x = int(round(cx - (src.width / 2))) + int(ox)
+  y = int(round(cy - (src.height * anchor_y))) + int(oy)
+  dst.alpha_composite(src, (x, y))
+
+
+def _place_fx_frame(
+  fx: Image.Image,
+  *,
+  out_size: tuple[int, int],
+  center_x: int,
+  anchor_y_px: int,
+  target_w: int,
+  target_h: int,
+  anchor_y: float = 1.0,
+  offset_x: int = 0,
+  offset_y: int = 0
+) -> Image.Image:
+  w, h = out_size
+
+  if fx.mode != 'RGBA':
+    fx = fx.convert('RGBA')
+
+  fx2 = _fit_xy(fx, target_w, target_h)
+
+  layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+  _composite_center_with_anchor(
+    layer,
+    fx2,
+    cx=center_x,
+    cy=anchor_y_px,
+    anchor_y=anchor_y,
+    ox=offset_x,
+    oy=offset_y
+  )
+  return layer
 
 
 def _alpha_mul(im: Image.Image, a: float) -> Image.Image:
@@ -1911,85 +1975,15 @@ def _alpha_mul(im: Image.Image, a: float) -> Image.Image:
 
 
 def _apply_mask_luma(layer: Image.Image, mask_l: Image.Image) -> Image.Image:
-  # mask_l is L-mode, 0..255 (white = keep).
-  # Multiply layer alpha by mask luma using C-backed ops.
+  if layer.mode != 'RGBA':
+    layer = layer.convert('RGBA')
+  if mask_l.mode != 'L':
+    mask_l = mask_l.convert('L')
+
   out = layer.copy()
   la = out.getchannel('A')
   out.putalpha(ImageChops.multiply(la, mask_l))
   return out
-
-
-def _build_crystal_pile(
-  icon_paths: list[str],
-  rng: random.Random,
-  canvas_size: tuple[int, int],
-  target_icon_px: int,
-  front_bias: float,
-  pile_tilt_deg: float
-) -> Image.Image:
-  cw, ch = canvas_size
-  pile = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
-
-  cx = cw // 2
-  cy = ch // 2
-
-  icons = list(icon_paths)
-  rng.shuffle(icons)
-
-  layers: list[tuple[Image.Image, int, int]] = []
-
-  for i, path in enumerate(icons):
-    try:
-      icon = Image.open(path).convert('RGBA')
-    except Exception:
-      continue
-
-    icon = _pil_trim_alpha(icon)
-
-    w, h = icon.size
-    m = max(w, h)
-    if m <= 0:
-      continue
-
-    s = target_icon_px / float(m)
-    icon = _pil_scale_xy(icon, s, s)
-
-    side = -1 if (i % 2 == 0) else 1
-    base_rot = (-65.0 if side < 0 else 65.0)
-
-    rot = base_rot + rng.uniform(-8.0, 8.0)
-    if rng.random() < 0.20:
-      rot += (-35.0 if side < 0 else 35.0)
-
-    if rng.random() < 0.35:
-      rot *= 0.35
-
-    icon = _pil_rotate_rgba(icon, rot)
-
-    radial = rng.uniform(0.0, 18.0)
-    ox = int(round((side * rng.uniform(10.0, 28.0)) + rng.uniform(-6.0, 6.0)))
-    oy = int(round(rng.uniform(-12.0, 12.0)))
-
-    px = cx + ox + int(round(rng.uniform(-radial, radial)))
-    py = cy + oy + int(round(rng.uniform(-radial, radial)))
-
-    pull = 0.55
-    px = int(round((px * (1.0 - pull)) + (cx * pull)))
-    py = int(round((py * (1.0 - pull)) + (cy * pull)))
-
-    if layers and rng.random() > front_bias:
-      insert_at = rng.randint(0, max(0, len(layers) - 1))
-      layers.insert(insert_at, (icon, px, py))
-    else:
-      layers.append((icon, px, py))
-
-  for icon, px, py in layers:
-    _pil_composite_center(pile, icon, px, py)
-
-  pile = _pil_rotate_rgba(pile, pile_tilt_deg)
-  pile = _pil_trim_alpha(pile)
-
-  return pile
 
 
 def build_rematerialization_pile_bytes(
@@ -2000,50 +1994,165 @@ def build_rematerialization_pile_bytes(
   seed: int | None = None
 ) -> io.BytesIO:
   """
-  Returns a full-frame RGBA PNG (BytesIO) with the pile composited at a baked location.
+  Builds an in-memory pile image (full-frame RGBA PNG) from the selected rematerialization items.
+
+  This produces only the pile layer, already baked into the full background coordinate system.
   """
+
+  def _load_rgba(path: str) -> Image.Image:
+    with Image.open(path) as im:
+      if im.mode != 'RGBA':
+        im = im.convert('RGBA')
+      return im.copy()
+
+  def _safe_open_icon(icon_name: str) -> Image.Image | None:
+    if not icon_name:
+      return None
+    path = f'{icons_dir}/{icon_name}'
+    if not os.path.exists(path):
+      return None
+    try:
+      return _load_rgba(path)
+    except Exception:
+      return None
+
+  def _build_crystal_pile(
+    icon_images: list[Image.Image],
+    rng: random.Random,
+    canvas_size: tuple[int, int],
+    target_icon_px: int,
+    front_bias: float,
+    pile_tilt_deg: float,
+    *,
+    tri_skew: float = 2.15,
+    top_rise: int = 110,
+    base_drop: int = 62,
+    top_half_w: int = 40,
+    base_half_w: int = 190,
+    base_snap: float = 0.62,
+    jitter_x: float = 14.0,
+    jitter_y: float = 9.0,
+    rot_base: float = 62.0,
+    rot_jitter: float = 10.0,
+    horizontal_chance: float = 0.18,
+    horizontal_amt: float = 14.0,
+    vertical_bias_chance: float = 0.30,
+    vertical_bias_mult: float = 0.50,
+    base_lift: int = 0
+  ) -> Image.Image:
+    cw, ch = canvas_size
+    pile = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
+
+    cx = cw // 2
+    cy = ch // 2
+
+    icons = list(icon_images)
+    rng.shuffle(icons)
+
+    layers: list[tuple[Image.Image, int, int]] = []
+
+    for i, icon in enumerate(icons):
+      if icon.mode != 'RGBA':
+        icon = icon.convert('RGBA')
+
+      icon = _pil_trim_alpha(icon)
+
+      w, h = icon.size
+      m = max(w, h)
+      if m <= 0:
+        continue
+
+      s = target_icon_px / float(m)
+      icon = _pil_scale_xy(icon, s, s)
+
+      t = rng.random() ** (1.0 / max(0.01, tri_skew))
+
+      base_y = (cy + base_drop) - int(base_lift)
+      y = cy + int(round((-top_rise) * (1.0 - t) + (base_drop) * t))
+      y = int(round((y * (1.0 - base_snap)) + (base_y * base_snap)))
+
+      half_w = (top_half_w * (1.0 - t)) + (base_half_w * t)
+      x = cx + int(round(rng.uniform(-half_w, half_w)))
+
+      x += int(round(rng.uniform(-jitter_x, jitter_x)))
+      y += int(round(rng.uniform(-jitter_y, jitter_y)))
+
+      side = -1 if (x - cx) < 0 else 1
+      base_rot = (-rot_base if side < 0 else rot_base)
+
+      rot = base_rot + rng.uniform(-rot_jitter, rot_jitter)
+      if rng.random() < horizontal_chance:
+        rot += (-horizontal_chance if side < 0 else horizontal_chance)
+
+      if rng.random() < vertical_bias_chance:
+        rot *= vertical_bias_mult
+
+      icon = _pil_rotate_rgba(icon, rot)
+
+      px = x
+      py = y
+
+      if layers and rng.random() > front_bias:
+        insert_at = rng.randint(0, max(0, len(layers) - 1))
+        layers.insert(insert_at, (icon, px, py))
+      else:
+        layers.append((icon, px, py))
+
+    for icon, px, py in layers:
+      _pil_composite_center(pile, icon, px, py)
+
+    pile = _pil_rotate_rgba(pile, pile_tilt_deg)
+    pile = _pil_trim_alpha(pile)
+    return pile
+
   rng = random.Random(seed)
 
   w, h = canvas_size
-  canvas = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+  full = Image.new('RGBA', (w, h), (0, 0, 0, 0))
 
-  # Baked placement on this fixed background.
-  pile_cx = 356
-  pile_cy = 286
-
-  pile_canvas = (520, 360)
-  icon_px = 120
-  pile_tilt = -12.0
-  pile_front_bias = 0.25
-
-  icon_paths: list[str] = []
+  icon_images: list[Image.Image] = []
   for it in items:
-    name = it.get('icon')
-    if not name:
-      continue
-    path = f'{icons_dir}/{name}'
-    if os.path.exists(path):
-      icon_paths.append(path)
+    im = _safe_open_icon(it.get('icon'))
+    if im:
+      icon_images.append(im)
 
-  if not icon_paths:
+  if not icon_images:
     out = io.BytesIO()
-    canvas.save(out, format='PNG')
+    full.save(out, format='PNG')
     out.seek(0)
     return out
 
+  pile_cx = 356
+  pile_cy = 286
+
+  pile_canvas = (640, 380)
+  icon_px = 130
+  pile_tilt = -16.0
+  front_bias = 0.25
+
   pile = _build_crystal_pile(
-    icon_paths,
+    icon_images,
     rng,
     canvas_size=pile_canvas,
     target_icon_px=icon_px,
-    front_bias=pile_front_bias,
-    pile_tilt_deg=pile_tilt
+    front_bias=front_bias,
+    pile_tilt_deg=pile_tilt,
+
+    tri_skew=2.15,
+    top_rise=120,
+    base_drop=70,
+    top_half_w=42,
+    base_half_w=205,
+    base_snap=0.68,
+    jitter_x=16.0,
+    jitter_y=10.0,
+    base_lift=8
   )
 
-  _pil_composite_center(canvas, pile, pile_cx, pile_cy)
+  _pil_composite_center(full, pile, pile_cx, pile_cy)
 
   out = io.BytesIO()
-  canvas.save(out, format='PNG')
+  full.save(out, format='PNG')
   out.seek(0)
   return out
 
@@ -2059,14 +2168,29 @@ async def build_rematerialization_success_animation(
   fade_in_done_frames_from_end: int = 10,
   fade_out_start_frame: int = 5,
   fade_out_done_frames_from_end: int = 10,
-  result_cy_offset: int = 26
+  result_cy_offset: int = 5,
+
+  fx_floor_y: int = 345 + 60,
+  fx_anchor_y: float = 1.0,
+
+  fx_demat_w: int = 440,
+  fx_demat_h: int = 320,
+  fx_demat_ox: int = 0,
+  fx_demat_oy: int = -20,
+
+  fx_mat_w: int | None = None,
+  fx_mat_h: int | None = None,
+  fx_mat_ox: int = 0,
+  fx_mat_oy: int = -20,
+
+  icon_px: int = 130
 ) -> io.BytesIO:
   """
   Builds the rematerialization success animation as an animated .webp BytesIO.
 
-  Placement is fully baked against the fixed background (no mask-bbox placement).
+  Placement is baked against the fixed background.
   Mask is treated as luma: white keeps, black cuts.
-  Effect frames (190x190) are scaled per-phase to fit the unmasked window and payload size.
+  Effect frames (190x190) are scaled and placed per-phase with a bottom-anchored floor.
   """
 
   def _build_rematerialization_success_frames() -> list[Image.Image]:
@@ -2115,10 +2239,8 @@ async def build_rematerialization_success_animation(
           _REMATERIALIZATION_CACHE['bg'] = _load_rgba(bg_path)
 
         if _REMATERIALIZATION_CACHE['mask_l'] is None:
-          # Mask is luma-based (white keep, black cut).
           with Image.open(mask_path) as im:
-            mask_l = im.convert('L')
-          _REMATERIALIZATION_CACHE['mask_l'] = mask_l
+            _REMATERIALIZATION_CACHE['mask_l'] = im.convert('L')
 
         if _REMATERIALIZATION_CACHE['effect_frames'] is None:
           frame_paths = _list_frame_paths(effect_frames_dir)
@@ -2147,8 +2269,8 @@ async def build_rematerialization_success_animation(
     if mask_l.size != (w, h):
       mask_l = mask_l.resize((w, h), resample=Image.Resampling.LANCZOS)
 
-    # Build a binary keep mask (still L-mode) so the bbox reflects the trapezoid region.
     keep_l = mask_l.point(lambda v: 255 if v > 128 else 0)
+
     keep_bbox = keep_l.getbbox()
     if keep_bbox:
       mx0, my0, mx1, my1 = keep_bbox
@@ -2159,7 +2281,6 @@ async def build_rematerialization_success_animation(
     win_h = max(1, my1 - my0)
     win_pad = int(min(win_w, win_h) * 0.06)
 
-    # Baked placement.
     pile_cx = 356
     pile_cy = 286
     result_cx = pile_cx
@@ -2169,13 +2290,9 @@ async def build_rematerialization_success_animation(
     if pile_full.size != (w, h):
       pile_full = pile_full.resize((w, h), resample=Image.Resampling.LANCZOS)
 
-    # Trim pile so we can compute effect scaling against its real size.
     pile_trim = _pil_trim_alpha(pile_full)
 
-    # Load + normalize result to match pile icon sizing.
-    # Keep it the same "icon_px" used in pile build.
-    icon_px = 120
-    pile_tilt = -12.0
+    pile_tilt = -16.0
 
     result_icon = _load_rgba(result_crystal_path)
     result_icon = _pil_trim_alpha(result_icon)
@@ -2184,39 +2301,51 @@ async def build_rematerialization_success_animation(
     if rm > 0:
       s = icon_px / float(rm)
       result_icon = _pil_scale_xy(result_icon, s, s)
+
     result_icon = _pil_rotate_rgba(result_icon, pile_tilt)
 
     result_frame = Image.new('RGBA', (w, h), (0, 0, 0, 0))
     _pil_composite_center(result_frame, result_icon, result_cx, result_cy)
     result_trim = _pil_trim_alpha(result_frame)
 
-    # Effect scaling.
-    # Frames on disk are 190x190 and should be centered on payload.
-    fx_src_w = 190
-    fx_src_h = 190
-
     max_fx_w = max(1, win_w - (win_pad * 2))
     max_fx_h = max(1, win_h - (win_pad * 2))
 
-    # Demat: wider to cover pile.
-    demat_target_w = int(min(max_fx_w, max(220, pile_trim.width * 1.35)))
-    demat_target_h = int(min(max_fx_h, max(160, pile_trim.height * 1.05)))
+    if fx_demat_w is None:
+      fx_demat_w_eff = int(min(max_fx_w, max(260, pile_trim.width * 1.40)))
+    else:
+      fx_demat_w_eff = int(min(max_fx_w, max(1, fx_demat_w)))
 
-    # Mat: narrower for single crystal, height similar.
-    mat_target_w = int(min(max_fx_w, max(200, result_trim.width * 1.20)))
-    mat_target_h = int(min(max_fx_h, max(160, demat_target_h)))
+    if fx_demat_h is None:
+      fx_demat_h_eff = int(min(max_fx_h, max(200, pile_trim.height * 1.10)))
+    else:
+      fx_demat_h_eff = int(min(max_fx_h, max(1, fx_demat_h)))
 
-    def _scale_fx_frames(frames: list[Image.Image], tw: int, th: int) -> list[Image.Image]:
+    if fx_mat_w is None:
+      fx_mat_w_eff = int(min(max_fx_w, max(220, result_trim.width * 1.25)))
+    else:
+      fx_mat_w_eff = int(min(max_fx_w, max(1, fx_mat_w)))
+
+    if fx_mat_h is None:
+      fx_mat_h_eff = int(min(max_fx_h, max(200, fx_demat_h_eff)))
+    else:
+      fx_mat_h_eff = int(min(max_fx_h, max(1, fx_mat_h)))
+
+    fx_src_w = 190
+    fx_src_h = 190
+
+    def _scale_fx_frames(frames_in: list[Image.Image], tw: int, th: int) -> list[Image.Image]:
       out: list[Image.Image] = []
-      for fx in frames:
+      for fx in frames_in:
+        if fx.mode != 'RGBA':
+          fx = fx.convert('RGBA')
         if fx.size != (fx_src_w, fx_src_h):
           fx = fx.resize((fx_src_w, fx_src_h), resample=Image.Resampling.LANCZOS)
-        fx2 = fx.resize((tw, th), resample=Image.Resampling.LANCZOS)
-        out.append(fx2)
+        out.append(_fit_xy(fx, tw, th))
       return out
 
-    demat_fx = _scale_fx_frames(effect_frames, demat_target_w, demat_target_h)
-    mat_fx = _scale_fx_frames(effect_frames, mat_target_w, mat_target_h)
+    demat_fx = _scale_fx_frames(effect_frames, fx_demat_w_eff, fx_demat_h_eff)
+    mat_fx = _scale_fx_frames(effect_frames, fx_mat_w_eff, fx_mat_h_eff)
 
     n = len(effect_frames)
     if n < 2:
@@ -2245,17 +2374,32 @@ async def build_rematerialization_success_animation(
     def _compose_payload_fx(
       *,
       payload_layer: Image.Image | None,
-      fx_frame: Image.Image | None,
-      fx_cx: int,
-      fx_cy: int
+      fx_src: Image.Image | None,
+      fx_center_x: int,
+      fx_floor_y_px: int,
+      fx_target_w: int,
+      fx_target_h: int,
+      fx_ox: int,
+      fx_oy: int
     ) -> Image.Image:
       layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
 
       if payload_layer is not None:
         layer.alpha_composite(payload_layer)
 
-      if fx_frame is not None:
-        _pil_composite_center(layer, fx_frame, fx_cx, fx_cy)
+      if fx_src is not None:
+        fx_layer = _place_fx_frame(
+          fx_src,
+          out_size=(w, h),
+          center_x=fx_center_x,
+          anchor_y_px=fx_floor_y_px,
+          target_w=fx_target_w,
+          target_h=fx_target_h,
+          anchor_y=fx_anchor_y,
+          offset_x=fx_ox,
+          offset_y=fx_oy
+        )
+        layer.alpha_composite(fx_layer)
 
       layer = _apply_mask_luma(layer, keep_l)
 
@@ -2265,37 +2409,40 @@ async def build_rematerialization_success_animation(
 
     frames: list[Image.Image] = []
 
-    # Hold start
     start_frame = bg.copy()
     start_frame.alpha_composite(pile_full)
     for _ in range(max(0, hold_start_frames)):
       frames.append(start_frame)
 
-    # Demat: pile fades out + fx (centered on pile)
     for i in range(n):
       pile_layer = _alpha_mul(pile_full, _fade_out_alpha(i))
       frames.append(_compose_payload_fx(
         payload_layer=pile_layer,
-        fx_frame=demat_fx[i],
-        fx_cx=pile_cx,
-        fx_cy=pile_cy
+        fx_src=demat_fx[i],
+        fx_center_x=pile_cx,
+        fx_floor_y_px=int(fx_floor_y),
+        fx_target_w=fx_demat_w_eff,
+        fx_target_h=fx_demat_h_eff,
+        fx_ox=int(fx_demat_ox),
+        fx_oy=int(fx_demat_oy)
       ))
 
-    # Mid hold
     for _ in range(max(0, hold_mid_frames)):
       frames.append(bg.copy())
 
-    # Mat: result fades in + fx (centered near result, slightly lower)
     for i in range(n):
       crystal_layer = _alpha_mul(result_frame, _fade_in_alpha(i))
       frames.append(_compose_payload_fx(
         payload_layer=crystal_layer,
-        fx_frame=mat_fx[i],
-        fx_cx=result_cx,
-        fx_cy=result_cy
+        fx_src=mat_fx[i],
+        fx_center_x=result_cx,
+        fx_floor_y_px=int(fx_floor_y),
+        fx_target_w=fx_mat_w_eff,
+        fx_target_h=fx_mat_h_eff,
+        fx_ox=int(fx_mat_ox),
+        fx_oy=int(fx_mat_oy)
       ))
 
-    # Hold end
     end_frame = bg.copy()
     end_frame.alpha_composite(result_frame)
     for _ in range(max(0, hold_end_frames)):
