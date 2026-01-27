@@ -150,7 +150,7 @@ class RematerializationView(discord.ui.DesignerView):
     return None
 
   def _build_status_block(self) -> str:
-    if self.state is not 'RARITY'):
+    if self.state == 'RARITY':
       return ''
 
     src = f'{self.cog.rarity_emoji(self.source_rarity_rank)} {self.cog.rarity_name(self.source_rarity_rank)}'
@@ -536,10 +536,24 @@ class RematerializationView(discord.ui.DesignerView):
 
     files = self._rebuild()
 
+    # If we need to send files, we must defer first, then followup-send and delete the old message.
     if files:
       await self._swap_message_with_files(interaction, files)
       return
 
+    # No files: ACK the component interaction by editing the message via the interaction response.
+    try:
+      if not interaction.response.is_done():
+        await interaction.response.edit_message(view=self)
+        try:
+          self.message = interaction.message
+        except Exception:
+          pass
+        return
+    except Exception:
+      pass
+
+    # Interaction already responded to: fall back to editing the stored message handle.
     if self.message:
       try:
         await self.message.edit(view=self)
@@ -550,46 +564,49 @@ class RematerializationView(discord.ui.DesignerView):
         logger.error(traceback.format_exc())
         return
 
-    try:
-      if interaction.message:
-        self.message = interaction.message
-        await self.message.edit(view=self)
-        return
-    except Exception:
-      pass
-
+    # Last resort: send a followup.
     try:
       self.message = await interaction.followup.send(view=self, ephemeral=True)
     except Exception:
       pass
 
+
   async def start(self, ctx: discord.ApplicationContext):
     files = self._rebuild()
 
+    # Use original response when no files are needed (RARITY screen).
+    if not files:
+      try:
+        await ctx.interaction.edit_original_response(view=self)
+        self.message = await ctx.interaction.original_response()
+        return
+      except Exception:
+        pass
+
+    # If files are needed, use a followup message and delete the original placeholder.
     try:
-      msg = None
       if files:
         try:
-          msg = await ctx.followup.send(view=self, files=files, ephemeral=True)
+          self.message = await ctx.followup.send(view=self, files=files, ephemeral=True)
         except TypeError:
           if len(files) == 1:
-            msg = await ctx.followup.send(view=self, file=files[0], ephemeral=True)
+            self.message = await ctx.followup.send(view=self, file=files[0], ephemeral=True)
           else:
-            msg = await ctx.followup.send(view=self, ephemeral=True)
+            self.message = await ctx.followup.send(view=self, ephemeral=True)
       else:
-        msg = await ctx.followup.send(view=self, ephemeral=True)
-
-      self.message = msg
+        self.message = await ctx.followup.send(view=self, ephemeral=True)
 
       try:
         original = await ctx.interaction.original_response()
         await original.delete()
       except Exception:
         pass
+
       return
     except Exception:
       pass
 
+    # Last resort: send on interaction response if still possible.
     try:
       if not ctx.interaction.response.is_done():
         if files:
