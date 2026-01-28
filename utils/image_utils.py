@@ -2024,21 +2024,23 @@ def build_rematerialization_pile_bytes(
     front_bias: float,
     pile_tilt_deg: float,
     *,
-    tri_skew: float = 2.15,
-    top_rise: int = 110,
-    base_drop: int = 62,
-    top_half_w: int = 40,
-    base_half_w: int = 190,
-    base_snap: float = 0.62,
+    mound_rx: float = 175.0,
+    mound_ry: float = 95.0,
+    mound_power: float = 1.95,
+    height_px: int = 120,
+
     jitter_x: float = 14.0,
-    jitter_y: float = 9.0,
-    rot_base: float = 62.0,
-    rot_jitter: float = 10.0,
-    horizontal_chance: float = 0.18,
-    horizontal_amt: float = 14.0,
-    vertical_bias_chance: float = 0.30,
-    vertical_bias_mult: float = 0.50,
-    base_lift: int = 0
+    jitter_y: float = 10.0,
+
+    rot_center: float = 10.0,
+    rot_edge: float = 92.0,
+    rot_jitter: float = 16.0,
+
+    edge_start: float = 0.52,
+
+    scale_center: float = 1.12,
+    scale_edge: float = 0.92,
+    scale_jitter: float = 0.05
   ) -> Image.Image:
     cw, ch = canvas_size
     pile = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
@@ -2049,61 +2051,84 @@ def build_rematerialization_pile_bytes(
     icons = list(icon_images)
     rng.shuffle(icons)
 
-    layers: list[tuple[Image.Image, int, int]] = []
+    placements: list[dict] = []
 
-    for i, icon in enumerate(icons):
+    def _clamp(v: float, lo: float, hi: float) -> float:
+      return lo if v < lo else hi if v > hi else v
+
+    def _smoothstep(a: float, b: float, x: float) -> float:
+      if a == b:
+        return 0.0
+      t = _clamp((x - a) / (b - a), 0.0, 1.0)
+      return t * t * (3.0 - 2.0 * t)
+
+    for icon in icons:
       if icon.mode != 'RGBA':
         icon = icon.convert('RGBA')
 
       icon = _pil_trim_alpha(icon)
-
       w, h = icon.size
       m = max(w, h)
       if m <= 0:
         continue
 
-      s = target_icon_px / float(m)
-      icon = _pil_scale_xy(icon, s, s)
+      base_scale = target_icon_px / float(m)
 
-      t = rng.random() ** (1.0 / max(0.01, tri_skew))
+      r = rng.random() ** mound_power
+      theta = rng.uniform(0.0, math.tau)
 
-      base_y = (cy + base_drop) - int(base_lift)
-      y = cy + int(round((-top_rise) * (1.0 - t) + (base_drop) * t))
-      y = int(round((y * (1.0 - base_snap)) + (base_y * base_snap)))
+      ex = math.cos(theta) * mound_rx * r
+      ey = math.sin(theta) * mound_ry * r
 
-      half_w = (top_half_w * (1.0 - t)) + (base_half_w * t)
-      x = cx + int(round(rng.uniform(-half_w, half_w)))
+      x = cx + int(round(ex + rng.uniform(-jitter_x, jitter_x)))
+      y = cy + int(round(ey + rng.uniform(-jitter_y, jitter_y)))
 
-      x += int(round(rng.uniform(-jitter_x, jitter_x)))
-      y += int(round(rng.uniform(-jitter_y, jitter_y)))
+      lift = int(round(height_px * ((1.0 - r) ** 2.0)))
+      y -= lift
+
+      edge_t = _smoothstep(edge_start, 1.0, r)
+
+      scale = (
+        (scale_center * (1.0 - r)) +
+        (scale_edge * r)
+      ) * (1.0 + rng.uniform(-scale_jitter, scale_jitter))
+
+      icon = _pil_scale_xy(icon, base_scale * scale, base_scale * scale)
 
       side = -1 if (x - cx) < 0 else 1
-      base_rot = (-rot_base if side < 0 else rot_base)
 
-      rot = base_rot + rng.uniform(-rot_jitter, rot_jitter)
-      if rng.random() < horizontal_chance:
-        rot += (-horizontal_chance if side < 0 else horizontal_chance)
-
-      if rng.random() < vertical_bias_chance:
-        rot *= vertical_bias_mult
+      rot_mag = (rot_center * (1.0 - edge_t)) + (rot_edge * edge_t)
+      rot = (rot_mag * side) + rng.uniform(-rot_jitter, rot_jitter)
+      rot += side * 28.0 * edge_t
 
       icon = _pil_rotate_rgba(icon, rot)
 
-      px = x
-      py = y
+      placements.append({
+        'img': icon,
+        'x': x,
+        'y': y,
+        'edge_t': edge_t
+      })
 
-      if layers and rng.random() > front_bias:
-        insert_at = rng.randint(0, max(0, len(layers) - 1))
-        layers.insert(insert_at, (icon, px, py))
-      else:
-        layers.append((icon, px, py))
+    placements.sort(key=lambda p: p['y'] + int(p['edge_t'] * 22))
 
-    for icon, px, py in layers:
-      _pil_composite_center(pile, icon, px, py)
+    if placements and front_bias > 0.0:
+      ordered: list[dict] = []
+      for p in placements:
+        if ordered and rng.random() < front_bias:
+          idx = rng.randint(max(0, len(ordered) - 3), len(ordered))
+          ordered.insert(idx, p)
+        else:
+          ordered.append(p)
+      placements = ordered
+
+    for p in placements:
+      _pil_composite_center(pile, p['img'], p['x'], p['y'])
 
     pile = _pil_rotate_rgba(pile, pile_tilt_deg)
     pile = _pil_trim_alpha(pile)
     return pile
+
 
   rng = random.Random(seed)
 
