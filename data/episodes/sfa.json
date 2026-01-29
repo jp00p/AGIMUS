@@ -66,6 +66,18 @@
             "stills": [
                 "https://image.tmdb.org/t/p/original/zxGxsjWs4UfQMsReYWHNGhuItne.jpg"
             ]
+        },
+        {
+            "airdate": "2026.01.29",
+            "title": "Vox in Excelso",
+            "description": "When an existential crisis threatens to wipe out a beloved but infamous Star Trek species, a cadet is forced to confront his past and strained relationship with his family. As he pursues an unexpected method of coping, Nahla races against time to save this species from extinction.",
+            "season": "01",
+            "episode": "04",
+            "podcasts": [],
+            "memoryalpha": "Vox_In_Excelso_(episode)",
+            "tvdb": 6594795,
+            "imdb": "tt34127759",
+            "stills": []
         }
     ],
     "imdb": "",

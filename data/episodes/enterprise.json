@@ -2071,7 +2071,15 @@
             "episode": "14",
             "imdb": "tt0572246",
             "memoryalpha": "The_Aenar_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.01.26",
+                    "episode": "Celebrity Pipes",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-611-celebrity-pipes-ent-s4e14/",
+                    "order": 611,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/5TuEM2ppeMVjIubl3KsF5qNwJvo.jpg",
