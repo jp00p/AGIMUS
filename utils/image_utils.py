@@ -2068,178 +2068,214 @@ def build_rematerialization_pile_bytes(
     *,
     icon_images: list[Image.Image],
     canvas_size: tuple[int, int] = (640, 380),
-    seed: int | None = None
+    seed: int | None = None,
+    pile_tilt_deg: float = -16.0
   ) -> Image.Image:
-    """
-    Builds a triangular crystal pile with outward jut on left/right edges.
-
-    Rows adapt to the number of icons so 10 items becomes 4+3+2+1 instead of
-    widening the base row.
-    """
     rng = random.Random(seed)
 
     cw, ch = canvas_size
     pile = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
 
-    # Normalize icons and scale to base_px-ish (base_px computed below)
-    icons: list[Image.Image] = []
+    src_icons: list[Image.Image] = []
     for im in icon_images:
       if im.mode != 'RGBA':
         im = im.convert('RGBA')
       im = _pil_trim_alpha(im)
-      if im.size[0] <= 0 or im.size[1] <= 0:
-        continue
-      icons.append(im)
+      if im.size[0] > 0 and im.size[1] > 0:
+        src_icons.append(im)
 
-    if not icons:
+    if not src_icons:
       return pile
 
-    n_icons = len(icons)
+    n = len(src_icons)
 
-    # Compute rows so triangle capacity >= n_icons
-    # rows = ceil((sqrt(8n+1)-1)/2)
-    rows = int(math.ceil((math.sqrt((8.0 * n_icons) + 1.0) - 1.0) / 2.0))
-    rows = max(3, min(6, rows))  # clamp for sanity
+    # -----------------
+    # Tunables
+    # -----------------
+    base_px = int(round(102.0 * (10.0 / float(max(6, n))) ** 0.45))
+    base_px = max(70, min(110, base_px))
 
-    # Scale icon size down as rows increase (3 rows -> ~118px, 4 rows -> ~92px, 5 rows -> ~78px)
-    base_px = int(round(118.0 * (3.0 / float(rows))))
-    base_px = max(64, min(118, base_px))
+    cx = cw // 2
+    base_y = int(ch * 0.66)
 
-    # Spacing/jitter derive from base_px so pile stays consistent at different counts
-    row_gap = int(base_px * 0.22)   # shorter overall pile
-    col_gap = int(base_px * 0.68)
-    jitter_x = int(base_px * 0.18)
-    jitter_y = int(base_px * 0.10)
+    # Make the footprint wide and not too tall (prevents circular clump)
+    tri_w = int(base_px * 4.15)
+    tri_h = int(base_px * 1.70)
 
-    # Edge jut (outer items kick outward)
-    jut_px = int(base_px * 0.30)
+    # Hard floor clamp (prevents a couple icons hanging low and making it too tall)
+    floor_y = base_y - int(base_px * 0.06)   # raise floor slightly above base line
+    floor_weight = 16.0                      # additional scoring penalty if near floor
 
-    # Candidate scoring
-    candidate_tries = 28
-    repel_radius = base_px * 0.70
-    repel_weight = 1.25
-    overlap_weight = 6.5
-    cohesion_weight = 0.45
-    slot_weight = 0.55
+    # Jumble search
+    candidate_tries = 36
+    jitter_x = int(base_px * 0.62)
+    jitter_y = int(base_px * 0.28)
 
-    clamp_soft_x = base_px * 0.70
-    clamp_soft_y = base_px * 0.55
+    repel_radius = base_px * 0.72
+    overlap_weight = 7.8
+    repel_weight = 1.10
+    cohesion_weight = 0.75
+    target_weight = 0.34         # higher keeps the triangular footprint
+    noise_weight = 0.10
 
-    rot_jitter = 14.0
-    scale_jitter = 0.06
+    clamp_soft_x = int(base_px * 1.10)
+    clamp_soft_y = int(base_px * 0.70)
 
-    # Now scale/trim the normalized icons to base_px
-    scaled: list[Image.Image] = []
-    for im in icons:
+    jut_strength = base_px * 0.62
+
+    rot_jitter = 30.0
+    edge_rot_extra = 22.0
+    scale_jitter = 0.05
+    # -----------------
+
+    # Scale icons to base_px-ish with small variance
+    icons: list[Image.Image] = []
+    for im in src_icons:
       w, h = im.size
       m = max(w, h) if max(w, h) > 0 else 1
       s = base_px / float(m)
       s *= (1.0 + rng.uniform(-scale_jitter, scale_jitter))
       out = _pil_scale_xy(im, s, s)
-      scaled.append(_pil_trim_alpha(out))
+      icons.append(_pil_trim_alpha(out))
 
-    icons = scaled
     rng.shuffle(icons)
 
-    cx = cw // 2
-    cy = int(ch * 0.62)
-
-    # Build triangular slots: bottom row = rows, then rows-1, ... , 1
-    slots: list[tuple[int, int, int, int, int]] = []
-    # (slot_x, slot_y, row_index, col_index, row_count)
-    for r in range(rows):
-      row_count = rows - r
-      y = cy - (r * row_gap)
-      total_w = (row_count - 1) * col_gap
-      start_x = cx - int(total_w / 2)
-      for c in range(row_count):
-        x = start_x + (c * col_gap)
-        slots.append((x, y, r, c, row_count))
-
-    placements: list[dict] = []
+    bl = (cx - (tri_w // 2), base_y)
+    br = (cx + (tri_w // 2), base_y)
+    tp = (cx, base_y - tri_h)
 
     def _dist2(ax: float, ay: float, bx: float, by: float) -> float:
       dx = ax - bx
       dy = ay - by
       return (dx * dx) + (dy * dy)
 
-    def _score_candidate(
-      px: int,
-      py: int,
-      *,
-      slot_x: int,
-      slot_y: int,
-      centroid_x: float,
-      centroid_y: float
-    ) -> float:
-      s = 0.0
-      s += cohesion_weight * math.sqrt(_dist2(px, py, centroid_x, centroid_y))
-      s += slot_weight * math.sqrt(_dist2(px, py, slot_x, slot_y))
+    def _bary_to_xy(u: float, v: float, w: float) -> tuple[float, float]:
+      x = (u * bl[0]) + (v * br[0]) + (w * tp[0])
+      y = (u * bl[1]) + (v * br[1]) + (w * tp[1])
+      return (x, y)
 
+    def _triangle_sample_biased() -> tuple[float, float, float]:
+      # Start uniform inside triangle (reflection trick)
+      u = rng.random()
+      v = rng.random()
+      if (u + v) > 1.0:
+        u = 1.0 - u
+        v = 1.0 - v
+      w = 1.0 - u - v
+
+      # Bias toward the base (reduce w) so the pile has a wide base
+      base_bias = 0.45 + (rng.random() * 0.35)  # 0.45..0.80
+      w *= base_bias
+
+      # Bias toward left/right edges sometimes (gives outward jut and avoids circular clump)
+      if rng.random() < 0.68:
+        if rng.random() < 0.5:
+          u = u ** 0.35
+          v = v ** 1.65
+        else:
+          u = u ** 1.65
+          v = v ** 0.35
+
+      # Renormalize barycentric
+      total = u + v + w
+      if total <= 0.0:
+        return (0.5, 0.5, 0.0)
+      return (u / total, v / total, w / total)
+
+    placements: list[dict] = []
+
+    def _score(px: int, py: int, *, tx: int, ty: int, centroid_x: float, centroid_y: float) -> float:
+      s = 0.0
+
+      # Keep the group together
+      s += cohesion_weight * math.sqrt(_dist2(px, py, centroid_x, centroid_y))
+
+      # Keep triangular footprint (but still messy due to jitter and noise)
+      s += target_weight * math.sqrt(_dist2(px, py, tx, ty))
+
+      # Penalize being at/below the floor line (prevents low outliers)
+      if py > floor_y:
+        t = (py - floor_y) / float(max(1, base_px))
+        s += floor_weight * (t * t)
+
+      # Repulsion/overlap
       for p in placements:
         d2 = _dist2(px, py, p['x'], p['y'])
         d = math.sqrt(d2)
 
         if d < (repel_radius * 2.0):
-          t = max(0.0, (repel_radius * 2.0) - d) / (repel_radius * 2.0)
-          s += repel_weight * (t * t)
+          tt = max(0.0, (repel_radius * 2.0) - d) / (repel_radius * 2.0)
+          s += repel_weight * (tt * tt)
 
-        min_sep = (p['r'] + base_px * 0.42)
+        min_sep = (p['r'] + (base_px * 0.46))
         if d < min_sep:
           s += overlap_weight * ((min_sep - d) / max(1.0, min_sep)) ** 2.0
 
+      s += noise_weight * rng.random()
       return s
 
-    for idx, icon in enumerate(icons):
-      sx, sy, r, c, row_count = slots[idx % len(slots)]
-
-      # Edge jut (stronger on bottom rows)
-      depth = 1.0 - (r / float(max(1, rows - 1)))
-      if row_count >= 2:
-        if c == 0:
-          sx -= int(jut_px * depth)
-        elif c == (row_count - 1):
-          sx += int(jut_px * depth)
+    for icon in icons:
+      u, v, w = _triangle_sample_biased()
+      tx_f, ty_f = _bary_to_xy(u, v, w)
+      tx = int(round(tx_f))
+      ty = int(round(ty_f))
 
       if placements:
         centroid_x = sum([p['x'] for p in placements]) / float(len(placements))
         centroid_y = sum([p['y'] for p in placements]) / float(len(placements))
       else:
         centroid_x = float(cx)
-        centroid_y = float(cy)
+        centroid_y = float(base_y - int(tri_h * 0.45))
 
       best = None
-      best_score = 1e18
+      best_s = 1e18
 
       for _ in range(candidate_tries):
-        px = sx + rng.randint(-jitter_x, jitter_x)
-        py = sy + rng.randint(-jitter_y, jitter_y)
+        px = tx + rng.randint(-jitter_x, jitter_x)
+        py = ty + rng.randint(-jitter_y, jitter_y)
 
-        if abs(px - sx) > clamp_soft_x:
+        # Soft clamp around the target (prevents extreme drift)
+        if abs(px - tx) > clamp_soft_x:
           continue
-        if abs(py - sy) > clamp_soft_y:
+        if abs(py - ty) > clamp_soft_y:
           continue
 
-        sc = _score_candidate(
-          px, py,
-          slot_x=sx,
-          slot_y=sy,
-          centroid_x=centroid_x,
-          centroid_y=centroid_y
-        )
-        if sc < best_score:
-          best_score = sc
+        # Hard clamp: never allow below floor
+        if py > floor_y:
+          py = floor_y
+
+        sc = _score(px, py, tx=tx, ty=ty, centroid_x=centroid_x, centroid_y=centroid_y)
+        if sc < best_s:
+          best_s = sc
           best = (px, py)
 
       if best is None:
-        best = (sx, sy)
+        best = (tx, min(ty, floor_y))
 
       px, py = best
 
-      edge_bias = abs(px - cx) / float(max(1, (cw // 2)))
+      # Edge jut based on how close to triangle edges this target is
+      # Compute local left/right edges at this depth
+      left_edge_x = int(round((w * tp[0]) + ((1.0 - w) * bl[0])))
+      right_edge_x = int(round((w * tp[0]) + ((1.0 - w) * br[0])))
+
+      if right_edge_x != left_edge_x:
+        edge_t = (px - left_edge_x) / float(right_edge_x - left_edge_x)
+        edge_t = max(0.0, min(1.0, edge_t))
+        if edge_t < 0.5:
+          px -= int(round((0.5 - edge_t) * jut_strength))
+        else:
+          px += int(round((edge_t - 0.5) * jut_strength))
+
+      # Rotation: make it visible, more on edges and nearer the base
+      depth_t = max(0.0, min(1.0, (base_y - py) / float(max(1, tri_h))))
+      edge_bias = abs(px - cx) / float(max(1, (tri_w // 2)))
       edge_bias = max(0.0, min(1.0, edge_bias))
 
-      rot = rng.uniform(-rot_jitter, rot_jitter) + (edge_bias * rng.uniform(-10.0, 10.0))
+      rot = rng.uniform(-rot_jitter, rot_jitter)
+      rot += (edge_bias * rng.uniform(-edge_rot_extra, edge_rot_extra))
+      rot += ((1.0 - depth_t) * rng.uniform(-10.0, 10.0))
+
       icon_r = _pil_rotate_rgba(icon, rot)
       icon_r = _pil_trim_alpha(icon_r)
 
@@ -2247,13 +2283,18 @@ def build_rematerialization_pile_bytes(
         'img': icon_r,
         'x': int(px),
         'y': int(py),
-        'r': float(max(icon_r.size) * 0.50)
+        'r': float(max(icon_r.size) * 0.52)
       })
 
+    # Back to front
     placements.sort(key=lambda p: p['y'])
 
     for p in placements:
       _pil_composite_center(pile, p['img'], p['x'], p['y'])
+
+    # Overall pile tilt (this is the part you said went missing before)
+    if abs(pile_tilt_deg) > 0.001:
+      pile = _pil_rotate_rgba(pile, pile_tilt_deg)
 
     return _pil_trim_alpha(pile)
 
@@ -2292,7 +2333,7 @@ async def build_rematerialization_success_animation(
   result_crystal_path: str,
   hold_start_frames: int = 10,
   hold_mid_frames: int = 8,
-  hold_end_frames: int = 10,
+  hold_end_frames: int = 24,
   fade_in_start_frame: int = 5,
   fade_in_done_frames_from_end: int = 10,
   fade_out_start_frame: int = 5,
