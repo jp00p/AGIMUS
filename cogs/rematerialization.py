@@ -44,6 +44,7 @@ class RematerializationView(discord.ui.DesignerView):
 
     self.notice = None
     self.message = None
+    self.pending_message = None
 
     self._last_interaction = None
 
@@ -151,6 +152,11 @@ class RematerializationView(discord.ui.DesignerView):
     try:
       if self.message:
         await self.message.delete()
+    except Exception:
+      pass
+
+    try:
+      await self._delete_pending_message()
     except Exception:
       pass
 
@@ -613,8 +619,6 @@ class RematerializationView(discord.ui.DesignerView):
     if not old_msg:
       old_msg = self.message
 
-    # Try deleting the old message first, but never let this block the flow.
-    # If deletion fails for any reason, we still proceed to send the new screen.
     if old_msg:
       try:
         await old_msg.delete()
@@ -663,6 +667,69 @@ class RematerializationView(discord.ui.DesignerView):
     if new_msg:
       self.message = new_msg
 
+  def _build_pending_container_only(self) -> discord.ui.Container:
+    container = discord.ui.Container(color=discord.Color.teal().value)
+    container.add_item(discord.ui.TextDisplay('# Rematerializing...'))
+    container.add_item(discord.ui.Separator())
+
+    processing_gifs = [
+      'https://i.imgur.com/2QW3nqZ.gif',
+      'https://i.imgur.com/ortnrA7.gif',
+      'https://i.imgur.com/Z4Gr6vQ.gif'
+    ]
+
+    try:
+      container.add_gallery(
+        discord.MediaGalleryItem(
+          url=random.choice(processing_gifs),
+          description='Processing'
+        )
+      )
+    except Exception:
+      pass
+
+    container.add_item(discord.ui.Separator())
+    container.add_item(discord.ui.TextDisplay(
+      'Posting the Rematerialization sequence to the public channel...'
+    ))
+    return container
+
+  async def _show_pending_message(self, interaction: discord.Interaction):
+    try:
+      if self.pending_message:
+        try:
+          await self.pending_message.delete()
+        except Exception:
+          pass
+        self.pending_message = None
+
+      pending_view = discord.ui.DesignerView(timeout=None, store=False)
+      pending_view.add_item(self._build_pending_container_only())
+      pending_view.disable_all_items()
+
+      msg = None
+      try:
+        if not interaction.response.is_done():
+          await interaction.response.send_message(view=pending_view, ephemeral=True)
+          msg = await interaction.original_response()
+        else:
+          msg = await interaction.followup.send(view=pending_view, ephemeral=True)
+      except Exception:
+        msg = None
+
+      if msg:
+        self.pending_message = msg
+    except Exception:
+      self._log_exception('_show_pending_message failed', interaction)
+
+  async def _delete_pending_message(self):
+    if not self.pending_message:
+      return
+    try:
+      await self.pending_message.delete()
+    except Exception:
+      pass
+    self.pending_message = None
 
   async def _render(self, interaction: discord.Interaction):
     acked = await self._ack(interaction)
@@ -1153,21 +1220,10 @@ class RematerializationView(discord.ui.DesignerView):
 
       container = discord.ui.Container(color=discord.Color.green().value)
       container.add_item(discord.ui.TextDisplay(
-        f'# CRYSTAL REMATERIALIZATION!\n'
+        f'# CRYSTAL REMATERIALIZATION\n'
         f'{user_mention} has converted **{self.contents_target}** {source_rarity_text} Crystals '
         f'into a new {target_rarity_text} Crystal!'
       ))
-
-      public_thumb = discord.ui.Thumbnail(
-        url=f'attachment://{result_filename}',
-        description=result_name
-      )
-      public_section = discord.ui.Section(
-        discord.ui.TextDisplay(result_text),
-        accessory=public_thumb
-      )
-      container.add_item(discord.ui.Separator())
-      container.add_item(public_section)
 
       container.add_item(discord.ui.Separator())
       container.add_gallery(
@@ -1176,6 +1232,19 @@ class RematerializationView(discord.ui.DesignerView):
           description='Rematerialization Sequence'
         )
       )
+      container.add_item(discord.ui.Separator())
+
+      container.add_item(discord.ui.TextDisplay("## Materialized"))
+      result_thumb = discord.ui.Thumbnail(
+        url=f'attachment://{result_filename}',
+        description=result_name
+      )
+      result_section = discord.ui.Section(
+        discord.ui.TextDisplay(result_text),
+        accessory=result_thumb
+      )
+      container.add_item(discord.ui.Separator())
+      container.add_item(result_section)
 
       container.add_item(discord.ui.Separator())
       container.add_item(discord.ui.TextDisplay(dematerialized_text))
@@ -1210,6 +1279,11 @@ class RematerializationView(discord.ui.DesignerView):
     except Exception:
       logger.info(traceback.format_exc())
       return False
+    finally:
+      try:
+        await self._delete_pending_message()
+      except Exception:
+        pass
 
   async def _show_success(
     self,
@@ -1243,9 +1317,9 @@ class RematerializationView(discord.ui.DesignerView):
         f'Dematerialized {self.contents_target} {source_rarity_text} Crystals;\n'
         f'Materialized a new **{result_name}** Crystal at {target_rarity_text}!'
       ))
-
       container.add_item(discord.ui.Separator())
 
+      container.add_item(discord.ui.TextDisplay("## Materialized"))
       if thumb:
         section = discord.ui.Section(discord.ui.TextDisplay(result_text), accessory=thumb)
         container.add_item(section)
@@ -1371,6 +1445,8 @@ class RematerializationView(discord.ui.DesignerView):
       source_rarity_text=source_rarity_text,
       target_rarity_text=target_rarity_text
     )
+
+    await self._show_pending_message(interaction)
 
     self.cog.bot.loop.create_task(
       self._post_public_animation(

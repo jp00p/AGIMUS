@@ -1863,11 +1863,15 @@ _REMATERIALIZATION_CACHE = {
 }
 
 
-def _pil_trim_alpha(img: Image.Image) -> Image.Image:
+def _pil_trim_alpha(img: Image.Image, *, threshold: int = 8) -> Image.Image:
   if img.mode != 'RGBA':
     img = img.convert('RGBA')
 
-  bbox = img.getchannel('A').getbbox()
+  a = img.getchannel('A')
+  if threshold > 0:
+    a = a.point(lambda v: 255 if v > threshold else 0)
+
+  bbox = a.getbbox()
   if not bbox:
     return img
   return img.crop(bbox)
@@ -1985,6 +1989,21 @@ def _apply_mask_luma(layer: Image.Image, mask_l: Image.Image) -> Image.Image:
   out.putalpha(ImageChops.multiply(la, mask_l))
   return out
 
+def _normalize_icon(icon: Image.Image, base_px: int = 256) -> Image.Image:
+  if icon.mode != 'RGBA':
+    icon = icon.convert('RGBA')
+
+  icon = _pil_trim_alpha(icon)
+  w, h = icon.size
+  if w <= 0 or h <= 0:
+    return Image.new('RGBA', (base_px, base_px), (0, 0, 0, 0))
+
+  base = Image.new('RGBA', (base_px, base_px), (0, 0, 0, 0))
+  x = (base_px - w) // 2
+  y = (base_px - h) // 2
+  base.alpha_composite(icon, (x, y))
+  return base
+
 
 def build_rematerialization_pile_bytes(
   *,
@@ -2024,8 +2043,8 @@ def build_rematerialization_pile_bytes(
     front_bias: float,
     pile_tilt_deg: float,
     *,
-    mound_rx: float = 175.0,
-    mound_ry: float = 95.0,
+    mound_rx: float = 240.0,
+    mound_ry: float = 105.0,
     mound_power: float = 1.95,
     height_px: int = 120,
 
@@ -2066,13 +2085,9 @@ def build_rematerialization_pile_bytes(
       if icon.mode != 'RGBA':
         icon = icon.convert('RGBA')
 
-      icon = _pil_trim_alpha(icon)
-      w, h = icon.size
-      m = max(w, h)
-      if m <= 0:
-        continue
+      icon = _normalize_icon(icon, base_px=256)
 
-      base_scale = target_icon_px / float(m)
+      base_scale = target_icon_px / 256.0
 
       r = rng.random() ** mound_power
       theta = rng.uniform(0.0, math.tau)
@@ -2102,6 +2117,7 @@ def build_rematerialization_pile_bytes(
       rot += side * 28.0 * edge_t
 
       icon = _pil_rotate_rgba(icon, rot)
+      icon = _pil_trim_alpha(icon)
 
       placements.append({
         'img': icon,
@@ -2151,7 +2167,7 @@ def build_rematerialization_pile_bytes(
   pile_cy = 316
 
   pile_canvas = (640, 380)
-  icon_px = 130
+  icon_px = 150
   pile_tilt = -12.0
   front_bias = 0.25
 
