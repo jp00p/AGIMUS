@@ -10,6 +10,33 @@ from utils.check_channel_access import access_check
 
 
 class RematerializationView(discord.ui.DesignerView):
+  PROCESSING_GIFS = [
+    'https://i.imgur.com/2QW3nqZ.gif',
+    'https://i.imgur.com/ortnrA7.gif',
+    'https://i.imgur.com/Z4Gr6vQ.gif'
+  ]
+
+  PROCESSING_MESSAGES = [
+    'Reconfiguring the molecular resequencer',
+    'Overclocking the pattern enhancers beyond recommended tolerances',
+    'Uncoiling the transporter coils',
+    'Disabling quantum clamps',
+    'Bleeding off residual tachyons',
+    'Compensating for Heisenberg uncertainty variables',
+    'Stabilizing the annular confinement beam',
+    'Depolarizing the crystalline matrix',
+    'Forcing a harmonic resonance in the crystal lattice',
+    'Implementing bad ideas',
+    'Purging corrupted phase data',
+    'Flooding the chamber with inverse chronitons',
+    'Splicing multiple crystal signatures into a single waveform',
+    'Temporarily ignoring causality',
+    'Rewriting the crystal blueprint mid-cycle',
+    'Synchronizing quantum states across all fragments',
+    'Suppressing an unexpected resonance spike',
+    'Re-engaging safety protocols that were definitely on a moment ago',
+  ]
+
   def __init__(self, cog, user: discord.User):
     super().__init__(timeout=360)
     self.cog = cog
@@ -44,45 +71,10 @@ class RematerializationView(discord.ui.DesignerView):
     self._interaction_lock = asyncio.Lock()
     self._ui_frozen = False
 
+    self._pending_status_line = None
+
   async def interaction_check(self, interaction: discord.Interaction) -> bool:
     return interaction.user.id == self.user.id
-
-  def _log_ctx(self, interaction: discord.Interaction | None = None) -> str:
-    try:
-      data = getattr(interaction, 'data', None) if interaction else None
-    except Exception:
-      data = None
-    return (
-      f'state={self.state} '
-      f'user={self.user_discord_id} '
-      f'remat_id={self.rematerialization_id} '
-      f'source={self.source_rarity_rank} '
-      f'target={self.target_rarity_rank} '
-      f'contents={self._contents_total()}/{self.contents_target} '
-      f'data={data}'
-    )
-
-  def _log_error(self, msg: str, interaction: discord.Interaction | None = None):
-    try:
-      if interaction:
-        logger.error(f'[rematerialization] {msg} | {self._log_ctx(interaction)}')
-      else:
-        logger.error(f'[rematerialization] {msg} | {self._log_ctx(None)}')
-    except Exception:
-      pass
-
-  def _log_exception(self, msg: str, interaction: discord.Interaction | None = None):
-    try:
-      tb = traceback.format_exc()
-    except Exception:
-      tb = ''
-    try:
-      if interaction:
-        logger.error(f'[rematerialization] {msg} | {self._log_ctx(interaction)}\n{tb}')
-      else:
-        logger.error(f'[rematerialization] {msg} | {self._log_ctx(None)}\n{tb}')
-    except Exception:
-      pass
 
   def _is_component_interaction(self, interaction: discord.Interaction | None) -> bool:
     try:
@@ -101,11 +93,6 @@ class RematerializationView(discord.ui.DesignerView):
     except Exception:
       pass
 
-    # Important: for component interactions, the Discord client will refresh the
-    # original message after the interaction is acknowledged. If we only call
-    # message.edit(), the client may briefly show the old enabled components again.
-    # Using interaction.response.edit_message() (when available) updates the message
-    # as the interaction response, preventing the "re-enabled" flash.
     try:
       if self._is_component_interaction(interaction) and not interaction.response.is_done():
         await interaction.response.edit_message(view=self)
@@ -123,10 +110,6 @@ class RematerializationView(discord.ui.DesignerView):
     if interaction.response.is_done():
       return True
 
-    # For component interactions (buttons/selects), prefer acknowledging as an
-    # "update" (defer_update / thinking=False) instead of an ephemeral defer.
-    # Ephemeral defers can cause the original message to refresh with enabled
-    # components before our delete/edit runs.
     if self._is_component_interaction(interaction):
       try:
         fn = getattr(interaction.response, 'defer_update', None)
@@ -137,23 +120,19 @@ class RematerializationView(discord.ui.DesignerView):
         pass
 
       try:
-        # py-cord supports invisible=True as an "update" style defer in some versions
         await interaction.response.defer(invisible=True)
         return True
       except TypeError:
         pass
       except Exception:
-        self._log_exception('interaction.response.defer(invisible=True) failed', interaction)
         return False
 
       try:
-        # discord.py compatible: thinking=False acknowledges without "thinking"
         await interaction.response.defer(thinking=False)
         return True
       except TypeError:
         pass
       except Exception:
-        self._log_exception('interaction.response.defer(thinking=False) failed', interaction)
         return False
 
     try:
@@ -162,7 +141,6 @@ class RematerializationView(discord.ui.DesignerView):
     except TypeError:
       pass
     except Exception:
-      self._log_exception('interaction.response.defer(ephemeral=True) failed', interaction)
       return False
 
     try:
@@ -171,14 +149,12 @@ class RematerializationView(discord.ui.DesignerView):
     except TypeError:
       pass
     except Exception:
-      self._log_exception('interaction.response.defer(invisible=True) failed', interaction)
       return False
 
     try:
       await interaction.response.defer()
       return True
     except Exception:
-      self._log_exception('interaction.response.defer() failed', interaction)
       return False
 
   async def _soft_fail(self, interaction: discord.Interaction, title: str = 'Interaction Failed'):
@@ -201,7 +177,7 @@ class RematerializationView(discord.ui.DesignerView):
       else:
         await interaction.followup.send(embed=embed, ephemeral=True)
     except Exception:
-      self._log_exception('_soft_fail failed to send response', interaction)
+      pass
 
   async def _hard_stop(self, interaction: discord.Interaction, title: str, description: str, color: discord.Color):
     embed = discord.Embed(title=title, description=description, color=color)
@@ -416,16 +392,15 @@ class RematerializationView(discord.ui.DesignerView):
     return files
 
   def _build_pending_gallery(self, container: discord.ui.Container):
+    status = self._pending_status_line or random.choice(self.PROCESSING_MESSAGES)
     container.add_item(discord.ui.Separator())
-    processing_gifs = [
-      'https://i.imgur.com/2QW3nqZ.gif',
-      'https://i.imgur.com/ortnrA7.gif',
-      'https://i.imgur.com/Z4Gr6vQ.gif'
-    ]
+    container.add_item(discord.ui.TextDisplay(f'... {status} ...'))
+    container.add_item(discord.ui.Separator())
+
     try:
       container.add_gallery(
         discord.MediaGalleryItem(
-          url=random.choice(processing_gifs),
+          url=random.choice(self.PROCESSING_GIFS),
           description='Processing'
         )
       )
@@ -739,7 +714,6 @@ class RematerializationView(discord.ui.DesignerView):
         else:
           new_msg = await interaction.followup.send(view=self, ephemeral=True)
     except Exception:
-      self._log_exception('_send_new_and_delete_old send failed', interaction)
       raise
 
     if new_msg:
@@ -750,44 +724,19 @@ class RematerializationView(discord.ui.DesignerView):
     container.add_item(discord.ui.TextDisplay('# Crystal Rematerialization In Progress!'))
     container.add_item(discord.ui.Separator())
 
-    processing_gifs = [
-      'https://i.imgur.com/2QW3nqZ.gif',
-      'https://i.imgur.com/ortnrA7.gif',
-      'https://i.imgur.com/Z4Gr6vQ.gif'
-    ]
-
     try:
       container.add_gallery(
         discord.MediaGalleryItem(
-          url=random.choice(processing_gifs),
+          url=random.choice(self.PROCESSING_GIFS),
           description='Processing'
         )
       )
     except Exception:
       pass
 
-    processing_messages = [
-      'Reconfiguring the molecular resequencer',
-      'Overclocking the pattern enhancers beyond recommended tolerances',
-      'Uncoiling the transporter coils',
-      'Disabling quantum clamps',
-      'Bleeding off residual tachyons',
-      'Compensating for Heisenberg uncertainty variables',
-      'Stabilizing the annular confinement beam',
-      'Depolarizing the crystalline matrix',
-      'Forcing a harmonic resonance in the crystal lattice',
-      'Implementing bad ideas',
-      'Purging corrupted phase data',
-      'Flooding the chamber with inverse chronitons',
-      'Splicing multiple crystal signatures into a single waveform',
-      'Temporarily ignoring causality',
-      'Rewriting the crystal blueprint mid-cycle',
-      'Synchronizing quantum states across all fragments',
-      'Suppressing an unexpected resonance spike',
-      'Re-engaging safety protocols that were definitely on a moment ago',
-    ]
+    status = self._pending_status_line or random.choice(self.PROCESSING_MESSAGES)
     container.add_item(discord.ui.Separator())
-    container.add_item(discord.ui.TextDisplay(f'... {random.choice(processing_messages)} ...'))
+    container.add_item(discord.ui.TextDisplay(f'... {status} ...'))
 
     return container
 
@@ -817,7 +766,7 @@ class RematerializationView(discord.ui.DesignerView):
       if msg:
         self.pending_message = msg
     except Exception:
-      self._log_exception('_show_pending_message failed', interaction)
+      pass
 
   async def _delete_pending_message(self):
     if not self.pending_message:
@@ -831,8 +780,6 @@ class RematerializationView(discord.ui.DesignerView):
   async def _render(self, interaction: discord.Interaction):
     await self._freeze_current_message(interaction)
 
-    # If _freeze_current_message used interaction.response.edit_message(), the
-    # response is already done. Otherwise we still need to acknowledge.
     acked = await self._ack(interaction)
     if not acked:
       await self._soft_fail(interaction)
@@ -842,7 +789,6 @@ class RematerializationView(discord.ui.DesignerView):
       self._ui_frozen = False
       files = self._rebuild()
     except Exception:
-      self._log_exception('_rebuild failed', interaction)
       await self._soft_fail(interaction)
       return
 
@@ -852,11 +798,9 @@ class RematerializationView(discord.ui.DesignerView):
       await self._soft_fail(interaction)
 
   async def start(self, ctx: discord.ApplicationContext):
-    self._log_error('enter start')
     try:
       files = self._rebuild()
     except Exception:
-      self._log_exception('_rebuild failed in start')
       try:
         await ctx.respond(
           embed=discord.Embed(
@@ -882,7 +826,6 @@ class RematerializationView(discord.ui.DesignerView):
       else:
         await ctx.respond(view=self, ephemeral=True)
     except Exception:
-      self._log_exception('start respond failed')
       return
 
     try:
@@ -943,7 +886,6 @@ class RematerializationView(discord.ui.DesignerView):
       self.selected_instance_ids.add(it['crystal_instance_id'])
 
   async def _add_instances_to_session(self, interaction: discord.Interaction, crystal_type_id: int, add_qty: int):
-    self._log_error('enter _add_instances_to_session', interaction)
     try:
       ids = await self._select_instance_ids(crystal_type_id, add_qty)
       if len(ids) < add_qty:
@@ -966,13 +908,11 @@ class RematerializationView(discord.ui.DesignerView):
       await self._refresh_type_rows()
       return True
     except Exception:
-      self._log_exception('exception in _add_instances_to_session', interaction)
       await self._soft_fail(interaction)
       return False
 
   async def _on_select_rarity(self, interaction: discord.Interaction):
     async with self._interaction_lock:
-      self._log_error('enter _on_select_rarity', interaction)
       self._last_interaction = interaction
       try:
         self.notice = None
@@ -1005,12 +945,10 @@ class RematerializationView(discord.ui.DesignerView):
         self.state = 'TYPE'
         await self._render(interaction)
       except Exception:
-        self._log_exception('exception in _on_select_rarity', interaction)
         await self._soft_fail(interaction)
 
   async def _on_prev_type_page(self, interaction: discord.Interaction):
     async with self._interaction_lock:
-      self._log_error('enter _on_prev_type_page', interaction)
       self._last_interaction = interaction
       try:
         self.notice = None
@@ -1018,12 +956,10 @@ class RematerializationView(discord.ui.DesignerView):
           self.type_page -= 1
         await self._render(interaction)
       except Exception:
-        self._log_exception('exception in _on_prev_type_page', interaction)
         await self._soft_fail(interaction)
 
   async def _on_next_type_page(self, interaction: discord.Interaction):
     async with self._interaction_lock:
-      self._log_error('enter _on_next_type_page', interaction)
       self._last_interaction = interaction
       try:
         self.notice = None
@@ -1031,12 +967,10 @@ class RematerializationView(discord.ui.DesignerView):
           self.type_page += 1
         await self._render(interaction)
       except Exception:
-        self._log_exception('exception in _on_next_type_page', interaction)
         await self._soft_fail(interaction)
 
   async def _on_select_type(self, interaction: discord.Interaction):
     async with self._interaction_lock:
-      self._log_error('enter _on_select_type', interaction)
       self._last_interaction = interaction
       try:
         self.notice = None
@@ -1095,12 +1029,10 @@ class RematerializationView(discord.ui.DesignerView):
         self.state = 'QUANTITY'
         await self._render(interaction)
       except Exception:
-        self._log_exception('exception in _on_select_type', interaction)
         await self._soft_fail(interaction)
 
   async def _on_select_quantity(self, interaction: discord.Interaction):
     async with self._interaction_lock:
-      self._log_error('enter _on_select_quantity', interaction)
       self._last_interaction = interaction
       try:
         self.notice = None
@@ -1153,12 +1085,10 @@ class RematerializationView(discord.ui.DesignerView):
         self.state = 'CONFIRM' if self._contents_total() >= self.contents_target else 'TYPE'
         await self._render(interaction)
       except Exception:
-        self._log_exception('exception in _on_select_quantity', interaction)
         await self._soft_fail(interaction)
 
   async def _on_remove_last(self, interaction: discord.Interaction):
     async with self._interaction_lock:
-      self._log_error('enter _on_remove_last', interaction)
       self._last_interaction = interaction
       try:
         self.notice = None
@@ -1198,12 +1128,10 @@ class RematerializationView(discord.ui.DesignerView):
         self.notice = f'Removed {removed_count}x from {type_name}.'
         await self._render(interaction)
       except Exception:
-        self._log_exception('exception in _on_remove_last', interaction)
         await self._soft_fail(interaction)
 
   async def _on_back(self, interaction: discord.Interaction):
     async with self._interaction_lock:
-      self._log_error('enter _on_back', interaction)
       self._last_interaction = interaction
       try:
         self.notice = None
@@ -1222,12 +1150,10 @@ class RematerializationView(discord.ui.DesignerView):
 
         await self._render(interaction)
       except Exception:
-        self._log_exception('exception in _on_back', interaction)
         await self._soft_fail(interaction)
 
   async def _on_cancel(self, interaction: discord.Interaction):
     async with self._interaction_lock:
-      self._log_error('enter _on_cancel', interaction)
       self._last_interaction = interaction
 
       await self._freeze_current_message(interaction)
@@ -1241,7 +1167,7 @@ class RematerializationView(discord.ui.DesignerView):
         if self.rematerialization_id:
           await db_cancel_rematerialization(self.rematerialization_id)
       except Exception:
-        self._log_exception('db_cancel_rematerialization failed', interaction)
+        pass
 
       self.rematerialization_id = None
       self.contents = {}
@@ -1305,7 +1231,7 @@ class RematerializationView(discord.ui.DesignerView):
         except Exception:
           pass
       except Exception:
-        logger.error(traceback.format_exc())
+        logger.warning(traceback.format_exc())
         pile_buf = None
 
       anim_buf = None
@@ -1330,7 +1256,7 @@ class RematerializationView(discord.ui.DesignerView):
             except Exception:
               pass
           except Exception:
-            logger.error(traceback.format_exc())
+            logger.warning(traceback.format_exc())
             anim_buf = None
 
       if not anim_buf:
@@ -1423,12 +1349,13 @@ class RematerializationView(discord.ui.DesignerView):
 
       return True
     except Exception:
-      logger.info(traceback.format_exc())
+      logger.warning(traceback.format_exc())
       return False
 
   async def _enter_pending(self, interaction: discord.Interaction):
     self.state = 'PENDING'
     self.notice = None
+    self._pending_status_line = random.choice(self.PROCESSING_MESSAGES)
 
     self._clear_components()
     files = self._rebuild()
@@ -1439,7 +1366,6 @@ class RematerializationView(discord.ui.DesignerView):
 
   async def _on_confirm(self, interaction: discord.Interaction):
     async with self._interaction_lock:
-      self._log_error('enter _on_confirm', interaction)
       self._last_interaction = interaction
 
       await self._freeze_current_message(interaction)
