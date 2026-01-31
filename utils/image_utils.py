@@ -2148,11 +2148,11 @@ def build_rematerialization_pile_bytes(
     return out
 
   pile_cx = 356
-  pile_cy = 286
+  pile_cy = 316
 
   pile_canvas = (640, 380)
   icon_px = 130
-  pile_tilt = -16.0
+  pile_tilt = -12.0
   front_bias = 0.25
 
   pile = _build_crystal_pile(
@@ -2163,15 +2163,23 @@ def build_rematerialization_pile_bytes(
     front_bias=front_bias,
     pile_tilt_deg=pile_tilt,
 
-    tri_skew=2.15,
-    top_rise=120,
-    base_drop=70,
-    top_half_w=42,
-    base_half_w=205,
-    base_snap=0.68,
+    mound_rx=210.0,
+    mound_ry=125.0,
+    mound_power=1.95,
+    height_px=120,
+
     jitter_x=16.0,
     jitter_y=10.0,
-    base_lift=8
+
+    rot_center=10.0,
+    rot_edge=92.0,
+    rot_jitter=16.0,
+
+    edge_start=0.52,
+
+    scale_center=1.12,
+    scale_edge=0.92,
+    scale_jitter=0.05
   )
 
   _pil_composite_center(full, pile, pile_cx, pile_cy)
@@ -2317,7 +2325,7 @@ async def build_rematerialization_success_animation(
 
     pile_trim = _pil_trim_alpha(pile_full)
 
-    pile_tilt = -16.0
+    pile_tilt = -12.0
 
     result_icon = _load_rgba(result_crystal_path)
     result_icon = _pil_trim_alpha(result_icon)
