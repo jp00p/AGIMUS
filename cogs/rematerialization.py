@@ -341,7 +341,7 @@ class RematerializationView(discord.ui.DesignerView):
       try:
         container.add_gallery(
           discord.MediaGalleryItem(
-            url='https://i.imgur.com/o8CJva6.gif',
+            url='https://i.imgur.com/emkySDR.gif',
             description='No crystals queued yet'
           )
         )
@@ -394,7 +394,7 @@ class RematerializationView(discord.ui.DesignerView):
   def _build_pending_gallery(self, container: discord.ui.Container):
     status = self._pending_status_line or random.choice(self.PROCESSING_MESSAGES)
     container.add_item(discord.ui.Separator())
-    container.add_item(discord.ui.TextDisplay(f'... {status} ...'))
+    container.add_item(discord.ui.TextDisplay(f'... `{status}` ...'))
     container.add_item(discord.ui.Separator())
 
     try:
