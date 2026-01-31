@@ -1989,6 +1989,7 @@ def _apply_mask_luma(layer: Image.Image, mask_l: Image.Image) -> Image.Image:
   out.putalpha(ImageChops.multiply(la, mask_l))
   return out
 
+
 def _normalize_icon(icon: Image.Image, base_px: int = 256) -> Image.Image:
   if icon.mode != 'RGBA':
     icon = icon.convert('RGBA')
@@ -2010,7 +2011,35 @@ def build_rematerialization_pile_bytes(
   items: list[dict],
   canvas_size: tuple[int, int],
   icons_dir: str = './images/templates/crystals/icons',
-  seed: int | None = None
+  seed: int | None = None,
+
+  pile_cx: int = 356,
+  pile_cy: int = 286,
+
+  pile_canvas: tuple[int, int] = (560, 340),
+  icon_px: int = 120,
+  pile_tilt: float = -12.0,
+
+  mound_rx: float = 145.0,
+  mound_ry: float = 72.0,
+  mound_power: float = 3.2,
+  height_px: int = 70,
+
+  jitter_x: float = 10.0,
+  jitter_y: float = 7.0,
+
+  rot_center: float = 6.0,
+  rot_edge: float = 30.0,
+  rot_jitter: float = 10.0,
+
+  edge_start: float = 0.55,
+
+  scale_center: float = 1.06,
+  scale_edge: float = 0.96,
+  scale_jitter: float = 0.03,
+
+  r_cap: float = 0.78,
+  front_bias: float = 0.35
 ) -> io.BytesIO:
   """
   Builds an in-memory pile image (full-frame RGBA PNG) from the selected rematerialization items.
@@ -2036,117 +2065,197 @@ def build_rematerialization_pile_bytes(
       return None
 
   def _build_crystal_pile(
-    icon_images: list[Image.Image],
-    rng: random.Random,
-    canvas_size: tuple[int, int],
-    target_icon_px: int,
-    front_bias: float,
-    pile_tilt_deg: float,
     *,
-    mound_rx: float = 240.0,
-    mound_ry: float = 105.0,
-    mound_power: float = 1.95,
-    height_px: int = 120,
-
-    jitter_x: float = 14.0,
-    jitter_y: float = 10.0,
-
-    rot_center: float = 10.0,
-    rot_edge: float = 92.0,
-    rot_jitter: float = 16.0,
-
-    edge_start: float = 0.52,
-
-    scale_center: float = 1.12,
-    scale_edge: float = 0.92,
-    scale_jitter: float = 0.05
+    icon_images: list[Image.Image],
+    canvas_size: tuple[int, int] = (640, 380),
+    seed: int | None = None
   ) -> Image.Image:
+    """
+    Builds a triangular crystal pile with outward jut on left/right edges.
+
+    Rows adapt to the number of icons so 10 items becomes 4+3+2+1 instead of
+    widening the base row.
+    """
+    rng = random.Random(seed)
+
     cw, ch = canvas_size
     pile = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
 
-    cx = cw // 2
-    cy = ch // 2
+    # Normalize icons and scale to base_px-ish (base_px computed below)
+    icons: list[Image.Image] = []
+    for im in icon_images:
+      if im.mode != 'RGBA':
+        im = im.convert('RGBA')
+      im = _pil_trim_alpha(im)
+      if im.size[0] <= 0 or im.size[1] <= 0:
+        continue
+      icons.append(im)
 
-    icons = list(icon_images)
+    if not icons:
+      return pile
+
+    n_icons = len(icons)
+
+    # Compute rows so triangle capacity >= n_icons
+    # rows = ceil((sqrt(8n+1)-1)/2)
+    rows = int(math.ceil((math.sqrt((8.0 * n_icons) + 1.0) - 1.0) / 2.0))
+    rows = max(3, min(6, rows))  # clamp for sanity
+
+    # Scale icon size down as rows increase (3 rows -> ~118px, 4 rows -> ~92px, 5 rows -> ~78px)
+    base_px = int(round(118.0 * (3.0 / float(rows))))
+    base_px = max(64, min(118, base_px))
+
+    # Spacing/jitter derive from base_px so pile stays consistent at different counts
+    row_gap = int(base_px * 0.22)   # shorter overall pile
+    col_gap = int(base_px * 0.68)
+    jitter_x = int(base_px * 0.18)
+    jitter_y = int(base_px * 0.10)
+
+    # Edge jut (outer items kick outward)
+    jut_px = int(base_px * 0.30)
+
+    # Candidate scoring
+    candidate_tries = 28
+    repel_radius = base_px * 0.70
+    repel_weight = 1.25
+    overlap_weight = 6.5
+    cohesion_weight = 0.45
+    slot_weight = 0.55
+
+    clamp_soft_x = base_px * 0.70
+    clamp_soft_y = base_px * 0.55
+
+    rot_jitter = 14.0
+    scale_jitter = 0.06
+
+    # Now scale/trim the normalized icons to base_px
+    scaled: list[Image.Image] = []
+    for im in icons:
+      w, h = im.size
+      m = max(w, h) if max(w, h) > 0 else 1
+      s = base_px / float(m)
+      s *= (1.0 + rng.uniform(-scale_jitter, scale_jitter))
+      out = _pil_scale_xy(im, s, s)
+      scaled.append(_pil_trim_alpha(out))
+
+    icons = scaled
     rng.shuffle(icons)
+
+    cx = cw // 2
+    cy = int(ch * 0.62)
+
+    # Build triangular slots: bottom row = rows, then rows-1, ... , 1
+    slots: list[tuple[int, int, int, int, int]] = []
+    # (slot_x, slot_y, row_index, col_index, row_count)
+    for r in range(rows):
+      row_count = rows - r
+      y = cy - (r * row_gap)
+      total_w = (row_count - 1) * col_gap
+      start_x = cx - int(total_w / 2)
+      for c in range(row_count):
+        x = start_x + (c * col_gap)
+        slots.append((x, y, r, c, row_count))
 
     placements: list[dict] = []
 
-    def _clamp(v: float, lo: float, hi: float) -> float:
-      return lo if v < lo else hi if v > hi else v
+    def _dist2(ax: float, ay: float, bx: float, by: float) -> float:
+      dx = ax - bx
+      dy = ay - by
+      return (dx * dx) + (dy * dy)
 
-    def _smoothstep(a: float, b: float, x: float) -> float:
-      if a == b:
-        return 0.0
-      t = _clamp((x - a) / (b - a), 0.0, 1.0)
-      return t * t * (3.0 - 2.0 * t)
+    def _score_candidate(
+      px: int,
+      py: int,
+      *,
+      slot_x: int,
+      slot_y: int,
+      centroid_x: float,
+      centroid_y: float
+    ) -> float:
+      s = 0.0
+      s += cohesion_weight * math.sqrt(_dist2(px, py, centroid_x, centroid_y))
+      s += slot_weight * math.sqrt(_dist2(px, py, slot_x, slot_y))
 
-    for icon in icons:
-      if icon.mode != 'RGBA':
-        icon = icon.convert('RGBA')
+      for p in placements:
+        d2 = _dist2(px, py, p['x'], p['y'])
+        d = math.sqrt(d2)
 
-      icon = _normalize_icon(icon, base_px=256)
+        if d < (repel_radius * 2.0):
+          t = max(0.0, (repel_radius * 2.0) - d) / (repel_radius * 2.0)
+          s += repel_weight * (t * t)
 
-      base_scale = target_icon_px / 256.0
+        min_sep = (p['r'] + base_px * 0.42)
+        if d < min_sep:
+          s += overlap_weight * ((min_sep - d) / max(1.0, min_sep)) ** 2.0
 
-      r = rng.random() ** mound_power
-      theta = rng.uniform(0.0, math.tau)
+      return s
 
-      ex = math.cos(theta) * mound_rx * r
-      ey = math.sin(theta) * mound_ry * r
+    for idx, icon in enumerate(icons):
+      sx, sy, r, c, row_count = slots[idx % len(slots)]
 
-      x = cx + int(round(ex + rng.uniform(-jitter_x, jitter_x)))
-      y = cy + int(round(ey + rng.uniform(-jitter_y, jitter_y)))
+      # Edge jut (stronger on bottom rows)
+      depth = 1.0 - (r / float(max(1, rows - 1)))
+      if row_count >= 2:
+        if c == 0:
+          sx -= int(jut_px * depth)
+        elif c == (row_count - 1):
+          sx += int(jut_px * depth)
 
-      lift = int(round(height_px * ((1.0 - r) ** 2.0)))
-      y -= lift
+      if placements:
+        centroid_x = sum([p['x'] for p in placements]) / float(len(placements))
+        centroid_y = sum([p['y'] for p in placements]) / float(len(placements))
+      else:
+        centroid_x = float(cx)
+        centroid_y = float(cy)
 
-      edge_t = _smoothstep(edge_start, 1.0, r)
+      best = None
+      best_score = 1e18
 
-      scale = (
-        (scale_center * (1.0 - r)) +
-        (scale_edge * r)
-      ) * (1.0 + rng.uniform(-scale_jitter, scale_jitter))
+      for _ in range(candidate_tries):
+        px = sx + rng.randint(-jitter_x, jitter_x)
+        py = sy + rng.randint(-jitter_y, jitter_y)
 
-      icon = _pil_scale_xy(icon, base_scale * scale, base_scale * scale)
+        if abs(px - sx) > clamp_soft_x:
+          continue
+        if abs(py - sy) > clamp_soft_y:
+          continue
 
-      side = -1 if (x - cx) < 0 else 1
+        sc = _score_candidate(
+          px, py,
+          slot_x=sx,
+          slot_y=sy,
+          centroid_x=centroid_x,
+          centroid_y=centroid_y
+        )
+        if sc < best_score:
+          best_score = sc
+          best = (px, py)
 
-      rot_mag = (rot_center * (1.0 - edge_t)) + (rot_edge * edge_t)
-      rot = (rot_mag * side) + rng.uniform(-rot_jitter, rot_jitter)
-      rot += side * 28.0 * edge_t
+      if best is None:
+        best = (sx, sy)
 
-      icon = _pil_rotate_rgba(icon, rot)
-      icon = _pil_trim_alpha(icon)
+      px, py = best
+
+      edge_bias = abs(px - cx) / float(max(1, (cw // 2)))
+      edge_bias = max(0.0, min(1.0, edge_bias))
+
+      rot = rng.uniform(-rot_jitter, rot_jitter) + (edge_bias * rng.uniform(-10.0, 10.0))
+      icon_r = _pil_rotate_rgba(icon, rot)
+      icon_r = _pil_trim_alpha(icon_r)
 
       placements.append({
-        'img': icon,
-        'x': x,
-        'y': y,
-        'edge_t': edge_t
+        'img': icon_r,
+        'x': int(px),
+        'y': int(py),
+        'r': float(max(icon_r.size) * 0.50)
       })
 
-    placements.sort(key=lambda p: p['y'] + int(p['edge_t'] * 22))
-
-    if placements and front_bias > 0.0:
-      ordered: list[dict] = []
-      for p in placements:
-        if ordered and rng.random() < front_bias:
-          idx = rng.randint(max(0, len(ordered) - 3), len(ordered))
-          ordered.insert(idx, p)
-        else:
-          ordered.append(p)
-      placements = ordered
+    placements.sort(key=lambda p: p['y'])
 
     for p in placements:
       _pil_composite_center(pile, p['img'], p['x'], p['y'])
 
-    pile = _pil_rotate_rgba(pile, pile_tilt_deg)
-    pile = _pil_trim_alpha(pile)
-    return pile
-
-
-  rng = random.Random(seed)
+    return _pil_trim_alpha(pile)
 
   w, h = canvas_size
   full = Image.new('RGBA', (w, h), (0, 0, 0, 0))
@@ -2163,42 +2272,13 @@ def build_rematerialization_pile_bytes(
     out.seek(0)
     return out
 
-  pile_cx = 356
-  pile_cy = 316
-
-  pile_canvas = (640, 380)
-  icon_px = 150
-  pile_tilt = -12.0
-  front_bias = 0.25
-
   pile = _build_crystal_pile(
-    icon_images,
-    rng,
+    icon_images=icon_images,
     canvas_size=pile_canvas,
-    target_icon_px=icon_px,
-    front_bias=front_bias,
-    pile_tilt_deg=pile_tilt,
-
-    mound_rx=210.0,
-    mound_ry=125.0,
-    mound_power=1.95,
-    height_px=120,
-
-    jitter_x=16.0,
-    jitter_y=10.0,
-
-    rot_center=10.0,
-    rot_edge=92.0,
-    rot_jitter=16.0,
-
-    edge_start=0.52,
-
-    scale_center=1.12,
-    scale_edge=0.92,
-    scale_jitter=0.05
+    seed=seed
   )
 
-  _pil_composite_center(full, pile, pile_cx, pile_cy)
+  _pil_composite_center(full, pile, int(pile_cx), int(pile_cy))
 
   out = io.BytesIO()
   full.save(out, format='PNG')
@@ -2217,7 +2297,11 @@ async def build_rematerialization_success_animation(
   fade_in_done_frames_from_end: int = 10,
   fade_out_start_frame: int = 5,
   fade_out_done_frames_from_end: int = 10,
-  result_cy_offset: int = 5,
+  result_cy_offset: int = 25,
+
+  pile_cx: int = 356,
+  pile_cy: int = 286,
+  pile_tilt: float = -18.0,
 
   fx_floor_y: int = 345 + 60,
   fx_anchor_y: float = 1.0,
@@ -2232,7 +2316,7 @@ async def build_rematerialization_success_animation(
   fx_mat_ox: int = 0,
   fx_mat_oy: int = -20,
 
-  icon_px: int = 130
+  icon_px: int = 92
 ) -> io.BytesIO:
   """
   Builds the rematerialization success animation as an animated .webp BytesIO.
@@ -2330,18 +2414,14 @@ async def build_rematerialization_success_animation(
     win_h = max(1, my1 - my0)
     win_pad = int(min(win_w, win_h) * 0.06)
 
-    pile_cx = 356
-    pile_cy = 286
-    result_cx = pile_cx
-    result_cy = pile_cy + int(result_cy_offset)
+    result_cx = int(pile_cx)
+    result_cy = int(pile_cy) + int(result_cy_offset)
 
     pile_full = _load_rgba_from_bytes(pile_bytes)
     if pile_full.size != (w, h):
       pile_full = pile_full.resize((w, h), resample=Image.Resampling.LANCZOS)
 
     pile_trim = _pil_trim_alpha(pile_full)
-
-    pile_tilt = -12.0
 
     result_icon = _load_rgba(result_crystal_path)
     result_icon = _pil_trim_alpha(result_icon)
@@ -2351,7 +2431,7 @@ async def build_rematerialization_success_animation(
       s = icon_px / float(rm)
       result_icon = _pil_scale_xy(result_icon, s, s)
 
-    result_icon = _pil_rotate_rgba(result_icon, pile_tilt)
+    result_icon = _pil_rotate_rgba(result_icon, float(pile_tilt))
 
     result_frame = Image.new('RGBA', (w, h), (0, 0, 0, 0))
     _pil_composite_center(result_frame, result_icon, result_cx, result_cy)
@@ -2468,7 +2548,7 @@ async def build_rematerialization_success_animation(
       frames.append(_compose_payload_fx(
         payload_layer=pile_layer,
         fx_src=demat_fx[i],
-        fx_center_x=pile_cx,
+        fx_center_x=int(pile_cx),
         fx_floor_y_px=int(fx_floor_y),
         fx_target_w=fx_demat_w_eff,
         fx_target_h=fx_demat_h_eff,
