@@ -1858,9 +1858,22 @@ _REMATERIALIZATION_LOCK = threading.Lock()
 _REMATERIALIZATION_CACHE = {
   'bg': None,
   'mask_l': None,
+  'mask_l_resized': None,
+  'mask_l_resized_key': None,
   'effect_frames': None,
+  'scaled_fx': {},
   'effect_key': None
 }
+
+def _frames_are_opaque(frames: list[Image.Image]) -> bool:
+  for im in frames:
+    if im.mode != 'RGBA':
+      return False
+    a = im.getchannel('A')
+    lo, hi = a.getextrema()
+    if lo != 255 or hi != 255:
+      return False
+  return True
 
 
 def _pil_trim_alpha(img: Image.Image, *, threshold: int = 8) -> Image.Image:
@@ -2008,11 +2021,6 @@ def build_rematerialization_pile_bytes(
   pile_canvas: tuple[int, int] = (560, 340),
   pile_tilt: float = -12.0
 ) -> io.BytesIO:
-  """
-  Builds an in-memory pile image (full-frame RGBA PNG) from the selected rematerialization items.
-  This produces only the pile layer, already baked into the full background coordinate system.
-  """
-
   def _load_rgba(path: str) -> Image.Image:
     with Image.open(path) as im:
       if im.mode != 'RGBA':
@@ -2296,14 +2304,6 @@ async def build_rematerialization_success_animation(
   fx_mat_oy: int = -20,
   icon_px: int = 92
 ) -> io.BytesIO:
-  """
-  Builds the rematerialization success animation as an animated .webp BytesIO.
-
-  Placement is baked against the fixed background.
-  Mask is treated as luma: higher values preserve alpha, lower values cut.
-  A hard-threshold mask is only used for bbox/window math.
-  """
-
   def _build_rematerialization_success_frames() -> list[Image.Image]:
     def _load_rgba(path: str) -> Image.Image:
       with Image.open(path) as im:
@@ -2343,7 +2343,10 @@ async def build_rematerialization_success_animation(
         if _REMATERIALIZATION_CACHE['effect_key'] != key:
           _REMATERIALIZATION_CACHE['bg'] = None
           _REMATERIALIZATION_CACHE['mask_l'] = None
+          _REMATERIALIZATION_CACHE['mask_l_resized'] = None
+          _REMATERIALIZATION_CACHE['mask_l_resized_key'] = None
           _REMATERIALIZATION_CACHE['effect_frames'] = None
+          _REMATERIALIZATION_CACHE['scaled_fx'] = {}
           _REMATERIALIZATION_CACHE['effect_key'] = key
 
         if _REMATERIALIZATION_CACHE['bg'] is None:
@@ -2377,8 +2380,19 @@ async def build_rematerialization_success_animation(
 
     w, h = bg.size
 
-    if mask_l.size != (w, h):
-      mask_l = mask_l.resize((w, h), resample=Image.Resampling.LANCZOS)
+    mask_key = (w, h)
+    with _REMATERIALIZATION_LOCK:
+      if _REMATERIALIZATION_CACHE['mask_l_resized_key'] != mask_key:
+        _REMATERIALIZATION_CACHE['mask_l_resized'] = None
+        _REMATERIALIZATION_CACHE['mask_l_resized_key'] = mask_key
+
+      if _REMATERIALIZATION_CACHE['mask_l_resized'] is None:
+        if mask_l.size != (w, h):
+          _REMATERIALIZATION_CACHE['mask_l_resized'] = mask_l.resize((w, h), resample=Image.Resampling.LANCZOS)
+        else:
+          _REMATERIALIZATION_CACHE['mask_l_resized'] = mask_l
+
+      mask_l = _REMATERIALIZATION_CACHE['mask_l_resized']
 
     keep_soft_l = mask_l
     keep_hard_l = mask_l.point(lambda v: 255 if v > 8 else 0)
@@ -2400,25 +2414,6 @@ async def build_rematerialization_success_animation(
     if pile_full.size != (w, h):
       pile_full = pile_full.resize((w, h), resample=Image.Resampling.LANCZOS)
 
-    a0 = pile_full.getchannel('A')
-    b0 = a0.getbbox()
-
-    pile_rot = _pil_rotate_rgba(pile_full, float(pile_tilt), expand=False)
-
-    a1 = pile_rot.getchannel('A')
-    b1 = a1.getbbox()
-
-    if b0 and b1:
-      c0x = (b0[0] + b0[2]) / 2.0
-      c0y = (b0[1] + b0[3]) / 2.0
-      c1x = (b1[0] + b1[2]) / 2.0
-      c1y = (b1[1] + b1[3]) / 2.0
-      dx = int(round(c0x - c1x))
-      dy = int(round(c0y - c1y))
-      pile_full = _shift_rgba(pile_rot, dx, dy, out_size=(w, h))
-    else:
-      pile_full = pile_rot
-
     pile_trim = _pil_trim_alpha(pile_full)
 
     result_icon = _load_rgba(result_crystal_path)
@@ -2438,7 +2433,6 @@ async def build_rematerialization_success_animation(
 
     result_frame = Image.new('RGBA', (w, h), (0, 0, 0, 0))
     _pil_composite_center(result_frame, result_icon, result_cx, result_cy)
-    result_trim = _pil_trim_alpha(result_frame)
 
     max_fx_w = max(1, win_w - (win_pad * 2))
     max_fx_h = max(1, win_h - (win_pad * 2))
@@ -2447,7 +2441,7 @@ async def build_rematerialization_success_animation(
     fx_demat_h_eff = int(min(max_fx_h, max(1, fx_demat_h)))
 
     if fx_mat_w is None:
-      fx_mat_w_eff = int(min(max_fx_w, max(220, result_trim.width * 1.25)))
+      fx_mat_w_eff = int(min(max_fx_w, max(220, int(_pil_trim_alpha(result_frame).width * 1.25))))
     else:
       fx_mat_w_eff = int(min(max_fx_w, max(1, fx_mat_w)))
 
@@ -2456,21 +2450,29 @@ async def build_rematerialization_success_animation(
     else:
       fx_mat_h_eff = int(min(max_fx_h, max(1, fx_mat_h)))
 
-    fx_src_w = 190
-    fx_src_h = 190
+    def _get_scaled_fx(tw: int, th: int) -> list[Image.Image]:
+      key2 = (int(tw), int(th))
+      with _REMATERIALIZATION_LOCK:
+        cached = _REMATERIALIZATION_CACHE['scaled_fx'].get(key2)
+        if cached is not None:
+          return cached
 
-    def _scale_fx_frames(frames_in: list[Image.Image], tw: int, th: int) -> list[Image.Image]:
-      out: list[Image.Image] = []
-      for fx in frames_in:
-        if fx.mode != 'RGBA':
-          fx = fx.convert('RGBA')
-        if fx.size != (fx_src_w, fx_src_h):
-          fx = fx.resize((fx_src_w, fx_src_h), resample=Image.Resampling.LANCZOS)
-        out.append(_fit_xy(fx, tw, th))
+      out = []
+      for fx in effect_frames:
+        fx2 = fx
+        if fx2.mode != 'RGBA':
+          fx2 = fx2.convert('RGBA')
+        if fx2.size != (tw, th):
+          fx2 = fx2.resize((tw, th), resample=Image.Resampling.LANCZOS)
+        out.append(fx2)
+
+      with _REMATERIALIZATION_LOCK:
+        _REMATERIALIZATION_CACHE['scaled_fx'][key2] = out
+
       return out
 
-    demat_fx = _scale_fx_frames(effect_frames, fx_demat_w_eff, fx_demat_h_eff)
-    mat_fx = _scale_fx_frames(effect_frames, fx_mat_w_eff, fx_mat_h_eff)
+    demat_fx = _get_scaled_fx(fx_demat_w_eff, fx_demat_h_eff)
+    mat_fx = _get_scaled_fx(fx_mat_w_eff, fx_mat_h_eff)
 
     n = len(effect_frames)
     if n < 2:
@@ -2581,9 +2583,10 @@ async def build_rematerialization_success_animation(
   if not frames:
     raise ValueError('No frames returned for rematerialization success animation.')
 
-  fixed = []
-  for im in frames:
-    fixed.append(im.convert('RGBA') if im.mode != 'RGBA' else im)
+  if _frames_are_opaque(frames):
+    fixed = [im.convert('RGB') if im.mode != 'RGB' else im for im in frames]
+  else:
+    fixed = [im.convert('RGBA') if im.mode != 'RGBA' else im for im in frames]
 
   webp_buf = await encode_webp(fixed, fps=30)
 
@@ -2593,7 +2596,6 @@ async def build_rematerialization_success_animation(
     pass
 
   return webp_buf
-
 
 
 # ________                      .__
