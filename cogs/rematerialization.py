@@ -315,8 +315,9 @@ class RematerializationView(discord.ui.DesignerView):
     for r in selected:
       name = r['crystal_name']
       qty = r['qty']
+      emoji = r['emoji']
       description = r.get('description') or ''
-      text = f'### {name} (*x{qty}*)\n{description}'.strip()
+      text = f'### {emoji} {name} (*x{qty}*)\n{description}'.strip()
 
       icon = r.get('icon')
       thumb, _ = self._try_attach_icon(files, int(r['crystal_type_id']), icon) if icon else (None, None)
@@ -1272,7 +1273,7 @@ class RematerializationView(discord.ui.DesignerView):
       result_id = created_crystal['crystal_type_id']
       result_name = created_crystal['crystal_name']
       result_icon = created_crystal['icon']
-      result_emoji = created_crystal['icon']
+      result_emoji = created_crystal['emoji']
       result_description = created_crystal.get('description') or ''
       result_text = f'### {result_emoji} {result_name}\n{result_description}'.strip()
 
