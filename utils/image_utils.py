@@ -1877,10 +1877,17 @@ def _pil_trim_alpha(img: Image.Image, *, threshold: int = 8) -> Image.Image:
   return img.crop(bbox)
 
 
-def _pil_rotate_rgba(img: Image.Image, degrees: float) -> Image.Image:
+def _pil_rotate_rgba(img: Image.Image, degrees: float, *, expand: bool = True) -> Image.Image:
   if img.mode != 'RGBA':
     img = img.convert('RGBA')
-  return img.rotate(degrees, resample=Image.Resampling.BICUBIC, expand=True)
+  return img.rotate(degrees, resample=Image.Resampling.BICUBIC, expand=expand)
+
+
+def _shift_rgba(im: Image.Image, dx: int, dy: int, *, out_size: tuple[int, int]) -> Image.Image:
+  w, h = out_size
+  out = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+  out.alpha_composite(im, (int(dx), int(dy)))
+  return out
 
 
 def _pil_scale_xy(img: Image.Image, sx: float, sy: float) -> Image.Image:
@@ -1990,60 +1997,19 @@ def _apply_mask_luma(layer: Image.Image, mask_l: Image.Image) -> Image.Image:
   return out
 
 
-def _normalize_icon(icon: Image.Image, base_px: int = 256) -> Image.Image:
-  if icon.mode != 'RGBA':
-    icon = icon.convert('RGBA')
-
-  icon = _pil_trim_alpha(icon)
-  w, h = icon.size
-  if w <= 0 or h <= 0:
-    return Image.new('RGBA', (base_px, base_px), (0, 0, 0, 0))
-
-  base = Image.new('RGBA', (base_px, base_px), (0, 0, 0, 0))
-  x = (base_px - w) // 2
-  y = (base_px - h) // 2
-  base.alpha_composite(icon, (x, y))
-  return base
-
-
 def build_rematerialization_pile_bytes(
   *,
   items: list[dict],
   canvas_size: tuple[int, int],
   icons_dir: str = './images/templates/crystals/icons',
   seed: int | None = None,
-
   pile_cx: int = 356,
   pile_cy: int = 286,
-
   pile_canvas: tuple[int, int] = (560, 340),
-  icon_px: int = 120,
-  pile_tilt: float = -12.0,
-
-  mound_rx: float = 145.0,
-  mound_ry: float = 72.0,
-  mound_power: float = 3.2,
-  height_px: int = 70,
-
-  jitter_x: float = 10.0,
-  jitter_y: float = 7.0,
-
-  rot_center: float = 6.0,
-  rot_edge: float = 30.0,
-  rot_jitter: float = 10.0,
-
-  edge_start: float = 0.55,
-
-  scale_center: float = 1.06,
-  scale_edge: float = 0.96,
-  scale_jitter: float = 0.03,
-
-  r_cap: float = 0.78,
-  front_bias: float = 0.35
+  pile_tilt: float = -12.0
 ) -> io.BytesIO:
   """
   Builds an in-memory pile image (full-frame RGBA PNG) from the selected rematerialization items.
-
   This produces only the pile layer, already baked into the full background coordinate system.
   """
 
@@ -2069,7 +2035,7 @@ def build_rematerialization_pile_bytes(
     icon_images: list[Image.Image],
     canvas_size: tuple[int, int] = (640, 380),
     seed: int | None = None,
-    pile_tilt_deg: float = -16.0
+    pile_tilt_deg: float = -12.0
   ) -> Image.Image:
     rng = random.Random(seed)
 
@@ -2089,24 +2055,18 @@ def build_rematerialization_pile_bytes(
 
     n = len(src_icons)
 
-    # -----------------
-    # Tunables
-    # -----------------
     base_px = int(round(102.0 * (10.0 / float(max(6, n))) ** 0.45))
     base_px = max(70, min(110, base_px))
 
     cx = cw // 2
     base_y = int(ch * 0.66)
 
-    # Make the footprint wide and not too tall (prevents circular clump)
     tri_w = int(base_px * 4.15)
     tri_h = int(base_px * 1.70)
 
-    # Hard floor clamp (prevents a couple icons hanging low and making it too tall)
-    floor_y = base_y - int(base_px * 0.06)   # raise floor slightly above base line
-    floor_weight = 16.0                      # additional scoring penalty if near floor
+    floor_y = base_y - int(base_px * 0.06)
+    floor_weight = 16.0
 
-    # Jumble search
     candidate_tries = 36
     jitter_x = int(base_px * 0.62)
     jitter_y = int(base_px * 0.28)
@@ -2115,7 +2075,7 @@ def build_rematerialization_pile_bytes(
     overlap_weight = 7.8
     repel_weight = 1.10
     cohesion_weight = 0.75
-    target_weight = 0.34         # higher keeps the triangular footprint
+    target_weight = 0.34
     noise_weight = 0.10
 
     clamp_soft_x = int(base_px * 1.10)
@@ -2126,9 +2086,7 @@ def build_rematerialization_pile_bytes(
     rot_jitter = 30.0
     edge_rot_extra = 22.0
     scale_jitter = 0.05
-    # -----------------
 
-    # Scale icons to base_px-ish with small variance
     icons: list[Image.Image] = []
     for im in src_icons:
       w, h = im.size
@@ -2155,7 +2113,6 @@ def build_rematerialization_pile_bytes(
       return (x, y)
 
     def _triangle_sample_biased() -> tuple[float, float, float]:
-      # Start uniform inside triangle (reflection trick)
       u = rng.random()
       v = rng.random()
       if (u + v) > 1.0:
@@ -2163,11 +2120,9 @@ def build_rematerialization_pile_bytes(
         v = 1.0 - v
       w = 1.0 - u - v
 
-      # Bias toward the base (reduce w) so the pile has a wide base
-      base_bias = 0.45 + (rng.random() * 0.35)  # 0.45..0.80
+      base_bias = 0.45 + (rng.random() * 0.35)
       w *= base_bias
 
-      # Bias toward left/right edges sometimes (gives outward jut and avoids circular clump)
       if rng.random() < 0.68:
         if rng.random() < 0.5:
           u = u ** 0.35
@@ -2176,7 +2131,6 @@ def build_rematerialization_pile_bytes(
           u = u ** 1.65
           v = v ** 0.35
 
-      # Renormalize barycentric
       total = u + v + w
       if total <= 0.0:
         return (0.5, 0.5, 0.0)
@@ -2186,19 +2140,13 @@ def build_rematerialization_pile_bytes(
 
     def _score(px: int, py: int, *, tx: int, ty: int, centroid_x: float, centroid_y: float) -> float:
       s = 0.0
-
-      # Keep the group together
       s += cohesion_weight * math.sqrt(_dist2(px, py, centroid_x, centroid_y))
-
-      # Keep triangular footprint (but still messy due to jitter and noise)
       s += target_weight * math.sqrt(_dist2(px, py, tx, ty))
 
-      # Penalize being at/below the floor line (prevents low outliers)
       if py > floor_y:
         t = (py - floor_y) / float(max(1, base_px))
         s += floor_weight * (t * t)
 
-      # Repulsion/overlap
       for p in placements:
         d2 = _dist2(px, py, p['x'], p['y'])
         d = math.sqrt(d2)
@@ -2234,13 +2182,11 @@ def build_rematerialization_pile_bytes(
         px = tx + rng.randint(-jitter_x, jitter_x)
         py = ty + rng.randint(-jitter_y, jitter_y)
 
-        # Soft clamp around the target (prevents extreme drift)
         if abs(px - tx) > clamp_soft_x:
           continue
         if abs(py - ty) > clamp_soft_y:
           continue
 
-        # Hard clamp: never allow below floor
         if py > floor_y:
           py = floor_y
 
@@ -2254,8 +2200,6 @@ def build_rematerialization_pile_bytes(
 
       px, py = best
 
-      # Edge jut based on how close to triangle edges this target is
-      # Compute local left/right edges at this depth
       left_edge_x = int(round((w * tp[0]) + ((1.0 - w) * bl[0])))
       right_edge_x = int(round((w * tp[0]) + ((1.0 - w) * br[0])))
 
@@ -2267,7 +2211,6 @@ def build_rematerialization_pile_bytes(
         else:
           px += int(round((edge_t - 0.5) * jut_strength))
 
-      # Rotation: make it visible, more on edges and nearer the base
       depth_t = max(0.0, min(1.0, (base_y - py) / float(max(1, tri_h))))
       edge_bias = abs(px - cx) / float(max(1, (tri_w // 2)))
       edge_bias = max(0.0, min(1.0, edge_bias))
@@ -2286,13 +2229,11 @@ def build_rematerialization_pile_bytes(
         'r': float(max(icon_r.size) * 0.52)
       })
 
-    # Back to front
     placements.sort(key=lambda p: p['y'])
 
     for p in placements:
       _pil_composite_center(pile, p['img'], p['x'], p['y'])
 
-    # Overall pile tilt (this is the part you said went missing before)
     if abs(pile_tilt_deg) > 0.001:
       pile = _pil_rotate_rgba(pile, pile_tilt_deg)
 
@@ -2316,7 +2257,8 @@ def build_rematerialization_pile_bytes(
   pile = _build_crystal_pile(
     icon_images=icon_images,
     canvas_size=pile_canvas,
-    seed=seed
+    seed=seed,
+    pile_tilt_deg=float(pile_tilt)
   )
 
   _pil_composite_center(full, pile, int(pile_cx), int(pile_cy))
@@ -2339,32 +2281,27 @@ async def build_rematerialization_success_animation(
   fade_out_start_frame: int = 5,
   fade_out_done_frames_from_end: int = 10,
   result_cy_offset: int = 25,
-
   pile_cx: int = 356,
   pile_cy: int = 286,
-  pile_tilt: float = -18.0,
-
+  pile_tilt: float = -12.0,
   fx_floor_y: int = 345 + 60,
   fx_anchor_y: float = 1.0,
-
   fx_demat_w: int = 440,
   fx_demat_h: int = 320,
   fx_demat_ox: int = 0,
   fx_demat_oy: int = -20,
-
   fx_mat_w: int | None = None,
   fx_mat_h: int | None = None,
   fx_mat_ox: int = 0,
   fx_mat_oy: int = -20,
-
   icon_px: int = 92
 ) -> io.BytesIO:
   """
   Builds the rematerialization success animation as an animated .webp BytesIO.
 
   Placement is baked against the fixed background.
-  Mask is treated as luma: white keeps, black cuts.
-  Effect frames (190x190) are scaled and placed per-phase with a bottom-anchored floor.
+  Mask is treated as luma: higher values preserve alpha, lower values cut.
+  A hard-threshold mask is only used for bbox/window math.
   """
 
   def _build_rematerialization_success_frames() -> list[Image.Image]:
@@ -2443,9 +2380,10 @@ async def build_rematerialization_success_animation(
     if mask_l.size != (w, h):
       mask_l = mask_l.resize((w, h), resample=Image.Resampling.LANCZOS)
 
-    keep_l = mask_l.point(lambda v: 255 if v > 128 else 0)
+    keep_soft_l = mask_l
+    keep_hard_l = mask_l.point(lambda v: 255 if v > 8 else 0)
 
-    keep_bbox = keep_l.getbbox()
+    keep_bbox = keep_hard_l.getbbox()
     if keep_bbox:
       mx0, my0, mx1, my1 = keep_bbox
     else:
@@ -2462,14 +2400,38 @@ async def build_rematerialization_success_animation(
     if pile_full.size != (w, h):
       pile_full = pile_full.resize((w, h), resample=Image.Resampling.LANCZOS)
 
+    a0 = pile_full.getchannel('A')
+    b0 = a0.getbbox()
+
+    pile_rot = _pil_rotate_rgba(pile_full, float(pile_tilt), expand=False)
+
+    a1 = pile_rot.getchannel('A')
+    b1 = a1.getbbox()
+
+    if b0 and b1:
+      c0x = (b0[0] + b0[2]) / 2.0
+      c0y = (b0[1] + b0[3]) / 2.0
+      c1x = (b1[0] + b1[2]) / 2.0
+      c1y = (b1[1] + b1[3]) / 2.0
+      dx = int(round(c0x - c1x))
+      dy = int(round(c0y - c1y))
+      pile_full = _shift_rgba(pile_rot, dx, dy, out_size=(w, h))
+    else:
+      pile_full = pile_rot
+
     pile_trim = _pil_trim_alpha(pile_full)
 
     result_icon = _load_rgba(result_crystal_path)
     result_icon = _pil_trim_alpha(result_icon)
 
+    eff_icon_px = int(icon_px)
+    if pile_trim.size[0] > 0 and pile_trim.size[1] > 0:
+      pile_ref = max(pile_trim.size)
+      eff_icon_px = int(round(max(eff_icon_px, min(140, pile_ref * 0.28))))
+
     rm = max(result_icon.size)
     if rm > 0:
-      s = icon_px / float(rm)
+      s = eff_icon_px / float(rm)
       result_icon = _pil_scale_xy(result_icon, s, s)
 
     result_icon = _pil_rotate_rgba(result_icon, float(pile_tilt))
@@ -2481,15 +2443,8 @@ async def build_rematerialization_success_animation(
     max_fx_w = max(1, win_w - (win_pad * 2))
     max_fx_h = max(1, win_h - (win_pad * 2))
 
-    if fx_demat_w is None:
-      fx_demat_w_eff = int(min(max_fx_w, max(260, pile_trim.width * 1.40)))
-    else:
-      fx_demat_w_eff = int(min(max_fx_w, max(1, fx_demat_w)))
-
-    if fx_demat_h is None:
-      fx_demat_h_eff = int(min(max_fx_h, max(200, pile_trim.height * 1.10)))
-    else:
-      fx_demat_h_eff = int(min(max_fx_h, max(1, fx_demat_h)))
+    fx_demat_w_eff = int(min(max_fx_w, max(1, fx_demat_w)))
+    fx_demat_h_eff = int(min(max_fx_h, max(1, fx_demat_h)))
 
     if fx_mat_w is None:
       fx_mat_w_eff = int(min(max_fx_w, max(220, result_trim.width * 1.25)))
@@ -2571,7 +2526,7 @@ async def build_rematerialization_success_animation(
         )
         layer.alpha_composite(fx_layer)
 
-      layer = _apply_mask_luma(layer, keep_l)
+      layer = _apply_mask_luma(layer, keep_soft_l)
 
       out = bg.copy()
       out.alpha_composite(layer)
@@ -2638,6 +2593,7 @@ async def build_rematerialization_success_animation(
     pass
 
   return webp_buf
+
 
 
 # ________                      .__

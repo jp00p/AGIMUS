@@ -84,6 +84,12 @@ class RematerializationView(discord.ui.DesignerView):
     except Exception:
       pass
 
+  def _is_component_interaction(self, interaction: discord.Interaction | None) -> bool:
+    try:
+      return bool(interaction and getattr(interaction, 'message', None))
+    except Exception:
+      return False
+
   async def _freeze_current_message(self, interaction: discord.Interaction):
     if self._ui_frozen:
       return
@@ -92,6 +98,18 @@ class RematerializationView(discord.ui.DesignerView):
 
     try:
       self.disable_all_items()
+    except Exception:
+      pass
+
+    # Important: for component interactions, the Discord client will refresh the
+    # original message after the interaction is acknowledged. If we only call
+    # message.edit(), the client may briefly show the old enabled components again.
+    # Using interaction.response.edit_message() (when available) updates the message
+    # as the interaction response, preventing the "re-enabled" flash.
+    try:
+      if self._is_component_interaction(interaction) and not interaction.response.is_done():
+        await interaction.response.edit_message(view=self)
+        return
     except Exception:
       pass
 
@@ -104,6 +122,39 @@ class RematerializationView(discord.ui.DesignerView):
   async def _ack(self, interaction: discord.Interaction) -> bool:
     if interaction.response.is_done():
       return True
+
+    # For component interactions (buttons/selects), prefer acknowledging as an
+    # "update" (defer_update / thinking=False) instead of an ephemeral defer.
+    # Ephemeral defers can cause the original message to refresh with enabled
+    # components before our delete/edit runs.
+    if self._is_component_interaction(interaction):
+      try:
+        fn = getattr(interaction.response, 'defer_update', None)
+        if fn:
+          await fn()
+          return True
+      except Exception:
+        pass
+
+      try:
+        # py-cord supports invisible=True as an "update" style defer in some versions
+        await interaction.response.defer(invisible=True)
+        return True
+      except TypeError:
+        pass
+      except Exception:
+        self._log_exception('interaction.response.defer(invisible=True) failed', interaction)
+        return False
+
+      try:
+        # discord.py compatible: thinking=False acknowledges without "thinking"
+        await interaction.response.defer(thinking=False)
+        return True
+      except TypeError:
+        pass
+      except Exception:
+        self._log_exception('interaction.response.defer(thinking=False) failed', interaction)
+        return False
 
     try:
       await interaction.response.defer(ephemeral=True)
@@ -644,6 +695,10 @@ class RematerializationView(discord.ui.DesignerView):
 
     if old_msg:
       try:
+        try:
+          await old_msg.edit(view=None)
+        except Exception:
+          pass
         await old_msg.delete()
         old_msg = None
       except Exception:
@@ -776,6 +831,8 @@ class RematerializationView(discord.ui.DesignerView):
   async def _render(self, interaction: discord.Interaction):
     await self._freeze_current_message(interaction)
 
+    # If _freeze_current_message used interaction.response.edit_message(), the
+    # response is already done. Otherwise we still need to acknowledge.
     acked = await self._ack(interaction)
     if not acked:
       await self._soft_fail(interaction)
