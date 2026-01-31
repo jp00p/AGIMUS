@@ -131,9 +131,17 @@ class RematerializationView(discord.ui.DesignerView):
       return False
 
   async def _soft_fail(self, interaction: discord.Interaction, title: str = 'Interaction Failed'):
+    channel_id = get_channel_id('megalomaniacal-computer-storage')
+    megalomaniacal = self.cog.bot.get_channel(channel_id)
+    if not megalomaniacal:
+      megalomaniacal = await self.cog.bot.fetch_channel(channel_id)
+
     embed = discord.Embed(
       title=title,
-      description='An unexpected error occurred. Please try again. If this persists, run the command again.',
+      description=(
+        'An unexpected error occurred. Please try again.\n'
+        f"If this continues to occur, please notify the proper authorities in {megalomaniacal.mention}"
+      ),
       color=discord.Color.red()
     )
     try:
@@ -246,7 +254,7 @@ class RematerializationView(discord.ui.DesignerView):
     return None
 
   def _build_status_block(self) -> str:
-    if self.state == 'RARITY':
+    if self.state in ('RARITY', 'PENDING'):
       return ''
 
     src = f'{self.cog.rarity_emoji(self.source_rarity_rank)} {self.cog.rarity_name(self.source_rarity_rank)}'
@@ -258,12 +266,14 @@ class RematerializationView(discord.ui.DesignerView):
     for type_id, qty in self.contents.items():
       row = self._get_type_row(type_id)
       name = row['crystal_name'] if row else f'Type {type_id}'
+      emoji = row.get('emoji') if row else ''
       icon = row.get('icon') if row else None
       description = row.get('description') if row else ''
       rows.append({
         'crystal_type_id': type_id,
         'qty': qty,
         'crystal_name': name,
+        'emoji': emoji,
         'icon': icon,
         'description': description
       })
@@ -340,8 +350,9 @@ class RematerializationView(discord.ui.DesignerView):
       return files
 
     name = row.get('crystal_name') or 'Unknown Crystal Type'
+    emoji = row.get('emoji') or ''
     description = row.get('description') or ''
-    text = f'### {name}\n{description}'.strip()
+    text = f'### {emoji} {name}\n{description}'.strip()
 
     icon = row.get('icon')
     thumb, _ = self._try_attach_icon(files, int(row['crystal_type_id']), icon) if icon else (None, None)
@@ -1322,7 +1333,7 @@ class RematerializationView(discord.ui.DesignerView):
       container.add_item(discord.ui.TextDisplay(dematerialized_text))
 
       container.add_item(discord.ui.Separator())
-      container.add_item(discord.ui.TextDisplay('-# Enjoi!'))
+      container.add_item(discord.ui.TextDisplay('-# Use `/rematerialize select` to Rematerialize your own!'))
 
       public_view.add_item(container)
 
