@@ -287,7 +287,7 @@ class RematerializationView(discord.ui.DesignerView):
       try:
         container.add_gallery(
           discord.MediaGalleryItem(
-            url='https://i.imgur.com/rtlG2aV.gif',
+            url='https://i.imgur.com/o8CJva6.gif',
             description='No crystals queued yet'
           )
         )
@@ -613,6 +613,19 @@ class RematerializationView(discord.ui.DesignerView):
     if not old_msg:
       old_msg = self.message
 
+    # Try deleting the old message first, but never let this block the flow.
+    # If deletion fails for any reason, we still proceed to send the new screen.
+    if old_msg:
+      try:
+        await old_msg.delete()
+        old_msg = None
+      except Exception:
+        try:
+          await interaction.followup.delete_message(old_msg.id)
+          old_msg = None
+        except Exception:
+          pass
+
     new_msg = None
 
     try:
@@ -650,14 +663,6 @@ class RematerializationView(discord.ui.DesignerView):
     if new_msg:
       self.message = new_msg
 
-    if old_msg and new_msg and (old_msg.id != new_msg.id):
-      try:
-        await old_msg.delete()
-      except Exception:
-        try:
-          await interaction.followup.delete_message(old_msg.id)
-        except Exception:
-          pass
 
   async def _render(self, interaction: discord.Interaction):
     acked = await self._ack(interaction)
