@@ -9,6 +9,7 @@ from collections import namedtuple
 from emoji import EMOJI_DATA
 from functools import partial
 from pathlib import Path
+import cv2
 import regex
 import threading
 
@@ -1882,12 +1883,47 @@ def _pil_trim_alpha(img: Image.Image, *, threshold: int = 8) -> Image.Image:
 
   a = img.getchannel('A')
   if threshold > 0:
-    a = a.point(lambda v: 255 if v > threshold else 0)
+    a2 = a.point(lambda v: 255 if v > threshold else 0)
+  else:
+    a2 = a
 
-  bbox = a.getbbox()
+  bbox = a2.getbbox()
   if not bbox:
     return img
-  return img.crop(bbox)
+
+  try:
+    import numpy as np
+    import cv2
+
+    arr = np.array(a, dtype=np.uint8)
+    if threshold > 0:
+      mask = (arr > threshold).astype(np.uint8) * 255
+    else:
+      mask = (arr > 0).astype(np.uint8) * 255
+
+    num, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+    if num <= 1:
+      return img.crop(bbox)
+
+    areas = stats[1:, cv2.CC_STAT_AREA]
+    if areas.size <= 0:
+      return img.crop(bbox)
+
+    keep_label = int(1 + int(np.argmax(areas)))
+    keep = (labels == keep_label).astype(np.uint8) * 255
+
+    ys, xs = np.where(keep > 0)
+    if xs.size <= 0 or ys.size <= 0:
+      return img.crop(bbox)
+
+    x0 = int(xs.min())
+    x1 = int(xs.max()) + 1
+    y0 = int(ys.min())
+    y1 = int(ys.max()) + 1
+    return img.crop((x0, y0, x1, y1))
+
+  except Exception:
+    return img.crop(bbox)
 
 
 def _pil_rotate_rgba(img: Image.Image, degrees: float, *, expand: bool = True) -> Image.Image:
@@ -2017,7 +2053,7 @@ def build_rematerialization_pile_bytes(
   icons_dir: str = './images/templates/crystals/icons',
   seed: int | None = None,
   pile_cx: int = 356,
-  pile_cy: int = 286,
+  pile_cy: int = 281,
   pile_canvas: tuple[int, int] = (560, 340),
   pile_tilt: float = -12.0
 ) -> io.BytesIO:
@@ -2075,7 +2111,7 @@ def build_rematerialization_pile_bytes(
     floor_y = base_y - int(base_px * 0.06)
     floor_weight = 16.0
 
-    candidate_tries = 36
+    candidate_tries = 40
     jitter_x = int(base_px * 0.62)
     jitter_y = int(base_px * 0.28)
 
@@ -2095,10 +2131,14 @@ def build_rematerialization_pile_bytes(
     edge_rot_extra = 22.0
     scale_jitter = 0.05
 
+    connect_radius = base_px * 1.35
+    connect_weight = 28.0
+    float_gap_px = int(base_px * 0.55)
+
     icons: list[Image.Image] = []
     for im in src_icons:
-      w, h = im.size
-      m = max(w, h) if max(w, h) > 0 else 1
+      w0, h0 = im.size
+      m = max(w0, h0) if max(w0, h0) > 0 else 1
       s = base_px / float(m)
       s *= (1.0 + rng.uniform(-scale_jitter, scale_jitter))
       out = _pil_scale_xy(im, s, s)
@@ -2115,9 +2155,9 @@ def build_rematerialization_pile_bytes(
       dy = ay - by
       return (dx * dx) + (dy * dy)
 
-    def _bary_to_xy(u: float, v: float, w: float) -> tuple[float, float]:
-      x = (u * bl[0]) + (v * br[0]) + (w * tp[0])
-      y = (u * bl[1]) + (v * br[1]) + (w * tp[1])
+    def _bary_to_xy(u: float, v: float, w1: float) -> tuple[float, float]:
+      x = (u * bl[0]) + (v * br[0]) + (w1 * tp[0])
+      y = (u * bl[1]) + (v * br[1]) + (w1 * tp[1])
       return (x, y)
 
     def _triangle_sample_biased() -> tuple[float, float, float]:
@@ -2126,10 +2166,10 @@ def build_rematerialization_pile_bytes(
       if (u + v) > 1.0:
         u = 1.0 - u
         v = 1.0 - v
-      w = 1.0 - u - v
+      w1 = 1.0 - u - v
 
       base_bias = 0.45 + (rng.random() * 0.35)
-      w *= base_bias
+      w1 *= base_bias
 
       if rng.random() < 0.68:
         if rng.random() < 0.5:
@@ -2139,10 +2179,10 @@ def build_rematerialization_pile_bytes(
           u = u ** 1.65
           v = v ** 0.35
 
-      total = u + v + w
+      total = u + v + w1
       if total <= 0.0:
         return (0.5, 0.5, 0.0)
-      return (u / total, v / total, w / total)
+      return (u / total, v / total, w1 / total)
 
     placements: list[dict] = []
 
@@ -2154,6 +2194,17 @@ def build_rematerialization_pile_bytes(
       if py > floor_y:
         t = (py - floor_y) / float(max(1, base_px))
         s += floor_weight * (t * t)
+
+      if placements:
+        min_d = 1e18
+        for p in placements:
+          d2 = _dist2(px, py, p['x'], p['y'])
+          if d2 < min_d:
+            min_d = d2
+        min_d = math.sqrt(min_d)
+        if min_d > connect_radius:
+          t = (min_d - connect_radius) / max(1.0, connect_radius)
+          s += connect_weight * (t * t)
 
       for p in placements:
         d2 = _dist2(px, py, p['x'], p['y'])
@@ -2171,8 +2222,8 @@ def build_rematerialization_pile_bytes(
       return s
 
     for icon in icons:
-      u, v, w = _triangle_sample_biased()
-      tx_f, ty_f = _bary_to_xy(u, v, w)
+      u, v, w1 = _triangle_sample_biased()
+      tx_f, ty_f = _bary_to_xy(u, v, w1)
       tx = int(round(tx_f))
       ty = int(round(ty_f))
 
@@ -2208,8 +2259,24 @@ def build_rematerialization_pile_bytes(
 
       px, py = best
 
-      left_edge_x = int(round((w * tp[0]) + ((1.0 - w) * bl[0])))
-      right_edge_x = int(round((w * tp[0]) + ((1.0 - w) * br[0])))
+      if placements:
+        nearest = None
+        nearest_d2 = 1e18
+        for p in placements:
+          d2 = _dist2(px, py, p['x'], p['y'])
+          if d2 < nearest_d2:
+            nearest_d2 = d2
+            nearest = p
+
+        if nearest is not None:
+          gap = int(nearest['y'] - py)
+          if gap > float_gap_px:
+            py = int(nearest['y'] - float_gap_px)
+            if py > floor_y:
+              py = floor_y
+
+      left_edge_x = int(round((w1 * tp[0]) + ((1.0 - w1) * bl[0])))
+      right_edge_x = int(round((w1 * tp[0]) + ((1.0 - w1) * br[0])))
 
       if right_edge_x != left_edge_x:
         edge_t = (px - left_edge_x) / float(right_edge_x - left_edge_x)
@@ -2290,7 +2357,7 @@ async def build_rematerialization_success_animation(
   fade_out_done_frames_from_end: int = 10,
   result_cy_offset: int = 25,
   pile_cx: int = 356,
-  pile_cy: int = 286,
+  pile_cy: int = 281,
   pile_tilt: float = -12.0,
   fx_floor_y: int = 345 + 60,
   fx_anchor_y: float = 1.0,
