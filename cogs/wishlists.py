@@ -111,27 +111,6 @@ async def unlock_autocomplete(ctx: discord.AutocompleteContext):
   return choices
 
 
-# __________                .__               __
-# \______   \_____     ____ |__| ____ _____ _/  |_  ___________
-#  |     ___/\__  \   / ___\|  |/    \\__  \\   __\/  _ \_  __ \
-#  |    |     / __ \_/ /_/  >  |   |  \/ __ \|  | (  <_> )  | \/
-#  |____|    (____  /\___  /|__|___|  (____  /__|  \____/|__|
-#                 \//_____/         \/     \/
-class WishlistPaginator(pages.Paginator):
-  def __init__(self, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-
-  async def on_timeout(self):
-    try:
-      await super().on_timeout()
-    except discord.errors.NotFound as e:
-      # Workaround for current issue with Paginator timeouts
-      # If the interaction was edited or dismissed before the paginator timeout is reached
-      # it encounters a 404 when it tries to load the original message to disable the UI elements
-      # We're already done here at that point, so just go ahead and pass
-      pass
-
-
 # ________  .__               .__              __________        __    __
 # \______ \ |__| ______ _____ |__| ______ _____\______   \__ ___/  |__/  |_  ____   ____
 #  |    |  \|  |/  ___//     \|  |/  ___//  ___/|    |  _/  |  \   __\   __\/  _ \ /    \
@@ -165,14 +144,14 @@ class DismissButton(discord.ui.Button):
         self.match_discord_id,
         badge_id,
         self.prestige_level,
-        'has'
+        "has"
       )
       await db_add_wishlist_dismissal(
         self.match_discord_id,
         self.author_discord_id,
         badge_id,
         self.prestige_level,
-        'wants'
+        "wants"
       )
     for badge_id in self.wants_ids:
       await db_add_wishlist_dismissal(
@@ -180,7 +159,7 @@ class DismissButton(discord.ui.Button):
         self.match_discord_id,
         badge_id,
         self.prestige_level,
-        'wants',
+        "wants",
       )
 
     match_user = await bot.current_guild.fetch_member(self.match_discord_id)
@@ -611,7 +590,7 @@ class Wishlist(commands.Cog):
         ]
 
         # Send paginator
-        paginator = WishlistPaginator(
+        paginator = SafePageGroupPaginator(
           pages=page_groups,
           show_menu=True,
           custom_buttons=paginator_buttons,
@@ -693,8 +672,8 @@ class Wishlist(commands.Cog):
         partner = await bot.current_guild.fetch_member(partner_id)
 
         # split out has vs wants
-        has_ids = [r['badge_info_id'] for r in rows if r['role'] == 'has']
-        wants_ids = [r['badge_info_id'] for r in rows if r['role'] == 'wants']
+        has_ids = [r['badge_info_id'] for r in rows if r['role'] == "has"]
+        wants_ids = [r['badge_info_id'] for r in rows if r['role'] == "wants"]
 
         # fetch badge info for display
         has_infos = [await db_get_badge_info_by_id(b) for b in has_ids]
@@ -783,7 +762,7 @@ class Wishlist(commands.Cog):
           )
         ]
 
-        paginator = WishlistPaginator(
+        paginator = SafePageGroupPaginator(
           pages=page_groups,
           show_menu=True,
           custom_buttons=paginator_buttons,
@@ -833,8 +812,8 @@ class Wishlist(commands.Cog):
         r for r in stored
         if r['match_discord_id'] == pid and r['prestige_level'] == prestige
       ]
-      saved_has = [r['badge_info_id'] for r in rows if r['role'] == 'has']
-      saved_wants = [r['badge_info_id'] for r in rows if r['role'] == 'wants']
+      saved_has = [r['badge_info_id'] for r in rows if r['role'] == "has"]
+      saved_wants = [r['badge_info_id'] for r in rows if r['role'] == "wants"]
 
       valid_has_ids, valid_wants_ids = set(valid.get(pid, ([], []))[0]), set(valid.get(pid, ([], []))[1])
       dismissed_has_ids, dismissed_wants_ids = set(saved_has), set(saved_wants)

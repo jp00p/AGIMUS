@@ -67,7 +67,7 @@ class Admin(commands.Cog):
       color=discord.Color.blurple()
     )
     embed.add_field(name='Enabled', value=f"{'On' if enabled else 'Off'}")
-    embed.add_field(name='Bonus Amount', value=f'{bonus_set}')
+    embed.add_field(name='Bonus Amount', value=f"{bonus_set}")
 
     await ctx.respond(
       embed=embed,
@@ -210,7 +210,7 @@ class Admin(commands.Cog):
       if not crystal_type:
         embed = discord.Embed(
           title='No Crystal Types Found',
-          description=f'No crystal types exist for rarity rank `{rarity_rank}`.',
+          description=f"No crystal types exist for rarity rank `{rarity_rank}`.",
           color=discord.Color.red()
         )
         return await ctx.respond(embed=embed, ephemeral=True)
@@ -226,17 +226,17 @@ class Admin(commands.Cog):
       counts_by_type[key] = counts_by_type.get(key, 0) + 1
 
     rarity = await db_get_crystal_rank_by_rarity_rank(rarity_rank)
-    rarity_name = rarity['name'] if rarity else f'Rank {rarity_rank}'
+    rarity_name = rarity['name'] if rarity else f"Rank {rarity_rank}"
     rarity_emoji = rarity.get('emoji') if rarity else None
 
     embed = discord.Embed(
       title='Crystals Granted',
-      description=f"Granted **{amount}** {rarity_name} crystal(s) to {user.mention}.",
+      description=f'Granted **{amount}** {rarity_name} crystal(s) to {user.mention}.',
       color=discord.Color.green()
     )
 
     if rarity_emoji:
-      embed.add_field(name='Rarity', value=f'{rarity_emoji} {rarity_name}', inline=True)
+      embed.add_field(name='Rarity', value=f"{rarity_emoji} {rarity_name}", inline=True)
     else:
       embed.add_field(name='Rarity', value=rarity_name, inline=True)
 
@@ -245,9 +245,9 @@ class Admin(commands.Cog):
     top = sorted(counts_by_type.items(), key=lambda kv: (-kv[1], kv[0].lower()))
     lines = []
     for name, cnt in top[:15]:
-      lines.append(f'{cnt}x {name}')
+      lines.append(f"{cnt}x {name}")
     if len(top) > 15:
-      lines.append(f'...and {len(top) - 15} more types')
+      lines.append(f"...and {len(top) - 15} more types")
 
     if lines:
       embed.add_field(name='Breakdown', value='\n'.join(lines), inline=False)
@@ -265,7 +265,7 @@ class Admin(commands.Cog):
     if not instance:
       return await ctx.respond(embed=discord.Embed(
         title='Badge Not Found',
-        description=f"Badge instance ID `{badge_instance_id}` does not exist.",
+        description=f'Badge instance ID `{badge_instance_id}` does not exist.',
         color=discord.Color.red()
       ), ephemeral=True)
 
@@ -289,7 +289,7 @@ class Admin(commands.Cog):
         title='Badge Transferred',
         description=(
           f"Badge `{instance['badge_name']} {PRESTIGE_TIERS[instance['prestige_level']]}` (ID `{badge_instance_id}`) has been transferred to {to_user.mention}.\n"
-          "Status set to `active`. Removed from Continuum if present."
+          'Status set to `active`. Removed from Continuum if present.'
         ),
         color=discord.Color.green()
       )
@@ -318,8 +318,8 @@ class Admin(commands.Cog):
     embed = discord.Embed(
       title='Pattern Buffer(s) Granted',
       description=(
-        f"Granted {amount} Crystal Pattern Buffer(s) to {user.mention}.\n\n"
-        f"They now have **{new_total}** total."
+        f'Granted {amount} Crystal Pattern Buffer(s) to {user.mention}.\n\n'
+        f'They now have **{new_total}** total.'
       ),
       color=discord.Color.blue()
     )
@@ -365,13 +365,13 @@ class Admin(commands.Cog):
         chair_name = f"<@{game['chair_user_id']}>"
 
       embed = discord.Embed(
-        title=f'Tongo Game ID: {game_id}',
+        title=f"Tongo Game ID: {game_id}",
         description=(
           f"Status: {game['status'].capitalize()}\n"
-          f"Chair: {chair_name}\n"
+          f'Chair: {chair_name}\n'
           f"Created: {discord.utils.format_dt(game['created_at'], 'R')}\n"
-          f"Players: {len(players)}\n"
-          f"Rewards: {len(rewards)}"
+          f'Players: {len(players)}\n'
+          f'Rewards: {len(rewards)}'
         ),
         color=discord.Color.teal()
       )
@@ -387,12 +387,12 @@ class Admin(commands.Cog):
           data = user_throws[uid]
           try:
             member = await self.bot.current_guild.fetch_member(uid)
-            name = f"{member.display_name} ({member.mention})"
+            player_name = f"{member.display_name} ({member.mention})"
           except Exception:
-            name = uid
+            player_name = str(uid)
 
-          value = '\n'.join(f"- {name} [{instance_id}]" for name, instance_id in data)
-          embed.add_field(name=name, value=value or '*No badges*', inline=False)
+          value = '\n'.join(f"- {badge_name} [{instance_id}]" for badge_name, instance_id in data)
+          embed.add_field(name=player_name, value=value or '*No badges*', inline=False)
 
         pages_for_game.append(pages.Page(embeds=[embed]))
 
@@ -410,9 +410,9 @@ class Admin(commands.Cog):
               player = await self.bot.current_guild.fetch_member(int(uid))
               player_name = f"{player.display_name} ({uid})"
             except discord.NotFound:
-              player_name = f'User ID: {uid}'
+              player_name = f"User ID: {uid}"
             except Exception:
-              player_name = f'User ID: {uid}'
+              player_name = f"User ID: {uid}"
 
             entries = []
             for reward in rewards_by_user[uid]:
@@ -425,24 +425,24 @@ class Admin(commands.Cog):
                 if badge_instance:
                   desc += f"Badge {badge_id} - {badge_instance['badge_name']} (Prestige {badge_instance['prestige_level']})"
                 else:
-                  desc += f'Badge {badge_id} (Unknown)'
+                  desc += f"Badge {badge_id} (Unknown)"
               if crystal_id:
-                desc += f' + Crystal {crystal_id}'
+                desc += f" + Crystal {crystal_id}"
 
               entries.append(desc or 'Unknown Reward')
 
             embed.add_field(
               name=player_name,
-              value='\n'.join(f'- {entry}' for entry in entries),
+              value='\n'.join(f"- {entry}" for entry in entries),
               inline=False
             )
 
           pages_for_game.append(pages.Page(embeds=[embed]))
 
-      group = pages.PageGroup(pages=pages_for_game, label=f'Game {game_id}')
+      group = pages.PageGroup(pages=pages_for_game, label=f"Game {game_id}")
       game_groups.append(group)
 
-    paginator = pages.Paginator(pages=game_groups, show_menu=True, show_indicator=True, loop_pages=True)
+    paginator = SafePageGroupPaginator(pages=game_groups, show_menu=True, show_indicator=True, loop_pages=True)
     await paginator.respond(ctx.interaction, ephemeral=True)
 
   @admin_group.command(name='examine_tongo_continuum', description='(ADMIN RESTRICTED) View the full details of the Tongo Continuum.')
@@ -464,7 +464,7 @@ class Admin(commands.Cog):
 
     for idx, chunk in enumerate(chunks, start=1):
       embed = discord.Embed(
-        title=f'Tongo Continuum Snapshot (Page {idx} of {len(chunks)})',
+        title=f"Tongo Continuum Snapshot (Page {idx} of {len(chunks)})",
         description='Current badge instances in the continuum:',
         color=discord.Color.dark_gold()
       )
@@ -485,7 +485,7 @@ class Admin(commands.Cog):
             pass
 
         embed.add_field(
-          name=f'{badge_name} ({prestige})',
+          name=f"{badge_name} ({prestige})",
           value=f"Instance: `{badge['badge_instance_id']}`\nRisked by: {player_mention}",
           inline=False
         )
@@ -567,7 +567,7 @@ class Admin(commands.Cog):
         async def callback(self, interaction):
           self.view_ref.selected_ids = self.values
           await interaction.response.send_message(
-            f'Selected {len(self.values)} player(s) for removal. Click confirm to proceed.',
+            f"Selected {len(self.values)} player(s) for removal. Click confirm to proceed.",
             ephemeral=True
           )
 
@@ -582,7 +582,7 @@ class Admin(commands.Cog):
         for uid in self.selected_ids:
           uid_int = int(uid)
           await db_remove_player_from_game(self.game_id, uid_int)
-          removed_mentions.append(f'<@{uid}>')
+          removed_mentions.append(f"<@{uid}>")
 
           game = await db_get_game_by_id(self.game_id)
           if not game:
@@ -600,7 +600,7 @@ class Admin(commands.Cog):
 
         await interaction.response.send_message(
           embed=discord.Embed(
-            title=f'Tongo Game #{self.game_id} Updated',
+            title=f"Tongo Game #{self.game_id} Updated",
             description=desc,
             color=discord.Color.orange()
           ),
@@ -611,7 +611,7 @@ class Admin(commands.Cog):
 
     await ctx.respond(
       embed=discord.Embed(
-        title=f'Manage Tongo Game Players #{game_id}',
+        title=f"Manage Tongo Game Players #{game_id}",
         description='Remove players.',
         color=discord.Color.teal()
       ),
@@ -633,7 +633,7 @@ class Admin(commands.Cog):
     await db_update_game_status(game_id, status)
     embed = discord.Embed(
       title='Tongo Status Updated',
-      description=f'Tongo game #{game_id} status set to **{status}**.',
+      description=f"Tongo game #{game_id} status set to **{status}**.",
       color=discord.Color.green()
     )
     await ctx.respond(embed=embed, ephemeral=True)
