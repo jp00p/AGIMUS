@@ -90,7 +90,7 @@ from utils.database import AgimusDB
 intents = discord.Intents.all()
 bot = commands.Bot(
   intents=intents,
-  debug_guilds=config["guild_ids"],
+  test_guilds=config["guild_ids"],
   auto_sync_commands=True,
   command_prefix="!"
 )
@@ -417,29 +417,3 @@ def make_memory_alpha_link(name: str) -> str:
       return name
   link_name = re.sub(r'".*" ', '', name) if '"' in name else name  # "nicknames" are not included in the links
   return f"[{name}](https://memory-alpha.fandom.com/wiki/{link_name.replace(' ', '_')})"
-
-
-# _________                              __  ._____.   .__.__  .__  __          
-# \_   ___ \  ____   _____ ___________ _/  |_|__\_ |__ |__|  | |__|/  |_ ___.__.
-# /    \  \/ /  _ \ /     \\____ \__  \\   __\  || __ \|  |  | |  \   __<   |  |
-# \     \___(  <_> )  Y Y  \  |_> > __ \|  | |  || \_\ \  |  |_|  ||  |  \___  |
-#  \______  /\____/|__|_|  /   __(____  /__| |__||___  /__|____/__||__|  / ____|
-#         \/             \/|__|       \/             \/                  \/     
-class SafePageGroupPaginator(pages.Paginator):
-  """
-  Defensive paginator wrapper for PageGroup menus.
-
-  In py-cord 2.7, some PageGroup + menu combinations have been prone to runtime
-  issues depending on the exact library build. This wrapper forces a safe init
-  path and then attaches the menu after initialization.
-  """
-  def __init__(self, *args, **kwargs):
-    requested_show_menu = bool(kwargs.get('show_menu', False))
-    kwargs['show_menu'] = False
-    super().__init__(*args, **kwargs)
-
-    if requested_show_menu:
-      try:
-        self.add_menu()
-      except Exception:
-        pass

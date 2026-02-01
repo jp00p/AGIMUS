@@ -79,11 +79,13 @@ class SettingsCloseButton(discord.ui.Button):
     self.view_ref = view
 
   async def callback(self, interaction: discord.Interaction):
-    for child in self.view_ref.children:
-      child.disabled = True
+    try:
+      await interaction.response.defer()
+    except Exception:
+      pass
 
     try:
-      await interaction.response.edit_message(view=self.view_ref)
+      await interaction.message.delete()
     except discord.errors.NotFound:
       pass
 
@@ -165,9 +167,9 @@ class SettingsView(discord.ui.View):
     self._rebuild_category_control()
     self._rebuild_action_control()
 
-    embed = await self.cog._build_settings_embed(category)
+    page_embed = await self.cog._build_settings_embed(category)
 
-    await interaction.response.edit_message(embed=embed, view=self)
+    await interaction.response.edit_message(embeds=[page_embed], view=self)
 
   async def apply_setting(self, interaction: discord.Interaction, key: str, selection: str):
     user_id = str(interaction.user.id)
@@ -268,13 +270,12 @@ class SettingsView(discord.ui.View):
           color=discord.Color.blurple()
         ).set_footer(text='You can always come back to this interface and re-enable in the future!')
 
+    page_embed = await self.cog._build_settings_embed(self.category)
+
     if confirm_embed:
-      await interaction.response.send_message(embed=confirm_embed, ephemeral=True)
-      try:
-        refreshed_embed = await self.cog._build_settings_embed(self.category)
-        await interaction.message.edit(embed=refreshed_embed, view=self)
-      except discord.errors.NotFound:
-        pass
+      await interaction.response.edit_message(embeds=[confirm_embed, page_embed], view=self)
+    else:
+      await interaction.response.edit_message(embeds=[page_embed], view=self)
 
   async def on_timeout(self):
     for child in self.children:
@@ -301,7 +302,7 @@ class Settings(commands.Cog):
     view = SettingsView(self, user_id=str(ctx.author.id))
     embed = await self._build_settings_embed('home')
 
-    msg = await ctx.followup.send(embed=embed, view=view, ephemeral=True)
+    msg = await ctx.followup.send(embeds=[embed], view=view, ephemeral=True)
     view.message = msg
 
   async def _build_settings_embed(self, category: str) -> discord.Embed:
@@ -343,8 +344,12 @@ class Settings(commands.Cog):
     embed = discord.Embed(
       title='XP System Preferences',
       description=(
-        'The XP System awards XP for participating in the server.\n\n'
-        f'Leveling up grants new badges with notifications in {badge_channel.mention}.'
+        'The XP System on the USS Hood awards users XP for participating in the server in various ways. '
+        "Some of these include posting messages, reacting to messages, and receiving reactions to your own messages.\n\n"
+        "Once you've received a set amount of XP, you will Level Up and receive a new Badge with a notification in "
+        f"{badge_channel.mention}. You can start typing `/badges` to see the various badge-specific commands available "
+        'for taking a look at your collection!\n\n'
+        "If you don't wish to participate, you can configure that here. You can always re-enable if desired in the future!"
       ),
       color=discord.Color(0xFF0000)
     )
@@ -356,7 +361,13 @@ class Settings(commands.Cog):
   async def _get_crystallization_embed(self) -> discord.Embed:
     embed = discord.Embed(
       title='Crystallization Auto-Harmonize Preference',
-      description='Configure how Crystals are automatically harmonized after attunement.',
+      description=(
+        "Set how you'd prefer AGIMUS to handle Harmonization (activation) of Crystals after you have Attuned (attached) "
+        'them to a Badge via `/crystals attach`.\n\n'
+        '* **Auto-Harmonize** - As soon as you attune a Crystal to a Badge, it will become Harmonized immediately!\n'
+        "* **Manual** - Don't immediately Harmonize the latest attuned Crystal, use `/crystals activate` to select as per usual (Default).\n\n"
+        'Note: If you have multiple Crystals attached to a Badge you can always change which is Harmonized at any time per-usual via `/crystals activate`!'
+      ),
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text='Please select your choice from the dropdown below.')
@@ -367,7 +378,11 @@ class Settings(commands.Cog):
   async def _get_notifications_embed(self) -> discord.Embed:
     embed = discord.Embed(
       title='AGIMUS Notifications',
-      description='Enable or disable Direct Messages from AGIMUS.',
+      description=(
+        'AGIMUS may occasionally want to send you a Direct Message with useful information.\n\n'
+        'Some examples include sending Drops/Clips lists when requested and notably, DMs are used in the Badge Trading System '
+        'to give alerts when a trade has been initiated or one of your existing trades has been canceled.'
+      ),
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text='Please select your choice from the preference dropdown below.')
@@ -376,9 +391,35 @@ class Settings(commands.Cog):
     return embed
 
   async def _get_wordcloud_embed(self) -> discord.Embed:
+    wordcloud_blocked_channel_ids = get_channel_ids_list([
+      'neelixs-morale-office',
+      'plasma-vent',
+      'counselor-trois-waiting-room',
+      'heuristic-associative-pathways',
+      'megalomaniacal-computer-storage',
+      'bot-setup',
+      'the-royale',
+      'poker-night',
+      'morns-nonstop-quiz',
+      'badgeys-badges'
+    ])
+    wordcloud_blocked_channels = [
+      await self.bot.fetch_channel(channel_id) for channel_id in wordcloud_blocked_channel_ids
+    ]
+
+    wordcloud_blocked_channels_string = '\n\n'
+    for channel in wordcloud_blocked_channels:
+      wordcloud_blocked_channels_string += f"{channel.mention}\n"
+
     embed = discord.Embed(
       title='Wordcloud Logging',
-      description='Enable or disable logging of common words for Wordcloud generation.',
+      description=(
+        'AGIMUS has an opt-in Wordcloud feature which you can enable to track the most common words that you use. '
+        'When the command is executed with `/wordcloud` a new image is generated which weighs each word based on frequency.\n\n'
+        'If wish to opt out in the future, your existing message data will be deleted.\n\n'
+        'Note that the following channels are not included in logging for the Wordcloud: '
+        f"{wordcloud_blocked_channels_string}\n**Example Wordcloud:**"
+      ),
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text='Please select your choice from the preference dropdown below.')
@@ -387,9 +428,35 @@ class Settings(commands.Cog):
     return embed
 
   async def _get_loudbot_embed(self) -> discord.Embed:
+    loudbot_enabled_channel_ids = get_channel_ids_list([
+      'after-dinner-conversation',
+      'badgeys-badges',
+      'bahrats-bazaar',
+      'the-royale',
+      'dr-crushers-hotbox',
+      'megalomaniacal-computer-storage',
+      'morns-nonstop-quiz',
+      'poker-night',
+      'seskas-catfishing-channel',
+      'ten-forward',
+      'temba-his-arms-wide'
+    ])
+    loudbot_enabled_channels = [
+      await self.bot.fetch_channel(channel_id) for channel_id in loudbot_enabled_channel_ids
+    ]
+
+    loudbot_enabled_channels_string = '\n\n'
+    for channel in loudbot_enabled_channels:
+      loudbot_enabled_channels_string += f"{channel.mention}\n"
+
     embed = discord.Embed(
       title='Loudbot Auto-Responses and Logging',
-      description='Enable or disable Loudbot auto-responses.',
+      description=(
+        'AGIMUS has an opt-in Loudbot feature which you can enable to allow to have it auto-respond to messages you post that are in all-caps. '
+        'When your message is registered it also logs the message to be used as a response to other users who have the feature enabled.\n\n'
+        'If wish to opt out in the future, your existing message data will be deleted.\n\n'
+        f'Note that the following channels are where Loudbot is allowed to auto-respond: {loudbot_enabled_channels_string}'
+      ),
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text='Please select your choice from the preference dropdown below.')
@@ -400,7 +467,13 @@ class Settings(commands.Cog):
   async def _get_tagging_embed(self) -> discord.Embed:
     embed = discord.Embed(
       title='User Tagging',
-      description='Enable or disable the User Tagging system.',
+      description=(
+        'We have an opt-in User Tagging feature which allows FoDs to tag one another with nicknames and other info!\n\n'
+        '* `/user_tags tag` - Add a tag to a user.\n'
+        "* `/user_tags untag` - Remove a tag that you've been tagged with.\n"
+        '* `/user_tags display` - View all tags a user has been tagged with (Posted publicly or privately).\n\n'
+        'Select below if you would like to join enable others to tag you (or add some of your own to yourself)!'
+      ),
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text='Please select your choice from the preference dropdown below.')
@@ -411,7 +484,12 @@ class Settings(commands.Cog):
   async def _get_pattern_buffer_embed(self) -> discord.Embed:
     embed = discord.Embed(
       title='Crystal Pattern Buffer Notifications',
-      description='Receive notifications when you earn Crystal Pattern Buffers.',
+      description=(
+        'Crystal Pattern Buffers are rewards given by the XP System. This setting will only apply if you have enabled the XP System. '
+        'Opt in if you would like to receive a notification when you receive a Crystal Pattern Buffer.\n\n'
+        'Note that this setting only applies to notifications about Crystal Pattern Buffers. If you would like to receive other notifications, '
+        'please use the "Notifications" setting.'
+      ),
       color=discord.Color(0xFF0000)
     )
     embed.set_footer(text='Please select your choice from the preference dropdown below.')
@@ -422,31 +500,36 @@ class Settings(commands.Cog):
 
 async def db_toggle_xp(user_id, value: bool):
   sql = 'UPDATE users SET xp_enabled = %s WHERE discord_id = %s'
+  vals = (value, user_id)
   async with AgimusDB() as db:
-    await db.execute(sql, (value, user_id))
+    await db.execute(sql, vals)
 
 
 async def db_toggle_tagging(user_id, value: bool):
   sql = 'UPDATE users SET tagging_enabled = %s WHERE discord_id = %s'
+  vals = (value, user_id)
   async with AgimusDB() as db:
-    await db.execute(sql, (value, user_id))
+    await db.execute(sql, vals)
 
 
 async def db_toggle_notifications(user_id, toggle):
   sql = 'UPDATE users SET receive_notifications = %s WHERE discord_id = %s'
+  vals = (toggle, user_id)
   async with AgimusDB() as db:
-    await db.execute(sql, (toggle, user_id))
+    await db.execute(sql, vals)
 
 
 async def db_toggle_wordcloud(user_id, toggle):
   deleted_row_count = None
   async with AgimusDB() as db:
     sql = 'UPDATE users SET log_messages = %s WHERE discord_id = %s'
-    await db.execute(sql, (toggle, user_id))
+    vals = (toggle, user_id)
+    await db.execute(sql, vals)
 
     if not toggle:
       sql = 'DELETE FROM message_history WHERE user_discord_id = %s'
-      await db.execute(sql, (user_id,))
+      vals = (user_id,)
+      await db.execute(sql, vals)
       deleted_row_count = db.rowcount
 
   return deleted_row_count
@@ -456,11 +539,13 @@ async def db_toggle_loudbot(user_id, toggle):
   deleted_row_count = None
   async with AgimusDB() as db:
     sql = 'UPDATE users SET loudbot_enabled = %s WHERE discord_id = %s'
-    await db.execute(sql, (toggle, user_id))
+    vals = (toggle, user_id)
+    await db.execute(sql, vals)
 
     if not toggle:
       sql = 'DELETE FROM shouts WHERE user_discord_id = %s'
-      await db.execute(sql, (user_id,))
+      vals = (user_id,)
+      await db.execute(sql, vals)
       deleted_row_count = db.rowcount
 
   return deleted_row_count
@@ -468,11 +553,13 @@ async def db_toggle_loudbot(user_id, toggle):
 
 async def db_set_crystal_autoharmonize(user_id, autoharmonize: bool):
   sql = 'UPDATE users SET crystal_autoharmonize = %s WHERE discord_id = %s'
+  vals = (autoharmonize, user_id)
   async with AgimusDB() as db:
-    await db.execute(sql, (autoharmonize, user_id))
+    await db.execute(sql, vals)
 
 
 async def db_toggle_pattern_buffer(user_id, toggle):
   sql = 'UPDATE users SET pattern_buffer = %s WHERE discord_id = %s'
+  vals = (toggle, user_id)
   async with AgimusDB() as db:
-    await db.execute(sql, (toggle, user_id))
+    await db.execute(sql, vals)
