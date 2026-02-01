@@ -2053,9 +2053,13 @@ def build_rematerialization_pile_bytes(
   icons_dir: str = './images/templates/crystals/icons',
   seed: int | None = None,
   pile_cx: int = 356,
-  pile_cy: int = 281,
+  pile_cy: int = 286,
   pile_canvas: tuple[int, int] = (560, 340),
-  pile_tilt: float = -12.0
+  pile_tilt: float = -12.0,
+  pile_tighten: float = 0.30,
+  pile_center_nx: float = 0.52,
+  pile_center_ny: float = 0.66,
+  icon_px: int = 92
 ) -> io.BytesIO:
   def _load_rgba(path: str) -> Image.Image:
     with Image.open(path) as im:
@@ -2074,245 +2078,185 @@ def build_rematerialization_pile_bytes(
     except Exception:
       return None
 
-  def _build_crystal_pile(
+  def _pil_trim_alpha(img: Image.Image, *, threshold: int = 8) -> Image.Image:
+    if img.mode != 'RGBA':
+      img = img.convert('RGBA')
+
+    a = img.getchannel('A')
+    if threshold > 0:
+      a = a.point(lambda v: 255 if v > threshold else 0)
+
+    bbox = a.getbbox()
+    if not bbox:
+      return img
+    return img.crop(bbox)
+
+  def _pil_scale_to_max(img: Image.Image, max_px: int) -> Image.Image:
+    if img.mode != 'RGBA':
+      img = img.convert('RGBA')
+    w, h = img.size
+    m = max(w, h)
+    if m <= 0:
+      return img
+    s = float(max_px) / float(m)
+    nw = max(1, int(round(w * s)))
+    nh = max(1, int(round(h * s)))
+    if (nw, nh) == (w, h):
+      return img
+    return img.resize((nw, nh), resample=Image.Resampling.LANCZOS)
+
+  def _pil_scale_xy(img: Image.Image, sx: float, sy: float) -> Image.Image:
+    if img.mode != 'RGBA':
+      img = img.convert('RGBA')
+    w, h = img.size
+    nw = max(1, int(round(w * sx)))
+    nh = max(1, int(round(h * sy)))
+    if (nw, nh) == (w, h):
+      return img
+    return img.resize((nw, nh), resample=Image.Resampling.LANCZOS)
+
+  def _pil_rotate_rgba(img: Image.Image, degrees: float, *, expand: bool = True) -> Image.Image:
+    if img.mode != 'RGBA':
+      img = img.convert('RGBA')
+    return img.rotate(degrees, resample=Image.Resampling.BICUBIC, expand=expand)
+
+  def _pil_composite_center(dst: Image.Image, src: Image.Image, cx: int, cy: int) -> None:
+    if src.mode != 'RGBA':
+      src = src.convert('RGBA')
+    x = int(round(cx - (src.size[0] / 2)))
+    y = int(round(cy - (src.size[1] / 2)))
+    dst.alpha_composite(src, (x, y))
+
+  def _build_pile_layer(
     *,
     icon_images: list[Image.Image],
-    canvas_size: tuple[int, int] = (640, 380),
-    seed: int | None = None,
-    pile_tilt_deg: float = -12.0
+    out_size: tuple[int, int],
+    seed: int | None,
+    icon_px: int,
+    pile_tilt: float
   ) -> Image.Image:
     rng = random.Random(seed)
-
-    cw, ch = canvas_size
-    pile = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
+    cw, ch = out_size
 
     src_icons: list[Image.Image] = []
     for im in icon_images:
       if im.mode != 'RGBA':
         im = im.convert('RGBA')
-      im = _pil_trim_alpha(im)
-      if im.size[0] > 0 and im.size[1] > 0:
+      im = _pil_trim_alpha(im, threshold=8)
+      if im.size[0] > 1 and im.size[1] > 1:
         src_icons.append(im)
 
     if not src_icons:
-      return pile
+      return Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
+
+    rng.shuffle(src_icons)
 
     n = len(src_icons)
 
-    base_px = int(round(102.0 * (10.0 / float(max(6, n))) ** 0.45))
-    base_px = max(70, min(110, base_px))
-
-    cx = cw // 2
-    base_y = int(ch * 0.66)
-
-    tri_w = int(base_px * 4.15)
-    tri_h = int(base_px * 1.70)
-
-    floor_y = base_y - int(base_px * 0.06)
-    floor_weight = 16.0
-
-    candidate_tries = 40
-    jitter_x = int(base_px * 0.62)
-    jitter_y = int(base_px * 0.28)
-
-    repel_radius = base_px * 0.72
-    overlap_weight = 7.8
-    repel_weight = 1.10
-    cohesion_weight = 0.75
-    target_weight = 0.34
-    noise_weight = 0.10
-
-    clamp_soft_x = int(base_px * 1.10)
-    clamp_soft_y = int(base_px * 0.70)
-
-    jut_strength = base_px * 0.62
-
-    rot_jitter = 30.0
-    edge_rot_extra = 22.0
-    scale_jitter = 0.05
-
-    connect_radius = base_px * 1.35
-    connect_weight = 28.0
-    float_gap_px = int(base_px * 0.55)
-
+    target_px = int(max(64, min(118, int(icon_px))))
     icons: list[Image.Image] = []
     for im in src_icons:
-      w0, h0 = im.size
-      m = max(w0, h0) if max(w0, h0) > 0 else 1
-      s = base_px / float(m)
-      s *= (1.0 + rng.uniform(-scale_jitter, scale_jitter))
-      out = _pil_scale_xy(im, s, s)
-      icons.append(_pil_trim_alpha(out))
+      icons.append(_pil_scale_to_max(im, target_px))
 
-    rng.shuffle(icons)
+    # Six hand-tuned templates: 10 slots each.
+    # Slots are normalized in the pre-tilt pile canvas space.
+    # Each slot: (nx, ny, rot_deg, scale_mul)
+    templates: list[list[tuple[float, float, float, float]]] = [
+      # Template A (picked: 4)
+      [
+        (0.20, 0.70, -18.0, 1.05), (0.33, 0.74,  10.0, 0.95), (0.48, 0.77,  -8.0, 1.00), (0.64, 0.76,  14.0, 0.92), (0.79, 0.71,  24.0, 1.06),
+        (0.28, 0.58, -10.0, 0.92), (0.43, 0.60,   6.0, 0.90), (0.58, 0.60,  -2.0, 0.92), (0.72, 0.58,  12.0, 0.94), (0.52, 0.46,   4.0, 0.86),
+      ],
+      # Template B (picked: 10)
+      [
+        (0.18, 0.73, -22.0, 1.08), (0.34, 0.77,   8.0, 0.96), (0.50, 0.79,  -6.0, 0.98), (0.67, 0.77,  16.0, 0.96), (0.82, 0.73,  26.0, 1.08),
+        (0.27, 0.61, -12.0, 0.92), (0.44, 0.63,   5.0, 0.90), (0.58, 0.63,  -3.0, 0.92), (0.74, 0.61,  13.0, 0.92), (0.55, 0.50,   2.0, 0.86),
+      ],
+      # Template C (picked: 11)
+      [
+        (0.22, 0.72, -14.0, 1.02), (0.38, 0.76,   6.0, 0.96), (0.52, 0.78,  -8.0, 1.00), (0.66, 0.76,  14.0, 0.96), (0.80, 0.70,  22.0, 1.04),
+        (0.30, 0.60, -10.0, 0.92), (0.45, 0.61,   4.0, 0.90), (0.60, 0.61,  -4.0, 0.92), (0.72, 0.58,  12.0, 0.90), (0.52, 0.49,   0.0, 0.86),
+      ],
+      # Template D (picked: 12)
+      [
+        (0.19, 0.71, -20.0, 1.06), (0.35, 0.76,   9.0, 0.96), (0.51, 0.78,  -7.0, 0.98), (0.67, 0.76,  15.0, 0.96), (0.83, 0.70,  28.0, 1.06),
+        (0.26, 0.59, -12.0, 0.92), (0.42, 0.61,   5.0, 0.90), (0.59, 0.61,  -2.0, 0.92), (0.74, 0.59,  12.0, 0.92), (0.54, 0.48,   2.0, 0.86),
+      ],
+      # Template E (picked: 21)
+      [
+        (0.21, 0.73, -16.0, 1.06), (0.36, 0.77,   7.0, 0.96), (0.50, 0.80,  -6.0, 1.00), (0.65, 0.77,  13.0, 0.96), (0.79, 0.72,  21.0, 1.06),
+        (0.28, 0.61, -10.0, 0.92), (0.44, 0.63,   4.0, 0.90), (0.58, 0.63,  -3.0, 0.92), (0.71, 0.60,  11.0, 0.92), (0.52, 0.50,   1.0, 0.86),
+      ],
+      # Template F (picked: 28)
+      [
+        (0.20, 0.74, -18.0, 1.08), (0.36, 0.78,   9.0, 0.96), (0.52, 0.80,  -5.0, 0.98), (0.68, 0.78,  15.0, 0.96), (0.82, 0.74,  25.0, 1.08),
+        (0.27, 0.62, -12.0, 0.92), (0.43, 0.64,   5.0, 0.90), (0.59, 0.64,  -2.0, 0.92), (0.74, 0.62,  12.0, 0.92), (0.54, 0.52,   2.0, 0.86),
+      ],
+    ]
 
-    bl = (cx - (tri_w // 2), base_y)
-    br = (cx + (tri_w // 2), base_y)
-    tp = (cx, base_y - tri_h)
+    slots = templates[rng.randrange(0, len(templates))]
+    # Guarantee deterministic selection for a given seed by consuming one RNG draw per pile.
+    # If seed is None, it is still randomized like before.
+    used_slots = list(slots)
 
-    def _dist2(ax: float, ay: float, bx: float, by: float) -> float:
-      dx = ax - bx
-      dy = ay - by
-      return (dx * dx) + (dy * dy)
+    # If we ever get more than 10 icons, reuse slots with small jitter.
+    extra_jitter = int(round(min(cw, ch) * 0.015))
 
-    def _bary_to_xy(u: float, v: float, w1: float) -> tuple[float, float]:
-      x = (u * bl[0]) + (v * br[0]) + (w1 * tp[0])
-      y = (u * bl[1]) + (v * br[1]) + (w1 * tp[1])
-      return (x, y)
-
-    def _triangle_sample_biased() -> tuple[float, float, float]:
-      u = rng.random()
-      v = rng.random()
-      if (u + v) > 1.0:
-        u = 1.0 - u
-        v = 1.0 - v
-      w1 = 1.0 - u - v
-
-      base_bias = 0.45 + (rng.random() * 0.35)
-      w1 *= base_bias
-
-      if rng.random() < 0.68:
-        if rng.random() < 0.5:
-          u = u ** 0.35
-          v = v ** 1.65
-        else:
-          u = u ** 1.65
-          v = v ** 0.35
-
-      total = u + v + w1
-      if total <= 0.0:
-        return (0.5, 0.5, 0.0)
-      return (u / total, v / total, w1 / total)
-
-    placements: list[dict] = []
-
-    def _score(px: int, py: int, *, tx: int, ty: int, centroid_x: float, centroid_y: float) -> float:
-      s = 0.0
-      s += cohesion_weight * math.sqrt(_dist2(px, py, centroid_x, centroid_y))
-      s += target_weight * math.sqrt(_dist2(px, py, tx, ty))
-
-      if py > floor_y:
-        t = (py - floor_y) / float(max(1, base_px))
-        s += floor_weight * (t * t)
-
-      if placements:
-        min_d = 1e18
-        for p in placements:
-          d2 = _dist2(px, py, p['x'], p['y'])
-          if d2 < min_d:
-            min_d = d2
-        min_d = math.sqrt(min_d)
-        if min_d > connect_radius:
-          t = (min_d - connect_radius) / max(1.0, connect_radius)
-          s += connect_weight * (t * t)
-
-      for p in placements:
-        d2 = _dist2(px, py, p['x'], p['y'])
-        d = math.sqrt(d2)
-
-        if d < (repel_radius * 2.0):
-          tt = max(0.0, (repel_radius * 2.0) - d) / (repel_radius * 2.0)
-          s += repel_weight * (tt * tt)
-
-        min_sep = (p['r'] + (base_px * 0.46))
-        if d < min_sep:
-          s += overlap_weight * ((min_sep - d) / max(1.0, min_sep)) ** 2.0
-
-      s += noise_weight * rng.random()
-      return s
-
-    for icon in icons:
-      u, v, w1 = _triangle_sample_biased()
-      tx_f, ty_f = _bary_to_xy(u, v, w1)
-      tx = int(round(tx_f))
-      ty = int(round(ty_f))
-
-      if placements:
-        centroid_x = sum([p['x'] for p in placements]) / float(len(placements))
-        centroid_y = sum([p['y'] for p in placements]) / float(len(placements))
+    placements: list[tuple[int, int, float, float, Image.Image]] = []
+    for i, im in enumerate(icons):
+      if i < len(used_slots):
+        nx, ny, rot, sm = used_slots[i]
+        jx = 0
+        jy = 0
       else:
-        centroid_x = float(cx)
-        centroid_y = float(base_y - int(tri_h * 0.45))
+        nx, ny, rot, sm = used_slots[i % len(used_slots)]
+        jx = rng.randint(-extra_jitter, extra_jitter)
+        jy = rng.randint(-extra_jitter, extra_jitter)
 
-      best = None
-      best_s = 1e18
+      # Tighten template spacing by pulling points toward a center.
+      t = max(0.0, min(0.35, float(pile_tighten)))
+      cxn = float(pile_center_nx)
+      cyn = float(pile_center_ny)
 
-      for _ in range(candidate_tries):
-        px = tx + rng.randint(-jitter_x, jitter_x)
-        py = ty + rng.randint(-jitter_y, jitter_y)
+      nx = cxn + ((nx - cxn) * (1.0 - t))
+      ny = cyn + ((ny - cyn) * (1.0 - t))
 
-        if abs(px - tx) > clamp_soft_x:
-          continue
-        if abs(py - ty) > clamp_soft_y:
-          continue
+      px = int(round(nx * cw)) + jx
+      py = int(round(ny * ch)) + jy
 
-        if py > floor_y:
-          py = floor_y
+      # Keep everything inside the canvas pre-tilt to avoid edge clipping.
+      px = max(int(target_px * 0.55), min(cw - int(target_px * 0.55), px))
+      py = max(int(target_px * 0.55), min(ch - int(target_px * 0.55), py))
 
-        sc = _score(px, py, tx=tx, ty=ty, centroid_x=centroid_x, centroid_y=centroid_y)
-        if sc < best_s:
-          best_s = sc
-          best = (px, py)
+      icon2 = im
+      if abs(sm - 1.0) > 0.001:
+        icon2 = _pil_scale_xy(icon2, float(sm), float(sm))
+      if abs(rot) > 0.001:
+        icon2 = _pil_rotate_rgba(icon2, float(rot), expand=True)
 
-      if best is None:
-        best = (tx, min(ty, floor_y))
+      icon2 = _pil_trim_alpha(icon2, threshold=8)
+      placements.append((px, py, rot, sm, icon2))
 
-      px, py = best
+    # Depth ordering by y so "front" pieces cover "back" pieces.
+    placements.sort(key=lambda p: p[1])
 
-      if placements:
-        nearest = None
-        nearest_d2 = 1e18
-        for p in placements:
-          d2 = _dist2(px, py, p['x'], p['y'])
-          if d2 < nearest_d2:
-            nearest_d2 = d2
-            nearest = p
+    base = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
+    for px, py, _rot, _sm, icon2 in placements:
+      _pil_composite_center(base, icon2, int(px), int(py))
 
-        if nearest is not None:
-          gap = int(nearest['y'] - py)
-          if gap > float_gap_px:
-            py = int(nearest['y'] - float_gap_px)
-            if py > floor_y:
-              py = floor_y
+    # Apply pile tilt without clipping by rotating on a padded surface, then re-centering.
+    if abs(float(pile_tilt)) > 0.001:
+      pad = int(round(max(cw, ch) * 0.28))
+      tmp = Image.new('RGBA', (cw + (pad * 2), ch + (pad * 2)), (0, 0, 0, 0))
+      tmp.alpha_composite(base, (pad, pad))
+      tmp = _pil_rotate_rgba(tmp, float(pile_tilt), expand=True)
+      tmp = _pil_trim_alpha(tmp, threshold=8)
 
-      left_edge_x = int(round((w1 * tp[0]) + ((1.0 - w1) * bl[0])))
-      right_edge_x = int(round((w1 * tp[0]) + ((1.0 - w1) * br[0])))
+      out = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
+      _pil_composite_center(out, tmp, cw // 2, ch // 2)
+      return out
 
-      if right_edge_x != left_edge_x:
-        edge_t = (px - left_edge_x) / float(right_edge_x - left_edge_x)
-        edge_t = max(0.0, min(1.0, edge_t))
-        if edge_t < 0.5:
-          px -= int(round((0.5 - edge_t) * jut_strength))
-        else:
-          px += int(round((edge_t - 0.5) * jut_strength))
-
-      depth_t = max(0.0, min(1.0, (base_y - py) / float(max(1, tri_h))))
-      edge_bias = abs(px - cx) / float(max(1, (tri_w // 2)))
-      edge_bias = max(0.0, min(1.0, edge_bias))
-
-      rot = rng.uniform(-rot_jitter, rot_jitter)
-      rot += (edge_bias * rng.uniform(-edge_rot_extra, edge_rot_extra))
-      rot += ((1.0 - depth_t) * rng.uniform(-10.0, 10.0))
-
-      icon_r = _pil_rotate_rgba(icon, rot)
-      icon_r = _pil_trim_alpha(icon_r)
-
-      placements.append({
-        'img': icon_r,
-        'x': int(px),
-        'y': int(py),
-        'r': float(max(icon_r.size) * 0.52)
-      })
-
-    placements.sort(key=lambda p: p['y'])
-
-    for p in placements:
-      _pil_composite_center(pile, p['img'], p['x'], p['y'])
-
-    if abs(pile_tilt_deg) > 0.001:
-      pile = _pil_rotate_rgba(pile, pile_tilt_deg)
-
-    return _pil_trim_alpha(pile)
+    return base
 
   w, h = canvas_size
   full = Image.new('RGBA', (w, h), (0, 0, 0, 0))
@@ -2320,7 +2264,7 @@ def build_rematerialization_pile_bytes(
   icon_images: list[Image.Image] = []
   for it in items:
     im = _safe_open_icon(it.get('icon'))
-    if im:
+    if im is not None:
       icon_images.append(im)
 
   if not icon_images:
@@ -2329,14 +2273,19 @@ def build_rematerialization_pile_bytes(
     out.seek(0)
     return out
 
-  pile = _build_crystal_pile(
-    icon_images=icon_images,
-    canvas_size=pile_canvas,
-    seed=seed,
-    pile_tilt_deg=float(pile_tilt)
-  )
+  # Move the pile up a touch to better sit on the tray.
+  pile_cy_eff = int(pile_cy) - 5
 
-  _pil_composite_center(full, pile, int(pile_cx), int(pile_cy))
+  pile = _build_pile_layer(
+    icon_images=icon_images,
+    out_size=pile_canvas,
+    seed=seed,
+    icon_px=int(icon_px),
+    pile_tilt=float(pile_tilt)
+  )
+  pile = _pil_trim_alpha(pile, threshold=8)
+
+  _pil_composite_center(full, pile, int(pile_cx), int(pile_cy_eff))
 
   out = io.BytesIO()
   full.save(out, format='PNG')
@@ -2357,7 +2306,7 @@ async def build_rematerialization_success_animation(
   fade_out_done_frames_from_end: int = 10,
   result_cy_offset: int = 25,
   pile_cx: int = 356,
-  pile_cy: int = 281,
+  pile_cy: int = 290,
   pile_tilt: float = -12.0,
   fx_floor_y: int = 345 + 60,
   fx_anchor_y: float = 1.0,

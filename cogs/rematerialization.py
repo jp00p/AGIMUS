@@ -21,7 +21,7 @@ class RematerializationView(discord.ui.DesignerView):
     'Overclocking the pattern enhancers beyond recommended tolerances',
     'Uncoiling the transporter coils',
     'Disabling quantum clamps',
-    'Bleeding off residual tachyons',
+    'Shunting residual tachyons',
     'Compensating for Heisenberg uncertainty variables',
     'Stabilizing the annular confinement beam',
     'Depolarizing the crystalline matrix',
@@ -73,6 +73,9 @@ class RematerializationView(discord.ui.DesignerView):
 
     self._pending_status_line = None
 
+  def _log_exc(self, label: str):
+    logger.exception(f'[rematerialization] {label}')
+
   async def interaction_check(self, interaction: discord.Interaction) -> bool:
     return interaction.user.id == self.user.id
 
@@ -80,6 +83,7 @@ class RematerializationView(discord.ui.DesignerView):
     try:
       return bool(interaction and getattr(interaction, 'message', None))
     except Exception:
+      self._log_exc('_is_component_interaction')
       return False
 
   async def _freeze_current_message(self, interaction: discord.Interaction):
@@ -91,20 +95,20 @@ class RematerializationView(discord.ui.DesignerView):
     try:
       self.disable_all_items()
     except Exception:
-      pass
+      self._log_exc('_freeze_current_message:disable_all_items')
 
     try:
       if self._is_component_interaction(interaction) and not interaction.response.is_done():
         await interaction.response.edit_message(view=self)
         return
     except Exception:
-      pass
+      self._log_exc('_freeze_current_message:interaction.response.edit_message')
 
     try:
       if interaction.message:
         await interaction.message.edit(view=self)
     except Exception:
-      pass
+      self._log_exc('_freeze_current_message:interaction.message.edit')
 
   async def _ack(self, interaction: discord.Interaction) -> bool:
     if interaction.response.is_done():
@@ -166,35 +170,48 @@ class RematerializationView(discord.ui.DesignerView):
     embed = discord.Embed(
       title=title,
       description=(
-        'An unexpected error occurred. Please try again.\n'
-        f"If this continues to occur, please notify the proper authorities in {megalomaniacal.mention}"
+        'An unexpected error occurred. Please try again.\n\n'
+        f'If this continues to occur, please notify the proper authorities in {megalomaniacal.mention}'
       ),
       color=discord.Color.red()
     )
+
+    try:
+      await db_cancel_rematerialization(self.rematerialization_id)
+      self.rematerialization_id = None
+    except Exception:
+      self._log_exc('_soft_fail:db_cancel_rematerialization')
+
     try:
       if not interaction.response.is_done():
         await interaction.response.send_message(embed=embed, ephemeral=True)
       else:
         await interaction.followup.send(embed=embed, ephemeral=True)
     except Exception:
-      pass
+      self._log_exc('_soft_fail:send_message')
 
   async def _hard_stop(self, interaction: discord.Interaction, title: str, description: str, color: discord.Color):
     embed = discord.Embed(title=title, description=description, color=color)
 
     try:
+      await db_cancel_rematerialization(self.rematerialization_id)
+      self.rematerialization_id = None
+    except Exception:
+      self._log_exc('_hard_stop:db_cancel_rematerialization')
+
+    try:
       if not interaction.response.is_done():
         await interaction.response.send_message(embed=embed, ephemeral=True)
       else:
         await interaction.followup.send(embed=embed, ephemeral=True)
     except Exception:
-      pass
+      self._log_exc('_hard_stop:send_message')
 
     try:
       if interaction.message:
         await interaction.message.delete()
     except Exception:
-      pass
+      self._log_exc('_hard_stop:interaction.message.delete')
 
   async def on_timeout(self):
     try:
@@ -327,6 +344,7 @@ class RematerializationView(discord.ui.DesignerView):
       thumb = discord.ui.Thumbnail(url=f'attachment://{filename}', description=f'Crystal Type {type_id}')
       return thumb, filename
     except Exception:
+      self._log_exc('_try_attach_icon:attach')
       return None, None
 
   def _build_selected_sections(self, container: discord.ui.Container) -> list[discord.File]:
@@ -358,7 +376,7 @@ class RematerializationView(discord.ui.DesignerView):
 
       icon = r.get('icon')
       thumb, _ = self._try_attach_icon(files, int(r['crystal_type_id']), icon) if icon else (None, None)
-      if thumb:
+      if thumb and len(selected) < 10:
         section = discord.ui.Section(discord.ui.TextDisplay(text), accessory=thumb)
         container.add_item(section)
       else:
@@ -394,7 +412,7 @@ class RematerializationView(discord.ui.DesignerView):
   def _build_pending_gallery(self, container: discord.ui.Container):
     status = self._pending_status_line or random.choice(self.PROCESSING_MESSAGES)
     container.add_item(discord.ui.Separator())
-    container.add_item(discord.ui.TextDisplay(f'... `{status}` ...'))
+    container.add_item(discord.ui.TextDisplay(f'... {status} ...'))
     container.add_item(discord.ui.Separator())
 
     try:
@@ -563,7 +581,7 @@ class RematerializationView(discord.ui.DesignerView):
       name = r.get('crystal_name') or 'Unknown'
       count = int(r.get('count') or 0)
       emoji = r.get('emoji') or ''
-      lines.append(f'`{emoji} {name}` x{count}'.strip())
+      lines.append(f'### {emoji} {name} (*x{count}*)'.strip())
 
     return '\n'.join(lines)
 
@@ -714,6 +732,7 @@ class RematerializationView(discord.ui.DesignerView):
         else:
           new_msg = await interaction.followup.send(view=self, ephemeral=True)
     except Exception:
+      self._log_exc('_send_new_and_delete_old:send')
       raise
 
     if new_msg:
@@ -761,12 +780,13 @@ class RematerializationView(discord.ui.DesignerView):
         else:
           msg = await interaction.followup.send(view=pending_view, ephemeral=True)
       except Exception:
+        self._log_exc('_show_pending_message:send')
         msg = None
 
       if msg:
         self.pending_message = msg
     except Exception:
-      pass
+      self._log_exc('_show_pending_message:outer')
 
   async def _delete_pending_message(self):
     if not self.pending_message:
@@ -789,49 +809,71 @@ class RematerializationView(discord.ui.DesignerView):
       self._ui_frozen = False
       files = self._rebuild()
     except Exception:
+      self._log_exc('_render:_rebuild')
       await self._soft_fail(interaction)
       return
 
     try:
       await self._send_new_and_delete_old(interaction, files)
     except Exception:
+      self._log_exc('_render:_send_new_and_delete_old')
       await self._soft_fail(interaction)
 
   async def start(self, ctx: discord.ApplicationContext):
     try:
       files = self._rebuild()
     except Exception:
+      self._log_exc('start:_rebuild')
       try:
-        await ctx.respond(
-          embed=discord.Embed(
-            title='Interaction Failed',
-            description='An unexpected error occurred. Please try again.',
-            color=discord.Color.red()
-          ),
-          ephemeral=True
+        embed = discord.Embed(
+          title='Interaction Failed',
+          description='An unexpected error occurred. Please try again.',
+          color=discord.Color.red()
         )
+        if ctx.interaction and ctx.interaction.response and ctx.interaction.response.is_done():
+          await ctx.followup.send(embed=embed, ephemeral=True)
+        else:
+          await ctx.respond(embed=embed, ephemeral=True)
       except Exception:
         pass
       return
 
+    msg = None
     try:
-      if files:
-        try:
-          await ctx.respond(view=self, files=files, ephemeral=True)
-        except TypeError:
-          if len(files) == 1:
-            await ctx.respond(view=self, file=files[0], ephemeral=True)
-          else:
-            await ctx.respond(view=self, ephemeral=True)
+      already_done = bool(ctx.interaction and ctx.interaction.response and ctx.interaction.response.is_done())
+
+      if already_done:
+        if files:
+          try:
+            msg = await ctx.followup.send(view=self, files=files, ephemeral=True)
+          except TypeError:
+            if len(files) == 1:
+              msg = await ctx.followup.send(view=self, file=files[0], ephemeral=True)
+            else:
+              msg = await ctx.followup.send(view=self, ephemeral=True)
+        else:
+          msg = await ctx.followup.send(view=self, ephemeral=True)
       else:
-        await ctx.respond(view=self, ephemeral=True)
+        if files:
+          try:
+            await ctx.respond(view=self, files=files, ephemeral=True)
+          except TypeError:
+            if len(files) == 1:
+              await ctx.respond(view=self, file=files[0], ephemeral=True)
+            else:
+              await ctx.respond(view=self, ephemeral=True)
+        else:
+          await ctx.respond(view=self, ephemeral=True)
+
+        try:
+          msg = await ctx.interaction.original_response()
+        except Exception:
+          msg = None
     except Exception:
+      self._log_exc('start:send')
       return
 
-    try:
-      self.message = await ctx.interaction.original_response()
-    except Exception:
-      self.message = None
+    self.message = msg
 
   async def _load_rarity_rows(self) -> list[dict]:
     rows = await db_get_user_unattuned_crystal_rarities(self.user_discord_id)
@@ -908,6 +950,7 @@ class RematerializationView(discord.ui.DesignerView):
       await self._refresh_type_rows()
       return True
     except Exception:
+      self._log_exc('_add_instances_to_session')
       await self._soft_fail(interaction)
       return False
 
@@ -945,6 +988,7 @@ class RematerializationView(discord.ui.DesignerView):
         self.state = 'TYPE'
         await self._render(interaction)
       except Exception:
+        self._log_exc('_on_select_rarity')
         await self._soft_fail(interaction)
 
   async def _on_prev_type_page(self, interaction: discord.Interaction):
@@ -956,6 +1000,7 @@ class RematerializationView(discord.ui.DesignerView):
           self.type_page -= 1
         await self._render(interaction)
       except Exception:
+        self._log_exc('_on_prev_type_page')
         await self._soft_fail(interaction)
 
   async def _on_next_type_page(self, interaction: discord.Interaction):
@@ -967,6 +1012,7 @@ class RematerializationView(discord.ui.DesignerView):
           self.type_page += 1
         await self._render(interaction)
       except Exception:
+        self._log_exc('_on_next_type_page')
         await self._soft_fail(interaction)
 
   async def _on_select_type(self, interaction: discord.Interaction):
@@ -1029,6 +1075,7 @@ class RematerializationView(discord.ui.DesignerView):
         self.state = 'QUANTITY'
         await self._render(interaction)
       except Exception:
+        self._log_exc('_on_select_type')
         await self._soft_fail(interaction)
 
   async def _on_select_quantity(self, interaction: discord.Interaction):
@@ -1085,6 +1132,7 @@ class RematerializationView(discord.ui.DesignerView):
         self.state = 'CONFIRM' if self._contents_total() >= self.contents_target else 'TYPE'
         await self._render(interaction)
       except Exception:
+        self._log_exc('_on_select_quantity')
         await self._soft_fail(interaction)
 
   async def _on_remove_last(self, interaction: discord.Interaction):
@@ -1128,6 +1176,7 @@ class RematerializationView(discord.ui.DesignerView):
         self.notice = f'Removed {removed_count}x from {type_name}.'
         await self._render(interaction)
       except Exception:
+        self._log_exc('_on_remove_last')
         await self._soft_fail(interaction)
 
   async def _on_back(self, interaction: discord.Interaction):
@@ -1150,6 +1199,7 @@ class RematerializationView(discord.ui.DesignerView):
 
         await self._render(interaction)
       except Exception:
+        self._log_exc('_on_back')
         await self._soft_fail(interaction)
 
   async def _on_cancel(self, interaction: discord.Interaction):
@@ -1167,7 +1217,7 @@ class RematerializationView(discord.ui.DesignerView):
         if self.rematerialization_id:
           await db_cancel_rematerialization(self.rematerialization_id)
       except Exception:
-        pass
+        self._log_exc('_on_cancel:db_cancel_rematerialization')
 
       self.rematerialization_id = None
       self.contents = {}
@@ -1187,13 +1237,11 @@ class RematerializationView(discord.ui.DesignerView):
         self._ui_frozen = False
         await self._send_new_and_delete_old(interaction, [])
       except Exception:
+        self._log_exc('_on_cancel:_send_new_and_delete_old')
         await self._soft_fail(interaction)
         return
 
-      try:
-        self.stop()
-      except Exception:
-        pass
+      self.stop()
 
   async def _post_results(
     self,
@@ -1231,7 +1279,7 @@ class RematerializationView(discord.ui.DesignerView):
         except Exception:
           pass
       except Exception:
-        logger.warning(traceback.format_exc())
+        self._log_exc('_post_results:build_rematerialization_pile_bytes')
         pile_buf = None
 
       anim_buf = None
@@ -1256,7 +1304,7 @@ class RematerializationView(discord.ui.DesignerView):
             except Exception:
               pass
           except Exception:
-            logger.warning(traceback.format_exc())
+            self._log_exc('_post_results:build_rematerialization_success_animation')
             anim_buf = None
 
       if not anim_buf:
@@ -1338,7 +1386,7 @@ class RematerializationView(discord.ui.DesignerView):
           buf2.seek(0)
           public_files.append(discord.File(buf2, filename=result_filename))
         except Exception:
-          pass
+          self._log_exc('_post_results:load icon file fallback')
 
       await self._delete_pending_message()
 
@@ -1349,7 +1397,7 @@ class RematerializationView(discord.ui.DesignerView):
 
       return True
     except Exception:
-      logger.warning(traceback.format_exc())
+      self._log_exc('_post_results:outer')
       return False
 
   async def _enter_pending(self, interaction: discord.Interaction):
@@ -1460,6 +1508,7 @@ class RematerializationView(discord.ui.DesignerView):
         self._ui_frozen = False
         await self._enter_pending(interaction)
       except Exception:
+        self._log_exc('_on_confirm:_enter_pending')
         await self._soft_fail(interaction)
         return
 
@@ -1504,13 +1553,50 @@ class Rematerialization(commands.Cog):
   @rematerialize.command(name='select', description='Exchange 10 Crystals for 1 of the next Rarity!')
   @commands.check(access_check)
   async def select(self, ctx: discord.ApplicationContext):
+    try:
+      await ctx.defer(ephemeral=True)
+    except Exception:
+      pass
+
     user_discord_id = str(ctx.user.id)
-    active = await db_get_active_rematerialization(user_discord_id)
+
+    try:
+      active = await db_get_active_rematerialization(user_discord_id)
+    except Exception:
+      logger.exception('[rematerialization] select:db_get_active_rematerialization failed')
+      try:
+        await ctx.followup.send(
+          embed=discord.Embed(
+            title='Interaction Failed',
+            description='An unexpected error occurred. Please try again.',
+            color=discord.Color.red()
+          ),
+          ephemeral=True
+        )
+      except Exception:
+        pass
+      return
 
     view = RematerializationView(self, ctx.user)
 
     if not active:
-      view.rarity_rows = await view._load_rarity_rows()
+      try:
+        view.rarity_rows = await view._load_rarity_rows()
+      except Exception:
+        logger.exception('[rematerialization] select:_load_rarity_rows failed')
+        try:
+          await ctx.followup.send(
+            embed=discord.Embed(
+              title='Interaction Failed',
+              description='An unexpected error occurred. Please try again.',
+              color=discord.Color.red()
+            ),
+            ephemeral=True
+          )
+        except Exception:
+          pass
+        return
+
       await view.start(ctx)
       return
 
@@ -1518,7 +1604,22 @@ class Rematerialization(commands.Cog):
     view.source_rarity_rank = active['source_rank_id']
     view.target_rarity_rank = active['target_rank_id']
 
-    items = await db_get_rematerialization_items(view.rematerialization_id)
+    try:
+      items = await db_get_rematerialization_items(view.rematerialization_id)
+    except Exception:
+      logger.exception('[rematerialization] select:db_get_rematerialization_items failed')
+      try:
+        await ctx.followup.send(
+          embed=discord.Embed(
+            title='Interaction Failed',
+            description='An unexpected error occurred. Please try again.',
+            color=discord.Color.red()
+          ),
+          ephemeral=True
+        )
+      except Exception:
+        pass
+      return
 
     invalid = False
     for it in items:
@@ -1533,19 +1634,41 @@ class Rematerialization(commands.Cog):
         break
 
     if invalid:
-      await db_cancel_rematerialization(view.rematerialization_id)
-      await ctx.respond(
-        embed=discord.Embed(
-          title='Session Cancelled',
-          description='Your active Rematerialization session was invalid (inventory changed). Please run `/rematerialize select` again.',
-          color=discord.Color.orange()
-        ),
-        ephemeral=True
-      )
+      try:
+        await db_cancel_rematerialization(view.rematerialization_id)
+      except Exception:
+        logger.exception('[rematerialization] select:db_cancel_rematerialization failed')
+
+      try:
+        await ctx.followup.send(
+          embed=discord.Embed(
+            title='Session Cancelled',
+            description='Your active Rematerialization session was invalid (inventory changed). Please run `/rematerialize select` again.',
+            color=discord.Color.orange()
+          ),
+          ephemeral=True
+        )
+      except Exception:
+        pass
       return
 
     view._rehydrate_from_items(items)
-    await view._refresh_type_rows()
+    try:
+      await view._refresh_type_rows()
+    except Exception:
+      logger.exception('[rematerialization] select:_refresh_type_rows failed')
+      try:
+        await ctx.followup.send(
+          embed=discord.Embed(
+            title='Interaction Failed',
+            description='An unexpected error occurred. Please try again.',
+            color=discord.Color.red()
+          ),
+          ephemeral=True
+        )
+      except Exception:
+        pass
+      return
 
     view.state = 'CONFIRM' if view._contents_total() >= view.contents_target else 'TYPE'
     view.notice = 'Resumed your active Rematerialization session.'
