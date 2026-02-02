@@ -78,7 +78,8 @@ class Admin(commands.Cog):
   @option('prestige', int, description='Prestige Tier', required=True, autocomplete=autocomplete_prestige_for_user)
   @option('user', discord.User, description='The user to receive a random badge.', required=True)
   @option(
-    name='public',
+    'public',
+    bool,
     description='Show to public?',
     required=True,
     choices=[
@@ -128,7 +129,8 @@ class Admin(commands.Cog):
   @option('prestige', int, description='Prestige Tier', required=True, autocomplete=autocomplete_prestige_for_user)
   @option('badge', int, description='Badge', required=True, autocomplete=autocomplete_all_badges)
   @option(
-    name='public',
+    'public',
+    bool,
     description='Show to public?',
     required=True,
     choices=[
