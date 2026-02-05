@@ -353,50 +353,57 @@ class Admin(commands.Cog):
       for row in throw_rows:
         throws_by_game[game_id][row['from_user_id']].append((row['badge_name'], row['badge_instance_id']))
 
-    game_groups = []
+    all_pages: list[discord.Embed] = []
 
     for game in games:
       game_id = game['id']
       players = await db_get_players_for_game(game_id)
       rewards = await db_get_rewards_for_game(game_id)
 
+      chair_user_id = game.get('chair_user_id')
+      chair_name = f"<@{chair_user_id}>"
       try:
-        chair_member = await self.bot.current_guild.fetch_member(game['chair_user_id'])
-        chair_name = f"{chair_member.display_name} ({chair_member.mention})"
+        if chair_user_id is not None:
+          chair_member = await self.bot.current_guild.fetch_member(int(chair_user_id))
+          chair_name = f"{chair_member.display_name} ({chair_member.mention})"
       except Exception:
-        chair_name = f"<@{game['chair_user_id']}>"
+        pass
 
-      embed = discord.Embed(
+      overview = discord.Embed(
         title=f"Tongo Game ID: {game_id}",
         description=(
           f"Status: {game['status'].capitalize()}\n"
-          f'Chair: {chair_name}\n'
+          f"Chair: {chair_name}\n"
           f"Created: {discord.utils.format_dt(game['created_at'], 'R')}\n"
-          f'Players: {len(players)}\n'
-          f'Rewards: {len(rewards)}'
+          f"Players: {len(players)}\n"
+          f"Rewards: {len(rewards)}"
         ),
         color=discord.Color.teal()
       )
-
-      pages_for_game = [pages.Page(embeds=[embed])]
+      overview.set_footer(text=f"Game {game_id} | Overview")
+      all_pages.append(overview)
 
       user_throws = throws_by_game.get(game_id, {})
       throw_user_ids = list(user_throws.keys())
 
       for i in range(0, len(throw_user_ids), 5):
-        embed = discord.Embed(title='Badge Throws', color=discord.Color.teal())
+        embed = discord.Embed(title=f'Badge Throws (Game {game_id})', color=discord.Color.teal())
+
         for uid in throw_user_ids[i:i + 5]:
           data = user_throws[uid]
+          player_name = str(uid)
+
           try:
-            member = await self.bot.current_guild.fetch_member(uid)
+            member = await self.bot.current_guild.fetch_member(int(uid))
             player_name = f"{member.display_name} ({member.mention})"
           except Exception:
-            player_name = str(uid)
+            pass
 
           value = '\n'.join(f"- {badge_name} [{instance_id}]" for badge_name, instance_id in data)
           embed.add_field(name=player_name, value=value or '*No badges*', inline=False)
 
-        pages_for_game.append(pages.Page(embeds=[embed]))
+        embed.set_footer(text=f"Game {game_id} | Throws {i + 1}-{min(i + 5, len(throw_user_ids))}")
+        all_pages.append(embed)
 
       if rewards:
         rewards_by_user = defaultdict(list)
@@ -404,17 +411,17 @@ class Admin(commands.Cog):
           rewards_by_user[reward['user_discord_id']].append(reward)
 
         reward_user_ids = list(rewards_by_user.keys())
+
         for i in range(0, len(reward_user_ids), 5):
-          embed = discord.Embed(title='Game Rewards', color=discord.Color.teal())
+          embed = discord.Embed(title=f'Game Rewards (Game {game_id})', color=discord.Color.teal())
 
           for uid in reward_user_ids[i:i + 5]:
+            player_name = f"User ID: {uid}"
             try:
               player = await self.bot.current_guild.fetch_member(int(uid))
               player_name = f"{player.display_name} ({uid})"
-            except discord.NotFound:
-              player_name = f"User ID: {uid}"
             except Exception:
-              player_name = f"User ID: {uid}"
+              pass
 
             entries = []
             for reward in rewards_by_user[uid]:
@@ -439,12 +446,16 @@ class Admin(commands.Cog):
               inline=False
             )
 
-          pages_for_game.append(pages.Page(embeds=[embed]))
+          embed.set_footer(text=f"Game {game_id} | Rewards {i + 1}-{min(i + 5, len(reward_user_ids))}")
+          all_pages.append(embed)
 
-      group = pages.PageGroup(pages=pages_for_game, label=f"Game {game_id}")
-      game_groups.append(group)
+    paginator = pages.Paginator(
+      pages=all_pages,
+      show_indicator=True,
+      loop_pages=True,
+      use_default_buttons=True
+    )
 
-    paginator = SafePageGroupPaginator(pages=game_groups, show_menu=True, show_indicator=True, loop_pages=True)
     await paginator.respond(ctx.interaction, ephemeral=True)
 
   @admin_group.command(name='examine_tongo_continuum', description='(ADMIN RESTRICTED) View the full details of the Tongo Continuum.')

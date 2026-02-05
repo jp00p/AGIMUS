@@ -1971,9 +1971,9 @@ async def generate_paginated_continuum_images(continuum_badges):
     base_image = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0))
 
     # Load header/footer/bg
-    header = await to_thread_image_open("./images/templates/tongo/continuum_header.png")
-    row_bg = await to_thread_image_open("./images/templates/tongo/continuum_bg.png")
-    footer = await to_thread_image_open("./images/templates/tongo/continuum_footer.png")
+    header = await threaded_image_open("./images/templates/tongo/continuum_header.png")
+    row_bg = await threaded_image_open("./images/templates/tongo/continuum_bg.png")
+    footer = await threaded_image_open("./images/templates/tongo/continuum_footer.png")
 
     base_image.paste(header, (0, 0))
 
