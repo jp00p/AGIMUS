@@ -78,6 +78,20 @@
             "tvdb": 6594795,
             "imdb": "tt34127759",
             "stills": []
+        },
+        {
+            "airdate": "2026.02.05",
+            "title": "Series Acclimation Mil",
+            "description": "As a cadet sets out to solve an ancient Starfleet mystery, she embarks on a journey of self-discovery and learns the value of forging her own path. Meanwhile, Nahla agrees to help a fellow chancellor with an elaborate alien ritual.",
+            "season": "01",
+            "episode": "05",
+            "podcasts": [],
+            "memoryalpha": "Series_Acclimation_Mil_(episode)",
+            "tvdb": 6594796,
+            "imdb": "tt34127769",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/sMBKqU7Mv5R4SB1enu3z92NhcBd.jpg"
+            ]
         }
     ],
     "imdb": "",

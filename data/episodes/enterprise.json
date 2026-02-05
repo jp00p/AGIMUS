@@ -2095,7 +2095,15 @@
             "episode": "15",
             "imdb": "tt0572174",
             "memoryalpha": "Affliction_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.02.02",
+                    "episode": "Loaf Death",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-612-loaf-death-ent-s4e15/",
+                    "order": 612,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/cQZzixfcBDRoNLLRWSVEfTWxWf5.jpg",
