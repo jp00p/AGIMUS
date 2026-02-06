@@ -236,27 +236,28 @@ class TradeStatusView(discord.ui.DesignerView):
     self.page = 0
 
     self._ack = False
+    self._ui_locked = False
     self.message = None
 
   async def start(self, interaction: discord.Interaction):
     await self._render(interaction, first=True)
 
   def _build_file(self, page: dict) -> discord.File | None:
-    if not page.get('file_bytes'):
+    if not page.get("file_bytes"):
       return None
-    fp = io.BytesIO(page['file_bytes'])
+    fp = io.BytesIO(page["file_bytes"])
     try:
       fp.seek(0)
     except Exception:
       pass
-    return discord.File(fp=fp, filename=page['filename'])
+    return discord.File(fp=fp, filename=page["filename"])
 
   def _page_indicator_label(self) -> str:
     return f"{self.page + 1}/{len(self.pages)}"
 
   def _is_component_interaction(self, interaction: discord.Interaction | None) -> bool:
     try:
-      return bool(interaction and getattr(interaction, 'message', None))
+      return bool(interaction and getattr(interaction, "message", None))
     except Exception:
       return False
 
@@ -266,7 +267,7 @@ class TradeStatusView(discord.ui.DesignerView):
 
     if self._is_component_interaction(interaction):
       try:
-        fn = getattr(interaction.response, 'defer_update', None)
+        fn = getattr(interaction.response, "defer_update", None)
         if fn:
           await fn()
           return True
@@ -311,78 +312,48 @@ class TradeStatusView(discord.ui.DesignerView):
     except Exception:
       return False
 
-  async def _delete_message(self, interaction: discord.Interaction | None):
-    # Prefer deleting the message tied to the component interaction.
-    msg = None
-    try:
-      msg = interaction.message if interaction else None
-    except Exception:
-      msg = None
-
-    if not msg:
-      msg = self.message
-
-    if not msg:
-      return
-
-    try:
-      try:
-        await msg.edit(view=None)
-      except Exception:
-        pass
-      await msg.delete()
-      self.message = None
-      return
-    except Exception:
-      pass
-
-    try:
-      if interaction:
-        await interaction.followup.delete_message(msg.id)
-        self.message = None
-    except Exception:
-      pass
-
   def _build_body_text(self, page: dict, prestige_tier: str) -> str:
-    requestor_mention = page.get('requestor_mention') or page.get('requestor_name') or ''
-    requestee_mention = page.get('requestee_mention') or page.get('requestee_name') or ''
-    offered_names = page.get('offered_names') or ''
-    requested_names = page.get('requested_names') or ''
+    requestor_mention = page.get("requestor_mention") or page.get("requestor_name") or ""
+    requestee_mention = page.get("requestee_mention") or page.get("requestee_name") or ""
+    offered_names = page.get("offered_names") or ""
+    requested_names = page.get("requested_names") or ""
 
     lines = []
     if requestor_mention:
-      lines.append(f"## From: {requestor_mention}")
+      lines.append(f"### From: {requestor_mention}")
     if requestee_mention:
-      lines.append(f"## To: {requestee_mention}")
+      lines.append(f"### To: {requestee_mention}")
 
-    key = page.get('key')
+    key = page.get("key")
 
-    if key == 'home':
-      lines.append('### Offered')
-      lines.append(offered_names or '(none)')
-      lines.append('### Requested')
-      lines.append(requested_names or '(none)')
-    elif key == 'offered':
-      lines.append('### Offered')
-      lines.append(offered_names or '(none)')
-    elif key == 'requested':
-      lines.append('### Requested')
-      lines.append(requested_names or '(none)')
+    if key == "home":
+      lines.append("### Offered")
+      lines.append(offered_names or "(none)")
+      lines.append("### Requested")
+      lines.append(requested_names or "(none)")
+    elif key == "offered":
+      lines.append("### Offered")
+      lines.append(offered_names or "(none)")
+    elif key == "requested":
+      lines.append("### Requested")
+      lines.append(requested_names or "(none)")
 
-    return '\n'.join([l for l in lines if l is not None]).strip()
+    return "\n".join([l for l in lines if l is not None]).strip()
 
   def _build_controls(self) -> tuple[discord.ui.ActionRow, discord.ui.ActionRow]:
     nav = discord.ui.ActionRow()
 
+    nav_disabled = self._ui_locked or (len(self.pages) <= 1)
+
     prev_btn = discord.ui.Button(
-      label='Prev',
+      label="Prev",
       style=discord.ButtonStyle.secondary,
-      disabled=(len(self.pages) <= 1)
+      disabled=nav_disabled
     )
     next_btn = discord.ui.Button(
-      label='Next',
+      label="Next",
       style=discord.ButtonStyle.secondary,
-      disabled=(len(self.pages) <= 1)
+      disabled=nav_disabled
     )
     indicator = discord.ui.Button(
       label=self._page_indicator_label(),
@@ -395,9 +366,10 @@ class TradeStatusView(discord.ui.DesignerView):
         return
       self._ack = True
       try:
-        ok = await self._ack_interaction(interaction)
+        ok = await self._lock_interaction(interaction)
         if not ok:
           return
+
         self.page = (self.page + delta) % len(self.pages)
         await self._render(interaction)
       finally:
@@ -418,14 +390,20 @@ class TradeStatusView(discord.ui.DesignerView):
 
     actions = discord.ui.ActionRow()
 
-    close_btn = discord.ui.Button(label='Close', style=discord.ButtonStyle.secondary)
+    close_btn = discord.ui.Button(
+      label="Close",
+      style=discord.ButtonStyle.secondary,
+      disabled=self._ui_locked
+    )
 
     async def _close_cb(interaction: discord.Interaction):
       if self._ack:
         return
       self._ack = True
       try:
-        await self._ack_interaction(interaction)
+        ok = await self._lock_interaction(interaction)
+        if not ok:
+          return
       finally:
         try:
           await self._delete_message(interaction)
@@ -436,16 +414,26 @@ class TradeStatusView(discord.ui.DesignerView):
     close_btn.callback = _close_cb
     actions.add_item(close_btn)
 
-    if self.mode == 'incoming':
-      decline_btn = discord.ui.Button(label='Decline', style=discord.ButtonStyle.danger)
-      accept_btn = discord.ui.Button(label='Accept', style=discord.ButtonStyle.blurple)
+    if self.mode == "incoming":
+      decline_btn = discord.ui.Button(
+        label="Decline",
+        style=discord.ButtonStyle.danger,
+        disabled=self._ui_locked
+      )
+      accept_btn = discord.ui.Button(
+        label="Accept",
+        style=discord.ButtonStyle.blurple,
+        disabled=self._ui_locked
+      )
 
       async def _decline_cb(interaction: discord.Interaction):
         if self._ack:
           return
         self._ack = True
         try:
-          await self._ack_interaction(interaction)
+          ok = await self._lock_interaction(interaction)
+          if not ok:
+            return
           await self.cog._decline_trade_callback(interaction, self.active_trade)
         finally:
           try:
@@ -459,7 +447,9 @@ class TradeStatusView(discord.ui.DesignerView):
           return
         self._ack = True
         try:
-          await self._ack_interaction(interaction)
+          ok = await self._lock_interaction(interaction)
+          if not ok:
+            return
           await self.cog._accept_trade_callback(interaction, self.active_trade)
         finally:
           try:
@@ -474,23 +464,32 @@ class TradeStatusView(discord.ui.DesignerView):
       actions.add_item(decline_btn)
       actions.add_item(accept_btn)
 
-    if self.mode == 'outgoing':
-      cancel_btn = discord.ui.Button(label='Cancel', style=discord.ButtonStyle.danger)
-      send_btn = discord.ui.Button(label='Send', style=discord.ButtonStyle.primary)
+    if self.mode == "outgoing":
+      cancel_btn = discord.ui.Button(
+        label="Cancel",
+        style=discord.ButtonStyle.danger,
+        disabled=self._ui_locked
+      )
+      send_btn = discord.ui.Button(
+        label="Send",
+        style=discord.ButtonStyle.primary,
+        disabled=self._ui_locked
+      )
 
       async def _send_cb(interaction: discord.Interaction):
         if self._ack:
           return
         self._ack = True
         try:
-          await self._ack_interaction(interaction)
+          ok = await self._lock_interaction(interaction)
+          if not ok:
+            return
           await self.cog._send_trade_callback(interaction, self.active_trade)
-          if self.message:
-            try:
-              await self.message.delete()
-            except Exception:
-              pass
         finally:
+          try:
+            await self._delete_message(interaction)
+          except Exception:
+            pass
           self._ack = False
 
       async def _cancel_cb(interaction: discord.Interaction):
@@ -498,39 +497,44 @@ class TradeStatusView(discord.ui.DesignerView):
           return
         self._ack = True
         try:
-          await self._ack_interaction(interaction)
+          ok = await self._lock_interaction(interaction)
+          if not ok:
+            return
           await self.cog._cancel_trade_callback(interaction, self.active_trade)
-          if self.message:
-            try:
-              await self.message.delete()
-            except Exception:
-              pass
         finally:
+          try:
+            await self._delete_message(interaction)
+          except Exception:
+            pass
           self._ack = False
 
       send_btn.callback = _send_cb
       cancel_btn.callback = _cancel_cb
 
-      # Order: Cancel then Send (user request)
       actions.add_item(cancel_btn)
       actions.add_item(send_btn)
 
-    if self.mode == 'view_only':
-      cancel_btn = discord.ui.Button(label='Cancel Trade', style=discord.ButtonStyle.danger)
+    if self.mode == "view_only":
+      cancel_btn = discord.ui.Button(
+        label="Cancel Trade",
+        style=discord.ButtonStyle.danger,
+        disabled=self._ui_locked
+      )
 
       async def _cancel_cb(interaction: discord.Interaction):
         if self._ack:
           return
         self._ack = True
         try:
-          await self._ack_interaction(interaction)
+          ok = await self._lock_interaction(interaction)
+          if not ok:
+            return
           await self.cog._cancel_trade_callback(interaction, self.active_trade)
-          if self.message:
-            try:
-              await self.message.delete()
-            except Exception:
-              pass
         finally:
+          try:
+            await self._delete_message(interaction)
+          except Exception:
+            pass
           self._ack = False
 
       cancel_btn.callback = _cancel_cb
@@ -538,28 +542,22 @@ class TradeStatusView(discord.ui.DesignerView):
 
     return nav, actions
 
-  async def _render(self, interaction: discord.Interaction, *, first: bool = False):
-    page = self.pages[self.page]
-
-    files: list[discord.File] = []
-    file_obj = self._build_file(page)
-    if file_obj:
-      files.append(file_obj)
-
-    prestige_tier = PRESTIGE_TIERS.get(int(self.active_trade.get('prestige_level') or 0)) or 'Unknown'
+  def _build_container_for_page(self, page: dict) -> discord.ui.Container:
+    files_present = bool(page.get("file_bytes"))
+    prestige_tier = PRESTIGE_TIERS.get(int(self.active_trade.get("prestige_level") or 0)) or "Unknown"
 
     container = discord.ui.Container(color=discord.Color.blurple().value)
     container.add_item(discord.ui.TextDisplay(f"# Trade Summary [`{prestige_tier}`]"))
     container.add_item(discord.ui.Separator())
     container.add_item(discord.ui.TextDisplay(self._build_body_text(page, prestige_tier)))
 
-    if files:
+    if files_present:
       container.add_item(discord.ui.Separator())
       try:
         container.add_gallery(
           discord.MediaGalleryItem(
             url=f"attachment://{page['filename']}",
-            description='Trade'
+            description="Trade"
           )
         )
       except Exception:
@@ -570,11 +568,92 @@ class TradeStatusView(discord.ui.DesignerView):
     container.add_item(nav_row)
     container.add_item(discord.ui.Separator())
     container.add_item(action_row)
+    return container
 
+  def _rebuild_view(self):
+    page = self.pages[self.page]
+    container = self._build_container_for_page(page)
     self.clear_items()
     self.add_item(container)
 
+  async def _lock_interaction(self, interaction: discord.Interaction) -> bool:
+    self._ui_locked = True
+    self._rebuild_view()
+
+    if self._is_component_interaction(interaction) and not interaction.response.is_done():
+      try:
+        await interaction.response.edit_message(view=self)
+        return True
+      except Exception:
+        pass
+
+    try:
+      msg = None
+      try:
+        msg = interaction.message if interaction else None
+      except Exception:
+        msg = None
+      if not msg:
+        msg = self.message
+      if msg:
+        await msg.edit(view=self)
+    except Exception:
+      pass
+
+    return await self._ack_interaction(interaction)
+
+  async def _unlock_new_message(self):
+    self._ui_locked = False
+    self._rebuild_view()
+    try:
+      if self.message:
+        await self.message.edit(view=self)
+    except Exception:
+      pass
+
+  async def _delete_message(self, interaction: discord.Interaction | None):
+    msg = None
+    try:
+      msg = interaction.message if interaction else None
+    except Exception:
+      msg = None
+
+    if not msg:
+      msg = self.message
+
+    if not msg:
+      return
+
+    try:
+      await msg.delete()
+      if msg == self.message:
+        self.message = None
+      return
+    except Exception:
+      pass
+
+    try:
+      if interaction:
+        await interaction.followup.delete_message(msg.id)
+        if msg == self.message:
+          self.message = None
+    except Exception:
+      pass
+
+  async def _render(self, interaction: discord.Interaction, *, first: bool = False):
+    page = self.pages[self.page]
+
+    files: list[discord.File] = []
+    file_obj = self._build_file(page)
+    if file_obj:
+      files.append(file_obj)
+
+    self._rebuild_view()
+
     if first:
+      self._ui_locked = False
+      self._rebuild_view()
+
       try:
         if not interaction.response.is_done():
           await interaction.response.defer(ephemeral=True)
@@ -593,7 +672,7 @@ class TradeStatusView(discord.ui.DesignerView):
         else:
           self.message = await interaction.followup.send(view=self, ephemeral=True)
       except Exception:
-        logger.exception('[trade] TradeStatusView:_render:first send failed')
+        logger.exception("[trade] TradeStatusView:_render:first send failed")
       return
 
     try:
@@ -613,9 +692,18 @@ class TradeStatusView(discord.ui.DesignerView):
       else:
         self.message = await interaction.followup.send(view=self, ephemeral=True)
     except Exception:
-      logger.exception('[trade] TradeStatusView:_render resend failed')
+      logger.exception("[trade] TradeStatusView:_render resend failed")
+      return
+
+    await self._unlock_new_message()
 
 
+# ___________                  .___     .___                            .__                _________      .__                 __ ____   ____.__
+# \__    ___/___________     __| _/____ |   | ____   ____  ____   _____ |__| ____    ____ /   _____/ ____ |  |   ____   _____/  |\   \ /   /|__| ______  _  __
+#   |    |  \_  __ \__  \   / __ |/ __ \|   |/    \_/ ___\/  _ \ /     \|  |/    \  / ___\\_____  \_/ __ \|  | _/ __ \_/ ___\   __\   Y   / |  |/ __ \ \/ \/ /
+#   |    |   |  | \// __ \_/ /_/ \  ___/|   |   |  \  \__(  <_> )  Y Y  \  |   |  \/ /_/  >        \  ___/|  |_\  ___/\  \___|  |  \     /  |  \  ___/\     /
+#   |____|   |__|  (____  /\____ |\___  >___|___|  /\___  >____/|__|_|  /__|___|  /\___  /_______  /\___  >____/\___  >\___  >__|   \___/   |__|\___  >\/\_/
+#                       \/      \/    \/         \/     \/            \/        \//_____/        \/     \/          \/     \/                       \/
 class TradeIncomingSelectView(discord.ui.DesignerView):
 
   def __init__(self, *, cog, requestor_ids: list[int]):
@@ -684,9 +772,38 @@ class TradeIncomingSelectView(discord.ui.DesignerView):
     except Exception:
       return False
 
+  async def _delete_message(self, interaction: discord.Interaction | None):
+    msg = None
+    try:
+      msg = interaction.message if interaction else None
+    except Exception:
+      msg = None
+
+    if not msg:
+      msg = self.message
+
+    if not msg:
+      return
+
+    try:
+      await msg.delete()
+      if msg == self.message:
+        self.message = None
+      return
+    except Exception:
+      pass
+
+    try:
+      if interaction:
+        await interaction.followup.delete_message(msg.id)
+        if msg == self.message:
+          self.message = None
+    except Exception:
+      pass
+
   async def start(self, interaction: discord.Interaction):
     requestor_ids = [int(i) for i in (self.requestor_ids or [])]
-    requestor_ids = list(dict.fromkeys(requestor_ids))  # de-dupe, preserve order
+    requestor_ids = list(dict.fromkeys(requestor_ids))
 
     if len(requestor_ids) > 25:
       logger.exception("[trade] too many incoming requestors: %s", len(requestor_ids))
@@ -765,9 +882,16 @@ class TradeIncomingSelectView(discord.ui.DesignerView):
           ok2 = await self._ack_interaction(ix)
           if not ok2:
             return
+
           vals = (ix.data or {}).get("values") or []
           if not vals:
             return
+
+          try:
+            await self._delete_message(ix)
+          except Exception:
+            pass
+
           await self.cog._send_pending_trade_interface(ix, int(vals[0]))
         finally:
           self._ack = False
