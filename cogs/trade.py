@@ -1540,8 +1540,14 @@ class Trade(commands.Cog):
     if not active_trade:
       return
 
-    view = TradeStatusView(cog=self, active_trade=active_trade, mode="outgoing")
+    mode = self._get_requestor_status_mode(active_trade)
+    view = TradeStatusView(cog=self, active_trade=active_trade, mode=mode)
     await view.start(ctx.interaction)
+
+  def _get_requestor_status_mode(self, active_trade: dict) -> str:
+    if active_trade['status'] == 'active':
+      return 'view_only'
+    return 'outgoing'
 
   @trade.command(
     name="propose",
@@ -1572,6 +1578,11 @@ class Trade(commands.Cog):
     await ctx.defer(ephemeral=True)
     active_trade = await self.check_for_active_trade(ctx)
     if not active_trade:
+      return
+
+    if active_trade['status'] == 'active':
+      view = TradeStatusView(cog=self, active_trade=active_trade, mode='view_only')
+      await view.start(ctx.interaction)
       return
 
     requestor_echelon_progress = await db_get_echelon_progress(active_trade["requestor_id"])
