@@ -22,6 +22,20 @@ with open("./data/rules_of_acquisition.txt", "r") as f:
   rules_of_acquisition = f.read().split("\n")
 
 
+# Global Color Utils (one convenient place to change them)
+def _trade_color_ok() -> discord.Color:
+  return discord.Color.dark_purple()
+
+def _trade_color_error() -> discord.Color:
+  return discord.Color.red()
+
+
+#    _____          __                                     .__          __          
+#   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____  
+#  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \ 
+# /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/ 
+# \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
+#         \/                        \/            \/|__|             \/          \/ 
 async def autocomplete_use_matches(ctx: discord.AutocompleteContext):
   """
   Autocomplete for the 'use_matches' option.
@@ -288,7 +302,7 @@ class TradeStatusView(discord.ui.DesignerView):
 
     home_asset = "trade_offer.png" if self.active_trade.get("status") == "active" else "trade_pending.png"
     home_path = f"{self.HOME_ASSET_DIR}/{home_asset}"
-    home_bytes = self._read_file_bytes(home_path)
+    home_bytes = _read_file_bytes(home_path)
 
     self.pages = [
       {
@@ -330,9 +344,9 @@ class TradeStatusView(discord.ui.DesignerView):
 
       crystal_count = len(crystals or [])
 
-      slotted = self._pick_slotted_crystal(crystals)
+      slotted = _pick_active_crystal(crystals, active_crystal_id=b.get("active_crystal_id"))
 
-      preview_bytes, preview_filename = await self._try_build_badge_preview_bytes(
+      preview_bytes, preview_filename = await _try_build_badge_preview_bytes(
         owner_id=owner_id,
         badge=b,
         badge_instance_id=badge_instance_id,
@@ -349,159 +363,15 @@ class TradeStatusView(discord.ui.DesignerView):
 
     return out
 
-  def _pick_slotted_crystal(self, crystals: list[dict] | None) -> dict | None:
-    if not crystals:
-      return None
-
-    for c in crystals:
-      try:
-        if c.get("is_slotted"):
-          return c
-      except Exception:
-        pass
-
-    for c in crystals:
-      try:
-        if c.get("slotted"):
-          return c
-      except Exception:
-        pass
-
-    for c in crystals:
-      try:
-        if c.get("installed"):
-          return c
-      except Exception:
-        pass
-
-    return None
-
-  async def _try_build_badge_preview_bytes(
-    self,
-    *,
-    owner_id: str,
-    badge: dict,
-    badge_instance_id: int,
-    crystal: dict | None
-  ) -> tuple[bytes | None, str | None]:
-    if not owner_id or not badge_instance_id or not badge:
-      return None, None
-
-    try:
-      file, _url = await generate_badge_preview(
-        owner_id,
-        badge,
-        crystal=crystal,
-        theme=None,
-        disable_overlays=False
-      )
-      if not file:
-        return None, None
-
-      filename = getattr(file, "filename", None)
-      fp = getattr(file, "fp", None)
-      if not filename or not fp:
-        return None, None
-
-      try:
-        fp.seek(0)
-      except Exception:
-        pass
-
-      data = fp.read()
-      if not data:
-        return None, None
-
-      ext = "png"
-      try:
-        if "." in filename:
-          ext = filename.rsplit(".", 1)[-1].lower() or "png"
-      except Exception:
-        ext = "png"
-
-      safe_name = f"trade_{badge_instance_id}_preview.{ext}"
-      return data, safe_name
-    except Exception:
-      return None, None
-
-  def _read_file_bytes(self, path: str | None) -> bytes | None:
-    if not path:
-      return None
-    try:
-      with open(path, "rb") as rf:
-        return rf.read()
-    except Exception:
-      return None
-
-  def _build_file_from_bytes(self, file_bytes: bytes | None, filename: str) -> discord.File | None:
-    if not file_bytes or not filename:
-      return None
-    fp = io.BytesIO(file_bytes)
-    try:
-      fp.seek(0)
-    except Exception:
-      pass
-    return discord.File(fp=fp, filename=filename)
 
   def _page_indicator_label(self) -> str:
     return f"{self.page + 1}/{len(self.pages)}"
 
   def _is_component_interaction(self, interaction: discord.Interaction | None) -> bool:
-    try:
-      return bool(interaction and getattr(interaction, "message", None))
-    except Exception:
-      return False
+    return _is_component_interaction(interaction)
 
   async def _ack_interaction(self, interaction: discord.Interaction) -> bool:
-    if interaction.response.is_done():
-      return True
-
-    if self._is_component_interaction(interaction):
-      try:
-        fn = getattr(interaction.response, "defer_update", None)
-        if fn:
-          await fn()
-          return True
-      except Exception:
-        pass
-
-      try:
-        await interaction.response.defer(invisible=True)
-        return True
-      except TypeError:
-        pass
-      except Exception:
-        return False
-
-      try:
-        await interaction.response.defer(thinking=False)
-        return True
-      except TypeError:
-        pass
-      except Exception:
-        return False
-
-    try:
-      await interaction.response.defer(ephemeral=True)
-      return True
-    except TypeError:
-      pass
-    except Exception:
-      return False
-
-    try:
-      await interaction.response.defer(invisible=True)
-      return True
-    except TypeError:
-      pass
-    except Exception:
-      return False
-
-    try:
-      await interaction.response.defer()
-      return True
-    except Exception:
-      return False
+    return await _ack_interaction(interaction)
 
   def _build_body_text(self, page: dict) -> str:
     key = page.get("key")
@@ -736,7 +606,7 @@ class TradeStatusView(discord.ui.DesignerView):
     return nav, actions
 
   def _build_container_for_page(self, page: dict) -> discord.ui.Container:
-    container = discord.ui.Container(color=discord.Color.blurple().value)
+    container = discord.ui.Container(color=_trade_color_ok().value)
 
     container.add_item(discord.ui.TextDisplay(f"# {page.get('title') or 'Trade'}"))
     container.add_item(discord.ui.Separator())
@@ -825,7 +695,7 @@ class TradeStatusView(discord.ui.DesignerView):
     files: list[discord.File] = []
 
     if page.get("key") == "home":
-      dfile = self._build_file_from_bytes(page.get("file_bytes"), page.get("filename") or "trade_home.png")
+      dfile = _build_file_from_bytes(page.get("file_bytes"), page.get("filename") or "trade_home.png")
       if dfile:
         files.append(dfile)
       return files
@@ -836,7 +706,7 @@ class TradeStatusView(discord.ui.DesignerView):
       if not thumb_bytes or not thumb_name:
         continue
 
-      dfile = self._build_file_from_bytes(thumb_bytes, thumb_name)
+      dfile = _build_file_from_bytes(thumb_bytes, thumb_name)
       if dfile:
         files.append(dfile)
 
@@ -960,7 +830,6 @@ class TradeStatusView(discord.ui.DesignerView):
     await self._unlock_new_message()
 
   async def on_timeout(self):
-    # Prevent any further callbacks from doing work.
     try:
       async with self._interaction_lock:
         self._ack = True
@@ -970,14 +839,12 @@ class TradeStatusView(discord.ui.DesignerView):
         except Exception:
           pass
 
-        # Best-effort: edit the last known message so Discord disables controls.
         try:
           if self.message:
             await self.message.edit(view=self)
         except Exception:
           pass
     finally:
-      # Let GC collect the view eventually; we just want the UI disabled.
       pass
 
 
@@ -1000,61 +867,10 @@ class TradeIncomingSelectView(discord.ui.DesignerView):
     self.message = None
 
   def _is_component_interaction(self, interaction: discord.Interaction | None) -> bool:
-    try:
-      return bool(interaction and getattr(interaction, "message", None))
-    except Exception:
-      return False
+    return _is_component_interaction(interaction)
 
   async def _ack_interaction(self, interaction: discord.Interaction) -> bool:
-    if interaction.response.is_done():
-      return True
-
-    if self._is_component_interaction(interaction):
-      try:
-        fn = getattr(interaction.response, "defer_update", None)
-        if fn:
-          await fn()
-          return True
-      except Exception:
-        pass
-
-      try:
-        await interaction.response.defer(invisible=True)
-        return True
-      except TypeError:
-        pass
-      except Exception:
-        return False
-
-      try:
-        await interaction.response.defer(thinking=False)
-        return True
-      except TypeError:
-        pass
-      except Exception:
-        return False
-
-    try:
-      await interaction.response.defer(ephemeral=True)
-      return True
-    except TypeError:
-      pass
-    except Exception:
-      return False
-
-    try:
-      await interaction.response.defer(invisible=True)
-      return True
-    except TypeError:
-      pass
-    except Exception:
-      return False
-
-    try:
-      await interaction.response.defer()
-      return True
-    except Exception:
-      return False
+    return await _ack_interaction(interaction)
 
   async def _delete_message(self, interaction: discord.Interaction | None):
     msg = None
@@ -1104,19 +920,14 @@ class TradeIncomingSelectView(discord.ui.DesignerView):
       pass
 
   def _rebuild_view(self):
-    # Rebuilds the view using the same requestor list, but with controls disabled if timed out/locked.
     requestor_ids = [int(i) for i in (self.requestor_ids or [])]
     requestor_ids = list(dict.fromkeys(requestor_ids))
 
-    # If we don't have anything to show, just keep the existing content (best-effort).
-    # (This should not happen in normal use.)
-    container = discord.ui.Container(color=discord.Color.blurple().value)
+    container = discord.ui.Container(color=_trade_color_ok().value)
     container.add_item(discord.ui.TextDisplay("# Incoming Trade Requests"))
     container.add_item(discord.ui.Separator())
     container.add_item(discord.ui.TextDisplay("Select a user to review their pending trade request."))
 
-    # NOTE: we do not refetch members here; we only need to disable UI.
-    # The original labels are already on-screen; this is just to render a disabled Select on timeout.
     row = discord.ui.ActionRow()
     select = discord.ui.Select(
       placeholder="Select a user...",
@@ -1139,8 +950,8 @@ class TradeIncomingSelectView(discord.ui.DesignerView):
     if len(requestor_ids) > 25:
       logger.exception("[trade] too many incoming requestors: %s", len(requestor_ids))
 
-      err_view = discord.ui.DesignerView(timeout=60, store=False)
-      container = discord.ui.Container(color=discord.Color.red().value)
+      err_view = discord.ui.DesignerView(timeout=60)
+      container = discord.ui.Container(color=_trade_color_error().value)
       container.add_item(discord.ui.TextDisplay("# Trade System Error"))
       container.add_item(discord.ui.Separator())
       container.add_item(discord.ui.TextDisplay(
@@ -1185,13 +996,13 @@ class TradeIncomingSelectView(discord.ui.DesignerView):
         embed=discord.Embed(
           title="Error fetching users",
           description="We couldn't find any of the users who have open trades with you. They may have left the server.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
       return
 
-    container = discord.ui.Container(color=discord.Color.blurple().value)
+    container = discord.ui.Container(color=_trade_color_ok().value)
     container.add_item(discord.ui.TextDisplay("# Incoming Trade Requests"))
     container.add_item(discord.ui.Separator())
     container.add_item(discord.ui.TextDisplay("Select a user to review their pending trade request."))
@@ -1251,12 +1062,6 @@ class Trade(commands.Cog):
 
   trade = discord.SlashCommandGroup("trade", "Commands for trading badges")
 
-  # .___                            .__
-  # |   | ____   ____  ____   _____ |__| ____    ____
-  # |   |/    \_/ ___\/  _ \ /     \|  |/    \  / ___\
-  # |   |   |  \  \__(  <_> )  Y Y  \  |   |  \/ /_/  >
-  # |___|___|  /\___  >____/|__|_|  /__|___|  /\___  /
-  #          \/     \/            \/        \//_____/
   @trade.command(
     name="incoming",
     description="View and accept/decline incoming trades from other users"
@@ -1271,7 +1076,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="No Incoming Trade Requests",
           description="No one has any active trades requested from you.",
-          color=discord.Color.blurple()
+          color=_trade_color_ok()
         ),
         ephemeral=True
       )
@@ -1289,7 +1094,7 @@ class Trade(commands.Cog):
       embed = discord.Embed(
         title="Trade Not Found",
         description="There doesn't appear to be an active trade between you and this user.",
-        color=discord.Color.red()
+        color=_trade_color_error()
       )
       if not interaction.response.is_done():
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -1300,12 +1105,6 @@ class Trade(commands.Cog):
     view = TradeStatusView(cog=self, active_trade=active_trade, mode="incoming")
     await view.start(interaction)
 
-  #   _________ __                 __
-  #  /   _____//  |______ ________/  |_
-  #  \_____  \\   __\__  \\_  __ \   __\
-  #  /        \|  |  / __ \|  | \/|  |
-  # /_______  /|__| (____  /__|   |__|
-  #         \/           \/
   @trade.command(
     name="start",
     description="Start a trade with a specified user (only one outgoing trade active at a time)"
@@ -1361,7 +1160,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Invalid Trade",
           description=f"You are not eligible to trade {PRESTIGE_TIERS[prestige_level]} badges.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1372,7 +1171,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Invalid Trade",
           description=f"{requestee.display_name} is not eligible to trade {PRESTIGE_TIERS[prestige_level]} badges.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1400,7 +1199,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Invalid Badge Selection",
           description="Please select a valid badge from the dropdown.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1418,7 +1217,7 @@ class Trade(commands.Cog):
           embed=discord.Embed(
             title="Invalid Badge Selection",
             description="Please select a valid badge from the dropdown.",
-            color=discord.Color.red()
+            color=_trade_color_error()
           ),
           ephemeral=True
         )
@@ -1441,7 +1240,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Don't be silly!",
           description="You can't request a trade from yourself!",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1452,7 +1251,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Nope",
           description="AGIMUS has no badges to trade!",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1464,7 +1263,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="This user is not participating.",
           description=f"Sorry, **{requestee.display_name}** has opted out of the XP system and is not available for trading.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1481,7 +1280,7 @@ class Trade(commands.Cog):
             "Use `/trade send` to check the status and cancel the current trade if desired.\n\n"
             "This must be resolved before you can open another request."
           ),
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1496,7 +1295,7 @@ class Trade(commands.Cog):
             f"Sorry, the person you've requested a trade from already has the maximum number "
             f"of incoming trade requests pending ({self.max_trades})."
           ),
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1515,7 +1314,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Invalid Offer",
           description="You don't own that badge at the specified Prestige Tier.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1533,7 +1332,7 @@ class Trade(commands.Cog):
           embed=discord.Embed(
             title="Invalid Request",
             description=f"{requestee.display_name} does not own that badge at the specified Prestige Tier.",
-            color=discord.Color.red()
+            color=_trade_color_error()
           ),
           ephemeral=True
         )
@@ -1541,12 +1340,6 @@ class Trade(commands.Cog):
 
     return True
 
-  #   _________                  .___
-  #  /   _____/ ____   ____    __| _/
-  #  \_____  \_/ __ \ /    \  / __ |
-  #  /        \  ___/|   |  \/ /_/ |
-  # /_______  /\___  >___|  /\____ |
-  #         \/     \/     \/      \/
   @trade.command(
     name="send",
     description="Check the current status and send your outgoing trade"
@@ -1561,12 +1354,6 @@ class Trade(commands.Cog):
     view = TradeStatusView(cog=self, active_trade=active_trade, mode="outgoing")
     await view.start(ctx.interaction)
 
-  # __________
-  # \______   \_______  ____ ______   ____  ______ ____
-  #  |     ___/\_  __ \/  _ \\____ \ /  _ \/  ___// __ \
-  #  |    |     |  | \(  <_> )  |_> >  <_> )___ \\  ___/
-  #  |____|     |__|   \____/|   __/ \____/____  >\___  >
-  #                          |__|              \/     \/
   @trade.command(
     name="propose",
     description="Offer or request badges for your current pending trade"
@@ -1610,7 +1397,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Trade Invalid",
           description=f"One or both participants are not eligible for {PRESTIGE_TIERS[active_trade['prestige_level']]} badge trading.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1637,7 +1424,7 @@ class Trade(commands.Cog):
           embed=discord.Embed(
             title="Invalid Badge Selection",
             description="Please select a valid badge from the dropdown.",
-            color=discord.Color.red()
+            color=_trade_color_error()
           ),
           ephemeral=True
         )
@@ -1654,7 +1441,7 @@ class Trade(commands.Cog):
           embed=discord.Embed(
             title="Invalid Badge Selection",
             description="Please select a valid badge from the dropdown.",
-            color=discord.Color.red()
+            color=_trade_color_error()
           ),
           ephemeral=True
         )
@@ -1676,7 +1463,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Badge Not Found",
           description=f"You don't own this {prestige_tier} badge!",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1690,7 +1477,7 @@ class Trade(commands.Cog):
     embed = discord.Embed(
       title="Badge added to offer.",
       description=f"**{badge_name}** has been added to your offer to **{requestee.display_name}**.",
-      color=discord.Color.dark_gold()
+      color=_trade_color_ok()
     )
     embed.set_image(url=attachment_url)
     await ctx.followup.send(embed=embed, file=discord_file, ephemeral=True)
@@ -1707,7 +1494,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Badge Not Found",
           description=f"**{requestee.display_name}** doesn't own that {prestige_tier} badge!",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1721,7 +1508,7 @@ class Trade(commands.Cog):
     embed = discord.Embed(
       title="Badge added to request.",
       description=f"**{badge_name}** has been added to your request from **{requestee.display_name}**.",
-      color=discord.Color.dark_gold()
+      color=_trade_color_ok()
     )
     embed.set_image(url=attachment_url)
     await ctx.followup.send(embed=embed, file=discord_file, ephemeral=True)
@@ -1742,7 +1529,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Badge not found",
           description="This badge no longer exists or was already traded.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1753,7 +1540,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Invalid Prestige",
           description="You selected a badge at the incorrect Prestige Tier.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1764,7 +1551,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Badge not available",
           description=f"{from_user.display_name} no longer has this badge.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1775,7 +1562,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="That badge is untradeable!",
           description=f"Sorry, you can't {direction} **{instance['badge_name']}** - it's a special one!",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1788,7 +1575,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title=f"{to_user.display_name} already has {instance['badge_name']} at this Prestige Tier!",
           description="No need to trade this one.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1801,7 +1588,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title=f"{instance['badge_name']} already exists in the {direction} list.",
           description="No action taken.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1812,7 +1599,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title=f"Unable to add {instance['badge_name']}",
           description=f"You're at the max number of badges allowed per side ({self.max_badges_per_trade}).",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1827,7 +1614,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title=f"{to_user.display_name}'s inventory is full!",
           description=f"Adding **{instance['badge_name']}** would exceed the total number of badges possible at this Prestige Tier ({max_badge_count}).",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1842,7 +1629,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="You don't have a pending or active trade open!",
           description="You can start a new trade with `/trade start`.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1872,7 +1659,7 @@ class Trade(commands.Cog):
             notification = discord.Embed(
               title=f"{prestige_tier} Trade Canceled!",
               description=f"Heads up! **{requestor.display_name}** canceled their pending {prestige_tier} trade request with you.",
-              color=discord.Color.dark_purple()
+              color=_trade_color_ok()
             )
             notification.add_field(
               name=f"{prestige_tier} badges offered by {requestor.display_name}",
@@ -1904,7 +1691,7 @@ class Trade(commands.Cog):
 
       embed = discord.Embed(
         title=f"{prestige_tier} Trade Sent!",
-        color=discord.Color.dark_purple()
+        color=_trade_color_ok()
       )
       if not interaction.response.is_done():
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -1935,7 +1722,7 @@ class Trade(commands.Cog):
           requestee_embed = discord.Embed(
             title="Trade Offered",
             description=description,
-            color=discord.Color.dark_purple()
+            color=_trade_color_ok()
           )
           requestee_embed.add_field(
             name=f"{prestige_tier} badges offered by {requestor.display_name}",
@@ -1974,7 +1761,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Invalid Trade",
           description=f"{requestor.display_name} is not eligible to send {PRESTIGE_TIERS[active_trade_prestige]} badges.\n\nTrade Canceled.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -1986,7 +1773,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title="Invalid Trade",
           description=f"{requestee.display_name} is not eligible to receive {PRESTIGE_TIERS[active_trade_prestige]} badges.\n\nTrade Canceled.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -2013,7 +1800,7 @@ class Trade(commands.Cog):
         f"**{requestor.display_name}** and **{requestee.display_name}** came to a {prestige_tier} trade agreement!\n\n"
         f"{prestige_tier} badges transferred successfully!"
       ),
-      color=discord.Color.dark_purple()
+      color=_trade_color_ok()
     )
     success_embed.add_field(name=f"{requestor.display_name} received", value=requested_names)
     success_embed.add_field(name=f"{requestee.display_name} received", value=offered_names)
@@ -2048,7 +1835,7 @@ class Trade(commands.Cog):
       embed=discord.Embed(
         title="Trade Declined",
         description=f"You declined the proposed {prestige_tier} trade with **{requestor.display_name}**.",
-        color=discord.Color.blurple()
+        color=_trade_color_ok()
       ),
       ephemeral=True
     )
@@ -2061,7 +1848,7 @@ class Trade(commands.Cog):
         embed = discord.Embed(
           title="Trade Declined",
           description=f"Your {prestige_tier} trade to **{requestee.display_name}** was declined.",
-          color=discord.Color.dark_purple()
+          color=_trade_color_ok()
         )
         embed.add_field(name=f"Offered by {requestor.display_name}", value=offered_badge_names)
         embed.add_field(name=f"Requested from {requestee.display_name}", value=requested_badge_names)
@@ -2092,7 +1879,7 @@ class Trade(commands.Cog):
               f"Your {prestige_tier} trade initiated by **{requestor.display_name}** was canceled "
               "because one or more badges were traded to someone else."
             ),
-            color=discord.Color.purple()
+            color=_trade_color_ok()
           )
           embed.add_field(name=f"Offered by {requestor.display_name}", value=offered_badge_names)
           embed.add_field(name=f"Requested from {requestee.display_name}", value=requested_badge_names)
@@ -2110,7 +1897,7 @@ class Trade(commands.Cog):
               f"Your {prestige_tier} trade requested from **{requestee.display_name}** was canceled "
               "because one or more badges were traded to someone else."
             ),
-            color=discord.Color.purple()
+            color=_trade_color_ok()
           )
           embed.add_field(name=f"Offered by {requestor.display_name}", value=offered_badge_names)
           embed.add_field(name=f"Requested from {requestee.display_name}", value=requested_badge_names)
@@ -2133,7 +1920,7 @@ class Trade(commands.Cog):
           f"Just a heads up - your {prestige_tier} trade requested from **{requestee.display_name}** "
           f"was canceled because {reason}."
         ),
-        color=discord.Color.purple()
+        color=_trade_color_ok()
       )
       embed.add_field(name=f"{prestige_tier} badges offered by {requestor.display_name}", value=offered_badge_names)
       embed.add_field(name=f"{prestige_tier} badges requested from {requestee.display_name}", value=requested_badge_names)
@@ -2158,7 +1945,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title=f"Invalid {prestige_tier} Trade",
           description="They already received some of the badges you requested while this trade was pending.\n\nTrade has been canceled.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -2188,7 +1975,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title=f"Invalid {prestige_tier} Trade",
           description="You already received some of the badges that were offered while this trade was pending.\n\nTrade has been canceled.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -2216,7 +2003,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title=f"Invalid {prestige_tier} Trade",
           description="They no longer have some of the badges they offered.\n\nTrade has been canceled.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -2244,7 +2031,7 @@ class Trade(commands.Cog):
         embed=discord.Embed(
           title=f"Invalid {prestige_tier} Trade",
           description="You no longer have some of the badges they requested.\n\nTrade has been canceled.",
-          color=discord.Color.red()
+          color=_trade_color_error()
         ),
         ephemeral=True
       )
@@ -2257,50 +2044,6 @@ class Trade(commands.Cog):
       return False
 
     return True
-
-  async def _generate_offered_embed_and_image(self, active_trade):
-    requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
-    requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
-    prestige_tier = PRESTIGE_TIERS[active_trade["prestige_level"]]
-
-    offered_instances = await db_get_trade_offered_badge_instances(active_trade)
-
-    offered_image, offered_filename = await generate_badge_trade_images(
-      offered_instances,
-      f"{prestige_tier} Badges offered by {requestor.display_name}",
-      f"{len(offered_instances)} Badges"
-    )
-
-    offered_embed = discord.Embed(
-      title="Offered",
-      description=f"{prestige_tier} badges offered by **{requestor.display_name}** to **{requestee.display_name}**",
-      color=discord.Color.dark_purple()
-    )
-    offered_embed.set_image(url=offered_filename)
-
-    return offered_embed, offered_image
-
-  async def _generate_requested_embed_and_image(self, active_trade):
-    requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
-    requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
-    prestige_tier = PRESTIGE_TIERS[active_trade["prestige_level"]]
-
-    requested_instances = await db_get_trade_requested_badge_instances(active_trade)
-
-    requested_image, requested_filename = await generate_badge_trade_images(
-      requested_instances,
-      f"{prestige_tier} Badges requested from {requestee.display_name}",
-      f"{len(requested_instances)} Badges"
-    )
-
-    requested_embed = discord.Embed(
-      title="Requested",
-      description=f"{prestige_tier} badges requested from **{requestee.display_name}** by **{requestor.display_name}**",
-      color=discord.Color.dark_purple()
-    )
-    requested_embed.set_image(url=requested_filename)
-
-    return requested_embed, requested_image
 
   async def _generate_home_embed_and_image(self, active_trade):
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
@@ -2316,7 +2059,6 @@ class Trade(commands.Cog):
         f"**{requestor.display_name}** has offered a {prestige_tier} trade to **{requestee.display_name}**!"
       )
       image_filename = "trade_offer.png"
-      color = discord.Color.dark_purple()
     else:
       title = "Trade Pending..."
       description = (
@@ -2324,7 +2066,6 @@ class Trade(commands.Cog):
         "Press **Send** if it looks good to go!"
       )
       image_filename = "trade_pending.png"
-      color = discord.Color(0x99aab5)
 
     if await trade_has_attuned_crystals(active_trade):
       description += "\n\n⚠️ One or more badges in this trade have Crystals attached to them."
@@ -2332,7 +2073,7 @@ class Trade(commands.Cog):
     home_embed = discord.Embed(
       title=title,
       description=description,
-      color=color
+      color=_trade_color_ok()
     )
     home_embed.add_field(
       name=f"{prestige_tier} badges offered by {requestor.display_name}",
@@ -2351,3 +2092,289 @@ class Trade(commands.Cog):
     home_embed.set_image(url=f"attachment://{image_filename}")
 
     return home_embed, home_image
+
+  async def _build_badge_meta_for_public(
+    self,
+    instances: list[dict],
+    *,
+    owner_id: str
+  ) -> list[dict]:
+    out: list[dict] = []
+
+    for b in (instances or []):
+      badge_instance_id = int(b.get("badge_instance_id") or 0)
+      badge_name = b.get("badge_name") or "Unknown Badge"
+
+      crystals = []
+      try:
+        crystals = await db_get_attuned_crystals(badge_instance_id)
+      except Exception:
+        crystals = []
+
+      crystal_count = len(crystals or [])
+      slotted = _pick_active_crystal(crystals, active_crystal_id=b.get("active_crystal_id"))
+
+      preview_bytes, preview_filename = await _try_build_badge_preview_bytes(
+        owner_id=owner_id,
+        badge=b,
+        badge_instance_id=badge_instance_id,
+        crystal=slotted
+      )
+
+      out.append({
+        "badge_instance_id": badge_instance_id,
+        "badge_name": badge_name,
+        "crystal_count": crystal_count,
+        "thumb_bytes": preview_bytes,
+        "thumb_filename": preview_filename
+      })
+
+    return out
+
+  async def _generate_public_summary_view(self, active_trade: dict, *, mode: str) -> tuple[discord.ui.DesignerView, list[discord.File]]:
+    """
+    Builds a simple public DesignerView summary (Offered/Requested) using Sections + thumbnails.
+    mode: "offered" or "requested"
+    """
+    requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
+    requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
+    prestige_tier = PRESTIGE_TIERS[active_trade["prestige_level"]]
+
+    if mode == "offered":
+      title = "Offered"
+      subtitle = f"{prestige_tier} badges offered by **{requestor.display_name}** to **{requestee.display_name}**"
+      instances = await db_get_trade_offered_badge_instances(active_trade)
+      owner_id = str(active_trade.get("requestor_id") or "")
+    else:
+      title = "Requested"
+      subtitle = f"{prestige_tier} badges requested from **{requestee.display_name}** by **{requestor.display_name}**"
+      instances = await db_get_trade_requested_badge_instances(active_trade)
+      owner_id = str(active_trade.get("requestee_id") or "")
+
+    badges = await self._build_badge_meta_for_public(instances, owner_id=owner_id)
+
+    view = discord.ui.DesignerView(timeout=None)
+
+    container = discord.ui.Container(color=_trade_color_ok().value)
+    container.add_item(discord.ui.TextDisplay(f"# {title}"))
+    container.add_item(discord.ui.TextDisplay(subtitle))
+    container.add_item(discord.ui.Separator())
+
+    files: list[discord.File] = []
+    rendered_any = False
+
+    for b in (badges or [])[:self.max_badges_per_trade]:
+      badge_name = b.get("badge_name") or "Unknown Badge"
+      crystal_count = int(b.get("crystal_count") or 0)
+
+      thumb_bytes = b.get("thumb_bytes")
+      thumb_name = b.get("thumb_filename")
+      has_thumb = bool(thumb_bytes and thumb_name)
+
+      if has_thumb:
+        dfile = _build_file_from_bytes(thumb_bytes, thumb_name)
+        if dfile:
+          files.append(dfile)
+
+      section = discord.ui.Section(
+        discord.ui.TextDisplay(f"### {badge_name}")
+      )
+
+      if crystal_count > 0:
+        section.add_item(discord.ui.TextDisplay(
+          f"There are {crystal_count} Crystals attuned to this badge!"
+        ))
+
+      if has_thumb:
+        section.set_thumbnail(
+          url=f"attachment://{thumb_name}",
+          description="Badge"
+        )
+
+      container.add_item(section)
+      rendered_any = True
+
+    if not rendered_any:
+      container.add_item(discord.ui.TextDisplay("`(none)`"))
+
+    view.add_item(container)
+    return view, files
+
+
+#   ___ ___         .__                              
+#  /   |   \   ____ |  | ______   ___________  ______
+# /    ~    \_/ __ \|  | \____ \_/ __ \_  __ \/  ___/
+# \    Y    /\  ___/|  |_|  |_> >  ___/|  | \/\___ \ 
+#  \___|_  /  \___  >____/   __/ \___  >__|  /____  >
+#        \/       \/     |__|        \/           \/ 
+def _pick_active_crystal(
+  crystals: list[dict] | None,
+  *,
+  active_crystal_id: int | None
+) -> dict | None:
+  """
+  Select the slotted/active crystal for a badge instance.
+  """
+  if not crystals:
+    return None
+
+  try:
+    active_id = int(active_crystal_id or 0)
+  except Exception:
+    active_id = 0
+
+  if not active_id:
+    return None
+
+  for c in crystals:
+    try:
+      cid = c.get("id")
+      if cid is None:
+        cid = c.get("crystal_instance_id")
+      cid = int(cid or 0)
+    except Exception:
+      cid = 0
+
+    if cid == active_id:
+      return c
+
+  return None
+
+def _read_file_bytes(path: str | None) -> bytes | None:
+  if not path:
+    return None
+  try:
+    with open(path, "rb") as rf:
+      return rf.read()
+  except Exception:
+    return None
+
+def _build_file_from_bytes(file_bytes: bytes | None, filename: str | None) -> discord.File | None:
+  if not file_bytes or not filename:
+    return None
+  fp = io.BytesIO(file_bytes)
+  try:
+    fp.seek(0)
+  except Exception:
+    pass
+  return discord.File(fp=fp, filename=filename)
+
+def _is_component_interaction(interaction: discord.Interaction | None) -> bool:
+  try:
+    return bool(interaction and getattr(interaction, 'message', None))
+  except Exception:
+    return False
+
+async def _ack_interaction(interaction: discord.Interaction | None, *, ephemeral: bool = True) -> bool:
+  """Best-effort ACK for Pycord 2.7 interactions.
+
+  - For component interactions, prefer defer_update when available.
+  - For non-component interactions, defer(ephemeral=True) when possible.
+
+  Returns True if we believe the interaction is acknowledged or already done.
+  """
+  if not interaction:
+    return False
+
+  try:
+    if interaction.response.is_done():
+      return True
+  except Exception:
+    return True
+
+  if _is_component_interaction(interaction):
+    fn = getattr(interaction.response, 'defer_update', None)
+    if callable(fn):
+      try:
+        await fn()
+        return True
+      except Exception:
+        return False
+
+    # Fallback: basic defer with no kwargs (Pycord signature differences).
+    try:
+      await interaction.response.defer()
+      return True
+    except Exception:
+      return False
+
+  # Slash-command / non-component.
+  try:
+    await interaction.response.defer(ephemeral=ephemeral)
+    return True
+  except TypeError:
+    try:
+      await interaction.response.defer()
+      return True
+    except Exception:
+      return False
+  except Exception:
+    return False
+
+
+def _pick_active_crystal(crystals: list[dict] | None, *, active_crystal_id: int | None) -> dict | None:
+  """Selects the currently slotted crystal for a badge instance.
+
+  Schema source of truth:
+  - badge_instances.active_crystal_id -> crystal_instances.id
+  """
+  if not crystals or not active_crystal_id:
+    return None
+
+  for c in crystals:
+    try:
+      if int(c.get("id") or 0) == int(active_crystal_id):
+        return c
+    except Exception:
+      continue
+
+  return None
+
+async def _try_build_badge_preview_bytes(
+  *,
+  owner_id: str,
+  badge: dict,
+  badge_instance_id: int,
+  crystal: dict | None,
+  disable_overlays: bool,
+  safe_prefix: str
+) -> tuple[bytes | None, str | None]:
+  if not owner_id or not badge_instance_id or not badge:
+    return None, None
+
+  try:
+    file, _url = await generate_badge_preview(
+      owner_id,
+      badge,
+      crystal=crystal,
+      theme=None,
+      disable_overlays=disable_overlays
+    )
+    if not file:
+      return None, None
+
+    filename = getattr(file, "filename", None)
+    fp = getattr(file, "fp", None)
+    if not filename or not fp:
+      return None, None
+
+    try:
+      fp.seek(0)
+    except Exception:
+      pass
+
+    data = fp.read()
+    if not data:
+      return None, None
+
+    ext = "png"
+    try:
+      if "." in filename:
+        ext = filename.rsplit(".", 1)[-1].lower() or "png"
+    except Exception:
+      ext = "png"
+
+    safe_name = f"{safe_prefix}{badge_instance_id}_preview.{ext}"
+    return data, safe_name
+  except Exception:
+    return None, None

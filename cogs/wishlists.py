@@ -574,8 +574,6 @@ class Wishlist(commands.Cog):
   # Cog helpers required by /wishlist matches, /wishlist dismissals, and the view
   # ---------------------------------------------------------------------------
   async def _purge_invalid_wishlist_dismissals(self, user_id: str, prestige_level: int):
-    # Minimal purge: remove dismissals that reference badges no longer on the user's wishlist.
-    # This preserves the "dismiss stale matchups" behavior without permanently hiding new matchups.
     rows = await db_get_all_wishlist_dismissals(user_id)
     if not rows:
       return
@@ -611,10 +609,6 @@ class Wishlist(commands.Cog):
         continue
 
       if bid not in wishlist_ids:
-        # db_delete_wishlist_dismissal deletes all rows for the partner at this prestige.
-        # We want per-badge purge, but your queries file only exposes the bulk delete.
-        # So we do nothing here unless you add a per-badge delete helper.
-        # (This function still prevents crashes and keeps behavior consistent.)
         pass
 
   async def _dismiss_partner_match(
