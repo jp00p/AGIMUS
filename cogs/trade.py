@@ -216,15 +216,21 @@ async def autocomplete_requesting_badges(ctx: discord.AutocompleteContext):
   return filtered[:25]
 
 
+# ___________                  .___       _________ __          __               ____   ____.__
+# \__    ___/___________     __| _/____  /   _____//  |______ _/  |_ __ __  _____\   \ /   /|__| ______  _  __
+#   |    |  \_  __ \__  \   / __ |/ __ \ \_____  \\   __\__  \\   __\  |  \/  ___/\   Y   / |  |/ __ \ \/ \/ /
+#   |    |   |  | \// __ \_/ /_/ \  ___/ /        \|  |  / __ \|  | |  |  /\___ \  \     /  |  \  ___/\     /
+#   |____|   |__|  (____  /\____ |\___  >_______  /|__| (____  /__| |____//____  >  \___/   |__|\___  >\/\_/
+#                       \/      \/    \/        \/           \/                \/                   \/
 class TradeStatusView(discord.ui.DesignerView):
+  HOME_ASSET_DIR = "./images/trades/assets"
 
   def __init__(
     self,
     *,
     cog,
     active_trade: dict,
-    mode: str,
-    pages: list[dict]
+    mode: str
   ):
     super().__init__(timeout=360)
 
@@ -232,25 +238,210 @@ class TradeStatusView(discord.ui.DesignerView):
     self.active_trade = active_trade
     self.mode = mode  # incoming | outgoing | view_only
 
-    self.pages = pages
+    self.pages: list[dict] = []
     self.page = 0
 
+    self._interaction_lock = asyncio.Lock()
     self._ack = False
     self._ui_locked = False
     self.message = None
 
   async def start(self, interaction: discord.Interaction):
+    await self._build_pages()
     await self._render(interaction, first=True)
 
-  def _build_file(self, page: dict) -> discord.File | None:
-    if not page.get("file_bytes"):
+  async def _build_pages(self):
+    requestor = None
+    requestee = None
+    try:
+      requestor = await self.cog.bot.current_guild.fetch_member(self.active_trade["requestor_id"])
+    except Exception:
+      requestor = None
+
+    try:
+      requestee = await self.cog.bot.current_guild.fetch_member(self.active_trade["requestee_id"])
+    except Exception:
+      requestee = None
+
+    prestige_tier = PRESTIGE_TIERS.get(int(self.active_trade.get("prestige_level") or 0)) or "Unknown"
+
+    offered_instances = await db_get_trade_offered_badge_instances(self.active_trade)
+    requested_instances = await db_get_trade_requested_badge_instances(self.active_trade)
+
+    requestor_id = str(self.active_trade.get("requestor_id") or "")
+    requestee_id = str(self.active_trade.get("requestee_id") or "")
+
+    offered_meta = await self._build_badge_meta(offered_instances, owner_id=requestor_id)
+    requested_meta = await self._build_badge_meta(requested_instances, owner_id=requestee_id)
+
+    has_any_crystals = any((m.get("crystal_count") or 0) > 0 for m in (offered_meta + requested_meta))
+
+    offered_names = "\n".join([
+      f"- {m['badge_name']}{' `(⚠️)`' if (m.get('crystal_count') or 0) > 0 else ''}"
+      for m in offered_meta
+    ]) or "(none)"
+
+    requested_names = "\n".join([
+      f"- {m['badge_name']}{' `(⚠️)`' if (m.get('crystal_count') or 0) > 0 else ''}"
+      for m in requested_meta
+    ]) or "(none)"
+
+    home_asset = "trade_offer.png" if self.active_trade.get("status") == "active" else "trade_pending.png"
+    home_path = f"{self.HOME_ASSET_DIR}/{home_asset}"
+    home_bytes = self._read_file_bytes(home_path)
+
+    self.pages = [
+      {
+        "key": "home",
+        "title": "Trade Summary",
+        "prestige_tier": prestige_tier,
+        "requestor_mention": getattr(requestor, "mention", "") if requestor else "",
+        "requestee_mention": getattr(requestee, "mention", "") if requestee else "",
+        "offered_names": offered_names,
+        "requested_names": requested_names,
+        "has_any_crystals": has_any_crystals,
+        "file_bytes": home_bytes,
+        "filename": home_asset
+      },
+      {
+        "key": "offered",
+        "title": "Offered Badges",
+        "badges": offered_meta
+      },
+      {
+        "key": "requested",
+        "title": "Requested Badges",
+        "badges": requested_meta
+      }
+    ]
+
+  async def _build_badge_meta(self, instances: list[dict], *, owner_id: str) -> list[dict]:
+    out: list[dict] = []
+
+    for b in (instances or []):
+      badge_instance_id = int(b.get("badge_instance_id") or 0)
+      badge_name = b.get("badge_name") or "Unknown Badge"
+
+      crystals = []
+      try:
+        crystals = await db_get_attuned_crystals(badge_instance_id)
+      except Exception:
+        crystals = []
+
+      crystal_count = len(crystals or [])
+
+      slotted = self._pick_slotted_crystal(crystals)
+
+      preview_bytes, preview_filename = await self._try_build_badge_preview_bytes(
+        owner_id=owner_id,
+        badge=b,
+        badge_instance_id=badge_instance_id,
+        crystal=slotted
+      )
+
+      out.append({
+        "badge_instance_id": badge_instance_id,
+        "badge_name": badge_name,
+        "crystal_count": crystal_count,
+        "thumb_bytes": preview_bytes,
+        "thumb_filename": preview_filename
+      })
+
+    return out
+
+  def _pick_slotted_crystal(self, crystals: list[dict] | None) -> dict | None:
+    if not crystals:
       return None
-    fp = io.BytesIO(page["file_bytes"])
+
+    for c in crystals:
+      try:
+        if c.get("is_slotted"):
+          return c
+      except Exception:
+        pass
+
+    for c in crystals:
+      try:
+        if c.get("slotted"):
+          return c
+      except Exception:
+        pass
+
+    for c in crystals:
+      try:
+        if c.get("installed"):
+          return c
+      except Exception:
+        pass
+
+    return None
+
+  async def _try_build_badge_preview_bytes(
+    self,
+    *,
+    owner_id: str,
+    badge: dict,
+    badge_instance_id: int,
+    crystal: dict | None
+  ) -> tuple[bytes | None, str | None]:
+    if not owner_id or not badge_instance_id or not badge:
+      return None, None
+
+    try:
+      file, _url = await generate_badge_preview(
+        owner_id,
+        badge,
+        crystal=crystal,
+        theme=None,
+        disable_overlays=False
+      )
+      if not file:
+        return None, None
+
+      filename = getattr(file, "filename", None)
+      fp = getattr(file, "fp", None)
+      if not filename or not fp:
+        return None, None
+
+      try:
+        fp.seek(0)
+      except Exception:
+        pass
+
+      data = fp.read()
+      if not data:
+        return None, None
+
+      ext = "png"
+      try:
+        if "." in filename:
+          ext = filename.rsplit(".", 1)[-1].lower() or "png"
+      except Exception:
+        ext = "png"
+
+      safe_name = f"trade_{badge_instance_id}_preview.{ext}"
+      return data, safe_name
+    except Exception:
+      return None, None
+
+  def _read_file_bytes(self, path: str | None) -> bytes | None:
+    if not path:
+      return None
+    try:
+      with open(path, "rb") as rf:
+        return rf.read()
+    except Exception:
+      return None
+
+  def _build_file_from_bytes(self, file_bytes: bytes | None, filename: str) -> discord.File | None:
+    if not file_bytes or not filename:
+      return None
+    fp = io.BytesIO(file_bytes)
     try:
       fp.seek(0)
     except Exception:
       pass
-    return discord.File(fp=fp, filename=page["filename"])
+    return discord.File(fp=fp, filename=filename)
 
   def _page_indicator_label(self) -> str:
     return f"{self.page + 1}/{len(self.pages)}"
@@ -312,32 +503,27 @@ class TradeStatusView(discord.ui.DesignerView):
     except Exception:
       return False
 
-  def _build_body_text(self, page: dict, prestige_tier: str) -> str:
-    requestor_mention = page.get("requestor_mention") or page.get("requestor_name") or ""
-    requestee_mention = page.get("requestee_mention") or page.get("requestee_name") or ""
-    offered_names = page.get("offered_names") or ""
-    requested_names = page.get("requested_names") or ""
-
-    lines = []
-    if requestor_mention:
-      lines.append(f"### From: {requestor_mention}")
-    if requestee_mention:
-      lines.append(f"### To: {requestee_mention}")
-
+  def _build_body_text(self, page: dict) -> str:
     key = page.get("key")
+    if key != "home":
+      return ""
 
-    if key == "home":
-      lines.append("### Offered")
-      lines.append(offered_names or "(none)")
-      lines.append("### Requested")
-      lines.append(requested_names or "(none)")
-    elif key == "offered":
-      lines.append("### Offered")
-      lines.append(offered_names or "(none)")
-    elif key == "requested":
-      lines.append("### Requested")
-      lines.append(requested_names or "(none)")
+    prestige_tier = page.get("prestige_tier") or "Unknown"
+    requestor_mention = page.get("requestor_mention") or ""
+    requestee_mention = page.get("requestee_mention") or ""
 
+    if self.mode == "outgoing":
+      header = f"You are making a ***{prestige_tier}*** offer to {requestee_mention} with the following..."
+    else:
+      header = f"{requestor_mention} has made you a ***{prestige_tier}*** offer involving the following..."
+
+    lines = [
+      header,
+      "### Offered",
+      page.get("offered_names") or "`(none)`",
+      "### Requested",
+      page.get("requested_names") or "`(none)`"
+    ]
     return "\n".join([l for l in lines if l is not None]).strip()
 
   def _build_controls(self) -> tuple[discord.ui.ActionRow, discord.ui.ActionRow]:
@@ -362,18 +548,19 @@ class TradeStatusView(discord.ui.DesignerView):
     )
 
     async def _nav(delta: int, interaction: discord.Interaction):
-      if self._ack:
-        return
-      self._ack = True
-      try:
-        ok = await self._lock_interaction(interaction)
-        if not ok:
+      async with self._interaction_lock:
+        if self._ack:
           return
+        self._ack = True
+        try:
+          ok = await self._lock_interaction(interaction)
+          if not ok:
+            return
 
-        self.page = (self.page + delta) % len(self.pages)
-        await self._render(interaction)
-      finally:
-        self._ack = False
+          self.page = (self.page + delta) % len(self.pages)
+          await self._render(interaction)
+        finally:
+          self._ack = False
 
     async def _prev_cb(interaction: discord.Interaction):
       await _nav(-1, interaction)
@@ -397,19 +584,20 @@ class TradeStatusView(discord.ui.DesignerView):
     )
 
     async def _close_cb(interaction: discord.Interaction):
-      if self._ack:
-        return
-      self._ack = True
-      try:
-        ok = await self._lock_interaction(interaction)
-        if not ok:
+      async with self._interaction_lock:
+        if self._ack:
           return
-      finally:
+        self._ack = True
         try:
-          await self._delete_message(interaction)
-        except Exception:
-          pass
-        self._ack = False
+          ok = await self._lock_interaction(interaction)
+          if not ok:
+            return
+        finally:
+          try:
+            await self._delete_message(interaction)
+          except Exception:
+            pass
+          self._ack = False
 
     close_btn.callback = _close_cb
     actions.add_item(close_btn)
@@ -427,36 +615,38 @@ class TradeStatusView(discord.ui.DesignerView):
       )
 
       async def _decline_cb(interaction: discord.Interaction):
-        if self._ack:
-          return
-        self._ack = True
-        try:
-          ok = await self._lock_interaction(interaction)
-          if not ok:
+        async with self._interaction_lock:
+          if self._ack:
             return
-          await self.cog._decline_trade_callback(interaction, self.active_trade)
-        finally:
+          self._ack = True
           try:
-            await self._delete_message(interaction)
-          except Exception:
-            pass
-          self._ack = False
+            ok = await self._lock_interaction(interaction)
+            if not ok:
+              return
+            await self.cog._decline_trade_callback(interaction, self.active_trade)
+          finally:
+            try:
+              await self._delete_message(interaction)
+            except Exception:
+              pass
+            self._ack = False
 
       async def _accept_cb(interaction: discord.Interaction):
-        if self._ack:
-          return
-        self._ack = True
-        try:
-          ok = await self._lock_interaction(interaction)
-          if not ok:
+        async with self._interaction_lock:
+          if self._ack:
             return
-          await self.cog._accept_trade_callback(interaction, self.active_trade)
-        finally:
+          self._ack = True
           try:
-            await self._delete_message(interaction)
-          except Exception:
-            pass
-          self._ack = False
+            ok = await self._lock_interaction(interaction)
+            if not ok:
+              return
+            await self.cog._accept_trade_callback(interaction, self.active_trade)
+          finally:
+            try:
+              await self._delete_message(interaction)
+            except Exception:
+              pass
+            self._ack = False
 
       decline_btn.callback = _decline_cb
       accept_btn.callback = _accept_cb
@@ -466,7 +656,7 @@ class TradeStatusView(discord.ui.DesignerView):
 
     if self.mode == "outgoing":
       cancel_btn = discord.ui.Button(
-        label="Cancel",
+        label="Cancel Trade",
         style=discord.ButtonStyle.danger,
         disabled=self._ui_locked
       )
@@ -477,36 +667,38 @@ class TradeStatusView(discord.ui.DesignerView):
       )
 
       async def _send_cb(interaction: discord.Interaction):
-        if self._ack:
-          return
-        self._ack = True
-        try:
-          ok = await self._lock_interaction(interaction)
-          if not ok:
+        async with self._interaction_lock:
+          if self._ack:
             return
-          await self.cog._send_trade_callback(interaction, self.active_trade)
-        finally:
+          self._ack = True
           try:
-            await self._delete_message(interaction)
-          except Exception:
-            pass
-          self._ack = False
+            ok = await self._lock_interaction(interaction)
+            if not ok:
+              return
+            await self.cog._send_trade_callback(interaction, self.active_trade)
+          finally:
+            try:
+              await self._delete_message(interaction)
+            except Exception:
+              pass
+            self._ack = False
 
       async def _cancel_cb(interaction: discord.Interaction):
-        if self._ack:
-          return
-        self._ack = True
-        try:
-          ok = await self._lock_interaction(interaction)
-          if not ok:
+        async with self._interaction_lock:
+          if self._ack:
             return
-          await self.cog._cancel_trade_callback(interaction, self.active_trade)
-        finally:
+          self._ack = True
           try:
-            await self._delete_message(interaction)
-          except Exception:
-            pass
-          self._ack = False
+            ok = await self._lock_interaction(interaction)
+            if not ok:
+              return
+            await self.cog._cancel_trade_callback(interaction, self.active_trade)
+          finally:
+            try:
+              await self._delete_message(interaction)
+            except Exception:
+              pass
+            self._ack = False
 
       send_btn.callback = _send_cb
       cancel_btn.callback = _cancel_cb
@@ -522,20 +714,21 @@ class TradeStatusView(discord.ui.DesignerView):
       )
 
       async def _cancel_cb(interaction: discord.Interaction):
-        if self._ack:
-          return
-        self._ack = True
-        try:
-          ok = await self._lock_interaction(interaction)
-          if not ok:
+        async with self._interaction_lock:
+          if self._ack:
             return
-          await self.cog._cancel_trade_callback(interaction, self.active_trade)
-        finally:
+          self._ack = True
           try:
-            await self._delete_message(interaction)
-          except Exception:
-            pass
-          self._ack = False
+            ok = await self._lock_interaction(interaction)
+            if not ok:
+              return
+            await self.cog._cancel_trade_callback(interaction, self.active_trade)
+          finally:
+            try:
+              await self._delete_message(interaction)
+            except Exception:
+              pass
+            self._ack = False
 
       cancel_btn.callback = _cancel_cb
       actions.add_item(cancel_btn)
@@ -543,30 +736,82 @@ class TradeStatusView(discord.ui.DesignerView):
     return nav, actions
 
   def _build_container_for_page(self, page: dict) -> discord.ui.Container:
-    files_present = bool(page.get("file_bytes"))
-    prestige_tier = PRESTIGE_TIERS.get(int(self.active_trade.get("prestige_level") or 0)) or "Unknown"
-
     container = discord.ui.Container(color=discord.Color.blurple().value)
-    container.add_item(discord.ui.TextDisplay(f"# Trade Summary [`{prestige_tier}`]"))
-    container.add_item(discord.ui.Separator())
-    container.add_item(discord.ui.TextDisplay(self._build_body_text(page, prestige_tier)))
 
-    if files_present:
+    container.add_item(discord.ui.TextDisplay(f"# {page.get('title') or 'Trade'}"))
+    container.add_item(discord.ui.Separator())
+
+    key = page.get("key")
+
+    if key == "home":
+      container.add_item(discord.ui.TextDisplay(self._build_body_text(page)))
       container.add_item(discord.ui.Separator())
-      try:
-        container.add_gallery(
-          discord.MediaGalleryItem(
-            url=f"attachment://{page['filename']}",
-            description="Trade"
-          )
-        )
-      except Exception:
-        pass
 
+      if page.get("file_bytes") and page.get("filename"):
+        try:
+          container.add_gallery(
+            discord.MediaGalleryItem(
+              url=f"attachment://{page['filename']}",
+              description="Trade"
+            )
+          )
+        except Exception:
+          pass
+
+      if page.get("has_any_crystals"):
+        container.add_item(discord.ui.TextDisplay(
+          "This trade contains badges which have crystals attached `(indicated by ⚠️)`"
+        ))
+
+      container.add_item(discord.ui.Separator())
+      nav_row, action_row = self._build_controls()
+      container.add_item(nav_row)
+      container.add_item(action_row)
+      return container
+
+    badges = page.get("badges") or []
+
+    rendered_any = False
+    for b in badges[:6]:
+      title = b.get("badge_name") or "Unknown Badge"
+      crystal_count = int(b.get("crystal_count") or 0)
+
+      thumb_name = b.get("thumb_filename")
+      has_thumb = bool(thumb_name and b.get("thumb_bytes"))
+
+      if not has_thumb:
+        container.add_item(discord.ui.TextDisplay(f"### {title}"))
+        if crystal_count > 0:
+          container.add_item(discord.ui.TextDisplay(
+            f"There are {crystal_count} Crystals attuned to this badge!"
+          ))
+        container.add_item(discord.ui.Separator())
+        rendered_any = True
+        continue
+
+      section = discord.ui.Section(
+        discord.ui.TextDisplay(f"### {title}")
+      )
+
+      if crystal_count > 0:
+        section.add_item(discord.ui.TextDisplay(
+          f"There are {crystal_count} Crystals attuned to this badge!"
+        ))
+
+      section.set_thumbnail(
+        url=f"attachment://{thumb_name}",
+        description="Badge"
+      )
+
+      container.add_item(section)
+      rendered_any = True
+
+    if not rendered_any:
+      container.add_item(discord.ui.TextDisplay("`(none)`"))
+
+    container.add_item(discord.ui.Separator())
     nav_row, action_row = self._build_controls()
-    container.add_item(discord.ui.Separator())
     container.add_item(nav_row)
-    container.add_item(discord.ui.Separator())
     container.add_item(action_row)
     return container
 
@@ -575,6 +820,27 @@ class TradeStatusView(discord.ui.DesignerView):
     container = self._build_container_for_page(page)
     self.clear_items()
     self.add_item(container)
+
+  def _build_files_for_page(self, page: dict) -> list[discord.File]:
+    files: list[discord.File] = []
+
+    if page.get("key") == "home":
+      dfile = self._build_file_from_bytes(page.get("file_bytes"), page.get("filename") or "trade_home.png")
+      if dfile:
+        files.append(dfile)
+      return files
+
+    for b in (page.get("badges") or [])[:6]:
+      thumb_bytes = b.get("thumb_bytes")
+      thumb_name = b.get("thumb_filename")
+      if not thumb_bytes or not thumb_name:
+        continue
+
+      dfile = self._build_file_from_bytes(thumb_bytes, thumb_name)
+      if dfile:
+        files.append(dfile)
+
+    return files
 
   async def _lock_interaction(self, interaction: discord.Interaction) -> bool:
     self._ui_locked = True
@@ -642,11 +908,7 @@ class TradeStatusView(discord.ui.DesignerView):
 
   async def _render(self, interaction: discord.Interaction, *, first: bool = False):
     page = self.pages[self.page]
-
-    files: list[discord.File] = []
-    file_obj = self._build_file(page)
-    if file_obj:
-      files.append(file_obj)
+    files = self._build_files_for_page(page)
 
     self._rebuild_view()
 
@@ -697,6 +959,27 @@ class TradeStatusView(discord.ui.DesignerView):
 
     await self._unlock_new_message()
 
+  async def on_timeout(self):
+    # Prevent any further callbacks from doing work.
+    try:
+      async with self._interaction_lock:
+        self._ack = True
+        self._ui_locked = True
+        try:
+          self._rebuild_view()
+        except Exception:
+          pass
+
+        # Best-effort: edit the last known message so Discord disables controls.
+        try:
+          if self.message:
+            await self.message.edit(view=self)
+        except Exception:
+          pass
+    finally:
+      # Let GC collect the view eventually; we just want the UI disabled.
+      pass
+
 
 # ___________                  .___     .___                            .__                _________      .__                 __ ____   ____.__
 # \__    ___/___________     __| _/____ |   | ____   ____  ____   _____ |__| ____    ____ /   _____/ ____ |  |   ____   _____/  |\   \ /   /|__| ______  _  __
@@ -713,6 +996,7 @@ class TradeIncomingSelectView(discord.ui.DesignerView):
 
     self._interaction_lock = asyncio.Lock()
     self._ack = False
+    self._ui_locked = False
     self.message = None
 
   def _is_component_interaction(self, interaction: discord.Interaction | None) -> bool:
@@ -800,6 +1084,53 @@ class TradeIncomingSelectView(discord.ui.DesignerView):
           self.message = None
     except Exception:
       pass
+
+  async def on_timeout(self):
+    try:
+      async with self._interaction_lock:
+        self._ack = True
+        self._ui_locked = True
+        try:
+          self._rebuild_view()
+        except Exception:
+          pass
+
+        try:
+          if self.message:
+            await self.message.edit(view=self)
+        except Exception:
+          pass
+    finally:
+      pass
+
+  def _rebuild_view(self):
+    # Rebuilds the view using the same requestor list, but with controls disabled if timed out/locked.
+    requestor_ids = [int(i) for i in (self.requestor_ids or [])]
+    requestor_ids = list(dict.fromkeys(requestor_ids))
+
+    # If we don't have anything to show, just keep the existing content (best-effort).
+    # (This should not happen in normal use.)
+    container = discord.ui.Container(color=discord.Color.blurple().value)
+    container.add_item(discord.ui.TextDisplay("# Incoming Trade Requests"))
+    container.add_item(discord.ui.Separator())
+    container.add_item(discord.ui.TextDisplay("Select a user to review their pending trade request."))
+
+    # NOTE: we do not refetch members here; we only need to disable UI.
+    # The original labels are already on-screen; this is just to render a disabled Select on timeout.
+    row = discord.ui.ActionRow()
+    select = discord.ui.Select(
+      placeholder="Select a user...",
+      min_values=1,
+      max_values=1,
+      options=[discord.SelectOption(label="(timed out)", value="na")],
+      disabled=True
+    )
+
+    row.add_item(select)
+    container.add_item(row)
+
+    self.clear_items()
+    self.add_item(container)
 
   async def start(self, interaction: discord.Interaction):
     requestor_ids = [int(i) for i in (self.requestor_ids or [])]
@@ -870,12 +1201,13 @@ class TradeIncomingSelectView(discord.ui.DesignerView):
       placeholder="Select a user...",
       min_values=1,
       max_values=1,
-      options=options[:25]
+      options=options[:25],
+      disabled=self._ui_locked
     )
 
     async def _select_cb(ix: discord.Interaction):
       async with self._interaction_lock:
-        if self._ack:
+        if self._ack or self._ui_locked:
           return
         self._ack = True
         try:
@@ -909,16 +1241,6 @@ class TradeIncomingSelectView(discord.ui.DesignerView):
       logger.exception("[trade] TradeIncomingSelectView:start send failed")
       self.message = None
 
-
-async def trade_has_attuned_crystals(active_trade: dict) -> bool:
-  offered_instances = await db_get_trade_offered_badge_instances(active_trade)
-  requested_instances = await db_get_trade_requested_badge_instances(active_trade)
-
-  for badge in list(offered_instances) + list(requested_instances):
-    crystals = await db_get_attuned_crystals(badge["badge_instance_id"])
-    if crystals:
-      return True
-  return False
 
 
 class Trade(commands.Cog):
@@ -975,8 +1297,7 @@ class Trade(commands.Cog):
         await interaction.followup.send(embed=embed, ephemeral=True)
       return
 
-    trade_pages = await self._generate_trade_pages(active_trade)
-    view = TradeStatusView(cog=self, active_trade=active_trade, mode="incoming", pages=trade_pages)
+    view = TradeStatusView(cog=self, active_trade=active_trade, mode="incoming")
     await view.start(interaction)
 
   #   _________ __                 __
@@ -1108,8 +1429,7 @@ class Trade(commands.Cog):
       await db_add_requested_instance(trade_id, request_instance_id)
 
     initiated_trade = await self.check_for_active_trade(ctx)
-    trade_pages = await self._generate_trade_pages(initiated_trade)
-    view = TradeStatusView(cog=self, active_trade=initiated_trade, mode="outgoing", pages=trade_pages)
+    view = TradeStatusView(cog=self, active_trade=initiated_trade, mode="outgoing")
     await view.start(ctx.interaction)
 
   async def _is_trade_initialization_valid(self, ctx: discord.ApplicationContext, requestee: discord.User):
@@ -1238,8 +1558,7 @@ class Trade(commands.Cog):
     if not active_trade:
       return
 
-    trade_pages = await self._generate_trade_pages(active_trade)
-    view = TradeStatusView(cog=self, active_trade=active_trade, mode="outgoing", pages=trade_pages)
+    view = TradeStatusView(cog=self, active_trade=active_trade, mode="outgoing")
     await view.start(ctx.interaction)
 
   # __________
@@ -1939,86 +2258,6 @@ class Trade(commands.Cog):
 
     return True
 
-  async def _generate_trade_pages(self, active_trade):
-    requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
-    requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
-
-    prestige_tier = PRESTIGE_TIERS[active_trade["prestige_level"]]
-
-    offered_instances = await db_get_trade_offered_badge_instances(active_trade)
-    requested_instances = await db_get_trade_requested_badge_instances(active_trade)
-
-    offered_names = "\n".join([f"- {b['badge_name']}" for b in offered_instances]) or "(none)"
-    requested_names = "\n".join([f"- {b['badge_name']}" for b in requested_instances]) or "(none)"
-
-    home_embed, home_file = await self._generate_home_embed_and_image(active_trade)
-    offered_embed, offered_file = await self._generate_offered_embed_and_image(active_trade)
-    requested_embed, requested_file = await self._generate_requested_embed_and_image(active_trade)
-
-    def _file_to_bytes(dfile: discord.File | None) -> tuple[bytes | None, str | None]:
-      if not dfile:
-        return None, None
-      try:
-        fp = dfile.fp
-        if hasattr(fp, "seek"):
-          fp.seek(0)
-        data = fp.read()
-        if hasattr(fp, "seek"):
-          fp.seek(0)
-        return data, dfile.filename
-      except Exception:
-        try:
-          name = getattr(getattr(dfile, "fp", None), "name", None)
-          if name:
-            with open(name, "rb") as rf:
-              return rf.read(), dfile.filename
-        except Exception:
-          pass
-      return None, dfile.filename
-
-    hb, hname = _file_to_bytes(home_file)
-    ob, oname = _file_to_bytes(offered_file)
-    rb, rname = _file_to_bytes(requested_file)
-
-    pages = [
-      {
-        "key": "home",
-        "title": f"Trade Status [{prestige_tier}]",
-        "file_bytes": hb,
-        "filename": hname or "trade_home.png",
-        "requestor_name": requestor.display_name,
-        "requestor_mention": requestor.mention,
-        "requestee_name": requestee.display_name,
-        "requestee_mention": requestee.mention,
-        "offered_names": offered_names,
-        "requested_names": requested_names
-      },
-      {
-        "key": "offered",
-        "title": "Offered Badges",
-        "file_bytes": ob,
-        "filename": oname or "trade_offered.png",
-        "requestor_name": requestor.display_name,
-        "requestor_mention": requestor.mention,
-        "requestee_name": requestee.display_name,
-        "requestee_mention": requestee.mention,
-        "offered_names": offered_names
-      },
-      {
-        "key": "requested",
-        "title": "Requested Badges",
-        "file_bytes": rb,
-        "filename": rname or "trade_requested.png",
-        "requestor_name": requestor.display_name,
-        "requestor_mention": requestor.mention,
-        "requestee_name": requestee.display_name,
-        "requestee_mention": requestee.mention,
-        "requested_names": requested_names
-      }
-    ]
-
-    return pages
-
   async def _generate_offered_embed_and_image(self, active_trade):
     requestee = await self.bot.current_guild.fetch_member(active_trade["requestee_id"])
     requestor = await self.bot.current_guild.fetch_member(active_trade["requestor_id"])
@@ -2088,7 +2327,7 @@ class Trade(commands.Cog):
       color = discord.Color(0x99aab5)
 
     if await trade_has_attuned_crystals(active_trade):
-      description += "\n\nNOTE: One or more badges in this trade have Crystals attached to them."
+      description += "\n\n⚠️ One or more badges in this trade have Crystals attached to them."
 
     home_embed = discord.Embed(
       title=title,
