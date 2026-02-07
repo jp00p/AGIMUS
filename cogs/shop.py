@@ -8,12 +8,9 @@ from cogs.profile import (
 
 # cogs.shop
 
-def _shop_color_ok() -> discord.Color:
+
+def _shop_color() -> discord.Color:
   return discord.Color(0xFFFFFF)
-
-
-def _shop_color_error() -> discord.Color:
-  return discord.Color.red()
 
 
 class ShopView(discord.ui.DesignerView):
@@ -30,6 +27,7 @@ class ShopView(discord.ui.DesignerView):
 
     self.items: list[dict] = []
     self.owned_names: set[str] = set()
+    self.role_owned = False
     self.page = 0
 
     self.notice: str | None = None
@@ -38,26 +36,32 @@ class ShopView(discord.ui.DesignerView):
   async def start(self, ctx: discord.ApplicationContext):
     self.items = self.cog._get_items_for_category(self.category)
     self.owned_names = await self.cog._get_owned_names(self.category, self.user.id)
+
+    player = await get_user(self.user.id)
+    self.balance = int(player['score']) if player else 0
+    if self.category == "roles":
+      self.role_owned = await self.cog._role_is_owned(self.user.id)
     self._rebuild_view()
 
     self.message = await ctx.followup.send(view=self, ephemeral=True)
 
   def _page_indicator_label(self) -> str:
-    if not self.items:
+    total = len(self.items)
+    if total == 0:
       return "0/0"
-    return f"{self.page + 1}/{len(self.items)}"
+    idx = (self.page % total) + 1
+    return f"{idx}/{total}"
 
   def _current_item(self) -> dict | None:
     if not self.items:
       return None
-    self.page = self.page % len(self.items)
-    return self.items[self.page]
+    return self.items[self.page % len(self.items)]
 
   def _is_purchased(self, item: dict) -> bool:
-    name = item["name"]
     if self.category == "roles":
-      return bool(self.cog._role_is_owned(self.user_discord_id, item))
-    return name in self.owned_names
+      # Right now only High Roller is supported.
+      return self.role_owned
+    return item["name"] in self.owned_names
 
   def _item_cost(self, item: dict) -> int:
     if self.category == "photos":
@@ -81,27 +85,10 @@ class ShopView(discord.ui.DesignerView):
       return "📱 Profile Styles Shop 📱"
     return "Shop"
 
-  def _build_description(self, item: dict) -> str:
-    purchased = self._is_purchased(item)
-    cost = self._item_cost(item)
-
-    if purchased:
-      cost_line = f"~~{cost} points.~~  **Purchased**"
-    else:
-      cost_line = f"`{cost} points`."
-
-    name = item["name"]
-    lines = [cost_line, "", f"**{name}**"]
-
-    if self.notice:
-      lines += ["", f"**{self.notice}**"]
-
-    return "\n".join(lines)
-
   def _build_container(self) -> discord.ui.Container:
     item = self._current_item()
 
-    container = discord.ui.Container(color=_shop_color_ok().value)
+    container = discord.ui.Container(color=_shop_color().value)
     container.add_item(discord.ui.TextDisplay(f"# {self._title_for_category()}"))
     container.add_item(discord.ui.Separator())
 
@@ -113,7 +100,23 @@ class ShopView(discord.ui.DesignerView):
       container.add_item(action_row)
       return container
 
-    container.add_item(discord.ui.TextDisplay(self._build_description(item)))
+    purchased = self._is_purchased(item)
+    cost = self._item_cost(item)
+
+    container.add_item(discord.ui.TextDisplay(f"## {item['name']}"))
+    if purchased:
+      container.add_item(discord.ui.TextDisplay(
+        f"> ✅ **Already Purchased** (~~{cost:,} Points~~)"
+      ))
+    else:
+      container.add_item(discord.ui.TextDisplay(
+        f"> 💵 **{cost:,} Points**"
+      ))
+
+    container.add_item(discord.ui.TextDisplay(
+      f"-# You currently have {self.balance:,} Points to spend."
+    ))
+
     container.add_item(discord.ui.Separator())
 
     preview_url = item.get("preview_url")
@@ -125,13 +128,21 @@ class ShopView(discord.ui.DesignerView):
         )
       )
 
+    if self.notice:
+      container.add_item(discord.ui.TextDisplay(f"-# {self.notice}"))
+
     container.add_item(discord.ui.Separator())
-    nav_row, action_row = self._build_controls(disabled=False)
+    nav_row, action_row = self._build_controls(disabled=False, buy_disabled=purchased)
     container.add_item(nav_row)
     container.add_item(action_row)
     return container
 
-  def _build_controls(self, *, disabled: bool) -> tuple[discord.ui.ActionRow, discord.ui.ActionRow]:
+  def _build_controls(
+    self,
+    *,
+    disabled: bool,
+    buy_disabled: bool = False
+  ) -> tuple[discord.ui.ActionRow, discord.ui.ActionRow]:
     nav_row = discord.ui.ActionRow()
 
     nav_disabled = disabled or self._ui_locked or (len(self.items) <= 1)
@@ -161,11 +172,14 @@ class ShopView(discord.ui.DesignerView):
           await self._lock_ui(interaction)
           self.notice = None
           self.page = (self.page + delta) % len(self.items)
+          # Unlock before rendering the new page so controls are immediately usable.
+          self._ui_locked = False
           self._rebuild_view()
+          # Revert: do not use self.message.edit here.
           await interaction.followup.edit_message(self.message.id, view=self)
         finally:
           self._ack = False
-          await self._unlock_ui()
+          self._ui_locked = False
 
     async def _prev_cb(interaction: discord.Interaction):
       await _nav(-1, interaction)
@@ -182,18 +196,18 @@ class ShopView(discord.ui.DesignerView):
 
     action_row = discord.ui.ActionRow()
 
-    buy_disabled = disabled or self._ui_locked or (self._current_item() is None)
-    close_disabled = disabled or self._ui_locked
+    buy_is_disabled = disabled or buy_disabled or self._ui_locked or (self._current_item() is None)
+    close_is_disabled = disabled or self._ui_locked
 
-    buy_btn = discord.ui.Button(
-      label="Buy",
-      style=discord.ButtonStyle.primary,
-      disabled=buy_disabled
-    )
     close_btn = discord.ui.Button(
       label="Close",
       style=discord.ButtonStyle.secondary,
-      disabled=close_disabled
+      disabled=close_is_disabled
+    )
+    buy_btn = discord.ui.Button(
+      label="Buy",
+      style=discord.ButtonStyle.primary,
+      disabled=buy_is_disabled
     )
 
     async def _buy_cb(interaction: discord.Interaction):
@@ -215,15 +229,25 @@ class ShopView(discord.ui.DesignerView):
             owned_names=self.owned_names
           )
 
-          self.notice = details["notice"]
-          if details["success"]:
-            self.owned_names.add(item["name"])
+          # Keep the balance synced to the DB.
+          player = await get_user(self.user.id)
+          self.balance = int(player["score"]) if player else 0
 
+          self.notice = details.get("notice")
+
+          if details.get("success"):
+            if self.category == "roles":
+              self.role_owned = True
+            else:
+              self.owned_names.add(item["name"])
+
+          # Unlock before rendering so the Buy/Prev/Next buttons don't stay disabled.
+          self._ui_locked = False
           self._rebuild_view()
           await interaction.followup.edit_message(self.message.id, view=self)
         finally:
           self._ack = False
-          await self._unlock_ui()
+          self._ui_locked = False
 
     async def _close_cb(interaction: discord.Interaction):
       async with self._interaction_lock:
@@ -239,39 +263,30 @@ class ShopView(discord.ui.DesignerView):
     buy_btn.callback = _buy_cb
     close_btn.callback = _close_cb
 
-    action_row.add_item(buy_btn)
+    # Active actions belong on the right.
     action_row.add_item(close_btn)
+    action_row.add_item(buy_btn)
     return nav_row, action_row
 
   async def _lock_ui(self, interaction: discord.Interaction):
     self._ui_locked = True
     self._rebuild_view()
-
     if not interaction.response.is_done():
       await interaction.response.edit_message(view=self)
 
-  async def _unlock_ui(self):
+  def _unlock_ui(self):
+    # The callback already edited the message; do not edit again here.
     self._ui_locked = False
     self._rebuild_view()
-    if self.message:
-      try:
-        await self.message.edit(view=self)
-      except Exception:
-        # If the message is gone, let it fail naturally.
-        pass
 
   async def _render_thanks(self, interaction: discord.Interaction):
     thanks = discord.ui.DesignerView(timeout=60)
-    container = discord.ui.Container(color=_shop_color_ok().value)
-    container.add_item(discord.ui.TextDisplay("# Thank you for visiting The Shop!"))
+    container = discord.ui.Container(color=_shop_color().value)
+    container.add_item(discord.ui.TextDisplay("## Thank you for visiting The Shop!"))
     thanks.add_item(container)
-    try:
-      thanks.disable_all_items()
-    except Exception:
-      pass
+    thanks.disable_all_items()
 
-    if self.message:
-      await interaction.followup.edit_message(self.message.id, view=thanks)
+    await interaction.followup.edit_message(self.message.id, view=thanks)
 
   def _rebuild_view(self):
     container = self._build_container()
@@ -284,10 +299,7 @@ class ShopView(discord.ui.DesignerView):
       self._ui_locked = True
       self._rebuild_view()
       if self.message:
-        try:
-          await self.message.edit(view=self)
-        except Exception:
-          pass
+        await self.message.edit(view=self)
 
 
 class Shop(commands.Cog):
@@ -297,14 +309,10 @@ class Shop(commands.Cog):
     with open(config["commands"]["shop"]["data"], "r") as f:
       self.shop_data = json.load(f)
 
-    # Cache for role ownership lookup (optional, populated per view).
-    self._role_owned_by_user: dict[str, bool] = {}
-
   shop = discord.SlashCommandGroup("shop", "Commands for purchasing /profile items")
 
   def _get_items_for_category(self, category: str) -> list[dict]:
     raw = self.shop_data[category]
-    # Normalize to {name, preview_url, price?}
     out: list[dict] = []
     for row in raw:
       out.append({
@@ -326,16 +334,12 @@ class Shop(commands.Cog):
       rows = await db_get_user_profile_styles_from_inventory(user_id)
       return {r["item_name"] for r in rows}
     if category == "roles":
-      user = await get_user(user_id)
-      self._role_owned_by_user[str(user_id)] = bool(user and user.get("high_roller"))
       return set()
     raise ValueError(f"Unknown shop category: {category}")
 
-  def _role_is_owned(self, user_discord_id: str, item: dict) -> bool:
-    # Right now only High Roller is supported.
-    if item["name"] != "High Roller":
-      return False
-    return bool(self._role_owned_by_user.get(user_discord_id))
+  async def _role_is_owned(self, user_id: int) -> bool:
+    user = await get_user(user_id)
+    return bool(user and user.get("high_roller"))
 
   async def _fire_purchase(
     self,
@@ -347,7 +351,7 @@ class Shop(commands.Cog):
   ) -> dict:
     player = await get_user(interaction.user.id)
     if not player:
-      return {"success": False, "notice": "Player record not found."}
+      return {"success": False, "notice": "❌ Player record not found."}
 
     cost = 0
     if category in ("photos", "stickers"):
@@ -356,39 +360,38 @@ class Shop(commands.Cog):
       cost = int(item["price"])
 
     if player["score"] < cost:
-      return {"success": False, "notice": f"You need `{cost} points` to buy that item!"}
+      return {"success": False, "notice": f"❌ You need `{cost:,} points` to buy that item!"}
 
     name = item["name"]
 
     if category == "photos":
       if name in owned_names:
-        return {"success": False, "notice": f"You already own {name}! No action taken."}
+        return {"success": False, "notice": None, "reason": "already_owned"}
       await purchase_player_photo(interaction.user, name)
       await set_player_score(interaction.user, -cost)
-      return {"success": True, "notice": f"Purchased **{name}**. Use `/profile set photo:` to apply it."}
+      return {"success": True, "notice": f"Purchased **{name}**. Use `/profile set photo:` to apply it. 🎉"}
 
     if category == "stickers":
       if name in owned_names:
-        return {"success": False, "notice": f"You already own {name}! No action taken."}
+        return {"success": False, "notice": None, "reason": "already_owned"}
       await purchase_player_sticker(interaction.user, name)
       await set_player_score(interaction.user, -cost)
-      return {"success": True, "notice": f"Purchased **{name}**. Use `/profile set sticker:` to apply it."}
+      return {"success": True, "notice": f"Purchased **{name}**. Use `/profile set sticker:` to apply it. 🎉"}
 
     if category == "styles":
       if name in owned_names:
-        return {"success": False, "notice": f"You already own {name}! No action taken."}
+        return {"success": False, "notice": None, "reason": "already_owned"}
       await purchase_player_style(interaction.user, name)
       await set_player_score(interaction.user, -cost)
-      return {"success": True, "notice": f"Purchased **{name}**. Use `/profile set style:` to apply it."}
+      return {"success": True, "notice": f"Purchased **{name}**. Use `/profile set style:` to apply it. 🎉"}
 
     if category == "roles":
-      if self._role_is_owned(str(interaction.user.id), item):
-        return {"success": False, "notice": f"You already have the **{name}** role. No points spent."}
+      if await self._role_is_owned(interaction.user.id):
+        return {"success": False, "notice": None, "reason": "already_owned"}
 
       await update_player_role(interaction.user, item)
       await set_player_score(interaction.user, -cost)
-      self._role_owned_by_user[str(interaction.user.id)] = True
-      return {"success": True, "notice": f"Purchased **{name}**. Use `/profile display` to check it out."}
+      return {"success": True, "notice": f"Purchased **{name}**. Use `/profile display` to check it out. 🎉"}
 
     raise ValueError(f"Unknown shop category: {category}")
 
@@ -417,9 +420,10 @@ class Shop(commands.Cog):
     await view.start(ctx)
 
 
-# DB helpers
 async def purchase_player_photo(user: discord.Member | discord.User, photo_name: str):
-  logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Photo: {Fore.CYAN}{photo_name}{Fore.RESET}")
+  logger.info(
+    f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Photo: {Fore.CYAN}{photo_name}{Fore.RESET}"
+  )
   async with AgimusDB() as db:
     sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
     vals = (str(user.id), "photo", photo_name)
@@ -427,7 +431,9 @@ async def purchase_player_photo(user: discord.Member | discord.User, photo_name:
 
 
 async def purchase_player_sticker(user: discord.Member | discord.User, sticker_name: str):
-  logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Sticker: {Fore.CYAN}{sticker_name}{Fore.RESET}")
+  logger.info(
+    f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Sticker: {Fore.CYAN}{sticker_name}{Fore.RESET}"
+  )
   async with AgimusDB() as db:
     sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
     vals = (str(user.id), "sticker", sticker_name)
@@ -435,7 +441,9 @@ async def purchase_player_sticker(user: discord.Member | discord.User, sticker_n
 
 
 async def purchase_player_style(user: discord.Member | discord.User, style_name: str):
-  logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Style: {Fore.CYAN}{style_name}{Fore.RESET}")
+  logger.info(
+    f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Style: {Fore.CYAN}{style_name}{Fore.RESET}"
+  )
   async with AgimusDB() as db:
     sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
     vals = (str(user.id), "style", style_name)
@@ -443,7 +451,9 @@ async def purchase_player_style(user: discord.Member | discord.User, style_name:
 
 
 async def update_player_role(user: discord.Member, role: dict):
-  logger.info(f"Updating user {Style.BRIGHT}{user.id}{Style.RESET_ALL} with new role: {Fore.CYAN}{role['name']}{Fore.RESET}")
+  logger.info(
+    f"Updating user {Style.BRIGHT}{user.id}{Style.RESET_ALL} with new role: {Fore.CYAN}{role['name']}{Fore.RESET}"
+  )
 
   if role["name"] == "High Roller":
     await add_high_roller(str(user.id))
