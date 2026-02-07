@@ -1,517 +1,461 @@
 from common import *
 
-from cogs.profile import db_get_user_profile_styles_from_inventory, db_get_user_profile_stickers_from_inventory, db_get_user_profile_photos_from_inventory
+from cogs.profile import (
+  db_get_user_profile_styles_from_inventory,
+  db_get_user_profile_stickers_from_inventory,
+  db_get_user_profile_photos_from_inventory
+)
+
+# cogs.shop
+
+def _shop_color_ok() -> discord.Color:
+  return discord.Color(0xFFFFFF)
 
 
-#   _________.__                 __________
-#  /   _____/|  |__   ____ ______\______   \_____     ____   ____
-#  \_____  \ |  |  \ /  _ \\____ \|     ___/\__  \   / ___\_/ __ \
-#  /        \|   Y  (  <_> )  |_> >    |     / __ \_/ /_/  >  ___/
-# /_______  /|___|  /\____/|   __/|____|    (____  /\___  / \___  >
-#         \/      \/       |__|                  \//_____/      \/
-class ShopPage(pages.Page):
-  def __init__(self, cog, embed, category, page_id):
-    self.category = category
-    self.page_id = page_id
-    super().__init__(
-      embeds=[embed]
+def _shop_color_error() -> discord.Color:
+  return discord.Color.red()
+
+
+class ShopView(discord.ui.DesignerView):
+  def __init__(self, *, cog, category: str, user: discord.Member | discord.User):
+    super().__init__(timeout=360)
+    self.cog = cog
+    self.category = category  # photos | stickers | roles | styles
+    self.user = user
+    self.user_discord_id = str(user.id)
+
+    self._interaction_lock = asyncio.Lock()
+    self._ack = False
+    self._ui_locked = False
+
+    self.items: list[dict] = []
+    self.owned_names: set[str] = set()
+    self.page = 0
+
+    self.notice: str | None = None
+    self.message: discord.Message | None = None
+
+  async def start(self, ctx: discord.ApplicationContext):
+    self.items = self.cog._get_items_for_category(self.category)
+    self.owned_names = await self.cog._get_owned_names(self.category, self.user.id)
+    self._rebuild_view()
+
+    self.message = await ctx.followup.send(view=self, ephemeral=True)
+
+  def _page_indicator_label(self) -> str:
+    if not self.items:
+      return "0/0"
+    return f"{self.page + 1}/{len(self.items)}"
+
+  def _current_item(self) -> dict | None:
+    if not self.items:
+      return None
+    self.page = self.page % len(self.items)
+    return self.items[self.page]
+
+  def _is_purchased(self, item: dict) -> bool:
+    name = item["name"]
+    if self.category == "roles":
+      return bool(self.cog._role_is_owned(self.user_discord_id, item))
+    return name in self.owned_names
+
+  def _item_cost(self, item: dict) -> int:
+    if self.category == "photos":
+      return 100
+    if self.category == "stickers":
+      return 25
+    if self.category == "roles":
+      return int(item["price"])
+    if self.category == "styles":
+      return int(item["price"])
+    raise ValueError(f"Unknown shop category: {self.category}")
+
+  def _title_for_category(self) -> str:
+    if self.category == "photos":
+      return "💳  Profile Photo Shop  💳"
+    if self.category == "stickers":
+      return "🎖️ Profile Sticker Shop 🎖️"
+    if self.category == "roles":
+      return "✨ Profile Roles Shop ✨"
+    if self.category == "styles":
+      return "📱 Profile Styles Shop 📱"
+    return "Shop"
+
+  def _build_description(self, item: dict) -> str:
+    purchased = self._is_purchased(item)
+    cost = self._item_cost(item)
+
+    if purchased:
+      cost_line = f"~~{cost} points.~~  **Purchased**"
+    else:
+      cost_line = f"`{cost} points`."
+
+    name = item["name"]
+    lines = [cost_line, "", f"**{name}**"]
+
+    if self.notice:
+      lines += ["", f"**{self.notice}**"]
+
+    return "\n".join(lines)
+
+  def _build_container(self) -> discord.ui.Container:
+    item = self._current_item()
+
+    container = discord.ui.Container(color=_shop_color_ok().value)
+    container.add_item(discord.ui.TextDisplay(f"# {self._title_for_category()}"))
+    container.add_item(discord.ui.Separator())
+
+    if not item:
+      container.add_item(discord.ui.TextDisplay("No items found."))
+      container.add_item(discord.ui.Separator())
+      nav_row, action_row = self._build_controls(disabled=True)
+      container.add_item(nav_row)
+      container.add_item(action_row)
+      return container
+
+    container.add_item(discord.ui.TextDisplay(self._build_description(item)))
+    container.add_item(discord.ui.Separator())
+
+    preview_url = item.get("preview_url")
+    if preview_url:
+      container.add_gallery(
+        discord.MediaGalleryItem(
+          url=preview_url,
+          description=item["name"]
+        )
+      )
+
+    container.add_item(discord.ui.Separator())
+    nav_row, action_row = self._build_controls(disabled=False)
+    container.add_item(nav_row)
+    container.add_item(action_row)
+    return container
+
+  def _build_controls(self, *, disabled: bool) -> tuple[discord.ui.ActionRow, discord.ui.ActionRow]:
+    nav_row = discord.ui.ActionRow()
+
+    nav_disabled = disabled or self._ui_locked or (len(self.items) <= 1)
+
+    prev_btn = discord.ui.Button(
+      label="Prev",
+      style=discord.ButtonStyle.secondary,
+      disabled=nav_disabled
     )
-    self.cog = cog
+    indicator = discord.ui.Button(
+      label=self._page_indicator_label(),
+      style=discord.ButtonStyle.secondary,
+      disabled=True
+    )
+    next_btn = discord.ui.Button(
+      label="Next",
+      style=discord.ButtonStyle.secondary,
+      disabled=nav_disabled
+    )
 
-  # When page is loaded, set the purchase record with page-info
-  async def callback(self, interaction):
-    try:
-      self.cog.upsert_purchase_record(interaction.user.id, {
-        "category": self.category,
-        "page": self.page_id,
-        "page_interaction": interaction
-      })
-    except Exception:
-      logger.info(traceback.format_exc())
+    async def _nav(delta: int, interaction: discord.Interaction):
+      async with self._interaction_lock:
+        if self._ack:
+          return
+        self._ack = True
+        try:
+          await self._lock_ui(interaction)
+          self.notice = None
+          self.page = (self.page + delta) % len(self.items)
+          self._rebuild_view()
+          await interaction.followup.edit_message(self.message.id, view=self)
+        finally:
+          self._ack = False
+          await self._unlock_ui()
 
+    async def _prev_cb(interaction: discord.Interaction):
+      await _nav(-1, interaction)
 
-# __________              __________        __    __
-# \______   \__ __ ___.__.\______   \__ ___/  |__/  |_  ____   ____
-#  |    |  _/  |  <   |  | |    |  _/  |  \   __\   __\/  _ \ /    \
-#  |    |   \  |  /\___  | |    |   \  |  /|  |  |  | (  <_> )   |  \
-#  |______  /____/ / ____| |______  /____/ |__|  |__|  \____/|___|  /
-#         \/       \/             \/                              \/
-class BuyButton(discord.ui.Button):
-  def __init__(self, cog):
-    self.cog = cog
-    super().__init__(
-      label="      Buy      ",
+    async def _next_cb(interaction: discord.Interaction):
+      await _nav(1, interaction)
+
+    prev_btn.callback = _prev_cb
+    next_btn.callback = _next_cb
+
+    nav_row.add_item(prev_btn)
+    nav_row.add_item(indicator)
+    nav_row.add_item(next_btn)
+
+    action_row = discord.ui.ActionRow()
+
+    buy_disabled = disabled or self._ui_locked or (self._current_item() is None)
+    close_disabled = disabled or self._ui_locked
+
+    buy_btn = discord.ui.Button(
+      label="Buy",
       style=discord.ButtonStyle.primary,
-      row=0
+      disabled=buy_disabled
+    )
+    close_btn = discord.ui.Button(
+      label="Close",
+      style=discord.ButtonStyle.secondary,
+      disabled=close_disabled
     )
 
-  async def callback(self, interaction: discord.Interaction):
-    await self.cog.buy_button_callback(interaction)
+    async def _buy_cb(interaction: discord.Interaction):
+      async with self._interaction_lock:
+        if self._ack:
+          return
+        self._ack = True
+        try:
+          await self._lock_ui(interaction)
+
+          item = self._current_item()
+          if not item:
+            return
+
+          details = await self.cog._fire_purchase(
+            interaction=interaction,
+            category=self.category,
+            item=item,
+            owned_names=self.owned_names
+          )
+
+          self.notice = details["notice"]
+          if details["success"]:
+            self.owned_names.add(item["name"])
+
+          self._rebuild_view()
+          await interaction.followup.edit_message(self.message.id, view=self)
+        finally:
+          self._ack = False
+          await self._unlock_ui()
+
+    async def _close_cb(interaction: discord.Interaction):
+      async with self._interaction_lock:
+        if self._ack:
+          return
+        self._ack = True
+        try:
+          await self._lock_ui(interaction)
+          await self._render_thanks(interaction)
+        finally:
+          self._ack = False
+
+    buy_btn.callback = _buy_cb
+    close_btn.callback = _close_cb
+
+    action_row.add_item(buy_btn)
+    action_row.add_item(close_btn)
+    return nav_row, action_row
+
+  async def _lock_ui(self, interaction: discord.Interaction):
+    self._ui_locked = True
+    self._rebuild_view()
+
+    if not interaction.response.is_done():
+      await interaction.response.edit_message(view=self)
+
+  async def _unlock_ui(self):
+    self._ui_locked = False
+    self._rebuild_view()
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except Exception:
+        # If the message is gone, let it fail naturally.
+        pass
+
+  async def _render_thanks(self, interaction: discord.Interaction):
+    thanks = discord.ui.DesignerView(timeout=60)
+    container = discord.ui.Container(color=_shop_color_ok().value)
+    container.add_item(discord.ui.TextDisplay("# Thank you for visiting The Shop!"))
+    thanks.add_item(container)
+    try:
+      thanks.disable_all_items()
+    except Exception:
+      pass
+
+    if self.message:
+      await interaction.followup.edit_message(self.message.id, view=thanks)
+
+  def _rebuild_view(self):
+    container = self._build_container()
+    self.clear_items()
+    self.add_item(container)
+
+  async def on_timeout(self):
+    async with self._interaction_lock:
+      self._ack = True
+      self._ui_locked = True
+      self._rebuild_view()
+      if self.message:
+        try:
+          await self.message.edit(view=self)
+        except Exception:
+          pass
 
 
-
-#   _________.__                    _________
-#  /   _____/|  |__   ____ ______   \_   ___ \  ____   ____
-#  \_____  \ |  |  \ /  _ \\____ \  /    \  \/ /  _ \ / ___\
-#  /        \|   Y  (  <_> )  |_> > \     \___(  <_> ) /_/  >
-# /_______  /|___|  /\____/|   __/   \______  /\____/\___  /
-#         \/      \/       |__|             \/      /_____/
 class Shop(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
-    self.purchase_records = {}
 
-    f = open(config["commands"]["shop"]["data"])
-    self.shop_data = json.load(f)
-    f.close()
+    with open(config["commands"]["shop"]["data"], "r") as f:
+      self.shop_data = json.load(f)
 
-  async def get_photo_pages(self, user_id: int = None):
-    """
-    Returns an array of ShopPages with embeds for photos.  If user_id is included, then it will mark already bought.
-    """
-    photo_pages = []
-    user_photos = [s['item_name'] for s in await db_get_user_profile_photos_from_inventory(user_id)]
-    for idx, photo in enumerate(self.shop_data["photos"]):
-      if photo['name'] in user_photos:
-        description = f"~~100 points each.~~  **Purchased**\n\n**{photo['name']}**"
-      else:
-        description = f"`100 points` each.\n\n**{photo['name']}**"
-      photo_embed = discord.Embed(
-        title="💳  Profile Photo Shop  💳",
-        description=description,
-        color=discord.Color(0xFFFFFF)
-      )
-      photo_embed.set_image(url=photo["preview_url"])
-      photo_page = ShopPage(self, photo_embed, "photos", idx)
-      photo_pages.append(photo_page)
-    return photo_pages
-
-  async def get_sticker_pages(self, user_id: int = None):
-    """
-    Returns an array of ShopPages with embeds for stickers.  If user_id is included, then it will mark already bought.
-    """
-    sticker_pages = []
-    user_stickers = [sticker["item_name"] for sticker in await db_get_user_profile_stickers_from_inventory(user_id)]
-    for idx, sticker in enumerate(self.shop_data["stickers"]):
-      if sticker['name'] in user_stickers:
-        cost = "~~25 points each~~  **Purchased**"
-      else:
-        cost = "`25 points` each."
-      sticker_embed = discord.Embed(
-        title="🎖️ Profile Sticker Shop 🎖️",
-        description=f"{cost}\n\n**{sticker['name']}**",
-        color=discord.Color(0xFFFFFF)
-      )
-      sticker_embed.set_image(url=sticker["preview_url"])
-      sticker_page = ShopPage(self, sticker_embed, "stickers", idx)
-      sticker_pages.append(sticker_page)
-    return sticker_pages
-
-  async def get_role_pages(self, user_id: int = None):
-    """
-    Get the pages for roles.  (Right now it’s only High Roller.  If more are added, then the hard coded things will have
-    to change.)
-    """
-    role_pages = []
-    user = await get_user(user_id)
-    print(repr(user))
-    for idx, role in enumerate(self.shop_data["roles"]):
-      if user and user["high_roller"]:
-        desc = f"~~{role['price']} points.~~  **Purchased**\n\n**{role['name']}**"
-      else:
-        desc = f"`{role['price']} points`.\n\n**{role['name']}**"
-      role_embed = discord.Embed(
-        title="✨ Profile Roles Shop ✨",
-        description=desc,
-        color=discord.Color(0xFFFFFF)
-      )
-      role_embed.set_image(url=role["preview_url"])
-      card_page = ShopPage(self, role_embed, "roles", idx)
-      role_pages.append(card_page)
-    return role_pages
-
-  async def get_style_pages(self, user_id: int = None):
-    """
-    Returns an array of ShopPages for styles
-    """
-    style_pages = []
-    user_styles = [s['item_name'] for s in await db_get_user_profile_styles_from_inventory(user_id)]
-
-    for idx, style in enumerate(self.shop_data["styles"]):
-      if style['name'] in user_styles:
-        desc = f"~~{style['price']} points.~~  **Purchased**\n\n**{style['name']}**"
-      else:
-        desc = f"`{style['price']} points`.\n\n**{style['name']}**"
-      style_embed = discord.Embed(
-        title="📱 Profile Styles Shop 📱",
-        description=desc,
-        color=discord.Color(0xFFFFFF)
-      )
-      style_embed.set_image(url=style["preview_url"])
-      card_page = ShopPage(self, style_embed, "styles", idx)
-      style_pages.append(card_page)
-    return style_pages
-
-
-  def get_purchase_record(self, interaction):
-    user_id = interaction.user.id
-    purchase_record = self.purchase_records.get(user_id)
-    return purchase_record
-
-  def upsert_purchase_record(self, user_id, update):
-    self.purchase_records[user_id] = update
-
-  def delete_purchase_record(self, user_id):
-    self.purchase_records.pop(user_id)
-
-
-  async def fire_purchase(self, interaction, purchase_record):
-    try:
-      cost = 0
-      category = purchase_record["category"]
-      if category == "photos":
-        cost = 100
-      elif category == "stickers":
-        cost = 25
-
-      player = await get_user(interaction.user.id)
-      result = {}
-      if player["score"] < cost:
-        result["success"] = False
-        result["message"] = f"You need `{cost} points` to buy that item!"
-
-      else:
-        if category == "photos":
-          photo = self.shop_data["photos"][purchase_record["page"]]
-          photo_name = photo["name"]
-          existing_player_photos = [s['item_name'] for s in await db_get_user_profile_photos_from_inventory(interaction.user.id)]
-
-          if photo_name in existing_player_photos:
-            result["success"] = False
-            result["message"] = f"You already own {photo_name}! No action taken."
-          else:
-            await purchase_player_photo(interaction.user, photo_name)
-            result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{photo_name}** profile photo!\n\nType `/profile set photo:` to apply it to your PADD!"
-
-        elif category == "stickers":
-          sticker = self.shop_data["stickers"][purchase_record["page"]]
-          sticker_name = sticker["name"]
-          existing_player_stickers = [s['item_name'] for s in await db_get_user_profile_stickers_from_inventory(interaction.user.id)]
-
-          if sticker_name in existing_player_stickers:
-            result["success"] = False
-            result["message"] = f"You already own {sticker_name}! No action taken."
-          else:
-            await purchase_player_sticker(interaction.user, sticker_name)
-            result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{sticker_name}** sticker!\n\nType `/profile set sticker:` to apply it to your PADD!"
-
-        elif category == "roles":
-          role = self.shop_data["roles"][purchase_record["page"]]
-          role_name = role["name"]
-          # Special Case for Roles, they may have different prices so need to check this again here:
-          cost = role["price"]
-          if player["score"] < cost:
-            result["success"] = False
-            result["message"] = f"You need `{cost} points` to buy that item!"
-          # NOTE: We'll need to clean this check up later if we add additional roles...
-          elif player["high_roller"]:
-            result["success"] = False
-            result["message"] = f"You already have the **{role_name}** role! \nWe gotchu, no points spent.\n\nType `/profile display` to check it out!"
-          else:
-            await update_player_role(interaction.user, role)
-            result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{role_name}** role!\n\nType `/profile display` to check it out!"
-
-        elif category == "styles":
-          style = self.shop_data["styles"][purchase_record["page"]]
-          style_name = style["name"]
-          # Special Case for Styles, they may have different prices so need to check this again here:
-          cost = style["price"]
-
-          existing_player_styles = [s['item_name'] for s in await db_get_user_profile_styles_from_inventory(interaction.user.id)]
-
-          if style_name in existing_player_styles:
-            result["success"] = False
-            result["message"] = f"You already own {style_name}! No action taken."
-          elif player["score"] < cost:
-            result["success"] = False
-            result["message"] = f"You need `{cost} points` to buy that item!"
-          else:
-            await purchase_player_style(interaction.user, style_name)
-            result["success"] = True
-            result["message"] = f"You have spent `{cost} points` and purchased the **{style_name}** profile style!\n\nType `/profile set style:` to enable it, then `/profile display` to show it off!"
-
-      if result["success"]:
-        await set_player_score(interaction.user, -cost)
-
-      return result
-    except Exception:
-      logger.info(traceback.format_exc())
-
-
-  async def edit_interaction_with_thanks(self, page_interaction):
-    thank_you_embed = discord.Embed(
-      title="Thank you for visiting The Shop!",
-      color=discord.Color(0xFFFFFF)
-    )
-
-    try:
-      page_interaction_type = type(page_interaction).__name__
-      if page_interaction_type == 'Interaction':
-        original_response = await page_interaction.original_response()
-        if original_response != None:
-          await original_response.edit(
-            embed=thank_you_embed,
-            view=None
-          )
-      elif page_interaction_type == 'InteractionMessage':
-        await page_interaction.edit(
-          embed=thank_you_embed,
-          view=None
-        )
-    except discord.HTTPException as e:
-      logger.info("Encountered error editing original shop message. Passing as okay, logging error:")
-      logger.info(traceback.format_exc())
-      pass
-
-
-
-  async def buy_button_callback(self, interaction):
-    # Try to make the actual DB Purchase
-    purchase_record = self.get_purchase_record(interaction)
-    details = await self.fire_purchase(interaction, purchase_record)
-
-    # Edit original Shop message with a thank you before sending confirmation message
-    original_interaction = purchase_record["page_interaction"]
-    await self.edit_interaction_with_thanks(original_interaction)
-
-    if details["success"]:
-      purchase_embed = discord.Embed(
-        title="Purchase Complete!",
-        description=details["message"],
-        color=discord.Color(0xFFFFFF)
-      )
-    else:
-      purchase_embed = discord.Embed(
-        title="Transaction Declined!",
-        description=details["message"],
-        color=discord.Color.red()
-      )
-
-    await interaction.response.send_message(embed=purchase_embed, ephemeral=True)
-
-    self.delete_purchase_record(interaction.user.id)
-
-  def get_custom_buttons(self):
-    return [
-      pages.PaginatorButton("prev", label=" ⬅ ", style=discord.ButtonStyle.green, row=1),
-      pages.PaginatorButton(
-        "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
-      ),
-      pages.PaginatorButton("next", label=" ➡ ", style=discord.ButtonStyle.green, row=1),
-    ]
-
+    # Cache for role ownership lookup (optional, populated per view).
+    self._role_owned_by_user: dict[str, bool] = {}
 
   shop = discord.SlashCommandGroup("shop", "Commands for purchasing /profile items")
 
-  @shop.command(
-    name="photos",
-    description="Shop for Profile photos!"
-  )
+  def _get_items_for_category(self, category: str) -> list[dict]:
+    raw = self.shop_data[category]
+    # Normalize to {name, preview_url, price?}
+    out: list[dict] = []
+    for row in raw:
+      out.append({
+        "name": row["name"],
+        "preview_url": row.get("preview_url"),
+        "price": row.get("price"),
+        "id": row.get("id")
+      })
+    return out
+
+  async def _get_owned_names(self, category: str, user_id: int) -> set[str]:
+    if category == "photos":
+      rows = await db_get_user_profile_photos_from_inventory(user_id)
+      return {r["item_name"] for r in rows}
+    if category == "stickers":
+      rows = await db_get_user_profile_stickers_from_inventory(user_id)
+      return {r["item_name"] for r in rows}
+    if category == "styles":
+      rows = await db_get_user_profile_styles_from_inventory(user_id)
+      return {r["item_name"] for r in rows}
+    if category == "roles":
+      user = await get_user(user_id)
+      self._role_owned_by_user[str(user_id)] = bool(user and user.get("high_roller"))
+      return set()
+    raise ValueError(f"Unknown shop category: {category}")
+
+  def _role_is_owned(self, user_discord_id: str, item: dict) -> bool:
+    # Right now only High Roller is supported.
+    if item["name"] != "High Roller":
+      return False
+    return bool(self._role_owned_by_user.get(user_discord_id))
+
+  async def _fire_purchase(
+    self,
+    *,
+    interaction: discord.Interaction,
+    category: str,
+    item: dict,
+    owned_names: set[str]
+  ) -> dict:
+    player = await get_user(interaction.user.id)
+    if not player:
+      return {"success": False, "notice": "Player record not found."}
+
+    cost = 0
+    if category in ("photos", "stickers"):
+      cost = 100 if category == "photos" else 25
+    else:
+      cost = int(item["price"])
+
+    if player["score"] < cost:
+      return {"success": False, "notice": f"You need `{cost} points` to buy that item!"}
+
+    name = item["name"]
+
+    if category == "photos":
+      if name in owned_names:
+        return {"success": False, "notice": f"You already own {name}! No action taken."}
+      await purchase_player_photo(interaction.user, name)
+      await set_player_score(interaction.user, -cost)
+      return {"success": True, "notice": f"Purchased **{name}**. Use `/profile set photo:` to apply it."}
+
+    if category == "stickers":
+      if name in owned_names:
+        return {"success": False, "notice": f"You already own {name}! No action taken."}
+      await purchase_player_sticker(interaction.user, name)
+      await set_player_score(interaction.user, -cost)
+      return {"success": True, "notice": f"Purchased **{name}**. Use `/profile set sticker:` to apply it."}
+
+    if category == "styles":
+      if name in owned_names:
+        return {"success": False, "notice": f"You already own {name}! No action taken."}
+      await purchase_player_style(interaction.user, name)
+      await set_player_score(interaction.user, -cost)
+      return {"success": True, "notice": f"Purchased **{name}**. Use `/profile set style:` to apply it."}
+
+    if category == "roles":
+      if self._role_is_owned(str(interaction.user.id), item):
+        return {"success": False, "notice": f"You already have the **{name}** role. No points spent."}
+
+      await update_player_role(interaction.user, item)
+      await set_player_score(interaction.user, -cost)
+      self._role_owned_by_user[str(interaction.user.id)] = True
+      return {"success": True, "notice": f"Purchased **{name}**. Use `/profile display` to check it out."}
+
+    raise ValueError(f"Unknown shop category: {category}")
+
+  @shop.command(name="photos", description="Shop for Profile photos!")
   async def photos(self, ctx: discord.ApplicationContext):
-    try:
-      existing_purchase_record = self.get_purchase_record(ctx)
+    await ctx.defer(ephemeral=True)
+    view = ShopView(cog=self, category="photos", user=ctx.user)
+    await view.start(ctx)
 
-      if existing_purchase_record:
-        existing_page_interaction = existing_purchase_record["page_interaction"]
-        await self.edit_interaction_with_thanks(existing_page_interaction)
-
-      view = discord.ui.View()
-      view.add_item(BuyButton(self))
-
-      photo_pages = await self.get_photo_pages(ctx.user.id)
-
-      paginator = pages.Paginator(
-        pages=photo_pages,
-        use_default_buttons=False,
-        custom_buttons=self.get_custom_buttons(),
-        trigger_on_display=True,
-        custom_view=view,
-        loop_pages=True
-      )
-      original_interaction = await paginator.respond(ctx.interaction, ephemeral=True)
-      self.upsert_purchase_record(ctx.author.id, {
-        "category": "photos",
-        "page": 0,
-        "page_interaction": original_interaction
-      })
-    except Exception as e:
-      logger.info(traceback.format_exc())
-
-
-  @shop.command(
-    name="stickers",
-    description="Shop for profile stickers!"
-  )
+  @shop.command(name="stickers", description="Shop for profile stickers!")
   async def stickers(self, ctx: discord.ApplicationContext):
-    try:
-      existing_purchase_record = self.get_purchase_record(ctx)
+    await ctx.defer(ephemeral=True)
+    view = ShopView(cog=self, category="stickers", user=ctx.user)
+    await view.start(ctx)
 
-      if existing_purchase_record:
-        existing_page_interaction = existing_purchase_record["page_interaction"]
-        await self.edit_interaction_with_thanks(existing_page_interaction)
-
-      view = discord.ui.View()
-      view.add_item(BuyButton(self))
-
-      sticker_pages = await self.get_sticker_pages(ctx.user.id)
-      paginator = pages.Paginator(
-        pages=sticker_pages,
-        use_default_buttons=False,
-        custom_buttons=self.get_custom_buttons(),
-        trigger_on_display=True,
-        custom_view=view,
-        loop_pages=True
-      )
-      original_interaction = await paginator.respond(ctx.interaction, ephemeral=True)
-      self.upsert_purchase_record(ctx.author.id, {
-        "category": "stickers",
-        "page": 0,
-        "page_interaction": original_interaction
-      })
-    except Exception as e:
-      logger.info(traceback.format_exc())
-
-
-  @shop.command(
-    name="roles",
-    description="Shop for Profile Roles!"
-  )
+  @shop.command(name="roles", description="Shop for Profile Roles!")
   async def roles(self, ctx: discord.ApplicationContext):
-    try:
-      existing_purchase_record = self.get_purchase_record(ctx)
+    await ctx.defer(ephemeral=True)
+    view = ShopView(cog=self, category="roles", user=ctx.user)
+    await view.start(ctx)
 
-      if existing_purchase_record:
-        existing_page_interaction = existing_purchase_record["page_interaction"]
-        await self.edit_interaction_with_thanks(existing_page_interaction)
-
-      view = discord.ui.View()
-      view.add_item(BuyButton(self))
-
-      role_pages = await self.get_role_pages(ctx.user.id)
-      paginator = pages.Paginator(
-        pages=role_pages,
-        use_default_buttons=False,
-        custom_buttons=self.get_custom_buttons(),
-        trigger_on_display=True,
-        custom_view=view,
-        loop_pages=True
-      )
-      original_interaction = await paginator.respond(ctx.interaction, ephemeral=True)
-      self.upsert_purchase_record(ctx.author.id, {
-        "category": "roles",
-        "page": 0,
-        "page_interaction": original_interaction
-      })
-    except Exception as e:
-      logger.info(traceback.format_exc())
-
-
-  @shop.command(
-    name="styles",
-    description="Shop for Profile PADD Styles!"
-  )
+  @shop.command(name="styles", description="Shop for Profile PADD Styles!")
   async def styles(self, ctx: discord.ApplicationContext):
-    try:
-      existing_purchase_record = self.get_purchase_record(ctx)
-
-      if existing_purchase_record:
-        existing_page_interaction = existing_purchase_record["page_interaction"]
-        await self.edit_interaction_with_thanks(existing_page_interaction)
-
-      view = discord.ui.View()
-      view.add_item(BuyButton(self))
-
-      style_pages = await self.get_style_pages(ctx.user.id)
-      paginator = pages.Paginator(
-        pages=style_pages,
-        use_default_buttons=False,
-        custom_buttons=self.get_custom_buttons(),
-        trigger_on_display=True,
-        custom_view=view,
-        loop_pages=True
-      )
-      original_interaction = await paginator.respond(ctx.interaction, ephemeral=True)
-      self.upsert_purchase_record(ctx.author.id, {
-        "category": "styles",
-        "page": 0,
-        "page_interaction": original_interaction
-      })
-    except Exception as e:
-      logger.info(traceback.format_exc())
+    await ctx.defer(ephemeral=True)
+    view = ShopView(cog=self, category="styles", user=ctx.user)
+    await view.start(ctx)
 
 
-
-# ________          __        ___.
-# \______ \ _____ _/  |______ \_ |__ _____    ______ ____
-#  |    |  \\__  \\   __\__  \ | __ \\__  \  /  ___// __ \
-#  |    `   \/ __ \|  |  / __ \| \_\ \/ __ \_\___ \\  ___/
-# /_______  (____  /__| (____  /___  (____  /____  >\___  >
-#         \/     \/          \/    \/     \/     \/     \/
-
-async def purchase_player_photo(user, photo_name):
+# DB helpers
+async def purchase_player_photo(user: discord.Member | discord.User, photo_name: str):
   logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Photo: {Fore.CYAN}{photo_name}{Fore.RESET}")
-  async with AgimusDB() as query:
+  async with AgimusDB() as db:
     sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
-    vals = (user.id, "photo", photo_name)
-    await query.execute(sql, vals)
+    vals = (str(user.id), "photo", photo_name)
+    await db.execute(sql, vals)
 
 
-async def purchase_player_sticker(user, sticker_name):
+async def purchase_player_sticker(user: discord.Member | discord.User, sticker_name: str):
   logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Sticker: {Fore.CYAN}{sticker_name}{Fore.RESET}")
-  async with AgimusDB() as query:
+  async with AgimusDB() as db:
     sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
-    vals = (user.id, "sticker", sticker_name)
-    await query.execute(sql, vals)
+    vals = (str(user.id), "sticker", sticker_name)
+    await db.execute(sql, vals)
 
 
-async def purchase_player_style(user, style_name):
+async def purchase_player_style(user: discord.Member | discord.User, style_name: str):
   logger.info(f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Style: {Fore.CYAN}{style_name}{Fore.RESET}")
-  async with AgimusDB() as query:
+  async with AgimusDB() as db:
     sql = "INSERT INTO profile_inventory (user_discord_id, item_category, item_name) VALUES (%s, %s, %s)"
-    vals = (user.id, "style", style_name)
-    await query.execute(sql, vals)
+    vals = (str(user.id), "style", style_name)
+    await db.execute(sql, vals)
 
 
-async def update_player_role(user, role):
-  """
-  update_player_role(user, role)
-
-  user[required]: object
-  role[required]: string
-
-  This function will add a discord role to a specific user
-  """
+async def update_player_role(user: discord.Member, role: dict):
   logger.info(f"Updating user {Style.BRIGHT}{user.id}{Style.RESET_ALL} with new role: {Fore.CYAN}{role['name']}{Fore.RESET}")
-  role_id = role["id"]
+
   if role["name"] == "High Roller":
-    await add_high_roller(user.id)
+    await add_high_roller(str(user.id))
+
+  role_id = int(role["id"])
   guild_role = user.guild.get_role(role_id)
-  if guild_role not in user.roles:
+  if guild_role and guild_role not in user.roles:
     await user.add_roles(guild_role)
 
 
-async def add_high_roller(discord_id):
-  """
-  add_high_roller(discord_id)
-
-  discord_id[required]: int
-
-  This function will set a specific user's high_roller value to '1' by discord user id
-  """
-  async with AgimusDB() as query:
+async def add_high_roller(discord_id: str):
+  async with AgimusDB() as db:
     sql = "UPDATE users SET high_roller = 1 WHERE discord_id = %s"
-    vals = (discord_id,)
-    await query.execute(sql, vals)
+    vals = (str(discord_id),)
+    await db.execute(sql, vals)
