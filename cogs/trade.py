@@ -22,20 +22,88 @@ with open("./data/rules_of_acquisition.txt", "r") as f:
   rules_of_acquisition = f.read().split("\n")
 
 
-# Global Color Utils (one convenient place to change them)
 def _trade_color_ok() -> discord.Color:
+  # Unified non-error color for Trade UX.
   return discord.Color.dark_purple()
+
 
 def _trade_color_error() -> discord.Color:
   return discord.Color.red()
 
 
-#    _____          __                                     .__          __          
-#   /  _  \  __ ___/  |_  ____   ____  ____   _____ ______ |  |   _____/  |_  ____  
-#  /  /_\  \|  |  \   __\/  _ \_/ ___\/  _ \ /     \\____ \|  | _/ __ \   __\/ __ \ 
-# /    |    \  |  /|  | (  <_> )  \__(  <_> )  Y Y  \  |_> >  |_\  ___/|  | \  ___/ 
-# \____|__  /____/ |__|  \____/ \___  >____/|__|_|  /   __/|____/\___  >__|  \___  >
-#         \/                        \/            \/|__|             \/          \/ 
+def _pick_active_crystal(
+  crystals: list[dict] | None,
+  *,
+  active_crystal_id: int | None
+) -> dict | None:
+  """
+  Select the slotted/active crystal for a badge instance.
+
+  Per schema:
+  - badge_instances.active_crystal_id -> crystal_instances.id
+  """
+  if not crystals:
+    return None
+
+  try:
+    active_id = int(active_crystal_id or 0)
+  except Exception:
+    active_id = 0
+
+  if not active_id:
+    return None
+
+  for c in crystals:
+    try:
+      cid = c.get("id")
+      if cid is None:
+        cid = c.get("crystal_instance_id")
+      cid = int(cid or 0)
+    except Exception:
+      cid = 0
+
+    if cid == active_id:
+      return c
+
+  return None
+
+async def trade_has_attuned_crystals(active_trade: dict) -> bool:
+  """
+  Returns True if any badge instance in the trade has 1+ attuned crystals.
+  """
+  if not active_trade:
+    return False
+
+  try:
+    offered = await db_get_trade_offered_badge_instances(active_trade)
+  except Exception:
+    offered = []
+
+  try:
+    requested = await db_get_trade_requested_badge_instances(active_trade)
+  except Exception:
+    requested = []
+
+  for b in (offered or []) + (requested or []):
+    try:
+      badge_instance_id = int(b.get("badge_instance_id") or 0)
+    except Exception:
+      badge_instance_id = 0
+
+    if not badge_instance_id:
+      continue
+
+    try:
+      crystals = await db_get_attuned_crystals(badge_instance_id)
+    except Exception:
+      crystals = []
+
+    if crystals:
+      return True
+
+  return False
+
+
 async def autocomplete_use_matches(ctx: discord.AutocompleteContext):
   """
   Autocomplete for the 'use_matches' option.
@@ -302,15 +370,15 @@ class TradeStatusView(discord.ui.DesignerView):
 
     home_asset = "trade_offer.png" if self.active_trade.get("status") == "active" else "trade_pending.png"
     home_path = f"{self.HOME_ASSET_DIR}/{home_asset}"
-    home_bytes = _read_file_bytes(home_path)
+    home_bytes = self._read_file_bytes(home_path)
 
     self.pages = [
       {
         "key": "home",
         "title": "Trade Summary",
         "prestige_tier": prestige_tier,
-        "requestor_mention": getattr(requestor, "mention", "") if requestor else "",
-        "requestee_mention": getattr(requestee, "mention", "") if requestee else "",
+        "requestor_mention": requestor.mention,
+        "requestee_mention": requestee.mention,
         "offered_names": offered_names,
         "requested_names": requested_names,
         "has_any_crystals": has_any_crystals,
@@ -320,12 +388,14 @@ class TradeStatusView(discord.ui.DesignerView):
       {
         "key": "offered",
         "title": "Offered Badges",
-        "badges": offered_meta
+        "badges": offered_meta,
+        "requestor_mention": requestor.mention
       },
       {
         "key": "requested",
         "title": "Requested Badges",
-        "badges": requested_meta
+        "badges": requested_meta,
+        "requestee_mention": requestee.mention
       }
     ]
 
@@ -346,7 +416,7 @@ class TradeStatusView(discord.ui.DesignerView):
 
       slotted = _pick_active_crystal(crystals, active_crystal_id=b.get("active_crystal_id"))
 
-      preview_bytes, preview_filename = await _try_build_badge_preview_bytes(
+      preview_bytes, preview_filename = await self._try_build_badge_preview_bytes(
         owner_id=owner_id,
         badge=b,
         badge_instance_id=badge_instance_id,
@@ -363,15 +433,107 @@ class TradeStatusView(discord.ui.DesignerView):
 
     return out
 
+  async def _try_build_badge_preview_bytes(
+    self,
+    *,
+    owner_id: str,
+    badge: dict,
+    badge_instance_id: int,
+    crystal: dict | None
+  ) -> tuple[bytes | None, str | None]:
+    if not owner_id or not badge_instance_id or not badge:
+      return None, None
+
+    try:
+      file, _url = await generate_badge_preview(
+        owner_id,
+        badge,
+        crystal=crystal,
+        theme=None,
+        disable_overlays=False
+      )
+      if not file:
+        return None, None
+
+      filename = getattr(file, "filename", None)
+      fp = getattr(file, "fp", None)
+      if not filename or not fp:
+        return None, None
+
+      try:
+        fp.seek(0)
+      except Exception:
+        pass
+
+      data = fp.read()
+      if not data:
+        return None, None
+
+      ext = "png"
+      try:
+        if "." in filename:
+          ext = filename.rsplit(".", 1)[-1].lower() or "png"
+      except Exception:
+        ext = "png"
+
+      safe_name = f"trade_{badge_instance_id}_preview.{ext}"
+      return data, safe_name
+    except Exception:
+      return None, None
+
+  def _read_file_bytes(self, path: str | None) -> bytes | None:
+    if not path:
+      return None
+    try:
+      with open(path, "rb") as rf:
+        return rf.read()
+    except Exception:
+      return None
+
+  def _build_file_from_bytes(self, file_bytes: bytes | None, filename: str) -> discord.File | None:
+    if not file_bytes or not filename:
+      return None
+    fp = io.BytesIO(file_bytes)
+    try:
+      fp.seek(0)
+    except Exception:
+      pass
+    return discord.File(fp=fp, filename=filename)
 
   def _page_indicator_label(self) -> str:
     return f"{self.page + 1}/{len(self.pages)}"
 
   def _is_component_interaction(self, interaction: discord.Interaction | None) -> bool:
-    return _is_component_interaction(interaction)
+    try:
+      return bool(interaction and getattr(interaction, "message", None))
+    except Exception:
+      return False
 
   async def _ack_interaction(self, interaction: discord.Interaction) -> bool:
-    return await _ack_interaction(interaction)
+    if interaction.response.is_done():
+      return True
+
+    if self._is_component_interaction(interaction):
+      try:
+        fn = getattr(interaction.response, "defer_update", None)
+        if fn:
+          await fn()
+          return True
+      except Exception:
+        pass
+
+    try:
+      await interaction.response.defer(ephemeral=True)
+      return True
+    except TypeError:
+      pass
+    except Exception:
+      return False
+    try:
+      await interaction.response.defer()
+      return True
+    except Exception:
+      return False
 
   def _build_body_text(self, page: dict) -> str:
     key = page.get("key")
@@ -695,7 +857,7 @@ class TradeStatusView(discord.ui.DesignerView):
     files: list[discord.File] = []
 
     if page.get("key") == "home":
-      dfile = _build_file_from_bytes(page.get("file_bytes"), page.get("filename") or "trade_home.png")
+      dfile = self._build_file_from_bytes(page.get("file_bytes"), page.get("filename") or "trade_home.png")
       if dfile:
         files.append(dfile)
       return files
@@ -706,7 +868,7 @@ class TradeStatusView(discord.ui.DesignerView):
       if not thumb_bytes or not thumb_name:
         continue
 
-      dfile = _build_file_from_bytes(thumb_bytes, thumb_name)
+      dfile = self._build_file_from_bytes(thumb_bytes, thumb_name)
       if dfile:
         files.append(dfile)
 
@@ -867,10 +1029,37 @@ class TradeIncomingSelectView(discord.ui.DesignerView):
     self.message = None
 
   def _is_component_interaction(self, interaction: discord.Interaction | None) -> bool:
-    return _is_component_interaction(interaction)
+    try:
+      return bool(interaction and getattr(interaction, "message", None))
+    except Exception:
+      return False
 
   async def _ack_interaction(self, interaction: discord.Interaction) -> bool:
-    return await _ack_interaction(interaction)
+    if interaction.response.is_done():
+      return True
+
+    if self._is_component_interaction(interaction):
+      try:
+        fn = getattr(interaction.response, "defer_update", None)
+        if fn:
+          await fn()
+          return True
+      except Exception:
+        pass
+
+    try:
+      await interaction.response.defer(ephemeral=True)
+      return True
+    except TypeError:
+      pass
+    except Exception:
+      return False
+
+    try:
+      await interaction.response.defer()
+      return True
+    except Exception:
+      return False
 
   async def _delete_message(self, interaction: discord.Interaction | None):
     msg = None
@@ -1701,12 +1890,12 @@ class Trade(commands.Cog):
       active_trade["status"] = "active"
 
       home_embed, home_image = await self._generate_home_embed_and_image(active_trade)
-      offered_embed, offered_image = await self._generate_offered_embed_and_image(active_trade)
-      requested_embed, requested_image = await self._generate_requested_embed_and_image(active_trade)
+      offered_view, offered_files = await self._generate_public_summary_view(active_trade, mode="offered")
+      requested_view, requested_files = await self._generate_public_summary_view(active_trade, mode="requested")
 
       home_message = await interaction.channel.send(embed=home_embed, file=home_image)
-      await interaction.channel.send(embed=offered_embed, file=offered_image)
-      await interaction.channel.send(embed=requested_embed, file=requested_image)
+      await interaction.channel.send(view=offered_view, files=offered_files)
+      await interaction.channel.send(view=requested_view, files=requested_files)
 
       user = await get_user(requestee.id)
       if user and user.get("receive_notifications"):
@@ -2093,6 +2282,64 @@ class Trade(commands.Cog):
 
     return home_embed, home_image
 
+  def _build_file_from_bytes(self, file_bytes: bytes | None, filename: str) -> discord.File | None:
+    if not file_bytes or not filename:
+      return None
+    fp = io.BytesIO(file_bytes)
+    try:
+      fp.seek(0)
+    except Exception:
+      pass
+    return discord.File(fp=fp, filename=filename)
+
+  async def _try_build_badge_preview_bytes(
+    self,
+    *,
+    owner_id: str,
+    badge: dict,
+    badge_instance_id: int,
+    crystal: dict | None
+  ) -> tuple[bytes | None, str | None]:
+    if not owner_id or not badge_instance_id or not badge:
+      return None, None
+
+    try:
+      file, _url = await generate_badge_preview(
+        owner_id,
+        badge,
+        crystal=crystal,
+        theme=None,
+        disable_overlays=True
+      )
+      if not file:
+        return None, None
+
+      filename = getattr(file, "filename", None)
+      fp = getattr(file, "fp", None)
+      if not filename or not fp:
+        return None, None
+
+      try:
+        fp.seek(0)
+      except Exception:
+        pass
+
+      data = fp.read()
+      if not data:
+        return None, None
+
+      ext = "png"
+      try:
+        if "." in filename:
+          ext = filename.rsplit(".", 1)[-1].lower() or "png"
+      except Exception:
+        ext = "png"
+
+      safe_name = f"trade_public_{badge_instance_id}_preview.{ext}"
+      return data, safe_name
+    except Exception:
+      return None, None
+
   async def _build_badge_meta_for_public(
     self,
     instances: list[dict],
@@ -2114,7 +2361,7 @@ class Trade(commands.Cog):
       crystal_count = len(crystals or [])
       slotted = _pick_active_crystal(crystals, active_crystal_id=b.get("active_crystal_id"))
 
-      preview_bytes, preview_filename = await _try_build_badge_preview_bytes(
+      preview_bytes, preview_filename = await self._try_build_badge_preview_bytes(
         owner_id=owner_id,
         badge=b,
         badge_instance_id=badge_instance_id,
@@ -2172,7 +2419,7 @@ class Trade(commands.Cog):
       has_thumb = bool(thumb_bytes and thumb_name)
 
       if has_thumb:
-        dfile = _build_file_from_bytes(thumb_bytes, thumb_name)
+        dfile = self._build_file_from_bytes(thumb_bytes, thumb_name)
         if dfile:
           files.append(dfile)
 
@@ -2199,182 +2446,3 @@ class Trade(commands.Cog):
 
     view.add_item(container)
     return view, files
-
-
-#   ___ ___         .__                              
-#  /   |   \   ____ |  | ______   ___________  ______
-# /    ~    \_/ __ \|  | \____ \_/ __ \_  __ \/  ___/
-# \    Y    /\  ___/|  |_|  |_> >  ___/|  | \/\___ \ 
-#  \___|_  /  \___  >____/   __/ \___  >__|  /____  >
-#        \/       \/     |__|        \/           \/ 
-def _pick_active_crystal(
-  crystals: list[dict] | None,
-  *,
-  active_crystal_id: int | None
-) -> dict | None:
-  """
-  Select the slotted/active crystal for a badge instance.
-  """
-  if not crystals:
-    return None
-
-  try:
-    active_id = int(active_crystal_id or 0)
-  except Exception:
-    active_id = 0
-
-  if not active_id:
-    return None
-
-  for c in crystals:
-    try:
-      cid = c.get("id")
-      if cid is None:
-        cid = c.get("crystal_instance_id")
-      cid = int(cid or 0)
-    except Exception:
-      cid = 0
-
-    if cid == active_id:
-      return c
-
-  return None
-
-def _read_file_bytes(path: str | None) -> bytes | None:
-  if not path:
-    return None
-  try:
-    with open(path, "rb") as rf:
-      return rf.read()
-  except Exception:
-    return None
-
-def _build_file_from_bytes(file_bytes: bytes | None, filename: str | None) -> discord.File | None:
-  if not file_bytes or not filename:
-    return None
-  fp = io.BytesIO(file_bytes)
-  try:
-    fp.seek(0)
-  except Exception:
-    pass
-  return discord.File(fp=fp, filename=filename)
-
-def _is_component_interaction(interaction: discord.Interaction | None) -> bool:
-  try:
-    return bool(interaction and getattr(interaction, 'message', None))
-  except Exception:
-    return False
-
-async def _ack_interaction(interaction: discord.Interaction | None, *, ephemeral: bool = True) -> bool:
-  """Best-effort ACK for Pycord 2.7 interactions.
-
-  - For component interactions, prefer defer_update when available.
-  - For non-component interactions, defer(ephemeral=True) when possible.
-
-  Returns True if we believe the interaction is acknowledged or already done.
-  """
-  if not interaction:
-    return False
-
-  try:
-    if interaction.response.is_done():
-      return True
-  except Exception:
-    return True
-
-  if _is_component_interaction(interaction):
-    fn = getattr(interaction.response, 'defer_update', None)
-    if callable(fn):
-      try:
-        await fn()
-        return True
-      except Exception:
-        return False
-
-    # Fallback: basic defer with no kwargs (Pycord signature differences).
-    try:
-      await interaction.response.defer()
-      return True
-    except Exception:
-      return False
-
-  # Slash-command / non-component.
-  try:
-    await interaction.response.defer(ephemeral=ephemeral)
-    return True
-  except TypeError:
-    try:
-      await interaction.response.defer()
-      return True
-    except Exception:
-      return False
-  except Exception:
-    return False
-
-
-def _pick_active_crystal(crystals: list[dict] | None, *, active_crystal_id: int | None) -> dict | None:
-  """Selects the currently slotted crystal for a badge instance.
-
-  Schema source of truth:
-  - badge_instances.active_crystal_id -> crystal_instances.id
-  """
-  if not crystals or not active_crystal_id:
-    return None
-
-  for c in crystals:
-    try:
-      if int(c.get("id") or 0) == int(active_crystal_id):
-        return c
-    except Exception:
-      continue
-
-  return None
-
-async def _try_build_badge_preview_bytes(
-  *,
-  owner_id: str,
-  badge: dict,
-  badge_instance_id: int,
-  crystal: dict | None,
-  disable_overlays: bool,
-  safe_prefix: str
-) -> tuple[bytes | None, str | None]:
-  if not owner_id or not badge_instance_id or not badge:
-    return None, None
-
-  try:
-    file, _url = await generate_badge_preview(
-      owner_id,
-      badge,
-      crystal=crystal,
-      theme=None,
-      disable_overlays=disable_overlays
-    )
-    if not file:
-      return None, None
-
-    filename = getattr(file, "filename", None)
-    fp = getattr(file, "fp", None)
-    if not filename or not fp:
-      return None, None
-
-    try:
-      fp.seek(0)
-    except Exception:
-      pass
-
-    data = fp.read()
-    if not data:
-      return None, None
-
-    ext = "png"
-    try:
-      if "." in filename:
-        ext = filename.rsplit(".", 1)[-1].lower() or "png"
-    except Exception:
-      ext = "png"
-
-    safe_name = f"{safe_prefix}{badge_instance_id}_preview.{ext}"
-    return data, safe_name
-  except Exception:
-    return None, None
