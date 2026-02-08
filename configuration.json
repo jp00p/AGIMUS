@@ -712,6 +712,22 @@
       "data": null,
       "parameters": []
     },
+    "rematerialize select": {
+      "channels": [
+        "gelrak-v"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
+    "rematerialize start": {
+      "channels": [
+        "gelrak-v"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "reports": {
       "channels": [
         "lieutenants-lounge",
@@ -1150,6 +1166,11 @@
       "parameters": []
     },
     "zed_ops set_bonus_xp": {
+      "allowed_user_ids": [735658100958298154],
+      "enabled": true,
+      "parameters": []
+    },
+    "zed_ops grant_random_crystals": {
       "allowed_user_ids": [735658100958298154],
       "enabled": true,
       "parameters": []

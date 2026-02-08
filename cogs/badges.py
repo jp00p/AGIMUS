@@ -85,7 +85,8 @@ class Badges(commands.Cog):
     description="Show off all your badges! Please be mindful of posting very large collections publicly."
   )
   @option(
-    name="public",
+    'public',
+    str,
     description="Show to public?",
     required=True,
     choices=[
@@ -100,13 +101,15 @@ class Badges(commands.Cog):
     ]
   )
   @option(
-    name="prestige",
+    'prestige',
+    str,
     description="Which Prestige Tier to display?",
     required=True,
     autocomplete=autocomplete_prestige_tiers
   )
   @option(
-    name="filter",
+    'filter',
+    str,
     description="Show only Locked, Unlocked, or Special badges?",
     required=False,
     choices=[
@@ -129,7 +132,8 @@ class Badges(commands.Cog):
     ]
   )
   @option(
-    name="sortby",
+    'sortby',
+    str,
     description="Sort your collection",
     required=False,
     choices=[
@@ -152,7 +156,8 @@ class Badges(commands.Cog):
     ]
   )
   @option(
-    name="color",
+    'color',
+    str,
     description="Which colorscheme would you like? (Applies to Standard Tier)",
     required=False,
     choices = [
@@ -304,7 +309,8 @@ class Badges(commands.Cog):
     description="See which badges you're still missing at a given Prestige Tier."
   )
   @option(
-    name="public",
+    'public',
+    str,
     description="Show to public?",
     required=True,
     choices=[
@@ -313,13 +319,15 @@ class Badges(commands.Cog):
     ]
   )
   @option(
-    name="prestige",
+    'prestige',
+    str,
     description="Which Prestige Tier to check?",
     required=True,
     autocomplete=autocomplete_prestige_tiers
   )
   @option(
-    name="color",
+    'color',
+    str,
     description="Which colorscheme would you like? (Only applies to Standard Tier)",
     required=False,
     choices = [
@@ -448,7 +456,8 @@ class Badges(commands.Cog):
     description="Show off sets of your badges! Please be mindful of posting very large sets publicly."
   )
   @option(
-    name="public",
+    'public',
+    str,
     description="Show to public?",
     required=True,
     choices=[
@@ -463,13 +472,15 @@ class Badges(commands.Cog):
     ]
   )
   @option(
-    name="prestige",
+    'prestige',
+    str,
     description="Which Prestige Tier to display?",
     required=True,
     autocomplete=autocomplete_prestige_tiers
   )
   @option(
-    name="category",
+    'category',
+    str,
     description="Which category of set?",
     required=True,
     choices=[
@@ -492,13 +503,15 @@ class Badges(commands.Cog):
     ]
   )
   @option(
-    name="selection",
+    'selection',
+    str,
     description="Which one?",
     required=True,
     autocomplete=autocomplete_selections
   )
   @option(
-    name="color",
+    'color',
+    str,
     description="Which colorscheme would you like? (Only applies to Standard Tier)",
     required=False,
     choices = [
@@ -661,7 +674,8 @@ class Badges(commands.Cog):
     description="Get a report of how close to completion you are on various sets."
   )
   @option(
-    name="public",
+    'public',
+    str,
     description="Show to public?",
     required=True,
     choices=[
@@ -676,13 +690,15 @@ class Badges(commands.Cog):
     ]
   )
   @option(
-    name="prestige",
+    'prestige',
+    str,
     description="Which Prestige Tier to display?",
     required=True,
     autocomplete=autocomplete_prestige_tiers
   )
   @option(
-    name="category",
+    'category',
+    str,
     description="Which category of set?",
     required=True,
     choices=[
@@ -705,7 +721,8 @@ class Badges(commands.Cog):
     ]
   )
   @option(
-    name="color",
+    'color',
+    str,
     description="Which colorscheme would you like?",
     required=False,
     choices = [
@@ -842,375 +859,27 @@ class Badges(commands.Cog):
 
     return rows
 
-
-  # #   _________
-  # #  /   _____/ ________________  ______ ______   ___________
-  # #  \_____  \_/ ___\_  __ \__  \ \____ \\____ \_/ __ \_  __ \
-  # #  /        \  \___|  | \// __ \|  |_> >  |_> >  ___/|  | \/
-  # # /_______  /\___  >__|  (____  /   __/|   __/ \___  >__|
-  # #         \/     \/           \/|__|   |__|        \/
-  # class ScrapButton(discord.ui.Button):
-  #   def __init__(self, user_id, badge_to_add, badges_to_scrap):
-  #     self.user_id = user_id
-  #     self.badge_to_add = badge_to_add
-  #     self.badges_to_scrap = badges_to_scrap
-  #     super().__init__(
-  #       label="Scrap",
-  #       style=discord.ButtonStyle.primary,
-  #       row=2
-  #     )
-
-  #   async def callback(self, interaction: discord.Interaction):
-  #     # Re-check conditions to ensure this action is still valid
-  #     # Ensure user still owns the badges
-  #     user_badges = await db_get_user_badge_instances(self.user_id)
-  #     user_badge_filenames = [b['badge_filename'] for b in user_badges]
-  #     owned_user_badges = [b for b in self.badges_to_scrap if b['badge_filename'] in user_badge_filenames]
-  #     # Ensure they haven't performed another scrap within the time period
-  #     time_check_fail = True
-  #     last_scrap_time = await db_get_scrap_last_timestamp(self.user_id)
-  #     if last_scrap_time:
-  #       to_zone = tz.tzlocal()
-  #       last_scrap_time.replace(tzinfo=to_zone)
-  #       current_time = datetime.now()
-  #       if last_scrap_time.date() < current_time.date():
-  #         time_check_fail = False
-  #     else:
-  #         time_check_fail = False
-
-  #     if (len(owned_user_badges) != 3) or (time_check_fail):
-  #       await interaction.response.edit_message(
-  #         embed=discord.Embed(
-  #           title="Error",
-  #           description=f"There's been a problem with this scrap request.\n\nEither you no longer possess the badges outlined or another scrap has been performed in the intervening time.",
-  #           color=discord.Color.red()
-  #         ),
-  #         view=None,
-  #         attachments=[]
-  #       )
-  #     else:
-  #       await interaction.response.edit_message(
-  #         embed=discord.Embed(
-  #           title="Scrapper initiated!",
-  #           description="Your badges are being broken down into their constituent components.\nJust a moment please...",
-  #           color=discord.Color.teal()
-  #         ),
-  #         view=None,
-  #         attachments=[]
-  #       )
-
-  #       # Cancel any existing trades that may be out requesting or offering these badges from this user
-  #       trades_to_cancel = await db_get_trades_to_cancel_from_scrapped_badges(self.user_id, self.badges_to_scrap)
-  #       await _cancel_invalid_scrapped_trades(trades_to_cancel)
-
-  #       # Do the actual scrappage
-  #       await db_perform_badge_scrap(self.user_id, self.badge_to_add, self.badges_to_scrap)
-
-  #       # Housekeeping
-  #       # Clear any badges from the users wishlist that the user may now possess
-  #       await db_purge_users_wishlist(self.user_id)
-
-  #       # Post message about successful scrap
-  #       scrapper_gif = await generate_badge_scrapper_result_gif(self.user_id, self.badge_to_add, self.badges_to_scrap)
-
-  #       scrap_complete_messages = [
-  #         "{} reaches into AGIMUS' warm scrap hole and pulls out a shiny new badge!",
-  #         "{} uses the Scrap-o-matic! Three old badges become one shiny new badge. That's science, baby!",
-  #         "{} has replicator rations to spare, so they've scrapped some old badges for a new one!",
-  #         "{} performs some strange gestures in front of the replicator. They hold a new badge above their head!",
-  #         "{} adds 3 old crusty badges to the scrapper, and yanks out a new shiny badge!",
-  #         "{} is using the scrapper on the clock. Don't tell the captain!",
-  #         "{} is donating three old badges to the void, and gets a brand new badge in return!",
-  #         "{} suspiciously shoves three badges into the slot and hastily pulls a fresh badge out, hoping you didn't see anything.",
-  #         "Scrap complete! {} has recycled three old badges into one new badge!",
-  #         "{} has used the badge scrapper! Tonight is the night when 3 become 1 🎶"
-  #       ]
-
-  #       embed = discord.Embed(
-  #         title="Scrap complete!",
-  #         description=random.choice(scrap_complete_messages).format(interaction.user.mention),
-  #         color=discord.Color.teal()
-  #       )
-  #       embed.add_field(
-  #         name="Scrapped badges: ❌",
-  #         value="\n".join(["~~"+b['badge_name']+"~~" for b in self.badges_to_scrap]),
-  #         inline=False
-  #       )
-  #       embed.add_field(
-  #         name="New badge: 🆕",
-  #         value=f"🌟 **{self.badge_to_add['badge_name']}** [(badge details)]({self.badge_to_add['badge_url']})",
-  #         inline=False
-  #       )
-  #       embed.set_image(url=f"attachment://scrap_{self.user_id}.gif")
-  #       await interaction.channel.send(embed=embed, file=scrapper_gif)
-
-  # class CancelScrapButton(discord.ui.Button):
-  #   def __init__(self):
-  #     super().__init__(
-  #       label="Cancel",
-  #       style=discord.ButtonStyle.red,
-  #       row=2
-  #     )
-
-  #   async def callback(self, interaction:discord.Interaction):
-  #     await interaction.response.edit_message(
-  #       embed=discord.Embed(
-  #         title="Scrap cancelled!",
-  #         description="You may initiate a new scrap with `/badges scrap` at any time.",
-  #         color=discord.Color.teal()
-  #       ),
-  #       view=None,
-  #       attachments=[]
-  #     )
-
-  # class ScrapCancelView(discord.ui.View):
-  #   def __init__(self, user_id, badge_to_add, badges_to_scrap):
-  #     super().__init__()
-  #     self.add_item(CancelScrapButton())
-  #     self.add_item(ScrapButton(user_id, badge_to_add, badges_to_scrap))
-
-
-  # @badge_group.command(
-  #   name="scrap",
-  #   description="Turn in 3 unlocked badges for 1 new random badge. One scrap allowed every 24 hours."
-  # )
-  # @option(
-  #   name="first_badge",
-  #   description="First badge to scrap",
-  #   required=True,
-  #   autocomplete=scrapper_autocomplete
-  # )
-  # @option(
-  #   name="second_badge",
-  #   description="Second badge to scrap",
-  #   required=True,
-  #   autocomplete=scrapper_autocomplete
-  # )
-  # @option(
-  #   name="third_badge",
-  #   description="Third badge to scrap",
-  #   required=True,
-  #   autocomplete=scrapper_autocomplete
-  # )
-  # @commands.check(access_check)
-  # async def scrap(ctx:discord.ApplicationContext, first_badge:str, second_badge:str, third_badge:str):
-  #   """
-  #   This function executes the scrap for the /badge scrap command
-  #   :param ctx:
-  #   :param first_badge: The name of the first badge to scrap.
-  #   :param second_badge: The name of the second badge to scrap.
-  #   :param third_badge: The name of the third badge to scrap.
-  #   :return:
-  #   """
-  #   await ctx.defer(ephemeral=True)
-  #   user_id = ctx.interaction.user.id
-
-  #   selected_badges = [first_badge, second_badge, third_badge]
-  #   unlocked_user_badges = await db_get_user_badge_instances(user_id, locked=False)
-  #   unlocked_user_badge_names = [b['badge_name'] for b in unlocked_user_badges]
-
-  #   selected_user_badges = [b for b in selected_badges if b in unlocked_user_badge_names]
-
-  #   if len(selected_user_badges) != 3:
-  #     await ctx.followup.send(embed=discord.Embed(
-  #       title="Invalid Selection",
-  #       description=f"You must own all of the badges you've selected to scrap and they must be unlocked!",
-  #       color=discord.Color.red()
-  #     ), ephemeral=True)
-  #     return
-
-  #   if len(selected_user_badges) > len(set(selected_user_badges)):
-  #     await ctx.followup.send(embed=discord.Embed(
-  #       title="Invalid Selection",
-  #       description=f"All badges selected must be unique!",
-  #       color=discord.Color.red()
-  #     ), ephemeral=True)
-  #     return
-
-  #   restricted_badges = [b for b in selected_user_badges if b in [b['badge_name'] for b in await db_get_special_badge_info()]]
-  #   if restricted_badges:
-  #     await ctx.followup.send(embed=discord.Embed(
-  #       title="Invalid Selection",
-  #       description=f"You cannot scrap the following: {','.join(restricted_badges)}!",
-  #       color=discord.Color.red()
-  #     ), ephemeral=True)
-  #     return
-
-  #   # If all basics checks pass,
-  #   # check that they're within the allowed time window
-  #   last_scrap_time = await db_get_scrap_last_timestamp(user_id)
-  #   if last_scrap_time:
-  #     time_check_fail = True
-
-  #     to_zone = tz.tzlocal()
-  #     last_scrap_time.replace(tzinfo=to_zone)
-  #     current_time = datetime.now()
-  #     current_time.replace(tzinfo=to_zone)
-  #     if last_scrap_time.date() < current_time.date():
-  #       time_check_fail = False
-
-  #     if time_check_fail:
-  #       midnight_tomorrow = current_time.date() + timedelta(days=1)
-  #       midnight_tomorrow = datetime.combine(midnight_tomorrow, datetime.min.time())
-
-  #       humanized_time_left = humanize.precisedelta(midnight_tomorrow - current_time, suppress=["days"])
-  #       await ctx.followup.send(embed=discord.Embed(
-  #         title="Scrapper recharging, please wait.",
-  #         description=f"Reset time at Midnight Pacific ({humanized_time_left} left).",
-  #         color=discord.Color.red()
-  #       ), ephemeral=True)
-  #       return
-
-  #   # If time check okay, select a new random badge
-  #   all_possible_badges = [b['badge_name'] for b in await db_get_all_badge_info()]
-  #   special_badge_names = [b['badge_name'] for b in await db_get_special_badge_info()]
-  #   # Don't give them a badge they already have or a special badge
-  #   all_user_badge_names = [b['badge_name'] for b in await db_get_user_badge_instances(user_id)]
-  #   valid_choices = [b for b in all_possible_badges if b not in all_user_badge_names and b not in special_badge_names]
-  #   if len(valid_choices) == 0:
-  #     await ctx.respond(embed=discord.Embed(
-  #       title="You already have *ALL BADGES!?!*",
-  #       description=f"Amazing! You've collected every unique badge we have, so scrapping is unnecessary. Get it player.",
-  #       color=discord.Color.random()
-  #     ), ephemeral=True)
-  #     return
-
-  #   badge_choice = random.choice(valid_choices)
-
-  #   badge_to_add = await db_get_badge_info_by_name(badge_choice)
-  #   badges_to_scrap = [await db_get_badge_info_by_name(b) for b in selected_user_badges]
-
-  #   # Check for wishlist badges
-  #   wishlist_matches = [await db_get_wishlist_badge_matches(b['badge_filename']) for b in badges_to_scrap]
-  #   wishlist_matches_groups = [m for m in wishlist_matches if m]
-
-  #   # Generate Animated Scrapper Gif
-  #   scrapper_confirm_gif = await generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
-
-  #   # Create the first page
-  #   scrap_embed_description = "** This cannot be undone.\n**" + str("\n".join(selected_user_badges))
-  #   if len(wishlist_matches_groups):
-  #     scrap_embed_description += "\n\n**NOTE:** One or more of the badges you're looking to scrap are on other user's wishlists! Check the following pages for more details, you may want to reach out to see if they'd like to trade!"
-
-  #   scrap_embed = discord.Embed(
-  #     title="Are you sure you want to scrap these badges?",
-  #     description=scrap_embed_description,
-  #     color=discord.Color.teal()
-  #   )
-  #   scrap_embed.set_image(url=f"attachment://scrap_{user_id}-confirm.gif")
-  #   scrap_page = pages.Page(
-  #     embeds=[scrap_embed],
-  #     files=[scrapper_confirm_gif]
-  #   )
-
-  #   # Iterate over any wishlist matches if present and add them to paginator pages
-  #   scrapper_pages = [scrap_page]
-  #   for wishlist_matches in wishlist_matches_groups:
-  #     if len(wishlist_matches):
-  #       badge_filename = wishlist_matches[0]['badge_filename']
-  #       badge_info = await db_get_badge_info_by_filename(badge_filename)
-  #       users = [await bot.current_guild.fetch_member(m['user_discord_id']) for m in wishlist_matches]
-  #       wishlist_match_embed = discord.Embed(
-  #         title=f"The following users want {badge_info['badge_name']}",
-  #         description="\n".join([u.mention for u in users]),
-  #         color=discord.Color.teal()
-  #       )
-  #       scrapper_pages.append(wishlist_match_embed)
-
-  #   # Send scrapper paginator
-  #   view = ScrapCancelView(user_id, badge_to_add, badges_to_scrap)
-  #   paginator = pages.Paginator(
-  #     pages=scrapper_pages,
-  #     custom_buttons=[
-  #       pages.PaginatorButton("prev", label="⬅", style=discord.ButtonStyle.primary, row=1),
-  #       pages.PaginatorButton(
-  #         "page_indicator", style=discord.ButtonStyle.gray, disabled=True, row=1
-  #       ),
-  #       pages.PaginatorButton("next", label="➡", style=discord.ButtonStyle.primary, row=1),
-  #     ],
-  #     use_default_buttons=False,
-  #     custom_view=view
-  #   )
-  #   await paginator.respond(ctx.interaction, ephemeral=True)
-
-
-  # async def _cancel_invalid_scrapped_trades(trades_to_cancel):
-  #   # Iterate through to cancel
-  #   for trade in trades_to_cancel:
-  #     await db_cancel_trade(trade)
-  #     requestee = await bot.current_guild.fetch_member(trade['requestee_id'])
-  #     requestor = await bot.current_guild.fetch_member(trade['requestor_id'])
-
-  #     offered_badge_names, requested_badge_names = await get_offered_and_requested_badge_names(trade)
-
-  #     # Give notice to Requestee
-  #     user = await get_user(requestee.id)
-  #     if user["receive_notifications"]:
-  #       try:
-  #         requestee_embed = discord.Embed(
-  #           title="Trade Canceled",
-  #           description=f"Just a heads up! Your pending trade initiated by {requestor.mention} was canceled because one or more of the badges involved were scrapped!",
-  #           color=discord.Color.purple()
-  #         )
-  #         requestee_embed.add_field(
-  #           name=f"Offered by {requestor.display_name}",
-  #           value=offered_badge_names
-  #         )
-  #         requestee_embed.add_field(
-  #           name=f"Requested from {requestee.display_name}",
-  #           value=requested_badge_names
-  #         )
-  #         requestee_embed.set_footer(
-  #           text="Note: You can use /settings to enable or disable these messages."
-  #         )
-  #         await requestee.send(embed=requestee_embed)
-  #       except discord.Forbidden as e:
-  #         logger.info(f"Unable to send trade cancelation message to {requestee.display_name}, they have their DMs closed.")
-  #         pass
-
-  #     # Give notice to Requestor
-  #     user = await get_user(requestor.id)
-  #     if user["receive_notifications"]:
-  #       try:
-  #         requestor_embed = discord.Embed(
-  #           title="Trade Canceled",
-  #           description=f"Just a heads up! Your pending trade requested from {requestee.mention} was canceled because one or more of the badges involved were scrapped!",
-  #           color=discord.Color.purple()
-  #         )
-  #         requestor_embed.add_field(
-  #           name=f"Offered by {requestor.display_name}",
-  #           value=offered_badge_names
-  #         )
-  #         requestor_embed.add_field(
-  #           name=f"Requested from {requestee.display_name}",
-  #           value=requested_badge_names
-  #         )
-  #         requestor_embed.set_footer(
-  #           text="Note: You can use /settings to enable or disable these messages."
-  #         )
-  #         await requestor.send(embed=requestor_embed)
-  #       except discord.Forbidden as e:
-  #         logger.info(f"Unable to send trade cancelation message to {requestor.display_name}, they have their DMs closed.")
-  #         pass
-
   @badge_group.command(
     name="spotlight",
     description="Show off one of your badges."
   )
   @option(
-    name="prestige",
+    'prestige',
+    str,
     description="Which Prestige Tier?",
     required=True,
     autocomplete=autocomplete_prestige_tiers
   )
   @option(
-    name="badge",
+    'badge',
+    str,
     description="Which Badge?",
     required=True,
     autocomplete=autocomplete_users_badges
   )
   @option(
-    name="public",
+    'public',
+    str,
     description="Should others see this?",
     required=True,
     choices=[
@@ -1219,7 +888,8 @@ class Badges(commands.Cog):
     ]
   )
   @option(
-    name="full_metadata",
+    'full_metadata',
+    str,
     description="Include all metadata ()?",
     required=False,
     choices=[
@@ -1332,7 +1002,8 @@ class Badges(commands.Cog):
     description="Look up information about a specific badge"
   )
   @option(
-    name="public",
+    'public',
+    str,
     description="Show to public?",
     required=True,
     choices=[
@@ -1341,7 +1012,8 @@ class Badges(commands.Cog):
     ]
   )
   @option(
-    name="name",
+    'name',
+    str,
     description="Which badge do you want to look up?",
     required=True,
     autocomplete=all_badges_autocomplete
@@ -1357,7 +1029,7 @@ class Badges(commands.Cog):
     await ctx.defer(ephemeral=not public)
 
     logger.info(f"{Fore.CYAN}Firing /badge lookup command for '{name}'!{Fore.RESET}")
-    
+
     badge = await db_get_badge_info_by_name(name)
     if not badge:
       await ctx.followup.send(
@@ -1494,188 +1166,6 @@ class Badges(commands.Cog):
   #   embed.add_field(name=f"{get_emoji('combadge')} Top 5 most locked", value=str("\n".join(f"{t['badge_name']} ({t['count']})" for t in top_locked)), inline=True)
   #   await ctx.respond(embed=embed, ephemeral=False)
 
-  # #   ________.__  _____  __
-  # #  /  _____/|__|/ ____\/  |_
-  # # /   \  ___|  \   __\\   __\
-  # # \    \_\  \  ||  |   |  |
-  # #  \______  /__||__|   |__|
-  # #         \/
-  # @bot.slash_command(
-  #   name="gift_badge",
-  #   description="Give a user a random badge (admin only)"
-  # )
-  # @commands.has_permissions(administrator=True)
-  # @option(
-  #   "user",
-  #   discord.User,
-  #   description="Which user to gift the badge to",
-  #   required=True
-  # )
-  # @option(
-  #   "reason",
-  #   str,
-  #   description="The reason for the gift!",
-  #   required=False
-  # )
-  # async def gift_badge(ctx: discord.ApplicationContext, user: discord.User, reason: str = ""):
-  #   await ctx.defer(ephemeral=True)
-
-  #   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
-  #   logger.info(f"{ctx.author.display_name} is attempting to gift a random badge to {user.display_name}")
-
-  #   badge_instance = await award_random_badge(user.id)
-
-  #   if badge_instance is None:
-  #     await ctx.respond(embed=discord.Embed(
-  #       title="This user already has *ALL BADGES!?!*",
-  #       description="Amazing! This user already has every badge we've got! Gifting unnecessary/impossible!",
-  #       color=discord.Color.random()
-  #     ), ephemeral=True)
-  #     return
-
-  #   badge_filename = badge_instance['badge_filename']
-  #   was_on_wishlist = badge_instance.get('locked', False)  # If it was auto-locked, it was on the wishlist
-
-  #   embed_title = f"{user.display_name} received a free badge!"
-  #   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
-  #   embed_description = f"{user.mention} has been gifted a badge by {ctx.author.mention}!"
-  #   if reason:
-  #     embed_description = f" It's because... {reason}"
-  #   if was_on_wishlist:
-  #     embed_description += f"\n\nExciting! It was also on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
-  #   message = f"Heads up {user.mention}!"
-
-  #   channel = bot.get_channel(notification_channel_id)
-  #   await send_badge_reward_message(
-  #     message, embed_description, embed_title, channel, thumbnail_image, badge_filename, user
-  #   )
-  #   await ctx.respond("Your gift has been sent!", ephemeral=True)
-
-  # @gift_badge.error
-  # async def gift_badge_error(ctx, error):
-  #   if isinstance(error, commands.MissingPermissions):
-  #     await ctx.respond("Sorry, you do not have permission to do that!", ephemeral=True)
-  #   else:
-  #     await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
-  #     logger.error(traceback.format_exc())
-
-
-  # #   ________.__  _____  __      _________                    .__  _____.__
-  # #  /  _____/|__|/ ____\/  |_   /   _____/_____   ____   ____ |__|/ ____\__| ____
-  # # /   \  ___|  \   __\\   __\  \_____  \\____ \_/ __ \_/ ___\|  \   __\|  |/ ___\
-  # # \    \_\  \  ||  |   |  |    /        \  |_> >  ___/\  \___|  ||  |  |  \  \___
-  # #  \______  /__||__|   |__|   /_______  /   __/ \___  >\___  >__||__|  |__|\___  >
-  # #         \/                          \/|__|        \/     \/                  \/
-  # @bot.slash_command(
-  #   name="gift_specific_badge",
-  #   description="Give a user a specific badge (admin only)"
-  # )
-  # @commands.has_permissions(administrator=True)
-  # @option(
-  #   "user",
-  #   discord.User,
-  #   description="Which user to gift the badge to",
-  #   required=True
-  # )
-  # @option(
-  #   name="specific_badge",
-  #   description="The name of the Badge to Gift",
-  #   required=True,
-  #   autocomplete=all_badges_autocomplete
-  # )
-  # @option(
-  #   "reason",
-  #   str,
-  #   description="The reason for the gift!",
-  #   required=False
-  # )
-  # async def gift_specific_badge(
-  #   ctx: discord.ApplicationContext,
-  #   user: discord.User,
-  #   specific_badge: str,
-  #   reason: str = ""
-  # ):
-  #   """
-  #   Give a specific badge to a user.
-  #   """
-  #   await ctx.defer(ephemeral=True)
-
-  #   notification_channel_id = get_channel_id(config["handlers"]["xp"]["notification_channel"])
-  #   logger.info(f"{ctx.author.display_name} is attempting to gift {specific_badge} to {user.display_name}")
-
-  #   badge_info = await db_get_badge_info_by_name(specific_badge)
-  #   if badge_info is None:
-  #     await ctx.respond(
-  #       f"Can't send `{specific_badge}`, it doesn't look like that badge exists!",
-  #       ephemeral=True
-  #     )
-  #     return
-
-  #   badge_filename = badge_info['badge_filename']
-  #   badge_instance = await award_specific_badge(user.id, badge_filename)
-
-  #   if badge_instance is None:
-  #     await ctx.respond(
-  #       f"{user.mention} already owns the badge `{specific_badge}`, so it wasn't awarded again.",
-  #       ephemeral=True
-  #     )
-  #     return
-
-  #   was_on_wishlist = badge_instance.get('locked', False)  # Auto-locked means it was wishlisted
-
-  #   embed_title = f"{user.display_name} received a free badge!"
-  #   thumbnail_image = random.choice(config["handlers"]["xp"]["celebration_images"])
-  #   embed_description = f"{user.mention} has been gifted **{specific_badge}** by {ctx.author.mention}!"
-  #   if reason:
-  #     embed_description = f" It's because... {reason}"
-  #   if was_on_wishlist:
-  #     embed_description += f"\n\nExciting! It was also one they had on their **wishlist**! {get_emoji('picard_yes_happy_celebrate')}"
-
-  #   message = f"Heads up {user.mention}!"
-  #   channel = bot.get_channel(notification_channel_id)
-  #   await send_badge_reward_message(
-  #     message, embed_description, embed_title, channel, thumbnail_image, badge_filename, user
-  #   )
-  #   await ctx.respond("Your gift has been sent!", ephemeral=True)
-
-
-  # @gift_specific_badge.error
-  # async def gift_specific_badge_error(ctx, error):
-  #   if isinstance(error, commands.MissingPermissions):
-  #     await ctx.respond("Sorry, you do not have permission to do that!", ephemeral=True)
-  #   else:
-  #     await ctx.respond("Sensoars indicate some kind of ...*error* has occured!", ephemeral=True)
-  #     logger.error(traceback.format_exc())
-
-
-  # async def send_badge_reward_message(message:str, embed_description:str, embed_title:str, channel, thumbnail_image:str, badge_filename:str, user:discord.User, fields=[]):
-  #   embed=discord.Embed(title=embed_title, description=embed_description, color=discord.Color.random())
-
-  #   if badge_filename != None:
-  #     badge_info = await db_get_badge_info_by_filename(badge_filename)
-  #     badge_name = badge_info['badge_name']
-  #     badge_url = badge_info['badge_url']
-
-  #     embed.add_field(
-  #       name=badge_name,
-  #       value=badge_url,
-  #       inline=False
-  #     )
-  #     embed_filename = str(user.id) + str(abs(hash(badge_name))) + ".png"
-  #     discord_image = discord.File(fp=f"./images/badges/{badge_filename}", filename=embed_filename)
-  #     embed.set_image(url=f"attachment://{embed_filename}")
-  #     embed.set_footer(text="See all your badges by typing '/badges showcase' - disable this by typing '/settings'")
-
-  #   for f in fields:
-  #     embed.add_field(name=f['name'], value=f['value'])
-
-  #   embed.set_thumbnail(url=thumbnail_image)
-
-  #   message = await channel.send(content=message, file=discord_image, embed=embed)
-  #   # Add + emoji so that users can add it as well to add the badge to their wishlist
-  #   await message.add_reaction("✅")
-
-
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______
 #  /  / \  \|  |  \_/ __ \_  __ \  |/ __ \ /  ___/
@@ -1715,28 +1205,3 @@ class Badges(commands.Cog):
 #       results[name] = await query.fetchall()
 
 #   return results
-
-
-# async def db_get_trades_to_cancel_from_scrapped_badges(user_id, badges_to_scrap):
-#   badge_filenames = [b['badge_filename'] for b in badges_to_scrap]
-#   async with AgimusDB(dictionary=True) as query:
-#     # All credit for this query to Danma! Praise be!!!
-#     sql = '''
-#       SELECT t.*
-#       FROM trades as t
-#       LEFT JOIN trade_offered `to` ON t.id = to.trade_id
-#       LEFT JOIN trade_requested `tr` ON t.id = tr.trade_id
-#       WHERE t.status IN ('pending','active')
-#       AND (
-#         (t.requestor_id = %s AND to.badge_filename IN (%s, %s, %s))
-#         OR
-#         (t.requestee_id = %s AND tr.badge_filename IN (%s, %s, %s))
-#       )
-#     '''
-#     vals = (
-#       user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2],
-#       user_id, badge_filenames[0], badge_filenames[1], badge_filenames[2]
-#     )
-#     await query.execute(sql, vals)
-#     trades = await query.fetchall()
-#   return trades

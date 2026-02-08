@@ -63,6 +63,7 @@ from cogs.crystals import Crystals
 from cogs.poker import Poker
 from cogs.profile import Profile
 from cogs.quiz import Quiz
+from cogs.rematerialization import Rematerialization
 from cogs.settings import Settings
 from cogs.shop import Shop
 from cogs.slots import Slots
@@ -82,6 +83,7 @@ bot.add_cog(Poker(bot))
 bot.add_cog(Profile(bot))
 bot.add_cog(Quiz(bot))
 bot.add_cog(RandomEp(bot))
+bot.add_cog(Rematerialization(bot))
 bot.add_cog(Settings(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Slots(bot))

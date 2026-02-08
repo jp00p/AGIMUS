@@ -54,7 +54,7 @@ pillow-simd==9.5.0.post2
 plotly==5.18.0
 prettytable==3.9.0
 protobuf==4.21.12
-py-cord==2.6.1
+py-cord==2.7.0
 pyasn1==0.5.1
 pyasn1-modules==0.3.0
 pycares==4.4.0
@@ -77,7 +77,6 @@ tqdm==4.66.1
 treys==0.1.8
 trivia.py==1.0.8
 types-pytz==2023.3.1.1
-typing_extensions==4.9.0
 tzdata==2023.4
 tzlocal==4.3.1
 uritemplate==4.1.1

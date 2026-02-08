@@ -9,7 +9,9 @@ from collections import namedtuple
 from emoji import EMOJI_DATA
 from functools import partial
 from pathlib import Path
+import cv2
 import regex
+import threading
 
 from common import *
 
@@ -21,7 +23,7 @@ from utils.badge_cache import *
 from utils.crystal_effects import apply_crystal_effect
 from utils.encode_utils import encode_webp
 from utils.prestige import PRESTIGE_TIERS, PRESTIGE_THEMES
-from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert
+from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert, to_thread_image
 
 BEEP_BOOPS = [
   "... beep boop beep ...",
@@ -1846,161 +1848,770 @@ async def generate_crystal_replicator_confirmation_frames(crystal, replicator_ty
   # Return Discord file and filename
   return discord.File(webp_buf, filename=replicator_confirmation_filename), replicator_confirmation_filename
 
-#   _________
-#  /   _____/ ________________  ______ ______   ___________
-#  \_____  \_/ ___\_  __ \__  \ \____ \\____ \_/ __ \_  __ \
-#  /        \  \___|  | \// __ \|  |_> >  |_> >  ___/|  | \/
-# /_______  /\___  >__|  (____  /   __/|   __/ \___  >__|
-#         \/     \/           \/|__|   |__|        \/
-# async def generate_badge_scrapper_confirmation_frames(badges_to_scrap):
-#   replicator_image = await threaded_image_open_no_convert(f"./images/templates/scrap/replicator.png")
 
-#   base_image = Image.new("RGBA", (replicator_image.width, replicator_image.height), (0, 0, 0))
-#   base_image.paste(replicator_image, (0, 0))
+# _____________________   _____      _____________________________________.___   _____  .____    ._____________  ________________.___________    _______
+# \______   \_   _____/  /     \    /  _  \__    ___/\_   _____/\______   \   | /  _  \ |    |   |   \____    / /  _  \__    ___/|   \_____  \   \      \
+#  |       _/|    __)_  /  \ /  \  /  /_\  \|    |    |    __)_  |       _/   |/  /_\  \|    |   |   | /     / /  /_\  \|    |   |   |/   |   \  /   |   \
+#  |    |   \|        \/    Y    \/    |    \    |    |        \ |    |   \   /    |    \    |___|   |/     /_/    |    \    |   |   /    |    \/    |    \
+#  |____|_  /_______  /\____|__  /\____|__  /____|   /_______  / |____|_  /___\____|__  /_______ \___/_______ \____|__  /____|   |___\_______  /\____|__  /
+#         \/        \/         \/         \/                 \/         \/            \/        \/           \/       \/                     \/         \/
+_REMATERIALIZATION_LOCK = threading.Lock()
+_REMATERIALIZATION_CACHE = {
+  'bg': None,
+  'mask_l': None,
+  'mask_l_resized': None,
+  'mask_l_resized_key': None,
+  'effect_frames': None,
+  'scaled_fx': {},
+  'effect_key': None
+}
 
-#   # TODO: use get_cached_base_badge_canvas for these...
-#   # e.g. b1 = await get_cached_base_badge_canvas(badges_to_scrap[0]['badge_filename'])
-#   b1 = await threaded_image_open(f"./images/badges/{badges_to_scrap[0]['badge_filename']}").convert("RGBA").resize((125, 125))
-#   b2 = await threaded_image_open(f"./images/badges/{badges_to_scrap[1]['badge_filename']}").convert("RGBA").resize((125, 125))
-#   b3 = await threaded_image_open(f"./images/badges/{badges_to_scrap[2]['badge_filename']}").convert("RGBA").resize((125, 125))
-
-#   b_list = [b1, b2, b3]
-
-#   frames = []
-#   badge_position_x = 75
-#   badge_position_y = 130
-
-#   # Add 30 frames of just the replicator and the badges by themselves
-#   for n in range(1, 31):
-#     frame = base_image.copy()
-#     frame_badges = [b.copy() for b in b_list]
-
-#     current_x = badge_position_x
-#     for f_b in frame_badges:
-#       frame.paste(f_b, (current_x, badge_position_y), f_b)
-#       current_x = current_x + 130
-
-#     frames.append(frame)
-
-#   # Create the badge transporter effect animation
-#   for n in range(1, 71):
-#     frame = base_image.copy()
-
-#     frame_badges = [b.copy() for b in b_list]
-
-#     current_x = badge_position_x
-#     for f_b in frame_badges:
-#       # Determine opacity of badge
-#       # As the animation continues the opacity decreases
-#       # based on the percentage of the animation length to 255 (70 total frames)
-#       opacity_value = round((100 - (n / 70 * 100)) * 2.55)
-#       badge_with_opacity = f_b.copy()
-#       badge_with_opacity.putalpha(opacity_value)
-#       f_b.paste(badge_with_opacity, f_b)
-
-#       # Layer effect over badge image
-#       badge_with_effect = Image.new("RGBA", (125, 125), (255, 255, 255, 0))
-#       badge_with_effect.paste(f_b, (0, 0), f_b)
-#       effect_frame = await threaded_image_open(f"./images/templates/scrap/effect/{'{:02d}'.format(n)}.png").resize((125, 125))
-#       badge_with_effect.paste(effect_frame, (0, 0), effect_frame)
-
-#       # Stick badge onto replicator background
-#       frame.paste(badge_with_effect, (current_x, badge_position_y), badge_with_effect)
-
-#       current_x = current_x + 130
-
-#     frames.append(frame)
-
-#   # Add 10 frames of the replicator by itself
-#   for n in range(1, 11):
-#     frame = base_image.copy()
-#     frames.append(frame)
-
-#   return frames
+def _frames_are_opaque(frames: list[Image.Image]) -> bool:
+  for im in frames:
+    if im.mode != 'RGBA':
+      return False
+    a = im.getchannel('A')
+    lo, hi = a.getextrema()
+    if lo != 255 or hi != 255:
+      return False
+  return True
 
 
+def _pil_trim_alpha(img: Image.Image, *, threshold: int = 8) -> Image.Image:
+  if img.mode != 'RGBA':
+    img = img.convert('RGBA')
 
-# @to_thread
-# def generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
-#   return _generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap)
+  a = img.getchannel('A')
+  if threshold > 0:
+    a2 = a.point(lambda v: 255 if v > threshold else 0)
+  else:
+    a2 = a
 
-# # --- Fix for invalid await inside @to_thread ---
-# def _generate_badge_scrapper_confirmation_gif(user_id, badges_to_scrap):
-#   frames = generate_badge_scrapper_confirmation_frames(badges_to_scrap)
+  bbox = a2.getbbox()
+  if not bbox:
+    return img
 
-#   gif_save_filepath = f"./images/scrap/{user_id}-confirm.gif"
-#   frames[0].save(
-#     gif_save_filepath,
-#     save_all=True, append_images=frames[1:], optimize=False, duration=40, loop=0
-#   )
+  try:
+    import numpy as np
+    import cv2
 
-#   while True:
-#     time.sleep(0.05)
-#     if os.path.isfile(gif_save_filepath):
-#       break
+    arr = np.array(a, dtype=np.uint8)
+    if threshold > 0:
+      mask = (arr > threshold).astype(np.uint8) * 255
+    else:
+      mask = (arr > 0).astype(np.uint8) * 255
 
-#   return discord.File(gif_save_filepath, filename=f"scrap_{user_id}-confirm.gif")
+    num, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+    if num <= 1:
+      return img.crop(bbox)
+
+    areas = stats[1:, cv2.CC_STAT_AREA]
+    if areas.size <= 0:
+      return img.crop(bbox)
+
+    keep_label = int(1 + int(np.argmax(areas)))
+    keep = (labels == keep_label).astype(np.uint8) * 255
+
+    ys, xs = np.where(keep > 0)
+    if xs.size <= 0 or ys.size <= 0:
+      return img.crop(bbox)
+
+    x0 = int(xs.min())
+    x1 = int(xs.max()) + 1
+    y0 = int(ys.min())
+    y1 = int(ys.max()) + 1
+    return img.crop((x0, y0, x1, y1))
+
+  except Exception:
+    return img.crop(bbox)
 
 
-# @to_thread
-# def generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap):
-#   return _generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap)
+def _pil_rotate_rgba(img: Image.Image, degrees: float, *, expand: bool = True) -> Image.Image:
+  if img.mode != 'RGBA':
+    img = img.convert('RGBA')
+  return img.rotate(degrees, resample=Image.Resampling.BICUBIC, expand=expand)
 
-# def _generate_badge_scrapper_result_gif(user_id, badge_to_add, badges_to_scrap):
-#   badge_created_filename = badge_to_add['badge_filename']
-#   replicator_image = Image.open(f"./images/templates/scrap/replicator.png")
 
-#   base_image = Image.new("RGBA", (replicator_image.width, replicator_image.height), (0, 0, 0))
-#   base_image.paste(replicator_image, (0, 0))
+def _shift_rgba(im: Image.Image, dx: int, dy: int, *, out_size: tuple[int, int]) -> Image.Image:
+  w, h = out_size
+  out = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+  out.alpha_composite(im, (int(dx), int(dy)))
+  return out
 
-#   frames = generate_badge_scrapper_confirmation_frames(badges_to_scrap)
 
-#   b = Image.open(f"./images/badges/{badge_created_filename}").convert("RGBA")
-#   b = b.resize((190, 190))
+def _pil_scale_xy(img: Image.Image, sx: float, sy: float) -> Image.Image:
+  if img.mode != 'RGBA':
+    img = img.convert('RGBA')
 
-#   badge_position_x = 180
-#   badge_position_y = 75
+  w, h = img.size
+  nw = max(1, int(round(w * sx)))
+  nh = max(1, int(round(h * sy)))
+  if (nw, nh) == (w, h):
+    return img
+  return img.resize((nw, nh), resample=Image.Resampling.LANCZOS)
 
-#   # Add 10 frames of just the replicator by itself
-#   for n in range(1, 11):
-#     frame = base_image.copy()
-#     frames.append(frame)
 
-#   # Create the badge transporter effect animation
-#   for n in range(1, 71):
-#     frame = base_image.copy()
-#     frame_badge = b.copy()
+def _pil_composite_center(dst: Image.Image, src: Image.Image, cx: int, cy: int) -> None:
+  if src.mode != 'RGBA':
+    src = src.convert('RGBA')
+  x = int(round(cx - (src.size[0] / 2)))
+  y = int(round(cy - (src.size[1] / 2)))
+  dst.alpha_composite(src, (x, y))
 
-#     opacity_value = round((n / 70 * 100) * 2.55)
-#     badge_with_opacity = b.copy()
-#     badge_with_opacity.putalpha(opacity_value)
-#     frame_badge.paste(badge_with_opacity, frame_badge)
 
-#     badge_with_effect = Image.new("RGBA", (190, 190), (255, 255, 255, 0))
-#     badge_with_effect.paste(frame_badge, (0, 0), frame_badge)
-#     effect_frame = Image.open(f"./images/templates/scrap/effect/{'{:02d}'.format(n)}.png").convert('RGBA')
-#     badge_with_effect.paste(effect_frame, (0, 0), effect_frame)
+def _fit_xy(im: Image.Image, target_w: int, target_h: int) -> Image.Image:
+  if im.mode != 'RGBA':
+    im = im.convert('RGBA')
+  target_w = max(1, int(target_w))
+  target_h = max(1, int(target_h))
+  if im.size == (target_w, target_h):
+    return im
+  return im.resize((target_w, target_h), resample=Image.Resampling.LANCZOS)
 
-#     frame.paste(badge_with_effect, (badge_position_x, badge_position_y), badge_with_effect)
-#     frames.append(frame)
 
-#   for n in range(1, 31):
-#     frame = base_image.copy()
-#     frame.paste(b, (badge_position_x, badge_position_y), b)
-#     frames.append(frame)
+def _composite_center_with_anchor(
+  dst: Image.Image,
+  src: Image.Image,
+  *,
+  cx: int,
+  cy: int,
+  anchor_y: float = 1.0,
+  ox: int = 0,
+  oy: int = 0
+) -> None:
+  if src.mode != 'RGBA':
+    src = src.convert('RGBA')
 
-#   gif_save_filepath = f"./images/scrap/{user_id}.gif"
-#   frames[0].save(
-#     gif_save_filepath,
-#     save_all=True, append_images=frames[1:], optimize=False, duration=40, loop=0
-#   )
+  x = int(round(cx - (src.width / 2))) + int(ox)
+  y = int(round(cy - (src.height * anchor_y))) + int(oy)
+  dst.alpha_composite(src, (x, y))
 
-#   while True:
-#     time.sleep(0.10)
-#     if os.path.isfile(gif_save_filepath):
-#       break
 
-#   return discord.File(gif_save_filepath, filename=f"scrap_{user_id}.gif")
+def _place_fx_frame(
+  fx: Image.Image,
+  *,
+  out_size: tuple[int, int],
+  center_x: int,
+  anchor_y_px: int,
+  target_w: int,
+  target_h: int,
+  anchor_y: float = 1.0,
+  offset_x: int = 0,
+  offset_y: int = 0
+) -> Image.Image:
+  w, h = out_size
+
+  if fx.mode != 'RGBA':
+    fx = fx.convert('RGBA')
+
+  fx2 = _fit_xy(fx, target_w, target_h)
+
+  layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+  _composite_center_with_anchor(
+    layer,
+    fx2,
+    cx=center_x,
+    cy=anchor_y_px,
+    anchor_y=anchor_y,
+    ox=offset_x,
+    oy=offset_y
+  )
+  return layer
+
+
+def _alpha_mul(im: Image.Image, a: float) -> Image.Image:
+  if a >= 0.999:
+    return im
+  if a <= 0.001:
+    out = im.copy()
+    out.putalpha(0)
+    return out
+
+  out = im.copy()
+  la = out.getchannel('A')
+  la = la.point(lambda v: int(v * a))
+  out.putalpha(la)
+  return out
+
+
+def _apply_mask_luma(layer: Image.Image, mask_l: Image.Image) -> Image.Image:
+  if layer.mode != 'RGBA':
+    layer = layer.convert('RGBA')
+  if mask_l.mode != 'L':
+    mask_l = mask_l.convert('L')
+
+  out = layer.copy()
+  la = out.getchannel('A')
+  out.putalpha(ImageChops.multiply(la, mask_l))
+  return out
+
+
+def build_rematerialization_pile_bytes(
+  *,
+  items: list[dict],
+  canvas_size: tuple[int, int],
+  icons_dir: str = './images/templates/crystals/icons',
+  seed: int | None = None,
+  pile_cx: int = 356,
+  pile_cy: int = 286,
+  pile_canvas: tuple[int, int] = (560, 340),
+  pile_tilt: float = -12.0,
+  pile_tighten: float = 0.30,
+  pile_center_nx: float = 0.52,
+  pile_center_ny: float = 0.66,
+  icon_px: int = 92
+) -> io.BytesIO:
+  def _load_rgba(path: str) -> Image.Image:
+    with Image.open(path) as im:
+      if im.mode != 'RGBA':
+        im = im.convert('RGBA')
+      return im.copy()
+
+  def _safe_open_icon(icon_name: str) -> Image.Image | None:
+    if not icon_name:
+      return None
+    path = f'{icons_dir}/{icon_name}'
+    if not os.path.exists(path):
+      return None
+    try:
+      return _load_rgba(path)
+    except Exception:
+      return None
+
+  def _pil_trim_alpha(img: Image.Image, *, threshold: int = 8) -> Image.Image:
+    if img.mode != 'RGBA':
+      img = img.convert('RGBA')
+
+    a = img.getchannel('A')
+    if threshold > 0:
+      a = a.point(lambda v: 255 if v > threshold else 0)
+
+    bbox = a.getbbox()
+    if not bbox:
+      return img
+    return img.crop(bbox)
+
+  def _pil_scale_to_max(img: Image.Image, max_px: int) -> Image.Image:
+    if img.mode != 'RGBA':
+      img = img.convert('RGBA')
+    w, h = img.size
+    m = max(w, h)
+    if m <= 0:
+      return img
+    s = float(max_px) / float(m)
+    nw = max(1, int(round(w * s)))
+    nh = max(1, int(round(h * s)))
+    if (nw, nh) == (w, h):
+      return img
+    return img.resize((nw, nh), resample=Image.Resampling.LANCZOS)
+
+  def _pil_scale_xy(img: Image.Image, sx: float, sy: float) -> Image.Image:
+    if img.mode != 'RGBA':
+      img = img.convert('RGBA')
+    w, h = img.size
+    nw = max(1, int(round(w * sx)))
+    nh = max(1, int(round(h * sy)))
+    if (nw, nh) == (w, h):
+      return img
+    return img.resize((nw, nh), resample=Image.Resampling.LANCZOS)
+
+  def _pil_rotate_rgba(img: Image.Image, degrees: float, *, expand: bool = True) -> Image.Image:
+    if img.mode != 'RGBA':
+      img = img.convert('RGBA')
+    return img.rotate(degrees, resample=Image.Resampling.BICUBIC, expand=expand)
+
+  def _pil_composite_center(dst: Image.Image, src: Image.Image, cx: int, cy: int) -> None:
+    if src.mode != 'RGBA':
+      src = src.convert('RGBA')
+    x = int(round(cx - (src.size[0] / 2)))
+    y = int(round(cy - (src.size[1] / 2)))
+    dst.alpha_composite(src, (x, y))
+
+  def _build_pile_layer(
+    *,
+    icon_images: list[Image.Image],
+    out_size: tuple[int, int],
+    seed: int | None,
+    icon_px: int,
+    pile_tilt: float
+  ) -> Image.Image:
+    rng = random.Random(seed)
+    cw, ch = out_size
+
+    src_icons: list[Image.Image] = []
+    for im in icon_images:
+      if im.mode != 'RGBA':
+        im = im.convert('RGBA')
+      im = _pil_trim_alpha(im, threshold=8)
+      if im.size[0] > 1 and im.size[1] > 1:
+        src_icons.append(im)
+
+    if not src_icons:
+      return Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
+
+    rng.shuffle(src_icons)
+
+    n = len(src_icons)
+
+    target_px = int(max(64, min(118, int(icon_px))))
+    icons: list[Image.Image] = []
+    for im in src_icons:
+      icons.append(_pil_scale_to_max(im, target_px))
+
+    # Six hand-tuned templates: 10 slots each.
+    # Slots are normalized in the pre-tilt pile canvas space.
+    # Each slot: (nx, ny, rot_deg, scale_mul)
+    templates: list[list[tuple[float, float, float, float]]] = [
+      # Template A (picked: 4)
+      [
+        (0.20, 0.70, -18.0, 1.05), (0.33, 0.74,  10.0, 0.95), (0.48, 0.77,  -8.0, 1.00), (0.64, 0.76,  14.0, 0.92), (0.79, 0.71,  24.0, 1.06),
+        (0.28, 0.58, -10.0, 0.92), (0.43, 0.60,   6.0, 0.90), (0.58, 0.60,  -2.0, 0.92), (0.72, 0.58,  12.0, 0.94), (0.52, 0.46,   4.0, 0.86),
+      ],
+      # Template B (picked: 10)
+      [
+        (0.18, 0.73, -22.0, 1.08), (0.34, 0.77,   8.0, 0.96), (0.50, 0.79,  -6.0, 0.98), (0.67, 0.77,  16.0, 0.96), (0.82, 0.73,  26.0, 1.08),
+        (0.27, 0.61, -12.0, 0.92), (0.44, 0.63,   5.0, 0.90), (0.58, 0.63,  -3.0, 0.92), (0.74, 0.61,  13.0, 0.92), (0.55, 0.50,   2.0, 0.86),
+      ],
+      # Template C (picked: 11)
+      [
+        (0.22, 0.72, -14.0, 1.02), (0.38, 0.76,   6.0, 0.96), (0.52, 0.78,  -8.0, 1.00), (0.66, 0.76,  14.0, 0.96), (0.80, 0.70,  22.0, 1.04),
+        (0.30, 0.60, -10.0, 0.92), (0.45, 0.61,   4.0, 0.90), (0.60, 0.61,  -4.0, 0.92), (0.72, 0.58,  12.0, 0.90), (0.52, 0.49,   0.0, 0.86),
+      ],
+      # Template D (picked: 12)
+      [
+        (0.19, 0.71, -20.0, 1.06), (0.35, 0.76,   9.0, 0.96), (0.51, 0.78,  -7.0, 0.98), (0.67, 0.76,  15.0, 0.96), (0.83, 0.70,  28.0, 1.06),
+        (0.26, 0.59, -12.0, 0.92), (0.42, 0.61,   5.0, 0.90), (0.59, 0.61,  -2.0, 0.92), (0.74, 0.59,  12.0, 0.92), (0.54, 0.48,   2.0, 0.86),
+      ],
+      # Template E (picked: 21)
+      [
+        (0.21, 0.73, -16.0, 1.06), (0.36, 0.77,   7.0, 0.96), (0.50, 0.80,  -6.0, 1.00), (0.65, 0.77,  13.0, 0.96), (0.79, 0.72,  21.0, 1.06),
+        (0.28, 0.61, -10.0, 0.92), (0.44, 0.63,   4.0, 0.90), (0.58, 0.63,  -3.0, 0.92), (0.71, 0.60,  11.0, 0.92), (0.52, 0.50,   1.0, 0.86),
+      ],
+      # Template F (picked: 28)
+      [
+        (0.20, 0.74, -18.0, 1.08), (0.36, 0.78,   9.0, 0.96), (0.52, 0.80,  -5.0, 0.98), (0.68, 0.78,  15.0, 0.96), (0.82, 0.74,  25.0, 1.08),
+        (0.27, 0.62, -12.0, 0.92), (0.43, 0.64,   5.0, 0.90), (0.59, 0.64,  -2.0, 0.92), (0.74, 0.62,  12.0, 0.92), (0.54, 0.52,   2.0, 0.86),
+      ],
+    ]
+
+    slots = templates[rng.randrange(0, len(templates))]
+    # Guarantee deterministic selection for a given seed by consuming one RNG draw per pile.
+    # If seed is None, it is still randomized like before.
+    used_slots = list(slots)
+
+    # If we ever get more than 10 icons, reuse slots with small jitter.
+    extra_jitter = int(round(min(cw, ch) * 0.015))
+
+    placements: list[tuple[int, int, float, float, Image.Image]] = []
+    for i, im in enumerate(icons):
+      if i < len(used_slots):
+        nx, ny, rot, sm = used_slots[i]
+        jx = 0
+        jy = 0
+      else:
+        nx, ny, rot, sm = used_slots[i % len(used_slots)]
+        jx = rng.randint(-extra_jitter, extra_jitter)
+        jy = rng.randint(-extra_jitter, extra_jitter)
+
+      # Tighten template spacing by pulling points toward a center.
+      t = max(0.0, min(0.35, float(pile_tighten)))
+      cxn = float(pile_center_nx)
+      cyn = float(pile_center_ny)
+
+      nx = cxn + ((nx - cxn) * (1.0 - t))
+      ny = cyn + ((ny - cyn) * (1.0 - t))
+
+      px = int(round(nx * cw)) + jx
+      py = int(round(ny * ch)) + jy
+
+      # Keep everything inside the canvas pre-tilt to avoid edge clipping.
+      px = max(int(target_px * 0.55), min(cw - int(target_px * 0.55), px))
+      py = max(int(target_px * 0.55), min(ch - int(target_px * 0.55), py))
+
+      icon2 = im
+      if abs(sm - 1.0) > 0.001:
+        icon2 = _pil_scale_xy(icon2, float(sm), float(sm))
+      if abs(rot) > 0.001:
+        icon2 = _pil_rotate_rgba(icon2, float(rot), expand=True)
+
+      icon2 = _pil_trim_alpha(icon2, threshold=8)
+      placements.append((px, py, rot, sm, icon2))
+
+    # Depth ordering by y so "front" pieces cover "back" pieces.
+    placements.sort(key=lambda p: p[1])
+
+    base = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
+    for px, py, _rot, _sm, icon2 in placements:
+      _pil_composite_center(base, icon2, int(px), int(py))
+
+    # Apply pile tilt without clipping by rotating on a padded surface, then re-centering.
+    if abs(float(pile_tilt)) > 0.001:
+      pad = int(round(max(cw, ch) * 0.28))
+      tmp = Image.new('RGBA', (cw + (pad * 2), ch + (pad * 2)), (0, 0, 0, 0))
+      tmp.alpha_composite(base, (pad, pad))
+      tmp = _pil_rotate_rgba(tmp, float(pile_tilt), expand=True)
+      tmp = _pil_trim_alpha(tmp, threshold=8)
+
+      out = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
+      _pil_composite_center(out, tmp, cw // 2, ch // 2)
+      return out
+
+    return base
+
+  w, h = canvas_size
+  full = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+
+  icon_images: list[Image.Image] = []
+  for it in items:
+    im = _safe_open_icon(it.get('icon'))
+    if im is not None:
+      icon_images.append(im)
+
+  if not icon_images:
+    out = io.BytesIO()
+    full.save(out, format='PNG')
+    out.seek(0)
+    return out
+
+  # Move the pile up a touch to better sit on the tray.
+  pile_cy_eff = int(pile_cy) - 5
+
+  pile = _build_pile_layer(
+    icon_images=icon_images,
+    out_size=pile_canvas,
+    seed=seed,
+    icon_px=int(icon_px),
+    pile_tilt=float(pile_tilt)
+  )
+  pile = _pil_trim_alpha(pile, threshold=8)
+
+  _pil_composite_center(full, pile, int(pile_cx), int(pile_cy_eff))
+
+  out = io.BytesIO()
+  full.save(out, format='PNG')
+  out.seek(0)
+  return out
+
+
+async def build_rematerialization_success_animation(
+  *,
+  pile_bytes: io.BytesIO | bytes,
+  result_crystal_path: str,
+  hold_start_frames: int = 10,
+  hold_mid_frames: int = 8,
+  hold_end_frames: int = 24,
+  fade_in_start_frame: int = 5,
+  fade_in_done_frames_from_end: int = 10,
+  fade_out_start_frame: int = 5,
+  fade_out_done_frames_from_end: int = 10,
+  result_cy_offset: int = 25,
+  pile_cx: int = 356,
+  pile_cy: int = 290,
+  pile_tilt: float = -12.0,
+  fx_floor_y: int = 345 + 60,
+  fx_anchor_y: float = 1.0,
+  fx_demat_w: int = 440,
+  fx_demat_h: int = 320,
+  fx_demat_ox: int = 0,
+  fx_demat_oy: int = -20,
+  fx_mat_w: int | None = None,
+  fx_mat_h: int | None = None,
+  fx_mat_ox: int = 0,
+  fx_mat_oy: int = -20,
+  icon_px: int = 92
+) -> io.BytesIO:
+  def _build_rematerialization_success_frames() -> list[Image.Image]:
+    def _load_rgba(path: str) -> Image.Image:
+      with Image.open(path) as im:
+        if im.mode != 'RGBA':
+          im = im.convert('RGBA')
+        return im.copy()
+
+    def _load_rgba_from_bytes(buf: io.BytesIO | bytes) -> Image.Image:
+      if isinstance(buf, (bytes, bytearray)):
+        buf = io.BytesIO(buf)
+      try:
+        buf.seek(0)
+      except Exception:
+        pass
+      with Image.open(buf) as im:
+        if im.mode != 'RGBA':
+          im = im.convert('RGBA')
+        return im.copy()
+
+    def _list_frame_paths(frames_dir: str) -> list[str]:
+      files = []
+      for name in os.listdir(frames_dir):
+        lower = name.lower()
+        if lower.endswith('.png') or lower.endswith('.webp'):
+          files.append(os.path.join(frames_dir, name))
+
+      def _key(p: str):
+        base = os.path.basename(p)
+        digits = ''.join([c if c.isdigit() else ' ' for c in base]).split()
+        return (int(digits[-1]) if digits else 0, base)
+
+      return sorted(files, key=_key)
+
+    def _get_rematerialization_assets(*, bg_path: str, effect_frames_dir: str, mask_path: str):
+      key = f'{bg_path}|{effect_frames_dir}|{mask_path}'
+      with _REMATERIALIZATION_LOCK:
+        if _REMATERIALIZATION_CACHE['effect_key'] != key:
+          _REMATERIALIZATION_CACHE['bg'] = None
+          _REMATERIALIZATION_CACHE['mask_l'] = None
+          _REMATERIALIZATION_CACHE['mask_l_resized'] = None
+          _REMATERIALIZATION_CACHE['mask_l_resized_key'] = None
+          _REMATERIALIZATION_CACHE['effect_frames'] = None
+          _REMATERIALIZATION_CACHE['scaled_fx'] = {}
+          _REMATERIALIZATION_CACHE['effect_key'] = key
+
+        if _REMATERIALIZATION_CACHE['bg'] is None:
+          _REMATERIALIZATION_CACHE['bg'] = _load_rgba(bg_path)
+
+        if _REMATERIALIZATION_CACHE['mask_l'] is None:
+          with Image.open(mask_path) as im:
+            _REMATERIALIZATION_CACHE['mask_l'] = im.convert('L')
+
+        if _REMATERIALIZATION_CACHE['effect_frames'] is None:
+          frame_paths = _list_frame_paths(effect_frames_dir)
+          if not frame_paths:
+            raise ValueError(f'No effect frames found in: {effect_frames_dir}')
+          _REMATERIALIZATION_CACHE['effect_frames'] = [_load_rgba(p) for p in frame_paths]
+
+      return (
+        _REMATERIALIZATION_CACHE['bg'],
+        _REMATERIALIZATION_CACHE['mask_l'],
+        _REMATERIALIZATION_CACHE['effect_frames']
+      )
+
+    bg_path = './images/templates/rematerialize/rematerializer.png'
+    effect_frames_dir = './images/templates/rematerialize/effect'
+    mask_path = './images/templates/rematerialize/mask.png'
+
+    bg, mask_l, effect_frames = _get_rematerialization_assets(
+      bg_path=bg_path,
+      effect_frames_dir=effect_frames_dir,
+      mask_path=mask_path
+    )
+
+    w, h = bg.size
+
+    mask_key = (w, h)
+    with _REMATERIALIZATION_LOCK:
+      if _REMATERIALIZATION_CACHE['mask_l_resized_key'] != mask_key:
+        _REMATERIALIZATION_CACHE['mask_l_resized'] = None
+        _REMATERIALIZATION_CACHE['mask_l_resized_key'] = mask_key
+
+      if _REMATERIALIZATION_CACHE['mask_l_resized'] is None:
+        if mask_l.size != (w, h):
+          _REMATERIALIZATION_CACHE['mask_l_resized'] = mask_l.resize((w, h), resample=Image.Resampling.LANCZOS)
+        else:
+          _REMATERIALIZATION_CACHE['mask_l_resized'] = mask_l
+
+      mask_l = _REMATERIALIZATION_CACHE['mask_l_resized']
+
+    keep_soft_l = mask_l
+    keep_hard_l = mask_l.point(lambda v: 255 if v > 8 else 0)
+
+    keep_bbox = keep_hard_l.getbbox()
+    if keep_bbox:
+      mx0, my0, mx1, my1 = keep_bbox
+    else:
+      mx0, my0, mx1, my1 = (0, 0, w, h)
+
+    win_w = max(1, mx1 - mx0)
+    win_h = max(1, my1 - my0)
+    win_pad = int(min(win_w, win_h) * 0.06)
+
+    result_cx = int(pile_cx)
+    result_cy = int(pile_cy) + int(result_cy_offset)
+
+    pile_full = _load_rgba_from_bytes(pile_bytes)
+    if pile_full.size != (w, h):
+      pile_full = pile_full.resize((w, h), resample=Image.Resampling.LANCZOS)
+
+    pile_trim = _pil_trim_alpha(pile_full)
+
+    result_icon = _load_rgba(result_crystal_path)
+    result_icon = _pil_trim_alpha(result_icon)
+
+    eff_icon_px = int(icon_px)
+    if pile_trim.size[0] > 0 and pile_trim.size[1] > 0:
+      pile_ref = max(pile_trim.size)
+      eff_icon_px = int(round(max(eff_icon_px, min(140, pile_ref * 0.28))))
+
+    rm = max(result_icon.size)
+    if rm > 0:
+      s = eff_icon_px / float(rm)
+      result_icon = _pil_scale_xy(result_icon, s, s)
+
+    result_icon = _pil_rotate_rgba(result_icon, float(pile_tilt))
+
+    result_frame = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    _pil_composite_center(result_frame, result_icon, result_cx, result_cy)
+
+    max_fx_w = max(1, win_w - (win_pad * 2))
+    max_fx_h = max(1, win_h - (win_pad * 2))
+
+    fx_demat_w_eff = int(min(max_fx_w, max(1, fx_demat_w)))
+    fx_demat_h_eff = int(min(max_fx_h, max(1, fx_demat_h)))
+
+    if fx_mat_w is None:
+      fx_mat_w_eff = int(min(max_fx_w, max(220, int(_pil_trim_alpha(result_frame).width * 1.25))))
+    else:
+      fx_mat_w_eff = int(min(max_fx_w, max(1, fx_mat_w)))
+
+    if fx_mat_h is None:
+      fx_mat_h_eff = int(min(max_fx_h, max(200, fx_demat_h_eff)))
+    else:
+      fx_mat_h_eff = int(min(max_fx_h, max(1, fx_mat_h)))
+
+    def _get_scaled_fx(tw: int, th: int) -> list[Image.Image]:
+      key2 = (int(tw), int(th))
+      with _REMATERIALIZATION_LOCK:
+        cached = _REMATERIALIZATION_CACHE['scaled_fx'].get(key2)
+        if cached is not None:
+          return cached
+
+      out = []
+      for fx in effect_frames:
+        fx2 = fx
+        if fx2.mode != 'RGBA':
+          fx2 = fx2.convert('RGBA')
+        if fx2.size != (tw, th):
+          fx2 = fx2.resize((tw, th), resample=Image.Resampling.LANCZOS)
+        out.append(fx2)
+
+      with _REMATERIALIZATION_LOCK:
+        _REMATERIALIZATION_CACHE['scaled_fx'][key2] = out
+
+      return out
+
+    demat_fx = _get_scaled_fx(fx_demat_w_eff, fx_demat_h_eff)
+    mat_fx = _get_scaled_fx(fx_mat_w_eff, fx_mat_h_eff)
+
+    n = len(effect_frames)
+    if n < 2:
+      raise ValueError('Need at least 2 effect frames.')
+
+    def _fade_out_alpha(i: int) -> float:
+      start = max(0, fade_out_start_frame)
+      done = max(0, n - fade_out_done_frames_from_end)
+      if i < start:
+        return 1.0
+      if i >= done:
+        return 0.0
+      t = (i - start) / max(1, (done - start))
+      return max(0.0, min(1.0, 1.0 - t))
+
+    def _fade_in_alpha(i: int) -> float:
+      start = max(0, fade_in_start_frame)
+      done = max(0, n - fade_in_done_frames_from_end)
+      if i < start:
+        return 0.0
+      if i >= done:
+        return 1.0
+      t = (i - start) / max(1, (done - start))
+      return max(0.0, min(1.0, t))
+
+    def _compose_payload_fx(
+      *,
+      payload_layer: Image.Image | None,
+      fx_src: Image.Image | None,
+      fx_center_x: int,
+      fx_floor_y_px: int,
+      fx_target_w: int,
+      fx_target_h: int,
+      fx_ox: int,
+      fx_oy: int
+    ) -> Image.Image:
+      layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+
+      if payload_layer is not None:
+        layer.alpha_composite(payload_layer)
+
+      if fx_src is not None:
+        fx_layer = _place_fx_frame(
+          fx_src,
+          out_size=(w, h),
+          center_x=fx_center_x,
+          anchor_y_px=fx_floor_y_px,
+          target_w=fx_target_w,
+          target_h=fx_target_h,
+          anchor_y=fx_anchor_y,
+          offset_x=fx_ox,
+          offset_y=fx_oy
+        )
+        layer.alpha_composite(fx_layer)
+
+      layer = _apply_mask_luma(layer, keep_soft_l)
+
+      out = bg.copy()
+      out.alpha_composite(layer)
+      return out
+
+    frames: list[Image.Image] = []
+
+    start_frame = bg.copy()
+    start_frame.alpha_composite(pile_full)
+    for _ in range(max(0, hold_start_frames)):
+      frames.append(start_frame)
+
+    for i in range(n):
+      pile_layer = _alpha_mul(pile_full, _fade_out_alpha(i))
+      frames.append(_compose_payload_fx(
+        payload_layer=pile_layer,
+        fx_src=demat_fx[i],
+        fx_center_x=int(pile_cx),
+        fx_floor_y_px=int(fx_floor_y),
+        fx_target_w=fx_demat_w_eff,
+        fx_target_h=fx_demat_h_eff,
+        fx_ox=int(fx_demat_ox),
+        fx_oy=int(fx_demat_oy)
+      ))
+
+    for _ in range(max(0, hold_mid_frames)):
+      frames.append(bg.copy())
+
+    for i in range(n):
+      crystal_layer = _alpha_mul(result_frame, _fade_in_alpha(i))
+      frames.append(_compose_payload_fx(
+        payload_layer=crystal_layer,
+        fx_src=mat_fx[i],
+        fx_center_x=result_cx,
+        fx_floor_y_px=int(fx_floor_y),
+        fx_target_w=fx_mat_w_eff,
+        fx_target_h=fx_mat_h_eff,
+        fx_ox=int(fx_mat_ox),
+        fx_oy=int(fx_mat_oy)
+      ))
+
+    end_frame = bg.copy()
+    end_frame.alpha_composite(result_frame)
+    for _ in range(max(0, hold_end_frames)):
+      frames.append(end_frame)
+
+    return frames
+
+  loop = asyncio.get_running_loop()
+  frames = await loop.run_in_executor(None, _build_rematerialization_success_frames)
+
+  if not frames:
+    raise ValueError('No frames returned for rematerialization success animation.')
+
+  if _frames_are_opaque(frames):
+    fixed = [im.convert('RGB') if im.mode != 'RGB' else im for im in frames]
+  else:
+    fixed = [im.convert('RGBA') if im.mode != 'RGBA' else im for im in frames]
+
+  webp_buf = await encode_webp(fixed, fps=30)
+
+  try:
+    webp_buf.seek(0)
+  except Exception:
+    pass
+
+  return webp_buf
 
 
 # ________                      .__
