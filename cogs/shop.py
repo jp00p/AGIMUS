@@ -12,7 +12,12 @@ from cogs.profile import (
 def _shop_color() -> discord.Color:
   return discord.Color(0xFFFFFF)
 
-
+#   _________.__                ____   ____.__               
+#  /   _____/|  |__   ____ _____\   \ /   /|__| ______  _  __
+#  \_____  \ |  |  \ /  _ \\____ \   Y   / |  |/ __ \ \/ \/ /
+#  /        \|   Y  (  <_> )  |_> >     /  |  \  ___/\     / 
+# /_______  /|___|  /\____/|   __/ \___/   |__|\___  >\/\_/  
+#         \/      \/       |__|                    \/        
 class ShopView(discord.ui.DesignerView):
   def __init__(self, *, cog, category: str, user: discord.Member | discord.User):
     super().__init__(timeout=360)
@@ -301,7 +306,12 @@ class ShopView(discord.ui.DesignerView):
       if self.message:
         await self.message.edit(view=self)
 
-
+#   _________.__                  _________                
+#  /   _____/|  |__   ____ ______ \_   ___ \  ____   ____  
+#  \_____  \ |  |  \ /  _ \\____ \/    \  \/ /  _ \ / ___\ 
+#  /        \|   Y  (  <_> )  |_> >     \___(  <_> ) /_/  >
+# /_______  /|___|  /\____/|   __/ \______  /\____/\___  / 
+#         \/      \/       |__|           \/      /_____/  
 class Shop(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
@@ -420,6 +430,12 @@ class Shop(commands.Cog):
     await view.start(ctx)
 
 
+# ________ __________    ___ ___         .__                              
+# \______ \\______   \  /   |   \   ____ |  | ______   ___________  ______
+#  |    |  \|    |  _/ /    ~    \_/ __ \|  | \____ \_/ __ \_  __ \/  ___/
+#  |    `   \    |   \ \    Y    /\  ___/|  |_|  |_> >  ___/|  | \/\___ \ 
+# /_______  /______  /  \___|_  /  \___  >____/   __/ \___  >__|  /____  >
+#         \/       \/         \/       \/     |__|        \/           \/ 
 async def purchase_player_photo(user: discord.Member | discord.User, photo_name: str):
   logger.info(
     f"Granting user {Style.BRIGHT}{user.display_name}{Style.RESET_ALL} new Profile PADD Photo: {Fore.CYAN}{photo_name}{Fore.RESET}"

@@ -28,3 +28,4 @@ async def role_check(ctx):
       return True
   except Exception as e:
     logger.info(e)
+    return False

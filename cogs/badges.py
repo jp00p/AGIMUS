@@ -54,7 +54,7 @@ class Badges(commands.Cog):
       filtered = [
         discord.OptionChoice(
           name="[ No Valid Options ]",
-          value=None
+          value="none"
         )
       ]
     return filtered

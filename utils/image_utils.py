@@ -23,7 +23,7 @@ from utils.badge_cache import *
 from utils.crystal_effects import apply_crystal_effect
 from utils.encode_utils import encode_webp
 from utils.prestige import PRESTIGE_TIERS, PRESTIGE_THEMES
-from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert, to_thread_image
+from utils.thread_utils import threaded_image_open
 
 BEEP_BOOPS = [
   "... beep boop beep ...",
@@ -1858,6 +1858,7 @@ async def generate_crystal_replicator_confirmation_frames(crystal, replicator_ty
 _REMATERIALIZATION_LOCK = threading.Lock()
 _REMATERIALIZATION_CACHE = {
   'bg': None,
+  'bg_size': None,
   'mask_l': None,
   'mask_l_resized': None,
   'mask_l_resized_key': None,
@@ -1865,6 +1866,59 @@ _REMATERIALIZATION_CACHE = {
   'scaled_fx': {},
   'effect_key': None
 }
+
+def _get_rematerializer_canvas_size(bg_path: str) -> tuple[int, int]:
+  with _REMATERIALIZATION_LOCK:
+    cached = _REMATERIALIZATION_CACHE.get('bg_size')
+    if cached is not None:
+      return cached
+
+  with Image.open(bg_path) as bg:
+    size = bg.size
+
+  with _REMATERIALIZATION_LOCK:
+    _REMATERIALIZATION_CACHE['bg_size'] = size
+
+  return size
+
+async def get_rematerialization_animation(
+  *,
+  session_id: int,
+  items: list[dict],
+  created_crystal: dict
+) -> io.BytesIO | None:
+  icon_name = created_crystal.get('icon')
+  if not icon_name:
+    return None
+
+  result_path = f'./images/templates/crystals/icons/{icon_name}'
+  if not os.path.exists(result_path):
+    return None
+
+  bg_path = './images/templates/rematerialize/rematerializer.png'
+  canvas_size = _get_rematerializer_canvas_size(bg_path)
+
+  seed = abs(hash(str(session_id))) % (2**31)
+
+  loop = asyncio.get_running_loop()
+  pile_buf = await loop.run_in_executor(
+    THREAD_POOL,
+    lambda: build_rematerialization_pile(
+      items=items,
+      canvas_size=canvas_size,
+      seed=seed
+    )
+  )
+
+  pile_bytes = pile_buf.getvalue()
+
+  anim_buf = await build_rematerialization_animation(
+    pile_bytes=pile_bytes,
+    result_crystal_path=result_path
+  )
+
+  anim_buf.seek(0)
+  return anim_buf
 
 def _frames_are_opaque(frames: list[Image.Image]) -> bool:
   for im in frames:
@@ -2046,7 +2100,7 @@ def _apply_mask_luma(layer: Image.Image, mask_l: Image.Image) -> Image.Image:
   return out
 
 
-def build_rematerialization_pile_bytes(
+def build_rematerialization_pile(
   *,
   items: list[dict],
   canvas_size: tuple[int, int],
@@ -2293,7 +2347,7 @@ def build_rematerialization_pile_bytes(
   return out
 
 
-async def build_rematerialization_success_animation(
+async def build_rematerialization_animation(
   *,
   pile_bytes: io.BytesIO | bytes,
   result_crystal_path: str,
@@ -2594,7 +2648,7 @@ async def build_rematerialization_success_animation(
     return frames
 
   loop = asyncio.get_running_loop()
-  frames = await loop.run_in_executor(None, _build_rematerialization_success_frames)
+  frames = await loop.run_in_executor(THREAD_POOL, _build_rematerialization_success_frames)
 
   if not frames:
     raise ValueError('No frames returned for rematerialization success animation.')

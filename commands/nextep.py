@@ -14,8 +14,7 @@ async def nexttrek(ctx:discord.ApplicationContext):
   await ctx.defer()
 
   tvmaze_ids = {
-    "discovery": 7480,
-    "lowerdecks": 39323,
+    "sfa": 60302,
     "snw": 48090,
   }
   latest_episode_date = None

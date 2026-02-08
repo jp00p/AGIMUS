@@ -17,6 +17,13 @@ blocked_level_up_sources = [
   "Classified by Section 31"
 ]
 
+async def _resolve_badge_ping_target(member: discord.abc.User) -> str:
+  user_details = await get_user(member.id)
+  if user_details.get("ping_on_badge", True):
+    return member.mention
+  return member.display_name
+
+
 # ____  _____________     _____                           .___.__
 # \   \/  /\______   \   /  _  \__  _  _______ _______  __| _/|__| ____    ____
 #  \     /  |     ___/  /  /_\  \ \/ \/ /\__  \\_  __ \/ __ | |  |/    \  / ___\
@@ -117,12 +124,14 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
   """
   Build and send a level-up notification embed to the XP notification channel.
   """
+  mention = await _resolve_badge_ping_target(member)
+
   badge_prestige = badge_data['prestige_level']
-  level_up_msg = f"**{random.choice(random_level_up_messages['messages']).format(user=member.mention, level=level, prev_level=(level-1))}**"
+  level_up_msg = f"**{random.choice(random_level_up_messages['messages']).format(user=mention, level=level, prev_level=(level-1))}**"
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
-  embed_description = f"{member.mention} has reached **Echelon {level}** and earned a Badge [{PRESTIGE_TIERS[badge_prestige]} Tier])!"
+  embed_description = f"{mention} has reached **Echelon {level}** and earned a Badge [{PRESTIGE_TIERS[badge_prestige]} Tier])!"
   if badge_data.get('was_on_wishlist', False):
     embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
 
@@ -158,16 +167,18 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
     member (discord.Member): The user who advanced.
     new_prestige (int): The prestige tier the user just reached.
   """
+  mention = await _resolve_badge_ping_target(member)
+
   prestige_name = PRESTIGE_TIERS.get(new_prestige, f"Prestige {new_prestige}")
   old_prestige_name = PRESTIGE_TIERS.get(new_prestige - 1, "Standard")
 
-  prestige_msg = f"## STRANGE ENERGIES AFOOT! {member.mention} is entering boundary-space upon reaching **Echelon {level}**!!!"
+  prestige_msg = f"## STRANGE ENERGIES AFOOT! {mention} is entering boundary-space upon reaching **Echelon {level}**!!!"
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
   title = f"Echelon {level} and {prestige_name} Tier Unlocked!"
   description = (
-    f"{member.mention} has ascended to the **{prestige_name} Prestige Tier!**"
+    f"{mention} has ascended to the **{prestige_name} Prestige Tier!**"
     f"\n\nThey have reached **Echelon {level}** and have received their first **{prestige_name}** Badge!"
     f"\n\nThis also means they're within the *Prestige Quantum Improbability Field*..."
     f"\n\nAs they continue to advance into {prestige_name} the pull grows ever larger as the odds warp and skew! "
@@ -199,15 +210,17 @@ async def post_first_level_welcome_embed(member, badge_data, source_details = No
     member (discord.Member): The user who advanced.
     badge_data: The badge_data for the standard FOD Welcome badge, or None if they've migrated from the old Legacy system
   """
+  mention = await _resolve_badge_ping_target(member)
+
   notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
   agimus_announcement_channel = bot.get_channel(get_channel_id(config["agimus_announcement_channel"]))
 
   if badge_data:
-    prestige_msg = f"## TRANSPORTER SIGNAL INBOUND! {member.mention}, welcome to Echelon 1!!!"
+    prestige_msg = f"## TRANSPORTER SIGNAL INBOUND! {mention}, welcome to Echelon 1!!!"
     discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
     embed = discord.Embed(
       title="Echelon 1!",
-      description=f"Enter, Friend! Welcome aboard {member.mention}! You've materialized onto The Hood's Transporter Pad and been inducted into **Echelon 1**!"
+      description=f"Enter, Friend! Welcome aboard {mention}! You've materialized onto The Hood's Transporter Pad and been inducted into **Echelon 1**!"
                   "\n\nYour activity on The Hood earns you optional XP and Badges you can collect and trade to other crew members (for funzies)!",
       color=discord.Color.green()
     )
@@ -219,10 +232,10 @@ async def post_first_level_welcome_embed(member, badge_data, source_details = No
     embed.set_footer(text="You can opt-out of the Echelon System by using `/settings` at any time if so desired.")
     await notification_channel.send(content=prestige_msg, file=discord_file, embed=embed)
   else:
-    prestige_msg = f"## TRANSPORTER SIGNAL CONVERSION COMPLETE! {member.mention}, welcome to Echelon 1!!!"
+    prestige_msg = f"## TRANSPORTER SIGNAL CONVERSION COMPLETE! {mention}, welcome to Echelon 1!!!"
     embed = discord.Embed(
       title="Echelon 1!",
-      description=f"Re-sequencing {member.mention}'s pattern finalized! You've been converted from the Legacy XP System and initialized at **Echelon 1**!"
+      description=f"Re-sequencing {mention}'s pattern finalized! You've been converted from the Legacy XP System and initialized at **Echelon 1**!"
                   "\n\nVery exciting. Your Legacy XP has been retained for bragging rights (viewable through `/profile`), and worry not, all of your existing badges are intact at the Standard Prestige Tier."
                   f"\n\nBe sure to check out the details of the new system over at {agimus_announcement_channel.mention}",
       color=discord.Color.green()
@@ -242,19 +255,21 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
   If they received more than one (only currently occurs when they first hit Echelon 1),
   there's a little special messaging instead of the standard.
   """
+  mention = await _resolve_badge_ping_target(member)
+
   gelrak_v = await bot.fetch_channel(get_channel_id("gelrak-v"))
 
   embed = None
   if level > 1:
     embed = discord.Embed(
       title="Crystal Pattern Buffer Acquired!",
-      description=f"{member.mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Pattern Buffer** when they reached Echelon {level}!\n\nThey can now use it to replicate a Crystal from scratch over in {gelrak_v.mention}!",
+      description=f"{mention} {random.choice(BUFFER_PATTERN_AQUISITION_REASONS)} **Crystal Pattern Buffer** when they reached Echelon {level}!\n\nThey can now use it to replicate a Crystal from scratch over in {gelrak_v.mention}!",
       color=discord.Color.teal()
     )
   else:
     embed = discord.Embed(
       title="Crystal Pattern Buffers Acquired!",
-      description=f"{member.mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Pattern Buffers** in their hands when they reached Echelon {level}!\n\n"
+      description=f"{mention} materialized onto the transporter pad with **{number_of_patterns} Crystal Pattern Buffers** in their hands when they reached Echelon {level}!\n\n"
                   f"They can now use them to replicate **{number_of_patterns}** Crystals from scratch over in {gelrak_v.mention}!",
       color=discord.Color.teal()
     )
@@ -311,11 +326,13 @@ async def post_badge_repair_embed(member: discord.User, badge_data: dict, reason
   """
   Build and send a badge notification embed to the XP notification channel.
   """
+  mention = await _resolve_badge_ping_target(member)
+
   badge_prestige = badge_data['prestige_level']
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
-  embed_description = f"{member.mention}'s inventory has been corrected with a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Correction**."
+  embed_description = f"{mention}'s inventory has been corrected with a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Correction**."
   if reason:
     embed_description = f"\n\nReason: `{reason}`"
   if badge_data.get('was_on_wishlist', False):
@@ -337,7 +354,7 @@ async def post_badge_repair_embed(member: discord.User, badge_data: dict, reason
   embed.set_footer(text="See all your badges by typing '/badges collection' - disable this by typing '/settings'")
 
   notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
-  message = await notification_channel.send(content=f"## {member.mention}: You've Received A Badge Correction", file=discord_file, embed=embed)
+  message = await notification_channel.send(content=f"## {mention}: You've Received A Badge Correction", file=discord_file, embed=embed)
   # Add + emoji so that users can add it as well to add the badge to their wishlist
   await message.add_reaction("✅")
 
@@ -345,11 +362,13 @@ async def post_badge_grant_embed(member: discord.User, badge_data: dict, reason:
   """
   Build and send a badge notification embed to the XP notification channel.
   """
+  mention = await _resolve_badge_ping_target(member)
+
   badge_prestige = badge_data['prestige_level']
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data)
 
-  embed_description = f"{member.mention} has received a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Grant!**."
+  embed_description = f"{mention} has received a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Grant!**."
   if reason:
     embed_description = f"\n\nReason: `{reason}`"
   if badge_data.get('was_on_wishlist', False):
@@ -371,7 +390,7 @@ async def post_badge_grant_embed(member: discord.User, badge_data: dict, reason:
   embed.set_footer(text="See all your badges by typing '/badges collection' - disable this by typing '/settings'")
 
   notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
-  message = await notification_channel.send(content=f"## {member.mention}: You've Received A Badge Grant!", file=discord_file, embed=embed)
+  message = await notification_channel.send(content=f"## {mention}: You've Received A Badge Grant!", file=discord_file, embed=embed)
   # Add + emoji so that users can add it as well to add the badge to their wishlist
   await message.add_reaction("✅")
 

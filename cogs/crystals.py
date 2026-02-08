@@ -998,47 +998,13 @@ class WishlistPartnerView(discord.ui.DesignerView):
 
     if self._is_component_interaction(interaction):
       try:
-        fn = getattr(interaction.response, "defer_update", None)
-        if fn:
-          await fn()
-          return True
-      except Exception:
-        pass
-
-      try:
-        await interaction.response.defer(invisible=True)
+        await interaction.response.defer()
         return True
-      except TypeError:
-        pass
-      except Exception:
-        return False
-
-      try:
-        await interaction.response.defer(thinking=False)
-        return True
-      except TypeError:
-        pass
       except Exception:
         return False
 
     try:
       await interaction.response.defer(ephemeral=True)
-      return True
-    except TypeError:
-      pass
-    except Exception:
-      return False
-
-    try:
-      await interaction.response.defer(invisible=True)
-      return True
-    except TypeError:
-      pass
-    except Exception:
-      return False
-
-    try:
-      await interaction.response.defer()
       return True
     except Exception:
       return False

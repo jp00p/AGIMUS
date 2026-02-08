@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS users (
   tagging_enabled BOOLEAN NOT NULL DEFAULT 0,
   crystal_autoharmonize BOOLEAN NOT NULL DEFAULT 1,
   pattern_buffer BOOLEAN NOT NULL DEFAULT 0,
+  ping_on_badge BOOLEAN NOT NULL DEFAULT 1,
   level int(11) DEFAULT 1,
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)
@@ -798,7 +799,7 @@ CREATE TABLE IF NOT EXISTS trade_requested_badge_instances (
 );
 
 
--- Crystal Rematerializations (Scrapper)
+-- Crystal Rematerializations
 CREATE TABLE IF NOT EXISTS crystal_rematerializations (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_discord_id VARCHAR(64) NOT NULL,

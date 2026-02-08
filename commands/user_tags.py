@@ -53,7 +53,7 @@ class ClearCancelButton(discord.ui.Button):
   def __init__(self):
     super().__init__(
       label="Cancel",
-      style=discord.ButtonStyle.red,
+      style=discord.ButtonStyle.secondary,
     )
 
   async def callback(self, interaction:discord.Interaction):
@@ -70,8 +70,8 @@ class ClearCancelButton(discord.ui.Button):
 class ClearConfirmView(discord.ui.View):
   def __init__(self, user_id):
     super().__init__()
-    self.add_item(ClearConfirmButton(user_id))
     self.add_item(ClearCancelButton())
+    self.add_item(ClearConfirmButton(user_id))
 
 
 # _________                                           .___

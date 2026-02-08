@@ -116,47 +116,13 @@ class RematerializationView(discord.ui.DesignerView):
 
     if self._is_component_interaction(interaction):
       try:
-        fn = getattr(interaction.response, 'defer_update', None)
-        if fn:
-          await fn()
-          return True
-      except Exception:
-        pass
-
-      try:
-        await interaction.response.defer(invisible=True)
+        await interaction.response.defer()
         return True
-      except TypeError:
-        pass
-      except Exception:
-        return False
-
-      try:
-        await interaction.response.defer(thinking=False)
-        return True
-      except TypeError:
-        pass
       except Exception:
         return False
 
     try:
       await interaction.response.defer(ephemeral=True)
-      return True
-    except TypeError:
-      pass
-    except Exception:
-      return False
-
-    try:
-      await interaction.response.defer(invisible=True)
-      return True
-    except TypeError:
-      pass
-    except Exception:
-      return False
-
-    try:
-      await interaction.response.defer()
       return True
     except Exception:
       return False
@@ -1252,7 +1218,6 @@ class RematerializationView(discord.ui.DesignerView):
     icon_bytes: bytes | None,
     source_rarity_text: str,
     target_rarity_text: str,
-    display_name: str,
     user_mention: str
   ) -> bool:
     try:
@@ -1261,53 +1226,19 @@ class RematerializationView(discord.ui.DesignerView):
       if not gelrak_v:
         gelrak_v = await self.cog.bot.fetch_channel(channel_id)
 
-      pile_buf = None
+      animation = None
       try:
-        bg_path = './images/templates/rematerialize/rematerializer.png'
-        with Image.open(bg_path) as bg:
-          canvas_size = bg.size
-
-        seed = abs(hash(str(session_id))) % (2**31)
-        pile_buf = await asyncio.to_thread(
-          build_rematerialization_pile_bytes,
+        animation = await get_rematerialization_animation(
+          session_id=session_id,
           items=items,
-          canvas_size=canvas_size,
-          seed=seed
+          created_crystal=created_crystal
         )
-        try:
-          pile_buf.seek(0)
-        except Exception:
-          pass
       except Exception:
-        self._log_exc('_post_results:build_rematerialization_pile_bytes')
-        pile_buf = None
+        self._log_exc('_post_results:_build_rematerialization_animation')
+        animation = None
+        return
 
-      anim_buf = None
-      icon_name = created_crystal.get('icon')
-      if pile_buf and icon_name:
-        result_path = f'./images/templates/crystals/icons/{icon_name}'
-        if os.path.exists(result_path):
-          try:
-            try:
-              pile_buf.seek(0)
-            except Exception:
-              pass
-
-            pile_bytes = pile_buf.read()
-
-            anim_buf = await build_rematerialization_success_animation(
-              pile_bytes=pile_bytes,
-              result_crystal_path=result_path
-            )
-            try:
-              anim_buf.seek(0)
-            except Exception:
-              pass
-          except Exception:
-            self._log_exc('_post_results:build_rematerialization_success_animation')
-            anim_buf = None
-
-      if not anim_buf:
+      if not animation:
         return False
 
       dematerialized_text = self._summarize_dematerialized_items(items)
@@ -1322,11 +1253,7 @@ class RematerializationView(discord.ui.DesignerView):
       result_filename = f'crystal_type_{result_id}.png'
       animation_filename = f'rematerialization_{session_id}.webp'
 
-      try:
-        anim_buf.seek(0)
-      except Exception:
-        pass
-      animation_file = discord.File(anim_buf, filename=animation_filename)
+      animation_file = discord.File(animation, filename=animation_filename)
 
       public_view = discord.ui.DesignerView(timeout=None, store=False)
 
@@ -1495,7 +1422,6 @@ class RematerializationView(discord.ui.DesignerView):
       source_rarity_text = f'`{self.cog.rarity_emoji(self.source_rarity_rank)} {self.cog.rarity_name(self.source_rarity_rank)}`'
       target_rarity_text = f'`{self.cog.rarity_emoji(self.target_rarity_rank)} {self.cog.rarity_name(self.target_rarity_rank)}`'
 
-      display_name = interaction.user.display_name
       user_mention = self.user.mention
 
       self.rematerialization_id = None
@@ -1520,7 +1446,6 @@ class RematerializationView(discord.ui.DesignerView):
           icon_bytes=icon_bytes,
           source_rarity_text=source_rarity_text,
           target_rarity_text=target_rarity_text,
-          display_name=display_name,
           user_mention=user_mention
         )
       )

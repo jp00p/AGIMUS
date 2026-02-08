@@ -5,11 +5,12 @@ CATEGORY_MEDIA_URLS = {
   "home": "https://i.imgur.com/TfDEuSS.jpg",
   "xp": "https://i.imgur.com/upuEFlq.png",
   "notifications": "https://i.imgur.com/XMnho37.png",
+  "badge_pings": "https://i.imgur.com/XMnho37.png",
+  "pattern_buffer": "https://i.imgur.com/XMnho37.png",
   "crystallization": "https://i.imgur.com/Kkwa9ub.png",
   "wordcloud": "https://i.imgur.com/xNeoDSD.png",
   "loudbot": "https://i.imgur.com/wq34YDD.png",
-  "tagging": "https://i.imgur.com/TVAmmjk.jpeg",
-  "pattern_buffer": "https://i.imgur.com/XMnho37.png",
+  "tagging": "https://i.imgur.com/TVAmmjk.jpeg"
 }
 
 
@@ -17,11 +18,12 @@ SETTINGS_CATEGORIES = [
   ("Home", "Settings Homepage and Help", "home"),
   ("XP", "Opt-in or Opt-out of the XP System", "xp"),
   ("Notifications", "Enable or Disable DMs from AGIMUS", "notifications"),
+  ("Badge Award Mentions", "Ping or do Not Ping you on Badge Awards", "badge_pings"),
+  ("Crystal Pattern Buffer DMs", "Opt-in or Opt-out of Crystal Pattern Buffer DMs", "pattern_buffer"),
   ("Crystallization", "Configure Crystal Auto-Harmonization Behavior", "crystallization"),
   ("Wordcloud", "Enable or Disable Wordcloud Logging", "wordcloud"),
   ("Loudbot", "Enable or Disable Loudbot Auto-Responses and Logging", "loudbot"),
   ("User Tagging", "Opt-in or Opt-out of User Tagging", "tagging"),
-  ("Crystal Pattern Buffer DMs", "Opt-in or Opt-out of Crystal Pattern Buffer DMs", "pattern_buffer"),
 ]
 
 
@@ -54,6 +56,26 @@ CATEGORY_TEXT = {
       "AGIMUS may occasionally want to send you a Direct Message with useful information.\n\n"
       "Some examples include sending Drops/Clips lists when requested and notably, DMs are used in the Badge Trading System "
       "to give alerts when a trade has been initiated or one of your existing trades has been canceled."
+    ),
+    "footer": "Select your preference below."
+  },
+  "badge_pings": {
+    "title": "Badge Award Mentions",
+    "body": (
+      "When you receive a new Badge from the Echelon System, AGIMUS posts a notification in {badge_channel_mention}. "
+      "By default, this notification @mentions you.\n\n"
+      "If you would prefer not to be pinged for badge awards, you can disable these mentions here. "
+      "This only affects Badge Award notifications. Other mentions are unaffected."
+    ),
+    "footer": "Select your preference below."
+  },
+  "pattern_buffer": {
+    "title": "Crystal Pattern Buffer Notifications",
+    "body": (
+      "Crystal Pattern Buffers are rewards given by the XP System. This setting will only apply if you have enabled the XP System. "
+      "Opt in if you would like to receive a notification when you receive a Crystal Pattern Buffer.\n\n"
+      "This setting only applies to notifications about Crystal Pattern Buffers. If you would like to receive other notifications, "
+      "please use the Notifications setting."
     ),
     "footer": "Select your preference below."
   },
@@ -96,16 +118,6 @@ CATEGORY_TEXT = {
       "Select below if you would like to enable others to tag you (or add some of your own to yourself)."
     ),
     "footer": "Select your preference below."
-  },
-  "pattern_buffer": {
-    "title": "Crystal Pattern Buffer Notifications",
-    "body": (
-      "Crystal Pattern Buffers are rewards given by the XP System. This setting will only apply if you have enabled the XP System. "
-      "Opt in if you would like to receive a notification when you receive a Crystal Pattern Buffer.\n\n"
-      "This setting only applies to notifications about Crystal Pattern Buffers. If you would like to receive other notifications, "
-      "please use the Notifications setting."
-    ),
-    "footer": "Select your preference below."
   }
 }
 
@@ -121,6 +133,10 @@ def _is_enabled_for_category(user_details: dict, category: str) -> bool | None:
     return bool(user_details.get("xp_enabled"))
   if category == "notifications":
     return bool(user_details.get("receive_notifications"))
+  if category == "badge_pings":
+    return bool(user_details.get("ping_on_badge", True))
+  if category == "pattern_buffer":
+    return bool(user_details.get("pattern_buffer"))
   if category == "crystallization":
     val = user_details.get("crystal_autoharmonize")
     if val is None:
@@ -132,8 +148,6 @@ def _is_enabled_for_category(user_details: dict, category: str) -> bool | None:
     return bool(user_details.get("loudbot_enabled"))
   if category == "tagging":
     return bool(user_details.get("tagging_enabled"))
-  if category == "pattern_buffer":
-    return bool(user_details.get("pattern_buffer"))
   return None
 
 
@@ -249,6 +263,18 @@ class SettingsView(discord.ui.DesignerView):
         discord.SelectOption(label="Disable Notifications", description="Prevent AGIMUS from sending you DMs"),
       ], "Choose your preference")
 
+    if key == "badge_pings":
+      return ([
+        discord.SelectOption(label="Enable Mentions", description="Ping you on badge awards."),
+        discord.SelectOption(label="Disable Mentions", description="Do not ping you on badge awards."),
+      ], "Choose your preference")
+
+    if key == "pattern_buffer":
+      return ([
+        discord.SelectOption(label="Enable Pattern Buffer DM", description="Opt-in to the Pattern Buffer DM"),
+        discord.SelectOption(label="Disable Pattern Buffer DM", description="Opt-out of the Pattern Buffer DM"),
+      ], "Choose your preference")
+
     if key == "crystallization":
       return ([
         discord.SelectOption(label="Auto-Harmonize", description="Automatically Harmonize upon Attunement."),
@@ -271,12 +297,6 @@ class SettingsView(discord.ui.DesignerView):
       return ([
         discord.SelectOption(label="Enable Tagging", description="Opt-in to the User Tagging System"),
         discord.SelectOption(label="Disable Tagging", description="Opt-out of the User Tagging System"),
-      ], "Choose your preference")
-
-    if key == "pattern_buffer":
-      return ([
-        discord.SelectOption(label="Enable Pattern Buffer DM", description="Opt-in to the Pattern Buffer DM"),
-        discord.SelectOption(label="Disable Pattern Buffer DM", description="Opt-out of the Pattern Buffer DM"),
       ], "Choose your preference")
 
     return ([
@@ -490,6 +510,18 @@ class SettingsView(discord.ui.DesignerView):
       elif selection == "Disable Notifications":
         await db_toggle_notifications(user_id, False)
 
+    elif key == "badge_pings":
+      if selection == "Enable Mentions":
+        await db_toggle_badge_pings(user_id, True)
+      elif selection == "Disable Mentions":
+        await db_toggle_badge_pings(user_id, False)
+
+    elif key == "pattern_buffer":
+      if selection == "Enable Pattern Buffer DM":
+        await db_toggle_pattern_buffer(user_id, True)
+      elif selection == "Disable Pattern Buffer DM":
+        await db_toggle_pattern_buffer(user_id, False)
+
     elif key == "crystallization":
       selection_map = {
         "Auto-Harmonize": True,
@@ -517,12 +549,6 @@ class SettingsView(discord.ui.DesignerView):
         await db_toggle_tagging(user_id, True)
       elif selection == "Disable Tagging":
         await db_toggle_tagging(user_id, False)
-
-    elif key == "pattern_buffer":
-      if selection == "Enable Pattern Buffer DM":
-        await db_toggle_pattern_buffer(user_id, True)
-      elif selection == "Disable Pattern Buffer DM":
-        await db_toggle_pattern_buffer(user_id, False)
 
     self.user_details = await get_user(user_id)
 
@@ -580,6 +606,11 @@ async def db_toggle_notifications(user_id: str, toggle: bool):
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, vals)
 
+async def db_toggle_badge_pings(user_id: str, toggle: bool):
+  sql = "UPDATE users SET ping_on_badge = %s WHERE discord_id = %s"
+  vals = (toggle, user_id)
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, vals)
 
 async def db_toggle_wordcloud_flag(user_id: str, toggle: bool):
   sql = "UPDATE users SET log_messages = %s WHERE discord_id = %s"
