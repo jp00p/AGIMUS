@@ -118,7 +118,9 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
   Build and send a level-up notification embed to the XP notification channel.
   """
   badge_prestige = badge_data['prestige_level']
-  level_up_msg = f"**{random.choice(random_level_up_messages['messages']).format(user=member.mention, level=level, prev_level=(level-1))}**"
+  should_ping = await db_get_user_badge_ping_preference(member.id)
+  user_mention = member.mention if should_ping else member.display_name
+  level_up_msg = f"**{random.choice(random_level_up_messages['messages']).format(user=user_mention, level=level, prev_level=(level-1))}**"
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
@@ -161,7 +163,9 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
   prestige_name = PRESTIGE_TIERS.get(new_prestige, f"Prestige {new_prestige}")
   old_prestige_name = PRESTIGE_TIERS.get(new_prestige - 1, "Standard")
 
-  prestige_msg = f"## STRANGE ENERGIES AFOOT! {member.mention} is entering boundary-space upon reaching **Echelon {level}**!!!"
+  should_ping = await db_get_user_badge_ping_preference(member.id)
+  user_mention = member.mention if should_ping else member.display_name
+  prestige_msg = f"## STRANGE ENERGIES AFOOT! {user_mention} is entering boundary-space upon reaching **Echelon {level}**!!!"
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
@@ -346,10 +350,12 @@ async def post_badge_grant_embed(member: discord.User, badge_data: dict, reason:
   Build and send a badge notification embed to the XP notification channel.
   """
   badge_prestige = badge_data['prestige_level']
+  should_ping = await db_get_user_badge_ping_preference(member.id)
+  user_mention = member.mention if should_ping else member.display_name
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data)
 
-  embed_description = f"{member.mention} has received a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Grant!**."
+  embed_description = f"{user_mention} has received a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Grant!**."
   if reason:
     embed_description = f"\n\nReason: `{reason}`"
   if badge_data.get('was_on_wishlist', False):
@@ -371,7 +377,7 @@ async def post_badge_grant_embed(member: discord.User, badge_data: dict, reason:
   embed.set_footer(text="See all your badges by typing '/badges collection' - disable this by typing '/settings'")
 
   notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
-  message = await notification_channel.send(content=f"## {member.mention}: You've Received A Badge Grant!", file=discord_file, embed=embed)
+  message = await notification_channel.send(content=f"## {user_mention}: You've Received A Badge Grant!", file=discord_file, embed=embed)
   # Add + emoji so that users can add it as well to add the badge to their wishlist
   await message.add_reaction("✅")
 

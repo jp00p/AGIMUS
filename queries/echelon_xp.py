@@ -48,3 +48,11 @@ async def db_get_legacy_xp_data(user_discord_id: str) -> dict:
     await db.execute("SELECT * FROM legacy_xp_records WHERE user_discord_id = %s", (user_discord_id,))
     data = await db.fetchone()
     return data or {}
+
+async def db_get_user_badge_ping_preference(user_discord_id: str) -> bool:
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute("SELECT ping_on_badge FROM users WHERE discord_id = %s", (user_discord_id,))
+    result = await db.fetchone()
+    if result is None:
+      return True  # Default to True if user record doesn't exist
+    return bool(result.get('ping_on_badge', True))
