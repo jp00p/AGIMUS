@@ -950,481 +950,675 @@ class Crystals(commands.Cog):
 # \     \____|  | \/\___  |\___ \  |  |  / __ \|  |__/    Y    \/ __ \|   |  \  ||  | \  ___/ \___ \  |  |  \     /  |  \  ___/\     /
 #  \______  /|__|   / ____/____  > |__| (____  /____/\____|__  (____  /___|  /__||__|  \___  >____  > |__|   \___/   |__|\___  >\/\_/
 #         \/        \/         \/            \/              \/     \/     \/              \/     \/                         \/
-class WishlistPartnerView(discord.ui.DesignerView):
-  PAGE_SIZE = 30
+class CrystalManifestView(discord.ui.DesignerView):
+  STATE_MANIFEST = "MANIFEST"
+  STATE_ATTACH_CONFIRM = "ATTACH_CONFIRM"
+  STATE_SUCCESS = "SUCCESS"
 
   def __init__(
     self,
     *,
-    cog,
-    author_id: str,
-    prestige_level: int,
-    mode: str,
-    partners: list[dict]
+    cog: "Crystals",
+    user: discord.User,
+    user_id: int,
+    manifest_groups: list[dict],
+    preview_badge: dict | None,
+    pending_message: discord.Message | None = None
   ):
-    super().__init__(timeout=360)
+    super().__init__(timeout=300)
 
     self.cog = cog
-    self.author_id = str(author_id)
-    self.prestige_level = int(prestige_level)
-    self.mode = mode  # "matches" | "dismissals"
-    self.partners = partners or []
+    self.user = user
+    self.user_id = user_id
 
-    self.partner_idx = 0
-    self.tab = "intro"  # "intro" | "has" | "wants"
-    self.page = 0
+    self.manifest_groups = manifest_groups
+    self.preview_badge = preview_badge
+    self.pending_message = pending_message
 
     self.message: discord.Message | None = None
 
+    self.state = self.STATE_MANIFEST
+
+    self.group_index = 0
+    self.page_index = 0
+
+    self.selected_crystal_type_id: int | None = None
+
     self._interaction_lock = asyncio.Lock()
     self._ui_frozen = False
-    self._status: str | None = None  # optional status line like "Saving..."
 
-    self._build_controls()
-    self._sync_controls()
+    self._attach_target_crystal_instance: dict | None = None
+    self._attach_preview_bytes: bytes | None = None
+    self._attach_preview_filename: str | None = None
+
+    self._unavailable_attach_labels: list[str] = []
+
+  def _log_exc(self, label: str):
+    logger.exception(f"[crystals.manifest] {label}")
 
   async def interaction_check(self, interaction: discord.Interaction) -> bool:
-    return str(interaction.user.id) == self.author_id
+    return interaction.user.id == self.user.id
 
   def _is_component_interaction(self, interaction: discord.Interaction | None) -> bool:
-    try:
-      return bool(interaction and getattr(interaction, "message", None))
-    except Exception:
-      return False
+    return bool(interaction and interaction.message)
 
-  async def _ack(self, interaction: discord.Interaction) -> bool:
-    if interaction.response.is_done():
-      return True
+  def _wrap_indices(self):
+    if not self.manifest_groups:
+      self.group_index = 0
+      self.page_index = 0
+      return
 
-    if self._is_component_interaction(interaction):
-      try:
-        await interaction.response.defer()
-        return True
-      except Exception:
-        return False
+    if self.group_index < 0:
+      self.group_index = len(self.manifest_groups) - 1
+    if self.group_index >= len(self.manifest_groups):
+      self.group_index = 0
 
-    try:
-      await interaction.response.defer(ephemeral=True)
-      return True
-    except Exception:
-      return False
+    pages = self._current_pages()
+    max_pages = len(pages)
+
+    if max_pages <= 0:
+      self.page_index = 0
+      return
+
+    if self.page_index < 0:
+      self.page_index = max_pages - 1
+    if self.page_index >= max_pages:
+      self.page_index = 0
+
+  def _current_group(self) -> dict:
+    return self.manifest_groups[self.group_index]
+
+  def _current_pages(self) -> list[dict]:
+    return self._current_group().get("pages") or []
+
+  def _current_page(self) -> dict | None:
+    pages = self._current_pages()
+    if not pages:
+      return None
+    return pages[self.page_index]
+
+  def _page_total(self) -> int:
+    total = len(self._current_pages())
+    return total if total > 0 else 1
+
+  def _page_label(self) -> str:
+    return f"Page {self.page_index + 1}/{self._page_total()}"
+
+  def _rarity_label(self) -> str:
+    g = self._current_group()
+    emoji = g.get("emoji") or ""
+    name = g.get("label") or "Unknown"
+    return f"{emoji} {name}".strip()
 
   async def _freeze_current_message(self, interaction: discord.Interaction):
     if self._ui_frozen:
       return
 
     self._ui_frozen = True
-    try:
-      self.disable_all_items()
-    except Exception:
-      pass
+    self.disable_all_items()
 
-    if self._is_component_interaction(interaction) and not interaction.response.is_done():
-      try:
-        await interaction.response.edit_message(view=self)
-        return
-      except discord.errors.NotFound:
-        return
-      except Exception:
-        pass
-
-    try:
-      if interaction.message:
-        await interaction.message.edit(view=self)
-    except discord.errors.NotFound:
+    if not self._is_component_interaction(interaction):
       return
-    except Exception:
-      pass
 
-  async def _delete_message_safely(self, interaction: discord.Interaction, msg: discord.Message | None):
+    if interaction.response.is_done():
+      return
+
+    await interaction.response.edit_message(view=self)
+
+  async def _ack_non_component(self, interaction: discord.Interaction):
+    if interaction.response.is_done():
+      return
+    await interaction.response.defer(ephemeral=True)
+
+  async def _delete_pending_message(self):
+    if not self.pending_message:
+      return
+    try:
+      await self.pending_message.delete()
+    except discord.errors.NotFound:
+      pass
+    self.pending_message = None
+
+  async def _delete_message_safely(self, msg: discord.Message | None):
     if not msg:
       return
-
     try:
-      try:
-        await interaction.delete_original_response()
-        return
-      except Exception:
-        pass
-
-      try:
-        await msg.delete()
-        return
-      except Exception:
-        pass
-
-      try:
-        await interaction.followup.delete_message(msg.id)
-        return
-      except Exception:
-        pass
-    except Exception:
+      await msg.delete()
+    except discord.errors.NotFound:
       pass
 
-  def _iter_controls(self):
-    for row in self.children:
-      if isinstance(row, discord.ui.ActionRow):
-        for item in row.children:
-          yield item
+  def _normalize_rows(self, rows):
+    if not rows:
+      return []
+    if isinstance(rows, list):
+      return rows
+    if isinstance(rows, dict):
+      if "crystal_instance_id" in rows:
+        return [rows]
+      return list(rows.values())
+    return []
 
-  def _build_controls(self):
-    self.clear_items()
+  def _bytes_from_discord_file(self, discord_file: discord.File | None) -> tuple[bytes | None, str | None]:
+    if not discord_file:
+      return None, None
 
-    self.partner_select = discord.ui.Select(
-      placeholder="Select a partner...",
-      min_values=1,
-      max_values=1,
-      options=self._build_partner_options()
-    )
-    self.partner_select.callback = self._on_partner_select
+    fp = getattr(discord_file, "fp", None)
+    filename = getattr(discord_file, "filename", None)
 
-    self.tab_select = discord.ui.Select(
-      placeholder="Select a view...",
-      min_values=1,
-      max_values=1,
-      options=[
-        discord.SelectOption(label="Intro", value="intro"),
-        discord.SelectOption(label="What you want", value="has"),
-        discord.SelectOption(label="What they want", value="wants")
-      ]
-    )
-    self.tab_select.callback = self._on_tab_select
+    if not fp:
+      return None, filename
 
-    self.prev_button = discord.ui.Button(
-      label="Prev",
-      style=discord.ButtonStyle.secondary
-    )
-    self.prev_button.callback = self._on_prev
+    if hasattr(fp, "getvalue"):
+      return fp.getvalue(), filename
 
-    self.next_button = discord.ui.Button(
-      label="Next",
-      style=discord.ButtonStyle.secondary
-    )
-    self.next_button.callback = self._on_next
-
-    action_label = "Dismiss Match" if self.mode == "matches" else "Revoke Dismissal"
-    action_style = discord.ButtonStyle.danger if self.mode == "matches" else discord.ButtonStyle.primary
-    self.action_button = discord.ui.Button(
-      label=action_label,
-      style=action_style
-    )
-    self.action_button.callback = self._on_action
-
-    self.close_button = discord.ui.Button(
-      label="Close",
-      style=discord.ButtonStyle.secondary
-    )
-    self.close_button.callback = self._on_close
-
-    self.add_item(discord.ui.ActionRow(self.partner_select))
-    self.add_item(discord.ui.ActionRow(self.tab_select))
-    self.add_item(discord.ui.ActionRow(
-      self.prev_button,
-      self.next_button,
-      self.action_button,
-      self.close_button
-    ))
-
-  def _build_partner_options(self) -> list[discord.SelectOption]:
-    options = []
-    for idx, p in enumerate(self.partners):
-      label = p.get("partner_name") or "Unknown"
-      desc = f"{len(p.get('has_lines') or [])} has / {len(p.get('wants_lines') or [])} wants"
-      options.append(discord.SelectOption(
-        label=str(label)[:100],
-        description=str(desc)[:100],
-        value=str(idx)
-      ))
-    return options
-
-  def _current_partner(self) -> dict | None:
-    if not self.partners:
-      return None
-    if self.partner_idx < 0 or self.partner_idx >= len(self.partners):
-      return None
-    return self.partners[self.partner_idx]
-
-  def _get_total_pages_for_tab(self, tab: str) -> int:
-    partner = self._current_partner()
-    if not partner:
-      return 1
-
-    if tab == "has":
-      n = len(partner.get("has_lines") or [])
-    elif tab == "wants":
-      n = len(partner.get("wants_lines") or [])
-    else:
-      return 1
-
-    return max(1, math.ceil(n / self.PAGE_SIZE))
-
-  def _slice_lines(self, lines: list[str], page: int) -> list[str]:
-    start = page * self.PAGE_SIZE
-    end = start + self.PAGE_SIZE
-    return lines[start:end]
-
-  def _sync_controls(self):
-    try:
-      for opt in self.partner_select.options:
-        opt.default = (opt.value == str(self.partner_idx))
-
-      for opt in self.tab_select.options:
-        opt.default = (opt.value == self.tab)
-
-      self.partner_select.disabled = (not self.partners or len(self.partners) <= 1)
-
-      if self.tab == "intro":
-        self.prev_button.disabled = True
-        self.next_button.disabled = True
-      else:
-        total_pages = self._get_total_pages_for_tab(self.tab)
-        self.prev_button.disabled = (self.page <= 0)
-        self.next_button.disabled = (self.page >= max(0, total_pages - 1))
-
-      self.action_button.disabled = (self._current_partner() is None)
-
-      if self._ui_frozen:
-        for item in self._iter_controls():
-          item.disabled = True
-    except Exception:
-      pass
-
-  def _build_screen_container(self) -> discord.ui.Container:
-    partner = self._current_partner()
-    tier_name = PRESTIGE_TIERS[self.prestige_level]
-
-    header_title = "Wishlist Matches" if self.mode == "matches" else "Wishlist Dismissals"
-    header = discord.ui.Section(
-      discord.ui.TextDisplay(f"## {header_title} [{tier_name}] Tier")
-    )
-
-    if self._status:
-      status = discord.ui.Section(discord.ui.TextDisplay(self._status))
-    else:
-      status = None
-
-    if not partner:
-      empty = discord.ui.Section(discord.ui.TextDisplay("Nothing to display."))
-      if status:
-        return discord.ui.Container(header, status, empty)
-      return discord.ui.Container(header, empty)
-
-    partner_name = partner.get("partner_name") or "Unknown"
-    partner_mention = partner.get("partner_mention") or f"<@{partner.get('partner_id')}>"
-
-    has_total = len(partner.get("has_lines") or [])
-    wants_total = len(partner.get("wants_lines") or [])
-
-    summary_lines = [
-      f"**Partner:** {partner_mention} ({partner_name})",
-      f"**What you want:** {has_total} badge(s)",
-      f"**What they want:** {wants_total} badge(s)"
-    ]
-
-    if self.mode == "matches":
-      summary_lines.append("Use Dismiss Match to hide this partner from matches.")
-    else:
-      summary_lines.append("Use Revoke Dismissal to restore this partner to matches.")
-
-    summary = discord.ui.Section(discord.ui.TextDisplay("\n".join(summary_lines)))
-
-    if self.tab == "intro":
-      if status:
-        return discord.ui.Container(header, status, summary)
-      return discord.ui.Container(header, summary)
-
-    if self.tab == "has":
-      title = "### What you want"
-      lines = partner.get("has_lines") or []
-      total_pages = self._get_total_pages_for_tab("has")
-    else:
-      title = "### What they want"
-      lines = partner.get("wants_lines") or []
-      total_pages = self._get_total_pages_for_tab("wants")
-
-    page_lines = self._slice_lines(lines, self.page)
-    body = "\n".join(page_lines) if page_lines else "_No matching badges._"
-    footer = f"Page {self.page + 1} of {total_pages}"
-
-    page_section = discord.ui.Section(
-      discord.ui.TextDisplay(f"{title}\n{body}\n\n{footer}")
-    )
-
-    if status:
-      return discord.ui.Container(header, status, summary, page_section)
-    return discord.ui.Container(header, summary, page_section)
-
-  async def render(self, interaction: discord.Interaction | None = None):
-    self._sync_controls()
-    container = self._build_screen_container()
-
-    if interaction:
-      if interaction.response.is_done():
-        try:
-          await interaction.edit_original_response(components=[container], view=self)
-        except discord.NotFound:
-          if self.message:
-            try:
-              await self.message.edit(components=[container], view=self)
-            except Exception:
-              pass
-      else:
-        try:
-          await interaction.response.edit_message(components=[container], view=self)
-        except Exception:
-          if self.message:
-            try:
-              await self.message.edit(components=[container], view=self)
-            except Exception:
-              pass
-      return
-
-    if self.message:
+    if hasattr(fp, "read"):
       try:
-        await self.message.edit(components=[container], view=self)
+        fp.seek(0)
       except Exception:
         pass
+      return fp.read(), filename
 
-  async def _run_locked(self, interaction: discord.Interaction, fn, *, status: str | None = None):
-    async with self._interaction_lock:
-      ok = await self._ack(interaction)
-      if not ok:
-        return
+    return None, filename
 
-      self._status = status
-      await self._freeze_current_message(interaction)
-      await self.render(interaction)
+  def _build_manifest_rarity_select(self) -> discord.ui.Select | None:
+    if len(self.manifest_groups) <= 1:
+      return None
 
-      try:
-        await fn()
-      finally:
-        self._status = None
-        self._ui_frozen = False
-        try:
-          for item in self._iter_controls():
-            item.disabled = False
-        except Exception:
-          pass
-        await self.render(interaction)
-
-  async def _on_partner_select(self, interaction: discord.Interaction):
-    async def _do():
-      try:
-        self.partner_idx = int(self.partner_select.values[0])
-      except Exception:
-        self.partner_idx = 0
-      self.page = 0
-      self.tab = "intro"
-      await self.render(interaction)
-
-    await self._run_locked(interaction, _do)
-
-  async def _on_tab_select(self, interaction: discord.Interaction):
-    async def _do():
-      self.tab = self.tab_select.values[0]
-      self.page = 0
-      await self.render(interaction)
-
-    await self._run_locked(interaction, _do)
-
-  async def _on_prev(self, interaction: discord.Interaction):
-    async def _do():
-      self.page = max(0, self.page - 1)
-      await self.render(interaction)
-
-    await self._run_locked(interaction, _do)
-
-  async def _on_next(self, interaction: discord.Interaction):
-    async def _do():
-      total_pages = self._get_total_pages_for_tab(self.tab)
-      self.page = min(total_pages - 1, self.page + 1)
-      await self.render(interaction)
-
-    await self._run_locked(interaction, _do)
-
-  async def _on_action(self, interaction: discord.Interaction):
-    partner = self._current_partner()
-    if not partner:
-      await self._ack(interaction)
-      return
-
-    async def _do():
-      if self.mode == "matches":
-        await self.cog._dismiss_partner_match(
-          user_id=self.author_id,
-          partner_id=str(partner.get("partner_id")),
-          prestige_level=self.prestige_level,
-          has_ids=partner.get("has_ids") or [],
-          wants_ids=partner.get("wants_ids") or []
+    options: list[discord.SelectOption] = []
+    for i, g in enumerate(self.manifest_groups):
+      label = g.get("label") or f"Rank {g.get('rarity_rank')}"
+      emoji = g.get("emoji")
+      desc = (g.get("description") or "").strip()
+      options.append(
+        discord.SelectOption(
+          label=str(label),
+          value=str(i),
+          description=str(desc)[:100] if desc else None,
+          emoji=emoji
         )
-      else:
-        await self.cog._revoke_partner_dismissal(
-          user_id=self.author_id,
-          partner_id=str(partner.get("partner_id")),
-          prestige_level=self.prestige_level
-        )
-
-      removed_name = partner.get("partner_name") or "Unknown"
-      self.partners.pop(self.partner_idx)
-
-      if self.partner_idx >= len(self.partners):
-        self.partner_idx = max(0, len(self.partners) - 1)
-
-      self.page = 0
-      self.tab = "intro"
-
-      if not self.partners:
-        try:
-          await interaction.edit_original_response(
-            components=[
-              discord.ui.Container(
-                discord.ui.Section(
-                  discord.ui.TextDisplay("## Nothing Left To Review\nAll partners have been cleared from this view.")
-                )
-              )
-            ],
-            view=None
-          )
-        except Exception:
-          if self.message:
-            try:
-              await self.message.edit(
-                components=[
-                  discord.ui.Container(
-                    discord.ui.Section(
-                      discord.ui.TextDisplay("## Nothing Left To Review\nAll partners have been cleared from this view.")
-                    )
-                  )
-                ],
-                view=None
-              )
-            except Exception:
-              pass
-        return
-
-      self._build_controls()
-      await interaction.followup.send(
-        content=f"Saved - updated records for {removed_name}.",
-        ephemeral=True
       )
-      await self.render(interaction)
 
-    await self._run_locked(interaction, _do, status="Saving...")
+    select = discord.ui.Select(
+      placeholder="Select a Crystal Rarity Tier",
+      min_values=1,
+      max_values=1,
+      options=options[:25]
+    )
+    select.callback = self._on_select_rarity
+    return select
 
-  async def _on_close(self, interaction: discord.Interaction):
-    async def _do():
-      msg = self.message or getattr(interaction, "message", None)
-      await self._delete_message_safely(interaction, msg)
+  async def _compute_already_attuned_type_ids(self) -> set[int]:
+    if not self.preview_badge:
+      return set()
+    already_type_ids = await db_get_attuned_crystal_type_ids(self.preview_badge["badge_instance_id"])
+    return set(already_type_ids or [])
 
-    await self._run_locked(interaction, _do, status="Closing...")
+  async def _compute_unavailable_attach_labels(self) -> list[str]:
+    already_type_ids = await self._compute_already_attuned_type_ids()
+
+    page = self._current_page() or {}
+    labels: list[str] = []
+
+    for c in (page.get("page_crystals") or []):
+      if c.get("crystal_type_id") in already_type_ids:
+        emoji = c.get("emoji") or ""
+        name = c.get("crystal_name") or "Unknown"
+        labels.append(f"{emoji} {name}".strip())
+
+    return sorted(set(labels), key=lambda s: s.lower())
+
+  async def _build_manifest_crystal_select(self) -> discord.ui.Select | None:
+    if not self.preview_badge:
+      return None
+
+    already_type_ids = await self._compute_already_attuned_type_ids()
+    self._unavailable_attach_labels = await self._compute_unavailable_attach_labels()
+
+    page = self._current_page()
+    options: list[discord.SelectOption] = []
+
+    if page:
+      for c in (page.get("page_crystals") or []):
+        type_id = c.get("crystal_type_id")
+        if type_id in already_type_ids:
+          continue
+
+        label = f"{c.get('crystal_name', 'Unknown')} (x{c.get('instance_count', 1)})"
+        options.append(
+          discord.SelectOption(
+            label=label,
+            value=str(type_id),
+            emoji=c.get("emoji")
+          )
+        )
+
+    if not options:
+      options = [discord.SelectOption(label="No valid crystals on this page", value="none")]
+
+    select = discord.ui.Select(
+      placeholder="Select a Crystal to Attach",
+      min_values=1,
+      max_values=1,
+      options=options[:25]
+    )
+    select.callback = self._on_select_crystal
+    return select
+
+  def _build_manifest_nav_row(self) -> discord.ui.ActionRow:
+    row = discord.ui.ActionRow()
+
+    prev_btn = discord.ui.Button(label="⬅", style=discord.ButtonStyle.primary)
+    page_btn = discord.ui.Button(label=self._page_label(), style=discord.ButtonStyle.secondary, disabled=True)
+    next_btn = discord.ui.Button(label="➡", style=discord.ButtonStyle.primary)
+    close_btn = discord.ui.Button(label="Close", style=discord.ButtonStyle.danger)
+
+    prev_btn.callback = self._on_prev
+    next_btn.callback = self._on_next
+    close_btn.callback = self._on_close
+
+    row.add_item(prev_btn)
+    row.add_item(page_btn)
+    row.add_item(next_btn)
+    row.add_item(close_btn)
+    return row
+
+  def _build_manifest_container(
+    self,
+    *,
+    unavailable_note: str | None = None
+  ) -> tuple[discord.ui.Container, list[discord.File]]:
+    files: list[discord.File] = []
+    container = discord.ui.Container(color=discord.Color.teal().value)
+
+    container.add_item(discord.ui.TextDisplay("# Crystal Manifest"))
+    container.add_item(discord.ui.Separator())
+    container.add_item(discord.ui.TextDisplay(f"### Rarity Tier\n-# {self._rarity_label()}"))
+    container.add_item(discord.ui.Separator())
+
+    page = self._current_page()
+    if page:
+      filename = page.get("filename") or f"manifest_{self.group_index}_{self.page_index}.png"
+      data = page.get("data")
+      if data:
+        buf = BytesIO(data)
+        buf.seek(0)
+        files.append(discord.File(buf, filename=filename))
+        container.add_gallery(
+          discord.MediaGalleryItem(
+            url=f"attachment://{filename}",
+            description="Crystal Manifest"
+          )
+        )
+
+    if self.preview_badge:
+      container.add_item(discord.ui.Separator())
+      badge_name = self.preview_badge.get("badge_name") or "Selected Badge"
+      prestige_level = self.preview_badge.get("prestige_level", 0)
+      prestige_label = PRESTIGE_TIERS.get(prestige_level, "Standard")
+      container.add_item(discord.ui.TextDisplay(f"## Preview Badge\n`{badge_name} [{prestige_label}]`"))
+
+    if unavailable_note:
+      container.add_item(discord.ui.Separator())
+      container.add_item(discord.ui.TextDisplay(unavailable_note))
+
+    return container, files
+
+  def _build_attach_confirm_container(self) -> tuple[discord.ui.Container, list[discord.File]]:
+    files: list[discord.File] = []
+    container = discord.ui.Container(color=discord.Color.teal().value)
+
+    container.add_item(discord.ui.TextDisplay("# Crystal Attunement"))
+    container.add_item(discord.ui.Separator())
+    container.add_item(discord.ui.TextDisplay("## WARNING\n### This cannot be undone."))
+    container.add_item(discord.ui.Separator())
+    container.add_item(discord.ui.TextDisplay(
+      "-# You can have multiple crystals attached to a badge, but once a crystal is attuned to a badge it cannot be attached to a different badge."
+    ))
+    container.add_item(discord.ui.Separator())
+
+    container.add_gallery(
+      discord.MediaGalleryItem(
+        url="https://i.imgur.com/Pu6H9ep.gif",
+        description="Crystal Attunement"
+      )
+    )
+
+    if self._attach_preview_bytes and self._attach_preview_filename:
+      container.add_item(discord.ui.Separator())
+      container.add_item(discord.ui.TextDisplay("## Crystal Preview"))
+      container.add_item(discord.ui.Separator())
+
+      buf = BytesIO(self._attach_preview_bytes)
+      buf.seek(0)
+      files.append(discord.File(buf, filename=self._attach_preview_filename))
+      container.add_gallery(
+        discord.MediaGalleryItem(
+          url=f"attachment://{self._attach_preview_filename}",
+          description="Attachment Preview"
+        )
+      )
+
+    if self._attach_target_crystal_instance and self.preview_badge:
+      crystal_name = self._attach_target_crystal_instance.get("crystal_name") or "Unknown Crystal"
+      crystal_emoji = self._attach_target_crystal_instance.get("emoji") or ""
+      badge_name = self.preview_badge.get("badge_name") or "Selected Badge"
+      prestige_level = self.preview_badge.get("prestige_level", 0)
+      prestige_label = PRESTIGE_TIERS.get(prestige_level, "Standard")
+
+      container.add_item(discord.ui.Separator())
+      container.add_item(discord.ui.TextDisplay(
+        f"## Confirm\nAttach `{crystal_emoji} {crystal_name}` to `{badge_name} [{prestige_label}]`?"
+      ))
+
+    container.add_item(discord.ui.Separator())
+
+    row = discord.ui.ActionRow()
+    back_btn = discord.ui.Button(label="❮ Back", style=discord.ButtonStyle.secondary)
+    confirm_btn = discord.ui.Button(label="Confirm", style=discord.ButtonStyle.primary)
+
+    back_btn.callback = self._on_back_to_manifest
+    confirm_btn.callback = self._on_confirm_attach
+
+    row.add_item(back_btn)
+    row.add_item(confirm_btn)
+    container.add_item(row)
+
+    return container, files
+
+  def _build_success_container(self, text: str) -> discord.ui.Container:
+    container = discord.ui.Container(color=discord.Color.green().value)
+    container.add_item(discord.ui.TextDisplay("# Crystal Attuned!"))
+    container.add_item(discord.ui.Separator())
+    container.add_item(discord.ui.TextDisplay(text))
+    container.add_item(discord.ui.Separator())
+    container.add_gallery(
+      discord.MediaGalleryItem(
+        url="https://i.imgur.com/lP883bg.gif",
+        description="Crystal Attuned"
+      )
+    )
+    container.add_item(discord.ui.Separator())
+    container.add_item(discord.ui.TextDisplay("-# Session Ended"))
+    return container
+
+  async def _rebuild_async(self) -> list[discord.File]:
+    self.clear_items()
+    self._wrap_indices()
+
+    if self.state == self.STATE_MANIFEST:
+      self._unavailable_attach_labels = []
+      if self.preview_badge:
+        self._unavailable_attach_labels = await self._compute_unavailable_attach_labels()
+
+      unavailable_note = None
+      if self.preview_badge and self._unavailable_attach_labels:
+        shown_lines = ""
+        for label in self._unavailable_attach_labels[:12]:
+          shown_lines += f"* {label}\n"
+
+        more_line = ""
+        if len(self._unavailable_attach_labels) > 12:
+          more_line = f"-# (+{len(self._unavailable_attach_labels) - 12} more)"
+
+        unavailable_note = (
+          "### Unavailable\n"
+          "-# The following are unavailable for attachment because your Badge already has one of the same type attuned:\n"
+          f"{shown_lines}{more_line}".rstrip()
+        )
+
+      container, files = self._build_manifest_container(unavailable_note=unavailable_note)
+
+      rarity_select = self._build_manifest_rarity_select()
+      if rarity_select:
+        r = discord.ui.ActionRow()
+        r.add_item(rarity_select)
+        container.add_item(r)
+
+      crystal_select = await self._build_manifest_crystal_select()
+      if crystal_select:
+        r2 = discord.ui.ActionRow()
+        r2.add_item(crystal_select)
+        container.add_item(r2)
+
+      container.add_item(self._build_manifest_nav_row())
+      self.add_item(container)
+      return files
+
+    if self.state == self.STATE_ATTACH_CONFIRM:
+      container, files = self._build_attach_confirm_container()
+      self.add_item(container)
+      return files
+
+    if self.state == self.STATE_SUCCESS:
+      self.add_item(self._build_success_container("Attunement complete.\n\n-# Session ended."))
+      return []
+
+    container, files = self._build_manifest_container()
+    container.add_item(self._build_manifest_nav_row())
+    self.add_item(container)
+    return files
+
+  async def _send_new_and_delete_old(self, interaction: discord.Interaction, files: list[discord.File]):
+    old_msg = interaction.message if self._is_component_interaction(interaction) else self.message
+    await self._delete_message_safely(old_msg)
+
+    send_kwargs = {"view": self, "ephemeral": True}
+    if files:
+      send_kwargs["files"] = files
+
+    if not interaction.response.is_done():
+      await interaction.response.send_message(**send_kwargs)
+      try:
+        self.message = await interaction.original_response()
+      except Exception:
+        self.message = None
+      return
+
+    self.message = await interaction.followup.send(**send_kwargs)
+
+  async def _render(self, interaction: discord.Interaction):
+    await self._freeze_current_message(interaction)
+
+    if not interaction.response.is_done():
+      await self._ack_non_component(interaction)
+
+    self._ui_frozen = False
+    files = await self._rebuild_async()
+    await self._send_new_and_delete_old(interaction, files)
+
+  async def start(self, ctx: discord.ApplicationContext):
+    files = await self._rebuild_async()
+
+    send_kwargs = {"view": self, "ephemeral": True}
+    if files:
+      send_kwargs["files"] = files
+
+    if ctx.interaction and ctx.interaction.response.is_done():
+      self.message = await ctx.followup.send(**send_kwargs)
+    else:
+      await ctx.respond(**send_kwargs)
+      if ctx.interaction:
+        try:
+          self.message = await ctx.interaction.original_response()
+        except Exception:
+          self.message = None
+
+    await self._delete_pending_message()
 
   async def on_timeout(self):
-    self._ui_frozen = True
-    self._sync_controls()
+    self.disable_all_items()
     if self.message:
       try:
         await self.message.edit(view=self)
-      except discord.NotFound:
+      except discord.errors.NotFound:
         pass
-      except Exception:
-        pass
+    await self._delete_pending_message()
+    self.stop()
+
+  async def _prepare_attach_state(self, interaction: discord.Interaction, crystal_type_id: int) -> bool:
+    if not self.preview_badge:
+      return False
+
+    raw = await db_get_unattuned_crystals_by_type(self.user_id, crystal_type_id)
+    crystals = self._normalize_rows(raw)
+
+    if not crystals:
+      await interaction.followup.send(
+        embed=discord.Embed(
+          title="No Crystals Available",
+          description="You no longer have any unattuned crystals of that type available.",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return False
+
+    crystal_instance = crystals[0]
+
+    already_attuned_type_ids = await self._compute_already_attuned_type_ids()
+    if crystal_instance.get("crystal_type_id") in already_attuned_type_ids:
+      await interaction.followup.send(
+        embed=discord.Embed(
+          title="Unavailable",
+          description="That crystal type is already attuned to this Badge.",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return False
+
+    self._attach_target_crystal_instance = crystal_instance
+
+    discord_file, _attachment_url = await generate_badge_preview(
+      self.user_id,
+      self.preview_badge,
+      crystal=crystal_instance
+    )
+
+    data, filename = self._bytes_from_discord_file(discord_file)
+    if data:
+      self._attach_preview_bytes = data
+      self._attach_preview_filename = filename or "attachment_preview.png"
+    else:
+      self._attach_preview_bytes = None
+      self._attach_preview_filename = None
+
+    return True
+
+  async def _on_select_rarity(self, interaction: discord.Interaction):
+    async with self._interaction_lock:
+      vals = (interaction.data or {}).get("values") or []
+      if vals:
+        self.group_index = int(vals[0])
+      else:
+        self.group_index = 0
+
+      self.page_index = 0
+      self.selected_crystal_type_id = None
+      await self._render(interaction)
+
+  async def _on_select_crystal(self, interaction: discord.Interaction):
+    async with self._interaction_lock:
+      vals = (interaction.data or {}).get("values") or []
+      val = vals[0] if vals else None
+
+      if not val or val == "none":
+        self.selected_crystal_type_id = None
+        await self._render(interaction)
+        return
+
+      self.selected_crystal_type_id = int(val)
+
+      await self._freeze_current_message(interaction)
+
+      if not interaction.response.is_done():
+        await self._ack_non_component(interaction)
+
+      ok = await self._prepare_attach_state(interaction, self.selected_crystal_type_id)
+      if not ok:
+        self.selected_crystal_type_id = None
+        self._ui_frozen = False
+        await self._render(interaction)
+        return
+
+      self.state = self.STATE_ATTACH_CONFIRM
+      self._ui_frozen = False
+      await self._render(interaction)
+
+  async def _on_prev(self, interaction: discord.Interaction):
+    async with self._interaction_lock:
+      self.page_index -= 1
+      if self.page_index < 0:
+        self.page_index = self._page_total() - 1
+      self.selected_crystal_type_id = None
+      await self._render(interaction)
+
+  async def _on_next(self, interaction: discord.Interaction):
+    async with self._interaction_lock:
+      self.page_index += 1
+      if self.page_index >= self._page_total():
+        self.page_index = 0
+      self.selected_crystal_type_id = None
+      await self._render(interaction)
+
+  async def _on_close(self, interaction: discord.Interaction):
+    async with self._interaction_lock:
+      await self._freeze_current_message(interaction)
+
+      msg = interaction.message if self._is_component_interaction(interaction) else self.message
+      await self._delete_message_safely(msg)
+      await self._delete_pending_message()
+
+      self.stop()
+
+  async def _on_back_to_manifest(self, interaction: discord.Interaction):
+    async with self._interaction_lock:
+      self.state = self.STATE_MANIFEST
+      self._attach_target_crystal_instance = None
+      self._attach_preview_bytes = None
+      self._attach_preview_filename = None
+      await self._render(interaction)
+
+  async def _on_confirm_attach(self, interaction: discord.Interaction):
+    async with self._interaction_lock:
+      if not self.preview_badge or not self._attach_target_crystal_instance:
+        self.state = self.STATE_MANIFEST
+        await self._render(interaction)
+        return
+
+      crystal_instance = self._attach_target_crystal_instance
+      badge_instance = self.preview_badge
+
+      await self._freeze_current_message(interaction)
+      if not interaction.response.is_done():
+        await self._ack_non_component(interaction)
+
+      await attune_crystal_to_badge(
+        crystal_instance["crystal_instance_id"],
+        badge_instance["badge_instance_id"]
+      )
+
+      user_data = await get_user(self.user_id)
+      auto_harmonize_enabled = user_data.get("crystal_autoharmonize", False)
+
+      extra = ""
+      if auto_harmonize_enabled:
+        badge_crystals = await db_get_attuned_crystals(badge_instance["badge_instance_id"])
+        matching = next(
+          (c for c in (badge_crystals or []) if c.get("crystal_instance_id") == crystal_instance.get("crystal_instance_id")),
+          None
+        )
+        if matching:
+          await db_set_harmonized_crystal(badge_instance["badge_instance_id"], matching["badge_crystal_id"])
+          extra = "\n\n-# `Crystallization Auto-Harmonize` is enabled so it has now been activated as well!"
+
+      self.state = self.STATE_SUCCESS
+      self._attach_target_crystal_instance = None
+      self._attach_preview_bytes = None
+      self._attach_preview_filename = None
+
+      self.clear_items()
+      self.add_item(self._build_success_container(f"Attuned successfully.{extra}"))
+
+      await self._send_new_and_delete_old(interaction, [])
+      self.stop()
