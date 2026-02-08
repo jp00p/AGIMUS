@@ -17,6 +17,24 @@ blocked_level_up_sources = [
   "Classified by Section 31"
 ]
 
+async def _resolve_user_mention(member: discord.User) -> str:
+  should_ping = await db_get_user_badge_ping_preference(member.id)
+  return member.mention if should_ping else member.display_name
+
+def _resolve_prestige_color(badge_prestige: int, default: discord.Color = discord.Color.blurple()) -> discord.Color:
+  if badge_prestige > 0:
+    prestige_color = PRESTIGE_THEMES[badge_prestige]['primary']
+    return discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
+  return default
+
+def _get_notification_channel():
+  return bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
+
+def _append_wishlist_text(description: str, badge_data: dict) -> str:
+  if badge_data.get('was_on_wishlist', False):
+    description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
+  return description
+
 # ____  _____________     _____                           .___.__
 # \   \/  /\______   \   /  _  \__  _  _______ _______  __| _/|__| ____    ____
 #  \     /  |     ___/  /  /_\  \ \/ \/ /\__  \\_  __ \/ __ | |  |/    \  / ___\
@@ -118,25 +136,18 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
   Build and send a level-up notification embed to the XP notification channel.
   """
   badge_prestige = badge_data['prestige_level']
-  should_ping = await db_get_user_badge_ping_preference(member.id)
-  user_mention = member.mention if should_ping else member.display_name
+  user_mention = await _resolve_user_mention(member)
   level_up_msg = f"**{random.choice(random_level_up_messages['messages']).format(user=user_mention, level=level, prev_level=(level-1))}**"
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
 
   embed_description = f"{member.mention} has reached **Echelon {level}** and earned a Badge [{PRESTIGE_TIERS[badge_prestige]} Tier])!"
-  if badge_data.get('was_on_wishlist', False):
-    embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
-
-  embed_color = discord.Color.teal()
-  if badge_prestige > 0:
-    prestige_color = PRESTIGE_THEMES[badge_prestige]['primary']
-    embed_color = discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
+  embed_description = _append_wishlist_text(embed_description, badge_data)
 
   embed=discord.Embed(
     title="Echelon Level Up!",
     description=embed_description,
-    color=embed_color
+    color=_resolve_prestige_color(badge_prestige, default=discord.Color.teal())
   )
   embed.set_image(url=attachment_url)
   embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
@@ -145,9 +156,8 @@ async def post_level_up_embed(member: discord.User, level: int, badge_data: dict
     embed.add_field(name="Echelon Level Source", value=source_details)
   embed.set_footer(text="See all your badges by typing '/badges collection' - disable this by typing '/settings'")
 
-  notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
+  notification_channel = _get_notification_channel()
   message = await notification_channel.send(content=f"## {level_up_msg}", file=discord_file, embed=embed)
-  # Add + emoji so that users can add it as well to add the badge to their wishlist
   await message.add_reaction("✅")
 
 
@@ -163,8 +173,7 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
   prestige_name = PRESTIGE_TIERS.get(new_prestige, f"Prestige {new_prestige}")
   old_prestige_name = PRESTIGE_TIERS.get(new_prestige - 1, "Standard")
 
-  should_ping = await db_get_user_badge_ping_preference(member.id)
-  user_mention = member.mention if should_ping else member.display_name
+  user_mention = await _resolve_user_mention(member)
   prestige_msg = f"## STRANGE ENERGIES AFOOT! {user_mention} is entering boundary-space upon reaching **Echelon {level}**!!!"
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data, theme='teal')
@@ -178,11 +187,10 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
     f"Their chances of receiving *{old_prestige_name}* badges lessen while chances of receiving *{prestige_name}* badges strengthen!"
   )
 
-  prestige_color = PRESTIGE_THEMES[new_prestige]['primary']
   embed = discord.Embed(
     title=title,
     description=description,
-    color=discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
+    color=_resolve_prestige_color(new_prestige)
   )
   embed.set_image(url=attachment_url)
   embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"])) # TODO: Randomized special image here
@@ -191,7 +199,7 @@ async def post_prestige_advancement_embed(member: discord.Member, level: int, ne
     embed.add_field(name="Echelon Level Source", value=source_details)
   embed.set_footer(text="Echoes of their past have carried forward — Any special badges they've acquired have ascended alongside them!")
 
-  notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
+  notification_channel = _get_notification_channel()
   await notification_channel.send(content=prestige_msg, file=discord_file, embed=embed)
 
 
@@ -203,7 +211,7 @@ async def post_first_level_welcome_embed(member, badge_data, source_details = No
     member (discord.Member): The user who advanced.
     badge_data: The badge_data for the standard FOD Welcome badge, or None if they've migrated from the old Legacy system
   """
-  notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
+  notification_channel = _get_notification_channel()
   agimus_announcement_channel = bot.get_channel(get_channel_id(config["agimus_announcement_channel"]))
 
   if badge_data:
@@ -264,7 +272,7 @@ async def post_buffer_pattern_acquired_embed(member: discord.Member, level: int,
     )
   embed.set_image(url=random.choice(BUFFER_PATTERN_AQUISITION_GIFS))
   embed.set_footer(text="Use  `/crystals replicate` to materialize a freshly minted Crystal!")
-  notification_channel = bot.get_channel(get_channel_id(config['handlers']['xp']['notification_channel']))
+  notification_channel = _get_notification_channel()
   await notification_channel.send(embed=embed)
   buffer_awardee = await get_user(member.id)
   if (buffer_awardee['pattern_buffer']):
@@ -322,27 +330,20 @@ async def post_badge_repair_embed(member: discord.User, badge_data: dict, reason
   embed_description = f"{member.mention}'s inventory has been corrected with a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Correction**."
   if reason:
     embed_description = f"\n\nReason: `{reason}`"
-  if badge_data.get('was_on_wishlist', False):
-    embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
-
-  embed_color = discord.Color.blurple()
-  if badge_prestige > 0:
-    prestige_color = PRESTIGE_THEMES[badge_prestige]['primary']
-    embed_color = discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
+  embed_description = _append_wishlist_text(embed_description, badge_data)
 
   embed=discord.Embed(
     title="Badge Correction!",
     description=embed_description,
-    color=embed_color
+    color=_resolve_prestige_color(badge_prestige)
   )
   embed.set_image(url=attachment_url)
   embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
   embed.add_field(name=badge_data['badge_name'], value=badge_data['badge_url'], inline=False)
   embed.set_footer(text="See all your badges by typing '/badges collection' - disable this by typing '/settings'")
 
-  notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
+  notification_channel = _get_notification_channel()
   message = await notification_channel.send(content=f"## {member.mention}: You've Received A Badge Correction", file=discord_file, embed=embed)
-  # Add + emoji so that users can add it as well to add the badge to their wishlist
   await message.add_reaction("✅")
 
 async def post_badge_grant_embed(member: discord.User, badge_data: dict, reason: str = None):
@@ -350,35 +351,27 @@ async def post_badge_grant_embed(member: discord.User, badge_data: dict, reason:
   Build and send a badge notification embed to the XP notification channel.
   """
   badge_prestige = badge_data['prestige_level']
-  should_ping = await db_get_user_badge_ping_preference(member.id)
-  user_mention = member.mention if should_ping else member.display_name
+  user_mention = await _resolve_user_mention(member)
 
   discord_file, attachment_url = await generate_badge_preview(member.id, badge_data)
 
   embed_description = f"{user_mention} has received a {PRESTIGE_TIERS[badge_prestige]} Tier **Badge Grant!**."
   if reason:
     embed_description = f"\n\nReason: `{reason}`"
-  if badge_data.get('was_on_wishlist', False):
-    embed_description += f"\n\nIt was also on their ✨ **wishlist** ✨! {get_emoji('picard_yes_happy_celebrate')}"
-
-  embed_color = discord.Color.blurple()
-  if badge_prestige > 0:
-    prestige_color = PRESTIGE_THEMES[badge_prestige]['primary']
-    embed_color = discord.Color.from_rgb(prestige_color[0], prestige_color[1], prestige_color[2])
+  embed_description = _append_wishlist_text(embed_description, badge_data)
 
   embed=discord.Embed(
     title="Badge Grant!",
     description=embed_description,
-    color=embed_color
+    color=_resolve_prestige_color(badge_prestige)
   )
   embed.set_image(url=attachment_url)
   embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
   embed.add_field(name=badge_data['badge_name'], value=badge_data['badge_url'], inline=False)
   embed.set_footer(text="See all your badges by typing '/badges collection' - disable this by typing '/settings'")
 
-  notification_channel = bot.get_channel(get_channel_id(config["handlers"]["xp"]["notification_channel"]))
+  notification_channel = _get_notification_channel()
   message = await notification_channel.send(content=f"## {user_mention}: You've Received A Badge Grant!", file=discord_file, embed=embed)
-  # Add + emoji so that users can add it as well to add the badge to their wishlist
   await message.add_reaction("✅")
 
 # .____                      .__             ____ ___           ____ ___   __  .__.__
