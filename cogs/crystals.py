@@ -601,7 +601,7 @@ class Crystals(commands.Cog):
           'page_crystals': []  # filled below
         })
 
-      # Map crystals -> pages (7 per page, matches your generator paging)
+      # Map crystals -> pages (7 per page)
       per_page = 7
       for i in range(len(pages)):
         pages[i]['page_crystals'] = sorted_crystals[i * per_page:(i + 1) * per_page]

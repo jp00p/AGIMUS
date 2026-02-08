@@ -259,7 +259,7 @@ class RematerializationView(discord.ui.DesignerView):
       )
 
     if self.state == 'PENDING':
-      return '-# This may take a moment...'
+      return '-# This may take a minute or two...'
 
     return None
 

@@ -236,7 +236,6 @@ async def _wishlist_build_matches_partner_dataset(
 
     member = await _wishlist_resolve_member(bot=bot, partner_id=partner_id)
     if not member:
-      # Preserve your old behavior:
       # if they are no longer on server, clear their wishlist and skip.
       await db_clear_wishlist(partner_id)
       continue
@@ -620,12 +619,9 @@ class Wishlist(commands.Cog):
     has_ids: list[int],
     wants_ids: list[int]
   ):
-    # IMPORTANT role mapping (matches your earlier semantics):
-    # - has_ids = "badges_you_want_that_they_have" -> role='wants'
-    # - wants_ids = "badges_they_want_that_you_have" -> role='has'
     p = int(prestige_level)
 
-    # Dedup while preserving order
+    # De-dupe while preserving order
     has_ids = [int(x) for x in dict.fromkeys(has_ids or [])]
     wants_ids = [int(x) for x in dict.fromkeys(wants_ids or [])]
 

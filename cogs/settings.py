@@ -5,8 +5,8 @@ CATEGORY_MEDIA_URLS = {
   "home": "https://i.imgur.com/TfDEuSS.jpg",
   "xp": "https://i.imgur.com/upuEFlq.png",
   "notifications": "https://i.imgur.com/XMnho37.png",
-  "badge_pings": "https://i.imgur.com/XMnho37.png",
-  "pattern_buffer": "https://i.imgur.com/XMnho37.png",
+  "badge_pings": "https://i.imgur.com/zTl1R3p.png",
+  "pattern_buffer": "https://i.imgur.com/fN6zDz8.png",
   "crystallization": "https://i.imgur.com/Kkwa9ub.png",
   "wordcloud": "https://i.imgur.com/xNeoDSD.png",
   "loudbot": "https://i.imgur.com/wq34YDD.png",
@@ -18,7 +18,7 @@ SETTINGS_CATEGORIES = [
   ("Home", "Settings Homepage and Help", "home"),
   ("XP", "Opt-in or Opt-out of the XP System", "xp"),
   ("Notifications", "Enable or Disable DMs from AGIMUS", "notifications"),
-  ("Badge Award Mentions", "Ping or do Not Ping you on Badge Awards", "badge_pings"),
+  ("Badge Award Mentions", "Enable or Disable pings on Level Ups", "badge_pings"),
   ("Crystal Pattern Buffer DMs", "Opt-in or Opt-out of Crystal Pattern Buffer DMs", "pattern_buffer"),
   ("Crystallization", "Configure Crystal Auto-Harmonization Behavior", "crystallization"),
   ("Wordcloud", "Enable or Disable Wordcloud Logging", "wordcloud"),
@@ -65,7 +65,7 @@ CATEGORY_TEXT = {
       "When you receive a new Badge from the Echelon System, AGIMUS posts a notification in {badge_channel_mention}. "
       "By default, this notification @mentions you.\n\n"
       "If you would prefer not to be pinged for badge awards, you can disable these mentions here. "
-      "This only affects Badge Award notifications. Other mentions are unaffected."
+      "This only affects Badge Award posts. Other mentions and DMs are unaffected."
     ),
     "footer": "Select your preference below."
   },
@@ -354,7 +354,7 @@ class SettingsView(discord.ui.DesignerView):
     body = category_data["body"]
     footer = category_data["footer"]
 
-    if self.category == "xp":
+    if self.category == "xp" or self.category == "badge_pings":
       body = body.replace("{badge_channel_mention}", self._badge_channel_mention_fast())
 
     media_url = CATEGORY_MEDIA_URLS[self.category]
