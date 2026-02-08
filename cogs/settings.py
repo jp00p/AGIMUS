@@ -237,6 +237,67 @@ class WordcloudView(discord.ui.View):
         # Workaround for current issue with timeout 404s
         pass
 
+#  ______  ______      .___   ___________ ____________________
+# |  |  | /  _ \ \    /  \| |  \|____    /|   |  \__    ___/    |
+# |  |  ||  <_> ) \/\/  | \  |  /  /    / |   |  / |    |  |    |
+# |  |  | \____/|  /\  \  |  \/  /    /  |   |  \ |    |  |    |
+# |  |__| /____/|__/ /__| |__/\  /____/\_______ \|____|  |______
+# |______/                      \/              \/          \/
+class BadgePingDropdown(discord.ui.Select):
+  def __init__(self, cog):
+    self.cog = cog
+    options = [
+      discord.SelectOption(label="Ping on Badge Award", description="Mention you when awarded a badge."),
+      discord.SelectOption(label="No Ping on Badge Award", description="Do not mention you when awarded a badge."),
+    ]
+
+    super().__init__(
+      placeholder="Choose your preference",
+      min_values=1,
+      max_values=1,
+      options=options,
+      row=1
+    )
+
+  async def callback(self, interaction: discord.Interaction):
+    selection = self.values[0]
+
+    if selection == "Ping on Badge Award":
+      await db_set_badge_ping(interaction.user.id, True)
+      await interaction.response.send_message(
+        embed=discord.Embed(
+          title="You will now be mentioned when awarded badges.",
+          color=discord.Color.green()
+        ).set_footer(text="You can always come back to this interface and reconfigure in the future!"),
+        ephemeral=True
+      )
+    elif selection == "No Ping on Badge Award":
+      await db_set_badge_ping(interaction.user.id, False)
+      await interaction.response.send_message(
+        embed=discord.Embed(
+          title="You will no longer be mentioned when awarded badges.",
+          color=discord.Color.blurple()
+        ).set_footer(text="You can always come back to this interface and re-enable in the future!"),
+        ephemeral=True
+      )
+
+class BadgePingView(discord.ui.View):
+  def __init__(self, cog):
+    self.cog = cog
+    super().__init__()
+
+    self.add_item(BadgePingDropdown(self.cog))
+
+  async def on_timeout(self):
+    for child in self.children:
+      child.disabled = True
+    if self.message:
+      try:
+        await self.message.edit(view=self)
+      except discord.errors.NotFound as e:
+        # Workaround for current issue with timeout 404s
+        pass
+
 # .____                    .______.           __
 # |    |    ____  __ __  __| _/\_ |__   _____/  |_
 # |    |   /  _ \|  |  \/ __ |  | __ \ /  _ \   __\
@@ -435,6 +496,7 @@ class Settings(commands.Cog):
     loudbot_embed, loudbot_thumbnail = await self._get_loudbot_embed_and_thumbnail()
     tagging_embed, tagging_thumbnail = await self._get_tagging_embed_and_thumbnail()
     pattern_buffer_embed, pattern_buffer_thumbnail = await self._get_pattern_buffer_embed_and_thumbnail()
+    badge_ping_embed, badge_ping_thumbnail = await self._get_badge_ping_embed_and_thumbnail()
 
     page_groups = [
       pages.PageGroup(
@@ -538,6 +600,19 @@ class Settings(commands.Cog):
         custom_buttons=[],
         use_default_buttons=False,
         custom_view=PatternBufferView(self)
+      ),
+      pages.PageGroup(
+        pages=[
+          pages.Page(
+            embeds=[badge_ping_embed],
+            files=[badge_ping_thumbnail]
+          )
+        ],
+        label="Badge Pings",
+        description="Control if you're mentioned when awarded badges",
+        custom_buttons=[],
+        use_default_buttons=False,
+        custom_view=BadgePingView(self)
       )
     ]
     paginator = pages.Paginator(
@@ -747,6 +822,22 @@ class Settings(commands.Cog):
 
     return embed, thumbnail
 
+  async def _get_badge_ping_embed_and_thumbnail(self):
+    thumbnail = discord.File(fp="./images/templates/settings/settings.png", filename="badge_ping.png")
+    embed = discord.Embed(
+      title="Badge Award Mentions",
+      description="When you earn a new badge from leveling up in the XP System, AGIMUS announces it in the "
+                  "#badgeys-badges channel. By default, you are mentioned in that announcement so you're notified immediately.\n\n"
+                  "Use this setting if you'd prefer not to be mentioned when receiving badges—you'll still be able to see your badge announcement, "
+                  "just without the ping.",
+      color=discord.Color(0xFF0000)
+    )
+    embed.set_footer(text="Please select your choice from the preference dropdown below.")
+    embed.set_image(url="https://i.imgur.com/upuEFlq.png")
+    embed.set_thumbnail(url=f"attachment://badge_ping.png")
+
+    return embed, thumbnail
+
 async def db_toggle_xp(user_id, value:bool):
   async with AgimusDB() as query:
     sql = "UPDATE users SET xp_enabled = %s WHERE discord_id = %s"
@@ -801,4 +892,10 @@ async def db_toggle_pattern_buffer(user_id, toggle):
   async with AgimusDB() as query:
     sql = "UPDATE users SET pattern_buffer = %s WHERE discord_id = %s"
     vals = (toggle, user_id)
+    await query.execute(sql, vals)
+
+async def db_set_badge_ping(user_id, ping: bool):
+  async with AgimusDB() as query:
+    sql = "UPDATE users SET ping_on_badge = %s WHERE discord_id = %s"
+    vals = (ping, user_id)
     await query.execute(sql, vals)
