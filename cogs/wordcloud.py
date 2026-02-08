@@ -4,12 +4,12 @@ from common import *
 from wordcloud import WordCloud, STOPWORDS
 from utils import string_utils
 
-#  __      __                .___     .__                   ._______   ____.__               
+#  __      __                .___     .__                   ._______   ____.__
 # /  \    /  \___________  __| _/____ |  |   ____  __ __  __| _/\   \ /   /|__| ______  _  __
 # \   \/\/   /  _ \_  __ \/ __ |/ ___\|  |  /  _ \|  |  \/ __ |  \   Y   / |  |/ __ \ \/ \/ /
-#  \        (  <_> )  | \/ /_/ \  \___|  |_(  <_> )  |  / /_/ |   \     /  |  \  ___/\     / 
-#   \__/\  / \____/|__|  \____ |\___  >____/\____/|____/\____ |    \___/   |__|\___  >\/\_/  
-#        \/                   \/    \/                       \/                    \/        
+#  \        (  <_> )  | \/ /_/ \  \___|  |_(  <_> )  |  / /_/ |   \     /  |  \  ___/\     /
+#   \__/\  / \____/|__|  \____ |\___  >____/\____/|____/\____ |    \___/   |__|\___  >\/\_/
+#        \/                   \/    \/                       \/                    \/
 class WordcloudView(discord.ui.DesignerView):
   def __init__(
     self,
@@ -34,26 +34,26 @@ class WordcloudView(discord.ui.DesignerView):
     container.add_separator()
 
     if top_words:
-      top_words_display = " - ".join([w.title() for w in top_words])
+      top_words_display = " - ".join([f"`{w.title()}`" for w in top_words])
     else:
       top_words_display = "N/A"
 
     footer_lines = [
-      f"#- Top words: {top_words_display}",
-      f"#- Unique words: {unique_words}",
-      f"#- Based on the last {num_messages} messages.",
+      f"-# Top words: {top_words_display}",
+      f"-# Unique words: {unique_words}",
+      f"-# Based on the last {num_messages} messages.",
     ]
     container.add_text("\n".join(footer_lines))
 
     self.add_item(container)
 
 
-#  __      __                .___     .__                   .____________                
-# /  \    /  \___________  __| _/____ |  |   ____  __ __  __| _/\_   ___ \  ____   ____  
-# \   \/\/   /  _ \_  __ \/ __ |/ ___\|  |  /  _ \|  |  \/ __ | /    \  \/ /  _ \ / ___\ 
+#  __      __                .___     .__                   .____________
+# /  \    /  \___________  __| _/____ |  |   ____  __ __  __| _/\_   ___ \  ____   ____
+# \   \/\/   /  _ \_  __ \/ __ |/ ___\|  |  /  _ \|  |  \/ __ | /    \  \/ /  _ \ / ___\
 #  \        (  <_> )  | \/ /_/ \  \___|  |_(  <_> )  |  / /_/ | \     \___(  <_> ) /_/  >
-#   \__/\  / \____/|__|  \____ |\___  >____/\____/|____/\____ |  \______  /\____/\___  / 
-#        \/                   \/    \/                       \/         \/      /_____/  
+#   \__/\  / \____/|__|  \____ |\___  >____/\____/|____/\____ |  \______  /\____/\___  /
+#        \/                   \/    \/                       \/         \/      /_____/
 class Wordcloud(commands.Cog):
   def __init__(self, bot):
     self.bot = bot

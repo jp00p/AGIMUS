@@ -2358,7 +2358,7 @@ async def build_rematerialization_animation(
   fade_in_done_frames_from_end: int = 10,
   fade_out_start_frame: int = 5,
   fade_out_done_frames_from_end: int = 10,
-  result_cy_offset: int = 15,
+  result_cy_offset: int = 10,
   pile_cx: int = 356,
   pile_cy: int = 300,
   pile_tilt: float = -12.0,

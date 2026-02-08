@@ -1817,8 +1817,8 @@ class WishlistPartnerView(discord.ui.DesignerView):
 
   def _title_block(self) -> str:
     if self.mode == "matches":
-      return f"# Wishlist Matches (`{self._tier_name()}`)"
-    return f"# Wishlist Dismissals (`{self._tier_name()}`)"
+      return f"# Wishlist Matches\n-# `{self._tier_name()}`"
+    return f"# Wishlist Dismissals\n-# `{self._tier_name()}`"
 
   def _get_total_pages_for_tab(self, tab: str) -> int:
     partner = self._current_partner()
