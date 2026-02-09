@@ -25,6 +25,11 @@
       "description": "Get notified when **non-Trek movie** watch parties are happening"
     },
     {
+      "emoji": "🎶",
+      "role": "Music Groover",
+      "description": "Get notified when **Music-related events** are happening"
+    },
+    {
       "emoji": "🕹",
       "role": "Game Enjoyer",
       "description": "Get notified when **Game-related** events are happening"

@@ -61,7 +61,7 @@ async def autocomplete_profile_badges(ctx: discord.AutocompleteContext):
     filtered = [
       discord.OptionChoice(
         name="[ No Valid Options ]",
-        value=None
+        value="none"
       )
     ]
   return filtered
@@ -555,6 +555,17 @@ class Profile(commands.Cog):
     """
     await ctx.defer(ephemeral=True)
     user_id = str(ctx.author.id)
+
+    if badge == "none":
+      await ctx.respond(
+        embed=discord.Embed(
+          title="No Valid Options",
+          description="No badges matched your provided value.",
+          color=discord.Color.red()
+        ),
+        ephemeral=True
+      )
+      return
 
     if not await is_prestige_valid(ctx, prestige):
       return

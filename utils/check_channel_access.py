@@ -59,8 +59,9 @@ async def access_check(ctx):
           await ctx.respond(embed=allowed_embed, ephemeral=True)
 
     return has_channel_access
-  except BaseException as e:
+  except Exception as e:
     logger.info(f"Error in acess_check (probably forgot to add the command to configuration.json): {e}")
+    return False
 
 async def perform_channel_check(ctx, command_config):
   allowed_channels = command_config.get("channels")

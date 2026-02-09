@@ -107,10 +107,44 @@ async def autocomplete_prestige_tiers(ctx: discord.AutocompleteContext):
 #   \     /  / __ \|  |_|  / /_/ | / __ \|  | |  (  <_> )   |  \
 #    \___/  (____  /____/__\____ |(____  /__| |__|\____/|___|  /
 #                \/             \/     \/                    \/
-async def is_prestige_valid(ctx: discord.ApplicationContext, prestige:str):
-  prestige = int(prestige)
-  user_prestige = (await db_get_echelon_progress(ctx.author.id))['current_prestige_tier']
-  if prestige > user_prestige:
+def parse_prestige_tier(value) -> int | None:
+  if value is None:
+    return None
+
+  if isinstance(value, int):
+    return value
+
+  s = str(value).strip()
+  if not s:
+    return None
+
+  if s.isdigit():
+    return int(s)
+
+  lowered = s.lower()
+  for i, name in enumerate(PRESTIGE_TIERS):
+    if name.lower() == lowered:
+      return i
+
+  return None
+
+async def is_prestige_valid(ctx: discord.ApplicationContext, prestige: str) -> bool:
+  parsed = parse_prestige_tier(prestige)
+  if parsed is None:
+    await ctx.respond(
+      embed=discord.Embed(
+        title="Invalid Prestige Tier",
+        description="Please choose a prestige tier from the autocomplete list.",
+        color=discord.Color.red()
+      ),
+      ephemeral=True
+    )
+    return False
+
+  echelon_progress = await db_get_echelon_progress(ctx.author.id)
+  user_prestige = echelon_progress['current_prestige_tier'] if echelon_progress else 0
+
+  if parsed > user_prestige:
     await ctx.respond(
       embed=discord.Embed(
         title="Nope",

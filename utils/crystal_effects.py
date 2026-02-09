@@ -100,11 +100,11 @@ async def apply_crystal_effect(badge_image: Image.Image, badge: dict, crystal=No
   cached_path_apng = get_cached_effect_path(effect_key, badge['badge_info_id'], extension="apng")
 
   if cached_path_png.exists():
-    logger.info(f"Loading cached static effect (.png) for {effect_key} (Badge ID {badge['badge_info_id']})")
+    # logger.info(f"Loading cached static effect (.png) for {effect_key} (Badge ID {badge['badge_info_id']})")
     return await load_cached_effect_image(cached_path_png)
 
   if cached_path_apng.exists():
-    logger.info(f"Loading cached animated effect (.apng) for {effect_key} (Badge ID {badge['badge_info_id']})")
+    # logger.info(f"Loading cached animated effect (.apng) for {effect_key} (Badge ID {badge['badge_info_id']})")
     return await load_cached_effect_image(cached_path_apng)
 
   # If neither cache exists, generate it

@@ -1,5 +1,8 @@
 import asyncio
 import functools
+from concurrent.futures import ThreadPoolExecutor
+import os
+import threading
 
 from PIL import Image
 
@@ -12,7 +15,7 @@ from PIL import Image
 def to_thread(func):
   @functools.wraps(func)
   async def wrapper(*args, **kwargs):
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     wrapped = functools.partial(func, *args, **kwargs)
     return await loop.run_in_executor(None, wrapped)
   return wrapper
@@ -29,3 +32,4 @@ def threaded_image_open_no_convert(path: str) -> Image.Image:
 @to_thread
 def threaded_image_open_resized(path: str, size: tuple[int, int]) -> Image.Image:
   return Image.open(path).convert("RGBA").resize(size, Image.LANCZOS)
+

@@ -35,7 +35,6 @@ async def db_get_harmonized_crystal(badge_instance_id: int):
     await db.execute(sql, (badge_instance_id,))
     return await db.fetchone()
 
-
 async def db_get_crystal_by_id(crystal_id: int) -> dict | None:
   sql = """
     SELECT
@@ -69,8 +68,7 @@ async def db_get_crystal_by_id(crystal_id: int) -> dict | None:
     await db.execute(sql, (crystal_id,))
     return await db.fetchone()
 
-
-async def db_check_crystal_attuned(badge_instance_id: int, crystal_type_id: int):
+async def db_check_crystal_attuned(badge_instance_id: int, crystal_type_id: int) -> bool:
   sql = """
     SELECT 1
     FROM badge_crystals AS bc
@@ -78,10 +76,9 @@ async def db_check_crystal_attuned(badge_instance_id: int, crystal_type_id: int)
     WHERE bc.badge_instance_id = %s AND ci.crystal_type_id = %s
     LIMIT 1
   """
-  async with AgimusDB() as db:
+  async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, (badge_instance_id, crystal_type_id))
     return await db.fetchone() is not None
-
 
 async def db_get_attuned_crystals(badge_instance_id: int) -> list[dict]:
   sql = """
@@ -130,7 +127,6 @@ async def db_get_attuned_crystal_type_ids(badge_instance_id: int) -> list[int]:
     rows = await db.fetchall()
     return [row['crystal_type_id'] for row in rows]
 
-
 async def db_get_instance_by_attuned_crystal_id(crystal_id: int) -> dict | None:
   sql = """
     SELECT b.id AS badge_instance_id
@@ -142,9 +138,17 @@ async def db_get_instance_by_attuned_crystal_id(crystal_id: int) -> dict | None:
     await db.execute(sql, (crystal_id,))
     return await db.fetchone()
 
-
 # Rarities
-async def db_get_crystals_by_rarity(rarity_rank: int):
+async def db_get_all_crystal_rarity_ranks() -> list[dict]:
+  sql = """
+    SELECT id, name, rarity_rank
+    FROM crystal_ranks
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql)
+    return await db.fetchall()
+
+async def db_get_crystals_by_rarity(rarity_rank: int) -> list[dict]:
   sql = """
     SELECT ct.*, cr.emoji, cr.name AS rarity_name
     FROM crystal_types ct
@@ -156,8 +160,7 @@ async def db_get_crystals_by_rarity(rarity_rank: int):
     await db.execute(sql, (rarity_rank,))
     return await db.fetchall()
 
-
-async def db_get_crystal_rarity_weights():
+async def db_get_crystal_rarity_weights() -> list[dict]:
   sql = """
     SELECT rarity_rank, drop_chance
     FROM crystal_ranks
@@ -167,8 +170,23 @@ async def db_get_crystal_rarity_weights():
     await db.execute(sql)
     return await db.fetchall()
 
+async def db_get_crystal_rank_by_rarity_rank(rarity_rank: int) -> dict | None:
+  sql = """
+    SELECT
+      rarity_rank,
+      name,
+      emoji,
+      drop_chance,
+      sort_order
+    FROM crystal_ranks
+    WHERE rarity_rank = %s
+    LIMIT 1
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (rarity_rank,))
+    return await db.fetchone()
 
-async def db_select_random_crystal_type_by_rarity_rank(rarity_rank: str) -> dict | None:
+async def db_select_random_crystal_type_by_rarity_rank(rarity_rank: int) -> dict | None:
   sql = """
     SELECT id, name, effect
     FROM crystal_types
@@ -180,7 +198,7 @@ async def db_select_random_crystal_type_by_rarity_rank(rarity_rank: str) -> dict
     await db.execute(sql, (rarity_rank,))
     return await db.fetchone()
 
-async def db_get_user_attuned_and_harmonized_crystals(discord_id: int) -> list[dict]:
+async def db_get_user_attuned_and_harmonized_crystals(user_discord_id: str) -> list[dict]:
   sql = """
     SELECT
       ci.id AS crystal_instance_id,
@@ -207,11 +225,10 @@ async def db_get_user_attuned_and_harmonized_crystals(discord_id: int) -> list[d
     ORDER BY cr.sort_order ASC, ct.name ASC
   """
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (discord_id,))
+    await db.execute(sql, (user_discord_id,))
     return await db.fetchall()
 
-
-async def db_get_user_unattuned_crystals(discord_id: int) -> list[dict]:
+async def db_get_user_unattuned_crystals(user_discord_id: str) -> list[dict]:
   sql = """
     SELECT
       ci.id AS crystal_instance_id,
@@ -238,10 +255,10 @@ async def db_get_user_unattuned_crystals(discord_id: int) -> list[dict]:
     ORDER BY cr.sort_order ASC, ct.name ASC
   """
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (discord_id,))
+    await db.execute(sql, (user_discord_id,))
     return await db.fetchall()
 
-async def db_get_user_unattuned_crystal_rarities(user_id: int) -> list[dict]:
+async def db_get_user_unattuned_crystal_rarities(user_discord_id: str) -> list[dict]:
   sql = """
     SELECT
       cr.name,
@@ -258,10 +275,10 @@ async def db_get_user_unattuned_crystal_rarities(user_id: int) -> list[dict]:
     ORDER BY cr.sort_order ASC
   """
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_id,))
+    await db.execute(sql, (user_discord_id,))
     return await db.fetchall()
 
-async def db_get_unattuned_crystals_by_rarity(user_id: int, rarity_name: str) -> list[dict]:
+async def db_get_unattuned_crystals_by_rarity(user_discord_id: str, rarity_name: str) -> list[dict]:
   sql = """
     SELECT
       ci.id AS crystal_instance_id,
@@ -291,10 +308,10 @@ async def db_get_unattuned_crystals_by_rarity(user_id: int, rarity_name: str) ->
     ORDER BY ct.name ASC
   """
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_id, rarity_name))
+    await db.execute(sql, (user_discord_id, rarity_name))
     return await db.fetchall()
 
-async def db_get_unattuned_crystals_by_type(user_id: int, crystal_type_id: int):
+async def db_get_unattuned_crystals_by_type(user_discord_id: str, crystal_type_id: int) -> dict | None:
   sql = """
     SELECT
       ci.id AS crystal_instance_id,
@@ -320,10 +337,49 @@ async def db_get_unattuned_crystals_by_type(user_id: int, crystal_type_id: int):
     LIMIT 1
   """
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_id, crystal_type_id))
+    await db.execute(sql, (user_discord_id, crystal_type_id))
+    return await db.fetchone()
+
+async def db_get_user_unattuned_crystal_type_counts_by_rarity_rank(user_discord_id: str, rarity_rank: int) -> list[dict]:
+  sql = """
+    SELECT
+      ct.id AS crystal_type_id,
+      ct.name AS crystal_name,
+      ct.icon AS icon,
+      ct.description AS description,
+      ct.rarity_rank,
+      cr.name AS rarity_name,
+      cr.emoji,
+      COUNT(*) AS count
+    FROM crystal_instances ci
+    JOIN crystal_types ct ON ci.crystal_type_id = ct.id
+    JOIN crystal_ranks cr ON ct.rarity_rank = cr.rarity_rank
+    WHERE ci.owner_discord_id = %s
+      AND ci.status = 'available'
+      AND ct.rarity_rank = %s
+    GROUP BY ct.id, ct.name, ct.icon, ct.description, ct.rarity_rank, cr.name, cr.emoji
+    ORDER BY ct.name ASC
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_discord_id, rarity_rank))
     return await db.fetchall()
 
-async def db_get_available_crystal_types():
+async def db_get_unattuned_crystal_instance_ids_by_type(user_discord_id: str, crystal_type_id: int, limit: int) -> list[int]:
+  sql = """
+    SELECT ci.id AS crystal_instance_id
+    FROM crystal_instances ci
+    WHERE ci.owner_discord_id = %s
+      AND ci.status = 'available'
+      AND ci.crystal_type_id = %s
+    ORDER BY ci.created_at ASC, ci.id ASC
+    LIMIT %s
+  """
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, (user_discord_id, crystal_type_id, limit))
+    rows = await db.fetchall()
+    return [row['crystal_instance_id'] for row in rows]
+
+async def db_get_available_crystal_types() -> list[dict]:
   sql = """
     SELECT c.*, r.emoji, r.drop_chance
     FROM crystal_types c
@@ -351,88 +407,79 @@ async def db_attune_crystal_to_badge_instance(instance_id: int, crystal_name: st
     return None
 
   async with AgimusDB(dictionary=True) as db:
-    sql = "SELECT id FROM crystal_types WHERE name = %s"
+    sql = 'SELECT id FROM crystal_types WHERE name = %s'
     await db.execute(sql, (crystal_name,))
     crystal_type = await db.fetchone()
     if not crystal_type:
       raise RuntimeError(f"Crystal type '{crystal_name}' not found")
 
-    sql = "SELECT id FROM badge_crystals WHERE badge_instance_id = %s AND crystal_type_id = %s"
-    await db.execute(sql, (instance_id, crystal_type["id"]))
+    sql = 'SELECT 1 FROM badge_crystals WHERE badge_instance_id = %s AND crystal_type_id = %s'
+    await db.execute(sql, (instance_id, crystal_type['id']))
     if await db.fetchone():
       return None
 
-    sql = "INSERT INTO badge_crystals (badge_instance_id, crystal_type_id) VALUES (%s, %s)"
-    await db.execute(sql, (instance_id, crystal_type["id"]))
+    sql = 'INSERT INTO badge_crystals (badge_instance_id, crystal_type_id) VALUES (%s, %s)'
+    await db.execute(sql, (instance_id, crystal_type['id']))
     crystal_id = db.lastrowid
 
-    sql = "SELECT * FROM badge_crystals WHERE id = %s"
+    sql = 'SELECT * FROM badge_crystals WHERE id = %s'
     await db.execute(sql, (crystal_id,))
     return await db.fetchone()
 
-
 async def db_set_harmonized_crystal(instance_id: int, crystal_id: int):
-  sql = "UPDATE badge_instances SET active_crystal_id = %s WHERE id = %s"
+  sql = 'UPDATE badge_instances SET active_crystal_id = %s WHERE id = %s'
   async with AgimusDB() as db:
     await db.execute(sql, (crystal_id, instance_id))
 
-
 # Crystal Pattern Buffer (Credits)
-
-async def db_get_user_crystal_buffer_count(user_id: int) -> int:
-  sql = "SELECT buffer_count FROM crystal_pattern_buffers WHERE user_discord_id = %s"
+async def db_get_user_crystal_buffer_count(user_discord_id: str) -> int:
+  sql = 'SELECT buffer_count FROM crystal_pattern_buffers WHERE user_discord_id = %s'
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_id,))
+    await db.execute(sql, (user_discord_id,))
     row = await db.fetchone()
     return row['buffer_count'] if row else 0
 
-
-async def db_increment_user_crystal_buffer(user_id: int, amount=1):
+async def db_increment_user_crystal_buffer(user_discord_id: str, amount: int = 1):
   sql = """
     INSERT INTO crystal_pattern_buffers (user_discord_id, buffer_count)
     VALUES (%s, %s)
     ON DUPLICATE KEY UPDATE buffer_count = buffer_count + %s
   """
   async with AgimusDB() as db:
-    await db.execute(sql, (user_id, amount, amount))
+    await db.execute(sql, (user_discord_id, amount, amount))
 
-
-async def db_decrement_user_crystal_buffer(user_id: int) -> bool:
+async def db_decrement_user_crystal_buffer(user_discord_id: str) -> bool:
   sql = """
     UPDATE crystal_pattern_buffers
     SET buffer_count = buffer_count - 1
     WHERE user_discord_id = %s AND buffer_count > 0
   """
   async with AgimusDB() as db:
-    await db.execute(sql, (user_id,))
+    await db.execute(sql, (user_discord_id,))
     return db.rowcount > 0
 
-
-async def db_set_user_crystal_buffer(user_id: int, amount: int):
+async def db_set_user_crystal_buffer(user_discord_id: str, amount: int):
   sql = """
     INSERT INTO crystal_pattern_buffers (user_discord_id, buffer_count)
     VALUES (%s, %s)
     ON DUPLICATE KEY UPDATE buffer_count = %s
   """
   async with AgimusDB() as db:
-    await db.execute(sql, (user_id, amount, amount))
-
+    await db.execute(sql, (user_discord_id, amount, amount))
 
 # Replicator Helpers
-
-async def db_get_user_unattuned_crystal_count(user_id: int) -> int:
+async def db_get_user_unattuned_crystal_count(user_discord_id: str) -> int:
   sql = """
     SELECT COUNT(*) AS count
     FROM crystal_instances
     WHERE owner_discord_id = %s AND status = 'available'
   """
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_id,))
+    await db.execute(sql, (user_discord_id,))
     row = await db.fetchone()
     return row['count'] if row else 0
 
-
-async def db_get_user_attuned_badge_count(user_id: int) -> int:
+async def db_get_user_attuned_badge_count(user_discord_id: str) -> int:
   sql = """
     SELECT COUNT(DISTINCT b.badge_instance_id) AS count
     FROM badge_crystals AS b
@@ -440,6 +487,6 @@ async def db_get_user_attuned_badge_count(user_id: int) -> int:
     WHERE i.owner_discord_id = %s
   """
   async with AgimusDB(dictionary=True) as db:
-    await db.execute(sql, (user_id,))
+    await db.execute(sql, (user_discord_id,))
     row = await db.fetchone()
     return row['count'] if row else 0

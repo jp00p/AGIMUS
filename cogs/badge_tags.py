@@ -62,7 +62,8 @@ class BadgeTags(commands.Cog):
     description="Create a new badge tag. (NOTE: You can have a max of 25 tags)"
   )
   @option(
-    name="tag",
+    'tag',
+    str,
     description="Name of the tag to create",
     required=True,
     min_length=1,
@@ -126,7 +127,8 @@ class BadgeTags(commands.Cog):
     description="Delete an existing badge tag"
   )
   @option(
-    name="tag",
+    'tag',
+    str,
     description="Name of the tag to delete",
     required=True,
     autocomplete=tags_autocomplete
@@ -192,13 +194,15 @@ class BadgeTags(commands.Cog):
     description="Rename an existing badge tag"
   )
   @option(
-    name="tag",
+    'tag',
+    str,
     description="Name of the tag to rename",
     required=True,
     autocomplete=tags_autocomplete
   )
   @option(
-    name="new_name",
+    'new_name',
+    str,
     description="New name for the tag",
     required=True,
     min_length=1,
@@ -288,13 +292,15 @@ class BadgeTags(commands.Cog):
     description="Tag a Badge!"
   )
   @option(
-    name="badge",
+    'badge',
+    str,
     description="Name of the Badge to tag",
     required=True,
     autocomplete=badges_autocomplete
   )
   @option(
-    name="auto_lock",
+    'auto_lock',
+    bool,
     description="Also lock this badge across tiers?",
     required=True
   )
@@ -437,7 +443,8 @@ class BadgeTags(commands.Cog):
     description="Display a collection of tagged badges"
   )
   @option(
-    name="public",
+    'public',
+    str,
     description="Show to public?",
     required=True,
     choices=[
@@ -452,13 +459,15 @@ class BadgeTags(commands.Cog):
     ]
   )
   @option(
-    name="tag",
+    'tag',
+    str,
     description="Name of the tag",
     required=True,
     autocomplete=tags_autocomplete
   )
   @option(
-    name="prestige",
+    'prestige',
+    str,
     description="Which Prestige Tier to display?",
     required=True,
     autocomplete=autocomplete_prestige_tiers
@@ -564,7 +573,8 @@ class BadgeTags(commands.Cog):
     description="Cycle through all Badges to apply your tags"
   )
   @option(
-    name="start",
+    'start',
+    str,
     description="Start from beginning or resume where you left off?",
     required=True,
     choices=[
@@ -573,7 +583,8 @@ class BadgeTags(commands.Cog):
     ]
   )
   @option(
-    name="auto_lock",
+    'auto_lock',
+    str,
     description="Automatically lock and wishlist tagged badges?",
     required=True
   )

@@ -332,7 +332,7 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
 
       (
         SELECT JSON_ARRAYAGG(
-          JSON_OBJECT('name', bi.badge_name, 'url', bi.badge_url)
+          JSON_OBJECT('id', bi.id, 'name', bi.badge_name, 'url', bi.badge_url)
         )
         FROM (
           SELECT DISTINCT badge_info_id
@@ -356,7 +356,7 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
 
       (
         SELECT JSON_ARRAYAGG(
-          JSON_OBJECT('name', bi.badge_name, 'url', bi.badge_url)
+          JSON_OBJECT('id', bi.id, 'name', bi.badge_name, 'url', bi.badge_url)
         )
         FROM (
           SELECT DISTINCT badge_info_id
@@ -449,6 +449,24 @@ async def db_delete_wishlist_dismissal(
   async with AgimusDB() as db:
     await db.execute(sql, (user_discord_id, match_discord_id, prestige_level))
 
+async def db_delete_wishlist_dismissal_row(
+  user_discord_id: str,
+  match_discord_id: str,
+  badge_info_id: int,
+  prestige_level: int,
+  role: Literal['has','wants'],
+):
+  sql = '''
+    DELETE FROM badge_instances_wishlists_dismissals
+    WHERE user_discord_id = %s
+      AND match_discord_id = %s
+      AND badge_info_id = %s
+      AND prestige_level = %s
+      AND role = %s
+    LIMIT 1
+  '''
+  async with AgimusDB() as db:
+    await db.execute(sql, (user_discord_id, match_discord_id, badge_info_id, prestige_level, role))
 
 async def db_get_all_wishlist_dismissals(user_discord_id: str) -> list[dict]:
   """

@@ -216,7 +216,8 @@ class ChaosZork(DfrotzRunner):
     description="Play Zork!"
   )
   @option(
-    name="cmd",
+    'cmd',
+    str,
     description="What do you want to do next?",
     required=True
   )
@@ -239,7 +240,8 @@ class HitchHikers(DfrotzRunner):
     description="Play Hitchhiker’s guide to the galaxy!"
   )
   @option(
-    name="cmd",
+    'cmd',
+    str,
     description="What do you want to do next?",
     required=True
   )

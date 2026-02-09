@@ -371,6 +371,38 @@ async def run_make_backup():
     backup_info["url"] = raw_presigned_url[-1].replace("\n", "")
   return backup_info
 
+# run_make_backup_from_command()
+# util function for our `!backup_database` discord command
+# runs this using asyncio to prevent heartbeat blocking
+async def run_make_backup_from_command():
+  await _run_make_capture_last_line(["make", "db-backup", "--no-print-directory"])
+
+  backup_name = await _run_make_capture_last_line(
+    ["make", "db-get-latest-backup", "--no-print-directory"]
+  )
+
+  url = await _run_make_capture_last_line(
+    ["make", "db-get-latest-backup-download-url", "--no-print-directory"]
+  )
+
+  return {
+    "backup_name": backup_name,
+    "url": url
+  }
+
+async def _run_make_capture_last_line(cmd: list[str]) -> str:
+  proc = await asyncio.create_subprocess_exec(
+    *cmd,
+    stdout=asyncio.subprocess.PIPE,
+    stderr=asyncio.subprocess.PIPE
+  )
+  stdout, stderr = await proc.communicate()
+  if proc.returncode != 0:
+    raise RuntimeError(f"Command failed: {' '.join(cmd)}\n{stderr.decode('utf-8', errors='replace')}")
+  lines = stdout.decode("utf-8", errors="replace").splitlines()
+  return (lines[-1] if lines else "").strip()
+
+
 # returns a pretend stardate based on the given datetime
 def calculate_stardate(date:datetime.date):
   # calculate the stardate
