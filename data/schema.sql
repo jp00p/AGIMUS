@@ -541,7 +541,7 @@ CREATE TABLE IF NOT EXISTS crystal_instances (
   crystal_type_id INT NOT NULL,
   owner_discord_id VARCHAR(64) DEFAULT NULL,
   attached_to_instance_id INT DEFAULT NULL, -- leave this FK for later
-  status ENUM('available', 'attuned', 'harmonized', 'rematerialized') NOT NULL DEFAULT 'available',
+  status ENUM('available', 'attuned', 'harmonized', 'rematerialized', 'dematerialized') NOT NULL DEFAULT 'available',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (crystal_type_id) REFERENCES crystal_types(id),
@@ -821,6 +821,9 @@ CREATE TABLE crystal_rematerialization_items (
   rematerialization_id INT NOT NULL,
   crystal_instance_id INT NOT NULL,
   added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE KEY uq_remat_item (rematerialization_id, crystal_instance_id),
+  KEY idx_remat_id (rematerialization_id),
 
   FOREIGN KEY (rematerialization_id) REFERENCES crystal_rematerializations(id) ON DELETE CASCADE,
   FOREIGN KEY (crystal_instance_id) REFERENCES crystal_instances(id)
