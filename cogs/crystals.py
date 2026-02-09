@@ -756,6 +756,15 @@ class Crystals(commands.Cog):
           except discord.errors.NotFound:
             pass
 
+      @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
+      async def cancel(self, button, interaction):
+        embed = discord.Embed(
+          title='Canceled',
+          description="No changes made to your Badge.",
+          color=discord.Color.orange()
+        )
+        await interaction.response.edit_message(embed=embed, attachments=[], view=None)
+
       @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
       async def confirm(self, button, interaction):
         await attune_crystal_to_badge(crystal_instance['crystal_instance_id'], badge_instance['badge_instance_id'])
@@ -779,15 +788,6 @@ class Crystals(commands.Cog):
         )
         embed.set_image(url="https://i.imgur.com/lP883bg.gif")
         embed.set_footer(text="Now you can use `/crystals activate` to select your harmonized Crystal at any time!")
-        await interaction.response.edit_message(embed=embed, attachments=[], view=None)
-
-      @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
-      async def cancel(self, button, interaction):
-        embed = discord.Embed(
-          title='Canceled',
-          description="No changes made to your Badge.",
-          color=discord.Color.orange()
-        )
         await interaction.response.edit_message(embed=embed, attachments=[], view=None)
 
     view = ConfirmCancelView()
@@ -951,10 +951,6 @@ class Crystals(commands.Cog):
 #  \______  /|__|   / ____/____  > |__| (____  /____/\____|__  (____  /___|  /__||__|  \___  >____  > |__|   \___/   |__|\___  >\/\_/
 #         \/        \/         \/            \/              \/     \/     \/              \/     \/                         \/
 class CrystalManifestView(discord.ui.DesignerView):
-  STATE_MANIFEST = "MANIFEST"
-  STATE_ATTACH_CONFIRM = "ATTACH_CONFIRM"
-  STATE_SUCCESS = "SUCCESS"
-
   def __init__(
     self,
     *,
@@ -977,7 +973,7 @@ class CrystalManifestView(discord.ui.DesignerView):
 
     self.message: discord.Message | None = None
 
-    self.state = self.STATE_MANIFEST
+    self.state = "MANIFEST"  # MANIFEST | ATTACH_CONFIRM | SUCCESS
 
     self.group_index = 0
     self.page_index = 0
@@ -985,7 +981,7 @@ class CrystalManifestView(discord.ui.DesignerView):
     self.selected_crystal_type_id: int | None = None
 
     self._interaction_lock = asyncio.Lock()
-    self._ui_frozen = False
+    self._ack = False
 
     self._attach_target_crystal_instance: dict | None = None
     self._attach_preview_bytes: bytes | None = None
@@ -993,14 +989,51 @@ class CrystalManifestView(discord.ui.DesignerView):
 
     self._unavailable_attach_labels: list[str] = []
 
-  def _log_exc(self, label: str):
-    logger.exception(f"[crystals.manifest] {label}")
-
   async def interaction_check(self, interaction: discord.Interaction) -> bool:
     return interaction.user.id == self.user.id
 
   def _is_component_interaction(self, interaction: discord.Interaction | None) -> bool:
-    return bool(interaction and interaction.message)
+    return bool(interaction and getattr(interaction, "message", None))
+
+  async def _ack_interaction(self, interaction: discord.Interaction):
+    if self._ack:
+      return
+    if interaction.response.is_done():
+      self._ack = True
+      return
+
+    if self._is_component_interaction(interaction):
+      await interaction.response.defer(invisible=True)
+      self._ack = True
+      return
+
+    await interaction.response.defer(ephemeral=True)
+    self._ack = True
+
+  async def _delete_pending_message(self):
+    if not self.pending_message:
+      return
+    try:
+      await self.pending_message.delete()
+    except discord.errors.NotFound:
+      pass
+    self.pending_message = None
+
+  async def _delete_old_message(self, interaction: discord.Interaction, old_msg: discord.Message | None):
+    if not old_msg:
+      return
+
+    if self._is_component_interaction(interaction):
+      try:
+        await interaction.delete_original_response()
+      except discord.errors.NotFound:
+        pass
+      return
+
+    try:
+      await old_msg.delete()
+    except discord.errors.NotFound:
+      pass
 
   def _wrap_indices(self):
     if not self.manifest_groups:
@@ -1014,15 +1047,13 @@ class CrystalManifestView(discord.ui.DesignerView):
       self.group_index = 0
 
     pages = self._current_pages()
-    max_pages = len(pages)
-
-    if max_pages <= 0:
+    if not pages:
       self.page_index = 0
       return
 
     if self.page_index < 0:
-      self.page_index = max_pages - 1
-    if self.page_index >= max_pages:
+      self.page_index = len(pages) - 1
+    if self.page_index >= len(pages):
       self.page_index = 0
 
   def _current_group(self) -> dict:
@@ -1050,76 +1081,6 @@ class CrystalManifestView(discord.ui.DesignerView):
     name = g.get("label") or "Unknown"
     return f"{emoji} {name}".strip()
 
-  async def _freeze_current_message(self, interaction: discord.Interaction):
-    if self._ui_frozen:
-      return
-
-    self._ui_frozen = True
-    self.disable_all_items()
-
-    if not self._is_component_interaction(interaction):
-      return
-
-    if interaction.response.is_done():
-      return
-
-    await interaction.response.edit_message(view=self)
-
-  async def _ack_non_component(self, interaction: discord.Interaction):
-    if interaction.response.is_done():
-      return
-    await interaction.response.defer(ephemeral=True)
-
-  async def _delete_pending_message(self):
-    if not self.pending_message:
-      return
-    try:
-      await self.pending_message.delete()
-    except discord.errors.NotFound:
-      pass
-    self.pending_message = None
-
-  async def _delete_message_safely(self, msg: discord.Message | None):
-    if not msg:
-      return
-    try:
-      await msg.delete()
-    except discord.errors.NotFound:
-      pass
-
-  def _normalize_rows(self, rows):
-    if not rows:
-      return []
-    if isinstance(rows, list):
-      return rows
-    if isinstance(rows, dict):
-      if "crystal_instance_id" in rows:
-        return [rows]
-      return list(rows.values())
-    return []
-
-  def _bytes_from_discord_file(self, discord_file: discord.File | None) -> tuple[bytes | None, str | None]:
-    if not discord_file:
-      return None, None
-
-    fp = getattr(discord_file, "fp", None)
-    filename = getattr(discord_file, "filename", None)
-
-    if not fp:
-      return None, filename
-
-    if hasattr(fp, "getvalue"):
-      return fp.getvalue(), filename
-
-    if hasattr(fp, "read"):
-      try:
-        fp.seek(0)
-      except Exception:
-        pass
-      return fp.read(), filename
-
-    return None, filename
-
   def _build_manifest_rarity_select(self) -> discord.ui.Select | None:
     if len(self.manifest_groups) <= 1:
       return None
@@ -1128,15 +1089,13 @@ class CrystalManifestView(discord.ui.DesignerView):
     for i, g in enumerate(self.manifest_groups):
       label = g.get("label") or f"Rank {g.get('rarity_rank')}"
       emoji = g.get("emoji")
-      desc = (g.get("description") or "").strip()
-      options.append(
-        discord.SelectOption(
-          label=str(label),
-          value=str(i),
-          description=str(desc)[:100] if desc else None,
-          emoji=emoji
-        )
-      )
+      desc = g.get("description") or ""
+      options.append(discord.SelectOption(
+        label=str(label),
+        value=str(i),
+        description=str(desc)[:100] if desc else None,
+        emoji=emoji
+      ))
 
     select = discord.ui.Select(
       placeholder="Select a Crystal Rarity Tier",
@@ -1150,12 +1109,12 @@ class CrystalManifestView(discord.ui.DesignerView):
   async def _compute_already_attuned_type_ids(self) -> set[int]:
     if not self.preview_badge:
       return set()
-    already_type_ids = await db_get_attuned_crystal_type_ids(self.preview_badge["badge_instance_id"])
+
+    already_type_ids = await db_get_attuned_crystal_type_ids(self.preview_badge['badge_instance_id'])
     return set(already_type_ids or [])
 
   async def _compute_unavailable_attach_labels(self) -> list[str]:
     already_type_ids = await self._compute_already_attuned_type_ids()
-
     page = self._current_page() or {}
     labels: list[str] = []
 
@@ -1184,13 +1143,11 @@ class CrystalManifestView(discord.ui.DesignerView):
           continue
 
         label = f"{c.get('crystal_name', 'Unknown')} (x{c.get('instance_count', 1)})"
-        options.append(
-          discord.SelectOption(
-            label=label,
-            value=str(type_id),
-            emoji=c.get("emoji")
-          )
-        )
+        options.append(discord.SelectOption(
+          label=label,
+          value=str(type_id),
+          emoji=c.get("emoji")
+        ))
 
     if not options:
       options = [discord.SelectOption(label="No valid crystals on this page", value="none")]
@@ -1208,7 +1165,6 @@ class CrystalManifestView(discord.ui.DesignerView):
     row = discord.ui.ActionRow()
 
     prev_btn = discord.ui.Button(label="⬅", style=discord.ButtonStyle.primary)
-    page_btn = discord.ui.Button(label=self._page_label(), style=discord.ButtonStyle.secondary, disabled=True)
     next_btn = discord.ui.Button(label="➡", style=discord.ButtonStyle.primary)
     close_btn = discord.ui.Button(label="Close", style=discord.ButtonStyle.danger)
 
@@ -1217,10 +1173,36 @@ class CrystalManifestView(discord.ui.DesignerView):
     close_btn.callback = self._on_close
 
     row.add_item(prev_btn)
-    row.add_item(page_btn)
+
+    page_label_btn = discord.ui.Button(
+      label=self._page_label(),
+      style=discord.ButtonStyle.secondary,
+      disabled=True
+    )
+    row.add_item(page_label_btn)
+
     row.add_item(next_btn)
     row.add_item(close_btn)
     return row
+
+  def _bytes_from_discord_file(self, discord_file: discord.File | None) -> tuple[bytes | None, str | None]:
+    if not discord_file:
+      return None, None
+
+    fp = getattr(discord_file, "fp", None)
+    filename = getattr(discord_file, "filename", None)
+
+    if not fp:
+      return None, filename
+
+    if hasattr(fp, "getvalue"):
+      return fp.getvalue(), filename
+
+    if hasattr(fp, "read"):
+      fp.seek(0)
+      return fp.read(), filename
+
+    return None, filename
 
   def _build_manifest_container(
     self,
@@ -1232,7 +1214,9 @@ class CrystalManifestView(discord.ui.DesignerView):
 
     container.add_item(discord.ui.TextDisplay("# Crystal Manifest"))
     container.add_item(discord.ui.Separator())
-    container.add_item(discord.ui.TextDisplay(f"### Rarity Tier\n-# {self._rarity_label()}"))
+    container.add_item(discord.ui.TextDisplay(
+      f"### Rarity Tier\n-# {self._rarity_label()}"
+    ))
     container.add_item(discord.ui.Separator())
 
     page = self._current_page()
@@ -1255,7 +1239,9 @@ class CrystalManifestView(discord.ui.DesignerView):
       badge_name = self.preview_badge.get("badge_name") or "Selected Badge"
       prestige_level = self.preview_badge.get("prestige_level", 0)
       prestige_label = PRESTIGE_TIERS.get(prestige_level, "Standard")
-      container.add_item(discord.ui.TextDisplay(f"## Preview Badge\n`{badge_name} [{prestige_label}]`"))
+      container.add_item(discord.ui.TextDisplay(
+        f"## Preview Badge\n`{badge_name} [{prestige_label}]`"
+      ))
 
     if unavailable_note:
       container.add_item(discord.ui.Separator())
@@ -1269,10 +1255,13 @@ class CrystalManifestView(discord.ui.DesignerView):
 
     container.add_item(discord.ui.TextDisplay("# Crystal Attunement"))
     container.add_item(discord.ui.Separator())
-    container.add_item(discord.ui.TextDisplay("## WARNING\n### This cannot be undone."))
+    container.add_item(discord.ui.TextDisplay(
+      "## WARNING!\n"
+      "### ⚠️ This cannot be undone! ⚠️"
+    ))
     container.add_item(discord.ui.Separator())
     container.add_item(discord.ui.TextDisplay(
-      "-# You can have multiple crystals attached to a badge, but once a crystal is attuned to a badge it cannot be attached to a different badge."
+      "-# You can have multiple crystals attached to a badge, but once a crystal is attached to a badge it cannot be attached to a different badge!"
     ))
     container.add_item(discord.ui.Separator())
 
@@ -1313,6 +1302,7 @@ class CrystalManifestView(discord.ui.DesignerView):
     container.add_item(discord.ui.Separator())
 
     row = discord.ui.ActionRow()
+
     back_btn = discord.ui.Button(label="❮ Back", style=discord.ButtonStyle.secondary)
     confirm_btn = discord.ui.Button(label="Confirm", style=discord.ButtonStyle.primary)
 
@@ -1321,8 +1311,8 @@ class CrystalManifestView(discord.ui.DesignerView):
 
     row.add_item(back_btn)
     row.add_item(confirm_btn)
-    container.add_item(row)
 
+    container.add_item(row)
     return container, files
 
   def _build_success_container(self, text: str) -> discord.ui.Container:
@@ -1345,17 +1335,14 @@ class CrystalManifestView(discord.ui.DesignerView):
     self.clear_items()
     self._wrap_indices()
 
-    if self.state == self.STATE_MANIFEST:
+    if self.state == "MANIFEST":
       self._unavailable_attach_labels = []
       if self.preview_badge:
         self._unavailable_attach_labels = await self._compute_unavailable_attach_labels()
 
       unavailable_note = None
       if self.preview_badge and self._unavailable_attach_labels:
-        shown_lines = ""
-        for label in self._unavailable_attach_labels[:12]:
-          shown_lines += f"* {label}\n"
-
+        shown_lines = "".join([f"* {label}\n" for label in self._unavailable_attach_labels[:12]])
         more_line = ""
         if len(self._unavailable_attach_labels) > 12:
           more_line = f"-# (+{len(self._unavailable_attach_labels) - 12} more)"
@@ -1384,12 +1371,12 @@ class CrystalManifestView(discord.ui.DesignerView):
       self.add_item(container)
       return files
 
-    if self.state == self.STATE_ATTACH_CONFIRM:
+    if self.state == "ATTACH_CONFIRM":
       container, files = self._build_attach_confirm_container()
       self.add_item(container)
       return files
 
-    if self.state == self.STATE_SUCCESS:
+    if self.state == "SUCCESS":
       self.add_item(self._build_success_container("Attunement complete.\n\n-# Session ended."))
       return []
 
@@ -1400,48 +1387,65 @@ class CrystalManifestView(discord.ui.DesignerView):
 
   async def _send_new_and_delete_old(self, interaction: discord.Interaction, files: list[discord.File]):
     old_msg = interaction.message if self._is_component_interaction(interaction) else self.message
-    await self._delete_message_safely(old_msg)
 
-    send_kwargs = {"view": self, "ephemeral": True}
+    send_kwargs = {
+      'view': self,
+      'ephemeral': True
+    }
     if files:
-      send_kwargs["files"] = files
+      send_kwargs['files'] = files
 
-    if not interaction.response.is_done():
-      await interaction.response.send_message(**send_kwargs)
-      try:
-        self.message = await interaction.original_response()
-      except Exception:
-        self.message = None
+    if interaction.response.is_done():
+      new_msg = await interaction.followup.send(**send_kwargs)
+      self.message = new_msg
+
+      if self._is_component_interaction(interaction):
+        try:
+          await interaction.delete_original_response()
+        except discord.errors.NotFound:
+          pass
+      else:
+        if old_msg:
+          try:
+            await old_msg.delete()
+          except discord.errors.NotFound:
+            pass
+
       return
 
-    self.message = await interaction.followup.send(**send_kwargs)
+    await interaction.response.send_message(**send_kwargs)
+    self.message = await interaction.original_response()
+    if old_msg:
+      try:
+        await old_msg.delete()
+      except discord.errors.NotFound:
+        pass
 
   async def _render(self, interaction: discord.Interaction):
-    await self._freeze_current_message(interaction)
-
-    if not interaction.response.is_done():
-      await self._ack_non_component(interaction)
-
-    self._ui_frozen = False
-    files = await self._rebuild_async()
-    await self._send_new_and_delete_old(interaction, files)
+    self._ack = False
+    try:
+      await self._ack_interaction(interaction)
+      files = await self._rebuild_async()
+      await self._send_new_and_delete_old(interaction, files)
+    finally:
+      self._ack = False
 
   async def start(self, ctx: discord.ApplicationContext):
     files = await self._rebuild_async()
 
-    send_kwargs = {"view": self, "ephemeral": True}
+    send_kwargs = {
+      "view": self,
+      "ephemeral": True
+    }
     if files:
       send_kwargs["files"] = files
 
-    if ctx.interaction and ctx.interaction.response.is_done():
+    already_done = bool(ctx.interaction and ctx.interaction.response and ctx.interaction.response.is_done())
+    if already_done:
       self.message = await ctx.followup.send(**send_kwargs)
     else:
       await ctx.respond(**send_kwargs)
-      if ctx.interaction:
-        try:
-          self.message = await ctx.interaction.original_response()
-        except Exception:
-          self.message = None
+      self.message = await ctx.interaction.original_response()
 
     await self._delete_pending_message()
 
@@ -1453,7 +1457,26 @@ class CrystalManifestView(discord.ui.DesignerView):
       except discord.errors.NotFound:
         pass
     await self._delete_pending_message()
+
+    if self.manifest_groups:
+      for g in self.manifest_groups:
+        pages = g.get("pages") or []
+        for p in pages:
+          if "data" in p:
+            p["data"] = None
+
     self.stop()
+
+  def _normalize_rows(self, rows):
+    if rows is None:
+      return []
+    if isinstance(rows, list):
+      return rows
+    if isinstance(rows, dict):
+      if "crystal_instance_id" in rows:
+        return [rows]
+      return list(rows.values())
+    raise TypeError("Unexpected result shape for crystal rows")
 
   async def _prepare_attach_state(self, interaction: discord.Interaction, crystal_type_id: int) -> bool:
     if not self.preview_badge:
@@ -1461,7 +1484,6 @@ class CrystalManifestView(discord.ui.DesignerView):
 
     raw = await db_get_unattuned_crystals_by_type(self.user_id, crystal_type_id)
     crystals = self._normalize_rows(raw)
-
     if not crystals:
       await interaction.followup.send(
         embed=discord.Embed(
@@ -1507,18 +1529,22 @@ class CrystalManifestView(discord.ui.DesignerView):
 
   async def _on_select_rarity(self, interaction: discord.Interaction):
     async with self._interaction_lock:
-      vals = (interaction.data or {}).get("values") or []
-      if vals:
-        self.group_index = int(vals[0])
-      else:
-        self.group_index = 0
+      if self.is_finished():
+        return
 
+      vals = (interaction.data or {}).get("values") or []
+      self.group_index = int(vals[0])
       self.page_index = 0
       self.selected_crystal_type_id = None
       await self._render(interaction)
 
   async def _on_select_crystal(self, interaction: discord.Interaction):
     async with self._interaction_lock:
+      if self.is_finished():
+        return
+
+      await self._ack_interaction(interaction)
+
       vals = (interaction.data or {}).get("values") or []
       val = vals[0] if vals else None
 
@@ -1528,25 +1554,25 @@ class CrystalManifestView(discord.ui.DesignerView):
         return
 
       self.selected_crystal_type_id = int(val)
-
-      await self._freeze_current_message(interaction)
-
-      if not interaction.response.is_done():
-        await self._ack_non_component(interaction)
+      if not self.preview_badge:
+        await self._render(interaction)
+        return
 
       ok = await self._prepare_attach_state(interaction, self.selected_crystal_type_id)
       if not ok:
         self.selected_crystal_type_id = None
-        self._ui_frozen = False
         await self._render(interaction)
         return
 
-      self.state = self.STATE_ATTACH_CONFIRM
-      self._ui_frozen = False
+      self.state = "ATTACH_CONFIRM"
       await self._render(interaction)
+
 
   async def _on_prev(self, interaction: discord.Interaction):
     async with self._interaction_lock:
+      if self.is_finished():
+        return
+
       self.page_index -= 1
       if self.page_index < 0:
         self.page_index = self._page_total() - 1
@@ -1555,6 +1581,9 @@ class CrystalManifestView(discord.ui.DesignerView):
 
   async def _on_next(self, interaction: discord.Interaction):
     async with self._interaction_lock:
+      if self.is_finished():
+        return
+
       self.page_index += 1
       if self.page_index >= self._page_total():
         self.page_index = 0
@@ -1563,17 +1592,20 @@ class CrystalManifestView(discord.ui.DesignerView):
 
   async def _on_close(self, interaction: discord.Interaction):
     async with self._interaction_lock:
-      await self._freeze_current_message(interaction)
+      if self.is_finished():
+        return
 
-      msg = interaction.message if self._is_component_interaction(interaction) else self.message
-      await self._delete_message_safely(msg)
+      await self._ack_interaction(interaction)
+      await self._delete_old_message(interaction, interaction.message or self.message)
       await self._delete_pending_message()
-
       self.stop()
 
   async def _on_back_to_manifest(self, interaction: discord.Interaction):
     async with self._interaction_lock:
-      self.state = self.STATE_MANIFEST
+      if self.is_finished():
+        return
+
+      self.state = "MANIFEST"
       self._attach_target_crystal_instance = None
       self._attach_preview_bytes = None
       self._attach_preview_filename = None
@@ -1581,44 +1613,42 @@ class CrystalManifestView(discord.ui.DesignerView):
 
   async def _on_confirm_attach(self, interaction: discord.Interaction):
     async with self._interaction_lock:
+      if self.is_finished():
+        return
+
+      await self._ack_interaction(interaction)
+
       if not self.preview_badge or not self._attach_target_crystal_instance:
-        self.state = self.STATE_MANIFEST
+        self.state = "MANIFEST"
         await self._render(interaction)
         return
 
       crystal_instance = self._attach_target_crystal_instance
       badge_instance = self.preview_badge
 
-      await self._freeze_current_message(interaction)
-      if not interaction.response.is_done():
-        await self._ack_non_component(interaction)
-
-      await attune_crystal_to_badge(
-        crystal_instance["crystal_instance_id"],
-        badge_instance["badge_instance_id"]
-      )
+      await attune_crystal_to_badge(crystal_instance['crystal_instance_id'], badge_instance['badge_instance_id'])
 
       user_data = await get_user(self.user_id)
       auto_harmonize_enabled = user_data.get("crystal_autoharmonize", False)
 
       extra = ""
       if auto_harmonize_enabled:
-        badge_crystals = await db_get_attuned_crystals(badge_instance["badge_instance_id"])
+        badge_crystals = await db_get_attuned_crystals(badge_instance['badge_instance_id'])
         matching = next(
           (c for c in (badge_crystals or []) if c.get("crystal_instance_id") == crystal_instance.get("crystal_instance_id")),
           None
         )
         if matching:
-          await db_set_harmonized_crystal(badge_instance["badge_instance_id"], matching["badge_crystal_id"])
+          await db_set_harmonized_crystal(badge_instance['badge_instance_id'], matching['badge_crystal_id'])
           extra = "\n\n-# `Crystallization Auto-Harmonize` is enabled so it has now been activated as well!"
 
-      self.state = self.STATE_SUCCESS
+      self.state = "SUCCESS"
       self._attach_target_crystal_instance = None
       self._attach_preview_bytes = None
       self._attach_preview_filename = None
 
       self.clear_items()
-      self.add_item(self._build_success_container(f"Attuned successfully.{extra}"))
+      self.add_item(self._build_success_container(f"### Attuned successfully.{extra}"))
 
       await self._send_new_and_delete_old(interaction, [])
       self.stop()
