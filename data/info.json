@@ -53,6 +53,12 @@
     "trek": true,
     "source": "./data/episodes/prodigy.json"
   },
+  "sfa": {
+    "name": "Star Trek: Starfleet Academy",
+    "enabled": true,
+    "trek": true,
+    "source": "./data/episodes/sfa.json"
+  },
   "snw": {
     "name": "Star Trek: Strange New Worlds",
     "enabled": true,

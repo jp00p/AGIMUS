@@ -1,0 +1,101 @@
+{
+    "animated": false,
+    "episodes": [
+        {
+            "airdate": "2026.01.15",
+            "title": "Kids These Days",
+            "description": "Caleb Mir, a brilliant street kid, is offered admission to the new Starfleet Academy class.",
+            "season": "01",
+            "episode": "01",
+            "podcasts": [
+                {
+                    "airdate": "2026.01.16",
+                    "episode": "Half Dunk",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-358-half-dunk-sfa-s1e1/",
+                    "order": 358,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Kids_These_Days_(episode)",
+            "tvdb": 4331860,
+            "imdb": "tt27385510",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/1U61OOu2BCLeqqjdIdSeXCCwDWc.jpg"
+            ]
+        },
+        {
+            "airdate": "2026.01.15",
+            "title": "Beta Test",
+            "description": "Caleb questions whether he belongs at Starfleet Academy as the new academic year begins.",
+            "season": "01",
+            "episode": "02",
+            "podcasts": [
+                {
+                    "airdate": "2026.01.20",
+                    "episode": "To The Catering, Whence The Catered",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-359-to-the-catering-whence-the-catered-sfa-s1e2/",
+                    "order": 359,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Beta_Test_(episode)",
+            "tvdb": 6594793,
+            "imdb": "tt32800965",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/vVrNWCRZqegqRkVa7VEcdAp9WEi.jpg"
+            ]
+        },
+        {
+            "airdate": "2026.01.22",
+            "title": "Vitus Reflux",
+            "description": "While our cadets compete to join an elite team at the Academy, a battle of escalating pranks breaks out between Starfleet Academy and a rival school. Tensions rise fast, threatening their newly-emerging bonds and a blossoming romance.",
+            "season": "01",
+            "episode": "03",
+            "podcasts": [
+                {
+                    "airdate": "2026.01.23",
+                    "episode": "Baddie Academy",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-360-baddie-academy-sfa-s1e3/",
+                    "order": 360,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Vitus_Reflux_(episode)",
+            "tvdb": 6594794,
+            "imdb": "tt34127729",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/zxGxsjWs4UfQMsReYWHNGhuItne.jpg"
+            ]
+        },
+        {
+            "airdate": "2026.01.29",
+            "title": "Vox in Excelso",
+            "description": "When an existential crisis threatens to wipe out a beloved but infamous Star Trek species, a cadet is forced to confront his past and strained relationship with his family. As he pursues an unexpected method of coping, Nahla races against time to save this species from extinction.",
+            "season": "01",
+            "episode": "04",
+            "podcasts": [],
+            "memoryalpha": "Vox_In_Excelso_(episode)",
+            "tvdb": 6594795,
+            "imdb": "tt34127759",
+            "stills": []
+        },
+        {
+            "airdate": "2026.02.05",
+            "title": "Series Acclimation Mil",
+            "description": "As a cadet sets out to solve an ancient Starfleet mystery, she embarks on a journey of self-discovery and learns the value of forging her own path. Meanwhile, Nahla agrees to help a fellow chancellor with an elaborate alien ritual.",
+            "season": "01",
+            "episode": "05",
+            "podcasts": [],
+            "memoryalpha": "Series_Acclimation_Mil_(episode)",
+            "tvdb": 6594796,
+            "imdb": "tt34127769",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/sMBKqU7Mv5R4SB1enu3z92NhcBd.jpg"
+            ]
+        }
+    ],
+    "imdb": "",
+    "title": "Star Trek: Starfleet Academy",
+    "trek": true,
+    "tvdb": 223530
+}

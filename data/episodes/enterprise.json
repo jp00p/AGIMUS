@@ -2071,7 +2071,15 @@
             "episode": "14",
             "imdb": "tt0572246",
             "memoryalpha": "The_Aenar_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.01.26",
+                    "episode": "Celebrity Pipes",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-611-celebrity-pipes-ent-s4e14/",
+                    "order": 611,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/5TuEM2ppeMVjIubl3KsF5qNwJvo.jpg",
@@ -2087,7 +2095,15 @@
             "episode": "15",
             "imdb": "tt0572174",
             "memoryalpha": "Affliction_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.02.02",
+                    "episode": "Loaf Death",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-612-loaf-death-ent-s4e15/",
+                    "order": 612,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/cQZzixfcBDRoNLLRWSVEfTWxWf5.jpg",

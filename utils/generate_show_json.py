@@ -142,6 +142,14 @@ all_shows = {
     "pod": "tgt",
     # "pod_name": "Battlestar Galactica"
   },
+  "sfa": {
+    "tmdb": 223530,
+    "title": "Star Trek: Starfleet Academy",
+    "trek": True,
+    "animated": False,
+    "pod": "tgt",
+    # "pod_name": "SFA"
+  },
 }
 
 podcasts = {
@@ -190,6 +198,8 @@ class ShowGenerator:
   def memory_alpha_name(self):
     if self.show == 'lowerdecks':
       return 'LD'
+    if self.show == 'sfa':
+      return 'SA'
     return self.show[:3].upper()
   
   @staticmethod
@@ -400,7 +410,7 @@ class ShowGenerator:
     """
     req = requests.get("https://memory-alpha.fandom.com/api.php",
                        params={'action': 'query', 'list': 'search', 'srlimit': '1', 'srprop': '', 'format': 'json',
-                               'srsearch': f"{self.memory_alpha_name} {details['season'].strip('0')}x{details['episode']} "
+                               'srsearch': # f"{self.memory_alpha_name} {details['season'].strip('0')}x{details['episode']} "
                                            f"{details['title']} (episode)"})
     results = json.loads(req.content)
     details['memoryalpha'] = results['query']['search'][0]['title'].replace(' ', '_')  # there might be more formatting
