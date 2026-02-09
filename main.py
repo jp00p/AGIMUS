@@ -207,8 +207,54 @@ async def on_ready():
       { 'name': "and waiting...", 'type': discord.ActivityType.watching },
       { 'name': "Terminator 2: Judgement Day", 'type': discord.ActivityType.watching }
     ]
-    selected_presence = random.choice(random_presences)
-    await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=selected_presence['name'], type=selected_presence['type']))
+
+
+    # Set a fun random presence
+    random_presences = [
+      discord.CustomActivity(name="PRAISE THE FOUNDERS!"),
+      discord.CustomActivity(name="Listening to The Greatest Generation"),
+      discord.CustomActivity(name="Listening to The Greatest Trek"),
+      discord.CustomActivity(name="Playing a Nice Game of Chess"),
+      discord.CustomActivity(name="It means omerta. It means rewenge."),
+      discord.CustomActivity(name="ANNNYYYYBODYYY!"),
+      discord.CustomActivity(name="Experiencing Bangers, dodging girders"),
+      discord.CustomActivity(name="Taking a beating in the Ball Kicking Machine"),
+      discord.CustomActivity(name="Mixing a Blue Beverage of Subtext"),
+      discord.CustomActivity(name="Drinking CocoNoNos"),
+      discord.CustomActivity(name="Taking a shuttlepod to a Dangerous Conference"),
+      discord.CustomActivity(name="Joining the Dustbuster Club"),
+      discord.CustomActivity(name="Eyes to Commercial"),
+      discord.CustomActivity(name="Wearing the Front/Back Zip"),
+      discord.CustomActivity(name="Crashing through a Glass Top Coffee Table"),
+      discord.CustomActivity(name="Jake-ing a shuttlecraft"),
+      discord.CustomActivity(name="Admiring JL Pipes"),
+      discord.CustomActivity(name="Maroning"),
+      discord.CustomActivity(name="Sending a Priority One Message"),
+      discord.CustomActivity(name="Always Doing Bits. BITS! BITS! BITS!"),
+      discord.CustomActivity(name="Entering the Ass Lab"),
+      discord.CustomActivity(name="Initiating ASMR Self Destruct"),
+      discord.CustomActivity(name="Snapping Pencils"),
+      discord.CustomActivity(name="Mornhammered"),
+      discord.CustomActivity(name="Climbing Mount Armus"),
+      discord.CustomActivity(name="Checking necks for nubbins"),
+      discord.CustomActivity(name="Pulling a Natural Yeager"),
+      discord.CustomActivity(name="ALLAMARAINE!!!"),
+      discord.CustomActivity(name="And now... the conclusion!"),
+      discord.CustomActivity(name="Executing the Riker Maneuver"),
+      discord.CustomActivity(name="Sipping podcast fluid"),
+      discord.CustomActivity(name="Double-checking the flared base"),
+      discord.CustomActivity(name="Hoving over the southern polar region"),
+      discord.CustomActivity(name="Invoking Rule of Acquisition #45"),
+      discord.CustomActivity(name="O'Brien Must Suffer"),
+      discord.CustomActivity(name="Hard Cutting to the Credits"),
+    ]
+
+    activity = random.choice(random_presences)
+    await bot.change_presence(
+      status=discord.Status.online,
+      activity=activity
+    )
+
   except Exception as e:
     logger.info(f"Error in on_ready: {e}")
     logger.info(traceback.format_exc())
