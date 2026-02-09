@@ -158,7 +158,8 @@ class ReactRoles(commands.Cog):
             await message.delete()
       existing_messages = {}
     else:
-      existing_messages = {rdb["message_name"]:rdb for rdb in self.reaction_db_data}
+      reaction_db_data = await self.get_reaction_db_data()
+      existing_messages = {rdb["message_name"]: rdb for rdb in reaction_db_data}
 
     # loop over all the reaction data and build out the messages
     for message_name, p in self.reaction_data.items():
