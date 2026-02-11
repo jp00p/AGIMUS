@@ -10,9 +10,9 @@ from common import config, logger, get_channel_id, get_channel_ids_list, get_emo
 from handlers.xp import grant_xp
 from utils.database import AgimusDB
 
-react_threshold = 3 # how many reactions required
-high_react_threshold = 5
-user_threshold = 3 # how many users required
+react_threshold = 1 # how many reactions required
+high_react_threshold = 1
+user_threshold = 1 # how many users required
 
 db_lock = asyncio.Lock()
 
@@ -27,7 +27,6 @@ async def initialize_starboard_cache() -> int:
   global ALL_STARBOARD_POSTS
   if not ALL_STARBOARD_POSTS:
     ALL_STARBOARD_POSTS = await db_get_all_starboard_posts()
-  print(ALL_STARBOARD_POSTS)
   return sum(len(b) for b in ALL_STARBOARD_POSTS.values())
 
 
