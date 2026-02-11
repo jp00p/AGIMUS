@@ -39,7 +39,7 @@ async def xpinfo_channels(ctx:discord.ApplicationContext, public:str):
   public = bool(public == "yes")
 
   user_discord_id = ctx.author.id
-  xp_enabled = bool(await db_get_current_xp_enabled_value(user_discord_id))
+  xp_enabled = await db_get_current_xp_enabled_value(user_discord_id)
   if not xp_enabled:
     await ctx.followup.send(
       embed=discord.Embed(
@@ -247,7 +247,7 @@ async def xpinfo_activity(ctx:discord.ApplicationContext, public:str):
   public = bool(public == "yes")
 
   user_discord_id = ctx.author.id
-  xp_enabled = bool(await db_get_current_xp_enabled_value(user_discord_id))
+  xp_enabled = await db_get_current_xp_enabled_value(user_discord_id)
   if not xp_enabled:
     await ctx.followup.send(
       embed=discord.Embed(

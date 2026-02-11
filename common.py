@@ -68,7 +68,6 @@ logger.addHandler(handler)
 # Set Config and Globals
 config = get_config()
 
-ALL_STARBOARD_POSTS = {}
 BOT_NAME = f"{Fore.LIGHTRED_EX}AGIMUS{Fore.RESET}"
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 DB_PASS = os.getenv('DB_PASS')

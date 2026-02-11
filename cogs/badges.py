@@ -1025,7 +1025,7 @@ class Badges(commands.Cog):
     :param name: The name of the badge to be looked up.
     :return:
     """
-    public = bool(public == "yes")
+    public = (public == "yes")
     await ctx.defer(ephemeral=not public)
 
     logger.info(f"{Fore.CYAN}Firing /badge lookup command for '{name}'!{Fore.RESET}")

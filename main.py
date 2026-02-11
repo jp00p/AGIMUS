@@ -111,7 +111,7 @@ from handlers.loudbot import handle_loudbot
 from handlers.reply_restricted import handle_reply_restricted
 from handlers.save_message import save_message_to_db
 from handlers.server_logs import *
-from handlers.starboard import db_get_all_starboard_posts, handle_starboard_reactions
+from handlers.starboard import initialize_starboard_cache, handle_starboard_reactions
 from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_react_xp
 
 # Utils
@@ -133,7 +133,7 @@ background_tasks = set() # for non-blocking tasks
 logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS LOADED{Fore.RESET}{Style.RESET_ALL}")
 
 DB_IS_SEEDED = False
-ALL_USERS = {}
+ALL_USERS = set()
 
 @bot.event
 async def on_ready():
@@ -173,14 +173,12 @@ async def on_ready():
 
     global ALL_USERS
     if not ALL_USERS:
-      ALL_USERS = dict.fromkeys(await get_all_users(), True) # used for registering new users without a db lookup
+      ALL_USERS = set(await get_all_users()) # used for registering new users without a db lookup
 
     logger.info(f"{Back.LIGHTRED_EX}{Fore.LIGHTWHITE_EX} LOGGED IN AS {bot.user} {Fore.RESET}{Back.RESET}")
     logger.info(f"{Back.RED}{Fore.LIGHTWHITE_EX} CURRENT ASSIGNMENT: {bot.guilds[0].name} (COMPLEMENT: {len(ALL_USERS)}) {Fore.RESET}{Back.RESET}")
 
-    global ALL_STARBOARD_POSTS
-    ALL_STARBOARD_POSTS = await db_get_all_starboard_posts()
-    number_of_starboard_posts = sum([len(ALL_STARBOARD_POSTS[p]) for p in ALL_STARBOARD_POSTS])
+    number_of_starboard_posts = await initialize_starboard_cache()
     for emoji in bot.emojis:
       config["all_emoji"][emoji.name] = emoji
 
@@ -386,9 +384,9 @@ async def on_scheduled_event_update(before: discord.ScheduledEvent, after: disco
 async def on_member_join(member):
   global ALL_USERS
   # Register user if they haven't been previously
-  if not ALL_USERS.get(int(member.id)):
+  if int(member.id) not in ALL_USERS:
     logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
-    ALL_USERS[await register_user(member)] = True
+    ALL_USERS.add(await register_user(member))
 
 @bot.event
 async def on_member_remove(member):
