@@ -6,7 +6,7 @@ from typing import Dict, List
 import discord
 from colorama import Fore, Style
 
-from common import config, logger, get_channel_id, get_channel_ids_list, get_emoji, bot, ALL_STARBOARD_POSTS
+from common import config, logger, get_channel_id, get_channel_ids_list, get_emoji, bot
 from handlers.xp import grant_xp
 from utils.database import AgimusDB
 
@@ -15,6 +15,20 @@ high_react_threshold = 5
 user_threshold = 3 # how many users required
 
 db_lock = asyncio.Lock()
+
+ALL_STARBOARD_POSTS: Dict[str, set] = {}
+
+
+async def initialize_starboard_cache() -> int:
+  """
+  Called once on startup to setup the cache
+  Returns the total number of posts
+  """
+  global ALL_STARBOARD_POSTS
+  if not ALL_STARBOARD_POSTS:
+    ALL_STARBOARD_POSTS = await db_get_all_starboard_posts()
+  return sum(len(b) for b in ALL_STARBOARD_POSTS.values())
+
 
 async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> None:
   board_patterns = generate_board_compiled_patterns(config["handlers"]["starboard"]["boards"])
@@ -47,7 +61,9 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
   # the words will be in the emoji name, not the message text
   for board, match_reacts in board_patterns.items():
     board_posts = ALL_STARBOARD_POSTS.get(board)
-    if board_posts is not None and payload.message_id in board_posts:
+    if board_posts is None:
+      ALL_STARBOARD_POSTS[board] = set()
+    elif payload.message_id in board_posts:
       continue
 
     if payload.channel_id in blocked_channels:
@@ -98,12 +114,14 @@ async def handle_starboard_reactions(payload:discord.RawReactionActionEvent) -> 
     # finally, if this match category has enough reactions and enough people, let's save it to the starboard channel!
     if total_reacts_for_this_match >= adjusted_react_threshold and len(message_reaction_people) >= user_threshold:
       async with db_lock:
-        if await db_get_starboard_post(message.id, board) is None: # checking again just in case (might be expensive)
+        if await db_get_starboard_post(message.id, board): # checking again just in case (might be expensive)
+          ALL_STARBOARD_POSTS[board].add(message.id)
+        else:
           await add_starboard_post(message, board)
           return
 
 
-async def add_starboard_post(message, board) -> None:
+async def add_starboard_post(message: discord.Message, board: str):
   global ALL_STARBOARD_POSTS
 
   # can't really re-embed tenor gifs quicky and they aren't REALLY starboard worthy imo
@@ -114,14 +132,14 @@ async def add_starboard_post(message, board) -> None:
 
   await grant_xp(message.author, 2, "starboard_post", message.channel, source="Getting a Clip Show Device post") # give em that sweet sweet xp first
   if ALL_STARBOARD_POSTS.get(board) is None:
-    ALL_STARBOARD_POSTS[board] = []
-  ALL_STARBOARD_POSTS[board].append(int(message.id))
+    ALL_STARBOARD_POSTS[board] = set()
+  ALL_STARBOARD_POSTS[board].add(int(message.id))
 
   board_channel_id = get_channel_id(board)
   channel = bot.get_channel(board_channel_id) # where it will be posted
   await db_insert_starboard_post(message.id, message.author.id, board) # add post to DB
 
-  provider_name, message_str, embed_image_url, embed_title, embed_desc, embed_thumb = ["" for i in range(6)] # initialize all the blank strings
+  provider_name, message_str, embed_image_url, embed_title, embed_desc, embed_thumb = [""] * 6  # initialize all the blank strings
   jumplink = f"[View original message]({message.jump_url}) from {message.channel.mention}"
   author_thumb = "https://i.imgur.com/LdNH7MK.png" # default author thumb
   footer_thumb = "https://i.imgur.com/Y8T9Yxa.jpg" # default footer thumb
@@ -232,20 +250,22 @@ async def db_insert_starboard_post(message_id, user_id, channel_id) -> None:
     vals = (message_id, user_id, channel_id)
     await query.execute(sql, vals)
 
-async def db_get_starboard_post(message_id, board):
+
+async def db_get_starboard_post(message_id: int, board: str) -> bool:
   """
   returns the post's channel ID or None if not found
   """
   async with AgimusDB() as query:
-    sql = "SELECT board_channel FROM starboard_posts WHERE message_id = %s and board_channel = %s"
+    sql = "SELECT 1 FROM starboard_posts WHERE message_id = %s and board_channel = %s"
     vals = (message_id, board)
     await query.execute(sql, vals)
     message = await query.fetchone()
-  return message
+  return message is not None
 
-async def db_get_all_starboard_posts() -> list:
+
+async def db_get_all_starboard_posts() -> Dict[str, set]:
   """
-  returns a list of all starboard post IDs
+  returns all starboard post IDs
   """
   posts = {}
   async with AgimusDB(dictionary=True) as query:
@@ -253,8 +273,8 @@ async def db_get_all_starboard_posts() -> list:
     await query.execute(sql)
     for result in await query.fetchall():
       if posts.get(result['board_channel']) is None:
-        posts[result['board_channel']] = []
-      posts[result['board_channel']].append(int(result["message_id"]))
+        posts[result['board_channel']] = set()
+      posts[result['board_channel']].add(int(result["message_id"]))
   return posts
 
 

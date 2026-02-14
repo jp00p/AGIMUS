@@ -41,7 +41,7 @@ async def grant_xp(user: discord.User, amount: int, reason: str, channel = None,
   async with user_xp_locks[user.id]:
     """Award XP to a user through the Echelon XP system."""
     # Make sure that they actually want to participate in the XP system...
-    xp_enabled = bool(await db_get_current_xp_enabled_value(user.id))
+    xp_enabled = await db_get_current_xp_enabled_value(user.id)
     if not xp_enabled:
       return
 
