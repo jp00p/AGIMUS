@@ -122,6 +122,13 @@ def parse_prestige_tier(value) -> int | None:
     return int(s)
 
   lowered = s.lower()
+
+  if isinstance(PRESTIGE_TIERS, dict):
+    for tier, name in PRESTIGE_TIERS.items():
+      if name.lower() == lowered:
+        return int(tier)
+    return None
+
   for i, name in enumerate(PRESTIGE_TIERS):
     if name.lower() == lowered:
       return i
