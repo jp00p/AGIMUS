@@ -344,10 +344,12 @@ async def process_command(message:discord.Message):
 @bot.event
 async def on_typing(channel, user, when):
   global ALL_USERS
+  user_id = int(user.id)
   # Register user if they haven't been previously
-  if not ALL_USERS.get(int(user.id)):
+  if user_id not in ALL_USERS:
     logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
-    ALL_USERS[await register_user(user)] = True
+    registered_id = await register_user(user)
+    ALL_USERS.add(int(registered_id))
 
 # listen to reactions
 @bot.event
@@ -383,10 +385,12 @@ async def on_scheduled_event_update(before: discord.ScheduledEvent, after: disco
 @bot.event
 async def on_member_join(member):
   global ALL_USERS
+  member_id = int(member.id)
   # Register user if they haven't been previously
-  if int(member.id) not in ALL_USERS:
+  if member_id not in ALL_USERS:
     logger.info(f"{Fore.LIGHTMAGENTA_EX}{Style.BRIGHT}New User{Style.RESET_ALL}{Fore.RESET}")
-    ALL_USERS.add(await register_user(member))
+    registered_id = await register_user(member)
+    ALL_USERS.add(int(registered_id))
 
 @bot.event
 async def on_member_remove(member):
