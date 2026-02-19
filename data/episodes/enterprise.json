@@ -2143,7 +2143,15 @@
             "episode": "17",
             "imdb": "tt0572180",
             "memoryalpha": "Bound_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.02.16",
+                    "episode": "Four-Shaft Rotation",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-614-four-shaft-rotation-ent-s4e17/",
+                    "order": 614,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/18ABm7O0VNwqS5ucKNFx6WEgIMC.jpg",

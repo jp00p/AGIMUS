@@ -106,6 +106,20 @@
             "stills": [
                 "https://image.tmdb.org/t/p/original/57hPm0uTsZ3wtY3ADSQ9H5spPJf.jpg"
             ]
+        },
+        {
+            "airdate": "2026.02.19",
+            "title": "Ko'Zeine",
+            "description": "During a school holiday, cadets return home and must choose between family expectations and dreams.",
+            "season": "01",
+            "episode": "07",
+            "podcasts": [],
+            "memoryalpha": "Ko'Zeine_(episode)",
+            "tvdb": 6594798,
+            "imdb": "tt34127817",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/6ZAShsu8KrxgYH7vrK7d5BfPANW.jpg"
+            ]
         }
     ],
     "imdb": "",
