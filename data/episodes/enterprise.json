@@ -2167,7 +2167,15 @@
             "episode": "18",
             "imdb": "tt0572219",
             "memoryalpha": "In_A_Mirror,_Darkly_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.02.23",
+                    "episode": "Constipation Ray",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-615-constipation-ray-ent-s4e18/",
+                    "order": 615,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/xiNUlVsmnGSVOEUGgwD80TteQLa.jpg",

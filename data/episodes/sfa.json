@@ -120,6 +120,20 @@
             "stills": [
                 "https://image.tmdb.org/t/p/original/6ZAShsu8KrxgYH7vrK7d5BfPANW.jpg"
             ]
+        },
+        {
+            "airdate": "2026.02.26",
+            "title": "The Life of the Stars",
+            "description": "A visiting instructor arrives at the Academy and uses an unorthodox method to help the cadets process the emotions of what it takes to become a Starfleet officer.",
+            "season": "01",
+            "episode": "08",
+            "podcasts": [],
+            "memoryalpha": "The_Life_of_the_Stars_(episode)",
+            "tvdb": 6594799,
+            "imdb": "tt34127818",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/cS1ceO1bN9lQnFZZeX0ig61ouTA.jpg"
+            ]
         }
     ],
     "imdb": "",
