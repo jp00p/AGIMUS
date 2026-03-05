@@ -2191,7 +2191,15 @@
             "episode": "19",
             "imdb": "tt0572220",
             "memoryalpha": "In_A_Mirror,_Darkly,_Part_II_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.03.02",
+                    "episode": "Sex Doctor",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-616-sex-doctor-ent-s4e19/",
+                    "order": 616,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/gQlZdrxlcFDMO1Si9JVC8bf9GH7.jpg",
