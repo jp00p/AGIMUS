@@ -25,18 +25,18 @@ def birthdays_task(bot: Bot):
     "One more trip around the sun",
   )
 
+  header_image = "https://i.imgur.com/xMycyhz.png"
+  
   async def birthdays():
     enabled = config["tasks"]["birthdays"]["enabled"]
     if not enabled:
       return
 
-    header_image = "https://i.imgur.com/xMycyhz.png"
-
     today = datetime.date.today()
     user_ids = await db.get_users_with_birthday(today.month, today.day)
     description = [
       # This assumes that the first guild is the only one, but that is a common assumption all around AGIMUS
-      (f"<@{uid}>" if bot.guilds[0].get_member(uid) else db.clear_birthday(uid)) for uid in user_ids
+      (f"<@{uid}>" if bot.guilds[0].get_member(uid) else await db.clear_birthday(uid)) for uid in user_ids
     ]
 
     celebrities = trek_birthdays[today.strftime('%b')].get(today.strftime('%d'), [])
@@ -44,10 +44,11 @@ def birthdays_task(bot: Bot):
       make_memory_alpha_link(name) for name in celebrities
     )
 
+    # People with birthdays on leap day should also be celibrated
     if today.month == 2 and today.day == 28 and today.year % 4 > 0:
       user_ids = await db.get_users_with_birthday(2, 29)
       description.extend(
-        (f"<@{uid}>" if bot.guilds[0].get_member(uid) else db.clear_birthday(uid)) for uid in user_ids
+        (f"<@{uid}>" if bot.guilds[0].get_member(uid) else await db.clear_birthday(uid)) for uid in user_ids
       )
 
     if len(description) == 0:
