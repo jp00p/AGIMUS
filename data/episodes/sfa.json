@@ -73,7 +73,15 @@
             "description": "When an existential crisis threatens to wipe out a beloved but infamous Star Trek species, a cadet is forced to confront his past and strained relationship with his family. As he pursues an unexpected method of coping, Nahla races against time to save this species from extinction.",
             "season": "01",
             "episode": "04",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.01.30",
+                    "episode": "Eagle Eye Trauma",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-361-eagle-eye-trauma-sfa-s1e4/",
+                    "order": 361,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Vox_In_Excelso_(episode)",
             "tvdb": 6594795,
             "imdb": "tt34127759",
@@ -85,7 +93,15 @@
             "description": "As a cadet sets out to solve an ancient Starfleet mystery, she embarks on a journey of self-discovery and learns the value of forging her own path. Meanwhile, Nahla agrees to help a fellow chancellor with an elaborate alien ritual.",
             "season": "01",
             "episode": "05",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.02.06",
+                    "episode": "Slap a Mustache on Me",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-362-slap-a-mustache-on-me-sfa-s1e5-w-tawny-newsome/",
+                    "order": 362,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Series_Acclimation_Mil_(episode)",
             "tvdb": 6594796,
             "imdb": "tt34127769",
@@ -99,7 +115,15 @@
             "description": "During the cadets' first training mission on an abandoned ship, they encounter a dangerous new enemy and must fight for survival while Nahla seeks help from an unexpected source.",
             "season": "01",
             "episode": "06",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.02.13",
+                    "episode": "Liminal Florist\u2019s Space",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-363-liminal-florists-space-sfa-s1e6/",
+                    "order": 363,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Come,_Let's_Away_(episode)",
             "tvdb": 6594797,
             "imdb": "tt34127793",
@@ -113,7 +137,15 @@
             "description": "During a school holiday, cadets return home and must choose between family expectations and dreams.",
             "season": "01",
             "episode": "07",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.02.20",
+                    "episode": "Piece of Meats",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-364-piece-of-meats-sfa-s1e7/",
+                    "order": 364,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Ko'Zeine_(episode)",
             "tvdb": 6594798,
             "imdb": "tt34127817",
@@ -127,7 +159,15 @@
             "description": "A visiting instructor arrives at the Academy and uses an unorthodox method to help the cadets process the emotions of what it takes to become a Starfleet officer.",
             "season": "01",
             "episode": "08",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.02.27",
+                    "episode": "The Phantom Dings",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-365-the-phantom-dings-sfa-s1e8/",
+                    "order": 365,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "The_Life_of_the_Stars_(episode)",
             "tvdb": 6594799,
             "imdb": "tt34127818",
@@ -141,7 +181,15 @@
             "description": "As the year ends, Caleb must choose between the life he wanted and the life he's built at Starfleet Academy. Meanwhile, Nahla breaks protocol to keep her promise.",
             "season": "01",
             "episode": "09",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.03.06",
+                    "episode": "Planetary PA",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-366-planetary-pa-sfa-s1e9/",
+                    "order": 366,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Priority_One:_A_Roddenberry_Star_Trek_Podcast",
             "tvdb": 6594800,
             "imdb": "tt34127842",
@@ -155,7 +203,15 @@
             "description": "In the season finale, the return of an old enemy forces Nahla to confront her own mistakes as the cadets and instructors undertake a seemingly impossible mission to save the Federation, while defining the future of Starfleet.",
             "season": "01",
             "episode": "10",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.03.13",
+                    "episode": "University of Doogies, Howser",
+                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-367-university-of-doogies-howser-sfa-s1e10/",
+                    "order": 367,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Rubincon_(episode)",
             "tvdb": 6594801,
             "imdb": "tt34127868",
