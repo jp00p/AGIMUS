@@ -2263,7 +2263,15 @@
             "episode": "22",
             "imdb": "tt0572260",
             "memoryalpha": "These_Are_The_Voyages..._(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.03.23",
+                    "episode": "Sympathetic Epilepsy",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-619-sympathetic-epilepsy-ent-s4e22/",
+                    "order": 619,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/hF5fwKvh9YdAEW1lx1hU3FXFR6e.jpg",
