@@ -351,11 +351,16 @@ class ShowGenerator:
     
     feed = feedparser.parse(podcast['url'])
     regex = re.compile(fr"{show_name} S(\d+)E(\d+)", re.IGNORECASE)
+    alt_regex = re.compile(r"\(S(\d+)E(\d+)", re.IGNORECASE) if show_name == "tng" else None
     
-    first_match_found = False  # The RSS is newest first
+    if self.last_pod_episode:  # reset because the default is all seasons everywhere
+      self.seasons = []
+      self.episodes_to_update = []
     
     for entry in feed['entries']:
       regex_match = regex.search(entry['title'])
+      if not regex_match and alt_regex:
+        regex_match = alt_regex.search(entry['title'])
       if not regex_match:
         continue
       season = int(regex_match[1])
@@ -366,9 +371,9 @@ class ShowGenerator:
       else:
         self.podcast_episodes[season, episode] = [entry]
         
-      if self.last_pod_episode and not first_match_found:
+      if self.last_pod_episode and not self.seasons:
+        # The RSS is newest first, so as soon as we find a match, use that
         self.seasons, self.episodes_to_update = [season], [episode]
-        first_match_found = True
 
   def get_current_details(self, season: int, episode: int) -> Optional[dict]:
     """
