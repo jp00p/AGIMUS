@@ -6,7 +6,7 @@ Usage:
     generate_show_json.py <show> [<filename>] [options]
 
 Arguments:
-    <show>        One of tos|tas|tng|ds9|voy|enterprise|disco|picard|lowerdecks|prodigy|snw
+    <show>        One of tos|tas|tng|ds9|voy|enterprise|disco|picard|lowerdecks|prodigy|snw|sfa
     <filename>    The name of the file to generate.  Default: /data/episodes/<show>.json
 
 Options:
@@ -15,13 +15,14 @@ Options:
     -s --season <list>    A comma separated list of seasons to update.  Default: All possible seasons.
     -e --episode <list>   A comma separated list of episodes to update.  Used with -s.  Default: All possible episodes.
     -n --next-episode     Only update the next episode that doesn't have this information.  Used with automated tools.
+    -l --last-pod         Update the episode covered by the latest version of the podcast.
     
     -p --podcast          Update the podcast information.  Useful for old shows that have only just been covered.
     -d --details          Update the episode details from TVDB.  You will need to update your .env file and put in
                           TMDB_KEY.  Details on getting one at https://developer.themoviedb.org/docs/getting-started
     -m --memory-alpha     Update the link to the episode in Memory Alpha.
     
-                          If -p, -d, and -m are not specified, then all of them will be updated.
+                          If none of -p, -d, and -m are specified, then all of them will be updated.
                           
     --slow                If you are only doing one service, and a large number of requests, you might get choked. If
                           that happens, add a half second delay between requests just to slow things down enough. While
@@ -155,11 +156,13 @@ all_shows = {
 podcasts = {
   'tgg': {
     "name": "The Greatest Generation",
-    "url": "http://feeds.feedburner.com/TheGreatestGeneration"
+    "url": "http://feeds.feedburner.com/TheGreatestGeneration",
+    "search_term": "greatest-generation"
   },
   'tgt': {
     "name": "Greatest Trek",
-    "url": "http://feeds.feedburner.com/GreatestDiscovery"
+    "url": "http://feeds.feedburner.com/GreatestDiscovery",
+    "search_term": "greatest-trek"
   }
 }
 
@@ -169,7 +172,8 @@ class ShowGenerator:
   Class for building a .json file to be used with other commands around the bot.
   """
   def __init__(self, show: str, filename: str = None,
-               only_next_episode: bool = False, seasons: Optional[List[int]] = None, episodes: Optional[List[int]] = None,
+               only_next_episode: bool = False, last_pod_episode: bool = False,
+               seasons: Optional[List[int]] = None, episodes: Optional[List[int]] = None,
                update_details=True, update_podcast=True, update_memory_alpha=True, slow_down=False):
     self.show = show
     self.show_settings = all_shows[self.show]
@@ -177,6 +181,7 @@ class ShowGenerator:
     self.filename = filename or os.path.join(os.path.dirname(__file__), f"../data/episodes/{self.show}.json")
     
     self.only_next_episode = only_next_episode
+    self.last_pod_episode = last_pod_episode
     self.seasons = seasons or range(1, 8)  # So far, no show has gone beyond 7 seasons
     self.episodes_to_update = episodes or range(1, 30)  # Remember when seasons were 20+ episodes?
     
@@ -191,7 +196,7 @@ class ShowGenerator:
     
     self.episode_details = []
     self.episode_map = {}
-    self.podcast_episodes = {}
+    self.podcast_episodes: dict[(int, int), list[dict]] = {}
     self.podcast_name = None
 
   @property
@@ -221,6 +226,8 @@ class ShowGenerator:
     
     if cli_args['--next-episode']:
       args['only_next_episode'] = True
+    elif cli_args['--last-pod']:
+      args['last_pod_episode'] = True
     else:
       try:
         if cli_args['--season']:
@@ -265,7 +272,7 @@ class ShowGenerator:
     self.load_current_file()
     if self.only_next_episode:
       self.get_next_episode()
-    if self.run_pod:
+    if self.run_pod or self.last_pod_episode:
       self.load_feed()
     
     for season in self.seasons:
@@ -293,7 +300,7 @@ class ShowGenerator:
   
   def load_current_file(self):
     """
-    Load the current file for the episodes
+    Load the current JSON file for the episodes
     """
     if not os.path.isfile(self.filename):
       return
@@ -306,6 +313,9 @@ class ShowGenerator:
       self.episode_map[int(details['season']), int(details['episode'])] = index
 
   def get_next_episode(self):
+    """
+    Set `self.season` and `self.episode` for the next episode.
+    """
     episode = None
     if self.run_tmdb:
       episode = self.episode_details[-1]
@@ -337,17 +347,33 @@ class ShowGenerator:
     show_name = self.show_settings.get('pod_name', self.show)
     podcast = podcasts[self.show_settings['pod']]
     self.podcast_name = podcast['name']
+    self.podcast_search_term = podcast['search_term']
     
     feed = feedparser.parse(podcast['url'])
     regex = re.compile(fr"{show_name} S(\d+)E(\d+)", re.IGNORECASE)
+    alt_regex = re.compile(r"\(S(\d+)E(\d+)", re.IGNORECASE) if show_name == "tng" else None
+    
+    if self.last_pod_episode:  # reset because the default is all seasons everywhere
+      self.seasons = []
+      self.episodes_to_update = []
     
     for entry in feed['entries']:
       regex_match = regex.search(entry['title'])
+      if not regex_match and alt_regex:
+        regex_match = alt_regex.search(entry['title'])
       if not regex_match:
         continue
       season = int(regex_match[1])
       episode = int(regex_match[2])
-      self.podcast_episodes[season, episode] = entry
+
+      if (season, episode) in self.podcast_episodes:
+        self.podcast_episodes[season, episode].append(entry)
+      else:
+        self.podcast_episodes[season, episode] = [entry]
+        
+      if self.last_pod_episode and not self.seasons:
+        # The RSS is newest first, so as soon as we find a match, use that
+        self.seasons, self.episodes_to_update = [season], [episode]
 
   def get_current_details(self, season: int, episode: int) -> Optional[dict]:
     """
@@ -421,29 +447,35 @@ class ShowGenerator:
     Get the podcast for this episode from the feed.  If there are more than one, then they will have to be added
     manually
     """
-    podcast = self.podcast_episodes.get((season, episode))
-    if not podcast:
+    podcast_list = self.podcast_episodes.get((season, episode))
+    if not podcast_list:
       print(f"No podcast for {self.show} S{details['season']}E{details['episode']} yet")
       return
     
-    # Search the maxfun website for the link to the episode. For some reason, it's not in the RSS feed
-    req = requests.get("https://maximumfun.org/search/", params={"_type": "episode", "_term": podcast['title']})
-    re_match = re.search(r'a href="(https://maximumfun\.org/episodes/.+/)"', req.content.decode(errors='ignore'))
-    if re_match:
-      page_link = re_match[1]
-    else:
-      page_link = None
+    podcasts_details = []
     
-    details['podcasts'] = [
-      {
+    for podcast in podcast_list:
+      # Search the maxfun website for the link to the episode. For some reason, it's not in the RSS feed
+      req = requests.get("https://maximumfun.org/search/", params={"_type": "episode", "_podcast": self.podcast_search_term,
+                                                                   "_term": f"{podcast['itunes_episode']}: {podcast['title']}"})
+      re_match = re.search(r'a href="(https://maximumfun\.org/episodes/.+/)"', req.content.decode(errors='ignore'))
+      if re_match:
+        page_link = re_match[1]
+      else:
+        page_link = None
+    
+      podcasts_details.append({
         "airdate": parser.parse(podcast['published']).strftime('%Y.%m.%d'),
         "episode": re.sub(r' \([^()]+\)$', '', podcast['title']),
         "link": page_link,
         "order": int(podcast['itunes_episode']) if 'itunes_episode' in podcast else None,
         "title": self.podcast_name,
-      }
-    ]
-    print(f"Updated the podcast to {podcast['title']}")
+      })
+    
+    details['podcasts'] = podcasts_details
+    
+    episode_names = ", ".join(f"{p['itunes_episode']}: {p['title']}" for p in podcast_list)
+    print(f"Updated the podcast to {episode_names}")
   
   def save_current_file(self):
     """
