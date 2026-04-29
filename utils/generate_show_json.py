@@ -156,12 +156,12 @@ all_shows = {
 podcasts = {
   'tgg': {
     "name": "The Greatest Generation",
-    "url": "http://feeds.feedburner.com/TheGreatestGeneration",
+    "url": "https://feeds.simplecast.com/_mp2DeJd",
     "search_term": "greatest-generation"
   },
   'tgt': {
     "name": "Greatest Trek",
-    "url": "http://feeds.feedburner.com/GreatestDiscovery",
+    "url": "https://feeds.simplecast.com/d1rbEtgZ",
     "search_term": "greatest-trek"
   }
 }
