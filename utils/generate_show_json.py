@@ -156,13 +156,13 @@ all_shows = {
 podcasts = {
   'tgg': {
     "name": "The Greatest Generation",
-    "url": "https://feeds.simplecast.com/_mp2DeJd",
-    "search_term": "greatest-generation"
+    "url": "https://feeds.acast.com/public/shows/69f118d4f8c66377375f9a45",
+    "link": "https://shows.acast.com/the-greatest-generation/episodes/{id}"
   },
   'tgt': {
     "name": "Greatest Trek",
-    "url": "https://feeds.simplecast.com/d1rbEtgZ",
-    "search_term": "greatest-trek"
+    "url": "https://feeds.acast.com/public/shows/69f1199f7beb812869812fed",
+    "link": "https://shows.acast.com/greatest-trek/episodes/{id}"
   }
 }
 
@@ -198,6 +198,7 @@ class ShowGenerator:
     self.episode_map = {}
     self.podcast_episodes: dict[(int, int), list[dict]] = {}
     self.podcast_name = None
+    self.podcast_episode_link = ""
 
   @property
   def memory_alpha_name(self):
@@ -347,7 +348,8 @@ class ShowGenerator:
     show_name = self.show_settings.get('pod_name', self.show)
     podcast = podcasts[self.show_settings['pod']]
     self.podcast_name = podcast['name']
-    self.podcast_search_term = podcast['search_term']
+    self.podcast_episode_link = podcast["link"]
+    # self.podcast_search_term = podcast['search_term']
     
     feed = feedparser.parse(podcast['url'])
     regex = re.compile(fr"{show_name} S(\d+)E(\d+)", re.IGNORECASE)
@@ -455,14 +457,15 @@ class ShowGenerator:
     podcasts_details = []
     
     for podcast in podcast_list:
-      # Search the maxfun website for the link to the episode. For some reason, it's not in the RSS feed
-      req = requests.get("https://maximumfun.org/search/", params={"_type": "episode", "_podcast": self.podcast_search_term,
-                                                                   "_term": f"{podcast['itunes_episode']}: {podcast['title']}"})
-      re_match = re.search(r'a href="(https://maximumfun\.org/episodes/.+/)"', req.content.decode(errors='ignore'))
-      if re_match:
-        page_link = re_match[1]
-      else:
-        page_link = None
+      # # Search the maxfun website for the link to the episode. For some reason, it's not in the RSS feed
+      # req = requests.get("https://maximumfun.org/search/", params={"_type": "episode", "_podcast": self.podcast_search_term,
+      #                                                              "_term": f"{podcast['itunes_episode']}: {podcast['title']}"})
+      # re_match = re.search(r'a href="(https://maximumfun\.org/episodes/.+/)"', req.content.decode(errors='ignore'))
+      # if re_match:
+      #   page_link = re_match[1]
+      # else:
+      #   page_link = None
+      page_link = self.podcast_episode_link.format(id = podcast.get('acast_episodeurl') or podcast['acast_episodeid'])
     
       podcasts_details.append({
         "airdate": parser.parse(podcast['published']).strftime('%Y.%m.%d'),
