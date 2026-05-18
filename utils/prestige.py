@@ -1,4 +1,4 @@
-from common import *
+import discord
 
 from queries.echelon_xp import db_get_echelon_progress
 
@@ -123,17 +123,12 @@ def parse_prestige_tier(value) -> int | None:
 
   lowered = s.lower()
 
-  if isinstance(PRESTIGE_TIERS, dict):
-    for tier, name in PRESTIGE_TIERS.items():
-      if name.lower() == lowered:
-        return int(tier)
-    return None
-
-  for i, name in enumerate(PRESTIGE_TIERS):
+  for tier, name in PRESTIGE_TIERS.items():
     if name.lower() == lowered:
-      return i
-
+      return int(tier)
+      
   return None
+
 
 async def is_prestige_valid(ctx: discord.ApplicationContext, prestige: str) -> bool:
   parsed = parse_prestige_tier(prestige)
