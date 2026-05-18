@@ -81,9 +81,16 @@
             "memoryalpha": "Code_of_Honor_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.05.18",
+                    "episode": "Ethnicity Band-Aid",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/ethnicity-band-aid-tng-s1e4",
+                    "order": 625,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.02.05",
                     "episode": "Gagh.biz",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-3-gagh-biz-s1e4",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119525531bfee786349d6",
                     "order": 3,
                     "title": "The Greatest Generation"
                 }
