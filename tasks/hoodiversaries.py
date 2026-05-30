@@ -1,11 +1,16 @@
-from common import *
+import random
+import traceback
+from datetime import datetime
 
+import discord
+
+from common import config, get_channel_ids_list, logger, get_emoji
 from queries.badge_info import db_get_badge_info_by_name
-from queries.badge_instances import *
+from queries.badge_instances import db_get_user_badge_instances
 from queries.echelon_xp import db_get_echelon_progress
 from utils.badge_instances import create_new_badge_instance_by_filename
 
-def hoodiversary_task(bot):
+def hoodiversary_task(bot: discord.Bot):
 
   async def hoodiversary():
     header_image_url = "https://i.imgur.com/9aEHbYd.png"
@@ -14,7 +19,7 @@ def hoodiversary_task(bot):
       if not enabled:
         return
 
-      today = datetime.utcnow().date()
+      today = datetime.now().date()
       members = await bot.current_guild.fetch_members().flatten()
       hoodiversary_members = [
         {
@@ -49,32 +54,40 @@ def hoodiversary_task(bot):
         get_emoji('q_happy_yes_trumpet_celebrate')
       ]
 
-      description = ""
-      mentions_string = ""
-      for m in hoodiversary_members:
-        mentions_string += f"{m['member'].mention} "
-        year_string = 'year' if m['age'] == 1 else 'years'
-        description += f"{random.choice(emoji_list)} {m['member'].mention} has been aboard The Hood for {m['age']} {year_string}!\nJoined {m['member'].joined_at.strftime('%x')}\n\n"
-
-      if len(description) > 4096:
-        description = ""
-        for m in hoodiversary_members:
-          description += f"{m['member'].mention} Joined {m['member'].joined_at.strftime('%x')}\n"
-
-      embed = discord.Embed(
-        title="These FoDs Are Celebrating Their Hoodiversary!",
-        description=description,
-        color=discord.Color.random()
-      )
-      embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
-      embed.set_footer(text="If not already present, you've also been awarded a Captain Picard Day badge (at all Prestige Tiers you have currently unlocked)!\nUse '/badges showcase' to check it out!")
-      channel_ids = get_channel_ids_list(config["tasks"]["hoodiversary"]["channels"])
-      for channel_id in channel_ids:
-        channel = bot.get_channel(channel_id)
+      # Send the headers first before building the embed
+      mentions_string = " ".join(m['member'].mention for m in hoodiversary_members)
+      channel_list = [bot.get_channel(c_id) for c_id in get_channel_ids_list(config["tasks"]["hoodiversary"]["channels"])]
+      for channel in channel_list:
         await channel.send(f"{header_image_url}")
         await channel.send(f"Happy Hoodiversary to you {mentions_string}!")
+
+      embed_color=discord.Color.random()
+      # First embed gets a title and thumbnail
+      embed = discord.Embed(
+        title="These FoDs Are Celebrating Their Hoodiversary!",
+        description="",
+        color=embed_color
+      )
+      embed.set_thumbnail(url=random.choice(config["handlers"]["xp"]["celebration_images"]))
+
+      for m in hoodiversary_members:
+        year_string = 'year' if m['age'] == 1 else 'years'
+        description = f"{random.choice(emoji_list)} {m['member'].mention} has been aboard The Hood for {m['age']} {year_string}!\nJoined {m['member'].joined_at.strftime('%x')}\n\n"
+        
+        if len(embed.description) + len(description) > 4096:
+          # This would make it too long, so we have to send this one and make a new embed
+          for channel in channel_list:
+            await channel.send(embed=embed)
+          embed = discord.Embed(description="", color=embed_color)
+        
+        embed.description += description
+
+      # Only the last embed gets a footer
+      embed.set_footer(text="If not already present, you've also been awarded a Captain Picard Day badge (at all Prestige Tiers you have currently unlocked)!\nUse '/badges showcase' to check it out!")
+      
+      for channel in channel_list:
         await channel.send(embed=embed)
-    except Exception as e:
+    except Exception:
       logger.info(traceback.format_exc())
 
   return {
