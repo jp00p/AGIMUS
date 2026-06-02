@@ -685,15 +685,15 @@ class Admin(commands.Cog):
       )
       return await ctx.respond(embed=embed, ephemeral=True)
 
-    FOUNDERS_BUCKET_ROLE_ID = 1505225552599187476
-    FOUNDERS_BUCKET_FILENAME = 'Founders_Bucket.png'
-    FOUNDERS_BUCKET_STANDARD_PRESTIGE = 0
+    founders_bucket_role_id = 1505225552599187476
+    founders_bucket_filename = 'Founders_Bucket.png'
+    founders_bucket_standard_prestige = 0
 
-    role = ctx.guild.get_role(FOUNDERS_BUCKET_ROLE_ID)
+    role = ctx.guild.get_role(founders_bucket_role_id)
     if not role:
       embed = discord.Embed(
         title='Role Not Found',
-        description=f"Could not find role ID `{FOUNDERS_BUCKET_ROLE_ID}` in this server.",
+        description=f"Could not find role ID `{founders_bucket_role_id}` in this server.",
         color=discord.Color.red()
       )
       return await ctx.respond(embed=embed, ephemeral=True)
@@ -705,58 +705,157 @@ class Admin(commands.Cog):
         WHERE badge_filename = %s
         LIMIT 1
       '''
-      vals = (FOUNDERS_BUCKET_FILENAME,)
+      vals = (founders_bucket_filename,)
       await db.execute(sql, vals)
       badge_info = await db.fetchone()
 
     if not badge_info:
       embed = discord.Embed(
         title='Badge Not Found',
-        description=f"No badge_info row found for `{FOUNDERS_BUCKET_FILENAME}`.",
+        description=f"No badge_info row found for `{founders_bucket_filename}`.",
         color=discord.Color.red()
       )
       return await ctx.respond(embed=embed, ephemeral=True)
 
-    await ctx.guild.chunk(cache=True)
-
-    members = [
-      member
-      for member in ctx.guild.members
-      if member.get_role(FOUNDERS_BUCKET_ROLE_ID) and not member.bot
-    ]
-
-    granted_by_user = {}
-    skipped = []
-
-    for member in members:
-      existing_standard = await db_get_badge_instance_by_badge_info_id(
-        member.id,
-        badge_info['id'],
-        FOUNDERS_BUCKET_STANDARD_PRESTIGE
-      )
-
-      if existing_standard:
-        skipped.append(member)
+    members = []
+    async for member in ctx.guild.fetch_members(limit=None):
+      if member.bot:
         continue
 
-      progress = await db_get_echelon_progress(member.id)
-      max_prestige = progress['current_prestige_tier'] if progress else 0
-      granted_tiers = []
+      if member.get_role(founders_bucket_role_id):
+        members.append(member)
 
-      for prestige in range(max_prestige + 1):
-        if not dry_run:
-          await create_new_badge_instance(
-            member.id,
-            badge_info['id'],
-            prestige,
-            event_type='admin'
+    if not members:
+      embed = discord.Embed(
+        title='No Members Found',
+        description=f"No non-bot members were found with {role.mention}.",
+        color=discord.Color.orange()
+      )
+      return await ctx.respond(embed=embed, ephemeral=True)
+
+    member_ids = [str(member.id) for member in members]
+    member_lookup = {str(member.id): member for member in members}
+    placeholders = ', '.join(['%s'] * len(member_ids))
+
+    async with AgimusDB(dictionary=True) as db:
+      sql = f'''
+        SELECT
+          ep.user_discord_id,
+          ep.current_prestige_tier,
+          standard_instance.id AS standard_instance_id
+        FROM echelon_progress ep
+        LEFT JOIN badge_instances standard_instance
+          ON standard_instance.owner_discord_id = ep.user_discord_id
+          AND standard_instance.badge_info_id = %s
+          AND standard_instance.prestige_level = %s
+          AND standard_instance.status = 'active'
+        WHERE ep.user_discord_id IN ({placeholders})
+      '''
+      vals = (
+        badge_info['id'],
+        founders_bucket_standard_prestige,
+        *member_ids
+      )
+      await db.execute(sql, vals)
+      progress_rows = await db.fetchall()
+
+    skipped_rows = [
+      row
+      for row in progress_rows
+      if row['standard_instance_id']
+    ]
+
+    target_rows = [
+      row
+      for row in progress_rows
+      if not row['standard_instance_id']
+    ]
+
+    missing_progress_ids = set(member_ids) - {row['user_discord_id'] for row in progress_rows}
+
+    grant_rows = []
+    for row in target_rows:
+      for prestige in range(row['current_prestige_tier'] + 1):
+        grant_rows.append((row['user_discord_id'], prestige))
+
+    if not dry_run and grant_rows:
+      union_rows = []
+      vals = []
+
+      for user_discord_id, prestige in grant_rows:
+        union_rows.append('SELECT %s AS user_discord_id, %s AS prestige_level')
+        vals.extend([user_discord_id, prestige])
+
+      target_sql = '\nUNION ALL\n'.join(union_rows)
+
+      async with AgimusDB(dictionary=True) as db:
+        sql = f'''
+          INSERT INTO badge_instances (
+            badge_info_id,
+            owner_discord_id,
+            origin_user_id,
+            status,
+            prestige_level
           )
+          SELECT
+            %s,
+            targets.user_discord_id,
+            targets.user_discord_id,
+            'active',
+            targets.prestige_level
+          FROM (
+            {target_sql}
+          ) targets
+          WHERE NOT EXISTS (
+            SELECT 1
+            FROM badge_instances existing
+            WHERE existing.owner_discord_id = targets.user_discord_id
+              AND existing.badge_info_id = %s
+              AND existing.prestige_level = targets.prestige_level
+              AND existing.status = 'active'
+          )
+        '''
+        insert_vals = (
+          badge_info['id'],
+          *vals,
+          badge_info['id']
+        )
+        await db.execute(sql, insert_vals)
 
-        granted_tiers.append(prestige)
+        sql = f'''
+          INSERT INTO badge_instance_history (
+            badge_instance_id,
+            from_user_id,
+            to_user_id,
+            event_type
+          )
+          SELECT
+            i.id,
+            NULL,
+            i.owner_discord_id,
+            'admin'
+          FROM badge_instances i
+          JOIN (
+            {target_sql}
+          ) targets
+            ON targets.user_discord_id = i.owner_discord_id
+            AND targets.prestige_level = i.prestige_level
+          WHERE i.badge_info_id = %s
+            AND i.status = 'active'
+            AND NOT EXISTS (
+              SELECT 1
+              FROM badge_instance_history h
+              WHERE h.badge_instance_id = i.id
+                AND h.event_type = 'admin'
+            )
+        '''
+        history_vals = (
+          *vals,
+          badge_info['id']
+        )
+        await db.execute(sql, history_vals)
 
-      granted_by_user[member] = granted_tiers
-
-    total_badges = sum(len(tiers) for tiers in granted_by_user.values())
+    total_badges = len(grant_rows)
 
     embed = discord.Embed(
       title="Founders' Bucket Grant Preview" if dry_run else "Founders' Bucket Granted",
@@ -768,18 +867,29 @@ class Admin(commands.Cog):
       color=discord.Color.orange() if dry_run else discord.Color.green()
     )
 
-    embed.add_field(name='Eligible Role Members', value=str(len(members)), inline=True)
-    embed.add_field(name='Users Skipped', value=str(len(skipped)), inline=True)
+    embed.add_field(name='Role Members Found', value=str(len(members)), inline=True)
+    embed.add_field(name='Users Skipped', value=str(len(skipped_rows)), inline=True)
     embed.add_field(name='Badges To Grant' if dry_run else 'Badges Granted', value=str(total_badges), inline=True)
 
-    if granted_by_user:
+    if missing_progress_ids:
+      embed.add_field(
+        name='Skipped - No Echelon Progress',
+        value=str(len(missing_progress_ids)),
+        inline=True
+      )
+
+    if target_rows:
       lines = []
-      for member, tiers in list(granted_by_user.items())[:15]:
-        prestige_names = ', '.join(PRESTIGE_TIERS[tier] for tier in tiers)
+      for row in target_rows[:15]:
+        member = member_lookup[row['user_discord_id']]
+        prestige_names = ', '.join(
+          PRESTIGE_TIERS[i]
+          for i in range(row['current_prestige_tier'] + 1)
+        )
         lines.append(f"{member.mention}: {prestige_names}")
 
-      if len(granted_by_user) > 15:
-        lines.append(f"...and {len(granted_by_user) - 15} more users")
+      if len(target_rows) > 15:
+        lines.append(f"...and {len(target_rows) - 15} more users")
 
       embed.add_field(
         name='Would Receive' if dry_run else 'Received',
@@ -787,14 +897,18 @@ class Admin(commands.Cog):
         inline=False
       )
 
-    if skipped:
-      skipped_lines = [member.mention for member in skipped[:25]]
-      if len(skipped) > 25:
-        skipped_lines.append(f"...and {len(skipped) - 25} more")
+    if skipped_rows:
+      lines = []
+      for row in skipped_rows[:25]:
+        member = member_lookup[row['user_discord_id']]
+        lines.append(member.mention)
+
+      if len(skipped_rows) > 25:
+        lines.append(f"...and {len(skipped_rows) - 25} more")
 
       embed.add_field(
         name='Skipped - Already Owns Standard',
-        value='\n'.join(skipped_lines),
+        value='\n'.join(lines),
         inline=False
       )
 
