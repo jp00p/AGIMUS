@@ -6,4 +6,4 @@ async def db_get_current_xp_enabled_value(user_id: int) -> bool:
     vals = (user_id,)
     await query.execute(sql, vals)
     row = await query.fetchone()
-  return bool(row['xp_enabled'])
+  return bool(row['xp_enabled']) if row else False

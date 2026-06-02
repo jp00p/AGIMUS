@@ -1,9 +1,10 @@
+from datetime import datetime
 from typing import Optional
-
-from common import *
 
 from queries.common import BADGE_INSTANCE_COLUMNS
 from utils.badge_instances import transfer_badge_instance
+from utils.database import AgimusDB
+
 
 # --- Game Lifecycle ---
 

@@ -1,8 +1,8 @@
 from typing import Literal
 
-from common import AgimusDB
 from queries.common import BADGE_INSTANCE_COLUMNS
-import json
+from utils.database import AgimusDB
+
 
 # Add
 async def db_add_badge_info_id_to_wishlist(user_discord_id: str, badge_info_id: int):
@@ -233,8 +233,10 @@ async def db_get_simple_wishlist_badges(user_discord_id: str) -> list[dict]:
     return await db.fetchall()
 
 
-# Compute "active wants": badges user still needs at a given prestige level
 async def db_get_active_wants(user_discord_id: str, prestige_level: int) -> list[dict]:
+  """
+  Returns a list of badges in the user’s wishlist that they don’t have at this prestige
+  """
   sql = '''
     SELECT bi.id AS badge_info_id,
           bi.badge_name,
@@ -244,11 +246,10 @@ async def db_get_active_wants(user_discord_id: str, prestige_level: int) -> list
     JOIN badge_info bi ON bi.id = w.badge_info_id
     WHERE w.user_discord_id = %s
       AND bi.special = FALSE
-      AND NOT EXISTS (
-        SELECT 1
+      AND badge_info_id NOT IN (
+        SELECT i.badge_info_id
         FROM badge_instances i
         WHERE i.owner_discord_id = w.user_discord_id
-          AND i.badge_info_id = w.badge_info_id
           AND i.prestige_level = %s
           AND i.active = TRUE
       )
@@ -269,11 +270,10 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
           ON bi.id = w.badge_info_id
          AND bi.special = FALSE
         WHERE w.user_discord_id = %s
-          AND NOT EXISTS (
-            SELECT 1
+          AND w.badge_info_id NOT IN (
+            SELECT i.badge_info_id
             FROM badge_instances i
             WHERE i.owner_discord_id = %s
-              AND i.badge_info_id = w.badge_info_id
               AND i.prestige_level = %s
               AND i.active = TRUE
           )
@@ -294,11 +294,10 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
           AND b.locked = FALSE
           AND b.active = TRUE
           AND b.badge_info_id IN (SELECT badge_info_id FROM my_unfulfilled_wishlist)
-          AND NOT EXISTS (
-            SELECT 1
+          AND b.badge_info_id NOT IN (
+            SELECT mine.badge_info_id
             FROM badge_instances mine
             WHERE mine.owner_discord_id = %s
-              AND mine.badge_info_id = b.badge_info_id
               AND mine.prestige_level = b.prestige_level
               AND mine.active = TRUE
           )
@@ -311,11 +310,10 @@ async def db_get_wishlist_matches(user_discord_id: str, prestige_level: int) -> 
           ON bi.id = w.badge_info_id
          AND bi.special = FALSE
         WHERE w.badge_info_id IN (SELECT badge_info_id FROM my_offerable_badges)
-          AND NOT EXISTS (
-            SELECT 1
+          AND w.badge_info_id NOT IN (
+            SELECT i.badge_info_id
             FROM badge_instances i
             WHERE i.owner_discord_id = w.user_discord_id
-              AND i.badge_info_id = w.badge_info_id
               AND i.prestige_level = %s
               AND i.active = TRUE
           )

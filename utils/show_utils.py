@@ -1,4 +1,5 @@
 import random
+from itertools import groupby
 
 import discord
 
@@ -34,10 +35,10 @@ def get_show_embed(show_data: dict, episode_index: int, show: str) -> discord.Em
 
   # Add Podcast Fields
   if ep["podcasts"]:
-    for pod in ep["podcasts"]:
+    for pod_title, pod_list in groupby(ep["podcasts"], lambda x: x['title']):
       embed.add_field(
-        name=pod['title'],
-        value=f"[{pod['episode']}]({pod['link']})",
+        name=pod_title,
+        value="\n".join(f"[{p['episode']}]({p['link']})" for p in pod_list),
         inline=False
       )
 

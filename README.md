@@ -272,54 +272,15 @@ The file also provides the "Guild ID" for your server, note this is required in 
 
 ### commands/command.py
 
-Each command requires a python script that accepts a discord message as input where the first word matches the filename (Example: `!setwager 25` => [commands/setwager.py](commands/setwager.py))
+Each standalone command should be in its own file and must have the `@bot.slash_command` decorator and be marked `async`. (Example: `/setwager 25` => [commands/setwager.py](commands/setwager.py)) The first parameter is an instance of `discord.ApplicationContext`. Since many of the methods on `ApplicationContext` are async, and all database operations are too, you will have to use `await` for many things. This is a constant source of bugs. 
 
-```python
-from .common import *
-# setwager() - Entrypoint for !setwager command
-# message[required]: discord.Message
-# This function is the main entrypoint of the !setwager command
-# and will a user's wager value to the amount passed between 1-25
-async def setwager(message:discord.Message):
-  min_wager = 1
-  max_wager = 25
-  wager_val = message.content.lower().replace("!setwager ", "")
-  player = get_user(message.author.id)
-  current_wager = player["wager"]
-  if wager_val.isnumeric():
-    wager_val = int(wager_val)
-    if wager_val >= min_wager and wager_val <= max_wager:
-      set_player_wager(message.author.id, wager_val)
-      msg = f"{message.author.mention}: Your default wager has been changed from `{current_wager}` to `{wager_val}`"
-      await message.channel.send(msg)
-    else:
-      msg = f"{message.author.mention}: Wager must be a whole number between `{min_wager}` and `{max_wager}`\nYour current wager is: `{current_wager}`"
-      await message.channel.send(msg)
-  else:
-    msg = f"{message.author.mention}: Wager must be a whole number between `{min_wager}` and `{max_wager}`\nYour current wager is: `{current_wager}`"
-    await message.channel.send(msg)
+### cogs/cog.py
 
-# set_player_wager(discord_id, amt)
-# discord_id[required]: int
-# amt[required]: int
-# This function takes a player's discord ID
-# and a positive integer and updates the wager
-# value for that user in the db
-def set_player_wager(discord_id, amt):
-  db = getDB()
-  amt = max(amt, 0)
-  query = db.cursor()
-  sql = "UPDATE users SET wager = %s WHERE discord_id = %s"
-  vals = (amt, discord_id)
-  query.execute(sql, vals)
-  db.commit()
-  query.close()
-  db.close()
-```
+If you have a group of similar commands, they can be combined into a cog.   
 
 ### main.py
 
-Each command requires an explicit import in the [main.py](main.py) script.
+Each command and cog requires an explicit import in the [main.py](main.py) script.
 
 ```python
 from commands.setwager import setwager
