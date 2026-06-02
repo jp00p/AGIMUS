@@ -221,7 +221,7 @@ async def add_starboard_post(message: discord.Message, board: str):
   elif len(message.attachments) > 0:
     # build attachments
     attachment = message.attachments[0]
-    if attachment.content_type.startswith("video"):
+    if attachment.content_type.startswith(("video", "audio")):
       star_file = await attachment.to_file(spoiler=attachment.is_spoiler())
     else:
       if attachment.is_spoiler():
@@ -229,6 +229,9 @@ async def add_starboard_post(message: discord.Message, board: str):
         star_file = await attachment.to_file(spoiler=True)
       elif attachment.content_type.startswith("image"):
         star_embed.set_image(url=attachment.proxy_url)
+  elif star_embed.description == "":
+    # If it’s a forwarded message, all we can do is reforward it
+    await message.forward_to(channel)
 
   if embed_thumb != "":
     star_embed.set_thumbnail(url=embed_thumb)

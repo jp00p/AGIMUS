@@ -135,31 +135,6 @@ def get_role_id(role_identifier):
     id = role_identifier
   return id
 
-# ________          __        ___.
-# \______ \ _____ _/  |______ \_ |__ _____    ______ ____
-#  |    |  \\__  \\   __\__  \ | __ \\__  \  /  ___// __ \
-#  |    `   \/ __ \|  |  / __ \| \_\ \/ __ \_\___ \\  ___/
-# /_______  (____  /__| (____  /___  (____  /____  >\___  >
-#         \/     \/          \/    \/     \/     \/     \/
-
-def getDB():
-  """Legacy DB connector, use `AgimusDB()` instead!"""
-  db = mysql.connector.connect(
-    host=DB_HOST,
-    user=DB_USER,
-    database=DB_NAME,
-    password=DB_PASS,
-  )
-  return db
-
-def is_integer(n):
-  try:
-    float(n)
-  except ValueError:
-    return False
-  else:
-    return float(n).is_integer()
-
 # uniq_channels(config)
 # This function compiles a list of all of the unique channels
 # used in all commands described in the configuration object

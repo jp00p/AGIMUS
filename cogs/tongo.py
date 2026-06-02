@@ -349,7 +349,7 @@ class Tongo(commands.Cog):
 
     if self.block_new_games:
       zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
-      megalomaniacal = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
+      megalomaniacal = await self.bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
       await ctx.followup.send(
         embed=discord.Embed(
           title="Tongo Temporarily Disabled",
@@ -539,7 +539,7 @@ class Tongo(commands.Cog):
 
     zeks_table = await self.bot.fetch_channel(get_channel_id("zeks-table"))
     if self.block_new_games:
-      megalomaniacal = await bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
+      megalomaniacal = await self.bot.current_guild.fetch_channel(get_channel_id("megalomaniacal-computer-storage"))
       await ctx.followup.send(
         embed=discord.Embed(
           title="Tongo Temporarily Disabled",
@@ -1441,18 +1441,10 @@ class Tongo(commands.Cog):
       prestige = echelon_progress['current_prestige_tier'] if echelon_progress else 0
       active_wants = await db_get_active_wants(player_id, prestige)
 
-      inventory = await db_get_user_badge_instances(player_id, prestige=None)
-      owned_pairs = {(b['badge_info_id'], b['prestige_level']) for b in inventory}
-      wishlist_to_grant = [
-        b for b in active_wants
-        if (b['badge_info_id'], prestige) not in owned_pairs
-      ]
-
-      if not wishlist_to_grant or len(wishlist_to_grant) < MINIMUM_AVARICE_QUOTIENT / 3:
+      if len(active_wants) < MINIMUM_AVARICE_QUOTIENT / 3:
         continue
 
-      random.shuffle(wishlist_to_grant)
-      badge_to_grant = wishlist_to_grant[0]
+      badge_to_grant = random.choice(active_wants)
       badge_to_grant['prestige_level'] = prestige
 
       # Protect consortium-tossed badges from liquidation if they were added in the last 3 games

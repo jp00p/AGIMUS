@@ -2143,7 +2143,15 @@
             "episode": "17",
             "imdb": "tt0572180",
             "memoryalpha": "Bound_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.02.16",
+                    "episode": "Four-Shaft Rotation",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-614-four-shaft-rotation-ent-s4e17/",
+                    "order": 614,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/18ABm7O0VNwqS5ucKNFx6WEgIMC.jpg",
@@ -2159,7 +2167,15 @@
             "episode": "18",
             "imdb": "tt0572219",
             "memoryalpha": "In_A_Mirror,_Darkly_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.02.23",
+                    "episode": "Constipation Ray",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-615-constipation-ray-ent-s4e18/",
+                    "order": 615,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/xiNUlVsmnGSVOEUGgwD80TteQLa.jpg",
@@ -2175,7 +2191,15 @@
             "episode": "19",
             "imdb": "tt0572220",
             "memoryalpha": "In_A_Mirror,_Darkly,_Part_II_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.03.02",
+                    "episode": "Sex Doctor",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-616-sex-doctor-ent-s4e19/",
+                    "order": 616,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/gQlZdrxlcFDMO1Si9JVC8bf9GH7.jpg",
@@ -2191,7 +2215,15 @@
             "episode": "20",
             "imdb": "tt0572200",
             "memoryalpha": "Demons_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.03.09",
+                    "episode": "Through the Prism of Water Ice",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-617-through-the-prism-of-water-ice-ent-s1e20/",
+                    "order": 617,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/lfUtLg6eULrw06Cu5gniB6FTPsT.jpg",
@@ -2207,7 +2239,15 @@
             "episode": "21",
             "imdb": "tt0572245",
             "memoryalpha": "Terra_Prime_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.03.16",
+                    "episode": "Cupboard Purity",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-618-cupboard-purity-ent-s1e21/",
+                    "order": 618,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/yMpahv8d7ZRyMxKA9CEOveg0z78.jpg",
@@ -2223,7 +2263,15 @@
             "episode": "22",
             "imdb": "tt0572260",
             "memoryalpha": "These_Are_The_Voyages..._(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.03.23",
+                    "episode": "Sympathetic Epilepsy",
+                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-619-sympathetic-epilepsy-ent-s4e22/",
+                    "order": 619,
+                    "title": "The Greatest Generation"
+                }
+            ],
             "season": "04",
             "stills": [
                 "https://image.tmdb.org/t/p/original/hF5fwKvh9YdAEW1lx1hU3FXFR6e.jpg",
