@@ -1,15 +1,18 @@
-from distutils.command.build import build
 from common import *
 
 class ReactRoles(commands.Cog):
+  FOUNDER_ROLE_ID = 1505225552599187476
+  FOUNDER_ROLE_SUFFIX = ' (Founder)'
+  DEPARTMENT_MESSAGE_NAME = 'departments'
+
   def __init__(self, bot:commands.Bot):
     self.bot = bot
     self.roles_channel = None
     self.reaction_roles = {} # role list
     self.reaction_data = {} # base json data
-    message_names = ["pronouns", "locations", "departments", "notifications"]
+    message_names = ['pronouns', 'locations', 'departments', 'notifications']
     for message_type in message_names:
-      f = open(f"./data/react_roles/{message_type}.json")
+      f = open(f'./data/react_roles/{message_type}.json')
       self.reaction_data[message_type] = json.load(f) # fill the base json for our messages
       f.close()
 
@@ -18,14 +21,14 @@ class ReactRoles(commands.Cog):
     if not config['roles']['reaction_roles_enabled']:
       return
 
-    self.roles_channel = self.bot.get_channel(config["channels"]["roles-and-pronouns"])
+    self.roles_channel = self.bot.get_channel(config['channels']['roles-and-pronouns'])
     self.reaction_roles = await self.load_role_reactions() # gather all our data for reactions
-    await self.rebuild_embeds.start()
+    self.rebuild_embeds.start()
 
   # listen to raw reaction additions
   @commands.Cog.listener()
   async def on_raw_reaction_add(self, payload:discord.RawReactionActionEvent):
-    if payload.member.bot:
+    if payload.member and payload.member.bot:
       return
     if payload.channel_id == self.roles_channel.id:
       await self.parse_reaction(payload)
@@ -40,13 +43,18 @@ class ReactRoles(commands.Cog):
   async def load_role_reactions(self):
     response = {}
     for rdb in await self.get_reaction_db_data():
-      if rdb["reaction_type"]:
-        message_id = rdb["message_id"]
-        message_name = rdb["message_name"]
-        response[message_id] = { "reactions": {}, "reaction_type": rdb["reaction_type"], "message_name": message_name }
+      if rdb['reaction_type']:
+        message_id = rdb['message_id']
+        message_name = rdb['message_name']
+        response[message_id] = {
+          'reactions': {},
+          'reaction_type': rdb['reaction_type'],
+          'message_name': message_name
+        }
         # loop over json and pull out emoji:role
-        for rr in self.reaction_data[message_name]["reactions"]:
-          response[message_id]["reactions"][rr["emoji"]] = discord.utils.get(bot.guilds[0].roles,name=rr["role"])
+        for rr in self.reaction_data[message_name]['reactions']:
+          if not rr.get('separator'):
+            response[message_id]['reactions'][rr['emoji']] = discord.utils.get(bot.guilds[0].roles, name=rr['role'])
     return response
 
   # handle a reaction, either add or remove roles when a user reacts
@@ -55,67 +63,134 @@ class ReactRoles(commands.Cog):
     user_info = await get_user(user.id)
     message = self.roles_channel.get_partial_message(payload.message_id)
     data = self.reaction_roles[str(message.id)]
-    message_name = data["message_name"]
-    reaction_type = data.get("reaction_type")
-    role = data["reactions"].get(str(payload.emoji))
+    message_name = data['message_name']
+    reaction_type = data.get('reaction_type')
+    role = data['reactions'].get(str(payload.emoji))
+
     if user and role:
-      user_dm_message = ""
+      user_dm_message = ''
+
       # user is valid and we found a valid role associated with the reaction
-      if user.get_role(role.id) == None and payload.event_type == "REACTION_ADD":
-        logger.info(f"Adding role {role.name} to {user.display_name}!")
-        # add role!
-        await user.add_roles(role, reason="ReactionRole")
-        user_dm_message = f"You have __added__ the role **{payload.emoji} {role.name}** to your profile on the USS Hood!"
-        if reaction_type == "single":
+      if payload.event_type == 'REACTION_ADD':
+        roles_to_add = self.get_reaction_roles_to_add(user, role, message_name)
+
+        if len(roles_to_add) > 0:
+          logger.info(f'Adding role(s) {self.format_role_names(roles_to_add)} to {user.display_name}!')
+          await user.add_roles(*roles_to_add, reason='ReactionRole')
+          user_dm_message = f'You have __added__ the role **{payload.emoji} {role.name}** to your profile on the USS Hood!'
+
+        if reaction_type == 'single':
           # if its a single type reaction, remove all other associated roles
           roles_to_remove = []
           emoji_to_remove = []
-          for role_emoji, rr in data["reactions"].items():
+
+          for role_emoji, rr in data['reactions'].items():
             if rr.id != role.id:
-              roles_to_remove.append(rr)
+              roles_to_remove.extend(self.get_reaction_roles_to_remove(user, rr, message_name))
               emoji_to_remove.append(role_emoji)
+
+          roles_to_remove = self.dedupe_roles(roles_to_remove)
+
           if len(roles_to_remove) > 0:
-            await user.remove_roles(*roles_to_remove, reason="ReactionRole")
-            user_dm_message += f"\n> This has removed other roles in that same category automatically. Magic!"
+            await user.remove_roles(*roles_to_remove, reason='ReactionRole')
+            user_dm_message += f'\n> This has removed other roles in that same category automatically. Magic!'
+
             for role_emoji in emoji_to_remove:
               await message.remove_reaction(role_emoji, user)
-      else:
-          # they already have the role, remove it!
-          if user.get_role(role.id) != None and payload.event_type == "REACTION_REMOVE":
-            logger.info(f"Removing {role.name} from {user.display_name}!")
-            await user.remove_roles(role, reason="ReactionRole")
-            user_dm_message = f"You have __removed__ the role **{payload.emoji} {role.name}** from your profile on the USS Hood!"
-      if user_dm_message != "" and user_info["receive_notifications"]:
+
+      elif payload.event_type == 'REACTION_REMOVE':
+        roles_to_remove = self.get_reaction_roles_to_remove(user, role, message_name)
+
+        if len(roles_to_remove) > 0:
+          logger.info(f'Removing role(s) {self.format_role_names(roles_to_remove)} from {user.display_name}!')
+          await user.remove_roles(*roles_to_remove, reason='ReactionRole')
+          user_dm_message = f'You have __removed__ the role **{payload.emoji} {role.name}** from your profile on the USS Hood!'
+
+      if user_dm_message != '' and user_info['receive_notifications']:
         if random.choice([0,1,2]) == 1:
-          user_dm_message += f"\n\n(PS. Use `/settings` in the server to disable these DMs if you need to.)"
+          user_dm_message += f'\n\n(PS. Use `/settings` in the server to disable these DMs if you need to.)'
         try:
           await user.send(user_dm_message)
         except discord.Forbidden as e:
-          logger.info(f"Unable to send react role confirmation message to {user.display_name} because they have DMs disabled.")
+          logger.info(f'Unable to send react role confirmation message to {user.display_name} because they have DMs disabled.')
           pass
 
+  def get_reaction_roles_to_add(self, user:discord.Member, role:discord.Role, message_name:str):
+    if message_name != self.DEPARTMENT_MESSAGE_NAME:
+      if user.get_role(role.id) == None:
+        return [role]
+      return []
 
+    roles = []
+
+    if user.get_role(role.id) == None:
+      roles.append(role)
+
+    founder_shadow_role = self.get_founder_shadow_role(user, role)
+
+    if founder_shadow_role and user.get_role(founder_shadow_role.id) == None:
+      roles.append(founder_shadow_role)
+
+    return roles
+
+  def get_reaction_roles_to_remove(self, user:discord.Member, role:discord.Role, message_name:str):
+    if message_name != self.DEPARTMENT_MESSAGE_NAME:
+      if user.get_role(role.id) != None:
+        return [role]
+      return []
+
+    roles = []
+
+    if user.get_role(role.id) != None:
+      roles.append(role)
+
+    founder_shadow_role = self.get_department_shadow_role(role)
+
+    if founder_shadow_role and user.get_role(founder_shadow_role.id) != None:
+      roles.append(founder_shadow_role)
+
+    return roles
+
+  def get_founder_shadow_role(self, user:discord.Member, role:discord.Role):
+    if user.get_role(self.FOUNDER_ROLE_ID) == None:
+      return None
+
+    return self.get_department_shadow_role(role)
+
+  def get_department_shadow_role(self, role:discord.Role):
+    return discord.utils.get(role.guild.roles, name=f'{role.name}{self.FOUNDER_ROLE_SUFFIX}')
+
+  def dedupe_roles(self, roles):
+    role_map = {}
+
+    for role in roles:
+      role_map[role.id] = role
+
+    return list(role_map.values())
+
+  def format_role_names(self, roles):
+    return ', '.join([role.name for role in roles])
 
   # updates db with new message details and deletes old messages from db
   async def store_reaction_data(self, header_id, message_id, message_name, reaction_type):
-    header_message_name = f"{message_name}_header"
+    header_message_name = f'{message_name}_header'
     async with AgimusDB() as query:
 
       sql = [
-        "DELETE FROM reaction_role_messages WHERE message_name IN (%(message_name)s, %(header_name)s)",
-        "INSERT INTO reaction_role_messages (message_id, reaction_type, message_name) VALUES (%(message_id)s, %(reaction_type)s, %(message_name)s)",
+        'DELETE FROM reaction_role_messages WHERE message_name IN (%(message_name)s, %(header_name)s)',
+        'INSERT INTO reaction_role_messages (message_id, reaction_type, message_name) VALUES (%(message_id)s, %(reaction_type)s, %(message_name)s)',
       ]
       vals = {
-        "message_name": message_name,
-        "header_name": header_message_name,
-        "message_id": message_id,
-        "reaction_type": reaction_type
+        'message_name': message_name,
+        'header_name': header_message_name,
+        'message_id': message_id,
+        'reaction_type': reaction_type
       }
       for q in sql:
         await query.execute(q, vals)
 
       if header_id:
-        sql = "INSERT INTO reaction_role_messages (message_id, message_name) VALUES (%(header_id)s, %(header_name)s)"
+        sql = 'INSERT INTO reaction_role_messages (message_id, message_name) VALUES (%(header_id)s, %(header_name)s)'
         await query.execute(sql, {'header_id': header_id, 'header_name': header_message_name})
 
     self.reaction_roles = await self.load_role_reactions()
@@ -125,12 +200,12 @@ class ReactRoles(commands.Cog):
     if len(reacts) > 0:
       for r in reacts:
         if not r.get('separator'):
-          await message.add_reaction(r["emoji"])
+          await message.add_reaction(r['emoji'])
 
   # get all existing reaction message data
   async def get_reaction_db_data(self):
     async with AgimusDB(dictionary=True) as query:
-      sql = "SELECT * FROM reaction_role_messages"
+      sql = 'SELECT * FROM reaction_role_messages'
       await query.execute(sql)
       reaction_data = await query.fetchall()
     return reaction_data
@@ -138,7 +213,7 @@ class ReactRoles(commands.Cog):
   @commands.command()
   @commands.has_permissions(administrator=True)
   async def q_update_role_messages(self, ctx:discord.ApplicationContext, clear=False):
-    logger.info(f"{ctx.author.display_name} is running the top secret {Back.RED}{Fore.WHITE}UPDATE ROLE MESSAGES{Fore.RESET}{Back.RESET} command!")
+    logger.info(f'{ctx.author.display_name} is running the top secret {Back.RED}{Fore.WHITE}UPDATE ROLE MESSAGES{Fore.RESET}{Back.RESET} command!')
     try:
       await ctx.message.delete()
     except (discord.NotFound, AttributeError):
@@ -152,25 +227,25 @@ class ReactRoles(commands.Cog):
           try:
             message = await self.roles_channel.fetch_message(rm)
           except discord.NotFound:
-            logger.info("React role message not found, oh well! Moving on with my life.")
+            logger.info('React role message not found, oh well! Moving on with my life.')
           else:
-            logger.info(f"Deleting old role message {message.id}")
+            logger.info(f'Deleting old role message {message.id}')
             await message.delete()
       existing_messages = {}
     else:
       reaction_db_data = await self.get_reaction_db_data()
-      existing_messages = {rdb["message_name"]: rdb for rdb in reaction_db_data}
+      existing_messages = {rdb['message_name']: rdb for rdb in reaction_db_data}
 
     # loop over all the reaction data and build out the messages
     for message_name, p in self.reaction_data.items():
       if existing_messages.get(message_name):
         continue
 
-      message_content = p["message_content"] # the plain message content
+      message_content = p['message_content'] # the plain message content
 
-      if p.get("header_image_url") != "":
+      if p.get('header_image_url') != '':
         # post the header image first
-        header_msg = await self.roles_channel.send(content=p["header_image_url"])
+        header_msg = await self.roles_channel.send(content=p['header_image_url'])
         header_msg_id = header_msg.id
       else:
         header_msg_id = None
@@ -181,10 +256,10 @@ class ReactRoles(commands.Cog):
       react_role_msg = await self.roles_channel.send(content=message_content, embed=embed)
 
       # save some of the message details to the database
-      await self.store_reaction_data(header_msg_id, react_role_msg.id, message_name, p["reaction_type"])
+      await self.store_reaction_data(header_msg_id, react_role_msg.id, message_name, p['reaction_type'])
       self.reaction_roles = await self.load_role_reactions()
       # add the reactions to the message
-      await self.add_role_reactions(react_role_msg, p["reactions"])
+      await self.add_role_reactions(react_role_msg, p['reactions'])
     # update role reactions dict
     self.role_reactions = await self.load_role_reactions()
 
@@ -193,43 +268,43 @@ class ReactRoles(commands.Cog):
     if isinstance(error, commands.MissingPermissions):
       await ctx.author.send("You think you're clever! Access denied.")
     else:
-      await ctx.send("Sensoars indicate some kind of ...*error* has occured!")
+      await ctx.send('Sensoars indicate some kind of ...*error* has occured!')
       logger.info(traceback.format_exc())
       logger.error(error)
 
   # builds and returns the embed for the current reaction post
   def build_react_embed(self, post):
     embed = None
-    embed_description = post["embed"]["description"]
-    if post.get("embed_channel_name_placeholder"):
+    embed_description = post['embed']['description']
+    if post.get('embed_channel_name_placeholder'):
       # add channel name mention to embed if there is one
       channel_string = f"<#{get_channel_id(config['channels'][post['embed_channel_name_placeholder']])}>"
       embed_description = embed_description.format(channel_string)
     embed = discord.Embed(
-      title=post["embed"]["title"],
+      title=post['embed']['title'],
       description=f'{embed_description}',
       color=discord.Color.from_rgb(251, 112, 5)
     )
-    embed.set_thumbnail(url=post["thumbnail_url"])
+    embed.set_thumbnail(url=post['thumbnail_url'])
     list_of_reactions = []
 
-    if len(post["reactions"]) > 0:
-      for reaction in post["reactions"]:
-        role = discord.utils.get(bot.guilds[0].roles,name=reaction["role"])
+    if len(post['reactions']) > 0:
+      for reaction in post['reactions']:
         if reaction.get('separator'):
-          embed_desc = "━━━━━━━━━━━━━━━"
+          embed_desc = '━━━━━━━━━━━━━━━'
         else:
+          role = discord.utils.get(bot.guilds[0].roles, name=reaction['role'])
           embed_desc = f'{reaction["emoji"]} for {role.mention} ({len(role.members)})'
-          if reaction.get("description"):
+          if reaction.get('description'):
             embed_desc += f"\n{reaction['description']}\n"
         list_of_reactions.append(embed_desc)
       # one field with lots of content and a blank name
       embed.add_field(
-        name="⠀",
-        value="\n".join(list_of_reactions),
+        name='⠀',
+        value='\n'.join(list_of_reactions),
         inline=False
       )
-    embed.set_footer(text=post["embed"]["footer"])
+    embed.set_footer(text=post['embed']['footer'])
     return embed
 
   # rebuild embeds (so role counts update)
@@ -240,9 +315,9 @@ class ReactRoles(commands.Cog):
 
     rr = self.reaction_roles
     for message_id in rr:
-      message_name = rr[message_id]["message_name"]
+      message_name = rr[message_id]['message_name']
       message = self.roles_channel.get_partial_message(message_id)
       new_embed = self.build_react_embed(self.reaction_data[message_name]) # rebuild the embed
       await message.edit(embed=new_embed)
-      await self.add_role_reactions(message, self.reaction_data[message_name]["reactions"])
+      await self.add_role_reactions(message, self.reaction_data[message_name]['reactions'])
       await asyncio.sleep(10)
