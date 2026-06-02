@@ -661,3 +661,144 @@ class Admin(commands.Cog):
       color=discord.Color.orange()
     )
     await ctx.respond(embed=embed, ephemeral=True)
+
+  @admin_group.command(
+    name='grant_founders_bucket',
+    description="(ADMIN RESTRICTED) Grant Founders' Bucket to all users with the Founders role."
+  )
+  @option(
+    'dry_run',
+    bool,
+    description='Preview recipients without granting badges.',
+    required=False,
+    default=True
+  )
+  @commands.check(user_check)
+  async def grant_founders_bucket(self, ctx: discord.ApplicationContext, dry_run: bool = True):
+    await ctx.defer(ephemeral=True)
+
+    if not ctx.guild:
+      embed = discord.Embed(
+        title='Guild Required',
+        description='This command can only be run from a server.',
+        color=discord.Color.red()
+      )
+      return await ctx.respond(embed=embed, ephemeral=True)
+
+    FOUNDERS_BUCKET_ROLE_ID = 1505225552599187476
+    FOUNDERS_BUCKET_FILENAME = 'Founders_Bucket.png'
+    FOUNDERS_BUCKET_STANDARD_PRESTIGE = 0
+
+    role = ctx.guild.get_role(FOUNDERS_BUCKET_ROLE_ID)
+    if not role:
+      embed = discord.Embed(
+        title='Role Not Found',
+        description=f"Could not find role ID `{FOUNDERS_BUCKET_ROLE_ID}` in this server.",
+        color=discord.Color.red()
+      )
+      return await ctx.respond(embed=embed, ephemeral=True)
+
+    async with AgimusDB(dictionary=True) as db:
+      sql = '''
+        SELECT *
+        FROM badge_info
+        WHERE badge_filename = %s
+        LIMIT 1
+      '''
+      vals = (FOUNDERS_BUCKET_FILENAME,)
+      await db.execute(sql, vals)
+      badge_info = await db.fetchone()
+
+    if not badge_info:
+      embed = discord.Embed(
+        title='Badge Not Found',
+        description=f"No badge_info row found for `{FOUNDERS_BUCKET_FILENAME}`.",
+        color=discord.Color.red()
+      )
+      return await ctx.respond(embed=embed, ephemeral=True)
+
+    await ctx.guild.chunk(cache=True)
+
+    members = [
+      member
+      for member in ctx.guild.members
+      if member.get_role(FOUNDERS_BUCKET_ROLE_ID) and not member.bot
+    ]
+
+    granted_by_user = {}
+    skipped = []
+
+    for member in members:
+      existing_standard = await db_get_badge_instance_by_badge_info_id(
+        member.id,
+        badge_info['id'],
+        FOUNDERS_BUCKET_STANDARD_PRESTIGE
+      )
+
+      if existing_standard:
+        skipped.append(member)
+        continue
+
+      progress = await db_get_echelon_progress(member.id)
+      max_prestige = progress['current_prestige_tier'] if progress else 0
+      granted_tiers = []
+
+      for prestige in range(max_prestige + 1):
+        if not dry_run:
+          await create_new_badge_instance(
+            member.id,
+            badge_info['id'],
+            prestige,
+            event_type='admin'
+          )
+
+        granted_tiers.append(prestige)
+
+      granted_by_user[member] = granted_tiers
+
+    total_badges = sum(len(tiers) for tiers in granted_by_user.values())
+
+    embed = discord.Embed(
+      title="Founders' Bucket Grant Preview" if dry_run else "Founders' Bucket Granted",
+      description=(
+        f"Role: {role.mention}\n"
+        f"Badge: **{badge_info['badge_name']}**\n"
+        f"Standard ownership is used as the re-run skip check."
+      ),
+      color=discord.Color.orange() if dry_run else discord.Color.green()
+    )
+
+    embed.add_field(name='Eligible Role Members', value=str(len(members)), inline=True)
+    embed.add_field(name='Users Skipped', value=str(len(skipped)), inline=True)
+    embed.add_field(name='Badges To Grant' if dry_run else 'Badges Granted', value=str(total_badges), inline=True)
+
+    if granted_by_user:
+      lines = []
+      for member, tiers in list(granted_by_user.items())[:15]:
+        prestige_names = ', '.join(PRESTIGE_TIERS[tier] for tier in tiers)
+        lines.append(f"{member.mention}: {prestige_names}")
+
+      if len(granted_by_user) > 15:
+        lines.append(f"...and {len(granted_by_user) - 15} more users")
+
+      embed.add_field(
+        name='Would Receive' if dry_run else 'Received',
+        value='\n'.join(lines),
+        inline=False
+      )
+
+    if skipped:
+      skipped_lines = [member.mention for member in skipped[:25]]
+      if len(skipped) > 25:
+        skipped_lines.append(f"...and {len(skipped) - 25} more")
+
+      embed.add_field(
+        name='Skipped - Already Owns Standard',
+        value='\n'.join(skipped_lines),
+        inline=False
+      )
+
+    if dry_run:
+      embed.set_footer(text='Run again with dry_run: False to grant the badge.')
+
+    await ctx.respond(embed=embed, ephemeral=True)
