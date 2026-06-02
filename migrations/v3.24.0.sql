@@ -122,21 +122,25 @@ WHERE b.badge_filename = 'FOD_Pride_2026.png'
   );
 
 -- Grant one new available "Unity Prism" crystal to every active user
+SET @unity_prism_grant_created_at = CURRENT_TIMESTAMP;
+
 INSERT INTO crystal_instances (
   crystal_type_id,
   owner_discord_id,
-  status
+  status,
+  created_at
 )
 SELECT
   ct.id,
   ep.user_discord_id,
-  'available'
+  'available',
+  @unity_prism_grant_created_at
 FROM echelon_progress ep
 JOIN crystal_types ct
   ON ct.name = 'Unity Prism'
 WHERE ep.current_level >= 1;
 
--- Log admin history for available Unity Prism crystal instances missing admin history
+-- Log admin history for this migration's newly granted Unity Prism crystals
 INSERT INTO crystal_instance_history (
   crystal_instance_id,
   event_type,
@@ -151,6 +155,7 @@ JOIN crystal_types ct
   ON c.crystal_type_id = ct.id
 WHERE ct.name = 'Unity Prism'
   AND c.status = 'available'
+  AND c.created_at = @unity_prism_grant_created_at
   AND NOT EXISTS (
     SELECT 1
     FROM crystal_instance_history h
