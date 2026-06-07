@@ -113,9 +113,16 @@
             "memoryalpha": "The_Last_Outpost_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.05.25",
+                    "episode": "Career Suicide by Jet Ski",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/career-suicide-by-jet-ski-tng-s1e5",
+                    "order": 626,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.02.08",
                     "episode": "The A-Team of Away Teams",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-4-the-a-team-of-away-teams-s1e5",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f11958526757e10b6be514",
                     "order": 4,
                     "title": "The Greatest Generation"
                 }
@@ -139,9 +146,16 @@
             "memoryalpha": "Where_No_One_Has_Gone_Before_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.06.01",
+                    "episode": "The USS Curious",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/the-uss-curious-tng-s1e6",
+                    "order": 627,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.02.10",
                     "episode": "Generally Human",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-5-generally-human-s1e6",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1195c8647f8587e0ee0dd",
                     "order": 5,
                     "title": "The Greatest Generation"
                 }
