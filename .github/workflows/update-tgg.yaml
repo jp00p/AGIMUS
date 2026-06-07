@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
       - 
         name: Install semver with asdf
-        uses: asdf-vm/actions/install@v1
+        uses: asdf-vm/actions/install@v4
         with:
           tool_versions: |
             semver 3.3.0
@@ -34,7 +34,7 @@ jobs:
         name: Update The Greatest Generation Metadata
         run: |
           pip install --upgrade pip
-          pip install docopt~=0.6.2 feedparser~=6.0.11 requests~=2.31.0 tmdbsimple~=2.9.1 python-dotenv~=1.0.0
+          pip install docopt~=0.6.2 feedparser~=6.0.11 requests~=2.33.0 tmdbsimple~=2.9.1 python-dotenv~=1.2.2
           echo "${{ secrets.ENVFILE }}" | base64 -d > .env \
             && python ./utils/generate_show_json.py tng -p --last-pod \
             && rm -rf .env
