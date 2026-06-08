@@ -296,7 +296,7 @@ Pull requests to the main branch of the AGIMUS repository will automatically bui
 
 ### generate_episode_json.py
 
-The repo also currently provides a way to automatically generate the files for the Greatest Gen `.json` files located under `data/episodes/` (such as `tgg_voy.json` for example). The utility is under `utils` as `generate_episode_json.py`.
+The repo also currently provides a way to automatically generate the files for the Greatest Gen `.json` files located under `data/episodes/` (such as `voy.json` for example). The utility is under `utils` as `generate_episode_json.py`.
 
 The script uses Google to gather some of the metadata necessary for each entry, so you'll need to provide two additional ENV variables if you'd like to use this script.
 
