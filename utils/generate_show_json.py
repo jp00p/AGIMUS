@@ -353,7 +353,8 @@ class ShowGenerator:
     
     feed = feedparser.parse(podcast['url'])
     regex = re.compile(fr"{show_name} S(\d+)E(\d+)", re.IGNORECASE)
-    alt_regex = re.compile(r"\(S(\d+)E(\d+)", re.IGNORECASE) if show_name == "tng" else None
+    alt_regex = re.compile(r"\(S(\d+)E(\d+)", re.IGNORECASE) if show_name == "tng" else \
+                re.compile(r"\(Voyager S(\d+)E(\d+)", re.IGNORECASE) if show_name == "voy" else None
     
     if self.last_pod_episode:  # reset because the default is all seasons everywhere
       self.seasons = []

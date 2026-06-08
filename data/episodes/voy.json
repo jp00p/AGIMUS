@@ -2307,11 +2307,11 @@
             "memoryalpha": "Latent_Image_(episode)",
             "podcasts": [
                 {
-                    "title": "The Greatest Generation",
-                    "order": 456,
                     "airdate": "2023.02.06",
                     "episode": "Spare the Battle, Spoil the Child",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-456-spare-the-battle-spoil-the-child-voyager-s5e11/"
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1190b7beb81286980f276",
+                    "order": 456,
+                    "title": "The Greatest Generation"
                 }
             ],
             "season": "05",
@@ -2414,13 +2414,13 @@
             "description": "Stardate: Unknown. After defeating a Borg ship, Captain Janeway decides to launch an attack to steal a trans-warp coil to shorten Voyager's journey home. The Borg detect her plan, and access Seven Of Nine's neural transceiver to deliver an ultimatum: re-join the collective or the ship and its crew will be assimilated. If she agrees, the ship will be guaranteed safe passage through Borg space.",
             "episode": "16",
             "imdb": "tt0708872",
-            "memoryalpha": "The_Disease_(episode)",
+            "memoryalpha": "Dark_Frontier_(episode)",
             "podcasts": [
                 {
-                    "airdate": "2023.03.13",
-                    "episode": "The Booty-Pleasing Trolly Problem",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f118ff7beb81286980ee07",
-                    "order": 461,
+                    "airdate": "2023.03.06",
+                    "episode": "No Less Than Most of an Ass",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119092f651f55f51c9d1a",
+                    "order": 460,
                     "title": "The Greatest Generation"
                 }
             ],
@@ -2439,10 +2439,10 @@
             "memoryalpha": "The_Disease_(episode)",
             "podcasts": [
                 {
-                    "airdate": "2023.03.20",
-                    "episode": "Monogamish At Most",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1191cf8c66377375fd9c9",
-                    "order": 462,
+                    "airdate": "2023.03.13",
+                    "episode": "The Booty-Pleasing Trolly Problem",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f118ff7beb81286980ee07",
+                    "order": 461,
                     "title": "The Greatest Generation"
                 }
             ],
@@ -2462,10 +2462,10 @@
             "memoryalpha": "Course:_Oblivion_(episode)",
             "podcasts": [
                 {
-                    "airdate": "2023.03.27",
-                    "episode": "Grandpa's Cum Cave",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1190f5531bfee78633109",
-                    "order": 463,
+                    "airdate": "2023.03.20",
+                    "episode": "Monogamish At Most",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1191cf8c66377375fd9c9",
+                    "order": 462,
                     "title": "The Greatest Generation"
                 }
             ],
@@ -2485,10 +2485,10 @@
             "memoryalpha": "The_Fight_(episode)",
             "podcasts": [
                 {
-                    "airdate": "2023.04.03",
-                    "episode": "The USS Lenny",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f11912f8c66377375fac5d",
-                    "order": 464,
+                    "airdate": "2023.03.27",
+                    "episode": "Grandpa's Cum Cave",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1190f5531bfee78633109",
+                    "order": 463,
                     "title": "The Greatest Generation"
                 }
             ],
@@ -2507,10 +2507,10 @@
             "memoryalpha": "Think_Tank_(episode)",
             "podcasts": [
                 {
-                    "airdate": "2023.04.10",
-                    "episode": "Star Trek Podcast Measuring Contest",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1190cf8c66377375faaa5",
-                    "order": 465,
+                    "airdate": "2023.04.03",
+                    "episode": "The USS Lenny",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f11912f8c66377375fac5d",
+                    "order": 464,
                     "title": "The Greatest Generation"
                 }
             ],
@@ -2529,10 +2529,10 @@
             "memoryalpha": "Juggernaut_(episode)",
             "podcasts": [
                 {
-                    "airdate": "2023.04.17",
-                    "episode": "Sonic Dick Shower",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1191e7beb81286980f7d7",
-                    "order": 466,
+                    "airdate": "2023.04.10",
+                    "episode": "Star Trek Podcast Measuring Contest",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1190cf8c66377375faaa5",
+                    "order": 465,
                     "title": "The Greatest Generation"
                 }
             ],
@@ -2551,10 +2551,10 @@
             "memoryalpha": "Someone_to_Watch_Over_Me_(episode)",
             "podcasts": [
                 {
-                    "airdate": "2023.04.24",
-                    "episode": "The Banger of Progress",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119062f651f55f51c9c1c",
-                    "order": 467,
+                    "airdate": "2023.04.17",
+                    "episode": "Sonic Dick Shower",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1191e7beb81286980f7d7",
+                    "order": 466,
                     "title": "The Greatest Generation"
                 }
             ],
@@ -2574,10 +2574,10 @@
             "memoryalpha": "11:59_(episode)",
             "podcasts": [
                 {
-                    "airdate": "2023.05.01",
-                    "episode": "The Bruce McGillification of Our Unhoused Neighbors",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1191b7beb81286980f70e",
-                    "order": 468,
+                    "airdate": "2023.04.24",
+                    "episode": "The Banger of Progress",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119062f651f55f51c9c1c",
+                    "order": 467,
                     "title": "The Greatest Generation"
                 }
             ],
@@ -2596,10 +2596,10 @@
             "memoryalpha": "Relativity_(episode)",
             "podcasts": [
                 {
-                    "airdate": "2023.05.08",
-                    "episode": "Thermonuclear Dick Pic",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f118fb5531bfee78632b60",
-                    "order": 469,
+                    "airdate": "2023.05.01",
+                    "episode": "The Bruce McGillification of Our Unhoused Neighbors",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1191b7beb81286980f70e",
+                    "order": 468,
                     "title": "The Greatest Generation"
                 }
             ],
@@ -2618,10 +2618,10 @@
             "memoryalpha": "Warhead_(episode)",
             "podcasts": [
                 {
-                    "airdate": "2023.05.15",
-                    "episode": "Nook Conspiracy",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f11903f8c66377375fa837",
-                    "order": 470,
+                    "airdate": "2023.05.08",
+                    "episode": "Thermonuclear Dick Pic",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f118fb5531bfee78632b60",
+                    "order": 469,
                     "title": "The Greatest Generation"
                 }
             ],
@@ -2640,11 +2640,11 @@
             "memoryalpha": "Equinox_(episode)",
             "podcasts": [
                 {
-                    "title": "The Greatest Generation",
-                    "order": 471,
-                    "airdate": "2023.05.22",
-                    "episode": "Hair Mutiny Trigger",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/ep-471-hair-mutiny-trigger-voy-s6e1/"
+                    "airdate": "2023.05.15",
+                    "episode": "Nook Conspiracy",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f11903f8c66377375fa837",
+                    "order": 470,
+                    "title": "The Greatest Generation"
                 }
             ],
             "season": "05",

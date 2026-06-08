@@ -30,7 +30,15 @@
             "description": "Even with the guidance of their hologram advisor Janeway, the crew of The Protostar is tested when their ship is on a dangerous cosmic collision course.",
             "season": "01",
             "episode": "03",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2021.11.16",
+                    "episode": "Infinite Helmet Diversity in Infinite Combinations of Spacesuit",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119c12f651f55f51cdee0",
+                    "order": 142,
+                    "title": "Greatest Trek"
+                }
+            ],
             "memoryalpha": "Starstruck_(episode)",
             "tvdb": 3310786,
             "imdb": "tt14419876",
@@ -68,7 +76,7 @@
                 {
                     "airdate": "2021.11.23",
                     "episode": "You\u2019d Die to Get Killed Off of a Show Like This",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-143-youd-die-to-get-killed-off-of-a-show-like-this-discovery-s4e1-prodigy-s1e5/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119ce2f651f55f51ce4bf",
                     "order": 143,
                     "title": "Greatest Trek"
                 }
@@ -92,7 +100,7 @@
                 {
                     "airdate": "2022.01.11",
                     "episode": "We\u2019ve Been Building to a Fart Joke This Entire Time",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-150-weve-been-building-to-a-fart-joke-this-entire-time-prodigy-s1e6/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119bd7beb812869813929",
                     "order": 150,
                     "title": "Greatest Trek"
                 }
@@ -115,7 +123,7 @@
                 {
                     "airdate": "2022.01.18",
                     "episode": "Comparably Fucked-Up Childhoods",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-151-comparably-fucked-up-childhoods-prodigy-s1e7/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119ce8647f8587e0f0536",
                     "order": 151,
                     "title": "Greatest Trek"
                 }
@@ -139,7 +147,7 @@
                 {
                     "airdate": "2022.01.25",
                     "episode": "Dachshund the Robot",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-152-dachshund-the-robot-prodigy-s1e8/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119c07beb812869813a4b",
                     "order": 152,
                     "title": "Greatest Trek"
                 }
@@ -162,7 +170,7 @@
                 {
                     "airdate": "2022.02.01",
                     "episode": "Quid Pro Subscribe",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-153-quid-pro-subscribe-prodigy-s1e9/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119ce7beb8128698140b6",
                     "order": 153,
                     "title": "Greatest Trek"
                 }
@@ -185,7 +193,7 @@
                 {
                     "airdate": "2022.02.08",
                     "episode": "Ketracel Grape",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-154-ketracel-grape-prodigy-s1e10/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119c98647f8587e0f0334",
                     "order": 154,
                     "title": "Greatest Trek"
                 }
@@ -208,7 +216,7 @@
                 {
                     "airdate": "2022.11.01",
                     "episode": "Murph in the Mug, Broken by a Hug",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-196-murph-in-the-mug-broken-by-a-hug-prodigy-s1e11/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119b0f8c6637737600dfe",
                     "order": 196,
                     "title": "Greatest Trek"
                 }
@@ -231,7 +239,7 @@
                 {
                     "airdate": "2022.11.08",
                     "episode": "Backwards Family Circus Slug",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-197-backwards-family-circus-slug-prodigy-s1e12/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119bdf8c6637737601203",
                     "order": 197,
                     "title": "Greatest Trek"
                 }
@@ -254,7 +262,7 @@
                 {
                     "airdate": "2022.11.15",
                     "episode": "Rushmore Family Players",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-198-rushmore-family-players-prodigy-s1e13/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119b87beb8128698137ba",
                     "order": 198,
                     "title": "Greatest Trek"
                 }
@@ -276,7 +284,7 @@
                 {
                     "airdate": "2022.11.22",
                     "episode": "Putting the Parlay To Bed",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-199-putting-the-parlay-to-bed-prodigy-s1e14/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119b38647f8587e0efc9d",
                     "order": 199,
                     "title": "Greatest Trek"
                 }
@@ -299,7 +307,7 @@
                 {
                     "airdate": "2022.11.29",
                     "episode": "Edward Phaserhands",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep200-edward-phaserhands-prodigy-s1e15/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119cb2f651f55f51ce341",
                     "order": 200,
                     "title": "Greatest Trek"
                 }
@@ -322,7 +330,7 @@
                 {
                     "airdate": "2022.12.06",
                     "episode": "Star Trek: Slickback",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep201-star-trek-slickback-prodigy-s1e16/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119ce2f651f55f51ce49d",
                     "order": 201,
                     "title": "Greatest Trek"
                 }
@@ -345,7 +353,7 @@
                 {
                     "airdate": "2022.12.13",
                     "episode": "Captain Table Ring",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-202-captain-table-ring-prodigy-s1e17/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119be526757e10b6c1b1e",
                     "order": 202,
                     "title": "Greatest Trek"
                 }
@@ -368,7 +376,7 @@
                 {
                     "airdate": "2022.12.20",
                     "episode": "Ragnar\u00f6k Hard",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-203-ragnarok-hard-prodigy-s1e18/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119bb5531bfee786374ed",
                     "order": 203,
                     "title": "Greatest Trek"
                 }
@@ -391,7 +399,7 @@
                 {
                     "airdate": "2022.12.27",
                     "episode": "Murf Likes Murder",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-204-murf-likes-murder-prodigy-s1e19/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119bb526757e10b6c07ef",
                     "order": 204,
                     "title": "Greatest Trek"
                 }
@@ -414,7 +422,7 @@
                 {
                     "airdate": "2023.01.03",
                     "episode": "First Contact Foreplay",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/ep-205-first-contact-foreplay-prodigy-s1e20/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119c1526757e10b6c1bee",
                     "order": 205,
                     "title": "Greatest Trek"
                 }
