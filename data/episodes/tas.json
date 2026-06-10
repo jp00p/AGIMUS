@@ -11,7 +11,7 @@
                 {
                     "airdate": "2020.07.28",
                     "episode": "It's Always a Problem for Kirk",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/its-always-a-problem-for-kirk-tas-s1e1-s1e5/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119c75531bfee78637899",
                     "order": 88,
                     "title": "Greatest Trek"
                 }
@@ -33,7 +33,7 @@
                 {
                     "airdate": "2020.08.04",
                     "episode": "Unfrozen Caveman Eugenicist\u00a0",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/unfrozen-caveman-eugenicist-tas-s1e2-s1e7/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119b52f651f55f51cd8bc",
                     "order": 89,
                     "title": "Greatest Trek"
                 }
@@ -83,7 +83,7 @@
                 {
                     "airdate": "2020.07.28",
                     "episode": "It's Always a Problem for Kirk",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/its-always-a-problem-for-kirk-tas-s1e1-s1e5/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119c75531bfee78637899",
                     "order": 88,
                     "title": "Greatest Trek"
                 }
@@ -101,7 +101,15 @@
             "episode": "06",
             "imdb": "tt0832428",
             "memoryalpha": "The_Survivor_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2023.11.08",
+                    "episode": "The Greatest Discovery - Can Carter Doppelwinston Kill Your Dad?",
+                    "link": "https://greatest.supercast.com/subscriber_v2/episodes/997691",
+                    "order": null,
+                    "title": "Bonus Feed"
+                }
+            ],
             "season": "01",
             "stills": [
                 "https://image.tmdb.org/t/p/original/22OSzeuau9i6c5HXTnXOn1rYBUX.jpg"
@@ -119,7 +127,7 @@
                 {
                     "airdate": "2020.08.04",
                     "episode": "Unfrozen Caveman Eugenicist\u00a0",
-                    "link": "https://maximumfun.org/episodes/greatest-trek/unfrozen-caveman-eugenicist-tas-s1e2-s1e7/",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/69f119b52f651f55f51cd8bc",
                     "order": 89,
                     "title": "Greatest Trek"
                 }
@@ -225,7 +233,7 @@
                 {
                     "airdate": "2022.03.25",
                     "episode": "The Greatest Discovery - Self-Defense Vegetables",
-                    "link": "https://maximumfun.org/boco/?_podcast_title=greatest-trek#",
+                    "link": "https://greatest.supercast.com/subscriber_v2/episodes/999538",
                     "order": null,
                     "title": "Bonus Feed"
                 }
@@ -289,7 +297,7 @@
                 {
                     "airdate": "2022.01.14",
                     "episode": "The Greatest Discovery - Rumpeljokeskin",
-                    "link": "https://maximumfun.org/boco/?_podcast_title=greatest-trek#",
+                    "link": "https://greatest.supercast.com/subscriber_v2/episodes/999532",
                     "order": null,
                     "title": "Bonus Feed"
                 }
@@ -353,7 +361,7 @@
                 {
                     "airdate": "2022.05.20",
                     "episode": "The Greatest Discovery - Baby Lizard Egg Ping Pong Party",
-                    "link": "https://maximumfun.org/boco/?_podcast_title=greatest-trek#",
+                    "link": "https://greatest.supercast.com/subscriber_v2/episodes/999540",
                     "order": null,
                     "title": "Bonus Feed"
                 }

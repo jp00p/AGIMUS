@@ -458,14 +458,7 @@ class ShowGenerator:
     podcasts_details = []
     
     for podcast in podcast_list:
-      # # Search the maxfun website for the link to the episode. For some reason, it's not in the RSS feed
-      # req = requests.get("https://maximumfun.org/search/", params={"_type": "episode", "_podcast": self.podcast_search_term,
-      #                                                              "_term": f"{podcast['itunes_episode']}: {podcast['title']}"})
-      # re_match = re.search(r'a href="(https://maximumfun\.org/episodes/.+/)"', req.content.decode(errors='ignore'))
-      # if re_match:
-      #   page_link = re_match[1]
-      # else:
-      #   page_link = None
+      # Format the link to the podcast link based on information provided by Acast
       page_link = self.podcast_episode_link.format(id = podcast.get('acast_episodeurl') or podcast['acast_episodeid'])
     
       podcasts_details.append({
