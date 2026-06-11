@@ -179,9 +179,23 @@
             "memoryalpha": "Lonely_Among_Us_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.06.08",
+                    "episode": "Dead Men Fix No Engines",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/dead-men-fix-no-engines-tng-s1e7",
+                    "order": 628,
+                    "title": "The Greatest Generation"
+                },
+                {
+                    "airdate": "2017.11.27",
+                    "episode": "Rura Penthe\u2122 Brand Gavel",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1195c7beb8128698118ee",
+                    "order": 185,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.02.15",
                     "episode": "Fish vs. Dog",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-6-fish-vs-dog-s1e7",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1195df8c66377375feef6",
                     "order": 6,
                     "title": "The Greatest Generation"
                 }
