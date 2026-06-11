@@ -3,7 +3,7 @@
 # Name:        update-tgg.yaml
 # Author:      Mathew Fleisch <mathew.fleisch@gmail.com>
 # Description: This action will iterate through the rss feed of the TGG podcast
-#              and attempt to download metadata from google, memoryalpha and maximumfun
+#              and attempt to download metadata from tmdb and memoryalpha
 #              and update the metadata saved in this repo data/episodes/*.json
 name: Update The Greatest Generation Metadata
 on:
