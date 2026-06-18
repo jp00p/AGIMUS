@@ -222,9 +222,16 @@
             "memoryalpha": "Justice_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.06.15",
+                    "episode": "Negative Inseam",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/negative-inseam-tng-s1e8",
+                    "order": 629,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.02.17",
                     "episode": "Rockin' Knuck",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-7-rockin-knuck-s1e8",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1195ff8c66377375ff025",
                     "order": 7,
                     "title": "The Greatest Generation"
                 }
