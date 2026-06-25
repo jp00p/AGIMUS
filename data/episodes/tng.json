@@ -261,9 +261,16 @@
             "memoryalpha": "The_Battle_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.06.22",
+                    "episode": "Boksketball",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/boksketball-tng-s1e9",
+                    "order": 630,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.02.22",
-                    "episode": "You're Welcome, Ladies",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-8-youre-welcome-ladies-s1e9",
+                    "episode": "You\u2019re Welcome, Ladies",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1193d8647f8587e0eac17",
                     "order": 8,
                     "title": "The Greatest Generation"
                 }
