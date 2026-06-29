@@ -471,7 +471,7 @@ class ShowGenerator:
     
     details['podcasts'] = podcasts_details
     
-    episode_names = ", ".join(f"{p['itunes_episode']}: {p['title']}" for p in podcast_list)
+    episode_names = ", ".join(f"{p.get('itunes_episode', '№')}: {p['title']}" for p in podcast_list)
     print(f"Updated the podcast to {episode_names}")
   
   def save_current_file(self):
