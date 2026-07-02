@@ -306,9 +306,16 @@
             "memoryalpha": "Hide_and_Q_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.06.29",
+                    "episode": "Girthy Eyeballs",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/girthy-eyeballs-tng-s1e10",
+                    "order": 631,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.02.24",
-                    "episode": "Who's The Big Dog Now?",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-9-whos-the-big-dog-now-s1e10-2",
+                    "episode": "Who\u2019s The Big Dog Now?",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1193c8647f8587e0eab96",
                     "order": 9,
                     "title": "The Greatest Generation"
                 }
