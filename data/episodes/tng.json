@@ -215,9 +215,16 @@
             "memoryalpha": "Justice_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.06.15",
+                    "episode": "Negative Inseam",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/negative-inseam-tng-s1e8",
+                    "order": 629,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.02.17",
                     "episode": "Rockin' Knuck",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-7-rockin-knuck-s1e8",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1195ff8c66377375ff025",
                     "order": 7,
                     "title": "The Greatest Generation"
                 }
@@ -247,9 +254,16 @@
             "memoryalpha": "The_Battle_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.06.22",
+                    "episode": "Boksketball",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/boksketball-tng-s1e9",
+                    "order": 630,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.02.22",
-                    "episode": "You're Welcome, Ladies",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-8-youre-welcome-ladies-s1e9",
+                    "episode": "You\u2019re Welcome, Ladies",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1193d8647f8587e0eac17",
                     "order": 8,
                     "title": "The Greatest Generation"
                 }
@@ -285,9 +299,16 @@
             "memoryalpha": "Hide_and_Q_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.06.29",
+                    "episode": "Girthy Eyeballs",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/girthy-eyeballs-tng-s1e10",
+                    "order": 631,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.02.24",
-                    "episode": "Who's The Big Dog Now?",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-9-whos-the-big-dog-now-s1e10-2",
+                    "episode": "Who\u2019s The Big Dog Now?",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1193c8647f8587e0eab96",
                     "order": 9,
                     "title": "The Greatest Generation"
                 }
