@@ -343,9 +343,16 @@
             "memoryalpha": "Haven_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.07.06",
+                    "episode": "Leper Colony Make-A-Wish",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/leper-colony-make-a-wish-tng-s1e11",
+                    "order": 632,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.02.29",
                     "episode": "The Bayless Connection",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-10-the-bayless-connection-s1e11",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119537beb812869811623",
                     "order": 10,
                     "title": "The Greatest Generation"
                 }
