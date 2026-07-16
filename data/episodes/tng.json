@@ -387,9 +387,16 @@
             "memoryalpha": "The_Big_Goodbye_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.07.13",
+                    "episode": "Diction Hill",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/diction-hill-tng-s1e12",
+                    "order": 633,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.03.02",
                     "episode": "The Ultimate Redshirt",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-11-the-ultimate-redshirt-s1e12",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1195b8647f8587e0ee072",
                     "order": 11,
                     "title": "The Greatest Generation"
                 }
