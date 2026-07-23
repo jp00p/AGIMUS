@@ -434,9 +434,16 @@
             "memoryalpha": "Datalore_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.07.20",
+                    "episode": "Stunt Butt",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/stunt-butt-tng-s1e13",
+                    "order": 634,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.03.07",
                     "episode": "The Legend of Argyle",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-12-the-legend-of-argyle-s1e13",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1195e2f651f55f51cbdb8",
                     "order": 12,
                     "title": "The Greatest Generation"
                 }
