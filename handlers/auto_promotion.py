@@ -137,7 +137,7 @@ async def post_big_welcome_embed(member: discord.Member, first_message: discord.
   embed = discord.Embed(
     title=f'Could someone {random.choice(usher_messages)}?',
     color=discord.Color.random(),
-    description=f'Please greet our new crewmember in <#{ten_forward_channel_id}>!'
+    description=f'Please greet our new crewmember in <#{ten_forward_channel_id}>!\n\nNote: You can check the thread in this channel if you need a template!'
   )
 
   embed.set_image(url=random.choice(welcome_images))
@@ -155,6 +155,11 @@ async def post_big_welcome_embed(member: discord.Member, first_message: discord.
   embed.add_field(
     name=f'Bring them in {get_emoji("kira_good_morning_hello")}',
     value=f'Suggest <#{animal_holophotography_id}> to start!',
+    inline=False
+  )
+  embed.add_field(
+    name='Tag this message with a 👍!',
+    value="If you're gonna handle this, be sure to add a thumbs up emoji to this message to let others know you're on it!",
     inline=False
   )
 
