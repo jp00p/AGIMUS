@@ -1053,6 +1053,28 @@
                 "https://image.tmdb.org/t/p/original/orhTTIshYMwHRcsLmgmePXo0cHg.jpg",
                 "https://image.tmdb.org/t/p/original/cwDXCHTUZkqC5i8IbHkOMdN82zO.jpg"
             ]
+        },
+        {
+            "airdate": "2026.07.23",
+            "title": "Valles Marineris",
+            "description": "Pike leads the crew into a stellar storm, sending the Enterprise back 65 million years.",
+            "season": "04",
+            "episode": "01",
+            "podcasts": [
+                {
+                    "airdate": "2026.07.24",
+                    "episode": "Dinonetics",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/dinonetics-snw-s4e1-with-tawny-newsome",
+                    "order": null,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Valles_Marineris_(episode)",
+            "tvdb": 7191125,
+            "imdb": "tt32103346",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/dkplcEqCZV5nNmsUm12CimwDqjy.jpg"
+            ]
         }
     ],
     "imdb": "",

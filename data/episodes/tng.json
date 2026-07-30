@@ -479,9 +479,16 @@
             "memoryalpha": "Angel_One_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.07.27",
+                    "episode": "The Arms of the Martyr",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/the-arms-of-the-martyr-tng-s1e14",
+                    "order": 635,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.03.09",
                     "episode": "This Isn't A Plot, This Is A Holodeck Program!",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-13-this-isnt-a-plot-this-is-a-holodeck-program-s1e14",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f11936f8c66377375fe25d",
                     "order": 13,
                     "title": "The Greatest Generation"
                 }
