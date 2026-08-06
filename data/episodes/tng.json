@@ -524,9 +524,16 @@
             "memoryalpha": "11001001_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.08.03",
+                    "episode": "Cuck Quest",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/cuck-quest-tng-s1e15",
+                    "order": 636,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.03.14",
                     "episode": "Going Number Three",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-14-going-number-three-s1e15",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1194a5531bfee7863435c",
                     "order": 14,
                     "title": "The Greatest Generation"
                 }

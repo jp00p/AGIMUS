@@ -1075,6 +1075,28 @@
             "stills": [
                 "https://image.tmdb.org/t/p/original/dkplcEqCZV5nNmsUm12CimwDqjy.jpg"
             ]
+        },
+        {
+            "airdate": "2026.07.30",
+            "title": "The Griffin Incident",
+            "description": "La'An, Spock, and Kirk get trapped on a mysterious, long-lost Federation ship.",
+            "season": "04",
+            "episode": "02",
+            "podcasts": [
+                {
+                    "airdate": "2026.07.31",
+                    "episode": "Deads In The Beds",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/deads-in-the-beds-snw-s4e2",
+                    "order": 385,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "The_Griffin_Incident_(episode)",
+            "tvdb": 7191126,
+            "imdb": "tt37230754",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/nPOUZeuggzzmE0QAPpgKX4TJNJ6.jpg"
+            ]
         }
     ],
     "imdb": "",
