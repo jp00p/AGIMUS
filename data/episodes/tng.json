@@ -568,9 +568,16 @@
             "memoryalpha": "Too_Short_a_Season_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.08.10",
+                    "episode": "The Ascent of Beeping Chair",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/the-ascent-of-beeping-chair-tng-s1e16",
+                    "order": 637,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.03.16",
                     "episode": "Soft Foods and Laxatives",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-15-soft-foods-and-laxatives-s1e16",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119597beb812869811844",
                     "order": 15,
                     "title": "The Greatest Generation"
                 }

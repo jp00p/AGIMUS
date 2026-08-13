@@ -1097,6 +1097,42 @@
             "stills": [
                 "https://image.tmdb.org/t/p/original/nPOUZeuggzzmE0QAPpgKX4TJNJ6.jpg"
             ]
+        },
+        {
+            "airdate": "2026.08.06",
+            "title": "Human Best Friend",
+            "description": "The Enterprise crew visits a shore-leave planet that guarantees fun in an inebriating atmosphere.",
+            "season": "04",
+            "episode": "03",
+            "podcasts": [
+                {
+                    "airdate": "2026.08.07",
+                    "episode": "Green Lotus",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/green-lotus-snw-s4e3",
+                    "order": 386,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Human_Best_Friend_(episode)",
+            "tvdb": 7193797,
+            "imdb": "tt37230760",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/z7v5DpM6lCDxdHZMDYeUPV1lunF.jpg",
+                "https://image.tmdb.org/t/p/original/stA7Zn0bmcARMJ1oEnA95yGvyLK.jpg",
+                "https://image.tmdb.org/t/p/original/obkNoV3MJHOib3dLZOwfRUTsqA0.jpg",
+                "https://image.tmdb.org/t/p/original/xXV0rmJghFPaqjL5a4ELaT5I6lc.jpg",
+                "https://image.tmdb.org/t/p/original/jRiZi4vVMxrJLw4s3GGGP1sKWZa.jpg",
+                "https://image.tmdb.org/t/p/original/ed0PumESIWnnSpA5Z57alSA0NNz.jpg",
+                "https://image.tmdb.org/t/p/original/7LXP2WeFR6SgUq6l4CnarmYlohI.jpg",
+                "https://image.tmdb.org/t/p/original/1QSV2ssPZnkC9aKiN9R2WReB3bL.jpg",
+                "https://image.tmdb.org/t/p/original/cagE5L6CSxHcJ8DIuC1pUqnHtcX.jpg",
+                "https://image.tmdb.org/t/p/original/32IDj5yAxeNGD0wUQqNtsk3msyx.jpg",
+                "https://image.tmdb.org/t/p/original/p3Hsb2KXMXsdv7exkIwYgPRHyvc.jpg",
+                "https://image.tmdb.org/t/p/original/8GE2BrMNyKHnUMO2U6zdR10ekJB.jpg",
+                "https://image.tmdb.org/t/p/original/nsBzO8lQJeoynspvqe32zOjQZek.jpg",
+                "https://image.tmdb.org/t/p/original/2XoZvPXQ0VaZEA4vnqtng6gP70X.jpg",
+                "https://image.tmdb.org/t/p/original/8jWf8FFnOsR5pO4cPUY8WnRx8C5.jpg"
+            ]
         }
     ],
     "imdb": "",
