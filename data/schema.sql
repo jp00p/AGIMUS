@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS users (
   crystal_autoharmonize BOOLEAN NOT NULL DEFAULT 1,
   pattern_buffer BOOLEAN NOT NULL DEFAULT 0,
   ping_on_badge BOOLEAN NOT NULL DEFAULT 1,
+  wishlist_dm_enabled BOOLEAN NOT NULL DEFAULT 1,
   level int(11) DEFAULT 1,
   PRIMARY KEY (id),
   UNIQUE KEY (discord_id)

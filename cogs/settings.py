@@ -6,6 +6,7 @@ CATEGORY_MEDIA_URLS = {
   "xp": "https://i.imgur.com/upuEFlq.png",
   "notifications": "https://i.imgur.com/XMnho37.png",
   "badge_pings": "https://i.imgur.com/zTl1R3p.png",
+  "wishlist_dms": "https://i.imgur.com/XMnho37.png",
   "pattern_buffer": "https://i.imgur.com/fN6zDz8.png",
   "crystallization": "https://i.imgur.com/Kkwa9ub.png",
   "wordcloud": "https://i.imgur.com/xNeoDSD.png",
@@ -19,6 +20,7 @@ SETTINGS_CATEGORIES = [
   ("XP", "Opt-in or Opt-out of the XP System", "xp"),
   ("Notifications", "Enable or Disable DMs from AGIMUS", "notifications"),
   ("Badge Award Mentions", "Enable or Disable pings on Level Ups", "badge_pings"),
+  ("Wishlist Tagging DMs", "Enable or Disable DMs on adding/removing Wishlist Items", "wishlist_dms"),
   ("Crystal Pattern Buffer DMs", "Opt-in or Opt-out of Crystal Pattern Buffer DMs", "pattern_buffer"),
   ("Crystallization", "Configure Crystal Auto-Harmonization Behavior", "crystallization"),
   ("Wordcloud", "Enable or Disable Wordcloud Logging", "wordcloud"),
@@ -66,6 +68,17 @@ CATEGORY_TEXT = {
       "By default, this notification @mentions you.\n\n"
       "If you would prefer not to be pinged for badge awards, you can disable these mentions here. "
       "This only affects Badge Award posts. Other mentions and DMs are unaffected."
+    ),
+    "footer": "Select your preference below."
+  },
+  "wishlist_dms": {
+    "title": "Wishlist Tagging DMs",
+    "body": (
+      "When you add or remove a Badge from your Wishlist using the ✅ reaction in the Badge Awards channel, "
+      "AGIMUS can send you a Direct Message confirming the update.\n\n"
+      "Disable this setting if you would prefer not to receive those Wishlist reaction confirmation DMs. "
+      "This does not affect Wishlist behavior or other AGIMUS notifications. The general Notifications setting "
+      "must also be enabled for AGIMUS to send these DMs."
     ),
     "footer": "Select your preference below."
   },
@@ -135,6 +148,8 @@ def _is_enabled_for_category(user_details: dict, category: str) -> bool | None:
     return bool(user_details.get("receive_notifications"))
   if category == "badge_pings":
     return bool(user_details.get("ping_on_badge", True))
+  if category == "wishlist_dms":
+    return bool(user_details.get("wishlist_dm_enabled", True))
   if category == "pattern_buffer":
     return bool(user_details.get("pattern_buffer"))
   if category == "crystallization":
@@ -267,6 +282,12 @@ class SettingsView(discord.ui.DesignerView):
       return ([
         discord.SelectOption(label="Enable Mentions", description="Ping you on badge awards."),
         discord.SelectOption(label="Disable Mentions", description="Do not ping you on badge awards."),
+      ], "Choose your preference")
+
+    if key == "wishlist_dms":
+      return ([
+        discord.SelectOption(label="Enable Wishlist DMs", description="Send DMs when Wishlist reaction items change."),
+        discord.SelectOption(label="Disable Wishlist DMs", description="Do not send Wishlist reaction confirmation DMs."),
       ], "Choose your preference")
 
     if key == "pattern_buffer":
@@ -516,6 +537,12 @@ class SettingsView(discord.ui.DesignerView):
       elif selection == "Disable Mentions":
         await db_toggle_badge_pings(user_id, False)
 
+    elif key == "wishlist_dms":
+      if selection == "Enable Wishlist DMs":
+        await db_toggle_wishlist_dms(user_id, True)
+      elif selection == "Disable Wishlist DMs":
+        await db_toggle_wishlist_dms(user_id, False)
+
     elif key == "pattern_buffer":
       if selection == "Enable Pattern Buffer DM":
         await db_toggle_pattern_buffer(user_id, True)
@@ -611,6 +638,14 @@ async def db_toggle_badge_pings(user_id: str, toggle: bool):
   vals = (toggle, user_id)
   async with AgimusDB(dictionary=True) as db:
     await db.execute(sql, vals)
+
+
+async def db_toggle_wishlist_dms(user_id: str, toggle: bool):
+  sql = "UPDATE users SET wishlist_dm_enabled = %s WHERE discord_id = %s"
+  vals = (toggle, user_id)
+  async with AgimusDB(dictionary=True) as db:
+    await db.execute(sql, vals)
+
 
 async def db_toggle_wordcloud_flag(user_id: str, toggle: bool):
   sql = "UPDATE users SET log_messages = %s WHERE discord_id = %s"
