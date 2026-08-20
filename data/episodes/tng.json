@@ -605,9 +605,16 @@
             "memoryalpha": "When_The_Bough_Breaks_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.08.17",
+                    "episode": "Embarrassment Miners",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/embarrassment-miners-tng-s1e17",
+                    "order": 638,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.03.21",
                     "episode": "Horn of Plenty",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-16-horn-of-plenty-s1e17",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119558647f8587e0ede92",
                     "order": 16,
                     "title": "The Greatest Generation"
                 }

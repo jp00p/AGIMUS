@@ -1133,6 +1133,28 @@
                 "https://image.tmdb.org/t/p/original/2XoZvPXQ0VaZEA4vnqtng6gP70X.jpg",
                 "https://image.tmdb.org/t/p/original/8jWf8FFnOsR5pO4cPUY8WnRx8C5.jpg"
             ]
+        },
+        {
+            "airdate": "2026.08.13",
+            "title": "A Case of Chiaroscuro",
+            "description": "Una is mistaken for a virtuous kingpin against a Klingon occupation.",
+            "season": "04",
+            "episode": "04",
+            "podcasts": [
+                {
+                    "airdate": "2026.08.14",
+                    "episode": "Two Ving",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/two-ving-snw-s4e4",
+                    "order": 387,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "A_Case_of_Chiaroscuro_(episode)",
+            "tvdb": 7193798,
+            "imdb": "tt36298580",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/kAggRfHzsWUlaev0bAemIxEBHQg.jpg"
+            ]
         }
     ],
     "imdb": "",
