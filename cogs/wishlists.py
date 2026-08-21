@@ -470,6 +470,7 @@ class Wishlist(commands.Cog):
       return
 
     user = await get_user(payload.user_id)
+    wishlist_dms_enabled = bool(user['receive_notifications']) and bool(user.get('wishlist_dm_enabled', True))
     channel = self.bot.get_channel(payload.channel_id)
 
     message = await channel.fetch_message(payload.message_id)
@@ -500,7 +501,7 @@ class Wishlist(commands.Cog):
       logger.info(f"Locking {Style.BRIGHT}{badge_name}{Style.RESET_ALL} via react")
       await db_lock_badge_instances_by_badge_info_id(member.id, info['id'])
 
-      if user['receive_notifications']:
+      if wishlist_dms_enabled:
         try:
           # Fresh status
           instances = await db_get_user_badge_instances(payload.user_id, prestige=None)
@@ -537,37 +538,37 @@ class Wishlist(commands.Cog):
       if badge_name in wished:
         logger.info(f"Removing {Style.BRIGHT}{badge_name}{Style.RESET_ALL} from wishlist via react")
         await db_remove_badge_info_id_from_wishlist(member.id, info['id'])
-        try:
-          # Fresh status
-          instances = await db_get_user_badge_instances(payload.user_id, prestige=None)
-          owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active']}
-          locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active'] and i['locked']}
-          echelon_progress = await db_get_echelon_progress(payload.user_id)
-          current_max_tier = echelon_progress['current_prestige_tier']
-          embed = discord.Embed(
-            title="Badge Removed from Wishlist",
-            description=f"**{badge_name}** has been removed from your Wishlist via your removal of the ✅ react!",
-            color=discord.Color.green()
-          )
-          embed.set_footer(
-            text="Note: You can use /settings to enable or disable these messages."
-          )
-          for tier in range(current_max_tier + 1):
-            if tier in owned_tiers:
-              symbol = "🔒" if tier in locked_tiers else "🔓"
-              note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
-            else:
-              symbol = "❌"
-              note = ""
-            embed.add_field(
-              name=PRESTIGE_TIERS[tier],
-              value=f"Owned: {symbol}{note}",
-              inline=False
+        if wishlist_dms_enabled:
+          try:
+            # Fresh status
+            instances = await db_get_user_badge_instances(payload.user_id, prestige=None)
+            owned_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active']}
+            locked_tiers = {i['prestige_level'] for i in instances if i['badge_info_id'] == info['id'] and i['active'] and i['locked']}
+            echelon_progress = await db_get_echelon_progress(payload.user_id)
+            current_max_tier = echelon_progress['current_prestige_tier']
+            embed = discord.Embed(
+              title="Badge Removed from Wishlist",
+              description=f"**{badge_name}** has been removed from your Wishlist via your removal of the ✅ react!",
+              color=discord.Color.green()
             )
-          await member.send(embed=embed)
-        except discord.Forbidden as e:
-          logger.info(f"Unable to send wishlist remove react confirmation message to {member.display_name}, they have their DMs closed.")
-          pass
+            embed.set_footer(
+              text="Note: You can use /settings to enable or disable these messages."
+            )
+            for tier in range(current_max_tier + 1):
+              if tier in owned_tiers:
+                symbol = "🔒" if tier in locked_tiers else "🔓"
+                note = " (Locked)" if tier in locked_tiers else " (Unlocked)"
+              else:
+                symbol = "❌"
+                note = ""
+              embed.add_field(
+                name=PRESTIGE_TIERS[tier],
+                value=f"Owned: {symbol}{note}",
+                inline=False
+              )
+            await member.send(embed=embed)
+          except discord.Forbidden:
+            logger.info(f"Unable to send wishlist remove react confirmation message to {member.display_name}, they have their DMs closed.")
 
   # ---------------------------------------------------------------------------
   # Cog helpers required by /wishlist matches, /wishlist dismissals, and the view
