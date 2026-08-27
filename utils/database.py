@@ -25,7 +25,7 @@ class AgimusDB:
         maxsize=20
       )
 
-  async def __aenter__(self):
+  async def __aenter__(self) -> aiomysql.Cursor:
     await self.init_pool()
     self.conn = await self._pool.acquire()
     self.cursor = await self.conn.cursor(aiomysql.DictCursor if self.dictionary else aiomysql.Cursor)
