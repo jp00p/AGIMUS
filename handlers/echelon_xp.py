@@ -1,9 +1,15 @@
 # handlers/echelon_xp.py
-from common import *
+import json
+import random
 
-from queries.echelon_xp import *
-from queries.wishlists import db_is_badge_on_users_wishlist
-from utils.echelon_rewards import *
+import discord
+from colorama import Fore, Style, Back
+
+from common import get_user, get_emoji, config, bot, get_channel_id, logger, get_channel_ids_list
+
+from queries.echelon_xp import db_get_echelon_progress, db_update_echelon_progress, db_insert_echelon_history
+from utils.echelon_rewards import get_user_prestige_level, award_initial_welcome_package, award_level_up_badge, \
+  award_possible_crystal_pattern_buffer, award_special_badge_prestige_echoes
 from utils.prestige import PRESTIGE_TIERS, PRESTIGE_THEMES
 from utils.image_utils import generate_badge_preview
 
@@ -95,9 +101,9 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
 
   badge_data = None
   awarded_buffer_pattern = None
+  source_details = determine_level_up_source_details(member, source)
   if level == 1:
     badge_data, awarded_buffer_pattern = await award_initial_welcome_package(member)
-    source_details = determine_level_up_source_details(member, source)
     await post_first_level_welcome_embed(member, badge_data, source_details)
     await post_buffer_pattern_acquired_embed(member, level, awarded_buffer_pattern)
     return
@@ -108,7 +114,6 @@ async def handle_user_level_up(member: discord.User, level: int, source = None):
   prestige_after = await get_user_prestige_level(member)
   # logger.info(f"prestige_after: {prestige_after}")
 
-  source_details = determine_level_up_source_details(member, source)
   # Handle Prestige Advancement
   if prestige_after > prestige_before:
     await award_special_badge_prestige_echoes(member, prestige_after)
@@ -411,7 +416,7 @@ def is_message_channel_unblocked(message: discord.Message) -> bool:
 
   return False
 
-def determine_level_up_source_details(user: discord.User, source):
+def determine_level_up_source_details(user: discord.User, source) -> str:
   # logger.info("Level Up Source:")
   """Returns a short description string about what caused the XP level-up event."""
   if isinstance(source, discord.Message):
@@ -427,6 +432,8 @@ def determine_level_up_source_details(user: discord.User, source):
 
 def _message_source_details(message: discord.Message) -> str:
   if is_message_channel_unblocked(message):
+    if message.poll:
+      return f"Voting in the poll: {message.jump_url}"
     return f"Their message at: {message.jump_url}"
   else:
     return random.choice(blocked_level_up_sources)
@@ -570,7 +577,8 @@ reason_descriptions = {
   "used_wordcloud": "generating a wordcloud",
   "played_zork": "playing zork",
   "created_event": "creating an event",
-  "tongo_loss": "losing badges in tongo"
+  "tongo_loss": "losing badges in tongo",
+  "poll_vote": "voting in a poll",
 }
 
 def console_log_xp_history(user: discord.User, amt: int, reason: str):

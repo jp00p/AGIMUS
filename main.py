@@ -112,7 +112,7 @@ from handlers.reply_restricted import handle_reply_restricted
 from handlers.save_message import save_message_to_db
 from handlers.server_logs import *
 from handlers.starboard import initialize_starboard_cache, handle_starboard_reactions
-from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_react_xp
+from handlers.xp import handle_event_creation_xp, handle_message_xp, handle_react_xp, handle_poll_vote_xp
 
 # Utils
 from utils.check_channel_access import perform_channel_check
@@ -373,6 +373,7 @@ async def on_raw_reaction_add(payload):
       logger.warning(f"on_raw_reaction_add error: {e}")
       raise
 
+bot.listen("on_raw_poll_vote_add")(handle_poll_vote_xp)
 
 # listen to sceheduled event updates (streams, pub trivia, etc)
 @bot.event

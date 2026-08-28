@@ -85,7 +85,9 @@
             "memoryalpha": "Vox_In_Excelso_(episode)",
             "tvdb": 6594795,
             "imdb": "tt34127759",
-            "stills": []
+            "stills": [
+                "https://image.tmdb.org/t/p/original/5gmTXp0ag41cQ9dom4ZId9AM8aF.jpg"
+            ]
         },
         {
             "airdate": "2026.02.05",

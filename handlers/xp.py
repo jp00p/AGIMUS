@@ -1,18 +1,17 @@
-import math
 import asyncio
-import random
+import json
 import unicodedata
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
-from common import *
+import discord
 
-from handlers.echelon_xp import *
+from common import config, get_channel_ids_list, bot, logger
+
+from handlers.echelon_xp import award_xp, handle_user_level_up
 from handlers.auto_promotion import handle_auto_promotions
-from queries.server_settings import *
-from queries.wishlists import *
-from utils.echelon_rewards import *
-from utils.badge_utils import *
+from queries.server_settings import db_get_server_settings
+from utils.database import AgimusDB
 from utils.settings_utils import db_get_current_xp_enabled_value
 
 
@@ -130,6 +129,24 @@ async def handle_react_xp(reaction: discord.Reaction, user: discord.User):
   await grant_xp(user, 1, "added_reaction", channel=reaction.message.channel, source=reaction)
   await grant_xp(reaction.message.author, 1, "got_single_reaction", channel=reaction.message.channel, source=reaction)
   await grant_bonusworthy_reaction_xp(reaction)
+
+
+previous_votes = set()  # Don’t want to give XP because someone changed their vote  Not doing DB because polls only live a day
+
+async def handle_poll_vote_xp(payload: discord.RawMessagePollVoteEvent):
+  """
+  Called when someone votes in a poll.
+  """
+  blocked_channels = get_channel_ids_list(config["handlers"]["xp"]["blocked_channels"])
+  if payload.channel_id in blocked_channels:
+    return
+  if (payload.user_id, payload.message_id, ) in previous_votes:
+    return
+  previous_votes.add((payload.user_id, payload.message_id, ))
+  user = await bot.get_or_fetch(discord.User, payload.user_id)
+  channel = await bot.fetch_channel(payload.channel_id)
+  message = await channel.fetch_message(payload.message_id)
+  await grant_xp(user, 1, "poll_vote", channel=channel, source=message)
 
 
 # Reaction Helpers

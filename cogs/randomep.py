@@ -1,7 +1,7 @@
 from common import *
 from utils.show_utils import get_show_embed
 
-all_shows = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "disco", "picard", "lowerdecks", "prodigy", "snw",
+all_shows = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "disco", "picard", "lowerdecks", "prodigy", "snw", "sfa",
              "friends", "firefly", "simpsons", "sunny", "bsg"]
 
 all_show_labels = {
@@ -16,6 +16,7 @@ all_show_labels = {
   "lowerdecks": "Star Trek: Lower Decks",
   "snw": "Star Trek: Strange New Worlds",
   "prodigy": "Star Trek Prodigy",
+  "sfa": "Star Trek: Starfleet Academy",
   "friends": "Friends",
   "firefly": "Firefly",
   "simpsons": "The Simpsons",
