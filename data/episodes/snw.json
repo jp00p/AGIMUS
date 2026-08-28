@@ -1155,6 +1155,28 @@
             "stills": [
                 "https://image.tmdb.org/t/p/original/kAggRfHzsWUlaev0bAemIxEBHQg.jpg"
             ]
+        },
+        {
+            "airdate": "2026.08.20",
+            "title": "Level-Five Transporter Accident",
+            "description": "A transporter accident turns everyone but Spock into puppets as pirates invade the ship.",
+            "season": "04",
+            "episode": "05",
+            "podcasts": [
+                {
+                    "airdate": "2026.08.21",
+                    "episode": "Sentient Bar Rag",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/sentient-bar-rag-snw-s4e5",
+                    "order": 388,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Level-Five_Transporter_Accident_(episode)",
+            "tvdb": 7193799,
+            "imdb": "tt37231032",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/zRbCF9m3D2RxTQscbkKrbNeEVKr.jpg"
+            ]
         }
     ],
     "imdb": "",

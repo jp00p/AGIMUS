@@ -648,9 +648,16 @@
             "memoryalpha": "Home_Soil_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.08.24",
+                    "episode": "Uncle Silicon",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/uncle-silicon-tng-s1e18",
+                    "order": 639,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.03.23",
                     "episode": "The Takeover",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-17-the-takeover-s1e18",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119362f651f55f51cb17f",
                     "order": 17,
                     "title": "The Greatest Generation"
                 }
