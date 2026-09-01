@@ -21,35 +21,13 @@
                 "https://image.tmdb.org/t/p/original/5yUZWZIH4V7Hca8SDxEfjYituVx.jpg",
                 "https://image.tmdb.org/t/p/original/geCmBWn4d9mFOKyb8cHxmIYcjKY.jpg"
             ],
-            "title": "Emissary (1)",
+            "title": "Emissary",
             "tvdb": 969525
-        },
-        {
-            "airdate": "1993.01.03",
-            "description": "A new crew is assigned to a former Cardassian space station: Deep Space Nine. It is a joint Federation/Bajoran force, with Commander Sisko in charge, but his life is dramatically changed when he is declared the Emissary to the Prophets by a Bajoran priest.",
-            "episode": "02",
-            "imdb": "",
-            "memoryalpha": "A_Man_Alone_(episode)",
-            "podcasts": [
-                {
-                    "airdate": "2017.10.16",
-                    "episode": "Wormhole Ambergris ",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1192bf8c66377375fdec0",
-                    "order": 179,
-                    "title": "The Greatest Generation"
-                }
-            ],
-            "season": "01",
-            "stills": [
-                "https://image.tmdb.org/t/p/original/jPjHNMPOiTLzOtWSeOfuTW7k6g7.jpg"
-            ],
-            "title": "Emissary (2)",
-            "tvdb": 1012580
         },
         {
             "airdate": "1993.01.10",
             "description": "Tahna Los, a former Bajoran terrorist during the Occupation, asks Sisko for asylum on DS9. Meanwhile, the station's last Cardassian inhabitant, Garak, possibly a former spy for the Cardassian government, proves an interesting mystery to Dr. Bashir.",
-            "episode": "03",
+            "episode": "02",
             "imdb": "tt0708576",
             "memoryalpha": "Past_Prologue_(episode)",
             "podcasts": [
@@ -72,7 +50,7 @@
         {
             "airdate": "1993.01.17",
             "description": "Ibudan, a criminal/murderer Odo has dealt with before, returns to DS9 only to be murdered shortly after. . .leaving Odo to be the prime suspect. Meanwhile, Jake and Nog's trouble making prompt Keiko to do something helpful for the station's children.",
-            "episode": "04",
+            "episode": "03",
             "imdb": "tt0708494",
             "memoryalpha": "A_Man_Alone_(episode)",
             "podcasts": [
@@ -95,7 +73,7 @@
         {
             "airdate": "1993.01.24",
             "description": "The crew and civilian population of Deep Space Nine begin to gabble when a plague, engineered by the Bajorans as a weapon against the Cardassians, accidentally gets released into the station's atmosphere.",
-            "episode": "05",
+            "episode": "04",
             "imdb": "tt0708501",
             "memoryalpha": "Babel_(episode)",
             "podcasts": [
@@ -118,7 +96,7 @@
         {
             "airdate": "1993.01.31",
             "description": "For the first time an alien comes from the other side of the wormhole. He has ship trouble and seems very reluctant to accept any help. Chief O'Brien quickly finds out he has a secret.",
-            "episode": "06",
+            "episode": "05",
             "imdb": "tt0708513",
             "memoryalpha": "Captive_Pursuit_(episode)",
             "podcasts": [
@@ -141,7 +119,7 @@
         {
             "airdate": "1993.02.07",
             "description": "Q, the Enterprise-D's consistent omnipotent annoyance, comes to harass the DS9 crew when his traveling companion, Vash, refuses to travel with Q any longer.",
-            "episode": "07",
+            "episode": "06",
             "imdb": "tt0708586",
             "memoryalpha": "Q-Less_(episode)",
             "podcasts": [
@@ -164,7 +142,7 @@
         {
             "airdate": "1993.02.14",
             "description": "Sins of the Host indeed, as Jadzia Dax is accused of a murder her previous host, Curzon, supposedly committed.",
-            "episode": "08",
+            "episode": "07",
             "imdb": "tt0708523",
             "memoryalpha": "Dax_(episode)",
             "podcasts": [
@@ -187,7 +165,7 @@
         {
             "airdate": "1993.02.21",
             "description": "Rao Vantika, a captured criminal, is badly burned and dies in Bashir's arms. . .but the criminal's captor believes he is still alive.",
-            "episode": "09",
+            "episode": "08",
             "imdb": "tt0708633",
             "memoryalpha": "The_Passenger_(episode)",
             "podcasts": [
@@ -210,7 +188,7 @@
         {
             "airdate": "1993.03.14",
             "description": "The Wadi from the Gamma Quadrant are to make first contact and decide to visit DS9. When they catch Quark cheating they let him off by playing a special game.",
-            "episode": "10",
+            "episode": "09",
             "imdb": "tt0708569",
             "memoryalpha": "Move_Along_Home_(episode)",
             "podcasts": [
@@ -233,7 +211,7 @@
         {
             "airdate": "1993.03.21",
             "description": "The Ferengi's greatest politician and leader, the Grand Nagus, comes to the station. He seems very interested in Quark's bar.",
-            "episode": "11",
+            "episode": "10",
             "imdb": "tt0708632",
             "memoryalpha": "The_Nagus_(episode)",
             "podcasts": [
@@ -256,7 +234,7 @@
         {
             "airdate": "1993.04.18",
             "description": "A man named Croden tells Odo he can take him to a place where aliens much like Odo himself exist, which would help Odo find out where he truly comes from.",
-            "episode": "12",
+            "episode": "11",
             "imdb": "tt0708659",
             "memoryalpha": "Vortex_(episode)",
             "podcasts": [
@@ -279,7 +257,7 @@
         {
             "airdate": "1993.04.25",
             "description": "After showing Bajoran spiritual leader Kai Opaka the wormhole, she, Sisko, Bashir and Kira crash land on a moon. Kai Opaka dies and the three meet the unfriendly locals.",
-            "episode": "13",
+            "episode": "12",
             "imdb": "tt0708504",
             "memoryalpha": "Battle_Lines_(episode)",
             "podcasts": [
@@ -302,7 +280,7 @@
         {
             "airdate": "1993.05.02",
             "description": "While Sisko tries to negotiate an agreement between two Bajoran factions, he orders O'Brien to escort Bashir to an emergency that endangers a village.",
-            "episode": "14",
+            "episode": "13",
             "imdb": "tt0708643",
             "memoryalpha": "The_Storyteller_(episode)",
             "podcasts": [
@@ -325,7 +303,7 @@
         {
             "airdate": "1993.05.09",
             "description": "Kira must convince an old Bajoran farmer to leave a moon becoming uninhabitable due to mining operations. Jake and Nog try to trade off Cardassian yamok sauce.",
-            "episode": "15",
+            "episode": "14",
             "imdb": "tt0708584",
             "memoryalpha": "Progress_(episode)",
             "podcasts": [
@@ -348,7 +326,7 @@
         {
             "airdate": "1993.05.16",
             "description": "Dax investigates if an unusual energy reading is dangerous for the station when all of the sudden people's imaginations really come alive, causing chaos.",
-            "episode": "16",
+            "episode": "15",
             "imdb": "tt0708551",
             "memoryalpha": "If_Wishes_Were_Horses_(episode)",
             "podcasts": [
@@ -372,7 +350,7 @@
         {
             "airdate": "1993.05.23",
             "description": "Lwaxana Troi comes for a political visit and instead hounds Odo for romantic attention. Meanwhile, an alien probe wrecks havoc with the station's computer, leaving Odo and Lwaxana trapped together.",
-            "episode": "17",
+            "episode": "16",
             "imdb": "tt0708624",
             "memoryalpha": "The_Forsaken_(episode)",
             "podcasts": [
@@ -395,7 +373,7 @@
         {
             "airdate": "1993.05.30",
             "description": "Out of nowhere the entire station's command staff, save Odo, become power hungry and vie to defeat each other by forming secret alliances and plotting assassinations. Needless to say, Odo tries to figure out how this mysterious behavior was influenced.",
-            "episode": "18",
+            "episode": "17",
             "imdb": "tt0708528",
             "memoryalpha": "Dramatis_Personae_(episode)",
             "podcasts": [
@@ -418,7 +396,7 @@
         {
             "airdate": "1993.06.13",
             "description": "A Cardassian suffering from Kalla-Nohra, a disease that indicates he served in a labor camp, visits DS9. Kira is determined to convict him as a war criminal.",
-            "episode": "19",
+            "episode": "18",
             "imdb": "tt0708529",
             "memoryalpha": "Duet_(episode)",
             "podcasts": [
@@ -441,7 +419,7 @@
         {
             "airdate": "1993.06.20",
             "description": "Vedek Winn, a candidate in the race for the open Kai position, stirs up trouble on DS9 when she attempts to boycott Keiko's school for not teaching Bajoran religious beliefs.",
-            "episode": "20",
+            "episode": "19",
             "imdb": "tt0708556",
             "memoryalpha": "In_the_Hands_of_the_Prophets_(episode)",
             "podcasts": [
@@ -1678,36 +1656,13 @@
                 "https://image.tmdb.org/t/p/original/mIpfHCodrdPGkAQz3b2gAS1sVA2.jpg",
                 "https://image.tmdb.org/t/p/original/v99ZiiN0dhNzX51GM3BXiDS8Qtd.jpg"
             ],
-            "title": "The Way of the Warrior (1)",
+            "title": "The Way of the Warrior",
             "tvdb": 1005777
-        },
-        {
-            "airdate": "1995.10.02",
-            "description": "Sisko becomes uncomfortable when the Klingons station a task force to help defend against the Dominion. Worf is summoned to find out their true intentions.",
-            "episode": "02",
-            "imdb": "",
-            "memoryalpha": "The_Way_of_the_Warrior_(episode)",
-            "podcasts": [
-                {
-                    "airdate": "2019.02.25",
-                    "episode": "Tout Suite Goop Sweep",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119415531bfee786340e0",
-                    "order": 250,
-                    "title": "The Greatest Generation"
-                }
-            ],
-            "season": "04",
-            "stills": [
-                "https://image.tmdb.org/t/p/original/fTwXDhximjfRbvl9LgLJSHDxo76.jpg",
-                "https://image.tmdb.org/t/p/original/cNgcrG5p85md6YOW6T1k7jHSGFa.jpg"
-            ],
-            "title": "The Way of the Warrior (2)",
-            "tvdb": 1012581
         },
         {
             "airdate": "1995.10.09",
             "description": "Melanie, an aspiring writer, wants to know why Jake Sisko stopped writing at 40. Jake tells how his father died in an accident and then suddenly reappeared.",
-            "episode": "03",
+            "episode": "02",
             "imdb": "tt0708645",
             "memoryalpha": "The_Visitor_(episode)",
             "podcasts": [
@@ -1730,7 +1685,7 @@
         {
             "airdate": "1995.10.16",
             "description": "Bashir is asked to help a group of renegade Jem'Hadar break their addiction to ketracel white. Meanwhile Worf is dissatisfied with the way Odo runs security.",
-            "episode": "04",
+            "episode": "03",
             "imdb": "tt0708547",
             "memoryalpha": "Hippocratic_Oath_(episode)",
             "podcasts": [
@@ -1753,7 +1708,7 @@
         {
             "airdate": "1995.10.23",
             "description": "Kira and Gul Dukat go after the lost prison ship Ravinok. Dukat has a secret. Meanwhile Kasidy Yates tries to find work near Bajor, leaving Sisko uncomfortable.",
-            "episode": "05",
+            "episode": "04",
             "imdb": "tt0708558",
             "memoryalpha": "Indiscretion_(episode)",
             "podcasts": [
@@ -1776,7 +1731,7 @@
         {
             "airdate": "1995.10.30",
             "description": "Lenara Kahn, the new host of the wife of Dax's former host Torias, comes to the station. While they're not allowed to renew their relation, there's still a spark.",
-            "episode": "06",
+            "episode": "05",
             "imdb": "tt0708588",
             "memoryalpha": "Rejoined_(episode)",
             "podcasts": [
@@ -1799,7 +1754,7 @@
         {
             "airdate": "1995.11.06",
             "description": "A damaged Defiant must play a dangerous game of cat-and-mouse with two Jem'hadar ships inside a gas giant.",
-            "episode": "07",
+            "episode": "06",
             "imdb": "tt0708605",
             "memoryalpha": "Starship_Down_(episode)",
             "podcasts": [
@@ -1822,7 +1777,7 @@
         {
             "airdate": "1995.11.13",
             "description": "Quark and Rom take Nog to Earth and Starfleet Academy, but a malfunction with the ship takes the crew back in time, to Roswell New Mexico in 1947.",
-            "episode": "08",
+            "episode": "07",
             "imdb": "tt0708565",
             "memoryalpha": "Little_Green_Men_(episode)",
             "podcasts": [
@@ -1845,7 +1800,7 @@
         {
             "airdate": "1995.11.20",
             "description": "Worf, Dax and the Klingon Dahar master Kor set out to find an ancient lost relic: the Sword of Kahless.",
-            "episode": "09",
+            "episode": "08",
             "imdb": "tt0708644",
             "memoryalpha": "The_Sword_of_Kahless_(episode)",
             "podcasts": [
@@ -1868,7 +1823,7 @@
         {
             "airdate": "1995.11.27",
             "description": "When an transporter emergency turns the command crew into holosuite characters, Bashir's James Bond fantasy takes on a deadly reality.",
-            "episode": "10",
+            "episode": "09",
             "imdb": "tt0708573",
             "memoryalpha": "Our_Man_Bashir_(episode)",
             "podcasts": [
@@ -1891,7 +1846,7 @@
         {
             "airdate": "1996.01.01",
             "description": "Sisko travels to Earth when a bombing at a Federation conference is determined to be the work of Changelings.",
-            "episode": "11",
+            "episode": "10",
             "imdb": "tt0708549",
             "memoryalpha": "Homefront_(episode)",
             "podcasts": [
@@ -1914,7 +1869,7 @@
         {
             "airdate": "1996.01.08",
             "description": "When Starfleet institutes martial law to combat the Changeling Menace, Sisko begins to question if the Dominion is the real threat.",
-            "episode": "12",
+            "episode": "11",
             "imdb": "tt0708575",
             "memoryalpha": "Paradise_Lost_(episode)",
             "podcasts": [
@@ -1937,7 +1892,7 @@
         {
             "airdate": "1996.01.29",
             "description": "First Minister Shakaar visits the station, despite a threat of assassination. He falls in love with Kira much to Odo's dismay.",
-            "episode": "13",
+            "episode": "12",
             "imdb": "tt0708521",
             "memoryalpha": "Crossfire_(episode)",
             "podcasts": [
@@ -1960,7 +1915,7 @@
         {
             "airdate": "1996.02.05",
             "description": "Dukat returns, stripped of his prestige, to escort Kira to a Cardassian conference about the Dominion. But an attack by a Klingon raider may give Dukat a chance to redeem himself in the eyes of his government.",
-            "episode": "14",
+            "episode": "13",
             "imdb": "tt0708590",
             "memoryalpha": "Return_to_Grace_(episode)",
             "podcasts": [
@@ -1983,7 +1938,7 @@
         {
             "airdate": "1996.02.12",
             "description": "Worf's brother Kurn asks him to perform a death rite to regain his lost honor. Meanwhile Kira and O'Brien investigate Klingon activity near the Bajoran border.",
-            "episode": "15",
+            "episode": "14",
             "imdb": "tt0708641",
             "memoryalpha": "Sons_of_Mogh_(episode)",
             "podcasts": [
@@ -2006,7 +1961,7 @@
         {
             "airdate": "1996.02.19",
             "description": "Unfair working conditions and pay cuts cause Rom to organize a union of the employees of Quark's Bar. Meanwhile Worf still finds it hard to settle on the station.",
-            "episode": "16",
+            "episode": "15",
             "imdb": "tt0708503",
             "memoryalpha": "Bar_Association_(episode)",
             "podcasts": [
@@ -2029,7 +1984,7 @@
         {
             "airdate": "1996.02.26",
             "description": "A man claiming to be the emissary comes through the wormhole. Sisko is happy to give up his position. Meanwhile Keiko returns and O'Brien stops spending time with Bashir.",
-            "episode": "17",
+            "episode": "16",
             "imdb": "tt0708497",
             "memoryalpha": "Accession_(episode)",
             "podcasts": [
@@ -2052,7 +2007,7 @@
         {
             "airdate": "1996.04.08",
             "description": "When Worf destroys a civilian shuttle during an engagement with the Klingons, an extradition hearing is held to see if he must face charges.",
-            "episode": "18",
+            "episode": "17",
             "imdb": "tt0708594",
             "memoryalpha": "Rules_of_Engagement_(episode)",
             "podcasts": [
@@ -2075,7 +2030,7 @@
         {
             "airdate": "1996.04.15",
             "description": "O'Brien tries to re-integrate to life on the station after serving 20 years in a virtual prison.",
-            "episode": "19",
+            "episode": "18",
             "imdb": "tt0708545",
             "memoryalpha": "Hard_Time_(episode)",
             "podcasts": [
@@ -2098,7 +2053,7 @@
         {
             "airdate": "1996.04.22",
             "description": "When the Mirror Universe counterpart of Sisko's deceased wife lures Jake to the other side, Sisko must follow and help the human resistance against the Alliance's forces.",
-            "episode": "20",
+            "episode": "19",
             "imdb": "tt0708602",
             "memoryalpha": "Shattered_Mirror_(episode)",
             "podcasts": [
@@ -2121,7 +2076,7 @@
         {
             "airdate": "1996.04.29",
             "description": "A mysterious woman approaches Jake about his future as a writer. Odo promises to do whatever it takes to help Lwaxana Troi keep her baby over the father's wishes - even if it means marrying her himself.",
-            "episode": "21",
+            "episode": "20",
             "imdb": "tt0708631",
             "memoryalpha": "The_Muse_(episode)",
             "podcasts": [
@@ -2144,7 +2099,7 @@
         {
             "airdate": "1996.05.06",
             "description": "Sisko must face betrayal when evidence surfaces that Kasidy is smuggling for the Maquis. Meanwhile Garak makes acquaintance with Ziyal.",
-            "episode": "22",
+            "episode": "21",
             "imdb": "tt0708543",
             "memoryalpha": "For_the_Cause_(episode)",
             "podcasts": [
@@ -2167,7 +2122,7 @@
         {
             "airdate": "1996.05.13",
             "description": "A renegade group of Jem'Hadar plunders Deep Space Nine. Sisko agrees to a combat operation with loyal Jem'Hadar to prevent the renegades completing a planetary gateway.",
-            "episode": "23",
+            "episode": "22",
             "imdb": "tt0708653",
             "memoryalpha": "To_the_Death_(episode)",
             "podcasts": [
@@ -2190,7 +2145,7 @@
         {
             "airdate": "1996.05.20",
             "description": "Bashir tries to help a planet in the grips of a Dominion-engineered plague that guarantees a painful death.",
-            "episode": "24",
+            "episode": "23",
             "imdb": "tt0708634",
             "memoryalpha": "The_Quickening_(episode)",
             "podcasts": [
@@ -2213,7 +2168,7 @@
         {
             "airdate": "1996.06.10",
             "description": "Quarks hears on Ferenginar he is going to die. Rom convinces him to sell his remains. After an accident, Bashir has to move Keiko's baby to Kira's womb.",
-            "episode": "25",
+            "episode": "24",
             "imdb": "tt0708508",
             "memoryalpha": "Body_Parts_(episode)",
             "podcasts": [
@@ -2236,7 +2191,7 @@
         {
             "airdate": "1996.06.17",
             "description": "Odo is suddenly struck by illness. He is barely able to hold shape. Bashir and Odo see no other alternative then going to the Founders. Garak wants to come along.",
-            "episode": "26",
+            "episode": "25",
             "imdb": "tt0708509",
             "memoryalpha": "Broken_Link_(episode)",
             "podcasts": [
@@ -4028,31 +3983,8 @@
                 "https://image.tmdb.org/t/p/original/6jtutQH9WN0C5CNUnoZyYNK6BSA.jpg",
                 "https://image.tmdb.org/t/p/original/weToksfYhQ3jLSUlpF1oh8QNA06.jpg"
             ],
-            "title": "What You Leave Behind (1)",
+            "title": "What You Leave Behind",
             "tvdb": 1005878
-        },
-        {
-            "airdate": "1999.06.02",
-            "description": "Sisko leads, what he hopes will be, a final all-out assault on Cardassia Prime, as Kira and Garak mount a suicide assault on the Cardassian headquarters, occupied by the Dominion, who kill innocent women and children village by village in retaliation for Resistance attacks.",
-            "episode": "26",
-            "imdb": null,
-            "memoryalpha": "What_You_Leave_Behind_(episode)",
-            "podcasts": [
-                {
-                    "airdate": "2021.02.01",
-                    "episode": "The Prophet Goodbye",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1191c526757e10b6bd0f0",
-                    "order": 351,
-                    "title": "The Greatest Generation"
-                }
-            ],
-            "season": "07",
-            "stills": [
-                "https://image.tmdb.org/t/p/original/axxnRLIvxyIIfr3oRk7FtfriUa0.jpg",
-                "https://image.tmdb.org/t/p/original/q1HDYP65VvidyFg3ieX2ME7NWI1.jpg"
-            ],
-            "title": "What You Leave Behind (2)",
-            "tvdb": 1012582
         }
     ],
     "imdb": "",

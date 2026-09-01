@@ -21,35 +21,13 @@
                 "https://image.tmdb.org/t/p/original/1AThVBMraIqouseeXSojJpBt1sM.jpg",
                 "https://image.tmdb.org/t/p/original/upAuq9otlYiNmpBAP3PGjgUuaEx.jpg"
             ],
-            "title": "Caretaker (1)",
+            "title": "Caretaker",
             "tvdb": 112854
-        },
-        {
-            "airdate": "1995.01.16",
-            "description": "Stardate: 48351.6. While in pursuit of a Maquis ship in a region of space known as the 'Badlands', Captain Kathryn Janeway and her crew aboard Voyager and the Maquis ship are transported 70,000 light years from home into the uncharted region of the galaxy known as the Delta Quadrant.",
-            "episode": "02",
-            "imdb": "tt14469688",
-            "memoryalpha": "Caretaker_(episode)",
-            "podcasts": [
-                {
-                    "airdate": "2021.02.15",
-                    "episode": "The Bathroom Cloaca",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119145531bfee786332ec",
-                    "order": 353,
-                    "title": "The Greatest Generation"
-                }
-            ],
-            "season": "01",
-            "stills": [
-                "https://image.tmdb.org/t/p/original/rYxYi4Zrb7C66WeLl6v3s0jbI42.jpg"
-            ],
-            "title": "Caretaker (2)",
-            "tvdb": 1141928
         },
         {
             "airdate": "1995.01.23",
             "description": "Stardate: 48439.7. As the Maquis crewmembers begin to integrate themselves into the Starfleet crew, Voyager becomes trapped in a quantum singularity.",
-            "episode": "03",
+            "episode": "02",
             "imdb": "tt0708943",
             "memoryalpha": "Parallax_(episode)",
             "podcasts": [
@@ -71,7 +49,7 @@
         {
             "airdate": "1995.01.30",
             "description": "Stardate: Unknown. After being hit by the shockwave of a devastating planet-wide explosion, Voyager investigates. While on the surface, Janeway and Paris are accidentally 'shifted' one day into the past.",
-            "episode": "04",
+            "episode": "03",
             "imdb": "tt0708996",
             "memoryalpha": "Time_and_Again_(episode)",
             "podcasts": [
@@ -93,7 +71,7 @@
         {
             "airdate": "1995.02.06",
             "description": "Stardate: 48532.4. During an away mission in the search for dilithium crystals, Neelix is attacked and his lungs are surgically removed by a disease-ridden race of aliens known as the Vidiians. His only hope for survival is if the crew of Voyager can get them back.",
-            "episode": "05",
+            "episode": "04",
             "imdb": "tt0708946",
             "memoryalpha": "Phage_(episode)",
             "podcasts": [
@@ -115,7 +93,7 @@
         {
             "airdate": "1995.02.13",
             "description": "Stardate: 48546.2. In the search for omicron particles to boost the ship's energy supplies, Voyager inadvertently injures a space-faring life form.",
-            "episode": "06",
+            "episode": "05",
             "imdb": "tt0708978",
             "memoryalpha": "The_Cloud_(episode)",
             "podcasts": [
@@ -137,7 +115,7 @@
         {
             "airdate": "1995.02.20",
             "description": "Stardate: 48579.4. The discovery of a wormhole leading to the Alpha Quadrant elates the crew, however, their only contact within range is a skeptical and paranoid Romulan.",
-            "episode": "07",
+            "episode": "06",
             "imdb": "tt0708891",
             "memoryalpha": "Eye_of_the_Needle_(episode)",
             "podcasts": [
@@ -159,7 +137,7 @@
         {
             "airdate": "1995.02.27",
             "description": "Stardate: Unknown. Tom Paris is accused of a murder he claims he did not commit. His sentence is to re-live the last few moments of his victim's life every 14 hours through a memory transplant.",
-            "episode": "08",
+            "episode": "07",
             "imdb": "tt0708889",
             "memoryalpha": "Ex_Post_Facto_(episode)",
             "podcasts": [
@@ -181,7 +159,7 @@
         {
             "airdate": "1995.03.13",
             "description": "Stardate: 48623.5. While investigating an asteroid belt containing a new element, Harry Kim is pulled into a 'subspace vacuole' and switched with a dead body. Soon after the body is revived the crew learn that the asteroid belt is the graveyard of an alien culture that transports its dead in the belief that they evolve into a higher state of consciousness. Harry's appearance on the homeworld begins to raise questions about the existence of their afterlife.",
-            "episode": "09",
+            "episode": "08",
             "imdb": "tt0708884",
             "memoryalpha": "Emanations_(episode)",
             "podcasts": [
@@ -203,7 +181,7 @@
         {
             "airdate": "1995.03.20",
             "description": "Stardate: 48642.5. Harry Kim discovers advanced technology when a race of aliens known as the Sikarans offer shore leave to the crew of Voyager. This would send Voyager 40,000 light years closer to home, however, the Sikarians' \"Canon of Laws\" forbids them from sharing their technology with anyone.",
-            "episode": "10",
+            "episode": "09",
             "imdb": "tt0708948",
             "memoryalpha": "Prime_Factors_(episode)",
             "podcasts": [
@@ -225,7 +203,7 @@
         {
             "airdate": "1995.04.10",
             "description": "Stardate: 48658.2. When stolen Federation technology is found on a severely damaged Kazon Nistrim ship, Seska becomes the prime suspect. The evidence is further reinforced when questions arise regarding her true heritage.",
-            "episode": "11",
+            "episode": "10",
             "imdb": "tt0708973",
             "memoryalpha": "State_of_Flux_(episode)",
             "podcasts": [
@@ -247,7 +225,7 @@
         {
             "airdate": "1995.04.24",
             "description": "Stardate: 48693.2. Harry Kim disappears from the holodeck during his holo-novel, \"Beowulf.\" According to the characters, he died at the hands of a mystical beast known as \"Grendel\". When Chakotay and Tuvok also disappear, the Doctor is transferred to the holodeck to investigate.",
-            "episode": "12",
+            "episode": "11",
             "imdb": "tt0708906",
             "memoryalpha": "Heroes_and_Demons_(episode)",
             "podcasts": [
@@ -269,7 +247,7 @@
         {
             "airdate": "1995.05.01",
             "description": "Stardate: 48734.2. After Chakotay and Tuvok are injured in a shuttle accident, a non-corporeal life form begins to wreak havoc on Voyager by infiltrating the minds of the crew and altering the ship's systems one by one.",
-            "episode": "13",
+            "episode": "12",
             "imdb": "tt0708863",
             "memoryalpha": "Cathexis_(episode)",
             "podcasts": [
@@ -291,7 +269,7 @@
         {
             "airdate": "1995.05.08",
             "description": "Stardate: 48784.2. The Vidiians capture Paris, Torres and Durst while on an away mission. Torres is taken to a lab and 'split' into two people: one human, and one Klingon.",
-            "episode": "14",
+            "episode": "13",
             "imdb": "tt0708892",
             "memoryalpha": "Faces_(episode)",
             "podcasts": [
@@ -313,7 +291,7 @@
         {
             "airdate": "1995.05.15",
             "description": "Stardate: 48832.1. The man, who designed the weapon that destroyed all life on the moon of his home world, including that of his family, diagnoses Neelix with a fatal illness.",
-            "episode": "15",
+            "episode": "14",
             "imdb": "tt0708918",
             "memoryalpha": "Jetrel_(episode)",
             "podcasts": [
@@ -348,7 +326,7 @@
             "title": "Learning Curve",
             "tvdb": 112954,
             "season": "01",
-            "episode": "16",
+            "episode": "15",
             "imdb": "tt0708921",
             "stills": [
                 "https://image.tmdb.org/t/p/original/6R34Zo3zPqlsJBSavSzdMVOc859.jpg"
@@ -2406,35 +2384,13 @@
             "stills": [
                 "https://image.tmdb.org/t/p/original/bXQUrDn0oeBZLzMV81M4nBDsin1.jpg"
             ],
-            "title": "Dark Frontier, Part 1",
+            "title": "Dark Frontier",
             "tvdb": 113229
-        },
-        {
-            "airdate": "1999.02.17",
-            "description": "Stardate: Unknown. After defeating a Borg ship, Captain Janeway decides to launch an attack to steal a trans-warp coil to shorten Voyager's journey home. The Borg detect her plan, and access Seven Of Nine's neural transceiver to deliver an ultimatum: re-join the collective or the ship and its crew will be assimilated. If she agrees, the ship will be guaranteed safe passage through Borg space.",
-            "episode": "16",
-            "imdb": "tt0708872",
-            "memoryalpha": "Dark_Frontier_(episode)",
-            "podcasts": [
-                {
-                    "airdate": "2023.03.06",
-                    "episode": "No Less Than Most of an Ass",
-                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119092f651f55f51c9d1a",
-                    "order": 460,
-                    "title": "The Greatest Generation"
-                }
-            ],
-            "season": "05",
-            "stills": [
-                "https://image.tmdb.org/t/p/original/bXQUrDn0oeBZLzMV81M4nBDsin1.jpg"
-            ],
-            "title": "Dark Frontier, Part 2",
-            "tvdb": 113293
         },
         {
             "airdate": "1999.02.24",
             "description": "Stardate: Unknown. Without medical clearance, Kim becomes involved in a love affair with a member of the Varo species. Problems arise when they become biochemically interdependent after the incident.",
-            "episode": "17",
+            "episode": "16",
             "imdb": "tt0708980",
             "memoryalpha": "The_Disease_(episode)",
             "podcasts": [
@@ -2457,7 +2413,7 @@
         {
             "airdate": "1999.03.03",
             "description": "Stardate: Unknown. After Paris and Torres tie the knot, the ship and its crew start to disintegrate on the molecular level.",
-            "episode": "18",
+            "episode": "17",
             "imdb": "tt0795288",
             "memoryalpha": "Course:_Oblivion_(episode)",
             "podcasts": [
@@ -2480,7 +2436,7 @@
         {
             "airdate": "1999.03.24",
             "description": "Stardate: Unknown. While boxing on the holodeck, Chakotay is contacted by a telepathic species. However, prolonged communication may leave him insane or braindead.",
-            "episode": "19",
+            "episode": "18",
             "imdb": "tt0708981",
             "memoryalpha": "The_Fight_(episode)",
             "podcasts": [
@@ -2502,7 +2458,7 @@
         {
             "airdate": "1999.03.31",
             "description": "Stardate: Unknown. Voyager is ambushed by a race known as the Hazari with no way of escape. Soon, an alien 'Think Tank' arrives with an answer to the ship's problem and all they ask in return is Seven of Nine.",
-            "episode": "20",
+            "episode": "19",
             "imdb": "tt0708993",
             "memoryalpha": "Think_Tank_(episode)",
             "podcasts": [
@@ -2524,7 +2480,7 @@
         {
             "airdate": "1999.04.26",
             "description": "Stardate: Unknown. After encountering a damaged Malon freighter, a repair crew from Voyager tries to contain a toxic chemical leak that threatens a nearby inhabited planet. Before they embark on the mission, two crewmen from the ship warn them about the 'Angel of Decay' that wreaks havoc on board the ship.",
-            "episode": "21",
+            "episode": "20",
             "imdb": "tt0708919",
             "memoryalpha": "Juggernaut_(episode)",
             "podcasts": [
@@ -2546,7 +2502,7 @@
         {
             "airdate": "1999.04.28",
             "description": "Stardate: Unknown. The Doctor tries to introduce Seven of Nine to the concept of dating. After a disastrous first date the Doctor personally guides her, but he soon realises that he is falling in love with her.",
-            "episode": "22",
+            "episode": "21",
             "imdb": "tt0708971",
             "memoryalpha": "Someone_to_Watch_Over_Me_(episode)",
             "podcasts": [
@@ -2569,7 +2525,7 @@
         {
             "airdate": "1999.05.05",
             "description": "Stardate: Unknown. Captain Janeway relates the story of her distant ancestor Shannon O'Donnell during the construction of the Millennium Gate on Earth during New Year's Eve 1999. She must convince the last holdout, local bookstore owner Henry Janeway to approve the plan.",
-            "episode": "23",
+            "episode": "22",
             "imdb": "tt0708846",
             "memoryalpha": "11:59_(episode)",
             "podcasts": [
@@ -2591,7 +2547,7 @@
         {
             "airdate": "1999.05.12",
             "description": "Stardate: Unknown. When Voyager is destroyed, Captain Braxton of the 29th Century Timeship Relativity contacts Seven of Nine to travel back in time and discover who planted the 'temporal disruptor.' However, she must do this without being discovered by the past Janeway.",
-            "episode": "24",
+            "episode": "23",
             "imdb": "tt0708955",
             "memoryalpha": "Relativity_(episode)",
             "podcasts": [
@@ -2613,7 +2569,7 @@
         {
             "airdate": "1999.05.19",
             "description": "Stardate: Unknown. After Kim beams an alien missile onboard Voyager it links up to the Doctor's systems and requests that it is allowed to complete its mission of mass destruction.",
-            "episode": "25",
+            "episode": "24",
             "imdb": "tt0709009",
             "memoryalpha": "Warhead_(episode)",
             "podcasts": [
@@ -2635,7 +2591,7 @@
         {
             "airdate": "1999.05.26",
             "description": "Stardate: Unknown. Voyager encounters another Federation starship, the Equinox, commanded by Captain Ransom, which was also abducted by the Caretaker. However, a terrible secret is exposed by the Doctor and Captain Ransom steals Voyager's technology along with Seven of Nine and the Doctor as hostages.",
-            "episode": "26",
+            "episode": "25",
             "imdb": "tt0708887",
             "memoryalpha": "Equinox_(episode)",
             "podcasts": [
@@ -4000,7 +3956,7 @@
             "description": "Stardate: Unknown. Set ten years after the return of Voyager to Earth, Admiral Janeway embarks on a questionable mission.",
             "episode": "25",
             "imdb": "tt0394911",
-            "memoryalpha": "All_Good_Things..._(episode)",
+            "memoryalpha": "Endgame_(episode)",
             "podcasts": [
                 {
                     "airdate": "2024.05.06",
@@ -4020,31 +3976,8 @@
                 "https://image.tmdb.org/t/p/original/etJp6Mk9BnYQUTAbP6BVMQ0pgWG.jpg",
                 "https://image.tmdb.org/t/p/original/78s4u929sPaxY2lu1aTvWs9yKi0.jpg"
             ],
-            "title": "Endgame (1)",
+            "title": "Endgame",
             "tvdb": 113546
-        },
-        {
-            "airdate": "2001.05.23",
-            "description": "Stardate: Unknown. After a decades-long journey to reach the Alpha Quadrant, Admiral Kathryn Janeway makes a bold decision to change the past in an attempt to undo the toll taken on the crew during their arduous journey home.\n\nThis is the final episode of the series.",
-            "episode": "26",
-            "imdb": null,
-            "memoryalpha": "All_Good_Things..._(episode)",
-            "podcasts": [],
-            "season": "07",
-            "stills": [
-                "https://image.tmdb.org/t/p/original/6dtn51OtnndcEx43ey3YhFiYdZT.jpg",
-                "https://image.tmdb.org/t/p/original/yYirb8a4YCvf5BwXueBJPI300nk.jpg",
-                "https://image.tmdb.org/t/p/original/zlDXtSC3Bx6o8nGiCEMZ3dO9oYp.jpg",
-                "https://image.tmdb.org/t/p/original/mvL1R7SUd1gAzs5BTTAgYVg31SN.jpg",
-                "https://image.tmdb.org/t/p/original/scxXPnPiQCbTjbdiAKY38uqYffl.jpg",
-                "https://image.tmdb.org/t/p/original/sJ1GMtMjxkU0A6MlSyLGx4DnKPj.jpg",
-                "https://image.tmdb.org/t/p/original/nFz8DDyjSYG6xM1wCIiGZHo2jsC.jpg",
-                "https://image.tmdb.org/t/p/original/oWPsRhcBOQIgRLkBJnm80ssi2DI.jpg",
-                "https://image.tmdb.org/t/p/original/9L3yfkf5jCbgldx3u34u6leRvnR.jpg",
-                "https://image.tmdb.org/t/p/original/7nYGYJzrIXirQEznXElTCdS4KxA.jpg"
-            ],
-            "title": "Endgame (2)",
-            "tvdb": 1132734
         }
     ],
     "imdb": "",
