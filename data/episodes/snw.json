@@ -1177,6 +1177,29 @@
             "stills": [
                 "https://image.tmdb.org/t/p/original/zRbCF9m3D2RxTQscbkKrbNeEVKr.jpg"
             ]
+        },
+        {
+            "airdate": "2026.08.27",
+            "title": "Off-Hour",
+            "description": "The Enterprise falls into a slipstream that pushes them to a catastrophic warp threshold.",
+            "season": "04",
+            "episode": "06",
+            "podcasts": [
+                {
+                    "airdate": "2026.08.28",
+                    "episode": "Dick Obliterated",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/dick-obliterated-snw-s1e6",
+                    "order": 389,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Off-Hour_(episode)",
+            "tvdb": 7193800,
+            "imdb": "tt37231044",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/rC7ndGGi9MBPB6ySgMc2pSSjvfX.jpg",
+                "https://image.tmdb.org/t/p/original/u9fgi7eNxL4ynUoLt4xHKq1yjq.jpg"
+            ]
         }
     ],
     "imdb": "",

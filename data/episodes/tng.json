@@ -686,9 +686,16 @@
             "memoryalpha": "Coming_of_Age_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.08.31",
+                    "episode": "Infinite Roundhouse",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/infinite-roundhouse-tng-s1e19",
+                    "order": 640,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.03.28",
                     "episode": "Chaotic Bro",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-18-chaotic-bro-s1e19",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119557beb8128698116c0",
                     "order": 18,
                     "title": "The Greatest Generation"
                 }
