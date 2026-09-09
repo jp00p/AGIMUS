@@ -1,4 +1,9 @@
 {
+  "!!! (Metal Gear Solid)": {
+    "file": "data/drops/metalgearsolidexclamationpoint.mp4",
+    "description": "! !! !!! Metal Gear Solid",
+    "url": "https://i.imgur.com/tUg0l7c.mp4"
+  },
   "Admiral [Insert] Supercut": {
     "file": "data/drops/extended/admiralinsertsupercut.mp4",
     "description": "Admiral Insert Vance Admiral Vance",
@@ -103,6 +108,11 @@
     "file": "data/drops/buddyhusnock.mp4",
     "description": "Buddy Husnock Weezer Buddy Holly parody song",
     "url": "https://i.imgur.com/jHNoqFg.mp4"
+  },
+  "Bump Bump Bump!": {
+    "file": "data/drops/bumpbumpbump.mp4",
+    "description": "The Greatest Gen Bump",
+    "url": "https://i.imgur.com/JfNia7e.mp4"
   },
   "By Metaphor!": {
     "file": "data/drops/bymetaphor.mp4",
@@ -284,6 +294,11 @@
     "description": "Garrett Wang Auction Addict. Made by Danma.",
     "url": "https://i.imgur.com/UkKhyYI.mp4"
   },
+  "Genesis? YES! GENESIS!": {
+    "file": "data/drops/genesis.mp4",
+    "description": "Genesis yes genesis",
+    "url": "https://i.imgur.com/3DZwQPi.mp4"
+  },
   "Greatest Generation: Deep Space Nine Intro": {
     "file": "data/drops/ds9intro.mp4",
     "description": "Deep Space Nine (DS9) Intro Interstitial",
@@ -449,10 +464,20 @@
     "description": "Cat I'm A Kitty Cat and I meow meow meow and I meow meow meow and I dance dance dance, and I dance dance dance.",
     "url": "https://i.imgur.com/Wo5PJZ0.mp4"
   },
+  "KLAXON!": {
+    "file": "data/drops/klaxon.mp4",
+    "description": "Picard: Klaxon Klaxon Klaxon",
+    "url": "https://i.imgur.com/1voTxY2.mp4"
+  },
   "Klingon Sting (Kurn Trumpets)": {
     "file": "data/drops/klingonsting.mp4",
     "description": "Klingon Sting Kurn Trumpets Music Klingon Empire",
     "url": "https://i.imgur.com/3nvvXlg.mp4"
+  },
+  "Landru Is Gentle, You Will Come": {
+    "file": "data/drops/landruisgentleyouwillcome.mp4",
+    "description": "Landru is gentle you will come",
+    "url": "https://i.imgur.com/IiSz9Ag.mp4"
   },
   "Leedle Leedle Lee": {
     "file": "data/drops/leedleleedlelee.mp4",
@@ -523,6 +548,11 @@
     "file": "data/drops/micfeedback.mp4",
     "description": "Microphone Mic Feedback Get A Life",
     "url": "https://i.imgur.com/2YlDbh9.mp4"
+  },
+  "Money... Women...": {
+    "file": "data/drops/moneywomen.mp4",
+    "description": "Money Women",
+    "url": "https://i.imgur.com/Z5QWfsW.mp4"
   },
   "Mornhammer (Clang!)": {
     "file": "data/drops/mornhammerclang.mp4",
