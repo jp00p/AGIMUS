@@ -721,9 +721,16 @@
             "memoryalpha": "Heart_of_Glory_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.09.07",
+                    "episode": "Double Neutered",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/double-neutered-tng-s1e20",
+                    "order": 641,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.03.30",
                     "episode": "A Warrior Is Coming",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-19-a-warrior-is-coming-s1e20",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f11949526757e10b6bdec6",
                     "order": 19,
                     "title": "The Greatest Generation"
                 }

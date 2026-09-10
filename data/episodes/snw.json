@@ -1200,6 +1200,29 @@
                 "https://image.tmdb.org/t/p/original/rC7ndGGi9MBPB6ySgMc2pSSjvfX.jpg",
                 "https://image.tmdb.org/t/p/original/u9fgi7eNxL4ynUoLt4xHKq1yjq.jpg"
             ]
+        },
+        {
+            "airdate": "2026.09.03",
+            "title": "Like Chronitons Through the Hourglass",
+            "description": "A space trickster traps the Enterprise crew in a soap opera as Pike mourns a lost life.",
+            "season": "04",
+            "episode": "07",
+            "podcasts": [
+                {
+                    "airdate": "2026.09.04",
+                    "episode": "A Thousand Cliffs",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/a-thousand-cliffs-snw-s4e7",
+                    "order": 390,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Like_Chronitons_Through_the_Hourglass_(episode)",
+            "tvdb": 7193801,
+            "imdb": "tt37231059",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/23wx52OoqyQZJrFsZAbY55BvJD0.jpg",
+                "https://image.tmdb.org/t/p/original/dUMjChTsuhH4LcfnxoeeqOLOlQd.jpg"
+            ]
         }
     ],
     "imdb": "",
