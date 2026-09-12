@@ -360,6 +360,14 @@
       "crontab": "*/3 * * * *",
       "enabled": false,
       "maintainer_user_id": 735658100958298154
+    },
+    "arena": {
+      "channels": [
+        "tsunkatse-arena"
+      ],
+      "crontab": "0 * * * *",
+      "enabled": true,
+      "voter_full_count": 25
     }
   },
   "commands": {
