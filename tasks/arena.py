@@ -28,8 +28,6 @@ phrases_for_no_vote = [
     "Are these both real episodes?",
 ]
 
-cached_show_details = {}
-
 
 def arena_task(bot: discord.Bot):
     """
@@ -71,15 +69,23 @@ def arena_task(bot: discord.Bot):
         """
         Find the polls that have expired, and move points to the one the beat the spread
         """
+        channel_list = [bot.get_channel(c_id) for c_id in get_channel_ids_list(config["tasks"]["arena"]["channels"])]
         for open_poll in await db.get_open_polls():
-            print(open_poll)
-            discord_poll = bot.get_poll(open_poll['message_id'])
+            discord_poll = None
+            # Load the latest from the server
+            for channel in channel_list:
+                try:
+                    message = await channel.fetch_message(open_poll['message_id'])
+                    discord_poll = message.poll
+                    break
+                except (discord.NotFound, discord.Forbidden):
+                    continue
             if discord_poll is None:
+                # If we still don’t have it after manually loading, then it doesn’t exist (deleted?)
                 logger.error(f"We’ve lost the message attached to the poll with message_id {open_poll['message_id']}!")
                 await db.close_poll(open_poll['message_id'], -1., -1)
                 continue
             if not discord_poll.has_ended():
-                print(f"Poll will expire at {discord_poll.expiry.isoformat()}")
                 continue
                 
             episode_a = await db.get_episode(open_poll['episode_a_id'])
@@ -87,7 +93,7 @@ def arena_task(bot: discord.Bot):
             expected_percent = get_expected_percent(episode_a['rank_points'], episode_b['rank_points'])
             actual_percent, total_votes = poll_winning_percent(discord_poll)
             
-            if total_votes < 1:
+            if total_votes < 2:
                 logger.info(f"Not counting poll with only {total_votes} vote on it")
             else:
                 full_voter_count = config["tasks"]["arena"]["voter_full_count"]
@@ -100,12 +106,12 @@ def arena_task(bot: discord.Bot):
 
     def get_episode_details(episode: db.Episode) -> tuple[discord.Embed, str]:
         show = episode["show_name"]
-        if show not in cached_show_details:
-            with open(f"./data/episodes/{show}.json") as f:
-                cached_show_details[show] = json.load(f)
-        show_data = cached_show_details[show]
+        with open(f"./data/episodes/{show}.json") as f:
+            show_details = json.load(f)
+        show_data = show_details
         embed = get_show_embed(show_data, episode["number"], show)
-        return embed, embed.title.replace("\n", " ")
+        title = embed.title.replace("\n", " ")
+        return embed, title if len(title) <= 55 else title[0:54]+'…'  # Poll answers can only be 55 Characters long
     
     async def create_new_poll():
         """
@@ -115,8 +121,10 @@ def arena_task(bot: discord.Bot):
         current_hour = datetime.datetime.now().hour
         episode_b = await db.get_nearest_episode(episode_a['id'], same_show=(current_hour % 2 == 0))
         episode_a_embed, episode_a_name = get_episode_details(episode_a)
+        episode_a_embed.colour = discord.Colour.random()
         episode_b_embed, episode_b_name = get_episode_details(episode_b)
-    
+        episode_b_embed.colour = discord.Colour.random()
+
         channel_list = [bot.get_channel(c_id) for c_id in get_channel_ids_list(config["tasks"]["arena"]["channels"])]
         poll = discord.Poll("Which episode is better", duration=24, allow_multiselect=False) \
             .add_answer(episode_a_name) \

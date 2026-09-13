@@ -93,11 +93,10 @@ async def close_poll(message_id: int, result: float, voter_count: int):
     We’re finished with a poll.
     """
     sql = """ UPDATE arena_polls
-    SET result = %f,
-        voter_count = %d
+    SET result = %s,
+        voter_count = %s
     WHERE message_id = %s
     """
-    print(repr(message_id), repr(result), repr(voter_count))
     async with AgimusDB() as query:
         await query.execute(sql, (result, voter_count, message_id,))
         
