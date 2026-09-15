@@ -121,6 +121,8 @@ def arena_task(bot: discord.Bot):
         episode_a = await db.get_next_episode()
         current_hour = datetime.datetime.now().hour
         episode_b = await db.get_nearest_episode(episode_a['id'], same_show=(current_hour % 2 == 0))
+        if episode_b is None:
+            episode_b = await db.get_nearest_episode(episode_a['id'], same_show=False)
         episode_a_embed, episode_a_name = get_episode_details(episode_a)
         episode_a_embed.colour = discord.Colour.random()
         episode_b_embed, episode_b_name = get_episode_details(episode_b)

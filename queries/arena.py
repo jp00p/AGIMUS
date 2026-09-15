@@ -40,7 +40,7 @@ async def get_next_episode() -> Episode:
         await query.execute(sql)
         return await query.fetchone()
 
-async def get_nearest_episode(id: int, same_show: bool=False) -> Episode:
+async def get_nearest_episode(id: int, same_show: bool=False) -> Episode|None:
     """
     Get the episode with the closest score as the one already selected that has NOT been in a match with it before.
     `same_show` will keep it in the family.

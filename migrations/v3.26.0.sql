@@ -761,7 +761,7 @@ INSERT INTO arena_episodes(show_name, number, episode_name, rank_points, number_
   ('tas', 21, 'The Counter-Clock Incident', 71.42999999999999, 0);
 
 
-INSERT INTO arena_episode(show, number, episode_name, rank_points, number_of_matches) VALUES
+INSERT INTO arena_episode(show_name, number, episode_name, rank_points, number_of_matches) VALUES
   ('disco', 0, 'The Vulcan Hello', 69.58, 0),
   ('disco', 1, 'Battle at the Binary Stars', 68.97999999999999, 0),
   ('disco', 2, 'Context Is for Kings', 69.94, 0),
@@ -819,7 +819,7 @@ INSERT INTO arena_episode(show, number, episode_name, rank_points, number_of_mat
   ('disco', 54, 'Coming Home', 54.1, 0);
 
 
-INSERT INTO arena_episode(show, number, episode_name, rank_points, number_of_matches) VALUES
+INSERT INTO arena_episode(show_name, number, episode_name, rank_points, number_of_matches) VALUES
   ('prodigy', 0, 'Lost & Found (1) / Lost & Found (2)', 65.0, 0),
   ('prodigy', 1, 'Starstruck', 69.29, 0),
   ('prodigy', 2, 'Dreamcatcher', 71.0, 0),
@@ -861,7 +861,7 @@ INSERT INTO arena_episode(show, number, episode_name, rank_points, number_of_mat
   ('prodigy', 38, 'Ouroboros (2)', 71.42999999999999, 0);
 
 
-INSERT INTO arena_episode(show, number, episode_name, rank_points, number_of_matches) VALUES
+INSERT INTO arena_episode(show_name, number, episode_name, rank_points, number_of_matches) VALUES
   ('lowerdecks', 0, 'Second Contact', 71.0, 0),
   ('lowerdecks', 1, 'Envoys', 69.0, 0),
   ('lowerdecks', 2, 'Temporal Edict', 71.0, 0),
@@ -912,5 +912,38 @@ INSERT INTO arena_episode(show, number, episode_name, rank_points, number_of_mat
   ('lowerdecks', 47, 'Upper Decks', 76.0, 0),
   ('lowerdecks', 48, 'Fissure Quest', 82.0, 0),
   ('lowerdecks', 49, 'The New Next Generation', 84.0, 0);
+
+
+INSERT INTO arena_episode(show_name, number, episode_name, rank_points, number_of_matches) VALUES
+  ('picard', 0, 'Remembrance', 78.25, 0),
+  ('picard', 1, 'Maps and Legends', 72.06, 0),
+  ('picard', 2, 'The End Is the Beginning', 71.58, 0),
+  ('picard', 3, 'Absolute Candor', 70.63, 0),
+  ('picard', 4, 'Stardust City Rag', 67.8, 0),
+  ('picard', 5, 'The Impossible Box', 73.31, 0),
+  ('picard', 6, 'Nepenthe', 76.74000000000001, 0),
+  ('picard', 7, 'Broken Pieces', 71.46, 0),
+  ('picard', 8, 'Et in Arcadia Ego (1)', 70.08, 0),
+  ('picard', 9, 'Et in Arcadia Ego (2)', 72.15, 0),
+  ('picard', 10, 'The Star Gazer', 75.28999999999999, 0),
+  ('picard', 11, 'Penance', 72.8, 0),
+  ('picard', 12, 'Assimilation', 67.17, 0),
+  ('picard', 13, 'Watcher', 64.57, 0),
+  ('picard', 14, 'Fly Me to the Moon', 67.72999999999999, 0),
+  ('picard', 15, 'Two of One', 63.949999999999996, 0),
+  ('picard', 16, 'Monsters', 58.54, 0),
+  ('picard', 17, 'Mercy', 66.67, 0),
+  ('picard', 18, 'Hide and Seek', 62.62, 0),
+  ('picard', 19, 'Farewell', 64.42, 0),
+  ('picard', 20, 'The Next Generation', 79.02, 0),
+  ('picard', 21, 'Disengage', 74.77000000000001, 0),
+  ('picard', 22, 'Seventeen Seconds', 80.81, 0),
+  ('picard', 23, 'No Win Scenario', 82.5, 0),
+  ('picard', 24, 'Imposters', 80.35, 0),
+  ('picard', 25, 'The Bounty', 80.58, 0),
+  ('picard', 26, 'Dominion', 77.5, 0),
+  ('picard', 27, 'Surrender', 78.85, 0),
+  ('picard', 28, 'Võx', 83.63, 0),
+  ('picard', 29, 'The Last Generation', 83.0, 0);
 
 COMMIT;
