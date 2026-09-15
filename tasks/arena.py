@@ -12,12 +12,13 @@ from utils.show_utils import get_show_embed
 
 phrases_for_splitting_vote = [
     "They’re about the same",
-    "They’re about the same",
     "Six of one, half dozen of the other",
     "I can’t choose between them",
     "I can’t decide",
     "They’re both certainly episodes of Star Trek",
     "Can’t they just be friends?",
+    "I’m voting for both",
+    "Split my vote between them",
 ]
 
 phrases_for_no_vote = [
@@ -100,7 +101,7 @@ def arena_task(bot: discord.Bot):
                 points_to_move = (actual_percent - expected_percent) * \
                                  (1 if total_votes - 1 > full_voter_count else (total_votes - 1) / full_voter_count)
                 await db.update_episodes(episode_a['id'], episode_b['id'], points_to_move)
-                logger.info(f"Moving {points_to_move} arena points from {episode_a['episode_name']} to {episode_b['episode_name']}")
+                logger.info(f"Moving {points_to_move:.2f} arena points from {episode_a['episode_name']} to {episode_b['episode_name']}")
             await db.close_poll(open_poll['message_id'], actual_percent, total_votes)
             
 
