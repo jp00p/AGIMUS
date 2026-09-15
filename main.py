@@ -3,8 +3,12 @@
 # ███████ ██   ███ ██ ██ ████ ██ ██    ██ ███████
 # ██   ██ ██    ██ ██ ██  ██  ██ ██    ██      ██
 # ██   ██  ██████  ██ ██      ██  ██████  ███████
-from common import *
+import json
+
 import aiohttp
+from colorama import Fore
+
+from common import bot, config, logger
 
 # Slash Commands
 from commands.aliases import aliases
@@ -127,6 +131,7 @@ from tasks.hoodiversaries import hoodiversary_task
 from tasks.scheduler import Scheduler
 from tasks.weyounsday import weyounsday_task
 # from tasks.wrapped_generation import wrapped_generation_task
+from tasks.arena import arena_task
 
 
 background_tasks = set() # for non-blocking tasks
@@ -321,7 +326,7 @@ async def process_command(message:discord.Message):
     user_command = "computer"
 
   # If the user's first word matches one of the commands in configuration
-  if user_command in config["commands"].keys():
+  if user_command in config["commands"]:
     # Check enabled
     #logger.info(f"Parsed command: {Fore.LIGHTBLUE_EX}{user_command}{Fore.RESET}")
     if config["commands"][user_command]["enabled"]:
@@ -480,6 +485,7 @@ scheduled_tasks = [
   hoodiversary_task(bot),
   weyounsday_task(bot),
   # wrapped_generation_task(bot)
+  arena_task(bot),
 ]
 scheduler = Scheduler()
 for task in scheduled_tasks:
