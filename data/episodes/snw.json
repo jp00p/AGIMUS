@@ -1223,6 +1223,29 @@
                 "https://image.tmdb.org/t/p/original/23wx52OoqyQZJrFsZAbY55BvJD0.jpg",
                 "https://image.tmdb.org/t/p/original/dUMjChTsuhH4LcfnxoeeqOLOlQd.jpg"
             ]
+        },
+        {
+            "airdate": "2026.09.10",
+            "title": "Orders of Magnitude",
+            "description": "Enterprise is commandeered by Admiral Reeger to track down an alien ship.",
+            "season": "04",
+            "episode": "08",
+            "podcasts": [
+                {
+                    "airdate": "2026.09.11",
+                    "episode": "Back-of-Head Racism",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/back-of-head-racism-snw-s4e8",
+                    "order": 391,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Orders_of_Magnitude_(episode)",
+            "tvdb": 7193802,
+            "imdb": "tt37231063",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/rsebMAmYaq1x8LDTueJcG1U5wpg.jpg",
+                "https://image.tmdb.org/t/p/original/sGVJ59avGOIrUT27LJIDkorLD4M.jpg"
+            ]
         }
     ],
     "imdb": "",

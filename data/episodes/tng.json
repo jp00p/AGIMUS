@@ -757,9 +757,16 @@
             "memoryalpha": "The_Arsenal_of_Freedom_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.09.14",
+                    "episode": "Ronco Run Amok",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/ronco-run-amok-tng-s1e21",
+                    "order": 642,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.04.04",
                     "episode": "The Clearasil of Freedom",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-20-the-clearasil-of-freedom-s1e21",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119305531bfee78633b21",
                     "order": 20,
                     "title": "The Greatest Generation"
                 }
