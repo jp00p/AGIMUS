@@ -179,6 +179,11 @@
     "description": "Jeopardy: Daily Double sound.",
     "url": "https://i.imgur.com/vRwxIZP.mp4"
   },
+  "Data: Lululululu": {
+    "file": "data/drops/lululululu.mp4",
+    "description": "Data. Bird. Lululululu. Lu lu lu lu lu. Loo loo loo loo loo.",
+    "url": "https://i.imgur.com/yUkXiTf.mp4"
+  },
   "Dear Sweet Morn": {
     "file": "data/drops/dearsweetmorn.mp4",
     "description": "Dear Sweet Morn!",
@@ -1169,6 +1174,11 @@
     "description": "This Old Enterprise This Old House Theme Music",
     "url": "https://i.imgur.com/nfzWeo9.mp4"
   },
+  "This Place Is A Tomb": {
+    "file": "data/drops/thisplaceisatomb.mp4",
+    "description": "This place is a tomb. Event Horizon.",
+    "url": "https://i.imgur.com/zzwwQgg.mp4"
+  },
   "Time Travel": {
     "file": "data/drops/timetravel.mp4",
     "description": "Riker - Time Travel",
@@ -1269,6 +1279,11 @@
     "description": "What are you doing here? What're you doing here?",
     "url": "https://i.imgur.com/RVUU9O8.mp4"
   },
+  "What's Wrong With Ben This Time?": {
+    "file": "data/drops/whatswrongwithbenthistime.mp4",
+    "description": "What's wrong with ben this time. Ben Sick. Illness.",
+    "url": "https://i.imgur.com/kJ8vFdJ.mp4"
+  },
   "Where The (USS) Hood At": {
     "file": "data/drops/wheretheusshoodat.mp4",
     "description": "Where The USS Hood At. Dr Z Mix",
@@ -1294,6 +1309,11 @@
     "description": "Huell Howser: WOW WOWW WOWWW",
     "url": "https://i.imgur.com/HuTbZXy.mp4"
   },
+  "WRONG!!!": {
+    "file": "data/drops/wrong.mp4",
+    "description": "Adam saying wrong. Wrong answer.",
+    "url": "https://i.imgur.com/Vo8z3RP.mp4"
+  },
   "WUB WUB WUB": {
     "file": "data/drops/wubwubwub.mp4",
     "description": "Wub Wub Wub Star Trek IV The One With The Whales Space Probe",
@@ -1318,5 +1338,10 @@
     "file": "data/drops/youreallywanttodothis.mp4",
     "description": "You really want to do this here? Now? Okay!",
     "url": "https://i.imgur.com/PTpL6KY.mp4"
+  },
+  "Zis Is A War Criem!": {
+    "file": "data/drops/zisisawarcriem.mp4",
+    "description": "This is a war crime. Vichy French Guy.",
+    "url": "https://i.imgur.com/lpEEBxw.mp4"
   }
 }
