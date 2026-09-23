@@ -92,8 +92,8 @@ bot.add_cog(Trade(bot))
 bot.add_cog(Wishlist(bot))
 bot.add_cog(Wordcloud(bot))
 if config["roles"]["reaction_roles_enabled"]:
-  from cogs.react_roles import ReactRoles
-  bot.add_cog(ReactRoles(bot))
+  from cogs.role_selects import RoleSelects
+  bot.add_cog(RoleSelects(bot))
 
 ## Trivia relies on an external JSON request which might fail, in that case log the error but continue
 try:
