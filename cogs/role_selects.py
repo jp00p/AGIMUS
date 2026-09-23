@@ -221,6 +221,7 @@ class RoleSelects(commands.Cog):
 
   async def handle_role_selection(self, interaction:discord.Interaction, message_name:str, role_name:str):
     user = interaction.user
+    active_role_ids = {role.id for role in user.roles}
     role = self.get_configured_role(message_name, role_name)
 
     if role is None:
@@ -243,11 +244,11 @@ class RoleSelects(commands.Cog):
       if roles_to_remove:
         logger.info(f'Removing role(s) {self.format_role_names(roles_to_remove)} from {user.display_name}!')
         await user.remove_roles(*roles_to_remove, reason='RoleSelect')
+        active_role_ids.difference_update(role.id for role in roles_to_remove)
 
-      embed = discord.Embed(
-        title='Role Updated Successfully!',
-        description=f'Removed **{role_label}** from your profile.',
-        color=discord.Color.green()
+      embed = self.build_role_update_success_embed(
+        f'Removed **{role_label}** from your profile.',
+        active_role_ids
       )
       await interaction.response.send_message(
         embed=embed,
@@ -261,6 +262,7 @@ class RoleSelects(commands.Cog):
     if roles_to_add:
       logger.info(f'Adding role(s) {self.format_role_names(roles_to_add)} to {user.display_name}!')
       await user.add_roles(*roles_to_add, reason='RoleSelect')
+      active_role_ids.update(role.id for role in roles_to_add)
 
     removed_other_roles = False
     if self.role_select_data[message_name]['selection_type'] == 'single':
@@ -279,22 +281,49 @@ class RoleSelects(commands.Cog):
       if roles_to_remove:
         logger.info(f'Removing role(s) {self.format_role_names(roles_to_remove)} from {user.display_name}!')
         await user.remove_roles(*roles_to_remove, reason='RoleSelect')
+        active_role_ids.difference_update(role.id for role in roles_to_remove)
         removed_other_roles = True
 
     response = f'Added **{role_label}** to your profile.'
     if removed_other_roles:
       response += '\n\nThis replaced your previous role in that category.'
 
-    embed = discord.Embed(
-      title='Role Updated Successfully!',
-      description=response,
-      color=discord.Color.green()
-    )
+    embed = self.build_role_update_success_embed(response, active_role_ids)
     await interaction.response.send_message(
       embed=embed,
       ephemeral=True,
       delete_after=60
     )
+
+  def build_role_update_success_embed(self, response:str, active_role_ids:set[int]):
+    embed = discord.Embed(
+      title='Role Updated Successfully!',
+      description=f'{response}\n\nYour current selectable roles are:',
+      color=discord.Color.green()
+    )
+
+    for message_name in ['pronouns', 'locations', 'departments', 'notifications']:
+      selected_roles = []
+
+      for role_option in self.role_select_data[message_name]['options']:
+        if role_option.get('separator'):
+          continue
+
+        role = self.get_configured_role(message_name, role_option['role'])
+        if role is None or role.id not in active_role_ids:
+          continue
+
+        role_emoji = role_option.get('emoji')
+        role_prefix = f'{role_emoji} ' if role_emoji else ''
+        selected_roles.append(f'• {role_prefix}{role.mention}')
+
+      embed.add_field(
+        name=message_name.title(),
+        value='\n'.join(selected_roles) if selected_roles else '*None selected*',
+        inline=False
+      )
+
+    return embed
 
   def get_role_select_roles_to_add(self, user:discord.Member, role:discord.Role, message_name:str):
     if message_name != self.DEPARTMENT_MESSAGE_NAME:
