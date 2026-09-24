@@ -795,9 +795,16 @@
             "memoryalpha": "Symbiosis_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.09.21",
+                    "episode": "A Billion Cold Turkeys",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/a-billion-cold-turkeys-tng-s1e22",
+                    "order": 643,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.04.06",
                     "episode": "Interplanetary Rubberband Men",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-21-interplanetary-rubberband-men-s1e22",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119592f651f55f51cbc27",
                     "order": 21,
                     "title": "The Greatest Generation"
                 }

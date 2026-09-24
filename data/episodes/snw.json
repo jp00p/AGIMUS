@@ -1246,6 +1246,30 @@
                 "https://image.tmdb.org/t/p/original/rsebMAmYaq1x8LDTueJcG1U5wpg.jpg",
                 "https://image.tmdb.org/t/p/original/sGVJ59avGOIrUT27LJIDkorLD4M.jpg"
             ]
+        },
+        {
+            "airdate": "2026.09.17",
+            "title": "Once La'an a Time",
+            "description": "We return to the Elysian Kingdom, but this time on a real fantasy planet.",
+            "season": "04",
+            "episode": "09",
+            "podcasts": [
+                {
+                    "airdate": "2026.09.18",
+                    "episode": "Who Gives A Shit Porcelain",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/who-gives-a-shit-porcelain-snw-s4e9",
+                    "order": 392,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Once_La'An_a_Time_(episode)",
+            "tvdb": 7193803,
+            "imdb": "tt37231069",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/8J6d7ZvEigee3vSEDOxi5rttt33.jpg",
+                "https://image.tmdb.org/t/p/original/bSOn0OpOr7K952B7kOFljIJlWD3.jpg",
+                "https://image.tmdb.org/t/p/original/axlHXlOv9pYtr783GNJkpeWQ7DF.jpg"
+            ]
         }
     ],
     "imdb": "",
