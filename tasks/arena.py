@@ -29,6 +29,20 @@ phrases_for_no_vote = [
     "Are these both real episodes?",
 ]
 
+medium_improvement_phrases = [
+    "Realigning sensors. {} did better than expected.",
+    "{} beat expectations. Nice.",
+    "Giving {} some points.",
+    "{} is a better episode than I thought.",
+]
+
+big_improvement_phrases = [
+    "Incredible! {} did much better than expected.",
+    "It looks like {} was a ringer!",
+    "Giving {} a bunch of points!",
+    "Time to puck a pigeon! {} won big!",
+]
+
 
 def arena_task(bot: discord.Bot):
     """
@@ -66,6 +80,22 @@ def arena_task(bot: discord.Bot):
         
         return ((votes_for_a + split_votes/2) / total_votes) * 100, total_votes
     
+    async def comment_on_winner(points_difference:float, episode_name_a:str, episode_name_b:str, original_message_id:int):
+        """
+        If there are a lot of points moved around, comment on it.  Just let people know that voting matters.
+        """
+        if abs(points_difference) > 20:
+            message:str = random.choice(big_improvement_phrases)
+        elif abs(points_difference) > 10:
+            message = random.choice(medium_improvement_phrases)
+        else:
+            return
+        
+        channel_list = [bot.get_channel(c_id) for c_id in get_channel_ids_list(config["tasks"]["arena"]["channels"])]
+        formatted_message = message.format(episode_name_a if points_difference > 0 else episode_name_b)
+        for channel in channel_list:
+            await channel.send(formatted_message, reference=await channel.fetch_message(original_message_id))
+    
     async def finish_old_polls():
         """
         Find the polls that have expired, and move points to the one the beat the spread
@@ -102,6 +132,7 @@ def arena_task(bot: discord.Bot):
                                  (1 if total_votes - 1 > full_voter_count else (total_votes - 1) / full_voter_count)
                 await db.update_episodes(episode_a['id'], episode_b['id'], points_to_move)
                 logger.info(f"Moving {points_to_move:.2f} arena points from {episode_a['episode_name']} to {episode_b['episode_name']}")
+                await comment_on_winner(points_to_move, episode_a['episode_name'], episode_b['episode_name'], open_poll['message_id'])
             await db.close_poll(open_poll['message_id'], actual_percent, total_votes)
             
 

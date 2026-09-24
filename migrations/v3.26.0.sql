@@ -761,7 +761,7 @@ INSERT INTO arena_episodes(show_name, number, episode_name, rank_points, number_
   ('tas', 21, 'The Counter-Clock Incident', 71.42999999999999, 0);
 
 
-INSERT INTO arena_episode(show_name, number, episode_name, rank_points, number_of_matches) VALUES
+INSERT INTO arena_episodes(show_name, number, episode_name, rank_points, number_of_matches) VALUES
   ('disco', 0, 'The Vulcan Hello', 69.58, 0),
   ('disco', 1, 'Battle at the Binary Stars', 68.97999999999999, 0),
   ('disco', 2, 'Context Is for Kings', 69.94, 0),
@@ -819,7 +819,7 @@ INSERT INTO arena_episode(show_name, number, episode_name, rank_points, number_o
   ('disco', 54, 'Coming Home', 54.1, 0);
 
 
-INSERT INTO arena_episode(show_name, number, episode_name, rank_points, number_of_matches) VALUES
+INSERT INTO arena_episodes(show_name, number, episode_name, rank_points, number_of_matches) VALUES
   ('prodigy', 0, 'Lost & Found (1) / Lost & Found (2)', 65.0, 0),
   ('prodigy', 1, 'Starstruck', 69.29, 0),
   ('prodigy', 2, 'Dreamcatcher', 71.0, 0),
@@ -861,7 +861,7 @@ INSERT INTO arena_episode(show_name, number, episode_name, rank_points, number_o
   ('prodigy', 38, 'Ouroboros (2)', 71.42999999999999, 0);
 
 
-INSERT INTO arena_episode(show_name, number, episode_name, rank_points, number_of_matches) VALUES
+INSERT INTO arena_episodes(show_name, number, episode_name, rank_points, number_of_matches) VALUES
   ('lowerdecks', 0, 'Second Contact', 71.0, 0),
   ('lowerdecks', 1, 'Envoys', 69.0, 0),
   ('lowerdecks', 2, 'Temporal Edict', 71.0, 0),
@@ -914,7 +914,7 @@ INSERT INTO arena_episode(show_name, number, episode_name, rank_points, number_o
   ('lowerdecks', 49, 'The New Next Generation', 84.0, 0);
 
 
-INSERT INTO arena_episode(show_name, number, episode_name, rank_points, number_of_matches) VALUES
+INSERT INTO arena_episodes(show_name, number, episode_name, rank_points, number_of_matches) VALUES
   ('picard', 0, 'Remembrance', 78.25, 0),
   ('picard', 1, 'Maps and Legends', 72.06, 0),
   ('picard', 2, 'The End Is the Beginning', 71.58, 0),
