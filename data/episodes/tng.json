@@ -831,9 +831,16 @@
             "memoryalpha": "Skin_of_Evil_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.09.28",
+                    "episode": "That Slick Thicc",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/that-slick-thicc-tng-s1e23",
+                    "order": 644,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.04.11",
                     "episode": "Metamucil and Printer Ink",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-22-metamucil-and-printer-ink-s1e23",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1195ef8c66377375ff015",
                     "order": 22,
                     "title": "The Greatest Generation"
                 }

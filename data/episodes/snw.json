@@ -1270,6 +1270,29 @@
                 "https://image.tmdb.org/t/p/original/bSOn0OpOr7K952B7kOFljIJlWD3.jpg",
                 "https://image.tmdb.org/t/p/original/axlHXlOv9pYtr783GNJkpeWQ7DF.jpg"
             ]
+        },
+        {
+            "airdate": "2026.09.24",
+            "title": "Tomorrow's Enterprise",
+            "description": "A time ripple damages the Enterprise, forcing young and old Uhura to cooperate and fix the timeline.",
+            "season": "04",
+            "episode": "10",
+            "podcasts": [
+                {
+                    "airdate": "2026.09.25",
+                    "episode": "Time Travel Bladder",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/time-travel-bladder-snw-s4e10",
+                    "order": 393,
+                    "title": "Greatest Trek"
+                }
+            ],
+            "memoryalpha": "Tomorrow's_Enterprise_(episode)",
+            "tvdb": 7193804,
+            "imdb": "tt37231094",
+            "stills": [
+                "https://image.tmdb.org/t/p/original/vpqU4iWHOoPj98Y7BUlv46UNtjQ.jpg",
+                "https://image.tmdb.org/t/p/original/4HxtZvgqo333I5FxLfXkrhwuGj8.jpg"
+            ]
         }
     ],
     "imdb": "",
