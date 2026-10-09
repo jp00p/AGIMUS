@@ -868,9 +868,16 @@
             "memoryalpha": "We'll_Always_Have_Paris_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.10.05",
+                    "episode": "Time Nut",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/time-nut-tng-s1e24",
+                    "order": 645,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.04.13",
                     "episode": "The Riker Collection",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-23-the-riker-collection-s1e24",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f11957f8c66377375fecff",
                     "order": 23,
                     "title": "The Greatest Generation"
                 }
