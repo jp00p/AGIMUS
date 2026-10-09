@@ -1,14 +1,14 @@
 {
-  "reaction_type": "single",
+  "selection_type": "single",
   "message_content": "",
   "header_image_url": "https://i.imgur.com/sI1umgC.png",
   "thumbnail_url": "https://c.tenor.com/eWMVNY7fJ_cAAAAC/kate-mulgrew-ready.gif",
-  "embed" : {
+  "embed": {
     "title": "Add color and an icon to your name!",
     "description": "Choose your department to make your name that color, and you'll also get a little icon! This is just for fun, you will not be required to do any work aboard the starship if you choose a department.\n\nYou can only be in one department at a time, but you can change it at any time.",
-    "footer": "React to the emoji below to add/remove your department and change your name color.\nIf you already have the role but your react hasn't been added yet, add then remove the reaction to remove the role!"
+    "footer": "Select a department below to add it. Selecting another department replaces your current one; selecting your current department again removes it."
   },
-  "reactions": [
+  "options": [
     {
       "emoji": "👽",
       "role": "Exobiology"
@@ -22,7 +22,7 @@
       "role": "Information Sciences"
     },
     {
-      "emoji": "⚕",
+      "emoji": "⚕️",
       "role": "Life Sciences"
     },
     {
@@ -34,7 +34,7 @@
       "role": "Planetary Ops"
     },
     {
-      "emoji": "⚛",
+      "emoji": "⚛️",
       "role": "Quantum Mechanics"
     },
     {
@@ -45,5 +45,6 @@
       "emoji": "🧹",
       "role": "Supply and Maintenance"
     }
-  ]
+  ],
+  "select_placeholder": "Choose or remove your department..."
 }

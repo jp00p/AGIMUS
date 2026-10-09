@@ -757,9 +757,16 @@
             "memoryalpha": "The_Arsenal_of_Freedom_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.09.14",
+                    "episode": "Ronco Run Amok",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/ronco-run-amok-tng-s1e21",
+                    "order": 642,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.04.04",
                     "episode": "The Clearasil of Freedom",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-20-the-clearasil-of-freedom-s1e21",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119305531bfee78633b21",
                     "order": 20,
                     "title": "The Greatest Generation"
                 }
@@ -788,9 +795,16 @@
             "memoryalpha": "Symbiosis_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.09.21",
+                    "episode": "A Billion Cold Turkeys",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/a-billion-cold-turkeys-tng-s1e22",
+                    "order": 643,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.04.06",
                     "episode": "Interplanetary Rubberband Men",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-21-interplanetary-rubberband-men-s1e22",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119592f651f55f51cbc27",
                     "order": 21,
                     "title": "The Greatest Generation"
                 }
@@ -817,9 +831,16 @@
             "memoryalpha": "Skin_of_Evil_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.09.28",
+                    "episode": "That Slick Thicc",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/that-slick-thicc-tng-s1e23",
+                    "order": 644,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.04.11",
                     "episode": "Metamucil and Printer Ink",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-22-metamucil-and-printer-ink-s1e23",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1195ef8c66377375ff015",
                     "order": 22,
                     "title": "The Greatest Generation"
                 }
@@ -847,9 +868,16 @@
             "memoryalpha": "We'll_Always_Have_Paris_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.10.05",
+                    "episode": "Time Nut",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/time-nut-tng-s1e24",
+                    "order": 645,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.04.13",
                     "episode": "The Riker Collection",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-23-the-riker-collection-s1e24",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f11957f8c66377375fecff",
                     "order": 23,
                     "title": "The Greatest Generation"
                 }

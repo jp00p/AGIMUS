@@ -822,7 +822,7 @@ INSERT INTO arena_episodes(show_name, number, episode_name, rank_points, number_
 INSERT INTO arena_episodes(show_name, number, episode_name, rank_points, number_of_matches) VALUES
   ('prodigy', 0, 'Lost & Found (1) / Lost & Found (2)', 65.0, 0),
   ('prodigy', 1, 'Starstruck', 69.29, 0),
-  ('prodigy', 2, 'Dreamcatcher', 71.0, 0),
+  ('prodigy', 2, 'Dream Catcher', 71.0, 0),
   ('prodigy', 3, 'Terror Firma', 72.86, 0),
   ('prodigy', 4, 'Kobayashi', 73.85, 0),
   ('prodigy', 5, 'First Con-tact', 65.45, 0),
