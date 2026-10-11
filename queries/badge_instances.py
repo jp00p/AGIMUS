@@ -344,6 +344,23 @@ async def db_get_unlocked_and_unattuned_badge_instances(user_id: int, prestige: 
 
 
 # COUNTS
+async def db_get_badge_instances_prestige_counts_for_user(user_id: int) -> list[dict]:
+  async with AgimusDB(dictionary=True) as query:
+    await query.execute(
+      """
+        SELECT b.prestige_level, COUNT(*) AS count
+        FROM badge_instances AS b
+        JOIN badge_info AS b_i ON b.badge_info_id = b_i.id
+        WHERE b.owner_discord_id = %s
+          AND b.active = TRUE
+          AND b_i.special = 0
+        GROUP BY b.prestige_level
+        ORDER BY b.prestige_level
+      """,
+      (user_id,)
+    )
+    return await query.fetchall()
+
 async def db_get_badge_instances_count_for_user(
   user_id: int,
   prestige: int | None = None,
