@@ -11,42 +11,42 @@
   "options": [
     {
       "emoji": "🖖",
-      "role": "Star Trek Fanatic",
+      "role": "Star Trek Fanatics",
       "description": "Get notified when **Star Trek-related events** are happening"
     },
     {
       "emoji": "📺",
-      "role": "Television Enthusiast",
+      "role": "Television Enthusiasts",
       "description": "Get notified when **non-Trek television** watch parties are happening"
     },
     {
       "emoji": "🎬",
-      "role": "Movie Buff",
+      "role": "Movie Buffs",
       "description": "Get notified when **non-Trek movie** watch parties are happening"
     },
     {
       "emoji": "🎶",
-      "role": "Music Groover",
+      "role": "Music Groovers",
       "description": "Get notified when **Music-related events** are happening"
     },
     {
       "emoji": "🕹",
-      "role": "Game Enjoyer",
+      "role": "Game Enjoyers",
       "description": "Get notified when **Game-related** events are happening"
     },
     {
       "emoji": "📚",
-      "role": "Book Lover",
+      "role": "Book Lovers",
       "description": "Get notified when **Book-related** events are happening (Book Club!)"
     },
     {
       "emoji": "🦡",
-      "role": "Badge Trader",
+      "role": "Badge Traders",
       "description": "Get notified about **Badge Trading-related** features ard and info"
     },
     {
       "emoji": "👥",
-      "role": "Audience Member",
+      "role": "Audience Members",
       "description": "Get notified when **Presentation-related** events are happening (FOD Talks!)"
     },
     {

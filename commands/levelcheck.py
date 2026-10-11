@@ -1,8 +1,11 @@
 from common import *
 from handlers.echelon_xp import get_xp_summary
 
+from queries.badge_info import db_get_all_badge_info
+from queries.badge_instances import db_get_badge_instances_prestige_counts_for_user
 from queries.crystal_instances import db_get_user_crystal_buffer_count
 from queries.tongo import db_get_tongo_dividends
+from utils.prestige import PRESTIGE_TIERS
 
 @bot.slash_command(
   name="levelcheck",
@@ -17,6 +20,13 @@ async def levelcheck(ctx: discord.ApplicationContext):
   xp_into_level = xp_data['xp_into_level']
   xp_required = xp_data['xp_required']
   total_xp = xp_data['total_xp']
+  badge_tier_counts = await db_get_badge_instances_prestige_counts_for_user(ctx.author.id)
+  all_badges = await db_get_all_badge_info()
+  available_badge_count = len([
+    badge
+    for badge in all_badges
+    if not badge['special']
+  ])
 
   embed = discord.Embed(
     title="📈 Echelon XP Progress",
@@ -37,6 +47,18 @@ async def levelcheck(ctx: discord.ApplicationContext):
     value=f"{total_xp:,} XP",
     inline=False
   )
+
+  if badge_tier_counts:
+    badge_tier_lines = [
+      f"* **{PRESTIGE_TIERS[row['prestige_level']]}:** {row['count']:,} / {available_badge_count:,} Badges"
+      for row in badge_tier_counts
+    ]
+    embed.add_field(
+      name="Badges by Prestige Tier",
+      value="\n".join(badge_tier_lines),
+      inline=False
+    )
+
   embed.set_footer(text="Type '/profile' for all your deets.")
 
   await ctx.respond(embed=embed)
