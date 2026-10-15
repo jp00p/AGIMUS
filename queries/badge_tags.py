@@ -1,6 +1,6 @@
-from common import *
-
 from utils.badge_instances import BADGE_INSTANCE_COLUMNS
+from utils.database import AgimusDB
+
 
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______

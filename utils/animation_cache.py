@@ -1,6 +1,8 @@
 from pathlib import Path
 
-from common import *
+from PIL import Image, ImageSequence
+
+from utils.thread_utils import to_thread
 
 CRYSTAL_REPLICATOR_CACHE_DIR = ".cache/crystal_replicator_animations"
 

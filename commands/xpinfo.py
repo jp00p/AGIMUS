@@ -1,8 +1,15 @@
+import os
 import time
-import plotly.graph_objects as go
 
-from common import *
+import discord
+import plotly.graph_objects as go
+from PIL import ImageFont, Image, ImageOps, ImageDraw
+from discord import option
+from discord.ext import commands
+
+from common import bot, config, get_channel_id, remove_emoji
 from utils.check_channel_access import access_check
+from utils.database import AgimusDB
 from utils.settings_utils import db_get_current_xp_enabled_value
 from utils.thread_utils import to_thread
 

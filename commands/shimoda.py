@@ -1,4 +1,7 @@
-from common import *
+import discord
+
+from common import bot, config, logger
+
 
 class ShimodaModal(discord.ui.Modal):
   def __init__(self, *args, **kwargs) -> None:

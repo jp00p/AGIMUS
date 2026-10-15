@@ -5,8 +5,11 @@ import random
 from collections import defaultdict
 from io import BytesIO
 
-from common import *
+from colorama import Style
+from discord import option
+from discord.ext import commands
 
+from common import get_emoji, get_channel_id, get_user
 from queries.badge_info import *
 from queries.badge_instances import *
 from queries.crystal_instances import *

@@ -1,4 +1,8 @@
-from common import *
+import random
+
+import discord
+
+from common import bot
 
 salutations = [
   "Champ", "Fact:", "Everybody says", "Dang..", "Check it:", "Just saying...", "Superstar", "Tiger", "Self", "Know this:", "News alert:",

@@ -1,4 +1,10 @@
-from common import *
+import traceback
+
+import discord
+from discord import option
+from discord.ext import commands
+
+from common import bot, logger, config
 from utils.check_role_access import role_check
 
 @bot.slash_command(

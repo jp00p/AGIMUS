@@ -3,7 +3,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Dict
 
-from common import *
+from PIL import Image, ImageOps
 
 from utils.thread_utils import threaded_image_open, to_thread
 

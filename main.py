@@ -3,8 +3,18 @@
 # ███████ ██   ███ ██ ██ ████ ██ ██    ██ ███████
 # ██   ██ ██    ██ ██ ██  ██  ██ ██    ██      ██
 # ██   ██  ██████  ██ ██      ██  ██████  ███████
-from common import *
+import asyncio
+import json
+import traceback
+
 import aiohttp
+import mysql
+from colorama import Fore, Style, Back
+
+from common import bot, config, logger, get_all_users, LOGGING_CHANNEL, register_user
+from common.channel_utils import generate_local_channel_list
+from common.env import *
+from common.role_utils import generate_local_role_map
 
 # Slash Commands
 from commands.aliases import aliases
@@ -134,6 +144,13 @@ logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS
 
 DB_IS_SEEDED = False
 ALL_USERS = set()
+
+
+def print_agimus_ansi_art():
+  ansi_file = random.choice(os.listdir("data/ansi/"))
+  with open(f"data/ansi/{ansi_file}") as f:
+    logger.info(f.read())
+
 
 @bot.event
 async def on_ready():

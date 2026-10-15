@@ -1,6 +1,15 @@
+import json
+import random
+import traceback
+
+import discord
+from colorama import Fore
+from discord import option
+from discord.ext import commands, tasks
 from trivia import trivia
 
-from common import *
+from common import config, logger, bot
+from queries.jackpot import set_player_score, increase_jackpot
 from utils.check_channel_access import access_check
 
 f = open(config["commands"]["trivia"]["data"])

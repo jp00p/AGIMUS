@@ -1,4 +1,10 @@
-from common import *
+import random
+
+import discord
+from discord import option
+
+from common import bot
+
 
 @bot.slash_command(
   name="dice",
