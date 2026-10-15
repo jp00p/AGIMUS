@@ -910,9 +910,16 @@
             "memoryalpha": "Conspiracy_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.10.12",
+                    "episode": "The Protein of the Future",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/the-protein-of-the-future-tng-s1e25",
+                    "order": 646,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.04.18",
                     "episode": "Effectively Gross",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-24-effectively-gross-s1e25",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1195e2f651f55f51cbd84",
                     "order": 24,
                     "title": "The Greatest Generation"
                 }
