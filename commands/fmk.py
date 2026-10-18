@@ -3,7 +3,8 @@ import random
 import discord
 from discord.ext import commands
 
-from common import bot, config, make_memory_alpha_link
+from common import bot, config
+from utils.string_utils import make_memory_alpha_link
 from utils.check_channel_access import access_check
 
 @bot.slash_command(

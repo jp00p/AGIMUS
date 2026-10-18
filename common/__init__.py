@@ -1,7 +1,5 @@
-import json
 import os
 import random
-import re
 from concurrent.futures import ThreadPoolExecutor
 
 import discord
@@ -51,32 +49,9 @@ def get_emoji(emoji_name:str) -> discord.Emoji|str:
   return emoji
 
 
-IRREGULAR_MEM_ALPHA_LINKS = None
-
-def make_memory_alpha_link(name: str) -> str:
-  """
-  Convert the name of this person/ship/tech into a link to https://memory-alpha.fandom.com.  There are exceptions, and
-  they are stored in characters_mem_alpha_links.json.  But it’s still better
-  """
-  global IRREGULAR_MEM_ALPHA_LINKS
-  if IRREGULAR_MEM_ALPHA_LINKS is None:
-    with open("data/characters_mem_alpha_links.json") as f:
-      IRREGULAR_MEM_ALPHA_LINKS = json.load(f)
-  
-  if name.startswith("A "):
-    return name
-  if name in IRREGULAR_MEM_ALPHA_LINKS:
-    link = IRREGULAR_MEM_ALPHA_LINKS[name]
-    if link:  # can be null if no link exists
-      return f"[{name}]({link})"
-    else:
-      return name
-  link_name = re.sub(r'".*" ', '', name) if '"' in name else name  # "nicknames" are not included in the links
-  return f"[{name}](https://memory-alpha.fandom.com/wiki/{link_name.replace(' ', '_')})"
-
 
 # I know I can't stop you from doing import *
 __all__ = ["THREAD_POOL", "BOT_NAME", "ROOT_DIR", "DEV_CHANNEL", "INTRO_CHANNEL", "LOGGING_CHANNEL", "SERVER_LOGS_CHANNEL",
            "get_channel_id", "get_channel_ids_list", "get_role_id", "get_role_ids_list", "config", "bot",
            "get_user", "get_all_users", "register_user", "update_user", "logger",
-           "get_emoji", "make_memory_alpha_link"]
+           "get_emoji"]
