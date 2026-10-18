@@ -5,7 +5,7 @@ from colorama import Style, Fore
 from discord import option
 from discord.ext import commands, pages
 
-from common import get_emoji, remove_emoji
+from common import get_emoji
 from utils.echelon_rewards import *
 from utils.badge_trades import *
 from utils.badge_utils import *

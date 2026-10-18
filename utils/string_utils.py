@@ -110,3 +110,10 @@ def strip_bullshit(text: str) -> str:
   Remove this fukin garbage from Discord inputs.
   """
   return ''.join(BULLSHIT_CHARACTERS.get(c, c) for c in text)
+
+
+def remove_emoji(s: str) -> str:
+  """
+  Cleans out values unprintable in our font.  cp1252 because there are a handful of chars in the font not in latin_1
+  """
+  return s.replace("€", '').encode("cp1252", errors="ignore").decode("cp1252").strip()

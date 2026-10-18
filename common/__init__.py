@@ -51,13 +51,6 @@ def get_emoji(emoji_name:str) -> discord.Emoji|str:
   return emoji
 
 
-def remove_emoji(s: str) -> str:
-  """
-  Cleans out values unprintable in our font.  cp1252 because there are a handful of chars in the font not in latin_1
-  """
-  return s.replace("€", '').encode("cp1252", errors="ignore").decode("cp1252").strip()
-
-
 IRREGULAR_MEM_ALPHA_LINKS = None
 
 def make_memory_alpha_link(name: str) -> str:
@@ -86,4 +79,4 @@ def make_memory_alpha_link(name: str) -> str:
 __all__ = ["THREAD_POOL", "BOT_NAME", "ROOT_DIR", "DEV_CHANNEL", "INTRO_CHANNEL", "LOGGING_CHANNEL", "SERVER_LOGS_CHANNEL",
            "get_channel_id", "get_channel_ids_list", "get_role_id", "get_role_ids_list", "config", "bot",
            "get_user", "get_all_users", "register_user", "update_user", "logger",
-           "get_emoji", "remove_emoji", "make_memory_alpha_link"]
+           "get_emoji", "make_memory_alpha_link"]
