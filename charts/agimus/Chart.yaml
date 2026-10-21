@@ -4,3 +4,4 @@ description: A helm chart for a discord bot that also runs a mysql db
 type: application
 version: v3.26.0
 appVersion: v3.26.0
+
