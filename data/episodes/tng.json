@@ -940,9 +940,16 @@
             "memoryalpha": "The_Neutral_Zone_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.10.19",
+                    "episode": "Plant the Scoop",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/plant-the-scoop-tng-s1e26",
+                    "order": 647,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.04.20",
                     "episode": "Five Dollar Carnival Guitar",
-                    "link": "https://maximumfun.org/episodes/greatest-generation/episode-25-five-dollar-carnival-guitar-s1e26",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119607beb812869811b43",
                     "order": 25,
                     "title": "The Greatest Generation"
                 }
