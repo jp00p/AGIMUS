@@ -3,12 +3,19 @@
 # ███████ ██   ███ ██ ██ ████ ██ ██    ██ ███████
 # ██   ██ ██    ██ ██ ██  ██  ██ ██    ██      ██
 # ██   ██  ██████  ██ ██      ██  ██████  ███████
+import asyncio
 import json
+import os
+import traceback
 
 import aiohttp
-from colorama import Fore
+import mysql
+from colorama import Fore, Style, Back
 
-from common import bot, config, logger
+from common import bot, config, logger, get_all_users, LOGGING_CHANNEL, register_user
+from common.channel_utils import generate_local_channel_list
+from common.env import DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_SEED_FILEPATH, DISCORD_TOKEN
+from common.role_utils import generate_local_role_map
 
 # Slash Commands
 from commands.aliases import aliases
