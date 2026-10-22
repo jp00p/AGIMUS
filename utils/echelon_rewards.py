@@ -1,6 +1,9 @@
 # utils/echelon_rewards.py
-from common import *
+import random
 
+import discord
+
+from common import logger
 from queries.badge_instances import db_get_user_badge_instances
 from queries.badge_info import db_get_all_badge_info
 from queries.crystal_instances import db_increment_user_crystal_buffer, db_set_user_crystal_buffer

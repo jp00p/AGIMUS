@@ -1,4 +1,9 @@
-from common import *
+import asyncio
+import json
+
+from common import logger
+from utils.database import AgimusDB
+
 
 async def seed_badge_tables():
   f = open("./data/badges-metadata.json")

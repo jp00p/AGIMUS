@@ -1,5 +1,6 @@
-from common import *
+from discord.ext import commands
 
+from common import get_channel_id
 from queries.crystal_instances import *
 from queries.rematerialization import *
 from utils.crystal_instances import *

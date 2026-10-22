@@ -1,4 +1,6 @@
-from common import *
+import discord
+
+from common import config, get_channel_ids_list
 from utils.media_utils import get_media_file
 from utils.string_utils import *
 

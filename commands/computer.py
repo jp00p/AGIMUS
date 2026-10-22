@@ -1,7 +1,12 @@
+import os
+import random
+
+import discord
 import wolframalpha
 from handlers.xp import grant_xp
 
-from common import *
+from common import config
+
 
 WOLFRAM_ALPHA_ID = os.getenv('WOLFRAM_ALPHA_ID')
 

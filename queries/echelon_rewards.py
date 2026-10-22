@@ -1,5 +1,6 @@
 # utils/badge_rewards.py
-from common import *
+from utils.database import AgimusDB
+
 
 async def db_get_full_badge_info_pool() -> list[int]:
   sql = """

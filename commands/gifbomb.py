@@ -1,5 +1,12 @@
+import json
+import os
+import random
+
 import aiohttp
-from common import *
+import discord
+from discord.ext import commands
+
+from common import bot
 from utils.check_channel_access import access_check
 from utils.timekeeper import check_timekeeper, set_timekeeper
 

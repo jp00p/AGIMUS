@@ -140,6 +140,13 @@ logger.info(f"{Style.BRIGHT}{Fore.LIGHTRED_EX}ENVIRONMENT VARIABLES AND COMMANDS
 DB_IS_SEEDED = False
 ALL_USERS = set()
 
+
+def print_agimus_ansi_art():
+  ansi_file = random.choice(os.listdir("data/ansi/"))
+  with open(f"data/ansi/{ansi_file}") as f:
+    logger.info(f.read())
+
+
 @bot.event
 async def on_ready():
   try:

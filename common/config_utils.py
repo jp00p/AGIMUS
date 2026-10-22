@@ -2,8 +2,7 @@ import collections
 import json
 import os
 
-BOT_CONFIGURATION_FILEPATH = os.getenv('BOT_CONFIGURATION_FILEPATH')
-BOT_LOCAL_CONFIGURATION_FILEPATH = os.getenv('BOT_LOCAL_CONFIGURATION_FILEPATH')
+from common.env import BOT_CONFIGURATION_FILEPATH, BOT_LOCAL_CONFIGURATION_FILEPATH
 
 def get_config():
   config = load_json(BOT_CONFIGURATION_FILEPATH)
@@ -29,3 +28,6 @@ def deep_dict_update(source, overrides):
     else:
       source[key] = overrides[key]
   return source
+
+
+config = get_config()

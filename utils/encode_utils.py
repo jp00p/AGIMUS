@@ -1,3 +1,4 @@
+import asyncio
 import tempfile
 import subprocess
 import io
@@ -5,7 +6,10 @@ import os
 import time
 import shutil
 
-from common import *
+from PIL import Image
+
+from common import THREAD_POOL, logger
+
 
 async def encode_webp(frames: list[Image.Image], fps: int = 12) -> io.BytesIO:
   """

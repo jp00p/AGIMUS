@@ -1,4 +1,10 @@
-from common import *
+import random
+
+import discord
+from discord.ext import commands
+
+from common import config, bot
+from utils.string_utils import make_memory_alpha_link
 from utils.check_channel_access import access_check
 
 @bot.slash_command(

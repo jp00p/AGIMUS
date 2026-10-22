@@ -1,5 +1,10 @@
-from common import *
+import discord
+from discord.ext import commands
+
+from common import bot
 from utils.check_channel_access import access_check
+from utils.database import AgimusDB
+
 
 @bot.slash_command(
   name="scores",

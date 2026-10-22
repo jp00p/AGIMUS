@@ -2,8 +2,9 @@ import re
 
 import discord
 from discord import option
+from discord.ext import commands
 
-from common import logger, bot, get_user, commands, Style
+from common import logger, bot, get_user, Style
 from utils.check_channel_access import access_check
 from utils.database import AgimusDB
 from utils.string_utils import strip_bullshit

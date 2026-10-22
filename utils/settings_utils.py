@@ -1,4 +1,5 @@
-from common import *
+from utils.database import AgimusDB
+
 
 async def db_get_current_xp_enabled_value(user_id: int) -> bool:
   async with AgimusDB(dictionary=True) as query:

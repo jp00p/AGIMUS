@@ -1,11 +1,18 @@
-import functools
+import asyncio
 import gc
-import tempfile
+import io
+import math
+import os
+import random
+import textwrap
 import time
 
 from asyncio import to_thread
 from concurrent.futures import ThreadPoolExecutor
 from collections import namedtuple
+
+import discord
+from PIL import Image, ImageFont, ImageDraw, ImageChops
 from emoji import EMOJI_DATA
 from functools import partial
 from pathlib import Path
@@ -13,8 +20,7 @@ import cv2
 import regex
 import threading
 
-from common import *
-
+from common import logger, THREAD_POOL
 from queries.badge_info import *
 from queries.badge_instances import *
 
@@ -1947,7 +1953,6 @@ def _pil_trim_alpha(img: Image.Image, *, threshold: int = 8) -> Image.Image:
 
   try:
     import numpy as np
-    import cv2
 
     arr = np.array(a, dtype=np.uint8)
     if threshold > 0:
