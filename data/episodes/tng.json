@@ -977,6 +977,13 @@
             "memoryalpha": "The_Child_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.10.26",
+                    "episode": "IBIC",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/ibic-tng-s2e1",
+                    "order": 648,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.04.25",
                     "episode": "Worf Don't Preach",
                     "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1195cf8c66377375feeac",
