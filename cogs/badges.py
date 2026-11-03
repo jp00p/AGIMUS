@@ -1,27 +1,70 @@
-from dateutil import tz
+import gc
 from io import BytesIO
 
-from colorama import Style, Fore
+import discord
+from colorama import Fore, Style
+from dateutil import tz
 from discord import option
 from discord.ext import commands, pages
 
-from common import get_emoji
-from utils.echelon_rewards import *
-from utils.badge_trades import *
-from utils.badge_utils import *
+from common.emoji_utils import get_emoji
+from common.logs import logger
+from queries.badge_completion import (
+  db_completion_by_affiliation,
+  db_completion_by_franchise,
+  db_completion_by_time_period,
+  db_completion_by_type,
+)
+from queries.badge_info import (
+  db_get_all_affiliation_badges,
+  db_get_all_badge_info,
+  db_get_all_franchise_badges,
+  db_get_all_time_period_badges,
+  db_get_all_type_badges,
+  db_get_badge_affiliations_by_badge_name,
+  db_get_badge_info_by_name,
+  db_get_badge_types_by_badge_name,
+  db_get_badges_user_has_from_affiliation,
+  db_get_badges_user_has_from_franchise,
+  db_get_badges_user_has_from_time_period,
+  db_get_badges_user_has_from_type,
+  db_get_full_badge_metadata_by_filename,
+  db_get_max_badge_count,
+  db_get_random_badges_from_user_by_affiliations,
+  db_get_random_badges_from_user_by_franchises,
+  db_get_random_badges_from_user_by_time_periods,
+  db_get_random_badges_from_user_by_types,
+  db_get_special_badge_info,
+)
+from queries.badge_instances import (
+  db_get_badge_instance_by_id,
+  db_get_badge_instances_count_for_user,
+  db_get_badge_instances_prestige_count_by_filename,
+  db_get_unowned_user_badge_instances,
+  db_get_user_badge_instances,
+)
+from queries.crystal_instances import db_get_crystal_by_id
+from queries.echelon_xp import db_get_echelon_progress
+from queries.wishlists import db_get_simple_wishlist_badges
+from utils.badge_utils import autocomplete_selections
 from utils.check_channel_access import access_check
 from utils.encode_utils import encode_webp
-from utils.image_utils import *
-from utils.prestige import PRESTIGE_TIERS, autocomplete_prestige_tiers, is_prestige_valid
-from utils.string_utils import *
-
-from queries.badge_completion import *
-from queries.badge_info import *
-from queries.badge_instances import *
-from queries.badge_scrap import *
-from queries.crystal_instances import *
-from queries.wishlists import *
-from queries.trade import *
+from utils.image_utils import (
+  buffer_image_to_discord_file,
+  db_get_user_badge_page_color_preference,
+  db_set_user_badge_page_color_preference,
+  generate_badge_collection_images,
+  generate_badge_set_completion_images,
+  generate_singular_badge_slot,
+  get_theme_colors,
+)
+from utils.prestige import (
+  PRESTIGE_THEMES,
+  PRESTIGE_TIERS,
+  autocomplete_prestige_tiers,
+  is_prestige_valid,
+)
+from utils.string_utils import remove_emoji, strip_bullshit
 
 # -> cogs.badges
 

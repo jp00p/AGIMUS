@@ -4,7 +4,11 @@ import random
 import discord
 from colorama import Style, Fore
 
-from common import config, get_channel_id, logger, get_emoji, bot
+from common.channel_utils import get_channel_id
+from common.config_utils import config
+from common.discord_bot import bot
+from common.emoji_utils import get_emoji
+from common.logs import logger
 from handlers.echelon_xp import get_user_echelon_progress
 from handlers.echelon_xp import award_xp
 

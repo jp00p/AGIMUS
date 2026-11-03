@@ -11,8 +11,8 @@ from common.config_utils import config
 
 intents = discord.Intents.all()
 bot = commands.Bot(
-    intents=intents,
-    test_guilds=config["guild_ids"],
-    auto_sync_commands=True,
-    command_prefix="!"
+  test_guilds=config["guild_ids"],
+  intents=intents,
+  auto_sync_commands=True,
+  command_prefix="!"
 )

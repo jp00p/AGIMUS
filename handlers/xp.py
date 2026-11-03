@@ -6,7 +6,10 @@ from datetime import datetime, timezone, timedelta
 
 import discord
 
-from common import config, get_channel_ids_list, bot, logger
+from common.channel_utils import get_channel_ids_list
+from common.config_utils import config
+from common.discord_bot import bot
+from common.logs import logger
 
 from handlers.echelon_xp import award_xp, handle_user_level_up
 from handlers.auto_promotion import handle_auto_promotions

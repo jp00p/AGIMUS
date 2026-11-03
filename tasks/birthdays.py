@@ -5,7 +5,9 @@ import random
 import discord
 from discord.ext.commands import Bot
 
-from common import config, get_channel_ids_list, logger
+from common.channel_utils import get_channel_ids_list
+from common.config_utils import config
+from common.logs import logger
 from utils.string_utils import make_memory_alpha_link
 from queries import birthdays as db
 

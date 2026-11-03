@@ -1,4 +1,4 @@
-from utils.badge_instances import BADGE_INSTANCE_COLUMNS
+from queries.common import BADGE_INSTANCE_COLUMNS
 from utils.database import AgimusDB
 
 

@@ -3,7 +3,8 @@ import random
 
 import discord
 
-from common import config, bot
+from common.config_utils import config
+from common.discord_bot import bot
 
 command_config = config["commands"]["curse"]
 

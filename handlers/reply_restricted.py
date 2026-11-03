@@ -1,6 +1,9 @@
 import discord
 
-from common import config, get_channel_ids_list, get_channel_id, bot, logger
+from common.channel_utils import get_channel_id, get_channel_ids_list
+from common.config_utils import config
+from common.discord_bot import bot
+from common.logs import logger
 
 
 async def handle_reply_restricted(message:discord.Message):

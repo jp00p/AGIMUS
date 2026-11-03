@@ -13,7 +13,7 @@ from PIL import Image, ImageSequence, ImageFilter, ImageDraw, ImageEnhance, Imag
 from scipy.ndimage import map_coordinates, binary_dilation, gaussian_filter
 from scipy.interpolate import interp1d
 
-from common import logger
+from common.logs import logger
 from utils.thread_utils import threaded_image_open, threaded_image_open_no_convert, to_thread
 
 FRAME_SIZE = (190, 190)

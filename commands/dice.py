@@ -3,7 +3,7 @@ import random
 import discord
 from discord import option
 
-from common import bot
+from common.discord_bot import bot
 
 
 @bot.slash_command(

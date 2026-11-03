@@ -2,8 +2,9 @@
 from datetime import datetime
 
 from queries.badge_info import db_get_badge_info_by_filename
-from queries.badge_instances import *
+from queries.badge_instances import db_get_badge_instance_by_id, db_lock_badge_instance
 from queries.wishlists import db_get_active_wants
+from utils.database import AgimusDB
 
 async def create_new_badge_instance(user_id: int|None, badge_info_id: int, prestige_level: int = 0, event_type: str = 'level_up') -> dict:
   # logger.info(f"[DEBUG] Creating new badge instance: user={user_id}, badge_info_id={badge_info_id}, prestige={prestige_level}")

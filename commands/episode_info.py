@@ -6,7 +6,9 @@ import discord
 from colorama import Fore
 from discord.ext import commands
 
-from common import config, bot, logger
+from common.config_utils import config
+from common.discord_bot import bot
+from common.logs import logger
 from utils.check_channel_access import access_check
 from utils.show_utils import get_show_embed
 from utils.string_utils import strip_bullshit

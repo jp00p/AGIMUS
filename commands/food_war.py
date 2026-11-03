@@ -8,7 +8,7 @@ from PIL import ImageFont, Image, ImageDraw
 from discord import option
 from discord.ext import commands
 
-from common import bot
+from common.discord_bot import bot
 from utils.check_channel_access import access_check
 from utils.database import AgimusDB
 from utils.thread_utils import to_thread

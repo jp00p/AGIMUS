@@ -1,7 +1,8 @@
 from colorama import Style, Fore
 from discord.ext import commands
 
-from common import bot, logger
+from common.discord_bot import bot
+from common.logs import logger
 from utils.check_channel_access import access_check
 
 @bot.command()

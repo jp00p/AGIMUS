@@ -6,7 +6,9 @@ import discord
 from colorama import Back, Fore
 from discord.ext import commands, tasks
 
-from common import config, logger, get_channel_id
+from common.channel_utils import get_channel_id
+from common.config_utils import config
+from common.logs import logger
 from utils.database import AgimusDB
 
 

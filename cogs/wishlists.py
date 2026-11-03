@@ -6,13 +6,47 @@ import math
 import discord
 from colorama import Style
 from discord import option
-from discord.ext import pages, commands
+from discord.ext import commands, pages
 
-from common import get_channel_id, get_user, logger, bot
-from queries.badge_info import *
+from common.channel_utils import get_channel_id
+from common.db import get_user
+from common.discord_bot import bot
+from common.logs import logger
+from queries.badge_info import (
+  db_get_all_affiliation_badges,
+  db_get_all_badge_info,
+  db_get_all_franchise_badges,
+  db_get_all_time_period_badges,
+  db_get_all_type_badges,
+  db_get_badge_info_by_id,
+  db_get_badge_info_by_name,
+  db_get_special_badge_info,
+)
 from queries.badge_instances import db_get_user_badge_instances
 from queries.echelon_xp import db_get_echelon_progress
-from queries.wishlists import *
+from queries.wishlists import (
+  db_add_badge_info_id_to_wishlist,
+  db_add_badge_info_ids_to_wishlist,
+  db_add_prestige_opt_out,
+  db_add_wishlist_dismissal,
+  db_clear_wishlist,
+  db_delete_wishlist_dismissal,
+  db_get_active_wants,
+  db_get_all_prestige_match_opted_out_user_ids,
+  db_get_all_wishlist_dismissals,
+  db_get_opted_out_prestiges,
+  db_get_simple_wishlist_badges,
+  db_get_wishlist_matches,
+  db_has_user_opted_out_of_prestige_matches,
+  db_is_badge_on_users_wishlist,
+  db_lock_badge_instances_by_badge_info_id,
+  db_lock_badge_instances_by_badge_info_ids,
+  db_remove_badge_info_id_from_wishlist,
+  db_remove_badge_info_ids_from_wishlist,
+  db_remove_prestige_opt_out,
+  db_unlock_badge_instances_by_badge_info_id,
+  db_unlock_badge_instances_by_badge_info_ids,
+)
 from utils.badge_utils import autocomplete_selections
 from utils.check_channel_access import access_check
 from utils.image_utils import generate_unowned_badge_preview

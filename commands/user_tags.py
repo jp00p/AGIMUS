@@ -1,10 +1,13 @@
 import re
 
 import discord
+from colorama import Style
 from discord import option
 from discord.ext import commands
 
-from common import logger, bot, get_user, Style
+from common.db import get_user
+from common.discord_bot import bot
+from common.logs import logger
 from utils.check_channel_access import access_check
 from utils.database import AgimusDB
 from utils.string_utils import strip_bullshit

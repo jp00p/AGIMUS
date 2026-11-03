@@ -8,7 +8,8 @@ import pytz
 from PIL import ImageFont, Image, ImageDraw
 from discord.ext import commands
 
-from common import bot, get_emoji
+from common.discord_bot import bot
+from common.emoji_utils import get_emoji
 from utils.check_channel_access import access_check
 from utils.check_role_access import role_check
 from utils.database import AgimusDB

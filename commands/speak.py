@@ -4,7 +4,9 @@ import discord
 from discord import option
 from discord.ext import commands
 
-from common import bot, logger, config
+from common.config_utils import config
+from common.discord_bot import bot
+from common.logs import logger
 from utils.check_role_access import role_check
 
 @bot.slash_command(

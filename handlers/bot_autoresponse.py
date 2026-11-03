@@ -4,7 +4,10 @@ import re
 import discord
 from colorama import Fore
 
-from common import get_emoji, logger, BOT_NAME, config
+from common import BOT_NAME
+from common.config_utils import config
+from common.emoji_utils import get_emoji
+from common.logs import logger
 
 # Load up our list of complimentary and condemnation adjectives
 with open('bot_affirmations.txt') as f:

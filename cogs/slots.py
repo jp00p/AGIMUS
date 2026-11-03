@@ -14,7 +14,11 @@ from colorama import Style, Fore
 from discord import option
 from discord.ext import commands
 
-from common import config, ROOT_DIR, logger, get_user, get_emoji
+from common import ROOT_DIR
+from common.config_utils import config
+from common.db import get_user
+from common.emoji_utils import get_emoji
+from common.logs import logger
 from queries.jackpot import win_jackpot, increase_jackpot, set_player_score
 from utils.check_channel_access import access_check
 from utils.database import AgimusDB

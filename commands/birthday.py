@@ -2,7 +2,8 @@ import datetime
 
 import discord
 
-from common import bot, config
+from common.config_utils import config
+from common.discord_bot import bot
 from queries import birthdays as db
 
 birthday = bot.create_group('birthday', "Set and clear your birthday")

@@ -2,7 +2,8 @@ import random
 
 import discord
 
-from common import config, get_channel_ids_list
+from common.channel_utils import get_channel_ids_list
+from common.config_utils import config
 
 
 def get_random_weyounsday_meme():

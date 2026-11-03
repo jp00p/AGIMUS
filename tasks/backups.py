@@ -1,6 +1,7 @@
 import discord
 
-from common import config, logger
+from common.config_utils import config
+from common.logs import logger
 from utils.db_backups import run_make_backup
 
 

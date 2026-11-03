@@ -1,23 +1,55 @@
 # cogs/crystals.py
 from __future__ import annotations
 
+import asyncio
 import random
 from collections import defaultdict
 from io import BytesIO
 
+import discord
 from colorama import Style
 from discord import option
 from discord.ext import commands
 
-from common import get_emoji, get_channel_id, get_user
-from queries.badge_info import *
-from queries.badge_instances import *
-from queries.crystal_instances import *
-from utils.crystal_instances import *
-from utils.image_utils import *
-from utils.prestige import *
-from utils.string_utils import strip_bullshit
+from common.channel_utils import get_channel_id
+from common.db import get_user
+from common.emoji_utils import get_emoji
+from common.logs import logger
+from queries.badge_instances import (
+  db_get_badge_instance_by_id,
+  db_get_badge_instances_with_attuned_crystals,
+  db_get_badge_instances_without_crystal_type,
+  db_get_user_badge_instances,
+)
+from queries.crystal_instances import (
+  db_decrement_user_crystal_buffer,
+  db_get_attuned_crystal_type_ids,
+  db_get_attuned_crystals,
+  db_get_crystal_by_id,
+  db_get_crystal_rarity_weights,
+  db_get_unattuned_crystals_by_rarity,
+  db_get_unattuned_crystals_by_type,
+  db_get_user_attuned_badge_count,
+  db_get_user_crystal_buffer_count,
+  db_get_user_unattuned_crystal_count,
+  db_get_user_unattuned_crystal_rarities,
+  db_get_user_unattuned_crystals,
+  db_select_random_crystal_type_by_rarity_rank,
+  db_set_harmonized_crystal,
+)
 from utils.check_channel_access import access_check
+from utils.crystal_instances import (
+  attune_crystal_to_badge,
+  create_new_crystal_instance,
+  weighted_random_choice,
+)
+from utils.image_utils import (
+  generate_badge_preview,
+  generate_crystal_manifest_images,
+  generate_crystal_replicator_confirmation_frames,
+)
+from utils.prestige import PRESTIGE_TIERS, autocomplete_prestige_tiers, is_prestige_valid
+from utils.string_utils import strip_bullshit
 
 
 # _________

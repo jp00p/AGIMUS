@@ -8,7 +8,8 @@ import shutil
 
 from PIL import Image
 
-from common import THREAD_POOL, logger
+from common import THREAD_POOL
+from common.logs import logger
 
 
 async def encode_webp(frames: list[Image.Image], fps: int = 12) -> io.BytesIO:

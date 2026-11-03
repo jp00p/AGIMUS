@@ -5,7 +5,10 @@ import traceback
 import discord
 from colorama import Style
 
-from common import bot, logger, config, get_channel_ids_list
+from common.channel_utils import get_channel_ids_list
+from common.config_utils import config
+from common.discord_bot import bot
+from common.logs import logger
 
 basic_commands = [
   {

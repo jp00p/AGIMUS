@@ -3,13 +3,17 @@ import random
 
 import discord
 
-from common import logger
-from queries.badge_instances import db_get_user_badge_instances
+from common.logs import logger
 from queries.badge_info import db_get_all_badge_info
+from queries.badge_instances import db_get_badge_instance_by_filename, db_get_user_badge_instances
 from queries.crystal_instances import db_increment_user_crystal_buffer, db_set_user_crystal_buffer
-from queries.echelon_rewards import *
-from queries.echelon_xp import *
-from utils.badge_instances import create_new_badge_instance, create_new_badge_instance_by_filename, db_get_badge_instance_by_filename
+from queries.echelon_rewards import (
+  db_get_full_badge_info_pool,
+  db_get_user_badges_at_prestige_level,
+  db_update_buffer_failure_streak,
+)
+from queries.echelon_xp import db_get_echelon_progress, db_set_user_prestige_level
+from utils.badge_instances import create_new_badge_instance, create_new_badge_instance_by_filename
 from utils.prestige import PRESTIGE_TIERS
 
 # Constants

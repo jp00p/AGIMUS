@@ -3,7 +3,9 @@ from datetime import datetime, timedelta
 import discord
 from colorama import Fore, Style
 
-from common import config, bot, logger
+from common.config_utils import config
+from common.discord_bot import bot
+from common.logs import logger
 
 alert_log = {}
 alert_config = config["handlers"]["alerts"]

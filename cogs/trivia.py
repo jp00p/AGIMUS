@@ -8,7 +8,9 @@ from discord import option
 from discord.ext import commands, tasks
 from trivia import trivia
 
-from common import config, logger, bot
+from common.config_utils import config
+from common.discord_bot import bot
+from common.logs import logger
 from queries.jackpot import set_player_score, increase_jackpot
 from utils.check_channel_access import access_check
 

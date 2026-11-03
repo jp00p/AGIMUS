@@ -1,6 +1,8 @@
 import discord
 
-from common import bot, config, logger
+from common.config_utils import config
+from common.discord_bot import bot
+from common.logs import logger
 
 
 class ShimodaModal(discord.ui.Modal):

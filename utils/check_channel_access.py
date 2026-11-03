@@ -1,7 +1,9 @@
 import discord
 from colorama import Fore
 
-from common import config, get_channel_ids_list, logger, DEV_CHANNEL
+from common.channel_utils import DEV_CHANNEL, get_channel_ids_list
+from common.config_utils import config
+from common.logs import logger
 
 
 def _channel_ids_to_check(channel: discord.abc.GuildChannel) -> set[int]:

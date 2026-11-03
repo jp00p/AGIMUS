@@ -1,19 +1,40 @@
+import random
 from collections import defaultdict
 
+import discord
 from discord import option
 from discord.ext import commands
 from pymysql.err import IntegrityError
 
+from handlers.echelon_xp import (
+  award_xp,
+  force_set_xp,
+  xp_progress_within_level,
+  xp_required_for_level,
+)
 from handlers.xp import grant_xp
-from handlers.echelon_xp import *
-from queries.debug import *
-from queries.badge_info import *
-from queries.badge_instances import *
-from queries.crystal_instances import *
-
+from queries.badge_info import db_get_all_badge_info, db_get_badge_info_by_name
+from queries.badge_instances import (
+  db_get_badge_instance_by_badge_info_id,
+  db_get_user_badge_instances,
+)
+from queries.crystal_instances import (
+  db_get_available_crystal_types,
+  db_get_crystal_by_type_id,
+  db_get_crystal_rarity_weights,
+  db_get_crystals_by_rarity,
+  db_get_user_crystal_buffer_count,
+  db_increment_user_crystal_buffer,
+  db_set_user_crystal_buffer,
+)
+from queries.debug import db_orphan_badge_instances_by_prestige
+from queries.echelon_rewards import db_update_buffer_failure_streak
+from queries.echelon_xp import db_get_echelon_progress
+from utils.badge_instances import create_new_badge_instance
 from utils.crystal_effects import delete_crystal_effects_cache
-from utils.crystal_instances import *
-from utils.echelon_rewards import *
+from utils.crystal_instances import attune_crystal_to_badge, create_new_crystal_instance
+from utils.echelon_rewards import award_possible_crystal_pattern_buffer, is_user_within_pqif
+from utils.prestige import PRESTIGE_TIERS
 from utils.string_utils import strip_bullshit
 
 class Debug(commands.Cog):

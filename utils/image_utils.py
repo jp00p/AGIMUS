@@ -5,30 +5,33 @@ import math
 import os
 import random
 import textwrap
+import threading
 import time
-
 from asyncio import to_thread
-from concurrent.futures import ThreadPoolExecutor
 from collections import namedtuple
-
-import discord
-from PIL import Image, ImageFont, ImageDraw, ImageChops
-from emoji import EMOJI_DATA
+from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from pathlib import Path
+
 import cv2
+import discord
 import regex
-import threading
+from PIL import Image, ImageChops, ImageDraw, ImageFont
+from emoji import EMOJI_DATA
 
-from common import logger, THREAD_POOL
-from queries.badge_info import *
-from queries.badge_instances import *
-
-from utils.animation_cache import *
-from utils.badge_cache import *
+from common import THREAD_POOL
+from common.logs import logger
+from queries.badge_info import db_get_badge_info_by_name, db_get_max_badge_count
+from queries.badge_instances import db_get_badge_instances_count_for_user
+from utils.animation_cache import (
+  get_cached_crystal_replicator_animation_path,
+  save_cached_crystal_replicator_animation,
+)
+from utils.badge_cache import get_cached_base_badge_canvas
 from utils.crystal_effects import apply_crystal_effect
+from utils.database import AgimusDB
 from utils.encode_utils import encode_webp
-from utils.prestige import PRESTIGE_TIERS, PRESTIGE_THEMES
+from utils.prestige import PRESTIGE_THEMES, PRESTIGE_TIERS
 from utils.thread_utils import threaded_image_open
 
 BEEP_BOOPS = [
@@ -425,9 +428,9 @@ async def compose_badge_grid(canvas, badge_data, theme, collection_type):
   # t2b = time.perf_counter()
   slot_frame_stacks = await loop.run_in_executor(
     THREAD_POOL,
-    lambda: [
+    lambda prepared_badges=prepared: [
       _compose_grid_slot(badge, collection_type, theme, image)
-      for badge, image in prepared
+      for badge, image in prepared_badges
     ]
   )
   # t3 = time.perf_counter()

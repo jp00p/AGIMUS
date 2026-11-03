@@ -1,21 +1,23 @@
+import io
 import os
+import textwrap
 import traceback
 from datetime import datetime
+from pathlib import Path
 
 import discord
 import numpy as np
 from PIL import Image
-
-from common import config, bot, get_channel_id
-from utils.database import AgimusDB
-from utils.thread_utils import to_thread
-
-import io
-import textwrap
-from moviepy import *
+from moviepy import CompositeVideoClip, ImageClip, TextClip, VideoFileClip
 from moviepy.video.fx.FadeIn import FadeIn
 from moviepy.video.fx.FadeOut import FadeOut
 from moviepy.video.fx.Resize import Resize
+
+from common.channel_utils import get_channel_id
+from common.config_utils import config
+from common.discord_bot import bot
+from utils.database import AgimusDB
+from utils.thread_utils import to_thread
 
 
 wrapped_year = datetime.utcnow().year - 1
@@ -413,14 +415,10 @@ def _generate_wrapped_mp4(user_discord_id, user_display_name, wrapped_data):
   final.write_videofile(video_path, codec="libx264", fps=24)
   return video_path
 
-async def _get_image_bytes(file_path) -> bytes:
-    """Read a badge image from the filesystem and return its bytes."""
-
-    # Use aiofiles to read the file asynchronously
-    async with aiofiles.open(file_path, mode="rb") as f:
-        image_bytes = await f.read()
-
-    return image_bytes
+@to_thread
+def _get_image_bytes(file_path) -> bytes:
+  """Read a badge image from the filesystem and return its bytes."""
+  return Path(file_path).read_bytes()
 
 # ________                      .__
 # \_____  \  __ __   ___________|__| ____   ______

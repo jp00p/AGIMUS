@@ -5,7 +5,7 @@ import discord
 import wolframalpha
 from handlers.xp import grant_xp
 
-from common import config
+from common.config_utils import config
 
 
 WOLFRAM_ALPHA_ID = os.getenv('WOLFRAM_ALPHA_ID')
