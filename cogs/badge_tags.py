@@ -1,4 +1,7 @@
-from common import *
+import discord
+from discord import option
+from discord.ext import commands, pages
+
 from queries.badge_instances import *
 from queries.badge_tags import *
 from queries.wishlists import *

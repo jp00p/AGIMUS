@@ -1,4 +1,9 @@
-from common import *
+import random
+
+import discord
+
+from common import config, get_channel_ids_list
+
 
 def get_random_weyounsday_meme():
   memes = [

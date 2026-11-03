@@ -1,5 +1,8 @@
-from common import *
+import discord
+from discord import option
 
+from common import bot, get_user
+from utils.database import AgimusDB
 
 wager_choices = [1, 5, 10, 25, 50, 100]
 

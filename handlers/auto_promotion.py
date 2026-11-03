@@ -1,5 +1,10 @@
 # handlers/auto_promotion.py
-from common import *
+import random
+
+import discord
+from colorama import Style, Fore
+
+from common import config, get_channel_id, logger, get_emoji, bot
 from handlers.echelon_xp import get_user_echelon_progress
 from handlers.echelon_xp import award_xp
 

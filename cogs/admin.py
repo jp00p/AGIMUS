@@ -1,6 +1,8 @@
-from common import *
 import random
 from collections import defaultdict
+
+from discord import option
+from discord.ext import commands, pages
 
 from handlers.echelon_xp import *
 from queries.badge_info import *

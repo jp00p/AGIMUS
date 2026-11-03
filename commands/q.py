@@ -1,6 +1,10 @@
-import discord.ext.commands
+import json
 
-from common import *
+import discord.ext.commands
+from colorama import Fore
+from discord.ext import commands
+
+from common import bot, get_user, logger, update_user, config
 from utils.check_channel_access import access_check
 
 @bot.command()
@@ -11,9 +15,10 @@ async def qget(ctx, user:str):
   and will get a user's DB details
   """
   selected_user = user.replace("<@", "").replace(">","")
-  if is_integer(selected_user):
+  try:
+    selected_user = int(selected_user)
     await display_user(selected_user, ctx)
-  else:
+  except TypeError:
     await ctx.send("Usage: !qget [user]")
 
 
@@ -40,11 +45,11 @@ async def qset(ctx: discord.ext.commands.Context, user:str, key:str, value:str):
     await ctx.send(f"Can only modify these values:```\n{modifiable}\n```")
   else:
     if change_column in modifiable_ints:
-      if not is_integer(change_value):
+      try:
+        await update_user(selected_user, change_column, int(change_value))
+      except ValueError:
         await ctx.reply(f"`{change_value}` is not an integer!")
         return
-      else:
-        await update_user(selected_user, change_column, change_value)
     elif change_column in modifiable_strings:
       await update_user(selected_user, change_column, change_value)
     await display_user(selected_user, ctx)

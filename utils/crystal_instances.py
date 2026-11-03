@@ -1,6 +1,5 @@
+import random
 from datetime import datetime
-
-from common import *
 
 from queries.crystal_instances import *
 

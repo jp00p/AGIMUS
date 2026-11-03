@@ -1,4 +1,8 @@
-from common import *
+import discord
+
+from common import config, logger
+from utils.db_backups import run_make_backup
+
 
 def backups_task(client):
   async def backups():

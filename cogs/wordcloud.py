@@ -1,7 +1,18 @@
+import random
+import re
+import string
 from collections import Counter
 
-from common import *
+import discord
+import numpy as np
+from PIL import Image
+from colorama import Style, Fore
+from discord import option
+from discord.ext import commands
 from wordcloud import WordCloud, STOPWORDS
+
+from common import get_user, logger
+from utils.database import AgimusDB
 from utils import string_utils
 
 #  __      __                .___     .__                   ._______   ____.__

@@ -1,4 +1,8 @@
-from common import *
+import discord
+from discord.ext import commands
+
+from utils.db_backups import run_make_backup_from_command
+
 
 class Backups(commands.Cog):
   def __init__(self, bot):

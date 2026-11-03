@@ -1,6 +1,6 @@
-from common import *
-
 # queries.crystal_instances
+from utils.database import AgimusDB
+
 
 async def db_get_harmonized_crystal(badge_instance_id: int):
   sql = """

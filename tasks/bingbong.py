@@ -1,7 +1,10 @@
 import datetime
+import os
 
+import discord
 import pytz
-from common import *
+
+from common import config
 
 tz = os.getenv('TZ')
 

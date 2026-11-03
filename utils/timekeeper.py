@@ -1,7 +1,7 @@
 import inspect
 from datetime import datetime
 
-from common import *
+import discord
 
 # Timekeeper Functions
 # Prevent spamming a channel with too many commands in too short a period

@@ -1,5 +1,11 @@
-from common import *
+import asyncio
+import io
+import sys
+import traceback
 
+import discord
+
+from common import config, get_channel_ids_list
 
 # In-memory exception log buffer
 exception_log_lines: list[str] = []

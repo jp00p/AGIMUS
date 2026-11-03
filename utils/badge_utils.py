@@ -1,4 +1,4 @@
-from common import *
+import discord
 
 from queries.badge_info import *
 from utils.string_utils import strip_bullshit

@@ -1,4 +1,7 @@
-from common import *
+from colorama import Style, Fore
+from discord.ext import commands
+
+from common import bot, logger
 from utils.check_channel_access import access_check
 
 @bot.command()

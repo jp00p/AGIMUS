@@ -1,4 +1,7 @@
-from common import *
+import discord
+
+from common import config, get_role_ids_list, logger, get_emoji
+
 
 # @commands.check decorator function
 # Can be injected in between @commands.check and your slash function to

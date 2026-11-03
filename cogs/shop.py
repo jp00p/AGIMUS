@@ -1,10 +1,19 @@
-from common import *
+import asyncio
+import json
+
+import discord
+from colorama import Style, Fore
+from discord.ext import commands
 
 from cogs.profile import (
   db_get_user_profile_styles_from_inventory,
   db_get_user_profile_stickers_from_inventory,
   db_get_user_profile_photos_from_inventory
 )
+from common import get_user, config, logger
+from queries.jackpot import set_player_score
+from utils.database import AgimusDB
+
 
 # cogs.shop
 

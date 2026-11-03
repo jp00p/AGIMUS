@@ -1,6 +1,6 @@
-from common import *
-
 from queries.badge_info import db_get_special_badge_info
+from utils.database import AgimusDB
+
 
 async def db_orphan_badge_instances_by_prestige(user_id: int, prestige: int) -> int:
   async with AgimusDB() as db:

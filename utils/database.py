@@ -1,5 +1,7 @@
 import aiomysql
-from common import *
+
+from common.logs import logger
+from common.env import DB_HOST, DB_NAME, DB_USER, DB_PASS
 
 class AgimusDB:
   """Asynchronous Database wrapper for AGIMUS with connection pooling"""
