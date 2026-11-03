@@ -20,9 +20,10 @@ jobs:
         with:
           fetch-depth: 0
       -
-        name: Install stuff with asdf
-        uses: asdf-vm/actions/install@v1
+        name: Install CI tools with asdf
+        uses: asdf-vm/actions/install@v4
         with:
+          asdf_version: "0.20.2"
           tool_versions: |
             action-validator 0.1.2
             dockle 0.4.5
@@ -31,6 +32,9 @@ jobs:
       -
         name: Lint Actions
         run: make --no-print-directory lint-actions
+      -
+        name: Lint Python imports
+        run: pipx run --spec ruff==0.15.17 ruff check --target-version py310 --select F403,F821 .
       # -
       #   name: Lint Container Using Dockle
       #   env:
@@ -49,14 +53,16 @@ jobs:
         with:
           fetch-depth: 0
       -
-        name: Install stuff with asdf
-        uses: asdf-vm/actions/install@v1
+        name: Install CI tools with asdf
+        uses: asdf-vm/actions/install@v4
         with:
+          asdf_version: "0.20.2"
           tool_versions: |
             helm 3.8.1
             yq 4.22.1
       -
         name: KinD Tests
+        id: kind_tests
         shell: bash
         env:
           CONFIGJSON: ${{ secrets.CONFIGJSON }}
@@ -80,7 +86,6 @@ jobs:
           echo "DB_SEED_FILEPATH=$DB_SEED_FILEPATH"
           echo "DB_HOST=$DB_HOST"
           echo "DB_NAME=$DB_NAME"
-          echo "DB_PASS=$DB_PASS"
           echo "DB_USER=$DB_USER"
           echo "DB_DUMP_FILENAME=$DB_DUMP_FILENAME"
           echo "DB_CONTAINER_NAME=$DB_CONTAINER_NAME"
@@ -112,7 +117,7 @@ jobs:
 
       -
         name: Debug
-        if: ${{ always() }}
+        if: ${{ failure() && steps.kind_tests.outcome == 'failure' }}
         shell: bash
         env:
           CONFIGJSON: ${{ secrets.CONFIGJSON }}
