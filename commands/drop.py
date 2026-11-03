@@ -5,9 +5,14 @@ from colorama import Fore
 from discord import option
 from discord.ext import commands
 
-from common import config, bot, logger, get_user, get_emoji
+from common.config_utils import config
+from common.db import get_user
+from common.discord_bot import bot
+from common.emoji_utils import get_emoji
+from common.logs import logger
 from utils.check_channel_access import access_check
-from utils.media_utils import *
+from utils.media_utils import get_media_file, get_media_metadata
+from utils.string_utils import strip_bullshit
 
 command_config = config["commands"]["drop post"]
 

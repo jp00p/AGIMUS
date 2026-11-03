@@ -4,7 +4,10 @@ import discord.ext.commands
 from colorama import Fore
 from discord.ext import commands
 
-from common import bot, get_user, logger, update_user, config
+from common.config_utils import config
+from common.db import get_user, update_user
+from common.discord_bot import bot
+from common.logs import logger
 from utils.check_channel_access import access_check
 
 @bot.command()
@@ -17,9 +20,10 @@ async def qget(ctx, user:str):
   selected_user = user.replace("<@", "").replace(">","")
   try:
     selected_user = int(selected_user)
-    await display_user(selected_user, ctx)
-  except TypeError:
+  except ValueError:
     await ctx.send("Usage: !qget [user]")
+    return
+  await display_user(selected_user, ctx)
 
 
 @bot.command()
@@ -46,10 +50,11 @@ async def qset(ctx: discord.ext.commands.Context, user:str, key:str, value:str):
   else:
     if change_column in modifiable_ints:
       try:
-        await update_user(selected_user, change_column, int(change_value))
+        integer_value = int(change_value)
       except ValueError:
         await ctx.reply(f"`{change_value}` is not an integer!")
         return
+      await update_user(selected_user, change_column, integer_value)
     elif change_column in modifiable_strings:
       await update_user(selected_user, change_column, change_value)
     await display_user(selected_user, ctx)

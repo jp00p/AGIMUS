@@ -1,7 +1,8 @@
 import random
 from datetime import datetime
 
-from queries.crystal_instances import *
+from queries.crystal_instances import db_get_crystal_by_id
+from utils.database import AgimusDB
 
 async def create_new_crystal_instance(user_discord_id: str, crystal_type_id: int, event_type: str = 'replicated') -> dict:
   """

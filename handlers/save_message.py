@@ -2,7 +2,9 @@ import re
 
 import discord
 
-from common import get_channel_ids_list, config, get_user
+from common.channel_utils import get_channel_ids_list
+from common.config_utils import config
+from common.db import get_user
 from utils import string_utils
 from wordcloud import STOPWORDS
 

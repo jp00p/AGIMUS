@@ -5,7 +5,8 @@ import traceback
 
 import discord
 
-from common import config, get_channel_ids_list
+from common.channel_utils import get_channel_ids_list
+from common.config_utils import config
 
 # In-memory exception log buffer
 exception_log_lines: list[str] = []

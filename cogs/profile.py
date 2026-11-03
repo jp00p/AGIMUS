@@ -1,24 +1,30 @@
 import json
 import random
-
-import numpy as np
-import pilgram
 import string
 
-from PIL import ImageFont, Image, ImageDraw
+import discord
+import numpy as np
+import pilgram
+from PIL import Image, ImageDraw, ImageFont
 from colorama import Back, Fore, Style
 from discord import option
 from discord.ext import commands
 
-from common import config, get_user, logger
+from common.config_utils import config
+from common.db import get_user
+from common.logs import logger
 from handlers.echelon_xp import xp_progress_within_level
-from queries.badge_instances import *
+from queries.badge_instances import db_get_badge_instance_by_id, db_get_user_badge_instances
 from queries.crystal_instances import db_get_user_attuned_and_harmonized_crystals
 from queries.echelon_xp import db_get_echelon_progress, db_get_legacy_xp_data
-from utils.badge_utils import *
 from utils.database import AgimusDB
-from utils.image_utils import draw_dynamic_text, generate_singular_badge_slot, buffer_image_to_discord_file, encode_webp
-from utils.prestige import *
+from utils.encode_utils import encode_webp
+from utils.image_utils import (
+  buffer_image_to_discord_file,
+  draw_dynamic_text,
+  generate_singular_badge_slot,
+)
+from utils.prestige import PRESTIGE_TIERS, autocomplete_prestige_tiers, is_prestige_valid
 from utils.string_utils import strip_bullshit
 
 f = open(config["commands"]["shop"]["data"])

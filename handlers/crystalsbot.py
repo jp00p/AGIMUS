@@ -1,8 +1,11 @@
+import random
+
 import discord
 
-from common import config, get_channel_ids_list
+from common.channel_utils import get_channel_ids_list
+from common.config_utils import config
 from utils.media_utils import get_media_file
-from utils.string_utils import *
+from utils.string_utils import is_crystals
 
 PERCENTAGE_THRESHOLD = 5
 

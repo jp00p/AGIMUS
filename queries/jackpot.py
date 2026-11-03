@@ -29,16 +29,23 @@ async def increase_jackpot(amt: int):
         sql = "UPDATE jackpots SET jackpot_value = jackpot_value + %s ORDER BY id DESC LIMIT 1"
         vals = (amt,)
         await query.execute(sql, vals)
-        
-        
-async def set_player_score(user: int|discord.User, increase: int):
+
+
+async def set_player_score(user: int | str | discord.User | discord.Member, increase: int):
+  """
+  This function adjusts a player's score by the given amount, with a floor of zero.
+  NOTE: THIS IS USED BY MULTIPLE GAMES!
+  """
+  if isinstance(user, (int, str)):
+    sql = "UPDATE users SET score = GREATEST(score + %s, 0) WHERE discord_id = %s"
+    vals = (increase, str(user))
+  else:
+    sql = """
+      UPDATE users
+      SET score = GREATEST(score + %s, 0), name = %s
+      WHERE discord_id = %s
     """
-    This function increases a player's score by the value amt
-    NOTE: THIS IS USED BY MULTIPLE GAMES!
-    """
-    if type(user) is str:
-        vals = (user,)
-    else:
-        vals = (user.id,)
-    async with AgimusDB() as query:
-        sql = "UPDATE users SET score = score + %s WHERE discord_id = %s"
+    vals = (increase, user.display_name, str(user.id))
+
+  async with AgimusDB() as query:
+    await query.execute(sql, vals)

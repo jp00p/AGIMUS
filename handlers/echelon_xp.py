@@ -5,7 +5,12 @@ import random
 import discord
 from colorama import Fore, Style, Back
 
-from common import get_user, get_emoji, config, bot, get_channel_id, logger, get_channel_ids_list
+from common.channel_utils import get_channel_id, get_channel_ids_list
+from common.config_utils import config
+from common.db import get_user
+from common.discord_bot import bot
+from common.emoji_utils import get_emoji
+from common.logs import logger
 
 from queries.echelon_xp import db_get_echelon_progress, db_update_echelon_progress, db_insert_echelon_history
 from utils.echelon_rewards import get_user_prestige_level, award_initial_welcome_package, award_level_up_badge, \

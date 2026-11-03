@@ -10,7 +10,9 @@ from cogs.profile import (
   db_get_user_profile_stickers_from_inventory,
   db_get_user_profile_photos_from_inventory
 )
-from common import get_user, config, logger
+from common.config_utils import config
+from common.db import get_user
+from common.logs import logger
 from queries.jackpot import set_player_score
 from utils.database import AgimusDB
 

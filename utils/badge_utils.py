@@ -1,6 +1,11 @@
 import discord
 
-from queries.badge_info import *
+from queries.badge_info import (
+  db_get_all_affiliations,
+  db_get_all_franchises,
+  db_get_all_time_periods,
+  db_get_all_types,
+)
 from utils.string_utils import strip_bullshit
 
 #    _____          __                                     .__          __

@@ -5,7 +5,9 @@ import random
 
 import discord
 
-from common import logger, get_channel_ids_list, config
+from common.channel_utils import get_channel_ids_list
+from common.config_utils import config
+from common.logs import logger
 import queries.arena as db
 from utils.show_utils import get_show_embed
 

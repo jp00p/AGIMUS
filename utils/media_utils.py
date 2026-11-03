@@ -4,7 +4,7 @@ from os.path import exists
 import requests
 from fuzzywuzzy import fuzz
 
-from utils.string_utils import *
+from utils.string_utils import strip_punctuation
 
 FUZZ_THRESHOLD = 72
 def get_media_metadata(media_data, query):

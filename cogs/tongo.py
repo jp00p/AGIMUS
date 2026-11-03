@@ -1,31 +1,81 @@
+import math
+import random
 from collections import defaultdict
-from datetime import timedelta, timezone
+from datetime import datetime, timedelta, timezone
+from typing import Optional
 
+import discord
 import humanize
+from PIL import Image, ImageDraw
 from discord import option
-from discord.ext import pages, commands, tasks
+from discord.ext import commands, pages, tasks
 
-from cogs.trade import get_offered_and_requested_badge_names
-from common import get_channel_id, get_emoji, get_user, config
-
-from queries.badge_info import *
-from queries.badge_instances import *
-from queries.crystal_instances import *
-from queries.tongo import *
+from common.channel_utils import get_channel_id
+from common.config_utils import config
+from common.db import get_user
+from common.emoji_utils import get_emoji
+from common.logs import logger
+from queries.badge_info import db_get_special_badge_info
+from queries.badge_instances import (
+  db_get_badge_instance_by_badge_info_id,
+  db_get_badge_instance_by_id,
+  db_get_owned_badge_filenames,
+  db_get_unlocked_and_unattuned_badge_instances,
+  db_get_user_badge_instances,
+)
+from queries.crystal_instances import (
+  db_increment_user_crystal_buffer,
+  db_select_random_crystal_type_by_rarity_rank,
+)
+from queries.echelon_xp import db_get_echelon_progress
+from queries.tongo import (
+  db_add_game_player,
+  db_add_game_reward,
+  db_add_to_continuum,
+  db_create_tongo_game,
+  db_decrement_user_tongo_dividends,
+  db_get_consortium_tiers_for_game,
+  db_get_continuum_badge_info_prestige_pairs,
+  db_get_full_continuum_badges,
+  db_get_grouped_continuum_badge_info_ids_by_prestige,
+  db_get_last_n_game_ids,
+  db_get_open_game,
+  db_get_players_for_game,
+  db_get_tongo_dividends,
+  db_get_tongo_settings,
+  db_increment_tongo_dividends,
+  db_is_user_in_game,
+  db_remove_from_continuum,
+  db_set_tongo_block_new_games,
+  db_update_game_status,
+)
 from queries.trade import db_cancel_trade, db_get_global_in_progress_trade_instance_ids
-from queries.wishlists import *
-
-from utils.badge_instances import *
-from utils.badge_trades import *
-from utils.badge_utils import *
-from utils.crystal_instances import *
+from queries.wishlists import db_get_active_wants, db_get_simple_wishlist_badges
+from utils.badge_cache import get_cached_base_badge_canvas
+from utils.badge_instances import (
+  create_new_badge_instance,
+  liquidate_badge_instance,
+  transfer_badge_instance,
+)
+from utils.badge_trades import get_offered_and_requested_badge_names
 from utils.check_channel_access import access_check
 from utils.check_user_access import user_check
-from utils.database import AgimusTransactionDB
+from utils.crystal_instances import create_new_crystal_instance, weighted_random_choice
+from utils.database import AgimusDB, AgimusTransactionDB
+from utils.encode_utils import encode_webp
 from utils.exception_logger import log_manual_exception
-from utils.image_utils import *
-from utils.prestige import *
+from utils.image_utils import (
+  buffer_image_to_discord_file,
+  generate_badge_preview,
+  generate_badge_trade_images,
+  generate_crystal_replicator_confirmation_frames,
+  generate_singular_badge_slot,
+  get_theme_colors,
+  load_fonts,
+)
+from utils.prestige import PRESTIGE_TIERS, autocomplete_prestige_tiers, is_prestige_valid
 from utils.string_utils import escape_discord_formatting as edf
+from utils.thread_utils import threaded_image_open
 
 f = open("./data/rules_of_acquisition.txt", "r")
 data = f.read()

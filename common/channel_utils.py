@@ -20,6 +20,14 @@ def get_channel_id(channel_identifier: str) -> int:
   return id
 
 
+# Channel Globals
+# Unless config['channels'] is populated in local-config.json, these will be None
+DEV_CHANNEL = get_channel_id(config["dev_channel"])
+INTRO_CHANNEL = get_channel_id(config["intro_channel"])
+LOGGING_CHANNEL = get_channel_id(config["logging_channel"])
+SERVER_LOGS_CHANNEL = get_channel_id(config["server_logs_channel"])
+
+
 def generate_local_channel_list(client: discord.Bot):
   """
   This runs to apply the local channel list on top of the existing channel config

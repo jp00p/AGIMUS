@@ -5,7 +5,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from colorama import Fore, Style
 
-from common import logger
+from common.logs import logger
 
 tz = os.getenv('TZ')
 

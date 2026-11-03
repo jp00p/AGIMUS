@@ -1,26 +1,47 @@
 import random
 from collections import defaultdict
 
+import discord
 from discord import option
 from discord.ext import commands, pages
 
-from handlers.echelon_xp import *
-from queries.badge_info import *
-from queries.badge_instances import *
-from queries.crystal_instances import *
-from queries.echelon_xp import *
-from queries.server_settings import *
-from queries.tongo import *
-from utils.badge_instances import *
-from utils.crystal_effects import *
-from utils.crystal_instances import *
-from utils.echelon_rewards import *
+from common.logs import logger
+from handlers.echelon_xp import post_badge_grant_embed
+from queries.badge_info import db_get_all_badge_info, db_get_badge_info_by_id
+from queries.badge_instances import (
+  db_get_badge_instance_by_badge_info_id,
+  db_get_badge_instance_by_id,
+  db_get_user_badge_instances,
+)
+from queries.crystal_instances import (
+  db_get_crystal_rank_by_rarity_rank,
+  db_get_user_crystal_buffer_count,
+  db_increment_user_crystal_buffer,
+  db_select_random_crystal_type_by_rarity_rank,
+)
+from queries.echelon_xp import db_get_echelon_progress
+from queries.server_settings import db_set_bonus_xp, db_toggle_bonus_xp
+from queries.tongo import (
+  db_get_full_continuum_badges,
+  db_get_game_by_id,
+  db_get_players_for_game,
+  db_get_rewards_for_game,
+  db_get_thrown_badge_instance_ids_by_user_for_game,
+  db_get_throws_for_game,
+  db_remove_from_continuum,
+  db_remove_player_from_game,
+  db_update_game_status,
+  restore_thrown_badges_to_user,
+)
+from utils.badge_instances import create_new_badge_instance, transfer_badge_instance
+from utils.check_user_access import user_check
+from utils.crystal_effects import delete_crystal_effects_cache
+from utils.crystal_instances import create_new_crystal_instance
+from utils.database import AgimusDB
 from utils.exception_logger import log_manual_exception
 from utils.prestige import PRESTIGE_TIERS
 from utils.settings_utils import db_get_current_xp_enabled_value
 from utils.string_utils import strip_bullshit
-
-from utils.check_user_access import user_check
 
 
 class Admin(commands.Cog):

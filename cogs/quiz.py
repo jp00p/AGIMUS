@@ -11,7 +11,9 @@ from discord import option
 from discord.ext import commands, tasks
 from fuzzywuzzy import fuzz
 
-from common import config, get_emoji, logger
+from common.config_utils import config
+from common.emoji_utils import get_emoji
+from common.logs import logger
 from queries.jackpot import set_player_score, increase_jackpot
 from utils.show_utils import get_show_embed
 from utils.check_channel_access import access_check

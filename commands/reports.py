@@ -10,7 +10,9 @@ from PIL import ImageFont, Image, ImageDraw
 from discord import option
 from discord.ext import commands
 
-from common import bot, logger, get_emoji
+from common.discord_bot import bot
+from common.emoji_utils import get_emoji
+from common.logs import logger
 from common.env import DB_HOST
 from utils.check_channel_access import access_check
 from prettytable import PrettyTable, ORGMODE

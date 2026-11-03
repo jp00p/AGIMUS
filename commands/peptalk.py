@@ -2,7 +2,7 @@ import random
 
 import discord
 
-from common import bot
+from common.discord_bot import bot
 
 salutations = [
   "Champ", "Fact:", "Everybody says", "Dang..", "Check it:", "Just saying...", "Superstar", "Tiger", "Self", "Know this:", "News alert:",

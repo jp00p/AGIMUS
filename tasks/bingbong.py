@@ -4,7 +4,7 @@ import os
 import discord
 import pytz
 
-from common import config
+from common.config_utils import config
 
 tz = os.getenv('TZ')
 

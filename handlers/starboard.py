@@ -6,7 +6,11 @@ from typing import Dict, List
 import discord
 from colorama import Fore, Style
 
-from common import config, logger, get_channel_id, get_channel_ids_list, get_emoji, bot
+from common.channel_utils import get_channel_id, get_channel_ids_list
+from common.config_utils import config
+from common.discord_bot import bot
+from common.emoji_utils import get_emoji
+from common.logs import logger
 from handlers.xp import grant_xp
 from utils.database import AgimusDB
 

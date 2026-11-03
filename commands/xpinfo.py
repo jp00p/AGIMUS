@@ -7,7 +7,9 @@ from PIL import ImageFont, Image, ImageOps, ImageDraw
 from discord import option
 from discord.ext import commands
 
-from common import bot, config, get_channel_id
+from common.channel_utils import get_channel_id
+from common.config_utils import config
+from common.discord_bot import bot
 from utils.string_utils import remove_emoji
 from utils.check_channel_access import access_check
 from utils.database import AgimusDB

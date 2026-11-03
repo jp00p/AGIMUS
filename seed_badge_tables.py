@@ -1,7 +1,7 @@
 import asyncio
 import json
 
-from common import logger
+from common.logs import logger
 from utils.database import AgimusDB
 
 

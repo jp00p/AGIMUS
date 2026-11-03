@@ -2,13 +2,29 @@ import discord
 from discord import option
 from discord.ext import commands, pages
 
-from queries.badge_instances import *
-from queries.badge_tags import *
-from queries.wishlists import *
-from utils.badge_utils import *
+from queries.badge_info import db_get_all_badge_info, db_get_badge_info_by_id
+from queries.badge_instances import db_get_user_badge_instances
+from queries.badge_tags import (
+  db_clear_last_carousel_badge_info,
+  db_create_user_badge_info_tags_associations,
+  db_create_user_badge_tag,
+  db_delete_user_badge_info_tags_associations,
+  db_delete_user_badge_tag,
+  db_get_associated_user_badge_tags_by_info_id,
+  db_get_last_carousel_badge_info,
+  db_get_user_badge_tags,
+  db_get_user_tagged_badge_instances_by_prestige,
+  db_rename_user_badge_tag,
+  db_upsert_last_carousel_badge_info,
+)
+from queries.echelon_xp import db_get_echelon_progress
+from queries.wishlists import (
+  db_add_badge_info_id_to_wishlist,
+  db_lock_badge_instances_by_badge_info_id,
+)
 from utils.check_channel_access import access_check
 from utils.image_utils import generate_badge_collection_images
-from utils.prestige import *
+from utils.prestige import PRESTIGE_TIERS, autocomplete_prestige_tiers, is_prestige_valid
 from utils.string_utils import strip_bullshit
 
 # -> cogs.badge_tags
