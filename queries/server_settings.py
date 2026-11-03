@@ -1,4 +1,5 @@
-from common import *
+from utils.database import AgimusDB
+
 
 # Admin Server Settings
 async def db_get_server_settings() -> dict:

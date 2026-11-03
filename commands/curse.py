@@ -1,4 +1,9 @@
-from common import *
+import json
+import random
+
+import discord
+
+from common import config, bot
 
 command_config = config["commands"]["curse"]
 

@@ -1,4 +1,14 @@
-from common import *
+import asyncio
+import json
+import traceback
+
+import discord
+from colorama import Back, Fore
+from discord.ext import commands, tasks
+
+from common import config, logger, get_channel_id
+from utils.database import AgimusDB
+
 
 class RoleSelect(discord.ui.Select):
   def __init__(self, cog, message_name, post, role_options):

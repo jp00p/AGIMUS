@@ -1,4 +1,4 @@
-from common import *
+from utils.database import AgimusDB
 
 
 # _________                       .__          __  .__

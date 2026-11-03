@@ -1,6 +1,6 @@
-from common import *
-
 # queries.rematerialization
+from utils.database import AgimusDB
+
 
 async def db_get_active_rematerialization(user_discord_id: str) -> dict | None:
   sql = """

@@ -1,9 +1,23 @@
+import json
 import math
+import os
+import random
 import time
-import pytz
+import traceback
+from datetime import datetime
 
-from common import *
+import discord
+import humanize
+import pytz
+from PIL import Image, ImageOps
+from colorama import Style, Fore
+from discord import option
+from discord.ext import commands
+
+from common import config, ROOT_DIR, logger, get_user, get_emoji
+from queries.jackpot import win_jackpot, increase_jackpot, set_player_score
 from utils.check_channel_access import access_check
+from utils.database import AgimusDB
 
 command_config = config["commands"]["slots spin"]
 

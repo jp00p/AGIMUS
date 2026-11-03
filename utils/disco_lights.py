@@ -6,7 +6,7 @@ from pprint import pprint
 from urllib3.exceptions import InsecureRequestWarning
 from huesdk import Hue # https://pypi.org/project/huesdk/
 
-from utils.config_utils import get_config
+from common.config_utils import get_config
 
 # supress insecure request warning for this
 # this is because the connection to the Hue bridge is insecure and requests gets cranky

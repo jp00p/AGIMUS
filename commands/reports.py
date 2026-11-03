@@ -1,10 +1,23 @@
-from os import system
-from common import *
+import os
+import random
+import re
+import traceback
 import platform
-from datetime import date as dtdate
+from datetime import datetime
+
+import discord
+from PIL import ImageFont, Image, ImageDraw
+from discord import option
+from discord.ext import commands
+
+from common import bot, logger, get_emoji
+from common.env import DB_HOST
 from utils.check_channel_access import access_check
-from prettytable import PrettyTable, MARKDOWN, PLAIN_COLUMNS, ORGMODE
+from prettytable import PrettyTable, ORGMODE
 from prettytable.colortable import ColorTable, Themes
+
+from utils.database import AgimusDB
+
 
 @bot.slash_command(
   name="reports",

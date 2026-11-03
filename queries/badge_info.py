@@ -1,6 +1,5 @@
-from common import *
-
 from queries.common import BADGE_INSTANCE_COLUMNS
+from utils.database import AgimusDB
 
 # _________                         __                 __
 # \_   ___ \  ____   ____   _______/  |______    _____/  |_  ______

@@ -1,4 +1,10 @@
-from common import *
+import json
+import random
+
+import discord
+from discord.ext import commands
+
+from utils.database import AgimusDB
 from utils.show_utils import get_show_embed
 
 all_shows = ["tos", "tas", "tng", "ds9", "voy", "enterprise", "disco", "picard", "lowerdecks", "prodigy", "snw", "sfa",

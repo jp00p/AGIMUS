@@ -1,13 +1,22 @@
-from enum import Enum
+import json
+import random
+
+import numpy as np
 import pilgram
 import string
 
-from common import *
+from PIL import ImageFont, Image, ImageDraw
+from colorama import Back, Fore, Style
+from discord import option
+from discord.ext import commands
+
+from common import config, get_user, logger
 from handlers.echelon_xp import xp_progress_within_level
 from queries.badge_instances import *
 from queries.crystal_instances import db_get_user_attuned_and_harmonized_crystals
 from queries.echelon_xp import db_get_echelon_progress, db_get_legacy_xp_data
 from utils.badge_utils import *
+from utils.database import AgimusDB
 from utils.image_utils import draw_dynamic_text, generate_singular_badge_slot, buffer_image_to_discord_file, encode_webp
 from utils.prestige import *
 from utils.string_utils import strip_bullshit
@@ -192,7 +201,7 @@ class Profile(commands.Cog):
       second_role = assignment_names[-1]
 
     user_join = member.joined_at.strftime("%d %B %Y")
-    user_join_stardate = calculate_stardate(member.joined_at)
+    # user_join_stardate = calculate_stardate(member.joined_at)
 
     # User Stats
     echelon_progress = await db_get_echelon_progress(member_id)

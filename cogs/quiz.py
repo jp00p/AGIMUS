@@ -1,7 +1,18 @@
+import json
 import math
-from re import S
+import random
+import string
+import traceback
 
-from common import *
+import discord
+import requests
+from colorama import Fore
+from discord import option
+from discord.ext import commands, tasks
+from fuzzywuzzy import fuzz
+
+from common import config, get_emoji, logger
+from queries.jackpot import set_player_score, increase_jackpot
 from utils.show_utils import get_show_embed
 from utils.check_channel_access import access_check
 

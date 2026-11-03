@@ -1,5 +1,5 @@
 # utils/badge_instances.py
-from common import *
+from datetime import datetime
 
 from queries.badge_info import db_get_badge_info_by_filename
 from queries.badge_instances import *

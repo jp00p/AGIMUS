@@ -1,4 +1,7 @@
-from common import *
+import discord
+
+from common import config, get_channel_ids_list, get_channel_id, bot, logger
+
 
 async def handle_reply_restricted(message:discord.Message):
   blocked_channels = get_channel_ids_list(config["handlers"]["reply_restricted"]["blocked_channels"])

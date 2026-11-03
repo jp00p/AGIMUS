@@ -2,7 +2,11 @@ import os
 from glob import glob
 from pathlib import Path
 
-from common import *
+import discord
+from colorama import Fore
+from discord.ext import commands
+
+from common import bot, logger
 from utils.check_channel_access import access_check
 
 # Path to base bot directory

@@ -1,5 +1,8 @@
-from common import *
 import discord
+from colorama import Fore
+
+from common import config, get_channel_ids_list, logger, DEV_CHANNEL
+
 
 def _channel_ids_to_check(channel: discord.abc.GuildChannel) -> set[int]:
   # Return {channel_id, parent_id_if_thread}

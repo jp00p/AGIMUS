@@ -1,7 +1,9 @@
 from collections import defaultdict
+
+from discord import option
+from discord.ext import commands
 from pymysql.err import IntegrityError
 
-from common import *
 from handlers.xp import grant_xp
 from handlers.echelon_xp import *
 from queries.debug import *

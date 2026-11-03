@@ -4,7 +4,7 @@ import logging
 from threading import Thread
 import websockets
 
-from utils.config_utils import get_config
+from common.config_utils import get_config
 
 # To enable broadcast logging, add the following to your local config file
 # as defined in .env as BOT_LOCAL_CONFIGURATION_FILEPATH

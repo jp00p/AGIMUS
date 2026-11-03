@@ -1,6 +1,6 @@
-from common import *
-
 from queries.common import BADGE_INSTANCE_COLUMNS
+from utils.database import AgimusDB
+
 
 # GET
 async def db_get_user_badge_instance_names_and_ids(user_id: int, prestige: int = 0):
