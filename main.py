@@ -88,6 +88,7 @@ from cogs.trade import Trade
 from cogs.randomep import RandomEp
 from cogs.wishlists import Wishlist
 from cogs.wordcloud import Wordcloud
+from cogs.leaderboard import Leaderboard
 bot.add_cog(Admin(bot))
 bot.add_cog(Backups(bot))
 bot.add_cog(Badges(bot))
@@ -107,6 +108,7 @@ bot.add_cog(Tongo(bot))
 bot.add_cog(Trade(bot))
 bot.add_cog(Wishlist(bot))
 bot.add_cog(Wordcloud(bot))
+bot.add_cog(Leaderboard(bot))
 if config["roles"]["reaction_roles_enabled"]:
   from cogs.role_selects import RoleSelects
   bot.add_cog(RoleSelects(bot))
