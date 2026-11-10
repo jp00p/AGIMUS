@@ -6,6 +6,7 @@ import discord
 from colorama import Style
 from discord.ext import commands
 
+from utils.check_channel_access import access_check
 from utils.show_utils import title_autocomplete
 from common.logs import logger
 import queries.arena as db
@@ -13,6 +14,43 @@ import queries.arena as db
 
 with open("data/info.json") as f:
     show_data:dict[str, dict[str, bool|str]] = json.load(f)
+
+
+class ResultsView(discord.ui.DesignerView):
+    """
+    A designer view to make the results all pretty.
+    """
+    def __init__(self, episode_count: int, min_runs: int, max_runs: int, show: str|None = None):
+        super().__init__(timeout=0, store=False)
+        self.all_trek = show is None
+        self.episode_count = episode_count
+        self.add_item(discord.ui.TextDisplay(f"# The best and worst of {'all Star Trek' if self. all_trek else show}!\n"
+                                             f"There are {episode_count} episodes, and they have been through the arena between "
+                                             f"{min_runs} and {max_runs} times"))
+        
+    def add_winners(self, winners: list[dict]):
+        best_container = discord.ui.Container(color=discord.Colour.random())
+        # best_container.add_text("## The Best")
+        for index, ep in enumerate(winners):
+            text = (f"{index + 1}. {ep['show_name'] if self.all_trek else ''} S{ep['season']}E{ep['episode_number']}: "
+                    f"[**{ep['episode_name']}**](https://memory-alpha.fandom.com/wiki/{ep['memoryalpha']})\n"
+                    f" {ep['description']}")
+            if ep['image']:
+                thumbnail = discord.ui.Thumbnail(ep['image'])
+                best_container.add_section(discord.ui.TextDisplay(text), accessory=thumbnail)
+            else:
+                best_container.add_text(text)
+        self.add_item(best_container)
+        
+    def add_losers(self, losers: list[dict]):
+        worst_container = discord.ui.Container(color=discord.Colour.random())
+        # worst_container.add_text("### The Worst")
+        for index, ep in reversed(list(enumerate(losers))):
+            worst_container.add_text(
+                f"{self.episode_count - index}. {ep['show_name'] if self.all_trek else ''} S{ep['season']}E{ep['episode_number']}: "
+                f"[**{ep['episode_name']}**](https://memory-alpha.fandom.com/wiki/{ep['memoryalpha']})"
+            )
+        self.add_item(worst_container)
 
 
 class Leaderboard(commands.Cog):
@@ -76,12 +114,15 @@ class Leaderboard(commands.Cog):
             'episode_number': episode_details['episode'],
             'memoryalpha': episode_details['memoryalpha'],
             'rank_points': ep['rank_points'],
+            'description': episode_details['description'] if len(episode_details['description']) <= 250
+                                                          else f"{episode_details['description'][:249]}…",
             "image": random.choice(episode_details['stills']) if episode_details['stills'] else None,
         }
         
         
     @badge_group.command(description="Show the overall leader across all of Trek")
     @public_option
+    @commands.check(access_check)
     async def overall(self, ctx: discord.ApplicationContext, public: str):
         logger.info(f"{ctx.author.name} is asking for the {Style.BRIGHT}overall leaderboard{Style.RESET_ALL}")
         
@@ -92,31 +133,21 @@ class Leaderboard(commands.Cog):
         ]
         losers = [
             self.get_episode_info(episode)
-            for episode in await db.get_rated_episodes(3, top=False)
+            for episode in await db.get_rated_episodes(5, top=False)
         ]
     
-        embed = discord.Embed(
-            color = discord.Colour.random(),
-            title = "The best and worst of Star Trek!",
-            thumbnail = winners[0]['image'],
-            description = f"There are {episode_count} episodes, and they have been through the arena between {min_runs} "
-                          f"and {max_runs} times",
-        )
-        embed.add_field(name="The Best", inline=False, value="\n".join(
-            f"1. {ep['show_name']} S{ep['season']}E{ep['episode_number']}: **{ep['episode_name']}**"
-            for ep in winners
-        ))
-        embed.add_field(name="The Worst", inline=False, value="\n".join(
-            f"{episode_count - 2}. {ep['show_name']} S{ep['season']}E{ep['episode_number']}: **{ep['episode_name']}**"
-            for ep in reversed(losers)
-        ))
+        view = ResultsView(episode_count, min_runs, max_runs)
+        view.add_winners(winners)
+        view.add_losers(losers)
+
         
-        await ctx.respond(embed=embed, ephemeral=(public=="no"))
+        await ctx.respond(view=view, ephemeral=False)
         
     
     @badge_group.command(description="Show the leaders for a specific show")
     @public_option
     @show_option
+    @commands.check(access_check)
     async def show(self, ctx: discord.ApplicationContext, public:str, show:str):
         logger.info(f"{ctx.author.name} is looking for the {Style.BRIGHT}leaderboards for {show}{Style.RESET_ALL}")
         
@@ -134,23 +165,11 @@ class Leaderboard(commands.Cog):
         ]
         show_name = show_data[show]['name']
         
-        embed = discord.Embed(
-            color=discord.Colour.random(),
-            title=f"The best and worst of {show_name}",
-            description=f"There are {episode_count} episodes, and they have been through the arena between {min_runs} "
-                        f"and {max_runs} times.",
-            thumbnail=winners[0]['image'],
-        )
-        embed.add_field(name="The Best", value="\n".join(
-            f"S{ep['season']}E{ep['episode_number']}: **{ep['episode_name']}**"
-            for ep in winners
-        ), inline=False)
-        embed.add_field(name="The Worst", value="\n".join(
-            f"S{ep['season']}E{ep['episode_number']}: **{ep['episode_name']}**"
-            for ep in reversed(losers)
-        ), inline=False)
+        view = ResultsView(episode_count, min_runs, max_runs, show_name)
+        view.add_winners(winners)
+        view.add_losers(losers)
         
-        await ctx.respond(embed=embed, ephemeral=(public=='no'))
+        await ctx.respond(view=view, ephemeral=(public=='no'))
         
         
     @badge_group.command(description="See where this episode lands in the arena")
@@ -162,6 +181,7 @@ class Leaderboard(commands.Cog):
         required=True,
         autocomplete=title_autocomplete
     )
+    @commands.check(access_check)
     async def episode(self, ctx: discord.ApplicationContext, public: str, show: str, episode_title: str):
         episode_title = episode_title.strip()
         season_episode_match = self.season_and_episode.match(episode_title)

@@ -619,6 +619,14 @@
       "data": null,
       "parameters": []
     },
+    "leaderboard": {
+      "channels": [
+        "tsunkatse-arena"
+      ],
+      "enabled": true,
+      "data": null,
+      "parameters": []
+    },
     "nasa": {
       "channels": [
         "morns-nonstop-quiz",

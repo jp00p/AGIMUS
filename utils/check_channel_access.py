@@ -1,5 +1,6 @@
 import discord
 from colorama import Fore
+from discord.ext import commands
 
 from common.channel_utils import DEV_CHANNEL, get_channel_ids_list
 from common.config_utils import config
@@ -7,17 +8,28 @@ from common.logs import logger
 
 
 def _channel_ids_to_check(channel: discord.abc.GuildChannel) -> set[int]:
-  # Return {channel_id, parent_id_if_thread}
+  """
+  Return {channel_id, parent_id_if_thread}
+  """
   ids = {channel.id}
   parent_id = getattr(channel, 'parent_id', None)
   if parent_id:
     ids.add(parent_id)
   return ids
 
-async def access_check(ctx):
+
+async def access_check(ctx: commands.Context|discord.ApplicationContext):
+  """
+  Check to see that the command is listed in configuration.json, and that it is allowed in the channel listed.
+  """
   ctx_type = type(ctx).__name__
   try:
-    command_config = config["commands"][f"{ctx.command}"]
+    command_config = config["commands"].get(f"{ctx.command}")
+    if command_config is None:
+      if ctx.command.parent is not None:
+        command_config = config["commands"][ctx.command.parent.name]
+      else:
+        raise KeyError(ctx.command.name)
     has_channel_access = await perform_channel_check(ctx, command_config)
     if not has_channel_access:
       allowed_channels_list = command_config["channels"]
@@ -68,7 +80,11 @@ async def access_check(ctx):
     logger.info(f"Error in acess_check (probably forgot to add the command to configuration.json): {e}")
     return False
 
-async def perform_channel_check(ctx, command_config):
+
+async def perform_channel_check(ctx: commands.Context|discord.ApplicationContext, command_config:dict) -> bool:
+  """
+  Check the current channel (or its parent) against the allowed channels and that there aren't blocked channels.
+  """
   allowed_channels = command_config.get("channels")
   blocked_channels = command_config.get("blocked_channels")
 
