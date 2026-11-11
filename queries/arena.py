@@ -108,16 +108,118 @@ async def create_new_poll(poll_data: Poll):
     (message_id, episode_a_id, episode_b_id)
     VALUES (%s, %s, %s)
     """
-    ep_count_sql = """ UPDATE arena_episodes
+    match_count_sql = """ UPDATE arena_episodes
     SET number_of_matches = number_of_matches + 1
     WHERE id = %s
     """
     args = (poll_data['message_id'], poll_data['episode_a_id'], poll_data['episode_b_id'])
     async with AgimusDB() as query:
         await query.execute(sql, args)
-        await query.execute(ep_count_sql, (poll_data["episode_a_id"], ))
-        await query.execute(ep_count_sql, (poll_data["episode_b_id"], ))
+        await query.execute(match_count_sql, (poll_data["episode_a_id"],))
+        await query.execute(match_count_sql, (poll_data["episode_b_id"],))
         
 
+async def get_stats(show: str|None = None) -> ("number of episodes", "min matches", "max matches"):
+    """
+    Get the basic stats for a show, or if no show, then overall.
+    """
+    sql = """ SELECT count(*), min(number_of_matches), max(number_of_matches)
+    FROM arena_episodes
+    """
+    if show:
+        sql += " WHERE show_name = %s "
+        
+    async with AgimusDB(dictionary=False) as query:
+        await query.execute(sql, (show, ) if show else ())
+        return await query.fetchone()
 
+
+async def get_rated_episodes(count: int, top:bool = True, show: str|None = None) -> list[Episode]:
+    """
+    Get the top or bottom episodes for a show.  if no show is given, then the best/worst from all trek.
+    """
+    sql = """ SELECT *
+    FROM arena_episodes
+    """
+    if show:
+        sql += " WHERE show_name = %s "
+    sql += f"""
+    ORDER BY rank_points {'DESC' if top else 'ASC'}
+    LIMIT {int(count)}
+    """
+
+    async with AgimusDB(dictionary=True) as query:
+        await query.execute(sql, (show, ) if show else ())
+        return await query.fetchall()
     
+    
+async def get_episode_by_index(show: str, index: int) -> Episode|None:
+    """
+    Get the episode by the index and show.  I know I called it “number” when first setting this up.  That was clearly a
+    mistake.
+    """
+    sql = """ SELECT *
+    FROM arena_episodes
+    WHERE show_name = %s AND number = %s
+    """
+    async with AgimusDB(dictionary=True) as query:
+        await query.execute(sql, (show, index))
+        return await query.fetchone()
+
+
+async def get_episode_ranking(id: int) -> ("total count", "rank in total", "show count", "rank in show"):
+    """
+    Get the stats about how well this episode is doing overall and compared to the rest of the show.
+    """
+    sql = """ SELECT count(*),
+      sum(eps.rank_points > this_ep.rank_points) + 1,
+      sum(eps.show_name = this_ep.show_name),
+      sum(eps.show_name = this_ep.show_name && eps.rank_points > this_ep.rank_points) + 1
+    FROM arena_episodes eps
+    INNER JOIN arena_episodes this_ep
+      ON this_ep.id = %s
+    """
+    async with AgimusDB() as query:
+        await query.execute(sql, (id, ))
+        return await query.fetchone()
+
+
+async def get_near_episodes(ep: Episode) -> [Episode]:
+    """
+    Get the nearest episodes by rank, both up and down.
+    """
+    sql_up = """ SELECT *
+    FROM arena_episodes
+    WHERE rank_points >= %s
+      AND id != %s
+    ORDER BY rank_points ASC
+    LIMIT 5
+    """
+    sql_down = """ SELECT *
+    FROM arena_episodes
+    WHERE rank_points <= %s
+      AND id != %s
+    ORDER BY rank_points DESC
+    LIMIT 5
+    """
+    async with AgimusDB(dictionary=True) as query:
+        await query.execute(sql_up, (ep['rank_points'], ep['id']))
+        results = await query.fetchall()
+        results.reverse()
+        await query.execute(sql_down, (ep['rank_points'], ep['id']))
+        results += await query.fetchall()
+    return results
+
+
+async def get_match_from_episodes(episode_a_id:int, episode_b_id:int) -> Poll|None:
+    """
+    Get a match from two episodes.  If you can merge this with the previous query, that'd be nice.
+    """
+    sql = """ SELECT *
+    FROM arena_polls
+    WHERE (episode_a_id = %s AND episode_b_id = %s)
+       OR (episode_b_id = %s AND episode_a_id = %s)
+    """
+    async with AgimusDB(dictionary=True) as query:
+        await query.execute(sql, (episode_a_id, episode_b_id, episode_a_id, episode_b_id))
+        return await query.fetchone()

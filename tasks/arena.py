@@ -29,6 +29,7 @@ phrases_for_no_vote = [
     "I just want to feel included",
     "We get XP for voting, right?",
     "Are these both real episodes?",
+    "I can’t ... remember ... these episodes",
 ]
 
 medium_improvement_phrases = [
@@ -144,7 +145,7 @@ def arena_task(bot: discord.Bot):
             show_details = json.load(f)
         show_data = show_details
         embed = get_show_embed(show_data, episode["number"], show)
-        title = embed.title.replace("\n", " ")
+        title = embed.title.replace("\n", " ").replace("Star Trek: ", "")  # We know it's Star Trek.
         return embed, title if len(title) <= 55 else title[0:54]+'…'  # Poll answers can only be 55 Characters long
     
     async def create_new_poll():
