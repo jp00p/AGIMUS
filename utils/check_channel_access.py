@@ -18,7 +18,7 @@ def _channel_ids_to_check(channel: discord.abc.GuildChannel) -> set[int]:
   return ids
 
 
-async def access_check(ctx: commands.Context|discord.ApplicationContext):
+async def access_check(ctx: commands.Context|discord.ApplicationContext) -> bool:
   """
   Check to see that the command is listed in configuration.json, and that it is allowed in the channel listed.
   """
@@ -29,7 +29,7 @@ async def access_check(ctx: commands.Context|discord.ApplicationContext):
       if ctx.command.parent is not None:
         command_config = config["commands"][ctx.command.parent.name]
       else:
-        raise KeyError(ctx.command.name)
+        raise KeyError(f"{ctx.command}")
     has_channel_access = await perform_channel_check(ctx, command_config)
     if not has_channel_access:
       allowed_channels_list = command_config["channels"]

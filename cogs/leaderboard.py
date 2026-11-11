@@ -6,6 +6,8 @@ import discord
 from colorama import Style
 from discord.ext import commands
 
+from common.channel_utils import get_channel_ids_list
+from common.config_utils import config
 from utils.check_channel_access import access_check
 from utils.show_utils import title_autocomplete
 from common.logs import logger
@@ -227,7 +229,21 @@ class Leaderboard(commands.Cog):
         total_count, total_place, show_count, show_place = await db.get_episode_ranking(episode['id'])
         if not total_count:
             return await self.invalid_show(ctx, show)
-        nearby_episodes = [self.get_episode_info(ep) for ep in await db.get_near_episodes(episode)]
+        channel_list = [self.bot.get_channel(c_id) for c_id in get_channel_ids_list(config["tasks"]["arena"]["channels"])]
+        nearby_episodes = []
+        for ep in await db.get_near_episodes(episode):
+            ep_info = self.get_episode_info(ep)
+            match = await db.get_match_from_episodes(episode['id'], ep['id'])
+            ep_info['match_url'] = None
+            if match is not None:
+                for channel in channel_list:
+                    try:
+                        message = await channel.fetch_message(match['message_id'])
+                        ep_info['match_url'] = message.jump_url
+                        break
+                    except discord.HTTPException:
+                        continue
+            nearby_episodes.append(ep_info)
         
         embed = discord.Embed(
             color=discord.Colour.random(),
@@ -240,7 +256,11 @@ class Leaderboard(commands.Cog):
         embed.add_field(name="All shows", value=f"{total_place}/{total_count}", inline=True)
         embed.add_field(name=self.show_data_cache[show]['title'], value=f"{show_place}/{show_count}", inline=True)
         embed.add_field(name="Episodes in a similar place", value="\n".join(
-            f"{ep['show_name']} S{ep['season']}E{ep['episode_number']}: **{ep['episode_name']}**"
+            (f"[{ep['show_name']} S{ep['season']}E{ep['episode_number']}: **{ep['episode_name']}**]"
+             f"({ep['match_url']})"
+             if ep['match_url'] else
+             f"{ep['show_name']} S{ep['season']}E{ep['episode_number']}: **{ep['episode_name']}**"
+            )
             for ep in nearby_episodes
         ), inline=False)
         

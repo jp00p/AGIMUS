@@ -209,3 +209,17 @@ async def get_near_episodes(ep: Episode) -> [Episode]:
         await query.execute(sql_down, (ep['rank_points'], ep['id']))
         results += await query.fetchall()
     return results
+
+
+async def get_match_from_episodes(episode_a_id:int, episode_b_id:int) -> Poll|None:
+    """
+    Get a match from two episodes.  If you can merge this with the previous query, that'd be nice.
+    """
+    sql = """ SELECT *
+    FROM arena_polls
+    WHERE (episode_a_id = %s AND episode_b_id = %s)
+       OR (episode_b_id = %s AND episode_a_id = %s)
+    """
+    async with AgimusDB(dictionary=True) as query:
+        await query.execute(sql, (episode_a_id, episode_b_id, episode_a_id, episode_b_id))
+        return await query.fetchone()
