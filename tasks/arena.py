@@ -29,6 +29,7 @@ phrases_for_no_vote = [
     "I just want to feel included",
     "We get XP for voting, right?",
     "Are these both real episodes?",
+    "I can’t ... remember ... these episodes",
 ]
 
 medium_improvement_phrases = [

@@ -256,7 +256,7 @@ class Leaderboard(commands.Cog):
         embed.add_field(name="All shows", value=f"{total_place}/{total_count}", inline=True)
         embed.add_field(name=self.show_data_cache[show]['title'], value=f"{show_place}/{show_count}", inline=True)
         embed.add_field(name="Episodes in a similar place", value="\n".join(
-            (f"[{ep['show_name']} S{ep['season']}E{ep['episode_number']}: **{ep['episode_name']}**]"
+            (f"{ep['show_name']} S{ep['season']}E{ep['episode_number']}: [**{ep['episode_name']}**]"
              f"({ep['match_url']})"
              if ep['match_url'] else
              f"{ep['show_name']} S{ep['season']}E{ep['episode_number']}: **{ep['episode_name']}**"
