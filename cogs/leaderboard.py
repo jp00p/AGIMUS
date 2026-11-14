@@ -126,6 +126,8 @@ class Leaderboard(commands.Cog):
     @public_option
     @commands.check(access_check)
     async def overall(self, ctx: discord.ApplicationContext, public: str):
+        ctx.defer(ephemeral=(public == "no"))
+        
         logger.info(f"{ctx.author.name} is asking for the {Style.BRIGHT}overall leaderboard{Style.RESET_ALL}")
         
         episode_count, min_runs, max_runs = await db.get_stats()
@@ -143,7 +145,7 @@ class Leaderboard(commands.Cog):
         view.add_losers(losers)
 
         
-        await ctx.respond(view=view, ephemeral=False)
+        await ctx.respond(view=view)
         
     
     @badge_group.command(description="Show the leaders for a specific show")
@@ -151,6 +153,8 @@ class Leaderboard(commands.Cog):
     @show_option
     @commands.check(access_check)
     async def show(self, ctx: discord.ApplicationContext, public:str, show:str):
+        ctx.defer(ephemeral=(public == "no"))
+        
         logger.info(f"{ctx.author.name} is looking for the {Style.BRIGHT}leaderboards for {show}{Style.RESET_ALL}")
         
         episode_count, min_runs, max_runs = await db.get_stats(show)
@@ -171,7 +175,7 @@ class Leaderboard(commands.Cog):
         view.add_winners(winners)
         view.add_losers(losers)
         
-        await ctx.respond(view=view, ephemeral=(public=='no'))
+        await ctx.respond(view=view)
         
         
     @badge_group.command(description="See where this episode lands in the arena")
@@ -185,6 +189,8 @@ class Leaderboard(commands.Cog):
     )
     @commands.check(access_check)
     async def episode(self, ctx: discord.ApplicationContext, public: str, show: str, episode_title: str):
+        ctx.defer(ephemeral=(public == "no"))
+        
         episode_title = episode_title.strip()
         season_episode_match = self.season_and_episode.match(episode_title)
         
@@ -264,7 +270,7 @@ class Leaderboard(commands.Cog):
             for ep in nearby_episodes
         ), inline=False)
         
-        await ctx.respond(embed=embed, ephemeral=(public=='no'))
+        await ctx.respond(embed=embed)
         
             
     async def invalid_show(self, ctx: discord.ApplicationContext, show: str):

@@ -119,7 +119,7 @@ async def create_new_poll(poll_data: Poll):
         await query.execute(match_count_sql, (poll_data["episode_b_id"],))
         
 
-async def get_stats(show: str|None = None) -> ("number of episodes", "min matches", "max matches"):
+async def get_stats(show: str|None = None) -> tuple[number_of_episodes:=int, min_matches:=int, max_matches:=int]:
     """
     Get the basic stats for a show, or if no show, then overall.
     """
@@ -167,7 +167,7 @@ async def get_episode_by_index(show: str, index: int) -> Episode|None:
         return await query.fetchone()
 
 
-async def get_episode_ranking(id: int) -> ("total count", "rank in total", "show count", "rank in show"):
+async def get_episode_ranking(id: int) -> tuple[total_count:=int, rank_in_total:=int, show_count:=int, rank_in_show:=int]:
     """
     Get the stats about how well this episode is doing overall and compared to the rest of the show.
     """
@@ -204,7 +204,7 @@ async def get_near_episodes(ep: Episode) -> [Episode]:
     """
     async with AgimusDB(dictionary=True) as query:
         await query.execute(sql_up, (ep['rank_points'], ep['id']))
-        results = await query.fetchall()
+        results = await query.fetchall() or []
         results.reverse()
         await query.execute(sql_down, (ep['rank_points'], ep['id']))
         results += await query.fetchall()
