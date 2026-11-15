@@ -126,7 +126,7 @@ class Leaderboard(commands.Cog):
     @public_option
     @commands.check(access_check)
     async def overall(self, ctx: discord.ApplicationContext, public: str):
-        ctx.defer(ephemeral=(public == "no"))
+        await ctx.defer(ephemeral=(public == "no"))
         
         logger.info(f"{ctx.author.name} is asking for the {Style.BRIGHT}overall leaderboard{Style.RESET_ALL}")
         
@@ -153,7 +153,7 @@ class Leaderboard(commands.Cog):
     @show_option
     @commands.check(access_check)
     async def show(self, ctx: discord.ApplicationContext, public:str, show:str):
-        ctx.defer(ephemeral=(public == "no"))
+        await ctx.defer(ephemeral=(public == "no"))
         
         logger.info(f"{ctx.author.name} is looking for the {Style.BRIGHT}leaderboards for {show}{Style.RESET_ALL}")
         
@@ -189,7 +189,7 @@ class Leaderboard(commands.Cog):
     )
     @commands.check(access_check)
     async def episode(self, ctx: discord.ApplicationContext, public: str, show: str, episode_title: str):
-        ctx.defer(ephemeral=(public == "no"))
+        await ctx.defer(ephemeral=(public == "no"))
         
         episode_title = episode_title.strip()
         season_episode_match = self.season_and_episode.match(episode_title)
