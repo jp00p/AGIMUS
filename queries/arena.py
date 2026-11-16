@@ -197,7 +197,7 @@ async def get_near_episodes(ep: Episode) -> [Episode]:
     """
     sql_down = """ SELECT *
     FROM arena_episodes
-    WHERE rank_points <= %s
+    WHERE rank_points < %s
       AND id != %s
     ORDER BY rank_points DESC
     LIMIT 5
