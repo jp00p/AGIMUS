@@ -760,7 +760,15 @@
             "episode": "01",
             "imdb": "tt0708416",
             "memoryalpha": "Amok_Time_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.11.06",
+                    "episode": "Zero-Sum Ick Game",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/zero-sum-ick-game-tos-s2e1",
+                    "order": 399,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/erSLT1qmZjEQUfWblSj19jiYg2w.jpg",
