@@ -6,13 +6,13 @@
 #              and attempt to download metadata from tmdb and memoryalpha
 #              and update the metadata saved in this repo data/episodes/*.json
 name: Update The Greatest Generation Metadata
-on:
+on: workflow_dispatch
   # trigger Thursdays at 2:15pm PT (21:15UTC)
-  schedule:
-    - cron: '15 21 * * 4'
-  repository_dispatch:
-    types:
-      - update-shows
+#  schedule:
+#    - cron: '15 21 * * 4'
+#  repository_dispatch:
+#    types:
+#      - update-shows
 jobs:
   build:
     name: Update The Greatest Generation Metadata
