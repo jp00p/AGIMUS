@@ -257,7 +257,8 @@ class Leaderboard(commands.Cog):
                   f"S{episode_information['season']}E{episode_information['episode']} - "
                   f"{episode_information['title']} doing in the great episode battle?",
             thumbnail=random.choice(episode_information['stills']),
-            description=f"It has gone up against {episode['number_of_matches']} other episodes."
+            description=f"It has gone up against {episode['number_of_matches']} other "
+                        f"episode{'' if episode['number_of_matches'] == 1 else 's'}."
         )
         embed.add_field(name="All shows", value=f"{total_place}/{total_count}", inline=True)
         embed.add_field(name=self.show_data_cache[show]['title'], value=f"{show_place}/{show_count}", inline=True)
