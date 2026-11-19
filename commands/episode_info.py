@@ -10,8 +10,7 @@ from common.config_utils import config
 from common.discord_bot import bot
 from common.logs import logger
 from utils.check_channel_access import access_check
-from utils.show_utils import get_show_embed
-from utils.string_utils import strip_bullshit
+from utils.show_utils import get_show_embed, title_autocomplete
 
 command_config = config["commands"]["episode_info"]
 
@@ -34,21 +33,6 @@ for show_key in show_keys:
 
 season_and_episode = re.compile(r"s\s*(\d+)\s*e\s*(\d+)", re.IGNORECASE)
 
-async def title_autocomplete(ctx: discord.AutocompleteContext):
-  show = ctx.options['show']
-  if exists(f"./data/episodes/{show}.json"):
-    f = open(f"./data/episodes/{show}.json")
-    show_data = json.load(f)
-    f.close()
-    episode_titles = [e['title'] for e in show_data["episodes"]]
-
-    results = []
-    for t in episode_titles:
-      if strip_bullshit(ctx.value.lower()) in strip_bullshit(t.lower()):
-        results.append(t)
-    return results
-  else:
-    return ['Invalid Show!']
 
 @bot.slash_command(
   name="episode_info",
