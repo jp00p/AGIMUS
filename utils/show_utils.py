@@ -1,7 +1,11 @@
+import json
 import random
 from itertools import groupby
+from os.path import exists
 
 import discord
+
+from utils.string_utils import strip_bullshit
 
 
 def get_show_embed(show_data: dict, episode_index: int, show: str) -> discord.Embed:
@@ -59,3 +63,24 @@ def get_show_embed(show_data: dict, episode_index: int, show: str) -> discord.Em
   embed.set_thumbnail(url=image_url)
 
   return embed
+
+
+async def title_autocomplete(ctx: discord.AutocompleteContext):
+  """
+  Autocomplete the episode title, for use with discord.option.  It requires that there is also a `show` option that
+  has already been set.
+  """
+  show = ctx.options['show']
+  if exists(f"./data/episodes/{show}.json"):
+    f = open(f"./data/episodes/{show}.json")
+    show_data = json.load(f)
+    f.close()
+    episode_titles = [e['title'] for e in show_data["episodes"]]
+
+    results = []
+    for t in episode_titles:
+      if strip_bullshit(ctx.value.lower()) in strip_bullshit(t.lower()):
+        results.append(t)
+    return results
+  else:
+    return ['Invalid Show!']
