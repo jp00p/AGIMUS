@@ -784,7 +784,15 @@
             "episode": "02",
             "imdb": "tt0708488",
             "memoryalpha": "Who_Mourns_for_Adonais?_(episode)",
-            "podcasts": [],
+            "podcasts": [
+                {
+                    "airdate": "2026.11.13",
+                    "episode": "Action Figure Nipples",
+                    "link": "https://shows.acast.com/greatest-trek/episodes/action-figure-nipples-tos-s2e2",
+                    "order": 400,
+                    "title": "Greatest Trek"
+                }
+            ],
             "season": "02",
             "stills": [
                 "https://image.tmdb.org/t/p/original/vkPrwjJflA3yOjGPIqqPrp553Pg.jpg",

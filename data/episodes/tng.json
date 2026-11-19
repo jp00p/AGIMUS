@@ -1083,6 +1083,13 @@
             "memoryalpha": "The_Outrageous_Okona_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.11.16",
+                    "episode": "Purple Light District",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/purple-light-district-tng-s2e4",
+                    "order": 651,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.05.04",
                     "episode": "No Joke Is Getting Out Alive",
                     "link": "https://shows.acast.com/the-greatest-generation/episodes/69f1195e5531bfee78634d73",
