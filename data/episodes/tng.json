@@ -1047,6 +1047,13 @@
             "memoryalpha": "Elementary,_Dear_Data_(episode)",
             "podcasts": [
                 {
+                    "airdate": "2026.11.09",
+                    "episode": "Me Too, But Good",
+                    "link": "https://shows.acast.com/the-greatest-generation/episodes/me-too-but-good-tng-s2e3",
+                    "order": 650,
+                    "title": "The Greatest Generation"
+                },
+                {
                     "airdate": "2016.05.02",
                     "episode": "A Long Walk for a Dick Joke",
                     "link": "https://shows.acast.com/the-greatest-generation/episodes/69f119502f651f55f51cb916",

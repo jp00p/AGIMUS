@@ -212,15 +212,15 @@ helm-agimus-pod: ## Display the pod name for AGIMUS
 
 .PHONY: helm-bump-patch
 helm-bump-patch: ## Bump-patch the semantic version of the helm chart using semver tool
-	sed -i 's/'$(shell make version)'/v'$(shell semver bump patch $(shell make version))'/g' charts/agimus/Chart.yaml
+	sed -i 's/'$(shell make --no-print-directory version)'/v'$(shell semver bump patch $(shell make --no-print-directory version))'/g' charts/agimus/Chart.yaml
 
 .PHONY: helm-bump-minor
 helm-bump-minor: ## Bump-minor the semantic version of the helm chart using semver tool
-	sed -i 's/'$(shell make version)'/v'$(shell semver bump minor $(shell make version))'/g' charts/agimus/Chart.yaml
+	sed -i 's/'$(shell make --no-print-directory version)'/v'$(shell semver bump minor $(shell make --no-print-directory version))'/g' charts/agimus/Chart.yaml
 
 .PHONY: helm-bump-major
 helm-bump-major: ## Bump-major the semantic version of the helm chart using semver tool
-	sed -i 's/'$(shell make version)'/v'$(shell semver bump major $(shell make version))'/g' charts/agimus/Chart.yaml
+	sed -i 's/'$(shell make --no-print-directory version)'/v'$(shell semver bump major $(shell make --no-print-directory version))'/g' charts/agimus/Chart.yaml
 
 ##@ Miscellaneous stuff
 
